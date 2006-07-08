@@ -1,0 +1,45 @@
+choice
+	prompt "midge type"
+	default MIDGE_TYPE_TMPFS
+	depends BR2_LINUX_2_4_ADM5120
+config MIDGE_TYPE_JFFS2
+	bool "jffs2"
+config MIDGE_TYPE_TMPFS
+	bool "tmpfs"
+config MIDGE_TYPE_USB
+	bool "usb (not supported)"
+endchoice
+
+
+config MIDGE_KERNEL_BLOCKS
+	int "Size of kernel partition in 64k blocks"
+	default 10
+	depends BR2_LINUX_2_4_ADM5120
+	help
+		Size of kernel partition
+
+config MIDGE_SQUASHFS_BLOCKS
+	int "Size of read-only partition in 64k blocks"
+	default 10
+	depends BR2_LINUX_2_4_ADM5120
+	help
+		Size of kernel partition
+
+
+config BR2_PACKAGE_KMOD_ADM5120_SW
+	prompt "kmod-adm5120-sw................... ADM5120 Switch Driver"
+	tristate
+	depends BR2_LINUX_2_4_ADM5120
+	default y
+	help
+	  Switch driver for adm5120 SoC
+
+config BR2_PACKAGE_KMOD_ADM5120_USB
+	prompt "kmod-usb-shci..................... ADM5120 USB Driver"
+	tristate
+	depends BR2_LINUX_2_4_ADM5120
+	default m
+	help
+		USB driver for ADM5120 (works fine USB storage and maybe USB printers)
+		USB-Webcams, USB-Serial and similar 'interrupt' devices is not supported
+

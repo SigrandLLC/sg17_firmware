@@ -1,0 +1,29 @@
+#!/bin/sh
+
+BIN=/usr/sbin/dnsmasq
+RUN_D=/var/lib/misc
+OPTIONS="-C /etc/dnsmasq.conf"
+PID_F="/var/run/dnsmasq.pid"
+
+[ -x $BIN ] || exit 0
+
+/etc/templates/Update dhcp
+
+case $1 in
+ start)
+  [ -d $RUN_D ] || mkdir -p $RUN_D
+  $BIN $OPTIONS 2>/dev/null
+  ;;
+ stop)
+  [ -f $PID_F ] && kill $(cat $PID_F)
+  ;;
+ restart)
+  $0 stop
+  $0 start
+  ;;
+ *)
+  echo "Usage: $0 (start|stop|restart)"
+  exit 1
+esac
+
+exit $?
