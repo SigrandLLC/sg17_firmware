@@ -131,6 +131,13 @@ config BR2_LINUX_2_4_ADM5120
 	  Build firmware images for ADM5120 based routers
 	  (e.g. Edimax BR6104K )
 
+config BR2_LINUX_2_6_ADM5120
+	bool "ADM5120 based routers [2.6]"
+	select BR2_mipsel
+	help
+	  Build firmware images for ADM5120 based routers
+	  (e.g. Edimax BR6104K )
+
 endif
 
 endchoice

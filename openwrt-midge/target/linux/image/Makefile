@@ -2,17 +2,12 @@ include $(TOPDIR)/rules.mk
 
 KDIR:=$(BUILD_DIR)/linux-$(KERNEL)-$(BOARD)
 
-ifeq ($(BR2_TARGET_ROOTFS_JFFS2),y)
-include ./jffs2.mk
-endif
+prepare-targets:
+compile-targets:
+install-targets:
+install-ib:
+clean-targets:
 
-ifeq ($(BR2_TARGET_ROOTFS_SQUASHFS_LZMA),y)
-include ./squashfs.mk
-endif
-
-ifeq ($(BR2_TARGET_ROOTFS_TGZ),y)
-include ./tgz.mk
-endif
 
 prepare:
 	$(MAKE) prepare-targets $(MAKE_TRACE)

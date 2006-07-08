@@ -1,27 +1,29 @@
 choice
+
 	prompt "midge type"
 	default MIDGE_TYPE_TMPFS
 	depends BR2_LINUX_2_4_ADM5120
-config MIDGE_TYPE_JFFS2
-	bool "jffs2"
-config MIDGE_TYPE_TMPFS
-	bool "tmpfs"
-config MIDGE_TYPE_USB
-	bool "usb (not supported)"
+	config MIDGE_TYPE_JFFS2
+		bool "jffs2"
+	config MIDGE_TYPE_TMPFS
+		bool "tmpfs"
+	config MIDGE_TYPE_USB
+		bool "usb (not supported)"
+
 endchoice
 
 
 config MIDGE_KERNEL_BLOCKS
 	int "Size of kernel partition in 64k blocks"
 	default 10
-	depends BR2_LINUX_2_4_ADM5120
+	depends BR2_LINUX_2_4_ADM5120  
 	help
 		Size of kernel partition
 
 config MIDGE_SQUASHFS_BLOCKS
 	int "Size of read-only partition in 64k blocks"
 	default 10
-	depends BR2_LINUX_2_4_ADM5120
+	depends BR2_LINUX_2_4_ADM5120  
 	help
 		Size of kernel partition
 

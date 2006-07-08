@@ -37,7 +37,17 @@ for i in ${patchdir}/${patchpattern} ; do
     [ -d "${i}" ] && echo "Ignoring subdirectory ${i}" && continue	
     echo ""
     echo "Applying ${i} using ${type}: " 
-    ${uncomp} ${i} | patch -p1 -E -d ${targetdir} 
+    if [ -z $4 ]; then
+	    ${uncomp} ${i} | patch -p1 -E -d ${targetdir} 
+    else
+echo
+echo "Patchimng with ADM5120 patch:"
+echo "file="${i}
+echo "target-dir="${targetdir}
+echo
+	    ${uncomp} ${i} | patch -p0 -E -d ${targetdir} 
+    fi 
+    
     if [ $? != 0 ] ; then
         echo "Patch failed!  Please fix $i!"
 	exit 1

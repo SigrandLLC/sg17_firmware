@@ -1,0 +1,11 @@
+#!/bin/bash
+
+targetdir=$1
+patchdir=$2
+
+set `ls ${patchdir}`
+
+for i 
+do
+    cat ${patchdir}/$i | patch -p0 -E -d ${targetdir}
+done

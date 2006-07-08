@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 # linux kernel headers for toolchain
 
-LINUX_HEADERS_VERSION=2.4.32
+LINUX_HEADERS_VERSION=2.6.16
 LINUX_KERNEL_MD5SUM:=38f4d0830e95a20f4bfed17622d5557c
 LINUX_HEADERS_SITE= \
 		http://www.de.kernel.org/pub/linux/kernel/v2.4 \
@@ -10,7 +10,7 @@ LINUX_HEADERS_SITE= \
 		http://www.fr.kernel.org/pub/linux/kernel/v2.4 \
 		http://www.kernel.org/pub/linux/kernel/v2.4 \
 
-LINUX_HEADERS_SOURCE=linux-$(LINUX_HEADERS_VERSION).tar.bz2
+LINUX_HEADERS_SOURCE=linux-$(LINUX_HEADERS_VERSION).tar.gz
 LINUX_HEADERS_ARCH:=$(shell echo $(ARCH) | sed -e 's/i[3-9]86/i386/' \
 	-e 's/mipseb/mips/' \
 	-e 's/mipsel/mips/' \
@@ -25,15 +25,15 @@ $(DL_DIR)/$(LINUX_HEADERS_SOURCE):
 
 $(LINUX_HEADERS_DIR)/.unpacked: $(DL_DIR)/$(LINUX_HEADERS_SOURCE)
 	mkdir -p $(TOOL_BUILD_DIR)
-	bzcat $(DL_DIR)/$(LINUX_HEADERS_SOURCE) | tar -C $(TOOL_BUILD_DIR) $(TAR_OPTIONS) - \
+	gunzip -c $(DL_DIR)/$(LINUX_HEADERS_SOURCE) | tar -C $(TOOL_BUILD_DIR) $(TAR_OPTIONS) - \
 		linux-$(LINUX_HEADERS_VERSION)/include \
 		linux-$(LINUX_HEADERS_VERSION)/Makefile \
-		linux-$(LINUX_HEADERS_VERSION)/Rules.make \
-		linux-$(LINUX_HEADERS_VERSION)/arch/$(LINUX_HEADERS_ARCH)/Makefile \
+		linux-$(LINUX_HEADERS_VERSION)/Kbuild \
 		linux-$(LINUX_HEADERS_VERSION)/scripts \
-		linux-$(LINUX_HEADERS_VERSION)/arch/$(LINUX_HEADERS_ARCH)/config*.in \
-		linux-$(LINUX_HEADERS_VERSION)/*/*/Config.in \
-		linux-$(LINUX_HEADERS_VERSION)/*/Config.in
+		linux-$(LINUX_HEADERS_VERSION)/*/*/Kconfig* \
+		linux-$(LINUX_HEADERS_VERSION)/*/Kconfig* \
+		linux-$(LINUX_HEADERS_VERSION)/*/*/Makefile \
+		linux-$(LINUX_HEADERS_VERSION)/*/Makefile
 	(cd $(LINUX_HEADERS_DIR)-$(LINUX_HEADERS_VERSION) ; patch -p1 < $(TOPDIR)/toolchain/kernel-headers/patches/include.patch)
 	ln -sf $(LINUX_HEADERS_DIR)-$(LINUX_HEADERS_VERSION) $(LINUX_HEADERS_DIR)
 	$(SED) 's/@expr length/@-expr length/' $(LINUX_HEADERS_DIR)/Makefile 
