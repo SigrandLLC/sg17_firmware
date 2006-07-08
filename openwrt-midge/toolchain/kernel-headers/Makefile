@@ -5,10 +5,10 @@ include $(TOPDIR)/rules.mk
 LINUX_HEADERS_VERSION=2.6.16
 LINUX_KERNEL_MD5SUM:=38f4d0830e95a20f4bfed17622d5557c
 LINUX_HEADERS_SITE= \
-		http://www.de.kernel.org/pub/linux/kernel/v2.4 \
-		http://www.fi.kernel.org/pub/linux/kernel/v2.4 \
-		http://www.fr.kernel.org/pub/linux/kernel/v2.4 \
-		http://www.kernel.org/pub/linux/kernel/v2.4 \
+		http://www.de.kernel.org/pub/linux/kernel/v2.6 \
+		http://www.fi.kernel.org/pub/linux/kernel/v2.6 \
+		http://www.fr.kernel.org/pub/linux/kernel/v2.6 \
+		http://www.kernel.org/pub/linux/kernel/v2.6 \
 
 LINUX_HEADERS_SOURCE=linux-$(LINUX_HEADERS_VERSION).tar.gz
 LINUX_HEADERS_ARCH:=$(shell echo $(ARCH) | sed -e 's/i[3-9]86/i386/' \
