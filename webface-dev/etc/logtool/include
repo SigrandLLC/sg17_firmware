@@ -1,4 +1,0 @@
-# This file takes plain ole POSIX regex's, one per line (just like grep -f)
-#
-# the include file is something you probably want to leave blank, as I have
-# done here.

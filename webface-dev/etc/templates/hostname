@@ -1,8 +1,0 @@
-#!/bin/sh
-
-
-. /etc/templates/lib
-
-show_header $0
-
-kdb get sys_hostname
