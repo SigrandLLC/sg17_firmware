@@ -3,7 +3,6 @@
 #
 echo "IS THIS FILE NEED?"
 echo "IS THIS FILE NEED?"
-echo "IS THIS FILE NEED?"
 #
 
 . /etc/templates/lib
