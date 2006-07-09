@@ -67,9 +67,9 @@ endif
 
 
 ifeq ($(BR2_TAR_VERBOSITY),y)
-TAR_OPTIONS=-xvf
+TAR_OPTIONS=--wildcards -xvf
 else
-TAR_OPTIONS=-xf
+TAR_OPTIONS=--wildcards -xf
 endif
 
 ifneq ($(BR2_LARGEFILE),y)
