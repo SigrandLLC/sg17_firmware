@@ -1,0 +1,5 @@
+# This file takes plain ole POSIX regex's, one per line (just like grep -f)
+# There should be NO blank lines in this file.
+#
+# Examples below
+NETGEAR

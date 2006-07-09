@@ -1,0 +1,67 @@
+# logtool config file sample.  Read the doc's for more detailed information
+#
+# This option determines how to display the timestamp
+time_format=long	# valid values are (long|short)
+show_source=true	# valid values are (true|false)
+show_program=true 	# valid values are (true|false)
+verbose=false		# valid values are (true|flase)
+redbeep=false		# valid values are (true|false) (note: this only affects ANSI mode)
+output_format=ansi	# valid values are (ansi|ascii|csv|html|html_table|raw)
+# do we suppress duplicate messages?
+supdupes=true		# valid values are (true|false)
+#
+sys_ng_host=true	# do we strip the *@'s from syslog-ng's src field?
+# do we print host and ip or both on syslog-ng host field
+hostfmt=ip		# valid values are (name|ip|both) 
+#		
+#
+#
+#
+# valid values for the following are [/path/to/some/file/containing/regex_expressions]
+# you probably want to just leave the defaults, and edit the files accordingly
+includefile=@sysconfdir@/include	
+excludefile=@sysconfdir@/exclude
+#
+greenfile=@sysconfdir@/green
+brightgreenfile=@sysconfdir@/brightgreen
+#
+yellowfile=@sysconfdir@/yellow
+brightyellowfile=@sysconfdir@/brightyellow
+#
+bluefile=@sysconfdir@/blue
+brightbluefile=@sysconfdir@/brightblue
+#
+cyanfile=@sysconfdir@/cyan
+brightcyanfile=@sysconfdir@/brightcyan
+#
+magentafile=@sysconfdir@/magenta
+brightmagentafile=@sysconfdir@/brightmagenta
+#
+whitefile=@sysconfdir@/white
+brightwhitefile=@sysconfdir@/brightwhite
+#
+brightredfile=@sysconfdir@/brightred
+#
+# Module configuration directives
+#
+# mod_resolver directives - non-specific to input type
+#
+# SPECIAL NOTE: this module replaces the module-specific resolvers in 1.2.x!
+#               we no longer honor the old variables in favor of this one.
+modresolv_use=true	# do we resolv ip addresses to hostname($IPADDR) ?
+#
+#
+# mod_syslog directives
+modsys_use=true         # do we parse syslog's?
+#
+# mod_snort directives: class and priority display (true/false)
+modsn_use=true          # do we enable this module, or no?
+modsn_dispclass=true    # Classification display?
+modsn_dispprior=true    # Priority display?
+modsn_dispproto=true    # IP proto display?
+modsn_dispsids=true     # SID display?
+modsn_dispproc=true     # preprocessor display?
+modsn_2lines=false      # 2 line per event display?
+#
+# mod_iptables directives
+modipt_use=true		# do we even use this module?
