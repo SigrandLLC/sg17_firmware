@@ -3,7 +3,7 @@ include $(TOPDIR)/rules.mk
 # linux kernel headers for toolchain
 
 LINUX_HEADERS_VERSION=2.6.16
-LINUX_KERNEL_MD5SUM:=38f4d0830e95a20f4bfed17622d5557c
+#LINUX_KERNEL_MD5SUM:=38f4d0830e95a20f4bfed17622d5557c
 LINUX_HEADERS_SITE= \
 		http://www.de.kernel.org/pub/linux/kernel/v2.6 \
 		http://www.fi.kernel.org/pub/linux/kernel/v2.6 \
