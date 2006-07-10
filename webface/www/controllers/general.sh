@@ -3,13 +3,14 @@
 	. lib/misc.sh
 	. lib/widgets.sh
 
-	flashMessage
 	
 	if [ $REQUEST_METHOD = POST ]; then
 		kdb_vars="sys_hostname sys_iface_eth0_type"
 		subsys="network"
 		save "$kdb_vars" "$subsys"
 	fi
+
+	showSaveMessage
 	
 	eval `$kdb -qq list sys_`
 	printFormBegin general

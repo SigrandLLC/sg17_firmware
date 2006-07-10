@@ -150,7 +150,7 @@ displayMessageBox()
     echo "<tr><td>$text</td></tr></table>"
 }
 
-flashMessage(){
+showSaveMessage(){
 	if [ "" ]; then
 		echo df
 	fi
