@@ -300,7 +300,7 @@ package-$(BR2_PACKAGE_LINSV) += linsv
 #package-$(BR2_COMPILE_AXGETPUT) += axgetput
 #package-$(BR2_PACKAGE_NAIL) += nail
 #package-$(BR2_PACKAGE_XMAIL) += xmailail
-package-$(BR2_PACKAGE_EMPTY) += empty
+#package-$(BR2_PACKAGE_EMPTY) += empty
 
 
 DEV_LIBS:=tcp_wrappers glib ncurses openssl pcre popt zlib libnet libpcap mysql postgresql iptables matrixssl liblzo gmp fuse portmap libelf uclibc++ speex libpng libgd wireless-tools nvram linux-atm libamsel libao libart libdaemon libdb libdnet libevent libffi-sable libgcrypt libgdbm libgpg-error libid3tag libmad libnet libnids libogg libol libosip2 libpcap radiusclient-ng libtasn1 libupnp libusb libvorbis libvorbisidec libxml2 libxslt id3lib net-snmp
