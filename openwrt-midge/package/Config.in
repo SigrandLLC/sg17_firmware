@@ -295,6 +295,8 @@ source "package/microcom/Config.in"
 source "package/picocom/Config.in"
 source "package/serdisplib/Config.in"
 source "package/setserial/Config.in"
+#source "package/logserial/Config.in"                                                                                                          
+#source "package/sredird/Config.in"
 endmenu
 
 menu "Utilities"
@@ -324,10 +326,26 @@ source "package/miax/Config.in"
 endmenu
 
 menu "Mail"
+#source "package/nail/Config.in"
+#source "package/xmail/Config.in"
 endmenu
 
 menu "HamRadio"
+#source "package/ax25-apps/Config.in"                                                                                                          
+#source "package/ax25-tools/Config.in"                                                                                                         
+#source "package/axip/Config.in"                                                                                                               
+#source "package/libax25/Config.in"                                                                                                            
+#source "package/linsv/Config.in"                                                                                                              
+#
+#source "package/aprsd/Config.in"
+#source "package/arlix-utils/Config.in"                                                                                                        
+#source "package/axgetput/Config.in"
 endmenu
+
+menu "Other (for test)"
+#source "package/empty/Config.in"
+endmenu
+
 
 
 comment "Extra stuff"
