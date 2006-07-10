@@ -109,7 +109,7 @@ print_dsl_settings(){
 	for iface in `kdb get sys_dsl_ifaces`; do	
 	    printFormBegin dsl dsl_save.asp
 	    print_dsl_settings $iface
-	    printFormSumbit
+	    printFormSubmit
 	    printFormEnd
 	done	
 

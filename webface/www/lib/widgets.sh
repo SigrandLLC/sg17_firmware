@@ -68,8 +68,7 @@ printFormBegin(){
     [ "$2" ] && act="$2"
 
 	echo "<form action='$act' name='$lname' method='post' tmt:validate='true'>"
-	#echo "<legend>Generic Form</legend>"
-	#echo "<fieldset>"
+	#echo "<input type=hidden name=SESSIONID value='$SESSIONID'>"
 	echo "<table class='inputTable'>"
 }
 
@@ -141,7 +140,7 @@ printInput(){
     validator=''
 }
 
-printFormSumbit(){
+printFormSubmit(){
 	local btn="Ok";
 	[ "$1" ] && btn="$1"
 	echo "<tr> <td colspan=2 style='text-align: center;'> <input class='button' type='submit' name='submit' value='$btn'> </td> </tr>";
@@ -160,3 +159,8 @@ displayMessageBox()
     echo "<tr><td>$text</td></tr></table>"
 }
 
+flashMessage(){
+	if [ "" ]; then
+		echo df
+	fi
+}

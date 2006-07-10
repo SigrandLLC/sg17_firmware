@@ -4,8 +4,10 @@
 #
 
 [ "$refresh" ] && echo "Refresh: $refresh;url=$refresh_url"
+[ -n "$FORM_SESSIONID" ] && SESSIONID=$FORM_SESSIONID
+echo "Set-Cookie: SESSIONID=$SESSIONID; path=/;"
 echo 'Cache-Control: no-cache
-Content-Type: text/html
+Content-Type: text/html; Charset=utf-8
 
 '
 echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">

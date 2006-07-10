@@ -48,7 +48,7 @@
 	validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="netmask"'
 	printInput text "LAN Netmask" sys_iface_eth1_netmask
 
-	printFormSumbit
+	printFormSubmit
 	printFormEnd
 
 ?>

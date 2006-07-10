@@ -71,19 +71,19 @@
 	validator='tmt:required="true" tmt:message="Please input correct netmask" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:pattern="netmask"'
 	printInput text "Netmask" sys_dhcp_netmask
 
-	printFormSumbit
+	printFormSubmit
 	printFormEnd
 
 	printFormBegin dhcp_leases dhcp_save.asp
 	printTableTitle "DHCP Static leases" 2 
 
-	printFormSumbit
+	printFormSubmit
 	printFormEnd
 
 	printFormBegin dhcp_add_lease dhcp_save.asp
 	printTableTitle "Add static lease" 2 
 
-	printFormSumbit
+	printFormSubmit
 	printFormEnd
 ?>
 

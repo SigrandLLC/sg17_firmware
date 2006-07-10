@@ -34,7 +34,7 @@
 	validator='tmt:invalidindex=0 tmt:message="Please select timezone"'
 	printInput select "Time zone" sys_timezone bad "Please select timezone" MSK Moscow EAST East
 
-	printFormSumbit
+	printFormSubmit
 	printFormEnd
 
 ?>

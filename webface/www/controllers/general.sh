@@ -19,6 +19,6 @@
 	validator='tmt:required="true" tmt:message="Please select connection type"'
 	printInput radio "Connection type" sys_iface_eth0_type 'static' 'Static address' 'dhcp' 'Dynamic address' \
 					#	 'pppoe' 'PPPoE connection'  'pptp' 'PPTP connection'
-	printFormSumbit
+	printFormSubmit
 	printFormEnd
 

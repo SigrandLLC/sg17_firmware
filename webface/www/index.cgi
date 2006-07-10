@@ -2,6 +2,10 @@
 <? 
 . common/header.sh 
 
+if [ -r /tmp/$FORM_SESSIONID ]; then
+	. /tmp/$FORM_SESSIONID
+fi
+
 controller=$FORM_controller
 action=$FORM_action
 

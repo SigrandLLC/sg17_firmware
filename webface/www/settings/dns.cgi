@@ -28,7 +28,7 @@
 	validator=''
 	printInput text "Domain" sys_dns_domain
 
-	printFormSumbit
+	printFormSubmit
 	printFormEnd
 
 ?>
