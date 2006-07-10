@@ -22,16 +22,8 @@ printTitle(){
 printTableTitle(){
     local text="$1"
     local colspan;
-    [ "$2" ] && colspan="colspan=$2"
-
-
-    #echo "<tr><th class='caption' $colspan>$text</th></tr>";
-
-    echo "<tr style='height: 15px'><th $colspan style='margin:0; padding:0;'> \
-<table width=100% border=0 cellspacing=0 cellpadding=0 style='margin:0; padding: 0; border:0; height:22'><tr>
-<td width=73 background='/images/cap_left.png' style='border-bottom:0'>
-<td align=center style='border:0; margin:0; padding:0; background: transparent url(/images/cap_middle.png) repeat-x;'><b>$text</b></td>
-<td width=73 background='/images/cap_right.png'</td></tr></table></th></tr>";
+    [ "$2" ] && colspan="colspan='$2'"
+	echo "<tr> <td $colspan class='listtopic'>$text</td> </tr>"
 }
 
 displayEnv() 
@@ -61,15 +53,15 @@ displayString()
     echo "</pre></td></tr></table>"
 }
 printFormBegin(){
-	local act="$SCRIPT_NAME";
+	#local act="$SCRIPT_NAME";
 	local lname="midge_form"
 	[ "$1" ] && lname="$1"
 	[ "$action" ] && act="$action"
     [ "$2" ] && act="$2"
 
-	echo "<form action='$act' name='$lname' method='post' tmt:validate='true'>"
+	echo "<form name='$lname' method='post' tmt:validate='true'>"
 	#echo "<input type=hidden name=SESSIONID value='$SESSIONID'>"
-	echo "<table class='inputTable'>"
+	echo "<table width='100%' border='0' cellspacing='0' cellpadding='0'>"
 }
 
 printInput(){
@@ -88,11 +80,10 @@ printInput(){
 	echo "
 <!-- ------- printInput $* -->"
 
+
     [ ! $type = "hidden" ] && echo "<tr>
-<td class='inputTable' width=200><label for='$inputname' $tipcode>$text</label>
-<br><span class='inputDesc' $tipcode>$desc</span>
-</td>
-<td class='inputTable'>";
+<td width="25%" class='vncellt'><label for='$inputname' $tipcode>$text</label></td>
+<td width="75%" class='listr'>";
 
     case $type in
     text)
@@ -133,7 +124,7 @@ printInput(){
         ;;
 	esac
         
-    [ ! $type = "hidden" ] && echo "</td></tr>"
+    [ ! $type = "hidden" ] && echo "<br><span class='inputDesc' $tipcode>$desc</span></td></tr>"
 	echo "<!-- ------- /printInput $* -->"
     tip=''
     desc=''

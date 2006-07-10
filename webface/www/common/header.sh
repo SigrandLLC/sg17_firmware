@@ -13,7 +13,7 @@ Content-Type: text/html; Charset=utf-8
 echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-<title>Title:' $title '</title>
+<title>WebFace</title>
 <script type="text/javascript" src="/js/overlib.js"></script>
 <script type="text/javascript" src="/js/overlib_bubble.js"> </script>
 <script type="text/javascript" src="/js/script_tmt_validator.js"> </script>
@@ -46,5 +46,5 @@ echo '	</td>
         </tr>
 		</table></td>
     <td width="600"><table width="100%" border="0" cellpadding="10" cellspacing="0">
-        <tr><td>' 
+        <tr><td><br /> <br />' 
 		
