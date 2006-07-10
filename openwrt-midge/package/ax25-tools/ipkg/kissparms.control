@@ -1,0 +1,5 @@
+Package: kissparms
+Section: hamradio
+Priority: optional
+Description: this is test
+Depends: 

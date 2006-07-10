@@ -1,0 +1,5 @@
+Package: ax25-call
+Section: hamradio
+Priority: optional
+Description: this is test
+Depends: 

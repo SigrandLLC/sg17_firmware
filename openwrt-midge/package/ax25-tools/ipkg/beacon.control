@@ -1,0 +1,5 @@
+Package: beacon
+Section: hamradio
+Priority: optional
+Description: this is test
+Depends: 

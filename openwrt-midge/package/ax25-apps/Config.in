@@ -1,0 +1,25 @@
+menu "ax25-apps......................... AX25-APPS"
+                                                                                                                                              
+config BR2_COMPILE_AX25-APPS
+        tristate
+        default m
+        depends BR2_PACKAGE_CALL || BR2_PACKAGE_LISTEN
+        select BR2_PACKAGE_LIBAX25
+
+config BR2_PACKAGE_CALL
+        prompt "call.............................. CALL"
+        tristate
+        default m if CONFIG_DEVEL
+        select BR2_COMPILE_CALL
+        help
+          Call - is ...
+
+config BR2_PACKAGE_LISTEN
+        prompt "listen............................ LISTEN"
+        tristate
+        default m if CONFIG_DEVEL
+        select BR2_COMPILE_LISTEN
+        help
+          Listen - is ...
+                                                                                                                                              
+endmenu
