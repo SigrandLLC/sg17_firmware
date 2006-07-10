@@ -323,6 +323,13 @@ source "package/bluez-utils/Config.in"
 source "package/miax/Config.in"
 endmenu
 
+menu "Mail"
+endmenu
+
+menu "HamRadio"
+endmenu
+
+
 comment "Extra stuff"
 source "package/webface/Config.in"
 source "package/sdk/Config.in"
