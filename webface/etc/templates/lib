@@ -15,6 +15,14 @@ show_header(){
     echo "######################################################################################"
 }
 
+is_number(){
+    numb=$1
+    if echo $numb | egrep "^[0-9]+$" >/dev/null 2>/dev/null; then
+        return 0;   # true
+    else
+        return 1;   # false
+    fi
+}
 
 is_ipaddress(){
     ip=$1
@@ -37,6 +45,7 @@ is_netmask(){
 cfg_make(){
 	tmpl="$1"
 	file="$2"
+	args="$3"
 	
 	[ -z "$tmpl" ] && die "Usage: $0 <template name> <file>"
 	[ -z "$file" ] && die "Usage: $0 <template name> <file>"
@@ -46,16 +55,14 @@ cfg_make(){
 	tmpe=/tmp/${tmpl}.err
 	mkdir -p "`dirname $tmp`"
 
-	sh /etc/templates/$tmpl >$tmp 2>$tmpe
+	sh /etc/templates/$tmpl $args >$tmp 2>$tmpe
 	if [ "$?" = 0 ]; then
-		
 		return 0
 	else
 		ERROR_MESSAGE="Creating config file $file failed"
 		ERROR_DETAIL="`cat $tmpe`"
 		return 1
 	fi
-	echo asdf
 }
 
 cfg_commit(){
@@ -83,6 +90,11 @@ update_configs(){
 	dns)
 		cfg_make dnsmasq.conf /etc/dnsmasq.conf && \
 		cfg_make resolv.conf /etc/resolv.conf && \
+		cfg_commit
+		;;
+	dsl*)
+		iface=${sybsys##*.}
+		cfg_make dsl-interfaces "/etc/dsl/${iface}" $iface && \
 		cfg_commit
 		;;
 	esac

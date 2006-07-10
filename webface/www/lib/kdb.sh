@@ -34,7 +34,7 @@ kdb_set_bool(){
 }
 
 kdb_commit(){
-	[ "$DEBUG" ] && echo "/usr/bin/kdb $KDB_PARAMS"
-	$kdb $KDB_PARAMS
+	[ "$DEBUG" ] && echo "$kdb $KDB_PARAMS"
+	`$kdb $KDB_PARAMS`
 	[ "$DEBUG" ] && displayEnv 
 }

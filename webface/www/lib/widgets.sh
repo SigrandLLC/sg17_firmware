@@ -87,12 +87,14 @@ printInput(){
 	shift 3
 
 	echo "
-<!-- ------- printInput $* -->
-<tr>
+<!-- ------- printInput $* -->"
+
+    [ ! $type = "hidden" ] && echo "<tr>
 <td class='inputTable' width=200><label for='$inputname' $tipcode>$text</label>
 <br><span class='inputDesc' $tipcode>$desc</span>
 </td>
 <td class='inputTable'>";
+
     case $type in
     text)
         echo "	<input type='text' class='edit' $tipcode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
@@ -125,10 +127,15 @@ printInput(){
 			shift 2
 		done
 		;;
+    hidden)
+		value="$1"
+		#echo "value="$value > /www/settings/tmpf
+        echo "<input type='hidden' name='$inputname' value='$value'>"
+        ;;
 	esac
         
-	echo "</td></tr>
-<!-- ------- /printInput $* -->"
+    [ ! $type = "hidden" ] && echo "</td></tr>"
+	echo "<!-- ------- /printInput $* -->"
     tip=''
     desc=''
     validator=''

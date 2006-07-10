@@ -17,6 +17,10 @@ svc_reload(){
 		/etc/init.d/S50webface-dnsmasq restart >$logfile 2>&1
 		displayFile $logfile
 	;;
+	dsl*)
+		iface=${sybsys##*.}
+		/etc/init.d/S50dsl restart $iface >$logfile 2>&1
+		displayFile $logfile		
 
 	esac
 }
