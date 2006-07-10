@@ -1,0 +1,10 @@
+config BR2_PACKAGE_LINSV
+	prompt "linsv............................. Linux SuperVozelj node"
+	tristate
+	default m if CONFIG_DEVEL
+	help
+	  Linux SuperVozelj node.
+	  
+	  ftp://ham2.cc.fer.hr/pub/users/9a4gl/openwrt/
+	  http://www.hamradio.crimea.ua/downloads/linux/source/
+
