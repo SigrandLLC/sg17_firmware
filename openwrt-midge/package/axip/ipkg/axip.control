@@ -1,0 +1,5 @@
+Package: axip
+Priority: optional
+Section: hamradio
+Description: A daemon to encapsulate AX25 frames in IP datagrams.
+Depends:
