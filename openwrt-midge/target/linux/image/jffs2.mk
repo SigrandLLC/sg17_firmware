@@ -1,5 +1,5 @@
 ifneq ($(BR2_BIG_ENDIAN),y)
-JFFS2OPTS :=  --pad --little-endian --squash
+JFFS2OPTS :=  -l -v -n -q
 else
 JFFS2OPTS :=  --pad --big-endian --squash
 endif
@@ -24,15 +24,17 @@ $(KDIR)/root.jffs2-8MB: install-prepare
 	@rm -rf $(KDIR)/root/jffs
 	$(STAGING_DIR)/bin/mkfs.jffs2 $(JFFS2OPTS) -e 0x20000 -o $@ -d $(KDIR)/root $(MAKE_TRACE)
 
+$(KDIR)/root.jffs2-32MB: install-prepare $(BOARD)-prepare
+	@rm -rf $(KDIR)/root/jffs
+	$(STAGING_DIR)/bin/mkfs.jffs2 $(JFFS2OPTS) -e 0x4000 -o $@ -d $(KDIR)/root $(MAKE_TRACE)
+
 ifeq ($(IB),)
 jffs2-install: compile-targets $(BOARD)-compile
 endif
 
-jffs2-install: $(KDIR)/root.jffs2-4MB $(KDIR)/root.jffs2-8MB
+jffs2-install: $(KDIR)/root.jffs2-32MB
 	$(TRACE) target/linux/image/$(BOARD)/install
-	$(MAKE) -C $(BOARD) install KERNEL="$(KERNEL)" FS="jffs2-4MB"
-	$(TRACE) target/linux/image/$(BOARD)/install
-	$(MAKE) -C $(BOARD) install KERNEL="$(KERNEL)" FS="jffs2-8MB"
+	$(MAKE) -C $(BOARD) install KERNEL="$(KERNEL)" FS="jffs2-32MB" BOARD="$(BOARD)"
 
 jffs2-install-ib: compile-targets
 	mkdir -p $(IB_DIR)/staging_dir_$(ARCH)/bin

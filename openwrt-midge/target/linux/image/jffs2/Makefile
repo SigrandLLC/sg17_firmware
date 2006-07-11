@@ -15,7 +15,7 @@ $(MTD_DIR)/.unpacked: $(DL_DIR)/$(MTD_SOURCE)
 	touch $(MTD_DIR)/.unpacked
 
 $(MTD_DIR)/util/mkfs.jffs2: $(MTD_DIR)/.unpacked
-	$(MAKE) LINUXDIR=$(LINUX_DIR) -C $(MTD_DIR)/util
+	$(MAKE) -C $(MTD_DIR)/util
 
 $(STAGING_DIR)/bin/mkfs.jffs2: $(MTD_DIR)/util/mkfs.jffs2
 	$(CP) $< $@

@@ -16,6 +16,8 @@ ifeq ($(KERNEL),2.4)
 FSNAME:=$(patsubst jffs2-%,jffs2,$(FS))
 
 ifeq ($(FS),squashfs)
+adm5120-fs-prepare:
+
 $(BIN_DIR)/openwrt-adm5120-$(KERNEL)-$(FSNAME).bin: $(SCRIPT_DIR)/mksyshdr $(SCRIPT_DIR)/padfile
 	rm -f $(KDIR)/root.squashfs
 	mkdir -p $(KDIR)/root/ram
@@ -45,6 +47,7 @@ $(BIN_DIR)/openwrt-adm5120-$(KERNEL)-$(FSNAME).bin: $(SCRIPT_DIR)/mksyshdr $(SCR
 		MIDGE_TYPE=tmpfs \
 		/bin/sh ./mkimage -k $(LINUX_DIR)/vmlinuz -s $(KDIR)/root.squashfs -o $(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin )
 	
+
 install: $(BIN_DIR)/openwrt-adm5120-$(KERNEL)-$(FSNAME).bin
 endif
 
@@ -56,7 +59,29 @@ endif
 
 endif
 
+
+ifeq ($(KERNEL),2.6)
+
+ifeq ($(FS),jffs2-32MB)
+
+adm5120-fs-prepare:
+	/bin/sh ./mk_dev_dir $(KDIR)/root/dev
+
+$(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin: $(SCRIPT_DIR)/mksyshdr $(SCRIPT_DIR)/padfile
+	( 	SG_KERNEL_BLOCKS=$(SG_KERNEL_BLOCKS) \
+		SG_FS_BLOCKS=$(SG_FS_BLOCKS) \
+		PADFILE=$(PADFILE) \
+		CROSS_COMPILE=$(TARGET_CROSS) \
+		IMG_NAME=$(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin \
+		/bin/sh ./mkimage-jffs2 $(KDIR)/root.jffs2-32MB $(BUILD_DIR)/linux/vmlinux )
+
+endif
+
+
+
+endif
+
 clean:
-prepare:
+prepare: adm5120-fs-prepare
 compile:
 install: $(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin
