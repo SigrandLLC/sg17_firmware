@@ -2,47 +2,46 @@ menu "ax25-tools........................ AX25-TOOLS"
                                                                                                                                               
 config BR2_COMPILE_AX25-TOOLS
         tristate
-        default m
-        depends BR2_PACKAGE_AX25-CALL || BR2_PACKAGE_BEACON || BR2_PACKAGE_RXECHO || BR2_PACKAGE_KISSATTACH || BR2_PACKAGE_KISSPARMS
-        select BR2_PACKAGE_LIBAX25
+        default n
+        depends BR2_PACKAGE_LIBAX25
 
 config BR2_PACKAGE_AX25-CALL
         prompt "ax25-call......................... AX25-CALL"
         tristate
-        default m if CONFIG_DEVEL
-        select BR2_COMPILE_AX25-CALL
+        default n
+        select BR2_PACKAGE_LIBAX25
         help
           Ax25-call - is ...
 
 config BR2_PACKAGE_BEACON
         prompt "beacon............................ BEACON"
         tristate
-        default m if CONFIG_DEVEL
-        select BR2_COMPILE_BEACON
+        default n
+        select BR2_PACKAGE_LIBAX25
         help
           Beacon - is ...
 
 config BR2_PACKAGE_RXECHO
         prompt "rxecho............................ RXECHO"
         tristate
-        default m if CONFIG_DEVEL
-        select BR2_COMPILE_RXECHO
+        default n
+        select BR2_PACKAGE_LIBAX25
         help
           Rxecho - is ...
 
 config BR2_PACKAGE_KISSATTACH
         prompt "kissattach........................ KISSATTACH"
         tristate
-        default m if CONFIG_DEVEL
-        select BR2_COMPILE_KISSATTACH
+        default n
+        select BR2_PACKAGE_LIBAX25
         help
           Kissattach - is ...
 
 config BR2_PACKAGE_KISSPARMS
         prompt "kissparms......................... KISSPARMS"
         tristate
-        default m if CONFIG_DEVEL
-        select BR2_COMPILE_KISSPARMS
+        default n
+        select BR2_PACKAGE_LIBAX25
         help
           Kissparms - is ...
                                                                                                                                               

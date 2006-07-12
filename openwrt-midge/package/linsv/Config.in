@@ -1,7 +1,8 @@
 config BR2_PACKAGE_LINSV
 	prompt "linsv............................. Linux SuperVozelj node"
 	tristate
-	default m if CONFIG_DEVEL
+	default n
+	select BR2_PACKAGE_LIBAX25
 	help
 	  Linux SuperVozelj node.
 	  
