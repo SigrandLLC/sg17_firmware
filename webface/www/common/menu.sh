@@ -1,13 +1,14 @@
 
 L1(){
-	echo "<strong>$1</strong><br>"
+	[ -n "$2" ] && echo "<strong><a href='?controller=$2'>$1</a></strong><br>" \
+			|| echo "<strong>$1</strong><br>"
 }
 
 L2(){
 	echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='?controller=$2&action=$3' class='navlnk'>$1</a><br>"
 }
 
-L1 System
+L1 System welcome
 	L2 General 	general show
 	L2 Time		time	show
 	L2 Modem	mode	show

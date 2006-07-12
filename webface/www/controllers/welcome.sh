@@ -6,8 +6,8 @@ echo '
               <tr align="center" valign="top"> 
                 <td height="10" colspan="2">&nbsp;</td>
               </tr>
-              <tr align="center" valign="top"> 
-                <td height="170" colspan="2"><img src="img/SG.jpg" width="520" ></td>
+              <tr align="center" valign="top"><br /> 
+                <td height="170" colspan="2"><img src="img/SG.jpg" width="520" ><br /></td>
               </tr>
               <tr> 
                 <td colspan="2" class="listtopic">System information</td>

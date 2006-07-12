@@ -1,19 +1,4 @@
 #!/usr/bin/haserl
-<? 
-	. ../conf/conf.sh
-	title="Time settings"
-	refresh=$CONF_REFRESH refresh_url="$HTTP_REFERER"
-	. ../common/header.sh
-	. ../lib/misc.sh
-	. ../lib/widgets.sh
-	. ../lib/kdb.sh
-	. ../lib/cfg.sh
-	. ../lib/svc.sh
- ?>
-
-<? printTitle ?>
-
-<?
 
 	kdb_set_bool   sys_rdate_enable && \
 	kdb_set_string sys_rdate_host && \
