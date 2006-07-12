@@ -11,7 +11,7 @@ L2(){
 L1 System welcome
 	L2 General 	general show
 	L2 Time		time	show
-	L2 Modem	mode	show
+	L2 Modem	dsl		show
 	
 L1 Network
 	L2 WAN		wan		show

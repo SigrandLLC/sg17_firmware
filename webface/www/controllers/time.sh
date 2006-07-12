@@ -43,6 +43,3 @@
 	printFormSubmit
 	printFormEnd
 
-?>
-
-<? . ../common/footer.sh ?>
