@@ -27,7 +27,7 @@
 
 	eval `$kdb -qq list sys_`
 	printFormBegin dns 
-	printTableTitle "$title" 2 
+	printTableTitle "DNS Settings" 2 
 
 	# sys_dns_nameserver
 	tip="Dns server for your router BLA BLA BLA"
