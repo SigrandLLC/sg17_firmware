@@ -16,6 +16,7 @@ choice
 endchoice
 						
 
+
 config SG_KERNEL_BLOCKS
 	int "Size of kernel partition in 64k blocks"
 	default 20

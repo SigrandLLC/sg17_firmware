@@ -26,6 +26,10 @@ menu "Kernel Configuration / Device Support"
 
 comment "Device specific configuration"
 
+config BR2_KERNEL_CMDLINE
+        string "Default kernel command string"
+        default ""
+
 source "target/linux/*-2.[46]/Config.in"
 
 comment "Kernel modules"
