@@ -35,8 +35,8 @@
 	showSaveMessage
 
 	eval `$kdb -qq list sys_`
-	printFormBegin dhcp dhcp_save.asp
-	printTableTitle "$title" 2 
+	printFormBegin dhcp
+	printTableTitle "DHCP Settings" 2 
 
 	# sys_dhcp_enable
 	tip=""

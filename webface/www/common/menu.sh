@@ -18,6 +18,10 @@ L1 Network
 	L2 LAN		lan		show
 	L2 Firewall	firewall show
 
+L1 Services
+	L2 DHCP		dhcp	show
+	L2 DNS		dns 	show
+
 #	<a href="javascript:showhide('diag','tri_diag')">
 #					<img src="img/tri_c.gif" id="tri_diag" width="14" height="10" border="0"></a><strong><a href="javascript:showhide('diag','tri_diag')" class="navlnk">Diagnostics</a></strong><br>
 #					<span id="diag"></span>
