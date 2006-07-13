@@ -10,6 +10,7 @@ dest=$3
 
 cp $targ $dest
 dest_tmp=$dest-tmp
+touch $dest_tmp
 sed '/CONFIG_CMDLINE_BOOL=.*/d' $dest > $dest_tmp
 cp $dest_tmp $dest
 
@@ -21,7 +22,8 @@ if [ -n "$cmdl_present" ]; then
 else
 	echo "CONFIG_CMDLINE=$kcmd" >> $dest
 fi
-	echo "CONFIG_CMDLINE_BOOL=y" >> $dest
+	sed '/CONFIG_CMDLINE=/i\CONFIG_CMDLINE_BOOL=y' $dest > $dest_tmp
+	cp $dest_tmp $dest
 
 rm --force $dest_tmp
 
