@@ -24,13 +24,6 @@ $(PKG_BUILD_DIR)/.built:
 	touch $@
 
 $(IPKG_WEBFACE):
-	( if [ -d /home/share/sigrand/ ]; then \
-		cp -a /home/share/sigrand/router/root/etc/templates files/etc; \
-		cp -a /home/share/sigrand/router/root/etc/kdb files/etc/kdb.default; \
-		cp -a /home/share/sigrand/router/root/www files; \
-	else \
-		true; \
-	fi; );
 	( tar cf - -C files --exclude .svn . | tar xvf - -C $(IDIR_WEBFACE)	 )
 	install -d -m0755 $(IDIR_WEBFACE)/usr/bin
 	install -m0755 $(PKG_BUILD_DIR)/kdb $(IDIR_WEBFACE)/usr/bin

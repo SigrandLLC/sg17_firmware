@@ -290,10 +290,10 @@ package-$(BR2_PACKAGE_ZLIB) += zlib
 
 #package-$(BR2_PACKAGE_LOGSERIAL) += logserial
 package-$(BR2_PACKAGE_SREDIRD) += sredird
+package-$(BR2_PACKAGE_LIBAX25) += libax25
 package-$(BR2_COMPILE_AX25-APPS) += ax25-apps
 package-$(BR2_COMPILE_AX25-TOOLS) += ax25-tools
 package-$(BR2_PACKAGE_AXIP) += axip
-package-$(BR2_PACKAGE_LIBAX25) += libax25
 package-$(BR2_PACKAGE_LINSV) += linsv
 #package-$(BR2_PACKAGE_APRSD) += aprsd
 #package-$(BR2_COMPILE_ARLIX-UTILS) += arlix-utils
