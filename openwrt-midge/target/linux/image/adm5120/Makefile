@@ -68,6 +68,7 @@ adm5120-fs-prepare:
 	/bin/sh ./mk_dev_dir $(KDIR)/root/dev
 
 $(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin: $(SCRIPT_DIR)/mksyshdr $(SCRIPT_DIR)/padfile
+	( cd base-files; tar cf - --exclude .svn . | tar xvf - -C $(KDIR)/root/ )
 	( 	SG_KERNEL_BLOCKS=$(SG_KERNEL_BLOCKS) \
 		SG_FS_BLOCKS=$(SG_FS_BLOCKS) \
 		PADFILE=$(PADFILE) \

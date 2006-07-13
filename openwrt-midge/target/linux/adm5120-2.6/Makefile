@@ -16,9 +16,8 @@ $(LINUX_DIR)/.patched: $(LINUX_DIR)/.unpacked
 
 
 adm5120-kern-configured:
-	/bin/sh ./scripts/add_kcmdline config $(BR2_KERNEL_CMDLINE) config-tmp
+	/bin/sh ./scripts/add_kcmdline config $(BR2_KERNEL_CMDLINE) linux-$(BOARD)-$(KERNEL)/config-tmp
 	@cp config-tmp $(LINUX_DIR)/.config
-	rm --force config-tmp
 
 
 
