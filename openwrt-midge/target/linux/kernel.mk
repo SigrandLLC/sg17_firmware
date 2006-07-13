@@ -37,9 +37,14 @@ $(LINUX_DIR)/.depend_done: $(LINUX_DIR)/.configured
 
 $(LINUX_DIR)/vmlinux: $(LINUX_DIR)/.depend_done
 else
+
 $(LINUX_DIR)/.configured: $(LINUX_DIR)/.patched
+ifeq ($(BOARD),adm5120)
+	$(MAKE) adm5120-kern-configured
+endif
 	$(MAKE) -C $(LINUX_DIR) CROSS_COMPILE="$(KERNEL_CROSS)" ARCH=$(LINUX_KARCH) oldconfig prepare scripts $(MAKE_TRACE)
 	touch $@
+
 endif
 
 $(LINUX_DIR)/vmlinux: $(STAMP_DIR)/.linux-compile
