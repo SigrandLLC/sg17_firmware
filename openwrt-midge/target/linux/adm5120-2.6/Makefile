@@ -3,6 +3,8 @@ include $(TOPDIR)/rules.mk
 LINUX_VERSION:=2.6.16
 LINUX_RELEASE:=1
 LINUX_KERNEL_MD5SUM:=9a91b2719949ff0856b40bc467fd47be
+CONFIG_PATH=$(BUILD_DIR)/linux-$(KERNEL)-$(BOARD)/config-tmp
+
 
 include ../rules.mk
 include ./config
@@ -16,8 +18,9 @@ $(LINUX_DIR)/.patched: $(LINUX_DIR)/.unpacked
 
 
 adm5120-kern-configured:
-	/bin/sh ./scripts/add_kcmdline config $(BR2_KERNEL_CMDLINE) linux-$(BOARD)-$(KERNEL)/config-tmp
-	@cp config-tmp $(LINUX_DIR)/.config
+	/bin/sh ./scripts/add_kcmdline config $(BR2_KERNEL_CMDLINE) $(CONFIG_PATH)
+	@cp  $(CONFIG_PATH) $(LINUX_DIR)/.config
+	rm --force  $(CONFIG_PATH)
 
 
 

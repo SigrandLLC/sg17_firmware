@@ -4,13 +4,14 @@ targ=$1
 kcmd=$2
 dest=$3
 
-[ -z $targ ] && exit 0
-[ -z "$kcmd" ] && exit 0
-[ -z $dest ] && dest="config1"
-
 cp $targ $dest
+
+[ -z "$targ" ] && exit 0
+[ -z "$kcmd" ] && exit 0
+[ -z "$dest" ] && dest="config1"
+
 dest_tmp=$dest-tmp
-touch $dest_tmp
+
 sed '/CONFIG_CMDLINE_BOOL=.*/d' $dest > $dest_tmp
 cp $dest_tmp $dest
 
@@ -26,5 +27,3 @@ fi
 	cp $dest_tmp $dest
 
 rm --force $dest_tmp
-
-#
