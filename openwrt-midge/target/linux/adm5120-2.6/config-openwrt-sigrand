@@ -1286,7 +1286,7 @@ BR2_TARGET_ROOTFS_JFFS2=y
 #
 # Device specific configuration
 #
-BR2_KERNEL_CMDLINE=" root=/dev/mtdblock2 rootfstype=jffs2 console=ttyS0"
+BR2_KERNEL_CMDLINE=" root=/dev/mtd/2 rootfstype=jffs2 console=ttyS0"
 SG_FSTYPE_JFFS2=y
 # SG_FSTYPE_TMPFS is not set
 SG_KERNEL_BLOCKS=32
