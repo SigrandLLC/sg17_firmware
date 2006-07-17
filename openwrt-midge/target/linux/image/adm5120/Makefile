@@ -65,10 +65,15 @@ ifeq ($(KERNEL),2.6)
 ifeq ($(FS),jffs2-32MB)
 
 adm5120-fs-prepare:
-	/bin/sh ./mk_dev_dir $(KDIR)/root/dev
+	test -f delete-files-$(KERNEL)-$(FS) && \
+			for f in `cat delete-files-$(KERNEL)-$(FS)`; do \
+				rm -rf $(KDIR)/root/$$f;	\
+			done; 
+	( cd ../../package/base-files/files/$(BOARD)-$(KERNEL) && \
+		tar cf - --exclude .svn . | tar xvf - -C $(KDIR)/root/ \
+	)
 
-$(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin: $(SCRIPT_DIR)/mksyshdr $(SCRIPT_DIR)/padfile
-	( cd base-files; tar cf - --exclude .svn . | tar xvf - -C $(KDIR)/root/ )
+$(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin:
 	( 	SG_KERNEL_BLOCKS=$(SG_KERNEL_BLOCKS) \
 		SG_FS_BLOCKS=$(SG_FS_BLOCKS) \
 		PADFILE=$(PADFILE) \
