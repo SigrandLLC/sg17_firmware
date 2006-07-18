@@ -2,22 +2,23 @@ menu "ax25-apps......................... AX25-APPS"
                                                                                                                                               
 config BR2_COMPILE_AX25-APPS
         tristate
-        default n
-        depends BR2_PACKAGE_LIBAX25
+        default m if CONFIG_DEVEL
+	depends BR2_PACKAGE_CALL || BR2_PACKAGE_LISTEN
+        select BR2_PACKAGE_LIBAX25
 
 config BR2_PACKAGE_CALL
         prompt "call.............................. CALL"
         tristate
-        default n
-        select BR2_PACKAGE_LIBAX25
+        default m if CONFIG_DEVEL
+        select BR2_COMPILE_AX25-APPS
         help
           Call - is ...
 
 config BR2_PACKAGE_LISTEN
         prompt "listen............................ LISTEN"
         tristate
-        default n
-        select BR2_PACKAGE_LIBAX25
+        default m if CONFIG_DEVEL
+        select BR2_COMPILE_AX25-APPS
         help
           Listen - is ...
                                                                                                                                               

@@ -1,7 +1,7 @@
 config BR2_PACKAGE_LIBAX25
 	prompt "libax25........................... AX.25 library (Amateur Radio)"
 	tristate
-	default n
+	default m if CONFIG_DEVEL
 	help
 	  AX.25 library (Amateur Radio).
 	  
