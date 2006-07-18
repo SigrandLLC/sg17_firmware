@@ -678,6 +678,7 @@ BUSYBOX_CONFIG_LOGGER=y
 # BR2_PACKAGE_CTORRENT is not set
 # BR2_PACKAGE_DECO is not set
 # BR2_PACKAGE_ELINKS is not set
+# BR2_PACKAGE_EMPTY is not set
 # BR2_PACKAGE_FETCHMAIL is not set
 # BR2_PACKAGE_GPSD is not set
 # BR2_PACKAGE_GPG is not set
@@ -1184,7 +1185,7 @@ BR2_PACKAGE_ZLIB=y
 # BR2_PACKAGE_PICOCOM is not set
 # BR2_PACKAGE_SERDISPLIB is not set
 # BR2_PACKAGE_SETSERIAL is not set
-BR2_PACKAGE_SREDIRD=m
+# BR2_PACKAGE_SREDIRD is not set
 
 #
 # Utilities
@@ -1222,10 +1223,6 @@ BR2_PACKAGE_SREDIRD=m
 # BR2_PACKAGE_MIAX is not set
 
 #
-# Mail
-#
-
-#
 # HamRadio
 #
 
@@ -1246,11 +1243,6 @@ BR2_PACKAGE_SREDIRD=m
 # BR2_PACKAGE_AXIP is not set
 # BR2_PACKAGE_LIBAX25 is not set
 # BR2_PACKAGE_LINSV is not set
-
-#
-# Other (for test)
-#
-BR2_PACKAGE_EMPTY=m
 
 #
 # Extra stuff
@@ -1277,11 +1269,7 @@ BR2_TARGET_ROOTFS_JFFS2=y
 #
 # Device specific configuration
 #
-<<<<<<< .mine
-BR2_KERNEL_CMDLINE="root=/dev/mtdblock2 rootfstype=jffs2 console=ttyS0"
-=======
 BR2_KERNEL_CMDLINE=" root=/dev/mtd/2 rootfstype=jffs2 console=ttyS0"
->>>>>>> .r54
 SG_FSTYPE_JFFS2=y
 # SG_FSTYPE_TMPFS is not set
 SG_KERNEL_BLOCKS=32
