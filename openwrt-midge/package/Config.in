@@ -22,6 +22,7 @@ source "package/cbtt/Config.in"
 source "package/ctorrent/Config.in"
 source "package/deco/Config.in"
 source "package/elinks/Config.in"
+source "package/empty/Config.in"
 source "package/fetchmail/Config.in"
 source "package/gpsd/Config.in"
 source "package/gpg/Config.in"
@@ -36,6 +37,7 @@ source "package/monit/Config.in"
 source "package/motion/Config.in"
 source "package/mgetty/Config.in"
 source "package/mutt/Config.in"
+#source "package/nail/Config.in"
 source "package/nano/Config.in"
 source "package/osiris/Config.in"
 source "package/php4/Config.in"
@@ -46,6 +48,7 @@ menu "sablevm........................... A Java Virtual Machine (JVM) implementa
 source "package/sablevm/Config.in"
 source "package/sablevm-classpath/Config.in"
 source "package/libffi-sable/Config.in"
+#source "package/xmail/Config.in"
 endmenu
 source "package/sane-backends/Config.in"
 source "package/screen/Config.in"
@@ -325,27 +328,16 @@ source "package/bluez-utils/Config.in"
 source "package/miax/Config.in"
 endmenu
 
-menu "Mail"
-#source "package/nail/Config.in"
-#source "package/xmail/Config.in"
-endmenu
-
 menu "HamRadio"
 source "package/ax25-apps/Config.in"
 source "package/ax25-tools/Config.in"
 source "package/axip/Config.in"
 source "package/libax25/Config.in"
 source "package/linsv/Config.in"
-#
 #source "package/aprsd/Config.in"
 #source "package/arlix-utils/Config.in"
 #source "package/axgetput/Config.in"
 endmenu
-
-menu "Other (for test)"
-source "package/empty/Config.in"
-endmenu
-
 
 
 comment "Extra stuff"
