@@ -73,7 +73,7 @@ adm5120-fs-prepare:
 		tar cf - --exclude .svn . | tar xvf - -C $(KDIR)/root/ \
 	)
 
-$(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin:
+$(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin: $(SCRIPT_DIR)/padfile
 	( 	SG_KERNEL_BLOCKS=$(SG_KERNEL_BLOCKS) \
 		SG_FS_BLOCKS=$(SG_FS_BLOCKS) \
 		PADFILE=$(PADFILE) \

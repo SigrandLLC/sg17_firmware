@@ -5,7 +5,9 @@
 
 start() {
  	echo "Starting network..."
-	/sbin/ifup -a
+#	/sbin/ifup -a
+	ifconfig eth0 192.168.3.2
+	ifconfig eth1 192.168.2.222	
 }	
 stop() {
 	echo -n "Stopping network..."

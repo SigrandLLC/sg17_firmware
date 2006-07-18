@@ -43,7 +43,7 @@ ARCH_HAS_MMU=y
 UCLIBC_HAS_FLOATS=y
 HAS_FPU=y
 # DO_C99_MATH is not set
-KERNEL_SOURCE="./toolchain_build_mipsel/linux"
+KERNEL_SOURCE="/home/artpol/router/router-distrib/openwrt-svn/midge.vlad.org.ua/trunk/openwrt-midge/toolchain_build_mipsel/linux"
 C_SYMBOL_PREFIX=""
 HAVE_DOT_CONFIG=y
 
@@ -74,8 +74,8 @@ UCLIBC_HAS_LFS=y
 MALLOC_STANDARD=y
 MALLOC_GLIBC_COMPAT=y
 UCLIBC_DYNAMIC_ATEXIT=y
-HAS_SHADOW=y
-# UNIX98PTY_ONLY is not set
+# HAS_SHADOW is not set
+UNIX98PTY_ONLY=y
 ASSUME_DEVPTS=y
 UCLIBC_HAS_TM_EXTENSIONS=y
 UCLIBC_HAS_TZ_CACHING=y
