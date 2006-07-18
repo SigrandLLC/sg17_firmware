@@ -1,0 +1,14 @@
+#!/bin/sh
+
+
+echo "===== /etc"
+ls -laR /etc
+
+
+echo
+echo
+echo "===== /dev "
+ls -laR /dev
+
+
+
