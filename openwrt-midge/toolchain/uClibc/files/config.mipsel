@@ -43,7 +43,7 @@ ARCH_HAS_MMU=y
 UCLIBC_HAS_FLOATS=y
 HAS_FPU=y
 # DO_C99_MATH is not set
-KERNEL_SOURCE="/home/artpol/router/router-distrib/openwrt-svn/midge.vlad.org.ua/trunk/openwrt-midge/toolchain_build_mipsel/linux"
+KERNEL_SOURCE="./toolchain_build_mipsel/linux"
 C_SYMBOL_PREFIX=""
 HAVE_DOT_CONFIG=y
 
