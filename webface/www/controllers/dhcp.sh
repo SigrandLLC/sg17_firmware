@@ -3,36 +3,14 @@
 	. lib/misc.sh
 	. lib/widgets.sh
 
-	
 	if [ $REQUEST_METHOD = POST ]; then
-		kdb_set_bool sys_dhcp_enable && \
-		kdb_set_string sys_dhcp_lease_time && \
-		kdb_set_string sys_dhcp_nameserver && \
-		kdb_set_string sys_dhcp_domain_name && \
-		kdb_set_string sys_dhcp_ntpserver && \
-		kdb_set_string sys_dhcp_winsserver && \
-		kdb_set_string sys_dhcp_startip && \
-		kdb_set_string sys_dhcp_endip && \
-		kdb_set_string sys_dhcp_netmask && \
-		kdb_commit
-
-		if [ "$KDB_ERROR" ]; then
-			displayMessageBox "Error" "Savings failed: $KDB_ERROR"
-		else
-			displayMessageBox "Done" "Settings saved"
-
-			update_configs dhcp
-			if [ "$ERROR_MESSAGE" ]; then
-				displayMessageBox "Error" " Configration failed: $ERROR_DETAIL"
-			else
-				displayMessageBox "Done" "Configuration updated"
-				cfg_flash
-				svc_reload dhcp
-			fi
-		fi
+		kdb_vars="bool:sys_dhcp_enable int:sys_dhcp_lease_time str:sys_dhcp_nameserver str:sys_dhcp_domain_name "
+		kdb_vars="$kdb_vars str:sys_dhcp_ntpserver str:sys_dhcp_winsserver str:sys_dhcp_startip str:sys_dhcp_endip "
+		kdb_vars="$kdb_vars str:sys_dhcp_netmask "
+		subsys="dhcp"
+		save "$subsys" "$kdb_vars" 
+		showSaveMessage
 	fi
-
-	showSaveMessage
 
 	eval `$kdb -qq list sys_`
 	printFormBegin dhcp

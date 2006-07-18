@@ -5,22 +5,22 @@
 
 service_reload(){
 	local service="$1"
-	local logfile=/tmp/$svc.svc.log
+	local logfile=/tmp/$service.svc.log
 
 	case "$service" in
 	network)
 		/etc/init.d/S40network restart >$logfile 2>&1
-		displayFile $logfile
+		#displayFile $logfile
 	;;
 
 	dhcp|dns)
 		/etc/init.d/S50webface-dnsmasq restart >$logfile 2>&1
-		displayFile $logfile
+		#displayFile $logfile
 	;;
 	dsl*)
 		iface=${sybsys##*.}
 		/etc/init.d/S50dsl restart $iface >$logfile 2>&1
-		displayFile $logfile		
+		#displayFile $logfile		
 
 	esac
 }

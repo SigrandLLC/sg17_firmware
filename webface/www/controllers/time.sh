@@ -6,17 +6,11 @@
 	
 	if [ $REQUEST_METHOD = POST ]; then
 		# TODO: migrate to save()?
-		kdb_set_bool   sys_rdate_enable && \
-		kdb_set_string sys_rdate_host && \
-		kdb_set_string sys_timezone && \
-		kdb_commit
-
-		kdb_vars="sys_hostname sys_iface_eth0_type"
-		subsys="network"
-		save "$kdb_vars" "$subsys"
+		kdb_vars="bool:sys_rdate_enable str:sys_rdate_host str:sys_timezone"
+		subsys="time"
+		save "$subsys" "$kdb_vars" 
+		showSaveMessage
 	fi
-
-	showSaveMessage
 
 	eval `$kdb -qq list sys_`
 	printFormBegin time time_save.asp
