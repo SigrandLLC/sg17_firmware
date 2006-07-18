@@ -164,6 +164,7 @@ package-$(BR2_PACKAGE_MT_DAAPD) += mt-daapd
 package-$(BR2_PACKAGE_MTR) += mtr
 package-$(BR2_PACKAGE_MUTT) += mutt
 package-$(BR2_COMPILE_MYSQL) += mysql
+package-$(BR2_PACKAGE_NAIL) += nail
 package-$(BR2_PACKAGE_NANO) += nano
 package-$(BR2_COMPILE_NCURSES) += ncurses
 package-$(BR2_COMPILE_NDISC6) += ndisc
@@ -295,11 +296,9 @@ package-$(BR2_PACKAGE_XINETD) += xinetd
 package-$(BR2_PACKAGE_XSUPPLICANT) += xsupplicant
 package-$(BR2_PACKAGE_ZLIB) += zlib
 
-#package-$(BR2_PACKAGE_LOGSERIAL) += logserial
 #package-$(BR2_PACKAGE_APRSD) += aprsd
 #package-$(BR2_COMPILE_ARLIX-UTILS) += arlix-utils
 #package-$(BR2_COMPILE_AXGETPUT) += axgetput
-#package-$(BR2_PACKAGE_NAIL) += nail
 #package-$(BR2_PACKAGE_XMAIL) += xmail
 
 
