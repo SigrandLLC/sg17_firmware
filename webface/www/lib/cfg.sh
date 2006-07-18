@@ -4,6 +4,7 @@
 # 
 
 . /etc/templates/lib
+. lib/service.sh
 
 cfg_flash(){
 	# for original midge with 2M flash
@@ -11,18 +12,31 @@ cfg_flash(){
 }
 
 save(){
-	local kdb_vars="$1"
-	local sybsys="$2"
+	local sybsys="$1"
+	local kdb_vars="$2"
+	local param;
+	local ptype;
 
 	while true; do 
 		ok_str="Settings saved"
 
 		for v in $kdb_vars; do
-			kdb_set_string $v
+			ptype=${v%%:*}
+			param=${v##$ptype:}
+			[ "$DEBUG" ] && echo "save(): param=$param ptype=$ptype<br>"
+			case $ptype in
+				str)	kdb_set_string $param ;;
+				int)	kdb_set_int $param ;;
+				bool)	kdb_set_bool $param ;;
+				*)		ERROR_MESSAGE="save(): Unknown type '$ptype'"
+			esac
+			[ -n "$ERROR_MESSAGE" ] && break;
 		done
+		[ -n "$ERROR_MESSAGE" ] && break;
+		
 		kdb_commit
 		fail_str="Savings failed: $ERROR_DETAIL"
-		[ "$ERROR_MESSAGE" ] && break
+		[ -n "$ERROR_MESSAGE" ] && break
 
 		for s in $subsys; do 
 			update_configs $s
@@ -32,7 +46,7 @@ save(){
 		[ "$ERROR_MESSAGE" ] && break
 
 		cfg_flash
-		svc_reload $subsys
+		service_reload $subsys
 		break;
 	done;
 }

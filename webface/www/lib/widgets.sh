@@ -61,6 +61,8 @@ printFormBegin(){
 
 	echo "<form name='$lname' method='post' tmt:validate='true'>"
 	#echo "<input type=hidden name=SESSIONID value='$SESSIONID'>"
+	echo "<input type=hidden name=action value='$action'>"
+	echo "<input type=hidden name=controller value='$controller'>"
 	echo "<table width='100%' border='0' cellspacing='0' cellpadding='0'>"
 }
 
@@ -151,7 +153,11 @@ displayMessageBox()
 }
 
 showSaveMessage(){
-	if [ "" ]; then
-		echo df
-	fi
+	echo "<table width='100%' border='0' cellspacing='0' cellpadding='0'>"
+	[ -z "$ERROR_MESSAGE" ] && printTableTitle "Information" || printTableTitle "Error"
+	
+	echo "<tr><td width='100%' class='listr'>" 
+	[ -z "$ERROR_MESSAGE" ] && echo $ok_str || echo "$ERROR_MESSAGE <br> $fail_str"
+	echo "</td></tr>";
+	echo "</table> <br /> <br />"
 }

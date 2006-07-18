@@ -5,13 +5,12 @@
 
 	
 	if [ $REQUEST_METHOD = POST ]; then
-		kdb_vars="sys_hostname sys_iface_wan_type"
+		kdb_vars="str:sys_hostname str:sys_iface_wan_type"
 		subsys="network"
-		save "$kdb_vars" "$subsys"
+		save "$subsys" "$kdb_vars" 
+		showSaveMessage
 	fi
 
-	showSaveMessage
-	
 	eval `$kdb -qq list sys_`
 	printFormBegin general
 	printTableTitle "General settings" 2 

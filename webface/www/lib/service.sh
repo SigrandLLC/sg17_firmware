@@ -3,11 +3,11 @@
 # Sigrand webface project
 # 
 
-svc_reload(){
-	local svc="$1"
+service_reload(){
+	local service="$1"
 	local logfile=/tmp/$svc.svc.log
 
-	case "$svc" in
+	case "$service" in
 	network)
 		/etc/init.d/S40network restart >$logfile 2>&1
 		displayFile $logfile

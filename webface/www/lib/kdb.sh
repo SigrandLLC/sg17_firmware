@@ -12,6 +12,7 @@ kdb_set_string(){
 
 	var="\$FORM_${param}"
 	value="`eval echo $var`"
+	[ $DEBUG ] && echo "kdb_set_string(): var=$var value=$value <br>"
 	if [ ! -z "$value" ]; then
 		KDB_PARAMS="${KDB_PARAMS} : set $param=$value "
 	else
@@ -20,12 +21,17 @@ kdb_set_string(){
 	fi
 }
 
+kdb_set_int(){
+	kdb_set_string $1
+}
+
 kdb_set_bool(){
 	local param="$1";
 	local value;
 
 	var="\$FORM_${param}"
 	value="`eval echo $var`"
+	[ $DEBUG ] && echo "kdb_set_bool(): var=$var value=$value <br>"
 	if [ "$value" = "on" ]; then
 		KDB_PARAMS="${KDB_PARAMS} : set $param=1 "
 	else
