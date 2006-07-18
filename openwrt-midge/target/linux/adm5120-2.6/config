@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.16
-# Tue Jul 18 00:20:02 2006
+# Tue Jul 18 14:41:24 2006
 #
 CONFIG_MIPS=y
 
@@ -1013,7 +1013,7 @@ CONFIG_NLS_UTF8=m
 # CONFIG_DEBUG_KERNEL is not set
 CONFIG_LOG_BUF_SHIFT=14
 CONFIG_CROSSCOMPILE=y
-CONFIG_CMDLINE=" root=/dev/mtd/2 rootfstype=jffs2 console=ttyS0"
+CONFIG_CMDLINE=" root=/dev/mtdblock2 rootfstype=jffs2 console=ttyS0"
 
 #
 # Security options
