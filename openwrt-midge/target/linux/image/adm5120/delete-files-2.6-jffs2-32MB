@@ -21,3 +21,4 @@ etc/resolv.conf
 etc/sysconf
 etc/dnsmasq.conf
 sbin/mount_root
+var
