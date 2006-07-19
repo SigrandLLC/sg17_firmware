@@ -360,3 +360,35 @@ ul#tabnav li.tabact {
 	padding-top: 12px;
 	padding-bottom: 12px;
 }
+
+/* TMT validator */
+input.invalid, textarea.invalid {
+	background-color: #FFE813;
+	border: 0.1em;
+	border-color: #BB0000 !important;
+	border-style: solid;
+	margin: 0.2em !important;
+}
+input {
+	margin: 0.1em;
+	border: 0.1em;
+	border-color: #3E5F9A;
+	border-style: solid;
+	margin: 0.2em;
+}
+
+input.invalid:focus, textarea.invalid:focus {
+	background-color: #FFE813;
+	border: 0.2em;
+	border-color: #BB0000 !important;
+	border-style: solid;
+	margin: 0.2em !important;
+}
+
+input:focus, textarea:focus {
+	background-image: none;
+	border: 0.1em;
+	border-color: #7E9FDA;
+	border-style: solid;
+	margin: 0.2em;
+}
