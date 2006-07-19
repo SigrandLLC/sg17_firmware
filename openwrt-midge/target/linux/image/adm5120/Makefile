@@ -2,6 +2,12 @@ include $(TOPDIR)/rules.mk
 
 KDIR:=$(BUILD_DIR)/linux-$(KERNEL)-$(BOARD)
 
+REV:=$(shell LANG=C svn info | awk '/^Revision:/ { print$$2 }' )
+ifeq ($(REV),)
+REV:=0
+endif
+
+
 export PADFILE=$(STAGING_DIR)/bin/padfile
 export MKSYSHDR=$(STAGING_DIR)/bin/mksyshdr
 
@@ -70,7 +76,8 @@ adm5120-fs-prepare:
 				rm -rf $(KDIR)/root/$$f;	\
 			done; 
 	( cd ../../package/base-files/files/$(BOARD)-$(KERNEL) && \
-		tar cf - --exclude .svn . | tar xvf - -C $(KDIR)/root/ \
+		tar cf - --exclude .svn . | tar xvf - -C $(KDIR)/root/; \
+		 $(SED) 's,$$R,r$(REV),g' $(KDIR)/root/etc/banner \
 	)
 
 $(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin: $(SCRIPT_DIR)/padfile
