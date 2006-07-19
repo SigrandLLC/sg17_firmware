@@ -1,0 +1,63 @@
+#!/bin/sh
+
+
+_ifup(){
+	local iface=$1
+	eval `kdb -qq sls sys_iface_${iface}_`
+	[ -z $type ] && echo "sys_iface_${iface}_type is not set"
+	echo -n "Setting up $iface "
+	case $type in
+	static)
+		opts="$real $ipaddr netmask $netmask"
+		[ -n "$broadcast" ] && opts="$opts broadcast $broadcast"
+		echo "/sbin/ifconfig $opts"
+		;;
+	dhcp)
+		eval `kdb -qq ls sys_hostname`
+		opts=" -i $real --hostname=$sys_hostname -p /var/run/udhcpc.$iface.pid"
+		echo /sbin/udhcpc $opts 
+		;;
+	esac
+	echo " done."
+	eval `kdb -qq ls sys_ntpclient_`
+	if [ "$sys_ntpclient_enable" = "1" -a -x /usr/sbin/ntpclient ]; then
+		/sbin/route -n | grep ^0.0.0.0 >/dev/null && /usr/sbin/ntpclient -c 1 -s -h ${sys_ntpclient_server:-pool.ntp.org}
+	fi
+}
+
+_ifdown(){
+	local iface=$1
+	eval `kdb -qq sls sys_iface_${iface}_`
+	[ -z $type ] && echo "sys_iface_${iface}_type is not set" && exit 1
+	echo -n "Setting down $iface: "
+	/sbin/ifconfig $iface down
+	case $type in
+	static)
+		;;
+	dhcp)
+		[ -r "/var/run/udhcpc.$iface.pid" ] && kill `cat /var/run/udhcpc.$iface.pid`
+		;;
+	esac
+	echo " done."
+}
+
+case "$0" in
+	*network)
+		# starts all ifaces
+		eval `kdb -q ls sys_iface`
+		for iface in $sys_ifaces; do
+			eval `kdb -qq sls sys_iface_${iface}_`
+			[ "$1" = "start" -a "$auto" != "0" ] && _ifup $iface
+			[ "$1" = "stop" ] && _ifdown $iface
+		done
+		;;
+	*ifup)
+		_ifup $1
+		;;
+	*ifdown)
+		_ifdown $1
+		;;
+	esac
+
+
+

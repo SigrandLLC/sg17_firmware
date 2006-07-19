@@ -1,12 +1,9 @@
 #!/bin/sh
 
-
 . /etc/templates/lib
 
 show_header $0
 
-# ------------------------
-# TODO: 
-echo MST-2MDT
+eval `kdb -q ls "sys_"`
+echo MST${sys_timezone:=2}MDT
 
-#kdb get sys_hostname
