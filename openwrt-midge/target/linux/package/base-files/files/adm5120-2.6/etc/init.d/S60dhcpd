@@ -1,0 +1,3 @@
+#!/bin/sh
+
+dhcpd -cf /etc/dhcpd/dhcpd.conf
