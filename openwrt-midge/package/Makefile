@@ -3,7 +3,7 @@ include $(TOPDIR)/rules.mk
 include $(TOPDIR)/package/depend.mk
 
 package-$(BR2_PACKAGE_WEBFACE) += webface
-package-$(BR2_PACKAGE_WEBFACE) += thttpd
+package-$(BR2_PACKAGE_THTTPD) += thttpd
 package-$(BR2_PACKAGE_6TUNNEL) += 6tunnel
 package-$(BR2_PACKAGE_AICCU) += aiccu
 package-$(BR2_PACKAGE_AIRCRACK) += aircrack
