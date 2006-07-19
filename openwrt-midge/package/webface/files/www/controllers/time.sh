@@ -23,7 +23,7 @@
 	printInput checkbox "Use time synchronizing" sys_ntpclient_enable 
 
 	# sys_ntpclient_server
-	tip="Input hostname of time server <br>Example: <b>clock-1.cs.cmu.edu</b>"
+	tip="Input hostname of time server <br>Example: <b>pool.ntp.org</b>"
 	desc="Please input hostname or ip address time server"
 	validator='tmt:required="true" tmt:message="Please input timeserver" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
 	printInput text "Time server" sys_ntpclient_server 
