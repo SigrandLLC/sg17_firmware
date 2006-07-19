@@ -375,10 +375,11 @@ input {
 	border-color: #3E5F9A;
 	border-style: solid;
 	margin: 0.2em;
+	padding: 0.2em;
 }
 
 input.invalid:focus, textarea.invalid:focus {
-	background-color: #FFE813;
+	background-color: #FFFF13;
 	border: 0.2em;
 	border-color: #BB0000 !important;
 	border-style: solid;
