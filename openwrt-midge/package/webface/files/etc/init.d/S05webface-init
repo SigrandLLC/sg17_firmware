@@ -1,9 +1,0 @@
-#!/bin/sh
-
-if [ ! -r /etc/kdb ]; then
-	cp /etc/kdb.default /etc/kdb
-	/etc/templates/Update network
-	/etc/templates/Update dns
-	/etc/templates/Update time
-fi
-
