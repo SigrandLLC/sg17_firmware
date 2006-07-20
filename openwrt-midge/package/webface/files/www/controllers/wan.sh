@@ -24,10 +24,16 @@
 		printInput text "WAN IP address " sys_iface_wan_ipaddr
 
 		# sys_iface_wan_netmask
-		tip="netmask used for BLA BLA BLA"
+		tip="Netmask used for BLA BLA BLA"
 		desc="Netmask also provided by ISP"
-		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="netmask"'
+		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct netmask" tmt:pattern="netmask"'
 		printInput text "WAN Netmask" sys_iface_wan_netmask
+
+		# sys_iface_wan_gateway
+		tip="Gateway used for routing BLA BLA BLA"
+		desc="Gateway also provided by ISP"
+		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
+		printInput text "WAN Gateway" sys_iface_wan_gateway
 	elif [ "$sys_iface_wan_type" = "dhcp" ]; then
 		# sys_iface_wan_ipaddr
 		tip="BLA BLA BLA"

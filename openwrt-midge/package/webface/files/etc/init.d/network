@@ -11,6 +11,7 @@ _ifup(){
 		opts="$real $ipaddr netmask $netmask"
 		[ -n "$broadcast" ] && opts="$opts broadcast $broadcast"
 		/sbin/ifconfig $opts
+		[ -n "$gateway" ] && route add default gw $gateway 
 		;;
 	dhcp)
 		eval `kdb -qq ls sys_hostname`
