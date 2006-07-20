@@ -1,2 +1,4 @@
 #!/bin/sh
 
+/usr/sbin/thttpd -C /etc/thttpd/thttpd.conf
+
