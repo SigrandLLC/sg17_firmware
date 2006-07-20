@@ -6,7 +6,7 @@
 
 	if [ $REQUEST_METHOD = POST ]; then
 		eval `$kdb -qq list sys_`
-		[ "$sys_iface_wan_type" = "static" ] && kdb_vars="str:sys_iface_wan_ipaddr str:sys_iface_wan_netmask"
+		[ "$sys_iface_wan_type" = "static" ] && kdb_vars="str:sys_iface_wan_ipaddr str:sys_iface_wan_netmask str:sys_iface_wan_gateway"
 		subsys="network"
 		save "$subsys" "$kdb_vars" 
 		showSaveMessage

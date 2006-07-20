@@ -393,3 +393,8 @@ input:focus, textarea:focus {
 	border-style: solid;
 	margin: 0.2em;
 }
+
+.inputDesc {                                                                    
+	color: #909090;                                                         
+} 
+
