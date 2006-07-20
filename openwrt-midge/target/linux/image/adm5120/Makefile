@@ -32,7 +32,9 @@ $(BIN_DIR)/openwrt-adm5120-$(KERNEL)-$(FSNAME).bin: $(SCRIPT_DIR)/mksyshdr $(SCR
 		init.d/rcS init.d/S10* init.d/S40network init.d/S50dnsmasq init.d/S45firewall init.d/S50httpd \
 		init.d/S50telnet init.d/S60cron init.d/S99done \
 		 nvram.sh preinit resolv.conf sysconf dnsmasq.conf ) )
-	( cd base-files; tar cf - --exclude .svn . | tar xvf - -C $(KDIR)/root/ )
+	( cd ../../package/base-files/files/$(BOARD)-$(KERNEL) && \
+		tar cf - --exclude .svn . | tar xvf - -C $(KDIR)/root/ \
+	)
 	( \
 		MIDGE_TYPE=tmpfs \
 	 	MIDGE_KERNEL_BLOCKS=$(MIDGE_KERNEL_BLOCKS) \
