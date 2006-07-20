@@ -1,0 +1,6 @@
+#!/bin/sh
+
+echo test >/test || reboot
+
+[ -f /test ] && rm /test
+
