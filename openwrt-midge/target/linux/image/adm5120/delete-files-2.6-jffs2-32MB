@@ -22,3 +22,4 @@ etc/sysconf
 etc/dnsmasq.conf
 sbin/mount_root
 var
+usr/share/udhcpc/default.script

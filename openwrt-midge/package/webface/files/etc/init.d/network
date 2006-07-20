@@ -10,12 +10,12 @@ _ifup(){
 	static)
 		opts="$real $ipaddr netmask $netmask"
 		[ -n "$broadcast" ] && opts="$opts broadcast $broadcast"
-		echo "/sbin/ifconfig $opts"
+		/sbin/ifconfig $opts
 		;;
 	dhcp)
 		eval `kdb -qq ls sys_hostname`
 		opts=" -i $real --hostname=$sys_hostname -p /var/run/udhcpc.$iface.pid"
-		echo /sbin/udhcpc $opts 
+		/sbin/udhcpc $opts 
 		;;
 	esac
 	echo " done."
@@ -52,10 +52,10 @@ case "$0" in
 		done
 		;;
 	*ifup)
-		_ifup $1
+		[ "x$1" = "x-a" ] && /etc/init.d/network start || _ifup $1
 		;;
 	*ifdown)
-		_ifdown $1
+		[ "x$1" = "x-a" ] && /etc/init.d/network stop || _ifdown $1
 		;;
 	esac
 
