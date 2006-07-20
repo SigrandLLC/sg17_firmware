@@ -4,15 +4,19 @@ KDIR:=$(BUILD_DIR)/linux-$(KERNEL)-$(BOARD)
 
 ifeq ($(BR2_TARGET_ROOTFS_JFFS2),y)
 include ./jffs2.mk
+FS=jffs2-32M
 endif
 
 ifeq ($(BR2_TARGET_ROOTFS_SQUASHFS_LZMA),y)
 include ./squashfs.mk
+FS=squashfs
 endif
 
 ifeq ($(BR2_TARGET_ROOTFS_TGZ),y)
 include ./tgz.mk
 endif
+
+
 
 prepare:
 	$(MAKE) prepare-targets $(MAKE_TRACE)
@@ -25,7 +29,7 @@ install:
 
 $(BOARD)-prepare:
 	@$(TRACE) target/linux/image/$(BOARD)-prepare
-	$(MAKE) -C $(BOARD) prepare KERNEL="$(KERNEL)" FS="jffs2-32MB" BOARD="$(BOARD)"
+	$(MAKE) -C $(BOARD) prepare KERNEL="$(KERNEL)" FS=$(FS) BOARD="$(BOARD)"
 
 $(BOARD)-compile: $(BOARD)-prepare
 	@$(TRACE) target/linux/image/$(BOARD)-compile
