@@ -14,7 +14,7 @@ _ifup(){
 		;;
 	dhcp)
 		eval `kdb -qq ls sys_hostname`
-		opts=" -i $real --hostname=$sys_hostname -p /var/run/udhcpc.$iface.pid"
+		opts=" -i $real --hostname=$sys_hostname --background -p /var/run/udhcpc.$iface.pid"
 		/sbin/udhcpc $opts 
 		;;
 	esac
