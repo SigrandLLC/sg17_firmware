@@ -4,7 +4,7 @@ KDIR:=$(BUILD_DIR)/linux-$(KERNEL)-$(BOARD)
 
 ifeq ($(BR2_TARGET_ROOTFS_JFFS2),y)
 include ./jffs2.mk
-FS=jffs2-32M
+FS=jffs2-32MB
 endif
 
 ifeq ($(BR2_TARGET_ROOTFS_SQUASHFS_LZMA),y)
