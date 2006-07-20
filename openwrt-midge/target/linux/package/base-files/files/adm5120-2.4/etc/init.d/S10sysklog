@@ -1,0 +1,4 @@
+#!/bin/sh
+
+/sbin/syslogd -m 0 -C
+/sbin/klogd 
