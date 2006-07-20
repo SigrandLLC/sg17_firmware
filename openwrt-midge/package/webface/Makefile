@@ -24,13 +24,7 @@ $(PKG_BUILD_DIR)/.built:
 	touch $@
 
 $(IPKG_WEBFACE):
-	if [ -d /home/share/webface/www ]; then \
-		mkdir -p $(IDIR_WEBFACE)/www $(IDIR_WEBFACE)/etc; \
-		( tar cf - -C /home/share/webface/www --exclude .svn . | tar xvf - -C $(IDIR_WEBFACE)/www );\
-		( tar cf - -C /home/share/webface/etc --exclude .svn . | tar xvf - -C $(IDIR_WEBFACE)/etc );\
-	else \
-		( tar cf - -C files --exclude .svn . | tar xvf - -C $(IDIR_WEBFACE)	 ); \
-	fi;
+	( tar cf - -C files --exclude .svn . | tar xvf - -C $(IDIR_WEBFACE)	 ); 
 	install -d -m0755 $(IDIR_WEBFACE)/usr/bin
 	install -m0755 $(PKG_BUILD_DIR)/kdb $(IDIR_WEBFACE)/usr/bin
 	$(RSTRIP) $(IDIR_WEBFACE)/usr/bin/*
