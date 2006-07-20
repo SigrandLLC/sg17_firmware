@@ -61,8 +61,6 @@ $(PKG_BUILD_DIR)/.built:
 $(IPKG_THTTPD):
 	install -d -m0755 $(IDIR_THTTPD)/etc
 	install -m0644 ./files/thttpd.conf $(IDIR_THTTPD)/etc/thttpd.conf
-	install -d -m0755 $(IDIR_THTTPD)/etc/init.d
-	install -m0755 ./files/thttpd.init $(IDIR_THTTPD)/etc/init.d/thttpd
 	install -d -m0755 $(IDIR_THTTPD)/usr/sbin
 	install -m0755 $(PKG_BUILD_DIR)/thttpd $(IDIR_THTTPD)/usr/sbin/
 	$(RSTRIP) $(IDIR_THTTPD)
