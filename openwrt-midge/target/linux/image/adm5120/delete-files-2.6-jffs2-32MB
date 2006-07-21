@@ -1,4 +1,5 @@
 bin/firstboot
+etc/config
 etc/default
 etc/firewall.user
 etc/functions.sh
