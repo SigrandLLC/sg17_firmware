@@ -31,7 +31,7 @@ load(){
 save(){
 	tmp="/tmp/flash.tar.$DATAFS_COMMPRESSOR"
 	info 2 "Saving to $tmp"
-	tar cvf - $(cat $SAVE_LIST) | $DATAFS_COMMPRESSOR >$tmp
+	tar cvf - $(cat $PRESERVED_LIST) | $DATAFS_COMMPRESSOR >$tmp
 	if [ "$(get_size $tmp)" -lt $(($DATAFS_PARTITION_SIZE/1024)) ]; then
 		dd if=$tmp of=$DATAFS_PARTITION bs=64k
 	else
@@ -50,8 +50,8 @@ main(){
 			load $@ 
 			;;
 		save) 
-			# create savelist 
-			[ ! -e "$SAVE_LIST" ] && echo "/etc /usr/local /root /lib/modules" >"$SAVE_LIST"
+			# create preserve list 
+			[ ! -e "$PRESERVED_LIST" ] && echo "/etc /usr/local /root" >"$PRESERVED_LIST"
 			save $@ 
 			;;
 		*) 

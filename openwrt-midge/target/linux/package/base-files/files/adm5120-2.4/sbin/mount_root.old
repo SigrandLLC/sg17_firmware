@@ -15,6 +15,7 @@ test -f /etc/midge.conf && . /etc/midge.conf
 VERBOSE=3
 JFFS2_PARTITION="$DATAFS_PARTITION"
 JFFS2_PARTITION_SIZE="$DATAFS_PARTITION_SIZE"
+SKELETON=/etc/skeleton.tar
 JFFS2_HEADER="1985"
 GZIP_HEADER="8b1f"
 BZIP2_HEADER="UNKNOWN"
@@ -64,9 +65,9 @@ is_first_boot(){
 
 unpack_skeleton(){
 	dst="$1"
-	info 2 "Copying /etc to $dst..."
+	info 2 "Unpacking $SKELETON to $dst..."
 	test -d "$dst" || die "Destination $dst not found"
-	cp -a /etc $dst
+	tar xvf $SKELETON -C $dst
 }
 
 unpack_datafs(){
@@ -103,24 +104,12 @@ clear_partition(){
 	cat /dev/zero | tr [\\0] [\\377] | dd of=$part bs=$JFFS2_PARTITION_SIZE count=1
 }
 
-make_devdir(){
-	dest=$1
-	if mount | grep devfs >/dev/null; then
-		umount /dev 
-		mkdir -p $dest/dev
-		mount -t devfs devfs $dest/dev
-	else
-		tar cf - /dev | tar xf - -C $dest
-	fi
-}
-
-
 create_jffs2_partition(){
 	clear_partition $JFFS2_PARTITION
 	mount -t jffs2 $JFFS2_PARTITION /jffs
 	unpack_skeleton /jffs
 	make_links2rom /jffs
-	make_devdir /jffs
+	tar cf - /dev | tar xf - -C /jffs
 	cp /etc/midge.conf /jffs/etc
 	rm -rf /jffs/tmp
 	ln -s /ram/tmp /jffs/tmp
@@ -140,7 +129,7 @@ create_tmpfs_partition(){
 		[ -f /ram/etc/midge.conf ] && . /ram/etc/midge.conf
 	fi
 	make_links2rom /ram
-	make_devdir /ram
+	tar cf - /dev | tar xf - -C /ram
 	mkdir -p /ram/proc
 	rm -rf /ram/tmp
 	mkdir /ram/tmp
@@ -167,12 +156,6 @@ update_midge_conf(){
 			echo "FIRST_BOOT=$DATE" >>/etc/midge.conf
 		fi
 	fi
-}
-
-ipkg_hack(){
-	# this is a hack
-	rm -rf /usr/lib/ipkg/info/
-	cp -a /rom/usr/lib/ipkg/info /usr/lib/ipkg
 }
 
 main(){
@@ -214,7 +197,6 @@ main(){
 	fi
 
 	update_midge_conf
-	ipkg_hack
 }
 
 main $@
