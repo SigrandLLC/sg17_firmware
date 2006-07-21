@@ -1,7 +1,5 @@
 #!/bin/sh
 
-mknod /dev/ttyS0 c 4 64
-mknod /dev/ttyS1 c 4 65
 mknod /dev/led0 c 166 0
 mknod /dev/led1 c 166 1
 mknod /dev/led2 c 166 2
