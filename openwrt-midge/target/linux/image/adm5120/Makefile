@@ -27,11 +27,10 @@ adm5120-fs-prepare:
 $(BIN_DIR)/openwrt-adm5120-$(KERNEL)-$(FSNAME).bin: $(SCRIPT_DIR)/mksyshdr $(SCRIPT_DIR)/padfile
 	rm -f $(KDIR)/root.squashfs
 	mkdir -p $(KDIR)/root/ram
-	( cd $(KDIR)/root/ && rm -rf var tmp sbin/mount_root && ln -s ram/tmp tmp )
-	( cd $(KDIR)/root/etc && ( rm -rf firewall.user functions.sh inittab \
-		init.d/rcS init.d/S10* init.d/S40network init.d/S50dnsmasq init.d/S45firewall init.d/S50httpd \
-		init.d/S50telnet init.d/S60cron init.d/S99done \
-		 nvram.sh preinit resolv.conf sysconf dnsmasq.conf ) )
+	test -f delete-files-$(KERNEL)-$(FS) && \
+			for f in `cat delete-files-$(KERNEL)-$(FS)`; do \
+				rm -rf $(KDIR)/root/$$f;	\
+			done; 
 	( cd ../../package/base-files/files/$(BOARD)-$(KERNEL) && \
 		tar cf - --exclude .svn . | tar xvf - -C $(KDIR)/root/ \
 	)
