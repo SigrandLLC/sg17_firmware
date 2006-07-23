@@ -297,6 +297,8 @@ package-$(BR2_PACKAGE_XINETD) += xinetd
 package-$(BR2_PACKAGE_XSUPPLICANT) += xsupplicant
 package-$(BR2_PACKAGE_ZLIB) += zlib
 
+package-$(BR2_PACKAGE_APRSD) += uronode
+#package-$(BR2_COMPILE_AXGETPUT) += axgetput
 #package-$(BR2_PACKAGE_APRSD) += aprsd
 #package-$(BR2_COMPILE_ARLIX-UTILS) += arlix-utils
 #package-$(BR2_COMPILE_AXGETPUT) += axgetput
