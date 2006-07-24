@@ -9,5 +9,5 @@ sg16cfg dsl0 reload
 sg16cfg dsl1 reload
 sg16cfg dsl0 slave rate 4608
 sg16cfg dsl1 slave rate 4608
-ifconfig dsl0 up 192.168.2.222
-ifconfig dsl1 up 192.168.3.2
+#ifconfig dsl0 up 192.168.2.222
+#ifconfig dsl1 up 192.168.3.2

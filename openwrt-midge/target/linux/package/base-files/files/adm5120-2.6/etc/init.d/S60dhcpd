@@ -1,3 +1,36 @@
 #!/bin/sh
 
-dhcpd -cf /etc/dhcpd/dhcpd.conf
+DHCPD_CONF=/etc/dhcpd/dhcpd.conf
+DHCPD_PID=/var/run/dhcpd.pid
+
+start()
+{
+    if [ -f $DHCPD_CONF ]; then
+	    dhcpd -cf $DHCPD_CONF
+    else
+    	    echo "FAIL to start dhcpd: no file $DHCPD_CONF was found"
+    fi
+}
+
+stop()
+{
+    if [ -f $DHCPD_PID ]; then
+	    kill -KILL `cat $DHCPD_PID`
+    else
+    	    echo "FAIL to start dhcpd: no file $DHCPD_CONF was found"
+    fi
+}
+
+
+case $1 in
+	start)	
+		start ;;
+	stop)	
+		stop ;;
+	*)
+		stop
+		start
+		;;
+esac
+		    
+	

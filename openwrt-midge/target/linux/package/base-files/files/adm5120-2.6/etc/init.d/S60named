@@ -1,0 +1,46 @@
+#!/bin/sh
+
+start()
+{
+	if [ -f /etc/bind/named.conf ]; then
+		chown -R named:named /var/root-dns/*
+	        named -u named -t /var/root-dns/ -c /etc/bind/named.conf
+
+#	        named -u named -c /etc/bind/named.conf
+	else
+		echo "FAIL to start named: no named.conf file found"
+	fi	
+}
+
+stop()
+{
+
+	
+	if [ -f /var/root-dns/var/run/named.pid ]; then
+		kill -KILL `cat /var/root-dns/var/run/named.pid`
+		return 0
+	fi
+
+	if [ -f /var/run/named.pid ]; then
+		kill -KILL `cat /var/run/named.pid`
+		return 0
+	fi
+
+	echo "FAIL to stop named: no named.pid file found"	
+}		
+	
+
+case $1 in
+	stop) 
+	    stop
+	    ;;
+	start)
+	    start
+	    ;;
+	*)
+	    stop
+	    start	
+	    ;;
+esac
+	
+	    

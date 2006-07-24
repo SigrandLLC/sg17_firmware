@@ -8,3 +8,4 @@ disk:x:6:
 utmp:x:43:
 staff:x:50:
 default:x:1000:
+named:x:40:
