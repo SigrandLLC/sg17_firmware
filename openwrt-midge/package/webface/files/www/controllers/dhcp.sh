@@ -26,8 +26,8 @@
 	tip="Select default lease time"
 	desc="Please select lease time"
 	validator='tmt:message="Please select lease time"'
-	printInput select "Default lease time" sys_dhcp_lease_time 10m "10 minutes" 30m "30 minutes" 1h "1 hour" \
-			3h "3 hours" 10h "10 hours" 24h "24 hours" infinite "Infinite"
+	printInput select "Default lease time" sys_dhcp_lease_time 600 "10 minutes" 1800 "30 minutes" 3600 "1 hour" \
+			10800 "3 hours" 36000 "10 hours" 86400 "24 hours" #infinite "Infinite"
 
 	# sys_dhcp_nameserver
 	tip="DNS server for your LAN hosts<br>You can use this device as DNS server"
