@@ -5,7 +5,7 @@
  # wcwidth() will not be available and multibyte characters will not be
  # displayed correctly.
 -#CFLAGS		=
-+CFLAGS         = -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -Wstrict-prototypes -Wshadow -Os -fomit-frame-pointer -D_GNU_SOURCE -DNDEBUG    -Os -pipe
++CFLAGS         = -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -Wstrict-prototypes -Wshadow -Os -fomit-frame-pointer -D_GNU_SOURCE -DNDEBUG  -Os -pipe
  #CPPFLAGS	=
  #LDFLAGS		=
  #WARN		= -Wall -Wno-parentheses -Werror

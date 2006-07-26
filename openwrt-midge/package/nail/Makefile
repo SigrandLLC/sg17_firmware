@@ -20,12 +20,15 @@ include $(TOPDIR)/package/rules.mk
 $(eval $(call PKG_template,NAIL,nail,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
 $(PKG_BUILD_DIR)/.configured:
+	rm -rf $(PKG_BUILD_DIR)/config.h
 	$(CP) $(TOPDIR)/package/nail/files/config.h $(PKG_BUILD_DIR)
 	touch $@
 
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	$(MAKE) -C $(PKG_BUILD_DIR) config.h \
-		all
+	CC="$(TARGET_CC)" \
+	CFLAGS="$(TARGET_CFLAGS)" \
+	all
 	touch $@
 
 $(IPKG_NAIL): 
@@ -34,4 +37,8 @@ $(IPKG_NAIL):
 	$(RSTRIP) $(IDIR_NAIL)
 	$(IPKG_BUILD) $(IDIR_NAIL) $(PACKAGE_DIR)
 
-       
+
+#	LDFLAGS="-L$(STAGING_DIR)/lib -L$(STAGING_DIR)/usr/lib" \                                                                             
+#	CPPFLAGS="-I$(STAGING_DIR)/include -I$(STAGING_DIR)/usr/include" \
+
+
