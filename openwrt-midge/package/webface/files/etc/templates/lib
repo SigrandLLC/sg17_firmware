@@ -94,7 +94,7 @@ update_configs(){
 		cfg_commit
 		;;
 	dhcp)
-		cfg_make dnsmasq.conf /etc/dnsmasq.conf && \
+		cfg_make dhcpd.conf /etc/dhcp/dhcpd.conf && \
 		cfg_commit
 		;;
 	dns)

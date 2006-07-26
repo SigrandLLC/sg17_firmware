@@ -18,6 +18,12 @@ _ifup(){
 		opts=" -i $real --hostname=$sys_hostname --background -p /var/run/udhcpc.$iface.pid"
 		/sbin/udhcpc $opts 
 		;;
+	pppoe)
+		;;
+	pptp)
+		;;
+	ipsec)
+		;;
 	esac
 	echo " done."
 	eval `kdb -qq ls sys_ntpclient_`
@@ -37,6 +43,12 @@ _ifdown(){
 		;;
 	dhcp)
 		[ -r "/var/run/udhcpc.$iface.pid" ] && kill `cat /var/run/udhcpc.$iface.pid`
+		;;
+	pppoe)
+		;;
+	pptp)
+		;;
+	ipsec)
 		;;
 	esac
 	echo " done."

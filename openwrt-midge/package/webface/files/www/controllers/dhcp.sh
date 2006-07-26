@@ -4,7 +4,7 @@
 	. lib/widgets.sh
 
 	if [ $REQUEST_METHOD = POST ]; then
-		kdb_vars="bool:sys_dhcp_enable int:sys_dhcp_lease_time str:sys_dhcp_nameserver str:sys_dhcp_domain_name "
+		kdb_vars="bool:sys_dhcp_enable int:sys_dhcp_lease_time str:sys_dhcp_router str:sys_dhcp_nameserver str:sys_dhcp_domain_name "
 		kdb_vars="$kdb_vars str:sys_dhcp_ntpserver str:sys_dhcp_winsserver str:sys_dhcp_startip str:sys_dhcp_endip "
 		kdb_vars="$kdb_vars str:sys_dhcp_netmask "
 		subsys="dhcp"
@@ -21,6 +21,12 @@
 	desc="Check this item if you want use DHCP server on your LAN"
 	validator='tmt:required="true"'
 	printInput checkbox "Enable DHCP server" sys_dhcp_enable
+
+	# sys_dhcp_router
+	tip="Router for subnet"
+	desc="Default router for your LAN hosts"
+	validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip for router" tmt:pattern="ipaddr"'
+	printInput text "Default router" sys_dhcp_router
 
 	# sys_dhcp_lease_time
 	tip="Select default lease time"

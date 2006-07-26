@@ -13,7 +13,11 @@ service_reload(){
 		#displayFile $logfile
 	;;
 
-	dhcp|dns)
+	dhcp)
+		/etc/init.d/dhcpd restart >$logfile 2>&1
+		#displayFile $logfile
+	;;
+	dns)
 		/etc/init.d/S50webface-dnsmasq restart >$logfile 2>&1
 		#displayFile $logfile
 	;;
