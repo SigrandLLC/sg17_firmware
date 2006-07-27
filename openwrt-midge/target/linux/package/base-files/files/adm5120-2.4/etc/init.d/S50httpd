@@ -8,7 +8,7 @@ test -r /etc/httpd.conf || exit 0
 
 start() {
  	echo -n "Starting httpd: "
-	start-stop-daemon --start --quiet --pidfile /var/run/httpd.pid --exec /usr/sbin/httpd -p 80 -u www-data -h /var/www -c /etc/httpd.conf -r "Midge Mail Gate Web Server Authentication"
+	start-stop-daemon --start --quiet --pidfile /var/run/httpd.pid --exec /usr/sbin/httpd -p 80 -- -h /var/www -c /etc/httpd.conf -r "Midge Mail Gate Web Server Authentication"
 	echo "OK"
 }
 stop() {

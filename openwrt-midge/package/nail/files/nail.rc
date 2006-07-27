@@ -6,12 +6,12 @@ set indentprefix="> "
 set save
 set noheader
 set prompt="=>"
-set NAIL_EXTRA_RC=~/nail.conf
+#set NAIL_EXTRA_RC=~/.nailrc
 #set hold
 #set emptybox
 #set record=Sent
 
-set smtp=smtp://mail.crimeainfo.com
+set smtp=smtp://you.smtp.relay.com
 
 # ------------------------------------------------------------------------
 
