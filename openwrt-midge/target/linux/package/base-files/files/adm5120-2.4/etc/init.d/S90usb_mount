@@ -9,6 +9,8 @@ insmod usb-shci
 insmod scsi_mod
 insmod sd_mod
 insmod usb-storage
+insmod ext2
+
 [ "$USB_FSTYPE" ] && insmod $USB_FSTYPE
 
 if [ "$USB_DIR" -a "$USB_DEV" ]; then

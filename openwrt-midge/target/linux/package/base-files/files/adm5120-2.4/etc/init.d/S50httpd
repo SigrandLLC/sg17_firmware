@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+# Starts httpd.
+#
+
+test -r /etc/httpd.conf || exit 0
+
+
+start() {
+ 	echo -n "Starting httpd: "
+	start-stop-daemon --start --quiet --pidfile /var/run/httpd.pid --exec /usr/sbin/httpd -p 80 -u www-data -h /var/www -c /etc/httpd.conf -r "Midge Mail Gate Web Server Authentication"
+	echo "OK"
+}
+stop() {
+	echo -n "Stopping httpd: "
+	start-stop-daemon --stop --quiet --pidfile /var/run/httpd.pid
+	echo "OK"
+}
+restart() {
+	stop
+	start
+}
+
+case "$1" in
+  start)
+  	start
+	;;
+  stop)
+  	stop
+	;;
+  restart|reload)
+  	restart
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?
+

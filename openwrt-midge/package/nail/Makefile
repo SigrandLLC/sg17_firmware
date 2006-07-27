@@ -34,6 +34,8 @@ $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 $(IPKG_NAIL): 
 	install -m0755 -d $(IDIR_NAIL)/usr/bin
 	$(CP) $(PKG_BUILD_DIR)/nail $(IDIR_NAIL)/usr/bin/
+	install -m0755 -d $(IDIR_NAIL)/etc             
+	install -m0600 $(PKG_BUILD_DIR)/files/nail.conf $(IDIR_NAIL)/etc/ 
 	$(RSTRIP) $(IDIR_NAIL)
 	$(IPKG_BUILD) $(IDIR_NAIL) $(PACKAGE_DIR)
 
