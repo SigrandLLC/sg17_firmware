@@ -35,12 +35,6 @@ $(IPKG_NAIL):
 	install -m0755 -d $(IDIR_NAIL)/usr/bin
 	$(CP) $(PKG_BUILD_DIR)/nail $(IDIR_NAIL)/usr/bin/
 	install -m0755 -d $(IDIR_NAIL)/etc             
-	install -m0600 $(PKG_BUILD_DIR)/files/nail.conf $(IDIR_NAIL)/etc/ 
+	install -m0600 $(TOPDIR)/package/nail/files/nail.conf $(IDIR_NAIL)/etc/ 
 	$(RSTRIP) $(IDIR_NAIL)
 	$(IPKG_BUILD) $(IDIR_NAIL) $(PACKAGE_DIR)
-
-
-#	LDFLAGS="-L$(STAGING_DIR)/lib -L$(STAGING_DIR)/usr/lib" \                                                                             
-#	CPPFLAGS="-I$(STAGING_DIR)/include -I$(STAGING_DIR)/usr/include" \
-
-
