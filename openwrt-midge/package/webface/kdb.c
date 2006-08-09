@@ -12,6 +12,7 @@
 #define true 1
 #define false 0
 #define COUNT_NAME "kdb_lines_count"
+#define DEBUG 0
 
 char db_filename[255];
 FILE *db_file=NULL;
@@ -34,6 +35,8 @@ void show_usage(char *name)
     printf("        list [key] |ls [key] |\n");
     printf("        slist key | sls key |\n");
     printf("        klist key | kls key |\n");
+    printf("        listrm key | lrm key |\n");
+    printf("        listadd | ladd key_=value |\n");
     printf("        create [filename] |\n");
     printf("        import [filename] |\n");
     printf("        edit }\n");
@@ -362,6 +365,7 @@ int set(const char *str)
         free(db_lines[index]);
         db_lines[index] = strdup(str);
         result = true;
+		if (DEBUG) fprintf(stderr, "DEBUG: replaced to '%s'\n", str);
     } else {
         int len=strlen(str);
         if ((db_lines_count < (MAX_LINES-1)) && (db_size+len < MAX_DB_SIZE )) {
@@ -369,6 +373,7 @@ int set(const char *str)
             db_size+=len;
             db_lines[db_lines_count-1] = strdup(str);
             result=true;
+			if (DEBUG) fprintf(stderr, "DEBUG: added '%s'\n", str);
         } else {
             fprintf(stderr, "Error: File too big: lines: %d, size: %d\n", db_lines_count, db_size);
             return false;
@@ -380,23 +385,31 @@ int set(const char *str)
     return result;
 }
 
-int del(const char *key)
+int del_index(int index)
 {
-    char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE];
-    db_read();
-    int index = find_key(key);
     if (index != -1) {
+		// TODO hm, maybe free(db_lines[index]) or not? unimportantly
         while( index < (db_lines_count-1)){
             db_lines[index]=db_lines[index+1];
             index++;
         }
+		if (DEBUG) fprintf(stderr, "DEBUG: deleted key with %d index\n", index);
         db_lines_count--;
 		need_write=true;
         return true;
     } else {
-        fprintf(stderr, "%s not found\n", key);
         return false;
     }
+
+}
+int del(const char *key)
+{
+    char name[MAX_LINE_SIZE];
+    db_read();
+    int index = find_key(key);
+	if ( !del_index(index) ) {
+        fprintf(stderr, "%s not found\n", key);
+	}
 }
 
 int sublist(const char *key)
@@ -449,6 +462,61 @@ int keylist(const char *key)
 	};
 
     return result;
+}
+
+
+int listrm(const char *key)
+{
+    int result=true;
+    int i, count=0, index;
+    char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE], prefix_name[MAX_LINE_SIZE], tmps[MAX_LINE_SIZE], new_pair[MAX_LINE_SIZE];
+	char *s;
+	char *local_lines[MAX_LINES/2];
+	int local_lines_count=0;
+    int key_len=strlen(key);
+    db_read();
+
+	s=strrchr(key, '_');
+	if(!s) {
+		return false;
+	};
+	strncpy(prefix_name, key, s-key+1);
+	if (DEBUG) fprintf(stderr, "DEBUG: prefix_name=%s\n", prefix_name);
+	
+	// finds all key_[0-9]+ keys, and move it to local_lines array
+	i=0;
+	while(true) {
+		snprintf(tmps, sizeof(tmps), "%s%d", prefix_name, i);
+		index=find_key(tmps);
+		if ( index >= 0 ) {
+			if (DEBUG) fprintf(stderr, "DEBUG: found '%s' \n", db_lines[index]);
+			parse_pair(db_lines[index], name, value);
+			// if index != rm_index - add pair to temp local_lines array
+			if ( strcmp(name, key) ) {
+				// finds last '_'
+				s=strrchr(name, '_');
+				// truncate name after last '_'
+				s[1]='\0';
+				snprintf(new_pair, sizeof(new_pair), "%s%d=%s", name, local_lines_count, value);
+				if (DEBUG) fprintf(stderr, "  DEBUG: new_pair: '%s' \n", new_pair);
+				local_lines[local_lines_count++]=strdup(new_pair);
+				if (DEBUG) fprintf(stderr, "  DEBUG: added to local_lines '%s' \n", local_lines[local_lines_count-1]);
+			};
+			del_index(index);
+		} else {
+			break;
+		};
+		i++;
+	}
+	// yes, we have some keys=values
+	if (i) {
+		i=0;
+		for(i=0; i<local_lines_count; i++) {
+			set(local_lines[i]);
+			free(local_lines[i]);
+		}
+	}
+	return result;
 }
 
 int list(const char *key)
@@ -593,6 +661,8 @@ int main(int argc, char **argv)
 			result = sublist(param);
 		else if ((!strcmp(cmd, "klist")) || (!strcmp(cmd, "kls")))
 			result = keylist(param);
+		else if ((!strcmp(cmd, "listrm")) || (!strcmp(cmd, "lrm")))
+			result = listrm(param);
 		else if (!strcmp(cmd, "get"))
 			result = get(param);
 		else if (!strcmp(cmd, "set"))
