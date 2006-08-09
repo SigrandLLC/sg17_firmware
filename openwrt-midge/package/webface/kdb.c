@@ -11,6 +11,7 @@
 #define HEADER_LINE "KDB"
 #define true 1
 #define false 0
+#define COUNT_NAME "kdb_lines_count"
 
 char db_filename[255];
 FILE *db_file=NULL;
@@ -20,12 +21,13 @@ int db_lines_count;
 int db_size;
 int quotation;
 int export;
+int print_count;
 int need_write;
 
 void show_usage(char *name)
 {
     printf("Usage: %s [OPTIONS] ARG [: ARG] \n", name);
-	printf("where  OPTIONS:= q|qq|e\n");
+	printf("where  OPTIONS:= q|qq|e|c\n");
     printf("       ARG := { set key=value |\n");
     printf("        del key |\n");
     printf("        isset key |\n");
@@ -65,6 +67,7 @@ int init()
     db_size=0;
     quotation=0;
 	export=0;
+	print_count=0;
     need_write=false;
     int i;
 	db_filename[0]='\0';
@@ -399,7 +402,7 @@ int del(const char *key)
 int sublist(const char *key)
 {
     int result=true;
-    int i;
+    int i,count=0;
     char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE];
     int key_len=strlen(key);
 
@@ -411,9 +414,14 @@ int sublist(const char *key)
             if (!strncmp(key, name, key_len)) {
                 char *s=name+key_len;
                 print_pair(s, value);
+				count++;
             }
         } 
     }
+	if (print_count) {
+		sprintf(value, "%d", count);
+		print_pair(COUNT_NAME, value);
+	};
 
     return result;
 }
@@ -421,7 +429,7 @@ int sublist(const char *key)
 int keylist(const char *key)
 {
     int result=true;
-    int i;
+    int i,count=0;
     char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE];
     int key_len=strlen(key);
 
@@ -431,10 +439,14 @@ int keylist(const char *key)
         
         if(key && key_len){
             if (!strncmp(key, name, key_len))
-                print_pair(NULL, name);
+                print_pair(NULL, name), count++;
         } else
-            print_pair(NULL, name);
+            print_pair(NULL, name), count++;
     }
+	if (print_count) {
+		sprintf(value, "%d", count);
+		print_pair(COUNT_NAME, value);
+	};
 
     return result;
 }
@@ -442,7 +454,7 @@ int keylist(const char *key)
 int list(const char *key)
 {
     int result=true;
-    int i;
+    int i, count=0;
     char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE];
     int key_len=strlen(key);
 
@@ -452,10 +464,14 @@ int list(const char *key)
         
         if(key && key_len){
             if (!strncmp(key, name, key_len))
-                print_pair(name, value);
+                print_pair(name, value), count++;
         } else
-            print_pair(name, value);
+            print_pair(name, value), count++;
     }
+	if (print_count) {
+		sprintf(value, "%d", count);
+		print_pair(COUNT_NAME, value);
+	};
 
     return result;
 }
@@ -493,7 +509,7 @@ int db_import(const char *filename)
             int len=strlen(buf);
             if (len && buf[len-1]=='\n')
                 buf[len-1]='\0';
-            if(parse_pair(buf, name, value))
+            if(parse_pair(buf, name, value) && (strcmp(name, COUNT_NAME)))
                 db_add(buf);
             else {
                 result=false;
@@ -529,13 +545,15 @@ int main(int argc, char **argv)
 
     init();
 
-    while ((ch = getopt(argc, argv, "qef:")) != -1){
+    while ((ch = getopt(argc, argv, "qecf:")) != -1){
         switch(ch) {
             case 'f': set_dbfilename(optarg);
                      break;
             case 'q': quotation++;
                      break;
             case 'e': export++;
+                     break;
+            case 'c': print_count++;
                      break;
             default: show_usage(argv[0]);
                      break;
