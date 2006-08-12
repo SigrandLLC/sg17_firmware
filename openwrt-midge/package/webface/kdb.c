@@ -12,7 +12,7 @@
 #define true 1
 #define false 0
 #define COUNT_NAME "kdb_lines_count"
-#define DEBUG 0
+#define DEBUG 1
 
 char db_filename[255];
 FILE *db_file=NULL;
@@ -362,7 +362,8 @@ int set(const char *str)
 
     index = find_key(iname);
     if (index != -1) {
-        free(db_lines[index]);
+        if(db_lines[index])
+			free(db_lines[index]);
         db_lines[index] = strdup(str);
         result = true;
 		if (DEBUG) fprintf(stderr, "DEBUG: replaced to '%s'\n", str);
@@ -393,7 +394,7 @@ int del_index(int index)
             db_lines[index]=db_lines[index+1];
             index++;
         }
-		if (DEBUG) fprintf(stderr, "DEBUG: deleted key with %d index\n", index);
+		if (DEBUG) fprintf(stderr, "DEBUG: deleted db_lines[%d]\n", index);
         db_lines_count--;
 		need_write=true;
         return true;
@@ -471,7 +472,7 @@ int listrm(const char *key)
     int i, count=0, index;
     char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE], prefix_name[MAX_LINE_SIZE], tmps[MAX_LINE_SIZE], new_pair[MAX_LINE_SIZE];
 	char *s;
-	char *local_lines[MAX_LINES/2];
+	char *local_lines[MAX_LINES];
 	int local_lines_count=0;
     int key_len=strlen(key);
     db_read();
@@ -489,7 +490,7 @@ int listrm(const char *key)
 		snprintf(tmps, sizeof(tmps), "%s%d", prefix_name, i);
 		index=find_key(tmps);
 		if ( index >= 0 ) {
-			if (DEBUG) fprintf(stderr, "DEBUG: found '%s' \n", db_lines[index]);
+			if (DEBUG) fprintf(stderr, "DEBUG: db_lines[%d]='%s' \n", index, db_lines[index]);
 			parse_pair(db_lines[index], name, value);
 			// if index != rm_index - add pair to temp local_lines array
 			if ( strcmp(name, key) ) {
@@ -508,14 +509,50 @@ int listrm(const char *key)
 		};
 		i++;
 	}
+	printf("LIST\n");
+	list("");
+	printf("end LIST\n");
 	// yes, we have some keys=values
 	if (i) {
 		i=0;
 		for(i=0; i<local_lines_count; i++) {
 			set(local_lines[i]);
-			free(local_lines[i]);
+			if (local_lines[i])
+				free(local_lines[i]);
 		}
 	}
+	printf("LIST\n");
+	list("");
+	printf("end LIST\n");
+	return result;
+}
+
+int listadd(const char* str)
+{
+    int result=true;
+	int i,index;
+    char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE], s[MAX_LINE_SIZE];
+    db_read();
+	
+	parse_pair(str, name, value);
+	
+	// check for '_' at the end of string
+	if ( name[strlen(name)-1] != '_' ) {
+		fprintf(stderr, "Error: key should ends with '_'\n");
+		return false;
+	};
+		
+	for ( i=0; i < 10000; i++) {
+		snprintf(s, sizeof(s), "%s%d", name, i);
+		index=find_key(s);
+		if (DEBUG) fprintf(stderr, "  DEBUG: s=%s index=%d\n", s, index);
+		if ( index >= 0 )
+			continue;
+		snprintf(s, sizeof(s), "%s%d=%s", name, i, value);
+		result=set(s);
+		break;
+	};
+
 	return result;
 }
 
@@ -663,6 +700,8 @@ int main(int argc, char **argv)
 			result = keylist(param);
 		else if ((!strcmp(cmd, "listrm")) || (!strcmp(cmd, "lrm")))
 			result = listrm(param);
+		else if ((!strcmp(cmd, "listadd")) || (!strcmp(cmd, "ladd")))
+			result = listadd(param);
 		else if (!strcmp(cmd, "get"))
 			result = get(param);
 		else if (!strcmp(cmd, "set"))
