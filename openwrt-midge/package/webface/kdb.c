@@ -12,7 +12,7 @@
 #define true 1
 #define false 0
 #define COUNT_NAME "kdb_lines_count"
-#define DEBUG 1
+#define DEBUG 0
 
 char db_filename[255];
 FILE *db_file=NULL;
@@ -24,6 +24,7 @@ int quotation;
 int export;
 int print_count;
 int need_write;
+int db_already_readed;
 
 void show_usage(char *name)
 {
@@ -66,6 +67,7 @@ char *set_dbfilename(const char* filename)
 
 int init()
 {
+	db_already_readed=0;
     db_lines_count=0;
     db_size=0;
     quotation=0;
@@ -138,6 +140,7 @@ int db_sort(){
 
 inline int print_pair(const char* name, const char* value)
 {
+	if (DEBUG) fprintf(stderr, "DEBUG: print_pair(): %s=%s\n", name, value);
 	switch(quotation) {
 		case 0: 
 			if (name)
@@ -176,7 +179,7 @@ int db_read()
     char *buf=NULL;
 
 	// check if file readed already
-	if (db_lines_count)
+	if (db_already_readed)
 		return true;
 
 	db_file = fopen(get_dbfilename(), "r");
@@ -200,10 +203,12 @@ int db_read()
 
     if (result) {
         size_t readed = fread(buf, 1, MAX_DB_SIZE+10, db_file);
+		db_already_readed = true;
         if (ferror(db_file) || (readed<5) ) {
             perror("fread");
             result=false;
         };
+		if (DEBUG) fprintf(stderr, "DEBUG: db_read(): readed %d bytes\n", readed);
         fclose(db_file);
         // terminate buffer
         buf[MAX_DB_SIZE]='\0';
@@ -394,7 +399,7 @@ int del_index(int index)
             db_lines[index]=db_lines[index+1];
             index++;
         }
-		if (DEBUG) fprintf(stderr, "DEBUG: deleted db_lines[%d]\n", index);
+		if (DEBUG) fprintf(stderr, " DEBUG: deleted db_lines[%d]\n", index-1);
         db_lines_count--;
 		need_write=true;
         return true;
@@ -509,9 +514,6 @@ int listrm(const char *key)
 		};
 		i++;
 	}
-	printf("LIST\n");
-	list("");
-	printf("end LIST\n");
 	// yes, we have some keys=values
 	if (i) {
 		i=0;
@@ -521,9 +523,6 @@ int listrm(const char *key)
 				free(local_lines[i]);
 		}
 	}
-	printf("LIST\n");
-	list("");
-	printf("end LIST\n");
 	return result;
 }
 
