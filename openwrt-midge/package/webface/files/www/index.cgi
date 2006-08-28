@@ -1,6 +1,11 @@
 #!/usr/bin/haserl
 <? 
-. common/header.sh 
+if [ "FORM_frame" ]; then
+	. common/frame_header.sh
+else
+	. common/header.sh 
+fi
+
 . conf/conf.sh 
 . lib/cfg.sh
 . lib/kdb.sh
@@ -24,5 +29,10 @@ else
 fi
 
 
-. common/footer.sh 
+if [ "FORM_frame" ]; then
+	. common/frame_footer.sh
+else
+	. common/footer.sh
+fi
+	
 ?>

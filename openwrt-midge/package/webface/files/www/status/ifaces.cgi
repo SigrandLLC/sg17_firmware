@@ -5,10 +5,10 @@
    . ../lib/net.sh
    . ../lib/widgets.sh
  ?>
-<? printTitle ?>
+<? render_title ?>
 
 <table>
-<? printTableTitle "Interface information" 7 ?>
+<? render_table_title "Interface information" 7 ?>
 <tr class='statusTrHeader'>
 	<th rowspan=2>Interface</th>
 	<th rowspan=2>Status</th>
@@ -42,7 +42,7 @@ echo "$( cat /proc/net/dev | sed -e "s/ \+/ /g" -e "s/:/ /"| grep -v er)" | \
 </table>
 
 <table>
-<? printTableTitle "Interface detail information" 17 ?>
+<? render_table_title "Interface detail information" 17 ?>
 <tr><th></th><th colspan=8>Receive</th><th colspan=8>Transmit</th></tr>
 <tr><th>Device</th><th>Bytes</th><th>Packets</th><th>Errors</th><th>Drop</th><th>FIFO</th>
 <th>Frame</th><th>Compressed</th><th>Multicast</th><th>Bytes</th><th>Packets</th><th>Errors</th><th>Drop</th>

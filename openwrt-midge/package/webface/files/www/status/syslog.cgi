@@ -5,9 +5,9 @@
    . ../lib/widgets.sh
  ?>
 
-<? printTitle ?>
+<? render_title ?>
 <table width=100%>
-<? printTableTitle "System log" ?>
+<? render_table_title "System log" ?>
 <tr><td>
 
 <pre class="code">

@@ -5,7 +5,7 @@
    . ../lib/widgets.sh
  ?>
 
-<? printTitle ?>
+<? render_title ?>
 
 <table>
 <tr><td>Modem:</td><td>&nbsp;</td></tr>

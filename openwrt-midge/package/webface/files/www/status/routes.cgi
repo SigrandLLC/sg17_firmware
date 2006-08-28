@@ -4,11 +4,11 @@
 	. ../lib/misc.sh
 	. ../lib/widgets.sh
  ?>
-<? printTitle ?>
+<? render_title ?>
 
 <table>
 
-<? printTableTitle "Kernel routing table" 6 ?>
+<? render_table_title "Kernel routing table" 6 ?>
 <tr><th>Network</th><th>Via</th><th>Device</th><th>Proto</th><th>Scope</th><th>Src</th></tr>
 
 <?

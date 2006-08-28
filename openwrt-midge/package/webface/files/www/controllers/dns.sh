@@ -10,37 +10,37 @@
 		kdb_commit
 
 		if [ "$KDB_ERROR" ]; then
-			displayMessageBox "Error" "Savings failed: $KDB_ERROR"
+			render_message_box "Error" "Savings failed: $KDB_ERROR"
 		else
-			displayMessageBox "Done" "Settings saved"
+			render_message_box "Done" "Settings saved"
 
 			update_configs dns
 
 			if [ "$ERROR_MESSAGE" ]; then
-				displayMessageBox "Error" " Configration failed: $ERROR_DETAIL"
+				render_message_box "Error" " Configration failed: $ERROR_DETAIL"
 			else
-				displayMessageBox "Done" "Configuration updated"
+				render_message_box "Done" "Configuration updated"
 				cfg_flash
 			fi
 		fi
 	fi
 
 	eval `$kdb -qq list sys_`
-	printFormBegin dns 
-	printTableTitle "DNS Settings" 2 
+	render_form_header dns 
+	render_table_title "DNS Settings" 2 
 
 	# sys_dns_nameserver
 	tip="Dns server for your router BLA BLA BLA"
 	desc="Please enter ip address of upstream dns server"
 	validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"  tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
-	printInput text "Upstream server" sys_dns_nameserver
+	render_input_field text "Upstream server" sys_dns_nameserver
 
 	# sys_dns_domain
 	tip="Domain for your net BLA BLA BLA"
 	desc="Please domain"
 	validator=''
-	printInput text "Domain" sys_dns_domain
+	render_input_field text "Domain" sys_dns_domain
 
-	printFormSubmit
-	printFormEnd
+	render_submit_field
+	render_form_tail
 

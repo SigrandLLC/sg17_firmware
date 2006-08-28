@@ -5,7 +5,7 @@
    . ../lib/widgets.sh
  ?>
 
-<? printTitle ?>
+<? render_title ?>
 <table>
 
 <tr><th colspan=6>DHCP leases</th></tr>

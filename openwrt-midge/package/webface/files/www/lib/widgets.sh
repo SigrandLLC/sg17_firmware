@@ -3,7 +3,7 @@
 # Sigrand webface project
 # 
 
-ProgressBarH(){
+render_chart_h(){
     local t="$1";
     local l="$2";
     local f="$3";
@@ -12,14 +12,14 @@ ProgressBarH(){
     echo '<img src=/images/bar_left.gif><img src=/images/bar_middle.gif height=16 width='$w'><img src=/images/bar_right.gif>' $p '%'
 }
 
-printTitle(){
+render_title(){
     local txt;
     [ "$title" ] && txt="$title"
     [ "$1" ] && txt="$1"
     [ "$txt" ] && echo '<h1>'$txt'</h1>';
 }
 
-printTableTitle(){
+render_table_title(){
     local text="$1"
     local colspan;
     [ "$2" ] && colspan="colspan='$2'"
@@ -29,7 +29,7 @@ printTableTitle(){
 displayEnv() 
 {
     echo "<table>"
-    printTableTitle env
+    render_table_title env
     echo "<tr><td><pre class='code'>"
     set
     echo "</pre></td></tr></table>"
@@ -38,7 +38,7 @@ displayFile()
 {
     file="$1"
     echo "<table>"
-    printTableTitle "$file" 
+    render_table_title "$file" 
     echo "<tr><td><pre class='code'>"
     cat $file
     echo "</pre></td></tr></table>"
@@ -47,12 +47,12 @@ displayFile()
 displayString() 
 {
     echo "<table>"
-    printTableTitle $*
+    render_table_title $*
     echo "<tr><td><pre class='code'>"
     echo $*
     echo "</pre></td></tr></table>"
 }
-printFormBegin(){
+render_form_header(){
 	#local act="$SCRIPT_NAME";
 	local lname="midge_form"
 	[ "$1" ] && lname="$1"
@@ -66,7 +66,7 @@ printFormBegin(){
 	echo "<table width='100%' border='0' cellspacing='0' cellpadding='0'>"
 }
 
-printInput(){
+render_input_field(){
 	local type="$1"
 	local text="$2"
 	local inputname="$3"
@@ -80,7 +80,7 @@ printInput(){
 	shift 3
 
 	echo "
-<!-- ------- printInput $* -->"
+<!-- ------- render_input_field $* -->"
 
 
     [ ! $type = "hidden" ] && echo "<tr>
@@ -127,34 +127,34 @@ printInput(){
 	esac
         
     [ ! $type = "hidden" ] && echo "<br><span class='inputDesc' $tipcode>$desc</span></td></tr>"
-	echo "<!-- ------- /printInput $* -->"
+	echo "<!-- ------- /render_input_field $* -->"
     tip=''
     desc=''
     validator=''
 }
 
-printFormSubmit(){
+render_submit_field(){
 	local btn="Ok";
 	[ "$1" ] && btn="$1"
 	echo "<tr> <td colspan=2 style='text-align: center;'> <input class='button' type='submit' name='submit' value='$btn'> </td> </tr>";
 }
 
-printFormEnd(){
+render_form_tail(){
 	echo "</table> <!-- /fieldset--> </form>";
 }
 
-displayMessageBox() 
+render_message_box() 
 {
     local title="$1"
 	local text="$2"
     echo "<table>"
-    printTableTitle "$title" 
+    render_table_title "$title" 
     echo "<tr><td>$text</td></tr></table>"
 }
 
-showSaveMessage(){
+render_save_message(){
 	echo "<table width='100%' border='0' cellspacing='0' cellpadding='0'>"
-	[ -z "$ERROR_MESSAGE" ] && printTableTitle "Information" || printTableTitle "Error"
+	[ -z "$ERROR_MESSAGE" ] && render_table_title "Information" || render_table_title "Error"
 	
 	echo "<tr><td width='100%' class='listr'>" 
 	[ -z "$ERROR_MESSAGE" ] && echo $ok_str || echo "$ERROR_MESSAGE <br> $fail_str"

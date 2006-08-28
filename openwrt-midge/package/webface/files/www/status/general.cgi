@@ -5,10 +5,10 @@
 	. ../lib/widgets.sh
  ?>
 
-<? printTitle ?>
+<? render_title ?>
 
 <table>
-<? printTableTitle "General information" 2 ?>
+<? render_table_title "General information" 2 ?>
 <tr><td>Hostname:</td><td><? hostname ?></td></tr>
 <tr><td>Kernel version:</td><td><? uname -s -r ?></td></tr>
 <tr><td>Kernel build time:</td><td><? uname -v ?></td></tr>
@@ -21,16 +21,16 @@
 </table>
 
 <table>
-<? printTableTitle "Memory usage information" 3 ?>
+<? render_table_title "Memory usage information" 3 ?>
 <? echo "$(cat /proc/meminfo | sed 's/ \+/ /')" | \
 		while read text amount unit; do 
 			if [ "$text" = "MemTotal:" ]; then
 				export memtotal=$amount
-				echo "<tr><td>Memory total:</td><td>$(humanUnits -k $amount bytes)</td><td>$(ProgressBarH '' $amount $amount)</td></tr>";
+				echo "<tr><td>Memory total:</td><td>$(humanUnits -k $amount bytes)</td><td>$(render_chart_h '' $amount $amount)</td></tr>";
 			fi;
-			[ "$text" = "MemFree:" ] && echo "<tr><td>Memory free:</td><td>$(humanUnits -k $amount bytes)</td><td>$(ProgressBarH '' $amount $memtotal)</td></tr>";
-			[ "$text" = "Buffers:" ] && echo "<tr><td>Buffers:</td><td>$(humanUnits -k $amount bytes)</td><td>$(ProgressBarH '' $amount $memtotal)</td></tr>";
-			[ "$text" = "Cached:" ] &&  echo "<tr><td>Cached:</td><td>$(humanUnits -k $amount bytes)</td><td>$(ProgressBarH '' $amount $memtotal)</td></tr>";
+			[ "$text" = "MemFree:" ] && echo "<tr><td>Memory free:</td><td>$(humanUnits -k $amount bytes)</td><td>$(render_chart_h '' $amount $memtotal)</td></tr>";
+			[ "$text" = "Buffers:" ] && echo "<tr><td>Buffers:</td><td>$(humanUnits -k $amount bytes)</td><td>$(render_chart_h '' $amount $memtotal)</td></tr>";
+			[ "$text" = "Cached:" ] &&  echo "<tr><td>Cached:</td><td>$(humanUnits -k $amount bytes)</td><td>$(render_chart_h '' $amount $memtotal)</td></tr>";
 		done
 ?>
 </table>

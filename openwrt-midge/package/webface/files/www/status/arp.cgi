@@ -5,10 +5,10 @@
    . ../lib/widgets.sh
  ?>
 
-<? printTitle ?>
+<? render_title ?>
 <table>
 
-<? printTableTitle "Arp cache table" 6 ?>
+<? render_table_title "Arp cache table" 6 ?>
 <tr><th>IP address</th><th>Hardware type</th><th>Flags</th><th>MAC address</th><th>Mask</th><th>Device</th></tr>
 
 <?
