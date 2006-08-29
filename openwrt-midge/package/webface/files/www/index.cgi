@@ -1,6 +1,6 @@
 #!/usr/bin/haserl
 <? 
-if [ "FORM_frame" ]; then
+if [ -n "$FORM_frame" ]; then
 	. common/frame_header.sh
 else
 	. common/header.sh 
@@ -29,7 +29,7 @@ else
 fi
 
 
-if [ "FORM_frame" ]; then
+if [ -n "$FORM_frame" ]; then
 	. common/frame_footer.sh
 else
 	. common/footer.sh

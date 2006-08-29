@@ -31,7 +31,7 @@ void show_usage(char *name)
     printf("Usage: %s [OPTIONS] ARG [: ARG] \n", name);
 	printf("where  OPTIONS:= q|qq|e|c\n");
     printf("       ARG := { set key=value |\n");
-    printf("        del key |\n");
+    printf("        rm key | del key |\n");
     printf("        isset key |\n");
     printf("        list [key] |ls [key] |\n");
     printf("        slist key | sls key |\n");
@@ -707,7 +707,7 @@ int main(int argc, char **argv)
 			result = set(param);
 		else if (!strcmp(cmd, "isset"))
 			result = isset(param);
-		else if (!strcmp(cmd, "del"))
+		else if ((!strcmp(cmd, "del")) || (!strcmp(cmd, "rm")))
 			result = del(param);
 		else if (!strcmp(cmd, "edit"))
 			result = edit(argv[0]);

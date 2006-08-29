@@ -161,3 +161,8 @@ render_save_message(){
 	echo "</td></tr>";
 	echo "</table> <br /> <br />"
 }
+
+render_iframe_list(){
+	local cont="$1"
+	echo "<tr><td><iframe name=$cont src='index.cgi?controller=$cont&frame=1' frameborder=no width='$IFRAME_WIDTH' height='$IFRAME_HEIGHT' scrolling='auto'></iframe></td></tr>"
+}
