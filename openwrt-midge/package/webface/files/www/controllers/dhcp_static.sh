@@ -14,7 +14,7 @@
 		local item=$2
 		
 		# edit
-		echo "<a href='javascript:alert(\"test\")'>Edit</a>"
+		echo "<a href='javascript:popupWin = window.open(\"index.cgi?controller=dhcp_static_edit&item=${item}&popup=1\", \"popup\", \"width=400,height=300,top=0,modal=1,dialog=1,centerscreen=1,scrollbars=0,menubar=0,location=0,toolbar=0,dependent=1,status=0\"); popupWin.focus();'>Edit</a>"
 		
 		# del
 		echo "<a href='index.cgi?controller=dhcp_static&do=del&item=${item}&frame=1' target='_self' xonclick='if (confirm(\"Are you sure?\")) { var f = document.createElement(\"form\"); f.style.display = \"none\"; this.parentNode.appendChild(f); f.method = \"GET\"; f.action = this.href;f.submit(); };return false;'>Destroy</a>"

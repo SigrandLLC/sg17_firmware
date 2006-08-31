@@ -70,7 +70,6 @@ render_input_field(){
 	local type="$1"
 	local text="$2"
 	local inputname="$3"
-	#local options="$4"
 	local inputsize='25'
 	local maxlenght='255'
     local tipcode=''
@@ -80,7 +79,7 @@ render_input_field(){
 	shift 3
 
 	echo "
-<!-- ------- render_input_field $* -->"
+<!-- ------- render_input_field $type $text $inputname $* -->"
 
 
     [ ! $type = "hidden" ] && echo "<tr>
@@ -127,7 +126,7 @@ render_input_field(){
 	esac
         
     [ ! $type = "hidden" ] && echo "<br><span class='inputDesc' $tipcode>$desc</span></td></tr>"
-	echo "<!-- ------- /render_input_field $* -->"
+	echo "<!-- ------- /render_input_field $type $text $inputname $* -->"
     tip=''
     desc=''
     validator=''

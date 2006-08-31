@@ -2,7 +2,7 @@
 <? 
 if [ -n "$FORM_frame" ]; then
 	. common/frame_header.sh
-elif [ -n "$FORM_popup" ] then
+elif [ -n "$FORM_popup" ]; then
 	. common/popup_header.sh
 else
 	. common/header.sh 
@@ -33,7 +33,7 @@ fi
 
 if [ -n "$FORM_frame" ]; then
 	. common/frame_footer.sh
-elif [ -n "$FORM_popup" ] then
+elif [ -n "$FORM_popup" ]; then
 	. common/popup_footer.sh
 else
 	. common/footer.sh
