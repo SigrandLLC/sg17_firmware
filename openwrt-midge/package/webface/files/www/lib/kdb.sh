@@ -14,7 +14,7 @@ kdb_set_string(){
 	value="`eval echo $var`"
 	[ $DEBUG ] && echo "kdb_set_string(): var=$var value=$value <br>"
 	if [ ! -z "$value" ]; then
-		KDB_PARAMS="${KDB_PARAMS} : set $param=$value "
+		KDB_PARAMS="${KDB_PARAMS} : set $param=\"$value\" "
 	else
 		# clears key
 		KDB_PARAMS="${KDB_PARAMS} : set $param= "
@@ -31,7 +31,7 @@ kdb_set_bool(){
 
 	var="\$FORM_${param}"
 	value="`eval echo $var`"
-	[ $DEBUG ] && echo "kdb_set_bool(): var=$var value=$value <br>"
+	debug "kdb_set_bool(): var=$var value=$value <br>"
 	if [ "$value" = "on" ]; then
 		KDB_PARAMS="${KDB_PARAMS} : set $param=1 "
 	else
@@ -40,7 +40,8 @@ kdb_set_bool(){
 }
 
 kdb_commit(){
-	[ "$DEBUG" ] && echo "$kdb $KDB_PARAMS"
-	`$kdb $KDB_PARAMS`
-	[ "$DEBUG" ] && displayEnv 
+	debug "$kdb $KDB_PARAMS"
+	eval "$kdb ${KDB_PARAMS}"
+	#debug tmp=$tmp
+	# [ "$DEBUG" ] && displayEnv 
 }

@@ -3,6 +3,9 @@
 # Sigrand webface project
 # 
 
+debug(){
+	[ $DEBUG ] && echo $* "<br>"
+}
 
 humanUnits(){
     local k="0";

@@ -9,4 +9,4 @@ CONF_KDB=/etc/kdb
 export KDB=$CONF_KDB
 kdb=/usr/bin/kdb
 IFRAME_WIDTH=600
-IFRAME_HEIGHT=200
+IFRAME_HEIGHT=300

@@ -96,18 +96,13 @@ render_input_field(){
         echo '> '
         ;;
     radio)
-		#echo "<table class=radioTable>"
 		while [ "$1" ]; do
-			#echo "<tr><td>"
 			echo -n "<label $tipcode><input type='radio' class='button' $tipcode name='$inputname' $validator tmt:errorclass='invalid'"
 			[ "$value" = "$1" ] && echo -n " checked "
 			echo "value='$1'>$2</label><br>"
-			#echo "</td> "
-			#echo "<td> $2</td></tr>"
 			validator=""
 			shift 2
 		done
-		#echo "</table>"
 		;;
 	select)
 		echo -n "<select  $tipcode name='$inputname' class='edit' $validator tmt:errorclass='invalid'>"
@@ -164,4 +159,13 @@ render_save_message(){
 render_iframe_list(){
 	local cont="$1"
 	echo "<tr><td><iframe name=$cont src='index.cgi?controller=$cont&frame=1' frameborder=no width='$IFRAME_WIDTH' height='$IFRAME_HEIGHT' scrolling='auto'></iframe></td></tr>"
+}
+
+render_js_close_popup() {
+	local timeout=${1:-3000}
+	echo "<script language=\"JavaScript\">setTimeout('window.close()',$timeout);</script>"
+}
+
+render_js_refresh_parent() {
+	echo "<script language=\"JavaScript\">window.opener.location = window.opener.location</script>"
 }
