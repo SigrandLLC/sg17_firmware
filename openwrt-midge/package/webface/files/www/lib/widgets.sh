@@ -52,6 +52,27 @@ displayString()
     echo $*
     echo "</pre></td></tr></table>"
 }
+
+render_message_box() 
+{
+    local title="$1"
+	local text="$2"
+    echo "<table>"
+    render_table_title "$title" 
+    echo "<tr><td>$text</td></tr></table>"
+}
+
+render_save_message(){
+	echo "<table id='message' width='100%' border='0' cellspacing='0' cellpadding='0'>"
+	[ -z "$ERROR_MESSAGE" ] && render_table_title "Information" || render_table_title "Error"
+	
+	echo "<tr><td width='100%' class='listr'>" 
+	[ -z "$ERROR_MESSAGE" ] && echo $ok_str || echo "$ERROR_MESSAGE <br> $fail_str"
+	echo "</td></tr>";
+	echo "</table> <br /> <br />"
+	render_js_hide_message
+}
+
 render_form_header(){
 	#local act="$SCRIPT_NAME";
 	local lname="midge_form"
@@ -134,38 +155,62 @@ render_submit_field(){
 }
 
 render_form_tail(){
-	echo "</table> <!-- /fieldset--> </form>";
-}
-
-render_message_box() 
-{
-    local title="$1"
-	local text="$2"
-    echo "<table>"
-    render_table_title "$title" 
-    echo "<tr><td>$text</td></tr></table>"
-}
-
-render_save_message(){
-	echo "<table width='100%' border='0' cellspacing='0' cellpadding='0'>"
-	[ -z "$ERROR_MESSAGE" ] && render_table_title "Information" || render_table_title "Error"
-	
-	echo "<tr><td width='100%' class='listr'>" 
-	[ -z "$ERROR_MESSAGE" ] && echo $ok_str || echo "$ERROR_MESSAGE <br> $fail_str"
-	echo "</td></tr>";
-	echo "</table> <br /> <br />"
+	echo "</table> <!-- /fieldset--> </form><br/><br/>";
 }
 
 render_iframe_list(){
-	local cont="$1"
-	echo "<tr><td><iframe name=$cont src='index.cgi?controller=$cont&frame=1' frameborder=no width='$IFRAME_WIDTH' height='$IFRAME_HEIGHT' scrolling='auto'></iframe></td></tr>"
+	local controller="$1"
+	echo "<tr><td><iframe name=$controller src='index.cgi?controller=$controller&frame=1' frameborder=1 width='$IFRAME_WIDTH' height='$IFRAME_HEIGHT' scrolling='auto'></iframe></td></tr>"
+}
+
+
+render_button_list_add(){
+	local controller="$1"
+	local item="$2"
+	echo "<tr><td align='center'><a href='javascript:openPopup(window, \"${controller}_edit\", \"$item\", \"additem=1\");'><img src='images/plus.gif' title='Add item' width='17' height='17' border='0'>Add item</a></td></tr>"
+}
+
+render_list_header(){
+		local s1="<tr>"
+		local s2="<td class='listtopic'>"
+		local s3="</td>"
+		local s4="</tr>"
+		
+		echo $s1
+		for n in "$@"; do
+			echo $s2 $n $s3
+		done
+		echo $s2 Action $s3
+		echo $s4
+}
+
+render_list_btns(){
+		local controller=$1
+		local item=$2
+		
+		# edit
+		echo "<a href='javascript:openPopup(window, \"${controller}_edit\", \"$item\");'><img src='images/e.gif' title='Edit item' width='17' height='17' border='0'></a>"
+		
+		# del
+		echo "<a href='index.cgi?controller=${controller}&do=del&item=${item}&frame=1' target='_self' onclick='return confirmSubmit()'><img src='images/x.gif' title='Delete item' width='17' height='17' border='0'></a>"
+	
 }
 
 render_js_close_popup() {
-	local timeout=${1:-3000}
+	local timeout=${1:-2500}
 	echo "<script language=\"JavaScript\">setTimeout('window.close()',$timeout);</script>"
 }
 
 render_js_refresh_parent() {
 	echo "<script language=\"JavaScript\">window.opener.location = window.opener.location</script>"
+}
+
+render_js_refresh_window() {
+	local timeout=${1:-2000}
+	echo "<script language=\"JavaScript\">setTimeout('window.location = window.location', $timeout);</script>"
+}
+
+render_js_hide_message(){
+	local timeout=${1:-1500}
+	echo "<script language=\"JavaScript\">setTimeout('document.getElementById(\"message\").style.display = \"none\";', $timeout);</script>"
 }

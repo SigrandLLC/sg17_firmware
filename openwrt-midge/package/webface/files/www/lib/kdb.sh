@@ -4,7 +4,22 @@
 # 
 
 #local s="set last_update=`date +%Y%m%d-%H:%M:%S`";
-KDB_PARAMS="set last_update=`date +%Y%m%d-%H:%M:%S` "
+#KDB_PARAMS="set last_update=`date +%Y%m%d-%H:%M:%S` : "
+KDB_PARAMS="set q=q "		#TODO : remove this hack
+
+kdb_ladd_string(){
+	local param="$1";
+	local value;
+
+	var="\$FORM_${param}"
+	value="`eval echo $var`"
+	debug "kdb_ladd_string(): var=$var value=$value <br>"
+	if [ ! -z "$value" ]; then
+		KDB_PARAMS="${KDB_PARAMS} : ladd $param=\"$value\" "
+	else
+		warn "kdb_set_string(): var=$var value=$value <br>"
+	fi
+}
 
 kdb_set_string(){
 	local param="$1";
@@ -12,7 +27,7 @@ kdb_set_string(){
 
 	var="\$FORM_${param}"
 	value="`eval echo $var`"
-	[ $DEBUG ] && echo "kdb_set_string(): var=$var value=$value <br>"
+	debug "kdb_set_string(): var=$var value=$value <br>"
 	if [ ! -z "$value" ]; then
 		KDB_PARAMS="${KDB_PARAMS} : set $param=\"$value\" "
 	else
@@ -42,6 +57,4 @@ kdb_set_bool(){
 kdb_commit(){
 	debug "$kdb $KDB_PARAMS"
 	eval "$kdb ${KDB_PARAMS}"
-	#debug tmp=$tmp
-	# [ "$DEBUG" ] && displayEnv 
 }

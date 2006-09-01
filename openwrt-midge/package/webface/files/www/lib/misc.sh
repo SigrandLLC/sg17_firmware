@@ -7,6 +7,10 @@ debug(){
 	[ $DEBUG ] && echo $* "<br>"
 }
 
+warn(){
+	[ $WARN ] && echo $* "<br>"
+}
+
 humanUnits(){
     local k="0";
     if [ "$1" = "-k" ]; then

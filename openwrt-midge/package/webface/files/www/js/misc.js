@@ -23,3 +23,23 @@ function showhide(tspan, tri) {
 		triel.src = "img/tri_c.gif";
 	}
 }
+
+function openPopup(win, controller, item, exturl) {
+    var exturl = (exturl == null) ? "" : "&"+exturl;
+	var w = 400;
+	var h = 400;
+	var winl = (screen.width-w)/2;
+	var wint = (screen.height-h)/2;
+	if (winl < 0) winl = 0;
+	if (wint < 0) wint = 0;
+	popup=win.open("index.cgi?controller=" + controller + "&item=" + item + "&popup=1"+exturl, "popup", "width="+w+",height="+h+",top="+wint+",left="+winl+",modal=1,dialog=1,centerscreen=1,scrollbars=0,menubar=0,location=0,toolbar=0,dependent=1,status=0"); 
+	popup.focus();
+	//return popup;
+}
+
+function confirmSubmit() {
+	if (confirm("Are you sure?"))  { 
+		return true; 
+	};
+		return false;
+}

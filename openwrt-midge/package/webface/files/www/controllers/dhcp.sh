@@ -79,15 +79,9 @@
 	render_submit_field
 	render_form_tail
 
+	# static dhcp list
 	render_form_header dhcp_leases dhcp_save
 	render_table_title "DHCP Static leases" 2 
-
 	render_iframe_list "dhcp_static"
-	#render_submit_field
 	render_form_tail
 
-	render_form_header dhcp_add_lease dhcp_save.asp
-	render_table_title "Add static lease" 2 
-
-	render_submit_field
-	render_form_tail
