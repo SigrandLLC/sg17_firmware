@@ -17,6 +17,7 @@ L1 Network
 	L2 WAN		wan		show
 	L2 LAN		lan		show
 	L2 Firewall	firewall show
+	L2 "Static routes"	staticroute show
 
 L1 Services
 	L2 DHCP		dhcp	show

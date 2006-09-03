@@ -173,6 +173,7 @@ render_button_list_add(){
 render_list_header(){
 		local s1="<tr>"
 		local s2="<td class='listtopic'>"
+		local s2_act="<td>"
 		local s3="</td>"
 		local s4="</tr>"
 		
@@ -180,19 +181,21 @@ render_list_header(){
 		for n in "$@"; do
 			echo $s2 $n $s3
 		done
-		echo $s2 Action $s3
+		echo $s2_act $s3
 		echo $s4
 }
 
 render_list_btns(){
 		local controller=$1
 		local item=$2
+		local frameparam=""
+		[ -n "$frame" ] && frameparam="&frame=1"
 		
 		# edit
 		echo "<a href='javascript:openPopup(window, \"${controller}_edit\", \"$item\");'><img src='images/e.gif' title='Edit item' width='17' height='17' border='0'></a>"
 		
 		# del
-		echo "<a href='/?controller=${controller}&do=del&item=${item}&frame=1' target='_self' onclick='return confirmSubmit()'><img src='images/x.gif' title='Delete item' width='17' height='17' border='0'></a>"
+		echo "<a href='/?controller=${controller}&do=del&item=${item}${frameparam}' target='_self' onclick='return confirmSubmit()'><img src='images/x.gif' title='Delete item' width='17' height='17' border='0'></a>"
 	
 }
 
@@ -223,7 +226,7 @@ render_popup_form_stuff(){
 }
 
 render_js_close_popup() {
-	local timeout=${1:-2500}
+	local timeout=${1:-1500}
 	echo "<script language=\"JavaScript\">setTimeout('window.close()',$timeout);</script>"
 }
 

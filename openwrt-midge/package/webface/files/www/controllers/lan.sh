@@ -23,7 +23,7 @@
 	# sys_iface_lan_netmask
 	tip="<h2>Examples:</h2><b>255.255.255.0</b> - /24<br><b>255.255.255.252</b> - /30<br>BLA BLA BLA"
 	desc="Netmask"
-	validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="netmask"'
+	validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip netmask" tmt:pattern="netmask"'
 	render_input_field text "LAN Netmask" sys_iface_lan_netmask
 
 	render_submit_field

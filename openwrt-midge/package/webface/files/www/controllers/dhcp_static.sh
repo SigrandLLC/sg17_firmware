@@ -1,10 +1,11 @@
 #!/usr/bin/haserl
 	. lib/misc.sh
 	. lib/widgets.sh
+	
+	frame=1
 
 	case "$FORM_do" in
-		del) $kdb lrm "$FORM_item"
-			;;
+		del) $kdb lrm "$FORM_item";;
 	esac;
 	
 	eval `$kdb -qqc list sys_dhcp_lanhost`
