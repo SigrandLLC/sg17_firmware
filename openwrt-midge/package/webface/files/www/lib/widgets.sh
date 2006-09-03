@@ -160,7 +160,7 @@ render_form_tail(){
 
 render_iframe_list(){
 	local controller="$1"
-	echo "<tr><td><iframe name=$controller src='index.cgi?controller=$controller&frame=1' frameborder=1 width='$IFRAME_WIDTH' height='$IFRAME_HEIGHT' scrolling='auto'></iframe></td></tr>"
+	echo "<tr><td><iframe name=$controller src='/?controller=$controller&frame=1' frameborder=1 width='$IFRAME_WIDTH' height='$IFRAME_HEIGHT' scrolling='auto'></iframe></td></tr>"
 }
 
 
@@ -192,8 +192,34 @@ render_list_btns(){
 		echo "<a href='javascript:openPopup(window, \"${controller}_edit\", \"$item\");'><img src='images/e.gif' title='Edit item' width='17' height='17' border='0'></a>"
 		
 		# del
-		echo "<a href='index.cgi?controller=${controller}&do=del&item=${item}&frame=1' target='_self' onclick='return confirmSubmit()'><img src='images/x.gif' title='Delete item' width='17' height='17' border='0'></a>"
+		echo "<a href='/?controller=${controller}&do=del&item=${item}&frame=1' target='_self' onclick='return confirmSubmit()'><img src='images/x.gif' title='Delete item' width='17' height='17' border='0'></a>"
 	
+}
+
+render_popup_save_stuff(){
+	if [ "$REQUEST_METHOD" = POST ]; then
+		eval $eval_string
+		if [ -z "$FORM_additem" ]; then
+			eval `$kdb -qqc list "$item"`
+			save "$subsys" "str:$item" 
+		else
+			ok_str="Item added"
+			kdb_ladd_string $item
+			kdb_commit
+		fi
+		render_save_message
+		render_js_close_popup
+		render_js_refresh_parent
+	fi
+
+	eval `$kdb -qqc list "$item"`
+	[ -z "$FORM_additem" ] && eval "export \$${item}"
+}
+
+render_popup_form_stuff(){
+	render_input_field hidden item item $item
+	render_input_field hidden popup popup 1
+	[ -n "$FORM_additem" ] && render_input_field hidden additem additem 1
 }
 
 render_js_close_popup() {
