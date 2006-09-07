@@ -370,8 +370,8 @@ input.invalid, textarea.invalid {
 	margin: 0.2em !important;
 }
 input {
-	margin: 0.1em;
-	border: 0.1em;
+	margin: 1px;
+	border: 1px;
 	border-color: #3E5F9A;
 	border-style: solid;
 	margin: 0.2em;

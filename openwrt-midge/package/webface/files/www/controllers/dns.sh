@@ -3,27 +3,10 @@
 	. lib/misc.sh
 	. lib/widgets.sh
 
-	
-	if [ $REQUEST_METHOD = POST ]; then
-		kdb_set_string sys_dns_nameserver && \
-		kdb_set_string sys_dns_domain && \
-		kdb_commit
+	kdb_vars="str:sys_dns_nameserver str:sys_dns_domain"
+	subsys="dns"
 
-		if [ "$KDB_ERROR" ]; then
-			render_message_box "Error" "Savings failed: $KDB_ERROR"
-		else
-			render_message_box "Done" "Settings saved"
-
-			update_configs dns
-
-			if [ "$ERROR_MESSAGE" ]; then
-				render_message_box "Error" " Configration failed: $ERROR_DETAIL"
-			else
-				render_message_box "Done" "Configuration updated"
-				cfg_flash
-			fi
-		fi
-	fi
+	render_save_stuff
 
 	eval `$kdb -qq list sys_`
 	render_form_header dns 

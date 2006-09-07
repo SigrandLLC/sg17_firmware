@@ -66,10 +66,9 @@ render_save_message(){
 	echo "<table id='message' width='100%' border='0' cellspacing='0' cellpadding='0'>"
 	[ -z "$ERROR_MESSAGE" ] && render_table_title "Information" || render_table_title "Error"
 	
-	echo "<tr><td width='100%' class='listr'>" 
+	echo "<tr><td width='100%' class='listr' align='center'>" 
 	[ -z "$ERROR_MESSAGE" ] && echo $ok_str || echo "$ERROR_MESSAGE <br> $fail_str"
-	echo "</td></tr>";
-	echo "</table> <br /> <br />"
+	echo "</td></tr><tr><td> <br /> <br /></td></tr></table>"
 	render_js_hide_message
 }
 
@@ -181,8 +180,15 @@ render_list_header(){
 		for n in "$@"; do
 			echo $s2 $n $s3
 		done
-		echo $s2_act $s3
-		echo $s4
+		echo $s2_act $s3 $s4
+}
+
+render_list_cycle_stuff(){
+	local i=0
+	while [ $i -lt $kdb_lines_count ]; do
+		render_list_line $i
+		i=$(($i+1))
+	done
 }
 
 render_list_btns(){
@@ -223,6 +229,13 @@ render_popup_form_stuff(){
 	render_input_field hidden item item $item
 	render_input_field hidden popup popup 1
 	[ -n "$FORM_additem" ] && render_input_field hidden additem additem 1
+}
+
+render_save_stuff(){
+	if [ $REQUEST_METHOD = POST ]; then
+		save "$subsys" "$kdb_vars" 
+		render_save_message
+	fi
 }
 
 render_js_close_popup() {

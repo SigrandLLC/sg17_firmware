@@ -3,13 +3,11 @@
 	. lib/misc.sh
 	. lib/widgets.sh
 
-	if [ $REQUEST_METHOD = POST ]; then
-		kdb_vars="str:sys_iface_lan_ipaddr str:sys_iface_lan_netmask"
-		subsys="network"
-		save "$subsys" "$kdb_vars" 
-		render_save_message
-	fi
+	kdb_vars="str:sys_iface_lan_ipaddr str:sys_iface_lan_netmask"
+	subsys="network"
 
+	render_save_stuff
+	
 	eval `$kdb -qq list sys_`
 	render_form_header lan
 	render_table_title "Network settings" 2 

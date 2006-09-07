@@ -3,16 +3,13 @@
 	. lib/misc.sh
 	. lib/widgets.sh
 
+	eval `$kdb -qq list sys_iface_wan`
+	[ "$sys_iface_wan_type" = "static" ] && kdb_vars="str:sys_iface_wan_ipaddr str:sys_iface_wan_netmask str:sys_iface_wan_gateway"
+	subsys="network"
 
-	if [ $REQUEST_METHOD = POST ]; then
-		eval `$kdb -qq list sys_`
-		[ "$sys_iface_wan_type" = "static" ] && kdb_vars="str:sys_iface_wan_ipaddr str:sys_iface_wan_netmask str:sys_iface_wan_gateway"
-		subsys="network"
-		save "$subsys" "$kdb_vars" 
-		render_save_message
-	fi
-	
-	eval `$kdb -qq list sys_`
+	render_save_stuff
+
+	eval `$kdb -qq list sys_iface`
 	render_form_header wan
 	render_table_title "Network settings" 2 
 
