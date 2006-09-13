@@ -17,12 +17,10 @@ if [ -r /tmp/$FORM_SESSIONID ]; then
 fi
 
 controller=$FORM_controller
-action=$FORM_action
 
 [ "$controller" ] || controller="welcome"
-[ "$action" ] || action="list"
 
-[ $DEBUG ] && echo "main(): controller=$controller action=$action <br>"
+[ $DEBUG ] && echo "main(): controller=$controller <br>"
 
 if [ -f controllers/"$controller".sh ]; then
 	. controllers/"$controller".sh

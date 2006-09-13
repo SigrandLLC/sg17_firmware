@@ -8,15 +8,15 @@
 		del) $kdb lrm "$FORM_item";;
 	esac;
 	
-	eval `$kdb -qqc list sys_dhcp_lanhost`
+	eval `$kdb -qqc list svc_dhcp_lanhost`
 	render_form_header dhcp
 
 	render_list_line(){
 		local lineno=$1
-		eval "val=\"\${sys_dhcp_lanhost_${lineno}}\""
+		eval "val=\"\${svc_dhcp_lanhost_${lineno}}\""
 		eval "$val"
 		echo "<tr><td>$lineno</td><td>$name</td><td>$ipaddr</td><td>$hwaddr</td><td>"
-		render_list_btns dhcp_static "sys_dhcp_lanhost_${lineno}"
+		render_list_btns dhcp_static "svc_dhcp_lanhost_${lineno}"
 		echo "</td></tr>"
 	}
 	
@@ -25,6 +25,6 @@
 	
 	render_list_cycle_stuff
 
-	render_button_list_add dhcp_static sys_dhcp_lanhost_
+	render_button_list_add dhcp_static svc_dhcp_lanhost_
 	
 	render_form_tail

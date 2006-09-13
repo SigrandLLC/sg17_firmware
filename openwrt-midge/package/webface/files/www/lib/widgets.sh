@@ -76,12 +76,10 @@ render_form_header(){
 	#local act="$SCRIPT_NAME";
 	local lname="midge_form"
 	[ "$1" ] && lname="$1"
-	[ "$action" ] && act="$action"
     [ "$2" ] && act="$2"
 
 	echo "<form name='$lname' method='post' tmt:validate='true'>"
 	#echo "<input type=hidden name=SESSIONID value='$SESSIONID'>"
-	echo "<input type=hidden name=action value='$action'>"
 	echo "<input type=hidden name=controller value='$controller'>"
 	echo "<table width='100%' border='0' cellspacing='0' cellpadding='0'>"
 }
@@ -194,6 +192,7 @@ render_list_cycle_stuff(){
 render_list_btns(){
 		local controller=$1
 		local item=$2
+		local extparam="&$3"
 		local frameparam=""
 		[ -n "$frame" ] && frameparam="&frame=1"
 		
@@ -201,7 +200,7 @@ render_list_btns(){
 		echo "<a href='javascript:openPopup(window, \"${controller}_edit\", \"$item\");'><img src='images/e.gif' title='Edit item' width='17' height='17' border='0'></a>"
 		
 		# del
-		echo "<a href='/?controller=${controller}&do=del&item=${item}${frameparam}' target='_self' onclick='return confirmSubmit()'><img src='images/x.gif' title='Delete item' width='17' height='17' border='0'></a>"
+		echo "<a href='/?controller=${controller}&do=del&item=${item}${frameparam}${extparam}' target='_self' onclick='return confirmSubmit()'><img src='images/x.gif' title='Delete item' width='17' height='17' border='0'></a>"
 	
 }
 
@@ -210,14 +209,16 @@ render_popup_save_stuff(){
 		eval $eval_string
 		if [ -z "$FORM_additem" ]; then
 			eval `$kdb -qqc list "$item"`
+			debug "render_popup_save_stuff(REQUEST_METHOD = POST, FORM_additem=$FORM_additem): item=$item"
 			save "$subsys" "str:$item" 
 		else
 			ok_str="Item added"
+			debug "render_popup_save_stuff(REQUEST_METHOD = POST, FORM_additem=$FORM_additem): item=$item"
 			kdb_ladd_string $item
 			kdb_commit
 		fi
 		render_save_message
-		render_js_close_popup
+		[ -z "$DEBUG" ] && render_js_close_popup
 		render_js_refresh_parent
 	fi
 

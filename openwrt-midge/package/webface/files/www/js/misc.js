@@ -1,7 +1,18 @@
 var tri_open = "";
 var tri_closed = "";
 
-window.onload = preload;
+function addLoadEvent(func){
+	var oldonload = window.onload;
+	if(typeof window.onload != "function"){
+		window.onload = func;
+	} 
+	else{
+		window.onload = function(){
+			oldonload();
+			func();
+		}
+	}
+}
 
 function preload() {
 	if (document.images) {
@@ -11,6 +22,8 @@ function preload() {
 		tri_closed.src = "img/tri_c.gif";
 	}
 }
+
+addLoadEvent(preload);
 
 function showhide(tspan, tri) {
 	tspanel = document.getElementById(tspan);
