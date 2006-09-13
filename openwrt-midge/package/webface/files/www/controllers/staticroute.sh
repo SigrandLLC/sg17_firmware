@@ -8,7 +8,7 @@
 	
 	eval `$kdb -qqc list sys_staticroute`
 	render_form_header staticroutes
-	render_table_title "Static routes" 5 
+	render_title "Static routes"
 
 	render_list_line(){
 		local lineno=$1

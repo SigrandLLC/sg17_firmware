@@ -18,13 +18,13 @@
 		eval "$val"
 		#local href="javascript:openPopup(window, \"dns_zone\", \"$item\");"
 		local href="/?controller=dns_zone&zoneid=$zoneid"
-		echo "<tr><td>$lineno</td><td><a href='$href' target=_parent>$zoneid</a></td><td><a href='$href' target=_parent>$zone</a></td><td>$admin</td><td>$serial</td><td>$refresh</td><td>$retry</td><td>$expire</td><td>"
+		echo "<tr><td><a href='$href' target=_parent>$zoneid</a></td><td><a href='$href' target=_parent>$zone</a></td><td>$admin</td><td>$serial</td><td>"
 		render_list_btns dns_zonelist "$item"
 		echo "</td></tr>"
 	}
 	
 	
-	render_list_header "No" "Zone id" "Zone name" "Admin" "Serial" "Refresh" "Retry" "Expire"
+	render_list_header "Zone id" "Zone name" "Admin" "Serial"
 	
 	render_list_cycle_stuff
 

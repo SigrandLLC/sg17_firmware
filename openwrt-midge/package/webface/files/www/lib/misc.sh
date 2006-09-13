@@ -82,8 +82,18 @@ int2ip () {
   echo $(($1>>24&255)).$(($1>>16&255)).$(($1>>8&255)).$(($1&255))
 }
 
-
 get_new_serial() {
-	local today=$(date +%Y%d%m)
-
+	local oldserial=$1
+	local newserial
+	local today=$(date +%Y%m%d)
+	for i1 in 0 1 2 3 4 5 6 7 8 9; do
+		for i2 in 0 1 2 3 4 5 6 7 8 9; do
+			newserial=${today}${i1}${i2}
+			if [ "$oldserial" -lt "$newserial" ]; then
+				echo $newserial;
+				return 0;
+			fi
+		done
+	done
 }
+	

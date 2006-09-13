@@ -4,10 +4,10 @@
 
 	subsys=""
 	
-	[ -n "$FORM_serial" ] && serial=$(get_new_serial)
+	FORM_serial=$(get_new_serial $FORM_serial)
 
 	item=$FORM_item
-	eval_string="export FORM_$item=\"zone=$FORM_zone zoneid=$FORM_zoneid admin=$FORM_admin serial=$FORM_serial  refresh=$FORM_refresh retry=$FORM_retry expire=$FORM_expire\""
+	eval_string="export FORM_$item=\"zone=$FORM_zone zoneid=$FORM_zoneid nameserver=$FORM_nameserver admin=$FORM_admin serial=$FORM_serial  refresh=$FORM_refresh ttl=$FORM_ttl retry=$FORM_retry expire=$FORM_expire\""
 	render_popup_save_stuff
 	
 	render_form_header dns_zonelist_edit
@@ -16,8 +16,9 @@
 	
 	if [ -n "$FORM_additem" ]; then
 		# zoneid
-		desc="Identifier of zone - internal zone name"
-		validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns zone name" tmt:pattern="dnszone"'
+		tip="<b>Example:</b> domain1"
+		desc="Identifier of zone - just a simple name"
+		validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nodots,noquotes,nodoublequotes,nocommas,nomagic" tmt:message="Please input zone identifier" tmt:pattern="dnszone"'
 		render_input_field text "Zone id" zoneid
 	else
 		render_input_field hidden zoneid zoneid $zoneid
@@ -30,6 +31,12 @@
 	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns zone name" tmt:pattern="dnszone"'
 	render_input_field text "Zone" zone
 	
+	# server
+	tip="This is most commonly written as a Fully-qualified Domain Name (FQDN and ends with a dot). If the record points to an EXTERNAL server (not defined in this zone) it MUST end with a . (dot) e.g. ns1.example.net."
+	desc="A name server that will respond authoritateively for the domain"
+	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct nameserver for zone" tmt:pattern="dnszone"'
+	render_input_field text "Name server" nameserver
+
 	# admin
 	desc="Email of zone admin"
 	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct email" tmt:pattern="email"'
@@ -40,6 +47,12 @@
 	desc="Time when the slave will try to refresh the zone from the master."
 	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input refresh time" tmt:pattern="positiveinteger" tmt:minnumber=1200 tmt:maxnumber=500000'
 	render_input_field text "Refresh" refresh
+
+	# ttl
+	tip="TTL in the DNS context defines the duration in seconds that the record may be cached. Zero indicates the record should not be cached"
+	desc="Time to live"
+	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input ttl time" tmt:pattern="positiveinteger" tmt:minnumber=1 tmt:maxnumber=500000'
+	render_input_field text "TTL" ttl
 
 	# retry
 	tip="Typical values would be 180 (3 minutes) to 900 (15 minutes) or higher"
@@ -55,3 +68,5 @@
 	render_submit_field
 
 	render_form_tail
+	
+	

@@ -21,12 +21,12 @@
 	tip="<b>Tip:</b> Use @ for current zone"
 	desc="Domain"
 	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns domain name" tmt:pattern="dnsdomain"'
-	render_input_field text "Domain" domain
+	render_input_field text "Domain or host" domain
 	
 	# datatype
-	desc="Select type of record: A, NS,CNAME, MX" # TXT, PTR currently not supported
+	desc="Select type of record: A, NS,CNAME, MX, PTR" # TXT currently not supported
 	validator='tmt:message="Please select type of record"'
-	render_input_field select "Type of record" datatype A "A" CNAME "CNAME" MX "MX" NS "NS"
+	render_input_field select "Type of record" datatype A "A" CNAME "CNAME" MX "MX" NS "NS" PTR "PTR"
 
 	# prio
 	desc="Priority used only on MX records"

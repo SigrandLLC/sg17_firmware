@@ -3,6 +3,8 @@
 	. lib/misc.sh
 	. lib/widgets.sh
 
+	render_title "General settings"
+
 	
 	if [ $REQUEST_METHOD = POST ]; then
 		kdb_vars="str:sys_hostname str:sys_iface_wan_type"
@@ -10,11 +12,10 @@
 		save "$subsys" "$kdb_vars" 
 		render_save_message
 	fi
-
+	
 	eval `$kdb -qq list sys_`
 	render_form_header general
-	render_table_title "General settings" 2 
-		
+
 	# sys_hostname
 	tip="This is tip for hostname <b>Bold tip</b>"
 	desc="This is description for hostname"
