@@ -2,7 +2,7 @@
 	. lib/misc.sh
 	. lib/widgets.sh
 
-	subsys=""
+	#subsys="dns_server"
 
 	if [ -n "$FORM_datatype" ]; then
 		[ "$FORM_datatype" = "MX" -a -z "$FORM_prio" ]  && FORM_prio="10"
@@ -24,9 +24,9 @@
 	render_input_field text "Domain or host" domain
 	
 	# datatype
-	desc="Select type of record: A, NS,CNAME, MX, PTR" # TXT currently not supported
+	desc="Select type of record: A, NS,CNAME, MX, PTR, TXT" # spaces in TXT records currently is not supported
 	validator='tmt:message="Please select type of record"'
-	render_input_field select "Type of record" datatype A "A" CNAME "CNAME" MX "MX" NS "NS" PTR "PTR"
+	render_input_field select "Type of record" datatype A "A" CNAME "CNAME" MX "MX" NS "NS" PTR "PTR" TXT "TXT"
 
 	# prio
 	desc="Priority used only on MX records"
@@ -34,6 +34,7 @@
 	render_input_field text "Priority" prio
 
 	# data
+	tip="If the record points to an EXTERNAL server (not defined in this zone) it MUST end with a <b>.</b> (dot) e.g. ns1.example.net. If the name server is defined in this domain (in this zone file) it can be written as ns1 (without the dot)"
 	desc="Please input data for this record"
 	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns domain name" tmt:pattern="dnsdomainoripaddr"'
 	render_input_field text "Data" data

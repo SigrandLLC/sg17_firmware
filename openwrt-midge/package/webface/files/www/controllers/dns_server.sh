@@ -3,13 +3,13 @@
 	. lib/misc.sh
 	. lib/widgets.sh
 
-	kdb_vars="int:svc_dns_tcpclients str:svc_dns_defzone_name str:svc_dns_defzone_admin int:svc_dns_defzone_refresh"
-	kdb_vars="$kdb_vars int:svc_dns_defzone_retry int:svc_dns_defzone_expire int:svc_dns_defzone_ttl"
-	subsys="dns"
+	kdb_vars="int:svc_dns_tcpclients str:svc_dns_enable"
+	#kdb_vars="$kdb_vars "
+	subsys="dns_server"
 
 	render_save_stuff
 
-	eval `$kdb -qq list sys_`
+	eval `$kdb -qq ls svc_dns`
 	render_form_header dns 
 	render_table_title "DNS Settings" 2 
 
@@ -25,10 +25,10 @@
 	render_input_field checkbox "Enable DNS server" svc_dns_enable
 
 	# svc_dns_options_tmp
-	tip=""
-	desc=""
-	validator='tmt:required="true"'
-	render_input_field checkbox "TMP" svc_dns_options_tmp
+	#tip=""
+	#desc=""
+	#validator='tmt:required="true"'
+	#render_input_field checkbox "TMP" svc_dns_options_tmp
 
 	render_submit_field
 	render_form_tail
