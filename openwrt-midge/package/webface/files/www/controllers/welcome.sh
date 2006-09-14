@@ -44,12 +44,14 @@ echo '
 
                 </td>
               </tr>
+<!--
               <tr> 
                 <td width="25%" class="vncellt">Last config change</td>
                 <td width="75%" class="listr"> 
                   
                 </td>
               </tr>
+-->
 			  <tr> 
                 <td width="25%" class="vncellt">CPU usage</td>
                 <td width="75%" class="listr">'`uptime  | cut -f5 -d:`'

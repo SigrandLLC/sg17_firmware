@@ -33,7 +33,7 @@
 	
 	# server
 	tip="This is most commonly written as a Fully-qualified Domain Name (FQDN and ends with a dot). If the record points to an EXTERNAL server (not defined in this zone) it MUST end with a . (dot) e.g. ns1.example.net."
-	desc="A name server that will respond authoritateively for the domain"
+	desc="A name server that will respond authoritatively for the domain"
 	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct nameserver for zone" tmt:pattern="dnszone"'
 	render_input_field text "Name server" nameserver
 
