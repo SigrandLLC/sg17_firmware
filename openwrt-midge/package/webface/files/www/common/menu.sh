@@ -11,7 +11,7 @@ L2(){
 L1 System welcome
 	L2 General 	general
 	L2 Time		time
-	L2 Modem	dsl
+	L2 DSL		dsl
 	L2 DNS		dns
 	
 L1 Network
