@@ -93,7 +93,8 @@ render_input_field(){
     local tipcode=''
     [ "$tip" ] && tipcode="onmouseover=\"return overlib('$tip', BUBBLE, BUBBLETYPE, 'roundcorners')\" onmouseout=\"return nd();\""
     eval 'value=$'$inputname
-
+	[ -z "$value" -a -n "$default" ] && value="$default"
+	
 	shift 3
 
 	echo "
@@ -143,6 +144,7 @@ render_input_field(){
     tip=''
     desc=''
     validator=''
+	default=''
 }
 
 render_submit_field(){
@@ -157,14 +159,8 @@ render_form_tail(){
 
 render_iframe_list(){
 	local controller="$1"
-	echo "<tr><td><iframe name=$controller src='/?controller=$controller&frame=1' frameborder=1 width='$IFRAME_WIDTH' height='$IFRAME_HEIGHT' scrolling='auto'></iframe></td></tr>"
-}
-
-
-render_button_list_add(){
-	local controller="$1"
-	local item="$2"
-	echo "<tr><td align='center'><a href='javascript:openPopup(window, \"${controller}_edit\", \"$item\", \"additem=1\");'><img src='images/plus.gif' title='Add item' width='17' height='17' border='0'>Add item</a></td></tr>"
+	local params="$2"
+	echo "<tr><td><iframe name=$controller src='/?controller=$controller&frame=1&$params' frameborder=1 width='$IFRAME_WIDTH' height='$IFRAME_HEIGHT' scrolling='auto'></iframe></td></tr>"
 }
 
 render_list_header(){
@@ -202,6 +198,13 @@ render_list_btns(){
 		# del
 		echo "<a href='/?controller=${controller}&do=del&item=${item}${frameparam}${extparam}' target='_self' onclick='return confirmSubmit()'><img src='images/x.gif' title='Delete item' width='17' height='17' border='0'></a>"
 	
+}
+
+render_button_list_add(){
+	local controller="$1"
+	local item="$2"
+	local extparam="&$3"
+	echo "<tr><td align='center'><a href='javascript:openPopup(window, \"${controller}_edit&${extparam}\", \"$item\", \"additem=1\");'><img src='images/plus.gif' title='Add item' width='17' height='17' border='0'>Add item</a></td></tr>"
 }
 
 render_popup_save_stuff(){

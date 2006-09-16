@@ -2,27 +2,26 @@
 
 start()
 {
-	if [ -f /etc/bind/named.conf ]; then
+	if [ -n "`kdb get svc_dns_enable`" ]; then
+		echo "Starting DNS server: bind"
 		chown -R named:named /var/root-dns/*
 #		named -u named -t /var/root-dns/ -c /etc/bind/named.conf
 		chmod a+w /var/run
-        named -u named -c /etc/bind/named.conf
+		/usr/sbin/named -u named -c /etc/bind/named.conf
 	else
-		echo "FAIL to start named: no named.conf file found"
+		echo "Do not starting DNS server"
 	fi	
 }
 
 stop()
 {
-
-	
-	if [ -f /var/root-dns/var/run/named.pid ]; then
-		kill -KILL `cat /var/root-dns/var/run/named.pid`
+	if [ -f /var/run/named.pid ]; then
+		kill -KILL `cat /var/run/named.pid`
 		return 0
 	fi
 
-	if [ -f /var/run/named.pid ]; then
-		kill -KILL `cat /var/run/named.pid`
+	if [ -f /var/root-dns/var/run/named.pid ]; then
+		kill -KILL `cat /var/root-dns/var/run/named.pid`
 		return 0
 	fi
 
@@ -32,15 +31,14 @@ stop()
 
 case $1 in
 	stop) 
-	    stop
-	    ;;
+		stop
+		;;
 	start)
-	    start
-	    ;;
-	*)
-	    stop
-	    start	
-	    ;;
+		start
+		;;
+	restart)
+		stop
+		start	
+		;;
 esac
-	
-	    
+

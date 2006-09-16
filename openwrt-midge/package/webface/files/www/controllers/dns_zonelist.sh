@@ -16,7 +16,6 @@
 		local item="svc_dns_zonelist_${lineno}"
 		eval "val=\"\${svc_dns_zonelist_${lineno}}\""
 		eval "$val"
-		#local href="javascript:openPopup(window, \"dns_zone\", \"$item\");"
 		enabled_img="<img src=img/disabled.gif>"
 		[ -n "$enabled" ] && enabled_img="<img src=img/enabled.gif>"
 		local href="/?controller=dns_zone&zoneid=$zoneid"

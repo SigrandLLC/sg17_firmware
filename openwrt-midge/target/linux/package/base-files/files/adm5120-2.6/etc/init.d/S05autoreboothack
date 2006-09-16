@@ -1,6 +1,0 @@
-#!/bin/sh
-
-echo test >/test || ( kill 1 ; reboot )
-
-[ -f /test ] && rm /test
-

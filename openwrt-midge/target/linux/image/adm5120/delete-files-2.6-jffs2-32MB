@@ -14,6 +14,7 @@ etc/init.d/S45firewall
 etc/init.d/S50httpd
 etc/init.d/S50telnet
 etc/init.d/S60cron
+etc/init.d/S60named
 etc/init.d/S99done
 etc/init.d/S98done
 etc/init.d/mini_httpd

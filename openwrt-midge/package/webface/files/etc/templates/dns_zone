@@ -15,7 +15,7 @@ echo ";;;;;  Do not edit it by hands, please use webface, kdb or edit $0"
 echo ";;;;;"
 echo ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"
 echo 
-echo "\$ORIGIN $zone"
+echo "\$ORIGIN $zone."
 echo "\$TTL $ttl"
 echo
 echo "@       IN  SOA $nameserver  $admin. ("

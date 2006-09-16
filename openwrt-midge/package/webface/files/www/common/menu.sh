@@ -8,6 +8,10 @@ L2(){
 	echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='?controller=$2' class='navlnk'>$1</a><br>"
 }
 
+L3(){
+	echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='?controller=$2' class='navlnk'>$1</a><br>"
+}
+
 L1 System welcome
 	L2 General 	general
 	L2 Time		time
@@ -17,7 +21,9 @@ L1 System welcome
 L1 Network
 	L2 WAN		wan
 	L2 LAN		lan
-	L2 Firewall	firewall
+	L2 Firewall	fw
+		L3 Filter	"fw&table=filter"
+		L3 NAT		"fw&table=nat"
 	L2 "Static routes"	staticroute
 
 L1 Services
