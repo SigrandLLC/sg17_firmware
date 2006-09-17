@@ -5,7 +5,7 @@
 
 CONF_REFRESH=3
 CONF_KDB=/etc/kdb
-DEBUG=1
+#DEBUG=1
 WARN=1
 export KDB=$CONF_KDB
 kdb=/usr/bin/kdb

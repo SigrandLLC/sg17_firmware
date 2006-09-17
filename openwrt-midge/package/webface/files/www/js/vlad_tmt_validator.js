@@ -13,6 +13,7 @@ tmt_globalPatterns.macaddr = new RegExp("^\([0-9a-fA-F][0-9a-fA-F]:\){5}\([0-9a-
 // IP net validation (ip/bitmask)
 tmt_globalPatterns.ipnet  = new RegExp("^(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])(/\\d\\d*)?$");
 tmt_globalPatterns.ipaddrport = new RegExp("^(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])(\\:\\d*)?$");
+tmt_globalPatterns.port = new RegExp("^((\\d)+|any)$");
 
 // DNS Zone validation
 tmt_globalPatterns.dnszone = new RegExp("^\([a-zA-Z0-9\-\.]\)+$");
@@ -21,4 +22,3 @@ tmt_globalPatterns.dnsdomain = new RegExp("^\(\([a-zA-Z0-9\-\.]\)+|@\)$");
 
 tmt_globalPatterns.dnsdomainoripaddr = new RegExp("^\(\([a-zA-Z0-9\-\.]\)+|\(\(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.\(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.\(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.\(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5]))\)$");
 // </Vlad>
-
