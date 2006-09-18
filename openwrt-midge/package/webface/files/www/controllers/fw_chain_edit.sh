@@ -7,6 +7,7 @@
 	table=$FORM_table
 	chain=$FORM_chain
 	item=$FORM_item
+
 	eval_string="export FORM_$item=\"name=$FORM_name enabled=$FORM_enabled proto=$FORM_proto src=$FORM_src dst=$FORM_dst sport=$FORM_sport dport=$FORM_dport natto=$FORM_natto target=$FORM_target\""
 	render_popup_save_stuff
 	
@@ -23,7 +24,7 @@
 	render_input_field text "Short name" name
 	
 	# enabled
-	desc="Check this item if you want to enable this rule"
+	desc="Check this item to enable rule"
 	validator='tmt:required="true"'
 	render_input_field checkbox "Enable" enabled
 
@@ -52,14 +53,14 @@
 	sporttip="An inclusive range can also be specified, using the format <b>port:port</b>. If the first port is omitted, 0 is assumed; if the last is omitted, 65535 is assumed."
 	tip="$sporttip"
 	desc="Source port or port range specification."
-	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct port" tmt:pattern="ipport"'
+	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct port" tmt:pattern="ipportrange"'
 	render_input_field text "Source port" sport
 
 	# dport
 	default="any"
 	tip="$sporttip"
 	desc="Destination port or port range specification."
-	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct port" tmt:pattern="positiveinteger" tmt:minnumber=0 tmt:maxnumber=65535'
+	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct port" tmt:pattern="ipportrange"'
 	render_input_field text "Destination port" dport
 
 	if [ "$table" = "nat" ]; then
@@ -76,11 +77,11 @@
 	desc=""
 	validator=''
 	if [ "$table" = filter ]; then
-		render_input_field select "Action" target ACCEPT "ACCEPT" DROP "DROP" REJECT "REJECT" icmp "ICMP"
+		render_input_field select "Action" target ACCEPT "ACCEPT" DROP "DROP" REJECT "REJECT"
 	elif [ "$table" = nat -a "$chain" = "prerouting" ]; then
-		render_input_field select "Action" target ACCEPT "ACCEPT" DROP "DROP" REJECT "REJECT" icmp "ICMP" dnat "DNAT"
+		render_input_field select "Action" target ACCEPT "ACCEPT" DROP "DROP" REJECT "REJECT" DNAT "DNAT"
 	elif [ "$table" = nat -a "$chain" = "postrouting" ]; then
-		render_input_field select "Action" target ACCEPT "ACCEPT" DROP "DROP" REJECT "REJECT" icmp "ICMP" dnat "SNAT"
+		render_input_field select "Action" target ACCEPT "ACCEPT" DROP "DROP" REJECT "REJECT" SNAT "SNAT"
 	fi
 	
 	render_submit_field

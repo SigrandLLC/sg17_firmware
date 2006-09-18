@@ -3,7 +3,7 @@
 	. lib/misc.sh
 	. lib/widgets.sh
 
-	kdb_vars="int:svc_dns_tcpclients str:svc_dns_enable"
+	kdb_vars="int:svc_dns_tcpclients str:svc_dns_enabled"
 	#kdb_vars="$kdb_vars "
 	subsys="dns_server"
 
@@ -18,11 +18,11 @@
 #	validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"  tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
 #	render_input_field text "Max TCP Clients" svc_dns_tcpclients
 
-	# svc_dns_enable
+	# svc_dns_enabled
 	tip=""
 	desc="Check this item if you want use DNS server on your router"
 	validator='tmt:required="true"'
-	render_input_field checkbox "Enable DNS server" svc_dns_enable
+	render_input_field checkbox "Enable DNS server" svc_dns_enabled
 
 	# svc_dns_options_tmp
 	#tip=""

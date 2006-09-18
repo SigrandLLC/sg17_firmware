@@ -34,7 +34,7 @@
 	
 	# enabled
 	tip=""
-	desc="Check this item if you want enable this zone on your router"
+	desc="Check this item to enable zone"
 	validator='tmt:required="true"'
 	render_input_field checkbox "Enable" enabled
 

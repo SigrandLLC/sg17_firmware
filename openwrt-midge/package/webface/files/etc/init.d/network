@@ -27,7 +27,7 @@ _ifup(){
 	esac
 	echo " done."
 	eval `kdb -qq ls sys_ntpclient_`
-	if [ "$sys_ntpclient_enable" = "1" -a -x /usr/sbin/ntpclient ]; then
+	if [ "$sys_ntpclient_enabled" = "1" -a -x /usr/sbin/ntpclient ]; then
 		/sbin/route -n | grep ^0.0.0.0 >/dev/null && /usr/sbin/ntpclient -c 1 -s -h ${sys_ntpclient_server:-pool.ntp.org}
 	fi
 }

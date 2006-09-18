@@ -5,7 +5,7 @@
 
 	
 	if [ $REQUEST_METHOD = POST ]; then
-		kdb_vars="bool:sys_ntpclient_enable str:sys_ntpclient_server str:sys_timezone"
+		kdb_vars="bool:sys_ntpclient_enabled str:sys_ntpclient_server str:sys_timezone"
 		subsys="time"
 		save "$subsys" "$kdb_vars" 
 		render_save_message
@@ -15,11 +15,11 @@
 	render_form_header time time_save
 	render_table_title "Time settings" 2 
 
-	# sys_ntpclient_enable
+	# sys_ntpclient_enabled
 	tip="Time synchronization on boot and each 3 hours"
 	desc="Check this item if you want use time synchronizing"
 	validator='tmt:required="true" tmt:message="Please input timeserver" tmt:filters="ltrim,rtrim"'
-	render_input_field checkbox "Use time synchronizing" sys_ntpclient_enable 
+	render_input_field checkbox "Use time synchronizing" sys_ntpclient_enabled
 
 	# sys_ntpclient_server
 	tip="Input hostname of time server <br>Example: <b>pool.ntp.org</b>"

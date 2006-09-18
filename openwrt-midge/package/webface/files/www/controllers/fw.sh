@@ -8,7 +8,7 @@
 	chain=$FORM_chain
 
 	if [ -z "$table" ]; then
-		kdb_vars="str:sys_fw_enable"
+		kdb_vars="str:sys_fw_enabled"
 
 		render_title "Firewall settings"
 		render_save_stuff
@@ -16,11 +16,11 @@
 		eval `$kdb -qq ls sys_fw`
 		render_form_header fw 
 
-		# sys_fw_enable
+		# sys_fw_enabled
 		tip=""
 		desc="Check this item if you want use firewall on your router"
 		validator='tmt:required="true"'
-		render_input_field checkbox "Enable Firewall" sys_fw_enable
+		render_input_field checkbox "Enable Firewall" sys_fw_enabled
 
 		render_submit_field
 		render_form_tail

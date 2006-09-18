@@ -97,7 +97,7 @@ function chkForBubbleEffect() {
 ////////
 function registerImages(imgStr,path) {
 	if(typeof imgStr!='string') return;
-	path=(path&&typeof path=='string') ? path : '/images';
+	path=(path&&typeof path=='string') ? path : '/img';
 	if (path.charAt(path.length-1)=='/') path=path.substring(0,path.length-1);
 	if(typeof olBTypes=='undefined') olBTypes=imgStr.split(',');
 	if(typeof olBubbleImg=='undefined') {

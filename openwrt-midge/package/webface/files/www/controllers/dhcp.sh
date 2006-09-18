@@ -3,7 +3,7 @@
 	. lib/widgets.sh
 
 	if [ $REQUEST_METHOD = POST ]; then
-		kdb_vars="bool:svc_dhcp_enable int:svc_dhcp_lease_time str:svc_dhcp_router str:svc_dhcp_nameserver str:svc_dhcp_domain_name "
+		kdb_vars="bool:svc_dhcp_enabled int:svc_dhcp_lease_time str:svc_dhcp_router str:svc_dhcp_nameserver str:svc_dhcp_domain_name "
 		kdb_vars="$kdb_vars str:svc_dhcp_ntpserver str:svc_dhcp_winsserver str:svc_dhcp_startip str:svc_dhcp_endip "
 		kdb_vars="$kdb_vars str:svc_dhcp_netmask "
 		subsys="dhcp"
@@ -15,11 +15,11 @@
 	render_form_header dhcp
 	render_table_title "DHCP Settings" 2 
 
-	# svc_dhcp_enable
+	# svc_dhcp_enabled
 	tip=""
 	desc="Check this item if you want use DHCP server on your LAN"
 	validator='tmt:required="true"'
-	render_input_field checkbox "Enable DHCP server" svc_dhcp_enable
+	render_input_field checkbox "Enable DHCP server" svc_dhcp_enabled
 
 	# svc_dhcp_router
 	tip="Router for subnet"

@@ -202,7 +202,7 @@ render_list_btns(){
 		[ -n "$frame" ] && frameparam="&frame=1"
 		
 		# edit
-		echo "&nbsp;<a href='javascript:openPopup(window, \"${controller}_edit\", \"$item\");'><img src='img/e.gif' title='Edit item' width='17' height='17' border='0'></a>"
+		echo "&nbsp;<a href='javascript:openPopup(window, \"${controller}_edit${extparam}\", \"$item\");'><img src='img/e.gif' title='Edit item' width='17' height='17' border='0'></a>"
 		
 		# del
 		echo "<a href='/?controller=${controller}&do=del&item=${item}${frameparam}${extparam}' target='_self' onclick='return confirmSubmit()'><img src='img/x.gif' title='Delete item' width='17' height='17' border='0'></a>"

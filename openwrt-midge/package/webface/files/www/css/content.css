@@ -398,3 +398,6 @@ input:focus, textarea:focus {
 	color: #909090;                                                         
 } 
 
+.lineDisabled {                                                                    
+	color: #A0A0A0;                                                         
+} 
