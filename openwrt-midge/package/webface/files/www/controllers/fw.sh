@@ -48,7 +48,7 @@
 		autosubmit="y"
 		tip="<b>WARNING:</b> Use with caution!"
 		render_input_field select "Default policy for OUTPUT" sys_fw_filter_policy_output ACCEPT "ACCEPT" DROP "DROP"
-		render_submit_field
+		render_form_tail
 
 		# fw forward list
 		render_form_header fw_filter_forward
@@ -84,7 +84,7 @@
 		render_input_field select "Default policy for PREROUTING" sys_fw_nat_policy_prerouting ACCEPT "ACCEPT" DROP "DROP"
 		# postrouting policy
 		render_input_field select "Default policy for POSTROUTING" sys_fw_nat_policy_postrouting ACCEPT "ACCEPT" DROP "DROP"
-		render_submit_field
+		render_form_tail
 
 		# fw prerouting list
 		render_form_header fw_nat_prerouting
