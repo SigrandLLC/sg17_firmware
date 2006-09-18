@@ -142,11 +142,11 @@ render_input_field(){
         
     [ ! $type = "hidden" ] && echo "<br><span class='inputDesc' $tipcode>$desc</span></td></tr>"
 	echo "<!-- ------- /render_input_field $type $text $inputname $* -->"
-	autosubmit=''
-    tip=''
-    desc=''
-    validator=''
-	default=''
+	unset autosubmit
+    unset tip
+    unset desc
+    unset validator
+	unset default
 }
 
 render_submit_field(){
