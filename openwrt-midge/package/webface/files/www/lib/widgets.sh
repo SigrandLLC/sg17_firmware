@@ -9,7 +9,7 @@ render_chart_h(){
     local f="$3";
     local p=$(($l*100/$f))
     local w=$(($p*2))
-    echo '<img src=/images/bar_left.gif><img src=/images/bar_middle.gif height=16 width='$w'><img src=/images/bar_right.gif>' $p '%'
+    echo '<img src=/img/bar_left.gif><img src=/img/bar_middle.gif height=16 width='$w'><img src=/img/bar_right.gif>' $p '%'
 }
 
 render_title(){
@@ -182,7 +182,7 @@ render_list_header(){
 			echo $s2 $n $s3
 		done
 		#echo $s2_act $s3 $s4
-		echo "<td align='left'>&nbsp;<a href='javascript:openPopup(window, \"${controller}_edit&${extparam}\", \"$item\", \"additem=1\");'><img src='images/plus.gif' title='Add item' width='17' height='17' border='0'></a></td>"$s4
+		echo "<td align='left'>&nbsp;<a href='javascript:openPopup(window, \"${controller}_edit&${extparam}\", \"$item\", \"additem=1\");'><img src='img/plus.gif' title='Add item' width='17' height='17' border='0'></a></td>"$s4
 }
 
 render_list_cycle_stuff(){
@@ -202,10 +202,10 @@ render_list_btns(){
 		[ -n "$frame" ] && frameparam="&frame=1"
 		
 		# edit
-		echo "&nbsp;<a href='javascript:openPopup(window, \"${controller}_edit\", \"$item\");'><img src='images/e.gif' title='Edit item' width='17' height='17' border='0'></a>"
+		echo "&nbsp;<a href='javascript:openPopup(window, \"${controller}_edit\", \"$item\");'><img src='img/e.gif' title='Edit item' width='17' height='17' border='0'></a>"
 		
 		# del
-		echo "<a href='/?controller=${controller}&do=del&item=${item}${frameparam}${extparam}' target='_self' onclick='return confirmSubmit()'><img src='images/x.gif' title='Delete item' width='17' height='17' border='0'></a>"
+		echo "<a href='/?controller=${controller}&do=del&item=${item}${frameparam}${extparam}' target='_self' onclick='return confirmSubmit()'><img src='img/x.gif' title='Delete item' width='17' height='17' border='0'></a>"
 	
 }
 
@@ -213,7 +213,7 @@ render_button_list_add(){
 	local controller="$1"
 	local item="$2"
 	local extparam="&$3"
-	echo "<tr><td align='center'><a href='javascript:openPopup(window, \"${controller}_edit&${extparam}\", \"$item\", \"additem=1\");'><img src='images/plus.gif' title='Add item' width='17' height='17' border='0'>Add item</a></td></tr>"
+	echo "<tr><td align='center'><a href='javascript:openPopup(window, \"${controller}_edit&${extparam}\", \"$item\", \"additem=1\");'><img src='img/plus.gif' title='Add item' width='17' height='17' border='0'>Add item</a></td></tr>"
 }
 
 render_popup_save_stuff(){
