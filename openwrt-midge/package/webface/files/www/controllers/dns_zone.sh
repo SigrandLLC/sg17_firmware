@@ -23,10 +23,8 @@
 	}
 	
 	
-	render_list_header "No" "Domain" "Type" "Priority" "Data"
+	render_list_header dns_zone svc_dns_zone_${zoneid}_ "" "No" "Domain" "Type" "Priority" "Data"
 	
 	render_list_cycle_stuff
 
-	render_button_list_add dns_zone svc_dns_zone_${zoneid}_
-	
 	render_form_tail

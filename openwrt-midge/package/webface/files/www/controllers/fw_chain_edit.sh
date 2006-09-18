@@ -7,7 +7,7 @@
 	table=$FORM_table
 	chain=$FORM_chain
 	item=$FORM_item
-	eval_string="export FORM_$item=\"name=$FORM_name enabled=$FORM_enabled src=$FORM_src dst=$FORM_dst sport=$FORM_sport dport=$FORM_dport natto=$FORM_natto target=$FORM_target\""
+	eval_string="export FORM_$item=\"name=$FORM_name enabled=$FORM_enabled proto=$FORM_proto src=$FORM_src dst=$FORM_dst sport=$FORM_sport dport=$FORM_dport natto=$FORM_natto target=$FORM_target\""
 	render_popup_save_stuff
 	
 	render_form_header fw_chain_edit

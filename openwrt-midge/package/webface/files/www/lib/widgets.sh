@@ -164,6 +164,11 @@ render_iframe_list(){
 }
 
 render_list_header(){
+		local controller="$1"
+		local item="$2"
+		local extparam="&$3"
+
+		shift 3
 		local s1="<tr>"
 		local s2="<td class='listtopic'>"
 		local s2_act="<td>"
@@ -174,12 +179,14 @@ render_list_header(){
 		for n in "$@"; do
 			echo $s2 $n $s3
 		done
-		echo $s2_act $s3 $s4
+		#echo $s2_act $s3 $s4
+		echo "<td align='left'>&nbsp;<a href='javascript:openPopup(window, \"${controller}_edit&${extparam}\", \"$item\", \"additem=1\");'><img src='images/plus.gif' title='Add item' width='17' height='17' border='0'></a></td>"$s4
 }
 
 render_list_cycle_stuff(){
 	local i=0
 	while [ $i -lt $kdb_lines_count ]; do
+		#debug "render_list_cycle_stuff(): i=$i kdb_lines_count=$kdb_lines_count"
 		render_list_line $i
 		i=$(($i+1))
 	done
@@ -193,7 +200,7 @@ render_list_btns(){
 		[ -n "$frame" ] && frameparam="&frame=1"
 		
 		# edit
-		echo "<a href='javascript:openPopup(window, \"${controller}_edit\", \"$item\");'><img src='images/e.gif' title='Edit item' width='17' height='17' border='0'></a>"
+		echo "&nbsp;<a href='javascript:openPopup(window, \"${controller}_edit\", \"$item\");'><img src='images/e.gif' title='Edit item' width='17' height='17' border='0'></a>"
 		
 		# del
 		echo "<a href='/?controller=${controller}&do=del&item=${item}${frameparam}${extparam}' target='_self' onclick='return confirmSubmit()'><img src='images/x.gif' title='Delete item' width='17' height='17' border='0'></a>"

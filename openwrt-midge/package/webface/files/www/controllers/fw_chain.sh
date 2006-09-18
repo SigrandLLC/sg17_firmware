@@ -11,26 +11,24 @@
 		del) $kdb lrm "$FORM_item";;
 	esac;
 	
-	eval `$kdb -qqc list sys_fw_`
-	render_form_header fw_filter
+	eval `$kdb -qqc list sys_fw_${table}_${chain}`
+	render_form_header fw_${table}_${chain}
 
 	render_list_line(){
 		local lineno=$1
-		local item="sys_fw_filter_${lineno}"
-		eval "val=\"\${item}\""
-		eval "$val"
+		local item="sys_fw_${table}_${chain}_${lineno}"
 		enabled_img="<img src=img/disabled.gif>"
+		eval "var=\$$item"
+		eval "$var"
 		[ -n "$enabled" ] && enabled_img="<img src=img/enabled.gif>"
-		echo "<tr><td>$lineno</td><td>$enabled_img </a></td><td><a href='$href' target=_parent>$zone</a></td><td>$admin</td><td>$serial</td><td>"
-		render_list_btns dns_zonelist "$item" "table=$table&chain=$chain"
+		echo "<tr><td>$lineno</td><td>$enabled_img </a>$name</td><td>$src</td><td>$dst</td><td>$proto</td><td>$sport</td><td>$dport</td><td>$target</td><td>"
+		render_list_btns fw_chain "$item" "table=$table&chain=$chain"
 		echo '</td></tr>'
 	}
 	
 	
-	render_list_header "No" "Rule name" "Src" "Dst" "Proto" "Src port" "Dst port" "Action"
+	render_list_header fw_chain sys_fw_${table}_${chain}_ "table=$table&chain=$chain" "No" "Rule name" "Src" "Dst" "Proto" "Src port" "Dst port" "Action"
 	
 	render_list_cycle_stuff
 
-	render_button_list_add fw_chain sys_fw_${table}_${chain}_ "table=$table&chain=$chain"
-	
 	render_form_tail

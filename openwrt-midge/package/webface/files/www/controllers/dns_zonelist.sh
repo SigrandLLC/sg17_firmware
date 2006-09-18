@@ -25,10 +25,8 @@
 	}
 	
 	
-	render_list_header "Zone id" "Zone name" "Admin" "Serial"
+	render_list_header dns_zonelist svc_dns_zonelist_ "" "Zone id" "Zone name" "Admin" "Serial"
 	
 	render_list_cycle_stuff
 
-	render_button_list_add dns_zonelist svc_dns_zonelist_
-	
 	render_form_tail

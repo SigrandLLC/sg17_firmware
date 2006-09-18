@@ -21,10 +21,8 @@
 	}
 	
 	
-	render_list_header "No" "Name" "IP Address" "MAC Address"
+	render_list_header dhcp_static svc_dhcp_lanhost_ "" "No" "Name" "IP Address" "MAC Address"
 	
 	render_list_cycle_stuff
 
-	render_button_list_add dhcp_static svc_dhcp_lanhost_
-	
 	render_form_tail

@@ -19,14 +19,13 @@
 		echo "</td></tr>"
 	}
 	
-	render_list_header "No" "Network" "Mask" "Gateway"
+	render_list_header staticroute sys_staticroute_ "" "No" "Network" "Mask" "Gateway"
 	
 	i=0
 	while [ $i -lt $kdb_lines_count ]; do
 		render_list_line $i
 		i=$(($i+1))
 	done
-	render_button_list_add staticroute sys_staticroute_
 	
 	render_form_tail
 
