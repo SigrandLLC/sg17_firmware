@@ -94,6 +94,7 @@ render_input_field(){
     [ "$tip" ] && tipcode="onmouseover=\"return overlib('$tip', BUBBLE, BUBBLETYPE, 'roundcorners')\" onmouseout=\"return nd();\""
     eval 'value=$'$inputname
 	[ -z "$value" -a -n "$default" ] && value="$default"
+	[ -n "$autosubmit" ] && ascode="onchange='this.form.submit()'"
 	
 	shift 3
 
@@ -102,8 +103,8 @@ render_input_field(){
 
 
     [ ! $type = "hidden" ] && echo "<tr>
-<td width="25%" class='vncellt'><label for='$inputname' $tipcode>$text</label></td>
-<td width="75%" class='listr'>";
+<td width="35%" class='vncellt'><label for='$inputname' $tipcode>$text</label></td>
+<td width="65%" class='listr'>";
 
     case $type in
     text)
@@ -124,9 +125,9 @@ render_input_field(){
 		done
 		;;
 	select)
-		echo -n "<select  $tipcode name='$inputname' class='edit' $validator tmt:errorclass='invalid'>"
+		echo -n "<select  $tipcode name='$inputname' class='edit' $validator tmt:errorclass='invalid' $ascode>"
 		while [ "$1" ]; do
-			echo "<option value=$1"
+			echo -n "<option value=$1"
 			[ "$value" = "$1" ] && echo -n " selected "
 			echo ">$2</option>"
 			shift 2
@@ -141,6 +142,7 @@ render_input_field(){
         
     [ ! $type = "hidden" ] && echo "<br><span class='inputDesc' $tipcode>$desc</span></td></tr>"
 	echo "<!-- ------- /render_input_field $type $text $inputname $* -->"
+	autosubmit=''
     tip=''
     desc=''
     validator=''

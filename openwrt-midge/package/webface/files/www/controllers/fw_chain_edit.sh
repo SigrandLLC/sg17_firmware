@@ -74,7 +74,7 @@
 	# target
 	tip=""
 	desc=""
-	validator='tmt:message="Please select lease time"'
+	validator=''
 	if [ "$table" = filter ]; then
 		render_input_field select "Action" target ACCEPT "ACCEPT" DROP "DROP" REJECT "REJECT" icmp "ICMP"
 	elif [ "$table" = nat -a "$chain" = "prerouting" ]; then

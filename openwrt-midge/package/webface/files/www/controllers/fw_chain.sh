@@ -11,7 +11,7 @@
 		del) $kdb lrm "$FORM_item";;
 	esac;
 	
-	eval `$kdb -qqc list sys_fw_${table}_${chain}`
+	eval `$kdb -qqc list sys_fw_${table}_${chain}_`
 	render_form_header fw_${table}_${chain}
 
 	render_list_line(){

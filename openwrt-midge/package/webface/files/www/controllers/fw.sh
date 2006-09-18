@@ -3,17 +3,17 @@
 	. lib/misc.sh
 	. lib/widgets.sh
 
-	if [ -z "$FORM_table" ]; then
-		kdb_vars="int:svc_dns_tcpclients str:svc_dns_enable"
-		#kdb_vars="$kdb_vars "
-		subsys=""
+	subsys="fw"
+	table=$FORM_table
+	chain=$FORM_chain
+
+	if [ -z "$table" ]; then
+		kdb_vars="str:sys_fw_enable"
 
 		render_title "Firewall settings"
-
 		render_save_stuff
 
 		eval `$kdb -qq ls sys_fw`
-
 		render_form_header fw 
 
 		# sys_fw_enable
@@ -24,7 +24,32 @@
 
 		render_submit_field
 		render_form_tail
-	elif [ "$FORM_table" = "filter" ]; then
+	elif [ "$table" = "filter" ]; then
+	
+		kdb_vars="str:sys_fw_filter_policy_forward str:sys_fw_filter_policy_input str:sys_fw_filter_policy_output"
+		render_title "Firewall settings"
+		render_save_stuff
+		
+		eval `$kdb -qq ls sys_fw_filter`
+		render_form_header fw_policy 
+		
+		render_input_field hidden table table "$table"
+		render_input_field hidden chain chain "$chain"
+		
+		render_table_title "Default policy" 2 
+		# forward policy
+		autosubmit="y"
+		render_input_field select "Default policy for FORWARD" sys_fw_filter_policy_forward ACCEPT "ACCEPT" DROP "DROP"
+		# input policy
+		autosubmit="y"
+		tip="<b>WARNING:</b> Use with caution!"
+		render_input_field select "Default policy for INPUT" sys_fw_filter_policy_input ACCEPT "ACCEPT" DROP "DROP"
+		# output policy
+		autosubmit="y"
+		tip="<b>WARNING:</b> Use with caution!"
+		render_input_field select "Default policy for OUTPUT" sys_fw_filter_policy_output ACCEPT "ACCEPT" DROP "DROP"
+		render_submit_field
+
 		# fw forward list
 		render_form_header fw_filter_forward
 		render_table_title "FORWARD" 2 
@@ -43,7 +68,24 @@
 		render_iframe_list "fw_chain" "table=filter&chain=output"
 		render_form_tail
 	
-	elif [ "$FORM_table" = "nat" ]; then
+	elif [ "$table" = "nat" ]; then
+		kdb_vars="str:sys_fw_nat_policy_prerouting str:sys_fw_nat_policy_postrouting"
+		render_title "Firewall settings"
+		render_save_stuff
+		
+		eval `$kdb -qq ls sys_fw_nat`
+		render_form_header fw_policy 
+		
+		render_input_field hidden table table "$table"
+		render_input_field hidden chain chain "$chain"
+		
+		render_table_title "Default policy" 2 
+		# prerouting policy
+		render_input_field select "Default policy for PREROUTING" sys_fw_nat_policy_prerouting ACCEPT "ACCEPT" DROP "DROP"
+		# postrouting policy
+		render_input_field select "Default policy for POSTROUTING" sys_fw_nat_policy_postrouting ACCEPT "ACCEPT" DROP "DROP"
+		render_submit_field
+
 		# fw prerouting list
 		render_form_header fw_nat_prerouting
 		render_table_title "PREROUTING" 2 
