@@ -28,9 +28,13 @@ service_reload(){
 		;;
 		dsl*)
 			iface=${sybsys##*.}
-			/etc/init.d/S50dsl restart $iface >$logfile 2>&1
+			/etc/init.d/dsl restart $iface >$logfile 2>&1
 			#displayFile $logfile		
-
+		;;
+		fw)
+			/etc/init.d/fw restart >$logfile 2>&1
+			#displayFile $logfile		
+		;;
 		esac
 	done
 }
