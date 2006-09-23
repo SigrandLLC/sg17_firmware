@@ -89,11 +89,13 @@ IPT_NAT_EXTRA-$(CONFIG_IP_NF_NAT_RTSP) += $(P_V4)ip_nat_rtsp
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_PPTP) += $(P_V4)ip_conntrack_pptp
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_SIP) += $(P_V4)ip_conntrack_sip
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_NAT_PPTP) += $(P_V4)ip_nat_pptp
+ifeq ($(NF_2_6),1)
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_NAT_SIP) += $(P_V4)ip_nat_sip
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_NAT_SNMP_BASIC) += $(P_V4)ip_nat_snmp_basic
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_SIP) += $(P_V4)ip_conntrack_sip
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_NAT_SIP) += $(P_V4)ip_nat_sip
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_TFTP) += $(P_V4)ip_conntrack_tftp
+endif
 
 IPT_QUEUE-m :=
 IPT_QUEUE-$(CONFIG_IP_NF_QUEUE) += $(P_V4)ip_queue
