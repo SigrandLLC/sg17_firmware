@@ -4,6 +4,7 @@
 #
 
 test -r /etc/inetd.conf || exit 0
+test -x /usr/sbin/inetd || exit 0
 
 
 start() {
