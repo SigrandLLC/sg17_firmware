@@ -62,6 +62,10 @@ case "$0" in
 			eval `kdb -qq sls sys_iface_${iface}_`
 			[ "$1" = "start" -a "$auto" != "0" ] && _ifup $iface
 			[ "$1" = "stop" ] && _ifdown $iface
+			if [ "$1" = "restart" ]; then
+				_ifdown $iface
+				_ifup $iface 
+			fi
 		done
 		;;
 	*ifup)

@@ -10,7 +10,7 @@ service_reload(){
 		local logfile=/tmp/$service.svc.log
 		case "$service" in
 		network)
-			/etc/init.d/S40network restart >$logfile 2>&1
+			/etc/init.d/network restart >$logfile 2>&1
 			#displayFile $logfile
 		;;
 
