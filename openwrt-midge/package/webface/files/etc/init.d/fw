@@ -32,14 +32,14 @@ chain(){
 		[ "$target" = "DNAT" ] && _nat="--to-destination=$natto"
 		[ "$target" = "SNAT" ] && _nat="--to-source=$natto"
 
-		[ $enabled ] && $ADD $uchain -t $table -s $src -d $dst $_proto $_sport $_dport -j $target $_nat
+		[ $enabled = 1 ] && $ADD $uchain -t $table -s $src -d $dst $_proto $_sport $_dport -j $target $_nat
 	done
 }
 
 start(){
 	eval `kdb -qq ls sys_fw_`
 	echo -n "Starting fw: "
-	if [ -n "$sys_fw_enabled" ]; then
+	if [ "$sys_fw_enabled" = 1 ]; then
 		$SET_POLICY FORWARD $sys_fw_filter_policy_forward
 		$SET_POLICY INPUT	$sys_fw_filter_policy_input
 		$SET_POLICY OUTPUT	$sys_fw_filter_policy_output

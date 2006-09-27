@@ -8,7 +8,7 @@
 	chain=$FORM_chain
 
 	if [ -z "$table" ]; then
-		kdb_vars="str:sys_fw_enabled"
+		kdb_vars="bool:sys_fw_enabled"
 
 		render_title "Firewall settings"
 		render_save_stuff

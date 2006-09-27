@@ -3,7 +3,7 @@
 	. lib/misc.sh
 	. lib/widgets.sh
 
-	kdb_vars="int:svc_dns_tcpclients str:svc_dns_enabled"
+	kdb_vars="int:svc_dns_tcpclients bool:svc_dns_enabled"
 	#kdb_vars="$kdb_vars "
 	subsys="dns_server"
 

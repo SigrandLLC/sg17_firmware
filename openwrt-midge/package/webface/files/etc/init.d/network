@@ -40,7 +40,7 @@ _ifdown(){
 	eval `kdb -qq sls sys_iface_${iface}_`
 	[ -z $type ] && echo "sys_iface_${iface}_type is not set" && exit 1
 	echo -n "Setting down $iface: "
-	/sbin/ifconfig $iface down
+	/sbin/ifconfig $real down
 	case $type in
 	static)
 		;;

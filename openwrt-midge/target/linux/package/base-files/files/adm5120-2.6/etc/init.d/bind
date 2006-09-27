@@ -2,7 +2,8 @@
 
 start()
 {
-	if [ -n "`kdb get svc_dns_enable`" ]; then
+	enabled="`kdb get svc_dns_enabled`"
+	if [ -n "$enabled" -a "$enabled" -ge 1 ]; then
 		echo "Starting DNS server: bind"
 		chown -R named:named /var/root-dns/*
 #		named -u named -t /var/root-dns/ -c /etc/bind/named.conf

@@ -21,14 +21,14 @@
 		local style
 		eval "var=\$$item"
 		eval "$var"
-		[ -z "$enabled" ] && style="class='lineDisabled'"
+		[ 1 = "$enabled" ] && style="class='lineDisabled'"
 		[ "$target" = "ACCEPT" ] && target_img="<img src=img/accept.gif>"
 		[ "$target" = "DROP" ] && target_img="<img src=img/drop.gif>"
 		[ "$target" = "REJECT" ] && target_img="<img src=img/reject.gif>"
 		#[ "$target" = "SNAT" ] && target_img="<img src=img/snat.gif>"
 		#[ "$target" = "DNAT" ] && target_img="<img src=img/dnat.gif>"
 		
-		echo "<tr $style><td>$lineno</td><td>$enabled_img </a>$name</td><td>$src</td><td>$dst</td><td>$proto</td><td>$sport</td><td>$dport</td><td>$target_img $target</td><td>"
+		echo "<tr $style><td>$lineno</td><td>$name</td><td>$src</td><td>$dst</td><td>$proto</td><td>$sport</td><td>$dport</td><td>$target_img $target</td><td>"
 		render_list_btns fw_chain "$item" "table=$table&chain=$chain"
 		echo '</td></tr>'
 	}

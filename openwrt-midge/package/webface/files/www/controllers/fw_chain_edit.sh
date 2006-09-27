@@ -24,6 +24,7 @@
 	render_input_field text "Short name" name
 	
 	# enabled
+	default=0
 	desc="Check this item to enable rule"
 	validator='tmt:required="true"'
 	render_input_field checkbox "Enable" enabled
