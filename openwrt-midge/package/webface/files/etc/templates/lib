@@ -86,7 +86,7 @@ update_configs(){
 		cfg_commit
 		;;
 	dhcp)
-		cfg_make dhcpd.conf /etc/dhcp/dhcpd.conf && \
+		cfg_make dhcpd.conf /etc/dhcpd/dhcpd.conf && \
 		cfg_commit
 		;;
 	dns)

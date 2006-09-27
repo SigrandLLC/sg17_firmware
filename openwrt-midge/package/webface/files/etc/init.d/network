@@ -12,7 +12,7 @@ _ifup(){
 		[ -n "$broadcast" ] && opts="$opts broadcast $broadcast"
 		/sbin/ifconfig $opts
 		if [ -n "$gateway" ]; then
-			/sbin/route del default
+			/sbin/route del default 2>/dev/null
 			/sbin/route add default gw $gateway 
 		fi
 		;;

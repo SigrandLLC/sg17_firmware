@@ -81,7 +81,7 @@
 	elif [ "$table" = nat -a "$chain" = "prerouting" ]; then
 		render_input_field select "Action" target ACCEPT "ACCEPT" DROP "DROP" REJECT "REJECT" DNAT "DNAT"
 	elif [ "$table" = nat -a "$chain" = "postrouting" ]; then
-		render_input_field select "Action" target ACCEPT "ACCEPT" DROP "DROP" REJECT "REJECT" SNAT "SNAT"
+		render_input_field select "Action" target ACCEPT "ACCEPT" DROP "DROP" REJECT "REJECT" SNAT "SNAT" MASQUERADE "MASQUERADE"
 	fi
 	
 	render_submit_field

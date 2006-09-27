@@ -82,9 +82,11 @@
 		render_table_title "Default policy" 2 
 		# prerouting policy
 		autosubmit="y"
+		tip="<b>WARNING:</b> Use with caution!"
 		render_input_field select "Default policy for PREROUTING" sys_fw_nat_policy_prerouting ACCEPT "ACCEPT" DROP "DROP"
 		# postrouting policy
 		autosubmit="y"
+		tip="<b>WARNING:</b> Use with caution!"
 		render_input_field select "Default policy for POSTROUTING" sys_fw_nat_policy_postrouting ACCEPT "ACCEPT" DROP "DROP"
 		render_form_tail
 
