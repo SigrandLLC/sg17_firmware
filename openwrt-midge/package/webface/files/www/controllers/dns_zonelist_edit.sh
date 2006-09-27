@@ -33,7 +33,6 @@
 	render_input_field text "Zone" zone
 	
 	# enabled
-	default=0
 	tip=""
 	desc="Check this item to enable zone"
 	validator='tmt:required="true"'

@@ -101,10 +101,9 @@ render_input_field(){
 	echo "
 <!-- ------- render_input_field $type $text $inputname $* -->"
 
-
     [ ! $type = "hidden" ] && echo "<tr>
-<td width="35%" class='vncellt'><label for='$inputname' $tipcode>$text</label></td>
-<td width="65%" class='listr'>";
+<td width='35%' class='vncellt'><label for='$inputname' $tipcode>$text</label></td>
+<td width='65%' class='listr'>";
 
     case $type in
     text)

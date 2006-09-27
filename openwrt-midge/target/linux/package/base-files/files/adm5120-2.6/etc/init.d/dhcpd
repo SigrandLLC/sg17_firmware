@@ -7,7 +7,7 @@ DHCPD_PID=/var/run/dhcpd.pid
 start()
 {
 	enabled="`kdb get svc_dhcp_enabled`"
-	if [ -n "$enabled" -a "$enabled" -ge 1 ]; then
+	if [ "x${enabled}" = "x1" ]; then
 		if [ ! -r $DHCPD_CONF ]; then
 			/etc/templates/Update dhcp
 		fi

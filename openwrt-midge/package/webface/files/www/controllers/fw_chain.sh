@@ -21,7 +21,7 @@
 		local style
 		eval "var=\$$item"
 		eval "$var"
-		[ 1 = "$enabled" ] && style="class='lineDisabled'"
+		[  "x${enabled}x" = "xx"  ] && style="class='lineDisabled'"
 		[ "$target" = "ACCEPT" ] && target_img="<img src=img/accept.gif>"
 		[ "$target" = "DROP" ] && target_img="<img src=img/drop.gif>"
 		[ "$target" = "REJECT" ] && target_img="<img src=img/reject.gif>"

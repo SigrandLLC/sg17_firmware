@@ -99,7 +99,7 @@ update_configs(){
 		for k in `kdb  kls svc_dns_zonelist `; do 
 			zonedata=`kdb  get $k`; 
 			eval "export $zonedata"; 
-			if [ "$enabled" = 1 ]; then
+			if [ "x${enabled}x" != "xx" ]; then
 				cfg_make dns_zone /etc/bind/zones/$zoneid $k $zoneid || ok="false"
 			fi
 		done

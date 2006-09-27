@@ -7,6 +7,7 @@
 	table=$FORM_table
 	chain=$FORM_chain
 
+	cautiontip="<b class=red>WARNING:</b> Use with caution!<br> Without any ACCEPT rule, default DROP policy can brick your router"
 	if [ -z "$table" ]; then
 		kdb_vars="bool:sys_fw_enabled"
 
@@ -42,11 +43,11 @@
 		render_input_field select "Default policy for FORWARD" sys_fw_filter_policy_forward ACCEPT "ACCEPT" DROP "DROP"
 		# input policy
 		autosubmit="y"
-		tip="<b>WARNING:</b> Use with caution!"
+		tip=$cautiontip
 		render_input_field select "Default policy for INPUT" sys_fw_filter_policy_input ACCEPT "ACCEPT" DROP "DROP"
 		# output policy
 		autosubmit="y"
-		tip="<b>WARNING:</b> Use with caution!"
+		tip=$cautiontip
 		render_input_field select "Default policy for OUTPUT" sys_fw_filter_policy_output ACCEPT "ACCEPT" DROP "DROP"
 		render_form_tail
 
@@ -82,11 +83,11 @@
 		render_table_title "Default policy" 2 
 		# prerouting policy
 		autosubmit="y"
-		tip="<b>WARNING:</b> Use with caution!"
+		tip=$cautiontip
 		render_input_field select "Default policy for PREROUTING" sys_fw_nat_policy_prerouting ACCEPT "ACCEPT" DROP "DROP"
 		# postrouting policy
 		autosubmit="y"
-		tip="<b>WARNING:</b> Use with caution!"
+		tip=$cautiontip
 		render_input_field select "Default policy for POSTROUTING" sys_fw_nat_policy_postrouting ACCEPT "ACCEPT" DROP "DROP"
 		render_form_tail
 
