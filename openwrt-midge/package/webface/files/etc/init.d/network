@@ -5,6 +5,7 @@ _ifup(){
 	local iface=$1
 	eval `kdb -qq sls sys_iface_${iface}_`
 	[ -z $type ] && echo "sys_iface_${iface}_type is not set"
+	echo 1 > /proc/sys/net/ipv4/ip_forward
 	echo -n "Setting up $iface "
 	case $type in
 	static)
