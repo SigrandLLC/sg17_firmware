@@ -78,7 +78,9 @@ adm5120-fs-prepare:
 			done; 
 	( cd ../../package/base-files/files/$(BOARD)-$(KERNEL) && \
 		tar cf - --exclude .svn . | tar xvf - -C $(KDIR)/root/; \
-		 $(SED) 's,$$R,r$(REV),g' $(KDIR)/root/etc/banner \
+		 $(SED) 's,$$R,r$(REV),g' $(KDIR)/root/etc/banner; \
+		 echo "Builded at: `date '+%Y%m%d %H:%M'`" >>$(KDIR)/root/etc/banner; \
+		 echo "" >>$(KDIR)/root/etc/banner; \
 	)
 
 $(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin: $(SCRIPT_DIR)/padfile
