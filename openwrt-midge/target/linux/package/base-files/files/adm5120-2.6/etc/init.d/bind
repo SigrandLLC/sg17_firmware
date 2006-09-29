@@ -31,11 +31,12 @@ stop()
 	
 
 case $1 in
+	start)
+		/etc/templates/Update bind
+		start
+		;;
 	stop) 
 		stop
-		;;
-	start)
-		start
 		;;
 	restart)
 		stop

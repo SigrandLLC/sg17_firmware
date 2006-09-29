@@ -8,12 +8,9 @@ start()
 {
 	enabled="`kdb get svc_dhcp_enabled`"
 	if [ "x${enabled}" = "x1" ]; then
-		if [ ! -r $DHCPD_CONF ]; then
-			/etc/templates/Update dhcp
-		fi
-
+		iface="`kdb get sys_iface_lan_real`"
 		if [ -r $DHCPD_CONF -a -x $DHCPD_BIN ]; then
-			$DHCPD_BIN -cf $DHCPD_CONF
+			$DHCPD_BIN -q -cf $DHCPD_CONF $iface
 		else
 			echo "FAIL to start dhcpd: no file $DHCPD_CONF was found or no $DHCPD_BIN was found"
 		fi
@@ -30,6 +27,7 @@ stop()
 
 case $1 in
 	start)	
+		/etc/templates/Update dhcp
 		start ;;
 	stop)	
 		stop ;;
