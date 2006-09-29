@@ -41,6 +41,7 @@ package-$(BR2_COMPILE_CURL) += curl
 package-$(BR2_PACKAGE_CUTTER) += cutter
 package-$(BR2_COMPILE_CYRUS_SASL) += cyrus-sasl
 package-$(BR2_COMPILE_DB) += libdb
+package-$(BR2_PACKAGE_DASH) += dash
 package-$(BR2_PACKAGE_DECO) += deco
 package-$(BR2_COMPILE_DHCP) += dhcp
 package-$(BR2_PACKAGE_DHCP6) += dhcp6
