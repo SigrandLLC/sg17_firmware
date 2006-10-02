@@ -5,6 +5,9 @@
 
 umask 077
 
+mkdir -p /var/lib/misc
+touch /var/lib/misc/udhcpd.leases
+
 start() {
 	for conf in /etc/udhcpd*.conf; do
         if [ -r "$conf" ]; then

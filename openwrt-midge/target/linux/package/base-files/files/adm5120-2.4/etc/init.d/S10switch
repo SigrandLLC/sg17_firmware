@@ -2,8 +2,11 @@
 
 test -r /etc/midge.conf && . /etc/midge.conf
 
-insmod adm5120sw.o \
-		vlan_mx="${VLAN_MX:='0x41,0x42,0x44,0x48,0x50,0x60'}"
-for i in `ifconfig -a|grep 'eth[0-9] '|cut  -c4`; do
-	ifconfig eth${i} hw ether ${MAC_ADDRESS_BASE:="A0:43:23:12:33:0"}${i}
-done
+insmod adm5120sw.o 
+PROC=/proc/sys/net/adm5120sw/
+
+echo 0 >$PROC/vlan0
+echo 1 >$PROC/vlan1
+echo 2 >$PROC/vlan2
+echo 3 >$PROC/vlan3
+echo 4 >$PROC/vlan4
