@@ -3,16 +3,12 @@
 # Starts crond.
 #
 
-test -r /etc/crontab || exit 0
+test -d /etc/crontabs || exit 0
 
 umask 077
 
-DIR=/var/spool/cron/crontabs
-
 start() {
  	echo -n "Starting crond: "
-    mkdir -p $DIR
-    cp /etc/crontab $DIR/root
 	start-stop-daemon --start --quiet --pidfile /var/run/crond.pid --exec /usr/sbin/crond
 	echo "OK"
 }
