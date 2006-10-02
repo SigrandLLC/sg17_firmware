@@ -6,4 +6,4 @@ mknod /dev/led0 c 166 0
 mknod /dev/led1 c 166 1
 mknod /dev/led2 c 166 2
 mknod /dev/led3 c 166 3
-
+mknod /dev/switch c 167 2

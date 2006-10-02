@@ -34,6 +34,9 @@ null::sysinit:/bin/touch /var/log/messages
 null::respawn:/sbin/syslogd -n -m 0 -C
 null::respawn:/sbin/klogd -n
 
+# Check switch
+#null::restart:/usr/local/sbin/monitor
+
 # Stuff to do before rebooting
 null::restart:/etc/init.d/Kreboot
 null::restart:/bin/sync
