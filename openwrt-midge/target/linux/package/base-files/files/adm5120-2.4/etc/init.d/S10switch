@@ -3,10 +3,10 @@
 test -r /etc/midge.conf && . /etc/midge.conf
 
 insmod adm5120sw.o 
-PROC=/proc/sys/net/adm5120sw/
+PROC=/proc/sys/net/adm5120sw
 
-echo 0 >$PROC/vlan0
-echo 1 >$PROC/vlan1
-echo 2 >$PROC/vlan2
-echo 3 >$PROC/vlan3
-echo 4 >$PROC/vlan4
+echo 0 >$PROC/eth0
+echo 1 >$PROC/eth1
+echo 2 >$PROC/eth2
+echo 3 >$PROC/eth3
+echo 4 >$PROC/eth4
