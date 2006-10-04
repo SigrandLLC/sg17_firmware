@@ -1,5 +1,5 @@
---- linux-2.4.32/drivers/net/adm5120sw.c.orig	2006-10-03 17:10:27.000000000 +0300
-+++ linux-2.4.32/drivers/net/adm5120sw.c	2006-10-03 17:12:34.000000000 +0300
+--- linux-2.4.32/drivers/net/adm5120sw.c.orig	2006-10-04 17:10:16.000000000 +0300
++++ linux-2.4.32/drivers/net/adm5120sw.c	2006-10-04 17:10:36.000000000 +0300
 @@ -41,6 +41,8 @@
  #include <linux/errno.h>	
  #include <linux/types.h>
@@ -112,7 +112,7 @@
      return;
  }
  
-@@ -410,12 +438,296 @@
+@@ -410,12 +438,299 @@
  	/* transmit one normal priority packet from cpu */
  	if (intReg & TX_L_INT)
  		ProcessTxInt(&sw_context->txL);
@@ -318,8 +318,9 @@
 +	i=skip_blanks(&ptr,count);
 +	while( (ptr-buffer)<count && ( *ptr>='0' && *ptr<='9' ) ){
 +		cport=*ptr-'0';
-+		if( ( cport>0 && cport<=ETH_PORT_NUM ) )
-+			vlan_val |= (cport==1) ? 1 : 1<<(cport-1);
++		if( ( cport>=0 && cport<=ETH_PORT_NUM ) )
++			//vlan_val |= (cport==1) ? 1 : 1<<(cport-1);
++			vlan_val |= 1<<(cport);
 +		ptr++;
 +	}
 +	
@@ -349,7 +350,9 @@
 +		if (i & (1<<j)) {
 +			len += sprintf(buf + len, (i & (256<<j)?"100M\t":"10M\t"));
 +			len += sprintf(buf + len, (i & (65536<<j)?"full-duplex\t":"half-duplex\t"));
-+		}
++		} else 
++			len += sprintf(buf + len, "-\t-\t\t");
++
 +		len += sprintf(buf + len, "%s\t", (sw_context->port[j].status == PORT_ENABLED)?"enabled":"disabled");
 +		len += sprintf(buf + len, "vlanid=%d\t", (int) sw_context->port[j].vlanId);
 +		len += sprintf(buf + len, "unit=%d\t", (int) sw_context->port[j].ifUnit);
@@ -410,7 +413,7 @@
  static int SetupVLAN(int unit, unsigned long portmask)
  {
  	unsigned long reg, shiftcnt;
-@@ -508,19 +820,6 @@
+@@ -508,19 +823,6 @@
  	int retval;
  	int unit = priv->unit;
  		
@@ -430,7 +433,7 @@
  	/* setup vlan reg */
  	SetupVLAN(unit, sw_context->vlanGrp[unit]);
  	
-@@ -804,9 +1103,15 @@
+@@ -804,9 +1106,15 @@
  	    } else
  		device_present++;
  	}
@@ -447,7 +450,7 @@
  	    
  	return 0;
  		
-@@ -816,11 +1121,14 @@
+@@ -816,11 +1124,14 @@
  {
  	int i;
  	
