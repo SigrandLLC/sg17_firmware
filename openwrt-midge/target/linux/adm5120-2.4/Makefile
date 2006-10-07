@@ -12,7 +12,7 @@ $(eval $(call KMOD_template,ADM5120_SW,adm5120-sw,\
 ))
 $(eval $(call KMOD_template,ADM5120_USB,usb-shci,\
 	$(MODULES_DIR)/kernel/drivers/usb/host/usb-shci.o \
-,CONFIG_USB_AHCI,kmod-usb-core,60,printer))
+,CONFIG_USB_AHCI,kmod-usb-shci,55,usb-shci))
 
 include ../generic-$(KERNEL)/modules.mk
 include ../kernel.mk
