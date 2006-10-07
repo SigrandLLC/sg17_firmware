@@ -29,7 +29,7 @@ config MIDGE_SQUASHFS_BLOCKS
 
 
 config BR2_PACKAGE_KMOD_ADM5120_SW
-	prompt "kmod-adm5120-sw................... ADM5120 Switch Driver"
+	prompt "kmod-adm5120-sw   ADM5120 Switch Driver"
 	tristate
 	depends BR2_LINUX_2_4_ADM5120
 	default y
@@ -37,10 +37,11 @@ config BR2_PACKAGE_KMOD_ADM5120_SW
 	  Switch driver for adm5120 SoC
 
 config BR2_PACKAGE_KMOD_ADM5120_USB
-	prompt "kmod-usb-shci..................... ADM5120 USB Driver"
+	prompt "kmod-usb-shci     ADM5120 USB Driver"
 	tristate
 	depends BR2_LINUX_2_4_ADM5120
 	default m
+	select BR2_PACKAGE_KMOD_USB_CONTROLLER
 	help
 		USB driver for ADM5120 (works fine USB storage and maybe USB printers)
 		USB-Webcams, USB-Serial and similar 'interrupt' devices is not supported
