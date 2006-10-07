@@ -1,5 +1,5 @@
---- linux-2.4.32/drivers/net/adm5120sw.c.orig	2006-10-04 17:10:16.000000000 +0300
-+++ linux-2.4.32/drivers/net/adm5120sw.c	2006-10-04 17:10:36.000000000 +0300
+--- linux-2.4.32/drivers/net/adm5120sw.c.orig	2006-10-07 13:39:12.000000000 +0300
++++ linux-2.4.32/drivers/net/adm5120sw.c	2006-10-07 13:39:48.000000000 +0300
 @@ -41,6 +41,8 @@
  #include <linux/errno.h>	
  #include <linux/types.h>
@@ -27,7 +27,7 @@
 +
 +#define PDEBUG(debug_lev,fmt,args...)
 +
-+#define ADM5120_DEBUG
++// #define ADM5120_DEBUG
 +#define DEBUG_DEF 6
 +#ifdef ADM5120_DEBUG 
 +#	define DEBUG_1 1
