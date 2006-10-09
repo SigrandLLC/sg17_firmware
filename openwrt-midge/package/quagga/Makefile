@@ -81,6 +81,8 @@ $(IPKG_QUAGGA):
 	chmod 0750 $(IDIR_QUAGGA)/etc/quagga/
 	install -d -m0755 $(IDIR_QUAGGA)/etc/init.d/
 	install -m0755 ./files/quagga.init $(IDIR_QUAGGA)/etc/init.d/quagga
+	install -m0755 ./files/zebra.conf $(IDIR_QUAGGA)/etc/quagga/zebra.conf
+	install -m0755 ./files/ospfd.conf $(IDIR_QUAGGA)/etc/quagga/ospfd.conf
 	ln -sf quagga $(IDIR_QUAGGA)/etc/init.d/S49quagga
 	install -d -m0755 $(IDIR_QUAGGA)/var/run/quagga
 	$(RSTRIP) $(IDIR_QUAGGA)
