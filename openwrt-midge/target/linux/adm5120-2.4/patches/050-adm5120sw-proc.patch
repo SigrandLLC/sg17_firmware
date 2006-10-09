@@ -1,5 +1,5 @@
---- linux-2.4.32/drivers/net/adm5120sw.c.orig	2006-10-07 13:39:12.000000000 +0300
-+++ linux-2.4.32/drivers/net/adm5120sw.c	2006-10-07 13:39:48.000000000 +0300
+--- linux-2.4.32/drivers/net/adm5120sw.c.orig	2006-10-09 17:03:28.000000000 +0300
++++ linux-2.4.32/drivers/net/adm5120sw.c	2006-10-09 17:03:24.000000000 +0300
 @@ -41,6 +41,8 @@
  #include <linux/errno.h>	
  #include <linux/types.h>
@@ -112,7 +112,7 @@
      return;
  }
  
-@@ -410,12 +438,299 @@
+@@ -410,12 +438,306 @@
  	/* transmit one normal priority packet from cpu */
  	if (intReg & TX_L_INT)
  		ProcessTxInt(&sw_context->txL);
@@ -304,6 +304,7 @@
 +	char *ptr=(char*)buffer;
 +	u8 cport,vnum;
 +	int vlan_val=0;
++	int unit;
 +
 +	PDEBUG(5,"start store vlan to port mapping\nstr=%s",buffer);	
 +	// check for correct symbols
@@ -324,9 +325,15 @@
 +		ptr++;
 +	}
 +	
++	unit=(*(short*)data);
 +	PDEBUG(5,"commit changes: vlan[%d]=%x",*(short*)data,vlan_val);
-+	sw_context->vlanGrp[*(short*)data] &= 1<<CPU_PORT;
-+	sw_context->vlanGrp[*(short*)data] |= vlan_val & 0x7F;
++	sw_context->vlanGrp[unit] &= 1<<CPU_PORT;
++	sw_context->vlanGrp[unit] |= vlan_val & 0x7F;
++
++	printk("Reopen device: %s\n", adm5120sw_devs[unit].name);
++	adm5120sw_release(&adm5120sw_devs[unit]);
++	adm5120sw_open(&adm5120sw_devs[unit]);
++	
 +
 +err_ext:
 +	return count;
@@ -413,7 +420,7 @@
  static int SetupVLAN(int unit, unsigned long portmask)
  {
  	unsigned long reg, shiftcnt;
-@@ -508,19 +823,6 @@
+@@ -508,19 +830,6 @@
  	int retval;
  	int unit = priv->unit;
  		
@@ -433,7 +440,7 @@
  	/* setup vlan reg */
  	SetupVLAN(unit, sw_context->vlanGrp[unit]);
  	
-@@ -804,9 +1106,15 @@
+@@ -804,9 +1113,15 @@
  	    } else
  		device_present++;
  	}
@@ -450,7 +457,7 @@
  	    
  	return 0;
  		
-@@ -816,11 +1124,14 @@
+@@ -816,11 +1131,14 @@
  {
  	int i;
  	
