@@ -5,8 +5,12 @@ test -r /etc/midge.conf && . /etc/midge.conf
 insmod adm5120sw.o 
 PROC=/proc/sys/net/adm5120sw
 
-echo 0 >$PROC/eth0
-echo 1 >$PROC/eth1
-echo 2 >$PROC/eth2
-echo 3 >$PROC/eth3
-echo 4 >$PROC/eth4
+for i in `ifconfig -a|grep 'eth[0-9] '|cut  -c4`; do
+	ifconfig eth${i} hw ether ${MAC_ADDRESS_BASE:="A0:43:23:12:33:0"}${i}
+done
+
+echo $ETH0_PORTS >$PROC/eth0
+echo $ETH1_PORTS >$PROC/eth1
+echo $ETH2_PORTS >$PROC/eth2
+echo $ETH3_PORTS >$PROC/eth3
+echo $ETH4_PORTS >$PROC/eth4
