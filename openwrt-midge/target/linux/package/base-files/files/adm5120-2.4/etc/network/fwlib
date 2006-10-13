@@ -329,7 +329,7 @@ create_htb_ceil(){
     prio=${5:-100}
     [ "$dev" -a "$parent" -a "$rate" -a "$ceil" ] || die "Usage: create_htb_ceil device parent_id rate ceil [prio]"
 
-    info 1 "Creating ceil for device:${dev} parent:${parent} rate:$rate ceil:$ceil prio:$prio"
+    info 1 "Creating ceil for $target device:${dev} parent:${parent} rate:$rate ceil:$ceil prio:$prio"
     $CLASS add dev $dev parent 1:1  classid 1:$parent  htb           rate $rate  ceil $ceil prio $prio
     $QDISC add dev $dev parent 1:$parent handle $parent:   sfq perturb 10 quantum 10514b
     $FILTER add dev $dev parent 1:  protocol ip   prio 10       handle $parent fw flowid 1:$parent

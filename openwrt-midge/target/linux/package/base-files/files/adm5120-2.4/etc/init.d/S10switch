@@ -2,7 +2,7 @@
 
 test -r /etc/midge.conf && . /etc/midge.conf
 
-insmod adm5120sw.o 
+insmod adm5120sw.o $VLAN_MX
 PROC=/proc/sys/net/adm5120sw
 
 for i in `ifconfig -a|grep 'eth[0-9] '|cut  -c4`; do
