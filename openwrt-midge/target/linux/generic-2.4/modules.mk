@@ -75,7 +75,7 @@ $(eval $(call KMOD_template,IPT_FILTER,ipt-filter,\
 
 $(eval $(call KMOD_template,IPT_IPOPT,ipt-ipopt,\
 	$(foreach mod,$(IPT_IPOPT-m),$(MODULES_DIR)/kernel/net/ipv4/netfilter/$(mod).o) \
-))
+,,,80,$(IPT_IPOPT-m)))
 
 $(eval $(call KMOD_template,IPT_IPSEC,ipt-ipsec,\
 	$(foreach mod,$(IPT_IPSEC-m),$(MODULES_DIR)/kernel/net/ipv4/netfilter/$(mod).o) \
