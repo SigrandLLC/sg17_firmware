@@ -61,12 +61,14 @@ $(LINUX_DIR)/.modules_done:
 	touch $(LINUX_DIR)/.modules_done
 
 $(STAMP_DIR)/.linux-compile:
+#ifeq ($(BR2_EXTERNAL_KERN_PATH),)
 	@$(MAKE) $(LINUX_DIR)/.modules_done $(TARGETS) $(KERNEL_IPKG) $(MAKE_TRACE)
 	ln -sf $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION) $(BUILD_DIR)/linux $(MAKE_TRACE)
 	@$(TRACE) target/linux/package-compile
 	$(MAKE) -C $(TOPDIR)/target/linux/package \
 		$(KPKG_MAKEOPTS) \
 		compile
+#endif		
 	touch $@
 
 .PHONY: pkg-install
