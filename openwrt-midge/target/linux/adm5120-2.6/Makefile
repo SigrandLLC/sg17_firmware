@@ -11,19 +11,28 @@ include ./config
 include ../generic-$(KERNEL)/modules.mk
 include ../kernel.mk
 
+$(LINUX_DIR)/.external_kern:
+	rm -Rf $(LINUX_BUILD_DIR)
+	mkdir -p $(LINUX_BUILD_DIR)
+	ln -s $(BR2_EXTERNAL_KERN_PATH) $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION)
+	
+	touch $@
+
+$(LINUX_DIR)/.internal_kern:
+	rm -Rf $(LINUX_BUILD_DIR)
+	$(MAKE) $(LINUX_DIR)/.unpacked
+	touch $@
 
 TMP_STR=""
 ifeq ($(BR2_EXTERNAL_KERN_PATH),)
-$(LINUX_DIR)/.patched: $(LINUX_DIR)/.unpacked
+$(LINUX_DIR)/.patched: $(LINUX_DIR)/.internal_kern
 	[ -d ../generic-$(KERNEL)/patches ] && $(PATCH) $(LINUX_DIR) ../generic-$(KERNEL)/patches $(MAKE_TRACE)
 	[ -d ./patches ] && $(PATCH) $(LINUX_DIR) ./patches $(MAKE_TRACE)
 	touch $@
 else
-$(LINUX_DIR)/.patched:
-	rm -Rf $(LINUX_BUILD_DIR)
-	-mkdir -p $(LINUX_BUILD_DIR)
-	ln -s $(BR2_EXTERNAL_KERN_PATH) $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION)
+$(LINUX_DIR)/.patched: $(LINUX_DIR)/.external_kern
 	rm -f $(BUILD_DIR)/linux
+	touch $(LINUX_DIR)/.modules_done
 #	ln -s $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION) $(BUILD_DIR)/linux
 	touch $@
 endif
