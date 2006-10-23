@@ -81,9 +81,15 @@ config BR2_ARCH
 
 source "target/Config.in"
 
+config BR2_EXTERNAL_KERN_PATH_ON
+	bool "Enable external kernel"
+
 config BR2_EXTERNAL_KERN_PATH
         string "External kernel path"
 	default ""
+	depends on BR2_EXTERNAL_KERN_PATH_ON
+
+
 			
 
 menu "Build options"
