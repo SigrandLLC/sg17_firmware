@@ -81,6 +81,11 @@ config BR2_ARCH
 
 source "target/Config.in"
 
+config BR2_EXTERNAL_KERN_PATH
+        string "External kernel path"
+	default ""
+			
+
 menu "Build options"
 
 config BR2_WGET
