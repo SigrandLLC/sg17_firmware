@@ -20,10 +20,11 @@ $(LINUX_DIR)/.patched: $(LINUX_DIR)/.unpacked
 	touch $@
 else
 $(LINUX_DIR)/.patched:
+	rm -Rf $(LINUX_BUILD_DIR)
 	-mkdir -p $(LINUX_BUILD_DIR)
 	ln -s $(BR2_EXTERNAL_KERN_PATH) $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION)
 	rm -f $(BUILD_DIR)/linux
-	ln -s $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION) $(BUILD_DIR)/linux
+#	ln -s $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION) $(BUILD_DIR)/linux
 	touch $@
 endif
 

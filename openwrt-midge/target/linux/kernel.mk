@@ -16,6 +16,7 @@ $(DL_DIR)/$(LINUX_SOURCE):
 	$(SCRIPT_DIR)/download.pl $(DL_DIR) $(LINUX_SOURCE) $(LINUX_KERNEL_MD5SUM) $(LINUX_SITE) $(MAKE_TRACE)
 
 $(LINUX_DIR)/.unpacked: $(DL_DIR)/$(LINUX_SOURCE)
+	rm -Rf $(LINUX_BUILD_DIR)
 	-mkdir -p $(LINUX_BUILD_DIR)
 	bzcat $(DL_DIR)/$(LINUX_SOURCE) | tar -C $(LINUX_BUILD_DIR) $(TAR_OPTIONS) -
 	rm -f $(BUILD_DIR)/linux
@@ -61,14 +62,12 @@ $(LINUX_DIR)/.modules_done:
 	touch $(LINUX_DIR)/.modules_done
 
 $(STAMP_DIR)/.linux-compile:
-#ifeq ($(BR2_EXTERNAL_KERN_PATH),)
 	@$(MAKE) $(LINUX_DIR)/.modules_done $(TARGETS) $(KERNEL_IPKG) $(MAKE_TRACE)
 	ln -sf $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION) $(BUILD_DIR)/linux $(MAKE_TRACE)
 	@$(TRACE) target/linux/package-compile
 	$(MAKE) -C $(TOPDIR)/target/linux/package \
 		$(KPKG_MAKEOPTS) \
 		compile
-#endif		
 	touch $@
 
 .PHONY: pkg-install
