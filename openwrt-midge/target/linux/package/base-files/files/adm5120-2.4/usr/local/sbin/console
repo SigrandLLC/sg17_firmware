@@ -1,0 +1,27 @@
+#!/bin/sh
+# Reset switch monitor
+# Copyright (C) by Edimax Technologies (original version)
+# Modified 2006 by Lao (for EMLR)
+# Modified 2006 by ZigFisher (for ARLiX/Midge)
+#
+# Covered by the GNU GPL v2.
+# See the license file for details.
+#
+while [ 1 ]
+do
+    SW1=`cat /dev/switch`
+    if [ $SW1 = 0 ]; then
+	sleep 1
+	SW2=`cat /dev/switch`
+	if [ $SW2 = 0 ]; then
+	    sleep 1
+	    SW3=`cat /dev/switch`
+	    if [ $SW3 = 0 ]; then
+    		echo "Jump to console mode...."
+		/sbin/getty -L ttyS0 9600 vt100
+	    fi
+	fi
+    fi
+test -c /dev/led0 && echo "led blink 1000" >/dev/led0
+sleep 1
+done

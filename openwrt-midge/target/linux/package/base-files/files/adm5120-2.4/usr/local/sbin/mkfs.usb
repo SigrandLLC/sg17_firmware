@@ -1,0 +1,78 @@
+#!/bin/sh
+# Create root partition on USB Flash stick
+# Copyright (C)2006  Lao <boss at lao.org.ua>
+# Small changes by ZigFisher (for ARLiX/Midge) <zig at crimeainfo.com>
+clear
+echo "WARNING!!! All data on You USB Flash stick will be erased! Continue? [yes or no]"
+read x
+if [ "yes" != "$x" ];then
+	exit $?
+fi
+if [ -c /dev/scsi/host* ];then
+	echo "You do not have USB Flash stick on USB port!"
+	exit $?
+fi
+if [ -c $1 ];then
+	echo "Specified way is not directory"
+	exit $?
+fi
+usb_storage_device=$1"/disc"
+echo "Create Linux partition on $usb_storage_device"
+fdisk $usb_storage_device >>/dev/null << EOF
+d
+d
+d
+d
+d
+d
+d
+d
+n
+p
+1
+
+
+w
+EOF
+if [ $? != 0 ]; then
+	echo "Error! Linux partition can not be created on $usb_storage_device!"
+	exit $?
+else
+        echo "Linux partition successfully created on $usb_storage_device"
+fi   
+usb_root_device=$1"/part1"
+echo "Create ext3 filesystem on $usb_root_device"
+mkfs.ext3 $usb_root_device >> /dev/null
+if [ $? != 0 ]; then
+        echo "Error! Ext3 filesystem can not be created on $usb_root_device!"
+        exit $?
+else
+        echo "Ext3 filesystem successfully created on $usb_root_device"
+fi
+
+#echo "Mount new partition to /usb"
+#mount -t ext3 $usb_root_device /usb
+#if [ $? != 0 ]; then
+#        echo "Error! Can not mount new partition!"
+#        exit $?
+#else
+#        echo "New partition successfully mounted to /usb"
+#fi
+#
+#echo "Create directories"
+#mkdir -p /usb/dev
+#mkdir -p /usb/proc
+#mkdir -p /usb/etc
+#mkdir -p /usb/tmp
+#echo "Copying files"
+#cd /
+#tar cf - --exclude usb --exclude dev --exclude proc --exclude etc --exclude tmp * | tar xvf - -C /usb >> /dev/null
+#tar xjvf /tmp/etc.tar.bz2 -C /usb/etc >> /dev/null
+#tar xjvf /tmp/var.tar.bz2 -C /usb/var >> /dev/null
+#echo "Operation complete! Reboot? [y or n]"
+#read x
+#if [ "y" != "$x" ];then
+#        exit $?
+#fi
+#echo "Reboot....."
+#reboot
