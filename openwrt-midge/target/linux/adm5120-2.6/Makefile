@@ -11,29 +11,34 @@ include ./config
 include ../generic-$(KERNEL)/modules.mk
 include ../kernel.mk
 
-$(LINUX_DIR)/.external_kern:
-	rm -Rf $(LINUX_BUILD_DIR)
-	mkdir -p $(LINUX_BUILD_DIR)
-	ln -s $(BR2_EXTERNAL_KERN_PATH) $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION)
-	
-	touch $@
-
 $(LINUX_DIR)/.internal_kern:
 	rm -Rf $(LINUX_BUILD_DIR)
 	$(MAKE) $(LINUX_DIR)/.unpacked
 	touch $@
 
-TMP_STR=""
+remove_old: $(LINUX_BUILD_DIR)
+	rm -Rf $(LINUX_BUILD_DIR)
+
+
 ifeq ($(BR2_EXTERNAL_KERN_PATH),)
 $(LINUX_DIR)/.patched: $(LINUX_DIR)/.internal_kern
 	[ -d ../generic-$(KERNEL)/patches ] && $(PATCH) $(LINUX_DIR) ../generic-$(KERNEL)/patches $(MAKE_TRACE)
 	[ -d ./patches ] && $(PATCH) $(LINUX_DIR) ./patches $(MAKE_TRACE)
 	touch $@
 else
-$(LINUX_DIR)/.patched: $(LINUX_DIR)/.external_kern
+$(LINUX_DIR)/.patched: remove_old
+	mkdir -p $(LINUX_BUILD_DIR)
+	ln -s $(BR2_EXTERNAL_KERN_PATH) $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION)
 	rm -f $(BUILD_DIR)/linux
 	touch $(LINUX_DIR)/.modules_done
-#	ln -s $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION) $(BUILD_DIR)/linux
+	touch $(STAMP_DIR)/.linux-compile
+	echo
+	echo "*****************************************************" > /dev/null
+	echo "Check that vmlinux is present" > /dev/null
+	echo "Full path $(LINUX_DIR)/vmlinux" >  /dev/null
+	echo
+	test -f "$(LINUX_DIR)/vmlinux" && touch $(LINUX_DIR)/vmlinux
+	ln -s $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION) $(BUILD_DIR)/linux
 	touch $@
 endif
 
