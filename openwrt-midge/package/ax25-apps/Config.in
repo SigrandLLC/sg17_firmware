@@ -1,4 +1,4 @@
-menu "ax25-apps......................... AX25-APPS"
+menu "ax25-apps......................... AX25-APPS (call, listen)"
                                                                                                                                               
 config BR2_COMPILE_AX25-APPS
         tristate
