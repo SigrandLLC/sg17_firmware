@@ -17,7 +17,7 @@ start() {
 	sleep 1
 	/usr/sbin/axip &
 	sleep 1
-	/usr/sbin/aprsdigi -v -DLMC -t " *MY_ID->" -i 30 -p ax25:local:WIDE,TRACE,RELAY &
+	/usr/sbin/aprsdigi -DLMC -t " *MY_ID->" -i 30 -p ax25:local:WIDE,TRACE,RELAY &
 	sleep 1
 	/usr/sbin/beacon -t 1 -c SERVER -d "CLIENT RELAY" local "*CADTS* Crimean Amateur Digital Telemetry System"
 	echo "OK"
