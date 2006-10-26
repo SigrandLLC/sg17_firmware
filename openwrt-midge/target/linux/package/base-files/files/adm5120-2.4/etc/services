@@ -298,5 +298,9 @@ tfido           60177/udp			# Ifmail
 fido            60179/tcp			# Ifmail
 fido            60179/udp			# Ifmail
 
+# AmateurRadio services
+aprs		3421/tcp			# APRS monitor
+node		3694/tcp			# AMPR node
+
 # Local services
 
