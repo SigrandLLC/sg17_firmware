@@ -1,0 +1,47 @@
+#!/bin/sh
+#
+# Starts ax25net.
+#
+
+test -r /etc/ax25/axports || exit 0
+test -x /usr/sbin/kissattach || exit 0
+
+
+start() {
+ 	echo "Starting AX.25 services: "
+	start-stop-daemon --start --quiet --pidfile /var/run/kissattach1.pid --exec /usr/sbin/kissattach -- -l /dev/ptyp0 local 44.0.0.1
+	start-stop-daemon --start --quiet --pidfile /var/run/axip.pid --exec /usr/sbin/axip --background -- -v -DLMC -t " *CRMTST->" -i 60 -p axip:WIDE,TRACE,RELAY
+	start-stop-daemon --start --quiet --pidfile /var/run/beacon1.pid --exec /usr/sbin/beacon -- -t 1 -c server -d client local "This is test"
+	start-stop-daemon --start --quiet --pidfile /var/run/aprsdigi.pid --exec /usr/sbin/aprsdigi -- -v -DLMC -t " *CRMTST->" -i 60 -p axip:WIDE,TRACE,RELAY
+	echo "OK"
+}
+stop() {
+	echo -n "Stopping AX.25 services: "
+	start-stop-daemon --stop --quiet --pidfile /var/run/kissattach1.pid
+	start-stop-daemon --stop --quiet --pidfile /var/run/axip.pid
+	start-stop-daemon --stop --quiet --pidfile /var/run/beacon1.pid
+	start-stop-daemon --stop --quiet --pidfile /var/run/aprsdigi.pid
+	echo "OK"
+}
+restart() {
+	stop
+	start
+}
+
+case "$1" in
+  start)
+  	start
+	;;
+  stop)
+  	stop
+	;;
+  restart|reload)
+  	restart
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?
+
