@@ -7,6 +7,7 @@ test -r /etc/ax25/axports || exit 0
 test -x /usr/sbin/kissattach || exit 0
 test -x /usr/sbin/axip || exit 0
 test -x /usr/sbin/aprsdigi || exit 0
+test -x /usr/sbin/linsv || exit 0
 test -x /usr/sbin/beacon || exit 0
 
 start() {
@@ -18,6 +19,10 @@ start() {
 	/usr/sbin/axip &
 	sleep 1
 	/usr/sbin/aprsdigi -DLMC -t " *MY_ID->" -i 30 -p ax25:local:WIDE,TRACE,RELAY &
+	sleep 1
+	mkdir -p /var/ax25/linsv/log
+	sleep 1
+	/usr/sbin/linsv -v 1000 tstnod mycall &
 	sleep 1
 	/usr/sbin/beacon -t 1 -c SERVER -d "CLIENT RELAY" local "*CADTS* Crimean Amateur Digital Telemetry System"
 	echo "OK"
