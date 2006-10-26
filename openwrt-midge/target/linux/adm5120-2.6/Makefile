@@ -37,8 +37,9 @@ $(LINUX_DIR)/.patched: remove_old
 	echo "Check that vmlinux is present" > /dev/null
 	echo "Full path $(LINUX_DIR)/vmlinux" >  /dev/null
 	echo
-	test -f "$(LINUX_DIR)/vmlinux" && touch $(LINUX_DIR)/vmlinux
+	if test -f "$(LINUX_DIR)/vmlinux" ; then touch "$(LINUX_DIR)/vmlinux"; fi
 	ln -s $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION) $(BUILD_DIR)/linux
+	if test ! -f "$(LINUX_DIR)/.config" ; then make -C $(LINUX_DIR) menuconfig; fi
 	touch $@
 endif
 
