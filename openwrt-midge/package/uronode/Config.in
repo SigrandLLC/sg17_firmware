@@ -9,4 +9,4 @@ config BR2_PACKAGE_URONODE
 	  by Stefano Noferi IZ5AWZ of ARI Ham Radio Association of Pisa (ITALY)..
 	  
 	  ftp://ftp.n1uro.net/pub/ax25/
-	  http://www.hamradio.crimea.ua/downloads/linux/source/
+	  http://www.hamradio.crimea.ua/downloads/software/linux/archive/

@@ -3,13 +3,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=uronode
-PKG_VERSION:=0.6.4
+PKG_VERSION:=0.6.5
 PKG_RELEASE:=1
 PKG_MD5SUM:=
 
-PKG_SOURCE_URL:=ftp://ftp.n1uro.net/pub/ax25/
-#PKG_SOURCE_URL:=http://www.hamradio.crimea.ua/downloads/linux/source/
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tgz
+#PKG_SOURCE_URL:=ftp://ftp.n1uro.net/pub/ax25/
+PKG_SOURCE_URL:=http://www.hamradio.crimea.ua/downloads/software/linux/archive/
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_CAT:=zcat
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
