@@ -78,11 +78,11 @@ diff -ur axip-0.0.1/axip.conf axip/axip.conf
 +#
 +## 2006.03.29 : AX_UDP for ARLiX Club members
 +## SysOp:
-+port  add ipusr /dev/ttyp1 38400 udp 10093 10093
-+route add ipusr uu5jmz 172.28.200.2
-+route add ipusr uu5jpk 172.28.200.7
++#port  add ipusr /dev/ttyp1 38400 udp 10093 10093
++#route add ipusr uu5jmz 172.28.200.2
++#route add ipusr uu5jpk 172.28.200.7
 +#
 +## 2005.07.14 : Link CRMIFC:UU4JZA <-> CRMSAS:UU2JWS
 +## SysOp:   Igor, UU8JA, Simferopol, Republic of Crimea, Ukraine : uu8ja@hamradio.crimea.ua, ICQ:69278245
-+port  add axi01 /dev/ttyp3 38400 udp 10098 10098
-+route add axi01 default 212.110.135.46
++#port  add axi01 /dev/ttyp3 38400 udp 10098 10098
++#route add axi01 default 212.110.135.46
