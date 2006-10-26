@@ -25,7 +25,7 @@ ttyS0::sysinit:/bin/hostname -F /etc/hostname
 # Set up a couple of getty's
 ttyS0::respawn:/bin/sh
 #ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100
-ttyS1::respawn:/sbin/getty -L ttyS1 115200 vt100
+#ttyS1::respawn:/sbin/getty -L ttyS1 115200 vt100
 ##ttyS1::respawn:/sbin/getty 115200 ttyS1
 #tts/0::respawn:/sbin/getty -L tts/0 115200 vt100
 
