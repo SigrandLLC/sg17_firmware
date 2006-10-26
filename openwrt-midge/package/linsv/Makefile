@@ -36,8 +36,8 @@ $(IPKG_LINSV):
 	install -m0755 -d $(IDIR_LINSV)/usr/sbin
 	install -m0755 -d $(IDIR_LINSV)/etc/ax25/linsv/help
 	$(CP) $(PKG_BUILD_DIR)/linsv $(IDIR_LINSV)/usr/sbin/
-	install -m0644 $(PKG_BUILD_DIR)/etc/*.sv $(IDIR_AXIP)/etc/ax25/linsv/
-	install -m0644 $(PKG_BUILD_DIR)/etc/help/g.hlp $(IDIR_AXIP)/etc/ax25/linsv/help/
+	install -m0644 $(PKG_BUILD_DIR)/etc/*.sv $(IDIR_LINSV)/etc/ax25/linsv/
+	install -m0644 $(PKG_BUILD_DIR)/etc/help/g.hlp $(IDIR_LINSV)/etc/ax25/linsv/help/
 	$(STRIP) $(IDIR_LINSV)/usr/sbin/*
 	$(IPKG_BUILD) $(IDIR_LINSV) $(PACKAGE_DIR)
 
