@@ -6,5 +6,5 @@ config BR2_PACKAGE_LIBAX25
 	  AX.25 library (Amateur Radio).
 	  
 	  http://ax25.sourceforge.net/
-	  http://www.hamradio.crimea.ua/downloads/linux/source/
+	  http://www.hamradio.crimea.ua/downloads/software/linux/archive/
 

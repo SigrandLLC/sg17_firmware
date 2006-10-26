@@ -56,6 +56,7 @@ diff -urN libax25-0.0.11_original/axlib.h libax25-0.0.11_9a4gl/axlib.h
  
  /*
   * Validates an AX.25 callsign, returns TRUE if it is valid, or FALSE if it
+
 diff -urN libax25-0.0.11_original/axports libax25-0.0.11_9a4gl/axports
 --- libax25-0.0.11_original/axports	2001-04-10 01:54:11.000000000 +0000
 +++ libax25-0.0.11_9a4gl/axports	2005-10-20 21:16:14.000000000 +0000
@@ -65,8 +66,9 @@ diff -urN libax25-0.0.11_original/axports libax25-0.0.11_9a4gl/axports
  #
 -1	OH2BNS-1	1200	255	2	144.675 MHz (1200  bps)
 -2	OH2BNS-9	38400	255	7	TNOS/Linux  (38400 bps)
-+ipuser    9A0TZC-0    38400 255 7 AXUDP users
-+ipxfe     9A0TZC-1    38400 255 7 AXUDP link FERSV:9A0XFE
++local   PORT-1      38400   250     5       AXUDP local
++uhf01   PORT-2      9600    250     5       433.675 MHz
+
 diff -urN libax25-0.0.11_original/axutils.c libax25-0.0.11_9a4gl/axutils.c
 --- libax25-0.0.11_original/axutils.c	2001-04-10 01:54:12.000000000 +0000
 +++ libax25-0.0.11_9a4gl/axutils.c	2005-10-19 17:41:10.000000000 +0000

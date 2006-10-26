@@ -8,7 +8,7 @@ PKG_RELEASE:=1
 PKG_MD5SUM:=
 
 #PKG_SOURCE_URL:=@SF/ax25
-PKG_SOURCE_URL:=http://www.hamradio.crimea.ua/downloads/linux/source/
+PKG_SOURCE_URL:=http://www.hamradio.crimea.ua/downloads/software/linux/archive/
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_CAT:=zcat
 
@@ -59,15 +59,22 @@ $(PKG_BUILD_DIR)/.built:
 	touch $@
 
 $(IPKG_LIBAX25):
+	install -m0755 -d $(IDIR_LIBAX25)/etc/ax25
+	install -m0644 $(PKG_BUILD_DIR)/axports $(IDIR_LIBAX25)/etc/ax25/
 	install -m0755 -d $(IDIR_LIBAX25)/usr/lib
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libax25.{a,la,so*} $(IDIR_LIBAX25)/usr/lib/
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libax25io.{a,la,so*} $(IDIR_LIBAX25)/usr/lib/
 	$(RSTRIP) $(IDIR_LIBAX25)
 	$(IPKG_BUILD) $(IDIR_LIBAX25) $(PACKAGE_DIR)
 
+
 $(STAGING_DIR)/usr/lib/libax25.so: $(PKG_BUILD_DIR)/.built
 	mkdir -p $(STAGING_DIR)/usr/include/netax25/
 	$(CP) $(PKG_INSTALL_DIR)/usr/include/netax25/*.h $(STAGING_DIR)/usr/include/netax25/
+	mkdir -p $(STAGING_DIR)/usr/include/netrose/
+	$(CP) $(PKG_INSTALL_DIR)/usr/include/netax25/kernel_rose.h $(STAGING_DIR)/usr/include/netrose/rose.h
+	mkdir -p $(STAGING_DIR)/usr/include/netrom/
+	$(CP) $(PKG_INSTALL_DIR)/usr/include/netax25/kernel_netrom.h $(STAGING_DIR)/usr/include/netrose/netrom.h
 	mkdir -p $(STAGING_DIR)/usr/lib
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libax25.{a,la,so*} $(STAGING_DIR)/usr/lib/
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libax25io.{a,la,so*} $(STAGING_DIR)/usr/lib/
