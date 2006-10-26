@@ -21,11 +21,11 @@ $ADD INPUT $DROPLOG
 #$INS POSTROUTING -t nat -s 192.168.1.0/24 $SNAT --to-source r.e.a.l
 $ADD FORWARD $ACCEPT
 
-setup_htb_dev eth0 	100000Kbit 	100000Kbit 
-setup_htb_dev eth1 	100000Kbit 	100000Kbit 
-setup_htb_dev eth2 	100000Kbit 	100000Kbit
-setup_htb_dev eth3 	100000Kbit 	100000Kbit
-setup_htb_dev eth4 	100000Kbit 	100000Kbit
+setup_htb_dev eth0 	80Mbit 	90Mbit 
+setup_htb_dev eth1 	80Mbit 	90Mbit 
+setup_htb_dev eth2 	80Mbit 	90Mbit
+setup_htb_dev eth3 	80Mbit 	90Mbit
+setup_htb_dev eth4 	80Mbit 	90Mbit
 
 #shape_target xxx
 
