@@ -73,7 +73,7 @@ diff -ur axip-0.0.1/axip.conf axip/axip.conf
 -route add ipxfe default 44.170.105.1
 +## 2006.03.29 : Internal LoopBack
 +## SysOp:
-+port  add local /dev/ttyp0 38400 udp 10090 10090
++port  add local /dev/ttyp1 38400 udp 10090 10090
 +route add local default localhost
 +#
 +## 2006.03.29 : AX_UDP for ARLiX Club members
