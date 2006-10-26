@@ -1,4 +1,4 @@
-menu "ax25-tools........................ AX25-TOOLS"
+menu "ax25-tools........................ AX25-TOOLS (ax25-call, beacon, rxecho, kissattach, kissparms)"
                                                                                                                                               
 config BR2_COMPILE_AX25-TOOLS
         tristate
