@@ -8,7 +8,7 @@ PKG_RELEASE:=1
 PKG_MD5SUM:=
 
 #PKG_SOURCE_URL:=ftp://ham2.cc.fer.hr/pub/users/9a4gl/openwrt/
-PKG_SOURCE_URL:=http://www.hamradio.crimea.ua/downloads/linux/source/
+PKG_SOURCE_URL:=http://www.hamradio.crimea.ua/downloads/software/linux/archive/
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_CAT:=zcat
 

@@ -7,5 +7,5 @@ config BR2_PACKAGE_LINSV
 	  Linux SuperVozelj node.
 	  
 	  ftp://ham2.cc.fer.hr/pub/users/9a4gl/openwrt/
-	  http://www.hamradio.crimea.ua/downloads/linux/source/
+	  http://www.hamradio.crimea.ua/downloads/software/linux/archive/
 
