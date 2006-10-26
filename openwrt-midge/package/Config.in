@@ -330,12 +330,14 @@ source "package/miax/Config.in"
 endmenu
 
 menu "HamRadio"
-source "package/ax25-apps/Config.in"
 source "package/ax25-tools/Config.in"
-source "package/axip/Config.in"
+source "package/ax25-apps/Config.in"
+source "package/aprsdigi/Config.in"
 source "package/libax25/Config.in"
+source "package/axip/Config.in"
 source "package/linsv/Config.in"
 source "package/uronode/Config.in"
+#
 #source "package/aprsd/Config.in"
 #source "package/arlix-utils/Config.in"
 #source "package/axgetput/Config.in"

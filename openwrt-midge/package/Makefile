@@ -9,6 +9,7 @@ package-$(BR2_PACKAGE_6TUNNEL) += 6tunnel
 package-$(BR2_PACKAGE_AICCU) += aiccu
 package-$(BR2_PACKAGE_AIRCRACK) += aircrack
 package-$(BR2_PACKAGE_AMWALL) += amwall
+package-$(BR2_COMPILE_APRSDIGI) += aprsdigi
 package-$(BR2_PACKAGE_ARPD) += arpd
 package-$(BR2_PACKAGE_ARPTABLES) += arptables
 package-$(BR2_PACKAGE_ARPWATCH) += arpwatch
@@ -267,6 +268,7 @@ package-$(BR2_PACKAGE_UCLIBCXX) += uclibc++
 package-$(BR2_PACKAGE_UDP_BROADCAST_RELAY) += udp-broadcast-relay
 package-$(BR2_PACKAGE_ULOGD) += ulogd
 package-$(BR2_PACKAGE_UPDATEDD) += updatedd
+package-$(BR2_PACKAGE_URONODE) += uronode
 package-$(BR2_COMPILE_USBUTILS) += usbutils
 package-$(BR2_PACKAGE_USTL) += ustl
 package-$(BR2_COMPILE_UTIL_LINUX) += util-linux
@@ -297,12 +299,10 @@ package-$(BR2_PACKAGE_WX200D) += wx200d
 package-$(BR2_PACKAGE_XINETD) += xinetd
 package-$(BR2_PACKAGE_XSUPPLICANT) += xsupplicant
 package-$(BR2_PACKAGE_ZLIB) += zlib
-
-package-$(BR2_PACKAGE_APRSD) += uronode
+#
 #package-$(BR2_COMPILE_AXGETPUT) += axgetput
 #package-$(BR2_PACKAGE_APRSD) += aprsd
 #package-$(BR2_COMPILE_ARLIX-UTILS) += arlix-utils
-#package-$(BR2_COMPILE_AXGETPUT) += axgetput
 #package-$(BR2_PACKAGE_XMAIL) += xmail
 
 
