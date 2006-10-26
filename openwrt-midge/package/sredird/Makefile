@@ -7,8 +7,8 @@ PKG_VERSION:=2.2.2
 PKG_RELEASE:=1
 PKG_MD5SUM:=
 
-#PKG_SOURCE_URL:=http://www.ibiblio.org/pub/Linux/system/serial/
-PKG_SOURCE_URL:=http://www.hamradio.crimea.ua/downloads/linux/source/
+PKG_SOURCE_URL:=http://www.ibiblio.org/pub/Linux/system/serial/
+#PKG_SOURCE_URL:=http://www.hamradio.crimea.ua/downloads/software/linux/archive/
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_CAT:=zcat
 
