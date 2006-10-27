@@ -1,5 +1,5 @@
 Package: call
 Section: hamradio
 Priority: optional
-Description: this is test
-Depends: 
+Description: call - make an AX.25, NET/ROM or Rose connection
+Depends: libax25 libncurses kissattach

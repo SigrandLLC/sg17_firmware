@@ -49,7 +49,6 @@ menu "sablevm........................... A Java Virtual Machine (JVM) implementa
 source "package/sablevm/Config.in"
 source "package/sablevm-classpath/Config.in"
 source "package/libffi-sable/Config.in"
-#source "package/xmail/Config.in"
 endmenu
 source "package/sane-backends/Config.in"
 source "package/screen/Config.in"
@@ -337,10 +336,9 @@ source "package/libax25/Config.in"
 source "package/axip/Config.in"
 source "package/linsv/Config.in"
 source "package/uronode/Config.in"
-#
+source "package/axgetput/Config.in"
 #source "package/aprsd/Config.in"
 #source "package/arlix-utils/Config.in"
-#source "package/axgetput/Config.in"
 endmenu
 
 

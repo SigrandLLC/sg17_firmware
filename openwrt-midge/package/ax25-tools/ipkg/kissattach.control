@@ -1,5 +1,5 @@
 Package: kissattach
 Section: hamradio
 Priority: optional
-Description: this is test
-Depends: 
+Description: kissattach - attach a KISS or 6PACK interface
+Depends: libax25

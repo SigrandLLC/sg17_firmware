@@ -19,6 +19,7 @@ package-$(BR2_PACKAGE_AUTOSSH) += autossh
 package-$(BR2_COMPILE_AVAHI) += avahi
 package-$(BR2_COMPILE_AX25-APPS) += ax25-apps
 package-$(BR2_COMPILE_AX25-TOOLS) += ax25-tools
+package-$(BR2_PACKAGE_AXGETPUT) += axgetput
 package-$(BR2_PACKAGE_AXIP) += axip
 package-$(BR2_COMPILE_BC) += bc
 package-$(BR2_COMPILE_BIND) += bind
@@ -300,10 +301,8 @@ package-$(BR2_PACKAGE_XINETD) += xinetd
 package-$(BR2_PACKAGE_XSUPPLICANT) += xsupplicant
 package-$(BR2_PACKAGE_ZLIB) += zlib
 #
-#package-$(BR2_COMPILE_AXGETPUT) += axgetput
 #package-$(BR2_PACKAGE_APRSD) += aprsd
 #package-$(BR2_COMPILE_ARLIX-UTILS) += arlix-utils
-#package-$(BR2_PACKAGE_XMAIL) += xmail
 
 
 DEV_LIBS:=tcp_wrappers glib ncurses openssl pcre popt zlib libnet libpcap mysql postgresql iptables matrixssl liblzo gmp fuse portmap libelf uclibc++ speex libpng libgd wireless-tools nvram linux-atm libamsel libao libart libdaemon libdb libdnet libevent libffi-sable libgcrypt libgdbm libgpg-error libid3tag libmad libnet libnids libogg libol libosip2 libpcap radiusclient-ng libtasn1 libupnp libusb libvorbis libvorbisidec libxml2 libxslt id3lib net-snmp

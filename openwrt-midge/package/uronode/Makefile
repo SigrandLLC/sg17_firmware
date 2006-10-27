@@ -19,8 +19,34 @@ include $(TOPDIR)/package/rules.mk
 
 $(eval $(call PKG_template,URONODE,uronode,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
-$(PKG_BUILD_DIR)/.configured:
-	touch $@
+$(PKG_BUILD_DIR)/.configured:                                                                                                                 
+        (cd $(PKG_BUILD_DIR); rm -rf config.{cache,status} ; \                                                                                
+                $(TARGET_CONFIGURE_OPTS) \                                                                                                    
+                CFLAGS="$(TARGET_CFLAGS)" \                                                                                                   
+                CPPFLAGS="-I$(STAGING_DIR)/usr/include" \                                                                                     
+                LDFLAGS="-L$(STAGING_DIR)/usr/lib" \                                                                                          
+                ./configure \                                                                                                                 
+                  --target=$(GNU_TARGET_NAME) \                                                                                               
+                  --host=$(GNU_TARGET_NAME) \                                                                                                 
+                  --build=$(GNU_HOST_NAME) \                                             
+                  --program-prefix="" \
+                  --program-suffix="" \
+                  --prefix=/usr \
+                  --exec-prefix=/usr \
+                  --bindir=/usr/bin \
+                  --datadir=/usr/share \
+                  --includedir=/usr/include \
+                  --infodir=/usr/share/info \
+                  --libdir=/usr/lib \
+                  --libexecdir=/usr/lib \
+                  --localstatedir=/var \
+                  --mandir=/usr/share/man \
+                  --sbindir=/usr/sbin \
+                  --sysconfdir=/etc \
+                  $(DISABLE_NLS) \
+                  $(DISABLE_LARGEFILE) \
+        );
+        touch $@
 
 $(PKG_BUILD_DIR)/.built:
 	rm -rf $(PKG_INSTALL_DIR)
@@ -39,3 +65,5 @@ $(IPKG_URONODE):
 	install -m0644 $(PKG_BUILD_DIR)/node.conf $(IDIR_URONODE)/etc/ax25/
 	$(STRIP) $(IDIR_URONODE)/usr/sbin/*
 	$(IPKG_BUILD) $(IDIR_URONODE) $(PACKAGE_DIR)
+
+     
