@@ -12,7 +12,7 @@ config BR2_PACKAGE_AX25-CALL
         default m if CONFIG_DEVEL
         select BR2_COMPILE_AX25-TOOLS
         help
-          Ax25-call - is ...
+          ax25_call - make an AX.25 connection
 
 config BR2_PACKAGE_BEACON
         prompt "beacon............................ BEACON"
@@ -20,7 +20,7 @@ config BR2_PACKAGE_BEACON
         default m if CONFIG_DEVEL
         select BR2_COMPILE_AX25-TOOLS
         help
-          Beacon - is ...
+          beacon - transmit periodic messages on an AX.25 port
 
 config BR2_PACKAGE_RXECHO
         prompt "rxecho............................ RXECHO"
@@ -28,7 +28,7 @@ config BR2_PACKAGE_RXECHO
         default m if CONFIG_DEVEL
         select BR2_COMPILE_AX25-TOOLS
         help
-          Rxecho - is ...
+	  rxecho - route AX.25 packets between ports transparently
 
 config BR2_PACKAGE_KISSATTACH
         prompt "kissattach........................ KISSATTACH"
@@ -36,7 +36,7 @@ config BR2_PACKAGE_KISSATTACH
         default m if CONFIG_DEVEL
         select BR2_COMPILE_AX25-TOOLS
         help
-          Kissattach - is ...
+          kissattach - attach a KISS or 6PACK interface
 
 config BR2_PACKAGE_KISSPARMS
         prompt "kissparms......................... KISSPARMS"
@@ -44,6 +44,6 @@ config BR2_PACKAGE_KISSPARMS
         default m if CONFIG_DEVEL
         select BR2_COMPILE_AX25-TOOLS
         help
-          Kissparms - is ...
+          kissparms - configure KISS TNCs
                                                                                                                                               
 endmenu
