@@ -1,7 +1,7 @@
 config BR2_PACKAGE_URONODE
 	prompt "uronode........................... Amateur Packet Radio node (AX25,NetRom,Rose,FlexNet)"
 	tristate
-	default m if CONFIG_DEVEL
+	default n
 	select BR2_PACKAGE_LIBAX25
 	help
 	  UROnode is based on AWZ|LinuxNode by Tomi Manninen OH2BNS and FlexNode
