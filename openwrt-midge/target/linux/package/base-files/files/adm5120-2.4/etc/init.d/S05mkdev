@@ -6,9 +6,14 @@ mknod /dev/led0 c 166 0
 mknod /dev/led1 c 166 1
 mknod /dev/led2 c 166 2
 mknod /dev/led3 c 166 3
+mknod /dev/led4 c 166 4
 mknod /dev/switch c 167 2
 mknod /dev/watchdog c 10 130
 
+#For PPP usage             
+mknod /dev/ppp c 108 0
+
+# For ARLiX system only
 for i in 1 2 3 4 5
  do
   mknod /dev/ttyp$i c 3 $i;

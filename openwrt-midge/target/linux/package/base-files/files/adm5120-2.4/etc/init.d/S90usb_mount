@@ -4,12 +4,7 @@ test -r /etc/midge.conf && . /etc/midge.conf
 
 [ "$USB_MOUNT" = yes ] || exit 0
 
-insmod usbcore 
-insmod usb-shci
-insmod scsi_mod
-insmod sd_mod
-insmod usb-storage
-insmod ext2
+# You must load modules: usbcore, usb-shci, scsi_mod, sd_mod, usb-storage, [ext2]
 
 [ "$USB_FSTYPE" ] && insmod $USB_FSTYPE
 
