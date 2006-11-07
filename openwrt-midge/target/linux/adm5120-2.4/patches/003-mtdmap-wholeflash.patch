@@ -42,7 +42,7 @@ diff -ur linux-2.4.32-or/include/asm-mips/am5120/mx29lv320b.h linux-2.4.32/inclu
 +	{
 +		.name =		"WholeFlash",
 +		.offset =	FLASH_PART_KERNEL_ADDR,
-+		.size =		0x1F0000
++		.size =		FLASH_SIZE - FLASH_PART_KERNEL_ADDR
  	}
  };
  
