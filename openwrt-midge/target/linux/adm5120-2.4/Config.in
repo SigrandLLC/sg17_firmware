@@ -78,12 +78,12 @@ config BR2_PACKAGE_KMOD_ADM5120_USB
 		USB-Webcams, USB-Serial and similar 'interrupt' devices is not supported
 
 config BR2_PACKAGE_KMOD_ADM5120_I2C
-    prompt "kmod-adm5120-i2c  ADM5120 I2C-Support Driver (GPIO)"
-    tristate
-    default m
-    help
-      Driver for I2C-Bus over GPIO
-      Only GPIO 1 (SCL) and 3 (SDA) are possible!
-      GPIO 0 is reserved for Power-LED
-      GPIO 2 is reserved for Reset-Switch
+	prompt "kmod-adm5120-i2c  ADM5120 I2C-Support Driver (GPIO)"
+	tristate
+	default m
+	help
+	  Driver for I2C-Bus over GPIO
+	  Only GPIO 1 (SCL) and 3 (SDA) are possible!
+	  GPIO 0 is reserved for Power-LED
+	  GPIO 2 is reserved for Reset-Switch
 
