@@ -59,7 +59,6 @@ config MIDGE_SQUASHFS_BLOCKS
 	help
 		Size of kernel partition
 
-
 config BR2_PACKAGE_KMOD_ADM5120_SW
 	prompt "kmod-adm5120-sw   ADM5120 Switch Driver"
 	tristate
@@ -77,4 +76,14 @@ config BR2_PACKAGE_KMOD_ADM5120_USB
 	help
 		USB driver for ADM5120 (works fine USB storage and maybe USB printers)
 		USB-Webcams, USB-Serial and similar 'interrupt' devices is not supported
+
+config BR2_PACKAGE_KMOD_ADM5120_I2C
+    prompt "kmod-adm5120-i2c  ADM5120 I2C-Support Driver (GPIO)"
+    tristate
+    default m
+    help
+      Driver for I2C-Bus over GPIO
+      Only GPIO 1 (SCL) and 3 (SDA) are possible!
+      GPIO 0 is reserved for Power-LED
+      GPIO 2 is reserved for Reset-Switch
 

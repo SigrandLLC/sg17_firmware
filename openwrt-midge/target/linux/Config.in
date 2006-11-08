@@ -766,16 +766,6 @@ config BR2_PACKAGE_KMOD_WD1100
 	  Driver for the NatSemi SC1x00 series Watchdog 
 	  found on Soekris net4801 boards
 
-config BR2_PACKAGE_KMOD_I2C
-	prompt "kmod-i2c........................... I2C-Support (GPIO)"
-	tristate
-	default m
-	help
-	  Driver for I2C-Bus over GPIO
-	  Only GPIO 1 (SCL) and 3 (SDA) are possible!
-	  GPIO 0 is reserved for Power-LED
-	  GPIO 2 is reserved for Reset-Switch
-
 endmenu
 
 menu "Additional kernel modules"
