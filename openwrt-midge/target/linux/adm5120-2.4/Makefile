@@ -14,7 +14,7 @@ $(eval $(call KMOD_template,ADM5120_USB,usb-shci,\
 	$(MODULES_DIR)/kernel/drivers/usb/host/usb-shci.o \
 ,CONFIG_USB_AHCI,kmod-usb-shci,55,usb-shci))
 
-$(eval $(call KMOD_template,ADM5120_I2C,i2c,\
+$(eval $(call KMOD_template,ADM5120_I2C,adm5120-i2c,\
 	$(MODULES_DIR)/kernel/drivers/i2c/i2c-core.o \
 	$(MODULES_DIR)/kernel/drivers/i2c/i2c-algo-bit.o \
 	$(MODULES_DIR)/kernel/drivers/i2c/i2c-adm5120.o \
