@@ -14,6 +14,8 @@ start() {
  	echo "Starting AX.25 services: "
 	/usr/sbin/kissattach -l /dev/ptyp1 local 44.0.0.1
 	sleep 1
+	/usr/sbin/kissattach -l /dev/ptyp2 ipusr 44.0.0.1
+	sleep 1
 	/usr/sbin/kissattach -l /dev/ttyS1 uhf01 44.0.0.1
 	sleep 1
 	/usr/sbin/axip >/dev/null &

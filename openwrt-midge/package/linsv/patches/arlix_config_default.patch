@@ -113,7 +113,8 @@ diff -ur etc/i.sv etc_new/i.sv
 +Ch. Mod. Speed RX freq TX freq Ant. Pol. Link
 +--------------------------------------------------------------------------------
 + 1  LBK   38k4    -       -     -    -   Internal LoopBack
-+ 2  AFSK   1k2 433.625 433.625  GP   V   User access 
++ 2  UDP   38k4    -       -     -    -   For ARLiX Club members
++ 3  AFSK   1k2 433.625 433.625  GP   V   User access 
 +--------------------------------------------------------------------------------
 +  HW: Router Edimax BR-6104K, 16MB RAM, 2MB internal FLASH, Simple KISS TNC
 +  SW: Linux for ADM5120 - http://midge.vlad.org.ua/forum/viewtopic.php?t=415
