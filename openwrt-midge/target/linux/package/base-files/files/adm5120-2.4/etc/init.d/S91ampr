@@ -27,6 +27,7 @@ start() {
 	/usr/sbin/linsv -v 1000 tstnod mycall >/dev/null &
 	sleep 1
 	/usr/sbin/beacon -t 1 -c SERVER -d "CLIENT RELAY" local "*CADTS* Crimean Amateur Digital Telemetry System"
+	/usr/sbin/beacon -t 1 -c SERVER -d "CLIENT RELAY" ipusr "*CADTS* Crimean Amateur Digital Telemetry System"
 	/usr/sbin/beacon -t 1 -c SERVER -d "CLIENT RELAY" uhf01 "*CADTS* Crimean Amateur Digital Telemetry System"
 }
 
