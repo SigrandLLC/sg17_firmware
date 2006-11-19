@@ -235,6 +235,7 @@ package-$(BR2_COMPILE_SAMBA) += samba
 package-$(BR2_PACKAGE_SANE_BACKENDS) += sane-backends
 package-$(BR2_PACKAGE_SCANLOGD) += scanlogd
 package-$(BR2_PACKAGE_SCDP) += scdp
+package-$(BR2_PACKAGE_SCMXX) += scmxx
 package-$(BR2_PACKAGE_SCREEN) += screen
 package-$(BR2_PACKAGE_SDK) += sdk
 package-$(BR2_PACKAGE_SER2NET) += ser2net

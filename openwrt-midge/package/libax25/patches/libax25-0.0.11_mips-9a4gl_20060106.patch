@@ -60,7 +60,7 @@ diff -urN libax25-0.0.11_original/axlib.h libax25-0.0.11_9a4gl/axlib.h
 diff -urN libax25-0.0.11_original/axports libax25-0.0.11_9a4gl/axports
 --- libax25-0.0.11_original/axports	2001-04-10 01:54:11.000000000 +0000
 +++ libax25-0.0.11_9a4gl/axports	2005-10-20 21:16:14.000000000 +0000
-@@ -4,5 +4,5 @@
+@@ -4,5 +4,6 @@
  #
  # name callsign speed paclen window description
  #

@@ -300,6 +300,7 @@ source "package/picocom/Config.in"
 source "package/serdisplib/Config.in"
 source "package/setserial/Config.in"
 source "package/sredird/Config.in"
+source "package/scmxx/Config.in"
 endmenu
 
 menu "Utilities"
