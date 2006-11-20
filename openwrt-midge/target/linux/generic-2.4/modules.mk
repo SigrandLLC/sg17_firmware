@@ -9,7 +9,7 @@ $(eval $(call KMOD_template,ATM,atm,\
 
 $(eval $(call KMOD_template,GRE,gre,\
 	$(MODULES_DIR)/kernel/net/ipv4/ip_gre.o \
-,CONFIG_NET_IPGRE))
+,CONFIG_NET_IPGRE,,54,ip_gre))
 
 $(eval $(call KMOD_template,IMQ,imq,\
 	$(MODULES_DIR)/kernel/net/ipv4/netfilter/*IMQ*.o \
@@ -25,7 +25,7 @@ $(eval $(call KMOD_template,PPP,ppp,\
 	$(MODULES_DIR)/kernel/drivers/net/ppp_generic.o \
 	$(MODULES_DIR)/kernel/drivers/net/slhc.o \
 	$(MODULES_DIR)/kernel/drivers/net/pppox.o \
-,CONFIG_PPP))
+,CONFIG_PPP,,55,slhc ppp_generic ppp_async pppox))
 
 $(eval $(call KMOD_template,MPPE,mppe,\
 	$(MODULES_DIR)/kernel/drivers/net/ppp_mppe_mppc.o \
@@ -51,7 +51,7 @@ $(eval $(call KMOD_template,TUN,tun,\
 
 $(eval $(call KMOD_template,ARPTABLES,arptables,\
 	$(MODULES_DIR)/kernel/net/ipv4/netfilter/arp*.o \
-,CONFIG_IP_NF_ARPTABLES))
+,CONFIG_IP_NF_ARPTABLES,,55,arp_tables arpt_mangle arptable_filter))
 
 $(eval $(call KMOD_template,EBTABLES,ebtables,\
 	$(MODULES_DIR)/kernel/net/bridge/netfilter/*.o \
@@ -67,7 +67,8 @@ $(eval $(call KMOD_template,IPT_CONNTRACK,ipt-conntrack,\
 
 $(eval $(call KMOD_template,IPT_EXTRA,ipt-extra,\
 	$(foreach mod,$(IPT_EXTRA-m),$(MODULES_DIR)/kernel/net/ipv4/netfilter/$(mod).o) \
-,,,80,$(IPT_EXTRA-m)))
+,,,80,ipt_condition ipt_connbytes ipt_limit ipt_LOG ipt_multiport ipt_owner ipt_pkttype ipt_quota ipt_recent))
+# Old string! ,,,80,$(IPT_EXTRA-m)))
 
 $(eval $(call KMOD_template,IPT_FILTER,ipt-filter,\
 	$(foreach mod,$(IPT_FILTER-m),$(MODULES_DIR)/kernel/net/ipv4/netfilter/$(mod).o) \
@@ -87,7 +88,8 @@ $(eval $(call KMOD_template,IPT_NAT,ipt-nat,\
 
 $(eval $(call KMOD_template,IPT_NAT_EXTRA,ipt-nat-extra,\
 	$(foreach mod,$(IPT_NAT_EXTRA-m),$(MODULES_DIR)/kernel/net/ipv4/netfilter/$(mod).o) \
-,,,40,$(IPT_NAT_EXTRA-m)))
+,,,40,ip_conntrack_proto_gre ip_nat_proto_gre ip_conntrack_pptp ip_nat_pptp))
+# Old string!  ,,,40,$(IPT_NAT_EXTRA-m)))
 
 $(eval $(call KMOD_template,IPT_QUEUE,ipt-queue,\
 	$(foreach mod,$(IPT_QUEUE-m),$(MODULES_DIR)/kernel/net/ipv4/netfilter/$(mod).o) \
@@ -242,6 +244,10 @@ $(eval $(call KMOD_template,USB,usb-core,\
 	$(MODULES_DIR)/kernel/drivers/usb/usbcore.o \
 ,CONFIG_USB,,50,usbcore))
 
+$(eval $(call KMOD_template,HID,usb-hid,\
+	$(MODULES_DIR)/kernel/drivers/usb/hid.o \
+,CONFIG_USB_HID,,56,hid))
+
 $(eval $(call KMOD_template,USB_OHCI,usb-ohci,\
 	$(MODULES_DIR)/kernel/drivers/usb/host/usb-ohci.o \
 ,CONFIG_USB_OHCI,kmod-usb-core,60,usb-ohci))
@@ -306,8 +312,10 @@ $(eval $(call KMOD_template,AX25,ax25,\
 $(eval $(call KMOD_template,BLUETOOTH,bluetooth,\
 	$(MODULES_DIR)/kernel/net/bluetooth/*.o \
 	$(MODULES_DIR)/kernel/net/bluetooth/rfcomm/*.o \
+	$(MODULES_DIR)/kernel/net/bluetooth/bnep/*.o \
 	$(MODULES_DIR)/kernel/drivers/bluetooth/*.o \
-,CONFIG_BLUEZ))
+	$(MODULES_DIR)/kernel/lib/crc32.o \
+,CONFIG_BLUEZ,,57,bluez l2cap hci_usb rfcomm sco hci_uart crc32 bnep))
 
 $(eval $(call KMOD_template,SOFTDOG,softdog,\
 	$(MODULES_DIR)/kernel/drivers/char/softdog.o \
