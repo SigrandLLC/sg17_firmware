@@ -41,7 +41,7 @@ $(eval $(call KMOD_template,PPPOE,pppoe,\
 
 $(eval $(call KMOD_template,SCHED,sched,\
 	$(MODULES_DIR)/kernel/net/sched/*.o \
-,,,80,sch_htb sch_tbf sch_sfq))
+,,,80,cls_fw sch_htb sch_tbf sch_sfq))
 
 $(eval $(call KMOD_template,TUN,tun,\
 	$(MODULES_DIR)/kernel/drivers/net/tun.o \
@@ -63,7 +63,7 @@ $(eval $(call KMOD_template,IPTABLES_EXTRA,iptables-extra,\
 
 $(eval $(call KMOD_template,IPT_CONNTRACK,ipt-conntrack,\
 	$(foreach mod,$(IPT_CONNTRACK-m),$(MODULES_DIR)/kernel/net/ipv4/netfilter/$(mod).o) \
-))
+,CONFIG_IPT_CONNTRACK,,20,ip_conntrack iptable_nat))
 
 $(eval $(call KMOD_template,IPT_EXTRA,ipt-extra,\
 	$(foreach mod,$(IPT_EXTRA-m),$(MODULES_DIR)/kernel/net/ipv4/netfilter/$(mod).o) \
