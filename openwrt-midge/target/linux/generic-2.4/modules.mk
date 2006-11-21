@@ -41,7 +41,7 @@ $(eval $(call KMOD_template,PPPOE,pppoe,\
 
 $(eval $(call KMOD_template,SCHED,sched,\
 	$(MODULES_DIR)/kernel/net/sched/*.o \
-,,,80,cls_fw sch_htb sch_tbf sch_sfq))
+,,,80,cls_fw cls_u32 cls_route sch_cbq sch_dsmark sch_htb sch_ingress sch_prio sch_tbf sch_sfq sch_red sch_gred sch_teql))
 
 $(eval $(call KMOD_template,TUN,tun,\
 	$(MODULES_DIR)/kernel/drivers/net/tun.o \
