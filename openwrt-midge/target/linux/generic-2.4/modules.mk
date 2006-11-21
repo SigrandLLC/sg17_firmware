@@ -55,7 +55,7 @@ $(eval $(call KMOD_template,ARPTABLES,arptables,\
 
 $(eval $(call KMOD_template,EBTABLES,ebtables,\
 	$(MODULES_DIR)/kernel/net/bridge/netfilter/*.o \
-,CONFIG_BRIDGE_NF_EBTABLES))
+,CONFIG_BRIDGE_NF_EBTABLES,,70,ebtables ebtable_filter ebt_ip ebt_pkttype))
 
 # metapackage for compatibility ...
 $(eval $(call KMOD_template,IPTABLES_EXTRA,iptables-extra,\
