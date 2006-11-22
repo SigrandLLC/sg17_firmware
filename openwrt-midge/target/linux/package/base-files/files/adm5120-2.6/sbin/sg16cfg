@@ -83,8 +83,8 @@ print_stat()
     echo "     Noise margin     : "$a$b" dB" 
     shift
     echo "Time statistics"
-    tmp=`perl -e 'print localtime('$1')."\n"'`
-    echo "     Last connect     : "$tmp
+#    tmp=`perl -e 'print localtime('$1')."\n"'`
+#    echo "     Last connect     : "$tmp
     shift
 #    echo "     Connect duration : "$1
 #    shift
