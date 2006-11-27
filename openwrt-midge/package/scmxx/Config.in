@@ -13,6 +13,6 @@ config BR2_PACKAGE_SCMXX
 	  * send and receive SMS through phone (optionally with Unicode and multipart support)
 	  * store and get received SMS
 
-	  http://www.hendrik-sattler.de/scmxx/index.html
+	  http://www.hendrik-sattler.de/scmxx/
 	  http://www.hamradio.crimea.ua/downloads/software/linux/archive/
 
