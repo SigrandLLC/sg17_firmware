@@ -13,23 +13,11 @@ choice
 endchoice
 
 
-choice
-	prompt "Flash type"
-	default MIDGE_FLASH_2MB
-	depends BR2_LINUX_2_4_ADM5120
-	config MIDGE_FLASH_2MB
-		bool "2MB NOR Flash (MX29LV160)"
-	config MIDGE_FLASH_4MB
-		bool "4MB NOR Flash (MX29LV320, A20 connected to GPIO3)"
-endchoice
-
 config MIDGE_FLASH_SIZE
 	hex "Flash size"
-	default "0x200000" if MIDGE_FLASH_2MB
-	default "0x400000" if MIDGE_FLASH_4MB
-	depends BR2_LINUX_2_4_ADM5120
+	default "0x200000"
 	help
-		Flash Size
+		Flash Size in hex
 
 config MIDGE_BOOT_SIZE
 	hex "Size of boot sector"

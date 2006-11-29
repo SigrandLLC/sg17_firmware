@@ -1,18 +1,23 @@
 diff -urN linux-2.4.32/drivers/mtd/maps/Config.in linux-2.4.32-adm5120/drivers/mtd/maps/Config.in
 --- linux-2.4.32/drivers/mtd/maps/Config.in	2005-12-20 12:42:57.000000000 +0200
 +++ linux-2.4.32-adm5120/drivers/mtd/maps/Config.in	2005-12-20 12:22:42.000000000 +0200
-@@ -113,6 +113,7 @@
+@@ -113,6 +113,12 @@
  
  if [ "$CONFIG_MIPS_AM5120" = "y" ]; then
     dep_tristate '  MX29LV320B flash device mapped on ADM5120 board' CONFIG_MTD_MX29LV320B $CONFIG_MRD_CFI
-+   dep_tristate '  MX29LV320B flash device (4MB) mapped on ADM5120 board' CONFIG_MTD_MX29LV320B_4MB $CONFIG_MRD_CFI
++   if [ "$CONFIG_MTD_MX29LV320B" != "n" ]; then
++      bool '    4MB device' CONFIG_MTD_MX29LV320B_4MB n
++      if [ "$CONFIG_MTD_MX29LV320B_4MB" != "n" ]; then
++         int '      Use GPIO for A20' CONFIG_MTD_MX29LV320B_4MB_GPIO 3
++      fi
++   fi
  fi   
  
  # This needs CFI or JEDEC, depending on the cards found.
 diff -urN linux-2.4.32/drivers/mtd/maps/mx29lv320b.c linux-2.4.32-adm5120/drivers/mtd/maps/mx29lv320b.c
 --- linux-2.4.32/drivers/mtd/maps/mx29lv320b.c	2006-10-16 00:24:02.000000000 +0200
 +++ linux-2.4.32-adm5120/drivers/mtd/maps/mx29lv320b.c	2006-10-18 00:17:38.000000000 +0200
-@@ -34,48 +34,199 @@
+@@ -34,48 +34,201 @@
  #include <asm/io.h>
  #include <asm/am5120/mx29lv320b.h>
  
@@ -21,20 +26,22 @@ diff -urN linux-2.4.32/drivers/mtd/maps/mx29lv320b.c linux-2.4.32-adm5120/driver
 +#include <asm/am5120/adm5120.h>
 +
 +#define FLASH_CS1_LIMIT 0x200000
-+#define FLASH_UP_LAYER 0x080800F7
-+#define FLASH_LOW_LAYER 0x3FF
++
++#ifndef CONFIG_MTD_MX29LV320B_4MB_GPIO
++#define CONFIG_MTD_MX29LV320B_4MB_GPIO 3
++#endif
 +
 +void flash_to_up_layer(void) {
 +	int delayloop;
 +	for (delayloop=0;delayloop<10000;delayloop++);
-+	ADM5120_SW_REG(GPIO_conf0_REG) = FLASH_UP_LAYER;
++	ADM5120_SW_REG(GPIO_conf0_REG) |= (0x01010000 << CONFIG_MTD_MX29LV320B_4MB_GPIO);
 +	for (delayloop=0;delayloop<10000;delayloop++);
 +}
 +
 +void flash_to_low_layer(void) {
 +	int delayloop;
 +	for (delayloop=0;delayloop<10000;delayloop++);
-+	ADM5120_SW_REG(GPIO_conf0_REG) = FLASH_LOW_LAYER;
++	ADM5120_SW_REG(GPIO_conf0_REG) &= ~(0x01010000 << CONFIG_MTD_MX29LV320B_4MB_GPIO);
 +	for (delayloop=0;delayloop<10000;delayloop++);
 +}
 +
@@ -212,7 +219,7 @@ diff -urN linux-2.4.32/drivers/mtd/maps/mx29lv320b.c linux-2.4.32-adm5120/driver
  }
  
  struct map_info mx29lv320b_map = {
-@@ -111,10 +262,40 @@
+@@ -111,10 +264,40 @@
  		mymtd->module = THIS_MODULE;
  		add_mtd_partitions(mymtd, mx29lv320b_parts, PARTITION_COUNT);
  		printk(KERN_NOTICE "MX29LV320B flash device initialized\n");
