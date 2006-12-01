@@ -65,7 +65,7 @@ $(eval $(call KMOD_template,IPT_CONNTRACK,ipt-conntrack,\
 	$(foreach mod,$(IPT_CONNTRACK-m),$(MODULES_DIR)/kernel/net/ipv4/netfilter/$(mod).o) \
 	$(MODULES_DIR)/kernel/net/ipv4/netfilter/ip_conntrack.o \
 	$(MODULES_DIR)/kernel/net/ipv4/netfilter/iptable_nat.o \
-,,,40,ip_conntrack iptable_nat))
+,,,40,ip_conntrack iptable_nat ipt_state))
 
 $(eval $(call KMOD_template,IPT_EXTRA,ipt-extra,\
 	$(foreach mod,$(IPT_EXTRA-m),$(MODULES_DIR)/kernel/net/ipv4/netfilter/$(mod).o) \
