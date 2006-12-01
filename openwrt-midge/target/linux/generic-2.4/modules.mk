@@ -90,7 +90,7 @@ $(eval $(call KMOD_template,IPT_NAT,ipt-nat,\
 
 $(eval $(call KMOD_template,IPT_NAT_EXTRA,ipt-nat-extra,\
 	$(foreach mod,$(IPT_NAT_EXTRA-m),$(MODULES_DIR)/kernel/net/ipv4/netfilter/$(mod).o) \
-,,,40,ip_conntrack_proto_gre ip_nat_proto_gre ip_conntrack_pptp ip_nat_pptp ip_nat_ftp))
+,,,40,ip_conntrack_proto_gre ip_conntrack_pptp ip_conntrack_ftp ip_nat_proto_gre ip_nat_pptp ip_nat_ftp))
 # Old string!  ,,,40,$(IPT_NAT_EXTRA-m)))
 
 $(eval $(call KMOD_template,IPT_QUEUE,ipt-queue,\

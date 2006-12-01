@@ -87,6 +87,7 @@ IPT_NAT_EXTRA-$(CONFIG_IP_NF_NAT_MMS) += $(P_V4)ip_nat_mms
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_RTSP) += $(P_V4)ip_conntrack_rtsp
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_NAT_RTSP) += $(P_V4)ip_nat_rtsp
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_PPTP) += $(P_V4)ip_conntrack_pptp
+IPT_NAT_EXTRA-$(CONFIG_IP_NF_FTP) += $(P_V4)ip_conntrack_ftp
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_SIP) += $(P_V4)ip_conntrack_sip
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_NAT_PPTP) += $(P_V4)ip_nat_pptp
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_NAT_FTP) += $(P_V4)ip_nat_ftp
