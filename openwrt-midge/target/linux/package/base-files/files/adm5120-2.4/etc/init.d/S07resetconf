@@ -1,0 +1,6 @@
+#!/bin/sh
+
+if [ q`cat /dev/switch `q = q0q ]; then
+	dd if=/dev/null of=/dev/mtdblock/3
+	reboot
+fi
