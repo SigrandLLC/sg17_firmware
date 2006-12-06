@@ -1916,7 +1916,7 @@ diff -urN linux-2.4.29-old/net/ipv4/netfilter/Makefile linux-2.4.29-dev/net/ipv4
 +	struct list_head *cur_item, *next;
 +	struct ip_conntrack_expect *exp;
 +	enum ip_conntrack_info ctinfo;
-+	struct iphdr *iph;
++	struct iphdr *iph=NULL;
 +
 +	/* FIXME: do we have to lock something ? */
 +	for (cur_item = ct->sibling_list.next;
