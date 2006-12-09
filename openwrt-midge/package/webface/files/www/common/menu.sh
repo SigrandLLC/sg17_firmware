@@ -19,8 +19,15 @@ L1 System welcome
 	L2 DNS		dns
 	
 L1 Network
-	L2 WAN		wan
-	L2 LAN		lan
+	L2 Interfaces
+		L3	dsl0 	"iface&iface=dsl0"
+		L3	eth0 	"iface&iface=eth0"
+		L3	eth1 	"iface&iface=eth1"
+		L3	br0 	"iface&iface=br0"
+		L3	ipsec0 	"iface&iface=ipsec0"
+		L3	bond0 	"iface&iface=bond0"
+		L3	pppoe0 	"iface&iface=pppoe0"
+		L3	pptp0 	"iface&iface=pptp0"
 	L2 Firewall	fw
 		L3 Filter	"fw&table=filter"
 		L3 NAT		"fw&table=nat"
