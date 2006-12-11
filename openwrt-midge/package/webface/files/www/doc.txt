@@ -1,0 +1,12 @@
+﻿
+
+При поднятии ppp интерфейса определяется реальное имя интерфейса и записывается в sys_iface_${iface}_real - пока не реализовано
+
+Протоколы интерфейсов sys_iface_${iface}_proto - имена интерфейсов:
+  - bridge - br
+  - ipsec - ipsec
+  - pppoe - ppp
+  - ether - eth
+  - bonding - bond
+  - imq - imq НЕРЕАЛИЗОВАНО ЗА НЕНАДОБНОСТЬЮ
+  Для dslX интерфейсов протокол - ether
