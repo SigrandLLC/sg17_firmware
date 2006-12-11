@@ -62,6 +62,7 @@ render_message_box()
     echo "<tr><td>$text</td></tr></table>"
 }
 
+#<div id='message' >
 render_save_message(){
 	echo "<table id='message' width='100%' border='0' cellspacing='0' cellpadding='0'>"
 	[ -z "$ERROR_MESSAGE" ] && render_table_title "Information" || render_table_title "Error"
@@ -149,7 +150,7 @@ render_input_field(){
 }
 
 render_submit_field(){
-	local btn="Ok";
+	local btn="Save";
 	[ "$1" ] && btn="$1"
 	echo "<tr> <td colspan=2 style='text-align: center;'> <input class='button' type='submit' name='submit' value='$btn'> </td> </tr>";
 }
@@ -268,3 +269,18 @@ render_js_hide_message(){
 	local timeout=${1:-1500}
 	echo "<script language=\"JavaScript\">setTimeout('document.getElementById(\"message\").style.display = \"none\";', $timeout);</script>"
 }
+
+render_page_selection(){
+	extparam=$1
+	shift
+	echo "<table class='page_select'><tr>"
+	while [ "$1" ]; do
+		class="pagesel"
+		[ "$page" = $1 ] && class="pagesel_a"
+		echo -n "<td class='$class'><a class='$class' href='/?controller=${controller}&page=$1&$extparam'>$2</a></td>"
+		shift 2
+	done
+	echo "</tr></table>"
+}
+
+

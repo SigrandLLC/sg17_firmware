@@ -1,4 +1,7 @@
 #!/usr/bin/haserl
+
+###### this file is obsolete
+
 	. lib/misc.sh
 	. lib/widgets.sh
 

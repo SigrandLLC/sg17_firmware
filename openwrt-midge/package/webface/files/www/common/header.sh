@@ -33,7 +33,7 @@ echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 	<table border="0" cellspacing="0" cellpadding="0" width="100%">
 	<tr><td align="left" valign="middle"><span class="tfrtitle">&nbsp;&nbsp;&nbsp;Sigrand</span></td>
 	  <td align="right" valign="bottom">
-	  <span class="hostname">hostname</span>
+	  <span class="hostname">'; export KDB=/etc/kdb; kdb get sys_hostname ; echo '</span>
 	  </td></tr></table>
 	</td>
   </tr>

@@ -3,68 +3,284 @@
 	. lib/misc.sh
 	. lib/widgets.sh
 
-	
-	
-	eval `$kdb -qq list sys_iface_$iface`
-	[ "$sys_iface_$iface_type" = "static" ] && kdb_vars="str:sys_iface_wan_ipaddr str:sys_iface_wan_netmask str:sys_iface_wan_gateway"
+
+
+	export iface=${FORM_iface:-eth0}
+	page=${FORM_page:-general}
 	subsys="network"
 
+	eval `$kdb -qq ls sys_iface_${iface}_ : sls sys_iface_${iface}_ `
+	
+	# enable DHCP page only on "ether" interfaces
+	dhcp_page=""
+	case $proto in
+		ether|bridge|bonding|vlan) dhcp_page="dhcp DHCP";;
+	esac
+		
+	render_page_selection "iface=$iface" general "General" method "Method" options "Options" spec "Specific" $dhcp_page qos "QoS" routes "Routes"
+	
+	case $page in
+		'general')	
+			kdb_vars="bool:sys_iface_${iface}_enabled bool:sys_iface_${iface}_auto str:sys_iface_${iface}_method " ;;
+		'method')
+			[ "$method" = "static" ] && kdb_vars="str:sys_iface_${iface}_ipaddr str:sys_iface_${iface}_netmask str:sys_iface_${iface}_gateway str:sys_iface_${iface}_broadcast"
+			[ "$method" = "dynamic" ] && kdb_vars="str:sys_iface_${iface}_dynhostname"
+			;;
+		'options')	
+			kdb_vars="bool:sys_iface_${iface}_opt_accept_redirects bool:sys_iface_${iface}_opt_forwarding bool:sys_iface_${iface}_opt_proxy_arp bool:sys_iface_${iface}_opt_rp_filter"
+			;;
+		'dhcp')
+			kdb_vars="bool:sys_iface_${iface}_dhcp_enabled int:sys_iface_${iface}_dhcp_lease_time"
+			kdb_vars="$kdb_vars str:sys_iface_${iface}_dhcp_router str:sys_iface_${iface}_dhcp_nameserver"
+			kdb_vars="$kdb_vars str:sys_iface_${iface}_dhcp_domain_name "
+			kdb_vars="$kdb_vars str:sys_iface_${iface}_dhcp_ntpserver str:sys_iface_${iface}_winsserver "
+			kdb_vars="$kdb_vars str:sys_iface_${iface}_dhcp_startip str:sys_iface_${iface}_dhcp_endip str:sys_iface_${iface}_dhcp_netmask "
+			subsys="dhcp"
+		;;
+		'qos')		
+			kdb_vars="str:sys_iface_${iface}_qos_sch ";;
+
+		'spec')
+			case $proto in
+				bridge)
+					kdb_vars="bool:sys_iface_${iface}_br_stp str:sys_iface_${iface}_br_ifaces str:sys_iface_${iface}_br_prio str:sys_iface_${iface}_br_fd str:sys_iface_${iface}_br_hello str:sys_iface_${iface}_br_maxage";;
+				pptp)
+					kdb_vars="str:sys_iface_${iface}_pptp_server str:sys_iface_${iface}_pptp_username str:sys_iface_${iface}_pptp_password str:sys_iface_${iface}_pptp_pppdopt";;
+				pppoe)
+					kdb_vars="str:sys_iface_${iface}_pppoe_username str:sys_iface_${iface}_pppoe_password" ;;
+				ipsec)
+					kdb_vars="str:sys_iface_${iface}_ipsec_mode str:sys_iface_${iface}_ipsec_local_addr str:sys_iface_${iface}_ipsec_remote_addr"
+					kdb_vars="$kdb_vars str:sys_iface_${iface}_ipsec_local_ah_spi str:sys_iface_${iface}_ipsec_local_ah_alg str:sys_iface_${iface}_ipsec_local_ah_key"
+					kdb_vars="$kdb_vars str:sys_iface_${iface}_ipsec_remote_ah_spi str:sys_iface_${iface}_ipsec_remote_ah_alg str:sys_iface_${iface}_ipsec_remote_ah_key"
+					kdb_vars="$kdb_vars str:sys_iface_${iface}_ipsec_local_esp_spi str:sys_iface_${iface}_ipsec_local_esp_alg str:sys_iface_${iface}_ipsec_local_esp_key"
+					kdb_vars="$kdb_vars str:sys_iface_${iface}_ipsec_remote_esp_spi str:sys_iface_${iface}_ipsec_remote_esp_alg str:sys_iface_${iface}_ipsec_remote_esp_key"
+					;;
+			esac
+			
+	esac
+
 	render_save_stuff
+	
+	eval `$kdb -qq ls sys_iface_${iface}_ : sls sys_iface_${iface}_ `
 
-	eval `$kdb -qq list sys_iface`
-	render_form_header iface
-	render_table_title "General interface settings" 2
+	render_form_header
 
-	# sys_iface_${iface}_enabled
-	tip=""
-	desc=""
-	validator='tmt:required="true"'
-	render_input_field checkbox "Enabled" sys_iface_${iface}_enabled
+	render_input_field hidden iface iface "$iface"
+	render_input_field hidden page page "$page"
 
-	# sys_iface_${iface}_auto
-	tip=""
-	desc=""
-	validator='tmt:required="true"'
-	render_input_field checkbox "Auto" sys_iface_${iface}_auto
+	case $page in 
+	'general')
+		tip=""
+		desc=""
+		validator='tmt:required="true"'
+		render_input_field checkbox "Enabled" sys_iface_${iface}_enabled
 
-	# sys_iface_wan_type
-	tip="Select connection type:<br><b>Static:</b> IP address is static<br><b>Dynamic:</b> DHCP"
-	desc="Please select connection type of your ISP"
-	validator='tmt:required="true" tmt:message="Please select connection type"'
-	render_input_field radio "Connection type" sys_iface_wan_type 'static' 'Static address' 'dhcp' 'Dynamic address' \
-						#	 'pppoe' 'PPPoE connection'  'pptp' 'PPTP connection'
+		# sys_iface_${iface}_auto
+		tip=""
+		desc=""
+		validator='tmt:required="true"'
+		render_input_field checkbox "Auto" sys_iface_${iface}_auto
+
+		# sys_iface_${iface}_method
+		tip="Select address method:<br><b>Static:</b> IP address is static<br><b>Dynamic:</b> DHCP/PPPoE/PPTP/etc"
+		desc="Please select method of the interface"
+		validator='tmt:required="true" tmt:message="Please select method"'
+		render_input_field select "Method" sys_iface_${iface}_method 'static' 'Static address' 'dynamic' 'Dynamic address'
+		;;
+	'method')
+		if [ "$method" = "static" ]; then
+
+			# sys_iface_${iface}_ipaddr
+			#tip="IP address for interface"
+			desc="Address (dotted quad) <b>required</b>"
+			validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
+			render_input_field text "Static address " sys_iface_${iface}_ipaddr
+
+			# sys_iface_${iface}_netmask
+			#tip="Netmask used for BLA BLA BLA"
+			desc="Netmask (dotted quad) <b>required</b>"
+			validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct netmask" tmt:pattern="netmask"'
+			render_input_field text "Netmask" sys_iface_${iface}_netmask
+
+			# sys_iface_${iface}_broadcast
+			#tip="IP address for interface"
+			desc="Broadcast (dotted quad)"
+			validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct broadcast" tmt:pattern="ipaddr"'
+			render_input_field text "Broadcast" sys_iface_${iface}_broadcast
+			
+			# sys_iface_${iface}_gateway
+			#tip="Gateway used for default routing"
+			desc="Default gateway (dotted quad)"
+			validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
+			render_input_field text "Gateway" sys_iface_${iface}_gateway
+		fi
+
+		if [ "$method" = "dynamic" ]; then
+			desc="Hostname to be requested"
+			validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
+			render_input_field text "DHCP Client hostname" sys_iface_${iface}_dynhostname 
+		fi
+		;;
+	'options')
+		default=1
+		render_input_field checkbox "Accept redirects" sys_iface_${iface}_opt_accept_redirects
+		default=1
+		render_input_field checkbox "Forwarding" sys_iface_${iface}_opt_forwarding
+		default=0
+		render_input_field checkbox "Proxy ARP" sys_iface_${iface}_opt_proxy_arp
+		default=1
+		render_input_field checkbox "RP Filter" sys_iface_${iface}_opt_rp_filter
+		;;
+	'dhcp')
+		# sys_iface_${iface}_dhcp_enabled
+		tip=""
+		desc="Check this item if you want use DHCP server on your LAN"
+		validator='tmt:required="true"'
+		render_input_field checkbox "Enable DHCP server" sys_iface_${iface}_dhcp_enabled
+
+		# sys_iface_${iface}_dhcp_router
+		tip="Router for subnet"
+		desc="Default router for your LAN hosts"
+		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip for router" tmt:pattern="ipaddr"'
+		render_input_field text "Default router" sys_iface_${iface}_dhcp_router
+
+		# sys_iface_${iface}_dhcp_lease_time
+		tip="Select default lease time"
+		desc="Please select lease time"
+		validator='tmt:message="Please select lease time"'
+		render_input_field select "Default lease time" sys_iface_${iface}_dhcp_lease_time 600 "10 minutes" 1800 "30 minutes" 3600 "1 hour" \
+				10800 "3 hours" 36000 "10 hours" 86400 "24 hours" #infinite "Infinite"
+
+		# sys_iface_${iface}_dhcp_nameserver
+		tip="DNS server for your LAN hosts<br>You can use this device as DNS server"
+		desc="DNS server for your LAN hosts"
+		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip for DNS server" tmt:pattern="ipaddr"'
+		render_input_field text "DNS server" sys_iface_${iface}_dhcp_nameserver
+
+		# sys_iface_${iface}_dhcp_domain_name
+		tip="Most queries for names within this domain can use short names relative to the local domain"
+		desc="Allows DHCP hosts to have fully qualified domain names"
+		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
+		render_input_field text "Domain" sys_iface_${iface}_dhcp_domain_name
+
+		# sys_iface_${iface}_dhcp_ntpserver
+		tip="NTP server for your LAN hosts"
+		desc="NTP server for your LAN hosts"
+		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip for NTP server" tmt:pattern="ipaddr"'
+		render_input_field text "NTP server" sys_iface_${iface}_dhcp_ntpserver
+
+		tip="WINS server for your LAN hosts"
+		desc="WINS server for your LAN hosts"
+		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip for WINS server" tmt:pattern="ipaddr"'
+		render_input_field text "WINS server" sys_iface_${iface}_dhcp_winsserver
+
+		desc="Start of dynamic ip range address for your LAN"
+		validator='tmt:required="true" tmt:message="Please input correct start IP" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:pattern="ipaddr"'
+		render_input_field text "Start IP" sys_iface_${iface}_dhcp_startip
+
+		desc="End of dynaic ip range address for your LAN"
+		validator='tmt:required="true" tmt:message="Please input correct end IP" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:pattern="ipaddr"'
+		render_input_field text "End IP" sys_iface_${iface}_dhcp_endip
+
+		tip="<b>Example:</b> 255.255.255.0"
+		desc="Netmask for your LAN"
+		validator='tmt:required="true" tmt:message="Please input correct netmask" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:pattern="netmask"'
+		render_input_field text "Netmask" sys_iface_${iface}_dhcp_netmask
+
+		;;
+	'spec')
+		case $proto in
+		'ipsec')
+			render_table_title "IPSec Specific parameters" 2 
+			tip=""
+			desc="Please select mode of interface"
+			validator='tmt:required="true" tmt:message="Please select mode"'
+			render_input_field select "Mode" sys_iface_${iface}_ipsec_mode 'transport' 'Transport' 'tunnel' 'Tunnel'
+
+			desc="Local address (dotted quad) <b>required</b>"
+			validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
+			render_input_field text "Local address " sys_iface_${iface}_ipsec_local_addr
+			desc="Remote address (dotted quad) <b>required</b>"
+			validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
+			render_input_field text "Remote address " sys_iface_${iface}_ipsec_remote_addr
+			# :TODO: add md5 validation
+			render_input_field text "Local AH SPI" sys_iface_${iface}_ipsec_local_ah_spi
+			render_input_field select "Local AH Algorithm" sys_iface_${iface}_ipsec_local_ah_alg 'hmac-md5' 'hmac-md5' 'hmac-sha1' 'hmac-sha1'
+			render_input_field text "Local AH Key" sys_iface_${iface}_ipsec_local_ah_key
+			render_input_field text "Remote AH SPI" sys_iface_${iface}_ipsec_remote_ah_spi
+			render_input_field select "Remote AH Algorithm" sys_iface_${iface}_ipsec_remote_ah_alg 'hmac-md5' 'hmac-md5' 'hmac-sha1' 'hmac-sha1'
+			render_input_field text "Remote AH Key" sys_iface_${iface}_ipsec_remote_ah_key
+			
+			render_input_field text "Local ESP SPI" sys_iface_${iface}_ipsec_local_esp_spi
+			render_input_field select "Local ESP Algorithm" sys_iface_${iface}_ipsec_local_esp_alg 'des-cbc' 'des-cbc' '3des-cbc' '3des-cbc'
+			render_input_field text "Local ESP Key" sys_iface_${iface}_ipsec_local_esp_key
+			render_input_field text "Remote ESP SPI" sys_iface_${iface}_ipsec_remote_esp_spi
+			render_input_field select "Remote ESP Algorithm" sys_iface_${iface}_ipsec_remote_esp_alg 'des-cbc' 'des-cbc' '3des-cbc' '3des-cbc'
+			render_input_field text "Remote ESP Key" sys_iface_${iface}_ipsec_remote_esp_key
+
+			;;
+		'pppoe')
+			render_table_title "PPPoE Specific parameters" 2 
+			render_input_field text "Username" sys_iface_${iface}_pptp_username
+			render_input_field text "Password" sys_iface_${iface}_pptp_password
+			;;
+		'pptp')
+			render_table_title "PPtP Specific parameters" 2 
+			desc="PPtP Server"
+			validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
+			render_input_field text "Server" sys_iface_${iface}_pptp_server
+			validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
+			render_input_field text "Username" sys_iface_${iface}_pptp_username
+			render_input_field text "Password" sys_iface_${iface}_pptp_password
+			# Note about name, remotename options
+			default="noauth nobsdcomp nodeflate require-mppe-128"
+			render_input_field text "PPPD Options" sys_iface_${iface}_pptp_pppdopt
+			;;
+		'bonding')
+			render_table_title "PPtP Specific parameters" 2 
+			;;
+		'bridge')
+			render_table_title "Bridge Specific parameters" 2 
+			tip="Multiple ethernet bridges can work together to create even larger networks of ethernets using the IEEE 802.1d spanning tree protocol.This protocol  is used for finding the shortest path between two ethernets, and for eliminating loops from the topology."
+			desc="Enable Spanning Tree Protocol"
+			render_input_field checkbox "STP Enabled" sys_iface_${iface}_br_stp
+			
+			tip="<b>Example:</b> eth0 eth1 dsl0<br><b>Note:</b> You can use only Ethernet-like interfaces, like ethX, dslX, bondX<br><b>Note:</b> Interfaces should be enabled, but <b>auto</b> should be switched <b>off</b>"
+			desc="Interfaces for bridge separated by space"
+			validator='tmt:required="true" tmt:message="Please input interfaces" tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic"'
+			render_input_field text "Interfaces" sys_iface_${iface}_br_ifaces
+			
+			tip="The priority value is  an  unsigned  16-bit  quantity  (a  number between  0 and 65535), and has no dimension. Lower priority values are better. The bridge with the lowest priority will be elected <b>root bridge</b>."
+			desc="Bridge priority"
+			validator='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="positiveinteger" tmt:minnumber=1 tmt:maxnumber=65535 tmt:message="Please input number" '
+			render_input_field text "Priority" sys_iface_${iface}_br_prio
+			tip="Sets the bridges <b>bridge forward delay</b> to <time> seconds."
+			validator='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="positiveinteger" tmt:minnumber=0 tmt:maxnumber=60  tmt:message="Please input number"'
+			render_input_field text "Forward delay" sys_iface_${iface}_br_fd
+			validator='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="positiveinteger" tmt:minnumber=0 tmt:maxnumber=60  tmt:message="Please input number"'
+			render_input_field text "Hello time" sys_iface_${iface}_br_hello
+			validator='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="positiveinteger" tmt:minnumber=0 tmt:maxnumber=600  tmt:message="Please input number"'
+			render_input_field text "Max age" sys_iface_${iface}_br_maxage
+			;;
+		esac
+		;;
+	'qos')
+		# sys_iface_${iface}_qos_sch
+		desc="Please select scheduler for the interface"
+		validator='tmt:required="true" tmt:message="Please select method"'
+		render_input_field select "Scheduler" sys_iface_${iface}_qos_sch 'tbf' '<b>T</b>oken <b>B</b>ucket <b>F</b>ilter' 'htb' '<b>H</b>ierarchical <b>T</b>oken <b>B</b>ucket' 'sfq' '<b>S</b>tochastic <b>F</b>airness <b>Q</b>ueueing' 'esfq' '<b>E</b>nhanced <b>S</b>tochastic <b>F</b>airness <b>Q</b>ueueing' 
+		;;
+		
+	esac
+	
 	render_submit_field
 	render_form_tail
 
-	render_form_header iface
-	render_table_title "Address settings" 2
 
-	if [ "$sys_iface_${iface}_type" = "static" ]; then
-		# sys_iface_${iface}_ipaddr
-		#tip="IP address for interface"
-		desc="Netmask (dotted quad) <b>required</b>"
-		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
-		render_input_field text "Static address " sys_iface_${iface}_ipaddr
-
-		# sys_iface_${iface}_netmask
-		#tip="Netmask used for BLA BLA BLA"
-		desc="Netmask for interface"
-		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct netmask" tmt:pattern="netmask"'
-		render_input_field text "Netmask" sys_iface_${iface}_netmask
-
-		# sys_iface_${iface}_gateway
-		tip="Gateway used for default routing"
-		desc="Gateway "
-		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
-		render_input_field text "WAN Gateway" sys_iface_wan_gateway
-	elif [ "$sys_iface_wan_type" = "dhcp" ]; then
-		# sys_iface_wan_ipaddr
-		tip="BLA BLA BLA"
-		desc="BLA BLA BLA"
-		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
-		render_input_field text "DHCP - NO OPTIONS<br>EXAMPLE ONLY" sys_iface_wan_ipaddr
+	if [ $page = 'dhcp' ]; then
+		# static dhcp list
+		render_form_header dhcp_leases dhcp_save
+		render_table_title "DHCP Static leases" 2 
+		render_iframe_list "dhcp_static" "iface=$iface"
+		render_form_tail
 	fi
-
-	render_submit_field
-	render_form_tail
-

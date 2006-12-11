@@ -401,3 +401,26 @@ input:focus, textarea:focus {
 .lineDisabled {                                                                    
 	color: #A0A0A0;                                                         
 } 
+
+a.pagesel {
+	font-weight: bold;
+	color: white;
+}
+a.pagesel_a {
+	font-weight: bold;
+	color: #435370;
+}
+td.pagesel, td.pagesel_a{
+	font-family: Tahoma, Verdana, Arial, Helvetica, sans-serif;
+	font-size: 13px;
+	background-color: #435370;
+	height: 30;
+	padding-left: 20;
+	padding-right: 20;
+	border: 1px solid #999999;
+
+}
+
+td.pagesel_a{
+	background-color: white;
+}

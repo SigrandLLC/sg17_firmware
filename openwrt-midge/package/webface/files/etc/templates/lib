@@ -77,7 +77,6 @@ update_configs(){
 	
 	case "$subsys" in
 	network)
-		cfg_make interfaces /etc/network/interfaces && \
 		cfg_make hostname /etc/hostname && \
 		cfg_commit
 	;;
@@ -86,7 +85,8 @@ update_configs(){
 		cfg_commit
 		;;
 	dhcp)
-		cfg_make dhcpd.conf /etc/dhcpd/dhcpd.conf && \
+		#cfg_make dhcpd.conf /etc/dhcpd/dhcpd.conf && \
+		cfg_make udhcpd.conf /etc/udhcpd.${iface}.conf && \
 		cfg_commit
 		;;
 	dns)
