@@ -85,6 +85,7 @@
 		if [ -d "/proc/sys/net/ipv4/conf/$realiface" ]; then
 			render_table_title "Interface status" 2 
 			render_console_start
+			render_console_command /sbin/ifconfig $realiface
 			render_console_command /sbin/ip link show dev $realiface
 			render_console_command /sbin/ip addr show dev $realiface
 			render_console_end
