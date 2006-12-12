@@ -839,6 +839,7 @@ BR2_PACKAGE_DBCONVERT=y
 # httping........................... Httping is like 'ping' but for http-requests.
 #
 # BR2_PACKAGE_HTTPING is not set
+BR2_PACKAGE_IFENSLAVE=y
 BR2_PACKAGE_IFTOP=m
 # BR2_PACKAGE_IGMPPROXY is not set
 # BR2_PACKAGE_IPCAD is not set
@@ -850,6 +851,7 @@ BR2_COMPILE_IPROUTE2=y
 BR2_PACKAGE_IP=y
 BR2_PACKAGE_TC=y
 # BR2_PACKAGE_IPERF is not set
+BR2_PACKAGE_IPSEC_TOOLS=y
 # BR2_PACKAGE_IPSET is not set
 # BR2_PACKAGE_IPTABLES_SNMP is not set
 # BR2_PACKAGE_IPTRAF is not set
