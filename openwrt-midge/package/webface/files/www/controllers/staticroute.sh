@@ -2,6 +2,8 @@
 	. lib/misc.sh
 	. lib/widgets.sh
 
+#### this file is obsolete
+	
 	case "$FORM_do" in
 		del) $kdb lrm "$FORM_item";;
 	esac;
@@ -15,7 +17,7 @@
 		eval "val=\"\${sys_staticroute_${lineno}}\""
 		eval "$val"
 		echo "<tr><td>$lineno</td><td>$net</td><td>$netmask</td><td>$gw</td><td>"
-		render_list_btns staticroute "sys_staticroute_${lineno}"
+		render_list_btns staticroute_edit "sys_staticroute_${lineno}"
 		echo "</td></tr>"
 	}
 	

@@ -4,24 +4,29 @@
 _ifup(){
 	local iface=$1
 	eval `kdb -qq sls sys_iface_${iface}_`
-	[ -z $type ] && echo "sys_iface_${iface}_type is not set"
+	[ -z $proto ] && echo "sys_iface_${iface}_proto is not set"
+	[ -z $method ] && echo "sys_iface_${iface}_method is not set"
+
 	echo 1 > /proc/sys/net/ipv4/ip_forward
 	echo -n "Setting up $iface "
-	case $type in
-	static)
-		opts="$real $ipaddr netmask $netmask"
-		[ -n "$broadcast" ] && opts="$opts broadcast $broadcast"
-		/sbin/ifconfig $opts
-		if [ -n "$gateway" ]; then
-			/sbin/route del default 2>/dev/null
-			/sbin/route add default gw $gateway 
-		fi
-		;;
-	dhcp)
-		eval `kdb -qq ls sys_hostname`
-		opts=" -i $real --hostname=$sys_hostname --background -p /var/run/udhcpc.$iface.pid"
-		/sbin/udhcpc $opts 
-		;;
+	case $proto in
+	bridge|ether|bonding) 
+		case $method in
+		static)
+			opts="$real $ipaddr netmask $netmask"
+			[ -n "$broadcast" ] && opts="$opts broadcast $broadcast"
+			/sbin/ifconfig $opts
+			if [ -n "$gateway" ]; then
+				/sbin/route del default 2>/dev/null
+				/sbin/route add default gw $gateway 
+			fi
+			;;
+		dynamic)
+			eval `kdb -qq ls sys_hostname`
+			opts=" -i $real --hostname=$sys_hostname --background -p /var/run/udhcpc.$iface.pid"
+			/sbin/udhcpc $opts 
+			;;
+		esac
 	pppoe)
 		;;
 	pptp)
@@ -29,11 +34,25 @@ _ifup(){
 	ipsec)
 		;;
 	esac
-	echo " done."
 	eval `kdb -qq ls sys_ntpclient_`
 	if [ "$sys_ntpclient_enabled" = "1" -a -x /usr/sbin/ntpclient ]; then
 		/sbin/route -n | grep ^0.0.0.0 >/dev/null && /usr/sbin/ntpclient -c 1 -s -h ${sys_ntpclient_server:-pool.ntp.org}
 	fi
+
+	# setup interface options
+	[ -n "$opt_accept_redirects" ] && \
+		echo "$opt_accept_redirects" >/proc/sys/net/ipv4/conf/$iface/accept_redirects
+
+	[ -n "$opt_forwarding" ] && \
+		echo "$opt_forwarding" >/proc/sys/net/ipv4/conf/$iface/forwarding
+
+	[ -n "$opt_proxy_arp" ] && \
+		echo "$opt_proxy_arp" >/proc/sys/net/ipv4/conf/$iface/proxy_arp
+
+	[ -n "$opt_rp_filter" ] && \
+		echo "$opt_rp_filter" >/proc/sys/net/ipv4/conf/$iface/rp_filter
+
+	echo " done."
 }
 
 _ifdown(){

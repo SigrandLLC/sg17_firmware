@@ -6,10 +6,19 @@
 
 
 	export iface=${FORM_iface:-eth0}
-	page=${FORM_page:-general}
+	page=${FORM_page:-status}
 	subsys="network"
 
+	case "$FORM_do" in
+		del) 
+				$kdb lrm "$FORM_item"
+				debug $kdb lrm "$FORM_item"
+			;;
+	esac;
+
+		
 	eval `$kdb -qq ls sys_iface_${iface}_ : sls sys_iface_${iface}_ `
+	
 	
 	# enable DHCP page only on "ether" interfaces
 	dhcp_page=""
@@ -17,7 +26,7 @@
 		ether|bridge|bonding|vlan) dhcp_page="dhcp DHCP";;
 	esac
 		
-	render_page_selection "iface=$iface" general "General" method "Method" options "Options" spec "Specific" $dhcp_page qos "QoS" routes "Routes"
+	render_page_selection "iface=$iface" status Status general "General" method "Method" options "Options" spec "Specific" $dhcp_page qos "QoS" routes "Routes"
 	
 	case $page in
 		'general')	
@@ -68,7 +77,57 @@
 	render_input_field hidden iface iface "$iface"
 	render_input_field hidden page page "$page"
 
+	# first form
 	case $page in 
+	'status')
+		realiface=$iface
+		[ -n "$real" -a -d /proc/sys/net/ipv4/conf/$real ] && realiface=$real
+		if [ -d "/proc/sys/net/ipv4/conf/$realiface" ]; then
+			render_table_title "Interface status" 2 
+			render_console_start
+			render_console_command /sbin/ip link show dev $realiface
+			render_console_command /sbin/ip addr show dev $realiface
+			render_console_end
+
+			render_table_title "Routes" 2 
+			render_console_start
+			render_console_command /sbin/ip route show dev $realiface
+			render_console_end
+
+			render_table_title "ARP" 2 
+			render_console_start
+			render_console_command /sbin/ip neigh show dev $realiface
+			render_console_end
+			case "$proto" in 
+			bridge)
+				render_table_title "Bridge status" 2 
+				render_console_start
+				render_console_command /usr/sbin/brctl show $realiface
+				render_console_command /usr/sbin/brctl showmacs $realiface
+				render_console_end
+				;;
+			bonding)
+				render_table_title "Bonding status" 2 
+				render_console_start
+				render_console_command cat /proc/net/$realiface/info
+				render_console_end
+				;;
+			esac
+			
+			if [ "$dhcp_enabled" = 1 -a -x /usr/bin/dumpleases -a -r /var/lib/misc/udhcpd.${realiface}.leases ]; then
+				render_table_title "DHCP Leases" 2 
+				render_console_start
+				render_console_command /usr/bin/dumpleases -f /var/lib/misc/udhcpd.${realiface}.leases
+				render_console_end
+			fi
+			
+		else
+			render_table_title "Interface status" 2 
+			render_console_start
+			echo "Interface <b>$realiface</b> currently does not exist"
+			render_console_end
+		fi
+		;;
 	'general')
 		tip=""
 		desc=""
@@ -138,9 +197,22 @@
 		validator='tmt:required="true"'
 		render_input_field checkbox "Enable DHCP server" sys_iface_${iface}_dhcp_enabled
 
+		desc="Start of dynamic ip range address for your LAN (dotted quad) <b>required</b>"
+		validator='tmt:required="true" tmt:message="Please input correct start IP" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:pattern="ipaddr"'
+		render_input_field text "Start IP" sys_iface_${iface}_dhcp_startip
+
+		desc="End of dynaic ip range address for your LAN (dotted quad) <b>required</b>"
+		validator='tmt:required="true" tmt:message="Please input correct end IP" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:pattern="ipaddr"'
+		render_input_field text "End IP" sys_iface_${iface}_dhcp_endip
+
+		tip="<b>Example:</b> 255.255.255.0"
+		desc="Netmask for your LAN (dotted quad) <b>required</b>"
+		validator='tmt:required="true" tmt:message="Please input correct netmask" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:pattern="netmask"'
+		render_input_field text "Netmask" sys_iface_${iface}_dhcp_netmask
+
 		# sys_iface_${iface}_dhcp_router
 		tip="Router for subnet"
-		desc="Default router for your LAN hosts"
+		desc="Default router for your LAN hosts (dotted quad) "
 		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip for router" tmt:pattern="ipaddr"'
 		render_input_field text "Default router" sys_iface_${iface}_dhcp_router
 
@@ -153,7 +225,7 @@
 
 		# sys_iface_${iface}_dhcp_nameserver
 		tip="DNS server for your LAN hosts<br>You can use this device as DNS server"
-		desc="DNS server for your LAN hosts"
+		desc="DNS server for your LAN hosts (dotted quad)"
 		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip for DNS server" tmt:pattern="ipaddr"'
 		render_input_field text "DNS server" sys_iface_${iface}_dhcp_nameserver
 
@@ -165,28 +237,14 @@
 
 		# sys_iface_${iface}_dhcp_ntpserver
 		tip="NTP server for your LAN hosts"
-		desc="NTP server for your LAN hosts"
+		desc="NTP server for your LAN hosts (dotted quad)"
 		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip for NTP server" tmt:pattern="ipaddr"'
 		render_input_field text "NTP server" sys_iface_${iface}_dhcp_ntpserver
 
 		tip="WINS server for your LAN hosts"
-		desc="WINS server for your LAN hosts"
+		desc="WINS server for your LAN hosts (dotted quad)"
 		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip for WINS server" tmt:pattern="ipaddr"'
 		render_input_field text "WINS server" sys_iface_${iface}_dhcp_winsserver
-
-		desc="Start of dynamic ip range address for your LAN"
-		validator='tmt:required="true" tmt:message="Please input correct start IP" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:pattern="ipaddr"'
-		render_input_field text "Start IP" sys_iface_${iface}_dhcp_startip
-
-		desc="End of dynaic ip range address for your LAN"
-		validator='tmt:required="true" tmt:message="Please input correct end IP" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:pattern="ipaddr"'
-		render_input_field text "End IP" sys_iface_${iface}_dhcp_endip
-
-		tip="<b>Example:</b> 255.255.255.0"
-		desc="Netmask for your LAN"
-		validator='tmt:required="true" tmt:message="Please input correct netmask" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:pattern="netmask"'
-		render_input_field text "Netmask" sys_iface_${iface}_dhcp_netmask
-
 		;;
 	'spec')
 		case $proto in
@@ -237,7 +295,11 @@
 			render_input_field text "PPPD Options" sys_iface_${iface}_pptp_pppdopt
 			;;
 		'bonding')
-			render_table_title "PPtP Specific parameters" 2 
+			render_table_title "Bonding Specific parameters" 2 
+			tip="<b>Example:</b>eth0 eth1 dsl0<br><b>Note:</b>You can use only Ethernet-like interfaces, like ethX, dslX, bondX<br><b>Note:</b> Interfaces should be enabled, but <b>auto</b> should be switched <b>off</b>"
+			desc="Interfaces for bonding separated by space"
+			validator='tmt:required="true" tmt:message="Please input interfaces" tmt:filters="ltrim,nohtml,nocommas,nomagic"'
+			render_input_field text "Interfaces" sys_iface_${iface}_bond_ifaces
 			;;
 		'bridge')
 			render_table_title "Bridge Specific parameters" 2 
@@ -247,7 +309,7 @@
 			
 			tip="<b>Example:</b> eth0 eth1 dsl0<br><b>Note:</b> You can use only Ethernet-like interfaces, like ethX, dslX, bondX<br><b>Note:</b> Interfaces should be enabled, but <b>auto</b> should be switched <b>off</b>"
 			desc="Interfaces for bridge separated by space"
-			validator='tmt:required="true" tmt:message="Please input interfaces" tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic"'
+			validator='tmt:required="true" tmt:message="Please input interfaces" tmt:filters="ltrim,nohtml,nocommas,nomagic"'
 			render_input_field text "Interfaces" sys_iface_${iface}_br_ifaces
 			
 			tip="The priority value is  an  unsigned  16-bit  quantity  (a  number between  0 and 65535), and has no dimension. Lower priority values are better. The bridge with the lowest priority will be elected <b>root bridge</b>."
@@ -270,17 +332,43 @@
 		validator='tmt:required="true" tmt:message="Please select method"'
 		render_input_field select "Scheduler" sys_iface_${iface}_qos_sch 'tbf' '<b>T</b>oken <b>B</b>ucket <b>F</b>ilter' 'htb' '<b>H</b>ierarchical <b>T</b>oken <b>B</b>ucket' 'sfq' '<b>S</b>tochastic <b>F</b>airness <b>Q</b>ueueing' 'esfq' '<b>E</b>nhanced <b>S</b>tochastic <b>F</b>airness <b>Q</b>ueueing' 
 		;;
-		
+	'routes')
+		;;
 	esac
 	
-	render_submit_field
+	[ "$page" = 'status' -o "$page" = 'routes' ] || render_submit_field
 	render_form_tail
 
-
-	if [ $page = 'dhcp' ]; then
+	# second form
+	case $page in
+	'dhcp')
 		# static dhcp list
 		render_form_header dhcp_leases dhcp_save
 		render_table_title "DHCP Static leases" 2 
 		render_iframe_list "dhcp_static" "iface=$iface"
 		render_form_tail
-	fi
+		;;
+	'routes')
+		if [ $method != dynamic ]; then
+			render_form_header routes routes
+			render_list_line(){
+				local lineno=$1
+				eval "val=\"\${sys_iface_${iface}_route_${lineno}}\""
+				eval "$val"
+				echo "<tr><td>$lineno</td><td>$net</td><td>$netmask</td><td>$gw</td><td>"
+				render_list_btns staticroute_edit "sys_iface_${iface}_route_${lineno}" "page=$page"
+				echo "</td></tr>"
+			}
+			
+			render_list_header staticroute sys_iface_${iface}_route_ "" "No" "Network" "Mask" "Gateway"
+			eval `$kdb -qqc list sys_iface_${iface}_route`
+			i=0
+			while [ $i -lt $kdb_lines_count ]; do
+				render_list_line $i
+				i=$(($i+1))
+			done
+			render_form_tail
+		fi
+		;;
+
+	esac

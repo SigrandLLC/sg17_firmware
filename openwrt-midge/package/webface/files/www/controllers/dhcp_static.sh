@@ -18,7 +18,7 @@
 		eval "val=\"\${sys_iface_${iface}_dhcp_host_${lineno}}\""
 		eval "$val"
 		echo "<tr><td>$lineno</td><td>$name</td><td>$ipaddr</td><td>$hwaddr</td><td>"
-		render_list_btns dhcp_static "sys_iface_${iface}_dhcp_host_${lineno}"
+		render_list_btns dhcp_static_edit "sys_iface_${iface}_dhcp_host_${lineno}"
 		echo "</td></tr>"
 	}
 	

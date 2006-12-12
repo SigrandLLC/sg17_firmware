@@ -23,7 +23,8 @@ render_table_title(){
     local text="$1"
     local colspan;
     [ "$2" ] && colspan="colspan='$2'"
-	echo "<tr> <td $colspan class='listtopic'>$text</td> </tr>"
+	echo "<tr><td></td></tr>"
+	echo "<tr class='table_title'> <td $colspan class='table_title'>$text</td> </tr>"
 }
 
 displayEnv() 
@@ -53,6 +54,22 @@ displayString()
     echo "</pre></td></tr></table>"
 }
 
+render_console_start(){
+    #echo "<table class='console'>"
+    echo "<tr><td><pre class='console'>"
+}
+
+render_console_end(){
+	echo "</pre></td></tr>"
+	#echo "</table>"
+}
+
+render_console_command(){
+	local cmd="$*"
+	echo "<b>$cmd</b>"
+	$cmd
+}
+
 render_message_box() 
 {
     local title="$1"
@@ -62,7 +79,6 @@ render_message_box()
     echo "<tr><td>$text</td></tr></table>"
 }
 
-#<div id='message' >
 render_save_message(){
 	echo "<table id='message' width='100%' border='0' cellspacing='0' cellpadding='0'>"
 	[ -z "$ERROR_MESSAGE" ] && render_table_title "Information" || render_table_title "Error"
@@ -172,7 +188,7 @@ render_list_header(){
 
 		shift 3
 		local s1="<tr>"
-		local s2="<td class='listtopic'>"
+		local s2="<td class='table_title'>"
 		local s2_act="<td>"
 		local s3="</td>"
 		local s4="</tr>"
@@ -195,17 +211,17 @@ render_list_cycle_stuff(){
 }
 
 render_list_btns(){
-		local controller=$1
+		local edit=$1
 		local item=$2
 		local extparam="&$3"
 		local frameparam=""
 		[ -n "$frame" ] && frameparam="&frame=1"
 		
 		# edit
-		echo "&nbsp;<a href='javascript:openPopup(window, \"${controller}_edit${extparam}\", \"$item\");'><img src='img/e.gif' title='Edit item' width='17' height='17' border='0'></a>"
+		echo "&nbsp;<a href='javascript:openPopup(window, \"${edit}${extparam}\", \"$item\");'><img src='img/e.gif' title='Edit item' width='17' height='17' border='0'></a>"
 		
 		# del
-		echo "<a href='/?controller=${controller}&do=del&item=${item}${frameparam}${extparam}' target='_self' onclick='return confirmSubmit()'><img src='img/x.gif' title='Delete item' width='17' height='17' border='0'></a>"
+		echo "<a href='/?controller=${FORM_controller}&do=del&item=${item}${frameparam}${extparam}' target='_self' onclick='return confirmSubmit()'><img src='img/x.gif' title='Delete item' width='17' height='17' border='0'></a>"
 	
 }
 
@@ -276,7 +292,7 @@ render_page_selection(){
 	echo "<table class='page_select'><tr>"
 	while [ "$1" ]; do
 		class="pagesel"
-		[ "$page" = $1 ] && class="pagesel_a"
+		[ "$page" = "$1" ] && class="pagesel_a"
 		echo -n "<td class='$class'><a class='$class' href='/?controller=${controller}&page=$1&$extparam'>$2</a></td>"
 		shift 2
 	done

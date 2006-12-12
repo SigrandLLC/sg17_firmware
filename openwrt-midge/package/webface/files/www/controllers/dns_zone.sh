@@ -18,7 +18,7 @@
 		eval "$val"
 		[ "$datatype" != "MX" ] && prio=""
 		echo "<tr><td>$lineno</td><td>$domain</td><td>$datatype</td><td>$prio</td><td>$data</td><td>"
-		render_list_btns dns_zone "$item" "zoneid=$zoneid"
+		render_list_btns dns_zone_edit "$item" "zoneid=$zoneid"
 		echo "</td></tr>"
 	}
 	

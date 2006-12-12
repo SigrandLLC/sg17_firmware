@@ -101,10 +101,14 @@ textarea.notes {
 a {
 	text-decoration: none;
 }
-.navlnk {
+.navlnk, .navlnk_a {
 	color: #FFFFFF;
 	text-decoration: none;
 	font-size: 13px;
+}
+.navlnk_a {
+	color: #FFFFFF;
+	font-weight: bold;
 }
 .navlnks {
 	color: #FFFFFF;
@@ -423,4 +427,25 @@ td.pagesel, td.pagesel_a{
 
 td.pagesel_a{
 	background-color: white;
+}
+
+pre.console {
+	padding: 5px;
+	background-color: lightgrey;
+	font-family: Terminal, Courier New, Courier, monospaced;
+	font-size: 13px;
+	color: #435370;
+}
+
+.table_title {
+	border-right: 1px solid #999999;
+	font-size: 11px;
+	background-color: #435370;
+	padding-right: 16px;
+	padding-left: 6px;
+	color: #FFFFFF;
+	font-weight: bold;
+	margin-top: 5px;
+	padding-top: 5px;
+	padding-bottom: 5px;
 }
