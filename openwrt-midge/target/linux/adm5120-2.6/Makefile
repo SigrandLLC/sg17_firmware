@@ -7,9 +7,13 @@ CONFIG_PATH=$(BUILD_DIR)/linux-$(KERNEL)-$(BOARD)/config-tmp
 
 
 include ../rules.mk
+include ../kernel.mk
 include ./config
 include ../generic-$(KERNEL)/modules.mk
-include ../kernel.mk
+
+$(eval $(call KMOD_template,ADM5120_SW,adm5120-sw,\
+	$(MODULES_DIR)/kernel/drivers/net/adm5120sw.o \
+))
 
 $(LINUX_DIR)/.internal_kern:
 	rm -Rf $(LINUX_BUILD_DIR)

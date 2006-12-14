@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.16
-# Sun Dec 10 19:32:40 2006
+# Wed Dec 13 16:07:24 2006
 #
 CONFIG_MIPS=y
 
@@ -606,14 +606,14 @@ CONFIG_ATA_OVER_ETH=m
 #
 CONFIG_NETDEVICES=y
 # CONFIG_DUMMY is not set
-CONFIG_BONDING=y
+CONFIG_BONDING=m
 CONFIG_EQUALIZER=m
 CONFIG_IMQ=m
 # CONFIG_IMQ_BEHAVIOR_AA is not set
 # CONFIG_IMQ_BEHAVIOR_AB is not set
 CONFIG_IMQ_BEHAVIOR_BA=y
 # CONFIG_IMQ_BEHAVIOR_BB is not set
-CONFIG_IMQ_NUM_DEVS=2
+CONFIG_IMQ_NUM_DEVS=6
 CONFIG_TUN=y
 
 #
