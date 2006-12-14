@@ -13,14 +13,15 @@ $(PACKAGE_DIR):
 	
 $(DL_DIR)/$(LINUX_SOURCE):
 	-mkdir -p $(DL_DIR)
-	$(SCRIPT_DIR)/download.pl $(DL_DIR) $(LINUX_SOURCE) $(LINUX_KERNEL_MD5SUM) $(LINUX_SITE) $(MAKE_TRACE)
+#	$(SCRIPT_DIR)/download.pl $(DL_DIR) $(LINUX_SOURCE) $(LINUX_KERNEL_MD5SUM) $(LINUX_SITE) $(MAKE_TRACE)
 
 $(LINUX_DIR)/.unpacked: $(DL_DIR)/$(LINUX_SOURCE)
 	rm -Rf $(LINUX_BUILD_DIR)
 	-mkdir -p $(LINUX_BUILD_DIR)
-	bzcat $(DL_DIR)/$(LINUX_SOURCE) | tar -C $(LINUX_BUILD_DIR) $(TAR_OPTIONS) -
+#	bzcat $(DL_DIR)/$(LINUX_SOURCE) | tar -C $(LINUX_BUILD_DIR) $(TAR_OPTIONS) -
+	ln -s $(BR2_EXTERNAL_KERN_PATH) $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION)
 	rm -f $(BUILD_DIR)/linux
-	ln -s $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION) $(BUILD_DIR)/linux
+	ln -s $(BR2_EXTERNAL_KERN_PATH) $(BUILD_DIR)/linux
 	touch $@
 
 ifeq ($(KERNEL),2.4)
@@ -40,19 +41,28 @@ $(LINUX_DIR)/vmlinux: $(LINUX_DIR)/.depend_done
 else
 
 $(LINUX_DIR)/.configured: $(LINUX_DIR)/.patched
-ifeq ($(BR2_EXTERNAL_KERN_PATH),)
-ifeq ($(BOARD),adm5120)
-	$(MAKE) adm5120-kern-configured
-endif
+#ifeq ($(BR2_EXTERNAL_KERN_PATH),)
+#ifeq ($(BOARD),adm5120)
+#	$(MAKE) adm5120-kern-configured
+#endif
 	$(MAKE) -C $(LINUX_DIR) CROSS_COMPILE="$(KERNEL_CROSS)" ARCH=$(LINUX_KARCH) oldconfig prepare scripts $(MAKE_TRACE)
-endif	
+#endif	
 	touch $@
 
 endif
 
 $(LINUX_DIR)/vmlinux: $(STAMP_DIR)/.linux-compile
 	$(MAKE) -C $(LINUX_DIR) CROSS_COMPILE="$(KERNEL_CROSS)" ARCH=$(LINUX_KARCH) PATH=$(TARGET_PATH) $(MAKE_TRACE)
-
+	rm -rf $(LINUX_BUILD_DIR)/modules
+	$(MAKE) -C "$(LINUX_DIR)" CROSS_COMPILE="$(KERNEL_CROSS)" ARCH=$(LINUX_KARCH) PATH="$(TARGET_PATH)" modules $(MAKE_TRACE)
+	$(MAKE) -C "$(LINUX_DIR)" CROSS_COMPILE="$(KERNEL_CROSS)" DEPMOD=true INSTALL_MOD_PATH=$(LINUX_BUILD_DIR)/modules modules_install $(MAKE_TRACE)
+	@mkdir -p $(LINUX_BUILD_DIR)/root/lib/modules
+	@mkdir -p $(LINUX_BUILD_DIR)/root/lib/modules/$(LINUX_VERSION)
+#	@cp -R $(LINUX_BUILD_DIR)/modules/lib $(LINUX_BUILD_DIR)/root
+	@cp -R $(LINUX_BUILD_DIR)/modules/$(MODULES_SUBDIR)/kernel $(LINUX_BUILD_DIR)/root/$(MODULES_SUBDIR)
+	$(TOPDIR)/build_mipsel/busybox-1.1.2/examples/depmod.pl -k  $(LINUX_DIR)/vmlinux -b $(LINUX_BUILD_DIR)/root/$(MODULES_SUBDIR) > $(LINUX_BUILD_DIR)/root/$(MODULES_SUBDIR)/modules.dep
+	touch $(LINUX_DIR)/.modules_done
+		
 $(LINUX_KERNEL): $(LINUX_DIR)/vmlinux
 	$(TARGET_CROSS)objcopy -O binary -R .reginfo -R .note -R .comment -R .mdebug -S $< $@ $(MAKE_TRACE)
 	touch -c $(LINUX_KERNEL)
@@ -60,6 +70,7 @@ $(LINUX_KERNEL): $(LINUX_DIR)/vmlinux
 $(LINUX_DIR)/.modules_done:
 	rm -rf $(LINUX_BUILD_DIR)/modules
 	$(MAKE) -C "$(LINUX_DIR)" CROSS_COMPILE="$(KERNEL_CROSS)" ARCH=$(LINUX_KARCH) PATH="$(TARGET_PATH)" modules $(MAKE_TRACE)
+#	$(MAKE) -C "$(LINUX_DIR)" CROSS_COMPILE="$(KERNEL_CROSS)" DEPMOD=true INSTALL_MOD_PATH=$(LINUX_BUILD_DIR)/modules modules_install $(MAKE_TRACE)
 	$(MAKE) -C "$(LINUX_DIR)" CROSS_COMPILE="$(KERNEL_CROSS)" DEPMOD=true INSTALL_MOD_PATH=$(LINUX_BUILD_DIR)/modules modules_install $(MAKE_TRACE)
 	touch $(LINUX_DIR)/.modules_done
 
