@@ -10,29 +10,34 @@ service_reload(){
 		local logfile=/tmp/$service.svc.log
 		case "$service" in
 		network)
-			/etc/init.d/network restart $iface>$logfile 2>&1
+			if [ -n "$iface" ]; then
+				{ ifdown $iface; \
+					ifup $iface } 2>&1 | tee $logfile | $LOGGER
+			else
+				/etc/init.d/network restart 2>&1 | tee $logfile | $LOGGER
+			fi
 			#displayFile $logfile
 		;;
 
 		dhcp)
-			/etc/init.d/dhcpd restart >$logfile 2>&1
+			/etc/init.d/dhcpd restart 2>&1 | tee $logfile | $LOGGER
 			#displayFile $logfile
 		;;
 		dns)
-			/etc/init.d/S50webface-dnsmasq restart >$logfile 2>&1
+			#/etc/init.d/S50webface-dnsmasq restart 2>&1 | tee $logfile | $LOGGER
 			#displayFile $logfile
 		;;
 		dns_server)
-			/etc/init.d/bind restart >$logfile 2>&1
+			/etc/init.d/bind restart 2>&1 | tee $logfile | $LOGGER
 			#displayFile $logfile
 		;;
 		dsl*)
 			iface=${sybsys##*.}
-			/etc/init.d/dsl restart $iface >$logfile 2>&1
+			/etc/init.d/dsl restart $iface 2>&1 | tee $logfile | $LOGGER
 			#displayFile $logfile		
 		;;
 		fw)
-			/etc/init.d/fw restart >$logfile 2>&1
+			/etc/init.d/fw restart 2>&1 | tee $logfile | $LOGGER
 			#displayFile $logfile		
 		;;
 		esac

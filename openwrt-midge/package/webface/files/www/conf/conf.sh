@@ -12,3 +12,4 @@ kdb=/usr/bin/kdb
 IFRAME_WIDTH=600
 IFRAME_HEIGHT=200
 WEBFACE_VER=0.2
+LOGGER="logger -s -p daemon.info -t webface"
