@@ -52,6 +52,7 @@ $(PKG_BUILD_DIR)/.configured:
 			$(DISABLE_LARGEFILE) \
 			$(DISABLE_NLS) \
 			--without-gtk \
+			--disable-ipv6 \
 	);
 	touch $@
 
