@@ -58,6 +58,13 @@ config BR2_PACKAGE_KMOD_IMQ
         help
           Kernel support for the Intermediate Queueing device
 
+config BR2_PACKAGE_KMOD_BONDING
+        prompt "kmod-bonding.......................... Bonding"
+        tristate
+        default n
+        help
+          Kernel support for the Bonding devices
+
 config BR2_PACKAGE_KMOD_IPV6
 	prompt "kmod-ipv6......................... IPv6 support"
 	tristate
