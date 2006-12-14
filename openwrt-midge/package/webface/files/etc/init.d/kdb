@@ -2,4 +2,22 @@
 
 [ -f /etc/kdb ] || cp /etc/kdb.default /etc/kdb
 
+# Generate mac addresses
+mac1="`cat /dev/urandom | hexdump  | head -1 | cut -c9,10`"
+mac2="`cat /dev/urandom | hexdump  | head -1 | cut -c9,10`"
+mac3="`cat /dev/urandom | hexdump  | head -1 | cut -c9,10`"
+
+eval `kdb -q ls sys_iface`
+for iface in dsl0 dsl1 eth0 eth1 eth2 eth3 eth4 eth5; do
+	eval 'mac=$sys_iface_'${iface}'_mac'
+	if [ -z "$mac" ]; then
+		echo "Generating MAC for $iface"
+		mac1="`cat /dev/urandom | hexdump  | head -1 | cut -c9,10`"
+		mac2="`cat /dev/urandom | hexdump  | head -1 | cut -c9,10`"
+		mac3="`cat /dev/urandom | hexdump  | head -1 | cut -c9,10`"
+		mac4="`cat /dev/urandom | hexdump  | head -1 | cut -c9,10`"
+		kdb set sys_iface_${iface}_mac=A0:43:$mac1:$mac2:$mac3:$mac4
+	fi
+done
+
 /etc/templates/Update dns

@@ -53,10 +53,12 @@
 			case $proto in
 				bridge)
 					kdb_vars="bool:sys_iface_${iface}_br_stp str:sys_iface_${iface}_br_ifaces str:sys_iface_${iface}_br_prio str:sys_iface_${iface}_br_fd str:sys_iface_${iface}_br_hello str:sys_iface_${iface}_br_maxage";;
+				bonding)
+					kdb_vars="str:sys_iface_${iface}_bond_ifaces";;
 				pptp)
 					kdb_vars="str:sys_iface_${iface}_pptp_server str:sys_iface_${iface}_pptp_username str:sys_iface_${iface}_pptp_password str:sys_iface_${iface}_pptp_pppdopt";;
 				pppoe)
-					kdb_vars="str:sys_iface_${iface}_pppoe_username str:sys_iface_${iface}_pppoe_password" ;;
+					kdb_vars="str:sys_iface_${iface}_pppoe_iface str:sys_iface_${iface}_pppoe_service str:sys_iface_${iface}_pppoe_username str:sys_iface_${iface}_pppoe_password str:sys_iface_${iface}_pppoe_pppdopt" ;;
 				ipsec)
 					kdb_vars="str:sys_iface_${iface}_ipsec_mode str:sys_iface_${iface}_ipsec_local_addr str:sys_iface_${iface}_ipsec_remote_addr"
 					kdb_vars="$kdb_vars str:sys_iface_${iface}_ipsec_local_ah_spi str:sys_iface_${iface}_ipsec_local_ah_alg str:sys_iface_${iface}_ipsec_local_ah_key"
@@ -64,6 +66,8 @@
 					kdb_vars="$kdb_vars str:sys_iface_${iface}_ipsec_local_esp_spi str:sys_iface_${iface}_ipsec_local_esp_alg str:sys_iface_${iface}_ipsec_local_esp_key"
 					kdb_vars="$kdb_vars str:sys_iface_${iface}_ipsec_remote_esp_spi str:sys_iface_${iface}_ipsec_remote_esp_alg str:sys_iface_${iface}_ipsec_remote_esp_key"
 					;;
+				ether)
+					kdb_vars="str:sys_iface_${iface}_mac"
 			esac
 			
 	esac
@@ -81,23 +85,25 @@
 	case $page in 
 	'status')
 		realiface=$iface
+		ip=`which ip`
+		ip=${ip:-/sbin/ip}
 		[ -n "$real" -a -d /proc/sys/net/ipv4/conf/$real ] && realiface=$real
 		if [ -d "/proc/sys/net/ipv4/conf/$realiface" ]; then
 			render_table_title "Interface status" 2 
 			render_console_start
 			render_console_command /sbin/ifconfig $realiface
-			render_console_command /sbin/ip link show dev $realiface
-			render_console_command /sbin/ip addr show dev $realiface
+			render_console_command $ip link show dev $realiface
+			render_console_command $ip addr show dev $realiface
 			render_console_end
 
 			render_table_title "Routes" 2 
 			render_console_start
-			render_console_command /sbin/ip route show dev $realiface
+			render_console_command $ip route show dev $realiface
 			render_console_end
 
 			render_table_title "ARP" 2 
 			render_console_start
-			render_console_command /sbin/ip neigh show dev $realiface
+			render_console_command $ip neigh show dev $realiface
 			render_console_end
 			case "$proto" in 
 			bridge)
@@ -110,7 +116,7 @@
 			bonding)
 				render_table_title "Bonding status" 2 
 				render_console_start
-				render_console_command cat /proc/net/$realiface/info
+				render_console_command cat /proc/net/bonding/$realiface
 				render_console_end
 				;;
 			esac
@@ -249,6 +255,13 @@
 		;;
 	'spec')
 		case $proto in
+		'ether')
+			render_table_title "Ethernet Specific parameters" 2 
+
+			desc="MAC Address for interface"
+			validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct mac address" tmt:pattern="macaddr"'
+			render_input_field text "MAC Address" sys_iface_${iface}_mac
+			;;
 		'ipsec')
 			render_table_title "IPSec Specific parameters" 2 
 			tip=""
@@ -280,27 +293,54 @@
 			;;
 		'pppoe')
 			render_table_title "PPPoE Specific parameters" 2 
-			render_input_field text "Username" sys_iface_${iface}_pptp_username
-			render_input_field text "Password" sys_iface_${iface}_pptp_password
+			desc="Parent interface name <b>required</b>"
+			validator='tmt:required="true" tmt:message="Please input parent interface name" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
+			render_input_field text "Interface" sys_iface_${iface}_pppoe_iface
+			desc="Desired service name"
+			validator='tmt:message="Please input desired service name" tmt:filters="nohtml,nomagic"'
+			render_input_field text "Service" sys_iface_${iface}_pppoe_service
+			validator='tmt:required="true" tmt:filters="nomagic"'
+			render_input_field text "Username" sys_iface_${iface}_pppoe_username
+			validator='tmt:required="true" tmt:filters="nomagic"'
+			render_input_field text "Password" sys_iface_${iface}_pppoe_password
+			# TODO: about name, remotename options
+			default="noauth nobsdcomp nodeflate"
+			render_input_field text "PPPD Options" sys_iface_${iface}_pppoe_pppdopt
 			;;
 		'pptp')
 			render_table_title "PPtP Specific parameters" 2 
-			desc="PPtP Server"
-			validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
+			desc="PPtP Server <b>required</b>"
+			validator='tmt:required="true" tmt:message="Please input server ip address" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
 			render_input_field text "Server" sys_iface_${iface}_pptp_server
-			validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
+			validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
 			render_input_field text "Username" sys_iface_${iface}_pptp_username
+			validator='tmt:required="true" tmt:filters="nomagic"'
 			render_input_field text "Password" sys_iface_${iface}_pptp_password
-			# Note about name, remotename options
+			# TODO: Note about name, remotename options
 			default="noauth nobsdcomp nodeflate require-mppe-128"
 			render_input_field text "PPPD Options" sys_iface_${iface}_pptp_pppdopt
 			;;
 		'bonding')
 			render_table_title "Bonding Specific parameters" 2 
+
+			desc="MAC Address for interface"
+			validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct mac address" tmt:pattern="macaddr"'
+			render_input_field text "MAC Address" sys_iface_${iface}_mac
+
 			tip="<b>Example:</b>eth0 eth1 dsl0<br><b>Note:</b>You can use only Ethernet-like interfaces, like ethX, dslX, bondX<br><b>Note:</b> Interfaces should be enabled, but <b>auto</b> should be switched <b>off</b>"
 			desc="Interfaces for bonding separated by space"
 			validator='tmt:required="true" tmt:message="Please input interfaces" tmt:filters="ltrim,nohtml,nocommas,nomagic"'
 			render_input_field text "Interfaces" sys_iface_${iface}_bond_ifaces
+			
+			# cleans interface _auto param
+			if [ $REQUEST_METHOD = POST ]; then
+				eval 'ifaces=$sys_iface_'${iface}'_bond_ifaces'
+				debug "ifaces $ifaces"
+				for i in $ifaces; do
+					kdb set sys_iface_${i}_auto=0;
+					debug kdb set sys_iface_${i}_auto=0;
+				done
+			fi
 			;;
 		'bridge')
 			render_table_title "Bridge Specific parameters" 2 
@@ -324,6 +364,14 @@
 			render_input_field text "Hello time" sys_iface_${iface}_br_hello
 			validator='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="positiveinteger" tmt:minnumber=0 tmt:maxnumber=600  tmt:message="Please input number"'
 			render_input_field text "Max age" sys_iface_${iface}_br_maxage
+
+			# cleans interface _auto param
+			if [ $REQUEST_METHOD = POST ]; then
+				eval 'ifaces=$sys_iface_'${iface}'_br_ifaces'
+				for i in $ifaces; do
+					kdb set sys_iface_${i}_auto=0;
+				done
+			fi
 			;;
 		esac
 		;;

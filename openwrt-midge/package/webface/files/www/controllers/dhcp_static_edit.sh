@@ -23,7 +23,7 @@
 	validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
 	render_input_field text "IP Address" ipaddr
 
-	# ipaddr
+	# hwaddr
 	desc="MAC Address for host"
 	validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct mac address" tmt:pattern="macaddr"'
 	render_input_field text "MAC Address" hwaddr

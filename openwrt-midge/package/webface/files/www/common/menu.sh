@@ -38,6 +38,8 @@ L1 Services
 	L2 DHCP		dhcp
 	L2 "DNS Server" dns_server
 L1 Tools
+	L2 syslog	"tools&page=syslog"
+	L2 dmesg	"tools&page=dmesg"
 	L2 ping	"tools&page=ping"
 	L2 mtr	"tools&page=mtr"
 #	L2 dig	"tools&page=dig"
