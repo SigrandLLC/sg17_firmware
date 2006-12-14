@@ -45,6 +45,7 @@ _ifup(){
 			required /sbin/ifenslave
 			cmd ip link set $realiface up
 			for i in $bond_ifaces; do 
+				cmd ip addr flush dev $i
 				cmd ip link set $i up
 				cmd /sbin/ifenslave $realiface $i
 			done
