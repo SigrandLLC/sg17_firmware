@@ -1,0 +1,36 @@
+#!/bin/sh
+
+[ -z "$iface" ] && iface=$2
+NAME="udhcpd"
+DESC="udhcpd"
+DAEMON=/usr/sbin/udhcpd
+DAEMON_ARGS="/etc/udhcpd.${iface:?Please set 'iface' or use 2nd parameter }.conf"
+PIDFILE=/var/run/$NAME.$iface.pid
+
+
+export iface
+
+start(){
+	[ -r $PIDFILE ] && stop
+	echo "Starting $NAME on $iface."
+	/etc/tempates/Update dhcp
+	start-stop-daemon --quiet --start --pid=$PIDFILE --exec $DAEMON -- $DAEMON_ARGS
+}
+
+stop(){
+	echo "Stoping $NAME on $iface."
+	start-stop-daemon --quiet --stop --pid=$PIDFILE --name $NAME
+}
+
+case $1 in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	*)
+		stop
+		start
+		;;
+esac

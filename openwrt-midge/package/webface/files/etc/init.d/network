@@ -60,7 +60,7 @@ _ifup(){
 		[ 0 -le "$cur" ] && echo $(($cur+1)) || echo 0
 	}
 	update_ppp_password() {
-		info 2 "Updating /etc/ppp/chat-secrets"
+		info 2 "Updating /etc/ppp/chap-secrets"
 	}
 
 	ppp_opt="linkname $iface"
@@ -111,11 +111,12 @@ _ifup(){
 	esac
 
 	info 1 "  Interface post-configuration"
-	# TODO routes, qos
+	# TODO routes, qos, udhcpd
+	/etc/init.d/udhcpd start $realiface
 
 	eval `kdb -qq ls sys_ntpclient_`
 	if [ "$sys_ntpclient_enabled" = "1" -a -x /usr/sbin/ntpclient ] && /sbin/route -n | grep ^0.0.0.0 >/dev/null; then
-		info 2 "Synchronizing time"
+		info 2 "  Synchronizing time"
 		cmd /usr/sbin/ntpclient -c 1 -s -h ${sys_ntpclient_server:-pool.ntp.org}
 	fi
 
@@ -141,12 +142,20 @@ _ifdown(){
 	[ -z $type ] && echo "sys_iface_${iface}_type is not set" && exit 1
 	echo -n "Setting down $iface: "
 	info 1 "  Interface deconfiguration"
+	if [ -r "/var/run/udhcpd.$iface.pid" ]; then
+		info 2 "  Killing udhcpd"
+		kill `cat /var/run/udhcpd.$iface.pid`
+	fi
+	if [ -r "/var/run/udhcpc.$iface.pid" ]; then
+		info 2 "  Killing udhcpc"
+		kill `cat /var/run/udhcpc.$iface.pid`
+		sleep 2; rm /var/run/udhcpc.$iface.pid
+	fi
 	cmd /sbin/ifconfig $real down
 		case $type in
 		static)
 			;;
 		dhcp)
-			[ -r "/var/run/udhcpc.$iface.pid" ] && kill `cat /var/run/udhcpc.$iface.pid`
 			;;
 		pppoe)
 			;;
