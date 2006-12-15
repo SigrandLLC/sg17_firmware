@@ -54,7 +54,7 @@ $(eval $(call IPKG_plugin_template,IPTABLES_MOD_FILTER,$(IPT_FILTER-m),layer7-in
 $(eval $(call IPKG_plugin_template,IPTABLES_MOD_IMQ,$(IPT_IMQ-m)))
 $(eval $(call IPKG_plugin_template,IPTABLES_MOD_IPOPT,$(IPT_IPOPT-m)))
 $(eval $(call IPKG_plugin_template,IPTABLES_MOD_IPSEC,$(IPT_IPSEC-m)))
-$(eval $(call IPKG_plugin_template,IPTABLES_MOD_NAT,$(IPT_NAT-m)))
+$(eval $(call IPKG_plugin_template,IPTABLES_MOD_NAT,$(IPT_NAT-m) ipt_SNAT ipt_DNAT))
 $(eval $(call IPKG_plugin_template,IPTABLES_MOD_ULOG,$(IPT_ULOG-m)))
 
 $(PKG_BUILD_DIR)/.configured:
