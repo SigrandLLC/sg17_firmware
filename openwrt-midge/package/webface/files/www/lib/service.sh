@@ -11,8 +11,8 @@ service_reload(){
 		case "$service" in
 		network)
 			if [ -n "$iface" ]; then
-				{ ifdown $iface; \
-					ifup $iface } 2>&1 | tee $logfile | $LOGGER ;
+				ifdown $iface;
+				ifup $iface  2>&1 | tee $logfile | $LOGGER ;
 			else
 				/etc/init.d/network restart 2>&1 | tee $logfile | $LOGGER ;
 			fi
