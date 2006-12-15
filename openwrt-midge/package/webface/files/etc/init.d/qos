@@ -1,0 +1,67 @@
+#!/bin/sh
+
+[ -z "$iface" ] && iface=$2
+NAME="qos"
+DESC="QoS"
+TC="`which tc`"
+CLASS="$TC class"
+QDISC="$TC qdisc"
+FILTER="$TC filter"
+
+
+if [ -z "$iface" ]; then
+	echo "Please set \$iface or \$2"
+	exit 1
+fi
+
+eval `kdb -qq sls sys_iface_${iface}_`
+
+create_htb_ceil(){
+	local parent=$1
+	local rate=$2
+	local ceil=$3
+	local prio=${4:-100}
+
+	$CLASS add dev $iface parent 1:1  classid 1:$parent  htb           rate $rate  ceil $ceil prio $prio
+	$QDISC add dev $iface parent 1:$parent handle $parent:   sfq perturb 10 quantum 10514b
+	$FILTER add dev $iface parent 1:  protocol ip   prio 10       handle $parent fw flowid 1:$parent
+}
+
+
+stop(){
+	echo "Stoping $NAME on $iface."
+	$QDISC del dev $iface root 2>/dev/null
+}
+
+start(){
+	stop
+	[ -z "$qos" -o "$qos" = "none" ] && return 0
+	
+	echo "Starting $NAME on $iface."
+	case $qos in 
+	htb)
+		$QDISC add dev $iface root handle 1: htb
+		$CLASS add dev $iface parent 1:   classid 1:1  htb rate $rate ceil $ceil
+	;;
+	tbf)
+	;;
+	sqf)
+	;;
+	esfq)
+	;;
+	esac
+}
+
+
+case $1 in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	*)
+		stop
+		start
+		;;
+esac
