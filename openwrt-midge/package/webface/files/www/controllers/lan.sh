@@ -3,6 +3,8 @@
 	. lib/misc.sh
 	. lib/widgets.sh
 
+	# OBSOLETE
+	
 	kdb_vars="str:sys_iface_lan_ipaddr str:sys_iface_lan_netmask"
 	subsys="network"
 

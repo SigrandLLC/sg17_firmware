@@ -3,21 +3,11 @@
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:$PATH
 
-. /etc/functions
+. /bin/midge_functions
 
 CMD_VERBOSE=1
 
-_ifup(){
-	local iface=$1
-	eval `kdb -qq sls sys_iface_${iface}_`
-	[ -z $proto ] && echo "sys_iface_${iface}_proto is not set"
-	[ -z $method ] && echo "sys_iface_${iface}_method is not set"
-	[ "$enabled" = 0 ] && return 
-
-	realiface=$iface
-	[ -n "$real" ] && realiface=$real
-	
-	echo 1 > /proc/sys/net/ipv4/ip_forward
+pre_ifup(){
 	info 1 "Setting up $iface: "
 	info 1 "  Interface pre-configuration:"
 	case $proto in
@@ -29,11 +19,11 @@ _ifup(){
 			required brctl
 			cmd brctl addbr $realiface
 			for i in $br_ifaces; do
-				cmd ip addr flush dev $i
-				cmd ip link set $i up
+				cmd /usr/sbin/ip addr flush dev $i
+				cmd /usr/sbin/ip link set $i up
 				cmd brctl addif $realiface $i
 			done
-			[ "$br_stp" = 1 ] && cmd brctl stp $realiface on || cmd brctl $realiface stp off
+			[ "$br_stp" = 1 ] && cmd brctl stp $realiface on || cmd brctl stp $realiface off
 			[ -n "$br_prio" ] && cmd brctl setbridgeprio $realiface $br_prio 
 			[ -n "$br_hello" ] && cmd brctl sethello $realiface $br_hello 
 			[ -n "$br_maxage" ] && cmd brctl setmaxage $realiface $br_maxage 
@@ -41,12 +31,13 @@ _ifup(){
 
 			;;
 		bonding) 
+			cmd /sbin/modprobe bonding mode=0 miimon=200
 			[ -n "$mac" ] && cmd /sbin/ifconfig $realiface hw ether $mac
 			required /sbin/ifenslave
-			cmd ip link set $realiface up
+			cmd /usr/sbin/ip link set $realiface up
 			for i in $bond_ifaces; do 
-				cmd ip addr flush dev $i
-				cmd ip link set $i up
+				cmd /usr/sbin/ip addr flush dev $i
+				cmd /usr/sbin/ip link set $i up
 				cmd /sbin/ifenslave $realiface $i
 			done
 			;;
@@ -54,65 +45,16 @@ _ifup(){
 			# TODO
 			;;
 	esac
+}
 
-	get_next_ppp(){
-		cur=`/sbin/ip -o link | sed "s/^\([0-9]*\): \([a-z]*\)\([0-9]*\):.*$/\2-\3/" | grep ppp | cut -d- -f2`
-		[ 0 -le "$cur" ] && echo $(($cur+1)) || echo 0
-	}
-	update_ppp_password() {
-		info 2 "Updating /etc/ppp/chap-secrets"
-	}
-
-	ppp_opt="linkname $iface"
-	info 1 "  Interface configuration"
-	case $proto in
-		bridge|ether|bonding)
-			case $method in
-			static)
-				opts="$realiface $ipaddr netmask $netmask"
-				[ -n "$broadcast" ] && opts="$opts broadcast $broadcast"
-				cmd /sbin/ifconfig $opts
-				if [ -n "$gateway" ]; then
-					cmd /sbin/route del default 2>/dev/null
-					cmd /sbin/route add default gw $gateway 
-				fi
-				;;
-			dynamic)
-				eval `kdb -qq ls sys_hostname`
-				opts=" -i $realiface --hostname=$sys_hostname --background -p /var/run/udhcpc.$iface.pid"
-				/sbin/udhcpc $opts 
-				;;
-			esac
-			;;
-		pptp)
-			next="ppp`get_next_ppp`"
-			[ -r /var/run/ppp-$iface.pid ] && kill `cat /var/run/ppp-$iface.pid`
-			[ -r /var/run/$next.pid ] && kill `cat /var/run/$next.pid`
-			[ -d /proc/sys/net/ipv4/conf/$next ] && warn "Something wrong, /proc/sys/net/ipv4/conf/$next already present"
-			required pptp
-			update_ppp_password $pptp_username $pptp_password
-			pptp $pptp_server $pptp_pppdopt $ppp_opt || next=""
-			kdb set sys_iface_${iface}_real=$next
-			;;
-		pppoe)
-			next="ppp`get_next_ppp`"
-			[ -r /var/run/ppp-$iface.pid ] && kill `cat /var/run/ppp-$iface.pid`
-			[ -r /var/run/$next.pid ] && kill `cat /var/run/$next.pid`
-			[ -d /proc/sys/net/ipv4/conf/$next ] && warn "Something wrong, /proc/sys/net/ipv4/conf/$next already present"
-			required pppoe
-			update_ppp_password $pppoe_username $pppoe_password
-			pppoe -I $pppoe_iface || next="" # TODO read man -p /var/run/pppoe-$iface.pid || next=""
-			kdb set sys_iface_${iface}_real=$next
-			;;
-
-		ipsec)
-			# TODO
-			;;
-	esac
-
+post_ifup(){
 	info 1 "  Interface post-configuration"
 	# TODO routes, qos, udhcpd
-	/etc/init.d/udhcpd start $realiface
+	if [ "$dhcp_enabled" = 1 ]; then
+		/etc/init.d/udhcpd start $realiface
+	fi
+
+	/etc/init.d/qos start $realiface
 
 	eval `kdb -qq ls sys_ntpclient_`
 	if [ "$sys_ntpclient_enabled" = "1" -a -x /usr/sbin/ntpclient ] && /sbin/route -n | grep ^0.0.0.0 >/dev/null; then
@@ -133,37 +75,102 @@ _ifup(){
 	[ -n "$opt_rp_filter" ] && \
 		echo "$opt_rp_filter" >/proc/sys/net/ipv4/conf/$iface/rp_filter
 
+}
+
+_ifup(){
+	iface=$1
+	eval `kdb -qq sls sys_iface_${iface}_`
+	realiface=$iface
+	[ -n "$real" ] && realiface=$real
+
+	[ -z $proto ] && echo "sys_iface_${iface}_proto is not set" && exit 1
+	[ -z $method ] && echo "sys_iface_${iface}_method is not set" && exit 1
+	[ "$enabled" = 0 ] && return 
+
+	echo 1 > /proc/sys/net/ipv4/ip_forward
+
+	pre_ifup 
+
+	get_next_ppp(){
+		cur=`/sbin/ip -o link | sed "s/^\([0-9]*\): \([a-z]*\)\([0-9]*\):.*$/\2-\3/" | grep ppp | cut -d- -f2`
+		[ 0 -le "$cur" ] && echo $(($cur+1)) || echo 0
+	}
+	update_ppp_password() {
+		info 2 "Updating /etc/ppp/chap-secrets"
+	}
+
+	ppp_opt="linkname $iface"
+	info 1 "  Interface configuration"
+	case $proto in
+		bridge|ether|bonding)
+			case $method in
+			static)
+				opts="$realiface"
+				[ -n "$ipaddr" ] && opts="$opts $ipaddr" || opts="$opts 0.0.0.0"
+				[ -n "$netmask" ] && opts="$opts netmask $netmask"
+				[ -n "$broadcast" ] && opts="$opts broadcast $broadcast"
+				cmd /sbin/ifconfig $opts
+				if [ -n "$gateway" ]; then
+					cmd /sbin/route del default 2>/dev/null
+					cmd /sbin/route add default gw $gateway 
+				fi
+				;;
+			dynamic)
+				eval `kdb -qq ls sys_hostname`
+				opts=" -i $realiface --hostname=$sys_hostname --background -p /var/run/udhcpc.$iface.pid"
+				cmd /sbin/udhcpc $opts 
+				;;
+			zeroconf)
+				required zcip
+				opts="-q $realiface /usr/share/zcip/zcip.script"
+				cmd /usr/sbin/ip link set $realiface up
+				cmd /sbin/zcip $opts 
+				;;
+			none)
+				cmd /usr/sbin/ip link set $realiface up
+				;;
+			esac
+			;;
+		pptp)
+			next="ppp`get_next_ppp`"
+			[ -r /var/run/ppp-$iface.pid ] && kill `cat /var/run/ppp-$iface.pid`
+			[ -r /var/run/$next.pid ] && kill `cat /var/run/$next.pid`
+			[ -d /proc/sys/net/ipv4/conf/$next ] && warn "Something wrong, /proc/sys/net/ipv4/conf/$next already present"
+			required pptp
+			update_ppp_password $pptp_username $pptp_password
+			cmd pptp $pptp_server $pptp_pppdopt $ppp_opt || next=""
+			kdb set sys_iface_${iface}_real=$next
+			;;
+		pppoe)
+			next="ppp`get_next_ppp`"
+			[ -r /var/run/ppp-$iface.pid ] && kill `cat /var/run/ppp-$iface.pid`
+			[ -r /var/run/$next.pid ] && kill `cat /var/run/$next.pid`
+			[ -d /proc/sys/net/ipv4/conf/$next ] && warn "Something wrong, /proc/sys/net/ipv4/conf/$next already present"
+			required pppoe
+			update_ppp_password $pppoe_username $pppoe_password
+			cmd pppoe -I $pppoe_iface || next="" # TODO read man -p /var/run/pppoe-$iface.pid || next=""
+			kdb set sys_iface_${iface}_real=$next
+			;;
+
+		ipsec)
+			# TODO
+			;;
+	esac
+
+
+	post_ifup
 	echo "done."
 }
 
-_ifdown(){
-	local iface=$1
-	eval `kdb -qq sls sys_iface_${iface}_`
-	[ -z $type ] && echo "sys_iface_${iface}_type is not set" && exit 1
-	echo -n "Setting down $iface: "
-	info 1 "  Interface deconfiguration"
+pre_ifdown() {
 	if [ -r "/var/run/udhcpd.$iface.pid" ]; then
 		info 2 "  Killing udhcpd"
 		kill `cat /var/run/udhcpd.$iface.pid`
 	fi
-	if [ -r "/var/run/udhcpc.$iface.pid" ]; then
-		info 2 "  Killing udhcpc"
-		kill `cat /var/run/udhcpc.$iface.pid`
-		sleep 2; rm /var/run/udhcpc.$iface.pid
-	fi
-	cmd /sbin/ifconfig $real down
-		case $type in
-		static)
-			;;
-		dhcp)
-			;;
-		pppoe)
-			;;
-		pptp)
-			;;
-		ipsec)
-			;;
-		esac
+	/etc/init.d/udhcpd stop $iface
+}
+
+post_ifdown() {
 	info 1 "  Interface post-deconfiguration"
 	case $proto in
 		bridge)
@@ -180,23 +187,54 @@ _ifdown(){
 			# TODO
 			;;
 	esac
+}
 
+_ifdown(){
+	iface=$1
+	eval `kdb -qq sls sys_iface_${iface}_`
+	realiface=$iface
+	[ -n "$real" ] && realiface=$real
+
+	[ -z $proto ] && echo "sys_iface_${iface}_proto is not set" && exit 1
+	[ -z $method ] && echo "sys_iface_${iface}_method is not set" && exit 1
+	info 1 "Setting down $iface: "
+	info 1 "  Interface deconfiguration"
+
+	cmd /sbin/ifconfig $realiface down
+		case $type in
+		static)
+			;;
+		dhcp)
+			;;
+		pppoe)
+			;;
+		pptp)
+			;;
+		ipsec)
+			;;
+		esac
+	post_ifdown
 	info 1 "done."
 }
+
+_network(){
+	for iface in $sys_ifaces; do
+		eval `kdb -lqq sls sys_iface_${iface}_`
+		[ "$1" = "start" -a "$auto" = "1" ] && _ifup $iface
+		[ "$1" = "stop" ] && _ifdown $iface
+		if [ "$1" = "restart" ]; then
+			/sbin/ifdown $iface
+			/sbin/ifup $iface 
+		fi
+	done
+}
+
+eval `kdb -qq ls sys_iface`
 
 case "$0" in
 	*network)
 		# starts all ifaces
-		eval `kdb -q ls sys_iface`
-		for iface in $sys_ifaces; do
-			eval `kdb -qq sls sys_iface_${iface}_`
-			[ "$1" = "start" -a "$auto" = "1" ] && _ifup $iface
-			[ "$1" = "stop" ] && _ifdown $iface
-			if [ "$1" = "restart" ]; then
-				_ifdown $iface
-				_ifup $iface 
-			fi
-		done
+		_network $@
 		;;
 	*ifup)
 		[ "x$1" = "x-a" ] && /etc/init.d/network start || _ifup $1

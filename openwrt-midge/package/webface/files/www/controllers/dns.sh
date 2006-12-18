@@ -13,14 +13,14 @@
 	render_table_title "DNS Settings" 2 
 
 	# sys_dns_nameserver
-	tip="Dns server for your router BLA BLA BLA"
+	#tip="Dns server for your router"
 	desc="Please enter ip address of upstream dns server"
 	validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"  tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
 	render_input_field text "Upstream server" sys_dns_nameserver
 
 	# sys_dns_domain
-	tip="Domain for your net BLA BLA BLA"
-	desc="Please domain"
+	#tip="Domain for your net BLA BLA BLA"
+	desc="Please enter your domain"
 	validator=''
 	render_input_field text "Domain" sys_dns_domain
 

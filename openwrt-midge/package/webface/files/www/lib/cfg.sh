@@ -46,7 +46,10 @@ save(){
 		[ "$ERROR_MESSAGE" ] && break
 
 		cfg_flash
-		service_reload $subsys
+		for service in $subsys; do
+			logfile=/tmp/$service.svc.log
+			service_reload $service 2>&1 | tee $logfile | $LOGGER ;
+		done
 		break;
 	done;
 }

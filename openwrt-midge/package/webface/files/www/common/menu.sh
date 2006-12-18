@@ -32,10 +32,8 @@ L1 Network
 	L2 Firewall	fw
 		L3 Filter	"fw&table=filter"
 		L3 NAT		"fw&table=nat"
-	L2 "Static routes"	staticroute
 
 L1 Services
-	L2 DHCP		dhcp
 	L2 "DNS Server" dns_server
 L1 Tools
 	L2 syslog	"tools&page=syslog"
@@ -43,6 +41,7 @@ L1 Tools
 	L2 ping	"tools&page=ping"
 	L2 mtr	"tools&page=mtr"
 #	L2 dig	"tools&page=dig"
+	L2 password	"passwd"
 
 #	<a href="javascript:showhide('diag','tri_diag')">
 #					<img src="img/tri_c.gif" id="tri_diag" width="14" height="10" border="0"></a><strong><a href="javascript:showhide('diag','tri_diag')" class="navlnk">Diagnostics</a></strong><br>

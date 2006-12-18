@@ -47,8 +47,21 @@
 			subsys="dhcp"
 		;;
 		'qos')		
-			kdb_vars="str:sys_iface_${iface}_qos_sch ";;
-
+			if [ "$FORM_form" != form2 ]; then
+				kdb_vars="str:sys_iface_${iface}_qos_sch "
+			else
+				case "$qos_sch" in
+					bfifo|pfifo)
+						kdb_vars="int:sys_iface_${iface}_qos_fifo_limit";;
+					sqf)
+						kdb_vars="";;
+					esqf)
+						kdb_vars="int:sys_iface_${iface}_qos_esfq_limit int:sys_iface_${iface}_qos_esfq_depth int:sys_iface_${iface}_qos_esfq_hash";;
+					tbf)
+						kdb_vars="str:sys_iface_${iface}_qos_tbf_rate int:sys_iface_${iface}_qos_tbf_limit str:sys_iface_${iface}_qos_tbf_latency int:sys_iface_${iface}_qos_tbf_buffer";;
+				esac
+			fi
+			;;
 		'spec')
 			case $proto in
 				bridge)
@@ -84,25 +97,23 @@
 	# first form
 	case $page in 
 	'status')
-		realiface=$iface
 		ip=`which ip`
 		ip=${ip:-/sbin/ip}
+		realiface=$iface
 		[ -n "$real" -a -d /proc/sys/net/ipv4/conf/$real ] && realiface=$real
 		if [ -d "/proc/sys/net/ipv4/conf/$realiface" ]; then
-			render_table_title "Interface status" 2 
-			render_console_start
+
+			render_console_start "Interface status" 2 
 			render_console_command /sbin/ifconfig $realiface
 			render_console_command $ip link show dev $realiface
 			render_console_command $ip addr show dev $realiface
 			render_console_end
 
-			render_table_title "Routes" 2 
-			render_console_start
+			render_console_start "Routes" 2 
 			render_console_command $ip route show dev $realiface
 			render_console_end
 
-			render_table_title "ARP" 2 
-			render_console_start
+			render_console_start "ARP" 2 
 			render_console_command $ip neigh show dev $realiface
 			render_console_end
 			case "$proto" in 
@@ -114,20 +125,25 @@
 				render_console_end
 				;;
 			bonding)
-				render_table_title "Bonding status" 2 
-				render_console_start
+				render_console_start "Bonding status" 2 
 				render_console_command cat /proc/net/bonding/$realiface
 				render_console_end
 				;;
 			esac
 			
 			if [ "$dhcp_enabled" = 1 -a -x /usr/bin/dumpleases -a -r /var/lib/misc/udhcpd.${realiface}.leases ]; then
-				render_table_title "DHCP Leases" 2 
-				render_console_start
+				render_console_start "DHCP Leases" 2 
 				render_console_command /usr/bin/dumpleases -f /var/lib/misc/udhcpd.${realiface}.leases
 				render_console_end
 			fi
 			
+			if [ -n "$qos_sch" ]; then
+				render_console_start "Traffic Control" 2 
+				render_console_command /usr/sbin/tc qdisc ls dev $realiface
+				#render_console_command /usr/sbin/tc class ls dev $realiface
+				#render_console_command /usr/sbin/tc filter ls dev $realiface
+				render_console_end
+			fi
 		else
 			render_table_title "Interface status" 2 
 			render_console_start
@@ -151,7 +167,7 @@
 		tip="Select address method:<br><b>Static:</b> IP address is static<br><b>Dynamic:</b> DHCP/PPPoE/PPTP/etc"
 		desc="Please select method of the interface"
 		validator='tmt:required="true" tmt:message="Please select method"'
-		render_input_field select "Method" sys_iface_${iface}_method 'static' 'Static address' 'dynamic' 'Dynamic address'
+		render_input_field select "Method" sys_iface_${iface}_method none 'None' static 'Static address' zeroconf 'Zero Configuration' dynamic 'Dynamic address'
 		;;
 	'method')
 		if [ "$method" = "static" ]; then
@@ -181,11 +197,11 @@
 			render_input_field text "Gateway" sys_iface_${iface}_gateway
 		fi
 
-		if [ "$method" = "dynamic" ]; then
-			desc="Hostname to be requested"
-			validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
-			render_input_field text "DHCP Client hostname" sys_iface_${iface}_dynhostname 
-		fi
+		#if [ "$method" = "dynamic" ]; then
+		#	desc="Hostname to be requested"
+		#	validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
+		#	render_input_field text "DHCP Client hostname" sys_iface_${iface}_dynhostname 
+		#fi
 		;;
 	'options')
 		default=1
@@ -348,7 +364,7 @@
 			desc="Enable Spanning Tree Protocol"
 			render_input_field checkbox "STP Enabled" sys_iface_${iface}_br_stp
 			
-			tip="<b>Example:</b> eth0 eth1 dsl0<br><b>Note:</b> You can use only Ethernet-like interfaces, like ethX, dslX, bondX<br><b>Note:</b> Interfaces should be enabled, but <b>auto</b> should be switched <b>off</b>"
+			tip="<b>Example:</b> eth0 eth1 dsl0<br><b>Note:</b> You can use only Ethernet-like interfaces, like ethX, dslX<br><b>Note:</b> Interfaces should be enabled, but <b>auto</b> should be switched <b>off</b>"
 			desc="Interfaces for bridge separated by space"
 			validator='tmt:required="true" tmt:message="Please input interfaces" tmt:filters="ltrim,nohtml,nocommas,nomagic"'
 			render_input_field text "Interfaces" sys_iface_${iface}_br_ifaces
@@ -379,8 +395,9 @@
 		# sys_iface_${iface}_qos_sch
 		desc="Please select scheduler for the interface"
 		validator='tmt:required="true" tmt:message="Please select method"'
-		render_input_field select "Scheduler" sys_iface_${iface}_qos_sch 'tbf' '<b>T</b>oken <b>B</b>ucket <b>F</b>ilter' 'htb' '<b>H</b>ierarchical <b>T</b>oken <b>B</b>ucket' 'sfq' '<b>S</b>tochastic <b>F</b>airness <b>Q</b>ueueing' 'esfq' '<b>E</b>nhanced <b>S</b>tochastic <b>F</b>airness <b>Q</b>ueueing' 
+		render_input_field select "Scheduler" sys_iface_${iface}_qos_sch pfifo_fast "Default discipline pfifo_fast" bfifo 'FIFO with bytes buffer' pfifo 'FIFO with packets buffer ' 'tbf' 'Token Bucket Filter' 'sfq' 'Stochastic Fairness Queueing' #'esfq' 'Enhanced <b>Stochastic Fairness Queueing'  #'htb' 'Hierarchical Token Bucket' 
 		;;
+		
 	'routes')
 		;;
 	esac
@@ -397,6 +414,66 @@
 		render_iframe_list "dhcp_static" "iface=$iface"
 		render_form_tail
 		;;
+	'qos')
+		# static dhcp list
+		if [ "$qos_sch" != sfq -a "$qos_sch" != pfifo_fast ]; then
+			render_form_header qos qos
+			render_input_field hidden iface iface "$iface"
+			render_input_field hidden page page "$page"
+			render_input_field hidden form form "form2"
+			render_table_title "QoS Settings" 2 
+		fi
+		case $qos_sch in
+			bfifo|pfifo)
+				[ $qos_sch = pfifo ] && default=128 || default=10240
+				desc="Buffer size"
+				validator='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="positiveinteger" tmt:minnumber=1 tmt:maxnumber=65535 tmt:message="Please input number" '
+				render_input_field text "Buffer" sys_iface_${iface}_qos_fifo_limit
+			;;
+			sfq)
+				# nothing to setup
+			;;
+			esfq)
+				default=128
+				desc="Maximum packets in buffer"
+				validator='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="positiveinteger" tmt:minnumber=10 tmt:maxnumber=65535 tmt:message="Please input number" '
+				render_input_field text "Limit" sys_iface_${iface}_qos_esfq_limit
+
+				default=128
+				desc="Depth"
+				validator='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="positiveinteger" tmt:minnumber=10 tmt:maxnumber=65535 tmt:message="Please input number" '
+				render_input_field text "Depth" sys_iface_${iface}_qos_esfq_depth
+				render_input_field select "Hash" sys_iface_${iface}_qos_esfq_hash classic 'Classic' src 'Source address' dst 'Destination address'
+				;;
+			tbf)
+				tip="Unit can be: <br/><b>kbit</b>, <b>Mbit</b> - for bit per second<br/> and <b>kbps</b>, <b>Mbps</b> - for bytes per second"
+				default='512kbit'
+				desc="Maximum rate for interface"
+				validator='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="qosbandw"'
+				render_input_field text "Rate" sys_iface_${iface}_qos_tbf_rate
+
+				default="4096"
+				desc="Maximum size of tokens buffer in bytes"
+				validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="positiveinteger" tmt:minnumber=10 tmt:maxnumber=65535 tmt:message="Please input number" '
+				render_input_field text "Tocken buffer" sys_iface_${iface}_qos_tbf_buffer
+
+				default=""
+				desc="Maximum size of buffer in bytes <br/><b>Note:</b> You should use <i>limit</i> <b>OR</b> <i>latency</i>"
+				validator='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="positiveinteger" tmt:minnumber=10 tmt:maxnumber=65535 tmt:message="Please input number" '
+				render_input_field text "Limit" sys_iface_${iface}_qos_tbf_limit
+
+				default='20ms'
+				desc="Buffer size for packet latency<br/><b>Note:</b> You should use <i>limit</i> <b>OR</b> <i>latency</i>"
+				validator='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="qoslatency"'
+				render_input_field text "Latency" sys_iface_${iface}_qos_tbf_latency
+			;;
+		esac
+		if [ "$qos_sch" != sfq -a "$qos_sch" != pfifo_fast ]; then
+			render_submit_field
+			render_form_tail
+		fi
+		;;
+
 	'routes')
 		if [ $method != dynamic ]; then
 			render_form_header routes routes

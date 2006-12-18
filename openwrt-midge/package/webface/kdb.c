@@ -21,6 +21,8 @@ char db_header[MAX_LINE_SIZE];
 int db_lines_count;
 int db_size;
 int quotation;
+int make_local;
+char local_str[]="local ";
 int export;
 int print_count;
 int need_write;
@@ -29,7 +31,7 @@ int db_already_readed;
 void show_usage(char *name)
 {
     printf("Usage: %s [OPTIONS] ARG [: ARG] \n", name);
-	printf("where  OPTIONS:= q|qq|e|c\n");
+	printf("where  OPTIONS:= l|q|qq|e|c\n");
     printf("       ARG := { set key=value |\n");
     printf("        rm key | del key |\n");
     printf("        isset key |\n");
@@ -72,6 +74,7 @@ int init()
     db_size=0;
     quotation=0;
 	export=0;
+	make_local=0;
 	print_count=0;
     need_write=false;
     int i;
@@ -140,23 +143,28 @@ int db_sort(){
 
 inline int print_pair(const char* name, const char* value)
 {
-	if (DEBUG) fprintf(stderr, "DEBUG: print_pair(): %s=%s\n", name, value);
+	char *prefix="";
+	if (make_local)
+		prefix="local ";
+	else if (export)
+		prefix="export ";
+	if (DEBUG) fprintf(stderr, "DEBUG: print_pair(): %s%s=%s\n", prefix, name, value);
 	switch(quotation) {
 		case 0: 
 			if (name)
-				printf(export?"export %s=%s\n":"%s=%s\n", name, value);
+				printf("%s%s=%s\n", prefix, name, value);
 			else
 				printf("%s\n", value);
 			break;
 		case 1:
 			if (name)
-				printf(export?"export \"%s\"=\"%s\"\n":"%s=\"%s\"\n", name, value);
+				printf("%s%s=\"%s\"\n", prefix, name, value);
 			else
 				printf("\"%s\"\n", value);
 			break;
 		default:
 			if (name)
-				printf(export?"export '%s'='%s'\n":"%s='%s'\n", name, value);
+				printf("%s%s='%s'\n", prefix, name, value);
 			else
 				printf("'%s'\n", value);
 			break;
@@ -649,11 +657,13 @@ int main(int argc, char **argv)
 
     init();
 
-    while ((ch = getopt(argc, argv, "qecf:")) != -1){
+    while ((ch = getopt(argc, argv, "qlecf:")) != -1){
         switch(ch) {
             case 'f': set_dbfilename(optarg);
                      break;
             case 'q': quotation++;
+                     break;
+            case 'l': make_local++;
                      break;
             case 'e': export++;
                      break;

@@ -55,7 +55,11 @@ displayString()
 }
 
 render_console_start(){
-    #echo "<table class='console'>"
+    local text="$1"
+    local colspan;
+    [ "$2" ] && colspan="colspan='$2'"
+	echo "<tr><td></td></tr>"
+	[ -n "$text" ] && echo "<tr class='table_title'> <td $colspan class='table_title'>$text</td> </tr>"
     echo "<tr><td><pre class='console'>"
 }
 
@@ -153,6 +157,9 @@ render_input_field(){
 		value="$1"
 		#echo "value="$value > /www/settings/tmpf
         echo "<input type='hidden' name='$inputname' value='$value'>"
+        ;;
+    password)
+        echo "	<input type='password' class='edit' $tipcode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
         ;;
 	esac
         

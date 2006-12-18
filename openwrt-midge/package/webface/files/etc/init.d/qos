@@ -1,9 +1,11 @@
 #!/bin/sh
 
+. /bin/midge_functions
+
 [ -z "$iface" ] && iface=$2
 NAME="qos"
 DESC="QoS"
-TC="`which tc`"
+TC="cmd `which tc`"
 CLASS="$TC class"
 QDISC="$TC qdisc"
 FILTER="$TC filter"
@@ -34,20 +36,36 @@ stop(){
 }
 
 start(){
-	stop
-	[ -z "$qos" -o "$qos" = "none" ] && return 0
+	$QDISC del dev $iface root 2>/dev/null
+	[ -z "$qos_sch" -o "$qos_sch" = "pfifo_fast" ] && return 0
 	
 	echo "Starting $NAME on $iface."
-	case $qos in 
+	case $qos_sch in 
+	pfifo|bfifo)
+		$QDISC add dev $iface handle 1: root dsmark indices 1
+		$QDISC add dev $iface handle 2:0  parent 1:0 $qos_sch limit $qos_fifo_limit
+	;;
 	htb)
 		$QDISC add dev $iface root handle 1: htb
 		$CLASS add dev $iface parent 1:   classid 1:1  htb rate $rate ceil $ceil
 	;;
 	tbf)
+		l="latency 20ms"
+		[ -n "$qos_tbf_limit" ] && l="limit $qos_tbf_limit"
+		[ -n "$qos_tbf_latency" ] && l="latency $qos_tbf_latency"
+		rate="rate ${qos_tbf_rate:-512Kbit}"
+		buffer="buffer ${qos_tbf_buffer:-4096}"
+		$QDISC add dev $iface root tbf $rate $l $buffer
 	;;
 	sqf)
+		$QDISC add dev $iface root sfq perturb 10
 	;;
 	esfq)
+		limit=${qos_esfq_limit:-128}
+		depth=${qos_esfq_depth:-128}
+		hash=${qos_esfq_hash:-dst}
+		divisor=${qos_esfq_divisor:-11}
+		$QDISC add dev $iface root esfq limit $limit depth $depth hash $hash divisor $divisor perturb 10
 	;;
 	esac
 }

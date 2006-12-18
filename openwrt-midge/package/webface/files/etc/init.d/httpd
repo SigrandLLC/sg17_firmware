@@ -18,7 +18,7 @@ start(){
 		echo "Generationg SSL certificate."
 		/usr/bin/openssl req -new -x509  -keyout /etc/ssl/server.pem -out /etc/ssl/server.pem  -days 1095 -nodes -batch
 	fi
-	start-stop-daemon --quiet --start --pid=$PIDFILE --exec $DAEMON -- -f $DAEMON_ARGS
+	start-stop-daemon --quiet --start --pid=$PIDFILE --exec $DAEMON -- $DAEMON_ARGS
 }
 
 stop(){

@@ -13,7 +13,7 @@ export iface
 start(){
 	[ -r $PIDFILE ] && stop
 	echo "Starting $NAME on $iface."
-	/etc/tempates/Update dhcp
+	/etc/templates/Update dhcp
 	start-stop-daemon --quiet --start --pid=$PIDFILE --exec $DAEMON -- $DAEMON_ARGS
 }
 

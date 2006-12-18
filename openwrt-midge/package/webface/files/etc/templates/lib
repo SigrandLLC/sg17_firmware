@@ -76,9 +76,10 @@ update_configs(){
 	local subsys="$1"
 	
 	case "$subsys" in
-	network)
+	hostname)
 		cfg_make hostname /etc/hostname && \
 		cfg_commit
+		hostname -F /etc/hostname
 	;;
 	time)
 		cfg_make TZ /etc/TZ && \

@@ -35,7 +35,7 @@
 	if [ $REQUEST_METHOD = POST ]; then
 		if [ -n "$iface_proto" ]; then
 			iface=`get_next_iface $iface_proto`
-			$kdb set sys_ifaces="$sys_ifaces $iface" : set sys_iface_${iface}_proto=$iface_proto : set sys_iface_${iface}_real=$iface
+			$kdb set sys_ifaces="$sys_ifaces $iface" : set sys_iface_${iface}_proto=$iface_proto : set sys_iface_${iface}_real=$iface : set sys_iface_${iface}_method=none
 			ok_str="Interface <b>$iface</b> added, please reload page"
 			render_save_message
 		elif [ -n "$del_iface" ]; then
