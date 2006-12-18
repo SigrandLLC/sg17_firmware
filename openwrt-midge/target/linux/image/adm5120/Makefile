@@ -74,6 +74,8 @@ ifeq ($(KERNEL),2.6)
 
 ifeq ($(FS),jffs2-32MB)
 
+LINUX_VERSION:=2.6.16
+LINUX_BUILD_DIR:=$(BUILD_DIR)/linux-$(KERNEL)-$(BOARD)
 adm5120-fs-prepare:
 	test -f delete-files-$(KERNEL)-$(FS) && \
 			for f in `cat delete-files-$(KERNEL)-$(FS)`; do \
@@ -84,6 +86,11 @@ adm5120-fs-prepare:
 		 $(SED) 's,$$R,r$(REV),g' $(KDIR)/root/etc/banner; \
 		 echo "Builded at: `date '+%Y%m%d %H:%M'`" >>$(KDIR)/root/etc/banner; \
 		 echo "" >>$(KDIR)/root/etc/banner; \
+	)
+	( 	mkdir -p $(KDIR)/root/lib/modules/$(LINUX_VERSION); \
+		cd $(LINUX_BUILD_DIR)/linux/; \
+		if [ -r System.map -a -x /sbin/depmod ]; then /sbin/depmod -ae -F System.map -b $(LINUX_BUILD_DIR)/modules -r $(LINUX_VERSION); fi; \
+		cp $(LINUX_BUILD_DIR)/modules/lib/modules/$(LINUX_VERSION)/modules.dep $(KDIR)/root/lib/modules/$(LINUX_VERSION); \
 	)
 
 $(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin: $(SCRIPT_DIR)/padfile
