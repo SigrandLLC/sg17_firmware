@@ -1,0 +1,16 @@
+#!/bin/sh
+
+loadmodule(){
+	local file=$1;
+	cat $file | grep -v '^#' | while read m; do 
+		insmod $m
+	done
+}
+
+if [ -r /etc/modules ]; then 
+	loadmodule /etc/modules
+fi
+
+for f in /etc/modules.d/*; do 
+	loadmodule $f
+done
