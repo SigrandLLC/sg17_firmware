@@ -11,11 +11,11 @@
 	if [ -z "$table" ]; then
 		kdb_vars="bool:sys_fw_enabled"
 
-		render_title "Firewall settings"
 		render_save_stuff
 
 		eval `$kdb -qq ls sys_fw`
 		render_form_header fw 
+		render_table_title "Firewall settings" 2
 
 		# sys_fw_enabled
 		tip=""
