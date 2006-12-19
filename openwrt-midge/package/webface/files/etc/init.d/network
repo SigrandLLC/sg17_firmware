@@ -7,6 +7,18 @@ export PATH=/sbin:/bin:/usr/sbin:/usr/bin:$PATH
 
 CMD_VERBOSE=1
 
+kill_ppp(){
+	local pidfile;
+	pidfile=/var/run/ppp-$iface.pid
+	if [ -r $pidfile ]; then
+		info 3 "Killing from pidfile $pidfile"
+		cmd kill `cat $pidfile | head -1` && sleep 1
+	fi
+	pidfile=/var/run/ppp${realiface}.pid
+	[ -r $pidfile ] && info 3 "Killing from pidfile $pidfile" && cmd kill `cat $pidfile`
+		
+}
+
 pre_ifup(){
 	info 1 "Setting up $iface: "
 	info 1 "  Interface pre-configuration:"
@@ -63,18 +75,22 @@ post_ifup(){
 	fi
 
 	# setup interface options
-	[ -n "$opt_accept_redirects" ] && \
-		echo "$opt_accept_redirects" >/proc/sys/net/ipv4/conf/$iface/accept_redirects
+	local dir=/proc/sys/net/ipv4/conf/$realiface
+	local file=$dir/accept_redirects
+	[ -n "$opt_accept_redirects" -a -w "$file" ] && \
+		echo "$opt_accept_redirects" >$file
 
-	[ -n "$opt_forwarding" ] && \
-		echo "$opt_forwarding" >/proc/sys/net/ipv4/conf/$iface/forwarding
+	file=$dir/forwarding
+	[ -n "$opt_forwarding" -a -w "$file" ] && \
+		echo "$opt_forwarding" >$file
 
-	[ -n "$opt_proxy_arp" ] && \
-		echo "$opt_proxy_arp" >/proc/sys/net/ipv4/conf/$iface/proxy_arp
+	file=$dir/proxy_arp
+	[ -n "$opt_proxy_arp" -a -w "$file" ] && \
+		echo "$opt_proxy_arp" >$file
 
-	[ -n "$opt_rp_filter" ] && \
-		echo "$opt_rp_filter" >/proc/sys/net/ipv4/conf/$iface/rp_filter
-
+	file=$dir/rp_filter
+	[ -n "$opt_rp_filter" -a -w "$file" ] && \
+		echo "$opt_rp_filter" >$file
 }
 
 _ifup(){
@@ -82,6 +98,10 @@ _ifup(){
 	eval `kdb -qq sls sys_iface_${iface}_`
 	realiface=$iface
 	[ -n "$real" ] && realiface=$real
+	if [ "$proto" = "pppoe" -o "$proto" = "pptp" ]; then
+		unit=$(($RANDOM%100+100))
+		realiface="ppp${unit}"
+	fi
 
 	[ -z $proto ] && echo "sys_iface_${iface}_proto is not set" && exit 1
 	[ -z $method ] && echo "sys_iface_${iface}_method is not set" && exit 1
@@ -92,14 +112,22 @@ _ifup(){
 	pre_ifup 
 
 	get_next_ppp(){
-		cur=`/sbin/ip -o link | sed "s/^\([0-9]*\): \([a-z]*\)\([0-9]*\):.*$/\2-\3/" | grep ppp | cut -d- -f2`
+		cur=`/usr/sbin/ip -o link | sed "s/^\([0-9]*\): \([a-z]*\)\([0-9]*\):.*$/\2-\3/" | grep ppp | cut -d- -f2`
 		[ 0 -le "$cur" ] && echo $(($cur+1)) || echo 0
 	}
 	update_ppp_password() {
-		info 2 "Updating /etc/ppp/chap-secrets"
+		local user=$1
+		local passwd=$2
+		local secrets=/etc/ppp/chap-secrets
+		local tmp=/tmp/chap-$$
+		info 2 "Updating $secrets"
+		# TODO: add server field
+		grep -v "^$user " $secrets >$tmp && \
+			echo "$user    *    \"$passwd\"    *" >>$tmp && \
+			mv $tmp $secrets
+			chmod u=rw,go= $secrets
 	}
 
-	ppp_opt="linkname $iface"
 	info 1 "  Interface configuration"
 	case $proto in
 		bridge|ether|bonding)
@@ -132,24 +160,33 @@ _ifup(){
 			esac
 			;;
 		pptp)
-			next="ppp`get_next_ppp`"
-			[ -r /var/run/ppp-$iface.pid ] && kill `cat /var/run/ppp-$iface.pid`
-			[ -r /var/run/$next.pid ] && kill `cat /var/run/$next.pid`
-			[ -d /proc/sys/net/ipv4/conf/$next ] && warn "Something wrong, /proc/sys/net/ipv4/conf/$next already present"
+			kill_ppp 
+			[ -d /proc/sys/net/ipv4/conf/$realiface ] && warn "Something wrong, /proc/sys/net/ipv4/conf/$realiface already present"
 			required pptp
-			update_ppp_password $pptp_username $pptp_password
-			cmd pptp $pptp_server $pptp_pppdopt $ppp_opt || next=""
-			kdb set sys_iface_${iface}_real=$next
+			if [ -n "$pptp_server" -a -n "$pptp_username" ]; then
+				update_ppp_password $pptp_username $pptp_password
+				local pppd_opt="user $pptp_username unit $unit linkname $iface"
+				cmd pptp $pptp_server $pptp_pppdopt $pppd_opt 2>&1 >/dev/null
+				[ $? != 0 ] && realiface=""
+				kdb set sys_iface_${iface}_real=$realiface
+			else
+				warn "pptp_server or pptp_username is not set, aborting"
+				exit 1
+			fi
 			;;
 		pppoe)
-			next="ppp`get_next_ppp`"
-			[ -r /var/run/ppp-$iface.pid ] && kill `cat /var/run/ppp-$iface.pid`
-			[ -r /var/run/$next.pid ] && kill `cat /var/run/$next.pid`
-			[ -d /proc/sys/net/ipv4/conf/$next ] && warn "Something wrong, /proc/sys/net/ipv4/conf/$next already present"
+			kill_ppp 
+			[ -d /proc/sys/net/ipv4/conf/$realiface ] && warn "Something wrong, /proc/sys/net/ipv4/conf/$realiface already present"
 			required pppoe
-			update_ppp_password $pppoe_username $pppoe_password
-			cmd pppoe -I $pppoe_iface || next="" # TODO read man -p /var/run/pppoe-$iface.pid || next=""
-			kdb set sys_iface_${iface}_real=$next
+			if [ -n "$pppoe_iface" -a -n "$pppoe_username" ]; then
+				update_ppp_password $pppoe_username $pppoe_password
+				local pppd_opt="user $pppoe_username unit $unit"
+				cmd pppoe -I "$pppoe_iface" || realiface="" # TODO read man
+				kdb set sys_iface_${iface}_real=$realiface
+			else
+				warn "pppoe_iface or pppoe_username is not set, aborting"
+				exit 1
+			fi
 			;;
 
 		ipsec)
@@ -201,18 +238,17 @@ _ifdown(){
 	info 1 "  Interface deconfiguration"
 
 	cmd /sbin/ifconfig $realiface down
-		case $type in
+	case $proto in
 		static)
 			;;
 		dhcp)
 			;;
-		pppoe)
-			;;
-		pptp)
+		pppoe|pptp)
+			kill_ppp
 			;;
 		ipsec)
 			;;
-		esac
+	esac
 	post_ifdown
 	info 1 "done."
 }
