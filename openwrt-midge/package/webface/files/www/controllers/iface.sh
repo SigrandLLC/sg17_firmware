@@ -129,6 +129,11 @@
 				render_console_command cat /proc/net/bonding/$realiface
 				render_console_end
 				;;
+			pppoe|pptp)
+				render_console_start "PPP stats" 2 
+				[ -x /usr/sbin/pppstats ] && render_console_command /usr/sbin/pppstats $realiface
+				render_console_end
+				;;
 			esac
 			
 			if [ "$dhcp_enabled" = 1 -a -x /usr/bin/dumpleases -a -r /var/lib/misc/udhcpd.${realiface}.leases ]; then
