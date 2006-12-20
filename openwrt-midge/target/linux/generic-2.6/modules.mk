@@ -61,7 +61,7 @@ $(eval $(call KMOD_template,IPT_CONNTRACK,ipt-conntrack,\
 ,,,40,ip_conntrack iptable_nat ipt_state))
 
 $(eval $(call KMOD_template,IPT_EXTRA,ipt-extra,\
-	$(foreach mod,$(IPT_EXTRA-m),$(MODULES_DIR)/$(shell cd $(MODULES_DIR); find . -name $(mod).ko)) \
+	$(foreach mod,$(IPT_EXTRA-m),$(MODULES_DIR)/$(shell [ -d $(MODULES_DIR) ] && cd $(MODULES_DIR) && find . -name $(mod).ko)) \
 ,,,80,ipt_condition ipt_connbytes ipt_limit ipt_LOG ipt_multiport ipt_owner ipt_pkttype ipt_quota ipt_recent))
 # Old string! ,,,80,$(IPT_EXTRA-m)))
 
@@ -70,7 +70,7 @@ $(eval $(call KMOD_template,IPT_FILTER,ipt-filter,\
 ,,,80,$(IPT_FILTER-m)))
 
 $(eval $(call KMOD_template,IPT_IPOPT,ipt-ipopt,\
-	$(foreach mod,$(IPT_IPOPT-m),$(MODULES_DIR)/$(shell cd $(MODULES_DIR); find . -name $(mod).ko)) \
+	$(foreach mod,$(IPT_IPOPT-m),$(MODULES_DIR)/$(shell [ -d $(MODULES_DIR) ] && cd $(MODULES_DIR) && find . -name $(mod).ko)) \
 ,,,80,$(IPT_IPOPT-m)))
 
 $(eval $(call KMOD_template,IPT_IPSEC,ipt-ipsec,\
