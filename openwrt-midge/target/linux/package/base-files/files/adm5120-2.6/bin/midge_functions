@@ -1,6 +1,7 @@
 #!/bin/sh
 
 VERBOSE=2
+CMD_VERBOSE=2
 
 die () {
 	echo $@ >&2
@@ -19,5 +20,10 @@ info(){
 	level=$1
 	shift
 	[ $level -le $VERBOSE ] && echo Info: "$@" >&2
+}
+
+cmd(){
+	echo "    $@"
+	$@
 }
 
