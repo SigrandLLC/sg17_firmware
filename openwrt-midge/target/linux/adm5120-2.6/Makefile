@@ -7,9 +7,13 @@ CONFIG_PATH=$(BUILD_DIR)/linux-$(KERNEL)-$(BOARD)/config-tmp
 
 
 include ../rules.mk
+include ../kernel.mk
 include ./config
 include ../generic-$(KERNEL)/modules.mk
-include ../kernel.mk
+
+$(eval $(call KMOD_template,ADM5120_SW,adm5120-sw,\
+	$(MODULES_DIR)/kernel/drivers/net/adm5120sw.o \
+))
 
 $(LINUX_DIR)/.internal_kern:
 	rm -Rf $(LINUX_BUILD_DIR)
@@ -20,12 +24,12 @@ remove_old: $(LINUX_BUILD_DIR)
 	rm -Rf $(LINUX_BUILD_DIR)
 
 
-#ifeq ($(BR2_EXTERNAL_KERN_PATH),)
-#$(LINUX_DIR)/.patched: $(LINUX_DIR)/.internal_kern
-#	[ -d ../generic-$(KERNEL)/patches ] && $(PATCH) $(LINUX_DIR) ../generic-$(KERNEL)/patches $(MAKE_TRACE)
-#	[ -d ./patches ] && $(PATCH) $(LINUX_DIR) ./patches $(MAKE_TRACE)
-#	touch $@
-#else
+ifeq ($(BR2_EXTERNAL_KERN_PATH),)
+$(LINUX_DIR)/.patched: $(LINUX_DIR)/.internal_kern
+	[ -d ../generic-$(KERNEL)/patches ] && $(PATCH) $(LINUX_DIR) ../generic-$(KERNEL)/patches $(MAKE_TRACE)
+	[ -d ./patches ] && $(PATCH) $(LINUX_DIR) ./patches $(MAKE_TRACE)
+	touch $@
+else
 $(LINUX_DIR)/.patched: remove_old
 	mkdir -p $(LINUX_BUILD_DIR)
 	ln -s $(BR2_EXTERNAL_KERN_PATH) $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION)
@@ -37,10 +41,11 @@ $(LINUX_DIR)/.patched: remove_old
 	echo "Check that vmlinux is present" > /dev/null
 	echo "Full path $(LINUX_DIR)/vmlinux" >  /dev/null
 	echo
-#	test -f "$(LINUX_DIR)/vmlinux" && touch $(LINUX_DIR)/vmlinux
-	ln -s $(BR2_EXTERNAL_KERN_PATH) $(BUILD_DIR)/linux
+	if test -f "$(LINUX_DIR)/vmlinux" ; then touch "$(LINUX_DIR)/vmlinux"; fi
+	ln -s $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION) $(BUILD_DIR)/linux
+	if test ! -f "$(LINUX_DIR)/.config" ; then make -C $(LINUX_DIR) menuconfig; fi
 	touch $@
-#endif
+endif
 
 
 adm5120-kern-configured:

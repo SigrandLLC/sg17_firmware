@@ -1,7 +1,6 @@
 include $(TOPDIR)/rules.mk
 
 KDIR:=$(BUILD_DIR)/linux-$(KERNEL)-$(BOARD)
-#KDIR:=$(LINUX_BUILD_DIR)
 
 ifeq ($(BR2_TARGET_ROOTFS_JFFS2),y)
 include ./jffs2.mk
