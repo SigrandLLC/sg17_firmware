@@ -36,6 +36,13 @@ comment "Kernel modules"
 
 menu "Networking modules"
 
+config BR2_PACKAGE_KMOD_ALLMODULES
+	prompt "kmod-allmodules................... Full set of kernel modules"
+	tristate
+	default m
+	help
+	  All kernel modules
+
 config BR2_PACKAGE_KMOD_ATM
 	prompt "kmod-atm.......................... ATM support"
 	tristate

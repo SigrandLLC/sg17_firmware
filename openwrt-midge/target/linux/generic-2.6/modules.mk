@@ -97,3 +97,9 @@ $(eval $(call KMOD_template,IPT_ULOG,ipt-ulog,\
 $(eval $(call KMOD_template,IP6TABLES,ip6tables,\
 	$(MODULES_DIR)/kernel/net/ipv6/netfilter/ip*.ko \
 ,CONFIG_IP6_NF_IPTABLES,kmod-ipv6))
+
+
+# All modules
+$(eval $(call KMOD_template,ALL_MODULES,allmodules,\
+	$(shell [ -d $(MODULES_DIR) ] && cd $(MODULES_DIR) && find . -name *.ko) \
+,,,,))
