@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.16
-# Sun Dec 24 23:32:06 2006
+# Mon Dec 25 13:18:39 2006
 #
 CONFIG_MIPS=y
 
@@ -1083,7 +1083,7 @@ CONFIG_WATCHDOG=y
 #
 # Watchdog Device Drivers
 #
-CONFIG_SOFT_WATCHDOG=m
+CONFIG_SOFT_WATCHDOG=y
 
 #
 # PCI-based Watchdog Cards
@@ -1333,17 +1333,6 @@ CONFIG_USB_SERIAL_PL2303=m
 # USB Gadget Support
 #
 # CONFIG_USB_GADGET is not set
-# CONFIG_USB_GADGET_NET2280 is not set
-# CONFIG_USB_GADGET_PXA2XX is not set
-# CONFIG_USB_GADGET_GOKU is not set
-# CONFIG_USB_GADGET_LH7A40X is not set
-# CONFIG_USB_GADGET_OMAP is not set
-# CONFIG_USB_GADGET_DUMMY_HCD is not set
-# CONFIG_USB_ZERO is not set
-# CONFIG_USB_ETH is not set
-# CONFIG_USB_GADGETFS is not set
-# CONFIG_USB_FILE_STORAGE is not set
-# CONFIG_USB_G_SERIAL is not set
 
 #
 # MMC/SD Card support
