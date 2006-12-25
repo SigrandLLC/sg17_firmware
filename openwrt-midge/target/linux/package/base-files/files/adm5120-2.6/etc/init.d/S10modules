@@ -15,5 +15,5 @@ if [ -r /etc/modules ]; then
 fi
 
 for f in /etc/modules.d/*; do 
-	loadmodule $f
+	[ -r $f ] && loadmodule $f
 done
