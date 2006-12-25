@@ -167,6 +167,7 @@ package-$(BR2_PACKAGE_MRD6) += mrd6
 package-$(BR2_PACKAGE_MT_DAAPD) += mt-daapd
 #package-$(BR2_PACKAGE_MTD) += mtd
 package-$(BR2_PACKAGE_MTR) += mtr
+package-$(BR2_PACKAGE_MODULEINITTOOLS) += module-init-tools
 package-$(BR2_PACKAGE_MUTT) += mutt
 package-$(BR2_COMPILE_MYSQL) += mysql
 package-$(BR2_PACKAGE_NAIL) += nail
