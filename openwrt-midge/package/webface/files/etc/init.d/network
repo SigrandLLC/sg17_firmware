@@ -98,8 +98,10 @@ _ifup(){
 	eval `kdb -qq sls sys_iface_${iface}_`
 	realiface=$iface
 	[ -n "$real" ] && realiface=$real
+
+	# setup ppp unit 
 	if [ "$proto" = "pppoe" -o "$proto" = "pptp" ]; then
-		unit=$(($RANDOM%100+100))
+		[ -n "$ppp_unit" ] && unit="$ppp_unit" || unit=$(($RANDOM%100+100))
 		realiface="ppp${unit}"
 	fi
 
