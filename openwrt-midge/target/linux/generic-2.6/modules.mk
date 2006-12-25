@@ -100,6 +100,6 @@ $(eval $(call KMOD_template,IP6TABLES,ip6tables,\
 
 
 # All modules
-$(eval $(call KMOD_template,ALL_MODULES,allmodules,\
-	$(shell [ -d $(MODULES_DIR) ] && cd $(MODULES_DIR) && find . -name *.ko) \
+$(eval $(call KMOD_template,ALLMODULES,allmodules,\
+	$(shell [ -d $(MODULES_DIR) ] && find $(MODULES_DIR) -name *.ko) \
 ,,,,))
