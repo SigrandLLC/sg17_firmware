@@ -180,10 +180,13 @@ _ifup(){
 			required pppoe
 			if [ -n "$pppoe_iface" -a -n "$pppoe_username" ]; then
 				update_ppp_password $pppoe_username $pppoe_password
+				local pppoe_opt=""
+				[ -n "pppoe_service" ] && pppoe_opt="$pppoe_opt -S $pppoe_service"
+				[ -n "pppoe_ac" ] && pppoe_opt="$pppoe_opt -C $pppoe_ac"
 				local pppd_opt="user $pppoe_username unit $unit"
 				cmd /usr/sbin/ip link set $pppoe_iface up
 				cmd /usr/sbin/ip addr flush dev $pppoe_iface
-				cmd pppoe -I "$pppoe_iface" || realiface="" # TODO read man
+				cmd pppoe -I "$pppoe_iface" $pppoe_opt $pppd_opt || realiface="" # TODO read man
 				kdb set sys_iface_${iface}_real=$realiface
 			else
 				warn "pppoe_iface or pppoe_username is not set, aborting"
