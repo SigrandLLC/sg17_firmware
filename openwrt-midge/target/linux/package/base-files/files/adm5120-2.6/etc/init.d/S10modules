@@ -3,6 +3,11 @@
 MODPROBE=`which modprobe`
 [ -z "$MODPROBE" ] && MODPROBE="insmod"
 
+if [ -x "`which depmod`" ]; then
+	echo "Generating modules.dep"
+	depmod -a
+fi
+
 loadmodule(){
 	local file=$1;
 	cat $file | grep -v '^#' | while read m; do 
