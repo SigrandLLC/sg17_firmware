@@ -71,7 +71,7 @@ post_ifup(){
 	eval `kdb -qq ls sys_ntpclient_`
 	if [ "$sys_ntpclient_enabled" = "1" -a -x /usr/sbin/ntpclient ] && /sbin/route -n | grep ^0.0.0.0 >/dev/null; then
 		info 2 "  Synchronizing time"
-		cmd /usr/sbin/ntpclient -c 1 -s -h ${sys_ntpclient_server:-pool.ntp.org}
+		cmd /usr/sbin/ntpclient -c 1 -s -h ${sys_ntpclient_server:-pool.ntp.org} &
 	fi
 
 	# setup interface options
@@ -181,6 +181,8 @@ _ifup(){
 			if [ -n "$pppoe_iface" -a -n "$pppoe_username" ]; then
 				update_ppp_password $pppoe_username $pppoe_password
 				local pppd_opt="user $pppoe_username unit $unit"
+				cmd /usr/sbin/ip link set $pppoe_iface up
+				cmd /usr/sbin/ip addr flush dev $pppoe_iface
 				cmd pppoe -I "$pppoe_iface" || realiface="" # TODO read man
 				kdb set sys_iface_${iface}_real=$realiface
 			else
