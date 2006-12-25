@@ -71,7 +71,7 @@
 				pptp)
 					kdb_vars="str:sys_iface_${iface}_pptp_server str:sys_iface_${iface}_pptp_username str:sys_iface_${iface}_pptp_password str:sys_iface_${iface}_pptp_pppdopt";;
 				pppoe)
-					kdb_vars="str:sys_iface_${iface}_pppoe_iface str:sys_iface_${iface}_pppoe_service str:sys_iface_${iface}_pppoe_username str:sys_iface_${iface}_pppoe_password str:sys_iface_${iface}_pppoe_pppdopt" ;;
+					kdb_vars="str:sys_iface_${iface}_pppoe_iface str:sys_iface_${iface}_pppoe_ac str:sys_iface_${iface}_pppoe_service str:sys_iface_${iface}_pppoe_username str:sys_iface_${iface}_pppoe_password str:sys_iface_${iface}_pppoe_pppdopt" ;;
 				ipsec)
 					kdb_vars="str:sys_iface_${iface}_ipsec_mode str:sys_iface_${iface}_ipsec_local_addr str:sys_iface_${iface}_ipsec_remote_addr"
 					kdb_vars="$kdb_vars str:sys_iface_${iface}_ipsec_local_ah_spi str:sys_iface_${iface}_ipsec_local_ah_alg str:sys_iface_${iface}_ipsec_local_ah_key"
@@ -101,7 +101,8 @@
 		ip=${ip:-/sbin/ip}
 		realiface=$iface
 		[ -n "$real" -a -d /proc/sys/net/ipv4/conf/$real ] && realiface=$real
-		if [ -d "/proc/sys/net/ipv4/conf/$realiface" ]; then
+		
+		if $ip link ls dev $realiface >/dev/null 2>&1; then
 
 			render_console_start "Interface status" 2 
 			render_console_command /sbin/ifconfig $realiface
@@ -314,14 +315,24 @@
 			;;
 		'pppoe')
 			render_table_title "PPPoE Specific parameters" 2 
+			
 			desc="Parent interface name <b>required</b>"
 			validator='tmt:required="true" tmt:message="Please input parent interface name" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
 			render_input_field text "Interface" sys_iface_${iface}_pppoe_iface
+			
+			tip="Router will only initiate sessions with access concentrators which can provide the specified service.<br>  In most cases, you should <b>not</b> specify this option."
 			desc="Desired service name"
 			validator='tmt:message="Please input desired service name" tmt:filters="nohtml,nomagic"'
 			render_input_field text "Service" sys_iface_${iface}_pppoe_service
+			validator='tmt:filters="nomagic"'
+			
+			tip="Router will only initiate sessions with the specified access concentrator. In most cases, you should <b>not</b> specify this option. Use it only if you know that there are multiple access concentrators."
+			desc="Desired access concentrator name"
+			render_input_field text "Access Concentrator" sys_iface_${iface}_pppoe_ac
+			
 			validator='tmt:required="true" tmt:filters="nomagic"'
 			render_input_field text "Username" sys_iface_${iface}_pppoe_username
+			
 			validator='tmt:required="true" tmt:filters="nomagic"'
 			render_input_field text "Password" sys_iface_${iface}_pppoe_password
 			# TODO: about name, remotename options
@@ -400,7 +411,7 @@
 		# sys_iface_${iface}_qos_sch
 		desc="Please select scheduler for the interface"
 		validator='tmt:required="true" tmt:message="Please select method"'
-		render_input_field select "Scheduler" sys_iface_${iface}_qos_sch pfifo_fast "Default discipline pfifo_fast" bfifo 'FIFO with bytes buffer' pfifo 'FIFO with packets buffer ' 'tbf' 'Token Bucket Filter' 'sfq' 'Stochastic Fairness Queueing' #'esfq' 'Enhanced <b>Stochastic Fairness Queueing'  #'htb' 'Hierarchical Token Bucket' 
+		render_input_field select "Scheduler" sys_iface_${iface}_qos_sch pfifo_fast "Default discipline pfifo_fast" bfifo 'FIFO with bytes buffer' pfifo 'FIFO with packets buffer ' 'tbf' 'Token Bucket Filter' 'sfq' 'Stochastic Fairness Queueing' 'esfq' 'Enhanced <b>Stochastic Fairness Queueing'  #'htb' 'Hierarchical Token Bucket' 
 		;;
 		
 	'routes')
