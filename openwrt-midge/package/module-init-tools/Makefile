@@ -55,6 +55,8 @@ $(PKG_BUILD_DIR)/.built:
 
 $(IPKG_MODULEINITTOOLS):
 	install -m0755 -d $(IDIR_MODULEINITTOOLS)/sbin
+	install -m0755 -d $(IDIR_MODULEINITTOOLS)/bin
+	$(CP) $(PKG_INSTALL_DIR)/bin/lsmod $(IDIR_MODULEINITTOOLS)/bin
 	$(CP) $(PKG_INSTALL_DIR)/sbin/insmod $(IDIR_MODULEINITTOOLS)/sbin
 	$(CP) $(PKG_INSTALL_DIR)/sbin/rmmod $(IDIR_MODULEINITTOOLS)/sbin
 	$(CP) $(PKG_INSTALL_DIR)/sbin/depmod $(IDIR_MODULEINITTOOLS)/sbin
