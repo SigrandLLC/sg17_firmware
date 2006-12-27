@@ -69,9 +69,9 @@
 				bonding)
 					kdb_vars="str:sys_iface_${iface}_bond_ifaces";;
 				pptp)
-					kdb_vars="str:sys_iface_${iface}_pptp_server str:sys_iface_${iface}_pptp_username str:sys_iface_${iface}_pptp_password str:sys_iface_${iface}_pptp_pppdopt";;
+					kdb_vars="str:sys_iface_${iface}_pptp_server str:sys_iface_${iface}_pptp_username str:sys_iface_${iface}_pptp_password bool:sys_iface_${iface}_pptp_defaultroute str:sys_iface_${iface}_pptp_pppdopt";;
 				pppoe)
-					kdb_vars="str:sys_iface_${iface}_pppoe_iface str:sys_iface_${iface}_pppoe_ac str:sys_iface_${iface}_pppoe_service str:sys_iface_${iface}_pppoe_username str:sys_iface_${iface}_pppoe_password str:sys_iface_${iface}_pppoe_pppdopt" ;;
+					kdb_vars="str:sys_iface_${iface}_pppoe_iface str:sys_iface_${iface}_pppoe_ac str:sys_iface_${iface}_pppoe_service bool:sys_iface_${iface}_pptp_defaultroute  str:sys_iface_${iface}_pppoe_username str:sys_iface_${iface}_pppoe_password str:sys_iface_${iface}_pppoe_pppdopt" ;;
 				ipsec)
 					kdb_vars="str:sys_iface_${iface}_ipsec_mode str:sys_iface_${iface}_ipsec_local_addr str:sys_iface_${iface}_ipsec_remote_addr"
 					kdb_vars="$kdb_vars str:sys_iface_${iface}_ipsec_local_ah_spi str:sys_iface_${iface}_ipsec_local_ah_alg str:sys_iface_${iface}_ipsec_local_ah_key"
@@ -330,6 +330,10 @@
 			desc="Desired access concentrator name"
 			render_input_field text "Access Concentrator" sys_iface_${iface}_pppoe_ac
 			
+			default=0
+			desc="Add a default route to the system routing tables, using the peer as the gateway"
+			render_input_field checkbox "Default route" sys_iface_${iface}_pppoe_defaultroute
+			
 			validator='tmt:required="true" tmt:filters="nomagic"'
 			render_input_field text "Username" sys_iface_${iface}_pppoe_username
 			
@@ -342,12 +346,20 @@
 		'pptp')
 			render_table_title "PPtP Specific parameters" 2 
 			desc="PPtP Server <b>required</b>"
+			
 			validator='tmt:required="true" tmt:message="Please input server ip address" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
 			render_input_field text "Server" sys_iface_${iface}_pptp_server
+			
 			validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
 			render_input_field text "Username" sys_iface_${iface}_pptp_username
+			
 			validator='tmt:required="true" tmt:filters="nomagic"'
 			render_input_field text "Password" sys_iface_${iface}_pptp_password
+			
+			default=0
+			desc="Add a default route to the system routing tables, using the peer as the gateway"
+			render_input_field checkbox "Default route" sys_iface_${iface}_pptp_defaultroute
+
 			# TODO: Note about name, remotename options
 			default="noauth nobsdcomp nodeflate require-mppe-128"
 			render_input_field text "PPPD Options" sys_iface_${iface}_pptp_pppdopt

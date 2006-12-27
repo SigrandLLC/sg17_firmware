@@ -7,6 +7,12 @@ export PATH=/sbin:/bin:/usr/sbin:/usr/bin:$PATH
 
 CMD_VERBOSE=1
 
+required kdb
+required ip
+required ifconfig
+required brctl
+required modprobe
+
 kill_ppp(){
 	local pidfile;
 	pidfile=/var/run/ppp-$iface.pid
@@ -167,7 +173,11 @@ _ifup(){
 			required pptp
 			if [ -n "$pptp_server" -a -n "$pptp_username" ]; then
 				update_ppp_password $pptp_username $pptp_password
+
+				# setup pppd options
 				local pppd_opt="user $pptp_username unit $unit linkname $iface"
+				[ 1 = "$pptp_defaultroute" ] && pppd_opt="$pppd_opt defaultroute"
+
 				cmd pptp $pptp_server $pptp_pppdopt $pppd_opt 2>&1 >/dev/null
 				[ $? != 0 ] && realiface=""
 				kdb set sys_iface_${iface}_real=$realiface
@@ -185,7 +195,11 @@ _ifup(){
 				local pppoe_opt=""
 				[ -n "pppoe_service" ] && pppoe_opt="$pppoe_opt -S $pppoe_service"
 				[ -n "pppoe_ac" ] && pppoe_opt="$pppoe_opt -C $pppoe_ac"
+
+				# setup pppd options
 				local pppd_opt="user $pppoe_username unit $unit"
+				[ 1 = "$pppoe_defaultroute" ] && pppd_opt="$pppd_opt defaultroute"
+
 				cmd /usr/sbin/ip link set $pppoe_iface up
 				cmd /usr/sbin/ip addr flush dev $pppoe_iface
 				cmd pppoe -I "$pppoe_iface" $pppoe_opt $pppd_opt || realiface="" # TODO read man
