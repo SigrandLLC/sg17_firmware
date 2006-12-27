@@ -1,4 +1,4 @@
 #!/bin/sh
 
-make package/webface-install; (cd /home/share/adm5120/openwrt/openwrt-2.6/bin/packages; /home/share/adm5120/openwrt/openwrt-2.6/staging_dir_mipsel/usr/bin/ipkg-make-index . > Packages)
+make package/webface-install; (cd ./bin/packages; ../../staging_dir_mipsel/usr/bin/ipkg-make-index . > Packages)
 

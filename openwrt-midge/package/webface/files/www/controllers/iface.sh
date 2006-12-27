@@ -359,9 +359,12 @@
 			default=0
 			desc="Add a default route to the system routing tables, using the peer as the gateway"
 			render_input_field checkbox "Default route" sys_iface_${iface}_pptp_defaultroute
-
-			# TODO: Note about name, remotename options
-			default="noauth nobsdcomp nodeflate require-mppe-128"
+			
+			# todo: replace route?
+			# todo: add static route to pptp server?
+			#render_input_field select "Encryption" sys_iface_${iface}_pptp_enc nomppe nomppe mppe-40 mppe-40 mppe-56 mppe-56 mppe-128 mppe-128
+			
+			default="noauth nobsdcomp nodeflate nomppe"	#		require-mppe-128"
 			render_input_field text "PPPD Options" sys_iface_${iface}_pptp_pppdopt
 			;;
 		'bonding')
