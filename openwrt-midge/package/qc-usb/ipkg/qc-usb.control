@@ -1,0 +1,5 @@
+Package: qc-usb
+Priority: optional
+Section: net
+Description: QuickCam Express Driver
+Depends: 

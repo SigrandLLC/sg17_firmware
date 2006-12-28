@@ -219,6 +219,7 @@ package-$(BR2_PACKAGE_PSYBNC) += psybnc
 package-$(BR2_PACKAGE_PTUNNEL) += ptunnel
 package-$(BR2_COMPILE_PWLIB) += pwlib
 package-$(BR2_PACKAGE_QUAGGA) += quagga
+package-$(BR2_PACKAGE_QC-USB) += qc-usb
 package-$(BR2_COMPILE_RADIUSCLIENT_NG) += radiusclient-ng
 package-$(BR2_PACKAGE_RADVD) += radvd
 package-$(BR2_PACKAGE_RARPD) += rarpd
