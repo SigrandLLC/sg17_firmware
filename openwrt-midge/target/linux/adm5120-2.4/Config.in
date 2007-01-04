@@ -70,8 +70,14 @@ config BR2_PACKAGE_KMOD_ADM5120_I2C
 	tristate
 	default m
 	help
-	  Driver for I2C-Bus over GPIO
-	  Only GPIO 1 (SCL) and 3 (SDA) are possible!
+	  Driver for I2C-Bus over GPIO or Switch-LED
+	  GPIO has number 0..7
+          LED has number 8..22
 	  GPIO 0 is reserved for Power-LED
 	  GPIO 2 is reserved for Reset-Switch
+          GPIO 1 and GPIO 3 are default, see kernel config
+          GPIO 3 is used for 4MB-Flash ! 
+          Load the driver with parameter scl=8 sda=9 for LED8/9
+          Load with "-o i2c-adm5120_x" for multiple i2c-buses 
+
 
