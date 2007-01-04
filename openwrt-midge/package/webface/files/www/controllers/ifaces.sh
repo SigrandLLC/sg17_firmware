@@ -39,8 +39,9 @@
 			ok_str="Interface <b>$iface</b> added, please reload page"
 			render_save_message
 		elif [ -n "$del_iface" ]; then
-			ifaces=`echo $sys_ifaces | sed s/$del_iface//`
-			$kdb set sys_ifaces="$ifaces"
+			sys_ifaces=`echo $sys_ifaces | sed s/$del_iface//`
+			$kdb set sys_ifaces="$sys_ifaces"
+			del_iface=""
 			ok_str="Interface deleted, please reload page"
 			render_save_message
 		fi
@@ -52,7 +53,7 @@
 
 	desc="Please select interface protocol"
 	validator='tmt:invalidindex=0 tmt:message="Please select protocol"'
-	render_input_field select "Protocol" iface_proto bad "Please select interface protocol" bridge Bridge pppoe PPPoE pptp PPtP ipsec IPSec bonding Bonding 
+	render_input_field select "Protocol" iface_proto bad "Please select interface protocol" bridge Bridge pppoe PPPoE pptp PPtP  bonding Bonding # ipsec IPSec
 
 	render_submit_field Add
 	render_form_tail

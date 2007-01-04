@@ -32,7 +32,8 @@ L1 Network
 	L2 Firewall	fw
 		L3 Filter	"fw&table=filter"
 		L3 NAT		"fw&table=nat"
-
+	L2 IPSec ipsec
+	
 L1 Services
 	L2 "DNS Server" dns_server
 L1 Tools

@@ -145,7 +145,7 @@
 			
 			if [ -n "$qos_sch" ]; then
 				render_console_start "Traffic Control" 2 
-				render_console_command /usr/sbin/tc qdisc ls dev $realiface
+				render_console_command /usr/sbin/tc -s qdisc ls dev $realiface
 				#render_console_command /usr/sbin/tc class ls dev $realiface
 				#render_console_command /usr/sbin/tc filter ls dev $realiface
 				render_console_end

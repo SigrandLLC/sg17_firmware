@@ -85,6 +85,7 @@ int init()
     return 0;
 }
 
+// Parse str "name=value" and put 'name' to *name and 'value' to *value
 int parse_pair(const char* str, char* name, char* value)
 {
     int len = strlen(str);
@@ -195,6 +196,9 @@ int db_read()
 		fprintf(stderr, "fopen '%s' %s\n", get_dbfilename(), strerror(errno));
 		exit(1);
 	};
+	// lock file
+	//flock(db_
+
 	// read header
     if( ! fgets(db_header, sizeof(db_header), db_file) ) {
         perror("fgets");
