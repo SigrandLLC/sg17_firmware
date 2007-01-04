@@ -105,10 +105,19 @@ _ifup(){
 	realiface=$iface
 	[ -n "$real" ] && realiface=$real
 
-	# setup ppp unit 
+	# setup ppp_unit 
 	if [ "$proto" = "pppoe" -o "$proto" = "pptp" ]; then
-		[ -n "$ppp_unit" ] && unit="$ppp_unit" || unit=$(($RANDOM%100+100))
-		realiface="ppp${unit}"
+		# setup initial sys_ifaces_next_unit
+		if [ -z "$sys_ifaces_next_unit" ]; then
+			kdb set sys_ifaces_next_unit=100
+			sys_ifaces_next_unit=100
+		fi
+		# setup ppp_unit if it null
+		if [ -z "$ppp_unit" ]; then
+			ppp_unit=$sys_ifaces_next_unit
+			kdb set sys_iface_${iface}_ppp_unit=$ppp_unit : set sys_ifaces_next_unit=$(($sys_ifaces_next_unit+1))
+		fi
+		realiface="ppp${ppp_unit}"
 	fi
 
 	[ -z $proto ] && echo "sys_iface_${iface}_proto is not set" && exit 1
@@ -175,7 +184,7 @@ _ifup(){
 				update_ppp_password $pptp_username $pptp_password
 
 				# setup pppd options
-				local pppd_opt="user $pptp_username unit $unit linkname $iface"
+				local pppd_opt="user $pptp_username unit $ppp_unit linkname $iface"
 				[ 1 = "$pptp_defaultroute" ] && pppd_opt="$pppd_opt defaultroute"
 
 				cmd pptp $pptp_server $pptp_pppdopt $pppd_opt 2>&1 >/dev/null
@@ -197,7 +206,7 @@ _ifup(){
 				[ -n "pppoe_ac" ] && pppoe_opt="$pppoe_opt -C $pppoe_ac"
 
 				# setup pppd options
-				local pppd_opt="user $pppoe_username unit $unit"
+				local pppd_opt="user $pppoe_username unit $ppp_unit"
 				[ 1 = "$pppoe_defaultroute" ] && pppd_opt="$pppd_opt defaultroute"
 
 				cmd /usr/sbin/ip link set $pppoe_iface up
