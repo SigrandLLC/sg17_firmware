@@ -14,6 +14,9 @@
 #define COUNT_NAME "kdb_lines_count"
 #define DEBUG 0
 
+#define FLOCK(f) flock(fileno(f), LOCK_EX);
+#define FUNLOCK(f) flock(fileno(f), LOCK_UN);
+
 char db_filename[255];
 FILE *db_file=NULL;
 char *db_lines[MAX_LINES];
@@ -197,8 +200,8 @@ int db_read()
 		exit(1);
 	};
 	// lock file
-	//flock(db_
-
+	FLOCK(db_file);
+	
 	// read header
     if( ! fgets(db_header, sizeof(db_header), db_file) ) {
         perror("fgets");
@@ -221,6 +224,8 @@ int db_read()
             result=false;
         };
 		if (DEBUG) fprintf(stderr, "DEBUG: db_read(): readed %d bytes\n", readed);
+		// unlock
+		FUNLOCK(db_file);
         fclose(db_file);
         // terminate buffer
         buf[MAX_DB_SIZE]='\0';
@@ -285,6 +290,7 @@ int db_write()
     if (result) {
 		// open file
         db_file = fopen(get_dbfilename(), "w");
+		FLOCK(db_file);
         if (!db_file) {
             perror("fopen");
             exit(1);
@@ -293,6 +299,7 @@ int db_write()
         fwrite(buf, 1, (s-buf), db_file);
         if (ferror(db_file)) 
             perror("fwrite"), result=false;
+		FUNLOCK(db_file);
         fclose(db_file);
     }
     if (buf)
