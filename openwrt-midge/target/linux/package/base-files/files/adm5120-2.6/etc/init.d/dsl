@@ -3,8 +3,6 @@ echo "Starting dsl ..."
 
 sg16cfg dsl0 reload
 sg16cfg dsl1 reload
-sg16cfg dsl0 mac-addr 001
-sg16cfg dsl1 mac-addr 002
 sg16cfg dsl0 slave annex F cfg preact
 sg16cfg dsl1 slave annex F cfg preact
 ifconfig dsl0 192.168.102.1 up
