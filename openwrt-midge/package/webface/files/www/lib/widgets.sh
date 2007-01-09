@@ -112,6 +112,7 @@ render_input_field(){
 	local inputsize='25'
 	local maxlenght='255'
     local tipcode=''
+	local i
     [ "$tip" ] && tipcode="onmouseover=\"return overlib('$tip', BUBBLE, BUBBLETYPE, 'roundcorners')\" onmouseout=\"return nd();\""
     eval 'value=$'$inputname
 	[ -z "$value" -a -n "$default" ] && value="$default"
@@ -244,13 +245,12 @@ render_popup_save_stuff(){
 		eval $eval_string
 		if [ -z "$FORM_additem" ]; then
 			eval `$kdb -qqc list "$item"`
-			debug "render_popup_save_stuff(REQUEST_METHOD = POST, FORM_additem=$FORM_additem): item=$item"
 			save "$subsys" "str:$item" 
 		else
 			ok_str="Item added"
-			debug "render_popup_save_stuff(REQUEST_METHOD = POST, FORM_additem=$FORM_additem): item=$item"
 			kdb_ladd_string $item
 			kdb_commit
+			update_configs_and_service_reload "$subsys"
 		fi
 		render_save_message
 		[ -z "$DEBUG" ] && render_js_close_popup

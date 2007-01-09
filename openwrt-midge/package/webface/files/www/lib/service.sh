@@ -17,24 +17,19 @@ service_reload(){
 	;;
 	dhcp)
 		/etc/init.d/udhcpd restart $iface
-		#displayFile $logfile
-	;;
-	dns)
-		#/etc/init.d/S50webface-dnsmasq restart 
-		#displayFile $logfile
 	;;
 	dns_server)
 		/etc/init.d/bind restart 
-		#displayFile $logfile
 	;;
 	dsl*)
 		iface=${sybsys##*.}
 		/etc/init.d/dsl restart $iface 
-		#displayFile $logfile		
 	;;
 	fw)
 		/etc/init.d/fw restart 
-		#displayFile $logfile		
+	;;
+	ipsec)
+		/etc/templates/ipsec-tools.sh | /usr/sbin/setkey -c
 	;;
 	esac
 }

@@ -11,6 +11,22 @@ cfg_flash(){
 	[ -x /sbin/flash ] && /sbin/flash save >/dev/null 2>&1
 }
 
+update_configs_and_service_reload(){
+	local subsys="$1"
+	local s
+	local service
+	for s in $subsys; do 
+		update_configs $s
+		[ "$ERROR_MESSAGE" ] && return
+	done
+	fail_str="Update config failed: $ERROR_DETAIL"
+	[ "$ERROR_MESSAGE" ] && return
+	for service in $subsys; do
+		logfile=/tmp/$service.svc.log
+		service_reload $service 2>&1 | tee $logfile | $LOGGER ;
+	done
+}
+
 save(){
 	local sybsys="$1"
 	local kdb_vars="$2"
@@ -37,19 +53,8 @@ save(){
 		kdb_commit
 		fail_str="Savings failed: $ERROR_DETAIL"
 		[ -n "$ERROR_MESSAGE" ] && break
-
-		for s in $subsys; do 
-			update_configs $s
-			[ "$ERROR_MESSAGE" ] && break
-		done
-		fail_str="Update config failed: $ERROR_DETAIL"
-		[ "$ERROR_MESSAGE" ] && break
-
-		cfg_flash
-		for service in $subsys; do
-			logfile=/tmp/$service.svc.log
-			service_reload $service 2>&1 | tee $logfile | $LOGGER ;
-		done
+		
+		update_configs_and_service_reload "$subsys"
 		break;
 	done;
 }
