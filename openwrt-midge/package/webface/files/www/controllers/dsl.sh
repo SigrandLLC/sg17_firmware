@@ -6,42 +6,30 @@
 cfg_path="/sys/bus/pci/drivers/sg16lan"
 	
 print_dsl_settings(){
-	
 	local iface
-	local var1
-	local var2
+	local link
 	
 	iface="$1"
 
-	
-        render_table_title $iface" interface sttings" 2
+	render_table_title $iface" modem settings" 2
 
 	# hidden mark dsl_iface_name
-	tip=""
-	desc=""
-	validator='tmt:message="'$desc'"'
-	var2="iface"	
-	render_input_field "hidden" "hidden" $var2 $iface
-
+	render_input_field "hidden" "hidden" iface $iface
 
 	# hidden mark dsl_iface_name
 	link=`cat ${cfg_path}/${iface}/state`
 	tip=""
 	desc="Link state"
 	validator='tmt:message="'$desc'"'
-	var1="link state"		
-	var2="link"	
-#	render_input_field select "$var1" $var2 online online offline offline
-	render_2table_field "$var1" "$link"
-
+	render_input_field static "SHDSL Status" status "$link"
 	
-	# sys_dsl_ethX_rate
+	# sys_dsl_dslX_rate
 	tip=""
 	desc="Select DSL line rate"
 	validator='tmt:message="'$desc'"'
 	var1="rate"
-	var2="sys_dsl_${iface}_rate"	
-	render_input_field text "$var1" $var2  
+	var2="sys_dsl_${iface}_rate"
+	render_input_field text sys_dsl_${iface}_rate "$var1" $var2
 
 	# sys_dsl_ethX_mode
 	tip=""
@@ -135,7 +123,7 @@ print_dsl_settings(){
 
 	eval `$kdb -qq list sys_dsl_`
 	for iface in `kdb get sys_dsl_ifaces`; do	
-	    render_form_header dsl dsl_save.asp
+	    render_form_header dsl dsl_save
 	    print_dsl_settings $iface
 	    render_submit_field
 	    render_form_tail

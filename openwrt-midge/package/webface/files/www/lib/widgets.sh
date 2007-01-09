@@ -162,6 +162,9 @@ render_input_field(){
     password)
         echo "	<input type='password' class='edit' $tipcode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
         ;;
+    static)
+        echo "$@"
+        ;;
 	esac
         
     [ ! $type = "hidden" ] && echo "<br><span class='inputDesc' $tipcode>$desc</span></td></tr>"
