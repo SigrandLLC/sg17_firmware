@@ -59,9 +59,6 @@ pre_ifup(){
 				cmd /sbin/ifenslave $realiface $i
 			done
 			;;
-		ipsec)
-			# TODO
-			;;
 	esac
 }
 
@@ -218,10 +215,6 @@ _ifup(){
 				exit 1
 			fi
 			;;
-
-		ipsec)
-			# TODO
-			;;
 	esac
 
 
@@ -248,10 +241,7 @@ post_ifdown() {
 			cmd brctl delbr $realiface
 			;;
 		bonding) 
-			# TODO
-			;;
-		ipsec)
-			# TODO
+			# TODO?
 			;;
 	esac
 }
@@ -269,14 +259,8 @@ _ifdown(){
 
 	cmd /sbin/ifconfig $realiface down
 	case $proto in
-		static)
-			;;
-		dhcp)
-			;;
 		pppoe|pptp)
 			kill_ppp
-			;;
-		ipsec)
 			;;
 	esac
 	post_ifdown
