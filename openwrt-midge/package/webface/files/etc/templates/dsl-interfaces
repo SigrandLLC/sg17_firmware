@@ -25,7 +25,7 @@ dsl_iface_tmpl()
 
     # rate process    
     is_number "$rate" || die "Bad line rate value $rate"
-    cmdargs="${cmdargs} lrate=$rate"
+    cmdargs="${cmdargs} rate $rate"
     
     # mode process MY BE CHECK!
     cmdargs="${cmdargs} $mode"    
@@ -40,19 +40,20 @@ dsl_iface_tmpl()
     cmdargs="${cmdargs} netaddr=$mac"
     
     #annex process
-    cmdargs="${cmdargs} annex=$annex"
+    cmdargs="${cmdargs} annex $annex"
     
     #crc process
     cmdargs="${cmdargs} $crc32"
     
     #fill process
-    cmdargs="${cmdargs} $fill"
+#    cmdargs="${cmdargs} $fill"
     
     #annex process
-    cmdargs="${cmdargs} $inv"
+#    cmdargs="${cmdargs} $inv"
     
 
     echo "${sg16cfg} ${cmdargs}"
+    `${sg16cfg} ${cmdargs}`
 }
 
 show_header $0
