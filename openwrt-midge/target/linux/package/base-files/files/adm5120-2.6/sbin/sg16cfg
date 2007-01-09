@@ -1,5 +1,9 @@
-#!/bin/sh
-
+#!/bin/bash
+# Sigrand SG-16PCI and SG16-ISA configuration tool 
+# for Linux kernel v 2.6
+#
+#	Written 2006 by Artem U. Polyakov
+#
 #---------------------------------------------------------
 
 dload_fw()
@@ -23,7 +27,9 @@ print_stat()
     if [ $# -lt 2 ]; then
 	exit
     fi
-    prog_name=$1
+    prog_name=$0
+    IFACE=$1
+    CARD=$2
 
     master=`cat master`
     code=`cat mod`
@@ -33,36 +39,43 @@ print_stat()
     state=`cat state`     
     mode=`cat remcfg`
     annex=`cat annex`    
-    echo "---------------------------------------"
-    echo "Sigrand SG-16PCI SHDSL modem statistics"
-    echo "State:     "$state 	
-    echo "Settings:  Rate="$rate1" of "$rate2"("$auto") "$code" "$master
-    echo "           Cfg="$mode" "$annex
+    rb=`cat rburst`
+    wb=`cat wburst`
+    fill=`cat fill_7e`
+    inv=`cat inv`
+    crc=`cat crc16`
+
+    echo "SIGRAND SG-16${CARD} SHDSL modem statistics"
+    echo "$1:    "$state
+    echo "shdsl:   "$master" "$code" cfg="$mode" "$annex
+    echo "         rate="$rate1" of "$rate2"("$auto")"
+    echo "hdlc:    fill="$fill" inversion="$inv" "$crc
+    if [ "$CARD" = "PCI" ]; then
+    echo "PCI bus: rb"$rb" wb"$wb
+    fi
+
     set `cat statistic`
     
     if [ ! $# -eq  10 ];then
 	echo $prog_name": error, getting statistic"
 	exit
     fi
-    echo "Traffic statistics"
-    echo "     Frames send      : "$1
-    shift
-    echo "     Frames received  : "$1
-    shift
-    echo "     CRC errors       : "$1
-    shift
-#    echo "     Bytes send       : "$1
+#    echo "Traffic statistics"
+#    echo "     Frames send      : "$1
+    shift 3
+#    echo "     Frames received  : "$1
 #    shift
-#    echo "     Bytes received   : "$1
+#    echo "     CRC errors       : "$1
 #    shift
-    echo "SHDSL statistics"
-    echo -n "     Retrain          : "$1
+    echo "________________________________________"
+    echo "shdsl statistics"
+    echo -n "      Retrain          : "$1
     shift
     echo " of "$1
     shift
-    echo "     Loss of sync word: "$1
+    echo "      Loss of sync word: "$1
     shift
-    echo "     CRC6 errors      : "$1
+    echo "      CRC6 errors      : "$1
     shift
     a=`expr $1 / 2`
     tmp=`expr $1 % 2`
@@ -71,7 +84,7 @@ print_stat()
     else 
 	b=".0"
     fi
-    echo "     Line attenuation : "$a$b" dB"
+    echo "      Line attenuation : "$a$b" dB"
     shift
     a=`expr $1 / 2`
     tmp=`expr $1 % 2`
@@ -80,16 +93,14 @@ print_stat()
     else 
 	b=".0"
     fi
-    echo "     Noise margin     : "$a$b" dB" 
+    echo "      Noise margin     : "$a$b" dB" 
     shift
-    echo "Time statistics"
-#    tmp=`perl -e 'print localtime('$1')."\n"'`
-#    echo "     Last connect     : "$tmp
+
+    if [ -f /usr/bin/perl ] || [ -f /bin/perl ]; then
+            tmp=`perl -e 'print localtime('$1')."\n"'`
+            echo "      Last connect     : "$tmp
+    fi
     shift
-#    echo "     Connect duration : "$1
-#    shift
-#    echo "     Online time      : "
-#    echo "     Offline time     : "
     
 }
 
@@ -116,7 +127,7 @@ if [ $# = 0 ]; then
     echo "  rate auto [<value>]        - auto line rate (up to 2304 in auto mode)"    
     echo "                               2304 by default"
     echo "  crc32 | crc16              - CRC length"
-    echo "  netaddr <value>            - less significant part of MAC-address"
+    echo "  mac-addr <value>           - less significant part of MAC-address"
     echo "  rboff | rbon               - PCI read burst mode off"
     echo "  wboff | wbon               - PCI write burst mode off"
     echo "  fill_ff | fill_7e          - fill byte value"
@@ -147,30 +158,35 @@ if [ $1 = "fwinst" -o $1 = "FWINST" ]; then
     exit
 fi
 
-cd /sys/bus/pci/drivers
-if [ ! -d sg16lan ]; then
+PCI_PATH="/sys/bus/pci/drivers/sg16lan"
+ISA_PATH="/sys/bus/pnp/drivers/sg16lan"
+
+if [ ! -d "$PCI_PATH" ] && [ ! -d "$ISA_PATH" ]; then
     echo "sg16lan Driver don't loaded!"
     exit
 fi
-cd sg16lan
 
-
-# CD to the device dir
-if [ ! -d $1 ]; then
-    echo $0": No such device "$1
-    exit
+if [ -d "$PCI_PATH/$1" ]; then
+	cd "$PCI_PATH/$1"
+	CARD="PCI"
+elif [ -d "$ISA_PATH/$1" ]; then
+	cd "$ISA_PATH/$1"
+	CARD="ISA"
+else
+	echo "$0: No such device $1"
+	exit
 fi
-cd $1
+
 interf=$1
 
 # Usage statistic
 if [ $# = 1 ]; then
-    print_stat $0 $interf
+    print_stat $interf $CARD
     exit
 fi
 if [ $2 = "stat" -o $2 = "STAT" ]; then
     if [ $# = 2 ]; then
-	print_stat $0 $interf	
+	print_stat $interf $CARD
 	exit
     elif [ $# = 3 -a $3 = "reset" ] || [ $# = 3 -a $3 = "RESET" ]; then
 	echo "Reset stat"
@@ -294,7 +310,17 @@ while [ ! -z $1 ]; do
 	    fi
 	    shift
 	fi
-	;;    
+	;;
+
+    "mac-addr")
+	if [ -z $2 ]; then
+	    echo $0": syntax error, after \"mac-addr\" "
+	    break
+	fi
+	echo "$2" > maddr 
+	shift
+	;;
+	    
     "tcpam32")
 	echo 0 > mod 
 	;;
