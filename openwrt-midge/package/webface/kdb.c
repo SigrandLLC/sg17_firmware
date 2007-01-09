@@ -14,7 +14,7 @@
 #define COUNT_NAME "kdb_lines_count"
 #define DEBUG 0
 
-#define FLOCK(f) flock(fileno(f), LOCK_EX);
+#define FLOCK(f) {if(flock(fileno(f), LOCK_EX)) perror("flock");};
 #define FUNLOCK(f) flock(fileno(f), LOCK_UN);
 
 char db_filename[255];
@@ -69,6 +69,25 @@ char *set_dbfilename(const char* filename)
 	strcpy(db_filename, filename);
 	return db_filename;
 }
+
+
+int db_open()
+{
+	db_file = fopen(get_dbfilename(), "r+");
+	if (!db_file) {
+		fprintf(stderr, "fopen '%s' %s\n", get_dbfilename(), strerror(errno));
+		exit(1);
+	};
+	// lock the file
+	FLOCK(db_file);
+	return true;
+}
+
+int db_close()
+{
+	FUNLOCK(db_file);
+	fclose(db_file);
+};
 
 int init()
 {
@@ -194,19 +213,15 @@ int db_read()
 	if (db_already_readed)
 		return true;
 
-	db_file = fopen(get_dbfilename(), "r");
-	if (!db_file) {
-		fprintf(stderr, "fopen '%s' %s\n", get_dbfilename(), strerror(errno));
-		exit(1);
-	};
-	// lock file
-	FLOCK(db_file);
-	
+	result=db_open();
+
 	// read header
-    if( ! fgets(db_header, sizeof(db_header), db_file) ) {
-        perror("fgets");
-        result=false;
-    }
+	if (result) {
+		if ( !fgets(db_header, sizeof(db_header), db_file) ) {
+			perror("fgets");
+			result=false;
+		}
+	}
 	// check header
     if (result && (!parse_header()))
         result=false;
@@ -224,9 +239,6 @@ int db_read()
             result=false;
         };
 		if (DEBUG) fprintf(stderr, "DEBUG: db_read(): readed %d bytes\n", readed);
-		// unlock
-		FUNLOCK(db_file);
-        fclose(db_file);
         // terminate buffer
         buf[MAX_DB_SIZE]='\0';
 
@@ -288,19 +300,12 @@ int db_write()
         };
     };
     if (result) {
-		// open file
-        db_file = fopen(get_dbfilename(), "w");
-		FLOCK(db_file);
-        if (!db_file) {
-            perror("fopen");
-            exit(1);
-        };
+		// Rewind file to beginning
+		rewind(db_file);
         s+=5;
         fwrite(buf, 1, (s-buf), db_file);
         if (ferror(db_file)) 
             perror("fwrite"), result=false;
-		FUNLOCK(db_file);
-        fclose(db_file);
     }
     if (buf)
         free(buf);
@@ -603,6 +608,8 @@ int db_create(const char *filename)
 {
     if (strlen(filename))
 		set_dbfilename(filename);
+
+	db_open();
 	need_write=true;
    
     return true;
@@ -641,8 +648,9 @@ int db_import(const char *filename)
         };
     };
     fclose(file);
+	db_open();
     if (result) 
-        result = db_write();
+        need_write=true;
 
     return result;
 }
@@ -700,6 +708,9 @@ int main(int argc, char **argv)
 
 		strcpy(cmd, argv[optind]);
 		optind++;
+		// if cmd == ':' then go to next cmd
+		if ( cmd[0]==':' )
+			continue;
 
 
 		if ( (optind >= argc) || (strcmp(":", argv[optind])==0)) {
@@ -712,29 +723,29 @@ int main(int argc, char **argv)
 		optind++;
 
 
-		if ((!strcmp(cmd, "list")) || (!strcmp(cmd, "ls")))
+		if ( (!strcmp(cmd, "list")) || (!strcmp(cmd, "ls")) )
 			result = list(param);
-		else if ((!strcmp(cmd, "slist")) || (!strcmp(cmd, "sublist"))|| (!strcmp(cmd, "sls")))
-			result = sublist(param);
-		else if ((!strcmp(cmd, "klist")) || (!strcmp(cmd, "kls")))
-			result = keylist(param);
-		else if ((!strcmp(cmd, "listrm")) || (!strcmp(cmd, "lrm")))
-			result = listrm(param);
-		else if ((!strcmp(cmd, "listadd")) || (!strcmp(cmd, "ladd")))
-			result = listadd(param);
-		else if (!strcmp(cmd, "get"))
-			result = get(param);
 		else if (!strcmp(cmd, "set"))
 			result = set(param);
+		else if (!strcmp(cmd, "get"))
+			result = get(param);
+		else if ( (!strcmp(cmd, "sls")) || (!strcmp(cmd, "slist")) || (!strcmp(cmd, "sublist")) )
+			result = sublist(param);
+		else if ( (!strcmp(cmd, "listrm")) || (!strcmp(cmd, "lrm")) )
+			result = listrm(param);
+		else if ( (!strcmp(cmd, "listadd")) || (!strcmp(cmd, "ladd")) )
+			result = listadd(param);
 		else if (!strcmp(cmd, "isset"))
 			result = isset(param);
-		else if ((!strcmp(cmd, "del")) || (!strcmp(cmd, "rm")))
+		else if ( (!strcmp(cmd, "klist")) || (!strcmp(cmd, "kls")) )
+			result = keylist(param);
+		else if ( (!strcmp(cmd, "del")) || (!strcmp(cmd, "rm")) )
 			result = del(param);
-		else if (!strcmp(cmd, "edit"))
+		else if ( !strcmp(cmd, "edit") )
 			result = edit(argv[0]);
-		else if (!strcmp(cmd, "create"))
+		else if ( !strcmp(cmd, "create") )
 			result = db_create(param);
-		else if (!strcmp(cmd, "import"))
+		else if ( !strcmp(cmd, "import") )
 			result = db_import(param);
 		else 
 			show_usage(argv[0]);
@@ -742,11 +753,8 @@ int main(int argc, char **argv)
 			break;
 
 	}
-    if (result) {
-		if(need_write)
-			db_write();
-
-        return 0;
-	} else 
-        return 1;
+    if (result && need_write)
+		db_write();
+	db_close();
+	return result?0:1;
 }
