@@ -1,9 +1,0 @@
-#!/bin/sh
-echo "Starting dsl ..."
-
-sg16cfg dsl0 reload
-sg16cfg dsl1 reload
-sg16cfg dsl0 slave annex F cfg preact
-sg16cfg dsl1 slave annex F cfg preact
-ifconfig dsl0 192.168.102.1 up
-ifconfig dsl1 192.168.103.1 up
