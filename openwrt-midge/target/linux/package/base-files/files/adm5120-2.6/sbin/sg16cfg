@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Sigrand SG-16PCI and SG16-ISA configuration tool 
 # for Linux kernel v 2.6
 #
