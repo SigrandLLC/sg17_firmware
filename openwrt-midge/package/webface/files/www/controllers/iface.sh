@@ -72,13 +72,6 @@
 					kdb_vars="str:sys_iface_${iface}_pptp_server str:sys_iface_${iface}_pptp_username str:sys_iface_${iface}_pptp_password bool:sys_iface_${iface}_pptp_defaultroute str:sys_iface_${iface}_pptp_pppdopt";;
 				pppoe)
 					kdb_vars="str:sys_iface_${iface}_pppoe_iface str:sys_iface_${iface}_pppoe_ac str:sys_iface_${iface}_pppoe_service bool:sys_iface_${iface}_pptp_defaultroute  str:sys_iface_${iface}_pppoe_username str:sys_iface_${iface}_pppoe_password str:sys_iface_${iface}_pppoe_pppdopt" ;;
-				ipsec)
-					kdb_vars="str:sys_iface_${iface}_ipsec_mode str:sys_iface_${iface}_ipsec_local_addr str:sys_iface_${iface}_ipsec_remote_addr"
-					kdb_vars="$kdb_vars str:sys_iface_${iface}_ipsec_local_ah_spi str:sys_iface_${iface}_ipsec_local_ah_alg str:sys_iface_${iface}_ipsec_local_ah_key"
-					kdb_vars="$kdb_vars str:sys_iface_${iface}_ipsec_remote_ah_spi str:sys_iface_${iface}_ipsec_remote_ah_alg str:sys_iface_${iface}_ipsec_remote_ah_key"
-					kdb_vars="$kdb_vars str:sys_iface_${iface}_ipsec_local_esp_spi str:sys_iface_${iface}_ipsec_local_esp_alg str:sys_iface_${iface}_ipsec_local_esp_key"
-					kdb_vars="$kdb_vars str:sys_iface_${iface}_ipsec_remote_esp_spi str:sys_iface_${iface}_ipsec_remote_esp_alg str:sys_iface_${iface}_ipsec_remote_esp_key"
-					;;
 				ether)
 					kdb_vars="str:sys_iface_${iface}_mac"
 			esac
@@ -283,35 +276,6 @@
 			desc="MAC Address for interface"
 			validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct mac address" tmt:pattern="macaddr"'
 			render_input_field text "MAC Address" sys_iface_${iface}_mac
-			;;
-		'ipsec')
-			render_table_title "IPSec Specific parameters" 2 
-			tip=""
-			desc="Please select mode of interface"
-			validator='tmt:required="true" tmt:message="Please select mode"'
-			render_input_field select "Mode" sys_iface_${iface}_ipsec_mode 'transport' 'Transport' 'tunnel' 'Tunnel'
-
-			desc="Local address (dotted quad) <b>required</b>"
-			validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
-			render_input_field text "Local address " sys_iface_${iface}_ipsec_local_addr
-			desc="Remote address (dotted quad) <b>required</b>"
-			validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
-			render_input_field text "Remote address " sys_iface_${iface}_ipsec_remote_addr
-			# :TODO: add md5 validation
-			render_input_field text "Local AH SPI" sys_iface_${iface}_ipsec_local_ah_spi
-			render_input_field select "Local AH Algorithm" sys_iface_${iface}_ipsec_local_ah_alg 'hmac-md5' 'hmac-md5' 'hmac-sha1' 'hmac-sha1'
-			render_input_field text "Local AH Key" sys_iface_${iface}_ipsec_local_ah_key
-			render_input_field text "Remote AH SPI" sys_iface_${iface}_ipsec_remote_ah_spi
-			render_input_field select "Remote AH Algorithm" sys_iface_${iface}_ipsec_remote_ah_alg 'hmac-md5' 'hmac-md5' 'hmac-sha1' 'hmac-sha1'
-			render_input_field text "Remote AH Key" sys_iface_${iface}_ipsec_remote_ah_key
-			
-			render_input_field text "Local ESP SPI" sys_iface_${iface}_ipsec_local_esp_spi
-			render_input_field select "Local ESP Algorithm" sys_iface_${iface}_ipsec_local_esp_alg 'des-cbc' 'des-cbc' '3des-cbc' '3des-cbc'
-			render_input_field text "Local ESP Key" sys_iface_${iface}_ipsec_local_esp_key
-			render_input_field text "Remote ESP SPI" sys_iface_${iface}_ipsec_remote_esp_spi
-			render_input_field select "Remote ESP Algorithm" sys_iface_${iface}_ipsec_remote_esp_alg 'des-cbc' 'des-cbc' '3des-cbc' '3des-cbc'
-			render_input_field text "Remote ESP Key" sys_iface_${iface}_ipsec_remote_esp_key
-
 			;;
 		'pppoe')
 			render_table_title "PPPoE Specific parameters" 2 

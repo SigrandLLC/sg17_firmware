@@ -19,7 +19,7 @@
 	eval `$kdb -qq ls sys_ipsec `
 	
 	
-	render_page_selection "" status "Status" ah "AH" esp "ESP" policy "Policy" random "Random keys" #"Authentication header" esp "Encapsulated Security Payload" 
+	render_page_selection "" status "Status" sad "Security Association" spd "Security Policy" random "Random keys" 
 	
 	render_form_header
 
@@ -32,17 +32,13 @@
 		render_console_command $setkey -DP
 		render_console_end
 		;;
-	'ah')
-		render_table_title "Authentication header" 2 
-		render_iframe_list "ipsec_table" "table=ah"
+	'sad')
+		render_table_title "Security Association Database" 2 
+		render_iframe_list "ipsec_table" "table=sad"
 		;;
-	'esp')
-		render_table_title "Encapsulated Security Payload" 2 
-		render_iframe_list "ipsec_table" "table=esp"
-		;;
-	'policy')
+	'spd')
 		render_table_title "Security Policy Database" 2 
-		render_iframe_list "ipsec_table" "table=policy"
+		render_iframe_list "ipsec_table" "table=spd"
 		;;
 	'random')
 		render_console_start "Random 64 bit key" 2 

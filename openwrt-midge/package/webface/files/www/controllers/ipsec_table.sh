@@ -7,32 +7,36 @@
 	table=$FORM_table
 	
 	case "$FORM_do" in
-		del) $kdb lrm "$FORM_item";;
+		del) $kdb lrm "$FORM_item";
+			update_configs_and_service_reload 'ipsec'
+		;;
 	esac;
 	
 	eval `$kdb -qqc list sys_ipsec_${table}_`
 	render_form_header ipsec_${table}
 
-	case $table in
-	ah|esp)
-		render_list_header ipsec_table sys_ipsec_${table}_ "table=$table" "SPI" "Src" "Dst" "Algorithm" "Key"
+	
+	render_list_line(){
+		local lineno=$1
+		local item="sys_ipsec_${table}_${lineno}"
+		local target_img="<img src=img/blank.gif>"
+		local style
+		eval "var=\$$item"
+		eval "$var"
+		[  "x${enabled}x" = "xx"  ] && style="class='lineDisabled'"
+		
+		case $table in
+		sad)	echo "<tr $style><td>$spi</td><td>$src</td><td>$dst</td><td>$ah_alg<br>$ah_key</td><td>$esp_alg<br>$esp_key</td><td>";;
+		spd)	echo "<tr $style><td>$src</td><td>$dst</td><td>$upperspec</td><td>$direction</td><td>$policy</td><td>$mode</td><td>$level</td><td>";;
+		esac
+		render_list_btns ipsec_table_edit "$item" "table=$table"
+		echo '</td></tr>'
+	}
 
-		render_list_line(){
-			local lineno=$1
-			local item="sys_ipsec_${table}_${lineno}"
-			local target_img="<img src=img/blank.gif>"
-			local style
-			eval "var=\$$item"
-			eval "$var"
-			[  "x${enabled}x" = "xx"  ] && style="class='lineDisabled'"
-			
-			echo "<tr $style><td>$spi</td><td>$src</td><td>$dst</td><td>$algo</td><td>$key</td><td>"
-			render_list_btns ipsec_table_edit "$item" "table=$table"
-			echo '</td></tr>'
-		}
-		;;
-	policy)
-		;;
+	
+	case $table in
+	sad)	render_list_header ipsec_table sys_ipsec_${table}_ "table=$table" "SPI" "Src" "Dst" "AH" "ESP";;
+	spd)	render_list_header ipsec_table sys_ipsec_${table}_ "table=$table" "Src" "Dst" "Upper-Level" "Direction" "Policy" "Proto" "Level";;
 	esac
 	
 	
