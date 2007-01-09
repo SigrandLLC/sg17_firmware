@@ -29,7 +29,7 @@
 	render_input_field hidden form form htpasswd
 	validator='tmt:required="true" tmt:message="Please input admin password" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
 	render_input_field password "Password" htpasswd 
-	render_submit_field 
+	render_submit_field "Set"
 	render_form_tail
 
 	render_form_header 
@@ -38,7 +38,7 @@
 	render_input_field hidden form form passwd
 	validator='tmt:required="true" tmt:message="Please input root password" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
 	render_input_field password "Password" passwd 
-	render_submit_field 
+	render_submit_field "Set"
 	render_form_tail
 
 	
