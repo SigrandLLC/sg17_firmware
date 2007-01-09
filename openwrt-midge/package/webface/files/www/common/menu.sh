@@ -17,10 +17,11 @@ L3(){
 }
 
 L1 System welcome
-	L2 General 	general
-	L2 Time		time
-	L2 SHDSL	dsl
-	L2 DNS		dns
+	L2 General 	'general'
+	L2 Security 'passwd'
+	L2 Time		'time'
+	L2 SHDSL	'dsl'
+	L2 DNS		'dns'
 	
 L1 Network
 	L2 Interfaces ifaces
@@ -41,8 +42,11 @@ L1 Tools
 	L2 dmesg	"tools&page=dmesg"
 	L2 ping	"tools&page=ping"
 	L2 mtr	"tools&page=mtr"
-#	L2 dig	"tools&page=dig"
-	L2 password	"passwd"
+	L2 dig	"tools&page=dig"
+	L2 tcpdump	"tools&page=tcpdump"
+L1 Expert
+	L2 kdb	"expert&page=kdb"
+	L2 "kdb set"	"expert&page=kdb_set"
 
 #	<a href="javascript:showhide('diag','tri_diag')">
 #					<img src="img/tri_c.gif" id="tri_diag" width="14" height="10" border="0"></a><strong><a href="javascript:showhide('diag','tri_diag')" class="navlnk">Diagnostics</a></strong><br>
