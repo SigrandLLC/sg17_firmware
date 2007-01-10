@@ -18,7 +18,7 @@
 
 	# name
 	desc="Name of rule"
-	validator=$validator_rulename
+	validator="$tmtreq $validator_rulename"
 	render_input_field text "Short name" name
 	
 	# enabled

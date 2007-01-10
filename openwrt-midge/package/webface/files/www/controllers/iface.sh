@@ -215,16 +215,16 @@
 		render_input_field checkbox "Enable DHCP server" sys_iface_${iface}_dhcp_enabled
 
 		desc="Start of dynamic ip range address for your LAN (dotted quad) <b>required</b>"
-		validator=$validator_ipaddr
+		validator="$tmtreq $validator_ipaddr"
 		render_input_field text "Start IP" sys_iface_${iface}_dhcp_startip
 
 		desc="End of dynaic ip range address for your LAN (dotted quad) <b>required</b>"
-		validator=$validator_ipaddr
+		validator="$tmtreq $validator_ipaddr"
 		render_input_field text "End IP" sys_iface_${iface}_dhcp_endip
 
 		tip="<b>Example:</b> 255.255.255.0"
 		desc="Netmask for your LAN (dotted quad) <b>required</b>"
-		validator=$validator_netmask
+		validator="$tmtreq $validator_netmask"
 		render_input_field text "Netmask" sys_iface_${iface}_dhcp_netmask
 
 		# sys_iface_${iface}_dhcp_router

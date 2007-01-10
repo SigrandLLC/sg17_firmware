@@ -18,7 +18,7 @@
 	# domain
 	tip="<b>Tip:</b> Use @ for current zone"
 	desc="Domain"
-	validator=$validator_dnsdomain
+	validator="$tmtreq $validator_dnsdomain"
 	render_input_field text "Domain or host" domain
 	
 	# datatype

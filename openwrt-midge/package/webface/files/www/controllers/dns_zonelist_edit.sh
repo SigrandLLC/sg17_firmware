@@ -28,7 +28,7 @@
 	
 	# zone
 	desc="Name of zone"
-	validator=$validator_dnszone
+	validator="$tmtreq $validator_dnszone"
 	render_input_field text "Zone" zone
 	
 	# enabled
@@ -45,35 +45,35 @@
 
 	# admin
 	desc="Email of zone admin"
-	validator=$validator_email
+	validator="$tmtreq $validator_email"
 	render_input_field text "Admin" admin
 
 	# refresh
 	default="28800"
 	tip="Indicates the time when the slave will try to refresh the zone from the master.<br>RFC 1912 recommends 1200 to 43200 seconds"
 	desc="Time (seconds) when the slave will try to refresh the zone from the master."
-	validator=$validator_refresh
+	validator="$tmtreq $validator_refresh"
 	render_input_field text "Refresh" refresh
 
 	# ttl
 	default="86400"
 	tip="TTL in the DNS context defines the duration in seconds that the record may be cached. Zero indicates the record should not be cached"
 	desc="Time (seconds) to live"
-	validator=$validator_ttl
+	validator="$tmtreq $validator_ttl"
 	render_input_field text "TTL" ttl
 
 	# retry
 	default="7200"
 	tip="Typical values would be 180 (3 minutes) to 900 (15 minutes) or higher"
 	desc="Defines the time (seconds) between retries if the slave (secondary) fails to contact the master when refresh (above) has expired"
-	validator=$validator_retry
+	validator="$tmtreq $validator_retry"
 	render_input_field text "retry" retry
 
 	# expire
 	default="1209600"
 	tip="Slave servers stop responding to queries for the zone when this time has expired and no contact has been made with the master<br>RFC 1912 recommends 1209600 to 2419200 seconds (2-4 weeks) to allow for major outages of the master."
 	desc="Indicates when (seconds) the zone data is no longer authoritative."
-	validator=$validator_expire
+	validator="$tmtreq $validator_expire"
 	render_input_field text "expire" expire
 	render_submit_field
 
