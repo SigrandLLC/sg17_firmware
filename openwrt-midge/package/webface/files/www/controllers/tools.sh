@@ -1,7 +1,4 @@
 #!/usr/bin/haserl
-	. conf/conf.sh
-	. lib/misc.sh
-	. lib/widgets.sh
 
 	page=${FORM_page:-ping}
 	host=${FORM_host:-localhost}

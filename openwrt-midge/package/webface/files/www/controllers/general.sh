@@ -1,9 +1,4 @@
 #!/usr/bin/haserl
-	. conf/conf.sh
-	. lib/misc.sh
-	. lib/widgets.sh
-
-
 	
 	if [ $REQUEST_METHOD = POST ]; then
 		kdb_vars="str:sys_hostname str:sys_iface_wan_type"

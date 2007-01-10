@@ -1,8 +1,4 @@
 #!/usr/bin/haserl
-	. conf/conf.sh
-	. lib/misc.sh
-	. lib/widgets.sh
-
 	
 	if [ $REQUEST_METHOD = POST ]; then
 		kdb_vars="bool:sys_ntpclient_enabled str:sys_ntpclient_server str:sys_timezone"
@@ -24,7 +20,7 @@
 	# sys_ntpclient_server
 	tip="Input hostname of time server <br>Example: <b>pool.ntp.org</b>"
 	desc="Please input hostname or ip address time server"
-	validator='tmt:required="true" tmt:message="Please input timeserver" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
+	validator="$tmtreq $validator_dnsdomainoripaddr"
 	render_input_field text "Time server" sys_ntpclient_server 
 
 	# sys_timezone

@@ -1,7 +1,4 @@
 #!/usr/bin/haserl
-	. conf/conf.sh
-	. lib/misc.sh
-	. lib/widgets.sh
 
 	iface_proto=$FORM_iface_proto
 	del_iface=$FORM_del_iface

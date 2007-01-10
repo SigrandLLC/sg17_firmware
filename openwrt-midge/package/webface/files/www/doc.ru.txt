@@ -6,19 +6,26 @@ save() - Функция записи данных в kdb
 где type: bool,str,int (для bool значения 0 и 1)
 	ex: kdb_vars="bool:sys_iface_${iface}_dhcp_enabled int:sys_iface_${iface}_dhcp_lease_time"
 если iface=eth0 - соотвественно записывает данные из переменных $FORM_sys_iface_eth0_dhcp_enabled $FORM_sys_iface_eth0_dhcp_lease_time 
-вызывает service_reload $subsys
+вызывает update_configs_and_service_reload $subsys
+
+update_configs_and_service_reload() - Функция обновляет конфиги, и перегружает требуемый сервис
+вызывает:
+   update_configs $service
+   service_reload $service
 
 service_reload() $subsys - Функция перегружает требуемый сервис 
   см lib/services.sh
   
+  
+  render_input_field
  
 
-При поднятии ppp интерфейса определяется реальное имя интерфейса и записывается в sys_iface_${iface}_real - пока не реализовано
+При поднятии ppp интерфейса определяется реальное имя интерфейса и записывается в sys_iface_${iface}_real
 
 Протоколы интерфейсов sys_iface_${iface}_proto - имена интерфейсов:
   - bridge - br
-  - ipsec - ipsec
   - pppoe - ppp
+  - pptp - ppp
   - ether - eth
   - bonding - bond
   - imq - imq НЕРЕАЛИЗОВАНО ЗА НЕНАДОБНОСТЬЮ

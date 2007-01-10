@@ -1,7 +1,4 @@
 #!/usr/bin/haserl
-	. conf/conf.sh
-	. lib/misc.sh
-	. lib/widgets.sh
 
 	subsys="fw"
 	table=$FORM_table

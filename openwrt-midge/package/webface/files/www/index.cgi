@@ -1,5 +1,6 @@
 #!/usr/bin/haserl
 <? 
+
 if [ -n "$FORM_frame" ]; then
 	. common/frame_header.sh
 elif [ -n "$FORM_popup" ]; then
@@ -11,10 +12,13 @@ fi
 . conf/conf.sh 
 . lib/cfg.sh
 . lib/kdb.sh
+. lib/widgets.sh
 
-if [ -r /tmp/$FORM_SESSIONID ]; then
-	. /tmp/$FORM_SESSIONID
-fi
+
+#
+#if [ -r /tmp/$FORM_SESSIONID ]; then
+#	. /tmp/$FORM_SESSIONID
+#fi
 
 controller=$FORM_controller
 

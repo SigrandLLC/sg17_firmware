@@ -1,6 +1,4 @@
 #!/usr/bin/haserl
-	. lib/misc.sh
-	. lib/widgets.sh
 
 	subsys="dhcp"
 
@@ -15,17 +13,17 @@
 	
 	# name
 	desc="Host name"
-	validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct name" tmt:pattern="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,nobackquotes"'
+	validator="$tmtreq $validator_name"
 	render_input_field text "Host name" name
 	
 	# ipaddr
 	desc="IP Address for host"
-	validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
+	validator="$tmtreq $validator_ipaddr"
 	render_input_field text "IP Address" ipaddr
 
 	# hwaddr
 	desc="MAC Address for host"
-	validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct mac address" tmt:pattern="macaddr"'
+	validator="$tmtreq $validator_macaddr"
 	render_input_field text "MAC Address" hwaddr
 
 	render_submit_field

@@ -1,8 +1,4 @@
 #!/usr/bin/haserl
-	. conf/conf.sh
-	. lib/misc.sh
-	. lib/widgets.sh
-
 
 	page=${FORM_page:-status}
 	subsys="ipsec"

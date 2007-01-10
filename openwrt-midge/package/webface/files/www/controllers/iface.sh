@@ -1,9 +1,4 @@
 #!/usr/bin/haserl
-	. conf/conf.sh
-	. lib/misc.sh
-	. lib/widgets.sh
-
-
 
 	export iface=${FORM_iface:-eth0}
 	page=${FORM_page:-status}
@@ -174,25 +169,25 @@
 			# sys_iface_${iface}_ipaddr
 			#tip="IP address for interface"
 			desc="Address (dotted quad) <b>required</b>"
-			validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
+			validator="$tmtreq $validator_ipaddr"
 			render_input_field text "Static address " sys_iface_${iface}_ipaddr
 
 			# sys_iface_${iface}_netmask
 			#tip="Netmask used for BLA BLA BLA"
 			desc="Netmask (dotted quad) <b>required</b>"
-			validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct netmask" tmt:pattern="netmask"'
+			validator="$tmtreq $validator_netmask"
 			render_input_field text "Netmask" sys_iface_${iface}_netmask
 
 			# sys_iface_${iface}_broadcast
 			#tip="IP address for interface"
 			desc="Broadcast (dotted quad)"
-			validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct broadcast" tmt:pattern="ipaddr"'
+			validator=$validator_ipaddr
 			render_input_field text "Broadcast" sys_iface_${iface}_broadcast
 			
 			# sys_iface_${iface}_gateway
 			#tip="Gateway used for default routing"
 			desc="Default gateway (dotted quad)"
-			validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
+			validator=$validator_ipaddr
 			render_input_field text "Gateway" sys_iface_${iface}_gateway
 		fi
 
@@ -220,22 +215,22 @@
 		render_input_field checkbox "Enable DHCP server" sys_iface_${iface}_dhcp_enabled
 
 		desc="Start of dynamic ip range address for your LAN (dotted quad) <b>required</b>"
-		validator='tmt:required="true" tmt:message="Please input correct start IP" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:pattern="ipaddr"'
+		validator=$validator_ipaddr
 		render_input_field text "Start IP" sys_iface_${iface}_dhcp_startip
 
 		desc="End of dynaic ip range address for your LAN (dotted quad) <b>required</b>"
-		validator='tmt:required="true" tmt:message="Please input correct end IP" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:pattern="ipaddr"'
+		validator=$validator_ipaddr
 		render_input_field text "End IP" sys_iface_${iface}_dhcp_endip
 
 		tip="<b>Example:</b> 255.255.255.0"
 		desc="Netmask for your LAN (dotted quad) <b>required</b>"
-		validator='tmt:required="true" tmt:message="Please input correct netmask" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:pattern="netmask"'
+		validator=$validator_netmask
 		render_input_field text "Netmask" sys_iface_${iface}_dhcp_netmask
 
 		# sys_iface_${iface}_dhcp_router
 		tip="Router for subnet"
 		desc="Default router for your LAN hosts (dotted quad) "
-		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip for router" tmt:pattern="ipaddr"'
+		validator=$validator_ipaddr
 		render_input_field text "Default router" sys_iface_${iface}_dhcp_router
 
 		# sys_iface_${iface}_dhcp_lease_time
@@ -248,7 +243,7 @@
 		# sys_iface_${iface}_dhcp_nameserver
 		tip="DNS server for your LAN hosts<br>You can use this device as DNS server"
 		desc="DNS server for your LAN hosts (dotted quad)"
-		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip for DNS server" tmt:pattern="ipaddr"'
+		validator=$validator_ipaddr
 		render_input_field text "DNS server" sys_iface_${iface}_dhcp_nameserver
 
 		# sys_iface_${iface}_dhcp_domain_name
@@ -260,12 +255,12 @@
 		# sys_iface_${iface}_dhcp_ntpserver
 		tip="NTP server for your LAN hosts"
 		desc="NTP server for your LAN hosts (dotted quad)"
-		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip for NTP server" tmt:pattern="ipaddr"'
+		validator=$validator_ipaddr
 		render_input_field text "NTP server" sys_iface_${iface}_dhcp_ntpserver
 
 		tip="WINS server for your LAN hosts"
 		desc="WINS server for your LAN hosts (dotted quad)"
-		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip for WINS server" tmt:pattern="ipaddr"'
+		validator=$validator_ipaddr
 		render_input_field text "WINS server" sys_iface_${iface}_dhcp_winsserver
 		;;
 	'spec')
@@ -274,7 +269,7 @@
 			render_table_title "Ethernet Specific parameters" 2 
 
 			desc="MAC Address for interface"
-			validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct mac address" tmt:pattern="macaddr"'
+			validator=$validator_macaddr
 			render_input_field text "MAC Address" sys_iface_${iface}_mac
 			;;
 		'pppoe')
@@ -310,8 +305,9 @@
 		'pptp')
 			render_table_title "PPtP Specific parameters" 2 
 			desc="PPtP Server <b>required</b>"
+
 			
-			validator='tmt:required="true" tmt:message="Please input server ip address" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
+			validator=$validator_dnsdomainoripaddr
 			render_input_field text "Server" sys_iface_${iface}_pptp_server
 			
 			validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
@@ -324,8 +320,8 @@
 			desc="Add a default route to the system routing tables, using the peer as the gateway"
 			render_input_field checkbox "Default route" sys_iface_${iface}_pptp_defaultroute
 			
-			# todo: replace route?
-			# todo: add static route to pptp server?
+			# TODO: replace route?
+			# TODO: add static route to pptp server?
 			#render_input_field select "Encryption" sys_iface_${iface}_pptp_enc nomppe nomppe mppe-40 mppe-40 mppe-56 mppe-56 mppe-128 mppe-128
 			
 			default="noauth nobsdcomp nodeflate nomppe"	#		require-mppe-128"
@@ -335,21 +331,19 @@
 			render_table_title "Bonding Specific parameters" 2 
 
 			desc="MAC Address for interface"
-			validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct mac address" tmt:pattern="macaddr"'
+			validator=$validator_macaddr
 			render_input_field text "MAC Address" sys_iface_${iface}_mac
 
 			tip="<b>Example:</b>eth0 eth1 dsl0<br><b>Note:</b>You can use only Ethernet-like interfaces, like ethX, dslX, bondX<br><b>Note:</b> Interfaces should be enabled, but <b>auto</b> should be switched <b>off</b>"
 			desc="Interfaces for bonding separated by space"
-			validator='tmt:required="true" tmt:message="Please input interfaces" tmt:filters="ltrim,nohtml,nocommas,nomagic"'
+			validator=$validator_ifacelist
 			render_input_field text "Interfaces" sys_iface_${iface}_bond_ifaces
 			
 			# cleans interface _auto param
 			if [ $REQUEST_METHOD = POST ]; then
 				eval 'ifaces=$sys_iface_'${iface}'_bond_ifaces'
-				debug "ifaces $ifaces"
 				for i in $ifaces; do
 					kdb set sys_iface_${i}_auto=0;
-					debug kdb set sys_iface_${i}_auto=0;
 				done
 			fi
 			;;
@@ -361,7 +355,7 @@
 			
 			tip="<b>Example:</b> eth0 eth1 dsl0<br><b>Note:</b> You can use only Ethernet-like interfaces, like ethX, dslX<br><b>Note:</b> Interfaces should be enabled, but <b>auto</b> should be switched <b>off</b>"
 			desc="Interfaces for bridge separated by space"
-			validator='tmt:required="true" tmt:message="Please input interfaces" tmt:filters="ltrim,nohtml,nocommas,nomagic"'
+			validator=$validator_ifacelist
 			render_input_field text "Interfaces" sys_iface_${iface}_br_ifaces
 			
 			tip="The priority value is  an  unsigned  16-bit  quantity  (a  number between  0 and 65535), and has no dimension. Lower priority values are better. The bridge with the lowest priority will be elected <b>root bridge</b>."

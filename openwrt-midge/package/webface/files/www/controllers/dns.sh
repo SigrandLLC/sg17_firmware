@@ -1,7 +1,4 @@
 #!/usr/bin/haserl
-	. conf/conf.sh
-	. lib/misc.sh
-	. lib/widgets.sh
 
 	kdb_vars="str:sys_dns_nameserver str:sys_dns_domain"
 	subsys="dns"

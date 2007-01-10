@@ -1,6 +1,4 @@
 #!/usr/bin/haserl
-	. lib/misc.sh
-	. lib/widgets.sh
 
 	subsys="fw"
 
@@ -20,7 +18,7 @@
 
 	# name
 	desc="Name of rule"
-	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct rule name"'
+	validator=$validator_rulename
 	render_input_field text "Short name" name
 	
 	# enabled
@@ -31,15 +29,16 @@
 	# src
 	default="0.0.0.0/0"
 	srctip="Address can be either a network IP address (with /mask), or a plain IP address<br><b>Examples:</b> 192.168.1.0/24, 192.168.1.5<br> Use 0.0.0.0/0 for <b>any</b>"
+	tip="$srctip"
 	desc="Source address specification"
-	validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct address" tmt:pattern="ipnet"'
+	validator=$validator_ipnet
 	render_input_field text "Source" src
 
 	# dst
 	default="0.0.0.0/0"
 	tip="$srctip"
 	desc="Destination address specification"
-	validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct address" tmt:pattern="ipnet"'
+	validator=$validator_ipnet
 	render_input_field text "Destination" dst
 
 	# proto
@@ -53,14 +52,14 @@
 	sporttip="An inclusive range can also be specified, using the format <b>port:port</b>. If the first port is omitted, 0 is assumed; if the last is omitted, 65535 is assumed."
 	tip="$sporttip"
 	desc="Source port or port range specification."
-	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct port" tmt:pattern="ipportrange"'
+	validator="$tmtreq $validator_ipportrange"
 	render_input_field text "Source port" sport
 
 	# dport
 	default="any"
 	tip="$sporttip"
 	desc="Destination port or port range specification."
-	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct port" tmt:pattern="ipportrange"'
+	validator="$tmtreq $validator_ipportrange"
 	render_input_field text "Destination port" dport
 
 	if [ "$table" = "nat" ]; then
@@ -68,7 +67,7 @@
 		default=""
 		tip="You can add port number after ip address<br><b>Example: </b> 192.168.0.1:80"
 		desc="Do Source NAT or Destination NAT to address"
-		validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct address" tmt:pattern="ipaddrport"'
+		validator=$validator_ipaddrport
 		render_input_field text "Nat to address" natto
 	fi
 	
@@ -85,7 +84,6 @@
 	fi
 	
 	render_submit_field
-
 	render_form_tail
 	
 	

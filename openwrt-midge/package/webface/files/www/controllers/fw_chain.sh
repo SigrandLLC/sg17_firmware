@@ -1,7 +1,5 @@
 #!/usr/bin/haserl
-	. lib/misc.sh
-	. lib/widgets.sh
-	
+
 	frame=1
 
 	table=$FORM_table

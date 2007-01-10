@@ -1,6 +1,4 @@
 #!/usr/bin/haserl
-	. lib/misc.sh
-	. lib/widgets.sh
 
 	subsys="ipsec"
 
@@ -29,7 +27,7 @@
 		# spi
 		tip="SPI must be a decimal number, or a hexadecimal number with a <b>0x</b> prefix<br/> SPI values between 0 and 255 are reserved for future use by IANA and cannot be used. TCP-MD5 associations must use 0x1000 and therefore only have per-host granularity at this time."
 		desc="Security Parameter Index (SPI) <b>required</b>"
-		validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct SPI value" tmt:pattern="ipsec_spi"'
+		validator=$validator_spi
 		render_input_field text "SPI" spi
 
 		# mode
@@ -39,12 +37,12 @@
 		
 		# src
 		desc="Source address (dotted quad) <b>required</b>"
-		validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct address" tmt:pattern="ipaddr"'
+		validator="$tmtreq $validator_ipaddr"
 		render_input_field text "Source" src
 
 		# dst
 		desc="Destination address (dotted quad) <b>required</b>"
-		validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct address" tmt:pattern="ipaddr"'
+		validator="$tmtreq $validator_ipaddr"
 		render_input_field text "Destination" dst
 
 		# ah_alg
@@ -56,7 +54,7 @@
 		default="0x"
 		tip="Must be a series of hexadecimal digits preceded by <b>0x</b>"
 		desc=""
-		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct key" tmt:pattern="ipsec_key"'
+		validator=$validator_ipseckey
 		render_input_field text "AH Key" ah_key
 
 		# esp_alg
@@ -67,19 +65,20 @@
 		# esp_key
 		default="0x"
 		tip="Must be a series of hexadecimal digits preceded by <b>0x</b>"
+		validator=$validator_ipseckey
 		render_input_field text "ESP Key" esp_key
 		;;
 	spd)
 		# src
 		tip="<b>Example: <b/><ol><li>192.168.0.1<li>192.168.1.0/24</li>"
 		desc="Can be an IPv4 address or an IPv4 address range <b>required</b>"
-		validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct address range" tmt:pattern="ipnet"'
+		validator=$validator_ipnet
 		render_input_field text "Source range" src
 
 		# dst
 		tip="<b>Example: <b/><ol><li>192.168.0.1<li>192.168.1.0/24</li>"
 		desc="Can be an IPv4 address or an IPv4 address range <b>required</b>"
-		validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct address range" tmt:pattern="ipnet"'
+		validator=$validator_ipnet
 		render_input_field text "Destination" dst
 		
 		# upperspec

@@ -1,6 +1,4 @@
 #!/usr/bin/haserl
-	. lib/misc.sh
-	. lib/widgets.sh
 
 	subsys=""
 
@@ -15,18 +13,18 @@
 	
 	# net
 	desc="Network or host"
-	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
+	validator="$tmtreq $validator_ipaddr"
 	render_input_field text "Network" net
 	
 	# netmask
 	tip="<h2>Examples:</h2><b>255.255.255.0</b> - /24 - Class <b>C</b> network<br><b>255.255.255.252</b> - /30<br><b>255.255.255.255</b> - /32 for a single host<br>BLA BLA BLA"
 	desc="Netmask"
-	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip netmask" tmt:pattern="netmask"'
+	validator="$tmtreq $validator_netmask"
 	render_input_field text "Netmask" netmask
 
 	# gw
 	desc="Gateway for route"
-	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
+	validator="$tmtreq $validator_ipaddr"
 	render_input_field text "Gateway" gw
 
 	render_submit_field

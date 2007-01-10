@@ -3,6 +3,8 @@
 tmt_globalFilters.nobackquotes = tmt_filterInfo('`', "");
 tmt_globalFilters.nomagic = tmt_filterInfo('[`$();]', "");
 
+tmt_globalPatterns.A_z= new RegExp("^\([A-Za-z]+\)$");
+tmt_globalPatterns.A_z0_9= new RegExp("^\([A-Za-z0-9]+\)$");
 
 // IP Addr validation
 tmt_globalPatterns.ipaddr = new RegExp("^\(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.\(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.\(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.\(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])$");

@@ -1,7 +1,4 @@
 #!/usr/bin/haserl
-	. conf/conf.sh
-	. lib/misc.sh
-	. lib/widgets.sh
 
 	passwd=${FORM_passwd}
 	htpasswd=${FORM_htpasswd}
@@ -27,7 +24,7 @@
 	render_table_title "Webface admin password" 2 
 	tip="Valid symbols A-Z, a-z, 0-9"
 	render_input_field hidden form form htpasswd
-	validator='tmt:required="true" tmt:message="Please input admin password" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
+	validator=$validator_password
 	render_input_field password "Password" htpasswd 
 	render_submit_field "Set"
 	render_form_tail
@@ -36,7 +33,7 @@
 	render_table_title "root system password" 2 
 	tip="Valid symbols A-Z, a-z, 0-9"
 	render_input_field hidden form form passwd
-	validator='tmt:required="true" tmt:message="Please input root password" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
+	validator=$validator_password
 	render_input_field password "Password" passwd 
 	render_submit_field "Set"
 	render_form_tail

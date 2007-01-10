@@ -3,6 +3,29 @@
 # Sigrand webface project
 # 
 
+tmtreq='tmt:required=true '
+validator_ipaddr='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
+validator_netmask='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip netmask" tmt:pattern="netmask"'
+validator_dnsdomain='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns domain name" tmt:pattern="dnsdomain"'
+validator_dnsdomainoripaddr=' tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns domain name" tmt:pattern="dnsdomainoripaddr"'
+validator_mxprio='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input priority" tmt:pattern="positiveinteger" tmt:minnumber=1 tmt:maxnumber=999'
+validator_dnszone='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nodots,noquotes,nodoublequotes,nocommas,nomagic" tmt:message="Please input zone identifier" tmt:pattern="dnszone"'
+validator_email='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct email" tmt:pattern="email"'
+validator_refresh='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input refresh time" tmt:pattern="positiveinteger" tmt:minnumber=1200 tmt:maxnumber=500000'
+validator_ttl='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input ttl time" tmt:pattern="positiveinteger" tmt:minnumber=1 tmt:maxnumber=500000'
+validator_retry='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input retry time" tmt:pattern="positiveinteger" tmt:minnumber=180 tmt:maxnumber=20000'
+validator_expire='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input expire time" tmt:pattern="positiveinteger" tmt:minnumber=10000 tmt:maxnumber=90000000'
+validator_rulename='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct rule name" tmt:pattern="A_z0_9"'
+validator_ipnet='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct address x.x.x.x/y" tmt:pattern="ipnet"'
+validator_ipportrange='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct port" tmt:pattern="ipportrange"'
+validator_ipaddrport='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct address" tmt:pattern="ipaddrport"'
+validator_password='tmt:required="true" tmt:message="Please input admin password" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
+validator_name='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct name" tmt:pattern="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,nobackquotes"'
+validator_macaddr='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct mac address" tmt:pattern="macaddr"'
+validator_spi='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct SPI value" tmt:pattern="ipsec_spi"'
+validator_ipseckey='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct key" tmt:pattern="ipsec_key"'
+validator_ifacelist='tmt:required="true" tmt:message="Please input interfaces" tmt:filters="ltrim,nohtml,nocommas,nomagic"'
+
 render_chart_h(){
     local t="$1";
     local l="$2";
@@ -16,7 +39,7 @@ render_title(){
     local txt;
     [ "$title" ] && txt="$title"
     [ "$1" ] && txt="$1"
-    [ "$txt" ] && echo '<h1>'$txt'</h1>';
+    [ "$txt" ] && echo '<h1 class="title">'$txt'</h1>';
 }
 
 render_table_title(){

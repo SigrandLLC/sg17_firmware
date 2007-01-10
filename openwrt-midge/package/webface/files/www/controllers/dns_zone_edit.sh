@@ -1,6 +1,4 @@
 #!/usr/bin/haserl
-	. lib/misc.sh
-	. lib/widgets.sh
 
 	#subsys="dns_server"
 
@@ -20,7 +18,7 @@
 	# domain
 	tip="<b>Tip:</b> Use @ for current zone"
 	desc="Domain"
-	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns domain name" tmt:pattern="dnsdomain"'
+	validator=$validator_dnsdomain
 	render_input_field text "Domain or host" domain
 	
 	# datatype
@@ -30,13 +28,13 @@
 
 	# prio
 	desc="Priority used only on MX records"
-	validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input priority" tmt:pattern="positiveinteger" tmt:minnumber=1 tmt:maxnumber=999'
+	validator=$validator_mxprio
 	render_input_field text "Priority" prio
 
 	# data
 	tip="If the record points to an EXTERNAL server (not defined in this zone) it MUST end with a <b>.</b> (dot) e.g. ns1.example.net. If the name server is defined in this domain (in this zone file) it can be written as ns1 (without the dot)"
 	desc="Please input data for this record"
-	validator='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns domain name" tmt:pattern="dnsdomainoripaddr"'
+	validator="$tmtreq $validator_dnsdomainoripaddr"
 	render_input_field text "Data" data
 
 	render_submit_field

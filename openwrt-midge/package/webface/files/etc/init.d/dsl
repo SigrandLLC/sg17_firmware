@@ -26,7 +26,7 @@ _dsl_stop_drv(){
 
 _dsl_if_find(){
 	echo "finding ifaces"
-	`$kdb set sys_dsl_ifaces="dsl0"`
+	$kdb set sys_dsl_ifaces="dsl0"
 	return 0;
 }
 
