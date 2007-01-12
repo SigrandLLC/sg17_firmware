@@ -42,7 +42,8 @@ void show_usage(char *name)
     printf("        slist key | sls key |\n");
     printf("        klist key | kls key |\n");
     printf("        listrm key | lrm key |\n");
-    printf("        listadd | ladd key_=value |\n");
+    printf("        listadd key_=value | ladd key_=value |\n");
+    printf("        rename key_old key_new | rn key_old key_new |\n");
     printf("        create [filename] |\n");
     printf("        import [filename] |\n");
     printf("        edit }\n");
