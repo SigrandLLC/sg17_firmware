@@ -334,6 +334,22 @@ int find_key(const char *key)
     return -1;
 }
 
+int rename(const char *oldkey, const char* newkey)
+{
+    char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE], s[MAX_LINE_SIZE];
+	db_read();
+    int index = find_key(oldkey);
+	if ( index == -1 ) 
+		return false;
+	if (parse_pair(db_lines[index], name, value)) 
+		snprintf(s, sizeof(s), "%s=%s", newkey, value);
+		if ( set(s) && del(oldkey) )
+			return need_write=true;
+	
+	return false;
+
+}
+
 int get(const char *key)
 {
     char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE];
@@ -609,6 +625,14 @@ int db_create(const char *filename)
     if (strlen(filename))
 		set_dbfilename(filename);
 
+	// create or truncate file
+	FILE *f=fopen(get_dbfilename(), "w");
+	if (!f) {
+		perror("fopen");
+		return false;
+	}
+	fclose(f);
+
 	db_open();
 	need_write=true;
    
@@ -716,12 +740,8 @@ int main(int argc, char **argv)
 		if ( (optind >= argc) || (strcmp(":", argv[optind])==0)) {
 			strcpy(param, "");
 		} else {
-			strcpy(param, argv[optind]);
-			optind++;
+			strcpy(param, argv[optind++]);
 		}
-
-		optind++;
-
 
 		if ( (!strcmp(cmd, "list")) || (!strcmp(cmd, "ls")) )
 			result = list(param);
@@ -743,6 +763,8 @@ int main(int argc, char **argv)
 			result = del(param);
 		else if ( !strcmp(cmd, "edit") )
 			result = edit(argv[0]);
+		else if ( !strcmp(cmd, "rename") )
+			result = rename(param, argv[optind++]);
 		else if ( !strcmp(cmd, "create") )
 			result = db_create(param);
 		else if ( !strcmp(cmd, "import") )
@@ -751,10 +773,11 @@ int main(int argc, char **argv)
 			show_usage(argv[0]);
 		if (!result)
 			break;
+		optind++;
 
 	}
     if (result && need_write)
 		db_write();
 	db_close();
-	return result?0:1;
+	return !result;
 }
