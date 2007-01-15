@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export KDB=/tmp/kdbtest
-kdb=/tmp/kdb
+kdb=/tmp/new
 
 t(){
 	local name=$1
@@ -11,6 +11,10 @@ t(){
 		echo $name fail
 		exit 1
 	fi
+}
+
+rand(){
+	for i in `seq 0 20`; do $kdb set sys_name_$RANDOM=value_$i ; done
 }
 
 create(){
@@ -47,9 +51,11 @@ isset(){
 }
 
 rm(){
-	local name="name${RANDOM}"
+	local name="delme_name"
+	rand
 	$kdb set $name=value
-	[ "`$kdb rm $name`" = "" ] || return 1
+	$kdb rm $name || return 1
+	[ "`$kdb ls $name`" = "" ] || return 1
 }
 
 sls(){
@@ -73,6 +79,9 @@ ladd(){
 	$kdb ladd sys_name_=value_11
 	[ "`$kdb ls sys_name_5`" = 'sys_name_5=value_5' ] || return 1
 	[ "`$kdb ls sys_name_11`" = 'sys_name_11=value_11' ] || return 1
+	eval "`$kdb -c ls sys_name_`"
+	[ "$sys_name_11" = 'value_11' ] || return 1
+	[ "$kdb_lines_count" = '12' ] || return 1
 }
 
 import(){
