@@ -632,8 +632,9 @@ int list_getnext(const char *name)
 		snprintf(s, sizeof(s), "%s%d", name, i);
 		index=find_key(s);
 		if ( index == -1 )
-			return index;
+			return i;
 	};
+	return -1;
 
 }
 
@@ -653,6 +654,8 @@ int listadd(const char* str)
 	};
 		
 	snprintf(s, sizeof(s), "%s%d", name, list_getnext(name));
+
+	need_write++;
 	return db_add(s, value, true);
 
 }
