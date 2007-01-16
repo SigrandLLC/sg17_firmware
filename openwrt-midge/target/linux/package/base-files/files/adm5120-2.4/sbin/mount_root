@@ -207,6 +207,7 @@ main(){
 		info 3 "Remount /proc"
 		mkdir -p /proc
 		mount -t proc /proc /proc
+		mount -t devfs none /dev
 	elif [ "$MIDGE_TYPE" = "usb" ]; then
         die "MIDGE_TYPE $MIDGE_TYPE is not implemented"
 	else 
