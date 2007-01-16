@@ -17,7 +17,7 @@ get_size(){
 }
 
 usage(){
-	echo "Usage: $0 save | load [dst] " >&2
+	echo "Usage: $0 clear | save | load [dst] " >&2
 	exit 1
 }
 
@@ -38,6 +38,11 @@ save(){
 		echo "Error: File $tmp too big: $(get_size $tmp)k"
 	fi
 	rm $tmp
+}
+
+clear(){
+	dd if=/dev/zero of=$DATAFS_PARTITION bs=1k count=1 && \
+	echo "Clear DataFS and Rebooting..." ; sleep 5 ; reboot -f
 }
 
 main(){
