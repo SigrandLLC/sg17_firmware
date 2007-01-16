@@ -42,7 +42,7 @@ save(){
 
 clear(){
 	dd if=/dev/zero of=$DATAFS_PARTITION bs=1k count=1 && \
-	echo "Clear DataFS and Rebooting..." ; sleep 5 ; reboot -f
+	echo "Clear DataFS done"
 }
 
 main(){
