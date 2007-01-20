@@ -246,7 +246,7 @@ $(eval $(call KMOD_template,USB,usb-core,\
 	$(MODULES_DIR)/kernel/drivers/usb/usbcore.o \
 ,CONFIG_USB,,50,usbcore))
 
-$(eval $(call KMOD_template,HID,usb-hid,\
+$(eval $(call KMOD_template,USB_HID,usb-hid,\
 	$(MODULES_DIR)/kernel/drivers/usb/hid.o \
 ,CONFIG_USB_HID,,56,hid))
 
