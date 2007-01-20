@@ -642,6 +642,7 @@ config BR2_PACKAGE_KMOD_USB_HID
 	tristate
 	default n if BR2_LINUX_2_4_AR531X
 	default m
+	depends BR2_PACKAGE_KMOD_USB
 
 config BR2_PACKAGE_KMOD_USB_UHCI 
 	prompt   "kmod-usb-uhci................... Support for UHCI controllers"
