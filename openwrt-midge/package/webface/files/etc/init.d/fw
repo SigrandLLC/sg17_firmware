@@ -16,7 +16,7 @@ chain(){
 	local chain=$2
 	local uchain=`echo $chain | tr a-z A-Z`
 	local _sport _dport _proto _nat
-	for key in `kdb kls sys_fw_${table}_${chain}_`; do 
+	for key in `kdb kls sys_fw_${table}_${chain}_*`; do 
 		val=`kdb get $key`
 		eval "$val"
 
@@ -37,7 +37,7 @@ chain(){
 }
 
 start(){
-	eval `kdb -qq ls sys_fw_`
+	eval `kdb -qq ls sys_fw_*`
 	echo -n "Starting fw: "
 	if [ "$sys_fw_enabled" = 1 ]; then
 		$SET_POLICY FORWARD $sys_fw_filter_policy_forward
@@ -56,7 +56,7 @@ start(){
 }
 
 stop(){
-	eval `kdb -qq ls sys_fw_`
+	eval `kdb -qq ls sys_fw_*`
 	echo -n "Stoping fw: "
 
 	# filter

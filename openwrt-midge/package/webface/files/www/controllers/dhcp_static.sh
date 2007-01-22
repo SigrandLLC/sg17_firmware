@@ -8,7 +8,7 @@
 		del) $kdb lrm "$FORM_item";;
 	esac;
 	
-	eval `$kdb -qqc list sys_iface_${iface}_dhcp_host`
+	eval `kdb -qqc ls sys_iface_${iface}_dhcp_host*`
 	render_form_header dhcp
 
 	render_list_line(){

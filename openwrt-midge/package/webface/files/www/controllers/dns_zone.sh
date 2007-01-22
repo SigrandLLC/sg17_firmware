@@ -2,11 +2,9 @@
 	
 	zoneid=$FORM_zoneid
 	
-	case "$FORM_do" in
-		del) $kdb lrm "$FORM_item";;
-	esac;
+	handle_list_del_item
 	
-	eval `$kdb -qqc list svc_dns_zone_$zoneid`
+	eval `kdb -qqc ls svc_dns_zone_${zoneid}*`
 	render_form_header dns_zone
 
 	render_list_line(){

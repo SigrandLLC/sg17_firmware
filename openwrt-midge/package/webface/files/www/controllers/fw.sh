@@ -10,7 +10,7 @@
 
 		render_save_stuff
 
-		eval `$kdb -qq ls sys_fw`
+		eval `kdb -qq ls sys_fw_*`
 		render_form_header fw 
 		render_table_title "Firewall settings" 2
 
@@ -28,7 +28,7 @@
 		render_title "Firewall settings"
 		render_save_stuff
 		
-		eval `$kdb -qq ls sys_fw_filter`
+		eval `kdb -qq ls sys_fw_filter_*`
 		render_form_header fw_policy 
 		
 		render_input_field hidden table table "$table"
@@ -71,7 +71,7 @@
 		render_title "Firewall settings"
 		render_save_stuff
 		
-		eval `$kdb -qq ls sys_fw_nat`
+		eval `kdb -qq ls sys_fw_nat_*`
 		render_form_header fw_policy 
 		
 		render_input_field hidden table table "$table"

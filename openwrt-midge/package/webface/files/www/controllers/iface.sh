@@ -4,15 +4,9 @@
 	page=${FORM_page:-status}
 	subsys="network"
 
-	case "$FORM_do" in
-		del) 
-				$kdb lrm "$FORM_item"
-				debug $kdb lrm "$FORM_item"
-			;;
-	esac;
-
+	handle_list_del_item
 		
-	eval `$kdb -qq ls sys_iface_${iface}_ : sls sys_iface_${iface}_ `
+	eval `kdb -qq ls sys_iface_${iface}_* : sls sys_iface_${iface}_ `
 	
 	
 	# enable DHCP page only on "ether" interfaces
@@ -75,7 +69,7 @@
 
 	render_save_stuff
 	
-	eval `$kdb -qq ls sys_iface_${iface}_ : sls sys_iface_${iface}_ `
+	eval `kdb -qq ls sys_iface_${iface}_* : sls sys_iface_${iface}_ `
 
 	render_form_header
 
@@ -476,7 +470,7 @@
 			}
 			
 			render_list_header staticroute sys_iface_${iface}_route_ "" "No" "Network" "Mask" "Gateway"
-			eval `$kdb -qqc list sys_iface_${iface}_route`
+			eval `$kdb -qqc list sys_iface_${iface}_route*`
 			i=0
 			while [ $i -lt $kdb_lines_count ]; do
 				render_list_line $i

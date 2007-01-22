@@ -1,6 +1,6 @@
 #!/bin/sh
 
-eval `$kdb -qq list sys_`
+eval `$kdb -qq list sys_*`
 
 echo '
 		<form action="" method="POST">

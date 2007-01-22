@@ -71,7 +71,7 @@ post_ifup(){
 
 	/etc/init.d/qos start $realiface
 
-	eval `kdb -qq ls sys_ntpclient_`
+	eval `kdb -qq ls sys_ntpclient_*`
 	if [ "$sys_ntpclient_enabled" = "1" -a -x /usr/sbin/ntpclient ] && /sbin/route -n | grep ^0.0.0.0 >/dev/null; then
 		info 2 "  Synchronizing time"
 		cmd /usr/sbin/ntpclient -c 1 -s -h ${sys_ntpclient_server:-pool.ntp.org} &
@@ -279,7 +279,7 @@ _network(){
 	done
 }
 
-eval `kdb -qq ls sys_iface`
+eval `kdb -qq ls sys_iface*`
 
 case "$0" in
 	*network)

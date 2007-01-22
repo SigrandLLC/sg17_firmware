@@ -97,7 +97,7 @@ update_configs(){
 		;;
 	dns_server)
 		ok="true"
-		for k in `kdb  kls svc_dns_zonelist `; do 
+		for k in `kdb  kls svc_dns_zonelist* `; do 
 			zonedata=`kdb  get $k`; 
 			eval "export $zonedata"; 
 			if [ "x${enabled}x" != "xx" ]; then

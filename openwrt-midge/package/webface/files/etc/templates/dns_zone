@@ -27,7 +27,7 @@ echo "			$ttl ; default ttl"
 echo "			)"
 echo 
 
-for k in `kdb kls svc_dns_zone_${zoneid}_`; do
+for k in `kdb kls svc_dns_zone_${zoneid}_*`; do
 	val=`kdb get $k`
 	eval "$val"
 	echo "$domain		IN	$datatype	$prio		$data"

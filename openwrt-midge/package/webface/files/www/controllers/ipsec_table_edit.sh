@@ -116,7 +116,7 @@
 		# level
 		tip="<ol><li><b>default</b> means the kernel consults the system wide default for the protocol you specified, e.g. the esp_trans_deflev sysctl variable, when the kernel processes the packet.  <li><b>use</b> means that the kernel uses an SA if its available, otherwise the kernel keeps normal operation.  <li><b>require</b> means SA is required whenever the kernel sends a packet matched with the policy.  <li><b>unique</b> is the same as require; in addition, it allows the policy to match the unique out-bound SA.</ol>"
 		desc=""
-		render_input_field select "Level" level require require default default use use unique unique
+		render_input_field select "Level" level use use require require default default unique unique
 	;;
 	esac
 	render_submit_field

@@ -86,7 +86,7 @@ print_dsl_settings(){
 		render_save_message		
 	fi
 
-	eval `$kdb -qq ls sys_dsl_`
+	eval `kdb -qq ls sys_dsl_*`
 	for iface in `kdb get sys_dsl_ifaces`; do	
 	    render_form_header dsl dsl_save
 	    print_dsl_settings $iface

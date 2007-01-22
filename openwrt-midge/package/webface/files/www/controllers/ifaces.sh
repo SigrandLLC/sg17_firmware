@@ -3,7 +3,7 @@
 	iface_proto=$FORM_iface_proto
 	del_iface=$FORM_del_iface
 
-	eval `$kdb -qq ls sys_ifaces`
+	eval `kdb -qq ls sys_ifaces`
 	
 	get_next_iface() {
 		local n=0
@@ -32,12 +32,12 @@
 	if [ $REQUEST_METHOD = POST ]; then
 		if [ -n "$iface_proto" ]; then
 			iface=`get_next_iface $iface_proto`
-			$kdb set sys_ifaces="$sys_ifaces $iface" : set sys_iface_${iface}_proto=$iface_proto : set sys_iface_${iface}_real=$iface : set sys_iface_${iface}_method=none
+			kdb set sys_ifaces="$sys_ifaces $iface" : set sys_iface_${iface}_proto=$iface_proto : set sys_iface_${iface}_real=$iface : set sys_iface_${iface}_method=none
 			ok_str="Interface <b>$iface</b> added, please reload page"
 			render_save_message
 		elif [ -n "$del_iface" ]; then
 			sys_ifaces=`echo $sys_ifaces | sed s/$del_iface//`
-			$kdb set sys_ifaces="$sys_ifaces"
+			kdb set sys_ifaces="$sys_ifaces"
 			del_iface=""
 			ok_str="Interface deleted, please reload page"
 			render_save_message

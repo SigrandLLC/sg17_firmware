@@ -19,17 +19,17 @@ kdb_ladd_string(){
 		warn "kdb_set_string(): var=$var value=$value <br>"
 	fi
 	
-	for s in $subsys; do 
-		update_configs $s
-		[ "$ERROR_MESSAGE" ] && break
-	done
-	fail_str="Update config failed: $ERROR_DETAIL"
-
-	[ "$ERROR_MESSAGE" ] && break
-	for service in $subsys; do
-		logfile=/tmp/$service.svc.log
-		service_reload $service 2>&1 | tee $logfile | $LOGGER ;
-	done
+#	for s in $subsys; do 
+#		update_configs $s
+#		[ "$ERROR_MESSAGE" ] && break
+#	done
+#	fail_str="Update config failed: $ERROR_DETAIL"
+#
+#	[ "$ERROR_MESSAGE" ] && break
+#	for service in $subsys; do
+#		logfile=/tmp/$service.svc.log
+#		service_reload $service 2>&1 | $LOGGER ;
+#	done
 }
 
 kdb_set_string(){

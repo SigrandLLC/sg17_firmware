@@ -1,13 +1,13 @@
 #!/usr/bin/haserl
 	
 	if [ $REQUEST_METHOD = POST ]; then
-		kdb_vars="str:sys_hostname str:sys_iface_wan_type"
+		kdb_vars="str:sys_hostname"
 		subsys="hostname"
 		save "$subsys" "$kdb_vars" 
 		render_save_message
 	fi
 	
-	eval `$kdb -qq list sys_`
+	eval `$kdb -qq list sys_hostname`
 	render_form_header general
 	render_table_title "General settings" 2
 

@@ -4,16 +4,9 @@
 	subsys="ipsec"
 	setkey=/usr/sbin/setkey
 
-	case "$FORM_do" in
-		del) 
-				$kdb lrm "$FORM_item"
-				debug $kdb lrm "$FORM_item"
-			;;
-	esac;
-
+	handle_list_del_item
 		
-	eval `$kdb -qq ls sys_ipsec `
-	
+	eval `kdb -qq ls sys_ipsec*`
 	
 	render_page_selection "" status "Status" sad "Security Association" spd "Security Policy" random "Random keys" 
 	

@@ -5,7 +5,7 @@
 
 	render_save_stuff
 
-	eval `$kdb -qq list sys_`
+	eval `kdb -qq ls sys_*`
 	render_form_header dns 
 	render_table_title "DNS Settings" 2 
 

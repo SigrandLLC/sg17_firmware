@@ -47,39 +47,39 @@ _dsl_if_defconfig(){
 
 	# check that variable is set
 	if [ -z "$up" ]; then
-		`$kdb set sys_ifaces_${iface}_up="0"`
+		$kdb set sys_ifaces_${iface}_up=0
 	fi
 	# check that MASTER variable is set
 	if [ -z "$mode" ]; then
-		`$kdb set sys_dsl_${iface}_mode="$def_mode"`
+		$kdb set sys_dsl_${iface}_mode="$def_mode"
 	fi
 	# check that RATE variable is set
 	if [ -z "$rate" ]; then
-		`$kdb set sys_dsl_${iface}_rate="$def_rate"`
+		$kdb set sys_dsl_${iface}_rate="$def_rate"
 	fi
 	# check that CODING variable is set
 	if [ -z "$coding" ]; then
-		`$kdb set sys_dsl_${iface}_coding="$def_coding"`
+		$kdb set sys_dsl_${iface}_coding="$def_coding"
 	fi
 	# check that CFG variable is set
 	if [ -z "$cfg" ]; then
-		`$kdb set sys_dsl_${iface}_cfg="$def_cfg"`
+		$kdb set sys_dsl_${iface}_cfg="$def_cfg"
 	fi
 	# check that ANNEX variable is set
 	if [ -z "$annex" ]; then
-		`$kdb set sys_dsl_${iface}_annex="$def_annex"`
+		$kdb set sys_dsl_${iface}_annex="$def_annex"
 	fi
 	# check that MAC variable is set
 	if [ -z "$mac" ]; then
-		`$kdb set sys_dsl_${iface}_mac="$def_mac"`
+		$kdb set sys_dsl_${iface}_mac="$def_mac"
 	fi
 	# check that FILL BYTE variable is set
 	if [ -z "$fill" ]; then
-		`$kdb set sys_dsl_${iface}_fill="$def_fill"`
+		$kdb set sys_dsl_${iface}_fill="$def_fill"
 	fi
 	# check that INVERSION variable is set
 	if [ -z "$inv" ]; then
-		`$kdb set sys_dsl_${iface}_inv="$def_inv"`
+		$kdb set sys_dsl_${iface}_inv="$def_inv"
 	fi
 
 	return 0;
@@ -92,12 +92,12 @@ _dsl_if_stop(){
 _dsl_apply_cfg(){
 	
 	iface=$1
-	eval `$kdb -qq sls sys_dsl_${iface}_`
+	eval $kdb -qq sls sys_dsl_${iface}_
 	# apply configuration
 	$ifcfg $iface down
 	$dsl_cfg $iface $mode rate $rate $coding cfg $cfg \
 		annex $annex $fill $inv $crc
-	eval `$kdb -qq sls sys_iface_${iface}_`
+	eval $kdb -qq sls sys_iface_${iface}_
 	if [ "$up" == "1" ]; then
 		$ifcfg $iface up
 	fi

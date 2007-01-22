@@ -4,17 +4,24 @@
 # 
 
 debug(){
-	[ $DEBUG ] && echo $* "<br>"
+	[ $DEBUG ] && echo $* >&2
 }
 
 warn(){
-	[ $WARN ] && echo $* "<br>"
+	[ $WARN ] && echo $* >&2
 }
 
 colorizelog(){
 	local red='root\|err\|DROP\|REJECT\|fail'
 	local yellow='warn'
 	sed -e 's-\(/[ubsd][^ ]*\)-<b>\1</b>-g' -e 's-\('$red'\)-<font color=red>\1</font>-g' -e 's-\('$yellow'\)-<font color=yellow>\1</font>-g'
+}
+
+handle_list_del_item(){
+	if [ "$FORM_do" = "del" ]; then
+		$kdb lrm "$FORM_item"
+		[ -n "$1" ] && update_configs_and_service_reload "$1"
+	fi
 }
 
 humanUnits(){

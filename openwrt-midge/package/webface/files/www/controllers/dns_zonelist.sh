@@ -2,11 +2,9 @@
 	
 	frame=1
 
-	case "$FORM_do" in
-		del) $kdb lrm "$FORM_item";;
-	esac;
+	handle_list_del_item
 	
-	eval `$kdb -qqc list svc_dns_zonelist`
+	eval `$kdb -qqc list svc_dns_zonelist*`
 	render_form_header dns_zonelist
 
 	render_list_line(){

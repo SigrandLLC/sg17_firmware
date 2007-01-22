@@ -1,6 +1,8 @@
 #!/usr/bin/haserl
 <? 
 
+controller=$FORM_controller
+
 if [ -n "$FORM_frame" ]; then
 	. common/frame_header.sh
 elif [ -n "$FORM_popup" ]; then
@@ -13,18 +15,10 @@ fi
 . lib/cfg.sh
 . lib/kdb.sh
 . lib/widgets.sh
+. lib/misc.sh
 
-
-#
-#if [ -r /tmp/$FORM_SESSIONID ]; then
-#	. /tmp/$FORM_SESSIONID
-#fi
-
-controller=$FORM_controller
 
 [ "$controller" ] || controller="welcome"
-
-[ $DEBUG ] && echo "main(): controller=$controller <br>"
 
 if [ -f controllers/"$controller".sh ]; then
 	. controllers/"$controller".sh

@@ -7,7 +7,7 @@ mac1="`cat /dev/urandom | hexdump  | head -1 | cut -c9,10`"
 mac2="`cat /dev/urandom | hexdump  | head -1 | cut -c9,10`"
 mac3="`cat /dev/urandom | hexdump  | head -1 | cut -c9,10`"
 
-eval `kdb -q ls sys_iface`
+eval `kdb -q ls sys_iface_*_mac`
 for iface in dsl0 dsl1 eth0 eth1 eth2 eth3 eth4 eth5; do
 	eval 'mac=$sys_iface_'${iface}'_mac'
 	if [ -z "$mac" ]; then

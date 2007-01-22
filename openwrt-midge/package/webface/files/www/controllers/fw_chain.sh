@@ -5,11 +5,9 @@
 	table=$FORM_table
 	chain=$FORM_chain
 	
-	case "$FORM_do" in
-		del) $kdb lrm "$FORM_item";;
-	esac;
+	handle_list_del_item
 	
-	eval `$kdb -qqc list sys_fw_${table}_${chain}_`
+	eval `$kdb -qqc list sys_fw_${table}_${chain}_*`
 	render_form_header fw_${table}_${chain}
 
 	render_list_line(){

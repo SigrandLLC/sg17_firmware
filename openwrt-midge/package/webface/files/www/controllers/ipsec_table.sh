@@ -1,16 +1,13 @@
 #!/usr/bin/haserl
+	. lib/misc.sh
 	
 	frame=1
 
 	table=$FORM_table
 	
-	case "$FORM_do" in
-		del) $kdb lrm "$FORM_item";
-			update_configs_and_service_reload 'ipsec'
-		;;
-	esac;
+	handle_list_del_item "ipsec"	# restart ipsec on item deletion
 	
-	eval `$kdb -qqc list sys_ipsec_${table}_`
+	eval `$kdb -qqc list sys_ipsec_${table}_*`
 	render_form_header ipsec_${table}
 
 	

@@ -238,7 +238,6 @@ render_list_header(){
 render_list_cycle_stuff(){
 	local i=0
 	while [ $i -lt $kdb_lines_count ]; do
-		#debug "render_list_cycle_stuff(): i=$i kdb_lines_count=$kdb_lines_count"
 		render_list_line $i
 		i=$(($i+1))
 	done
@@ -301,7 +300,7 @@ render_save_stuff(){
 }
 
 render_js_close_popup() {
-	local timeout=${1:-1500}
+	local timeout=${1:-3000}
 	echo "<script language=\"JavaScript\">setTimeout('window.close()',$timeout);</script>"
 }
 
@@ -310,7 +309,7 @@ render_js_refresh_parent() {
 }
 
 render_js_refresh_window() {
-	local timeout=${1:-2000}
+	local timeout=${1:-4000}
 	echo "<script language=\"JavaScript\">setTimeout('window.location = window.location', $timeout);</script>"
 }
 

@@ -7,7 +7,7 @@
 		render_save_message
 	fi
 
-	eval `$kdb -qq list sys_`
+	eval `$kdb -qq list sys_*`
 	render_form_header time time_save
 	render_table_title "Time settings" 2 
 

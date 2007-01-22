@@ -14,7 +14,7 @@ echo "spdflush;"
 echo 
 echo "############# Security Association Database ############# "
 echo
-SAs=`kdb kls sys_ipsec_sad`
+SAs=`kdb kls sys_ipsec_sad*`
 
 for sa in $SAs; do 
 	eval "`kdb get $sa`"
@@ -33,7 +33,7 @@ done
 echo 
 echo "############# Security Policy Database ############# "
 echo
-SPs=`kdb kls sys_ipsec_spd`
+SPs=`kdb kls sys_ipsec_spd*`
 for sp in $SPs; do 
 	eval "`kdb get $sp`"
 	[ "x${enabled}x" != "xx" ] && c="" || c="#  "

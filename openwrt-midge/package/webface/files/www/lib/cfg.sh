@@ -22,8 +22,7 @@ update_configs_and_service_reload(){
 	fail_str="Update config failed: $ERROR_DETAIL"
 	[ "$ERROR_MESSAGE" ] && return
 	for service in $subsys; do
-		logfile=/tmp/$service.svc.log
-		service_reload $service 2>&1 | tee $logfile | $LOGGER ;
+		service_reload $service 2>&1 | $LOGGER ;
 	done
 }
 

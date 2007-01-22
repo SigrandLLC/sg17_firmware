@@ -8,6 +8,7 @@ svc_dns_zonelist_0=zone=example1.com zoneid=domain1 nameserver=ns.example1.com a
 svc_dns_zonelist_1=zone=example2.com enabled=on zoneid=domain2 nameserver=ns.example2.com. admin=petya@example2.com serial=2006091601 refresh=28800 ttl=86400 retry=7200 expire=1209600 zonetype=master
 sys_dns_domain=localnet
 sys_dns_nameserver=194.54.152.35
+sys_dsl_ifaces=dsl0 dsl1
 sys_fw_filter_input_0=name=WWW_ACCEPT enabled=on proto=tcp src=0.0.0.0/0 dst=0.0.0.0/0 sport=any dport=80 natto= target=ACCEPT
 sys_fw_filter_policy_forward=DROP
 sys_fw_filter_policy_input=ACCEPT

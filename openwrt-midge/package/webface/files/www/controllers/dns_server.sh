@@ -1,12 +1,11 @@
 #!/usr/bin/haserl
 	
 	kdb_vars="int:svc_dns_tcpclients bool:svc_dns_enabled"
-	#kdb_vars="$kdb_vars "
 	subsys="dns_server"
 
 	render_save_stuff
 
-	eval `$kdb -qq ls svc_dns`
+	eval `kdb -qq ls svc_dns*`
 	render_form_header dns 
 	render_table_title "DNS Settings" 2 
 
