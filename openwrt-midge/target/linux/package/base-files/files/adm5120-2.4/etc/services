@@ -303,4 +303,5 @@ aprs		3421/tcp			# APRS monitor
 node		3694/tcp			# AMPR node
 
 # Local services
+dc			411/tcp				# DC hub
 
