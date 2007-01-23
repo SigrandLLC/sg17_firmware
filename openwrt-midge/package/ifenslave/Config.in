@@ -1,5 +1,5 @@
 config BR2_PACKAGE_IFENSLAVE
-	prompt "ifenslave............................ Configure network interfaces for parallel routing"
+	prompt "ifenslave......................... Configure network interfaces for parallel routing"
 	tristate
 	default y
 	help
