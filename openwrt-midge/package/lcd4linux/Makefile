@@ -3,16 +3,16 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=lcd4linux
-PKG_VERSION:=0.10.0+cvs20051015
+PKG_VERSION:=0.10.0+cvs20060825
 PKG_RELEASE:=1
-PKG_MD5SUM:=5b5ac629be4bb5c29104fb8f6b7fa444
+PKG_MD5SUM:=2ab54ac68802fa54d9413a29bad660b1
 
 PKG_SOURCE_URL:=http://ftp.debian.org/debian/pool/main/l/lcd4linux/ \
 		http://ftp.de.debian.org/debian/pool/main/l/lcd4linux/
 PKG_SOURCE:=$(PKG_NAME)_$(PKG_VERSION).orig.tar.gz
 PKG_CAT:=zcat
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION).orig
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)_$(PKG_VERSION).orig
 PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/ipkg-install
 
 include $(TOPDIR)/package/rules.mk
@@ -46,8 +46,8 @@ $(PKG_BUILD_DIR)/.configured:
 		  $(DISABLE_LARGEFILE) \
 		  $(DISABLE_NLS) \
 		  --without-x \
-		  --with-drivers='all,!PNG,!RouterBoard,!X11' \
-		  --with-plugins=wireless \
+		  --with-drivers=HD44780 \
+		  --with-plugins=loadavg,exec,proc_stat,uptime,netdev,meminfo,file,wireless \
 	)
 	touch $@
 
@@ -58,6 +58,8 @@ $(PKG_BUILD_DIR)/.built:
 	touch $@
 
 $(IPKG_LCD4LINUX):
+	install -d -m0755 $(IDIR_LCD4LINUX)/etc
+	install -m0600 ./files/lcd4linux.conf $(IDIR_LCD4LINUX)/etc/lcd4linux.conf                
 	install -d -m0755 $(IDIR_LCD4LINUX)/usr/bin
 	install -m0755 $(PKG_BUILD_DIR)/lcd4linux $(IDIR_LCD4LINUX)/usr/bin/
 	$(RSTRIP) $(IDIR_LCD4LINUX)
