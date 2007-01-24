@@ -37,15 +37,15 @@ render_chart_h(){
 
 render_title(){
     local txt;
-    [ "$title" ] && txt="$title"
-    [ "$1" ] && txt="$1"
-    [ "$txt" ] && echo '<h1 class="title">'$txt'</h1>';
+    [ -n "$title" ] && txt="$title"
+    [ -n "$1" ] && txt="$1"
+    [ -n "$txt" ] && echo '<h1 class="title">'$txt'</h1>';
 }
 
 render_table_title(){
     local text="$1"
     local colspan;
-    [ "$2" ] && colspan="colspan='$2'"
+    [ -n "$2" ] && colspan="colspan='$2'"
 	echo "<tr><td></td></tr>"
 	echo "<tr class='table_title'> <td $colspan class='table_title'>$text</td> </tr>"
 }
@@ -80,7 +80,7 @@ displayString()
 render_console_start(){
     local text="$1"
     local colspan;
-    [ "$2" ] && colspan="colspan='$2'"
+    [ -n "$2" ] && colspan="colspan='$2'"
 	echo "<tr><td></td></tr>"
 	[ -n "$text" ] && echo "<tr class='table_title'> <td $colspan class='table_title'>$text</td> </tr>"
     echo "<tr><td><pre class='console'>"
@@ -119,8 +119,8 @@ render_save_message(){
 render_form_header(){
 	#local act="$SCRIPT_NAME";
 	local lname="midge_form"
-	[ "$1" ] && lname="$1"
-    [ "$2" ] && act="$2"
+	[ -n "$1" ] && lname="$1"
+    [ -n "$2" ] && act="$2"
 
 	echo "<form name='$lname' method='post' tmt:validate='true'>"
 	#echo "<input type=hidden name=SESSIONID value='$SESSIONID'>"
@@ -136,7 +136,7 @@ render_input_field(){
 	local maxlenght='255'
     local tipcode=''
 	local i
-    [ "$tip" ] && tipcode="onmouseover=\"return overlib('$tip', BUBBLE, BUBBLETYPE, 'roundcorners')\" onmouseout=\"return nd();\""
+    [ -n "$tip" ] && tipcode="onmouseover=\"return overlib('$tip', BUBBLE, BUBBLETYPE, 'roundcorners')\" onmouseout=\"return nd();\""
     eval 'value=$'$inputname
 	[ -z "$value" -a -n "$default" ] && value="$default"
 	[ -n "$autosubmit" ] && ascode="onchange='this.form.submit()'"
@@ -160,9 +160,9 @@ render_input_field(){
         echo '> '
         ;;
     radio)
-		while [ "$1" ]; do
+		while [ -n "$1" ]; do
 			echo -n "<label $tipcode><input type='radio' class='button' $tipcode name='$inputname' $validator tmt:errorclass='invalid'"
-			[ "$value" = "$1" ] && echo -n " checked "
+			[ -n "$value" = "$1" ] && echo -n " checked "
 			echo "value='$1'>$2</label><br>"
 			validator=""
 			shift 2
@@ -170,9 +170,9 @@ render_input_field(){
 		;;
 	select)
 		echo -n "<select  $tipcode name='$inputname' class='edit' $validator tmt:errorclass='invalid' $ascode>"
-		while [ "$1" ]; do
+		while [ -n "$1" ]; do
 			echo -n "<option value=$1"
-			[ "$value" = "$1" ] && echo -n " selected "
+			[ -n "$value" = "$1" ] && echo -n " selected "
 			echo ">$2</option>"
 			shift 2
 		done
@@ -201,7 +201,7 @@ render_input_field(){
 
 render_submit_field(){
 	local btn="Save";
-	[ "$1" ] && btn="$1"
+	[ -n "$1" ] && btn="$1"
 	echo "<tr> <td colspan=2 style='text-align: center;'> <input class='button' type='submit' name='submit' value='$btn'> </td> </tr>";
 }
 
@@ -322,7 +322,7 @@ render_page_selection(){
 	extparam=$1
 	shift
 	echo "<table class='page_select'><tr>"
-	while [ "$1" ]; do
+	while [ -n "$1" ]; do
 		class="pagesel"
 		[ "$page" = "$1" ] && class="pagesel_a"
 		echo -n "<td class='$class'><a class='$class' href='/?controller=${controller}&page=$1&$extparam'>$2</a></td>"
