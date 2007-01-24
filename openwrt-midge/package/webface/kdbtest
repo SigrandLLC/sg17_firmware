@@ -30,6 +30,15 @@ _set(){
 	[ $name1 = value1 ] || return 1
 	[ $name2 = value2 ] || return 1
 	[ $name3 = value3 ] || return 1
+	export exporttest="qwerty qwerty"
+	$kdb set exporttest=%ENV
+	unset exporttest
+	eval `$kdb -qq ls`
+	[ "$exporttest" = "qwerty qwerty" ] || return 1
+	unset exporttest
+	$kdb rm exporttest
+	$kdb set exporttest=%ENV
+	[ "`$kdb ls exporttest`" = "exporttest=" ] || return 1
 }
 
 list(){
