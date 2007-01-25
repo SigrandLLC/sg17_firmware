@@ -82,6 +82,27 @@ config BR2_LINUX_2_6_SIBYTE
 	select BR2_mips
 	select BR2_LINUX_2_6
 
+config BR2_LINUX_2_4_ADM5120
+	bool "ADM5120 based routers [2.4]"
+	select BR2_mipsel
+	help
+	  Build firmware images for ADM5120 based routers
+	  (e.g. Edimax BR6104K )
+
+config BR2_LINUX_2_6_ADM5120
+	bool "ADM5120 based routers [2.6]"
+	select BR2_mipsel
+	help
+	  Build firmware images for ADM5120 based routers
+	  (e.g. Edimax BR6104K )
+
+config BR2_LINUX_2_6_SIGRAND5120
+	bool "Sigrand ADM5120 based routers [2.6]"
+	select BR2_mipsel
+	help
+	  Build firmware images for Sigrand ADM5120 based routers
+	  (e.g. SG- )
+
 if CONFIG_DEVEL
 
 config BR2_LINUX_2_6_MIPS64
@@ -123,20 +144,6 @@ config BR2_LINUX_2_6_SH4EB
 config BR2_LINUX_2_6_SPARC
 	bool "UNSUPPORTED sparc platform"
 	select BR2_sparc
-
-config BR2_LINUX_2_4_ADM5120
-	bool "ADM5120 based routers [2.4]"
-	select BR2_mipsel
-	help
-	  Build firmware images for ADM5120 based routers
-	  (e.g. Edimax BR6104K )
-
-config BR2_LINUX_2_6_ADM5120
-	bool "ADM5120 based routers [2.6]"
-	select BR2_mipsel
-	help
-	  Build firmware images for ADM5120 based routers
-	  (e.g. Edimax BR6104K )
 
 endif
 

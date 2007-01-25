@@ -16,6 +16,9 @@ BR2_ARCH="mipsel"
 # BR2_LINUX_2_4_X86 is not set
 # BR2_LINUX_2_6_X86 is not set
 # BR2_LINUX_2_6_SIBYTE is not set
+# BR2_LINUX_2_4_ADM5120 is not set
+# BR2_LINUX_2_6_ADM5120 is not set
+BR2_LINUX_2_6_SIGRAND5120=y
 # BR2_LINUX_2_6_MIPS64 is not set
 # BR2_LINUX_2_6_ARM is not set
 # BR2_LINUX_2_6_CRIS is not set
@@ -26,8 +29,6 @@ BR2_ARCH="mipsel"
 # BR2_LINUX_2_6_SH4 is not set
 # BR2_LINUX_2_6_SH4EB is not set
 # BR2_LINUX_2_6_SPARC is not set
-# BR2_LINUX_2_4_ADM5120 is not set
-BR2_LINUX_2_6_ADM5120=y
 # BR2_EXTERNAL_KERN_PATH_ON is not set
 
 #
@@ -993,7 +994,6 @@ BR2_PACKAGE_QUAGGA_OSPF6D=m
 BR2_PACKAGE_QUAGGA_RIPD=m
 BR2_PACKAGE_QUAGGA_RIPNGD=m
 BR2_PACKAGE_QUAGGA_VTYSH=m
-# BR2_PACKAGE_QC_USB is not set
 # BR2_PACKAGE_RADDUMP is not set
 # BR2_PACKAGE_RARPD is not set
 # BR2_PACKAGE_REAIM is not set

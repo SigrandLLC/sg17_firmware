@@ -28,7 +28,7 @@ inline void _debug(char* format, ...){}
 //                    v
 //
 //
-//  EXAPLE TREE
+//  EXAMPLE TREE
 //
 //  *ROOT*
 //    |       |-t-t-t-t-t
