@@ -216,17 +216,25 @@ public:
 		return add_child(new node(this));
 	}	
 
-	void serialize(FILE *stream=stdout, int level=0) {
+	int serialize(FILE *stream=stdout, int level=0) {
 		int i;
 		for ( i=0; i < level; i++ )
 			fprintf(stream, "\t");
-		fprintf(stream, "%s=%s\n", str_escape(name), str_escape(data));
+		char *esc_name = str_escape(name);
+		char *esc_data = str_escape(data);
 
-		node *c=fchild;
+		fprintf(stream, "%s=%s\n", esc_name, esc_data);
+
+		free(esc_data);
+		free(esc_name);
+
+		node *c = fchild;
 		while ( c ) {
 			c->serialize(stream, level+1);
-			c=c->get_next();
+			c = c->get_next();
 		}
+
+		return true;
 	}
 
 	void unserialize(FILE *stream=stdin, int level=0) {
@@ -263,22 +271,23 @@ int main ()
 	node *root=new node;
 	root->new_child();
 	root->new_child();
-	root->get_last()->new_child();
-	root->get_last()->new_child();
-	root->get_last()->new_child();
+	root->new_child();
+	root->new_child();
+	root->new_child();
 	root->new_child()->set_name("n1");
 	root->new_child()->set_data("d1");
 	root->new_child();
-	root->get_last()->new_child();
-	root->get_last()->new_child();
-	root->get_last()->new_child()->new_child();
-	root->get_last()->new_child()->new_child()->new_child();
-	root->get_last()->new_child()->new_child()->get_last()->new_child();
-	root->get_last()->new_child()->new_child()->get_last()->new_child()->set_namedata("n2", "d2");
-	root->get_last()->get_last()->new_child()->get_last()->new_child();
-	root->get_first()->new_child()->new_child()->get_last()->new_child();
-	root->get_first()->new_child()->new_child()->get_last()->new_child();
-	root->get_last()->get_first()->get_last()->get_first()->new_child();
+	root->new_child();
+	root->new_child();
+	root->new_child();
+	root->new_child()->new_child();
+	root->new_child()->new_child()->new_child()->parse_pair("name1=value1");
+	root->new_child()->new_child()->get_last()->new_child();
+	root->new_child()->new_child()->get_last()->new_child()->set_namedata("n2", "d2");
+	root->get_last()->new_child()->get_last()->new_child();
+	root->new_child()->new_child()->get_last()->new_child();
+	root->new_child()->new_child()->get_last()->new_child();
+	root->get_first()->get_last()->get_first()->new_child();
 
 	printf("dump:\n");
 	root->dump();
