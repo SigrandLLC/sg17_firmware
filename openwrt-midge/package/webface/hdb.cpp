@@ -6,6 +6,9 @@
 #include <limits.h>
 
 #define DEBUG
+#define READ_BUF_SIZE 2048
+
+
 #ifdef DEBUG
 void debug(char *format, ...){
 	va_list ap;
@@ -27,19 +30,29 @@ inline void _debug(char* format, ...){}
 //    +---------------------------------+
 //                    v
 //
+//  RULES:
+// 1. absolute root: next=NULL, prev=NULL, root=NULL
+// 2. first: prev=NULL
+// 3. not first: root=NULL
+// 4. last: next=NULL
 //
 //  EXAMPLE TREE
 //
 //  *ROOT*
-//    |       |-t-t-t-t-t
-//    n-n-n-n-n       |
-//      |   |         a-a-a-a-a
-//      |   z-z-z-z-z
-//      |           |
-//      y-y-y-y-y   q-q-q-q-q
-//        |
-//        r-r-r-r
+//    |           |-t1-t2-t3-t4-t5
+//    n1-n2-n3-n4-n5             |
+//      |   |                    a1-a2-a3-a4-a5
+//      |   z1-z2-z3-z4-z5
+//      |            |
+//      y1-y2-y3     q1-q2-q3-q4-q5
+//      |
+//      r1-r2-r3-r4
 //      
+// 1. q5->get_root()->get_first(): returns z1
+// 2. q5->get_root()->get_last(): returns z5
+// 3. q4->get_first(): return q1
+// 4. q4->get_root(): return z4
+// 4. q4->get_first()->get_prev(): return NULL
 
 char *str_escape(const char *source);
 char *str_unescape(const char *source);
@@ -83,6 +96,11 @@ public:
 		set_namedata(name, data);
 	}
 
+	node(const char* pair) {
+		init_values();
+		parse_pair(pair);
+	}
+
 	const char *get_name() { return name; }
 	const char *get_data() { return data; }
 
@@ -93,10 +111,24 @@ public:
 
 	const char *set_name(const char *str) { assert(str); free(name); return name = strdup(str); }
 	const char *set_data(const char *str) { assert(str); free(data); return data = strdup(str); }
+	void set_root(node* newroot) { assert(newroot); root = newroot; }
 
 	node *get_next() { return next; }
 	node *get_prev() { return prev; }
-	node *get_root() { return root; }
+	node *get_root() { 
+		if ( get_prev() ) 
+			return get_first()->get_root();
+		else 
+			return root;
+	}
+
+	node *get_absolute_root() {
+		node *n = get_root();
+		while ( ! n )
+			n = get_root();
+		return n;
+	}
+
 	node *get_fchild() { return fchild; }
 	
 	bool parse_pair(const char* str) {
@@ -122,24 +154,44 @@ public:
 	}
 
 	node *get_first() {
-		debug("node[%x]::get_first()\n", this);
-		if ( prev == NULL )
+		debug("node['%s']::get_first(): ", get_name());
+		node *n = prev;
+		if ( !n ) {
+			debug("node['%s']\n", get_name());
 			return this;
-		assert(prev != NULL);
-		return prev->get_first();
+		}
+		
+		// look for first: on first *prev should be NULL
+		while ( true ) {
+			if ( n->get_prev() )
+				n = n->get_prev();
+			else {
+				debug("node['%s']\n", get_name());
+				return n;
+			}
+		}
+		
 	}
 
 	node *get_last() {
-		debug("node[%x]::get_last()\n", this);
+		debug("node['%s']::get_last():  ", get_name());
 		assert(this);
-		if ( next == NULL )
+		if ( next == NULL ) {
+			debug("node['%s']\n", get_name());
 			return this;
+		}
 		assert( next != NULL );
 		return next->get_last();
 	}
+	
+	int get_level(int curr_level=0) {
+		if ( ! get_root() )
+			return curr_level;
+		get_root()->get_level(curr_level+1);
+	}
 
 	node *find_name(const char* str, int maxlevel=INT_MAX) {
-		debug("node[%x]::find_name(%s, %d)\n", this, str, maxlevel);
+		debug("node[%x]::find_name('%s', %d)\n", this, str, maxlevel);
 		node *found=NULL;
 		if ( ! strcmp(str, name) )
 			return this;
@@ -167,25 +219,26 @@ public:
 	}
 
 	node *get_lastchild() {
-		debug("node[%x]::get_lastchild()\n", this);
+		debug("node['%s']::get_lastchild()\n", get_name());
 		assert (fchild != NULL);
 		return fchild->get_last();
 	}
 
 	node *insert_after(node* n) {
-		debug("node[%x]::insert_after(%x)\n", this, n);
 		assert(n);
+		debug("node['%s']::insert_after('%s')\n", get_name(), n->get_name());
 		node* t = next;
 		next=n;
 		next->prev=this;
 		next->next=t;
 		if (t)
 			t->prev=next;
+		return n;
 	}
 
 	node *insert_before(node* n) {
-		debug("node[%x]::insert_before(%x)\n", this, n);
 		assert(n);
+		debug("node['%s']::insert_before('%s')\n", get_name(), n->get_name());
 		node* t=prev;
 		prev=n;
 		prev->prev=t;
@@ -197,10 +250,12 @@ public:
 			prev->root=root;
 			root=NULL;
 		}
+		return n;
 	}
 	
 	node *add_child(node* child) {
-		debug("node[%x]::add_child(%x)\n", this, child);
+		assert(child);
+		debug("node['%s']::add_child('%s')\n", get_name(), child->get_name());
 		assert (child);
 		if ( fchild == NULL ) {
 			fchild = child;
@@ -215,6 +270,33 @@ public:
 	node *new_child(){
 		return add_child(new node(this));
 	}	
+
+	node *new_child(const char* str){
+		debug("node['%s']::new_child('%s')\n", get_name(), str);
+		return add_child(new node(str));
+	}	
+
+
+	node *new_sibling(const char* str){
+		debug("node['%s']::new_sibling('%s')\n", get_name(), str);
+		return get_last()->insert_after(new node(str));
+	}	
+
+	node *new_sibling(){
+		return get_last()->insert_after(new node(this));
+	}	
+
+	void dump(int level=0) {
+		for (int i=0; i < level; i++)
+			printf("\t");
+		printf("node['%s']: data=%s, root='%s'\n", get_name(), get_data(), get_root()?get_root()->get_name():"NULL");
+
+		node *c=fchild;
+		while ( c ) {
+			c->dump(level+1);
+			c=c->get_next();
+		}
+	}
 
 	int serialize(FILE *stream=stdout, int level=0) {
 		int i;
@@ -237,32 +319,68 @@ public:
 		return true;
 	}
 
-	void unserialize(FILE *stream=stdin, int level=0) {
-		char *buf=NULL;
-		size_t strsize=0;
+	node *unserialize(const char* str, int level=0) {
+		node *n;
+		int i;
+		int my_level = get_level();
 
-		if ( getline( &buf, &strsize, stream ) != -1 ) {
-			if ( parse_pair( buf ) ) {
-				;
-			};
+		debug("  node['%s']::unserialize(): my_level=%d, level=%d, read_buf='%s'\n", get_name(), my_level, level, str);
+		if ( level == my_level ) {
+			debug("     node::unserialize(): equal\n");
+			n = new_sibling(str);
+		} else if ( level > my_level ) {
+			debug("     node::unserialize(): greater\n");
+			n = new_child(str);
 
-
-			free(buf);
+		} else if ( level < my_level ) {
+			debug("     node::unserialize(): less\n");
+			n = this;
+			for ( i = 0; i < (my_level - level); i++) {
+				debug("         node::unserialize(): i=%d\n", i);
+				n = n->get_root();
+				assert( n != NULL );
+			}
+			n = n->new_sibling(str);
 		}
-
-
+		return n;
 	}
 
-	void dump(int level=0) {
-		for (int i=0; i < level; i++)
-			printf("\t");
-		printf("node[%x]: %s=%s\n", this, name, data);
+	static int unserialize_file(const char* filename, node* node_root) {
+		FILE *file; 
+		if ( ! (file = fopen(filename, "r")) ) {
+			perror("fopen:");
+			return false;
+		};
 
-		node *c=fchild;
-		while ( c ) {
-			c->dump(level+1);
-			c=c->get_next();
+		int i;
+		int curr_level = 0;
+		int readed_level = 0;
+		char read_buf[READ_BUF_SIZE];
+		char *pair_begin;
+		node *curr_node = node_root;
+
+		fgets(read_buf, sizeof(read_buf), file);
+		if ( strcmp(read_buf, "/\n") ) {
+			debug("  node::unserialize_file(): bad format\n");
+			return false;
 		}
+		node_root->parse_pair(read_buf);
+
+		while ( fgets(read_buf, sizeof(read_buf), file) ) {
+
+			if ( read_buf[strlen(read_buf)-1] == '\n' )
+				read_buf[strlen(read_buf)-1]='\0';
+
+			pair_begin = NULL;
+			debug("  -------------\n");
+			for ( readed_level = 0; readed_level < sizeof(read_buf); readed_level++ )
+				if ( read_buf[readed_level] != '\t' ) {
+					pair_begin = &read_buf[readed_level];
+					break;
+				}
+			curr_node = curr_node->unserialize(pair_begin, readed_level);
+		}
+
 	}
 };
 
@@ -288,6 +406,7 @@ int main ()
 	root->new_child()->new_child()->get_last()->new_child();
 	root->new_child()->new_child()->get_last()->new_child();
 	root->get_first()->get_last()->get_first()->new_child();
+	printf("get_level(): %d\n", root->new_child()->new_child()->new_child()->new_child()->get_level());
 
 	printf("dump:\n");
 	root->dump();
@@ -299,6 +418,18 @@ int main ()
 
 	printf("serialize:\n");
 	root->serialize(stdout);
+
+	root = new node;
+	root->set_name("/");
+	printf("unserialize_file:\n");
+	node::unserialize_file("fixtures.hdb", root);
+
+	printf("dump:\n");
+	root->dump();
+
+	printf("serialize:\n");
+	root->serialize(stdout);
+
 
 	return 0;
 }
