@@ -2,12 +2,18 @@
 
 mknod /dev/ttyS0 c 4 64
 mknod /dev/ttyS1 c 4 65
-mknod /dev/led0 c 166 0
-mknod /dev/led1 c 166 1
-mknod /dev/led2 c 166 2
-mknod /dev/led3 c 166 3
-mknod /dev/led4 c 166 4
-mknod /dev/switch c 167 2
+
+# led/gpio now only on device 167
+i=0
+while [ $i != 23 ]
+ do
+   mknod /dev/gpio$i c 167 $((i++))
+done
+# for compatibility
+ln -s /dev/gpio0 /dev/led0
+ln -s /dev/gpio2 /dev/switch
+test -c /dev/gpio0 && echo "led blink 40" > /dev/gpio0
+
 mknod /dev/watchdog c 10 130
 
 #For PPP usage only

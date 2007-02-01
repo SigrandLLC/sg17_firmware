@@ -1,7 +1,5 @@
 #!/bin/sh
 
-test -c /dev/led0 && echo "led blink 40">/dev/led0
-
 /bin/mount -t proc proc /proc
 /bin/mount -a
 
