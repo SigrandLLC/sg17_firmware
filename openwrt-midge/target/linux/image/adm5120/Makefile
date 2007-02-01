@@ -35,7 +35,6 @@ $(BIN_DIR)/openwrt-adm5120-$(KERNEL)-$(FSNAME).bin: $(SCRIPT_DIR)/mksyshdr $(SCR
 		tar cf - --exclude .svn . | tar xvf - -C $(KDIR)/root/; \
 		 $(SED) 's,$$R,r$(REV),g' $(KDIR)/root/etc/banner; \
 		 echo "Builded at: `date '+%Y%m%d %H:%M'`" >>$(KDIR)/root/etc/banner; \
-
 		 echo "" >>$(KDIR)/root/etc/banner; \
 	)
 	( \
