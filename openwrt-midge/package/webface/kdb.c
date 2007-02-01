@@ -46,6 +46,7 @@
 #define false 0
 #define COUNTS_NAME "kdb_lines_count"
 #define NEXT_NAME "kdb_next_name"
+#define ENV_STRING "%ENV"
 #define WARN
 
 #define FLOCK(f) {if(flock(fileno(f), LOCK_EX)) perror("flock");};
@@ -578,7 +579,7 @@ int set(const char *str)
 	if (!parse_pair(str, iname, ivalue)) 
 		return false;
 
-	if (! strcmp (ivalue, "%ENV") ) {
+	if (! strcmp (ivalue, ENV_STRING) ) {
 		char *value;
 		const char *name=iname;
 
@@ -770,9 +771,20 @@ int listadd(const char* str)
 		
 	snprintf(s, sizeof(s), "%s%d", name, list_getnextindex(name));
 
-	need_write++;
-	return db_add(s, value, true);
+	if (! strcmp (value, ENV_STRING) ) {
+		char *qvalue;
+		const char *qname=name;
 
+		if ( !strncmp(qname, "FORM_", 5) ) // 5 - sizeof("FORM_")
+			qname+=5;
+		qvalue=getenv(qname);
+
+		need_write++;
+		return db_add( s, qvalue?qvalue:"", true );
+	} else {
+		need_write++;
+		return db_add(s, value, true);
+	}
 }
 
 // list with wildcard matching

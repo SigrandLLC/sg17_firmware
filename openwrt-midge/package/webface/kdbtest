@@ -116,6 +116,11 @@ ladd(){
 	eval "`$kdb -c ls sys_name_*`"
 	[ "$sys_name_11" = 'value_11' ] || return 1
 	[ "$kdb_lines_count" = '12' ] || return 1
+	export sys_name_=value_12
+	$kdb ladd sys_name_=%ENV
+	eval "`$kdb -c ls sys_name_*`"
+	[ "$sys_name_12" = 'value_12' ] || return 1
+	[ "$kdb_lines_count" = '13' ] || return 1
 }
 
 import(){
