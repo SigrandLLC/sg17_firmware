@@ -9,17 +9,15 @@ KDB_PARAMS=""
 
 kdb_ladd_string(){
 	local param="$1";
-	local value;
+	export $param
 
-	eval "value=\$FORM_${param}"
-	debug "kdb_ladd_string(): var=$var value=$value <br>"
-	KDB_PARAMS="${KDB_PARAMS} : ladd $param=\"$value\" "
-	fi
+	KDB_PARAMS="${KDB_PARAMS} : ladd $param=%ENV "
 }
 
 kdb_set_string(){
 	local param="$1";
-	export $param
+	eval "export $param"
+	echo "DEBUG: export $param <br>"
 	KDB_PARAMS="${KDB_PARAMS} : set $param=%ENV "
 }
 
@@ -40,6 +38,8 @@ kdb_set_bool(){
 }
 
 kdb_commit(){
+	debug "KDB_PARAMS: ${KDB_PARAMS}"
+	displayEnv
 	eval `kdb ${KDB_PARAMS}`
 	return $?
 }

@@ -100,6 +100,12 @@
 			render_console_command $ip neigh show dev $realiface
 			render_console_end
 			case "$proto" in 
+			ether)
+				render_table_title "Internal switch status" 2 
+				render_console_start
+				render_console_command cat /proc/sys/net/adm5120sw/status
+				render_console_end
+				;;
 			bridge)
 				render_table_title "Bridge status" 2 
 				render_console_start

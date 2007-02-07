@@ -4,7 +4,7 @@
 # 
 
 debug(){
-	[ $DEBUG ] && echo $* >&2
+	[ $DEBUG ] && echo $* #>&2
 }
 
 warn(){

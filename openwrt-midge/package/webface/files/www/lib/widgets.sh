@@ -129,6 +129,15 @@ render_form_header(){
 }
 
 render_input_field(){
+	# options handling
+	if [ "x$1" = "x-d" ]; then
+		local disabled="disabled='true'"
+		shift;
+	else
+		local disabled=''
+	fi
+	
+	# parameters handling
 	local type="$1"
 	local text="$2"
 	local inputname="$3"
@@ -152,16 +161,16 @@ render_input_field(){
 
     case $type in
     text)
-        echo "	<input type='text' class='edit' $tipcode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
+        echo "	<input $disabled type='text' class='edit' $tipcode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
         ;;
     checkbox)
-        echo -n "	<input type='checkbox' class='edit' $tipcode name='$inputname' $validator tmt:errorclass='invalid'"
+        echo -n "	<input $disabled type='checkbox' class='edit' $tipcode name='$inputname' $validator tmt:errorclass='invalid'"
         for i in ${value%%0}; do echo -n " checked=1 "; done
         echo '> '
         ;;
     radio)
 		while [ -n "$1" ]; do
-			echo -n "<label $tipcode><input type='radio' class='button' $tipcode name='$inputname' $validator tmt:errorclass='invalid'"
+			echo -n "<label $tipcode><input $disabled type='radio' class='button' $tipcode name='$inputname' $validator tmt:errorclass='invalid'"
 			[ -n "$value" = "$1" ] && echo -n " checked "
 			echo "value='$1'>$2</label><br>"
 			validator=""
@@ -169,7 +178,7 @@ render_input_field(){
 		done
 		;;
 	select)
-		echo -n "<select  $tipcode name='$inputname' class='edit' $validator tmt:errorclass='invalid' $ascode>"
+		echo -n "<select $disabled $tipcode name='$inputname' class='edit' $validator tmt:errorclass='invalid' $ascode>"
 		while [ -n "$1" ]; do
 			echo -n "<option value=$1"
 			[ -n "$value" = "$1" ] && echo -n " selected "
@@ -183,7 +192,7 @@ render_input_field(){
         echo "<input type='hidden' name='$inputname' value='$value'>"
         ;;
     password)
-        echo "	<input type='password' class='edit' $tipcode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
+        echo "	<input $disabled type='password' class='edit' $tipcode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
         ;;
     static)
         echo "$@"

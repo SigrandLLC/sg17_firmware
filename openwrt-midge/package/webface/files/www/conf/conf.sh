@@ -13,3 +13,4 @@ IFRAME_WIDTH=600
 IFRAME_HEIGHT=200
 WEBFACE_VER=0.2
 LOGGER="logger -s -p daemon.info -t webface"
+ADM5120SW_PORTS="0 1 2 3"
