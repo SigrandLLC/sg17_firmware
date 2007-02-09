@@ -14185,10 +14185,10 @@ Index: linux/drivers/net/adm5120sw.c
 +
 +
 +static struct dev_entrie entries[PFS_ENTS]={
-+        { "vlan0", PFS_VLAN0, NULL, 400, NULL, store_vlan2port },
-+	{ "vlan1", PFS_VLAN1, NULL, 400, NULL, store_vlan2port },
-+	{ "vlan2", PFS_VLAN2, NULL, 400, NULL, store_vlan2port },
-+	{ "vlan3", PFS_VLAN3, NULL, 400, NULL, store_vlan2port },
++        { "eth0", PFS_VLAN0, NULL, 400, NULL, store_vlan2port },
++	{ "eth1", PFS_VLAN1, NULL, 400, NULL, store_vlan2port },
++	{ "eth2", PFS_VLAN2, NULL, 400, NULL, store_vlan2port },
++	{ "eth3", PFS_VLAN3, NULL, 400, NULL, store_vlan2port },
 +};
 +
 +static int init_adm5120_in_procfs(void);
