@@ -94,8 +94,6 @@ $(IPKG_PPP):
 	install -m0600 ./files/etc/ppp/chap-secrets $(IDIR_PPP)/etc/ppp/
 	install -m0644 ./files/etc/ppp/options $(IDIR_PPP)/etc/ppp/
 	$(INSTALL_FILTER)
-	install -m0755 ./files/etc/ppp/ip-up $(IDIR_PPP)/etc/ppp/
-	install -m0755 ./files/etc/ppp/ip-down $(IDIR_PPP)/etc/ppp/
 	install -d -m0755 $(IDIR_PPP)/usr/sbin
 	install -m0755 $(PKG_INSTALL_DIR)/usr/sbin/pppd $(IDIR_PPP)/usr/sbin/
 	install -d -m0755 $(IDIR_PPP)/usr/lib/pppd
@@ -103,17 +101,10 @@ $(IPKG_PPP):
 	$(RSTRIP) $(IDIR_PPP)
 	$(IPKG_BUILD) $(IDIR_PPP) $(PACKAGE_DIR)
 	
-$(IDIR_PPP_MOD_PPPOA)/sbin/ifup.pppoa:
-	install -d -m0755 $(IDIR_PPP_MOD_PPPOA)/sbin
-	install -m0755 ./files/ifup.pppoa $(IDIR_PPP_MOD_PPPOA)/sbin/
 
-$(IPKG_PPP_MOD_PPPOA): $(IDIR_PPP_MOD_PPPOA)/sbin/ifup.pppoa
+$(IPKG_PPP_MOD_PPPOA): 
 
-$(IDIR_PPP_MOD_PPPOE)/sbin/ifup.pppoe:
-	install -d -m0755 $(IDIR_PPP_MOD_PPPOE)/sbin
-	install -m0755 ./files/ifup.pppoe $(IDIR_PPP_MOD_PPPOE)/sbin/
-
-$(IPKG_PPP_MOD_PPPOE): $(IDIR_PPP_MOD_PPPOE)/sbin/ifup.pppoe
+$(IPKG_PPP_MOD_PPPOE): 
 
 $(IDIR_PPP_MOD_RADIUS)/etc/ppp/radius.conf:
 	install -d -m0755 $(IDIR_PPP_MOD_RADIUS)/etc/ppp

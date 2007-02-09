@@ -29,7 +29,6 @@ $(PKG_BUILD_DIR)/.built:
 
 $(IPKG_PPTP):
 	install -d -m0755 $(IDIR_PPTP)/sbin
-	install -m0755 ./files/ifup.pptp $(IDIR_PPTP)/sbin/ifup.pptp
 	install -d -m0755 $(IDIR_PPTP)/etc/ppp
 	install -m0644 ./files/options.pptp $(IDIR_PPTP)/etc/ppp/
 	install -d -m0755 $(IDIR_PPTP)/usr/sbin
