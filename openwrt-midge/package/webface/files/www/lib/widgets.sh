@@ -50,7 +50,7 @@ render_table_title(){
 	echo "<tr class='table_title'> <td $colspan class='table_title'>$text</td> </tr>"
 }
 
-displayEnv() 
+render_cmd_set() 
 {
     echo "<table>"
     render_table_title env
@@ -95,6 +95,12 @@ render_console_command(){
 	local cmd="$*"
 	echo "<b>$cmd</b>"
 	$cmd
+}
+
+render_console(){ 
+	render_console_start $*
+	render_console_command $*
+	render_console_end $*
 }
 
 render_message_box() 
@@ -171,7 +177,7 @@ render_input_field(){
     radio)
 		while [ -n "$1" ]; do
 			echo -n "<label $tipcode><input $disabled type='radio' class='button' $tipcode name='$inputname' $validator tmt:errorclass='invalid'"
-			[ -n "$value" = "$1" ] && echo -n " checked "
+			[ "$value" = "$1" ] && echo -n " checked "
 			echo "value='$1'>$2</label><br>"
 			validator=""
 			shift 2
@@ -179,9 +185,10 @@ render_input_field(){
 		;;
 	select)
 		echo -n "<select $disabled $tipcode name='$inputname' class='edit' $validator tmt:errorclass='invalid' $ascode>"
+		debug "<select $disabled $tipcode name='$inputname' class='edit' $validator tmt:errorclass='invalid' $ascode>"
 		while [ -n "$1" ]; do
 			echo -n "<option value=$1"
-			[ -n "$value" = "$1" ] && echo -n " selected "
+			[ "$value" = "$1" ] && echo -n " selected "
 			echo ">$2</option>"
 			shift 2
 		done
