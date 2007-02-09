@@ -21,6 +21,7 @@ L1 System welcome
 	L2 Security 'passwd'
 	L2 Time		'time'
 	L2 SHDSL	'dsl'
+	L2 Switch	'adm5120sw'
 	L2 DNS		'dns'
 	
 L1 Network
