@@ -1,14 +1,14 @@
 #!/bin/sh
 # (c) Vladislav Moskovets 2005
 # Sigrand webface project
-# 
+#
 
 debug(){
-	[ $DEBUG ] && echo $* #>&2
+	[ $DEBUG ] && echo $* >>/tmp/debug.log #>&2
 }
 
 warn(){
-	[ $WARN ] && echo $* >&2
+	[ $WARN ] && echo $* >>/tmp/debug.log #&2
 }
 
 colorizelog(){
@@ -24,12 +24,41 @@ handle_list_del_item(){
 	fi
 }
 
+iface_add() {
+	local iface;
+	while [ -n "$1" ]; do
+		iface=$1
+		shift;
+	    kdb set sys_ifaces="$sys_ifaces $iface" : \
+	    	set sys_iface_${iface}_proto=$iface_proto : \
+	    	set sys_iface_${iface}_real=$iface : \
+	    	set sys_iface_${iface}_valid=1 : \
+	    	set sys_iface_${iface}_method=none
+	done
+}
+
+iface_del() {
+	local iface;
+	while [ -n "$1" ]; do
+		iface=$1
+		shift;
+		kdb rm "sys_iface_${iface}_*"
+	done
+	iface_update_sys_ifaces
+}
+
+iface_update_sys_ifaces() {
+	local ifaces=`kdb ls sys_iface*valid | sed 's/\(sys_iface_\)\(.*\)\(_valid.*\)/\2/' | sort | uniq`
+	kdb set sys_ifaces="$ifaces"
+}
+
+
 humanUnits(){
     local k="0";
     if [ "$1" = "-k" ]; then
         k=1;
         shift
-    fi 
+    fi
     local l="$1"
     local units="$2"
     local base=1024;
@@ -40,21 +69,21 @@ humanUnits(){
     /usr/bin/dc "1" 2>/dev/null && dc="dc "
     [ "$3" ] && base=$3
     if [ "$l" -ge $(($base*$base*$base)) ]; then
-        [ "$dc" ] && t=$($dc $l 1024 / 1024 / 1024 / p) || t=$(($l/$base/$base/$base)) 
+        [ "$dc" ] && t=$($dc $l 1024 / 1024 / 1024 / p) || t=$(($l/$base/$base/$base))
         s=$((3+$k));
     elif [ "$l" -ge $(($base*$base)) ]; then
-        [ "$dc" ] && t=$($dc $l 1024 / 1024 / p) || t=$(($l/$base/$base)) 
-        t=$(($l/$base/$base)) 
+        [ "$dc" ] && t=$($dc $l 1024 / 1024 / p) || t=$(($l/$base/$base))
+        t=$(($l/$base/$base))
         s=$((2+$k));
     elif [ "$l" -ge $(($base)) ]; then
-        [ "$dc" ] && t=$($dc $l 1024 / p) || t=$(($l/$base)) 
+        [ "$dc" ] && t=$($dc $l 1024 / p) || t=$(($l/$base))
         t=$(($l/$base))
         s=$((1+$k));
     else
-        t=$l 
+        t=$l
         s=$k;
     fi
-    
+
     [ "$s" = "3" ] && u='G'
     [ "$s" = "2" ] && u='M'
     [ "$s" = "1" ] && u='K'
@@ -109,4 +138,4 @@ get_new_serial() {
 		done
 	done
 }
-	
+

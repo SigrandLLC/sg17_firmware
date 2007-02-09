@@ -38,7 +38,7 @@ save(){
 		for v in $kdb_vars; do
 			ptype=${v%%:*}
 			param=${v##$ptype:}
-			[ "$DEBUG" ] && echo "save(): param=$param ptype=$ptype<br>"
+			debug "save(): param=$param ptype=$ptype<br>"
 			case $ptype in
 				str)	kdb_set_string $param ;;
 				int)	kdb_set_int $param ;;
