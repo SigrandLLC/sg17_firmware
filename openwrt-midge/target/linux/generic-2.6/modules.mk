@@ -62,7 +62,8 @@ $(eval $(call KMOD_template,IPT_CONNTRACK,ipt-conntrack,\
 
 $(eval $(call KMOD_template,IPT_EXTRA,ipt-extra,\
 	$(foreach mod,$(IPT_EXTRA-m),$(MODULES_DIR)/$(shell [ -d $(MODULES_DIR) ] && cd $(MODULES_DIR) && find . -name $(mod).ko)) \
-,,,80,ipt_condition ipt_connbytes ipt_limit ipt_LOG ipt_multiport ipt_owner ipt_pkttype ipt_quota ipt_recent))
+,,,80,xt_limit ipt_LOG ipt_multiport ipt_owner xt_pkttype ipt_recent))
+#,,,80,ipt_condition ipt_connbytes ipt_limit ipt_LOG ipt_multiport ipt_owner ipt_pkttype ipt_quota ipt_recent))
 # Old string! ,,,80,$(IPT_EXTRA-m)))
 
 $(eval $(call KMOD_template,IPT_FILTER,ipt-filter,\
