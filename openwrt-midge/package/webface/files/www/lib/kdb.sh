@@ -1,24 +1,20 @@
 #!/bin/sh
 # (c) Vladislav Moskovets 2005
 # Sigrand webface project
-# 
+#
 
 #local s="set last_update=`date +%Y%m%d-%H:%M:%S`";
 #KDB_PARAMS="set last_update=`date +%Y%m%d-%H:%M:%S` : "
 KDB_PARAMS=""
 
 kdb_ladd_string(){
-	local param="$1";
-	export $param
-
-	KDB_PARAMS="${KDB_PARAMS} : ladd $param=%ENV "
+	eval "export $1=\$FORM_$1"
+	KDB_PARAMS="${KDB_PARAMS} : ladd $1=%ENV "
 }
 
 kdb_set_string(){
-	local param="$1";
-	eval "export $param"
-	echo "DEBUG: export $param <br>"
-	KDB_PARAMS="${KDB_PARAMS} : set $param=%ENV "
+	eval "export $1=\$FORM_$1"
+	KDB_PARAMS="${KDB_PARAMS} : set $1=%ENV "
 }
 
 kdb_set_int(){
@@ -39,7 +35,6 @@ kdb_set_bool(){
 
 kdb_commit(){
 	debug "KDB_PARAMS: ${KDB_PARAMS}"
-	displayEnv
 	eval `kdb ${KDB_PARAMS}`
 	return $?
 }
