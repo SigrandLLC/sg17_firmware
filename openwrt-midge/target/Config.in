@@ -99,9 +99,10 @@ config BR2_LINUX_2_6_ADM5120
 config BR2_LINUX_2_6_SIGRAND5120
 	bool "Sigrand ADM5120 based routers [2.6]"
 	select BR2_mipsel
+	select BR2_LINUX_2_6
 	help
 	  Build firmware images for Sigrand ADM5120 based routers
-	  (e.g. SG- )
+	  (e.g. SG-16R )
 
 if CONFIG_DEVEL
 

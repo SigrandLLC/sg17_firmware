@@ -61,17 +61,17 @@ $(eval $(call KMOD_template,IPT_CONNTRACK,ipt-conntrack,\
 ,,,40,ip_conntrack iptable_nat ipt_state))
 
 $(eval $(call KMOD_template,IPT_EXTRA,ipt-extra,\
-	$(foreach mod,$(IPT_EXTRA-m),$(MODULES_DIR)/$(shell cd $(MODULES_DIR) && find . -name $(mod).ko)) \
-,,,80,xt_limit ipt_LOG ipt_multiport ipt_owner xt_pkttype ipt_recent))
-#,,,80,ipt_condition ipt_connbytes ipt_limit ipt_LOG ipt_multiport ipt_owner ipt_pkttype ipt_quota ipt_recent))
-# Old string! ,,,80,$(IPT_EXTRA-m)))
+	$(foreach mod, xt_limit xt_pkttype xt_string, $(MODULES_DIR)/kernel/net/netfilter/$(mod).ko) \
+	$(foreach mod, ipt_LOG ipt_multiport ipt_owner ipt_recent ipt_REJECT, $(MODULES_DIR)/kernel/net/ipv4/netfilter/$(mod).ko) \
+,,,80,$(IPT_IPOPT-m)))
 
 $(eval $(call KMOD_template,IPT_FILTER,ipt-filter,\
 	$(foreach mod,$(IPT_FILTER-m),$(MODULES_DIR)/kernel/net/ipv4/netfilter/$(mod).ko) \
 ,,,80,$(IPT_FILTER-m)))
 
 $(eval $(call KMOD_template,IPT_IPOPT,ipt-ipopt,\
-	$(foreach mod,$(IPT_IPOPT-m),$(MODULES_DIR)/$(shell cd $(MODULES_DIR) && find . -name $(mod).ko)) \
+	$(foreach mod, xt_length xt_mac xt_mark xt_MARK xt_tcpmss, $(MODULES_DIR)/kernel/net/netfilter/$(mod).ko) \
+	$(foreach mod, ipt_dscp ipt_DSCP ipt_ecn ipt_ECN ipt_TCPMSS ipt_tos ipt_time ipt_TOS ipt_ttl ipt_TTL, $(MODULES_DIR)/kernel/net/ipv4/netfilter/$(mod).ko) \
 ,,,80,$(IPT_IPOPT-m)))
 
 $(eval $(call KMOD_template,IPT_IPSEC,ipt-ipsec,\
