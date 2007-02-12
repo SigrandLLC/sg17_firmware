@@ -17,7 +17,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  *************************************************************************** */
-
+extern "C"
+{
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -26,8 +27,10 @@
 #include <limits.h>
 #include <unistd.h>
 #include <errno.h>
+#include <time.h>
 #include <sys/file.h>
 #include <sys/types.h>
+}
 
 
 #define DEBUG
@@ -35,7 +38,7 @@
 #define MAX_LEVEL INT_MAX
 
 
-int debug_level = 1;
+int debug_level = 2;
 
 #ifdef DEBUG
 void debug(int level,char *format, ...){
@@ -150,7 +153,7 @@ public:
 	void free_childs() {
 		debug(3, "node['%s']::free_childs() \n", get_name());
 		node *n;
-		while ( n = fchild ) {
+		while ( (n = fchild) ) {
 			//n->free_childs();
 			n->remove();
 			delete n;
@@ -166,7 +169,26 @@ public:
 	}
 
 	const char *set_name(const char *str) { debug(6, "node['%s']::set_name('%s')\n", get_name(), str); assert(str); free(name); return name = strdup(str); }
-	const char *set_data(const char *str) { debug(6, "node['%s']::set_data('%s')\n", get_name(), str); assert(str); free(data); return data = strdup(str); }
+	const char *set_data(const char *str) { 
+			debug(6, "node['%s']::set_data('%s')\n", get_name(), str); 
+			assert(str); 
+			char buf[512];
+			int value, str_value;
+			if ( str[0] == '+' && str[1] == '=' ) {
+				value=atoi(data);
+				str_value=atoi(&str[2]);
+				snprintf(buf, sizeof(buf), "%d", value+str_value);
+				free(data); 
+				return data = strdup(buf);
+			} else if ( str[0] == '-' && str[1] == '=' ) {
+				value=atoi(data);
+				str_value=atoi(&str[2]);
+				snprintf(buf, sizeof(buf), "%d", value-str_value);
+				free(data); 
+				return data = strdup(buf);
+			} else
+				return data = strdup(str); 
+	}
 	void set_parent(node* newparent) { assert(newparent); parent = newparent; }
 
 	node *get_next() { return next; }
@@ -252,7 +274,7 @@ public:
 	int get_level(int curr_level=0) {
 		if ( ! get_parent() )
 			return curr_level;
-		get_parent()->get_level(curr_level+1);
+		return get_parent()->get_level(curr_level+1);
 	}
 
 	node *find_name(const char* str, int maxlevel=MAX_LEVEL) {
@@ -427,7 +449,7 @@ public:
 	}
 
 	node *unserialize(const char* str, int level=0) {
-		node *n;
+		node *n = this;
 		int i;
 		int my_level = get_level();
 
@@ -450,9 +472,7 @@ public:
 
 	int unserialize_from_file(FILE *file=stdin) {
 
-		int i;
-		int curr_level = 0;
-		int readed_level = 0;
+		uint readed_level = 0;
 		char read_buf[READ_BUF_SIZE];
 		char *pair_begin;
 		node *curr_node = this;
@@ -476,6 +496,58 @@ public:
 		}
 		return true;
 	}
+
+	char *get_fullchain() {
+		char str_buf1[512];
+		char str_buf2[512];
+		char *result;
+		memset((void*)str_buf1, 0, sizeof(str_buf1));
+		memset((void*)str_buf2, 0, sizeof(str_buf2));
+
+		node *n = this;
+
+		while (n) {
+			// dot not include ROOT node
+			if ( ! n->get_parent() )
+				break;
+			strncpy(str_buf2, str_buf1, sizeof(str_buf2));
+			strncpy(str_buf1, n->get_name(), sizeof(str_buf1));
+			if ( n != this)
+				strncat(str_buf1, node_delimiter, sizeof(str_buf1));
+			strncat(str_buf1, str_buf2, sizeof(str_buf1));
+			n = n->get_parent();
+		}
+		result = (char*) malloc(strlen(str_buf1)+1);
+		strcpy(result, str_buf1);
+		return result;
+	}
+
+	void print_fullchain(int maxlevel=MAX_LEVEL) {
+		char *chain_name;
+		node *c = fchild;
+
+		while ( c ) {
+			if ( strlen( c->get_data() ) ) {
+				chain_name = c->get_fullchain();
+				printf("%s=%s\n", chain_name, c->get_data());
+				free(chain_name);
+			}
+			c->print_fullchain(maxlevel-1);
+			c = c->get_next();
+		}
+	}
+
+	void walk(bool (*walk_func)(node*, void*), void* func_data) {
+		node *c = fchild;
+		if (! walk_func(this, func_data) )
+			return;
+
+		while ( c ) {
+			c->walk(walk_func, func_data);
+			c = c->get_next();
+		}
+	}
+
 
 	// in: str:'sys_name_value'  replace first '_'  to '\0', 
 	// returns pointer to 'name_value'
@@ -501,7 +573,7 @@ public:
 		node *n;
 		strncpy(str_buf, str, sizeof(str_buf));
 		
-		if ( next_name = chain_split_chain(str_buf) ) {
+		if ( (next_name = chain_split_chain(str_buf)) ) {
 			n = find_name(str_buf, 1);
 			if ( n ) {
 				return n->chain_find_node( next_name );
@@ -526,7 +598,7 @@ public:
 		node *n;
 		strncpy(str_buf, str, sizeof(str_buf));
 		
-		if ( next_name = chain_split_chain(str_buf) ) {
+		if ( (next_name = chain_split_chain(str_buf)) ) {
 			n = find_name(str_buf, 1);
 			if ( n ) {
 				return n->chain_add_node( next_name );
@@ -573,6 +645,21 @@ public:
 
 /*************************************************************************************************************/
 
+// print callback
+bool walk_print (node* n, void* func_data) {
+	char *chain_name;
+	
+	if (strlen(n->get_data())) {
+		char *pattern = (char*) func_data;
+		chain_name = n->get_fullchain();
+		if (match_wildcard(pattern, chain_name))
+			printf("%s=%s\n", chain_name, n->get_data());
+		free(chain_name);
+	}
+
+	return true;
+}
+
 
 class hdb {
 
@@ -590,6 +677,7 @@ class hdb {
 public:
 
 	hdb() {
+		debug(4, "hdb::hdb()\n");
 		db_file = NULL;
 		db_filename = strdup("");
 		quotation = 0;
@@ -603,23 +691,24 @@ public:
 		current_root = root;
 	};
 
+	~hdb() {
+		debug(4, "hdb::~hdb()\n");
+		delete root;
+	}
+
 	void show_usage(char *name)
 	{
 		printf("Usage: %s [OPTIONS] ARG [: ARG] \n", name);
 		printf("where  OPTIONS:= d|l|q|qq|e|c\n");
-		printf("       ARG := { set pattern=value |\n");
-		printf("        rm pattern | del pattern |\n");
+		printf("       ARG := { set nodechain=[+=|-=]value |\n");
+		printf("        rm nodechain |\n");
 		printf("        isset key |\n");
 		printf("        list [pattern] | ls [pattern] |\n");
 		printf("        slist key | sls key |\n");
-		printf("        klist pattern | kls pattern |\n");
-		printf("        listrm key | lrm key |\n");
-		printf("        listadd key_=value | ladd key_=value |\n");
-		printf("        rename oldkey newkey | rn oldkey newkey |\n");
-		printf("        create [filename] |\n");
+		printf("        rename oldnodechain newnodechain |\n");
 		printf("        import [filename] |\n");
 		printf("        edit }\n");
-		exit(1);
+		return;
 	};
 	
 	// Parse str "name=value" and return 'name' 
@@ -695,7 +784,7 @@ public:
 		db_file = fopen(get_dbfilename(), "r+");
 		if (!db_file) {
 			fprintf(stderr, "fopen '%s' %s\n", get_dbfilename(), strerror(errno));
-			exit(1);
+			return false;
 		};
 		// lock the file
 		if( flock( fileno(db_file), LOCK_EX) )
@@ -711,7 +800,7 @@ public:
 		}
 
 		if ( ! db_open() ) {
-			debug(4, "hdb::db_open(): fail, exiting\n");
+			debug(4, "hdb::db_open(): fail\n");
 			return false;
 		}
 
@@ -723,15 +812,20 @@ public:
 
 	int db_write() {
 		db_load();
+		debug(3, "hdb::db_write() trunkating file\n");
 		rewind(db_file);
 		ftruncate(fileno(db_file), 0);
-		root->serialize_to_file(db_file);
+		debug(3, "hdb::db_write() serializing\n");
+		return root->serialize_to_file(db_file);
 	}
 
 	int db_close() {
 		if (! db_file)
 			return true;
+		debug(5, "hdb::db_close(): unlocking\n");
 		flock(fileno(db_file), LOCK_UN);
+		debug(5, "hdb::db_close(): closing\n");
+		fclose(db_file);
 		db_file=NULL;
 		is_db_already_readed = false;
 		return true;
@@ -739,6 +833,19 @@ public:
 		
 
 	int hdb_list (const char* str) {
+		
+		db_load();
+		node *n = current_root;
+		if ( n ) {
+			debug(3, "hdb::hdb_wlist('%s'): found node['%s']\n", str, n->get_name());
+			n->walk(walk_print, (void*) str);
+		} else {
+			debug(3, "hdb::hdb_wlist('%s'): node not found\n", str);
+		}
+		
+		return true;
+	}
+	int hdb_slist (const char* str) {
 		
 		db_load();
 		node *n = current_root->chain_find_node(str);
@@ -813,9 +920,6 @@ public:
 	}
 
 	int hdb_dump (const char* str) {
-		char *name;
-		char *data;
-
 		db_load();
 		root->dump();
 		return true;
@@ -838,7 +942,7 @@ public:
 			file = fopen(filename, "r");
 		if (!file) {
 			perror("fopen(): ");
-			exit(1);
+			return false;
 		};
 
 		root->unserialize_from_file(file);
@@ -853,11 +957,11 @@ public:
 	int hdb_edit(const char* me) 
 	{
 		int result=true;
-		char *tmpname=tmpnam(NULL);
+		char tmpname[128];
 		char editor[255];
 		char buf[255];
-		if (!tmpname)
-			return false;
+		snprintf(tmpname, sizeof(tmpname), "/tmp/hdb.tmp.%d.%d", (int)time(NULL), getpid());
+
 		if (getenv("EDITOR"))
 			sprintf(editor, "%s %s", getenv("EDITOR"), tmpname) ;
 		else
@@ -883,10 +987,13 @@ public:
 
 int hdb::main (int argc, char **argv)
 {
-    int ch, i;
+    int ch;
     int result=false;
 
+	debug(4, "hdb::main(): parsing cmdline, optind=%d\n", optind);
+	optind=1;
     while ((ch = getopt(argc, argv, "dD:qlecf:")) != -1){
+		debug(5, "hdb::main(): getopt() returns %c: \n", ch);
         switch(ch) {
             case 'D': node_delimiter = strdup(optarg);
                      break;
@@ -928,8 +1035,11 @@ int hdb::main (int argc, char **argv)
 		if ( (optind+1 >= argc) || param1[0]==':' )
 			param1 = "";
 
+		debug(4, "hdb::main(): cmd: '%s'\n", cmd);
 
-		if ( (!strcmp(cmd, "list")) || (!strcmp(cmd, "ls")) )
+		if ( (!strcmp(cmd, "slist")) || (!strcmp(cmd, "sls")) )
+			result = hdb_slist(param0);
+		else if ( (!strcmp(cmd, "ls")) || (!strcmp(cmd, "list")))
 			result = hdb_list(param0);
 		else if (!strcmp(cmd, "set"))
 			result = hdb_set(param0);
@@ -962,11 +1072,19 @@ int hdb::main (int argc, char **argv)
 }
 
 
+extern "C"
+{
+#ifdef DASH
+int hdbcmd (int argc, char **argv) {
+#else
 int main (int argc, char **argv) {
+#endif
 	hdb app;
-	app.main(argc, argv);
+	return app.main(argc, argv);
+	
 }
 
+}
 
 
 
@@ -1114,3 +1232,50 @@ char *str_unescape(const char *source)
 	return dest;
 }
 
+/* Wildcard code from ndtpd */
+/*
+ * Copyright (c) 1997, 98, 2000, 01  
+ *    Motoyuki Kasahara
+ *    ndtpd-3.1.5
+ */
+
+/*
+ * Do wildcard pattern matching.
+ * In the pattern, the following characters have special meaning.
+ * 
+ *   `*'    matches any sequence of zero or more characters.
+ *   '\x'   a character following a backslash is taken literally.
+ *          (e.g. '\*' means an asterisk itself.)
+ *
+ * If `pattern' matches to `string', 1 is returned.  Otherwise 0 is
+ * returned.
+ */
+int match_wildcard(const char *pattern, const char *string)
+{
+    const char *pattern_p = pattern;
+    const char *string_p = string;
+
+    while (*pattern_p != '\0') {
+	if (*pattern_p == '*') {
+	    pattern_p++;
+	    if (*pattern_p == '\0')
+		return 1;
+	    while (*string_p != '\0') {
+		if (*string_p == *pattern_p
+		    && match_wildcard(pattern_p, string_p))
+		    return 1;
+		string_p++;
+	    }
+	    return 0;
+	} else {
+	    if (*pattern_p == '\\' && *(pattern_p + 1) != '\0')
+		pattern_p++;
+	    if (*pattern_p != *string_p)
+		return 0;
+	}
+	pattern_p++;
+	string_p++;
+    }
+
+    return (*string_p == '\0');
+}
