@@ -27,63 +27,64 @@ validator_ipseckey='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,no
 validator_ifacelist='tmt:required="true" tmt:message="Please input interfaces" tmt:filters="ltrim,nohtml,nocommas,nomagic"'
 
 render_chart_h(){
-    local t="$1";
-    local l="$2";
-    local f="$3";
-    local p=$(($l*100/$f))
-    local w=$(($p*2))
-    echo '<img src=/img/bar_left.gif><img src=/img/bar_middle.gif height=16 width='$w'><img src=/img/bar_right.gif>' $p '%'
+	local t="$1";
+	local l="$2";
+	local f="$3";
+	local p=$(($l*100/$f))
+	local w=$(($p*2))
+	echo '<img src=/img/bar_left.gif><img src=/img/bar_middle.gif height=16 width='$w'><img src=/img/bar_right.gif>' $p '%'
 }
 
 render_title(){
-    local txt;
-    [ -n "$title" ] && txt="$title"
-    [ -n "$1" ] && txt="$1"
-    [ -n "$txt" ] && echo '<h1 class="title">'$txt'</h1>';
+	local txt;
+	[ -n "$title" ] && txt="$title"
+	[ -n "$1" ] && txt="$1"
+	[ -n "$txt" ] && echo '<h1 class="title">'$txt'</h1>';
 }
 
 render_table_title(){
-    local text="$1"
-    local colspan;
-    [ -n "$2" ] && colspan="colspan='$2'"
+	local text="$1"
+	local colspan;
+	[ -n "$2" ] && colspan="colspan='$2'"
 	echo "<tr><td></td></tr>"
 	echo "<tr class='table_title'> <td $colspan class='table_title'>$text</td> </tr>"
 }
 
 render_cmd_set() 
 {
-    echo "<table>"
-    render_table_title env
-    echo "<tr><td><pre class='code'>"
-    set
-    echo "</pre></td></tr></table>"
+	echo "<table>"
+	render_table_title env
+	echo "<tr><td><pre class='code'>"
+	set
+	echo "</pre></td></tr></table>"
 }
 displayFile() 
 {
-    file="$1"
-    echo "<table>"
-    render_table_title "$file" 
-    echo "<tr><td><pre class='code'>"
-    cat $file
-    echo "</pre></td></tr></table>"
+	file="$1"
+	echo "<table>"
+	render_table_title "$file" 
+	echo "<tr><td><pre class='code'>"
+	cat $file
+	echo "</pre></td></tr></table>"
 }
 
 displayString() 
 {
-    echo "<table>"
-    render_table_title $*
-    echo "<tr><td><pre class='code'>"
-    echo $*
-    echo "</pre></td></tr></table>"
+	echo "<table>"
+	render_table_title $*
+	echo "<tr><td><pre class='code'>"
+	echo $*
+	echo "</pre></td></tr></table>"
 }
 
+
 render_console_start(){
-    local text="$1"
-    local colspan;
-    [ -n "$2" ] && colspan="colspan='$2'"
+	local text="$1"
+	local colspan;
+	[ -n "$2" ] && colspan="colspan='$2'"
 	echo "<tr><td></td></tr>"
 	[ -n "$text" ] && echo "<tr class='table_title'> <td $colspan class='table_title'>$text</td> </tr>"
-    echo "<tr><td><pre class='console'>"
+	echo "<tr><td><pre class='console'>"
 }
 
 render_console_end(){
@@ -105,11 +106,11 @@ render_console(){
 
 render_message_box() 
 {
-    local title="$1"
+	local title="$1"
 	local text="$2"
-    echo "<table>"
-    render_table_title "$title" 
-    echo "<tr><td>$text</td></tr></table>"
+	echo "<table>"
+	render_table_title "$title" 
+	echo "<tr><td>$text</td></tr></table>"
 }
 
 render_save_message(){
@@ -126,7 +127,7 @@ render_form_header(){
 	#local act="$SCRIPT_NAME";
 	local lname="midge_form"
 	[ -n "$1" ] && lname="$1"
-    [ -n "$2" ] && act="$2"
+	[ -n "$2" ] && act="$2"
 
 	echo "<form name='$lname' method='post' tmt:validate='true'>"
 	#echo "<input type=hidden name=SESSIONID value='$SESSIONID'>"
@@ -149,10 +150,10 @@ render_input_field(){
 	local inputname="$3"
 	local inputsize='25'
 	local maxlenght='255'
-    local tipcode=''
+	local tipcode=''
 	local i
-    [ -n "$tip" ] && tipcode="onmouseover=\"return overlib('$tip', BUBBLE, BUBBLETYPE, 'roundcorners')\" onmouseout=\"return nd();\""
-    eval 'value=$'$inputname
+	[ -n "$tip" ] && tipcode="onmouseover=\"return overlib('$tip', BUBBLE, BUBBLETYPE, 'roundcorners')\" onmouseout=\"return nd();\""
+	eval 'value=$'$inputname
 	[ -z "$value" -a -n "$default" ] && value="$default"
 	[ -n "$autosubmit" ] && ascode="onchange='this.form.submit()'"
 	
@@ -161,20 +162,20 @@ render_input_field(){
 	echo "
 <!-- ------- render_input_field $type $text $inputname $* -->"
 
-    [ ! $type = "hidden" ] && echo "<tr>
+	[ ! $type = "hidden" ] && echo "<tr>
 <td width='35%' class='vncellt'><label for='$inputname' $tipcode>$text</label></td>
 <td width='65%' class='listr'>";
 
-    case $type in
-    text)
-        echo "	<input $disabled type='text' class='edit' $tipcode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
-        ;;
-    checkbox)
-        echo -n "	<input $disabled type='checkbox' class='edit' $tipcode name='$inputname' $validator tmt:errorclass='invalid'"
-        for i in ${value%%0}; do echo -n " checked=1 "; done
-        echo '> '
-        ;;
-    radio)
+	case $type in
+	text)
+		echo "	<input $disabled type='text' class='edit' $tipcode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
+		;;
+	checkbox)
+		echo -n "	<input $disabled type='checkbox' class='edit' $tipcode name='$inputname' $validator tmt:errorclass='invalid'"
+		for i in ${value%%0}; do echo -n " checked=1 "; done
+		echo '> '
+		;;
+	radio)
 		while [ -n "$1" ]; do
 			echo -n "<label $tipcode><input $disabled type='radio' class='button' $tipcode name='$inputname' $validator tmt:errorclass='invalid'"
 			[ "$value" = "$1" ] && echo -n " checked "
@@ -193,25 +194,25 @@ render_input_field(){
 			shift 2
 		done
 		;;
-    hidden)
+	hidden)
 		value="$1"
 		#echo "value="$value > /www/settings/tmpf
-        echo "<input type='hidden' name='$inputname' value='$value'>"
-        ;;
-    password)
-        echo "	<input $disabled type='password' class='edit' $tipcode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
-        ;;
-    static)
-        echo "$@"
-        ;;
+		echo "<input type='hidden' name='$inputname' value='$value'>"
+		;;
+	password)
+		echo "	<input $disabled type='password' class='edit' $tipcode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
+		;;
+	static)
+		echo "$@"
+		;;
 	esac
-        
-    [ ! $type = "hidden" ] && echo "<br><span class='inputDesc' $tipcode>$desc</span></td></tr>"
+	
+	[ ! $type = "hidden" ] && echo "<br><span class='inputDesc' $tipcode>$desc</span></td></tr>"
 	echo "<!-- ------- /render_input_field $type $text $inputname $* -->"
 	unset autosubmit
-    unset tip
-    unset desc
-    unset validator
+	unset tip
+	unset desc
+	unset validator
 	unset default
 }
 
