@@ -60,7 +60,7 @@
 +	int len = 0, i, j; 
 +	i = ADM5120_SW_REG(PHY_st_REG); 
 +	for ( j=0; j < 5; j++ ) { 
-+	        len += sprintf(buf + len, (j)?"Port%d\t":"WAN\t",j); 
++	        len += sprintf(buf + len, "Port%d\t", j); 
 +	        len += sprintf(buf + len, (i & (1<<j))?"up\t":"down\t"); 
 +	        if (i & (1<<j)) { 
 +	                len += sprintf(buf + len, (i & (256<<j)?"100M\t":"10M\t")); 
