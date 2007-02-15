@@ -22,6 +22,7 @@ for iface_num in $sys_switch_ports; do
 		kdb set sys_iface_eth${iface_num}_valid=0
 	else
 		echo "Attaching ports '$ports' to eth${iface_num}"
+		/sbin/ifconfig eth${iface_num} down
 		echo $ports > /proc/sys/net/adm5120sw/eth${iface_num}
 		kdb set sys_iface_eth${iface_num}_valid=1
 	fi

@@ -270,8 +270,8 @@ _ifdown(){
 _network(){
 	for iface in $sys_ifaces; do
 		eval `kdb -lqq sls sys_iface_${iface}_`
-		[ "$1" = "start" -a "$auto" = "1" ] && _ifup $iface
-		[ "$1" = "stop" ] && _ifdown $iface
+		[ "$1" = "start" -a "$auto" = "1" ] && /sbin/ifup $iface
+		[ "$1" = "stop" ] && /sbin/ifdown $iface
 		if [ "$1" = "restart" ]; then
 			/sbin/ifdown $iface
 			/sbin/ifup $iface 
@@ -292,7 +292,7 @@ case "$0" in
 	*ifdown)
 		[ "x$1" = "x-a" ] && /etc/init.d/network stop || _ifdown $1
 		;;
-	esac
+esac
 
 
 
