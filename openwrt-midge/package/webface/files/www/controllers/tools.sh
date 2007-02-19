@@ -10,7 +10,7 @@
 	query=${FORM_query}
 	type=${FORM_type}
 	
-	render_page_selection "" syslog "syslog" dmesg "dmesg" ping "ping" mtr "mtr" dig "dig" tcpdump "tcpdump" 
+	render_page_selection "" syslog "syslog" dmesg "dmesg" ping "ping" mtr "mtr" dig "dig" tcpdump "tcpdump" reboot "reboot"
 
 	render_form_header 
 	if [ $REQUEST_METHOD = POST ]; then
@@ -39,6 +39,12 @@
 		tcpdump)
 			render_console_start "$page"
 			/usr/sbin/tcpdump -i $iface $resolve $tcpdump_arg & pid=${!}; sleep $sleep; kill $pid
+			render_console_end
+		;;
+		reboot)
+			render_console_start "$page"
+			echo "Reboot in progress..."
+			( sleep 3; reboot )&
 			render_console_end
 		;;
 		esac
@@ -89,6 +95,9 @@
 				render_console_start
 				render_console_command /bin/dmesg | tail -$lines
 				render_console_end
+			;;
+			reboot)
+				render_submit_field "Reboot"
 			;;
 		esac
 	fi
