@@ -22,6 +22,12 @@ root
       2
        name=ssh
        jump=ACCEPT
+      3
+       name=ssh
+       jump=ACCEPT
+      4
+       name=ssh
+       jump=ACCEPT
     output
      policy=DROP
     forward

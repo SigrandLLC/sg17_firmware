@@ -60,7 +60,7 @@ inline void _debug(int level, char* format, ...){}
 
 //                    ^
 //    +---------------------------------+
-//    |              root               |
+//    |             parent              |
 //  <-| prev                       next |->
 //    |             fchild              |
 //    +---------------------------------+
@@ -335,6 +335,7 @@ public:
 		}
 		if (parent) { 
 			prev->parent=parent;
+			parent->fchild=prev;
 			parent=NULL;
 		}
 		return n;
@@ -351,6 +352,110 @@ public:
 			get_lastchild()->insert_after(child);
 		}
 		return child;
+	}
+
+	// buggy
+	node* swap_with_next() {
+		if (! get_next() )
+			return NULL;
+
+		debug(3, "node['%s']::swap_with_next(): next['%s']\n", get_name(), get_next()->get_name());
+		if ( get_parent() ) {
+			get_next()->parent = get_parent();
+			get_parent()->fchild = get_next();
+			parent = NULL;
+		}
+
+		if ( get_prev() ) {
+			get_prev()->next = get_next();
+			debug(4, "node['%s']::swap_with_next(): setting get_prev()[%s]->next = get_next()['%s']\n", get_name(), get_prev()->get_name(), get_next()?get_next()->get_name():"NULL");
+		}
+
+
+		node* n = get_next();
+		debug(4, "node['%s']::swap_with_next(): n[%s]\n", get_name(), n?n->get_name():"NULL");
+		node* t = n->get_next();
+		debug(4, "node['%s']::swap_with_next(): t[%s]\n", get_name(), t?t->get_name():"NULL");
+		debug(4, "node['%s']::swap_with_next(): setting n[%s]->prev to [%s]\n", get_name(), n->get_name(), get_prev()?get_prev()->get_name():"NULL");
+
+		n->prev = get_prev();
+		n->next = this;
+
+		prev = n;
+		next = t;
+		if ( next )
+			next->prev = this;
+		return this;
+	}
+
+	node* move_left() {
+		debug(2, "node['%s']::move_left()\n", get_name());
+		node *p = get_prev();
+		if ( p ) {
+			remove();
+			return p->insert_before( this );
+		} else
+			return NULL;
+	}
+
+	node* move_right() {
+		debug(2, "node['%s']::move_right()\n", get_name());
+		node *n = get_next();
+		if ( n ) {
+			remove();
+			return n->insert_after( this );
+		} else 
+			return NULL;
+	}
+
+	int compare_name(node* n) {
+		assert( n != NULL );
+		if (! n )
+			return 0;
+		debug(5, "node['%s']::compare_name(['%s'])\n", get_name(), n->get_name());
+
+		// try to compare integers
+		int i1, i2;
+		if ( (i1 = atoi(get_name())) && (i2 = atoi(n->get_name())) )
+			return i1-i2;
+		else
+			return strcmp(get_name(), n->get_name());
+	}
+
+	// very simple sort
+	void sort() {
+		debug(3, "node['%s']::sort()\n", get_name());
+		node *n=fchild;
+		while ( n ) {
+			if ( n->get_next() && ( n->compare_name(n->get_next()) > 0 ) ) {
+				n->move_right();
+				n = fchild;
+				continue;
+			}
+			n=n->get_next();
+		}
+
+		n=fchild;
+		while ( n ) {
+			if ( n->get_fchild() )
+				n->sort();
+			n = n->get_next();
+		}
+		return;
+	}
+
+	void renumber_child() {
+		debug(3, "node['%s']::renumber_child()\n", get_name());
+		char str[32];
+		int i = 0;
+		node *n=fchild;
+		while ( n ) {
+			snprintf(str, sizeof(str), "%d", i);
+			n->set_name(str);
+			n = n->get_next();
+		}
+
+		return;
 	}
 
 	node *remove() {
@@ -830,32 +935,63 @@ public:
 		is_db_already_readed = false;
 		return true;
 	}
-		
 
 	int hdb_list (const char* str) {
-		
 		db_load();
 		node *n = current_root;
 		if ( n ) {
-			debug(3, "hdb::hdb_wlist('%s'): found node['%s']\n", str, n->get_name());
+			debug(3, "hdb::hdb_list('%s'): found node['%s']\n", str, n->get_name());
 			n->walk(walk_print, (void*) str);
 		} else {
-			debug(3, "hdb::hdb_wlist('%s'): node not found\n", str);
+			debug(3, "hdb::hdb_list('%s'): node not found\n", str);
 		}
 		
 		return true;
 	}
 	int hdb_slist (const char* str) {
-		
 		db_load();
 		node *n = current_root->chain_find_node(str);
 		if ( n ) {
-			debug(3, "hdb::hdb_list('%s'): found node['%s']\n", str, n->get_name());
+			debug(3, "hdb::hdb_slist('%s'): found node['%s']\n", str, n->get_name());
 			n->chain_print_node("");
 		} else {
-			debug(3, "hdb::hdb_list('%s'): node not found\n", str);
+			debug(3, "hdb::hdb_slist('%s'): node not found\n", str);
 		}
 		
+		return true;
+	}
+
+#define CMD_SORT 0
+#define CMD_MOVE_LEFT 1
+#define CMD_MOVE_RIGHT 2
+#define CMD_RM 3
+
+	int hdb_cmd(int cmd, const char* name) {
+		db_load();
+		node *n = current_root->chain_find_node(name);
+		if ( n ) {
+			debug(3, "hdb::cmd(%d, '%s'): found node['%s']\n", cmd, name, n->get_name());
+			switch (cmd) {
+				case CMD_SORT:
+					n->sort();
+					break;
+				case CMD_MOVE_LEFT:
+					n->move_left();
+					break;
+				case CMD_MOVE_RIGHT:
+					n->move_right();
+					break;
+				case CMD_RM:
+					debug(3, "hdb::hdb_cmd(rm, '%s'): found node['%s'], deleting\n", name, n->get_name());
+					n->remove();
+					delete n;
+					break;
+
+			}
+			need_write++;
+		} else {
+			debug(3, "hdb::hdb_move_right('%s'): node not found\n", name);
+		}
 		return true;
 	}
 
@@ -899,22 +1035,6 @@ public:
 			n->set_data(data);
 		}
 		
-		need_write++;
-		return true;
-	}
-
-	int hdb_rm (const char* str) {
-		db_load();
-		
-		debug(4, "hdb::hdb_rm('%s')\n", str);
-		node *n = current_root->chain_find_node(str);
-		if ( n ) {
-			debug(3, "hdb::hdb_set('%s'): found node['%s'], deleting\n", str, n->get_name());
-			n->remove();
-			delete n;
-		}
-		
-		root->dump();
 		need_write++;
 		return true;
 	}
@@ -1039,23 +1159,29 @@ int hdb::main (int argc, char **argv)
 
 		if ( (!strcmp(cmd, "slist")) || (!strcmp(cmd, "sls")) )
 			result = hdb_slist(param0);
-		else if ( (!strcmp(cmd, "ls")) || (!strcmp(cmd, "list")))
+		else if ( (! strcmp(cmd, "ls")) || (!strcmp(cmd, "list")))
 			result = hdb_list(param0);
-		else if (!strcmp(cmd, "set"))
+		else if (! strcmp(cmd, "set") )
 			result = hdb_set(param0);
-		else if (!strcmp(cmd, "rename"))
+		else if (! strcmp(cmd, "rename") )
 			result = hdb_rename(param0, param1), optind++;
-		else if (!strcmp(cmd, "dump"))
+		else if (! strcmp(cmd, "dump") )
 			result = hdb_dump(param0);
-		else if (!strcmp(cmd, "show"))
+		else if (! strcmp(cmd, "show") )
 			result = hdb_show(param0);
-		else if (!strcmp(cmd, "rm"))
-			result = hdb_rm(param0);
-		else if (!strcmp(cmd, "edit"))
+		else if (! strcmp(cmd, "rm") )
+			result = hdb_cmd(CMD_RM, param0);
+		else if (! strcmp(cmd, "move_right") )
+			result = hdb_cmd(CMD_MOVE_RIGHT, param0);
+		else if (! strcmp(cmd, "move_left") )
+			result = hdb_cmd(CMD_MOVE_LEFT, param0);
+		else if (! strcmp(cmd, "sort") )
+			result = hdb_cmd(CMD_SORT, param0);
+		else if (! strcmp(cmd, "edit") )
 			result = hdb_edit(argv[0]);
-		else if (!strcmp(cmd, "export"))
+		else if (!strcmp(cmd, "export") )
 			result = hdb_export(argv[0]);
-		else if (!strcmp(cmd, "import"))
+		else if (! strcmp(cmd, "import") )
 			result = hdb_import(argv[0]);
 		else 
 			show_usage(argv[0]);
