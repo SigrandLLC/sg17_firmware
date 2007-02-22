@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# Starts pppoe-relay.
+#
+
+test -x /usr/sbin/pppoe-relay || exit 0
+
+case $1 in
+ start)
+  pppoe-relay -C eth2 -S eth1
+  ;;
+ *)
+  echo "usage: $0 (start)"
+  exit 1
+esac
+
+exit $?

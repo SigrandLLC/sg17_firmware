@@ -3,11 +3,11 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=rp-pppoe
-PKG_VERSION:=3.5
+PKG_VERSION:=3.8
 PKG_RELEASE:=1
-PKG_MD5SUM:=
+PKG_MD5SUM:=0e32760f498f9cde44081ee6aafc823b
 
-PKG_SOURCE_URL:=http://roaringpenguin.com/penguin/pppoe/
+PKG_SOURCE_URL:=http://roaringpenguin.com/files/download
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_CAT:=zcat
 
@@ -64,20 +64,17 @@ $(IPKG_PPPOE_CLIENT):
 	install -d -m0755 $(IDIR_PPPOE_CLIENT)/etc/init.d
 	install -m0755 ./files/pppoe-client.init $(IDIR_PPPOE_CLIENT)/etc/init.d/pppoe-client
 	install -d -m0755 $(IDIR_PPPOE_CLIENT)/etc/ppp
-	install -m0644 $(PKG_INSTALL_DIR)/etc/pppoe.conf $(IDIR_PPPOE_CLIENT)/etc/
+	install -m0644 $(PKG_BUILD_DIR)/configs/pppoe.conf $(IDIR_PPPOE_CLIENT)/etc/
 	install -d -m0755 $(IDIR_PPPOE_CLIENT)/usr/sbin
-	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/pppoe $(IDIR_PPPOE_CLIENT)/usr/sbin/
-	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/adsl-* $(IDIR_PPPOE_CLIENT)/usr/sbin/
+	$(CP) $(PKG_BUILD_DIR)/src/pppoe $(IDIR_PPPOE_CLIENT)/usr/sbin/
 	$(RSTRIP) $(IDIR_PPPOE_CLIENT)
 	$(IPKG_BUILD) $(IDIR_PPPOE_CLIENT) $(PACKAGE_DIR)
 
 $(IPKG_PPPOE_RELAY):
-	install -d -m0755 $(IDIR_PPPOE_RELAY)/etc/default
-	install -m0755 ./files/pppoe-relay.default $(IDIR_PPPOE_RELAY)/etc/default/pppoe-relay
 	install -d -m0755 $(IDIR_PPPOE_RELAY)/etc/init.d
-	install -m0755 ./files/pppoe-relay.init $(IDIR_PPPOE_RELAY)/etc/init.d/pppoe-relay
+	install -m0755 ./files/S93pppoe-relay $(IDIR_PPPOE_RELAY)/etc/init.d/S93pppoe-relay
 	install -d -m0755 $(IDIR_PPPOE_RELAY)/usr/sbin
-	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/pppoe-relay $(IDIR_PPPOE_RELAY)/usr/sbin/
+	$(CP) $(PKG_BUILD_DIR)/src/pppoe-relay $(IDIR_PPPOE_RELAY)/usr/sbin/
 	$(RSTRIP) $(IDIR_PPPOE_RELAY)
 	$(IPKG_BUILD) $(IDIR_PPPOE_RELAY) $(PACKAGE_DIR)
 
@@ -87,15 +84,15 @@ $(IPKG_PPPOE_SERVER):
 	install -d -m0755 $(IDIR_PPPOE_SERVER)/etc/init.d
 	install -m0755 ./files/pppoe-server.init $(IDIR_PPPOE_SERVER)/etc/init.d/pppoe-server
 	install -d -m0755 $(IDIR_PPPOE_SERVER)/etc/ppp
-	install -m0644 $(PKG_INSTALL_DIR)/etc/ppp/pppoe-server-options $(IDIR_PPPOE_SERVER)/etc/ppp/
+	install -m0644 $(PKG_BUILD_DIR)/configs/pppoe-server-options $(IDIR_PPPOE_SERVER)/etc/ppp/
 	install -d -m0755 $(IDIR_PPPOE_SERVER)/usr/sbin
-	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/pppoe-server $(IDIR_PPPOE_SERVER)/usr/sbin/
+	$(CP) $(PKG_BUILD_DIR)/src/pppoe-server $(IDIR_PPPOE_SERVER)/usr/sbin/
 	$(RSTRIP) $(IDIR_PPPOE_SERVER)
 	$(IPKG_BUILD) $(IDIR_PPPOE_SERVER) $(PACKAGE_DIR)
 
 $(IPKG_PPPOE_SNIFF):
 	install -d -m0755 $(IDIR_PPPOE_SNIFF)/usr/sbin
-	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/pppoe-sniff $(IDIR_PPPOE_SNIFF)/usr/sbin/
+	$(CP) $(PKG_BUILD_DIR)/src/pppoe-sniff $(IDIR_PPPOE_SNIFF)/usr/sbin/
 	$(RSTRIP) $(IDIR_PPPOE_SNIFF)
 	$(IPKG_BUILD) $(IDIR_PPPOE_SNIFF) $(PACKAGE_DIR)
 
