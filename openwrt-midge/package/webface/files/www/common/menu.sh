@@ -21,6 +21,11 @@ L1 System welcome
 	L2 Security 'passwd'
 	L2 Time		'time'
 	L2 SHDSL	'dsl'
+	for i in `kdb get sys_dsl_ifaces`; do
+		class=""
+		[ "$FORM_iface" = "$i" ] && class="navlnk_a"
+		L3	$i "dsl&iface=$i" $class
+	done
 	L2 Switch	'adm5120sw'
 	L2 DNS		'dns'
 	
@@ -38,7 +43,7 @@ L1 Network
 	
 L1 Services
 	L2 "DNS Server" dns_server
-L1 Tools
+L1 Tools 
 	L2 syslog	"tools&page=syslog"
 	L2 dmesg	"tools&page=dmesg"
 	L2 ping	"tools&page=ping"

@@ -43,12 +43,7 @@ _dsl_if_defconfig(){
 
 	iface=$1
 	eval `$kdb -qq sls sys_dsl_${iface}_`
-	eval `$kdb -qq sls sys_ifaces_${iface}_`	
 
-	# check that variable is set
-	if [ -z "$up" ]; then
-		$kdb set sys_ifaces_${iface}_up=0
-	fi
 	# check that MASTER variable is set
 	if [ -z "$mode" ]; then
 		$kdb set sys_dsl_${iface}_mode="$def_mode"
@@ -97,11 +92,6 @@ _dsl_apply_cfg(){
 	$ifcfg $iface down
 	$dsl_cfg $iface $mode rate $rate $coding cfg $cfg \
 		annex $annex $fill $inv $crc
-	eval $kdb -qq sls sys_iface_${iface}_
-	if [ "$up" == "1" ]; then
-		$ifcfg $iface up
-	fi
-		
 }
 	
 _dsl_start(){

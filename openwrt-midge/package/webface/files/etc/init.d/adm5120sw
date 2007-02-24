@@ -28,7 +28,7 @@ for iface_num in $sys_switch_ports; do
 	fi
 done
 
-if [ -r /www/lib/misc.sh ]; then
-	. /www/lib/misc.sh
-	iface_update_sys_ifaces
-fi
+#if [ -r /www/lib/misc.sh ]; then
+#	. /www/lib/misc.sh
+#	iface_update_sys_ifaces
+#fi
