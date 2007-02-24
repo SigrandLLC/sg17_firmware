@@ -99,6 +99,8 @@
 			reboot)
 				render_submit_field "Reboot"
 			;;
+			backup)
+			;;
 		esac
 	fi
 	render_form_tail
