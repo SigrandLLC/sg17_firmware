@@ -444,7 +444,7 @@ public:
 		return;
 	}
 
-	void renumber_child() {
+	int renumber_child() {
 		debug(3, "node['%s']::renumber_child()\n", get_name());
 		char str[32];
 		int i = 0;
@@ -453,9 +453,10 @@ public:
 			snprintf(str, sizeof(str), "%d", i);
 			n->set_name(str);
 			n = n->get_next();
+			i++;
 		}
 
-		return;
+		return i;
 	}
 
 	node *remove() {
