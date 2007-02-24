@@ -146,6 +146,8 @@ char *set_dbfilename(const char* filename)
 int db_open()
 {
 	debug("DEBUG: Using %s as database\n", get_dbfilename());
+	if ( db_file )
+		return true;
 	db_file = fopen(get_dbfilename(), "r+");
 	if (!db_file) {
 		fprintf(stderr, "fopen '%s' %s\n", get_dbfilename(), strerror(errno));
@@ -160,6 +162,8 @@ int db_close()
 {
 	FUNLOCK(db_file);
 	fclose(db_file);
+	db_file = NULL;
+	return true;
 };
 
 int init()
@@ -485,29 +489,47 @@ int import(const char *filename)
             result=false;
         };
     };
-    if (result) {
-        while( fgets(buf, MAX_LINE_SIZE, file) ) {
-            if (ferror(file)) {
-                result=false;
-                break;
-            }
-            int len=strlen(buf);
-            if (len && buf[len-1]=='\n')
-                buf[len-1]='\0';
-            if(parse_pair(buf, name, value) && (strcmp(name, COUNTS_NAME)))
-                db_add(name, value, true);
-            else {
-                result=false;
-                break;
-            };
-        };
-    };
+	if (! result )
+		return false;
+
+	db_file = file;
+	db_already_readed = false;
+	db_read();
     fclose(file);
+
+	db_file = NULL;
 	db_open();
-    if (result) 
-        need_write++;
+	db_write();
+	need_write++;
 
     return result;
+}
+
+int export(const char *filename)
+{
+    FILE *file, *tmp;
+    int result=true;
+    char buf[MAX_LINE_SIZE];
+    char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE];
+    if (!filename || (!strlen(filename)) || (!strcmp("-", filename)) )
+        file=stdout;
+    else {
+        file = fopen(filename, "w+");
+        if (!file) {
+            perror("fopen");
+            result=false;
+        };
+    };
+    if (! result )
+		return false;
+
+	db_read();
+	tmp = db_file;
+	db_file = file;
+	db_write();
+    fclose(file);
+	db_file = tmp;
+    return true;
 }
 
 int edit(const char* me)
@@ -524,7 +546,7 @@ int edit(const char* me)
         sprintf(editor, "vi %s", tmpname);
 
     
-    sprintf(buf, "%s list > %s", me, tmpname);
+    sprintf(buf, "%s export > %s", me, tmpname);
     if (system(buf))
         return false;
     
@@ -902,6 +924,8 @@ int main(int argc, char **argv)
 			result = createdb(param);
 		else if ( !strcmp(cmd, "import") )
 			result = import(param);
+		else if ( !strcmp(cmd, "export") )
+			result = export(param);
 		else 
 			show_usage(argv[0]);
 		if (!result)
