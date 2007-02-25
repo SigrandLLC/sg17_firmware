@@ -57,7 +57,7 @@ $(PKG_BUILD_DIR)/.configured:
 $(PKG_BUILD_DIR)/.built:
 	$(MAKE) -C $(PKG_BUILD_DIR)/src \
 		DESTDIR="$(PKG_INSTALL_DIR)" \
-		all install
+		all
 	touch $@
 
 $(IPKG_PPPOE_CLIENT):
