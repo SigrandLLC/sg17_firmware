@@ -50,6 +50,7 @@ L1 Tools
 	L2 mtr	"tools&page=mtr"
 	L2 dig	"tools&page=dig"
 	L2 tcpdump	"tools&page=tcpdump"
+	L2 reboot	"tools&page=reboot"
 L1 Expert
 	L2 kdb	"expert&page=kdb"
 	L2 "kdb set"	"expert&page=kdb_set"
