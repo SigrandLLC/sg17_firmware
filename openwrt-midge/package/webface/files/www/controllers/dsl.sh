@@ -2,13 +2,13 @@
 
 cfg_path="/sys/bus/pci/drivers/sg16lan"
 
-iface="${FORM_iface:-dsl0}"
+iface="${FORM_iface}"
 	
- #	render_title "SHDSL settings"	
-	[ -d "$cfg_path" ] || die "Service stopped"
+eval `kdb -qq ls "sys_dsl_*" `
 	
 
 if [ -z "$iface" ]; then
+	render_table_title "Modem status" 2
 	for iface in $sys_dsl_ifaces; do
 		link=`cat ${cfg_path}/${iface}/state`
 		tip=""
@@ -17,23 +17,20 @@ if [ -z "$iface" ]; then
 	done
 else
 
-	if [ $REQUEST_METHOD = POST ]; then
-		#TODO: Check save
-		
-		kdb_vars="  int:sys_dsl_${iface}_rate	\
-			    str:sys_dsl_${iface}_mode	\
-			    str:sys_dsl_${iface}_code	\
-			    str:sys_dsl_${iface}_cfg	\
-	            str:sys_dsl_${iface}_annex	\
-			    str:sys_dsl_${iface}_crc	\
-				str:sys_dsl_${iface}_fill	\
-			    bool:sys_dsl_${iface}_inv"	
-		subsys="dsl."$iface
-		save  "$subsys" "$kdb_vars"
-		render_save_message		
-	fi
+	kdb_vars="  int:sys_dsl_${iface}_rate	\
+			str:sys_dsl_${iface}_mode	\
+			str:sys_dsl_${iface}_code	\
+			str:sys_dsl_${iface}_cfg	\
+			str:sys_dsl_${iface}_annex	\
+			str:sys_dsl_${iface}_crc	\
+			str:sys_dsl_${iface}_fill	\
+			bool:sys_dsl_${iface}_inv"	
+	subsys="dsl."$iface
 
-	render_table_title $iface" modem settings" 2
+	render_save_stuff
+
+	render_form_header
+	render_table_title "$iface modem settings" 2
 
 	# sys_dsl_${iface}_name
 	render_input_field "hidden" "hidden" iface $iface
@@ -81,5 +78,9 @@ else
 	desc="Select DSL data inversion"
 	render_input_field checkbox "Inversion" sys_dsl_${iface}_inv
 
+	render_submit_field
+	render_form_tail
+
+fi
 
 

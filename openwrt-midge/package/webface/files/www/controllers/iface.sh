@@ -6,7 +6,7 @@
 
 	handle_list_del_item
 		
-	eval `kdb -qq "ls sys_iface_${iface}_*" : sls "sys_iface_${iface}_" `
+	eval `kdb -qq ls "sys_iface_${iface}_*" : sls "sys_iface_${iface}_" `
 	
 	
 	# enable DHCP page only on "ether" interfaces
