@@ -126,9 +126,11 @@ ladd(){
 import(){
 	$kdb create $KDB
 	cat <<END | $kdb import
+KDB
 name1=value1
 name2=value2
 name3=value3
+KDB END
 END
 	[ "`$kdb ls name2`" = 'name2=value2' ] || return 1
 }
@@ -147,11 +149,11 @@ kdbdefault(){
 	tmp2=`tempfile`
 	[ -r files/etc/kdb.default ] || return 0
 	cp files/etc/kdb.default $KDB 
-	$kdb ls >$tmp1
+	$kdb export >$tmp1
 	$kdb set sys_iface_eth0_mac=00:01:02:03:04:05
 	[ "`$kdb ls sys_iface_eth0_mac`" = "sys_iface_eth0_mac=00:01:02:03:04:05" ] || return 1
 	$kdb rm "sys_iface_eth0_mac*"
-	$kdb ls >$tmp2
+	$kdb export >$tmp2
 
 	s1=`md5sum $tmp1 | cut -f1 -d" "`
 	s2=`md5sum $tmp2 | cut -f1 -d" "`
