@@ -10,7 +10,7 @@
 	query=${FORM_query}
 	type=${FORM_type}
 	
-	render_page_selection "" syslog "syslog" dmesg "dmesg" ping "ping" mtr "mtr" dig "dig" tcpdump "tcpdump" reboot "reboot"
+	render_page_selection "" syslog "syslog" dmesg "dmesg" ping "ping" mtr "mtr" dig "dig" tcpdump "tcpdump" reboot "reboot" 
 
 	render_form_header 
 	if [ $REQUEST_METHOD = POST ]; then
@@ -98,8 +98,6 @@
 			;;
 			reboot)
 				render_submit_field "Reboot"
-			;;
-			backup)
 			;;
 		esac
 	fi

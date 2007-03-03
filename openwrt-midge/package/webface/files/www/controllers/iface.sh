@@ -398,7 +398,7 @@
 	case $page in
 	'dhcp')
 		# static dhcp list
-		render_form_header dhcp_leases dhcp_save
+		render_form_header dhcp_leases
 		render_table_title "DHCP Static leases" 2 
 		render_iframe_list "dhcp_static" "iface=$iface"
 		render_form_tail
@@ -406,7 +406,7 @@
 	'qos')
 		# static dhcp list
 		if [ "$qos_sch" != sfq -a "$qos_sch" != pfifo_fast ]; then
-			render_form_header qos qos
+			render_form_header qos
 			render_input_field hidden iface iface "$iface"
 			render_input_field hidden page page "$page"
 			render_input_field hidden form form "form2"
@@ -465,7 +465,7 @@
 
 	'routes')
 		if [ $method != dynamic ]; then
-			render_form_header routes routes
+			render_form_header routes
 			render_list_line(){
 				local lineno=$1
 				eval "val=\"\${sys_iface_${iface}_route_${lineno}}\""

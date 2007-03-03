@@ -124,12 +124,11 @@ render_save_message(){
 }
 
 render_form_header(){
-	#local act="$SCRIPT_NAME";
 	local lname="midge_form"
 	[ -n "$1" ] && lname="$1"
-	[ -n "$2" ] && act="$2"
+	shift
 
-	echo "<form name='$lname' method='post' tmt:validate='true'>"
+	echo "<form name='$lname' method='post' tmt:validate='true' $* >"
 	#echo "<input type=hidden name=SESSIONID value='$SESSIONID'>"
 	echo "<input type=hidden name=controller value='$controller'>"
 	echo "<table width='100%' border='0' cellspacing='0' cellpadding='0'>"
@@ -204,6 +203,10 @@ render_input_field(){
 		;;
 	static)
 		echo "$@"
+		;;
+	file)
+		# TODO
+		echo "<input type=fil name=$inputname>"
 		;;
 	esac
 	
