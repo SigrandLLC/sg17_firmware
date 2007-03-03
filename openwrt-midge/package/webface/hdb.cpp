@@ -97,6 +97,10 @@ char *str_unescape(const char *source);
 int match_wildcard(const char *pattern, const char *string);
 int is_wildcarded(const char* str);
 
+
+class hdb;
+hdb *app = NULL;
+
 char *level_delimiter=" ";
 char *node_delimiter="_";
 
@@ -108,6 +112,7 @@ class node {
 
 	char *name;
 	char *data;
+	char *pos_str;
 
 	void init_values() {
 		parent=NULL; 
@@ -116,6 +121,7 @@ class node {
 		prev=NULL;
 		name=strdup("");
 		data=strdup("");
+		pos_str=strdup("");
 	}
 public:
 	node() { 
@@ -212,6 +218,23 @@ public:
 	}
 
 	inline node *get_fchild() { return fchild; }
+
+	int get_levelpos() {
+		int i = 0;
+		node* n = get_first();
+
+		if ( n == NULL)
+			return -1;
+
+		debug(7, "node['u']::get_levelpos(): get_first(): '%s'\n", n->get_name()); 
+		while ( n != this ) {
+			assert( n != NULL);
+			i++;
+			n = n->get_next();
+		}
+		debug(7, "node['u']::get_levelpos('%d')\n", i); 
+		return i;
+	}
 	
 	bool set_pair(const char* str) {
 		debug(5, "node['%s']::set_pair('%s')\n", get_name(), str);
@@ -241,10 +264,10 @@ public:
 	}
 
 	node *get_first() {
-		debug(5, "node['%s']::get_first(): ", get_name());
+		debug(7, "node['%s']::get_first(): \n", get_name());
 		node *n = prev;
 		if ( !n ) {
-			debug(5, "node['%s']\n", get_name());
+			debug(7, "node['%s']\n", get_name());
 			return this;
 		}
 		
@@ -268,6 +291,7 @@ public:
 			return this;
 		}
 		assert( next != NULL );
+		debug(5, "node['%s']\n", get_name());
 		return next->get_last();
 	}
 	
@@ -460,7 +484,7 @@ public:
 	}
 
 	node *remove() {
-		debug(3, "node['%s']::remove()\n", get_name());
+		debug(3, "node['%s'-%d]::remove()\n", get_name(), get_levelpos());
 		if ( (parent != NULL) && (prev != NULL) )
 			debug(1, "parent: %x, prev: %x\n", parent, prev);
 
@@ -775,6 +799,7 @@ class hdb {
 	int make_local;
 	char *local_str;
 	int make_export;
+	char *export_str;
 	int need_print_count;
 	int need_write;
 	int is_db_already_readed;
@@ -790,6 +815,7 @@ public:
 		make_local = false;
 		local_str = strdup("local ");
 		make_export = false;
+		export_str = strdup("export ");
 		need_print_count = false;
 		need_write = false;
 		is_db_already_readed = false;
@@ -802,16 +828,47 @@ public:
 		delete root;
 	}
 
+	void print_node(const char* name, const char* value) {
+		char *prefix="";
+		char *format="";
+		char *quot_str="";
+
+		if ( make_local )
+			prefix = local_str;
+		else if ( make_export )
+			prefix = export_str;
+
+		switch (quotation) {
+			case 0:	quot_str=""; break;
+			case 1: quot_str="'"; break;
+			case 2: quot_str="\""; break;
+			default: quot_str="\""; break;
+		};
+
+					
+
+		if ( (! name) && (! value) )
+			format="\n";
+		else if (! name) 
+			format="%s\n";
+		else if (! value)
+			format="%s\n";
+		else
+			format="%s%s=%s\n";
+				
+		printf( format, prefix, name?name:"", value?value:"");
+
+	}
+
 	void show_usage(char *name)
 	{
 		printf("Usage: %s [OPTIONS] ARG [: ARG] \n", name);
 		printf("where  OPTIONS:= d|l|q|qq|e|c\n");
 		printf("       ARG := { set nodechain=[+=|-=]value |\n");
 		printf("        rm nodechain |\n");
-		printf("        isset key |\n");
 		printf("        list [pattern] | ls [pattern] |\n");
 		printf("        slist key | sls key |\n");
-		printf("        rename oldnodechain newnodechain |\n");
+		printf("        rename oldnodechain newname |\n");
 		printf("        import [filename] |\n");
 		printf("        edit }\n");
 		return;
@@ -1172,9 +1229,9 @@ int hdb::main (int argc, char **argv)
 			result = hdb_show(param0);
 		else if (! strcmp(cmd, "rm") )
 			result = hdb_cmd(CMD_RM, param0);
-		else if (! strcmp(cmd, "move_right") )
+		else if (! strcmp(cmd, "mv_right") )
 			result = hdb_cmd(CMD_MOVE_RIGHT, param0);
-		else if (! strcmp(cmd, "move_left") )
+		else if (! strcmp(cmd, "mv_left") )
 			result = hdb_cmd(CMD_MOVE_LEFT, param0);
 		else if (! strcmp(cmd, "sort") )
 			result = hdb_cmd(CMD_SORT, param0);
@@ -1201,14 +1258,21 @@ int hdb::main (int argc, char **argv)
 
 extern "C"
 {
-#ifdef DASH
+#ifdef SHELL_INTEGRATION
 int hdbcmd (int argc, char **argv) {
 #else
 int main (int argc, char **argv) {
 #endif
-	hdb app;
-	return app.main(argc, argv);
-	
+	if (! app)
+		app = new hdb;
+	int result =  app->main(argc, argv);
+
+#ifndef SHELL_INTEGRATION
+	delete app;
+	app = NULL;
+#endif
+
+	return result;
 }
 
 }
