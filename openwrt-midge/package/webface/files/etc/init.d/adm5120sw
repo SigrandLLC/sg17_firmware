@@ -8,6 +8,10 @@ append() {
 }
 
 for port_num in $sys_switch_ports; do
+	echo 'd' > /proc/sys/net/adm5120sw/eth${port_num}
+done
+
+for port_num in $sys_switch_ports; do
 	for iface_num in $sys_switch_ports; do
 		eval "iface_of_port=\$sys_switch_port${port_num}_iface"
 		if [ "$iface_of_port" = "$iface_num" ]; then
