@@ -24,6 +24,7 @@ update_configs_and_service_reload(){
 	for service in $subsys; do
 		service_reload $service 2>&1 | $LOGGER ;
 	done
+
 }
 
 save(){
@@ -51,6 +52,7 @@ save(){
 		
 		kdb_commit
 		fail_str="Savings failed: $ERROR_DETAIL"
+
 		[ -n "$ERROR_MESSAGE" ] && break
 		
 		update_configs_and_service_reload "$subsys"

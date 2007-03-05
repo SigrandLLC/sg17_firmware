@@ -24,7 +24,7 @@ else
 			str:sys_dsl_${iface}_annex	\
 			str:sys_dsl_${iface}_crc	\
 			str:sys_dsl_${iface}_fill	\
-			bool:sys_dsl_${iface}_inv"	
+			str:sys_dsl_${iface}_inv"	
 	subsys="dsl."$iface
 
 	render_save_stuff
@@ -73,10 +73,9 @@ else
 	render_input_field select "Fill" sys_dsl_${iface}_fill  fill_ff FF fill_7e 7E
 
 	# sys_dsl_${iface}_inv
-	default=0
 	tip=""
-	desc="Select DSL data inversion"
-	render_input_field checkbox "Inversion" sys_dsl_${iface}_inv
+	desc="Select DSL inversion mode"
+	render_input_field select "Inversion" sys_dsl_${iface}_inv  normal off invert on
 
 	render_submit_field
 	render_form_tail

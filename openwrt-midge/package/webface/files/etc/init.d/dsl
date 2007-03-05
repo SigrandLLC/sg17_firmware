@@ -4,6 +4,8 @@ kdb="kdb"
 dsl_cfg="/sbin/sg16cfg"
 ifcfg="/sbin/ifconfig"
 
+. /etc/templates/sigrand-lib
+
 # checks that DSL service is enabled
 _dsl_init_svc(){
 	return 0;
@@ -21,12 +23,6 @@ _dsl_init_drv(){
 
 # rmmod DSL drivers
 _dsl_stop_drv(){
-	return 0;
-}
-
-_dsl_if_find(){
-	echo "finding ifaces"
-	$kdb set sys_dsl_ifaces="dsl0"
 	return 0;
 }
 
@@ -87,30 +83,31 @@ _dsl_if_stop(){
 _dsl_apply_cfg(){
 	
 	iface=$1
-	eval $kdb -qq sls sys_dsl_${iface}_
+	kdb -qq sls sys_dsl_${iface}_ >> /root/dsl.log
+	eval `$kdb -qq sls sys_dsl_${iface}_`
 	# apply configuration
 	$ifcfg $iface down
-	$dsl_cfg $iface $mode rate $rate $coding cfg $cfg \
-		annex $annex $fill $inv $crc
+	[ -n "$rate" ] && rate="rate $rate"
+	[ -n "$cfg" ] && cfg="cfg $cfg"
+	[ -n "$annex" ] && annex="annex $annex"
+	$dsl_cfg $iface $mode $rate $coding $cfg $annex $fill $inv $crc > /var/log/dsl
 }
+
 	
 _dsl_start(){
 	
-	echo "dsl start"
 	# start service if enabled
 	_dsl_init_svc || return 0
 
-	echo "dsl drv init"	
 	# init service
 	_dsl_init_drv || echo "Cannot find DSL modules"
 
-	echo "dsl if_find"
-	_dsl_if_find || echo "No SHDSL interfaces was found"
+	_sg_if_refresh "dsl" "sys_dsl"
 
-	echo "dsl apply config"		
 	#apply defconfig if no configuration
 	for iface in `$kdb get sys_dsl_ifaces`; do
 	    echo "if=$iface"
+	    $dsl_cfg $iface reload
 	    _dsl_if_defconfig $iface
 	    _dsl_apply_cfg $iface
 	done

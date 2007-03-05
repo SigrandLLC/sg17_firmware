@@ -119,8 +119,10 @@ render_save_message(){
 	
 	echo "<tr><td width='100%' class='listr' align='center'>" 
 	[ -z "$ERROR_MESSAGE" ] && echo $ok_str || echo "$ERROR_MESSAGE <br> $fail_str"
+
 	echo "</td></tr><tr><td> <br /> <br /></td></tr></table>"
 	render_js_hide_message
+
 }
 
 render_form_header(){

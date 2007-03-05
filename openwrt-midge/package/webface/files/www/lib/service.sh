@@ -25,6 +25,10 @@ service_reload(){
 		iface=${sybsys##*.}
 		/etc/init.d/dsl restart $iface 
 	;;
+	e1*)
+		iface=${sybsys##*.}
+		/etc/init.d/e1 restart $iface 
+	;;
 	fw)
 		/etc/init.d/fw restart 
 	;;
