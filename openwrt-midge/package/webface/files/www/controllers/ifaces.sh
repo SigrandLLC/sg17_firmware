@@ -10,7 +10,7 @@
 		local name
 		local notfound
 		case $1 in
-			pptp|pppoe|ipsec) name=$1;;
+			pptp|pppoe) name=$1;;
 			bonding)	name=bond;;
 			bridge)		name=br;;
 		esac
