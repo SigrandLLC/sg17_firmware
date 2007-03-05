@@ -37,6 +37,14 @@ extern "C"
 #define READ_BUF_SIZE 2048
 #define MAX_LEVEL INT_MAX
 
+#define PRINT_QUOT		1
+#define PRINT_DQUOT		2
+#define PRINT_LOCAL		4
+#define PRINT_EXPORT	8
+#define PRINT_COUNT		16
+#define PRINT_NAME		32
+#define PRINT_CHAINNAME		64
+#define PRINT_DATA		128
 
 int debug_level = 2;
 
@@ -667,13 +675,13 @@ public:
 		}
 	}
 
-	void walk(bool (*walk_func)(node*, void*), void* func_data) {
+	void walk(bool (*walk_func)(node*, void*, int), void* func_data, int options) {
 		node *c = fchild;
-		if (! walk_func(this, func_data) )
+		if (! walk_func(this, func_data, options) )
 			return;
 
 		while ( c ) {
-			c->walk(walk_func, func_data);
+			c->walk(walk_func, func_data, options);
 			c = c->get_next();
 		}
 	}
@@ -768,39 +776,45 @@ public:
 		}
 	}
 
+
+	static void print_pair(const char* name, const char* value, int print_opt) {
+		char *prefix="";
+		char *format="";
+		char *quot_str="";
+
+		if ( print_opt & PRINT_LOCAL )
+			prefix = "local ";
+		else if ( print_opt & PRINT_EXPORT )
+			prefix = "export ";
+
+		quot_str="";
+		if ( print_opt & PRINT_QUOT ) 
+			quot_str = "'";
+		else if ( print_opt & PRINT_DQUOT )
+			quot_str = "\"";
+
+		if ( (! name) && (! value) )
+			format="\n";
+		else if ( ( (! name) && value) || ( name && (! value) ) )
+			printf( "%s\n", name?name:value);
+		else
+			printf( "%s%s=%s%s%s\n", prefix, name?name:"", quot_str, value?value:"", quot_str);
+		
+	}
+
 };
 
 
+bool walk_print (node* n, void* func_data, int opt);
 
 
 /*************************************************************************************************************/
-
-// print callback
-bool walk_print (node* n, void* func_data) {
-	char *chain_name;
-	
-	if (strlen(n->get_data())) {
-		char *pattern = (char*) func_data;
-		chain_name = n->get_fullchain();
-		if (match_wildcard(pattern, chain_name))
-			printf("%s=%s\n", chain_name, n->get_data());
-		free(chain_name);
-	}
-
-	return true;
-}
-
 
 class hdb {
 
 	FILE *db_file;
 	char *db_filename;
-	int quotation;
-	int make_local;
-	char *local_str;
-	int make_export;
-	char *export_str;
-	int need_print_count;
+	int opt;
 	int need_write;
 	int is_db_already_readed;
 	node *root;
@@ -811,12 +825,7 @@ public:
 		debug(4, "hdb::hdb()\n");
 		db_file = NULL;
 		db_filename = strdup("");
-		quotation = 0;
-		make_local = false;
-		local_str = strdup("local ");
-		make_export = false;
-		export_str = strdup("export ");
-		need_print_count = false;
+		opt = 0;
 		need_write = false;
 		is_db_already_readed = false;
 		root = new node("root");
@@ -828,37 +837,6 @@ public:
 		delete root;
 	}
 
-	void print_node(const char* name, const char* value) {
-		char *prefix="";
-		char *format="";
-		char *quot_str="";
-
-		if ( make_local )
-			prefix = local_str;
-		else if ( make_export )
-			prefix = export_str;
-
-		switch (quotation) {
-			case 0:	quot_str=""; break;
-			case 1: quot_str="'"; break;
-			case 2: quot_str="\""; break;
-			default: quot_str="\""; break;
-		};
-
-					
-
-		if ( (! name) && (! value) )
-			format="\n";
-		else if (! name) 
-			format="%s\n";
-		else if (! value)
-			format="%s\n";
-		else
-			format="%s%s=%s\n";
-				
-		printf( format, prefix, name?name:"", value?value:"");
-
-	}
 
 	void show_usage(char *name)
 	{
@@ -994,12 +972,12 @@ public:
 		return true;
 	}
 
-	int hdb_list (const char* str) {
+	int hdb_print (const char* str, int loptions) {
 		db_load();
 		node *n = current_root;
 		if ( n ) {
 			debug(3, "hdb::hdb_list('%s'): found node['%s']\n", str, n->get_name());
-			n->walk(walk_print, (void*) str);
+			n->walk(walk_print, (void*) str, opt|loptions);
 		} else {
 			debug(3, "hdb::hdb_list('%s'): node not found\n", str);
 		}
@@ -1162,11 +1140,11 @@ public:
 	
 };
 
-
 int hdb::main (int argc, char **argv)
 {
     int ch;
     int result=false;
+	int quotation = 0;
 
 	debug(4, "hdb::main(): parsing cmdline, optind=%d\n", optind);
 	optind=1;
@@ -1181,16 +1159,20 @@ int hdb::main (int argc, char **argv)
                      break;
             case 'q': quotation++;
                      break;
-            case 'l': make_local++;
+            case 'l': opt |= PRINT_LOCAL;
                      break;
-            case 'e': make_export++;
+            case 'e': opt |= PRINT_EXPORT; 
                      break;
-            case 'c': need_print_count++;
+            case 'c': opt |= PRINT_COUNT;
                      break;
             default: show_usage(argv[0]);
                      break;
         }
     }
+	if ( quotation ) {
+		opt |= (quotation==1)?PRINT_DQUOT:0;
+		opt |= (quotation==2)?PRINT_QUOT:0;
+	}
 
     if ( argc <= optind ) 
         show_usage(argv[0]);
@@ -1218,7 +1200,13 @@ int hdb::main (int argc, char **argv)
 		if ( (!strcmp(cmd, "slist")) || (!strcmp(cmd, "sls")) )
 			result = hdb_slist(param0);
 		else if ( (! strcmp(cmd, "ls")) || (!strcmp(cmd, "list")))
-			result = hdb_list(param0);
+			result = hdb_print(param0, PRINT_CHAINNAME|PRINT_DATA);
+		else if (! strcmp(cmd, "get"))
+			result = hdb_print(param0, PRINT_DATA);
+		else if (! strcmp(cmd, "lskeys"))
+			result = hdb_print(param0, PRINT_NAME);
+		else if (! strcmp(cmd, "lschains"))
+			result = hdb_print(param0, PRINT_CHAINNAME);
 		else if (! strcmp(cmd, "set") )
 			result = hdb_set(param0);
 		else if (! strcmp(cmd, "rename") )
@@ -1279,6 +1267,46 @@ int main (int argc, char **argv) {
 
 
 
+/*************************************************************************************************************/
+
+// print callback
+bool walk_print (node* n, void* func_data, int options) {
+	char *chain_name;
+	
+	if (strlen(n->get_data())) {
+		char *pattern = (char*) func_data;
+		chain_name = n->get_fullchain();
+		char strbuf[strlen(chain_name)+strlen(n->get_data())+16];
+		snprintf(strbuf, sizeof(strbuf), "%s=%s", chain_name, n->get_data());
+
+		int o = options&(PRINT_CHAINNAME|PRINT_NAME|PRINT_DATA);
+
+		debug(5, "walk_print(node[%s], pattern='%s' opt=%d, o=%d)\n", n->get_name(), pattern, options, o);
+		if ( match_wildcard(pattern, strbuf) ) {
+			switch(o) {
+				case PRINT_CHAINNAME|PRINT_DATA:
+					node::print_pair(chain_name, n->get_data(), options);
+					break;
+				case PRINT_NAME|PRINT_DATA:
+					node::print_pair(n->get_name(), n->get_data(), options);
+					break;
+				case PRINT_DATA:
+					node::print_pair(NULL, n->get_data(), options);
+					break;
+				case PRINT_NAME:
+					node::print_pair(n->get_name(), NULL, options);
+					break;
+				case PRINT_CHAINNAME:
+					node::print_pair(chain_name, NULL, options);
+					break;
+			};
+		}
+
+		free(chain_name);
+	}
+
+	return true;
+}
 
 
 
