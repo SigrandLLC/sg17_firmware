@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.16
-# Mon Dec 25 13:18:39 2006
+# Sat Mar  3 14:52:57 2007
 #
 CONFIG_MIPS=y
 
@@ -215,7 +215,21 @@ CONFIG_MMU=y
 #
 # PCCARD (PCMCIA/CardBus) support
 #
-# CONFIG_PCCARD is not set
+CONFIG_PCCARD=y
+# CONFIG_PCMCIA_DEBUG is not set
+# CONFIG_PCMCIA is not set
+CONFIG_CARDBUS=y
+
+#
+# PC-card bridges
+#
+CONFIG_YENTA=y
+CONFIG_YENTA_O2=y
+CONFIG_YENTA_RICOH=y
+CONFIG_YENTA_TI=y
+CONFIG_YENTA_ENE_TUNE=y
+CONFIG_YENTA_TOSHIBA=y
+CONFIG_PCCARD_NONSTATIC=y
 
 #
 # PCI Hotplug Support
@@ -657,6 +671,7 @@ CONFIG_IEEE80211=m
 # CONFIG_IEEE80211_DEBUG is not set
 CONFIG_IEEE80211_CRYPT_WEP=m
 CONFIG_IEEE80211_CRYPT_CCMP=m
+# CONFIG_IEEE80211_CRYPT_TKIP is not set
 
 #
 # Device Drivers
@@ -965,7 +980,38 @@ CONFIG_MII=y
 #
 # Wireless LAN (non-hamradio)
 #
-# CONFIG_NET_RADIO is not set
+CONFIG_NET_RADIO=y
+
+#
+# Obsolete Wireless cards support (pre-802.11)
+#
+CONFIG_STRIP=m
+
+#
+# Wireless 802.11b ISA/PCI cards support
+#
+CONFIG_IPW2100=m
+# CONFIG_IPW2100_MONITOR is not set
+# CONFIG_IPW2100_DEBUG is not set
+CONFIG_IPW2200=m
+# CONFIG_IPW2200_DEBUG is not set
+CONFIG_HERMES=m
+# CONFIG_PLX_HERMES is not set
+# CONFIG_TMD_HERMES is not set
+# CONFIG_NORTEL_HERMES is not set
+# CONFIG_PCI_HERMES is not set
+CONFIG_ATMEL=m
+# CONFIG_PCI_ATMEL is not set
+
+#
+# Prism GT/Duette 802.11(a/b/g) PCI/Cardbus support
+#
+CONFIG_PRISM54=m
+CONFIG_HOSTAP=m
+# CONFIG_HOSTAP_FIRMWARE is not set
+# CONFIG_HOSTAP_PLX is not set
+# CONFIG_HOSTAP_PCI is not set
+CONFIG_NET_WIRELESS=y
 
 #
 # Wan interfaces
@@ -1268,6 +1314,7 @@ CONFIG_USB_MOUSE=m
 # CONFIG_USB_PEGASUS is not set
 # CONFIG_USB_RTL8150 is not set
 # CONFIG_USB_USBNET is not set
+# CONFIG_USB_ZD1201 is not set
 CONFIG_USB_MON=y
 
 #
