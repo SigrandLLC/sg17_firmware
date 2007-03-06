@@ -276,6 +276,7 @@ package-$(BR2_PACKAGE_UPDATEDD) += updatedd
 package-$(BR2_PACKAGE_URONODE) += uronode
 package-$(BR2_COMPILE_USBUTILS) += usbutils
 package-$(BR2_PACKAGE_USTL) += ustl
+package-$(BR2_PACKAGE_UTCPDUMP) += utcpdump
 package-$(BR2_COMPILE_UTIL_LINUX) += util-linux
 package-$(BR2_PACKAGE_UDEV) += udev
 package-$(BR2_PACKAGE_VIM) += vim

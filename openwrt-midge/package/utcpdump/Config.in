@@ -1,5 +1,5 @@
 config BR2_PACKAGE_UTCPDUMP
-	prompt "utcpdump........................... Network monitoring and data acquisition tool (little)"
+	prompt "utcpdump.......................... Network monitoring and data acquisition tool (lite)"
 	tristate
 	default m if CONFIG_DEVEL
 	select BR2_PACKAGE_LIBPCAP
