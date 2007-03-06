@@ -72,7 +72,6 @@ $(IPKG_PPPOE_CLIENT):
 
 $(IPKG_PPPOE_RELAY):
 	install -d -m0755 $(IDIR_PPPOE_RELAY)/etc/init.d
-	install -m0755 ./files/S93pppoe-relay $(IDIR_PPPOE_RELAY)/etc/init.d/S93pppoe-relay
 	install -d -m0755 $(IDIR_PPPOE_RELAY)/usr/sbin
 	$(CP) $(PKG_BUILD_DIR)/src/pppoe-relay $(IDIR_PPPOE_RELAY)/usr/sbin/
 	$(RSTRIP) $(IDIR_PPPOE_RELAY)
