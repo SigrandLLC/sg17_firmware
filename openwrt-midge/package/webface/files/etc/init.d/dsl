@@ -106,7 +106,7 @@ _dsl_start(){
 
 	#apply defconfig if no configuration
 	for iface in `$kdb get sys_dsl_ifaces`; do
-	    echo "if=$iface"
+#	    echo "if=$iface"
 	    $dsl_cfg $iface reload
 	    _dsl_if_defconfig $iface
 	    _dsl_apply_cfg $iface

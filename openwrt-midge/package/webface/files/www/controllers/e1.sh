@@ -139,10 +139,6 @@ else
     	    render_input_field checkbox "E1 CAS multiframe" sys_e1_${iface}_cas
 
 
-	    # sys_e1_${iface}_lcode
-	    tip=""
-	    desc=""
-	    render_input_field select " E1 HDB3/AMI line code" sys_e1_${iface}_lcode  1 HDB3 0 AMI
 	    
 
 	fi
@@ -152,6 +148,11 @@ else
         tip=""
         desc="check to enable"
         render_input_field checkbox "E1 long haul mode" sys_e1_${iface}_lhaul
+
+        # sys_e1_${iface}_lcode
+        tip=""
+        desc=""
+        render_input_field select " E1 HDB3/AMI line code" sys_e1_${iface}_lcode  1 HDB3 0 AMI
 
         # sys_e1_${iface}_crc32
         tip=""

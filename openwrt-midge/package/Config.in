@@ -348,7 +348,10 @@ endmenu
 
 
 comment "Extra stuff"
+menu "Sigrand"
 source "package/webface/Config.in"
+source "package/sigrand-drv/Config.in"
+endmenu
 source "package/sdk/Config.in"
 
 config BR2_PACKAGE_IMAGEBUILDER

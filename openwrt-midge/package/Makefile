@@ -2,6 +2,7 @@
 include $(TOPDIR)/rules.mk
 include $(TOPDIR)/package/depend.mk
 
+package-$(BR2_PACKAGE_SIGRAND_DRV) += sigrand-drv
 package-$(BR2_PACKAGE_WEBFACE) += webface
 package-$(BR2_PACKAGE_THTTPD) += thttpd
 package-$(BR2_PACKAGE_LIBAX25) += libax25
@@ -140,7 +141,7 @@ package-$(BR2_PACKAGE_LIBUSB) += libusb
 package-$(BR2_PACKAGE_LIBVORBIS) += libvorbis
 package-$(BR2_PACKAGE_LIBVORBISIDEC) += libvorbisidec
 package-$(BR2_PACKAGE_LIBWRAP) += tcp_wrappers
-package-$(BR2_PACKAGE_LIBXML2) += libxml2
+#package-$(BR2_PACKAGE_LIBXML2) += libxml2
 package-$(BR2_PACKAGE_LIBXSLT) += libxslt
 package-$(BR2_PACKAGE_LIGHTTPD) += lighttpd
 package-$(BR2_PACKAGE_LINSV) += linsv

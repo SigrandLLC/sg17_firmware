@@ -26,14 +26,13 @@ _sg_if_refresh(){
 	done
 	
 	# add new ifaces if one
-	echo "ifaces=`ls $os_ifdir/ | grep ${name_tmpl}`"
 	ifaces=`ls $os_ifdir/ | grep ${name_tmpl}`
 	ifaces_old=`$kdb get ${kdb_tmpl}_ifaces`
-	echo "Actual interfaces: $ifaces"
+#	echo "Actual interfaces: $ifaces"
 	for iface in $ifaces; do
 		check=`echo ${ifaces_old} | grep $iface`
 		if [ -z "$check" ]; then
-			echo "Add new interface"
+#			echo "Add new interface"
 			# add device to subsystem list
 			$kdb set ${kdb_tmpl}_ifaces="${ifaces_old} $iface"
 			ifaces_old=`$kdb get ${kdb_tmpl}_ifaces`

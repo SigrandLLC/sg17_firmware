@@ -47,11 +47,11 @@ _e1_apply_cfg(){
 	case "${proto}" in
 	
 	hdlc*)
-		echo "sethdlc $iface $proto ${hdlc_enc} ${hdlc_parity}" >> /root/e1.log
+#		echo "sethdlc $iface $proto ${hdlc_enc} ${hdlc_parity}" >> /root/e1.log
 		sethdlc $iface $proto ${hdlc_enc} ${hdlc_parity}
 		;;
 	cisco)
-		echo "cisco_int=${cisco_int},cisco_to=${cisco_int}." >> /root/e1.log
+#		echo "cisco_int=${cisco_int},cisco_to=${cisco_int}." >> /root/e1.log
 		if [ "${cisco_int}" = 0 ]; then
 			cisco_int=""
 		elif [ -z "${cisco_int}" ]; then
@@ -67,15 +67,20 @@ _e1_apply_cfg(){
 		else
 			cisco_to="timeout ${cisco_to}"
 		fi
-		echo "sethdlc $iface $proto ${cisco_int} ${cisco_to}" >> /root/e1.log
+#		echo "sethdlc $iface $proto ${cisco_int} ${cisco_to}" >> /root/e1.log
 		sethdlc $iface $proto ${cisco_int} ${cisco_to}
 		;;
 	*)
-		[ -n "$proto" ] && sethdlc $iface $proto
+		if [ -n "$proto" ]; then
+		    sethdlc $iface $proto
+		elif [ -z "$proto" ]; then
+		    sethdlc $iface cisco
+		    kdb set sys_e1_${iface}_smap=cisco
+		fi
 	esac
 		
-	echo "fram=$fram ts16=$ts16 smap=$smap clk=$clk" >> /root/e1.log
-	echo "crc4=$crc4 cas=$cas lhaul=$lhaul" >> /root/e1.log	
+#	echo "fram=$fram ts16=$ts16 smap=$smap clk=$clk" >> /root/e1.log
+#	echo "crc4=$crc4 cas=$cas lhaul=$lhaul" >> /root/e1.log	
 	DIR=`pwd`
 	cd $e1_cfg/$iface
 	echo $fram 	> framed
@@ -92,7 +97,8 @@ _e1_apply_cfg(){
 	echo $fill	> fill_7e
 	echo $inv	> inv
 	cd $DIR
-	$ifcfg $iface up
+	enabled=`kdb get sys_iface_${iface}_enabled`
+	[ "$enabled" = 1 ] && $ifcfg $iface up
 }
 
 	
