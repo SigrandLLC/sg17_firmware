@@ -127,8 +127,7 @@ render_save_message(){
 
 render_form_header(){
 	local lname="midge_form"
-	[ -n "$1" ] && lname="$1"
-	shift
+	if [ -n "$1" ]; then lname="$1"; shift; fi
 
 	echo "<form name='$lname' method='post' tmt:validate='true' $* >"
 	#echo "<input type=hidden name=SESSIONID value='$SESSIONID'>"
