@@ -83,14 +83,15 @@ _dsl_if_stop(){
 _dsl_apply_cfg(){
 	
 	iface=$1
-	kdb -qq sls sys_dsl_${iface}_ >> /root/dsl.log
 	eval `$kdb -qq sls sys_dsl_${iface}_`
 	# apply configuration
 	$ifcfg $iface down
 	[ -n "$rate" ] && rate="rate $rate"
 	[ -n "$cfg" ] && cfg="cfg $cfg"
 	[ -n "$annex" ] && annex="annex $annex"
-	$dsl_cfg $iface $mode $rate $coding $cfg $annex $fill $inv $crc > /var/log/dsl
+	$dsl_cfg $iface $mode $rate $code $cfg $annex $fill $inv $crc > /var/log/dsl
+        enabled=`kdb get sys_iface_${iface}_enabled`
+        [ "$enabled" = 1 ] && $ifcfg $iface up	
 }
 
 	
