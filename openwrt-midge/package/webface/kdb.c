@@ -573,17 +573,13 @@ int rename(const char *oldkey, const char* newkey)
 	return ++need_write;
 }
 
-int get(const char *str)
+int get(const char *key)
 {
 	int i;
     db_read();
-	char buf[MAX_LINE_SIZE];
 
-	for( i=0; i < db_lines_count; i++ ) {
-		snprintf( buf, sizeof(buf), "%s=%s", db_lines[i].name, db_lines[i].value);
-	   	if ( match_wildcard(str, buf) )
-			print_pair(NULL, db_lines[i].value);
-	}
+	WILDCARD_LOOP(i, key) 
+		print_pair(NULL, db_lines[i].value);
 
 	return true;
 }
