@@ -207,7 +207,7 @@ render_input_field(){
 		;;
 	file)
 		# TODO
-		echo "<input type=fil name=$inputname>"
+		echo "<input type=file name=$inputname>"
 		;;
 	esac
 	

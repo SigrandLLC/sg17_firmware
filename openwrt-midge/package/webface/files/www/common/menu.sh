@@ -57,6 +57,9 @@ L1 Tools
 	L2 dig	"tools&page=dig"
 	L2 tcpdump	"tools&page=tcpdump"
 	L2 reboot	"tools&page=reboot"
+L1 Configuration
+	L2 backup	"cfg&page=backup"
+	L2 restore	"cfg&page=restore"
 L1 Expert
 	L2 kdb	"expert&page=kdb"
 	L2 "kdb set"	"expert&page=kdb_set"
