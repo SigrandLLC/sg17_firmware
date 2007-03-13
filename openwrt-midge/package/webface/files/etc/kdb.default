@@ -1,32 +1,33 @@
 KDB
 svc_dns_enabled=0
 svc_dns_tcpclients=
-svc_dns_zone_domain1_0=domain=@ datatype=NS prio= data=ns.example1.com.
-svc_dns_zone_domain1_1=domain=@ datatype=A prio= data=ns.example1.com.
-svc_dns_zone_domain1_2=domain=www datatype=A prio= data=194.54.152.1
-svc_dns_zonelist_0=zone=example1.com zoneid=domain1 nameserver=ns.example1.com admin=vasya@example1.com serial=2006091400 refresh=28800 ttl=86400 retry=7200 expire=1209600
-svc_dns_zonelist_1=zone=example2.com enabled=on zoneid=domain2 nameserver=ns.example2.com. admin=petya@example2.com serial=2006091601 refresh=28800 ttl=86400 retry=7200 expire=1209600 zonetype=master
+svc_dns_zone_domain1_0=domain\075@\040datatype\075NS\040prio\075\040data\075ns.example1.com.
+svc_dns_zone_domain1_1=domain\075@\040datatype\075A\040prio\075\040data\075ns.example1.com.
+svc_dns_zone_domain1_2=domain\075www\040datatype\075A\040prio\075\040data\075194.54.152.1
+svc_dns_zonelist_0=zone\075example1.com\040zoneid\075domain1\040nameserver\075ns.example1.com\040admin\075vasya@example1.com\040serial\0752006091400\040refresh\07528800\040ttl\07586400\040retry\0757200\040expire\0751209600
+svc_dns_zonelist_1=zone\075example2.com\040enabled\075on\040zoneid\075domain2\040nameserver\075ns.example2.com.\040admin\075petya@example2.com\040serial\0752006091601\040refresh\07528800\040ttl\07586400\040retry\0757200\040expire\0751209600\040zonetype\075master
 sys_dns_domain=localnet
 sys_dns_nameserver=194.54.152.35
-sys_dsl_ifaces=dsl0 dsl1
-sys_fw_filter_input_0=name=WWW_ACCEPT enabled=on proto=tcp src=0.0.0.0/0 dst=0.0.0.0/0 sport=any dport=80 natto= target=ACCEPT
+sys_dsl_ifaces=dsl0\040dsl1
+sys_fw_filter_input_0=name\075WWW_ACCEPT\040enabled\075on\040proto\075tcp\040src\0750.0.0.0/0\040dst\0750.0.0.0/0\040sport\075any\040dport\07580\040natto\075\040target\075ACCEPT
 sys_fw_filter_policy_forward=DROP
 sys_fw_filter_policy_input=ACCEPT
 sys_fw_filter_policy_output=ACCEPT
 sys_fw_nat_policy_postrouting=ACCEPT
 sys_fw_nat_policy_prerouting=ACCEPT
-sys_fw_nat_postrouting_0=name=masquarade enabled= proto=all src=192.168.1.0/24 dst=0.0.0.0/0 sport=any dport=any natto=194.54.152.50 target=SNAT
+sys_fw_nat_postrouting_0=name\075masquarade\040enabled\075\040proto\075all\040src\075192.168.1.0/24\040dst\0750.0.0.0/0\040sport\075any\040dport\075any\040natto\075194.54.152.50\040target\075SNAT
 sys_hostname=sigrand1
 sys_iface_dsl0_auto=1
-sys_iface_dsl0_valid=1
 sys_iface_dsl0_enabled=1
 sys_iface_dsl0_method=none
 sys_iface_dsl0_proto=ether
+sys_iface_dsl0_valid=1
 sys_iface_dsl1_auto=1
 sys_iface_dsl1_enabled=1
 sys_iface_dsl1_method=none
 sys_iface_dsl1_proto=ether
 sys_iface_dsl1_valid=1
+sys_iface_eth0_accept_redirects=1
 sys_iface_eth0_auto=1
 sys_iface_eth0_broadcast=
 sys_iface_eth0_dhcp_domain_name=
@@ -39,29 +40,45 @@ sys_iface_eth0_dhcp_ntpserver=
 sys_iface_eth0_dhcp_router=
 sys_iface_eth0_dhcp_startip=10.0.0.100
 sys_iface_eth0_enabled=1
+sys_iface_eth0_forwarding=1
 sys_iface_eth0_gateway=
 sys_iface_eth0_ipaddr=10.0.0.1
 sys_iface_eth0_method=static
 sys_iface_eth0_netmask=255.255.255.0
 sys_iface_eth0_proto=ether
+sys_iface_eth0_proxy_arp=0
 sys_iface_eth0_qos_sch=pfifo_fast
+sys_iface_eth0_rp_filter=1
 sys_iface_eth0_valid=1
 sys_iface_eth0_winsserver=
+sys_iface_eth1_accept_redirects=1
 sys_iface_eth1_auto=1
 sys_iface_eth1_dhcp_enabled=0
 sys_iface_eth1_enabled=1
+sys_iface_eth1_forwarding=1
 sys_iface_eth1_ipaddr=192.168.0.3
 sys_iface_eth1_method=static
 sys_iface_eth1_netmask=255.255.255.0
 sys_iface_eth1_proto=ether
+sys_iface_eth1_proxy_arp=0
 sys_iface_eth1_qos_sch=pfifo_fast
+sys_iface_eth1_rp_filter=1
 sys_iface_eth1_valid=1
-sys_ifaces=dsl0 dsl1 eth0 eth1 eth2 eth3
+sys_iface_eth2_accept_redirects=1
+sys_iface_eth2_forwarding=1
+sys_iface_eth2_proxy_arp=0
+sys_iface_eth2_rp_filter=1
+sys_iface_eth3_accept_redirects=1
+sys_iface_eth3_forwarding=1
+sys_iface_eth3_proxy_arp=0
+sys_iface_eth3_rp_filter=1
+sys_ifaces=dsl0\040dsl1\040eth0\040eth1\040eth2\040eth3
+sys_ntpclient_enabled=1
+sys_ntpclient_server=pool.ntp.org
 sys_switch_port0_iface=0
 sys_switch_port1_iface=1
 sys_switch_port2_iface=2
 sys_switch_port3_iface=3
-sys_switch_ports=0 1 2 3
-sys_ntpclient_enabled=1
-sys_ntpclient_server=pool.ntp.org
+sys_switch_ports=0\0401\0402\0403
 sys_timezone=-4
+KDB END
