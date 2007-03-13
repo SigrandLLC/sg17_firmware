@@ -290,7 +290,8 @@ int db_read()
 	while ( result=fgets(buf, READ_BUFFER_LEN, db_file) && result != EOF ) {
 		if ( ! strncmp(buf, FOOTER_LINE, sizeof(FOOTER_LINE)) )
 			break;
-		db_unserialize(buf);
+		if ( ! db_unserialize(buf) )
+			return false;
 	}
 
 	db_already_readed = true;
@@ -389,7 +390,8 @@ int db_set(const char *name, const char* value)
 {
     int result=false;
     int index;
-    db_read();
+    if ( ! db_read() )
+		return false;
 
     index = find_key(name);
     if (index != -1) {
@@ -494,7 +496,8 @@ int import(const char *filename)
 
 	db_file = file;
 	db_already_readed = false;
-	db_read();
+	if ( ! db_read() )
+		return false;
     fclose(file);
 
 	db_file = NULL;
@@ -674,6 +677,47 @@ int keylist(const char *key)
 	}
 
 	print_count(count);
+
+	return true;
+}
+
+// sub sub keylist with wildcard matching
+// finds patter in 'name=value'
+// and cutoff key_begin and key_end
+// Example: 
+// # kdb ls
+// sys_iface_dsl0_valid=1
+// sys_iface_dsl1_valid=0
+// sys_iface_eth0_valid=1
+// sys_iface_eth1_valid=1
+// # kdb sskls sys*valid=1 sys_iface_ _valid
+// dsl0
+// eth0
+// eth1
+// 
+int sskeylist(const char* pattern, const char *key_begin, const char* key_end)
+{
+    int i=0, count=0;
+    int result=true;
+    int len=strlen(key_begin);
+	char *tail;
+	char strbuf[MAX_LINE_SIZE];
+
+    db_read();
+
+    for( i=0; i<db_lines_count; i++ ) {
+        if( len ){
+			snprintf(strbuf, sizeof(strbuf), "%s=%s", db_lines[i].name, db_lines[i].value);
+			if ( (match_wildcard(pattern, strbuf)) &&  ( !strncmp(key_begin, db_lines[i].name, len) ) ) {
+                char *s=db_lines[i].name+len;
+				strncpy(strbuf, s, sizeof(strbuf));
+				tail = strstr(strbuf, key_end);
+				if (tail)
+					tail[0]='\0';
+                print_pair(NULL, strbuf);
+            }
+        } 
+    }
 
 	return true;
 }
@@ -914,6 +958,13 @@ int main(int argc, char **argv)
 			result = isset(param);
 		else if ( (!strcmp(cmd, "klist")) || (!strcmp(cmd, "kls")) )
 			result = keylist(param);
+		else if (!strcmp(cmd, "sskls"))  {
+			if ( (optind+1) < argc ) {
+				result = sskeylist(param, argv[optind], argv[optind+1]); optind++; 
+			} else
+				result = false; 
+		}
+		
 		else if ( (!strcmp(cmd, "del")) || (!strcmp(cmd, "rm")) )
 			result = del(param);
 		else if ( !strcmp(cmd, "edit") )
