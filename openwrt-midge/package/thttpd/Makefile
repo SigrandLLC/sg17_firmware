@@ -68,7 +68,7 @@ $(IPKG_THTTPD):
 
 $(IPKG_THTTPD_HTPASSWD):
 	install -d -m0755 $(IDIR_THTTPD_HTPASSWD)/usr/sbin
-	install -m0755 $(PKG_BUILD_DIR)/htpasswd $(IDIR_THTTPD_HTPASSWD)/usr/sbin/
+	install -m0755 $(PKG_BUILD_DIR)/extras/htpasswd $(IDIR_THTTPD_HTPASSWD)/usr/sbin/
 	$(RSTRIP) $(IDIR_THTTPD_HTPASSWD)
 	$(IPKG_BUILD) $(IDIR_THTTPD_HTPASSWD) $(PACKAGE_DIR)
 
