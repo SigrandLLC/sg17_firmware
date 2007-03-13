@@ -307,24 +307,7 @@ diff -Naur linux-2.6.16/drivers/net/wan/mr16g/Makefile linux-2.6.16-new/drivers/
 --- linux-2.6.16/drivers/net/wan/mr16g/Makefile	1970-01-01 00:00:00.000000000 +0000
 +++ linux-2.6.16-new/drivers/net/wan/mr16g/Makefile	2007-03-09 15:49:48.000000000 +0000
 @@ -0,0 +1,18 @@
-+obj-m := mr16g_hdlc.o
-+KERNELVERSION=`uname -r`
-+CFLAGS+=
-+LINDIR=/home/artpol/router/kernels/linux-2.6.16-2/
-+mr16g_hdlc.ko: mr16g_hdlc.c
-+	make -C $(LINDIR) SUBDIRS=$(PWD) modules
-+
-+
-+all: mr16g_hdlc.ko
-+
-+clean:
-+	rm --preserve-root -f *.o*
-+	rm --preserve-root -f *.ko*
-+	rm --preserve-root -f *.mod.*
-+	rm --preserve-root -f .sg16*
-+	rm --preserve-root -f -R .tmp*
-+
-+
++obj-$(CONFIG_SIGRAND_MR16G) := mr16g_hdlc.o
 diff -Naur linux-2.6.16/drivers/net/wan/mr16g/mr16g_hdlc.c linux-2.6.16-new/drivers/net/wan/mr16g/mr16g_hdlc.c
 --- linux-2.6.16/drivers/net/wan/mr16g/mr16g_hdlc.c	1970-01-01 00:00:00.000000000 +0000
 +++ linux-2.6.16-new/drivers/net/wan/mr16g/mr16g_hdlc.c	2007-03-09 15:49:48.000000000 +0000
