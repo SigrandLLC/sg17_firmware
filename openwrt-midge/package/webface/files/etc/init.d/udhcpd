@@ -12,9 +12,13 @@ export iface
 
 start(){
 	[ -r $PIDFILE ] && stop
-	echo "Starting $NAME on $iface."
-	/etc/templates/Update dhcp
-	start-stop-daemon --quiet --start --pid=$PIDFILE --exec $DAEMON -- $DAEMON_ARGS
+	if [ "`kdb get sys_iface_${iface}_dhcp_enabled`" = 1 ]; then
+		echo "Starting $NAME on $iface."
+		/etc/templates/Update dhcp
+		start-stop-daemon --quiet --start --pid=$PIDFILE --exec $DAEMON -- $DAEMON_ARGS
+	else
+		echo "Does not starting $NAME on $iface."
+	fi
 }
 
 stop(){
