@@ -40,7 +40,7 @@ else
 	tip=""
 	desc="Select DSL line rate"
 	validator='tmt:message="'$desc'"'
-	render_input_field select "Rate" sys_dsl_${iface}_rate $(for i in `seq 1 64`; do n=$(($i*64)); echo $n $n; done)
+	render_input_field select "Rate" sys_dsl_${iface}_rate $(for i in `seq 1 94`; do n=$(($i*64)); echo $n $n; done)
 
 	# sys_dsl_${iface}_mode
 	tip=""
