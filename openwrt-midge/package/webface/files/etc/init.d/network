@@ -70,12 +70,8 @@ post_ifup(){
 	fi
 
 	/etc/init.d/qos start $realiface
+	/etc/init.d/ntpclient start
 
-	eval `kdb -qq ls sys_ntpclient_*`
-	if [ "$sys_ntpclient_enabled" = "1" -a -x /usr/sbin/ntpclient ] && /sbin/route -n | grep ^0.0.0.0 >/dev/null; then
-		info 2 "  Synchronizing time"
-		cmd /usr/sbin/ntpclient -c 1 -s -h ${sys_ntpclient_server:-pool.ntp.org} &
-	fi
 
 	# setup interface options
 	local dir=/proc/sys/net/ipv4/conf/$realiface
