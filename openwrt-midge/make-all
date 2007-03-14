@@ -59,12 +59,9 @@ make_snapshot() {
 }
 
 #clean_build
-#build 2.4 midge-min
-#build 2.4 midge-max
-build 2.4 midge-cirouter
-#build 2.4 midge-iptrans
-#build 2.4 midge-usb
+build 2.4 midge-lite
+#build 2.4 midge-cirouter
+#build 2.4 midge-arlix
 #clean_build
 #build 2.6 sigrand
 make_snapshot
-
