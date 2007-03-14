@@ -1,8 +1,8 @@
 include $(TOPDIR)/rules.mk
 
-LINUX_VERSION:=2.4.32
+LINUX_VERSION:=2.4.18
 LINUX_RELEASE:=1
-LINUX_KERNEL_MD5SUM:=38f4d0830e95a20f4bfed17622d5557c
+LINUX_KERNEL_MD5SUM:=
 
 include ../rules.mk
 include ./config
@@ -12,17 +12,18 @@ include ../kernel.mk
 
 $(LINUX_DIR)/.patched: $(LINUX_DIR)/.unpacked
 	mkdir -p $(LINUX_DIR)
+	@cp config $(LINUX_DIR)/.config
 	touch $@
 
 $(LINUX_DIR)/.unpacked: 
-	touch $@
-
+#	touch $@
+#
 $(LINUX_DIR)/.depend_done:
-	touch $@
-
+#	touch $@
+#
 $(LINUX_DIR)/.modules_done: 
-	touch $@
-
+#	touch $@
+#
 $(STAMP_DIR)/.linux-compile:
-	touch $@
+#	touch $@
 
