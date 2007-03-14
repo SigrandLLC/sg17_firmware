@@ -64,6 +64,8 @@ print_stat()
     echo "      shdsl:   $master $rate $code $annex"
     echo "      hdlc:    fill="$fill" inversion="$inv" "$crc
     echo "      PCI bus: rb$rb wb$wb"
+    echo "Statistics:"
+    cat statistics
 }
 
 
@@ -238,9 +240,20 @@ while [ ! -z $1 ]; do
 	    shift
 	fi
 	;;
+
+#------------ DEBUG --------------------------------------	
+
+    "debug_off")
+	echo 0 > debug_on
+	;;
+    "debug_on")
+	echo 1 > debug_on
+	;;
+
+	
     *)
 	echo $0": error parameter - "$1
-	;;
+    ;;
     esac
     shift
 done
