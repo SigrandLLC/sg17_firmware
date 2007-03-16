@@ -1,9 +1,7 @@
-
 config BR2_PACKAGE_THTTPD
 	prompt "thttpd............................ A small web server"
 	tristate
 	default m if CONFIG_DEVEL
-	select BR2_COMPILE_THTTPD
 	help
 	  thttpd is a simple, small, portable, fast, and secure HTTP server.
 		Simple:

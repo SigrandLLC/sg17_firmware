@@ -7,8 +7,6 @@ choice
 		bool "jffs2"
 	config MIDGE_TYPE_TMPFS
 		bool "tmpfs"
-	config MIDGE_TYPE_USB
-		bool "usb (not supported)"
 
 endchoice
 
