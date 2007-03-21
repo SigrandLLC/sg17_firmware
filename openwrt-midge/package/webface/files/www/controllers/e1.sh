@@ -7,15 +7,7 @@ iface="${FORM_iface}"
 eval `kdb -qq ls "sys_e1_*" `
 	
 
-if [ -z "$iface" ]; then
-	render_table_title "Modem status" 2
-	for iface in $sys_e1_ifaces; do
-		link=`cat ${cfg_path}/${iface}/state`
-		tip=""
-		desc="SHDSL Link state"
-		render_input_field static "SHDSL Status" status "$link"
-	done
-else
+if [ -n "$iface" ]; then
 
 	kdb_vars="	str:sys_e1_${iface}_proto	\
 			str:sys_e1_${iface}_hdlc_enc	\
