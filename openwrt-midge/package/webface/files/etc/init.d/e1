@@ -87,7 +87,7 @@ _e1_apply_cfg(){
 	echo $ts16 	> map_ts16
 	echo "$smap" 	> slotmap
 	smap=`cat slotmap`
-	kdb set sys_e1_${iface}_smap="$smap" >> /root/e1.log
+	kdb set sys_e1_${iface}_smap="$smap"
 	echo $clk 	> clck
 	echo $crc4 	> crc4
 	echo $cas 	> cas

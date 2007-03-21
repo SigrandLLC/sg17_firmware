@@ -47,7 +47,6 @@ if [ -n "$iface" ]; then
 #TODO:	1. Make in Java script
 #	2. find out what options is for FR!
 	proto=`kdb get sys_e1_${iface}_proto`
-	echo "Here is proto!=_${proto}_" >> /root/e1.log
         case "$proto" in
 	hdlc*)
 	    # sys_e1_${iface}_hdlc_enc
@@ -63,7 +62,6 @@ if [ -n "$iface" ]; then
 	    render_input_field select "Parity" sys_e1_${iface}_hdlc_parity $(for i in $parity; do echo $i $i;done)
 	    ;;	    
 	cisco)
-	    echo "In Cisco tab" >> /root/e1.log
     	    # sys_e1_${iface}_cisco_int
 	    default=10
             tip=""
@@ -76,18 +74,8 @@ if [ -n "$iface" ]; then
 	    ;;
 
 	*)
-	    echo "undefined tab" >> /root/e1.log	
 	    ;;
 	esac
-		
-
-#hdlc [ENCODING] [PARITY] |
-#hdlc-eth [ENCODING] [PARITY] |
-#cisco [interval val] [timeout val] |
-#fr [lmi LMI] |
-#ppp |
-#x25
-							    
 
         # sys_e1_${iface}_fram
         default=0
@@ -97,7 +85,6 @@ if [ -n "$iface" ]; then
 
 	# TODO: Java-script?
 	# Valid only in framed mode
-	echo "\${iface_fram}=${iface_fram}" >> /root/e1.log
 	fram=`kdb get sys_e1_${iface}_fram`	
 	if [ $fram = 1 ]; then
             # sys_e1_${iface}_ts16
