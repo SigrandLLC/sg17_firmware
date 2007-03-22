@@ -21,10 +21,8 @@ fi
 [ "$controller" ] || controller="welcome"
 
 if [ -f controllers/"$controller".sh ]; then
-	if [ -n "$DEBUG" ]; then
-		exec 2>>/tmp/log
-		echo "----------------------------------------------------------------------------------" >&2
-		[ -n "$FORM_popup" ] && set -x
+	if [ -n "$DEBUG" -a `hostname` != "home.localnet" ]; then
+		set -x
 	fi
 	. controllers/"$controller".sh
 else

@@ -152,6 +152,7 @@ render_input_field(){
 	local maxlenght='255'
 	local tipcode=''
 	local i
+	local helpcode="<a href='javascript:openHelp(\"${controller}\", \"${page}\");'><img src='/img/help.gif' border=0 align='right' valign='middle'></a>"
 	[ -n "$tip" ] && tipcode="onmouseover=\"return overlib('$tip', BUBBLE, BUBBLETYPE, 'roundcorners')\" onmouseout=\"return nd();\""
 	eval 'value=$'$inputname
 	[ -z "$value" -a -n "$default" ] && value="$default"
@@ -186,13 +187,13 @@ render_input_field(){
 		;;
 	select)
 		echo -n "<select $disabled $tipcode name='$inputname' class='edit' $validator tmt:errorclass='invalid' $ascode>"
-		debug "<select $disabled $tipcode name='$inputname' class='edit' $validator tmt:errorclass='invalid' $ascode>"
 		while [ -n "$1" ]; do
 			echo -n "<option value=$1"
 			[ "$value" = "$1" ] && echo -n " selected "
 			echo ">$2</option>"
 			shift 2
 		done
+		echo "</select>"
 		;;
 	hidden)
 		value="$1"
@@ -206,12 +207,11 @@ render_input_field(){
 		echo "$@"
 		;;
 	file)
-		# TODO
 		echo "<input type=file name=$inputname>"
 		;;
 	esac
 	
-	[ ! $type = "hidden" ] && echo "<br><span class='inputDesc' $tipcode>$desc</span></td></tr>"
+	[ ! $type = "hidden" ] && echo "$helpcode<br><span class='inputDesc' $tipcode>$desc</span></td></tr>"
 	echo "<!-- ------- /render_input_field $type $text $inputname $* -->"
 	unset autosubmit
 	unset tip
@@ -228,6 +228,11 @@ render_submit_field(){
 
 render_form_tail(){
 	echo "</table> <!-- /fieldset--> </form><br/><br/>";
+}
+
+render_form_note(){
+	local note="$1"
+	echo "<tr> <td colspan=2> <span class='inputDesc'><b>Note:</b> $note </span> </td></tr>";
 }
 
 render_iframe_list(){
