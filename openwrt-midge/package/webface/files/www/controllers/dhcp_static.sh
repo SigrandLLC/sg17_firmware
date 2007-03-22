@@ -16,12 +16,12 @@
 		eval "val=\"\${sys_iface_${iface}_dhcp_host_${lineno}}\""
 		eval "$val"
 		echo "<tr><td>$lineno</td><td>$name</td><td>$ipaddr</td><td>$hwaddr</td><td>"
-		render_list_btns dhcp_static_edit "sys_iface_${iface}_dhcp_host_${lineno}"
+		render_list_btns dhcp_static_edit "sys_iface_${iface}_dhcp_host_${lineno}" "iface=${iface}"
 		echo "</td></tr>"
 	}
 	
 	
-	render_list_header dhcp_static sys_iface_${iface}_dhcp_host_ "" "No" "Name" "IP Address" "MAC Address"
+	render_list_header dhcp_static sys_iface_${iface}_dhcp_host_ "iface=${iface}" "No" "Name" "IP Address" "MAC Address"
 	
 	render_list_cycle_stuff
 

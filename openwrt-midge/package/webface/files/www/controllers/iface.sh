@@ -23,6 +23,7 @@
 		'method')
 			[ "$method" = "static" ] && kdb_vars="str:sys_iface_${iface}_ipaddr str:sys_iface_${iface}_netmask str:sys_iface_${iface}_gateway str:sys_iface_${iface}_broadcast"
 			[ "$method" = "dynamic" ] && kdb_vars="str:sys_iface_${iface}_dynhostname"
+			[ "$proto" = "hdlc" ] && kdb_vars="$kdb_vars str:sys_iface_${iface}_pointopoint"
 			;;
 		'options')	
 			kdb_vars="bool:sys_iface_${iface}_opt_accept_redirects bool:sys_iface_${iface}_opt_forwarding bool:sys_iface_${iface}_opt_proxy_arp bool:sys_iface_${iface}_opt_rp_filter"
@@ -52,7 +53,7 @@
 			fi
 			;;
 		'spec')
-			case $proto in
+			case "$proto" in
 				bridge)
 					kdb_vars="bool:sys_iface_${iface}_br_stp str:sys_iface_${iface}_br_ifaces str:sys_iface_${iface}_br_prio str:sys_iface_${iface}_br_fd str:sys_iface_${iface}_br_hello str:sys_iface_${iface}_br_maxage";;
 				bonding)
@@ -62,7 +63,7 @@
 				pppoe)
 					kdb_vars="str:sys_iface_${iface}_pppoe_iface str:sys_iface_${iface}_pppoe_ac str:sys_iface_${iface}_pppoe_service bool:sys_iface_${iface}_pptp_defaultroute  str:sys_iface_${iface}_pppoe_username str:sys_iface_${iface}_pppoe_password str:sys_iface_${iface}_pppoe_pppdopt" ;;
 				ether)
-					kdb_vars="str:sys_iface_${iface}_mac"
+					kdb_vars="str:sys_iface_${iface}_mac";;
 			esac
 			
 	esac
@@ -190,6 +191,14 @@
 			validator=$validator_ipaddr
 			render_input_field text "Gateway" sys_iface_${iface}_gateway
 		fi
+
+		if [ "$proto" = "hdlc" ]; then
+			# sys_iface_${iface}_pointopoint
+			desc="Point-to-Point address (dotted quad)"
+			validator="$tmtreq $validator_ipaddr"
+			render_input_field text "Point to Point" sys_iface_${iface}_pointopoint
+		fi
+
 
 		#if [ "$method" = "dynamic" ]; then
 		#	desc="Hostname to be requested"
@@ -398,10 +407,32 @@
 	case $page in
 	'dhcp')
 		# static dhcp list
-		render_form_header dhcp_leases
-		render_table_title "DHCP Static leases" 2 
-		render_iframe_list "dhcp_static" "iface=$iface"
+		#render_form_header dhcp_leases
+		#render_table_title "DHCP Static leases" 2 
+		#render_iframe_list "dhcp_static" "iface=$iface"
+		#render_form_tail
+
+		render_form_header dhcp
+
+		render_list_line(){
+			local lineno=$1
+			eval "val=\"\${sys_iface_${iface}_dhcp_host_${lineno}}\""
+			unset name ipaddr hwaddr
+			eval "$val"
+			echo "<tr><td>$lineno</td><td>$name</td><td>$ipaddr</td><td>$hwaddr</td><td>"
+			render_list_btns dhcp_static_edit "sys_iface_${iface}_dhcp_host_${lineno}" "page=${page}&iface=${iface}"
+			echo "</td></tr>"
+		}
+		
+		
+		render_list_header dhcp_static sys_iface_${iface}_dhcp_host_ "iface=${iface}" "No" "Name" "IP Address" "MAC Address"
+		
+		eval `kdb -qqc ls sys_iface_${iface}_dhcp_host*`
+		render_list_cycle_stuff
+
 		render_form_tail
+
+
 		;;
 	'qos')
 		# static dhcp list
@@ -469,19 +500,19 @@
 			render_list_line(){
 				local lineno=$1
 				eval "val=\"\${sys_iface_${iface}_route_${lineno}}\""
+				unset net netmask gw
 				eval "$val"
 				echo "<tr><td>$lineno</td><td>$net</td><td>$netmask</td><td>$gw</td><td>"
-				render_list_btns staticroute_edit "sys_iface_${iface}_route_${lineno}" "page=$page"
+				render_list_btns staticroute_edit "sys_iface_${iface}_route_${lineno}" "page=${page}&iface=${iface}"
 				echo "</td></tr>"
 			}
 			
-			render_list_header staticroute sys_iface_${iface}_route_ "" "No" "Network" "Mask" "Gateway"
+			render_list_header staticroute sys_iface_${iface}_route_ "iface=${iface}" "No" "Network" "Mask" "Gateway"
 			eval `$kdb -qqc list sys_iface_${iface}_route*`
-			i=0
-			while [ $i -lt $kdb_lines_count ]; do
-				render_list_line $i
-				i=$(($i+1))
-			done
+
+			render_list_cycle_stuff
+
+			render_form_note "You should restart interface to apply settings"
 			render_form_tail
 		fi
 		;;

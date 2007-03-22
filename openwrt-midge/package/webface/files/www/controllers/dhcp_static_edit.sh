@@ -1,7 +1,8 @@
 #!/usr/bin/haserl
 
 	subsys="dhcp"
-
+	
+	export iface=${FORM_iface}
 	item=$FORM_item
 	eval_string="export FORM_$item=\"name=$FORM_name ipaddr=$FORM_ipaddr hwaddr=$FORM_hwaddr\""
 
