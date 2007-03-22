@@ -13,6 +13,9 @@ required ifconfig
 required brctl
 required modprobe
 
+ip=`which ip`
+ifconfig=`which ifconfig`
+
 kill_ppp(){
 	local pidfile;
 	pidfile=/var/run/ppp-$iface.pid
@@ -30,15 +33,15 @@ pre_ifup(){
 	info 1 "  Interface pre-configuration:"
 	case $proto in
 		ether)
-			[ -n "$mac" ] && cmd /sbin/ifconfig $realiface hw ether $mac
+			[ -n "$mac" ] && cmd $ifconfig $realiface hw ether $mac
 			;;
 		bridge)
-			[ -n "$mac" ] && cmd /sbin/ifconfig $realiface hw ether $mac
+			[ -n "$mac" ] && cmd $ifconfig $realiface hw ether $mac
 			required brctl
 			cmd brctl addbr $realiface
 			for i in $br_ifaces; do
-				cmd /usr/sbin/ip addr flush dev $i
-				cmd /usr/sbin/ip link set $i up
+				cmd $ip addr flush dev $i
+				cmd $ip link set $i up
 				cmd brctl addif $realiface $i
 			done
 			[ "$br_stp" = 1 ] && cmd brctl stp $realiface on || cmd brctl stp $realiface off
@@ -50,12 +53,12 @@ pre_ifup(){
 			;;
 		bonding) 
 			cmd /sbin/modprobe bonding mode=0 miimon=200
-			[ -n "$mac" ] && cmd /sbin/ifconfig $realiface hw ether $mac
+			[ -n "$mac" ] && cmd $ifconfig $realiface hw ether $mac
 			required /sbin/ifenslave
-			cmd /usr/sbin/ip link set $realiface up
+			cmd $ip link set $realiface up
 			for i in $bond_ifaces; do 
-				cmd /usr/sbin/ip addr flush dev $i
-				cmd /usr/sbin/ip link set $i up
+				cmd $ip addr flush dev $i
+				cmd $ip link set $i up
 				cmd /sbin/ifenslave $realiface $i
 			done
 			;;
@@ -68,6 +71,19 @@ post_ifup(){
 	if [ "$dhcp_enabled" = 1 ]; then
 		/etc/init.d/udhcpd start $realiface
 	fi
+
+	# start routes
+	routes=`kdb kls sys_iface_eth0_route_*`;
+	for route in $routes; do
+		unset net netmask gw
+		eval "export \$$route"
+		if [ -z "$gw" ]; then
+			cmd $ip route add $net dev $realiface
+		else
+			cmd $ip route add $net via $gw dev $realiface
+		fi
+	done
+	
 
 	/etc/init.d/qos start $realiface
 	/etc/init.d/ntpclient start
@@ -147,7 +163,9 @@ _ifup(){
 				[ -n "$ipaddr" ] && opts="$opts $ipaddr" || opts="$opts 0.0.0.0"
 				[ -n "$netmask" ] && opts="$opts netmask $netmask"
 				[ -n "$broadcast" ] && opts="$opts broadcast $broadcast"
-				cmd /sbin/ifconfig $opts
+				[ "$proto" = "hdlc" ] && opts="$opts pointopoint $pointopoint"
+				cmd $ifconfig $opts
+
 				if [ -n "$gateway" ]; then
 					cmd /sbin/route del default 2>/dev/null
 					cmd /sbin/route add default gw $gateway 
@@ -253,7 +271,7 @@ _ifdown(){
 	info 1 "Setting down $iface: "
 	info 1 "  Interface deconfiguration"
 
-	cmd /sbin/ifconfig $realiface down
+	cmd $ifconfig $realiface down
 	case $proto in
 		pppoe|pptp)
 			kill_ppp
