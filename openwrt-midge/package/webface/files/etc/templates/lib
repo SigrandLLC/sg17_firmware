@@ -87,8 +87,16 @@ update_configs(){
 		;;
 	dhcp)
 		#cfg_make dhcpd.conf /etc/dhcpd/dhcpd.conf && \
-		cfg_make udhcpd.conf /etc/udhcpd.${iface}.conf && \
-		cfg_commit
+		if [ -z "$iface" ]; then
+			for iface in `kdb sskls sys_iface_*valid=1 sys_iface_ _valid `; do 
+				[ "`kdb get sys_iface_${iface}_dhcp_enabled`" = 1 ] && \
+					cfg_make udhcpd.conf /etc/udhcpd.${iface}.conf && \
+					cfg_commit
+			done
+		else
+			cfg_make udhcpd.conf /etc/udhcpd.${iface}.conf && \
+			cfg_commit
+		fi
 		;;
 	dns)
 		cfg_make dnsmasq.conf /etc/dnsmasq.conf && \
