@@ -47,7 +47,17 @@ function openPopup(win, controller, item, exturl) {
 	if (wint < 0) wint = 0;
 	popup=win.open("/?controller=" + controller + "&item=" + item + "&popup=1"+exturl, "popup", "width="+w+",height="+h+",top="+wint+",left="+winl+",modal=1,dialog=1,centerscreen=1,scrollbars=0,menubar=0,location=0,toolbar=0,dependent=1,status=0"); 
 	popup.focus();
-	//return popup;
+}
+
+function openHelp(file, topic) {
+	var w = 400;
+	var h = 600;
+	var winl = (screen.width+300-w)/2;
+	var wint = (screen.height-h)/2;
+	if (winl < 0) winl = 0;
+	if (wint < 0) wint = 0;
+	popup=window.open("/help/" + file + ".html#" + topic, "help", "width="+w+",height="+h+",top="+wint+",left="+winl+",menubar=0,location=0,toolbar=0,dependent=1,status=0"); 
+	popup.focus();
 }
 
 function confirmSubmit() {
