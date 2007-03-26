@@ -1246,7 +1246,7 @@ int hdb::main (int argc, char **argv)
 
 extern "C"
 {
-#ifdef SHELL_INTEGRATION
+#ifdef SHELL
 int hdbcmd (int argc, char **argv) {
 #else
 int main (int argc, char **argv) {
@@ -1255,7 +1255,7 @@ int main (int argc, char **argv) {
 		app = new hdb;
 	int result =  app->main(argc, argv);
 
-#ifndef SHELL_INTEGRATION
+#ifndef SHELL
 	delete app;
 	app = NULL;
 #endif

@@ -17,6 +17,11 @@ include $(TOPDIR)/package/rules.mk
 $(eval $(call PKG_template,DASH,$(PKG_NAME),$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
 $(PKG_BUILD_DIR)/.configured:
+ifeq ($(BR2_COMPILE_DASH_WITH_KDB),y)
+endif
+ifeq ($(BR2_COMPILE_DASH_WITH_HDB),y)
+	(cd $(PKG_BUILD_DIR) && cp ../../package/webface/hdb.cpp src/bltin/ && cat ../../package/dash/dash_with_hdb.patch | patch -p1 );
+endif
 	(cd $(PKG_BUILD_DIR); rm -rf config.{cache,status} ; \
 		$(TARGET_CONFIGURE_OPTS) \
 		CFLAGS="$(TARGET_CFLAGS)" \
