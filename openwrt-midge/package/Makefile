@@ -2,8 +2,6 @@
 include $(TOPDIR)/rules.mk
 include $(TOPDIR)/package/depend.mk
 
-package-$(BR2_PACKAGE_SIGRAND_DRV) += sigrand-drv
-package-$(BR2_PACKAGE_WEBFACE) += webface
 package-$(BR2_PACKAGE_THTTPD) += thttpd
 package-$(BR2_PACKAGE_LIBAX25) += libax25
 package-$(BR2_PACKAGE_6TUNNEL) += 6tunnel
@@ -306,6 +304,10 @@ package-$(BR2_PACKAGE_WX200D) += wx200d
 package-$(BR2_PACKAGE_XINETD) += xinetd
 package-$(BR2_PACKAGE_XSUPPLICANT) += xsupplicant
 package-$(BR2_PACKAGE_ZLIB) += zlib
+#
+#
+package-$(BR2_PACKAGE_WEBFACE) += webface
+package-$(BR2_PACKAGE_SIGRAND_DRV) += sigrand-drv
 #
 #package-$(BR2_PACKAGE_APRSD) += aprsd
 #package-$(BR2_COMPILE_ARLIX-UTILS) += arlix-utils
