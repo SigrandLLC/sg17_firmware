@@ -18,6 +18,7 @@ $(eval $(call PKG_template,DASH,$(PKG_NAME),$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH
 
 $(PKG_BUILD_DIR)/.configured:
 ifeq ($(BR2_COMPILE_DASH_WITH_KDB),y)
+	(cd $(PKG_BUILD_DIR) && cp ../../package/webface/kdb.c src/bltin/ && cat ../../package/dash/dash_with_kdb.patch | patch -p1 );
 endif
 ifeq ($(BR2_COMPILE_DASH_WITH_HDB),y)
 	(cd $(PKG_BUILD_DIR) && cp ../../package/webface/hdb.cpp src/bltin/ && cat ../../package/dash/dash_with_hdb.patch | patch -p1 );

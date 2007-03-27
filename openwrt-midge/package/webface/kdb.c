@@ -118,7 +118,7 @@ void show_usage(char *name)
     printf("        create [filename] |\n");
     printf("        import [filename] |\n");
     printf("        edit }\n");
-    exit(1);
+    return;
 };
 
 char *get_dbfilename()
@@ -151,7 +151,7 @@ int db_open()
 	db_file = fopen(get_dbfilename(), "r+");
 	if (!db_file) {
 		fprintf(stderr, "fopen '%s' %s\n", get_dbfilename(), strerror(errno));
-		exit(1);
+		return false;
 	};
 	// lock the file
 	FLOCK(db_file);
@@ -160,13 +160,16 @@ int db_open()
 
 int db_close()
 {
-	FUNLOCK(db_file);
-	fclose(db_file);
+	debug("db_close()\n");
+	if (db_file) {
+		FUNLOCK(db_file);
+		fclose(db_file);
+	}
 	db_file = NULL;
 	return true;
 };
 
-int init()
+int kdbinit()
 {
 	db_already_readed=0;
     db_lines_count=0;
@@ -683,7 +686,7 @@ int keylist(const char *key)
 
 // sub sub keylist with wildcard matching
 // finds patter in 'name=value'
-// and cutoff key_begin and key_end
+// and cutoff cut_prefix and cut_suffix
 // Example: 
 // # kdb ls
 // sys_iface_dsl0_valid=1
@@ -695,11 +698,11 @@ int keylist(const char *key)
 // eth0
 // eth1
 // 
-int sskeylist(const char* pattern, const char *key_begin, const char* key_end)
+int sskeylist(const char* pattern, const char *cut_prefix, const char* cut_suffix)
 {
     int i=0, count=0;
     int result=true;
-    int len=strlen(key_begin);
+    int len=strlen(cut_prefix);
 	char *tail;
 	char strbuf[MAX_LINE_SIZE];
 
@@ -708,10 +711,10 @@ int sskeylist(const char* pattern, const char *key_begin, const char* key_end)
     for( i=0; i<db_lines_count; i++ ) {
         if( len ){
 			snprintf(strbuf, sizeof(strbuf), "%s=%s", db_lines[i].name, db_lines[i].value);
-			if ( (match_wildcard(pattern, strbuf)) &&  ( !strncmp(key_begin, db_lines[i].name, len) ) ) {
+			if ( (match_wildcard(pattern, strbuf)) &&  ( !strncmp(cut_prefix, db_lines[i].name, len) ) ) {
                 char *s=db_lines[i].name+len;
 				strncpy(strbuf, s, sizeof(strbuf));
-				tail = strstr(strbuf, key_end);
+				tail = strstr(strbuf, cut_suffix);
 				if (tail)
 					tail[0]='\0';
                 print_pair(NULL, strbuf);
@@ -896,14 +899,19 @@ int createdb(const char *filename)
     return true;
 };
 
+#ifdef SHELL
+int kdbcmd(int argc, char **argv)
+#else
 int main(int argc, char **argv)
+#endif
 {
     int ch, i;
     int result=false;
     char cmd[MAX_LINE_SIZE];
     char param[MAX_LINE_SIZE];
 
-    init();
+    kdbinit();
+	optind=1;
 
     while ((ch = getopt(argc, argv, "qlecf:")) != -1){
         switch(ch) {
@@ -959,8 +967,11 @@ int main(int argc, char **argv)
 		else if ( (!strcmp(cmd, "klist")) || (!strcmp(cmd, "kls")) )
 			result = keylist(param);
 		else if (!strcmp(cmd, "sskls"))  {
-			if ( (optind+1) < argc ) {
-				result = sskeylist(param, argv[optind], argv[optind+1]); optind++; 
+			if ( (optind+2) <= argc ) {
+				char *pref=argv[optind];
+				char *suff=argv[optind++];
+				result = sskeylist(param, pref, suff);
+				optind+=1;
 			} else
 				result = false; 
 		}
