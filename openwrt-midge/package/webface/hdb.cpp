@@ -37,14 +37,21 @@ extern "C"
 #define READ_BUF_SIZE 2048
 #define MAX_LEVEL INT_MAX
 
-#define PRINT_QUOT		1
-#define PRINT_DQUOT		2
-#define PRINT_LOCAL		4
-#define PRINT_EXPORT	8
-#define PRINT_COUNT		16
-#define PRINT_NAME		32
-#define PRINT_CHAINNAME		64
-#define PRINT_DATA		128
+#define BIT(x) (1UL << (x))
+#define SET_BIT(target,bit)        ((target) |= (bit))
+#define CLEAR_BIT(target,bit)      ((target) &= ~(bit))
+#define TEST_BIT(target,bit)       ((target) & (bit))
+
+#define PRINT_QUOT		BIT(0)
+#define PRINT_DQUOT		BIT(1)
+#define PRINT_LOCAL		BIT(2)
+#define PRINT_EXPORT		BIT(3)
+#define PRINT_COUNT		BIT(4)
+#define PRINT_NAME		BIT(5)
+#define PRINT_CHAINNAME	BIT(6)
+#define PRINT_DATA		BIT(7)
+#define DO_NOT_ESCAPE		BIT(8)
+
 
 int debug_level = 2;
 
@@ -554,19 +561,20 @@ public:
 		}
 	}
 
-	int serialize_to_file(FILE *file) {
-		debug(3, "node['%s']::serialize_to_file()\n", get_name());
-		return serialize(file, 0);
+	int serialize_to_file(FILE *file, int flags=0) {
+		debug(3, "node['%s']::serialize_to_file(flags=%d)\n", get_name(), flags);
+		return serialize(file, 0, flags);
 	}
 
-	int serialize(FILE *stream=stdout, int level=0) {
-		debug(3, "node['%s']::serialize(%d, %d)\n", get_name(), stream, level);
+	int serialize(FILE *stream=stdout, int level=0, int flags=0) {
+		debug(3, "node['%s']::serialize(%d, %d, %d)\n", get_name(), stream, level, flags);
 
 		int i;
 		for ( i=0; i < level; i++ )
 			fprintf(stream, level_delimiter);
-		char *esc_name = str_escape(name);
-		char *esc_data = str_escape(data);
+
+		char *esc_name = TEST_BIT(flags, DO_NOT_ESCAPE) ? strdup(name) : str_escape(name);
+		char *esc_data = TEST_BIT(flags, DO_NOT_ESCAPE) ? strdup(data) : str_escape(data);
 
 		// print 'name=data' or just 'name'
 		if ( strlen(esc_data) )
@@ -579,7 +587,7 @@ public:
 
 		node *c = fchild;
 		while ( c ) {
-			c->serialize(stream, level+1);
+			c->serialize(stream, level+1, flags);
 			c = c->get_next();
 		}
 
@@ -590,12 +598,13 @@ public:
 		node *n = this;
 		int i;
 		int my_level = get_level();
+		char *unescaped_str=str_unescape(str);
 
-		debug(3, "  node['%s']::unserialize(): my_level=%d, level=%d, read_buf='%s'\n", get_name(), my_level, level, str);
+		debug(3, "  node['%s']::unserialize(): my_level=%d, level=%d, read_buf='%s'\n", get_name(), my_level, level, unescaped_str);
 		if ( level == my_level ) {
-			n = new_sibling(str);
+			n = new_sibling(unescaped_str);
 		} else if ( level > my_level ) {
-			n = new_child(str);
+			n = new_child(unescaped_str);
 
 		} else if ( level < my_level ) {
 			n = this;
@@ -603,7 +612,7 @@ public:
 				n = n->get_parent();
 				assert( n != NULL );
 			}
-			n = n->new_sibling(str);
+			n = n->new_sibling(unescaped_str);
 		}
 		return n;
 	}
@@ -848,6 +857,7 @@ public:
 		printf("        slist key | sls key |\n");
 		printf("        rename oldnodechain newname |\n");
 		printf("        import [filename] |\n");
+		printf("        create [filename] |\n");
 		printf("        edit }\n");
 		return;
 	};
@@ -1046,7 +1056,7 @@ public:
 
 	int hdb_show (const char* str) {
 		db_load();
-		current_root->serialize();
+		current_root->serialize_to_file(stdout, DO_NOT_ESCAPE);
 		return true;
 	}
 
@@ -1060,6 +1070,13 @@ public:
 		if ( ! (data = get_pair_data(str)) )
 			return false;
 		
+		// get data from environment
+		if ( ! strcmp("%ENV", data) ) {
+			data = getenv(chain);
+			if ( ! data )
+				data="";
+		};
+
 		debug(4, "hdb::hdb_set('%s'): chain='%s', data='%s'\n", str, chain, data);
 		node *n = current_root->chain_find_node(chain);
 		if ( n ) {
@@ -1078,6 +1095,31 @@ public:
 	int hdb_dump (const char* str) {
 		db_load();
 		root->dump();
+		return true;
+	}
+
+	int hdb_create(const char *filename) {
+		FILE *f;
+		const char *lfilename;
+		
+		if (! filename || !strlen(filename)) {
+			lfilename = get_dbfilename();
+		} else {
+			lfilename = filename;
+			set_dbfilename(filename);
+		}
+
+		debug(4, "hdb::hdb_create(%s): creating '%s'\n", filename, lfilename);
+		if (! (f=fopen(lfilename, "w")))
+			return false;
+		db_file=f;
+		is_db_already_readed=true;
+
+		if (! ( db_write() && db_close() ))
+			return false;
+
+		is_db_already_readed=false;
+
 		return true;
 	}
 
@@ -1229,6 +1271,8 @@ int hdb::main (int argc, char **argv)
 			result = hdb_export(argv[0]);
 		else if (! strcmp(cmd, "import") )
 			result = hdb_import(argv[0]);
+		else if (! strcmp(cmd, "create") )
+			result = hdb_create(param1);
 		else 
 			show_usage(argv[0]);
 		if (!result)
