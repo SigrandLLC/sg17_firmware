@@ -11,6 +11,33 @@ root
  x10=10
  sys
   hostname=sigrand2
+  iface
+   eth0
+    auto=1
+    forwarding=1
+    rpfilter=1
+    valid=1
+    acceptredirects=1
+    method=static
+    proxyarp=0
+    desc=eth0 usually is WAN port
+    ipaddr=192.168.0.1
+    netmask=255.255.255.0
+    mac=00:01:02:03:04:01
+    proto=ether
+   eth1
+    auto=1
+    forwarding=1
+    rpfilter=1
+    valid=1
+    acceptredirects=1
+    method=static
+    proxyarp=0
+    desc=eth1 usually is LAN port
+    ipaddr=192.168.1.1
+    netmask=255.255.255.0
+    mac=00:01:02:03:04:02
+    proto=ether
   fw
    filter
     input
