@@ -1,0 +1,4341 @@
+diff -Naur linux-2.6.16-old/drivers/net/Kconfig linux-2.6.16/drivers/net/Kconfig
+--- linux-2.6.16-old/drivers/net/Kconfig	2007-03-28 23:15:04.000000000 +0700
++++ linux-2.6.16/drivers/net/Kconfig	2007-03-28 23:47:24.000000000 +0700
+@@ -25,6 +25,11 @@
+ 	  If unsure, say Y.
+ 
+ 
++config SIGRAND_SG17LAN
++        tristate "Sigrand SG-17 SHDSL PCI adapter"
++	depends on PCI
++		
++
+ config IFB
+ 	tristate "Intermediate Functional Block support"
+ 	depends on NET_CLS_ACT
+diff -Naur linux-2.6.16-old/drivers/net/Makefile linux-2.6.16/drivers/net/Makefile
+--- linux-2.6.16-old/drivers/net/Makefile	2007-03-28 23:15:01.000000000 +0700
++++ linux-2.6.16/drivers/net/Makefile	2007-03-29 00:01:34.290328312 +0700
+@@ -223,3 +223,4 @@
+ 
+ obj-$(CONFIG_FS_ENET) += fs_enet/
+ 
++obj-$(CONFIG_SIGRAND_SG17LAN)     += sg17lan/
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sdfe4_lib.h linux-2.6.16/drivers/net/sg17lan/include/sdfe4_lib.h
+--- linux-2.6.16-old/drivers/net/sg17lan/include/sdfe4_lib.h	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/include/sdfe4_lib.h	2007-03-28 23:15:57.000000000 +0700
+@@ -0,0 +1,453 @@
++/* sdfe4_lib.h:
++ *
++ * SDFE4 Library
++ *
++ *      SDFE4 chipset description
++ *
++ * Authors:
++ *      Artem Polyakov <art@sigrand.ru>
++ *      Ivan Neskorodev <ivan@sigrand.ru>
++ */
++#ifndef SDFE4_LIB_H
++#define SDFE4_LIB_H
++
++#include "sg17hw.h"
++
++#define SDFE4_EMB_NUM		4
++// Protocol stack definitions
++#define HDLC_HDR_SZ		0x02
++#define TRANSP_HDR_SZ		0x02
++#define MSG_RAM_CMDHDR_SZ	0x02
++#define MSG_RAM_ACKHDR_SZ	0x00
++#define RAM_CMDHDR_SZ		(HDLC_HDR_SZ+MSG_RAM_CMDHDR_SZ)
++#define RAM_ACKHDR_SZ		(HDLC_HDR_SZ+MSG_RAM_ACKHDR_SZ)
++
++#define MSG_AUX_CMDHDR_SZ	0x01
++#define MSG_AUX_ACKHDR_SZ	0x00
++#define AUX_CMDHDR_SZ		(HDLC_HDR_SZ+MSG_AUX_CMDHDR_SZ)
++#define AUX_ACKHDR_SZ		(HDLC_HDR_SZ+MSG_AUX_ACKHDR_SZ)
++
++#define MSG_EMB_HDR_SZ	0x04
++/*TODO: check MSG_EMB_ACKHDR_SZ */
++#define MSG_EMB_ACKHDR_SZ	0x04
++#define EMB_CMDHDR_SZ		(HDLC_HDR_SZ+TRANSP_HDR_SZ+MSG_EMB_HDR_SZ)
++#define EMB_ACKHDR_SZ		EMB_CMDHDR_SZ
++#define EMB_NFCHDR_SZ		EMB_CMDHDR_SZ
++
++
++#define RAM_HDLC_PKT_SZ8	HDLC_HDR_SZ+MSG_RAM_CMDHDR_SZ+RAM_FW_PKT_SZ8
++#define RAM_HDLC_PKT_SZ32	RAM_HDLC_PKT_SZ8/4 + RAM_HDLC_PKT_SZ8%4
++
++#define AUX_PKT_SZ8		0x1
++#define AUX_HDLC_PKT_SZ8	HDLC_HDR_SZ+MSG_AUX_CMDHDR_SZ+AUX_PKT_SZ8
++
++#define SDFE4_FIFO8	128
++#define SDFE4_FIFO32	SDFE4_FIFO8/4
++
++//
++#define MSG_ONLY	0
++#define TRANSP_USE  	1
++
++#ifdef SG17_PCI_MODULE
++#	define FW_PKT_SIZE             0x40
++#else
++#	define FW_PKT_SIZE             0x10
++#endif
++#define FW_PKT_SIZE32           FW_PKT_SIZE/4
++#define FW_PKT_HDR_SIZE         0x08
++#define FW_CODE_SIZE		0x1C000
++#define FW_DATA_SIZE		0x8000
++#define FW_CODE_OFFS		0x0
++#define FW_DATA_OFFS		(FW_CODE_OFFS+FW_CODE_SIZE)
++#define FW_CODE_CRC_OFFS	(FLASH_FW_STRTADDR+FW_DATA_OFFS+FW_DATA_SIZE)
++#define FW_DATA_CRC_OFFS	(FW_CODE_CRC_OFFS+4)
++#define FW_DTPNT_OFFS		(FW_DATA_CRC_OFFS+4)
++#define FWdtpnt			0x120C0608 // 0x120C0608 ///0x08060C12;
++#define FLASH_FW_STRTADDR	0x00010000
++#define FLASH_FW_ENDADDR	0x0003400C
++//*****************************************************************************
++
++#define PEF24624_ADR_HOST	0xF1
++/* example for a device address different from the default (0xF) */
++
++#define PEF24624_ADR_DEV	0xF0
++#define PEF24624_ADR_RAMSHELL	0x05
++#define PEF24624_ADR_AUX	0x09
++
++#define PEF24624_ADR_PAMDSL(Ch)     ((((Ch)<<2) | 0x02) & 0x0F)
++#define PEF24624_PAMDSL_ADR(Ch)     ( ((Ch & 0xF)>>2) & 0x0F)
++
++#define PEF24624_ADR_PAMDSL_0       0x02
++#define PEF24624_ADR_PAMDSL_1       0x06
++#define PEF24624_ADR_PAMDSL_2       0x0A
++#define PEF24624_ADR_PAMDSL_3       0x0E
++#define PEF24624_ADR_PAMDSL_GRP     0x0D
++#define FWSTART_START_ch0           0x00000001
++#define FWSTART_START_ch3           0x00000008
++#define FWSTART_START_ch1           0x00000002
++#define FWSTART_START_ch2           0x00000004
++#define FWSTART_STARTALL            0x0000000F
++
++
++#define  CMD_WR_REG_AUX_SCI_IF_MODE  0x00A9
++#define  CMD_WR_RAM_RS               0x0003
++#define  CMD_WR_REG_RS_FWSTART       0x0061
++#define  CMD_RD_REG_RS_FWSTART       0x0060
++#define  CMD_WR_REG_RS_FWCTRL        0x0001
++#define  CMD_RD_REG_RS_FWCRC         0x0020
++#define  CMD_RD_RAM_RS               0x0002
++#define  CMD_WR_REG_RS_FWDTPNT       0x0041
++#define  CMD_RD_REG_RS_FWDTPNT       0x0040
++#define  CMD_WR_REG_AUX_AUX_IF_MODE  0x0081
++#define  CMD_WR_REG_AUX_SDI_IF_SEL_0 0x0089
++#define  CMD_WR_REG_AUX_SDI_IF_SEL_1 0x0091
++#define  CMD_WR_REG_AUX_SDI_IF_SEL_2 0x0099
++#define  CMD_WR_REG_AUX_SDI_IF_SEL_3 0x00A1
++#define  CMD_CONNECT_CTRL            0x0C04
++#define  ACK_CONNECT_CTRL            0x0E04
++#define  CMD_CHANNEL_DISABLE         0x0C0F
++#define  ACK_CHANNEL_DISABLE	     0x0E0F
++#define  CMD_CFG_SYM_DSL_MODE        0x0404
++#define  ACK_CFG_SYM_DSL_MODE        0x2622
++#define  CMD_CFG_GHS_MODE            0x2422
++#define  ACK_CFG_GHS_MODE            0x0604
++#define  CMD_CFG_CAPLIST_SHORT       0x2432
++#define  CMD_CFG_CAPLIST_SHORT_VER_2 0x2452
++#define  ACK_CFG_CAPLIST_SHORT_VER_2 0x2652
++#define  CMD_CFG_SDI_SETTINGS        0x840F
++#define  ACK_CFG_SDI_SETTINGS        0x860F
++#define  CMD_CFG_EOC_RX              0xA422
++#define  ACK_CFG_EOC_RX              0xA622
++#define  CMD_GHS_REG_INITIATION      0x2C62
++#define  ACK_GHS_REG_INITIATION      0x2E62
++#define  CMD_CAPLIST_GET             0x2802
++#define  ACK_CAPLIST_GET             0x2A02
++#define  CMD_CFG_CAPLIST             0x2412
++#define  ACK_CFG_CAPLIST             0x2612
++#define  CMD_CONNECT_STAT_GET        0x0804
++#define  CMD_CFG_SDI_RX              0x842F
++#define  ACK_CFG_SDI_RX              0x862F
++#define  CMD_CFG_SDI_TX              0x841F
++#define  ACK_CFG_SDI_TX              0x861F
++#define  CMD_DSL_PARAM_GET           0x4802
++#define  ACK_DSL_PARAM_GET	     0x4A02
++#define  CMD_CFG_MULTIWIRE_MASTER    0xB40F
++#define  CMD_CFG_MULTIWIRE_SLAVE     0xB41F
++#define  CMD_CFG_DSL_PARAM           0x4402
++#define  CMD_PERF_STATUS_GET         0x9432
++#define  ACK_PERF_STATUS_GET         0x9632
++#define  ACK_CFG_MULTIWIRE_SDATA     0xB63F
++
++#define  NFC_CONNECT_CTRL		0x0D04
++#	define  MAIN_INIT		0x00
++#	define  MAIN_PRE_ACT		0x01
++#	define  MAIN_CORE_ACT		0x02
++#	define  MAIN_DATA_MODE		0x03
++#	define  MAIN_EXCEPTION		0x05
++#	define  MAIN_TEST		0x06
++#define  NFC_CONNECT_CONDITION		0x0D14
++#	define  GHS_STARTUP		0x06
++#	define  GHS_TRANSFER		0x01
++#	define  EXCEPTION		0x04
++#	define  GHS_30SEC_TIMEOUT	0x0e
++#define  NFC_SDI_DPLL_SYNC		0x855F
++#define  NFC_MPAIR_DELAY_MEASURE_SDFE4	0x8D0F
++#define  NFC_PERF_PRIM			0x9912
++#define  NFC_FBIT_RX			0x9952
++#define  NFC_EOC_TX			0xAD02
++#define  NFC_EOC_RX			0xA912
++#define  NFC_UNDEF_MSG_ID		0x010F
++#define  NFC_MULTIWIRE_MASTER		0xB94F
++#define  NFC_MULTIWIRE_PAIR_NR		0xB96F
++
++#define  SLIP_FAST                   0x00
++#define  SDI_FALLING                 0x00
++#define  SDI_RISING                  0x01
++#define  SDI_HIGH                    0x01
++#define  MERGED_CL_SRU               0x4
++#define  LINK_INITIATION             0x00
++#define  MODE_SELECT                 0x3
++#define  GHS_INITIATION              0x01
++#define  TIM_REF_CLK_OUT_FREE_FSC    0x01
++#define  TIM_REF_CLK_OUT_SYMBOL_REF  0x03
++#define  TIM_REF_CLK_OUT_SYM_8KHZ    0x00
++#define  TIM_REF_CLK_IN_8KHZ         0x00
++#define  TIM_DATA_CLK_8KHZ           0x10
++#define  TIM_REF_CLK_IN_1536KHZ      0x01
++#define  TIM_DATA_CLK_1536KHZ        0x11
++#define  TIM_REF_CLK_IN_1544KHZ      0x02
++#define  TIM_DATA_CLK_1544KHZ        0x12
++#define  TIM_REF_CLK_IN_2048KHZ      0x03
++#define  TIM_DATA_CLK_2048KHZ        0x13
++#define  TIM_REF_CLK_IN_4096KHZ      0x04
++#define  TIM_DATA_CLK_4096KHZ        0x14
++#define  TIM_REF_CLK_IN_8192KHZ      0x05
++#define  TIM_DATA_CLK_8192KHZ        0x15
++#define  TIM_REF_CLK_IN_20480KHZ     0x07
++#define  TIM_DATA_CLK_20480KHZ       0x18
++#define  SDI_NODPLL                  0x00
++#define  SDI_DPLL4IN                 0x01
++#define  SDI_DPLL4INOUT              0x03
++#define  SDI_NO                      0x00
++#define  SDI_YES                     0x01
++#define  SDI_NO_LOOP                 0x00
++#define  SDI_REMOTE_LOOP             0x01
++#define  SDI_REMOTE_CLK_ONLY         0x02
++#define  SDI_INCLK                   0x0A
++
++#define  SDI_INCLK_INSP_TDMMSP       0x05
++#define  SDI_TDMSP_TDMMSP            0x08
++#define  SDI_TDMCLK_TDMMSP           0x02
++#define  SDI_TDMCLK_TDMSP_TDMMSP     0x03
++#define  SDI_TDMCLK                  0x00
++#define  SDI_DSL3                    0x09
++#define  SDI_DSL3_NS                 0x0D
++#define  PMMS_OFF                    0x00
++#define  SYM_PSD                     0x00
++#define  ANNEX_A_B                   0x03
++#define  ANNEX_A                     0x01
++#define  ANNEX_B                     0x02
++#define  SHDSL_CLK_MODE_3a           0x4
++#define  SHDSL_CLK_MODE_1            0x1
++#define  SHDSL_CLK_MODE_2            0x2
++#define  EPL_DISABLED                0x00
++#define  EPL_ENABLED                 0x08
++#define  PMMS_NORMAL                 0x00
++#define  PBO_NORMAL                  0x00
++#define  STARTUP_LOCAL               0x00
++#define  STARTUP_FAREND              0x80
++#define  GHS_TRNS_00                 0x00
++#define  GHS_TRNS_01                 0x01
++#define  GHS_TRNS_10                 0x02
++#define  GHS_TRNS_11                 0x03
++#define  SHDSL                       0x01
++#define  REPEATER                    0x1
++#define  TERMINATOR                  0x0
++#define  STU_C                       0x1
++#define  STU_R                       0x2
++#define  FWCTRL_CHK                  0x00000100
++#define  FWCTRL_SWITCH               0x00010000
++#define  FWCTRL_PROTECT              0x01000000
++#define  FWCTRL_VALID                0x00000001
++#define  SINGLE                      0x00
++#define  CLK_INTERNAL                0x00
++#define  FRAME_PLESIO                0x0
++
++// ERROR codes
++#define EXMIT	1
++#define	ERESET	2
++
++struct sdfe4_ret{
++	u8 stamp;
++	u32 val;
++};
++
++struct sdfe4_msg{
++	u16 ack_id;
++	int len;
++	u8 buf[SDFE4_FIFO8];
++};
++
++struct cmd_cfg_eoc_rx{
++       u16 max_num_bytes;
++};
++
++#define TCPAM16_INT1_MIN 192
++#define TCPAM16_INT1_MAX 2304
++#define TCPAM16_INT2_MIN 2368
++#define TCPAM16_INT2_MAX 3840
++#define TCPAM32_INT1_MIN 768
++#define TCPAM32_INT1_MAX 5696
++
++struct cmd_cfg_caplist_short_ver_2{
++	u8 clock_mode;
++	u8 annex;
++	u8 psd_mask;
++	u8 pow_backoff;
++	u16 base_rate_min;
++	u16 base_rate_max;
++	u16 base_rate_min16;
++	u16 base_rate_max16;
++	u16 base_rate_min32;
++	u16 base_rate_max32;
++	u8 sub_rate_min;
++	u8 sub_rate_max;
++	u8 enable_pmms;
++	u8 pmms_margin;
++	u8 rsvd0;
++	u8 rsvd1;
++	u8 rsvd2;
++	u8 rsvd3;
++	u8 octet_no_0;
++	u8 octet_val_0;
++	u8 octet_no_1;
++	u8 octet_val_1;
++	u8 octet_no_2;
++	u8 octet_val_2;
++	u8 octet_no_3;
++	u8 octet_val_3;
++	u8 octet_no_4;
++	u8 octet_val_4;
++	u8 octet_no_5;
++	u8 octet_val_5;
++	u8 octet_no_6;
++	u8 octet_val_6;
++	u8 octet_no_7;
++	u8 octet_val_7;
++	u8 octet_no_8;
++	u8 octet_val_8;
++	u8 octet_no_9;
++	u8 octet_val_9;
++	u8 octet_no_10;
++	u8 octet_val_10;
++	u8 octet_no_11;
++	u8 octet_val_11;
++	u8 octet_no_12;
++	u8 octet_val_12;
++	u8 octet_no_13;
++	u8 octet_val_13;
++	u8 octet_no_14;
++	u8 octet_val_14;
++	u8 octet_no_15;
++	u8 octet_val_15;
++};
++
++struct cmd_cfg_sym_dsl_mode{
++	u8 mode;
++	u8 repeater;
++	u8 standard;
++	u8 rsvd0;
++	u8 rsvd1;
++	u8 rsvd2;
++	u8 rsvd3;
++	u8 rsvd4;
++	u8 rsvd5;
++	u8 rsvd6;
++	u8 rsvd7;
++};
++
++struct cmd_cfg_ghs_mode{
++	u8 transaction;
++	u8 startup_initialization;
++	u8 pbo_mode;
++	u8 pmms_margin_mode;
++	u8 epl_mode;
++	u8 rsvd1;
++	u8 rsvd2;
++	u8 rsvd3;
++	u8 rsvd4;
++	u8 rsvd5;
++	u8 rsvd6;
++	u8 rsvd7;
++};
++
++struct cmd_cfg_sdi_settings{
++	u8 input_mode;
++	u8 output_mode;
++	u16 frequency;
++	u16 payload_bits;
++	u8 frames;
++	u8 loop;
++	u8 ext_clk8k;
++	u8 dpll4bclk;
++	u8 refclkin_freq;
++	u8 refclkout_freq;
++};
++
++
++struct cmd_cfg_sdi_tx{
++	s32 data_shift;
++	s8 frame_shift;
++	u8 sp_level;
++	u8 sp_sample_edg;
++	u8 data_sample_edg;
++	s32 lstwr_1strd_dly;
++	u8 slip_mode;
++	u8 rsvd1;
++	u8 align;
++	u8 rsvd3;
++};
++
++struct  cmd_cfg_sdi_rx{
++	s32 data_shift;
++	s8 frame_shift;
++	u8 sp_level;
++	u8 driving_edg;
++	u8 data_shift_edg;
++	s32 lstwr_1strd_dly;
++	u8 slip_mode;
++	u8 rsvd1;
++	u8 align;
++	u8 rsvd3;
++};
++
++struct ack_dsl_param_get {
++	u8 stu_mode;
++	u8 repeater;
++	u8 annex;
++	u8 clk_ref;
++	u16 base_rate;
++	u8 sub_rate;
++	u8 psd_mask;
++	u8 frame_mode;
++	u8 rsvd2;
++	u16 tx_sync_word;
++	u16 rx_sync_word;
++	u8 tx_stuff_bits;
++	u8 rx_stuff_bits;
++	s8 pow_backoff;
++	s8 pow_backoff_farend;
++	u8 ghs_pwr_lev_carr;
++	u8 bits_p_symbol;
++};
++
++struct ack_perf_status_get {
++	u8 SNR_Margin_dB;
++	u8 LoopAttenuation_dB;
++	u8 ES_count;
++	u8 SES_count;
++	u16 CRC_Anomaly_count;
++	u8 LOSWS_count;
++	u8 UAS_Count;
++	u16 SegmentAnomaly_Count;
++	u8 SegmentDefectS_Count;
++	u8 CounterOverflowInd;
++	u8 CounterResetInd;
++};
++
++
++u32 u8_to_u32(u8 *src);
++int sdfe4_msg_init(struct sdfe4_msg *msg, char *cmsg, int len);
++int sdfe4_chk_transplayer(u8 *msg);
++int sdfe4_chk_msglayer(u8 *msg);
++int sdfe4_reset_hwdev_chan(struct sdfe4_channel *ch);
++int sdfe4_rs_cmd(u8 opcd, u32 *params, u16 plen,struct sdfe4_ret *ret,struct sdfe4 *hwdev);
++int sdfe4_aux_cmd(u8 opcode, u8 param_1,struct sdfe4_ret *ret,struct sdfe4 *hwdev);
++int sdfe4_pamdsl_cmd(u8 ch, u16 opcd, u8 *params, u16 plen,struct sdfe4_msg *rmsg,struct sdfe4 *hwdev);
++int sdfe4_pamdsl_ack(u8 ch, u8 hdr0,struct sdfe4 *hwdev);
++int sdfe4_pamdsl_nfc(struct sdfe4_msg *msg,struct sdfe4 *hwdev);
++#define SDFE4_NOT_PAMDSL 0x1
++#define SDFE4_PAMDSL_ACK 0x2
++#define SDFE4_PAMDSL_NFC 0x3
++#define SDFE4_PAMDSL_SYNC 0x4
++#define SDFE4_PAMDSL_ERROR 0x5
++int sdfe4_pamdsl_parse(struct sdfe4_msg *rmsg,struct sdfe4 *hwdev);
++int sdfe4_drv_poll(struct sdfe4_msg *rmsg,struct sdfe4 *hwdev);
++int sdfe4_download_fw(struct sdfe4 *hwdev
++#ifdef SG17_PCI_MODULE
++, u8 *fw, int fw_size
++#endif
++);
++int sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev);
++int sdfe4_setup_channel(int ch, struct sdfe4 *hwdev);
++int sdfe4_start_channel(int ch, struct sdfe4 *hwdev);
++int sdfe4_start_chip(struct sdfe4 *hwdev);
++int sdfe4_state_mon(struct sdfe4 *hwdev);
++int sdfe4_get_statistic(u8 ch, struct sdfe4 *hwdev,struct sdfe4_stat *stat);
++int sdfe4_start_as_modem(struct sdfe4 *hwdev);
++
++#ifdef SG17_REPEATER
++int sdfe4_repeater_start( struct sdfe4 *hwdev );
++#endif // SG17_REPEATER
++
++#endif
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sg17config.h linux-2.6.16/drivers/net/sg17lan/include/sg17config.h
+--- linux-2.6.16-old/drivers/net/sg17lan/include/sg17config.h	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/include/sg17config.h	2007-03-28 23:15:57.000000000 +0700
+@@ -0,0 +1,27 @@
++/* sg17config.h:
++ *
++ * SDFE4 Library
++ *
++ *      Target device configuration
++ *
++ * Authors:
++ *      Artem Polyakov <art@sigrand.ru>
++ *      Ivan Neskorodev <ivan@sigrand.ru>
++ */
++        
++#ifndef SG17_CONFIG_H
++#define SG17_CONFIG_H
++
++// Wat device you are using???
++
++#define SG17_PCI_MODULE
++//#define SG17_REPEATER 1
++
++#if defined(SG17_PCI_MODULE) && defined(SG17_REPEATER)
++#	error "You define SG17_PCI_MODULE & SG17_REPEATER at the same time!"
++#elif !defined(SG17_PCI_MODULE) && !defined(SG17_REPEATER)
++#	error "Please specify target device for library!"
++#endif //SG17_PCI_MODULE && SG17_REPEATER
++
++
++#endif
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sg17device.h linux-2.6.16/drivers/net/sg17lan/include/sg17device.h
+--- linux-2.6.16-old/drivers/net/sg17lan/include/sg17device.h	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/include/sg17device.h	2007-03-28 23:15:57.000000000 +0700
+@@ -0,0 +1,32 @@
++/* sg17device.h:
++ *
++ * SDFE4 Library
++ *
++ *	Target device configuration
++ *
++ * Authors:
++ *      Artem Polyakov <art@sigrand.ru>
++ *      Ivan Neskorodev <ivan@sigrand.ru>
++ */
++       
++#ifndef SG17_DEVICE_H
++#define SG17_DEVICE_H
++
++#include "sg17config.h"
++#include "sg17hw.h"
++
++int sdfe4_hdlc_xmit(u8 *msg,u16 len,struct sdfe4 *hwdev);
++int sdfe4_hdlc_wait_intr(int to,struct sdfe4 *hwdev);
++int sdfe4_hdlc_recv(u8 *buf,int *len,struct sdfe4 *hwdev);
++void sdfe4_clear_channel(struct sdfe4 *hwdev);
++void wait_ms(int x);
++void sdfe4_memcpy(void *,const void *,int size);
++int sdfe4_link_led_up(int i,struct sdfe4 *hwdev);
++int sdfe4_link_led_down(int i,struct sdfe4 *hwdev);
++int sdfe4_link_led_blink(int i, struct sdfe4 *hwdev);
++int sdfe4_link_led_fast_blink(int i,struct sdfe4 *hwdev);
++// locking
++void sdfe4_lock_chip(struct sdfe4 *hwdev);
++void sdfe4_unlock_chip(struct sdfe4 *hwdev);
++
++#endif
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw_core.h linux-2.6.16/drivers/net/sg17lan/include/sg17hw_core.h
+--- linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw_core.h	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/include/sg17hw_core.h	2007-03-28 23:15:57.000000000 +0700
+@@ -0,0 +1,79 @@
++/* sg17hw_core.h:
++ *
++ * SDFE4 Library
++ *
++ *      Universal target device definitions
++ *
++ * Authors:
++ *      Artem Polyakov <art@sigrand.ru>
++ *      Ivan Neskorodev <ivan@sigrand.ru>
++ */
++
++#ifndef SG17HW_CORE_H
++#define SG17HW_CORE_H
++
++#define EOC_MSG_MAX_LEN 112
++
++struct sdfe4_channel{
++        u16 state               :3;
++        u16 state_change        :1;
++        u16 conn_state          :5;
++	u16 conn_state_change   :1;
++	u16 sdi_dpll_sync       :1;
++        u16 eoc_tx              :2;
++        u16 eoc_rx_new          :1;
++        u16 eoc_rx_drop         :1;
++        u16 enabled             :1;
++
++	u8 perf_prims;
++        u8 eoc_rx_msg[EOC_MSG_MAX_LEN];
++};
++											
++#define TCPAM16 0
++#define TCPAM32 1
++
++struct sdfe4_if_cfg{
++	u32 mode : 2;
++        u32 repeater : 1;
++        u32 startup_initialization:8;
++        u32 transaction: 2;
++        u32 annex:2;
++	u32 input_mode:8;
++        u32 loop :2;
++        u32 tc_pam :1;
++        u32 need_reconf :1;
++	u32 :5;
++        u16 frequency;
++        u16 payload_bits;
++        u16 rate;
++	
++};
++
++struct sdfe4_stat {
++        u8 SNR_Margin_dB;
++        u8 LoopAttenuation_dB;
++        u8 ES_count;
++        u8 SES_count;
++        u16 CRC_Anomaly_count;
++        u8 LOSWS_count;
++        u8 UAS_Count;
++        u16 SegmentAnomaly_Count;
++        u8 SegmentDefectS_Count;
++        u8 CounterOverflowInd;
++        u8 CounterResetInd;
++/*
++        u16 tx_sync_word;
++        u16 rx_sync_word;
++        u8 tx_stuff_bits;
++        u8 rx_stuff_bits;
++        s8 pow_backoff;
++        s8 pow_backoff_farend;
++        u8 ghs_pwr_lev_carr;
++        u8 bits_p_symbol;
++*/	
++};
++																							
++#define SG17_IF_MAX     4
++
++#endif
++
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw.h linux-2.6.16/drivers/net/sg17lan/include/sg17hw.h
+--- linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw.h	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/include/sg17hw.h	2007-03-28 23:15:57.000000000 +0700
+@@ -0,0 +1,23 @@
++/* sg17hw.h:
++ *
++ * SDFE4 Library
++ *
++ *	Target device lowlevel interface
++ *
++ * Authors:
++ *      Artem Polyakov <art@sigrand.ru>
++ *      Ivan Neskorodev <ivan@sigrand.ru>
++ */
++       
++#ifndef SG17HW_H
++#define SG17HW_H
++
++#include "sg17config.h"
++
++#ifdef SG17_PCI_MODULE
++#include "sg17hw_pci.h"
++#endif
++/* REPEATER !!!!!!!!!!!!!!*/
++																							
++#endif
++
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw_pci.h linux-2.6.16/drivers/net/sg17lan/include/sg17hw_pci.h
+--- linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw_pci.h	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/include/sg17hw_pci.h	2007-03-28 23:15:57.000000000 +0700
+@@ -0,0 +1,77 @@
++/* sg17hw_pci.h:
++ *
++ * SDFE4 Library
++ *
++ *      Definitions for SG-17PCI target device
++ *
++ * Authors:
++ *      Artem Polyakov <art@sigrand.ru>
++ *      Ivan Neskorodev <ivan@sigrand.ru>
++ */
++
++#ifndef SG17PCI_HW_H
++#define SG17PCI_HW_H
++
++#include <asm/types.h>
++#include <linux/netdevice.h>
++#include "sg17hw_core.h"
++
++// CRA bits
++#define TXEN    0x01            // transmitter enable
++#define RXEN    0x02            // receiver  enable
++#define NCRC    0x04            // ignore received CRC
++#define DLBK    0x08            // digital loopback
++#define CMOD    0x10            // 0 - use CRC-32, 1 - CRC-16
++#define FMOD    0x20            // interframe fill: 0 - all ones, 1 - 0xfe
++#define PMOD    0x40            // data polarity: 0 - normal, 1 - invert
++#define XRST    0x80            // reset the transceiver
++
++// CRB bits
++#define RDBE    0x01            // read burst enable
++#define WTBE    0x02            // write burst enable
++#define RODD    0x04            // receive 2-byte alignment
++#define RXDE    0x08            // receive data enable
++
++// SR and IMR bits
++#define TXS     0x01            // transmit success
++#define RXS     0x02            // receive success
++// SR and IMR bits
++#define TXS     0x01            // transmit success
++#define RXS     0x02            // receive success
++#define CRC     0x04            // CRC error
++#define OFL     0x08            // fifo overflow error
++#define UFL     0x10            // fifo underflow error
++#define EXT     0x20            // interrupt from sk70725
++#define COL     0x40            // interrupt from sk70725
++// IMR only
++#define TSI     0x80            // generate test interrupt
++
++
++//---- SG17-PCI IO memory ----//
++#define SG17_OIMEM_SIZE 0x4000
++#define SG17_HDLC_MEMSIZE 0x1000
++#define SG17_SCI_MEMSIZE 0x2000
++// mem offsets
++#define SG17_HDLC_CH0_MEMOFFS 0x0000
++#define SG17_HDLC_CH1_MEMOFFS (SG17_HDLC_CH0_MEMOFFS + SG17_HDLC_MEMSIZE)
++#define SG17_SCI_MEMOFFS (SG17_HDLC_CH1_MEMOFFS + SG17_HDLC_MEMSIZE)
++// HDLC channels mapping
++#define HDLC_TXBUFF	0x0
++#define HDLC_RXBUFF	0x400
++#define HDLC_REGS	0x800
++// SCI HDLC mapping
++#define SCI_BUFF_SIZE	0x800
++#define SCI_RXBUFF	0x0
++#define SCI_TXBUFF	SCI_RXBUFF + SCI_BUFF_SIZE
++#define SCI_REGS	SCI_TXBUFF + SCI_BUFF_SIZE
++
++struct sdfe4{
++        u8 msg_cntr;
++        struct sdfe4_channel ch[SG17_IF_MAX];
++        struct sdfe4_if_cfg cfg[SG17_IF_MAX];
++        void *data;
++};
++				
++
++#endif
++
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/Makefile linux-2.6.16/drivers/net/sg17lan/Makefile
+--- linux-2.6.16-old/drivers/net/sg17lan/Makefile	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/Makefile	2007-03-28 23:43:26.000000000 +0700
+@@ -0,0 +1,2 @@
++obj-$(CONFIG_SIGRAND_SG17LAN) += sg17lan.o
++sg17lan-objs := sg17main.o sg17sci.o sdfe4_lib.o sg17debug.o sg17ring.o sg17sysfs.o
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sdfe4_lib.c linux-2.6.16/drivers/net/sg17lan/sdfe4_lib.c
+--- linux-2.6.16-old/drivers/net/sg17lan/sdfe4_lib.c	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/sdfe4_lib.c	2007-03-28 23:36:21.000000000 +0700
+@@ -0,0 +1,1121 @@
++/* sdfe4_lib.c:
++ *
++ * SDFE4 Library
++ *
++ *      Infineon SDFE4 SHDSL chipset control library
++ *	Provide architecture independent interface for
++ *	Sigrand SG-17 devices
++ *
++ * Authors:
++ *      Artem Polyakov <art@sigrand.ru>
++ *      Ivan Neskorodev <ivan@sigrand.ru>
++ */
++	 
++
++#include "include/sg17device.h"
++#include "include/sdfe4_lib.h"
++#define DEBUG_ON
++#define DEFAULT_LEV 20
++#include "sg17debug.h"
++
++inline u32
++u8_to_u32(u8 *src)
++{
++        u32 ret32=0;
++        u8 i,*ret8=(u8*)&ret32;
++        for( i=0;i<4;i++)
++                ret8[i]=src[i];
++        return ret32;
++}
++
++/*
++ * sdfe4_msg_init
++ */
++int
++sdfe4_msg_init(struct sdfe4_msg *msg, char *cmsg, int len)
++{
++	int i;
++	if( len > SDFE4_FIFO8 )
++		return -1;
++	for( i=0;i<len;i++)
++		msg->buf[i] = cmsg[i];
++	msg->len = len;
++	return 0;
++}
++
++/*
++ * sdfe4_chk_transplayer:
++ * Checks transport layer status provided transport header
++ * @msg		- message to check
++*/
++inline int
++sdfe4_chk_transplayer(u8 *msg){
++/* TODO: apply transport layer checking */
++	return 0;
++}
++
++/*
++ * sdfe4_chk_msglayer:
++ * Checks message layer  status provided by RSTA register
++ * @msg		- message to check
++*/
++inline int
++sdfe4_chk_msglayer(u8 *msg){
++	if( msg[0] != 0xA9 )
++		return -1;
++	return 0;
++}
++
++/*
++ * sdfe4_reset_hwdev_chan:
++ * Clear channel status when resetting channel
++ * @ch		- channel handler
++*/
++int
++sdfe4_reset_hwdev_chan(struct sdfe4_channel *ch)
++{
++	int ch_en_bkp=0;
++	if( ch->enabled )
++		ch_en_bkp=1;
++	memset(ch,0,sizeof(*ch));
++	ch->enabled=ch_en_bkp;
++	return 0;
++}
++
++/*
++ * sgfe4_xmit_rs_msg:
++ * Sends message to RAM block of SDFE-4
++ * @opcd	- operation code of RAM command
++ * @params	- command parameters
++ * @plen	- number of command parameters
++ * @ret	- return value (if not NULL)
++ * @data	- additional data for portability
++*/
++int
++sdfe4_rs_cmd(u8 opcd, u32 *params, u16 plen,struct sdfe4_ret *ret,struct sdfe4 *hwdev)
++{
++	int i;
++	u32 buf[SDFE4_FIFO32];
++	u32 *msg32=(u32*)buf;
++	u8  *msg8=(u8*)buf;
++        int len=0;
++	int r;
++
++	if ( plen > FW_PKT_SIZE32+1 ){
++		return -1;
++	}
++
++	// prepare parameters of message
++	// (send without transport protocol)
++	msg8[0] = PEF24624_ADR_HOST ;
++	msg8[1] = PEF24624_ADR_DEV | PEF24624_ADR_RAMSHELL;
++	msg8[2] = 0;
++	msg8[3] = opcd;
++
++
++ 	for (i=0; i<plen; i++)
++		msg32[i+1]=params[i];
++
++	//Send message to RAM
++	if( (r = sdfe4_hdlc_xmit(msg8,RAM_CMDHDR_SZ+plen*4,hwdev)) ){
++		PDEBUG(debug_sdfe4,"sdfe4_hdlc_xmit error = %d", r);	
++		return -1;
++	}
++
++	if( (r = sdfe4_hdlc_wait_intr(15000,hwdev)) ){
++		PDEBUG(debug_sdfe4,"sdfe4_hdlc_wait_intr error = %d", r);
++		return -1;
++	}
++	if( (r = sdfe4_hdlc_recv((u8*)buf,&len,hwdev)) ){
++		PDEBUG(debug_sdfe4,"sdfe4_hdlc_recv error = %d", r);	
++		return -1;
++	}
++	msg8=(u8*)&buf;
++        msg8+=RAM_ACKHDR_SZ;
++	if( sdfe4_chk_msglayer(msg8) ){
++		return -1;
++	}
++	ret->val=u8_to_u32(&msg8[1]);	
++	
++	if( ret->stamp ){
++		
++		if( sdfe4_hdlc_wait_intr(15000,hwdev) ){
++			return -1;
++		}
++
++	        if( sdfe4_hdlc_recv((u8*)buf,&len,hwdev) ){
++		      return -1;
++        	}
++		msg8=(u8*)&buf;
++		msg8+=RAM_ACKHDR_SZ;
++		if( sdfe4_chk_msglayer(msg8) ){
++			return -1;
++		}
++		ret->val=u8_to_u32(&msg8[1]);
++	}
++	return 0;
++}
++
++
++/*
++ * sdfe4_aux_cmd:
++ * Sends message to AUX block of SDFE-4
++ * @opcd	- operation code of AUX command
++ * @params	- command parameter
++ * @data	- additional data for portability
++*/
++int
++sdfe4_aux_cmd(u8 opcode, u8 param_1,struct sdfe4_ret *ret,struct sdfe4 *hwdev)
++{
++	u8 buf[SDFE4_FIFO8];
++	u8 *msg8=(u8*)buf;
++	int len=0;
++	
++	// prepare parameters of message
++	// (send without transport protocol)
++	msg8[0] = PEF24624_ADR_HOST;
++	msg8[1] = PEF24624_ADR_DEV | PEF24624_ADR_AUX;
++	msg8[2] = opcode;
++	msg8[3] = param_1;
++
++	if( sdfe4_hdlc_xmit(msg8,AUX_CMDHDR_SZ+1,hwdev) )
++		return -1;
++
++	// TODO : replase with dev specific
++	wait_ms(2);
++
++	if( sdfe4_hdlc_wait_intr(15000,hwdev) )
++		return -1;
++
++	if( sdfe4_hdlc_recv((u8*)buf,&len,hwdev) )
++		return -1;
++
++	msg8=(u8*)&buf[RAM_ACKHDR_SZ];
++	if( sdfe4_chk_msglayer(msg8) )
++		return -1;
++	
++	if( ret )
++		ret->val=u8_to_u32(&msg8[1]);
++
++	return 0;
++}
++
++/*
++ * sdfe4_pamdsl_cmd:
++ * Sends command to Embedded controller block of SDFE-4
++ * @opcd	- operation code of RAM command
++ * @ch		- controller number	
++ * @params	- command parameters
++ * @plen	- number of command parameters
++ * @data	- additional data for portability
++*/
++int
++sdfe4_pamdsl_cmd(u8 ch, u16 opcd, u8 *params, u16 plen,struct sdfe4_msg *rmsg,struct sdfe4 *hwdev)
++{
++	u8 buf[SDFE4_FIFO8];
++	u8 *msg8=(u8*)buf;
++	int i;
++	int error = 0;
++
++	rmsg->len = 0;
++
++	// prepare parameters of message
++	msg8[0] = PEF24624_ADR_HOST;
++	msg8[1] = PEF24624_ADR_DEV | PEF24624_ADR_PAMDSL(ch);
++	// include transport protocol
++	msg8[3] = msg8[6] = msg8[7] = 0;
++	// add message id
++	msg8[4] = opcd & 0xFF;
++	msg8[5] = (opcd>>8) & 0xFF;
++
++	// message params must be already in little endian, no conversion !!!
++	for(i=0;i<plen;i++)
++		msg8[i+8]=params[i];
++
++	// clean channel
++//	sdfe4_clear_channel(rmsg,hwdev);
++
++	PDEBUG(0,"try to lock");		
++	sdfe4_lock_chip(hwdev);
++	PDEBUG(0,"chip locked");	
++#ifdef SG17_REPEATER
++	i=0;
++	do{
++#endif	
++		msg8[2] = 0x08 | ( hwdev->msg_cntr & 0x1);
++		if( (error=sdfe4_hdlc_xmit(msg8,EMB_CMDHDR_SZ+plen,hwdev)) ){
++		// TODO: error handling
++			PDEBUG(debug_error,"err(%d) in sdfe4_hdlc_xmit",error);
++			error = -EXMIT;
++			goto exit;
++		}
++		
++#ifdef SG17_REPEATER
++		if( i == 3 ){
++			PDEBUG(debug_error,"error no answer");		
++			error = -ERESET;
++			goto exit;
++		}
++		i++;
++	}
++	while( sdfe4_drv_poll(rmsg,hwdev) );
++#else	
++
++	if( (error=sdfe4_hdlc_wait_intr(15000,hwdev)) ){
++		PDEBUG(debug_error,"err(%d) no intr",error);	
++		error = -1;
++		goto exit;
++	}
++	
++	i = sdfe4_hdlc_recv(rmsg->buf,&rmsg->len,hwdev);
++#endif	
++		
++	if( rmsg->ack_id != *(u16*)(&rmsg->buf[4])){
++		error = -1;
++		goto exit;
++	}
++
++exit:		
++	sdfe4_unlock_chip(hwdev);
++	PDEBUG(0,"chip unlocked");
++	return error;
++}
++
++/*
++ * sdfe4_pamdsl_ack:
++ * Sends acknoledge to Embedded controller block of SDFE-4
++ * @opcd	- operation code of RAM command
++ * @ch	- controller number	
++ * @hdr0	- first byte of transport layer header
++ * @data	- additional data for portability
++*/
++int
++sdfe4_pamdsl_ack(u8 ch, u8 hdr0,struct sdfe4 *hwdev)
++{
++	u8 msg[8];
++
++	// prepare parameters of message
++	msg[0] = PEF24624_ADR_HOST;
++	msg[1] = PEF24624_ADR_DEV | (ch & 0xF);
++	// include transport protocol
++	msg[2] = hdr0;
++	msg[3] = msg[6] = msg[7] = 0;
++	// add message id
++	msg[4] = 0;
++	msg[5] = 0;
++
++	// message params must be already in little endian, no conversion !!!
++	if( sdfe4_hdlc_xmit(msg,EMB_ACKHDR_SZ,hwdev) ){
++	// TODO: error handling
++		return -1;
++	}
++	
++	return 0;
++}
++
++/*
++ * sdfe4_pamdsl_nfc:
++ * Proceed notification from Embedded controller block of SDFE-4
++ * @msg	- structure, that holds message
++ * @hwdev		- structure, that holds information about Embedded channels and entire SDFE4 chip
++ */
++int
++sdfe4_pamdsl_nfc(struct sdfe4_msg *msg,struct sdfe4 *hwdev)
++{
++	u8 hdr0,hdr1,ch;
++	u16 ackID;	
++	hdr0=msg->buf[2];
++	hdr1=msg->buf[3];
++	ch=PEF24624_PAMDSL_ADR(msg->buf[0]);
++	ackID=*(u16*)(&msg->buf[4]);
++	
++	switch( ackID ){
++	case NFC_CONNECT_CTRL:
++		PDEBUG(debug_sdfe4,"NFC_CONNECT_CTRL, status = %02x",msg->buf[EMB_NFCHDR_SZ]);
++		hwdev->ch[ch].state=msg->buf[EMB_NFCHDR_SZ];
++		hwdev->ch[ch].state_change=1;
++		return 0;
++	case NFC_CONNECT_CONDITION:
++		hwdev->ch[ch].conn_state=msg->buf[EMB_NFCHDR_SZ];
++		hwdev->ch[ch].conn_state_change=1;
++		return 0;
++	case NFC_SDI_DPLL_SYNC:
++		hwdev->ch[ch].sdi_dpll_sync=1;
++		PDEBUG(0,"sdi_dpll_sync=1");
++		return 0;
++	case NFC_PERF_PRIM:
++		hwdev->ch[ch].perf_prims=msg->buf[EMB_NFCHDR_SZ];
++		return 0;
++	case NFC_EOC_TX:
++		hwdev->ch[ch].eoc_tx=msg->buf[EMB_NFCHDR_SZ];
++		return 0;
++	case NFC_EOC_RX:
++		if( hwdev->ch[ch].eoc_rx_new ){
++			hwdev->ch[ch].eoc_rx_drop=1;
++			break;
++		}
++		if( !msg->buf[EMB_NFCHDR_SZ] ){
++			// message is incomplete
++			break;
++		}
++		if( msg->buf[EMB_NFCHDR_SZ+1] ){
++			// Failure during EOC reception
++			break;
++		}
++/* TODO: add eoc process hook		
++		if( sdfe4_eoc_rx_proceed(msg->buf[[EMB_NFCHDR_SZ+3],msg->buf[[EMB_NFCHDR_SZ+2]) )
++				return -1;
++*/				
++		return 0;
++	case NFC_UNDEF_MSG_ID:
++	case NFC_MULTIWIRE_MASTER:
++	case NFC_MULTIWIRE_PAIR_NR:
++	case NFC_MPAIR_DELAY_MEASURE_SDFE4:	
++	case  NFC_FBIT_RX:
++		break;
++	}
++	return -1;
++}
++
++/*
++ * sdfe4_pamdsl_parse:
++ * Parse message from SDFE-4 chipset
++ * @rmsg 	- structure, that holds message
++ * @hwdev	- structure, that holds information about Embedded channels and entire SDFE4 chip
++ * return message type
++ */
++int
++sdfe4_pamdsl_parse(struct sdfe4_msg *rmsg,struct sdfe4 *hwdev)
++{
++	u8 hdr0,hdr1,chan;
++
++	hdr0=rmsg->buf[2];
++	hdr1=rmsg->buf[3];
++	chan=rmsg->buf[0];
++	
++	if( (chan & 0x1) ){
++		PDEBUG(debug_sdfe4,"Error channel - %02x",chan);
++		return  SDFE4_NOT_PAMDSL;
++	}
++
++	switch ( hdr0 & 0xfe ){
++	case 0x88:
++	// Transport counter sync
++		if( ( (hwdev->msg_cntr) & 0x1) != (hdr0 & 0x1) ){
++    			hwdev->msg_cntr = (hdr0 & 0x1);
++		}
++		(hwdev->msg_cntr)++;
++		return SDFE4_PAMDSL_SYNC;
++	case 0x06:
++	// Reset requested from the counter part.
++		(hwdev->msg_cntr)=0;		
++		return SDFE4_PAMDSL_SYNC;
++	case 0x08:
++	// This CMD, ACK or NFC
++		sdfe4_pamdsl_ack(chan, (0x88 | ( hdr0 & 0x1)),hwdev);
++		if( hdr1 ){
++		 	hwdev->msg_cntr++;	
++			sdfe4_pamdsl_nfc(rmsg,hwdev);
++			return SDFE4_PAMDSL_NFC;
++		}
++		return SDFE4_PAMDSL_ACK;
++	case 0x8E:
++	//   Counter part received corrupted message.
++		hwdev->msg_cntr++;
++		return SDFE4_PAMDSL_SYNC;
++	case 0x00:
++	default:
++	// TODO:  Error handling
++		return SDFE4_PAMDSL_ERROR;
++	}
++}
++
++
++/*
++ * sdfe4_drv_poll:
++ * Poll and proceed the messages from Embedded controller block of SDFE-4
++ * @rmsg		- structure, that will hold received message
++ * @hwdev		- structure, that holds information about Embedded channels and entire SDFE4 chip
++ */
++int
++sdfe4_drv_poll(struct sdfe4_msg *rmsg,struct sdfe4 *hwdev)
++{
++       //,ackID
++	while(1){
++		if( sdfe4_hdlc_wait_intr(150000,hwdev) )
++			return -1;
++		if( sdfe4_hdlc_recv(rmsg->buf,&rmsg->len,hwdev) ){
++		// TODO: error handling
++			return -1;
++		}
++		if( sdfe4_pamdsl_parse(rmsg,hwdev) > 0 )
++			break;
++	}
++	return 0;	
++}
++
++
++/*
++ * sdfe4_download_fw:
++ * Downloads firmware to SDFE-4 chipset
++ * @hwdew	- structure, that holds information about Embedded channels and entire SDFE4 chip
++ * @fw		- (only for PCI adapter) - pointer to firmware 
++ * @fw_size	- (only for PCI adapter) - firmware size
++ */
++int
++sdfe4_download_fw(struct sdfe4 *hwdev
++#ifdef SG17_PCI_MODULE
++ , u8 *fw, int fw_size
++#endif
++)
++{
++    	int i,k,iter;
++  	u32 Data_U32[256];
++  	struct sdfe4_ret ret;
++#ifdef SG17_REPEATER	
++	struct sdfe4_msg rmsg;
++#endif	
++	u8 CODE_CRC[4]={0xE0,0xF3,0x4E,0x7D};	
++	u8 DATA_CRC[4]={0x8F,0xED,0xEF,0xFC};
++	u8 *ret8;
++
++	Data_U32[0]=0;
++	ret.stamp=0;
++	PDEBUG(debug_sdfe4,"hwdev = %08x",(u32)hwdev);
++	PDEBUG(debug_sdfe4,"hwdev->data = %08x",(u32)hwdev->data);	
++  	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWSTART,Data_U32,1,&ret,hwdev)){
++		return -1;
++    	}
++
++	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWCTRL,Data_U32,1,&ret,hwdev)){
++		return -1;
++    	}
++
++
++ 	iter=FW_CODE_SIZE/FW_PKT_SIZE;
++	for(k=0;k<iter;k++){
++		Data_U32[0]=(k*FW_PKT_SIZE)/4;
++		for(i=0;i<FW_PKT_SIZE/4;i++){
++#ifdef SG17_PCI_MODULE
++			Data_U32[i+1] = cpu_to_be32(*((u32*)&fw[k*FW_PKT_SIZE + i*4]));
++#else
++			Data_U32[i+1]=cpu_to_be(FLASH_WordRead (FLASH_FW_STRTADDR +FW_CODE_OFFS +
++								FW_PKT_SIZE*k + i*0x4));
++#endif								
++		}
++		if( sdfe4_rs_cmd(CMD_WR_RAM_RS,(u32*)Data_U32,FW_PKT_SIZE32+1,&ret,hwdev)){
++			PDEBUG(debug_sdfe4,"CMD_WR_RAM_RS for code error, iter = %d",k);
++			return -1;
++     		}
++	}
++
++	wait_ms(2);
++
++	ret.stamp = 1;
++	ret8 = (u8*)&ret.val;
++	Data_U32[0]=FWCTRL_CHK;
++        if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWCTRL,Data_U32,1,&ret,hwdev)){
++		wait_ms(2);
++                Data_U32[0]=0;
++		ret.stamp=0;
++		if( sdfe4_rs_cmd(CMD_RD_REG_RS_FWCRC,Data_U32,1,&ret,hwdev)){
++			return -1;
++		}
++        }
++
++
++	//  Count firmware code CRC 
++	PDEBUGL(debug_sdfe4,"Code CRC: ");
++	for(i=0;i<4;i++){
++		PDEBUGL(debug_sdfe4,"%02x ",ret8[i]);
++	}
++	PDEBUGL(debug_sdfe4,"\n");
++	
++
++	for(i=0;i<4;i++){
++		if(CODE_CRC[i]!=ret8[i]){
++			return -1;
++		}
++	}
++
++	// Load firmware data 
++	wait_ms(100);
++	ret.stamp=0;
++	Data_U32[0]=FWCTRL_SWITCH;
++	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWCTRL,Data_U32,1,&ret,hwdev) )
++		return -1;
++
++	wait_ms(100);
++	iter=FW_DATA_SIZE/FW_PKT_SIZE;
++  	for(k=0;k<iter;k++){
++		Data_U32[0]=(k*FW_PKT_SIZE)/4;
++		for(i=0;i<FW_PKT_SIZE/4;i++){
++#ifdef SG17_PCI_MODULE
++			Data_U32[i+1] = cpu_to_be32(*((u32*)&fw[FW_DATA_OFFS+k*FW_PKT_SIZE + i*4]));
++#else
++	        	Data_U32[i+1] = cpu_to_be(FLASH_WordRead (FLASH_FW_STRTADDR + FW_DATA_OFFS +
++                                			          FW_PKT_SIZE*k + i*0x4));
++#endif								  
++		}
++		if( sdfe4_rs_cmd(CMD_WR_RAM_RS,(u32*)Data_U32,FW_PKT_SIZE32+1,&ret,hwdev)){
++			PDEBUG(debug_sdfe4,"CMD_WR_RAM_RS for data error, iter = %d",k);
++			return -1;
++		}
++	}
++
++ 	wait_ms(2);
++	ret.stamp=1;
++	Data_U32[0]=FWCTRL_CHK | FWCTRL_SWITCH;
++	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWCTRL,Data_U32,1,&ret,hwdev)){
++      		wait_ms(2);
++                Data_U32[0]=0;
++		ret.stamp=0;
++		if( sdfe4_rs_cmd(CMD_RD_REG_RS_FWCRC,Data_U32,1,&ret,hwdev)){
++			return -1;
++		}
++	}
++
++
++
++	// Count firmware data CRC DATA
++	PDEBUGL(debug_sdfe4,"Data CRC: ");
++	for(i=0;i<4;i++){
++		PDEBUGL(debug_sdfe4,"%02x ",ret8[i]);
++	}
++	PDEBUGL(debug_sdfe4,"\n");
++	
++
++	for(i=0;i<4;i++){
++		if(DATA_CRC[i]!=ret8[i]){
++			return -1;
++		}
++	}
++
++	wait_ms(100);
++	ret.stamp=0;
++	Data_U32[0]=FWdtpnt;
++  	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWDTPNT,Data_U32,1,&ret,hwdev)){
++		while(1);
++    	}
++
++	wait_ms(200);
++	Data_U32[0]=FWCTRL_VALID;
++  	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWCTRL,Data_U32,1,&ret,hwdev)){
++		return -1;
++    	}
++
++  	wait_ms(100);
++	Data_U32[0]=0;
++	for(i=0;i<SDFE4_EMB_NUM;i++){
++		if( hwdev->ch[i].enabled )
++			Data_U32[0] |= (1<<i);
++	}
++  	if(sdfe4_rs_cmd(CMD_WR_REG_RS_FWSTART,Data_U32,1,&ret,hwdev)){
++		return -1;
++	}
++
++	// INIT
++#ifdef SG17_REPEATER	
++	while( !sdfe4_drv_poll(&rmsg,hwdev) );
++#endif	
++	
++	for(i=0;i<SDFE4_EMB_NUM;i++){
++		if( hwdev->ch[i].enabled &&
++		   		hwdev->ch[i].state != MAIN_INIT ){
++			return -1;
++		}
++		hwdev->ch[i].state_change=0;
++	}
++	return 0;
++}
++
++/*
++ * sdfe4_setup_chan:
++ * Setup SHDSL Embedded controller block of SDFE-4
++ * @ch		- Embedded controller number
++ * @hwdev	- structure, that holds information about Embedded channels and entire SDFE4 chip
++ * return error status
++ */
++int
++sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
++{
++	struct sdfe4_if_cfg *cfg=&(hwdev->cfg[ch]);
++   	u32 buf[SDFE4_FIFO32];
++	struct cmd_cfg_sym_dsl_mode *sym_dsl;
++	struct cmd_cfg_ghs_mode *ghs_mode;
++	struct cmd_cfg_caplist_short_ver_2 *caplist;
++	struct cmd_cfg_sdi_settings *sdi_settings;
++	struct cmd_cfg_sdi_tx *sdi_tx;
++	struct cmd_cfg_sdi_rx *sdi_rx;
++	struct cmd_cfg_eoc_rx *eoc_rx;
++	struct sdfe4_msg rmsg;
++	struct sdfe4_ret ret;
++	// 1. Setup if role
++	PDEBUG(debug_sdfe4,"Setup if role");
++	sym_dsl=(struct cmd_cfg_sym_dsl_mode *)buf;
++	memset(sym_dsl,0,sizeof(*sym_dsl));
++	sym_dsl->repeater= cfg->repeater ;
++	sym_dsl->mode=cfg->mode;
++	sym_dsl->standard=SHDSL;
++	rmsg.ack_id=ACK_CFG_SYM_DSL_MODE;
++	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_SYM_DSL_MODE,(u8*)buf,sizeof(*sym_dsl),&rmsg,hwdev))
++		return -1;
++	
++	
++	//2. Setup transaction
++	PDEBUG(debug_sdfe4,"Setup transaction");
++	ghs_mode=(struct cmd_cfg_ghs_mode *)buf;
++	memset(ghs_mode,0,sizeof(*ghs_mode));
++	ghs_mode->transaction = cfg->transaction;
++	ghs_mode->startup_initialization=cfg->startup_initialization;
++	ghs_mode->pbo_mode=PBO_NORMAL;
++	ghs_mode->pmms_margin_mode=PMMS_NORMAL;
++	ghs_mode->epl_mode=EPL_ENABLED;
++	rmsg.ack_id=ACK_CFG_GHS_MODE;
++	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_GHS_MODE,(u8*)buf,sizeof(*ghs_mode),&rmsg,hwdev))
++		return -1;
++	
++	// 3 Caplist_V2
++	PDEBUG(debug_sdfe4,"Caplist_V2");
++	caplist=(struct cmd_cfg_caplist_short_ver_2 *)buf;
++	memset(caplist,0,sizeof(*caplist));
++	caplist->clock_mode=SHDSL_CLK_MODE_1;
++	caplist->annex = cfg->annex;
++	caplist->psd_mask=0x00;
++	caplist->pow_backoff=0x00;
++	
++	if(cfg->mode==STU_R){
++	                caplist->base_rate_min=192;
++			caplist->base_rate_max=2304;
++			caplist->base_rate_min16=2368;
++			caplist->base_rate_max16=3840;
++			caplist->base_rate_min32=768;
++			caplist->base_rate_max32=5696;
++	
++	}
++	else {
++	
++		if( cfg->tc_pam == TCPAM32 ){
++			caplist->base_rate_min=0;
++			caplist->base_rate_max=0;
++			caplist->base_rate_min16=0;
++			caplist->base_rate_max16=0;
++			caplist->base_rate_min32=TCPAM32_INT1_MIN;
++			caplist->base_rate_max32=cfg->rate;
++		}else if( cfg->tc_pam == TCPAM16 ){
++			caplist->base_rate_min32=0;
++			caplist->base_rate_max32=0;
++			if( cfg->rate > TCPAM16_INT1_MAX ){
++				caplist->base_rate_min=TCPAM16_INT1_MIN;
++				caplist->base_rate_max=TCPAM16_INT1_MAX;
++				caplist->base_rate_min16=TCPAM16_INT2_MIN;
++				caplist->base_rate_max16=cfg->rate;
++			}else{
++				caplist->base_rate_min16=0;
++				caplist->base_rate_max16=0;
++				caplist->base_rate_min=TCPAM16_INT1_MIN;
++				caplist->base_rate_max=cfg->rate;
++			}			
++		}	
++	}
++	
++	caplist->sub_rate_min=0x00;
++	caplist->sub_rate_max=0x00;
++	caplist->enable_pmms=PMMS_OFF;
++	caplist->pmms_margin=0x00;
++	rmsg.ack_id=ACK_CFG_CAPLIST_SHORT_VER_2;
++	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_CAPLIST_SHORT_VER_2,(u8*)buf,sizeof(*caplist),&rmsg,hwdev))
++		return -1;
++		
++
++	// 5 confi AUX
++	PDEBUG(debug_sdfe4,"config AUX_SDI_IF_SEL_3");
++	wait_ms(20);
++	if(sdfe4_aux_cmd(CMD_WR_REG_AUX_SDI_IF_SEL_3,0x03, &ret,hwdev))
++          	return -1;
++	PDEBUG(debug_sdfe4,"config AUX_SDI_IF_SEL_0");		
++	wait_ms(20);
++	if(sdfe4_aux_cmd(CMD_WR_REG_AUX_SDI_IF_SEL_0,0x00, &ret,hwdev))
++          	return -1;
++	
++	PDEBUG(debug_sdfe4,"config AUX_AUX_IF_MODE");
++	wait_ms(20);
++	if(sdfe4_aux_cmd(CMD_WR_REG_AUX_AUX_IF_MODE,0x82, &ret,hwdev))
++		return -1;
++
++	
++	
++	//6 SDI settings
++	PDEBUG(debug_sdfe4,"SDI settings");
++	wait_ms(20);
++	sdi_settings=(struct cmd_cfg_sdi_settings*)buf;
++	memset(sdi_settings,0,sizeof(*sdi_settings));
++        sdi_settings->input_mode=cfg->input_mode ;
++	sdi_settings->output_mode=SDI_TDMSP_TDMMSP;
++	sdi_settings->frequency=cfg->frequency;
++	sdi_settings->payload_bits=cfg->payload_bits;
++	sdi_settings->frames=0x30;
++	sdi_settings->loop=cfg->loop;
++	sdi_settings->ext_clk8k=SDI_NO;
++	sdi_settings->dpll4bclk=SDI_NODPLL;
++	sdi_settings->refclkin_freq=TIM_DATA_CLK_8KHZ;
++	sdi_settings->refclkout_freq=TIM_REF_CLK_OUT_SYM_8KHZ;
++	rmsg.ack_id=ACK_CFG_SDI_SETTINGS;
++	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_SDI_SETTINGS,(u8*)buf,sizeof(*sdi_settings),&rmsg,hwdev))
++		return -1;
++		
++
++	//7 Config SDI RX
++	PDEBUG(debug_sdfe4,"Config SDI RX");
++	sdi_rx=(struct cmd_cfg_sdi_rx*)buf;
++	memset(sdi_rx,0,sizeof(*sdi_rx));
++	sdi_rx->frame_shift=0x00;
++	sdi_rx->sp_level=SDI_HIGH;
++	sdi_rx->driving_edg=SDI_RISING;
++	sdi_rx->data_shift_edg=SDI_NO;
++	sdi_rx->lstwr_1strd_dly=0x93;
++	sdi_rx->slip_mode=SLIP_FAST;
++        sdi_rx->align=SDI_NO;
++	rmsg.ack_id=ACK_CFG_SDI_RX;
++	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_SDI_RX,(u8*)buf,sizeof(*sdi_rx),&rmsg,hwdev))
++		return -1;
++	
++	//8 Config SDI TX
++	PDEBUG(debug_sdfe4,"Config SDI TX");
++	sdi_tx=(struct cmd_cfg_sdi_tx*)buf;
++	memset(sdi_tx,0,sizeof(*sdi_tx));
++	sdi_tx->frame_shift=0x00;
++	sdi_tx->sp_level=SDI_HIGH;
++        sdi_tx->sp_sample_edg=SDI_FALLING;
++	sdi_tx->data_sample_edg=SDI_FALLING;
++	sdi_tx->lstwr_1strd_dly=0x93;
++	sdi_tx->slip_mode=SLIP_FAST;
++	sdi_tx->align=SDI_NO;
++	rmsg.ack_id=ACK_CFG_SDI_TX;
++	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_SDI_TX,(u8*)buf,sizeof(*sdi_tx),&rmsg,hwdev))
++		return -1;
++
++
++	//9. config EOC
++	PDEBUG(debug_sdfe4,"Config EOC");
++	eoc_rx=(struct cmd_cfg_eoc_rx*)buf;
++	memset(eoc_rx,0,sizeof(*eoc_rx));
++	eoc_rx->max_num_bytes=0x80;
++	rmsg.ack_id=ACK_CFG_EOC_RX;
++	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_EOC_RX,(u8*)buf,sizeof(*eoc_rx),&rmsg,hwdev))
++		return -1;
++	
++	return 0;
++}
++
++/*
++ * sdfe4_setup_channel:
++ * Wrapper to sdfe4_setup_chan
++ * @ch		- Embedded controller number
++ * @hwdev	- structure, that holds information about Embedded channels and entire SDFE4 chip
++ * return error status
++ */
++inline int
++sdfe4_setup_channel(int ch, struct sdfe4 *hwdev)
++{
++	sdfe4_clear_channel(hwdev);
++	return sdfe4_setup_chan(ch,hwdev);
++}
++
++/*
++ * sdfe4_start_channel:
++ * Starup Embedded controller block of SDFE-4
++ * @ch		- Embedded controller number
++ * @hwdev	- structure, that holds information about Embedded channels and entire SDFE4 chip
++ * return error status
++ */
++inline int
++sdfe4_start_channel(int ch,struct sdfe4 *hwdev)
++{
++     	struct sdfe4_msg rmsg;
++	u8 main_pre_act[3]={MAIN_PRE_ACT,0x0,0x0};
++	wait_ms(10);
++	rmsg.ack_id=ACK_CONNECT_CTRL;
++	if(sdfe4_pamdsl_cmd(ch,CMD_CONNECT_CTRL,main_pre_act,3,&rmsg,hwdev))
++		return -1;
++		
++	if( rmsg.buf[EMB_ACKHDR_SZ] != MAIN_PRE_ACT )
++		return -1;
++	return 0;
++}
++
++
++/*
++ * sdfe4_disable_channel:
++ * Disables Embedded controller block of SDFE-4
++ * @ch		- Embedded controller number
++ * @hwdev	- structure, that holds information about Embedded channels and entire SDFE4 chip
++ * return error status
++ */
++inline int
++sdfe4_disable_channel(int ch,struct sdfe4 *hwdev)
++{
++     	struct sdfe4_msg rmsg;
++	u8 main_init[3]={MAIN_INIT,0x0,0x0};	
++	wait_ms(50);
++	rmsg.ack_id=ACK_CONNECT_CTRL;
++	if(sdfe4_pamdsl_cmd(ch,CMD_CONNECT_CTRL,main_init,3,&rmsg,hwdev))
++		return -1;
++
++	return 0;
++}
++
++/*
++ * sdfe4_start_as_modem:
++ * Starts enabled Embedded controller blocks of SDFE-4 in modem mode
++ * @hwdev		- structure, that holds information about Embedded channels and entire SDFE4 chip
++ * return error status
++ */
++inline int
++sdfe4_start_as_modem(struct sdfe4 *hwdev)
++{
++	int i;
++	for(i=0;i<SDFE4_EMB_NUM;i++){
++		if( hwdev->ch[i].enabled ){
++			if( sdfe4_start_channel(i,hwdev) )
++				return -1;
++#ifdef SG17_PCI_MODULE
++			wait_ms(10);
++#endif
++		}
++	}
++	return 0;
++}
++
++/*
++ * sdfe4_load_config:
++ * Sync parameters of Embedded controller block and device handler (hwdev)
++ * @ch		- Embedded controller number
++ * @hwdev	- structure, that holds information about Embedded channels and entire SDFE4 chip
++ * return error status
++ */
++int
++sdfe4_load_config(u8 ch, struct sdfe4 *hwdev)
++{
++  	struct sdfe4_msg rmsg;
++	struct ack_dsl_param_get *dsl_par;
++	struct sdfe4_if_cfg *ch_cfg=&(hwdev->cfg[ch]);
++	int TC_PAM;
++	int r;
++	
++	wait_ms(10);
++        rmsg.ack_id=ACK_DSL_PARAM_GET;
++	if( (r = sdfe4_pamdsl_cmd(ch,CMD_DSL_PARAM_GET,NULL,0,&rmsg,hwdev)) ){
++		PDEBUG(debug_error,"error(%d) in CMD_DSL_PARAM_GET",r);
++		return -1;
++	}
++	dsl_par=(struct ack_dsl_param_get *)&(rmsg.buf[8]);
++	PDEBUG(debug_sdfe4,"Get return");	
++	if(dsl_par->bits_p_symbol >= 0x04){
++		TC_PAM =TCPAM32;
++	}else{
++		TC_PAM =TCPAM16;
++	}
++	ch_cfg->annex = dsl_par->annex;
++	ch_cfg->tc_pam = TC_PAM;
++	ch_cfg->rate = dsl_par->base_rate;
++	PDEBUG(debug_sdfe4,"rate = %d",ch_cfg->rate);	
++	return 0;
++}
++
++int
++sdfe4_get_statistic(u8 ch, struct sdfe4 *hwdev,struct sdfe4_stat *stat)
++{
++  	struct sdfe4_msg rmsg;
++	struct ack_perf_status_get *perf;
++//	struct ack_dsl_param_get *dsl_par;		
++//	struct sdfe4_if_cfg *ch_cfg=&(hwdev->cfg[ch]);
++	int r;
++	
++	wait_ms(10);
++
++        rmsg.ack_id=ACK_PERF_STATUS_GET;
++	if( (r = sdfe4_pamdsl_cmd(ch,CMD_PERF_STATUS_GET,NULL,0,&rmsg,hwdev)) ){
++		PDEBUG(debug_error,"error(%d) in CMD_DSL_PARAM_GET",r);
++		return -1;
++	}
++	perf = (struct ack_perf_status_get*)&(rmsg.buf[8]);
++	sdfe4_memcpy(stat,perf,sizeof(*perf));
++	return 0;
++}
++
++
++
++/*
++ * sdfe4_load_config:
++ * Process notifications from Embedded controller block of SDFE4
++ * @hwdev	- structure, that holds information about Embedded channels and entire SDFE4 chip
++ * return error status
++ */
++int
++sdfe4_state_mon(struct sdfe4 *hwdev)
++{
++	int i;
++	struct sdfe4_channel *chan;
++	struct sdfe4_if_cfg *cfg;
++	
++	PDEBUG(debug_sdfe4,"");
++	for(i=0;i<4;i++){
++		if( !hwdev->ch[i].enabled )
++			continue;
++		chan=&hwdev->ch[i];
++		cfg=&hwdev->cfg[i];
++		if( chan->state_change ){
++			switch( chan->state ){
++			case MAIN_CORE_ACT:
++				sdfe4_link_led_blink(i,hwdev);
++				break;
++			case MAIN_DATA_MODE:
++				sdfe4_link_led_fast_blink(i,hwdev);
++				break;
++			case MAIN_INIT:
++				sdfe4_link_led_down(i,hwdev);
++				sdfe4_reset_hwdev_chan(&(hwdev->ch[i]));
++    				if( sdfe4_setup_channel(i,hwdev) )
++					PDEBUG(debug_sdfe4,"error in sdfe4_setup_channel");
++				if( sdfe4_start_channel(i,hwdev) )
++					PDEBUG(debug_sdfe4,"error in sdfe4_start_channel");
++				wait_ms(10);
++				return -1;
++			case MAIN_EXCEPTION:
++			  	break;
++			}
++			chan->state_change=0;
++		}
++			
++		if( chan->conn_state_change ){
++			switch( chan->conn_state ){
++			case GHS_STARTUP:
++				break;
++			case GHS_TRANSFER:
++			        break;
++			case EXCEPTION:
++				break;
++			case GHS_30SEC_TIMEOUT:
++				// SRU specific
++			  	break;
++			}
++			chan->conn_state_change=0;
++		}
++
++		if(chan->sdi_dpll_sync){
++			sdfe4_load_config(i,hwdev);
++			sdfe4_link_led_up(i,hwdev);
++			chan->sdi_dpll_sync = 0;
++		}
++
++		if(cfg->need_reconf){
++			sdfe4_disable_channel(i,hwdev);
++			sdfe4_link_led_down(i,hwdev);
++			sdfe4_reset_hwdev_chan(&(hwdev->ch[i]));			
++			wait_ms(200);
++			if( sdfe4_setup_channel(i,hwdev) )
++				PDEBUG(debug_sdfe4,"error in sdfe4_setup_channel");
++			if( sdfe4_start_channel(i,hwdev) )
++				PDEBUG(debug_sdfe4,"error in sdfe4_start_channel");
++			cfg->need_reconf = 0;
++		}
++	}
++	return 0;
++}
++
++#ifdef SG17_REPEATER
++
++/*
++ * sdfe4_repeater_start:
++ * Starts Embedded controller block of SDFE-4 in repeater mode
++ * @hwdev - structure, that holds information about Embedded channels and entire SDFE4 chip
++ * return error status 
++ */
++
++int
++sdfe4_repeater_start( struct sdfe4 *hwdev )
++{
++  	struct sdfe4_msg rmsg;
++	struct ack_dsl_param_get *dsl_par;
++	struct sdfe4_if_cfg *cfg_ch0=&(hwdev->cfg[0]);
++	
++  	int TC_PAM;
++
++	if( sdfe4_setup_channel(3,hwdev) )
++		return -1;
++
++	if( sdfe4_start_channel(3,hwdev) )
++		return -1;
++	
++	while(1){
++		while(sdfe4_drv_poll(&rmsg,hwdev));
++		if( state_monitoring(hwdev) )
++			return -1;
++		if(hwdev->ch[3].sdi_dpll_sync){
++		    	break;
++		}
++	}
++	
++        rmsg.ack_id=ACK_DSL_PARAM_GET;
++	
++	if( sdfe4_pamdsl_cmd(3,CMD_DSL_PARAM_GET,NULL,NULL,&rmsg,hwdev) ){
++		return -1;
++	}
++	dsl_par=(struct ack_dsl_param_get *)&(rmsg.buf[8]);
++	
++	/*детект TCPAM*/
++	
++	if(dsl_par->bits_p_symbol >= 0x04){
++		TC_PAM =TCPAM32;
++	}else{
++		TC_PAM =TCPAM16;
++	}
++	
++	
++	  /// Обработка принятого сообщения !
++	// config SDFE chenal 0.
++	// STU_C
++	cfg_ch0->mode=                    STU_C;
++	//REPEATER
++	cfg_ch0->repeater=                TERMINATOR;
++	// STARTUP_FAREND  STARTUP_LOCAL
++	cfg_ch0->startup_initialization= STARTUP_LOCAL;
++	//GHS_TRNS_00 :GHS_TRNS_01:GHS_TRNS_11:GHS_TRNS_10
++	cfg_ch0->transaction=            GHS_TRNS_10;
++	/// ANNEX_A_B   ANNEX_A   ANNEX_B ANNEX_G ANNEX_F
++	cfg_ch0->annex=                  dsl_par->annex;
++	///  TC-PAM: TCPAM16  TCPAM32
++	cfg_ch0->tc_pam=                TC_PAM;
++	// rate (speed)
++	cfg_ch0->rate=                  dsl_par->base_rate;
++
++	
++	// SDI_TDMCLK_TDMMSP  SDI_DSL3
++	cfg_ch0->input_mode=             SDI_TDMCLK_TDMMSP;
++	// Terminal =8192 , Repeater= 12288;
++	cfg_ch0->frequency=              8192;
++	// Terminal =5696 , Repeater= 2048;
++	cfg_ch0->payload_bits=           5696;
++	// петля вход-> выход =   SDI_NO_LOOP SDI_REMOTE_LOOP
++	cfg_ch0->loop=                   SDI_NO_LOOP;
++	
++	if( sdfe4_setup_channel(0,hwdev) )
++		return -1;
++	
++	if( sdfe4_start_channel(0,hwdev) )
++		return -1;
++	
++	while(1){
++		while(sdfe4_drv_poll(&rmsg,hwdev));
++		if( state_monitoring(hwdev) )
++			return -1;
++		if(hwdev->ch[0].sdi_dpll_sync){
++		    	break;
++		}
++	}
++	return 0;
++}
++
++#endif
++
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17debug.c linux-2.6.16/drivers/net/sg17lan/sg17debug.c
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17debug.c	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/sg17debug.c	2007-03-19 22:15:54.000000000 +0600
+@@ -0,0 +1,10 @@
++int debug_xmit=40;
++int debug_recv=40;
++int debug_irq=40;
++int debug_sci=40;
++int debug_init=40;
++int debug_sdfe4=40;
++int debug_cur=50;
++int debug_netcard=40;
++int debug_link=40;
++int debug_error=0;
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17debug.h linux-2.6.16/drivers/net/sg17lan/sg17debug.h
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17debug.h	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/sg17debug.h	2007-02-14 09:41:27.000000000 +0600
+@@ -0,0 +1,34 @@
++#ifndef SG_DEBUG_H
++#define SG_DEBUG_H
++
++#ifndef DEFAULT_LEV 
++#	define DEFAULT_LEV 0
++#endif
++
++#define PDEBUG(lev,fmt,args...)
++#define PDEBUGL(lev,fmt,args...)
++#ifdef DEBUG_ON
++#       undef PDEBUG
++#       define PDEBUG(lev,fmt,args...) \
++		if( lev<=DEFAULT_LEV ) \
++			printk(KERN_NOTICE "sg17lan: %s " fmt " \n",__FUNCTION__, ## args  )
++
++#       undef PDEBUGL
++#       define PDEBUGL(lev,fmt,args...) \
++		if( lev<=DEFAULT_LEV ) \
++			printk(fmt, ## args  )
++
++extern int debug_xmit;
++extern int debug_recv;
++extern int debug_irq;
++extern int debug_sci;
++extern int debug_init;
++extern int debug_sdfe4;
++extern int debug_cur;
++extern int debug_netcard;
++extern int debug_link;
++extern int debug_error;
++
++#endif
++
++#endif		    
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17lan.h linux-2.6.16/drivers/net/sg17lan/sg17lan.h
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17lan.h	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/sg17lan.h	2007-03-28 23:17:05.000000000 +0700
+@@ -0,0 +1,85 @@
++/* sg17lan.h: Sigrand SG-17PCI SHDSL modem driver for linux (kernel 2.6.x)
++ *
++ *	Written 2006-2007 by Artem U. Polyakov <art@sigrand.ru>
++ *
++ *	This driver presents SG-17PCI modem 
++ *	to system as common ethernet-like netcard.
++ *
++ */
++
++#ifndef SG17LAN_H
++#define SG17LAN_H
++
++#include "sg17ring.h"
++#include "sg17sci.h"
++#include "include/sg17hw.h"
++#include "include/sdfe4_lib.h"
++#include <linux/netdevice.h>
++
++// Portability 
++#define iotype void*
++//#define IO_READ_WRITE
++#ifndef IO_READ_WRITE
++#       define iowrite8(val,addr)  writeb(val,addr)
++#       define iowrite16(val,addr)  writeb(val,addr)
++#       define iowrite32(val,addr)  writel(val,addr)
++#       define ioread8(addr) readb(addr)
++#       define ioread16(addr) readb(addr)
++#       define ioread32(addr) readl(addr)
++#endif
++
++
++//--- SG-17PCI Card control ----//
++struct sg17_card{
++	int number;
++	int if_num;	
++	char name[40];
++	atomic_t locked; // if some of cards interfaces are up
++	
++	// PCI card fields
++	struct pci_dev *pdev;
++	void *mem_base;	
++
++	struct sg17_sci sci;
++	struct sdfe4 hwdev;
++	// netdev fields
++	struct net_device *ndevs[4];
++
++};
++
++#define TX_TIMEOUT      400
++struct sg17_hw_regs {
++        u8  CRA, CRB, SR, IMR, CTDR, LTDR, CRDR, LRDR, RATE;
++};
++
++struct hdlc_config{
++	u8  crc16: 1;
++	u8  fill_7e: 1;
++	u8  inv: 1;
++	u8  rburst: 1;
++	u8  wburst: 1;
++};
++		    
++			
++struct net_local{
++	int number;
++	struct net_device_stats	stats;
++        struct device *dev;
++	// mapped memory address
++	volatile struct sg17_hw_regs *regs;
++        // transmit and reception queues 
++	struct sg_ring rx,tx;
++	struct sdfe4_if_cfg *shdsl_cfg;
++	struct hdlc_config hdlc_cfg;
++	// compatibilitys
++	u8 nsg_comp :1;
++	u8 :7;
++	
++};
++
++void sg17_link_up(struct sg17_sci *s, int if_num);
++void sg17_link_down(struct sg17_sci *s, int if_num);
++void sg17_link_support(struct sg17_sci *s);
++
++
++#endif
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17main.c linux-2.6.16/drivers/net/sg17lan/sg17main.c
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17main.c	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/sg17main.c	2007-03-28 23:32:58.000000000 +0700
+@@ -0,0 +1,976 @@
++/* sg17lan.c:  Sigrand SG-17PCI SHDSL modem driver for linux (kernel 2.6.x)
++ *
++ *	Written 2006-2007 by Artem U. Polyakov <art@sigrand.ru>
++ *
++ *	This driver presents SG-17PCI modem 
++ *	to system as common ethernet-like netcard.
++ *
++ *	This software may be used and distributed according to the terms
++ *	of the GNU General Public License.
++ *
++ *
++ *	25.01.2007	Version 1.0 - Artem U. Polyakov <art@sigrand.ru>
++ */
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/config.h>
++#include <linux/vermagic.h>
++#include <linux/version.h>
++
++#include <asm/types.h>
++#include <asm/byteorder.h>
++#include <asm/io.h>
++#include <asm/irq.h>
++#include <asm/uaccess.h>
++#include <asm/semaphore.h>
++#include <asm/atomic.h>
++
++#include <linux/ptrace.h>
++#include <linux/fcntl.h>
++#include <linux/ioport.h>
++#include <linux/interrupt.h>
++
++#include <linux/delay.h>
++#include <linux/timer.h>
++#include <linux/random.h>
++#include <linux/firmware.h>
++
++#include <linux/pci.h>
++#include <linux/sched.h>
++#include <linux/netdevice.h>
++#include <linux/etherdevice.h>
++
++#include <linux/slab.h>
++#include <linux/skbuff.h>
++#include <linux/dma-mapping.h>
++#include <linux/workqueue.h>
++
++
++//---- Local includes ----//
++
++
++#include "sg17sci.h"
++#include "include/sg17hw.h"
++#include "include/sdfe4_lib.h"
++#include "include/sg17device.h"
++#include "sg17main.h"
++
++// Debug parameters
++#define DEBUG_ON
++#define DEFAULT_LEV 20
++#include "sg17debug.h"
++
++MODULE_DESCRIPTION( "Sigrand SG-17PCI driver Version 1.0\n" );
++MODULE_AUTHOR( "Maintainer: Artem U. Polyakov art@sigrand.ru\n" );
++MODULE_LICENSE( "GPL" );
++MODULE_VERSION("1.0");
++
++
++// DEBUG //
++struct sg17_sci *SCI;
++// DEBUG //
++
++
++/* --------------------------------------------------------------------------
++ *      SG17 network interfaces
++ * -------------------------------------------------------------------------- */
++
++void
++sg17_dsl_init( struct net_device *ndev)
++{
++        PDEBUG(debug_netcard,"");
++	ether_setup(ndev);
++        ndev->init = sg17_probe;
++	ndev->uninit = sg17_uninit;    
++}
++	
++static int __init
++sg17_probe( struct net_device  *ndev )
++{
++	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);
++	int err=-ENODEV;
++
++	PDEBUG(debug_netcard,"start");
++        // Carrier off
++        netif_carrier_off( ndev );
++	netif_stop_queue(ndev);
++	PDEBUG(debug_netcard,"m1");
++	// generate 'unique' MAC address
++        *(u16 *)ndev->dev_addr = htons( 0x00ff );
++	*(u32 *)(ndev->dev_addr + 2) = htonl( 0x01a39000 | ((u32)ndev->priv & 0x00000fff) );
++	PDEBUG(debug_netcard,"m2");
++        // Init net device handler functions 
++	ndev->open = &sg17_open;
++        ndev->stop = &sg17_close;
++        ndev->hard_start_xmit = &sg17_start_xmit;
++	ndev->get_stats = &sg17_get_stats;
++        ndev->set_multicast_list = &sg17_set_mcast_list;
++	ndev->tx_timeout = &sg17_tx_timeout;
++        ndev->watchdog_timeo = TX_TIMEOUT;
++	PDEBUG(debug_netcard,"m3");
++        // set network device private data 
++        nl->regs = (struct sg17_hw_regs *) ((u8 *)ndev->mem_start + HDLC_REGS);
++        sg17_tranceiver_down(nl);
++	PDEBUG(debug_netcard,"m4");	
++	// setup transmit and receive rings
++	nl->tx.hw_ring = (struct sg_hw_descr *) ((u8 *)ndev->mem_start + HDLC_TXBUFF);
++	nl->rx.hw_ring = (struct sg_hw_descr *) ((u8 *)ndev->mem_start + HDLC_RXBUFF);
++	nl->tx.hw_mask=nl->rx.hw_mask=HW_RING_MASK;
++	nl->tx.sw_mask=nl->rx.sw_mask=SW_RING_MASK;
++	nl->tx.CxDR=(u8*)&(nl->regs->CTDR);
++	nl->rx.CxDR=(u8*)&(nl->regs->CRDR);
++	nl->tx.LxDR=(u8*)&(nl->regs->LTDR);
++	nl->rx.LxDR=(u8*)&(nl->regs->LRDR);
++	nl->tx.type=TX_RING;
++	nl->rx.type=RX_RING;
++	nl->tx.dev = nl->rx.dev = nl->dev;
++//DEBUG//
++nl->nsg_comp = 1;
++//DEBUG//
++        spin_lock_init( &nl->tx.lock );
++	spin_lock_init( &nl->rx.lock );
++	PDEBUG(debug_netcard,"m5");
++	
++	// enable iface
++	iowrite8(XRST, &nl->regs->CRA);
++	//default HDLC X config
++	nl->hdlc_cfg.rburst = 1;
++	nl->hdlc_cfg.wburst = 1;	
++	
++	// net device interrupt register
++	PDEBUG(debug_netcard,"start registering irq");
++        if( (err = request_irq(ndev->irq, sg17_interrupt, SA_SHIRQ, ndev->name, ndev)) ){
++	        printk( KERN_ERR "%s: unable to get IRQ %d, error= %08x\n",
++    		    		ndev->name, ndev->irq, err );
++	        return err;
++        }
++	PDEBUG(debug_netcard,"request_irq - ok");
++	
++        printk( KERN_NOTICE "%s: Sigrand SG-17PCI SHDSL (irq %d, mem %#lx)\n",
++			ndev->name, ndev->irq, ndev->mem_start );
++	SET_MODULE_OWNER( ndev );
++
++	return  0;
++}
++
++static void __devexit
++sg17_uninit(struct net_device *ndev)
++{
++	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);
++
++        free_irq( ndev->irq, ndev );
++        sg17_tranceiver_down(nl);
++}
++
++static irqreturn_t
++sg17_interrupt( int  irq,  void  *dev_id,  struct pt_regs  *regs )
++{
++	struct net_device *ndev = (struct net_device *) dev_id;
++	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);
++	u8 status = ioread8(&(nl->regs->SR));
++	u8 mask = ioread8(&(nl->regs->IMR));	
++
++	PDEBUG(debug_irq,"%s: status = %02x, mask=%02x",ndev->name,status,mask);
++	if( (status & mask) == 0 )
++		return IRQ_NONE;
++
++	PDEBUG(debug_irq,"%s: status = %02x",ndev->name,status);
++
++	iowrite8(status,&(nl->regs->SR));	
++	iowrite8( 0, &(nl->regs->IMR));
++
++	if( status & RXS ){
++		PDEBUG(debug_irq,"%s: RXS, CRA=%02x\n",ndev->name,nl->regs->CRA);	
++		recv_init_frames( ndev );
++		recv_alloc_buffs( ndev );
++		iowrite8( RXS,&(nl->regs->SR));
++	}
++	if( status & TXS ){
++		PDEBUG(debug_irq,"%s: TXS, CRA=%02x\n",ndev->name,nl->regs->CRA);
++		xmit_free_buffs( ndev );
++		iowrite8( TXS,&(nl->regs->SR));		
++	}
++	if( status & CRC ){
++	    PDEBUG(debug_irq,"%s: CRC, CRA=%02x\n",ndev->name,nl->regs->CRA);	
++	    ++nl->stats.rx_errors;
++    	    ++nl->stats.rx_crc_errors;
++	    iowrite8( CRC,&(nl->regs->SR));				
++	}
++	if( status & OFL ){
++	    PDEBUG(debug_irq,"%s: OFL, CRA=%02x\n",ndev->name,nl->regs->CRA);
++	    ++nl->stats.rx_errors;
++	    ++nl->stats.rx_over_errors;
++	    iowrite8( OFL,&(nl->regs->SR));
++	}
++	if( status & UFL ){
++    	    //  Whether transmit error is occured, we have to re-enable the
++    	    //  transmitter. That's enough, because linux doesn't fragment
++	    //  packets.
++	    PDEBUG(debug_irq,"%s: UFL, CRA=%02x\n",ndev->name,nl->regs->CRA);
++	    iowrite8( UFL,&(nl->regs->SR));				
++	    iowrite8( ioread8(&(nl->regs->CRA)) | TXEN,
++	    	    &(nl->regs->CRA) );
++	    ++nl->stats.tx_errors;
++	    ++nl->stats.tx_fifo_errors;
++	}
++	
++	
++	iowrite8( mask,&(nl->regs->IMR));	
++	
++	return IRQ_HANDLED;
++}
++
++
++static int
++sg17_open( struct net_device  *ndev )
++{
++        struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);		
++    
++        // init descripts, allocate receiving buffers 
++	nl->tx.head = nl->tx.tail = nl->rx.head = nl->rx.tail = 0;
++	nl->tx.FxDR = nl->rx.FxDR = 0;
++	iowrite8( 0, (nl->tx.CxDR));
++	iowrite8( 0, (nl->tx.LxDR));	
++	iowrite8( 0, (nl->rx.CxDR));	
++	iowrite8( 0, (nl->rx.LxDR));	
++	recv_alloc_buffs( ndev );
++        // enable receive/transmit functions 
++	sg17_tranceiver_up(nl);
++	netif_wake_queue( ndev );
++	return 0;
++}
++
++static int
++sg17_close(struct net_device  *ndev)
++{
++        struct net_local *nl  = (struct net_local *)netdev_priv(ndev);
++
++        // disable receive/transmit functions
++	iowrite8( XRST ,&(nl->regs->CRA));
++	netif_tx_disable(ndev);
++	
++        // drop receive/transmit queries 
++	PDEBUG(debug_xmit,"RX: head=%d,tail=%d\nTX: head=%d, tail=%d",
++		nl->rx.head,nl->rx.tail, nl->tx.head,nl->tx.tail );
++        recv_free_buffs( ndev );
++	xmit_free_buffs( ndev );
++
++        return 0;
++}
++
++
++static struct net_device_stats *
++sg17_get_stats(struct net_device *ndev)
++{
++	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
++	return  &(nl)->stats;
++}
++
++static void
++sg17_set_mcast_list( struct net_device  *ndev )
++{
++	return;		// SG-17PCI always operate in promiscuos mode 
++}
++
++void
++sg17_link_up(struct sg17_sci *s, int if_num)
++{
++	struct sg17_card *card = container_of(s,struct sg17_card,sci);
++	struct net_device *ndev = card->ndevs[if_num];
++	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
++	struct timeval tv;
++
++	do_gettimeofday( &tv );
++	netif_carrier_on(ndev);
++	nl->regs->RATE = (nl->shdsl_cfg->rate/64)-1;
++	PDEBUG(debug_link,"rate = %d, RATE=%d",nl->shdsl_cfg->rate,nl->regs->RATE);	
++	iowrite8( 0xff, &nl->regs->SR );
++        iowrite8( (ioread8( &nl->regs->CRB )&(~RXDE)), &nl->regs->CRB );
++        iowrite8( (UFL|CRC|OFL|RXS|TXS), &nl->regs->IMR );
++}
++
++void 
++sg17_link_down(struct sg17_sci *s, int if_num)
++{
++	struct sg17_card *card = container_of(s,struct sg17_card,sci);
++	struct net_device *ndev = card->ndevs[if_num];
++	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
++	
++	PDEBUG(debug_link,"");
++	iowrite8( (ioread8(&nl->regs->CRB)|RXDE),&(nl->regs->CRB) );
++        iowrite8( 0, &nl->regs->IMR );
++	netif_carrier_off( ndev );
++	PDEBUG(debug_link,"end");	
++}
++
++void
++sg17_link_support(struct sg17_sci *s)
++{
++	struct sg17_card *card = container_of(s,struct sg17_card,sci);
++	struct net_device *ndev;
++	struct net_local *nl;	
++        struct sk_buff *skb;
++	int i;
++	int err;
++	
++	PDEBUG(100,"start");
++	for( i=0;i<card->if_num;i++){
++		ndev = card->ndevs[i];
++		nl = (struct net_local *)netdev_priv(ndev);
++		if( nl->nsg_comp ){			
++			PDEBUG(100,"send ctrl pkt from if#%d",i);
++			skb = dev_alloc_skb(ETH_ZLEN);
++			if( !skb ){
++				printk(KERN_INFO"%s: ENOMEM!!!!!!!!!!!!!!!!!!!!!",__FUNCTION__);
++				return;
++			}
++			skb_put( skb, ETH_ZLEN);
++			skb->data[0] = 0x01;
++			skb->data[1] = 0x3c;
++    		        err = sg17_start_xmit(skb,ndev);
++			PDEBUG(100,"end with if#%d, ret=%d",i,err);
++		}
++	}
++}
++
++
++/* --------------------------------------------------------------------------
++ *   Functions, serving transmit-receive process   
++ * -------------------------------------------------------------------------- */
++
++// --------------------- DEBUG ---------------------------- //
++struct sg17_statistic{
++	int usec;
++	int sec;
++	int avg;
++} xmit_start = {0,0,0},
++  xmit_free = {0,0,0},
++  recv_init = {0,0,0},
++  recv_alloc = {0,0,0};
++
++inline void
++time_stamp1(struct timeval *tv){
++	do_gettimeofday( tv );
++}
++
++inline void
++time_stamp2(struct timeval *tv, struct sg17_statistic *s){
++	struct timeval tv1;
++	do_gettimeofday( &tv1 );
++	if ( tv1.tv_usec - tv->tv_usec > 0 ){
++	    s->usec += tv1.tv_usec - tv->tv_usec;
++	    s->avg = ( (tv1.tv_usec - tv->tv_usec) + s->avg ) / 2;
++	}
++	else if( tv1.tv_sec - tv->tv_sec > 0 )
++	    s->sec += tv1.tv_sec - tv->tv_sec;
++}
++
++
++int
++check_skb_free( struct sk_buff *skb, struct net_device *ndev )
++{
++        struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);		
++	int i;
++	
++	for( i=0; i< SW_RING_LEN;i++){
++		if( skb == nl->tx.sw_ring[i] )
++			return 1;
++		if( skb == nl->rx.sw_ring[i] )
++			return 2;
++	}
++	return 0;
++}
++
++// --------------------- DEBUG ---------------------------- //
++
++/* TODO uncomment!!! */
++/*static*/ int
++sg17_start_xmit( struct sk_buff *skb, struct net_device *ndev )
++{
++        struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);	
++	unsigned pad;
++	unsigned long flags;
++
++	PDEBUG(debug_xmit,"start, skb->dev=%s, sci:CRA=%02x, ndev:CRA=%02x",
++		    skb->dev ? skb->dev->name : "NULL",SCI->regs->CRA,nl->regs->CRA );
++        if ( !netif_carrier_ok(ndev) ){
++		dev_kfree_skb_any( skb );
++		return 0;
++        }
++	
++	if( skb->len < ETH_ZLEN ){
++		pad = ETH_ZLEN - skb->len;
++		skb = skb_pad(skb,pad);		
++		if( !skb ){
++			printk(KERN_NOTICE"%s: no mem for skb",__FUNCTION__);
++			return 0;
++		}
++		skb->len = ETH_ZLEN;
++	}else if( skb->len > ETHER_MAX_LEN ){
++		PDEBUG(0,"too big packet!!!");	
++	}
++	
++	spin_lock_irqsave(&nl->tx.lock,flags);
++	if( sg_ring_add_skb(&nl->tx,skb) == -ERFULL ){
++		PDEBUG(debug_xmit,"error: cannot add skb - full queue");
++		spin_unlock_irqrestore(&nl->tx.lock,flags);
++    		netif_stop_queue( ndev );
++//		dev_kfree_skb_any( skb );
++		return 1;
++	}
++	nl->stats.tx_packets++;
++        nl->stats.tx_bytes += skb->len;
++	ndev->trans_start = jiffies;
++	spin_unlock_irqrestore(&nl->tx.lock,flags);
++	return  0;
++}
++
++// xmit_free_buffs may also be used to drop the queue - just turn
++// the transmitter off, and set CTDR == LTDR
++static void
++xmit_free_buffs( struct net_device *ndev )
++{
++	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);
++	struct sk_buff *skb;
++	int len;
++
++	PDEBUG(debug_xmit,"start");	
++        while( (skb=sg_ring_del_skb(&nl->tx,&len)) != NULL ){
++		dev_kfree_skb_any( skb );
++        }
++	if( netif_queue_stopped( ndev )  &&  sg_ring_have_space(&nl->tx) ){
++		PDEBUG(debug_xmit,"enable xmit queue");		
++    		netif_wake_queue( ndev );
++	}
++	PDEBUG(debug_xmit,"end");			
++	
++}
++
++//---------------receive-----------------------------------------
++
++static void
++recv_init_frames( struct net_device *ndev )
++{
++        struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);		
++	struct sk_buff  *skb;
++	unsigned  len=0;
++
++	PDEBUG(debug_recv,"start");		
++        while( (skb = sg_ring_del_skb(&nl->rx,&len)) != NULL ) {
++		if( len < ETH_ZLEN )
++		        len = ETH_ZLEN;
++		// setup skb & give it to OS
++		skb_put( skb, len );
++		skb->protocol = eth_type_trans( skb, ndev );
++		netif_rx( skb );
++		++nl->stats.rx_packets;
++		nl->stats.rx_bytes += len;
++        }
++        return;
++}
++
++static int
++recv_alloc_buffs( struct net_device *ndev )
++{
++        struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);		
++        struct sk_buff  *skb;
++
++	PDEBUG(debug_recv,"start");		    
++        while( sg_ring_have_space(&nl->rx) ){
++		PDEBUG(debug_recv,"alloc new skb");		
++		skb = dev_alloc_skb(ETHER_MAX_LEN + IP_ALIGN);
++		if( !skb )
++			return -ENOMEM;
++		skb->dev = ndev;
++		skb_reserve( skb, 2 );	// align ip on longword boundaries
++		// get dma able address & save skb
++		if( sg_ring_add_skb(&nl->rx,skb) ){
++			PDEBUG(0,"dev_kfree_skb_any(%p)",skb);			
++			dev_kfree_skb_any( skb );
++			return -1;
++		}
++	}
++	PDEBUG(debug_recv,"end");			
++	return 0;
++}
++
++static void
++recv_free_buffs( struct net_device *ndev)
++{
++        struct net_local *nl=(struct net_local *)netdev_priv(ndev);		
++	struct sk_buff  *skb;
++	int len;
++	PDEBUG(debug_recv,"start");		    
++        while( (skb = sg_ring_del_skb(&nl->rx,&len)) != NULL ) {	
++    		dev_kfree_skb_any( skb );
++        }
++	PDEBUG(debug_recv,"end");			
++	return;
++}
++
++static void
++sg17_tx_timeout( struct net_device  *ndev )
++{
++        struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);		
++	u8 tmp;
++
++	tmp=ioread8(&(nl->regs->IMR));
++        iowrite8( 0,&(nl->regs->IMR));	    
++	udelay(1);
++	if( netif_carrier_ok(ndev) )
++		iowrite8((ioread8(&nl->regs->CRA)|TXEN),&nl->regs->CRA);
++        iowrite8( tmp,&(nl->regs->IMR));		
++	PDEBUG(0,"%s: transmit timeout\n", ndev->name );
++        if( ioread8( &(nl->regs->SR)) & TXS ){
++    		PDEBUG(0,"%s: interrupt posted but not delivered\n",
++    			ndev->name );
++        }
++	xmit_free_buffs( ndev );
++}
++
++static void
++sg17_tranceiver_down(struct net_local *nl)
++{
++	iowrite8( 0, &( nl->regs->CRA));    
++        iowrite8( RXDE , &( nl->regs->CRB));
++	iowrite8( 0, &( nl->regs->IMR));
++        iowrite8( 0xff, &( nl->regs->SR));
++}
++
++static void
++sg17_tranceiver_up( struct net_local *nl)
++{
++        u8 cfg_byte;
++
++	cfg_byte = (XRST | RXEN | TXEN);
++        if( nl->hdlc_cfg.crc16 )
++	        cfg_byte|=CMOD;
++	if( nl->hdlc_cfg.fill_7e )
++    		cfg_byte|=FMOD;
++        if( nl->hdlc_cfg.inv )
++	        cfg_byte|=PMOD;
++        iowrite8(cfg_byte,&(nl->regs->CRA));
++
++	cfg_byte=ioread8( &(nl->regs->CRB)) | RODD;
++	if( nl->hdlc_cfg.rburst )
++    		cfg_byte|=RDBE;
++        if( nl->hdlc_cfg.wburst )
++	        cfg_byte|=WTBE;
++        iowrite8(cfg_byte,&(nl->regs->CRB));
++}
++
++ 
++/* --------------------------------------------------------------------------
++ *      Card related functions
++ * -------------------------------------------------------------------------- */
++ 
++ 
++#ifdef DEBUG_ON
++
++//-----------   DEBUG ------------------//
++
++#define ADDIT_ATTR
++#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,12)
++#undef ADDIT_ATTR
++#define ADDIT_ATTR struct device_attribute *attr,
++#endif
++
++
++static ssize_t
++show_sci_regs( struct device *dev, ADDIT_ATTR char *buf )
++{                                                                       
++        struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( dev );
++	struct sg17_sci *s = (struct sg17_sci *)&card->sci;
++
++	return snprintf(buf,PAGE_SIZE,"CRA(%02x),CRB(%02x),SR(%02x),IMR(%02x)\n",
++					s->regs->CRA,s->regs->CRB,s->regs->SR,s->regs->IMR);
++}
++
++static ssize_t
++store_sci_regs( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
++{
++        struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( dev );
++	struct sg17_sci *s = (struct sg17_sci *)&card->sci;
++        u8 tmp;
++	char *endp;
++	PDEBUG(0,"buf[0]=%d",buf[0]);
++        if( !size ) return 0;
++	PDEBUG(0,"buf[0]=%d, %c",buf[0],buf[0]);
++	if( buf[0] < '0' || buf[0] > '3' )
++		return size;
++	tmp=simple_strtoul( buf+2,&endp,16) & 0xff;
++	*((u8*)s->regs + buf[0]) = tmp;
++	return size;
++}
++static DEVICE_ATTR(regs,0644,show_sci_regs,store_sci_regs);
++
++
++static ssize_t
++show_trvr_stat( struct device *dev, ADDIT_ATTR char *buf )
++{                                                                       
++	return snprintf(buf,PAGE_SIZE,"xmit_start(sec.%u usec.%u avg.%u)\n"
++					"xmit_free(sec.%u usec.%u avg.%u)\n"
++					"recv_init(sec.%u usec.%u avg.%u)\n"
++					"recv_alloc(sec.%u usec.%u avg.%u)\n",
++					xmit_start.sec,xmit_start.usec,xmit_start.avg,
++					xmit_free.sec,xmit_free.usec,xmit_free.avg,					
++					recv_init.sec,recv_init.usec,recv_init.avg,
++					recv_alloc.sec,recv_alloc.usec,recv_alloc.avg);
++}
++static ssize_t
++store_trvr_stat( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
++{
++	if( buf[0] == '1' ){
++		memset(&xmit_start,0,sizeof(struct sg17_statistic));
++		memset(&xmit_free,0,sizeof(struct sg17_statistic));
++		memset(&recv_init,0,sizeof(struct sg17_statistic));
++		memset(&recv_alloc,0,sizeof(struct sg17_statistic));
++	}	
++	return size;
++}
++static DEVICE_ATTR(trvr_stat,0644,show_trvr_stat,store_trvr_stat);
++
++
++// ------------------------------------------------------------------------ //
++
++void
++sg17_sci_sysfs_register(struct device *dev)
++{
++	device_create_file(dev,&dev_attr_regs);
++	device_create_file(dev,&dev_attr_trvr_stat);
++}
++
++void
++sg17_sci_sysfs_remove(struct device *dev){
++	device_remove_file(dev,&dev_attr_regs);
++	device_remove_file(dev,&dev_attr_trvr_stat);	
++}
++
++
++#endif
++ 
++ 
++ 
++static int
++sg17_def_config(struct sg17_card *card)
++{
++	struct sdfe4 *hwdev = &(card->hwdev);
++	struct sdfe4_if_cfg *cfg_ch0=&(hwdev->cfg[0]);
++	struct sdfe4_if_cfg *cfg_ch3=&(hwdev->cfg[3]); 	
++
++	memset(hwdev,0,sizeof(struct sdfe4));
++	hwdev->data = (void*)&card->sci;
++	hwdev->ch[3].enabled = 1;
++        hwdev->ch[0].enabled = 1;
++	hwdev->msg_cntr = 0;		
++	PDEBUG(debug_init,"hwdev->data = %08x",(u32)hwdev->data);
++				
++	//---- config SDFE channel 3 -----------------
++	// (STU_C | STU_R)
++	cfg_ch3->mode = STU_R;
++	// ( REPEATER | TERMINATOR )
++	cfg_ch3->repeater = TERMINATOR;
++	// ( STARTUP_FAREND | STARTUP_LOCAL )
++	cfg_ch3->startup_initialization = STARTUP_FAREND;
++	// ( GHS_TRNS_00 | GHS_TRNS_01 | GHS_TRNS_11 | GHS_TRNS_10 )
++//	cfg_ch3->transaction = GHS_TRNS_10;
++	cfg_ch3->transaction = GHS_TRNS_00;
++	// ( ANNEX_A_B | ANNEX_A | ANNEX_B | ANNEX_G | ANNEX_F )
++	cfg_ch3->annex = ANNEX_A;
++	// ( SDI_TDMCLK_TDMMSP | SDI_DSL3 )
++	cfg_ch3->input_mode = SDI_TDMCLK_TDMMSP ;
++	// ( Terminal=>8192 | Repeater=>12288 )
++	cfg_ch3->frequency = 8192;
++	// ( Terminal=>5696 | Repeater=>2048 )
++	cfg_ch3->payload_bits = 5696;
++	// ( SDI_NO_LOOP | SDI_REMOTE_LOOP )
++	cfg_ch3->loop = SDI_NO_LOOP;
++	
++	//---- config SDFE chenal 0 ------------------
++	// ( STU_C | STU_R )
++	cfg_ch0->mode = STU_C;
++	// ( REPEATER | TERMINATOR )
++	cfg_ch0->repeater = TERMINATOR;
++	// ( STARTUP_FAREND | STARTUP_LOCAL )
++	cfg_ch0->startup_initialization= STARTUP_LOCAL;
++	// ( GHS_TRNS_00 | GHS_TRNS_01 | GHS_TRNS_11 | GHS_TRNS_10 )
++	cfg_ch0->transaction = GHS_TRNS_10;
++	// ( ANNEX_A_B | ANNEX_A | ANNEX_B | ANNEX_G | ANNEX_F )
++	cfg_ch0->annex = ANNEX_A;
++	///  TC-PAM: TCPAM16  TCPAM32
++	cfg_ch0->tc_pam = TCPAM16;
++	// rate (speed)
++	cfg_ch0->rate = 2304;
++	// ( SDI_TDMCLK_TDMMSP | SDI_DSL3 )
++	cfg_ch0->input_mode = SDI_TDMCLK_TDMMSP;
++	// ( Terminal=>8192 | Repeater=>12288 )
++	cfg_ch0->frequency = 8192;
++	// ( Terminal=>5696 | Repeater=>2048 )
++	cfg_ch0->payload_bits = 5696;
++	// ( SDI_NO_LOOP | SDI_REMOTE_LOOP )
++	cfg_ch0->loop = SDI_NO_LOOP;
++}
++
++static int __devinit
++sg17_init_card( struct sg17_card *card )
++{
++	unsigned long iomem_start = pci_resource_start( card->pdev, 1 );
++	unsigned long iomem_end = pci_resource_end( card->pdev, 1 );
++	struct sdfe4 *hwdev = &(card->hwdev);
++	struct sg17_sci *sci = &card->sci;
++	int error = 0;	
++	
++// DEBUG //
++SCI =  &card->sci;
++// DEBUG //	
++
++	PDEBUG(debug_init,"");
++	// set card name
++	sprintf(card->name,"sg17card%d",card->number);
++	// IOmem
++        PDEBUG(debug_init,"IOmem, size=%x, ideal=%x",(u32)(iomem_end-iomem_start),(u32)SG17_OIMEM_SIZE);	
++	if( (iomem_end - iomem_start) != (SG17_OIMEM_SIZE - 1) )
++		return -ENODEV;
++        PDEBUG(debug_init,"strt request_mem_region ");
++        if( !request_mem_region( iomem_start,SG17_OIMEM_SIZE, card->name ) )
++                return  -ENODEV;
++        PDEBUG(debug_init,"request_mem_region - ok");
++        card->mem_base = (void *) ioremap( iomem_start, SG17_OIMEM_SIZE );	
++	// determine if number
++	card->if_num = ((iomem_end - iomem_start + 1) - SG17_SCI_MEMSIZE) / SG17_HDLC_MEMSIZE ;
++	PDEBUG(debug_netcard,"card->if_num = %d",card->if_num);
++	card->if_num = (card->if_num<SG17_IF_MAX) ? card->if_num : SG17_IF_MAX;
++	PDEBUG(debug_netcard,"card->if_num = %d",card->if_num);
++	// setup SCI
++	sci->mem_base = card->mem_base + SG17_SCI_MEMOFFS;
++	sci->irq = card->pdev->irq;
++        PDEBUG(debug_init,"sg17_sci_init");	
++	if ( sg17_sci_init( sci,card->name,hwdev) ){
++		error = -ENODEV;
++		goto err_release_mem;
++	}
++	sg17_sci_sysfs_register(&(card->pdev->dev));
++	return 0;
++err_release_mem:
++	release_mem_region( iomem_start, SG17_OIMEM_SIZE );	
++        PDEBUG(debug_init,"err_release_mem");
++	return error;
++}
++
++static int __devinit
++sg17_enable_card( struct sg17_card *card )
++{
++	struct sdfe4 *hwdev = &(card->hwdev);
++	struct sg17_sci *sci = &card->sci;
++	struct firmware *fw;
++	int ret = 0;
++	int i;
++
++        PDEBUG(debug_init,"sg17_sci_enable");
++	sg17_sci_enable(sci);
++	sg17_def_config(card);
++
++        // load firmware
++	PDEBUG(debug_init,"request_firmware");	
++        if( (ret = request_firmware((const struct firmware **)&fw,"sg17.bin",&(card->pdev->dev))) ){
++		printk(KERN_NOTICE"firmware file not found\n");
++		goto exit_request;
++	}
++	i=0;
++	if( (ret = sdfe4_download_fw(hwdev,fw->data,fw->size)) ){
++		PDEBUG(debug_error,"error(%d) in sdfe4_download_fw",ret);
++		goto exit_download;
++	}
++	release_firmware(fw);
++        PDEBUG(debug_init,"success");		
++	return 0;
++	
++exit_download:
++	release_firmware(fw);
++exit_request:
++	sg17_sci_disable(sci);	
++	return -ENODEV;	
++}
++
++
++static void __devexit
++sg17_disable_card( struct sg17_card *card )
++{
++	PDEBUG(debug_init,"");
++	sg17_sci_disable( &card->sci );
++        PDEBUG(debug_init,"success");			
++}
++
++
++static void __devexit
++sg17_remove_card( struct sg17_card *card )
++{
++	unsigned long iomem_start = pci_resource_start( card->pdev, 1 );
++	PDEBUG(debug_init,"");
++	sg17_sci_sysfs_remove(&(card->pdev->dev));
++	sg17_sci_remove( &card->sci );
++	release_mem_region( iomem_start, SG17_OIMEM_SIZE );	
++        PDEBUG(debug_init,"success");			
++}
++
++
++/*
++ * SG-17PCI PCI device structure & functions
++ */
++int card_number = 0; 
++ 
++static struct pci_device_id  sg17_pci_tbl[] __devinitdata = {
++        { PCI_DEVICE(SG17_PCI_VENDOR,SG17_PCI_DEVICE) },
++        { 0 }
++};
++MODULE_DEVICE_TABLE( pci, sg17_pci_tbl );
++
++static struct pci_driver  sg17_driver = {
++        name:           "sg17lan",
++        probe:          sg17_probe_one,
++        remove:         sg17_remove_one,
++        id_table:       sg17_pci_tbl
++};
++				
++static int __devinit
++sg17_probe_one(struct pci_dev *pdev, const struct pci_device_id *dev_id)
++{
++	struct sg17_card *card;
++	struct net_device *ndev;
++	struct net_local *nl;
++	int if_processed,i,ch_num;
++	int ret;
++	
++	PDEBUG(debug_init,"New device");
++	// Setup PCI card configuration
++        if( pci_enable_device( pdev ) )
++                return  -EIO;
++        pci_set_master( pdev );
++	// Save PCI card info
++	card = kmalloc( sizeof(struct sg17_card), GFP_KERNEL );
++	memset((void*)card,0,sizeof(struct sg17_card));
++	pci_set_drvdata(pdev, card);
++	card->number = card_number++;
++	card->pdev = pdev;
++	
++	// setup SCI HDLC controller
++	PDEBUG(debug_init,"sg17_init_card");
++	if( (ret = sg17_init_card(card)) ){
++		PDEBUG(debug_error,"error registering SG-17PCI card");
++		return -ENODEV;
++	}
++
++	// setup network interfaces
++	PDEBUG(debug_netcard,"network ifs init");
++	for(if_processed=0; if_processed < card->if_num; if_processed++){
++		// allocate network device 
++		if( !( ndev = alloc_netdev( sizeof(struct net_local),"dsl%d",sg17_dsl_init)) ){
++			printk(KERN_NOTICE"error while alloc_netdev #%d\n",if_processed);
++			goto exit_unreg_ifs;
++		}
++		PDEBUG(debug_netcard,"alloc_netdev - %s",ndev->name);
++                // set some net device fields
++		ndev->mem_start = (unsigned long)((u8*)card->mem_base +
++				 SG17_HDLC_CH0_MEMOFFS + if_processed*SG17_HDLC_MEMSIZE);
++		ndev->mem_end = (unsigned long)((u8*)ndev->mem_start + SG17_HDLC_MEMSIZE);
++		ndev->irq = pdev->irq;
++    		// device private data initialisation
++		nl=(struct net_local *)netdev_priv(ndev);
++		memset( nl, 0, sizeof(struct net_local) );
++    		nl->dev=&(pdev->dev);
++		nl->number = if_processed;
++		if( (ch_num = sg17_sci_if2ch(&card->sci,if_processed)) < 0 ){
++			PDEBUG(debug_error,"error(%d) in sg17_sci_if2ch",ch_num);
++			free_netdev( ndev );			
++			goto exit_unreg_ifs;			
++		}
++		nl->shdsl_cfg = &(card->hwdev.cfg[ch_num]);
++		// network interface registration
++    		if( (ret = register_netdev(ndev)) ) {
++			printk(KERN_NOTICE"sg17lan: error(%d) while register device %s\n",ret,ndev->name);
++			free_netdev( ndev );
++			goto exit_unreg_ifs;
++    		}
++		PDEBUG(debug_netcard,"success");
++		card->ndevs[if_processed] = ndev;
++
++		PDEBUG(0,"sg17_sysfs_register");
++    		if( sg17_sysfs_register( ndev ) ){
++	    		printk( KERN_ERR "%s: unable to create sysfs entires\n",ndev->name);
++		        goto exit_unreg_ifs;
++	        }
++		PDEBUG(0,"sg17_sysfs_register - success");
++	}
++
++	PDEBUG(debug_init,"sg17_enable_card");
++	if( (ret = sg17_enable_card(card)) ){
++		PDEBUG(debug_error,"error(%d) registering SG-17PCI card",ret);
++		goto exit_unreg_ifs;
++	}
++
++	return 0;
++
++exit_unreg_ifs:
++	PDEBUG(debug_error,"Error, if_pocessed = %d",if_processed);
++	for(i=0;i<if_processed;i++){
++		unregister_netdev(card->ndevs[i]);
++		free_netdev(card->ndevs[i]);
++	}
++	sg17_remove_card(card);	
++	PDEBUG(debug_error,"kfree CARD");
++	kfree( card );
++	pci_disable_device( pdev );
++	pci_set_drvdata(pdev, NULL);
++	return -ENODEV;
++}
++
++static void __devexit
++sg17_remove_one(struct pci_dev *pdev)
++{
++	struct sg17_card  *card = pci_get_drvdata( pdev );
++	int i;
++
++	PDEBUG(debug_netcard,"Card = %08x",(u32)card);
++	PDEBUG(debug_init,"goodbye!");
++	if( card ){
++		for(i=0;i<card->if_num;i++){
++			PDEBUG(debug_init,"unreg %s",card->ndevs[i]->name);
++		        // Remove symlink on device from driver dir in sysfs 
++		        sg17_sysfs_remove(card->ndevs[i]);
++			unregister_netdev(card->ndevs[i]);
++			free_netdev(card->ndevs[i]);
++			PDEBUG(debug_init,"unreg %s: OK",card->ndevs[i]->name);			
++		}
++		sg17_disable_card( card );		
++		sg17_remove_card( card );
++		kfree( card );
++	}
++	pci_disable_device(pdev);
++	pci_set_drvdata(pdev, NULL);
++}
++
++
++
++/* --------------------------------------------------------------------------
++ *      Module initialisation/cleanup
++ * -------------------------------------------------------------------------- */
++
++int __devinit
++sg17_init( void ){
++	int i = pci_register_driver( &sg17_driver );
++	printk(KERN_NOTICE"Sigrand SG-17PCI driver\n");	
++	PDEBUG(10,"return = %d",i);
++	return 0;
++}
++
++void __devexit
++sg17_exit( void ){
++	printk(KERN_NOTICE"UNLOAD Sigrand SG-17PCI driver\n");
++        pci_unregister_driver( &sg17_driver );
++}
++
++module_init(sg17_init);
++module_exit(sg17_exit);
++
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17main.h linux-2.6.16/drivers/net/sg17lan/sg17main.h
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17main.h	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/sg17main.h	2007-03-14 20:54:14.000000000 +0600
+@@ -0,0 +1,54 @@
++/* sg17lan.h: Sigrand SG-17PCI SHDSL modem driver for linux (kernel 2.6.x)
++ *
++ *	Written 2006-2007 by Artem U. Polyakov <art@sigrand.ru>
++ *
++ *	This driver presents SG-17PCI modem 
++ *	to system as common ethernet-like netcard.
++ *
++ */
++
++#ifndef SG17MAIN_H
++#define SG17MAIN_H
++
++#include "sg17lan.h"
++#include "sg17sysfs.h"
++
++//---- Driver initialisation ----//
++static int  sg17_init( void );
++static void sg17_exit( void );
++
++static int sg17_init_card( struct sg17_card *card );
++static void sg17_remove_card( struct sg17_card *card );
++
++//---- PCI adapter related ----//
++// We don't have official vendor id yet... 
++#define SG17_PCI_VENDOR 	0x55 
++#define SG17_PCI_DEVICE 	0x9a
++
++static int __devinit sg17_probe_one(struct pci_dev *,
++			const struct pci_device_id *);
++static void __devexit sg17_remove_one(struct pci_dev *);
++
++//---- Network interface related ----//
++void sg17_dsl_init( struct net_device *ndev);
++static int __init sg17_probe( struct net_device  *ndev );
++static void __devexit sg17_uninit(struct net_device *ndev);
++static irqreturn_t sg17_interrupt( int  irq,  void  *dev_id,  struct pt_regs  *regs );
++static int sg17_open( struct net_device  *ndev );
++static int sg17_close(struct net_device  *ndev);
++static struct net_device_stats *sg17_get_stats(struct net_device *ndev);
++static void sg17_set_mcast_list( struct net_device  *ndev);
++
++/*TODO : correct */
++/*static */int sg17_start_xmit( struct sk_buff *skb, struct net_device *ndev );
++static void xmit_free_buffs( struct net_device *dev );
++static void recv_init_frames( struct net_device *ndev );
++static int recv_alloc_buffs( struct net_device *ndev );
++static void recv_free_buffs( struct net_device *ndev);
++static void sg17_tx_timeout( struct net_device  *ndev );
++
++static void sg17_tranceiver_down(struct net_local *nl);
++static void sg17_tranceiver_up(struct net_local *nl);
++
++#endif
++
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17ring.c linux-2.6.16/drivers/net/sg17lan/sg17ring.c
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17ring.c	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/sg17ring.c	2007-03-28 23:36:45.000000000 +0700
+@@ -0,0 +1,119 @@
++#include <linux/dma-mapping.h>
++#include <linux/skbuff.h>
++#include "sg17ring.h"
++// Debug parameters
++//#define DEBUG_ON
++#define DEFAULT_LEV 20
++#include "sg17debug.h"
++
++//DEBUG//
++#include "sg17lan.h"
++extern struct sg17_sci *SCI;
++//DEBUG//
++
++
++inline u8
++sg_ring_inc(u8 ind,int mask){
++	return ((ind + 1) & mask) ;
++}
++
++inline u8
++sg_ring_dec(u8 ind,int mask){
++	return ((ind - 1) & mask) ;
++}
++
++int
++sg_ring_have_space(struct sg_ring *r)
++{
++//	unsigned long flags;
++	int ret=1;
++
++	PDEBUG(0," %s ring, sci:CRA=%02x", (r->type==TX_RING) ? "TX" : "RX",SCI->regs->CRA);
++//	spin_lock_irqsave(&r->lock,flags);
++	// check that ring is not full
++	if( sg_ring_inc(r->tail,r->sw_mask) == r->head ) {
++		ret=0;
++	}	
++//	spin_unlock_irqrestore(&r->lock,flags);
++	return ret;
++}
++
++
++inline int
++sg_ring_add_skb(struct sg_ring *r, struct sk_buff *skb)
++{
++	u8 ind;
++	int desc_len,dma_len;
++	enum dma_data_direction dma_type;
++	dma_addr_t bus_addr;
++
++	// check that ring is not full
++	if( sg_ring_inc(r->tail,r->sw_mask) == r->head ) {
++		PDEBUG(0," %s ring: ring is full", (r->type==TX_RING) ? "TX" : "RX");
++		return -ERFULL;
++	}	
++	// set some ring type specific parameters
++	if( r->type == TX_RING ){
++		desc_len = skb->len | LAST_FRAG;
++		dma_len = skb->len;		
++		dma_type = DMA_TO_DEVICE;
++	}else if( r->type == RX_RING ){
++		desc_len = 0;
++		dma_len = ETHER_MAX_LEN;
++		dma_type = DMA_FROM_DEVICE;
++	}else{
++		// Error case. Bad ring type initialisation
++		PDEBUG(0,"bad ring type initialisation");
++		return -ERINIT;
++	}
++	// Map the buffer for DMA 
++	bus_addr = dma_map_single(r->dev,skb->data, dma_len, dma_type);
++	// set hardware descriptors
++	ind = ioread8( (u8*)(r->LxDR)) & (r->hw_mask);
++	iowrite32(bus_addr,&(r->hw_ring[ ind ].addr)) ;
++	iowrite32(desc_len,(u8*)&(r->hw_ring[ ind ].len)) ;
++	ind = sg_ring_inc(ind,r->hw_mask);
++	iowrite8(ind,(u8*)(r->LxDR));
++	r->sw_ring[ r->tail ] = skb;
++	r->tail=sg_ring_inc(r->tail,r->sw_mask);
++	return 0;
++}
++
++
++inline struct sk_buff *
++sg_ring_del_skb(struct sg_ring *r,int *len)
++{
++        u8 ind;
++	dma_addr_t bus_addr;
++	int dma_len;
++	enum dma_data_direction dma_type;
++	struct sk_buff *skb;
++
++	ind = ioread8((u8*)(r->CxDR));
++	if( r->FxDR == ind ){
++		PDEBUG(0,"%s ring: nothing to del", (r->type==TX_RING) ? "TX" : "RX");	
++		return NULL;
++	}
++	// set some ring type specific parameters
++	if( r->type == TX_RING ){
++		dma_len=r->sw_ring[r->head]->len;		
++		dma_type=DMA_TO_DEVICE;
++	}else if( r->type == RX_RING ){
++		dma_len=ETHER_MAX_LEN;	
++		dma_type=DMA_FROM_DEVICE;
++	}else{
++		// Error case. Bad ring type initialisation
++		PDEBUG(0,"bad ring type initialisation");
++		return NULL;
++	}
++
++	// unmap DMA memory 
++	bus_addr=ioread32( (u32*)&(r->hw_ring[ r->FxDR ].addr));
++	*len = ioread32( (u32*)&(r->hw_ring[ r->FxDR ].len)) & 0x7ff;
++	dma_unmap_single(r->dev,bus_addr, dma_len, dma_type );
++	skb = r->sw_ring[ r->head ];
++	r->sw_ring[ r->head ] = NULL;
++	r->FxDR=sg_ring_inc(r->FxDR,r->hw_mask);
++	r->head=sg_ring_inc(r->head,r->sw_mask);
++	return skb;
++}
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17ring.h linux-2.6.16/drivers/net/sg17lan/sg17ring.h
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17ring.h	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/sg17ring.h	2007-02-24 21:37:14.000000000 +0600
+@@ -0,0 +1,50 @@
++#ifndef SIGRAND_RING_H
++#define SIGRAND_RING_H
++
++// Errors
++#define ERFULL 20 // Ring is full
++#define ERINIT 21 // incorrect ring initialisation
++
++#define HW_RING_MASK 0x7f
++#define LAST_FRAG 0x00008000
++#define ETHER_MAX_LEN   1536 - 4 // Find out clearly
++#define IP_ALIGN 16
++
++#define SW_RING_LEN 8
++#define SW_RING_MASK 7
++
++
++struct sg_hw_descr {
++	u32  addr;
++	u32  len;
++}; 
++
++
++struct sg_ring{
++	// Hardware ring related variables
++	// CxDR = { CRDR,CTDR } - Current processing descriptor
++	// LxDR = { LRDR,LTDR } - Last processing descriptor
++	// FxDR = { FRDR,FTDR } - First used descriptor
++	struct sg_hw_descr *hw_ring;
++	u8 hw_mask;
++	u8 *CxDR,*LxDR,FxDR;
++	// type: RX_RING || TX_RING
++	u8 type;
++	#define RX_RING 1
++	#define TX_RING 2
++	// Software control ring, wich has smaller size
++	struct sk_buff *sw_ring[SW_RING_LEN];
++	u8 sw_mask;
++        u8 head, tail; 
++	// OS specific
++	spinlock_t lock;
++	struct device *dev;
++};
++
++inline u8 sg_ring_inc(u8 ind,int mask);
++inline u8 sg_ring_dec(u8 ind,int mask);
++int sg_ring_have_space(struct sg_ring *r);
++int sg_ring_add_skb(struct sg_ring *r, struct sk_buff *skb);
++struct sk_buff *sg_ring_del_skb(struct sg_ring *r,int *len);
++
++#endif
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17sci.c linux-2.6.16/drivers/net/sg17lan/sg17sci.c
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17sci.c	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/sg17sci.c	2007-03-28 23:33:56.000000000 +0700
+@@ -0,0 +1,350 @@
++/* sg17_sci.c:  Sigrand SG-17PCI SCI HDLC for linux (kernel 2.6.x)
++ *
++ *	Written 2006-2007 by Artem U. Polyakov <art@sigrand.ru>
++ *
++ *	Provide interface to SCI HDLC controller, wich control 
++ *	Infineon SDFE4 chipset.
++ *
++ *	This software may be used and distributed according to the terms
++ *	of the GNU General Public License.
++ */
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/config.h>
++#include <linux/vermagic.h>
++#include <linux/version.h>
++
++#include <asm/types.h>
++#include <asm/byteorder.h>
++#include <asm/io.h>
++#include <asm/irq.h>
++#include <asm/uaccess.h>
++
++#include <linux/ioport.h>
++#include <linux/interrupt.h>
++#include <linux/delay.h>
++
++
++//---- Local includes ----//
++#include "sg17sci.h"
++#include "sg17lan.h"
++#include "include/sg17hw.h"
++#include "include/sdfe4_lib.h"
++// Debug parameters
++#define DEBUG_ON
++#define DEFAULT_LEV 20
++#include "sg17debug.h"
++
++void sg17_sci_monitor(void *data);
++
++
++/*
++ * SCI HDLC
++ */ 
++ 
++int
++sg17_sci_init( struct sg17_sci *s,char *card_name,struct sdfe4 *hwdev)
++{
++	// init registers & buffers
++	s->tx_buf = (u8*)s->mem_base + SCI_RXBUFF;
++	s->rx_buf = (u8*)s->mem_base + SCI_TXBUFF;
++	s->regs = (struct sg17_sci_regs *)((u8*)s->mem_base + SCI_REGS);
++	s->tx_packets = 0;
++	s->tx_bytes = 0;
++	s->rx_packets = 0;
++	s->rx_bytes = 0;
++	
++	s->ch_map[0] = 0;
++	s->ch_map[3] = 1;
++	
++	spin_lock_init(&s->chip_lock);
++	init_waitqueue_head( &s->wait_q );
++	s->hwdev = hwdev;
++	INIT_WORK( &s->wqueue, sg17_sci_monitor,(void*)s);
++
++	PDEBUG(debug_sci,"init: base=%08x\ntx_buf=%08x,rx_buf=%08x,regs=%08x",
++		(u32)s->mem_base,(u32)s->tx_buf,(u32)s->rx_buf,(u32)s->regs);
++	PDEBUG(debug_sdfe4,"s(0x%08x): hwdev=%08x",(u32)s,(u32)hwdev);	
++	// register interrupt handler
++	if( request_irq( s->irq, sg17_sci_intr, SA_SHIRQ, card_name, (void*)s) ){
++		printk( KERN_ERR "%s: unable to get IRQ %d.\n", card_name, s->irq );
++                goto err_exit;
++        }
++	
++	PDEBUG(debug_sci,"success");
++	
++	return 0;
++err_exit:
++	return -1;								
++}
++
++inline int
++sg17_sci_enable( struct sg17_sci *s )
++{
++	iowrite8( 0,&s->regs->CRA);
++	mdelay(100);
++	iowrite8( (XRST | RXEN),&s->regs->CRA);
++	iowrite8( 0xff,&s->regs->SR);		
++	iowrite8( (RXS | TXS | CRC | COL),&s->regs->IMR);	
++	mdelay(10);
++	PDEBUG(debug_sci,"SCI enabled");
++	schedule_delayed_work(&s->wqueue,2*HZ);	
++	return 0;
++}
++
++inline int
++sg17_sci_disable( struct sg17_sci *s )
++{
++	iowrite8( 0,&s->regs->CRA);
++	iowrite8( 0,&s->regs->IMR);	
++	iowrite8( 0xff ,&s->regs->SR );
++	cancel_delayed_work(&s->wqueue);
++	PDEBUG(debug_sci,"disabled");
++	
++	return 0;
++}
++
++void
++sg17_sci_remove( struct sg17_sci *s )
++{
++	free_irq( s->irq, s);
++}
++
++
++void
++sg17_sci_monitor(void *data)
++{
++	struct sg17_sci *s = (struct sg17_sci *)data;
++        struct sdfe4 *hwdev = s->hwdev;
++	int ret;
++	PDEBUG(debug_netcard,"");
++        ret = sdfe4_state_mon( hwdev );
++	sg17_link_support(s);
++	schedule_delayed_work(&s->wqueue,2*HZ);
++}
++
++irqreturn_t
++sg17_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *regs )
++{
++	struct sg17_sci *s = (struct sg17_sci *)dev_id;
++	u8 mask = ioread8(&s->regs->IMR);
++	u8 status = (ioread8(&s->regs->SR) & mask);	
++	struct sdfe4_msg msg;
++	int pamdsl_type;
++	int i;
++	
++	PDEBUG(debug_sci,"status=%02x",status);	
++	if( !status )
++		return IRQ_NONE;
++
++	iowrite8(status,&s->regs->SR); 	// ack all interrupts
++	iowrite8(0,&s->regs->IMR); 	// disable interrupts
++	
++	if( status & TXS ){
++		PDEBUG(debug_sci,"TXS");
++		s->tx_packets++;
++		s->tx_bytes += ioread16(&s->regs->TXLEN);
++	}
++
++	if( status & RXS ){
++		PDEBUG(debug_sci,"RXS");
++		// Save incoming message
++		s->rx_len = ioread16(&s->regs->RXLEN);
++		for(i=0; i < s->rx_len; i++)
++			s->rx_msg[i] = ioread8( (u8*)s->rx_buf + i);
++	
++		// process message		
++		if( !sdfe4_msg_init( &msg, s->rx_msg, s->rx_len ) ){
++			pamdsl_type = sdfe4_pamdsl_parse(&msg,s->hwdev);
++			switch( pamdsl_type ){
++			case SDFE4_NOT_PAMDSL:
++			case SDFE4_PAMDSL_ACK:
++				wake_up( &s->wait_q );
++				break;
++			case SDFE4_PAMDSL_NFC:
++			default:
++				iowrite8( (ioread8( &s->regs->CRA ) | RXEN), &s->regs->CRA );			
++				break;
++			}
++		}
++
++		s->rx_packets++;
++		s->rx_bytes += i;
++//--------------DEBUG --------------------------
++		PDEBUGL(debug_sci,"Incoming data: ");		
++		for(i=0; i < s->rx_len; i++)
++			PDEBUGL(debug_sci,"%02x ",s->rx_msg[i]);
++		PDEBUGL(debug_sci,"\n");
++//--------------DEBUG --------------------------
++	}
++
++	if( status & CRC ){
++		PDEBUG(0/*debug_irq*/,"CRC");
++	}
++	
++	if( status & COL ){
++		PDEBUG(0/*debug_irq*/,"COL");
++	}
++	
++	iowrite8(mask, &s->regs->IMR); // enable interrupts
++	return IRQ_HANDLED;
++}
++
++int
++sg17_sci_recv( struct sg17_sci *s, char *msg, int *mlen)
++{
++	int clen = s->rx_len;
++	int i;	
++
++	if( clen < 0 )
++		return clen;
++	if( *mlen < clen )
++		return -EINVAL;
++
++	for( i=0; i<clen; i++)
++		msg[i] = s->rx_msg[i];
++
++	// enable message receiving
++	iowrite8( (ioread8( &s->regs->CRA ) | RXEN), &s->regs->CRA );
++	PDEBUG(debug_cur,"");	
++	return 0;
++}
++
++int sg17_sci_xmit( struct sg17_sci *s, char *msg, int len)
++{
++	int i;
++	u8 tmp = ioread8(&s->regs->CRA);
++	// message is too long
++	if( len > SCI_BUFF_SIZE )
++		return -EINVAL;
++	
++	// somebody already send something, need wait
++	if( tmp & TXEN )
++		return -EAGAIN;
++	
++	for( i=0; i<len; i++)
++		iowrite8( msg[i],(u8*)s->tx_buf + i);
++	iowrite16( len, &s->regs->TXLEN);
++	iowrite8( (ioread8(&s->regs->CRA) | TXEN ), &s->regs->CRA);
++	
++	return 0;
++}
++
++inline int
++sg17_sci_wait_intr( struct sg17_sci *s )
++{
++	int ret=0;
++	ret = interruptible_sleep_on_timeout( &s->wait_q, HZ*2 );
++	PDEBUG(debug_sci,"return = %d",ret);	
++	if( !( ioread8( &s->regs->CRA ) & RXEN) )
++		return 1;
++	return ret;
++}
++
++void
++sg17_sci_dump_regs( struct sg17_sci *s )
++{
++	PDEBUG(0,"CRA: %02x; SR:  %02x; IMR: %02x",s->regs->CRA,s->regs->SR,s->regs->IMR);
++	PDEBUG(0,"TXLEN: %d; RXLEN:  %d",s->regs->TXLEN,s->regs->RXLEN);
++}
++
++void
++sg17_sci_link_up(struct sg17_sci *s,int i){
++        sg17_link_up(s,s->ch_map[i]);
++}
++		
++inline void
++sg17_sci_link_down(struct sg17_sci *s,int i){
++        sg17_link_down(s,s->ch_map[i]);
++}
++			
++int
++sg17_sci_if2ch(struct sg17_sci *s,int if_num)
++{
++	int i;
++
++	if( (if_num < 0) || (if_num > SG17_IF_MAX) ){
++		PDEBUG(debug_error,"error if parameter: %d",if_num);
++		return -1;
++	}
++	for( i=0;i<SG17_IF_MAX;i++){
++		if( s->ch_map[i] == if_num )
++			return i;
++	}
++	PDEBUG(debug_error,"if not finded");
++	return -1;
++}
++
++//-------------- Interface to sdfe4_lib -----------------------------//
++
++int
++sdfe4_hdlc_xmit(u8 *msg,u16 len,struct sdfe4 *hwdev){
++	return sg17_sci_xmit((struct sg17_sci *)hwdev->data,msg,len);
++}
++
++int
++sdfe4_hdlc_wait_intr(int to,struct sdfe4 *hwdev){
++	if( sg17_sci_wait_intr((struct sg17_sci *)hwdev->data) )
++		return 0;
++	return -1;
++}
++
++/*todo add length*/
++int
++sdfe4_hdlc_recv(u8 *buf,int *len,struct sdfe4 *hwdev){
++	*len = SDFE4_FIFO8;
++	return sg17_sci_recv((struct sg17_sci *)hwdev->data,buf,len);
++}
++
++void
++wait_ms(int x){
++	mdelay(x);
++}
++
++void
++sdfe4_hdlc_regs(struct sdfe4 *hwdev){
++	sg17_sci_dump_regs((struct sg17_sci *)hwdev->data);
++}
++
++void
++sdfe4_link_led_up(int i,struct sdfe4 *hwdev){
++	PDEBUG(debug_link,"chan#%d",i);
++	sg17_sci_link_up((struct sg17_sci *)hwdev->data,i);
++}
++
++void
++sdfe4_link_led_down(int i,struct sdfe4 *hwdev){
++	PDEBUG(debug_link,"chan#%d",i);
++	sg17_sci_link_down((struct sg17_sci *)hwdev->data,i);	
++}
++
++void
++sdfe4_link_led_blink(int i, struct sdfe4 *hwdev){
++	PDEBUG(debug_link,"chan#%d",i);
++}
++
++void
++sdfe4_link_led_fast_blink(int i,struct sdfe4 *hwdev){
++	PDEBUG(debug_link,"chan#%d",i);
++}
++
++inline void sdfe4_clear_channel(struct sdfe4 *hwdev) {}
++
++
++inline void
++sdfe4_memcpy(void *dst,const void *src,int size){	
++	memcpy(dst,src,size);
++}
++
++inline void
++sdfe4_lock_chip(struct sdfe4 *hwdev){
++	struct sg17_sci *s = (struct sg17_sci *)hwdev->data;
++	spin_lock(&s->chip_lock);
++}
++inline void
++sdfe4_unlock_chip(struct sdfe4 *hwdev){
++	struct sg17_sci *s = (struct sg17_sci *)hwdev->data;
++	spin_unlock(&s->chip_lock);
++}
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17sci.h linux-2.6.16/drivers/net/sg17lan/sg17sci.h
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17sci.h	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/sg17sci.h	2007-03-28 23:17:33.000000000 +0700
+@@ -0,0 +1,51 @@
++#ifndef SG17_SCI_HDLC_H
++#define SG17_SCI_HDLC_H
++
++#include <asm/io.h>
++#include <asm/types.h>
++#include <linux/kernel.h>
++#include <linux/ioport.h>
++#include <linux/wait.h>
++#include <linux/interrupt.h>
++
++#include "include/sg17hw.h"
++
++struct sg17_sci_regs{
++	u8 __iomem CRA,CRB,SR,IMR;
++	u16 __iomem TXLEN,RXLEN;
++};
++
++struct sg17_sci{
++        void *mem_base;
++        volatile struct sg17_sci_regs *regs;
++        volatile u8 *rx_buf,*tx_buf;
++	u8 rx_msg[SCI_BUFF_SIZE];
++	u8 rx_len;
++        int irq;
++	wait_queue_head_t  wait_q;
++	struct sdfe4 *hwdev;	
++	struct work_struct wqueue;
++	// locking
++	spinlock_t chip_lock;
++	// channel to if mapping
++	u8 ch_map[SG17_IF_MAX];
++        // statistics
++        unsigned long tx_bytes, rx_bytes;
++        unsigned long tx_packets, rx_packets;
++};
++								
++int sg17_sci_init( struct sg17_sci *, char *, struct sdfe4 *);
++void sg17_sci_remove( struct sg17_sci *s );
++int sg17_sci_enable( struct sg17_sci *s );
++int sg17_sci_disable( struct sg17_sci *s );
++irqreturn_t sg17_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *regs );
++int sg17_sci_xmit( struct sg17_sci *, char *msg, int len);
++int sg17_sci_recv_intr( struct sg17_sci *s, char **msg);
++int sg17_sci_recv( struct sg17_sci *, char *msg, int *mlen);
++int sg17_sci_wait_intr( struct sg17_sci * );
++void sg17_sci_dump_regs( struct sg17_sci *s );
++void sg17_sci_link_up(struct sg17_sci *s,int i);
++void sg17_sci_link_down(struct sg17_sci *s,int i);
++int sg17_sci_if2ch(struct sg17_sci *s,int if_num);
++
++#endif
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17sysfs.c linux-2.6.16/drivers/net/sg17lan/sg17sysfs.c
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17sysfs.c	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/sg17sysfs.c	2007-03-28 23:39:35.000000000 +0700
+@@ -0,0 +1,682 @@
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/config.h>
++#include <linux/vermagic.h>
++#include <linux/kobject.h>
++#include <linux/netdevice.h>
++#include <linux/etherdevice.h>
++
++#include "include/sdfe4_lib.h"
++#include "sg17lan.h"
++
++// Debug parameters
++#define DEBUG_ON
++#define DEFAULT_LEV 20
++#include "sg17debug.h"
++
++
++/* --------------------------------------------------------------------------
++ *      Module initialisation/cleanup
++ * -------------------------------------------------------------------------- */
++
++#define to_net_dev(class) container_of(class, struct net_device, class_dev)
++
++// Mode control (master/slave)
++static ssize_t show_mode(struct class_device *cdev, char *buf) 
++{                                                                       
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
++	if( nl->shdsl_cfg->mode == STU_C )
++		return snprintf(buf,PAGE_SIZE,"master");
++	else if( nl->shdsl_cfg->mode == STU_R )
++		return snprintf(buf,PAGE_SIZE,"slave");
++	else
++		return snprintf(buf,PAGE_SIZE,"NOT defined");	
++}
++
++static ssize_t
++store_mode( struct class_device *cdev,const char *buf, size_t size ) 
++{
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = netdev_priv(ndev);
++	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
++
++        // if interface is up 
++        if( (ndev->flags & IFF_UP) )
++		return size;
++        if( size > 0 ){
++	if( buf[0] == '0' ){
++	    cfg->mode = STU_R;
++	    cfg->startup_initialization = STARTUP_FAREND;
++	    cfg->transaction = GHS_TRNS_00;
++	}else if( buf[0] == '1' ){
++	    cfg->mode = STU_C;
++	    cfg->startup_initialization = STARTUP_LOCAL;
++	    cfg->transaction = GHS_TRNS_10;
++	}	    
++    }    
++    return size;
++}
++static CLASS_DEVICE_ATTR(mode,0644,show_mode,store_mode);
++
++// Annex control 
++static ssize_t show_annex(struct class_device *cdev, char *buf) 
++{                                                                       
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
++	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;	
++
++	if( !netif_carrier_ok(ndev) && (cfg->mode == STU_R) )
++		 return 0;
++	switch( cfg->annex ){
++	case ANNEX_A:
++		return snprintf(buf,PAGE_SIZE,"A");
++	case ANNEX_B:
++		return snprintf(buf,PAGE_SIZE,"B");
++	case ANNEX_A_B:
++		return snprintf(buf,PAGE_SIZE,"AB");
++/*	case ANNEX_G:
++		return snprintf(buf,PAGE_SIZE,"annex G");
++	case ANNEX_F:
++		return snprintf(buf,PAGE_SIZE,"annex F");
++*/	default:
++		return snprintf(buf,PAGE_SIZE,"NOT defined");
++	}	
++}
++static ssize_t
++store_annex( struct class_device *cdev,const char *buf, size_t size ) 
++{
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = netdev_priv(ndev);
++	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
++
++        // if interface is up 
++	if( ndev->flags & IFF_UP )
++		return size;
++        if( !size )	return size;
++	
++	PDEBUG(0,"tmp=%c",buf[0]);
++	
++        switch( buf[0] ){
++        case '0':
++		cfg->annex=ANNEX_A;
++		break;
++        case '1':
++		cfg->annex=ANNEX_B;
++		break;
++        case '2':
++		cfg->annex=ANNEX_A_B;
++		break;
++/*        case '3':
++		cfg->annex=ANNEX_G;
++		break;
++        case '4':
++		cfg->annex=ANNEX_F;
++		break;
++*/        default:
++		break;
++        }
++        return size;
++}
++static CLASS_DEVICE_ATTR(annex, 0644 ,show_annex,store_annex);
++
++// Rate control
++static ssize_t show_rate(struct class_device *cdev, char *buf) 
++{                                                                       
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = netdev_priv(ndev);
++	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
++	
++	if( !netif_carrier_ok(ndev) && (cfg->mode == STU_R) )
++		 return 0;
++		 
++	return snprintf(buf,PAGE_SIZE,"%d",nl->shdsl_cfg->rate);
++}
++
++static ssize_t
++store_rate( struct class_device *cdev,const char *buf, size_t size ) 
++{
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = netdev_priv(ndev);
++	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
++        char *endp;
++	u16 tmp;
++	
++        // check parameters
++	if( (ndev->flags & IFF_UP) || !size)
++		return size;
++        if( !size ) return size;
++
++        tmp=simple_strtoul( buf,&endp,0);
++	if( !tmp )
++		return size;
++
++        cfg->rate=tmp;
++        return size;
++}
++static CLASS_DEVICE_ATTR(rate, 0644 ,show_rate,store_rate);
++
++// TCPAM control
++static ssize_t show_tcpam(struct class_device *cdev, char *buf) 
++{                                                                       
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
++	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;	
++
++	if( !netif_carrier_ok(ndev) && (cfg->mode == STU_R) )
++		 return 0;
++	
++	switch( cfg->tc_pam ){
++	case TCPAM16:
++		return snprintf(buf,PAGE_SIZE,"TCPAM16");
++	case TCPAM32:
++		return snprintf(buf,PAGE_SIZE,"TCPAM32");
++	default:
++		return snprintf(buf,PAGE_SIZE,"NOT defined");
++	}	
++}
++static ssize_t
++store_tcpam( struct class_device *cdev,const char *buf, size_t size ) 
++{
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = netdev_priv(ndev);
++	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
++        u8 tmp;
++
++        // if interface is up 
++	if( ndev->flags & IFF_UP )
++		return size;
++        if( !size )	return size;
++	tmp=buf[0];
++	PDEBUG(0,"tmp=%c",tmp);
++        switch(tmp){
++        case '0':
++		cfg->tc_pam=TCPAM16;
++		break;
++        case '1':
++		cfg->tc_pam=TCPAM32;
++		break;
++        default:
++		break;
++        }
++        return size;
++}
++static CLASS_DEVICE_ATTR(tcpam, 0644 ,show_tcpam,store_tcpam);
++
++// Apply changes
++static ssize_t
++store_apply_cfg( struct class_device *cdev,const char *buf, size_t size ) 
++{
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = netdev_priv(ndev);
++	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
++        // if interface is up 
++	if( ndev->flags & IFF_UP )
++		return size;
++        if( !size )	return size;
++        if( buf[0] == '1' )
++		cfg->need_reconf=1;
++        return size;
++}
++static CLASS_DEVICE_ATTR(apply_cfg, 0200 ,NULL,store_apply_cfg);
++
++// ------------------------- HDLC 0/1 ---------------------------------------- //
++
++// CRC count attribute 
++static ssize_t
++show_crc16(struct class_device *cdev, char *buf) 
++{
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl=(struct net_local *)netdev_priv(ndev);
++        struct hdlc_config *cfg=&(nl->hdlc_cfg);
++
++	if( cfg->crc16 )
++		return snprintf(buf,PAGE_SIZE,"crc16");
++        else
++		return snprintf(buf,PAGE_SIZE,"crc32");    
++}
++
++static ssize_t
++store_crc16( struct class_device *cdev,const char *buf, size_t size ) 
++{
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = netdev_priv(ndev);
++        struct hdlc_config *cfg=&(nl->hdlc_cfg);
++	u8 cfg_bt;
++
++        if( ndev->flags & IFF_UP )
++		return size;
++
++        if( !size )	return 0;
++    
++	switch(buf[0]){
++	case '1':
++		if( cfg->crc16 )
++			break;
++		cfg->crc16=1;
++		cfg_bt=ioread8( &(nl->regs->CRA)) | CMOD;
++		iowrite8( cfg_bt,&(nl->regs->CRA));
++		break;
++        case '0':
++		if( !(cfg->crc16) )
++		        break;
++		cfg->crc16=0;
++		cfg_bt=ioread8( &(nl->regs->CRA)) & ~CMOD;
++		iowrite8( cfg_bt,&(nl->regs->CRA));
++		break;
++	}	
++        return size;	
++}
++static CLASS_DEVICE_ATTR(crc16, 0644 ,show_crc16,store_crc16);
++
++// fill byte value
++static ssize_t
++show_fill_7e(struct class_device *cdev, char *buf) 
++{
++        struct net_device *ndev = to_net_dev(cdev);    
++	struct net_local *nl=(struct net_local *)netdev_priv(ndev);
++        struct hdlc_config *cfg=&(nl->hdlc_cfg);
++
++	if( cfg->fill_7e )
++		return snprintf(buf,PAGE_SIZE,"7E");
++        else
++		return snprintf(buf,PAGE_SIZE,"FF");    
++}
++
++static ssize_t
++store_fill_7e( struct class_device *cdev,const char *buf, size_t size ) 
++{
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = netdev_priv(ndev);
++        struct hdlc_config *cfg=&(nl->hdlc_cfg);
++	u8 cfg_bt;
++
++        if( ndev->flags & IFF_UP )
++		return size;
++    
++        if( !size )	return 0;
++    
++	switch(buf[0]){
++        case '1':
++		if( cfg->fill_7e )
++    			break;
++		cfg->fill_7e=1;
++		cfg_bt=ioread8( &(nl->regs->CRA)) | FMOD;
++		iowrite8( cfg_bt,&(nl->regs->CRA));
++		break;
++        case '0':
++		if( !(cfg->fill_7e) )
++			break;
++		cfg->fill_7e=0;
++		cfg_bt=ioread8( &(nl->regs->CRA)) & ~FMOD;
++		iowrite8( cfg_bt,&(nl->regs->CRA));
++		break;
++        }	
++	return size;	
++}
++static CLASS_DEVICE_ATTR(fill_7e, 0644 ,show_fill_7e,store_fill_7e);
++// data inversion
++static ssize_t
++show_inv(struct class_device *cdev, char *buf) 
++{
++        struct net_device *ndev = to_net_dev(cdev);    
++	struct net_local *nl=(struct net_local *)netdev_priv(ndev);
++        struct hdlc_config *cfg=&(nl->hdlc_cfg);
++
++	if( cfg->inv )
++		return snprintf(buf,PAGE_SIZE,"on");
++        else
++		return snprintf(buf,PAGE_SIZE,"off");    
++}
++
++static ssize_t
++store_inv( struct class_device *cdev,const char *buf, size_t size ) 
++{
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = netdev_priv(ndev);
++        struct hdlc_config *cfg=&(nl->hdlc_cfg);
++	u8 cfg_bt;
++
++        if( ndev->flags & IFF_UP )
++		return size;
++
++        if( !size )
++		return 0;
++    
++        switch(buf[0]){
++	case '1':
++		if( cfg->inv )
++			break;
++		cfg->inv=1;
++		cfg_bt=ioread8(&(nl->regs->CRA)) | PMOD;
++		iowrite8( cfg_bt,&(nl->regs->CRA));
++		break;
++	case '0':
++		if( !(cfg->inv) )
++		        break;
++		cfg->inv=0;
++		cfg_bt=ioread8(&(nl->regs->CRA)) & ~PMOD;
++		iowrite8( cfg_bt,&(nl->regs->CRA));
++		break;
++        }	
++	return size;	
++}
++static CLASS_DEVICE_ATTR(inv, 0644 ,show_inv,store_inv);
++
++// PCI read burst on/off
++static ssize_t
++show_rburst(struct class_device *cdev, char *buf) 
++{
++        struct net_device *ndev = to_net_dev(cdev);    
++	struct net_local *nl=(struct net_local *)netdev_priv(ndev);
++        struct hdlc_config *cfg=&(nl->hdlc_cfg);
++
++	if( cfg->rburst )
++		return snprintf(buf,PAGE_SIZE,"on");
++        else
++		return snprintf(buf,PAGE_SIZE,"off");    
++
++}
++
++static ssize_t
++store_rburst( struct class_device *cdev,const char *buf, size_t size ) 
++{
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = netdev_priv(ndev);
++        struct hdlc_config *cfg=&(nl->hdlc_cfg);
++	u8 cfg_bt;
++
++        if( ndev->flags & IFF_UP )
++		return size;
++    
++        if( !size )	return 0;
++    
++	switch(buf[0]){
++        case '1':
++		if( cfg->rburst )
++    			break;
++		cfg->rburst=1;
++		cfg_bt=ioread8(&(nl->regs->CRB)) | RDBE;
++		iowrite8( cfg_bt,&(nl->regs->CRB));
++		break;
++	case '0':
++		if( !(cfg->rburst) )
++			break;
++		cfg->rburst=0;
++		cfg_bt=ioread8(&(nl->regs->CRB)) & ~RDBE;
++		iowrite8( cfg_bt,&(nl->regs->CRB));
++		break;
++        }	
++        return size;	
++}
++static CLASS_DEVICE_ATTR(rburst, 0644 ,show_rburst,store_rburst);
++
++// PCI write burst
++static ssize_t
++show_wburst(struct class_device *cdev, char *buf) 
++{
++	struct net_device *ndev = to_net_dev(cdev);    
++        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
++	struct hdlc_config *cfg=&(nl->hdlc_cfg);
++	return snprintf(buf,PAGE_SIZE,"%s",cfg->wburst ? "on" : "off");
++}
++
++static ssize_t
++store_wburst( struct class_device *cdev,const char *buf, size_t size ) 
++{
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = netdev_priv(ndev);
++        struct hdlc_config *cfg=&(nl->hdlc_cfg);
++	u8 cfg_bt;
++
++        if( ndev->flags & IFF_UP )
++		return size;
++    
++        if( !size )	return 0;
++
++	switch(buf[0]){
++	case '1':
++		if( cfg->wburst )
++    			break;
++		cfg->wburst=1;
++		cfg_bt=ioread8(&(nl->regs->CRB)) | WTBE;
++		iowrite8( cfg_bt,&(nl->regs->CRB));
++		break;
++	case '0':
++		if( !(cfg->wburst) )
++			break;
++		cfg->wburst=0;
++		cfg_bt=ioread8(&(nl->regs->CRB)) & ~WTBE;
++		iowrite8( cfg_bt,&(nl->regs->CRB));
++		break;
++        }	
++        return size;	
++}
++static CLASS_DEVICE_ATTR(wburst, 0644 ,show_wburst,store_wburst);
++
++// MAC address less significant value 
++static ssize_t
++store_maddr( struct class_device *cdev,const char *buf, size_t size ) 
++{
++        struct net_device *ndev = to_net_dev(cdev);
++        u16 tmp;
++	char *endp;
++
++        if( ndev->flags & IFF_UP )
++		return size;
++
++        if( !size ) return 0;
++
++	tmp=simple_strtoul( buf,&endp,16) & 0xfff;
++        *(u16 *)ndev->dev_addr = htons( 0x00ff ),
++	*(u32 *)(ndev->dev_addr + 2) = htonl( 0x014aa000 | tmp );     
++
++        return size;
++}
++static CLASS_DEVICE_ATTR(maddr, 0200 ,NULL,store_maddr);
++
++// ------------------------- Statistics ------------------------------- //
++// PCI write burst
++static ssize_t
++show_statistics(struct class_device *cdev, char *buf) 
++{
++	struct net_device *ndev = to_net_dev(cdev);    
++        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
++	struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( nl->dev );
++        struct sg17_sci *s = (struct sg17_sci *)&card->sci;
++	struct sdfe4_stat statistic, *stat=&statistic;
++	
++	if( sdfe4_get_statistic(sg17_sci_if2ch(s,nl->number),s->hwdev,stat) )
++    		return snprintf(buf,PAGE_SIZE,"Error Getting statistic");
++	return snprintf(buf,PAGE_SIZE,"SNR_Marg(%d), LoopAtten(%d), ES_count(%u), SES_Count(%u)\n"
++				"CRC_Anom_count(%u), LOSWS_count(%u), UAS_count(%u), SegAnomaly_Count(%u)\n"
++				"SegDeffect_count(%u), CounterOverfInd(%u), CounterResetInd(%u)\n",
++			        stat->SNR_Margin_dB,stat->LoopAttenuation_dB,stat->ES_count,stat->SES_count,
++				stat->CRC_Anomaly_count,stat->LOSWS_count,stat->UAS_Count,stat->SegmentAnomaly_Count,
++			        stat->SegmentDefectS_Count,stat->CounterOverflowInd,stat->CounterResetInd );
++												
++}
++
++static ssize_t
++store_statistics( struct class_device *cdev,const char *buf, size_t size ) 
++{
++//        struct net_device *ndev = to_net_dev(cdev);
++//	struct net_local *nl = netdev_priv(ndev);
++//	struct hdlc_config *cfg=&(nl->hdlc_cfg);
++
++        if( !size )	return 0;
++
++	switch(buf[0] == '1'){
++        }	
++        return size;	
++}
++static CLASS_DEVICE_ATTR(statistics,0644,show_statistics,store_statistics);
++
++
++// ------------------------- Compatibility ------------------------------- //
++// NSGate compatibility
++static ssize_t
++show_nsg_comp(struct class_device *cdev, char *buf) 
++{
++	struct net_device *ndev = to_net_dev(cdev);    
++        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
++	return snprintf(buf,PAGE_SIZE,"%s", nl->nsg_comp ? "on" : "off");
++}
++
++static ssize_t
++store_nsg_comp( struct class_device *cdev,const char *buf, size_t size ) 
++{
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = netdev_priv(ndev);
++    
++        if( !size )	return 0;
++
++	switch(buf[0]){
++	case '1':
++		nl->nsg_comp = 1;
++		break;
++	case '0':
++		nl->nsg_comp = 0;	
++		break;
++        }	
++        return size;	
++}
++static CLASS_DEVICE_ATTR(nsg_comp, 0644 ,show_nsg_comp,store_nsg_comp);
++
++
++// ------------------------- DEBUG ---------------------------------------- //
++
++// debug_verbosity
++static ssize_t
++store_debug_on( struct class_device *cdev,const char *buf, size_t size ) 
++{
++//        struct net_device *ndev = to_net_dev(cdev);
++//	struct net_local *nl = netdev_priv(ndev);
++        // if interface is up 
++        if( !size )	return size;
++        if( buf[0] == '1' )
++                debug_link=0;
++	else
++		debug_link=40;
++        return size;
++}
++static CLASS_DEVICE_ATTR(debug_on, 0200 ,NULL,store_debug_on);
++
++
++// hdlc registers
++static ssize_t
++show_sg17_regs(struct class_device *cdev, char *buf) 
++{                                                                       
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
++
++	return snprintf(buf,PAGE_SIZE,  "CRA(%02x),CRB(%02x),SR(%02x),IMR(%02x)\n"
++					"CTDR(%02x),LTDR(%02x),CRDR(%02x),LRDR(%02x)\n"
++					"RATE(%02x)\n",
++					nl->regs->CRA,nl->regs->CRB,nl->regs->SR,nl->regs->IMR,
++					*nl->tx.CxDR,*nl->tx.LxDR,*nl->rx.CxDR,*nl->rx.LxDR,
++					nl->regs->RATE);
++}
++
++static ssize_t
++store_sg17_regs( struct class_device *cdev,const char *buf, size_t size )
++{
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
++        u8 tmp;
++	char *endp;
++	PDEBUG(0,"buf[0]=%d",buf[0]);
++        if( !size ) return 0;
++	PDEBUG(0,"buf[0]=%d, %c",buf[0],buf[0]);
++	if( buf[0] < '0' || buf[0] > '8' )
++		return size;
++	tmp=simple_strtoul( buf+2,&endp,16) & 0xff;
++	PDEBUG(0,"buf[0]=%d, tmp=%02x, terget=%08x",buf[0],(u32)tmp,(u32)((u8*)nl->regs + buf[0]));	
++	*((u8*)nl->regs + buf[0]) = tmp;
++	return size;
++}
++
++static CLASS_DEVICE_ATTR(regs,0644,show_sg17_regs,store_sg17_regs);
++
++
++// set|unset loopback
++static ssize_t
++store_loopback( struct class_device *cdev,const char *buf, size_t size ) 
++{
++        struct net_device *ndev = to_net_dev(cdev);
++	struct net_local *nl = netdev_priv(ndev);
++        // if interface is up 
++        if( !size )	return size;
++        if( buf[0] == '1' )
++                nl->regs->CRA |= DLBK;
++	else
++	        nl->regs->CRA &= (~DLBK);
++        return size;
++}
++static CLASS_DEVICE_ATTR(loopback, 0200 ,NULL,store_loopback);
++
++
++int sg17_start_xmit( struct sk_buff *skb, struct net_device *ndev );
++static ssize_t
++store_xmit_tst( struct class_device *cdev,const char *buf, size_t size ) 
++{
++        struct net_device *ndev = to_net_dev(cdev);
++	struct sk_buff *skb;	
++        // if interface is up 
++        if( !size )	return size;
++	
++        PDEBUG(0,"TEST send");
++        skb = dev_alloc_skb(ETHER_MAX_LEN);
++        skb_put( skb, 200);
++	sg17_start_xmit(skb,ndev);
++        return size;
++}
++static CLASS_DEVICE_ATTR(xmit_tst, 0200 ,NULL,store_xmit_tst);
++
++// ------------------------------------------------------------------------ //
++static struct attribute *sg17_attr[] = {
++	// shdsl
++        &class_device_attr_mode.attr,
++        &class_device_attr_annex.attr,
++        &class_device_attr_rate.attr,
++        &class_device_attr_tcpam.attr,
++        &class_device_attr_apply_cfg.attr,
++	// HDLC
++	&class_device_attr_crc16.attr,
++        &class_device_attr_fill_7e.attr,
++        &class_device_attr_inv.attr,
++	// PCI
++        &class_device_attr_rburst.attr,
++        &class_device_attr_wburst.attr,
++	// net device
++	&class_device_attr_maddr.attr,
++	// statistics
++	&class_device_attr_statistics.attr,
++	// compatibility
++	&class_device_attr_nsg_comp.attr,	
++        // debug
++	&class_device_attr_debug_on.attr,	
++	&class_device_attr_regs.attr,
++	&class_device_attr_loopback.attr,
++	&class_device_attr_xmit_tst.attr,
++	NULL
++};
++
++static struct attribute_group sg17_group = {
++        .name  = "sg17_private",
++        .attrs  = sg17_attr,
++};
++
++int
++sg17_sysfs_register(struct net_device *ndev)
++{
++	struct class_device *class_dev = &(ndev->class_dev);	
++	return sysfs_create_group(&class_dev->kobj, &sg17_group);
++}
++
++void
++sg17_sysfs_remove(struct net_device *ndev){
++	struct class_device *class_dev = &(ndev->class_dev);	
++	sysfs_remove_group(&class_dev->kobj, &sg17_group);
++}
+diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17sysfs.h linux-2.6.16/drivers/net/sg17lan/sg17sysfs.h
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17sysfs.h	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg17lan/sg17sysfs.h	2007-02-10 00:31:57.000000000 +0600
+@@ -0,0 +1,17 @@
++#ifndef SG17_SYSFS_H
++#define SG17_SYSFS_H
++#include <linux/kernel.h>
++#include <linux/config.h>
++#include <linux/kobject.h>
++#include <linux/netdevice.h>
++
++/* --------------------------------------------------------------------------
++ *      Module initialisation/cleanup
++ * -------------------------------------------------------------------------- */
++
++#define to_net_dev(class) container_of(class, struct net_device, class_dev)
++
++int sg17_sysfs_register(struct net_device *ndev);
++void sg17_sysfs_remove(struct net_device *ndev);
++
++#endif
