@@ -135,6 +135,8 @@ _ifup(){
 
 	echo 1 > /proc/sys/net/ipv4/ip_forward
 
+	$ip link set $realiface down
+
 	pre_ifup 
 
 	get_next_ppp(){
