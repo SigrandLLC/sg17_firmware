@@ -667,7 +667,6 @@ public:
 	char *get_fullchain() {
 		char str_buf1[512];
 		char str_buf2[512];
-		char *result;
 		memset((void*)str_buf1, 0, sizeof(str_buf1));
 		memset((void*)str_buf2, 0, sizeof(str_buf2));
 
@@ -684,9 +683,7 @@ public:
 			strncat(str_buf1, str_buf2, sizeof(str_buf1));
 			n = n->get_parent();
 		}
-		result = (char*) malloc(strlen(str_buf1)+1);
-		strcpy(result, str_buf1);
-		return result;
+		return strdup(str_buf1);
 	}
 
 	void print_fullchain(int maxlevel=MAX_LEVEL) {
@@ -732,20 +729,32 @@ public:
 
 
 	// in: str:'sys_fw_filter_policy'
-	// returns _PARENT_ node of FIRST pattern occurence
+	// returns node of FIRST pattern occurence
 	// returns NULL if chain not found
-	node* chain_find_node_by_pattern(const char *str) {
+	node* chain_find_node_by_pattern(const char *pattern) {
 		char str_buf[1024];
 
+		assert (pattern);
+		debug(5, "node['%s']::chain_find_node_by_pattern('%s')\n", get_name(), pattern);
+
+		char *chain_name = get_fullchain();
+		snprint_pair(str_buf, sizeof(str_buf), chain_name, get_data(), DO_NOT_PRINT_NEWLINE);
+		free(chain_name);
+
+		if ( match_wildcard(pattern, str_buf) )  {
+			debug(5, "node['%s']::chain_find_node_by_pattern('%s'): wildcard matched\n", get_name());
+			return this;
+		}
+
 		node *c = fchild;
-
-		
-		snprint_pair(str_buf, sizeof(str_buf), );
-		if (! walk_func(this, func_data, options) )
-			return;
-
+		node *r = NULL;
 		while ( c ) {
-			c->walk(walk_func, func_data, options);
+			assert(c);
+			r = c->chain_find_node_by_pattern(pattern) ;
+			if ( r ) {
+				debug(5, "node['%s']::chain_find_node_by_pattern('%s'): found node['%s']\n", get_name(), r->get_name());
+				return r;
+			}
 			c = c->get_next();
 		}
 
@@ -808,6 +817,9 @@ public:
 		}
 	}
 
+/*
+
+	// for slist
 	void chain_print_node(const char* prefix) {
 		debug(3, "node['%s']::chain_print_node('%s')\n", get_name(), prefix);
 		char str_buf[512];
@@ -826,36 +838,18 @@ public:
 			c=c->get_next();
 		}
 	}
-
-	static void snprint_node(char* buf, int bufsize, node* n, int print_opt) {
-		assert(n);
-
-		switch ( print_opt ) {
-			case PRINT_GCP:
-				node::print_pair(chain_name, n->get_data(), flags);
-				break;
-			case PRINT_GC:
-				node::print_pair(chain_name, NULL, flags);
-				break;
-			case PRINT_GP:
-				// TODO: need some refactoring for chain_find_node_by_pattern
-				//node::print_pair(chain_name, NULL, flags);
-				break;
-		};
-	
-	};
-
-	static void print_pair(const char* name, const char* value, int print_opt) {
-		char buf[1024];
+*/
+	static void print_pair(const char* name, const char* value, int print_opt=0) {
+		char str_buf[1024];
 		snprint_pair(str_buf, sizeof(str_buf), name, value, print_opt);
+		printf("%s", str_buf);
 	}
 
-	static void snprint_pair(char* buf, int bufsize, const char* name, const char* value, int print_opt){
+	static void snprint_pair(char* buf, int bufsize, const char* name, const char* value, int print_opt = 0){
 		char *prefix="";
 		char *format="";
 		char *quot_str="";
 		char *suffix="\n";
-
 
 		if ( print_opt & PRINT_LOCAL )
 			prefix = "local ";
@@ -876,7 +870,9 @@ public:
 		else if ( ( (! name) && value) || ( name && (! value) ) )
 			snprintf( buf, bufsize, "%s%s", name?name:value, suffix);
 		else
-			printf( buf, bufsize,  "%s%s=%s%s%s%s", prefix, name?name:"", quot_str, value?value:"", quot_str, suffix);
+			snprintf( buf, bufsize,  "%s%s=%s%s%s%s", prefix, name?name:"", quot_str, value?value:"", quot_str, suffix);
+
+		debug(5, "node::snprint_pair(name='%s', value='%s', print_opt=%d): result: '%s'\n", name, value, print_opt, buf);
 		
 	}
 
@@ -1041,6 +1037,7 @@ public:
 
 		if ( ! root->unserialize_from_file(db_file) )
 			return false;
+		debug(0, "Load finished\n");
 		is_db_already_readed=true;
 		return true;
 	}
@@ -1051,6 +1048,7 @@ public:
 		rewind(db_file);
 		ftruncate(fileno(db_file), 0);
 		debug(3, "hdb::db_write() serializing\n");
+		debug(0, "Saving...\n");
 		return root->serialize_to_file(db_file);
 	}
 
@@ -1080,6 +1078,7 @@ public:
 		
 		return true;
 	}
+/*
 	int hdb_slist (const char* str) {
 		db_load();
 		node *n = current_root->chain_find_node(str);
@@ -1092,6 +1091,7 @@ public:
 		
 		return true;
 	}
+*/
 
 #define CMD_SORT 0
 #define CMD_MOVE_LEFT 1
@@ -1487,10 +1487,37 @@ bool walk_print (node* n, void* func_data, int flags) {
 		snprintf(strbuf, sizeof(strbuf), "%s=%s", chain_name, n->get_data());
 
 		// clean flags, and leave only PRINT_* bits
-		int o = flags & (PRINT_CHAINNAME|PRINT_NAME|PRINT_DATA|PRINT_GCP|PRINT_GP|PRINT_GC|PRINT_GN);
+		int print_opt = flags & (PRINT_CHAINNAME|PRINT_NAME|PRINT_DATA|PRINT_GCP|PRINT_GP|PRINT_GC|PRINT_GN);
 
-		debug(5, "walk_print(node[%s], pattern='%s' opt=%d, o=%d)\n", n->get_name(), pattern, flags, o);
+		debug(5, "walk_print(node[%s], pattern='%s' opt=%d, o=%d)\n", n->get_name(), pattern, flags, print_opt);
 		if ( match_wildcard(pattern, strbuf) ) {
+			switch ( print_opt ) {
+				case PRINT_GCP:
+					node::print_pair(chain_name, n->get_data(), flags);
+					break;
+				case PRINT_GC:
+					node::print_pair(chain_name, NULL, flags);
+					break;
+				case PRINT_GP:
+					node* finded_node = n->chain_find_node_by_pattern(pattern);
+					if ( finded_node && finded_node->get_parent() ) {
+						char strbuf2[1024];
+						debug(6, "walk_print(node[%s], pattern='%s' opt=%d, o=%d)\n", n->get_name(), pattern, flags, print_opt);
+						finded_node = finded_node->get_parent();
+						node *c = finded_node->get_fchild();
+						while ( c ) {
+							assert( c );
+							node::snprint_pair( strbuf2, sizeof(strbuf2), c->get_name(), c->get_data(), DO_NOT_PRINT_NEWLINE );
+							if ( match_wildcard( pattern, strbuf2 ) )
+								node::print_pair( c->get_name(), c->get_data() );
+							c = c->get_next();
+						}
+					
+
+					}
+					//node::print_pair(chain_name, NULL, flags);
+					break;
+			};
 		}
 
 		free(chain_name);
