@@ -33,6 +33,12 @@
       mac=xx:xx:xx:xx:xx:xx
         ...
 
+  gd - get data
+      # hdb gd sys_iface_eth0_*=*
+      10.1.1.1
+      xx:xx:xx:xx:xx:xx
+        ...
+
   gc - get chains
       # hdb gc sys_ifaces*=*
       sys_ifaces_eth0_mac=xx:xx:xx:xx:xx:xx
@@ -111,9 +117,9 @@
 
 
 Что нужно:
-  -  сделать структуру ф-й
-  -  переделать на передачу argv/argc
-  -  переписать print_pair для поддержки pair wildcard'а
-  -                                      hdb_count
-  -  добавить отдельную ф-ю hdbcmd
+  +  переделать на передачу argv/argc
+  +  переписать print_pair для поддержки pair wildcard'а
+  +                                      hdb_count
+  +  добавить отдельную ф-ю hdbcmd
+  -  поддержку set: insert/replace/del
   -  поддержку set_value_int/float/bool
