@@ -203,15 +203,15 @@ stress() {
 t create
 t _set 
 t list 
-t kls 
-t get 
-t isset
-t _rm 
-t sls 
-t lrm
-t ladd
-t import
-t _rename
-t hdbdefault
+#t kls 
+#t get 
+#t isset
+#t _rm 
+#t sls 
+#t lrm
+#t ladd
+#t import
+#t _rename
+#t hdbdefault
 #t stress
 

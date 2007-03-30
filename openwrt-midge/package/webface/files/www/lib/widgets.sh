@@ -197,7 +197,6 @@ render_input_field(){
 		;;
 	hidden)
 		value="$1"
-		#echo "value="$value > /www/settings/tmpf
 		echo "<input type='hidden' name='$inputname' value='$value'>"
 		;;
 	password)

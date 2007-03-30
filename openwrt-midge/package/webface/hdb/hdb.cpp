@@ -51,6 +51,11 @@ extern "C"
 #define PRINT_CHAINNAME	BIT(6)
 #define PRINT_DATA		BIT(7)
 #define DO_NOT_ESCAPE		BIT(8)
+#define PRINT_GCP		BIT(9)
+#define PRINT_GP		BIT(10)
+#define PRINT_GC		BIT(11)
+#define PRINT_GN		BIT(12)
+#define DO_NOT_PRINT_NEWLINE BIT(13)
 
 
 int debug_level = 2;
@@ -60,7 +65,7 @@ void debug(int level,char *format, ...){
 	if ( level > debug_level ) 
 		return;
 	for (int i = 0; i < level; i++)
-		fprintf(stderr, "\t");
+		fprintf(stderr, " ");
 	fprintf(stderr, "DEBUG%d: ", level);
 	va_list ap;
 	va_start(ap, format);
@@ -72,6 +77,21 @@ inline void _debug(int level, char* format, ...){}
 #define debug if(0)_debug
 #endif
 
+void warn(char *format, ...) {
+	fprintf(stderr, "Warning: ");
+	va_list ap;
+	va_start(ap, format);
+	vfprintf(stderr, format, ap);
+	va_end(ap);
+}
+
+void error(char *format, ...) {
+	fprintf(stderr, "Error: ");
+	va_list ap;
+	va_start(ap, format);
+	vfprintf(stderr, format, ap);
+	va_end(ap);
+}
 
 //                    ^
 //    +---------------------------------+
@@ -710,6 +730,28 @@ public:
 		return NULL;
 	}
 
+
+	// in: str:'sys_fw_filter_policy'
+	// returns _PARENT_ node of FIRST pattern occurence
+	// returns NULL if chain not found
+	node* chain_find_node_by_pattern(const char *str) {
+		char str_buf[1024];
+
+		node *c = fchild;
+
+		
+		snprint_pair(str_buf, sizeof(str_buf), );
+		if (! walk_func(this, func_data, options) )
+			return;
+
+		while ( c ) {
+			c->walk(walk_func, func_data, options);
+			c = c->get_next();
+		}
+
+		return NULL;
+	}
+	
 	// in: str:'sys_fw_filter_policy'
 	// returns node with name policy
 	// returns NULL if chain not found
@@ -785,16 +827,43 @@ public:
 		}
 	}
 
+	static void snprint_node(char* buf, int bufsize, node* n, int print_opt) {
+		assert(n);
+
+		switch ( print_opt ) {
+			case PRINT_GCP:
+				node::print_pair(chain_name, n->get_data(), flags);
+				break;
+			case PRINT_GC:
+				node::print_pair(chain_name, NULL, flags);
+				break;
+			case PRINT_GP:
+				// TODO: need some refactoring for chain_find_node_by_pattern
+				//node::print_pair(chain_name, NULL, flags);
+				break;
+		};
+	
+	};
 
 	static void print_pair(const char* name, const char* value, int print_opt) {
+		char buf[1024];
+		snprint_pair(str_buf, sizeof(str_buf), name, value, print_opt);
+	}
+
+	static void snprint_pair(char* buf, int bufsize, const char* name, const char* value, int print_opt){
 		char *prefix="";
 		char *format="";
 		char *quot_str="";
+		char *suffix="\n";
+
 
 		if ( print_opt & PRINT_LOCAL )
 			prefix = "local ";
 		else if ( print_opt & PRINT_EXPORT )
 			prefix = "export ";
+
+		if ( TEST_BIT(print_opt, DO_NOT_PRINT_NEWLINE) )
+			suffix="";
 
 		quot_str="";
 		if ( print_opt & PRINT_QUOT ) 
@@ -803,11 +872,11 @@ public:
 			quot_str = "\"";
 
 		if ( (! name) && (! value) )
-			format="\n";
+			format="";
 		else if ( ( (! name) && value) || ( name && (! value) ) )
-			printf( "%s\n", name?name:value);
+			snprintf( buf, bufsize, "%s%s", name?name:value, suffix);
 		else
-			printf( "%s%s=%s%s%s\n", prefix, name?name:"", quot_str, value?value:"", quot_str);
+			printf( buf, bufsize,  "%s%s=%s%s%s%s", prefix, name?name:"", quot_str, value?value:"", quot_str, suffix);
 		
 	}
 
@@ -828,6 +897,8 @@ class hdb {
 	int is_db_already_readed;
 	node *root;
 	node *current_root;
+	int lines_count;
+	char *program_name;
 public:
 
 	hdb() {
@@ -837,9 +908,22 @@ public:
 		opt = 0;
 		need_write = false;
 		is_db_already_readed = false;
+		lines_count = 0;
 		root = new node("root");
 		current_root = root;
+		program_name = NULL;
 	};
+
+	void reset_lines_count() { lines_count = 0; };
+	void inc_lines_count() { lines_count++; };
+	int get_lines_count() { return lines_count; };
+	void print_lines_count() { 
+		if ( TEST_BIT(opt, PRINT_COUNT) ) { 
+			char s[16]; 
+			snprintf(s, sizeof(s), "%d", get_lines_count()); 
+			node::print_pair("hdb_count",  s, opt);
+		}
+	}
 
 	~hdb() {
 		debug(4, "hdb::~hdb()\n");
@@ -987,7 +1071,9 @@ public:
 		node *n = current_root;
 		if ( n ) {
 			debug(3, "hdb::hdb_list('%s'): found node['%s']\n", str, n->get_name());
+			reset_lines_count();
 			n->walk(walk_print, (void*) str, opt|loptions);
+			print_lines_count();
 		} else {
 			debug(3, "hdb::hdb_list('%s'): node not found\n", str);
 		}
@@ -1012,7 +1098,11 @@ public:
 #define CMD_MOVE_RIGHT 2
 #define CMD_RM 3
 
-	int hdb_cmd(int cmd, const char* name) {
+	int hdb_cmd(int cmd, int argc, char** argv) {
+		if ( argc < 2 )
+			return false;
+
+		char *name = argv[1];
 		db_load();
 		node *n = current_root->chain_find_node(name);
 		if ( n ) {
@@ -1041,6 +1131,36 @@ public:
 		return true;
 	}
 
+	
+	int hdb_getcmd(int loptions, int argc, char** argv) {
+		node *n = current_root;
+		char *pattern=NULL;
+
+		debug(4, "hdb::getcmd('%s')", argv[0]);
+		for (int i=0; i<argc; i++)
+			debug(5, "hdb_getcmd: argv[%d]: %s\n", argv[i]);
+
+		db_load();
+
+
+		// arg checks
+		if ( argc < 2 ) {
+			error("argument mismatch\n");
+			return false;
+		};
+		
+		pattern=argv[1];
+		assert(n);
+		assert(pattern);
+
+		reset_lines_count();
+		n->walk(walk_print, (void*) pattern, opt|loptions);
+		print_lines_count();
+		
+		return true;
+
+	}
+
 	int hdb_rename (const char* name, const char* newname) {
 		db_load();
 		node *n = current_root->chain_find_node(name);
@@ -1054,7 +1174,7 @@ public:
 		return true;
 	}
 
-	int hdb_show (const char* str) {
+	int hdb_show (int argc, char** argv) {
 		db_load();
 		current_root->serialize_to_file(stdout, DO_NOT_ESCAPE);
 		return true;
@@ -1092,24 +1212,23 @@ public:
 		return true;
 	}
 
-	int hdb_dump (const char* str) {
+	int hdb_dump (int argc, char** argv) {
 		db_load();
 		root->dump();
 		return true;
 	}
 
-	int hdb_create(const char *filename) {
+	int hdb_create(int argc, char** argv) {
 		FILE *f;
 		const char *lfilename;
 		
-		if (! filename || !strlen(filename)) {
+		if ( argc > 1 && argv[1] && strlen(argv[1])) {
+			lfilename = argv[1];
+			set_dbfilename(argv[1]);
+		} else
 			lfilename = get_dbfilename();
-		} else {
-			lfilename = filename;
-			set_dbfilename(filename);
-		}
 
-		debug(4, "hdb::hdb_create(%s): creating '%s'\n", filename, lfilename);
+		debug(4, "hdb::hdb_create(): creating '%s'\n", lfilename);
 		if (! (f=fopen(lfilename, "w")))
 			return false;
 		db_file=f;
@@ -1123,21 +1242,27 @@ public:
 		return true;
 	}
 
-	int hdb_export(const char* filename)
-	{
+	int hdb_export(int argc, char** argv)
+	{	
 		db_load();
 		return current_root->serialize();
 	}
 
-	int hdb_import(const char* filename)
-	{
+	int hdb_import(int argc, char** argv)
+	{	
+		const char* lfilename;
+		if ( argc > 1 && argv[1] && strlen(argv[1]))
+			lfilename=argv[1];
+		else
+			lfilename="-";
+
 		db_close();
 
 		FILE *file;
-		if ( ! strcmp(filename, "-"))
+		if ( ! strcmp(lfilename, "-"))
 			file=stdin;
 		else
-			file = fopen(filename, "r");
+			file = fopen(lfilename, "r");
 		if (!file) {
 			perror("fopen(): ");
 			return false;
@@ -1152,28 +1277,36 @@ public:
 		return db_open();
 	}
 
-	int hdb_edit(const char* me) 
+	int hdb_edit(int argc, char** argv) 
 	{
 		int result=true;
 		char tmpname[128];
 		char editor[255];
 		char buf[255];
+
 		snprintf(tmpname, sizeof(tmpname), "/tmp/hdb.tmp.%d.%d", (int)time(NULL), getpid());
 
 		if (getenv("EDITOR"))
-			sprintf(editor, "%s %s", getenv("EDITOR"), tmpname) ;
+			snprintf(editor, sizeof(editor), "%s %s", getenv("EDITOR"), tmpname) ;
 		else
-			sprintf(editor, "vi %s", tmpname);
+			snprintf(editor, sizeof(editor), "vi %s", tmpname);
 
 		
-		sprintf(buf, "%s export > %s", me, tmpname);
+		snprintf(buf, sizeof(buf), "%s export > %s", program_name, tmpname);
+
+		debug(4, "Executing: '%s'\n", buf);
 		if (system(buf))
 			return false;
 		
+		char *largv[2];
+		largv[0]=strdup("import");
+		largv[1]=tmpname;
 		if (! system(editor))  {
-			result= hdb_import(tmpname);
-			remove(tmpname);
+			result= hdb_import(2, largv);
 		}
+
+		// delete temp file
+		remove(tmpname);
 
 		return result;
 	}
@@ -1188,7 +1321,9 @@ int hdb::main (int argc, char **argv)
     int result=false;
 	int quotation = 0;
 
-	debug(4, "hdb::main(): parsing cmdline, optind=%d\n", optind);
+	// sets program name
+	program_name = argv[0];
+
 	optind=1;
     while ((ch = getopt(argc, argv, "dD:qlecf:")) != -1){
 		debug(5, "hdb::main(): getopt() returns %c: \n", ch);
@@ -1201,45 +1336,93 @@ int hdb::main (int argc, char **argv)
                      break;
             case 'q': quotation++;
                      break;
-            case 'l': opt |= PRINT_LOCAL;
+            case 'l': SET_BIT(opt, PRINT_LOCAL);
                      break;
-            case 'e': opt |= PRINT_EXPORT; 
+            case 'e': SET_BIT(opt, PRINT_EXPORT); 
                      break;
-            case 'c': opt |= PRINT_COUNT;
+            case 'c': SET_BIT(opt, PRINT_COUNT);
                      break;
             default: show_usage(argv[0]);
                      break;
         }
     }
-	if ( quotation ) {
-		opt |= (quotation==1)?PRINT_DQUOT:0;
-		opt |= (quotation==2)?PRINT_QUOT:0;
+
+	debug(5, "hdb::main(): parsing cmdline, optind=%d, argc=%d\n", optind, argc);
+	for (int i=0; i < argc; i++)
+		debug(6, "argv[%d]=%s\n", i, argv[i]);
+
+	switch (quotation) {
+		case 1: 
+			SET_BIT(opt, PRINT_DQUOT);
+			break;
+		case 2:
+			SET_BIT(opt, PRINT_QUOT);
+			break;
+		default:;
 	}
 
     if ( argc <= optind ) 
         show_usage(argv[0]);
 
 	while(true) {
+		int fargc = 0;
+		char **fargv = NULL;
+		char *cmd = NULL;
+
 		if ( optind >= argc ) 
 			break;
-
-		char *cmd = argv[optind];
-		char *param0 = argv[optind+1];
-		char *param1 = argv[optind+2];
-
-		optind++;
+		
 		// if cmd == ':' then go to next cmd
-		if ( cmd[0]==':' )
+		if ( argv[optind][0] == ':' )
 			continue;
 
-		if ( (optind >= argc) || param0[0]==':' )
-			param0 = "";
-		if ( (optind+1 >= argc) || param1[0]==':' )
-			param1 = "";
+		fargv = argv + optind; // fargv points to argc element of argv 
+
+		// prepare fargc
+		while ( ( (optind + fargc) < argc )  &&  ( fargv[fargc][0] != ':' ) )
+			fargc++;
+
+		// enlarge optind
+		optind += fargc;
+
+		// debug
+		debug(5, "fargc=%d, optind=%d\n", fargc, optind);
+		for (int i=0; i < fargc; i++)
+			debug(6, "fargv[%d]=%s\n", i, fargv[i]);
+
+		cmd = fargv[0];
 
 		debug(4, "hdb::main(): cmd: '%s'\n", cmd);
 
-		if ( (!strcmp(cmd, "slist")) || (!strcmp(cmd, "sls")) )
+		if (! strcmp(cmd, "edit") )
+			result = hdb_edit(fargc, fargv);
+		else if (!strcmp(cmd, "export") )
+			result = hdb_export(fargc, fargv);
+		else if (! strcmp(cmd, "import") )
+			result = hdb_import(fargc, fargv);
+		else if (! strcmp(cmd, "create") )
+			result = hdb_create(fargc, fargv);
+		else if (! strcmp(cmd, "dump") )
+			result = hdb_dump(fargc, fargv);
+		else if (! strcmp(cmd, "show") )
+			result = hdb_show(fargc, fargv);
+		else if (! strcmp(cmd, "rm") )
+			result = hdb_cmd(CMD_RM, fargc, fargv);
+		else if (! strcmp(cmd, "mv_right") )
+			result = hdb_cmd(CMD_MOVE_RIGHT, fargc, fargv);
+		else if (! strcmp(cmd, "mv_left") )
+			result = hdb_cmd(CMD_MOVE_LEFT, fargc, fargv);
+		else if (! strcmp(cmd, "sort") )
+			result = hdb_cmd(CMD_SORT, fargc, fargv);
+		else if (! strcmp(cmd, "gcp") )
+			result = hdb_getcmd(PRINT_GCP, fargc, fargv);
+		else if (! strcmp(cmd, "gp") )
+			result = hdb_getcmd(PRINT_GP, fargc, fargv);
+		else if (! strcmp(cmd, "gc") )
+			result = hdb_getcmd(PRINT_GC, fargc, fargv);
+		else if (! strcmp(cmd, "gn") )
+			result = hdb_getcmd(PRINT_GN, fargc, fargv);
+		/*else if ( (!strcmp(cmd, "slist")) || (!strcmp(cmd, "sls")) )
 			result = hdb_slist(param0);
 		else if ( (! strcmp(cmd, "ls")) || (!strcmp(cmd, "list")))
 			result = hdb_print(param0, PRINT_CHAINNAME|PRINT_DATA);
@@ -1252,27 +1435,7 @@ int hdb::main (int argc, char **argv)
 		else if (! strcmp(cmd, "set") )
 			result = hdb_set(param0);
 		else if (! strcmp(cmd, "rename") )
-			result = hdb_rename(param0, param1), optind++;
-		else if (! strcmp(cmd, "dump") )
-			result = hdb_dump(param0);
-		else if (! strcmp(cmd, "show") )
-			result = hdb_show(param0);
-		else if (! strcmp(cmd, "rm") )
-			result = hdb_cmd(CMD_RM, param0);
-		else if (! strcmp(cmd, "mv_right") )
-			result = hdb_cmd(CMD_MOVE_RIGHT, param0);
-		else if (! strcmp(cmd, "mv_left") )
-			result = hdb_cmd(CMD_MOVE_LEFT, param0);
-		else if (! strcmp(cmd, "sort") )
-			result = hdb_cmd(CMD_SORT, param0);
-		else if (! strcmp(cmd, "edit") )
-			result = hdb_edit(argv[0]);
-		else if (!strcmp(cmd, "export") )
-			result = hdb_export(argv[0]);
-		else if (! strcmp(cmd, "import") )
-			result = hdb_import(argv[0]);
-		else if (! strcmp(cmd, "create") )
-			result = hdb_create(param1);
+			result = hdb_rename(param0, param1), optind++; */
 		else 
 			show_usage(argv[0]);
 		if (!result)
@@ -1314,7 +1477,7 @@ int main (int argc, char **argv) {
 /*************************************************************************************************************/
 
 // print callback
-bool walk_print (node* n, void* func_data, int options) {
+bool walk_print (node* n, void* func_data, int flags) {
 	char *chain_name;
 	
 	if (strlen(n->get_data())) {
@@ -1323,27 +1486,11 @@ bool walk_print (node* n, void* func_data, int options) {
 		char strbuf[strlen(chain_name)+strlen(n->get_data())+16];
 		snprintf(strbuf, sizeof(strbuf), "%s=%s", chain_name, n->get_data());
 
-		int o = options&(PRINT_CHAINNAME|PRINT_NAME|PRINT_DATA);
+		// clean flags, and leave only PRINT_* bits
+		int o = flags & (PRINT_CHAINNAME|PRINT_NAME|PRINT_DATA|PRINT_GCP|PRINT_GP|PRINT_GC|PRINT_GN);
 
-		debug(5, "walk_print(node[%s], pattern='%s' opt=%d, o=%d)\n", n->get_name(), pattern, options, o);
+		debug(5, "walk_print(node[%s], pattern='%s' opt=%d, o=%d)\n", n->get_name(), pattern, flags, o);
 		if ( match_wildcard(pattern, strbuf) ) {
-			switch(o) {
-				case PRINT_CHAINNAME|PRINT_DATA:
-					node::print_pair(chain_name, n->get_data(), options);
-					break;
-				case PRINT_NAME|PRINT_DATA:
-					node::print_pair(n->get_name(), n->get_data(), options);
-					break;
-				case PRINT_DATA:
-					node::print_pair(NULL, n->get_data(), options);
-					break;
-				case PRINT_NAME:
-					node::print_pair(n->get_name(), NULL, options);
-					break;
-				case PRINT_CHAINNAME:
-					node::print_pair(chain_name, NULL, options);
-					break;
-			};
 		}
 
 		free(chain_name);
@@ -1542,3 +1689,5 @@ int match_wildcard(const char *pattern, const char *string)
 
     return (*string_p == '\0');
 }
+
+// vim:foldmethod=indent:foldlevel=1
