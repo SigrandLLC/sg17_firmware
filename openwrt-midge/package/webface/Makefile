@@ -22,7 +22,6 @@ $(PKG_BUILD_DIR)/.configured:
 $(PKG_BUILD_DIR)/.built:
 	$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/kdb kdb.c
 	-$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/hdb -luClibc++ hdb/hdb.cpp
-	$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/proccgi proccgi.c
 	$(TARGET_CC) -lcrypt $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/htpasswd htpasswd.c
 	touch $@
 
@@ -30,7 +29,6 @@ $(IPKG_WEBFACE):
 	( tar cf - -C files --exclude .svn . | tar xvf - -C $(IDIR_WEBFACE)	 ); 
 	install -d -m0755 $(IDIR_WEBFACE)/usr/bin
 	install -m0755 $(PKG_BUILD_DIR)/htpasswd $(IDIR_WEBFACE)/usr/bin
-	install -m0755 $(PKG_BUILD_DIR)/proccgi $(IDIR_WEBFACE)/usr/bin
 	install -m0755 $(PKG_BUILD_DIR)/kdb $(IDIR_WEBFACE)/usr/bin
 	-install -m0755 $(PKG_BUILD_DIR)/hdb $(IDIR_WEBFACE)/usr/bin
 	$(RSTRIP) $(IDIR_WEBFACE)/usr/bin/*

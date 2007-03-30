@@ -55,10 +55,11 @@ extern "C"
 #define PRINT_GP		BIT(10)
 #define PRINT_GC		BIT(11)
 #define PRINT_GN		BIT(12)
-#define DO_NOT_PRINT_NEWLINE BIT(13)
+#define PRINT_GD		BIT(13)
+#define DO_NOT_PRINT_NEWLINE BIT(14)
 
 
-int debug_level = 2;
+int debug_level = 1;
 
 #ifdef DEBUG
 void debug(int level,char *format, ...){
@@ -1037,7 +1038,7 @@ public:
 
 		if ( ! root->unserialize_from_file(db_file) )
 			return false;
-		debug(0, "Load finished\n");
+		debug(2, "Load finished\n");
 		is_db_already_readed=true;
 		return true;
 	}
@@ -1048,7 +1049,7 @@ public:
 		rewind(db_file);
 		ftruncate(fileno(db_file), 0);
 		debug(3, "hdb::db_write() serializing\n");
-		debug(0, "Saving...\n");
+		debug(2, "Saving...\n");
 		return root->serialize_to_file(db_file);
 	}
 
@@ -1422,6 +1423,8 @@ int hdb::main (int argc, char **argv)
 			result = hdb_getcmd(PRINT_GC, fargc, fargv);
 		else if (! strcmp(cmd, "gn") )
 			result = hdb_getcmd(PRINT_GN, fargc, fargv);
+		else if (! strcmp(cmd, "gd") )
+			result = hdb_getcmd(PRINT_GD, fargc, fargv);
 		/*else if ( (!strcmp(cmd, "slist")) || (!strcmp(cmd, "sls")) )
 			result = hdb_slist(param0);
 		else if ( (! strcmp(cmd, "ls")) || (!strcmp(cmd, "list")))
@@ -1479,6 +1482,7 @@ int main (int argc, char **argv) {
 // print callback
 bool walk_print (node* n, void* func_data, int flags) {
 	char *chain_name;
+	bool result=true;
 	
 	if (strlen(n->get_data())) {
 		char *pattern = (char*) func_data;
@@ -1487,10 +1491,10 @@ bool walk_print (node* n, void* func_data, int flags) {
 		snprintf(strbuf, sizeof(strbuf), "%s=%s", chain_name, n->get_data());
 
 		// clean flags, and leave only PRINT_* bits
-		int print_opt = flags & (PRINT_CHAINNAME|PRINT_NAME|PRINT_DATA|PRINT_GCP|PRINT_GP|PRINT_GC|PRINT_GN);
+		int print_opt = flags & (PRINT_CHAINNAME|PRINT_NAME|PRINT_DATA|PRINT_GCP|PRINT_GP|PRINT_GC|PRINT_GN|PRINT_GD);
 
-		debug(5, "walk_print(node[%s], pattern='%s' opt=%d, o=%d)\n", n->get_name(), pattern, flags, print_opt);
 		if ( match_wildcard(pattern, strbuf) ) {
+			debug(5, "walk_print(node[%s], pattern='%s' opt=%d, o=%d): chain_name='%s', pattern matched\n", n->get_name(), pattern, flags, print_opt, chain_name);
 			switch ( print_opt ) {
 				case PRINT_GCP:
 					node::print_pair(chain_name, n->get_data(), flags);
@@ -1499,23 +1503,16 @@ bool walk_print (node* n, void* func_data, int flags) {
 					node::print_pair(chain_name, NULL, flags);
 					break;
 				case PRINT_GP:
-					node* finded_node = n->chain_find_node_by_pattern(pattern);
-					if ( finded_node && finded_node->get_parent() ) {
-						char strbuf2[1024];
-						debug(6, "walk_print(node[%s], pattern='%s' opt=%d, o=%d)\n", n->get_name(), pattern, flags, print_opt);
-						finded_node = finded_node->get_parent();
-						node *c = finded_node->get_fchild();
-						while ( c ) {
-							assert( c );
-							node::snprint_pair( strbuf2, sizeof(strbuf2), c->get_name(), c->get_data(), DO_NOT_PRINT_NEWLINE );
-							if ( match_wildcard( pattern, strbuf2 ) )
-								node::print_pair( c->get_name(), c->get_data() );
-							c = c->get_next();
-						}
-					
-
-					}
-					//node::print_pair(chain_name, NULL, flags);
+					node::print_pair(n->get_name(), n->get_data(), flags);
+					result=false;
+					break;
+				case PRINT_GN:
+					node::print_pair(n->get_name(), NULL, flags);
+					result=false; // not recursive 
+					break;
+				case PRINT_GD:
+					node::print_pair(NULL, n->get_data(), flags);
+					result=false; // not recursive 
 					break;
 			};
 		}
@@ -1523,7 +1520,7 @@ bool walk_print (node* n, void* func_data, int flags) {
 		free(chain_name);
 	}
 
-	return true;
+	return result;
 }
 
 

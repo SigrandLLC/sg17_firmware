@@ -39,6 +39,18 @@ root
     mac=00:01:02:03:04:02
     proto=ether
   fw
+   nat
+    prerouting
+     policy=ACCEPT
+    postrouting
+     policy=ACCEPT
+     chain
+      1
+       name=nat
+       jump=SNAT
+       if=eth1
+       of=eth0
+       snat=194.54.152.1
    filter
     input
      policy=ACCEPT
