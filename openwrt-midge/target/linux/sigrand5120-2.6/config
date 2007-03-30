@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.16
-# Thu Mar 29 10:06:58 2007
+# Fri Mar 30 12:31:28 2007
 #
 CONFIG_MIPS=y
 
@@ -909,6 +909,7 @@ CONFIG_DM_MULTIPATH_EMC=m
 #
 CONFIG_NETDEVICES=y
 CONFIG_SIGRAND_SG17LAN=m
+CONFIG_SIGRAND_SG16LAN=m
 CONFIG_IFB=m
 # CONFIG_DUMMY is not set
 CONFIG_BONDING=m
@@ -1036,7 +1037,7 @@ CONFIG_HDLC_PPP=y
 # CONFIG_PC300 is not set
 # CONFIG_FARSYNC is not set
 # CONFIG_DLCI is not set
-CONFIG_SIGRAND_MR16G=y
+CONFIG_SIGRAND_MR16G=m
 
 #
 # ATM drivers
