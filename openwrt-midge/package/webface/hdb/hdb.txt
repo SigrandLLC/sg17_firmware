@@ -13,6 +13,13 @@
  -D	c		- установить разделитель c, default - '_' 
 				(-D/  - sys/iface/eth0/mac)
 
+Wildcards:
+  ?		- любой символ
+  *		- любая последловательность символов, не включая разделителя ( '_' - по умолчанию)
+  **	- любая последловательность символов, включая разделитель
+  [set]	- последловательность символов
+
+
 Типы данных:
 Если перед именем цепочки есть необязательный префикс 
 	bool: - возможные значения true/false, on/'', 0/1, yes/no - принимает значение 0/1
@@ -22,32 +29,42 @@
 
 Команды:
   gcp - get chain pairs
-      # hdb gp sys_ifaces*=*
-      sys_ifaces_eth0_mac=xx:xx:xx:xx:xx:xx
-      sys_ifaces_eth0_ipaddr=10.1.1.1
+      # hdb gp sys_iface**=**
+      sys_iface_eth0_mac=xx:xx:xx:xx:xx:xx
+      sys_iface_eth0_ipaddr=10.1.1.1
         ...
 
   gp - get pairs
-      # hdb gp sys_iface_eth0_*=*
+      # hdb gp sys_iface_eth0_**=**
       ipaddr=10.1.1.1
       mac=xx:xx:xx:xx:xx:xx
         ...
 
   gd - get data
-      # hdb gd sys_iface_eth0_*=*
+      # hdb gd sys_iface_eth0_**=**
       10.1.1.1
       xx:xx:xx:xx:xx:xx
         ...
 
   gc - get chains
-      # hdb gc sys_ifaces*=*
-      sys_ifaces_eth0_mac=xx:xx:xx:xx:xx:xx
-      sys_ifaces_eth0_ipaddr=10.1.1.1
+      # hdb gc sys_iface**=**
+      sys_iface_eth0_mac=xx:xx:xx:xx:xx:xx
+      sys_iface_eth0_ipaddr=10.1.1.1
 	
   gn - get names
-      # hdb gn sys_ifaces_eth0_*=*
+      # hdb gn sys_iface_eth0_**=**
       mac
       ipaddr
+
+  gPn - get parent names
+      # hdb gn sys_iface_*_valid=1
+      eth0
+	  eth1
+
+  gPc - get parent chains
+      # hdb gn sys_iface_**_valid=1
+      sys_iface_eth0
+      sys_iface_eth1
 
   scp 
       устанавливает (добавляет если нету) цепочку

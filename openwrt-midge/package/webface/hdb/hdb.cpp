@@ -26,6 +26,7 @@ extern "C"
 #include <stdarg.h>
 #include <limits.h>
 #include <unistd.h>
+#include <ctype.h>
 #include <errno.h>
 #include <time.h>
 #include <sys/file.h>
@@ -42,22 +43,27 @@ extern "C"
 #define CLEAR_BIT(target,bit)      ((target) &= ~(bit))
 #define TEST_BIT(target,bit)       ((target) & (bit))
 
-#define PRINT_QUOT		BIT(0)
-#define PRINT_DQUOT		BIT(1)
-#define PRINT_LOCAL		BIT(2)
-#define PRINT_EXPORT		BIT(3)
-#define PRINT_COUNT		BIT(4)
-#define PRINT_NAME		BIT(5)
-#define PRINT_CHAINNAME	BIT(6)
-#define PRINT_DATA		BIT(7)
-#define DO_NOT_ESCAPE		BIT(8)
-#define PRINT_GCP		BIT(9)
-#define PRINT_GP		BIT(10)
-#define PRINT_GC		BIT(11)
-#define PRINT_GN		BIT(12)
-#define PRINT_GD		BIT(13)
-#define DO_NOT_PRINT_NEWLINE BIT(14)
+#define PRINT_QUOT				BIT(0)
+#define PRINT_DQUOT				BIT(1)
+#define PRINT_LOCAL				BIT(2)
+#define PRINT_EXPORT			BIT(3)
+#define PRINT_COUNT				BIT(4)
+#define PRINT_NAME				BIT(5)
+#define PRINT_CHAINNAME			BIT(6)
+#define PRINT_DATA				BIT(7)
+#define DO_NOT_ESCAPE			BIT(8)
+#define PRINT_GCP				BIT(9)
+#define PRINT_GP				BIT(10)
+#define PRINT_GC				BIT(11)
+#define PRINT_GPARENTC			BIT(12)
+#define PRINT_GN				BIT(13)
+#define PRINT_GPARENTN			BIT(14)
+#define PRINT_GD				BIT(15)
+#define DO_NOT_PRINT_NEWLINE	BIT(16)
+#define SET_SCP					BIT(17)
 
+//#define match_wildcard ndtpd_match_wildcard
+#define match_wildcard rsync_wildmatch
 
 int debug_level = 1;
 
@@ -753,7 +759,7 @@ public:
 			assert(c);
 			r = c->chain_find_node_by_pattern(pattern) ;
 			if ( r ) {
-				debug(5, "node['%s']::chain_find_node_by_pattern('%s'): found node['%s']\n", get_name(), r->get_name());
+				debug(5, "node['%s']::chain_find_node_by_pattern('%s'): found node['%s']\n", get_name(), pattern, r->get_name());
 				return r;
 			}
 			c = c->get_next();
@@ -881,6 +887,7 @@ public:
 
 
 bool walk_print (node* n, void* func_data, int opt);
+bool walk_set (node* n, void* func_data, int opt);
 
 
 /*************************************************************************************************************/
@@ -1162,6 +1169,57 @@ public:
 
 	}
 
+	int hdb_setcmd(int loptions, int argc, char** argv) {
+		int result = true;
+		node *n = current_root;
+		char *pattern=NULL;
+		char *data=NULL;
+
+		debug(4, "hdb::hdb_setcmd('%s')", argv[0]);
+		for (int i=0; i<argc; i++)
+			debug(5, "hdb_setcmd: argv[%d]: %s\n", argv[i]);
+
+		db_load();
+
+		// arg checks
+		if ( argc < 3 ) {
+			error("argument mismatch\n");
+			return false;
+		};
+		pattern = argv[1];
+		data = argv[2];
+		
+		assert( n );
+		assert( pattern );
+		assert( data );
+
+
+		// TODO: need to rewrite for plural set
+
+		if ( strchr( pattern, '=' ) || is_wildcarded(pattern) )
+			n = n->chain_find_node_by_pattern(pattern);
+		else
+			n = n->chain_find_node(pattern);
+
+		if ( n ) { 
+			debug(3, "hdb::hdb_setcmd('%s'): found node['%s']\n", pattern, n->get_name());
+			n->set_data(data);
+		} else if ( (! strchr( pattern, '=')) && (! is_wildcarded(pattern) ) ) {
+			debug(3, "hdb::hdb_set('%s'): node not found, add it\n", pattern);
+			n = current_root->chain_add_node(pattern);
+			n->set_data(data);
+		} else {
+			warn("hdb::hdb_set('%s'): node not found, and cannot be added\n", pattern);
+			result = false;
+		}
+
+		if (result)
+			need_write++;
+
+		return result;
+
+	}
+
 	int hdb_rename (const char* name, const char* newname) {
 		db_load();
 		node *n = current_root->chain_find_node(name);
@@ -1421,10 +1479,16 @@ int hdb::main (int argc, char **argv)
 			result = hdb_getcmd(PRINT_GP, fargc, fargv);
 		else if (! strcmp(cmd, "gc") )
 			result = hdb_getcmd(PRINT_GC, fargc, fargv);
+		else if (! strcmp(cmd, "gPc") )
+			result = hdb_getcmd(PRINT_GPARENTC, fargc, fargv);
 		else if (! strcmp(cmd, "gn") )
 			result = hdb_getcmd(PRINT_GN, fargc, fargv);
+		else if (! strcmp(cmd, "gPn") )
+			result = hdb_getcmd(PRINT_GPARENTN, fargc, fargv);
 		else if (! strcmp(cmd, "gd") )
 			result = hdb_getcmd(PRINT_GD, fargc, fargv);
+		else if (! strcmp(cmd, "scp") )
+			result = hdb_setcmd(SET_SCP, fargc, fargv);
 		/*else if ( (!strcmp(cmd, "slist")) || (!strcmp(cmd, "sls")) )
 			result = hdb_slist(param0);
 		else if ( (! strcmp(cmd, "ls")) || (!strcmp(cmd, "list")))
@@ -1491,7 +1555,7 @@ bool walk_print (node* n, void* func_data, int flags) {
 		snprintf(strbuf, sizeof(strbuf), "%s=%s", chain_name, n->get_data());
 
 		// clean flags, and leave only PRINT_* bits
-		int print_opt = flags & (PRINT_CHAINNAME|PRINT_NAME|PRINT_DATA|PRINT_GCP|PRINT_GP|PRINT_GC|PRINT_GN|PRINT_GD);
+		int print_opt = flags & (PRINT_CHAINNAME|PRINT_NAME|PRINT_DATA|PRINT_GCP|PRINT_GP|PRINT_GC|PRINT_GPARENTC|PRINT_GN|PRINT_GPARENTN|PRINT_GD);
 
 		if ( match_wildcard(pattern, strbuf) ) {
 			debug(5, "walk_print(node[%s], pattern='%s' opt=%d, o=%d): chain_name='%s', pattern matched\n", n->get_name(), pattern, flags, print_opt, chain_name);
@@ -1502,6 +1566,14 @@ bool walk_print (node* n, void* func_data, int flags) {
 				case PRINT_GC:
 					node::print_pair(chain_name, NULL, flags);
 					break;
+				case PRINT_GPARENTC:
+					free(chain_name);
+					n = n->get_parent();
+					if ( n ) {
+						chain_name = n->get_fullchain();
+						node::print_pair(chain_name, NULL, flags);
+					}
+					break;
 				case PRINT_GP:
 					node::print_pair(n->get_name(), n->get_data(), flags);
 					result=false;
@@ -1510,9 +1582,43 @@ bool walk_print (node* n, void* func_data, int flags) {
 					node::print_pair(n->get_name(), NULL, flags);
 					result=false; // not recursive 
 					break;
+				case PRINT_GPARENTN:
+					n = n->get_parent();
+					if ( n )
+						node::print_pair(n->get_name(), NULL, flags);
+					result=false; // not recursive 
+					break;
 				case PRINT_GD:
 					node::print_pair(NULL, n->get_data(), flags);
 					result=false; // not recursive 
+					break;
+			};
+		}
+
+		free(chain_name);
+	}
+
+	return result;
+}
+
+// set callback
+bool walk_set (node* n, void* func_data, int flags) {
+	char *chain_name;
+	bool result=true;
+	
+	if (strlen(n->get_data())) {
+		char *pattern = (char*) func_data;
+		chain_name = n->get_fullchain();
+		char strbuf[strlen(chain_name)+strlen(n->get_data())+16];
+		snprintf(strbuf, sizeof(strbuf), "%s=%s", chain_name, n->get_data());
+
+		// clean flags, and leave only PRINT_* bits
+		int print_opt = flags & (SET_SCP);
+
+		if ( match_wildcard(pattern, strbuf) ) {
+			debug(5, "walk_print(node[%s], pattern='%s' opt=%d, o=%d): chain_name='%s', pattern matched\n", n->get_name(), pattern, flags, print_opt, chain_name);
+			switch ( print_opt ) {
+				case SET_SCP:
 					break;
 			};
 		}
@@ -1666,6 +1772,36 @@ char *str_unescape(const char *source)
 	return dest;
 }
 
+
+int is_wildcarded(const char *str)
+{
+	int i, len=strlen(str);
+	for ( i=0; i < len; i++ ) {
+		if ( str[i] == '*' ) {
+			if ( i > 0 && str[i-1] == '\\' )
+				continue; 
+			else
+				return true;
+		}
+		if ( str[i] == '[' ) {
+			if ( i > 0 && str[i-1] == '\\' )
+				continue; 
+			else
+				return true;
+		}
+		if ( str[i] == '?' ) {
+			if ( i > 0 && str[i-1] == '\\' )
+				continue; 
+			else
+				return true;
+		}
+	};
+
+	return false;
+}
+
+
+
 /* Wildcard code from ndtpd */
 /*
  * Copyright (c) 1997, 98, 2000, 01  
@@ -1684,7 +1820,7 @@ char *str_unescape(const char *source)
  * If `pattern' matches to `string', 1 is returned.  Otherwise 0 is
  * returned.
  */
-int match_wildcard(const char *pattern, const char *string)
+int ndtpd_match_wildcard(const char *pattern, const char *string)
 {
     const char *pattern_p = pattern;
     const char *string_p = string;
@@ -1713,5 +1849,267 @@ int match_wildcard(const char *pattern, const char *string)
 
     return (*string_p == '\0');
 }
+
+
+/*
+**  Do shell-style pattern matching for ?, \, [], and * characters.
+**  It is 8bit clean.
+**
+**  Written by Rich $alz, mirror!rs, Wed Nov 26 19:03:17 EST 1986.
+**  Rich $alz is now <rsalz@bbn.com>.
+**
+**  Modified by Wayne Davison to special-case '/' matching, to make '**'
+**  work differently than '*', and to fix the character-class code.
+**
+**  Modified by Vladislav Moskovets for hdb special-case 'node_delimiter' matching, to make '**'
+*/
+
+/* What character marks an inverted character class? */
+#define NEGATE_CLASS	'!'
+#define NEGATE_CLASS2	'^'
+
+#define FALSE 0
+#define TRUE 1
+#define ABORT_ALL -1
+#define ABORT_TO_STARSTAR -2
+
+#define CC_EQ(class, len, litmatch) ((len) == sizeof (litmatch)-1 \
+				    && *(class) == *(litmatch) \
+				    && strncmp((char*)class, litmatch, len) == 0)
+
+#if defined STDC_HEADERS || !defined isascii
+# define ISASCII(c) 1
+#else
+# define ISASCII(c) isascii(c)
+#endif
+
+#ifdef isblank
+# define ISBLANK(c) (ISASCII(c) && isblank(c))
+#else
+# define ISBLANK(c) ((c) == ' ' || (c) == '\t')
+#endif
+
+#ifdef isgraph
+# define ISGRAPH(c) (ISASCII(c) && isgraph(c))
+#else
+# define ISGRAPH(c) (ISASCII(c) && isprint(c) && !isspace(c))
+#endif
+
+#ifndef uchar
+#define uchar unsigned char
+#endif
+
+
+#define ISPRINT(c) (ISASCII(c) && isprint(c))
+#define ISDIGIT(c) (ISASCII(c) && isdigit(c))
+#define ISALNUM(c) (ISASCII(c) && isalnum(c))
+#define ISALPHA(c) (ISASCII(c) && isalpha(c))
+#define ISCNTRL(c) (ISASCII(c) && iscntrl(c))
+#define ISLOWER(c) (ISASCII(c) && islower(c))
+#define ISPUNCT(c) (ISASCII(c) && ispunct(c))
+#define ISSPACE(c) (ISASCII(c) && isspace(c))
+#define ISUPPER(c) (ISASCII(c) && isupper(c))
+#define ISXDIGIT(c) (ISASCII(c) && isxdigit(c))
+
+#ifdef WILD_TEST_ITERATIONS
+int wildmatch_iteration_count;
+#endif
+
+static int force_lower_case = 0;
+
+/* Match pattern "p" against the a virtually-joined string consisting
+ * of "text" and any strings in array "a". */
+static int dowild(const uchar *p, const uchar *text, const uchar*const *a)
+{
+	uchar p_ch;
+
+#ifdef WILD_TEST_ITERATIONS
+	wildmatch_iteration_count++;
+#endif
+
+	for ( ; (p_ch = *p) != '\0'; text++, p++) {
+		int matched, special;
+		uchar t_ch, prev_ch;
+		while ((t_ch = *text) == '\0') {
+			if (*a == NULL) {
+				if (p_ch != '*')
+					return ABORT_ALL;
+				break;
+			}
+			text = *a++;
+		}
+		if (force_lower_case && ISUPPER(t_ch))
+			t_ch = tolower(t_ch);
+		switch (p_ch) {
+			case '\\':
+				/* Literal match with following character.  Note that the test
+				 * in "default" handles the p[1] == '\0' failure case. */
+				p_ch = *++p;
+				/* FALLTHROUGH */
+			default:
+				if (t_ch != p_ch)
+					return FALSE;
+				continue;
+			case '?':
+				/* Match anything but '/'. */
+				if (t_ch == node_delimiter[0])
+					return FALSE;
+				continue;
+			case '*':
+				if (*++p == '*') {
+					while (*++p == '*') {}
+					special = TRUE;
+				} else
+					special = FALSE;
+				if (*p == '\0') {
+					/* Trailing "**" matches everything.  Trailing "*" matches
+					 * only if there are no more slash characters. */
+					if (!special) {
+						do {
+							if (strchr((char*)text, node_delimiter[0]) != NULL)
+								return FALSE;
+						} while ((text = *a++) != NULL);
+					}
+					return TRUE;
+				}
+				while (1) {
+					if (t_ch == '\0') {
+						if ((text = *a++) == NULL)
+							break;
+						t_ch = *text;
+						continue;
+					}
+					if ((matched = dowild(p, text, a)) != FALSE) {
+						if (!special || matched != ABORT_TO_STARSTAR)
+							return matched;
+					} else if (!special && t_ch == node_delimiter[0])
+						return ABORT_TO_STARSTAR;
+					t_ch = *++text;
+				}
+				return ABORT_ALL;
+			case '[':
+				p_ch = *++p;
+#ifdef NEGATE_CLASS2
+				if (p_ch == NEGATE_CLASS2)
+					p_ch = NEGATE_CLASS;
+#endif
+				/* Assign literal TRUE/FALSE because of "matched" comparison. */
+				special = p_ch == NEGATE_CLASS? TRUE : FALSE;
+				if (special) {
+					/* Inverted character class. */
+					p_ch = *++p;
+				}
+				prev_ch = 0;
+				matched = FALSE;
+				do {
+					if (!p_ch)
+						return ABORT_ALL;
+					if (p_ch == '\\') {
+						p_ch = *++p;
+						if (!p_ch)
+							return ABORT_ALL;
+						if (t_ch == p_ch)
+							matched = TRUE;
+					} else if (p_ch == '-' && prev_ch && p[1] && p[1] != ']') {
+						p_ch = *++p;
+						if (p_ch == '\\') {
+							p_ch = *++p;
+							if (!p_ch)
+								return ABORT_ALL;
+						}
+						if (t_ch <= p_ch && t_ch >= prev_ch)
+							matched = TRUE;
+						p_ch = 0; /* This makes "prev_ch" get set to 0. */
+					} else if (p_ch == '[' && p[1] == ':') {
+						const uchar *s;
+						int i;
+						for (s = p += 2; (p_ch = *p) && p_ch != ']'; p++) {}
+						if (!p_ch)
+							return ABORT_ALL;
+						i = p - s - 1;
+						if (i < 0 || p[-1] != ':') {
+							/* Didn't find ":]", so treat like a normal set. */
+							p = s - 2;
+							p_ch = '[';
+							if (t_ch == p_ch)
+								matched = TRUE;
+							continue;
+						}
+						if (CC_EQ(s,i, "alnum")) {
+							if (ISALNUM(t_ch))
+								matched = TRUE;
+						} else if (CC_EQ(s,i, "alpha")) {
+							if (ISALPHA(t_ch))
+								matched = TRUE;
+						} else if (CC_EQ(s,i, "blank")) {
+							if (ISBLANK(t_ch))
+								matched = TRUE;
+						} else if (CC_EQ(s,i, "cntrl")) {
+							if (ISCNTRL(t_ch))
+								matched = TRUE;
+						} else if (CC_EQ(s,i, "digit")) {
+							if (ISDIGIT(t_ch))
+								matched = TRUE;
+						} else if (CC_EQ(s,i, "graph")) {
+							if (ISGRAPH(t_ch))
+								matched = TRUE;
+						} else if (CC_EQ(s,i, "lower")) {
+							if (ISLOWER(t_ch))
+								matched = TRUE;
+						} else if (CC_EQ(s,i, "print")) {
+							if (ISPRINT(t_ch))
+								matched = TRUE;
+						} else if (CC_EQ(s,i, "punct")) {
+							if (ISPUNCT(t_ch))
+								matched = TRUE;
+						} else if (CC_EQ(s,i, "space")) {
+							if (ISSPACE(t_ch))
+								matched = TRUE;
+						} else if (CC_EQ(s,i, "upper")) {
+							if (ISUPPER(t_ch))
+								matched = TRUE;
+						} else if (CC_EQ(s,i, "xdigit")) {
+							if (ISXDIGIT(t_ch))
+								matched = TRUE;
+						} else /* malformed [:class:] string */
+							return ABORT_ALL;
+						p_ch = 0; /* This makes "prev_ch" get set to 0. */
+					} else if (t_ch == p_ch)
+						matched = TRUE;
+				} while (prev_ch = p_ch, (p_ch = *++p) != ']');
+				if (matched == special || t_ch == node_delimiter[0])
+					return FALSE;
+				continue;
+		}
+	}
+
+	do {
+		if (*text)
+			return FALSE;
+	} while ((text = *a++) != NULL);
+
+	return TRUE;
+}
+
+/* Match the "pattern" against the "text" string. */
+int rsync_wildmatch(const char *pattern, const char *text)
+{
+	static const uchar *nomore[1]; /* A NULL pointer. */
+	return dowild((const uchar*)pattern, (const uchar*)text, nomore) == TRUE;
+}
+
+/* Match the "pattern" against the forced-to-lower-case "text" string. */
+int iwildmatch(const char *pattern, const char *text)
+{
+	static const uchar *nomore[1]; /* A NULL pointer. */
+	int ret;
+
+	force_lower_case = 1;
+	ret = dowild((const uchar*)pattern, (const uchar*)text, nomore) == TRUE;
+	force_lower_case = 0;
+	return ret;
+}
+
+
 
 // vim:foldmethod=indent:foldlevel=1

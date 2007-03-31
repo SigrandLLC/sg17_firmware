@@ -197,12 +197,20 @@ stress() {
 	true
 }
 
+gcp() {
+	$hdb gcp
+
+
+}
+
 [ ! -x $hdb -a -x "`which hdb`" ] && hdb=`which hdb`
 [ -x $hdb ] || { echo "$hdb not found"; exit 1; }
 
 t create
-t _set 
-t list 
+#t gcp
+
+#t _set 
+#t list 
 #t kls 
 #t get 
 #t isset
