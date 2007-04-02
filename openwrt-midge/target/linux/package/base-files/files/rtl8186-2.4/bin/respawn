@@ -1,0 +1,16 @@
+#!/bin/sh
+
+TTY="$1"
+
+if [ -r /etc/midge.conf ]; then
+	. /etc/midge.conf
+else
+	exec /sbin/getty -L $TTY 115200 vt100
+fi
+
+case "${TTY}" in
+	console)	exec $RESPAWN_CONSOLE ;;
+	ttyS0)		exec $RESPAWN_TTYS0 ;;
+	ttyS1)		exec $RESPAWN_TTYS1 ;;
+	*)			echo "Unknown tty /dev/$TTY"
+esac

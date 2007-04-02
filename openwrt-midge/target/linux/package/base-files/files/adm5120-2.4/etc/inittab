@@ -26,7 +26,6 @@ ttyS0::sysinit:/bin/hostname -F /etc/hostname
 ttyS0::respawn:/bin/respawn console
 #ttyS0::respawn:/bin/respawn ttyS0
 ttyS1::respawn:/bin/respawn ttyS1
-
 #ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100
 #ttyS1::respawn:/sbin/getty -L ttyS1 115200 vt100
 ##ttyS1::respawn:/sbin/getty 115200 ttyS1

@@ -1,5 +1,4 @@
 #!/bin/sh
 
-# Starting from /etc/inittab
-#test -x /sbin/syslogd && /sbin/syslogd -m 0 -C
-#test -x /sbin/klogd   && /sbin/klogd
+test -x /sbin/syslogd && /sbin/syslogd -n -m 0 -C
+test -x /sbin/klogd && /sbin/klogd -n
