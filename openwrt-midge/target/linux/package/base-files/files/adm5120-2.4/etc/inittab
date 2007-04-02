@@ -23,7 +23,10 @@ ttyS0::sysinit:/bin/hostname -F /etc/hostname
 #null::sysinit:/sbin/route add -net 127.0.0.0 netmask 255.0.0.0 lo
 
 # Set up a couple of getty's
-ttyS0::respawn:/bin/sh
+ttyS0::respawn:/bin/respawn console
+#ttyS0::respawn:/bin/respawn ttyS0
+ttyS1::respawn:/bin/respawn ttyS1
+
 #ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100
 #ttyS1::respawn:/sbin/getty -L ttyS1 115200 vt100
 ##ttyS1::respawn:/sbin/getty 115200 ttyS1
@@ -31,8 +34,8 @@ ttyS0::respawn:/bin/sh
 
 # Logging junk
 null::sysinit:/bin/touch /var/log/messages
-null::respawn:/sbin/syslogd -n -m 0 -C
-null::respawn:/sbin/klogd -n
+#null::respawn:/sbin/syslogd -n -m 0 -C
+#null::respawn:/sbin/klogd -n
 
 # Check switch
 #null::restart:/usr/local/sbin/monitor
