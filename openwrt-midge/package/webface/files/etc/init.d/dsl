@@ -32,7 +32,7 @@ _dsl_if_defconfig(){
 	local def_coding="tcpam32"
 	local def_cfg="local"
 	local def_annex="A"
-	local def_mac="00:FF:01:A3:93:80"
+	#local def_mac="00:FF:01:A3:93:80"
 	local def_fill="fill_ff"	
 	local def_inv="invert"
 	
@@ -61,9 +61,9 @@ _dsl_if_defconfig(){
 		$kdb set sys_dsl_${iface}_annex="$def_annex"
 	fi
 	# check that MAC variable is set
-	if [ -z "$mac" ]; then
-		$kdb set sys_dsl_${iface}_mac="$def_mac"
-	fi
+	#if [ -z "$mac" ]; then
+	#	$kdb set sys_dsl_${iface}_mac="$def_mac"
+	#fi
 	# check that FILL BYTE variable is set
 	if [ -z "$fill" ]; then
 		$kdb set sys_dsl_${iface}_fill="$def_fill"
