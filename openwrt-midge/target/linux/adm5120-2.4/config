@@ -151,7 +151,7 @@ CONFIG_BINFMT_ELF=y
 # CONFIG_BINFMT_MISC is not set
 # CONFIG_OOM_KILLER is not set
 CONFIG_CMDLINE_BOOL=y
-CONFIG_CMDLINE="root=/dev/mtdblock2 rootfstype=squashfs ro panic=5 console=/dev/ttyS0"
+CONFIG_CMDLINE="root=/dev/mtdblock2 rootfstype=squashfs ro panic=5 console=/dev/ttyS0 init=/sbin/preinit"
 
 #
 # Memory Technology Devices (MTD)

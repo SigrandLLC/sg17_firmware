@@ -14,21 +14,17 @@
 #
 
 # Startup the system
-::sysinit:/sbin/mount_root
 ttyS0::sysinit:/bin/mount -a
 ttyS0::sysinit:/bin/hostname -F /etc/hostname
-# now run any rc scripts
+
+# Now run any rc scripts
 ::sysinit:/etc/init.d/rcS
 #null::sysinit:/sbin/ifconfig lo 127.0.0.1 up
 #null::sysinit:/sbin/route add -net 127.0.0.0 netmask 255.0.0.0 lo
 
 # Set up a couple of getty's
-ttyS0::respawn:/bin/respawn console
-#ttyS0::respawn:/bin/respawn ttyS0
-ttyS1::respawn:/bin/respawn ttyS1
-#ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100
-#ttyS1::respawn:/sbin/getty -L ttyS1 115200 vt100
-##ttyS1::respawn:/sbin/getty 115200 ttyS1
+ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100
+ttyS1::respawn:/sbin/getty -L ttyS1 115200 vt100
 #tts/0::respawn:/sbin/getty -L tts/0 115200 vt100
 
 # Logging junk

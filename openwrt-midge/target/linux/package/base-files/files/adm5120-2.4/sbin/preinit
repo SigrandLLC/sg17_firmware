@@ -219,4 +219,5 @@ main(){
 }
 
 main $@
+exec /sbin/init
 
