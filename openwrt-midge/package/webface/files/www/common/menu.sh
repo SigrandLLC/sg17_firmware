@@ -26,12 +26,15 @@ L1 System welcome
 		[ "$FORM_iface" = "$i" ] && class="navlnk_a"
 		L3	$i "dsl&iface=$i" $class
 	done
-	L2 E1	'e1'
-	for i in `kdb get sys_e1_ifaces`; do
+	tmp=`kdb get sys_e1_ifaces`
+	if [ -n "$tmp" ]; then
+	    L2 E1	'e1'
+	    for i in `kdb get sys_e1_ifaces`; do
 		class=""
 		[ "$FORM_iface" = "$i" ] && class="navlnk_a"
 		L3	$i "e1&iface=$i" $class
-	done
+	    done
+	fi
 	L2 Switch	'adm5120sw'
 	L2 DNS		'dns'
 	

@@ -1,0 +1,5 @@
+Package: kmod-mr16g-hdlc
+Priority: optional
+Section: sys
+Maintainer: Artem U. Polyakov <artpol84@gmail.com>
+Description: Sigrand MR-16G E1 adepter
