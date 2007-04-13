@@ -213,7 +213,7 @@
 		render_input_field checkbox "Forwarding" sys_iface_${iface}_opt_forwarding
 		default=0
 		render_input_field checkbox "Proxy ARP" sys_iface_${iface}_opt_proxy_arp
-		default=1
+		default=0
 		render_input_field checkbox "RP Filter" sys_iface_${iface}_opt_rp_filter
 		;;
 	'dhcp')
