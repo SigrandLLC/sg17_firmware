@@ -9,16 +9,22 @@ required hexdump
 required head
 required cut
 required printf
+required dd
 
-[ -z "$RANDOM" ] && die "\$RANDOM is not available"
 
 [ -f /etc/kdb ] || cp /etc/kdb.default /etc/kdb
+/etc/templates/Update dns
 
+# MAC address generation section
+
+[ -z "$RANDOM" ] && die "\$RANDOM is not available"
 
 VENDOR_MAC_BASE="00:FF:0F"
 BAD_MAC_BASE="00:FF:0F:00:00"
 
 INTERFACE_RX_STR=$(for i in 0 1 2 3; do ifconfig eth${i} | grep "RX packets:[^0]" 2>/dev/null; done)
+
+RANDOM=$(dd if=/dev/urandom bs=1 count=1 skip=10 2>/dev/null | hexdump -e "16/2 \"%02d\"\"\\n\"")
 
 if [ -z "`kdb get sys_ifaces_mac_base`" ]; then
 	# Generate mac addresses
@@ -48,4 +54,3 @@ if [ -n "$sys_ifaces_mac_base" -a -n "$sys_ifaces_mac_next" ]; then
 	done
 fi
 
-/etc/templates/Update dns
