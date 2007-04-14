@@ -150,13 +150,17 @@ render_input_field(){
 	local inputname="$3"
 	local inputsize='25'
 	local maxlenght='255'
+	local idcode=''
 	local tipcode=''
+	local onchangecode=''
 	local i
 	local helpcode="<a href='javascript:openHelp(\"${controller}\", \"${page}\");'><img src='/img/help.gif' border=0 align='right' valign='middle'></a>"
 	[ -n "$tip" ] && tipcode="onmouseover=\"return overlib('$tip', BUBBLE, BUBBLETYPE, 'roundcorners')\" onmouseout=\"return nd();\""
 	eval 'value=$'$inputname
 	[ -z "$value" -a -n "$default" ] && value="$default"
+	[ -n "$id" ] && idcode="id='$id'"
 	[ -n "$autosubmit" ] && ascode="onchange='this.form.submit()'"
+	[ -n "$onchange" ] && onchangecode="onchange='$onchange'"
 	
 	shift 3
 
@@ -169,16 +173,16 @@ render_input_field(){
 
 	case $type in
 	text)
-		echo "	<input $disabled type='text' class='edit' $tipcode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
+		echo "	<input $disabled type='text' class='edit' $idcode $tipcode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
 		;;
 	checkbox)
-		echo -n "	<input $disabled type='checkbox' class='edit' $tipcode name='$inputname' $validator tmt:errorclass='invalid'"
+		echo -n "	<input $disabled type='checkbox' class='edit' $idcode $tipcode $onchangecode name='$inputname' $validator tmt:errorclass='invalid'"
 		for i in ${value%%0}; do echo -n " checked=1 "; done
 		echo '> '
 		;;
 	radio)
 		while [ -n "$1" ]; do
-			echo -n "<label $tipcode><input $disabled type='radio' class='button' $tipcode name='$inputname' $validator tmt:errorclass='invalid'"
+			echo -n "<label $tipcode><input $disabled type='radio' class='button' $idcode $tipcode $onchangecode name='$inputname' $validator tmt:errorclass='invalid'"
 			[ "$value" = "$1" ] && echo -n " checked "
 			echo "value='$1'>$2</label><br>"
 			validator=""
@@ -186,7 +190,7 @@ render_input_field(){
 		done
 		;;
 	select)
-		echo -n "<select $disabled $tipcode name='$inputname' class='edit' $validator tmt:errorclass='invalid' $ascode>"
+		echo -n "<select $disabled $tipcode name='$inputname' class='edit' $idcode $validator $onchangecode tmt:errorclass='invalid' $ascode>"
 		while [ -n "$1" ]; do
 			echo -n "<option value=$1"
 			[ "$value" = "$1" ] && echo -n " selected "
@@ -200,7 +204,7 @@ render_input_field(){
 		echo "<input type='hidden' name='$inputname' value='$value'>"
 		;;
 	password)
-		echo "	<input $disabled type='password' class='edit' $tipcode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
+		echo "	<input $disabled type='password' class='edit' $idcode $tipcode $onchangecode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
 		;;
 	static)
 		echo "$@"
@@ -212,11 +216,7 @@ render_input_field(){
 	
 	[ ! $type = "hidden" ] && echo "$helpcode<br><span class='inputDesc' $tipcode>$desc</span></td></tr>"
 	echo "<!-- ------- /render_input_field $type $text $inputname $* -->"
-	unset autosubmit
-	unset tip
-	unset desc
-	unset validator
-	unset default
+	unset id autosubmit onchange onmouseover tip desc validator default
 }
 
 render_submit_field(){
@@ -356,4 +356,10 @@ render_page_selection(){
 	echo "</tr></table>"
 }
 
+require_js_file() {
+	echo "<script language=\"JavaScript\" src=\"js/$1\"></script>"
+}
 
+run_js_code() {
+	echo "<script language=\"JavaScript\">$*</script>"
+}
