@@ -18,7 +18,7 @@ validator_expire='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt
 validator_rulename='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct rule name" tmt:pattern="A_z0_9"'
 validator_ipnet='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct address x.x.x.x/y" tmt:pattern="ipnet"'
 validator_ipportrange='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct port" tmt:pattern="ipportrange"'
-validator_ipaddrport='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct address" tmt:pattern="ipaddrport"'
+validator_ipaddrport='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct address" tmt:pattern="ipaddrport"'
 validator_password='tmt:required="true" tmt:message="Please input admin password" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
 validator_name='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct name" tmt:pattern="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,nobackquotes"'
 validator_macaddr='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct mac address" tmt:pattern="macaddr"'
