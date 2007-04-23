@@ -34,6 +34,7 @@
 #include <unistd.h>
 #include <error.h>
 #include <stdarg.h>
+#include <syslog.h> // openlog(), syslog()
 
 // #define DEBUG
 #define MAX_LINES 2048
@@ -49,7 +50,7 @@
 #define ENV_STRING "%ENV"
 #define WARN
 
-#define FLOCK(f) {if(flock(fileno(f), LOCK_EX)) perror("flock");};
+#define FLOCK(f) {if(flock(fileno(f), LOCK_EX)) { perror("flock"); syslog(LOG_ERR, "flock() fail, error code %d", errno); }; };
 #define FUNLOCK(f) flock(fileno(f), LOCK_UN);
 
 #define WILDCARD_LOOP(i, iname) for( i=0; i < db_lines_count; i++ ) \
@@ -95,6 +96,7 @@ void warn(char *format, ...){
 	va_list ap;
 	va_start(ap, format);
 	vfprintf(stderr, format, ap);
+	vsyslog(LOG_WARNING, format, ap);
 	va_end(ap);
 }
 #else
@@ -151,6 +153,7 @@ int db_open()
 	db_file = fopen(get_dbfilename(), "r+");
 	if (!db_file) {
 		fprintf(stderr, "fopen '%s' %s\n", get_dbfilename(), strerror(errno));
+		syslog(LOG_ERR, "fopen '%s' %s\n", get_dbfilename(), strerror(errno));
 		return false;
 	};
 	// lock the file
@@ -215,7 +218,7 @@ int parse_pair(const char* str, char* name, char* value)
 
     char *eq=strchr(s, '=');
     if (!eq || eq==s) {
-        fprintf(stderr, "Error: can't parse: %s", s);
+        syslog(LOG_ERR, "Error: can't parse: %s", s);
         return false;
     }
     eq[0]='\0';
@@ -228,7 +231,7 @@ int parse_pair(const char* str, char* name, char* value)
 int parse_header(char *header)
 {
     if (strncmp(HEADER_LINE, header, 3)){
-        fprintf(stderr, "bad file format\n");
+        syslog(LOG_ERR, "bad file format\n");
         return false;
     }
 
@@ -834,7 +837,7 @@ int listadd(const char* str)
 	
 	// check for '_' at the end of string
 	if ( name[strlen(name)-1] != '_' ) {
-		fprintf(stderr, "Error: key should ends with '_'\n");
+		syslog(LOG_ERR, "Error: key should ends with '_'\n");
 		return false;
 	};
 		
@@ -929,6 +932,8 @@ int main(int argc, char **argv)
                      break;
         }
     }
+
+	openlog("kdb", LOG_PERROR, LOG_USER);
 
     if ( argc <= optind ) 
         show_usage(argv[0]);
