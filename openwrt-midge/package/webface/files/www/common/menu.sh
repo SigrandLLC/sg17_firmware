@@ -19,6 +19,7 @@ L3(){
 L1 System welcome
 	L2 General 	'general'
 	L2 Security 'passwd'
+		L3 'PPP secrets' 'auth_ppp'
 	L2 Time		'time'
 	L2 SHDSL	'dsl'
 	for i in `kdb get sys_dsl_ifaces`; do
@@ -52,6 +53,8 @@ L1 Network
 	
 L1 Services
 	L2 "DNS Server" dns_server
+	L2 "DHCP Server" dhcp_server
+	L2 "PPTP Server" pptp_server
 L1 Tools 
 	L2 syslog	"tools&page=syslog"
 	L2 dmesg	"tools&page=dmesg"
