@@ -103,6 +103,17 @@ update_configs(){
 		cfg_make resolv.conf /etc/resolv.conf && \
 		cfg_commit
 		;;
+	auth_ppp)
+		for ppp_auth_mode in pap chap; do 
+			export ppp_auth_mode;
+			cfg_make ppp-secrets /etc/ppp/$ppp_auth_mode-secrets && \
+			cfg_commit
+		done
+		;;
+	pptp)
+		cfg_make pptp.conf /etc/pptpd.conf && \
+		cfg_commit
+		;;
 	dns_server)
 		ok="true"
 		for k in `kdb  kls svc_dns_zonelist* `; do 
