@@ -974,7 +974,7 @@ int main(int argc, char **argv)
 		else if (!strcmp(cmd, "sskls"))  {
 			if ( (optind+2) <= argc ) {
 				char *pref=argv[optind];
-				char *suff=argv[optind++];
+				char *suff=argv[++optind];
 				result = sskeylist(param, pref, suff);
 				optind+=1;
 			} else
