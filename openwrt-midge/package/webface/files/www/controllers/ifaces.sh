@@ -71,3 +71,4 @@
 
 	render_submit_field Delete
 	render_form_tail
+# vim:foldmethod=indent:foldlevel=1

@@ -154,3 +154,4 @@ if [ -n "$iface" ]; then
 fi
 
 
+# vim:foldmethod=indent:foldlevel=1

@@ -26,3 +26,4 @@
 	render_list_cycle_stuff
 
 	render_form_tail
+# vim:foldmethod=indent:foldlevel=1

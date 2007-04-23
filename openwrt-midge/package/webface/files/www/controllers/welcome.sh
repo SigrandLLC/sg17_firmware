@@ -62,3 +62,4 @@ echo '
                 <td width="75%" class="listr">
 
 '
+# vim:foldmethod=indent:foldlevel=1

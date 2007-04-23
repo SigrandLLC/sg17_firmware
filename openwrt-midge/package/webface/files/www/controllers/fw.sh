@@ -25,7 +25,6 @@
 	elif [ "$table" = "filter" ]; then
 	
 		kdb_vars="str:sys_fw_filter_policy_forward str:sys_fw_filter_policy_input str:sys_fw_filter_policy_output"
-		render_title "Firewall settings"
 		render_save_stuff
 		
 		eval `kdb -qq ls sys_fw_filter_*`
@@ -68,7 +67,6 @@
 	
 	elif [ "$table" = "nat" ]; then
 		kdb_vars="str:sys_fw_nat_policy_prerouting str:sys_fw_nat_policy_postrouting"
-		render_title "Firewall settings"
 		render_save_stuff
 		
 		eval `kdb -qq ls sys_fw_nat_*`
@@ -104,3 +102,4 @@
 
 
 
+# vim:foldmethod=indent:foldlevel=1

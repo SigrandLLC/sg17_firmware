@@ -119,6 +119,10 @@ a {
 	color: #FFFFFF;
 	text-decoration: none;
 }
+.help_lnk {
+	color: #FFFFFF;
+	font-weight: bold;
+}
 .vncellreq {
 	background-color: #DDDDDD;
 	padding-right: 20px;

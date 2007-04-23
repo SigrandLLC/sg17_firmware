@@ -92,3 +92,4 @@ else
 fi
 
 
+# vim:foldmethod=indent:foldlevel=1

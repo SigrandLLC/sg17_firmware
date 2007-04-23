@@ -3,6 +3,6 @@
 . /etc/templates/lib
 
 subsys="$1" 
-[ "$subsys" ] || die "Usage: $0 <subsystem>"
+[ -n "$subsys" ] || die "Usage: $0 <subsystem>"
  
 update_configs $subsys

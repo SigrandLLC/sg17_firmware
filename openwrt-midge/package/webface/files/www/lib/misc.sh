@@ -33,6 +33,7 @@ iface_add() {
 	    	set sys_iface_${iface}_proto=$iface_proto : \
 	    	set sys_iface_${iface}_real=$iface : \
 	    	set sys_iface_${iface}_valid=1 : \
+	    	set sys_iface_${iface}_auto=0 : \
 	    	set sys_iface_${iface}_method=none
 	done
 }
