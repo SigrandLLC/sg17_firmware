@@ -8,7 +8,6 @@
 		
 	eval `kdb -qq ls "sys_iface_${iface}_*" : sls "sys_iface_${iface}_" `
 	
-	
 	# enable DHCP page only on "ether" interfaces
 	dhcp_page=""
 	case $proto in
@@ -19,7 +18,7 @@
 	
 	case $page in
 		'general')	
-			kdb_vars="bool:sys_iface_${iface}_enabled bool:sys_iface_${iface}_auto str:sys_iface_${iface}_method " ;;
+			kdb_vars="str:sys_iface_${iface}_desc bool:sys_iface_${iface}_enabled bool:sys_iface_${iface}_auto str:sys_iface_${iface}_method " ;;
 		'method')
 			[ "$method" = "static" ] && kdb_vars="str:sys_iface_${iface}_ipaddr str:sys_iface_${iface}_netmask str:sys_iface_${iface}_gateway str:sys_iface_${iface}_broadcast"
 			[ "$method" = "dynamic" ] && kdb_vars="str:sys_iface_${iface}_dynhostname"
@@ -147,6 +146,12 @@
 		fi
 		;;
 	'general')
+		render_table_title "Interface general settings" 
+
+		desc=""
+		validator="$validator_name"
+		render_input_field text "Description" sys_iface_${iface}_desc
+
 		tip=""
 		desc=""
 		validator='tmt:required="true"'
@@ -155,18 +160,19 @@
 		# sys_iface_${iface}_auto
 		tip=""
 		desc=""
-		validator='tmt:required="true"'
+		validator="$tmtreq"
 		render_input_field checkbox "Auto" sys_iface_${iface}_auto
 
 		# sys_iface_${iface}_method
 		tip="Select address method:<br><b>Static:</b> IP address is static<br><b>Dynamic:</b> DHCP/PPPoE/PPTP/etc"
 		desc="Please select method of the interface"
-		validator='tmt:required="true" tmt:message="Please select method"'
+		validator="$tmtreq tmt:message='Please select method'"
 		render_input_field select "Method" sys_iface_${iface}_method none 'None' static 'Static address' zeroconf 'Zero Configuration' dynamic 'Dynamic address'
 		;;
 	'method')
 		if [ "$method" = "static" ]; then
 
+			render_table_title "Static address settings" 
 			# sys_iface_${iface}_ipaddr
 			#tip="IP address for interface"
 			desc="Address (dotted quad) <b>required</b>"
@@ -207,6 +213,7 @@
 		#fi
 		;;
 	'options')
+		render_table_title "Interface options" 
 		default=1
 		render_input_field checkbox "Accept redirects" sys_iface_${iface}_opt_accept_redirects
 		default=1
@@ -215,62 +222,6 @@
 		render_input_field checkbox "Proxy ARP" sys_iface_${iface}_opt_proxy_arp
 		default=0
 		render_input_field checkbox "RP Filter" sys_iface_${iface}_opt_rp_filter
-		;;
-	'dhcp')
-		# sys_iface_${iface}_dhcp_enabled
-		tip=""
-		desc="Check this item if you want use DHCP server on your LAN"
-		validator='tmt:required="true"'
-		render_input_field checkbox "Enable DHCP server" sys_iface_${iface}_dhcp_enabled
-
-		desc="Start of dynamic ip range address for your LAN (dotted quad) <b>required</b>"
-		validator="$tmtreq $validator_ipaddr"
-		render_input_field text "Start IP" sys_iface_${iface}_dhcp_startip
-
-		desc="End of dynaic ip range address for your LAN (dotted quad) <b>required</b>"
-		validator="$tmtreq $validator_ipaddr"
-		render_input_field text "End IP" sys_iface_${iface}_dhcp_endip
-
-		tip="<b>Example:</b> 255.255.255.0"
-		desc="Netmask for your LAN (dotted quad) <b>required</b>"
-		validator="$tmtreq $validator_netmask"
-		render_input_field text "Netmask" sys_iface_${iface}_dhcp_netmask
-
-		# sys_iface_${iface}_dhcp_router
-		tip="Router for subnet"
-		desc="Default router for your LAN hosts (dotted quad) "
-		validator=$validator_ipaddr
-		render_input_field text "Default router" sys_iface_${iface}_dhcp_router
-
-		# sys_iface_${iface}_dhcp_lease_time
-		tip="Select default lease time"
-		desc="Please select lease time"
-		validator='tmt:message="Please select lease time"'
-		render_input_field select "Default lease time" sys_iface_${iface}_dhcp_lease_time 600 "10 minutes" 1800 "30 minutes" 3600 "1 hour" \
-				10800 "3 hours" 36000 "10 hours" 86400 "24 hours" #infinite "Infinite"
-
-		# sys_iface_${iface}_dhcp_nameserver
-		tip="DNS server for your LAN hosts<br>You can use this device as DNS server"
-		desc="DNS server for your LAN hosts (dotted quad)"
-		validator=$validator_ipaddr
-		render_input_field text "DNS server" sys_iface_${iface}_dhcp_nameserver
-
-		# sys_iface_${iface}_dhcp_domain_name
-		tip="Most queries for names within this domain can use short names relative to the local domain"
-		desc="Allows DHCP hosts to have fully qualified domain names"
-		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
-		render_input_field text "Domain" sys_iface_${iface}_dhcp_domain_name
-
-		# sys_iface_${iface}_dhcp_ntpserver
-		tip="NTP server for your LAN hosts"
-		desc="NTP server for your LAN hosts (dotted quad)"
-		validator=$validator_ipaddr
-		render_input_field text "NTP server" sys_iface_${iface}_dhcp_ntpserver
-
-		tip="WINS server for your LAN hosts"
-		desc="WINS server for your LAN hosts (dotted quad)"
-		validator=$validator_ipaddr
-		render_input_field text "WINS server" sys_iface_${iface}_dhcp_winsserver
 		;;
 	'spec')
 		case $proto in
@@ -389,6 +340,63 @@
 			;;
 		esac
 		;;
+	'dhcp')
+		# TODO remove dhcp code, it moved to Services menu
+		# sys_iface_${iface}_dhcp_enabled
+		tip=""
+		desc="Check this item if you want use DHCP server on your LAN"
+		validator='tmt:required="true"'
+		render_input_field checkbox "Enable DHCP server" sys_iface_${iface}_dhcp_enabled
+
+		desc="Start of dynamic ip range address for your LAN (dotted quad) <b>required</b>"
+		validator="$tmtreq $validator_ipaddr"
+		render_input_field text "Start IP" sys_iface_${iface}_dhcp_startip
+
+		desc="End of dynaic ip range address for your LAN (dotted quad) <b>required</b>"
+		validator="$tmtreq $validator_ipaddr"
+		render_input_field text "End IP" sys_iface_${iface}_dhcp_endip
+
+		tip="<b>Example:</b> 255.255.255.0"
+		desc="Netmask for your LAN (dotted quad) <b>required</b>"
+		validator="$tmtreq $validator_netmask"
+		render_input_field text "Netmask" sys_iface_${iface}_dhcp_netmask
+
+		# sys_iface_${iface}_dhcp_router
+		tip="Router for subnet"
+		desc="Default router for your LAN hosts (dotted quad) "
+		validator=$validator_ipaddr
+		render_input_field text "Default router" sys_iface_${iface}_dhcp_router
+
+		# sys_iface_${iface}_dhcp_lease_time
+		tip="Select default lease time"
+		desc="Please select lease time"
+		validator='tmt:message="Please select lease time"'
+		render_input_field select "Default lease time" sys_iface_${iface}_dhcp_lease_time 600 "10 minutes" 1800 "30 minutes" 3600 "1 hour" \
+				10800 "3 hours" 36000 "10 hours" 86400 "24 hours" #infinite "Infinite"
+
+		# sys_iface_${iface}_dhcp_nameserver
+		tip="DNS server for your LAN hosts<br>You can use this device as DNS server"
+		desc="DNS server for your LAN hosts (dotted quad)"
+		validator=$validator_ipaddr
+		render_input_field text "DNS server" sys_iface_${iface}_dhcp_nameserver
+
+		# sys_iface_${iface}_dhcp_domain_name
+		tip="Most queries for names within this domain can use short names relative to the local domain"
+		desc="Allows DHCP hosts to have fully qualified domain names"
+		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
+		render_input_field text "Domain" sys_iface_${iface}_dhcp_domain_name
+
+		# sys_iface_${iface}_dhcp_ntpserver
+		tip="NTP server for your LAN hosts"
+		desc="NTP server for your LAN hosts (dotted quad)"
+		validator=$validator_ipaddr
+		render_input_field text "NTP server" sys_iface_${iface}_dhcp_ntpserver
+
+		tip="WINS server for your LAN hosts"
+		desc="WINS server for your LAN hosts (dotted quad)"
+		validator=$validator_ipaddr
+		render_input_field text "WINS server" sys_iface_${iface}_dhcp_winsserver
+		;;
 	'qos')
 		# sys_iface_${iface}_qos_sch
 		desc="Please select scheduler for the interface"
@@ -406,6 +414,7 @@
 	# second form
 	case $page in
 	'dhcp')
+		# TODO remove dhcp code, it moved to Services menu
 		# static dhcp list
 		#render_form_header dhcp_leases
 		#render_table_title "DHCP Static leases" 2 
@@ -518,3 +527,4 @@
 		;;
 
 	esac
+# vim:foldmethod=indent:foldlevel=1
