@@ -5,6 +5,8 @@
 
 tmtreq='tmt:required=true '
 validator_ipaddr='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
+validator_ipaddr_asterisk='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address, or *" tmt:pattern="ipaddr_asterisk"'
+validator_ipaddr_range='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address range, like 192.168.1.100-200" tmt:pattern="ipaddr_range"'
 validator_netmask='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip netmask" tmt:pattern="netmask"'
 validator_dnsdomain='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns domain name" tmt:pattern="dnsdomain"'
 validator_dnsdomainoripaddr=' tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns domain name" tmt:pattern="dnsdomainoripaddr"'
@@ -19,7 +21,7 @@ validator_rulename='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,no
 validator_ipnet='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct address x.x.x.x/y" tmt:pattern="ipnet"'
 validator_ipportrange='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct port" tmt:pattern="ipportrange"'
 validator_ipaddrport='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct address" tmt:pattern="ipaddrport"'
-validator_password='tmt:required="true" tmt:message="Please input admin password" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
+validator_password='tmt:required="true" tmt:message="Please input password" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
 validator_name='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct name" tmt:pattern="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,nobackquotes"'
 validator_macaddr='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct mac address" tmt:pattern="macaddr"'
 validator_spi='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct SPI value" tmt:pattern="ipsec_spi"'
@@ -35,48 +37,13 @@ render_chart_h(){
 	echo '<img src=/img/bar_left.gif><img src=/img/bar_middle.gif height=16 width='$w'><img src=/img/bar_right.gif>' $p '%'
 }
 
-render_title(){
-	local txt;
-	[ -n "$title" ] && txt="$title"
-	[ -n "$1" ] && txt="$1"
-	[ -n "$txt" ] && echo '<h1 class="title">'$txt'</h1>';
-}
-
 render_table_title(){
 	local text="$1"
-	local colspan;
-	[ -n "$2" ] && colspan="colspan='$2'"
 	echo "<tr><td></td></tr>"
-	echo "<tr class='table_title'> <td $colspan class='table_title'>$text</td> </tr>"
+	echo "<tr><td class='table_title' colspan=2><table border=0> <tr class='table_title' ><td width=100%>$text </td>"
+	echo "<td><a class='help_lnk' href='javascript:openHelp(\"${controller}\", \"${page}\");'><img src='/img/help2.png' border=0></a></td></tr></table>"
+	echo "</td></tr>"
 }
-
-render_cmd_set() 
-{
-	echo "<table>"
-	render_table_title env
-	echo "<tr><td><pre class='code'>"
-	set
-	echo "</pre></td></tr></table>"
-}
-displayFile() 
-{
-	file="$1"
-	echo "<table>"
-	render_table_title "$file" 
-	echo "<tr><td><pre class='code'>"
-	cat $file
-	echo "</pre></td></tr></table>"
-}
-
-displayString() 
-{
-	echo "<table>"
-	render_table_title $*
-	echo "<tr><td><pre class='code'>"
-	echo $*
-	echo "</pre></td></tr></table>"
-}
-
 
 render_console_start(){
 	local text="$1"
@@ -109,30 +76,34 @@ render_message_box()
 	local title="$1"
 	local text="$2"
 	echo "<table>"
-	render_table_title "$title" 
+	echo "<tr class='table_title'> <td class='table_title'>$title</td> </tr>"
 	echo "<tr><td>$text</td></tr></table>"
 }
 
 render_save_message(){
+	local title;
 	echo "<table id='message' width='100%' border='0' cellspacing='0' cellpadding='0'>"
-	[ -z "$ERROR_MESSAGE" ] && render_table_title "Information" || render_table_title "Error"
+	[ -z "$ERROR_MESSAGE" ] && title="Information" || title="Error"
+	echo "<tr><td></td></tr>"
+	echo "<tr class='table_title'> <td class='table_title'>$title</td> </tr>"
 	
 	echo "<tr><td width='100%' class='listr' align='center'>" 
 	[ -z "$ERROR_MESSAGE" ] && echo $ok_str || echo "$ERROR_MESSAGE <br> $fail_str"
 
 	echo "</td></tr><tr><td> <br /> <br /></td></tr></table>"
 	render_js_hide_message
-
 }
 
 render_form_header(){
 	local lname="midge_form"
+	local lmethod=${form_method:-POST}
 	if [ -n "$1" ]; then lname="$1"; shift; fi
 
-	echo "<form name='$lname' method='post' tmt:validate='true' $* >"
+	echo "<form name='$lname' method='$lmethod' tmt:validate='true' $* >"
 	#echo "<input type=hidden name=SESSIONID value='$SESSIONID'>"
 	echo "<input type=hidden name=controller value='$controller'>"
 	echo "<table width='100%' border='0' cellspacing='0' cellpadding='0'>"
+	unset form_method
 }
 
 render_input_field(){
@@ -154,7 +125,7 @@ render_input_field(){
 	local tipcode=''
 	local onchangecode=''
 	local i
-	local helpcode="<a href='javascript:openHelp(\"${controller}\", \"${page}\");'><img src='/img/help.gif' border=0 align='right' valign='middle'></a>"
+	#local helpcode="<a href='javascript:openHelp(\"${controller}\", \"${page}\");'><img src='/img/help.gif' border=0 align='right' valign='middle'></a>"
 	[ -n "$tip" ] && tipcode="onmouseover=\"return overlib('$tip', BUBBLE, BUBBLETYPE, 'roundcorners')\" onmouseout=\"return nd();\""
 	eval 'value=$'$inputname
 	[ -z "$value" -a -n "$default" ] && value="$default"
@@ -330,7 +301,9 @@ render_js_close_popup() {
 }
 
 render_js_refresh_parent() {
-	echo "<script language=\"JavaScript\">window.opener.location = window.opener.location</script>"
+	local location="$1"
+	[ -z "$location" ] && location="window.opener.location"	
+	echo "<script language=\"JavaScript\">window.opener.location = $location</script>"
 }
 
 render_js_refresh_window() {
