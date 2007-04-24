@@ -1,0 +1,569 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "/usr/share/xml/docbook/schema/dtd/4.2/docbookx.dtd">
+<book lang="ru">
+	<bookinfo>
+		<title>Руководство по эксплуатации маршрутизатора SG-16R</title>
+		<copyright><year>2007</year><holder>Сигранд</holder></copyright>
+	</bookinfo>
+	<chapter>
+		<chapterinfo>Манипуляция с программным обеспечением маршрутизатора</chapterinfo>
+		<title>Программное обеспечение маршрутизатора</title>
+		<section>
+			<title>Обновление прошивки маршрутизатора</title>
+			<para>
+				Если маршрутизатор уже сконфигурирован, то перед прошивкой следует сохранить конфигурацию, т.к. установка новой прошивки вернет все параметры в начальное состояние. Сохранение и восстановление конфигурации выполняется в веб-интерфейсе.
+			</para>
+			<para>
+				Обновление прошивки выполняется через консольный интерфейс, для этого вам потребуется:
+				<itemizedlist>
+					<listitem><para><acronym>ПК</acronym> с COM-портом</para></listitem>
+					<listitem><para>TFTP сервер, находящийся в той же сети, что и маршрутизатор</para></listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				Перед обновлением прошивки необходимо, чтобы в одной сети с маршрутизатором находился TFTP сервер, с которого будет производится обновление. После настройки TFTP сервера, необходимо в каталог, являющийся для него (TFTP сервера) корневым, скопировать файл прошивки, который можно скачать с веб-сайта <ulink url="http://www.sigrand.ru">www.sigrand.ru</ulink>.
+			</para>
+			<para>
+				Для доступа к консольному интерфейсу маршрутизатора необходимо COM-порт компьютера (разъем DB-9F) соединить с последовательным портом (разъем RJ-45 с надписью RS232, находящийся рядом с разъемом для питания) маршрутизатора.
+			</para>
+			<para>
+				Для управления маршрутизатором через консольный интерфейс может использоваться любая программа управления терминалом - HyperTerminal для ОС Windows или Minicom для ОС GNU/Linux. Настройки последовательного порта следующие:
+				<itemizedlist>
+					<listitem><para>скорость передачи: 115 200</para></listitem>
+					<listitem><para>протокол: 8-N-1</para></listitem>
+					<listitem><para>управление потоком: нет</para></listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				После запуска программы управления терминалом и установки соответствующих настроек порта, надо включить маршрутизатор. В окне программы выведется информация о маршрутизаторе с предложением войти в меню загрузчика:
+			</para>
+			<screen>
+				ADM5120 Boot:
+				
+				
+				Copyright 2005 Sigrand, Inc.
+				CPU: ADM5120-175MHz
+				SDRAM: 128MB
+				Flash: NAND-32MB
+				Boot System: Linux-5120
+				Loader Version: 1.00.03
+				Creation Date: 2004.06.04
+				
+				Press &lt;space> key tree times to enter boot menu..
+				2
+			</screen>
+			<para>
+				Для активации меню загрузчика надо быстро нажать на клавишу пробела 3 раза. Меню загрузчика выглядит следующим образом:
+			</para>
+			<screen>
+				Sigrand MR16 router:
+				==================================
+				Bootloader Menu
+				[1] Xmodem Download
+				[2] TFTP Client Download
+				[3] Print Boot Params
+				[4] Set Boot Params
+				[5] Update bootloader
+				[6] Exit
+				
+				Please enter your number:
+			</screen>
+			<para>
+				Перед обновлением прошивки необходимо выставить сетевые параметры, которые соответствуют вашей сети. Для этого нужно перейти в пункт меню <emphasis>Set Boot Params</emphasis>, нажав клавишу 4. Здесь будет предложено указать:
+				<itemizedlist>
+					<listitem><para>серийный номер маршрутизатора - (Enter new serial number) - можно пропустить</para></listitem>
+					<listitem><para>версию аппаратной части - (Enter new hardware version) - можно пропустить</para></listitem>
+					<listitem>
+						<para>
+							MAC адрес сетевого интерфейса - (Enter new mac address) - можно оставить установленный MAC адрес (его значение отображено выше, Current Mac Address), или ввести новое значение.
+						</para>
+					</listitem>
+					<listitem><para>число MAC адресов - (Enter new number of mac address) - этот параметр следует пропустить (по умолчанию число MAC адресов равно 1)</para></listitem>
+					<listitem><para>IP адрес - (Enter new IP address for this board) - следует ввести IP адрес, находящийся в одной сети с TFTP сервером</para></listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				Пример конфигурации приведен ниже:
+			</para>
+			<screen>
+				Set Boot Parameters.
+				==========================
+				Enter new serial number:
+				Serial Number unchanged.
+				Enter new hardware version:
+				Hardware version unchanged.
+				Current mac addres: 00-05-5D-77-86-01
+				Number of mac address: 1
+				Enter new mac address (AA-AA-AA-AA-AA-AA):
+				Enter new number of mac address (between 1-8):
+				Mac address unchanged.
+				IP address for this board: 192.168.100.3
+				Enter new IP address for this board: 192.168.100.3
+				IP updated successfully.
+			</screen>
+			<para>
+				В приведенном примере был введен только IP адрес маршрутизатора, остальные параметры оставлены без изменений.
+			</para>
+			<para>
+				После настройки сетевых параметров, следует выбрать пункт меню 2 (TFTP Client Download) для настройки параметров обновления с помощью TFTP сервера. Содержание этого меню приведено ниже:
+			</para>
+			<screen>
+				Server IP: 192.168.100.1
+				Remote File: wrt567.bin
+				
+				TFTP Client Menu
+				===============================
+				[D]: start download
+				[S]: set parameters
+				[X]: exit
+				Enter your option:
+			</screen>
+			<para>
+				Первые две строчки (Server IP и Remote File) показывают текущее значение IP адреса TFTP сервера и имени файла прошивки. Для их изменения следует выбрать пункт меню set parameters нажатием клавиши s. В ответ на это будет предложено ввести:
+				<itemizedlist>
+					<listitem><para>IP адрес TFTP сервера - (Please Enter TFTP Server IP) - IP адрес TFTP сервера, на котором находится файл прошивки. TFTP сервер должен находится в одной сети с маршрутизатором.</para></listitem>
+					<listitem><para>Имя файла прошивки - (Enter Remote File Name) - имя файла прошивки, расположенного на TFTP сервере.</para></listitem>
+				</itemizedlist>
+			</para>
+			<screen>
+				Please Enter TFTP Server IP : 192.168.100.1
+				Enter Remote File Name : wrt567.bin
+			</screen>
+			<para>
+				После настройки необходимых параметров, можно перейти к прошивке маршрутизатора. Для этого следует нажать клавишу d, соответствующую пункту меню start download. Начнется загрузка файла прошивки и программирование флэш-памяти. Этот процесс представлен ниже:
+			</para>
+			<screen>
+				Starting the TFTP download(ESC to stop)...............................................................S
+				Eraseing flash.......PASS
+				Programming flash....PASS
+				
+				Server IP: 192.168.100.1
+				Remote File: wrt567.bin
+				
+				TFTP Client Menu
+				===============================
+				[D]: start download
+				[S]: set parameters
+				[X]: exit
+				Enter your option:
+			</screen>
+			<para>
+				Если на экране присутствуют строчки
+				<screen>
+					Eraseing flash.......PASS
+					Programming flash....PASS
+				</screen>
+				, значит обновление прошивки прошло успешно и теперь можно загрузить новую прошивку. Для этого необходимо выполнить перезагрузку маршрутизатора нажатием на кнопку RESET (или включением/выключением питания).
+			</para>
+			<para>
+				После загрузки маршрутизатора (при обычной загрузке не требуется входить в меню загрузчика, поэтому надо подождать, пока истечет таймер и начнется загрузка операционной системы (<acronym>ОС</acronym>>)) можно перейти к настройке посредством веб-интерфейса. Доступ к консоли больше не требуется, поэтому провод и соответствующее <acronym>ПО</acronym> можно отключить.
+			</para>
+			<para>
+				В случае, если на экран была выведена строчка
+				<screen>Starting the TFTP download(ESC to stop)..FAIL</screen>
+				, значит загрузчику не удалось загрузить файл прошивки с указанного TFTP сервера. В этом случае следует проверить корректность указания IP адреса TFTP сервера и имени файла прошивки на нем. Если все корректно, то следует проверить настройки, введенные в пункте Set Boot Params. Может помочь смена MAC адреса и проверка, не блокирует ли сервер TFTP соединения с маршрутизатора.
+			</para>
+		</section>
+		<section>
+			<title>Установка программ</title>
+			<para>
+				Перед установкой пакета его надо загрузить на маршрутизатор. Сделать это можно несколими способами:
+				<itemizedlist>
+					<listitem>Разместить на WWW/FTP сервере и загрузить с помощью утилиты wget</listitem>
+					<listitem>Разместить на TFTP сервер и загрузить с помощью tftp клиента</listitem>
+				</itemizedlist>
+			</para>
+			<simpara>Загрузка пакета с TFTP сервера:</simpara>
+			<simpara>
+				# <command>tftp</command> <replaceable>192.168.2.1</replaceable> <option>-r</option> <replaceable>libpthread_0.9.28-1_mipsel.ipk</replaceable> <option>-g</option>
+			</simpara>
+			<simpara>Установка пакета:</simpara>
+			<para>
+				<screen>
+					# <command>ipkg</command> <option>install</option> <replaceable>libpthread_0.9.28-1_mipsel.ipk</replaceable>
+					Installing libpthread (0.9.28-1) to root...
+					Configuring libpthread
+					Done.
+				</screen>
+			</para>
+			<para>
+				Если при выплнении установки пакета будет выведено сообщение <computeroutput>ERROR: Cannot satisfy the following dependencies for <replaceable>fprobe</replaceable>:</computeroutput>, следует установить указанный пакет и повторить установку текущего пакета (<replaceable>fprobe</replaceable>).
+			</para>
+		</section>
+	</chapter>
+	<chapter>
+		<title>Управление маршрутизатором</title>
+		<section>
+			<title>Начало работы</title>
+			<para>
+				В заводской конфигурации и после обновления прошивки на маршрутизаторе активен интерфейс eth0 (крайний правый порт) с IP-адресом 192.168.2.100, сетевая маска 255.255.255.0.
+			</para>
+			<para>
+				Для конфигурации маршрутизатора необходимо соединить сетевую карту компьютера и крайний правый порт Ethernet проводом витой пары. На компьютере следует выставить IP-адрес из той же сети, в которой находится маршрутизатор (192.168.2.0/24), к примеру, 192.168.2.1, с сетевой маской 255.255.255.0.
+			</para>
+			<section>
+				<title>Конфигурация с помощью Веб-интерфейса</title>
+				<para>
+					Конфигурация маршрутизатора выполняется через веб-интерфейс любым веб-браузером, поддерживающем протокол HTTPS (Internet Explorer, Opera, Safari, Mozilla Firefox). Для конфигурации необходимо в строке адреса веб-браузера ввести https://192.168.2.100, после чего будут заданы несколько вопросов касательно сертификатов шифрования, на которые следует ответить положительно. По-умолчанию, логин/пароль установлены следующие: admin/1234.
+				</para>
+				<para>
+					Вид главной страницы показан ниже:
+					<figure>
+						<title>Главная страница</title>
+						<graphic fileref="img/wellcome.png"/>
+					</figure>
+				</para>
+				<para>
+					<important>Настоятельно рекомендуется поменять пароль для конфигурации, это выполняется на странице System/Security</important>
+					Там же следует поменять и пароль для управления маршрутизатором через консольный интерфейс. Страница смены пароля приведена ниже:
+					<figure>
+						<title>Смена пароля</title>
+						<graphic fileref="img/security.png"/>
+					</figure>
+				</para>
+				<para>
+					Смена имени маршрутизатора (hostname) может быть выполнена на странице System/General, которая приведена ниже:
+					<figure>
+						<title>Смена имени маршрутизатора</title>
+						<graphic fileref="img/general.png"/>
+					</figure>
+				</para>
+				<para>
+					Установка сервера для синхронизации внутренних часов маршрутизатора и часового пояса выполняется на странице System/Time:
+					<figure>
+						<title>Синхронизация времени</title>
+						<graphic fileref="img/time.png"/>
+					</figure>
+				</para>
+				<para>
+					Информация о состоянии соединения SHDSL и E1 может быть получена на страницах General/SHDSL и General/E1 соответственно, конфигурация параметром линии связи для этих интерфейсов выполняется соответственно на страницах General/SHDSL/dsl* и General/E1/hdlc*, для более подробной информации о возможных настройках обратитесь к соответствующему разделу документации.
+				</para>
+				<para>
+					Управление интерфейсами осуществляется на страницах, указанных в меню Network. К примеру, конфигурация интерфейсов Ethernet осуществляется на страницах Network/Interfaces/eth*, SHDSL - на страницах Network/Interfaces/dsl*, а E1 - на Network/Interfaces/hdlc*. Для активация интерфейса необходимо активировать параметры Enabled и Auto на вкладке General, расположенной на странице конфигурирования выбранного сетевого интерфейса. За более подробными инструкциями обратитесь к соответствующим страницам конфигурации маршрутизатора.
+				</para>
+				<para>
+					В меню Tools расположены утилиты, позволяющие:
+					<itemizedlist>
+						<listitem>проследить за работой маршрутизатора, просмотрев логи - страницы syslog и dmesg;</listitem>
+						<listitem>выполнить перезагрузку с помощью reboot;</listitem>
+						<listitem>проверить работу ДНС сервера или соответствие DNC-имени IP-адресу с помощью утилиты dig;</listitem>
+						<listitem>проверить работоспособность узла с помощью утилиты ping;</listitem>
+						<listitem>посмотреть маршрут прохождения пакета до заданного узла в сети с помощью mtr;</listitem>
+						<listitem>просмотреть сетевой трафик с помощью tcpdump.</listitem>
+					</itemizedlist>
+				</para>
+				<para>
+					Сохранение и восстановление конфигурации производится на страницах Configuration/Backup и Configuration/Restore соответственно.
+				</para>
+			</section>
+			<section>
+				<title>Конфигурация через консольный интерфейс</title>
+				<para>
+					Для конфигурации маршрутизатора через консольный интерфейс необходимо подключится к маршрутизатору по протоколу SSH на порт 22. Есть несколько программ, поддерживающих работу по протоколу SSH, к примеру, Putty для OS Windows и ssh для OS GNU/Linux. В качестве логина необходимо ввести root, пароль - 1234.
+				</para>
+				<para>
+					После успешной аутентификации, на экран будет выведен логотип фирмы Sigrand и текущая версия прошивки маршрутизатора:
+				</para>
+				<screen>
+					sigrand1 login: root
+					Password:
+					
+					
+					BusyBox v1.1.2 (2007.03.17-09:17+0000) Built-in shell (ash)
+					Enter 'help' for a list of built-in commands.
+					
+					
+					_/_/_/  _/                                                _/
+					_/              _/_/_/  _/  _/_/    _/_/_/  _/_/_/      _/_/_/
+					_/_/    _/  _/    _/  _/_/      _/    _/  _/    _/  _/    _/
+					_/  _/  _/    _/  _/        _/    _/  _/    _/  _/    _/
+					_/_/_/    _/    _/_/_/  _/          _/_/_/  _/    _/    _/_/_/
+					_/
+					_/_/
+					
+					Revision: r579
+					Builded at: 20070317 16:07
+				</screen>
+				<note>
+					<simpara>
+						Следует заметить, что изменения, внесенные в конфигурацию маршрутизатора через консольный интерфейс будут замены после перезагрузки параметрами, указанными в веб-интерфейсе.
+					</simpara>
+				</note>
+			</section>
+			<section>
+				<title>Сводная информация</title>
+				<table frame="all" style="table-layout='fixed'">
+					<title>Сводная таблица</title>
+					<tgroup cols="3">
+						<colspec colname="c1" colwidth="100"/>
+						<colspec colname="c2" colwidth="100"/>
+						<colspec colname="c3" colwidth="100"/>
+					<thead>
+						<row>
+							<entry namest="c1" nameend="c2">Параметр</entry>
+							<entry>Значение</entry>
+						</row>
+					</thead>
+					<tbody>
+						<row>
+							<entry namest="c1" nameend="c2">IP-адрес (крайний правый порт)</entry>
+							<entry>192.168.2.100</entry>
+						</row>
+						<row>
+							<entry namest="c1" nameend="c2">Сетевая маска</entry>
+							<entry>255.255.255.0</entry>
+						</row>
+						<row>
+							<entry namest="c1" nameend="c2">Веб-интерфейс</entry>
+						</row>
+						<row>
+							<entry></entry>
+							<entry>Протокол</entry>
+							<entry>HTTPS</entry>
+						</row>
+						<row>
+							<entry></entry>
+							<entry>Логин</entry>
+							<entry>admin</entry>
+						</row>
+						<row>
+							<entry></entry>
+							<entry>Пароль</entry>
+							<entry>1234</entry>
+						</row>
+						<row>
+							<entry namest="c1" nameend="c2">Консольный интерфейс</entry>
+						</row>
+						<row>
+							<entry></entry>
+							<entry>Протокол</entry>
+							<entry>SSH</entry>
+						</row>
+						<row>
+							<entry></entry>
+							<entry>Логин</entry>
+							<entry>root</entry>
+						</row>
+						<row>
+							<entry></entry>
+							<entry>Пароль</entry>
+							<entry>1234</entry>
+						</row>
+					</tbody>
+					</tgroup>
+				</table>
+			</section>
+		</section>
+	</chapter>
+	<chapter>
+		<title>Настройка сетевых интерфейсов</title>
+		<section>
+			<title>Конфигурация интерфейса E1</title>
+			<para>
+				Маршрутизатор поддерживает несколько протоколов для работы с интерфейсом E1: HDLC, ETHER-HDLC, CISCO-HDLC, FR, PPP, X25. Конфигурация интерфейса выполняется на странице System/E1/hdlc*.
+			</para>
+			<section>
+				<title>Настройка параметров интерфейса</title>
+				<section>
+					<title>Настройка протокола CISCO-HDLC</title>
+					<para>
+						Настройка некоторых параметров устанавливается в "два этапа": т.е. сперва выбирается значение параметра, затем внесенные изменения сохраняются, и после перезагрузки страницы добавляются опции, относящиеся к выбранному параметру.
+					</para>
+					<para>
+						Для настройки протокола CISCO-HDLC необходимо в выпадающем списке HDLC protocol выбрать значение CISCO-HDLC:
+						<figure>
+							<title>Выбор протокола</title>
+							<graphic fileref="img/hdlc-select_prot.png"/>
+						</figure>
+					</para>
+					<para>
+						Для активации страницы с настройками, относящимся к выбранному протоколу, необходимо сохранить внесенные изменения. После перезагрузки страница примет следующий вид:
+						<figure>
+							<title>Конфигурация CISCO-HDLC</title>
+							<graphic fileref="img/hdlc-params.png"/>
+						</figure>
+					</para>
+					<para>
+						Описание параметров конфигурации:
+						<itemizedlist>
+							<listitem>Interval - время в секундах между пакетами поддержания соединения (keepalive packets)</listitem>
+							<listitem>
+								Timeout - время в секундах после последнего полученного пакета поддержания соединения, по истечению которого соединение считается разорванным.
+							</listitem>
+							<listitem>
+								Е1 framed mode - структурированный режим, при котором канал разбивается на таймслоты. В этом режиме для соединения задается карта таймслотов, которая должна совпадать с картой на другом конце соединения.
+							</listitem>
+							<listitem>
+								Use time slot 16 - по умолчанию в интерфейсе Е1 зарезервированы 0 и 16 слоты, которые могу быть использованы для служебной информации. Активация этого параметра позволяет использовать таймслот 16 для передачи данных.
+							</listitem>
+							<listitem>Slotmap - карта таймслотов. После сохранения из карты будут удалены служебные таймслоты.</listitem>
+							<listitem>
+								E1 internal transmit clock - использовать внутренний генератор частоты. Как правило, в соединении должно быть хотя бы одно устройство с внутренним генератором частоты.
+							</listitem>
+							<listitem>E1 CRC4 multiframe - включение режима CRC4.</listitem>
+							<listitem>
+								E1 CAS multiframe - включение режима CAS, используемого, как правило, при работе с АТС оборудованием. В этом режиме таймслот 16 зарезервирован для служебного использования.
+							</listitem>
+							<listitem>E1 HDB3/AMI line code - способ кодирования сигнала на линии связи.</listitem>
+							<listitem>CRC - способ контроля ошибок.</listitem>
+						</itemizedlist>
+					</para>
+					<para>
+						Пропускная способность одного таймслота составляет 64 Кбит/c, т.о. максимальная пропускная способность интерфейса Е1 в unframed mode составляет 2 Мбит/с.
+					</para>
+					<section>
+						<title>Конфигурация framed mode</title>
+						<para>
+							Для работы интерфейса в framed mode необходимо активировать параметр E1 framed mode и ввести карту таймслотов, например "2-9,17-27 (именно в таком формате, без пробела между диапазонами)". На другом конце соединения должна быть установлена такая же карта слотов. Строго говоря, все параметры, за исключением E1 internal transmit clock, должны быть согласованы с двух сторон.
+						</para>
+						<para>
+							При такой конфигурации карты таймслотов, максимальная пропускная способность канала составит 17 * 64 Кбит/с = 1088 Кбит/с, что подтверждается тестами.
+						</para>
+					</section>
+					<section>
+						<title>Конфигурация unframed mode</title>
+						<para>
+							Для настройки интерфейса на режим работы unframed mode, параметр E1 framed mode должен быть неактивным. После внесения изменений (деактивация параметра) и сохранения, будут доступны следующие параметры настройки:
+							<figure>
+								<title>Unframed mode</title>
+								<graphic fileref="img/hdlc-unfamed.png"/>
+							</figure>
+							В этом режиме параметров конфигурации меньше, чем во framed mode и все они сводятся к настройке линии связи.
+						</para>
+					</section>
+				</section>
+			</section>
+			<section>
+				<title>Настройка сетевых параметров</title>
+				<para>
+					В данной версии ПО, установленного на маршрутизаторе, нет возможности задавать сетевые параметры через веб-интерфейс настройки, поэтому эту часть конфигурации требуется выполнить вручную. В первую очередь, необходимо убедиться, что на странице настройки сетевого интерфейса Network/Interfaces/hdlc*/General параметры Enabled и Auto неактивны:
+					<figure>
+						<title>Настройка интерфейса</title>
+						<graphic fileref="img/hdlc-general.png"/>
+					</figure>
+				</para>
+				<para>
+					После внесения необходимых изменений, необходимо активировать консоль маршрутизатора: либо подключившись к нему по последовательному порту, либо по сети по протоколу SSH.
+				</para>
+				<simpara>
+					Соединение Е1 имеет тип точка-точка. Для активация соединения необходимо выполнить следующую команду:
+				</simpara>
+				<para>
+					# <command>ifconfig</command> <replaceable>hdlc0</replaceable> <replaceable>192.168.200.1</replaceable> pointopoint <replaceable>192.168.200.2</replaceable>
+					<itemizedlist>
+						<listitem>hdlc0 - сетевой интерфейс</listitem>
+						<listitem>192.168.200.1 - IP-адрес соединения на стороне маршрутизатора</listitem>
+					</itemizedlist>
+				</para>
+				<simpara>
+					Если соединение не установилось, то надо деактивировать/активировать сетевой интерфейс:
+				</simpara>
+				<simpara>
+					# <command>ifconfig</command> <replaceable>hdlc0</replaceable> down
+				</simpara>
+				<simpara>
+					# <command>ifconfig</command> <replaceable>hdlc0</replaceable> up
+				</simpara>
+				<simpara>
+					Для активация соединения после загрузки маршрутизатора, необходимо выполнить следующие команды:
+				</simpara>
+				<simpara>
+					# <command>echo</command> <replaceable>"ifconfig hdlc0 192.168.200.1 pointopoint 192.168.200.2"</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
+				</simpara>
+				<simpara>
+					# <command>echo</command> <replaceable>"ifconfig hdlc0 down"</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
+				</simpara>
+				<simpara>
+					# <command>echo</command> <replaceable>"ifconfig hdlc0 up"</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
+				</simpara>
+				<simpara>
+					Созданный файл необходимо сделать исполняемым:
+				</simpara>
+				<simpara>
+					# <command>chmod</command> <option>+x</option> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
+				</simpara>
+			</section>
+		</section>
+		<section>
+			<title>Конфигурация интерфейса Ethernet</title>
+			<para>
+				На вкладке <emphasis>Status</emphasis> отображается основная информация о выбранном интерфейсе:
+				<itemizedlist>
+					<listitem>сетевые настройки (ip-адрес, маска сети, ...)</listitem>
+					<listitem>маршруты, связанные с этим интерфейсом</listitem>
+					<listitem>записи из таблицы ARP адресов</listitem>
+					<listitem>информация о внутреннем коммутаторе</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				Опции на вкладке <emphasis>General</emphasis> позволяют включить/выключить интерфейс, а также выбрать способ установки ip-адреса:
+				<itemizedlist>
+					<listitem>не конфигурируемый (none) - ip-адрес не устанавливается</listitem>
+					<listitem>статический (static address) - ручной ввод пользователем</listitem>
+					<listitem>Zero configuration - автоматический способ присвоения ip-адреса, позволяющий построить работающую сеть без ручного присвоения ip-адресов и без серверов DNS/DHCP</listitem>
+					<listitem>Динамический ip-адрес (dynamic address) - адрес назначается сетевыми сервисами: DHCP/PPTP/...</listitem>
+				</itemizedlist>
+			</para>
+			<note>
+				<simpara>При выборе статического адреса необходимо ввести соответствующую информацию на вкладке <emphasis>Method</emphasis>.</simpara>
+				<simpara>При конфигурации сети с помощью Zeroconf интерфейсу будет назначен ip-адрес из диапазона 169.254.*.</simpara>
+				<simpara>При выборе динамического ip-адреса, адрес и необходимые сетевые настройки будут получены от DHCP сервера.</simpara>
+			</note>
+			<para>
+				Пример конфигурации представлен на рисунке:
+				<figure>
+					<title>Вкладка General</title>
+					<graphic fileref="img/eth-general.png"/>
+				</figure>
+			</para>
+			<para>
+				На вкладке <emphasis>Method</emphasis> осуществляется установка сетевых параметров:
+				<itemizedlist>
+					<listitem>ip-адрес (static address)</listitem>
+					<listitem>маска сети (netmask)</listitem>
+					<listitem>широковещательный адрес (broadcast)</listitem>
+					<listitem>маршрут по-умолчанию (gateway)</listitem>
+				</itemizedlist>
+				<note>
+					<simpara>Обязательными для заполнения являются только первые два поля, при не заполнении поля широковещательного адреса, он будет высчитан автоматически.</simpara>
+				</note>
+			</para>
+			<para>
+				Пример настройки представлен на рисунке:
+				<figure>
+					<title>Вкладка Method</title>
+					<graphic fileref="img/eth-method.png"/>
+				</figure>
+			</para>
+			<simpara>
+				Переключатели на вкладке <emphasis>Options</emphasis> управляют поведением интерфейса.
+			</simpara>
+			<simpara>
+				<emphasis>Accept redirects</emphasis> - в активном состоянии позволяет принимать ICMP перенаправления. Например, если есть лучший маршрут до какого-либо узла чем тот, по которому был послан пакет клиентом, маршрутизатор клиенту может отправить (как правило всегда так и происходит) icmp-перенаправление с указанием, через какой маршрутизатор лучше в следующий раз отправлять пакеты.
+			</simpara>
+			<simpara>
+				<emphasis>Forwarding</emphasis> - при активном состоянии включает режим маршрутизатора - пересылку пакеты с интерфейса на интерфейс (в соответствии с правилами фаервола).
+			</simpara>
+			<simpara>
+				<emphasis>Proxy ARP</emphasis> - включение режима Proxy ARP, что предоставляет третий способ соединения сетей (помимо моста и стандартной IP-маршрутизации).
+			</simpara>
+			<simpara>
+				<emphasis>RP Filter</emphasis> - управляет возможностью проверки пути к отправителю (reversed path) в соответствии с RFC 1812. Активное состояние включает такую проверку и рекомендуется для хостов с одним сетевым интерфейсом и маршрутизаторов тупиковых сетей.
+			</simpara>
+			<para>
+				Пример настройки приведен на рисунке:
+				<figure>
+					<title>Вкладка Options</title>
+					<graphic fileref="img/eth-options.png"/>
+				</figure>
+			</para>
+			<para>
+				На вкладке <emphasis>Specific</emphasis> производится установка MAC-адреса интерфейса. Пример показан на рисунке:
+				<figure>
+					<title>Вкладка Specific</title>
+					<graphic fileref="img/eth-specific.png"/>
+				</figure>
+			</para>
+		</section>
+	</chapter>
+</book>
