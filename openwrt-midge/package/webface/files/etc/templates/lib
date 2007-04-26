@@ -126,11 +126,11 @@ update_configs(){
 		cfg_make named.conf /etc/bind/named.conf || ok="false"
 		[ "$ok" = "true" ] && cfg_commit
 		;;
-	dsl*)
-		iface=${sybsys##*.}
-		cfg_make dsl-interfaces "/etc/dsl/${iface}" $iface && \
-		cfg_commit
-		;;
+#	dsl*)
+#		iface=${sybsys##*.}
+#		cfg_make dsl-interfaces "/etc/dsl/${iface}" $iface && \
+#		cfg_commit
+#		;;
 	ipsec)
 		#cfg_make ipsec-tools.sh /etc/ipsec-tools.sh && \
 		#	cfg_commit
