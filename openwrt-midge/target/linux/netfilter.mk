@@ -1,6 +1,6 @@
 # $Id: netfilter.mk 2411 2005-11-11 03:41:43Z nico $
 
-ifeq ($(NF_2_6),1)
+ifeq ($(BR2_LINUX_2_6),y)
 P_V4:=ipv4/netfilter/
 P_XT:=netfilter/
 else
@@ -79,7 +79,7 @@ IPT_NAT-m :=
 IPT_NAT-$(CONFIG_IP_NF_TARGET_MASQUERADE) += $(P_V4)ipt_MASQUERADE
 IPT_NAT-$(CONFIG_IP_NF_TARGET_MIRROR) += $(P_V4)ipt_MIRROR
 IPT_NAT-$(CONFIG_IP_NF_TARGET_REDIRECT) += $(P_V4)ipt_REDIRECT
-ifeq ($(NF_2_6),1)
+ifeq ($(BR2_LINUX_2_6),y)
 IPT_NAT-m += $(P_V4)ip_nat
 endif
 
@@ -99,7 +99,7 @@ IPT_NAT_EXTRA-$(CONFIG_IP_NF_FTP) += $(P_V4)ip_conntrack_ftp
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_SIP) += $(P_V4)ip_conntrack_sip
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_NAT_PPTP) += $(P_V4)ip_nat_pptp
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_NAT_FTP) += $(P_V4)ip_nat_ftp
-ifeq ($(NF_2_6),1)
+ifeq ($(BR2_LINUX_2_6),y)
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_NAT_SIP) += $(P_V4)ip_nat_sip
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_NAT_SNMP_BASIC) += $(P_V4)ip_nat_snmp_basic
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_SIP) += $(P_V4)ip_conntrack_sip
@@ -113,8 +113,8 @@ IPT_QUEUE-$(CONFIG_IP_NF_QUEUE) += $(P_V4)ip_queue
 IPT_ULOG-m :=
 IPT_ULOG-$(CONFIG_IP_NF_TARGET_ULOG) += $(P_V4)ipt_ULOG
 
-IPT_BUILTIN := $(P_V4)ipt_standard
-IPT_BUILTIN += $(P_V4)ipt_icmp $(P_V4)ipt_tcp $(P_V4)ipt_udp
+IPT_BUILTIN := ipt_standard
+IPT_BUILTIN += ipt_icmp ipt_tcp ipt_udp
 IPT_BUILTIN += $(IPT_CONNTRACK-y)
 IPT_BUILTIN += $(IPT_EXTRA-y)
 IPT_BUILTIN += $(IPT_FILTER-y)

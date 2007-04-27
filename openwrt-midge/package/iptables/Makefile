@@ -21,8 +21,10 @@ define IPKG_plugin_template
 
 $$(IPKG_$(1)):
 	install -m0755 -d $$(IDIR_$(1))/usr/lib/iptables
-	for m in $$(patsubst xt_%,ipt_%,$(2)); do \
-		$(CP) $(PKG_INSTALL_DIR)/usr/lib/iptables/lib$$$${m}.so $$(IDIR_$(1))/usr/lib/iptables/ ; \
+	for m in $$(patsubst %xt_%,ipt_%,$(2)); do \
+		[ -r $$$${m} ] && \
+			$(CP) $(PKG_INSTALL_DIR)/usr/lib/iptables/lib$$$${m}.so $$(IDIR_$(1))/usr/lib/iptables/ || \
+			true ; \
 	done
 	@[ -z "$(3)" ] || $(MAKE) $(3)
 	$(RSTRIP) $$(IDIR_$(1))
