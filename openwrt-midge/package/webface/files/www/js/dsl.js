@@ -32,8 +32,10 @@ function rate_list(l,st,end,step,cur){
 };
 
 
-function SG16_params()
-{
+function OnChangeSG16Code(){
+
+//alert("Start SG16 change");
+
     TCPAM = new Array();
 	TCPAM[0] = new Array();
 		TCPAM[0][0] = "tcpam4";
@@ -64,8 +66,8 @@ alert('annex = ' + annex);
 alert('mode = ' + mode);
 alert('tcpam = ' + tcpam);
 alert('rate = ' + rate);
-*/
 
+*/
     if( preact == "preact" && annex == "F"){
     // TCPAM 16/32
     // Rate: 192 - 5696 for master, automatic for slave
@@ -144,8 +146,65 @@ alert('rate = ' + rate);
     };
 };
 
-function OnChangeDSLCode() {
-//alert("Powxali");
-	SG16_params();
-}
 
+
+function OnChangeSG17Code()
+{
+    TCPAM = new Array();
+	TCPAM[0] = new Array()	
+		TCPAM[0][0] = "tcpam16";
+		TCPAM[0][1] = "TCPAM16";		
+	TCPAM[1] = new Array();	
+		TCPAM[1][0] = "tcpam32";
+		TCPAM[1][1] = "TCPAM32";		
+
+    mode = $('mode').options[$('mode').selectedIndex].value;
+    tcpam = $('code').options[$('code').selectedIndex].value;
+
+    if( $('rate').selectedIndex < 0 &&  $('rate').length >0 ){
+	$('rate').selectedIndex = 0;
+    };
+    rate = $('rate').options[$('rate').selectedIndex].value;
+/*
+alert('mode = ' + mode);
+alert('tcpam = ' + tcpam);
+alert('rate = ' + rate);
+*/
+
+    if( mode == "slave" ){
+	freeList($('rate'));
+	$('rate').options[0] = new Option("automatic");
+	$('rate').disabled = 1;
+	freeList($('code'));
+	$('code').options[0] = new Option("automatic");
+	$('code').disabled = 1;
+    } else {
+	freeList($('code'));
+	$('code').disabled = 0;
+	for(i=1;i>=0;i--){
+		var el = new Option;
+		el.value = TCPAM[i][0];
+		el.text = TCPAM[i][1];
+		if( TCPAM[i][0] == tcpam ){
+			el.selected = 1;
+		};
+		$('code').options.add(el);
+		if( TCPAM[i][0] == tcpam ){
+			$('code').selectedIndex = 1-i;
+		};
+	};
+
+	$('rate').disabled = 0;
+	tcpam = $('code').options[$('code').selectedIndex].value;
+	if( tcpam == "tcpam16" ) {
+		rate_list($('rate'),192,3840,64,rate);
+	} else if( tcpam == "tcpam32" ){
+		rate_list($('rate'),768,5696,64,rate);
+	};
+    }
+};
+
+
+function aaa(){
+    alert("aaa func");
+}

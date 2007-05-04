@@ -42,5 +42,20 @@ _sg_if_refresh(){
 			[ -z "$check" ] && $kdb set sys_ifaces="${net_ifs_old} $iface"
 		fi
 	done
+	
+
+
+	
 	return 0;
+}
+
+_sg_dsl_set_mtypes(){
+
+    for iface in `$kdb get ${kdb_tmpl}_ifaces`; do	
+        if [ -d "$os_ifdir/$iface/sg17_private" ]; then
+	    $kdb set ${kdb_tmpl}_${iface}_mtype="mr17h"
+	elif [ -d "/sys/bus/pci/drivers/sg16lan/${iface}/" ]; then
+	    $kdb set ${kdb_tmpl}_${iface}_mtype="mr16h"	
+	fi
+    done
 }
