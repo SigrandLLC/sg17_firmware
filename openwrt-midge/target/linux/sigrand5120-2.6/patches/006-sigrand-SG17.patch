@@ -1,6 +1,6 @@
 diff -Naur linux-2.6.16-old/drivers/net/Kconfig linux-2.6.16/drivers/net/Kconfig
---- linux-2.6.16-old/drivers/net/Kconfig	2007-03-28 23:15:04.000000000 +0700
-+++ linux-2.6.16/drivers/net/Kconfig	2007-03-28 23:47:24.000000000 +0700
+--- linux-2.6.16-old/drivers/net/Kconfig	2007-05-03 09:01:52.000000000 +0000
++++ linux-2.6.16/drivers/net/Kconfig	2007-05-03 09:04:49.000000000 +0000
 @@ -25,6 +25,11 @@
  	  If unsure, say Y.
  
@@ -14,16 +14,16 @@ diff -Naur linux-2.6.16-old/drivers/net/Kconfig linux-2.6.16/drivers/net/Kconfig
  	tristate "Intermediate Functional Block support"
  	depends on NET_CLS_ACT
 diff -Naur linux-2.6.16-old/drivers/net/Makefile linux-2.6.16/drivers/net/Makefile
---- linux-2.6.16-old/drivers/net/Makefile	2007-03-28 23:15:01.000000000 +0700
-+++ linux-2.6.16/drivers/net/Makefile	2007-03-29 00:01:34.290328312 +0700
-@@ -223,3 +223,4 @@
+--- linux-2.6.16-old/drivers/net/Makefile	2007-05-03 09:01:59.000000000 +0000
++++ linux-2.6.16/drivers/net/Makefile	2007-05-03 09:04:49.000000000 +0000
+@@ -220,3 +220,4 @@
  
  obj-$(CONFIG_FS_ENET) += fs_enet/
  
 +obj-$(CONFIG_SIGRAND_SG17LAN)     += sg17lan/
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sdfe4_lib.h linux-2.6.16/drivers/net/sg17lan/include/sdfe4_lib.h
---- linux-2.6.16-old/drivers/net/sg17lan/include/sdfe4_lib.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/include/sdfe4_lib.h	2007-03-28 23:15:57.000000000 +0700
+--- linux-2.6.16-old/drivers/net/sg17lan/include/sdfe4_lib.h	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/include/sdfe4_lib.h	2007-05-03 09:04:54.000000000 +0000
 @@ -0,0 +1,453 @@
 +/* sdfe4_lib.h:
 + *
@@ -479,8 +479,8 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sdfe4_lib.h linux-2.6.16
 +
 +#endif
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sg17config.h linux-2.6.16/drivers/net/sg17lan/include/sg17config.h
---- linux-2.6.16-old/drivers/net/sg17lan/include/sg17config.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/include/sg17config.h	2007-03-28 23:15:57.000000000 +0700
+--- linux-2.6.16-old/drivers/net/sg17lan/include/sg17config.h	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/include/sg17config.h	2007-05-03 09:04:54.000000000 +0000
 @@ -0,0 +1,27 @@
 +/* sg17config.h:
 + *
@@ -510,8 +510,8 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sg17config.h linux-2.6.1
 +
 +#endif
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sg17device.h linux-2.6.16/drivers/net/sg17lan/include/sg17device.h
---- linux-2.6.16-old/drivers/net/sg17lan/include/sg17device.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/include/sg17device.h	2007-03-28 23:15:57.000000000 +0700
+--- linux-2.6.16-old/drivers/net/sg17lan/include/sg17device.h	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/include/sg17device.h	2007-05-03 09:04:54.000000000 +0000
 @@ -0,0 +1,32 @@
 +/* sg17device.h:
 + *
@@ -546,8 +546,8 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sg17device.h linux-2.6.1
 +
 +#endif
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw_core.h linux-2.6.16/drivers/net/sg17lan/include/sg17hw_core.h
---- linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw_core.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/include/sg17hw_core.h	2007-03-28 23:15:57.000000000 +0700
+--- linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw_core.h	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/include/sg17hw_core.h	2007-05-03 09:04:54.000000000 +0000
 @@ -0,0 +1,79 @@
 +/* sg17hw_core.h:
 + *
@@ -629,8 +629,8 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw_core.h linux-2.6.
 +#endif
 +
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw.h linux-2.6.16/drivers/net/sg17lan/include/sg17hw.h
---- linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/include/sg17hw.h	2007-03-28 23:15:57.000000000 +0700
+--- linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw.h	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/include/sg17hw.h	2007-05-03 09:04:54.000000000 +0000
 @@ -0,0 +1,23 @@
 +/* sg17hw.h:
 + *
@@ -656,8 +656,8 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw.h linux-2.6.16/dr
 +#endif
 +
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw_pci.h linux-2.6.16/drivers/net/sg17lan/include/sg17hw_pci.h
---- linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw_pci.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/include/sg17hw_pci.h	2007-03-28 23:15:57.000000000 +0700
+--- linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw_pci.h	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/include/sg17hw_pci.h	2007-05-03 09:04:54.000000000 +0000
 @@ -0,0 +1,77 @@
 +/* sg17hw_pci.h:
 + *
@@ -737,15 +737,15 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/include/sg17hw_pci.h linux-2.6.1
 +#endif
 +
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/Makefile linux-2.6.16/drivers/net/sg17lan/Makefile
---- linux-2.6.16-old/drivers/net/sg17lan/Makefile	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/Makefile	2007-03-28 23:43:26.000000000 +0700
+--- linux-2.6.16-old/drivers/net/sg17lan/Makefile	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/Makefile	2007-05-03 09:04:54.000000000 +0000
 @@ -0,0 +1,2 @@
 +obj-$(CONFIG_SIGRAND_SG17LAN) += sg17lan.o
 +sg17lan-objs := sg17main.o sg17sci.o sdfe4_lib.o sg17debug.o sg17ring.o sg17sysfs.o
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sdfe4_lib.c linux-2.6.16/drivers/net/sg17lan/sdfe4_lib.c
---- linux-2.6.16-old/drivers/net/sg17lan/sdfe4_lib.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/sdfe4_lib.c	2007-03-28 23:36:21.000000000 +0700
-@@ -0,0 +1,1121 @@
+--- linux-2.6.16-old/drivers/net/sg17lan/sdfe4_lib.c	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/sdfe4_lib.c	2007-05-03 09:04:54.000000000 +0000
+@@ -0,0 +1,1118 @@
 +/* sdfe4_lib.c:
 + *
 + * SDFE4 Library
@@ -762,7 +762,7 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sdfe4_lib.c linux-2.6.16/drivers
 +
 +#include "include/sg17device.h"
 +#include "include/sdfe4_lib.h"
-+#define DEBUG_ON
++//#define DEBUG_ON
 +#define DEFAULT_LEV 20
 +#include "sg17debug.h"
 +
@@ -928,9 +928,6 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sdfe4_lib.c linux-2.6.16/drivers
 +
 +	if( sdfe4_hdlc_xmit(msg8,AUX_CMDHDR_SZ+1,hwdev) )
 +		return -1;
-+
-+	// TODO : replase with dev specific
-+	wait_ms(2);
 +
 +	if( sdfe4_hdlc_wait_intr(15000,hwdev) )
 +		return -1;
@@ -1868,8 +1865,8 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sdfe4_lib.c linux-2.6.16/drivers
 +#endif
 +
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17debug.c linux-2.6.16/drivers/net/sg17lan/sg17debug.c
---- linux-2.6.16-old/drivers/net/sg17lan/sg17debug.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/sg17debug.c	2007-03-19 22:15:54.000000000 +0600
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17debug.c	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/sg17debug.c	2007-05-03 09:04:54.000000000 +0000
 @@ -0,0 +1,10 @@
 +int debug_xmit=40;
 +int debug_recv=40;
@@ -1882,8 +1879,8 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17debug.c linux-2.6.16/drivers
 +int debug_link=40;
 +int debug_error=0;
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17debug.h linux-2.6.16/drivers/net/sg17lan/sg17debug.h
---- linux-2.6.16-old/drivers/net/sg17lan/sg17debug.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/sg17debug.h	2007-02-14 09:41:27.000000000 +0600
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17debug.h	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/sg17debug.h	2007-05-03 09:10:16.000000000 +0000
 @@ -0,0 +1,34 @@
 +#ifndef SG_DEBUG_H
 +#define SG_DEBUG_H
@@ -1905,6 +1902,8 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17debug.h linux-2.6.16/drivers
 +		if( lev<=DEFAULT_LEV ) \
 +			printk(fmt, ## args  )
 +
++#endif
++
 +extern int debug_xmit;
 +extern int debug_recv;
 +extern int debug_irq;
@@ -1916,12 +1915,10 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17debug.h linux-2.6.16/drivers
 +extern int debug_link;
 +extern int debug_error;
 +
-+#endif
-+
 +#endif		    
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17lan.h linux-2.6.16/drivers/net/sg17lan/sg17lan.h
---- linux-2.6.16-old/drivers/net/sg17lan/sg17lan.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/sg17lan.h	2007-03-28 23:17:05.000000000 +0700
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17lan.h	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/sg17lan.h	2007-05-03 09:04:54.000000000 +0000
 @@ -0,0 +1,85 @@
 +/* sg17lan.h: Sigrand SG-17PCI SHDSL modem driver for linux (kernel 2.6.x)
 + *
@@ -2009,8 +2006,8 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17lan.h linux-2.6.16/drivers/n
 +
 +#endif
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17main.c linux-2.6.16/drivers/net/sg17lan/sg17main.c
---- linux-2.6.16-old/drivers/net/sg17lan/sg17main.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/sg17main.c	2007-03-28 23:32:58.000000000 +0700
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17main.c	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/sg17main.c	2007-05-03 11:44:14.000000000 +0000
 @@ -0,0 +1,976 @@
 +/* sg17lan.c:  Sigrand SG-17PCI SHDSL modem driver for linux (kernel 2.6.x)
 + *
@@ -2072,7 +2069,7 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17main.c linux-2.6.16/drivers/
 +#include "sg17main.h"
 +
 +// Debug parameters
-+#define DEBUG_ON
++//#define DEBUG_ON
 +#define DEFAULT_LEV 20
 +#include "sg17debug.h"
 +
@@ -2581,7 +2578,7 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17main.c linux-2.6.16/drivers/
 + * -------------------------------------------------------------------------- */
 + 
 + 
-+#ifdef DEBUG_ON
++//#ifdef DEBUG_ON
 +
 +//-----------   DEBUG ------------------//
 +
@@ -2663,7 +2660,7 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17main.c linux-2.6.16/drivers/
 +}
 +
 +
-+#endif
++//#endif
 + 
 + 
 + 
@@ -2989,8 +2986,8 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17main.c linux-2.6.16/drivers/
 +module_exit(sg17_exit);
 +
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17main.h linux-2.6.16/drivers/net/sg17lan/sg17main.h
---- linux-2.6.16-old/drivers/net/sg17lan/sg17main.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/sg17main.h	2007-03-14 20:54:14.000000000 +0600
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17main.h	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/sg17main.h	2007-05-03 09:04:54.000000000 +0000
 @@ -0,0 +1,54 @@
 +/* sg17lan.h: Sigrand SG-17PCI SHDSL modem driver for linux (kernel 2.6.x)
 + *
@@ -3047,8 +3044,8 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17main.h linux-2.6.16/drivers/
 +#endif
 +
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17ring.c linux-2.6.16/drivers/net/sg17lan/sg17ring.c
---- linux-2.6.16-old/drivers/net/sg17lan/sg17ring.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/sg17ring.c	2007-03-28 23:36:45.000000000 +0700
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17ring.c	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/sg17ring.c	2007-05-03 09:04:54.000000000 +0000
 @@ -0,0 +1,119 @@
 +#include <linux/dma-mapping.h>
 +#include <linux/skbuff.h>
@@ -3170,8 +3167,8 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17ring.c linux-2.6.16/drivers/
 +	return skb;
 +}
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17ring.h linux-2.6.16/drivers/net/sg17lan/sg17ring.h
---- linux-2.6.16-old/drivers/net/sg17lan/sg17ring.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/sg17ring.h	2007-02-24 21:37:14.000000000 +0600
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17ring.h	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/sg17ring.h	2007-05-03 09:04:54.000000000 +0000
 @@ -0,0 +1,50 @@
 +#ifndef SIGRAND_RING_H
 +#define SIGRAND_RING_H
@@ -3224,8 +3221,8 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17ring.h linux-2.6.16/drivers/
 +
 +#endif
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17sci.c linux-2.6.16/drivers/net/sg17lan/sg17sci.c
---- linux-2.6.16-old/drivers/net/sg17lan/sg17sci.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/sg17sci.c	2007-03-28 23:33:56.000000000 +0700
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17sci.c	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/sg17sci.c	2007-05-03 09:04:54.000000000 +0000
 @@ -0,0 +1,350 @@
 +/* sg17_sci.c:  Sigrand SG-17PCI SCI HDLC for linux (kernel 2.6.x)
 + *
@@ -3262,7 +3259,7 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17sci.c linux-2.6.16/drivers/n
 +#include "include/sg17hw.h"
 +#include "include/sdfe4_lib.h"
 +// Debug parameters
-+#define DEBUG_ON
++//#define DEBUG_ON
 +#define DEFAULT_LEV 20
 +#include "sg17debug.h"
 +
@@ -3578,8 +3575,8 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17sci.c linux-2.6.16/drivers/n
 +	spin_unlock(&s->chip_lock);
 +}
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17sci.h linux-2.6.16/drivers/net/sg17lan/sg17sci.h
---- linux-2.6.16-old/drivers/net/sg17lan/sg17sci.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/sg17sci.h	2007-03-28 23:17:33.000000000 +0700
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17sci.h	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/sg17sci.h	2007-05-03 09:04:54.000000000 +0000
 @@ -0,0 +1,51 @@
 +#ifndef SG17_SCI_HDLC_H
 +#define SG17_SCI_HDLC_H
@@ -3633,8 +3630,8 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17sci.h linux-2.6.16/drivers/n
 +
 +#endif
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17sysfs.c linux-2.6.16/drivers/net/sg17lan/sg17sysfs.c
---- linux-2.6.16-old/drivers/net/sg17lan/sg17sysfs.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/sg17sysfs.c	2007-03-28 23:39:35.000000000 +0700
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17sysfs.c	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/sg17sysfs.c	2007-05-03 09:04:54.000000000 +0000
 @@ -0,0 +1,682 @@
 +#include <linux/init.h>
 +#include <linux/module.h>
@@ -3649,7 +3646,7 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17sysfs.c linux-2.6.16/drivers
 +#include "sg17lan.h"
 +
 +// Debug parameters
-+#define DEBUG_ON
++//#define DEBUG_ON
 +#define DEFAULT_LEV 20
 +#include "sg17debug.h"
 +
@@ -4319,8 +4316,8 @@ diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17sysfs.c linux-2.6.16/drivers
 +	sysfs_remove_group(&class_dev->kobj, &sg17_group);
 +}
 diff -Naur linux-2.6.16-old/drivers/net/sg17lan/sg17sysfs.h linux-2.6.16/drivers/net/sg17lan/sg17sysfs.h
---- linux-2.6.16-old/drivers/net/sg17lan/sg17sysfs.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg17lan/sg17sysfs.h	2007-02-10 00:31:57.000000000 +0600
+--- linux-2.6.16-old/drivers/net/sg17lan/sg17sysfs.h	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.16/drivers/net/sg17lan/sg17sysfs.h	2007-05-03 09:04:54.000000000 +0000
 @@ -0,0 +1,17 @@
 +#ifndef SG17_SYSFS_H
 +#define SG17_SYSFS_H

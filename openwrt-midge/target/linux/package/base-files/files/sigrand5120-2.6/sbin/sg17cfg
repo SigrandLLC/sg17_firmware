@@ -43,7 +43,7 @@ print_stat()
     code=`cat tcpam`
     rate=`cat rate`
     if [ -n "$rate" ]; then
-	rate="reate=$rate"
+	rate="rate=$rate"
     else
 	rate=""
     fi
