@@ -292,12 +292,12 @@
 			</section>
 			<section>
 				<title>Сводная информация</title>
-				<table frame="all" style="table-layout='fixed'">
+				<table frame="all">
 					<title>Сводная таблица</title>
 					<tgroup cols="3">
-						<colspec colname="c1" colwidth="100"/>
-						<colspec colname="c2" colwidth="100"/>
-						<colspec colname="c3" colwidth="100"/>
+						<colspec colname="c1"/>
+						<colspec colname="c2"/>
+						<colspec colname="c3"/>
 					<thead>
 						<row>
 							<entry namest="c1" nameend="c2">Параметр</entry>
@@ -563,6 +563,91 @@
 					<title>Вкладка Specific</title>
 					<graphic fileref="img/eth-specific.png"/>
 				</figure>
+			</para>
+		</section>
+	</chapter>
+	<chapter>
+		<title>Настройка сетевых служб</title>
+		<section>
+			<title>DHCP-сервер</title>
+			<para>
+				Настройка DHCP-сервера выполняется независимо для каждого сетевого интерфейса и производится на вкладке Network/настраиваемый сетевой интерфейс/DHCP. На этой странице представлены конфигурационные параметры, управляющие работой DHCP-сервера, а так же параметры сетевой конфигурации, которые передаются клиенту.
+			</para>
+			<para>
+				Общий вид страницы конфигурации представлен на рисунке:
+				<figure>
+					<title>Настройка DHCP-сервера</title>
+					<graphic fileref="img/eth-dhcp.png"/>
+				</figure>
+			</para>
+			<para>
+				Настройки DHCP-сервера:
+				<itemizedlist>
+					<listitem>За активацию DHCP-сервера отвечает опция Enable DHCP server</listitem>
+					<listitem>Значения Start IP и End IP указывают диапазон IP адресов, из которого будет выбираться адрес для клиента</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				Сетевые настройки, которые будут переданы клиенту:
+				<itemizedlist>
+					<listitem>Netmask - задает сетевую маску</listitem>
+					<listitem>Default router - маршрут по-умолчанию</listitem>
+					<listitem>Default lease time - время, на которое выдается IP адрес. По истечению этого времени клиент должен снова обратиться к DHCP-серверу для подтверждения использования выданного ранее адреса или получения нового</listitem>
+					<listitem>DNS server - IP адрес DNS-сервера, к которому будет обращаться клиент для разрешения доменных имен</listitem>
+					<listitem>Domain - домен, который будет присвоен клиенту</listitem>
+					<listitem>NTP server - IP адрес сервера точного времени</listitem>
+					<listitem>WINS server - IP адрес WINS сервера</listitem>
+				</itemizedlist>
+			</para>
+			<note>
+				<simpara>После сохранения настроек, DHCP сервер будет запущен либо перезапущен автоматически.</simpara>
+			</note>
+			<para>
+				Существует возможность присваивать определенным машинам статические IP адреса. Идентификация машин производится по значению MAC адреса сетевой карты. Форма для привязки IP адреса к MAC адресу находится внизу страницы конфигурации и представлена на рисунке:
+				<figure>
+					<title>Список статических IP-адресов</title>
+					<graphic fileref="img/eth-dhcp-add.png"/>
+				</figure>
+			</para>
+			<para>
+				Изначально форма пуста. Добавление значений производится с помощью формы, вызываемой по нажатию на кнопку 
+				<inlinemediaobject>
+					<imageobject>
+						<imagedata fileref="img/eth-dhcp-button-plus.png"/>
+					</imageobject>
+				</inlinemediaobject>
+				 справа от заголовка таблицы:
+				 <figure>
+				 	<title>Форма привязки IP к MAC</title>
+					<graphic fileref="img/eth-dhcp-add-form.png"/>
+				 </figure>
+				 <itemizedlist>
+					 <listitem>Host name - задает имя машины, для которой выполняется привязка адреса. Это значение носит справочный характер и используется только в правиле, и может не соответствовать фактическому имени машины</listitem>
+					 <listitem>IP Address - IP адрес, который будет присвоен данной машине</listitem>
+					 <listitem>MAC Address - MAC адрес сетевой карты машины. Именно при совпадении с этим адресом происходит присвоение указанного IP адреса</listitem>
+				 </itemizedlist>
+			</para>
+			<para>
+				После заполнения полей, необходимо сохранить внесенные изменения. После этого, в список статических IP адресов будет добавлен новый адрес, а на экране появится новая форма для добавления следующего IP адреса. После добавления всех статических адресов, форму можно закрыть.
+				<figure>
+					<title>Обновленный список IP-адресов</title>
+					<graphic fileref="img/eth-dhcp-add-list.png"/>
+				</figure>
+			</para>
+			<para>
+				Существующие в таблице записи можно изменить с помощью кнопки 
+				<inlinemediaobject>
+					<imageobject>
+						<imagedata fileref="img/eth-dhcp-button-e.png"/>
+					</imageobject>
+				</inlinemediaobject>
+				, находящейся справа от правила. Удаление правила осуществляется кнопкой 
+				<inlinemediaobject>
+					<imageobject>
+						<imagedata fileref="img/eth-dhcp-button-x.png"/>
+					</imageobject>
+				</inlinemediaobject>
+				.
 			</para>
 		</section>
 	</chapter>
