@@ -34,6 +34,7 @@ SNMP_MIB_MODULES_INCLUDED = \
 	mibII/udp \
 	mibII/vacm_context \
 	mibII/vacm_vars \
+	mibII/shdsl/shdsl \
 	snmpv3/snmpEngine \
 	snmpv3/snmpMPDStats \
 	snmpv3/usmStats \
@@ -131,7 +132,7 @@ $(PKG_BUILD_DIR)/.configured:
 	);
 	touch $@
 
-$(PKG_BUILD_DIR)/.built:
+$(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	rm -rf $(PKG_INSTALL_DIR)
 	mkdir -p $(PKG_INSTALL_DIR)
 	$(MAKE) -C $(PKG_BUILD_DIR) \
