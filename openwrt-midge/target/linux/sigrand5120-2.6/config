@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.16
-# Fri Mar 30 12:46:04 2007
+# Thu May 10 16:04:37 2007
 #
 CONFIG_MIPS=y
 
@@ -909,7 +909,7 @@ CONFIG_DM_MULTIPATH_EMC=m
 #
 CONFIG_NETDEVICES=y
 CONFIG_SIGRAND_SG17LAN=m
-CONFIG_SIGRAND_SG16LAN=y
+CONFIG_SIGRAND_SG16LAN=m
 CONFIG_IFB=m
 # CONFIG_DUMMY is not set
 CONFIG_BONDING=m
