@@ -1,7 +1,7 @@
-diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/channel_db.c net-snmp-5.1.2-new/agent/mibgroup/mibII/shdsl/channel_db.c
---- net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/channel_db.c	1970-01-01 07:00:00.000000000 +0700
-+++ net-snmp-5.1.2-new/agent/mibgroup/mibII/shdsl/channel_db.c	2007-05-10 10:11:42.000000000 +0700
-@@ -0,0 +1,398 @@
+diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/channel_db.c net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/channel_db.c
+--- net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/channel_db.c	1970-01-01 00:00:00.000000000 +0000
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/channel_db.c	2007-05-10 18:13:02.000000000 +0000
+@@ -0,0 +1,400 @@
 +#include "channel_db.h"
 +#include <sys/types.h>
 +#include <dirent.h>
@@ -157,16 +157,16 @@ diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/channel_db.c net-snmp-5
 +	ptr = str;
 +	i = 0;
 +        memset(cfg,0,sizeof(struct channel_conf) );
++        cfg->ndevs = 2;	
 +	while( readed = get_field(ptr,field) ){
 +	    ptr += readed;
-+
 +	    if( strlen(field) ){
 +		switch( i ){
 +		case 0:
 +		    cfg->name = strdup(field);
 +		    break;
 +		case 1:
-+		    cfg->nreg = atoi(field);
++		    cfg->ndevs += atoi(field);
 +		    break;
 +		case 2:
 +		    cfg->max_att_lrate = atoi(field);
@@ -249,11 +249,13 @@ diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/channel_db.c net-snmp-5
 +	fscanf(s,"%d",&carrier);
 +	fclose(s);
 +    }
-+printf("%s: carrier = %d",name,carrier);	    
++//    printf("%s: carrier = %d",name,carrier);	    
 +    if( !carrier ){
 +	cfg->act_lrate = 0;
 +	cfg->max_att_lrate = 0;
++	cfg->ndevs = 1;
 +    }
++//    printf("NDEVS=%d\n",cfg->ndevs);    
 +    return 0;
 +}
 +
@@ -400,9 +402,9 @@ diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/channel_db.c net-snmp-5
 +	return 0;
 +    }
 +}
-diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/channel_db.h net-snmp-5.1.2-new/agent/mibgroup/mibII/shdsl/channel_db.h
---- net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/channel_db.h	1970-01-01 07:00:00.000000000 +0700
-+++ net-snmp-5.1.2-new/agent/mibgroup/mibII/shdsl/channel_db.h	2007-05-09 14:28:53.000000000 +0700
+diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/channel_db.h net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/channel_db.h
+--- net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/channel_db.h	1970-01-01 00:00:00.000000000 +0000
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/channel_db.h	2007-05-10 17:46:57.000000000 +0000
 @@ -0,0 +1,138 @@
 +#ifndef SIGRAND_CHANNEL_INIT_H
 +#define SIGRAND_CHANNEL_INIT_H
@@ -456,7 +458,7 @@ diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/channel_db.h net-snmp-5
 +
 +struct channel_conf {
 +    char *name;
-+    int nreg;
++    int ndevs;
 +    int max_att_lrate;
 +    int act_lrate;    
 +    struct annex_t annex;
@@ -542,9 +544,9 @@ diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/channel_db.h net-snmp-5
 +
 +#endif
 +
-diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.c net-snmp-5.1.2-new/agent/mibgroup/mibII/shdsl/shdsl.c
---- net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.c	1970-01-01 07:00:00.000000000 +0700
-+++ net-snmp-5.1.2-new/agent/mibgroup/mibII/shdsl/shdsl.c	2007-05-10 10:17:09.000000000 +0700
+diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.c net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
+--- net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.c	1970-01-01 00:00:00.000000000 +0000
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c	2007-05-10 18:12:46.000000000 +0000
 @@ -0,0 +1,1118 @@
 +#include <sys/types.h>
 +#include <sys/stat.h>
@@ -865,7 +867,7 @@ diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.c net-snmp-5.1.2-
 +    switch (vp->magic) {
 +    case CONF_NREPS:
 +	*var_len=sizeof(int);
-+	long_return=cfg.nreg;
++	long_return=(cfg.ndevs > 2) ? cfg.ndevs-2 : 0;
 +	return (u_char *) & long_return;
 +    case CONF_PRFL:
 +	sscanf(interface_name,"dsl%d",&ind);
@@ -912,14 +914,14 @@ diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.c net-snmp-5.1.2-
 +//    DEBUGMSG(("mibII/shdsl", "iface= %d\n", iface));
 +
 +    if( eocd_read_conf(interface_name,&eocd,&cfg) ){
-+	printf("failed\n");
++//	printf("failed\n");
 +	return NULL;
 +    }
 +    
 +    //---- ack ----//
 +    switch (vp->magic) {
 +    case STATUS_NAVAILREPS:
-+	long_return=cfg.nreg;
++	long_return=(cfg.ndevs > 2) ? cfg.ndevs-2 : 0;    
 +	return (u_char *) & long_return;
 +    case STATUS_MAXATTLRATE:
 +	if( cfg.max_att_lrate ){
@@ -989,7 +991,7 @@ diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.c net-snmp-5.1.2-
 +// DEBUGMSGTL(("mibII/shdsl", "Exact Match\n"));
 +	    if( (*length >= vp->namelen+2) && 
 +		    (name[vp->namelen+1] > 0) && 
-+		    (name[vp->namelen+1]<= TERM_DEV_NUM+cfg.nreg) ){
++		    (name[vp->namelen+1]<= cfg.ndevs) ){
 +// DEBUGMSGTL(("mibII/shdsl", "Unit #%d\n",name[vp->namelen+1]));
 +		return name[vp->namelen+1];
 +	    } else {
@@ -1000,7 +1002,7 @@ diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.c net-snmp-5.1.2-
 +// DEBUGMSGTL(("mibII/shdsl", "Nonexact Match\n"));
 +	    if( *length >= vp->namelen+2 &&
 +		    (name[vp->namelen+1]+1 > 0) &&
-+		    (name[vp->namelen+1]+1 <= 2+cfg.nreg) ){
++		    (name[vp->namelen+1]+1 <= cfg.ndevs) ){
 +// DEBUGMSGTL(("mibII/shdsl", "Next unit after %d\n",name[vp->namelen+1]));
 +		name[vp->namelen+1]++;
 +		return name[vp->namelen+1];
@@ -1664,9 +1666,9 @@ diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.c net-snmp-5.1.2-
 +    return NULL;
 +}
 +	
-diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.h net-snmp-5.1.2-new/agent/mibgroup/mibII/shdsl/shdsl.h
---- net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.h	1970-01-01 07:00:00.000000000 +0700
-+++ net-snmp-5.1.2-new/agent/mibgroup/mibII/shdsl/shdsl.h	2007-05-09 14:28:53.000000000 +0700
+diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.h net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h
+--- net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.h	1970-01-01 00:00:00.000000000 +0000
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h	2007-05-10 16:26:11.000000000 +0000
 @@ -0,0 +1,209 @@
 +/*
 + *  hdsl2,shdsl MIB (rfc- interfaces.h
@@ -1877,26 +1879,26 @@ diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.h net-snmp-5.1.2-
 +#define CONF_ROW_ST	 	15
 +
 +#endif                          /* _MIBGROUP_HDSL2SHDSL_H */
-diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII.h net-snmp-5.1.2-new/agent/mibgroup/mibII.h
---- net-snmp-5.1.2-old/agent/mibgroup/mibII.h	2002-04-20 14:30:00.000000000 +0700
-+++ net-snmp-5.1.2-new/agent/mibgroup/mibII.h	2007-05-09 14:28:53.000000000 +0700
+diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII.h net-snmp-5.1.2/agent/mibgroup/mibII.h
+--- net-snmp-5.1.2-old/agent/mibgroup/mibII.h	2002-04-20 07:30:00.000000000 +0000
++++ net-snmp-5.1.2/agent/mibgroup/mibII.h	2007-05-10 18:08:24.000000000 +0000
 @@ -13,3 +13,4 @@
  config_require(mibII/udp)
  config_require(mibII/vacm_vars)
  config_require(mibII/setSerialNo)
 +config_require(mibII/shdsl/shdsl)
-diff -Naur net-snmp-5.1.2-old/compile net-snmp-5.1.2-new/compile
---- net-snmp-5.1.2-old/compile	1970-01-01 07:00:00.000000000 +0700
-+++ net-snmp-5.1.2-new/compile	2007-05-07 10:50:20.000000000 +0700
+diff -Naur net-snmp-5.1.2-old/compile net-snmp-5.1.2/compile
+--- net-snmp-5.1.2-old/compile	1970-01-01 00:00:00.000000000 +0000
++++ net-snmp-5.1.2/compile	2007-05-10 18:15:24.000000000 +0000
 @@ -0,0 +1,5 @@
 +#!/bin/sh
 +
-+STAGING_DIR=/home/artpol/router/openwrt/openwrt-midge-clear/staging_dir_mipsel/
++STAGING_DIR=../../../staging_dir_mipsel/
 +make LDFLAGS="-L${STAGING_DIR}/usr/lib -L${STAGING_DIR}/lib -static" INSTALL_PREFIX="/root/net_snmp" all install
 +
-diff -Naur net-snmp-5.1.2-old/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt net-snmp-5.1.2-new/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt
---- net-snmp-5.1.2-old/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	1970-01-01 07:00:00.000000000 +0700
-+++ net-snmp-5.1.2-new/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	2007-05-09 14:28:53.000000000 +0700
+diff -Naur net-snmp-5.1.2-old/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt
+--- net-snmp-5.1.2-old/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	1970-01-01 00:00:00.000000000 +0000
++++ net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	2007-05-10 18:08:24.000000000 +0000
 @@ -0,0 +1,2541 @@
 +-- extracted from rfc4319.txt
 +-- at Thu Dec 15 06:40:11 2005
@@ -4439,9 +4441,9 @@ diff -Naur net-snmp-5.1.2-old/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt net-snmp-5.1
 +--    ipr@ietf.org.
 +-- 
 +
-diff -Naur net-snmp-5.1.2-old/mibs/Makefile.in net-snmp-5.1.2-new/mibs/Makefile.in
---- net-snmp-5.1.2-old/mibs/Makefile.in	2007-05-10 12:18:32.290055776 +0700
-+++ net-snmp-5.1.2-new/mibs/Makefile.in	2007-05-09 14:28:53.000000000 +0700
+diff -Naur net-snmp-5.1.2-old/mibs/Makefile.in net-snmp-5.1.2/mibs/Makefile.in
+--- net-snmp-5.1.2-old/mibs/Makefile.in	2004-06-18 18:11:15.000000000 +0000
++++ net-snmp-5.1.2/mibs/Makefile.in	2007-05-10 18:08:24.000000000 +0000
 @@ -35,7 +35,8 @@
  	IPV6-TC.txt IPV6-MIB.txt IPV6-ICMP-MIB.txt IPV6-TCP-MIB.txt \
  	IPV6-UDP-MIB.txt \
