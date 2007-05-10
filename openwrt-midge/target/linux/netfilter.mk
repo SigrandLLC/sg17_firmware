@@ -80,7 +80,9 @@ IPT_NAT-$(CONFIG_IP_NF_TARGET_MASQUERADE) += $(P_V4)ipt_MASQUERADE
 IPT_NAT-$(CONFIG_IP_NF_TARGET_MIRROR) += $(P_V4)ipt_MIRROR
 IPT_NAT-$(CONFIG_IP_NF_TARGET_REDIRECT) += $(P_V4)ipt_REDIRECT
 ifeq ($(BR2_LINUX_2_6),y)
+ifneq ($(PKG_NAME),iptables)
 IPT_NAT-m += $(P_V4)ip_nat
+endif
 endif
 
 

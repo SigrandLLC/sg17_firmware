@@ -21,10 +21,14 @@ define IPKG_plugin_template
 
 $$(IPKG_$(1)):
 	install -m0755 -d $$(IDIR_$(1))/usr/lib/iptables
-	for m in $$(patsubst %xt_%,ipt_%,$(2)); do \
-		[ -r $$$${m} ] && \
-			$(CP) $(PKG_INSTALL_DIR)/usr/lib/iptables/lib$$$${m}.so $$(IDIR_$(1))/usr/lib/iptables/ || \
-			true ; \
+	for m in $(2); do \
+		m1=`basename $$$${m}|sed s/xt_/ipt_/g`; \
+		if [ -r $(PKG_INSTALL_DIR)/usr/lib/iptables/lib$$$${m1}.so ]; then \
+			$(CP) $(PKG_INSTALL_DIR)/usr/lib/iptables/lib$$$${m1}.so $$(IDIR_$(1))/usr/lib/iptables/;  \
+		else \
+			echo "  Module $(PKG_INSTALL_DIR)/usr/lib/iptables/lib$$$${m1}.so not found" ; \
+			exit 1; \
+		fi; \
 	done
 	@[ -z "$(3)" ] || $(MAKE) $(3)
 	$(RSTRIP) $$(IDIR_$(1))
