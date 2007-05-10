@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERBOSE=2
+VERBOSE=0
 CMD_VERBOSE=2
 
 die () {
@@ -23,7 +23,7 @@ info(){
 }
 
 cmd(){
-	echo "    $@"
+	[ $CMD_VERBOSE -le $VERBOSE ] && echo "    $@"
 	$@
 }
 

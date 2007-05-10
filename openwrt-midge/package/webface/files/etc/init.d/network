@@ -5,7 +5,7 @@ export PATH=/sbin:/bin:/usr/sbin:/usr/bin:$PATH
 
 . /bin/midge_functions
 
-CMD_VERBOSE=1
+CMD_VERBOSE=3
 
 required kdb
 required ip
@@ -235,7 +235,7 @@ _ifup(){
 
 
 	post_ifup
-	echo "done."
+	info 1 "done."
 }
 
 pre_ifdown() {
