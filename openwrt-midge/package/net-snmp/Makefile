@@ -162,6 +162,7 @@ $(IPKG_SNMPD):
 	install -m0644 ./files/snmpd.default $(IDIR_SNMPD)/etc/default/snmpd
 	install -d -m0755 $(IDIR_SNMPD)/etc/init.d
 	install -m0755 ./files/snmpd.init $(IDIR_SNMPD)/etc/init.d/snmpd
+	ln -s snmpd $(IDIR_SNMPD)/etc/init.d/S80snmpd
 	install -d -m0755 $(IDIR_SNMPD)/usr/sbin
 	install -m0755 $(PKG_INSTALL_DIR)/usr/sbin/snmpd-shared $(IDIR_SNMPD)/usr/sbin/snmpd
 	$(RSTRIP) $(IDIR_SNMPD)
@@ -174,6 +175,7 @@ $(IPKG_SNMPD_STATIC):
 	install -m0644 ./files/snmpd.default $(IDIR_SNMPD_STATIC)/etc/default/snmpd
 	install -d -m0755 $(IDIR_SNMPD_STATIC)/etc/init.d
 	install -m0755 ./files/snmpd.init $(IDIR_SNMPD_STATIC)/etc/init.d/snmpd
+	ln -s snmpd $(IDIR_SNMPD_STATIC)/etc/init.d/S80snmpd	
 	install -d -m0755 $(IDIR_SNMPD_STATIC)/usr/sbin
 	install -m0755 $(PKG_INSTALL_DIR)/usr/sbin/snmpd-static $(IDIR_SNMPD_STATIC)/usr/sbin/snmpd
 	$(RSTRIP) $(IDIR_SNMPD_STATIC)

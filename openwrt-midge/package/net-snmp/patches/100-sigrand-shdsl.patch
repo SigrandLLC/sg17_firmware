@@ -1,6 +1,6 @@
-diff -Naur net-snmp-5.1.4.pre1-old/agent/mibgroup/mibII/shdsl/channel_db.c net-snmp-5.1.4.pre1/agent/mibgroup/mibII/shdsl/channel_db.c
---- net-snmp-5.1.4.pre1-old/agent/mibgroup/mibII/shdsl/channel_db.c	1970-01-01 07:00:00.000000000 +0700
-+++ net-snmp-5.1.4.pre1/agent/mibgroup/mibII/shdsl/channel_db.c	2007-05-07 15:55:51.394947688 +0700
+diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/channel_db.c net-snmp-5.1.2-new/agent/mibgroup/mibII/shdsl/channel_db.c
+--- net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/channel_db.c	1970-01-01 07:00:00.000000000 +0700
++++ net-snmp-5.1.2-new/agent/mibgroup/mibII/shdsl/channel_db.c	2007-05-10 10:11:42.000000000 +0700
 @@ -0,0 +1,398 @@
 +#include "channel_db.h"
 +#include <sys/types.h>
@@ -358,8 +358,8 @@ diff -Naur net-snmp-5.1.4.pre1-old/agent/mibgroup/mibII/shdsl/channel_db.c net-s
 +	    return -1;
 +	}
 +	info->wire_if = twoWire;
-+        info->min_lrate = 0;
-+	info->max_lrate = cfg.max_att_lrate;
++        info->min_lrate = (64 + 8) * 1000;
++	info->max_lrate = (cfg.max_att_lrate + 8) * 1000;
 +        info->psd = symmetric;
 +	info->transm_mode = cfg.annex;
 +        info->rem_conf = disabled;
@@ -400,9 +400,9 @@ diff -Naur net-snmp-5.1.4.pre1-old/agent/mibgroup/mibII/shdsl/channel_db.c net-s
 +	return 0;
 +    }
 +}
-diff -Naur net-snmp-5.1.4.pre1-old/agent/mibgroup/mibII/shdsl/channel_db.h net-snmp-5.1.4.pre1/agent/mibgroup/mibII/shdsl/channel_db.h
---- net-snmp-5.1.4.pre1-old/agent/mibgroup/mibII/shdsl/channel_db.h	1970-01-01 07:00:00.000000000 +0700
-+++ net-snmp-5.1.4.pre1/agent/mibgroup/mibII/shdsl/channel_db.h	2007-05-06 09:39:14.000000000 +0700
+diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/channel_db.h net-snmp-5.1.2-new/agent/mibgroup/mibII/shdsl/channel_db.h
+--- net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/channel_db.h	1970-01-01 07:00:00.000000000 +0700
++++ net-snmp-5.1.2-new/agent/mibgroup/mibII/shdsl/channel_db.h	2007-05-09 14:28:53.000000000 +0700
 @@ -0,0 +1,138 @@
 +#ifndef SIGRAND_CHANNEL_INIT_H
 +#define SIGRAND_CHANNEL_INIT_H
@@ -542,9 +542,9 @@ diff -Naur net-snmp-5.1.4.pre1-old/agent/mibgroup/mibII/shdsl/channel_db.h net-s
 +
 +#endif
 +
-diff -Naur net-snmp-5.1.4.pre1-old/agent/mibgroup/mibII/shdsl/shdsl.c net-snmp-5.1.4.pre1/agent/mibgroup/mibII/shdsl/shdsl.c
---- net-snmp-5.1.4.pre1-old/agent/mibgroup/mibII/shdsl/shdsl.c	1970-01-01 07:00:00.000000000 +0700
-+++ net-snmp-5.1.4.pre1/agent/mibgroup/mibII/shdsl/shdsl.c	2007-05-07 15:39:44.000000000 +0700
+diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.c net-snmp-5.1.2-new/agent/mibgroup/mibII/shdsl/shdsl.c
+--- net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.c	1970-01-01 07:00:00.000000000 +0700
++++ net-snmp-5.1.2-new/agent/mibgroup/mibII/shdsl/shdsl.c	2007-05-10 10:17:09.000000000 +0700
 @@ -0,0 +1,1118 @@
 +#include <sys/types.h>
 +#include <sys/stat.h>
@@ -1617,10 +1617,10 @@ diff -Naur net-snmp-5.1.4.pre1-old/agent/mibgroup/mibII/shdsl/shdsl.c net-snmp-5
 +	long_return= info->wire_if;
 +	return (u_char *) & long_return;
 +    case CONF_MIN_LRATE:
-+	long_return= info->min_lrate;
++	long_return = info->min_lrate;
 +	return (u_char *) & long_return;
 +    case CONF_MAX_LRATE:
-+	long_return= info->max_lrate;
++	long_return = info->max_lrate;
 +	return (u_char *) & long_return;
 +    case CONF_PSD:
 +	long_return= info->psd;
@@ -1664,9 +1664,9 @@ diff -Naur net-snmp-5.1.4.pre1-old/agent/mibgroup/mibII/shdsl/shdsl.c net-snmp-5
 +    return NULL;
 +}
 +	
-diff -Naur net-snmp-5.1.4.pre1-old/agent/mibgroup/mibII/shdsl/shdsl.h net-snmp-5.1.4.pre1/agent/mibgroup/mibII/shdsl/shdsl.h
---- net-snmp-5.1.4.pre1-old/agent/mibgroup/mibII/shdsl/shdsl.h	1970-01-01 07:00:00.000000000 +0700
-+++ net-snmp-5.1.4.pre1/agent/mibgroup/mibII/shdsl/shdsl.h	2007-05-05 16:01:56.000000000 +0700
+diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.h net-snmp-5.1.2-new/agent/mibgroup/mibII/shdsl/shdsl.h
+--- net-snmp-5.1.2-old/agent/mibgroup/mibII/shdsl/shdsl.h	1970-01-01 07:00:00.000000000 +0700
++++ net-snmp-5.1.2-new/agent/mibgroup/mibII/shdsl/shdsl.h	2007-05-09 14:28:53.000000000 +0700
 @@ -0,0 +1,209 @@
 +/*
 + *  hdsl2,shdsl MIB (rfc- interfaces.h
@@ -1877,17 +1877,26 @@ diff -Naur net-snmp-5.1.4.pre1-old/agent/mibgroup/mibII/shdsl/shdsl.h net-snmp-5
 +#define CONF_ROW_ST	 	15
 +
 +#endif                          /* _MIBGROUP_HDSL2SHDSL_H */
-diff -Naur net-snmp-5.1.4.pre1-old/agent/mibgroup/mibII.h net-snmp-5.1.4.pre1/agent/mibgroup/mibII.h
---- net-snmp-5.1.4.pre1-old/agent/mibgroup/mibII.h	2006-03-13 16:15:34.000000000 +0600
-+++ net-snmp-5.1.4.pre1/agent/mibgroup/mibII.h	2007-04-29 15:26:14.000000000 +0700
+diff -Naur net-snmp-5.1.2-old/agent/mibgroup/mibII.h net-snmp-5.1.2-new/agent/mibgroup/mibII.h
+--- net-snmp-5.1.2-old/agent/mibgroup/mibII.h	2002-04-20 14:30:00.000000000 +0700
++++ net-snmp-5.1.2-new/agent/mibgroup/mibII.h	2007-05-09 14:28:53.000000000 +0700
 @@ -13,3 +13,4 @@
  config_require(mibII/udp)
  config_require(mibII/vacm_vars)
  config_require(mibII/setSerialNo)
 +config_require(mibII/shdsl/shdsl)
-diff -Naur net-snmp-5.1.4.pre1-old/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt net-snmp-5.1.4.pre1/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt
---- net-snmp-5.1.4.pre1-old/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	1970-01-01 07:00:00.000000000 +0700
-+++ net-snmp-5.1.4.pre1/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	2007-05-02 12:19:20.000000000 +0700
+diff -Naur net-snmp-5.1.2-old/compile net-snmp-5.1.2-new/compile
+--- net-snmp-5.1.2-old/compile	1970-01-01 07:00:00.000000000 +0700
++++ net-snmp-5.1.2-new/compile	2007-05-07 10:50:20.000000000 +0700
+@@ -0,0 +1,5 @@
++#!/bin/sh
++
++STAGING_DIR=/home/artpol/router/openwrt/openwrt-midge-clear/staging_dir_mipsel/
++make LDFLAGS="-L${STAGING_DIR}/usr/lib -L${STAGING_DIR}/lib -static" INSTALL_PREFIX="/root/net_snmp" all install
++
+diff -Naur net-snmp-5.1.2-old/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt net-snmp-5.1.2-new/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt
+--- net-snmp-5.1.2-old/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	1970-01-01 07:00:00.000000000 +0700
++++ net-snmp-5.1.2-new/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	2007-05-09 14:28:53.000000000 +0700
 @@ -0,0 +1,2541 @@
 +-- extracted from rfc4319.txt
 +-- at Thu Dec 15 06:40:11 2005
@@ -4430,10 +4439,10 @@ diff -Naur net-snmp-5.1.4.pre1-old/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt net-snm
 +--    ipr@ietf.org.
 +-- 
 +
-diff -Naur net-snmp-5.1.4.pre1-old/mibs/Makefile.in net-snmp-5.1.4.pre1/mibs/Makefile.in
---- net-snmp-5.1.4.pre1-old/mibs/Makefile.in	2005-10-22 04:42:40.000000000 +0700
-+++ net-snmp-5.1.4.pre1/mibs/Makefile.in	2007-05-06 09:46:57.000000000 +0700
-@@ -37,7 +37,8 @@
+diff -Naur net-snmp-5.1.2-old/mibs/Makefile.in net-snmp-5.1.2-new/mibs/Makefile.in
+--- net-snmp-5.1.2-old/mibs/Makefile.in	2007-05-10 12:18:32.290055776 +0700
++++ net-snmp-5.1.2-new/mibs/Makefile.in	2007-05-09 14:28:53.000000000 +0700
+@@ -35,7 +35,8 @@
  	IPV6-TC.txt IPV6-MIB.txt IPV6-ICMP-MIB.txt IPV6-TCP-MIB.txt \
  	IPV6-UDP-MIB.txt \
  	DISMAN-SCRIPT-MIB.txt DISMAN-SCHEDULE-MIB.txt \
