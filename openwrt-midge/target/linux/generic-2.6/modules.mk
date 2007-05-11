@@ -15,6 +15,10 @@ $(eval $(call KMOD_template,IMQ,imq,\
 	$(MODULES_DIR)/kernel/drivers/net/imq.ko \
 ))
 
+$(eval $(call KMOD_template,IPV6,ipv6,\
+	$(MODULES_DIR)/kernel/net/ipv6/ipv6.ko \
+,CONFIG_IPV6,,20,ipv6))
+
 $(eval $(call KMOD_template,PPP,ppp,\
 	$(MODULES_DIR)/kernel/drivers/net/ppp_async.ko \
 	$(MODULES_DIR)/kernel/drivers/net/ppp_generic.ko \
