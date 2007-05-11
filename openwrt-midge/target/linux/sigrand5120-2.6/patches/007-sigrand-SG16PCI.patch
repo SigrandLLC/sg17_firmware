@@ -1,6 +1,6 @@
-diff -Naur linux-2.6.16/drivers/net/Kconfig linux-2.6.16-new/drivers/net/Kconfig
---- linux-2.6.16/drivers/net/Kconfig	2007-03-29 23:48:18.369848288 +0700
-+++ linux-2.6.16-new/drivers/net/Kconfig	2007-03-29 23:49:21.007325944 +0700
+diff -Naur linux-2.6.16-old/drivers/net/Kconfig linux-2.6.16/drivers/net/Kconfig
+--- linux-2.6.16-old/drivers/net/Kconfig	2007-05-11 15:43:35.000000000 +0700
++++ linux-2.6.16/drivers/net/Kconfig	2007-05-11 15:42:35.000000000 +0700
 @@ -28,8 +28,11 @@
  config SIGRAND_SG17LAN
          tristate "Sigrand SG-17 SHDSL PCI adapter"
@@ -14,17 +14,17 @@ diff -Naur linux-2.6.16/drivers/net/Kconfig linux-2.6.16-new/drivers/net/Kconfig
  config IFB
  	tristate "Intermediate Functional Block support"
  	depends on NET_CLS_ACT
-diff -Naur linux-2.6.16/drivers/net/Makefile linux-2.6.16-new/drivers/net/Makefile
---- linux-2.6.16/drivers/net/Makefile	2007-03-29 23:48:18.410842056 +0700
-+++ linux-2.6.16-new/drivers/net/Makefile	2007-03-29 23:48:58.878690008 +0700
-@@ -219,3 +219,4 @@
+diff -Naur linux-2.6.16-old/drivers/net/Makefile linux-2.6.16/drivers/net/Makefile
+--- linux-2.6.16-old/drivers/net/Makefile	2007-05-11 15:43:35.000000000 +0700
++++ linux-2.6.16/drivers/net/Makefile	2007-05-11 15:42:35.000000000 +0700
+@@ -214,3 +214,4 @@
  obj-$(CONFIG_FS_ENET) += fs_enet/
  
  obj-$(CONFIG_SIGRAND_SG17LAN)     += sg17lan/
 +obj-$(CONFIG_SIGRAND_SG16LAN)     += sg16lan/
-diff -Naur linux-2.6.16/drivers/net/sg16lan/cx28975.h linux-2.6.16-new/drivers/net/sg16lan/cx28975.h
---- linux-2.6.16/drivers/net/sg16lan/cx28975.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/drivers/net/sg16lan/cx28975.h	2007-03-29 23:30:05.000000000 +0700
+diff -Naur linux-2.6.16-old/drivers/net/sg16lan/cx28975.h linux-2.6.16/drivers/net/sg16lan/cx28975.h
+--- linux-2.6.16-old/drivers/net/sg16lan/cx28975.h	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg16lan/cx28975.h	2007-05-11 15:42:35.000000000 +0700
 @@ -0,0 +1,131 @@
 +
 +enum  CX28975_API_commands {
@@ -157,15 +157,15 @@ diff -Naur linux-2.6.16/drivers/net/sg16lan/cx28975.h linux-2.6.16-new/drivers/n
 +	_ACK_OPER_WAKE_UP	= 0x0e
 +};
 +
-diff -Naur linux-2.6.16/drivers/net/sg16lan/Makefile linux-2.6.16-new/drivers/net/sg16lan/Makefile
---- linux-2.6.16/drivers/net/sg16lan/Makefile	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/drivers/net/sg16lan/Makefile	2007-03-29 23:49:49.294025712 +0700
+diff -Naur linux-2.6.16-old/drivers/net/sg16lan/Makefile linux-2.6.16/drivers/net/sg16lan/Makefile
+--- linux-2.6.16-old/drivers/net/sg16lan/Makefile	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg16lan/Makefile	2007-05-11 15:42:35.000000000 +0700
 @@ -0,0 +1 @@
 +obj-$(CONFIG_SIGRAND_SG16LAN)	+= sg16lan.o
-diff -Naur linux-2.6.16/drivers/net/sg16lan/sg16lan.c linux-2.6.16-new/drivers/net/sg16lan/sg16lan.c
---- linux-2.6.16/drivers/net/sg16lan/sg16lan.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/drivers/net/sg16lan/sg16lan.c	2007-03-29 23:30:05.000000000 +0700
-@@ -0,0 +1,2425 @@
+diff -Naur linux-2.6.16-old/drivers/net/sg16lan/sg16lan.c linux-2.6.16/drivers/net/sg16lan/sg16lan.c
+--- linux-2.6.16-old/drivers/net/sg16lan/sg16lan.c	1970-01-01 07:00:00.000000000 +0700
++++ linux-2.6.16/drivers/net/sg16lan/sg16lan.c	2007-05-11 12:43:15.000000000 +0700
+@@ -0,0 +1,2474 @@
 +/* sg16lan.c:  Sigrand SG-16PCI SHDSL modem driver for linux (kernel 2.6.x)
 + *
 + *	Written 2005-2006 by Artem U. Polyakov (artpol@sigrand.ru)
@@ -549,6 +549,41 @@ diff -Naur linux-2.6.16/drivers/net/sg16lan/sg16lan.c linux-2.6.16-new/drivers/n
 +static ssize_t store_debug( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
 +static DEVICE_ATTR(debug,0644,show_debug,store_debug);	
 +
++static ssize_t show_skb_stat(struct device *dev, ADDIT_ATTR char *buf );
++static DEVICE_ATTR(skb_stat,0444,show_skb_stat,NULL);	
++
++
++
++//---- Memory leak bug catch ----//
++
++static spinlock_t rx_alloc_lock,rx_free_lock;
++static int rx_buffs_alloc=0, rx_buffs_free=0;
++static spinlock_t tx_alloc_lock,tx_free_lock;
++static int tx_buffs_alloc=0, tx_buffs_free=0;
++static unsigned long tmp_flags;
++static int less_than_ethmin = 0;
++
++#define ALLOC_RX() \
++spin_lock_irqsave(&rx_alloc_lock,tmp_flags); \
++rx_buffs_alloc++; \
++spin_unlock_irqrestore(&rx_alloc_lock,tmp_flags);
++
++#define ALLOC_TX() \
++spin_lock_irqsave(&tx_alloc_lock,tmp_flags); \
++tx_buffs_alloc++; \
++spin_unlock_irqrestore(&tx_alloc_lock,tmp_flags);
++
++#define FREE_RX() \
++spin_lock_irqsave(&rx_free_lock,tmp_flags); \
++rx_buffs_free++; \
++spin_unlock_irqrestore(&rx_free_lock,tmp_flags);
++
++#define FREE_TX() \
++spin_lock_irqsave(&tx_free_lock,tmp_flags); \
++tx_buffs_free++; \
++spin_unlock_irqrestore(&tx_free_lock,tmp_flags);
++
++//-------------------------------//
 +
 +
 +/* pci-driver initialisation block */
@@ -571,6 +606,11 @@ diff -Naur linux-2.6.16/drivers/net/sg16lan/sg16lan.c linux-2.6.16-new/drivers/n
 +
 +int
 +sg16_init( void ){
++    spin_lock_init( &rx_alloc_lock);
++    spin_lock_init( &rx_free_lock );
++    spin_lock_init( &tx_alloc_lock );
++    spin_lock_init( &tx_free_lock );
++
 +    pci_module_init( &sg16_driver );
 +    return 0;
 +}
@@ -614,8 +654,8 @@ diff -Naur linux-2.6.16/drivers/net/sg16lan/sg16lan.c linux-2.6.16-new/drivers/n
 +	err=ENODEV;
 +	goto err1;
 +    }
-+devs[dnum]=ndev;
-+dnum++;    
++    devs[dnum]=ndev;
++    dnum++;    
 +    /* device private data initialisation */
 +    nl=(struct net_local *)netdev_priv( ndev);
 +    nl->dev=dev_dev;
@@ -1440,82 +1480,74 @@ diff -Naur linux-2.6.16/drivers/net/sg16lan/sg16lan.c linux-2.6.16-new/drivers/n
 +/* --------------------------------------------------------------------------
 + *   Functions, serving transmit-receive process   *
 + * -------------------------------------------------------------------------- */
++
++
++
++
 +static int
 +sg16_start_xmit( struct sk_buff *skb, struct net_device *ndev )
 +{
-+    struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);	
-+    unsigned long  flags;
-+    dma_addr_t bus_addr;
-+    struct sk_buff *nskb;
-+    unsigned  cur_tbd;
-+    unsigned pad;
++	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);	
++	unsigned long  flags;
++	dma_addr_t bus_addr;
++	struct sk_buff *nskb;
++	unsigned  cur_tbd;
++	unsigned pad;
 +
-+    if ( !netif_carrier_ok(ndev) ){
-+	dev_kfree_skb_any( skb );
-+	return 0;
-+    }
-+
-+    /* fix concurent racing in transmit */
-+    spin_lock_irqsave( &nl->xlock, flags );
-+
-+    if( nl->tail_xq == ((nl->head_xq - 1) & (XQLEN - 1)) ) {
-+    	netif_stop_queue( ndev );
-+	goto  err_exit;
-+    }
-+
-+    /*
-+     * we don't have to check if the descriptor queue was overflowed,
-+     * because of XQLEN < 128
-+     */
-+     if( skb->len < ETHER_MIN_LEN )
-+     {
-+	pad = ETHER_MIN_LEN - skb->len;
-+        /* if we have enough space just fill it with 0 and resize skb*/
-+	/* If the skbuff is non linear tailroom is always zero.. */
-+		 
-+	if(skb_tailroom(skb) >= pad)
-+	{
-+     	    memset(skb->data + skb->len, 0, pad);
-+	    skb->len = ETHER_MIN_LEN;			
++	if ( !netif_carrier_ok(ndev) ){
++	    dev_kfree_skb_any( skb );
++	    return 0;
 +	}
-+	else
-+	{
-+	    nskb = skb_copy_expand(skb, skb_headroom(skb), skb_tailroom(skb) + pad, GFP_ATOMIC);
-+	    skb = nskb;
-+	    if(skb)
-+	    	memset(skb->data + skb->len, 0, pad);
-+	    skb->len = ETHER_MIN_LEN;
++
++	/* fix concurent racing in transmit */
++	spin_lock_irqsave( &nl->xlock, flags );
++
++        if( nl->tail_xq == ((nl->head_xq - 1) & (XQLEN - 1)) ) {
++		netif_stop_queue( ndev );
++		goto  err_exit;
 +        }
-+    }
 +
-+    /* Map the buffer for DMA */
-+    bus_addr = dma_map_single(nl->dev,skb->data, skb->len , DMA_TO_DEVICE );
++	/*
++         * we don't have to check if the descriptor queue was overflowed,
++	 * because of XQLEN < 128
++         */
++	if( skb->len < ETHER_MIN_LEN ){
++		less_than_ethmin++;
++	        pad = ETH_ZLEN - skb->len;
++        	if( !(skb = skb_pad(skb,pad)) ){
++			printk(KERN_NOTICE"%s: no mem for skb",__FUNCTION__);
++	    	        return 0;
++		}
++		skb->len = ETH_ZLEN;
++        }
++	ALLOC_TX();
++	/* Map the buffer for DMA */
++        bus_addr = dma_map_single(nl->dev,skb->data, skb->len , DMA_TO_DEVICE );
 +
++	nl->xq[ nl->tail_xq++ ] = skb;
++        nl->tail_xq &= (XQLEN - 1);
++	cur_tbd = ioread8( (iotype)&(nl->regs->LTDR)) & 0x7f;
++        iowrite32( cpu_to_le32( bus_addr ) , (iotype)&(nl->tbd[ cur_tbd ].address) ) ;
++	iowrite32( cpu_to_le32( skb->len | LAST_FRAG ),(iotype)&(nl->tbd[ cur_tbd ].length ) ) ;
 +
-+    nl->xq[ nl->tail_xq++ ] = skb;
-+    nl->tail_xq &= (XQLEN - 1);
-+    cur_tbd = ioread8( (iotype)&(nl->regs->LTDR)) & 0x7f;
-+    iowrite32( cpu_to_le32( bus_addr ) , (iotype)&(nl->tbd[ cur_tbd ].address) ) ;
-+    iowrite32( cpu_to_le32( skb->len | LAST_FRAG ),(iotype)&(nl->tbd[ cur_tbd ].length ) ) ;
++        cur_tbd = (cur_tbd + 1) & 0x7f;
++	iowrite8(cur_tbd,(iotype)&(nl->regs->LTDR));
 +
-+    cur_tbd = (cur_tbd + 1) & 0x7f;
-+    iowrite8(cur_tbd,(iotype)&(nl->regs->LTDR));
++        /*
++	 * Probably, it's the best place to increment statistic counters
++         * though those frames hasn't been actually transferred yet.
++	 */
++        ++nl->in_stats.sent_pkts;
++	++nl->stats.tx_packets;
++        nl->stats.tx_bytes += skb->len;
++	ndev->trans_start = jiffies;
 +
-+    /*
-+     * Probably, it's the best place to increment statistic counters
-+     * though those frames hasn't been actually transferred yet.
-+     */
-+    ++nl->in_stats.sent_pkts;
-+    ++nl->stats.tx_packets;
-+    nl->stats.tx_bytes += skb->len;
-+    ndev->trans_start = jiffies;
++        spin_unlock_irqrestore( &nl->xlock, flags );
 +
-+    spin_unlock_irqrestore( &nl->xlock, flags );
-+
-+    return 0;
++	return 0;
 +err_exit:
-+    spin_unlock_irqrestore( &nl->xlock, flags );
-+    return  -EBUSY;
++        spin_unlock_irqrestore( &nl->xlock, flags );
++	return  -EBUSY;
 +}
 +
 +
@@ -1543,6 +1575,7 @@ diff -Naur linux-2.6.16/drivers/net/sg16lan/sg16lan.c linux-2.6.16-new/drivers/n
 +	skb_put( skb, len );
 +	skb->protocol = eth_type_trans( skb, dev );
 +	netif_rx( skb );
++	FREE_RX();
 +		
 +	++nl->in_stats.rcvd_pkts;
 +	++nl->stats.rx_packets;
@@ -1565,6 +1598,7 @@ diff -Naur linux-2.6.16/drivers/net/sg16lan/sg16lan.c linux-2.6.16-new/drivers/n
 +    
 +    while( nl->tail_rq != ((nl->head_rq -1) & (RQLEN - 1)) )
 +    {
++	ALLOC_RX();
 +	skb = dev_alloc_skb( SG16_MAX_FRAME );
 +	skb->dev = dev;
 +	skb_reserve( skb, 2 );	// align ip on longword boundaries
@@ -1600,6 +1634,7 @@ diff -Naur linux-2.6.16/drivers/net/sg16lan/sg16lan.c linux-2.6.16-new/drivers/n
 +	nl->head_rdesc = (nl->head_rdesc + 1) & 0x7f;
 +	dma_unmap_single(nl->dev,bus_addr, SG16_MAX_FRAME , DMA_FROM_DEVICE );
 +        dev_kfree_skb_any( skb );
++	FREE_RX();	
 +    }
 +    return;
 +}
@@ -1623,6 +1658,7 @@ diff -Naur linux-2.6.16/drivers/net/sg16lan/sg16lan.c linux-2.6.16-new/drivers/n
 +	bus_addr=le32_to_cpu( ioread32( (u32*)&(nl->tbd[ nl->head_tdesc ].address)) );
 +	dma_unmap_single(nl->dev,bus_addr, nl->xq[ nl->head_xq]->len, DMA_TO_DEVICE );
 +	dev_kfree_skb_any( nl->xq[ nl->head_xq++ ] );
++	FREE_TX();	
 +	nl->head_xq &= (XQLEN - 1);
 +	nl->head_tdesc = (nl->head_tdesc + 1) & 0x7f;
 +    }
@@ -1763,6 +1799,8 @@ diff -Naur linux-2.6.16/drivers/net/sg16lan/sg16lan.c linux-2.6.16-new/drivers/n
 +    if( device_create_file(dev,&dev_attr_statistic))	goto err_ext14;        
 +    //debug
 +    if( device_create_file(dev,&dev_attr_debug))	goto err_ext15;
++    // SKB memory leak
++    device_create_file(dev,&dev_attr_skb_stat);
 +
 +    return 0;
 +
@@ -1828,7 +1866,8 @@ diff -Naur linux-2.6.16/drivers/net/sg16lan/sg16lan.c linux-2.6.16-new/drivers/n
 +    device_remove_file(dev,&dev_attr_state);        
 +    device_remove_file(dev,&dev_attr_statistic);        
 +    //debug
-+    device_remove_file(dev,&dev_attr_debug);            
++    device_remove_file(dev,&dev_attr_debug);
++    device_remove_file(dev,&dev_attr_skb_stat);
 +}
 +
 +/* rate attributes */
@@ -2591,3 +2630,13 @@ diff -Naur linux-2.6.16/drivers/net/sg16lan/sg16lan.c linux-2.6.16-new/drivers/n
 +    }
 +    return size;
 +}
++
++static ssize_t
++show_skb_stat(struct device *dev, ADDIT_ATTR char *buf )
++{
++    return sprintf(buf,"rx_alloc = %d\nrx_free = %d\ntx_alloc = %d\ntx_free = %d\n"
++			"less_than_ethmin = %d\n",
++		    rx_buffs_alloc,rx_buffs_free, tx_buffs_alloc,tx_buffs_free,
++		    less_than_ethmin);
++}
++
