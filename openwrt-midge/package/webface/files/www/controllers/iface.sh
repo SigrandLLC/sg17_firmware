@@ -168,6 +168,7 @@
 		desc="Please select method of the interface"
 		validator="$tmtreq tmt:message='Please select method'"
 		render_input_field select "Method" sys_iface_${iface}_method none 'None' static 'Static address' zeroconf 'Zero Configuration' dynamic 'Dynamic address'
+		render_submit_field
 		;;
 	'method')
 		if [ "$method" = "static" ]; then
@@ -211,6 +212,7 @@
 		#	validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
 		#	render_input_field text "DHCP Client hostname" sys_iface_${iface}_dynhostname 
 		#fi
+		render_submit_field
 		;;
 	'options')
 		render_table_title "Interface options" 
@@ -222,6 +224,7 @@
 		render_input_field checkbox "Proxy ARP" sys_iface_${iface}_opt_proxy_arp
 		default=0
 		render_input_field checkbox "RP Filter" sys_iface_${iface}_opt_rp_filter
+		render_submit_field
 		;;
 	'spec')
 		case $proto in
@@ -339,109 +342,33 @@
 			fi
 			;;
 		esac
+		render_submit_field
 		;;
 	'dhcp')
-		# TODO remove dhcp code, it moved to Services menu
-		# sys_iface_${iface}_dhcp_enabled
-		tip=""
-		desc="Check this item if you want use DHCP server on your LAN"
-		validator='tmt:required="true"'
-		render_input_field checkbox "Enable DHCP server" sys_iface_${iface}_dhcp_enabled
-
-		desc="Start of dynamic ip range address for your LAN (dotted quad) <b>required</b>"
-		validator="$tmtreq $validator_ipaddr"
-		render_input_field text "Start IP" sys_iface_${iface}_dhcp_startip
-
-		desc="End of dynaic ip range address for your LAN (dotted quad) <b>required</b>"
-		validator="$tmtreq $validator_ipaddr"
-		render_input_field text "End IP" sys_iface_${iface}_dhcp_endip
-
-		tip="<b>Example:</b> 255.255.255.0"
-		desc="Netmask for your LAN (dotted quad) <b>required</b>"
-		validator="$tmtreq $validator_netmask"
-		render_input_field text "Netmask" sys_iface_${iface}_dhcp_netmask
-
-		# sys_iface_${iface}_dhcp_router
-		tip="Router for subnet"
-		desc="Default router for your LAN hosts (dotted quad) "
-		validator=$validator_ipaddr
-		render_input_field text "Default router" sys_iface_${iface}_dhcp_router
-
-		# sys_iface_${iface}_dhcp_lease_time
-		tip="Select default lease time"
-		desc="Please select lease time"
-		validator='tmt:message="Please select lease time"'
-		render_input_field select "Default lease time" sys_iface_${iface}_dhcp_lease_time 600 "10 minutes" 1800 "30 minutes" 3600 "1 hour" \
-				10800 "3 hours" 36000 "10 hours" 86400 "24 hours" #infinite "Infinite"
-
-		# sys_iface_${iface}_dhcp_nameserver
-		tip="DNS server for your LAN hosts<br>You can use this device as DNS server"
-		desc="DNS server for your LAN hosts (dotted quad)"
-		validator=$validator_ipaddr
-		render_input_field text "DNS server" sys_iface_${iface}_dhcp_nameserver
-
-		# sys_iface_${iface}_dhcp_domain_name
-		tip="Most queries for names within this domain can use short names relative to the local domain"
-		desc="Allows DHCP hosts to have fully qualified domain names"
-		validator='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
-		render_input_field text "Domain" sys_iface_${iface}_dhcp_domain_name
-
-		# sys_iface_${iface}_dhcp_ntpserver
-		tip="NTP server for your LAN hosts"
-		desc="NTP server for your LAN hosts (dotted quad)"
-		validator=$validator_ipaddr
-		render_input_field text "NTP server" sys_iface_${iface}_dhcp_ntpserver
-
-		tip="WINS server for your LAN hosts"
-		desc="WINS server for your LAN hosts (dotted quad)"
-		validator=$validator_ipaddr
-		render_input_field text "WINS server" sys_iface_${iface}_dhcp_winsserver
+		. ./common/dhcp_server.sh
+		render_dhcp_server_common
+		render_submit_field
 		;;
 	'qos')
 		# sys_iface_${iface}_qos_sch
 		desc="Please select scheduler for the interface"
 		validator='tmt:required="true" tmt:message="Please select method"'
 		render_input_field select "Scheduler" sys_iface_${iface}_qos_sch pfifo_fast "Default discipline pfifo_fast" bfifo 'FIFO with bytes buffer' pfifo 'FIFO with packets buffer ' 'tbf' 'Token Bucket Filter' 'sfq' 'Stochastic Fairness Queueing' 'esfq' 'Enhanced <b>Stochastic Fairness Queueing'  #'htb' 'Hierarchical Token Bucket' 
+		render_submit_field
 		;;
 		
 	'routes')
 		;;
 	esac
 	
-	[ "$page" = 'status' -o "$page" = 'routes' ] || render_submit_field
 	render_form_tail
 
 	# second form
 	case $page in
 	'dhcp')
-		# TODO remove dhcp code, it moved to Services menu
-		# static dhcp list
-		#render_form_header dhcp_leases
-		#render_table_title "DHCP Static leases" 2 
-		#render_iframe_list "dhcp_static" "iface=$iface"
-		#render_form_tail
-
-		render_form_header dhcp
-
-		render_list_line(){
-			local lineno=$1
-			eval "val=\"\${sys_iface_${iface}_dhcp_host_${lineno}}\""
-			unset name ipaddr hwaddr
-			eval "$val"
-			echo "<tr><td>$lineno</td><td>$name</td><td>$ipaddr</td><td>$hwaddr</td><td>"
-			render_list_btns dhcp_static_edit "sys_iface_${iface}_dhcp_host_${lineno}" "page=${page}&iface=${iface}"
-			echo "</td></tr>"
-		}
-		
-		
-		render_list_header dhcp_static sys_iface_${iface}_dhcp_host_ "iface=${iface}" "No" "Name" "IP Address" "MAC Address"
-		
-		eval `kdb -qqc ls sys_iface_${iface}_dhcp_host*`
-		render_list_cycle_stuff
-
+		render_form_header dhcp_server_static
+		render_dhcp_server_static
 		render_form_tail
-
-
 		;;
 	'qos')
 		# static dhcp list
