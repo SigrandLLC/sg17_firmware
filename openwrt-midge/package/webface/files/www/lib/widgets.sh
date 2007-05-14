@@ -138,11 +138,11 @@ render_input_field(){
 	echo "
 <!-- ------- render_input_field $type $text $inputname $* -->"
 
-	[ ! $type = "hidden" ] && echo "<tr>
+	[ ! "$type" = "hidden" ] && echo "<tr>
 <td width='35%' class='vncellt'><label for='$inputname' $tipcode>$text</label></td>
 <td width='65%' class='listr'>";
 
-	case $type in
+	case "${type}" in
 	text)
 		echo "	<input $disabled type='text' class='edit' $idcode $tipcode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
 		;;
@@ -317,6 +317,7 @@ render_js_hide_message(){
 }
 
 render_page_selection(){
+	local class;
 	extparam=$1
 	shift
 	echo "<table class='page_select'><tr>"
