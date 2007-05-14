@@ -2634,7 +2634,7 @@ diff -Naur linux-2.6.16/drivers/mtd/nand/Makefile linux-2.6.16-new/drivers/mtd/n
  obj-$(CONFIG_MTD_NAND_S3C2410)		+= s3c2410.o
 diff -Naur linux-2.6.16/drivers/mtd/nand/nand_base.c linux-2.6.16-new/drivers/mtd/nand/nand_base.c
 --- linux-2.6.16/drivers/mtd/nand/nand_base.c	2006-03-20 11:53:29.000000000 +0600
-+++ linux-2.6.16-new/drivers/mtd/nand/nand_base.c	2007-05-09 10:56:56.000000000 +0700
++++ linux-2.6.16-new/drivers/mtd/nand/nand_base.c	2007-05-13 18:17:45.000000000 +0700
 @@ -5,14 +5,14 @@
   *   This is the generic MTD driver for NAND flash devices. It should be
   *   capable of working with almost all NAND chips currently available.
@@ -4147,9 +4147,12 @@ diff -Naur linux-2.6.16/drivers/mtd/nand/nand_base.c linux-2.6.16-new/drivers/mt
  		written += mtd->oobblock * numpages;
  		/* All done ? */
  		if (!count)
-@@ -2079,8 +2018,7 @@
+@@ -2077,10 +2016,9 @@
+  */
+ static int nand_erase (struct mtd_info *mtd, struct erase_info *instr)
  {
- 	return nand_erase_nand (mtd, instr, 0);
+-	return nand_erase_nand (mtd, instr, 0);
++	return nand_erase_nand (mtd, instr, 1);
  }
 -
 -#define BBT_PAGE_MASK	0xffffff3f
@@ -4192,7 +4195,7 @@ diff -Naur linux-2.6.16/drivers/mtd/nand/nand_base.c linux-2.6.16-new/drivers/mt
  		/* Check if we have a bad block, we do not erase bad blocks ! */
 -		if (nand_block_checkbad(mtd, ((loff_t) page) << this->page_shift, 0, allowbbt)) {
 +		//if (nand_block_checkbad(mtd, ((loff_t) page) >> this->page_shift, 0, allowbbt)) {
-+		if (nand_block_checkbad(mtd, ((loff_t) page) , 0, allowbbt)) {
++		if (nand_block_checkbad(mtd, ((loff_t) page*mtd->oobblock) , 0, allowbbt)) {
  			printk (KERN_WARNING "nand_erase: attempt to erase a bad block at page 0x%08x\n", page);
  			instr->state = MTD_ERASE_FAILED;
  			goto erase_exit;
@@ -4270,7 +4273,7 @@ diff -Naur linux-2.6.16/drivers/mtd/nand/nand_base.c linux-2.6.16-new/drivers/mt
  	/* Return more or less happy */
  	return ret;
  }
-@@ -2265,9 +2161,9 @@
+@@ -2265,10 +2161,10 @@
  static int nand_block_isbad (struct mtd_info *mtd, loff_t ofs)
  {
  	/* Check for invalid offset */
@@ -4278,10 +4281,12 @@ diff -Naur linux-2.6.16/drivers/mtd/nand/nand_base.c linux-2.6.16-new/drivers/mt
 +	if (ofs > mtd->size) 
  		return -EINVAL;
 -
+-	return nand_block_checkbad (mtd, ofs, 1, 0);
 +	
- 	return nand_block_checkbad (mtd, ofs, 1, 0);
++	return nand_block_checkbad (mtd, ofs, 1, 1);
  }
  
+ /**
 @@ -2292,34 +2188,6 @@
  }
  
