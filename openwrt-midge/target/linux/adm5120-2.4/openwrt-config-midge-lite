@@ -904,6 +904,7 @@ BR2_PACKAGE_ARPING=m
 # olsrd............................. OLSR (Optimized Link State Routing) daemon
 #
 # BR2_PACKAGE_OLSRD is not set
+BR2_PACKAGE_OPENDCHUB=m
 # BR2_PACKAGE_OPENNTPD is not set
 
 #
@@ -1165,6 +1166,7 @@ BR2_PACKAGE_LIBREADLINE=m
 # BR2_PACKAGE_PALANTIR is not set
 # BR2_PACKAGE_PEERCAST is not set
 # BR2_PACKAGE_SETPWC is not set
+# BR2_PACKAGE_SPCAVIEW is not set
 
 #
 # Serial communications & terminal emulation
@@ -1346,7 +1348,7 @@ BR2_PACKAGE_KMOD_FS_XFS=m
 #
 # BR2_PACKAGE_KMOD_PWC is not set
 BR2_PACKAGE_KMOD_SOUNDCORE=m
-BR2_PACKAGE_KMOD_VIDEODEV=m
+# BR2_PACKAGE_KMOD_VIDEODEV is not set
 
 #
 # Native Language support
@@ -1397,5 +1399,5 @@ BR2_PACKAGE_KMOD_SOFTDOG=y
 # BR2_PACKAGE_KMOD_MINI_FO is not set
 # BR2_PACKAGE_KMOD_OPENSWAN is not set
 # BR2_PACKAGE_KMOD_SHFS is not set
-BR2_PACKAGE_KMOD_SPCA5XX=m
+# BR2_PACKAGE_KMOD_SPCA5XX is not set
 # BR2_PACKAGE_KMOD_SWITCH is not set
