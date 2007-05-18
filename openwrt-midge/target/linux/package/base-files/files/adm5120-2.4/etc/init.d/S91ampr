@@ -18,6 +18,8 @@ start() {
 	sleep 1
 	/usr/sbin/kissattach -l /dev/ttyS1 uhf01 44.0.0.1
 	sleep 1
+	/usr/sbin/kissattach -l /dev/ttyS0 vhf01 44.0.0.1
+	sleep 1
 	/usr/sbin/axip >/dev/null &
 	sleep 1
 	/usr/sbin/aprsdigi -DLMC -t " *MY_ID->" -i 30 -p ax25:local:WIDE,TRACE,RELAY >/dev/null &
@@ -29,6 +31,7 @@ start() {
 	/usr/sbin/beacon -t 1 -c SERVER -d "CLIENT RELAY" local "*CADTS* Crimean Amateur Digital Telemetry System"
 	/usr/sbin/beacon -t 1 -c SERVER -d "CLIENT RELAY" ipusr "*CADTS* Crimean Amateur Digital Telemetry System"
 	/usr/sbin/beacon -t 1 -c SERVER -d "CLIENT RELAY" uhf01 "*CADTS* Crimean Amateur Digital Telemetry System"
+	/usr/sbin/beacon -t 1 -c SERVER -d "CLIENT RELAY" vhf01 "*CADTS* Crimean Amateur Digital Telemetry System"
 }
 
 case "$1" in

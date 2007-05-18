@@ -86,7 +86,7 @@ Only in etc/help: s5.hlp
 diff -ur etc/i.sv etc_new/i.sv
 --- linsv-0.5.2/etc/i.sv	2005-10-20 21:13:22.000000000 +0000
 +++ linsv-0.5.2/etc_new/i.sv	2006-10-26 14:36:25.000000000 +0000
-@@ -1,13 +1,22 @@
+@@ -1,13 +1,23 @@
 -                      Linux SuperVozelj ZAPRUD:9A0XZP
 -                          Zaprudje, Zagreb JN75XT
 -=============================================================================
@@ -114,7 +114,8 @@ diff -ur etc/i.sv etc_new/i.sv
 +--------------------------------------------------------------------------------
 + 1  LBK   38k4    -       -     -    -   Internal LoopBack
 + 2  UDP   38k4    -       -     -    -   For ARLiX Club members
-+ 3  AFSK   1k2 433.625 433.625  GP   V   User access 
++ 3  AFSK   1k2 433.800 433.800  GP   V   User access 
++ 3  AFSK   1k2 144.800 144.800  GP   V   APRS & DXC 
 +--------------------------------------------------------------------------------
 +  HW: Router Edimax BR-6104K, 16MB RAM, 2MB internal FLASH, Simple KISS TNC
 +  SW: Linux for ADM5120 - http://midge.vlad.org.ua/forum/viewtopic.php?t=415
@@ -145,7 +146,7 @@ diff -ur etc/password.sv etc_new/password.sv
 diff -ur etc/ports.sv etc_new/ports.sv
 --- linsv-0.5.2/etc/ports.sv	2005-10-20 21:10:20.000000000 +0000
 +++ linsv-0.5.2/etc_new/ports.sv	2006-10-26 14:36:56.000000000 +0000
-@@ -1,6 +1,4 @@
+@@ -1,6 +1,5 @@
 -#
 -# if you change ports, you have to delete
 -# /usr/var/ax25/linsv/gtable.dat file !!!
@@ -156,6 +157,7 @@ diff -ur etc/ports.sv etc_new/ports.sv
 +local
 +ipusr
 +uhf01
++vhf01
 diff -ur etc/t.sv etc_new/t.sv
 --- linsv-0.5.2/etc/t.sv	2004-12-14 09:29:25.000000000 +0000
 +++ linsv-0.5.2/etc_new/t.sv	2006-10-26 14:37:13.000000000 +0000

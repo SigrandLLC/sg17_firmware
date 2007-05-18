@@ -60,7 +60,7 @@ diff -urN libax25-0.0.11_original/axlib.h libax25-0.0.11_9a4gl/axlib.h
 diff -urN libax25-0.0.11_original/axports libax25-0.0.11_9a4gl/axports
 --- libax25-0.0.11_original/axports	2001-04-10 01:54:11.000000000 +0000
 +++ libax25-0.0.11_9a4gl/axports	2005-10-20 21:16:14.000000000 +0000
-@@ -4,5 +4,6 @@
+@@ -4,5 +4,7 @@
  #
  # name callsign speed paclen window description
  #
@@ -68,7 +68,8 @@ diff -urN libax25-0.0.11_original/axports libax25-0.0.11_9a4gl/axports
 -2	OH2BNS-9	38400	255	7	TNOS/Linux  (38400 bps)
 +local   PORT-1      38400   250     5       AX_UDP loop
 +ipusr   PORT-2      38400   250     5       AX_UDP for ARLiX Club members
-+uhf01   PORT-3      9600    230     5       433.675 MHz
++uhf01   PORT-3      9600    230     5       433.800 MHz
++vhf01   PORT-4      9600    230     5       144.800 MHz
 
 diff -urN libax25-0.0.11_original/axutils.c libax25-0.0.11_9a4gl/axutils.c
 --- libax25-0.0.11_original/axutils.c	2001-04-10 01:54:12.000000000 +0000
