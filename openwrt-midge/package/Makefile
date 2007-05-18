@@ -255,6 +255,7 @@ package-$(BR2_PACKAGE_SLURM) += slurm
 package-$(BR2_COMPILE_SNORT) += snort
 package-$(BR2_COMPILE_SNORT_WIRELESS) += snort-wireless
 package-$(BR2_PACKAGE_SOCAT) += socat
+package-$(BR2_PACKAGE_SPCAVIEW) += spcaview
 package-$(BR2_COMPILE_SPEEX) += speex
 package-$(BR2_COMPILE_SQLITE) += sqlite
 package-$(BR2_COMPILE_SQLITE2) += sqlite2
