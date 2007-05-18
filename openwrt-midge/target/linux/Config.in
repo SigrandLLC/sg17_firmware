@@ -88,7 +88,7 @@ config BR2_PACKAGE_KMOD_GRE
 	  Kernel support for GRE tunnels
 
 config BR2_PACKAGE_KMOD_IPIP
-	prompt "kmod-ipip.......................... IPIP tunneling driver"
+	prompt "kmod-ipip......................... IPIP tunneling driver"
 	tristate
 	default m
 	help

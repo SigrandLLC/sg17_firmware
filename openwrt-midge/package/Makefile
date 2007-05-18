@@ -98,6 +98,7 @@ package-$(BR2_PACKAGE_IPSET) += ipset
 package-$(BR2_COMPILE_IPTABLES) += iptables
 package-$(BR2_PACKAGE_IPTABLES_SNMP) += iptables-snmp
 package-$(BR2_PACKAGE_IPTRAF) += iptraf
+package-$(BR2_COMPILE_IPUTILS) += iputils
 package-$(BR2_PACKAGE_IRSSI) += irssi
 package-$(BR2_PACKAGE_JAMVM) += jamvm
 package-$(BR2_COMPILE_JPEG) += jpeg
