@@ -184,6 +184,7 @@ package-$(BR2_PACKAGE_NTPCLIENT) += ntpclient
 package-$(BR2_PACKAGE_NVRAM) += nvram
 package-$(BR2_PACKAGE_OLSRD) += olsrd
 package-$(BR2_COMPILE_OPENCDK) += opencdk
+package-$(BR2_COMPILE_OPENDCHUB) += opendchub
 package-$(BR2_COMPILE_OPENH323) += openh323
 package-$(BR2_COMPILE_OPENLDAP) += openldap
 package-$(BR2_PACKAGE_OPENNTPD) += openntpd
