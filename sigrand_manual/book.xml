@@ -9,6 +9,73 @@
 		<chapterinfo>Манипуляция с программным обеспечением маршрутизатора</chapterinfo>
 		<title>Программное обеспечение маршрутизатора</title>
 		<section>
+			<title>Загрузчик</title>
+			<para>
+				Меню загрузчика доступно при подключении к маршрутизатору по последовательному интерфейсу. После включения питания, на экран будет выведено предложение войти в меню загрузчика. Для этого вам необходимо 3 раза быстро нажать на клавишу пробела.
+			</para>
+			<screen>
+				ADM5120 Boot:
+				
+				
+				Copyright 2007 Sigrand, Inc.
+				CPU: Infineon 5120-175MHz
+				SDRAM: 64MB
+				Flash: NAND-32MB
+				Boot System: Linux-5120
+				Loader Version: 1.00.03
+				Creation Date: 17.04.2007
+				
+				Press &lt;space> key tree times to enter boot menu..
+					3
+			</screen>
+			<para>
+				Если вы трижды нажали на пробел, то выведется меню загрузчика
+			</para>
+			<screen>
+				Sigrand MR16 router:
+				==================================
+				Bootloader Menu
+				[1] Xmodem Download
+				[2] TFTP Download
+				[3] Print Boot Params
+				[4] Set Boot Params
+				[5] Check flash
+				[6] Exit
+				
+				Please enter your number:
+			</screen>
+			<para>
+				В этом меню доступны несколько действий:
+				<itemizedlist>
+					<listitem>Xmodem Download - обновление загрузчика или системы через последовательный порт по протоколу Xmodem. Данный способ обновления занимает много времени.</listitem>
+					<listitem>TFTP Download - обновление системы или загрузчика с помощью TFTP сервера.</listitem>
+					<listitem>Print Boot Params - показывает сетевые параметры загрузчика, основные - мак адрес и IP-адрес.</listitem>
+					<listitem>Set Boot Params - установка сетевых параметров для загрузки. Подробнее эти параметры рассмотрены в разделе "Обновление прошивки маршрутизатора".</listitem>
+					<listitem>Check flash - проверка флэш-памяти маршрутизатора на наличие поврежденных блоков.</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				Чтобы проверить маршрутизатор на наличие поврежденных блоков, переходим в меню Check flash:
+			</para>
+			<screen>
+				Please enter your number:5
+				Flash Client Menu
+				===============================
+				[P]: Print existent bad blocks
+				[S]: Scan flash for new bad blocks
+				[E]: Erase flash
+				[X]: exit
+				Enter your option:
+			</screen>
+			<para>
+				<itemizedlist>
+					<listitem>Print existent bad blocks - выводит на экран информацию о выявленных в ходе предыдущих проверках поврежденных блоках.</listitem>
+					<listitem>Scan flash for new bad blocks - сканирование флэш-памяти на предмет поврежденных блоков. В случае их обнаружения, они помечаются, как поврежденные, и не используются системой.</listitem>
+					<listitem>Erase flash - очистка флэш-памяти. Удаляет систему с флэш-памяти.</listitem>
+				</itemizedlist>
+			</para>
+		</section>
+		<section>
 			<title>Обновление прошивки маршрутизатора</title>
 			<para>
 				Если маршрутизатор уже сконфигурирован, то перед прошивкой следует сохранить конфигурацию, т.к. установка новой прошивки вернет все параметры в начальное состояние. Сохранение и восстановление конфигурации выполняется в веб-интерфейсе.
@@ -60,10 +127,10 @@
 				==================================
 				Bootloader Menu
 				[1] Xmodem Download
-				[2] TFTP Client Download
+				[2] TFTP Download
 				[3] Print Boot Params
 				[4] Set Boot Params
-				[5] Update bootloader
+				[5] Check flash
 				[6] Exit
 				
 				Please enter your number:
@@ -97,8 +164,8 @@
 				Enter new mac address (AA-AA-AA-AA-AA-AA):
 				Enter new number of mac address (between 1-8):
 				Mac address unchanged.
-				IP address for this board: 192.168.100.3
-				Enter new IP address for this board: 192.168.100.3
+				IP address for this board: 10.10.10.1
+				Enter new IP address for this board: 10.10.10.1
 				IP updated successfully.
 			</screen>
 			<para>
@@ -108,52 +175,92 @@
 				После настройки сетевых параметров, следует выбрать пункт меню 2 (TFTP Client Download) для настройки параметров обновления с помощью TFTP сервера. Содержание этого меню приведено ниже:
 			</para>
 			<screen>
-				Server IP: 192.168.100.1
-				Remote File: wrt567.bin
+				Server IP: 80.66.88.167
+				Gateway IP: 10.10.10.2
+				Remote File bootloader: bootgw
+				Remote File system: openwrt
 				
 				TFTP Client Menu
 				===============================
-				[D]: start download
-				[S]: set parameters
+				[B]: Update bootloader
+				[S]: Update system
+				[A]: Update all
+				[P]: Set parameters
 				[X]: exit
 				Enter your option:
 			</screen>
+			<note>
+				<simpara>
+					Приведенное выше меню соответсвует новому загрузчику, в который была добавлена возможность загрузки образов загрузчика и системы с TFTP-сервера, находящегося за маршрутизатором. Меню в старых вресиях загрузчика отличается отсутствием возможности установки шлюза и обновления загрузчика.
+				</simpara>
+			</note>
 			<para>
-				Первые две строчки (Server IP и Remote File) показывают текущее значение IP адреса TFTP сервера и имени файла прошивки. Для их изменения следует выбрать пункт меню set parameters нажатием клавиши s. В ответ на это будет предложено ввести:
+				Первые четыре строчки над меню содержат информацию, установленную во время последнего обновления прошивки. Для их изменения следует выбрать пункт меню set parameters нажатием клавиши p. В ответ на это будет предложено ввести:
 				<itemizedlist>
-					<listitem><para>IP адрес TFTP сервера - (Please Enter TFTP Server IP) - IP адрес TFTP сервера, на котором находится файл прошивки. TFTP сервер должен находится в одной сети с маршрутизатором.</para></listitem>
-					<listitem><para>Имя файла прошивки - (Enter Remote File Name) - имя файла прошивки, расположенного на TFTP сервере.</para></listitem>
+					<listitem>
+						IP-адрес TFTP сервера - (Please Enter TFTP Server IP) - IP адрес TFTP сервера, на котором находится файл прошивки. Можно использовать TFTP-сервер, предоставляемый компанией Сигранд - sigrand.ru. Вводить следует IP-адрес сервера.
+					</listitem>
+					<listitem>
+						IP-адрес шлюза - (Please enter gateway IP). Установка данного параметра позволяет обновлять прошивку с TFTP-сервера, находящегося в отличной от маршрутизатора сети.
+						Шлюз должен находиться в той же сети, что и интерфейс маршрутизатора.
+					</listitem>
+					<listitem>
+						Имя файла образа загрузчика - (Enter remote bootloader file name).
+					</listitem>
+					<listitem>
+						Имя файла прошивки - (Enter remote system file name) - имя файла прошивки, расположенного на TFTP сервере.
+					</listitem>
 				</itemizedlist>
 			</para>
 			<screen>
-				Please Enter TFTP Server IP : 192.168.100.1
-				Enter Remote File Name : wrt567.bin
+				Please enter TFTP server IP : 80.66.88.167
+				Please enter gateway IP : 10.10.10.2
+				Enter remote bootloader file name : bootgw
+				Enter remote system file name : openwrt
 			</screen>
 			<para>
-				После настройки необходимых параметров, можно перейти к прошивке маршрутизатора. Для этого следует нажать клавишу d, соответствующую пункту меню start download. Начнется загрузка файла прошивки и программирование флэш-памяти. Этот процесс представлен ниже:
+				После настройки необходимых параметров, можно перейти к прошивке маршрутизатора или обновлению загрузчика. Для обновления загрузчика выбираем пункт меню [B]: Update bootloader:
 			</para>
 			<screen>
-				Starting the TFTP download(ESC to stop)...............................................................S
-				Eraseing flash.......PASS
-				Programming flash....PASS
+				Enter your option:b
+				Starting the TFTP download(ESC to stop)...
+				PASS
+				File total Length: 00010DF0
 				
-				Server IP: 192.168.100.1
-				Remote File: wrt567.bin
+				Eraseing flash.......
+				PASS
+				Programming flash....
+				PASS
+			</screen>
+			<para>
+				PASS, соответсвующий строчкам Eraseing flash и Programming flash означает, что обновление загрузчика прошло успешно. FAIL говорит о возникших проблемах, как правило это неправильный IP-адрес TFTP-сервера (маршрутизатор и TFTP-сервер находятся в разных сетях) или неправильнео имя файла на сервере.
+			</para>
+			<para>
+				Для обновления прошивки маршрутизатора переходим в пункт меню [S]: Update system:
+			</para>
+			<screen>
+				Enter your option:s
+				Starting the TFTP download(ESC to stop)...................................
+				PASS
+				File total Length: 00B62808  Starting address: A0820000
 				
-				TFTP Client Menu
-				===============================
-				[D]: start download
-				[S]: set parameters
-				[X]: exit
-				Enter your option:
+				Eraseing flash.......
+				PASS
+				Programming flash....
+				PASS
 			</screen>
 			<para>
 				Если на экране присутствуют строчки
 				<screen>
-					Eraseing flash.......PASS
-					Programming flash....PASS
+				Eraseing flash.......
+				PASS
+				Programming flash....
+				PASS
 				</screen>
 				, значит обновление прошивки прошло успешно и теперь можно загрузить новую прошивку. Для этого необходимо выполнить перезагрузку маршрутизатора нажатием на кнопку RESET (или включением/выключением питания).
+			</para>
+			<para>
+				Пункт меню [A]: Update all последовательно обновляет загрузчик и прошивку маршрутизатора.
 			</para>
 			<para>
 				После загрузки маршрутизатора (при обычной загрузке не требуется входить в меню загрузчика, поэтому надо подождать, пока истечет таймер и начнется загрузка операционной системы (<acronym>ОС</acronym>>)) можно перейти к настройке посредством веб-интерфейса. Доступ к консоли больше не требуется, поэтому провод и соответствующее <acronym>ПО</acronym> можно отключить.
@@ -167,7 +274,7 @@
 		<section>
 			<title>Установка программ</title>
 			<para>
-				Перед установкой пакета его надо загрузить на маршрутизатор. Сделать это можно несколими способами:
+				Перед установкой пакета его надо загрузить на маршрутизатор. Сделать это можно несколькими способами:
 				<itemizedlist>
 					<listitem>Разместить на WWW/FTP сервере и загрузить с помощью утилиты wget</listitem>
 					<listitem>Разместить на TFTP сервер и загрузить с помощью tftp клиента</listitem>
@@ -187,7 +294,7 @@
 				</screen>
 			</para>
 			<para>
-				Если при выплнении установки пакета будет выведено сообщение <computeroutput>ERROR: Cannot satisfy the following dependencies for <replaceable>fprobe</replaceable>:</computeroutput>, следует установить указанный пакет и повторить установку текущего пакета (<replaceable>fprobe</replaceable>).
+				Если при выполнении установки пакета будет выведено сообщение <computeroutput>ERROR: Cannot satisfy the following dependencies for <replaceable>fprobe</replaceable>:</computeroutput>, следует установить указанный пакет и повторить установку текущего пакета (<replaceable>fprobe</replaceable>).
 			</para>
 		</section>
 	</chapter>
@@ -246,7 +353,7 @@
 					<itemizedlist>
 						<listitem>проследить за работой маршрутизатора, просмотрев логи - страницы syslog и dmesg;</listitem>
 						<listitem>выполнить перезагрузку с помощью reboot;</listitem>
-						<listitem>проверить работу ДНС сервера или соответствие DNC-имени IP-адресу с помощью утилиты dig;</listitem>
+						<listitem>проверить работу ДНС сервера или соответствие DNS-имени IP-адресу с помощью утилиты dig;</listitem>
 						<listitem>проверить работоспособность узла с помощью утилиты ping;</listitem>
 						<listitem>посмотреть маршрут прохождения пакета до заданного узла в сети с помощью mtr;</listitem>
 						<listitem>просмотреть сетевой трафик с помощью tcpdump.</listitem>
@@ -363,7 +470,7 @@
 					<graphic fileref="img/switch-1.png"/>
 				</figure>
 			</para>
-			<simpara>В приведенной выше конфигурации 0 и 1 порты свича отнесены к сетевому интерфейсу eth0, в то время как 2 и 3 порты являются независимыми.</simpara>
+			<simpara>В приведенной выше конфигурации 0 и 1 порты коммутатора отнесены к сетевому интерфейсу eth0, в то время как 2 и 3 порты являются независимыми.</simpara>
 			<note>
 				<simpara>После внесения изменений необходимо перезагрузить маршрутизатор.</simpara>
 			</note>
