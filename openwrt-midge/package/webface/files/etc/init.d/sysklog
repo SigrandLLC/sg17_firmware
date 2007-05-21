@@ -1,4 +1,11 @@
 #!/bin/sh
 
-test -x /sbin/syslogd && /sbin/syslogd -m 0 -C
+eval `kdb -qq ls sys_log_*`
+
+[ "$sys_log_remote_enabled" = 1 -a -n "$sys_log_remote_server" ] && remote_param="-R $sys_log_remote_server" || remote_param=''
+
+test -x /sbin/syslogd && /sbin/syslogd -m 0 -C 64 $remote_param
 test -x /sbin/klogd   && /sbin/klogd
+
+
+[ -n "$sys_log_dmesg_level" ] && dmesg -n $sys_log_dmesg_level
