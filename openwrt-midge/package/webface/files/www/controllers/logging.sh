@@ -2,7 +2,7 @@
 	
 	subsys="logging"
 
-	kdb_vars="int:sys_log_console int:sys_log_dmesg_level bool:sys_log_remote_enabled str:sys_log_remote_server "
+	kdb_vars="int:sys_log_console int:sys_log_dmesg_level int:sys_log_buf_size bool:sys_log_remote_enabled str:sys_log_remote_server "
 
 	render_save_stuff
 
@@ -18,9 +18,15 @@
 	render_input_field select "Console priority logging" sys_log_console 0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7
 
 	# sys_log_dmesg_level
-	tip=""
+	default=1
+	tip="For example: 1 prevents all messages, expect panic messages"
 	desc="Set the level at which logging of messages is done to the console."
-	render_input_field select "Console priority logging" sys_log_dmesg_level 0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7
+	render_input_field select "Kernel console priority logging" sys_log_dmesg_level 1 1 2 2 3 3 4 4 5 5 6 6 7 7
+
+	# sys_log_buf_size
+	default=64
+	desc="Circular buffer size"
+	render_input_field select "Circular buffer" sys_log_buf_size 0 0k 8 8k 16 16k 32 32k 64 64k 128 128k 256 256k 512 512k 
 
 	# sys_log_remote_enabled
 	default=0

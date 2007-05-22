@@ -22,7 +22,7 @@ start(){
 }
 
 stop(){
-	echo "Stoping $NAME."
+	echo "Stopping $NAME."
 	start-stop-daemon --quiet --stop --pid=$PIDFILE --name $NAME
 }
 

@@ -1,5 +1,6 @@
 #!/usr/bin/haserl
 
+	. ./common/dhcp_server.sh
 	export iface=${FORM_iface:-eth0}
 	page=${FORM_page:-status}
 	subsys="network"
@@ -28,11 +29,7 @@
 			kdb_vars="bool:sys_iface_${iface}_opt_accept_redirects bool:sys_iface_${iface}_opt_forwarding bool:sys_iface_${iface}_opt_proxy_arp bool:sys_iface_${iface}_opt_rp_filter"
 			;;
 		'dhcp')
-			kdb_vars="bool:sys_iface_${iface}_dhcp_enabled int:sys_iface_${iface}_dhcp_lease_time"
-			kdb_vars="$kdb_vars str:sys_iface_${iface}_dhcp_router str:sys_iface_${iface}_dhcp_nameserver"
-			kdb_vars="$kdb_vars str:sys_iface_${iface}_dhcp_domain_name "
-			kdb_vars="$kdb_vars str:sys_iface_${iface}_dhcp_ntpserver str:sys_iface_${iface}_dhcp_winsserver "
-			kdb_vars="$kdb_vars str:sys_iface_${iface}_dhcp_startip str:sys_iface_${iface}_dhcp_endip str:sys_iface_${iface}_dhcp_netmask "
+			set_dhcp_server_vars
 			subsys="dhcp"
 		;;
 		'qos')		
@@ -345,7 +342,6 @@
 		render_submit_field
 		;;
 	'dhcp')
-		. ./common/dhcp_server.sh
 		render_dhcp_server_common
 		render_submit_field
 		;;

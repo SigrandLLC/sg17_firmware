@@ -10,7 +10,7 @@ service_reload(){
 	network)
 		if [ -n "$iface" ]; then
 			/sbin/ifdown $iface;
-			/sbin/ifup $iface  
+			/sbin/ifup $iface
 		else
 			/etc/init.d/network restart
 		fi
@@ -19,18 +19,21 @@ service_reload(){
 		/etc/init.d/udhcpd restart $iface
 	;;
 	dns_server)
-		/etc/init.d/bind restart 
+		/etc/init.d/bind restart
 	;;
 	dsl*)
 		iface=${sybsys##*.}
-		/etc/init.d/dsl restart $iface 
+		/etc/init.d/dsl restart $iface
 	;;
 	e1*)
 		iface=${sybsys##*.}
-		/etc/init.d/e1 restart $iface 
+		/etc/init.d/e1 restart $iface
 	;;
 	fw)
-		/etc/init.d/fw restart 
+		/etc/init.d/fw restart
+	;;
+	logging)
+		/etc/init.d/sysklog restart
 	;;
 	ipsec)
 		/etc/templates/ipsec-tools.sh | /usr/sbin/setkey -c

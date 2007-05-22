@@ -21,6 +21,7 @@ L1 System welcome
 	L2 Security 'passwd'
 		L3 'PPP secrets' 'auth_ppp'
 	L2 Time		'time'
+	L2 Logging	'logging'
 	L2 SHDSL	'dsl'
 	for i in `kdb get sys_dsl_ifaces`; do
 		class=""
@@ -42,9 +43,13 @@ L1 System welcome
 L1 Network
 	L2 Interfaces ifaces
 	for i in `kdb get sys_ifaces`; do
-		class=""
-		[ "$FORM_iface" = "$i" ] && class="navlnk_a"
-		L3	$i "iface&iface=$i" $class
+		lclass=''
+		lpage=''
+		if [ "$controller" = "iface" ]; then
+		    [ "$FORM_iface" = "$i" ] && lclass="navlnk_a"
+			[ -n "$FORM_page" ] && lpage="&page=$FORM_page"
+		fi
+		L3	$i "iface&iface=${i}${lpage}" $lclass
 	done
 	L2 Firewall	fw
 		L3 Filter	"fw&table=filter"

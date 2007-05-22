@@ -39,11 +39,12 @@ iface_add() {
 }
 
 iface_del() {
-	local iface;
+	local liface;
 	while [ -n "$1" ]; do
-		iface=$1
+		liface=$1
+		/sbin/ifdown ${liface} 2>&1 | ${LOGGER}
 		shift;
-		kdb rm "sys_iface_${iface}_*"
+		kdb rm "sys_iface_${liface}_*"
 	done
 	iface_update_sys_ifaces
 }

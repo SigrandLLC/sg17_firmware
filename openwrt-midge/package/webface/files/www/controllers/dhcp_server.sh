@@ -1,14 +1,10 @@
-#!/usr/bin/haserl
+#!/bin/sh
+	. common/dhcp_server.sh
 	
 	subsys="dhcp"
 	page=${FORM_page}
 	iface=$page
-
-	kdb_vars="bool:sys_iface_${iface}_dhcp_enabled int:sys_iface_${iface}_dhcp_lease_time"
-	kdb_vars="$kdb_vars str:sys_iface_${iface}_dhcp_router str:sys_iface_${iface}_dhcp_nameserver"
-	kdb_vars="$kdb_vars str:sys_iface_${iface}_dhcp_domain_name "
-	kdb_vars="$kdb_vars str:sys_iface_${iface}_dhcp_ntpserver str:sys_iface_${iface}_dhcp_winsserver "
-	kdb_vars="$kdb_vars str:sys_iface_${iface}_dhcp_startip str:sys_iface_${iface}_dhcp_endip str:sys_iface_${iface}_dhcp_netmask "
+	set_dhcp_server_vars
 
 	if [ "x${FORM_iface_select}x" = "xx" ]; then
 		render_save_stuff
@@ -40,9 +36,9 @@
 	# ----------------
 
 	if [ "x${iface}x" != "xx" ]; then
-		. common/dhcp_server.sh
 		render_form_header dhcp_server_common
 		render_dhcp_server_common
+		render_submit_field
 		render_form_tail
 		render_dhcp_server_static
 	fi

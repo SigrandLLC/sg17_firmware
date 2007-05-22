@@ -10,7 +10,7 @@
 
 	eval `kdb -qq ls svc_pptp_*`
 
-	render_form_header dhcp_server_common
+	render_form_header pptp_server_common
 	render_table_title "PPTP Server"
 
 	# svc_pptp_enabled
