@@ -15,6 +15,10 @@ $(eval $(call KMOD_template,IPIP,ipip,\
         $(MODULES_DIR)/kernel/net/ipv4/ipip.o \
 	,CONFIG_NET_IPIP,,53,ipip))
 
+$(eval $(call KMOD_template,BONDING,bonding,\
+	$(MODULES_DIR)/kernel/drivers/net/bonding/bonding.o \
+,CONFIG_BONDING,,20,bonding))
+
 $(eval $(call KMOD_template,IMQ,imq,\
 	$(MODULES_DIR)/kernel/net/ipv4/netfilter/*IMQ*.o \
 	$(MODULES_DIR)/kernel/drivers/net/imq.o \
@@ -45,7 +49,7 @@ $(eval $(call KMOD_template,PPPOE,pppoe,\
 
 $(eval $(call KMOD_template,SCHED,sched,\
 	$(MODULES_DIR)/kernel/net/sched/*.o \
-,,,80,cls_fw cls_u32 cls_route sch_cbq sch_dsmark sch_htb sch_ingress sch_prio sch_tbf sch_sfq sch_red sch_gred sch_teql))
+,,,80,cls_fw cls_u32 cls_route sch_cbq sch_dsmark sch_htb sch_ingress sch_prio sch_tbf sch_sfq sch_esfq sch_red sch_gred sch_teql))
 
 $(eval $(call KMOD_template,TUN,tun,\
 	$(MODULES_DIR)/kernel/drivers/net/tun.o \
