@@ -94,7 +94,7 @@ $(eval $(call KMOD_template,IPT_IPSEC,ipt-ipsec,\
 
 $(eval $(call KMOD_template,IPT_NAT,ipt-nat,\
 	$(foreach mod,$(IPT_NAT-m),$(MODULES_DIR)/kernel/net/ipv4/netfilter/$(mod).o) \
-))
+,,,80,$(IPT_NAT-m)))
 
 $(eval $(call KMOD_template,IPT_NAT_EXTRA,ipt-nat-extra,\
 	$(foreach mod,$(IPT_NAT_EXTRA-m),$(MODULES_DIR)/kernel/net/ipv4/netfilter/$(mod).o) \
