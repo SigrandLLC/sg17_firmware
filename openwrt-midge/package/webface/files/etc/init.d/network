@@ -78,9 +78,11 @@ post_ifup(){
 		unset net netmask gw
 		eval "export \$$route"
 		if [ -z "$gw" ]; then
-			cmd $ip route add $net dev $realiface
+			warn "Something wrong, \$gw is empty"
+			#cmd $ip route add $net dev $realiface
 		else
-			cmd $ip route add $net via $gw dev $realiface
+			cmd /sbin/route add -net $net  netmask $netmask gw $gw
+			#cmd $ip route add $net via $gw dev $realiface
 		fi
 	done
 	
