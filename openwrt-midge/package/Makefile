@@ -310,6 +310,7 @@ package-$(BR2_PACKAGE_ZLIB) += zlib
 #
 #
 package-$(BR2_PACKAGE_WEBFACE) += webface
+package-$(BR2_PACKAGE_HOTPLUG) += hotplug
 package-$(BR2_PACKAGE_SIGRAND_DRV) += sigrand-drv
 #
 #package-$(BR2_PACKAGE_APRSD) += aprsd

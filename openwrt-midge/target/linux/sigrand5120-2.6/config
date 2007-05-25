@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.16
-# Thu May 10 16:04:37 2007
+# Fri May 25 12:10:20 2007
 #
 CONFIG_MIPS=y
 
@@ -223,18 +223,21 @@ CONFIG_CARDBUS=y
 #
 # PC-card bridges
 #
-CONFIG_YENTA=y
+CONFIG_YENTA=m
 CONFIG_YENTA_O2=y
 CONFIG_YENTA_RICOH=y
 CONFIG_YENTA_TI=y
 CONFIG_YENTA_ENE_TUNE=y
 CONFIG_YENTA_TOSHIBA=y
-CONFIG_PCCARD_NONSTATIC=y
+CONFIG_PCCARD_NONSTATIC=m
 
 #
 # PCI Hotplug Support
 #
-# CONFIG_HOTPLUG_PCI is not set
+CONFIG_HOTPLUG_PCI=y
+# CONFIG_HOTPLUG_PCI_FAKE is not set
+CONFIG_HOTPLUG_PCI_CPCI=y
+# CONFIG_HOTPLUG_PCI_SHPC is not set
 
 #
 # Executable file formats
