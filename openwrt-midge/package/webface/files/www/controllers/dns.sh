@@ -16,7 +16,7 @@
 	render_input_field text "Upstream server" sys_dns_nameserver
 
 	# sys_dns_domain
-	#tip="Domain for your net BLA BLA BLA"
+	#tip="Domain for your net"
 	desc="Please enter your domain"
 	validator=''
 	render_input_field text "Domain" sys_dns_domain

@@ -178,7 +178,6 @@
 			render_input_field text "Static address " sys_iface_${iface}_ipaddr
 
 			# sys_iface_${iface}_netmask
-			#tip="Netmask used for BLA BLA BLA"
 			desc="Netmask (dotted quad) <b>required</b>"
 			validator="$tmtreq $validator_netmask"
 			render_input_field text "Netmask" sys_iface_${iface}_netmask
