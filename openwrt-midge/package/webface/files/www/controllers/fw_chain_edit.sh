@@ -64,10 +64,11 @@
 
 	if [ "$table" = "nat" ]; then
 		# natto
+		id='natto'
 		default=""
 		tip="You can add port number after ip address<br><b>Example: </b> 192.168.0.1:80"
 		desc="Do Source NAT or Destination NAT to address"
-		validator=$validator_ipaddrport
+		validator="$validator_ipaddrport tmt:natcheck='true'"
 		render_input_field text "Nat to address" natto
 	fi
 	
@@ -78,8 +79,14 @@
 	if [ "$table" = filter ]; then
 		render_input_field select "Action" target ACCEPT "ACCEPT" DROP "DROP" REJECT "REJECT"
 	elif [ "$table" = nat -a "$chain" = "prerouting" ]; then
+		require_js_file "tmt_fw_chain_edit.js"
+		id='target'
+		onchange='OnChange_nat(this);'
 		render_input_field select "Action" target ACCEPT "ACCEPT" DROP "DROP" REJECT "REJECT" DNAT "DNAT"
 	elif [ "$table" = nat -a "$chain" = "postrouting" ]; then
+		require_js_file "tmt_fw_chain_edit.js"
+		id='target'
+		onchange='OnChange_nat(this);'
 		render_input_field select "Action" target ACCEPT "ACCEPT" DROP "DROP" REJECT "REJECT" SNAT "SNAT" MASQUERADE "MASQUERADE"
 	fi
 	

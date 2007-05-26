@@ -15,6 +15,7 @@ echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <head>
 <script type="text/javascript" src="/js/overlib.js"></script>
 <script type="text/javascript" src="/js/overlib_bubble.js"> </script>
+<script type="text/javascript" src="/js/prototype.js"> </script>
 <script type="text/javascript" src="/js/script_tmt_validator.js"> </script>
 <script type="text/javascript" src="/js/vlad_tmt_validator.js"> </script>
 <script type="text/javascript" src="/js/misc.js"> </script>

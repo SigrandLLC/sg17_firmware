@@ -144,7 +144,7 @@ render_input_field(){
 
 	case "${type}" in
 	text)
-		echo "	<input $disabled type='text' class='edit' $idcode $tipcode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
+		echo "	<input $disabled type='text' class='edit' $idcode $tipcode $onchangecode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
 		;;
 	checkbox)
 		echo -n "	<input $disabled type='checkbox' class='edit' $idcode $tipcode $onchangecode name='$inputname' $validator tmt:errorclass='invalid'"
