@@ -99,7 +99,7 @@ render_form_header(){
 	local lmethod=${form_method:-POST}
 	if [ -n "$1" ]; then lname="$1"; shift; fi
 
-	echo "<form name='$lname' method='$lmethod' tmt:validate='true' $* >"
+	echo "<form name='$lname' method='$lmethod' tmt:validate='true' tmt:callback='displayError' $* >"
 	#echo "<input type=hidden name=SESSIONID value='$SESSIONID'>"
 	echo "<input type=hidden name=controller value='$controller'>"
 	echo "<table width='100%' border='0' cellspacing='0' cellpadding='0'>"

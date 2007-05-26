@@ -39,7 +39,7 @@ function showhide(tspan, tri) {
 
 function openPopup(win, controller, item, exturl) {
     var exturl = (exturl == null) ? "" : "&"+exturl;
-	var w = 400;
+	var w = 500;
 	var h = 600;
 	var winl = (screen.width-w)/2;
 	var wint = (screen.height-h)/2;

@@ -453,3 +453,37 @@ pre.console {
 	padding-top: 5px;
 	padding-bottom: 5px;
 }
+
+.required {
+	background-image: url(img/required.gif);
+	background-position: right;
+	background-repeat: no-repeat;
+}
+
+
+/* ballon */
+div.baloon {
+   font-size: 11px;
+   color: #900;
+   position: absolute;
+   padding-left: 5px;
+   background: url("/img/baloon.gif") no-repeat top left;
+   z-index: 1;
+}
+
+div.baloon a {
+   color: blue;
+   text-decoration: none;
+   padding: 2px;
+   margin-right: 2px;
+}
+
+div.baloon a:hover {
+   background-color: #EEEEFF;
+}
+
+div.baloon div {
+   background: url("/img/baloon_right.gif") no-repeat top right;
+   padding: 7px 7px 14px 0;
+   white-space: nowrap;
+}

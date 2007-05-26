@@ -18,6 +18,7 @@ echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <script type="text/javascript" src="/js/prototype.js"> </script>
 <script type="text/javascript" src="/js/script_tmt_validator.js"> </script>
 <script type="text/javascript" src="/js/vlad_tmt_validator.js"> </script>
+<script type="text/javascript" src="/js/baloon_validator.js"></script>
 <script type="text/javascript" src="/js/misc.js"> </script>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <link href="css/content.css" rel="stylesheet" type="text/css">
