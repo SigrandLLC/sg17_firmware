@@ -18,6 +18,7 @@ chain(){
 	local _sport _dport _proto _nat
 	for key in `kdb kls sys_fw_${table}_${chain}_*`; do 
 		val=`kdb get $key`
+		unset proto _proto src dst sport _sport dport _dport target natto _nat
 		eval "$val"
 
 		[ "$proto" != "all" ] && _proto="-p $proto"
