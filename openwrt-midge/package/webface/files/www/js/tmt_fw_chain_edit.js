@@ -3,7 +3,6 @@ function OnChange_nat(field) {
 	natto=$("natto");
 	if (natto) {
 		if (value=="DNAT" || value=="SNAT") {
-			alert("Onchange_nat(): " + field.value);
 			natto.setAttribute("tmt:required", "true");
 		} else 
 			natto.setAttribute("tmt:required", "");
