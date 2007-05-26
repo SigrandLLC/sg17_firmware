@@ -1,7 +1,7 @@
 /** 
-* Copyright 2005 massimocorner.com
+* Copyright 2005-2006 massimocorner.com
 * @author      Massimo Foti (massimo@massimocorner.com)
-* @version     1.2.2, 2005-06-16
+* @version     1.3.1, 2006-07-22
 * modified by vlad
  */
 
@@ -13,8 +13,22 @@ function tmt_validatorInit(){
 			// Attach a validator object to each form that requires it
 			formNodes[i].tmt_validator = new tmt_formValidator(formNodes[i]);
 			// Set the form node's onsubmit event 
-			formNodes[i].onsubmit = function(){
-				return tmt_validateForm(this);
+			// We use a gigantic hack to preserve exiting calls attached to the onsubmit event (most likely validation routines)
+			if(typeof formNodes[i].onsubmit != "function"){
+				formNodes[i].onsubmit = function(){
+					return tmt_validateForm(this);
+				}
+			}
+			else{
+				// Store a reference to the old function
+				formNodes[i].tmt_oldSubmit = formNodes[i].onsubmit;
+				formNodes[i].onsubmit = function(){
+					// If the existing function return true, send the form
+					if(this.tmt_oldSubmit()){
+						return tmt_validateForm(this);
+					}
+					return false;
+				}
 			}
 		}
 	}
@@ -87,12 +101,8 @@ function tmt_formValidator(formNode){
 		}
 		if(fieldsArray[i].getAttribute("tmt:filters")){
 			// Call the filters on the onkeyup and onblur events
-			fieldsArray[i].onkeyup = function(){
-				tmt_filterField(this);
-			}
-			fieldsArray[i].onblur = function(){
-				tmt_filterField(this);
-			}
+			addEvent(fieldsArray[i], "keyup", function(){tmt_filterField(this);});
+			addEvent(fieldsArray[i], "blur", function(){tmt_filterField(this);});
 		}
 	}
 	var selectNodes = formNode.getElementsByTagName("select");
@@ -159,6 +169,12 @@ function tmt_abstractValidator(fieldNode){
 	}
 	this.validate = function(){
 		// If the field contains error, flag it as invalid and return the error message
+		// Be careful, this method contains multiple exit points!!!
+		if(fieldNode.disabled){
+			// Disabled fields are always valid
+			this.flagValid();
+			return false;
+		}
 		if(!this.isValid()){
 			this.flagInvalid();
 			return true;
@@ -233,15 +249,21 @@ function tmt_selectValidatorFactory(selectNode){
 	// Create a generic validator, than add specific properties and methods as needed
 	var obj = new tmt_abstractValidator(selectNode);
 	obj.type = "select";
+	var required = false;
 	var invalidIndex;
 	if(selectNode.getAttribute("tmt:invalidindex")){
 		invalidIndex = selectNode.getAttribute("tmt:invalidindex");
 	}
 	var invalidValue;
-	if(selectNode.getAttribute("tmt:invalidvalue")){
+	if(selectNode.getAttribute("tmt:invalidvalue") != null){
 		invalidValue = selectNode.getAttribute("tmt:invalidvalue");
 	}
-	// Check if the select validate
+	// Check if the field is required
+	obj.isRequired = function(){
+		return required;
+	}
+	// Check if the field satisfy the rules associated with it
+	// Be careful, this method contains multiple exit points!!!	// Check if the select validate
 	obj.isValid = function(){
 		// Check for index
 		if(selectNode.selectedIndex == invalidIndex){
@@ -250,6 +272,16 @@ function tmt_selectValidatorFactory(selectNode){
 		// Check for value
 		if(selectNode.value == invalidValue){
 			return false;
+		}
+		// Loop over all the available rules
+		for(var rule in tmt_globalRules){
+			// Check if the current rule is required for the field
+			if(selectNode.getAttribute("tmt:" + rule)){
+				// Invoke the rule
+				if(!eval("tmt_globalRules." + rule + "(selectNode)")){
+					return false;
+				}
+			}
 		}
 		return true;
 	}
@@ -339,16 +371,23 @@ function tmt_boxValidatorFactory(boxGroup){
 function tmt_radioValidatorFactory(radioGroup){
 	var obj = new tmt_groupValidatorFactory(radioGroup);
 	obj.type = "radio";
-	obj.required = false;
-	// Since radios from the same group can have conflicting attribute values, the last one win
-	for(var i=0; i<radioGroup.elements.length; i++){
-		if(radioGroup.elements[i].getAttribute("tmt:required")){
-			obj.required = radioGroup.elements[i].getAttribute("tmt:required");
+
+	obj.isRequired = function(){
+		var requiredFlag = false;
+		// Since radios from the same group can have conflicting attribute values, the last one win
+		for(var i=0; i<radioGroup.elements.length; i++){
+			if(radioGroup.elements[i].disabled == false){
+				if(radioGroup.elements[i].getAttribute("tmt:required")){
+					requiredFlag = radioGroup.elements[i].getAttribute("tmt:required");
+				}
+			}
 		}
+		return requiredFlag;
 	}
+	
 	// Check if the radio validate
 	obj.isValid = function(){
-		if(obj.required){
+		if(obj.isRequired()){
 			for(var i=0; i<radioGroup.elements.length; i++){
 				// As soon as one is checked, we are fine
 				if(radioGroup.elements[i].checked){
@@ -472,7 +511,7 @@ function tmt_validateImgCallback(){
 
 // This global objects store all the RegExp patterns for strings
 var tmt_globalPatterns = new Object;
-tmt_globalPatterns.email = new RegExp("^[\\w\\.=-]+@[\\w\.-]+\\.[\\w\\.-]{2,4}$");
+tmt_globalPatterns.email = new RegExp("^[\\w\\.=-]+@[\\w\\.-]+\\.[\\w\\.-]{2,4}$");
 tmt_globalPatterns.lettersonly = new RegExp("^[a-zA-Z]*$");
 tmt_globalPatterns.alphanumeric = new RegExp("^\\w*$");
 tmt_globalPatterns.integer = new RegExp("^-?\\d\\d*$");
@@ -643,19 +682,21 @@ function tmt_getNodesTable(formNode, type){
 	return boxHolder;
 }
 
-// This handy piece of code comes from:
-// http://www.sitepoint.com/blog-post-view.php?id=171578
-function addLoadEvent(func){
-	var oldonload = window.onload;
-	if(typeof window.onload != "function"){
-		window.onload = func;
-	} 
-	else{
-		window.onload = function(){
-			oldonload();
-			func();
-		}
+// The function below was developed by John Resig
+// For additional info see:
+// http://ejohn.org/projects/flexible-javascript-events
+// http://www.quirksmode.org/blog/archives/2005/10/_and_the_winner_1.html
+function addEvent(obj, type, fn){
+	if(obj.addEventListener){
+		obj.addEventListener(type, fn, false);
+	}
+	else if(obj.attachEvent){
+		obj["e" + type + fn] = fn;
+		obj[type + fn] = function(){
+				obj["e" + type + fn](window.event);
+			}
+		obj.attachEvent("on" +type, obj[type+fn]);
 	}
 }
 
-addLoadEvent(tmt_validatorInit);
+addEvent(window, "load", tmt_validatorInit);
