@@ -17,6 +17,7 @@ tmt_globalPatterns.netmask = new RegExp("^\(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5
 tmt_globalPatterns.macaddr = new RegExp("^\([0-9a-fA-F][0-9a-fA-F]:\){5}\([0-9a-fA-F][0-9a-fA-F]\)$");
 // IP net validation (ip/bitmask)
 tmt_globalPatterns.ipnet  = new RegExp("^(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])(/\\d\\d*)?$");
+tmt_globalPatterns.ipnet_ipt  = new RegExp("^[!]?(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])(/\\d\\d*)?$");
 tmt_globalPatterns.ipaddrport = new RegExp("^(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])(\\:\\d*)?$");
 tmt_globalPatterns.ipportrange = new RegExp("^((\\d)+(:)?((\\d)+)?|(:)((\\d)+)|any)$");
 

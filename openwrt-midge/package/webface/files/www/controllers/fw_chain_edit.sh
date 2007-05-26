@@ -28,17 +28,17 @@
 
 	# src
 	default="0.0.0.0/0"
-	srctip="Address can be either a network IP address (with /mask), or a plain IP address<br><b>Examples:</b> 192.168.1.0/24, 192.168.1.5<br> Use 0.0.0.0/0 for <b>any</b>"
+	srctip="Address can be either a network IP address (with /mask), or a plain IP address, A ! argument before the address specification inverts the sense of the address.<br><b>Examples:</b> 192.168.1.0/24, 192.168.1.5<br> Use 0.0.0.0/0 for <b>any</b>"
 	tip="$srctip"
 	desc="Source address specification"
-	validator=$validator_ipnet
+	validator=$validator_ipnet_ipt
 	render_input_field text "Source" src
 
 	# dst
 	default="0.0.0.0/0"
 	tip="$srctip"
 	desc="Destination address specification"
-	validator=$validator_ipnet
+	validator=$validator_ipnet_ipt
 	render_input_field text "Destination" dst
 
 	# proto

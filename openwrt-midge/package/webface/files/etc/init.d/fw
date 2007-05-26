@@ -11,6 +11,16 @@ NEW_CHAIN="$FW -N"
 DEL_CHAIN="$FW -X"
 SET_POLICY="$FW -P"
 
+prepare_addr(){
+	local pref="$1"
+	local laddr="$2"
+	if [ "x${laddr}x" = "xx" ]; then 
+		addr=""
+	else
+		addr="$pref `echo "$laddr" | sed 's/\(!\)\(.*\)/\1 \2/'`"
+	fi
+}
+
 chain(){
 	local table=$1
 	local chain=$2
@@ -18,10 +28,15 @@ chain(){
 	local _sport _dport _proto _nat
 	for key in `kdb kls sys_fw_${table}_${chain}_*`; do 
 		val=`kdb get $key`
-		unset enabled proto _proto src dst sport _sport dport _dport target natto _nat
+		unset enabled name proto _proto src _src dst _dst sport _sport dport _dport target natto _nat addr
 		eval "$val"
 
 		[ "$proto" != "all" ] && _proto="-p $proto"
+
+		prepare_addr -s $src
+		_src=$addr
+		prepare_addr -d $src
+		_dst=$addr
 
 		if [ "$proto" = "TCP" -o "$proto" = "UDP" ]; then
 			_sport="--sport $sport"
@@ -33,7 +48,7 @@ chain(){
 		[ "$target" = "DNAT" ] && _nat="--to-destination=$natto"
 		[ "$target" = "SNAT" ] && _nat="--to-source=$natto"
 
-		[ "x${enabled}x" != "xx" ] && $ADD $uchain -t $table -s $src -d $dst $_proto $_sport $_dport -j $target $_nat
+		[ "x${enabled}x" != "xx" ] && $ADD $uchain -t $table $_src $_dst $_proto $_sport $_dport -j $target $_nat
 	done
 }
 

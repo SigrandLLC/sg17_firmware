@@ -19,6 +19,7 @@ validator_retry='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:
 validator_expire='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input expire time" tmt:pattern="positiveinteger" tmt:minnumber=10000 tmt:maxnumber=90000000'
 validator_rulename='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct rule name" tmt:pattern="A_z0_9"'
 validator_ipnet='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct address x.x.x.x/y" tmt:pattern="ipnet"'
+validator_ipnet_ipt='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct address [!]x.x.x.x/y" tmt:pattern="ipnet_ipt"'
 validator_ipportrange='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct port" tmt:pattern="ipportrange"'
 validator_ipaddrport='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct address" tmt:pattern="ipaddrport"'
 validator_password='tmt:required="true" tmt:message="Please input password" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
