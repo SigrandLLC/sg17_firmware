@@ -1,3 +1,5 @@
+aprsdigi-compile: libax25-compile
+ax25-apps-compile: libax25-compile
 amwall-compile: libamsel-compile
 arpd-compile: libpcap-compile libdnet-compile libevent-compile
 arpwatch-compile: libpcap-compile

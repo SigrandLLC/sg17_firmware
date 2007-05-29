@@ -3,7 +3,6 @@ include $(TOPDIR)/rules.mk
 include $(TOPDIR)/package/depend.mk
 
 package-$(BR2_PACKAGE_THTTPD) += thttpd
-package-$(BR2_PACKAGE_LIBAX25) += libax25
 package-$(BR2_PACKAGE_6TUNNEL) += 6tunnel
 package-$(BR2_PACKAGE_AICCU) += aiccu
 package-$(BR2_PACKAGE_AIRCRACK) += aircrack
@@ -111,6 +110,7 @@ package-$(BR2_PACKAGE_LESS) += less
 package-$(BR2_PACKAGE_LIBAMSEL) += libamsel
 package-$(BR2_PACKAGE_LIBAO) += libao
 package-$(BR2_PACKAGE_LIBART) += libart
+package-$(BR2_PACKAGE_LIBAX25) += libax25
 package-$(BR2_PACKAGE_LIBCLI) += libcli
 package-$(BR2_PACKAGE_LIBDAEMON) += libdaemon
 package-$(BR2_PACKAGE_LIBDNET) += libdnet
