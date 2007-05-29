@@ -317,7 +317,8 @@ $(eval $(call KMOD_template,USB_STORAGE,usb-storage,\
 $(eval $(call KMOD_template,AX25,ax25,\
 	$(MODULES_DIR)/kernel/net/ax25/ax25.o \
 	$(MODULES_DIR)/kernel/drivers/net/hamradio/mkiss.o \
-,CONFIG_AX25,,90,ax25 mkiss))
+	$(MODULES_DIR)/kernel/drivers/net/hamradio/6pack.o \
+,CONFIG_AX25,,90,ax25 mkiss 6pack))
 
 $(eval $(call KMOD_template,BLUETOOTH,bluetooth,\
 	$(MODULES_DIR)/kernel/net/bluetooth/*.o \
