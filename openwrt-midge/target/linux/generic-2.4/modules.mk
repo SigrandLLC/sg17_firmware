@@ -45,7 +45,7 @@ $(eval $(call KMOD_template,PPPOATM,pppoatm,\
 
 $(eval $(call KMOD_template,PPPOE,pppoe,\
 	$(MODULES_DIR)/kernel/drivers/net/pppoe.o \
-+,CONFIG_PPPOE,,56,pppoe))
+,CONFIG_PPPOE,,56,pppoe))
 
 $(eval $(call KMOD_template,SCHED,sched,\
 	$(MODULES_DIR)/kernel/net/sched/*.o \
