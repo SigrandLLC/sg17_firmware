@@ -4,7 +4,7 @@ test -r /etc/midge.conf && . /etc/midge.conf
 
 [ "$USB_MOUNT" = yes ] || exit 0
 
-# You must load modules: usbcore, usb-shci, scsi_mod, sd_mod, usb-storage, [ext2]
+# You must pre-load modules: usbcore, usb-shci, scsi_mod, sd_mod, usb-storage, [ext2]
 
 [ "$USB_FSTYPE" ] && insmod $USB_FSTYPE
 
@@ -18,5 +18,21 @@ if [ "$USB_DIR" -a "$USB_DEV" ]; then
 			$i start
 		done
 	fi
+	
+	export USB_DIR
+	[ "$USB_SYMLINK" = yes ] && \
+		cd $USB_DIR && \
+		for d in bin lib sbin usr; do  
+		    [ -d $d ] && find $d | \
+			( while read f; do
+				if [ -d $f ]; then
+				    mkdir -p /${f}
+				elif [ -f $f -o -L $f ]; then
+				    ln -s $USB_DIR/$f /$f
+				    echo "Create USB symlinks..."
+				fi;
+			done; );
+		done
+		
 fi
 
