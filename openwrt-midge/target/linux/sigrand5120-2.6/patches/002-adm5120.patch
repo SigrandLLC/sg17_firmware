@@ -6802,6 +6802,18 @@ diff -Naur linux-2.6.16/drivers/video/Kconfig linux-2.6.16-new/drivers/video/Kco
  config FB_FFB
  	bool "Creator/Creator3D/Elite3D support"
  	depends on FB_SBUS && SPARC64
+diff -Naur linux-2.6.16/fs/jffs2/scan.c linux-2.6.16-new/fs/jffs2/scan.c
+--- linux-2.6.16/fs/jffs2/scan.c	2006-03-20 11:53:29.000000000 +0600
++++ linux-2.6.16-new/fs/jffs2/scan.c	2007-06-04 16:25:06.000000000 +0700
+@@ -424,7 +424,7 @@
+ 	/* Now ofs is a complete physical flash offset as it always was... */
+ 	ofs += jeb->offset;
+ 
+-	noise = 10;
++	noise = 0;
+ 
+ 	dbg_summary("no summary found in jeb 0x%08x. Apply original scan.\n",jeb->offset);
+ 
 diff -Naur linux-2.6.16/include/asm-mips/am5120/adm5120.h linux-2.6.16-new/include/asm-mips/am5120/adm5120.h
 --- linux-2.6.16/include/asm-mips/am5120/adm5120.h	1970-01-01 07:00:00.000000000 +0700
 +++ linux-2.6.16-new/include/asm-mips/am5120/adm5120.h	2007-05-10 10:27:23.000000000 +0700
