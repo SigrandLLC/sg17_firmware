@@ -1,30 +1,28 @@
 diff -Naur linux-2.6.16-old/drivers/net/Kconfig linux-2.6.16/drivers/net/Kconfig
---- linux-2.6.16-old/drivers/net/Kconfig	2007-05-11 15:43:35.000000000 +0700
-+++ linux-2.6.16/drivers/net/Kconfig	2007-05-11 15:42:35.000000000 +0700
-@@ -28,8 +28,11 @@
- config SIGRAND_SG17LAN
-         tristate "Sigrand SG-17 SHDSL PCI adapter"
- 	depends on PCI
--		
+--- linux-2.6.16-old/drivers/net/Kconfig	2006-03-20 11:53:29.000000000 +0600
++++ linux-2.6.16/drivers/net/Kconfig	2007-06-03 12:23:36.000000000 +0700
+@@ -25,6 +25,10 @@
+ 	  If unsure, say Y.
+ 
  
 +config SIGRAND_SG16LAN
-+        tristate "Sigrand SG-16 SHDSL PCI adapter"
++	tristate "Sigrand SG-16 SHDSL PCI adapter"
 +	depends on PCI
-+		
++
  config IFB
  	tristate "Intermediate Functional Block support"
  	depends on NET_CLS_ACT
 diff -Naur linux-2.6.16-old/drivers/net/Makefile linux-2.6.16/drivers/net/Makefile
---- linux-2.6.16-old/drivers/net/Makefile	2007-05-11 15:43:35.000000000 +0700
-+++ linux-2.6.16/drivers/net/Makefile	2007-05-11 15:42:35.000000000 +0700
-@@ -214,3 +214,4 @@
+--- linux-2.6.16-old/drivers/net/Makefile	2006-03-20 11:53:29.000000000 +0600
++++ linux-2.6.16/drivers/net/Makefile	2007-06-03 12:23:00.000000000 +0700
+@@ -213,3 +213,4 @@
+ 
  obj-$(CONFIG_FS_ENET) += fs_enet/
  
- obj-$(CONFIG_SIGRAND_SG17LAN)     += sg17lan/
 +obj-$(CONFIG_SIGRAND_SG16LAN)     += sg16lan/
 diff -Naur linux-2.6.16-old/drivers/net/sg16lan/cx28975.h linux-2.6.16/drivers/net/sg16lan/cx28975.h
 --- linux-2.6.16-old/drivers/net/sg16lan/cx28975.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg16lan/cx28975.h	2007-05-11 15:42:35.000000000 +0700
++++ linux-2.6.16/drivers/net/sg16lan/cx28975.h	2007-06-03 12:20:18.000000000 +0700
 @@ -0,0 +1,131 @@
 +
 +enum  CX28975_API_commands {
@@ -159,12 +157,12 @@ diff -Naur linux-2.6.16-old/drivers/net/sg16lan/cx28975.h linux-2.6.16/drivers/n
 +
 diff -Naur linux-2.6.16-old/drivers/net/sg16lan/Makefile linux-2.6.16/drivers/net/sg16lan/Makefile
 --- linux-2.6.16-old/drivers/net/sg16lan/Makefile	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg16lan/Makefile	2007-05-11 15:42:35.000000000 +0700
++++ linux-2.6.16/drivers/net/sg16lan/Makefile	2007-06-03 12:20:18.000000000 +0700
 @@ -0,0 +1 @@
 +obj-$(CONFIG_SIGRAND_SG16LAN)	+= sg16lan.o
 diff -Naur linux-2.6.16-old/drivers/net/sg16lan/sg16lan.c linux-2.6.16/drivers/net/sg16lan/sg16lan.c
 --- linux-2.6.16-old/drivers/net/sg16lan/sg16lan.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16/drivers/net/sg16lan/sg16lan.c	2007-05-11 12:43:15.000000000 +0700
++++ linux-2.6.16/drivers/net/sg16lan/sg16lan.c	2007-06-03 12:20:18.000000000 +0700
 @@ -0,0 +1,2474 @@
 +/* sg16lan.c:  Sigrand SG-16PCI SHDSL modem driver for linux (kernel 2.6.x)
 + *

@@ -1,4 +1,0 @@
-config BR2_PACKAGE_SIGRAND_DRV
-	prompt "sigrand-drv....................... Sigrand drivers stuff"
-	tristate
-	default m if CONFIG_DEVEL

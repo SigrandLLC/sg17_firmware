@@ -1,0 +1,4 @@
+config BR2_PACKAGE_SIGRAND_MR17H
+	prompt "mr17h ................. Sigrand MR17H SHDSL module driver"
+	tristate
+	default y if CONFIG_DEVEL

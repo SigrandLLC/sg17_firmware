@@ -19,18 +19,8 @@ _dsl_stop_svc(){
 
 # insmod DSL drivers
 _dsl_sg16_init(){
-    tmp=`cat /proc/pci | grep '0055:009d'`
-    if [ -n "$tmp" ]; then
-	echo "Loading MR16H module driver"    
-	modprobe sg16lan
-    fi
 }
 _dsl_sg17_init(){
-    tmp=`cat /proc/pci | grep '0055:009a'`
-    if [ -n "$tmp" ]; then
-	echo "Loading MR17H module driver"
-	modprobe sg17lan
-    fi
 }
 _dsl_init_drv(){
 	_dsl_sg16_init

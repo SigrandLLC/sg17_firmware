@@ -32,13 +32,6 @@ adm5120-fs-prepare:
 		 echo "Builded at: `date '+%Y%m%d %H:%M'`" >>$(KDIR)/root/etc/banner; \
 		 echo "" >>$(KDIR)/root/etc/banner; \
 	)
-	( 	mkdir -p $(KDIR)/root/lib/modules/$(LINUX_VERSION); \
-		cd $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION)/ && \
-		if [ -r System.map -a -x /sbin/depmod ]; then /sbin/depmod -ae -F System.map -b $(LINUX_BUILD_DIR)/modules -r $(LINUX_VERSION); \
-		cp $(LINUX_BUILD_DIR)/modules/lib/modules/$(LINUX_VERSION)/modules.dep $(KDIR)/root/lib/modules/$(LINUX_VERSION); \
-		cp $(LINUX_BUILD_DIR)/modules/lib/modules/$(LINUX_VERSION)/modules.alias $(KDIR)/root/lib/modules/$(LINUX_VERSION); \
-		fi; \
-	)
 
 $(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin: $(SCRIPT_DIR)/padfile
 	( 	SG_KERNEL_BLOCKS=$(SG_KERNEL_BLOCKS) \

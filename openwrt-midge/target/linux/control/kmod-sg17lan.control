@@ -1,5 +1,0 @@
-Package: kmod-sg17lan
-Priority: optional
-Section: sys
-Maintainer: Artem U. Polyakov <artpol84@gmail.com>
-Description: Sigrand SG-17 SHDSL adepter

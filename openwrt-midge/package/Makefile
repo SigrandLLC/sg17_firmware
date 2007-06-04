@@ -310,8 +310,9 @@ package-$(BR2_PACKAGE_ZLIB) += zlib
 #
 #
 package-$(BR2_PACKAGE_WEBFACE) += webface
+package-$(BR2_PACKAGE_SIGRAND_SETHDLC) += sethdlc
+package-$(BR2_PACKAGE_SIGRAND_MR17H) += sigrand-mr17h
 package-$(BR2_PACKAGE_HOTPLUG) += hotplug
-package-$(BR2_PACKAGE_SIGRAND_DRV) += sigrand-drv
 #
 #package-$(BR2_PACKAGE_APRSD) += aprsd
 #package-$(BR2_COMPILE_ARLIX-UTILS) += arlix-utils

@@ -5,6 +5,7 @@ LINUX_RELEASE:=1
 LINUX_KERNEL_MD5SUM:=9a91b2719949ff0856b40bc467fd47be
 CONFIG_PATH=$(BUILD_DIR)/linux-$(KERNEL)-$(BOARD)/config-tmp
 
+export LINUX_VERSION
 
 include ../rules.mk
 include ./config
@@ -18,10 +19,6 @@ $(eval $(call KMOD_template,ADM5120_SW,adm5120-sw,\
 
 $(eval $(call KMOD_template,SIGRAND_SG16LAN,sg16lan,\
 	$(MODULES_DIR)/kernel/drivers/net/sg16lan/sg16lan.ko \
-))
-
-$(eval $(call KMOD_template,SIGRAND_SG17LAN,sg17lan,\
-	$(MODULES_DIR)/kernel/drivers/net/sg17lan/sg17lan.ko \
 ))
 
 $(eval $(call KMOD_template,SIGRAND_MR16G,mr16g-hdlc,\
