@@ -19,8 +19,10 @@ _dsl_stop_svc(){
 
 # insmod DSL drivers
 _dsl_sg16_init(){
+	return 0;
 }
 _dsl_sg17_init(){
+	return 0;
 }
 _dsl_init_drv(){
 	_dsl_sg16_init
