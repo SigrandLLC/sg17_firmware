@@ -60,7 +60,7 @@
 #include "sg17ring_funcs.h"
 
 // Debug parameters
-#define DEBUG_ON
+//#define DEBUG_ON
 #define DEFAULT_LEV 1
 #include "sg17debug.h"
 
