@@ -138,8 +138,8 @@ nl->nsg_comp = 0;
 	// enable iface
 	iowrite8(XRST, &nl->regs->CRA);
 	//default HDLC X config
-	nl->hdlc_cfg.rburst = 1;
-	nl->hdlc_cfg.wburst = 1;	
+	nl->hdlc_cfg.rburst = 0;
+	nl->hdlc_cfg.wburst = 0;	
 	
 	// net device interrupt register
 	PDEBUG(debug_netcard,"start registering irq");
