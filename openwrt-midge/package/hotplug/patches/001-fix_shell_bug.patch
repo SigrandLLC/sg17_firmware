@@ -54,7 +54,7 @@ diff -Naur hotplug-2004_09_23_old/etc/rc.d/init.d/hotplug hotplug-2004_09_23/etc
  
  case "$1" in
      start|restart|status)
-+	echo -n "Starting $NAME: "
++	echo "Starting $NAME: "
  	for RC in /etc/hotplug/*.rc
  	do
  	    $RC $1
@@ -62,7 +62,7 @@ diff -Naur hotplug-2004_09_23_old/etc/rc.d/init.d/hotplug hotplug-2004_09_23/etc
  	touch /var/lock/subsys/hotplug
  	;;
      stop)
-+	echo -n "Stopping $NAME: "
++	echo "Stopping $NAME: "
  	for RC in /etc/hotplug/*.rc
          do
              $RC stop
