@@ -40,11 +40,10 @@ _sg_if_refresh(){
 			net_ifs_old=`$kdb get sys_ifaces`
 			check=`echo ${net_ifs_old} | grep $iface`
 			[ -z "$check" ] && $kdb set sys_ifaces="${net_ifs_old} $iface"
+			$kdb set sys_ifaces_${iface}_valid=1
+			$kdb set sys_ifaces_${iface}_proto=ether			
 		fi
 	done
-	
-
-
 	
 	return 0;
 }

@@ -9,33 +9,33 @@ ifcfg="/sbin/ifconfig"
 
 # checks that DSL service is enabled
 _dsl_init_svc(){
-	return 0;
+    return 0;
 }
 
 # stops service
 _dsl_stop_svc(){
-	return 0;
+    return 0;
 }
 
 # insmod DSL drivers
 _dsl_sg16_init(){
-	return 0;
+    return 0;
 }
 _dsl_sg17_init(){
-	return 0;
+    return 0;
 }
 _dsl_init_drv(){
-	_dsl_sg16_init
-	_dsl_sg17_init
-	return 0;
+    _dsl_sg16_init
+    _dsl_sg17_init
+    return 0;
 }
 
 # rmmod DSL drivers
 _dsl_sg16_stop(){
-    rmmod sg16lan
+    return 0;
 }
 _dsl_sg17_stop(){
-    rmmod sg17lan
+    return 0;
 }
 _dsl_stop_drv(){
 	_dsl_sg16_stop()
