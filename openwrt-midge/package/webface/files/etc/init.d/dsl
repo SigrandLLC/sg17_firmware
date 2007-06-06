@@ -2,7 +2,7 @@
 
 kdb="kdb"
 mr16h_cfg="/sbin/sg16cfg"
-mr17h_cfg="/sbin/sg17cfg"
+mr17h_cfg="/sbin/mr17h_cfg"
 ifcfg="/sbin/ifconfig"
 
 . /etc/templates/sigrand-lib
