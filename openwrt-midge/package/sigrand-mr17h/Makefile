@@ -4,9 +4,13 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=sigrand-mr17h
 PKG_RELEASE:=1
-
-
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
+CFLAGS:=
+DEBUG := no
+ifeq ($(BR2_PACKAGE_SIGRAND_MR17H_DEBUG),y)
+    CFLAGS +=-DSYSFS_DEBUG
+    DEBUG := yes
+endif
 
 include $(TOPDIR)/package/rules.mk
 
@@ -20,13 +24,15 @@ $(PKG_BUILD_DIR)/.prepared:
 
 $(PKG_BUILD_DIR)/.configured:
 	rm --preserve-root -f $(PKG_BUILD_DIR)/mr17h-drv/Makefile
+	@echo "CFLAGS=$(CFLAGS)"
 	sed <$(PKG_BUILD_DIR)/mr17h-drv/Makefile.tmpl \
 	> $(PKG_BUILD_DIR)/mr17h-drv/Makefile \
 	-e "s%@KERNSRC@%$(LINUX_DIR)%g" \
 	-e "s%@CROSS_PREFIX@%$(KERNEL_CROSS)%g" \
-	-e "s%@CFLAGS@% %g" \
+	-e "s%@CFLAGS@%$(CFLAGS)%g" \
 	-e "s%@KERNVER@%2.6.16%g" \
-	-e "s%@INST_PATH@%$(IDIR_SIGRAND_MR17H)%g"	
+	-e "s%@INST_PATH@%$(IDIR_SIGRAND_MR17H)%g" \
+	-e "s%@DEBUG@%$(DEBUG)%g" 
 	@echo "KERNVER="$(LINUX_VERSION)" INST_PATH="$(IDIR_SIGRAND_MR17H)
 	touch $@
 

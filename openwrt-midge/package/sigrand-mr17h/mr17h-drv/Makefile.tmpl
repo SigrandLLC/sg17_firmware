@@ -11,8 +11,7 @@ install: mr17h.ko
 	install -m 644 mr17h.ko @INST_PATH@/lib/modules/@KERNVER@
 	install -m 744 ./tools/mr17h_cfg @INST_PATH@/sbin
 	cp ./firmware/sg17.bin @INST_PATH@/lib/firmware/
-#debug
-	install -m 744 ./tools/mr17h_debug @INST_PATH@/sbin	
+	[ "yes" != "@DEBUG@" ] || install -m 744 ./tools/mr17h_debug @INST_PATH@/sbin
 
 clean:
 	rm --preserve-root -f .*.o*

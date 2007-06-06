@@ -570,7 +570,7 @@ sg17_tranceiver_up( struct net_local *nl)
  *      Card related functions
  * -------------------------------------------------------------------------- */
  
-#define SYSFS_DEBUG
+//#define SYSFS_DEBUG
 #ifdef SYSFS_DEBUG
 
 //-----------   DEBUG ------------------//
