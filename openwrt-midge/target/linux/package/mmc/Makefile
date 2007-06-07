@@ -8,7 +8,8 @@ PKG_VERSION:=0.0.1
 PKG_RELEASE:=1
 PKG_MD5SUM:=
 
-PKG_SOURCE_URL:=http://kiel.kool.dk/
+#PKG_SOURCE_URL:=http://kiel.kool.dk/
+PKG_SOURCE_URL:=http://builder.ci.ukrpack.net/sources/
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_CAT:=zcat
 
