@@ -13,12 +13,13 @@ package-$(BR2_PACKAGE_KMOD_MADWIFI) += madwifi
 #package-$(BR2_PACKAGE_KMOD_MINI_FO) += mini_fo
 #package-$(BR2_PACKAGE_KMOD_OPENSWAN) += openswan
 #package-$(BR2_PACKAGE_KMOD_SHFS) += shfs
-#package-$(BR2_PACKAGE_KMOD_SPCA5XX) += spca5xx
+package-$(BR2_PACKAGE_KMOD_SPCA5XX) += spca5xx
 #package-$(BR2_PACKAGE_KMOD_SWITCH) += switch
 #package-$(BR2_PACKAGE_KMOD_UEAGLE_ATM) += ueagle-atm
 #package-$(BR2_PACKAGE_KMOD_DIAG) += diag
 #package-$(BR2_PACKAGE_KMOD_WLCOMPAT) += wlcompat
 #package-$(BR2_PACKAGE_KMOD_ZD1211) += zd1211
+package-$(BR2_PACKAGE_KMOD_MMC) += mmc
 
 bcm43xx-standalone-compile: ieee80211-dscape-compile
 wlcompat-compile: base-files-compile
