@@ -37,14 +37,6 @@ comment "Kernel modules"
 menu "Sigrand drivers"
         depends BR2_LINUX_2_6_SIGRAND5120
 
-config BR2_PACKAGE_KMOD_SIGRAND_SG16LAN
-        prompt "Sigrand SG-16LAN module"
-	tristate
-	default y
-        depends BR2_LINUX_2_6_SIGRAND5120
-        help
-               Enable support of Sigrand SG-16 SHDSL adapters
-
 config BR2_PACKAGE_KMOD_SIGRAND_MR16G
         prompt "Sigrand MR-16G module"
 	tristate
