@@ -1,0 +1,42 @@
+# $Id:  $
+
+include $(TOPDIR)/rules.mk
+
+PKG_NAME:=sigrand-mr16h
+PKG_RELEASE:=1
+
+
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
+
+include $(TOPDIR)/package/rules.mk
+
+$(eval $(call PKG_template,SIGRAND_MR16H,sigrand-mr16h,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
+
+$(PKG_BUILD_DIR)/.prepared:
+	@echo "PKG_DIR="$(PKG_BUILD_DIR)
+	mkdir -p $(PKG_BUILD_DIR)
+	cp -R mr16h-drv $(PKG_BUILD_DIR)
+	touch $@
+
+$(PKG_BUILD_DIR)/.configured:
+	rm --preserve-root -f $(PKG_BUILD_DIR)/mr16h-drv/Makefile
+	sed <$(PKG_BUILD_DIR)/mr16h-drv/Makefile.tmpl \
+	> $(PKG_BUILD_DIR)/mr16h-drv/Makefile \
+	-e "s%@KERNSRC@%$(LINUX_DIR)%g" \
+	-e "s%@CROSS_PREFIX@%$(KERNEL_CROSS)%g" \
+	-e "s%@CFLAGS@%-DAUTOSTART_OFF%g" \
+	-e "s%@KERNVER@%2.6.16%g" \
+	-e "s%@INST_PATH@%$(IDIR_SIGRAND_MR16H)%g"	
+	touch $@
+
+$(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
+	cd $(PKG_BUILD_DIR)/mr16h-drv && make
+	touch $@
+
+$(IPKG_SIGRAND_MR16H):
+	install -d -m0755 $(IDIR_SIGRAND_MR16H)/sbin
+	install -d -m0755 $(IDIR_SIGRAND_MR16H)/lib/modules/2.6.16
+	install -d -m0755 $(IDIR_SIGRAND_MR16H)/lib/firmware
+	cd $(PKG_BUILD_DIR)/mr16h-drv && make install
+	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_MR16H)/CONTROL/control
+	$(IPKG_BUILD) $(IDIR_SIGRAND_MR16H) $(PACKAGE_DIR)	

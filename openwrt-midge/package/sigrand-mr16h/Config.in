@@ -1,0 +1,4 @@
+config BR2_PACKAGE_SIGRAND_MR16H
+	prompt "sg16lan ................. Sigrand MR16H SHDSL module driver"
+	tristate
+	default y if CONFIG_DEVEL

@@ -17,10 +17,6 @@ $(eval $(call KMOD_template,ADM5120_SW,adm5120-sw,\
 	$(MODULES_DIR)/kernel/drivers/net/adm5120sw.o \
 ))
 
-$(eval $(call KMOD_template,SIGRAND_SG16LAN,sg16lan,\
-	$(MODULES_DIR)/kernel/drivers/net/sg16lan/sg16lan.ko \
-))
-
 $(eval $(call KMOD_template,SIGRAND_MR16G,mr16g-hdlc,\
 	$(MODULES_DIR)/kernel/drivers/net/wan/mr16g/mr16g_hdlc.ko \
 ))
