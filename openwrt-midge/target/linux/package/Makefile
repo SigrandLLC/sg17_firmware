@@ -20,6 +20,7 @@ package-$(BR2_PACKAGE_KMOD_SPCA5XX) += spca5xx
 #package-$(BR2_PACKAGE_KMOD_WLCOMPAT) += wlcompat
 #package-$(BR2_PACKAGE_KMOD_ZD1211) += zd1211
 package-$(BR2_PACKAGE_KMOD_MMC) += mmc
+package-$(BR2_PACKAGE_KMOD_MMC-NG) += mmc-ng
 
 bcm43xx-standalone-compile: ieee80211-dscape-compile
 wlcompat-compile: base-files-compile
