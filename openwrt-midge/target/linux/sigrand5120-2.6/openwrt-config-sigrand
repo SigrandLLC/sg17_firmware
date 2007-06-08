@@ -861,6 +861,13 @@ BR2_PACKAGE_IPSEC_TOOLS=y
 # BR2_PACKAGE_IPSET is not set
 # BR2_PACKAGE_IPTABLES_SNMP is not set
 BR2_PACKAGE_IPTRAF=m
+
+#
+# iputils........................... A collection of utilites for controlling TCP/IP networking
+#
+BR2_COMPILE_IPUTILS=m
+BR2_PACKAGE_PING=m
+BR2_PACKAGE_ARPING=m
 # BR2_PACKAGE_KISMET_CLIENT is not set
 # BR2_PACKAGE_KISMET_DRONE is not set
 # BR2_PACKAGE_KISMET_SERVER is not set
@@ -920,6 +927,7 @@ BR2_PACKAGE_NTPCLIENT=y
 # olsrd............................. OLSR (Optimized Link State Routing) daemon
 #
 # BR2_PACKAGE_OLSRD is not set
+# BR2_PACKAGE_OPENDCHUB is not set
 # BR2_PACKAGE_OPENNTPD is not set
 
 #
@@ -1193,6 +1201,7 @@ BR2_PACKAGE_ZLIB=y
 # BR2_PACKAGE_PALANTIR is not set
 # BR2_PACKAGE_PEERCAST is not set
 # BR2_PACKAGE_SETPWC is not set
+# BR2_PACKAGE_SPCAVIEW is not set
 
 #
 # Serial communications & terminal emulation
@@ -1285,7 +1294,15 @@ BR2_PACKAGE_MIAX=m
 # Sigrand
 #
 BR2_PACKAGE_WEBFACE=y
-BR2_PACKAGE_SIGRAND_DRV=m
+BR2_PACKAGE_HOTPLUG=m
+
+#
+# Sigrand drivers
+#
+BR2_PACKAGE_SIGRAND_SETHDLC=y
+BR2_PACKAGE_SIGRAND_MR17H=y
+# BR2_PACKAGE_SIGRAND_MR17H_DEBUG is not set
+BR2_PACKAGE_SIGRAND_MR16H=y
 # BR2_PACKAGE_SDK is not set
 # BR2_PACKAGE_IMAGEBUILDER is not set
 
@@ -1429,6 +1446,8 @@ BR2_PACKAGE_KMOD_FUSE=m
 # BR2_PACKAGE_KMOD_MADWIFI_OLD is not set
 BR2_PACKAGE_KMOD_MADWIFI=y
 BR2_PACKAGE_KMOD_MINI_FO=m
+# BR2_PACKAGE_KMOD_MMC-NG is not set 
+# BR2_PACKAGE_KMOD_MMC is not set
 BR2_PACKAGE_KMOD_OPENSWAN=m
 BR2_PACKAGE_KMOD_SHFS=m
 # BR2_PACKAGE_KMOD_SPCA5XX is not set
