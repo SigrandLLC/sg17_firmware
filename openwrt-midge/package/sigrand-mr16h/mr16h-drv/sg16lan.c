@@ -1301,9 +1301,7 @@ sg16_start_xmit( struct sk_buff *skb, struct net_device *ndev )
          * we don't have to check if the descriptor queue was overflowed,
 	 * because of XQLEN < 128
          */
-	printk(KERN_NOTICE"Send packet(%d)\n",skb->len);
 	if( skb->len < ETH_ZLEN ){
-		printk(KERN_NOTICE"Send packet is too small\n");	
 		less_than_ethmin++;
 	        pad = ETH_ZLEN - skb->len;
         	if( !(skb = skb_pad(skb,pad)) ){
@@ -1312,7 +1310,6 @@ sg16_start_xmit( struct sk_buff *skb, struct net_device *ndev )
 		}
 		skb->len = ETH_ZLEN;
         }
-	printk(KERN_NOTICE"Send packet(%d) - II\n",skb->len);	
 //	ALLOC_TX();
 
 	/* Map the buffer for DMA */
@@ -1331,7 +1328,6 @@ sg16_start_xmit( struct sk_buff *skb, struct net_device *ndev )
 	 * Probably, it's the best place to increment statistic counters
          * though those frames hasn't been actually transferred yet.
 	 */
-	printk(KERN_NOTICE"Increment statistics\n");	 
         ++nl->in_stats.sent_pkts;
 	++nl->stats.tx_packets;
         nl->stats.tx_bytes += skb->len;
