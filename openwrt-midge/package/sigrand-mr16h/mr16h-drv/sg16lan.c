@@ -236,8 +236,8 @@ struct net_local{
     unsigned head_tdesc, head_rdesc;
     u8 fw_state;
     
-    /* timered link check entire */
-    struct timer_list link_state;
+    /* deffered link check */
+    struct work_struct wqueue;    
 };
 
 /* SHDSL transceiver statistics */
@@ -270,7 +270,7 @@ static void  set_multicast_list( struct net_device * );
 
 static int  sg16_ioctl( struct net_device *, struct ifreq *, int );
 
- -----------------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------------*/
 
 /*- Functions serving SG-16PCI control -*/
 
@@ -291,7 +291,20 @@ static int  shdsl_get_stat(struct net_local *nl, struct dsl_stats *ds);
 static int  shdsl_clr_stat( struct net_local  *nl );
 static int  shdsl_issue_cmd( struct net_local *, u8, u8 *, u8 );
 static void shdsl_interrupt( struct net_device * );
-static void shdsl_link_chk( unsigned long );
+static void shdsl_link_chk( void * );
+
+
+#ifdef SG16_USERMODE_EVENTS
+#define USERMODE_HELPER "/sbin/__sg16_link_hndl"
+static int usermode_link_event(struct net_device *ndev,int link_up);
+
+#else
+
+static inline int
+usermode_link_event(struct net_device *ndev,int link_up){ return 0; }
+
+#endif
+
 
 /*- Functions, serving transmit-receive process -*/
 static void  recv_init_frames( struct net_device * );
@@ -507,8 +520,7 @@ sg16_init_one( struct pci_dev  *pdev,  const struct pci_device_id  *ent )
     }
 
     nl->shdsl_cfg.need_preact=1;
-
-
+/*
 #ifndef AUTOSTART_OFF
 
     if( shdsl_dload_fw(dev_dev)  )
@@ -528,11 +540,9 @@ sg16_init_one( struct pci_dev  *pdev,  const struct pci_device_id  *ent )
 	}
     }
 #endif	
-
+/*
     /* timered link chk entire */
-    nl->link_state.data = ( unsigned long )ndev;
-    nl->link_state.function = shdsl_link_chk;
-    init_timer( &(nl->link_state) );
+    INIT_WORK( &nl->wqueue,shdsl_link_chk,(void*)ndev);    
     
     return  0;
 
@@ -555,7 +565,7 @@ sg16_remove_one( struct pci_dev  *pdev )
     struct device_driver *dev_drv=(struct device_driver*)(dev_dev->driver);
 
     /* timer entry */
-    del_timer_sync( &(nl->link_state) );
+    cancel_delayed_work(&nl->wqueue);
 
     /* shutdown device */
     hdlc_shutdown(nl);
@@ -793,9 +803,52 @@ struct cx28975_fw {
     u32  firmw_len;
 };
 	
-/*----------------------------------------------------------------------------
-    Control device functions
- ----------------------------------------------------------------------------*/
+/*
+static int
+sg16_ioctl( struct net_device  *dev,  struct ifreq  *ifr,  int  cmd )
+{
+    struct firmware fw;
+    u8 mas[100*1024];
+    struct cx28975_fw fw_in;
+    int  error = 0;
+    int err;
+		
+    if( cmd ==  SIOCDEVLOADFW ){
+		    
+        if( current->euid != 0 )        /* root only */
+/*	    return  -EPERM;
+        if( (dev->flags & IFF_UP) == IFF_UP )
+	    return  -EBUSY;
+	PDEBUG("verify_area for addr");			    
+        if( (error = verify_area( VERIFY_READ, ifr->ifr_data,
+		            sizeof(struct cx28975_fw) )) != 0 )
+	    return  error;
+	PDEBUG("cp to fw_in");
+        copy_from_user( &fw_in, ifr->ifr_data, sizeof fw_in );
+	PDEBUG("verify_area for fw");		
+        if( (error = verify_area( VERIFY_READ, fw_in.firmw_image,
+                      fw_in.firmw_len )) != 0 )
+	    return  error;
+/*
+        if( !(fw.data = kmalloc( fw_in.firmw_len, GFP_KERNEL )) )
+	      return  -ENOMEM;
+*/
+/*	fw.data=mas;
+	PDEBUG("kmalloced");
+	copy_from_user( fw.data, fw_in.firmw_image, fw_in.firmw_len );
+	fw.size= fw_in.firmw_len;
+	printk("%s: buf allocated and filled, addr=%08x\n",fw.data); 	
+	PDEBUG("start dload");	
+	if( shdsl_dload_fw(dev, &fw ) )
+	    error=-1;
+	kfree( fw.data );
+    }
+    return  error;
+}
+*/																																      
+
+/* Control device functions */
+/*----------------------------------------------------------------------------*/
 
 static void
 hdlc_shutdown(struct net_local *nl)
@@ -1181,10 +1234,8 @@ shdsl_interrupt( struct net_device  *ndev )
     if(  ioread8( (iotype)&(p->intr_host) ) != 0xfe )
     	return;
 
-    if( ioread8( (iotype)&(p->out_ack) ) & 0x80  )
-    {
-	nl->link_state.expires = jiffies + HZ/2;    
-	add_timer( &(nl->link_state) );    
+    if( ioread8( (iotype)&(p->out_ack) ) & 0x80  ){
+	schedule_delayed_work(&nl->wqueue,HZ/2);    
     }
     // inquiry answer     
     else
@@ -1202,7 +1253,7 @@ shdsl_interrupt( struct net_device  *ndev )
 
 
 static void
-shdsl_link_chk( unsigned long data )
+shdsl_link_chk( void *data )
 {
     struct net_device *ndev=(struct net_device *)data;
     struct net_local  *nl  =(struct net_local *)netdev_priv(ndev);	
@@ -1252,6 +1303,7 @@ shdsl_link_chk( unsigned long data )
 */	    // enable packet receiving-transmitting
 	    netif_wake_queue( ndev );
 	    netif_carrier_on( ndev );
+	    usermode_link_event(ndev,1);
 	}
 	// link down
 	else 
@@ -1264,9 +1316,31 @@ shdsl_link_chk( unsigned long data )
 	    iowrite8( EXT, (iotype)&(nl->regs->IMR) );    			
 	    netif_stop_queue( ndev );
 	    netif_carrier_off( ndev );
+	    usermode_link_event(ndev,0);
 	}
     }
 }
+
+#ifdef SG16_USERMODE_EVENTS
+static int
+usermode_link_event(struct net_device *ndev,int link_up)
+{
+	char *argv[4] = { USERMODE_HELPER, NULL, NULL,NULL };
+	char *envp[3] = { NULL, NULL, NULL };
+	char ifname[256];
+	char lstate[256];
+	sprintf(ifname,"%s",ndev->name);
+	sprintf(lstate,"%d",link_up);
+	argv[1] = ifname;
+	argv[2] = lstate;
+	envp[0] = "HOME=/";
+	envp[1] = "PATH=/sbin:/bin:/usr/sbin:/usr/bin";
+//	printk("Start usermode helper\n");		
+	return call_usermodehelper(argv[0],argv,envp,1);
+}
+
+#endif
+
 
 /* --------------------------------------------------------------------------
  *   Functions, serving transmit-receive process   *
@@ -1305,12 +1379,10 @@ sg16_start_xmit( struct sk_buff *skb, struct net_device *ndev )
 		less_than_ethmin++;
 	        pad = ETH_ZLEN - skb->len;
         	if( !(skb = skb_pad(skb,pad)) ){
-			printk(KERN_NOTICE"%s: no mem for skb",__FUNCTION__);
 	    	        return 0;
 		}
 		skb->len = ETH_ZLEN;
         }
-//	ALLOC_TX();
 
 	/* Map the buffer for DMA */
         bus_addr = dma_map_single(nl->dev,skb->data, skb->len , DMA_TO_DEVICE );
@@ -1351,9 +1423,9 @@ recv_init_frames( struct net_device *dev )
     unsigned  len;
 
     while( nl->head_rdesc != cur_rbd ) {
-	struct sk_buff  *skb = nl->rq[ nl->head_rq++ ];
+
 	PDEBUG("Get packet");
-	
+	struct sk_buff  *skb = nl->rq[ nl->head_rq++ ];
 	nl->head_rq &= (RQLEN - 1);
 
 	bus_addr=le32_to_cpu( ioread32( (u32*)&(nl->rbd[ nl->head_rdesc ].address)) );

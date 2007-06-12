@@ -359,6 +359,7 @@ menu "Sigrand drivers"
 source "package/sethdlc/Config.in"
 source "package/sigrand-mr17h/Config.in"
 source "package/sigrand-mr16h/Config.in"
+source "package/sigrand-adm5120sw/Config.in"
 endmenu
 
 endmenu
