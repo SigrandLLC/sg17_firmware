@@ -4,6 +4,10 @@ kdb="kdb"
 mr16h_cfg="/sbin/sg16cfg"
 mr17h_cfg="/sbin/mr17h_cfg"
 ifcfg="/sbin/ifconfig"
+modprobe="/sbin/modprobe"
+
+# load sg16 driver
+$modprobe sg16lan
 
 . /etc/templates/sigrand-lib
 
