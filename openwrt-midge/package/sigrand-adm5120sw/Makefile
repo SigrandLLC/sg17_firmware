@@ -39,8 +39,8 @@ $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	touch $@
 
 $(IPKG_SIGRAND_ADM5120SW):
-	install -d -m0400 $(IDIR_SIGRAND_ADM5120SW)/lib/modules/2.6.16
-	install -d -m0400 $(IDIR_SIGRAND_ADM5120SW)/etc/init.d
+	install -d -m0755 $(IDIR_SIGRAND_ADM5120SW)/lib/modules/2.6.16
+	install -d -m0755 $(IDIR_SIGRAND_ADM5120SW)/etc/init.d
 	cd $(PKG_BUILD_DIR)/adm5120sw-drv && make install
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_ADM5120SW)/CONTROL/control
 	$(IPKG_BUILD) $(IDIR_SIGRAND_ADM5120SW) $(PACKAGE_DIR)	
