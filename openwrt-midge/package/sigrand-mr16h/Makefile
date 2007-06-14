@@ -45,9 +45,9 @@ $(IPKG_SIGRAND_MR16H):
 	install -d -m0755 $(IDIR_SIGRAND_MR16H)/lib/firmware
 	cd $(PKG_BUILD_DIR)/mr16h-drv && make install
 ifeq ($(BR2_PACKAGE_SIGRAND_MR16H_LINKMAP),y)
-	install -m0700  $(PKG_BUILD_DIR)/dsl2eth_map/__sg16_link_hndl $(IDIR_SIGRAND_MR16H)/sbin
-	install -d -m755   $(IDIR_SIGRAND_MR16H)/etc/sigrand
-	install -m0700  $(PKG_BUILD_DIR)/dsl2eth_map/dsl2eth.map $(IDIR_SIGRAND_MR16H)/etc/sigrand
+	install -m0700  dsl2eth_map/__sg16_link_hndl $(IDIR_SIGRAND_MR16H)/sbin
+	install -d -m755 $(IDIR_SIGRAND_MR16H)/etc/sigrand
+	install -m0600  dsl2eth_map/dsl2eth.map $(IDIR_SIGRAND_MR16H)/etc/sigrand
 endif
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_MR16H)/CONTROL/control
 	$(IPKG_BUILD) $(IDIR_SIGRAND_MR16H) $(PACKAGE_DIR)	
