@@ -11,7 +11,7 @@ include ../generic-$(KERNEL)/modules.mk
 include ../kernel.mk
 
 $(LINUX_DIR)/.patched: $(LINUX_DIR)/.unpacked
-	mkdir -p $(LINUX_DIR)
+	[ -d ./patches ] && $(PATCH) $(LINUX_DIR) ./patches $(MAKE_TRACE)
 	@cp config $(LINUX_DIR)/.config
 	touch $@
 
@@ -26,4 +26,3 @@ $(LINUX_DIR)/.modules_done:
 #
 $(STAMP_DIR)/.linux-compile:
 #	touch $@
-
