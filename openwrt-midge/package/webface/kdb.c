@@ -21,6 +21,7 @@
 /* TODO: 
  *	* multiline import (export)
  *	* raw block partition support for storage
+ *	* types
  *
  *
  *	*/
