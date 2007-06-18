@@ -19,7 +19,6 @@ $(LINUX_DIR)/.unpacked: $(DL_DIR)/$(LINUX_SOURCE)
 	rm -Rf $(LINUX_BUILD_DIR)
 	-mkdir -p $(LINUX_BUILD_DIR)
 	bzcat $(DL_DIR)/$(LINUX_SOURCE) | tar -C $(LINUX_BUILD_DIR) $(TAR_OPTIONS) -
-	[ -d $(LINUX_BUILD_DIR)/linux ] && mv $(LINUX_BUILD_DIR)/linux $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION)
 	rm -f $(BUILD_DIR)/linux
 	ln -s $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION) $(BUILD_DIR)/linux
 	touch $@
