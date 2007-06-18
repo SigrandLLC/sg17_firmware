@@ -8,7 +8,7 @@
 	<chapter>
 		<chapterinfo>Манипуляция с программным обеспечением маршрутизатора</chapterinfo>
 		<title>Программное обеспечение маршрутизатора</title>
-		<section>
+		<section id="bootloader">
 			<title>Загрузчик</title>
 			<para>
 				Меню загрузчика доступно при подключении к маршрутизатору по последовательному интерфейсу. После включения питания, на экран будет выведено предложение войти в меню загрузчика. Для этого вам необходимо 3 раза быстро нажать на клавишу пробела.
@@ -75,7 +75,7 @@
 				</itemizedlist>
 			</para>
 		</section>
-		<section>
+		<section id="update">
 			<title>Обновление прошивки маршрутизатора</title>
 			<para>
 				Если маршрутизатор уже сконфигурирован, то перед прошивкой следует сохранить конфигурацию, т.к. установка новой прошивки вернет все параметры в начальное состояние. Сохранение и восстановление конфигурации выполняется в веб-интерфейсе.
@@ -507,6 +507,132 @@
 	</chapter>
 	<chapter>
 		<title>Настройка сетевых интерфейсов</title>
+		<section id="status">
+			<title>Общие параметры</title>
+			<section>
+				<title>Вкладка Status</title>
+				<para>
+					На вкладке <emphasis>Status</emphasis> отображается основная информация о выбранном интерфейсе. Информация о сетевых параметрах интерфейса:
+				</para>
+				<figure>
+					<title>Сетевые параметры</title>
+					<graphic fileref="img/iface-stat.png" width="6in"/>
+				</figure>
+				<para>
+					Маршруты, привязанные к интерфейсу:
+				</para>
+				<figure>
+					<title>Сетевые маршруты</title>
+					<graphic fileref="img/iface-stat-routes.png" width="6in"/>
+				</figure>
+				<para>
+					Записи в таблице ARP:
+				</para>
+				<figure>
+					<title>Таблица ARP</title>
+					<graphic fileref="img/iface-stat-arp.png" width="6in"/>
+				</figure>
+				<para>
+					Информация о работе встроенного коммутатора:
+				</para>
+				<figure>
+					<title>Встроенный коммутатор</title>
+					<graphic fileref="img/iface-stat-switch.png" width="6in"/>
+				</figure>
+				<para>
+					Информация о шейпере трафика, работающего на интерфейсе:
+				</para>
+				<figure>
+					<title>Шейпер трафика</title>
+					<graphic fileref="img/iface-stat-tc.png" width="6in"/>
+				</figure>
+			</section>
+			<section id="general">
+				<title>Вкладка General</title>
+				<para>
+					Опции на вкладке <emphasis>General</emphasis> позволяют включить/выключить интерфейс, а также выбрать способ установки ip-адреса:
+				</para>
+				<figure>
+					<title>Вкладка General</title>
+					<graphic fileref="img/iface-general.png" width="6in"/>
+				</figure>
+				<para>
+					<itemizedlist>
+						<listitem>Description - описание интерфейса, не используется системой</listitem>
+						<listitem>Enabled - интерфейс активен</listitem>
+						<listitem>Auto - активация интерфейса при загрузке</listitem>
+						<listitem>Method - метод установки IP-адреса</listitem>
+					</itemizedlist>
+				</para>
+				<para>
+					Возможно несколько методов установки IP-адреса:
+					<itemizedlist>
+						<listitem>не конфигурируемый (none) - ip-адрес не устанавливается</listitem>
+						<listitem>статический (static address) - ручной ввод пользователем</listitem>
+						<listitem>Zero configuration - автоматический способ присвоения ip-адреса, позволяющий построить работающую сеть без ручного присвоения ip-адресов и без серверов DNS/DHCP</listitem>
+						<listitem>Динамический ip-адрес (dynamic address) - адрес назначается сетевыми сервисами: DHCP/PPTP/...</listitem>
+					</itemizedlist>
+				</para>
+				<note>
+					<simpara>При выборе статического адреса необходимо ввести соответствующую информацию на вкладке <emphasis>Method</emphasis>.</simpara>
+					<simpara>При конфигурации сети с помощью Zeroconf интерфейсу будет назначен ip-адрес из диапазона 169.254.*.</simpara>
+					<simpara>При выборе динамического ip-адреса, адрес и необходимые сетевые настройки будут получены от DHCP сервера.</simpara>
+				</note>
+			</section>
+			<section id="method">
+				<title>Вкладка Method</title>
+				<para>
+					На вкладке <emphasis>Method</emphasis> осуществляется установка сетевых параметров:
+				</para>
+				<figure>
+					<title>Вкладка Method</title>
+					<graphic fileref="img/iface-method.png"/>
+				</figure>
+				<para>
+					<itemizedlist>
+						<listitem>IP-адрес (static address)</listitem>
+						<listitem>маска сети (netmask)</listitem>
+						<listitem>широковещательный адрес (broadcast)</listitem>
+						<listitem>маршрут по-умолчанию (gateway)</listitem>
+					</itemizedlist>
+				</para>
+				<note>
+					<simpara>Обязательными для заполнения являются только первые два поля, при не заполнении поля широковещательного адреса, он будет высчитан автоматически.</simpara>
+				</note>
+			</section>
+			<section id="options">
+				<title>Вкладка Options</title>
+				<para>
+					Переключатели на вкладке <emphasis>Options</emphasis> управляют поведением интерфейса:
+				</para>
+				<figure>
+					<title>Вкладка Options</title>
+					<graphic fileref="img/iface-options.png"/>
+				</figure>
+				<para>
+					<emphasis>Accept redirects</emphasis> - в активном состоянии позволяет принимать ICMP перенаправления. Например, если есть лучший маршрут до какого-либо узла чем тот, по которому был послан пакет клиентом, маршрутизатор клиенту может отправить (как правило всегда так и происходит) icmp-перенаправление с указанием, через какой маршрутизатор лучше в следующий раз отправлять пакеты.
+				</para>
+				<para>
+					<emphasis>Forwarding</emphasis> - при активном состоянии включает режим маршрутизатора - пересылку пакеты с интерфейса на интерфейс (в соответствии с правилами фаервола).
+				</para>
+				<para>
+					<emphasis>Proxy ARP</emphasis> - включение режима Proxy ARP, что предоставляет третий способ соединения сетей (помимо моста и стандартной IP-маршрутизации).
+				</para>
+				<para>
+					<emphasis>RP Filter</emphasis> - управляет возможностью проверки пути к отправителю (reversed path) в соответствии с RFC 1812. Активное состояние включает такую проверку и рекомендуется для хостов с одним сетевым интерфейсом и маршрутизаторов тупиковых сетей.
+				</para>
+			</section>
+			<section id="specific">
+				<title>Вкладка Specific</title>
+				<para>
+					На вкладке <emphasis>Specific</emphasis> производится установка MAC-адреса интерфейса:
+					<figure>
+						<title>Вкладка Specific</title>
+						<graphic fileref="img/iface-specific.png"/>
+					</figure>
+				</para>
+			</section>
+		</section>
 		<section>
 			<title>Конфигурация интерфейса E1</title>
 			<para>
@@ -633,87 +759,6 @@
 					# <command>chmod</command> <option>+x</option> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
 				</simpara>
 			</section>
-		</section>
-		<section>
-			<title>Конфигурация интерфейса Ethernet</title>
-			<para>
-				На вкладке <emphasis>Status</emphasis> отображается основная информация о выбранном интерфейсе:
-				<itemizedlist>
-					<listitem>сетевые настройки (ip-адрес, маска сети, ...)</listitem>
-					<listitem>маршруты, связанные с этим интерфейсом</listitem>
-					<listitem>записи из таблицы ARP адресов</listitem>
-					<listitem>информация о внутреннем коммутаторе</listitem>
-				</itemizedlist>
-			</para>
-			<para>
-				Опции на вкладке <emphasis>General</emphasis> позволяют включить/выключить интерфейс, а также выбрать способ установки ip-адреса:
-				<itemizedlist>
-					<listitem>не конфигурируемый (none) - ip-адрес не устанавливается</listitem>
-					<listitem>статический (static address) - ручной ввод пользователем</listitem>
-					<listitem>Zero configuration - автоматический способ присвоения ip-адреса, позволяющий построить работающую сеть без ручного присвоения ip-адресов и без серверов DNS/DHCP</listitem>
-					<listitem>Динамический ip-адрес (dynamic address) - адрес назначается сетевыми сервисами: DHCP/PPTP/...</listitem>
-				</itemizedlist>
-			</para>
-			<note>
-				<simpara>При выборе статического адреса необходимо ввести соответствующую информацию на вкладке <emphasis>Method</emphasis>.</simpara>
-				<simpara>При конфигурации сети с помощью Zeroconf интерфейсу будет назначен ip-адрес из диапазона 169.254.*.</simpara>
-				<simpara>При выборе динамического ip-адреса, адрес и необходимые сетевые настройки будут получены от DHCP сервера.</simpara>
-			</note>
-			<para>
-				Пример конфигурации представлен на рисунке:
-				<figure>
-					<title>Вкладка General</title>
-					<graphic fileref="img/eth-general.png"/>
-				</figure>
-			</para>
-			<para>
-				На вкладке <emphasis>Method</emphasis> осуществляется установка сетевых параметров:
-				<itemizedlist>
-					<listitem>ip-адрес (static address)</listitem>
-					<listitem>маска сети (netmask)</listitem>
-					<listitem>широковещательный адрес (broadcast)</listitem>
-					<listitem>маршрут по-умолчанию (gateway)</listitem>
-				</itemizedlist>
-				<note>
-					<simpara>Обязательными для заполнения являются только первые два поля, при не заполнении поля широковещательного адреса, он будет высчитан автоматически.</simpara>
-				</note>
-			</para>
-			<para>
-				Пример настройки представлен на рисунке:
-				<figure>
-					<title>Вкладка Method</title>
-					<graphic fileref="img/eth-method.png"/>
-				</figure>
-			</para>
-			<simpara>
-				Переключатели на вкладке <emphasis>Options</emphasis> управляют поведением интерфейса.
-			</simpara>
-			<simpara>
-				<emphasis>Accept redirects</emphasis> - в активном состоянии позволяет принимать ICMP перенаправления. Например, если есть лучший маршрут до какого-либо узла чем тот, по которому был послан пакет клиентом, маршрутизатор клиенту может отправить (как правило всегда так и происходит) icmp-перенаправление с указанием, через какой маршрутизатор лучше в следующий раз отправлять пакеты.
-			</simpara>
-			<simpara>
-				<emphasis>Forwarding</emphasis> - при активном состоянии включает режим маршрутизатора - пересылку пакеты с интерфейса на интерфейс (в соответствии с правилами фаервола).
-			</simpara>
-			<simpara>
-				<emphasis>Proxy ARP</emphasis> - включение режима Proxy ARP, что предоставляет третий способ соединения сетей (помимо моста и стандартной IP-маршрутизации).
-			</simpara>
-			<simpara>
-				<emphasis>RP Filter</emphasis> - управляет возможностью проверки пути к отправителю (reversed path) в соответствии с RFC 1812. Активное состояние включает такую проверку и рекомендуется для хостов с одним сетевым интерфейсом и маршрутизаторов тупиковых сетей.
-			</simpara>
-			<para>
-				Пример настройки приведен на рисунке:
-				<figure>
-					<title>Вкладка Options</title>
-					<graphic fileref="img/eth-options.png"/>
-				</figure>
-			</para>
-			<para>
-				На вкладке <emphasis>Specific</emphasis> производится установка MAC-адреса интерфейса. Пример показан на рисунке:
-				<figure>
-					<title>Вкладка Specific</title>
-					<graphic fileref="img/eth-specific.png"/>
-				</figure>
-			</para>
 		</section>
 		<section>
 			<title>Настройка работы SHDSL модемов в режиме Bonding</title>
