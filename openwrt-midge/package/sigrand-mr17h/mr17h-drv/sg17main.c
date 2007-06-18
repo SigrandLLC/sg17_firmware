@@ -171,15 +171,16 @@ sg17_interrupt( int  irq,  void  *dev_id,  struct pt_regs  *regs )
 {
 	struct net_device *ndev = (struct net_device *) dev_id;
 	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);
-	u8 status = ioread8(&(nl->regs->SR));
+	u8 status;
 	u8 mask = ioread8(&(nl->regs->IMR));	
 
 	PDEBUG(debug_irq,"%s: status = %02x, mask=%02x",ndev->name,status,mask);
-	if( (status & mask) == 0 )
+	if( (ioread8(&(nl->regs->SR)) & mask ) == 0 )
 		return IRQ_NONE;
 
 	PDEBUG(debug_irq,"%s: status = %02x",ndev->name,status);
 
+	status = ioread8(&(nl->regs->SR));
 	iowrite8(status,&(nl->regs->SR));	
 	iowrite8( 0, &(nl->regs->IMR));
 
@@ -187,38 +188,32 @@ sg17_interrupt( int  irq,  void  *dev_id,  struct pt_regs  *regs )
 		PDEBUG(debug_irq,"%s: RXS, CRA=%02x\n",ndev->name,nl->regs->CRA);	
 		recv_init_frames( ndev );
 		recv_alloc_buffs( ndev );
-		iowrite8( RXS,&(nl->regs->SR));
 	}
 	if( status & TXS ){
 		PDEBUG(debug_irq,"%s: TXS, CRA=%02x\n",ndev->name,nl->regs->CRA);
 		xmit_free_buffs( ndev );
-		iowrite8( TXS,&(nl->regs->SR));		
 	}
 	if( status & CRC ){
 	    PDEBUG(debug_irq,"%s: CRC, CRA=%02x\n",ndev->name,nl->regs->CRA);	
 	    ++nl->stats.rx_errors;
     	    ++nl->stats.rx_crc_errors;
-	    iowrite8( CRC,&(nl->regs->SR));				
 	}
 	if( status & OFL ){
 	    PDEBUG(debug_irq,"%s: OFL, CRA=%02x\n",ndev->name,nl->regs->CRA);
 	    ++nl->stats.rx_errors;
 	    ++nl->stats.rx_over_errors;
-	    iowrite8( OFL,&(nl->regs->SR));
 	}
 	if( status & UFL ){
     	    //  Whether transmit error is occured, we have to re-enable the
     	    //  transmitter. That's enough, because linux doesn't fragment
 	    //  packets.
 	    PDEBUG(debug_irq,"%s: UFL, CRA=%02x\n",ndev->name,nl->regs->CRA);
-	    iowrite8( UFL,&(nl->regs->SR));				
 	    iowrite8( ioread8(&(nl->regs->CRA)) | TXEN,
 	    	    &(nl->regs->CRA) );
 	    ++nl->stats.tx_errors;
 	    ++nl->stats.tx_fifo_errors;
 	}
-	
-	
+
 	iowrite8( mask,&(nl->regs->IMR));	
 	
 	return IRQ_HANDLED;
@@ -385,8 +380,6 @@ check_skb_free( struct sk_buff *skb, struct net_device *ndev )
 	return 0;
 }
 
-// --------------------- DEBUG ---------------------------- //
-
 /* TODO uncomment!!! */
 /*static*/ int
 sg17_start_xmit( struct sk_buff *skb, struct net_device *ndev )
@@ -415,7 +408,7 @@ sg17_start_xmit( struct sk_buff *skb, struct net_device *ndev )
 		dev_kfree_skb_any( skb );		
 		return 0;
 	}
-	
+
 	spin_lock_irqsave(&nl->tx.lock,flags);
 	if( sg_ring_add_skb(&nl->tx,skb) == -ERFULL ){
 		PDEBUG(debug_xmit,"error: cannot add skb - full queue");
@@ -439,15 +432,15 @@ xmit_free_buffs( struct net_device *ndev )
 	struct sk_buff *skb;
 	int len;
 
-	PDEBUG(debug_xmit,"start");	
+//	PDEBUG(debug_xmit,"start");	
         while( (skb=sg_ring_del_skb(&nl->tx,&len)) != NULL ){
 		dev_kfree_skb_any( skb );
         }
 	if( netif_queue_stopped( ndev )  &&  sg_ring_have_space(&nl->tx) ){
-		PDEBUG(debug_xmit,"enable xmit queue");		
+//		PDEBUG(debug_xmit,"enable xmit queue");		
     		netif_wake_queue( ndev );
 	}
-	PDEBUG(debug_xmit,"end");			
+//	PDEBUG(debug_xmit,"end");			
 	
 }
 
@@ -470,7 +463,7 @@ recv_init_frames( struct net_device *ndev )
 		netif_rx( skb );
 		++nl->stats.rx_packets;
 		nl->stats.rx_bytes += len;
-		PDEBUG(debug_recv,"skb->len = %d",skb->len);
+		PDEBUG(debug_recv,"len = %d",skb->len);
         }
         return;
 }
@@ -481,7 +474,7 @@ recv_alloc_buffs( struct net_device *ndev )
         struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);		
         struct sk_buff  *skb;
 
-	PDEBUG(debug_recv,"start");		    
+//	PDEBUG(debug_recv,"start");		    
         while( sg_ring_have_space(&nl->rx) ){
 //		PDEBUG(debug_recv,"alloc new skb");		
 		skb = dev_alloc_skb(ETHER_MAX_LEN + IP_ALIGN);
@@ -496,7 +489,7 @@ recv_alloc_buffs( struct net_device *ndev )
 			return -1;
 		}
 	}
-	PDEBUG(debug_recv,"end");			
+//	PDEBUG(debug_recv,"end");			
 	return 0;
 }
 
