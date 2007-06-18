@@ -648,29 +648,18 @@ sg16_interrupt( int  irq,  void  *dev_id,  struct pt_regs  *regs )
 {
 	struct net_device *dev = (struct net_device *) dev_id;
 	struct net_local  *nl  = (struct net_local *)netdev_priv(dev);		
-	u8  status = ioread8((iotype)&(nl->regs->SR));
+	u8  status;
+	u8  mask = ioread8((iotype)&(nl->regs->IMR));	
 
-	if( status == 0 )
+	if( (mask & ioread8((iotype)&(nl->regs->SR)) ) == 0 )
 		return IRQ_NONE;
 
-	if( status & ~((u8)EXT) ){
-	    PDEBUG("ndev=%s, status=%02x",dev->name,0xff & status);
-	    PDEBUG("%02x %02x %02x %02x %02x %02x %02x %02x",
-		    ioread8((iotype)&(nl->regs->CRA)),
-		    ioread8((iotype)&(nl->regs->CRB)),
-		    ioread8((iotype)&(nl->regs->SR)),
-		    ioread8((iotype)&(nl->regs->IMR)),
-		    ioread8((iotype)&(nl->regs->CTDR)),
-		    ioread8((iotype)&(nl->regs->LTDR)),
-		    ioread8((iotype)&(nl->regs->CRDR)),
-		    ioread8((iotype)&(nl->regs->LRDR))
-		);
-	}
-
-	if( status & EXT )
-	{
-	    shdsl_interrupt( dev ),
-	    iowrite8( EXT, (iotype)&(nl->regs->SR));						
+	status = ioread8((iotype)&(nl->regs->SR));
+	iowrite8(status,(iotype)&(nl->regs->SR));
+	iowrite8(0,(iotype)&(nl->regs->IMR));	
+	
+	if( status & EXT ){
+	        shdsl_interrupt( dev );
 	}
 	/*
 	 * Whether transmit error is occured, we have to re-enable the
@@ -678,38 +667,35 @@ sg16_interrupt( int  irq,  void  *dev_id,  struct pt_regs  *regs )
 	 * packets.
 	 */
 	if( status & UFL ){
-	    iowrite8( ioread8((iotype)&(nl->regs->CRA)) | TXEN,
-	    	    (iotype)&(nl->regs->CRA) );
-	    iowrite8( UFL,(iotype)&(nl->regs->SR));				
-	    ++nl->in_stats.ufl_errs;
-	    ++nl->stats.tx_errors;
-	    ++nl->stats.tx_fifo_errors;
+		iowrite8( ioread8((iotype)&(nl->regs->CRA)) | TXEN,
+	    	        (iotype)&(nl->regs->CRA) );
+		++nl->in_stats.ufl_errs;
+		++nl->stats.tx_errors;
+		++nl->stats.tx_fifo_errors;
 	}
 	if( status & RXS ){
-	    if( spin_trylock( &(nl->rlock) ) ){
-		recv_init_frames( dev );
-		recv_alloc_buffs( dev );
-		spin_unlock( &(nl->rlock) );
-	    }
-	    iowrite8( RXS,(iotype)&(nl->regs->SR));
+		if( spin_trylock( &(nl->rlock) ) ){
+			recv_init_frames( dev );
+			recv_alloc_buffs( dev );
+			spin_unlock( &(nl->rlock) );
+		}
 	}
 	if( status & TXS ){
-	    xmit_free_buffs( dev );
-	    iowrite8( TXS,(iotype)&(nl->regs->SR));		
+	        xmit_free_buffs( dev );
 	}
 	if( status & CRC ){
-	    ++nl->in_stats.crc_errs;
-	    ++nl->stats.rx_errors;
-    	    ++nl->stats.rx_crc_errors;
-	    iowrite8( CRC,(iotype)&(nl->regs->SR));				
+		++nl->in_stats.crc_errs;
+		++nl->stats.rx_errors;
+    		++nl->stats.rx_crc_errors;
 	}
 	if( status & OFL ){
-	    ++nl->in_stats.ofl_errs;
-	    ++nl->stats.rx_errors;
-	    ++nl->stats.rx_over_errors;
-	    iowrite8( OFL,(iotype)&(nl->regs->SR));		
+		++nl->in_stats.ofl_errs;
+		++nl->stats.rx_errors;
+		++nl->stats.rx_over_errors;
 	}
-	PDEBUG("%02x end",status & 0xff);	
+
+	PDEBUG("%02x end",status & 0xff);
+	iowrite8(mask,(iotype)&(nl->regs->IMR));	
 	return IRQ_HANDLED;
 }
 
