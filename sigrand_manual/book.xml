@@ -505,7 +505,7 @@
 			</para>
 		</section>
 	</chapter>
-	<chapter>
+	<chapter id="iface">
 		<title>Настройка сетевых интерфейсов</title>
 		<section id="status">
 			<title>Общие параметры</title>
@@ -632,6 +632,33 @@
 					</figure>
 				</para>
 			</section>
+		</section>
+		<section id="ifaces">
+			<title>Работа с динамическими интерфейсами</title>
+			<para>
+				На странице Network/Interfaces возможно добавить или удалить динамический интерфейс. На данный момент существуют следующие динамические интерфейсы:
+				<itemizedlist>
+					<listitem>Bridge - создание моста</listitem>
+					<listitem>PPPoE - PPP over Ethernet</listitem>
+					<listitem>PPtP - Point-to-Point Tunneling Protocol</listitem>
+					<listitem>Bonding - объединение интерфейсов</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				Для создания нового интерфейса его тип выбирается из выпадающего списка, нажимается кнопка Add:
+				<figure>
+					<title>Создание динамического интерфейса</title>
+					<graphic fileref="img/ifaces-add.png" width="6in"/>
+				</figure>
+				После добавления надо перезагрузить страницу, щелкнув в меню по ссылке Network/Interfaces, чтобы добавленный интерфейс отобразился в списке сетевых интерфейсов.
+			</para>
+			<para>
+				Для удаления интерфейса его имя выбирается в выпадающем списке, нажимается кнопка Delete:
+				<figure>
+					<title>Удаление динамического интерфейса</title>
+					<graphic fileref="img/ifaces-del.png" width="6in"/>
+				</figure>
+			</para>
 		</section>
 		<section>
 			<title>Конфигурация интерфейса E1</title>
