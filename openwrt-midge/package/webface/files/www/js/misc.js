@@ -50,8 +50,8 @@ function openPopup(win, controller, item, exturl) {
 }
 
 function openHelp(file, topic) {
-	var w = 400;
-	var h = 600;
+	var w = 600;
+	var h = 800;
 	var winl = (screen.width+300-w)/2;
 	var wint = (screen.height-h)/2;
 	if (winl < 0) winl = 0;
