@@ -12,8 +12,8 @@
 	render_table_title "General settings" 2
 
 	# sys_hostname
-	tip="This is tip for hostname <b>Bold tip</b>"
-	desc="This is description for hostname"
+	tip="Hostname of router"
+	desc="Please enter router's hostname"
 	validator='tmt:required="true" tmt:message="Please input name of host" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
 	render_input_field text "Hostname" sys_hostname 
 	
