@@ -40,11 +40,16 @@ render_chart_h(){
 
 render_table_title(){
 	local text="$1"
+	local lhelp_1 lhelp_2;
+	[ -n "$help_1" ] && lhelp_1="$help_1" || lhelp_1="${controller}"
+	[ -n "$help_2" ] && lhelp_2="$help_2" || lhelp_2="${page}"
 	echo "<tr><td></td></tr>"
 	echo "<tr><td class='table_title' colspan=2><table border=0> <tr class='table_title' ><td width=100%>$text </td>"
-	echo "<td><a class='help_lnk' href='javascript:openHelp(\"${controller}\", \"${page}\");'><img src='/img/help2.png' border=0></a></td></tr></table>"
+	echo "<td><a class='help_lnk' href='javascript:openHelp(\"${lhelp_1}\", \"${lhelp_2}\");'><img src='/img/help2.png' border=0></a></td></tr></table>"
 	echo "</td></tr>"
+	unset help_1 help_2
 }
+
 
 render_console_start(){
 	local text="$1"
@@ -186,7 +191,7 @@ render_input_field(){
 		;;
 	esac
 	
-	[ ! $type = "hidden" ] && echo "$helpcode<br><span class='inputDesc' $tipcode>$desc</span></td></tr>"
+	[ ! $type = "hidden" ] && echo "<br><span class='inputDesc' $tipcode>$desc</span></td></tr>"
 	echo "<!-- ------- /render_input_field $type $text $inputname $* -->"
 	unset id autosubmit onchange onmouseover tip desc validator default
 }

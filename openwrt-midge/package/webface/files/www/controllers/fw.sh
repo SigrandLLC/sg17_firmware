@@ -12,7 +12,7 @@
 
 		eval `kdb -qq ls sys_fw_*`
 		render_form_header fw 
-		render_table_title "Firewall settings" 2
+		render_table_title "Firewall settings" 
 
 		# sys_fw_enabled
 		tip=""
@@ -33,6 +33,7 @@
 		render_input_field hidden table table "$table"
 		render_input_field hidden chain chain "$chain"
 		
+		help_1="fw_filter"
 		render_table_title "Default policy" 2 
 		# forward policy
 		autosubmit="y"
@@ -75,7 +76,8 @@
 		render_input_field hidden table table "$table"
 		render_input_field hidden chain chain "$chain"
 		
-		render_table_title "Default policy" 2 
+		help_1="fw_filter"
+		render_table_title "Default policy"
 		# prerouting policy
 		autosubmit="y"
 		tip=$cautiontip
