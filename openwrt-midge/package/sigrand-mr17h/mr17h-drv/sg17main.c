@@ -705,11 +705,24 @@ store_winwrite( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 }
 static DEVICE_ATTR(winwrite,0644,show_winwrite,store_winwrite);
 
+//-------------- EOC debug -----------------------------//
 
-//-------------- Memory window debug -----------------------------//
+static ssize_t
+store_eocdbg( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+{
+        if( !size ) return 0;
+	if( buf[0] == '1' ){
+		debug_sci = 0;
+		debug_eoc = 0;
+	} else {
+		debug_sci = 40;
+		debug_eoc = 40;
+	}	
+	return size;
+}
+static DEVICE_ATTR(eocdbg,0600,NULL,store_eocdbg);
 
 //-------------- Register handlers -------------------------------//
-
 void
 sg17_sci_sysfs_register(struct device *dev)
 {
@@ -717,6 +730,7 @@ sg17_sci_sysfs_register(struct device *dev)
 	device_create_file(dev,&dev_attr_trvr_stat);
 	device_create_file(dev,&dev_attr_winread);
 	device_create_file(dev,&dev_attr_winwrite);
+	device_create_file(dev,&dev_attr_eocdbg);
 }
 
 void
@@ -724,7 +738,8 @@ sg17_sci_sysfs_remove(struct device *dev){
 	device_remove_file(dev,&dev_attr_regs);
 	device_remove_file(dev,&dev_attr_trvr_stat);
 	device_remove_file(dev,&dev_attr_winread);
-	device_create_file(dev,&dev_attr_winwrite);
+	device_remove_file(dev,&dev_attr_winwrite);
+	device_remove_file(dev,&dev_attr_eocdbg);	
 }
 
 #else
@@ -1079,4 +1094,5 @@ sg17_exit( void ){
 
 module_init(sg17_init);
 module_exit(sg17_exit);
+
 
