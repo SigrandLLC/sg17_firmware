@@ -32,7 +32,7 @@ stop()
 
 case $1 in
 	start)
-		/etc/templates/Update bind
+		/etc/templates/Update dns_server
 		start
 		;;
 	stop) 
