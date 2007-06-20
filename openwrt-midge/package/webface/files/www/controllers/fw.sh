@@ -76,7 +76,7 @@
 		render_input_field hidden table table "$table"
 		render_input_field hidden chain chain "$chain"
 		
-		help_1="fw_filter"
+		help_1="fw_nat"
 		render_table_title "Default policy"
 		# prerouting policy
 		autosubmit="y"
