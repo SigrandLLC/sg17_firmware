@@ -1222,7 +1222,7 @@ printk("\n");
 			msg[0] = 0;
 		}
 		msg[1] = cp;
-
+/*
 printk(KERN_NOTICE"MSG#%d: ");
 for(j=0;j<cp+2;j++){
 	if( (j+1) % 25 == 0)
@@ -1230,8 +1230,8 @@ for(j=0;j<cp+2;j++){
 	printk("%02x ",msg[j]);
 }
 printk("\n");
-		
-		
+*/		
+		hwdev->ch[ch].eoc->eoc_tx = 0;
 		if(sdfe4_pamdsl_cmd(ch,CMD_EOC_TX,(u8*)msg,cp+2,&rmsg,hwdev)){
 			PDEBUG(debug_eoc,"CMD_EOC_TX failed");		
 			return -1;

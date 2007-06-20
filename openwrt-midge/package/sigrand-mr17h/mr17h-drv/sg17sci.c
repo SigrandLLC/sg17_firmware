@@ -134,6 +134,7 @@ sg17_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *regs )
 	u8 status = (ioread8(&s->regs->SR) & mask);	
 	struct sdfe4_msg msg;
 	int pamdsl_type;
+	u16 in_len;
 	int i;
 	
 	PDEBUG(debug_sci,"status=%02x",status);	
@@ -152,10 +153,7 @@ sg17_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *regs )
 	if( status & RXS ){
 		PDEBUG(debug_sci,"RXS");
 		// Save incoming message
-		s->rx_len = ioread16(&s->regs->RXLEN);
-		for(i=0; i < s->rx_len; i++)
-			s->rx_msg[i] = ioread8( (u8*)s->rx_buf + i);
-
+		in_len = ioread16(&s->regs->RXLEN);
 /*
 if( s->rx_msg[3] !=0 ){
 	PDEBUG(debug_eoc,"Come NFC:");
@@ -166,21 +164,22 @@ if( s->rx_msg[3] !=0 ){
 */	
 		// process message		
 		
-		if( !sdfe4_msg_init( &msg, s->rx_msg, s->rx_len ) ){
-if( s->rx_msg[3] !=0 ){		
-    PDEBUG(debug_eoc,"rx_len=%d,msg_len=%d",s->rx_len,msg.len);
-}
+    		if( !sdfe4_msg_init( &msg, s->rx_buf, in_len ) ){
+
+			iowrite8( (ioread8( &s->regs->CRA ) | RXEN), &s->regs->CRA );		
+
 			pamdsl_type = sdfe4_pamdsl_parse(&msg,s->hwdev);
 			switch( pamdsl_type ){
 			case SDFE4_NOT_PAMDSL:
 			case SDFE4_PAMDSL_ACK:
+				s->rx_len = in_len;
+				memcpy(s->rx_msg,msg.buf,s->rx_len);
 				wake_up( &s->wait_q );
 				break;
 			case SDFE4_PAMDSL_NFC:
 				PDEBUG(debug_eoc,"NFC wake queue");
 				wake_up( &s->eoc_wait_q );
 			default:
-				iowrite8( (ioread8( &s->regs->CRA ) | RXEN), &s->regs->CRA );			
 				break;
 			}
 		}
@@ -222,7 +221,7 @@ sg17_sci_recv( struct sg17_sci *s, char *msg, int *mlen)
 		msg[i] = s->rx_msg[i];
 
 	// enable message receiving
-	iowrite8( (ioread8( &s->regs->CRA ) | RXEN), &s->regs->CRA );
+//	iowrite8( (ioread8( &s->regs->CRA ) | RXEN), &s->regs->CRA );
 	PDEBUG(debug_cur,"");	
 	return 0;
 }
