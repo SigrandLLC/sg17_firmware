@@ -2,6 +2,9 @@
 
 INSTALL_DIR=/home/zig/release
 
+mkdir -p -v download
+rm -rf ./dl
+ln -s ./download dl
 
 clean_root(){
 	make clean_root
