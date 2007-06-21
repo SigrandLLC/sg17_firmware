@@ -33,7 +33,7 @@
 #include "include/sg17hw.h"
 #include "include/sdfe4_lib.h"
 // Debug parameters
-#define DEBUG_ON
+//#define DEBUG_ON
 #define DEFAULT_LEV 20
 #include "sg17debug.h"
 

@@ -238,6 +238,7 @@ static ssize_t show_eoc(struct class_device *cdev, char *buf)
 	if( (size = sdfe4_eoc_rx(ch,&ptr)) < 0 )
 		return 0;
 	memcpy(buf,ptr,size);
+	kfree(ptr);
 	return size;
 }
 
