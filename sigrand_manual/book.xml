@@ -1,19 +1,22 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version = '1.0' encoding = 'utf-8'?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "/usr/share/xml/docbook/schema/dtd/4.2/docbookx.dtd">
-<book lang="ru">
-	<bookinfo>
-		<title>Руководство по эксплуатации маршрутизатора SG-16R</title>
-		<copyright><year>2007</year><holder>Сигранд</holder></copyright>
-	</bookinfo>
-	<chapter>
-		<chapterinfo>Манипуляция с программным обеспечением маршрутизатора</chapterinfo>
-		<title>Программное обеспечение маршрутизатора</title>
-		<section id="bootloader">
-			<title>Загрузчик</title>
-			<para>
+<book lang="ru" >
+  <bookinfo>
+    <title>Руководство по эксплуатации маршрутизатора SG-16R</title>
+    <copyright>
+      <year>2007</year>
+      <holder>Сигранд</holder>
+    </copyright>
+  </bookinfo>
+  <chapter>
+    <chapterinfo>Манипуляция с программным обеспечением маршрутизатора</chapterinfo>
+    <title>Программное обеспечение маршрутизатора</title>
+    <section id="bootloader" >
+      <title>Загрузчик</title>
+      <para>
 				Меню загрузчика доступно при подключении к маршрутизатору по последовательному интерфейсу. После включения питания, на экран будет выведено предложение войти в меню загрузчика. Для этого вам необходимо 3 раза быстро нажать на клавишу пробела.
 			</para>
-			<screen>
+      <screen>
 				ADM5120 Boot:
 				
 				
@@ -28,10 +31,10 @@
 				Press &lt;space> key tree times to enter boot menu..
 					3
 			</screen>
-			<para>
+      <para>
 				Если вы трижды нажали на пробел, то выведется меню загрузчика
 			</para>
-			<screen>
+      <screen>
 				Sigrand MR16 router:
 				==================================
 				Bootloader Menu
@@ -44,20 +47,20 @@
 				
 				Please enter your number:
 			</screen>
-			<para>
+      <para>
 				В этом меню доступны несколько действий:
 				<itemizedlist>
-					<listitem>Xmodem Download - обновление загрузчика или системы через последовательный порт по протоколу Xmodem. Данный способ обновления занимает много времени.</listitem>
-					<listitem>TFTP Download - обновление системы или загрузчика с помощью TFTP сервера.</listitem>
-					<listitem>Print Boot Params - показывает сетевые параметры загрузчика, основные - мак адрес и IP-адрес.</listitem>
-					<listitem>Set Boot Params - установка сетевых параметров для загрузки. Подробнее эти параметры рассмотрены в разделе "Обновление прошивки маршрутизатора".</listitem>
-					<listitem>Check flash - проверка флэш-памяти маршрутизатора на наличие поврежденных блоков.</listitem>
-				</itemizedlist>
-			</para>
-			<para>
+          <listitem>Xmodem Download - обновление загрузчика или системы через последовательный порт по протоколу Xmodem. Данный способ обновления занимает много времени.</listitem>
+          <listitem>TFTP Download - обновление системы или загрузчика с помощью TFTP сервера.</listitem>
+          <listitem>Print Boot Params - показывает сетевые параметры загрузчика, основные - мак адрес и IP-адрес.</listitem>
+          <listitem>Set Boot Params - установка сетевых параметров для загрузки. Подробнее эти параметры рассмотрены в разделе &quot;Обновление прошивки маршрутизатора&quot;.</listitem>
+          <listitem>Check flash - проверка флэш-памяти маршрутизатора на наличие поврежденных блоков.</listitem>
+        </itemizedlist>
+      </para>
+      <para>
 				Чтобы проверить маршрутизатор на наличие поврежденных блоков, переходим в меню Check flash:
 			</para>
-			<screen>
+      <screen>
 				Please enter your number:5
 				Flash Client Menu
 				===============================
@@ -67,44 +70,58 @@
 				[X]: exit
 				Enter your option:
 			</screen>
-			<para>
-				<itemizedlist>
-					<listitem>Print existent bad blocks - выводит на экран информацию о выявленных в ходе предыдущих проверках поврежденных блоках.</listitem>
-					<listitem>Scan flash for new bad blocks - сканирование флэш-памяти на предмет поврежденных блоков. В случае их обнаружения, они помечаются, как поврежденные, и не используются системой.</listitem>
-					<listitem>Erase flash - очистка флэш-памяти. Удаляет систему с флэш-памяти.</listitem>
-				</itemizedlist>
-			</para>
-		</section>
-		<section id="update">
-			<title>Обновление прошивки маршрутизатора</title>
-			<para>
+      <para>
+        <itemizedlist>
+          <listitem>Print existent bad blocks - выводит на экран информацию о выявленных в ходе предыдущих проверках поврежденных блоках.</listitem>
+          <listitem>Scan flash for new bad blocks - сканирование флэш-памяти на предмет поврежденных блоков. В случае их обнаружения, они помечаются, как поврежденные, и не используются системой.</listitem>
+          <listitem>Erase flash - очистка флэш-памяти. Удаляет систему с флэш-памяти.</listitem>
+        </itemizedlist>
+      </para>
+    </section>
+    <section id="update" >
+      <title>Обновление прошивки маршрутизатора</title>
+      <para>
 				Если маршрутизатор уже сконфигурирован, то перед прошивкой следует сохранить конфигурацию, т.к. установка новой прошивки вернет все параметры в начальное состояние. Сохранение и восстановление конфигурации выполняется в веб-интерфейсе.
 			</para>
-			<para>
+      <para>
 				Обновление прошивки выполняется через консольный интерфейс, для этого вам потребуется:
 				<itemizedlist>
-					<listitem><para><acronym>ПК</acronym> с COM-портом</para></listitem>
-					<listitem><para>TFTP сервер, находящийся в той же сети, что и маршрутизатор</para></listitem>
-				</itemizedlist>
+          <listitem>
+            <para>
+              <acronym>ПК</acronym> с COM-портом</para>
+          </listitem>
+          <listitem>
+            <para>TFTP-сервер, доступный с маршрутизатора</para>
+          </listitem>
+        </itemizedlist>
+      </para>
+      <para>
+				Для обновления прошивки необходимо, чтобы маршрутизатору был доступен TFTP-сервер, на котором расположен файл образа прошивки. В старых версиях загрузчика было необходимо, чтобы этот TFTP-сервер находился в одной сети с маршрутизатором, в новой версии добавлена возможность обновления, когда сервер доступен через шлюз.
 			</para>
-			<para>
-				Перед обновлением прошивки необходимо, чтобы в одной сети с маршрутизатором находился TFTP сервер, с которого будет производится обновление. После настройки TFTP сервера, необходимо в каталог, являющийся для него (TFTP сервера) корневым, скопировать файл прошивки, который можно скачать с веб-сайта <ulink url="http://www.sigrand.ru">www.sigrand.ru</ulink>.
+      <para>
+				Если используется локальный TFTP-сервер, то после его настройки необходимо в каталог, являющийся для него (TFTP-сервера) корневым, скопировать файл прошивки, который можно скачать с веб-сайта <ulink url="http://www.sigrand.ru" >www.sigrand.ru</ulink>.
 			</para>
-			<para>
+      <para>
 				Для доступа к консольному интерфейсу маршрутизатора необходимо COM-порт компьютера (разъем DB-9F) соединить с последовательным портом (разъем RJ-45 с надписью RS232, находящийся рядом с разъемом для питания) маршрутизатора.
 			</para>
-			<para>
+      <para>
 				Для управления маршрутизатором через консольный интерфейс может использоваться любая программа управления терминалом - HyperTerminal для ОС Windows или Minicom для ОС GNU/Linux. Настройки последовательного порта следующие:
 				<itemizedlist>
-					<listitem><para>скорость передачи: 115 200</para></listitem>
-					<listitem><para>протокол: 8-N-1</para></listitem>
-					<listitem><para>управление потоком: нет</para></listitem>
-				</itemizedlist>
-			</para>
-			<para>
+          <listitem>
+            <para>скорость передачи: 115 200</para>
+          </listitem>
+          <listitem>
+            <para>протокол: 8-N-1</para>
+          </listitem>
+          <listitem>
+            <para>управление потоком: нет</para>
+          </listitem>
+        </itemizedlist>
+      </para>
+      <para>
 				После запуска программы управления терминалом и установки соответствующих настроек порта, надо включить маршрутизатор. В окне программы выведется информация о маршрутизаторе с предложением войти в меню загрузчика:
 			</para>
-			<screen>
+      <screen>
 				ADM5120 Boot:
 				
 				
@@ -119,10 +136,10 @@
 				Press &lt;space> key tree times to enter boot menu..
 				2
 			</screen>
-			<para>
+      <para>
 				Для активации меню загрузчика надо быстро нажать на клавишу пробела 3 раза. Меню загрузчика выглядит следующим образом:
 			</para>
-			<screen>
+      <screen>
 				Sigrand MR16 router:
 				==================================
 				Bootloader Menu
@@ -135,24 +152,32 @@
 				
 				Please enter your number:
 			</screen>
-			<para>
+      <para>
 				Перед обновлением прошивки необходимо выставить сетевые параметры, которые соответствуют вашей сети. Для этого нужно перейти в пункт меню <emphasis>Set Boot Params</emphasis>, нажав клавишу 4. Здесь будет предложено указать:
 				<itemizedlist>
-					<listitem><para>серийный номер маршрутизатора - (Enter new serial number) - можно пропустить</para></listitem>
-					<listitem><para>версию аппаратной части - (Enter new hardware version) - можно пропустить</para></listitem>
-					<listitem>
-						<para>
+          <listitem>
+            <para>серийный номер маршрутизатора - (Enter new serial number) - можно пропустить</para>
+          </listitem>
+          <listitem>
+            <para>версию аппаратной части - (Enter new hardware version) - можно пропустить</para>
+          </listitem>
+          <listitem>
+            <para>
 							MAC адрес сетевого интерфейса - (Enter new mac address) - можно оставить установленный MAC адрес (его значение отображено выше, Current Mac Address), или ввести новое значение.
 						</para>
-					</listitem>
-					<listitem><para>число MAC адресов - (Enter new number of mac address) - этот параметр следует пропустить (по умолчанию число MAC адресов равно 1)</para></listitem>
-					<listitem><para>IP адрес - (Enter new IP address for this board) - следует ввести IP адрес, находящийся в одной сети с TFTP сервером</para></listitem>
-				</itemizedlist>
-			</para>
-			<para>
+          </listitem>
+          <listitem>
+            <para>число MAC адресов - (Enter new number of mac address) - этот параметр следует пропустить (по умолчанию число MAC адресов равно 1)</para>
+          </listitem>
+          <listitem>
+            <para>IP адрес - (Enter new IP address for this board) - следует ввести IP адрес, находящийся в одной сети с TFTP сервером</para>
+          </listitem>
+        </itemizedlist>
+      </para>
+      <para>
 				Пример конфигурации приведен ниже:
 			</para>
-			<screen>
+      <screen>
 				Set Boot Parameters.
 				==========================
 				Enter new serial number:
@@ -168,13 +193,13 @@
 				Enter new IP address for this board: 10.10.10.1
 				IP updated successfully.
 			</screen>
-			<para>
+      <para>
 				В приведенном примере был введен только IP адрес маршрутизатора, остальные параметры оставлены без изменений.
 			</para>
-			<para>
+      <para>
 				После настройки сетевых параметров, следует выбрать пункт меню 2 (TFTP Client Download) для настройки параметров обновления с помощью TFTP сервера. Содержание этого меню приведено ниже:
 			</para>
-			<screen>
+      <screen>
 				Server IP: 80.66.88.167
 				Gateway IP: 10.10.10.2
 				Remote File bootloader: bootgw
@@ -189,39 +214,39 @@
 				[X]: exit
 				Enter your option:
 			</screen>
-			<note>
-				<simpara>
+      <note>
+        <simpara>
 					Приведенное выше меню соответсвует новому загрузчику, в который была добавлена возможность загрузки образов загрузчика и системы с TFTP-сервера, находящегося за маршрутизатором. Меню в старых вресиях загрузчика отличается отсутствием возможности установки шлюза и обновления загрузчика.
 				</simpara>
-			</note>
-			<para>
+      </note>
+      <para>
 				Первые четыре строчки над меню содержат информацию, установленную во время последнего обновления прошивки. Для их изменения следует выбрать пункт меню set parameters нажатием клавиши p. В ответ на это будет предложено ввести:
 				<itemizedlist>
-					<listitem>
-						IP-адрес TFTP сервера - (Please Enter TFTP Server IP) - IP адрес TFTP сервера, на котором находится файл прошивки. Можно использовать TFTP-сервер, предоставляемый компанией Сигранд - sigrand.ru. Вводить следует IP-адрес сервера.
+          <listitem>
+						IP-адрес TFTP сервера - (Please Enter TFTP Server IP) - IP адрес TFTP сервера, на котором находится файл прошивки. Можно использовать TFTP-сервер, предоставляемый компанией Сигранд -  <emphasis>sigrand.ru</emphasis>. Вводить следует IP-адрес сервера.
 					</listitem>
-					<listitem>
+          <listitem>
 						IP-адрес шлюза - (Please enter gateway IP). Установка данного параметра позволяет обновлять прошивку с TFTP-сервера, находящегося в отличной от маршрутизатора сети.
 						Шлюз должен находиться в той же сети, что и интерфейс маршрутизатора.
 					</listitem>
-					<listitem>
+          <listitem>
 						Имя файла образа загрузчика - (Enter remote bootloader file name).
 					</listitem>
-					<listitem>
+          <listitem>
 						Имя файла прошивки - (Enter remote system file name) - имя файла прошивки, расположенного на TFTP сервере.
 					</listitem>
-				</itemizedlist>
-			</para>
-			<screen>
+        </itemizedlist>
+      </para>
+      <screen>
 				Please enter TFTP server IP : 80.66.88.167
 				Please enter gateway IP : 10.10.10.2
 				Enter remote bootloader file name : bootgw
 				Enter remote system file name : openwrt
 			</screen>
-			<para>
+      <para>
 				После настройки необходимых параметров, можно перейти к прошивке маршрутизатора или обновлению загрузчика. Для обновления загрузчика выбираем пункт меню [B]: Update bootloader:
 			</para>
-			<screen>
+      <screen>
 				Enter your option:b
 				Starting the TFTP download(ESC to stop)...
 				PASS
@@ -232,13 +257,13 @@
 				Programming flash....
 				PASS
 			</screen>
-			<para>
+      <para>
 				PASS, соответсвующий строчкам Eraseing flash и Programming flash означает, что обновление загрузчика прошло успешно. FAIL говорит о возникших проблемах, как правило это неправильный IP-адрес TFTP-сервера (маршрутизатор и TFTP-сервер находятся в разных сетях) или неправильнео имя файла на сервере.
 			</para>
-			<para>
+      <para>
 				Для обновления прошивки маршрутизатора переходим в пункт меню [S]: Update system:
 			</para>
-			<screen>
+      <screen>
 				Enter your option:s
 				Starting the TFTP download(ESC to stop)...................................
 				PASS
@@ -249,7 +274,7 @@
 				Programming flash....
 				PASS
 			</screen>
-			<para>
+      <para>
 				Если на экране присутствуют строчки
 				<screen>
 				Eraseing flash.......
@@ -259,138 +284,144 @@
 				</screen>
 				, значит обновление прошивки прошло успешно и теперь можно загрузить новую прошивку. Для этого необходимо выполнить перезагрузку маршрутизатора нажатием на кнопку RESET (или включением/выключением питания).
 			</para>
-			<para>
+      <para>
 				Пункт меню [A]: Update all последовательно обновляет загрузчик и прошивку маршрутизатора.
 			</para>
-			<para>
+      <para>
 				После загрузки маршрутизатора (при обычной загрузке не требуется входить в меню загрузчика, поэтому надо подождать, пока истечет таймер и начнется загрузка операционной системы (<acronym>ОС</acronym>>)) можно перейти к настройке посредством веб-интерфейса. Доступ к консоли больше не требуется, поэтому провод и соответствующее <acronym>ПО</acronym> можно отключить.
 			</para>
-			<para>
+      <para>
 				В случае, если на экран была выведена строчка
 				<screen>Starting the TFTP download(ESC to stop)..FAIL</screen>
 				, значит загрузчику не удалось загрузить файл прошивки с указанного TFTP сервера. В этом случае следует проверить корректность указания IP адреса TFTP сервера и имени файла прошивки на нем. Если все корректно, то следует проверить настройки, введенные в пункте Set Boot Params. Может помочь смена MAC адреса и проверка, не блокирует ли сервер TFTP соединения с маршрутизатора.
 			</para>
-		</section>
-		<section>
-			<title>Установка программ</title>
-			<para>
+    </section>
+    <section>
+      <title>Установка программ</title>
+      <para>
 				Перед установкой пакета его надо загрузить на маршрутизатор. Сделать это можно несколькими способами:
 				<itemizedlist>
-					<listitem>Разместить на WWW/FTP сервере и загрузить с помощью утилиты wget</listitem>
-					<listitem>Разместить на TFTP сервер и загрузить с помощью tftp клиента</listitem>
-				</itemizedlist>
-			</para>
-			<simpara>Загрузка пакета с TFTP сервера:</simpara>
-			<simpara>
-				# <command>tftp</command> <replaceable>192.168.2.1</replaceable> <option>-r</option> <replaceable>libpthread_0.9.28-1_mipsel.ipk</replaceable> <option>-g</option>
-			</simpara>
-			<simpara>Установка пакета:</simpara>
-			<para>
-				<screen>
-					# <command>ipkg</command> <option>install</option> <replaceable>libpthread_0.9.28-1_mipsel.ipk</replaceable>
+          <listitem>Разместить на WWW/FTP сервере и загрузить с помощью утилиты wget</listitem>
+          <listitem>Разместить на TFTP сервер и загрузить с помощью tftp клиента</listitem>
+        </itemizedlist>
+      </para>
+      <simpara>Загрузка пакета с TFTP сервера:</simpara>
+      <simpara>
+				# <command>tftp</command>
+        <replaceable>192.168.2.1</replaceable>
+        <option>-r</option>
+        <replaceable>libpthread_0.9.28-1_mipsel.ipk</replaceable>
+        <option>-g</option>
+      </simpara>
+      <simpara>Установка пакета:</simpara>
+      <para>
+        <screen>
+					# <command>ipkg</command>
+          <option>install</option>
+          <replaceable>libpthread_0.9.28-1_mipsel.ipk</replaceable>
 					Installing libpthread (0.9.28-1) to root...
 					Configuring libpthread
 					Done.
 				</screen>
-			</para>
-			<para>
+      </para>
+      <para>
 				Если при выполнении установки пакета будет выведено сообщение <computeroutput>ERROR: Cannot satisfy the following dependencies for <replaceable>fprobe</replaceable>:</computeroutput>, следует установить указанный пакет и повторить установку текущего пакета (<replaceable>fprobe</replaceable>).
 			</para>
-		</section>
-	</chapter>
-	<chapter id="begin">
-		<title>Управление маршрутизатором</title>
-		<section>
-			<title>Начало работы</title>
-			<para>
+    </section>
+  </chapter>
+  <chapter id="begin" >
+    <title>Управление маршрутизатором</title>
+    <section>
+      <title>Начало работы</title>
+      <para>
 				В заводской конфигурации и после обновления прошивки на маршрутизаторе активен интерфейс eth0 (крайний правый порт) с IP-адресом 192.168.2.100, сетевая маска 255.255.255.0.
 			</para>
-			<para>
+      <para>
 				Для конфигурации маршрутизатора необходимо соединить сетевую карту компьютера и крайний правый порт Ethernet проводом витой пары. На компьютере следует выставить IP-адрес из той же сети, в которой находится маршрутизатор (192.168.2.0/24), к примеру, 192.168.2.1, с сетевой маской 255.255.255.0.
 			</para>
-			<section id="web">
-				<title>Конфигурация с помощью Веб-интерфейса</title>
-				<para>
+      <section id="web" >
+        <title>Конфигурация с помощью Веб-интерфейса</title>
+        <para>
 					Конфигурация маршрутизатора выполняется через веб-интерфейс любым веб-браузером, поддерживающем протокол HTTPS (Internet Explorer, Opera, Safari, Mozilla Firefox). Для конфигурации необходимо в строке адреса веб-браузера ввести https://192.168.2.100, после чего будут заданы несколько вопросов касательно сертификатов шифрования, на которые следует ответить положительно. По-умолчанию, логин/пароль установлены следующие: admin/1234.
 				</para>
-				<para>
+        <para>
 					Вид главной страницы показан ниже:
 					<figure>
-						<title>Главная страница</title>
-						<graphic fileref="img/wellcome.png"/>
-					</figure>
-				</para>
-				<section id="passwd">
-					<title>Установка пароля</title>
-					<para>
-						<important>Настоятельно рекомендуется поменять пароль для конфигурации, это выполняется на странице System/Security</important>
+            <title>Главная страница</title>
+            <graphic fileref="img/wellcome.png" />
+          </figure>
+        </para>
+        <section id="passwd" >
+          <title>Установка пароля</title>
+          <para>
+            <important>Настоятельно рекомендуется поменять пароль для конфигурации, это выполняется на странице System/Security</important>
 						Там же следует поменять и пароль для управления маршрутизатором через консольный интерфейс. Страница смены пароля приведена ниже:
 						<figure>
-							<title>Смена пароля</title>
-							<graphic fileref="img/security.png"/>
-						</figure>
-					</para>
-				</section>
-				<section id="general">
-					<title>Имя маршрутизатора</title>
-					<para>
+              <title>Смена пароля</title>
+              <graphic fileref="img/security.png" />
+            </figure>
+          </para>
+        </section>
+        <section id="main" >
+          <title>Имя маршрутизатора</title>
+          <para>
 						Смена имени маршрутизатора (hostname) может быть выполнена на странице System/General, которая приведена ниже:
 						<figure>
-							<title>Смена имени маршрутизатора</title>
-							<graphic fileref="img/general.png"/>
-						</figure>
-					</para>
-				</section>
-				<section id="time">
-					<title>Синхронизация времени</title>
-					<para>
+              <title>Смена имени маршрутизатора</title>
+              <graphic fileref="img/general.png" />
+            </figure>
+          </para>
+        </section>
+        <section id="time" >
+          <title>Синхронизация времени</title>
+          <para>
 						Установка сервера для синхронизации внутренних часов маршрутизатора и часового пояса выполняется на странице System/Time:
 						<figure>
-							<title>Синхронизация времени</title>
-							<graphic fileref="img/time.png"/>
-						</figure>
-					</para>
-				</section>
-				<section id="dns">
-					<title>Настройка ДНС</title>
-					<para>
+              <title>Синхронизация времени</title>
+              <graphic fileref="img/time.png" />
+            </figure>
+          </para>
+        </section>
+        <section id="dns" >
+          <title>Настройка ДНС</title>
+          <para>
 						Установка адреса ДНС-сервера, к которому будет обращаться маршрутизатор с ДНС запросами и имя домена, в который входит маршрутизатор, устанавливается на странице System/DNS:
 					</para>
-					<figure>
-						<title>Настройка ДНС</title>
-						<graphic fileref="img/dns.png" width="6in"/>
-					</figure>
-				</section>
-				<para>
+          <figure>
+            <title>Настройка ДНС</title>
+            <graphic width="6in" fileref="img/dns.png" />
+          </figure>
+        </section>
+        <para>
 					Информация о состоянии соединения SHDSL и E1 может быть получена на страницах General/SHDSL и General/E1 соответственно, конфигурация параметром линии связи для этих интерфейсов выполняется соответственно на страницах General/SHDSL/dsl* и General/E1/hdlc*, для более подробной информации о возможных настройках обратитесь к соответствующему разделу документации.
 				</para>
-				<para>
+        <para>
 					Управление интерфейсами осуществляется на страницах, указанных в меню Network. К примеру, конфигурация интерфейсов Ethernet осуществляется на страницах Network/Interfaces/eth*, SHDSL - на страницах Network/Interfaces/dsl*, а E1 - на Network/Interfaces/hdlc*. Для активация интерфейса необходимо активировать параметры Enabled и Auto на вкладке General, расположенной на странице конфигурирования выбранного сетевого интерфейса. За более подробными инструкциями обратитесь к соответствующим страницам конфигурации маршрутизатора.
 				</para>
-				<para>
+        <para>
 					В меню Tools расположены утилиты, позволяющие:
 					<itemizedlist>
-						<listitem>проследить за работой маршрутизатора, просмотрев логи - страницы syslog и dmesg;</listitem>
-						<listitem>выполнить перезагрузку с помощью reboot;</listitem>
-						<listitem>проверить работу ДНС сервера или соответствие DNS-имени IP-адресу с помощью утилиты dig;</listitem>
-						<listitem>проверить работоспособность узла с помощью утилиты ping;</listitem>
-						<listitem>посмотреть маршрут прохождения пакета до заданного узла в сети с помощью mtr;</listitem>
-						<listitem>просмотреть сетевой трафик с помощью tcpdump.</listitem>
-					</itemizedlist>
-				</para>
-				<para>
+            <listitem>проследить за работой маршрутизатора, просмотрев логи - страницы syslog и dmesg;</listitem>
+            <listitem>выполнить перезагрузку с помощью reboot;</listitem>
+            <listitem>проверить работу ДНС сервера или соответствие DNS-имени IP-адресу с помощью утилиты dig;</listitem>
+            <listitem>проверить работоспособность узла с помощью утилиты ping;</listitem>
+            <listitem>посмотреть маршрут прохождения пакета до заданного узла в сети с помощью mtr;</listitem>
+            <listitem>просмотреть сетевой трафик с помощью tcpdump.</listitem>
+          </itemizedlist>
+        </para>
+        <para>
 					Сохранение и восстановление конфигурации производится на страницах Configuration/Backup и Configuration/Restore соответственно.
 				</para>
-			</section>
-			<section id="console">
-				<title>Конфигурация через консольный интерфейс</title>
-				<para>
+      </section>
+      <section id="console" >
+        <title>Конфигурация через консольный интерфейс</title>
+        <para>
 					Для конфигурации маршрутизатора через консольный интерфейс необходимо подключится к маршрутизатору по протоколу SSH на порт 22. Есть несколько программ, поддерживающих работу по протоколу SSH, к примеру, Putty для OS Windows и ssh для OS GNU/Linux. В качестве логина необходимо ввести root, пароль - 1234.
 				</para>
-				<para>
+        <para>
 					После успешной аутентификации, на экран будет выведен логотип фирмы Sigrand и текущая версия прошивки маршрутизатора:
 				</para>
-				<screen>
+        <screen>
 					sigrand1 login: root
 					Password:
 					
@@ -410,846 +441,885 @@
 					Revision: r579
 					Builded at: 20070317 16:07
 				</screen>
-				<note>
-					<simpara>
+        <note>
+          <simpara>
 						Следует заметить, что изменения, внесенные в конфигурацию маршрутизатора через консольный интерфейс будут замены после перезагрузки параметрами, указанными в веб-интерфейсе.
 					</simpara>
-				</note>
-			</section>
-			<section>
-				<title>Сводная информация</title>
-				<table frame="all">
-					<title>Сводная таблица</title>
-					<tgroup cols="3">
-						<colspec colname="c1"/>
-						<colspec colname="c2"/>
-						<colspec colname="c3"/>
-					<thead>
-						<row>
-							<entry namest="c1" nameend="c2">Параметр</entry>
-							<entry>Значение</entry>
-						</row>
-					</thead>
-					<tbody>
-						<row>
-							<entry namest="c1" nameend="c2">IP-адрес (крайний правый порт)</entry>
-							<entry>192.168.2.100</entry>
-						</row>
-						<row>
-							<entry namest="c1" nameend="c2">Сетевая маска</entry>
-							<entry>255.255.255.0</entry>
-						</row>
-						<row>
-							<entry namest="c1" nameend="c2">Веб-интерфейс</entry>
-						</row>
-						<row>
-							<entry></entry>
-							<entry>Протокол</entry>
-							<entry>HTTPS</entry>
-						</row>
-						<row>
-							<entry></entry>
-							<entry>Логин</entry>
-							<entry>admin</entry>
-						</row>
-						<row>
-							<entry></entry>
-							<entry>Пароль</entry>
-							<entry>1234</entry>
-						</row>
-						<row>
-							<entry namest="c1" nameend="c2">Консольный интерфейс</entry>
-						</row>
-						<row>
-							<entry></entry>
-							<entry>Протокол</entry>
-							<entry>SSH</entry>
-						</row>
-						<row>
-							<entry></entry>
-							<entry>Логин</entry>
-							<entry>root</entry>
-						</row>
-						<row>
-							<entry></entry>
-							<entry>Пароль</entry>
-							<entry>1234</entry>
-						</row>
-					</tbody>
-					</tgroup>
-				</table>
-			</section>
-		</section>
-		<section id="logging">
-			<title>Логирование событий</title>
-			<para>
+        </note>
+      </section>
+      <section>
+        <title>Сводная информация</title>
+        <table frame="all" >
+          <title>Сводная таблица</title>
+          <tgroup cols="3" >
+            <colspec colname="c1" />
+            <colspec colname="c2" />
+            <colspec colname="c3" />
+            <thead>
+              <row>
+                <entry nameend="c2" namest="c1" >Параметр</entry>
+                <entry>Значение</entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry nameend="c2" namest="c1" >IP-адрес (крайний правый порт)</entry>
+                <entry>192.168.2.100</entry>
+              </row>
+              <row>
+                <entry nameend="c2" namest="c1" >Сетевая маска</entry>
+                <entry>255.255.255.0</entry>
+              </row>
+              <row>
+                <entry nameend="c2" namest="c1" >Веб-интерфейс</entry>
+              </row>
+              <row>
+                <entry/>
+                <entry>Протокол</entry>
+                <entry>HTTPS</entry>
+              </row>
+              <row>
+                <entry/>
+                <entry>Логин</entry>
+                <entry>admin</entry>
+              </row>
+              <row>
+                <entry/>
+                <entry>Пароль</entry>
+                <entry>1234</entry>
+              </row>
+              <row>
+                <entry nameend="c2" namest="c1" >Консольный интерфейс</entry>
+              </row>
+              <row>
+                <entry/>
+                <entry>Протокол</entry>
+                <entry>SSH</entry>
+              </row>
+              <row>
+                <entry/>
+                <entry>Логин</entry>
+                <entry>root</entry>
+              </row>
+              <row>
+                <entry/>
+                <entry>Пароль</entry>
+                <entry>1234</entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </section>
+    </section>
+    <section id="logging" >
+      <title>Логирование событий</title>
+      <para>
 				Из-за особенности используемой встроенной памяти (flash-память) логи не сохраняются локально на маршрутизаторе, а пишутся в специальный буфер, доступный для просмотра через Tools/syslog. Маршрутизатор имеет несколько параметров, управляющих логированием:
 			</para>
-			<figure>
-				<title>Логирование</title>
-				<graphic fileref="img/logging.png" width="6in"/>
-			</figure>
-			<para>
-				<itemizedlist>
-					<listitem>Circular buffer - размер буфера</listitem>
-					<listitem>Enable remote syslog logging - включение логирования на удаленный syslog-сервер</listitem>
-					<listitem>Remote syslog server - адрес удаленного syslog-сервера</listitem>
-				</itemizedlist>
-			</para>
-			<note>
-				<simpara>
+      <figure>
+        <title>Логирование</title>
+        <graphic width="6in" fileref="img/logging.png" />
+      </figure>
+      <para>
+        <itemizedlist>
+          <listitem>Circular buffer - размер буфера</listitem>
+          <listitem>Enable remote syslog logging - включение логирования на удаленный syslog-сервер</listitem>
+          <listitem>Remote syslog server - адрес удаленного syslog-сервера</listitem>
+        </itemizedlist>
+      </para>
+      <note>
+        <simpara>
 					При включении логирования на удаленный сервер, продолжается запись событий в локальный буфер.
 				</simpara>
-			</note>
-			<note>
-				<simpara>
-					Для того, чтобы удаленный syslog-сервер принимал логи от маршрутизатора, его необходимо запустить с опцией "-r". Логирование производится по протоколу udp, 514 порт.
+      </note>
+      <note>
+        <simpara>
+					Для того, чтобы удаленный syslog-сервер принимал логи от маршрутизатора, его необходимо запустить с опцией &quot;-r&quot;. Логирование производится по протоколу udp, 514 порт.
 				</simpara>
-			</note>
-		</section>
-		<section id="adm5120sw">
-			<title>Настройка встроенного Ethernet коммутатора</title>
-			<para>
+      </note>
+    </section>
+    <section id="adm5120sw" >
+      <title>Настройка встроенного Ethernet коммутатора</title>
+      <para>
 				Настройка коммутатора осуществляется на странице System/Switch, на который устанавливается соотношение между физическими портами коммутатора (нумерация идет справа налево, т.е. Port 0 соответствует крайнему правому разъему маршрутизатора). Отнесение нескольких портов к одному интерфейсу создает для них единую физическую среду, т.е. они начинают работать, как порты одного коммутатора. Окно конфигурации представлено на рисунке:
 				<figure>
-					<title>Конфигурация коммутатора</title>
-					<graphic fileref="img/switch-1.png"/>
-				</figure>
-			</para>
-			<simpara>В приведенной выше конфигурации 0 и 1 порты коммутатора отнесены к сетевому интерфейсу eth0, в то время как 2 и 3 порты являются независимыми.</simpara>
-			<note>
-				<simpara>После внесения изменений необходимо перезагрузить маршрутизатор.</simpara>
-			</note>
-		</section>
-		<section id="cfg">
-			<title>Сохранение/восстановление конфигурации</title>
-			<para>
+          <title>Конфигурация коммутатора</title>
+          <graphic fileref="img/switch-1.png" />
+        </figure>
+      </para>
+      <simpara>В приведенной выше конфигурации 0 и 1 порты коммутатора отнесены к сетевому интерфейсу eth0, в то время как 2 и 3 порты являются независимыми.</simpara>
+      <note>
+        <simpara>После внесения изменений необходимо перезагрузить маршрутизатор.</simpara>
+      </note>
+    </section>
+	<section>
+		<title>Установление зависимостей SHDSL - Ethernet</title>
+		<para>
+			Для создания сложных взаимосвязей между интерфейсами была добавлена возможность
+			управления состоянием Ethernet порта в зависимости от состояния соответствующего ему
+			SHDSL порта
+		</para>
+		<para>
+			На данный момент управление соответсвием осуществляется через консольный
+			интерфейс, и устанавливается в конфигурационном файле /etc/sigrand/dsl2eth.map.
+		</para>
+		<para>
+			Изначально файл /etc/sigrand/dsl2eth.map пустой. Пример его заполнения показан в файле 
+			/etc/sigrand/dsl2eth.map.example и выглядит следующим образом:
+			<screen>
+				dsl0 eth0
+				dsl1 eth1
+			</screen>
+		</para>
+		<para>
+			Это означает, что интерфейсу eth0 соответсвует интерфейс dsl0, а eth1 - dsl1, и если линк на dsl0 
+			упадет, что так же будет отключен линк на eth0. Редактировать файл можно любым текстовым редактором, к примеру следующей командой:
+		</para>
+		<simpara>
+			<command>nano</command> <replaceable>/etc/sigrand/dsl2eth.map</replaceable>
+		</simpara>
+		<para>
+			После внесения изменений в конфигурационный файл рекомендуется перезагрузить маршрутизатор.
+		</para>
+    </section>
+    <section id="cfg" >
+      <title>Сохранение/восстановление конфигурации</title>
+      <para>
 				Веб-интерфейс позволяет сохранять текущую, восстанавливать сохраненную или заводскую конфигурацию маршрутизатора.
 			</para>
-			<para>
+      <para>
 				Сохранение конфигурации выполняется на странице Configuration/Backup:
 			</para>
-			<figure>
-				<title>Сохранение конфигурации</title>
-				<graphic fileref="img/config-backup.png" width="6in"/>
-			</figure>
-			<para>
+      <figure>
+        <title>Сохранение конфигурации</title>
+        <graphic width="6in" fileref="img/config-backup.png" />
+      </figure>
+      <para>
 				При нажатии на кнопку Backup будет предложено сохранить файл конфигурации, который в последствии можно будет загрузить.
 			</para>
-			<para>
+      <para>
 				Восстановление конфигурации выполняется на странице Configuration/Restore:
 			</para>
-			<figure>
-				<title>Восстановление конфигурации</title>
-				<graphic fileref="img/config-restore.png" width="6in"/>
-			</figure>
-			<para>
+      <figure>
+        <title>Восстановление конфигурации</title>
+        <graphic width="6in" fileref="img/config-restore.png" />
+      </figure>
+      <para>
 				На вкладке default можно восстановить заводскую конфигурацию нажатием на кнопку Restore default.
 			</para>
-			<para>
+      <para>
 				После восстановления конфигурации, необходимо перезагрузить маршрутизатор.
 			</para>
-		</section>
-	</chapter>
-	<chapter id="iface">
-		<title>Настройка сетевых интерфейсов</title>
-		<section id="status">
-			<title>Общие параметры</title>
-			<section>
-				<title>Вкладка Status</title>
-				<para>
+    </section>
+  </chapter>
+  <chapter id="iface" >
+    <title>Настройка сетевых интерфейсов</title>
+    <section id="status" >
+      <title>Общие параметры</title>
+      <section>
+        <title>Вкладка Status</title>
+        <para>
 					На вкладке <emphasis>Status</emphasis> отображается основная информация о выбранном интерфейсе. Информация о сетевых параметрах интерфейса:
 				</para>
-				<figure>
-					<title>Сетевые параметры</title>
-					<graphic fileref="img/iface-stat.png" width="6in"/>
-				</figure>
-				<para>
+        <figure>
+          <title>Сетевые параметры</title>
+          <graphic width="6in" fileref="img/iface-stat.png" />
+        </figure>
+        <para>
 					Маршруты, привязанные к интерфейсу:
 				</para>
-				<figure>
-					<title>Сетевые маршруты</title>
-					<graphic fileref="img/iface-stat-routes.png" width="6in"/>
-				</figure>
-				<para>
+        <figure>
+          <title>Сетевые маршруты</title>
+          <graphic width="6in" fileref="img/iface-stat-routes.png" />
+        </figure>
+        <para>
 					Записи в таблице ARP:
 				</para>
-				<figure>
-					<title>Таблица ARP</title>
-					<graphic fileref="img/iface-stat-arp.png" width="6in"/>
-				</figure>
-				<para>
+        <figure>
+          <title>Таблица ARP</title>
+          <graphic width="6in" fileref="img/iface-stat-arp.png" />
+        </figure>
+        <para>
 					Информация о работе встроенного коммутатора:
 				</para>
-				<figure>
-					<title>Встроенный коммутатор</title>
-					<graphic fileref="img/iface-stat-switch.png" width="6in"/>
-				</figure>
-				<para>
+        <figure>
+          <title>Встроенный коммутатор</title>
+          <graphic width="6in" fileref="img/iface-stat-switch.png" />
+        </figure>
+        <para>
 					Информация о шейпере трафика, работающего на интерфейсе:
 				</para>
-				<figure>
-					<title>Шейпер трафика</title>
-					<graphic fileref="img/iface-stat-tc.png" width="6in"/>
-				</figure>
-			</section>
-			<section id="general">
-				<title>Вкладка General</title>
-				<para>
+        <figure>
+          <title>Шейпер трафика</title>
+          <graphic width="6in" fileref="img/iface-stat-tc.png" />
+        </figure>
+      </section>
+      <section id="general" >
+        <title>Вкладка General</title>
+        <para>
 					Опции на вкладке <emphasis>General</emphasis> позволяют включить/выключить интерфейс, а также выбрать способ установки ip-адреса:
 				</para>
-				<figure>
-					<title>Вкладка General</title>
-					<graphic fileref="img/iface-general.png" width="6in"/>
-				</figure>
-				<para>
-					<itemizedlist>
-						<listitem>Description - описание интерфейса, не используется системой</listitem>
-						<listitem>Enabled - интерфейс активен</listitem>
-						<listitem>Auto - активация интерфейса при загрузке</listitem>
-						<listitem>Method - метод установки IP-адреса</listitem>
-					</itemizedlist>
-				</para>
-				<para>
+        <figure>
+          <title>Вкладка General</title>
+          <graphic width="6in" fileref="img/iface-general.png" />
+        </figure>
+        <para>
+          <itemizedlist>
+            <listitem>Description - описание интерфейса, не используется системой</listitem>
+            <listitem>Enabled - интерфейс активен</listitem>
+            <listitem>Auto - активация интерфейса при загрузке</listitem>
+            <listitem>Method - метод установки IP-адреса</listitem>
+          </itemizedlist>
+        </para>
+        <para>
 					Возможно несколько методов установки IP-адреса:
 					<itemizedlist>
-						<listitem>не конфигурируемый (none) - ip-адрес не устанавливается</listitem>
-						<listitem>статический (static address) - ручной ввод пользователем</listitem>
-						<listitem>Zero configuration - автоматический способ присвоения ip-адреса, позволяющий построить работающую сеть без ручного присвоения ip-адресов и без серверов DNS/DHCP</listitem>
-						<listitem>Динамический ip-адрес (dynamic address) - адрес назначается сетевыми сервисами: DHCP/PPTP/...</listitem>
-					</itemizedlist>
-				</para>
-				<note>
-					<simpara>При выборе статического адреса необходимо ввести соответствующую информацию на вкладке <emphasis>Method</emphasis>.</simpara>
-					<simpara>При конфигурации сети с помощью Zeroconf интерфейсу будет назначен ip-адрес из диапазона 169.254.*.</simpara>
-					<simpara>При выборе динамического ip-адреса, адрес и необходимые сетевые настройки будут получены от DHCP сервера.</simpara>
-				</note>
-			</section>
-			<section id="method">
-				<title>Вкладка Method</title>
-				<para>
+            <listitem>не конфигурируемый (none) - ip-адрес не устанавливается</listitem>
+            <listitem>статический (static address) - ручной ввод пользователем</listitem>
+            <listitem>Zero configuration - автоматический способ присвоения ip-адреса, позволяющий построить работающую сеть без ручного присвоения ip-адресов и без серверов DNS/DHCP</listitem>
+            <listitem>Динамический ip-адрес (dynamic address) - адрес назначается сетевыми сервисами: DHCP/PPTP/...</listitem>
+          </itemizedlist>
+        </para>
+        <note>
+          <simpara>При выборе статического адреса необходимо ввести соответствующую информацию на вкладке <emphasis>Method</emphasis>.</simpara>
+          <simpara>При конфигурации сети с помощью Zeroconf интерфейсу будет назначен ip-адрес из диапазона 169.254.*.</simpara>
+          <simpara>При выборе динамического ip-адреса, адрес и необходимые сетевые настройки будут получены от DHCP сервера.</simpara>
+        </note>
+      </section>
+      <section id="method" >
+        <title>Вкладка Method</title>
+        <para>
 					На вкладке <emphasis>Method</emphasis> осуществляется установка сетевых параметров:
 				</para>
-				<figure>
-					<title>Вкладка Method</title>
-					<graphic fileref="img/iface-method.png"/>
-				</figure>
-				<para>
-					<itemizedlist>
-						<listitem>IP-адрес (static address)</listitem>
-						<listitem>маска сети (netmask)</listitem>
-						<listitem>широковещательный адрес (broadcast)</listitem>
-						<listitem>маршрут по-умолчанию (gateway)</listitem>
-					</itemizedlist>
-				</para>
-				<note>
-					<simpara>Обязательными для заполнения являются только первые два поля, при не заполнении поля широковещательного адреса, он будет высчитан автоматически.</simpara>
-				</note>
-			</section>
-			<section id="options">
-				<title>Вкладка Options</title>
-				<para>
+        <figure>
+          <title>Вкладка Method</title>
+          <graphic fileref="img/iface-method.png" />
+        </figure>
+        <para>
+          <itemizedlist>
+            <listitem>IP-адрес (static address)</listitem>
+            <listitem>маска сети (netmask)</listitem>
+            <listitem>широковещательный адрес (broadcast)</listitem>
+            <listitem>маршрут по-умолчанию (gateway)</listitem>
+          </itemizedlist>
+        </para>
+        <note>
+          <simpara>Обязательными для заполнения являются только первые два поля, при не заполнении поля широковещательного адреса, он будет высчитан автоматически.</simpara>
+        </note>
+      </section>
+      <section id="options" >
+        <title>Вкладка Options</title>
+        <para>
 					Переключатели на вкладке <emphasis>Options</emphasis> управляют поведением интерфейса:
 				</para>
-				<figure>
-					<title>Вкладка Options</title>
-					<graphic fileref="img/iface-options.png"/>
-				</figure>
-				<para>
-					<emphasis>Accept redirects</emphasis> - в активном состоянии позволяет принимать ICMP перенаправления. Например, если есть лучший маршрут до какого-либо узла чем тот, по которому был послан пакет клиентом, маршрутизатор клиенту может отправить (как правило всегда так и происходит) icmp-перенаправление с указанием, через какой маршрутизатор лучше в следующий раз отправлять пакеты.
+        <figure>
+          <title>Вкладка Options</title>
+          <graphic fileref="img/iface-options.png" />
+        </figure>
+        <para>
+          <emphasis>Accept redirects</emphasis> - в активном состоянии позволяет принимать ICMP перенаправления. Например, если есть лучший маршрут до какого-либо узла чем тот, по которому был послан пакет клиентом, маршрутизатор клиенту может отправить (как правило всегда так и происходит) icmp-перенаправление с указанием, через какой маршрутизатор лучше в следующий раз отправлять пакеты.
 				</para>
-				<para>
-					<emphasis>Forwarding</emphasis> - при активном состоянии включает режим маршрутизатора - пересылку пакеты с интерфейса на интерфейс (в соответствии с правилами фаервола).
+        <para>
+          <emphasis>Forwarding</emphasis> - при активном состоянии включает режим маршрутизатора - пересылку пакеты с интерфейса на интерфейс (в соответствии с правилами фаервола).
 				</para>
-				<para>
-					<emphasis>Proxy ARP</emphasis> - включение режима Proxy ARP, что предоставляет третий способ соединения сетей (помимо моста и стандартной IP-маршрутизации).
+        <para>
+          <emphasis>Proxy ARP</emphasis> - включение режима Proxy ARP, что предоставляет третий способ соединения сетей (помимо моста и стандартной IP-маршрутизации).
 				</para>
-				<para>
-					<emphasis>RP Filter</emphasis> - управляет возможностью проверки пути к отправителю (reversed path) в соответствии с RFC 1812. Активное состояние включает такую проверку и рекомендуется для хостов с одним сетевым интерфейсом и маршрутизаторов тупиковых сетей.
+        <para>
+          <emphasis>RP Filter</emphasis> - управляет возможностью проверки пути к отправителю (reversed path) в соответствии с RFC 1812. Активное состояние включает такую проверку и рекомендуется для хостов с одним сетевым интерфейсом и маршрутизаторов тупиковых сетей.
 				</para>
-			</section>
-			<section id="spec">
-				<title>Вкладка Specific</title>
-				<para>
+      </section>
+      <section id="spec" >
+        <title>Вкладка Specific</title>
+        <para>
 					На вкладке <emphasis>Specific</emphasis> производится установка MAC-адреса интерфейса:
 					<figure>
-						<title>Вкладка Specific</title>
-						<graphic fileref="img/iface-specific.png"/>
-					</figure>
-				</para>
-			</section>
-		</section>
-		<section id="ifaces">
-			<title>Работа с динамическими интерфейсами</title>
-			<para>
+            <title>Вкладка Specific</title>
+            <graphic fileref="img/iface-specific.png" />
+          </figure>
+        </para>
+      </section>
+    </section>
+    <section id="ifaces" >
+      <title>Работа с динамическими интерфейсами</title>
+      <para>
 				На странице Network/Interfaces возможно добавить или удалить динамический интерфейс. На данный момент существуют следующие динамические интерфейсы:
 				<itemizedlist>
-					<listitem>Bridge - создание моста</listitem>
-					<listitem>PPPoE - PPP over Ethernet</listitem>
-					<listitem>PPtP - Point-to-Point Tunneling Protocol</listitem>
-					<listitem>Bonding - объединение интерфейсов</listitem>
-				</itemizedlist>
-			</para>
-			<para>
+          <listitem>Bridge - создание моста</listitem>
+          <listitem>PPPoE - PPP over Ethernet</listitem>
+          <listitem>PPtP - Point-to-Point Tunneling Protocol</listitem>
+          <listitem>Bonding - объединение интерфейсов</listitem>
+        </itemizedlist>
+      </para>
+      <para>
 				Для создания нового интерфейса его тип выбирается из выпадающего списка, нажимается кнопка Add:
 				<figure>
-					<title>Создание динамического интерфейса</title>
-					<graphic fileref="img/ifaces-add.png" width="6in"/>
-				</figure>
+          <title>Создание динамического интерфейса</title>
+          <graphic width="6in" fileref="img/ifaces-add.png" />
+        </figure>
 				После добавления надо перезагрузить страницу, щелкнув в меню по ссылке Network/Interfaces, чтобы добавленный интерфейс отобразился в списке сетевых интерфейсов.
 			</para>
-			<para>
+      <para>
 				Для удаления интерфейса его имя выбирается в выпадающем списке, нажимается кнопка Delete:
 				<figure>
-					<title>Удаление динамического интерфейса</title>
-					<graphic fileref="img/ifaces-del.png" width="6in"/>
-				</figure>
-			</para>
-		</section>
-		<section>
-			<title>Конфигурация интерфейса E1</title>
-			<para>
+          <title>Удаление динамического интерфейса</title>
+          <graphic width="6in" fileref="img/ifaces-del.png" />
+        </figure>
+      </para>
+    </section>
+    <section>
+      <title>Конфигурация интерфейса E1</title>
+      <para>
 				Маршрутизатор поддерживает несколько протоколов для работы с интерфейсом E1: HDLC, ETHER-HDLC, CISCO-HDLC, FR, PPP, X25. Конфигурация интерфейса выполняется на странице System/E1/hdlc*.
 			</para>
-			<section>
-				<title>Настройка параметров интерфейса</title>
-				<section>
-					<title>Настройка протокола CISCO-HDLC</title>
-					<para>
-						Настройка некоторых параметров устанавливается в "два этапа": т.е. сперва выбирается значение параметра, затем внесенные изменения сохраняются, и после перезагрузки страницы добавляются опции, относящиеся к выбранному параметру.
+      <section>
+        <title>Настройка параметров интерфейса</title>
+        <section>
+          <title>Настройка протокола CISCO-HDLC</title>
+          <para>
+						Настройка некоторых параметров устанавливается в &quot;два этапа&quot;: т.е. сперва выбирается значение параметра, затем внесенные изменения сохраняются, и после перезагрузки страницы добавляются опции, относящиеся к выбранному параметру.
 					</para>
-					<para>
+          <para>
 						Для настройки протокола CISCO-HDLC необходимо в выпадающем списке HDLC protocol выбрать значение CISCO-HDLC:
 						<figure>
-							<title>Выбор протокола</title>
-							<graphic fileref="img/hdlc-select_prot.png"/>
-						</figure>
-					</para>
-					<para>
+              <title>Выбор протокола</title>
+              <graphic fileref="img/hdlc-select_prot.png" />
+            </figure>
+          </para>
+          <para>
 						Для активации страницы с настройками, относящимся к выбранному протоколу, необходимо сохранить внесенные изменения. После перезагрузки страница примет следующий вид:
 						<figure>
-							<title>Конфигурация CISCO-HDLC</title>
-							<graphic fileref="img/hdlc-params.png"/>
-						</figure>
-					</para>
-					<para>
+              <title>Конфигурация CISCO-HDLC</title>
+              <graphic fileref="img/hdlc-params.png" />
+            </figure>
+          </para>
+          <para>
 						Описание параметров конфигурации:
 						<itemizedlist>
-							<listitem>Interval - время в секундах между пакетами поддержания соединения (keepalive packets)</listitem>
-							<listitem>
+              <listitem>Interval - время в секундах между пакетами поддержания соединения (keepalive packets)</listitem>
+              <listitem>
 								Timeout - время в секундах после последнего полученного пакета поддержания соединения, по истечению которого соединение считается разорванным.
 							</listitem>
-							<listitem>
+              <listitem>
 								Е1 framed mode - структурированный режим, при котором канал разбивается на таймслоты. В этом режиме для соединения задается карта таймслотов, которая должна совпадать с картой на другом конце соединения.
 							</listitem>
-							<listitem>
+              <listitem>
 								Use time slot 16 - по умолчанию в интерфейсе Е1 зарезервированы 0 и 16 слоты, которые могу быть использованы для служебной информации. Активация этого параметра позволяет использовать таймслот 16 для передачи данных.
 							</listitem>
-							<listitem>Slotmap - карта таймслотов. После сохранения из карты будут удалены служебные таймслоты.</listitem>
-							<listitem>
+              <listitem>Slotmap - карта таймслотов. После сохранения из карты будут удалены служебные таймслоты.</listitem>
+              <listitem>
 								E1 internal transmit clock - использовать внутренний генератор частоты. Как правило, в соединении должно быть хотя бы одно устройство с внутренним генератором частоты.
 							</listitem>
-							<listitem>E1 CRC4 multiframe - включение режима CRC4.</listitem>
-							<listitem>
+              <listitem>E1 CRC4 multiframe - включение режима CRC4.</listitem>
+              <listitem>
 								E1 CAS multiframe - включение режима CAS, используемого, как правило, при работе с АТС оборудованием. В этом режиме таймслот 16 зарезервирован для служебного использования.
 							</listitem>
-							<listitem>E1 HDB3/AMI line code - способ кодирования сигнала на линии связи.</listitem>
-							<listitem>CRC - способ контроля ошибок.</listitem>
-						</itemizedlist>
-					</para>
-					<para>
+              <listitem>E1 HDB3/AMI line code - способ кодирования сигнала на линии связи.</listitem>
+              <listitem>CRC - способ контроля ошибок.</listitem>
+            </itemizedlist>
+          </para>
+          <para>
 						Пропускная способность одного таймслота составляет 64 Кбит/c, т.о. максимальная пропускная способность интерфейса Е1 в unframed mode составляет 2 Мбит/с.
 					</para>
-					<section>
-						<title>Конфигурация framed mode</title>
-						<para>
-							Для работы интерфейса в framed mode необходимо активировать параметр E1 framed mode и ввести карту таймслотов, например "2-9,17-27 (именно в таком формате, без пробела между диапазонами)". На другом конце соединения должна быть установлена такая же карта слотов. Строго говоря, все параметры, за исключением E1 internal transmit clock, должны быть согласованы с двух сторон.
+          <section>
+            <title>Конфигурация framed mode</title>
+            <para>
+							Для работы интерфейса в framed mode необходимо активировать параметр E1 framed mode и ввести карту таймслотов, например &quot;2-9,17-27 (именно в таком формате, без пробела между диапазонами)&quot;. На другом конце соединения должна быть установлена такая же карта слотов. Строго говоря, все параметры, за исключением E1 internal transmit clock, должны быть согласованы с двух сторон.
 						</para>
-						<para>
+            <para>
 							При такой конфигурации карты таймслотов, максимальная пропускная способность канала составит 17 * 64 Кбит/с = 1088 Кбит/с, что подтверждается тестами.
 						</para>
-					</section>
-					<section>
-						<title>Конфигурация unframed mode</title>
-						<para>
+          </section>
+          <section>
+            <title>Конфигурация unframed mode</title>
+            <para>
 							Для настройки интерфейса на режим работы unframed mode, параметр E1 framed mode должен быть неактивным. После внесения изменений (деактивация параметра) и сохранения, будут доступны следующие параметры настройки:
 							<figure>
-								<title>Unframed mode</title>
-								<graphic fileref="img/hdlc-unfamed.png"/>
-							</figure>
+                <title>Unframed mode</title>
+                <graphic fileref="img/hdlc-unfamed.png" />
+              </figure>
 							В этом режиме параметров конфигурации меньше, чем во framed mode и все они сводятся к настройке линии связи.
 						</para>
-					</section>
-				</section>
-			</section>
-			<section>
-				<title>Настройка сетевых параметров</title>
-				<para>
+          </section>
+        </section>
+      </section>
+      <section>
+        <title>Настройка сетевых параметров</title>
+        <para>
 					В данной версии ПО, установленного на маршрутизаторе, нет возможности задавать сетевые параметры через веб-интерфейс настройки, поэтому эту часть конфигурации требуется выполнить вручную. В первую очередь, необходимо убедиться, что на странице настройки сетевого интерфейса Network/Interfaces/hdlc*/General параметры Enabled и Auto неактивны:
 					<figure>
-						<title>Настройка интерфейса</title>
-						<graphic fileref="img/hdlc-general.png"/>
-					</figure>
-				</para>
-				<para>
+            <title>Настройка интерфейса</title>
+            <graphic fileref="img/hdlc-general.png" />
+          </figure>
+        </para>
+        <para>
 					После внесения необходимых изменений, необходимо активировать консоль маршрутизатора: либо подключившись к нему по последовательному порту, либо по сети по протоколу SSH.
 				</para>
-				<simpara>
+        <simpara>
 					Соединение Е1 имеет тип точка-точка. Для активация соединения необходимо выполнить следующую команду:
 				</simpara>
-				<para>
-					# <command>ifconfig</command> <replaceable>hdlc0</replaceable> <replaceable>192.168.200.1</replaceable> pointopoint <replaceable>192.168.200.2</replaceable>
-					<itemizedlist>
-						<listitem>hdlc0 - сетевой интерфейс</listitem>
-						<listitem>192.168.200.1 - IP-адрес соединения на стороне маршрутизатора</listitem>
-					</itemizedlist>
-				</para>
-				<simpara>
+        <para>
+					# <command>ifconfig</command>
+          <replaceable>hdlc0</replaceable>
+          <replaceable>192.168.200.1</replaceable> pointopoint <replaceable>192.168.200.2</replaceable>
+          <itemizedlist>
+            <listitem>hdlc0 - сетевой интерфейс</listitem>
+            <listitem>192.168.200.1 - IP-адрес соединения на стороне маршрутизатора</listitem>
+          </itemizedlist>
+        </para>
+        <simpara>
 					Если соединение не установилось, то надо деактивировать/активировать сетевой интерфейс:
 				</simpara>
-				<simpara>
-					# <command>ifconfig</command> <replaceable>hdlc0</replaceable> down
+        <simpara>
+					# <command>ifconfig</command>
+          <replaceable>hdlc0</replaceable> down
 				</simpara>
-				<simpara>
-					# <command>ifconfig</command> <replaceable>hdlc0</replaceable> up
+        <simpara>
+					# <command>ifconfig</command>
+          <replaceable>hdlc0</replaceable> up
 				</simpara>
-				<simpara>
+        <simpara>
 					Для активация соединения после загрузки маршрутизатора, необходимо выполнить следующие команды:
 				</simpara>
-				<simpara>
-					# <command>echo</command> <replaceable>"ifconfig hdlc0 192.168.200.1 pointopoint 192.168.200.2"</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
-				</simpara>
-				<simpara>
-					# <command>echo</command> <replaceable>"ifconfig hdlc0 down"</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
-				</simpara>
-				<simpara>
-					# <command>echo</command> <replaceable>"ifconfig hdlc0 up"</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
-				</simpara>
-				<simpara>
+        <simpara>
+					# <command>echo</command>
+          <replaceable>&quot;ifconfig hdlc0 192.168.200.1 pointopoint 192.168.200.2&quot;</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
+        </simpara>
+        <simpara>
+					# <command>echo</command>
+          <replaceable>&quot;ifconfig hdlc0 down&quot;</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
+        </simpara>
+        <simpara>
+					# <command>echo</command>
+          <replaceable>&quot;ifconfig hdlc0 up&quot;</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
+        </simpara>
+        <simpara>
 					Созданный файл необходимо сделать исполняемым:
 				</simpara>
-				<simpara>
-					# <command>chmod</command> <option>+x</option> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
-				</simpara>
-			</section>
-		</section>
-		<section>
-			<title>Настройка работы SHDSL модемов в режиме Bonding</title>
-			<simpara>
+        <simpara>
+					# <command>chmod</command>
+          <option>+x</option>
+          <replaceable>/etc/init.d/S90my_hdlc</replaceable>
+        </simpara>
+      </section>
+    </section>
+    <section>
+      <title>Настройка работы SHDSL модемов в режиме Bonding</title>
+      <simpara>
 				Режим Bonding позволяет объединять несколько физических соединений в одно логическое. К примеру, два SHDSL канала можно объединить в один, увеличив пропускную способность соединения.
 			</simpara>
-			<para>
+      <para>
 				Для настройки режима Bonding в первую очередь необходимо настроить физическое соединение. Для этого на странице System/SHDSL/dsl* надо выставить параметры, пригодные для вашей линии связи:
 				<figure>
-					<title>Настройка параметров линии связи</title>
-					<graphic fileref="img/shdsl-phys.png"/>
-				</figure>
-				<itemizedlist>
-					<listitem>Rate - пропускная способность линии связи, Кбит/c. Зависит от качества линии связи, если на выбранной вами скорости соединение не устанавливается, уменьшите этот параметр. Значения на обоих концах соединения должны совпадать</listitem>
-					<listitem>Mode - режим работы - ведущий/ведомый</listitem>
-					<listitem>Coding - метод кодирования</listitem>
-					<listitem>CRC - метод контроля ошибок</listitem>
-				</itemizedlist>
-			</para>
-			<para>
+          <title>Настройка параметров линии связи</title>
+          <graphic fileref="img/shdsl-phys.png" />
+        </figure>
+        <itemizedlist>
+          <listitem>Rate - пропускная способность линии связи, Кбит/c. Зависит от качества линии связи, если на выбранной вами скорости соединение не устанавливается, уменьшите этот параметр. Значения на обоих концах соединения должны совпадать</listitem>
+          <listitem>Mode - режим работы - ведущий/ведомый</listitem>
+          <listitem>Coding - метод кодирования</listitem>
+          <listitem>CRC - метод контроля ошибок</listitem>
+        </itemizedlist>
+      </para>
+      <para>
 				После указания необходимых параметров, внесенные изменения необходимо сохранить. После настройки параметров линии связи для обоих интерфейсов, dsl0 и dsl1, можно перейти к настройке виртуального интерфейса, который будет для передачи данных использовать объединение физических линий.
 			</para>
-			<para>
+      <para>
 				Перед конфигурацией виртуального интерфейса следует убедиться, что интерфейсы dsl0 и dsl1 активны. Выполняется это на странице Network/Interfaces/dsl*/General, парметр Enabled должен быть активным, Auto отключенным, а Method равен None:
 				<figure>
-					<title>Настройка интерфейса</title>
-					<graphic fileref="img/shdsl-dsl.png"/>
-				</figure>
-			</para>
-			<para>
+          <title>Настройка интерфейса</title>
+          <graphic fileref="img/shdsl-dsl.png" />
+        </figure>
+      </para>
+      <para>
 				Виртуальный интерфейс создается на странице Network/Interfaces, на которой в разделе Add dynamic interface необходимо выбрать в качестве протокола Bonding:
 				<figure>
-					<title>Создание виртуального интерфейса</title>
-					<graphic fileref="img/shdsl-create_bonding.png"/>
-				</figure>
-			</para>
-			<para>
+          <title>Создание виртуального интерфейса</title>
+          <graphic fileref="img/shdsl-create_bonding.png" />
+        </figure>
+      </para>
+      <para>
 				После создания интерфейса нажатием кнопки Add, следует щелкнуть кнопкой мыши на меню Network/Interfaces, чтобы созданный интерфейс отобразился в меню. Для его настройки необходимо перейти на страницу Network/Interfaces/bond0, на которой следует выбрать вкладку General и выставить следующие настройки:
 				<figure>
-					<title>Активация виртуального интерфейса</title>
-					<graphic fileref="img/shdsl-bond-general.png"/>
-				</figure>
-			</para>
-			<para>
+          <title>Активация виртуального интерфейса</title>
+          <graphic fileref="img/shdsl-bond-general.png" />
+        </figure>
+      </para>
+      <para>
 				Эти настройки активирует интерфейс и настраивают его автоматическую активацию после загрузки системы, IP-адрес для него задается статически на вкладке Method:
 				<figure>
-					<title>Присвоение IP-адреса</title>
-					<graphic fileref="img/shdsl-bond-method.png"/>
-				</figure>
-			</para>
-			<note>
-				<simpara>Если требуется указать маршрут по-умолчанию, адрес маршрутизатора следует ввести в поле Gateway.</simpara>
-			</note>
-			<para>
+          <title>Присвоение IP-адреса</title>
+          <graphic fileref="img/shdsl-bond-method.png" />
+        </figure>
+      </para>
+      <note>
+        <simpara>Если требуется указать маршрут по-умолчанию, адрес маршрутизатора следует ввести в поле Gateway.</simpara>
+      </note>
+      <para>
 				На вкладке Specific указывается, какие физические интерфейсы будут использоваться этим виртуальным интерфейсом для передачи данных. При настройке SHDSL Bonding, следует ввести dsl0 и dsl1:
 				<figure>
-					<title>Привязка к физическим интерфейсам</title>
-					<graphic fileref="img/shdsl-bond-specific.png"/>
-				</figure>
-			</para>
-			<simpara>
+          <title>Привязка к физическим интерфейсам</title>
+          <graphic fileref="img/shdsl-bond-specific.png" />
+        </figure>
+      </para>
+      <simpara>
 				Аналогичные настройки необходимо произвести и на втором маршрутизаторе. После соединения SHDSL модемов маршрутизатора по линиям связи, будут установлены два физических соединения, которые будут объединены в одно логическое с увеличенной пропускной способностью.
 			</simpara>
-			<note>
-				<simpara>При разрыве одного из физических соединений, трафик будет передаваться по оставшемуся соединению.</simpara>
-			</note>
-		</section>
-		<section>
-			<title>Настройка моста</title>
-			<para>
+      <note>
+        <simpara>При разрыве одного из физических соединений, трафик будет передаваться по оставшемуся соединению.</simpara>
+      </note>
+    </section>
+    <section>
+      <title>Настройка моста</title>
+      <para>
 				Работа маршрутизатора в режиме моста (bridging) позволяет прозрачно передавать трафик между интерфейсами, имитируя работу коммутатора. Для этого создается специальный сетевой интерфейс с именем <emphasis>br</emphasis>, с которым ассоциируются сетевые интерфейсы межуд которыми будет передаваться трафик.
 			</para>
-			<figure>
-				<title>Пример моста</title>
-				<graphic fileref="img/bridge.png" width="6in"/>
-			</figure>
-			<para>
+      <figure>
+        <title>Пример моста</title>
+        <graphic width="6in" fileref="img/bridge.png" />
+      </figure>
+      <para>
 				В приведенном выше рисунке мост состоит из двух интерфейсов - Ethernet-интерфейса eth0 и SHDSL-интерфейса dsl0 - и объединяет в одну сеть компьютеры PC1 и PC2
 			</para>
-			<para>
+      <para>
 				На следующем рисунке изображена сеть, аналогичная предыдущий, но с использованием технологии объединения каналов (bonding), позволяющей увеличить производительность сети. В этом случае мост состоит из Ethernet-интерфейса eth0 и объединенных SHDSL-интерфейсов dsl0 и dsl1 в один интерфейс bond0:
 			</para>
-			<figure>
-				<title>Пример моста с объединением интерфейсов</title>
-				<graphic fileref="img/bridge+bonding.png" width="6in"/>
-			</figure>
-			<para>
+      <figure>
+        <title>Пример моста с объединением интерфейсов</title>
+        <graphic width="6in" fileref="img/bridge+bonding.png" />
+      </figure>
+      <para>
 				Создание интерфейса происходит на странице Network/Interfaces, на которой в меню Add dynamic interface надо выбрать в качестве протокола Bridge:
 			</para>
-			<figure>
-				<title>Создание интерфейса</title>
-				<graphic fileref="img/bridge-add.png" width="6in"/>
-			</figure>
-			<para>
+      <figure>
+        <title>Создание интерфейса</title>
+        <graphic width="6in" fileref="img/bridge-add.png" />
+      </figure>
+      <para>
 				После добавления интерфейса надо снова перейти по ссылке Network/Interfaces, чтобы добавленный интерфейс отобразился в меню:
 			</para>
-			<figure>
-				<title>Добавленный интерфейс br0</title>
-				<graphic fileref="img/bridge-list_ifaces.png"/>
-			</figure>
-			<para>
+      <figure>
+        <title>Добавленный интерфейс br0</title>
+        <graphic fileref="img/bridge-list_ifaces.png" />
+      </figure>
+      <para>
 				Новому интерфейсу надо поставить метод установки IP-адреса статическим. Для этого перейдем в настройки интерфейса (по ссылке в меню Network/Interfaces/br0) и выберем вкладку General, на которой установим необходимое значение:
 			</para>
-			<figure>
-				<title>Установка метода присвоения IP-адреса</title>
-				<graphic fileref="img/bridge-general1.png" width="6in"/>
-			</figure>
-			<note>
-				<simpara>
+      <figure>
+        <title>Установка метода присвоения IP-адреса</title>
+        <graphic width="6in" fileref="img/bridge-general1.png" />
+      </figure>
+      <note>
+        <simpara>
 					Установка IP-адреса нужна только для того, чтобы иметь возможность управлять маршрутизатором, если управление им возможно только через интерфейсы, включенные в мост. Вызвано это тем, что после добавления сетевого интерфейса в мост, доступ к нему становится невозможным по присвоенному ему ранее IP-адресу. Проще говоря, добавленный в мост интерфейс становится без IP-адреса.
 				</simpara>
-			</note>
-			<para>
+      </note>
+      <para>
 				Установим IP-адрес и сетевую маску на вкладке Method:
 			</para>
-			<figure>
-				<title>Установка IP-адреса</title>
-				<graphic fileref="img/bridge-method.png" width="6in"/>
-			</figure>
-			<para>
+      <figure>
+        <title>Установка IP-адреса</title>
+        <graphic width="6in" fileref="img/bridge-method.png" />
+      </figure>
+      <para>
 				Следующим шагом настройки является определение списка интерфейсов, входящих в мост. Для этого перейдем на вкладку Specific, где в поле Interfaces укажем имена сетевых интерфейсов, из которых будет состоять мост:
 			</para>
-			<figure>
-				<title>Определение интерфейсов</title>
-				<graphic fileref="img/bridge-specific.png" width="6in"/>
-			</figure>
-			<para>
+      <figure>
+        <title>Определение интерфейсов</title>
+        <graphic width="6in" fileref="img/bridge-specific.png" />
+      </figure>
+      <para>
 				В завершении настройки, активируем интерфейс на вкладке General, поставив флажки напротив значений Enable и Auto:
 			</para>
-			<figure>
-				<title>Активация моста</title>
-				<graphic fileref="img/bridge-general2.png" width="6in"/>
-			</figure>
-			<para>
-				Эту же процедуру повторяем на втором маршрутизаторе, и через пару минут, в течении которых "мост" распознает топрологию сети и проведет небольшой этап самообучения, начнется передача пакетов между интерфейсами.
+      <figure>
+        <title>Активация моста</title>
+        <graphic width="6in" fileref="img/bridge-general2.png" />
+      </figure>
+      <para>
+				Эту же процедуру повторяем на втором маршрутизаторе, и через пару минут, в течении которых &quot;мост&quot; распознает топрологию сети и проведет небольшой этап самообучения, начнется передача пакетов между интерфейсами.
 			</para>
-		</section>
-	</chapter>
-	<chapter id="dhcp_server">
-		<title>Настройка сетевых служб</title>
-		<section>
-			<title>DHCP-сервер</title>
-			<para>
+    </section>
+  </chapter>
+  <chapter id="dhcp_server" >
+    <title>Настройка сетевых служб</title>
+    <section>
+      <title>DHCP-сервер</title>
+      <para>
 				Настройка DHCP-сервера выполняется независимо для каждого сетевого интерфейса и производится на вкладке Network/настраиваемый сетевой интерфейс/DHCP. На этой странице представлены конфигурационные параметры, управляющие работой DHCP-сервера, а так же параметры сетевой конфигурации, которые передаются клиенту.
 			</para>
-			<para>
+      <para>
 				Общий вид страницы конфигурации представлен на рисунке:
 				<figure>
-					<title>Настройка DHCP-сервера</title>
-					<graphic fileref="img/eth-dhcp.png"/>
-				</figure>
-			</para>
-			<para>
+          <title>Настройка DHCP-сервера</title>
+          <graphic fileref="img/eth-dhcp.png" />
+        </figure>
+      </para>
+      <para>
 				Настройки DHCP-сервера:
 				<itemizedlist>
-					<listitem>За активацию DHCP-сервера отвечает опция Enable DHCP server</listitem>
-					<listitem>Значения Start IP и End IP указывают диапазон IP адресов, из которого будет выбираться адрес для клиента</listitem>
-				</itemizedlist>
-			</para>
-			<para>
+          <listitem>За активацию DHCP-сервера отвечает опция Enable DHCP server</listitem>
+          <listitem>Значения Start IP и End IP указывают диапазон IP адресов, из которого будет выбираться адрес для клиента</listitem>
+        </itemizedlist>
+      </para>
+      <para>
 				Сетевые настройки, которые будут переданы клиенту:
 				<itemizedlist>
-					<listitem>Netmask - задает сетевую маску</listitem>
-					<listitem>Default router - маршрут по-умолчанию</listitem>
-					<listitem>Default lease time - время, на которое выдается IP адрес. По истечению этого времени клиент должен снова обратиться к DHCP-серверу для подтверждения использования выданного ранее адреса или получения нового</listitem>
-					<listitem>DNS server - IP адрес DNS-сервера, к которому будет обращаться клиент для разрешения доменных имен</listitem>
-					<listitem>Domain - домен, который будет присвоен клиенту</listitem>
-					<listitem>NTP server - IP адрес сервера точного времени</listitem>
-					<listitem>WINS server - IP адрес WINS сервера</listitem>
-				</itemizedlist>
-			</para>
-			<note>
-				<simpara>После сохранения настроек, DHCP сервер будет запущен либо перезапущен автоматически.</simpara>
-			</note>
-			<para>
+          <listitem>Netmask - задает сетевую маску</listitem>
+          <listitem>Default router - маршрут по-умолчанию</listitem>
+          <listitem>Default lease time - время, на которое выдается IP адрес. По истечению этого времени клиент должен снова обратиться к DHCP-серверу для подтверждения использования выданного ранее адреса или получения нового</listitem>
+          <listitem>DNS server - IP адрес DNS-сервера, к которому будет обращаться клиент для разрешения доменных имен</listitem>
+          <listitem>Domain - домен, который будет присвоен клиенту</listitem>
+          <listitem>NTP server - IP адрес сервера точного времени</listitem>
+          <listitem>WINS server - IP адрес WINS сервера</listitem>
+        </itemizedlist>
+      </para>
+      <note>
+        <simpara>После сохранения настроек, DHCP сервер будет запущен либо перезапущен автоматически.</simpara>
+      </note>
+      <para>
 				Существует возможность присваивать определенным машинам статические IP адреса. Идентификация машин производится по значению MAC адреса сетевой карты. Форма для привязки IP адреса к MAC адресу находится внизу страницы конфигурации и представлена на рисунке:
 				<figure>
-					<title>Список статических IP-адресов</title>
-					<graphic fileref="img/eth-dhcp-add.png"/>
-				</figure>
-			</para>
-			<para>
+          <title>Список статических IP-адресов</title>
+          <graphic fileref="img/eth-dhcp-add.png" />
+        </figure>
+      </para>
+      <para>
 				Изначально форма пуста. Добавление значений производится с помощью формы, вызываемой по нажатию на кнопку 
 				<inlinemediaobject>
-					<imageobject>
-						<imagedata fileref="img/eth-dhcp-button-plus.png"/>
-					</imageobject>
-				</inlinemediaobject>
+          <imageobject>
+            <imagedata fileref="img/eth-dhcp-button-plus.png" />
+          </imageobject>
+        </inlinemediaobject>
 				 справа от заголовка таблицы:
 				 <figure>
-				 	<title>Форма привязки IP к MAC</title>
-					<graphic fileref="img/eth-dhcp-add-form.png"/>
-				 </figure>
-				 <itemizedlist>
-					 <listitem>Host name - задает имя машины, для которой выполняется привязка адреса. Это значение носит справочный характер и используется только в правиле, и может не соответствовать фактическому имени машины</listitem>
-					 <listitem>IP Address - IP адрес, который будет присвоен данной машине</listitem>
-					 <listitem>MAC Address - MAC адрес сетевой карты машины. Именно при совпадении с этим адресом происходит присвоение указанного IP адреса</listitem>
-				 </itemizedlist>
-			</para>
-			<para>
+          <title>Форма привязки IP к MAC</title>
+          <graphic fileref="img/eth-dhcp-add-form.png" />
+        </figure>
+        <itemizedlist>
+          <listitem>Host name - задает имя машины, для которой выполняется привязка адреса. Это значение носит справочный характер и используется только в правиле, и может не соответствовать фактическому имени машины</listitem>
+          <listitem>IP Address - IP адрес, который будет присвоен данной машине</listitem>
+          <listitem>MAC Address - MAC адрес сетевой карты машины. Именно при совпадении с этим адресом происходит присвоение указанного IP адреса</listitem>
+        </itemizedlist>
+      </para>
+      <para>
 				После заполнения полей, необходимо сохранить внесенные изменения. После этого, в список статических IP адресов будет добавлен новый адрес, а на экране появится новая форма для добавления следующего IP адреса. После добавления всех статических адресов, форму можно закрыть.
 				<figure>
-					<title>Обновленный список IP-адресов</title>
-					<graphic fileref="img/eth-dhcp-add-list.png"/>
-				</figure>
-			</para>
-			<para>
+          <title>Обновленный список IP-адресов</title>
+          <graphic fileref="img/eth-dhcp-add-list.png" />
+        </figure>
+      </para>
+      <para>
 				Существующие в таблице записи можно изменить с помощью кнопки 
 				<inlinemediaobject>
-					<imageobject>
-						<imagedata fileref="img/eth-dhcp-button-e.png"/>
-					</imageobject>
-				</inlinemediaobject>
+          <imageobject>
+            <imagedata fileref="img/eth-dhcp-button-e.png" />
+          </imageobject>
+        </inlinemediaobject>
 				, находящейся справа от правила. Удаление правила осуществляется кнопкой 
 				<inlinemediaobject>
-					<imageobject>
-						<imagedata fileref="img/eth-dhcp-button-x.png"/>
-					</imageobject>
-				</inlinemediaobject>
+          <imageobject>
+            <imagedata fileref="img/eth-dhcp-button-x.png" />
+          </imageobject>
+        </inlinemediaobject>
 				.
 			</para>
-		</section>
-	</chapter>
-	<chapter>
-		<title>Управление трафиком</title>
-		<section>
-			<title>Добавление сетевых маршрутов</title>
-			<para>
+    </section>
+  </chapter>
+  <chapter>
+    <title>Управление трафиком</title>
+    <section>
+      <title>Добавление сетевых маршрутов</title>
+      <para>
 				Сетевые маршруты определяют, через какие маршрутизаторы доступна та или иная сеть. Добавление маршрутов осуществляется на странице настройки того сетевого интерфейса, через который он пролегает. К примеру, сеть имеет следующую структуру:
 			</para>
-			<figure>
-				<title>Пример: структура сети</title>
-				<graphic fileref="img/routes-network.png" width="6in"/>
-			</figure>
-			<para>
+      <figure>
+        <title>Пример: структура сети</title>
+        <graphic width="6in" fileref="img/routes-network.png" />
+      </figure>
+      <para>
 				Наш маршрутизатор имеет обозначение SG16R, и подключен к двум маршрутизаторам - GW1 и GW2 через интерфейсы eth0 (Ethernet) и dsl0 (SHDSL) соответственно. Видно, что добавление маршрутов для сетей будет иметь вид:
 				<itemizedlist>
-					<listitem>Network1: сеть 192.168.100./24 через маршрутизатор 192.168.1.2</listitem>
-					<listitem>Network2: сеть 192.168.3.0/24 через маршрутизатор 192.168.2.1</listitem>
-					<listitem>Network3: сеть 192.168.20.0/24 через маршрутизатор 192.168.2.1</listitem>
-				</itemizedlist>
-			</para>
-			<para>
+          <listitem>Network1: сеть 192.168.100./24 через маршрутизатор 192.168.1.2</listitem>
+          <listitem>Network2: сеть 192.168.3.0/24 через маршрутизатор 192.168.2.1</listitem>
+          <listitem>Network3: сеть 192.168.20.0/24 через маршрутизатор 192.168.2.1</listitem>
+        </itemizedlist>
+      </para>
+      <para>
 				Проанализировав маршруты, приходим к выводу, что маршрут на первую сеть относится к интерфейсу eth0, а на вторую и третью - к dsl0. Поэтому и добавление маршрутов через веб-интерфейс будет производится на страницах соответствующих интерфейсов.
 			</para>
-			<note>
-				<simpara>
+      <note>
+        <simpara>
 					Маршрут на сеть Network3 добавляется так же как и для сети Network 2 через маршрутизатор GW2 по причине того, что маршрутизатор SG16R не имеет прямого подключения к маршрутизатору GW3 и вынужден обращаться к нему через GW2.
 				</simpara>
-			</note>
-			<para>
+      </note>
+      <para>
 				Для добавления маршрута переходим на страницу конфигурации соответствующего маршруту интерфейса (к примеру, Network/Interfsces/eth0), где выбираем вкладку Routes:
 			</para>
-			<figure>
-				<title>Пустой список маршрутов</title>
-				<graphic fileref="img/routes-list_empty.png" width="6in"/>
-			</figure>
-			<para>
-				Изначально список пустой. Для добавления нового маршрута, нажимаем на кнопку со значком "+" и заполняем поля в новом окне:
+      <figure>
+        <title>Пустой список маршрутов</title>
+        <graphic width="6in" fileref="img/routes-list_empty.png" />
+      </figure>
+      <para>
+				Изначально список пустой. Для добавления нового маршрута, нажимаем на кнопку со значком &quot;+&quot; и заполняем поля в новом окне:
 			</para>
-			<figure>
-				<title>Добавление маршрута</title>
-				<graphic fileref="img/routes-add.png"/>
-			</figure>
-			<para>
+      <figure>
+        <title>Добавление маршрута</title>
+        <graphic fileref="img/routes-add.png" />
+      </figure>
+      <para>
 				После добавления маршрута, информация о нем появится в таблице маршрутов:
 			</para>
-			<figure>
-				<title>Список маршрутов</title>
-				<graphic fileref="img/routes-list_full2.png" width="6in"/>
-			</figure>
-			<para>
+      <figure>
+        <title>Список маршрутов</title>
+        <graphic width="6in" fileref="img/routes-list_full2.png" />
+      </figure>
+      <para>
 				Добавленные маршруты можно редактировать или удалять с помощью соответствующих кнопок. При удалении маршрута, потребуется подтвердить свои действия в диалоговом окне:
 			</para>
-			<figure>
-				<title>Удаление маршрута</title>
-				<graphic fileref="img/routes-confirm.png"/>
-			</figure>
-			<para>
-				Чтобы внесенные изменения вступили в силу, необходимо "перезагрузить" интерфейс, т.е. на вкладке General выключить/включить его. Если же через этот интерфейс осуществляется управление маршрутизатором, то необходимо перезагрузиться.
+      <figure>
+        <title>Удаление маршрута</title>
+        <graphic fileref="img/routes-confirm.png" />
+      </figure>
+      <para>
+				Чтобы внесенные изменения вступили в силу, необходимо &quot;перезагрузить&quot; интерфейс, т.е. на вкладке General выключить/включить его. Если же через этот интерфейс осуществляется управление маршрутизатором, то необходимо перезагрузиться.
 			</para>
-			<note>
-				<simpara>
+      <note>
+        <simpara>
 					Это будет исправлено в будущих версиях ПО для маршрутизатора: после добавления маршрута изменения будут вступать в силу автоматически без перезагрузки интерфейса.
 				</simpara>
-			</note>
-		</section>
-		<section id="fw">
-			<title>Управление фаерволом</title>
-			<para>
+      </note>
+    </section>
+    <section id="fw" >
+      <title>Управление фаерволом</title>
+      <para>
 				Фаервол используется, чтобы ограничить доступ к тем или иным сетевым ресурсам, основываясь на IP-адресах, портах отправителя и назначения, или используемого протокола.
 			</para>
-			<para>
+      <para>
 				Активация фаервола осуществляется на странице Netwokr/Firewall:
 			</para>
-			<figure>
-				<title>Активация фаервола</title>
-				<graphic fileref="img/fw-activate.png" width="6in"/>
-			</figure>
-			<para>
+      <figure>
+        <title>Активация фаервола</title>
+        <graphic width="6in" fileref="img/fw-activate.png" />
+      </figure>
+      <para>
 				Работа фаервола основана на прохождением пакетов цепочек правил, где каждое правило определяет одно из действий: прием или отброс пакета, основываясь на одном или нескольких критериях. Добавление правил осуществляется на странице Network/Firewall/Filter. Для каждой цепочки устанавливается действие по-умолчанию - политика, т.е. в случае, если пакет не попал ни под один критерий:
 			</para>
-			<figure>
-				<title>Политики цепочек</title>
-				<graphic fileref="img/fw-policy.png" width="6in"/>
-			</figure>
-			<note>
-				<simpara>
+      <figure>
+        <title>Политики цепочек</title>
+        <graphic width="6in" fileref="img/fw-policy.png" />
+      </figure>
+      <note>
+        <simpara>
 					При установлении политики в значение DROP для цепочки INPUT или OUTPUT, удостоверьтесь, что в этих цепочках есть разрешающие правила, иначе управление маршрутизатором может быть потеряно.
 				</simpara>
-			</note>
-			<para>
+      </note>
+      <para>
 				Для правила определены следующие действия:
 				<itemizedlist>
-					<listitem>ACCEPT - прием пакета</listitem>
-					<listitem>DROP - отброс пакета без отправки уведомления источнику пакета</listitem>
-					<listitem>REJECT - отброс пакета с отправкой уведомления</listitem>
-				</itemizedlist>
-			</para>
-			<para>
+          <listitem>ACCEPT - прием пакета</listitem>
+          <listitem>DROP - отброс пакета без отправки уведомления источнику пакета</listitem>
+          <listitem>REJECT - отброс пакета с отправкой уведомления</listitem>
+        </itemizedlist>
+      </para>
+      <para>
 				Цепочку FORWARD проходят пакеты, являющиеся транзитными, т.е. идущие с одного интерфейса маршрутизатора на другой:
 			</para>
-			<figure>
-				<title>Цепочка FORWARD</title>
-				<graphic fileref="img/fw-forward.png" width="6in"/>
-			</figure>
-			<para>
+      <figure>
+        <title>Цепочка FORWARD</title>
+        <graphic width="6in" fileref="img/fw-forward.png" />
+      </figure>
+      <para>
 				В цепочку INPUT попадают пакеты, предназначающиеся маршрутизатору:
 			</para>
-			<figure>
-				<title>Цепочка INPUT</title>
-				<graphic fileref="img/fw-input.png" width="6in"/>
-			</figure>
-			<para>
+      <figure>
+        <title>Цепочка INPUT</title>
+        <graphic width="6in" fileref="img/fw-input.png" />
+      </figure>
+      <para>
 				В цепочку OUTPUT попадают пакеты, источником которых является маршрутизатор:
 			</para>
-			<figure>
-				<title>Цепочка OUTPUT</title>
-				<graphic fileref="img/fw-output.png" width="6in"/>
-			</figure>
-			<para>
-				Добавление правил осуществляется нажатием кнопки "+", и заполнением формы, открывшейся в новом окне:
+      <figure>
+        <title>Цепочка OUTPUT</title>
+        <graphic width="6in" fileref="img/fw-output.png" />
+      </figure>
+      <para>
+				Добавление правил осуществляется нажатием кнопки &quot;+&quot;, и заполнением формы, открывшейся в новом окне:
 			</para>
-			<figure>
-				<title>Добавление правила</title>
-				<graphic fileref="img/fw-add.png"/>
-			</figure>
-			<para>
-				<itemizedlist>
-					<listitem>Short name - имя правила. Должно включать только английские буквы и цифры</listitem>
-					<listitem>Enable - активно ли правило</listitem>
-					<listitem>Source - IP-адрес или сеть источника пакета</listitem>
-					<listitem>Destination - IP-адрес или сеть получателя пакета</listitem>
-					<listitem>Protocol - протокол</listitem>
-					<listitem>Source port - порт источника пакета</listitem>
-					<listitem>Destination port - порт получателя пакета</listitem>
-					<listitem>Action - действие, выполняемое над пакетом</listitem>
-				</itemizedlist>
+      <figure>
+        <title>Добавление правила</title>
+        <graphic fileref="img/fw-add.png" />
+      </figure>
+      <para>
+        <itemizedlist>
+          <listitem>Short name - имя правила. Должно включать только английские буквы и цифры</listitem>
+          <listitem>Enable - активно ли правило</listitem>
+          <listitem>Source - IP-адрес или сеть источника пакета</listitem>
+          <listitem>Destination - IP-адрес или сеть получателя пакета</listitem>
+          <listitem>Protocol - протокол</listitem>
+          <listitem>Source port - порт источника пакета</listitem>
+          <listitem>Destination port - порт получателя пакета</listitem>
+          <listitem>Action - действие, выполняемое над пакетом</listitem>
+        </itemizedlist>
+      </para>
+      <para>
+				Удаление и редактирование правила осуществляется соответственно кнопками &quot;x&quot; и &quot;e&quot;.
 			</para>
-			<para>
-				Удаление и редактирование правила осуществляется соответственно кнопками "x" и "e".
-			</para>
-			<note>
-				<simpara>
+      <note>
+        <simpara>
 					Если внесенные вами изменения не вступают в силу, проверьте, что вы активировали фаервол на странице Network/Firewall.
 				</simpara>
-			</note>
-		</section>
-		<section id="nat">
-			<title>NAT</title>
-			<para>
+      </note>
+    </section>
+    <section id="nat" >
+      <title>NAT</title>
+      <para>
 				NAT - network address translation - позволяет заменять адреса источника или отправителя пакета.
 			</para>
-			<para>
+      <para>
 				НАТ является частью фаервола, поэтому схема управления остается той же, меняется только действие. Все сетевые пакеты, являются ли они транзитными или предназначаются маршрутизатору, попадают сперва в цепочку PREROUTING, где над ними может быть выполнено несколько действий. В этой цепочке не рекомендуется производить фильтрацию пакетов, для этого надо использовать цепочку FORWARD фаервола. Цепочка PREROUTING предназначена для выполнения DNAT - destination NAT, т.е. замена адреса получателя пакета.
 			</para>
-			<figure>
-				<title>Цепочка PREROUTING</title>
-				<graphic fileref="img/nat-prerouting.png" width="6in"/>
-			</figure>
-			<para>
+      <figure>
+        <title>Цепочка PREROUTING</title>
+        <graphic width="6in" fileref="img/nat-prerouting.png" />
+      </figure>
+      <para>
 				В цепочку POSTROUTING идут пакеты, выходящие с маршрутизатора, транзитные или сгенерированные на маршрутизаторе. В этой цепочке можно выполнить SNAT - source NAT - замену адреса отправителя, с указанием адреса, либо MASQUERADE - смысл тот же, только адрес замена будет выбираться автоматически (удобно при работе с динамическими интерфейсами и IP-адресами).
 			</para>
-			<figure>
-				<title>Цепочка POSTROUTING</title>
-				<graphic fileref="img/nat-postrouting.png" width="6in"/>
-			</figure>
-			<para>
+      <figure>
+        <title>Цепочка POSTROUTING</title>
+        <graphic width="6in" fileref="img/nat-postrouting.png" />
+      </figure>
+      <para>
 				Для этих цепочек так же выставляются политики, т.е. действия для пакетов, не попавшие ни под одно правило:
 			</para>
-			<figure>
-				<title>Политики цепочек</title>
-				<graphic fileref="img/nat-policy.png" width="6in"/>
-			</figure>
-			<note>
-				<simpara>
+      <figure>
+        <title>Политики цепочек</title>
+        <graphic width="6in" fileref="img/nat-policy.png" />
+      </figure>
+      <note>
+        <simpara>
 					Т.к. в цепочку PREROUTING попадают пакеты, предназначающиеся самому маршрутизатору, перед выставлением политики DROP убедитесь, что в цепочке есть правило, разрешающее прохождение пакетов для управления маршрутизатором.
 				</simpara>
-			</note>
-			<para>
-				Добавление правил осуществляется нажатием кнопки "+", расположенной рядом с заголовком соответствующей таблицы:
+      </note>
+      <para>
+				Добавление правил осуществляется нажатием кнопки &quot;+&quot;, расположенной рядом с заголовком соответствующей таблицы:
 			</para>
-			<figure>
-				<title>Добавление правила</title>
-				<graphic fileref="img/nat-add.png"/>
-			</figure>
-			<para>
+      <figure>
+        <title>Добавление правила</title>
+        <graphic fileref="img/nat-add.png" />
+      </figure>
+      <para>
 				Добавление правила и поля аналогично добавлению правила в фаерволе (Network/Firewall/Filter), добавляется только одно новое поле:
 				<itemizedlist>
-					<listitem>Nat to address - IP-адрес, которым будет заменяться адрес отправителя или получателя, в зависимости от действия. При выполнении действий, отличных от SNAT и DNAT, заполнение поля необязательно.</listitem>
-				</itemizedlist>
+          <listitem>Nat to address - IP-адрес, которым будет заменяться адрес отправителя или получателя, в зависимости от действия. При выполнении действий, отличных от SNAT и DNAT, заполнение поля необязательно.</listitem>
+        </itemizedlist>
+      </para>
+      <para>
+				Редактирование и удаление правил осуществляется с помощью кнопок &quot;e&quot; и &quot;x&quot;, расположенных рядом с правилом.
 			</para>
-			<para>
-				Редактирование и удаление правил осуществляется с помощью кнопок "e" и "x", расположенных рядом с правилом.
-			</para>
-			<para>
+      <para>
 				Для работы НАТа необходимо активировать фаервол на странице Network/Firewall.
 			</para>
-		</section>
-	</chapter>
+    </section>
+  </chapter>
 </book>
