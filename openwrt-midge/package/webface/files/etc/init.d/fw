@@ -38,7 +38,7 @@ chain(){
 		prepare_addr -d $src
 		_dst=$addr
 
-		if [ "$proto" = "TCP" -o "$proto" = "UDP" ]; then
+		if [ "$proto" = "tcp" -o "$proto" = "udp" ]; then
 			_sport="--sport $sport"
 			[ "$sport" = any ] && _sport=""
 			_dport="--dport $dport"
