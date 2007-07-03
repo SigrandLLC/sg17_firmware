@@ -20,7 +20,9 @@
 	fi
 	
 
-	render_form_header 
+	render_form_header
+	help_1="begin"
+	help_2="passwd"
 	render_table_title "Webface admin password" 2 
 	tip="Valid symbols A-Z, a-z, 0-9"
 	render_input_field hidden form form htpasswd
@@ -29,7 +31,9 @@
 	render_submit_field "Set"
 	render_form_tail
 
-	render_form_header 
+	render_form_header
+	help_1="begin"
+	help_2="passwd"
 	render_table_title "root system password" 2 
 	tip="Valid symbols A-Z, a-z, 0-9"
 	render_input_field hidden form form passwd

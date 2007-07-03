@@ -56,7 +56,7 @@ function openHelp(file, topic) {
 	var wint = (screen.height-h)/2;
 	if (winl < 0) winl = 0;
 	if (wint < 0) wint = 0;
-	popup=window.open("/help/" + file + ".html#" + topic, "help", "width="+w+",height="+h+",top="+wint+",left="+winl+",menubar=0,location=0,toolbar=0,dependent=1,status=0"); 
+	popup=window.open("/help/" + file + ".html#" + topic, "help", "width="+w+",height="+h+",top="+wint+",left="+winl+",menubar=0,location=0,toolbar=0,dependent=1,status=0,scrollbars=yes"); 
 	popup.focus();
 }
 

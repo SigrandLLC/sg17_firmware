@@ -9,6 +9,8 @@
 
 	eval `$kdb -qq list sys_*`
 	render_form_header time time_save
+	help_1="begin"
+	help_2="time"
 	render_table_title "Time settings" 2 
 
 	# sys_ntpclient_enabled

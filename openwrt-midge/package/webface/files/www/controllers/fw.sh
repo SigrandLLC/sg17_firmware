@@ -33,7 +33,7 @@
 		render_input_field hidden table table "$table"
 		render_input_field hidden chain chain "$chain"
 		
-		help_1="fw_filter"
+		help_2="fw_policy"
 		render_table_title "Default policy" 2 
 		# forward policy
 		autosubmit="y"
@@ -50,18 +50,21 @@
 
 		# fw forward list
 		render_form_header fw_filter_forward
+		help_2="fw_forward"
 		render_table_title "FORWARD" 2 
 		render_iframe_list "fw_chain" "table=filter&chain=forward"
 		render_form_tail
 
 		# fw input list
 		render_form_header fw_filter_input
+		help_2="fw_input"
 		render_table_title "INPUT" 2 
 		render_iframe_list "fw_chain" "table=filter&chain=input"
 		render_form_tail
 
 		# fw output list
 		render_form_header fw_filter_output
+		help_2="fw_output"
 		render_table_title "OUTPUT" 2 
 		render_iframe_list "fw_chain" "table=filter&chain=output"
 		render_form_tail
@@ -76,7 +79,7 @@
 		render_input_field hidden table table "$table"
 		render_input_field hidden chain chain "$chain"
 		
-		help_1="fw_nat"
+		help_1="nat"
 		render_table_title "Default policy"
 		# prerouting policy
 		autosubmit="y"
@@ -90,12 +93,16 @@
 
 		# fw prerouting list
 		render_form_header fw_nat_prerouting
+		help_1="nat"
+		help_2="nat_prerouting"
 		render_table_title "PREROUTING" 2 
 		render_iframe_list "fw_chain" "table=nat&chain=prerouting"
 		render_form_tail
 		
 		# fw postrouting list
 		render_form_header fw_nat_postrouting
+		help_1="nat"
+		help_2="nat_postrouting"
 		render_table_title "POSTROUTING" 2 
 		render_iframe_list "fw_chain" "table=nat&chain=postrouting"
 		render_form_tail

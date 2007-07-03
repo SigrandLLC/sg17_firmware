@@ -9,6 +9,8 @@
 	
 	eval `$kdb -qq list sys_hostname`
 	render_form_header general
+	help_1="begin"
+	help_2="hostname"
 	render_table_title "General settings" 2
 
 	# sys_hostname

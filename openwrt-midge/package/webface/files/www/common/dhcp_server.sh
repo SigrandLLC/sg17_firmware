@@ -14,6 +14,8 @@ set_dhcp_server_vars() {
 
 render_dhcp_server_common() {
 
+	help_1="dhcp_server"
+	help_2=""
 	render_table_title "DHCP Server on $iface"
 	# sys_iface_${iface}_dhcp_enabled
 	tip=""

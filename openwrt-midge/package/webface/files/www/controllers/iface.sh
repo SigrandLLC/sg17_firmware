@@ -426,7 +426,9 @@
 
 	'routes')
 		if [ $method != dynamic ]; then
+
 			render_form_header routes
+
 			render_list_line(){
 				local lineno=$1
 				eval "val=\"\${sys_iface_${iface}_route_${lineno}}\""
