@@ -2,7 +2,7 @@
 
 INSTALL_DIR=/home/zig/release
 
-mkdir -p -v download
+mkdir -p -v ./download
 rm -rf ./dl
 ln -s ./download dl
 
