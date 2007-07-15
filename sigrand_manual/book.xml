@@ -1178,6 +1178,73 @@
 			<listitem>IP address - IP-адрес, выдаваемый клиенту. "Звездочка" - любой.</listitem>
 		</itemizedlist>
 	</section>
+	<section id="dns_server">
+		<title>Сервер DNS</title>
+		<para>Сервер ДНС отвечает за преобразование доменного имени в IP-адрес. Его настройка осуществляется на странице Services/DNS server:</para>
+		<figure>
+			<title>Настройка сервера ДНС</title>
+			<graphic fileref="img/dns_server.png" width="6in" />
+		</figure>
+		<para>
+			Для активации сервера ДНС необходимо поставить флажок напротив <emphasis>Enable DNS server</emphasis>. Добавление новой зоны осуществляется в форме Zones, в которой отображаются зоны, обслуживаемые сервером ДНС:
+		</para>
+		<figure id="dns_zones">
+			<title>Зоны сервера ДНС</title>
+			<graphic fileref="img/dns_server-zones.png" width="6in" />
+		</figure>
+		<para id="dns_zone_add">
+			При добавлении новой зоны, необходимо ввести следующие параметры:
+			<itemizedlist>
+				<listitem>Zone id - идентификатор зоны, можно ввести имя зоны (этим идентификатором называется файл, в котором хранится зона)</listitem>
+				<listitem>Zone - имя зоны (доменное имя, для которого создается зона)</listitem>
+				<listitem>Enable - активна ли зона</listitem>
+				<listitem>Name server - авторитетный сервер ДНС для домена</listitem>
+				<listitem>Admin - адрес электронной почты администратора зоны</listitem>
+				<listitem>Refresh - время, через которые ведомые сервера ДНС (slave) будут обновлять зону</listitem>
+				<listitem>TTL - время, которое запись зоны может храниться в кэше</listitem>
+				<listitem>retry - время, через которое ведомый сервер в случае неудачи повторит попытку обновить зону</listitem>
+				<listitem>expire - время, через которое информация о зоне перестает считаться действительной</listitem>
+			</itemizedlist>
+		</para>
+		<para>
+			После добавления соответствующая запись появится в таблице зон. Пример добавления показан ниже:
+		</para>
+		<figure>
+			<title>Добавление зоны</title>
+			<graphic fileref="img/dns_server-add-zone.png" />
+		</figure>
+		<para>
+			Переход на добавление записей в зону осуществляется щелчком мыши по идентификатору или имени зоны. При добавлении новой записи нужно ввести следующие параметры:
+			<itemizedlist>
+				<listitem>Domain or host - имя (или IP-адрес, если зона реверсивная)</listitem>
+				<listitem>
+					Type of record - тип записи. Возможны следующие значения:
+					<itemizedlist>
+						<listitem>A - указывает IP-адрес, соответствующий имени</listitem>
+						<listitem>CNAME - синоним другого имени. В этом случае в качестве DATA указывается соответствующее имя</listitem>
+						<listitem>MX - имя почтового сервера для данного домена</listitem>
+						<listitem>NS - указывает авторитетный сервер ДНС для зоны (по сути - делегирование зоны)</listitem>
+						<listitem>PTR - указывает имя для данного IP-адреса. Используется в реверсивной зоне)</listitem>
+						<listitem>TXT - дополнительная текстовая информация</listitem>
+					</itemizedlist>
+				</listitem>
+				<listitem>Priority - приоритет текущей записи MX</listitem>
+				<listitem>Data - данные записи - доменное имя или IP-адрес, либо какая-то текстовая информация</listitem>
+			</itemizedlist>
+		</para>
+		<para>Пример добавления новой записи показа ниже:</para>
+		<figure>
+			<title>Добавление записи в зону</title>
+			<graphic fileref="img/dns_server-record-add.png" />
+		</figure>
+		<para>
+			Пример зоны после добавления записей:
+		</para>
+		<figure>
+			<title>Записи зоны ДНС</title>
+			<graphic fileref="img/dns_server-records.png" width="6in" />
+		</figure>
+	</section>
   </chapter>
   <chapter id="routes">
     <title>Управление трафиком</title>
