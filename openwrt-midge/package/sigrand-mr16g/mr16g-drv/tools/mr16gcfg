@@ -14,10 +14,10 @@ print_stat()
     echo "Common E1 settings:"
     sethdlc $iface
     echo "Other E1 settings:"
+    echo "    hdb3:      "`cat hdb3`
     fr=`cat framed`
     echo "    mode:      "$fr
     if [ "$fr" != "unframed" ]; then
-        echo "    hdb3:      "`cat hdb3`
 	echo "    crc4:      "`cat crc4`
         echo "    cas:       "`cat cas`       			
 	echo "    ts16:      "`cat map_ts16`

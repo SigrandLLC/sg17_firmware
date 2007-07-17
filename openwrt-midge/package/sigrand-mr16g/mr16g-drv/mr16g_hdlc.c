@@ -50,8 +50,8 @@
 
 #include "ds2155_regs.h"
 #include "sg_hdlc_ctrl.h"
-//#define DEBUG_ON
-#define DEFAULT_LEV 5
+#define DEBUG_ON
+#define DEFAULT_LEV 1
 #include "sg_debug.h"
 
 MODULE_DESCRIPTION( "Sigrand E1 PCI adapter driver Version 1.0\n" );
@@ -78,7 +78,7 @@ static int  mr16g_open( struct net_device * );
 static int  mr16g_close( struct net_device * );
 static struct net_device_stats  *mr16g_get_stats( struct net_device * );
 static irqreturn_t  mr16g_int( int, void *, struct pt_regs * );
-static void  mr16g_setup_carrier(struct net_device *);
+static void mr16g_setup_carrier(struct net_device *ndev,u8 *mask);
 static int mr16g_ioctl(struct net_device *, struct ifreq *, int );
 static int mr16g_attach(struct net_device *, unsigned short ,unsigned short );
 static u32 mr16g_get_rate(struct net_device *ndev);
@@ -97,8 +97,10 @@ static void recv_alloc_buffs( struct net_device * );
 static void recv_free_buffs( struct net_device * );
 
 // HDLC controller functions
-static void mr16g_hdlc_down(struct net_local *nl);
-static void mr16g_hdlc_up(struct net_local *nl);
+inline void mr16g_hdlc_down(struct net_local *nl);
+inline void mr16g_hdlc_up( struct net_local *nl);
+inline void mr16g_hdlc_open( struct net_local *nl);
+inline void mr16g_hdlc_close( struct net_local *nl);
 
 // DS2155 control/setup 
 inline void ds2155_setreg(struct net_local *nl,u8 regname,u8 regval);
@@ -106,7 +108,7 @@ inline u8 ds2155_getreg(struct net_local *nl,u8 regname);
 static int mr16g_E1_int_setup(struct net_local *nl);
 static int mr16g_E1_setup(struct net_local *nl);
 static u8 ds2155_carrier(struct net_local *nl);
-static int ds2155_interrupt( struct net_device *ndev );
+static int ds2155_interrupt( struct net_device *ndev, u8 *mask );
 
 
 // Sysfs related functions
@@ -328,6 +330,7 @@ mr16g_probe( struct net_device  *ndev )
 	int err=0;
 	hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct net_local *nl=(struct net_local*)hdlc->priv;
+	u8 mask = EXT;
 	
 	PDEBUG(2,"start");
 	// Set net device fields
@@ -373,7 +376,11 @@ mr16g_probe( struct net_device  *ndev )
 	
 	//initial setup	
 	mr16g_defcfg(nl);
-
+	mr16g_hdlc_up(nl);
+	mdelay(1);
+	mr16g_setup_carrier(ndev,&mask);
+	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+	
         return  0;
 err_exit:
         iounmap( nl->mem_base );
@@ -389,19 +396,22 @@ mr16g_open( struct net_device  *ndev )
 	hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct net_local *nl=(struct net_local*)hdlc->priv;
         int err;
+	u8 *mask = EXT;
 
-	PDEBUG(2,"start");
-	netif_carrier_off(ndev);
         if( (err=hdlc_open(ndev)) )
 		return err;
 	PDEBUG(5,"netif_carrier_ok=%d\n\tnetif_queue_stopped=%d",(int)netif_carrier_ok(ndev),(int)netif_queue_stopped(ndev));
 	mr16g_txrx_up(ndev);		
-        mr16g_hdlc_up(nl);	
+        mr16g_hdlc_open(nl);	
 	mr16g_E1_setup(nl);
-	mdelay(10);
-	mr16g_setup_carrier(ndev);
+	// tune linkindication
+	udelay(50);
+	PDEBUG(0,"TEST carrier");
+	mr16g_setup_carrier(ndev,&mask);
+	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+	PDEBUG(0,"TEST carrier: msk = %02x",mask);
+	// start network if queuing
 	netif_start_queue(ndev);	
-	PDEBUG(2,"end");
         return 0;
 }
 
@@ -412,11 +422,11 @@ mr16g_close( struct net_device  *ndev )
 	struct net_local *nl=(struct net_local*)hdlc->priv;
 
         PDEBUG(2,"start");
-	netif_tx_disable(ndev);		
+
 	hdlc_close(ndev);
-	hdlc_set_carrier(0,ndev);
-	netif_carrier_off(ndev);
-	mr16g_hdlc_down(nl);
+	netif_tx_disable(ndev);		
+
+        mr16g_hdlc_close(nl);	
 	mr16g_txrx_down(ndev);
 
 	PDEBUG(2,"end");
@@ -431,19 +441,21 @@ mr16g_int( int  irq,void  *dev_id, struct pt_regs  *regs)
 	struct net_local *nl=(struct net_local*)hdlc->priv;
         u8  mask = ioread8((iotype)&(nl->hdlc_regs->IMR));	
         u8  status = ioread8((iotype)&(nl->hdlc_regs->SR)) & mask;
+	PDEBUG(0,"(%s) start SR(%02x) IMR(%02x) mask(%02x)",ndev->name,(nl->hdlc_regs->SR),(nl->hdlc_regs->IMR),mask);
 	iowrite8(0,(iotype)&(nl->hdlc_regs->IMR));
 	iowrite8(0xff,(iotype)&(nl->hdlc_regs->SR));	
 		
         if( status == 0 ){
+		PDEBUG(0,"status = 0");
 		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
                 return IRQ_NONE;
 	}
 
-	PDEBUG(8,"start,status=%08x",status);				
+	PDEBUG(0,"start,status=%08x",status);				
 
         if( status & EXT ){
 		PDEBUG(8,"EXT");
-		ds2155_interrupt( ndev );
+		ds2155_interrupt( ndev,&mask );
         }
         /*
          * Whether transmit error is occured, we have to re-enable the
@@ -490,7 +502,7 @@ mr16g_int( int  irq,void  *dev_id, struct pt_regs  *regs)
 	}
 	
 	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));	
-	PDEBUG(8,"end");	
+	PDEBUG(0,"end IMR(%02x) mask(%02x)",(nl->hdlc_regs->IMR),mask);	
 	return IRQ_HANDLED;
 }	
 
@@ -587,38 +599,30 @@ mr16g_get_stats( struct net_device  *dev )
 }
 
 static void 
-mr16g_setup_carrier(struct net_device *ndev)
+mr16g_setup_carrier(struct net_device *ndev,u8 *mask)
 {
         hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct net_local *nl=(struct net_local *)hdlc->priv;
-
 	u8 carrier=ds2155_carrier(nl);
-	if( netif_carrier_ok(ndev) ){
-		if( !carrier ){
-			iowrite8( ioread8( (iotype)&(nl->hdlc_regs->CRB) ) | RXDE,
-		        	    (iotype)&(nl->hdlc_regs->CRB) );
-			iowrite8( EXT,(iotype)&(nl->hdlc_regs->IMR) );
-	                iowrite8( 0xff, (iotype)&(nl->hdlc_regs->SR) );
-			hdlc_set_carrier(0,ndev);
-			netif_carrier_off(ndev);
 
-			// Common Control Register 4
-			// UOP0 = 1 to light up LED indicator			
-			ds2155_setreg(nl,CCR4,0x00);
-		}	
+	PDEBUG(0,"(%s) carrier = %d\n",ndev->name,carrier);
+
+	// iface status control
+	if( !carrier ){
+		iowrite8( ioread8( (iotype)&(nl->hdlc_regs->CRB) ) | RXDE,
+	        	    (iotype)&(nl->hdlc_regs->CRB) );
+		*mask = EXT;
+		hdlc_set_carrier(0,ndev);
+		netif_carrier_off(ndev);
+		ds2155_setreg(nl,CCR4,0x00);
 	}else{
-		if( carrier ){
-			iowrite8( ioread8( (iotype)&(nl->hdlc_regs->CRB) ) & ~RXDE,
-		        	    (iotype)&(nl->hdlc_regs->CRB) );
-			iowrite8( EXT | UFL | OFL | RXS | TXS | CRC ,
-			            (iotype)&(nl->hdlc_regs->IMR) );
-	                iowrite8( 0xff, (iotype)&(nl->hdlc_regs->SR) );
-    			hdlc_set_carrier(1,ndev);
-			netif_carrier_on(ndev);
-			// Common Control Register 4
-			// UOP0 = 1 to light up LED indicator
-			ds2155_setreg(nl,CCR4,0x01);
-		}
+		iowrite8( ioread8( (iotype)&(nl->hdlc_regs->CRB) ) & ~RXDE,
+	        	    (iotype)&(nl->hdlc_regs->CRB) );
+		*mask = EXT | UFL | OFL | RXS | TXS | CRC;
+		hdlc_set_carrier(1,ndev);
+		netif_carrier_on(ndev);
+		ds2155_setreg(nl,CCR4,0x01);
+		
 	}
 }
 
@@ -858,18 +862,28 @@ recv_free_buffs( struct net_device *ndev)
  *----------------------------------------------------------*/
 
 // Disable device
-static void
+inline void
 mr16g_hdlc_down(struct net_local *nl)
 {
         iowrite8( XRST , (iotype)&(nl->hdlc_regs->CRA));
 	iowrite8( RXDE , (iotype)&(nl->hdlc_regs->CRB));
 	iowrite8( 0, (iotype)&( nl->hdlc_regs->IMR));
 	iowrite8( 0xff, (iotype)&(nl->hdlc_regs->SR));
+	ds2155_setreg(nl,CCR4,0x00);
 }
-	
 
-static void	
+inline void	
 mr16g_hdlc_up( struct net_local *nl)
+{
+        iowrite8( EXT, (iotype)&(nl->hdlc_regs->IMR) );                              
+        iowrite8( 0xff, (iotype)&(nl->hdlc_regs->SR) );                              
+        iowrite8( XRST , (iotype)&(nl->hdlc_regs->CRA));                             
+        iowrite8( 0 , (iotype)&(nl->hdlc_regs->CRB));
+	PDEBUG(0,"SR(%02x) IMR(%02x)",nl->hdlc_regs->SR ,nl->hdlc_regs->IMR);
+}	
+
+inline void	
+mr16g_hdlc_open( struct net_local *nl)
 {
         u8 cfg_byte;
 
@@ -882,18 +896,25 @@ mr16g_hdlc_up( struct net_local *nl)
 	if( nl->hdlc_cfg.inv )
 	        cfg_byte|=PMOD;
 	iowrite8(cfg_byte,(iotype)&(nl->hdlc_regs->CRA));
+
 	// Control register B
 	cfg_byte=ioread8( (iotype)&(nl->hdlc_regs->CRB)) | RODD;
 	if( nl->hdlc_cfg.rburst )
 	        cfg_byte|=RDBE;
 	if( nl->hdlc_cfg.wburst )
 	        cfg_byte|=WTBE;
-
 	iowrite8(cfg_byte,(iotype)&(nl->hdlc_regs->CRB));
-	// Acknoledge all interrupts
-        iowrite8( 0xff, (iotype)&(nl->hdlc_regs->SR) );
-	// Interrupt mask register - only DS2155 interrupts
-        iowrite8( EXT, (iotype)&(nl->hdlc_regs->IMR) );
+}
+
+inline void	
+mr16g_hdlc_close( struct net_local *nl)
+{
+        u8 cfg_byte;
+
+	// Control register A
+	iowrite8(XRST,(iotype)&(nl->hdlc_regs->CRA));
+	// Control register B
+	iowrite8(0,(iotype)&(nl->hdlc_regs->CRB));
 }
 
 /*----------------------------------------------------------
@@ -936,6 +957,7 @@ mr16g_E1_int_setup(struct net_local *nl)
 	ds2155_getreg(nl,SR1);
 	ds2155_setreg(nl,SR1,LRCL);
 	ds2155_setreg(nl,IMR1,LRCL);
+	return 0;
 }
 
 
@@ -1093,11 +1115,11 @@ mr16g_E1_setup(struct net_local *nl)
 
 // TODO - check who is a source of Interrupt 
 static int
-ds2155_interrupt( struct net_device *ndev )
+ds2155_interrupt( struct net_device *ndev, u8 *mask )
 {
 	PDEBUG(5,"start");
 //	printk("%s: start\n",__FUNCTION__);
-	mr16g_setup_carrier( ndev );
+	mr16g_setup_carrier( ndev,mask );
 //	printk("%s: end\n",__FUNCTION__);	
 	return 0;
 }
@@ -1738,7 +1760,8 @@ static ssize_t store_setreg( struct device *dev, ADDIT_ATTR const char *buff, si
 static ssize_t store_chk_carrier( struct device *dev, ADDIT_ATTR const char *buff, size_t size )
 {
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
-	mr16g_setup_carrier( ndev );
+//	mr16g_setup_carrier( ndev,&mask );
+	
 	return size;
 }
 
@@ -1757,6 +1780,6 @@ static ssize_t show_hdlcregs( struct device *dev, ADDIT_ATTR char *buf )
 			nl->hdlc_regs->CRA,nl->hdlc_regs->CRB,nl->hdlc_regs->SR,nl->hdlc_regs->IMR,
 			nl->hdlc_regs->CRDR,nl->hdlc_regs->LRDR,nl->hdlc_regs->CTDR,nl->hdlc_regs->LTDR);
 
-	return 0;
+	return len;
 }
 
