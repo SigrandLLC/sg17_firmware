@@ -313,6 +313,7 @@ package-$(BR2_PACKAGE_WEBFACE) += webface
 package-$(BR2_PACKAGE_SIGRAND_SETHDLC) += sethdlc
 package-$(BR2_PACKAGE_SIGRAND_MR17H) += sigrand-mr17h
 package-$(BR2_PACKAGE_SIGRAND_MR16H) += sigrand-mr16h
+package-$(BR2_PACKAGE_SIGRAND_MR16G) += sigrand-mr16g
 package-$(BR2_PACKAGE_SIGRAND_ADM5120SW) += sigrand-adm5120sw
 package-$(BR2_PACKAGE_HOTPLUG) += hotplug
 package-$(BR2_PACKAGE_SIGRAND_DOC) += sigrand-doc
