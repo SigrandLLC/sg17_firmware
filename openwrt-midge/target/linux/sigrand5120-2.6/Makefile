@@ -13,10 +13,6 @@ include ./config
 include ../generic-$(KERNEL)/modules.mk
 include ../kernel.mk
 
-$(eval $(call KMOD_template,SIGRAND_MR16G,mr16g-hdlc,\
-	$(MODULES_DIR)/kernel/drivers/net/wan/mr16g/mr16g_hdlc.ko \
-))
-
 $(LINUX_DIR)/.patched: $(LINUX_DIR)/.unpacked
 	[ -d ../generic-$(KERNEL)/patches ] && $(PATCH) $(LINUX_DIR) ../generic-$(KERNEL)/patches $(MAKE_TRACE)
 	[ -d ./patches ] && $(PATCH) $(LINUX_DIR) ./patches $(MAKE_TRACE)
