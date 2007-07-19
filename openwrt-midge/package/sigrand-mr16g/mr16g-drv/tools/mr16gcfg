@@ -13,7 +13,8 @@ print_stat()
     echo "Sigrand MR16G E1 adapter"
     echo "Common E1 settings:"
     sethdlc $iface
-    echo "Other E1 settings:"
+    echo "Sigrand E1 settings:"
+    echo "    slotmap:   "`cat slotmap`
     echo "    hdb3:      "`cat hdb3`
     fr=`cat framed`
     echo "    mode:      "$fr

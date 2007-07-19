@@ -1139,8 +1139,8 @@ mr16g_defcfg(struct net_local *nl)
 	//HDLC initial setup				
 	nl->hdlc_cfg.crc16=1;
 	nl->hdlc_cfg.fill_7e=1;	
-	nl->hdlc_cfg.rburst=1;
-	nl->hdlc_cfg.wburst=1;	
+	nl->hdlc_cfg.rburst=0;
+	nl->hdlc_cfg.wburst=0;	
 }
 
 static int __devinit
@@ -1485,9 +1485,12 @@ store_map_ts16( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 	if( size > 0 ){
 		if( buf[0]=='0' ){
 			cfg->ts16=0;
+			cfg->slotmap &= ~(1<<16);
 		}else if( buf[0]=='1' ){
 		        cfg->ts16=1;
-			cfg->slotmap &= ~(1<<16);
+			if( cfg->cas ){
+			    cfg->cas = 0;
+			}
 		}
         }    
         return size;
@@ -1690,8 +1693,13 @@ store_cas( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 		if( buf[0]=='0' )
 			cfg->cas=0;
 		else
-		if( buf[0]=='1' )
+		if( buf[0]=='1' ){
 		        cfg->cas=1;
+			if( cfg->ts16 ){
+			    cfg->ts16 = 0;
+			    cfg->slotmap &= ~(1<<16);
+			}
+		}
         }    
         return size;
 }
