@@ -35,7 +35,7 @@ chain(){
 
 		prepare_addr -s $src
 		_src=$addr
-		prepare_addr -d $src
+		prepare_addr -d $dst
 		_dst=$addr
 
 		if [ "$proto" = "tcp" -o "$proto" = "udp" ]; then
