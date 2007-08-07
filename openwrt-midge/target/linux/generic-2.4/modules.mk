@@ -12,8 +12,8 @@ $(eval $(call KMOD_template,GRE,gre,\
 ,CONFIG_NET_IPGRE,,54,ip_gre))
 
 $(eval $(call KMOD_template,IPIP,ipip,\
-        $(MODULES_DIR)/kernel/net/ipv4/ipip.o \
-	,CONFIG_NET_IPIP,,53,ipip))
+	$(MODULES_DIR)/kernel/net/ipv4/ipip.o \
+,CONFIG_NET_IPIP,,53,ipip))
 
 $(eval $(call KMOD_template,BONDING,bonding,\
 	$(MODULES_DIR)/kernel/drivers/net/bonding/bonding.o \
@@ -128,7 +128,6 @@ $(eval $(call KMOD_template,LOOP,loop,\
 $(eval $(call KMOD_template,NBD,nbd,\
     $(MODULES_DIR)/kernel/drivers/block/nbd.o \
 ,CONFIG_BLK_DEV_NBD,,20,nbd))
-
 
 # Crypto
 
