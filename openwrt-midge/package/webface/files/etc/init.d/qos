@@ -18,17 +18,18 @@ fi
 
 eval `kdb -qq sls sys_iface_${iface}_`
 
-create_htb_ceil(){
-	local parent=$1
-	local rate=$2
-	local ceil=$3
-	local prio=${4:-100}
-
-	$CLASS add dev $iface parent 1:1  classid 1:$parent  htb           rate $rate  ceil $ceil prio $prio
-	$QDISC add dev $iface parent 1:$parent handle $parent:   sfq perturb 10 quantum 10514b
-	$FILTER add dev $iface parent 1:  protocol ip   prio 10       handle $parent fw flowid 1:$parent
+start_htb(){
+	local iface=$1
+	$TC qdisc add dev $iface root handle 1: htb
+	
+	for key in `kdb kls sys_iface_${iface}_qos_htb_class_*`; do 
+		val=`kdb get $key`
+		unset enabled name parent classid rate rate_unit
+		eval "$val"
+		
+		[ "x${enabled}x" != "xx" ] && $TC class add dev $iface parent $parent classid $classid htb rate $rate	
+	done
 }
-
 
 stop(){
 	echo "Stoping $NAME on $iface."
@@ -46,8 +47,10 @@ start(){
 		$QDISC add dev $iface handle 2:0  parent 1:0 $qos_sch limit $qos_fifo_limit
 	;;
 	htb)
-		$QDISC add dev $iface root handle 1: htb
-		$CLASS add dev $iface parent 1:   classid 1:1  htb rate $rate ceil $ceil
+		eval `kdb -qqc ls sys_iface_${iface}_qos_htb_class_*`
+		if [ "$kdb_lines_count" != 0 ]; then
+			start_htb $iface
+		fi
 	;;
 	tbf)
 		l="latency 20ms"

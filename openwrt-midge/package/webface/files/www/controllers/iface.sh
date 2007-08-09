@@ -45,6 +45,8 @@
 						kdb_vars="int:sys_iface_${iface}_qos_esfq_limit int:sys_iface_${iface}_qos_esfq_depth int:sys_iface_${iface}_qos_esfq_hash";;
 					tbf)
 						kdb_vars="str:sys_iface_${iface}_qos_tbf_rate int:sys_iface_${iface}_qos_tbf_limit str:sys_iface_${iface}_qos_tbf_latency int:sys_iface_${iface}_qos_tbf_buffer";;
+					htb)
+						kdb_vars="";;
 				esac
 			fi
 			;;
@@ -347,7 +349,7 @@
 		# sys_iface_${iface}_qos_sch
 		desc="Please select scheduler for the interface"
 		validator='tmt:required="true" tmt:message="Please select method"'
-		render_input_field select "Scheduler" sys_iface_${iface}_qos_sch pfifo_fast "Default discipline pfifo_fast" bfifo 'FIFO with bytes buffer' pfifo 'FIFO with packets buffer ' 'tbf' 'Token Bucket Filter' 'sfq' 'Stochastic Fairness Queueing' 'esfq' 'Enhanced <b>Stochastic Fairness Queueing'  #'htb' 'Hierarchical Token Bucket' 
+		render_input_field select "Scheduler" sys_iface_${iface}_qos_sch pfifo_fast "Default discipline pfifo_fast" bfifo 'FIFO with bytes buffer' pfifo 'FIFO with packets buffer ' 'tbf' 'Token Bucket Filter' 'sfq' 'Stochastic Fairness Queueing' 'esfq' 'Enhanced <b>Stochastic Fairness Queueing'  'htb' 'Hierarchical Token Bucket' 
 		render_submit_field
 		;;
 		
@@ -366,7 +368,7 @@
 		;;
 	'qos')
 		# static dhcp list
-		if [ "$qos_sch" != sfq -a "$qos_sch" != pfifo_fast ]; then
+		if [ "$qos_sch" != sfq -a "$qos_sch" != pfifo_fast -a "$qos_sch" != htb ]; then
 			render_form_header qos
 			render_input_field hidden iface iface "$iface"
 			render_input_field hidden page page "$page"
@@ -416,9 +418,24 @@
 				desc="Buffer size for packet latency<br/><b>Note:</b> You should use <i>limit</i> <b>OR</b> <i>latency</i>"
 				validator='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="qoslatency"'
 				render_input_field text "Latency" sys_iface_${iface}_qos_tbf_latency
-			;;
+				;;
+			htb)
+				eval `kdb -qq ls sys_iface_${iface}_qos_htb_*`
+	
+				# qos class list
+				render_form_header qos_class
+				render_table_title "Classes on $iface" 2 
+				render_iframe_list "qos_class" "iface=$iface" "100%"
+				render_form_tail
+				
+				# qos filter list
+				render_form_header qos_filter
+				render_table_title "Filters on $iface" 2 
+				render_iframe_list "qos_filter" "iface=$iface" "100%"
+				render_form_tail
+				;;
 		esac
-		if [ "$qos_sch" != sfq -a "$qos_sch" != pfifo_fast ]; then
+		if [ "$qos_sch" != sfq -a "$qos_sch" != pfifo_fast -a "$qos_sch" != htb ]; then
 			render_submit_field
 			render_form_tail
 		fi
