@@ -24,10 +24,10 @@ start_htb(){
 	
 	for key in `kdb kls sys_iface_${iface}_qos_htb_class_*`; do 
 		val=`kdb get $key`
-		unset enabled name parent classid rate rate_unit
+		unset enabled name parent classid rate ceil _ceil
 		eval "$val"
-		
-		[ "x${enabled}x" != "xx" ] && $TC class add dev $iface parent $parent classid $classid htb rate $rate	
+		[ -n "$ceil" ] && _ceil="ceil $ceil"
+		[ "x${enabled}x" != "xx" ] && $TC class add dev $iface parent $parent classid $classid htb rate $rate $_ceil
 	done
 }
 

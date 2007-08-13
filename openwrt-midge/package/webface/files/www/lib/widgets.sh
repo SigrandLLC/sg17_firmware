@@ -28,6 +28,7 @@ validator_macaddr='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tm
 validator_spi='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct SPI value" tmt:pattern="ipsec_spi"'
 validator_ipseckey='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct key" tmt:pattern="ipsec_key"'
 validator_ifacelist='tmt:required="true" tmt:message="Please input interfaces" tmt:filters="ltrim,nohtml,nocommas,nomagic"'
+validator_rate='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="qosbandw" tmt:message="Please enter correct rate"'
 
 render_chart_h(){
 	local t="$1";
@@ -214,6 +215,7 @@ render_form_note(){
 render_iframe_list(){
 	local controller="$1"
 	local params="$2"
+	[ -n "$3" ] && local IFRAME_WIDTH="$3"
 	echo "<tr><td><iframe name=$controller src='/?controller=$controller&frame=1&$params' frameborder=1 width='$IFRAME_WIDTH' height='$IFRAME_HEIGHT' scrolling='auto'></iframe></td></tr>"
 }
 
