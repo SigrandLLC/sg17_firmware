@@ -22,7 +22,7 @@
 
 	# generate list of available classes
 	CLASSES="1:0 root"
-	for key in `kdb kls sys_iface_eth0_qos_htb_class_*`; do
+	for key in `kdb kls sys_iface_${iface}_qos_htb_class_*`; do
 		val=`kdb get $key`
 		eval "$val"
 		CLASSES="$CLASSES $classid $name"

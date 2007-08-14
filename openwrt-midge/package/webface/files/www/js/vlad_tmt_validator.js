@@ -5,6 +5,7 @@ tmt_globalFilters.nomagic = tmt_filterInfo('[`$();]', "");
 
 tmt_globalPatterns.A_z= new RegExp("^\([A-Za-z]+\)$");
 tmt_globalPatterns.A_z0_9= new RegExp("^\([A-Za-z0-9]+\)$");
+tmt_globalPatterns.A_z0_9_= new RegExp("^\([_A-Za-z0-9]+\)$");
 
 // IP Addr validation
 tmt_globalPatterns.ipaddr = new RegExp("^\(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.\(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.\(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.\(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])$");
@@ -20,7 +21,8 @@ tmt_globalPatterns.ipnet  = new RegExp("^(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])
 tmt_globalPatterns.ipnet_ipt  = new RegExp("^[!]?(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])(/\\d\\d*)?$");
 tmt_globalPatterns.ipaddrport = new RegExp("^(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])(\\:\\d*)?$");
 tmt_globalPatterns.ipportrange = new RegExp("^((\\d)+(:)?((\\d)+)?|(:)((\\d)+)|any)$");
-
+// IP port
+tmt_globalPatterns.ipport = new RegExp("^((\\d)+|any)$");
 
 // DNS Zone validation
 tmt_globalPatterns.dnszone = new RegExp("^\([a-zA-Z0-9\-\.]\)+$");

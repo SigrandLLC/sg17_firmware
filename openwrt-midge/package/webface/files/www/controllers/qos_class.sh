@@ -37,7 +37,7 @@
 		echo '</td></tr>'
 	}
 	
-	render_list_header qos_class sys_iface_${iface}_qos_htb_class_ "iface=$iface" "No" "Rule name" "Parent" "Rate" "Ceil"
+	render_list_header qos_class sys_iface_${iface}_qos_htb_class_ "iface=$iface" "No" "Name" "Parent" "Rate" "Ceil"
 	
 	render_list_cycle_stuff
 
