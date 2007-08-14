@@ -512,7 +512,7 @@ store_maddr( struct class_device *cdev,const char *buf, size_t size )
 static CLASS_DEVICE_ATTR(maddr, 0200 ,NULL,store_maddr);
 
 // ------------------------- Statistics ------------------------------- //
-// PCI write burst
+
 static ssize_t
 show_statistics(struct class_device *cdev, char *buf) 
 {
@@ -547,6 +547,39 @@ store_statistics( struct class_device *cdev,const char *buf, size_t size )
         return size;	
 }
 static CLASS_DEVICE_ATTR(statistics,0644,show_statistics,store_statistics);
+
+static ssize_t
+show_statistics_row(struct class_device *cdev, char *buf) 
+{
+	struct net_device *ndev = to_net_dev(cdev);    
+        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+	struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( nl->dev );
+        struct sg17_sci *s = (struct sg17_sci *)&card->sci;
+	struct sdfe4_stat statistic, *stat=&statistic;
+	
+	if( sdfe4_get_statistic(sg17_sci_if2ch(s,nl->number),s->hwdev,stat) )
+    		return snprintf(buf,PAGE_SIZE,"Error Getting statistic");
+	return snprintf(buf,PAGE_SIZE,"%d %d %u %u %u %u %u %u %u %u %u",
+			        stat->SNR_Margin_dB,stat->LoopAttenuation_dB,stat->ES_count,stat->SES_count,
+				stat->CRC_Anomaly_count,stat->LOSWS_count,stat->UAS_Count,stat->SegmentAnomaly_Count,
+			        stat->SegmentDefectS_Count,stat->CounterOverflowInd,stat->CounterResetInd );
+												
+}
+static CLASS_DEVICE_ATTR(statistics_row,0444,show_statistics_row,NULL);
+
+
+static ssize_t
+show_link_state(struct class_device *cdev, char *buf) 
+{
+	struct net_device *ndev = to_net_dev(cdev);    
+	
+	if( netif_carrier_ok(ndev) ){
+	    return snprintf(buf,PAGE_SIZE,"1");
+	} else{
+	    return snprintf(buf,PAGE_SIZE,"0");	
+	}
+}
+static CLASS_DEVICE_ATTR(link_state,0444,show_link_state,NULL);
 
 
 // ------------------------- Compatibility ------------------------------- //
@@ -690,6 +723,8 @@ static struct attribute *sg17_attr[] = {
 	&class_device_attr_maddr.attr,
 	// statistics
 	&class_device_attr_statistics.attr,
+	&class_device_attr_statistics_row.attr,
+	&class_device_attr_link_state.attr,
 	// compatibility
 	&class_device_attr_nsg_comp.attr,	
         // debug
