@@ -3,9 +3,9 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=lua
-PKG_VERSION:=5.0.2
+PKG_VERSION:=5.1.2
 PKG_RELEASE:=1
-PKG_MD5SUM:= dea74646b7e5c621fef7174df83c34b1
+PKG_MD5SUM:= 687ce4c2a1ddff18f1008490fdc4e5e0
 
 PKG_SOURCE_URL:=http://www.lua.org/ftp/ \
 	http://ftp.gwdg.de/pub/languages/lua/ \
@@ -19,7 +19,7 @@ PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/ipkg-install
 
 include $(TOPDIR)/package/rules.mk
 
-$(eval $(call PKG_template,LIBLUA,liblua,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
+#$(eval $(call PKG_template,LIBLUA,liblua,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 $(eval $(call PKG_template,LUA,lua,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 $(eval $(call PKG_template,LUAC,luac,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 $(eval $(call PKG_template,LUA_EXAMPLES,lua-examples,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
@@ -34,25 +34,16 @@ $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 		AR="$(TARGET_CROSS)ar rcu" \
 		RANLIB="$(TARGET_CROSS)ranlib" \
 		INSTALL_ROOT=/usr \
-		MYCFLAGS="-I$(STAGING_DIR)/usr/include $(TARGET_CFLAGS)" \
+		MYCFLAGS="-I$(STAGING_DIR)/usr/include -I$(STAGING_DIR)/usr/include/readline $(TARGET_CFLAGS)" \
 		MYLDFLAGS="-L$(STAGING_DIR)/usr/lib" \
-		all so
+		linux 
 	# remove statically linked binaries, so that they will get linked against shlib this time
 	rm -f $(PKG_BUILD_DIR)/bin/lua{,c}
-	$(MAKE) -C $(PKG_BUILD_DIR) \
-		CC="$(TARGET_CROSS)gcc" \
-		LD="$(TARGET_CROSS)ld" \
-		AR="$(TARGET_CROSS)ar rcu" \
-		RANLIB="$(TARGET_CROSS)ranlib" \
-		INSTALL_ROOT=/usr \
-		MYCFLAGS="-I$(STAGING_DIR)/usr/include $(TARGET_CFLAGS)" \
-		MYLDFLAGS="-L$(STAGING_DIR)/usr/lib" \
-		all
 	rm -rf $(PKG_INSTALL_DIR)
 	mkdir -p $(PKG_INSTALL_DIR)
 	$(MAKE) -C $(PKG_BUILD_DIR) \
-		INSTALL_ROOT="$(PKG_INSTALL_DIR)/usr" \
-		install soinstall
+		INSTALL_TOP="$(PKG_INSTALL_DIR)/usr" \
+		install 
 	touch $@
 
 $(IPKG_LIBLUA):
@@ -85,7 +76,7 @@ $(STAGING_DIR)/usr/lib/liblua.so: $(PKG_BUILD_DIR)/.built
 	$(CP) $(PKG_INSTALL_DIR)/usr/include/lua{,lib}.h $(STAGING_DIR)/usr/include/
 	$(CP) $(PKG_INSTALL_DIR)/usr/include/lauxlib.h $(STAGING_DIR)/usr/include/
 	mkdir -p $(STAGING_DIR)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/liblua{,lib}.{a,so*} $(STAGING_DIR)/usr/lib/
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/liblua.a $(STAGING_DIR)/usr/lib/
 	touch $@
 
 install-dev: $(STAGING_DIR)/usr/lib/liblua.so
