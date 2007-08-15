@@ -17,6 +17,7 @@
 	render_popup_save_stuff
 
 	render_form_header qos_filter_edit
+	help_1="qos"
 	render_table_title "QoS filter edit" 2
 	render_popup_form_stuff
 	

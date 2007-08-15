@@ -27,7 +27,36 @@ start_htb(){
 		unset enabled name parent classid rate ceil _ceil
 		eval "$val"
 		[ -n "$ceil" ] && _ceil="ceil $ceil"
+		
 		[ "x${enabled}x" != "xx" ] && $TC class add dev $iface parent $parent classid $classid htb rate $rate $_ceil
+	done
+	
+	for key in `kdb kls sys_iface_${iface}_qos_htb_filter_*`; do 
+		val=`kdb get $key`
+		unset enabled name prio proto src dst src_port dst_port flowid
+		_proto=""
+		_src_port=""
+		_dst_port=""
+		_dst=""
+		_src=""
+		eval "$val"
+		
+		if [ "$proto" != "any" ]; then
+			_proto="match ip protocol"
+			[ "$proto" = "icmp" ] && _proto="$_proto 1 0xff"
+			[ "$proto" = "tcp" ] && _proto="$_proto 6 0xff"
+			[ "$proto" = "udp" ] && _proto="$_proto 17 0xff"
+		fi
+		
+		[ "$src_port" != "any" ] && _src_port="match ip sport $src_port 0xffff"
+		[ "$dst_port" != "any" ] && _dst_port="match ip dport $dst_port 0xffff"
+		[ "$dst" != "0.0.0.0/0" ] && _dst="match ip dst $dst"
+		[ "$src" != "0.0.0.0/0" ] && _src="match ip src $src"
+		
+		# if no one of criteria is set - set dummy src
+		[ -z "$_proto" -a -z "$_src_port" -a -z "$_dst_port" -a -z "$_dst" -a -z "$_src" ] && _src="match ip src $src"
+		
+		[ "x${enabled}x" != "xx" ] && $TC filter add dev $iface parent 1: protocol ip prio $prio u32 $_proto $_src_port $_dst_port $_dst $_src flowid $flowid
 	done
 }
 

@@ -424,12 +424,14 @@
 	
 				# qos class list
 				render_form_header qos_class
+				help_1="qos"
 				render_table_title "Classes on $iface" 2 
 				render_iframe_list "qos_class" "iface=$iface" "100%"
 				render_form_tail
 				
 				# qos filter list
 				render_form_header qos_filter
+				help_1="qos"
 				render_table_title "Filters on $iface" 2 
 				render_iframe_list "qos_filter" "iface=$iface" "100%"
 				render_form_tail
