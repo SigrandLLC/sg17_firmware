@@ -16,7 +16,7 @@ PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/ipkg-install
 
 include $(TOPDIR)/package/rules.mk
 
-$(eval $(call PKG_template,LIBFCGI,libfcgi,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
+$(eval $(call PKG_template,FCGI,fcgi,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
 $(PKG_BUILD_DIR)/.configured: 
 	(cd $(PKG_BUILD_DIR); rm -rf config.{cache,status} ; \
@@ -58,11 +58,11 @@ $(PKG_BUILD_DIR)/.built:
 		all install
 	touch $@
 
-$(IPKG_LIBFCGI):
-	install -d -m0755 $(IDIR_LIBFCGI)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libfcgi.so.* $(IDIR_LIBFCGI)/usr/lib
-	$(RSTRIP) $(IDIR_LIBFCGI)
-	$(IPKG_BUILD) $(IDIR_LIBFCGI) $(PACKAGE_DIR)
+$(IPKG_FCGI):
+	install -d -m0755 $(IDIR_FCGI)/usr/lib
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libfcgi.so.* $(IDIR_FCGI)/usr/lib
+	$(RSTRIP) $(IDIR_FCGI)
+	$(IPKG_BUILD) $(IDIR_FCGI) $(PACKAGE_DIR)
 
 $(STAGING_DIR)/usr/lib/libfcgi.so: $(PKG_BUILD_DIR)/.built
 	mkdir -p $(STAGING_DIR)/usr/include

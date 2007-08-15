@@ -1,4 +1,4 @@
-Package: libfcgi
+Package: fcgi
 Priority: optional
 Section: libs
 Description: FastCGI lib
