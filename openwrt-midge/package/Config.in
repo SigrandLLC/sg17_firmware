@@ -28,6 +28,7 @@ source "package/fetchmail/Config.in"
 source "package/gpsd/Config.in"
 source "package/gpg/Config.in"
 source "package/haserl/Config.in"
+source "package/kepler/Config.in"
 source "package/irssi/Config.in"
 source "package/jamvm/Config.in"
 source "package/lcd4linux/Config.in"
@@ -248,6 +249,7 @@ source "package/libid3tag/Config.in"
 source "package/jpeg/Config.in"  # libjpeg
 source "package/libtool/Config.in"  # libltdl
 source "package/liblzo/Config.in"
+source "package/fcgi/Config.in"
 source "package/libmad/Config.in"
 source "package/matrixssl/Config.in"  # libmatrixssl
 source "package/mysql/Config.in"  # limysqlclient
