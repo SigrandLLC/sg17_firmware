@@ -80,8 +80,8 @@ struct net_local{
 
 void sg17_link_up(struct sg17_sci *s, int if_num);
 void sg17_link_down(struct sg17_sci *s, int if_num);
-void sg17_blink(struct sg17_sci *s, int if_num);
-void sg17_fast_blink(struct sg17_sci *s, int if_num);
+void sg17_led_blink(struct sg17_sci *s, int if_num);
+void sg17_led_fblink(struct sg17_sci *s, int if_num);
 void sg17_link_support(struct sg17_sci *s);
 
 

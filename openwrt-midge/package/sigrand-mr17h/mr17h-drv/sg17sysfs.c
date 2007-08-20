@@ -938,13 +938,6 @@ static struct attribute *sg17_attr[] = {
 	&class_device_attr_statistics.attr,
 	&class_device_attr_statistics_row.attr,
 	&class_device_attr_link_state.attr,
-	// multiplexing
-	&class_device_attr_mxrate.attr,
-	&class_device_attr_mx_txstart.attr,
-	&class_device_attr_mx_rxstart.attr,
-	&class_device_attr_mx_tline.attr,
-	&class_device_attr_mx_rline.attr,
-	&class_device_attr_mx_control.attr,
 	// power supply
 	&class_device_attr_pwrr,
 	// compatibility
@@ -958,21 +951,40 @@ static struct attribute *sg17_attr[] = {
 };
 
 
+static struct attribute *sg17_mx_attr[] = {
+	// multiplexing
+	&class_device_attr_mxrate.attr,
+	&class_device_attr_mx_txstart.attr,
+	&class_device_attr_mx_rxstart.attr,
+	&class_device_attr_mx_tline.attr,
+	&class_device_attr_mx_rline.attr,
+	&class_device_attr_mx_control.attr,
+	NULL
+};
+
 
 static struct attribute_group sg17_group = {
         .name  = "sg17_private",
         .attrs  = sg17_attr,
 };
 
+static struct attribute_group sg17_mx_group = {
+        .name  = "sg_multiplexing",
+        .attrs  = sg17_mx_attr,
+};
+
 int
 sg17_sysfs_register(struct net_device *ndev)
 {
 	struct class_device *class_dev = &(ndev->class_dev);	
-	return sysfs_create_group(&class_dev->kobj, &sg17_group);
+	int ret = sysfs_create_group(&class_dev->kobj, &sg17_group);
+	ret += sysfs_create_group(&class_dev->kobj, &sg17_mx_group);
+	return ret;
 }
 
 void
 sg17_sysfs_remove(struct net_device *ndev){
 	struct class_device *class_dev = &(ndev->class_dev);	
 	sysfs_remove_group(&class_dev->kobj, &sg17_group);
+	sysfs_remove_group(&class_dev->kobj, &sg17_mx_group);
 }

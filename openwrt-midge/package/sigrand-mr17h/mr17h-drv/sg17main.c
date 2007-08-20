@@ -284,7 +284,7 @@ sg17_link_up(struct sg17_sci *s, int if_num)
 	nl->regs->RATE = (nl->shdsl_cfg->rate/64)-1;
 	PDEBUG(debug_link,"rate = %d, RATE=%d",nl->shdsl_cfg->rate,nl->regs->RATE);	
 	iowrite8( 0xff, &nl->regs->SR );
-        iowrite8( (ioread8( &nl->regs->CRB )&(~RXDE)), &nl->regs->CRB );
+        iowrite8( (ioread8( &nl->regs->CRB )&(~(RXDE|LED1|LED2)) ), &nl->regs->CRB );
         iowrite8( (UFL|CRC|OFL|RXS|TXS), &nl->regs->IMR );
 }
 
@@ -303,18 +303,30 @@ sg17_link_down(struct sg17_sci *s, int if_num)
 }
 
 void
-sg17_blink(struct sg17_sci *s, int if_num)
+sg17_led_blink(struct sg17_sci *s, int if_num)
 {
+asm("#1");
 	struct sg17_card *card = container_of(s,struct sg17_card,sci);
+asm("#2");
 	struct net_device *ndev = card->ndevs[if_num];
+asm("#3");
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
+asm("#4");
 	PDEBUG(debug_link,"");
-	u8 tmp = (ioread8(&nl->regs->CRB) & (~LED2)) | LED1;
+	printk("%s: ifnum: %d\n",__FUNCTION__,if_num);
+asm("#5");
+	u8 tmp = ioread8(&nl->regs->CRB);
+asm("#6");
+	tmp &= ~LED2;
+asm("#7");
+	tmp |= LED1;
+asm("#8");
 	iowrite8( tmp ,&(nl->regs->CRB) );
+asm("#9");
 }
 
 void
-sg17_fast_blink(struct sg17_sci *s, int if_num)
+sg17_led_fblink(struct sg17_sci *s, int if_num)
 {
 	struct sg17_card *card = container_of(s,struct sg17_card,sci);
 	struct net_device *ndev = card->ndevs[if_num];
