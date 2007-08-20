@@ -816,8 +816,8 @@ sg17_def_config(struct sg17_card *card)
 	cfg_ch3->annex = ANNEX_A;
 	// ( SDI_TDMCLK_TDMMSP | SDI_DSL3 )
 	cfg_ch3->input_mode = SDI_TDMCLK_TDMMSP ;
-	// ( Terminal=>8192 | Repeater=>12288 )
-	cfg_ch3->frequency = 8192;
+	// ( Terminal=>16384 | Repeater=>12288 )
+	cfg_ch3->frequency = 16384;
 	// ( Terminal=>5696 | Repeater=>2048 )
 	cfg_ch3->payload_bits = 5696;
 	// ( SDI_NO_LOOP | SDI_REMOTE_LOOP )
@@ -840,8 +840,8 @@ sg17_def_config(struct sg17_card *card)
 	cfg_ch0->rate = 2304;
 	// ( SDI_TDMCLK_TDMMSP | SDI_DSL3 )
 	cfg_ch0->input_mode = SDI_TDMCLK_TDMMSP;
-	// ( Terminal=>8192 | Repeater=>12288 )
-	cfg_ch0->frequency = 8192;
+	// ( Terminal=>16384 | Repeater=>12288 )
+	cfg_ch0->frequency = 16384;
 	// ( Terminal=>5696 | Repeater=>2048 )
 	cfg_ch0->payload_bits = 5696;
 	// ( SDI_NO_LOOP | SDI_REMOTE_LOOP )
