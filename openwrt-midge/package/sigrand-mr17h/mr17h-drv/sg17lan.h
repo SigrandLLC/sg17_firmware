@@ -49,7 +49,8 @@ struct sg17_card{
 
 #define TX_TIMEOUT      400
 struct sg17_hw_regs {
-        u8  CRA, CRB, SR, IMR, CTDR, LTDR, CRDR, LRDR, RATE;
+        u8  CRA, CRB, SR, IMR, CTDR, LTDR, CRDR, LRDR, RATE, MXRATE, 
+	    TFS, RFS, TLINE, RLINE, MXCR, PWRR;
 };
 
 struct hdlc_config{
@@ -79,6 +80,8 @@ struct net_local{
 
 void sg17_link_up(struct sg17_sci *s, int if_num);
 void sg17_link_down(struct sg17_sci *s, int if_num);
+void sg17_blink(struct sg17_sci *s, int if_num);
+void sg17_fast_blink(struct sg17_sci *s, int if_num);
 void sg17_link_support(struct sg17_sci *s);
 
 

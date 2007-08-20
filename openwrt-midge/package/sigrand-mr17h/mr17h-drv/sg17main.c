@@ -303,6 +303,28 @@ sg17_link_down(struct sg17_sci *s, int if_num)
 }
 
 void
+sg17_blink(struct sg17_sci *s, int if_num)
+{
+	struct sg17_card *card = container_of(s,struct sg17_card,sci);
+	struct net_device *ndev = card->ndevs[if_num];
+	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
+	PDEBUG(debug_link,"");
+	u8 tmp = (ioread8(&nl->regs->CRB) & (~LED2)) | LED1;
+	iowrite8( tmp ,&(nl->regs->CRB) );
+}
+
+void
+sg17_fast_blink(struct sg17_sci *s, int if_num)
+{
+	struct sg17_card *card = container_of(s,struct sg17_card,sci);
+	struct net_device *ndev = card->ndevs[if_num];
+	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
+	PDEBUG(debug_link,"");
+	u8 tmp = (ioread8(&nl->regs->CRB) & (~LED1)) | LED2;
+	iowrite8(tmp,&(nl->regs->CRB) );
+}
+
+void
 sg17_link_support(struct sg17_sci *s)
 {
 	struct sg17_card *card = container_of(s,struct sg17_card,sci);

@@ -582,6 +582,219 @@ show_link_state(struct class_device *cdev, char *buf)
 static CLASS_DEVICE_ATTR(link_state,0444,show_link_state,NULL);
 
 
+// ------------------------- Multiplexing ------------------------------- //
+
+// MXRATE rgister
+static ssize_t
+show_mx_rate(struct class_device *cdev, char *buf) 
+{
+        struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+	
+	return snprintf(buf,PAGE_SIZE,"%d",(nl->regs->MXRATE+1)*64);
+}
+
+static ssize_t
+store_mx_rate( struct class_device *cdev,const char *buf, size_t size ) 
+{
+	struct net_device *ndev = to_net_dev(cdev);    
+        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+        char *endp;
+	u16 tmp;
+	
+        // check parameters
+	if( !size)
+		return size;
+        tmp=simple_strtoul( buf,&endp,0);
+	if( !tmp )
+		return size;
+	tmp = (tmp/64) - 1;
+	if( nl->regs->RATE < tmp )
+	    return size;
+	nl->regs->MXRATE = tmp;
+	return size;
+}
+static CLASS_DEVICE_ATTR(mxrate,0644,show_mx_rate,store_mx_rate);
+
+// TFS rgister
+static ssize_t
+show_mx_txstart(struct class_device *cdev, char *buf) 
+{
+        struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+	
+	return snprintf(buf,PAGE_SIZE,"%d",nl->regs->TFS);
+}
+
+static ssize_t
+store_mx_txstart( struct class_device *cdev,const char *buf, size_t size ) 
+{
+	struct net_device *ndev = to_net_dev(cdev);    
+        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+        char *endp;
+	u16 tmp;
+
+        // check parameters
+	if( !size)
+		return size;
+        tmp=simple_strtoul( buf,&endp,0);
+	
+	if( !tmp || tmp>255 )
+		return size;
+	tmp -= 1;
+	nl->regs->TFS = tmp;
+	return size;
+}
+static CLASS_DEVICE_ATTR(mx_txstart,0644,show_mx_txstart,store_mx_txstart);
+
+// RFS rgister
+static ssize_t
+show_mx_rxstart(struct class_device *cdev, char *buf) 
+{
+        struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+	
+	return snprintf(buf,PAGE_SIZE,"%d",nl->regs->RFS);
+}
+
+static ssize_t
+store_mx_rxstart( struct class_device *cdev,const char *buf, size_t size ) 
+{
+	struct net_device *ndev = to_net_dev(cdev);    
+        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+        char *endp;
+	u16 tmp;
+
+	// check parameters
+	if( !size)
+		return size;
+	tmp=simple_strtoul( buf,&endp,0);
+	if( !tmp || tmp>255 )
+		return size;
+	tmp -= 1;
+	nl->regs->RFS = tmp;
+	return size;
+}
+static CLASS_DEVICE_ATTR(mx_rxstart,0644,show_mx_rxstart,store_mx_rxstart);
+
+// TLINE rgister
+static ssize_t
+show_mx_tline(struct class_device *cdev, char *buf) 
+{
+        struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+	
+	return snprintf(buf,PAGE_SIZE,"%d",nl->regs->TLINE);
+}
+
+static ssize_t
+store_mx_tline( struct class_device *cdev,const char *buf, size_t size ) 
+{
+	struct net_device *ndev = to_net_dev(cdev);    
+        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+        char *endp;
+	u16 tmp;
+
+	// check parameters
+	if( !size)
+		return size;
+	tmp=simple_strtoul( buf,&endp,0);
+	if( !tmp || tmp>15 )
+		return size;
+	tmp -= 1;
+	nl->regs->TLINE = tmp;
+	return size;
+}
+static CLASS_DEVICE_ATTR(mx_tline,0644,show_mx_tline,store_mx_tline);
+
+// RLINE rgister
+static ssize_t
+show_mx_rline(struct class_device *cdev, char *buf) 
+{
+        struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+
+	return snprintf(buf,PAGE_SIZE,"%d",nl->regs->RLINE);
+}
+
+static ssize_t
+store_mx_rline( struct class_device *cdev,const char *buf, size_t size ) 
+{
+	struct net_device *ndev = to_net_dev(cdev);    
+        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+        char *endp;
+	u16 tmp;
+
+	// check parameters
+	if( !size)
+		return size;
+	tmp=simple_strtoul( buf,&endp,0);
+	if( !tmp || tmp>15 )
+		return size;
+	tmp -= 1;
+	nl->regs->RLINE = tmp;
+	return size;
+}
+static CLASS_DEVICE_ATTR(mx_rline,0644,show_mx_rline,store_mx_rline);
+
+// MXCR rgister
+static ssize_t
+show_mx_control(struct class_device *cdev, char *buf) 
+{
+        struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+	
+	return snprintf(buf,PAGE_SIZE,"%c",nl->regs->MXCR);
+}
+
+static ssize_t
+store_mx_control( struct class_device *cdev,const char *buf, size_t size ) 
+{
+	struct net_device *ndev = to_net_dev(cdev);    
+        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+        char *endp;
+	u16 tmp;
+
+	// check parameters
+	if( !size)
+		return size;
+	tmp=simple_strtoul( buf,&endp,0);
+	if( !tmp || tmp>15 )
+		return size;
+	tmp -= 1;
+	nl->regs->RFS = tmp;
+	return size;
+}
+static CLASS_DEVICE_ATTR(mx_control,0644,show_mx_control,store_mx_control);
+
+//---------------------------- Power ------------------------------------- //
+// PWRR rgister
+static ssize_t
+show_pwrr(struct class_device *cdev, char *buf) 
+{
+        struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+	return snprintf(buf,PAGE_SIZE,"%d",nl->regs->RFS);
+}
+
+static ssize_t
+store_pwrr( struct class_device *cdev,const char *buf, size_t size ) 
+{
+	struct net_device *ndev = to_net_dev(cdev);    
+        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+        char *endp;
+	u16 tmp;
+
+	// check parameters
+	if( !size)
+		return size;
+	tmp=simple_strtoul( buf,&endp,0);
+	nl->regs->PWRR = tmp;
+	return size;
+}
+
+static CLASS_DEVICE_ATTR(pwrr,0644,show_pwrr,store_pwrr);
+
 // ------------------------- Compatibility ------------------------------- //
 // NSGate compatibility
 static ssize_t
@@ -725,6 +938,15 @@ static struct attribute *sg17_attr[] = {
 	&class_device_attr_statistics.attr,
 	&class_device_attr_statistics_row.attr,
 	&class_device_attr_link_state.attr,
+	// multiplexing
+	&class_device_attr_mxrate.attr,
+	&class_device_attr_mx_txstart.attr,
+	&class_device_attr_mx_rxstart.attr,
+	&class_device_attr_mx_tline.attr,
+	&class_device_attr_mx_rline.attr,
+	&class_device_attr_mx_control.attr,
+	// power supply
+	&class_device_attr_pwrr,
 	// compatibility
 	&class_device_attr_nsg_comp.attr,	
         // debug
@@ -734,6 +956,8 @@ static struct attribute *sg17_attr[] = {
 	&class_device_attr_xmit_tst.attr,
 	NULL
 };
+
+
 
 static struct attribute_group sg17_group = {
         .name  = "sg17_private",

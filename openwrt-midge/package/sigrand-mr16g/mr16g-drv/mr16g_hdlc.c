@@ -176,16 +176,26 @@ static ssize_t store_map_ts16( struct device *dev, ADDIT_ATTR const char *buf, s
 static DEVICE_ATTR(map_ts16,0644,show_map_ts16,store_map_ts16);
 
 //debug
+/*
 static ssize_t show_getreg( struct device *dev, ADDIT_ATTR char *buf );
 static ssize_t store_getreg( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
 static DEVICE_ATTR(getreg,0644,show_getreg,store_getreg);
 static ssize_t store_setreg( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
 static DEVICE_ATTR(setreg,0644,NULL,store_setreg);
+*/
 static ssize_t store_chk_carrier( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
 static DEVICE_ATTR(chk_carrier,0644,NULL,store_chk_carrier);
 
 static ssize_t show_hdlcregs( struct device *dev, ADDIT_ATTR char *buf );
 static DEVICE_ATTR(hdlc_regs,0644,show_hdlcregs,NULL);
+
+static ssize_t show_winread( struct device *dev, ADDIT_ATTR char *buf );
+static ssize_t store_winread( struct device *dev, ADDIT_ATTR const char *buf, size_t size);
+static DEVICE_ATTR(winread,0644,show_winread,store_winread);
+
+static ssize_t show_winwrite( struct device *dev, ADDIT_ATTR char *buf );
+static ssize_t store_winwrite( struct device *dev, ADDIT_ATTR const char *buf, size_t size );
+static DEVICE_ATTR(winwrite,0644,show_winwrite,store_winwrite);
 
 
 
@@ -1164,10 +1174,13 @@ mr16g_sysfs_init(struct device *dev)
 	device_create_file(dev,&dev_attr_map_ts16);
 	device_create_file(dev,&dev_attr_clck);
 	// debug
-	device_create_file(dev,&dev_attr_getreg);
-	device_create_file(dev,&dev_attr_setreg);
+//	device_create_file(dev,&dev_attr_getreg);
+//	device_create_file(dev,&dev_attr_setreg);
 	device_create_file(dev,&dev_attr_chk_carrier);	
 	device_create_file(dev,&dev_attr_hdlc_regs);	
+	device_create_file(dev,&dev_attr_winread);	
+	device_create_file(dev,&dev_attr_winwrite);	
+
     return 0;
 }	    
 
@@ -1705,7 +1718,8 @@ store_cas( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 }
 
 
-// debug
+//------------------------------------------ debug ---------------------------------------//
+/*
 static u8 getreg_val=0,getreg_reg=0;
 static ssize_t show_getreg( struct device *dev, ADDIT_ATTR char *buf )
 {
@@ -1763,7 +1777,7 @@ static ssize_t store_setreg( struct device *dev, ADDIT_ATTR const char *buff, si
 	ds2155_setreg(nl,reg,val);
 	return size;
 }
-
+*/
 
 static ssize_t store_chk_carrier( struct device *dev, ADDIT_ATTR const char *buff, size_t size )
 {
@@ -1791,3 +1805,83 @@ static ssize_t show_hdlcregs( struct device *dev, ADDIT_ATTR char *buf )
 	return len;
 }
 
+
+//-------------- Memory window debug -----------------------------//
+#define MR16G_OIMEM_SIZE 0x1000
+
+static u32 win_start=0,win_count=0;
+static ssize_t
+show_winread( struct device *dev, ADDIT_ATTR char *buf )
+{                               
+	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
+	char *win = (char*)nl->mem_base;
+
+	int len = 0,i;
+
+	for(i=0;i<win_count && (len < PAGE_SIZE-3);i++){
+		len += sprintf(buf+len,"%02x ",(win[i]&0xff));
+	}
+	len += sprintf(buf+len,"\n");
+	return len;
+}
+
+static ssize_t
+store_winread( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+{
+	char *endp;
+        if( !size ) return 0;
+	win_start = simple_strtoul(buf,&endp,16);
+	PDEBUG(40,"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);	
+	while( *endp == ' '){
+		endp++;
+	}
+	win_count = simple_strtoul(endp,&endp,16);
+	PDEBUG(40,"buf=%p, endp=%p",buf,endp);		
+	PDEBUG(40,"Set start=%d,count=%d",win_start,win_count);
+	if( !win_count )
+		win_count = 1;
+	if( (win_start + win_count) > MR16G_OIMEM_SIZE ){
+		if( win_start >= (MR16G_OIMEM_SIZE-1) ){
+			win_start = 0;
+			win_count = 1;
+		} else {
+			win_count = 1;
+		}
+	}
+	PDEBUG(40,"Set start=%d,count=%d",win_start,win_count);	
+	return size;
+}
+
+static u32 win_written = 0;
+static ssize_t
+show_winwrite( struct device *dev, ADDIT_ATTR char *buf )
+{                               
+	return sprintf(buf,"Byte %x is written",win_written);
+}
+
+static ssize_t
+store_winwrite( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+{
+	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
+	char *win = (char*)nl->mem_base;
+
+	int start, val;
+	char *endp;
+        if( !size ) return 0;
+	start = simple_strtoul(buf,&endp,16);
+	PDEBUG(40,"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);	
+	while( *endp == ' '){
+		endp++;
+	}
+	val = simple_strtoul(endp,&endp,16);
+	PDEBUG(40,"buf=%p, endp=%p",buf,endp);		
+	PDEBUG(40,"Set start=%d,val=%d",start,val);
+	if( start > MR16G_OIMEM_SIZE ){
+		start = 0;
+	}
+	win_written = start;
+	win[start] = (val & 0xff );
+	return size;
+}

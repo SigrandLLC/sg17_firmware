@@ -283,7 +283,7 @@ inline void
 sg17_sci_link_down(struct sg17_sci *s,int i){
         sg17_link_down(s,s->ch_map[i]);
 }
-			
+
 int
 sg17_sci_if2ch(struct sg17_sci *s,int if_num)
 {
@@ -349,11 +349,13 @@ sdfe4_link_led_down(int i,struct sdfe4 *hwdev){
 void
 sdfe4_link_led_blink(int i, struct sdfe4 *hwdev){
 	PDEBUG(debug_link,"chan#%d",i);
+	sg17_blink((struct sg17_sci *)hwdev->data,i);
 }
 
 void
 sdfe4_link_led_fast_blink(int i,struct sdfe4 *hwdev){
 	PDEBUG(debug_link,"chan#%d",i);
+	sg17_fast_blink((struct sg17_sci *)hwdev->data,i);
 }
 
 inline void sdfe4_clear_channel(struct sdfe4 *hwdev) {}
