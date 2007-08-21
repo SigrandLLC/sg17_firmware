@@ -50,7 +50,7 @@
 
 #include "ds2155_regs.h"
 #include "sg_hdlc_ctrl.h"
-#define DEBUG_ON
+//#define DEBUG_ON
 #define DEFAULT_LEV 1
 #include "sg_debug.h"
 
@@ -890,7 +890,7 @@ mr16g_hdlc_up( struct net_local *nl)
         iowrite8( 0xff, (iotype)&(nl->hdlc_regs->SR) );                              
         iowrite8( XRST , (iotype)&(nl->hdlc_regs->CRA));                             
         iowrite8( 0 , (iotype)&(nl->hdlc_regs->CRB));
-	PDEBUG(0,"SR(%02x) IMR(%02x)",nl->hdlc_regs->SR ,nl->hdlc_regs->IMR);
+	PDEBUG(10,"SR(%02x) IMR(%02x)",nl->hdlc_regs->SR ,nl->hdlc_regs->IMR);
 }	
 
 inline void	
