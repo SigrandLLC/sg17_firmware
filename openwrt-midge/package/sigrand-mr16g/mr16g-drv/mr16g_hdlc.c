@@ -406,7 +406,7 @@ mr16g_open( struct net_device  *ndev )
 	hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct net_local *nl=(struct net_local*)hdlc->priv;
         int err;
-	u8 *mask = EXT;
+	u8 mask = EXT;
 
         if( (err=hdlc_open(ndev)) )
 		return err;
@@ -919,8 +919,6 @@ mr16g_hdlc_open( struct net_local *nl)
 inline void	
 mr16g_hdlc_close( struct net_local *nl)
 {
-        u8 cfg_byte;
-
 	// Control register A
 	iowrite8(XRST,(iotype)&(nl->hdlc_regs->CRA));
 	// Control register B
@@ -1205,10 +1203,12 @@ mr16g_sysfs_del(struct device *dev)
 	device_remove_file(dev,&dev_attr_clck);
 
 	// debug
-	device_remove_file(dev,&dev_attr_getreg);
-	device_remove_file(dev,&dev_attr_setreg);
+//	device_remove_file(dev,&dev_attr_getreg);
+//	device_remove_file(dev,&dev_attr_setreg);
 	device_remove_file(dev,&dev_attr_chk_carrier);		
 	device_remove_file(dev,&dev_attr_hdlc_regs);	
+	device_remove_file(dev,&dev_attr_winread);	
+	device_remove_file(dev,&dev_attr_winwrite);	
 }	    
 
 //---------- hdlc -----------------//
