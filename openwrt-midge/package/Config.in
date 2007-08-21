@@ -357,6 +357,7 @@ menu "Sigrand"
 source "package/webface/Config.in"
 source "package/hotplug/Config.in"
 source "package/sigrand-doc/Config.in"
+source "package/eocd/Config.in"
 
 menu "Sigrand drivers"
 source "package/sethdlc/Config.in"
