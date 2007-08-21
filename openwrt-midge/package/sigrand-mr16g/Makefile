@@ -5,8 +5,12 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=sigrand-mr16g
 PKG_RELEASE:=1
 
-
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
+
+ifeq ($(BR2_PACKAGE_SIGRAND_MR16G_DEBUG),y)
+    CFLAGS +=-DSYSFS_DEBUG
+    DEBUG := yes
+endif
 
 include $(TOPDIR)/package/rules.mk
 
@@ -26,7 +30,8 @@ $(PKG_BUILD_DIR)/.configured:
 	-e "s%@CROSS_PREFIX@%$(KERNEL_CROSS)%g" \
 	-e "s%@CFLAGS@%$(CFLAGS)%g" \
 	-e "s%@KERNVER@%2.6.16%g" \
-	-e "s%@INST_PATH@%$(IDIR_SIGRAND_MR16G)%g"	
+	-e "s%@INST_PATH@%$(IDIR_SIGRAND_MR16G)%g" \
+	-e "s%@DEBUG@%$(DEBUG)%g"	
 	touch $@
 
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured

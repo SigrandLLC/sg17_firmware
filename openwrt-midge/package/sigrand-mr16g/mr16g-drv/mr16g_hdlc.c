@@ -189,6 +189,7 @@ static DEVICE_ATTR(chk_carrier,0644,NULL,store_chk_carrier);
 static ssize_t show_hdlcregs( struct device *dev, ADDIT_ATTR char *buf );
 static DEVICE_ATTR(hdlc_regs,0644,show_hdlcregs,NULL);
 
+#ifdef SYSFS_DEBUG
 static ssize_t show_winread( struct device *dev, ADDIT_ATTR char *buf );
 static ssize_t store_winread( struct device *dev, ADDIT_ATTR const char *buf, size_t size);
 static DEVICE_ATTR(winread,0644,show_winread,store_winread);
@@ -197,7 +198,7 @@ static ssize_t show_winwrite( struct device *dev, ADDIT_ATTR char *buf );
 static ssize_t store_winwrite( struct device *dev, ADDIT_ATTR const char *buf, size_t size );
 static DEVICE_ATTR(winwrite,0644,show_winwrite,store_winwrite);
 
-
+#endif
 
 /*----------------------------------------------------------
  * Driver initialisation 
@@ -1176,9 +1177,10 @@ mr16g_sysfs_init(struct device *dev)
 //	device_create_file(dev,&dev_attr_setreg);
 	device_create_file(dev,&dev_attr_chk_carrier);	
 	device_create_file(dev,&dev_attr_hdlc_regs);	
+#ifdef SYSFS_DEBUG
 	device_create_file(dev,&dev_attr_winread);	
 	device_create_file(dev,&dev_attr_winwrite);	
-
+#endif
     return 0;
 }	    
 
@@ -1207,8 +1209,10 @@ mr16g_sysfs_del(struct device *dev)
 //	device_remove_file(dev,&dev_attr_setreg);
 	device_remove_file(dev,&dev_attr_chk_carrier);		
 	device_remove_file(dev,&dev_attr_hdlc_regs);	
+#ifdef SYSFS_DEBUG
 	device_remove_file(dev,&dev_attr_winread);	
 	device_remove_file(dev,&dev_attr_winwrite);	
+#endif
 }	    
 
 //---------- hdlc -----------------//
@@ -1807,6 +1811,8 @@ static ssize_t show_hdlcregs( struct device *dev, ADDIT_ATTR char *buf )
 
 
 //-------------- Memory window debug -----------------------------//
+#ifdef SYSFS_DEBUG
+
 #define MR16G_OIMEM_SIZE 0x1000
 
 static u32 win_start=0,win_count=0;
@@ -1885,3 +1891,5 @@ store_winwrite( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 	win[start] = (val & 0xff );
 	return size;
 }
+
+#endif
