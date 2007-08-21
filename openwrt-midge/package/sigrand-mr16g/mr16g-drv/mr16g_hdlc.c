@@ -1821,7 +1821,7 @@ show_winread( struct device *dev, ADDIT_ATTR char *buf )
 {                               
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
 	struct net_local *nl=mr16g_priv(ndev);
-	char *win = (char*)nl->mem_base;
+	char *win = (char*)nl->mem_base + win_start;
 
 	int len = 0,i;
 
