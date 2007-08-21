@@ -737,35 +737,140 @@ store_mx_rline( struct class_device *cdev,const char *buf, size_t size )
 }
 static CLASS_DEVICE_ATTR(mx_rline,0644,show_mx_rline,store_mx_rline);
 
-// MXCR rgister
+//--------------- MXCR rgister
+
+// MX enable
 static ssize_t
-show_mx_control(struct class_device *cdev, char *buf) 
+show_mx_enable(struct class_device *cdev, char *buf) 
 {
         struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
 	
-	return snprintf(buf,PAGE_SIZE,"%c",nl->regs->MXCR);
+	return snprintf(buf,PAGE_SIZE,"%s",(nl->regs->MXCR & MXEN) ? "1" : "0");
 }
 
 static ssize_t
-store_mx_control( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_enable( struct class_device *cdev,const char *buf, size_t size ) 
 {
 	struct net_device *ndev = to_net_dev(cdev);    
         struct net_local *nl=(struct net_local *)netdev_priv(ndev);
-        char *endp;
-	u16 tmp;
 
 	// check parameters
 	if( !size)
 		return size;
-	tmp=simple_strtoul( buf,&endp,0);
-	if( !tmp || tmp>15 )
-		return size;
-	tmp -= 1;
-	nl->regs->RFS = tmp;
+	switch( buf[0] ){
+	case '0':
+		nl->regs->MXCR &= (~MXEN);
+		break;
+	case '1':
+		nl->regs->MXCR |= MXEN;
+		break;
+	default:
+		break;
+	}
 	return size;
 }
-static CLASS_DEVICE_ATTR(mx_control,0644,show_mx_control,store_mx_control);
+static CLASS_DEVICE_ATTR(mx_enable,0644,show_mx_enable,store_mx_enable);
+
+// CLKM
+static ssize_t
+show_mx_clkm(struct class_device *cdev, char *buf) 
+{
+        struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+	
+	return snprintf(buf,PAGE_SIZE,"%s",(nl->regs->MXCR & CLKM) ? "1" : "0");
+}
+
+static ssize_t
+store_mx_clkm( struct class_device *cdev,const char *buf, size_t size ) 
+{
+	struct net_device *ndev = to_net_dev(cdev);    
+        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+
+	// check parameters
+	if( !size)
+		return size;
+	switch( buf[0] ){
+	case '0':
+		nl->regs->MXCR &= (~CLKM);
+		break;
+	case '1':
+		nl->regs->MXCR |= CLKM;
+		break;
+	default:
+		break;
+	}
+	return size;
+}
+static CLASS_DEVICE_ATTR(mx_clkm,0644,show_mx_clkm,store_mx_clkm);
+
+// CLKAB
+static ssize_t
+show_mx_clkab(struct class_device *cdev, char *buf) 
+{
+        struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+	
+	return snprintf(buf,PAGE_SIZE,"%s",(nl->regs->MXCR & CLKAB) ? "1" : "0");
+}
+
+static ssize_t
+store_mx_clkab( struct class_device *cdev,const char *buf, size_t size ) 
+{
+	struct net_device *ndev = to_net_dev(cdev);    
+        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+
+	// check parameters
+	if( !size)
+		return size;
+	switch( buf[0] ){
+	case '0':
+		nl->regs->MXCR &= (~CLKAB);
+		break;
+	case '1':
+		nl->regs->MXCR |= CLKAB;
+		break;
+	default:
+		break;
+	}
+	return size;
+}
+static CLASS_DEVICE_ATTR(mx_clkab,0644,show_mx_clkab,store_mx_clkab);
+
+// CLKR
+static ssize_t
+show_mx_clkr(struct class_device *cdev, char *buf) 
+{
+        struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+	
+	return snprintf(buf,PAGE_SIZE,"%s",(nl->regs->MXCR & CLKR) ? "1" : "0");
+}
+
+static ssize_t
+store_mx_clkr( struct class_device *cdev,const char *buf, size_t size ) 
+{
+	struct net_device *ndev = to_net_dev(cdev);    
+        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+
+	// check parameters
+	if( !size)
+		return size;
+	switch( buf[0] ){
+	case '0':
+		nl->regs->MXCR &= (~CLKR);
+		break;
+	case '1':
+		nl->regs->MXCR |= CLKR;
+		break;
+	default:
+		break;
+	}
+	return size;
+}
+static CLASS_DEVICE_ATTR(mx_clkr,0644,show_mx_clkr,store_mx_clkr);
+
 
 //---------------------------- Power ------------------------------------- //
 // PWRR rgister
@@ -958,7 +1063,10 @@ static struct attribute *sg17_mx_attr[] = {
 	&class_device_attr_mx_rxstart.attr,
 	&class_device_attr_mx_tline.attr,
 	&class_device_attr_mx_rline.attr,
-	&class_device_attr_mx_control.attr,
+	&class_device_attr_mx_enable.attr,
+	&class_device_attr_mx_clkm.attr,
+	&class_device_attr_mx_clkab.attr,
+	&class_device_attr_mx_clkr.attr,
 	NULL
 };
 

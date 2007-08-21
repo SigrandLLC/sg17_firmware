@@ -37,6 +37,7 @@
 // SR and IMR bits
 #define TXS     0x01            // transmit success
 #define RXS     0x02            // receive success
+
 // SR and IMR bits
 #define TXS     0x01            // transmit success
 #define RXS     0x02            // receive success
@@ -45,9 +46,15 @@
 #define UFL     0x10            // fifo underflow error
 #define EXT     0x20            // interrupt from sk70725
 #define COL     0x40            // interrupt from sk70725
+
 // IMR only
 #define TSI     0x80            // generate test interrupt
 
+// MXCR bits
+#define MXEN	0x01		// Multiplexer enable: 0-disabled (HDLC only), 1-enabled
+#define CLKM	0x02		// Multiplexer Bus Clock usage: 1-Clock master, 0-slave
+#define CLKAB	0x04		// Clock domain: 0 - clock A, 1 - clock B
+#define CLKR	0x08		// 0 - Clock master uses local oscillator, 1 - Clock master uses clock from receiver
 
 //---- SG17-PCI IO memory ----//
 #define SG17_OIMEM_SIZE 0x4000

@@ -294,9 +294,11 @@ sg17_link_down(struct sg17_sci *s, int if_num)
 	struct sg17_card *card = container_of(s,struct sg17_card,sci);
 	struct net_device *ndev = card->ndevs[if_num];
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
-	
+	u8 tmp = ioread8(&nl->regs->CRB) | RXDE;
+	tmp &= ~(LED1 | LED2); 
 	PDEBUG(debug_link,"");
-	iowrite8( (ioread8(&nl->regs->CRB)|RXDE),&(nl->regs->CRB) );
+
+	iowrite8(tmp,&(nl->regs->CRB) );
         iowrite8( 0, &nl->regs->IMR );
 	netif_carrier_off( ndev );
 	PDEBUG(debug_link,"end");	
@@ -305,24 +307,14 @@ sg17_link_down(struct sg17_sci *s, int if_num)
 void
 sg17_led_blink(struct sg17_sci *s, int if_num)
 {
-asm("#1");
 	struct sg17_card *card = container_of(s,struct sg17_card,sci);
-asm("#2");
 	struct net_device *ndev = card->ndevs[if_num];
-asm("#3");
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
-asm("#4");
 	PDEBUG(debug_link,"");
-	printk("%s: ifnum: %d\n",__FUNCTION__,if_num);
-asm("#5");
 	u8 tmp = ioread8(&nl->regs->CRB);
-asm("#6");
 	tmp &= ~LED2;
-asm("#7");
 	tmp |= LED1;
-asm("#8");
 	iowrite8( tmp ,&(nl->regs->CRB) );
-asm("#9");
 }
 
 void
