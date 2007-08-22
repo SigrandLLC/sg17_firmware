@@ -55,16 +55,16 @@ void rbuf_free(struct ring_buf *r)
     struct rbuf_buf *cur;    
     while( r->head != r->tail ){
 	cur = &(r->rb[r->head]);
-	printk(KERN_NOTICE"%s: free buf#%d, ptr=%p,head = %d\n",__FUNCTION__,i,cur,r->head);
-//	rbuf_free_buf(cur);
-	printk(KERN_NOTICE"%s: free sub buffs for buf#%d - success\n",__FUNCTION__,i);	
-//	free(cur);
-	printk(KERN_NOTICE"%s: free buf#%d - success\n",__FUNCTION__,i);
+//	printk(KERN_NOTICE"%s: free buf#%d, ptr=%p,head = %d\n",__FUNCTION__,i,cur,r->head);
+	rbuf_free_buf(cur);
+//	printk(KERN_NOTICE"%s: free sub buffs for buf#%d - success\n",__FUNCTION__,i);	
+	free(cur);
+//	printk(KERN_NOTICE"%s: free buf#%d - success\n",__FUNCTION__,i);
 	r->head = inc_index(r->head);	
 	i++;
     }
     printk(KERN_NOTICE"%s: free struct ptr#%d\n",__FUNCTION__,i);    
-//    free(r);
+    free(r);
 }
 
 

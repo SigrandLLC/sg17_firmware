@@ -1203,11 +1203,7 @@ sdfe4_eoc_tx(struct sdfe4 *hwdev,int ch,char *ptr,int size)
 	struct sdfe4_msg rmsg;	
 	int i,offset = 0,j;
 	u8 cp;
-	PDEBUG(debug_eoc,"Start.size=%d, %d interations",size,count);
-for(i=0;i<size;i++){
-	printk("%02x ",ptr[i]);
-}
-printk("\n");
+
 	for(i=0;i<count;i++){
 		cp = (size>SDFE4_EOC_MAXMSG) ? SDFE4_EOC_MAXMSG : size;
 		memcpy(msg+2,ptr+offset,cp);
@@ -1222,15 +1218,6 @@ printk("\n");
 			msg[0] = 0;
 		}
 		msg[1] = cp;
-/*
-printk(KERN_NOTICE"MSG#%d: ");
-for(j=0;j<cp+2;j++){
-	if( (j+1) % 25 == 0)
-		printk("\n");
-	printk("%02x ",msg[j]);
-}
-printk("\n");
-*/		
 		hwdev->ch[ch].eoc->eoc_tx = 0;
 		if(sdfe4_pamdsl_cmd(ch,CMD_EOC_TX,(u8*)msg,cp+2,&rmsg,hwdev)){
 			PDEBUG(debug_eoc,"CMD_EOC_TX failed");		
