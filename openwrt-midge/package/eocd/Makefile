@@ -50,6 +50,7 @@ $(IPKG_SIGRAND_EOCD):
 	cp $(PKG_BUILD_DIR)/eocd-src/eocd  $(IDIR_SIGRAND_EOCD)/sbin
 	cp $(PKG_BUILD_DIR)/eocd-src/eocd.conf $(IDIR_SIGRAND_EOCD)/etc/eocd
 	cp $(STAGING_DIR)/lib/libstdc++.so.6 $(IDIR_SIGRAND_EOCD)/lib
+	cp $(PKG_BUILD_DIR)/eocd-src/app-if/applications/eoc-info  $(IDIR_SIGRAND_EOCD)/sbin
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_EOCD)/CONTROL/control
 	$(IPKG_BUILD) $(IDIR_SIGRAND_EOCD) $(PACKAGE_DIR)	
 	@echo "INSTALLLLLLLLLLL"
