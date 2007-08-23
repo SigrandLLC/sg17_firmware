@@ -759,9 +759,11 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	sdi_settings=(struct cmd_cfg_sdi_settings*)buf;
 	memset(sdi_settings,0,sizeof(*sdi_settings));
         sdi_settings->input_mode=cfg->input_mode ;
-	if( !cfg->mxflag ){
+	if( cfg->mxflag ){
+	    printf("MXflag is on\n");
 	    sdi_settings->output_mode=SDI_TDMSP_TDMMSP;
 	}else{
+	    printf("MXflag is off\n");
 	    sdi_settings->output_mode=SDI_INCLK_INSP_TDMMSP;
 	}
 	sdi_settings->frequency=cfg->frequency;
@@ -787,7 +789,7 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	sdi_rx->data_shift_edg=SDI_NO;
 	sdi_rx->lstwr_1strd_dly=0x93;
 	sdi_rx->slip_mode=SLIP_FAST;
-	if( !cfg->mxflag ){
+	if( cfg->mxflag ){
 	    sdi_rx->align=SDI_NO;
 	}else{
 	    sdi_rx->align=SDI_YES;
