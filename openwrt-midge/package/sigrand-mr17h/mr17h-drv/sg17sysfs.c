@@ -600,7 +600,7 @@ store_mx_rate( struct class_device *cdev,const char *buf, size_t size )
 	struct net_device *ndev = to_net_dev(cdev);    
         struct net_local *nl=(struct net_local *)netdev_priv(ndev);
         char *endp;
-	u16 tmp;
+	u8 tmp;
 	
         // check parameters
 	if( !size)
@@ -608,8 +608,8 @@ store_mx_rate( struct class_device *cdev,const char *buf, size_t size )
         tmp=simple_strtoul( buf,&endp,0);
 	if( !tmp )
 		return size;
-	tmp = (tmp/64) - 1;
-	if( nl->regs->RATE < tmp )
+	tmp--;
+	if( (nl->regs->RATE+1) < tmp && tmp != 0xff )
 	    return size;
 	nl->regs->MXRATE = tmp;
 	return size;

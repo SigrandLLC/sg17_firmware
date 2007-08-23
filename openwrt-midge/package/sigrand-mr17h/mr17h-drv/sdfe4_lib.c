@@ -760,10 +760,10 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	memset(sdi_settings,0,sizeof(*sdi_settings));
         sdi_settings->input_mode=cfg->input_mode ;
 	if( cfg->mxflag ){
-	    printf("MXflag is on\n");
+	    printk("MXflag is on\n");
 	    sdi_settings->output_mode=SDI_TDMSP_TDMMSP;
 	}else{
-	    printf("MXflag is off\n");
+	    printk("MXflag is off\n");
 	    sdi_settings->output_mode=SDI_INCLK_INSP_TDMMSP;
 	}
 	sdi_settings->frequency=cfg->frequency;
