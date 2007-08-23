@@ -609,8 +609,6 @@ store_mx_rate( struct class_device *cdev,const char *buf, size_t size )
 	if( !tmp )
 		return size;
 	tmp--;
-	if( (nl->regs->RATE+1) < tmp && tmp != 0xff )
-	    return size;
 	nl->regs->MXRATE = tmp;
 	return size;
 }
