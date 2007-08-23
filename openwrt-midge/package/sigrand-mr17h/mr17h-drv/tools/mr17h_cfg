@@ -14,8 +14,8 @@ print_usage()
 {
     echo "SIGRAND SG-17PCI configuration tool"
     echo "Usage:"
-    echo "  sg16cfg <if>               - get statistics"
-    echo "  sg16cfg <if> [args]        - set DSL parameters"
+    echo "  mr17_cfg <if>               - get statistics"
+    echo "  mr17_cfg <if> [args]        - set DSL parameters"
     echo "  <if> - SG-17PCI network interface name"
     echo "Possible arguments:"
     echo "  master | slave             - set modem mode: master(STU-C) or slave(STU-R)"
