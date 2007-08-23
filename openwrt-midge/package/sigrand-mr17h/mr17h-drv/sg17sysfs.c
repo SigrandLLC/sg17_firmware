@@ -754,6 +754,7 @@ store_mx_enable( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);    
         struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
 
 	// check parameters
 	if( !size)
@@ -768,6 +769,8 @@ store_mx_enable( struct class_device *cdev,const char *buf, size_t size )
 	default:
 		break;
 	}
+	cfg->mxflag = !(nl->regs->MXCR & MXEN) || 
+		( (nl->regs->MXCR & MXEN) && (nl->regs->MXCR & CLKM) && (nl->regs->MXCR & CLKR) );
 	return size;
 }
 static CLASS_DEVICE_ATTR(mx_enable,0644,show_mx_enable,store_mx_enable);
@@ -787,6 +790,7 @@ store_mx_clkm( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);    
         struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
 
 	// check parameters
 	if( !size)
@@ -801,6 +805,10 @@ store_mx_clkm( struct class_device *cdev,const char *buf, size_t size )
 	default:
 		break;
 	}
+
+	cfg->mxflag = !(nl->regs->MXCR & MXEN) || 
+		( (nl->regs->MXCR & MXEN) && (nl->regs->MXCR & CLKM) && (nl->regs->MXCR & CLKR) );
+
 	return size;
 }
 static CLASS_DEVICE_ATTR(mx_clkm,0644,show_mx_clkm,store_mx_clkm);
@@ -853,6 +861,7 @@ store_mx_clkr( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);    
         struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
 
 	// check parameters
 	if( !size)
@@ -867,6 +876,10 @@ store_mx_clkr( struct class_device *cdev,const char *buf, size_t size )
 	default:
 		break;
 	}
+
+	cfg->mxflag = !(nl->regs->MXCR & MXEN) || 
+		( (nl->regs->MXCR & MXEN) && (nl->regs->MXCR & CLKM) && (nl->regs->MXCR & CLKR) );
+
 	return size;
 }
 static CLASS_DEVICE_ATTR(mx_clkr,0644,show_mx_clkr,store_mx_clkr);

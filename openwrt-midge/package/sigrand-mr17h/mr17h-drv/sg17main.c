@@ -310,8 +310,9 @@ sg17_led_blink(struct sg17_sci *s, int if_num)
 	struct sg17_card *card = container_of(s,struct sg17_card,sci);
 	struct net_device *ndev = card->ndevs[if_num];
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
-	PDEBUG(debug_link,"");
 	u8 tmp = ioread8(&nl->regs->CRB);
+
+	PDEBUG(debug_link,"");
 	tmp &= ~LED2;
 	tmp |= LED1;
 	iowrite8( tmp ,&(nl->regs->CRB) );
@@ -323,8 +324,8 @@ sg17_led_fblink(struct sg17_sci *s, int if_num)
 	struct sg17_card *card = container_of(s,struct sg17_card,sci);
 	struct net_device *ndev = card->ndevs[if_num];
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
-	PDEBUG(debug_link,"");
 	u8 tmp = (ioread8(&nl->regs->CRB) & (~LED1)) | LED2;
+	PDEBUG(debug_link,"");
 	iowrite8(tmp,&(nl->regs->CRB) );
 }
 

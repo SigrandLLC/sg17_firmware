@@ -759,12 +759,16 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	sdi_settings=(struct cmd_cfg_sdi_settings*)buf;
 	memset(sdi_settings,0,sizeof(*sdi_settings));
         sdi_settings->input_mode=cfg->input_mode ;
-	sdi_settings->output_mode=SDI_TDMSP_TDMMSP;
+	if( !cfg->mxflag ){
+	    sdi_settings->output_mode=SDI_TDMSP_TDMMSP;
+	}else{
+	    sdi_settings->output_mode=SDI_INCLK_INSP_TDMMSP;
+	}
 	sdi_settings->frequency=cfg->frequency;
 	sdi_settings->payload_bits=cfg->payload_bits;
 	sdi_settings->frames=0x30;
 	sdi_settings->loop=cfg->loop;
-	sdi_settings->ext_clk8k=SDI_NO;
+        sdi_settings->ext_clk8k=SDI_NO;
 	sdi_settings->dpll4bclk=SDI_NODPLL;
 	sdi_settings->refclkin_freq=TIM_DATA_CLK_8KHZ;
 	sdi_settings->refclkout_freq=TIM_REF_CLK_OUT_SYM_8KHZ;
@@ -783,7 +787,11 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	sdi_rx->data_shift_edg=SDI_NO;
 	sdi_rx->lstwr_1strd_dly=0x93;
 	sdi_rx->slip_mode=SLIP_FAST;
-        sdi_rx->align=SDI_NO;
+	if( !cfg->mxflag ){
+	    sdi_rx->align=SDI_NO;
+	}else{
+	    sdi_rx->align=SDI_YES;
+	}	
 	rmsg.ack_id=ACK_CFG_SDI_RX;
 	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_SDI_RX,(u8*)buf,sizeof(*sdi_rx),&rmsg,hwdev))
 		return -1;
