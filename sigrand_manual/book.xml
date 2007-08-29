@@ -1039,6 +1039,55 @@
 				Эту же процедуру повторяем на втором маршрутизаторе, и через пару минут, в течении которых &quot;мост&quot; распознает топологию сети и проведет небольшой этап самообучения, начнется передача пакетов между интерфейсами.
 			</para>
     </section>
+	<section>
+		<title>Настройка соединения PPtP</title>
+		<para>
+			<emphasis>PPtP</emphasis> - Point-to-point tunneling protocol - туннельный протоколо типа точка-точка, позволяющий создать виртуальную частную сеть (VPN) поверх физической сети.
+		</para>
+		<para>
+			Для создания соединения, необходимо добавить динамический интерфейс PPtP. Это выполняется на странице Network/Interfaces:
+		</para>
+		<figure>
+			<title>Добавления интерфейса PPtP</title>
+			<graphic fileref="img/pptp-add.png" width="6in" />
+		</figure>
+		<para>
+			После добавления, следует снова перейти на страницу Network/Interfaces, чтбы обновить список доступных интерфейсов. Настройка интерфейса выполняется на странице Network/Interfaces/pptp*. Рассмотрим специфичные для данного интерфейса параметры.
+		</para>
+		<figure>
+			<title>Вкладка Specific</title>
+			<graphic fileref="img/pptp-specific.png" width="6in" />
+		</figure>
+		<itemizedlist>
+			<listitem><para>Server - имя или IP-адрес сервера PPtP, к которому будет выполняться подключение.</para></listitem>
+			<listitem><para>Username - имя пользователя.</para></listitem>
+			<listitem><para>Password - пароль.</para></listitem>
+			<listitem><para>Default route - является ли это соединение маршрутом по-умолчанию.</para></listitem>
+			<listitem><para>PPPD Options - параметры, которые будет переданы демону PPPD при подключении.</para></listitem>
+		</itemizedlist>
+		<important>
+			<para>
+				После создания и первого редактирования настроек соединение будет инициализировано, независимо от параметров на вкладке General.
+			</para>
+		</important>
+		<para>
+			Активировать соединение и включить его автоматическую инициализацию после загрузки маршрутизатора можно на вкладке General:
+		</para>
+		<figure>
+			<title>Вкладка General</title>
+			<graphic fileref="img/pptp-general.png" width="6in" />
+		</figure>
+	<note>
+		<para>
+			При данном виде сетевого подключения параметр Method игнорируется и может принимать любые значения.
+		</para>
+	</note>
+	<note>
+		<para>
+			На данный момент подключение по PPtP с использованием шифрования MPPE невозможно.
+		</para>
+	</note>
+	</section>
 	<section id="eoc">
 		<title>Мониторинг SHDSL каналов</title>
 		<para>
