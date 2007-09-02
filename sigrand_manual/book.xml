@@ -582,6 +582,95 @@
 			После внесения изменений в конфигурационный файл рекомендуется перезагрузить маршрутизатор.
 		</para>
     </section>
+	<section id="eoc">
+		<title>Мониторинг SHDSL каналов</title>
+		<para>
+			Мониторинг SHDSL каналов позволяет получить информацию о соотношении Сигнал/Шум и уровне затухания в линии связи. В случае, если в линии связи используются регенераторы <emphasis>SG-17E</emphasis>, то можно получать информацию о состоянии этих регенераторов.
+		</para>
+		<para>
+			Мониторинг каналов осуществляется программой <emphasis>eocd</emphasis>, работающей в режиме демона. На данный момент его конфигурация и запуск осуществляется через консольный интерфейс маршрутизатора.
+		</para>
+		<para>
+			Для работы демон <emphasis>eocd</emphasis> использует конфигурационный файл (по-умолчанию расположенный по пути /etc/eocd/eocd.conf), который состоит из двух разделов:
+		</para>
+		<itemizedlist>
+			<listitem><para>channels - содержит список интерфейсов операционной системы, определяет роль каждого из них в SHDSL канале и содержит ссылку на конфигурационный профиль.</para></listitem>
+			<listitem><para>span_profiles - содержит список профилей каналов. На данный момент не используется, но для каждого элемента из <emphasis>channels</emphasis> должен быть соответствующий профиль.</para></listitem>
+		</itemizedlist>
+		<para>
+			Пример раздела <emphasis>channels</emphasis>:
+		</para>
+		<screen>
+			channels = (
+			{
+			name = "dsl0";				// Имя интерфейса в ОС
+			master = 1;					// Роль интерфейса: 1 - master, 0 - slave
+			
+			repeaters = 1;				// На данный момент не используется
+			conf_profile = "span#1";	// Имя профайла в разделе <emphasis>span_profiles</emphasis>
+			},
+			{
+			name = "dsl1";
+			master = 1;
+			
+			repeaters = 1;
+			conf_profile = "span#1";
+			}
+			);
+		</screen>
+		<para>
+			Запуск демона возможен со следующими параметрами:
+		</para>
+		<itemizedlist>
+			<listitem><para>-d, --daemon - запуск в режиме демона. Без этого ключа <emphasis>eocd</emphasis> не отключится от терминала и будет выводить на него диагностические сообщения.</para></listitem>
+			<listitem><para>-c, --config_path=path - путь к конфигурационному файлу (по-умолчанию используется конфигурационный файл /etc/eocd/eocd.conf).</para></listitem>
+			<listitem><para>-l, --debuglev=level - уровень отладки, допустимые значения 0, 1, 2.</para></listitem>
+		</itemizedlist>
+		<para>
+			Для запуска демона можно использовать следующую команду:
+		</para>
+		<para>
+			<command>eocd</command> <option>-d</option>
+		</para>
+		<para>
+			После запуска демон выдаст сообщение на консоль и в системный лог (<command>logread</command>), и должен быть виден в списке процессов (<command>ps</command>).
+		</para>
+		<para>
+			Демон должен быть запущен как на маршрутизаторе, работающем в режиме <emphasis>master</emphasis>, так и на втором маршрутизаторе, работающем в режиме <emphasis>slave</emphasis>.
+		</para>
+		<important>
+			<para>Если при запуске демона он не сможет подключить указанные в конфигурационном файле интерфейсы (к примеру, если не загружен драйвер), то он выдаст в системный лог диагностическое сообщение (прочитать его можно с помощью команды <emphasis>logread</emphasis>).</para>
+		</important>
+		<para>
+			Для мониторинга SHDSL канала используется утилита <command>eoc-info</command>, для получения подробной информации об её использовании используется ключ <option>--help</option>.
+		</para>
+		<important>
+			<para>Получение информации о канале возможно только на мастере, выполнение <command>eoc-info</command> на слейве не покажет информации о канале.</para>
+		</important>
+		<para>
+			Для получения краткой информации о состоянии канала используется команда <command>eoc-info</command> <option>-s</option>. Она показывает состояние каждого канала: сколько регенераторов обнаружено, и установлено ли соединение со слейвом (маршрутизатор, работающий в режиме <emphasis>slave</emphasis>). В ее выводе <emphasis>offline</emphasis> показывает, что соединение со вторым маршрутизатором не установлено. В этом случае число регенераторов показывает, до какого регенератора было установлено соединение.
+		</para>
+		<para>
+			Для получения более детальной информации надо указать имя интерфейса: <command>eoc-info</command> <option>-i</option> <replaceable>dsl0</replaceable>. В выводе команды будет полная информация о всех юнитах в тракте - мастера, слейва и всех регенераторов. Для получения информации о конкретном юните используется опция <option>-u</option> и номер юнита: 1 - мастер, 2 - слейв, 3 - первый регенератор и т.д.
+		</para>
+		<para>
+			При выводе детальной информации доступна информация о параметрах линии связи:
+		</para>
+		<itemizedlist>
+			<listitem><para>SNR Margin - соотношение сигнал/шум</para></listitem>
+			<listitem><para>Loop Attenuation - затухание</para></listitem>
+		</itemizedlist>
+		<para>
+			Есть две группы, в которые входят параметры линии связи:
+		</para>
+		<itemizedlist>
+			<listitem><para>NetSide - сторона мастера</para></listitem>
+			<listitem><para>CustomerSide - сторона клиента</para></listitem>
+		</itemizedlist>
+		<para>
+			Соответственно, на местере есть только сторона слейва, на слейве - только сторона мастера. У каждого регенератора есть обе стороны.
+		</para>
+	</section>
     <section id="cfg" >
       <title>Сохранение/восстановление конфигурации</title>
       <para>
@@ -925,292 +1014,208 @@
       </section>
     </section>
 	<section id="ifaces" >
-		<title>Работа с динамическими интерфейсами</title>
-		<para>
-			На странице Network/Interfaces возможно добавить или удалить динамический интерфейс. На данный момент существуют следующие динамические интерфейсы:
-			<itemizedlist>
-				<listitem>Bridge - создание моста</listitem>
-				<listitem>PPPoE - PPP over Ethernet</listitem>
-				<listitem>PPtP - Point-to-Point Tunneling Protocol</listitem>
-				<listitem>Bonding - объединение интерфейсов</listitem>
-			</itemizedlist>
-		</para>
-		<para>
-			Для создания нового интерфейса его тип выбирается из выпадающего списка, нажимается кнопка Add:
+		<title>Динамические интерфейсы</title>
+		<section>
+			<title>Работа с динамическими интерфейсами</title>
+			<para>
+				На странице Network/Interfaces возможно добавить или удалить динамический интерфейс. На данный момент существуют следующие динамические интерфейсы:
+				<itemizedlist>
+					<listitem>Bridge - создание моста</listitem>
+					<listitem>PPPoE - PPP over Ethernet</listitem>
+					<listitem>PPtP - Point-to-Point Tunneling Protocol</listitem>
+					<listitem>Bonding - объединение интерфейсов</listitem>
+				</itemizedlist>
+			</para>
+			<para>
+				Для создания нового интерфейса его тип выбирается из выпадающего списка, нажимается кнопка Add:
+				<figure>
+					<title>Создание динамического интерфейса</title>
+					<graphic width="6in" fileref="img/ifaces-add.png" />
+				</figure>
+				После добавления надо перезагрузить страницу, щелкнув в меню по ссылке Network/Interfaces, чтобы добавленный интерфейс отобразился в списке сетевых интерфейсов.
+			</para>
+			<para>
+				Для удаления интерфейса его имя выбирается в выпадающем списке, нажимается кнопка Delete:
+				<figure>
+					<title>Удаление динамического интерфейса</title>
+					<graphic width="6in" fileref="img/ifaces-del.png" />
+				</figure>
+			</para>
+		</section>
+		<section id="bonding">
+			<title>Настройка режима Bonding</title>
+			<para>
+				Режим Bonding позволяет объединять несколько физических соединений в одно логическое. К примеру, два SHDSL канала можно объединить в один, увеличив пропускную способность соединения.
+			</para>
+			<para>
+				Для настройки режима Bonding в первую очередь необходимо настроить физическое соединение (к примеру, SHDSL или Ethernet).
+			</para>
+			<para>
+				Перед конфигурацией виртуального интерфейса следует убедиться, что физические интерфейсы (например, dsl0 и dsl1) активны. Выполняется это на странице Network/Interfaces/*/General, парметр Enabled должен быть активным, Auto отключенным, а Method равен None:
+			</para>
 			<figure>
-				<title>Создание динамического интерфейса</title>
-				<graphic width="6in" fileref="img/ifaces-add.png" />
+				<title>Настройка интерфейса</title>
+				<graphic fileref="img/shdsl-dsl.png" />
 			</figure>
-			После добавления надо перезагрузить страницу, щелкнув в меню по ссылке Network/Interfaces, чтобы добавленный интерфейс отобразился в списке сетевых интерфейсов.
-		</para>
-		<para>
-			Для удаления интерфейса его имя выбирается в выпадающем списке, нажимается кнопка Delete:
+			<para>
+				Виртуальный интерфейс создается на странице Network/Interfaces, на которой в разделе Add dynamic interface необходимо выбрать в качестве протокола Bonding:
+			</para>
 			<figure>
-				<title>Удаление динамического интерфейса</title>
-				<graphic width="6in" fileref="img/ifaces-del.png" />
+				<title>Создание виртуального интерфейса</title>
+				<graphic fileref="img/shdsl-create_bonding.png" />
 			</figure>
-		</para>
-    </section>
-	<section>
-		<title>Настройка работы SHDSL модемов в режиме Bonding</title>
-		<para>
-			Режим Bonding позволяет объединять несколько физических соединений в одно логическое. К примеру, два SHDSL канала можно объединить в один, увеличив пропускную способность соединения.
-		</para>
-		<para>
-			Для настройки режима Bonding в первую очередь необходимо настроить физическое соединение по интерфейсу SHDSL. Конфигурирование SHDSL рассмотрено в соответствующем разделе.
-		</para>
-		<para>
-			Перед конфигурацией виртуального интерфейса следует убедиться, что интерфейсы dsl0 и dsl1 активны. Выполняется это на странице Network/Interfaces/dsl*/General, парметр Enabled должен быть активным, Auto отключенным, а Method равен None:
-		</para>
-		<figure>
-			<title>Настройка интерфейса</title>
-			<graphic fileref="img/shdsl-dsl.png" />
-		</figure>
-		<para>
-			Виртуальный интерфейс создается на странице Network/Interfaces, на которой в разделе Add dynamic interface необходимо выбрать в качестве протокола Bonding:
-		</para>
-		<figure>
-			<title>Создание виртуального интерфейса</title>
-			<graphic fileref="img/shdsl-create_bonding.png" />
-        </figure>
-		<para>
-			После создания интерфейса нажатием кнопки Add, следует щелкнуть кнопкой мыши на меню Network/Interfaces, чтобы созданный интерфейс отобразился в меню. Для его настройки необходимо перейти на страницу Network/Interfaces/bond0, на которой следует выбрать вкладку General и выставить следующие настройки:
-		</para>
-		<figure>
-			<title>Активация виртуального интерфейса</title>
-			<graphic fileref="img/shdsl-bond-general.png" />
-        </figure>
-		<para>
-			Эти настройки активирует интерфейс и настраивают его автоматическую активацию после загрузки системы, IP-адрес для него задается статически на вкладке Method:
-		</para>
-		<figure>
-			<title>Присвоение IP-адреса</title>
-			<graphic fileref="img/shdsl-bond-method.png" />
-        </figure>
-		<note>
-        	<para>Если требуется указать маршрут по-умолчанию, адрес маршрутизатора следует ввести в поле Gateway.</para>
-		</note>
-		<para>
-			На вкладке Specific указывается, какие физические интерфейсы будут использоваться этим виртуальным интерфейсом для передачи данных. При настройке SHDSL Bonding, следует ввести dsl0 и dsl1:
-		</para>
-		<figure>
-			<title>Привязка к физическим интерфейсам</title>
-			<graphic fileref="img/shdsl-bond-specific.png" />
-        </figure>
-		<para>
-			Аналогичные настройки необходимо произвести и на втором маршрутизаторе. После соединения SHDSL модемов маршрутизатора по линиям связи, будут установлены два физических соединения, которые будут объединены в одно логическое с увеличенной пропускной способностью.
-		</para>
-		<note>
-        	<para>При разрыве одного из физических соединений, трафик будет передаваться по оставшемуся соединению.</para>
-		</note>
-	</section>
-    <section>
-      <title>Настройка моста</title>
-      <para>
+			<para>
+				После создания интерфейса нажатием кнопки Add, следует щелкнуть кнопкой мыши на меню Network/Interfaces, чтобы созданный интерфейс отобразился в меню. Для его настройки необходимо перейти на страницу Network/Interfaces/bond0, на которой следует выбрать вкладку General и выставить следующие настройки:
+			</para>
+			<figure>
+				<title>Активация виртуального интерфейса</title>
+				<graphic fileref="img/shdsl-bond-general.png" />
+			</figure>
+			<para>
+				Эти настройки активирует интерфейс и настраивают его автоматическую активацию после загрузки системы, IP-адрес для него задается статически на вкладке Method:
+			</para>
+			<figure>
+				<title>Присвоение IP-адреса</title>
+				<graphic fileref="img/shdsl-bond-method.png" />
+			</figure>
+			<note>
+				<para>Если требуется указать маршрут по-умолчанию, адрес маршрутизатора следует ввести в поле Gateway.</para>
+			</note>
+			<para>
+				На вкладке Specific указывается, какие физические интерфейсы будут использоваться этим виртуальным интерфейсом для передачи данных. При настройке SHDSL Bonding, следует ввести dsl0 и dsl1:
+			</para>
+			<figure>
+				<title>Привязка к физическим интерфейсам</title>
+				<graphic fileref="img/shdsl-bond-specific.png" />
+			</figure>
+			<note>
+				<para>
+					Аналогичные настройки необходимо произвести и на втором маршрутизаторе.
+				</para>
+			</note>
+			<note>
+				<para>При разрыве одного из физических соединений, трафик будет передаваться по оставшемуся соединению.</para>
+			</note>
+		</section>
+		<section id="bridge">
+			<title>Настройка моста</title>
+			<para>
 				Работа маршрутизатора в режиме моста (bridging) позволяет прозрачно передавать трафик между интерфейсами, имитируя работу коммутатора. Для этого создается специальный сетевой интерфейс с именем <emphasis>br</emphasis>, с которым ассоциируются сетевые интерфейсы между которыми будет передаваться трафик.
 			</para>
-      <figure>
-        <title>Пример моста</title>
-        <graphic width="6in" fileref="img/bridge.png" />
-      </figure>
-      <para>
+			<figure>
+				<title>Пример моста</title>
+				<graphic width="6in" fileref="img/bridge.png" />
+			</figure>
+			<para>
 				В приведенном выше рисунке мост состоит из двух интерфейсов - Ethernet-интерфейса eth0 и SHDSL-интерфейса dsl0 - и объединяет в одну сеть компьютеры PC1 и PC2
 			</para>
-      <para>
+			<para>
 				На следующем рисунке изображена сеть, аналогичная предыдущий, но с использованием технологии объединения каналов (bonding), позволяющей увеличить производительность сети. В этом случае мост состоит из Ethernet-интерфейса eth0 и объединенных SHDSL-интерфейсов dsl0 и dsl1 в один интерфейс bond0:
 			</para>
-      <figure>
-        <title>Пример моста с объединением интерфейсов</title>
-        <graphic width="6in" fileref="img/bridge+bonding.png" />
-      </figure>
-      <para>
+			<figure>
+				<title>Пример моста с объединением интерфейсов</title>
+				<graphic width="6in" fileref="img/bridge+bonding.png" />
+			</figure>
+			<para>
 				Создание интерфейса происходит на странице Network/Interfaces, на которой в меню Add dynamic interface надо выбрать в качестве протокола Bridge:
 			</para>
-      <figure>
-        <title>Создание интерфейса</title>
-        <graphic width="6in" fileref="img/bridge-add.png" />
-      </figure>
-      <para>
+			<figure>
+				<title>Создание интерфейса</title>
+				<graphic width="6in" fileref="img/bridge-add.png" />
+			</figure>
+			<para>
 				После добавления интерфейса надо снова перейти по ссылке Network/Interfaces, чтобы добавленный интерфейс отобразился в меню:
 			</para>
-      <figure>
-        <title>Добавленный интерфейс br0</title>
-        <graphic fileref="img/bridge-list_ifaces.png" />
-      </figure>
-      <para>
+			<figure>
+				<title>Добавленный интерфейс br0</title>
+				<graphic fileref="img/bridge-list_ifaces.png" />
+			</figure>
+			<para>
 				Новому интерфейсу надо поставить метод установки IP-адреса статическим. Для этого перейдем в настройки интерфейса (по ссылке в меню Network/Interfaces/br0) и выберем вкладку General, на которой установим необходимое значение:
 			</para>
-      <figure>
-        <title>Установка метода присвоения IP-адреса</title>
-        <graphic width="6in" fileref="img/bridge-general1.png" />
-      </figure>
-      <note>
-        <simpara>
+			<figure>
+				<title>Установка метода присвоения IP-адреса</title>
+				<graphic width="6in" fileref="img/bridge-general1.png" />
+			</figure>
+			<note>
+				<simpara>
 					Установка IP-адреса нужна только для того, чтобы иметь возможность управлять маршрутизатором, если управление им возможно только через интерфейсы, включенные в мост. Вызвано это тем, что после добавления сетевого интерфейса в мост, доступ к нему становится невозможным по присвоенному ему ранее IP-адресу. Проще говоря, добавленный в мост интерфейс становится без IP-адреса.
 				</simpara>
-      </note>
-      <para>
+			</note>
+			<para>
 				Установим IP-адрес и сетевую маску на вкладке Method:
 			</para>
-      <figure>
-        <title>Установка IP-адреса</title>
-        <graphic width="6in" fileref="img/bridge-method.png" />
-      </figure>
-      <para>
+			<figure>
+				<title>Установка IP-адреса</title>
+				<graphic width="6in" fileref="img/bridge-method.png" />
+			</figure>
+			<para>
 				Следующим шагом настройки является определение списка интерфейсов, входящих в мост. Для этого перейдем на вкладку Specific, где в поле Interfaces укажем имена сетевых интерфейсов, из которых будет состоять мост:
 			</para>
-      <figure>
-        <title>Определение интерфейсов</title>
-        <graphic width="6in" fileref="img/bridge-specific.png" />
-      </figure>
-      <para>
+			<figure>
+				<title>Определение интерфейсов</title>
+				<graphic width="6in" fileref="img/bridge-specific.png" />
+			</figure>
+			<para>
 				В завершении настройки, активируем интерфейс на вкладке General, поставив флажки напротив значений Enable и Auto:
 			</para>
-      <figure>
-        <title>Активация моста</title>
-        <graphic width="6in" fileref="img/bridge-general2.png" />
-      </figure>
-      <para>
+			<figure>
+				<title>Активация моста</title>
+				<graphic width="6in" fileref="img/bridge-general2.png" />
+			</figure>
+			<para>
 				Эту же процедуру повторяем на втором маршрутизаторе, и через пару минут, в течении которых &quot;мост&quot; распознает топологию сети и проведет небольшой этап самообучения, начнется передача пакетов между интерфейсами.
 			</para>
-    </section>
-	<section>
-		<title>Настройка соединения PPtP</title>
-		<para>
-			<emphasis>PPtP</emphasis> - Point-to-point tunneling protocol - туннельный протокол типа точка-точка, позволяющий создать виртуальную частную сеть (VPN) поверх физической сети.
-		</para>
-		<para>
-			Для создания соединения, необходимо добавить динамический интерфейс PPtP. Это выполняется на странице Network/Interfaces:
-		</para>
-		<figure>
-			<title>Добавления интерфейса PPtP</title>
-			<graphic fileref="img/pptp-add.png" width="6in" />
-		</figure>
-		<para>
-			После добавления, следует снова перейти на страницу Network/Interfaces, чтобы обновить список доступных интерфейсов. Настройка интерфейса выполняется на странице Network/Interfaces/pptp*. Рассмотрим специфичные для данного интерфейса параметры.
-		</para>
-		<figure>
-			<title>Вкладка Specific</title>
-			<graphic fileref="img/pptp-specific.png" width="6in" />
-		</figure>
-		<itemizedlist>
-			<listitem><para>Server - имя или IP-адрес сервера PPtP, к которому будет выполняться подключение.</para></listitem>
-			<listitem><para>Username - имя пользователя.</para></listitem>
-			<listitem><para>Password - пароль.</para></listitem>
-			<listitem><para>Default route - является ли это соединение маршрутом по-умолчанию.</para></listitem>
-			<listitem><para>PPPD Options - параметры, которые будет переданы демону PPPD при подключении.</para></listitem>
-		</itemizedlist>
-		<important>
+		</section>
+		<section id="pptp">
+			<title>Настройка соединения PPtP</title>
 			<para>
-				После создания и первого редактирования настроек соединение будет инициализировано, независимо от параметров на вкладке General.
+				<emphasis>PPtP</emphasis> - Point-to-point tunneling protocol - туннельный протокол типа точка-точка, позволяющий создать виртуальную частную сеть (VPN) поверх физической сети.
 			</para>
-		</important>
-		<para>
-			Активировать соединение и включить его автоматическую инициализацию после загрузки маршрутизатора можно на вкладке General:
-		</para>
-		<figure>
-			<title>Вкладка General</title>
-			<graphic fileref="img/pptp-general.png" width="6in" />
-		</figure>
-	<note>
-		<para>
-			При данном виде сетевого подключения параметр Method игнорируется и может принимать любые значения.
-		</para>
-	</note>
-	<note>
-		<para>
-			На данный момент подключение по PPtP с использованием шифрования MPPE невозможно.
-		</para>
-	</note>
-	</section>
-	<section id="eoc">
-		<title>Мониторинг SHDSL каналов</title>
-		<para>
-			Мониторинг SHDSL каналов позволяет получить информацию о соотношении Сигнал/Шум и уровне затухания в линии связи. В случае, если в линии связи используются регенераторы <emphasis>SG-17E</emphasis>, то можно получать информацию о состоянии этих регенераторов.
-		</para>
-		<para>
-			Мониторинг каналов осуществляется программой <emphasis>eocd</emphasis>, работающей в режиме демона. На данный момент его конфигурация и запуск осуществляется через консольный интерфейс маршрутизатора.
-		</para>
-		<para>
-			Для работы демон <emphasis>eocd</emphasis> использует конфигурационный файл (по-умолчанию расположенный по пути /etc/eocd/eocd.conf), который состоит из двух разделов:
-		</para>
-		<itemizedlist>
-			<listitem><para>channels - содержит список интерфейсов операционной системы, определяет роль каждого из них в SHDSL канале и содержит ссылку на конфигурационный профиль.</para></listitem>
-			<listitem><para>span_profiles - содержит список профилей каналов. На данный момент не используется, но для каждого элемента из <emphasis>channels</emphasis> должен быть соответствующий профиль.</para></listitem>
-		</itemizedlist>
-		<para>
-			Пример раздела <emphasis>channels</emphasis>:
-		</para>
-		<screen>
-			channels = (
-				{
-					name = "dsl0";				// Имя интерфейса в ОС
-					master = 1;					// Роль интерфейса: 1 - master, 0 - slave
-					
-					repeaters = 1;				// На данный момент не используется
-					conf_profile = "span#1";	// Имя профайла в разделе <emphasis>span_profiles</emphasis>
-				},
-				{
-					name = "dsl1";
-					master = 1;
-					
-					repeaters = 1;
-					conf_profile = "span#1";
-				}
-			);
-		</screen>
-		<para>
-			Запуск демона возможен со следующими параметрами:
-		</para>
-		<itemizedlist>
-			<listitem><para>-d, --daemon - запуск в режиме демона. Без этого ключа <emphasis>eocd</emphasis> не отключится от терминала и будет выводить на него диагностические сообщения.</para></listitem>
-			<listitem><para>-c, --config_path=path - путь к конфигурационному файлу (по-умолчанию используется конфигурационный файл /etc/eocd/eocd.conf).</para></listitem>
-			<listitem><para>-l, --debuglev=level - уровень отладки, допустимые значения 0, 1, 2.</para></listitem>
-		</itemizedlist>
-		<para>
-			Для запуска демона можно использовать следующую команду:
-		</para>
-		<para>
-			<command>eocd</command> <option>-d</option>
-		</para>
-		<para>
-			После запуска демон выдаст сообщение на консоль и в системный лог (<command>logread</command>), и должен быть виден в списке процессов (<command>ps</command>).
-		</para>
-		<para>
-			Демон должен быть запущен как на маршрутизаторе, работающем в режиме <emphasis>master</emphasis>, так и на втором маршрутизаторе, работающем в режиме <emphasis>slave</emphasis>.
-		</para>
-		<important>
-			<para>Если при запуске демона он не сможет подключить указанные в конфигурационном файле интерфейсы (к примеру, если не загружен драйвер), то он выдаст в системный лог диагностическое сообщение (прочитать его можно с помощью команды <emphasis>logread</emphasis>).</para>
-		</important>
-		<para>
-			Для мониторинга SHDSL канала используется утилита <command>eoc-info</command>, для получения подробной информации об её использовании используется ключ <option>--help</option>.
-		</para>
-		<important>
-			<para>Получение информации о канале возможно только на мастере, выполнение <command>eoc-info</command> на слейве не покажет информации о канале.</para>
-		</important>
-		<para>
-			Для получения краткой информации о состоянии канала используется команда <command>eoc-info</command> <option>-s</option>. Она показывает состояние каждого канала: сколько регенераторов обнаружено, и установлено ли соединение со слейвом (маршрутизатор, работающий в режиме <emphasis>slave</emphasis>). В ее выводе <emphasis>offline</emphasis> показывает, что соединение со вторым маршрутизатором не установлено. В этом случае число регенераторов показывает, до какого регенератора было установлено соединение.
-		</para>
-		<para>
-			Для получения более детальной информации надо указать имя интерфейса: <command>eoc-info</command> <option>-i</option> <replaceable>dsl0</replaceable>. В выводе команды будет полная информация о всех юнитах в тракте - мастера, слейва и всех регенераторов. Для получения информации о конкретном юните используется опция <option>-u</option> и номер юнита: 1 - мастер, 2 - слейв, 3 - первый регенератор и т.д.
-		</para>
-		<para>
-			При выводе детальной информации доступна информация о параметрах линии связи:
-		</para>
-		<itemizedlist>
-			<listitem><para>SNR Margin - соотношение сигнал/шум</para></listitem>
-			<listitem><para>Loop Attenuation - затухание</para></listitem>
-		</itemizedlist>
-		<para>
-			Есть две группы, в которые входят параметры линии связи:
-		</para>
-		<itemizedlist>
-			<listitem><para>NetSide - сторона мастера</para></listitem>
-			<listitem><para>CustomerSide - сторона клиента</para></listitem>
-		</itemizedlist>
-		<para>
-			Соответственно, на местере есть только сторона слейва, на слейве - только сторона мастера. У каждого регенератора есть обе стороны.
-		</para>
+			<para>
+				Для создания соединения, необходимо добавить динамический интерфейс PPtP. Это выполняется на странице Network/Interfaces:
+			</para>
+			<figure>
+				<title>Добавления интерфейса PPtP</title>
+				<graphic fileref="img/pptp-add.png" width="6in" />
+			</figure>
+			<para>
+				После добавления, следует снова перейти на страницу Network/Interfaces, чтобы обновить список доступных интерфейсов. Настройка интерфейса выполняется на странице Network/Interfaces/pptp*. Рассмотрим специфичные для данного интерфейса параметры.
+			</para>
+			<figure>
+				<title>Вкладка Specific</title>
+				<graphic fileref="img/pptp-specific.png" width="6in" />
+			</figure>
+			<itemizedlist>
+				<listitem><para>Server - имя или IP-адрес сервера PPtP, к которому будет выполняться подключение.</para></listitem>
+				<listitem><para>Username - имя пользователя.</para></listitem>
+				<listitem><para>Password - пароль.</para></listitem>
+				<listitem><para>Default route - является ли это соединение маршрутом по-умолчанию.</para></listitem>
+				<listitem><para>PPPD Options - параметры, которые будет переданы демону PPPD при подключении.</para></listitem>
+			</itemizedlist>
+			<important>
+				<para>
+					После создания и первого редактирования настроек соединение будет инициализировано, независимо от параметров на вкладке General.
+				</para>
+			</important>
+			<para>
+				Активировать соединение и включить его автоматическую инициализацию после загрузки маршрутизатора можно на вкладке General:
+			</para>
+			<figure>
+				<title>Вкладка General</title>
+				<graphic fileref="img/pptp-general.png" width="6in" />
+			</figure>
+			<note>
+				<para>
+					При данном виде сетевого подключения параметр Method игнорируется и может принимать любые значения.
+				</para>
+			</note>
+			<note>
+				<para>
+					На данный момент подключение по PPtP с использованием шифрования MPPE невозможно.
+				</para>
+			</note>
+		</section>
 	</section>
   </chapter>
   <chapter id="dhcp_server" >
