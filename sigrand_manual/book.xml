@@ -1173,14 +1173,14 @@
 				<emphasis>PPtP</emphasis> - Point-to-point tunneling protocol - туннельный протокол типа точка-точка, позволяющий создать виртуальную частную сеть (VPN) поверх физической сети.
 			</para>
 			<para>
-				Для создания соединения, необходимо добавить динамический интерфейс PPtP. Это выполняется на странице Network/Interfaces:
+				Для создания соединения необходимо добавить динамический интерфейс PPtP. Это выполняется на странице Network/Interfaces:
 			</para>
 			<figure>
 				<title>Добавления интерфейса PPtP</title>
 				<graphic fileref="img/pptp-add.png" width="6in" />
 			</figure>
 			<para>
-				После добавления, следует снова перейти на страницу Network/Interfaces, чтобы обновить список доступных интерфейсов. Настройка интерфейса выполняется на странице Network/Interfaces/pptp*. Рассмотрим специфичные для данного интерфейса параметры.
+				После добавления, следует снова перейти на страницу Network/Interfaces, чтобы обновить список доступных интерфейсов. Настройка интерфейса выполняется на странице Network/Interfaces/pptp*. Рассмотрим специфичные для данного интерфейса параметры:
 			</para>
 			<figure>
 				<title>Вкладка Specific</title>
@@ -1215,6 +1215,42 @@
 					На данный момент подключение по PPtP с использованием шифрования MPPE невозможно.
 				</para>
 			</note>
+		</section>
+		<section id="pppoe">
+			<title>Настройка соединения PPPoE</title>
+			<para>
+				<emphasis>PPPoE</emphasis> - Point-to-point protocol over Ethernet - сетевой протокол передачи кадров PPP через Ethernet. Так же, как <emphasis>PPtP</emphasis> это туннелирующий протокол, но работающий непосредственно поверх Ethernet, создающий соединение типа точка-точка. Использование PPP предоставляет возможности аутентификации, сжатия трафика и его шифрования.
+			</para>
+			<para>
+				Для создания соединения необходимо добавить динамический интерфейс PPPoE на странице Network/Interfaces:
+			</para>
+			<figure>
+				<title>Добавление интерфейса PPPoE</title>
+				<graphic fileref="img/pppoe-add.png" width="6in" />
+			</figure>
+			<para>
+				После добавления, следует снова перейти на страницу Network/Interfaces, чтобы обновить список доступных интерфейсов. Настройка интерфейса выполняется на странице Network/Interfaces/pppoe*. Рассмотрим специфичные для данного интерфейса параметры:
+			</para>
+			<figure>
+				<title>Вкладка Specific</title>
+				<graphic fileref="img/pppoe-specific.png" width="6in" />
+			</figure>
+			<itemizedlist>
+				<listitem><para>Interface - физический интерфейс, в сети которого находится PPPoE сервер (eth0, eth1, ...)</para></listitem>
+				<listitem><para>Service - маршрутизатор будет устанавливать соединение с теми серверами PPPoE, которые предоставляют данный сервис. В большинстве случаев этот параметр не используется.</para></listitem>
+				<listitem><para>Access Concentrator - маршрутизатор будет устанавливать соединение только с указанным концентратором. Используется в случае наличия нескольких серверов PPPoE.</para></listitem>
+				<listitem><para>Default route - является ли это соединение маршрутом по-умолчанию.</para></listitem>
+				<listitem><para>Username - имя пользователя.</para></listitem>
+				<listitem><para>Password - пароль.</para></listitem>
+				<listitem><para>PPPD Options - параметры, которые будет переданы демону PPPD при подключении.</para></listitem>
+			</itemizedlist>
+			<para>
+				Активировать соединение и включить его автоматическую инициализацию после загрузки маршрутизатора можно на вкладке General:
+			</para>
+			<figure>
+				<title>Вкладка General</title>
+				<graphic fileref="img/pppoe-general.png" width="6in" />
+			</figure>
 		</section>
 	</section>
   </chapter>
