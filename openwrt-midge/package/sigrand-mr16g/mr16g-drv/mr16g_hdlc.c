@@ -1049,7 +1049,9 @@ mr16g_E1_setup(struct net_local *nl)
 	iowrite8(smap[1],(iotype)&(nl->hdlc_regs->MXMAP1));	
 	iowrite8(smap[2],(iotype)&(nl->hdlc_regs->MXMAP2));	
 	iowrite8(smap[3],(iotype)&(nl->hdlc_regs->MXMAP3));	
-
+	tmp = slot_cnt(tmpmap);
+	iowrite8(tmp,(iotype)&(nl->hdlc_regs->MXRATE));	
+	
 
 	if( !cfg->int_clck ){
 		tmp = EXTC | ioread8((iotype)&(nl->hdlc_regs->CRB));
@@ -1382,6 +1384,18 @@ slotmap2str(u32 smap,struct ds2155_config *cfg,char *buf)
 		}
 	}
 	return strlen(buf);
+}
+
+static int
+slot_cnt(u32 smap)
+{
+    int cnt;
+    while(smap){
+	if( smap & 0x1 )
+	    cnt++;
+	smap = (smap>>1) & 0x7fffffff;
+    }
+    return cnt;
 }
 
 

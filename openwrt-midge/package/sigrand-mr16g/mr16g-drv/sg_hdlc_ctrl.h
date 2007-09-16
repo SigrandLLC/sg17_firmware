@@ -188,6 +188,11 @@ static u8 ds2155_carrier(struct net_local *nl);
 static int ds2155_interrupt( struct net_device *ndev, u8 *mask );
 
 
+// Slotap related
+static u32 str2slotmap(char *str,size_t size,int *err);
+static int slotmap2str(u32 smap,struct ds2155_config *cfg,char *buf);
+static int slot_cnt(u32 smap);
+
 // Sysfs related functions
 #define ADDIT_ATTR
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,12)
