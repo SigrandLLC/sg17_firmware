@@ -903,43 +903,6 @@ store_pwron(struct class_device *cdev,const char *buf, size_t size )
 }
 static CLASS_DEVICE_ATTR(pwron,0644,show_pwron,store_pwron);
 
-
-// PWRIE
-static ssize_t
-show_pwrie(struct class_device *cdev, char *buf) 
-{
-	struct net_device *ndev = to_net_dev(cdev);
-        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
-
-
-	return snprintf(buf,PAGE_SIZE,"%s",(nl->regs->PWRR & PWRON) ? "1" : "0");
-}
-
-static ssize_t
-store_pwrie(struct class_device *cdev,const char *buf, size_t size )
-{
-	struct net_device *ndev = to_net_dev(cdev);
-        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
-
-	// check parameters
-	if( !size)
-		return size;
-
-	switch( buf[0] ){
-	case '0':
-		nl->regs->PWRR &= (~PWRIE);
-		break;	
-	case '1':
-		nl->regs->PWRR |= PWRIE;
-		break;
-	default:
-		break;
-	}
-	return size;
-}
-static CLASS_DEVICE_ATTR(pwrie,0644,show_pwrie,store_pwrie);
-
-
 // OVL
 static ssize_t
 show_pwrovl(struct class_device *cdev, char *buf) 
@@ -1110,7 +1073,6 @@ static struct attribute *sg17_attr[] = {
 	&class_device_attr_link_state.attr,
 	// power supply
 	&class_device_attr_pwron.attr,
-	&class_device_attr_pwrie.attr,
 	&class_device_attr_pwrovl.attr,
 	&class_device_attr_pwrunb.attr,
 	// compatibility

@@ -313,6 +313,7 @@ package-$(BR2_PACKAGE_ZLIB) += zlib
 #
 package-$(BR2_PACKAGE_WEBFACE) += webface
 package-$(BR2_PACKAGE_SIGRAND_SETHDLC) += sethdlc
+package-$(BR2_PACKAGE_SIGRAND_MUX) += sigrand-mux
 package-$(BR2_PACKAGE_WEBFACE) += eocd
 package-$(BR2_PACKAGE_SIGRAND_MR17H) += sigrand-mr17h
 package-$(BR2_PACKAGE_SIGRAND_MR16H) += sigrand-mr16h
