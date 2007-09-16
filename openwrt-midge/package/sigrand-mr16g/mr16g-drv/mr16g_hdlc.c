@@ -1392,7 +1392,7 @@ slotmap2str(u32 smap,struct ds2155_config *cfg,char *buf)
 static int
 slot_cnt(u32 smap)
 {
-    int cnt;
+    int cnt = 0;
     while(smap){
 	if( smap & 0x1 )
 	    cnt++;
@@ -1821,7 +1821,7 @@ store_mx_slotmap(struct class_device *cdev,const char *buf,size_t size)
 	int err;
 	char *str;
 
-	PDEBUG(0,"start, buf=%s",buf);	
+	PDEBUG(10,"start, buf=%s",buf);	
 
 	if( !size )
 		return size;
@@ -1829,9 +1829,9 @@ store_mx_slotmap(struct class_device *cdev,const char *buf,size_t size)
 	str=(char *)(buf+(size-1));
 	*str=0;
 	str=(char *)buf;
-	PDEBUG(0,"call str2slotmap for (%s)",str);
+	PDEBUG(10,"call str2slotmap for (%s)",str);
 	ts=str2slotmap(str,size,&err);
-	PDEBUG(0,"str2slotmap completed, ts=%08x",ts);	
+	PDEBUG(10,"str2slotmap completed, ts=%08x",ts);	
 	if( err ){
 		printk("mr16g: error in timeslot string (%s)\n",buf);
 		return size;
