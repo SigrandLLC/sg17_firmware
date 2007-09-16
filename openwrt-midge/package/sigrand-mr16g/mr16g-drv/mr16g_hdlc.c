@@ -1053,6 +1053,7 @@ mr16g_E1_setup(struct net_local *nl)
 	iowrite8(smap[2],(iotype)&(nl->hdlc_regs->MXMAP2));	
 	iowrite8(smap[3],(iotype)&(nl->hdlc_regs->MXMAP3));	
 	tmp = slot_cnt(tmpmap);
+	tmp--;
 	iowrite8(tmp,(iotype)&(nl->hdlc_regs->MXRATE));	
 	
 
@@ -1357,7 +1358,7 @@ str2slotmap(char *str,size_t size,int *err)
         }
 	PDEBUG(4,"str=%08x, s=%08x,size=%d",(u32)str,(u32)s,size);
 	*err=0;	
-	if( s != str+(size-1) )
+	if( s != str+(size-1) && s != str)
 		*err=1;
         return ts;
 }
