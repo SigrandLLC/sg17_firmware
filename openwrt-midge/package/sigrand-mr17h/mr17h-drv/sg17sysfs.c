@@ -591,7 +591,7 @@ show_mx_rate(struct class_device *cdev, char *buf)
         struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
 	
-	return snprintf(buf,PAGE_SIZE,"%d",(nl->regs->MXRATE+1)*64);
+	return snprintf(buf,PAGE_SIZE,"%d",nl->regs->MXRATE+1);
 }
 
 static ssize_t
@@ -606,7 +606,6 @@ store_mx_rate( struct class_device *cdev,const char *buf, size_t size )
 	if( !size)
 		return size;
         tmp=simple_strtoul( buf,&endp,0);
-
 	tmp--;
 	nl->regs->MXRATE = tmp;
 	return size;
@@ -636,9 +635,8 @@ store_mx_txstart( struct class_device *cdev,const char *buf, size_t size )
 		return size;
         tmp=simple_strtoul( buf,&endp,0);
 	
-	if( !tmp || tmp>255 )
-		return size;
-	tmp -= 1;
+	if( tmp>255 )
+		return size;		
 	nl->regs->TFS = tmp;
 	return size;
 }
@@ -666,9 +664,8 @@ store_mx_rxstart( struct class_device *cdev,const char *buf, size_t size )
 	if( !size)
 		return size;
 	tmp=simple_strtoul( buf,&endp,0);
-	if( !tmp || tmp>255 )
+	if( tmp>255 )
 		return size;
-	tmp -= 1;
 	nl->regs->RFS = tmp;
 	return size;
 }
@@ -696,9 +693,8 @@ store_mx_tline( struct class_device *cdev,const char *buf, size_t size )
 	if( !size)
 		return size;
 	tmp=simple_strtoul( buf,&endp,0);
-	if( !tmp || tmp>15 )
+	if( tmp>15 )
 		return size;
-	tmp -= 1;
 	nl->regs->TLINE = tmp;
 	return size;
 }
@@ -726,9 +722,8 @@ store_mx_rline( struct class_device *cdev,const char *buf, size_t size )
 	if( !size)
 		return size;
 	tmp=simple_strtoul( buf,&endp,0);
-	if( !tmp || tmp>15 )
+	if( tmp>15 )
 		return size;
-	tmp -= 1;
 	nl->regs->RLINE = tmp;
 	return size;
 }
@@ -751,7 +746,6 @@ store_mx_enable( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);    
         struct net_local *nl=(struct net_local *)netdev_priv(ndev);
-	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
 
 	// check parameters
 	if( !size)
@@ -766,8 +760,6 @@ store_mx_enable( struct class_device *cdev,const char *buf, size_t size )
 	default:
 		break;
 	}
-	cfg->mxflag = !(nl->regs->MXCR & MXEN) || 
-		( (nl->regs->MXCR & MXEN) && (nl->regs->MXCR & CLKM) && (nl->regs->MXCR & CLKR) );
 	return size;
 }
 static CLASS_DEVICE_ATTR(mx_enable,0644,show_mx_enable,store_mx_enable);
@@ -787,7 +779,6 @@ store_mx_clkm( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);    
         struct net_local *nl=(struct net_local *)netdev_priv(ndev);
-	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
 
 	// check parameters
 	if( !size)
@@ -802,9 +793,6 @@ store_mx_clkm( struct class_device *cdev,const char *buf, size_t size )
 	default:
 		break;
 	}
-
-	cfg->mxflag = !(nl->regs->MXCR & MXEN) || 
-		( (nl->regs->MXCR & MXEN) && (nl->regs->MXCR & CLKM) && (nl->regs->MXCR & CLKR) );
 
 	return size;
 }
@@ -858,7 +846,6 @@ store_mx_clkr( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);    
         struct net_local *nl=(struct net_local *)netdev_priv(ndev);
-	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
 
 	// check parameters
 	if( !size)
@@ -874,9 +861,6 @@ store_mx_clkr( struct class_device *cdev,const char *buf, size_t size )
 		break;
 	}
 
-	cfg->mxflag = !(nl->regs->MXCR & MXEN) || 
-		( (nl->regs->MXCR & MXEN) && (nl->regs->MXCR & CLKM) && (nl->regs->MXCR & CLKR) );
-
 	return size;
 }
 static CLASS_DEVICE_ATTR(mx_clkr,0644,show_mx_clkr,store_mx_clkr);
@@ -884,31 +868,102 @@ static CLASS_DEVICE_ATTR(mx_clkr,0644,show_mx_clkr,store_mx_clkr);
 
 //---------------------------- Power ------------------------------------- //
 // PWRR rgister
+
+// PWRON 
 static ssize_t
-show_pwrr(struct class_device *cdev, char *buf) 
+show_pwron(struct class_device *cdev, char *buf) 
 {
-        struct net_device *ndev = to_net_dev(cdev);
-	struct net_local *nl = netdev_priv(ndev);
-	return snprintf(buf,PAGE_SIZE,"%d",nl->regs->RFS);
+	struct net_device *ndev = to_net_dev(cdev);
+        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+
+	return snprintf(buf,PAGE_SIZE,"%s",(nl->regs->PWRR & PWRON) ? "1" : "0");
 }
 
 static ssize_t
-store_pwrr( struct class_device *cdev,const char *buf, size_t size ) 
+store_pwron(struct class_device *cdev,const char *buf, size_t size )
 {
-	struct net_device *ndev = to_net_dev(cdev);    
+	struct net_device *ndev = to_net_dev(cdev);
         struct net_local *nl=(struct net_local *)netdev_priv(ndev);
-        char *endp;
-	u16 tmp;
 
 	// check parameters
 	if( !size)
 		return size;
-	tmp=simple_strtoul( buf,&endp,0);
-	nl->regs->PWRR = tmp;
+
+	switch( buf[0] ){
+	case '0':
+		nl->regs->PWRR &= (~PWRON);
+		break;
+	case '1':
+		nl->regs->PWRR |= PWRON;
+		break;
+	default:
+		break;
+	}
 	return size;
 }
+static CLASS_DEVICE_ATTR(pwron,0644,show_pwron,store_pwron);
 
-static CLASS_DEVICE_ATTR(pwrr,0644,show_pwrr,store_pwrr);
+
+// PWRIE
+static ssize_t
+show_pwrie(struct class_device *cdev, char *buf) 
+{
+	struct net_device *ndev = to_net_dev(cdev);
+        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+
+
+	return snprintf(buf,PAGE_SIZE,"%s",(nl->regs->PWRR & PWRON) ? "1" : "0");
+}
+
+static ssize_t
+store_pwrie(struct class_device *cdev,const char *buf, size_t size )
+{
+	struct net_device *ndev = to_net_dev(cdev);
+        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+
+	// check parameters
+	if( !size)
+		return size;
+
+	switch( buf[0] ){
+	case '0':
+		nl->regs->PWRR &= (~PWRIE);
+		break;	
+	case '1':
+		nl->regs->PWRR |= PWRIE;
+		break;
+	default:
+		break;
+	}
+	return size;
+}
+static CLASS_DEVICE_ATTR(pwrie,0644,show_pwrie,store_pwrie);
+
+
+// OVL
+static ssize_t
+show_pwrovl(struct class_device *cdev, char *buf) 
+{
+	struct net_device *ndev = to_net_dev(cdev);
+        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+
+	return snprintf(buf,PAGE_SIZE,"%s",(nl->regs->PWRR & OVL) ? "1" : "0");
+}
+static CLASS_DEVICE_ATTR(pwrovl,0444,show_pwrovl,NULL);
+
+
+//UNB
+static ssize_t
+show_pwrunb(struct class_device *cdev, char *buf) 
+{
+	struct net_device *ndev = to_net_dev(cdev);
+        struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+
+	return snprintf(buf,PAGE_SIZE,"%s",(nl->regs->PWRR & UNB) ? "1" : "0");
+}
+static CLASS_DEVICE_ATTR(pwrunb,0444,show_pwrunb,NULL);
+
+
 
 // ------------------------- Compatibility ------------------------------- //
 // NSGate compatibility
@@ -1054,7 +1109,10 @@ static struct attribute *sg17_attr[] = {
 	&class_device_attr_statistics_row.attr,
 	&class_device_attr_link_state.attr,
 	// power supply
-	&class_device_attr_pwrr,
+	&class_device_attr_pwron.attr,
+	&class_device_attr_pwrie.attr,
+	&class_device_attr_pwrovl.attr,
+	&class_device_attr_pwrunb.attr,
 	// compatibility
 	&class_device_attr_nsg_comp.attr,	
         // debug

@@ -56,6 +56,13 @@
 #define CLKAB	0x04		// Clock domain: 0 - clock A, 1 - clock B
 #define CLKR	0x08		// 0 - Clock master uses local oscillator, 1 - Clock master uses clock from receiver
 
+// PWRR bits
+#define PWRON	0x01		// Multiplexer enable: 0-disabled (HDLC only), 1-enabled
+#define PWRIE	0x02		// Multiplexer Bus Clock usage: 1-Clock master, 0-slave
+#define OVL	0x04		// Clock domain: 0 - clock A, 1 - clock B
+#define UNB	0x08		// 0 - Clock master uses local oscillator, 1 - Clock master uses clock from receiver
+
+
 //---- SG17-PCI IO memory ----//
 #define SG17_OIMEM_SIZE 0x4000
 #define SG17_HDLC_MEMSIZE 0x1000

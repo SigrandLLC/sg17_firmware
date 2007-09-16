@@ -41,7 +41,6 @@ struct sdfe4_if_cfg{
         u32 loop :2;
         u32 tc_pam :1;
         u32 need_reconf :1;
-	u32 mxflag:1;
 	u32 :4;
         u16 frequency;
         u16 payload_bits;

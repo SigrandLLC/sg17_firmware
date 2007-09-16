@@ -816,7 +816,6 @@ sg17_def_config(struct sg17_card *card)
 	// ( SDI_NO_LOOP | SDI_REMOTE_LOOP )
 	cfg_ch3->loop = SDI_NO_LOOP;
 	// Multiplexing related
-	cfg_ch3->mxflag = 1;
 		
 	//---- config SDFE chenal 0 ------------------
 	// ( STU_C | STU_R )
@@ -842,7 +841,6 @@ sg17_def_config(struct sg17_card *card)
 	// ( SDI_NO_LOOP | SDI_REMOTE_LOOP )
 	cfg_ch0->loop = SDI_NO_LOOP;
 	// Multiplexing related
-	cfg_ch0->mxflag = 1;
 
 	return 0;
 }
