@@ -954,6 +954,9 @@ mr16g_E1_setup(struct net_local *nl)
 	// Common Control Registers
 	// Common Control Register 1
 	ds2155_setreg(nl,CCR1,0x80);	// MCLKS-crc4r-sie-odm-dicai-tcss1-tcss0-rlosf
+
+	// Common Control Register 2
+	ds2155_setreg(nl,CCR2,0x01);	// MCLKS-crc4r-sie-odm-dicai-tcss1-tcss0-rlosf
 	
 	// Common Control Register 3
 	ds2155_setreg(nl,CCR3,0x00);	// tmss-intdis-cttui-tdatfmt-tgpcken-rdatfmt-rgpcken
