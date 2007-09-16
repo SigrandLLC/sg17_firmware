@@ -30,6 +30,8 @@ print_usage()
     echo "  normal | invert            - data inversion"
     echo "Compatibility:"    
     echo "  NSGate_comp [on|off]       - Compatibility with NSGate qBridge"    
+    echo "Power control:"
+    echo "  pwron | pwroff             - enable/disable power feeding"
 }
 
 print_stat()
@@ -58,12 +60,17 @@ print_stat()
     fill=`cat fill_7e`
     inv=`cat inv`
     crc=`cat crc16`
+    pwron=`cat pwron`
+    pwrovl=`cat pwrovl`
+    pwrunb=`cat pwrunb`
 
 
     echo "$1:"
     echo "      shdsl:   $master $rate $code $annex"
     echo "      hdlc:    fill="$fill" inversion="$inv" "$crc
     echo "      PCI bus: rb$rb wb$wb"
+    echo "Power:"
+    echo "      pwron=$pwron overload=$pwrovl unbalance=$pwrunb"
     echo "Statistics:"
     cat statistics
 }
@@ -249,8 +256,12 @@ while [ ! -z $1 ]; do
     "debug_on")
 	echo 1 > debug_on
 	;;
-
-	
+    "pwron")
+	echo 1 > pwron
+	;;
+    "pwroff")
+	echo 0 > pwron
+	;;
     *)
 	echo $0": error parameter - "$1
     ;;
