@@ -1,6 +1,8 @@
 #ifndef SG_DEBUG_H
 #define SG_DEBUG_H
 
+#define DIRQ 10
+#define DCARR 10
 
 #define PDEBUG(lev,fmt,args...)
 #ifdef DEBUG_ON
