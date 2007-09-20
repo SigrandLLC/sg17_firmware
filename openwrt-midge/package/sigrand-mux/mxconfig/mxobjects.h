@@ -8,6 +8,13 @@
 #define MX_LINES 15
 #define MX_LWIDTH 256
 
+// Errors
+#define ELSPACE 1
+#define EDOMAIN 2
+
+
+typedef enum { clkA, clkB } domain_t;
+
 typedef struct{
     ifdescr_t *ifd;
     u8 xfs;
@@ -15,22 +22,18 @@ typedef struct{
 } mxelem_t;
 
 typedef struct{
-    mxelem_t *read[MAX_IFS],*write[MAX_IFS];
-    int rcnt,wcnt;
+    domain_t domain;
+    u8 domain_err;
+    mxelem_t devs[MAX_IFS];
+    int devcnt;
 } mxline_t;
 
-typedef struct{
-    mxline_t *a[MX_LINES];
-    int lnum;
-} mxdomain_t;
-
-typedef struct{
-    u8 ints[MXLWIDTH/2][2];
-    int inum;
-}mxints_t;
-
+mxline_t *mxline_init();
+int mxline_add(mxline_t *l,domain_t domain,mxelem_t el);
+void mxline_free(mxline_t *l);
 
 #define mxerror(fmt,args...) printf("ERROR: " fmt "\n",  ##args)
 #define mxwarn(fmt,args...) printf("WARNING " fmt "\n",  ##args)
 
 #endif
+

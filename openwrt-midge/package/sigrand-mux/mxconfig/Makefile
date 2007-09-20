@@ -1,10 +1,13 @@
 CFLAGS=-g
 
-all: dev_interface.o mxconfig.c
-	$(CC) $(CFLAGS) -o mxconfig mxconfig.c dev_interface.o
+ifneq ($(ARCH),)
+GCC=./mips-gcc
+else
+GCC=gcc
+endif
 
-dev_interface.o: dev_interface.c dev_interface.h
-	$(CC) $(CFLAGS) -c dev_interface.c
+all: dev_interface.o mxconfig.o mxobjects.o
+	$(GCC) $(CFLAGS) -o mxconfig mxconfig.o dev_interface.o mxobjects.o
 
 clean:
 	rm --force *.o mxconfig
