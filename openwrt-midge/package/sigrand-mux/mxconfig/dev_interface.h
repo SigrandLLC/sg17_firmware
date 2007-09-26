@@ -32,7 +32,7 @@ int fill_iflist(char *conf_path,ifdescr_t **iflist,int ifcnt);
 int set_dev_option(char *conf_path,char *name,int val);
 int get_dev_option(char *conf_path,char *name,int *val);
 u32 str2slotmap(char *str,size_t size,int *err);
-int slotmap2str(u32 smap, char *buf);
+int slotmap2str(u32 smap, char *buf,int offset);
 u8 slotmap2mxrate(u32 smap);
 int apply_settings(char *conf_path,ifdescr_t *ifd);
 int accum_settings(char *conf_path,ifdescr_t *ifd);

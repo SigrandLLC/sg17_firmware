@@ -153,7 +153,7 @@ str2slotmap(char *str,size_t size,int *err)
 
 
 int
-slotmap2str(unsigned int smap, char *buf)
+slotmap2str(unsigned int smap, char *buf,int offset)
 {
     int start = -1,end, i;
     char *p=buf;
@@ -166,13 +166,15 @@ slotmap2str(unsigned int smap, char *buf)
     for(i=0;i<32;i++){
 	if( start<0 ){
 	    start = ((smap >> i) & 0x1) ? i : -1;
+	    if( start>0 && i==31 )
+		p += sprintf(p,"%d",start+offset);
 	}else if( !((smap >> i) & 0x1) || i == 31){
 	    end = ((smap >> i) & 0x1) ? i : i-1;
 	    if( p>buf )
 		p += sprintf(p,",");
-	    p += sprintf(p,"%d",start);
+	    p += sprintf(p,"%d",start+offset);
 	    if( start<end )
-		p += sprintf(p,"-%d",end);
+		p += sprintf(p,"-%d",end+offset);
 	    start=-1;
 	}
     }
@@ -312,8 +314,7 @@ apply_settings(char *conf_path,ifdescr_t *ifd)
 	if( set_int_option(conf,"mxrate",set->mxrate) )
 	    return -1;
     }else if( set->type == selective_ts ){
-	slotmap2str(set->mx_slotmap,buf);
-	printf("write (%s) to %s\n",buf,conf);
+	slotmap2str(set->mx_slotmap,buf,0);
 	if( set_char_option(conf,"mx_slotmap",buf) )
 	    return -1;
     }

@@ -5,12 +5,14 @@
 #include <malloc.h>
 #include <string.h>
 
-#include "dev_interface.h"
-#include "mxobjects.h"
 #include "mxconfig.h"
 
+#ifndef ARCH
 #define IFS_ROOT "/home/artpol/work/tmp/ifs-root"
-//#define IFS_ROOT "/sys/class/net"
+#else
+#define IFS_ROOT "/sys/class/net"
+#endif
+
 
 typedef enum { help,setup,info,full_info,chck } action_t;
 
@@ -24,7 +26,7 @@ void print_usage(char *name)
     	    "  -r, --rline\tTransmit multiplexer bus line\n"
     	    "  -t, --tline\tReceive multiplexer bus line\n"
 	    "  -a, --mxrate\tSet multiplexing rate (use for SHDSL)\n"
-    	    "  -o, --mxsmap\tSlopmap used for multiplexing (use for E1)\n"
+    	    "  -o, --mxsmap\tSlotmap used for multiplexing (use for E1)\n"
     	    "  -j, --tfs\tTransmit Frame Start (TFS)\n"
     	    "  -g, --rfs\tReceive Frame Start (RFS)\n"
     	    "  -e, --mxen\tEnable(1)/disable(0) multiplexing on interface\n"
@@ -225,7 +227,7 @@ void print_device(ifdescr_t *ifd)
 	{
 	    char buf[BUF_SIZE];
 	    int err;
-	    slotmap2str(settings->mx_slotmap,buf);
+	    slotmap2str(settings->mx_slotmap,buf,0);
 	    printf(" mxsmap=%s\n",buf);
 	}
 	break;
@@ -258,7 +260,7 @@ is_contain(u8 start1,u8 width1,u8 start2,u8 width2)
 }			    
 
 int
-check_xline(mxline_t *l,int bindex,char *sname)
+check_xline(mxline_t *l,int bindex,char *sname,int rw)
 {
     int i,j;
     for(i=0;i<l->devcnt;i++){
@@ -268,14 +270,122 @@ check_xline(mxline_t *l,int bindex,char *sname)
 	    u32 end1 = cur->xfs+(cur->mxrate-1);
 	    u32 end2 = tmp->xfs+(tmp->mxrate-1);
 	    if( is_crossing(cur->xfs,cur->mxrate,tmp->xfs,tmp->mxrate) ){
-		mxerror("Line %d: %s timeslots crossing - %s(%d-%d) and %s(%d-%d)",
+		switch( rw ){
+		case 0:
+		    mxwarn("Line%d: %s timeslots overlap - %s(%d-%d) and %s(%d-%d)",
 			bindex,sname,cur->ifd->name,cur->xfs,end1,
 			tmp->ifd->name,tmp->xfs,end2 );
+		    break;
+		case 1:
+		    mxerror("Line%d: %s timeslots overlap - %s(%d-%d) and %s(%d-%d)",
+			bindex,sname,cur->ifd->name,cur->xfs,end1,
+			tmp->ifd->name,tmp->xfs,end2 );
+		    break;
+		}
+
 	    }
 	}
     }
 }
 
+int
+mxline2lmap(mxline_t *l,u32 lmap[MX_LWIDTH32])
+{
+    int i,j,k;
+    memset(lmap,0,sizeof(u32)*MX_LWIDTH32);
+    if( !l )
+	return 0;
+    for(i=0;i<l->devcnt;i++){
+	int start32 = l->devs[i].xfs/32;
+	int start_ts = l->devs[i].xfs%32;
+	int end32 = (l->devs[i].xfs+l->devs[i].mxrate)/32;
+	int end_ts = (l->devs[i].xfs+l->devs[i].mxrate)%32;
+	if( !(end32<MX_LWIDTH32) )
+	    return -1;
+	
+	if( start32 == end32 ){
+	    for(j=start_ts;j<end_ts;j++)
+		lmap[start32] |= (1<<j);
+	}else{
+	    // fill first word
+	    for(j=start_ts;j<32;j++)
+		lmap[start32] |= (1<<j);
+	    // fill last word	
+	    for(j=0;j<end_ts;j++)
+		lmap[end32] |= (1<<j);
+	    // fill middle words
+	    for(j=start32+1;j<end32;j++){
+		for(k=0;k<32;k++)
+		    lmap[j] |= (1<<k);
+	    }
+	}
+    }
+    return 0;
+}
+
+
+int
+check_hanging_tslots(mxline_t *rline,mxline_t *tline,int lnum)
+{
+    u32 rlmap[MX_LWIDTH32],tlmap[MX_LWIDTH32];
+    u32 rdiff[MX_LWIDTH32],tdiff[MX_LWIDTH32];
+    u8 rerr = 0, terr = 0;
+    int i;
+
+    if( mxline2lmap(rline,rlmap) )
+	return -1;
+
+    if( mxline2lmap(tline,tlmap) )
+	return -1;
+    
+    for(i=0;i<MX_LWIDTH32;i++){
+	rdiff[i] = rlmap[i] & ~(rlmap[i]&tlmap[i]);
+	tdiff[i] = tlmap[i] & ~(tlmap[i]&rlmap[i]);
+	if( rdiff[i] )
+	    rerr = 1;
+	if( tdiff[i] )
+	    terr = 1;
+    }
+
+    if( terr ){
+	char buf[BUF_SIZE], *ptr = buf;
+	char flag = 0;
+	for(i=0;i<MX_LWIDTH32;i++){
+	    int offs;
+	    if( flag && tdiff[i]){
+		*ptr = ',';
+		*(++ptr) = 0;
+	    }
+	    slotmap2str(tdiff[i],ptr,i*32);
+	    offs = strlen(ptr);
+	    if( offs ){
+		flag = 1;
+		ptr += offs;
+	    }
+	}
+	mxwarn("Line%d: timeslots %s read but not written",lnum,buf);
+    }
+
+    if( rerr ){
+	char buf[BUF_SIZE], *ptr = buf;
+	char flag=0;
+	for(i=0;i<MX_LWIDTH32;i++){
+	    int offs;
+	    if( flag && rdiff[i]){
+		*ptr = ',';
+		*(++ptr) = 0;
+	    }
+	    slotmap2str(rdiff[i],ptr,i*32);
+	    offs = strlen(ptr);
+	    if( offs ){
+		flag = 1;
+		ptr += offs;
+	    }
+	}
+	mxwarn("Line%d: timeslots %s written but not read",lnum,buf);
+    }
+    return 0;
+}
 
 int
 check(ifdescr_t **iflist,int iflsize)
@@ -319,7 +429,7 @@ check(ifdescr_t **iflist,int iflsize)
 		break;
 	    }
 	}else if( set->clkr ){
-	    mxwarn("%d: clkR option is ignored - not clock master");
+	    mxwarn("%s: clkR option is ignored - not clock master",iflist[i]->name);
 	}
 	
 	switch( set->type ){
@@ -379,19 +489,15 @@ check(ifdescr_t **iflist,int iflsize)
 	int rerr=0,terr=0;
 	if( !rlines[i] && !tlines[i] )
 	    continue; // line is not used
-	if( !rlines[i] )
-	    mxwarn("Line %d: writing but not reading");
-	if( !tlines[i] )
-	    mxwarn("Line %d: reading but not writing");
 	
 	if( rlines[i] && rlines[i]->domain_err ){
-	    mxerror("Line %d: not all writing devices in same domain");
-	    mxline_print(rlines[i],i,"read");
+	    mxerror("Line%d: not all writing devices in same domain",i);
+	    mxline_print(rlines[i],i,"write");
 	    derr = 1;
 	}
 	if( tlines[i] && tlines[i]->domain_err){
-	    mxerror("Line %d: not all reading devices in same domain");
-	    mxline_print(tlines[i],i,"write");
+	    mxerror("Line%d: not all reading devices in same domain",i);
+	    mxline_print(tlines[i],i,"read");
 	    derr = 1;
 	}
     }
@@ -401,11 +507,16 @@ check(ifdescr_t **iflist,int iflsize)
 	if( !rlines[i] && !tlines[i] )
 	    continue;
 	if( rlines[i] ){
-	    check_xline(rlines[i],i,"rline");
+	    check_xline(rlines[i],i,"rline",1);
 	}
 	if( tlines[i] ){    
-	    check_xline(tlines[i],i,"tline");
+	    check_xline(tlines[i],i,"tline",0);
 	}
+    }
+
+    for(i=0;i<MX_LINES;i++){
+	if( check_hanging_tslots(rlines[i],tlines[i],i) )
+	    mxerror("Unknown error whileprocess Line%d",i);
     }
     
     

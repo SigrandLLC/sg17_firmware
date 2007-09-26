@@ -1,5 +1,5 @@
-#ifndef MXCONFIG_H
-#define MXCONFIG_H
+#ifndef MXOBJECTS_H
+#define MXOBJECTS_H
 
 #include "dev_interface.h"
 #include "ltypes.h"
@@ -7,6 +7,8 @@
 #define MAX_IFS 100
 #define MX_LINES 15
 #define MX_LWIDTH 256
+#define MX_LWIDTH32 8
+
 
 // Errors
 #define ELSPACE 1
@@ -28,12 +30,14 @@ typedef struct{
     int devcnt;
 } mxline_t;
 
+typedef struct{
+    mxline_t *a[MX_LINES];
+    int lnum;
+} mxdomain_t;
+
 mxline_t *mxline_init();
 int mxline_add(mxline_t *l,domain_t domain,mxelem_t el);
 void mxline_free(mxline_t *l);
-
-#define mxerror(fmt,args...) printf("ERROR: " fmt "\n",  ##args)
-#define mxwarn(fmt,args...) printf("WARNING " fmt "\n",  ##args)
 
 #endif
 
