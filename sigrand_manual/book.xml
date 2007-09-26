@@ -439,7 +439,7 @@
 					_/_/
 					
 					Revision: r579
-					Builded at: 20070317 16:07
+					Built at: 20070317 16:07
 				</screen>
         <note>
           <simpara>
@@ -1383,7 +1383,7 @@
 		</para>
 		<figure id="auth_ppp_edit">
 			<title>Добавление нового пользователя</title>
-			<graphic fileref="img/chap-add.png" />
+			<graphic fileref="img/chap-add.png" width="6in" />
 		</figure>
 		<itemizedlist>
 			<listitem>Username - имя пользователя</listitem>
@@ -1425,7 +1425,7 @@
 		</para>
 		<figure>
 			<title>Добавление зоны</title>
-			<graphic fileref="img/dns_server-add-zone.png" />
+			<graphic fileref="img/dns_server-add-zone.png" width="6in" />
 		</figure>
 		<para>
 			Переход на добавление записей в зону осуществляется щелчком мыши по идентификатору или имени зоны. При добавлении новой записи нужно ввести следующие параметры:
@@ -1449,7 +1449,7 @@
 		<para>Пример добавления новой записи показа ниже:</para>
 		<figure>
 			<title>Добавление записи в зону</title>
-			<graphic fileref="img/dns_server-record-add.png" />
+			<graphic fileref="img/dns_server-record-add.png" width="6in" />
 		</figure>
 		<para>
 			Пример зоны после добавления записей:
@@ -1742,14 +1742,14 @@
 			</para>
 			<figure>
 				<title>Пример сети</title>
-				<graphic fileref="img/tc-network.png" />
+				<graphic fileref="img/tc-network.png" width="6in"/>
 			</figure>
 			<para>
 				К примеру, если мы хотим ограничить пропускную способность канала для входящего трафика к хосту PC2, то нам необходимо работать с интерфейсом eth1 маршрутизатора, поскольку через него проходит исходящий трафик к хосту PC2. В качестве примера  ограничим весь трафик, поступающий на PC2, для этого нам необходимо создать класс, в который будет поступать трафик, идущий к хосту PC2:
 			</para>
 			<figure id="qos_class_add">
 				<title>Добавление класса</title>
-				<graphic fileref="img/qos-class-add.png" />
+				<graphic fileref="img/qos-class-add.png" width="6in"/>
 			</figure>
 			<itemizedlist>
 				<listitem><para>Short name - имя добавляемого класса. Используется при классификации трафика в фильтре</para></listitem>
@@ -1770,7 +1770,7 @@
 			</para>
 			<figure id="qos_filter_add">
 				<title>Добавление фильтра</title>
-				<graphic fileref="img/qos-filter-add.png" />
+				<graphic fileref="img/qos-filter-add.png" width="6in"/>
 			</figure>
 			<itemizedlist>
 				<listitem><para>Short name - имя фильтра</para></listitem>
@@ -1788,5 +1788,222 @@
 			</para>
 		</section>
 	</section>
+  </chapter>
+  <chapter>
+	  <title>Мультиплексирование</title>
+		<section>
+			<title>Конфигурация</title>
+			<para>
+				Мультиплексирование используется для передачи трафика с одного интерфейса на другой, минуя центральный процессор. <emphasis>SG-17R</emphasis> позволяет одновременно мультиплексировать и маршрутизировать сетевой трафик.
+			</para>
+			<para>
+				В общем виде это можно представить так:
+			</para>
+			<figure>
+				<title>Схема сети</title>
+				<graphic fileref="img/multiplexing1.png" width="6in" />
+			</figure>
+			<para>
+				В приведенном примере к маршрутизаторам SG-17R подключено два канала Е1, а так же сеть TCP/IP по Ethernet. Два маршрутизатора соединены между собой через SHDSL. Максимальная скорость SHDSL составляет 5696 кбит/c, т.е. по одному каналу SHDSL можно передать два канала Е1 (2048 кбит/с каждый), и останется неиспользованными 1600 кбит/с.
+			</para>
+			<para>
+				Для передачи потоков Е1 используется мультиплексирование: оба входных потока Е1 мультиплексируются в канал SHDSL, по которому они передаются на второй маршрутизатор, где происходит демультиплексирование, и потоки расходятся к клиентам. Оставшаяся полоса SHDSL используется для передачи TCP/IP трафика между двумя Ethernet сетями.
+			</para>
+			<para>
+				Для мультиплексирования в маршрутизаторе выделена шина, состоящая из 16 линий, каждая из которых содержит 256 тайм-слотов. Каждый тайм-слот на линии соответствует тайм-слоту в Е1 или SHDSL, т.е. имеет скорость 64 кбит/с. E1 содержит 32 тайм-слота, SHDSL - 89 тайм-слотов. Интерфейсы E1 (hdlc) и SHDSL (dsl) могут выставлять на нее данные, полученные из физической линии, и принимать данные, выставленные другим интерфейсом.
+			</para>
+			<figure>
+				<title>Физическая организация мультиплексирования</title>
+				<graphic fileref="img/multiplexing-line.png" width="6in" />
+			</figure>
+			<para>
+				Все устройства, участвующие в мультиплексировании трафика, должны тактироваться одним сигналом. Для этого при настройке мультиплексирования необходимо указать, какой интерфейс будет задавать тактовый сигнал на линию мультиплексирования.
+			</para>
+			<para>
+				Маршрутизатор может иметь два задающих источника синхросигнала для мультиплексирования, каждый из которых определяет <emphasis>домен</emphasis>. Каждая линия относится либо к домену А, либо к домену В, соответственно, все интерфейсы, относящиеся к этой линии, так же относятся либо к домену А, либо к В. Задающий синхросигнал можно использовать либо локальный, либо удаленный.
+			</para>
+			<important>
+				<para>
+					В одном домене должно быть одно и только одно устройство (интерфейс), задающее тактовый сигнал! Все остальные устройства домена должны быть установлены в режим <emphasis>clock slave</emphasis>. Таким образом, от одного устройства тактируются все устройства, находящиеся в данном домене.
+				</para>
+			</important>
+			<para>
+				Для настройки мультиплексирования задаются следующие параметры (для каждого интерфейса, участвующего в мультиплексировании):
+			</para>
+			<itemizedlist>
+				<listitem><para><emphasis>rline - </emphasis>номер линии, на которую интерфейс будет выставлять данные, полученные из физической линии</para></listitem>
+				<listitem><para><emphasis>rfs - </emphasis>номер тайм-слота линии, начиная с которого на нее выставляются данные этим интерфейсом</para></listitem>
+				<listitem><para><emphasis>tline - </emphasis>номер линии, с которой данный интерфейс забирает данные (выставленные другим интерфейсом, участвующим в мультиплексировании) для передачи в физическую линию</para></listitem>
+				<listitem><para><emphasis>tfs - </emphasis>номер тайм-слота линии, начиная с которого с нее забираются данные</para></listitem>
+				<listitem><para><emphasis>mxrate - </emphasis>число тайм-слотов, отводимых для  мультиплексирования (для интерфейсов SHDSL)</para></listitem>
+				<listitem><para><emphasis>mxsmap - </emphasis>карта слотов, используемых для мультиплексирования (для интерфейсов Е1). Эта карта не должна пересекаться с картой, которая задается при конфигурации интерфейса Е1 для передачи IP трафика. Задается в виде "1-16", "16-31", ...</para></listitem>
+				<listitem><para><emphasis>clkm - </emphasis>если 1, устройство является источником синхронизации для данного домена, если 0 -  приемником</para></listitem>
+				<listitem><para><emphasis>clkab - </emphasis>0 - устройство принадлежит домену А, 1 - к домену B</para></listitem>
+				<listitem><para><emphasis>clkr - </emphasis>1 - использовать для тактирования внешний клок, 0 - использовать для тактирования локальный клок</para></listitem>
+				<listitem><para><emphasis>mxen - </emphasis>1 - устройство принимает участие в мультиплексировании, 0 - устройство используется только для IP трафика</para></listitem>
+			</itemizedlist>
+			<important>
+				<para>
+					Тайм-слот в Е1 может использоваться <emphasis>только</emphasis> либо для мультиплексирования, либо для маршрутизации, поэтому карта тайм-слотов, задаваемых для мультиплексирования параметром <parameter>mxsmap</parameter> не должна пересекаться с картой тайм-слотов, указанных при конфигурации Е1 для использования в передаче IP-трафика.
+				</para>
+			</important>
+			<para>
+				На данный момент настройка мультиплексирования выполняется в командной строке с помощью утилиты mxconfig. Для получения списка возможных параметров, используйте команду <command>mxconfig </command> <option>--help</option>.
+			</para>
+		</section>
+		<section>
+			<title>Примеры конфигурации</title>
+			<para>Рассмотрим работу мультиплексирования на примере следующей сети:</para>
+			<figure>
+				<title>Пример сети</title>
+				<graphic fileref="img/multiplexing-ex1.png" width="6in" />
+			</figure>
+			<para>
+				Требуется передать два канала Е1 (unframed mode) от АТС к Клиенту 1 и Клиенту 2 по каналу SHDSL.
+			</para>
+			<para>
+				Т.к. источник сигнала для обоих каналов Е1 один - АТС, то не имеет значения, какой из интерфейсов Е1 будет тактировать линии мультиплексирования. В нашем распоряжении имеется 16 линий, имеющих по 256 тайм-слотов. Для удобства, мы задействуем две из них - одну для приема трафика, вторую - для передачи.
+			</para>
+			<para>
+				Схема мультиплексирования будет выглядеть следующим образом:
+			</para>
+			<itemizedlist>
+				<listitem>
+					<para>
+						Интерфейс Е1 <parameter>hdlc0</parameter> получает из физической лини данные и выставляет их на линию 0 (с нулевого тайм-слота). Для передачи в физическую линию данные берутся с линии 1, с нулевого тайм-слота. Так же этот интерфейс является источником синхронизации для данного домена.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						Интерфейс E1 <parameter>hdlc1</parameter> работает так же, как <parameter>hdlc0</parameter>, только выставляет и забирает данные начиная с 32 тайм-слота (и не подает синхросигнал, т.е. работает в режиме <emphasis>clock slave</emphasis>).
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						Интерфейс SHDSL <parameter>dsl0</parameter> выставляет данные, полученные из физической линии, на линию 1 (откуда их заберут интерфейсы E1), а данные для передачи в физическую линию берет с линии 0 (куда их выставляют интерфейсы Е1). Число тайм-слотов, которые использует интерфейс для мультиплексирования, равно 64 (по 32 с каждого интерфейса Е1).
+					</para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				Описанная схема проиллюстрирована ниже:
+			</para>
+			<figure>
+				<title>Взаимодействие интерфейсов на линии 0</title>
+				<graphic fileref="img/multiplexing-ex1-1-line0.png" width="6in" />
+			</figure>
+			<figure>
+				<title>Взаимодействие интерфейсов на линии 1</title>
+				<graphic fileref="img/multiplexing-ex1-1-line1.png" width="6in" />
+			</figure>
+			<para>
+				Для реализации этой схемы необходимо установить следующие параметры:
+			</para>
+			<itemizedlist>
+				<listitem>
+					<para>Интерфейс E1 <emphasis>hdlc0</emphasis></para>
+					<itemizedlist>
+						<listitem>
+							<para><parameter>rline = 0</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>rfs = 0</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>tline = 1</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>tfs = 0</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>mxsmap = "0-31"</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>clkm = 1</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>clkr = 1</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>clkab = 0</parameter></para>
+						</listitem>
+					</itemizedlist>
+				</listitem>
+				<listitem>
+					<para>Интерфейс E1 <emphasis>hdlc1</emphasis></para>
+					<itemizedlist>
+						<listitem>
+							<para><parameter>rline = 0</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>rfs = 32</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>tline = 1</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>tfs = 32</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>mxsmap = "0-31"</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>clkm = 0</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>clkr = 0</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>clkab = 0</parameter></para>
+						</listitem>
+					</itemizedlist>
+				</listitem>
+				<listitem>
+					<para>Интерфейс SHDSL <emphasis>dsl0</emphasis></para>
+					<itemizedlist>
+						<listitem>
+							<para><parameter>rline = 1</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>rfs = 0</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>tline = 0</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>tfs = 0</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>mxrate = 64</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>clkm = 0</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>clkr = 0</parameter></para>
+						</listitem>
+						<listitem>
+							<para><parameter>clkab = 0</parameter></para>
+						</listitem>
+					</itemizedlist>
+				</listitem>
+			</itemizedlist>
+			<note>
+				<para>
+					Так же для этих интерфейсов необходимо активировать мультиплексирование - установить параметр <parameter>mxen</parameter>.
+				</para>
+			</note>
+			<para>
+				Следуя этой логике, конфигурацию на втором маршрутизаторе можно выполнить аналогичным образом. Единственное отличие, в нашем случае, будет заключаться в изменении интерфейса, являющегося источником синхронизации. Эту функцию будет выполнять интерфейс SHDSL <parameter>dsl0</parameter>, т.к. именно он получает мультиплексированный поток от первого маршрутизатора, подключенного к АТС.
+			</para>
+			<tip>
+				<para>
+					Вообще, не обязательно для приема и отправки информации использовать разные линии. Для этих целей можно задействовать одну линию, правильно указав тайм-слоты, начиная с которых каждый интерфейс выставляет или забирает данные с линии. Пример такой конфигурации приведен ниже:
+				</para>
+			</tip>
+			<figure>
+				<title>Использование одной линии для выставления и получения данных</title>
+				<graphic fileref="img/multiplexing-ex1-2-line.png" width="6in" />
+			</figure>
+		</section>
   </chapter>
 </book>
