@@ -32,7 +32,6 @@ $(IPKG_WEBFACE):
 	install -m0755 $(PKG_BUILD_DIR)/kdb $(IDIR_WEBFACE)/usr/bin
 	-install -m0755 $(PKG_BUILD_DIR)/hdb $(IDIR_WEBFACE)/usr/bin
 	@if [ ! -z $(LOGO) ] ; then \
-		echo LALALALA; \
 		cp logos/logo.gif logos/SG.jpg $(IDIR_WEBFACE)/www/img; \
 		cat files/etc/kdb.default |sed "s/sigrand1/router/g" >$(IDIR_WEBFACE)/etc/kdb.default; \
 		cat files/etc/lighttpd.conf |sed "s/Sigrand router/Router/g" >$(IDIR_WEBFACE)/etc/lighttpd.conf; \
