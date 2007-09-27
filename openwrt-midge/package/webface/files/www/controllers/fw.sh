@@ -33,7 +33,7 @@
 		render_input_field hidden table table "$table"
 		render_input_field hidden chain chain "$chain"
 		
-		help_2="fw_policy"
+		help_2="filter_policy"
 		render_table_title "Default policy" 2 
 		# forward policy
 		autosubmit="y"
@@ -50,21 +50,21 @@
 
 		# fw forward list
 		render_form_header fw_filter_forward
-		help_2="fw_forward"
+		help_2="filter_forward"
 		render_table_title "FORWARD" 2 
 		render_iframe_list "fw_chain" "table=filter&chain=forward"
 		render_form_tail
 
 		# fw input list
 		render_form_header fw_filter_input
-		help_2="fw_input"
+		help_2="filter_input"
 		render_table_title "INPUT" 2 
 		render_iframe_list "fw_chain" "table=filter&chain=input"
 		render_form_tail
 
 		# fw output list
 		render_form_header fw_filter_output
-		help_2="fw_output"
+		help_2="filter_output"
 		render_table_title "OUTPUT" 2 
 		render_iframe_list "fw_chain" "table=filter&chain=output"
 		render_form_tail

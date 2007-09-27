@@ -29,7 +29,6 @@
 		echo '</td></tr>'
 	}
 	
-	
 	render_list_header fw_chain sys_fw_${table}_${chain}_ "table=$table&chain=$chain" "No" "Rule name" "Src" "Dst" "Proto" "Src port" "Dst port" "Action"
 	
 	render_list_cycle_stuff

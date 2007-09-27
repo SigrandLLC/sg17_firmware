@@ -10,7 +10,8 @@
 	render_popup_save_stuff
 	
 	render_form_header fw_chain_edit
-	help_1="fw"
+	help_1=$table
+	help_2="${table}_add"
 	render_table_title "Firewall $table/$chain edit rule" 2
 	render_popup_form_stuff
 	

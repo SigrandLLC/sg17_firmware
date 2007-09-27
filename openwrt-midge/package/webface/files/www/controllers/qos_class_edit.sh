@@ -63,7 +63,7 @@
 	# ceil
 	desc="Maximum rate"
 	tip="Unit can be: <br/><b>kbit</b>, <b>Mbit</b> - for bit per second<br/> and <b>kbps</b>, <b>Mbps</b> - for bytes per second"
-	validator="$tmtreq $validator_rate"
+	validator="$validator_rate"
 	render_input_field text "Ceil" ceil
 	
 	render_submit_field

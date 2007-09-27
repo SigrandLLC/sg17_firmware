@@ -31,6 +31,14 @@ $(IPKG_WEBFACE):
 	install -m0755 $(PKG_BUILD_DIR)/htpasswd $(IDIR_WEBFACE)/usr/bin
 	install -m0755 $(PKG_BUILD_DIR)/kdb $(IDIR_WEBFACE)/usr/bin
 	-install -m0755 $(PKG_BUILD_DIR)/hdb $(IDIR_WEBFACE)/usr/bin
+	@if [ ! -z $(LOGO) ] ; then \
+		echo LALALALA; \
+		cp logos/logo.gif logos/SG.jpg $(IDIR_WEBFACE)/www/img; \
+		cat files/etc/kdb.default |sed "s/sigrand1/router/g" >$(IDIR_WEBFACE)/etc/kdb.default; \
+		cat files/etc/lighttpd.conf |sed "s/Sigrand router/Router/g" >$(IDIR_WEBFACE)/etc/lighttpd.conf; \
+		cat files/www/common/header.sh |sed "s/sigrand\.ru//g" |sed "s/Sigrand/Router/g" >$(IDIR_WEBFACE)/www/common/header.sh; \
+		cp logos/footer.sh $(IDIR_WEBFACE)/www/common/; \
+	fi
 	$(RSTRIP) $(IDIR_WEBFACE)/usr/bin/*
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_WEBFACE)/CONTROL/control
 	$(IPKG_BUILD) $(IDIR_WEBFACE) $(PACKAGE_DIR)
