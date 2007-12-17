@@ -2,7 +2,7 @@
 
 set_dhcp_server_vars() {
 	kdb_vars="$kdb_vars bool:sys_iface_${iface}_dhcp_enabled "
-	eval "dhcp_enabled=\$$sys_iface_${iface}_dhcp_enabled"
+	eval 'dhcp_enabled=$'sys_iface_${iface}_dhcp_enabled
 	if [ "$dhcp_enabled" = 1 ]; then
 		kdb_vars="$kdb_vars int:sys_iface_${iface}_dhcp_lease_time"
 		kdb_vars="$kdb_vars str:sys_iface_${iface}_dhcp_router str:sys_iface_${iface}_dhcp_nameserver"
@@ -23,7 +23,7 @@ render_dhcp_server_common() {
 	validator='tmt:required="true"'
 	render_input_field checkbox "Enable DHCP server" sys_iface_${iface}_dhcp_enabled
 
-	eval "dhcp_enabled=\$$sys_iface_${iface}_dhcp_enabled"
+	eval 'dhcp_enabled=$'sys_iface_${iface}_dhcp_enabled
 	if [ "$dhcp_enabled" = 1 ]; then
 		desc="Start of dynamic ip address range for your LAN (dotted quad) <b>required</b>"
 		validator="$tmtreq $validator_ipaddr"
@@ -78,7 +78,7 @@ render_dhcp_server_common() {
 
 render_dhcp_server_static(){
 
-	eval "dhcp_enabled=\$$sys_iface_${iface}_dhcp_enabled"
+	eval 'dhcp_enabled=$'sys_iface_${iface}_dhcp_enabled
 	if [ "$dhcp_enabled" = 1 ]; then
 		render_list_line(){
 			local lineno=$1

@@ -9,14 +9,14 @@
 #define PDEBUGL(lev,fmt,args...)
 #ifdef DEBUG_ON
 #       undef PDEBUG
-#       define PDEBUG(lev,fmt,args...) \
-		if( lev<=DEFAULT_LEV ) \
-			printk(KERN_NOTICE "sg17lan: %s " fmt " \n",__FUNCTION__, ## args  )
+#       define PDEBUG(lev,fmt,args...)									\
+	if( lev<=DEFAULT_LEV )												\
+		printk(KERN_NOTICE "sg17lan: %s " fmt " \n",__FUNCTION__, ## args  )
 
 #       undef PDEBUGL
-#       define PDEBUGL(lev,fmt,args...) \
-		if( lev<=DEFAULT_LEV ) \
-			printk(fmt, ## args  )
+#       define PDEBUGL(lev,fmt,args...)			\
+	if( lev<=DEFAULT_LEV )						\
+		printk(fmt, ## args  )
 
 #endif
 

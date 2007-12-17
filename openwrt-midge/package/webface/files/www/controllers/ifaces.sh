@@ -35,11 +35,13 @@
 			iface_add $iface
 			ok_str="Interface <b>$iface</b> added, please reload page"
 			render_save_message
+			render_js_refresh_window 1000
 		elif [ -n "$del_iface" ]; then
 			iface_del $del_iface
 			del_iface=""
 			ok_str="Interface deleted, please reload page"
 			render_save_message
+			render_js_refresh_window 1000
 		fi
 	fi
 

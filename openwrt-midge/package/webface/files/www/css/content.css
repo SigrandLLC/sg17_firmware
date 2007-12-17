@@ -433,6 +433,31 @@ td.pagesel_a{
 	background-color: white;
 }
 
+a.pagesel_l2 {
+	font-weight: bold;
+	color: white;
+}
+a.pagesel_l2_a {
+	font-weight: bold;
+	color: #435370;
+}
+td.pagesel_l2, td.pagesel_l2_a{
+	font-family: Tahoma, Verdana, Arial, Helvetica, sans-serif;
+	font-size: 11px;
+	background-color: #637380;
+	height: 30;
+	padding-left: 5;
+	padding-right: 5;
+	border: 1px solid #999999;
+
+}
+
+td.pagesel_l2_a{
+	background-color: white;
+}
+
+
+
 pre.console {
 	padding: 5px;
 	background-color: lightgrey;

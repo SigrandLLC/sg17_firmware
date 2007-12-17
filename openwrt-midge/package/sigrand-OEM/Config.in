@@ -1,0 +1,79 @@
+comment "General OEM information"
+config BR2_SIGRAND_OEM_MANUFACTURER
+prompt "Manufacturer"
+string
+default "Sigrand"
+
+config BR2_SIGRAND_OEM_HOSTNAME
+prompt "Default Hostname"
+string
+default "sigrand"
+
+config BR2_SIGRAND_OEM_SYSNAME
+prompt "Default system name"
+string
+default "Sigrand"
+
+comment "Logotypes"
+
+config BR2_SIGRAND_OEM_CLEARLOGO
+prompt "Empty logo"
+bool
+default n
+
+config BR2_SIGRAND_OEM_BGROUND
+prompt "Default system name"
+string
+default "default"
+
+comment "MR17H SHDSL module"
+config BR2_SIGRAND_OEM_MR17H
+prompt "MR17H SHDSL module name"
+string
+default "MR17H"
+
+config BR2_SIGRAND_OEM_MR17H_DRV
+prompt "MR17H SHDSL module driver name"
+string
+default "mr17h"
+
+config BR2_SIGRAND_OEM_MR17H_TOOL
+prompt "MR17H SHDSL configuration tool name"
+string
+default "mr17h_cfg"
+
+comment "E1 module"
+config BR2_SIGRAND_OEM_MR16G
+prompt "MR16G E1 module name"
+string
+default "MR16G"
+
+config BR2_SIGRAND_OEM_MR16G_DRV
+prompt "MR16G E1 module driver name"
+string
+default "mr16g"
+
+
+config BR2_SIGRAND_OEM_MR16G_TOOL
+prompt "MR16G E1 configuration tool name"
+string
+default "mr16g_cfg"
+
+comment "MR16H SHDSL module"
+config BR2_SIGRAND_OEM_MR16H
+prompt "MR16H SHDSL module name"
+string
+default "MR16H"
+
+config BR2_SIGRAND_OEM_MR16H_DRV
+prompt "MR16H SHDSL module driver name"
+string
+default "mr16h"
+
+config BR2_SIGRAND_OEM_MR16H_TOOL
+prompt "MR16H SHDSL configuration tool name"
+string
+default "mr16h_cfg"
+
+
+

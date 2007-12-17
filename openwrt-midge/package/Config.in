@@ -354,13 +354,38 @@ endmenu
 
 comment "Extra stuff"
 menu "Sigrand"
+menu "OEM settings"
+source "package/sigrand-OEM/Config.in"
+endmenu
+menu "Packages"
 source "package/webface/Config.in"
 source "package/hotplug/Config.in"
-source "package/sigrand-doc/Config.in"
+
+choice
+	prompt "Sigrand context help"
+	default NONE
+
+config NONE
+	bool "None"
+	help
+		Don't include context help
+
+config BR2_PACKAGE_SIGRAND_DOC
+	bool "Sigrand context help"
+        help
+                Include Sigrand context help
+
+config BR2_PACKAGE_SIGRAND_DOC_OEM
+        bool "OEM context help"
+        help
+                Include OEM context help
+
+endchoice
+
 source "package/eocd/Config.in"
 source "package/sigrand-mux/Config.in"
-
-menu "Sigrand drivers"
+endmenu
+menu "Drivers"
 source "package/sethdlc/Config.in"
 source "package/sigrand-mr17h/Config.in"
 source "package/sigrand-mr16h/Config.in"

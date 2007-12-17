@@ -5,12 +5,14 @@
 
 service_reload(){
 	local service="$1"
+	local auto;
 	
 	case "$service" in
 	network)
 		if [ -n "$iface" ]; then
 			/sbin/ifdown $iface;
-			/sbin/ifup $iface
+			eval 'auto=$'sys_iface_${iface}_auto
+			[ "$auto" = 1 ] && /sbin/ifup $iface
 		else
 			/etc/init.d/network restart
 		fi
@@ -37,6 +39,9 @@ service_reload(){
 	;;
 	ipsec)
 		/etc/templates/ipsec-tools.sh | /usr/sbin/setkey -c
+	;;
+	mux)
+		/etc/init.d/mux start
 	;;
 	esac
 }

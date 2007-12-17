@@ -30,6 +30,11 @@ kill_ppp(){
 
 pre_ifup(){
 	info 1 "Setting up $iface: "
+	# start depends 
+	if [ -n "$depend_on" ]; then
+		info 2 "Bringing up depends: $depend_on"
+		/sbin/ifup $depend_on
+	fi
 	info 1 "  Interface pre-configuration:"
 	case $proto in
 		ether)
@@ -42,6 +47,7 @@ pre_ifup(){
 			for i in $br_ifaces; do
 				cmd $ip addr flush dev $i
 				cmd $ip link set $i up
+				cmd ifconfig $i mtu 1518
 				cmd brctl addif $realiface $i
 			done
 			[ "$br_stp" = 1 ] && cmd brctl stp $realiface on || cmd brctl stp $realiface off
@@ -67,13 +73,13 @@ pre_ifup(){
 
 post_ifup(){
 	info 1 "  Interface post-configuration"
-	# TODO routes, qos, udhcpd
+	# TODO qos
 	if [ "$dhcp_enabled" = 1 ]; then
 		/etc/init.d/udhcpd start $realiface
 	fi
 
 	# start routes
-	routes=`kdb kls sys_iface_eth0_route_*`;
+	routes=`kdb kls sys_iface_${iface}_route_*`;
 	for route in $routes; do
 		unset net netmask gw
 		eval "export \$$route"
@@ -159,8 +165,9 @@ _ifup(){
 	}
 
 	info 1 "  Interface configuration"
-	case $proto in
-		bridge|ether|bonding)
+	case "$proto" in
+		bridge|ether|bonding|hdlc)
+			[ "$proto" = "hdlc" -a "$method" != "static" ] && warn "Incorrect method:${method} for $iface" 
 			case $method in
 			static)
 				opts="$realiface"
@@ -233,6 +240,9 @@ _ifup(){
 				exit 1
 			fi
 			;;
+		*)
+			warn "Unknown _proto \"$proto\""
+			;;
 	esac
 
 
@@ -255,6 +265,7 @@ post_ifdown() {
 			required brctl
 			for i in $br_ifaces; do
 				cmd brctl delif $realiface $i
+				cmd ifconfig $i mtu 1500
 			done
 			cmd brctl delbr $realiface
 			;;
@@ -286,10 +297,18 @@ _ifdown(){
 }
 
 _network(){
-	for iface in $sys_ifaces; do
+	local action="$1"
+	# TODO: write restarting single interface at $2	
+	local ifaces="`kdb sskls 'sys*valid=1' sys_iface_ _valid`"
+	for iface in $ifaces; do 
+        unset auto depend_on
 		eval `kdb -lqq sls sys_iface_${iface}_`
-		[ "$1" = "start" -a "$auto" = "1" ] && /sbin/ifup $iface
-		[ "$1" = "stop" ] && /sbin/ifdown $iface
+        # start depends interfaces 
+        if [ -n "$depend_on" ]; then
+            [ "$action" = "start" -a "$auto" = "1" ] && /sbin/ifup $depend_on
+        fi
+		[ "$action" = "start" -a "$auto" = "1" ] && /sbin/ifup $iface
+		[ "$action" = "stop" ] && /sbin/ifdown $iface
 		if [ "$1" = "restart" ]; then
 			/sbin/ifdown $iface
 			/sbin/ifup $iface 

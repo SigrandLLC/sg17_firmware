@@ -8,7 +8,7 @@ PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 CFLAGS:=
 DEBUG := no
 ifeq ($(BR2_PACKAGE_SIGRAND_MR17H_DEBUG),y)
-    CFLAGS +=-DSYSFS_DEBUG
+    CFLAGS +=-DSYSFS_DEBUG -DDEBUG_ON
     DEBUG := yes
 endif
 
@@ -32,7 +32,28 @@ $(PKG_BUILD_DIR)/.configured:
 	-e "s%@CFLAGS@%$(CFLAGS)%g" \
 	-e "s%@KERNVER@%2.6.16%g" \
 	-e "s%@INST_PATH@%$(IDIR_SIGRAND_MR17H)%g" \
-	-e "s%@DEBUG@%$(DEBUG)%g" 
+	-e "s%@DEBUG@%$(DEBUG)%g" \
+	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17H_DRV)%g" \
+	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR17H_TOOL)%g" 
+
+# OEM
+#-------- Driver OEM ------------#
+	sed <$(PKG_BUILD_DIR)/mr17h-drv/sg17oem.h.tmpl \
+	> $(PKG_BUILD_DIR)/mr17h-drv/sg17oem.h \
+	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR17H)%g" \
+	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17H_DRV)%g" 
+#-------- Driver configuration OEM ------------#
+	sed <$(PKG_BUILD_DIR)/mr17h-drv/tools/mr17h_cfg.tmpl  \
+	> $(PKG_BUILD_DIR)/mr17h-drv/tools/mr17h_cfg \
+	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR17H)%g" \
+	-e "s%@MANUFACTURER@%$(BR2_SIGRAND_OEM_MANUFACTURER)%g" 
+#------- Driver debugger OEM -----------#
+	sed <$(PKG_BUILD_DIR)/mr17h-drv/tools/mr17h_debug.tmpl  \
+	> $(PKG_BUILD_DIR)/mr17h-drv/tools/mr17h_debug \
+	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17H_DRV)%g" \
+	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR17H)%g" \
+	-e "s%@MANUFACTURER@%$(BR2_SIGRAND_OEM_MANUFACTURER)%g" 
+#--------------- end OEM ---------------#
 	@echo "KERNVER="$(LINUX_VERSION)" INST_PATH="$(IDIR_SIGRAND_MR17H)
 	touch $@
 

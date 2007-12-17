@@ -21,11 +21,11 @@
 inline u32
 u8_to_u32(u8 *src)
 {
-        u32 ret32=0;
-        u8 i,*ret8=(u8*)&ret32;
-        for( i=0;i<4;i++)
-                ret8[i]=src[i];
-        return ret32;
+	u32 ret32=0;
+	u8 i,*ret8=(u8*)&ret32;
+	for( i=0;i<4;i++)
+		ret8[i]=src[i];
+	return ret32;
 }
 
 /*
@@ -47,10 +47,10 @@ sdfe4_msg_init(struct sdfe4_msg *msg, char *cmsg, int len)
  * sdfe4_chk_transplayer:
  * Checks transport layer status provided transport header
  * @msg		- message to check
-*/
+ */
 inline int
 sdfe4_chk_transplayer(u8 *msg){
-/* TODO: apply transport layer checking */
+	/* TODO: apply transport layer checking */
 	return 0;
 }
 
@@ -58,7 +58,7 @@ sdfe4_chk_transplayer(u8 *msg){
  * sdfe4_chk_msglayer:
  * Checks message layer  status provided by RSTA register
  * @msg		- message to check
-*/
+ */
 inline int
 sdfe4_chk_msglayer(u8 *msg){
 	if( msg[0] != 0xA9 )
@@ -70,7 +70,7 @@ sdfe4_chk_msglayer(u8 *msg){
  * sdfe4_reset_hwdev_chan:
  * Clear channel status when resetting channel
  * @ch		- channel handler
-*/
+ */
 int
 sdfe4_reset_hwdev_chan(struct sdfe4_channel *ch)
 {
@@ -94,7 +94,7 @@ sdfe4_reset_hwdev_chan(struct sdfe4_channel *ch)
  * @plen	- number of command parameters
  * @ret	- return value (if not NULL)
  * @data	- additional data for portability
-*/
+ */
 int
 sdfe4_rs_cmd(u8 opcd, u32 *params, u16 plen,struct sdfe4_ret *ret,struct sdfe4 *hwdev)
 {
@@ -102,7 +102,7 @@ sdfe4_rs_cmd(u8 opcd, u32 *params, u16 plen,struct sdfe4_ret *ret,struct sdfe4 *
 	u32 buf[SDFE4_FIFO32];
 	u32 *msg32=(u32*)buf;
 	u8  *msg8=(u8*)buf;
-        int len=0;
+	int len=0;
 	int r = 0;
 
 	if ( plen > FW_PKT_SIZE32+1 ){
@@ -123,21 +123,22 @@ sdfe4_rs_cmd(u8 opcd, u32 *params, u16 plen,struct sdfe4_ret *ret,struct sdfe4 *
 	sdfe4_lock_chip(hwdev);
 	//Send message to RAM
 	if( (r = sdfe4_hdlc_xmit(msg8,RAM_CMDHDR_SZ+plen*4,hwdev)) ){
-		PDEBUG(debug_sdfe4,"sdfe4_hdlc_xmit error = %d", r);	
+		PDEBUG(debug_error,": sdfe4_hdlc_xmit error = %d", r);	
 		goto exit;
 	}
 
 	if( (r = sdfe4_hdlc_wait_intr(15000,hwdev)) ){
-		PDEBUG(debug_sdfe4,"sdfe4_hdlc_wait_intr error = %d", r);
+		PDEBUG(debug_error,": sdfe4_hdlc_wait_intr error = %d", r);
 		goto exit;
 	}
 	if( (r = sdfe4_hdlc_recv((u8*)buf,&len,hwdev)) ){
-		PDEBUG(debug_sdfe4,"sdfe4_hdlc_recv error = %d", r);	
+		PDEBUG(debug_error,": sdfe4_hdlc_recv error = %d", r);	
 		goto exit;
 	}
 	msg8=(u8*)&buf;
-        msg8+=RAM_ACKHDR_SZ;
+	msg8+=RAM_ACKHDR_SZ;
 	if( sdfe4_chk_msglayer(msg8) ){
+		PDEBUG(debug_error,": error in check_msg_layer = %d", r);			
 		r = -1;
 		goto exit;
 	}
@@ -146,20 +147,23 @@ sdfe4_rs_cmd(u8 opcd, u32 *params, u16 plen,struct sdfe4_ret *ret,struct sdfe4 *
 	if( ret->stamp ){
 		
 		if( (r=sdfe4_hdlc_wait_intr(15000,hwdev)) ){
+			PDEBUG(debug_error,": sdfe4_hdlc_wait_intr error = %d", r);
 			goto exit;
 		}
 
-	        if( (r=sdfe4_hdlc_recv((u8*)buf,&len,hwdev)) ){
+		if( (r=sdfe4_hdlc_recv((u8*)buf,&len,hwdev)) ){
+			PDEBUG(debug_error,": sdfe4_hdlc_recv error = %d", r);			
 			goto exit;
-        	}
+		}
 		msg8=(u8*)&buf;
 		msg8+=RAM_ACKHDR_SZ;
 		if( (r=sdfe4_chk_msglayer(msg8)) ){
+			PDEBUG(debug_error,": error in check_msg_layer = %d", r);			
 			goto exit;
 		}
 		ret->val=u8_to_u32(&msg8[1]);
 	}
-exit:
+ exit:
 	sdfe4_unlock_chip(hwdev);	
 	return r;
 }
@@ -171,7 +175,7 @@ exit:
  * @opcd	- operation code of AUX command
  * @params	- command parameter
  * @data	- additional data for portability
-*/
+ */
 int
 sdfe4_aux_cmd(u8 opcode, u8 param_1,struct sdfe4_ret *ret,struct sdfe4 *hwdev)
 {
@@ -179,6 +183,7 @@ sdfe4_aux_cmd(u8 opcode, u8 param_1,struct sdfe4_ret *ret,struct sdfe4 *hwdev)
 	u8 *msg8=(u8*)buf;
 	int len=0;
 	int e = 0;
+	int i;
 	
 	// prepare parameters of message
 	// (send without transport protocol)
@@ -189,24 +194,33 @@ sdfe4_aux_cmd(u8 opcode, u8 param_1,struct sdfe4_ret *ret,struct sdfe4 *hwdev)
 	
 	sdfe4_lock_chip(hwdev);
 
-	if( (e=sdfe4_hdlc_xmit(msg8,AUX_CMDHDR_SZ+1,hwdev)) ){
+	for(i=0;i<3;i++){ // Try3 times to execute command
+		if( (e=sdfe4_hdlc_xmit(msg8,AUX_CMDHDR_SZ+1,hwdev)) ){
+			PDEBUG(debug_error,": error in sdfe4_hdlc_xmit");
+			continue;
+		}
+
+		if( (e = sdfe4_hdlc_wait_intr(15000,hwdev)) ){
+			PDEBUG(debug_error,": error in sdfe4_hdlc_wait_intr");
+			continue;
+		}
+	
+		if( (e=sdfe4_hdlc_recv((u8*)buf,&len,hwdev)) ){
+			PDEBUG(debug_error,": error in sdfe4_hdlc_recv");
+			continue;
+		}
+		break;
+	}
+	msg8=(u8*)&buf[RAM_ACKHDR_SZ];
+	if( (i == 3) && (e=sdfe4_chk_msglayer(msg8)) ){
+		PDEBUG(debug_error,": error in check_msg_layer = %d",e);
 		goto exit;
 	}
-
-	if( (e = sdfe4_hdlc_wait_intr(15000,hwdev)) )
-		goto exit;
-
-	if( (e=sdfe4_hdlc_recv((u8*)buf,&len,hwdev)) )
-		goto exit;
-
-	msg8=(u8*)&buf[RAM_ACKHDR_SZ];
-	if( (e=sdfe4_chk_msglayer(msg8)) )
-		goto exit;
 	
 	if( ret )
 		ret->val=u8_to_u32(&msg8[1]);
 
-exit:
+ exit:
 	sdfe4_unlock_chip(hwdev);
 	return e;
 }
@@ -219,7 +233,7 @@ exit:
  * @params	- command parameters
  * @plen	- number of command parameters
  * @data	- additional data for portability
-*/
+ */
 int
 sdfe4_pamdsl_cmd(u8 ch, u16 opcd, u8 *params, u16 plen,struct sdfe4_msg *rmsg,struct sdfe4 *hwdev)
 {
@@ -243,48 +257,34 @@ sdfe4_pamdsl_cmd(u8 ch, u16 opcd, u8 *params, u16 plen,struct sdfe4_msg *rmsg,st
 	for(i=0;i<plen;i++)
 		msg8[i+8]=params[i];
 
-	// clean channel
-//	sdfe4_clear_channel(rmsg,hwdev);
-
 	sdfe4_lock_chip(hwdev);
-#ifdef SG17_REPEATER
-	i=0;
-	do{
-#endif	
+	
+	for(i=0;i<3;i++){ // Try3 times to execute command
 		msg8[2] = 0x08 | ( hwdev->msg_cntr & 0x1);
 		if( (error=sdfe4_hdlc_xmit(msg8,EMB_CMDHDR_SZ+plen,hwdev)) ){
-		// TODO: error handling
-			PDEBUG(debug_error,"err(%d) in sdfe4_hdlc_xmit",error);
-			error = -EXMIT;
-			goto exit;
+			PDEBUG(debug_error,": error in sdfe4_hdlc_xmit. try once more");
+			continue;
 		}
 		
-#ifdef SG17_REPEATER
-		if( i == 3 ){
-			PDEBUG(debug_error,"error no answer");		
-			error = -ERESET;
-			goto exit;
+		if( (error=sdfe4_hdlc_wait_intr(15000,hwdev)) ){
+			PDEBUG(debug_error,": error opcd(%x) no intr. try once more",opcd);	
+			continue;
 		}
-		i++;
-	}
-	while( sdfe4_drv_poll(rmsg,hwdev) );
-#else	
-
-	if( (error=sdfe4_hdlc_wait_intr(15000,hwdev)) ){
-		PDEBUG(debug_error,"err(%d) no intr",error);	
-		error = -1;
-		goto exit;
-	}
 	
-	i = sdfe4_hdlc_recv(rmsg->buf,&rmsg->len,hwdev);
-#endif	
+		if(sdfe4_hdlc_recv(rmsg->buf,&rmsg->len,hwdev) ){
+			PDEBUG(debug_error,": error in sdfe4_hdlc_recv. try once more");
+			continue;
+		}
+		break;
+	}
 		
-	if( rmsg->ack_id != *(u16*)(&rmsg->buf[4])){
+	if( i==3 || rmsg->ack_id != *(u16*)(&rmsg->buf[4])){
+		PDEBUG(debug_error,"pamdsl cmd fils: i=%d",i);
 		error = -1;
 		goto exit;
 	}
 
-exit:		
+ exit:		
 	sdfe4_unlock_chip(hwdev);
 	return error;
 }
@@ -296,7 +296,7 @@ exit:
  * @ch	- controller number	
  * @hdr0	- first byte of transport layer header
  * @data	- additional data for portability
-*/
+ */
 int
 sdfe4_pamdsl_ack(u8 ch, u8 hdr0,struct sdfe4 *hwdev)
 {
@@ -314,7 +314,8 @@ sdfe4_pamdsl_ack(u8 ch, u8 hdr0,struct sdfe4 *hwdev)
 
 	// message params must be already in little endian, no conversion !!!
 	if( sdfe4_hdlc_xmit(msg,EMB_ACKHDR_SZ,hwdev) ){
-	// TODO: error handling
+		PDEBUG(debug_error,": error in sdfe4_hdlc_xmit");
+		// TODO: error handling
 		return -1;
 	}
 	
@@ -335,25 +336,20 @@ sdfe4_pamdsl_nfc(struct sdfe4_msg *msg,struct sdfe4 *hwdev)
 	hdr0=msg->buf[2];
 	hdr1=msg->buf[3];
 	ch=PEF24624_PAMDSL_ADR(msg->buf[0]);
-PDEBUG(debug_eoc,"ch=%d",ch);
+	PDEBUG(debug_eoc,"ch=%d",ch);
 	ackID=*(u16*)(&msg->buf[4]);
-asm("#1");	
+
 	switch( ackID ){
 	case NFC_CONNECT_CTRL:
-asm("#2");
 		PDEBUG(debug_sdfe4,"NFC_CONNECT_CTRL, status = %02x",msg->buf[EMB_NFCHDR_SZ]);
 		hwdev->ch[ch].state=msg->buf[EMB_NFCHDR_SZ];
 		hwdev->ch[ch].state_change=1;
-asm("#3");
 		return 0;
 	case NFC_CONNECT_CONDITION:
-asm("#4");
 		hwdev->ch[ch].conn_state=msg->buf[EMB_NFCHDR_SZ];
 		hwdev->ch[ch].conn_state_change=1;
-asm("#5");
 		return 0;
 	case NFC_SDI_DPLL_SYNC:
-asm("#6");
 		hwdev->ch[ch].sdi_dpll_sync=1;
 		PDEBUG(0,"sdi_dpll_sync=1");
 		return 0;
@@ -361,22 +357,15 @@ asm("#6");
 		hwdev->ch[ch].perf_prims=msg->buf[EMB_NFCHDR_SZ];
 		return 0;
 	case NFC_EOC_TX:
-asm("#7!!");
 		PDEBUG(debug_eoc,"EOC(%d): new state: (%p) msg->len=%d",ch,hwdev->ch[ch].eoc,msg->len);
 		hwdev->ch[ch].eoc->eoc_tx=msg->buf[EMB_NFCHDR_SZ];
-
-asm("#8!!");		
 		return 0;
 	case NFC_EOC_RX:
-asm("#9!!");	
 		PDEBUG(debug_eoc,"EOC(%d): Get new message",ch);
-asm("#9.1!!");		
 		sdfe4_eoc_init(&hwdev->ch[ch],&msg->buf[EMB_NFCHDR_SZ],msg->len-EMB_NFCHDR_SZ);
-asm("#10!!");		
 		return 0;
 	case NFC_UNDEF_MSG_ID:
 	case NFC_MULTIWIRE_MASTER:
-
 	case NFC_MULTIWIRE_PAIR_NR:
 	case NFC_MPAIR_DELAY_MEASURE_SDFE4:	
 	case  NFC_FBIT_RX:
@@ -408,18 +397,18 @@ sdfe4_pamdsl_parse(struct sdfe4_msg *rmsg,struct sdfe4 *hwdev)
 
 	switch ( hdr0 & 0xfe ){
 	case 0x88:
-	// Transport counter sync
+		// Transport counter sync
 		if( ( (hwdev->msg_cntr) & 0x1) != (hdr0 & 0x1) ){
-    			hwdev->msg_cntr = (hdr0 & 0x1);
+			hwdev->msg_cntr = (hdr0 & 0x1);
 		}
 		(hwdev->msg_cntr)++;
 		return SDFE4_PAMDSL_SYNC;
 	case 0x06:
-	// Reset requested from the counter part.
+		// Reset requested from the counter part.
 		(hwdev->msg_cntr)=0;		
 		return SDFE4_PAMDSL_SYNC;
 	case 0x08:
-	// This CMD, ACK or NFC
+		// This CMD, ACK or NFC
 		sdfe4_pamdsl_ack(chan, (0x88 | ( hdr0 & 0x1)),hwdev);
 		if( hdr1 ){
 		 	hwdev->msg_cntr++;	
@@ -428,12 +417,12 @@ sdfe4_pamdsl_parse(struct sdfe4_msg *rmsg,struct sdfe4 *hwdev)
 		}
 		return SDFE4_PAMDSL_ACK;
 	case 0x8E:
-	//   Counter part received corrupted message.
+		//   Counter part received corrupted message.
 		hwdev->msg_cntr++;
 		return SDFE4_PAMDSL_SYNC;
 	case 0x00:
 	default:
-	// TODO:  Error handling
+		// TODO:  Error handling
 		return SDFE4_PAMDSL_ERROR;
 	}
 }
@@ -448,12 +437,12 @@ sdfe4_pamdsl_parse(struct sdfe4_msg *rmsg,struct sdfe4 *hwdev)
 int
 sdfe4_drv_poll(struct sdfe4_msg *rmsg,struct sdfe4 *hwdev)
 {
-       //,ackID
+	//,ackID
 	while(1){
 		if( sdfe4_hdlc_wait_intr(150000,hwdev) )
 			return -1;
 		if( sdfe4_hdlc_recv(rmsg->buf,&rmsg->len,hwdev) ){
-		// TODO: error handling
+			// TODO: error handling
 			return -1;
 		}
 		if( sdfe4_pamdsl_parse(rmsg,hwdev) > 0 )
@@ -473,11 +462,11 @@ sdfe4_drv_poll(struct sdfe4_msg *rmsg,struct sdfe4 *hwdev)
 int
 sdfe4_download_fw(struct sdfe4 *hwdev
 #ifdef SG17_PCI_MODULE
- , u8 *fw, int fw_size
+				  , u8 *fw, int fw_size
 #endif
-)
+				  )
 {
-    	int i,k,iter;
+	int i,k,iter;
   	u32 Data_U32[256];
   	struct sdfe4_ret ret;
 #ifdef SG17_REPEATER	
@@ -492,12 +481,14 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 	PDEBUG(debug_sdfe4,"hwdev = %08x",(u32)hwdev);
 	PDEBUG(debug_sdfe4,"hwdev->data = %08x",(u32)hwdev->data);	
   	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWSTART,Data_U32,1,&ret,hwdev)){
+		PDEBUG(debug_error,": error in CMD_WR_REG_RS_FWSTART");
 		return -1;
-    	}
+	}
 
 	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWCTRL,Data_U32,1,&ret,hwdev)){
+		PDEBUG(debug_error,": error in CMD_WR_REG_RS_FWCTRL");
 		return -1;
-    	}
+	}
 
 
  	iter=FW_CODE_SIZE/FW_PKT_SIZE;
@@ -508,13 +499,13 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 			Data_U32[i+1] = cpu_to_be32(*((u32*)&fw[k*FW_PKT_SIZE + i*4]));
 #else
 			Data_U32[i+1]=cpu_to_be(FLASH_WordRead (FLASH_FW_STRTADDR +FW_CODE_OFFS +
-								FW_PKT_SIZE*k + i*0x4));
+													FW_PKT_SIZE*k + i*0x4));
 #endif								
 		}
 		if( sdfe4_rs_cmd(CMD_WR_RAM_RS,(u32*)Data_U32,FW_PKT_SIZE32+1,&ret,hwdev)){
-			PDEBUG(debug_sdfe4,"CMD_WR_RAM_RS for code error, iter = %d",k);
+			PDEBUG(debug_error,": error in CMD_WR_RAM_RS for CODE, iter = %d",k);
 			return -1;
-     		}
+		}
 	}
 
 	wait_ms(2);
@@ -522,14 +513,16 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 	ret.stamp = 1;
 	ret8 = (u8*)&ret.val;
 	Data_U32[0]=FWCTRL_CHK;
-        if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWCTRL,Data_U32,1,&ret,hwdev)){
+	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWCTRL,Data_U32,1,&ret,hwdev)){
+		PDEBUG(debug_error,": error in CMD_WR_REG_RS_FWCTRL for CODE");	
 		wait_ms(2);
-                Data_U32[0]=0;
+		Data_U32[0]=0;
 		ret.stamp=0;
 		if( sdfe4_rs_cmd(CMD_RD_REG_RS_FWCRC,Data_U32,1,&ret,hwdev)){
+			PDEBUG(debug_error,": error in CMD_RD_REG_RS_FWCRC for CODE");			
 			return -1;
 		}
-        }
+	}
 
 
 	//  Count firmware code CRC 
@@ -550,8 +543,10 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 	wait_ms(100);
 	ret.stamp=0;
 	Data_U32[0]=FWCTRL_SWITCH;
-	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWCTRL,Data_U32,1,&ret,hwdev) )
+	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWCTRL,Data_U32,1,&ret,hwdev) ){
+		PDEBUG(debug_error,": error in CMD_WR_REG_RS_FWCTRL for DATA");
 		return -1;
+	}
 
 	wait_ms(100);
 	iter=FW_DATA_SIZE/FW_PKT_SIZE;
@@ -561,12 +556,12 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 #ifdef SG17_PCI_MODULE
 			Data_U32[i+1] = cpu_to_be32(*((u32*)&fw[FW_DATA_OFFS+k*FW_PKT_SIZE + i*4]));
 #else
-	        	Data_U32[i+1] = cpu_to_be(FLASH_WordRead (FLASH_FW_STRTADDR + FW_DATA_OFFS +
+			Data_U32[i+1] = cpu_to_be(FLASH_WordRead (FLASH_FW_STRTADDR + FW_DATA_OFFS +
                                 			          FW_PKT_SIZE*k + i*0x4));
 #endif								  
 		}
 		if( sdfe4_rs_cmd(CMD_WR_RAM_RS,(u32*)Data_U32,FW_PKT_SIZE32+1,&ret,hwdev)){
-			PDEBUG(debug_sdfe4,"CMD_WR_RAM_RS for data error, iter = %d",k);
+			PDEBUG(debug_error,": error in CMD_WR_RAM_RS for DATA, iter=%d",k);
 			return -1;
 		}
 	}
@@ -575,10 +570,12 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 	ret.stamp=1;
 	Data_U32[0]=FWCTRL_CHK | FWCTRL_SWITCH;
 	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWCTRL,Data_U32,1,&ret,hwdev)){
-      		wait_ms(2);
-                Data_U32[0]=0;
+		PDEBUG(debug_error,": error in CMD_WR_REG_RS_FWCTRL for DATA");
+		wait_ms(2);
+		Data_U32[0]=0;
 		ret.stamp=0;
 		if( sdfe4_rs_cmd(CMD_RD_REG_RS_FWCRC,Data_U32,1,&ret,hwdev)){
+			PDEBUG(debug_error,": error in CMD_RD_REG_RS_FWCRC for DATA");	
 			return -1;
 		}
 	}
@@ -603,14 +600,16 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 	ret.stamp=0;
 	Data_U32[0]=FWdtpnt;
   	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWDTPNT,Data_U32,1,&ret,hwdev)){
-		while(1);
-    	}
+		PDEBUG(debug_error,": error in CMD_WR_REG_RS_FWDTPNT");	
+		return -1;
+	}
 
 	wait_ms(200);
 	Data_U32[0]=FWCTRL_VALID;
   	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWCTRL,Data_U32,1,&ret,hwdev)){
+		PDEBUG(debug_error,": error in CMD_WR_REG_RS_FWCTRL");		
 		return -1;
-    	}
+	}
 
   	wait_ms(100);
 	Data_U32[0]=0;
@@ -619,6 +618,7 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 			Data_U32[0] |= (1<<i);
 	}
   	if(sdfe4_rs_cmd(CMD_WR_REG_RS_FWSTART,Data_U32,1,&ret,hwdev)){
+		PDEBUG(debug_error,": error in CMD_WR_REG_RS_FWSTART");		
 		return -1;
 	}
 
@@ -629,7 +629,7 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 	
 	for(i=0;i<SDFE4_EMB_NUM;i++){
 		if( hwdev->ch[i].enabled &&
-		   		hwdev->ch[i].state != MAIN_INIT ){
+			hwdev->ch[i].state != MAIN_INIT ){
 			return -1;
 		}
 		hwdev->ch[i].state_change=0;
@@ -666,8 +666,10 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	sym_dsl->mode=cfg->mode;
 	sym_dsl->standard=SHDSL;
 	rmsg.ack_id=ACK_CFG_SYM_DSL_MODE;
-	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_SYM_DSL_MODE,(u8*)buf,sizeof(*sym_dsl),&rmsg,hwdev))
+	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_SYM_DSL_MODE,(u8*)buf,sizeof(*sym_dsl),&rmsg,hwdev)){
+		PDEBUG(debug_error,": error in CMD_CFG_SYM_DSL_MODE");
 		return -1;
+	}
 	
 	
 	//2. Setup transaction
@@ -680,26 +682,38 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	ghs_mode->pmms_margin_mode=PMMS_NORMAL;
 	ghs_mode->epl_mode=EPL_ENABLED;
 	rmsg.ack_id=ACK_CFG_GHS_MODE;
-	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_GHS_MODE,(u8*)buf,sizeof(*ghs_mode),&rmsg,hwdev))
+	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_GHS_MODE,(u8*)buf,sizeof(*ghs_mode),&rmsg,hwdev)){
+		PDEBUG(debug_error,": error in CMD_CFG_GHS_MODE");
 		return -1;
-	
+	}
+		
 	// 3 Caplist_V2
 	PDEBUG(debug_sdfe4,"Caplist_V2");
 	caplist=(struct cmd_cfg_caplist_short_ver_2 *)buf;
 	memset(caplist,0,sizeof(*caplist));
-	caplist->clock_mode=SHDSL_CLK_MODE_1;
+	if( cfg->mode == STU_C ){
+		if( cfg->clkmode == 0 ){
+			caplist->clock_mode=SHDSL_CLK_MODE_1;
+		}else{
+			//	printk(KERN_NOTICE"Configure sync mode\n");
+			caplist->clock_mode=SHDSL_CLK_MODE_3a;
+		}
+	}else{
+		caplist->clock_mode=SHDSL_CLK_MODE_1|SHDSL_CLK_MODE_3a;
+	}
+
+	//printk(KERN_NOTICE"ch(%d): Result clock_mode=%d\n",ch,caplist->clock_mode);
+
 	caplist->annex = cfg->annex;
 	caplist->psd_mask=0x00;
 	caplist->pow_backoff=0x00;
-	
 	if(cfg->mode==STU_R){
-	                caplist->base_rate_min=192;
-			caplist->base_rate_max=2304;
-			caplist->base_rate_min16=2368;
-			caplist->base_rate_max16=3840;
-			caplist->base_rate_min32=768;
-			caplist->base_rate_max32=5696;
-	
+		caplist->base_rate_min=192;
+		caplist->base_rate_max=2304;
+		caplist->base_rate_min16=2368;
+		caplist->base_rate_max16=3840;
+		caplist->base_rate_min32=768;
+		caplist->base_rate_max32=5696;
 	}
 	else {
 	
@@ -732,25 +746,31 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	caplist->enable_pmms=PMMS_OFF;
 	caplist->pmms_margin=0x00;
 	rmsg.ack_id=ACK_CFG_CAPLIST_SHORT_VER_2;
-	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_CAPLIST_SHORT_VER_2,(u8*)buf,sizeof(*caplist),&rmsg,hwdev))
+	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_CAPLIST_SHORT_VER_2,(u8*)buf,sizeof(*caplist),&rmsg,hwdev)){
+		PDEBUG(debug_error,": error in CMD_CFG_CAPLIST_SHORT_VER_2");	
 		return -1;
-		
+	}		
 
 	// 5 confi AUX
 	PDEBUG(debug_sdfe4,"config AUX_SDI_IF_SEL_3");
 	wait_ms(20);
-	if(sdfe4_aux_cmd(CMD_WR_REG_AUX_SDI_IF_SEL_3,0x03, &ret,hwdev))
-          	return -1;
+	if(sdfe4_aux_cmd(CMD_WR_REG_AUX_SDI_IF_SEL_3,0x03, &ret,hwdev)){
+		PDEBUG(debug_error,": error in CMD_WR_REG_AUX_SDI_IF_SEL_3");		
+		return -1;
+	}
 	PDEBUG(debug_sdfe4,"config AUX_SDI_IF_SEL_0");		
 	wait_ms(20);
-	if(sdfe4_aux_cmd(CMD_WR_REG_AUX_SDI_IF_SEL_0,0x00, &ret,hwdev))
-          	return -1;
-	
+	if(sdfe4_aux_cmd(CMD_WR_REG_AUX_SDI_IF_SEL_0,0x00, &ret,hwdev)){
+		PDEBUG(debug_error,": error in CMD_WR_REG_AUX_SDI_IF_SEL_0");		
+		return -1;
+	}
+		
 	PDEBUG(debug_sdfe4,"config AUX_AUX_IF_MODE");
 	wait_ms(20);
-	if(sdfe4_aux_cmd(CMD_WR_REG_AUX_AUX_IF_MODE,0x82, &ret,hwdev))
+	if(sdfe4_aux_cmd(CMD_WR_REG_AUX_AUX_IF_MODE,0x82, &ret,hwdev)){
+		PDEBUG(debug_error,": error in CMD_WR_REG_AUX_AUX_IF_MODE");		
 		return -1;
-
+	}
 	
 	
 	//6 SDI settings
@@ -758,20 +778,21 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	wait_ms(20);
 	sdi_settings=(struct cmd_cfg_sdi_settings*)buf;
 	memset(sdi_settings,0,sizeof(*sdi_settings));
-        sdi_settings->input_mode=cfg->input_mode ;
+	sdi_settings->input_mode=cfg->input_mode ;
 	sdi_settings->output_mode=SDI_TDMSP_TDMMSP;
 	sdi_settings->frequency=cfg->frequency;
 	sdi_settings->payload_bits=cfg->payload_bits;
 	sdi_settings->frames=0x30;
 	sdi_settings->loop=cfg->loop;
-        sdi_settings->ext_clk8k=SDI_NO;
+	sdi_settings->ext_clk8k=SDI_NO;
 	sdi_settings->dpll4bclk=SDI_NODPLL;
 	sdi_settings->refclkin_freq=TIM_DATA_CLK_8KHZ;
 	sdi_settings->refclkout_freq=TIM_REF_CLK_OUT_SYM_8KHZ;
 	rmsg.ack_id=ACK_CFG_SDI_SETTINGS;
-	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_SDI_SETTINGS,(u8*)buf,sizeof(*sdi_settings),&rmsg,hwdev))
+	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_SDI_SETTINGS,(u8*)buf,sizeof(*sdi_settings),&rmsg,hwdev)){
+		PDEBUG(debug_error,": error in CMD_CFG_SDI_SETTINGS");		
 		return -1;
-		
+	}		
 
 	//7 Config SDI RX
 	PDEBUG(debug_sdfe4,"Config SDI RX");
@@ -785,24 +806,27 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	sdi_rx->slip_mode=SLIP_FAST;
 	sdi_rx->align=SDI_NO;
 	rmsg.ack_id=ACK_CFG_SDI_RX;
-	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_SDI_RX,(u8*)buf,sizeof(*sdi_rx),&rmsg,hwdev))
+	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_SDI_RX,(u8*)buf,sizeof(*sdi_rx),&rmsg,hwdev)){
+		PDEBUG(debug_error,": error in CMD_CFG_SDI_RX");	
 		return -1;
-	
+	}
+		
 	//8 Config SDI TX
 	PDEBUG(debug_sdfe4,"Config SDI TX");
 	sdi_tx=(struct cmd_cfg_sdi_tx*)buf;
 	memset(sdi_tx,0,sizeof(*sdi_tx));
 	sdi_tx->frame_shift=0x00;
 	sdi_tx->sp_level=SDI_HIGH;
-        sdi_tx->sp_sample_edg=SDI_FALLING;
+	sdi_tx->sp_sample_edg=SDI_FALLING;
 	sdi_tx->data_sample_edg=SDI_FALLING;
 	sdi_tx->lstwr_1strd_dly=0x93;
 	sdi_tx->slip_mode=SLIP_FAST;
 	sdi_tx->align=SDI_NO;
 	rmsg.ack_id=ACK_CFG_SDI_TX;
-	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_SDI_TX,(u8*)buf,sizeof(*sdi_tx),&rmsg,hwdev))
+	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_SDI_TX,(u8*)buf,sizeof(*sdi_tx),&rmsg,hwdev)){
+		PDEBUG(debug_error,": error in CMD_CFG_SDI_TX");	
 		return -1;
-
+	}
 
 	//9. config EOC
 	PDEBUG(debug_sdfe4,"Config EOC");
@@ -810,9 +834,11 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	memset(eoc_rx,0,sizeof(*eoc_rx));
 	eoc_rx->max_num_bytes=800;
 	rmsg.ack_id=ACK_CFG_EOC_RX;
-	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_EOC_RX,(u8*)buf,sizeof(*eoc_rx),&rmsg,hwdev))
+	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_EOC_RX,(u8*)buf,sizeof(*eoc_rx),&rmsg,hwdev)){
+		PDEBUG(debug_error,": error in CMD_CFG_EOC_RX");	
 		return -1;
-	
+	}
+		
 	return 0;
 }
 
@@ -840,7 +866,7 @@ sdfe4_setup_channel(int ch, struct sdfe4 *hwdev)
 inline int
 sdfe4_start_channel(int ch,struct sdfe4 *hwdev)
 {
-     	struct sdfe4_msg rmsg;
+	struct sdfe4_msg rmsg;
 	u8 main_pre_act[3]={MAIN_PRE_ACT,0x0,0x0};
 	wait_ms(10);
 	rmsg.ack_id=ACK_CONNECT_CTRL;
@@ -863,7 +889,7 @@ sdfe4_start_channel(int ch,struct sdfe4 *hwdev)
 inline int
 sdfe4_disable_channel(int ch,struct sdfe4 *hwdev)
 {
-     	struct sdfe4_msg rmsg;
+	struct sdfe4_msg rmsg;
 	u8 main_init[3]={MAIN_INIT,0x0,0x0};	
 	wait_ms(50);
 	rmsg.ack_id=ACK_CONNECT_CTRL;
@@ -912,7 +938,7 @@ sdfe4_load_config(u8 ch, struct sdfe4 *hwdev)
 	int r;
 	
 	wait_ms(10);
-        rmsg.ack_id=ACK_DSL_PARAM_GET;
+	rmsg.ack_id=ACK_DSL_PARAM_GET;
 	if( (r = sdfe4_pamdsl_cmd(ch,CMD_DSL_PARAM_GET,NULL,0,&rmsg,hwdev)) ){
 		PDEBUG(debug_error,"error(%d) in CMD_DSL_PARAM_GET",r);
 		return -1;
@@ -927,6 +953,14 @@ sdfe4_load_config(u8 ch, struct sdfe4 *hwdev)
 	ch_cfg->annex = dsl_par->annex;
 	ch_cfg->tc_pam = TC_PAM;
 	ch_cfg->rate = dsl_par->base_rate;
+	switch( dsl_par->frame_mode ){
+	case FRAME_PLESIO:
+		ch_cfg->clkmode = 0;
+		break;
+	case FRAME_SYNC:
+		ch_cfg->clkmode = 1;
+		break;
+	}
 	PDEBUG(debug_sdfe4,"rate = %d",ch_cfg->rate);	
 	return 0;
 }
@@ -936,13 +970,13 @@ sdfe4_get_statistic(u8 ch, struct sdfe4 *hwdev,struct sdfe4_stat *stat)
 {
   	struct sdfe4_msg rmsg;
 	struct ack_perf_status_get *perf;
-//	struct ack_dsl_param_get *dsl_par;		
-//	struct sdfe4_if_cfg *ch_cfg=&(hwdev->cfg[ch]);
+	//	struct ack_dsl_param_get *dsl_par;		
+	//	struct sdfe4_if_cfg *ch_cfg=&(hwdev->cfg[ch]);
 	int r;
 	
 	wait_ms(10);
 
-        rmsg.ack_id=ACK_PERF_STATUS_GET;
+	rmsg.ack_id=ACK_PERF_STATUS_GET;
 	if( (r = sdfe4_pamdsl_cmd(ch,CMD_PERF_STATUS_GET,NULL,0,&rmsg,hwdev)) ){
 		PDEBUG(debug_error,"error(%d) in CMD_DSL_PARAM_GET",r);
 		return -1;
@@ -955,7 +989,7 @@ sdfe4_get_statistic(u8 ch, struct sdfe4 *hwdev,struct sdfe4_stat *stat)
 
 
 /*
- * sdfe4_load_config:
+ * sdfe4_state_mon:
  * Process notifications from Embedded controller block of SDFE4
  * @hwdev	- structure, that holds information about Embedded channels and entire SDFE4 chip
  * return error status
@@ -984,12 +1018,16 @@ sdfe4_state_mon(struct sdfe4 *hwdev)
 			case MAIN_INIT:
 				sdfe4_link_led_down(i,hwdev);
 				sdfe4_reset_hwdev_chan(&(hwdev->ch[i]));
-    				if( sdfe4_setup_channel(i,hwdev) )
-					PDEBUG(debug_sdfe4,"error in sdfe4_setup_channel");
-				if( sdfe4_start_channel(i,hwdev) )
-					PDEBUG(debug_sdfe4,"error in sdfe4_start_channel");
+				if( sdfe4_setup_channel(i,hwdev) ){
+					PDEBUG(debug_error,"error in sdfe4_setup_channel");
+					continue;
+				}
+				if( sdfe4_start_channel(i,hwdev) ){
+					PDEBUG(debug_error,"error in sdfe4_start_channel");
+					continue;
+				}
 				wait_ms(10);
-				return -1;
+				break;
 			case MAIN_EXCEPTION:
 			  	break;
 			}
@@ -1001,7 +1039,7 @@ sdfe4_state_mon(struct sdfe4 *hwdev)
 			case GHS_STARTUP:
 				break;
 			case GHS_TRANSFER:
-			        break;
+				break;
 			case EXCEPTION:
 				break;
 			case GHS_30SEC_TIMEOUT:
@@ -1022,10 +1060,14 @@ sdfe4_state_mon(struct sdfe4 *hwdev)
 			sdfe4_link_led_down(i,hwdev);
 			sdfe4_reset_hwdev_chan(&(hwdev->ch[i]));			
 			wait_ms(200);
-			if( sdfe4_setup_channel(i,hwdev) )
-				PDEBUG(debug_sdfe4,"error in sdfe4_setup_channel");
-			if( sdfe4_start_channel(i,hwdev) )
-				PDEBUG(debug_sdfe4,"error in sdfe4_start_channel");
+			if( sdfe4_setup_channel(i,hwdev) ){
+				PDEBUG(debug_error,"error in sdfe4_setup_channel");
+				return -1;
+			}
+			if( sdfe4_start_channel(i,hwdev) ){
+				PDEBUG(debug_error,"error in sdfe4_start_channel");
+				return -1;
+			}
 			cfg->need_reconf = 0;
 		}
 	}
@@ -1061,11 +1103,11 @@ sdfe4_repeater_start( struct sdfe4 *hwdev )
 		if( state_monitoring(hwdev) )
 			return -1;
 		if(hwdev->ch[3].sdi_dpll_sync){
-		    	break;
+			break;
 		}
 	}
 	
-        rmsg.ack_id=ACK_DSL_PARAM_GET;
+	rmsg.ack_id=ACK_DSL_PARAM_GET;
 	
 	if( sdfe4_pamdsl_cmd(3,CMD_DSL_PARAM_GET,NULL,NULL,&rmsg,hwdev) ){
 		return -1;
@@ -1081,7 +1123,7 @@ sdfe4_repeater_start( struct sdfe4 *hwdev )
 	}
 	
 	
-	  /// Обработка принятого сообщения !
+	/// Обработка принятого сообщения !
 	// config SDFE chenal 0.
 	// STU_C
 	cfg_ch0->mode=                    STU_C;
@@ -1119,7 +1161,7 @@ sdfe4_repeater_start( struct sdfe4 *hwdev )
 		if( state_monitoring(hwdev) )
 			return -1;
 		if(hwdev->ch[0].sdi_dpll_sync){
-		    	break;
+			break;
 		}
 	}
 	return 0;
@@ -1127,8 +1169,8 @@ sdfe4_repeater_start( struct sdfe4 *hwdev )
 #endif
 
 /*----------------------------------------------------------
-    EOC Functions
- -----------------------------------------------------------*/
+  EOC Functions
+  -----------------------------------------------------------*/
 
 /*
  * sdfe4_eoc_init:
@@ -1142,42 +1184,33 @@ sdfe4_repeater_start( struct sdfe4 *hwdev )
  */
 void sdfe4_eoc_init(struct sdfe4_channel *ch,char *ptr,int size)
 {
-        int eflag;
+	int eflag;
 	int msize;
-PDEBUG(debug_eoc,"ptr=%p, size=%d,msg_size=%d",ptr,size,ptr[2]);
+	PDEBUG(debug_eoc,"ptr=%p, size=%d,msg_size=%d",ptr,size,ptr[2]);
 
 	// check if size is valid    
-        if( size < 4 ){
-		PDEBUG(debug_eoc,"Abort: small size");
-	        return;
+	if( size < 4 ){
+		PDEBUG(debug_error,": abort - small size");
+		return;
 	}
-/*	
-//----------DEBUG-----------------//
-int i;
-for(i=0;i<ptr[2];i++){
-    printk("%02x ",ptr[i+3]);
-}
-printk(debug_eoc,"\n");
-//----------DEBUG-----------------//
-*/
 
 	if( ptr[1] ){
-	// receiption failed
+		// receiption failed
 		eoc_abort_new(ch->eoc);
-		PDEBUG(debug_eoc,"Abort: failed receiption");		
+		PDEBUG(debug_error,": abort - failed receiption");		
 		return;
 	}
 	    
 	eflag = ptr[0]; // message completion flag
 	msize = ptr[2]; // message length
 	PDEBUG(debug_eoc,"eflag=%d,msize=%d",eflag,msize);	
-/*	if( msize != (size-3) ){
+	/*	if( msize != (size-3) ){
 	// bad block size
-		PDEBUG(debug_eoc,"Abort: sizes mismatch");	
-		eoc_abort_cur(ch->eoc);
-		return;
+	PDEBUG(debug_eoc,"Abort: sizes mismatch");	
+	eoc_abort_cur(ch->eoc);
+	return;
 	}
-*/	PDEBUG(debug_eoc,"process appending");	
+	*/	PDEBUG(debug_eoc,"process appending");	
 	eoc_append(ch->eoc,&ptr[3],msize,eflag);
 }		
 
@@ -1203,6 +1236,7 @@ sdfe4_eoc_tx(struct sdfe4 *hwdev,int ch,char *ptr,int size)
 	struct sdfe4_msg rmsg;	
 	int i,offset = 0,j;
 	u8 cp;
+	int ret;
 
 	for(i=0;i<count;i++){
 		cp = (size>SDFE4_EOC_MAXMSG) ? SDFE4_EOC_MAXMSG : size;
@@ -1220,25 +1254,25 @@ sdfe4_eoc_tx(struct sdfe4 *hwdev,int ch,char *ptr,int size)
 		msg[1] = cp;
 		hwdev->ch[ch].eoc->eoc_tx = 0;
 		if(sdfe4_pamdsl_cmd(ch,CMD_EOC_TX,(u8*)msg,cp+2,&rmsg,hwdev)){
-			PDEBUG(debug_eoc,"CMD_EOC_TX failed");		
+			PDEBUG(debug_error,"CMD_EOC_TX failed");		
 			return -1;
 		}
 		PDEBUG(debug_eoc,"CMD_EOC_TX: success");
 		PDEBUG(debug_eoc,"wait for NFC");
-		sdfe4_eoc_wait_intr(1500,hwdev);
+		ret = sdfe4_eoc_wait_intr(1500,hwdev);
 		if( i+1==count ){
 			if( hwdev->ch[ch].eoc->eoc_tx != EOC_TX_READY ){
-				PDEBUG(debug_eoc,"Fail to trasnmit, no EOC_TX_READY");
-			        return -1;
+				PDEBUG(debug_error,"Fail to trasnmit, no EOC_TX_READY, get %x, ret=%d",
+						hwdev->ch[ch].eoc->eoc_tx,ret);
+				return -1;
 			}
 			PDEBUG(debug_eoc,"TX Successful");			
-		}else{
-			if( hwdev->ch[ch].eoc->eoc_tx != EOC_TX_FRAME ){
-				PDEBUG(debug_eoc,"Fail to trasnmit, no EOC_TX_READY");
-			        return -1;
-			}
+		}else if( hwdev->ch[ch].eoc->eoc_tx != EOC_TX_FRAME ){
+			PDEBUG(debug_error,"Fail to trasnmit, no EOC_TX_FRAME, get %x, ret=%d",
+				hwdev->ch[ch].eoc->eoc_tx,ret);
+			return -1;
 		}
-
+	
 		PDEBUG(debug_eoc,"Interation %d success",i);
 	}
 	PDEBUG(debug_eoc,"TX success");	

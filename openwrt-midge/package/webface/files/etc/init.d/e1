@@ -1,7 +1,9 @@
 #!/bin/sh
 
+. /etc/templates/oem-vars
+
 kdb="kdb"
-e1_cfg="/sys/bus/pci/drivers/mr16g"
+e1_cfg="/sys/bus/pci/drivers/"${mr16g_drvname}
 ifcfg="/sbin/ifconfig"
 
 . /etc/templates/sigrand-lib
@@ -29,16 +31,89 @@ _e1_stop_drv(){
 
 _e1_if_defconfig(){
 # TODO: describe defconfig
+	local def_proto="cisco"
+	local def_fram="0"
+	local def_ts16="1"
+	local def_smap=""
+	local def_crc4="0"
+	local def_cas="0"
+	local def_clk="0"
+	local def_lhaul="0"
+	local def_lcode="1"
+	local def_hcrc="1"
+	local def_fill="1"	
+	local def_inv="normal"
+	
+	unset proto fram ts16 smap crc4 cas clk lhaul lcode hcrc inv fill 
+		
+	iface=$1
+	eval `$kdb -qq sls sys_e1_${iface}_`
+	
+	# check that PROTO variable is set
+	if [ -z "$proto" ]; then
+		$kdb set sys_e1_${iface}_proto="$def_proto"
+	fi
+	
+	# check that FRAMED variable is set
+	if [ -z "$fram" ]; then
+		$kdb set sys_e1_${iface}_fram="$def_fram"
+	fi
+	# check that TIMESLOT#16 variable is set
+	if [ -z "$ts16" ]; then
+		$kdb set sys_e1_${iface}_ts16="$def_ts16"
+	fi
+	# check that SLOTMAP variable is set
+	if [ -z "$smap" ]; then
+		$kdb set sys_e1_${iface}_smap="$def_smap"
+	fi
+	# check that CRC4 variable is set
+	if [ -z "$crc4" ]; then
+		$kdb set sys_e1_${iface}_crc4="$def_crc4"
+	fi
+	# check that CAS variable is set
+	if [ -z "$cas" ]; then
+		$kdb set sys_e1_${iface}_cas="$def_cas"
+	fi
+	# check that CLOCK variable is set
+	if [ -z "$clk" ]; then
+		$kdb set sys_e1_${iface}_clk="$def_clk"
+	fi
+	# check that LONG HAUL variable is set
+	if [ -z "$lhaul" ]; then
+		$kdb set sys_e1_${iface}_lhaul="$def_lhaul"
+	fi
+	# check that LINE CODE variable is set
+	if [ -z "$lcode" ]; then
+		$kdb set sys_e1_${iface}_lcode="$def_lcode"
+	fi
+	# check that CRC32 variable is set
+	if [ -z "$hcrc" ]; then
+		$kdb set sys_e1_${iface}_hcrc="$def_hcrc"
+	fi
+	# check that FILL BYTE variable is set
+	if [ -z "$fill" ]; then
+		$kdb set sys_e1_${iface}_fill="$def_fill"
+	fi
+	# check that INVERSION variable is set
+	if [ -z "$inv" ]; then
+		$kdb set sys_e1_${iface}_inv="$def_inv"
+	fi
+	
 	return 0;
 }
+
+
 
 _e1_if_stop(){
 	ifconfig $1 down
 }
 
 _e1_apply_cfg(){
-# TODO: describe defconfig	
+
 	iface=$1
+
+	unset proto fram ts16 smap crc4 cas clk lhaul lcode hcrc inv fill 
+
 	eval `$kdb -qq sls sys_e1_${iface}_`
 	# apply configuration
 	$ifcfg $iface down
@@ -52,7 +127,7 @@ _e1_apply_cfg(){
 		;;
 	cisco)
 #		echo "cisco_int=${cisco_int},cisco_to=${cisco_int}." >> /root/e1.log
-		if [ "${cisco_int}" = 0 ]; then
+		if [ "${cisco_int}" -eq "0" ]; then
 			cisco_int=""
 		elif [ -z "${cisco_int}" ]; then
 			cisco_int=""		
@@ -75,23 +150,56 @@ _e1_apply_cfg(){
 		    sethdlc $iface $proto
 		elif [ -z "$proto" ]; then
 		    sethdlc $iface cisco
-		    kdb set sys_e1_${iface}_smap=cisco
+		    kdb set sys_e1_${iface}_proto=cisco
 		fi
+	esac
+
+	# set network interface proto (for web)
+	case "$proto" in
+	hdlc-eth)
+		kdb set sys_iface_${iface}_proto=ether
+		;;
+	*)
+		kdb set sys_iface_${iface}_proto=hdlc
+		;;
 	esac
 		
 #	echo "fram=$fram ts16=$ts16 smap=$smap clk=$clk" >> /root/e1.log
 #	echo "crc4=$crc4 cas=$cas lhaul=$lhaul" >> /root/e1.log	
 	DIR=`pwd`
 	cd $e1_cfg/$iface
+
+	# Change slotmap only if it really changed
+
 	echo $fram 	> framed
-	echo $ts16 	> map_ts16
-	echo "$smap" 	> slotmap
-	smap=`cat slotmap`
-	kdb set sys_e1_${iface}_smap="$smap"
+	if [ "$fram" = "1" ]; then
+		smap_old=`cat slotmap`
+#		echo "Driver_smap=$smap_old Web smap=$smap"
+		echo $ts16 	> map_ts16
+		if [ "$smap_old" != "$smap" ]; then
+#			echo "Smaps differs!"
+			echo "$smap" > slotmap
+		fi
+		smap=`cat slotmap`
+		kdb set sys_e1_${iface}_smap=$smap
+#		echo "kdb set sys_e1_${iface}_smap=$smap"
+#		echo "result:"`kdb get sys_e1_${iface}_smap`
+#		echo "slotmap is setted to $smap"
+#		echo "time="`date`
+	fi
+	
 	echo $clk 	> clck
 	echo $crc4 	> crc4
+	# CAS depends on TS16 (it uses TIMESLOT#16 - so update from hardware)
 	echo $cas 	> cas
-	echo $lhaul 	> long_haul
+	tmp=`cat cas`
+	if [ "$tmp" = "on" ]; then
+		kdb set sys_e1_${iface}_cas=1
+	else
+		kdb set sys_e1_${iface}_cas=0
+	fi
+		
+	echo $lhaul > long_haul
 	echo $lcode	> hdb3
 	echo $hcrc	> crc16
 	echo $fill	> fill_7e
@@ -108,16 +216,18 @@ _e1_start(){
 	_e1_init_svc || return 0
 
 	# init service
-	_e1_init_drv || echo "Cannot find DSL modules"
+	_e1_init_drv || echo "Cannot find E1 modules"
 
 	_sg_if_refresh "hdlc" "sys_e1"
 	
 	#apply defconfig if no configuration
+	echo -n "Configuring E1: "
 	for iface in `$kdb get sys_e1_ifaces`; do
-	    echo "if=$iface"
 	    _e1_if_defconfig $iface
 	    _e1_apply_cfg $iface
+		echo -n "$iface "
 	done
+	echo
 }
 
 _e1_stop(){

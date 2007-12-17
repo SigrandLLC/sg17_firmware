@@ -6,7 +6,7 @@
 	subsys="network"
 
 	handle_list_del_item
-		
+
 	eval `kdb -qq ls "sys_iface_${iface}_*" : sls "sys_iface_${iface}_" `
 	
 	# enable DHCP page only on "ether" interfaces
@@ -19,7 +19,7 @@
 	
 	case $page in
 		'general')	
-			kdb_vars="str:sys_iface_${iface}_desc bool:sys_iface_${iface}_enabled bool:sys_iface_${iface}_auto str:sys_iface_${iface}_method " ;;
+			kdb_vars="str:sys_iface_${iface}_desc bool:sys_iface_${iface}_enabled bool:sys_iface_${iface}_auto str:sys_iface_${iface}_method str:sys_iface_${iface}_depend_on" ;;
 		'method')
 			[ "$method" = "static" ] && kdb_vars="str:sys_iface_${iface}_ipaddr str:sys_iface_${iface}_netmask str:sys_iface_${iface}_gateway str:sys_iface_${iface}_broadcast"
 			[ "$method" = "dynamic" ] && kdb_vars="str:sys_iface_${iface}_dynhostname"
@@ -83,6 +83,22 @@
 		realiface=$iface
 		[ -n "$real" -a -d /proc/sys/net/ipv4/conf/$real ] && realiface=$real
 		
+		# handle iface restart
+		if [ "$FORM_do" = "restart" ]; then
+			render_console_start "Restarting interface $iface" 2 
+			render_console_command /sbin/ifdown $iface
+			render_console_command /sbin/ifup $iface
+			render_console_end
+		elif [ "$FORM_do" = "down" ]; then
+			render_console_start "Shutdowning interface $iface" 2 
+			render_console_command /sbin/ifdown $iface
+			render_console_end
+		elif [ "$FORM_do" = "up" ]; then
+			render_console_start "Starting interface $iface" 2 
+			render_console_command /sbin/ifup $iface
+			render_console_end
+		fi
+		
 		if $ip link ls dev $realiface >/dev/null 2>&1; then
 
 			render_table_title "Interface status" 2
@@ -101,9 +117,11 @@
 			render_console_end
 			case "$proto" in 
 			ether)
-				render_console_start "Internal switch status" 2
-				render_console_command cat /proc/sys/net/adm5120sw/status
-				render_console_end
+				if [ -z "${iface#eth[0-9]}" ]; then
+					render_console_start "Internal switch status" 2
+					render_console_command cat /proc/sys/net/adm5120sw/status
+					render_console_end
+				fi
 				;;
 			bridge)
 				render_console_start "Bridge status" 2
@@ -142,6 +160,12 @@
 			echo "Interface <b>$realiface</b> currently does not exist"
 			render_console_end
 		fi
+
+		render_table_tr_td_open
+		render_js_button "Start interface" "window.location=window.location+'&do=up'"
+		render_js_button "Shutdown interface" "window.location=window.location+'&do=down'"
+		render_js_button "Restart interface" "window.location=window.location+'&do=restart'"
+		render_table_tr_td_close
 		;;
 	'general')
 		render_table_title "Interface general settings" 
@@ -166,6 +190,14 @@
 		desc="Please select method of the interface"
 		validator="$tmtreq tmt:message='Please select method'"
 		render_input_field select "Method" sys_iface_${iface}_method none 'None' static 'Static address' zeroconf 'Zero Configuration' dynamic 'Dynamic address'
+
+		# sys_iface_${iface}_depend_on
+		tip=""
+		desc=""
+		validator=""
+		default='none'
+		ifaces=`kdb sskls 'sys*valid=1' sys_iface_ _valid`
+		render_input_field select "Depended on" sys_iface_${iface}_depend_on none 'None' `iface_get_ifaces -d`
 		render_submit_field
 		;;
 	'method')
@@ -346,6 +378,7 @@
 		render_submit_field
 		;;
 	'qos')
+		render_table_title "QoS Scheduler" 2 
 		# sys_iface_${iface}_qos_sch
 		desc="Please select scheduler for the interface"
 		validator='tmt:required="true" tmt:message="Please select method"'
@@ -354,6 +387,7 @@
 		;;
 		
 	'routes')
+		render_table_title "Routes" 2 
 		;;
 	esac
 	
@@ -373,7 +407,7 @@
 			render_input_field hidden iface iface "$iface"
 			render_input_field hidden page page "$page"
 			render_input_field hidden form form "form2"
-			render_table_title "QoS Settings" 2 
+			render_table_title "QoS Scheduler settings" 2 
 		fi
 		case $qos_sch in
 			bfifo|pfifo)
@@ -444,10 +478,10 @@
 		;;
 
 	'routes')
-		if [ $method != dynamic ]; then
+		if [ "$method" != dynamic ]; then
+
 
 			render_form_header routes
-
 			render_list_line(){
 				local lineno=$1
 				eval "val=\"\${sys_iface_${iface}_route_${lineno}}\""

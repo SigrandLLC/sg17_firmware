@@ -8,7 +8,7 @@
 KDB_PARAMS=""
 
 kdb_ladd_string(){
-	eval "export $1=\$FORM_$1"
+	eval "export \"$1\"=\"\$FORM_$1\""
 	KDB_PARAMS="${KDB_PARAMS} : ladd $1=%ENV "
 }
 

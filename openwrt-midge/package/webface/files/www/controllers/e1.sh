@@ -1,6 +1,8 @@
 #!/usr/bin/haserl
 
-cfg_path="/sys/bus/pci/drivers/mr16g/"
+. /www/controllers/oem.sh
+
+cfg_path="/sys/bus/pci/drivers/"$MR16G_DRVNAME
 
 iface="${FORM_iface}"
 	
@@ -15,25 +17,38 @@ if [ -n "$iface" ]; then
 			int:sys_e1_${iface}_cisco_int	\
 			int:sys_e1_${iface}_cisco_to	\
 		  	bool:sys_e1_${iface}_fram	\
-			bool:sys_e1_${iface}_ts16	\
-			str:sys_e1_${iface}_smap	\
 			bool:sys_e1_${iface}_clk	\
-			bool:sys_e1_${iface}_crc4	\
-			bool:sys_e1_${iface}_cas	\
 			bool:sys_e1_${iface}_lhaul	\
 			int:sys_e1_${iface}_lcode	\
 			int:sys_e1_${iface}_hcrc	\
 			int:sys_e1_${iface}_fill	\
 			int:sys_e1_${iface}_inv	"
-	subsys="e1."$iface
 
+	fram=`kdb get sys_e1_${iface}_fram`	
+	if [ "$fram" -eq "1" ]; then
+		kdb_vars=${kdb_vars}" \
+			bool:sys_e1_${iface}_ts16	\
+			str:sys_e1_${iface}_smap	\
+			bool:sys_e1_${iface}_crc4	\
+			bool:sys_e1_${iface}_cas"
+	fi
+
+	subsys="e1."$iface
 	render_save_stuff
 
 	render_form_header
 	render_table_title "$iface modem settings" 2
-	
+
+	# Seems that config script ends later than this code
+	# So need delay because config script can change smap
+	sleep 1	
 	# refresh settings
 	eval `kdb -qq ls "sys_e1_*" `
+	
+	# Check for correctness of smap value
+#	echo "time="`date`
+#	echo "smap=${sys_e1_hdlc0_smap}"
+#	echo "smap1="`kdb get sys_e1_hdlc0_smap`
 	
 	# sys_e1_${iface}_name
 	render_input_field "hidden" "hidden" iface $iface
@@ -47,7 +62,7 @@ if [ -n "$iface" ]; then
 #TODO:	1. Make in Java script
 #	2. find out what options is for FR!
 	proto=`kdb get sys_e1_${iface}_proto`
-        case "$proto" in
+    case "$proto" in
 	hdlc*)
 	    # sys_e1_${iface}_hdlc_enc
 	    encodings="nrz nrzi fm-mark fm-space manchester"
@@ -77,75 +92,73 @@ if [ -n "$iface" ]; then
 	    ;;
 	esac
 
-        # sys_e1_${iface}_fram
-        default=0
-        tip=""
-        desc="check to enable"
-        render_input_field checkbox "E1 framed mode" sys_e1_${iface}_fram
+    # sys_e1_${iface}_fram
+#    default=0
+    tip=""
+    desc="check to enable"
+    render_input_field checkbox "E1 framed mode" sys_e1_${iface}_fram
 
 	# TODO: Java-script?
 	# Valid only in framed mode
 	fram=`kdb get sys_e1_${iface}_fram`	
-	if [ $fram = 1 ]; then
-            # sys_e1_${iface}_ts16
-	    default=0
-    	    tip=""
-            desc="check to use"
+	if [ "$fram" -eq "1" ]; then
+
+        # sys_e1_${iface}_ts16
+#		default=1
+		tip=""
+		desc="check to use"
 	    render_input_field checkbox "Use time slot 16" sys_e1_${iface}_ts16
 
-    	    # sys_e1_${iface}_smap
-            default=0
+    	# sys_e1_${iface}_smap
 	    tip=""
-    	    desc="example: 2-3,6-9,15-20"
-            render_input_field text "Slotmap" sys_e1_${iface}_smap
+    	desc="example: 2-3,6-9,15-20"
+        render_input_field text "Slotmap" sys_e1_${iface}_smap
 
-	    # sys_e1_${iface}_clk
-    	    default=0
-    	    tip=""
-	    desc="check to enable"
-	    render_input_field checkbox "E1 internal transmit clock" sys_e1_${iface}_clk
     
 	    # sys_e1_${iface}_crc4
-    	    default=0
+#    	default=0
 	    tip=""
-    	    desc="check to enable"
+    	desc="check to enable"
 	    render_input_field checkbox "E1 CRC4 multiframe" sys_e1_${iface}_crc4
 
-    	    # sys_e1_${iface}_cas
-    	    default=0
-    	    tip=""
-    	    desc="check to enable"
-    	    render_input_field checkbox "E1 CAS multiframe" sys_e1_${iface}_cas
-
-
-	    
-
+    	# sys_e1_${iface}_cas
+#    	default=0
+    	tip=""
+    	desc="check to enable"
+    	render_input_field checkbox "E1 CAS multiframe" sys_e1_${iface}_cas
 	fi
 
-        # sys_e1_${iface}_lhaul
-        default=0
-        tip=""
-        desc="check to enable"
-        render_input_field checkbox "E1 long haul mode" sys_e1_${iface}_lhaul
+	# sys_e1_${iface}_clk
+#    default=0
+    tip=""
+	desc="check to enable"
+	render_input_field checkbox "E1 external transmit clock" sys_e1_${iface}_clk
 
-        # sys_e1_${iface}_lcode
-        tip=""
-        desc=""
-        render_input_field select " E1 HDB3/AMI line code" sys_e1_${iface}_lcode  1 HDB3 0 AMI
+    # sys_e1_${iface}_lhaul
+#    default=0
+    tip=""
+    desc="check to enable"
+    render_input_field checkbox "E1 long haul mode" sys_e1_${iface}_lhaul
 
-        # sys_e1_${iface}_crc32
-        tip=""
-        desc="Select DSL CRC length"
-        render_input_field select "CRC" sys_e1_${iface}_hcrc 0 CRC32 1 CRC16
+    # sys_e1_${iface}_lcode
+    tip=""
+    desc=""
+    render_input_field select " E1 HDB3/AMI line code" sys_e1_${iface}_lcode  1 HDB3 0 AMI
+
+    # sys_e1_${iface}_crc32
+    tip=""
+    desc="Select HDLC CRC length"
+    render_input_field select "CRC" sys_e1_${iface}_hcrc 0 CRC32 1 CRC16
 				
-        # sys_e1_${iface}_fill
-        tip=""
-        desc="Select DSL fill byte value"
-        render_input_field select "Fill" sys_e1_${iface}_fill  0 FF 1 7E
+    # sys_e1_${iface}_fill
+    tip=""
+    desc="Select HDLC fill byte value"
+    render_input_field select "Fill" sys_e1_${iface}_fill  0 FF 1 7E
 							
-        # sys_e1_${iface}_inv
+    # sys_e1_${iface}_inv
+#	default=0
 	tip=""
-	desc="Select DSL inversion mode"
+	desc="Select HDLC inversion mode"
 	render_input_field select "Inversion" sys_e1_${iface}_inv  0 off 1 on
 												
 	render_submit_field

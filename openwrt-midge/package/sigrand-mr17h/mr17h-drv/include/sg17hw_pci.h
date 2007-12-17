@@ -31,6 +31,7 @@
 #define WTBE    0x02            // write burst enable
 #define RODD    0x04            // receive 2-byte alignment
 #define RXDE    0x08            // receive data enable
+#define EXTC    0x20            // receive data enable
 #define LED1	0x40		// Led blink control bit 1
 #define LED2	0x80		// Led blink control bit 2
 

@@ -22,12 +22,33 @@ L1 System welcome
 		L3 'PPP secrets' 'auth_ppp'
 	L2 Time		'time'
 	L2 Logging	'logging'
-	L2 SHDSL	'dsl'
-	for i in `kdb get sys_dsl_ifaces`; do
-		class=""
-		[ "$FORM_iface" = "$i" ] && class="navlnk_a"
-		L3	$i "dsl&iface=$i" $class
-	done
+	tmp=`kdb get sys_dsl_ifaces`
+	if [ -n "$tmp" ]; then
+		L2 SHDSL	'dsl'
+		for i in `kdb get sys_dsl_ifaces`; do
+			class=""
+			[ "$FORM_iface" = "$i" ] && class="navlnk_a"
+			L3	$i "dsl&iface=$i" $class
+		done
+	fi
+
+
+	if [ -f "/sbin/eoc-info" ]; then
+		eval `/sbin/eoc-info -sr`
+		
+		if [ -n "$eoc_channels" ]; then
+	    	L2 SHDSL-EOC 'dsl-eoc'
+			L3 Profiles 'dsl-eoc&profiles=1'
+		    for i in $eoc_channels; do
+				unset ifname ifrole
+				class=""
+				ifname=${i%.*}
+				[ "$FORM_iface" = "$ifname" ] && class="navlnk_a"
+				L3	$ifname "dsl-eoc&iface=$ifname" $class
+	    	done
+		fi
+	fi
+	
 	tmp=`kdb get sys_e1_ifaces`
 	if [ -n "$tmp" ]; then
 	    L2 E1	'e1'
@@ -38,6 +59,7 @@ L1 System welcome
 	    done
 	fi
 	L2 Switch	'adm5120sw'
+	L2 Multiplexing	'multiplexing'
 	L2 DNS		'dns'
 	
 L1 Network

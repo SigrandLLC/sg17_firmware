@@ -49,7 +49,7 @@ struct sg17_card{
 
 #define TX_TIMEOUT      400
 struct sg17_hw_regs {
-        u8  CRA, CRB, SR, IMR, CTDR, LTDR, CRDR, LRDR, RATE, MXRATE, 
+	u8  CRA, CRB, SR, IMR, CTDR, LTDR, CRDR, LRDR, RATE, MXRATE, 
 	    TFS, RFS, TLINE, RLINE, MXCR, PWRR;
 };
 
@@ -65,17 +65,17 @@ struct hdlc_config{
 struct net_local{
 	int number;
 	struct net_device_stats	stats;
-        struct device *dev;
+	struct device *dev;
 	// mapped memory address
 	volatile struct sg17_hw_regs *regs;
-        // transmit and reception queues 
+	// transmit and reception queues 
 	struct sg_ring rx,tx;
 	struct sdfe4_if_cfg *shdsl_cfg;
 	struct hdlc_config hdlc_cfg;
 	// compatibilitys
 	u8 nsg_comp :1;
 	u8 :7;
-	
+	spinlock_t lock;
 };
 
 void sg17_link_up(struct sg17_sci *s, int if_num);

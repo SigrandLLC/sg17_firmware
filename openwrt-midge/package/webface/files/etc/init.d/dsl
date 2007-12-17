@@ -1,12 +1,10 @@
 #!/bin/sh
 
 kdb="kdb"
-mr16h_cfg="/sbin/sg16cfg"
-mr17h_cfg="/sbin/mr17h_cfg"
 ifcfg="/sbin/ifconfig"
 
 . /etc/templates/sigrand-lib
-
+. /etc/templates/oem-vars
 # checks that DSL service is enabled
 _dsl_init_svc(){
     return 0;
@@ -98,13 +96,15 @@ _dsl_sg16_if_defconfig(){
 
 _dsl_sg17_if_defconfig(){
 	local def_mode="slave"
+	local def_mode="plesio"
 	local def_rate="768"
 	local def_coding="tcpam32"
 	local def_annex="A"
 	local def_fill="fill_ff"	
 	local def_inv="normal"
+	local def_pwron="pwroff"
 	
-	unset mode rate annex coding inv fill
+	unset mode clkmode rate annex coding inv fill pwron
 		
 	iface=$1
 	eval `$kdb -qq sls sys_dsl_${iface}_`
@@ -112,6 +112,10 @@ _dsl_sg17_if_defconfig(){
 	# check that MASTER variable is set
 	if [ -z "$mode" ]; then
 		$kdb set sys_dsl_${iface}_mode="$def_mode"
+	fi
+	# check that clkmode variable is set
+	if [ -z "$clkmode" ]; then
+		$kdb set sys_dsl_${iface}_clkmode="$def_clkmode"
 	fi
 	# check that RATE variable is set
 	if [ -z "$rate" ]; then
@@ -134,6 +138,11 @@ _dsl_sg17_if_defconfig(){
 	if [ -z "$inv" ]; then
 		$kdb set sys_dsl_${iface}_inv="$def_inv"
 	fi
+	# check that POWER ON variable is set
+	if [ -z "$pwron" ]; then
+		$kdb set sys_dsl_${iface}_pwron="$def_pwron"
+	fi
+	
 	return 0;
 }
 
@@ -169,16 +178,13 @@ _dsl_sg17_apply_cfg(){
 	iface=$1
 	eval `$kdb -qq sls sys_dsl_${iface}_`
 	# apply configuration
-	$ifcfg $iface down 
 	if [ "$mode" == "slave" ]; then
-	    $mr17h_cfg $iface $mode $fill $inv $crc
+	    $mr17h_cfg $iface $mode $fill $inv $crc $pwron > /dev/null
 	else
 	    [ -n "$rate" ] && rate="rate $rate"
 	    [ -n "$annex" ] && annex="annex $annex"
-	    $mr17h_cfg $iface $mode $rate $code $annex $fill $inv $crc 
+	    $mr17h_cfg $iface $mode $rate $code $annex $fill $inv $crc $pwron $clkmode > /dev/null
 	fi
-        enabled=`kdb get sys_iface_${iface}_enabled`
-        [ "$enabled" = 1 ] && $ifcfg $iface up	
 }
 
 _dsl_apply_cfg(){
@@ -204,15 +210,24 @@ _dsl_start(){
 	_sg_dsl_set_mtypes
 
 	#apply defconfig if no configuration
+	echo -n "Configuring SHDSL: "
 	for iface in `$kdb get sys_dsl_ifaces`; do
 	    eval `$kdb -qq sls sys_dsl_${iface}_`
 	    if [ "$mtype" == "mr16h" ]; then
-		$mr16h_cfg $iface reload
+			$mr16h_cfg $iface reload
 	    fi
 	    _dsl_if_defconfig $iface
 	    _dsl_apply_cfg $iface
+		case "$mtype" in
+			mr16h)
+				echo -n "${iface}(${mr16h_modname}) "
+				;;
+			mr17h)
+				echo -n "${iface}(${mr17h_modname}) "
+				;;
+		esac
 	done
-
+	echo
 }
 
 _dsl_stop(){

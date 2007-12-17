@@ -10,10 +10,10 @@ print_stat()
     fi
     iface=$1
     echo "---------------------------------------"
-    echo "Sigrand MR16G E1 adapter"
+    echo "@MANUFACTURER@ @MODNAME@ E1 adapter"
     echo "Common E1 settings:"
     sethdlc $iface
-    echo "Sigrand E1 settings:"
+    echo "E1 settings:"
     echo "    slotmap:   "`cat slotmap`
     echo "    hdb3:      "`cat hdb3`
     fr=`cat framed`
@@ -32,10 +32,10 @@ print_stat()
 
 # Check that interface name specifyed
 if [ $# = 0 ]; then
-    echo "Sigrand MR16G configuration tool"
+    echo "@MANUFACTURER@ @MODNAME@ configuration tool"
     echo "Usage:"
-    echo "  mr16gcfg <if> [args]        - set MR16G card parameters"
-    echo "  <if> - MR16G network interface name (hdlcX)"
+    echo "  $0 <if> [args]        - set @MODNAME@ card parameters"
+    echo "  <if> - @MODNAME@ network interface name (hdlcX)"
     echo "Possible arguments:"
     echo "E1 options:"    
     echo "  framed | unframed          - set framed/unframed mode"
@@ -58,11 +58,12 @@ fi
 cdir=`pwd`
 
 cd /sys/bus/pci/drivers
-if [ ! -d mr16g ]; then
-    echo "mr16g_hdlc driver was not loaded!"
+
+if [ ! -d "@DRVNAME@" ]; then
+    echo "$0 driver was not loaded!"
     exit
 fi
-cd mr16g
+cd @DRVNAME@
 
 
 # CD to the device dir
@@ -139,9 +140,9 @@ while [ ! -z "$1" ]; do
 	    break
 	fi
 	if [ "$2" = "int" ]; then
-	    echo 1 > clck
-	elif [ "$2" = "ext" ]; then
 	    echo 0 > clck
+	elif [ "$2" = "ext" ]; then
+	    echo 1 > clck
 	fi
 	shift	
 	;;    

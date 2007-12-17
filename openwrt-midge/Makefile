@@ -22,6 +22,8 @@
 # Just run 'make menuconfig', configure stuff, then run 'make'.
 # You shouldn't need to mess with anything beyond this point...
 #--------------------------------------------------------------
+export V=99
+export DEVELOPER=1
 TOPDIR=${shell pwd}
 export TOPDIR
 
@@ -95,6 +97,13 @@ toolchain/%:
 # Cleanup and misc junk
 #
 #############################################################
+
+oem_clean: root_clean
+	@$(TRACE) oem_clean
+	rm -rf $(BUILD_DIR)/sigrand-* $(BUILD_DIR)/webface
+	rm -rf $(BUILD_DIR)/eocd
+
+
 root_clean:
 	@$(TRACE) root_clean
 	rm -rf $(BUILD_DIR)/linux-*/root $(BUILD_DIR)/root

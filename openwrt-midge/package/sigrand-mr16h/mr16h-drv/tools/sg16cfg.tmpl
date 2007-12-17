@@ -24,7 +24,7 @@ dload_fw()
 
 print_stat()
 {
-    if [ $# -lt 2 ]; then
+    if [ $# -lt 1 ]; then
 	exit
     fi
     prog_name=$0
@@ -45,7 +45,7 @@ print_stat()
     inv=`cat inv`
     crc=`cat crc16`
 
-    echo "SIGRAND SG-16${CARD} SHDSL modem statistics"
+    echo "@MANUFACTURER@ @MODNAME@ SHDSL modem statistics"
     echo "$1:    "$state
     echo "shdsl:   "$master" "$code" cfg="$mode" "$annex
     echo "         rate="$rate1" of "$rate2"("$auto")"
@@ -96,10 +96,6 @@ print_stat()
     echo "      Noise margin     : "$a$b" dB" 
     shift
 
-    if [ -f /usr/bin/perl ] || [ -f /bin/perl ]; then
-            tmp=`perl -e 'print localtime('$1')."\n"'`
-            echo "      Last connect     : "$tmp
-    fi
     shift
     
 }
@@ -108,14 +104,14 @@ print_stat()
 
 # Check that interface name specifyed
 if [ $# = 0 ]; then
-    echo "Sigrand SG-16PCI configuration tool"
+    echo "@MANUFACTURER@ @MODNAME@ configuration tool"
     echo "Usage:"
-    echo "  sg16cfg <if> stat [reset]  - get/reset statistics"
-    echo "  sg16cfg <if> reload        - reload current firmware"
-    echo "  sg16cfg fwinst [path]      - install firmware from"
+    echo "  @TOOLNAME@ <if> stat [reset]  - get/reset statistics"
+    echo "  @TOOLNAME@ <if> reload        - reload current firmware"
+    echo "  @TOOLNAME@ fwinst [path]      - install firmware from"
     echo "                               [path] locaton"
-    echo "  sg16cfg <if> [args]        - set DSL parameters"
-    echo "  <if> - SG-16PCI network interface name"
+    echo "  @TOOLNAME@ <if> [args]        - set DSL parameters"
+    echo "  <if> - @MODNAME@ network interface name"
     echo "Possible arguments:"
     echo "  master | slave             - set modem mode: master(STU-C) or slave(STU-R)"
     echo "  tcpam32 | tcpam16 | "
@@ -153,25 +149,20 @@ if [ $1 = "fwinst" -o $1 = "FWINST" ]; then
 	exit
     fi
     
-    cp $cp_path /lib/firmware/sg16.bin
+    cp $cp_path /lib/firmware/@DRVNAME@.bin
     echo "Firmware installed"
     exit
 fi
 
-PCI_PATH="/sys/bus/pci/drivers/sg16lan"
-ISA_PATH="/sys/bus/pnp/drivers/sg16lan"
+PCI_PATH="/sys/bus/pci/drivers/@DRVNAME@"
 
-if [ ! -d "$PCI_PATH" ] && [ ! -d "$ISA_PATH" ]; then
-    echo "sg16lan Driver don't loaded!"
+if [ ! -d "$PCI_PATH" ]; then
+    echo "@DRVNAME@ Driver don't loaded!"
     exit
 fi
 
 if [ -d "$PCI_PATH/$1" ]; then
 	cd "$PCI_PATH/$1"
-	CARD="PCI"
-elif [ -d "$ISA_PATH/$1" ]; then
-	cd "$ISA_PATH/$1"
-	CARD="ISA"
 else
 	echo "$0: No such device $1"
 	exit
@@ -180,8 +171,8 @@ fi
 interf=$1
 
 # Usage statistic
-if [ $# = 1 ]; then
-    print_stat $interf $CARD
+if [ $# -eq 1 ]; then
+    print_stat $interf 
     exit
 fi
 if [ $2 = "stat" -o $2 = "STAT" ]; then

@@ -2,6 +2,8 @@
 
 eval `$kdb -qq list sys_*`
 
+[ -r /etc/version ] && version="`cat /etc/version`" || version="unknown"
+
 echo '
 		<form action="" method="POST">
             <table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -16,11 +18,11 @@ echo '
               </tr>
               <tr> 
                 <td width="25%" class="vncellt">Name</td>
-                <td width="75%" class="listr">'$sys_hostname'</td>
+                <td width="75%" class="listr">'${sys_hostname}'</td>
               </tr>
               <tr> 
                 <td width="25%" valign="top" class="vncellt">Version</td>
-                <td width="75%" class="listr">'$WEBFACE_VER'
+                <td width="75%" class="listr">'${version}'
 				
                 </td>
               </tr>

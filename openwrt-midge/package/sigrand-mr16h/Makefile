@@ -32,7 +32,23 @@ $(PKG_BUILD_DIR)/.configured:
 	-e "s%@CROSS_PREFIX@%$(KERNEL_CROSS)%g" \
 	-e "s%@CFLAGS@%$(CFLAGS)%g" \
 	-e "s%@KERNVER@%2.6.16%g" \
-	-e "s%@INST_PATH@%$(IDIR_SIGRAND_MR16H)%g"	
+	-e "s%@INST_PATH@%$(IDIR_SIGRAND_MR16H)%g" \
+	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR16H_DRV)%g" \
+	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR16H_TOOL)%g" 
+# OEM
+#-------- Driver OEM ------------#
+	sed <$(PKG_BUILD_DIR)/mr16h-drv/sg16oem.h.tmpl \
+	> $(PKG_BUILD_DIR)/mr16h-drv/sg16oem.h \
+	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR16H)%g" \
+	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR16H_DRV)%g" 
+#-------- Driver configuration OEM ------------#
+	sed <$(PKG_BUILD_DIR)/mr16h-drv/tools/sg16cfg.tmpl  \
+	> $(PKG_BUILD_DIR)/mr16h-drv/tools/sg16cfg \
+	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR16H)%g" \
+	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR16H_DRV)%g" \
+	-e "s%@MANUFACTURER@%$(BR2_SIGRAND_OEM_MANUFACTURER)%g" \
+	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR16H_TOOL)%g" 
+	
 	touch $@
 
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
@@ -45,10 +61,10 @@ $(IPKG_SIGRAND_MR16H):
 	install -d -m0755 $(IDIR_SIGRAND_MR16H)/lib/firmware
 	cd $(PKG_BUILD_DIR)/mr16h-drv && make install
 ifeq ($(BR2_PACKAGE_SIGRAND_MR16H_LINKMAP),y)
-	install -m0700  dsl2eth_map/__sg16_link_hndl $(IDIR_SIGRAND_MR16H)/sbin
-	install -d -m755 $(IDIR_SIGRAND_MR16H)/etc/sigrand
-	install -m0600  dsl2eth_map/dsl2eth.map $(IDIR_SIGRAND_MR16H)/etc/sigrand
-	install -m0600  dsl2eth_map/dsl2eth.map.example $(IDIR_SIGRAND_MR16H)/etc/sigrand
+	install -m0700  dsl2eth_map/__dsl2eth_link_hndl $(IDIR_SIGRAND_MR16H)/sbin
+	install -d -m755 $(IDIR_SIGRAND_MR16H)/etc/dsl2eth
+	install -m0600  dsl2eth_map/dsl2eth.map $(IDIR_SIGRAND_MR16H)/etc/dsl2eth
+	install -m0600  dsl2eth_map/dsl2eth.map.example $(IDIR_SIGRAND_MR16H)/etc/dsl2eth
 endif
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_MR16H)/CONTROL/control
 	$(IPKG_BUILD) $(IDIR_SIGRAND_MR16H) $(PACKAGE_DIR)	

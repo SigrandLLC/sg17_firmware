@@ -37,10 +37,22 @@ function showhide(tspan, tri) {
 	}
 }
 
-function openPopup(win, controller, item, exturl) {
+function openDeletePopup(win, itemToDelete, exturl) {
     var exturl = (exturl == null) ? "" : "&"+exturl;
 	var w = 500;
-	var h = 600;
+	var h = 200;
+	var winl = (screen.width-w)/2;
+	var wint = (screen.height-h)/2;
+	if (winl < 0) winl = 0;
+	if (wint < 0) wint = 0;
+	popup=win.open("/?controller=delete_item_popup&item=" + itemToDelete + "&popup=1&"+exturl, "popup", "width="+w+",height="+h+",top="+wint+",left="+winl+",modal=1,dialog=1,centerscreen=1,scrollbars=0,menubar=0,location=0,toolbar=0,dependent=1,status=0"); 
+	popup.focus();
+}
+
+function openPopup(win, controller, item, exturl) {
+    var exturl = (exturl == null) ? "" : "&"+exturl;
+	var w = 600;
+	var h = 700;
 	var winl = (screen.width-w)/2;
 	var wint = (screen.height-h)/2;
 	if (winl < 0) winl = 0;

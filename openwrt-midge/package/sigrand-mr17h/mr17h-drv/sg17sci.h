@@ -16,12 +16,13 @@ struct sg17_sci_regs{
 };
 
 struct sg17_sci{
-        void *mem_base;
-        volatile struct sg17_sci_regs *regs;
-        volatile u8 *rx_buf,*tx_buf;
+	void *mem_base;
+	volatile struct sg17_sci_regs *regs;
+	volatile u8 *rx_buf,*tx_buf;
 	u8 rx_msg[SCI_BUFF_SIZE];
 	u8 rx_len;
-        // OS rlated objects
+	u8 tx_col;	
+	// OS rlated objects
 	int irq;
 	wait_queue_head_t  wait_q,eoc_wait_q;
 	spinlock_t chip_lock;
@@ -30,9 +31,9 @@ struct sg17_sci{
 	struct sdfe4 *hwdev;
 	// channel to if mapping
 	u8 ch_map[SG17_IF_MAX];
-        // statistics
-        unsigned long tx_bytes, rx_bytes;
-        unsigned long tx_packets, rx_packets;
+	// statistics
+	unsigned long tx_bytes, rx_bytes;
+	unsigned long tx_packets, rx_packets;
 };
 								
 int sg17_sci_init( struct sg17_sci *, char *, struct sdfe4 *);

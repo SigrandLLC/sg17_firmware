@@ -1,0 +1,54 @@
+#!/bin/sh
+
+. /bin/midge_functions
+
+MXCONFIG=`which mxconfig`
+
+# get list of interfaces wit multiplexing capability (SHDSL and E1)
+ifaces=`mxconfig -l |awk '{print $1}' | sed 's/://g'`
+
+# turn on multiplexing
+start(){
+	# for each interface
+	for i in $ifaces; do
+		unset args
+		# for each interface's parameter
+		for key in `kdb kls sys_mux_${i}_*`; do
+			# get last part of record and write it to "item"
+			# f.e for "sys_mux_hdlc0_clkab" it will be "clkab"
+			item=`kdb sskls "$key=*" "sys_mux_${i}_" " "`
+			# make an argument
+			args="$args --$item `kdb get $key`"
+		done
+		
+		# apply settings
+		[ -n "$args" ] && $MXCONFIG --iface $i $args
+		
+		# mxconfig can change mxsmap parameter, so update value, saved in KDB
+		if [ "x${i%%[0-9]}x" = "xhdlcx" ]; then
+			unset mxsmap
+			eval `mxconfig --iface $i --list |grep mxsmap |sed "s/$i://g"`
+			kdb set "sys_mux_${i}_mxsmap=$mxsmap"
+		fi
+	done
+}
+
+# turn off multiplexing
+stop(){
+	# for each interface
+	for i in $ifaces; do
+		$MXCONFIG "--iface $i --mxen 0"
+	done
+}
+
+case $1 in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	*)
+		start
+		;;
+esac

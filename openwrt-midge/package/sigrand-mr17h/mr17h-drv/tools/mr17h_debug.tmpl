@@ -6,13 +6,13 @@
 #
 #---------------------------------------------------------
 
-PCI_PATH="/sys/bus/pci/drivers/mr17h"
+PCI_PATH="/sys/bus/pci/drivers/"@DRVNAME@
 
 #---------------------------------------------------------
 
 print_usage()
 {
-    echo "SIGRAND MR-17H IO window debug tool"
+    echo "@MANUFACTURER@ @MODNAME@ IO window debug tool"
     echo "Usage:"
     echo "  sg16cfg <if> s <addr> <val>     - set register <addr> to <val>"
     echo "  sg16cfg <if> r <addr> <count>   - read <count> bytes starting from <addr>"    

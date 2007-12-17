@@ -59,6 +59,8 @@ sg17_sci_init( struct sg17_sci *s,char *card_name,struct sdfe4 *hwdev)
 	s->ch_map[0] = 0;
 	s->ch_map[3] = 1;
 	
+	s->tx_col = 0;
+	
 	spin_lock_init(&s->chip_lock);
 	init_waitqueue_head( &s->wait_q );
 	init_waitqueue_head( &s->eoc_wait_q );	
@@ -66,18 +68,18 @@ sg17_sci_init( struct sg17_sci *s,char *card_name,struct sdfe4 *hwdev)
 	INIT_WORK( &s->wqueue, sg17_sci_monitor,(void*)s);
 
 	PDEBUG(debug_sci,"init: base=%08x\ntx_buf=%08x,rx_buf=%08x,regs=%08x",
-		(u32)s->mem_base,(u32)s->tx_buf,(u32)s->rx_buf,(u32)s->regs);
+		   (u32)s->mem_base,(u32)s->tx_buf,(u32)s->rx_buf,(u32)s->regs);
 	PDEBUG(debug_sdfe4,"s(0x%08x): hwdev=%08x",(u32)s,(u32)hwdev);	
 	// register interrupt handler
 	if( request_irq( s->irq, sg17_sci_intr, SA_SHIRQ, card_name, (void*)s) ){
 		printk( KERN_ERR "%s: unable to get IRQ %d.\n", card_name, s->irq );
-                goto err_exit;
-        }
+		goto err_exit;
+	}
 	
 	PDEBUG(debug_sci,"success");
 	
 	return 0;
-err_exit:
+ err_exit:
 	return -1;								
 }
 
@@ -118,10 +120,10 @@ void
 sg17_sci_monitor(void *data)
 {
 	struct sg17_sci *s = (struct sg17_sci *)data;
-        struct sdfe4 *hwdev = s->hwdev;
+	struct sdfe4 *hwdev = s->hwdev;
 	int ret;
 	PDEBUG(debug_netcard,"");
-        ret = sdfe4_state_mon( hwdev );
+	ret = sdfe4_state_mon( hwdev );
 	sg17_link_support(s);
 	schedule_delayed_work(&s->wqueue,2*HZ);
 }
@@ -151,23 +153,15 @@ sg17_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *regs )
 	}
 
 	if( status & RXS ){
+		int ret;
 		PDEBUG(debug_sci,"RXS");
 		// Save incoming message
 		in_len = ioread16(&s->regs->RXLEN);
-/*
-if( s->rx_msg[3] !=0 ){
-	PDEBUG(debug_eoc,"Come NFC:");
-	for(i=0; i < s->rx_len; i++)
-	    printk("%02x ",s->rx_msg[i]);
-	printk("\n",s->rx_msg[i]);	    
-}
-*/	
 		// process message		
 		
-    		if( !sdfe4_msg_init( &msg, s->rx_buf, in_len ) ){
-
-			iowrite8( (ioread8( &s->regs->CRA ) | RXEN), &s->regs->CRA );		
-
+    	ret = sdfe4_msg_init( &msg, s->rx_buf, in_len );
+		iowrite8( (ioread8( &s->regs->CRA ) | RXEN), &s->regs->CRA );		
+		if( !ret ){
 			pamdsl_type = sdfe4_pamdsl_parse(&msg,s->hwdev);
 			switch( pamdsl_type ){
 			case SDFE4_NOT_PAMDSL:
@@ -186,20 +180,22 @@ if( s->rx_msg[3] !=0 ){
 
 		s->rx_packets++;
 		s->rx_bytes += i;
-//--------------DEBUG --------------------------
+		//--------------DEBUG --------------------------
 		PDEBUGL(debug_sci,"Incoming data: ");		
-		for(i=0; i < s->rx_len; i++)
+		for(i=0; i < in_len; i++)
 			PDEBUGL(debug_sci,"%02x ",s->rx_msg[i]);
 		PDEBUGL(debug_sci,"\n");
-//--------------DEBUG --------------------------
+		//--------------DEBUG --------------------------
 	}
 
 	if( status & CRC ){
-		PDEBUG(0/*debug_irq*/,"CRC");
+		iowrite8( (ioread8( &s->regs->CRA ) | RXEN), &s->regs->CRA );		
+		PDEBUG(debug_error,"CRC");
 	}
 	
 	if( status & COL ){
-		PDEBUG(0/*debug_irq*/,"COL");
+		s->tx_col = 1;
+		PDEBUG(debug_error,"COL");
 	}
 	
 	iowrite8(mask, &s->regs->IMR); // enable interrupts
@@ -214,15 +210,14 @@ sg17_sci_recv( struct sg17_sci *s, char *msg, int *mlen)
 
 	if( clen < 0 )
 		return clen;
+	else if( !clen )
+		return -1;
 	if( *mlen < clen )
 		return -EINVAL;
-
+	*mlen = clen;
 	for( i=0; i<clen; i++)
 		msg[i] = s->rx_msg[i];
-
-	// enable message receiving
-//	iowrite8( (ioread8( &s->regs->CRA ) | RXEN), &s->regs->CRA );
-	PDEBUG(debug_cur,"");	
+	s->rx_len = 0;
 	return 0;
 }
 
@@ -238,11 +233,11 @@ int sg17_sci_xmit( struct sg17_sci *s, char *msg, int len)
 	if( tmp & TXEN )
 		return -EAGAIN;
 	
+	s->tx_col = 0;
 	for( i=0; i<len; i++)
 		iowrite8( msg[i],(u8*)s->tx_buf + i);
 	iowrite16( len, &s->regs->TXLEN);
 	iowrite8( (ioread8(&s->regs->CRA) | TXEN ), &s->regs->CRA);
-	
 	return 0;
 }
 
@@ -251,18 +246,19 @@ sg17_sci_wait_intr( struct sg17_sci *s )
 {
 	int ret=0;
 	ret = interruptible_sleep_on_timeout( &s->wait_q, HZ*2 );
-	PDEBUG(debug_sci,"return = %d",ret);	
-	if( !( ioread8( &s->regs->CRA ) & RXEN) )
-		return 1;
+	if( s->tx_col && !ret ){
+		PDEBUG(debug_error,"Collision detected, ret = %d");
+		s->tx_col = 0;
+	}
 	return ret;
 }
 
 inline int
-sg17_sci_wait_eoc_intr( struct sg17_sci *s )
+sg17_sci_wait_eoc_intr( struct sg17_sci *s)
 {
 	int ret=0;
 	PDEBUG(debug_eoc,"start");	
-	ret = interruptible_sleep_on_timeout( &s->eoc_wait_q, HZ*2 );
+	ret = interruptible_sleep_on_timeout( &s->eoc_wait_q, HZ*2);
 	PDEBUG(debug_eoc,"return = %d",ret);
 	return ret;
 }
@@ -276,22 +272,22 @@ sg17_sci_dump_regs( struct sg17_sci *s )
 
 inline void
 sg17_sci_link_up(struct sg17_sci *s,int i){
-        sg17_link_up(s,s->ch_map[i]);
+	sg17_link_up(s,s->ch_map[i]);
 }
 		
 inline void
 sg17_sci_link_down(struct sg17_sci *s,int i){
-        sg17_link_down(s,s->ch_map[i]);
+	sg17_link_down(s,s->ch_map[i]);
 }
 
 inline void
 sg17_sci_led_blink(struct sg17_sci *s,int i){
-        sg17_led_blink(s,s->ch_map[i]);
+	sg17_led_blink(s,s->ch_map[i]);
 }
 
 inline void
 sg17_sci_led_fblink(struct sg17_sci *s,int i){
-        sg17_led_fblink(s,s->ch_map[i]);
+	sg17_led_fblink(s,s->ch_map[i]);
 }
 
 

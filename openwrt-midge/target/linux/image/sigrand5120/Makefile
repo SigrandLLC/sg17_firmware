@@ -28,10 +28,22 @@ adm5120-fs-prepare:
 			done; 
 	( cd ../../package/base-files/files/$(BOARD)-$(KERNEL) && \
 		tar cf - --exclude .svn . | tar xvf - -C $(KDIR)/root/; \
+		[ "$(BR2_SIGRAND_OEM_CLEARLOGO)" = y ] && echo "Revision: \$$R " > $(KDIR)/root/etc/banner; \
 		 $(SED) 's,$$R,r$(REV),g' $(KDIR)/root/etc/banner; \
-		 echo "Builded at: `date '+%Y%m%d %H:%M'`" >>$(KDIR)/root/etc/banner; \
+		 echo "Built at: `date '+%Y%m%d %H:%M'`" >>$(KDIR)/root/etc/banner; \
 		 echo "" >>$(KDIR)/root/etc/banner; \
+		 echo "r$(REV)" >$(KDIR)/root/etc/version; \
 	)
+	if [ ! -L $(KDIR)/root/bin/sh ]; then \
+		ln -fs /bin/dash $(KDIR)/root/bin/sh; \
+	fi
+
+ifeq ($(LOGO), 1)
+	echo "" >$(KDIR)/root/etc/banner
+	echo "Revision: $(REV)" >>$(KDIR)/root/etc/banner
+	echo "Builded at: `date '+%Y%m%d %H:%M'`" >>$(KDIR)/root/etc/banner
+	echo "" >>$(KDIR)/root/etc/banner
+endif
 
 $(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin: $(SCRIPT_DIR)/padfile
 	( 	SG_KERNEL_BLOCKS=$(SG_KERNEL_BLOCKS) \

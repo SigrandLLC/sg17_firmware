@@ -17,6 +17,12 @@ PKG_CAT:=bzcat
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/ipkg-install
 
+ifeq ($(BUSYBOX_CONFIG_FEATURE_IPV6),)
+EXTRA_PARAM=DO_IPV6=0
+else
+EXTRA_PARAM=DO_IPV6=1
+endif
+
 define IPKG_plugin_template
 
 $$(IPKG_$(1)):
@@ -43,7 +49,9 @@ include $(TOPDIR)/target/linux/netfilter.mk
 $(eval $(call PKG_template,IPTABLES,iptables,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 $(eval $(call PKG_template,IPTABLES_EXTRA,iptables-extra,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 $(eval $(call PKG_template,IPTABLES_UTILS,iptables-utils,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
+ifneq ($(BUSYBOX_CONFIG_FEATURE_IPV6),)
 $(eval $(call PKG_template,IP6TABLES,ip6tables,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
+endif
 
 $(eval $(call PKG_template,IPTABLES_MOD_CONNTRACK,iptables-mod-conntrack,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 $(eval $(call PKG_template,IPTABLES_MOD_EXTRA,iptables-mod-extra,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
@@ -73,7 +81,7 @@ $(PKG_BUILD_DIR)/.built:
 		$(TARGET_CONFIGURE_OPTS) \
 		CC=$(TARGET_CC) COPT_FLAGS="$(TARGET_CFLAGS)" \
 		KERNEL_DIR=$(LINUX_DIR) PREFIX=/usr \
-		DESTDIR="$(PKG_INSTALL_DIR)" \
+		DESTDIR="$(PKG_INSTALL_DIR)" $(EXTRA_PARAM) \
 		all install install-devel
 	touch $@
 		
@@ -118,7 +126,7 @@ $(STAGING_DIR)/usr/lib/libipq.a: $(PKG_BUILD_DIR)/.built
 		$(TARGET_CONFIGURE_OPTS) \
 		CC=$(TARGET_CC) COPT_FLAGS="$(TARGET_CFLAGS)" \
 		KERNEL_DIR=$(LINUX_DIR) PREFIX=/usr \
-		DESTDIR="$(STAGING_DIR)" \
+		DESTDIR="$(STAGING_DIR)" $(EXTRA_PARAM) \
 		install install-devel
 
 layer7-install:

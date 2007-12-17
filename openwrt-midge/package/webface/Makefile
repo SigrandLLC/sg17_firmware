@@ -13,13 +13,35 @@ include $(TOPDIR)/package/rules.mk
 $(eval $(call PKG_template,WEBFACE,webface,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
 $(PKG_BUILD_DIR)/.prepared:
-	mkdir -p $(PKG_BUILD_DIR)
+	mkdir -p $(PKG_BUILD_DIR)	
+	cp -R templates $(PKG_BUILD_DIR)
 	touch $@
 
 $(PKG_BUILD_DIR)/.configured:
+#------------------- OEM -------------------------#
+# Sigrand modules
+	sed <$(PKG_BUILD_DIR)/templates/etc/templates/oem-vars.tmpl  \
+	> $(PKG_BUILD_DIR)/templates/etc/templates/oem-vars \
+	-e "s%@MR16H_TOOL@%$(BR2_SIGRAND_OEM_MR16H_TOOL)%g" \
+	-e "s%@MR16H_MODNAME@%$(BR2_SIGRAND_OEM_MR16H)%g" \
+	-e "s%@MR16H_DRVNAME@%$(BR2_SIGRAND_OEM_MR16H_DRV)%g" \
+	-e "s%@MR16G_MODNAME@%$(BR2_SIGRAND_OEM_MR16G)%g" \
+	-e "s%@MR16G_DRVNAME@%$(BR2_SIGRAND_OEM_MR16G_DRV)%g" \
+	-e "s%@MR17H_TOOL@%$(BR2_SIGRAND_OEM_MR17H_TOOL)%g" \
+	-e "s%@MR17H_MODNAME@%$(BR2_SIGRAND_OEM_MR17H)%g" 
+	rm --force $(PKG_BUILD_DIR)/templates/etc/templates/oem-vars.tmpl
+#  E1 for controllers
+	sed <$(PKG_BUILD_DIR)/templates/www/controllers/oem.sh.tmpl  \
+	> $(PKG_BUILD_DIR)/templates/www/controllers/oem.sh \
+	-e "s%@MR17H_MODNAME@%$(BR2_SIGRAND_OEM_MR17H)%g" \
+	-e "s%@MR16G_DRVNAME@%$(BR2_SIGRAND_OEM_MR16G_DRV)%g" \
+	-e "s%@MR16H_MODNAME@%$(BR2_SIGRAND_OEM_MR16H)%g" \
+	-e "s%@MR16H_DRVNAME@%$(BR2_SIGRAND_OEM_MR16H_DRV)%g"
+	rm --force $(PKG_BUILD_DIR)/templates/www/controllers/oem.sh.tmpl
+	chmod +x $(PKG_BUILD_DIR)/templates/www/controllers/oem.sh
 	touch $@
 
-$(PKG_BUILD_DIR)/.built:
+$(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/kdb kdb.c
 	-$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/hdb -luClibc++ hdb/hdb.cpp
 	$(TARGET_CC) -lcrypt $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/htpasswd htpasswd.c
@@ -31,14 +53,23 @@ $(IPKG_WEBFACE):
 	install -m0755 $(PKG_BUILD_DIR)/htpasswd $(IDIR_WEBFACE)/usr/bin
 	install -m0755 $(PKG_BUILD_DIR)/kdb $(IDIR_WEBFACE)/usr/bin
 	-install -m0755 $(PKG_BUILD_DIR)/hdb $(IDIR_WEBFACE)/usr/bin
-	@if [ ! -z $(LOGO) ] ; then \
-		cp logos/logo.gif logos/SG.jpg $(IDIR_WEBFACE)/www/img; \
-		cat files/etc/kdb.default |sed "s/sigrand1/router/g" >$(IDIR_WEBFACE)/etc/kdb.default; \
-		cat files/etc/lighttpd.conf |sed "s/Sigrand router/Router/g" >$(IDIR_WEBFACE)/etc/lighttpd.conf; \
-		cat files/www/common/header.sh |sed "s/sigrand\.ru//g" |sed "s/Sigrand/Router/g" >$(IDIR_WEBFACE)/www/common/header.sh; \
-		cp logos/footer.sh $(IDIR_WEBFACE)/www/common/; \
-	fi
+	( tar cf - -C $(PKG_BUILD_DIR)/templates --exclude .svn . | tar xvf - -C $(IDIR_WEBFACE)	 );
+	cat files/etc/kdb.default |sed "s/sigrand1/$(BR2_SIGRAND_OEM_HOSTNAME)/g" >$(IDIR_WEBFACE)/etc/kdb.default;
+	cat files/etc/lighttpd.conf |sed "s/Sigrand router/$(BR2_SIGRAND_OEM_SYSNAME)/g" >$(IDIR_WEBFACE)/etc/lighttpd.conf;
+	cat files/www/common/footer.sh | sed "s/Sigrand/$(BR2_SIGRAND_OEM_MANUFACTURER)/g" > $(IDIR_WEBFACE)/www/common/footer.sh;
+	cat files/www/common/header.sh | sed "s/Sigrand/$(BR2_SIGRAND_OEM_MANUFACTURER)/g" > $(IDIR_WEBFACE)/www/common/header.sh;
+ifeq ($(BR2_SIGRAND_OEM_CLEARLOGO),y)
+		sed "s/href=\"http:\/\/www\.sigrand\.ru\/\"//g"  $(IDIR_WEBFACE)/www/common/footer.sh >  $(IDIR_WEBFACE)/www/common/footer.sh-tmp;
+		mv  $(IDIR_WEBFACE)/www/common/footer.sh-tmp  $(IDIR_WEBFACE)/www/common/footer.sh;
+		cp logos/logo.gif $(IDIR_WEBFACE)/www/img;
+		cat $(IDIR_WEBFACE)/www/common/header.sh | sed "s/sigrand\.ru//g" | \
+			sed "s/href=\"http:\/\/\"//g" > $(IDIR_WEBFACE)/www/common/header.sh-tmp;
+		mv $(IDIR_WEBFACE)/www/common/header.sh-tmp $(IDIR_WEBFACE)/www/common/header.sh;
+		chmod +x $(IDIR_WEBFACE)/www/common/header.sh $(IDIR_WEBFACE)/www/common/footer.sh;
+endif
+ifneq ($(BR2_SIGRAND_OEM_BGROUND),"default")
+		cp logos/$(BR2_SIGRAND_OEM_BGROUND) $(IDIR_WEBFACE)/www/img/SG.jpg;
+endif
 	$(RSTRIP) $(IDIR_WEBFACE)/usr/bin/*
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_WEBFACE)/CONTROL/control
 	$(IPKG_BUILD) $(IDIR_WEBFACE) $(PACKAGE_DIR)
-

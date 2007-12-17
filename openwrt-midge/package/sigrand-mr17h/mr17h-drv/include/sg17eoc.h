@@ -5,11 +5,11 @@
 
 struct sg17_eoc
 {
-        u8 eoc_tx:2;
+	u8 eoc_tx:2;
 	u8 eoc_rx_new:1;
-        u8 eoc_rx_drop:1;
+    u8 eoc_rx_drop:1;
 	u8:4;
-        struct ring_buf *buf;
+    struct ring_buf *buf;
 };
 
 static inline struct sg17_eoc*

@@ -40,6 +40,7 @@ iface_add() {
 
 iface_del() {
 	local liface;
+	/sbin/ifdown ${iface} 2>&1 | ${LOGGER}
 	while [ -n "$1" ]; do
 		liface=$1
 		/sbin/ifdown ${liface} 2>&1 | ${LOGGER}
@@ -47,6 +48,23 @@ iface_del() {
 		kdb rm "sys_iface_${liface}_*"
 	done
 	iface_update_sys_ifaces
+}
+
+# @iface_get_ifaces returns valid interfaces 
+#   -d - double item output for select box 
+iface_get_ifaces() {
+    local ifaces="`kdb sskls 'sys*valid=1' sys_iface_ _valid`"
+    local i
+    if [ "x$1x" = "x-dx" ]; then
+        # doubling output
+        for i in $ifaces; do 
+            echo -n "$i $i "
+        done
+    else
+        for i in $ifaces; do
+            echo -n "$i "
+        done
+    fi
 }
 
 iface_update_sys_ifaces() {

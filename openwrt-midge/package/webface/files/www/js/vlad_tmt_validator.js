@@ -23,6 +23,8 @@ tmt_globalPatterns.ipaddrport = new RegExp("^(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0
 tmt_globalPatterns.ipportrange = new RegExp("^((\\d)+(:)?((\\d)+)?|(:)((\\d)+)|any)$");
 // IP port
 tmt_globalPatterns.ipport = new RegExp("^((\\d)+|any)$");
+// mxsmap or mxrate
+tmt_globalPatterns.mxrate = new RegExp("^(([0-9]+,)|([0-9]+-[0-9]+(,)?)|([0-9]+$))+$");
 
 // DNS Zone validation
 tmt_globalPatterns.dnszone = new RegExp("^\([a-zA-Z0-9\-\.]\)+$");

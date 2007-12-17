@@ -14,7 +14,6 @@
  *	11.12.2005	Version 2.0 ( sysfs, firmware hotplug support )
  */
 
-#include "cx28975.h"
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -45,9 +44,11 @@
 #include <linux/vermagic.h>
 #include <linux/config.h>
 
-#include <asm/tlbdebug.h>
+#include "cx28975.h"
+#include "sg16oem.h"
 
-MODULE_DESCRIPTION( "Sigrand SG-16PCI driver Version 2.0\n" );
+
+MODULE_DESCRIPTION( "SHDSL driver Version 2.0\n" );
 MODULE_AUTHOR( "Maintainer: Polyakov Artem artpol@sigrand.ru\n" );
 MODULE_LICENSE( "GPL" );
 MODULE_VERSION("2.0");
@@ -295,7 +296,8 @@ static void shdsl_link_chk( void * );
 
 
 #ifdef SG16_USERMODE_EVENTS
-#define USERMODE_HELPER "/sbin/__sg16_link_hndl"
+
+#define USERMODE_HELPER "/sbin/__dsl2eth_link_hndl"
 static int usermode_link_event(struct net_device *ndev,int link_up);
 
 #else
@@ -444,7 +446,7 @@ static struct pci_device_id  sg16_pci_tbl[] __devinitdata = {
 MODULE_DEVICE_TABLE( pci, sg16_pci_tbl );
 
 static struct pci_driver  sg16_driver = {
-	name:		"sg16lan",
+	name:		MR16H_DRVNAME,
 	probe:		sg16_init_one,
 	remove:		sg16_remove_one,
 	id_table:	sg16_pci_tbl
@@ -456,13 +458,14 @@ sg16_init( void ){
     spin_lock_init( &rx_free_lock );
     spin_lock_init( &tx_alloc_lock );
     spin_lock_init( &tx_free_lock );
-
+    printk(KERN_NOTICE"Load "MR16H_MODNAME" SHDSL driver\n");
     pci_module_init( &sg16_driver );
     return 0;
 }
 
 void
 sg16_exit( void ){
+    printk(KERN_NOTICE"Unload "MR16H_MODNAME" SHDSL driver\n");
     pci_unregister_driver( &sg16_driver );
 }
 
@@ -631,7 +634,7 @@ sg16_probe( struct net_device  *ndev )
         goto err_exit;
     }
 	
-    printk( KERN_NOTICE "%s: Sigrand SG-16PCI SHDSL (irq %d, mem %#lx)\n",
+    printk( KERN_NOTICE "%s: "MR16H_MODNAME" SHDSL module (irq %d, mem %#lx)\n",
 		ndev->name, ndev->irq, ndev->mem_start );
     SET_MODULE_OWNER( ndev );
 
@@ -1550,7 +1553,7 @@ init_sg16_in_sysfs(struct device *dev)
 
     /* initialising default parameters */
     //shdsl
-    strcpy(shcfg->fw_name,"sg16.bin");
+    strcpy(shcfg->fw_name,MR16H_DRVNAME".bin");
 
 // set default role
 #ifdef SG16_MASTER
@@ -2080,9 +2083,8 @@ store_download( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 {
     struct net_device *ndev=(struct net_device *)dev_get_drvdata(dev);
     struct net_local *nl=(struct net_local *)netdev_priv(ndev);
-    
-struct firmware *fw;    
-struct shdsl_config *cfg = (struct shdsl_config *)&(nl->shdsl_cfg);
+	struct firmware *fw;    
+	struct shdsl_config *cfg = (struct shdsl_config *)&(nl->shdsl_cfg);
 
     PDEBUG("start");    
     

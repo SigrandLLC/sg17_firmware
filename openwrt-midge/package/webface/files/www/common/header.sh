@@ -23,6 +23,7 @@ echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <script type="text/javascript" src="/js/misc.js"> </script>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <link href="css/content.css" rel="stylesheet" type="text/css">
+<link rel="shortcut icon" href="favicon.ico" >
 </head>
 
 <body link="#0000CC" vlink="#0000CC" alink="#0000CC">

@@ -11,7 +11,7 @@ validator_netmask='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,no
 validator_dnsdomain='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns domain name" tmt:pattern="dnsdomain"'
 validator_dnsdomainoripaddr=' tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns domain name" tmt:pattern="dnsdomainoripaddr"'
 validator_mxprio='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input priority" tmt:pattern="positiveinteger" tmt:minnumber=1 tmt:maxnumber=999'
-validator_dnszone='tmt:filters="ltrim,rtrim,nohtml,nospaces,nodots,noquotes,nodoublequotes,nocommas,nomagic" tmt:message="Please input zone identifier" tmt:pattern="dnszone"'
+validator_dnszone='tmt:filters="ltrim,rtrim,nohtml,nospaces,noquotes,nodoublequotes,nocommas,nomagic" tmt:message="Please input zone identifier" tmt:pattern="dnszone"'
 validator_email='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct email" tmt:pattern="email"'
 validator_refresh='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input refresh time" tmt:pattern="positiveinteger" tmt:minnumber=1200 tmt:maxnumber=500000'
 validator_ttl='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input ttl time" tmt:pattern="positiveinteger" tmt:minnumber=1 tmt:maxnumber=500000'
@@ -31,6 +31,10 @@ validator_ifacelist='tmt:required="true" tmt:message="Please input interfaces" t
 validator_rate='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="qosbandw" tmt:message="Please enter correct rate"'
 validator_prio='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct prio number" tmt:pattern="positiveinteger"'
 validator_ipport='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct port" tmt:pattern="ipport"'
+validator_muxline='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct line number" tmt:pattern="positiveinteger" tmt:minnumber=0 tmt:maxnumber=15'
+validator_muxfs='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct frame start number" tmt:pattern="positiveinteger" tmt:minnumber=0 tmt:maxnumber=255
+'
+validator_muxrate='tmt:filters="ltrim,rtrim,nohtml,nospaces,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct rate" tmt:pattern="mxrate"'
 
 render_chart_h(){
 	local t="$1";
@@ -53,6 +57,18 @@ render_table_title(){
 	unset help_1 help_2
 }
 
+render_table_tr_td_open(){
+	echo "<tr><td $*>"
+}
+render_table_tr_td_close(){
+	echo "</td></tr>"
+}
+render_table_row_text(){
+	echo "<tr><td></td></tr>"
+	echo "<tr><td align='center'>"
+	echo "$*"
+	echo "</td></tr>"
+}
 
 render_console_start(){
 	local text="$1"
@@ -97,10 +113,25 @@ render_save_message(){
 	echo "<tr class='table_title'> <td class='table_title'>$title</td> </tr>"
 	
 	echo "<tr><td width='100%' class='listr' align='center'>" 
-	[ -z "$ERROR_MESSAGE" ] && echo $ok_str || echo "$ERROR_MESSAGE <br> $fail_str"
+	[ -z "$ERROR_MESSAGE" ] && echo $ok_str || echo "$ERROR_MESSAGE <br> $fail_str" 
 
 	echo "</td></tr><tr><td> <br /> <br /></td></tr></table>"
+	
 	render_js_hide_message
+}
+
+
+render_save_message_nohide(){
+	local title;
+	echo "<table id='message' width='100%' border='0' cellspacing='0' cellpadding='0'>"
+	[ -z "$ERROR_MESSAGE" ] && title="Information" || title="Error"
+	echo "<tr><td></td></tr>"
+	echo "<tr class='table_title'> <td class='table_title'>$title</td> </tr>"
+	
+	echo "<tr><td width='100%' class='listr' align='center'>" 
+	[ -z "$ERROR_MESSAGE" ] && echo $ok_str || echo "$ERROR_MESSAGE <br> $fail_str" 
+
+	echo "</td></tr><tr><td> <br /> <br /></td></tr></table>"
 }
 
 render_form_header(){
@@ -113,6 +144,21 @@ render_form_header(){
 	echo "<input type=hidden name=controller value='$controller'>"
 	echo "<table width='100%' border='0' cellspacing='0' cellpadding='0'>"
 	unset form_method
+}
+
+
+render_form_header_light(){
+	local lname="midge_form"
+	local lmethod=${form_method:-POST}
+	if [ -n "$1" ]; then lname="$1"; shift; fi
+
+	echo "<form name='$lname' method='$lmethod' tmt:validate='true' tmt:callback='displayError' $* >"
+	echo "<input type=hidden name=controller value='$controller'>"
+	unset form_method
+}
+
+render_form_tail_light(){
+	echo "</form>"
 }
 
 render_input_field(){
@@ -199,14 +245,101 @@ render_input_field(){
 	unset id autosubmit onchange onmouseover tip desc validator default
 }
 
+render_input_td_field(){
+	# options handling
+	if [ "x$1" = "x-d" ]; then
+		local disabled="disabled='true'"
+		shift;
+	else
+		local disabled=''
+	fi
+	
+	# parameters handling
+	local type="$1"
+	local inputname="$2"
+	#local inputsize='3'
+	local maxlenght=''
+	local idcode=''
+	local tipcode=''
+	local onchangecode=''
+	local i
+
+	[ -n "$tip" ] && tipcode="onmouseover=\"return overlib('$tip', BUBBLE, BUBBLETYPE, 'roundcorners')\" onmouseout=\"return nd();\""
+	eval 'value=$'$inputname
+	[ -z "$value" -a -n "$default" ] && value="$default"
+	[ -n "$id" ] && idcode="id='$id'"
+	[ -n "$autosubmit" ] && ascode="onchange='this.form.submit()'"
+	[ -n "$onchange" ] && onchangecode="onchange='$onchange'"
+	
+	shift 2
+
+	echo "
+<!-- ------- render_input_field $type $inputname $* -->"
+
+	echo "<td>"
+
+	case "${type}" in
+	text)
+		echo "	<input $disabled type='text' style='border: 0px; width: 100%; padding: 0em;' $idcode $tipcode $onchangecode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
+		;;
+	checkbox)
+		echo -n "	<input $disabled type='checkbox' class='edit' $idcode $tipcode $onchangecode name='$inputname' $validator tmt:errorclass='invalid'"
+		for i in ${value%%0}; do echo -n " checked=1 "; done
+		echo '> '
+		;;
+	radio)
+		while [ -n "$1" ]; do
+			echo -n "<label $tipcode><input $disabled type='radio' class='button' $idcode $tipcode $onchangecode name='$inputname' $validator tmt:errorclass='invalid'"
+			[ "$value" = "$1" ] && echo -n " checked "
+			echo "value='$1'>$2</label><br>"
+			validator=""
+			shift 2
+		done
+		;;
+	select)
+		echo -n "<select $disabled $tipcode name='$inputname' class='edit' $idcode $validator $onchangecode tmt:errorclass='invalid' $ascode>"
+		while [ -n "$1" ]; do
+			echo -n "<option value=$1"
+			[ "$value" = "$1" ] && echo -n " selected "
+			echo ">$2</option>"
+			shift 2
+		done
+		echo "</select>"
+		;;
+	hidden)
+		value="$1"
+		echo "<input type='hidden' name='$inputname' value='$value'>"
+		;;
+	password)
+		echo "	<input $disabled type='password' class='edit' $idcode $tipcode $onchangecode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "
+		;;
+	static)
+		echo "$@"
+		;;
+	file)
+		echo "<input type=file name=$inputname>"
+		;;
+	esac
+	
+	echo "</td>"
+	echo "<!-- ------- /render_input_field $type $inputname $* -->"
+	unset id autosubmit onchange onmouseover tip desc validator default
+}
+
 render_submit_field(){
 	local btn="Save";
 	[ -n "$1" ] && btn="$1"
 	echo "<tr> <td colspan=2 style='text-align: center;'> <input class='button' type='submit' name='submit' value='$btn'> </td> </tr>";
 }
 
+render_submit_field_light(){
+	local btn="Save";
+	[ -n "$1" ] && btn="$1"
+	echo "<td><input class='button' type='submit' name='submit' value='$btn'></td>";
+}
+
 render_form_tail(){
-	echo "</table> <!-- /fieldset--> </form><br/><br/>";
+	echo "</table> <!-- /fieldset--> </form><br/>";
 }
 
 render_form_note(){
@@ -238,7 +371,7 @@ render_list_header(){
 			echo $s2 $n $s3
 		done
 		#echo $s2_act $s3 $s4
-		echo "<td align='left'>&nbsp;<a href='javascript:openPopup(window, \"${controller}_edit&${extparam}\", \"$item\", \"additem=1\");'><img src='img/plus.gif' title='Add item' width='17' height='17' border='0'></a></td>"$s4
+		echo "<td align='left'><nobr>&nbsp;<a href='javascript:openPopup(window, \"${controller}_edit&${extparam}\", \"$item\", \"additem=1\");'><img src='img/plus.gif' title='Add item' width='17' height='17' border='0'></a></nobr></td>"$s4
 }
 
 render_list_cycle_stuff(){
@@ -257,10 +390,11 @@ render_list_btns(){
 		[ -n "$frame" ] && frameparam="&frame=1"
 		
 		# edit
-		echo "&nbsp;<a href='javascript:openPopup(window, \"${edit}${extparam}\", \"$item\");'><img src='img/e.gif' title='Edit item' width='17' height='17' border='0'></a>"
+		echo "<nobr>&nbsp;<a href='javascript:openPopup(window, \"${edit}${extparam}\", \"$item\");'><img src='img/e.gif' title='Edit item' width='17' height='17' border='0'></a>"
 		
 		# del
-		echo "<a href='/?controller=${FORM_controller}&do=del&item=${item}${frameparam}${extparam}' target='_self' onclick='return confirmSubmit()'><img src='img/x.gif' title='Delete item' width='17' height='17' border='0'></a>"
+		echo "<a href='javascript:openDeletePopup(window, \"$item\", \"action=question${extparam}\");'><img src='img/x.gif' title='Delete item' width='17' height='17' border='0'></a>"
+		#echo "<a href='/?controller=${FORM_controller}&do=del&item=${item}${frameparam}${extparam}' target='_self' onclick='return confirmSubmit()'><img src='img/x.gif' title='Delete item' width='17' height='17' border='0'></a></nobr>"
 	
 }
 
@@ -273,7 +407,7 @@ render_button_list_add(){
 
 render_popup_save_stuff(){
 	if [ "$REQUEST_METHOD" = POST ]; then
-		eval $eval_string
+		eval "$eval_string"
 		if [ -z "$FORM_additem" ]; then
 			eval `$kdb -qqc list "$item"`
 			save "$subsys" "str:$item" 
@@ -326,6 +460,12 @@ render_js_hide_message(){
 	echo "<script language=\"JavaScript\">setTimeout('document.getElementById(\"message\").style.display = \"none\";', $timeout);</script>"
 }
 
+render_js_button(){
+	local caption="$1"
+	local jscode="$2"
+	echo "<input type='button' onclick=\"${jscode}\" value=\"${caption}\">"
+}
+
 render_page_selection(){
 	local class;
 	extparam=$1
@@ -335,6 +475,20 @@ render_page_selection(){
 		class="pagesel"
 		[ "$page" = "$1" ] && class="pagesel_a"
 		echo -n "<td class='$class'><a class='$class' href='/?controller=${controller}&page=$1&$extparam'>$2</a></td>"
+		shift 2
+	done
+	echo "</tr></table>"
+}
+
+render_page_selection_l2(){
+	local class;
+	extparam=$1
+	shift
+	echo "<table class='page_select'><tr>"
+	while [ -n "$1" ]; do
+		class="pagesel_l2"
+		[ "$page_l2" = "$1" ] && class="pagesel_l2_a"
+		echo -n "<td class='$class'><a class='$class' href='/?controller=${controller}&page_l2=$1&$extparam'>$2</a></td>"
 		shift 2
 	done
 	echo "</tr></table>"

@@ -2,10 +2,11 @@
 
 	frame=1
 
+	subsys=fw
 	table=$FORM_table
 	chain=$FORM_chain
 	
-	handle_list_del_item
+	handle_list_del_item fw
 	
 	eval `$kdb -qqc list sys_fw_${table}_${chain}_*`
 	render_form_header fw_${table}_${chain}
@@ -25,7 +26,7 @@
 		#[ "$target" = "DNAT" ] && target_img="<img src=img/dnat.gif>"
 		
 		echo "<tr $style><td>$lineno</td><td>$name</td><td>$src</td><td>$dst</td><td>$proto</td><td>$sport</td><td>$dport</td><td>$target_img $target</td><td>"
-		render_list_btns fw_chain_edit "$item" "table=$table&chain=$chain"
+		render_list_btns fw_chain_edit "$item" "table=$table&chain=$chain&subsys=fw"
 		echo '</td></tr>'
 	}
 	

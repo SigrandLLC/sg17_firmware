@@ -10,6 +10,7 @@
 	render_list_line(){
 		local lineno=$1
 		local item="svc_dns_zonelist_${lineno}"
+		unset zone enabled zoneid nameserver admin serial refresh ttl retry expire zonetype
 		eval "val=\"\${svc_dns_zonelist_${lineno}}\""
 		eval "$val"
 		enabled_img="<img src=img/disabled.gif>"

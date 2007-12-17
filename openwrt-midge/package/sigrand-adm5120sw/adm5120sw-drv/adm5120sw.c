@@ -949,7 +949,7 @@ int adm5120sw_change_mtu(struct net_device *dev, int new_mtu)
 	spinlock_t *lock = &((PSW_PRIV_T)dev->priv)->lock;
 
 	/* check ranges */
-	if ((new_mtu < 68) || (new_mtu > 1500))
+	if ((new_mtu < 68) || (new_mtu > 1536))
 		return -EINVAL;
 
 	spin_lock_irqsave(lock, flags);

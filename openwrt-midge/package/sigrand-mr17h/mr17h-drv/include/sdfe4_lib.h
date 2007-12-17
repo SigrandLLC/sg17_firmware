@@ -240,6 +240,8 @@
 #define  SINGLE                      0x00
 #define  CLK_INTERNAL                0x00
 #define  FRAME_PLESIO                0x0
+#define  FRAME_SYNC                  0x1
+
 
 // ERROR codes
 #define EXMIT	1
