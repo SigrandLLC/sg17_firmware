@@ -13,7 +13,7 @@ require_js_file "dsl.js"
 _sg16_status(){
 	cpath="$sg16_cfg_path/$iface"
 	help_2="dsl.status"
-	render_table_title "$iface "$MR16H_MODNAME" modem STATUS" 2
+	render_table_title "$iface "$MR16H_MODNAME" modem status" 2
 	# ONLINE status
 	
 	link=`cat $cpath/state`
@@ -40,7 +40,7 @@ _sg16_settings(){
 	render_form_header
 	# refresh configuration
 	eval `kdb -qq ls "sys_dsl_${iface}_*" ` 
-	render_table_title "$iface "$MR16H_MODNAME" modem SETTINGS" 2
+	render_table_title "$iface "$MR16H_MODNAME" modem settings" 2
 
 	# sys_dsl_${iface}_name
 	render_input_field "hidden" "hidden" iface $iface
@@ -111,7 +111,7 @@ _sg17_status(){
 
 	#-------------- STATUS table --------------------
 	help_2="dsl.status"
-	render_table_title "$iface "$MR17H_MODNAME" modem STATUS" 2
+	render_table_title "$iface "$MR17H_MODNAME" modem status" 2
 	conf_path="$sg17_cfg_path/$iface/sg17_private"
 	# ONLINE status
 	link_state=`cat $conf_path/link_state`	
