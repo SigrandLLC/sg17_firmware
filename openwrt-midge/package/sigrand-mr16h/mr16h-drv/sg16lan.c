@@ -525,18 +525,19 @@ sg16_init_one(struct pci_dev  *pdev,const struct pci_device_id  *ent)
 
 #ifndef AUTOSTART_OFF
 	
-	printk(KERN_NOTICE"Check existence of device %s\n",ndev->name);
 	if( shdsl_dload_prepare(ndev) == -ENODEV ){
 		err = -ENODEV;
 		goto err3;
 	}
 	hdlc_shutdown(nl);
-	printk(KERN_NOTICE"Check existence of device %s - success\n",ndev->name);
 
 #endif
 
     /* timered link chk entire */
     INIT_WORK( &nl->wqueue,shdsl_link_chk,(void*)ndev);    
+
+    printk( KERN_NOTICE "%s: "MR16H_MODNAME" SHDSL module (irq %d, mem %#lx)\n",
+		ndev->name, ndev->irq, ndev->mem_start );
     
     return  0;
 err3:
@@ -554,7 +555,6 @@ err2:
 err1:	    
     free_netdev(ndev);    
 	pci_disable_device(pdev);
-	printk(KERN_NOTICE"%s: returning %d\n",__FUNCTION__,err);
     return err;
 }
 
@@ -634,8 +634,6 @@ sg16_probe( struct net_device  *ndev )
         goto err_exit;
     }
 	
-    printk( KERN_NOTICE "%s: "MR16H_MODNAME" SHDSL module (irq %d, mem %#lx)\n",
-		ndev->name, ndev->irq, ndev->mem_start );
     SET_MODULE_OWNER( ndev );
 
     return  0;
