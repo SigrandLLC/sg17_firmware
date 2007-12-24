@@ -279,11 +279,8 @@ static void hdlc_init( struct net_local *nl);
 static void hdlc_shutdown( struct net_local *nl );
 
 static int  shdsl_ready( struct net_local *nl, u16 expect_state);
-
-/*-----------------------------------------------------------------------------*/
-
-//static int  shdsl_dload_fw(struct device *dev);
 static int  shdsl_dload_fw(struct net_device *dev, struct firmware *fw);
+static int  shdsl_dload_prepare(struct net_device *dev);
 
 /*-----------------------------------------------------------------------------*/
 
@@ -478,13 +475,16 @@ dsl_init( struct net_device *ndev)
 
 
 static int __devinit
-sg16_init_one( struct pci_dev  *pdev,  const struct pci_device_id  *ent )
+sg16_init_one(struct pci_dev  *pdev,const struct pci_device_id  *ent)
 {
     struct net_device  *ndev;
     struct device *dev_dev=(struct device*)&(pdev->dev);
     struct device_driver *dev_drv=(struct device_driver*)(dev_dev->driver);
     struct net_local * nl;
-    u8 err;
+	struct firmware *fw;
+	struct shdsl_config *cfg;
+	int i = 0;	
+    int err;
 
     if( pci_enable_device( pdev ) )
     	return  -EIO;
@@ -500,8 +500,8 @@ sg16_init_one( struct pci_dev  *pdev,  const struct pci_device_id  *ent )
 
     /* network interface initialisation */
     if( register_netdev( ndev ) ) {
-	err=ENODEV;
-	goto err1;
+		err=-ENODEV;
+		goto err1;
     }
     devs[dnum]=ndev;
     dnum++;    
@@ -515,40 +515,37 @@ sg16_init_one( struct pci_dev  *pdev,  const struct pci_device_id  *ent )
     sysfs_create_link( &(dev_drv->kobj),&(dev_dev->kobj),ndev->name );
 
     /* Create sysfs entires */
-    if( init_sg16_in_sysfs( dev_dev ) )
-    {
+    if( init_sg16_in_sysfs( dev_dev ) ){
         printk( KERN_ERR "%s: unable to create sysfs entires\n",ndev->name);
         err=-EPERM;	    
         goto err2;
     }
 
     nl->shdsl_cfg.need_preact=1;
-/*
-#ifndef AUTOSTART_OFF
 
-    if( shdsl_dload_fw(dev_dev)  )
-	printk(KERN_NOTICE"%s: cannot download firmware\n",ndev->name);
-    else
-    {
-	// check that autobaud is aviable in this firmware 
-	if( shdsl_preactivation(nl) )
-	    printk(KERN_ERR"%s, I/O error\n",ndev->name);
-	else
-	{
-	    // Starting device activation 
-            t=0x42;
-	    if( ( err=shdsl_issue_cmd(nl,_DSL_ACTIVATION,&t,1) ) )
-    		return -EIO;
-	    nl->shdsl_cfg.need_preact=0;
+#ifndef AUTOSTART_OFF
+	
+	printk(KERN_NOTICE"Check existence of device %s\n",ndev->name);
+	if( shdsl_dload_prepare(ndev) == -ENODEV ){
+		err = -ENODEV;
+		goto err3;
 	}
-    }
-#endif	
-/*
+	hdlc_shutdown(nl);
+	printk(KERN_NOTICE"Check existence of device %s - success\n",ndev->name);
+
+#endif
+
     /* timered link chk entire */
     INIT_WORK( &nl->wqueue,shdsl_link_chk,(void*)ndev);    
     
     return  0;
-
+err3:
+    /* shutdown device */
+    hdlc_shutdown(nl);
+    /* Remove symlink on device from driver dir in sysfs */
+    sysfs_remove_link(&(dev_drv->kobj),ndev->name);
+    /* Remove sysfs entires */
+    del_sg16_from_sysfs(dev_dev);
 err2:
     unregister_netdev( ndev );
     free_irq( ndev->irq, ndev );
@@ -556,6 +553,8 @@ err2:
     iounmap( ((struct net_local *)ndev->priv)->mem_base );
 err1:	    
     free_netdev(ndev);    
+	pci_disable_device(pdev);
+	printk(KERN_NOTICE"%s: returning %d\n",__FUNCTION__,err);
     return err;
 }
 
@@ -584,6 +583,7 @@ sg16_remove_one( struct pci_dev  *pdev )
     release_mem_region( ndev->mem_start, 0x1000 );
     iounmap( ((struct net_local *)ndev->priv)->mem_base );
     free_netdev( ndev );
+	pci_disable_device(pdev);
 }
 
 /* Network interface specific functions */
@@ -613,7 +613,7 @@ sg16_probe( struct net_device  *ndev )
 	    
 
     if( !request_mem_region( ndev->mem_start, 0x1000, ndev->name ) )
-	return  -ENODEV;
+		return  -ENODEV;
 
     /* set network device private data */
     memset( nl, 0, sizeof(struct net_local) );
@@ -881,7 +881,7 @@ shdsl_ready( struct net_local *nl, u16 expect_state)
     u32 ret;
     PDEBUG("start");
     if( (nl->irqret & 0x1f) != expect_state ){
-	ret=interruptible_sleep_on_timeout( &nl->wait_for_intr, HZ*10 );
+	ret=interruptible_sleep_on_timeout( &nl->wait_for_intr, HZ*1 );
         PDEBUG("after ret");	
 	if( ( nl->irqret & 0x1f) != expect_state ){
 	    PDEBUG("fail wait, irqret=%02x expect=%02x",nl->irqret & 0x1f,0xff & expect_state );
@@ -891,6 +891,28 @@ shdsl_ready( struct net_local *nl, u16 expect_state)
     nl->irqret=0;
     PDEBUG("end");    
     return ret_val;
+}
+
+static int
+shdsl_dload_prepare(struct net_device *ndev)
+{
+    struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);			
+    struct shdsl_config *cfg = (struct shdsl_config *)&(nl->shdsl_cfg);
+    volatile struct cx28975_cmdarea  *p = nl->cmdp;
+
+    hdlc_shutdown(nl);
+    udelay(10);
+    iowrite8( 0, (iotype)&(p->intr_host) );
+    ioread8( (iotype)&(p->intr_host) );    
+    iowrite8(XRST,(iotype)&(nl->regs->CRA));
+    iowrite8(EXT,(iotype)&(nl->regs->IMR)); 
+    udelay(10);
+    PDEBUG("%s: hdlc settings",ndev->name);    
+    if( !shdsl_ready(nl,_ACK_BOOT_WAKE_UP) ){
+		hdlc_shutdown(nl);
+		return -ENODEV;
+	}
+	return 0;
 }
 
 static int
@@ -910,20 +932,11 @@ shdsl_dload_fw(struct net_device *ndev, struct firmware *fw)
     
     for(i=0;i< fw->size;i++)
         cksum += fw->data[i];
-				    
 
 /* 1.Prepare to download process */
-    hdlc_shutdown(nl);
-    udelay(10);
-    iowrite8( 0, (iotype)&(p->intr_host) );
-    ioread8( (iotype)&(p->intr_host) );    
-    iowrite8(XRST,(iotype)&(nl->regs->CRA));
-    iowrite8(EXT,(iotype)&(nl->regs->IMR)); 
-    udelay(10);
-    PDEBUG("%s: hdlc settings",ndev->name);    
-    if( !shdsl_ready(nl,_ACK_BOOT_WAKE_UP) )
-	goto err_exit;
-
+	if( shdsl_dload_prepare(ndev) )
+		return -ENODEV;
+		
     PDEBUG("%s: before dload start",ndev->name);
 /* 2.Download process */
     t = fw->size;
@@ -932,12 +945,11 @@ shdsl_dload_fw(struct net_device *ndev, struct firmware *fw)
     PDEBUG("%s: dload start",ndev->name);
     
     for( i = 0, img_len=fw->size;  img_len >= 75;  i += 75, img_len -= 75 ){
-	
-	if( shdsl_issue_cmd( nl, _DSL_DOWNLOAD_DATA, fw->data + i, 75 ) ){
-	    printk("%s: %s cmd error on %d byte\n",__FUNCTION__,ndev->name,i);                
+		if( shdsl_issue_cmd( nl, _DSL_DOWNLOAD_DATA, fw->data + i, 75 )){
+			printk("%s: %s cmd error on %d byte\n",__FUNCTION__,ndev->name,i);                
     	    goto err_exit;
+		}
 	}
-    }
 
     PDEBUG("%s: dload tail",ndev->name);
     if( img_len

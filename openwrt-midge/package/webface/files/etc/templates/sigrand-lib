@@ -11,17 +11,18 @@ _sg_if_refresh(){
 	# delete missing ifaces
 	for iface in `$kdb get ${kdb_tmpl}_ifaces`; do	
 	        if [ ! -d "$os_ifdir/$iface" ]; then
-		# non existing interface
-			# delete all interface hardware settings
-	                kdb rm ${kdb_tmpl}_${iface}*
-			# delete device from sybsystem list
-			ifaces=`$kdb get ${kdb_tmpl}_ifaces`
-			ifaces=`echo $ifaces | sed "s/${iface}//"`
-			$kdb set ${kdb_tmpl}_ifaces="$ifaces"
-			# delete device from net ifs list			
-			ifaces=`$kdb get sys_ifaces`
-			ifaces=`echo $ifaces | sed "s/${iface}//"`
-			$kdb set sys_ifaces="$ifaces"
+				# non existing interface
+				# delete all interface hardware settings
+	             kdb rm ${kdb_tmpl}_${iface}*
+				# delete device from sybsystem list
+				ifaces=`$kdb get ${kdb_tmpl}_ifaces`
+				ifaces=`echo $ifaces | sed "s/${iface}//"`
+				$kdb set ${kdb_tmpl}_ifaces="$ifaces"
+				# delete device from net ifs list			
+				ifaces=`$kdb get sys_ifaces`
+				ifaces=`echo $ifaces | sed "s/${iface}//"`
+				$kdb set sys_ifaces="$ifaces"
+				$kdb set sys_iface_${iface}_valid=0
 	        fi
 	done
 	
