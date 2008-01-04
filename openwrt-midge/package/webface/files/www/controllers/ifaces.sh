@@ -2,6 +2,8 @@
 
 	iface_proto=$FORM_iface_proto
 	del_iface=$FORM_del_iface
+	phys_iface=$FORM_phys_iface
+	vlan_id=$FORM_vlan_id
 
 	eval `kdb -qq ls sys_ifaces`
 
@@ -33,13 +35,22 @@
 		if [ -n "$iface_proto" ]; then
 			iface=`get_next_iface $iface_proto`
 			iface_add $iface
-			ok_str="Interface <b>$iface</b> added, please reload page"
+			ok_str="Interface <b>$iface</b> added, reloading page"
 			render_save_message
 			render_js_refresh_window 1000
 		elif [ -n "$del_iface" ]; then
 			iface_del $del_iface
 			del_iface=""
-			ok_str="Interface deleted, please reload page"
+			ok_str="Interface deleted, reloading page"
+			render_save_message
+			render_js_refresh_window 1000
+		elif [ -n "$phys_iface" ]; then
+			# TODO MY check that adding interface is not exist
+			iface_proto="vlan"
+			realiface="${phys_iface}.${vlan_id}"
+			depend_on=$phys_iface
+			iface_add "${phys_iface}v${vlan_id}"
+			ok_str="VLAN interface ${phys_iface}v${vlan_id} added, reloading page"
 			render_save_message
 			render_js_refresh_window 1000
 		fi
@@ -55,6 +66,29 @@
 
 	render_submit_field Add
 	render_form_tail
+	
+	
+	# Add VLAN
+	render_form_header ifaces
+	render_table_title "Add VLAN interface" 2
+	
+	desc=""
+	validator='tmt:invalidindex=0 tmt:message="Please select interface"'
+	for i in $sys_ifaces; do
+		case $i in
+			*v*)	;;
+			*)	params="$params $i $i";;
+		esac
+	done
+	render_input_field select "Physical interface" phys_iface bad "Please select interface" $params
+	
+	desc=""
+	validator="$tmtreq tmt:pattern='positiveinteger' tmt:minnumber=0 tmt:maxnumber=4096 tmt:message='VLAN ID is a positive integer betwen 0 and 4096'"
+	render_input_field text "VLAN ID " vlan_id
+
+	render_submit_field "Add VLAN"
+	render_form_tail
+	
 
 	# Delete interface
 	render_form_header ifaces
@@ -65,7 +99,8 @@
 	params=""
 	for i in $sys_ifaces; do
 		case $i in
-			eth*|dsl*)	;;
+			*v*)		params="$params $i $i";;
+			eth*|dsl*|hdlc*)	;;
 			*)		params="$params $i $i";;
 		esac
 	done
@@ -73,4 +108,5 @@
 
 	render_submit_field Delete
 	render_form_tail
+	
 # vim:foldmethod=indent:foldlevel=1

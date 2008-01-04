@@ -26,16 +26,23 @@ handle_list_del_item(){
 
 iface_add() {
 	local iface;
-	while [ -n "$1" ]; do
+	local _realiface;
+	local _depend_on;
+	
+	if [ -n "$1" ]; then
 		iface=$1
-		shift;
-	    kdb set sys_ifaces="$sys_ifaces $iface" : \
-	    	set sys_iface_${iface}_proto=$iface_proto : \
-	    	set sys_iface_${iface}_real=$iface : \
-	    	set sys_iface_${iface}_valid=1 : \
-	    	set sys_iface_${iface}_auto=0 : \
-	    	set sys_iface_${iface}_method=none
-	done
+		[ -n "$realiface" ] && _realiface=$realiface || _realiface=$iface
+		[ -n "$depend_on" ] && _depend_on=$depend_on || _depend_on='none'
+		[ -n "$vlan_id" ] && kdb set sys_iface_${iface}_vlan_id=$vlan_id
+		kdb set sys_iface_${iface}_proto=$iface_proto : \
+		    set sys_iface_${iface}_real=$_realiface : \
+		    set sys_iface_${iface}_depend_on=$_depend_on : \
+		    set sys_iface_${iface}_valid=1 : \
+		    set sys_iface_${iface}_auto=0 : \
+		    set sys_iface_${iface}_method=none
+	    	iface_update_sys_ifaces
+	fi
+	
 }
 
 iface_del() {

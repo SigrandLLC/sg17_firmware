@@ -11,7 +11,8 @@ service_reload(){
 	network)
 		if [ -n "$iface" ]; then
 			/sbin/ifdown $iface;
-			eval 'auto=$'sys_iface_${iface}_auto
+			#eval 'auto=$'sys_iface_${iface}_auto
+			auto=`/usr/bin/kdb get sys_iface_${iface}_auto`
 			[ "$auto" = 1 ] && /sbin/ifup $iface
 		else
 			/etc/init.d/network restart

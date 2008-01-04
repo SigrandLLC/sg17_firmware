@@ -31,7 +31,8 @@ kill_ppp(){
 pre_ifup(){
 	info 1 "Setting up $iface: "
 	# start depends 
-	if [ -n "$depend_on" ]; then
+	if [ -n "$depend_on" -a "x$depend_on" != 'xnone' ]; then
+		# TODO MY check that depend is not running before start it
 		info 2 "Bringing up depends: $depend_on"
 		/sbin/ifup $depend_on
 	fi
@@ -67,6 +68,13 @@ pre_ifup(){
 				cmd $ip link set $i up
 				cmd /sbin/ifenslave $realiface $i
 			done
+			;;
+		vlan)
+			required /sbin/vconfig
+			# check that this VLAN is not previously added
+			if ! $ip link ls dev $realiface >/dev/null 2>&1; then
+				cmd /sbin/vconfig add $depend_on $vlan_id
+			fi
 			;;
 	esac
 }
@@ -143,7 +151,7 @@ _ifup(){
 
 	echo 1 > /proc/sys/net/ipv4/ip_forward
 
-	$ip link set $realiface down
+	$ip link set $realiface down 2>/dev/null
 
 	pre_ifup 
 
@@ -166,7 +174,7 @@ _ifup(){
 
 	info 1 "  Interface configuration"
 	case "$proto" in
-		bridge|ether|bonding|hdlc)
+		bridge|ether|bonding|hdlc|vlan)
 			[ "$proto" = "hdlc" -a "$method" != "static" ] && warn "Incorrect method:${method} for $iface" 
 			case $method in
 			static)
@@ -272,6 +280,13 @@ post_ifdown() {
 		bonding) 
 			# TODO?
 			;;
+		vlan)
+			required /sbin/vconfig
+			# check that this VLAN is not previously removed
+			if $ip link ls dev $realiface >/dev/null 2>&1; then
+				cmd /sbin/vconfig rem $realiface
+			fi
+			;;
 	esac
 }
 
@@ -286,7 +301,7 @@ _ifdown(){
 	info 1 "Setting down $iface: "
 	info 1 "  Interface deconfiguration"
 
-	cmd $ifconfig $realiface down
+	cmd $ifconfig $realiface down 2>/dev/null
 	case $proto in
 		pppoe|pptp)
 			kill_ppp
@@ -301,12 +316,12 @@ _network(){
 	# TODO: write restarting single interface at $2	
 	local ifaces="`kdb sskls 'sys*valid=1' sys_iface_ _valid`"
 	for iface in $ifaces; do 
-        unset auto depend_on
+        	unset auto depend_on
 		eval `kdb -lqq sls sys_iface_${iface}_`
-        # start depends interfaces 
-        if [ -n "$depend_on" ]; then
-            [ "$action" = "start" -a "$auto" = "1" ] && /sbin/ifup $depend_on
-        fi
+		# start depends interfaces 
+		#if [ -n "$depend_on" ]; then
+		#	[ "$action" = "start" -a "$auto" = "1" ] && /sbin/ifup $depend_on
+		#fi
 		[ "$action" = "start" -a "$auto" = "1" ] && /sbin/ifup $iface
 		[ "$action" = "stop" ] && /sbin/ifdown $iface
 		if [ "$1" = "restart" ]; then
