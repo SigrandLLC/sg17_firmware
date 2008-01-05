@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# Few words about KDB interface names and system (real) names:
+# to our scripts (and in Webface) we pass and use KDB interface names
+# (f.e. eth2v3, not eth2.3);
+# to system utils we pass real interface names - eth2.3.
+# To get real interface name function get_real_iface is used
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:$PATH
 
@@ -15,6 +20,14 @@ required modprobe
 
 ip=`which ip`
 ifconfig=`which ifconfig`
+
+get_real_iface(){
+	unset _i_real
+	unset i_real
+	_i_real=`kdb get sys_iface_$1_real`
+	i_real=$1
+	[ -n "$_i_real" ] && i_real=$_i_real
+}
 
 kill_ppp(){
 	local pidfile;
@@ -32,9 +45,11 @@ pre_ifup(){
 	info 1 "Setting up $iface: "
 	# start depends 
 	if [ -n "$depend_on" -a "x$depend_on" != 'xnone' ]; then
-		# TODO MY check that depend is not running before start it
-		info 2 "Bringing up depends: $depend_on"
-		/sbin/ifup $depend_on
+		get_real_iface $depend_on
+		if ! $ip addr show dev $i_real 2>/dev/null |grep UP >/dev/null 2>&1; then
+			info 2 "Bringing up depends: $depend_on ($i_real)"
+			/sbin/ifup $depend_on
+		fi
 	fi
 	info 1 "  Interface pre-configuration:"
 	case $proto in
@@ -46,10 +61,11 @@ pre_ifup(){
 			required brctl
 			cmd brctl addbr $realiface
 			for i in $br_ifaces; do
-				cmd $ip addr flush dev $i
-				cmd $ip link set $i up
-				cmd ifconfig $i mtu 1518
-				cmd brctl addif $realiface $i
+				get_real_iface $i
+				cmd $ip addr flush dev $i_real 2>/dev/null
+				cmd $ip link set $i_real up
+				cmd ifconfig $i_real mtu 1518 2>/dev/null
+				cmd brctl addif $realiface $i_real 2>/dev/null
 			done
 			[ "$br_stp" = 1 ] && cmd brctl stp $realiface on || cmd brctl stp $realiface off
 			[ -n "$br_prio" ] && cmd brctl setbridgeprio $realiface $br_prio 
@@ -58,15 +74,16 @@ pre_ifup(){
 			[ -n "$br_fd" ] && cmd brctl setfd $realiface $br_fd 
 
 			;;
-		bonding) 
-			cmd /sbin/modprobe bonding mode=0 miimon=200
+		bonding)
+			cmd /sbin/modprobe bonding mode=0 miimon=200 max_bonds=2
 			[ -n "$mac" ] && cmd $ifconfig $realiface hw ether $mac
 			required /sbin/ifenslave
 			cmd $ip link set $realiface up
 			for i in $bond_ifaces; do 
-				cmd $ip addr flush dev $i
-				cmd $ip link set $i up
-				cmd /sbin/ifenslave $realiface $i
+				get_real_iface $i
+				cmd $ip addr flush dev $i_real 2>/dev/null
+				cmd $ip link set $i_real up
+				cmd /sbin/ifenslave $realiface $i_real 2>/dev/null
 			done
 			;;
 		vlan)
@@ -272,8 +289,9 @@ post_ifdown() {
 		bridge)
 			required brctl
 			for i in $br_ifaces; do
-				cmd brctl delif $realiface $i
-				cmd ifconfig $i mtu 1500
+				get_real_iface $i
+				cmd brctl delif $realiface $i_real
+				cmd ifconfig $i_real mtu 1500
 			done
 			cmd brctl delbr $realiface
 			;;
