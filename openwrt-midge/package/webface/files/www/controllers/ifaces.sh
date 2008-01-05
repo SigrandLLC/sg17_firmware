@@ -45,7 +45,6 @@
 			render_save_message
 			render_js_refresh_window 1000
 		elif [ -n "$phys_iface" ]; then
-			# TODO MY check that adding interface is not exist
 			iface_proto="vlan"
 			realiface="${phys_iface}.${vlan_id}"
 			depend_on=$phys_iface

@@ -191,14 +191,14 @@
 		validator="$tmtreq tmt:message='Please select method'"
 		render_input_field select "Method" sys_iface_${iface}_method none 'None' static 'Static address' zeroconf 'Zero Configuration' dynamic 'Dynamic address'
 
-		# TODO MY make read-only for VLAN
 		# sys_iface_${iface}_depend_on
+		[ "x$proto" = "xvlan" ] && disable="-d"
 		tip=""
 		desc=""
 		validator=""
 		default='none'
 		ifaces=`kdb sskls 'sys*valid=1' sys_iface_ _valid`
-		render_input_field select "Depended on" sys_iface_${iface}_depend_on none 'None' `iface_get_ifaces -d`
+		render_input_field $disable select "Depended on" sys_iface_${iface}_depend_on none 'None' `iface_get_ifaces -d`
 		render_submit_field
 		;;
 	'method')
