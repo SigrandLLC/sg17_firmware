@@ -323,10 +323,6 @@
 		'bonding')
 			render_table_title "Bonding Specific parameters" 2 
 
-			desc="MAC Address for interface"
-			validator=$validator_macaddr
-			render_input_field text "MAC Address" sys_iface_${iface}_mac
-
 			tip="<b>Example:</b>eth0 eth1 dsl0<br><b>Note:</b>You can use only Ethernet-like interfaces, like ethX, dslX, bondX<br><b>Note:</b> Interfaces should be enabled, but <b>auto</b> should be switched <b>off</b>"
 			desc="Interfaces for bonding separated by space"
 			validator=$validator_ifacelist
