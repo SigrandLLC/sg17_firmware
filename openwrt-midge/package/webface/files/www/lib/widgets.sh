@@ -166,6 +166,9 @@ render_input_field(){
 	if [ "x$1" = "x-d" ]; then
 		local disabled="disabled='true'"
 		shift;
+	elif [ "x$1" = "x-ro" ]; then
+		local disabled="readonly"
+		shift;
 	else
 		local disabled=''
 	fi

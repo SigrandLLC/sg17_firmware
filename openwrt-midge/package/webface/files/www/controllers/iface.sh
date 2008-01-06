@@ -192,7 +192,7 @@
 		render_input_field select "Method" sys_iface_${iface}_method none 'None' static 'Static address' zeroconf 'Zero Configuration' dynamic 'Dynamic address'
 
 		# sys_iface_${iface}_depend_on
-		[ "x$proto" = "xvlan" ] && disable="-d"
+		[ "x$proto" = "xvlan" ] && disable="-ro"
 		tip=""
 		desc=""
 		validator=""
