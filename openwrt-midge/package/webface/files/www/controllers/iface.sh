@@ -19,7 +19,9 @@
 	
 	case $page in
 		'general')	
-			kdb_vars="str:sys_iface_${iface}_desc bool:sys_iface_${iface}_enabled bool:sys_iface_${iface}_auto str:sys_iface_${iface}_method str:sys_iface_${iface}_depend_on" ;;
+			kdb_vars="str:sys_iface_${iface}_desc bool:sys_iface_${iface}_enabled bool:sys_iface_${iface}_auto str:sys_iface_${iface}_method"
+			[ "$proto" != "vlan" ] && kdb_vars="$kdb_vars str:sys_iface_${iface}_depend_on"
+			;;
 		'method')
 			[ "$method" = "static" ] && kdb_vars="str:sys_iface_${iface}_ipaddr str:sys_iface_${iface}_netmask str:sys_iface_${iface}_gateway str:sys_iface_${iface}_broadcast"
 			[ "$method" = "dynamic" ] && kdb_vars="str:sys_iface_${iface}_dynhostname"
@@ -192,7 +194,7 @@
 		render_input_field select "Method" sys_iface_${iface}_method none 'None' static 'Static address' zeroconf 'Zero Configuration' dynamic 'Dynamic address'
 
 		# sys_iface_${iface}_depend_on
-		[ "x$proto" = "xvlan" ] && disable="-ro"
+		[ "x$proto" = "xvlan" ] && disable="-d"
 		tip=""
 		desc=""
 		validator=""

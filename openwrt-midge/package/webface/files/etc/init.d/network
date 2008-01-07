@@ -46,10 +46,8 @@ pre_ifup(){
 	# start depends 
 	if [ -n "$depend_on" -a "x$depend_on" != 'xnone' ]; then
 		get_real_iface $depend_on
-		if ! $ip addr show dev $i_real 2>/dev/null |grep UP >/dev/null 2>&1; then
-			info 2 "Bringing up depends: $depend_on ($i_real)"
-			/sbin/ifup $depend_on
-		fi
+		info 2 "Bringing up depends: $depend_on ($i_real)"
+		/sbin/ifup $depend_on
 	fi
 	info 1 "  Interface pre-configuration:"
 	case $proto in
@@ -61,6 +59,8 @@ pre_ifup(){
 			required brctl
 			cmd brctl addbr $realiface
 			for i in $br_ifaces; do
+				# start interfaces bridge consist of
+				/sbin/ifup $i
 				get_real_iface $i
 				cmd $ip addr flush dev $i_real 2>/dev/null
 				cmd $ip link set $i_real up
@@ -75,11 +75,13 @@ pre_ifup(){
 
 			;;
 		bonding)
-			cmd /sbin/modprobe bonding mode=0 miimon=200 max_bonds=2
+			cmd /sbin/modprobe bonding mode=0 miimon=200
 			[ -n "$mac" ] && cmd $ifconfig $realiface hw ether $mac
 			required /sbin/ifenslave
 			cmd $ip link set $realiface up
-			for i in $bond_ifaces; do 
+			for i in $bond_ifaces; do
+				# start interfaces bonding consist of
+				/sbin/ifup $i
 				get_real_iface $i
 				cmd $ip addr flush dev $i_real 2>/dev/null
 				cmd $ip link set $i_real up
@@ -146,6 +148,9 @@ _ifup(){
 	eval `kdb -qq sls sys_iface_${iface}_`
 	realiface=$iface
 	[ -n "$real" ] && realiface=$real
+	
+	# check that current interface is not already running
+	$ip addr show dev $iface 2>/dev/null |grep UP >/dev/null 2>&1 && return
 
 	# setup ppp_unit 
 	if [ "$proto" = "pppoe" -o "$proto" = "pptp" ]; then
