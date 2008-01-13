@@ -20,6 +20,7 @@ required modprobe
 
 ip=`which ip`
 ifconfig=`which ifconfig`
+lsmod='/bin/lsmod'
 
 get_real_iface(){
 	unset _i_real
@@ -75,7 +76,16 @@ pre_ifup(){
 
 			;;
 		bonding)
-			cmd /sbin/modprobe bonding mode=0 miimon=200
+			if ! cmd $lsmod |grep bonding >/dev/null 2>&1; then
+				num=0
+				for i in $sys_ifaces; do
+        				case $i in
+                				bond*)	num=$(($num+1)) ;;
+        				esac
+				done
+
+				cmd /sbin/modprobe bonding mode=0 miimon=200 max_bonds=$num
+			fi
 			[ -n "$mac" ] && cmd $ifconfig $realiface hw ether $mac
 			required /sbin/ifenslave
 			cmd $ip link set $realiface up
