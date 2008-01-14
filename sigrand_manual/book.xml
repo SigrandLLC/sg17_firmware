@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "/usr/share/xml/docbook/schema/dtd/4.2/docbookx.dtd">
 <book lang="ru" >
   <bookinfo>
-    <title>Руководство по эксплуатации маршрутизатора SG-16R</title>
+    <title>Руководство по эксплуатации маршрутизатора SG-16R/SG-17R</title>
     <copyright>
       <year>2007</year>
       <holder>Сигранд</holder>
@@ -20,7 +20,6 @@
 				ADM5120 Boot:
 				
 				
-				Copyright 2007 Sigrand, Inc.
 				CPU: Infineon 5120-175MHz
 				SDRAM: 64MB
 				Flash: NAND-32MB
@@ -35,7 +34,6 @@
 				Если вы трижды нажали на пробел, то выведется меню загрузчика
 			</para>
       <screen>
-				Sigrand MR16 router:
 				==================================
 				Bootloader Menu
 				[1] Xmodem Download
@@ -125,7 +123,6 @@
 				ADM5120 Boot:
 				
 				
-				Copyright 2005 Sigrand, Inc.
 				CPU: ADM5120-175MHz
 				SDRAM: 128MB
 				Flash: NAND-32MB
@@ -140,7 +137,6 @@
 				Для активации меню загрузчика надо быстро нажать на клавишу пробела 3 раза. Меню загрузчика выглядит следующим образом:
 			</para>
       <screen>
-				Sigrand MR16 router:
 				==================================
 				Bootloader Menu
 				[1] Xmodem Download
@@ -344,13 +340,6 @@
         <para>
 					Конфигурация маршрутизатора выполняется через веб-интерфейс любым веб-браузером, поддерживающем протокол HTTPS (Internet Explorer, Opera, Safari, Mozilla Firefox). Для конфигурации необходимо в строке адреса веб-браузера ввести https://192.168.2.100, после чего будут заданы несколько вопросов касательно сертификатов шифрования, на которые следует ответить положительно. По-умолчанию, логин/пароль установлены следующие: admin/1234.
 				</para>
-        <para>
-					Вид главной страницы показан ниже:
-					<figure>
-            <title>Главная страница</title>
-            <graphic fileref="img/wellcome.png" />
-          </figure>
-        </para>
         <section id="passwd" >
           <title>Установка пароля</title>
           <para>
@@ -418,29 +407,6 @@
         <para>
 					Для конфигурации маршрутизатора через консольный интерфейс необходимо подключится к маршрутизатору по протоколу SSH на порт 22. Есть несколько программ, поддерживающих работу по протоколу SSH, к примеру, Putty для OS Windows и ssh для OS GNU/Linux. В качестве логина необходимо ввести root, пароль - 1234.
 				</para>
-        <para>
-					После успешной аутентификации, на экран будет выведен логотип фирмы Sigrand и текущая версия прошивки маршрутизатора:
-				</para>
-        <screen>
-					sigrand1 login: root
-					Password:
-					
-					
-					BusyBox v1.1.2 (2007.03.17-09:17+0000) Built-in shell (ash)
-					Enter 'help' for a list of built-in commands.
-					
-					
-					_/_/_/  _/                                                _/
-					_/              _/_/_/  _/  _/_/    _/_/_/  _/_/_/      _/_/_/
-					_/_/    _/  _/    _/  _/_/      _/    _/  _/    _/  _/    _/
-					_/  _/  _/    _/  _/        _/    _/  _/    _/  _/    _/
-					_/_/_/    _/    _/_/_/  _/          _/_/_/  _/    _/    _/_/_/
-					_/
-					_/_/
-					
-					Revision: r579
-					Built at: 20070317 16:07
-				</screen>
         <note>
           <simpara>
 						Следует заметить, что изменения, внесенные в конфигурацию маршрутизатора через консольный интерфейс будут замены после перезагрузки параметрами, указанными в веб-интерфейсе.
@@ -583,12 +549,17 @@
 		</para>
     </section>
 	<section id="eoc">
-		<title>Мониторинг SHDSL каналов</title>
+		<title id="eoc.title">Мониторинг SHDSL каналов</title>
+		<important>
+			<para>
+				Мониторинг поддерживают только модули MR17H.
+			</para>
+		</important>
 		<para>
-			Мониторинг SHDSL каналов позволяет получить информацию о соотношении Сигнал/Шум и уровне затухания в линии связи. В случае, если в линии связи используются регенераторы <emphasis>SG-17E</emphasis>, то можно получать информацию о состоянии этих регенераторов.
+			Мониторинг SHDSL каналов позволяет получить информацию о соотношении Сигнал/Шум и уровне затухания в линии связи. В случае, если в линии связи используются регенераторы <emphasis>SG-17E</emphasis>, то можно получать информацию о состоянии этих регенераторов и их количестве.
 		</para>
 		<para>
-			Мониторинг каналов осуществляется программой <emphasis>eocd</emphasis>, работающей в режиме демона. На данный момент его конфигурация и запуск осуществляется через консольный интерфейс маршрутизатора.
+			Мониторинг каналов осуществляется программой <emphasis>eocd</emphasis>, работающей в режиме демона. На данный момент его конфигурация осуществляется через консольный интерфейс маршрутизатора.
 		</para>
 		<para>
 			Для работы демон <emphasis>eocd</emphasis> использует конфигурационный файл (по-умолчанию расположенный по пути /etc/eocd/eocd.conf), который состоит из двух разделов:
@@ -603,21 +574,27 @@
 		<screen>
 			channels = (
 			{
-			name = "dsl0";				// Имя интерфейса в ОС
-			master = 1;					// Роль интерфейса: 1 - master, 0 - slave
+				name = "dsl0";				// Имя интерфейса в ОС
+				master = 1;				// Роль интерфейса: 1 - master, 0 - slave
 			
-			repeaters = 1;				// На данный момент не используется
-			conf_profile = "span#1";	// Имя профайла в разделе <emphasis>span_profiles</emphasis>
+				repeaters = 1;				// На данный момент не используется
+				conf_profile = "span#1";		// Имя профайла в разделе
+				apply_conf = 0;				// Применять конфигурацию из conf_profile
+			<emphasis>span_profiles</emphasis>
 			},
 			{
-			name = "dsl1";
-			master = 1;
+				name = "dsl1";
+				master = 1;
 			
-			repeaters = 1;
-			conf_profile = "span#1";
+				repeaters = 1;
+				conf_profile = "span#1";
+				apply_conf = 0;
 			}
 			);
 		</screen>
+		<para>
+			Параметры для SHDSL интерфейса могут быть установлены как через веб-интерфейс, так и через конфигурационный файл eocd.conf. Установка через конфигурационный файл является более приоритетной, поэтому для настройки SHDSL интерфейсов через веб-интерфейс, установите значение параметра apply_conf в 0 (как показано выше).
+		</para>
 		<para>
 			Запуск демона возможен со следующими параметрами:
 		</para>
@@ -641,6 +618,11 @@
 		<important>
 			<para>Если при запуске демона он не сможет подключить указанные в конфигурационном файле интерфейсы (к примеру, если не загружен драйвер), то он выдаст в системный лог диагностическое сообщение (прочитать его можно с помощью команды <emphasis>logread</emphasis>).</para>
 		</important>
+		<note>
+			<para>
+				EOCD автоматически запускается при загрузке системы, поэтому после его конфигурации можете либо перезагрузить его вручную, убив запущенный процесс и запустив его снова командой, приведённой выше, либо выполнить перезагрузку маршрутизатора.
+			</para>
+		</note>
 		<para>
 			Для мониторинга SHDSL канала используется утилита <command>eoc-info</command>, для получения подробной информации об её использовании используется ключ <option>--help</option>.
 		</para>
@@ -700,561 +682,859 @@
 				После восстановления конфигурации, необходимо перезагрузить маршрутизатор.
 			</para>
     </section>
-  </chapter>
-  <chapter id="iface" >
-    <title>Настройка сетевых интерфейсов</title>
-    <section id="status" >
-      <title>Общие параметры</title>
-      <section>
-        <title>Вкладка Status</title>
-        <para>
-					На вкладке <emphasis>Status</emphasis> отображается основная информация о выбранном интерфейсе. Информация о сетевых параметрах интерфейса:
-				</para>
-        <figure>
-          <title>Сетевые параметры</title>
-          <graphic width="6in" fileref="img/iface-stat.png" />
-        </figure>
-        <para>
-					Маршруты, привязанные к интерфейсу:
-				</para>
-        <figure>
-          <title>Сетевые маршруты</title>
-          <graphic width="6in" fileref="img/iface-stat-routes.png" />
-        </figure>
-        <para>
-					Записи в таблице ARP:
-				</para>
-        <figure>
-          <title>Таблица ARP</title>
-          <graphic width="6in" fileref="img/iface-stat-arp.png" />
-        </figure>
-        <para>
-					Информация о работе встроенного коммутатора:
-				</para>
-        <figure>
-          <title>Встроенный коммутатор</title>
-          <graphic width="6in" fileref="img/iface-stat-switch.png" />
-        </figure>
-        <para>
-					Информация о шейпере трафика, работающего на интерфейсе:
-				</para>
-        <figure>
-          <title>Шейпер трафика</title>
-          <graphic width="6in" fileref="img/iface-stat-tc.png" />
-        </figure>
-      </section>
-      <section id="general" >
-        <title>Вкладка General</title>
-        <para>
-					Опции на вкладке <emphasis>General</emphasis> позволяют включить/выключить интерфейс, а также выбрать способ установки ip-адреса:
-				</para>
-        <figure>
-          <title>Вкладка General</title>
-          <graphic width="6in" fileref="img/iface-general.png" />
-        </figure>
-        <para>
-          <itemizedlist>
-            <listitem>Description - описание интерфейса, не используется системой</listitem>
-            <listitem>Enabled - интерфейс активен</listitem>
-            <listitem>Auto - активация интерфейса при загрузке</listitem>
-            <listitem>Method - метод установки IP-адреса</listitem>
-          </itemizedlist>
-        </para>
-        <para>
-					Возможно несколько методов установки IP-адреса:
-					<itemizedlist>
-            <listitem>не конфигурируемый (none) - ip-адрес не устанавливается</listitem>
-            <listitem>статический (static address) - ручной ввод пользователем</listitem>
-            <listitem>Zero configuration - автоматический способ присвоения ip-адреса, позволяющий построить работающую сеть без ручного присвоения ip-адресов и без серверов DNS/DHCP</listitem>
-            <listitem>Динамический ip-адрес (dynamic address) - адрес назначается сетевыми сервисами: DHCP/PPTP/...</listitem>
-          </itemizedlist>
-        </para>
-        <note>
-          <simpara>При выборе статического адреса необходимо ввести соответствующую информацию на вкладке <emphasis>Method</emphasis>.</simpara>
-          <simpara>При конфигурации сети с помощью Zeroconf интерфейсу будет назначен ip-адрес из диапазона 169.254.*.</simpara>
-          <simpara>При выборе динамического ip-адреса, адрес и необходимые сетевые настройки будут получены от DHCP сервера.</simpara>
-        </note>
-      </section>
-      <section id="method" >
-        <title>Вкладка Method</title>
-        <para>
-					На вкладке <emphasis>Method</emphasis> осуществляется установка сетевых параметров:
-				</para>
-        <figure>
-          <title>Вкладка Method</title>
-          <graphic fileref="img/iface-method.png" />
-        </figure>
-        <para>
-          <itemizedlist>
-            <listitem>IP-адрес (static address)</listitem>
-            <listitem>маска сети (netmask)</listitem>
-            <listitem>широковещательный адрес (broadcast)</listitem>
-            <listitem>маршрут по-умолчанию (gateway)</listitem>
-          </itemizedlist>
-        </para>
-        <note>
-          <simpara>Обязательными для заполнения являются только первые два поля, при не заполнении поля широковещательного адреса, он будет высчитан автоматически.</simpara>
-        </note>
-      </section>
-      <section id="options" >
-        <title>Вкладка Options</title>
-        <para>
-					Переключатели на вкладке <emphasis>Options</emphasis> управляют поведением интерфейса:
-				</para>
-        <figure>
-          <title>Вкладка Options</title>
-          <graphic fileref="img/iface-options.png" />
-        </figure>
-        <para>
-          <emphasis>Accept redirects</emphasis> - в активном состоянии позволяет принимать ICMP перенаправления. Например, если есть лучший маршрут до какого-либо узла чем тот, по которому был послан пакет клиентом, маршрутизатор клиенту может отправить (как правило всегда так и происходит) icmp-перенаправление с указанием, через какой маршрутизатор лучше в следующий раз отправлять пакеты.
-				</para>
-        <para>
-          <emphasis>Forwarding</emphasis> - при активном состоянии включает режим маршрутизатора - пересылку пакеты с интерфейса на интерфейс (в соответствии с правилами фаервола).
-				</para>
-        <para>
-          <emphasis>Proxy ARP</emphasis> - включение режима Proxy ARP, что предоставляет третий способ соединения сетей (помимо моста и стандартной IP-маршрутизации).
-				</para>
-        <para>
-          <emphasis>RP Filter</emphasis> - управляет возможностью проверки пути к отправителю (reversed path) в соответствии с RFC 1812. Активное состояние включает такую проверку и рекомендуется для хостов с одним сетевым интерфейсом и маршрутизаторов тупиковых сетей.
-				</para>
-      </section>
-      <section id="spec" >
-        <title>Вкладка Specific</title>
-        <para>
-					На вкладке <emphasis>Specific</emphasis> производится установка MAC-адреса интерфейса:
-					<figure>
-            <title>Вкладка Specific</title>
-            <graphic fileref="img/iface-specific.png" />
-          </figure>
-        </para>
-      </section>
-    </section>
-    <section>
-		<title>Конфигурация интерфейса SHDSL</title>
+	</chapter>
+	<chapter id="iface">
+		<title>Настройка сетевых интерфейсов</title>
 		<section>
-			<title>Настройка параметров интерфейса</title>
-			<para>
-				В соединении SHDSL один из маршрутизаторов является ведущим (master), второй - ведомым (slave). Возможно два способа конфигурирования интерфейса - задание всех настроек соединения на обоих маршрутизаторах (режим local), и настройка параметров на мастере, а слейв получает настройки при установлении соединения (режим preact). Недостатком режима preact является ограничение скорости соединения.
-			</para>
-			<para>
-				Настройка интерфейса SHDSL выполняется на странице System/SHDSL/dsl*:
-			</para>
-			<figure>
-				<title>Конфигурация SHDSL</title>
-				<graphic fileref="img/shdsl-link.png" width="6in" />
-			</figure>
-			<itemizedlist>
-				<listitem><para>Rate - пропускная способность линии связи, Кбит/c.</para></listitem>
-				<listitem><para>Mode- режим: ведущий (master), ведомый (slave).</para></listitem>
-				<listitem><para>Coding - метод кодирования.</para></listitem>
-				<listitem>
-					<para>Config - метод конфигурирования:</para>
-					<itemizedlist>
-						<listitem><para>local - настройки задаются локально для каждого маршрутизатора. В этом случае настройки линии связи должны совпадать как на мастере, так и на слейве.</para></listitem>
-						<listitem><para>preact - настройки задаются на мастере и передаются на слейв при инициализации соединения.</para></listitem>
-					</itemizedlist>
-				</listitem>
-				<listitem><para>Annex, CRC, Fill, Inversion - настройки относятся к кодированию и заполнению сигнала.</para></listitem>
-			</itemizedlist>
-			<important>
+			<anchor id="iface.common" />
+			<title>Общие параметры</title>
 				<para>
-					Метод конфигурирования должен совпадать на обоих маршрутизаторах.
+					В этом разделе рассматриваются общие параметры конфигурации для всех типов сетевых интерфейсов.
 				</para>
-			</important>
-			<para>
-				После сохранения настроек через некоторый промежуток времени соединение будет установлено, о чем будут сигнализировать светодиоды на лицевой панели маршрутизатора. Так же информацию о состоянии соединения можно просмотреть на странице System/SHDSL:
-			</para>
-			<figure>
-				<title>Информация о состоянии соединения</title>
-				<graphic fileref="img/shdsl-status.png" width="6in" />
-			</figure>
-		</section>
-		<section>
-			<title>
-				Настройка сетевых параметров
-			</title>
-			<para>
-				Настройка сетевых параметров аналогична настройке Ethernet соединения и выполняется на странице Network/Interfaces/dsl*.
-			</para>
-		</section>
-	</section>
-	<section>
-		<title>Конфигурация интерфейса E1</title>
-		<para>
-			Маршрутизатор поддерживает несколько протоколов для работы с интерфейсом E1: HDLC, ETHER-HDLC, CISCO-HDLC, FR, PPP, X25. Конфигурация интерфейса выполняется на странице System/E1/hdlc*.
-		</para>
-		<section>
-			<title>Настройка параметров интерфейса</title>
-			<section>
-				<title>Настройка протокола CISCO-HDLC</title>
-				<para>
-					Настройка некоторых параметров устанавливается в &quot;два этапа&quot;: т.е. сперва выбирается значение параметра, затем внесенные изменения сохраняются, и после перезагрузки страницы добавляются опции, относящиеся к выбранному параметру.
-				</para>
-          		<para>
-					Для настройки протокола CISCO-HDLC необходимо в выпадающем списке HDLC protocol выбрать значение CISCO-HDLC:
-          		</para>
-				<figure>
-					<title>Выбор протокола</title>
-					<graphic fileref="img/hdlc-select_prot.png" />
-				</figure>
-				<para>
-					Для активации страницы с настройками, относящимся к выбранному протоколу, необходимо сохранить внесенные изменения. После перезагрузки страница примет следующий вид:
-				</para>
-				<figure>
-					<title>Конфигурация CISCO-HDLC</title>
-					<graphic fileref="img/hdlc-params.png" />
-				</figure>
-				<itemizedlist>
-              		<listitem>Interval - время в секундах между пакетами поддержания соединения (keepalive packets)</listitem>
-              		<listitem>
-						Timeout - время в секундах после последнего полученного пакета поддержания соединения, по истечению которого соединение считается разорванным.
-					</listitem>
-              		<listitem>
-						Е1 framed mode - структурированный режим, при котором канал разбивается на таймслоты. В этом режиме для соединения задается карта таймслотов, которая должна совпадать с картой на другом конце соединения.
-					</listitem>
-              		<listitem>
-						Use time slot 16 - по умолчанию в интерфейсе Е1 зарезервированы 0 и 16 слоты, которые могу быть использованы для служебной информации. Активация этого параметра позволяет использовать таймслот 16 для передачи данных.
-					</listitem>
-              		<listitem>Slotmap - карта таймслотов. После сохранения из карты будут удалены служебные таймслоты.</listitem>
-              		<listitem>
-						E1 internal transmit clock - использовать внутренний генератор частоты. Как правило, в соединении должно быть хотя бы одно устройство с внутренним генератором частоты.
-					</listitem>
-              		<listitem>E1 CRC4 multiframe - включение режима CRC4.</listitem>
-              		<listitem>
-						E1 CAS multiframe - включение режима CAS, используемого, как правило, при работе с АТС оборудованием. В этом режиме таймслот 16 зарезервирован для служебного использования.
-					</listitem>
-              		<listitem>E1 HDB3/AMI line code - способ кодирования сигнала на линии связи.</listitem>
-              		<listitem>CRC - способ контроля ошибок.</listitem>
-            	</itemizedlist>
-          		<para>
-					Пропускная способность одного таймслота составляет 64 Кбит/c, т.о. максимальная пропускная способность интерфейса Е1 в unframed mode составляет 2 Мбит/с.
-				</para>
-          		<section>
-            		<title>Конфигурация framed mode</title>
-            		<para>
-						Для работы интерфейса в framed mode необходимо активировать параметр E1 framed mode и ввести карту таймслотов, например &quot;2-9,17-27 (именно в таком формате, без пробела между диапазонами)&quot;. На другом конце соединения должна быть установлена такая же карта слотов. Строго говоря, все параметры, за исключением E1 internal transmit clock, должны быть согласованы с двух сторон.
-					</para>
-            		<para>
-						При такой конфигурации карты таймслотов, максимальная пропускная способность канала составит 17 * 64 Кбит/с = 1088 Кбит/с, что подтверждается тестами.
-					</para>
-          		</section>
-          		<section>
-            		<title>Конфигурация unframed mode</title>
-            		<para>
-						Для настройки интерфейса на режим работы unframed mode, параметр E1 framed mode должен быть неактивным. После внесения изменений (деактивация параметра) и сохранения, будут доступны следующие параметры настройки:
-					</para>
-					<figure>
-						<title>Unframed mode</title>
-						<graphic fileref="img/hdlc-unfamed.png" />
-              		</figure>
+				<section>
+					<title id="iface.status.status">Вкладка Status</title>
 					<para>
-						В этом режиме параметров конфигурации меньше, чем во framed mode и все они сводятся к настройке линии связи.
+						На вкладке <emphasis>Status</emphasis> отображается основная информация о выбранном интерфейсе, а так же предоставляется возможность останова, запуска, и перезапуска интерфейса. Информация о сетевых параметрах интерфейса:
 					</para>
-          		</section>
-        	</section>
-      </section>
-      <section>
-        <title>Настройка сетевых параметров</title>
-        <para>
-					В данной версии ПО, установленного на маршрутизаторе, нет возможности задавать сетевые параметры через веб-интерфейс настройки, поэтому эту часть конфигурации требуется выполнить вручную. В первую очередь, необходимо убедиться, что на странице настройки сетевого интерфейса Network/Interfaces/hdlc*/General параметры Enabled и Auto неактивны:
 					<figure>
-            <title>Настройка интерфейса</title>
-            <graphic fileref="img/hdlc-general.png" />
-          </figure>
-        </para>
-        <para>
-					После внесения необходимых изменений, необходимо активировать консоль маршрутизатора: либо подключившись к нему по последовательному порту, либо по сети по протоколу SSH.
+						<title>Сетевые параметры</title>
+						<graphic width="6in" fileref="img/iface-stat.png" />
+					</figure>
+					<para>
+						Состояние интерфейса (запущен или нет) можно определить по строке флагов. Если в ней содержится слово <emphasis>UP</emphasis>, то интерфейс запущен (к примеру, <emphasis>UP BROADCAST MULTICAST</emphasis>).
+					</para>
+					<para>
+						Маршруты, привязанные к интерфейсу:
+					</para>
+					<figure>
+						<title>Сетевые маршруты</title>
+						<graphic width="6in" fileref="img/iface-stat-routes.png" />
+					</figure>
+					<para>
+						Записи в таблице ARP:
+					</para>
+					<figure>
+						<title>Таблица ARP</title>
+						<graphic width="6in" fileref="img/iface-stat-arp.png" />
+					</figure>
+					<para>
+						Информация о работе встроенного коммутатора:
+					</para>
+					<figure>
+						<title>Встроенный коммутатор</title>
+						<graphic width="6in" fileref="img/iface-stat-switch.png" />
+					</figure>
+					<para>
+						Информация о шейпере трафика, работающего на интерфейсе:
+					</para>
+					<figure>
+						<title>Шейпер трафика</title>
+						<graphic width="6in" fileref="img/iface-stat-tc.png" />
+					</figure>
+					<para>
+						Управление интерфейсом:
+					</para>
+					<figure>
+						<title>Управлени интерфейсом</title>
+						<graphic width="6in" fileref="img/iface-stat-buttons.png" />
+					</figure>
+					<itemizedlist>
+						<listitem>
+							<para>
+								Кнопка <emphasis>Start interface</emphasis> позволяет запустить ("поднять") интерфейс, если на вкладке General установлен флажок <emphasis>enabled</emphasis>.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								Кнопка <emphasis>Shutdown interface</emphasis> останавливает интерфейс ("опускает").
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								Кнопка <emphasis>Restart interface</emphasis> останавливает/запускает интерфейс.
+							</para>
+						</listitem>
+					</itemizedlist>
+				</section>
+				<section id="general">
+					<title>Вкладка General</title>
+					<para>
+						Опции на вкладке <emphasis>General</emphasis> позволяют сделать интерфейс активным, а также выбрать способ установки ip-адреса.
+					</para>
+					<figure>
+						<title>Вкладка General</title>
+						<graphic width="6in" fileref="img/iface-general.png" />
+					</figure>
+					<itemizedlist>
+						<listitem>
+							<para>
+								<emphasis>Description</emphasis> - описание интерфейса, не используется системой.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Enabled</emphasis> - интерфейс активен.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Auto</emphasis> - активация интерфейса при загрузке.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Method</emphasis> - метод установки IP-адреса.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Depended on</emphasis> - интерфейс, от которого зависит данный интерфейс. При запуске данного интерфейса сперва будет запущен интерфейс, от которого он зависит.
+							</para>
+						</listitem>
+					</itemizedlist>
+					<note>
+						<para>
+							После установлении флажка <emphasis>enabled</emphasis> интерфейс не будет автоматически запущен. Запуск интерфейса производится после сохранения параметров на вкладках Options, Specific и др., либо после нажатии кнопки <emphasis>Start interface</emphasis> на вкладке <emphasis>Status</emphasis>.
+						</para>
+					</note>
+					<para>
+						Возможно несколько методов установки IP-адреса:
+					</para>
+					<itemizedlist>
+						<listitem>
+							<para>
+								<emphasis>None</emphasis> - не конфигурируемый, ip-адрес не устанавливается.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Static address</emphasis> - статический, ручной ввод пользователем.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Zero configuration</emphasis> - автоматический способ присвоения ip-адреса, позволяющий построить работающую сеть без ручного присвоения ip-адресов и без серверов DNS/DHCP.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Dynamic address</emphasis> - динамический ip-адрес () - адрес назначается сетевыми сервисами: DHCP/PPTP/...
+							</para>
+						</listitem>
+					</itemizedlist>
+					<note>
+						<para>
+							При выборе статического адреса необходимо ввести соответствующую информацию на вкладке <emphasis>Method</emphasis>.
+						</para>
+						<para>
+							При конфигурации сети с помощью Zeroconf интерфейсу будет назначен ip-адрес из диапазона 169.254.*.
+						</para>
+						<para>
+							При выборе динамического ip-адреса, адрес и необходимые сетевые настройки будут получены от DHCP сервера.
+						</para>
+					</note>
+				</section>
+				<section id="method">
+					<title>Вкладка Method</title>
+					<para>
+						На вкладке <emphasis>Method</emphasis> осуществляется установка сетевых параметров:
+					</para>
+					<figure>
+						<title>Вкладка Method</title>
+						<graphic fileref="img/iface-method.png" width="6in" />
+					</figure>
+					<itemizedlist>
+						<listitem>
+							<para>
+								<emphasis>Static address</emphasis> - IP-адрес.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Netmask</emphasis> - маска сети.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Broadcast</emphasis> - широковещательный адрес.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Gateway</emphasis> - маршрут по-умолчанию.
+							</para>
+						</listitem>
+					</itemizedlist>
+					<note>
+						<para>
+							Обязательными для заполнения являются только первые два поля, при не заполнении поля широковещательного адреса, он будет высчитан автоматически.
+						</para>
+					</note>
+				</section>
+				<section id="options">
+					<title>Вкладка Options</title>
+					<para>
+						Переключатели на вкладке <emphasis>Options</emphasis> управляют поведением интерфейса:
+					</para>
+					<figure>
+						<title>Вкладка Options</title>
+						<graphic fileref="img/iface-options.png" width="6in" />
+					</figure>
+					<itemizedlist>
+						<listitem>
+							<para>
+								<emphasis>Accept redirects</emphasis> - в активном состоянии позволяет принимать ICMP перенаправления. Например, если есть лучший маршрут до какого-либо узла чем тот, по которому был послан пакет клиентом, маршрутизатор клиенту может отправить (как правило всегда так и происходит) icmp-перенаправление с указанием, через какой маршрутизатор лучше в следующий раз отправлять пакеты.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Forwarding</emphasis> - при активном состоянии включает режим маршрутизатора - пересылку пакеты с интерфейса на интерфейс (в соответствии с правилами фаервола).
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Proxy ARP</emphasis> - включение режима Proxy ARP, что предоставляет третий способ соединения сетей (помимо моста и стандартной IP-маршрутизации).
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>RP Filter</emphasis> - управляет возможностью проверки пути к отправителю (reversed path) в соответствии с RFC 1812. Активное состояние включает такую проверку и рекомендуется для хостов с одним сетевым интерфейсом и маршрутизаторов тупиковых сетей.
+							</para>
+						</listitem>
+					</itemizedlist>
+				</section>
+				<section id="spec">
+					<title>Вкладка Specific</title>
+					<para>
+						Данная вкладка содержит параметры, которые специфичные для данного интерфейса. Для интерфейсов Ethernet и SHDSL (и других) здесь можно установить MAC-адрес.
+					</para>
+					<figure>
+						<title>Вкладка Specific</title>
+						<graphic fileref="img/iface-specific.png" width="6in" />
+					</figure>
+				</section>
+			</section>
+		<section id="dsl">
+			<title>Конфигурация интерфейса SHDSL</title>
+			<section>
+				<title>Настройка параметров интерфейса</title>
+				<para>
+					Для соединения по SHDSL один маршрутизатор работает в режиме мастера (master), второй - в режиме слейва (slave). Конфигурация SHDSL соединения зависит от модели маршрутизатора и используемых модулей. Настройка интерфейса SHDSL выполняется на странице System/SHDSL/dsl*.
 				</para>
-        <simpara>
-					Соединение Е1 имеет тип точка-точка. Для активация соединения необходимо выполнить следующую команду:
-				</simpara>
-        <para>
-					# <command>ifconfig</command>
-          <replaceable>hdlc0</replaceable>
-          <replaceable>192.168.200.1</replaceable> pointopoint <replaceable>192.168.200.2</replaceable>
-          <itemizedlist>
-            <listitem>hdlc0 - сетевой интерфейс</listitem>
-            <listitem>192.168.200.1 - IP-адрес соединения на стороне маршрутизатора</listitem>
-          </itemizedlist>
-        </para>
-        <simpara>
-					Если соединение не установилось, то надо деактивировать/активировать сетевой интерфейс:
-				</simpara>
-        <simpara>
-					# <command>ifconfig</command>
-          <replaceable>hdlc0</replaceable> down
-				</simpara>
-        <simpara>
-					# <command>ifconfig</command>
-          <replaceable>hdlc0</replaceable> up
-				</simpara>
-        <simpara>
-					Для активация соединения после загрузки маршрутизатора, необходимо выполнить следующие команды:
-				</simpara>
-        <simpara>
-					# <command>echo</command>
-          <replaceable>&quot;ifconfig hdlc0 192.168.200.1 pointopoint 192.168.200.2&quot;</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
-        </simpara>
-        <simpara>
-					# <command>echo</command>
-          <replaceable>&quot;ifconfig hdlc0 down&quot;</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
-        </simpara>
-        <simpara>
-					# <command>echo</command>
-          <replaceable>&quot;ifconfig hdlc0 up&quot;</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
-        </simpara>
-        <simpara>
-					Созданный файл необходимо сделать исполняемым:
-				</simpara>
-        <simpara>
-					# <command>chmod</command>
-          <option>+x</option>
-          <replaceable>/etc/init.d/S90my_hdlc</replaceable>
-        </simpara>
-      </section>
-    </section>
-	<section id="ifaces" >
-		<title>Динамические интерфейсы</title>
+				<section id="dsl.mr16h">
+					<title>Маршрутизатор SG-16R</title>
+					<note>
+						<para>
+							Драйвер для SHDSL маршрутизатора SG-16R называется MR16H, его имя отображается в заголовке конфигурационного окна.
+						</para>
+					</note>
+					<para>
+						Маршрутизаторы SG-16R поддерживают два способа конфигурирования интерфейса SHDSL (MR16H) - <emphasis>local</emphasis> и <emphasis>preact</emphasis>.
+					</para>
+					<itemizedlist>
+						<listitem>
+							<para>
+								<emphasis>local -</emphasis> конфигурация параметров линии связи задаётся на обоих маршрутизаторах.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>preact -</emphasis> конфигурация параметров линии связи задаётся на мастере, а слейв получает настройки при установлении соединения. На данный момент при использовании этого режима максимальная скорость ограничена до 2304 Кбит/с.
+							</para>
+						</listitem>
+					</itemizedlist>
+					<important>
+						<para>
+							Метод конфигурирования должен совпадать на обоих маршрутизаторах.
+						</para>
+					</important>
+					<figure>
+						<title>Конфигурация SHDSL (MR16H)</title>
+						<graphic fileref="img/shdsl-link.png" width="6in" />
+					</figure>
+					<itemizedlist>
+						<listitem>
+							<para>
+								<emphasis>Rate</emphasis> - пропускная способность линии связи, Кбит/c.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Mode</emphasis> - режим: мастер (master), слейв (slave).
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Coding</emphasis> - метод кодирования.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Config</emphasis> - способ конфигурирования.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Annex, CRC, Fill, Inversion</emphasis> - настройки относятся к кодированию и заполнению сигнала, используются для обеспечения совместимости оборудования.
+							</para>
+						</listitem>
+					</itemizedlist>
+				</section>
+				<section id="dsl.mr17h">
+					<title>Маршрутизатор SG-17R</title>
+					<note>
+						<para>
+							Драйвер для SHDSL маршрутизатора SG-17R (и модулей MR-17H*) называется MR17H, его имя отображается в заголовке конфигурационного окна.
+						</para>
+					</note>
+					<para>
+						Настройка скорости соединения, режима синхронизации и режима кодирования выполняется только на мастере, слейв получает эти настройки во время инициализации соединения. Окно конфигурирования показано ниже:
+					</para>
+					<figure>
+						<title>Конфигурация SHDSL (MR17H)</title>
+						<graphic fileref="img/shdsl-link-mr17h.png" width="6in" />
+					</figure>
+					<itemizedlist>
+						<listitem>
+							<para>
+								<emphasis>Mode</emphasis> - режим: мастер (master), слейв (slave).
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Clock mode</emphasis> - режим синхронизации, по-умолчанию используется режим <emphasis>plesio</emphasis> (плезиохронный). Перед выбором режима <emphasis>sync</emphasis> (синхронного) следует удостовериться, что всё оборудование, находящееся на линии связи (регенераторы, маршрутизаторы) поддерживают данный режим.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Rate</emphasis> - пропускная способность линии связи, Кбит/c.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Coding</emphasis> - метод кодирования.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Annex, CRC, Fill, Inversion</emphasis> - настройки относятся к кодированию и заполнению сигнала, используются для обеспечения совместимости оборудования.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Power</emphasis> - включить подачу питания для регенераторов, находящихся на линии.
+							</para>
+						</listitem>
+					</itemizedlist>
+				</section>
+				<section id="dsl.status">
+					<title>Установка и статус соединения</title>
+					<para>
+						После сохранения настроек через некоторый промежуток времени соединение будет установлено, о чем будут сигнализировать светодиоды на лицевой панели маршрутизатора. Так же информацию о состоянии соединения можно просмотреть на вкладке статуса:
+					</para>
+					<figure>
+						<title>Информация о состоянии соединения SHDSL (MR16H)</title>
+						<graphic fileref="img/shdsl-status.png" width="6in" />
+					</figure>
+					<para>
+						Вкладка статуса для MR17H отображает более подробную информацию. Если соединение не установлено, выводится следующая информация:
+					</para>
+					<figure>
+						<title>Информация о неустановленном соединении SHDSL (MR17H)</title>
+						<graphic fileref="img/shdsl-status-mr17h.png" width="6in" />
+					</figure>
+					<itemizedlist>
+						<listitem>
+							<para>
+								<emphasis>Link state</emphasis> - состояние соединения: <emphasis>offline</emphasis> - соединение не установленно, <emphasis>online</emphasis> - соединение установленно.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Power balance</emphasis> - баланс питания относительно земли. В норме на одном проводе +120 В, на другом - 120 В. Если перекос больше 30 В или отсутствует земля - это означает несбалансированность питания, загорается светодиод unbalanced на модуле SHDSL. Значение <emphasis>balanced</emphasis> этого параметра соответствует нормальной работе, <emphasis>unbalanced</emphasis> - несбалансированности питания.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Power overload</emphasis> - перегрузка питания. Слишком большое число регенераторов на линии, настроенных на питание от данного маршрутизатора, вызывает перегрузку питания. На модуле SHDSL загорается светодиод overload. Значение <emphasis>no overload</emphasis> этого параметра соответствует нормальной работе, <emphasis>overload</emphasis> - перегрузке питания.
+							</para>
+						</listitem>
+					</itemizedlist>
+					<para>
+						При установленном соединении добавляется следующая информация:
+					</para>
+					<figure>
+						<title>Информация об установленном соединении SHDSL (MR17H)</title>
+						<graphic fileref="img/shdsl-status-mr17h-2.png" width="6in" />
+					</figure>
+					<itemizedlist>
+						<listitem>
+							<para>
+								<emphasis>Actual rate</emphasis> - скорость установленного соединения, Кбит/с.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Actual line code</emphasis> - метод кодирования.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Actual clock mode</emphasis> - режим синхронизации.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>SNR margin</emphasis> - соотношение сигнал/шум в линии связи.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Loop attenuation</emphasis> - затухание сигнала в линии связи.
+							</para>
+						</listitem>
+					</itemizedlist>
+					<note>
+						<para>
+							Соединения SHDSL будет установлено, если интерфейс dsl* активен, т.е. для него настроены сетевые параметры (установлен флажок <emphasis>enabled</emphasis> и интерфейс активен, подробнее - см. следующий раздел).
+						</para>
+					</note>
+				</section>
+			</section>
+			<section>
+				<title>
+					Настройка сетевых параметров
+				</title>
+				<para>
+					Настройка сетевых параметров аналогична настройке Ethernet соединения и выполняется на странице Network/Interfaces/dsl*.
+				</para>
+			</section>
+		</section>
 		<section>
-			<title>Работа с динамическими интерфейсами</title>
+			<title>Конфигурация интерфейса E1</title>
 			<para>
-				На странице Network/Interfaces возможно добавить или удалить динамический интерфейс. На данный момент существуют следующие динамические интерфейсы:
-				<itemizedlist>
-					<listitem>Bridge - создание моста</listitem>
-					<listitem>PPPoE - PPP over Ethernet</listitem>
-					<listitem>PPtP - Point-to-Point Tunneling Protocol</listitem>
-					<listitem>Bonding - объединение интерфейсов</listitem>
-				</itemizedlist>
+				Маршрутизатор поддерживает несколько протоколов для работы с интерфейсом E1: HDLC, ETHER-HDLC, CISCO-HDLC, FR, PPP, X25. Конфигурация интерфейса выполняется на странице System/E1/hdlc*.
 			</para>
-			<para>
-				Для создания нового интерфейса его тип выбирается из выпадающего списка, нажимается кнопка Add:
+			<section>
+				<title>Настройка параметров интерфейса</title>
+				<section>
+					<title>Настройка протокола CISCO-HDLC</title>
+					<para>
+						Настройка некоторых параметров устанавливается в &quot;два этапа&quot;: т.е. сперва выбирается значение параметра, затем внесенные изменения сохраняются, и после перезагрузки страницы добавляются опции, относящиеся к выбранному параметру.
+					</para>
+					<para>
+						Для настройки протокола CISCO-HDLC необходимо в выпадающем списке HDLC protocol выбрать значение CISCO-HDLC:
+					</para>
+					<figure>
+						<title>Выбор протокола</title>
+						<graphic fileref="img/hdlc-select_prot.png" />
+					</figure>
+					<para>
+						Для активации страницы с настройками, относящимся к выбранному протоколу, необходимо сохранить внесенные изменения. После перезагрузки страница примет следующий вид:
+					</para>
+					<figure>
+						<title>Конфигурация CISCO-HDLC</title>
+						<graphic fileref="img/hdlc-params.png" />
+					</figure>
+					<itemizedlist>
+						<listitem>Interval - время в секундах между пакетами поддержания соединения (keepalive packets)</listitem>
+						<listitem>
+							Timeout - время в секундах после последнего полученного пакета поддержания соединения, по истечению которого соединение считается разорванным.
+						</listitem>
+						<listitem>
+							Е1 framed mode - структурированный режим, при котором канал разбивается на таймслоты. В этом режиме для соединения задается карта таймслотов, которая должна совпадать с картой на другом конце соединения.
+						</listitem>
+						<listitem>
+							Use time slot 16 - по умолчанию в интерфейсе Е1 зарезервированы 0 и 16 слоты, которые могу быть использованы для служебной информации. Активация этого параметра позволяет использовать таймслот 16 для передачи данных.
+						</listitem>
+						<listitem>Slotmap - карта таймслотов. После сохранения из карты будут удалены служебные таймслоты.</listitem>
+						<listitem>
+							E1 internal transmit clock - использовать внутренний генератор частоты. Как правило, в соединении должно быть хотя бы одно устройство с внутренним генератором частоты.
+						</listitem>
+						<listitem>E1 CRC4 multiframe - включение режима CRC4.</listitem>
+						<listitem>
+							E1 CAS multiframe - включение режима CAS, используемого, как правило, при работе с АТС оборудованием. В этом режиме таймслот 16 зарезервирован для служебного использования.
+						</listitem>
+						<listitem>E1 HDB3/AMI line code - способ кодирования сигнала на линии связи.</listitem>
+						<listitem>CRC - способ контроля ошибок.</listitem>
+					</itemizedlist>
+					<para>
+						Пропускная способность одного таймслота составляет 64 Кбит/c, т.о. максимальная пропускная способность интерфейса Е1 в unframed mode составляет 2 Мбит/с.
+					</para>
+					<section>
+						<title>Конфигурация framed mode</title>
+						<para>
+							Для работы интерфейса в framed mode необходимо активировать параметр E1 framed mode и ввести карту таймслотов, например &quot;2-9,17-27 (именно в таком формате, без пробела между диапазонами)&quot;. На другом конце соединения должна быть установлена такая же карта слотов. Строго говоря, все параметры, за исключением E1 internal transmit clock, должны быть согласованы с двух сторон.
+						</para>
+						<para>
+							При такой конфигурации карты таймслотов, максимальная пропускная способность канала составит 17 * 64 Кбит/с = 1088 Кбит/с, что подтверждается тестами.
+						</para>
+					</section>
+					<section>
+						<title>Конфигурация unframed mode</title>
+						<para>
+							Для настройки интерфейса на режим работы unframed mode, параметр E1 framed mode должен быть неактивным. После внесения изменений (деактивация параметра) и сохранения, будут доступны следующие параметры настройки:
+						</para>
+						<figure>
+							<title>Unframed mode</title>
+							<graphic fileref="img/hdlc-unfamed.png" />
+						</figure>
+						<para>
+							В этом режиме параметров конфигурации меньше, чем во framed mode и все они сводятся к настройке линии связи.
+						</para>
+					</section>
+				</section>
+			</section>
+			<section>
+				<title>Настройка сетевых параметров</title>
+				<para>
+							В данной версии ПО, установленного на маршрутизаторе, нет возможности задавать сетевые параметры через веб-интерфейс настройки, поэтому эту часть конфигурации требуется выполнить вручную. В первую очередь, необходимо убедиться, что на странице настройки сетевого интерфейса Network/Interfaces/hdlc*/General параметры Enabled и Auto неактивны:
+							<figure>
+					<title>Настройка интерфейса</title>
+					<graphic fileref="img/hdlc-general.png" />
+				</figure>
+				</para>
+				<para>
+							После внесения необходимых изменений, необходимо активировать консоль маршрутизатора: либо подключившись к нему по последовательному порту, либо по сети по протоколу SSH.
+						</para>
+				<simpara>
+							Соединение Е1 имеет тип точка-точка. Для активация соединения необходимо выполнить следующую команду:
+						</simpara>
+				<para>
+							# <command>ifconfig</command>
+				<replaceable>hdlc0</replaceable>
+				<replaceable>192.168.200.1</replaceable> pointopoint <replaceable>192.168.200.2</replaceable>
+				<itemizedlist>
+					<listitem>hdlc0 - сетевой интерфейс</listitem>
+					<listitem>192.168.200.1 - IP-адрес соединения на стороне маршрутизатора</listitem>
+				</itemizedlist>
+				</para>
+				<simpara>
+							Если соединение не установилось, то надо деактивировать/активировать сетевой интерфейс:
+						</simpara>
+				<simpara>
+							# <command>ifconfig</command>
+				<replaceable>hdlc0</replaceable> down
+						</simpara>
+				<simpara>
+							# <command>ifconfig</command>
+				<replaceable>hdlc0</replaceable> up
+						</simpara>
+				<simpara>
+							Для активация соединения после загрузки маршрутизатора, необходимо выполнить следующие команды:
+						</simpara>
+				<simpara>
+							# <command>echo</command>
+				<replaceable>&quot;ifconfig hdlc0 192.168.200.1 pointopoint 192.168.200.2&quot;</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
+				</simpara>
+				<simpara>
+							# <command>echo</command>
+				<replaceable>&quot;ifconfig hdlc0 down&quot;</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
+				</simpara>
+				<simpara>
+							# <command>echo</command>
+				<replaceable>&quot;ifconfig hdlc0 up&quot;</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
+				</simpara>
+				<simpara>
+							Созданный файл необходимо сделать исполняемым:
+						</simpara>
+				<simpara>
+							# <command>chmod</command>
+				<option>+x</option>
+				<replaceable>/etc/init.d/S90my_hdlc</replaceable>
+				</simpara>
+			</section>
+		</section>
+		<section id="ifaces">
+			<title>Динамические интерфейсы</title>
+			<section>
+				<title>Работа с динамическими интерфейсами</title>
+				<para>
+					На странице Network/Interfaces возможно добавить или удалить динамические интерфейсы, которые не являются физическими интерфейсами, а предназначены для работы поверх них. На данный момент существуют следующие динамические интерфейсы:
+				</para>
+				<itemizedlist>
+					<listitem>
+						<para>
+							<emphasis>Bridge</emphasis> - динамический интерфейс для создания моста.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>PPPoE</emphasis> - PPP over Ethernet.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>PPtP</emphasis> - Point-to-Point Tunneling Protocol.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Bonding</emphasis> - объединение интерфейсов.
+						</para>
+					</listitem>
+				</itemizedlist>
+				<para>
+					Для создания нового динамического интерфейса необходимо выбрать его тип и нажать кнопку <emphasis>Add</emphasis>.
+				</para>
 				<figure>
 					<title>Создание динамического интерфейса</title>
 					<graphic width="6in" fileref="img/ifaces-add.png" />
 				</figure>
-				После добавления надо перезагрузить страницу, щелкнув в меню по ссылке Network/Interfaces, чтобы добавленный интерфейс отобразился в списке сетевых интерфейсов.
-			</para>
-			<para>
-				Для удаления интерфейса его имя выбирается в выпадающем списке, нажимается кнопка Delete:
+				<para>
+					Добавленный динамический интерфейс отобразится в списке сетевых интерфейсов:
+				</para>
+				<figure>
+					<title>Динамический интерфейс в списке сетевых интерфейсов</title>
+					<graphic fileref="img/ifaces-list.png" />
+				</figure>
+				<para>
+					Чтобы удалить динамический интерфейс выберите его имя в списке интерфейсов и нажмите кнопку <emphasis>Delete</emphasis>.
+				</para>
 				<figure>
 					<title>Удаление динамического интерфейса</title>
 					<graphic width="6in" fileref="img/ifaces-del.png" />
 				</figure>
-			</para>
-		</section>
-		<section id="bonding">
-			<title>Настройка режима Bonding</title>
-			<para>
-				Режим Bonding позволяет объединять несколько физических соединений в одно логическое. К примеру, два SHDSL канала можно объединить в один, увеличив пропускную способность соединения.
-			</para>
-			<para>
-				Для настройки режима Bonding в первую очередь необходимо настроить физическое соединение (к примеру, SHDSL или Ethernet).
-			</para>
-			<para>
-				Перед конфигурацией виртуального интерфейса следует убедиться, что физические интерфейсы (например, dsl0 и dsl1) активны. Выполняется это на странице Network/Interfaces/*/General, парметр Enabled должен быть активным, Auto отключенным, а Method равен None:
-			</para>
-			<figure>
-				<title>Настройка интерфейса</title>
-				<graphic fileref="img/shdsl-dsl.png" />
-			</figure>
-			<para>
-				Виртуальный интерфейс создается на странице Network/Interfaces, на которой в разделе Add dynamic interface необходимо выбрать в качестве протокола Bonding:
-			</para>
-			<figure>
-				<title>Создание виртуального интерфейса</title>
-				<graphic fileref="img/shdsl-create_bonding.png" />
-			</figure>
-			<para>
-				После создания интерфейса нажатием кнопки Add, следует щелкнуть кнопкой мыши на меню Network/Interfaces, чтобы созданный интерфейс отобразился в меню. Для его настройки необходимо перейти на страницу Network/Interfaces/bond0, на которой следует выбрать вкладку General и выставить следующие настройки:
-			</para>
-			<figure>
-				<title>Активация виртуального интерфейса</title>
-				<graphic fileref="img/shdsl-bond-general.png" />
-			</figure>
-			<para>
-				Эти настройки активирует интерфейс и настраивают его автоматическую активацию после загрузки системы, IP-адрес для него задается статически на вкладке Method:
-			</para>
-			<figure>
-				<title>Присвоение IP-адреса</title>
-				<graphic fileref="img/shdsl-bond-method.png" />
-			</figure>
-			<note>
-				<para>Если требуется указать маршрут по-умолчанию, адрес маршрутизатора следует ввести в поле Gateway.</para>
-			</note>
-			<para>
-				На вкладке Specific указывается, какие физические интерфейсы будут использоваться этим виртуальным интерфейсом для передачи данных. При настройке SHDSL Bonding, следует ввести dsl0 и dsl1:
-			</para>
-			<figure>
-				<title>Привязка к физическим интерфейсам</title>
-				<graphic fileref="img/shdsl-bond-specific.png" />
-			</figure>
-			<note>
+			</section>
+			<section id="bonding">
+				<title>Настройка режима Bonding</title>
 				<para>
-					Аналогичные настройки необходимо произвести и на втором маршрутизаторе.
+					Режим Bonding позволяет объединять несколько физических соединений в одно логическое (с помощью создания динамического интерфейса <emphasis>bond</emphasis>). К примеру, два SHDSL канала можно объединить в один, увеличив пропускную способность соединения.
 				</para>
-			</note>
-			<note>
-				<para>При разрыве одного из физических соединений, трафик будет передаваться по оставшемуся соединению.</para>
-			</note>
-		</section>
-		<section id="bridge">
-			<title>Настройка моста</title>
-			<para>
-				Работа маршрутизатора в режиме моста (bridging) позволяет прозрачно передавать трафик между интерфейсами, имитируя работу коммутатора. Для этого создается специальный сетевой интерфейс с именем <emphasis>br</emphasis>, с которым ассоциируются сетевые интерфейсы между которыми будет передаваться трафик.
-			</para>
-			<figure>
-				<title>Пример моста</title>
-				<graphic width="6in" fileref="img/bridge.png" />
-			</figure>
-			<para>
-				В приведенном выше рисунке мост состоит из двух интерфейсов - Ethernet-интерфейса eth0 и SHDSL-интерфейса dsl0 - и объединяет в одну сеть компьютеры PC1 и PC2
-			</para>
-			<para>
-				На следующем рисунке изображена сеть, аналогичная предыдущий, но с использованием технологии объединения каналов (bonding), позволяющей увеличить производительность сети. В этом случае мост состоит из Ethernet-интерфейса eth0 и объединенных SHDSL-интерфейсов dsl0 и dsl1 в один интерфейс bond0:
-			</para>
-			<figure>
-				<title>Пример моста с объединением интерфейсов</title>
-				<graphic width="6in" fileref="img/bridge+bonding.png" />
-			</figure>
-			<para>
-				Создание интерфейса происходит на странице Network/Interfaces, на которой в меню Add dynamic interface надо выбрать в качестве протокола Bridge:
-			</para>
-			<figure>
-				<title>Создание интерфейса</title>
-				<graphic width="6in" fileref="img/bridge-add.png" />
-			</figure>
-			<para>
-				После добавления интерфейса надо снова перейти по ссылке Network/Interfaces, чтобы добавленный интерфейс отобразился в меню:
-			</para>
-			<figure>
-				<title>Добавленный интерфейс br0</title>
-				<graphic fileref="img/bridge-list_ifaces.png" />
-			</figure>
-			<para>
-				Новому интерфейсу надо поставить метод установки IP-адреса статическим. Для этого перейдем в настройки интерфейса (по ссылке в меню Network/Interfaces/br0) и выберем вкладку General, на которой установим необходимое значение:
-			</para>
-			<figure>
-				<title>Установка метода присвоения IP-адреса</title>
-				<graphic width="6in" fileref="img/bridge-general1.png" />
-			</figure>
-			<note>
-				<simpara>
-					Установка IP-адреса нужна только для того, чтобы иметь возможность управлять маршрутизатором, если управление им возможно только через интерфейсы, включенные в мост. Вызвано это тем, что после добавления сетевого интерфейса в мост, доступ к нему становится невозможным по присвоенному ему ранее IP-адресу. Проще говоря, добавленный в мост интерфейс становится без IP-адреса.
-				</simpara>
-			</note>
-			<para>
-				Установим IP-адрес и сетевую маску на вкладке Method:
-			</para>
-			<figure>
-				<title>Установка IP-адреса</title>
-				<graphic width="6in" fileref="img/bridge-method.png" />
-			</figure>
-			<para>
-				Следующим шагом настройки является определение списка интерфейсов, входящих в мост. Для этого перейдем на вкладку Specific, где в поле Interfaces укажем имена сетевых интерфейсов, из которых будет состоять мост:
-			</para>
-			<figure>
-				<title>Определение интерфейсов</title>
-				<graphic width="6in" fileref="img/bridge-specific.png" />
-			</figure>
-			<para>
-				В завершении настройки, активируем интерфейс на вкладке General, поставив флажки напротив значений Enable и Auto:
-			</para>
-			<figure>
-				<title>Активация моста</title>
-				<graphic width="6in" fileref="img/bridge-general2.png" />
-			</figure>
-			<para>
-				Эту же процедуру повторяем на втором маршрутизаторе, и через пару минут, в течении которых &quot;мост&quot; распознает топологию сети и проведет небольшой этап самообучения, начнется передача пакетов между интерфейсами.
-			</para>
-		</section>
-		<section id="pptp">
-			<title>Настройка соединения PPtP</title>
-			<para>
-				<emphasis>PPtP</emphasis> - Point-to-point tunneling protocol - туннельный протокол типа точка-точка, позволяющий создать виртуальную частную сеть (VPN) поверх физической сети.
-			</para>
-			<para>
-				Для создания соединения необходимо добавить динамический интерфейс PPtP. Это выполняется на странице Network/Interfaces:
-			</para>
-			<figure>
-				<title>Добавления интерфейса PPtP</title>
-				<graphic fileref="img/pptp-add.png" width="6in" />
-			</figure>
-			<para>
-				После добавления, следует снова перейти на страницу Network/Interfaces, чтобы обновить список доступных интерфейсов. Настройка интерфейса выполняется на странице Network/Interfaces/pptp*. Рассмотрим специфичные для данного интерфейса параметры:
-			</para>
-			<figure>
-				<title>Вкладка Specific</title>
-				<graphic fileref="img/pptp-specific.png" width="6in" />
-			</figure>
-			<itemizedlist>
-				<listitem><para>Server - имя или IP-адрес сервера PPtP, к которому будет выполняться подключение.</para></listitem>
-				<listitem><para>Username - имя пользователя.</para></listitem>
-				<listitem><para>Password - пароль.</para></listitem>
-				<listitem><para>Default route - является ли это соединение маршрутом по-умолчанию.</para></listitem>
-				<listitem><para>PPPD Options - параметры, которые будет переданы демону PPPD при подключении.</para></listitem>
-			</itemizedlist>
-			<important>
 				<para>
-					После создания и первого редактирования настроек соединение будет инициализировано, независимо от параметров на вкладке General.
+					Для настройки режима Bonding в первую очередь необходимо настроить физические интерфейсы (к примеру, SHDSL или Ethernet). Интерфейсы, которые будут входить в Bonding, должны быть активны и запущены (см. <link linkend="iface.common">настройку сетевых интерфейсов</link>). Для интерфейса должен быть установлен флажок <emphasis>enabled</emphasis>, т.е. его конфигурация должна иметь следующий вид:
 				</para>
-			</important>
-			<para>
-				Активировать соединение и включить его автоматическую инициализацию после загрузки маршрутизатора можно на вкладке General:
-			</para>
-			<figure>
-				<title>Вкладка General</title>
-				<graphic fileref="img/pptp-general.png" width="6in" />
-			</figure>
-			<note>
+				<figure>
+					<title>Настройка физического интерфейса</title>
+					<graphic fileref="img/bond-real-iface.png" width="6in" />
+				</figure>
 				<para>
-					При данном виде сетевого подключения параметр Method игнорируется и может принимать любые значения.
+					Динамический интерфейс создаётся на странице Network/Interfaces, на которой в разделе Add dynamic interface необходимо выбрать в качестве протокола Bonding:
 				</para>
-			</note>
-			<note>
+				<figure>
+					<title>Создание динамического интерфейса</title>
+					<graphic fileref="img/bond-add.png" width="6in" />
+				</figure>
 				<para>
-					На данный момент подключение по PPtP с использованием шифрования MPPE невозможно.
+					После нажатия кнопки <emphasis>Add</emphasis> созданный интерфейс отобразится в списке сетевых интерфейсов.
 				</para>
-			</note>
+				<note>
+					<para>
+						Если вы хотите сконфигурировать несколько bonding-интерфейсов, следует добавить сразу необходимое количество динамических интерфейсов, перед их запуском. Это связано с тем, что после запуска первого bonding-интерфейса, запуск новых bonding-интерфейсов будет возможен только после перезагрузки.
+					</para>
+				</note>
+				<para>
+					Для настройки интерфейса необходимо перейти на страницу Network/Interfaces/bond*, вкладку Specific, где указать, какие физические интерфейсы будут использоваться этим динамическим интерфейсом для передачи данных. К примеру, при настройке SHDSL Bonding, можно ввести dsl0 и dsl1:
+				</para>
+				<figure>
+					<title>Привязка к физическим интерфейсам</title>
+					<graphic fileref="img/bond-specific.png" width="6in" />
+				</figure>
+				<para>
+					После сохранения настроек переходим на вкладку General. Здесь необходимо выставить флажки <emphasis>enabled</emphasis> и <emphasis>auto</emphasis>, чтобы интерфейс автоматически запускался при загрузке маршрутизатора. Если для динамического интерфейса необходимо назначить IP-адрес, то в параметре <emphasis>Method</emphasis> надо выбрать необходимый метод установки IP-адреса и произвести его настройку (в случае статического IP-адреса - прописать адрес на вкладке <emphasis>Method</emphasis>).
+				</para>
+				<figure>
+					<title>Конфигурация динамического интерфейса</title>
+					<graphic fileref="img/bond-general.png" width="6in" />
+				</figure>
+				<para>
+					После сохранения настроек на вкладке General, динамический интерфейс будет автоматически запущен. При этом IP-адреса реальных интерфейсов, если они были установлены, будут сброшены. Для всех интерфейсов (динамического и входящих в него физических) будет установлен один MAC-адрес, который будет соответствовать MAC-адресу одного из физических интерфейсов.
+				</para>
+				<note>
+					<para>
+						Аналогичные настройки необходимо произвести на втором маршрутизаторе.
+					</para>
+				</note>
+				<note>
+					<para>При разрыве одного из физических соединений, трафик будет передаваться по оставшемуся соединению.</para>
+				</note>
+			</section>
+			<section id="bridge">
+				<title>Настройка моста</title>
+				<para>
+					Работа маршрутизатора в режиме моста (bridging) позволяет прозрачно передавать трафик между интерфейсами, имитируя работу коммутатора. Для этого создается специальный сетевой динамический интерфейс с именем <emphasis>br</emphasis>, с которым ассоциируются сетевые интерфейсы, между которыми будет передаваться трафик.
+				</para>
+				<figure>
+					<title>Пример моста</title>
+					<graphic width="6in" fileref="img/bridge.png" />
+				</figure>
+				<para>
+					В приведенном выше рисунке мост состоит из двух интерфейсов - Ethernet-интерфейса eth0 и SHDSL-интерфейса dsl0 - и объединяет в одну сеть компьютеры PC1 и PC2.
+				</para>
+				<note>
+					<para>
+						Следует заметить, что маршрутизатор, работающий в режиме моста и сети, между которыми он передаёт трафик, не обязательно должны находиться в одном адресном пространстве, как это требуется при настройке маршрутизации трафика.
+					</para>
+					<para>
+						Более того, у такого маршрутизатора вообще может не быть IP-адреса. Однако, если необходимо управление маршрутизатором, то ему необходимо назначить IP-адрес, входящий в ту же сеть, что и компьютер, с которого будет производиться управление. В нашем примере, маршрутизаторам можно назначить IP-адреса 192.168.90.10 и 192.168.90.11.
+					</para>
+				</note>
+				<para>
+					На следующем рисунке изображена сеть, аналогичная предыдущей, но с использованием технологии объединения каналов (bonding), позволяющей увеличить производительность сети. В этом случае мост состоит из Ethernet-интерфейса eth0 и объединенных SHDSL-интерфейсов dsl0 и dsl1 в один интерфейс bond0:
+				</para>
+				<figure>
+					<title>Пример моста с объединением интерфейсов</title>
+					<graphic width="6in" fileref="img/bridge+bonding.png" />
+				</figure>
+				<para>
+					Так же, как и для настройки режима Bonding, в первую очередь необходимо настроить физические интерфейсы, которые будут входить в мост: они должны быть активны (см. <link linkend="iface.common">настройку сетевых интерфейсов</link>). Для интерфейсов должен быть установлен флажок <emphasis>enabled</emphasis>, т.е. их конфигурация должна иметь следующий вид:
+				</para>
+				<figure>
+					<title>Настройка физического интерфейса</title>
+					<graphic fileref="img/bond-real-iface.png" width="6in" />
+				</figure>
+				<para>
+					Создание динамического интерфейса происходит на странице Network/Interfaces, на которой в меню Add dynamic interface надо выбрать в качестве протокола Bridge:
+				</para>
+				<figure>
+					<title>Создание интерфейса</title>
+					<graphic width="6in" fileref="img/bridge-add.png" />
+				</figure>
+				<para>
+					После добавления динамического интерфейса он появится в списке сетевых интерфейсов. Для его настройки перейдём на страницу Network/Interfaces/br* и выберем вкладку Specific, на которой определим список интерфейсов, входящих в мост. Для этого в поле Interfaces укажем имена сетевых интерфейсов:
+				</para>
+				<figure>
+					<title>Привязка к физическим интерфейсам</title>
+					<graphic width="6in" fileref="img/bridge-specific.png" />
+				</figure>
+				<para>
+					После сохранения настроек перейдём на вкладку General, на которой установим флажки <emphasis>enabled</emphasis> и <emphasis>auto</emphasis> для автоматического запуска интерфейса во время загрузки маршрутизатора:
+				</para>
+				<figure>
+					<title>Конфигурация динамического интерфейса</title>
+					<graphic fileref="img/bridge-general.png" width="6in" />
+				</figure>
+				<important>
+					<para>
+						Начиная с версии прошивки 879 больше нет необходимости указывать зависимый интерфейс в поле Depended on - интерфейс моста автоматически запускает интерфейсы, из которых он состоит.
+					</para>
+				</important>
+				<note>
+					<para>
+						Если для динамического интерфейса необходимо назначить IP-адрес, то в параметре <emphasis>Method</emphasis> надо выбрать необходимый метод установки IP-адреса и произвести его настройку (в случае статического IP-адреса - прописать адрес на вкладке <emphasis>Method</emphasis>).
+					</para>
+				</note>
+				<important>
+					<para>
+						Запуск интерфейса <emphasis>br*</emphasis> приводит к сбросу IP-адресов с физических интерфейсов, которые в него входят. Таким образом, если настройка осуществляется через физический интерфейс, который входит в мост, управление над маршрутизатором может быть потеряно. Чтобы этого избежать, необходимо назначить динамическому интерфейсу <emphasis>br*</emphasis> IP-адрес.
+					</para>
+				</important>
+				<para>
+					Эту же процедуру повторяем на втором маршрутизаторе, и через пару минут, в течении которых &quot;мост&quot; распознает топологию сети и проведёт небольшой этап самообучения, начнется передача пакетов между интерфейсами.
+				</para>
+			</section>
+			<section id="pptp">
+				<title>Настройка соединения PPtP</title>
+				<para>
+					<emphasis>PPtP</emphasis> - Point-to-point tunneling protocol - туннельный протокол типа точка-точка, позволяющий создать виртуальную частную сеть (VPN) поверх физической сети.
+				</para>
+				<para>
+					Для создания соединения необходимо добавить динамический интерфейс PPtP. Это выполняется на странице Network/Interfaces:
+				</para>
+				<figure>
+					<title>Добавления интерфейса PPtP</title>
+					<graphic fileref="img/pptp-add.png" width="6in" />
+				</figure>
+				<para>
+					После добавления, следует снова перейти на страницу Network/Interfaces, чтобы обновить список доступных интерфейсов. Настройка интерфейса выполняется на странице Network/Interfaces/pptp*. Рассмотрим специфичные для данного интерфейса параметры:
+				</para>
+				<figure>
+					<title>Вкладка Specific</title>
+					<graphic fileref="img/pptp-specific.png" width="6in" />
+				</figure>
+				<itemizedlist>
+					<listitem><para>Server - имя или IP-адрес сервера PPtP, к которому будет выполняться подключение.</para></listitem>
+					<listitem><para>Username - имя пользователя.</para></listitem>
+					<listitem><para>Password - пароль.</para></listitem>
+					<listitem><para>Default route - является ли это соединение маршрутом по-умолчанию.</para></listitem>
+					<listitem><para>PPPD Options - параметры, которые будет переданы демону PPPD при подключении.</para></listitem>
+				</itemizedlist>
+				<important>
+					<para>
+						После создания и первого редактирования настроек соединение будет инициализировано, независимо от параметров на вкладке General.
+					</para>
+				</important>
+				<para>
+					Активировать соединение и включить его автоматическую инициализацию после загрузки маршрутизатора можно на вкладке General:
+				</para>
+				<figure>
+					<title>Вкладка General</title>
+					<graphic fileref="img/pptp-general.png" width="6in" />
+				</figure>
+				<note>
+					<para>
+						При данном виде сетевого подключения параметр Method игнорируется и может принимать любые значения.
+					</para>
+				</note>
+				<note>
+					<para>
+						На данный момент подключение по PPtP с использованием шифрования MPPE невозможно.
+					</para>
+				</note>
+			</section>
+			<section id="pppoe">
+				<title>Настройка соединения PPPoE</title>
+				<para>
+					<emphasis>PPPoE</emphasis> - Point-to-point protocol over Ethernet - сетевой протокол передачи кадров PPP через Ethernet. Так же, как <emphasis>PPtP</emphasis> это туннелирующий протокол, но работающий непосредственно поверх Ethernet, создающий соединение типа точка-точка. Использование PPP предоставляет возможности аутентификации, сжатия трафика и его шифрования.
+				</para>
+				<para>
+					Для создания соединения необходимо добавить динамический интерфейс PPPoE на странице Network/Interfaces:
+				</para>
+				<figure>
+					<title>Добавление интерфейса PPPoE</title>
+					<graphic fileref="img/pppoe-add.png" width="6in" />
+				</figure>
+				<para>
+					После добавления, следует снова перейти на страницу Network/Interfaces, чтобы обновить список доступных интерфейсов. Настройка интерфейса выполняется на странице Network/Interfaces/pppoe*. Рассмотрим специфичные для данного интерфейса параметры:
+				</para>
+				<figure>
+					<title>Вкладка Specific</title>
+					<graphic fileref="img/pppoe-specific.png" width="6in" />
+				</figure>
+				<itemizedlist>
+					<listitem><para>Interface - физический интерфейс, в сети которого находится PPPoE сервер (eth0, eth1, ...)</para></listitem>
+					<listitem><para>Service - маршрутизатор будет устанавливать соединение с теми серверами PPPoE, которые предоставляют данный сервис. В большинстве случаев этот параметр не используется.</para></listitem>
+					<listitem><para>Access Concentrator - маршрутизатор будет устанавливать соединение только с указанным концентратором. Используется в случае наличия нескольких серверов PPPoE.</para></listitem>
+					<listitem><para>Default route - является ли это соединение маршрутом по-умолчанию.</para></listitem>
+					<listitem><para>Username - имя пользователя.</para></listitem>
+					<listitem><para>Password - пароль.</para></listitem>
+					<listitem><para>PPPD Options - параметры, которые будет переданы демону PPPD при подключении.</para></listitem>
+				</itemizedlist>
+				<para>
+					Активировать соединение и включить его автоматическую инициализацию после загрузки маршрутизатора можно на вкладке General:
+				</para>
+				<figure>
+					<title>Вкладка General</title>
+					<graphic fileref="img/pppoe-general.png" width="6in" />
+				</figure>
+			</section>
+			<section id="vlan">
+				<title>Настройка интерфейсов VLAN</title>
+				<para>
+					Использование технологии VLAN позволяет разделить трафик пользователей в единой физической среде передачи данных. Для это в каждый Ethernet-кадр добавляет заголовок, относящий данный кадр к тому или иному VLAN. Каждый VLAN идентифицируется своим номером - <emphasis>VLAN ID</emphasis>, в диапазоне от 0 до 4094. Для работы с сетями VLAN на основе физического интерфейса создаётся интерфейс VLAN, с определённым VLAN ID.
+				</para>
+				<para>
+					Для создания интерфейса VLAN необходимо создать динамический интерфейс VLAN на странице Network/Interfaces. Для этого в форме "Add VLAN interface" выбираем интерфейс, поверх которого будет работать интерфейс VLAN, и вводим номер VLAN - VLAN ID.
+				</para>
+				<figure>
+					<title>Добавление интерфейса VLAN</title>
+					<graphic fileref="img/vlan-add.png" width="6in" />
+				</figure>
+				<tip>
+					<para>
+						Интерфейс VLAN может работать как поверх физических интерфейсов (SHDSL, Ethernet), так и поверх динамических (Bonding, Bridge).
+					</para>
+				</tip>
+				<para>
+					После добавления, интерфейс VLAN будет показан в списке интерфейсов в виде "ИНТЕРФЕЙСvНОМЕР_ВЛАН", т.е. если интерфейс VLAN создаётся для интерфейса bond0 и VLAN ID 4, то имя интерфейса VLAN будет <emphasis>bond0v4</emphasis>. В системе интерфейс отображается как <emphasis>bond0.4</emphasis>.
+				</para>
+				<para>
+					Теперь над интерфейсом можно выполнять стандартные действия: назначать IP-адрес, добавлять его в бондинг или бридж.
+				</para>
+			</section>
 		</section>
-		<section id="pppoe">
-			<title>Настройка соединения PPPoE</title>
-			<para>
-				<emphasis>PPPoE</emphasis> - Point-to-point protocol over Ethernet - сетевой протокол передачи кадров PPP через Ethernet. Так же, как <emphasis>PPtP</emphasis> это туннелирующий протокол, но работающий непосредственно поверх Ethernet, создающий соединение типа точка-точка. Использование PPP предоставляет возможности аутентификации, сжатия трафика и его шифрования.
-			</para>
-			<para>
-				Для создания соединения необходимо добавить динамический интерфейс PPPoE на странице Network/Interfaces:
-			</para>
-			<figure>
-				<title>Добавление интерфейса PPPoE</title>
-				<graphic fileref="img/pppoe-add.png" width="6in" />
-			</figure>
-			<para>
-				После добавления, следует снова перейти на страницу Network/Interfaces, чтобы обновить список доступных интерфейсов. Настройка интерфейса выполняется на странице Network/Interfaces/pppoe*. Рассмотрим специфичные для данного интерфейса параметры:
-			</para>
-			<figure>
-				<title>Вкладка Specific</title>
-				<graphic fileref="img/pppoe-specific.png" width="6in" />
-			</figure>
-			<itemizedlist>
-				<listitem><para>Interface - физический интерфейс, в сети которого находится PPPoE сервер (eth0, eth1, ...)</para></listitem>
-				<listitem><para>Service - маршрутизатор будет устанавливать соединение с теми серверами PPPoE, которые предоставляют данный сервис. В большинстве случаев этот параметр не используется.</para></listitem>
-				<listitem><para>Access Concentrator - маршрутизатор будет устанавливать соединение только с указанным концентратором. Используется в случае наличия нескольких серверов PPPoE.</para></listitem>
-				<listitem><para>Default route - является ли это соединение маршрутом по-умолчанию.</para></listitem>
-				<listitem><para>Username - имя пользователя.</para></listitem>
-				<listitem><para>Password - пароль.</para></listitem>
-				<listitem><para>PPPD Options - параметры, которые будет переданы демону PPPD при подключении.</para></listitem>
-			</itemizedlist>
-			<para>
-				Активировать соединение и включить его автоматическую инициализацию после загрузки маршрутизатора можно на вкладке General:
-			</para>
-			<figure>
-				<title>Вкладка General</title>
-				<graphic fileref="img/pppoe-general.png" width="6in" />
-			</figure>
-		</section>
-	</section>
   </chapter>
-  <chapter id="dhcp_server" >
+  <chapter id="dhcp_server">
     <title>Настройка сетевых служб</title>
     <section>
       <title>DHCP-сервер</title>
@@ -1789,7 +2069,7 @@
 		</section>
 	</section>
   </chapter>
-  <chapter>
+  <chapter id="multiplexing">
 	  <title>Мультиплексирование</title>
 		<section>
 			<title>Конфигурация</title>
@@ -1848,8 +2128,22 @@
 				</para>
 			</important>
 			<para>
-				На данный момент настройка мультиплексирования выполняется в командной строке с помощью утилиты mxconfig. Для получения списка возможных параметров, используйте команду <command>mxconfig </command> <option>--help</option>.
+				Настройка мультиплексирования выполняется на странице System/Multiplexing:
 			</para>
+			<figure>
+				<title>Конфигурация мультиплексирования</title>
+				<graphic fileref="img/mux-web.png" width="6in" />
+			</figure>
+			<para>
+				Если при конфигурации были допущены ошибки, будет показана диагностическая информация:
+			</para>
+			<screen>
+			Checking status:
+			Errors detected:
+				
+			WARNING: Line2: timeslots 45 written but not read
+			WARNING: Line3: timeslots 55 read but not written
+			</screen>
 		</section>
 		<section>
 			<title>Примеры конфигурации</title>
@@ -2006,4 +2300,152 @@
 			</figure>
 		</section>
   </chapter>
+	<chapter id="snmp">
+		<title>SNMP</title>
+		<section id="intro">
+			<title>Введение в SNMP</title>
+			<para>
+				<emphasis>SNMP</emphasis> - Simple Network Management Protocol - простой протокол управления сетями. Протокол позволяет производить мониторинг сетевых устройств (маршрутизаторов, мультиплексоров, мостов и др.) и сервисов (веб-серверов, почтовых серверов, серверов ДНС) и управлять их конфигурацией.
+			</para>
+			<para>
+				Управление и мониторинг осуществляется по схеме агент-менеджер. Агент - ПО, работающее на сетевом устройстве, которое подлежит мониторингу или управлению, менеджер - ПО, собирающее информацию с агентов для мониторинга либо управления. Взаимодействие, как правило, осуществляется с помощью транспортного протокола UDP, порт 161. Так же возможно использование протокола TCP.
+			</para>
+			<para>
+				Объекты, над которыми можно выполнять операции (чтения или записи) адресуются по уникальным номерам. Например, 1.3.6.1.2.1.1.1 соответствует объекту SysDescr - описанию системы, который может иметь следующее значение: <emphasis>STRING Linux gm-2-mpr 2.6.16 #1 Tue Nov 7 21:37:48 NOVT 2007 mips</emphasis>.
+			</para>
+			<para>
+				<abbrev>MIB</abbrev> - Management Information Base - база данных информации управления. MIB описывает объекты и какие операции над ними можно выполнять. Если объект входит в состав MIB, то к нему можно обращаться по имени, а не по числовому индексу. 
+			</para>
+			<para>
+				Аутентификации производится на основе "сообщества" - каждый агент относится к тому или иному сообществу. При получении команды производится проверка, принадлежит ли он к сообществу, указанному в команде. Если да - команда будет принята и обработана, иначе - проигнорирована. Сообщество представляет из себя простую строку, по-умолчанию используется два сообщества - public для просмотра объектов, private - для их изменения.
+			</para>
+		</section>
+		<section id="support">
+			<title>Уровень поддержки SNMP маршрутизатором</title>
+			<para>
+				Для поддержки протокола SNMP на маршрутизаторе используется свободный программный пакет <emphasis>net-snmp</emphasis>, поддерживающий все актуальные версии протокола SNMP, в состав которого входит демон <emphasis>snmpd</emphasis>, выполняющий функции агента.
+			</para>
+			<para>
+				Маршрутизатором поддерживается <emphasis>MIB-2</emphasis>, предоставляющий общую информацию о системе (информацию о сетевых интерфейсах, таблицы маршрутизации, системную информацию), а так же <emphasis>HDSL2-SHDSL-LINE-MIB</emphasis>, содержащий объекты, используемые для мониторинга и управления каналами SHDSL.
+			</para>
+			<para>
+				MIB-2 является стандартной MIB и входит в состав большинства менеджеров, в то время как HDSL2-SHDSL-LINE-MIB является специфичным для определённого типа устройств. Загрузить этот файл можно либо из источников в Интернете, либо по <ulink url="http://sigrand.ru/temp/HDSL2-SHDSL-LINE-MIB-rfc4319.txt">ссылке</ulink>.
+			</para>
+			<para>
+				На данный момент по SNMP доступен только мониторинг маршрутизатора и SHDSL каналов и регенераторов, возможность управления будет добавлена в ближайшее время.
+			</para>
+		</section>
+		<section id="snmpd">
+			<title>Конфигурация SNMPD</title>
+			<para>
+				Конфигурация демона <emphasis>snmpd</emphasis> хранится в файле <emphasis>/etc/snmp/snmpd.conf</emphasis> и заключается в установлении прав доступа на получение и изменение объектов.
+			</para>
+			<para>
+				Содержимое конфигурационного файла имеет следующий вид:
+			</para>
+			<programlisting>
+				com2sec  ro  default    public
+				com2sec  rw  localhost  private
+				
+				group  public   v1   ro
+				group  public   v2c  ro
+				group  public   usm  ro
+				group  private  v1   rw
+				group  private  v2c  rw
+				group  private  usm  rw
+				
+				view  all  included  .1
+				
+				access  public   ""  any  noauth  exact  all  none  none
+				access  private  ""  any  noauth  exact  all  all   all
+			</programlisting>
+			<para>
+				Директива <emphasis>com2sec</emphasis> устанавливает соответствие между сообществом и именем безопасности, а так же устаналивает адреса, которые могут относится к этим сообществам. В приведенном выше конфигурационном файле первая директива определяет, что сообщество public соответствует безопасности ro, и ему соответствуют любые IP-адреса. Вторая директива определяет соответствие сообществу private безопасности rw, и ограничивают доступ только самим маршрутизатором.
+			</para>
+			<para>
+				Директива <emphasis>group</emphasis> определяет, к какой группе какая безопасность относится. В нашем примере, к группе public относится безопасность ro, а к группе private - безопасность rw. v1, v2c, usm определяют модель безопасности. v1 относится к протоколу SNMP первой версии, v2c - ко второй, usm - SNMPv3.
+			</para>
+			<para>
+				Директива <emphasis>view</emphasis> определяет имя области видимости, и что в неё входит. В нашем случае имя области видимости - all, и в неё входит всё дерево MIB.
+			</para>
+			<para>
+				Последняя директива <emphasis>access</emphasis> определяет права доступа различных групп. В нашем примере обеим группам разрешён доступ без аутентификации, но группе public - только для чтения, а группе private - для чтения и записи.
+			</para>
+			<para>
+				Более подробную информацию вы можете найти на сайте проекта net-snmp, в частности по <ulink url="http://net-snmp.sourceforge.net/wiki/index.php/Vacm">ссылке</ulink>.
+			</para>
+		</section>
+		<section>
+			<title>Связь SNMPD с EOCD</title>
+			<para>
+				<emphasis>SNMPD</emphasis> получает информацию о состоянии SHDSL-канала от демона <emphasis>EOCD</emphasis>. Таким образом, чтобы иметь возможность получать информацию о состоянии SHDSL-канала через SNMP, необходимо сконфигурировать демон EOCD. После того, как информация будет доступна через утилиту <command>eoc-info</command> - информацию можно будет получить через SNMP. Подробнее о назначении и конфигурации демона EOCD можно прочитать в разделе <link linkend="eoc" endterm="eoc.title" />.
+			</para>
+		</section>
+		<section>
+			<title>Пример использования</title>
+			<para>
+				В качестве примера рассмотрим мониторинг SHDSL-канала маршрутизатора. Для этого получим информацию о числе регенераторов, затухании сигнала и соотношении сигнал/шум.
+			</para>
+			<para>
+				Числовое имя объекта, соответствующего числу регенераторов, обнаруженных на линии (Hdsl2ShdslStatusNumAvailRepeaters) равно 1.1.3.6.1.2.1.10.48.1.2.1.1.
+				Для затухания сигнала (Hdsl2ShdslEndpointCurrAtn) это имя равно 1.1.3.6.1.2.1.10.48.1.5.1.1.11.1.2.1 для клиентской стороны (слейва) и 1.3.6.1.2.1.10.48.1.5.1.1.11.2.1.1 для мастера, а для соотношения сигнал/шум (Hdsl2ShdslEndpointCurrSnrMgn) - 1.3.6.1.2.1.10.48.1.5.1.2.11.1.2.1 и 1.3.6.1.2.1.10.48.1.5.1.2.11.2.1.1 соответственно. Значения этих параметров приведены ниже:
+			</para>
+			<programlisting>
+				1.3.6.1.2.1.10.48.1.2.1.1.11 = Gauge32 0
+				1.3.6.1.2.1.10.48.1.5.1.1.11.1.2.1 = INTEGER 0
+				1.3.6.1.2.1.10.48.1.5.1.1.11.2.1.1 = INTEGER 0
+				1.3.6.1.2.1.10.48.1.5.1.2.11.1.2.1 = INTEGER 19
+				1.3.6.1.2.1.10.48.1.5.1.2.11.2.1.1 = INTEGER 17
+			</programlisting>
+			<para>
+				Т.е. число регенераторов равно 0, затухание сигнала на обоих сторонах соединения - 0 dB, соотношение сигнал/шум на клиентской стороне 19 dB, на стороне мастера - 17 dB.
+			</para>
+			<para>
+				При использовании специализированного ПО, поддерживающего загрузку MIB-ов, возможно получение информации в более удобной форме.
+			</para>
+		</section>
+	</chapter>
+	<chapter>
+		<title>Примеры конфигурации</title>
+		<section>
+			<title>Организация независимых каналов между Ethernet-интерфейсами</title>
+			<para>
+				Данный пример рассматривает организацию независимых каналов между Ethernet-портами устройств, соединённых через SHDSL (функциональность 1 и 2).
+			</para>
+			<para>
+				Рассмотрим организацию передачи данных с порта eth3 одного устройства на порт eth3 другого устройства через соединения SHDSL. При необходимости, можно задействовать все порты устройств (eth0, eth1, eth2). Схему взаимодействия между устройствами можно изобразить следующим образом:
+			</para>
+			<figure>
+				<title>Схема взаимодействия устройств</title>
+				<graphic fileref="img/scheme1-struct.png" width="6in" />
+			</figure>
+			<para>
+				Устройства соединены двумя каналами SHDSL, которые объединены в бондинг. Поверх этого бондинга создан VLAN с VLAN ID равным 4. Бридж реализует передачу пакетов между интерфейсами bond0v4 (интерфейс VLAN) и eth3.
+			</para>
+			<para>
+				Конфигурация начинается с настройки физического соединения между маршрутизаторами (см. <link linkend="dsl">настройку SHDSL</link>).
+			</para>
+			<para>
+				Затем создадим бондинг из интерфейсов dsl0 и dsl1 (см. <link linkend="bonding">настройку Bonding</link>). В результате у нас будет интерфейс <emphasis>bond0</emphasis>.
+			</para>
+			<para>
+				Далее, нам необходимо создать VLAN поверх бондинга. Число интерфейсов VLAN зависит от того, между сколькими портами эзернет мы будем организовывать независимую передачу данных - по одному VLAN на каждый порт. Детально процедура настройки интерфейса VLAN рассмотрена в соответствующем <link linkend="vlan">разделе</link>. Т.е. нам надо создать VLAN интерфейс поверх интерфейса bond0 с номером VLAN ID равным 4. В итоге мы получим интерфейс <emphasis>bond0v4</emphasis>.
+			</para>
+			<para>
+				Заключительным этапом является создание моста (см. <link linkend="bridge">настройка моста</link>). Мост состоит из интерфейсов <emphasis>bond0v4</emphasis> и <emphasis>eth3</emphasis>, между которыми осуществляется передача трафика. Число интерфейсов моста так же зависит от числа портов, между которыми организуется обмен трафиком - на каждый порт один мост. Ниже приведена вкладка Specific страницы конфигурации интерфейса моста.
+			</para>
+			<figure>
+				<title>Вкладка Specific интерфейса моста (br*)</title>
+				<graphic fileref="img/scheme1-bridge.png" width="6in" />
+			</figure>
+			<para>
+				Таким образом, если мы хотим организовать передачу между портами eth2, мы должны создать ещё один VLAN поверх интерфейса <emphasis>bond0</emphasis>, к примеру с VLAN ID 3, создать ещё один интерфейс моста, и добавить в него интерфейсы <emphasis>bond0v3</emphasis> и <emphasis>eth2</emphasis>.
+			</para>
+			<note>
+				<para>
+					Если необходимо организовать управление устройством по порту, который участвует в передачи данных (добавлен в мост), то его IP-адрес (по которому производится настройка) необходимо назначить интерфейсу моста, в который входит данный порт.
+				</para>
+			</note>
+		</section>
+	</chapter>
 </book>
