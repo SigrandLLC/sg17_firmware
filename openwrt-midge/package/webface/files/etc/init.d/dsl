@@ -3,226 +3,200 @@
 kdb="kdb"
 ifcfg="/sbin/ifconfig"
 
-. /etc/templates/sigrand-lib
 . /etc/templates/oem-vars
+. /etc/templates/sigrand-lib
 # checks that DSL service is enabled
-_dsl_init_svc(){
-    return 0;
-}
-
-# stops service
-_dsl_stop_svc(){
-    return 0;
-}
-
-# insmod DSL drivers
-_dsl_sg16_init(){
-    return 0;
-}
-_dsl_sg17_init(){
-    return 0;
-}
-_dsl_init_drv(){
-    _dsl_sg16_init
-    _dsl_sg17_init
-    return 0;
-}
-
-# rmmod DSL drivers
-_dsl_sg16_stop(){
-    return 0;
-}
-_dsl_sg17_stop(){
-    return 0;
-}
-_dsl_stop_drv(){
-	_dsl_sg16_stop()
-	_dsl_sg17_stop()
-	return 0;
-}
 
 # Device configurations
-
-_dsl_sg16_if_defconfig(){
-	local def_mode="slave"
-	local def_rate="192"
-	local def_coding="tcpam32"
-	local def_cfg="local"
-	local def_annex="A"
-	#local def_mac="00:FF:01:A3:93:80"
-	local def_fill="fill_ff"	
-	local def_inv="invert"
-	
-
-	iface=$1
-	eval `$kdb -qq sls sys_dsl_${iface}_`
-
-	# check that MASTER variable is set
-	if [ -z "$mode" ]; then
-		$kdb set sys_dsl_${iface}_mode="$def_mode"
-	fi
-	# check that RATE variable is set
-	if [ -z "$rate" ]; then
-		$kdb set sys_dsl_${iface}_rate="$def_rate"
-	fi
-
-	# check that CODING variable is set
-	if [ -z "$coding" ]; then
-		$kdb set sys_dsl_${iface}_coding="$def_coding"
-	fi
-	# check that CFG variable is set
-	if [ -z "$cfg" ]; then
-		$kdb set sys_dsl_${iface}_cfg="$def_cfg"
-	fi
-	# check that ANNEX variable is set
-	if [ -z "$annex" ]; then
-		$kdb set sys_dsl_${iface}_annex="$def_annex"
-	fi
-	# check that MAC variable is set
-	#if [ -z "$mac" ]; then
-	#	$kdb set sys_dsl_${iface}_mac="$def_mac"
-	#fi
-	# check that FILL BYTE variable is set
-	if [ -z "$fill" ]; then
-		$kdb set sys_dsl_${iface}_fill="$def_fill"
-	fi
-	# check that INVERSION variable is set
-	if [ -z "$inv" ]; then
-		$kdb set sys_dsl_${iface}_inv="$def_inv"
-	fi
-
-	return 0;
+_dsl_mr17ifdefcfg(){
+	local slot=$1
+	local dev=$2
+	kdb rm sls sys_pcicfg_s${slot}_${dev}*
+	kdb set sys_pcicfg_s${slot}_${dev}_mode="slave"
+	kdb set sys_pcicfg_s${slot}_${dev}_clkmode="plesio"
+	kdb set sys_pcicfg_s${slot}_${dev}_rate="768"
+	kdb set sys_pcicfg_s${slot}_${dev}_coding="tcpam32"
+	kdb set sys_pcicfg_s${slot}_${dev}_annex="A"
+	kdb set sys_pcicfg_s${slot}_${dev}_fill="fill_ff"	
+	kdb set sys_pcicfg_s${slot}_${dev}_inv="normal"
+	kdb set sys_pcicfg_s${slot}_${dev}_pwron="pwroff"
 }
 
-_dsl_sg17_if_defconfig(){
-	local def_mode="slave"
-	local def_mode="plesio"
-	local def_rate="768"
-	local def_coding="tcpam32"
-	local def_annex="A"
-	local def_fill="fill_ff"	
-	local def_inv="normal"
-	local def_pwron="pwroff"
-	
-	unset mode clkmode rate annex coding inv fill pwron
-		
-	iface=$1
-	eval `$kdb -qq sls sys_dsl_${iface}_`
-	
-	# check that MASTER variable is set
-	if [ -z "$mode" ]; then
-		$kdb set sys_dsl_${iface}_mode="$def_mode"
-	fi
-	# check that clkmode variable is set
-	if [ -z "$clkmode" ]; then
-		$kdb set sys_dsl_${iface}_clkmode="$def_clkmode"
-	fi
-	# check that RATE variable is set
-	if [ -z "$rate" ]; then
-		$kdb set sys_dsl_${iface}_rate="$def_rate"
-	fi
+_dsl_mr17defcfg(){
+	local slot=$1
+	local ifnum=`kdb get sys_pcitbl_s${slot}_ifnum`
+	local iftype=`kdb get sys_pcitbl_s${slot}_iftype`
+	local i=0
 
-	# check that CODING variable is set
-	if [ -z "$coding" ]; then
-		$kdb set sys_dsl_${iface}_coding="$def_coding"
-	fi
-	# check that ANNEX variable is set
-	if [ -z "$annex" ]; then
-		$kdb set sys_dsl_${iface}_annex="$def_annex"
-	fi
-	# check that FILL BYTE variable is set
-	if [ -z "$fill" ]; then
-		$kdb set sys_dsl_${iface}_fill="$def_fill"
-	fi
-	# check that INVERSION variable is set
-	if [ -z "$inv" ]; then
-		$kdb set sys_dsl_${iface}_inv="$def_inv"
-	fi
-	# check that POWER ON variable is set
-	if [ -z "$pwron" ]; then
-		$kdb set sys_dsl_${iface}_pwron="$def_pwron"
-	fi
-	
-	return 0;
+	kdb set sys_pcicfg_s${slot}_ifnum="$ifnum"
+	while [ $i -lt $ifnum ]; do
+		_dsl_mr17ifdefcfg $slot $i
+		i=`expr $i + 1`
+	done	
 }
 
+_dsl_mr17ifcfg(){
+	local iface=$1
+	local slot=$2
+	local index=$3
 
-_dsl_if_defconfig(){
-	iface=$1
-	eval `$kdb -qq sls sys_dsl_${iface}_`
-	if [ "$mtype" == "mr16h" ]; then
-	    _dsl_sg16_if_defconfig $iface
-	elif [ "$mtype" == "mr17h" ]; then
-	    _dsl_sg17_if_defconfig $iface
+	eval `$kdb -qq sls sys_pcicfg_s${slot}_${ifnum}_`
+	# apply configuration
+	if [ "$mode" == "slave" ]; then
+   		$mr17h_cfg $iface $mode $fill $inv $crc $pwron > /dev/null
+	else
+    	[ -n "$rate" ] && rate="rate $rate"
+   		[ -n "$annex" ] && annex="annex $annex"
+    	$mr17h_cfg $iface $mode $rate $code $annex $fill $inv $crc $pwron $clkmode > /dev/null
 	fi
 }
 
-_dsl_if_stop(){
-	ifconfig $1 down
+_dsl_mr17cfg(){
+	local slot=$1
+	local dev=$2
+	local ifaces
+	local ifnum=0
+	local iface
+
+	type=`kdb get sys_pcicfg_s${slot}_iftype`
+	cur_cnt=`kdb get sys_pcitbl_s${slot}_ifnum`
+	cfg_cnt=`kdb get sys_pcicfg_s${slot}_ifnum`
+	if [ -z "$type" ]; then
+		kdb set sys_pcicfg_s${slot}_iftype="$mr17h_drvname"
+		_dsl_mr17defcfg $slot
+	elif [ "$cur_cnt" -gt "$cfg_cnt" ]; then
+		tmp=`expr $cfg_cnt + 1`
+echo "Create def configurations for $type: $tmp-"`expr $cur_cnt - 1`
+		while [ "$tmp" -lt "$cur_cnt" ]; do
+			_dsl_mr17ifdefcfg "$slot" "$tmp"
+		done
+	fi
+	
+	ifaces=`kdb get sys_pcitbl_s${slot}_ifaces`
+	for iface in $ifaces; do
+		if [ -n "$dev" ]; then
+			if [ "$dev" -eq "$ifnum" ]; then
+				_dsl_mr17ifcfg "$iface" "$slot" "$dev"
+				break
+			fi
+		else
+			_dsl_mr17ifcfg "$iface" "$slot" "$ifnum"
+		fi
+		ifnum=`expr $ifnum + 1`
+	done
 }
 
-_dsl_sg16_apply_cfg(){
-	iface=$1
-	eval `$kdb -qq sls sys_dsl_${iface}_`
+_dsl_mr16ifdefcfg(){
+	local slot=$1
+	local dev=$2
+	kdb rm sls sys_pcicfg_s${slot}_${dev}*
+	kdb set sys_pcicfg_s${slot}_${dev}_mode="slave"
+	kdb set sys_pcicfg_s${slot}_${dev}_rate="192"
+	kdb set sys_pcicfg_s${slot}_${dev}_coding="tcpam8"
+	kdb set sys_pcicfg_s${slot}_${dev}_cfg="preact"
+	kdb set sys_pcicfg_s${slot}_${dev}_annex="A"
+	kdb set sys_pcicfg_s${slot}_${dev}_fill="fill_ff"	
+	kdb set sys_pcicfg_s${slot}_${dev}_inv="normal"
+}
+
+_dsl_mr16defcfg(){
+	local slot=$1
+	local ifnum=`kdb get sys_pcitbl_s${slot}_ifnum`
+	local iftype=`kdb get sys_pcitbl_s${slot}_iftype`
+	local i=0
+	kdb set sys_pcicfg_s${slot}_ifnum="$ifnum"
+	while [ $i -lt $ifnum ]; do
+		_dsl_mr16ifdefcfg $slot $i
+		i=`expr $i + 1`
+	done
+}
+
+_dsl_mr16ifcfg(){
+	local iface=$1
+	local slot=$2
+	local index=$3
+	eval `$kdb -q sls sys_pcicfg_s${slot}_${index}_`
 	# apply configuration
 	$ifcfg $iface down 
+	$mr16h_cfg $iface reload
 	[ -n "$rate" ] && rate="rate $rate"
 	[ -n "$cfg" ] && cfg="cfg $cfg"
 	[ -n "$annex" ] && annex="annex $annex"
 	$mr16h_cfg $iface $mode $rate $code $cfg $annex $fill $inv $crc 
-        enabled=`kdb get sys_iface_${iface}_enabled`
-        [ "$enabled" = 1 ] && $ifcfg $iface up	
+    enabled=`kdb get sys_iface_${iface}_enabled`
+	[ "$enabled" = 1 ] && $ifcfg $iface up
 }
 
-_dsl_sg17_apply_cfg(){
-	iface=$1
-	eval `$kdb -qq sls sys_dsl_${iface}_`
-	# apply configuration
-	if [ "$mode" == "slave" ]; then
-	    $mr17h_cfg $iface $mode $fill $inv $crc $pwron > /dev/null
-	else
-	    [ -n "$rate" ] && rate="rate $rate"
-	    [ -n "$annex" ] && annex="annex $annex"
-	    $mr17h_cfg $iface $mode $rate $code $annex $fill $inv $crc $pwron $clkmode > /dev/null
+_dsl_mr16cfg(){
+	local slot=$1
+	local dev=$2
+	local ifaces
+	local ifnum=0
+	local iface
+	
+	type=`kdb get sys_pcicfg_s${slot}_iftype`
+	cur_cnt=`kdb get sys_pcitbl_s${slot}_ifnum`
+	cfg_cnt=`kdb get sys_pcicfg_s${slot}_ifnum`
+	if [ -z "$type" ]; then
+		kdb set sys_pcicfg_s${slot}_iftype="$mr16h_drvname"
+		_dsl_mr16defcfg $slot
+	elif [ "$cur_cnt" -gt "$cfg_cnt" ]; then
+		tmp=`expr $cfg_cnt + 1`
+echo "Create def configurations for $type: $tmp-"`expr $cur_cnt - 1`
+		while [ "$tmp" -lt "$cur_cnt" ]; do
+			_dsl_mr16ifdefcfg "$slot" "$tmp"
+		done
 	fi
+
+	ifaces=`kdb get sys_pcitbl_s${slot}_ifaces`
+	for iface in $ifaces; do
+		if [ -n "$dev" ]; then
+			if [ "$dev" -eq "$ifnum" ]; then
+				_dsl_mr16ifcfg "$iface" "$slot" "$ifnum"
+				break
+			fi
+		else
+			_dsl_mr16ifcfg "$iface" "$slot" "$ifnum"
+		fi
+		ifnum=`expr $ifnum + 1`
+	done 
 }
 
-_dsl_apply_cfg(){
-	iface=$1
-	eval `$kdb -qq sls sys_dsl_${iface}_`
-	if [ "$mtype" == "mr16h" ]; then
-	    _dsl_sg16_apply_cfg $iface
-	elif [ "$mtype" == "mr17h" ]; then
-	    _dsl_sg17_apply_cfg $iface
-	fi
-}
+_dsl_modcfg(){
+	local slot=$1
+	local dev=$2
+	local type=`kdb get sys_pcitbl_s${slot}_iftype`
 
+	case "$type" in
+	$mr16h_drvname)
+		_dsl_mr16cfg $slot $dev
+		;;
+	$mr17h_drvname)
+		_dsl_mr17cfg $slot $dev
+		;;
+	esac
+}
+		
 	
 _dsl_start(){
 	
-	# start service if enabled
-	_dsl_init_svc || return 0
-
-	# init service
-	_dsl_init_drv || echo "Cannot find DSL modules"
-
-	_sg_if_refresh "dsl" "sys_dsl"
-	_sg_dsl_set_mtypes
-
 	#apply defconfig if no configuration
 	echo -n "Configuring SHDSL: "
-	for iface in `$kdb get sys_dsl_ifaces`; do
-	    eval `$kdb -qq sls sys_dsl_${iface}_`
-	    if [ "$mtype" == "mr16h" ]; then
-			$mr16h_cfg $iface reload
-	    fi
-	    _dsl_if_defconfig $iface
-	    _dsl_apply_cfg $iface
-		case "$mtype" in
-			mr16h)
+	eval `kdb sls -q sys_pcitbl_`
+	for s in $slots; do
+		unset type
+		eval "type=\$s${s}_iftype"
+		if [ "$type" != "$mr17h_drvname" ] && [ "$type" != "$mr16h_drvname" ]; then
+			continue
+		fi
+		
+	    _dsl_modcfg $s
+
+		case "$type" in
+			$mr16h_drvname)
 				echo -n "${iface}(${mr16h_modname}) "
 				;;
-			mr17h)
+			$mr17h_drvname)
 				echo -n "${iface}(${mr17h_modname}) "
 				;;
 		esac
@@ -244,15 +218,11 @@ _dsl_stop(){
 	_dsl_stop_svc 
 }
 
-_dsl_restart(){
-        _dsl_apply_cfg $1
-}
-
 case "$1" in
 	start) 
 		_dsl_start ;;
 	stop)
 		_dsl_stop ;;
 	restart)
-		_dsl_restart $2 ;;
+	    _dsl_modcfg $2 $3
 esac

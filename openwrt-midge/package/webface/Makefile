@@ -28,17 +28,20 @@ $(PKG_BUILD_DIR)/.configured:
 	-e "s%@MR16G_MODNAME@%$(BR2_SIGRAND_OEM_MR16G)%g" \
 	-e "s%@MR16G_DRVNAME@%$(BR2_SIGRAND_OEM_MR16G_DRV)%g" \
 	-e "s%@MR17H_TOOL@%$(BR2_SIGRAND_OEM_MR17H_TOOL)%g" \
-	-e "s%@MR17H_MODNAME@%$(BR2_SIGRAND_OEM_MR17H)%g" 
+	-e "s%@MR17H_MODNAME@%$(BR2_SIGRAND_OEM_MR17H)%g" \
+	-e "s%@MR17H_DRVNAME@%$(BR2_SIGRAND_OEM_MR17H_DRV)%g" 
 	rm --force $(PKG_BUILD_DIR)/templates/etc/templates/oem-vars.tmpl
 #  E1 for controllers
-	sed <$(PKG_BUILD_DIR)/templates/www/controllers/oem.sh.tmpl  \
-	> $(PKG_BUILD_DIR)/templates/www/controllers/oem.sh \
+	sed <$(PKG_BUILD_DIR)/templates/www/oem.sh.tmpl  \
+	> $(PKG_BUILD_DIR)/templates/www/oem.sh \
 	-e "s%@MR17H_MODNAME@%$(BR2_SIGRAND_OEM_MR17H)%g" \
+	-e "s%@MR17H_DRVNAME@%$(BR2_SIGRAND_OEM_MR17H_DRV)%g" \
+	-e "s%@MR16G_MODNAME@%$(BR2_SIGRAND_OEM_MR16G)%g" \
 	-e "s%@MR16G_DRVNAME@%$(BR2_SIGRAND_OEM_MR16G_DRV)%g" \
 	-e "s%@MR16H_MODNAME@%$(BR2_SIGRAND_OEM_MR16H)%g" \
 	-e "s%@MR16H_DRVNAME@%$(BR2_SIGRAND_OEM_MR16H_DRV)%g"
-	rm --force $(PKG_BUILD_DIR)/templates/www/controllers/oem.sh.tmpl
-	chmod +x $(PKG_BUILD_DIR)/templates/www/controllers/oem.sh
+	rm --force $(PKG_BUILD_DIR)/templates/www/oem.sh.tmpl
+	chmod +x $(PKG_BUILD_DIR)/templates/www/oem.sh
 	touch $@
 
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured

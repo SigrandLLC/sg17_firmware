@@ -25,12 +25,16 @@ service_reload(){
 		/etc/init.d/bind restart
 	;;
 	dsl*)
-		iface=${sybsys##*.}
-		/etc/init.d/dsl restart $iface
+		tmp=${sybsys#*.}
+		slot=${tmp%.*}
+		dev=${tmp#*.}
+		/etc/init.d/dsl restart $slot $dev
 	;;
 	e1*)
-		iface=${sybsys##*.}
-		/etc/init.d/e1 restart $iface
+		tmp=${sybsys#*.}
+		slot=${tmp%.*}
+		dev=${tmp#*.}
+		/etc/init.d/e1 restart "$slot" "$dev"
 	;;
 	fw)
 		/etc/init.d/fw restart

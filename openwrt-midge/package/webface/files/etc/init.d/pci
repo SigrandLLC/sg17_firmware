@@ -1,0 +1,127 @@
+#!/bin/sh
+
+kdb="kdb"
+ifcfg="/sbin/ifconfig"
+
+. /etc/templates/oem-vars
+. /etc/templates/sigrand-lib
+
+pci_driver(){
+
+	if [ $# -lt 2 ]; then 
+		echo "$0: not enough parameters"
+		return
+	fi
+
+	local prevdir=`pwd`
+	local type="$1"
+	local dir="/sys/bus/pci/drivers/$1"
+	if [ ! -d "$dir" ]; then
+		# DEBUG # echo "$0: No such directory $dir"
+		return
+	fi
+	cd $dir
+	
+	ifptrn=$2
+	local tmp
+	unset devs
+	tmp=`ls -l | grep "0000:.*->.*pci.*" | awk '{print $(11)}' | \
+			sed 's/\.\.\/.*pci.*\///g' | sed 's/\..*//g'`
+
+	words=`echo $tmp | wc -w`
+	while [ "$words" -gt 0 ]; do
+		unset j	
+	 	j=`echo $tmp | awk '{print $(1)}'`
+		dev=${j#*:}
+		devs="$devs $dev"
+		tmp=`echo $tmp | sed "s/$j//g"`
+		words=`echo $tmp | wc -w`
+	done
+	
+	tmp=""
+	for i in $devs; do
+		unset cnt
+		tmp=`ls -l | grep "$ifptrn.*$i" | awk '{print $(9)}'`
+		tmp=`echo $tmp` # remove \n
+		cnt=`echo $tmp | wc -w | awk '{print $(1)}'`
+		if [ "$cnt" -gt 0 ]; then
+			dname=`echo $i | sed 's/\://g'`
+			slots=`kdb get sys_pcitbl_slots`
+			kdb set sys_pcitbl_slots="$slots $dname"
+			kdb set sys_pcitbl_s${dname}_ifaces="$tmp"
+			kdb set sys_pcitbl_s${dname}_ifnum="$cnt"
+			kdb set sys_pcitbl_s${dname}_iftype="$type"
+		fi
+	done
+	cd $prevdir
+}
+
+pcicfg_refresh(){
+	local s
+	
+	eval `kdb sls -q sys_pcitbl_`
+	
+	for s in $slots; do
+		unset curtype cfgtype
+		eval "curtype=\$s${s}_iftype"
+		eval "cfgtype="`kdb get sys_pcicfg_s${s}_iftype`
+		if [ "$curtype" != "$cfgtype" ]; then
+			# Module type changed on slot s - remove configuration
+			kdb rm sys_pcicfg_s${s}*
+		fi
+	done
+	
+	nslots=""
+	for s in $slots; do
+		nslots="$nslots \n $s"
+	done
+	slots=`echo -e $nslots | sort`
+	slots=`echo $slots`
+	kdb set sys_pcitbl_slots="$slots"
+}
+
+_pci_start(){
+	
+	echo "Refresh PCI device list"
+	kdb rm sys_pcitbl*
+	pci_driver "$mr16g_drvname" "E1_"
+	pci_driver "$mr16h_drvname" "dsl"
+	pci_driver "$mr17h_drvname" "dsl"
+	pcicfg_refresh
+	
+	
+	ifaces=`kdb get sys_ifaces`
+	nifaces=""
+	for i in $ifaces; do
+		tmp=`echo $i | grep E1_`
+		tmp2=`echo $i | grep dsl`
+		if [ ! -n "$tmp" ] && [ ! -n "$tmp2" ]; then
+			nifaces="$nifaces \n $i"
+		fi
+	done
+	for s in `kdb get sys_pcitbl_slots`; do
+		for i in `kdb get sys_pcitbl_s${s}_ifaces`; do
+			nifaces="$nifaces \n $i"
+		done
+	done
+	nifaces=`echo -e $nifaces | sort`
+	nifaces=`echo $nifaces`
+	kdb set sys_ifaces="$nifaces"
+}
+
+_pci_stop(){
+	return 0
+}
+
+_dsl_restart(){
+	_pci_start
+}
+
+case "$1" in
+	start) 
+		_pci_start ;;
+	stop)
+		_pci_stop ;;
+	restart)
+		_pci_restart $2 ;;
+esac

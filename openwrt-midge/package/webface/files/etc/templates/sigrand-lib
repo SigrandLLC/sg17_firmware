@@ -3,7 +3,17 @@
 kdb="kdb"
 os_ifdir="/sys/class/net"
 
-. /etc/templates/oem-vars
+pcidev_slot(){
+	local tmp
+	local str
+	str=$1
+	unset tmp dev func
+	tmp=${str#*:}
+	bus=${tmp%%:*}
+	tmp=${tmp#*:}
+	dev=${tmp%%.*}
+	func=${tmp##*.}
+}
 
 _sg_if_refresh(){
 	name_tmpl="$1"

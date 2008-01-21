@@ -3,17 +3,16 @@
 eoc_config=/sbin/eoc-config
 eoc_info=/sbin/eoc-info
 
-. /www/controllers/oem.sh
-
-
+. /www/oem.sh
 
 require_js_file "prototype.js"
 require_js_file "dsl.js"
 
 _sg16_status(){
+
 	cpath="$sg16_cfg_path/$iface"
 	help_2="dsl.status"
-	render_table_title "$iface "$MR16H_MODNAME" modem status" 2
+	render_table_title "$iface (module $MR16H_MODNAME) status" 2
 	# ONLINE status
 	
 	link=`cat $cpath/state`
@@ -24,26 +23,32 @@ _sg16_status(){
 
 
 _sg16_settings(){
-	kdb_vars="  int:sys_dsl_${iface}_rate	\
-			str:sys_dsl_${iface}_mode	\
-			str:sys_dsl_${iface}_code	\
-			str:sys_dsl_${iface}_cfg	\
-			str:sys_dsl_${iface}_annex	\
-			str:sys_dsl_${iface}_crc	\
-			str:sys_dsl_${iface}_fill	\
-			str:sys_dsl_${iface}_inv"	
-	subsys="dsl."$iface
+	local iface=$1
+	local slot=$2
+	local dev=$3
+
+	kdb_vars="  int:sys_pcicfg_s${slot}_${dev}_rate	\
+			str:sys_pcicfg_s${slot}_${dev}_mode	\
+			str:sys_pcicfg_s${slot}_${dev}_code	\
+			str:sys_pcicfg_s${slot}_${dev}_cfg	\
+			str:sys_pcicfg_s${slot}_${dev}_annex	\
+			str:sys_pcicfg_s${slot}_${dev}_crc	\
+			str:sys_pcicfg_s${slot}_${dev}_fill	\
+			str:sys_pcicfg_s${slot}_${dev}_inv"	
+	subsys="dsl."$slot"."$dev
 
 	render_save_stuff
 	sleep 1
 
 	render_form_header
 	# refresh configuration
-	eval `kdb -qq ls "sys_dsl_${iface}_*" ` 
-	render_table_title "$iface "$MR16H_MODNAME" modem settings" 2
+	eval `kdb -qq ls "sys_pcicfg_s${slot}_${dev}*" ` 
+	render_table_title "$iface (module $MR16H_MODNAME) settings" 2
 
 	# sys_dsl_${iface}_name
 	render_input_field "hidden" "hidden" iface $iface
+	render_input_field "hidden" "hidden" pcislot "$slot"
+	render_input_field "hidden" "hidden" pcidev "$dev"
 	render_input_field "hidden" "hidden" page settings
 
 
@@ -52,53 +57,52 @@ _sg16_settings(){
 	desc="Select DSL mode"
 	id='mode'
 	onchange="OnChangeSG16Code();"	
-	render_input_field select "Mode" sys_dsl_${iface}_mode  master 'Master' slave 'Slave'
+	render_input_field select "Mode" sys_pcicfg_s${slot}_${dev}_mode  master 'Master' slave 'Slave'
 
 	unset crate
-	eval "crate=\$sys_dsl_${iface}_rate"
-#	echo "<br>CRATE = $crate"
+	eval "crate=\$sys_pcicfg_s${slot}_${dev}_rate"
 	tip=""
 	desc="Select DSL line rate"
 	validator='tmt:message="'$desc'"'
 	id='rate'
 	onchange="OnChangeSG16Code();"	
-	render_input_field select "Rate" sys_dsl_${iface}_rate $crate $crate
+	render_input_field select "Rate" sys_pcicfg_s${slot}_${dev}_rate $crate $crate
 
-	# sys_dsl_${iface}_code
+	# sys_pcicfg_s${slot}_${dev}_code
 	tip=""
 	desc="Select DSL line coding"
 	id='code'
 	onchange="OnChangeSG16Code();"
-	render_input_field select "Coding" sys_dsl_${iface}_code tcpam32 TCPAM32 tcpam16 TCPAM16 tcpam8 TCPAM8 tcpam4 TCPAM4
+	render_input_field select "Coding" sys_pcicfg_s${slot}_${dev}_code tcpam32 TCPAM32 tcpam16 TCPAM16 tcpam8 TCPAM8 tcpam4 TCPAM4
 
-	# sys_dsl_${iface}_cfg
+	# sys_pcicfg_s${slot}_${dev}_cfg
 	tip=""
 	desc="Select DSL configuration mode"
 	id='cfg'
 	onchange="OnChangeSG16Code();"	
-	render_input_field select "Config" sys_dsl_${iface}_cfg local local preact preact
+	render_input_field select "Config" sys_pcicfg_s${slot}_${dev}_cfg local local preact preact
 
-	# sys_dsl_${iface}_annex
+	# sys_pcicfg_s${slot}_${dev}_annex
 	tip=""
 	desc="Select DSL Annex"
 	id='annex'
 	onchange="OnChangeSG16Code();"	
-	render_input_field select "Annex" sys_dsl_${iface}_annex A "Annex A" B "Annex B" F "Annex F"
+	render_input_field select "Annex" sys_pcicfg_s${slot}_${dev}_annex A "Annex A" B "Annex B" F "Annex F"
 
-	# sys_dsl_${iface}_crc32
+	# sys_pcicfg_s${slot}_${dev}_crc32
 	tip=""
 	desc="Select DSL CRC length"
-	render_input_field select "CRC" sys_dsl_${iface}_crc crc32 CRC32 crc16 CRC16
+	render_input_field select "CRC" sys_pcicfg_s${slot}_${dev}_crc crc32 CRC32 crc16 CRC16
 
-	# sys_dsl_${iface}_fill
+	# sys_pcicfg_s${slot}_${dev}_fill
 	tip=""
 	desc="Select DSL fill byte value"
-	render_input_field select "Fill" sys_dsl_${iface}_fill  fill_ff FF fill_7e 7E
+	render_input_field select "Fill" sys_pcicfg_s${slot}_${dev}_fill  fill_ff FF fill_7e 7E
 
-	# sys_dsl_${iface}_inv
+	# sys_pcicfg_s${slot}_${dev}_inv
 	tip=""
 	desc="Select DSL inversion mode"
-	render_input_field select "Inversion" sys_dsl_${iface}_inv  normal off invert on
+	render_input_field select "Inversion" sys_pcicfg_s${slot}_${dev}_inv  normal off invert on
 
 	render_submit_field
 	render_form_tail
@@ -111,7 +115,7 @@ _sg17_status(){
 
 	#-------------- STATUS table --------------------
 	help_2="dsl.status"
-	render_table_title "$iface "$MR17H_MODNAME" modem status" 2
+	render_table_title "$iface (module $MR17H_MODNAME) status" 2	
 	conf_path="$sg17_cfg_path/$iface/sg17_private"
 	# ONLINE status
 	link_state=`cat $conf_path/link_state`	
@@ -176,23 +180,26 @@ _sg17_status(){
 }
 
 _sg17_settings(){
+	local iface=$1
+	local slot=$2
+	local dev=$3
 
 	kdb_vars="\
-			str:sys_dsl_${iface}_ctrl	\
-			str:sys_dsl_${iface}_mode	\
-			str:sys_dsl_${iface}_clkmode	\
-			int:sys_dsl_${iface}_rate	\
-			str:sys_dsl_${iface}_code	\
-			str:sys_dsl_${iface}_annex	\
-			str:sys_dsl_${iface}_crc	\
-			str:sys_dsl_${iface}_fill	\
-			str:sys_dsl_${iface}_inv	\
-			str:sys_dsl_${iface}_pwron"	
-	subsys="dsl."$iface
+			str:sys_pcicfg_s${slot}_${dev}_ctrl	\
+			str:sys_pcicfg_s${slot}_${dev}_mode	\
+			str:sys_pcicfg_s${slot}_${dev}_clkmode	\
+			int:sys_pcicfg_s${slot}_${dev}_rate	\
+			str:sys_pcicfg_s${slot}_${dev}_code	\
+			str:sys_pcicfg_s${slot}_${dev}_annex	\
+			str:sys_pcicfg_s${slot}_${dev}_crc	\
+			str:sys_pcicfg_s${slot}_${dev}_fill	\
+			str:sys_pcicfg_s${slot}_${dev}_inv	\
+			str:sys_pcicfg_s${slot}_${dev}_pwron"	
+	subsys="dsl."$slot"."$dev
 
-	eval `kdb -qq sls "sys_dsl_${iface}_" ` 
-	eval "new_ctrl=\$FORM_sys_dsl_${iface}_ctrl"
-	eval "new_mode=\$FORM_sys_dsl_${iface}_mode"
+	eval `kdb -qq sls "sys_pcicfg_s${slot}_${dev}_" ` 
+	eval "new_ctrl=\$FORM_sys_pcicfg_s${slot}_${dev}_ctrl"
+	eval "new_mode=\$FORM_sys_pcicfg_s${slot}_${dev}_mode"
 
 	if [ "$new_ctrl" != "$ctrl" ]; then
 		case "$new_ctrl" in
@@ -207,7 +214,7 @@ _sg17_settings(){
 			esac
 			$eoc_config -ochannel -a$iface $opt -s
 			$eoc_config -us # Save settingso to disk
-			kdb set sys_dsl_${iface}_mode=$new_mode
+			kdb set sys_pcicfg_s${slot}_${dev}_mode=$new_mode
 			render_js_refresh_window 300
 			;;
 		manual)
@@ -222,24 +229,25 @@ _sg17_settings(){
 
 	# refresh configuration
 	unset 
-	eval `kdb -qq ls "sys_dsl_${iface}_*" ` 
-	eval `kdb -qq sls "sys_dsl_${iface}_" ` 
+	eval `kdb -qq ls "sys_pcicfg_s${slot}_${dev}_*" ` 
+	eval `kdb -qq sls "sys_pcicfg_s${slot}_${dev}_" ` 
 
 
 	render_form_header
 	
 	#-------------- SETTINGS table ---------------
-	render_table_title "$iface "$MR17H_MODNAME" modem settings" 2
-
+	render_table_title "$iface (module $MR17H_MODNAME) settings" 2
 
 	# sys_dsl_${iface}_name
 	render_input_field "hidden" "hidden" iface $iface
+	render_input_field "hidden" "hidden" pcislot "$slot"
+	render_input_field "hidden" "hidden" pcidev "$dev"
 	render_input_field "hidden" "hidden" page settings
 
 	# Control from eocd
 	tip=""
 	desc="Control type (manual or by eoc daemon)"
-	render_input_field select "Control type" sys_dsl_${iface}_ctrl  manual 'Manual' eocd 'EOCd'
+	render_input_field select "Control type" sys_pcicfg_s${slot}_${dev}_ctrl  manual 'Manual' eocd 'EOCd'
 
 
 	if [ "$ctrl" = "eocd" ]; then
@@ -248,62 +256,61 @@ _sg17_settings(){
 		return
 	fi
 	
-	# sys_dsl_${iface}_mode
+	# sys_pcicfg_s${slot}_${dev}_mode
 	tip=""
 	desc="Select DSL mode"
 	id='mode'
 	onchange="OnChangeSG17Code();"	
-	render_input_field select "Mode" sys_dsl_${iface}_mode  master 'Master' slave 'Slave'
+	render_input_field select "Mode" sys_pcicfg_s${slot}_${dev}_mode  master 'Master' slave 'Slave'
 
-	# sys_dsl_${iface}_clkmode
+	# sys_pcicfg_s${slot}_${dev}_clkmode
 	tip=""
 	desc="Select DSL clock mode"
 	id='clkmode'
 	onchange="OnChangeSG17Code();"	
-	render_input_field select "Clock mode" sys_dsl_${iface}_clkmode  'plesio' 'plesio' 'sync' 'sync'
+	render_input_field select "Clock mode" sys_pcicfg_s${slot}_${dev}_clkmode  'plesio' 'plesio' 'sync' 'sync'
 
-	# sys_dsl_${iface}_rate
-	eval "crate=\$sys_dsl_${iface}_rate"
-#	echo "<br>CRATE = $crate"
+	# sys_pcicfg_s${slot}_${dev}_rate
+	eval "crate=\$sys_pcicfg_s${slot}_${dev}_rate"
 	tip=""
 	desc="Select DSL line rate"
 	validator='tmt:message="'$desc'"'
 	id='rate'
 	onchange="OnChangeSG17Code();"	
-	render_input_field select "Rate" sys_dsl_${iface}_rate $crate $crate
+	render_input_field select "Rate" sys_pcicfg_s${slot}_${dev}_rate $crate $crate
 	
 
-	# sys_dsl_${iface}_code
+	# sys_pcicfg_s${slot}_${dev}_code
 	tip=""
 	desc="Select DSL line coding"
 	id='code'
 	onchange="OnChangeSG17Code();"
-	render_input_field select "Coding" sys_dsl_${iface}_code tcpam32 TCPAM32 tcpam16 TCPAM16 tcpam8 TCPAM8 tcpam4 TCPAM4
+	render_input_field select "Coding" sys_pcicfg_s${slot}_${dev}_code tcpam32 TCPAM32 tcpam16 TCPAM16 tcpam8 TCPAM8 tcpam4 TCPAM4
 
-	# sys_dsl_${iface}_annex
+	# sys_pcicfg_s${slot}_${dev}_annex
 	tip=""
 	desc="Select DSL Annex"
-	render_input_field select "Annex" sys_dsl_${iface}_annex A "Annex A" B "Annex B"
+	render_input_field select "Annex" sys_pcicfg_s${slot}_${dev}_annex A "Annex A" B "Annex B"
 
-	# sys_dsl_${iface}_crc32
+	# sys_pcicfg_s${slot}_${dev}_crc32
 	tip=""
 	desc="Select DSL CRC length"
-	render_input_field select "CRC" sys_dsl_${iface}_crc crc32 CRC32 crc16 CRC16
+	render_input_field select "CRC" sys_pcicfg_s${slot}_${dev}_crc crc32 CRC32 crc16 CRC16
 
-	# sys_dsl_${iface}_fill
+	# sys_pcicfg_s${slot}_${dev}_fill
 	tip=""
 	desc="Select DSL fill byte value"
-	render_input_field select "Fill" sys_dsl_${iface}_fill  fill_ff FF fill_7e 7E
+	render_input_field select "Fill" sys_pcicfg_s${slot}_${dev}_fill  fill_ff FF fill_7e 7E
 
-	# sys_dsl_${iface}_inv
+	# sys_pcicfg_s${slot}_${dev}_inv
 	tip=""
 	desc="Select DSL inversion mode"
-	render_input_field select "Inversion" sys_dsl_${iface}_inv  normal off invert on
+	render_input_field select "Inversion" sys_pcicfg_s${slot}_${dev}_inv  normal off invert on
 
-	# sys_dsl_${iface}_pwron
+	# sys_pcicfg_s${slot}_${dev}_pwron
 	tip=""
 	desc="Select DSL Power feeding mode"
-	render_input_field select "Power" sys_dsl_${iface}_pwron  pwroff off pwron on
+	render_input_field select "Power" sys_pcicfg_s${slot}_${dev}_pwron  pwroff off pwron on
 
 	render_submit_field
 	render_form_tail
@@ -316,44 +323,49 @@ _sg17_settings(){
 
 
 iface="${FORM_iface}"
+slot="${FORM_pcislot}"
+dev="${FORM_pcidev}"
 if [ -z "$iface" ]; then
-	for i in `kdb get sys_dsl_ifaces`; do
-		if [ -z "$iface" ]; then
-			iface=$i
-		else
-			break
+	for s in `kdb get sys_pcitbl_slots`; do
+		type=`kdb get sys_pcitbl_s${s}_iftype`
+		if [ "$type" != "$MR16H_DRVNAME" ] && [ "$type" != "$MR17H_DRVNAME" ];
+		then
+			continue
 		fi
+		slot=$s
+		dev=0
+		iface=`kdb get sys_pcitbl_s${s}_ifaces | awk '{print $(1)}'`
+		break
 	done
 fi
 page=${FORM_page:-status} 
 unset mode rate code annex cfg crc fill inv pwron
 
+mtype=`kdb get sys_pcitbl_s${slot}_iftype"`
 
+render_page_selection "iface=$iface&pcislot=$slot&pcidev=$dev" \
+		status "Status" settings "Settings"
 
-mtype=`kdb get sys_dsl_${iface}_mtype"`
-
-render_page_selection "iface=$iface" status "Status" settings "Settings"
 
 
 case $page in
 'status')	
 	case $mtype in
-	mr16h)
+	$MR16H_DRVNAME)
 		_sg16_status $iface
 		;;
-	mr17h)
+	$MR17H_DRVNAME)
 		_sg17_status $iface
 		;;
 	esac
 	;;
 'settings')
-	
 	case $mtype in
-	mr16h)
-		_sg16_settings $iface
+	$MR16H_DRVNAME)
+		_sg16_settings $iface $slot $dev
 		;;
-	mr17h)
-		_sg17_settings $iface
+	$MR17H_DRVNAME)
+		_sg17_settings $iface $slot $dev
 		;;
 	esac
 	;;

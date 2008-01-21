@@ -8,125 +8,50 @@ ifcfg="/sbin/ifconfig"
 
 . /etc/templates/sigrand-lib
 
-# checks that DSL service is enabled
-_e1_init_svc(){
-	return 0;
+_e1_mr16ifdefcfg(){	
+	local slot=$1
+	local dev=$2	
+	kdb rm sls sys_pcicfg_s${slot}_${dev}*
+	kdb set sys_pcicfg_s${slot}_${dev}_proto="cisco"
+	kdb set sys_pcicfg_s${slot}_${dev}_fram="0"
+	kdb set sys_pcicfg_s${slot}_${dev}_ts16="1"
+	kdb set sys_pcicfg_s${slot}_${dev}_smap=""
+	kdb set sys_pcicfg_s${slot}_${dev}_crc4="0"
+	kdb set sys_pcicfg_s${slot}_${dev}_cas="0"
+	kdb set sys_pcicfg_s${slot}_${dev}_clk="0"
+	kdb set sys_pcicfg_s${slot}_${dev}_lhaul="0"
+	kdb set sys_pcicfg_s${slot}_${dev}_lcode="1"
+	kdb set sys_pcicfg_s${slot}_${dev}_hcrc="1"
+	kdb set sys_pcicfg_s${slot}_${dev}_fill="1"	
+	kdb set sys_pcicfg_s${slot}_${dev}_inv="normal"
 }
 
-# stops service
-_e1_stop_svc(){
-	return 0;
+_dsl_mr16defcfg(){
+	local slot=$1
+	local ifnum=`kdb get sys_pcitbl_s${slot}_ifnum`
+	local i=0
+
+	kdb set sys_pcicfg_s${slot}_ifnum="$ifnum"
+	while [ $i -lt $ifnum ]; do
+		_e1_mr16ifdefcfg $slot $i
+		i=`expr $i + 1`
+	done
 }
 
-# insmod DSL drivers
-_e1_init_drv(){
-	return 0;
-}
-
-# rmmod DSL drivers
-_e1_stop_drv(){
-	return 0;
-}
-
-
-_e1_if_defconfig(){
-# TODO: describe defconfig
-	local def_proto="cisco"
-	local def_fram="0"
-	local def_ts16="1"
-	local def_smap=""
-	local def_crc4="0"
-	local def_cas="0"
-	local def_clk="0"
-	local def_lhaul="0"
-	local def_lcode="1"
-	local def_hcrc="1"
-	local def_fill="1"	
-	local def_inv="normal"
-	
+_e1_ifcfg(){
+	local iface=$1
+	local slot=$2
+	local dev=$3
 	unset proto fram ts16 smap crc4 cas clk lhaul lcode hcrc inv fill 
-		
-	iface=$1
-	eval `$kdb -qq sls sys_e1_${iface}_`
-	
-	# check that PROTO variable is set
-	if [ -z "$proto" ]; then
-		$kdb set sys_e1_${iface}_proto="$def_proto"
-	fi
-	
-	# check that FRAMED variable is set
-	if [ -z "$fram" ]; then
-		$kdb set sys_e1_${iface}_fram="$def_fram"
-	fi
-	# check that TIMESLOT#16 variable is set
-	if [ -z "$ts16" ]; then
-		$kdb set sys_e1_${iface}_ts16="$def_ts16"
-	fi
-	# check that SLOTMAP variable is set
-	if [ -z "$smap" ]; then
-		$kdb set sys_e1_${iface}_smap="$def_smap"
-	fi
-	# check that CRC4 variable is set
-	if [ -z "$crc4" ]; then
-		$kdb set sys_e1_${iface}_crc4="$def_crc4"
-	fi
-	# check that CAS variable is set
-	if [ -z "$cas" ]; then
-		$kdb set sys_e1_${iface}_cas="$def_cas"
-	fi
-	# check that CLOCK variable is set
-	if [ -z "$clk" ]; then
-		$kdb set sys_e1_${iface}_clk="$def_clk"
-	fi
-	# check that LONG HAUL variable is set
-	if [ -z "$lhaul" ]; then
-		$kdb set sys_e1_${iface}_lhaul="$def_lhaul"
-	fi
-	# check that LINE CODE variable is set
-	if [ -z "$lcode" ]; then
-		$kdb set sys_e1_${iface}_lcode="$def_lcode"
-	fi
-	# check that CRC32 variable is set
-	if [ -z "$hcrc" ]; then
-		$kdb set sys_e1_${iface}_hcrc="$def_hcrc"
-	fi
-	# check that FILL BYTE variable is set
-	if [ -z "$fill" ]; then
-		$kdb set sys_e1_${iface}_fill="$def_fill"
-	fi
-	# check that INVERSION variable is set
-	if [ -z "$inv" ]; then
-		$kdb set sys_e1_${iface}_inv="$def_inv"
-	fi
-	
-	return 0;
-}
-
-
-
-_e1_if_stop(){
-	ifconfig $1 down
-}
-
-_e1_apply_cfg(){
-
-	iface=$1
-
-	unset proto fram ts16 smap crc4 cas clk lhaul lcode hcrc inv fill 
-
-	eval `$kdb -qq sls sys_e1_${iface}_`
+	eval `$kdb -qq sls sys_pcicfg_s${slot}_${dev}_`
 	# apply configuration
 	$ifcfg $iface down
 	# bind driver with protocol
-	
 	case "${proto}" in
-	
 	hdlc*)
-#		echo "sethdlc $iface $proto ${hdlc_enc} ${hdlc_parity}" >> /root/e1.log
 		sethdlc $iface $proto ${hdlc_enc} ${hdlc_parity}
 		;;
 	cisco)
-#		echo "cisco_int=${cisco_int},cisco_to=${cisco_int}." >> /root/e1.log
 		if [ "${cisco_int}" -eq "0" ]; then
 			cisco_int=""
 		elif [ -z "${cisco_int}" ]; then
@@ -134,7 +59,6 @@ _e1_apply_cfg(){
 		else
 			cisco_int="interval ${cisco_int}"
 		fi
-		
 		if [ "${cisco_to}" = 0 ]; then
 			cisco_to=""
 		elif [ -z "${cisco_to}" ]; then
@@ -142,18 +66,13 @@ _e1_apply_cfg(){
 		else
 			cisco_to="timeout ${cisco_to}"
 		fi
-#		echo "sethdlc $iface $proto ${cisco_int} ${cisco_to}" >> /root/e1.log
 		sethdlc $iface $proto ${cisco_int} ${cisco_to}
 		;;
 	*)
 		if [ -n "$proto" ]; then
 		    sethdlc $iface $proto
-		elif [ -z "$proto" ]; then
-		    sethdlc $iface cisco
-		    kdb set sys_e1_${iface}_proto=cisco
 		fi
 	esac
-
 	# set network interface proto (for web)
 	case "$proto" in
 	hdlc-eth)
@@ -163,42 +82,31 @@ _e1_apply_cfg(){
 		kdb set sys_iface_${iface}_proto=hdlc
 		;;
 	esac
-		
-#	echo "fram=$fram ts16=$ts16 smap=$smap clk=$clk" >> /root/e1.log
-#	echo "crc4=$crc4 cas=$cas lhaul=$lhaul" >> /root/e1.log	
 	DIR=`pwd`
 	cd $e1_cfg/$iface
 
 	# Change slotmap only if it really changed
-
+	
 	echo $fram 	> framed
 	if [ "$fram" = "1" ]; then
 		smap_old=`cat slotmap`
-#		echo "Driver_smap=$smap_old Web smap=$smap"
 		echo $ts16 	> map_ts16
 		if [ "$smap_old" != "$smap" ]; then
-#			echo "Smaps differs!"
 			echo "$smap" > slotmap
 		fi
 		smap=`cat slotmap`
-		kdb set sys_e1_${iface}_smap=$smap
-#		echo "kdb set sys_e1_${iface}_smap=$smap"
-#		echo "result:"`kdb get sys_e1_${iface}_smap`
-#		echo "slotmap is setted to $smap"
-#		echo "time="`date`
+		kdb set sys_pcicfg_s${slot}_${dev}_smap=$smap
 	fi
-	
 	echo $clk 	> clck
 	echo $crc4 	> crc4
 	# CAS depends on TS16 (it uses TIMESLOT#16 - so update from hardware)
 	echo $cas 	> cas
 	tmp=`cat cas`
 	if [ "$tmp" = "on" ]; then
-		kdb set sys_e1_${iface}_cas=1
+		kdb set sys_pcicfg_s${slot}_${dev}_cas=1
 	else
-		kdb set sys_e1_${iface}_cas=0
+		kdb set sys_pcicfg_s${slot}_${dev}_cas=0
 	fi
-		
 	echo $lhaul > long_haul
 	echo $lcode	> hdb3
 	echo $hcrc	> crc16
@@ -206,55 +114,78 @@ _e1_apply_cfg(){
 	echo $inv	> inv
 	cd $DIR
 	enabled=`kdb get sys_iface_${iface}_enabled`
-	[ "$enabled" = 1 ] && $ifcfg $iface up
+	[ "$enabled" -eq 1 ] && $ifcfg $iface up
+}
+
+_e1_modcfg(){
+	local slot=$1
+	local dev=$2
+	local ifaces
+	local ifnum
+	local iface
+	
+	type=`kdb get sys_pcicfg_s${slot}_iftype`
+	cur_cnt=`kdb get sys_pcitbl_s${slot}_ifnum`
+	cfg_cnt=`kdb get sys_pcicfg_s${slot}_ifnum`
+	if [ -z "$type" ]; then
+		kdb set sys_pcicfg_s${slot}_iftype="$mr16g_drvname"
+		_e1_mr16defcfg $slot
+	elif [ "$cur_cnt" -gt "$cfg_cnt" ]; then
+		tmp=`expr $cfg_cnt + 1`
+echo "Create def configurations for $type: $tmp-"`expr $cur_cnt - 1`
+		while [ "$tmp" -lt "$cur_cnt" ]; do
+			_e1_mr16ifdefcfg "$slot" "$tmp"
+		done
+	fi
+	
+	ifaces=`kdb get sys_pcitbl_s${slot}_ifaces`
+	ifnum=0
+	for iface in $ifaces; do
+		if [ -n "$dev" ]; then
+			if [ "$dev" -eq "$ifnum" ]; then
+				_e1_ifcfg $iface $slot $ifnum
+				break
+			fi
+		else
+			_e1_ifcfg $iface $slot $ifnum
+		fi
+		ifnum=`expr $ifnum + 1`
+	done
 }
 
 	
 _e1_start(){
 	
-	# start service if enabled
-	_e1_init_svc || return 0
-
-	# init service
-	_e1_init_drv || echo "Cannot find E1 modules"
-
-	_sg_if_refresh "hdlc" "sys_e1"
-	
-	#apply defconfig if no configuration
 	echo -n "Configuring E1: "
-	for iface in `$kdb get sys_e1_ifaces`; do
-	    _e1_if_defconfig $iface
-	    _e1_apply_cfg $iface
-		echo -n "$iface "
+	eval `kdb sls -q sys_pcitbl_`
+	for s in $slots; do
+		unset type
+		eval "type=\$s${s}_iftype"
+		if [ "$type" != "$mr16g_drvname" ]; then
+			continue
+		fi
+	    _e1_modcfg $s
+		echo "$s "
 	done
 	echo
 }
-
+ 
 _e1_stop(){
-
-	# stop all interfaces
-	for iface in `$kdb get sys_e1_ifaces`; do
-		_e1_if_stop $iface
-	done
-	
-	# stop driver
-	_e1_stop_drv
-
-	# stop service
-	_e1_stop_svc 
+	return 0
 }
 
 _e1_restart(){
-        iface=$1
-        _e1_apply_cfg $iface
-	
+	_e1_ifcfg $1 $2
 }
 
 case "$1" in
 	start) 
-		_e1_start ;;
+		_e1_start 
+		;;
 	stop)
-		_e1_stop ;;
+		_e1_stop 
+		;;
 	restart)
-		_e1_restart $2 ;;
+		_e1_modcfg $2 $3
+		;;
 esac

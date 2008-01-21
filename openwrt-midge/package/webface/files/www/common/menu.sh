@@ -1,4 +1,6 @@
 
+. /www/oem.sh
+
 L1(){
 	[ -n "$2" ] && echo "<strong><a href='?controller=$2'>$1</a></strong><br>" \
 			|| echo "<strong>$1</strong><br>"
@@ -22,17 +24,34 @@ L1 System welcome
 		L3 'PPP secrets' 'auth_ppp'
 	L2 Time		'time'
 	L2 Logging	'logging'
-	tmp=`kdb get sys_dsl_ifaces`
-	if [ -n "$tmp" ]; then
-		L2 SHDSL	'dsl'
-		for i in `kdb get sys_dsl_ifaces`; do
+
+	# SHDSL section
+	slots=`kdb get sys_pcitbl_slots`
+	have_ifs=0
+	
+	for s in $slots; do
+		type=`kdb get sys_pcitbl_s${s}_iftype`
+		if [ "$type" != "$MR16H_DRVNAME" ] && [ "$type" != "$MR17H_DRVNAME" ]; 
+		then
+			continue
+		fi
+		
+		# output title
+		if [ "$have_ifs" -eq 0 ]; then
+			L2 SHDSL	'dsl'
+			have_ifs=1
+		fi
+		unset num
+		num=0
+		for i in `kdb get sys_pcitbl_s${s}_ifaces`; do
 			class=""
 			[ "$FORM_iface" = "$i" ] && class="navlnk_a"
-			L3	$i "dsl&iface=$i" $class
+			L3	$i "dsl&iface=$i&pcislot=$s&pcidev=$num" $class
+			num=`expr $num + 1`
 		done
-	fi
+	done
 
-
+	# EOC section
 	if [ -f "/sbin/eoc-info" ]; then
 		eval `/sbin/eoc-info -sr`
 		
@@ -48,16 +67,31 @@ L1 System welcome
 	    	done
 		fi
 	fi
-	
-	tmp=`kdb get sys_e1_ifaces`
-	if [ -n "$tmp" ]; then
-	    L2 E1	'e1'
-	    for i in `kdb get sys_e1_ifaces`; do
-		class=""
-		[ "$FORM_iface" = "$i" ] && class="navlnk_a"
-		L3	$i "e1&iface=$i" $class
-	    done
-	fi
+
+	# E1 section
+	slots=`kdb get sys_pcitbl_slots`
+	have_ifs=0
+	for s in $slots; do
+		type=`kdb get sys_pcitbl_s${s}_iftype`
+		if [ "$type" != "$MR16G_DRVNAME" ]; then
+			continue
+		fi
+		
+		# output title
+		if [ "$have_ifs" -eq 0 ]; then
+			L2 E1 'e1'
+			have_ifs=1
+		fi
+		unset num
+		num=0
+		for i in `kdb get sys_pcitbl_s${s}_ifaces`; do
+			class=""
+			[ "$FORM_iface" = "$i" ] && class="navlnk_a"
+			L3	$i "e1&iface=$i&pcislot=$s&pcidev=$num" $class
+			num=`expr $num + 1`
+		done
+	done
+
 	L2 Switch	'adm5120sw'
 	L2 Multiplexing	'multiplexing'
 	L2 DNS		'dns'
