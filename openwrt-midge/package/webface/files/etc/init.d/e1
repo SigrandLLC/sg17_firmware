@@ -26,7 +26,7 @@ _e1_mr16ifdefcfg(){
 	kdb set sys_pcicfg_s${slot}_${dev}_inv="normal"
 }
 
-_dsl_mr16defcfg(){
+_e1_mr16defcfg(){
 	local slot=$1
 	local ifnum=`kdb get sys_pcitbl_s${slot}_ifnum`
 	local i=0
@@ -127,14 +127,14 @@ _e1_modcfg(){
 	type=`kdb get sys_pcicfg_s${slot}_iftype`
 	cur_cnt=`kdb get sys_pcitbl_s${slot}_ifnum`
 	cfg_cnt=`kdb get sys_pcicfg_s${slot}_ifnum`
-	if [ -z "$type" ]; then
+	if [ -z "$type" ] || [ -z "$cfg_cnt" ]; then
 		kdb set sys_pcicfg_s${slot}_iftype="$mr16g_drvname"
 		_e1_mr16defcfg $slot
 	elif [ "$cur_cnt" -gt "$cfg_cnt" ]; then
-		tmp=`expr $cfg_cnt + 1`
-echo "Create def configurations for $type: $tmp-"`expr $cur_cnt - 1`
+		tmp="$cfg_cnt"
 		while [ "$tmp" -lt "$cur_cnt" ]; do
 			_e1_mr16ifdefcfg "$slot" "$tmp"
+			tmp=`expr $tmp + 1`
 		done
 	fi
 	
@@ -161,11 +161,13 @@ _e1_start(){
 	for s in $slots; do
 		unset type
 		eval "type=\$s${s}_iftype"
+		eval "num=\$s${s}_ifnum"
+		eval "ifaces=\$s${s}_ifaces"
 		if [ "$type" != "$mr16g_drvname" ]; then
 			continue
 		fi
 	    _e1_modcfg $s
-		echo "$s "
+		echo -n "${mr16g_modname}x${num}($ifaces) "
 	done
 	echo
 }

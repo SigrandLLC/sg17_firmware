@@ -65,10 +65,10 @@ _dsl_mr17cfg(){
 		kdb set sys_pcicfg_s${slot}_iftype="$mr17h_drvname"
 		_dsl_mr17defcfg $slot
 	elif [ "$cur_cnt" -gt "$cfg_cnt" ]; then
-		tmp=`expr $cfg_cnt + 1`
-echo "Create def configurations for $type: $tmp-"`expr $cur_cnt - 1`
+		tmp="$cfg_cnt"
 		while [ "$tmp" -lt "$cur_cnt" ]; do
 			_dsl_mr17ifdefcfg "$slot" "$tmp"
+			tmp=`expr $tmp + 1`
 		done
 	fi
 	
@@ -141,10 +141,10 @@ _dsl_mr16cfg(){
 		kdb set sys_pcicfg_s${slot}_iftype="$mr16h_drvname"
 		_dsl_mr16defcfg $slot
 	elif [ "$cur_cnt" -gt "$cfg_cnt" ]; then
-		tmp=`expr $cfg_cnt + 1`
-echo "Create def configurations for $type: $tmp-"`expr $cur_cnt - 1`
+		tmp="$cfg_cnt"
 		while [ "$tmp" -lt "$cur_cnt" ]; do
 			_dsl_mr16ifdefcfg "$slot" "$tmp"
+			tmp=`expr $tmp + 1`
 		done
 	fi
 
@@ -192,12 +192,15 @@ _dsl_start(){
 		
 	    _dsl_modcfg $s
 
+		eval "type=\$s${s}_iftype"
+		eval "num=\$s${s}_ifnum"
+		eval "ifaces=\$s${s}_ifaces"
 		case "$type" in
 			$mr16h_drvname)
-				echo -n "${iface}(${mr16h_modname}) "
+				echo -n "${mr16h_modname}x${num}($ifaces) "
 				;;
 			$mr17h_drvname)
-				echo -n "${iface}(${mr17h_modname}) "
+				echo -n "${mr17h_modname}x${num}($ifaces) "
 				;;
 		esac
 	done
