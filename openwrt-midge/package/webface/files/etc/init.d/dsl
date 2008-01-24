@@ -40,6 +40,18 @@ _dsl_mr17ifcfg(){
 	local slot=$2
 	local index=$3
 
+	# Network settings
+	valid=`$kdb get sys_iface_${iface}_valid`
+	proto=`$kdb get sys_iface_${iface}_proto`
+	if [ -z "$valid" ]; then
+		$kdb set sys_iface_${iface}_valid=1
+	fi
+	if [ -z "$proto" ]; then
+		$kdb set sys_iface_${iface}_proto=ether
+	fi
+	
+
+	# Hardware settings
 	eval `$kdb -qq sls sys_pcicfg_s${slot}_${ifnum}_`
 	# apply configuration
 	if [ "$mode" == "slave" ]; then
@@ -58,11 +70,13 @@ _dsl_mr17cfg(){
 	local ifnum=0
 	local iface
 
+	ifaces=`kdb get sys_pcitbl_s${slot}_ifaces`
 	type=`kdb get sys_pcicfg_s${slot}_iftype`
 	cur_cnt=`kdb get sys_pcitbl_s${slot}_ifnum`
 	cfg_cnt=`kdb get sys_pcicfg_s${slot}_ifnum`
 	if [ -z "$type" ]; then
 		kdb set sys_pcicfg_s${slot}_iftype="$mr17h_drvname"
+		kdb set sys_pcicfg_s${slot}_ifaces="$ifaces"
 		_dsl_mr17defcfg $slot
 	elif [ "$cur_cnt" -gt "$cfg_cnt" ]; then
 		tmp="$cfg_cnt"
@@ -115,6 +129,19 @@ _dsl_mr16ifcfg(){
 	local iface=$1
 	local slot=$2
 	local index=$3
+	
+	# Network settings
+	valid=`$kdb get sys_iface_${iface}_valid`
+	proto=`$kdb get sys_iface_${iface}_proto`
+	if [ -z "$valid" ]; then
+		$kdb set sys_iface_${iface}_valid=1
+	fi
+	if [ -z "$proto" ]; then
+		$kdb set sys_iface_${iface}_proto=ether
+	fi
+	
+
+	# Hardware settings
 	eval `$kdb -q sls sys_pcicfg_s${slot}_${index}_`
 	# apply configuration
 	$ifcfg $iface down 
@@ -134,11 +161,13 @@ _dsl_mr16cfg(){
 	local ifnum=0
 	local iface
 	
+	ifaces=`kdb get sys_pcitbl_s${slots}_ifaces`
 	type=`kdb get sys_pcicfg_s${slot}_iftype`
 	cur_cnt=`kdb get sys_pcitbl_s${slot}_ifnum`
 	cfg_cnt=`kdb get sys_pcicfg_s${slot}_ifnum`
 	if [ -z "$type" ]; then
 		kdb set sys_pcicfg_s${slot}_iftype="$mr16h_drvname"
+		kdb set sys_pcicfg_s${slot}_ifaces="$ifaces"
 		_dsl_mr16defcfg $slot
 	elif [ "$cur_cnt" -gt "$cfg_cnt" ]; then
 		tmp="$cfg_cnt"

@@ -78,6 +78,12 @@ struct sg17_sci *SCI;
 // DEBUG //
 
 
+static int error_output = 40;
+
+module_param(error_output, int, 40);
+MODULE_PARM_DESC(error_output, "Debug output option - print messages about errors");
+
+
 /* --------------------------------------------------------------------------
  *      SG17 network interfaces
  * -------------------------------------------------------------------------- */
@@ -950,9 +956,13 @@ sg17_enable_card( struct sg17_card *card )
 		goto exit_request;
 	}
 	i=0;
-	if( (ret = sdfe4_download_fw(hwdev,fw->data,fw->size)) ){
-		PDEBUG(debug_error,"error(%d) in sdfe4_download_fw",ret);
-		goto exit_download;
+	while( (ret = sdfe4_download_fw(hwdev,fw->data,fw->size)) && i<3 ){
+		printk(KERN_NOTICE"Error loading fw. Try once again (#%d)\n",i+1);
+		i++;
+	}
+	if( i ==3 ){
+		printk(KERN_NOTICE MR17H_MODNAME ": Cannot download firmware for PCI device=%02x:%02x.%d\n",
+				card->pdev->bus->number,PCI_SLOT(card->pdev->devfn),PCI_FUNC(card->pdev->devfn));
 	}
 	release_firmware(fw);
 	PDEBUG(debug_init,"success");		
@@ -1021,6 +1031,7 @@ sg17_probe_one(struct pci_dev *pdev, const struct pci_device_id *dev_id)
 	int if_processed,i,ch_num;
 	int ret;
 	
+	
 	PDEBUG(debug_init,"New device");
 	// Setup PCI card configuration
 	if( pci_enable_device( pdev ) )
@@ -1074,14 +1085,14 @@ sg17_probe_one(struct pci_dev *pdev, const struct pci_device_id *dev_id)
 		PDEBUG(debug_netcard,"success");
 		card->ndevs[if_processed] = ndev;
 
-		PDEBUG(0,"sg17_sysfs_register");
+		PDEBUG(debug_netcard,"sg17_sysfs_register");
 		if( sg17_sysfs_register( ndev ) ){
 			printk( KERN_ERR "%s: unable to create sysfs entires\n",ndev->name);
 			goto exit_unreg_ifs;
 		}
 		// Create symlink to device in /sys/bus/pci/drivers/mr17h/
 		sysfs_create_link( &(dev_drv->kobj),&(dev_dev->kobj),ndev->name );
-		PDEBUG(0,"sg17_sysfs_register - success");
+		PDEBUG(debug_netcard,"sg17_sysfs_register - success");
 	}
 
 	PDEBUG(debug_init,"sg17_enable_card");
@@ -1145,6 +1156,9 @@ sg17_remove_one(struct pci_dev *pdev)
 
 int __devinit
 sg17_init( void ){
+#ifdef DEBUG_ON
+	debug_error = error_output;
+#endif
 	int i = pci_register_driver( &sg17_driver );
 	printk(KERN_NOTICE"Load "MR17H_MODNAME" driver\n");	
 	PDEBUG(10,"return = %d",i);

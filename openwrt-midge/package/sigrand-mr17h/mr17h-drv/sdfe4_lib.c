@@ -106,6 +106,7 @@ sdfe4_rs_cmd(u8 opcd, u32 *params, u16 plen,struct sdfe4_ret *ret,struct sdfe4 *
 	int r = 0;
 
 	if ( plen > FW_PKT_SIZE32+1 ){
+		PDEBUG(debug_error,": wrong package size");
 		return -1;
 	}
 
@@ -135,6 +136,7 @@ sdfe4_rs_cmd(u8 opcd, u32 *params, u16 plen,struct sdfe4_ret *ret,struct sdfe4 *
 		PDEBUG(debug_error,": sdfe4_hdlc_recv error = %d", r);	
 		goto exit;
 	}
+
 	msg8=(u8*)&buf;
 	msg8+=RAM_ACKHDR_SZ;
 	if( sdfe4_chk_msglayer(msg8) ){
@@ -514,7 +516,7 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 	ret8 = (u8*)&ret.val;
 	Data_U32[0]=FWCTRL_CHK;
 	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWCTRL,Data_U32,1,&ret,hwdev)){
-		PDEBUG(debug_error,": error in CMD_WR_REG_RS_FWCTRL for CODE");	
+		PDEBUG(debug_error,": error in CMD_WR_REG_RS_FWCTRL(FWCTRL_CHK) for CODE");	
 		wait_ms(2);
 		Data_U32[0]=0;
 		ret.stamp=0;
@@ -544,7 +546,7 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 	ret.stamp=0;
 	Data_U32[0]=FWCTRL_SWITCH;
 	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWCTRL,Data_U32,1,&ret,hwdev) ){
-		PDEBUG(debug_error,": error in CMD_WR_REG_RS_FWCTRL for DATA");
+		PDEBUG(debug_error,": error in CMD_WR_REG_RS_FWCTRL(FWCTRL_SWITCH) for DATA");
 		return -1;
 	}
 
@@ -570,7 +572,7 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 	ret.stamp=1;
 	Data_U32[0]=FWCTRL_CHK | FWCTRL_SWITCH;
 	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWCTRL,Data_U32,1,&ret,hwdev)){
-		PDEBUG(debug_error,": error in CMD_WR_REG_RS_FWCTRL for DATA");
+		PDEBUG(debug_error,": error in CMD_WR_REG_RS_FWCTRL(FWCTRL_CHK|FWCTRL_SWITCH) for DATA");
 		wait_ms(2);
 		Data_U32[0]=0;
 		ret.stamp=0;
@@ -579,8 +581,6 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 			return -1;
 		}
 	}
-
-
 
 	// Count firmware data CRC DATA
 	PDEBUGL(debug_sdfe4,"Data CRC: ");
@@ -607,7 +607,7 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 	wait_ms(200);
 	Data_U32[0]=FWCTRL_VALID;
   	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWCTRL,Data_U32,1,&ret,hwdev)){
-		PDEBUG(debug_error,": error in CMD_WR_REG_RS_FWCTRL");		
+		PDEBUG(debug_error,": error in CMD_WR_REG_RS_FWCTRL(FWCTRL_VALID)");		
 		return -1;
 	}
 

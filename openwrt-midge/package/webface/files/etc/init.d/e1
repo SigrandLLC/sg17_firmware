@@ -42,6 +42,19 @@ _e1_ifcfg(){
 	local iface=$1
 	local slot=$2
 	local dev=$3
+
+	# Network settings
+	valid=`$kdb get sys_iface_${iface}_valid`
+	proto=`$kdb get sys_iface_${iface}_proto`
+	if [ -z "$valid" ]; then
+		$kdb set sys_iface_${iface}_valid=1
+	fi
+	if [ -z "$proto" ]; then
+		$kdb set sys_iface_${iface}_proto=hdlc
+	fi
+	
+
+	# Hardware settings
 	unset proto fram ts16 smap crc4 cas clk lhaul lcode hcrc inv fill 
 	eval `$kdb -qq sls sys_pcicfg_s${slot}_${dev}_`
 	# apply configuration
@@ -124,11 +137,13 @@ _e1_modcfg(){
 	local ifnum
 	local iface
 	
+	ifaces=`kdb get sys_pcitbl_s${slot}_ifaces`
 	type=`kdb get sys_pcicfg_s${slot}_iftype`
 	cur_cnt=`kdb get sys_pcitbl_s${slot}_ifnum`
 	cfg_cnt=`kdb get sys_pcicfg_s${slot}_ifnum`
 	if [ -z "$type" ] || [ -z "$cfg_cnt" ]; then
 		kdb set sys_pcicfg_s${slot}_iftype="$mr16g_drvname"
+		kdb set sys_pcicfg_s${slot}_ifaces="$ifaces"
 		_e1_mr16defcfg $slot
 	elif [ "$cur_cnt" -gt "$cfg_cnt" ]; then
 		tmp="$cfg_cnt"
