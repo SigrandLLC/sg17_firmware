@@ -90,13 +90,21 @@ _move_net_settings(){
 	
 	$kdb ls sys_iface_$oif* | sed "s/$oif/$nif/g" >> $tmp_file
 	$kdb rm sys_iface_$oif*
+	
+	# flush old interface cfg
 	tmp=`$ip link show | grep $oif`
 	if [ -n "$tmp" ]; then
 		$ip addr flush $oif
 		$ip link set $oif down
 	fi
-}
 
+	# flush new interface cfg
+	tmp=`$ip link show | grep $nif`
+	if [ -n "$tmp" ]; then
+		$ip addr flush $nif
+		$ip link set $nif down
+	fi
+}
 
 _pci_update_netcfg(){
 	old_iflist=$1
@@ -119,16 +127,33 @@ _pci_update_netcfg(){
 }
 
 _pci_commit_netcfg(){
-
-echo "_pci_commit_netcfg:"
-	
 	local count=`cat $tmp_file | wc -l`
 	local i=1
+	local slots=`$kdb get sys_pcitbl_slots`
+
+	# Remove net config for removed slots
+	cfgslots=`kdb get sys_pcicfg_slots`
+	for s in $slots; do
+		# echo "remove $s slot"
+		cfgslots=`echo $cfgslots | sed "s/$s//g"`
+	done
+	# echo "cfgslots=$cfgslots"
+	for s in $cfgslots; do
+		tmp=`kdb get sys_pcicfg_s${s}_ifaces`
+		# echo "process slot $s: $tmp"
+		[ -z "$tmp" ] && continue
+		for iface in $tmp; do
+			# echo "kdb rm sys_iface_$iface*"
+			kdb rm sys_iface_$iface*
+		done
+		kdb set sys_pcicfg_s${s}_ifaces=""		
+	done
+	kdb set sys_pcicfg_slots="$slots"
 	
 	# Read file line by line & commit to KDB	
 	while [ "$i" -le "$count" ]; do
 		tmp=`cat $tmp_file | head -n $i | tail -n 1`
-		echo "kdb set \"$tmp\""
+		# echo "kdb set \"$tmp\""
 		kdb set "$tmp"
 		i=`expr $i + 1`
 	done
@@ -138,14 +163,15 @@ pcinet_refresh(){
 	local s
 	local slots=`$kdb get sys_pcitbl_slots`
 	echo > $tmp_file
+	
 	for s in $slots; do
 		old_list=`$kdb get sys_pcicfg_s${s}_ifaces`
 		new_list=`$kdb get sys_pcitbl_s${s}_ifaces`
-		echo "CHECK SLOT $s"
+		# echo "CHECK SLOT $s"
 		if [ ! -n "$new_list" ] || [ ! -n "$old_list" ]; then
 			continue
 		fi
-		echo "UPDATE slot $s"
+		# echo "UPDATE slot $s"
 		_pci_update_netcfg "${old_list}" "${new_list}"
 		$kdb set sys_pcicfg_s${s}_ifaces="${new_list}"
 	done
