@@ -941,38 +941,41 @@ sg17_enable_card( struct sg17_card *card )
 	int ret = 0;
 	int i;
 
-	PDEBUG(debug_init,"sg17_sci_enable");
-	sg17_sci_enable(sci);
-	sg17_def_config(card);
-	// Allocate EOC data structures
-	PDEBUG(debug_eoc,"EIC: init sctructures\n");
-	hwdev->ch[3].eoc = eoc_init();
-	hwdev->ch[0].eoc = eoc_init();
-
 	// load firmware
 	PDEBUG(debug_init,"request_firmware");	
 	if( (ret = request_firmware((const struct firmware **)&fw,MR17H_DRVNAME".bin",&(card->pdev->dev))) ){
 		printk(KERN_NOTICE"firmware file not found\n");
-		goto exit_request;
+		return -ENOENT;
 	}
+
+	PDEBUG(debug_init,"sg17_sci_enable");
+	sg17_sci_enable(sci);
+	sg17_def_config(card);
+	mdelay(2);
+	// Allocate EOC data structures
+	PDEBUG(debug_eoc,"EIC: init sctructures\n");
+	hwdev->ch[3].eoc = eoc_init();
+	hwdev->ch[0].eoc = eoc_init();
 	i=0;
 	while( (ret = sdfe4_download_fw(hwdev,fw->data,fw->size)) && i<3 ){
 		printk(KERN_NOTICE"Error loading fw. Try once again (#%d)\n",i+1);
+		sg17_sci_disable(sci);
+		udelay(100);
+		sg17_sci_enable(sci);
+		mdelay(2);
 		i++;
 	}
+	release_firmware(fw);
+
+	// Check for successfull firmware load	
 	if( i ==3 ){
 		printk(KERN_NOTICE MR17H_MODNAME ": Cannot download firmware for PCI device=%02x:%02x.%d\n",
 				card->pdev->bus->number,PCI_SLOT(card->pdev->devfn),PCI_FUNC(card->pdev->devfn));
+		sg17_sci_disable(sci);
+		return -ENODEV;	
 	}
-	release_firmware(fw);
 	PDEBUG(debug_init,"success");		
 	return 0;
-	
- exit_download:
-	release_firmware(fw);
- exit_request:
-	sg17_sci_disable(sci);	
-	return -ENODEV;	
 }
 
 
@@ -981,7 +984,7 @@ sg17_disable_card( struct sg17_card *card )
 {
 	struct sdfe4 *hwdev = &(card->hwdev);
 	PDEBUG(debug_init,"");
-	sg17_sci_disable( &card->sci );
+	sg17_sci_disable(&card->sci);
 	// Free EOC data structures
 	PDEBUG(debug_eoc,"EIC: remove sctructures\n");	
 	eoc_free(hwdev->ch[3].eoc);

@@ -452,6 +452,7 @@ int sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev);
 int sdfe4_setup_channel(int ch, struct sdfe4 *hwdev);
 int sdfe4_start_channel(int ch, struct sdfe4 *hwdev);
 int sdfe4_start_chip(struct sdfe4 *hwdev);
+int sdfe4_flush_state(struct sdfe4 *hwdev);
 int sdfe4_state_mon(struct sdfe4 *hwdev);
 int sdfe4_get_statistic(u8 ch, struct sdfe4 *hwdev,struct sdfe4_stat *stat);
 int sdfe4_start_as_modem(struct sdfe4 *hwdev);

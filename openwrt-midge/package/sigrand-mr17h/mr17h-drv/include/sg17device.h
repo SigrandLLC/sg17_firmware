@@ -21,6 +21,7 @@ int sdfe4_hdlc_recv(u8 *buf,int *len,struct sdfe4 *hwdev);
 void sdfe4_clear_channel(struct sdfe4 *hwdev);
 // portability
 void wait_ms(int x);
+void wait_us(int x);
 void sdfe4_memcpy(void *,const void *,int size);
 // Link
 int sdfe4_link_led_up(int i,struct sdfe4 *hwdev);

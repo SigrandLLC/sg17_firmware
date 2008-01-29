@@ -92,20 +92,24 @@ sg17_sci_enable( struct sg17_sci *s )
 	iowrite8( 0xff,&s->regs->SR);		
 	iowrite8( (RXS | TXS | CRC | COL),&s->regs->IMR);	
 	mdelay(10);
-	PDEBUG(debug_sci,"SCI enabled");
 	schedule_delayed_work(&s->wqueue,2*HZ);	
+	PDEBUG(debug_sci,"SCI enabled");
 	return 0;
 }
 
 inline int
 sg17_sci_disable( struct sg17_sci *s )
 {
+	struct sdfe4 *hwdev = s->hwdev;
+	// Stop monitoring
+	cancel_delayed_work(&s->wqueue);
+	// Clear state settings in hwdev
+	sdfe4_flush_state(hwdev);
+	// shut down device
 	iowrite8( 0,&s->regs->CRA);
 	iowrite8( 0,&s->regs->IMR);	
 	iowrite8( 0xff ,&s->regs->SR );
-	cancel_delayed_work(&s->wqueue);
 	PDEBUG(debug_sci,"disabled");
-	
 	return 0;
 }
 
@@ -203,17 +207,21 @@ sg17_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *regs )
 }
 
 int
-sg17_sci_recv( struct sg17_sci *s, char *msg, int *mlen)
+sg17_sci_recv( struct sg17_sci *s,char *msg, int *mlen)
 {
-	int clen = s->rx_len;
+	u8 clen = s->rx_len;
 	int i;	
 
-	if( clen < 0 )
-		return clen;
-	else if( !clen )
+	if( !clen ){
+		PDEBUG(debug_error,"Zero length");
 		return -1;
-	if( *mlen < clen )
+	}
+	
+	if( *mlen < clen ){
+		PDEBUG(debug_error,"mlen<clen!!, mlen=%u, clen=%u",*mlen,clen);
 		return -EINVAL;
+	}
+	
 	*mlen = clen;
 	for( i=0; i<clen; i++)
 		msg[i] = s->rx_msg[i];
@@ -228,11 +236,9 @@ int sg17_sci_xmit( struct sg17_sci *s, char *msg, int len)
 	// message is too long
 	if( len > SCI_BUFF_SIZE )
 		return -EINVAL;
-	
 	// somebody already send something, need wait
 	if( tmp & TXEN )
 		return -EAGAIN;
-	
 	s->tx_col = 0;
 	for( i=0; i<len; i++)
 		iowrite8( msg[i],(u8*)s->tx_buf + i);
@@ -334,6 +340,11 @@ sdfe4_hdlc_recv(u8 *buf,int *len,struct sdfe4 *hwdev){
 void
 wait_ms(int x){
 	mdelay(x);
+}
+
+void
+wait_us(int x){
+	udelay(x);
 }
 
 void
