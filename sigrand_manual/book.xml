@@ -2404,6 +2404,139 @@
 				При использовании специализированного ПО, поддерживающего загрузку MIB-ов, возможно получение информации в более удобной форме.
 			</para>
 		</section>
+		<section>
+			<title>Поддерживаемое ПО для управвления по SNMP</title>
+			<para>
+				Для реализации поддержки протокола SNMP используется свободный программный пакет <emphasis>net-snmp</emphasis>, что позволяет работать со всеми программными продуктами, совместимыми с net-snmp.
+			</para>
+			<para>
+				Дополнительно был проведён краткий обзор доступного программного обеспечения, результаты которого представлены ниже.
+			</para>
+			<section>
+				<title>The Dude</title>
+				<para>
+					<emphasis>The Dude</emphasis> - бесплатный программный продукт для работы по протоколу SNMP, работает под ОС MS Windows.
+				</para>
+				<figure>
+					<title>The Dude</title>
+					<graphic fileref="img/thedude.png" width="6in" />
+				</figure>
+				<para>
+					Достоинства:
+				</para>
+				<itemizedlist>
+					<listitem>
+						<para>
+							Автоматически определяет устройства сети.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Рисует карту сети, позволяет добавлять на карту новые устройства, выводить на карту значения SNMP-переменных.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Выполняет мониторинг устройств, построение графиков в режиме реального времени.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Имеет несколько удобных встроенных утилит для сетевого администрирования и мониторинга (терминалы, snmpwalk).
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Удобные режимы просмотра SNMP информации (список, дерево, таблица).
+						</para>
+					</listitem>
+				</itemizedlist>
+				<para>
+					Недостатки:
+				</para>
+				<itemizedlist>
+					<listitem>
+						<para>
+							Неправильно отображаются индексы интерфейсов в табличном представлении.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Возможно некорректное отображение SnmpAdminString для имён SHDSL профилей.
+						</para>
+					</listitem>
+				</itemizedlist>
+				<para>
+					Домашняя страница проекта: <ulink url="http://www.mikrotik.com/thedude.php">The Dude</ulink>.
+				</para>
+			</section>
+			<section>
+				<title>MIB Browser</title>
+				<para>
+					<emphasis>MIB Browser</emphasis>, разработка компании iReasoning, доступна в платной и бесплатной версии, различающихся лицензиями и функиональностью. Заявлена поддержка платформ Windows, Mac OS X и Linux.
+				</para>
+				<figure>
+					<title>The Dude</title>
+					<graphic fileref="img/mibbrowser.png" width="6in" />
+				</figure>
+				<para>
+					Достоинства:
+				</para>
+				<itemizedlist>
+					<listitem>
+						<para>
+							Удобный интерфейс.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Табличный просмотр SNMP таблиц.
+						</para>
+					</listitem>
+				</itemizedlist>
+				<para>
+					Недостатки:
+				</para>
+				<itemizedlist>
+					<listitem>
+						<para>
+							Бесплатная версия не поддерживает SNMPv3, позволяет загружать дополнительно к имеющимся не более 5 MIB.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Возможно некорректное отображение SnmpAdminString для имён SHDSL профилей.
+						</para>
+					</listitem>
+				</itemizedlist>
+				<para>
+					Домашняя страница проекта: <ulink url="http://www.ireasoning.com/mibbrowser.shtml">MIB Browser</ulink>.
+				</para>
+			</section>
+			<section>
+				<title>OpenNMS</title>
+				<para>
+					<emphasis>OpenNMS</emphasis> - веб-приложение, написано на языке Java, использует для работы СУБД PostreSQL и Apache Tomcat, позволяет вести мониторинг промышленных сетей. Является свободным программным обеспечением (бесплатным), доступно для платформ, на которых работает Apache Tomcat (как правило, это Linux сервера).
+				</para>
+				<figure>
+					<title>OpenNMS</title>
+					<graphic fileref="img/opennms.png" width="6in" />
+				</figure>
+				<para>
+					Достоинства:
+				</para>
+				<itemizedlist>
+					<listitem>
+						<para>
+							Судя по всему, OpenNMS использует <emphasis>net-snmp</emphasis> для работы по протоколу SNMP, что даёт полную совместимость с оборудованием <emphasis>Sigrand</emphasis>.
+						</para>
+					</listitem>
+				</itemizedlist>
+				<para>
+					Домашняя страница проекта: <ulink url="http://www.opennms.org/index.php/Main_Page">OpenNMS</ulink>.
+				</para>
+			</section>
+		</section>
 	</chapter>
 	<chapter>
 		<title>Примеры конфигурации</title>
