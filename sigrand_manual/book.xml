@@ -550,108 +550,187 @@
     </section>
 	<section id="eoc">
 		<title id="eoc.title">Мониторинг SHDSL каналов</title>
-		<important>
+		<note>
 			<para>
 				Мониторинг поддерживают только модули MR17H.
 			</para>
-		</important>
-		<para>
-			Мониторинг SHDSL каналов позволяет получить информацию о соотношении Сигнал/Шум и уровне затухания в линии связи. В случае, если в линии связи используются регенераторы <emphasis>SG-17E</emphasis>, то можно получать информацию о состоянии этих регенераторов и их количестве.
-		</para>
-		<para>
-			Мониторинг каналов осуществляется программой <emphasis>eocd</emphasis>, работающей в режиме демона. На данный момент его конфигурация осуществляется через консольный интерфейс маршрутизатора.
-		</para>
-		<para>
-			Для работы демон <emphasis>eocd</emphasis> использует конфигурационный файл (по-умолчанию расположенный по пути /etc/eocd/eocd.conf), который состоит из двух разделов:
-		</para>
-		<itemizedlist>
-			<listitem><para>channels - содержит список интерфейсов операционной системы, определяет роль каждого из них в SHDSL канале и содержит ссылку на конфигурационный профиль.</para></listitem>
-			<listitem><para>span_profiles - содержит список профилей каналов. На данный момент не используется, но для каждого элемента из <emphasis>channels</emphasis> должен быть соответствующий профиль.</para></listitem>
-		</itemizedlist>
-		<para>
-			Пример раздела <emphasis>channels</emphasis>:
-		</para>
-		<screen>
-			channels = (
-			{
-				name = "dsl0";				// Имя интерфейса в ОС
-				master = 1;				// Роль интерфейса: 1 - master, 0 - slave
-			
-				repeaters = 1;				// На данный момент не используется
-				conf_profile = "span#1";		// Имя профайла в разделе
-				apply_conf = 0;				// Применять конфигурацию из conf_profile
-			<emphasis>span_profiles</emphasis>
-			},
-			{
-				name = "dsl1";
-				master = 1;
-			
-				repeaters = 1;
-				conf_profile = "span#1";
-				apply_conf = 0;
-			}
-			);
-		</screen>
-		<para>
-			Параметры для SHDSL интерфейса могут быть установлены как через веб-интерфейс, так и через конфигурационный файл eocd.conf. Установка через конфигурационный файл является более приоритетной, поэтому для настройки SHDSL интерфейсов через веб-интерфейс, установите значение параметра apply_conf в 0 (как показано выше).
-		</para>
-		<para>
-			Запуск демона возможен со следующими параметрами:
-		</para>
-		<itemizedlist>
-			<listitem><para>-d, --daemon - запуск в режиме демона. Без этого ключа <emphasis>eocd</emphasis> не отключится от терминала и будет выводить на него диагностические сообщения.</para></listitem>
-			<listitem><para>-c, --config_path=path - путь к конфигурационному файлу (по-умолчанию используется конфигурационный файл /etc/eocd/eocd.conf).</para></listitem>
-			<listitem><para>-l, --debuglev=level - уровень отладки, допустимые значения 0, 1, 2.</para></listitem>
-		</itemizedlist>
-		<para>
-			Для запуска демона можно использовать следующую команду:
-		</para>
-		<para>
-			<command>eocd</command> <option>-d</option>
-		</para>
-		<para>
-			После запуска демон выдаст сообщение на консоль и в системный лог (<command>logread</command>), и должен быть виден в списке процессов (<command>ps</command>).
-		</para>
-		<para>
-			Демон должен быть запущен как на маршрутизаторе, работающем в режиме <emphasis>master</emphasis>, так и на втором маршрутизаторе, работающем в режиме <emphasis>slave</emphasis>.
-		</para>
-		<important>
-			<para>Если при запуске демона он не сможет подключить указанные в конфигурационном файле интерфейсы (к примеру, если не загружен драйвер), то он выдаст в системный лог диагностическое сообщение (прочитать его можно с помощью команды <emphasis>logread</emphasis>).</para>
-		</important>
+		</note>
 		<note>
 			<para>
-				EOCD автоматически запускается при загрузке системы, поэтому после его конфигурации можете либо перезагрузить его вручную, убив запущенный процесс и запустив его снова командой, приведённой выше, либо выполнить перезагрузку маршрутизатора.
+				Получение статистики по каналу на данный возможно только с мастера.
 			</para>
 		</note>
-		<para>
-			Для мониторинга SHDSL канала используется утилита <command>eoc-info</command>, для получения подробной информации об её использовании используется ключ <option>--help</option>.
-		</para>
-		<important>
-			<para>Получение информации о канале возможно только на мастере, выполнение <command>eoc-info</command> на слейве не покажет информации о канале.</para>
-		</important>
-		<para>
-			Для получения краткой информации о состоянии канала используется команда <command>eoc-info</command> <option>-s</option>. Она показывает состояние каждого канала: сколько регенераторов обнаружено, и установлено ли соединение со слейвом (маршрутизатор, работающий в режиме <emphasis>slave</emphasis>). В ее выводе <emphasis>offline</emphasis> показывает, что соединение со вторым маршрутизатором не установлено. В этом случае число регенераторов показывает, до какого регенератора было установлено соединение.
-		</para>
-		<para>
-			Для получения более детальной информации надо указать имя интерфейса: <command>eoc-info</command> <option>-i</option> <replaceable>dsl0</replaceable>. В выводе команды будет полная информация о всех юнитах в тракте - мастера, слейва и всех регенераторов. Для получения информации о конкретном юните используется опция <option>-u</option> и номер юнита: 1 - мастер, 2 - слейв, 3 - первый регенератор и т.д.
-		</para>
-		<para>
-			При выводе детальной информации доступна информация о параметрах линии связи:
-		</para>
-		<itemizedlist>
-			<listitem><para>SNR Margin - соотношение сигнал/шум</para></listitem>
-			<listitem><para>Loop Attenuation - затухание</para></listitem>
-		</itemizedlist>
-		<para>
-			Есть две группы, в которые входят параметры линии связи:
-		</para>
-		<itemizedlist>
-			<listitem><para>NetSide - сторона мастера</para></listitem>
-			<listitem><para>CustomerSide - сторона клиента</para></listitem>
-		</itemizedlist>
-		<para>
-			Соответственно, на местере есть только сторона слейва, на слейве - только сторона мастера. У каждого регенератора есть обе стороны.
-		</para>
+		<section>
+			<title>Мониторинг через веб-интерфейс</title>
+			<para>
+				Мониторинг SHDSL каналов позволяет получить информацию о различных параметрах и произошедших ошибках в линии связи. В случае, если в линии связи используются регенераторы <emphasis>SG-17E</emphasis>, то можно получать информацию о состоянии этих регенераторов и их количестве.
+			</para>
+			<para>
+				Просмотр статистики параметров канала доступен на странице System->SHDSL-EOC->имя_интерфейса, на вкладке Statistic. На вкладке General отображается общая статистика соединения.
+			</para>
+			<figure>
+				<title>Общая статистика соединения</title>
+				<graphic fileref="img/eocd-stat-general.png" width="6in" />
+			</figure>
+			<itemizedlist>
+				<listitem>
+					<para>
+						<emphasis>Channel link</emphasis> - состояние соединения между демонами EOCd. Если соединение установлено, но значение этого параметра установлено в <emphasis>offline</emphasis> - значит демоны EOCd не смогли установить между собой соединение. Это может быть вызвано несколькими причинами: один из демонов EOCd может быть не запущен, либо соответствующий интерфейс не управляется через EOCd.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Regenerators</emphasis> - фактическое число регенераторов на линии.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Wire pairs</emphasis> - число пар в канале.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Rate, Annex</emphasis> - скорость и кодирование сигнала.
+					</para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				Каждому юниту в канале (мастеру, слейву и регенераторам) соответствует своя вкладка, на которой отображаются параметры линии связи для данного юнита. Так, вкладки STU-C и STU-R соответствуют мастеру и слейву, а SRU1 - SRU8 - регенераторам.
+			</para>
+			<para>
+				Параметры производительности, характеризующие SHDSL канал:
+			</para>
+			<itemizedlist>
+				<listitem>
+					<para>
+						<emphasis>Errored Second (ES)</emphasis> - количество секундных интервалов, в которые была обнаружена одна или более CRC аномалий или более одного LOSW дефекта. При работе с данным параметром необходимо учитывать правила приоритетов параметров (см. <link linkend="shdsl.rules">правила приоритетов</link>).
+					</para>
+					<note>
+						<para>
+							<emphasis>Loss of Sync Defect (LOSW defect)</emphasis> – потеря синхронизации. В плезиохронном режиме дефект потери синхронизации должен обозначаться, когда не менее трех последовательно полученных кадров содержат ошибки синхронизации. Данные ошибки индицируются группой битов в кадре: Frame Sync Word, Stuff Bits и Stuff Bit Ids. Индикация LOSW очищается после получения не менее двух кадров не содержащих ошибок синхронизации, следующих друг за другом.
+						</para>
+					</note>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Severely Errored Second (SES)</emphasis> - количество односекундных интервалов, в течение которых произошло не менее 50-ти CRC аномалий или более одного LOSW дефекта. (50 CRC аномалий в течение одной секунды соответствуют 30% некорректных кадров для стандартной длины кадра). При работе с данным параметром необходимо учитывать правила приоритетов параметров.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>LOSW Second (LOSWS)</emphasis> - количество секундных интервалов, в течение которых обнаружено более одного LOSW дефекта.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Unavailable Second (UAS)</emphasis> - количество секундных интервалов, в течение которых SHDSL канал недоступен. Канал считается доступным после сбоя по прошествии 10 секунд, в течение которых не зарегистрировано ни одного SES. Данные 10 секунд исключаются из числа секунд, в которые канал был недоступен.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Code Violation (CV)</emphasis> - количество CRC аномалий, обнаруженных за период, в течение которого производился мониторинг. При работе с данным параметром необходимо учитывать правила приоритетов параметров, которые будут описаны ниже.
+					</para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				Таблица <emphasis>state</emphasis> показывает текущие параметры линии (SNR и LoopAttn) и ошибки с момента начала мониторинга канала.
+			</para>
+			<figure>
+				<title>Таблица state</title>
+				<graphic fileref="img/eocd-stat-unit-state.png" width="6in" />
+			</figure>
+			<itemizedlist>
+				<listitem>
+					<para>
+						<emphasis>Side</emphasis> - сторона.
+					</para>
+					<note>
+						<para>
+							Есть две группы, в которые входят параметры линии связи:
+						</para>
+						<itemizedlist>
+							<listitem>
+								<para>
+									<emphasis>NetSide</emphasis> - сторона мастера (линия связи, идущая к мастеру).
+								</para>
+							</listitem>
+							<listitem>
+								<para>
+									<emphasis>CustSide</emphasis> - сторона клиента (линия связи, идущая к слейву).
+								</para>
+							</listitem>
+						</itemizedlist>
+					</note>
+				</listitem>
+				<listitem>
+					<emphasis>Pair</emphasis> - номер пары проводов.
+				</listitem>
+			</itemizedlist>
+			<para>
+				Таблица <emphasis>relative counters</emphasis> содержит те же параметры, что и таблица <emphasis>state</emphasis>, предоставляя возможность их сбрасывания, чтобы проводить замеры в определённые промежутки времени.
+			</para>
+			<figure>
+				<title>Таблица relative counters</title>
+				<graphic fileref="img/eocd-stat-unit-relative.png" width="6in" />
+			</figure>
+			<para>
+				Таблица <emphasis>current intervals</emphasis> содержит ошибки за последние 15 минут и последний день. Значения обновляются, соответственно, каждые 15 минут и каждый день.
+			</para>
+			<figure>
+				<title>Таблица current intervals</title>
+				<graphic fileref="img/eocd-stat-unit-curr.png" width="6in" />
+			</figure>
+			<para>
+				Так же для каждой пары проводов и каждой стороны (NetSide и CustSide) ведутся таблицы, хранящие 15 минутные и дневные интервалы, в течении которых были ошибки. В таблицах хранится последние 96 15-ти минутных интервалов, и последние 30 - дневных.
+			</para>
+			<figure>
+				<title>Таблица 15-ти минутных интервалов для CustSide</title>
+				<graphic fileref="img/eocd-stat-unit-15min.png" width="6in" />
+			</figure>
+			<figure>
+				<title>Таблица дневных интервалов для CustSide</title>
+				<graphic fileref="img/eocd-stat-unit-1day.png" width="6in" />
+			</figure>
+			<itemizedlist>
+				<listitem>
+					<para>
+						<emphasis>Monitoring</emphasis> - процент времени, в течении которого мониторился канал.
+					</para>
+				</listitem>
+			</itemizedlist>
+		</section>
+		<section>
+			<title>Мониторинг через консоль</title>
+			<para>
+				Для мониторинга SHDSL канала используется утилита <command>eoc-info</command>, для получения подробной информации об её использовании используется ключ <option>--help</option>.
+			</para>
+			<para>
+				Для получения краткой информации о состоянии канала используется команда <command>eoc-info</command> <option>-s</option>. Она показывает состояние каждого канала: сколько регенераторов обнаружено, и установлено ли соединение со слейвом (маршрутизатор, работающий в режиме <emphasis>slave</emphasis>). В ее выводе <emphasis>offline</emphasis> показывает, что соединение со вторым маршрутизатором не установлено. В этом случае число регенераторов показывает, до какого регенератора было установлено соединение.
+			</para>
+			<para>
+				Для получения более детальной информации надо указать имя интерфейса: <command>eoc-info</command> <option>-i</option> <replaceable>dsl0</replaceable>. В выводе команды будет полная информация о всех юнитах в тракте - мастера, слейва и всех регенераторов. Для получения информации о конкретном юните используется опция <option>-u</option> и название юнита: STU-C, STU-R, SRU1..SRU8.
+			</para>
+		</section>
+		<section id="shdsl.rules">
+			<title>Правила приоритетов параметров производительности SHDSL канала</title>
+			<itemizedlist>
+				<listitem>
+					<para>
+						На параметр <emphasis>UAS</emphasis> не налагается запретов.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						Параметры <emphasis>ES</emphasis> и <emphasis>SES</emphasis> запрещаются, если установлена индикация <emphasis>UAS</emphasis>.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						Параметр <emphasis>CV</emphasis> запрещается, если установлена индикация <emphasis>SES</emphasis>.
+					</para>
+				</listitem>
+			</itemizedlist>
+		</section>
 	</section>
     <section id="cfg" >
       <title>Сохранение/восстановление конфигурации</title>
@@ -950,7 +1029,7 @@
 					</important>
 					<figure>
 						<title>Конфигурация SHDSL (MR16H)</title>
-						<graphic fileref="img/shdsl-link.png" width="6in" />
+						<graphic fileref="img/shdsl-link-mr16h.png" width="6in" />
 					</figure>
 					<itemizedlist>
 						<listitem>
@@ -965,7 +1044,7 @@
 						</listitem>
 						<listitem>
 							<para>
-								<emphasis>Coding</emphasis> - метод кодирования.
+								<emphasis>Coding</emphasis> - метод кодирования. Для скоростей 192...2496 рекомендуется использовать <emphasis>TCPAM16</emphasis>, для 2560...5696 - <emphasis>TCPAM32</emphasis>.
 							</para>
 						</listitem>
 						<listitem>
@@ -997,6 +1076,23 @@
 					<itemizedlist>
 						<listitem>
 							<para>
+								<emphasis>Control type</emphasis> - режим управления интерфейсом:
+							</para>
+							<itemizedlist>
+								<listitem>
+									<para>
+										<emphasis>Manual</emphasis> - задание настроек со страницы конфигурирования интерфейса (с текущей страницы).
+									</para>
+								</listitem>
+								<listitem>
+									<para>
+										<emphasis>EOCd</emphasis> - интерфейс управляет демоном EOCd. Это позволяет вести мониторинг SNMP параметров интерфейса, а в будущем - управлять интерфейсом по SNMP. Для получения подробной информации смотри раздел <link linkend="eocd.config">Конфигурация через демон EOCd</link>.
+									</para>
+								</listitem>
+							</itemizedlist>
+						</listitem>
+						<listitem>
+							<para>
 								<emphasis>Mode</emphasis> - режим: мастер (master), слейв (slave).
 							</para>
 						</listitem>
@@ -1012,8 +1108,13 @@
 						</listitem>
 						<listitem>
 							<para>
-								<emphasis>Coding</emphasis> - метод кодирования.
+								<emphasis>Coding</emphasis> - метод кодирования. Для скоростей 192...2496 рекомендуется использовать <emphasis>TCPAM16</emphasis>, для 2560...5696 - <emphasis>TCPAM32</emphasis>.
 							</para>
+							<note>
+								<para>
+									При управлении интерфейсом через <emphasis>EOCd</emphasis> данный параметр выставляется автоматически в соответствии с приведёнными выше рекомендациями.
+								</para>
+							</note>
 						</listitem>
 						<listitem>
 							<para>
@@ -1034,19 +1135,19 @@
 					</para>
 					<figure>
 						<title>Информация о состоянии соединения SHDSL (MR16H)</title>
-						<graphic fileref="img/shdsl-status.png" width="6in" />
+						<graphic fileref="img/shdsl-status-mr16h.png" width="6in" />
 					</figure>
 					<para>
 						Вкладка статуса для MR17H отображает более подробную информацию. Если соединение не установлено, выводится следующая информация:
 					</para>
 					<figure>
 						<title>Информация о неустановленном соединении SHDSL (MR17H)</title>
-						<graphic fileref="img/shdsl-status-mr17h.png" width="6in" />
+						<graphic fileref="img/shdsl-status-mr17h-offline.png" width="6in" />
 					</figure>
 					<itemizedlist>
 						<listitem>
 							<para>
-								<emphasis>Link state</emphasis> - состояние соединения: <emphasis>offline</emphasis> - соединение не установленно, <emphasis>online</emphasis> - соединение установленно.
+								<emphasis>Link state</emphasis> - состояние соединения: <emphasis>offline</emphasis> - соединение не установлено, <emphasis>online</emphasis> - соединение установлено.
 							</para>
 						</listitem>
 						<listitem>
@@ -1065,7 +1166,7 @@
 					</para>
 					<figure>
 						<title>Информация об установленном соединении SHDSL (MR17H)</title>
-						<graphic fileref="img/shdsl-status-mr17h-2.png" width="6in" />
+						<graphic fileref="img/shdsl-status-mr17h-online.png" width="6in" />
 					</figure>
 					<itemizedlist>
 						<listitem>
@@ -1099,6 +1200,52 @@
 							Соединения SHDSL будет установлено, если интерфейс dsl* активен, т.е. для него настроены сетевые параметры (установлен флажок <emphasis>enabled</emphasis> и интерфейс активен, подробнее - см. следующий раздел).
 						</para>
 					</note>
+				</section>
+			</section>
+			<section id="eocd.config">
+				<title>Конфигурация через демон EOCd</title>
+				<para>
+					Для управления интерфейсом через EOCd необходимо выбрать соответствующий тип конфигурации в настройке параметров интерфейса (параметр <emphasis>Control type</emphasis>). Конфигурация интерфейса через демон EOCd заключается в создании профиля соединения и применения этого профиля к интерфейсу.
+				</para>
+				<section>
+					<title>Создание и редактирование профиля</title>
+					<para>
+						Создание и редактирования профиля соединения производится на странице System->SHDSL-EOC->Profiles, вид которой представлен ниже.
+					</para>
+					<figure>
+						<title>Создание и редактирование профилей соединения</title>
+						<graphic fileref="img/eocd-profiles.png" width="6in" />
+					</figure>
+					<para>
+						В профиле соединения доступны не все параметры соединения, поддерживаемые модулем. Это ограничение связано со спецификой стандарта SNMP для интерфейса SHDSL. Доступные параметры - Rate, Annex, Power - полностью соответствуют параметрам на странице конфигурации интерфейса (см. <link linkend="dsl.mr17h">конфигурация SHDSL</link>).
+					</para>
+				</section>
+				<section>
+					<title>Применение профиля к интерфейсу</title>
+					<para>
+						Применение профиля соединения к интерфейсу осуществляется на странице System->SHDSL-EOC->имя_интерфейса.
+					</para>
+					<figure>
+						<title>Применение профиля соединения</title>
+						<graphic fileref="img/eocd-apply-profile.png" width="6in" />
+					</figure>
+					<itemizedlist>
+						<listitem>
+							<para>
+								<emphasis>Mode</emphasis> - режим работы интерфейса - мастер/слейв.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Regenerators</emphasis> - справочный параметр, отражающий число регенераторов, которое должно быть на линии. Позволяет сравнить фактическое число регенераторов с тем, которое было установлено.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>ConfProfile</emphasis> - профиль соединения, который используется демоном EOCd для управления интерфейсом.
+							</para>
+						</listitem>
+					</itemizedlist>
 				</section>
 			</section>
 			<section>
@@ -2405,7 +2552,7 @@
 			</para>
 		</section>
 		<section>
-			<title>Поддерживаемое ПО для управвления по SNMP</title>
+			<title>Поддерживаемое ПО для управления по SNMP</title>
 			<para>
 				Для реализации поддержки протокола SNMP используется свободный программный пакет <emphasis>net-snmp</emphasis>, что позволяет работать со всеми программными продуктами, совместимыми с net-snmp.
 			</para>
@@ -2473,7 +2620,7 @@
 			<section>
 				<title>MIB Browser</title>
 				<para>
-					<emphasis>MIB Browser</emphasis>, разработка компании iReasoning, доступна в платной и бесплатной версии, различающихся лицензиями и функиональностью. Заявлена поддержка платформ Windows, Mac OS X и Linux.
+					<emphasis>MIB Browser</emphasis>, разработка компании iReasoning, доступна в платной и бесплатной версии, различающихся лицензиями и функциональностью. Заявлена поддержка платформ Windows, Mac OS X и Linux.
 				</para>
 				<figure>
 					<title>The Dude</title>
