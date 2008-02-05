@@ -69,6 +69,8 @@
 	
 	# Add VLAN
 	render_form_header ifaces
+	help_1="vlan"
+	help_2=""
 	render_table_title "Add VLAN interface" 2
 	
 	desc=""
@@ -91,6 +93,8 @@
 
 	# Delete interface
 	render_form_header ifaces
+	help_1="ifaces"
+	help_2="ifaces.del"
 	render_table_title "Delete dynamic interface" 2
 
 	desc="Please select interface"

@@ -49,6 +49,8 @@ _eoc_settings()
 
 
 	render_form_header
+	help_1="dsl-eoc.settings"
+	help_2=""
 	render_table_title "$iface settings" 2
 
 	# sys_dsl_${iface}_name
@@ -85,6 +87,8 @@ _eoc_settings()
 _eoc_stat_general()
 {
 	iface=$1
+	help_1="eoc"
+	help_2=""
 	render_table_title "$iface status" 2
 
 	if [ "$link" -eq "0" ]; then
@@ -125,6 +129,8 @@ _eoc_stat_1dint()
 	s=$3
 	l=$4
 	
+	help_1="eoc"
+        help_2=""
 	render_table_title "$iface $s Pair"`expr $l + 1`" 1 Day error intervals" 2
 	echo "
 		<tr><td colspan=\"2\">
@@ -181,6 +187,8 @@ _eoc_stat_15mint()
 	s=$3
 	l=$4
 	
+	help_1="eoc"
+        help_2=""
 	render_table_title "$iface $s Pair"`expr $l + 1`" 15 Minutes error intervals" 2
 	echo "
 		<tr><td colspan=\"2\">
@@ -254,7 +262,8 @@ _eoc_stat_unit()
 		sides="NetSide CustSide"
 	esac
 
-
+	help_1="eoc"
+	help_2=""
 	render_table_title "$iface state" 2
 
 	echo "
@@ -312,7 +321,8 @@ _eoc_stat_unit()
 
 	echo "</table></td></tr>"
 
-
+	help_1="eoc"
+        help_2=""
 	render_table_title "$iface relative counters" 2
 
 	echo "
@@ -380,6 +390,8 @@ _eoc_stat_unit()
 	echo "</table></td></tr>"
 
 
+	help_1="eoc"
+        help_2=""
 	render_table_title "$iface current intervals" 2
 
 	echo "
