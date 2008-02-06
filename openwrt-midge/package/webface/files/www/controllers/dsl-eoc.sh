@@ -136,7 +136,7 @@ _eoc_stat_1dint()
 		<tr><td colspan=\"2\">
 		<table width=\"800px\" border=\"1\" style=\"border: solid 1px 1px; 1px; 1px;\">
 		<tr align='center'>
-			<td>Date</td><td>ES</td><td>SES</td><td>CRC</td><td>LOSWS</td><td>UAS</td>
+			<td>Date</td><td>ES</td><td>SES</td><td>CV</td><td>LOSWS</td><td>UAS</td>
 			<td>Monitoring(%)</td>
 		</tr>"
 	k=1
@@ -194,7 +194,7 @@ _eoc_stat_15mint()
 		<tr><td colspan=\"2\">
 		<table width=\"800px\" border=\"1\" style=\"border: solid 1px 1px; 1px; 1px;\">
 		<tr align='center'>
-			<td>Date</td><td>Start time</td><td>End time</td><td>ES</td><td>SES</td><td>CRC</td>
+			<td>Date</td><td>Start time</td><td>End time</td><td>ES</td><td>SES</td><td>CV</td>
 			<td>LOSWS</td><td>UAS</td><td>Monitoring(%)</td>
 
 		</tr>"
@@ -271,7 +271,7 @@ _eoc_stat_unit()
 		<table width=\"800px\" border=\"1\" style=\"border: solid 1px 1px; 1px; 1px;\">
 			<tr align='center'>
 				<td>Side</td><td>Pair</td><td>SNR</td><td>LoopAttn</td><td>ES</td><td>SES</td>
-				<td>CRC</td><td>LOSWS</td><td>UAS</td>
+				<td>CV</td><td>LOSWS</td><td>UAS</td>
 			</tr>"
 
 	for s in $sides; do
@@ -330,7 +330,7 @@ _eoc_stat_unit()
 		<table width=\"800px\" border=\"1\" style=\"border: solid 1px 1px; 1px; 1px;\">
 			<tr align='center'>
 				<td>Start date</td><td>Start time</td><td>Side</td><td>Pair</td>
-				<td>ES</td><td>SES</td><td>CRC</td><td>LOSWS</td><td>UAS</td>
+				<td>ES</td><td>SES</td><td>CV</td><td>LOSWS</td><td>UAS</td>
 				<td>Reset</td>
 			</tr>"
 
@@ -399,7 +399,7 @@ _eoc_stat_unit()
 		<table width=\"800px\" border=\"1\" style=\"border: solid 1px 1px; 1px; 1px;\">
 			<tr align='center'>
 				<td>Interval</td><td>Side</td><td>Pair</td>
-				<td>ES</td><td>SES</td><td>CRC</td><td>LOSWS</td><td>UAS</td>
+				<td>ES</td><td>SES</td><td>CV</td><td>LOSWS</td><td>UAS</td>
 				<td>Time elapsed</td>
 			</tr>"
 

@@ -1,7 +1,7 @@
 Index: net-snmp-5.1.2/configure
 ===================================================================
 --- net-snmp-5.1.2/configure	(revision 42)
-+++ net-snmp-5.1.2/configure	(revision 50)
++++ net-snmp-5.1.2/configure	(revision 55)
 @@ -27770,6 +27770,8 @@
  s,@installucdheaders@,$installucdheaders,;t t
  s,@installucdlibs@,$installucdlibs,;t t
@@ -11,10 +11,20 @@ Index: net-snmp-5.1.2/configure
  s,@CFLAGS@,$CFLAGS,;t t
  s,@LDFLAGS@,$LDFLAGS,;t t
  s,@CPPFLAGS@,$CPPFLAGS,;t t
+Index: net-snmp-5.1.2/compile
+===================================================================
+--- net-snmp-5.1.2/compile	(revision 0)
++++ net-snmp-5.1.2/compile	(revision 55)
+@@ -0,0 +1,5 @@
++#!/bin/sh
++
++STAGING_DIR=../../../staging_dir_mipsel/
++make LDFLAGS="-L${STAGING_DIR}/usr/lib -L${STAGING_DIR}/lib -static" INSTALL_PREFIX="/root/net_snmp" all install
++
 Index: net-snmp-5.1.2/mibs/Makefile.in
 ===================================================================
 --- net-snmp-5.1.2/mibs/Makefile.in	(revision 42)
-+++ net-snmp-5.1.2/mibs/Makefile.in	(revision 50)
++++ net-snmp-5.1.2/mibs/Makefile.in	(revision 55)
 @@ -35,7 +35,8 @@
  	IPV6-TC.txt IPV6-MIB.txt IPV6-ICMP-MIB.txt IPV6-TCP-MIB.txt \
  	IPV6-UDP-MIB.txt \
@@ -28,7 +38,7 @@ Index: net-snmp-5.1.2/mibs/Makefile.in
 Index: net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt
 ===================================================================
 --- net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	(revision 0)
-+++ net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	(revision 50)
++++ net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	(revision 55)
 @@ -0,0 +1,2541 @@
 +-- extracted from rfc4319.txt
 +-- at Thu Dec 15 06:40:11 2005
@@ -2571,10 +2581,211 @@ Index: net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt
 +--    ipr@ietf.org.
 +-- 
 +
+Index: net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib
+===================================================================
+--- net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib	(revision 0)
++++ net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib	(revision 55)
+@@ -0,0 +1,196 @@
++-- extracted from rfc2493.txt
++-- at Mon Nov 15 17:11:40 1999
++
++     PerfHist-TC-MIB DEFINITIONS ::= BEGIN
++
++     IMPORTS
++        MODULE-IDENTITY,
++        Gauge32, mib-2
++            FROM SNMPv2-SMI
++        TEXTUAL-CONVENTION
++            FROM SNMPv2-TC;
++
++
++     perfHistTCMIB MODULE-IDENTITY
++          LAST-UPDATED "9811071100Z"
++          ORGANIZATION "IETF AToMMIB and TrunkMIB WGs"
++          CONTACT-INFO
++                       "Kaj Tesink
++              Postal:  Bellcore
++                       331 Newman Springs Road
++                       Red Bank, NJ 07701
++                       USA
++              Tel:     +1 732 758 5254
++              Fax:     +1 732 758 2269
++              E-mail:  kaj@bellcore.com"
++          DESCRIPTION
++           "This MIB Module provides Textual Conventions
++             to be used by systems supporting 15 minute
++             based performance history counts."
++          ::= { mib-2 58 }
++
++
++
++
++     -- The Textual Conventions defined below are organized
++     -- alphabetically
++
++     -- Use of these TCs assumes the following:
++     -- 0  The agent supports 15 minute based history
++     --    counters.
++     -- 0  The agent is capable of keeping a history of n
++     --    intervals of 15 minute performance data. The
++     --    value of n is defined by the specific MIB
++     --    module but shall be 0 < n =< 96.
++     -- 0  The agent may optionally support performance
++     --    data aggregating the history intervals.
++     -- 0  The agent will keep separate tables for the
++     --    current interval, the history intervals, and
++     --    the total aggregates.
++     -- 0  The agent will keep the following objects.
++     --    If performance data is kept for multiple instances
++     --    of a measured entity, then
++     --    these objects are applied to each instance of
++     --    the measured entity (e.g., interfaces).
++     --
++
++
++     -- xyzTimeElapsed OBJECT-TYPE
++     --       SYNTAX  INTEGER (0..899)
++     --       MAX-ACCESS  read-only
++     --       STATUS  current
++     --       DESCRIPTION
++     --       "The number of seconds that have elapsed since
++     --       the beginning of the current measurement period.
++     --       If, for some reason, such as an adjustment in the
++     --       system's time-of-day clock, the current interval
++     --       exceeds the maximum value, the agent will return
++     --       the maximum value."
++     --       ::= { xxx }
++
++     -- xyzValidIntervals OBJECT-TYPE
++     --       SYNTAX  INTEGER (0..<n>)
++     --       MAX-ACCESS  read-only
++     --       STATUS  current
++     --       DESCRIPTION
++     --       "The number of previous near end intervals
++     --       for which data was collected.
++     --          [ The overall constraint on <n> is 1 =< n =< 96; ]
++     --          [ Define any additional constraints on <n> here. ]
++     --       The value will be <n> unless the measurement was
++     --       (re-)started within the last (<n>*15) minutes, in which
++     --       case the value will be the number of complete 15
++     --       minute intervals for which the agent has at least
++     --       some data. In certain cases (e.g., in the case
++     --       where the agent is a proxy) it is possible that some
++     --       intervals are unavailable.  In this case, this
++     --       interval is the maximum interval number for
++     --       which data is available."
++     --       ::= { xxx }
++
++     -- xyzInvalidIntervals OBJECT-TYPE
++     --     SYNTAX  INTEGER (0..<n>)
++     --     MAX-ACCESS  read-only
++     --     STATUS  current
++     --     DESCRIPTION
++     --       "The number of intervals in the range from
++     --        0 to xyzValidIntervals for which no
++     --        data is available. This object will typically
++     --        be zero except in cases where the data for some
++     --        intervals are not available (e.g., in proxy
++     --        situations)."
++     --       ::= { xxx }
++
++     PerfCurrentCount ::= TEXTUAL-CONVENTION
++           STATUS  current
++           DESCRIPTION
++              "A counter associated with a
++               performance measurement in a current 15
++               minute measurement interval. The value
++               of this counter starts from zero and is
++               increased when associated events occur,
++               until the end of the 15 minute interval.
++               At that time the value of the counter is
++               stored in the first 15 minute history
++               interval, and the CurrentCount is
++               restarted at zero. In the
++               case where the agent has no valid data
++               available for the current interval the
++               corresponding object instance is not
++               available and upon a retrieval request
++               a corresponding error message shall be
++               returned to indicate that this instance
++               does not exist (for example, a noSuchName
++               error for SNMPv1 and a noSuchInstance for
++               SNMPv2 GET operation)."
++            SYNTAX  Gauge32
++
++     PerfIntervalCount ::= TEXTUAL-CONVENTION
++           STATUS  current
++           DESCRIPTION
++              "A counter associated with a
++               performance measurement in a previous
++               15 minute measurement interval. In the
++               case where the agent has no valid data
++               available for a particular interval the
++               corresponding object instance is not
++               available and upon a retrieval request
++               a corresponding error message shall be
++               returned to indicate that this instance
++               does not exist (for example, a noSuchName
++               error for SNMPv1 and a noSuchInstance for
++               SNMPv2 GET operation).
++               In a system supporting
++               a history of n intervals with
++               IntervalCount(1) and IntervalCount(n) the
++               most and least recent intervals
++               respectively, the following applies at
++               the end of a 15 minute interval:
++               - discard the value of IntervalCount(n)
++               - the value of IntervalCount(i) becomes that
++                 of IntervalCount(i-1) for n >= i > 1
++               - the value of IntervalCount(1) becomes that
++                 of CurrentCount
++               - the TotalCount, if supported, is adjusted."
++            SYNTAX  Gauge32
++
++     PerfTotalCount ::= TEXTUAL-CONVENTION
++           STATUS  current
++           DESCRIPTION
++              "A counter associated with a
++               performance measurements aggregating the
++               previous valid 15 minute measurement
++               intervals. (Intervals for which no valid
++               data was available are not counted)"
++            SYNTAX  Gauge32
++
++
++     END
++
++-- 
++--    Copyright (C) The Internet Society (1999).  All Rights Reserved.
++-- 
++--    This document and translations of it may be copied and furnished to
++--    others, and derivative works that comment on or otherwise explain it
++--    or assist in its implementation may be prepared, copied, published
++--    and distributed, in whole or in part, without restriction of any
++--    kind, provided that the above copyright notice and this paragraph are
++--    included on all such copies and derivative works.  However, this
++--    document itself may not be modified in any way, such as by removing
++--    the copyright notice or references to the Internet Society or other
++--    Internet organizations, except as needed for the purpose of
++--    developing Internet standards in which case the procedures for
++--    copyrights defined in the Internet Standards process must be
++--    followed, or as required to translate it into languages other than
++--    English.
++-- 
++--    The limited permissions granted above are perpetual and will not be
++--    revoked by the Internet Society or its successors or assigns.
++-- 
++--    This document and the information contained herein is provided on an
++--    "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
++--    TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
++--    BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
++--    HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
++--    MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
++
 Index: net-snmp-5.1.2/agent/Makefile.in
 ===================================================================
 --- net-snmp-5.1.2/agent/Makefile.in	(revision 42)
-+++ net-snmp-5.1.2/agent/Makefile.in	(revision 50)
++++ net-snmp-5.1.2/agent/Makefile.in	(revision 55)
 @@ -75,8 +75,10 @@
  # Objects
  #
@@ -2608,7 +2819,7 @@ Index: net-snmp-5.1.2/agent/Makefile.in
 Index: net-snmp-5.1.2/agent/mibgroup/Makefile.in
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/Makefile.in	(revision 42)
-+++ net-snmp-5.1.2/agent/mibgroup/Makefile.in	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/Makefile.in	(revision 55)
 @@ -2,6 +2,7 @@
  
  CPPFLAGS=-I../../include -I$(top_srcdir)/include \
@@ -2636,7 +2847,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/Makefile.in
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/EOC_main.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/EOC_main.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/EOC_main.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/EOC_main.h	(revision 55)
 @@ -0,0 +1,68 @@
 +#ifndef EOC_MAIN_H
 +#define EOC_MAIN_H
@@ -2709,7 +2920,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/EOC_main.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/handlers/EOC_poller_req.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/handlers/EOC_poller_req.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/handlers/EOC_poller_req.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/handlers/EOC_poller_req.h	(revision 55)
 @@ -0,0 +1,16 @@
 +#ifndef EOC_POLLER_REQUESTS_H
 +#define EOC_POLLER_REQUESTS_H
@@ -2730,7 +2941,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/handlers/EOC_poller_req
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/hash_table.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/hash_table.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/hash_table.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/hash_table.h	(revision 55)
 @@ -0,0 +1,48 @@
 +#ifndef SIGRAND_HASH_TABLE_H
 +#define SIGRAND_HASH_TABLE_H
@@ -2783,7 +2994,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/hash_table.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOClist.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOClist.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOClist.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOClist.h	(revision 55)
 @@ -0,0 +1,62 @@
 +#ifndef SIGRAND_LIST_H
 +#define SIGRAND_LIST_H
@@ -2850,7 +3061,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOClist.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOC_ring_container.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOC_ring_container.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOC_ring_container.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOC_ring_container.h	(revision 55)
 @@ -0,0 +1,78 @@
 +#ifndef EOC_RING_CONTAINER_H
 +#define EOC_RING_CONTAINER_H
@@ -2933,7 +3144,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOC_ring_containe
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOCLog.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOCLog.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOCLog.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOCLog.h	(revision 55)
 @@ -0,0 +1,42 @@
 +#ifndef SIGRAND_LOG_H
 +#define SIGRAND_LOG_H
@@ -2981,7 +3192,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOCLog.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dev_terminal.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dev_terminal.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dev_terminal.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dev_terminal.h	(revision 55)
 @@ -0,0 +1,21 @@
 +#ifndef SIGRAND_EOC_DEV_MASTER_H
 +#define SIGRAND_EOC_DEV_MASTER_H
@@ -3007,7 +3218,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dev_terminal.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_r17.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_r17.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_r17.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_r17.h	(revision 55)
 @@ -0,0 +1,30 @@
 +#ifndef SIGRAND_EOC_SRU_H
 +#define SIGRAND_EOC_SRU_H
@@ -3042,7 +3253,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_r17.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dummy.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dummy.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dummy.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dummy.h	(revision 55)
 @@ -0,0 +1,28 @@
 +#ifndef SIGRAND_EOC_SG17_H
 +#define SIGRAND_EOC_SG17_H
@@ -3075,7 +3286,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dummy.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dummy1.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dummy1.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dummy1.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dummy1.h	(revision 55)
 @@ -0,0 +1,113 @@
 +#ifndef EOC_DUMMY_1_H
 +#define EOC_DUMMY_1_H
@@ -3193,7 +3404,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dummy1.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_mr16h.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_mr16h.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_mr16h.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_mr16h.h	(revision 55)
 @@ -0,0 +1,21 @@
 +#ifndef SIGRAND_EOC_SG17_H
 +#define SIGRAND_EOC_SG17_H
@@ -3219,7 +3430,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_mr16h.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dev.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dev.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dev.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dev.h	(revision 55)
 @@ -0,0 +1,71 @@
 +#ifndef SIGRAND_EOC_DEV_H
 +#define SIGRAND_EOC_DEV_H
@@ -3295,7 +3506,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dev.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_mr17h.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_mr17h.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_mr17h.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_mr17h.h	(revision 55)
 @@ -0,0 +1,57 @@
 +#ifndef SIGRAND_EOC_SG17_H
 +#define SIGRAND_EOC_SG17_H
@@ -3357,7 +3568,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_mr17h.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h	(revision 55)
 @@ -0,0 +1,38 @@
 +#ifndef EOC_DEBUG_H
 +#define EOC_DEBUG_H
@@ -3400,7 +3611,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/config/EOC_config.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/config/EOC_config.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/config/EOC_config.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/config/EOC_config.h	(revision 55)
 @@ -0,0 +1,33 @@
 +#ifndef EOC_CONFIG_H
 +#define EOC_CONFIG_H
@@ -3438,8 +3649,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/config/EOC_config.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_side.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_side.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_side.h	(revision 50)
-@@ -0,0 +1,49 @@
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_side.h	(revision 55)
+@@ -0,0 +1,53 @@
 +#ifndef EOC_SIDE_H
 +#define EOC_SIDE_H
 +
@@ -3476,24 +3687,28 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_side.h
 +	return loops[l];
 +    }
 +	inline void link_up(){
-+		for(int i=0;i<MAX_LOOPS;i++)
++		for(int i=0;i<loop_num;i++)
 +			if(loops[i])
 +				loops[i]->link_up();
 +	}
 +	inline void link_down(){
-+		for(int i=0;i<MAX_LOOPS;i++)
-+			if(loops[i])
++		PDEBUG(DERR,"side func");
++		for(int i=0;i<loop_num;i++){
++			if(loops[i]){
++				PDEBUG(DERR,"try down loop#%d",i);
 +				loops[i]->link_down();
++				PDEBUG(DERR,"try down loop#%d - success",i);
++			}
++		}
 +	}
-+    
 +};
 +
 +#endif
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_db.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_db.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_db.h	(revision 50)
-@@ -0,0 +1,66 @@
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_db.h	(revision 55)
+@@ -0,0 +1,69 @@
 +/*
 + * EOC_db.h:
 + *	EOC channel configuration & status storage
@@ -3536,6 +3751,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_db.h
 +    static int _appreq_endp1day(EOC_db *db,app_frame *fr);
 +    static int _appreq_endpmaint(EOC_db *db,app_frame *fr);
 +    static int _appreq_unitmaint(EOC_db *db,app_frame *fr);
++	static int _appreq_cntrst(EOC_db *db,app_frame *fr);
 +
 +    inline int register_handlers();
 +
@@ -3551,19 +3767,21 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_db.h
 +    int app_request(app_frame *fr);
 +    int unit_quan();
 +    int reg_quan();
-+    int link_established();
++
++    int link_state();
++    void link_down();
++    void link_up();
 +
 +    int check_exist(unit u);
 +    EOC_side *check_exist(unit u,side s);
 +    EOC_loop *check_exist(unit u,side s,int loop);
-+    void link_down();
 +};
 +
 +#endif
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/alarm_profile.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/alarm_profile.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/alarm_profile.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/alarm_profile.h	(revision 55)
 @@ -0,0 +1,14 @@
 +#ifndef SIGRAND_ALARM_PROFILE_H
 +#define SIGRAND_ALARM_PROFILE_H
@@ -3583,8 +3801,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/alarm_profile.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_loop.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_loop.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_loop.h	(revision 50)
-@@ -0,0 +1,161 @@
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_loop.h	(revision 55)
+@@ -0,0 +1,225 @@
 +#ifndef EOC_LOOP_H
 +#define EOC_LOOP_H
 +
@@ -3604,7 +3822,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_loop.h
 +
 +    counters_elem(){
 +		memset(&cntrs,0,sizeof(cntrs));
-+		tstamp = 0;
++		tstamp = time(NULL);
 +    }
 +    int addit(counters_t cnt){
 +		//	printf("addit: %d to es\n",cnt.es);
@@ -3614,7 +3832,11 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_loop.h
 +		cntrs.losws += cnt.losws;
 +		cntrs.uas += cnt.uas;
 +    }
-+    
++	void reset(){
++		PDEBUG(DERR,"reset");
++		memset(&cntrs,0,sizeof(cntrs));
++		tstamp = time(NULL);
++	}
 +};
 +
 +typedef struct {
@@ -3626,6 +3848,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_loop.h
 +} shdsl_current;
 +
 +
++#define EOC_15MIN_SECS 15*60
++#define EOC_1DAY_SECS 24*60*60
 +#define EOC_15MIN_INT_LEN 15
 +#define EOC_15MIN_INTS 96
 +#define EOC_1DAY_INTS 30
@@ -3635,11 +3859,13 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_loop.h
 + protected:
 +    // current situation
 +    shdsl_current state;
++	counters_elem tstate;
 +    EOC_ring_container<counters_elem> _15min_ints;
 +    EOC_ring_container<counters_elem> _1day_ints;
++	u8 is_first_msg;
 +    side_perf last_msg;
-+	char lstate;
-+	time_t down_ts,up_ts;
++	char lstate; // link state
++	time_t moni_ts; // last moniSecs refresh
 +    
 +    // TODO: check how hardware maintain moulo counters: i.e. if counter overflow - would it count zero as addit count?
 +    inline u8 modulo_diff(u8 val,u8 nval,u8 modulo,char *type){
@@ -3654,9 +3880,17 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_loop.h
 +		return ret;	
 +    }
 +
++    inline int int_diff(u32 val,u32 nval,u32 modulo,char *type){
++		if( val > nval )
++			return 0;
++		if( (nval-val)/modulo )
++			return modulo;
++		return (nval-val)%modulo;
++    }
++
 +    void status_diff(side_perf *info,counters_t &cntrs);
 +    int setup_cur_status(side_perf *info);
-+    inline int get_localtime(time_t *t,struct tm &ret);
++    int get_localtime(time_t *t,struct tm &ret);
 +    void shift_rings();
 + public:
 +    EOC_loop();
@@ -3667,8 +3901,10 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_loop.h
 +    // output interface
 +    s32 cur_snr(){ return state.snr_marg; }
 +    s32 cur_attn(){ return state.loop_attn; }
-+    counters_t cur_counters(){ return state.elem.cntrs; }
 +    shdsl_status_t cur_status(){ return state.stat; }
++    counters_t cur_counters(){ return state.elem.cntrs; }
++    counters_t cur_tcounters(){ return tstate.cntrs; }
++    time_t cur_ttstamp(){ return tstate.tstamp; }
 +    int m15_counters(int index,counters_elem &cntrs){
 +		if( !(index < EOC_15MIN_INTS && index>=0) )
 +			return -1;
@@ -3715,17 +3951,63 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_loop.h
 +
 +	// Link status change handling
 +	inline void link_up(){
++		PDEBUG(DERR,"LINK IS UP!!!!!!!!!!!!!!!!");
 +		if( lstate )
 +			return;
-+		time(&up_ts);
 +		lstate = 1;
++		is_first_msg = 1;
++		moni_ts = time(NULL);
 +	}
 +	inline void link_down(){
++		PDEBUG(DERR,"LINK IS DOWN!!!!!!!!!!!!!!!!");
 +		if( !lstate )
 +			return;
-+		time(&down_ts);
-+		_1day_ints[0]->cntrs.mon_sec += down_ts-up_ts;
 +		lstate  = 0;
++	}
++
++	void update_mon_sec()
++	{
++		time_t cur = time(NULL);
++		
++
++		if( !lstate )
++			return;
++		
++		if( (_15min_ints[0]->tstamp + EOC_15MIN_SECS) > moni_ts ){
++			if( (_15min_ints[0]->tstamp + EOC_15MIN_SECS) < cur ){ 
++				// if 15min interval exceeds. 
++				// If also 1day exceeds => 15min too - so dont need to chech 1day int
++				int bkp = cur;
++				cur = _15min_ints[0]->tstamp + EOC_15MIN_SECS;			
++				_15min_ints[0]->cntrs.mon_sec += cur-moni_ts;
++				_1day_ints[0]->cntrs.mon_sec += cur-moni_ts;
++				moni_ts = cur;
++				PDEBUG(DERR,"Int exceeds: cur=%d,tmp_cur=%d\nmoni_ts=%d",bkp,cur,moni_ts);
++			}else{
++				PDEBUG(DERR,"Normal: cur=%d, moni_ts=%d",cur,moni_ts);
++				_15min_ints[0]->cntrs.mon_sec += cur-moni_ts;
++				_1day_ints[0]->cntrs.mon_sec += cur-moni_ts;
++				moni_ts = cur;
++			}
++			return;
++		}
++
++		if( (_1day_ints[0]->tstamp + EOC_1DAY_SECS) > moni_ts ){
++			if( (_1day_ints[0]->tstamp + EOC_1DAY_SECS) > cur){
++				_1day_ints[0]->cntrs.mon_sec += cur-moni_ts;
++				moni_ts = cur;
++			}else{
++				cur = _1day_ints[0]->tstamp + EOC_1DAY_SECS;
++				_1day_ints[0]->cntrs.mon_sec += cur-moni_ts;
++				moni_ts = cur;
++			}	
++		}
++	}
++
++
++	inline void reset_tcounters(){
++		PDEBUG(DERR,"Reset Counters");
++		tstate.reset();
 +	}
 +
 +    // TODO: removethis DEBUG
@@ -3749,7 +4031,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_loop.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/eoc_primitives.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/eoc_primitives.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/eoc_primitives.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/eoc_primitives.h	(revision 55)
 @@ -0,0 +1,67 @@
 +#ifndef SIGRAND_EOC_PRIMS_H
 +#define SIGRAND_EOC_PRIMS_H
@@ -3821,8 +4103,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/eoc_primitives.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_unit.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_unit.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_unit.h	(revision 50)
-@@ -0,0 +1,88 @@
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_unit.h	(revision 55)
+@@ -0,0 +1,96 @@
 +/*
 + * EOC_db.h:
 + *	EOC channel configuration & status storage
@@ -3889,7 +4171,9 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_unit.h
 +			return -1;
 +		return 0;
 +    }
++
 +    resp_inventory inventory_info(){ return inv_info; }
++
 +    void sensor_resp(resp_sensor_state *resp){
 +		//	PDEBUG(DINFO,"SAVE SENSOR STATE: s1(%d), s2(%d), s3(%d)",resp->sensor1,resp->sensor2,resp->sensor3);
 +		sensors_cur = *resp;
@@ -3897,15 +4181,21 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_unit.h
 +		sens2 += resp->sensor2;
 +		sens3 += resp->sensor3;
 +    }
++
 +	inline void link_up(){
 +		for(int i=0;i<EOC_SIDES_NUM;i++)
 +			if(side[i])
 +				side[i]->link_up();
 +	}
 +	inline void link_down(){
-+		for(int i=0;i<EOC_SIDES_NUM;i++)
-+			if(side[i])
++		PDEBUG(DERR,"unit link down");
++		for(int i=0;i<EOC_SIDES_NUM;i++){
++			if(side[i]){
++				PDEBUG(DERR,"down side %d",i);
 +				side[i]->link_down();
++				PDEBUG(DERR,"down side %d - successfully",i);
++			}
++		}
 +	}
 +};
 +
@@ -3914,7 +4204,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_unit.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/conf_profile.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/conf_profile.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/conf_profile.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/conf_profile.h	(revision 55)
 @@ -0,0 +1,26 @@
 +#ifndef SIGRAND_CONF_PROFILE_H
 +#define SIGRAND_CONF_PROFILE_H
@@ -3946,7 +4236,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/conf_profile.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/sched_queue.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/sched_queue.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/sched_queue.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/sched_queue.h	(revision 55)
 @@ -0,0 +1,140 @@
 +#ifndef SCHED_QUEUE_H
 +#define SCHED_QUEUE_H
@@ -4091,7 +4381,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/sched_queue.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine.h	(revision 55)
 @@ -0,0 +1,32 @@
 +#ifndef EOC_ENGINE_H
 +#define EOC_ENGINE_H
@@ -4128,7 +4418,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine_act.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine_act.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine_act.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine_act.h	(revision 55)
 @@ -0,0 +1,38 @@
 +#ifndef EOC_ENGINE_ACT_H
 +#define EOC_ENGINE_ACT_H
@@ -4171,7 +4461,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine_act.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_poller.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_poller.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_poller.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_poller.h	(revision 55)
 @@ -0,0 +1,54 @@
 +/*
 + * EOC_poller.h:
@@ -4230,7 +4520,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_poller.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_scheduler.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_scheduler.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_scheduler.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_scheduler.h	(revision 55)
 @@ -0,0 +1,100 @@
 +/*
 + * EOC_scheduler.h:
@@ -4335,7 +4625,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_scheduler.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_handlers.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_handlers.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_handlers.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_handlers.h	(revision 55)
 @@ -0,0 +1,24 @@
 +/*
 + * EOC_responses.h:
@@ -4364,7 +4654,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_handlers.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_router.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_router.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_router.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_router.h	(revision 55)
 @@ -0,0 +1,80 @@
 +/*
 + *    EOC_router:
@@ -4449,7 +4739,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_router.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine_Cwrap.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine_Cwrap.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine_Cwrap.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine_Cwrap.h	(revision 55)
 @@ -0,0 +1,13 @@
 +#ifndef EOC_ENGINE_WRAPPER_H
 +#define EOC_ENGINE_WRAPPER_H
@@ -4467,7 +4757,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine_Cwrap
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_responder.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_responder.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_responder.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_responder.h	(revision 55)
 @@ -0,0 +1,67 @@
 +/*
 + * EOC_responder.h:
@@ -4539,7 +4829,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_responder.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/sched_elem.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/sched_elem.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/sched_elem.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/sched_elem.h	(revision 55)
 @@ -0,0 +1,82 @@
 +#ifndef SCHED_ELEM_H
 +#define SCHED_ELEM_H
@@ -4626,7 +4916,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/sched_elem.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/conf_profile.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/conf_profile.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/conf_profile.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/conf_profile.h	(revision 55)
 @@ -0,0 +1,25 @@
 +#ifndef SPAN_PROFILE_H
 +#define SPAN_PROFILE_H
@@ -4656,8 +4946,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/conf_profile.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h	(revision 50)
-@@ -0,0 +1,63 @@
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h	(revision 55)
+@@ -0,0 +1,64 @@
 +#ifndef APP_FRAME_H
 +#define APP_FRAME_H
 +
@@ -4672,20 +4962,20 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h
 +#define APP_FRAME_DEBUG 0
 +
 +class app_frame{
-+public:
++ public:
 +    typedef enum { REQUEST,RESPONSE } roles;
-+protected:
++ protected:
 +    typedef struct {
-+	u32 len;
-+	u32 psize;
-+	u16 csize;
-+	u8 id;
-+	u8 type:2;
-+	u8 role:1;
-+	u8 error;
-+	char dname[SPAN_NAME_LEN];
-+	time_t tstamp;
-+	u8 act_sec;
++		u32 len;
++		u32 psize;
++		u16 csize;
++		u8 id;
++		u8 type:2;
++		u8 role:1;
++		u8 error;
++		char dname[SPAN_NAME_LEN];
++		time_t tstamp;
++		u8 act_sec;
 +    }app_frame_hdr;
 +    
 +    app_frame_hdr *hdr;
@@ -4694,7 +4984,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h
 +    u32 buf_size;
 +    int size_by_id(app_ids id,app_types type,u32 &psize,u32 &csize);
 +    
-+public:
++ public:
 +    app_frame(app_ids id,app_types type,roles role,u8 act_sec,char *dname = "\0");
 +    app_frame(char *b,int size);
 +    ~app_frame();
@@ -4707,15 +4997,16 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h
 +    app_ids id(){ return (app_ids)hdr->id; }
 +    app_types type(){ return (app_types)hdr->type; }
 +    roles role(){ return (roles)hdr->role; }
-+    void negative(){ hdr->error = 1; }
++	void negative(){ hdr->error = 1; }
++	void negative(int errcode ){ hdr->error = errcode; }
 +    int is_negative(){ return hdr->error; }
 +    void response(){ hdr->role = RESPONSE; }
 +    int info_uptodate(){
-+	time_t cur;
-+	if(time(&cur) < 0){
-+	    PDEBUG(DERR,"Error getting current time");
-+	}
-+	return ((cur-hdr->tstamp)<hdr->act_sec) ? 1 : 0;
++		time_t cur;
++		if(time(&cur) < 0){
++			PDEBUG(DERR,"Error getting current time");
++		}
++		return ((cur-hdr->tstamp)<hdr->act_sec) ? 1 : 0;
 +    }
 +	
 +};
@@ -4724,7 +5015,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h	(revision 55)
 @@ -0,0 +1,63 @@
 +#ifndef EOCD_APP_COMMUNICATOR_H
 +#define EOCD_APP_COMMUNICATOR_H
@@ -4789,10 +5080,39 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h
 +#endif
 +
 +
+Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h
+===================================================================
+--- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h	(revision 0)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h	(revision 55)
+@@ -0,0 +1,24 @@
++#ifndef ERROR_STRINGS_H
++#define ERROR_STRINGS_H
++#include <app-if/err_codes.h>
++
++char *err_strings[] = {
++"",
++"Wrong type of request",
++"Channel already exist",
++"Channel not exist",
++"No onfiguration profiles aviliable",
++"No memory",
++"Cannot find device",
++"Some of command parameters is wrong",
++"Configuration profile not exist",
++"Configuration profile already exist",
++"Configuration profile is in use",
++"Channel not maintain SHDSL data base",
++"Unexpected error",
++"Requested element not exist"
++};
++
++#define ERR_STR_SIZE sizeof(err_codes)
++
++#endif
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h	(revision 55)
 @@ -0,0 +1,18 @@
 +#ifndef EOCD_APP_COMM_CLI_H
 +#define EOCD_APP_COMM_CLI_H
@@ -4803,7 +5123,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h
 +protected:
 +    int complete_wait();
 +public:
-+    app_comm_cli(char *sock_name);
++    app_comm_cli(char *sock_name,int quiet = 0);
 +    ~app_comm_cli();
 +    int send(char *buf,size_t size);
 +    ssize_t recv(char *&buf);
@@ -4815,7 +5135,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h	(revision 55)
 @@ -0,0 +1,24 @@
 +#ifndef EOC_APP_COMM_SRV_H
 +#define EOC_APP_COMM_SRV_H
@@ -4841,11 +5161,37 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h
 +};
 +
 +#endif
+Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h
+===================================================================
+--- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h	(revision 0)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h	(revision 55)
+@@ -0,0 +1,21 @@
++#ifndef ERROR_CODES_H
++#define ERROR_CODES_H
++
++enum err_codes {
++DEFERR=1,   // Default err code
++ERTYPE,     // Error in request type 
++ERCHEXIST,  // Channel already exist
++ERCHNEXIST, // Channel not existb
++ERNOPROF,   // Profile not exist
++ERNOMEM,    // Not enough memory
++ERNODEV,    // No such device (dslX)
++ERPARAM,    // Request parameters in wrong
++ERPNEXIST,  // Conf profile not exist
++ERPEXIST,   // Conf profile already exist
++ERPBUSY,    // Conf profile is in use
++ERNODB,     // Channel dont maintain SHDSL DB
++ERUNEXP,    // Unexpected error
++ERNOELEM    // Requested unit not exist
++};
++
++#endif
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h	(revision 50)
-@@ -0,0 +1,195 @@
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h	(revision 55)
+@@ -0,0 +1,280 @@
 +#ifndef APP_MESSAGES_H
 +#define APP_MESSAGES_H
 +
@@ -4856,10 +5202,14 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 +
 +
 +typedef enum { APP_SPAN_NAME=0,APP_SPAN_PARAMS,APP_SPAN_CONF,APP_SPAN_STATUS,
-+	    APP_INVENTORY,APP_ENDP_CONF,APP_ENDP_CUR,APP_ENDP_15MIN,
-+	    APP_ENDP_1DAY,APP_ENDP_MAINT,APP_UNIT_MAINT,APP_SPAN_CPROF,
-+	    APP_ENDP_APROF } app_ids;
-+#define app_ids_num 13
++			   APP_INVENTORY, APP_ENDP_CONF, APP_ENDP_CUR, APP_ENDP_15MIN,
++			   APP_ENDP_1DAY, APP_ENDP_MAINT, APP_UNIT_MAINT, APP_CPROF,
++			   APP_LIST_CPROF, APP_ADD_CPROF, APP_DEL_CPROF, APP_LOOP_RCNTRST,
++			   APP_ADD_CHAN, APP_DEL_CHAN, APP_CHNG_CHAN, APP_ENDP_APROF,
++			   APP_DUMP_CFG
++} app_ids;
++
++#define app_ids_num 20
 +
 +typedef enum { APP_SET,APP_GET,APP_GET_NEXT } app_types;
 +
@@ -4870,10 +5220,17 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 +
 +#define SPAN_NAMES_NUM 4
 +#define SPAN_NAME_LEN 32
++
++
++struct span_desc{
++    char name[SPAN_NAME_LEN];
++	dev_type t;
++};
++
 +typedef struct{
 +    u8 filled:7;
 +    u8 last_msg:1; 
-+    char name[SPAN_NAMES_NUM][SPAN_NAME_LEN];
++	struct span_desc spans[SPAN_NAMES_NUM];
 +} span_name_payload;
 +#define SPAN_NAME_PAY_SZ sizeof(span_name_payload)
 +#define SPAN_NAME_CH_SZ 0
@@ -4887,6 +5244,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 +#define SPAN_PARAMS_CH_SZ 0
 +
 +typedef struct{
++	dev_type type;
 +    s16 nreps;
 +    char conf_prof[SNMP_ADMIN_LEN+1];
 +    char alarm_prof[SNMP_ADMIN_LEN+1];
@@ -4935,6 +5293,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 +    s32 cur_snr;
 +    shdsl_status_t cur_status;
 +    counters_t total;
++    counters_t relative;
++	time_t relative_ts;
 +    u32 cur_15m_elaps;
 +    counters_t cur15min;
 +    u32 cur_1d_elaps;    
@@ -4990,11 +5350,27 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 +} unit_maint_changes;
 +#define UNIT_MAINT_CH_SZ sizeof(unit_maint_changes)
 +
++//------- Span Configuration -------------//
++
 +typedef struct{
-+    char ProfileName[SNMP_ADMIN_LEN+1];
++    char pname[SNMP_ADMIN_LEN+1];
++} cprof_add_payload;
++#define CPROF_ADD_PAY_SZ sizeof(cprof_add_payload)
++#define CPROF_ADD_CH_SZ 0
++
++
++typedef struct{
++    char pname[SNMP_ADMIN_LEN+1];
++} cprof_del_payload;
++#define CPROF_DEL_PAY_SZ sizeof(cprof_del_payload)
++#define CPROF_DEL_CH_SZ 0
++
++
++typedef struct{
++    char pname[SNMP_ADMIN_LEN+1];
 +    span_conf_profile_t conf;
-+} span_conf_prof_payload;
-+#define SPAN_CONF_PROF_PAY_SZ sizeof(span_conf_prof_payload)
++} cprof_payload;
++#define CPROF_PAY_SZ sizeof(cprof_payload)
 +
 +typedef struct{
 +    u8 annex :1;
@@ -5004,18 +5380,29 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 +    u8 clk:1;
 +    u8 line_probe:1;
 +    u8 remote_cfg:1;
-+    u8 currCondDown :1;                                                   
-+    u8 worstCaseDown :1;                                                  
-+    u8 currCondUp :1;                                                     
-+    u8 worstCaseUp :1;
-+    u8 min_rate:1;
-+    u8 max_rate:1;
++    u8 rate:1;
 +    s8 cur_marg_down:1;
 +    s8 worst_marg_down:1;
 +    s8 cur_marg_up:1;
 +    s8 worst_marg_up:1;
-+} span_conf_prof_changes;
-+#define SPAN_CONF_PROF_CH_SZ sizeof(span_conf_prof_changes)
++    u8 use_cur_down :1;                                                   
++    u8 use_worst_down :1;                                                  
++    u8 use_cur_up :1;                                                     
++    u8 use_worst_up :1;
++} cprof_changes;
++#define CPROF_CH_SZ sizeof(cprof_changes)
++
++
++#define PROF_NAMES_NUM 8
++typedef struct{
++    u8 filled:7;
++    u8 last_msg:1; 
++    char pname[PROF_NAMES_NUM][SNMP_ADMIN_LEN+1];
++} cprof_list_payload;
++#define CPROF_LIST_PAY_SZ sizeof(cprof_list_payload)
++#define CPROF_LIST_CH_SZ 0
++
++//--------------- Endpoint Alarm -----------------//
 +
 +typedef struct{
 +    char ProfileName[SNMP_ADMIN_LEN];
@@ -5040,11 +5427,55 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 +} endp_alarm_prof_changes;
 +#define ENDP_ALARM_PROF_CH_SZ sizeof(endp_alarm_prof_changes)
 +
++//----------- Endpoint counters reset ------------//
++
++typedef struct{
++    u8 unit;
++    u8 side;
++	u8 loop;
++} loop_rcntrst_payload;
++#define LOOP_RCNTRST_PAY_SZ sizeof(loop_rcntrst_payload)
++#define LOOP_RCNTRST_CH_SZ 0
++
++//----------- Channel add/del/change -------------//
++
++typedef struct{
++	u8 master:1;
++}chan_add_payload;
++#define CHAN_ADD_PAY_SZ sizeof(chan_add_payload)
++#define CHAN_ADD_CH_SZ 0
++
++typedef struct{
++}chan_del_payload;
++#define CHAN_DEL_PAY_SZ sizeof(chan_del_payload)
++#define CHAN_DEL_CH_SZ 0
++
++typedef struct{
++	char cprof[SNMP_ADMIN_LEN];
++	u8 master:1;
++	u8 master_ch:1;
++	u8 rep_num:4;
++	u8 rep_num_ch:1;
++	u8 cprof_ch:1;
++	u8 apply_conf:1;
++	u8 apply_conf_ch:1;
++} chan_chng_payload;
++#define CHAN_CHNG_PAY_SZ sizeof(chan_chng_payload)
++#define CHAN_CHNG_CH_SZ 0
++
++// --------- Dump configuration -------------- //
++#define DUMP_CFG_PAY_SZ 1
++#define DUMP_CFG_CH_SZ 0
++
++
 +#endif
++
++
++
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h	(revision 55)
 @@ -0,0 +1,36 @@
 +#ifndef EOC_TYPES_H
 +#define EOC_TYPES_H
@@ -5085,7 +5516,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h	(revision 55)
 @@ -0,0 +1,51 @@
 +#ifndef EOC_MSG_H
 +#define EOC_MSG_H
@@ -5141,7 +5572,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h	(revision 55)
 @@ -0,0 +1,54 @@
 +/*
 + * EOC_requests.h:
@@ -5200,7 +5631,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h	(revision 55)
 @@ -0,0 +1,30 @@
 +#ifndef SIGRAND_EOC_GENERIC_H
 +#define SIGRAND_EOC_GENERIC_H
@@ -5211,7 +5642,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h
 +typedef enum { eoc_Offline, eoc_Discovery, eoc_Online } shdsl_state;
 +typedef enum {err =-1,unknown=0 ,stu_c,stu_r,sru1,sru2,sru3,sru4,sru5,sru6,
 +			sru7,sru8,sru9,sru10,BCAST=0xf} unit;
-+typedef enum { net_side=0,cust_side } side;
++typedef enum { no_side=-1,net_side=0,cust_side } side;
 +
 +// SHDSL standard related
 +#define MAX_LOOPS 4
@@ -5235,7 +5666,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h	(revision 55)
 @@ -0,0 +1,112 @@
 +/*
 + * EOC_responses.h:
@@ -5352,16 +5783,16 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.h	(revision 55)
 @@ -0,0 +1,37 @@
 +#ifndef SPAN_CONF_TYPE_H
 +#define SPAN_CONF_TYPE_H
 +
 +#include <generic/EOC_types.h>
 +
-+typedef enum { annex_a=1,annex_b } annex_t;
++typedef enum { err_annex=0,annex_a=1,annex_b } annex_t;
 +typedef enum { twoWire = 1,fourWire,sixWire,eightWire } wires_t;      
-+typedef enum { noPower = 1, powerFeed, wettingCurrent } power_t;
++typedef enum { err_power=0,noPower = 1, powerFeed, wettingCurrent } power_t;
 +typedef enum { symmetric = 1, asymmetric } psd_t;
 +typedef enum { localClk = 1, networkClk, dataOrNetworkClk, dataClk } clk_t;
 +typedef enum { disable = 1, enable } line_probe_t;
@@ -5382,8 +5813,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.
 +    u8 use_cur_up :1;                                                     
 +    u8 use_worst_up :1;
 +
-+    u32 min_rate;
-+    u32 max_rate;
++    u32 rate;
++
 +    s32 cur_marg_down;
 +    s32 worst_marg_down;
 +    s32 cur_marg_up;
@@ -5394,7 +5825,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/shdsl/config.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/shdsl/config.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/shdsl/config.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/shdsl/config.h	(revision 55)
 @@ -0,0 +1,14 @@
 +#ifndef EOC_SHDSL_CONFIG_H
 +#define EOC_SHDSL_CONFIG_H
@@ -5413,7 +5844,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/shdsl/config.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h	(revision 55)
 @@ -0,0 +1,6 @@
 +#ifndef EOC_SNMP_H
 +#define EOC_SNMP_H
@@ -5424,7 +5855,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/channel.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/channel.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/channel.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/channel.h	(revision 55)
 @@ -0,0 +1,30 @@
 +#ifndef EOC_CHANNEL_H
 +#define EOC_CHANNEL_H
@@ -5459,7 +5890,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/channel.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h	(revision 55)
 @@ -0,0 +1,229 @@
 +/*
 + *  hdsl2,shdsl MIB (rfc- interfaces.h
@@ -5693,7 +6124,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h	(revision 55)
 @@ -0,0 +1,18 @@
 +#ifndef SHDSL_COMM_H
 +#define SHDSL_COMM_H
@@ -5704,7 +6135,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h
 +struct app_comm;
 +struct app_frame;
 +
-+struct app_comm *init_comm();
++struct app_comm *init_comm(int q);
 +char *comm_alloc_request(app_ids id,app_types type,char *chname,struct app_frame **fr);
 +struct app_frame *comm_request(struct app_comm *comm,struct app_frame *fr);
 +char *comm_frame_payload(struct app_frame *fr);
@@ -5716,15 +6147,15 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/TODO.txt
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/TODO.txt	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/TODO.txt	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/TODO.txt	(revision 55)
 @@ -0,0 +1 @@
 +(+)1. Broken pipe problem
 \ No newline at end of file
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp	(revision 50)
-@@ -0,0 +1,92 @@
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp	(revision 55)
+@@ -0,0 +1,97 @@
 +#include <sys/types.h>
 +#include <sys/socket.h>
 +#include <sys/un.h>
@@ -5738,30 +6169,36 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp
 +#include <eoc_debug.h>
 +
 +app_comm_cli::
-+app_comm_cli(char *sock_name):app_comm(sock_name)
++app_comm_cli(char *sock_name,int quiet):app_comm(sock_name)
 +{
 +    struct sockaddr_un saun;
 +    struct stat sbuf;    
 +    int s;
 +    int ret=0,len;
++	int dlev = debug_lev - 1;
++
++	if( quiet ){
++		dlev = debug_lev + 1;
++	}
++		
 +
 +    // Check path exist
 +    if( (ret = stat(sname,&sbuf)) ){
-+        PERROR("Problem with socket (%s)",sname);
++        PDEBUG(dlev,"Problem with socket (%s)",sname);
 +        error_init = 1;
 +        return;
 +    }  
 +    if( !S_ISSOCK(sbuf.st_mode) ){
-+	PDEBUG(DERR,"Not a socket (%s)",sname);
++		PDEBUG(dlev,"Not a socket (%s)",sname);
 +        error_init = 1;	
-+	return;
++		return;
 +    }
 +
 +    // Create socket
 +    if ( (s = socket(AF_UNIX, SOCK_STREAM, 0) ) < 0) {
-+    	PERROR("Cannot create socket (%s)",sname);
++    	PDEBUG(dlev,"Cannot create socket (%s)",sname);
 +        error_init = 1;
-+	return;    
++		return;    
 +    }
 +
 +    saun.sun_family = AF_UNIX;
@@ -5769,10 +6206,10 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp
 +	
 +    len = sizeof(saun.sun_family) + strlen(saun.sun_path);
 +    if (connect(s,(struct sockaddr*)&saun, len) < 0) {
-+	PERROR("Cannot connect to (%s)",sname);
++		PDEBUG(dlev,"Cannot connect to (%s)",sname);
 +        error_init = 1;
-+	sfd = -1;
-+	return;
++		sfd = -1;
++		return;
 +    }
 +    sfd = s;
 +}
@@ -5787,12 +6224,12 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp
 +complete_wait()
 +{
 +    if( sfd < 0 ){
-+	PDEBUG(DERR,"Error wile initialisation\n");
-+	return -1;
++		//PDEBUG(DERR,"Error wile initialisation\n");
++		return -1;
 +    }
 +
 +    if (FD_ISSET(sfd,&socks))
-+	return 1;
++		return 1;
 +    return 0;
 +}
 +
@@ -5800,8 +6237,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp
 +send(char *buf,size_t size)
 +{
 +    if( sfd < 0 ){
-+	PDEBUG(DERR,"Error wile initialisation\n");
-+	return -1;
++		//PDEBUG(DERR,"Error wile initialisation\n");
++		return -1;
 +    }
 +    return _send(sfd,buf,size);
 +
@@ -5811,16 +6248,15 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp
 +recv(char *&buf)
 +{
 +    if( sfd < 0 ){
-+	PDEBUG(DERR,"Error wile initialisation\n");
-+	return -1;
++		//PDEBUG(DERR,"Error wile initialisation\n");
++		return -1;
 +    }
-+
 +    return _recv(sfd,buf);
 +}
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp	(revision 55)
 @@ -0,0 +1,185 @@
 +#include <sys/types.h>
 +#include <sys/socket.h>
@@ -5844,35 +6280,35 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp
 +    
 +    // Check path exist
 +    if( (ret = stat(sock_path,&sbuf)) ){
-+	if( errno != ENOENT ){
-+	    PERROR("Error getting info about %s",sock_path);
-+	    return;
-+	}
-+	if( mkdir(sock_path,(S_IRWXU | S_IRGRP | S_IXGRP)) ){
-+	    PERROR("Cannot create dir %s",sock_path);
-+	    return;
-+	}
-+	if( stat(sock_path,&sbuf) ){
-+	    PERROR("Error creating dir %s",sock_path);
-+	    return;
-+	}
++		if( errno != ENOENT ){
++			PERROR("Error getting info about %s",sock_path);
++			return;
++		}
++		if( mkdir(sock_path,(S_IRWXU | S_IRGRP | S_IXGRP)) ){
++			PERROR("Cannot create dir %s",sock_path);
++			return;
++		}
++		if( stat(sock_path,&sbuf) ){
++			PERROR("Error creating dir %s",sock_path);
++			return;
++		}
 +    }  
 +    if( !S_ISDIR(sbuf.st_mode) ){
-+	PDEBUG(DERR,"Error: %s is not directory",sock_path);
-+	return;
++		PDEBUG(DERR,"Error: %s is not directory",sock_path);
++		return;
 +    }
 +
 +    // Create socket
 +    if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
 +    	PERROR("Cannot create socket");
-+	return;    
++		return;    
 +    }
 +			    
 +    if( unlink(sname) ){
-+	if( errno != ENOENT ){
-+	    PERROR("Cannot unlink (%s)",sname);
-+	    return;
-+	}
++		if( errno != ENOENT ){
++			PERROR("Cannot unlink (%s)",sname);
++			return;
++		}
 +    }
 +    
 +    saun.sun_family = AF_UNIX;
@@ -5880,17 +6316,17 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp
 +    len = sizeof(saun.sun_family) + strlen(saun.sun_path);
 +    if(bind(s, (const sockaddr*)&saun, len) < 0) {
 +    	PERROR("Cannot bind server with socket (%s)",sname);
-+	return;
++		return;
 +    }
 +    // open socket for listening
 +    if(listen(s,MAX_CONNECTIONS) < 0) {
 +    	PERROR("Error trying listen socket (%s)",sname);
-+	return;
++		return;
 +    }
 +    
 +    // setup non blocking
 +    if( set_nonblock(s) )
-+	return; /* ?? */
++		return; /* ?? */
 +
 +    // setup descriptor
 +    sfd = s;
@@ -5905,7 +6341,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp
 +{
 +    int i;
 +    if( sfd < 0 )
-+	return -1; 
++		return -1; 
 +    // blank fd set
 +    FD_ZERO(&socks);
 +    // fill fd set
@@ -5913,8 +6349,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp
 +    hisock = sfd;
 +    for(i=0; i < conn_num; i++) {
 +        FD_SET(conn_fd[i],&socks);
-+	if ( conn_fd[i] > hisock)
-+	    hisock = conn_fd[i];
++		if ( conn_fd[i] > hisock)
++			hisock = conn_fd[i];
 +    }
 +    return 0;
 +}
@@ -5954,23 +6390,23 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp
 +	
 +    memset(conn_act,0,sizeof(conn_act));	
 +    for (i=0; i<conn_num; i++) {
-+	if (FD_ISSET(conn_fd[i],&socks)){
-+	    if( ::recv(conn_fd[i],&tmp,1,MSG_PEEK|MSG_DONTWAIT) < 1 ){
-+		PDEBUG(DINFO,"Connection closed");
-+		close(conn_fd[i]);
-+		// shift descriptors
-+		for(j=i;j<conn_num;j++)
-+		    conn_fd[j]=conn_fd[j+1];
-+		conn_num--;
-+		i--;
-+	    }else{
-+		conn_act[i] = 1;
-+		num_act++;
-+	    }
-+	}
++		if (FD_ISSET(conn_fd[i],&socks)){
++			if( ::recv(conn_fd[i],&tmp,1,MSG_PEEK|MSG_DONTWAIT) < 1 ){
++				PDEBUG(DINFO,"Connection closed");
++				close(conn_fd[i]);
++				// shift descriptors
++				for(j=i;j<conn_num;j++)
++					conn_fd[j]=conn_fd[j+1];
++				conn_num--;
++				i--;
++			}else{
++				conn_act[i] = 1;
++				num_act++;
++			}
++		}
 +    }
 +    if (FD_ISSET(sfd,&socks))
-+	new_connection();
++		new_connection();
 +    return num_act;
 +}
 +
@@ -5979,10 +6415,10 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp
 +next_fd(){
 +    int i;
 +    for(i=0;i<conn_num;i++){
-+	if( conn_act[i] ){
-+	    conn_act[i] = 0;
-+	    return i;
-+	}
++		if( conn_act[i] ){
++			conn_act[i] = 0;
++			return i;
++		}
 +    }
 +    return -1;
 +}
@@ -5991,11 +6427,11 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp
 +send(int c_num,char *buf,size_t size)
 +{
 +    if( !c_num ){
-+	return _send(sfd,buf,size);
++		return _send(sfd,buf,size);
 +    }else{
-+	if( c_num > conn_num )
-+	    return -1;
-+	return _send(conn_fd[c_num-1],buf,size);
++		if( c_num > conn_num )
++			return -1;
++		return _send(conn_fd[c_num-1],buf,size);
 +    }
 +}
 +
@@ -6003,31 +6439,31 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp
 +recv(int &c_idx,char *&buf)
 +{
 +    if( (c_idx = next_fd()) <0 ) 
-+	return 0;
++		return 0;
 +    c_idx++;
 +    return _recv(conn_fd[c_idx-1],buf);
 +}
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp	(revision 50)
-@@ -0,0 +1,151 @@
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp	(revision 55)
+@@ -0,0 +1,184 @@
 +#include <app-if/app_frame.h>
 +
 +app_frame::    
 +app_frame(app_ids id,app_types type,roles role,u8 act_seconds,char *dname){
 +	u32 psize,csize;
 +	int offs;
++
 +	if( (offs = size_by_id(id,type,psize,csize) ) <0 ){
 +	    buf = NULL;
 +	    buf_size = 0;
 +	    return;
 +	}
-+
 +	buf_size = offs;
 +	if( !(buf = new char[buf_size]) ){
++		buf = NULL;
 +	    buf_size = 0;
-+	    PDEBUG(DERR,"Not enought memory");
 +	    return;
 +	}
 +	memset(buf,0,buf_size);
@@ -6038,8 +6474,9 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp
 +	hdr->id = (u8)id;
 +	hdr->type = (u8)type;
 +	hdr->role = (u8)role;
-+	if( time(&hdr->tstamp) < 0)
-+	    PDEBUG(DERR,"Error getting current time");
++	if( time(&hdr->tstamp) < 0){
++		//   PDEBUG(DERR,"Error getting current time");
++	}
 +	hdr->act_sec = act_seconds;
 +	memcpy(hdr->dname,dname,strnlen(dname,SPAN_NAME_LEN));
 +}
@@ -6058,9 +6495,9 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp
 +        PDEBUG(DERR,"Cannot get info about frame id = %d",hdr->id);
 +        return;
 +    }
-+    if( (hdr->psize != psize) || (hdr->csize != csize) ||
-+	    (!csize && hdr->type == APP_SET) ){
-+        PDEBUG(DERR,"Error in app_frame header");
++    if( (hdr->psize != psize) || (hdr->csize != csize) ){
++        PDEBUG(DERR,"Error in app_frame header: psize=(%d not %d), csize=(%d not %d)",
++			   hdr->psize,psize,hdr->csize,csize);
 +        buf = NULL;
 +        buf_size = 0;
 +    }
@@ -6119,10 +6556,42 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp
 +        psize = ENDP_MAINT_PAY_SZ;
 +        csize = ENDP_MAINT_CH_SZ;
 +        break;
-+    case APP_SPAN_CPROF:
-+	psize = SPAN_CONF_PROF_PAY_SZ;
-+	csize = SPAN_CONF_PROF_CH_SZ;
-+	break;
++    case APP_CPROF:
++		psize = CPROF_PAY_SZ;
++		csize = CPROF_CH_SZ;
++		break;
++    case APP_LIST_CPROF:
++		psize = CPROF_LIST_PAY_SZ;
++		csize = CPROF_LIST_CH_SZ;
++		break;
++    case APP_ADD_CPROF:
++		psize = CPROF_ADD_PAY_SZ;
++		csize = CPROF_ADD_CH_SZ;
++		break;
++    case APP_DEL_CPROF:
++		psize = CPROF_DEL_PAY_SZ;
++		csize = CPROF_DEL_CH_SZ;
++		break;
++    case APP_ADD_CHAN:
++		psize = CHAN_ADD_PAY_SZ;
++		csize = CHAN_ADD_CH_SZ;
++		break;
++    case APP_DEL_CHAN:
++		psize = CHAN_DEL_PAY_SZ;
++		csize = CHAN_DEL_CH_SZ;
++		break;
++    case APP_CHNG_CHAN:
++		psize = CHAN_CHNG_PAY_SZ;
++		csize = CHAN_CHNG_CH_SZ;
++		break;
++    case APP_LOOP_RCNTRST:
++		psize = LOOP_RCNTRST_PAY_SZ;
++		csize = LOOP_RCNTRST_CH_SZ;
++		break;
++    case APP_DUMP_CFG:
++		psize = DUMP_CFG_PAY_SZ;
++		csize = DUMP_CFG_CH_SZ;
++		break;
 +    default:
 +        return -1;
 +    }
@@ -6151,7 +6620,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp
 +payload_ptr(){
 +    ASSERT( buf );
 +    if( buf )
-+	return &buf[FRAME_HEADER_SZ];
++		return &buf[FRAME_HEADER_SZ];
 +    return NULL;
 +}
 +
@@ -6166,8 +6635,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp	(revision 50)
-@@ -0,0 +1,93 @@
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp	(revision 55)
+@@ -0,0 +1,97 @@
 +#include <sys/types.h>
 +#include <sys/socket.h>
 +#include <sys/un.h>
@@ -6202,7 +6671,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp
 +build_select_list()
 +{
 +    if( sfd < 0 )
-+	return -1;
++		return -1;
 +    // blank fd set
 +    FD_ZERO(&socks);
 +    // fill fd set
@@ -6220,7 +6689,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp
 +    timeout.tv_sec = sec;
 +    timeout.tv_usec = 0;
 +    if( build_select_list() )
-+	return -1;
++		return -1;
 +
 +    count = select(hisock+1,&socks,(fd_set *)0,(fd_set *)0, &timeout);
 +    if( count < 0) {
@@ -6238,7 +6707,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp
 +{
 +    size_t nsize;
 +    if( (nsize=::send(fd,buf,size,0)) != size ){
-+        PDEBUG(DERR,"error: %d",nsize); 
++		//        PDEBUG(DERR,"error: %d",nsize); 
 +        return -EAGAIN;
 +    }
 +
@@ -6252,19 +6721,23 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp
 +    int frame_len;
 +    int ret;
 +    
-+    
-+    if( (frame_len = ::recv(fd,frame,BLOCK_SIZE,MSG_PEEK|MSG_DONTWAIT) ) <= 0 )
-+	return -EAGAIN;
++    if( (frame_len = ::recv(fd,frame,BLOCK_SIZE,MSG_PEEK|MSG_DONTWAIT) ) <= 0 ){
++		delete[] frame;
++		return -EAGAIN;
++	}
 +    ret = ::recv(fd,(char*)frame,frame_len,MSG_DONTWAIT);
-+    if( frame_len != ret )
-+	return -EAGAIN;
++    if( frame_len != ret ){
++		delete[] frame;
++		return -EAGAIN;
++	}
++
 +    buf = frame;
 +    return frame_len;
 +}
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp	(revision 55)
 @@ -0,0 +1,83 @@
 +#include <app-if/app_frame.h>
 +#include <app-if/app_comm_cli.h>
@@ -6272,87 +6745,87 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp
 +
 +extern "C" {
 +
-+app_comm_cli *
-+init_comm()
-+{
-+    app_comm_cli *cli = new app_comm_cli("/var/eocd/eocd-socket");
-+    if( !cli->init_ok() ){
-+	delete cli;
-+	return NULL;
-+    }
-+    return cli;
-+}
++	app_comm_cli *
++	init_comm(int q)
++	{
++		app_comm_cli *cli = new app_comm_cli("/var/eocd/eocd-socket",q);
++		if( !cli->init_ok() ){
++			delete cli;
++			return NULL;
++		}
++		return cli;
++	}
 +
-+char *
-+comm_alloc_request(app_ids id,app_types type,char *chname,app_frame **fr)
-+{
-+    *fr = new app_frame(id,type,app_frame::REQUEST,1,chname);
-+    if( !(*fr)->frame_ptr() ){
-+	return NULL;
-+    }
-+    return (*fr)->payload_ptr();
-+}
++	char *
++	comm_alloc_request(app_ids id,app_types type,char *chname,app_frame **fr)
++	{
++		*fr = new app_frame(id,type,app_frame::REQUEST,1,chname);
++		if( !(*fr)->frame_ptr() ){
++			return NULL;
++		}
++		return (*fr)->payload_ptr();
++	}
 +
-+app_frame *
-+comm_request(app_comm_cli *comm,app_frame *fr)
-+{
-+    char *b;
-+    app_frame *fr1 = NULL;
-+    int i = 0;
++	app_frame *
++	comm_request(app_comm_cli *comm,app_frame *fr)
++	{
++		char *b;
++		app_frame *fr1 = NULL;
++		int i = 0;
 +    
-+    while(i<3){
-+	comm->send(fr->frame_ptr(),fr->frame_size());
-+	comm->wait();
-+	int size = comm->recv(b);
-+	if( size <=0 ){
-+	    i++;
-+	    continue;
-+	}
++		while(i<3){
++			comm->send(fr->frame_ptr(),fr->frame_size());
++			comm->wait();
++			int size = comm->recv(b);
++			if( size <=0 ){
++				i++;
++				continue;
++			}
 +	    
-+	fr1 = new app_frame(b,size);
-+	if( !fr1->frame_ptr() ){
-+	    delete fr1;
-+	    fr1 = NULL;
-+	    i++;
-+	    continue;
-+        }
-+	if( fr1->is_negative() ){
-+	    delete fr1;
-+	    return NULL;
++			fr1 = new app_frame(b,size);
++			if( !fr1->frame_ptr() ){
++				delete fr1;
++				fr1 = NULL;
++				i++;
++				continue;
++			}
++			if( fr1->is_negative() ){
++				delete fr1;
++				return NULL;
++			}
++			break;
++		}
++		return fr1;
 +	}
-+	break;
-+    }
-+    return fr1;
-+}
 +
-+char *
-+comm_frame_payload(app_frame *fr)
-+{
-+    if( !fr->frame_ptr() )
-+	return NULL;
-+    return fr->payload_ptr();
-+}
++	char *
++	comm_frame_payload(app_frame *fr)
++	{
++		if( !fr->frame_ptr() )
++			return NULL;
++		return fr->payload_ptr();
++	}
 +
-+void 
-+set_chan_name(app_frame *fr,char *name)
-+{
-+    fr->chan_name(name);
-+}
++	void 
++	set_chan_name(app_frame *fr,char *name)
++	{
++		fr->chan_name(name);
++	}
 +
-+void comm_frame_free(app_frame *fr){
-+    delete fr;
-+}
++	void comm_frame_free(app_frame *fr){
++		delete fr;
++	}
 +
-+void comm_free(app_comm_cli *cli){
-+    delete cli;
-+}
++	void comm_free(app_comm_cli *cli){
++		delete cli;
++	}
 +
 +}
 +
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile	(revision 55)
 @@ -0,0 +1,27 @@
 +ifeq ($(TOPDIR),)
 +    TOPDIR=$(PWD)/../
@@ -6384,8 +6857,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c	(revision 50)
-@@ -0,0 +1,2056 @@
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c	(revision 55)
+@@ -0,0 +1,1861 @@
 +#include <sys/types.h>
 +#include <sys/stat.h>
 +#include <errno.h>
@@ -6411,6 +6884,20 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +#include "../interfaces.h"
 +
 +#include <app-if/app_messages.h>
++
++//--------- DEBUG OUTPUT -----------------//
++
++
++//#define DEBUG_ON
++
++#define PDEBUG(flag,fmt,args...)
++#ifdef DEBUG_ON
++#       undef PDEBUG
++#       define PDEBUG(flag,fmt,args...) \
++		if( flag ) \
++			printf("%s: " fmt " \n",__FUNCTION__, ## args  )
++#endif
++
 +
 +//------- Global definitions -------------//
 +#define CACHE_INT 0
@@ -6605,15 +7092,15 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    /*
 +     * register ourselves with the agent to handle our mib tree 
 +     */
-+    printf("Register Span Conf\n");
++    PDEBUG(0,"Register Span Conf");
 +    REGISTER_MIB("mibII/hdsl2ShdslSpanConf", shdsl_spanconf, variable3,
 +                 hdsl2Shdsl_variables_oid);
 +
-+    printf("Register Span Status\n");
++    PDEBUG(0,"Register Span Status");
 +    REGISTER_MIB("mibII/hdsl2shdslSpanStatus", shdsl_spanstat, variable3,
 +                 hdsl2Shdsl_variables_oid);
 +
-+    printf("Register Inventory\n");
++	PDEBUG(0,"Register Inventory");
 +    REGISTER_MIB("mibII/hdsl2shdslInventory", shdsl_inventory, variable3,
 +                 hdsl2Shdsl_variables_oid);
 +
@@ -6644,8 +7131,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +				 hdsl2Shdsl_variables_oid);
 +	  
 +    DEBUGMSGTL(("mibII/hdsl2Shdsl","register variables"));
-+    printf("Register finished\n");
-+
++	PDEBUG(0,"Register finished");
 +}
 +
 +/*
@@ -6691,6 +7177,12 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +
 +    if( gettimeofday(&tvcur,NULL) )
 +		tverr = 1;
++
++	PDEBUG(0,"----------------------- >");
++	// ---- DEBUG ----//
++   	struct timeval tv1,tv2;
++    gettimeofday(&tv1,NULL);
++	// ---- DEBUG ----//
 +	
 +    if( ((tvcur.tv_sec - tbl_tv.tv_sec) > CACHE_INT) || tverr ){
 +
@@ -6707,17 +7199,21 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +        do{
 +			set_chan_name(fr1,ifname);
 +			fr2 = comm_request(comm,fr1);
++
 +			if( !fr2 ){
-+				printf("mibII/hdsl2Shdsl Reqest failed\n");
++				PDEBUG(0,"mibII/hdsl2Shdsl Reqest failed");
 +				comm_frame_free(fr1);
-+				return -1;
++				return min_i;
 +			}
 +			p = (span_name_payload*)comm_frame_payload(fr2);
 +			for(i=0;i<p->filled;i++){
-+				len = strnlen(p->name[i],SPAN_NAME_LEN);
-+				if( (index = ifname_to_index(p->name[i],len)) < 0 )
++				len = strnlen(p->spans[i].name,SPAN_NAME_LEN);
++				if( (p->spans[i].t == slave) || 
++					(index = ifname_to_index(p->spans[i].name,len)) < 0 )
 +					continue;
-+				strncpy(tbl[tbl_size].name,p->name[i],len);
++
++				PDEBUG(0,"save name = %s",p->spans[i].name);
++				strncpy(tbl[tbl_size].name,p->spans[i].name,len);
 +				tbl[tbl_size].index = index;
 +				if( (tbl_size==0) || tbl[min_i].index > tbl[tbl_size].index  ){
 +					min_i = tbl_size;
@@ -6728,13 +7224,20 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +				tbl_size++;
 +			}
 +			if( !p->last_msg && p->filled){
-+				strncpy(ifname,p->name[p->filled-1],SPAN_NAME_LEN);
++				strncpy(ifname,p->spans[p->filled-1].name,SPAN_NAME_LEN);
 +			}
 +			comm_frame_free(fr2);
 +		}while( tbl_size<SHDSL_MAX_CHANNELS && !p->last_msg );
++		
 +		comm_frame_free(fr1);
 +		tbl_tv = tvcur;
 +    }
++			
++	//--- DEBUG ---//
++    gettimeofday(&tv2,NULL);
++	PDEBUG(0,"<------- %d ------------",tv2.tv_usec-tv1.tv_usec);
++	//--- DEBUG ---//
++
 +    return min_i;
 +}
 +
@@ -6749,14 +7252,20 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    int oid_min = (vp->namelen > *length) ? *length : vp->namelen;
 +    int min_ind = -1, min_i = 0;
 +    int i;
++	// ---- DEBUG ----//
++   	struct timeval tv1,tv2;
++    gettimeofday(&tv1,NULL);
++	// ---- DEBUG ----//
 +
++	PDEBUG(0,"---------------------->");
 +    if( (min_i = chann_names()) < 0 ){
-+		printf("ifIndex: Cannot get table of controlling interfaces\n");
++		PDEBUG(0,"Cannot get table of controlling interfaces");
 +		return MATCH_FAILED;
 +    }
++	PDEBUG(0,"chan names-success. min_i=%d\n",min_i);
 +
 +    if( !tbl_size ){
-+		printf("ifIndex: MATCH FAILED: tbl_size is zero\n");
++		PDEBUG(0,"MATCH FAILED: tbl_size is zero");
 +		return MATCH_FAILED;
 +    }
 +
@@ -6808,9 +7317,15 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		} else
 +			return MATCH_FAILED;
 +    }
++	
 +    *write_method = 0;
 +    *var_len = sizeof(long); 
 +    dbg_oid("Result_oid ",name,*length);
++
++	//--- DEBUG ---//
++    gettimeofday(&tv2,NULL);
++	PDEBUG(0,"<------- %d ------------",tv2.tv_usec-tv1.tv_usec);
++	//--- DEBUG ---//
 +    return name[vp->namelen];
 +}
 +
@@ -6834,10 +7349,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    struct timeval tvcur;
 +    int tverr = 0;
 +
-+    DEBUGMSGTL(("mibII/shdsl", "var_SpanConfEntry: *lenght=%d namelen=%d \n",*length,vp->namelen));
-+    DEBUGMSGOID(("mibII/shdsl", name, *length));
-+    DEBUGMSG(("mibII/shdsl", "\nexact= %d\n", exact));
-+
++	PDEBUG(0,"--------------------->");
 +    comm = init_comm();
 +    if(!comm){
 +        DEBUGMSGTL(("mibII/hdsl2Shdsl","Error connecting to \"eocd\""));
@@ -6852,10 +7364,9 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    }
 +
 +    if( gettimeofday(&tvcur,NULL) ){
-+		printf("%s: tverr occured\n",__FUNCTION__);
++		PDEBUG(0,"tverr occured");
 +		tverr = 1;
 +    }
-+
 +
 +    if( !spanconf_tbl[interface_ind] || tverr ||
 +		(tvcur.tv_sec - spanconf_tbl[interface_ind]->tv.tv_sec > CACHE_INT) ){
@@ -6863,19 +7374,20 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +        p = (span_conf_payload*)comm_alloc_request(APP_SPAN_CONF,APP_GET,tbl[interface_ind].name,&fr1);
 +		if( !p ){
 +			//DEBUGMSGTL(("mibII/hdsl2Shdsl","Cannot allocate application frame"));
-+			printf("mibII/shdsl Cannot allocate application frame");
++			PDEBUG(0,"mibII/shdsl Cannot allocate application frame");
 +    	    goto exit;
 +		}
++
 +		fr2 = comm_request(comm,fr1);
 +        if( !fr2 ){
-+			printf("Error requesting\n");
++			PDEBUG(0,"Error requesting");
 +    	    goto exit;
 +		}
 +		p = (span_conf_payload*)comm_frame_payload(fr2);
 +
 +        // Cache data
 +		if( !spanconf_tbl[interface_ind] )
-+			spanconf_tbl[interface_ind] = malloc(sizeof(shdsl_spanconf));
++			spanconf_tbl[interface_ind] = malloc(sizeof(shdsl_spanconf_elem));
 +		spanconf_tbl[interface_ind]->p = *p;
 +		spanconf_tbl[interface_ind]->tv = tvcur;
 +    }else{
@@ -6900,8 +7412,6 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		//!!	*var_len=strlen(ConfAlarmProfile);
 +		//!!	return (u_char *)ConfAlarmProfile;	
 +    default:
-+        DEBUGMSGTL(("snmpd", "unknown sub-id %d in var_interfaces\n",
-+                    vp->magic));
 +		break;
 +    }
 +
@@ -6912,6 +7422,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		comm_frame_free(fr2);
 +    comm_free(comm);
 +    comm = NULL;
++
++	PDEBUG(0,"< -------------------");
 +    return return_ptr;
 +}
 +
@@ -6935,6 +7447,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    int tverr = 0;
 +    struct timeval tvcur;
 +
++	PDEBUG(0,"--------------------- >");
 +    comm = init_comm();
 +    if(!comm){
 +		DEBUGMSGTL(("mibII/hdsl2Shdsl","Error connecting to \"eocd\""));
@@ -6943,12 +7456,12 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +
 +    if ( ( iface=header_ifIndex(vp, name, length, exact, var_len,write_method) )
 +	     == MATCH_FAILED || (*length != vp->namelen+1)){
-+		//	printf("mibII/shdsl SpanConf: MATCH_FAILED\n");	
++		PDEBUG(0,"mibII/shdsl SpanConf: MATCH_FAILED");	
 +        goto exit;
 +    }
 +
 +    if( gettimeofday(&tvcur,NULL) ){
-+		printf("%s: tverr occured\n",__FUNCTION__);
++		PDEBUG(0,"tverr occured");
 +		tverr = 1;
 +    }
 +
@@ -6957,12 +7470,12 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +        p = (span_status_payload*)comm_alloc_request(APP_SPAN_STATUS,APP_GET,tbl[interface_ind].name,&fr1);
 +		if( !p ){
 +			//DEBUGMSGTL(("mibII/hdsl2Shdsl","Cannot allocate application frame"));
-+			printf("mibII/shdsl Cannot allocate application frame");
++			PDEBUG(0,"Cannot allocate application frame");
 +			goto exit;
 +		}
 +		fr2 = comm_request(comm,fr1);
 +		if( !fr2 ){
-+			printf("Error requesting\n");
++			PDEBUG(0,"Error requesting");
 +			goto exit;
 +		}
 +		p = (span_status_payload*)comm_frame_payload(fr2);
@@ -6996,7 +7509,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		//	long_return = *((unsigned char*)&cfg.annex);
 +		*var_len = sizeof(char);
 +		return (u_char *)&long_return;
-+		*/    case STATUS_MAXATTPRATE:
++		*/
++	case STATUS_MAXATTPRATE:
 +		long_return = p->max_prate;
 +		return_ptr = (u_char *) & long_return;
 +		break;
@@ -7007,7 +7521,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    default:
 +		break;
 +    }
-+    
++   
 + exit:
 +    if( fr1 )
 +		comm_frame_free(fr1);
@@ -7015,9 +7529,10 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		comm_frame_free(fr2);
 +    comm_free(comm);
 +    comm = NULL;
++	PDEBUG(0,"< -------------------");
 +    return return_ptr;
-+
 +}
++
 +
 +/*
 + * Unit Inventory Group
@@ -7039,14 +7554,20 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    // Cacheing
 +    struct timeval tvcur;
 +    int tverr = 0;
-+    
++	// ---- DEBUG ----//
++   	struct timeval tv1,tv2;
++    gettimeofday(&tv1,NULL);
++	PDEBUG(0,"--------------------- >");
++	// ---- DEBUG ----//
++
 +	// If OID is belong to Inventory Table
 +    if( (iface = header_ifIndex(vp, name, length,1/*exact = 1*/, var_len,write_method)) 
 +	    != MATCH_FAILED ){ 	// OID belongs to Invetory table and ifIdex is valid
-+		//	printf("unitIndex: OID belong to Inv Table, if = %s\n",tbl[iface].name);
++		PDEBUG(1,"OID belong to Inv Table, interface_ind=%d,if = %s\n",interface_ind,
++				tbl[interface_ind].name);
 +        
 +		if( gettimeofday(&tvcur,NULL) ){
-+			printf("%s: tverr occured\n",__FUNCTION__);
++			PDEBUG(0,"tverr occured");
 +			tverr = 1;
 +		}
 +
@@ -7054,13 +7575,15 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +			tbl[interface_ind].units < 0 ){
 +			p = (span_params_payload*)comm_alloc_request(APP_SPAN_PARAMS,
 +														 APP_GET,tbl[interface_ind].name,&fr1);
++			PDEBUG(0,"Refresh span params");
++
 +			if( !p ){
-+				//		printf("unitIndex: Cannot allocate application frame\n");
++				PDEBUG(0,"ERROR: Cannot allocate application frame");
 +				goto exit;
 +			}
 +			fr2 = comm_request(comm,fr1);
 +			if( !fr2 ){
-+				printf("unitIndex: Error requesting\n");
++				PDEBUG(0,"ERROR: Error requesting\n");
 +				goto exit;
 +			}
 +			p = (span_params_payload*)comm_frame_payload(fr2);
@@ -7068,10 +7591,11 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +			tbl[interface_ind].tv = tvcur;
 +			tbl[interface_ind].units = p->units;
 +			tbl[interface_ind].wires = p->loops;
++
++			PDEBUG(0,"NEW %s params: units=%d, loop=%d",tbl[interface_ind].name,p->units,p->loops);
 +		}
-+
-+
-+		//	printf("unitIndex: Get params info for %s: units(%d) loops(%d)\n",tbl[iface].name,p->units,p->loops);
++		PDEBUG(0,"Get params info for %s: units(%d) loops(%d)",tbl[interface_ind].name,tbl[interface_ind].units,
++				tbl[interface_ind].wires);
 +
 +		if( exact ){ // Need exact MATCH
 +			//	    printf("unitIndex: Exact match\n");
@@ -7104,13 +7628,13 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    }
 +    
 +    if( exact ){
-+		//	printf("unitIndex: Exact match - seems failed\n");
++		PDEBUG(0,"Exact match - seems failed");
 +		goto exit;
 +    }
 +    
 +    if( (iface=header_ifIndex(vp, name, length, exact, var_len,write_method)) 
 +		== MATCH_FAILED ){ // No next interface or In OID is lager than Inventory Table OIDs
-+		//	printf("unitIndex: Search for next iface failed\n");
++		PDEBUG(0,"Search for next iface failed");
 +		goto exit;
 +    }
 +    
@@ -7130,16 +7654,18 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		}
 +		    
 +		if( !p ){
-+			//    	    printf("unitIndex: Cannot allocate application frame\n");
++			PDEBUG(0,"Cannot allocate application frame");
 +    	    goto exit;
 +		}
 +		fr2 = comm_request(comm,fr1);
 +		if( !fr2 ){
-+			//    	    printf("unitIndex: Error requesting\n");
++			PDEBUG(0,"Error requesting");
 +    	    goto exit;
 +		}
 +		p = (span_params_payload*)comm_frame_payload(fr2);
-+		//    printf("unitIndex: Get params info for %s: units(%d) loops(%d)\n",tbl[iface].name,p->units,p->loops);    
++
++		PDEBUG(0,"Get params info for %s: units(%d) loops(%d)\n",tbl[interface_ind].name,p->units,p->loops);    
++
 +		tbl[interface_ind].units = p->units;
 +		tbl[interface_ind].wires = p->loops;
 +		tbl[interface_ind].tv = tvcur;
@@ -7147,13 +7673,18 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +	
 +    name[vp->namelen+1] = stu_c;
 +    *length = vp->namelen + 2;
-+	//    printf("unitIndex: Result: unit #%d\n",name[vp->namelen+1]);
++	PDEBUG(1,"Result: unit #%d\n",name[vp->namelen+1]);
 +    ret_val = name[vp->namelen+1];
 + exit:
 +    if( fr1 )
 +		comm_frame_free(fr1);
 +    if( fr2 )
 +		comm_frame_free(fr2);
++
++	//--- DEBUG ---//
++    gettimeofday(&tv2,NULL);
++	PDEBUG(0,"<------- %d ------------",tv2.tv_usec-tv1.tv_usec);
++	//--- DEBUG ---//
 +    return ret_val;
 +}
 +
@@ -7171,6 +7702,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    resp_inventory *resp;
 +    char *return_ptr = NULL;
 +
++
++	PDEBUG(0,"------------------------>");
 +    comm = init_comm();
 +    if(!comm){
 +		DEBUGMSGTL(("mibII/hdsl2Shdsl","Error connecting to \"eocd\""));
@@ -7179,7 +7712,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +
 +    if ( ( unit = header_unitIndex(vp,name,length,exact,var_len,write_method) )
 +		 == MATCH_FAILED ){
-+		printf("var_InventoryEntry: Cannot find unit\n");
++		PDEBUG(0,"Cannot find unit");
 +		goto exit;
 +    }
 +
@@ -7188,14 +7721,14 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +											   tbl[interface_ind].name,&fr1);
 +	if( !p ){
 +		DEBUGMSGTL(("mibII/hdsl2Shdsl","Cannot allocate application frame"));
-+		printf("var_InventoryEntry: Cannot allocate application frame\n");
++		PDEBUG(0,"Cannot allocate application frame");
 +		goto exit;
 +	}
 +
 +	p->unit = unit;
 +	fr2 = comm_request(comm,fr1);
 +	if( !fr2 && exact ){
-+		printf("var_InventoryEntry: Error requesting\n");
++		PDEBUG(0,"Error requesting");
 +		goto exit;
 +	}
 +    
@@ -7203,7 +7736,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		
 +		if ( ( unit = header_unitIndex(vp,name,length,exact,var_len,write_method) )
 +			 == MATCH_FAILED ){
-+			printf("var_InventoryEntry: Cannot find unit\n");
++			PDEBUG(0,"Cannot find unit");
 +			goto exit;
 +		}
 +
@@ -7211,7 +7744,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +												   tbl[interface_ind].name,&fr1);
 +		if( !p ){
 +			DEBUGMSGTL(("mibII/hdsl2Shdsl","Cannot allocate application frame"));
-+			printf("var_InventoryEntry: Cannot allocate application frame\n");
++			PDEBUG(0,"Cannot allocate application frame");
 +			goto exit;
 +		}
 +		p->unit = unit;
@@ -7221,7 +7754,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +	}
 +    
 +	if( !fr2 ){
-+		printf("var_InventoryEntry: Error requesting\n");
++		PDEBUG(0,"Error requesting");
 +		goto exit;
 +	}
 +	p = (inventory_payload*)comm_frame_payload(fr2);
@@ -7300,6 +7833,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		comm_frame_free(fr2);
 +    comm_free(comm);
 +    comm = NULL;
++	PDEBUG(0,"<------------------------");
 +    return return_ptr;
 +}
 +
@@ -7324,10 +7858,16 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    *write_method = 0;
 +    *var_len = sizeof(long);    // default to 'long' results //
 +
++	// ---- DEBUG ----//
++   	struct timeval tv1,tv2;
++    gettimeofday(&tv1,NULL);
++	PDEBUG(0,"--------------------- >");
++	// ---- DEBUG ----//
++
 +    if ( ( unit = header_unitIndex(vp,name,length, 1 /*exact = 1*/,var_len,write_method) )
 +		 != MATCH_FAILED ){
-+		//	printf("endpIndex: uinit matched: %d\n",unit);
 +		unit_index = unit;
++	    PDEBUG(1,"Result : if(%s) unit(%d)",tbl[interface_ind].name,unit_index);
 +
 +		if( exact ){ // Need exact MATCH
 +			if( (*length >= vp->namelen+3) ){
@@ -7363,7 +7903,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +			} else
 +				return MATCH_FAILED;
 +		} else { // Nonexact match
-+			//	    printf("endpIndex: nonexact match: unit(%d) side(%d)\n",unit,name[vp->namelen+2]);
++
++			PDEBUG(0,"nonexact match: unit(%d) side(%d)\n",unit,name[vp->namelen+2]);
 +			if( unit >= sru1 && unit <=sru8 ){
 +				if( *length >= vp->namelen+3 ){
 +					if( name[vp->namelen+2] == (net_side+1) ){
@@ -7389,7 +7930,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		return MATCH_FAILED;
 +    }
 +    unit_index = unit;
-+	//    printf("endpIndex: next unit = %d\n",unit);
++	PDEBUG(1,"NEXT Result : if(%s) unit(%d)",tbl[interface_ind].name,unit_index);
++
 +    switch( unit ){
 +    case stu_c:
 +		name[vp->namelen+2] = (cust_side+1);
@@ -7411,6 +7953,11 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		return MATCH_FAILED;
 +    }
 +    *length = vp->namelen + 3;
++
++	//--- DEBUG ---//
++    gettimeofday(&tv2,NULL);
++	PDEBUG(0,"<------- %d ------------",tv2.tv_usec-tv1.tv_usec);
++	//--- DEBUG ---//
 +    return name[vp->namelen+2];
 +}
 +
@@ -7437,48 +7984,20 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    struct timeval tvcur;
 +    int tverr = 0;
 +
++	// ---- DEBUG ----//
++   	struct timeval tv1,tv2;
++    gettimeofday(&tv1,NULL);
++	PDEBUG(1,"--------------------- >");
++	// ---- DEBUG ----//
++
 +    if ( ( endp = header_endpIndex(vp,name,length, 1 /*exact = 1*/,var_len,write_method) )
 +		 != MATCH_FAILED ){
-+    
-+		printf("wirePair: interface_ind = %d,exact endpoint = %d\n",interface_ind,endp);
-+		printf("wirePair: Get params info for %s\n",tbl[interface_ind].name);
-+
 +		endp_index = endp;
-+		tverr = gettimeofday(&tvcur,NULL);
-+		printf("%s: before if 1\n",__FUNCTION__);
 +		int k = tbl[interface_ind].wires;
-+		printf("%s: before if 2\n",__FUNCTION__);
-+		int k1 = tvcur.tv_sec - tbl[interface_ind].tv.tv_sec;
-+		printf("%s: before if 3\n",__FUNCTION__);
-+		if( tverr || tbl[interface_ind].wires < 0 ||
-+			(tvcur.tv_sec - tbl[interface_ind].tv.tv_sec > CACHE_INT ) ){ 
-+			printf("%s: 1\n",__FUNCTION__);
-+			p = (span_params_payload*)comm_alloc_request(APP_SPAN_PARAMS,
-+														 APP_GET,tbl[interface_ind].name,&fr1);
-+			printf("%s: 2\n",__FUNCTION__);
-+			if( !p ){
-+				DEBUGMSGTL(("mibII/hdsl2Shdsl","Cannot allocate application frame"));
-+				printf("wirePair: Cannot allocate application frame\n");
-+				goto exit;
-+			}
-+			printf("%s: 3\n",__FUNCTION__);	    
-+			fr2 = comm_request(comm,fr1);
-+			printf("%s: 4\n",__FUNCTION__);
-+			if( !fr2 ){
-+				printf("wirePair: Error requesting\n");
-+				goto exit;
-+			}
-+			printf("%s: 5\n",__FUNCTION__);	    
-+			p = (span_params_payload*)comm_frame_payload(fr2);
-+			tbl[interface_ind].units = p->units;
-+			tbl[interface_ind].wires = p->loops;
-+			tbl[interface_ind].tv = tvcur;
-+		}
-+		printf("%s: after if\n",__FUNCTION__);
-+		printf("wirePair: Get params info for %s: units(%d) loops(%d)\n",tbl[interface_ind].name,p->units,p->loops);
++		PDEBUG(1,"Result : if(%s) unit(%d) endp(%d)",tbl[interface_ind].name,unit_index,endp_index);
 +
 +		if( exact ){ // Need exact MATCH
-+			printf("wirePair: Exact Match\n");
++			PDEBUG(1,"Exact Match");
 +			if( (*length >= vp->namelen+4) && 
 +				(name[vp->namelen+3] > 0) && (name[vp->namelen+3] <= tbl[interface_ind].wires) ){
 +				ret_val =  name[vp->namelen+3];
@@ -7506,7 +8025,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		}
 +    }
 +	
-+    printf("%s: Exact match failed\n",__FUNCTION__);
++	PDEBUG(1,"Exact match failed");
 +    if( exact ){
 +		goto exit;
 +    }
@@ -7515,40 +8034,22 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +	    == MATCH_FAILED ){ // No next interface or In OID is lager than Inventory Table OIDs
 +		goto exit;
 +    }
-+
-+    printf("wirePair: nonexact endpoint = %d\n",endp);
 +    endp_index = endp;
-+
-+    if( tverr || tbl[interface_ind].wires < 0 ||
-+        (tvcur.tv_sec - tbl[interface_ind].tv.tv_sec > CACHE_INT ) ){ 
-+        p = (span_params_payload*)comm_alloc_request(APP_SPAN_PARAMS,
-+													 APP_GET,tbl[interface_ind].name,&fr1);
-+        if( !p ){
-+    	    DEBUGMSGTL(("mibII/hdsl2Shdsl","Cannot allocate application frame"));
-+			printf("wirePair: Cannot allocate application frame\n");
-+			goto exit;
-+		}
-+		fr2 = comm_request(comm,fr1);
-+		if( !fr2 ){
-+			printf("wirePair: Error requesting\n");
-+			goto exit;
-+		}
-+		p = (span_params_payload*)comm_frame_payload(fr2);
-+		tbl[interface_ind].units = p->units;
-+		tbl[interface_ind].wires = p->loops;
-+		tbl[interface_ind].tv = tvcur;
-+    }
-+
++	PDEBUG(1,"NEXT Result : if(%s) unit(%d) endp(%d)",tbl[interface_ind].name,unit_index,endp_index);
 +    name[ vp->namelen+3] = 1; // First pair
 +    *length = vp->namelen + 4;
 +    ret_val = name[vp->namelen+3];
++
 + exit:
-+    printf("%s: exit\n",__FUNCTION__);
 +    if( fr1 )
 +		comm_frame_free(fr1);
 +    if( fr2 )
 +		comm_frame_free(fr2);
-+    printf("%s: returning\n",__FUNCTION__);
++
++	//--- DEBUG ---//
++    gettimeofday(&tv2,NULL);
++	PDEBUG(1,"<------- %d ------------",tv2.tv_usec-tv1.tv_usec);
++	//--- DEBUG ---//
 +    return ret_val;
 +}
 +
@@ -7574,7 +8075,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		return NULL;
 +    }
 +
-+    printf("EndpointCurStatEntry: start\n");
++    PDEBUG(1,"-----!!!!!!!!!!!!!!-------->");
 +
 +	// ------------------------------ Obtain requested information ------------------------------- //
 +
@@ -7582,25 +8083,24 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		 == MATCH_FAILED )
 +        goto exit;
 +       
-+    printf("Result : if(%s) unit(%d) side(%d) pair(%d)\n",tbl[interface_ind].name,unit_index,endp_index,pair);
++    PDEBUG(1,"Result : if(%s) unit(%d) side(%d) pair(%d)",tbl[interface_ind].name,unit_index,endp_index,pair);
 +
 +    p = (endp_cur_payload*)comm_alloc_request(APP_ENDP_CUR,APP_GET,
 +											  tbl[interface_ind].name,&fr1);
 +    if( !p ){
 +		DEBUGMSGTL(("mibII/hdsl2Shdsl","Cannot allocate application frame"));
-+		printf("var_InventoryEntry: Cannot allocate application frame\n");
++		PDEBUG(1,"var_InventoryEntry: Cannot allocate application frame");
 +		goto exit;
 +    }
 +    p->unit = unit_index;
 +    p->side = endp_index-1;
 +    p->loop = pair-1;
 +    fr2 = comm_request(comm,fr1);
-+    printf("Request if(%s) unit(%d) side(%d) loop(%d)\n",
++    PDEBUG(1,"Request if(%s) unit(%d) side(%d) loop(%d)",
 +		   tbl[interface_ind].name,p->unit,p->side,p->loop);
-+
 +    
 +    if( !fr2 && exact ){
-+		printf("var_InventoryEntry: error requesting\n");
++		PDEBUG(1,"var_InventoryEntry: error requesting");
 +		goto exit;
 +    }
 +    
@@ -7609,19 +8109,20 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +			 == MATCH_FAILED )
 +    	    goto exit;
 +    
-+		printf("Result (rep): if(%s) unit(%d) side(%d) pair(%d)\n",tbl[interface_ind].name,unit_index,endp_index,pair);
++		PDEBUG(1,"Result (rep): if(%s) unit(%d) side(%d) pair(%d)",tbl[interface_ind].name,unit_index,endp_index,pair);
++		set_chan_name(fr1,tbl[interface_ind].name);
 +		p->unit = unit_index;
 +		p->side = endp_index-1;
 +		p->loop = pair-1;
 +		fr2 = comm_request(comm,fr1);
 +
-+		printf("Request (rep): if(%s) unit(%d) side(%d) loop(%d)\n",
++		PDEBUG(1,"Request (rep): if(%s) unit(%d) side(%d) loop(%d)",
 +			   tbl[interface_ind].name,p->unit,p->side,p->loop);
 +
 +    }
 +
 +    if( !fr2 ){
-+		printf("var_InventoryEntry: error requesting\n");
++		PDEBUG(1,"error requesting");
 +		goto exit;
 +    }
 +    
@@ -7715,14 +8216,13 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +
 +
 + exit:
-+    printf("%s: exit\n",__FUNCTION__);
 +    if( fr1 )
 +		comm_frame_free(fr1);
 +    if( fr2 )
 +		comm_frame_free(fr2);
 +    comm_free(comm);
 +    comm = NULL;
-+    printf("%s: returning %p\n",__FUNCTION__,return_ptr);
++    PDEBUG(1,"<------------!!!!!!!!!!!!!1----------\n\n");
 +    return return_ptr;
 +}
 +
@@ -7742,12 +8242,10 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    int int_num,ret_val = MATCH_FAILED;
 +    
 +    
-+    printf("%s(Input): if(%d) unit(%d) side(%d) pair(%d) int(%d) id(%d)\n",
++    PDEBUG(0,"(Input) if(%d) unit(%d) side(%d) pair(%d) int(%d) id(%d)",
 +		   __FUNCTION__,name[vp->namelen],name[vp->namelen+1],name[vp->namelen+2],
 +		   name[vp->namelen+3],name[vp->namelen+4],msg_id);
 +
-+
-+	// printf("----------- WirePair: start ------------\n");
 +    //-------------- Try requested wire_pair ----------------//
 +    if ( ( wire = header_wirePairIndex(vp,name,length, 1 /*exact = 1*/,var_len,write_method) )
 +		 != MATCH_FAILED ){
@@ -7776,7 +8274,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		}	
 +		if( !p ){
 +			DEBUGMSGTL(("mibII/hdsl2Shdsl","interval15Index: Cannot allocate application frame"));
-+			printf("interval15Index: Cannot allocate application frame\n");
++			PDEBUG(0,"Cannot allocate application frame");
 +			return MATCH_FAILED;
 +		}
 +	    
@@ -7785,7 +8283,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		p->loop = wire_index-1;
 +		p->int_num = int_num;
 +
-+		printf("Output: unit(%d) side(%d) pair(%d) int(%d)\n",
++		PDEBUG(0,"(Output) unit(%d) side(%d) pair(%d) int(%d)",
 +			   p->unit,p->side,p->loop,p->int_num);
 +	
 +		fr2 = comm_request(comm,fr1);
@@ -7819,7 +8317,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    
 +    if( !p ){
 +		DEBUGMSGTL(("mibII/hdsl2Shdsl","interval15Index: Cannot allocate application frame"));
-+		printf("interval15Index: Cannot allocate application frame\n");
++		PDEBUG(0,"interval15Index: Cannot allocate application frame");
 +		goto exit;
 +    }
 +
@@ -7828,7 +8326,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    p->loop = wire_index-1;
 +    p->int_num = 1;
 +
-+    printf("Output: unit(%d) side(%d) pair(%d) int(%d)\n",
++    PDEBUG(0,"Output: unit(%d) side(%d) pair(%d) int(%d)",
 +		   p->unit,p->side,p->loop,p->int_num);
 +
 +	if( fr2 )
@@ -7836,11 +8334,11 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    fr2 = comm_request(comm,fr1);
 +    if( !fr2 ){
 +    	DEBUGMSGTL(("mibII/hdsl2Shdsl","interval15Index: Error requesting\n"));
-+    	printf("interval15Index: Error requesting\n");
++    	PDEBUG(0,"interval15Index: Error requesting");
 +		goto exit;
 +    }
 +
-+    printf("Request successfull, p =%p\n",p);
++    PDEBUG(0,"Request successfull, p =%p",p);
 +    p = (endp_int_payload*)comm_frame_payload(fr2);
 +    if( !p ){
 +		goto exit;
@@ -7850,13 +8348,12 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    name[vp->namelen+4] = p->int_num;
 +    ret_val = name[vp->namelen+4];
 +    *length = vp->namelen+5;
-+    printf("%s: exit\n",__FUNCTION__);
 + exit:
 +    if( fr1 )
 +		comm_frame_free(fr1);
 +    if( fr2 )
 +		comm_frame_free(fr2);
-+    printf("%s: returning\n",__FUNCTION__);
++    PDEBUG(0,"<----------------------------");
 +    return ret_val;
 +}
 +
@@ -7915,10 +8412,9 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +
 +
 + exit:
-+    printf("%s: exit\n",__FUNCTION__);
 +    comm_free(comm);
 +    comm = NULL;
-+    printf("%s: returning, %p\n",__FUNCTION__,return_ptr);
++    PDEBUG(0,"<--------------------------");
 +    return return_ptr;
 +}
 +
@@ -7936,7 +8432,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    char *return_ptr = NULL;
 +    int int_num;
 +
-+	printf("%s: start\n",__FUNCTION__);
++	PDEBUG(0,"--------------------->");
++
 +
 +    comm = init_comm();
 +    if(!comm){
@@ -7948,7 +8445,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		 == MATCH_FAILED )
 +        goto exit;
 +    
-+    printf("(Result) : if(%s) unit(%d) side(%d) pair(%d) int(%d)\n",tbl[interface_ind].name,unit_index,endp_index,wire_index,int_num);
++    PDEBUG(0,"(Result) : if(%s) unit(%d) side(%d) pair(%d) int(%d)",tbl[interface_ind].name,unit_index,endp_index,wire_index,int_num);
 +
 +    //---- ack ----//
 +    switch (vp->magic) {
@@ -7985,232 +8482,13 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    return return_ptr;
 +}
 +
-+
-+
-+/*
-+ * Segment Endpoint Configuration Group
-+ *//*
-+	 u_char *
-+	 var_EndpointConfEntry(struct variable * vp,
-+	 oid * name,
-+	 size_t * length,
-+	 int exact, size_t * var_len, WriteMethod ** write_method)
-+	 {
-+	 shdsl_unit_t Info, *info = &Info;
-+	 int pair;
-+
-+	 //    DEBUGMSGTL(("mibII/shdsl", "\n-----------------------START----------------------------\n"
-+	 //			"var_EndpointConfEntry. exact= %d\n",exact));
-+	 //    DEBUGMSGOID(("mibII/shdsl", name, *length));
-+	 //    DEBUGMSG(("mibII/shdsl", "\n"));    
-+    
-+	 if ( ( pair = header_wirePairIndex(vp,name,length,exact,var_len,write_method) )
-+	 == MATCH_FAILED )
-+	 return NULL;
-+
-+
-+
-+
-+
-+
-+	 struct app_frame *fr1,*fr2;
-+	 char *b;
-+	 endp_int_payload *p;
-+    
-+
-+	 p = (endp_int_payload*)comm_alloc_request(APP_ENDP_15MIN,APP_GET,"dsl0",&fr1);
-+	 if( !p ){
-+	 DEBUGMSGTL(("mibII/hdsl2Shdsl","Cannot allocate application frame"));
-+	 return;
-+	 }
-+	 p->unit = stu_c;
-+	 p->side = net_side;
-+	 p->loop = 0;
-+	 p->int_num = 73;
-+
-+	 fr2 = comm_request(c,fr1);
-+	 if( !fr2 ){
-+	 printf("Error requesting\n");
-+	 return -1;
-+	 }
-+	 p = (endp_int_payload*)comm_frame_payload(fr2);
-+	 print_int_payload(p,"1day");    
-+
-+
-+
-+
-+
-+
-+
-+
-+    
-+	 //    DEBUGMSGTL(("mibII/shdsl", "Result pair = %d\n-------------------END------------------------\n",pair));
-+	 //---- ack ----//
-+	 switch (vp->magic) {
-+	 case ENDP_CONF_PROF:
-+	 strcpy(return_buf,"DEFAULT");    
-+	 *var_len = strlen(return_buf);
-+	 return (u_char *)return_buf;
-+	 }    
-+	 return NULL;
-+	 }
-+
-+
-+	 /*
-+	 *
-+	 * ---------------------- Maintenance Group  ------------------------
-+	 *
-+	 *//*
-+
-+u_char *
-+var_EndpointMaintEntry(struct variable * vp,
-+oid * name,
-+size_t * length,
-+int exact, size_t * var_len, WriteMethod ** write_method)
-+{
-+shdsl_endp_maint_t Info, *info = &Info;
-+int pair;
-+/*
-+DEBUGMSGTL(("mibII/shdsl", "\n-----------------------START----------------------------\n"
-+"var_EndpointConfEntry. exact= %d\n",exact));
-+DEBUGMSGOID(("mibII/shdsl", name, *length));
-+DEBUGMSG(("mibII/shdsl", "\n"));    
-+	   *//*    
-+			   if ( ( pair = header_endpIndex(vp,name,length,exact,var_len,write_method) )
-+			   == MATCH_FAILED )
-+			   return NULL;
-+
-+
-+
-+			   struct app_frame *fr1,*fr2;
-+			   char *b;
-+			   endp_int_payload *p;
-+    
-+
-+			   p = (endp_int_payload*)comm_alloc_request(APP_ENDP_15MIN,APP_GET,"dsl0",&fr1);
-+			   if( !p ){
-+			   DEBUGMSGTL(("mibII/hdsl2Shdsl","Cannot allocate application frame"));
-+			   return;
-+			   }
-+			   p->unit = stu_c;
-+			   p->side = net_side;
-+			   p->loop = 0;
-+			   p->int_num = 73;
-+
-+			   fr2 = comm_request(c,fr1);
-+			   if( !fr2 ){
-+			   printf("Error requesting\n");
-+			   return -1;
-+			   }
-+			   p = (endp_int_payload*)comm_frame_payload(fr2);
-+			   print_int_payload(p,"1day");    
-+
-+
-+
-+
-+
-+
-+
-+    
-+			   eocd_endp_maint(interface_ind,unit_index,&eocd,info);    
-+    
-+			   //    DEBUGMSGTL(("mibII/shdsl", "Result pair = %d\n-------------------END------------------------\n",pair));
-+			   //---- ack ----//
-+			   switch (vp->magic) {
-+			   case ENDP_MAINT_LOOPBACK:
-+			   long_return= info->lpb_cfg;
-+			   return (u_char *) & long_return;
-+			   case ENDP_MAINT_TIPRINGREV:
-+			   long_return= info->ring_rev;
-+			   return (u_char *) & long_return;
-+			   case ENDP_MAINT_PWRBACKOFF:
-+			   long_return= info->pwr_backoff;
-+			   return (u_char *) & long_return;
-+			   case ENDP_MAINT_SOFTRESTART:
-+			   long_return= info->soft_rst;
-+			   return (u_char *) & long_return;
-+			   }
-+			   return NULL;
-+			   }
-+
-+			   u_char *
-+			   var_UnitMaintEntry(struct variable * vp,
-+               oid * name,
-+               size_t * length,
-+               int exact, size_t * var_len, WriteMethod ** write_method)
-+			   {
-+			   shdsl_unit_maint_t Info, *info = &Info;
-+			   int unit;
-+
-+			   //    DEBUGMSGTL(("mibII/shdsl", "\n-----------------------START----------------------------\n"
-+			   //			"var_UnitMaintEntry. exact= %d\n",exact));
-+			   //    DEBUGMSGOID(("mibII/shdsl", name, *length));
-+			   //    DEBUGMSG(("mibII/shdsl", "\n"));    
-+    
-+			   if ( ( unit = header_unitIndex(vp,name,length,exact,var_len,write_method) )
-+			   == MATCH_FAILED )
-+			   return NULL;
-+
-+
-+
-+			   struct app_frame *fr1,*fr2;
-+			   char *b;
-+			   endp_int_payload *p;
-+    
-+
-+			   p = (endp_int_payload*)comm_alloc_request(APP_ENDP_15MIN,APP_GET,"dsl0",&fr1);
-+			   if( !p ){
-+			   DEBUGMSGTL(("mibII/hdsl2Shdsl","Cannot allocate application frame"));
-+			   return;
-+			   }
-+			   p->unit = stu_c;
-+			   p->side = net_side;
-+			   p->loop = 0;
-+			   p->int_num = 73;
-+
-+			   fr2 = comm_request(c,fr1);
-+			   if( !fr2 ){
-+			   printf("Error requesting\n");
-+			   return -1;
-+			   }
-+			   p = (endp_int_payload*)comm_frame_payload(fr2);
-+			   print_int_payload(p,"1day");    
-+
-+
-+
-+
-+
-+    
-+			   eocd_unit_maint(interface_ind,unit_index,&eocd,info);    
-+    
-+			   //    DEBUGMSGTL(("mibII/shdsl", "Result unit = %d\n-------------------END------------------------\n",unit));
-+			   //---- ack ----//
-+			   switch (vp->magic) {
-+			   case ENDP_MAINT_LOOPBACK:
-+			   long_return= info->lpb_to;
-+			   return (u_char *) & long_return;
-+			   case ENDP_MAINT_TIPRINGREV:
-+			   long_return= info->pwr_src;
-+			   return (u_char *) & long_return;
-+			   }
-+			   return NULL;
-+			   }
-+
-+
-+			   /*
-+			   *
-+			   * ---------------------- PROFILES ------------------- 
-+			   *
-+			   */
-+
-+
 +/*
 + * header_wirePairIndex:
 + * 	Defines propriate Wire pair index for incoming OID
 + *	(by now only 1 pair supported)
 + */
 +
-+span_conf_prof_payload _cprof;
++cprof_payload _cprof;
 +
 +static int 
 +header_confProfIndex(struct variable *vp,
@@ -8225,7 +8503,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    *var_len = sizeof(long);    // default to 'long' results //
 +    struct app_frame *fr1 = NULL,*fr2 = NULL;
 +    char *b;
-+    span_conf_prof_payload *p;
++    cprof_payload *p;
 +    int i,l;
 +
 +	/*
@@ -8257,8 +8535,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +        len = (len>SNMP_ADMIN_LEN) ? SNMP_ADMIN_LEN : len;
 +        memcpy(profname,name+vp->namelen,len);
 +		profname[len+1] = 0;	
-+		p = (span_conf_prof_payload*)
-+			comm_alloc_request(APP_SPAN_CPROF,APP_GET,"",&fr1);
++		p = (cprof_payload*)
++			comm_alloc_request(APP_CPROF,APP_GET,"",&fr1);
 +    }else{
 +		if( (base_compare < 0) || (!base_compare && *length<=vp->namelen) ){
 +			memcpy((char*)name,vp->name,((int)vp->namelen)*sizeof(oid));
@@ -8275,8 +8553,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +			*length = vp->namelen;	    
 +			//printf("%s: nonexact, profname=%s\n",__FUNCTION__,profname);
 +		}
-+		p = (span_conf_prof_payload*)
-+			comm_alloc_request(APP_SPAN_CPROF,APP_GET_NEXT,"",&fr1);
++		p = (cprof_payload*)
++			comm_alloc_request(APP_CPROF,APP_GET_NEXT,"",&fr1);
 +    }	
 +    if( !p ){
 +		DEBUGMSGTL(("mibII/hdsl2Shdsl","Cannot allocate application frame"));
@@ -8285,18 +8563,18 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		return MATCH_FAILED;
 +    }
 +
-+    strncpy(p->ProfileName,profname,SNMP_ADMIN_LEN+1);
++    strncpy(p->pname,profname,SNMP_ADMIN_LEN+1);
 +	//    printf("%s: Request profile:\n",__FUNCTION__);//,p->ProfileName);
 +    fr2 = comm_request(comm,fr1);
 +	//    printf("%s, request successfull\n",__FUNCTION__);
 +    if( !fr2 ){
-+		printf("%s: Error requesting\n",__FUNCTION__);
++		PDEBUG(0,"Error requesting");
 +		if( fr1 )
 +			comm_frame_free(fr1);
 +		return MATCH_FAILED;
 +    }
 +    
-+    p = (span_conf_prof_payload*)comm_frame_payload(fr2);
++    p = (cprof_payload*)comm_frame_payload(fr2);
 +    
 +    _cprof = *p;
 +
@@ -8312,11 +8590,11 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +
 +	*/    
 +	//    printf("%s: get profile - %s,len=%d,vp->namelen=%d\n",__FUNCTION__,p->ProfileName,strnlen(p->ProfileName,SNMP_ADMIN_LEN+1),vp->namelen);
-+    l = strnlen(p->ProfileName,SNMP_ADMIN_LEN+1);
++    l = strnlen(p->pname,SNMP_ADMIN_LEN+1);
 +    for(i=0;i<l;i++){
-+		name[vp->namelen+i] = p->ProfileName[i];
++		name[vp->namelen+i] = p->pname[i];
 +    }
-+    *length += strnlen(p->ProfileName,SNMP_ADMIN_LEN+1);
++    *length += strnlen(p->pname,SNMP_ADMIN_LEN+1);
 +	/*
 +	  printf("%s: name:\n",__FUNCTION__);
 +	  for(i=0;i<*length;i++){
@@ -8352,7 +8630,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    
 +    if ( header_confProfIndex(vp,name,length,exact,var_len,write_method)
 +		 == MATCH_FAILED ){
-+		printf("%s: returning NULL\n",__FUNCTION__);
++		PDEBUG(0,"returning NULL");
 +        goto exit;
 +    }
 +	/*
@@ -8376,11 +8654,11 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		printf("WIRE_IFACE: ret=%d", _cprof.conf.wires);
 +		break;
 +    case CONF_MIN_LRATE:
-+		long_return = _cprof.conf.min_rate;
++		long_return = _cprof.conf.rate;
 +		return_ptr = (u_char *)&long_return;
 +		break;
 +    case CONF_MAX_LRATE:
-+		long_return = _cprof.conf.max_rate;
++		long_return = _cprof.conf.rate;
 +		return_ptr = (u_char *)&long_return;
 +		break;
 +    case CONF_PSD:
@@ -8445,7 +8723,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 Index: net-snmp-5.1.2/agent/mibgroup/mibII.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII.h	(revision 42)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII.h	(revision 50)
++++ net-snmp-5.1.2/agent/mibgroup/mibII.h	(revision 55)
 @@ -13,3 +13,4 @@
  config_require(mibII/udp)
  config_require(mibII/vacm_vars)
@@ -8454,7 +8732,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII.h
 Index: net-snmp-5.1.2/Makefile.top
 ===================================================================
 --- net-snmp-5.1.2/Makefile.top	(revision 42)
-+++ net-snmp-5.1.2/Makefile.top	(revision 50)
++++ net-snmp-5.1.2/Makefile.top	(revision 55)
 @@ -52,6 +52,11 @@
  
  # Misc Compiling Stuff
