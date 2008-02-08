@@ -1256,7 +1256,7 @@
 				</para>
 			</section>
 		</section>
-		<section>
+		<section id="e1">
 			<title>Конфигурация интерфейса E1</title>
 			<para>
 				Маршрутизатор поддерживает несколько протоколов для работы с интерфейсом E1: HDLC, ETHER-HDLC, CISCO-HDLC, FR, PPP, X25. Конфигурация интерфейса выполняется на странице System/E1/E1_*.
