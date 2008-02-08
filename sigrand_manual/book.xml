@@ -852,66 +852,60 @@
 						</listitem>
 						<listitem>
 							<para>
-								<emphasis>Enabled</emphasis> - интерфейс активен.
+								<emphasis>Enabled</emphasis> - интерфейс активен. Это делает возможным запуск интерфейса другим интерфейсом (интерфейсом бондинга или моста), но интерфейс не будет запущен независимо. В частности, интерфейс можно запустить нажатием кнопки <emphasis>Start interface</emphasis> на вкладке <emphasis>Status</emphasis>.
 							</para>
 						</listitem>
 						<listitem>
 							<para>
-								<emphasis>Auto</emphasis> - активация интерфейса при загрузке.
+								<emphasis>Auto</emphasis> - независимый запуск интерфейса. Интерфейс будет запущен при загрузке маршрутизатора, либо при сохранении настроек на страницах конфигурации.
 							</para>
 						</listitem>
 						<listitem>
 							<para>
 								<emphasis>Method</emphasis> - метод установки IP-адреса.
 							</para>
+							<note>
+								<para>
+									Для интерфейса Е1, при выборе протоколов, отличных от ETHER-HDLC, изменение данного параметра невозможно. Метод установки IP-адреса всегда Point-to-Point, и производится на вкладке <emphasis>Method</emphasis>.
+								</para>
+							</note>
 						</listitem>
 						<listitem>
 							<para>
 								<emphasis>Depended on</emphasis> - интерфейс, от которого зависит данный интерфейс. При запуске данного интерфейса сперва будет запущен интерфейс, от которого он зависит.
 							</para>
+							<note>
+								<para>
+									Для интерфейса VLAN изменение данного параметра невозможно - для него здесь всегда указывается его физический интерфейс.
+								</para>
+							</note>
 						</listitem>
 					</itemizedlist>
-					<note>
-						<para>
-							После установлении флажка <emphasis>enabled</emphasis> интерфейс не будет автоматически запущен. Запуск интерфейса производится после сохранения параметров на вкладках Options, Specific и др., либо после нажатии кнопки <emphasis>Start interface</emphasis> на вкладке <emphasis>Status</emphasis>.
-						</para>
-					</note>
 					<para>
 						Возможно несколько методов установки IP-адреса:
 					</para>
 					<itemizedlist>
 						<listitem>
 							<para>
-								<emphasis>None</emphasis> - не конфигурируемый, ip-адрес не устанавливается.
+								<emphasis>None</emphasis> - не конфигурируемый, IP-адрес не устанавливается.
 							</para>
 						</listitem>
 						<listitem>
 							<para>
-								<emphasis>Static address</emphasis> - статический, ручной ввод пользователем.
+								<emphasis>Static address</emphasis> - статический, ручной ввод пользователем. Ввод адреса производится на вкладке <emphasis>Method</emphasis>.
 							</para>
 						</listitem>
 						<listitem>
 							<para>
-								<emphasis>Zero configuration</emphasis> - автоматический способ присвоения ip-адреса, позволяющий построить работающую сеть без ручного присвоения ip-адресов и без серверов DNS/DHCP.
+								<emphasis>Zero configuration</emphasis> - автоматический способ присвоения ip-адреса, позволяющий построить работающую сеть без ручного присвоения IP-адресов и без серверов DHCP. В этом случае интерфейсу будет назначен IP-адрес из диапазона 169.254.*.
 							</para>
 						</listitem>
 						<listitem>
 							<para>
-								<emphasis>Dynamic address</emphasis> - динамический ip-адрес () - адрес назначается сетевыми сервисами: DHCP/PPTP/...
+								<emphasis>Dynamic address</emphasis> - динамический IP-адрес  - адрес назначается сервером DHCP.
 							</para>
 						</listitem>
 					</itemizedlist>
-					<note>
-						<para>
-							При выборе статического адреса необходимо ввести соответствующую информацию на вкладке <emphasis>Method</emphasis>.
-						</para>
-						<para>
-							При конфигурации сети с помощью Zeroconf интерфейсу будет назначен ip-адрес из диапазона 169.254.*.
-						</para>
-						<para>
-							При выборе динамического ip-адреса, адрес и необходимые сетевые настройки будут получены от DHCP сервера.
-						</para>
-					</note>
 				</section>
 				<section id="method">
 					<title>Вкладка Method</title>
@@ -1265,7 +1259,7 @@
 		<section>
 			<title>Конфигурация интерфейса E1</title>
 			<para>
-				Маршрутизатор поддерживает несколько протоколов для работы с интерфейсом E1: HDLC, ETHER-HDLC, CISCO-HDLC, FR, PPP, X25. Конфигурация интерфейса выполняется на странице System/E1/hdlc*.
+				Маршрутизатор поддерживает несколько протоколов для работы с интерфейсом E1: HDLC, ETHER-HDLC, CISCO-HDLC, FR, PPP, X25. Конфигурация интерфейса выполняется на странице System/E1/E1_*.
 			</para>
 			<important>
 				<para>
@@ -1284,36 +1278,81 @@
 					</para>
 					<figure>
 						<title>Выбор протокола</title>
-						<graphic fileref="img/hdlc-select_prot.png" />
+						<graphic fileref="img/cisco-hdlc_select-prot.png" />
 					</figure>
 					<para>
 						Для активации страницы с настройками, относящимся к выбранному протоколу, необходимо сохранить внесенные изменения. После перезагрузки страница примет следующий вид:
 					</para>
 					<figure>
 						<title>Конфигурация CISCO-HDLC</title>
-						<graphic fileref="img/hdlc-params.png" />
+						<graphic fileref="img/cisco-hdlc-framed.png" />
 					</figure>
 					<itemizedlist>
-						<listitem>Interval - время в секундах между пакетами поддержания соединения (keepalive packets)</listitem>
 						<listitem>
-							Timeout - время в секундах после последнего полученного пакета поддержания соединения, по истечению которого соединение считается разорванным.
+							<para>
+								<emphasis>Interval</emphasis> - время в секундах между пакетами поддержания соединения (keepalive packets).
+							</para>
 						</listitem>
 						<listitem>
-							Е1 framed mode - структурированный режим, при котором канал разбивается на таймслоты. В этом режиме для соединения задается карта таймслотов, которая должна совпадать с картой на другом конце соединения.
+							<para>
+								<emphasis>Timeout</emphasis> - время в секундах после последнего полученного пакета поддержания соединения, по истечению которого соединение считается разорванным.
+							</para>
 						</listitem>
 						<listitem>
-							Use time slot 16 - по умолчанию в интерфейсе Е1 зарезервированы 0 и 16 слоты, которые могу быть использованы для служебной информации. Активация этого параметра позволяет использовать таймслот 16 для передачи данных.
+							<para>
+								<emphasis>Е1 framed mode</emphasis> - структурированный режим, при котором канал разбивается на таймслоты. В этом режиме для соединения задается карта таймслотов, которая должна совпадать с картой на другом конце соединения.
+							</para>
 						</listitem>
-						<listitem>Slotmap - карта таймслотов. После сохранения из карты будут удалены служебные таймслоты.</listitem>
 						<listitem>
-							E1 internal transmit clock - использовать внутренний генератор частоты. Как правило, в соединении должно быть хотя бы одно устройство с внутренним генератором частоты.
+							<para>
+								<emphasis>Use time slot 16</emphasis> - по умолчанию в интерфейсе Е1 зарезервированы 0 и 16 слоты, которые могу быть использованы для служебной информации. Активация этого параметра позволяет использовать таймслот 16 для передачи данных.
+							</para>
 						</listitem>
-						<listitem>E1 CRC4 multiframe - включение режима CRC4.</listitem>
 						<listitem>
-							E1 CAS multiframe - включение режима CAS, используемого, как правило, при работе с АТС оборудованием. В этом режиме таймслот 16 зарезервирован для служебного использования.
+							<para>
+								<emphasis>Slotmap</emphasis> - карта таймслотов. После сохранения из карты будут удалены служебные таймслоты.
+							</para>
 						</listitem>
-						<listitem>E1 HDB3/AMI line code - способ кодирования сигнала на линии связи.</listitem>
-						<listitem>CRC - способ контроля ошибок.</listitem>
+						<listitem>
+							<para>
+								<emphasis>E1 CRC4 multiframe</emphasis> - включение режима CRC4.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>E1 CAS multiframe</emphasis> - включение режима CAS, используемого, как правило, при работе с АТС оборудованием. В этом режиме таймслот 16 зарезервирован для служебного использования.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>E1 external transmit clock</emphasis> - использовать внешний источник тактирования. По-умолчанию используется внутренний.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>E1 long haul mode</emphasis> - включение режима Long Haul, который используется на длинных (> 400м) линиях, но так же способен работать и на коротких.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>E1 HDB3/AMI line code</emphasis> - способ кодирования сигнала на линии связи.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>CRC</emphasis> - способ контроля ошибок.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Fill</emphasis> - выбор байта для заполнения канала, когда нет пакетов на передачу.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Inversion</emphasis> - логическое инвертирование всего потока.
+							</para>
+						</listitem>
 					</itemizedlist>
 					<para>
 						Пропускная способность одного таймслота составляет 64 Кбит/c, т.о. максимальная пропускная способность интерфейса Е1 в unframed mode составляет 2 Мбит/с.
@@ -1321,7 +1360,7 @@
 					<section>
 						<title>Конфигурация framed mode</title>
 						<para>
-							Для работы интерфейса в framed mode необходимо активировать параметр E1 framed mode и ввести карту таймслотов, например &quot;2-9,17-27 (именно в таком формате, без пробела между диапазонами)&quot;. На другом конце соединения должна быть установлена такая же карта слотов. Строго говоря, все параметры, за исключением E1 internal transmit clock, должны быть согласованы с двух сторон.
+							Для работы интерфейса в framed mode необходимо активировать параметр <emphasis>E1 framed mode</emphasis> и ввести карту таймслотов, например &quot;2-9,17-27&quot; (именно в таком формате, без пробела между диапазонами). На другом конце соединения должна быть установлена такая же карта слотов. Строго говоря, все параметры, за исключением <emphasis>E1 external transmit clock</emphasis>, должны быть согласованы с двух сторон.
 						</para>
 						<para>
 							При такой конфигурации карты таймслотов, максимальная пропускная способность канала составит 17 * 64 Кбит/с = 1088 Кбит/с, что подтверждается тестами.
@@ -1330,14 +1369,14 @@
 					<section>
 						<title>Конфигурация unframed mode</title>
 						<para>
-							Для настройки интерфейса на режим работы unframed mode, параметр E1 framed mode должен быть неактивным. После внесения изменений (деактивация параметра) и сохранения, будут доступны следующие параметры настройки:
+							Для настройки интерфейса на режим работы unframed mode, параметр <emphasis>E1 framed mode</emphasis> должен быть неактивным. После внесения изменений (деактивация параметра) и сохранения, будут доступны следующие параметры настройки:
 						</para>
 						<figure>
 							<title>Unframed mode</title>
-							<graphic fileref="img/hdlc-unfamed.png" />
+							<graphic fileref="img/cisco-hdlc-unframed.png" />
 						</figure>
 						<para>
-							В этом режиме параметров конфигурации меньше, чем во framed mode и все они сводятся к настройке линии связи.
+							В этом режиме параметров конфигурации меньше, чем во framed mode, и все они сводятся к настройке линии связи.
 						</para>
 					</section>
 				</section>
@@ -1345,61 +1384,25 @@
 			<section>
 				<title>Настройка сетевых параметров</title>
 				<para>
-							В данной версии ПО, установленного на маршрутизаторе, нет возможности задавать сетевые параметры через веб-интерфейс настройки, поэтому эту часть конфигурации требуется выполнить вручную. В первую очередь, необходимо убедиться, что на странице настройки сетевого интерфейса Network/Interfaces/hdlc*/General параметры Enabled и Auto неактивны:
-							<figure>
-					<title>Настройка интерфейса</title>
-					<graphic fileref="img/hdlc-general.png" />
+					Настройка сетевых параметров интерфейса зависит от выбранного протокола. При выборе <emphasis>ETHER-HDLC</emphasis> выполняется обычная настройка интерфейса: доступен любой метод задания IP-адреса, как при настройке интерфейсов Ethernet или SHDSL.
+				</para>
+				<para>
+					При выборе любого другого протокола тип соединения становится <emphasis>Point-to-Point</emphasis>, т.е. маршрутизатор связывается непосредственно с другом устройством. Соответственно, меняется и способ установки IP-адреса. Рассмотрим конфигурацию P-t-P соединения подробнее.
+				</para>
+				<para>
+					Перейдём на страницу Network/Interfaces/E1_*, вкладку Specific. Введём IP-адреса Point-to-Point соединения: локальный и удалённый адреса.
+				</para>
+				<figure>
+					<title>Назначение Point-to-Point адресов</title>
+					<graphic fileref="img/no_ether-hdlc-specific.png" width="6in" />
 				</figure>
-				</para>
 				<para>
-							После внесения необходимых изменений, необходимо активировать консоль маршрутизатора: либо подключившись к нему по последовательному порту, либо по сети по протоколу SSH.
-						</para>
-				<simpara>
-							Соединение Е1 имеет тип точка-точка. Для активация соединения необходимо выполнить следующую команду:
-						</simpara>
-				<para>
-							# <command>ifconfig</command>
-				<replaceable>hdlc0</replaceable>
-				<replaceable>192.168.200.1</replaceable> pointopoint <replaceable>192.168.200.2</replaceable>
-				<itemizedlist>
-					<listitem>hdlc0 - сетевой интерфейс</listitem>
-					<listitem>192.168.200.1 - IP-адрес соединения на стороне маршрутизатора</listitem>
-				</itemizedlist>
+					Следующим шагом настройки является активация интерфейса на вкладке General.
 				</para>
-				<simpara>
-							Если соединение не установилось, то надо деактивировать/активировать сетевой интерфейс:
-						</simpara>
-				<simpara>
-							# <command>ifconfig</command>
-				<replaceable>hdlc0</replaceable> down
-						</simpara>
-				<simpara>
-							# <command>ifconfig</command>
-				<replaceable>hdlc0</replaceable> up
-						</simpara>
-				<simpara>
-							Для активация соединения после загрузки маршрутизатора, необходимо выполнить следующие команды:
-						</simpara>
-				<simpara>
-							# <command>echo</command>
-				<replaceable>&quot;ifconfig hdlc0 192.168.200.1 pointopoint 192.168.200.2&quot;</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
-				</simpara>
-				<simpara>
-							# <command>echo</command>
-				<replaceable>&quot;ifconfig hdlc0 down&quot;</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
-				</simpara>
-				<simpara>
-							# <command>echo</command>
-				<replaceable>&quot;ifconfig hdlc0 up&quot;</replaceable> >> <replaceable>/etc/init.d/S90my_hdlc</replaceable>
-				</simpara>
-				<simpara>
-							Созданный файл необходимо сделать исполняемым:
-						</simpara>
-				<simpara>
-							# <command>chmod</command>
-				<option>+x</option>
-				<replaceable>/etc/init.d/S90my_hdlc</replaceable>
-				</simpara>
+				<figure>
+					<title>Активация интерфейса E1</title>
+					<graphic fileref="img/hdlc-general.png" width="6in" />
+				</figure>
 			</section>
 		</section>
 		<section id="ifaces">
@@ -2698,6 +2701,10 @@
 						</para>
 					</listitem>
 				</itemizedlist>
+				<figure>
+					<title>The Dude: маршрутизаторы Sigrand</title>
+					<graphic fileref="img/thedude2.png" width="6in" />
+				</figure>
 				<para>
 					Домашняя страница проекта: <ulink url="http://www.mikrotik.com/thedude.php">The Dude</ulink>.
 				</para>
