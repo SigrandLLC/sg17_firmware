@@ -282,6 +282,8 @@ _ifup(){
 		hdlc)
 			[ -n "$pointopoint_local" -a -n "$pointopoint_remote" ] && 
 				cmd $ifconfig $realiface $pointopoint_local pointopoint $pointopoint_remote
+				cmd $ifconfig $realiface down
+				cmd $ifconfig $realiface up
 			;;
 		*)
 			warn "Unknown _proto \"$proto\""
