@@ -178,7 +178,7 @@ _ifup(){
 	fi
 
 	[ -z $proto ] && echo "sys_iface_${iface}_proto is not set" && exit 1
-	[ -z $method ] && echo "sys_iface_${iface}_method is not set" && exit 1
+	[ -z "$method" -a "$proto" != "hdlc" ] && echo "sys_iface_${iface}_method is not set" && exit 1
 	[ "$enabled" = 0 ] && return 
 
 	echo 1 > /proc/sys/net/ipv4/ip_forward
@@ -206,8 +206,7 @@ _ifup(){
 
 	info 1 "  Interface configuration"
 	case "$proto" in
-		bridge|ether|bonding|hdlc|vlan)
-			[ "$proto" = "hdlc" -a "$method" != "static" ] && warn "Incorrect method:${method} for $iface" 
+		bridge|ether|bonding|vlan)
 			case $method in
 			static)
 				opts="$realiface"
@@ -280,6 +279,10 @@ _ifup(){
 				exit 1
 			fi
 			;;
+		hdlc)
+			[ -n "$pointopoint_local" -a -n "$pointopoint_remote" ] && 
+				cmd $ifconfig $realiface $pointopoint_local pointopoint $pointopoint_remote
+			;;
 		*)
 			warn "Unknown _proto \"$proto\""
 			;;
@@ -330,7 +333,7 @@ _ifdown(){
 	[ -n "$real" ] && realiface=$real
 
 	[ -z $proto ] && echo "sys_iface_${iface}_proto is not set" && exit 1
-	[ -z $method ] && echo "sys_iface_${iface}_method is not set" && exit 1
+	[ -z "$method" -a "$proto" != "hdlc" ] && echo "sys_iface_${iface}_method is not set" && exit 1
 	info 1 "Setting down $iface: "
 	info 1 "  Interface deconfiguration"
 

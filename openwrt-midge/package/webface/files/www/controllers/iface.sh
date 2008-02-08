@@ -19,13 +19,22 @@
 	
 	case $page in
 		'general')	
-			kdb_vars="str:sys_iface_${iface}_desc bool:sys_iface_${iface}_enabled bool:sys_iface_${iface}_auto str:sys_iface_${iface}_method"
-			[ "$proto" != "vlan" ] && kdb_vars="$kdb_vars str:sys_iface_${iface}_depend_on"
+			case $proto in
+				'vlan')
+					kdb_vars="str:sys_iface_${iface}_desc bool:sys_iface_${iface}_enabled bool:sys_iface_${iface}_auto str:sys_iface_${iface}_method"
+					;;
+				'hdlc')
+					kdb_vars="str:sys_iface_${iface}_desc bool:sys_iface_${iface}_enabled bool:sys_iface_${iface}_auto str:sys_iface_${iface}_depend_on"
+					;;
+				*)
+					kdb_vars="str:sys_iface_${iface}_desc bool:sys_iface_${iface}_enabled bool:sys_iface_${iface}_auto str:sys_iface_${iface}_method str:sys_iface_${iface}_depend_on"
+					;;
+			esac
 			;;
 		'method')
 			[ "$method" = "static" ] && kdb_vars="str:sys_iface_${iface}_ipaddr str:sys_iface_${iface}_netmask str:sys_iface_${iface}_gateway str:sys_iface_${iface}_broadcast"
 			[ "$method" = "dynamic" ] && kdb_vars="str:sys_iface_${iface}_dynhostname"
-			[ "$proto" = "hdlc" ] && kdb_vars="$kdb_vars str:sys_iface_${iface}_pointopoint"
+			[ "$proto" = "hdlc" ] && kdb_vars="$kdb_vars str:sys_iface_${iface}_pointopoint_local  str:sys_iface_${iface}_pointopoint_remote"
 			;;
 		'options')	
 			kdb_vars="bool:sys_iface_${iface}_opt_accept_redirects bool:sys_iface_${iface}_opt_forwarding bool:sys_iface_${iface}_opt_proxy_arp bool:sys_iface_${iface}_opt_rp_filter"
@@ -188,10 +197,13 @@
 		render_input_field checkbox "Auto" sys_iface_${iface}_auto
 
 		# sys_iface_${iface}_method
+		# for proto HDLC we can't change method, because it is only P-t-P
+		[ "x$proto" = "xhdlc" ] && disable="-d"
 		tip="Select address method:<br><b>Static:</b> IP address is static<br><b>Dynamic:</b> DHCP/PPPoE/PPTP/etc"
-		desc="Please select method of the interface"
+		desc="Select method of setting IP address"
 		validator="$tmtreq tmt:message='Please select method'"
-		render_input_field select "Method" sys_iface_${iface}_method none 'None' static 'Static address' zeroconf 'Zero Configuration' dynamic 'Dynamic address'
+		render_input_field $disable select "Method" sys_iface_${iface}_method none 'None' static 'Static address' zeroconf 'Zero Configuration' dynamic 'Dynamic address'
+		disable=""
 
 		# sys_iface_${iface}_depend_on
 		[ "x$proto" = "xvlan" ] && disable="-d"
@@ -204,8 +216,20 @@
 		render_submit_field
 		;;
 	'method')
-		if [ "$method" = "static" ]; then
-
+		# for proto HDLC there is NO method
+		if [ "$proto" = "hdlc" ]; then
+			render_table_title "Point-to-Point address settings"
+			# sys_iface_${iface}_pointopoint_local
+			desc="Point-to-Point local address (dotted quad)"
+			validator="$tmtreq $validator_ipaddr"
+			render_input_field text "Point to Point local" sys_iface_${iface}_pointopoint_local
+			
+			# sys_iface_${iface}_pointopoint_remote
+			desc="Point-to-Point remote address (dotted quad)"
+			validator="$tmtreq $validator_ipaddr"
+			render_input_field text "Point to Point remote" sys_iface_${iface}_pointopoint_remote
+		
+		elif [ "$method" = "static" ]; then
 			render_table_title "Static address settings" 
 			# sys_iface_${iface}_ipaddr
 			#tip="IP address for interface"
@@ -229,13 +253,6 @@
 			desc="Default gateway (dotted quad)"
 			validator=$validator_ipaddr
 			render_input_field text "Gateway" sys_iface_${iface}_gateway
-		fi
-
-		if [ "$proto" = "hdlc" ]; then
-			# sys_iface_${iface}_pointopoint
-			desc="Point-to-Point address (dotted quad)"
-			validator="$tmtreq $validator_ipaddr"
-			render_input_field text "Point to Point" sys_iface_${iface}_pointopoint
 		fi
 
 
