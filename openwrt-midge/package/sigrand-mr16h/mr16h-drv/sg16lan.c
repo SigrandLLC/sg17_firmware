@@ -114,8 +114,8 @@ MODULE_VERSION("2.0");
 #define PDEBUG(fmt,args...) 
 #ifdef DEBUG_ON
 #	undef PDEBUG
-#	define PDEBUG(fmt,args...) \
-		    printk(KERN_NOTICE "sg16lan.c: %s " fmt " \n", __FUNCTION__, ## args  )
+#	define PDEBUG(fmt,args...)											\
+	printk(KERN_NOTICE "sg16lan.c: %s " fmt " \n", __FUNCTION__, ## args  )
 #endif
 
 static int dnum=0;
@@ -179,8 +179,7 @@ struct cx28975_cmdarea {
 /* net_device private data */
 
 #define FW_NAME_SIZE 255
-struct shdsl_config
-{
+struct shdsl_config{
     char fw_name[FW_NAME_SIZE];
     u16 lrate:	10;
     u16 master:	1;
@@ -190,11 +189,10 @@ struct shdsl_config
     u16 need_preact: 1;
     u8 remcfg :1;
     u8 annex :2;
-    u8 :5;
+u8 :5;
 };
 
-struct hdlc_config
-{
+struct hdlc_config{
     u8  crc16: 1;
     u8  fill_7e: 1;
     u8  inv: 1;
@@ -217,7 +215,7 @@ struct net_local{
     /* SG-16PCI controller statistics */
     struct sg16_stats {
     	u32  sent_pkts, rcvd_pkts;
-	u32  crc_errs, ufl_errs, ofl_errs, last_time;
+		u32  crc_errs, ufl_errs, ofl_errs, last_time;
     } in_stats;
 
     spinlock_t rlock,xlock;
@@ -244,7 +242,8 @@ struct net_local{
 /* SHDSL transceiver statistics */
 struct dsl_stats {
 	u8	status_1, status_3;
-	u8	attenuat, nmr, tpbo, rpbo;
+	s8	attenuat, nmr;
+	u8 tpbo, rpbo;
 	u16	losw, segd, crc, sega, losd;
 	u16	all_atmpt,atmpt;
 };
@@ -255,7 +254,7 @@ static void sg16_exit( void );
 module_init(sg16_init);
 module_exit(sg16_exit);
 static int __devinit  sg16_init_one( struct pci_dev *,
-					const struct pci_device_id * );
+									 const struct pci_device_id * );
 static void __devexit  sg16_remove_one( struct pci_dev * );
 
 /*- Net device specific functions -*/
@@ -269,9 +268,9 @@ static void  set_multicast_list( struct net_device * );
 
 /*-----------------------------------------------------------------------------
 
-static int  sg16_ioctl( struct net_device *, struct ifreq *, int );
+  static int  sg16_ioctl( struct net_device *, struct ifreq *, int );
 
-/*-----------------------------------------------------------------------------*/
+  /*-----------------------------------------------------------------------------*/
 
 /*- Functions serving SG-16PCI control -*/
 
@@ -408,25 +407,25 @@ static int tx_buffs_alloc=0, tx_buffs_free=0;
 static unsigned long tmp_flags;
 static int less_than_ethmin = 0;
 
-#define ALLOC_RX() \
-spin_lock_irqsave(&rx_alloc_lock,tmp_flags); \
-rx_buffs_alloc++; \
-spin_unlock_irqrestore(&rx_alloc_lock,tmp_flags);
+#define ALLOC_RX()										\
+	spin_lock_irqsave(&rx_alloc_lock,tmp_flags);		\
+	rx_buffs_alloc++;									\
+	spin_unlock_irqrestore(&rx_alloc_lock,tmp_flags);
 
-#define ALLOC_TX() \
-spin_lock_irqsave(&tx_alloc_lock,tmp_flags); \
-tx_buffs_alloc++; \
-spin_unlock_irqrestore(&tx_alloc_lock,tmp_flags);
+#define ALLOC_TX()										\
+	spin_lock_irqsave(&tx_alloc_lock,tmp_flags);		\
+	tx_buffs_alloc++;									\
+	spin_unlock_irqrestore(&tx_alloc_lock,tmp_flags);
 
-#define FREE_RX() \
-spin_lock_irqsave(&rx_free_lock,tmp_flags); \
-rx_buffs_free++; \
-spin_unlock_irqrestore(&rx_free_lock,tmp_flags);
+#define FREE_RX()										\
+	spin_lock_irqsave(&rx_free_lock,tmp_flags);			\
+	rx_buffs_free++;									\
+	spin_unlock_irqrestore(&rx_free_lock,tmp_flags);
 
-#define FREE_TX() \
-spin_lock_irqsave(&tx_free_lock,tmp_flags); \
-tx_buffs_free++; \
-spin_unlock_irqrestore(&tx_free_lock,tmp_flags);
+#define FREE_TX()										\
+	spin_lock_irqsave(&tx_free_lock,tmp_flags);			\
+	tx_buffs_free++;									\
+	spin_unlock_irqrestore(&tx_free_lock,tmp_flags);
 
 //-------------------------------//
 
@@ -437,20 +436,21 @@ spin_unlock_irqrestore(&tx_free_lock,tmp_flags);
 #define SG16_PCI_VENDOR 	0x55 
 #define SG16_PCI_DEVICE 	0x9d
 static struct pci_device_id  sg16_pci_tbl[] __devinitdata = {
-	{ PCI_DEVICE(SG16_PCI_VENDOR,SG16_PCI_DEVICE) },
-	{ 0 }
+{ PCI_DEVICE(SG16_PCI_VENDOR,SG16_PCI_DEVICE) },
+{ 0 }
 };
 MODULE_DEVICE_TABLE( pci, sg16_pci_tbl );
 
 static struct pci_driver  sg16_driver = {
-	name:		MR16H_DRVNAME,
-	probe:		sg16_init_one,
-	remove:		sg16_remove_one,
-	id_table:	sg16_pci_tbl
+ name:		MR16H_DRVNAME,
+ probe:		sg16_init_one,
+ remove:		sg16_remove_one,
+ id_table:	sg16_pci_tbl
 };
 
 int
-sg16_init( void ){
+sg16_init( void )
+{
     spin_lock_init( &rx_alloc_lock);
     spin_lock_init( &rx_free_lock );
     spin_lock_init( &tx_alloc_lock );
@@ -461,7 +461,8 @@ sg16_init( void ){
 }
 
 void
-sg16_exit( void ){
+sg16_exit( void )
+{
     printk(KERN_NOTICE"Unload "MR16H_MODNAME" SHDSL driver\n");
     pci_unregister_driver( &sg16_driver );
 }
@@ -472,7 +473,6 @@ dsl_init( struct net_device *ndev)
     ether_setup(ndev);    
     ndev->init = sg16_probe;
 }
-
 
 static int __devinit
 sg16_init_one(struct pci_dev  *pdev,const struct pci_device_id  *ent)
@@ -537,22 +537,22 @@ sg16_init_one(struct pci_dev  *pdev,const struct pci_device_id  *ent)
     INIT_WORK( &nl->wqueue,shdsl_link_chk,(void*)ndev);    
 
     printk( KERN_NOTICE "%s: "MR16H_MODNAME" SHDSL module (irq %d, mem %#lx)\n",
-		ndev->name, ndev->irq, ndev->mem_start );
+			ndev->name, ndev->irq, ndev->mem_start );
     
     return  0;
-err3:
+ err3:
     /* shutdown device */
     hdlc_shutdown(nl);
     /* Remove symlink on device from driver dir in sysfs */
     sysfs_remove_link(&(dev_drv->kobj),ndev->name);
     /* Remove sysfs entires */
     del_sg16_from_sysfs(dev_dev);
-err2:
+ err2:
     unregister_netdev( ndev );
     free_irq( ndev->irq, ndev );
     release_mem_region( ndev->mem_start, 0x1000 );
     iounmap( ((struct net_local *)ndev->priv)->mem_base );
-err1:	    
+ err1:	    
     free_netdev(ndev);    
 	pci_disable_device(pdev);
     return err;
@@ -609,7 +609,7 @@ sg16_probe( struct net_device  *ndev )
     ndev->set_multicast_list	= &set_multicast_list;
     ndev->tx_timeout		= &sg16_tx_timeout;
     ndev->watchdog_timeo	= TX_TIMEOUT;
-//    ndev->do_ioctl           	= &sg16_ioctl;
+	//    ndev->do_ioctl           	= &sg16_ioctl;
 	    
 
     if( !request_mem_region( ndev->mem_start, 0x1000, ndev->name ) )
@@ -627,18 +627,17 @@ sg16_probe( struct net_device  *ndev )
     nl->cmdp = (struct cx28975_cmdarea *) ((u8 *)nl->mem_base + 0xc00);
     memset( &nl->in_stats, 0, sizeof(struct sg16_stats) );    
 
-    if( request_irq(ndev->irq, sg16_interrupt, SA_SHIRQ, ndev->name, ndev) ) 
-    {
-        printk( KERN_ERR "%s: unable to get IRQ %d.\n",
-    		ndev->name, ndev->irq );
-        goto err_exit;
-    }
+    if( request_irq(ndev->irq, sg16_interrupt, SA_SHIRQ, ndev->name, ndev) ){
+		printk( KERN_ERR "%s: unable to get IRQ %d.\n",
+				ndev->name, ndev->irq );
+		goto err_exit;
+	}
 	
     SET_MODULE_OWNER( ndev );
 
     return  0;
 
-err_exit:
+ err_exit:
     iounmap( nl->mem_base );
     release_mem_region( ndev->mem_start, 0x1000 );
     return  -ENODEV;
@@ -660,7 +659,7 @@ sg16_interrupt( int  irq,  void  *dev_id,  struct pt_regs  *regs )
 	iowrite8(0,(iotype)&(nl->regs->IMR));	
 	
 	if( status & EXT ){
-	        shdsl_interrupt( dev );
+		shdsl_interrupt( dev );
 	}
 	/*
 	 * Whether transmit error is occured, we have to re-enable the
@@ -669,11 +668,12 @@ sg16_interrupt( int  irq,  void  *dev_id,  struct pt_regs  *regs )
 	 */
 	if( status & UFL ){
 		iowrite8( ioread8((iotype)&(nl->regs->CRA)) | TXEN,
-	    	        (iotype)&(nl->regs->CRA) );
+				  (iotype)&(nl->regs->CRA) );
 		++nl->in_stats.ufl_errs;
 		++nl->stats.tx_errors;
 		++nl->stats.tx_fifo_errors;
 	}
+
 	if( status & RXS ){
 		if( spin_trylock( &(nl->rlock) ) ){
 			recv_init_frames( dev );
@@ -681,14 +681,17 @@ sg16_interrupt( int  irq,  void  *dev_id,  struct pt_regs  *regs )
 			spin_unlock( &(nl->rlock) );
 		}
 	}
+
 	if( status & TXS ){
-	        xmit_free_buffs( dev );
+		xmit_free_buffs( dev );
 	}
+
 	if( status & CRC ){
 		++nl->in_stats.crc_errs;
 		++nl->stats.rx_errors;
-    		++nl->stats.rx_crc_errors;
+		++nl->stats.rx_crc_errors;
 	}
+
 	if( status & OFL ){
 		++nl->in_stats.ofl_errs;
 		++nl->stats.rx_errors;
@@ -708,35 +711,32 @@ sg16_open( struct net_device  *ndev )
     int err;
     u8 t;    
     /* shdsl preactivation */
-    if( nl->shdsl_cfg.need_preact )
-    {
-/*TODO: is it correctly just reset SHDLS without 
-	deactivation?
-*/
-	iowrite8( EXT, (iotype)&(nl->regs->IMR) ); 
-        iowrite8( 0xff, (iotype)&(nl->regs->SR) ); 
-	iowrite8( XRST , (iotype)&(nl->regs->CRA));       			    
-	iowrite8( RXDE , (iotype)&(nl->regs->CRB));       			    
-	t=0;
-	if( shdsl_issue_cmd( nl, _DSL_RESET_SYSTEM, &t, 1 ) )
-    	    return -EBUSY;
+    if( nl->shdsl_cfg.need_preact ){
+		/*TODO: is it correctly just reset SHDLS without 
+		  deactivation?
+		*/
+		iowrite8( EXT, (iotype)&(nl->regs->IMR) ); 
+		iowrite8( 0xff, (iotype)&(nl->regs->SR) ); 
+		iowrite8( XRST , (iotype)&(nl->regs->CRA));       			    
+		iowrite8( RXDE , (iotype)&(nl->regs->CRB));       			    
+		t=0;
+		if( shdsl_issue_cmd( nl, _DSL_RESET_SYSTEM, &t, 1 ) )
+			return -EBUSY;
 
-	if( !shdsl_ready(nl, _ACK_OPER_WAKE_UP )  )
-	{
-		printk(KERN_NOTICE"%s, firmware wasn't loaded\n",ndev->name);	    
-		return -EBUSY;
+		if( !shdsl_ready(nl, _ACK_OPER_WAKE_UP )  ){
+			printk(KERN_NOTICE"%s, firmware wasn't loaded\n",ndev->name);	    
+			return -EBUSY;
+		}
+		if( shdsl_preactivation(nl) ){
+			printk(KERN_ERR"%s, I/O error\n",ndev->name);
+			return -EBUSY;
+		}
+		/* Starting device activation */
+		t=0x42;
+		if( ( err=shdsl_issue_cmd(nl,_DSL_ACTIVATION,&t,1) ) )
+			return -EIO;
+		nl->shdsl_cfg.need_preact=0;	
 	}
-	if( shdsl_preactivation(nl) )
-	{
-		printk(KERN_ERR"%s, I/O error\n",ndev->name);
-		return -EBUSY;
-	}
-        /* Starting device activation */
-	t=0x42;
-        if( ( err=shdsl_issue_cmd(nl,_DSL_ACTIVATION,&t,1) ) )
-	    return -EIO;
-	nl->shdsl_cfg.need_preact=0;	
-    }
     
     /* init descripts, allocate receiving buffers */
     nl->head_xq = nl->tail_xq = nl->head_rq = nl->tail_rq = 0;
@@ -790,50 +790,6 @@ struct cx28975_fw {
     u32  firmw_len;
 };
 	
-/*
-static int
-sg16_ioctl( struct net_device  *dev,  struct ifreq  *ifr,  int  cmd )
-{
-    struct firmware fw;
-    u8 mas[100*1024];
-    struct cx28975_fw fw_in;
-    int  error = 0;
-    int err;
-		
-    if( cmd ==  SIOCDEVLOADFW ){
-		    
-        if( current->euid != 0 )        /* root only */
-/*	    return  -EPERM;
-        if( (dev->flags & IFF_UP) == IFF_UP )
-	    return  -EBUSY;
-	PDEBUG("verify_area for addr");			    
-        if( (error = verify_area( VERIFY_READ, ifr->ifr_data,
-		            sizeof(struct cx28975_fw) )) != 0 )
-	    return  error;
-	PDEBUG("cp to fw_in");
-        copy_from_user( &fw_in, ifr->ifr_data, sizeof fw_in );
-	PDEBUG("verify_area for fw");		
-        if( (error = verify_area( VERIFY_READ, fw_in.firmw_image,
-                      fw_in.firmw_len )) != 0 )
-	    return  error;
-/*
-        if( !(fw.data = kmalloc( fw_in.firmw_len, GFP_KERNEL )) )
-	      return  -ENOMEM;
-*/
-/*	fw.data=mas;
-	PDEBUG("kmalloced");
-	copy_from_user( fw.data, fw_in.firmw_image, fw_in.firmw_len );
-	fw.size= fw_in.firmw_len;
-	printk("%s: buf allocated and filled, addr=%08x\n",fw.data); 	
-	PDEBUG("start dload");	
-	if( shdsl_dload_fw(dev, &fw ) )
-	    error=-1;
-	kfree( fw.data );
-    }
-    return  error;
-}
-*/																																      
-
 /* Control device functions */
 /*----------------------------------------------------------------------------*/
 
@@ -879,12 +835,12 @@ shdsl_ready( struct net_local *nl, u16 expect_state)
     u32 ret;
     PDEBUG("start");
     if( (nl->irqret & 0x1f) != expect_state ){
-	ret=interruptible_sleep_on_timeout( &nl->wait_for_intr, HZ*1 );
+		ret=interruptible_sleep_on_timeout( &nl->wait_for_intr, HZ*1 );
         PDEBUG("after ret");	
-	if( ( nl->irqret & 0x1f) != expect_state ){
-	    PDEBUG("fail wait, irqret=%02x expect=%02x",nl->irqret & 0x1f,0xff & expect_state );
-	    ret_val=0;
-	}
+		if( ( nl->irqret & 0x1f) != expect_state ){
+			PDEBUG("fail wait, irqret=%02x expect=%02x",nl->irqret & 0x1f,0xff & expect_state );
+			ret_val=0;
+		}
     }
     nl->irqret=0;
     PDEBUG("end");    
@@ -916,11 +872,11 @@ shdsl_dload_prepare(struct net_device *ndev)
 static int
 shdsl_dload_fw(struct net_device *ndev, struct firmware *fw)
 {
-//    struct net_device *ndev= (struct net_device *)dev_get_drvdata(dev);
+	//    struct net_device *ndev= (struct net_device *)dev_get_drvdata(dev);
     struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);			
     struct shdsl_config *cfg = (struct shdsl_config *)&(nl->shdsl_cfg);
     volatile struct cx28975_cmdarea  *p = nl->cmdp;
-//    struct firmware *fw;
+	//    struct firmware *fw;
     size_t img_len;
     u32   t;
     int  i;
@@ -931,12 +887,12 @@ shdsl_dload_fw(struct net_device *ndev, struct firmware *fw)
     for(i=0;i< fw->size;i++)
         cksum += fw->data[i];
 
-/* 1.Prepare to download process */
+	/* 1.Prepare to download process */
 	if( shdsl_dload_prepare(ndev) )
 		return -ENODEV;
 		
     PDEBUG("%s: before dload start",ndev->name);
-/* 2.Download process */
+	/* 2.Download process */
     t = fw->size;
     if( shdsl_issue_cmd( nl, _DSL_DOWNLOAD_START, (u8 *) &t, 4 ) )
     	goto err_exit;
@@ -953,36 +909,36 @@ shdsl_dload_fw(struct net_device *ndev, struct firmware *fw)
     if( img_len
         &&  shdsl_issue_cmd( nl, _DSL_DOWNLOAD_DATA, fw->data + i, img_len ) )
     	goto err_exit;
+		
     PDEBUG("%s: dload end",ndev->name);
     t = (cksum ^ 0xff) + 1;
     if( shdsl_issue_cmd( nl, _DSL_DOWNLOAD_END, (u8 *) &t, 1 ) )
     	goto err_exit;
     PDEBUG("%s: dload complete",ndev->name);
-/* 3.Check that donload is successfull */
+	/* 3.Check that donload is successfull */
     if( !shdsl_ready(nl,_ACK_OPER_WAKE_UP) ){
-	PDEBUG("no _ACK_OPER_WAKE_UP");	
-	goto err_exit;
+		PDEBUG("no _ACK_OPER_WAKE_UP");	
+		goto err_exit;
     }
     PDEBUG("%s: dload successfull",ndev->name);	
     
-/* 4. Check that auto rate selection supported */
+	/* 4. Check that auto rate selection supported */
     udelay(10);
     t=0;
     if( shdsl_issue_cmd( nl,_DSL_VERSIONS, (u8 *)&t, 1 ) )
-	goto err_exit;    
+		goto err_exit;    
 
-    if( !( ioread8( (iotype)&(p->out_data) + 4 ) & 1 ) )
-    {
-        cfg->autob_en=0;
-	cfg->autob=0;
-    }
-    else
-	cfg->autob_en=1;
+    if( !( ioread8( (iotype)&(p->out_data) + 4 ) & 1 ) ){
+		cfg->autob_en=0;
+		cfg->autob=0;
+	}else{
+		cfg->autob_en=1;
+	}
 
     PDEBUG("%s: %s exit\n",__FUNCTION__,ndev->name);
     return  0;
 
-err_exit:
+ err_exit:
     PDEBUG("%s: %s err exit\n",__FUNCTION__,ndev->name);
     return -EIO;
 }
@@ -997,47 +953,47 @@ shdsl_preactivation(struct net_local *nl)
     u16 tmp;
     u32 max_rate=0 ,min_rate=0;
 
-/* Start preactivation process */    
+	/* Start preactivation process */    
 
-//----_DSL_SYSTEM_ENABLE----//
+	//----_DSL_SYSTEM_ENABLE----//
 
     t = cfg->master ? 1 : 9;
     if( shdsl_issue_cmd( nl, _DSL_SYSTEM_ENABLE, &t, 1 ) )
     	return  -EIO;
 	
-//----_DSL_SYSTEM_CONFIG----//
+	//----_DSL_SYSTEM_CONFIG----//
 	
     t = 0x63;
     if( shdsl_issue_cmd( nl, _DSL_SYSTEM_CONFIG, &t, 1 ) )
     	return  -EIO;
 
-//---- _DSL_MULTI_RATE_CONFIG----//
+	//---- _DSL_MULTI_RATE_CONFIG----//
 
     // Check rate value
     if( cfg->autob ){
-	max_rate=MAX_AUTO_RATE;
-	min_rate=MIN_AUTO_RATE;
+		max_rate=MAX_AUTO_RATE;
+		min_rate=MIN_AUTO_RATE;
     }else if( cfg->remcfg ){
-	if( cfg->master ){
-	    if( cfg->annex==ANNEX_F )
-		max_rate=MAX_REMCFGF_RATE;
-	    else if( cfg->master )
-		max_rate=MAX_REMCFGAB_RATE;
-	    min_rate=MIN_REMCFG_RATE;
-	}
+		if( cfg->master ){
+			if( cfg->annex==ANNEX_F )
+				max_rate=MAX_REMCFGF_RATE;
+			else if( cfg->master )
+				max_rate=MAX_REMCFGAB_RATE;
+			min_rate=MIN_REMCFG_RATE;
+		}
     }else{
-	max_rate=MAX_RATE;
-	min_rate=MIN_RATE;
+		max_rate=MAX_RATE;
+		min_rate=MIN_RATE;
     }
 
     if( max_rate ){
-	tmp=(min_rate >> 3) & 0x3ff;
-	cfg->lrate= ( cfg->lrate < tmp ) ? tmp : cfg->lrate;
-	tmp=(max_rate >> 3) & 0x3ff;
-	cfg->lrate= ( cfg->lrate > tmp ) ? tmp : cfg->lrate;
-    }
-    else
-	cfg->lrate= 192 >> 3;
+		tmp=(min_rate >> 3) & 0x3ff;
+		cfg->lrate= ( cfg->lrate < tmp ) ? tmp : cfg->lrate;
+		tmp=(max_rate >> 3) & 0x3ff;
+		cfg->lrate= ( cfg->lrate > tmp ) ? tmp : cfg->lrate;
+    }else{
+		cfg->lrate= 192 >> 3;
+	}
 
     memset( parm, 0, 8 );
     *(u16 *)parm = ( cfg->lrate >> 3 ) & 0x7f ;
@@ -1048,31 +1004,30 @@ shdsl_preactivation(struct net_local *nl)
     if( shdsl_issue_cmd( nl, _DSL_MULTI_RATE_CONFIG, parm, 8 ) )
     	return  -EIO;    
 
-//----_DSL_PREACT_RATE_LIST----//
+	//----_DSL_PREACT_RATE_LIST----//
 
     // if DSL configured with automatic rate select
-    if( cfg->autob )	
-    {
-        // Set List of aviable Rates	
-	memset( parm, 0, 36 );
-	parm[0]=0;
-	parm[1]=( u8 )( ((cfg->lrate - ( (MIN_AUTO_RATE >> 3) & 0x7f) ) >> 3 ) & 0x7f )+ 1;
-    	for(iter=0; iter<parm[1] ; iter++)
-	    parm[iter+2]=3+iter;	    
-	if( shdsl_issue_cmd( nl, _DSL_PREACT_RATE_LIST, parm, iter+2 ) )
-    	    return  -EIO;
-    }
+    if( cfg->autob ){
+		// Set List of aviable Rates	
+		memset( parm, 0, 36 );
+		parm[0]=0;
+		parm[1]=( u8 )( ((cfg->lrate - ( (MIN_AUTO_RATE >> 3) & 0x7f) ) >> 3 ) & 0x7f )+ 1;
+		for(iter=0; iter<parm[1] ; iter++)
+			parm[iter+2]=3+iter;	    
+		if( shdsl_issue_cmd( nl, _DSL_PREACT_RATE_LIST, parm, iter+2 ) )
+			return  -EIO;
+	}
 
-//----_DSL_TRAINING_MODE----//
+	//----_DSL_TRAINING_MODE----//
 
     if( cfg->autob )
         parm[0] = 0x02 | 0x01<<4;	// In auto rate mode using only TCPAM16
     else if( cfg->remcfg ){
-	if( ( cfg->mod==0x00 || cfg->mod==0x01 ) &&
-		cfg->master && cfg->annex==ANNEX_F )
-	    parm[0] = 0x02 |(cfg->mod << 4);
-	else
-	    parm[0] = 0x02 | 0x01 << 4;
+		if( ( cfg->mod==0x00 || cfg->mod==0x01 ) &&
+			cfg->master && cfg->annex==ANNEX_F )
+			parm[0] = 0x02 |(cfg->mod << 4);
+		else
+			parm[0] = 0x02 | 0x01 << 4;
 	
     }
     else
@@ -1082,7 +1037,7 @@ shdsl_preactivation(struct net_local *nl)
     if( shdsl_issue_cmd( nl, _DSL_TRAINING_MODE, parm, 2 ) )
     	return  -EIO;
 
-//----_DSL_PREACTIVATION_CFG----//
+	//----_DSL_PREACTIVATION_CFG----//
 
     memset( parm, 0, 12 );
     parm[0] = 0x04;	// pre-activation: G.hs
@@ -1104,7 +1059,7 @@ shdsl_preactivation(struct net_local *nl)
     if( shdsl_issue_cmd( nl, _DSL_PREACTIVATION_CFG, parm, 12 ) )
     	return  -EIO;
 
-//----_DSL_THRESHOLDS----//
+	//----_DSL_THRESHOLDS----//
 
     parm[0] = 0x03;	// dying gasp time - 3 frames
     parm[1] = thresh[ cfg->mod ];	
@@ -1115,13 +1070,13 @@ shdsl_preactivation(struct net_local *nl)
     if( shdsl_issue_cmd( nl, _DSL_THRESHOLDS, parm, 6 ) )
     	return  -EIO;
 
-//----_DSL_FR_PCM_CONFIG----//
+	//----_DSL_FR_PCM_CONFIG----//
 
     t = cfg->master ? 0x23 : 0x21;
     if( shdsl_issue_cmd( nl, _DSL_FR_PCM_CONFIG, &t, 1 ) )
     	return  -EIO;
 
-//----_DSL_INTR_HOST_MASK----//
+	//----_DSL_INTR_HOST_MASK----//
 
     t = 0x02;
     if( shdsl_issue_cmd( nl, _DSL_INTR_HOST_MASK, &t, 1 ) )
@@ -1143,26 +1098,26 @@ shdsl_get_stat(struct net_local *nl, struct dsl_stats *ds)
     ds->attenuat = ioread8( (iotype)&(p->out_data) );
 
     if( shdsl_issue_cmd( nl, _DSL_NOISE_MARGIN, &t, 1 ) )
-	return -EIO;
+		return -EIO;
     ds->nmr = ioread8( (iotype)&(p->out_data) );
 
     if( shdsl_issue_cmd( nl, _DSL_POWER_BACK_OFF_RESULT, &t, 1 ) )
-	return -EIO;
+		return -EIO;
     ds->tpbo = ioread8( (iotype)&(p->out_data) );
     ds->rpbo = ioread8( (iotype)&(p->out_data) + 1 );
 
     if( !shdsl_issue_cmd( nl, _DSL_SYSTEM_PERF_ERR_CTRS, &t, 1 ) ) {
-	for( i = 0;  i < 4;  ++i )
-	    ((u8 *)&(ds->all_atmpt))[i] = ioread8( (iotype)&(p->out_data) + i );
+		for( i = 0;  i < 4;  ++i )
+			((u8 *)&(ds->all_atmpt))[i] = ioread8( (iotype)&(p->out_data) + i );
+    }else
+		return -EIO;
+    
+	if( !shdsl_issue_cmd( nl, _DSL_HDSL_PERF_ERR_CTRS, &t, 1 ) ) {
+		for( i = 0;  i < 10;  ++i )
+			((u8 *)&(ds->losw))[i] = ioread8( (iotype)&(p->out_data) + i );
     }
     else
-	return -EIO;
-    if( !shdsl_issue_cmd( nl, _DSL_HDSL_PERF_ERR_CTRS, &t, 1 ) ) {
-	for( i = 0;  i < 10;  ++i )
-	    ((u8 *)&(ds->losw))[i] = ioread8( (iotype)&(p->out_data) + i );
-    }
-    else
-	return -EIO;
+		return -EIO;
     return 0;
     
 }
@@ -1174,10 +1129,10 @@ shdsl_clr_stat( struct net_local  *nl )
     memset( &nl->in_stats, 0, sizeof(struct sg16_stats) );
     t =0;
     if( shdsl_issue_cmd( nl, _DSL_CLEAR_ERROR_CTRS, &t, 1 ) )
-	return -EIO;
+		return -EIO;
     t =0x04;
     if( shdsl_issue_cmd( nl, _DSL_CLEAR_ERROR_CTRS, &t, 1 ) )
-	return -EIO;
+		return -EIO;
 
     return 0;
 }
@@ -1190,38 +1145,37 @@ shdsl_issue_cmd( struct net_local  *nl,  u8  cmd,  u8  *data,  u8  size )
     u8  cksum = 0, tmp;
     u8 *databuf = p->in_data;
 
-/*
-if( cmd==_DSL_DOWNLOAD_DATA)
-    printk("%s: start\n",__FUNCTION__);                
-*/
+	/*
+	  if( cmd==_DSL_DOWNLOAD_DATA)
+	  printk("%s: start\n",__FUNCTION__);                
+	*/
     iowrite8( 0xf0, (iotype)&(p->in_dest) );
     iowrite8( cmd, (iotype)&(p->in_opcode ) );
     iowrite8( 0, (iotype)&(p->in_zero ) );
     iowrite8(--size, (iotype)&(p->in_length ) );
     iowrite8( ( 0xf0 ^ cmd ^ size ^ 0xaa ),(iotype)&(p->in_csum) ); 
 
-/*
-if( cmd==_DSL_DOWNLOAD_DATA)
-    printk("%s: send data to chip\n",__FUNCTION__);                
-*/
-    for( i = 0;  i <= size;  ++i )
-    {
-	cksum ^= *data;
-	tmp=(u8)*data++;
-	iowrite8( tmp,(iotype)(databuf++));	// only 1 byte per cycle!
-    }
-/*
-if( cmd==_DSL_DOWNLOAD_DATA)
-    printk("%s: send data to chip complete\n",__FUNCTION__);                
-*/
+	/*
+	  if( cmd==_DSL_DOWNLOAD_DATA)
+	  printk("%s: send data to chip\n",__FUNCTION__);                
+	*/
+    for( i = 0;  i <= size;  ++i ){
+		cksum ^= *data;
+		tmp=(u8)*data++;
+		iowrite8( tmp,(iotype)(databuf++));	// only 1 byte per cycle!
+	}
+	/*
+	  if( cmd==_DSL_DOWNLOAD_DATA)
+	  printk("%s: send data to chip complete\n",__FUNCTION__);                
+	*/
     iowrite8( cksum^0xaa, (iotype)&(p->in_datasum) );
     iowrite8( _ACK_NOT_COMPLETE, (iotype)&(p->out_ack) );
     iowrite8( 0xfe, (iotype)&(p->intr_8051) );
     if( shdsl_ready(nl,_ACK_PASS ) ){
-	PDEBUG("return successfully");                
-	return  0;
+		PDEBUG("return successfully");                
+		return  0;
     }else
-	return  -EIO;
+		return  -EIO;
 }
 
 static void
@@ -1234,15 +1188,14 @@ shdsl_interrupt( struct net_device  *ndev )
     	return;
 
     if( ioread8( (iotype)&(p->out_ack) ) & 0x80  ){
-	schedule_delayed_work(&nl->wqueue,HZ/2);    
+		schedule_delayed_work(&nl->wqueue,HZ/2);    
     }
     // inquiry answer     
-    else
-    {
-	nl->irqret=ioread8( (iotype)&(p->out_ack) );
-	wake_up( &nl->wait_for_intr );	
-	PDEBUG("wake up %s",ndev->name);	
-    }
+    else{
+		nl->irqret=ioread8( (iotype)&(p->out_ack) );
+		wake_up( &nl->wait_for_intr );	
+		PDEBUG("wake up %s",ndev->name);	
+	}
     // Clear acknoledgement register
     iowrite8(0, (iotype)&(p->out_ack));
     // interrupt served
@@ -1261,63 +1214,59 @@ shdsl_link_chk( void *data )
 
 
     // Link state
-    if( ioread8( (iotype)((u8*)p + 0x3c7) ) & 2 ) 
-    {
-        // link up
-	if( ( ioread8( (iotype)( (u8*)p + 0x3c0) ) & 0xc0) == 0x40 )
-	{
-	    PDEBUG("Activate:");
-	    PDEBUG("%02x %02x %02x %02x %02x %02x %02x %02x",
-		    ioread8((iotype)&(nl->regs->CRA)),
-		    ioread8((iotype)&(nl->regs->CRB)),
-		    ioread8((iotype)&(nl->regs->SR)),
-		    ioread8((iotype)&(nl->regs->IMR)),
-		    ioread8((iotype)&(nl->regs->CTDR)),
-		    ioread8((iotype)&(nl->regs->LTDR)),
-		    ioread8((iotype)&(nl->regs->CRDR)),
-		    ioread8((iotype)&(nl->regs->LRDR))
-		);
-		
+    if( ioread8( (iotype)((u8*)p + 0x3c7) ) & 2 ){
+		// link up
+		if( ( ioread8( (iotype)( (u8*)p + 0x3c0) ) & 0xc0) == 0x40 ){
+			PDEBUG("Activate:");
+			PDEBUG("%02x %02x %02x %02x %02x %02x %02x %02x",
+				   ioread8((iotype)&(nl->regs->CRA)),
+				   ioread8((iotype)&(nl->regs->CRB)),
+				   ioread8((iotype)&(nl->regs->SR)),
+				   ioread8((iotype)&(nl->regs->IMR)),
+				   ioread8((iotype)&(nl->regs->CTDR)),
+				   ioread8((iotype)&(nl->regs->LTDR)),
+				   ioread8((iotype)&(nl->regs->CRDR)),
+				   ioread8((iotype)&(nl->regs->LRDR)) );
 
-	    // set hdlc registers
-	    iowrite8( 0xff, (iotype)&(nl->regs->SR) );    				    
-	    iowrite8( ioread8( (iotype)&(nl->regs->CRB) ) & ~RXDE,
-			(iotype)&(nl->regs->CRB) );
-	    iowrite8( EXT | UFL | OFL | RXS | TXS ,
-			(iotype)&(nl->regs->IMR) );    			
+			// set hdlc registers
+			iowrite8( 0xff, (iotype)&(nl->regs->SR) );    				    
+			iowrite8( ioread8( (iotype)&(nl->regs->CRB) ) & ~RXDE,
+					  (iotype)&(nl->regs->CRB) );
+			iowrite8( EXT | UFL | OFL | RXS | TXS ,
+					  (iotype)&(nl->regs->IMR) );    			
 
-	    do_gettimeofday( &tv );
-	    nl->in_stats.last_time = tv.tv_sec;
-	    //reset Rx FIFO	    
-/*	    iowrite8( 0xf0, (iotype)&(p->in_dest) );
-	    iowrite8( _DSL_FR_RX_RESET, (iotype)&(p->in_opcode ) );
-	    iowrite8( 0, (iotype)&(p->in_zero ) );
-	    iowrite8(0, (iotype)&(p->in_length ) );
-	    iowrite8( ( 0xf0 ^ _DSL_FR_RX_RESET ^ 0 ^ 0xaa ),(iotype)&(p->in_csum) ); 
-	    cksum ^= 0x8;
-	    iowrite8( 0x8,(iotype)&(p->in_data));	// only 1 byte per cycle!
-	    iowrite8( cksum^0xaa, (iotype)&(p->in_datasum) );
-	    iowrite8( _ACK_NOT_COMPLETE, (iotype)&(p->out_ack) );
-	    iowrite8( 0xfe, (iotype)&(p->intr_8051) );
-*/	    // enable packet receiving-transmitting
-	    netif_wake_queue( ndev );
-	    netif_carrier_on( ndev );
-	    usermode_link_event(ndev,1);
-	}
-	// link down
-	else 
-	if( ( ioread8( (iotype)((u8*)p + 0x3c0) ) & 0xc0) != 0x40 )
-	{
-	    PDEBUG("Deactivate");
+			do_gettimeofday( &tv );
+			nl->in_stats.last_time = tv.tv_sec;
+			//reset Rx FIFO	
+			/*
+			iowrite8( 0xf0, (iotype)&(p->in_dest) );
+			iowrite8( _DSL_FR_RX_RESET, (iotype)&(p->in_opcode ) );
+			iowrite8( 0, (iotype)&(p->in_zero ) );
+			iowrite8(0, (iotype)&(p->in_length ) );
+			iowrite8( ( 0xf0 ^ _DSL_FR_RX_RESET ^ 0 ^ 0xaa ),(iotype)&(p->in_csum) ); 
+			cksum ^= 0x8;
+			iowrite8( 0x8,(iotype)&(p->in_data));	// only 1 byte per cycle!
+			iowrite8( cksum^0xaa, (iotype)&(p->in_datasum) );
+			iowrite8( _ACK_NOT_COMPLETE, (iotype)&(p->out_ack) );
+			iowrite8( 0xfe, (iotype)&(p->intr_8051) );
+			*/
+			// enable packet receiving-transmitting
+			netif_wake_queue( ndev );
+			netif_carrier_on( ndev );
+			usermode_link_event(ndev,1);
+					
+		}else if( (ioread8((iotype)((u8*)p+0x3c0)) & 0xc0) != 0x40 ){
+				// link down
+				PDEBUG("Deactivate");
 		
-	    iowrite8( ioread8( (iotype)&(nl->regs->CRB) ) | RXDE,
-			(iotype)&(nl->regs->CRB) );
-	    iowrite8( EXT, (iotype)&(nl->regs->IMR) );    			
-	    netif_stop_queue( ndev );
-	    netif_carrier_off( ndev );
-	    usermode_link_event(ndev,0);
+				iowrite8( ioread8( (iotype)&(nl->regs->CRB) ) | RXDE,
+						  (iotype)&(nl->regs->CRB) );
+				iowrite8( EXT, (iotype)&(nl->regs->IMR) );    			
+				netif_stop_queue( ndev );
+				netif_carrier_off( ndev );
+				usermode_link_event(ndev,0);
+			}
 	}
-    }
 }
 
 #ifdef SG16_USERMODE_EVENTS
@@ -1334,7 +1283,7 @@ usermode_link_event(struct net_device *ndev,int link_up)
 	argv[2] = lstate;
 	envp[0] = "HOME=/";
 	envp[1] = "PATH=/sbin:/bin:/usr/sbin:/usr/bin";
-//	printk("Start usermode helper\n");		
+	//	printk("Start usermode helper\n");		
 	return call_usermodehelper(argv[0],argv,envp,1);
 }
 
@@ -1365,50 +1314,50 @@ sg16_start_xmit( struct sk_buff *skb, struct net_device *ndev )
 	/* fix concurent racing in transmit */
 	spin_lock_irqsave( &nl->xlock, flags );
 
-        if( nl->tail_xq == ((nl->head_xq - 1) & (XQLEN - 1)) ) {
+	if( nl->tail_xq == ((nl->head_xq - 1) & (XQLEN - 1)) ) {
 		netif_stop_queue( ndev );
 		goto  err_exit;
-        }
+	}
 
 	/*
-         * we don't have to check if the descriptor queue was overflowed,
+	 * we don't have to check if the descriptor queue was overflowed,
 	 * because of XQLEN < 128
-         */
+	 */
 	if( skb->len < ETH_ZLEN ){
 		less_than_ethmin++;
-	        pad = ETH_ZLEN - skb->len;
-        	if( !(skb = skb_pad(skb,pad)) ){
-	    	        return 0;
+		pad = ETH_ZLEN - skb->len;
+		if( !(skb = skb_pad(skb,pad)) ){
+			return 0;
 		}
 		skb->len = ETH_ZLEN;
-        }
+	}
 
 	/* Map the buffer for DMA */
-        bus_addr = dma_map_single(nl->dev,skb->data, skb->len , DMA_TO_DEVICE );
+	bus_addr = dma_map_single(nl->dev,skb->data, skb->len , DMA_TO_DEVICE );
 
 	nl->xq[ nl->tail_xq++ ] = skb;
-        nl->tail_xq &= (XQLEN - 1);
+	nl->tail_xq &= (XQLEN - 1);
 	cur_tbd = ioread8( (iotype)&(nl->regs->LTDR)) & 0x7f;
-        iowrite32( cpu_to_le32( bus_addr ) , (iotype)&(nl->tbd[ cur_tbd ].address) ) ;
+	iowrite32( cpu_to_le32( bus_addr ) , (iotype)&(nl->tbd[ cur_tbd ].address) ) ;
 	iowrite32( cpu_to_le32( skb->len | LAST_FRAG ),(iotype)&(nl->tbd[ cur_tbd ].length ) ) ;
 
-        cur_tbd = (cur_tbd + 1) & 0x7f;
+	cur_tbd = (cur_tbd + 1) & 0x7f;
 	iowrite8(cur_tbd,(iotype)&(nl->regs->LTDR));
 
-        /*
+	/*
 	 * Probably, it's the best place to increment statistic counters
-         * though those frames hasn't been actually transferred yet.
+	 * though those frames hasn't been actually transferred yet.
 	 */
-        ++nl->in_stats.sent_pkts;
+	++nl->in_stats.sent_pkts;
 	++nl->stats.tx_packets;
-        nl->stats.tx_bytes += skb->len;
+	nl->stats.tx_bytes += skb->len;
 	ndev->trans_start = jiffies;
 
-        spin_unlock_irqrestore( &nl->xlock, flags );
+	spin_unlock_irqrestore( &nl->xlock, flags );
 
 	return 0;
-err_exit:
-        spin_unlock_irqrestore( &nl->xlock, flags );
+ err_exit:
+	spin_unlock_irqrestore( &nl->xlock, flags );
 	return  -EBUSY;
 }
 
@@ -1423,26 +1372,26 @@ recv_init_frames( struct net_device *dev )
 
     while( nl->head_rdesc != cur_rbd ) {
 
-	PDEBUG("Get packet");
-	struct sk_buff  *skb = nl->rq[ nl->head_rq++ ];
-	nl->head_rq &= (RQLEN - 1);
+		PDEBUG("Get packet");
+		struct sk_buff  *skb = nl->rq[ nl->head_rq++ ];
+		nl->head_rq &= (RQLEN - 1);
 
-	bus_addr=le32_to_cpu( ioread32( (u32*)&(nl->rbd[ nl->head_rdesc ].address)) );
-	dma_unmap_single(nl->dev,bus_addr, SG16_MAX_FRAME , DMA_FROM_DEVICE );
+		bus_addr=le32_to_cpu( ioread32( (u32*)&(nl->rbd[ nl->head_rdesc ].address)) );
+		dma_unmap_single(nl->dev,bus_addr, SG16_MAX_FRAME , DMA_FROM_DEVICE );
 
-	len = nl->rbd[ nl->head_rdesc ].length & 0x7ff;
-	if( len < ETH_ZLEN )
-	    len = ETH_ZLEN;
+		len = nl->rbd[ nl->head_rdesc ].length & 0x7ff;
+		if( len < ETH_ZLEN )
+			len = ETH_ZLEN;
 	
-	skb_put( skb, len );
-	skb->protocol = eth_type_trans( skb, dev );
-	netif_rx( skb );
-	FREE_RX();
+		skb_put( skb, len );
+		skb->protocol = eth_type_trans( skb, dev );
+		netif_rx( skb );
+		FREE_RX();
 		
-	++nl->in_stats.rcvd_pkts;
-	++nl->stats.rx_packets;
-	nl->stats.rx_bytes += len;
-	nl->head_rdesc = (nl->head_rdesc + 1) & 0x7f;
+		++nl->in_stats.rcvd_pkts;
+		++nl->stats.rx_packets;
+		nl->stats.rx_bytes += len;
+		nl->head_rdesc = (nl->head_rdesc + 1) & 0x7f;
     }
     return;
     
@@ -1458,25 +1407,24 @@ recv_alloc_buffs( struct net_device *dev )
     struct sk_buff  *skb;
 
     
-    while( nl->tail_rq != ((nl->head_rq -1) & (RQLEN - 1)) )
-    {
-	ALLOC_RX();
-	skb = dev_alloc_skb( SG16_MAX_FRAME );
-	skb->dev = dev;
-	skb_reserve( skb, 2 );	// align ip on longword boundaries
+    while( nl->tail_rq != ((nl->head_rq -1) & (RQLEN - 1)) ){
+		ALLOC_RX();
+		skb = dev_alloc_skb( SG16_MAX_FRAME );
+		skb->dev = dev;
+		skb_reserve( skb, 2 );	// align ip on longword boundaries
 
-	nl->rq[ nl->tail_rq++ ] = skb;
-	nl->tail_rq &= (RQLEN - 1);
+		nl->rq[ nl->tail_rq++ ] = skb;
+		nl->tail_rq &= (RQLEN - 1);
 
-	/* DMA memory */
-	bus_addr = dma_map_single(nl->dev,skb->data, 
-		    SG16_MAX_FRAME , DMA_FROM_DEVICE );
-	iowrite32( cpu_to_le32( bus_addr ),
-		    (u32 *)&(nl->rbd[ cur_rbd ].address) ) ;
-	iowrite32( 0, (u32*)&(nl->rbd[ cur_rbd ].length ) ) ;
-	cur_rbd = (cur_rbd + 1) & 0x7f;
-	iowrite8(cur_rbd,(iotype)&(nl->regs->LRDR));
-    }
+		/* DMA memory */
+		bus_addr = dma_map_single(nl->dev,skb->data, 
+								  SG16_MAX_FRAME , DMA_FROM_DEVICE );
+		iowrite32( cpu_to_le32( bus_addr ),
+				   (u32 *)&(nl->rbd[ cur_rbd ].address) ) ;
+		iowrite32( 0, (u32*)&(nl->rbd[ cur_rbd ].length ) ) ;
+		cur_rbd = (cur_rbd + 1) & 0x7f;
+		iowrite8(cur_rbd,(iotype)&(nl->regs->LRDR));
+	}
 }
 
 static void
@@ -1488,16 +1436,15 @@ recv_free_buffs( struct net_device *ndev)
     struct sk_buff  *skb;
     
     iowrite8( ioread8( (iotype)&(nl->regs->CRDR)), (iotype)&(nl->regs->LRDR));
-    while( nl->head_rdesc != last_rbd )
-    {
-	skb = nl->rq[ nl->head_rq++ ];
-	nl->head_rq &= (RQLEN - 1);
-	bus_addr=le32_to_cpu( ioread32( (u32*)&(nl->rbd[ nl->head_rdesc ].address) ) );
-	nl->head_rdesc = (nl->head_rdesc + 1) & 0x7f;
-	dma_unmap_single(nl->dev,bus_addr, SG16_MAX_FRAME , DMA_FROM_DEVICE );
-        dev_kfree_skb_any( skb );
-	FREE_RX();	
-    }
+    while( nl->head_rdesc != last_rbd ){
+		skb = nl->rq[ nl->head_rq++ ];
+		nl->head_rq &= (RQLEN - 1);
+		bus_addr=le32_to_cpu( ioread32( (u32*)&(nl->rbd[ nl->head_rdesc ].address) ) );
+		nl->head_rdesc = (nl->head_rdesc + 1) & 0x7f;
+		dma_unmap_single(nl->dev,bus_addr, SG16_MAX_FRAME , DMA_FROM_DEVICE );
+		dev_kfree_skb_any( skb );
+		FREE_RX();	
+	}
     return;
 }
 
@@ -1514,16 +1461,15 @@ xmit_free_buffs( struct net_device *dev )
     	netif_wake_queue( dev );
     }
 		    
-    while( nl->head_tdesc != cur_tbd )
-    {
-	/* unmap DMA memory */
-	bus_addr=le32_to_cpu( ioread32( (u32*)&(nl->tbd[ nl->head_tdesc ].address)) );
-	dma_unmap_single(nl->dev,bus_addr, nl->xq[ nl->head_xq]->len, DMA_TO_DEVICE );
-	dev_kfree_skb_any( nl->xq[ nl->head_xq++ ] );
-	FREE_TX();	
-	nl->head_xq &= (XQLEN - 1);
-	nl->head_tdesc = (nl->head_tdesc + 1) & 0x7f;
-    }
+    while( nl->head_tdesc != cur_tbd ){
+		/* unmap DMA memory */
+		bus_addr=le32_to_cpu( ioread32( (u32*)&(nl->tbd[ nl->head_tdesc ].address)) );
+		dma_unmap_single(nl->dev,bus_addr, nl->xq[ nl->head_xq]->len, DMA_TO_DEVICE );
+		dev_kfree_skb_any( nl->xq[ nl->head_xq++ ] );
+		FREE_TX();	
+		nl->head_xq &= (XQLEN - 1);
+		nl->head_tdesc = (nl->head_tdesc + 1) & 0x7f;
+	}
 
     spin_unlock( &nl->xlock );
     return;
@@ -1540,12 +1486,11 @@ sg16_tx_timeout( struct net_device  *ndev )
     struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);		
     
     printk( KERN_ERR "%s: transmit timeout\n", ndev->name );
-    if( ioread8( (iotype)&(nl->regs->SR)) & TXS )
-    {
-        iowrite8( TXS,(iotype)&(nl->regs->SR));
-        printk( KERN_ERR "%s: interrupt posted but not delivered\n",
-    		ndev->name );
-    }
+    if( ioread8( (iotype)&(nl->regs->SR)) & TXS ){
+		iowrite8( TXS,(iotype)&(nl->regs->SR));
+		printk( KERN_ERR "%s: interrupt posted but not delivered\n",
+				ndev->name );
+	}
     xmit_free_buffs( ndev );
 }
 
@@ -1565,14 +1510,14 @@ init_sg16_in_sysfs(struct device *dev)
     //shdsl
     strcpy(shcfg->fw_name,MR16H_DRVNAME".bin");
 
-// set default role
+	// set default role
 #ifdef SG16_MASTER
     shcfg->master=1;
 #else
     shcfg->master=0;
 #endif    
 
-// set remote master configuration mode
+	// set remote master configuration mode
 #ifdef SG16_REMCFG
     shcfg->remcfg=1;
     shcfg->annex=ANNEX_F;    
@@ -1581,14 +1526,14 @@ init_sg16_in_sysfs(struct device *dev)
     shcfg->annex=ANNEX_A;    
 #endif    
 
-// set default rate
+	// set default rate
 #ifdef SG_RATE
     shcfg->lrate=SG16_RATE>>3;
 #else    
     shcfg->lrate=128>>3;
 #endif
 
-// set coding type
+	// set coding type
 #ifdef SG16_MOD 
 #if SG16_MOD == 1
     shcfg->mod=1;
@@ -1607,7 +1552,7 @@ init_sg16_in_sysfs(struct device *dev)
     shcfg->autob=0;
 #endif
     
-//hdlc
+	//hdlc
 #ifdef SG16_NORBURST
     hdcfg->rburst=0;
 #else    
@@ -1666,39 +1611,39 @@ init_sg16_in_sysfs(struct device *dev)
 
     return 0;
 
-err_ext15:
+ err_ext15:
     device_remove_file(dev,&dev_attr_statistic);        
-err_ext14:
+ err_ext14:
     device_remove_file(dev,&dev_attr_state);        
-err_ext13:
+ err_ext13:
     device_remove_file(dev,&dev_attr_maddr);        
-err_ext12:
+ err_ext12:
     device_remove_file(dev,&dev_attr_wburst);
-err_ext11:
+ err_ext11:
     device_remove_file(dev,&dev_attr_rburst);
-err_ext10:
+ err_ext10:
     device_remove_file(dev,&dev_attr_inv);
-err_ext9:
+ err_ext9:
     device_remove_file(dev,&dev_attr_fill_7e);
-err_ext8:
+ err_ext8:
     device_remove_file(dev,&dev_attr_crc16);
-err_ext7:
+ err_ext7:
     device_remove_file(dev,&dev_attr_download);    
-err_ext6:
+ err_ext6:
     device_remove_file(dev,&dev_attr_autobaud);
-err_ext5:
+ err_ext5:
     device_remove_file(dev,&dev_attr_mod);    
-err_ext4:
+ err_ext4:
     device_remove_file(dev,&dev_attr_annex);    
-err_ext3:
+ err_ext3:
     device_remove_file(dev,&dev_attr_remcfg);        
-err_ext2:
+ err_ext2:
     device_remove_file(dev,&dev_attr_master);
-err_ext1:
+ err_ext1:
     device_remove_file(dev,&dev_attr_crate);	            
-err_ext0:    
+ err_ext0:    
     device_remove_file(dev,&dev_attr_rate);	
-err_ext:
+ err_ext:
     printk("%s: error\n",__FUNCTION__);
     return -1;
 }
@@ -1743,18 +1688,16 @@ show_rate( struct device *dev, ADDIT_ATTR char *buf )
     u16 tmp=0;
     
     if( !(cfg->remcfg && !cfg->master) )
-	return snprintf(buf,PAGE_SIZE,"%u\n",(cfg->lrate)<<3);
+		return snprintf(buf,PAGE_SIZE,"%u\n",(cfg->lrate)<<3);
     else{
-	if( netif_carrier_ok(ndev) )
-	{
-	    t=_DSL_DATA_RATE;
-	    if( !shdsl_issue_cmd(nl,_DSL_READ_CONTROL,&t,0) )
-	    {
-		tmp=ioread8( (u8 *)(nl->cmdp->out_data+1)) & 0x3;
-		tmp=(tmp<<8)+ioread8( (u8 *)(nl->cmdp->out_data) );
-		tmp--;
-	    } 
-	}
+		if( netif_carrier_ok(ndev) ){
+			t=_DSL_DATA_RATE;
+			if( !shdsl_issue_cmd(nl,_DSL_READ_CONTROL,&t,0) ){
+				tmp=ioread8( (u8 *)(nl->cmdp->out_data+1)) & 0x3;
+				tmp=(tmp<<8)+ioread8( (u8 *)(nl->cmdp->out_data) );
+				tmp--;
+			} 
+		}
     }
     return snprintf(buf,PAGE_SIZE,"%u\n",tmp<<3);    
 }
@@ -1770,12 +1713,12 @@ store_rate( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     
     /* if interface is up*/
     if( (ndev->flags & IFF_UP) )
-	return size;
+		return size;
     if( !size ) return size;
 
     tmp=simple_strtoul( buf,&endp,0);
     if( !tmp )
-	return size;
+		return size;
     cfg->lrate=(tmp >> 3) & 0x3ff;
     nl->shdsl_cfg.need_preact=1;
 
@@ -1793,27 +1736,23 @@ show_crate( struct device *dev, ADDIT_ATTR char *buf )
     u32 tmp=0;
     
     if( !cfg->autob && !( cfg->remcfg && !cfg->master ) )
-	tmp=cfg->lrate;    	
-    else
-    {
-	if( cfg->autob  && netif_carrier_ok(ndev) ){
-	    if( !shdsl_issue_cmd(nl,_DSL_GHS_GET_FINAL_RATE,&t,0) )    
-	    {
-		tmp=ioread8( (u8 *)(nl->cmdp->out_data+2));
-		tmp=(tmp<<3)+ioread8( (u8 *)(nl->cmdp->out_data+3) );
-	    }
+		tmp=cfg->lrate;    	
+    else{
+		if( cfg->autob  && netif_carrier_ok(ndev) ){
+			if( !shdsl_issue_cmd(nl,_DSL_GHS_GET_FINAL_RATE,&t,0) )	{
+				tmp=ioread8( (u8 *)(nl->cmdp->out_data+2));
+				tmp=(tmp<<3)+ioread8( (u8 *)(nl->cmdp->out_data+3) );
+			}
+		}
+		else if( cfg->remcfg && netif_carrier_ok(ndev) ){
+			t=_DSL_DATA_RATE;
+			if( !shdsl_issue_cmd(nl,_DSL_READ_CONTROL,&t,0) ){
+				tmp=ioread8( (u8 *)(nl->cmdp->out_data+1)) & 0x3;
+				tmp=(tmp<<8)+ioread8( (u8 *)(nl->cmdp->out_data) );
+				tmp--;		
+			} 
+		}
 	}
-	else if( cfg->remcfg && netif_carrier_ok(ndev) )
-	{
-	    t=_DSL_DATA_RATE;
-	    if( !shdsl_issue_cmd(nl,_DSL_READ_CONTROL,&t,0) )
-	    {
-		tmp=ioread8( (u8 *)(nl->cmdp->out_data+1)) & 0x3;
-		tmp=(tmp<<8)+ioread8( (u8 *)(nl->cmdp->out_data) );
-		tmp--;		
-	    } 
-	}
-    }
     return snprintf(buf,PAGE_SIZE,"%u\n",tmp<<3);
 }
 
@@ -1825,9 +1764,9 @@ show_master( struct device *dev, ADDIT_ATTR char *buf )
     struct shdsl_config *cfg=&(nl->shdsl_cfg);
 
     if( cfg->master )
-	return snprintf(buf,PAGE_SIZE,"master");
+		return snprintf(buf,PAGE_SIZE,"master");
     else
-	return snprintf(buf,PAGE_SIZE,"slave"); 
+		return snprintf(buf,PAGE_SIZE,"slave"); 
 }
 
 static ssize_t
@@ -1839,14 +1778,14 @@ store_master( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 
     /* if interface is up */
     if( ndev->flags & IFF_UP )
-	return size;
+		return size;
 
     if( size > 0 ){
-	if( buf[0]=='0' )
-	    cfg->master=0;
-	else
-	if( buf[0]=='1' )
-	    cfg->master=1;
+		if( buf[0]=='0' )
+			cfg->master=0;
+		else
+			if( buf[0]=='1' )
+				cfg->master=1;
     }    
     nl->shdsl_cfg.need_preact=1;
     return strnlen(buf,PAGE_SIZE);
@@ -1861,9 +1800,9 @@ show_remcfg( struct device *dev, ADDIT_ATTR char *buf )
     struct shdsl_config *cfg=&(nl->shdsl_cfg);
 
     if( cfg->remcfg )
-	return snprintf(buf,PAGE_SIZE,"preact");
+		return snprintf(buf,PAGE_SIZE,"preact");
     else
-	return snprintf(buf,PAGE_SIZE,"local"); 
+		return snprintf(buf,PAGE_SIZE,"local"); 
 }
 
 static ssize_t
@@ -1875,13 +1814,13 @@ store_remcfg( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 
     /* if interface is up */
     if( ndev->flags & IFF_UP )
-	return size;
+		return size;
 
     if( size > 0 ){
-	if( buf[0]=='0' )
-	    cfg->remcfg=0;
-	else if( buf[0]=='1' )
-	    cfg->remcfg=1;
+		if( buf[0]=='0' )
+			cfg->remcfg=0;
+		else if( buf[0]=='1' )
+			cfg->remcfg=1;
     }    
 
     nl->shdsl_cfg.need_preact=1;
@@ -1897,14 +1836,14 @@ show_annex( struct device *dev, ADDIT_ATTR char *buf )
 
     switch( t ){
     case ANNEX_A:
-	return snprintf(buf,PAGE_SIZE,"Annex=A");
+		return snprintf(buf,PAGE_SIZE,"Annex=A");
     case ANNEX_B:
-	return snprintf(buf,PAGE_SIZE,"Annex=B"); 
+		return snprintf(buf,PAGE_SIZE,"Annex=B"); 
     case ANNEX_F:
-	return snprintf(buf,PAGE_SIZE,"Annex=F"); 
+		return snprintf(buf,PAGE_SIZE,"Annex=F"); 
     default:
-	cfg->annex=ANNEX_A;
-	return snprintf(buf,PAGE_SIZE,"Annex=A");    
+		cfg->annex=ANNEX_A;
+		return snprintf(buf,PAGE_SIZE,"Annex=A");    
     }
 }
 
@@ -1918,26 +1857,25 @@ store_annex( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 
     /* if interface is up */
     if( ndev->flags & IFF_UP )
-	return size;
+		return size;
 
     if( !size )	return size;
 
     tmp=buf[0];
-    switch(tmp)
-    {
-    case '0':
-	cfg->annex=ANNEX_A;
-	break;
-    case '1':
-	cfg->annex=ANNEX_B;
-	break;
-    case '2':
-	cfg->annex=ANNEX_F;
-	break;
-    default:
-	cfg->annex=ANNEX_A;
-	break;
-    }
+    switch(tmp){
+	case '0':
+		cfg->annex=ANNEX_A;
+		break;
+	case '1':
+		cfg->annex=ANNEX_B;
+		break;
+	case '2':
+		cfg->annex=ANNEX_F;
+		break;
+	default:
+		cfg->annex=ANNEX_A;
+		break;
+	}
 
     nl->shdsl_cfg.need_preact=1;
     return strnlen(buf,PAGE_SIZE);
@@ -1955,23 +1893,22 @@ show_mod( struct device *dev, ADDIT_ATTR char *buf )
     u16 tmp=0;
 
     if( cfg->remcfg ){
-	if( !netif_carrier_ok(ndev) )
-	    return snprintf(buf,PAGE_SIZE,"Unknown\n");	
-	else{
-	    t=_DSL_DATA_RATE;
-	    if( !shdsl_issue_cmd(nl,_DSL_READ_CONTROL,&t,0) )
-	    {
-		tmp=ioread8( (u8 *)(nl->cmdp->out_data+1)) & 0x3;
-		tmp=(tmp<<8)+ioread8( (u8 *)(nl->cmdp->out_data) );
-		tmp--;		
-	    } 
-	    if( !tmp )
-		return snprintf(buf,PAGE_SIZE,"Unknown\n");	
-	    else if( (tmp<<3) > 2304 )
-		return snprintf(buf,PAGE_SIZE,"TCPAM32\n");	
-	    else
-		return snprintf(buf,PAGE_SIZE,"TCPAM16\n");	
-	}
+		if( !netif_carrier_ok(ndev) )
+			return snprintf(buf,PAGE_SIZE,"Unknown\n");	
+		else{
+			t=_DSL_DATA_RATE;
+			if( !shdsl_issue_cmd(nl,_DSL_READ_CONTROL,&t,0) ){
+				tmp=ioread8( (u8 *)(nl->cmdp->out_data+1)) & 0x3;
+				tmp=(tmp<<8)+ioread8( (u8 *)(nl->cmdp->out_data) );
+				tmp--;		
+			} 
+			if( !tmp )
+				return snprintf(buf,PAGE_SIZE,"Unknown\n");	
+			else if( (tmp<<3) > 2304 )
+				return snprintf(buf,PAGE_SIZE,"TCPAM32\n");	
+			else
+				return snprintf(buf,PAGE_SIZE,"TCPAM16\n");	
+		}
     }
     return snprintf(buf,PAGE_SIZE,"%s\n",modstr[cfg->mod]);
 }
@@ -1986,26 +1923,25 @@ store_mod( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 
     /* if interface is up */
     if( ndev->flags & IFF_UP )
-	return size;
+		return size;
 
     if( !size )	return size;
 	
     tmp=buf[0];
-    switch(tmp)
-    {
-    case '0':
-	cfg->mod=0;
-	break;
-    case '1':
-	cfg->mod=1;
-	break;
-    case '2':
-	cfg->mod=2;
-	break;
-    case '3':
-	cfg->mod=3;
-	break;
-    }
+    switch(tmp){
+	case '0':
+		cfg->mod=0;
+		break;
+	case '1':
+		cfg->mod=1;
+		break;
+	case '2':
+		cfg->mod=2;
+		break;
+	case '3':
+		cfg->mod=3;
+		break;
+	}
     nl->shdsl_cfg.need_preact=1;
     return size;
 }
@@ -2018,11 +1954,11 @@ show_autob( struct device *dev, ADDIT_ATTR char *buf )
     struct shdsl_config *cfg=&(nl->shdsl_cfg);
 
     if( cfg->autob )
-	return snprintf(buf,PAGE_SIZE,"auto\n");
+		return snprintf(buf,PAGE_SIZE,"auto\n");
     else if( cfg->remcfg && !cfg->master )
-	return snprintf(buf,PAGE_SIZE,"remote\n");    
+		return snprintf(buf,PAGE_SIZE,"remote\n");    
     else
-	return snprintf(buf,PAGE_SIZE,"static\n");
+		return snprintf(buf,PAGE_SIZE,"static\n");
 }
 
 static ssize_t
@@ -2036,29 +1972,27 @@ store_autob( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     
     /* if interface is up */
     if( ndev->flags & IFF_UP )
-	return size;
+		return size;
     /* correct input data */
     if( !size )
-	return 0;
+		return 0;
 
     /* check that autobaud is aviable in this firmware */
-    if( !cfg->autob_en )
-    {
-	cfg->autob=0;
-	return size;
-    }
+    if( !cfg->autob_en ){
+		cfg->autob=0;
+		return size;
+	}
 	
     /* change auto rate state */
     tmp=buf[0];
-    switch(tmp)
-    {
-    case '0':
-	cfg->autob=0;
-	break;
-    case '1':
-	cfg->autob=1;
-	break;
-    }
+    switch(tmp){
+	case '0':
+		cfg->autob=0;
+		break;
+	case '1':
+		cfg->autob=1;
+		break;
+	}
     nl->shdsl_cfg.need_preact=1;
     return size;
 }
@@ -2074,16 +2008,16 @@ show_download( struct device *dev, ADDIT_ATTR char *buf )
 
     /* if UP => fw is downloaded */
     if( ndev->flags & IFF_UP )
-	return snprintf(buf,PAGE_SIZE,"1");
+		return snprintf(buf,PAGE_SIZE,"1");
 
     /* Reset of system */
     udelay(2);
     t=0;
     if( shdsl_issue_cmd( nl, _DSL_RESET_SYSTEM, &t, 1 ) )
-	return snprintf(buf,PAGE_SIZE,"0");
+		return snprintf(buf,PAGE_SIZE,"0");
     udelay(2);
     if( !shdsl_ready( nl, _ACK_OPER_WAKE_UP ) )
-	return snprintf(buf,PAGE_SIZE,"0");
+		return snprintf(buf,PAGE_SIZE,"0");
 
     return snprintf(buf,PAGE_SIZE,"1");
 }	
@@ -2100,17 +2034,16 @@ store_download( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     
     if( !size )	return 0;
     if( ndev->flags & IFF_UP )
-	return size;
+		return size;
 
     PDEBUG("before dload");    
     if( buf[0] == '1' ){
-	if( request_firmware((const struct firmware **)&fw,cfg->fw_name,dev) ){
-	    printk(KERN_ERR"%s: firmware file not found\n",ndev->name); 
-	    release_firmware(fw);	
-	    return -ENOENT;
-	}
-	else
-	    shdsl_dload_fw(ndev,fw);
+		if( request_firmware((const struct firmware **)&fw,cfg->fw_name,dev) ){
+			printk(KERN_ERR"%s: firmware file not found\n",ndev->name); 
+			release_firmware(fw);	
+			return -ENOENT;
+		}else
+			shdsl_dload_fw(ndev,fw);
     }
 
     nl->shdsl_cfg.need_preact=1;
@@ -2125,9 +2058,9 @@ show_crc16( struct device *dev, ADDIT_ATTR char *buf )
     struct hdlc_config *cfg=&(nl->hdlc_cfg);
 
     if( cfg->crc16 )
-	return snprintf(buf,PAGE_SIZE,"crc16");
+		return snprintf(buf,PAGE_SIZE,"crc16");
     else
-	return snprintf(buf,PAGE_SIZE,"crc32");    
+		return snprintf(buf,PAGE_SIZE,"crc32");    
 }
 
 static ssize_t
@@ -2139,25 +2072,25 @@ store_crc16( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     u8 cfg_bt;
 
     if( ndev->flags & IFF_UP )
-	return size;
+		return size;
 
     if( !size )	return 0;
     
     switch(buf[0]){
     case '1':
-	if( cfg->crc16 )
+		if( cfg->crc16 )
     	    break;
-	cfg->crc16=1;
-	cfg_bt=ioread8( (iotype)&(nl->regs->CRA)) | CMOD;
-	iowrite8( cfg_bt,(iotype)&(nl->regs->CRA));
-	break;
+		cfg->crc16=1;
+		cfg_bt=ioread8( (iotype)&(nl->regs->CRA)) | CMOD;
+		iowrite8( cfg_bt,(iotype)&(nl->regs->CRA));
+		break;
     case '0':
-	if( !(cfg->crc16) )
-	    break;
-	cfg->crc16=0;
-	cfg_bt=ioread8( (iotype)&(nl->regs->CRA)) & ~CMOD;
-	iowrite8( cfg_bt,(iotype)&(nl->regs->CRA));
-	break;
+		if( !(cfg->crc16) )
+			break;
+		cfg->crc16=0;
+		cfg_bt=ioread8( (iotype)&(nl->regs->CRA)) & ~CMOD;
+		iowrite8( cfg_bt,(iotype)&(nl->regs->CRA));
+		break;
     }	
 
     return size;	
@@ -2170,9 +2103,9 @@ show_fill_7e( struct device *dev, ADDIT_ATTR char *buf )
     struct hdlc_config *cfg=&(nl->hdlc_cfg);
 
     if( cfg->fill_7e )
-	return snprintf(buf,PAGE_SIZE,"on");
+		return snprintf(buf,PAGE_SIZE,"on");
     else
-	return snprintf(buf,PAGE_SIZE,"off");    
+		return snprintf(buf,PAGE_SIZE,"off");    
 }
 
 static ssize_t
@@ -2184,25 +2117,25 @@ store_fill_7e( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     u8 cfg_bt;
 
     if( ndev->flags & IFF_UP )
-	return size;
+		return size;
     
     if( !size )	return 0;
     
     switch(buf[0]){
     case '1':
-	if( cfg->fill_7e )
+		if( cfg->fill_7e )
     	    break;
-	cfg->fill_7e=1;
-	cfg_bt=ioread8( (iotype)&(nl->regs->CRA)) | FMOD;
-	iowrite8( cfg_bt,(iotype)&(nl->regs->CRA));
-	break;
+		cfg->fill_7e=1;
+		cfg_bt=ioread8( (iotype)&(nl->regs->CRA)) | FMOD;
+		iowrite8( cfg_bt,(iotype)&(nl->regs->CRA));
+		break;
     case '0':
-	if( !(cfg->fill_7e) )
-	    break;
-	cfg->fill_7e=0;
-	cfg_bt=ioread8( (iotype)&(nl->regs->CRA)) & ~FMOD;
-	iowrite8( cfg_bt,(iotype)&(nl->regs->CRA));
-	break;
+		if( !(cfg->fill_7e) )
+			break;
+		cfg->fill_7e=0;
+		cfg_bt=ioread8( (iotype)&(nl->regs->CRA)) & ~FMOD;
+		iowrite8( cfg_bt,(iotype)&(nl->regs->CRA));
+		break;
     }	
     return size;	
 }
@@ -2214,9 +2147,9 @@ show_inv( struct device *dev, ADDIT_ATTR char *buf )
     struct hdlc_config *cfg=&(nl->hdlc_cfg);
 
     if( cfg->inv )
-	return snprintf(buf,PAGE_SIZE,"on");
+		return snprintf(buf,PAGE_SIZE,"on");
     else
-	return snprintf(buf,PAGE_SIZE,"off");    
+		return snprintf(buf,PAGE_SIZE,"off");    
 }
 
 static ssize_t
@@ -2228,26 +2161,26 @@ store_inv( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     u8 cfg_bt;
 
     if( ndev->flags & IFF_UP )
-	return size;
+		return size;
 
     if( !size )
-	return 0;
+		return 0;
     
     switch(buf[0]){
     case '1':
-	if( cfg->inv )
+		if( cfg->inv )
     	    break;
-	cfg->inv=1;
-	cfg_bt=ioread8( (iotype)&(nl->regs->CRA)) | PMOD;
-	iowrite8( cfg_bt,(iotype)&(nl->regs->CRA));
-	break;
+		cfg->inv=1;
+		cfg_bt=ioread8( (iotype)&(nl->regs->CRA)) | PMOD;
+		iowrite8( cfg_bt,(iotype)&(nl->regs->CRA));
+		break;
     case '0':
-	if( !(cfg->inv) )
-	    break;
-	cfg->inv=0;
-	cfg_bt=ioread8( (iotype)&(nl->regs->CRA)) & ~PMOD;
-	iowrite8( cfg_bt,(iotype)&(nl->regs->CRA));
-	break;
+		if( !(cfg->inv) )
+			break;
+		cfg->inv=0;
+		cfg_bt=ioread8( (iotype)&(nl->regs->CRA)) & ~PMOD;
+		iowrite8( cfg_bt,(iotype)&(nl->regs->CRA));
+		break;
     }	
     return size;	
 }
@@ -2259,9 +2192,9 @@ show_rburst( struct device *dev, ADDIT_ATTR char *buf )
     struct hdlc_config *cfg=&(nl->hdlc_cfg);
 
     if( cfg->rburst )
-	return snprintf(buf,PAGE_SIZE,"on");
+		return snprintf(buf,PAGE_SIZE,"on");
     else
-	return snprintf(buf,PAGE_SIZE,"off");    
+		return snprintf(buf,PAGE_SIZE,"off");    
 
 }
 
@@ -2274,25 +2207,25 @@ store_rburst( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     u8 cfg_bt;
 
     if( ndev->flags & IFF_UP )
-	return size;
+		return size;
     
     if( !size )	return 0;
     
     switch(buf[0]){
     case '1':
-	if( cfg->rburst )
+		if( cfg->rburst )
     	    break;
-	cfg->rburst=1;
-	cfg_bt=ioread8( (iotype)&(nl->regs->CRB)) | RDBE;
-	iowrite8( cfg_bt,(iotype)&(nl->regs->CRB));
-	break;
+		cfg->rburst=1;
+		cfg_bt=ioread8( (iotype)&(nl->regs->CRB)) | RDBE;
+		iowrite8( cfg_bt,(iotype)&(nl->regs->CRB));
+		break;
     case '0':
-	if( !(cfg->rburst) )
-	    break;
-	cfg->rburst=0;
-	cfg_bt=ioread8( (iotype)&(nl->regs->CRB)) & ~RDBE;
-	iowrite8( cfg_bt,(iotype)&(nl->regs->CRB));
-	break;
+		if( !(cfg->rburst) )
+			break;
+		cfg->rburst=0;
+		cfg_bt=ioread8( (iotype)&(nl->regs->CRB)) & ~RDBE;
+		iowrite8( cfg_bt,(iotype)&(nl->regs->CRB));
+		break;
     }	
 
     return size;	
@@ -2305,9 +2238,9 @@ show_wburst( struct device *dev, ADDIT_ATTR char *buf )
     struct hdlc_config *cfg=&(nl->hdlc_cfg);
 
     if( cfg->wburst )
-	return snprintf(buf,PAGE_SIZE,"on");
+		return snprintf(buf,PAGE_SIZE,"on");
     else
-	return snprintf(buf,PAGE_SIZE,"off");    
+		return snprintf(buf,PAGE_SIZE,"off");    
 }
 
 static ssize_t
@@ -2319,25 +2252,25 @@ store_wburst( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     u8 cfg_bt;
 
     if( ndev->flags & IFF_UP )
-	return size;
+		return size;
     
     if( !size )	return 0;
 
     switch(buf[0]){
     case '1':
-	if( cfg->wburst )
+		if( cfg->wburst )
     	    break;
-	cfg->wburst=1;
-	cfg_bt=ioread8( (iotype)&(nl->regs->CRB)) | WTBE;
-	iowrite8( cfg_bt,(iotype)&(nl->regs->CRB));
-	break;
+		cfg->wburst=1;
+		cfg_bt=ioread8( (iotype)&(nl->regs->CRB)) | WTBE;
+		iowrite8( cfg_bt,(iotype)&(nl->regs->CRB));
+		break;
     case '0':
-	if( !(cfg->wburst) )
-	    break;
-	cfg->wburst=0;
-	cfg_bt=ioread8( (iotype)&(nl->regs->CRB)) & ~WTBE;
-	iowrite8( cfg_bt,(iotype)&(nl->regs->CRB));
-	break;
+		if( !(cfg->wburst) )
+			break;
+		cfg->wburst=0;
+		cfg_bt=ioread8( (iotype)&(nl->regs->CRB)) & ~WTBE;
+		iowrite8( cfg_bt,(iotype)&(nl->regs->CRB));
+		break;
     }	
 
     return size;	
@@ -2352,13 +2285,13 @@ store_maddr( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     char *endp;
 
     if( ndev->flags & IFF_UP )
-	return size;
+		return size;
 
     if( !size ) return 0;
 
     tmp=simple_strtoul( buf,&endp,16) & 0xfff;
     *(u16 *)ndev->dev_addr = htons( 0x00ff ),
-    *(u32 *)(ndev->dev_addr + 2) = htonl( 0x014aa000 | tmp );     
+		*(u32 *)(ndev->dev_addr + 2) = htonl( 0x014aa000 | tmp );     
 
     return size;
 }
@@ -2378,26 +2311,26 @@ show_dev_state( struct device *dev, ADDIT_ATTR char *buf )
     stat_3=ioread8((iotype)( (u8*)p+0x3c2) );
     switch( (stat_1 >> 6) ) {
     case  0 :
-	*ret_ad=0;
-	switch( stat_3 & 0x0f ) {
-	case  1 :	
-	    snprintf(ret_ad,30,"(Bad NMR)" );
-	    break;
-	case  2 :	
-	    snprintf(ret_ad,30, "(Frequency lock failed)" );	
-	    break;
-	case  3 :
-	    snprintf(ret_ad,30, "(Pre-activation failed)" );
-	    break;
-	case  4 :
-	    snprintf(ret_ad,30, "(Sync word detect failed)" );
-	    break;
-	}
-	return snprintf(buf,42,"not ready %s",ret_ad);
+		*ret_ad=0;
+		switch( stat_3 & 0x0f ) {
+		case  1 :	
+			snprintf(ret_ad,30,"(Bad NMR)" );
+			break;
+		case  2 :	
+			snprintf(ret_ad,30, "(Frequency lock failed)" );	
+			break;
+		case  3 :
+			snprintf(ret_ad,30, "(Pre-activation failed)" );
+			break;
+		case  4 :
+			snprintf(ret_ad,30, "(Sync word detect failed)" );
+			break;
+		}
+		return snprintf(buf,42,"not ready %s",ret_ad);
     case  1 :
-	return snprintf(buf,PAGE_SIZE,"online");    
+		return snprintf(buf,PAGE_SIZE,"online");    
     default:
-	return snprintf(buf,PAGE_SIZE,"offline");    
+		return snprintf(buf,PAGE_SIZE,"offline");    
     } 
     return 0;
 }
@@ -2406,20 +2339,36 @@ static ssize_t
 show_statistic( struct device *dev, ADDIT_ATTR char *buf ) 
 {
     struct net_local *nl=(struct net_local *)netdev_priv(dev_get_drvdata(dev));
+    struct shdsl_config *cfg = (struct shdsl_config *)&(nl->shdsl_cfg);
     struct sg16_stats *sb_stat=&(nl->in_stats);
     struct dsl_stats ds;
 
     if( shdsl_get_stat(nl,&ds) )
-	return snprintf(buf,PAGE_SIZE,"err");
-    
+		return snprintf(buf,PAGE_SIZE,"err");
+
+	switch(cfg->mod){
+	case 0: // TCPAM32
+		ds.nmr -= 6;
+		break;
+	case 1: // TCPAM16
+		// do nothing - all is correct
+		break;
+	case 2: // TCPAM8
+		ds.nmr += 6;
+		break;
+	case 3: // TCPAM4
+		ds.nmr += 18;
+		break;
+	}
+		
     return snprintf(buf,PAGE_SIZE,
-			"%u %u %u %u  %u %u %u %u  %u %u",
-			sb_stat->sent_pkts,sb_stat->rcvd_pkts,
-			sb_stat->crc_errs,
-			ds.atmpt,ds.all_atmpt,
-			ds.losw,
-			ds.crc,	ds.attenuat,
-			ds.nmr,	sb_stat->last_time );
+					"%u %u %u %u  %u %u %u %u %d %u",
+					sb_stat->sent_pkts,sb_stat->rcvd_pkts,
+					sb_stat->crc_errs,
+					ds.atmpt,ds.all_atmpt,
+					ds.losw,
+					ds.crc,	ds.attenuat,
+					ds.nmr,	sb_stat->last_time );
     
 }
 
@@ -2431,7 +2380,7 @@ store_statistic( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     if( !size )	return size;
 
     if( buf[0]=='1')
-	shdsl_clr_stat(nl);
+		shdsl_clr_stat(nl);
     return size;
 }
 
@@ -2468,26 +2417,26 @@ store_debug( struct device *dev, ADDIT_ATTR const char *buff, size_t size )
     PDEBUG("DEBUG: endp=%x",endp);    
 
     while( ( ptr-bf < len) && *endp ){
-	ptr=endp;
-	while( (ptr-bf <len) && ( *ptr<'0' || *ptr>'9')  )
-	    ptr++;
-	if( (ptr-bf)>=len )
-	    break;
-	args[i]=(u8)simple_strtoul( ptr,&endp,16);
-	PDEBUG("DEBUG: args[i]=%x",args[i]);    	
-	i++;
+		ptr=endp;
+		while( (ptr-bf <len) && ( *ptr<'0' || *ptr>'9')  )
+			ptr++;
+		if( (ptr-bf)>=len )
+			break;
+		args[i]=(u8)simple_strtoul( ptr,&endp,16);
+		PDEBUG("DEBUG: args[i]=%x",args[i]);    	
+		i++;
     }
     PDEBUG("DEBUG: i=%d",i);    		
     if( shdsl_issue_cmd(nl,cmd,args,i) ){
-	sprintf(mem_ret,"cmd: error");
-	return size;
+		sprintf(mem_ret,"cmd: error");
+		return size;
     }
     
     sprintf(mem_ret,"cmd: %x",cmd);
     for( i=0;i<(p->out_length)+1;i++){
-	tmp1 = ioread8( (iotype)&(p->out_data) +i );
-	sprintf(bf," %x",tmp1);
-	strcat(mem_ret,bf);
+		tmp1 = ioread8( (iotype)&(p->out_data) +i );
+		sprintf(bf," %x",tmp1);
+		strcat(mem_ret,bf);
     }
     return size;
 }
@@ -2496,8 +2445,8 @@ static ssize_t
 show_skb_stat(struct device *dev, ADDIT_ATTR char *buf )
 {
     return sprintf(buf,"rx_alloc = %d\nrx_free = %d\ntx_alloc = %d\ntx_free = %d\n"
-			"less_than_ethmin = %d\n",
-		    rx_buffs_alloc,rx_buffs_free, tx_buffs_alloc,tx_buffs_free,
-		    less_than_ethmin);
+				   "less_than_ethmin = %d\n",
+				   rx_buffs_alloc,rx_buffs_free, tx_buffs_alloc,tx_buffs_free,
+				   less_than_ethmin);
 }
 
