@@ -412,8 +412,8 @@ struct ack_dsl_param_get {
 };
 
 struct ack_perf_status_get {
-	u8 SNR_Margin_dB;
-	u8 LoopAttenuation_dB;
+	s8 SNR_Margin_dB;
+	s8 LoopAttenuation_dB;
 	u8 ES_count;
 	u8 SES_count;
 	u16 CRC_Anomaly_count;

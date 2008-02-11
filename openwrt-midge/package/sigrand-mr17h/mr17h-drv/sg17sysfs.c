@@ -533,13 +533,11 @@ show_statistics(struct class_device *cdev, char *buf)
 	
 	if( sdfe4_get_statistic(sg17_sci_if2ch(s,nl->number),s->hwdev,stat) )
 		return snprintf(buf,PAGE_SIZE,"Error Getting statistic");
-	return snprintf(buf,PAGE_SIZE,"SNR_Marg(%d), LoopAtten(%d), ES_count(%u), SES_Count(%u)\n"
-					"CRC_Anom_count(%u), LOSWS_count(%u), UAS_count(%u), SegAnomaly_Count(%u)\n"
-					"SegDefect_count(%u), CounterOverfInd(%u), CounterResetInd(%u)\n",
-			        stat->SNR_Margin_dB,stat->LoopAttenuation_dB,stat->ES_count,stat->SES_count,
-					stat->CRC_Anomaly_count,stat->LOSWS_count,stat->UAS_Count,stat->SegmentAnomaly_Count,
-			        stat->SegmentDefectS_Count,stat->CounterOverflowInd,stat->CounterResetInd );
-												
+	return snprintf(buf,PAGE_SIZE,
+			"\tSNR Margin=%d\n\tLoop Attenuation=%d\n"
+			"\tCounters: ES=%u SES=%u CRC_Anom=%u LOSWS=%u UAS=%u\n",
+			stat->SNR_Margin_dB,stat->LoopAttenuation_dB,
+			stat->ES_count,stat->SES_count,stat->CRC_Anomaly_count,stat->LOSWS_count,stat->UAS_Count);
 }
 
 static ssize_t
