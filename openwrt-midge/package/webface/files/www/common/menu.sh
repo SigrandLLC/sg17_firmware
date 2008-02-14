@@ -38,7 +38,7 @@ L1 System welcome
 		
 		# output title
 		if [ "$have_ifs" -eq 0 ]; then
-			L2 SHDSL	'dsl'
+			L2 SHDSL
 			have_ifs=1
 		fi
 		unset num
@@ -56,7 +56,7 @@ L1 System welcome
 		eval `/sbin/eoc-info -sr`
 		
 		if [ -n "$eoc_channels" ]; then
-	    	L2 SHDSL-EOC 'dsl-eoc'
+	    	L2 SHDSL-EOC
 			L3 Profiles 'dsl-eoc&profiles=1'
 		    for i in $eoc_channels; do
 				unset ifname ifrole
@@ -79,7 +79,7 @@ L1 System welcome
 		
 		# output title
 		if [ "$have_ifs" -eq 0 ]; then
-			L2 E1 'e1'
+			L2 E1
 			have_ifs=1
 		fi
 		unset num
