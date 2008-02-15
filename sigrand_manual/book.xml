@@ -1278,14 +1278,14 @@
 					</para>
 					<figure>
 						<title>Выбор протокола</title>
-						<graphic fileref="img/cisco-hdlc_select-prot.png" />
+						<graphic fileref="img/cisco-hdlc_select-prot.png" width="6in" />
 					</figure>
 					<para>
 						Для активации страницы с настройками, относящимся к выбранному протоколу, необходимо сохранить внесенные изменения. После перезагрузки страница примет следующий вид:
 					</para>
 					<figure>
 						<title>Конфигурация CISCO-HDLC</title>
-						<graphic fileref="img/cisco-hdlc-framed.png" />
+						<graphic fileref="img/cisco-hdlc-framed.png" width="6in" />
 					</figure>
 					<itemizedlist>
 						<listitem>
@@ -1373,7 +1373,7 @@
 						</para>
 						<figure>
 							<title>Unframed mode</title>
-							<graphic fileref="img/cisco-hdlc-unframed.png" />
+							<graphic fileref="img/cisco-hdlc-unframed.png" width="6in" />
 						</figure>
 						<para>
 							В этом режиме параметров конфигурации меньше, чем во framed mode, и все они сводятся к настройке линии связи.
@@ -1921,9 +1921,9 @@
 		</figure>
 	</section>
   </chapter>
-	<chapter id="routes">
+	<chapter id="traffic">
 		<title>Управление трафиком</title>
-		<section>
+		<section id="routes">
 			<title>Добавление сетевых маршрутов</title>
 			<para>
 				Сетевые маршруты определяют, через какие маршрутизаторы доступна та или иная сеть. Добавление маршрутов осуществляется на странице настройки того сетевого интерфейса, через который он пролегает. К примеру, сеть имеет следующую структуру:
@@ -2262,44 +2262,108 @@
 			<para>
 				К примеру, если мы хотим ограничить пропускную способность канала для входящего трафика к хосту PC2, то нам необходимо работать с интерфейсом eth1 маршрутизатора, поскольку через него проходит исходящий трафик к хосту PC2. В качестве примера  ограничим весь трафик, поступающий на PC2, для этого нам необходимо создать класс, в который будет поступать трафик, идущий к хосту PC2:
 			</para>
-			<figure id="qos_class_add">
+			<figure id="htb_class_add">
 				<title>Добавление класса</title>
 				<graphic fileref="img/qos-class-add.png" width="6in"/>
 			</figure>
 			<itemizedlist>
-				<listitem><para>Short name - имя добавляемого класса. Используется при классификации трафика в фильтре</para></listitem>
-				<listitem><para>Enable - активен ли класс</para></listitem>
-				<listitem><para>Parent class - родительский класс. root - корневой класс. При добавлении класса в некорневой класс - добавляемый класс будет <emphasis>подклассом</emphasis></para></listitem>
-				<listitem><para>Rate - пропускная способность, выделяемая классу</para></listitem>
-				<listitem><para>Ceil - максимальная пропускная способность подкласса (в случае, если другой подкласс этого же класса использует не всю предоставленную ему пропускную способность)</para></listitem>
+				<listitem>
+					<para>
+						<emphasis>Short name</emphasis> - имя добавляемого класса. Используется при классификации трафика в фильтре.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Enable</emphasis> - активен ли класс.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Parent class</emphasis> - родительский класс. root - корневой класс. При добавлении класса в некорневой класс - добавляемый класс будет <emphasis>подклассом</emphasis>.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Rate</emphasis> - пропускная способность, выделяемая классу.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Ceil</emphasis> - максимальная пропускная способность подкласса (в случае, если другой подкласс этого же класса использует не всю предоставленную ему пропускную способность).
+					</para>
+				</listitem>
 			</itemizedlist>
 			<para>
 				Чтобы избежать путаницы, заранее рассмотрим принятые сокращения, описывающие скорость:
-				<itemizedlist>
-					<listitem>mbps = 1024 kbps = 1024 * 1024 bps => byte/s => 1024 килобайт в секунду</listitem>
-					<listitem>mbit = 1024 kbit => kilo bit/s => 1024 килобит в секунду</listitem>
-				</itemizedlist>
 			</para>
+			<itemizedlist>
+				<listitem>
+					<para>
+					    mbps = 1024 kbps = 1024 * 1024 bps => byte/s => 1024 килобайт в секунду.
+					</para>
+				</listitem>
+				<listitem>
+				    <para>
+                        mbit = 1024 kbit => kilo bit/s => 1024 килобит в секунду.				    
+				    </para>
+				</listitem>
+			</itemizedlist>
 			<para>
 				Теперь нам необходимо классифицировать трафик, идущий к хосту PC2. Для этого нам необходимо создать фильтр:
 			</para>
-			<figure id="qos_filter_add">
+			<figure id="htb_filter_add">
 				<title>Добавление фильтра</title>
 				<graphic fileref="img/qos-filter-add.png" width="6in"/>
 			</figure>
 			<itemizedlist>
-				<listitem><para>Short name - имя фильтра</para></listitem>
-				<listitem><para>Enable - активен ли фильтр</para></listitem>
-				<listitem><para>Prio - приоритет фильтра. Чем меньше значение приоритета - тем он выше</para></listitem>
-				<listitem><para>Protocol - классификация трафика по используемому протоколу</para></listitem>
-				<listitem><para>Src - классификация трафика по адресу отправителя пакета</para></listitem>
-				<listitem><para>Dst - классификация трафика по адресу получателя пакета</para></listitem>
-				<listitem><para>Src port - классификация трафика по номеру порта отправителя пакета</para></listitem>
-				<listitem><para>Dst port - классификация трафика по номеру порта получателя пакета</para></listitem>
-				<listitem><para>Class - в какой класс направить пакет</para></listitem>
+				<listitem>
+				    <para>
+				        <emphasis>Short name</emphasis> - имя фильтра.
+				    </para>
+				</listitem>
+				<listitem>
+				    <para>
+				        <emphasis>Enable</emphasis> - активен ли фильтр.
+				    </para>
+				</listitem>
+				<listitem>
+				    <para>
+				        <emphasis>Prio</emphasis> - приоритет фильтра. Чем меньше значение приоритета - тем он выше.
+				    </para>
+				</listitem>
+				<listitem>
+				    <para>
+				        <emphasis>Protocol</emphasis> - классификация трафика по используемому протоколу.
+				    </para>
+				</listitem>
+				<listitem>
+				    <para>
+				        <emphasis>Src</emphasis> - классификация трафика по адресу отправителя пакета.
+				    </para>
+				</listitem>
+				<listitem>
+				    <para>
+				        <emphasis>Dst</emphasis> - классификация трафика по адресу получателя пакета.
+				    </para>
+				</listitem>
+				<listitem>
+				    <para>
+				        <emphasis>Src port</emphasis> - классификация трафика по номеру порта отправителя пакета.
+			        </para>
+		        </listitem>
+				<listitem>
+				    <para>
+				        <emphasis>Dst port</emphasis> - классификация трафика по номеру порта получателя пакета.
+			        </para>
+		        </listitem>
+				<listitem>
+				    <para>
+				        <emphasis>Class</emphasis> - в какой класс направить пакет.
+			        </para>
+		        </listitem>
 			</itemizedlist>
 			<para>
-				В приведенным ваше примере мы ограничили входящую скорость для хоста PC2. Но исходящая осталась неограниченной. Чтобы исправить положение, необходимо определить, какой интерфейс является исходящем для трафика с PC2. Это зависит от того, кто запрашивает трафик с PC2, в нашем случае это может быть только PC1, следовательно интерфейс, через который пойдет трафик к PC1, будет eth0. Поэтому для ограничения исходящего трафика необходимо создать класс с требуемой скоростью и добавить фильтр, который будет отправлять трафик, идущий от хоста PC2 (src 192.168.90.2) направлять в нужный класс.
+				В приведённом выше примере мы ограничили входящую скорость для хоста PC2. Но исходящая осталась неограниченной. Чтобы исправить положение, необходимо определить, какой интерфейс является исходящем для трафика с PC2. Это зависит от того, кто запрашивает трафик с PC2, в нашем случае это может быть только PC1, следовательно интерфейс, через который пойдет трафик к PC1, будет eth0. Поэтому для ограничения исходящего трафика необходимо создать класс с требуемой скоростью и добавить фильтр, который будет отправлять трафик, идущий от хоста PC2 (src 192.168.90.2) направлять в нужный класс.
 			</para>
 		</section>
 	</section>
