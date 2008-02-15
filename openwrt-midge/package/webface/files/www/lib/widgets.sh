@@ -230,7 +230,7 @@ render_input_field(){
 		;;
 	hidden)
 		value="$1"
-		echo "<input type='hidden' name='$inputname' value='$value'>"
+		echo "<input type='hidden' name='$inputname' value='$value' $idcode >"
 		;;
 	password)
 		echo "	<input $disabled type='password' class='edit' $idcode $tipcode $onchangecode name='$inputname' size='$inputsize' maxlength='$maxlenght' $validator tmt:errorclass='invalid' value='$value'> "

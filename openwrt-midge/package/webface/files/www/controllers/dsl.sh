@@ -169,11 +169,11 @@ _sg17_status(){
 		# SNR
 		tip=""
 		desc="Signal/Noise ratio margin"
-		render_input_field static "SNR margin" status "$1, dB"
+		render_input_field static "SNR margin" status "$1 dB"
 		# Loop Attenuation
 		tip=""
 		desc="Loop attenuation"
-		render_input_field static "Loop attenuation" status "$2, dB"
+		render_input_field static "Loop attenuation" status "$2 dB"
 
 	fi
 	unset conf_path link link_state pwrovl pwrunb actrate actcpam actclkmode
@@ -237,12 +237,17 @@ _sg17_settings(){
 	
 	#-------------- SETTINGS table ---------------
 	render_table_title "$iface (module $MR17H_MODNAME) settings" 2
-
+	
+	# get device type
+	tmp=`cat /sys/class/net/$iface/sg17_private/chipver`
+	
 	# sys_dsl_${iface}_name
 	render_input_field "hidden" "hidden" iface $iface
 	render_input_field "hidden" "hidden" pcislot "$slot"
 	render_input_field "hidden" "hidden" pcidev "$dev"
 	render_input_field "hidden" "hidden" page settings
+	id='chipver'
+	render_input_field "hidden" "hidden" chipver "$tmp"
 
 	# Control from eocd
 	tip=""
@@ -281,11 +286,12 @@ _sg17_settings(){
 	
 
 	# sys_pcicfg_s${slot}_${dev}_code
+	eval "ctcpam=\$sys_pcicfg_s${slot}_${dev}_code"
 	tip=""
 	desc="Select DSL line coding"
 	id='code'
 	onchange="OnChangeSG17Code();"
-	render_input_field select "Coding" sys_pcicfg_s${slot}_${dev}_code tcpam32 TCPAM32 tcpam16 TCPAM16 tcpam8 TCPAM8 tcpam4 TCPAM4
+	render_input_field select "Coding" sys_pcicfg_s${slot}_${dev}_code "$ctcpam" "$ctcpam"
 
 	# sys_pcicfg_s${slot}_${dev}_annex
 	tip=""

@@ -15,7 +15,7 @@ _dsl_mr17ifdefcfg(){
 	kdb set sys_pcicfg_s${slot}_${dev}_mode="slave"
 	kdb set sys_pcicfg_s${slot}_${dev}_clkmode="plesio"
 	kdb set sys_pcicfg_s${slot}_${dev}_rate="768"
-	kdb set sys_pcicfg_s${slot}_${dev}_coding="tcpam32"
+	kdb set sys_pcicfg_s${slot}_${dev}_code="tcpam32"
 	kdb set sys_pcicfg_s${slot}_${dev}_annex="A"
 	kdb set sys_pcicfg_s${slot}_${dev}_fill="fill_ff"	
 	kdb set sys_pcicfg_s${slot}_${dev}_inv="normal"
@@ -106,7 +106,7 @@ _dsl_mr16ifdefcfg(){
 	kdb rm sls sys_pcicfg_s${slot}_${dev}*
 	kdb set sys_pcicfg_s${slot}_${dev}_mode="slave"
 	kdb set sys_pcicfg_s${slot}_${dev}_rate="192"
-	kdb set sys_pcicfg_s${slot}_${dev}_coding="tcpam8"
+	kdb set sys_pcicfg_s${slot}_${dev}_code="tcpam8"
 	kdb set sys_pcicfg_s${slot}_${dev}_cfg="preact"
 	kdb set sys_pcicfg_s${slot}_${dev}_annex="A"
 	kdb set sys_pcicfg_s${slot}_${dev}_fill="fill_ff"	

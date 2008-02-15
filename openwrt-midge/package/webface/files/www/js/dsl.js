@@ -1,3 +1,10 @@
+rate_list8 = new Array(192,256,320,384,512,640,768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840);
+rate_list16 = new Array(192,256,320,384,512,640,768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840);
+rate_list32_v1 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696);
+rate_list32_v2 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10176);
+rate_list64 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10240,11520,12736);
+rate_list128 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10240,11520,12800,14080);
+
 
 function freeList(l){
     
@@ -18,7 +25,7 @@ function rate_list(l,st,end,step,cur){
     freeList(l);
 	ind=0;
 	ind_res=0;
-
+	
     for(i=st;i<=end;i+=step){
     	el = new Option;
     	el.value = i;
@@ -35,7 +42,30 @@ function rate_list(l,st,end,step,cur){
 		};
 		ind++;
     };
+	l.selectedIndex = ind_res;
+};
+
+function fixed_rate_list(l,cur,rates){
+    freeList(l);
+	ind=0;
+	ind_res=0;
 	
+    for(i=0;i<rates.length;i++){
+    	el = new Option;
+    	el.value = rates[i];
+    	el.text = rates[i];
+		el.selected = 0;
+		if( rates[i] == cur ){
+    	    el.selected = 1;
+			ind_res = ind;
+		};
+		try{
+			l.options.add(el);
+		} catch(ex){
+			l.options.add(el,null);
+		};
+		ind++;
+    };
 	l.selectedIndex = ind_res;
 };
 
@@ -126,7 +156,6 @@ function OnChangeSG16Code(){
 			el.value = TCPAM[i][0];
 			el.text = TCPAM[i][1];
 			if( TCPAM[i][0] == tcpam ){
-				//			alert("select " + tcpam);
 				el.selected = 1;
 			};
 			$('code').options.add(el);
@@ -155,24 +184,31 @@ function OnChangeSG17Code()
 {
     TCPAM = new Array();
 	TCPAM[0] = new Array();
-	TCPAM[0][0] = "tcpam16";
-	TCPAM[0][1] = "TCPAM16";		
-	TCPAM[1] = new Array();	
-	TCPAM[1][0] = "tcpam32";
-	TCPAM[1][1] = "TCPAM32";		
+	TCPAM[0][0] = "tcpam8";
+	TCPAM[0][1] = "TCPAM8";		
+	TCPAM[1] = new Array();
+	TCPAM[1][0] = "tcpam16";
+	TCPAM[1][1] = "TCPAM16";		
+	TCPAM[2] = new Array();	
+	TCPAM[2][0] = "tcpam32";
+	TCPAM[2][1] = "TCPAM32";		
+	TCPAM[3] = new Array();	
+	TCPAM[3][0] = "tcpam64";
+	TCPAM[3][1] = "TCPAM64";		
+	TCPAM[4] = new Array();	
+	TCPAM[4][0] = "tcpam128";
+	TCPAM[4][1] = "TCPAM128";		
 
     mode = $('mode').options[$('mode').selectedIndex].value;
     tcpam = $('code').options[$('code').selectedIndex].value;
 	clkmode_ind = $('clkmode').selectedIndex;
 	ind = $('rate').selectedIndex;
-//	alert('ind=' + ind);
 	if( ind < 0 ){
 		ind = 0;
 		rate = 192;
 	}else{
 		rate = $('rate').options[ind].value;
 	}
-//	alert('get rate = ' + rate + ' ind= ' + ind);
 
     if( mode == "slave" ){
 		freeList($('rate'));
@@ -187,7 +223,17 @@ function OnChangeSG17Code()
     } else {
 		freeList($('code'));
 		$('code').disabled = 0;
-		for(i=1;i>=0;i--){
+		
+		if( $('chipver').value == 'v1' ){
+			start=0;
+			end=2;
+		}else{
+			start=0;
+			end=4;
+		}
+		
+		flag = 0;
+		for(i=end;i>=start;i--){
 			var el = new Option;
 			el.value = TCPAM[i][0];
 			el.text = TCPAM[i][1];
@@ -196,17 +242,37 @@ function OnChangeSG17Code()
 			};
 			$('code').options.add(el);
 			if( TCPAM[i][0] == tcpam ){
-				$('code').selectedIndex = 1-i;
-			};
+				$('code').selectedIndex = end-i;
+				flag = 1;
+			}
 		};
+		if( !flag ){
+			$('code').selectedIndex = 0;
+		}			
 
 		$('rate').disabled = 0;
 		tcpam = $('code').options[$('code').selectedIndex].value;
-		if( tcpam == "tcpam16" ) {
-			rate_list($('rate'),192,3840,64,rate);
-		} else if( tcpam == "tcpam32" ){
-			rate_list($('rate'),768,5696,64,rate);
-		};
+		if( $('chipver').value == 'v1' ){
+			if( tcpam == "tcpam16" ) {
+				fixed_rate_list($('rate'),rate,rate_list16);
+			} else if( tcpam == "tcpam32" ){
+				fixed_rate_list($('rate'),rate,rate_list32_v1);
+			} else if( tcpam == "tcpam8" ){
+				fixed_rate_list($('rate'),rate,rate_list8);
+			};
+		}else{
+			if( tcpam == "tcpam128" ) {
+				fixed_rate_list($('rate'),rate,rate_list128);
+			} else if( tcpam == "tcpam64" ){
+				fixed_rate_list($('rate'),rate,rate_list64);
+			} else if( tcpam == "tcpam32" ){
+				fixed_rate_list($('rate'),rate,rate_list32_v2);
+			} else if( tcpam == "tcpam16" ){
+				fixed_rate_list($('rate'),rate,rate_list16);
+			} else if( tcpam == "tcpam8" ){
+				fixed_rate_list($('rate'),rate,rate_list8);
+			};
+		}
 		
 		freeList($('clkmode'));
 		$('clkmode').disabled = 0;
