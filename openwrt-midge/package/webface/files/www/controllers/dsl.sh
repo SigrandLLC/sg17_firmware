@@ -287,6 +287,7 @@ _sg17_settings(){
 
 	# sys_pcicfg_s${slot}_${dev}_code
 	eval "ctcpam=\$sys_pcicfg_s${slot}_${dev}_code"
+	[ -z "$ctcpam" ] && ctcpam=tcpam32
 	tip=""
 	desc="Select DSL line coding"
 	id='code'
@@ -296,6 +297,7 @@ _sg17_settings(){
 	# sys_pcicfg_s${slot}_${dev}_annex
 	tip=""
 	desc="Select DSL Annex"
+	id='annex'
 	render_input_field select "Annex" sys_pcicfg_s${slot}_${dev}_annex A "Annex A" B "Annex B"
 
 	# sys_pcicfg_s${slot}_${dev}_crc32
@@ -307,11 +309,6 @@ _sg17_settings(){
 	tip=""
 	desc="Select DSL fill byte value"
 	render_input_field select "Fill" sys_pcicfg_s${slot}_${dev}_fill  fill_ff FF fill_7e 7E
-
-	# sys_pcicfg_s${slot}_${dev}_inv
-	tip=""
-	desc="Select DSL inversion mode"
-	render_input_field select "Inversion" sys_pcicfg_s${slot}_${dev}_inv  normal off invert on
 
 	# sys_pcicfg_s${slot}_${dev}_pwron
 	tip=""

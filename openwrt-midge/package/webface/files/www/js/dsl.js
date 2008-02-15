@@ -202,6 +202,7 @@ function OnChangeSG17Code()
     mode = $('mode').options[$('mode').selectedIndex].value;
     tcpam = $('code').options[$('code').selectedIndex].value;
 	clkmode_ind = $('clkmode').selectedIndex;
+	annex_ind = $('annex').selectedIndex;
 	ind = $('rate').selectedIndex;
 	if( ind < 0 ){
 		ind = 0;
@@ -220,6 +221,10 @@ function OnChangeSG17Code()
 		freeList($('clkmode'));
 		$('clkmode').options[0] = new Option("automatic");
 		$('clkmode').disabled = 1;
+		freeList($('annex'));
+		$('annex').options[0] = new Option("automatic");
+		$('annex').disabled = 1;
+		
     } else {
 		freeList($('code'));
 		$('code').disabled = 0;
@@ -274,11 +279,20 @@ function OnChangeSG17Code()
 			};
 		}
 		
+		// Clock mode		
 		freeList($('clkmode'));
 		$('clkmode').disabled = 0;
 		$('clkmode').options[0] = new Option("plesio");
 		$('clkmode').options[1] = new Option("sync");
 		$('clkmode').selectedIndex=clkmode_ind;
+
+		// Annex
+		freeList($('annex'));
+		$('annex').disabled = 0;
+		$('annex').options[0] = new Option("Annex A");
+		$('annex').options[1] = new Option("Annex B");
+		$('annex').selectedIndex=clkmode_ind;
+
     }
 };
 
