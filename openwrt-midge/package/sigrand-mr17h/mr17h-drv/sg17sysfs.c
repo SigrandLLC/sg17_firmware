@@ -582,7 +582,7 @@ show_statistics(struct class_device *cdev, char *buf)
 	return snprintf(buf,PAGE_SIZE,
 			"\tSNR Margin=%d\n\tLoop Attenuation=%d\n"
 			"\tCounters: ES=%u SES=%u CRC_Anom=%u LOSWS=%u UAS=%u\n",
-			stat->SNR_Margin_dB,stat->LoopAttenuation_dB,
+			(s8)stat->SNR_Margin_dB,(s8)stat->LoopAttenuation_dB,
 			stat->ES_count,stat->SES_count,stat->CRC_Anomaly_count,stat->LOSWS_count,stat->UAS_Count);
 }
 
