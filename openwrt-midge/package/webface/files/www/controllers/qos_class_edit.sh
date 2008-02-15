@@ -33,7 +33,8 @@
 	render_popup_save_stuff
 
 	render_form_header qos_class_edit
-	help_1="qos"
+	help_1="htb"
+	help_2="htb_class_add"
 	render_table_title "QoS class edit" 2
 	render_popup_form_stuff
 	

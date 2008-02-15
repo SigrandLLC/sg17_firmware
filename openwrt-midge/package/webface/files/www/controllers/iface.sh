@@ -394,6 +394,8 @@
 		render_submit_field
 		;;
 	'qos')
+	    help_1="qos"
+	    help_2=""
 		render_table_title "QoS Scheduler" 2 
 		# sys_iface_${iface}_qos_sch
 		desc="Please select scheduler for the interface"
@@ -403,6 +405,8 @@
 		;;
 		
 	'routes')
+	    help_1="traffic"
+	    help_2="routes"
 		render_table_title "Routes" 2 
 		;;
 	esac
@@ -423,6 +427,8 @@
 			render_input_field hidden iface iface "$iface"
 			render_input_field hidden page page "$page"
 			render_input_field hidden form form "form2"
+			help_1="qos"
+			help_2=""
 			render_table_title "QoS Scheduler settings" 2 
 		fi
 		case $qos_sch in
@@ -474,14 +480,16 @@
 	
 				# qos class list
 				render_form_header qos_class
-				help_1="qos"
+				help_1="htb"
+				help_2="htb"
 				render_table_title "Classes on $iface" 2 
 				render_iframe_list "qos_class" "iface=$iface" "100%"
 				render_form_tail
 				
 				# qos filter list
 				render_form_header qos_filter
-				help_1="qos"
+				help_1="htb"
+				help_2="htb"
 				render_table_title "Filters on $iface" 2 
 				render_iframe_list "qos_filter" "iface=$iface" "100%"
 				render_form_tail
@@ -495,8 +503,6 @@
 
 	'routes')
 		if [ "$method" != dynamic ]; then
-
-
 			render_form_header routes
 			render_list_line(){
 				local lineno=$1
