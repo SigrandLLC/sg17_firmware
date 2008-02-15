@@ -863,7 +863,7 @@ sg17_def_config(struct sg17_card *card)
 		
 	//---- config SDFE chenal 0 ------------------
 	// ( STU_C | STU_R )
-	cfg_ch0->mode = STU_C;
+	cfg_ch0->mode = STU_R;
 	// ( REPEATER | TERMINATOR )
 	cfg_ch0->repeater = TERMINATOR;
 	// ( STARTUP_FAREND | STARTUP_LOCAL )
