@@ -340,6 +340,7 @@ _ifdown(){
 	info 1 "  Interface deconfiguration"
 
 	cmd $ifconfig $realiface down 2>/dev/null
+	cmd $ip addr flush dev $realiface 2>/dev/null
 	case $proto in
 		pppoe|pptp)
 			kill_ppp
