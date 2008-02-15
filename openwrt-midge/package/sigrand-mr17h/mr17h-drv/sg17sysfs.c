@@ -111,8 +111,6 @@ store_annex( struct class_device *cdev,const char *buf, size_t size )
 
 	if( !size )	return size;
 	
-	PDEBUG(0,"tmp=%c",buf[0]);
-	
 	switch( buf[0] ){
 	case '0':
 		cfg->annex=ANNEX_A;
@@ -225,18 +223,15 @@ store_tcpam( struct class_device *cdev,const char *buf, size_t size )
 	// if interface is up 
 	if( !size )	return size;
 	tmp=buf[0]-'0';
-	PDEBUG(0,"tmp=%d",tmp);
 
 	switch( hwdev->type ){
 	case SDFE4v1:
 		if( (tmp > 4) || (tmp <= 0) ){
-			PDEBUG(0,"SDFE4v1 not support %c",tmp);
 			return size;
 		}
 		break;
 	case SDFE4v2:
 		if( (tmp > 6) || (tmp <=0) ){
-			PDEBUG(0,"SDFE4v2 not support %c",tmp);
 			return size;
 		}
 		break;
