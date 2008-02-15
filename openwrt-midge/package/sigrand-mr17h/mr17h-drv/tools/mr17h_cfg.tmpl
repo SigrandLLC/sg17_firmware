@@ -19,7 +19,8 @@ print_usage()
     echo "  <if> - @MODNAME@ network interface name"
     echo "Possible arguments:"
     echo "  master | slave             - set modem mode: master(STU-C) or slave(STU-R)"
-    echo "  tcpam32 | tcpam16          - line coding"
+    echo "  tcpamXXX                   - line coding, SG17: XXX={4,8,16,32}"
+	echo "                               SG17+ XXX={4,8,16,32,64,128}"
     echo "  annex A|B|AB               - G.SHDSL.bis Annex type"    
     echo "  rate <value>               - line rate"
     echo "  plesio | sync              - Plesiochronous/Synchronous modes"
@@ -158,6 +159,10 @@ while [ ! -z $1 ]; do
 				break
 			fi
 			echo $2 > rate
+			tmp=`cat rate`
+			if [ "$tmp" != "$2" ]; then
+				echo "WARNING: rate value setted to $tmp"
+			fi
 			shdsl_need_reconf=1	
 			shift
 			;;
@@ -179,13 +184,39 @@ while [ ! -z $1 ]; do
 			fi
 			shdsl_need_reconf=1	
 			;;
-		"tcpam32")
+		"tcpam4")
 			echo 1 > tcpam
 			shdsl_need_reconf=1	
 			;;
-		"tcpam16")
-			echo 0 > tcpam
+		"tcpam8")
+			echo 2 > tcpam
 			shdsl_need_reconf=1	
+			;;
+		"tcpam16")
+			echo 3 > tcpam
+			shdsl_need_reconf=1	
+			;;
+		"tcpam32")
+			echo 4 > tcpam
+			shdsl_need_reconf=1	
+			;;
+		"tcpam64")
+			echo 5 > tcpam
+			tmp=`cat tcpam`
+			if [ "$tmp" != "TCPAM64" ]; then
+				echo "TCPAM64 mode not supported"
+			else
+				shdsl_need_reconf=1	
+			fi
+			;;
+		"tcpam128")
+			echo 6 > tcpam
+			tmp=`cat tcpam`
+			if [ "$tmp" != "TCPAM128" ]; then
+				echo "TCPAM128 mode not supported"
+			else
+				shdsl_need_reconf=1
+			fi
 			;;
 		"plesio")
 			echo 0 > clkmode
@@ -195,8 +226,6 @@ while [ ! -z $1 ]; do
 			echo 1 > clkmode
 			shdsl_need_reconf=1	
 			;;
-
-
 
 #------------ if settings --------------------------------------
 

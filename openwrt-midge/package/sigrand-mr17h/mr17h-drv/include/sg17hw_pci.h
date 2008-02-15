@@ -83,10 +83,11 @@
 #define SCI_REGS	SCI_TXBUFF + SCI_BUFF_SIZE
 
 struct sdfe4{
-        u8 msg_cntr;
-        struct sdfe4_channel ch[SG17_IF_MAX];
-        struct sdfe4_if_cfg cfg[SG17_IF_MAX];
-        void *data;
+	u8 msg_cntr;
+	sdfe4_chipset_type type;
+    struct sdfe4_channel ch[SG17_IF_MAX];
+    struct sdfe4_if_cfg cfg[SG17_IF_MAX];
+    void *data;
 };
 				
 

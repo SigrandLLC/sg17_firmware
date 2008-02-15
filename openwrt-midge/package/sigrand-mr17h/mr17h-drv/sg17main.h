@@ -21,9 +21,12 @@ static int sg17_init_card( struct sg17_card *card );
 static void sg17_remove_card( struct sg17_card *card );
 
 //---- PCI adapter related ----//
-// We don't have official vendor id yet... 
+// First version of module
 #define SG17_PCI_VENDOR 	0x55 
 #define SG17_PCI_DEVICE 	0x9a
+// Second version of module
+#define SG17v2_PCI_VENDOR 	0x55 
+#define SG17v2_PCI_DEVICE 	0x99
 
 static int __devinit sg17_probe_one(struct pci_dev *,
 									const struct pci_device_id *);

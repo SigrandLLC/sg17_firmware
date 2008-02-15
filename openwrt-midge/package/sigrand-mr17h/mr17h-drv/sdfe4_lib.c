@@ -14,6 +14,7 @@
 
 #include "include/sg17device.h"
 #include "include/sdfe4_lib.h"
+
 //#define DEBUG_ON
 #define DEFAULT_LEV 20
 #include "sg17debug.h"
@@ -363,7 +364,7 @@ sdfe4_pamdsl_nfc(struct sdfe4_msg *msg,struct sdfe4 *hwdev)
 		return 0;
 	case NFC_SDI_DPLL_SYNC:
 		hwdev->ch[ch].sdi_dpll_sync=1;
-		PDEBUG(0,"sdi_dpll_sync=1");
+		PDEBUG(debug_sdfe4,"sdi_dpll_sync=1");
 		return 0;
 	case NFC_PERF_PRIM:
 		hwdev->ch[ch].perf_prims=msg->buf[EMB_NFCHDR_SZ];
@@ -403,7 +404,7 @@ sdfe4_pamdsl_parse(struct sdfe4_msg *rmsg,struct sdfe4 *hwdev)
 	chan=rmsg->buf[0];
 	
 	if( (chan & 0x1) ){
-		PDEBUG(debug_sdfe4,"Error channel - %02x",chan);
+		// PDEBUG(debug_sdfe4,"Error channel - %02x",chan);
 		return  SDFE4_NOT_PAMDSL;
 	}
 
@@ -484,13 +485,46 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 #ifdef SG17_REPEATER	
 	struct sdfe4_msg rmsg;
 #endif	
-	u8 CODE_CRC[4]={0xE0,0xF3,0x4E,0x7D};	
-	u8 DATA_CRC[4]={0x8F,0xED,0xEF,0xFC};
 	u8 *ret8;
+	// v1 chipset firmware CRC-s
+	u8 CODE_CRCv1[4]={0xE0,0xF3,0x4E,0x7D};	
+	u8 DATA_CRCv1[4]={0x8F,0xED,0xEF,0xFC};
+	// v2 chipset firmware CRC-s
+	u8 CODE_CRCv2[4]={0x0B,0xBF,0x5A,0xBC};	
+	u8 DATA_CRCv2[4]={0x54,0xA2,0xFF,0x42};
+	// General CRC-s
+	u8 *CODE_CRC,*DATA_CRC;
+	u32 code_size, data_size, data_offs, code_offs;
+	u32 fw_dtpnt;
 
+	switch(hwdev->type){
+	case SDFE4v1:
+		CODE_CRC = CODE_CRCv1;
+		DATA_CRC = DATA_CRCv1;
+		code_size = FW_CODE_SIZE;
+		data_size = FW_DATA_SIZE;
+		code_offs = FW_CODE_OFFS;
+		data_offs = FW_DATA_OFFS;
+		fw_dtpnt = FWdtpnt;		
+		PDEBUG(debug_sdfe4,"use CRC for v1");
+		break;
+	case SDFE4v2:
+		CODE_CRC = CODE_CRCv2;
+		DATA_CRC = DATA_CRCv2;
+		code_size = FW_CODE_SIZEv2;
+		data_size = FW_DATA_SIZEv2;
+		code_offs = FW_CODE_OFFSv2;
+		data_offs = FW_DATA_OFFSv2;
+		fw_dtpnt = FWdtpnt_v2;		
+		PDEBUG(debug_sdfe4,"use CRC for v2");
+		break;
+	default:
+		PDEBUG(debug_error,"Unknown device type: %d",hwdev->type);
+		return -1;
+	}
 	wait_ms(2);
 
-	PDEBUG(debug_sdfe4,"hwdev = %08x",(u32)hwdev);
+	PDEBUG(debug_sdfe4,"hwdev = %08x,type=%d",(u32)hwdev,hwdev->type);
 	PDEBUG(debug_sdfe4,"hwdev->data = %08x",(u32)hwdev->data);	
 	Data_U32[0]=0;
 	ret.stamp=0;
@@ -511,14 +545,14 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 		return -1;
 	}
 
- 	iter=FW_CODE_SIZE/FW_PKT_SIZE;
+ 	iter = code_size/FW_PKT_SIZE;
 	for(k=0;k<iter;k++){
 		Data_U32[0]=(k*FW_PKT_SIZE)/4;
 		for(i=0;i<FW_PKT_SIZE/4;i++){
 #ifdef SG17_PCI_MODULE
 			Data_U32[i+1] = cpu_to_be32(*((u32*)&fw[k*FW_PKT_SIZE + i*4]));
 #else
-			Data_U32[i+1]=cpu_to_be(FLASH_WordRead (FLASH_FW_STRTADDR +FW_CODE_OFFS +
+			Data_U32[i+1]=cpu_to_be(FLASH_WordRead (FLASH_FW_STRTADDR + code_offs +
 													FW_PKT_SIZE*k + i*0x4));
 #endif								
 		}
@@ -554,10 +588,16 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 	PDEBUGL(debug_sdfe4,"\n");
 	
 	for(i=0;i<4;i++){
+		PDEBUG(debug_sdfe4,"CODE CRC, check %d byte: USE=%02x, IS=%02x",i,CODE_CRC[i],ret8[i]);
 		if(CODE_CRC[i]!=ret8[i]){
+			PDEBUG(debug_sdfe4,"CODE CRC mismatch");
 			return -1;
 		}
 	}
+
+
+PDEBUG(debug_sdfe4,"Load firmware");
+
 
 	// Load firmware data 
 	wait_ms(100);
@@ -569,14 +609,14 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 	}
 
 	wait_ms(100);
-	iter=FW_DATA_SIZE/FW_PKT_SIZE;
+	iter = data_size/FW_PKT_SIZE;
   	for(k=0;k<iter;k++){
 		Data_U32[0]=(k*FW_PKT_SIZE)/4;
 		for(i=0;i<FW_PKT_SIZE/4;i++){
 #ifdef SG17_PCI_MODULE
-			Data_U32[i+1] = cpu_to_be32(*((u32*)&fw[FW_DATA_OFFS+k*FW_PKT_SIZE + i*4]));
+			Data_U32[i+1] = cpu_to_be32(*((u32*)&fw[data_offs + k*FW_PKT_SIZE + i*4]));
 #else
-			Data_U32[i+1] = cpu_to_be(FLASH_WordRead (FLASH_FW_STRTADDR + FW_DATA_OFFS +
+			Data_U32[i+1] = cpu_to_be(FLASH_WordRead (FLASH_FW_STRTADDR + data_offs +
                                 			          FW_PKT_SIZE*k + i*0x4));
 #endif								  
 		}
@@ -611,13 +651,14 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 
 	for(i=0;i<4;i++){
 		if(DATA_CRC[i]!=ret8[i]){
+			PDEBUG(debug_error,"DATA CRC mismatch");
 			return -1;
 		}
 	}
 
 	wait_ms(100);
 	ret.stamp=0;
-	Data_U32[0]=FWdtpnt;
+	Data_U32[0]=fw_dtpnt;
   	if( sdfe4_rs_cmd(CMD_WR_REG_RS_FWDTPNT,Data_U32,1,&ret,hwdev)){
 		PDEBUG(debug_error,": error in CMD_WR_REG_RS_FWDTPNT");	
 		return -1;
@@ -684,6 +725,7 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	struct cmd_cfg_sdi_tx *sdi_tx;
 	struct cmd_cfg_sdi_rx *sdi_rx;
 	struct cmd_cfg_eoc_rx *eoc_rx;
+	struct cmd_cfg_ghs_extended_pam_mode *extended_pam_mode;
 	struct sdfe4_msg rmsg;
 	struct sdfe4_ret ret;
 	// 1. Setup if role
@@ -735,38 +777,50 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	caplist->annex = cfg->annex;
 	caplist->psd_mask=0x00;
 	caplist->pow_backoff=0x00;
-	if(cfg->mode==STU_R){
+
+	switch( hwdev->type ){
+	case SDFE4v1:
+		if(cfg->mode==STU_R){
+			caplist->base_rate_min=192;
+			caplist->base_rate_max=2304;
+			caplist->base_rate_min16=2368;
+			caplist->base_rate_max16=3840;
+			caplist->base_rate_min32=768;
+			caplist->base_rate_max32=5696;
+		}else {
+			if( cfg->tc_pam == TCPAM32 ){
+				caplist->base_rate_min=0;
+				caplist->base_rate_max=0;
+				caplist->base_rate_min16=0;
+				caplist->base_rate_max16=0;
+				caplist->base_rate_min32=TCPAM32_INT1_MIN;
+				caplist->base_rate_max32=cfg->rate;
+			}else if( cfg->tc_pam == TCPAM16 ){
+				caplist->base_rate_min32=0;
+				caplist->base_rate_max32=0;
+				if( cfg->rate > TCPAM16_INT1_MAX ){
+					caplist->base_rate_min=TCPAM16_INT1_MIN;
+					caplist->base_rate_max=TCPAM16_INT1_MAX;
+					caplist->base_rate_min16=TCPAM16_INT2_MIN;
+					caplist->base_rate_max16=cfg->rate;
+				}else{
+					caplist->base_rate_min16=0;
+					caplist->base_rate_max16=0;
+					caplist->base_rate_min=TCPAM16_INT1_MIN;
+					caplist->base_rate_max=cfg->rate;
+				}			
+			}	
+		}
+		break;
+	case SDFE4v2:
 		caplist->base_rate_min=192;
 		caplist->base_rate_max=2304;
 		caplist->base_rate_min16=2368;
 		caplist->base_rate_max16=3840;
-		caplist->base_rate_min32=768;
+	 	caplist->base_rate_min32=768;
 		caplist->base_rate_max32=5696;
-	}
-	else {
-	
-		if( cfg->tc_pam == TCPAM32 ){
-			caplist->base_rate_min=0;
-			caplist->base_rate_max=0;
-			caplist->base_rate_min16=0;
-			caplist->base_rate_max16=0;
-			caplist->base_rate_min32=TCPAM32_INT1_MIN;
-			caplist->base_rate_max32=cfg->rate;
-		}else if( cfg->tc_pam == TCPAM16 ){
-			caplist->base_rate_min32=0;
-			caplist->base_rate_max32=0;
-			if( cfg->rate > TCPAM16_INT1_MAX ){
-				caplist->base_rate_min=TCPAM16_INT1_MIN;
-				caplist->base_rate_max=TCPAM16_INT1_MAX;
-				caplist->base_rate_min16=TCPAM16_INT2_MIN;
-				caplist->base_rate_max16=cfg->rate;
-			}else{
-				caplist->base_rate_min16=0;
-				caplist->base_rate_max16=0;
-				caplist->base_rate_min=TCPAM16_INT1_MIN;
-				caplist->base_rate_max=cfg->rate;
-			}			
-		}	
+	default:
+		PDEBUG(debug_error,"Unknown device type");
 	}
 	
 	caplist->sub_rate_min=0x00;
@@ -866,7 +920,29 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 		PDEBUG(debug_error,": error in CMD_CFG_EOC_RX");	
 		return -1;
 	}
-		
+	
+    //10. Extended pam mode (only for v2 chipsets)
+	if( hwdev->type == SDFE4v2 ){
+		extended_pam_mode=(struct cmd_cfg_ghs_extended_pam_mode*)buf;
+   		memset(extended_pam_mode,0,sizeof(*extended_pam_mode));
+		extended_pam_mode->ext_pam_mode=0x1; 
+		if(cfg->mode==STU_R){
+			extended_pam_mode->bits_per_symbol=TCPAM128;
+			extended_pam_mode->speed_rate=12680;	
+		}else {
+			extended_pam_mode->bits_per_symbol=cfg->tc_pam;
+			if(cfg->tc_pam==TCPAM128){
+				extended_pam_mode->speed_rate=cfg->rate + 8;
+			}else {
+				extended_pam_mode->speed_rate=cfg->rate;
+			}
+		}
+	   	rmsg.ack_id=ACK_CFG_GHS_EXTENDED_PAM_MODE;
+		if(sdfe4_pamdsl_cmd(ch,CMD_CFG_GHS_EXTENDED_PAM_MODE,(u8*)buf,sizeof(*extended_pam_mode),&rmsg,hwdev)){
+			//PDEBUG(debug_error,": error in CMD_CFG_EOC_RX");	
+			return -1;
+		}
+	}
 	return 0;
 }
 
@@ -973,11 +1049,23 @@ sdfe4_load_config(u8 ch, struct sdfe4 *hwdev)
 	}
 	dsl_par=(struct ack_dsl_param_get *)&(rmsg.buf[8]);
 	PDEBUG(debug_sdfe4,"Get return");	
-	if(dsl_par->bits_p_symbol >= 0x04){
-		TC_PAM =TCPAM32;
-	}else{
-		TC_PAM =TCPAM16;
+	
+	// Chipset version differentiation
+	switch( hwdev->type ){
+	case SDFE4v1:
+		if(dsl_par->bits_p_symbol >= 0x04){
+			TC_PAM =TCPAM32;
+		}else{
+			TC_PAM =TCPAM16;
+		}
+		break;
+	case SDFE4v2:
+		TC_PAM = dsl_par->bits_p_symbol;
+		break;
+	default:
+		PDEBUG(debug_error,"Unknown device type");
 	}
+	
 	ch_cfg->annex = dsl_par->annex;
 	ch_cfg->tc_pam = TC_PAM;
 	ch_cfg->rate = dsl_par->base_rate;

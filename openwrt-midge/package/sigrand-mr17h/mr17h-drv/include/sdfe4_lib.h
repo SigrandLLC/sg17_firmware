@@ -55,6 +55,7 @@
 #endif
 #define FW_PKT_SIZE32           FW_PKT_SIZE/4
 #define FW_PKT_HDR_SIZE         0x08
+// v1(5.6Mbit) chipset constants
 #define FW_CODE_SIZE		0x1C000
 #define FW_DATA_SIZE		0x8000
 #define FW_CODE_OFFS		0x0
@@ -63,8 +64,20 @@
 #define FW_DATA_CRC_OFFS	(FW_CODE_CRC_OFFS+4)
 #define FW_DTPNT_OFFS		(FW_DATA_CRC_OFFS+4)
 #define FWdtpnt			0x120C0608 // 0x120C0608 ///0x08060C12;
+// v2(14Mbit) chipset constants
+#define FW_CODE_SIZEv2		0x24000
+#define FW_DATA_SIZEv2		0xC000
+#define FW_CODE_OFFSv2		0x0
+#define FW_DATA_OFFSv2		(FW_CODE_OFFSv2+FW_CODE_SIZEv2)
+#define FW_CODE_CRC_OFFSv2	(FLASH_FW_STRTADDR+FW_DATA_OFFSv2+FW_DATA_SIZEv2)
+#define FW_DATA_CRC_OFFSv2	(FW_CODE_CRC_OFFSv2+4)
+#define FW_DTPNT_OFFSv2		(FW_DATA_CRC_OFFSv2+4)
+#define FWdtpnt_v2			0x6C482430
+// General firmware info
 #define FLASH_FW_STRTADDR	0x00010000
 #define FLASH_FW_ENDADDR	0x0003400C
+
+
 //*****************************************************************************
 
 #define PEF24624_ADR_HOST	0xF1
@@ -141,13 +154,18 @@
 #define  CMD_PERF_STATUS_GET         0x9432
 #define  ACK_PERF_STATUS_GET         0x9632
 #define  ACK_CFG_MULTIWIRE_SDATA     0xB63F
-
+// Extended PAM - only for v2 chipsets
+#define  CMD_CFG_GHS_EXTENDED_PAM_MODE	0x2472
+#define  ACK_CFG_GHS_EXTENDED_PAM_MODE  0x2672
+#	define	EXT_PAM_DISABLE	0
+#	define  EXT_PAM_ENABLE	1
+//------------------------------------
 #define  NFC_CONNECT_CTRL		0x0D04
 #	define  MAIN_INIT		0x00
-#	define  MAIN_PRE_ACT		0x01
-#	define  MAIN_CORE_ACT		0x02
-#	define  MAIN_DATA_MODE		0x03
-#	define  MAIN_EXCEPTION		0x05
+#	define  MAIN_PRE_ACT	0x01
+#	define  MAIN_CORE_ACT	0x02
+#	define  MAIN_DATA_MODE	0x03
+#	define  MAIN_EXCEPTION	0x05
 #	define  MAIN_TEST		0x06
 #define  NFC_CONNECT_CONDITION		0x0D14
 #	define  GHS_STARTUP		0x06
@@ -425,6 +443,11 @@ struct ack_perf_status_get {
 	u8 CounterResetInd;
 };
 
+struct cmd_cfg_ghs_extended_pam_mode {
+	u8  ext_pam_mode;
+	u8  bits_per_symbol;
+	u16 speed_rate;
+};
 
 u32 u8_to_u32(u8 *src);
 int sdfe4_msg_init(struct sdfe4_msg *msg, char *cmsg, int len);

@@ -23,6 +23,26 @@
 
 #define to_net_dev(class) container_of(class, struct net_device, class_dev)
 
+// Chipset type
+static ssize_t show_chipver(struct class_device *cdev, char *buf) 
+{                                                                       
+	struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
+	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
+	struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( nl->dev );
+	struct sg17_sci *s = (struct sg17_sci *)&card->sci;
+	struct sdfe4 *hwdev = &card->hwdev;
+	
+	switch( hwdev->type ){
+	case SDFE4v1:
+		return snprintf(buf,PAGE_SIZE,"v1");
+	case SDFE4v2:
+		return snprintf(buf,PAGE_SIZE,"v2");
+	}		
+	return 0;
+}
+static CLASS_DEVICE_ATTR(chipver,0444,show_chipver,NULL);
+
 // Mode control (master/slave)
 static ssize_t show_mode(struct class_device *cdev, char *buf) 
 {                                                                       
@@ -135,6 +155,9 @@ store_rate( struct class_device *cdev,const char *buf, size_t size )
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
 	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
+	struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( nl->dev );
+	struct sg17_sci *s = (struct sg17_sci *)&card->sci;
+	struct sdfe4 *hwdev = &card->hwdev;
 	char *endp;
 	u16 tmp;
 	
@@ -145,6 +168,16 @@ store_rate( struct class_device *cdev,const char *buf, size_t size )
 	if( !tmp )
 		return size;
 
+	switch( hwdev->type ){
+	case SDFE4v1:
+		if( tmp > SDFE4v1_MAX_RATE )
+			tmp = SDFE4v1_MAX_RATE;
+		break;
+	case SDFE4v2:
+		if( tmp > SDFE4v2_MAX_RATE )
+			tmp = SDFE4v2_MAX_RATE;
+		break;
+	}		 
 	cfg->rate=tmp;
 	return size;
 }
@@ -159,38 +192,56 @@ static ssize_t show_tcpam(struct class_device *cdev, char *buf)
 
 	if( !netif_carrier_ok(ndev) && (cfg->mode == STU_R) )
 		return 0;
-	
+
 	switch( cfg->tc_pam ){
-	case TCPAM16:
-		return snprintf(buf,PAGE_SIZE,"TCPAM16");
-	case TCPAM32:
-		return snprintf(buf,PAGE_SIZE,"TCPAM32");
-	default:
-		return snprintf(buf,PAGE_SIZE,"NOT defined");
-	}	
+	case TCPAM4:
+		return snprintf(buf,PAGE_SIZE,"TCPAM4");
+	case TCPAM8:
+		return snprintf(buf,PAGE_SIZE,"TCPAM8");
+ 	case TCPAM16:
+ 		return snprintf(buf,PAGE_SIZE,"TCPAM16");
+ 	case TCPAM32:
+ 		return snprintf(buf,PAGE_SIZE,"TCPAM32");
+	case TCPAM64:
+		return snprintf(buf,PAGE_SIZE,"TCPAM64");
+	case TCPAM128:
+		return snprintf(buf,PAGE_SIZE,"TCPAM128");
+ 	default:
+ 		return snprintf(buf,PAGE_SIZE,"NOT defined");
+	}
 }
+
 static ssize_t
 store_tcpam( struct class_device *cdev,const char *buf, size_t size ) 
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
 	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
+	struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( nl->dev );
+	struct sg17_sci *s = (struct sg17_sci *)&card->sci;
+	struct sdfe4 *hwdev = &card->hwdev;
 	u8 tmp;
 
 	// if interface is up 
 	if( !size )	return size;
-	tmp=buf[0];
-	PDEBUG(0,"tmp=%c",tmp);
-	switch(tmp){
-	case '0':
-		cfg->tc_pam=TCPAM16;
+	tmp=buf[0]-'0';
+	PDEBUG(0,"tmp=%d",tmp);
+
+	switch( hwdev->type ){
+	case SDFE4v1:
+		if( (tmp > 4) || (tmp <= 0) ){
+			PDEBUG(0,"SDFE4v1 not support %c",tmp);
+			return size;
+		}
 		break;
-	case '1':
-		cfg->tc_pam=TCPAM32;
-		break;
-	default:
+	case SDFE4v2:
+		if( (tmp > 6) || (tmp <=0) ){
+			PDEBUG(0,"SDFE4v2 not support %c",tmp);
+			return size;
+		}
 		break;
 	}
+	cfg->tc_pam=tmp;
 	return size;
 }
 static CLASS_DEVICE_ATTR(tcpam, 0644 ,show_tcpam,store_tcpam);
@@ -1065,6 +1116,7 @@ static CLASS_DEVICE_ATTR(xmit_tst, 0200 ,NULL,store_xmit_tst);
 // ------------------------------------------------------------------------ //
 static struct attribute *sg17_attr[] = {
 // shdsl
+&class_device_attr_chipver.attr,
 &class_device_attr_mode.attr,
 &class_device_attr_annex.attr,
 &class_device_attr_rate.attr,

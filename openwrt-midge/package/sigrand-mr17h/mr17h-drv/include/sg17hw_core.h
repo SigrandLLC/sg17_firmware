@@ -28,8 +28,12 @@ struct sdfe4_channel{
 	u8 eoc_rx_msg[EOC_MSG_MAX_LEN];
 };
 											
-#define TCPAM16 0
-#define TCPAM32 1
+#define TCPAM4		1
+#define TCPAM8		2
+#define TCPAM16		3
+#define TCPAM32		4
+#define TCPAM64		5
+#define TCPAM128	6
 
 struct sdfe4_if_cfg{
 	u32 mode : 2;
@@ -39,10 +43,10 @@ struct sdfe4_if_cfg{
 	u32 annex:2;
 	u32 input_mode:8;
 	u32 loop :2;
-	u32 tc_pam :1;
+	u32 tc_pam :3;
 	u32 need_reconf :1;
 	u32 clkmode :1;
-u32 :3;
+u32 :1;
 	u16 frequency;
 	u16 payload_bits;
 	u16 rate;
@@ -61,7 +65,11 @@ struct sdfe4_stat {
 	u8 CounterOverflowInd;
 	u8 CounterResetInd;
 };
-																							
+						
+typedef enum {SDFE4v1,SDFE4v2} sdfe4_chipset_type;
+#define SDFE4v1_MAX_RATE 5696
+#define SDFE4v2_MAX_RATE 14144
+																	
 #define SG17_IF_MAX     4
 
 #endif

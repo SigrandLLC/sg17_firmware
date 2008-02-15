@@ -828,7 +828,10 @@ sg17_def_config(struct sg17_card *card)
 	struct sdfe4_if_cfg *cfg_ch0=&(hwdev->cfg[0]);
 	struct sdfe4_if_cfg *cfg_ch3=&(hwdev->cfg[3]); 	
 
+	// save module type
+	sdfe4_chipset_type type= hwdev->type;
 	memset(hwdev,0,sizeof(struct sdfe4));
+	hwdev->type = type;
 	hwdev->data = (void*)&card->sci;
 	hwdev->ch[3].enabled = 1;
 	hwdev->ch[0].enabled = 1;
@@ -900,6 +903,17 @@ sg17_init_card( struct sg17_card *card )
 	// DEBUG //	
 
 	PDEBUG(debug_init,"");
+	// Determine version of device
+	if( card->pdev->device == SG17_PCI_DEVICE ){
+		hwdev->type = SDFE4v1;
+	}else{
+		hwdev->type = SDFE4v2;
+	}
+
+// TODO - delete //
+printk(KERN_NOTICE"DEV TYPE=%d\n",hwdev->type);
+//--------------//
+
 	// set card name
 	sprintf(card->name,"sg17card%d",card->number);
 	// IOmem
@@ -938,12 +952,23 @@ sg17_enable_card( struct sg17_card *card )
 	struct sdfe4 *hwdev = &(card->hwdev);
 	struct sg17_sci *sci = &card->sci;
 	struct firmware *fw;
+	char fwname[256];
 	int ret = 0;
 	int i;
 
 	// load firmware
-	PDEBUG(debug_init,"request_firmware");	
-	if( (ret = request_firmware((const struct firmware **)&fw,MR17H_DRVNAME".bin",&(card->pdev->dev))) ){
+	PDEBUG(debug_error,"request_firmware");
+	switch( hwdev->type ){
+	case SDFE4v1:
+		strncpy(fwname,MR17H_DRVNAME".bin",256);
+		break;
+	case SDFE4v2:
+		strncpy(fwname,MR17H_DRVNAME"_v2.bin",256);
+		break;
+	}
+		
+	PDEBUG(debug_error,"Request %s file,type=%d",fwname,hwdev->type);
+	if( (ret = request_firmware((const struct firmware **)&fw,fwname,&(card->pdev->dev))) ){
 		printk(KERN_NOTICE"firmware file not found\n");
 		return -ENOENT;
 	}
@@ -957,6 +982,7 @@ sg17_enable_card( struct sg17_card *card )
 	hwdev->ch[3].eoc = eoc_init();
 	hwdev->ch[0].eoc = eoc_init();
 	i=0;
+	PDEBUG(debug_error,"2 type=%d",hwdev->type);
 	while( (ret = sdfe4_download_fw(hwdev,fw->data,fw->size)) && i<3 ){
 		printk(KERN_NOTICE"Error loading fw. Try once again (#%d)\n",i+1);
 		sg17_sci_disable(sci);
@@ -1012,6 +1038,7 @@ int card_number = 0;
  
 static struct pci_device_id  sg17_pci_tbl[] __devinitdata = {
 { PCI_DEVICE(SG17_PCI_VENDOR,SG17_PCI_DEVICE) },
+{ PCI_DEVICE(SG17v2_PCI_VENDOR,SG17v2_PCI_DEVICE) },
 { 0 }
 };
 MODULE_DEVICE_TABLE( pci, sg17_pci_tbl );
