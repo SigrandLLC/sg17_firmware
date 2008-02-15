@@ -49,24 +49,27 @@ function fixed_rate_list(l,cur,rates){
     freeList(l);
 	ind=0;
 	ind_res=0;
+	val_res=0;
 	
     for(i=0;i<rates.length;i++){
     	el = new Option;
     	el.value = rates[i];
     	el.text = rates[i];
 		el.selected = 0;
-		if( rates[i] == cur ){
-    	    el.selected = 1;
-			ind_res = ind;
+		if( Math.abs(rates[i]-cur) < Math.abs(val_res-cur) ){
+			ind_res = i;
+			val_res = rates[i];
 		};
 		try{
 			l.options.add(el);
 		} catch(ex){
 			l.options.add(el,null);
 		};
-		ind++;
     };
+	
+//	alert('Nearest value = ' + rates[ind_res] );
 	l.selectedIndex = ind_res;
+	l[ind_res].selected = 1;
 };
 
 
