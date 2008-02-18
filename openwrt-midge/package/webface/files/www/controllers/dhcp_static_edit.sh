@@ -12,6 +12,8 @@
 	render_table_title "DHCP Host settings" 2
 	render_popup_form_stuff
 	
+    render_input_field hidden iface iface "$iface"	
+	
 	# name
 	desc="Host name"
 	validator="$tmtreq $validator_name"

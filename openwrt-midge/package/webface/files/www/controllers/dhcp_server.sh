@@ -3,7 +3,9 @@
 	
 	subsys="dhcp"
 	page=${FORM_page}
-	iface=$page
+	export iface=$page
+	
+	eval `kdb -qq ls sys_iface*`
 	set_dhcp_server_vars
 
 	if [ "x${FORM_iface_select}x" = "xx" ]; then
@@ -11,7 +13,7 @@
 	fi
 
 	eval `kdb -qq ls sys_iface*`
-
+	
 	ifaces=`kdb sskls 'sys*valid=1' sys_iface_ _valid`
 	fifaces='';
 	for i in $ifaces; do
@@ -37,10 +39,14 @@
 
 	if [ "x${iface}x" != "xx" ]; then
 		render_form_header dhcp_server_common
+		render_input_field hidden iface iface "$iface"
+	    render_input_field hidden page page "$page"
 		render_dhcp_server_common
 		render_submit_field
 		render_form_tail
+		render_form_header dhcp_server_static
 		render_dhcp_server_static
+		render_form_tail
 	fi
 	
 # vim:foldmethod=indent:foldlevel=1

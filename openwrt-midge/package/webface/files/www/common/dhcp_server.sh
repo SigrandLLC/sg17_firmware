@@ -77,7 +77,6 @@ render_dhcp_server_common() {
 }
 
 render_dhcp_server_static(){
-
 	eval 'dhcp_enabled=$'sys_iface_${iface}_dhcp_enabled
 	if [ "$dhcp_enabled" = 1 ]; then
 		render_list_line(){
@@ -86,10 +85,9 @@ render_dhcp_server_static(){
 			unset name ipaddr hwaddr
 			eval "$val"
 			echo "<tr><td>$lineno</td><td>$name</td><td>$ipaddr</td><td>$hwaddr</td><td>"
-			render_list_btns dhcp_static_edit "sys_iface_${iface}_dhcp_host_${lineno}" "page=${page}&iface=${iface}"
+			render_list_btns dhcp_static_edit "sys_iface_${iface}_dhcp_host_${lineno}" "page=${page}&iface=${iface}&subsys=dhcp"
 			echo "</td></tr>"
 		}
-		
 		
 		render_list_header dhcp_static sys_iface_${iface}_dhcp_host_ "iface=${iface}" "No" "Name" "IP Address" "MAC Address"
 		

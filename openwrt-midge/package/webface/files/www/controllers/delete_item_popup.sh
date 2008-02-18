@@ -3,6 +3,7 @@
 	item=$FORM_item
 	action=${FORM_action:-question}
 	subsys=${FORM_subsys:-""}
+	export iface=${FORM_iface}
 
 	render_form_header delete_item
 
@@ -11,7 +12,7 @@
 	"question")
 		render_table_row_text "<br><font size='+1'>Are you sure to delete item?</font><br>"
 		render_table_tr_td_open "align=center"
-		render_js_button "Yes" "newloc='/?controller=$controller&item=${item}&action=del&popup=1&subsys=${subsys}'; window.location=newloc "
+		render_js_button "Yes" "newloc='/?controller=$controller&item=${item}&action=del&popup=1&subsys=${subsys}&iface=${iface}'; window.location=newloc "
 		render_js_button "No" "window.close()"
 		render_table_tr_td_close
 		;;
