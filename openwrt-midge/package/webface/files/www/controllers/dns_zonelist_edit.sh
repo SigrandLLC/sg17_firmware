@@ -17,7 +17,7 @@
 		# zoneid
 		tip="<b>Example:</b> domain1"
 		desc="Identifier of zone - just a simple name"
-		validator=$validator_dnszone
+		validator=$validator_dnszoneid
 		render_input_field text "Zone id" zoneid
 	else
 		render_input_field hidden zoneid zoneid $zoneid

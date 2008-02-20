@@ -1,6 +1,6 @@
 #!/usr/bin/haserl
 
-	#subsys="dns_server"
+	subsys="dns_server"
 
 	if [ -n "$FORM_datatype" ]; then
 		[ "$FORM_datatype" = "MX" -a -z "$FORM_prio" ]  && FORM_prio="10"

@@ -1,8 +1,9 @@
 #!/usr/bin/haserl
 	
+	subsys="dns_server"
 	zoneid=$FORM_zoneid
 	
-	handle_list_del_item
+	handle_list_del_item $subsys
 	
 	eval `kdb -qqc ls svc_dns_zone_${zoneid}*`
 	render_form_header dns_zone
@@ -14,7 +15,7 @@
 		eval "$val"
 		[ "$datatype" != "MX" ] && prio=""
 		echo "<tr><td>$lineno</td><td>$domain</td><td>$datatype</td><td>$prio</td><td>$data</td><td>"
-		render_list_btns dns_zone_edit "$item" "zoneid=$zoneid"
+		render_list_btns dns_zone_edit "$item" "zoneid=$zoneid&subsys=$subsys"
 		echo "</td></tr>"
 	}
 	

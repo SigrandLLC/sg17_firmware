@@ -28,6 +28,8 @@ tmt_globalPatterns.mxrate = new RegExp("^(([0-9]+,)|([0-9]+-[0-9]+(,)?)|([0-9]+$
 
 // DNS Zone validation
 tmt_globalPatterns.dnszone = new RegExp("^\([a-zA-Z0-9\-\.]\)+$");
+// DNS Zone ID validation
+tmt_globalPatterns.dnszoneid = new RegExp("^\([a-zA-Z0-9]\)+$");
 // DNS Host validation
 tmt_globalPatterns.dnsdomain = new RegExp("^\(\([a-zA-Z0-9\-\.]\)+|@\)$");
 
