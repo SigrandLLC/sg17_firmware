@@ -103,7 +103,7 @@
 	for i in $sys_ifaces; do
 		case $i in
 			*v*)		params="$params $i $i";;
-			eth*|dsl*|hdlc*)	;;
+			eth*|dsl*|E1*)	;;
 			*)		params="$params $i $i";;
 		esac
 	done
