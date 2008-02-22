@@ -189,6 +189,7 @@ render_input_field(){
 	eval 'value=$'$inputname
 	[ -z "$value" -a -n "$default" ] && value="$default"
 	[ -n "$id" ] && idcode="id='$id'"
+	[ -n "$td_id" ] && td_id="id='$td_id'"
 	[ -n "$autosubmit" ] && ascode="onchange='this.form.submit()'"
 	[ -n "$onchange" ] && onchangecode="onchange='$onchange'"
 	
@@ -199,7 +200,7 @@ render_input_field(){
 
 	[ ! "$type" = "hidden" ] && echo "<tr>
 <td width='35%' class='vncellt'><label for='$inputname' $tipcode>$text</label></td>
-<td width='65%' class='listr'>";
+<td width='65%' class='listr' $td_id >";
 
 	case "${type}" in
 	text)
@@ -246,7 +247,7 @@ render_input_field(){
 	
 	[ ! $type = "hidden" ] && echo "<br><span class='inputDesc' $tipcode>$desc</span></td></tr>"
 	echo "<!-- ------- /render_input_field $type $text $inputname $* -->"
-	unset id autosubmit onchange onmouseover tip desc validator default
+	unset id autosubmit onchange onmouseover tip desc validator default td_id
 }
 
 render_input_td_field(){
@@ -280,7 +281,7 @@ render_input_td_field(){
 	echo "
 <!-- ------- render_input_field $type $inputname $* -->"
 
-	echo "<td>"
+	echo "<td ${td_id} >"
 
 	case "${type}" in
 	text)

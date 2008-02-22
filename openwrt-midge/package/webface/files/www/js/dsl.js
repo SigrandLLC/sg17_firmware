@@ -50,13 +50,14 @@ function fixed_rate_list(l,cur,rates){
 	ind=0;
 	ind_res=0;
 	val_res=0;
-	
+
     for(i=0;i<rates.length;i++){
     	el = new Option;
     	el.value = rates[i];
     	el.text = rates[i];
 		el.selected = 0;
-		if( Math.abs(rates[i]-cur) < Math.abs(val_res-cur) ){
+		
+		if( cur>0 && Math.abs(rates[i]-cur) < Math.abs(val_res-cur) ){
 			ind_res = i;
 			val_res = rates[i];
 		};
@@ -66,8 +67,18 @@ function fixed_rate_list(l,cur,rates){
 			l.options.add(el,null);
 		};
     };
-	
-//	alert('Nearest value = ' + rates[ind_res] );
+
+	// Other speed selection	
+   	el = new Option;
+   	el.value = -1;
+   	el.text = 'other';
+	if( cur < 0 ){
+		el.selected = 0;
+		ind_res = i;
+	}
+	l.options.add(el);
+
+	// Select current rate
 	l.selectedIndex = ind_res;
 	l[ind_res].selected = 1;
 };
@@ -259,6 +270,7 @@ function OnChangeSG17Code()
 			$('code').selectedIndex = 0;
 		}			
 
+		$('rate').disabled = 0;
 		tcpam = $('code').options[$('code').selectedIndex].value;
 		if( $('chipver').value == 'v1' ){
 			if( tcpam == "tcpam16" ) {
@@ -281,14 +293,23 @@ function OnChangeSG17Code()
 				fixed_rate_list($('rate'),rate,rate_list8);
 			};
 		}
-		if( $('ratetype').checked == false ){
-			$('rate').disabled = 0;
-			$('mrate').disabled = 1;
-		}else{
-			$('mrate').disabled = 0;
-			$('rate').disabled = 1;
+		
+		var tr = document.getElementById('mrate');
+		if( rate < 0 && tr == null ){
+			var base = document.getElementById('rate_td');
+			var oe = document.getElementById('rate');
+			var ne = document.createElement('input');
+			ne.setAttribute('type','text');
+			ne.setAttribute('id','mrate');
+			ne.setAttribute('class','edit');
+			ne_name='sys_pcicfg_s'+$('pcislot').value+'_'+$('pcidev').value+'_mrate';
+			ne.setAttribute('name',ne_name);
+			ne.setAttribute('value',$('hmrate').value);
+			base.insertBefore(ne,oe.nextSibling);
+		}else if( rate > 0 && tr != null ){
+			var base = document.getElementById('rate_td');
+			base.removeChild(tr);
 		}
-			
 		// Clock mode		
 		freeList($('clkmode'));
 		$('clkmode').disabled = 0;

@@ -157,7 +157,7 @@ store_rate( struct class_device *cdev,const char *buf, size_t size )
 	struct sg17_sci *s = (struct sg17_sci *)&card->sci;
 	struct sdfe4 *hwdev = &card->hwdev;
 	char *endp;
-	u16 tmp;
+	u16 tmp,tmp1;
 	
 	// check parameters
 	if( !size ) return size;
@@ -175,8 +175,10 @@ store_rate( struct class_device *cdev,const char *buf, size_t size )
 		if( tmp > SDFE4v2_MAX_RATE )
 			tmp = SDFE4v2_MAX_RATE;
 		break;
-	}		 
-	cfg->rate=tmp;
+	}
+	// Modulo 64 Kbps!
+	tmp/=64;
+	cfg->rate=tmp*64;
 	return size;
 }
 static CLASS_DEVICE_ATTR(rate, 0644 ,show_rate,store_rate);
@@ -226,7 +228,7 @@ store_tcpam( struct class_device *cdev,const char *buf, size_t size )
 
 	switch( hwdev->type ){
 	case SDFE4v1:
-		if( (tmp > 4) || (tmp <= 0) ){
+		if( (tmp > 4) || (tmp <= 2) ){
 			return size;
 		}
 		break;

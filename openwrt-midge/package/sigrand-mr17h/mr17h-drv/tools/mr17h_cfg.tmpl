@@ -186,10 +186,22 @@ while [ ! -z $1 ]; do
 			;;
 		"tcpam4")
 			echo 1 > tcpam
+			tmp=`cat tcpam`
+			if [ "$tmp" != "TCPAM4" ]; then
+				echo "TCPAM64 mode not supported"
+			else
+				shdsl_need_reconf=1	
+			fi
 			shdsl_need_reconf=1	
 			;;
 		"tcpam8")
 			echo 2 > tcpam
+			tmp=`cat tcpam`
+			if [ "$tmp" != "TCPAM8" ]; then
+				echo "TCPAM64 mode not supported"
+			else
+				shdsl_need_reconf=1	
+			fi
 			shdsl_need_reconf=1	
 			;;
 		"tcpam16")

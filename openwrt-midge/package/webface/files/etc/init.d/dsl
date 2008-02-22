@@ -57,14 +57,16 @@ _dsl_mr17ifcfg(){
 	if [ "$mode" == "slave" ]; then
    		$mr17h_cfg $iface $mode $fill $inv $crc $pwron > /dev/null
 	else
-		# Check manual or list rate to use
-		if [ "$ratetype" = "on" ]; then
-			[ -n "$mrate" ] && rate="rate $mrate"
+		if [ -n "$mrate" ]; then
+			rate="rate $mrate"
 		else
 			[ -n "$rate" ] && rate="rate $rate"
 		fi
    		[ -n "$annex" ] && annex="annex $annex"
     	$mr17h_cfg $iface $mode $rate $code $annex $fill $inv $crc $pwron $clkmode > /dev/null
+		# Correct rate setted by hands
+		rate=`cat  /sys/class/net/$iface/sg17_private/rate`
+		[ -n "$mrate" ] && kdb set sys_pcicfg_s${slot}_${ifnum}_mrate=$rate
 	fi
 }
 

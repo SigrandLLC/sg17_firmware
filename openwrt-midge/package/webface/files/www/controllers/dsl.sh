@@ -188,8 +188,7 @@ _sg17_settings(){
 			str:sys_pcicfg_s${slot}_${dev}_ctrl	\
 			str:sys_pcicfg_s${slot}_${dev}_mode	\
 			str:sys_pcicfg_s${slot}_${dev}_clkmode	\
-			int:sys_pcicfg_s${slot}_${dev}_ratetype	\
-			int:sys_pcicfg_s${slot}_${dev}_rate	\
+			str:sys_pcicfg_s${slot}_${dev}_rate	\
 			int:sys_pcicfg_s${slot}_${dev}_mrate	\
 			str:sys_pcicfg_s${slot}_${dev}_code	\
 			str:sys_pcicfg_s${slot}_${dev}_annex	\
@@ -202,6 +201,8 @@ _sg17_settings(){
 	eval `kdb -qq sls "sys_pcicfg_s${slot}_${dev}_" ` 
 	eval "new_ctrl=\$FORM_sys_pcicfg_s${slot}_${dev}_ctrl"
 	eval "new_mode=\$FORM_sys_pcicfg_s${slot}_${dev}_mode"
+
+
 
 	if [ "$new_ctrl" != "$ctrl" ]; then
 		case "$new_ctrl" in
@@ -236,20 +237,26 @@ _sg17_settings(){
 
 
 	render_form_header
-	
+
 	#-------------- SETTINGS table ---------------
 	render_table_title "$iface (module $MR17H_MODNAME) settings" 2
 	
-	# get device type
+	# get device info
 	tmp=`cat /sys/class/net/$iface/sg17_private/chipver`
+	mrate=`kdb get sys_pcicfg_s${slot}_${dev}_mrate` 
 	
 	# sys_dsl_${iface}_name
+	id='iface'
 	render_input_field "hidden" "hidden" iface $iface
+	id='pcislot'
 	render_input_field "hidden" "hidden" pcislot "$slot"
+	id='pcidev'
 	render_input_field "hidden" "hidden" pcidev "$dev"
 	render_input_field "hidden" "hidden" page settings
 	id='chipver'
 	render_input_field "hidden" "hidden" chipver "$tmp"
+	id='hmrate'
+	render_input_field "hidden" "hidden" hmrate "$mrate"
 
 	# Control from eocd
 	tip=""
@@ -277,33 +284,28 @@ _sg17_settings(){
 	onchange="OnChangeSG17Code();"	
 	render_input_field select "Clock mode" sys_pcicfg_s${slot}_${dev}_clkmode  'plesio' 'plesio' 'sync' 'sync'
 
-	# sys_pcicfg_s${slot}_${dev}_ratetype
-	eval "ratetype=\$sys_pcicfg_s${slot}_${dev}_ratetype"
-	tip=""
-	desc="Select DSL line rate"
-	validator='tmt:message="'$desc'"'
-	id='ratetype'
-	onchange="OnChangeSG17Code();"	
-	render_input_field checkbox "Variable rate" sys_pcicfg_s${slot}_${dev}_ratetype $ratetype
-
-
 	# sys_pcicfg_s${slot}_${dev}_rate
 	eval "crate=\$sys_pcicfg_s${slot}_${dev}_rate"
+	if [ "$crate" -eq -1 ]; then
+		crtext="other"
+	else
+		crtext="$crate"
+	fi
 	tip=""
 	desc="Select DSL line rate"
 	validator='tmt:message="'$desc'"'
 	id='rate'
+	td_id='rate_td'
 	onchange="OnChangeSG17Code();"	
-	render_input_field select "Rate" sys_pcicfg_s${slot}_${dev}_rate $crate $crate
+	render_input_field select "Rate" sys_pcicfg_s${slot}_${dev}_rate $crate $crtext
 
-	# sys_pcicfg_s${slot}_${dev}_rate
-	eval "mrate=\$sys_pcicfg_s${slot}_${dev}_mrate"
-	tip=""
-	desc="Select DSL line rate"
-	validator='tmt:message="'$desc'"'
-	id='mrate'
-	onchange="OnChangeSG17Code();"	
-	render_input_field text "Variable rate" sys_pcicfg_s${slot}_${dev}_mrate $mrate $mrate
+	#eval "mrate=\$sys_pcicfg_s${slot}_${dev}_mrate"
+	#tip=""
+	#desc="Select DSL line rate"
+	#validator='tmt:message="'$desc'"'
+	#id='mrate'
+	#onchange="OnChangeSG17Code();"	
+	#render_input_field text "Variable rate" sys_pcicfg_s${slot}_${dev}_mrate $mrate $mrate
 	
 
 	# sys_pcicfg_s${slot}_${dev}_code
