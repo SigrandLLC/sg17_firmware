@@ -207,6 +207,7 @@ function OnChangeSG17Code()
 	clkmode_ind = $('clkmode').selectedIndex;
 	annex_ind = $('annex').selectedIndex;
 	ind = $('rate').selectedIndex;
+	//	alert('ratetype=' + $('ratetype').checked );
 	if( ind < 0 ){
 		ind = 0;
 		rate = 192;
@@ -227,13 +228,13 @@ function OnChangeSG17Code()
 		freeList($('annex'));
 		$('annex').options[0] = new Option("automatic");
 		$('annex').disabled = 1;
-		
+		$('mrate').disabled = 1;
     } else {
 		freeList($('code'));
 		$('code').disabled = 0;
 		
 		if( $('chipver').value == 'v1' ){
-			start=0;
+			start=1;
 			end=2;
 		}else{
 			start=0;
@@ -258,7 +259,6 @@ function OnChangeSG17Code()
 			$('code').selectedIndex = 0;
 		}			
 
-		$('rate').disabled = 0;
 		tcpam = $('code').options[$('code').selectedIndex].value;
 		if( $('chipver').value == 'v1' ){
 			if( tcpam == "tcpam16" ) {
@@ -281,7 +281,14 @@ function OnChangeSG17Code()
 				fixed_rate_list($('rate'),rate,rate_list8);
 			};
 		}
-		
+		if( $('ratetype').checked == false ){
+			$('rate').disabled = 0;
+			$('mrate').disabled = 1;
+		}else{
+			$('mrate').disabled = 0;
+			$('rate').disabled = 1;
+		}
+			
 		// Clock mode		
 		freeList($('clkmode'));
 		$('clkmode').disabled = 0;
@@ -295,7 +302,6 @@ function OnChangeSG17Code()
 		$('annex').options[0] = new Option("Annex A");
 		$('annex').options[1] = new Option("Annex B");
 		$('annex').selectedIndex=clkmode_ind;
-
     }
 };
 

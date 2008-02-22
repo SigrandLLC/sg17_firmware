@@ -119,6 +119,10 @@ _eoc_stat_general()
 	tip=""
 	desc="Channel annex value"
 	render_input_field static "Annex" regs "$annex"
+
+	tip=""
+	desc="Channel tcpam value"
+	render_input_field static "Encoding" regs "$tcpam"
 	
 }
 
@@ -541,20 +545,22 @@ _eoc_profiles()
 {
 	# Save results comed from user
 	if [ -n "$FORM_pname" ]; then
-		unset rate annex power pname
+		unset rate annex power pname tcpam
 		[ -n "$FORM_rate" ] && rate="-l$FORM_rate"
 		[ -n "$FORM_annex" ] && annex="-n$FORM_annex"
 		[ -n "$FORM_power" ] && power="-f$FORM_power"
+		[ -n "$FORM_tcpam" ] && tcpam="-t${FORM_tcpam##tcpam}"
 
 		unset eoc_error
 		if [ -n "$FORM_nprofile" ]; then # New profile - add
-			eval `$config -oconf-prof -a$FORM_pname $rate $annex $power -s`
+			eval `$config -oconf-prof -a$FORM_pname $rate $annex $power $tcpam -s`
 			#$config -oconf-prof -a$FORM_pname $rate $annex $power -s
 		elif [ -n "$FORM_dprofile" ]; then # Delete profile
 			eval `$config -oconf-prof -d$FORM_pname -s`
 			#$config -oconf-prof -d$FORM_pname -s
 		else # Change profile
-			eval `$config -oconf-prof -c$FORM_pname $rate $annex $power -s`
+			#echo "$config -oconf-prof -c$FORM_pname $rate $annex $power $tcpam -s<br>"
+			eval `$config -oconf-prof -c$FORM_pname $rate $annex $power $tcpam -s`
 		fi		
 		if [ "$eoc_error" -eq "1" ]; then
 			ERROR_MESSAGE="$err_string"
@@ -576,15 +582,16 @@ _eoc_profiles()
 		<table width=\"800px\" border=\"1\" style=\"border: solid 1px 1px; 1px; 1px;\" id=\"cprof\">
 			<tr align='center'>
 				<td>Name</td><td>Rate</td><td>Annex</td><td>Power</td>
-				<td>Save Config</td><td>Del Config</tr>
+				<td>Encoding</td><td>Save Config</td><td>Del Config</tr>
 			</tr>"
 	k=1
 	while [ "$k" -gt "0" ]; do
-		unset pname rate annex power
+		unset pname rate annex power tcpam
 		eval "pname=\${cprof$k}"
 		eval "rate=\${rate$k}"
 		eval "annex=\${annex$k}"
 		eval "power=\${power$k}"
+		eval "tcpam=\${tcpam$k}"
 		if [ -z "$pname" ]; then
 			break
 		fi
@@ -612,6 +619,10 @@ _eoc_profiles()
 		tip="Power"
 		render_input_td_field select power on on off off
 
+		# Encoding
+		tip="Encoding"
+		render_input_td_field select tcpam tcpam8 TCPAM8 tcpam16 TCPAM16 tcpam32 TCPAM32 tcpam64 TCPAM64 tcpam128 TCPAM128
+
 		render_submit_field_light
 		render_form_tail_light
 
@@ -635,7 +646,8 @@ _eoc_profiles()
 		<tr><td colspan=\"2\">
 		<table width=\"800px\" border=\"1\" style=\"border: solid 1px 1px; 1px; 1px;\" id=\"cprof\">
 			<tr align='center'>
-				<td>Name</td><td>Rate</td><td>Annex</td><td>Power</td><td>Save Config</td>
+				<td>Name</td><td>Rate</td><td>Annex</td><td>Power</td>
+				<td>Encoding</td><td>Save Config</td>
 			</tr>"
 
 	echo "<tr>"
@@ -664,6 +676,11 @@ _eoc_profiles()
 	tip="Power"
 	power=off
 	render_input_td_field select power on on off off
+
+	# Encoding
+	tip="Encoding"
+	tcpam=tcpam16
+	render_input_td_field select tcpam tcpam8 TCPAM8 tcpam16 TCPAM16 tcpam32 TCPAM32 tcpam64 TCPAM64 tcpam128 TCPAM128
 
 	render_submit_field_light
 	render_form_tail_light

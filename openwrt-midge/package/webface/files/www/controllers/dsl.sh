@@ -188,7 +188,9 @@ _sg17_settings(){
 			str:sys_pcicfg_s${slot}_${dev}_ctrl	\
 			str:sys_pcicfg_s${slot}_${dev}_mode	\
 			str:sys_pcicfg_s${slot}_${dev}_clkmode	\
+			int:sys_pcicfg_s${slot}_${dev}_ratetype	\
 			int:sys_pcicfg_s${slot}_${dev}_rate	\
+			int:sys_pcicfg_s${slot}_${dev}_mrate	\
 			str:sys_pcicfg_s${slot}_${dev}_code	\
 			str:sys_pcicfg_s${slot}_${dev}_annex	\
 			str:sys_pcicfg_s${slot}_${dev}_crc	\
@@ -275,6 +277,16 @@ _sg17_settings(){
 	onchange="OnChangeSG17Code();"	
 	render_input_field select "Clock mode" sys_pcicfg_s${slot}_${dev}_clkmode  'plesio' 'plesio' 'sync' 'sync'
 
+	# sys_pcicfg_s${slot}_${dev}_ratetype
+	eval "ratetype=\$sys_pcicfg_s${slot}_${dev}_ratetype"
+	tip=""
+	desc="Select DSL line rate"
+	validator='tmt:message="'$desc'"'
+	id='ratetype'
+	onchange="OnChangeSG17Code();"	
+	render_input_field checkbox "Manual rate" sys_pcicfg_s${slot}_${dev}_ratetype $ratetype
+
+
 	# sys_pcicfg_s${slot}_${dev}_rate
 	eval "crate=\$sys_pcicfg_s${slot}_${dev}_rate"
 	tip=""
@@ -283,6 +295,15 @@ _sg17_settings(){
 	id='rate'
 	onchange="OnChangeSG17Code();"	
 	render_input_field select "Rate" sys_pcicfg_s${slot}_${dev}_rate $crate $crate
+
+	# sys_pcicfg_s${slot}_${dev}_rate
+	eval "mrate=\$sys_pcicfg_s${slot}_${dev}_mrate"
+	tip=""
+	desc="Select DSL line rate"
+	validator='tmt:message="'$desc'"'
+	id='mrate'
+	onchange="OnChangeSG17Code();"	
+	render_input_field text "Manual rate" sys_pcicfg_s${slot}_${dev}_mrate $mrate $mrate
 	
 
 	# sys_pcicfg_s${slot}_${dev}_code
