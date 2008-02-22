@@ -284,7 +284,7 @@ _sg17_settings(){
 	validator='tmt:message="'$desc'"'
 	id='ratetype'
 	onchange="OnChangeSG17Code();"	
-	render_input_field checkbox "Manual rate" sys_pcicfg_s${slot}_${dev}_ratetype $ratetype
+	render_input_field checkbox "Variable rate" sys_pcicfg_s${slot}_${dev}_ratetype $ratetype
 
 
 	# sys_pcicfg_s${slot}_${dev}_rate
@@ -303,7 +303,7 @@ _sg17_settings(){
 	validator='tmt:message="'$desc'"'
 	id='mrate'
 	onchange="OnChangeSG17Code();"	
-	render_input_field text "Manual rate" sys_pcicfg_s${slot}_${dev}_mrate $mrate $mrate
+	render_input_field text "Variable rate" sys_pcicfg_s${slot}_${dev}_mrate $mrate $mrate
 	
 
 	# sys_pcicfg_s${slot}_${dev}_code
