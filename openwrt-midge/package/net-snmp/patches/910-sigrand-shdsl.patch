@@ -1,7 +1,7 @@
 Index: net-snmp-5.1.2/configure
 ===================================================================
 --- net-snmp-5.1.2/configure	(revision 42)
-+++ net-snmp-5.1.2/configure	(revision 55)
++++ net-snmp-5.1.2/configure	(revision 57)
 @@ -27770,6 +27770,8 @@
  s,@installucdheaders@,$installucdheaders,;t t
  s,@installucdlibs@,$installucdlibs,;t t
@@ -14,7 +14,7 @@ Index: net-snmp-5.1.2/configure
 Index: net-snmp-5.1.2/compile
 ===================================================================
 --- net-snmp-5.1.2/compile	(revision 0)
-+++ net-snmp-5.1.2/compile	(revision 55)
++++ net-snmp-5.1.2/compile	(revision 57)
 @@ -0,0 +1,5 @@
 +#!/bin/sh
 +
@@ -24,7 +24,7 @@ Index: net-snmp-5.1.2/compile
 Index: net-snmp-5.1.2/mibs/Makefile.in
 ===================================================================
 --- net-snmp-5.1.2/mibs/Makefile.in	(revision 42)
-+++ net-snmp-5.1.2/mibs/Makefile.in	(revision 55)
++++ net-snmp-5.1.2/mibs/Makefile.in	(revision 57)
 @@ -35,7 +35,8 @@
  	IPV6-TC.txt IPV6-MIB.txt IPV6-ICMP-MIB.txt IPV6-TCP-MIB.txt \
  	IPV6-UDP-MIB.txt \
@@ -38,7 +38,7 @@ Index: net-snmp-5.1.2/mibs/Makefile.in
 Index: net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt
 ===================================================================
 --- net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	(revision 0)
-+++ net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	(revision 55)
++++ net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	(revision 57)
 @@ -0,0 +1,2541 @@
 +-- extracted from rfc4319.txt
 +-- at Thu Dec 15 06:40:11 2005
@@ -2584,7 +2584,7 @@ Index: net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt
 Index: net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib
 ===================================================================
 --- net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib	(revision 0)
-+++ net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib	(revision 55)
++++ net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib	(revision 57)
 @@ -0,0 +1,196 @@
 +-- extracted from rfc2493.txt
 +-- at Mon Nov 15 17:11:40 1999
@@ -2785,7 +2785,7 @@ Index: net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib
 Index: net-snmp-5.1.2/agent/Makefile.in
 ===================================================================
 --- net-snmp-5.1.2/agent/Makefile.in	(revision 42)
-+++ net-snmp-5.1.2/agent/Makefile.in	(revision 55)
++++ net-snmp-5.1.2/agent/Makefile.in	(revision 57)
 @@ -75,8 +75,10 @@
  # Objects
  #
@@ -2819,7 +2819,7 @@ Index: net-snmp-5.1.2/agent/Makefile.in
 Index: net-snmp-5.1.2/agent/mibgroup/Makefile.in
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/Makefile.in	(revision 42)
-+++ net-snmp-5.1.2/agent/mibgroup/Makefile.in	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/Makefile.in	(revision 57)
 @@ -2,6 +2,7 @@
  
  CPPFLAGS=-I../../include -I$(top_srcdir)/include \
@@ -2844,731 +2844,10 @@ Index: net-snmp-5.1.2/agent/mibgroup/Makefile.in
 +SRCS = @module_list_c@ $(SHDSL_SRCS)
  all: standardall $(LOBJS)
  
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/EOC_main.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/EOC_main.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/EOC_main.h	(revision 55)
-@@ -0,0 +1,68 @@
-+#ifndef EOC_MAIN_H
-+#define EOC_MAIN_H
-+
-+#include <utils/hash_table.h>
-+#include <snmp/snmp-generic.h>
-+#include <app-if/app_frame.h>
-+#include <app-if/app_comm_srv.h>
-+
-+
-+// TODO: consult for OS about this values
-+#define MAX_IF_NAME_LEN 256
-+#define MAX_FNAME 256
-+
-+#define TICK_PER_MINUTE_MAX 60
-+#define TICK_PER_MINUTE_DEF 6
-+
-+#define OS_IF_PATH "/sys/class/net"
-+
-+
-+
-+class EOC_main{
-+protected:
-+    char config_file[MAX_FNAME];
-+    hash_table conf_profs;
-+    hash_table alarm_profs;
-+    hash_table channels;
-+    app_comm_srv app_srv;
-+    int valid;
-+public:
-+    EOC_main(char *cfg,char *sockpath) : conf_profs(SNMP_ADMIN_LEN), alarm_profs(SNMP_ADMIN_LEN),
-+		     channels(MAX_IF_NAME_LEN), app_srv(sockpath,"eocd-socket")
-+    {
-+	valid = 0;
-+	strncpy(config_file,cfg,MAX_FNAME);
-+	config_file[MAX_FNAME-1] = '\0';
-+	if( read_config() )
-+	    return;
-+//	configure_channels();
-+	valid = 1;
-+    }
-+    ~EOC_main(){
-+    }
-+    int get_valid(){ return valid; }
-+    // Read configuration file and initialise or change channels
-+    int read_config();
-+    // Write configuration to config file (when it changes from network)
-+//    int write_config();
-+    // Add (initialise) or change slave channel with name "ch_name"
-+    int add_slave(char *ch_name);
-+    // Add (initialise) or change master channel with name "ch_name"
-+    int add_master(char *ch_name, char *conf,char *alarm,int reps,int tick);
-+    //
-+    int configure_channels();    
-+    // process channels
-+    int poll_channels();
-+
-+
-+    void app_listen(int);
-+    int app_request(app_frame *fr);
-+    int app_spanname(app_frame *fr);
-+    int app_chann_request(app_frame *fr);
-+    int app_spanconf_prof(app_frame *fr);
-+    int app_endpalarm_prof(app_frame *fr);
-+
-+};
-+
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/handlers/EOC_poller_req.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/handlers/EOC_poller_req.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/handlers/EOC_poller_req.h	(revision 55)
-@@ -0,0 +1,16 @@
-+#ifndef EOC_POLLER_REQUESTS_H
-+#define EOC_POLLER_REQUESTS_H
-+
-+#include <generic/EOC_requests.h>
-+#include <generic/EOC_msg.h>
-+#include <db/EOC_db.h>
-+#include <engine/EOC_handlers.h>
-+
-+EOC_msg *_req_discovery(sched_state stat,sched_elem el,EOC_config *cfg);
-+EOC_msg *_req_inventory(sched_state stat,sched_elem el,EOC_config *cfg);
-+EOC_msg *_req_configure(sched_state stat,sched_elem el,EOC_config *cfg);
-+EOC_msg *_req_status(sched_state stat,sched_elem el,EOC_config *cfg);
-+
-+EOC_msg *_req_test(sched_state stat,sched_elem el,EOC_config *cfg);
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/hash_table.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/hash_table.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/hash_table.h	(revision 55)
-@@ -0,0 +1,48 @@
-+#ifndef SIGRAND_HASH_TABLE_H
-+#define SIGRAND_HASH_TABLE_H
-+
-+#define HASH_SIZE 200
-+#include <string.h>
-+#include <list>
-+using namespace std;
-+
-+
-+class hash_elem{
-+public:
-+    char *name;
-+    int nsize;
-+    hash_elem *next;
-+    hash_elem *prev;
-+    inline bool operator < (hash_elem &right){
-+        int len = right.nsize > nsize ? nsize : right.nsize;
-+        if( strncmp(name,right.name,len) < 0 )
-+    	    return 1;
-+        return 0;
-+    }
-+};
-+
-+
-+class hash_table{
-+private:
-+    list< hash_elem *> table[HASH_SIZE];
-+    int _hash(char *name);
-+    int max_hash_name;
-+    // sequential list of table items
-+    hash_elem *head,*tail;
-+public:
-+    hash_table(int mhash_name);
-+    ~hash_table();
-+    hash_elem *find(char *name, int nsize);
-+    int add(hash_elem *el);
-+    int del(char *name,int nsize);
-+    // sequential trace
-+    inline hash_elem *first(){ return head; }
-+    inline hash_elem *next(char *name, int nsize){
-+	hash_elem *el = find(name,nsize);
-+	if( !el )
-+	    return NULL;
-+	return el->next;
-+    }
-+};
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOClist.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOClist.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOClist.h	(revision 55)
-@@ -0,0 +1,62 @@
-+#ifndef SIGRAND_LIST_H
-+#define SIGRAND_LIST_H
-+
-+class EOCList_elem{
-+
-+};
-+
-+class __list{
-+private:
-+    EOCList_elem *data;
-+    __list *next;
-+public:
-+    __list(){
-+	data = NULL;
-+	next = NULL;
-+    }
-+    ~__list(){
-+	if( data )
-+	    delete data;
-+    }
-+    inline EOCList_elem *get_data(){
-+	return data;
-+    }
-+    inline __list *get_next(){
-+	return next;
-+    }
-+    inline void set_data(EOCList_elem *d){
-+	data = d;
-+    }
-+    inline void set_next(__list *n){
-+	next = n;
-+    }
-+};
-+
-+class EOClist{
-+private:
-+    __list *head;
-+    __list *tail;    
-+    __list *current;
-+    int size;
-+
-+    __list *prev_by_ptr(__list *);
-+public:
-+    EOClist();
-+    ~EOClist();
-+    int head_current();
-+    int next();
-+    int add_first(EOCList_elem *d);
-+    int add_last(EOCList_elem *d);    
-+    EOCList_elem *get_cur();
-+    EOCList_elem *get_first();
-+    EOCList_elem *get_tail();
-+    int del_cur();
-+    int del_first();
-+    int del_last();    
-+    // iteration through list
-+};
-+
-+
-+// TODO: make as objects rather than include!!!
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOC_ring_container.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOC_ring_container.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOC_ring_container.h	(revision 55)
-@@ -0,0 +1,78 @@
-+#ifndef EOC_RING_CONTAINER_H
-+#define EOC_RING_CONTAINER_H
-+
-+#include <generic/EOC_types.h>
-+
-+template <class T>
-+class EOC_ring_container{
-+private:
-+    T **mas;
-+    u32 len;
-+    u32 head,qlen;
-+    
-+    inline void inc_head(){
-+	head = (head+1)%len;
-+    }
-+    inline int ind(int i){
-+	if( !(i<len) )
-+	    return -1;
-+	if( head<i )
-+	    return (head+len-i);
-+	return (head-i);
-+    }
-+    
-+public:
-+    EOC_ring_container(int l){
-+	mas = new T*[l];
-+	for(int i=0;i<l;i++){
-+	    mas[i] = NULL;
-+	}
-+	len = l;
-+	head = 0;
-+	mas[head] = new T;
-+    }
-+    
-+    ~EOC_ring_container<T>(){
-+	for(int i=0;i<len;i++)
-+	    if( mas[i] )
-+		delete mas[i];
-+	delete[] mas;
-+    }
-+    
-+    
-+    T * operator[](unsigned int i){
-+	int ret = ind(i);
-+	if( ret<0 )
-+	    return NULL;
-+	return mas[ret];
-+    }
-+    
-+    void shift(u32 ints){
-+	u32 nhead = (head+ints)%len;
-+	u32 nrings = ints / len;
-+	
-+	if( !ints )
-+	    return;
-+	    
-+	if( nrings ){
-+	    for(int i=0;i<len;i++){
-+		if( mas[i] ){
-+		    delete mas[i];
-+		    mas[i] = NULL;
-+		}
-+	    }
-+	    head = nhead;
-+	}else{
-+	    while(head!=nhead){
-+		inc_head();
-+		if(mas[head]){
-+		    delete mas[head];
-+		    mas[head] =NULL;
-+		}
-+	    }
-+	}
-+	mas[head] = new T;
-+    }
-+};
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOCLog.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOCLog.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/utils/EOCLog.h	(revision 55)
-@@ -0,0 +1,42 @@
-+#ifndef SIGRAND_LOG_H
-+#define SIGRAND_LOG_H
-+
-+#define LOG_ERR 0
-+#define LOG_WARN 1
-+
-+
-+class EOCLog_config{
-+
-+
-+
-+};
-+
-+
-+class EOCLog{
-+        
-+public:
-+    void print(int,char*);
-+}
-+
-+
-+void
-+EOCLog::print(int facility,char* s)
-+{
-+    char sfacility[256];
-+    
-+    switch( facility ){
-+    case LOG_ERR:
-+	sfacility = strdup("Error");
-+	break;
-+    case LOG_WARN:
-+	sfacility = strdup("Warning");
-+	break;
-+    default:
-+	sfacility = strdup("Default");
-+    }
-+    
-+    printf("%s %s\n",sfacility,s);
-+}
-+
-+
-+#endif
-\ No newline at end of file
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dev_terminal.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dev_terminal.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dev_terminal.h	(revision 55)
-@@ -0,0 +1,21 @@
-+#ifndef SIGRAND_EOC_DEV_MASTER_H
-+#define SIGRAND_EOC_DEV_MASTER_H
-+
-+#include <generic/span_conf_type.h>
-+#include <devs/EOC_dev.h>
-+
-+
-+class EOC_dev_terminal: public EOC_dev{
-+protected:
-+    char *ifname;
-+    char *conf_path;
-+    char *chan_path;
-+    int check_ctrl_files(char *d,char **opts,int opts_num);
-+public:
-+    virtual  span_conf_profile_t *cur_config() = 0;                                                                                     
-+    virtual int configure(span_conf_profile_t &cfg) = 0; 
-+    virtual int configure() = 0; 
-+};
-+ 
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_r17.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_r17.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_r17.h	(revision 55)
-@@ -0,0 +1,30 @@
-+#ifndef SIGRAND_EOC_SRU_H
-+#define SIGRAND_EOC_SRU_H
-+
-+#include <generic/EOC_generic.h>
-+#include <devs/EOC_dev.h>
-+#include "EOC_msg.h"
-+extern "C" {
-+#include "../include/sdfe4_lib.h"
-+}
-+
-+#define HDLC_MSG_SIZE 112
-+
-+class EOC_sru : public EOC_dev{
-+protected:
-+    struct sdfe4 *hwdev;
-+    int ch;
-+public:
-+    EOC_sru(struct sdfe4 *h,int c);
-+    int send(EOC_msg *m);
-+    int recv(EOC_msg *m);
-+//    int init(char *ptr,int size);
-+    int loops();
-+    Linkstate link_state();
-+    //----- SHDSL settings ---------//
-+    int tresholds(s8 loop_attn,s8 snr_m);
-+    int statistics(int loop,side_perf &stat);
-+    
-+};
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dummy.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dummy.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dummy.h	(revision 55)
-@@ -0,0 +1,28 @@
-+#ifndef SIGRAND_EOC_SG17_H
-+#define SIGRAND_EOC_SG17_H
-+
-+#include <devs/EOC_dev.h>
-+#include <generic/EOC_msg.h>
-+
-+#define HDLC_BUFF_SZ 112
-+
-+class EOC_dummy : public EOC_dev{
-+protected:
-+    char *f1,*f2;
-+    int valid;
-+    u8 loop_attn_atr,snr_marg_atr;
-+public:
-+    EOC_dummy(char *file1,char *file2);
-+    ~EOC_dummy();    
-+    int send(EOC_msg *m);
-+    EOC_msg *recv();
-+    Linkstate link_state();
-+    int tresholds(u8 lattn,u8 snr){
-+	loop_attn_atr = lattn;
-+	snr_marg_atr = snr;
-+    }
-+    u8 loop_attn(){ return loop_attn_atr; }
-+    u8 snr_marg(){return snr_marg_atr; } 
-+};
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dummy1.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dummy1.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dummy1.h	(revision 55)
-@@ -0,0 +1,113 @@
-+#ifndef EOC_DUMMY_1_H
-+#define EOC_DUMMY_1_H
-+#include<string.h>
-+#include<stdio.h>
-+
-+#include <devs/EOC_dev_terminal.h>
-+#include <generic/EOC_msg.h>
-+#include <generic/EOC_responses.h>
-+
-+class dummy_channel{
-+protected:
-+    struct{
-+	char buf[256];
-+	int len;
-+    } chan[256];
-+    int head,tail;
-+    inline int inc(int ind){
-+	if( ind+1 < 256 )
-+	    return ind+1;
-+	return 0;
-+    }
-+public:
-+    dummy_channel(){
-+	head = 0;
-+	tail = 0;
-+    }
-+    inline int enqueue(char *m,int col){
-+	if( inc(tail) == head )
-+	    return -1;
-+	memcpy(chan[tail].buf,m,col);
-+	chan[tail].len = col;
-+	tail = inc(tail);
-+	return 0;
-+    }
-+
-+    inline int dequeue(char *m,int *col){
-+	if( head == tail )
-+	    return -1;
-+	memcpy(m,chan[head].buf,chan[head].len);
-+	*col = chan[head].len;
-+	head = inc(head);
-+	return 0;
-+    }
-+    
-+    
-+};
-+
-+
-+
-+class EOC_dummy1 : public EOC_dev_terminal{
-+protected:
-+    char name[256];
-+    dummy_channel *snd,*rcv;
-+    int valid;
-+    side_perf perf;
-+    int perf_changed;
-+public:
-+    EOC_dummy1(char *name,dummy_channel *snd,dummy_channel *rcv);
-+    ~EOC_dummy1();    
-+
-+    int send(EOC_msg *m);
-+    EOC_msg *recv();
-+
-+    Linkstate link_state();
-+
-+    span_conf_profile_t *cur_config() { return NULL; }
-+    int configure(span_conf_profile_t &cfg){ return 0; }
-+    int configure(){ return 0; }
-+
-+
-+    int setup_current_stat(side_perf p){
-+	perf = p;
-+	perf_changed = 1;
-+    }
-+
-+    side_perf get_current_stat(){
-+	return perf;
-+    }
-+    
-+    int loops() { return 1;};
-+
-+    int tresholds(s8 loopattn,s8 snr){
-+	printf("%s: loop_attn(%d) snr_marg(%d)\n",name,loopattn,snr);
-+    }
-+    int statistics(int loop, side_perf &perf);
-+    
-+};
-+
-+#endif
-+
-+
-+
-+/*
-+int main()
-+{
-+    char a[256];
-+    int b;
-+    dummy_channel d;
-+    d.enqueue("aaaaaaaaaa",10);
-+    d.enqueue("aaaaaaaaaaa",11);
-+    d.enqueue("aaaaaaaaaaaa",12);
-+    d.enqueue("aaaaaaaaaaaaaaa",15);
-+    d.enqueue("aaaaa",5);
-+    d.enqueue("aaaaaa",6);    
-+    d.enqueue("aaaaaaaaaa",10);    
-+    d.enqueue("aaaaaaaaaaa",11);
-+    
-+    while( !d.dequeue(a,&b) ){
-+	a[b] = 0;
-+	printf("(%d): %s\n",b,a);
-+    }
-+}
-+*/
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_mr16h.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_mr16h.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_mr16h.h	(revision 55)
-@@ -0,0 +1,21 @@
-+#ifndef SIGRAND_EOC_SG17_H
-+#define SIGRAND_EOC_SG17_H
-+
-+#include <devs/EOC_dev_master.h>
-+#include <generic/EOC_msg.h>
-+
-+#define HDLC_BUFF_SZ 112
-+
-+class EOC_sg17 : public EOC_dev_terminal{
-+protected:
-+    char *fname;
-+    int valid;    
-+public:
-+    EOC_sg17(char *fname);
-+    ~EOC_sg17();    
-+    int send(EOC_msg *m);
-+    EOC_msg *recv();
-+//    Linkstate link_state();
-+};
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dev.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dev.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_dev.h	(revision 55)
-@@ -0,0 +1,71 @@
-+#ifndef SIGRAND_EOC_DEV_H
-+#define SIGRAND_EOC_DEV_H
-+
-+#define EOC_DEV_NAMESZ 256
-+#include <generic/EOC_types.h>
-+#include <generic/EOC_generic.h>
-+#include <generic/EOC_msg.h>
-+#include <generic/EOC_responses.h>
-+
-+
-+class EOC_dev{
-+public:
-+    typedef enum{ OFFLINE, ONLINE } Linkstate  ;
-+    enum device { SG16PCI,SG17PCI,SG17R };
-+    enum annex_t { annexA,annexB,annexF };
-+    enum tcpam_t { tcpam4, tcpam8, tcpam16,tcpam32 };
-+    enum terminator_t { master,slave };
-+    typedef struct {
-+	unsigned int lrate;
-+	annex_t annex;
-+	tcpam_t tcpam;
-+	terminator_t term;
-+    } EOC_dev_cfg;
-+    typedef struct {
-+	s8 snr_marg, loop_attn;
-+	u8 es,ses,losws,uas;
-+	u16 crc, sega;
-+	u8 seg_def,cntr_ovfl,cntr_rst;
-+    } shdsl_statistics;
-+    typedef struct {
-+	u8 master:1;
-+	u8 tcpam :3;
-+	u8 annex :3;
-+	u32 rate;
-+    } shdsl_settings;
-+protected:
-+    int error_init;
-+    device dev_type;
-+    s8 attn_tresh,snr_tresh;
-+    side_perf last_perf;
-+    int valid;
-+public:
-+    // Initialisation check
-+    int init_ok() { return valid; }
-+    EOC_dev(){
-+	memset((void*)&last_perf,0,sizeof(last_perf));
-+    }
-+    //----- EOC functions ---------//
-+    virtual int send(EOC_msg *msg) = 0;
-+    virtual EOC_msg *recv() = 0;
-+    //----- SHDSL channel ----------//
-+    virtual int loops() = 0;
-+    virtual Linkstate link_state() = 0;
-+    //----- SHDSL settings ---------//
-+    int tresholds(s8 loop_attn_tr,s8 snr_m_tr){
-+	attn_tresh = loop_attn_tr;
-+	snr_tresh = snr_m_tr;
-+    }
-+    int get_tresholds(s8 &loop_attn_tr,s8 &snr_m_tr){
-+	loop_attn_tr = attn_tresh;
-+	snr_m_tr = snr_tresh;
-+	return 0;
-+    }
-+    
-+    virtual int statistics(int loop,side_perf &stat) = 0;
-+
-+
-+};
-+
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_mr17h.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_mr17h.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/devs/EOC_mr17h.h	(revision 55)
-@@ -0,0 +1,57 @@
-+#ifndef SIGRAND_EOC_SG17_H
-+#define SIGRAND_EOC_SG17_H
-+
-+#include <devs/EOC_dev_terminal.h>
-+#include <generic/EOC_msg.h>
-+#include <generic/EOC_responses.h>
-+
-+inline int
-+mr17h_conf_dir(char *name,char *buf,int max_size){
-+    return snprintf(buf,max_size,"/sys/class/net/%s/sg17_private",name);    
-+}
-+
-+class EOC_mr17h : public EOC_dev_terminal{
-+protected:
-+
-+    //DEBUG
-+    side_perf perf;
-+    int perf_changed;
-+    
-+public:
-+    EOC_mr17h(char *_ifname);
-+    ~EOC_mr17h();
-+    
-+    // EOC message send/receive
-+    int send(EOC_msg *m);
-+    EOC_msg *recv();
-+
-+    // Span status
-+    Linkstate link_state();
-+
-+    // Device configuration
-+    int set_dev_option(char *name,char *val);
-+    int get_dev_option(char *name,char *&buf);
-+
-+    span_conf_profile_t *cur_config();
-+    int configure(span_conf_profile_t &cfg);
-+    int configure();
-+
-+    // Statistic info
-+    // DEBUG
-+    int loops() { return 1;};
-+
-+    int tresholds(s8 attn,s8 snr){
-+	snr_tresh = snr;
-+	attn_tresh = attn;
-+    }
-+    
-+    
-+    
-+    int statistics(int loop,side_perf &stat);
-+    void 	dbg_last_msg(){
-+	printf("LAST MSG:\nes(%u) ses(%u) losws(%u) crc(%u)\n",last_perf.es,last_perf.ses,last_perf.losws,last_perf.crc);
-+    }
-+
-+};
-+
-+#endif
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h	(revision 57)
 @@ -0,0 +1,38 @@
 +#ifndef EOC_DEBUG_H
 +#define EOC_DEBUG_H
@@ -3608,1345 +2887,10 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h
 +#endif
 +
 +
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/config/EOC_config.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/config/EOC_config.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/config/EOC_config.h	(revision 55)
-@@ -0,0 +1,33 @@
-+#ifndef EOC_CONFIG_H
-+#define EOC_CONFIG_H
-+
-+#include <generic/EOC_types.h>
-+#include <utils/hash_table.h>
-+
-+#include <conf_profile.h>
-+
-+class EOC_config{
-+    hash_table *conf_prof;
-+    hash_table *alarm_prof;
-+    char *cprof_name;
-+    char *aprof_name;
-+    u16 rep_num;
-+public:
-+    EOC_config(hash_table *c,hash_table *a,char *cn,char *an,u16 rep)
-+    {
-+	conf_prof = c;
-+	alarm_prof = a;
-+	cprof_name = cn;
-+	aprof_name = an;
-+	rep_num = rep;
-+    }
-+    const char *conf_prof_name(){return cprof_name;}
-+    const char *alarm_prof_name(){return cprof_name;}
-+    u16 repeaters(){ return rep_num; }
-+    hash_table *conf_tbl(){ return conf_prof; }
-+    hash_table *alarm_tbl(){ return alarm_prof; }
-+    s8 snr_tresh(){ return 0;}
-+    s8 loop_tresh(){ return 0; }
-+};
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_side.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_side.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_side.h	(revision 55)
-@@ -0,0 +1,53 @@
-+#ifndef EOC_SIDE_H
-+#define EOC_SIDE_H
-+
-+#include <db/EOC_loop.h>
-+#include <eoc_debug.h>
-+
-+class EOC_side{
-+public:
-+
-+private:
-+    EOC_loop *loops[MAX_LOOPS];
-+    int loop_num;
-+public:
-+    EOC_side(int lnum){
-+	ASSERT( lnum < MAX_LOOPS );
-+	loop_num = lnum;
-+	for(int i=0;i<lnum;i++){
-+	    loops[i] = new EOC_loop;
-+	}
-+    }
-+
-+    ~EOC_side(){
-+	for(int i=0;i<loop_num;i++){
-+	    ASSERT( loops[i] );
-+	    delete loops[i];
-+	}
-+    }
-+    
-+    EOC_loop* get_loop(int l){
-+	if( !(l<loop_num && l>=0) ){
-+	    PDEBUG(0,"error loop number = %d",l);
-+	    return NULL;
-+	}
-+	return loops[l];
-+    }
-+	inline void link_up(){
-+		for(int i=0;i<loop_num;i++)
-+			if(loops[i])
-+				loops[i]->link_up();
-+	}
-+	inline void link_down(){
-+		PDEBUG(DERR,"side func");
-+		for(int i=0;i<loop_num;i++){
-+			if(loops[i]){
-+				PDEBUG(DERR,"try down loop#%d",i);
-+				loops[i]->link_down();
-+				PDEBUG(DERR,"try down loop#%d - success",i);
-+			}
-+		}
-+	}
-+};
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_db.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_db.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_db.h	(revision 55)
-@@ -0,0 +1,69 @@
-+/*
-+ * EOC_db.h:
-+ *	EOC channel configuration & status storage
-+ */
-+ 
-+#ifndef EOC_DATABASE_H
-+#define EOC_DATABASE_H
-+
-+#include <generic/EOC_generic.h>
-+#include <generic/EOC_responses.h>
-+#include <generic/EOC_msg.h>
-+#include <engine/EOC_scheduler.h>
-+#include <db/EOC_unit.h>
-+#include <app-if/app_frame.h>
-+
-+class EOC_db{
-+    // Poller REsponse handler prototype
-+    typedef int (*response_handler_t)(EOC_db *d,EOC_msg *m,int check);
-+    typedef int (*app_handler_t)(EOC_db *db,app_frame *fr);
-+
-+    EOC_unit *units[MAX_UNITS];
-+    u8 units_discov[MAX_UNITS];
-+    response_handler_t handlers[RESPONSE_QUAN];
-+    app_handler_t app_handlers[app_ids_num];
-+    EOC_scheduler *sch;
-+    u8 loop_num;
-+
-+    static int _resp_discovery(EOC_db *db,EOC_msg *m,int check);
-+    static int _resp_inventory(EOC_db *db,EOC_msg *m,int check);
-+    static int _resp_configure(EOC_db *db,EOC_msg *m,int check);
-+    static int _resp_test(EOC_db *db,EOC_msg *m,int check);
-+    static int _resp_status(EOC_db *db,EOC_msg *m,int check);
-+    static int _resp_nside_perf(EOC_db *db,EOC_msg *m,int check);
-+    static int _resp_cside_perf(EOC_db *db,EOC_msg *m,int check);
-+    static int _resp_sensor_state(EOC_db *db,EOC_msg *m,int check);
-+
-+    static int _appreq_inventory(EOC_db *db,app_frame *fr);
-+    static int _appreq_endpcur(EOC_db *db,app_frame *fr);
-+    static int _appreq_endp15min(EOC_db *db,app_frame *fr);
-+    static int _appreq_endp1day(EOC_db *db,app_frame *fr);
-+    static int _appreq_endpmaint(EOC_db *db,app_frame *fr);
-+    static int _appreq_unitmaint(EOC_db *db,app_frame *fr);
-+	static int _appreq_cntrst(EOC_db *db,app_frame *fr);
-+
-+    inline int register_handlers();
-+
-+public:
-+    EOC_db(EOC_scheduler *s,int lnum);
-+    int response_chk(EOC_msg *m){ return 0; }
-+    int response(EOC_msg *m,int check = 0);
-+
-+    // TODO: 
-+    // what to do if inventory information of unit differs
-+//    int add_unit(unit u, resp_inventory *resp);
-+    int clear();
-+    int app_request(app_frame *fr);
-+    int unit_quan();
-+    int reg_quan();
-+
-+    int link_state();
-+    void link_down();
-+    void link_up();
-+
-+    int check_exist(unit u);
-+    EOC_side *check_exist(unit u,side s);
-+    EOC_loop *check_exist(unit u,side s,int loop);
-+};
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/alarm_profile.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/alarm_profile.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/alarm_profile.h	(revision 55)
-@@ -0,0 +1,14 @@
-+#ifndef SIGRAND_ALARM_PROFILE_H
-+#define SIGRAND_ALARM_PROFILE_H
-+
-+#include "eoc_primitives.h"
-+#include
-+
-+typedef struct {
-+    char name[ADMIN_STR_LEN];
-+    char tresh_loop_att;
-+    char tresh_snr_marg;
-+    perf_stat_t tresh;
-+} alarm_prof_t;
-+
-+#endif
-\ No newline at end of file
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_loop.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_loop.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_loop.h	(revision 55)
-@@ -0,0 +1,225 @@
-+#ifndef EOC_LOOP_H
-+#define EOC_LOOP_H
-+
-+#include <stdio.h>
-+#include <string.h>
-+#include <time.h>
-+#include <generic/EOC_types.h>
-+#include <generic/EOC_requests.h>
-+#include <generic/EOC_responses.h>
-+#include <utils/EOC_ring_container.h>
-+#include <eoc_debug.h>
-+
-+class counters_elem{
-+ public:
-+    time_t tstamp;
-+    counters_t cntrs;
-+
-+    counters_elem(){
-+		memset(&cntrs,0,sizeof(cntrs));
-+		tstamp = time(NULL);
-+    }
-+    int addit(counters_t cnt){
-+		//	printf("addit: %d to es\n",cnt.es);
-+		cntrs.es += cnt.es;
-+		cntrs.ses += cnt.ses;
-+		cntrs.crc += cnt.crc;
-+		cntrs.losws += cnt.losws;
-+		cntrs.uas += cnt.uas;
-+    }
-+	void reset(){
-+		PDEBUG(DERR,"reset");
-+		memset(&cntrs,0,sizeof(cntrs));
-+		tstamp = time(NULL);
-+	}
-+};
-+
-+typedef struct {
-+    time_t tstamp;
-+    s32 loop_attn;
-+    s32 snr_marg;
-+    shdsl_status_t stat;
-+    counters_elem elem;
-+} shdsl_current;
-+
-+
-+#define EOC_15MIN_SECS 15*60
-+#define EOC_1DAY_SECS 24*60*60
-+#define EOC_15MIN_INT_LEN 15
-+#define EOC_15MIN_INTS 96
-+#define EOC_1DAY_INTS 30
-+
-+class EOC_loop{
-+ public:
-+ protected:
-+    // current situation
-+    shdsl_current state;
-+	counters_elem tstate;
-+    EOC_ring_container<counters_elem> _15min_ints;
-+    EOC_ring_container<counters_elem> _1day_ints;
-+	u8 is_first_msg;
-+    side_perf last_msg;
-+	char lstate; // link state
-+	time_t moni_ts; // last moniSecs refresh
-+    
-+    // TODO: check how hardware maintain moulo counters: i.e. if counter overflow - would it count zero as addit count?
-+    inline u8 modulo_diff(u8 val,u8 nval,u8 modulo,char *type){
-+		u32 ret = ((nval-val>=0) ? nval-val : nval + (modulo-val)+1);
-+		//	printf("modulo_diff8(%s): val(%u) nval(%u) modulo(%u) ret(%u)\n",type,val,nval,modulo,ret);
-+		return ret;	
-+    }
-+
-+    inline u16 modulo_diff(u16 val,u16 nval,u16 modulo,char *type){
-+		u32 ret = ((nval-val>=0) ? nval-val : nval + (modulo-val)+1);
-+		//	printf("modulo_diff16(%s): val(%u) nval(%u) modulo(%u) ret(%u)\n",type,val,nval,modulo,ret);
-+		return ret;	
-+    }
-+
-+    inline int int_diff(u32 val,u32 nval,u32 modulo,char *type){
-+		if( val > nval )
-+			return 0;
-+		if( (nval-val)/modulo )
-+			return modulo;
-+		return (nval-val)%modulo;
-+    }
-+
-+    void status_diff(side_perf *info,counters_t &cntrs);
-+    int setup_cur_status(side_perf *info);
-+    int get_localtime(time_t *t,struct tm &ret);
-+    void shift_rings();
-+ public:
-+    EOC_loop();
-+	// TODO: write    ~EOC_loop();
-+    int short_status(s8 snr_margin);
-+    int full_status(side_perf *info);
-+
-+    // output interface
-+    s32 cur_snr(){ return state.snr_marg; }
-+    s32 cur_attn(){ return state.loop_attn; }
-+    shdsl_status_t cur_status(){ return state.stat; }
-+    counters_t cur_counters(){ return state.elem.cntrs; }
-+    counters_t cur_tcounters(){ return tstate.cntrs; }
-+    time_t cur_ttstamp(){ return tstate.tstamp; }
-+    int m15_counters(int index,counters_elem &cntrs){
-+		if( !(index < EOC_15MIN_INTS && index>=0) )
-+			return -1;
-+		if( !_15min_ints[index] )
-+			return -1;
-+		cntrs = *_15min_ints[index];
-+		return 0;
-+    }
-+
-+    int m15_nx_counters(int &index,counters_elem &cntrs){
-+		if( !(index < EOC_15MIN_INTS && index>=0) )
-+			return -1;
-+		int i = index;
-+		while( !_15min_ints[i] && i<EOC_15MIN_INTS )
-+			i++;
-+		if( !_15min_ints[i] )
-+			return -1;
-+		cntrs = *_15min_ints[i];
-+		index = i;
-+		return 0;
-+    }
-+    
-+    int d1_counters(int index,counters_elem &cntrs){
-+		if( !(index < EOC_1DAY_INTS && index>=0) )
-+			return -1;
-+		if( !_1day_ints[index] )
-+			return -1;
-+		cntrs = *_1day_ints[index];
-+		return 0;
-+    }
-+
-+    int d1_nx_counters(int &index,counters_elem &cntrs){
-+		if( !(index < EOC_1DAY_INTS && index>=0) )
-+			return -1;
-+		int i = index;
-+		while( !_1day_ints[i] && i<EOC_1DAY_INTS )
-+			i++;
-+		if( !_1day_ints[i] )
-+			return -1;
-+		cntrs = *_1day_ints[i];
-+		index = i;
-+		return 0;
-+    }
-+
-+	// Link status change handling
-+	inline void link_up(){
-+		PDEBUG(DERR,"LINK IS UP!!!!!!!!!!!!!!!!");
-+		if( lstate )
-+			return;
-+		lstate = 1;
-+		is_first_msg = 1;
-+		moni_ts = time(NULL);
-+	}
-+	inline void link_down(){
-+		PDEBUG(DERR,"LINK IS DOWN!!!!!!!!!!!!!!!!");
-+		if( !lstate )
-+			return;
-+		lstate  = 0;
-+	}
-+
-+	void update_mon_sec()
-+	{
-+		time_t cur = time(NULL);
-+		
-+
-+		if( !lstate )
-+			return;
-+		
-+		if( (_15min_ints[0]->tstamp + EOC_15MIN_SECS) > moni_ts ){
-+			if( (_15min_ints[0]->tstamp + EOC_15MIN_SECS) < cur ){ 
-+				// if 15min interval exceeds. 
-+				// If also 1day exceeds => 15min too - so dont need to chech 1day int
-+				int bkp = cur;
-+				cur = _15min_ints[0]->tstamp + EOC_15MIN_SECS;			
-+				_15min_ints[0]->cntrs.mon_sec += cur-moni_ts;
-+				_1day_ints[0]->cntrs.mon_sec += cur-moni_ts;
-+				moni_ts = cur;
-+				PDEBUG(DERR,"Int exceeds: cur=%d,tmp_cur=%d\nmoni_ts=%d",bkp,cur,moni_ts);
-+			}else{
-+				PDEBUG(DERR,"Normal: cur=%d, moni_ts=%d",cur,moni_ts);
-+				_15min_ints[0]->cntrs.mon_sec += cur-moni_ts;
-+				_1day_ints[0]->cntrs.mon_sec += cur-moni_ts;
-+				moni_ts = cur;
-+			}
-+			return;
-+		}
-+
-+		if( (_1day_ints[0]->tstamp + EOC_1DAY_SECS) > moni_ts ){
-+			if( (_1day_ints[0]->tstamp + EOC_1DAY_SECS) > cur){
-+				_1day_ints[0]->cntrs.mon_sec += cur-moni_ts;
-+				moni_ts = cur;
-+			}else{
-+				cur = _1day_ints[0]->tstamp + EOC_1DAY_SECS;
-+				_1day_ints[0]->cntrs.mon_sec += cur-moni_ts;
-+				moni_ts = cur;
-+			}	
-+		}
-+	}
-+
-+
-+	inline void reset_tcounters(){
-+		PDEBUG(DERR,"Reset Counters");
-+		tstate.reset();
-+	}
-+
-+    // TODO: removethis DEBUG
-+    void print_15m(){
-+		printf("Dump 15min stat:\n");
-+		for(int i=0;i<EOC_15MIN_INTS;i++){
-+			if( _15min_ints[i] ){
-+				char *c = ctime(&_15min_ints[i]->tstamp);
-+				int len = strlen(c);
-+				c[len-1] = '\0';
-+				printf("%s: es(%u) ses(%u) crc(%u) losws(%u) uas(%u)\n",
-+					   c,_15min_ints[i]->cntrs.es,
-+					   _15min_ints[i]->cntrs.ses,_15min_ints[i]->cntrs.crc,
-+					   _15min_ints[i]->cntrs.losws,_15min_ints[i]->cntrs.uas);
-+			}
-+		}
-+    }
-+};
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/eoc_primitives.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/eoc_primitives.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/eoc_primitives.h	(revision 55)
-@@ -0,0 +1,67 @@
-+#ifndef SIGRAND_EOC_PRIMS_H
-+#define SIGRAND_EOC_PRIMS_H
-+
-+// Define types
-+typedef unsigned int u32;
-+typedef int s32;
-+typedef unsigned short u16;
-+typedef short s16;
-+typedef unsigned char u8;
-+typedef char s8;
-+
-+//-----------------------------------------------------------------------
-+
-+#define ADMIN_STR_LEN 32
-+
-+typedef enum { region1=0,region2=1} transm_mode_t;
-+typedef enum { xtuC=1,xtuR,xru1,xru2,xru3,xru4,xru5,xru6,xru7,xru8 } unit_id_t;
-+typedef enum { pair1=1,pair2,pair3,pair4 } pair_num_t;
-+typedef enum { network=1,customer } side_t;
-+typedef enum { normal=1,resrved} tip_ring_rev_t;
-+typedef enum { preActivation=1, activation, data} act_state_t;
-+typedef enum { noLoopback = 1, normalLoopback, specialLoopback } loopback_cfg_t;
-+typedef enum { def = 1,ench } power_backoff_t;
-+typedef enum { ready = 1,restart } soft_restart_t;
-+typedef enum { local = 1, span } pwr_src_t;
-+typedef enum { twoWire = 1,fourWire,sixWire,eightWire } wire_if_t;
-+typedef enum { symmetric = 1, asymmetric } PSD_t;
-+typedef enum { localClk = 1, networkClk, dataOrNetworkClk, dataClk } clock_ref_t;
-+typedef enum { noPower = 1, powerFeed, wettingCurrent } remote_conf_t;
-+typedef enum { disabled = 1, enabled } pwr_feeding_t;
-+typedef enum { disable = 1, enable } line_probe_t;
-+typedef enum { active = 1, notInService, notReady, createAndGo, createAndWait, destroy } row_statuis_t;
-+
-+
-+typedef struct {
-+	u16 noDefect :1;
-+	u16 powerBackoff :1;
-+	u16 deviceFault :1;
-+	u16 dcContinuityFault :1;
-+	u16 snrMarginAlarm :1;
-+	u16 loopAttenuationAlarm :1;
-+	u16 loswFailureAlarm :1;
-+	u16 configInitFailure :1;
-+	u16 protocolInitFailure:1;
-+	u16 noNeighborPresent :1;
-+	u16 loopbackActive :1;
-+} status_bits_t;
-+
-+typedef struct {
-+	u8 currCondDown :1;
-+	u8 worstCaseDown :1;
-+	u8 currCondUp :1;
-+	u8 worstCaseUp :1;	
-+} targ_marg_t;
-+
-+// Perfomance & status characteristics
-+typedef struct{
-+    u32 es;
-+    u32 ses;
-+    u32 crc_anom;
-+    u32 losws;
-+    u32 uas;
-+} perf_stat_t;
-+		    
-+
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_unit.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_unit.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/EOC_unit.h	(revision 55)
-@@ -0,0 +1,96 @@
-+/*
-+ * EOC_db.h:
-+ *	EOC channel configuration & status storage
-+ */
-+ 
-+#ifndef EOC_UNIT_H
-+#define EOC_UNIT_H
-+
-+#include <generic/EOC_generic.h>
-+#include <generic/EOC_responses.h>
-+#include <db/EOC_side.h>
-+#define EOC_SIDES_NUM 2
-+
-+class EOC_unit{
-+ public:
-+    typedef enum { span = 0, local } power_t;
-+ protected:
-+    unit u;
-+    u8 eoc_softw_v;
-+    resp_inventory inv_info;
-+    u8 inv_info_setted;
-+    resp_sensor_state sensors_cur;
-+    u8 sens1,sens2,sens3;
-+    
-+    power_t power;
-+    EOC_side *side[EOC_SIDES_NUM];
-+ public:
-+    EOC_unit(unit u_in,resp_discovery *resp,int loops){
-+		inv_info_setted = 0;
-+		eoc_softw_v = resp->eoc_softw_ver;
-+		for( int i=0; i<EOC_SIDES_NUM;i++)
-+			side[i] = NULL;
-+		u = u_in;
-+		memset(&sensors_cur,0,sizeof(sensors_cur));
-+		sens1 = 0;
-+		sens2 = 0;	
-+		sens3 = 0;
-+		switch( u ){
-+		case stu_c:
-+			side[cust_side] = new EOC_side(loops); 
-+			break;
-+		case stu_r:
-+			side[net_side] = new EOC_side(loops);
-+			break;
-+		default:
-+			side[cust_side] = new EOC_side(loops); 
-+			side[net_side] = new EOC_side(loops);
-+			break;
-+		}
-+    }
-+    int set_inv_info(resp_inventory *resp){
-+		inv_info = *resp;
-+		inv_info_setted = 1;
-+    }
-+    u8 eoc_softw_ver(){ return eoc_softw_v; }
-+    
-+    EOC_side *nside(){ return side[net_side]; }
-+    EOC_side *cside(){ return side[cust_side]; }
-+
-+    int integrity(resp_inventory *resp){
-+		if( !inv_info_setted )
-+			return 0;
-+		if( memcmp(resp,&inv_info,sizeof(inv_info) ) )
-+			return -1;
-+		return 0;
-+    }
-+
-+    resp_inventory inventory_info(){ return inv_info; }
-+
-+    void sensor_resp(resp_sensor_state *resp){
-+		//	PDEBUG(DINFO,"SAVE SENSOR STATE: s1(%d), s2(%d), s3(%d)",resp->sensor1,resp->sensor2,resp->sensor3);
-+		sensors_cur = *resp;
-+		sens1 += resp->sensor1;
-+		sens2 += resp->sensor2;
-+		sens3 += resp->sensor3;
-+    }
-+
-+	inline void link_up(){
-+		for(int i=0;i<EOC_SIDES_NUM;i++)
-+			if(side[i])
-+				side[i]->link_up();
-+	}
-+	inline void link_down(){
-+		PDEBUG(DERR,"unit link down");
-+		for(int i=0;i<EOC_SIDES_NUM;i++){
-+			if(side[i]){
-+				PDEBUG(DERR,"down side %d",i);
-+				side[i]->link_down();
-+				PDEBUG(DERR,"down side %d - successfully",i);
-+			}
-+		}
-+	}
-+};
-+
-+#endif
-+ 
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/conf_profile.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/conf_profile.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/db/conf_profile.h	(revision 55)
-@@ -0,0 +1,26 @@
-+#ifndef SIGRAND_CONF_PROFILE_H
-+#define SIGRAND_CONF_PROFILE_H
-+
-+#include "eoc_primitives.h"
-+
-+typedef struct {
-+    char name[ADMIN_STR_LEN];
-+    int hash;
-+    wire_if_t wire_if;
-+    unsigned int min_lrate;
-+    unsigned int max_lrate;
-+    PSD_t psd;
-+    transm_mode_t transm_mode;
-+    remote_conf_t rconf;
-+    pwr_feeding_t pwd_feed;
-+    char cur_marg_down;
-+    char worst_marg_down;
-+    char cur_marg_up;
-+    char worst_marg_up;
-+    targ_marg_t tmarg;
-+    clock_ref_t clk_ref;
-+    line_probe_t lprobe;
-+} conf_prof_t;
-+
-+
-+#endif
-\ No newline at end of file
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/sched_queue.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/sched_queue.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/sched_queue.h	(revision 55)
-@@ -0,0 +1,140 @@
-+#ifndef SCHED_QUEUE_H
-+#define SCHED_QUEUE_H
-+
-+#include <generic/EOC_generic.h>
-+#include <engine/sched_elem.h>
-+#include <list>
-+
-+using namespace std;
-+
-+class sched_queue{
-+public:
-+protected:
-+    list<sched_elem> q;
-+    u32 err_no_answer;
-+public:
-+    sched_queue(){
-+	err_no_answer = 0;
-+	q.clear();
-+    }
-+    ~sched_queue(){
-+	q.clear();
-+    }
-+    
-+    void clear(){
-+	q.clear();
-+    }
-+    
-+    int add(unit src,unit dst,unsigned char type,__timestamp ts){
-+	list<sched_elem>::iterator p = q.begin();
-+	list<sched_elem>::iterator p1 = q.end();
-+	for(;p != q.end();p++ ){
-+	    if( src == p->src && dst == p->dst && type == p->type )
-+		return -1;
-+	    if( p->tstamp == ts )
-+		p1 = p;
-+	}
-+	if( p1 != q.end() )
-+	    p1++;
-+	sched_elem *n = new sched_elem;
-+	n->src = src;
-+	n->dst = dst;
-+	n->type = type;
-+	n->tstamp = ts;
-+	q.insert(p1,*n);
-+	delete n;
-+	return 0;
-+    }
-+
-+    inline int add(sched_elem &el){
-+	return add(el.src,el.dst,el.type,el.tstamp);
-+    }
-+    
-+    int get_old(__timestamp cur,u32 wait_to,sched_elem &el)
-+    {
-+	if( !q.size() )
-+	    return -1;
-+
-+	q.sort();
-+	list<sched_elem>::iterator p = q.begin();
-+
-+	if( cur - p->tstamp > wait_to ){
-+	    el = *p;
-+//	    printf("FIND_DEL: clear src(%d) dst(%d) type(%d) tstamp(%d)\n",p->src,p->dst,p->type,p->tstamp.get_val());
-+	    q.pop_front();
-+	    return 0;
-+	}
-+	return -1;
-+    }	
-+    
-+    int schedule(sched_elem &el,__timestamp cur){
-+	q.sort();
-+	unit swap;
-+	list<sched_elem>::iterator p = q.begin();
-+	for(;p != q.end();p++ ){
-+	    if( p->tstamp <= cur ){
-+		el = *p;
-+		q.erase(p);
-+		return 0;
-+	    }else
-+		return -1;
-+	}
-+	return -1;
-+    }
-+
-+    int find_del(unit src,unit dst,unsigned char type,__timestamp cur){
-+	q.sort();
-+	list<sched_elem>::iterator p = q.begin();
-+	for(;p != q.end();p++ ){
-+	    // search needed element
-+	    unit s1 = p->src;
-+	    unit d1 = p->dst;
-+	    char t1 = p->type;
-+	    if( ((src == p->src)||(p->src == BCAST)) && (dst == p->dst) && (type == p->type) ){
-+		q.erase(p);
-+		return 0;
-+	    }
-+	}	
-+	return -1;
-+    }
-+    
-+    void print(){
-+	q.sort();
-+	list<sched_elem>::iterator p = q.begin();
-+	int i=0;
-+	for(;p != q.end();p++ ){
-+	    unsigned char a = p->type;
-+	    printf("%d: src(%d),dst(%d),type(%u),tick(%d)\n",i,p->src,p->dst,(unsigned char)(a&0xff),p->tstamp.get_val());
-+	    i++;
-+	}	
-+    }	
-+
-+};
-+
-+/*
-+int main()
-+{
-+    __timestamp t(200);
-+    __timestamp t1(t);
-+    __timestamp t2(t,5);
-+    __timestamp t3(195);
-+    sched_queue q,q1;
-+    
-+    unit s,d;
-+    unsigned char tp;
-+    sched_elem el;
-+    int k=q.schedule(el,t2,q1);
-+    q.add(stu_c,stu_r,1,t);
-+    q.add(stu_c,sru1,1,t2+10);
-+    q.add(stu_c,sru2,2,t2);
-+    t++;
-+    k=q.find_del(stu_c,sru3,1);
-+    k=q.schedule(el,t2,q1);
-+    k=q1.find_del(stu_c,sru2,2);
-+    k=q.find_del(stu_c,sru1,1);
-+    k=q.find_del(stu_c,stu_r,1);
-+    k=q.find_del(stu_c,stu_r,1);
-+
-+}
-+*/
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine.h	(revision 55)
-@@ -0,0 +1,32 @@
-+#ifndef EOC_ENGINE_H
-+#define EOC_ENGINE_H
-+
-+#include <devs/EOC_dev.h>
-+#include <devs/EOC_dev_terminal.h>
-+#include <generic/EOC_types.h>
-+#include <generic/EOC_generic.h>
-+#include <engine/EOC_router.h>
-+#include <engine/EOC_responder.h>
-+
-+#define RECV_ONCE 10
-+
-+class EOC_engine{
-+protected:
-+    dev_type type;
-+    EOC_router *rtr;
-+    EOC_responder *resp;
-+    u16 recv_max;
-+public:
-+    EOC_engine(EOC_dev_terminal *d1,dev_type t = slave,u16 rmax = RECV_ONCE);
-+    EOC_engine(EOC_dev *d1,EOC_dev *d2, u16 rmax = RECV_ONCE);
-+    inline ~EOC_engine(){
-+	if( rtr ) delete rtr;
-+	if( resp ) delete resp;
-+    }
-+    int setup_state();
-+    virtual int schedule();
-+    dev_type get_type(){ return type; }
-+    virtual int configure(char *ch_name); // Slave configuration, Repeater need no configuration
-+};
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine_act.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine_act.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine_act.h	(revision 55)
-@@ -0,0 +1,38 @@
-+#ifndef EOC_ENGINE_ACT_H
-+#define EOC_ENGINE_ACT_H
-+
-+#include <devs/EOC_dev.h>
-+#include <devs/EOC_dev_terminal.h>
-+
-+#include <generic/EOC_types.h>
-+#include <generic/EOC_generic.h>
-+
-+#include <utils/hash_table.h>
-+
-+#include <config/EOC_config.h>
-+
-+#include <engine/EOC_poller.h>
-+#include <engine/EOC_engine.h>
-+
-+
-+
-+class EOC_engine_act : public EOC_engine {
-+protected:
-+    EOC_poller *poll;
-+    EOC_config *cfg;
-+public:
-+    EOC_engine_act(EOC_dev_terminal *d1,EOC_config *cfg,u16 ticks_p_min=0,u16 rmax = 10);
-+    inline ~EOC_engine_act(){
-+	if( rtr ) delete rtr;
-+	if( resp ) delete resp;
-+	if( poll ) delete poll;
-+    }
-+
-+    int setup_state_act();
-+    int schedule();
-+    int register_handlers();
-+    int app_request(app_frame *fr);
-+    int configure(char *ch_name); // Master configuration
-+};
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_poller.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_poller.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_poller.h	(revision 55)
-@@ -0,0 +1,54 @@
-+/*
-+ * EOC_poller.h:
-+ * 	master EOC polling class
-+ */
-+#ifndef EOC_POLLER_H
-+#define EOC_POLLER_H
-+
-+#include <generic/EOC_types.h>
-+#include <generic/EOC_generic.h>
-+#include <generic/EOC_msg.h>
-+#include <generic/EOC_types.h>
-+#include <devs/EOC_dev.h>
-+#include <engine/EOC_scheduler.h>
-+#include <engine/EOC_handlers.h>
-+#include <config/EOC_config.h>
-+#include <db/EOC_db.h>
-+
-+class EOC_poller{
-+private:
-+    EOC_db *db;
-+    EOC_scheduler *sch;
-+    EOC_config *cfg;
-+    request_handler_t req_hndl[REQUEST_QUAN];
-+
-+public:
-+    EOC_poller(EOC_config *c,int ticks_per_minute,int loops){
-+	int i;
-+	sch = new EOC_scheduler(ticks_per_minute);
-+	db = new EOC_db(sch,loops);
-+	cfg = c;
-+	for(i=0;i<REQUEST_QUAN;i++)
-+	    req_hndl[i] = NULL;
-+    }
-+    ~EOC_poller(){
-+	delete db;
-+	delete sch;
-+	delete cfg;
-+    }
-+    void link_state(EOC_dev::Linkstate link);
-+    inline EOC_dev::Linkstate link_state(){ 
-+	return ((sch->state()==EOC_scheduler::Offline) ? EOC_dev::OFFLINE : EOC_dev::ONLINE);
-+    }
-+
-+    int register_request(u8 type,request_handler_t h);
-+    int unregister_request(u8 type);
-+    EOC_msg *gen_request();
-+    int process_msg(EOC_msg *m);
-+    int app_request(app_frame *fr);
-+    inline int unit_quan(){ db->unit_quan(); }
-+    inline int link_established(){ db->link_established(); }
-+      
-+};
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_scheduler.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_scheduler.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_scheduler.h	(revision 55)
-@@ -0,0 +1,100 @@
-+/*
-+ * EOC_scheduler.h:
-+ * 	EOC channel units polling schedule objecht
-+ * 	provides schedule for request generating and sending
-+ */
-+
-+#ifndef EOC_SCHEDULER_H
-+#define EOC_SCHEDULER_H
-+
-+#include <devs/EOC_dev.h>
-+#include <generic/EOC_msg.h>
-+#include <generic/EOC_requests.h>
-+#include <generic/EOC_responses.h>
-+#include <engine/sched_queue.h>
-+
-+
-+class EOC_scheduler{
-+public:
-+    enum unit_state{ NotPresent,Discovered, Inventored, Configured };
-+    enum sched_state{ Offline,Setup,Normal };    
-+protected:
-+    struct state_machine{
-+	// TODO: Maybe linked list ??
-+	unit_state ustates[MAX_UNITS];
-+	sched_state state;
-+    } *statem;
-+    __timestamp ts;
-+    int ts_offs;
-+    // Task queues
-+    sched_queue *send_q,*wait_q;
-+    u32 wait_to;
-+    // State change functions
-+    void jump_Offline();
-+    int jump_Setup();
-+    int jump_Normal();
-+    int poll_unit(int ind);
-+public:
-+    EOC_scheduler(u32 tick_per_minute){
-+    	send_q = new sched_queue();
-+	wait_q = new sched_queue();
-+	statem = new state_machine;
-+	wait_to = tick_per_minute;
-+	ts_offs = tick_per_minute*2;
-+	jump_Offline();
-+    }
-+    //
-+    inline void link_state(EOC_dev::Linkstate st){
-+	switch(st){
-+	case EOC_dev::OFFLINE:
-+	    jump_Offline();
-+	case EOC_dev::ONLINE:
-+	    if( jump_Setup() )
-+		jump_Offline();
-+	}
-+    }
-+    
-+    sched_state state(){ return statem->state; }
-+    inline void tick(){ ts++; }
-+    
-+    // Schedule request & check response to me scheduled
-+    int request(sched_elem &el);
-+    int response(EOC_msg *m);
-+    int resched();
-+    // debug
-+    void print(){
-+    	printf("______________________________________\n");   
-+	printf("send_q:\n");
-+	send_q->print();
-+	printf("______________________________________\n");
-+	printf("wait_q:\n");
-+	wait_q->print();
-+    }
-+};
-+
-+/*
-+Очередь запросов, на которые не поступило ответов. Описывается:
-+1. Тип ожидаемого ответа
-+2. Время отсылки запроса
-+3. Источник ответа (фиксированный или широковещательный)
-+4. Перевод в новое состояние ???? Кого? 
-+    (Discovery -ответ переводитконкретный элемент в состояние Inventory)
-+    4 состояния - 1. Discovery, 2. Inventory, 3. Configure 4. Online
-+5. 
-+
-+Машина состояний для канала:
-+1. Offline - нет связи
-+2. Discovery:
-+    1.1 Отослать запрос
-+    1.2 Собирать ответы пока не придет ответ от слейва, каждый новый эл-т канала
-+        добавляется в БД и переходит в состояние Inventory
-+3. Online - если каждый из юнитов успешно прошел все стадии 
-+	( 1. Discovery, 2. Inventory, 3. Configure )
-+
-+Для юнита:
-+1. Discovered - элемент создан
-+2. Inventored - пришел Inventory response
-+3. Configured - пришел Configure response
-+    
-+*/
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_handlers.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_handlers.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_handlers.h	(revision 55)
-@@ -0,0 +1,24 @@
-+/*
-+ * EOC_responses.h:
-+ *	Contains structures of SHDSL EOC responses
-+ */
-+
-+#ifndef EOC_HANDSLERSS_H
-+#define EOC_HANDLERS_H
-+
-+#include <generic/EOC_types.h>
-+#include <generic/EOC_generic.h>
-+#include <generic/EOC_msg.h>
-+#include <generic/EOC_requests.h>
-+#include <db/EOC_db.h>
-+#include <config/EOC_config.h>
-+#include <engine/EOC_scheduler.h>
-+#include <engine/EOC_responder.h>
-+
-+
-+typedef EOC_scheduler::sched_state sched_state;
-+
-+// Poller Request handler prototype
-+typedef EOC_msg *(*request_handler_t)(sched_state stat,sched_elem el,EOC_config *cfg);
-+ 
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_router.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_router.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_router.h	(revision 55)
-@@ -0,0 +1,80 @@
-+/*
-+ *    EOC_router:
-+ *	Provide message receiving/sending/routing based on their
-+ *	address fields in EOC message as described in G.shdsl standard
-+ */
-+
-+#ifndef SIGRAND_EOC_ROUTER_H
-+#define SIGRAND_EOC_ROUTER_H
-+
-+#include <generic/EOC_msg.h>
-+#include <generic/EOC_generic.h>
-+#include <devs/EOC_dev.h>
-+
-+
-+class EOC_router{
-+public:
-+    struct interface{
-+	EOC_dev *sdev;
-+	unit sunit;
-+	EOC_msg::Direction in_dir,out_dir;
-+	shdsl_state state;
-+    };
-+    enum {SHDSL_MAX_IF=2};
-+protected:
-+    dev_type type;
-+    struct interface ifs[SHDSL_MAX_IF];
-+    unsigned char if_cnt,if_poll;
-+    int max_recv_msg;
-+    
-+    inline void zero_init();
-+    inline EOC_dev *get_route_dev(int if_ind);
-+    inline int out_direction(EOC_msg::Direction *dir);
-+    inline EOC_msg *process_discovery(int if_ind,EOC_msg *m);
-+
-+
-+    // ------------ loopback ------------------//
-+    #define LOOPB_BUF_SZ 16
-+    int loop_head,loop_tail;
-+    EOC_msg *loopb[LOOPB_BUF_SZ];
-+    inline int inc(int ind,int max_ind){ return (ind+1<max_ind) ? ind+1 : 0; }
-+    inline int add_loop(EOC_msg *m){
-+	if( loop_head == inc(loop_tail,LOOPB_BUF_SZ) ) 
-+	    return -1;
-+	loopb[loop_tail] = m;
-+	loop_tail = inc(loop_tail,LOOPB_BUF_SZ);
-+	return 0;
-+    }
-+
-+    inline EOC_msg *get_loop(){
-+	EOC_msg *m;
-+	if( loop_head == loop_tail ) 
-+	    return NULL;
-+	m = loopb[loop_head];
-+	loop_head = inc(loop_head,LOOPB_BUF_SZ);
-+	return m;
-+    }
-+    // ------------ loopback ------------------//
-+
-+public:
-+    EOC_router(dev_type r,EOC_dev *side);
-+    EOC_router(dev_type r,EOC_dev *nside,EOC_dev *cside);
-+    ~EOC_router();
-+
-+    EOC_msg *receive();
-+    int send(EOC_msg *m);
-+
-+    unit csunit();
-+    unit nsunit();    
-+    EOC_dev *csdev();
-+    EOC_dev *nsdev();    
-+
-+    int csunit(unit u);
-+    int nsunit(unit u);
-+    int term_unit(unit u);
-+    void update_state();    
-+    int loops();
-+	
-+};
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine_Cwrap.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine_Cwrap.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_engine_Cwrap.h	(revision 55)
-@@ -0,0 +1,13 @@
-+#ifndef EOC_ENGINE_WRAPPER_H
-+#define EOC_ENGINE_WRAPPER_H
-+
-+struct EOC_engine;
-+struct EOC_dev;
-+
-+// Initialise engine
-+EOC_engine *
-+init_repeater(EOC_dev *d1,EOC_dev *d2,int packets);
-+int engine_sched(EOC_engine *eng);
-+void release_repeater(EOC_engine *eng);
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_responder.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_responder.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/EOC_responder.h	(revision 55)
-@@ -0,0 +1,67 @@
-+/*
-+ * EOC_responder.h:
-+ *	Defines universal EOC code part which runs on ewery unit in
-+ *	SHDSL span.
-+ *	It provides request processing.
-+*/
-+
-+
-+#ifndef SIGRAND_EOC_RESPONDER_H
-+#define SIGRAND_EOC_RESPONDER_H
-+
-+#include <generic/EOC_types.h>
-+#include <generic/EOC_generic.h>
-+#include <generic/EOC_msg.h>
-+#include <generic/EOC_requests.h>
-+#include <generic/EOC_responses.h>
-+#include <engine/EOC_router.h>
-+#include <eoc_debug.h>
-+
-+class EOC_responder{
-+public:
-+typedef int (*responder_handler_t)(EOC_responder *in,EOC_msg *m,EOC_msg **&ret,int &cnt);
-+protected:
-+    responder_handler_t handlers[REQUEST_QUAN];
-+    EOC_router *r;
-+public:
-+    EOC_responder(EOC_router *r_in){
-+	r = r_in;
-+	for(int i=0;i<REQUEST_QUAN;i++)
-+	    handlers[i] = NULL;
-+
-+	handlers[REQ_INVENTORY] = _inventory;
-+	handlers[REQ_CONFIGURE] = _configure;
-+	handlers[REQ_STATUS] =_status;
-+	handlers[15] = _test;
-+    }
-+
-+    ~EOC_responder(){}
-+
-+    int register_hndl(u8 type,responder_handler_t h){
-+	if( !(type < REQUEST_QUAN) || handlers[type])
-+	    return -1;
-+	handlers[type] = h;
-+	return 0;
-+    }
-+
-+    int unregister_hndl(u8 type,responder_handler_t h){
-+	if( !(type < REQUEST_QUAN) || !handlers[type])
-+	    return -1;
-+	handlers[type] = NULL;
-+	return 0;
-+    }
-+
-+    int request(EOC_msg *m,EOC_msg **&ret,int &cnt){
-+	if( !m->is_request() || !handlers[m->type()])
-+	    return -1;
-+	return handlers[m->type()](this,m,ret,cnt);
-+    }
-+    
-+    // Handlers
-+    static int _inventory(EOC_responder *in,EOC_msg *m,EOC_msg **&ret,int &cnt);
-+    static int _configure(EOC_responder *in,EOC_msg *m,EOC_msg **&ret,int &cnt);
-+    static int _status(EOC_responder *in,EOC_msg *m,EOC_msg **&ret,int &cnt);
-+    static int _test(EOC_responder *in,EOC_msg *m,EOC_msg **&ret,int &cnt);
-+};
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/sched_elem.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/sched_elem.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/engine/sched_elem.h	(revision 55)
-@@ -0,0 +1,82 @@
-+#ifndef SCHED_ELEM_H
-+#define SCHED_ELEM_H
-+
-+#include <generic/EOC_generic.h>
-+#include <list>
-+
-+using namespace std;
-+
-+class __timestamp{
-+protected:
-+    unsigned long ticks;
-+public:
-+    __timestamp(){ ticks = 0; }
-+    __timestamp(unsigned int t){ ticks = t; }
-+    __timestamp(const __timestamp &t){ ticks = t.ticks; }
-+    __timestamp(__timestamp t,unsigned int offs){ ticks = t.ticks + offs; }
-+
-+    inline __timestamp & operator =(__timestamp &right){
-+	ticks = right.ticks;
-+	return *this;
-+    }
-+
-+    inline bool operator ==(__timestamp &right){
-+	if( ticks == right.ticks )
-+	    return 1;
-+	return 0;
-+    }
-+    inline bool operator < (__timestamp &right){
-+	if( ticks < right.ticks )
-+	    return 1;
-+	return 0;
-+    }
-+    inline bool operator <= (__timestamp &right){
-+	if( ticks <= right.ticks )
-+	    return 1;
-+	return 0;
-+    }
-+    inline __timestamp & operator ++ (int k){
-+	ticks++;
-+	return *this;
-+    }
-+    inline __timestamp &operator+(__timestamp &right){
-+	__timestamp *n = new __timestamp(*this);
-+	n->ticks += right.ticks;
-+	return *n;
-+    }
-+
-+    inline __timestamp operator+(int &offs){
-+	__timestamp n = *this;
-+	n.ticks += offs;
-+	return n;
-+    }
-+
-+    inline int operator-(__timestamp &right){
-+	return (this->ticks - right.ticks);
-+    }
-+
-+    int get_val(){ return ticks; }
-+
-+};
-+
-+class sched_elem{
-+public:
-+    unit src,dst;
-+    unsigned char type;
-+    __timestamp tstamp;
-+public:
-+    inline bool operator < (sched_elem &right){
-+	if( tstamp < right.tstamp )
-+	    return 1;
-+	return 0;
-+    }
-+    inline sched_elem &operator = (sched_elem &right){
-+	src = right.src;
-+	dst = right.dst;
-+	type = right.type;
-+	tstamp = right.tstamp;
-+	return *this;
-+    }
-+};
-+
-+#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/conf_profile.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/conf_profile.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/conf_profile.h	(revision 55)
-@@ -0,0 +1,25 @@
-+#ifndef SPAN_PROFILE_H
-+#define SPAN_PROFILE_H
-+
-+#include <generic/EOC_types.h>
-+#include <utils/hash_table.h>
-+#include <generic/span_conf_type.h>
-+
-+class conf_profile : public hash_elem{
-+public:
-+    span_conf_profile_t conf;
-+
-+    conf_profile() : hash_elem()
-+    {
-+	memset(&conf,0,sizeof(conf));
-+	conf.annex = annex_a;
-+	conf.wires = twoWire;
-+	conf.power = noPower;
-+	conf.psd = symmetric;
-+	conf.clk = localClk;
-+	conf.line_probe = disable;
-+	conf.remote_cfg = disabled;
-+    }
-+};
-+
-+#endif
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h	(revision 57)
 @@ -0,0 +1,64 @@
 +#ifndef APP_FRAME_H
 +#define APP_FRAME_H
@@ -5015,7 +2959,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h	(revision 57)
 @@ -0,0 +1,63 @@
 +#ifndef EOCD_APP_COMMUNICATOR_H
 +#define EOCD_APP_COMMUNICATOR_H
@@ -5083,8 +3027,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h	(revision 55)
-@@ -0,0 +1,24 @@
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h	(revision 57)
+@@ -0,0 +1,28 @@
 +#ifndef ERROR_STRINGS_H
 +#define ERROR_STRINGS_H
 +#include <app-if/err_codes.h>
@@ -5103,8 +3047,12 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h
 +"Configuration profile is in use",
 +"Channel not maintain SHDSL data base",
 +"Unexpected error",
-+"Requested element not exist"
++"Requested element not exist",
++"Some settings of profile not compatible with devices",
++"Profile is read-only"
 +};
++
++
 +
 +#define ERR_STR_SIZE sizeof(err_codes)
 +
@@ -5112,7 +3060,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h	(revision 57)
 @@ -0,0 +1,18 @@
 +#ifndef EOCD_APP_COMM_CLI_H
 +#define EOCD_APP_COMM_CLI_H
@@ -5135,7 +3083,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h	(revision 57)
 @@ -0,0 +1,24 @@
 +#ifndef EOC_APP_COMM_SRV_H
 +#define EOC_APP_COMM_SRV_H
@@ -5164,8 +3112,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h	(revision 55)
-@@ -0,0 +1,21 @@
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h	(revision 57)
+@@ -0,0 +1,23 @@
 +#ifndef ERROR_CODES_H
 +#define ERROR_CODES_H
 +
@@ -5183,15 +3131,17 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h
 +ERPBUSY,    // Conf profile is in use
 +ERNODB,     // Channel dont maintain SHDSL DB
 +ERUNEXP,    // Unexpected error
-+ERNOELEM    // Requested unit not exist
++ERNOELEM,   // Requested unit not exist
++ERPNCOMP,	// Some settings of profile not compatible with devices 
++ERPRONLY,	// Profile is read-only
 +};
 +
 +#endif
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h	(revision 55)
-@@ -0,0 +1,280 @@
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h	(revision 57)
+@@ -0,0 +1,295 @@
 +#ifndef APP_MESSAGES_H
 +#define APP_MESSAGES_H
 +
@@ -5206,7 +3156,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 +			   APP_ENDP_1DAY, APP_ENDP_MAINT, APP_UNIT_MAINT, APP_CPROF,
 +			   APP_LIST_CPROF, APP_ADD_CPROF, APP_DEL_CPROF, APP_LOOP_RCNTRST,
 +			   APP_ADD_CHAN, APP_DEL_CHAN, APP_CHNG_CHAN, APP_ENDP_APROF,
-+			   APP_DUMP_CFG
++			   APP_DUMP_CFG,APP_SENSORS
 +} app_ids;
 +
 +#define app_ids_num 20
@@ -5261,6 +3211,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 +    u8 : 6;
 +    u32 max_prate;
 +    u32 act_prate;
++	u8 tcpam;
 +} span_status_payload;
 +#define SPAN_STATUS_PAY_SZ sizeof(span_status_payload)
 +#define SPAN_STATUS_CH_SZ 0
@@ -5369,6 +3320,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 +typedef struct{
 +    char pname[SNMP_ADMIN_LEN+1];
 +    span_conf_profile_t conf;
++    u8 filled:7;
++	char names[SPAN_NAMES_NUM][SPAN_NAME_LEN];
 +} cprof_payload;
 +#define CPROF_PAY_SZ sizeof(cprof_payload)
 +
@@ -5381,6 +3334,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 +    u8 line_probe:1;
 +    u8 remote_cfg:1;
 +    u8 rate:1;
++    u8 tcpam:1;
 +    s8 cur_marg_down:1;
 +    s8 worst_marg_down:1;
 +    s8 cur_marg_up:1;
@@ -5426,6 +3380,17 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 +    u8 hdsl2ShdslEndpointThreshUAS:1;
 +} endp_alarm_prof_changes;
 +#define ENDP_ALARM_PROF_CH_SZ sizeof(endp_alarm_prof_changes)
++
++//----------- Regenerator Sensors ----------------//
++
++typedef struct{
++    u8 unit;
++    resp_sensor_state state;
++	u8 sens1,sens2,sens3;
++} sensors_payload;
++#define SENSORS_PAY_SZ sizeof(sensors_payload)
++#define SENSORS_CH_SZ 0
++
 +
 +//----------- Endpoint counters reset ------------//
 +
@@ -5475,7 +3440,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h	(revision 57)
 @@ -0,0 +1,36 @@
 +#ifndef EOC_TYPES_H
 +#define EOC_TYPES_H
@@ -5516,7 +3481,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h	(revision 57)
 @@ -0,0 +1,51 @@
 +#ifndef EOC_MSG_H
 +#define EOC_MSG_H
@@ -5572,7 +3537,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h	(revision 57)
 @@ -0,0 +1,54 @@
 +/*
 + * EOC_requests.h:
@@ -5631,7 +3596,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h	(revision 57)
 @@ -0,0 +1,30 @@
 +#ifndef SIGRAND_EOC_GENERIC_H
 +#define SIGRAND_EOC_GENERIC_H
@@ -5666,7 +3631,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h	(revision 57)
 @@ -0,0 +1,112 @@
 +/*
 + * EOC_responses.h:
@@ -5783,7 +3748,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.h	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.h	(revision 57)
 @@ -0,0 +1,37 @@
 +#ifndef SPAN_CONF_TYPE_H
 +#define SPAN_CONF_TYPE_H
@@ -5822,29 +3787,10 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.
 +} span_conf_profile_t;
 +
 +#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/shdsl/config.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/shdsl/config.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/shdsl/config.h	(revision 55)
-@@ -0,0 +1,14 @@
-+#ifndef EOC_SHDSL_CONFIG_H
-+#define EOC_SHDSL_CONFIG_H
-+
-+#include <generic/EOC_types.h>
-+
-+class shdsl_config {
-+public:
-+    u32 max_rate : 20;
-+    u32 min_rate : 20;
-+    u32 master : 1;
-+    u32 annex  :4;
-+};
-+
-+#endif
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h	(revision 57)
 @@ -0,0 +1,6 @@
 +#ifndef EOC_SNMP_H
 +#define EOC_SNMP_H
@@ -5852,45 +3798,10 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h
 +#define SNMP_ADMIN_LEN 32
 +
 +#endif
-Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/channel.h
-===================================================================
---- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/channel.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/channel.h	(revision 55)
-@@ -0,0 +1,30 @@
-+#ifndef EOC_CHANNEL_H
-+#define EOC_CHANNEL_H
-+
-+#include <generic/EOC_types.h>
-+
-+#include <utils/hash_table.h>
-+
-+#include <snmp/snmp-generic.h>
-+
-+#include <devs/EOC_dev.h>
-+#include <devs/EOC_dev_terminal.h>
-+
-+#include <engine/EOC_engine.h>
-+#include <engine/EOC_engine_act.h>
-+
-+class channel_elem : public hash_elem{
-+public:
-+    EOC_engine *eng;
-+    channel_elem(EOC_dev_terminal *dev){
-+	eng = new EOC_engine(dev);
-+    }
-+    channel_elem(EOC_dev_terminal *dev,EOC_config *c,u32 tick_per_min){
-+	eng = new EOC_engine_act(dev,c,tick_per_min);
-+    }
-+    ~channel_elem(){
-+	delete eng;
-+    }
-+};
-+
-+#endif
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h	(revision 57)
 @@ -0,0 +1,229 @@
 +/*
 + *  hdsl2,shdsl MIB (rfc- interfaces.h
@@ -6124,7 +4035,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h	(revision 57)
 @@ -0,0 +1,18 @@
 +#ifndef SHDSL_COMM_H
 +#define SHDSL_COMM_H
@@ -6147,14 +4058,14 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/TODO.txt
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/TODO.txt	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/TODO.txt	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/TODO.txt	(revision 57)
 @@ -0,0 +1 @@
 +(+)1. Broken pipe problem
 \ No newline at end of file
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp	(revision 57)
 @@ -0,0 +1,97 @@
 +#include <sys/types.h>
 +#include <sys/socket.h>
@@ -6256,7 +4167,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp	(revision 57)
 @@ -0,0 +1,185 @@
 +#include <sys/types.h>
 +#include <sys/socket.h>
@@ -6446,7 +4357,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp	(revision 57)
 @@ -0,0 +1,184 @@
 +#include <app-if/app_frame.h>
 +
@@ -6635,7 +4546,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp	(revision 57)
 @@ -0,0 +1,97 @@
 +#include <sys/types.h>
 +#include <sys/socket.h>
@@ -6737,7 +4648,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp	(revision 57)
 @@ -0,0 +1,83 @@
 +#include <app-if/app_frame.h>
 +#include <app-if/app_comm_cli.h>
@@ -6825,7 +4736,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile	(revision 57)
 @@ -0,0 +1,27 @@
 +ifeq ($(TOPDIR),)
 +    TOPDIR=$(PWD)/../
@@ -6857,7 +4768,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c	(revision 57)
 @@ -0,0 +1,1861 @@
 +#include <sys/types.h>
 +#include <sys/stat.h>
@@ -8723,7 +6634,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 Index: net-snmp-5.1.2/agent/mibgroup/mibII.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII.h	(revision 42)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII.h	(revision 55)
++++ net-snmp-5.1.2/agent/mibgroup/mibII.h	(revision 57)
 @@ -13,3 +13,4 @@
  config_require(mibII/udp)
  config_require(mibII/vacm_vars)
@@ -8732,7 +6643,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII.h
 Index: net-snmp-5.1.2/Makefile.top
 ===================================================================
 --- net-snmp-5.1.2/Makefile.top	(revision 42)
-+++ net-snmp-5.1.2/Makefile.top	(revision 55)
++++ net-snmp-5.1.2/Makefile.top	(revision 57)
 @@ -52,6 +52,11 @@
  
  # Misc Compiling Stuff

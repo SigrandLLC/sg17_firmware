@@ -34,11 +34,16 @@ _eoc_settings()
 
 	if [ -n "$opts" ]; then
 		# echo "$config -o channel -c$iface $opts -s"
-		$config -o channel -c$iface $opts -s > /dev/null
-		$config -us
-		render_save_message
-		render_js_refresh_window 300
-		return
+		eval `$config -o channel -c$iface $opts -s`
+		if [ "$eoc_error" -eq "1" ]; then
+			ERROR_MESSAGE="$err_string"
+			render_save_message_nohide
+		else
+			$config -us
+			render_save_message
+			render_js_refresh_window 300
+			return
+		fi
 	fi	
 	
 	eval `$info -tr`
@@ -545,8 +550,16 @@ _eoc_profiles()
 {
 	# Save results comed from user
 	if [ -n "$FORM_pname" ]; then
-		unset rate annex power pname tcpam
-		[ -n "$FORM_rate" ] && rate="-l$FORM_rate"
+		unset rate annex power pname tcpam mrate
+		# Rate selection type
+		if [ -n "$FORM_mrate" ]; then
+			rate="-l$FORM_mrate"
+			kdb set sys_eocd_profile_${FORM_pname}=text
+		else
+			rate="-l$FORM_rate"
+			kdb set sys_eocd_profile_${FORM_pname}=list
+		fi
+
 		[ -n "$FORM_annex" ] && annex="-n$FORM_annex"
 		[ -n "$FORM_power" ] && power="-f$FORM_power"
 		[ -n "$FORM_tcpam" ] && tcpam="-t${FORM_tcpam##tcpam}"
@@ -589,6 +602,7 @@ _eoc_profiles()
 		unset pname rate annex power tcpam
 		eval "pname=\${cprof$k}"
 		eval "rate=\${rate$k}"
+		eval "mrate=\${mrate$k}"
 		eval "annex=\${annex$k}"
 		eval "power=\${power$k}"
 		eval "tcpam=\${tcpam$k}"
@@ -597,10 +611,28 @@ _eoc_profiles()
 		fi
 
 		echo "<tr>"
-	
+
+		rtype=`kdb get sys_eocd_profile_$pname`
+		if [ "$rtype" != "text" ]; then
+			mrate=""
+		else
+			mrate=rate
+			rate="-1"
+		fi
+
 		render_form_header_light "$pname"
 		render_input_field "hidden" "hidden" profiles "1"
 		render_input_field "hidden" "hidden" pname "$pname"
+		id="hmrate$k"
+		render_input_field "hidden" "hidden" hmrate "$mrate"
+
+		if [ "$pname" = "default" ]; then
+			echo"<td>SET prefix to RO</td>"
+			prefix="-d"	
+		else 
+			prefix=""
+		fi
+
 
 		# Profile name
 		tip="Name"
@@ -609,19 +641,23 @@ _eoc_profiles()
 		# Profile rate
 		tip="Channel rate"
 		id="rate$k"
-		render_input_td_field select rate $rate $rate
+		td_id="rate_td$k"
+		onchange="eocRates();"	
+		render_input_td_field $prefix select rate $rate $rate
 		
 		# Annex
 		tip="Annex"
-		render_input_td_field select annex AnnexA AnnexA AnnexB AnnexB
+		render_input_td_field $prefix select annex AnnexA AnnexA AnnexB AnnexB
 
 		# Power
 		tip="Power"
-		render_input_td_field select power on on off off
+		render_input_td_field $prefix select power on on off off
 
 		# Encoding
 		tip="Encoding"
-		render_input_td_field select tcpam tcpam8 TCPAM8 tcpam16 TCPAM16 tcpam32 TCPAM32 tcpam64 TCPAM64 tcpam128 TCPAM128
+		id="tcpam$k"
+		onchange="eocRates();"	
+		render_input_td_field $prefix select tcpam tcpam8 TCPAM8 tcpam16 TCPAM16 tcpam32 TCPAM32 tcpam64 TCPAM64 tcpam128 TCPAM128
 
 		render_submit_field_light
 		render_form_tail_light
@@ -660,11 +696,13 @@ _eoc_profiles()
 	# Profile name
 	tip="Name"
 	render_input_td_field text pname ""
-		
+	
+	
 	# Profile rate
 	tip="Channel rate"
 	id="rate"
 	rate=192
+	onchange="eocRates();"	
 	render_input_td_field select rate 192 192
 		
 	# Annex
@@ -680,6 +718,8 @@ _eoc_profiles()
 	# Encoding
 	tip="Encoding"
 	tcpam=tcpam16
+	id="tcpam"
+	onchange="eocRates();"	
 	render_input_td_field select tcpam tcpam8 TCPAM8 tcpam16 TCPAM16 tcpam32 TCPAM32 tcpam64 TCPAM64 tcpam128 TCPAM128
 
 	render_submit_field_light

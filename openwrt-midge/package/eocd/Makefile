@@ -3,7 +3,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=eocd
-PKG_VERSION:=2.2
+PKG_VERSION:=2.3
 PKG_RELEASE:=0
 PKG_SOURCE_URL:=http://sigrand.ru/temp
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2

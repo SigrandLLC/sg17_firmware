@@ -218,6 +218,7 @@ function OnChangeSG17Code()
 	clkmode_ind = $('clkmode').selectedIndex;
 	annex_ind = $('annex').selectedIndex;
 	ind = $('rate').selectedIndex;
+	var mre = document.getElementById('mrate');
 	//	alert('ratetype=' + $('ratetype').checked );
 	if( ind < 0 ){
 		ind = 0;
@@ -239,7 +240,8 @@ function OnChangeSG17Code()
 		freeList($('annex'));
 		$('annex').options[0] = new Option("automatic");
 		$('annex').disabled = 1;
-		$('mrate').disabled = 1;
+		var base = document.getElementById('rate_td');
+		base.removeChild(mre);
     } else {
 		freeList($('code'));
 		$('code').disabled = 0;
@@ -294,8 +296,7 @@ function OnChangeSG17Code()
 			};
 		}
 		
-		var tr = document.getElementById('mrate');
-		if( rate < 0 && tr == null ){
+		if( rate < 0 && mre == null ){
 			var base = document.getElementById('rate_td');
 			var oe = document.getElementById('rate');
 			var ne = document.createElement('input');
@@ -306,9 +307,9 @@ function OnChangeSG17Code()
 			ne.setAttribute('name',ne_name);
 			ne.setAttribute('value',$('hmrate').value);
 			base.insertBefore(ne,oe.nextSibling);
-		}else if( rate > 0 && tr != null ){
+		}else if( rate > 0 && mre != null ){
 			var base = document.getElementById('rate_td');
-			base.removeChild(tr);
+			base.removeChild(mre);
 		}
 		// Clock mode		
 		freeList($('clkmode'));
@@ -347,7 +348,37 @@ function eocRates(){
 			rate = s.options[ind].value;
 		}
 		
-		rate_list(s,192,5696,64,rate);
+		tc = $('tcpam' + i);
+	    tcpam = $('tcpam' + i).options[$('tcpam' + i).selectedIndex].value;
+		if( tcpam == "tcpam128" ) {
+			fixed_rate_list(s,rate,rate_list128);
+		} else if( tcpam == "tcpam64" ){
+			fixed_rate_list(s,rate,rate_list64);
+		} else if( tcpam == "tcpam32" ){
+			fixed_rate_list(s,rate,rate_list32_v2);
+		} else if( tcpam == "tcpam16" ){
+			fixed_rate_list(s,rate,rate_list16);
+		} else if( tcpam == "tcpam8" ){
+			fixed_rate_list(s,rate,rate_list8);
+		};
+
+		var mre = document.getElementById('mrate' + i);
+		if( rate < 0 && mre == null ){
+			var base = document.getElementById('rate_td' + i);
+			var oe = document.getElementById('rate' + i);
+			var ne = document.createElement('input');
+			ne.setAttribute('type','text');
+			ne.setAttribute('id','mrate' + i);
+			ne.setAttribute('class','edit');
+			ne.setAttribute('size','5');
+			ne_name='mrate';
+			ne.setAttribute('name',ne_name);
+			ne.setAttribute('value',$('hmrate'+i).value);
+			base.insertBefore(ne,oe.nextSibling);
+		}else if( rate > 0 && mre != null ){
+			var base = document.getElementById('rate_td' + i);
+			base.removeChild(mre);
+		}
 	}
 
 	s = $('rate');
@@ -367,7 +398,7 @@ function eocRates(){
 		rate = s.options[ind].value;
 	}
 		
-	rate_list(s,192,5696,64,rate);
+	rate_list(s,192,14080,64,rate);
 };
 
 function aaa(){

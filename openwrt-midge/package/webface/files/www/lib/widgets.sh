@@ -273,6 +273,7 @@ render_input_td_field(){
 	eval 'value=$'$inputname
 	[ -z "$value" -a -n "$default" ] && value="$default"
 	[ -n "$id" ] && idcode="id='$id'"
+	[ -n "$td_id" ] && td_id="id='$td_id'"
 	[ -n "$autosubmit" ] && ascode="onchange='this.form.submit()'"
 	[ -n "$onchange" ] && onchangecode="onchange='$onchange'"
 	
@@ -328,7 +329,7 @@ render_input_td_field(){
 	
 	echo "</td>"
 	echo "<!-- ------- /render_input_field $type $inputname $* -->"
-	unset id autosubmit onchange onmouseover tip desc validator default
+	unset id autosubmit onchange onmouseover tip desc validator default td_id
 }
 
 render_submit_field(){
