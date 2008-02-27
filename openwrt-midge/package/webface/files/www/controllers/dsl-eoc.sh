@@ -552,7 +552,7 @@ _eoc_profiles()
 	if [ -n "$FORM_pname" ]; then
 		unset rate annex power pname tcpam mrate
 		# Rate selection type
-		if [ -n "$FORM_mrate" ]; then
+		if [ "$FORM_rate" -eq "-1" ]; then
 			rate="-l$FORM_mrate"
 			kdb set sys_eocd_profile_${FORM_pname}=text
 		else
@@ -610,17 +610,16 @@ _eoc_profiles()
 			break
 		fi
 
-		echo "<tr>"
 
 		rtype=`kdb get sys_eocd_profile_$pname`
-		if [ "$rtype" != "text" ]; then
-			mrate=""
-		else
-			mrate=rate
+		mrate="$rate"
+		if [ "$rtype" = "text" ]; then
 			rate="-1"
 		fi
 
-		render_form_header_light "$pname"
+		echo "<tr>"
+
+		render_form_header_light "f$pname"
 		render_input_field "hidden" "hidden" profiles "1"
 		render_input_field "hidden" "hidden" pname "$pname"
 		id="hmrate$k"
@@ -629,8 +628,10 @@ _eoc_profiles()
 		if [ "$pname" = "default" ]; then
 			echo"<td>SET prefix to RO</td>"
 			prefix="-d"	
+			dis_set="disabled='true'"
 		else 
 			prefix=""
+			dis_set=""
 		fi
 
 
@@ -639,11 +640,12 @@ _eoc_profiles()
 		render_input_td_field static pname $pname
 		
 		# Profile rate
-		tip="Channel rate"
-		id="rate$k"
-		td_id="rate_td$k"
-		onchange="eocRates();"	
-		render_input_td_field $prefix select rate $rate $rate
+		echo -n "<td>"
+		echo -n "<select $dis_set name='rate' class='edit' id='rate"$k"' onChange='eocRates();' tmt:errorclass='invalid'>"
+		echo -n "<option value=$rate selected>$rate</option> </select>"
+		echo -n "<input type='text' style='display:none' id='mrate"$k"' name='mrate' size='5' maxlength='5' value='"$mrate"'>"
+		echo -n "</td>"
+		#render_input_td_field $prefix select rate $rate $rate
 		
 		# Annex
 		tip="Annex"
@@ -667,10 +669,9 @@ _eoc_profiles()
 		render_input_field "hidden" "hidden" dprofile "1"
 		render_input_field "hidden" "hidden" pname "$pname"
 		render_submit_field_light "Delete"
-		render_form_tail_light
-
 		echo "</tr>"
 
+		render_form_tail_light
 		k=`expr $k + 1`
 	done
 	echo "</table></td></tr>"

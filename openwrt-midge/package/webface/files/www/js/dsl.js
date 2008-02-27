@@ -363,21 +363,10 @@ function eocRates(){
 		};
 
 		var mre = document.getElementById('mrate' + i);
-		if( rate < 0 && mre == null ){
-			var base = document.getElementById('rate_td' + i);
-			var oe = document.getElementById('rate' + i);
-			var ne = document.createElement('input');
-			ne.setAttribute('type','text');
-			ne.setAttribute('id','mrate' + i);
-			ne.setAttribute('class','edit');
-			ne.setAttribute('size','5');
-			ne_name='mrate';
-			ne.setAttribute('name',ne_name);
-			ne.setAttribute('value',$('hmrate'+i).value);
-			base.insertBefore(ne,oe.nextSibling);
-		}else if( rate > 0 && mre != null ){
-			var base = document.getElementById('rate_td' + i);
-			base.removeChild(mre);
+		if( rate < 0 ){
+			mre.style.display="";
+		}else if( rate > 0 ){
+			mre.style.display='none';
 		}
 	}
 
