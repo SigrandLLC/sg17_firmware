@@ -22,10 +22,14 @@
 		render_console_end
 		;;
 	'sad')
+		help_1="ipsec.sa"
+		help_2=""
 		render_table_title "Security Association Database" 2 
 		render_iframe_list "ipsec_table" "table=sad"
 		;;
 	'spd')
+		help_1="ipsec.sp"
+		help_2=""
 		render_table_title "Security Policy Database" 2 
 		render_iframe_list "ipsec_table" "table=spd"
 		;;

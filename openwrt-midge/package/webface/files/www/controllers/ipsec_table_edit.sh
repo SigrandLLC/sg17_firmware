@@ -7,8 +7,16 @@
 
 	eval_string="export FORM_$item=\"enabled=$FORM_enabled mode=$FORM_mode src=$FORM_src dst=$FORM_dst "
 	case "$table" in
-	sad)	eval_string="$eval_string spi=$FORM_spi ah_alg=$FORM_ah_alg ah_key=$FORM_ah_key esp_alg=$FORM_esp_alg esp_key=$FORM_esp_key \"";;
-	spd) 	eval_string="$eval_string upperspec=$FORM_upperspec direction=$FORM_direction policy=$FORM_policy esp_enabled=$FORM_esp_enabled ah_enabled=$FORM_ah_enabled src_dst=$FORM_src_dst level=$FORM_level \"";;
+	sad)
+		eval_string="$eval_string spi=$FORM_spi ah_alg=$FORM_ah_alg ah_key=$FORM_ah_key esp_alg=$FORM_esp_alg esp_key=$FORM_esp_key \""
+		help_1="ipsec.sa"
+		help_2="ipsec.sa.add"	
+		;;
+	spd)
+	 	eval_string="$eval_string upperspec=$FORM_upperspec direction=$FORM_direction policy=$FORM_policy esp_enabled=$FORM_esp_enabled ah_enabled=$FORM_ah_enabled src_dst=$FORM_src_dst level=$FORM_level \""
+		help_1="ipsec.sp"
+		help_2="ipsec.sp.add"	 	
+	 	;;
 	esac
 	render_popup_save_stuff
 	
