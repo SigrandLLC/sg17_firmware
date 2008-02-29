@@ -105,7 +105,7 @@
 		desc=""
 		render_input_field select "Policy" policy ipsec ipsec none none discard discard
 
-		[ -z "$src" ] && default=1 # for new record
+		[ -z "$src" ] && default=0 # for new record
 		render_input_field checkbox "AH" ah_enabled
 		[ -z "$src" ] && default=1 # for new record
 		render_input_field checkbox "ESP" esp_enabled

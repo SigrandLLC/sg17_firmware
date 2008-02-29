@@ -8,6 +8,8 @@
 	render_popup_save_stuff
 	
 	render_form_header sroute_static_edit
+	help_1="traffic"
+	help_2="routes.list"
 	render_table_title "Static route settings" 2
 	render_popup_form_stuff
 	
