@@ -10,6 +10,8 @@
 	render_popup_save_stuff
 	
 	render_form_header dns_zonelist_edit
+	help_1="dns_server"
+	help_2="dns_server.zone_add"
 	render_table_title "DNS Zone options" 2
 	render_popup_form_stuff
 	

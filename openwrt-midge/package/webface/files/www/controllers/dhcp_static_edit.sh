@@ -9,6 +9,8 @@
 	render_popup_save_stuff
 	
 	render_form_header dhcp_static_edit
+	help_1="dhcp_server"
+	help_2="dhcp_server.static_add"
 	render_table_title "DHCP Host settings" 2
 	render_popup_form_stuff
 	

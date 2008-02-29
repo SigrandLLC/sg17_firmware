@@ -40,7 +40,9 @@
 	render_form_tail
 
 	# dns zone list
-	render_form_header dns_zonelist 
+	render_form_header dns_zonelist
+	help_1="dns_server"
+	help_2="dns_server.dns_zones" 
 	render_table_title "Zones" 2 
 	render_iframe_list "dns_zonelist"
 	render_form_tail

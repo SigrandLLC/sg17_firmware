@@ -68,7 +68,8 @@
 		# esp_alg
 		tip=""
 		desc="Encryption algorithm"
-		render_input_field select "ESP Algorithm" esp_alg none none null null 'des-cbc' 'des-cbc (64bit)' '3des-cbc' '3des-cbc (192bit)' 'blowfish-cbc' 'blowfish-cbc (40 to 448 bit)' cast128-cbc 'cast128-cbc (40 to 448 bit)' #des-deriv 'des-deriv' 3des-deriv '3des-deriv' rijndael-cbc 'rijndael-cbc' twofish-cbc 'twofish-cbc' aes-ctr 'aes-ctr'
+		#render_input_field select "ESP Algorithm" esp_alg none none null null 'des-cbc' 'des-cbc (64bit)' '3des-cbc' '3des-cbc (192bit)' 'blowfish-cbc' 'blowfish-cbc (40 to 448 bit)' cast128-cbc 'cast128-cbc (40 to 448 bit)' #des-deriv 'des-deriv' 3des-deriv '3des-deriv' rijndael-cbc 'rijndael-cbc' twofish-cbc 'twofish-cbc' aes-ctr 'aes-ctr'
+		render_input_field select "ESP Algorithm" esp_alg none none null null 'des-cbc' 'des-cbc (64bit)' '3des-cbc' '3des-cbc (192bit)' 'blowfish-cbc' 'blowfish-cbc (40 to 448 bit)' #'cast128-cbc' 'cast128-cbc (40 to 128 bit)' #des-deriv 'des-deriv' 3des-deriv '3des-deriv' rijndael-cbc 'rijndael-cbc' twofish-cbc 'twofish-cbc' aes-ctr 'aes-ctr'
 		
 		# esp_key
 		default="0x"
