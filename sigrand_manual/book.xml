@@ -1716,212 +1716,323 @@
 			</para>
 		</section>
   </chapter>
-  <chapter id="dhcp_server">
-    <title>Настройка сетевых служб</title>
-    <section>
-      <title>DHCP-сервер</title>
-      <para>
-				Настройка DHCP-сервера выполняется независимо для каждого сетевого интерфейса и производится на вкладке Network/настраиваемый сетевой интерфейс/DHCP. На этой странице представлены конфигурационные параметры, управляющие работой DHCP-сервера, а так же параметры сетевой конфигурации, которые передаются клиенту.
+	<chapter id="dhcp_server">
+    	<title>Настройка сетевых служб</title>
+    	<section>
+			<title>DHCP-сервер</title>
+			<para>
+				Настройка DHCP-сервера выполняется независимо для каждого сетевого интерфейса и производится на странице Network/сетевой интерфейс, вкладка DHCP, либо Services/DHCP Server.
 			</para>
-      <para>
-				Общий вид страницы конфигурации представлен на рисунке:
-				<figure>
-          <title>Настройка DHCP-сервера</title>
-          <graphic fileref="img/eth-dhcp.png" />
-        </figure>
-      </para>
-      <para>
-				Настройки DHCP-сервера:
-				<itemizedlist>
-          <listitem>За активацию DHCP-сервера отвечает опция Enable DHCP server</listitem>
-          <listitem>Значения Start IP и End IP указывают диапазон IP адресов, из которого будет выбираться адрес для клиента</listitem>
-        </itemizedlist>
-      </para>
-      <para>
-				Сетевые настройки, которые будут переданы клиенту:
-				<itemizedlist>
-          <listitem>Netmask - задает сетевую маску</listitem>
-          <listitem>Default router - маршрут по-умолчанию</listitem>
-          <listitem>Default lease time - время, на которое выдается IP адрес. По истечению этого времени клиент должен снова обратиться к DHCP-серверу для подтверждения использования выданного ранее адреса или получения нового</listitem>
-          <listitem>DNS server - IP адрес DNS-сервера, к которому будет обращаться клиент для разрешения доменных имен</listitem>
-          <listitem>Domain - домен, который будет присвоен клиенту</listitem>
-          <listitem>NTP server - IP адрес сервера точного времени</listitem>
-          <listitem>WINS server - IP адрес WINS сервера</listitem>
-        </itemizedlist>
-      </para>
-      <note>
-        <simpara>После сохранения настроек, DHCP сервер будет запущен либо перезапущен автоматически.</simpara>
-      </note>
-      <para>
-				Существует возможность присваивать определенным машинам статические IP адреса. Идентификация машин производится по значению MAC адреса сетевой карты. Форма для привязки IP адреса к MAC адресу находится внизу страницы конфигурации и представлена на рисунке:
-				<figure>
-          <title>Список статических IP-адресов</title>
-          <graphic fileref="img/eth-dhcp-add.png" />
-        </figure>
-      </para>
-      <para>
-				Изначально форма пуста. Добавление значений производится с помощью формы, вызываемой по нажатию на кнопку 
-				<inlinemediaobject>
-          <imageobject>
-            <imagedata fileref="img/eth-dhcp-button-plus.png" />
-          </imageobject>
-        </inlinemediaobject>
-				 справа от заголовка таблицы:
-				 <figure>
-          <title>Форма привязки IP к MAC</title>
-          <graphic fileref="img/eth-dhcp-add-form.png" />
-        </figure>
-        <itemizedlist>
-          <listitem>Host name - задает имя машины, для которой выполняется привязка адреса. Это значение носит справочный характер и используется только в правиле, и может не соответствовать фактическому имени машины</listitem>
-          <listitem>IP Address - IP адрес, который будет присвоен данной машине</listitem>
-          <listitem>MAC Address - MAC адрес сетевой карты машины. Именно при совпадении с этим адресом происходит присвоение указанного IP адреса</listitem>
-        </itemizedlist>
-      </para>
-      <para>
-				После заполнения полей, необходимо сохранить внесенные изменения. После этого, в список статических IP адресов будет добавлен новый адрес, а на экране появится новая форма для добавления следующего IP адреса. После добавления всех статических адресов, форму можно закрыть.
-				<figure>
-          <title>Обновленный список IP-адресов</title>
-          <graphic fileref="img/eth-dhcp-add-list.png" />
-        </figure>
-      </para>
-      <para>
-				Существующие в таблице записи можно изменить с помощью кнопки 
-				<inlinemediaobject>
-          <imageobject>
-            <imagedata fileref="img/eth-dhcp-button-e.png" />
-          </imageobject>
-        </inlinemediaobject>
-				, находящейся справа от правила. Удаление правила осуществляется кнопкой 
-				<inlinemediaobject>
-          <imageobject>
-            <imagedata fileref="img/eth-dhcp-button-x.png" />
-          </imageobject>
-        </inlinemediaobject>
-				.
+			<important>
+				<para>
+					Перед активацией DHCP-сервера необходимо запустить интерфейс (активировать флажки <emphasis>Enabled</emphasis> и <emphasis>Auto</emphasis>), на котором он будет работать, а так же назначить интерфейсу IP-адрес.
+				</para>
+			</important>
+			<para>
+				Ниже представлена страница настройки DHCP-сервера.
 			</para>
-    </section>
-	<section id="pptp_server">
-		<title>PPTP-сервер</title>
-		<para>
-			PPTP-сервер позволяет организовать VPN - виртуальную частную сеть - поверх обычной сети. Для этого пользователи подключаются к VPN-серверу, и в случае успешной авторизации получает доступ к ресурсам частной сети. Функции VPN-сервера в маршрутизаторе выполняет PPTP-сервер - point-to-point tunneling protocol.
-		</para>
-		<para>
-			Страница конфигурации находится в Services/PPTP server и приведена ниже:
 			<figure>
-				<title>Конфигурация PPTP-сервера</title>
-				<graphic fileref="img/pptpd.png" width="6in" />
+				<title>Настройка DHCP-сервера</title>
+				<graphic fileref="img/dhcp.png" width="6in"/>
 			</figure>
-		</para>
-		<para>
-			Активация VPN-сервера выполняется установкой флажка напротив параметра <emphasis>Enable PPTP server</emphasis>. Настройка сервера состоит из двух стадий - конфигурации самого сервера и добавления пользователей, которые могут к нему подключаться. Рассмотрим параметры конфигурации сервера:
-		</para>
-		<itemizedlist>
-			<listitem>Name - имя VPN-сервера. Используется при аутентификации. У пользователя в *-secret файле значение имени сервера должно совпадать с этим, либо там должна стоять "звездочка".</listitem>
-			<listitem>Local IP range - диапазон IP-адресов, которые будут присвоены соединению на стороне сервера.</listitem>
-			<listitem>Remote IP range - диапазон IP-адресов, которые будут присвоены соединению на стороне клиента.</listitem>
-			<listitem>
-				Механизмы аутентификации. Имеют три значения - <emphasis>none</emphasis> - не определено,  <emphasis>require</emphasis> - обязателен, <emphasis>refuse</emphasis> - запрещен к использованию
-				<itemizedlist>
-					<listitem>PAP Mode - метод PAP</listitem>
-					<listitem>CHAP Mode - метод CHAP</listitem>
-					<listitem>MS CHAP Mode - метод MS CHAP</listitem>
-					<listitem>MS CHAPv2 Mode - метод MS CHAPv2</listitem>
-				</itemizedlist>
-			</listitem>
-			<listitem>MPPE Mode - использовать шифрование трафика по алгоритму MPPE (Microsoft Point-to-Point Encryption)</listitem>
-			<listitem>DNS server - адреса первичного и вторичного сервера DNS, которые будут переданы клиенту</listitem>
-			<listitem>WINS server - адрес WINS сервера</listitem>
-			<listitem>PPPD options - опции, которые будут переданы серверу pptp</listitem>
-		</itemizedlist>
-		<para id="auth_ppp">
-			После внесения изменений, конфигурацию необходимо сохранить. Для добавления пользователей VPN-сервера, перейдем на страницу System/Security/PPP secrets:
-		</para>
-		<figure>
-			<title>Пользователи VPN-сервера</title>
-			<graphic fileref="img/chap-list-empty.png" width="6in" />
-		</figure>
-		<para>
-			Вкладка CHAP содержит пользователей, использующих систему аутентификации CHAP (в т.ч. обе версии MS CHAP), вкладка PAP - соответственно пользователей, использующих PAP. Пример добавления нового пользователя показан ниже:
-		</para>
-		<figure id="auth_ppp_edit">
-			<title>Добавление нового пользователя</title>
-			<graphic fileref="img/chap-add.png" width="6in" />
-		</figure>
-		<itemizedlist>
-			<listitem>Username - имя пользователя</listitem>
-			<listitem>Password - пароль пользователя</listitem>
-			<listitem>Server - имя сервера VPN, "звездочка" - любой</listitem>
-			<listitem>IP address - IP-адрес, выдаваемый клиенту. "Звездочка" - любой.</listitem>
-		</itemizedlist>
-	</section>
-	<section id="dns_server">
-		<title>Сервер DNS</title>
-		<para>Сервер DNS отвечает за преобразование доменного имени в IP-адрес. Его настройка осуществляется на странице Services/DNS server:</para>
-		<figure>
-			<title>Настройка сервера DNS</title>
-			<graphic fileref="img/dns_server.png" width="6in" />
-		</figure>
-		<para>
-			Для активации сервера DNS необходимо поставить флажок напротив <emphasis>Enable DNS server</emphasis>. Добавление новой зоны осуществляется в форме Zones, в которой отображаются зоны, обслуживаемые сервером DNS:
-		</para>
-		<figure id="dns_zones">
-			<title>Зоны сервера DNS</title>
-			<graphic fileref="img/dns_server-zones.png" width="6in" />
-		</figure>
-		<para id="dns_zone_add">
-			При добавлении новой зоны, необходимо ввести следующие параметры:
 			<itemizedlist>
-				<listitem>Zone id - идентификатор зоны, можно ввести имя зоны (этим идентификатором называется файл, в котором хранится зона)</listitem>
-				<listitem>Zone - имя зоны (доменное имя, для которого создается зона)</listitem>
-				<listitem>Enable - активна ли зона</listitem>
-				<listitem>Name server - авторитетный сервер DNS для домена</listitem>
-				<listitem>Admin - адрес электронной почты администратора зоны</listitem>
-				<listitem>Refresh - время, через которые ведомые сервера DNS (slave) будут обновлять зону</listitem>
-				<listitem>TTL - время, которое запись зоны может храниться в кэше</listitem>
-				<listitem>retry - время, через которое ведомый сервер в случае неудачи повторит попытку обновить зону</listitem>
-				<listitem>expire - время, через которое информация о зоне перестает считаться действительной</listitem>
-			</itemizedlist>
-		</para>
-		<para>
-			После добавления соответствующая запись появится в таблице зон. Пример добавления показан ниже:
-		</para>
-		<figure>
-			<title>Добавление зоны</title>
-			<graphic fileref="img/dns_server-add-zone.png" width="6in" />
-		</figure>
-		<para>
-			Переход на добавление записей в зону осуществляется щелчком мыши по идентификатору или имени зоны. При добавлении новой записи нужно ввести следующие параметры:
-			<itemizedlist>
-				<listitem>Domain or host - имя (или IP-адрес, если зона реверсивная)</listitem>
 				<listitem>
-					Type of record - тип записи. Возможны следующие значения:
+					<para>
+						<emphasis>Enable DHCP Server</emphasis> — активировать DHCP-сервер для данного интерфейса.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Start IP</emphasis>, <emphasis>End IP</emphasis> — начало и конец диапазона IP-адресов для выдачи клиентам DHCP.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Netmask</emphasis> — сетевая маска сети, для которой выдаются IP-адреса.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Default router</emphasis> — маршрут по-умолчанию.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Default lease time</emphasis> — время, на которое выдаётся IP-адрес. По истечении этого времени клиент должен снова обратиться к DHCP-серверу для подтверждения использования выданного ранее адреса или получения нового.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>DNS server</emphasis> — IP-адрес DNS-сервера, к которому будет обращаться клиент для разрешения доменных имен.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Domain</emphasis> — домен, в который будет входить клиент DHCP-сервера.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>NTP server</emphasis> — IP-адрес сервера точного времени.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>WINS server</emphasis> — IP-адрес WINS-сервера.
+					</para>
+				</listitem>
+			</itemizedlist>
+			<note>
+				<para>
+					После сохранения настроек, DHCP-сервер будет запущен либо перезапущен автоматически.
+				</para>
+			</note>
+			<para>
+				Существует возможность присваивать определённым машинам статические IP-адреса. Идентификация машин производится по значению MAC-адреса сетевой карты. Форма для привязки IP-адреса к MAC-адресу находится внизу страницы конфигурации и представлена на рисунке:
+			</para>
+			<figure id="dhcp_server.static_add">
+				<title>Форма привязки IP к MAC</title>
+				<graphic fileref="img/dhcp-static-add.png" width="6in"/>
+			</figure>
+			<itemizedlist>
+				<listitem>
+					<para>
+						<emphasis>Host name</emphasis> — задаёт имя машины, для которой выполняется привязка адреса. Это значение носит справочный характер и используется только в правиле, может не соответствовать фактическому имени машины.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>IP Address</emphasis> — IP-адрес, который будет присвоен данной машине.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>MAC Address</emphasis> — MAC-адрес сетевой карты машины, по которому будет производиться привязка IP-адреса.
+					</para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				После сохранения изменений в таблице статических адресов появится новая запись.
+			</para>
+			<figure>
+				<title>Обновленный список IP-адресов</title>
+				<graphic fileref="img/dhcp-static-list.png" width="6in"/>
+			</figure>
+    	</section>
+		<section id="pptp_server">
+			<title>PPTP-сервер</title>
+			<para>
+				PPTP-сервер позволяет организовать VPN - виртуальную частную сеть - поверх обычной сети. Для этого пользователи подключаются к VPN-серверу, и в случае успешной авторизации получает доступ к ресурсам частной сети. Функции VPN-сервера в маршрутизаторе выполняет PPTP-сервер - point-to-point tunneling protocol.
+			</para>
+			<para>
+				Страница конфигурации находится в Services/PPTP server и приведена ниже:
+				<figure>
+					<title>Конфигурация PPTP-сервера</title>
+					<graphic fileref="img/pptpd.png" width="6in" />
+				</figure>
+			</para>
+			<para>
+				Активация VPN-сервера выполняется установкой флажка напротив параметра <emphasis>Enable PPTP server</emphasis>. Настройка сервера состоит из двух стадий - конфигурации самого сервера и добавления пользователей, которые могут к нему подключаться. Рассмотрим параметры конфигурации сервера:
+			</para>
+			<itemizedlist>
+				<listitem>Name - имя VPN-сервера. Используется при аутентификации. У пользователя в *-secret файле значение имени сервера должно совпадать с этим, либо там должна стоять "звездочка".</listitem>
+				<listitem>Local IP range - диапазон IP-адресов, которые будут присвоены соединению на стороне сервера.</listitem>
+				<listitem>Remote IP range - диапазон IP-адресов, которые будут присвоены соединению на стороне клиента.</listitem>
+				<listitem>
+					Механизмы аутентификации. Имеют три значения - <emphasis>none</emphasis> - не определено,  <emphasis>require</emphasis> - обязателен, <emphasis>refuse</emphasis> - запрещен к использованию
 					<itemizedlist>
-						<listitem>A - указывает IP-адрес, соответствующий имени</listitem>
-						<listitem>CNAME - синоним другого имени. В этом случае в качестве DATA указывается соответствующее имя</listitem>
-						<listitem>MX - имя почтового сервера для данного домена</listitem>
-						<listitem>NS - указывает авторитетный сервер DNS для зоны (по сути - делегирование зоны)</listitem>
-						<listitem>PTR - указывает имя для данного IP-адреса. Используется в реверсивной зоне)</listitem>
-						<listitem>TXT - дополнительная текстовая информация</listitem>
+						<listitem>PAP Mode - метод PAP</listitem>
+						<listitem>CHAP Mode - метод CHAP</listitem>
+						<listitem>MS CHAP Mode - метод MS CHAP</listitem>
+						<listitem>MS CHAPv2 Mode - метод MS CHAPv2</listitem>
 					</itemizedlist>
 				</listitem>
-				<listitem>Priority - приоритет текущей записи MX</listitem>
-				<listitem>Data - данные записи - доменное имя или IP-адрес, либо какая-то текстовая информация</listitem>
+				<listitem>MPPE Mode - использовать шифрование трафика по алгоритму MPPE (Microsoft Point-to-Point Encryption)</listitem>
+				<listitem>DNS server - адреса первичного и вторичного сервера DNS, которые будут переданы клиенту</listitem>
+				<listitem>WINS server - адрес WINS сервера</listitem>
+				<listitem>PPPD options - опции, которые будут переданы серверу pptp</listitem>
 			</itemizedlist>
-		</para>
-		<para>Пример добавления новой записи показа ниже:</para>
-		<figure>
-			<title>Добавление записи в зону</title>
-			<graphic fileref="img/dns_server-record-add.png" width="6in" />
-		</figure>
-		<para>
-			Пример зоны после добавления записей:
-		</para>
-		<figure>
-			<title>Записи зоны DNS</title>
-			<graphic fileref="img/dns_server-records.png" width="6in" />
-		</figure>
-	</section>
-  </chapter>
+			<para id="auth_ppp">
+				После внесения изменений, конфигурацию необходимо сохранить. Для добавления пользователей VPN-сервера, перейдем на страницу System/Security/PPP secrets:
+			</para>
+			<figure>
+				<title>Пользователи VPN-сервера</title>
+				<graphic fileref="img/chap-list-empty.png" width="6in" />
+			</figure>
+			<para>
+				Вкладка CHAP содержит пользователей, использующих систему аутентификации CHAP (в т.ч. обе версии MS CHAP), вкладка PAP - соответственно пользователей, использующих PAP. Пример добавления нового пользователя показан ниже:
+			</para>
+			<figure id="auth_ppp_edit">
+				<title>Добавление нового пользователя</title>
+				<graphic fileref="img/chap-add.png" width="6in" />
+			</figure>
+			<itemizedlist>
+				<listitem>Username - имя пользователя</listitem>
+				<listitem>Password - пароль пользователя</listitem>
+				<listitem>Server - имя сервера VPN, "звездочка" - любой</listitem>
+				<listitem>IP address - IP-адрес, выдаваемый клиенту. "Звездочка" - любой.</listitem>
+			</itemizedlist>
+		</section>
+		<section id="dns_server">
+			<title>Сервер DNS</title>
+			<para>
+				Сервер DNS отвечает за преобразование доменного имени в IP-адрес. Его настройка осуществляется на странице Services/DNS server.
+			</para>
+			<figure>
+				<title>Настройка сервера DNS</title>
+				<graphic fileref="img/dns_server.png" width="6in" />
+			</figure>
+			<itemizedlist>
+				<listitem>
+					<para>
+						<emphasis>Enable DNS server</emphasis> — активировать сервер DNS.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Forwarder DNS 1</emphasis> — сервер DNS №1, к которому следует перенаправлять запросы в случае, если локальный сервер DNS не может дать ответ.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Forwarder DNS 2</emphasis> — сервер DNS №2, к которому следует перенаправлять запросы в случае, если локальный сервер DNS не может дать ответ.
+					</para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				Данный сервер DNS может выступать в роли авторитетного сервера для домена, т.е. хранить информацию о записях (NS, A, CNAME, ...) домена. Для этого необходимо создать файл зоны, в котором хранится информация о домене и его записях. Список зон сервера DNS отображается в форме Zones.
+			</para>
+			<figure id="dns_server.dns_zones">
+				<title>Зоны сервера DNS</title>
+				<graphic fileref="img/dns_server-zones.png" width="6in" />
+			</figure>
+			<para>
+				Создание и редактирование файла зоны выполняется в форме Zones по нажатию соответствующей кнопки.
+			</para>
+			<figure id="dns_server.zone_add">
+				<title>Добавление зоны</title>
+				<graphic fileref="img/dns_server-add-zone.png" width="6in" />
+			</figure>
+			<itemizedlist>
+				<listitem>
+					<para>
+						<emphasis>Zone id</emphasis> — идентификатор зоны (этим идентификатором называется файл, в котором хранится зона).
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Zone</emphasis> — имя зоны (доменное имя, для которого создаётся зона).
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Enable</emphasis> — активна ли зона.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Name server</emphasis> — авторитетный сервер DNS для домена.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Admin</emphasis> — адрес электронной почты администратора зоны.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Refresh</emphasis> — время, через которые ведомые сервера DNS (slave) будут обновлять зону.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>TTL</emphasis> — время, которое запись зоны может храниться в кэше.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>retry</emphasis> — время, через которое ведомый сервер в случае неудачи повторит попытку обновить зону.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>expire</emphasis> — время, через которое информация о зоне перестает считаться действительной.
+					</para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				После добавления зоны соответствующая запись появится в таблице зон.
+			</para>
+			<para>
+				Переход на страницу добавления записей в зону осуществляется щелчком мыши по идентификатору или имени зоны. В результате откроется страница с таблицей, содержащей записи для данной зоны. Форма добавления новой записи представлена ниже.
+			</para>
+			<figure id="dns_server.zone_record_add">
+				<title>Добавление записи в зону</title>
+				<graphic fileref="img/dns_server-record-add.png" width="6in" />
+			</figure>
+			<itemizedlist>
+				<listitem>
+					<para>
+						<emphasis>Domain or host</emphasis> — имя (или IP-адрес, если зона обратная).
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Type of record</emphasis> — тип записи. Возможны следующие значения:
+					</para>
+					<itemizedlist>
+						<listitem>
+							<para>
+								<emphasis>A</emphasis> — указывает IP-адрес, соответствующий имени.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>CNAME</emphasis> — синоним другого имени. В этом случае в качестве DATA указывается соответствующее имя.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>MX</emphasis> — имя почтового сервера для данного домена.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>NS</emphasis> — указывает авторитетный сервер DNS для домена (по сути — делегирование домена).
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>PTR</emphasis> — указывает имя для данного IP-адреса. Используется в обратной зоне.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>TXT</emphasis> — дополнительная текстовая информация.
+							</para>
+						</listitem>
+					</itemizedlist>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Priority</emphasis> — приоритет для записи MX.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Data</emphasis> — данные записи — доменное имя или IP-адрес, либо какая-то текстовая информация.
+					</para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				После сохранения в таблице будет показана новая запись для зоны.
+			</para>
+			<figure>
+				<title>Таблица записей для зоны</title>
+				<graphic fileref="img/dns_server-records.png" width="6in" />
+			</figure>
+		</section>
+	</chapter>
 	<chapter id="traffic">
 		<title>Управление трафиком</title>
 		<section id="routes">
