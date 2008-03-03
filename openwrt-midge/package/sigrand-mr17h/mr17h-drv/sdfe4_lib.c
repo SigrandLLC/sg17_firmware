@@ -748,10 +748,28 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	memset(ghs_mode,0,sizeof(*ghs_mode));
 	ghs_mode->transaction = cfg->transaction;
 	ghs_mode->startup_initialization=cfg->startup_initialization;
-	ghs_mode->pbo_mode=PBO_NORMAL;
 	ghs_mode->pmms_margin_mode=PMMS_NORMAL;
-	ghs_mode->epl_mode=EPL_ENABLED;
+	// PBO influence
+	if( cfg->mode == STU_C ){
+		switch( cfg->pbo_mode ){
+		case PWRBO_NORMAL:
+			ghs_mode->pbo_mode=PBO_NORMAL;
+			ghs_mode->epl_mode=EPL_ENABLED;
+			break;
+		case PWRBO_FORCED:
+			ghs_mode->pbo_mode=PBO_FORCED;
+			ghs_mode->epl_mode=EPL_DISABLED;
+			break;
+		}
+	}else{
+		ghs_mode->pbo_mode=PBO_NORMAL;
+		ghs_mode->epl_mode=EPL_ENABLED;
+	}		
 	rmsg.ack_id=ACK_CFG_GHS_MODE;
+
+printk(KERN_NOTICE"ch(%d): Result PBO_mode=%d,ELP_mode=%d\n",ch,ghs_mode->pbo_mode,ghs_mode->epl_mode);
+
+
 	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_GHS_MODE,(u8*)buf,sizeof(*ghs_mode),&rmsg,hwdev)){
 		PDEBUG(debug_error,": error in CMD_CFG_GHS_MODE");
 		return -1;
@@ -768,11 +786,15 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 			//	printk(KERN_NOTICE"Configure sync mode\n");
 			caplist->clock_mode=SHDSL_CLK_MODE_3a;
 		}
+		// PBO influence	
+		if( cfg->pbo_mode == PWRBO_FORCED ){
+			caplist->pow_backoff = cfg->pbo_val;
+		}
 	}else{
 		caplist->clock_mode=SHDSL_CLK_MODE_1|SHDSL_CLK_MODE_3a;
 	}
 
-	//printk(KERN_NOTICE"ch(%d): Result clock_mode=%d\n",ch,caplist->clock_mode);
+printk(KERN_NOTICE"ch(%d): Result PBO=%d\n",ch,caplist->pow_backoff);
 
 	caplist->annex = cfg->annex;
 	caplist->psd_mask=0x00;
@@ -1211,100 +1233,6 @@ sdfe4_state_mon(struct sdfe4 *hwdev)
 	}
 	return 0;
 }
-
-#ifdef SG17_REPEATER
-
-/*
- * sdfe4_repeater_start:
- * Starts Embedded controller block of SDFE-4 in repeater mode
- * @hwdev - structure, that holds information about Embedded channels and entire SDFE4 chip
- * return error status 
- */
-
-int
-sdfe4_repeater_start( struct sdfe4 *hwdev )
-{
-  	struct sdfe4_msg rmsg;
-	struct ack_dsl_param_get *dsl_par;
-	struct sdfe4_if_cfg *cfg_ch0=&(hwdev->cfg[0]);
-	
-  	int TC_PAM;
-
-	if( sdfe4_setup_channel(3,hwdev) )
-		return -1;
-
-	if( sdfe4_start_channel(3,hwdev) )
-		return -1;
-	
-	while(1){
-		while(sdfe4_drv_poll(&rmsg,hwdev));
-		if( state_monitoring(hwdev) )
-			return -1;
-		if(hwdev->ch[3].sdi_dpll_sync){
-			break;
-		}
-	}
-	
-	rmsg.ack_id=ACK_DSL_PARAM_GET;
-	
-	if( sdfe4_pamdsl_cmd(3,CMD_DSL_PARAM_GET,NULL,NULL,&rmsg,hwdev) ){
-		return -1;
-	}
-	dsl_par=(struct ack_dsl_param_get *)&(rmsg.buf[8]);
-	
-	/*детект TCPAM*/
-	
-	if(dsl_par->bits_p_symbol >= 0x04){
-		TC_PAM =TCPAM32;
-	}else{
-		TC_PAM =TCPAM16;
-	}
-	
-	
-	/// Обработка принятого сообщения !
-	// config SDFE chenal 0.
-	// STU_C
-	cfg_ch0->mode=                    STU_C;
-	//REPEATER
-	cfg_ch0->repeater=                TERMINATOR;
-	// STARTUP_FAREND  STARTUP_LOCAL
-	cfg_ch0->startup_initialization= STARTUP_LOCAL;
-	//GHS_TRNS_00 :GHS_TRNS_01:GHS_TRNS_11:GHS_TRNS_10
-	cfg_ch0->transaction=            GHS_TRNS_10;
-	/// ANNEX_A_B   ANNEX_A   ANNEX_B ANNEX_G ANNEX_F
-	cfg_ch0->annex=                  dsl_par->annex;
-	///  TC-PAM: TCPAM16  TCPAM32
-	cfg_ch0->tc_pam=                TC_PAM;
-	// rate (speed)
-	cfg_ch0->rate=                  dsl_par->base_rate;
-
-	
-	// SDI_TDMCLK_TDMMSP  SDI_DSL3
-	cfg_ch0->input_mode=             SDI_TDMCLK_TDMMSP;
-	// Terminal =8192 , Repeater= 12288;
-	cfg_ch0->frequency=              8192;
-	// Terminal =5696 , Repeater= 2048;
-	cfg_ch0->payload_bits=           5696;
-	// петля вход-> выход =   SDI_NO_LOOP SDI_REMOTE_LOOP
-	cfg_ch0->loop=                   SDI_NO_LOOP;
-	
-	if( sdfe4_setup_channel(0,hwdev) )
-		return -1;
-	
-	if( sdfe4_start_channel(0,hwdev) )
-		return -1;
-	
-	while(1){
-		while(sdfe4_drv_poll(&rmsg,hwdev));
-		if( state_monitoring(hwdev) )
-			return -1;
-		if(hwdev->ch[0].sdi_dpll_sync){
-			break;
-		}
-	}
-	return 0;
-}
-#endif
 
 /*----------------------------------------------------------
   EOC Functions

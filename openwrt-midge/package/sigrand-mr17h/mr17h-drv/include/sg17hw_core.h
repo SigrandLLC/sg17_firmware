@@ -27,7 +27,10 @@ struct sdfe4_channel{
 	u8 perf_prims;
 	u8 eoc_rx_msg[EOC_MSG_MAX_LEN];
 };
-											
+		
+#define PWRBO_NORMAL 0
+#define PWRBO_FORCED 1
+									
 #define TCPAM4		1
 #define TCPAM8		2
 #define TCPAM16		3
@@ -46,7 +49,9 @@ struct sdfe4_if_cfg{
 	u32 tc_pam :3;
 	u32 need_reconf :1;
 	u32 clkmode :1;
-u32 :1;
+	u32 pbo_mode: 1;
+	u32 pbo_val : 5;
+	
 	u16 frequency;
 	u16 payload_bits;
 	u16 rate;

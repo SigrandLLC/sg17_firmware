@@ -24,6 +24,7 @@ print_usage()
     echo "  annex A|B|AB               - G.SHDSL.bis Annex type"    
     echo "  rate <value>               - line rate"
     echo "  plesio | sync              - Plesiochronous/Synchronous modes"
+	echo "  pbo-normal|pbo-forced <val>- Power Backoff mode, <val> - value in dB"
     echo "  crc32 | crc16              - CRC length"
     echo "  mac-addr <value>           - less significant part of MAC-address"
     echo "  rboff | rbon               - PCI read burst mode off"
@@ -64,6 +65,14 @@ print_stat()
     else
 		clkmode=""
     fi
+	
+	if [ "$master" = "master" ]; then
+		pbo=`cat pbo_mode`
+		pbo_val=`cat pbo_val`
+		[ "$pbo_mode" = "Forced" ] && pbo="${pbo}=${pbo_val}"
+	else
+		pbo=""
+	fi
 
 
     rb=`cat rburst`
@@ -78,6 +87,7 @@ print_stat()
 
     echo "$1:"
     echo "      shdsl:   $master $rate $code $annex $clkmode"
+	[ -n "$pbo" ] && echo "               $pbo"
     echo "      hdlc:    fill="$fill" inversion="$inv" "$crc
     echo "      PCI bus: rb$rb wb$wb"
     echo "Power:"
@@ -135,9 +145,9 @@ fi
 # configuring config
 shdsl_need_reconf=0
 shift
-while [ ! -z $1 ]; do
+while [ ! -z "$1" ]; do
 
-    case $1 in
+    case "$1" in
 #------------ SHDSL settings --------------------------------------    
 		"master")
 			echo 1 > mode
@@ -148,17 +158,17 @@ while [ ! -z $1 ]; do
 			shdsl_need_reconf=1	
 			;;
 		"rate")
-			if [ -z $2 ]; then
+			if [ -z "$2" ]; then
 				shift
 				echo $0": rate value is missing"		
 				break
 			fi
-			chk=`echo $2 | grep '[^0-9]'`
-			if [ ! -z $chk ]; then
+			chk=`echo "$2" | grep '[^0-9]'`
+			if [ ! -z "$chk" ]; then
 				echo $0": rate value is missing"
 				break
 			fi
-			echo $2 > rate
+			echo "$2" > rate
 			tmp=`cat rate`
 			if [ "$tmp" != "$2" ]; then
 				echo "WARNING: rate value setted to $tmp"
@@ -178,7 +188,7 @@ while [ ! -z $1 ]; do
 			elif [ "$2" = "B" ]; then
 				echo 1 > annex
 				shift
-			elif [ $2 = "AB" ]; then
+			elif [ "$2" = "AB" ]; then
 				echo 2 > annex
 				shift
 			fi
@@ -238,7 +248,30 @@ while [ ! -z $1 ]; do
 			echo 1 > clkmode
 			shdsl_need_reconf=1	
 			;;
-
+		"pbo-normal")
+			echo 0 > pbo_mode
+			shdsl_need_reconf=1	
+			;;
+		"pbo-forced")
+			echo 1 > pbo_mode
+			if [ -z "$2" ]; then
+				shift
+				echo $0": PBO value is missing"		
+				break
+			fi
+			chk=`echo $2 | grep '[^0-9]'`
+			if [ ! -z "$chk" ]; then
+				echo $0": PBO value is missing"
+				break
+			fi
+			echo "$2" > pbo_val
+			tmp=`cat pbo_val`
+			if [ "$tmp" != "$2" ]; then
+				echo "WARNING: PBO value setted to $tmp"
+			fi
+			shdsl_need_reconf=1	
+			shift
+			;;
 #------------ if settings --------------------------------------
 
 		"mac-addr")

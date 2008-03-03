@@ -243,7 +243,87 @@ store_tcpam( struct class_device *cdev,const char *buf, size_t size )
 }
 static CLASS_DEVICE_ATTR(tcpam, 0644 ,show_tcpam,store_tcpam);
 
-// Rate control
+// POWER Backoff control
+static ssize_t
+show_pbo_mode(struct class_device *cdev, char *buf) 
+{                                                                       
+	struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
+	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;	
+
+	if( (cfg->mode != STU_C) ){
+		return snprintf(buf,PAGE_SIZE,"Normal");
+	}
+	
+	switch( cfg->pbo_mode ){
+	case PWRBO_NORMAL:
+		return snprintf(buf,PAGE_SIZE,"Normal");
+	case PWRBO_FORCED:
+		return snprintf(buf,PAGE_SIZE,"Forced");
+	}
+	return snprintf(buf,PAGE_SIZE,"Unknown");
+}
+
+static ssize_t
+store_pbo_mode( struct class_device *cdev,const char *buf, size_t size ) 
+{
+	struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
+	struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( nl->dev );
+	struct sg17_sci *s = (struct sg17_sci *)&card->sci;
+	struct sdfe4 *hwdev = &card->hwdev;
+	u8 tmp;
+
+	// if interface is up 
+	if( !size )	return size;
+	tmp=buf[0]-'0';
+
+	switch( tmp ){
+	case 0:
+		cfg->pbo_mode = PWRBO_NORMAL;
+		break;
+	case 1:
+		cfg->pbo_mode = PWRBO_FORCED;
+		break;
+	}
+	return size;
+}
+static CLASS_DEVICE_ATTR(pbo_mode, 0644 ,show_pbo_mode,store_pbo_mode);
+
+static ssize_t 
+show_pbo_val(struct class_device *cdev, char *buf) 
+{                                                                       
+	struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
+	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;	
+	return snprintf(buf,PAGE_SIZE,"%d",cfg->pbo_val);
+}
+
+static ssize_t
+store_pbo_val( struct class_device *cdev,const char *buf, size_t size ) 
+{
+	struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
+	struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( nl->dev );
+	struct sg17_sci *s = (struct sg17_sci *)&card->sci;
+	struct sdfe4 *hwdev = &card->hwdev;
+	char *endp;
+	u16 tmp,tmp1;
+	
+	// check parameters
+	if( !size ) return size;
+	tmp=simple_strtoul( buf,&endp,0);
+	if( buf == endp || tmp > 30 )
+		return endp;
+	cfg->pbo_val = tmp;
+	return size;
+}
+static CLASS_DEVICE_ATTR(pbo_val, 0644 ,show_pbo_val,store_pbo_val);
+
+
+// Clock mode control
 static ssize_t show_clkmode(struct class_device *cdev, char *buf) 
 {                                                                       
 	struct net_device *ndev = to_net_dev(cdev);
@@ -1118,6 +1198,8 @@ static struct attribute *sg17_attr[] = {
 &class_device_attr_annex.attr,
 &class_device_attr_rate.attr,
 &class_device_attr_tcpam.attr,
+&class_device_attr_pbo_mode.attr,
+&class_device_attr_pbo_val.attr,
 &class_device_attr_clkmode.attr,
 &class_device_attr_apply_cfg.attr,
 // EOC

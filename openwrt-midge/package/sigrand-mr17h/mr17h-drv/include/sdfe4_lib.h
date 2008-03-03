@@ -240,6 +240,7 @@
 #define  EPL_ENABLED                 0x08
 #define  PMMS_NORMAL                 0x00
 #define  PBO_NORMAL                  0x00
+#define  PBO_FORCED                  0x04
 #define  STARTUP_LOCAL               0x00
 #define  STARTUP_FAREND              0x80
 #define  GHS_TRNS_00                 0x00
