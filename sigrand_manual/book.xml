@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "/usr/share/xml/docbook/schema/dtd/4.2/docbookx.dtd">
 <book lang="ru" >
 	<bookinfo>
-    	<title>Руководство по эксплуатации маршрутизатора SG-16R/SG-17R</title>
+		<title>Руководство по эксплуатации маршрутизатора SG-16R/SG-17R</title>
 		<copyright>
 			<year>2007-2008</year>
 			<holder>Сигранд</holder>
@@ -10,7 +10,7 @@
 		<author>Казанцев А.В.</author>
 	</bookinfo>
 	<chapter>
-		<title>Программное обеспечение маршрутизатора</title>
+		<title>Начало работы с маршрутизатором</title>
 		<section id="bootloader" >
 			<title>Загрузчик</title>
 			<para>
@@ -108,9 +108,11 @@
 		</section>
 		<section id="update">
 			<title>Обновление прошивки маршрутизатора</title>
-			<para>
-				Если маршрутизатор уже сконфигурирован, то перед прошивкой следует сохранить конфигурацию, т.к. установка новой прошивки вернет все параметры в начальное состояние. Сохранение и восстановление конфигурации выполняется в веб-интерфейсе.
-			</para>
+			<important>
+				<para>
+					Перед перепрошивкой следует сохранить конфигурацию (см. раздел <link linkend="cfg" endterm="cfg.title" />), т.к. установка новой прошивки вернёт все параметры в исходное состояние, а так же сбросит установленные производителем MAC-адреса (см. раздел <link linkend="mac-address" endterm="mac-address.title" />).
+				</para>
+			</important>
 			<para>
 				Обновление прошивки выполняется через консольный интерфейс, для этого вам потребуется:
 			</para>
@@ -340,7 +342,7 @@
 				Пункт меню [A]: Update all последовательно обновляет загрузчик и прошивку маршрутизатора.
 			</para>
 			<para>
-				После загрузки маршрутизатора (при обычной загрузке не требуется входить в меню загрузчика, поэтому надо подождать, пока истечет таймер и начнется загрузка операционной системы (<acronym>ОС</acronym>) можно перейти к настройке посредством веб-интерфейса. Доступ к консоли больше не требуется, поэтому провод и соответствующее <acronym>ПО</acronym> можно отключить.
+				После загрузки маршрутизатора (при обычной загрузке не требуется входить в меню загрузчика, поэтому надо подождать, пока истечёт таймер и начнётся загрузка операционной системы), можно перейти к настройке посредством веб-интерфейса. Доступ к консоли больше не требуется, поэтому провод и соответствующее <acronym>ПО</acronym> можно отключить.
 			</para>
 			<para>
 				В случае, если на экран была выведена строчка:
@@ -350,475 +352,569 @@
 				— значит, загрузчику не удалось загрузить файл прошивки с указанного TFTP сервера. В этом случае следует проверить корректность указания IP адреса TFTP сервера и имени файла прошивки на нем. Если все корректно, то следует проверить настройки, введенные в пункте Set Boot Params. Может помочь смена MAC адреса и проверка, не блокирует ли сервер TFTP соединения с маршрутизатора.
 			</para>
 		</section>
-    	<section>
-      <title>Установка программ</title>
-      <para>
+		<section>
+			<title>Установка программ</title>
+			<para>
+				Функциональность маршрутизатора может быть расширена за счёт установки дополнительного программного обеспечения, поставляемого в виде пакетов.
+			</para>
+			<para>
 				Перед установкой пакета его надо загрузить на маршрутизатор. Сделать это можно несколькими способами:
-				<itemizedlist>
-          <listitem>Разместить на WWW/FTP сервере и загрузить с помощью утилиты wget</listitem>
-          <listitem>Разместить на TFTP сервер и загрузить с помощью tftp клиента</listitem>
-        </itemizedlist>
-      </para>
-      <simpara>Загрузка пакета с TFTP сервера:</simpara>
-      <simpara>
+			</para>
+			<itemizedlist>
+				<listitem>
+					<para>
+						Разместить на WWW/FTP сервере и загрузить с помощью утилиты <command>wget</command>.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						Разместить на TFTP сервере и загрузить с помощью <command>tftp</command> клиента.
+					</para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				Загрузка пакета с TFTP сервера:
+			</para>
+			<para>
 				# <command>tftp</command>
-        <replaceable>192.168.2.1</replaceable>
-        <option>-r</option>
-        <replaceable>libpthread_0.9.28-1_mipsel.ipk</replaceable>
-        <option>-g</option>
-      </simpara>
-      <simpara>Установка пакета:</simpara>
-      <para>
-        <screen>
-					# <command>ipkg</command>
-          <option>install</option>
-          <replaceable>libpthread_0.9.28-1_mipsel.ipk</replaceable>
-					Installing libpthread (0.9.28-1) to root...
-					Configuring libpthread
-					Done.
-				</screen>
-      </para>
-      <para>
+				<replaceable>192.168.2.1</replaceable>
+				<option>-r</option>
+				<replaceable>libpthread_0.9.28-1_mipsel.ipk</replaceable>
+				<option>-g</option>
+			</para>
+			<para>
+				Установка пакета:
+			</para>
+			<screen>
+				# <command>ipkg</command>
+				<option>install</option>
+				<replaceable>libpthread_0.9.28-1_mipsel.ipk</replaceable>
+				Installing libpthread (0.9.28-1) to root...
+				Configuring libpthread
+				Done.
+			</screen>
+			<para>
 				Если при выполнении установки пакета будет выведено сообщение <computeroutput>ERROR: Cannot satisfy the following dependencies for <replaceable>fprobe</replaceable>:</computeroutput>, следует установить указанный пакет и повторить установку текущего пакета (<replaceable>fprobe</replaceable>).
 			</para>
-    </section>
-  </chapter>
-  <chapter id="begin" >
-    <title>Управление маршрутизатором</title>
-    <section>
-      <title>Начало работы</title>
-      <para>
+		</section>
+		<section id="mac-address">
+			<title id="mac-address.title">MAC-адреса сетевых интерфейсов</title>
+			<para>
+				MAC-адреса для сетевых интерфейсов (Ethernet, SHDSL, E1) хранятся в конфигурационном файле (kdb).
+			</para>
+			<para>
+				На данный момент существует два способа начального присвоения MAC-адресов:
+			</para>
+			<itemizedlist>
+				<listitem>
+					<para>
+						При <emphasis>первой</emphasis> после перепрошивки загрузке маршрутизатора происходит генерация случайных MAC-адресов для интерфейсов eth* и dsl0, dsl1. Такая генерация MAC-адресов не может гарантировать их уникальности для нескольких маршрутизаторов — т.е., два маршрутизатора могут сгенерировать одинаковые MAC-адреса. Чтобы свести вероятность повторения адресов к минимуму — первую загрузку следует производить, когда маршрутизатор подключён к сети ethernet, желательно с интенсивным трафиком — это увеличит случайность в генерации адресов.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						Затем, выдаётся запрос на получение списка MAC-адресов со специализированного сервера:
+					</para>
+					<screen>
+	Do you want to update your KDB with correct MAC-addresses? y/N:
+					</screen>
+					<para>
+						Данное назначение адресов производится изготовителем маршрутизатора, поэтому следует ответить <emphasis>n</emphasis>:
+					</para>
+					<screen>
+	Do you want to update your KDB with correct MAC-addresses? y/N: n
+	Aborting
+					</screen>
+				</listitem>
+			</itemizedlist>
+			<para>
+				От изготовителя маршрутизатор поставляется с MAC-адресами, полученными со специализированного сервера, что гарантирует их уникальность для всех возможных интерфейсов маршрутизатора.
+			</para>
+			<para>
+				Так как MAC-адреса хранятся в конфигурационном файле — после перепрошивки они будут потеряны. Чтобы этого не произошло, перед перепрошивкой следует сохранить конфигурацию маршрутизатора (см. раздел <link linkend="cfg" endterm="cfg.title" />), а затем произвести её восстановление.
+			</para>
+		</section>
+	</chapter>
+	<chapter id="begin">
+		<title>Управление маршрутизатором</title>
+		<section>
+			<title>Конфигурация маршрутизатора</title>
+			<para>
 				В заводской конфигурации и после обновления прошивки на маршрутизаторе активен интерфейс eth0 (крайний правый порт) с IP-адресом 192.168.2.100, сетевая маска 255.255.255.0.
 			</para>
-      <para>
+			<para>
 				Для конфигурации маршрутизатора необходимо соединить сетевую карту компьютера и крайний правый порт Ethernet проводом витой пары. На компьютере следует выставить IP-адрес из той же сети, в которой находится маршрутизатор (192.168.2.0/24), к примеру, 192.168.2.1, с сетевой маской 255.255.255.0.
 			</para>
-      <section id="web" >
-        <title>Конфигурация с помощью Веб-интерфейса</title>
-        <para>
+			<section id="web" >
+				<title>Конфигурация с помощью Веб-интерфейса</title>
+				<para>
 					Конфигурация маршрутизатора выполняется через веб-интерфейс любым веб-браузером, поддерживающем протокол HTTPS (Internet Explorer, Opera, Safari, Mozilla Firefox). Для конфигурации необходимо в строке адреса веб-браузера ввести https://192.168.2.100, после чего будут заданы несколько вопросов касательно сертификатов шифрования, на которые следует ответить положительно. По-умолчанию, логин/пароль установлены следующие: admin/1234.
 				</para>
-        <section id="passwd" >
-          <title>Установка пароля</title>
-          <para>
-            <important>Настоятельно рекомендуется поменять пароль для конфигурации, это выполняется на странице System/Security</important>
-						Там же следует поменять и пароль для управления маршрутизатором через консольный интерфейс. Страница смены пароля приведена ниже:
-						<figure>
-              <title>Смена пароля</title>
-              <graphic fileref="img/security.png" />
-            </figure>
-          </para>
-        </section>
-        <section id="hostname" >
-          <title>Имя маршрутизатора</title>
-          <para>
-						Смена имени маршрутизатора (hostname) может быть выполнена на странице System/General, которая приведена ниже:
-						<figure>
-              <title>Смена имени маршрутизатора</title>
-              <graphic fileref="img/general.png" />
-            </figure>
-          </para>
-        </section>
-        <section id="time" >
-          <title>Синхронизация времени</title>
-          <para>
-						Установка сервера для синхронизации внутренних часов маршрутизатора и часового пояса выполняется на странице System/Time:
-						<figure>
-              <title>Синхронизация времени</title>
-              <graphic fileref="img/time.png" />
-            </figure>
-          </para>
-        </section>
-        <section id="dns" >
-          <title>Настройка DNS</title>
-          <para>
-						Установка адреса DNS-сервера, к которому будет обращаться маршрутизатор с DNS запросами и имя домена, в который входит маршрутизатор, устанавливается на странице System/DNS:
+				<section id="passwd" >
+					<title>Установка пароля</title>
+					<important>
+						<para>
+							Настоятельно рекомендуется поменять пароль для конфигурации, это выполняется на странице System/Security.
+						</para>
+					</important>
+					<para>
+						Там же следует поменять и пароль для управления маршрутизатором через консольный интерфейс. Страница смены пароля приведена ниже.
 					</para>
-          <figure>
-            <title>Настройка DNS</title>
-            <graphic width="6in" fileref="img/dns.png" />
-          </figure>
-        </section>
-        <para>
+					<figure>
+						<title>Смена пароля</title>
+						<graphic fileref="img/security.png" />
+					</figure>
+				</section>
+				<section id="hostname" >
+					<title>Имя маршрутизатора</title>
+					<para>
+						Смена имени маршрутизатора (hostname) может быть выполнена на странице System/General, которая приведена ниже.
+					</para>
+					<figure>
+						<title>Смена имени маршрутизатора</title>
+						<graphic fileref="img/general.png" />
+					</figure>
+				</section>
+				<section id="time">
+					<title>Синхронизация времени</title>
+					<para>
+						Установка сервера для синхронизации внутренних часов маршрутизатора и часового пояса выполняется на странице System/Time.
+					</para>
+					<figure>
+						<title>Синхронизация времени</title>
+						<graphic fileref="img/time.png" />
+					</figure>
+				</section>
+				<section id="dns">
+					<title>Настройка DNS</title>
+					<para>
+						Установка адреса DNS-сервера, к которому будет обращаться маршрутизатор с DNS запросами и имя домена, в который входит маршрутизатор, устанавливается на странице System/DNS.
+					</para>
+					<figure>
+						<title>Настройка DNS</title>
+						<graphic width="6in" fileref="img/dns.png" />
+					</figure>
+				</section>
+				<para>
 					Информация о состоянии соединения SHDSL и E1 может быть получена на страницах General/SHDSL и General/E1 соответственно, конфигурация параметром линии связи для этих интерфейсов выполняется соответственно на страницах General/SHDSL/dsl* и General/E1/hdlc*, для более подробной информации о возможных настройках обратитесь к соответствующему разделу документации.
 				</para>
-        <para>
+				<para>
 					Управление интерфейсами осуществляется на страницах, указанных в меню Network. К примеру, конфигурация интерфейсов Ethernet осуществляется на страницах Network/Interfaces/eth*, SHDSL — на страницах Network/Interfaces/dsl*, а E1 — на Network/Interfaces/hdlc*. Для активация интерфейса необходимо активировать параметры Enabled и Auto на вкладке General, расположенной на странице конфигурирования выбранного сетевого интерфейса. За более подробными инструкциями обратитесь к соответствующим страницам конфигурации маршрутизатора.
 				</para>
-        <para>
+				<para>
 					В меню Tools расположены утилиты, позволяющие:
-					<itemizedlist>
-            <listitem>проследить за работой маршрутизатора, просмотрев логи — страницы syslog и dmesg;</listitem>
-            <listitem>выполнить перезагрузку с помощью reboot;</listitem>
-            <listitem>проверить работу DNS сервера или соответствие DNS-имени IP-адресу с помощью утилиты dig;</listitem>
-            <listitem>проверить работоспособность узла с помощью утилиты ping;</listitem>
-            <listitem>посмотреть маршрут прохождения пакета до заданного узла в сети с помощью mtr;</listitem>
-            <listitem>просмотреть сетевой трафик с помощью tcpdump.</listitem>
-          </itemizedlist>
-        </para>
-        <para>
+				</para>
+				<itemizedlist>
+					<listitem>
+						<para>
+							Проследить за работой маршрутизатора, просмотрев логи — страницы <emphasis>syslog</emphasis> и <emphasis>dmesg</emphasis>;
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Выполнить перезагрузку с помощью <emphasis>reboot</emphasis>;
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Проверить работу сервера DNS или соответствие DNS-имени IP-адресу с помощью утилиты <emphasis>dig</emphasis>;
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Проверить работоспособность узла с помощью утилиты <emphasis>ping</emphasis>;
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Посмотреть маршрут прохождения пакета до заданного узла в сети с помощью <emphasis>mtr</emphasis>;
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Просмотреть сетевой трафик с помощью <emphasis>tcpdump</emphasis>.
+						</para>
+					</listitem>
+				</itemizedlist>
+				<para>
 					Сохранение и восстановление конфигурации производится на страницах Configuration/Backup и Configuration/Restore соответственно.
 				</para>
-      </section>
-      <section id="console" >
-        <title>Конфигурация через консольный интерфейс</title>
-        <para>
+			</section>
+			<section id="console" >
+				<title>Конфигурация через консольный интерфейс</title>
+				<para>
 					Для конфигурации маршрутизатора через консольный интерфейс необходимо подключится к маршрутизатору по протоколу SSH на порт 22. Есть несколько программ, поддерживающих работу по протоколу SSH, к примеру, Putty для OS Windows и ssh для OS GNU/Linux. В качестве логина необходимо ввести root, пароль — 1234.
 				</para>
-        <note>
-          <simpara>
-						Следует заметить, что изменения, внесенные в конфигурацию маршрутизатора через консольный интерфейс будут замены после перезагрузки параметрами, указанными в веб-интерфейсе.
-					</simpara>
-        </note>
-      </section>
-      <section>
-        <title>Сводная информация</title>
-        <table frame="all" >
-          <title>Сводная таблица</title>
-          <tgroup cols="3" >
-            <colspec colname="c1" />
-            <colspec colname="c2" />
-            <colspec colname="c3" />
-            <thead>
-              <row>
-                <entry nameend="c2" namest="c1" >Параметр</entry>
-                <entry>Значение</entry>
-              </row>
-            </thead>
-            <tbody>
-              <row>
-                <entry nameend="c2" namest="c1" >IP-адрес (крайний правый порт)</entry>
-                <entry>192.168.2.100</entry>
-              </row>
-              <row>
-                <entry nameend="c2" namest="c1" >Сетевая маска</entry>
-                <entry>255.255.255.0</entry>
-              </row>
-              <row>
-                <entry nameend="c2" namest="c1" >Веб-интерфейс</entry>
-              </row>
-              <row>
-                <entry/>
-                <entry>Протокол</entry>
-                <entry>HTTPS</entry>
-              </row>
-              <row>
-                <entry/>
-                <entry>Логин</entry>
-                <entry>admin</entry>
-              </row>
-              <row>
-                <entry/>
-                <entry>Пароль</entry>
-                <entry>1234</entry>
-              </row>
-              <row>
-                <entry nameend="c2" namest="c1" >Консольный интерфейс</entry>
-              </row>
-              <row>
-                <entry/>
-                <entry>Протокол</entry>
-                <entry>SSH</entry>
-              </row>
-              <row>
-                <entry/>
-                <entry>Логин</entry>
-                <entry>root</entry>
-              </row>
-              <row>
-                <entry/>
-                <entry>Пароль</entry>
-                <entry>1234</entry>
-              </row>
-            </tbody>
-          </tgroup>
-        </table>
-      </section>
-    </section>
-    <section id="logging" >
-      <title>Логирование событий</title>
-      <para>
-				Из-за особенности используемой встроенной памяти (flash-память) логи не сохраняются локально на маршрутизаторе, а пишутся в специальный буфер, доступный для просмотра через Tools/syslog. Маршрутизатор имеет несколько параметров, управляющих логированием:
+				<note>
+					<para>
+						Следует заметить, что изменения, внесённые в конфигурацию маршрутизатора через консольный интерфейс, будут замены после перезагрузки параметрами, указанными в веб-интерфейсе.
+					</para>
+				</note>
+			</section>
+			<section>
+				<title>Сводная информация</title>
+				<table frame="all" >
+					<title>Сводная таблица</title>
+					<tgroup cols="3" >
+						<colspec colname="c1" />
+						<colspec colname="c2" />
+						<colspec colname="c3" />
+						<thead>
+							<row>
+								<entry nameend="c2" namest="c1" >Параметр</entry>
+								<entry>Значение</entry>
+							</row>
+						</thead>
+						<tbody>
+							<row>
+								<entry nameend="c2" namest="c1" >IP-адрес (крайний правый порт)</entry>
+								<entry>192.168.2.100</entry>
+							</row>
+							<row>
+								<entry nameend="c2" namest="c1" >Сетевая маска</entry>
+								<entry>255.255.255.0</entry>
+							</row>
+							<row>
+								<entry nameend="c2" namest="c1" >Веб-интерфейс</entry>
+							</row>
+							<row>
+								<entry/>
+								<entry>Протокол</entry>
+								<entry>HTTPS</entry>
+							</row>
+							<row>
+								<entry/>
+								<entry>Логин</entry>
+								<entry>admin</entry>
+							</row>
+							<row>
+								<entry/>
+								<entry>Пароль</entry>
+								<entry>1234</entry>
+							</row>
+							<row>
+								<entry nameend="c2" namest="c1" >Консольный интерфейс</entry>
+							</row>
+							<row>
+								<entry/>
+								<entry>Протокол</entry>
+								<entry>SSH</entry>
+							</row>
+							<row>
+								<entry/>
+								<entry>Логин</entry>
+								<entry>root</entry>
+							</row>
+							<row>
+								<entry/>
+								<entry>Пароль</entry>
+								<entry>1234</entry>
+							</row>
+						</tbody>
+					</tgroup>
+				</table>
+			</section>
+		</section>
+		<section id="logging" >
+			<title>Логирование событий</title>
+			<para>
+				Из-за особенности используемой встроенной памяти (flash-память) системные события (логи) не сохраняются локально на маршрутизаторе, а пишутся в специальный буфер, доступный для просмотра через Tools/syslog. Маршрутизатор имеет несколько параметров, управляющих логированием:
 			</para>
-      <figure>
-        <title>Логирование</title>
-        <graphic width="6in" fileref="img/logging.png" />
-      </figure>
-      <para>
-        <itemizedlist>
-          <listitem>Circular buffer — размер буфера</listitem>
-          <listitem>Enable remote syslog logging — включение логирования на удаленный syslog-сервер</listitem>
-          <listitem>Remote syslog server — адрес удаленного syslog-сервера</listitem>
-        </itemizedlist>
-      </para>
-      <note>
-        <simpara>
-					При включении логирования на удаленный сервер, продолжается запись событий в локальный буфер.
-				</simpara>
-      </note>
-      <note>
-        <simpara>
-					Для того, чтобы удаленный syslog-сервер принимал логи от маршрутизатора, его необходимо запустить с опцией &quot;-r&quot;. Логирование производится по протоколу udp, 514 порт.
-				</simpara>
-      </note>
-    </section>
-    <section id="adm5120sw" >
-      <title>Настройка встроенного Ethernet коммутатора</title>
-      <para>
+			<figure>
+				<title>Логирование</title>
+				<graphic width="6in" fileref="img/logging.png" />
+			</figure>
+			<itemizedlist>
+				<listitem>
+					<para>
+						<emphasis>Circular buffer</emphasis> — размер буфера.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Enable remote syslog logging</emphasis> — включение логирования на удалённый syslog-сервер.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Remote syslog server</emphasis> — адрес удаленного syslog-сервера.
+					</para>
+				</listitem>
+			</itemizedlist>
+			<note>
+				<para>
+					При включении логирования на удалённый сервер, продолжается запись событий в локальный буфер.
+				</para>
+			</note>
+			<note>
+				<para>
+					Для того, чтобы удалённый syslog-сервер принимал логи от маршрутизатора, его необходимо запустить с опцией &quot;-r&quot;. Логирование производится по протоколу udp, 514 порт.
+				</para>
+			</note>
+		</section>
+		<section id="adm5120sw">
+			<title>Настройка встроенного Ethernet коммутатора</title>
+			<para>
 				Настройка коммутатора осуществляется на странице System/Switch, на который устанавливается соотношение между физическими портами коммутатора (нумерация идет справа налево, т.е. Port 0 соответствует крайнему правому разъему маршрутизатора). Отнесение нескольких портов к одному интерфейсу создает для них единую физическую среду, т.е. они начинают работать, как порты одного коммутатора. Окно конфигурации представлено на рисунке:
-				<figure>
-          <title>Конфигурация коммутатора</title>
-          <graphic fileref="img/switch-1.png" />
-        </figure>
-      </para>
-      <simpara>В приведенной выше конфигурации 0 и 1 порты коммутатора отнесены к сетевому интерфейсу eth0, в то время как 2 и 3 порты являются независимыми.</simpara>
-      <note>
-        <simpara>После внесения изменений необходимо перезагрузить маршрутизатор.</simpara>
-      </note>
-    </section>
-	<section>
-		<title>Установление зависимостей SHDSL — Ethernet</title>
-		<para>
-			Для создания сложных взаимосвязей между интерфейсами была добавлена возможность
-			управления состоянием Ethernet порта в зависимости от состояния соответствующего ему
-			SHDSL порта
-		</para>
-		<para>
-			На данный момент управление соответствием осуществляется через консольный
-			интерфейс, и устанавливается в конфигурационном файле /etc/sigrand/dsl2eth.map.
-		</para>
-		<para>
-			Изначально файл /etc/sigrand/dsl2eth.map пустой. Пример его заполнения показан в файле 
-			/etc/sigrand/dsl2eth.map.example и выглядит следующим образом:
+			</para>
+			<figure>
+				<title>Конфигурация коммутатора</title>
+				<graphic fileref="img/switch-1.png" />
+			</figure>
+			<para>
+				В приведённой выше конфигурации 0 и 1 порты коммутатора отнесены к сетевому интерфейсу eth0, в то время как 2 и 3 порты являются независимыми.
+			</para>
+			<note>
+				<para>
+					После внесения изменений необходимо перезагрузить маршрутизатор.
+				</para>
+			</note>
+		</section>
+		<section>
+			<title>Установление зависимостей SHDSL — Ethernet</title>
+			<para>
+				Для создания сложных взаимосвязей между интерфейсами была добавлена возможность
+				управления состоянием Ethernet порта в зависимости от состояния соответствующего ему
+				SHDSL порта
+			</para>
+			<para>
+				На данный момент управление соответствием осуществляется через консольный
+				интерфейс, и устанавливается в конфигурационном файле /etc/sigrand/dsl2eth.map.
+			</para>
+			<para>
+				Изначально файл /etc/sigrand/dsl2eth.map пустой. Пример его заполнения показан в файле 
+				/etc/sigrand/dsl2eth.map.example и выглядит следующим образом:
+			</para>
 			<screen>
-				dsl0 eth0
-				dsl1 eth1
+	dsl0 eth0
+	dsl1 eth1
 			</screen>
-		</para>
-		<para>
-			Это означает, что интерфейсу eth0 соответствует интерфейс dsl0, а eth1 — dsl1, и если линк на dsl0 
-			упадет, что так же будет отключен линк на eth0. Редактировать файл можно любым текстовым редактором, к примеру следующей командой:
-		</para>
-		<simpara>
-			<command>nano</command> <replaceable>/etc/sigrand/dsl2eth.map</replaceable>
-		</simpara>
-		<para>
-			После внесения изменений в конфигурационный файл рекомендуется перезагрузить маршрутизатор.
-		</para>
-    </section>
-	<section id="eoc">
-		<title id="eoc.title">Мониторинг SHDSL каналов</title>
-		<note>
 			<para>
-				Мониторинг поддерживают только модули MR17H.
-			</para>
-		</note>
-		<note>
-			<para>
-				Получение статистики по каналу на данный возможно только с мастера.
-			</para>
-		</note>
-		<section>
-			<title>Мониторинг через веб-интерфейс</title>
-			<para>
-				Мониторинг SHDSL каналов позволяет получить информацию о различных параметрах и произошедших ошибках в линии связи. В случае, если в линии связи используются регенераторы <emphasis>SG-17E</emphasis>, то можно получать информацию о состоянии этих регенераторов и их количестве.
+				Это означает, что интерфейсу eth0 соответствует интерфейс dsl0, а eth1 — dsl1, и если линк на dsl0 
+				упадет, что так же будет отключен линк на eth0. Редактировать файл можно любым текстовым редактором, к примеру следующей командой:
 			</para>
 			<para>
-				Просмотр статистики параметров канала доступен на странице System->SHDSL-EOC->имя_интерфейса, на вкладке Statistic. На вкладке General отображается общая статистика соединения.
-			</para>
-			<figure>
-				<title>Общая статистика соединения</title>
-				<graphic fileref="img/eocd-stat-general.png" width="6in" />
-			</figure>
-			<itemizedlist>
-				<listitem>
-					<para>
-						<emphasis>Channel link</emphasis> — состояние соединения между демонами EOCd. Если соединение установлено, но значение этого параметра установлено в <emphasis>offline</emphasis> — значит демоны EOCd не смогли установить между собой соединение. Это может быть вызвано несколькими причинами: один из демонов EOCd может быть не запущен, либо соответствующий интерфейс не управляется через EOCd.
-					</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis>Regenerators</emphasis> — фактическое число регенераторов на линии.
-					</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis>Wire pairs</emphasis> — число пар в канале.
-					</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis>Rate, Annex</emphasis> — скорость и кодирование сигнала.
-					</para>
-				</listitem>
-			</itemizedlist>
-			<para>
-				Каждому юниту в канале (мастеру, слейву и регенераторам) соответствует своя вкладка, на которой отображаются параметры линии связи для данного юнита. Так, вкладки STU-C и STU-R соответствуют мастеру и слейву, а SRU1 — SRU8 — регенераторам.
+				<command>nano</command> <replaceable>/etc/sigrand/dsl2eth.map</replaceable>
 			</para>
 			<para>
-				Параметры производительности, характеризующие SHDSL канал:
+				После внесения изменений в конфигурационный файл рекомендуется перезагрузить маршрутизатор.
 			</para>
-			<itemizedlist>
-				<listitem>
-					<para>
-						<emphasis>Errored Second (ES)</emphasis> — количество секундных интервалов, в которые была обнаружена одна или более CRC аномалий или более одного LOSW дефекта. При работе с данным параметром необходимо учитывать правила приоритетов параметров (см. <link linkend="shdsl.rules">правила приоритетов</link>).
-					</para>
-					<note>
+		</section>
+		<section id="eoc">
+			<title id="eoc.title">Мониторинг SHDSL каналов</title>
+			<note>
+				<para>
+					Мониторинг поддерживают только модули MR17H.
+				</para>
+			</note>
+			<note>
+				<para>
+					Получение статистики по каналу на данный возможно только с мастера.
+				</para>
+			</note>
+			<section>
+				<title>Мониторинг через веб-интерфейс</title>
+				<para>
+					Мониторинг SHDSL каналов позволяет получить информацию о различных параметрах и произошедших ошибках в линии связи. В случае, если в линии связи используются регенераторы <emphasis>SG-17E</emphasis>, то можно получать информацию о состоянии этих регенераторов и их количестве.
+				</para>
+				<para>
+					Просмотр статистики параметров канала доступен на странице System->SHDSL-EOC->имя_интерфейса, на вкладке Statistic. На вкладке General отображается общая статистика соединения.
+				</para>
+				<figure>
+					<title>Общая статистика соединения</title>
+					<graphic fileref="img/eocd-stat-general.png" width="6in" />
+				</figure>
+				<itemizedlist>
+					<listitem>
 						<para>
-							<emphasis>Loss of Sync Defect (LOSW defect)</emphasis> – потеря синхронизации. В плезиохронном режиме дефект потери синхронизации должен обозначаться, когда не менее трех последовательно полученных кадров содержат ошибки синхронизации. Данные ошибки индицируются группой битов в кадре: Frame Sync Word, Stuff Bits и Stuff Bit Ids. Индикация LOSW очищается после получения не менее двух кадров не содержащих ошибок синхронизации, следующих друг за другом.
+							<emphasis>Channel link</emphasis> — состояние соединения между демонами EOCd. Если соединение установлено, но значение этого параметра установлено в <emphasis>offline</emphasis> — значит демоны EOCd не смогли установить между собой соединение. Это может быть вызвано несколькими причинами: один из демонов EOCd может быть не запущен, либо соответствующий интерфейс не управляется через EOCd.
 						</para>
-					</note>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis>Severely Errored Second (SES)</emphasis> — количество односекундных интервалов, в течение которых произошло не менее 50-ти CRC аномалий или более одного LOSW дефекта. (50 CRC аномалий в течение одной секунды соответствуют 30% некорректных кадров для стандартной длины кадра). При работе с данным параметром необходимо учитывать правила приоритетов параметров.
-					</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis>LOSW Second (LOSWS)</emphasis> — количество секундных интервалов, в течение которых обнаружено более одного LOSW дефекта.
-					</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis>Unavailable Second (UAS)</emphasis> — количество секундных интервалов, в течение которых SHDSL канал недоступен. Канал считается доступным после сбоя по прошествии 10 секунд, в течение которых не зарегистрировано ни одного SES. Данные 10 секунд исключаются из числа секунд, в которые канал был недоступен.
-					</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis>Code Violation (CV)</emphasis> — количество CRC аномалий, обнаруженных за период, в течение которого производился мониторинг. При работе с данным параметром необходимо учитывать правила приоритетов параметров, которые будут описаны ниже.
-					</para>
-				</listitem>
-			</itemizedlist>
-			<para>
-				Таблица <emphasis>state</emphasis> показывает текущие параметры линии (SNR и LoopAttn) и ошибки с момента начала мониторинга канала.
-			</para>
-			<figure>
-				<title>Таблица state</title>
-				<graphic fileref="img/eocd-stat-unit-state.png" width="6in" />
-			</figure>
-			<itemizedlist>
-				<listitem>
-					<para>
-						<emphasis>Side</emphasis> — сторона.
-					</para>
-					<note>
+					</listitem>
+					<listitem>
 						<para>
-							Есть две группы, в которые входят параметры линии связи:
+							<emphasis>Regenerators</emphasis> — фактическое число регенераторов на линии.
 						</para>
-						<itemizedlist>
-							<listitem>
-								<para>
-									<emphasis>NetSide</emphasis> — сторона мастера (линия связи, идущая к мастеру).
-								</para>
-							</listitem>
-							<listitem>
-								<para>
-									<emphasis>CustSide</emphasis> — сторона клиента (линия связи, идущая к слейву).
-								</para>
-							</listitem>
-						</itemizedlist>
-					</note>
-				</listitem>
-				<listitem>
-					<emphasis>Pair</emphasis> — номер пары проводов.
-				</listitem>
-			</itemizedlist>
-			<para>
-				Таблица <emphasis>relative counters</emphasis> содержит те же параметры, что и таблица <emphasis>state</emphasis>, предоставляя возможность их сбрасывания, чтобы проводить замеры в определённые промежутки времени.
-			</para>
-			<figure>
-				<title>Таблица relative counters</title>
-				<graphic fileref="img/eocd-stat-unit-relative.png" width="6in" />
-			</figure>
-			<para>
-				Таблица <emphasis>current intervals</emphasis> содержит ошибки за последние 15 минут и последний день. Значения обновляются, соответственно, каждые 15 минут и каждый день.
-			</para>
-			<figure>
-				<title>Таблица current intervals</title>
-				<graphic fileref="img/eocd-stat-unit-curr.png" width="6in" />
-			</figure>
-			<para>
-				Так же для каждой пары проводов и каждой стороны (NetSide и CustSide) ведутся таблицы, хранящие 15 минутные и дневные интервалы, в течении которых были ошибки. В таблицах хранится последние 96 15-ти минутных интервалов, и последние 30 — дневных.
-			</para>
-			<figure>
-				<title>Таблица 15-ти минутных интервалов для CustSide</title>
-				<graphic fileref="img/eocd-stat-unit-15min.png" width="6in" />
-			</figure>
-			<figure>
-				<title>Таблица дневных интервалов для CustSide</title>
-				<graphic fileref="img/eocd-stat-unit-1day.png" width="6in" />
-			</figure>
-			<itemizedlist>
-				<listitem>
-					<para>
-						<emphasis>Monitoring</emphasis> — процент времени, в течении которого мониторился канал.
-					</para>
-				</listitem>
-			</itemizedlist>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Wire pairs</emphasis> — число пар в канале.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Rate, Annex</emphasis> — скорость и кодирование сигнала.
+						</para>
+					</listitem>
+				</itemizedlist>
+				<para>
+					Каждому юниту в канале (мастеру, слейву и регенераторам) соответствует своя вкладка, на которой отображаются параметры линии связи для данного юнита. Так, вкладки STU-C и STU-R соответствуют мастеру и слейву, а SRU1 — SRU8 — регенераторам.
+				</para>
+				<para>
+					Параметры производительности, характеризующие SHDSL канал:
+				</para>
+				<itemizedlist>
+					<listitem>
+						<para>
+							<emphasis>Errored Second (ES)</emphasis> — количество секундных интервалов, в которые была обнаружена одна или более CRC аномалий или более одного LOSW дефекта. При работе с данным параметром необходимо учитывать правила приоритетов параметров (см. <link linkend="shdsl.rules">правила приоритетов</link>).
+						</para>
+						<note>
+							<para>
+								<emphasis>Loss of Sync Defect (LOSW defect)</emphasis> – потеря синхронизации. В плезиохронном режиме дефект потери синхронизации должен обозначаться, когда не менее трех последовательно полученных кадров содержат ошибки синхронизации. Данные ошибки индицируются группой битов в кадре: Frame Sync Word, Stuff Bits и Stuff Bit Ids. Индикация LOSW очищается после получения не менее двух кадров не содержащих ошибок синхронизации, следующих друг за другом.
+							</para>
+						</note>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Severely Errored Second (SES)</emphasis> — количество односекундных интервалов, в течение которых произошло не менее 50-ти CRC аномалий или более одного LOSW дефекта. (50 CRC аномалий в течение одной секунды соответствуют 30% некорректных кадров для стандартной длины кадра). При работе с данным параметром необходимо учитывать правила приоритетов параметров.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>LOSW Second (LOSWS)</emphasis> — количество секундных интервалов, в течение которых обнаружено более одного LOSW дефекта.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Unavailable Second (UAS)</emphasis> — количество секундных интервалов, в течение которых SHDSL канал недоступен. Канал считается доступным после сбоя по прошествии 10 секунд, в течение которых не зарегистрировано ни одного SES. Данные 10 секунд исключаются из числа секунд, в которые канал был недоступен.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Code Violation (CV)</emphasis> — количество CRC аномалий, обнаруженных за период, в течение которого производился мониторинг. При работе с данным параметром необходимо учитывать правила приоритетов параметров, которые будут описаны ниже.
+						</para>
+					</listitem>
+				</itemizedlist>
+				<para>
+					Таблица <emphasis>state</emphasis> показывает текущие параметры линии (SNR и LoopAttn) и ошибки с момента начала мониторинга канала.
+				</para>
+				<figure>
+					<title>Таблица state</title>
+					<graphic fileref="img/eocd-stat-unit-state.png" width="6in" />
+				</figure>
+				<itemizedlist>
+					<listitem>
+						<para>
+							<emphasis>Side</emphasis> — сторона.
+						</para>
+						<note>
+							<para>
+								Есть две группы, в которые входят параметры линии связи:
+							</para>
+							<itemizedlist>
+								<listitem>
+									<para>
+										<emphasis>NetSide</emphasis> — сторона мастера (линия связи, идущая к мастеру).
+									</para>
+								</listitem>
+								<listitem>
+									<para>
+										<emphasis>CustSide</emphasis> — сторона клиента (линия связи, идущая к слейву).
+									</para>
+								</listitem>
+							</itemizedlist>
+						</note>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Pair</emphasis> — номер пары проводов.
+						</para>
+					</listitem>
+				</itemizedlist>
+				<para>
+					Таблица <emphasis>relative counters</emphasis> содержит те же параметры, что и таблица <emphasis>state</emphasis>, предоставляя возможность их сбрасывания, чтобы проводить замеры в определённые промежутки времени.
+				</para>
+				<figure>
+					<title>Таблица relative counters</title>
+					<graphic fileref="img/eocd-stat-unit-relative.png" width="6in" />
+				</figure>
+				<para>
+					Таблица <emphasis>current intervals</emphasis> содержит ошибки за последние 15 минут и последний день. Значения обновляются, соответственно, каждые 15 минут и каждый день.
+				</para>
+				<figure>
+					<title>Таблица current intervals</title>
+					<graphic fileref="img/eocd-stat-unit-curr.png" width="6in" />
+				</figure>
+				<para>
+					Так же для каждой пары проводов и каждой стороны (NetSide и CustSide) ведутся таблицы, хранящие 15 минутные и дневные интервалы, в течении которых были ошибки. В таблицах хранится последние 96 15-ти минутных интервалов, и последние 30 — дневных.
+				</para>
+				<figure>
+					<title>Таблица 15-ти минутных интервалов для CustSide</title>
+					<graphic fileref="img/eocd-stat-unit-15min.png" width="6in" />
+				</figure>
+				<figure>
+					<title>Таблица дневных интервалов для CustSide</title>
+					<graphic fileref="img/eocd-stat-unit-1day.png" width="6in" />
+				</figure>
+				<itemizedlist>
+					<listitem>
+						<para>
+							<emphasis>Monitoring</emphasis> — процент времени, в течении которого мониторился канал.
+						</para>
+					</listitem>
+				</itemizedlist>
+			</section>
+			<section>
+				<title>Мониторинг через консоль</title>
+				<para>
+					Для мониторинга SHDSL канала используется утилита <command>eoc-info</command>, для получения подробной информации об её использовании используется ключ <option>--help</option>.
+				</para>
+				<para>
+					Для получения краткой информации о состоянии канала используется команда <command>eoc-info</command> <option>-s</option>. Она показывает состояние каждого канала: сколько регенераторов обнаружено, и установлено ли соединение со слейвом (маршрутизатор, работающий в режиме <emphasis>slave</emphasis>). В ее выводе <emphasis>offline</emphasis> показывает, что соединение со вторым маршрутизатором не установлено. В этом случае число регенераторов показывает, до какого регенератора было установлено соединение.
+				</para>
+				<para>
+					Для получения более детальной информации надо указать имя интерфейса: <command>eoc-info</command> <option>-i</option> <replaceable>dsl0</replaceable>. В выводе команды будет полная информация о всех юнитах в тракте — мастера, слейва и всех регенераторов. Для получения информации о конкретном юните используется опция <option>-u</option> и название юнита: STU-C, STU-R, SRU1..SRU8.
+				</para>
+			</section>
+			<section id="shdsl.rules">
+				<title>Правила приоритетов параметров производительности SHDSL канала</title>
+				<itemizedlist>
+					<listitem>
+						<para>
+							На параметр <emphasis>UAS</emphasis> не налагается запретов.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Параметры <emphasis>ES</emphasis> и <emphasis>SES</emphasis> запрещаются, если установлена индикация <emphasis>UAS</emphasis>.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Параметр <emphasis>CV</emphasis> запрещается, если установлена индикация <emphasis>SES</emphasis>.
+						</para>
+					</listitem>
+				</itemizedlist>
+			</section>
 		</section>
-		<section>
-			<title>Мониторинг через консоль</title>
+		<section id="cfg">
+			<title id="cfg.title">Сохранение/восстановление конфигурации</title>
 			<para>
-				Для мониторинга SHDSL канала используется утилита <command>eoc-info</command>, для получения подробной информации об её использовании используется ключ <option>--help</option>.
-			</para>
-			<para>
-				Для получения краткой информации о состоянии канала используется команда <command>eoc-info</command> <option>-s</option>. Она показывает состояние каждого канала: сколько регенераторов обнаружено, и установлено ли соединение со слейвом (маршрутизатор, работающий в режиме <emphasis>slave</emphasis>). В ее выводе <emphasis>offline</emphasis> показывает, что соединение со вторым маршрутизатором не установлено. В этом случае число регенераторов показывает, до какого регенератора было установлено соединение.
-			</para>
-			<para>
-				Для получения более детальной информации надо указать имя интерфейса: <command>eoc-info</command> <option>-i</option> <replaceable>dsl0</replaceable>. В выводе команды будет полная информация о всех юнитах в тракте — мастера, слейва и всех регенераторов. Для получения информации о конкретном юните используется опция <option>-u</option> и название юнита: STU-C, STU-R, SRU1..SRU8.
-			</para>
-		</section>
-		<section id="shdsl.rules">
-			<title>Правила приоритетов параметров производительности SHDSL канала</title>
-			<itemizedlist>
-				<listitem>
-					<para>
-						На параметр <emphasis>UAS</emphasis> не налагается запретов.
-					</para>
-				</listitem>
-				<listitem>
-					<para>
-						Параметры <emphasis>ES</emphasis> и <emphasis>SES</emphasis> запрещаются, если установлена индикация <emphasis>UAS</emphasis>.
-					</para>
-				</listitem>
-				<listitem>
-					<para>
-						Параметр <emphasis>CV</emphasis> запрещается, если установлена индикация <emphasis>SES</emphasis>.
-					</para>
-				</listitem>
-			</itemizedlist>
-		</section>
-	</section>
-    <section id="cfg" >
-      <title>Сохранение/восстановление конфигурации</title>
-      <para>
 				Веб-интерфейс позволяет сохранять текущую, восстанавливать сохраненную или заводскую конфигурацию маршрутизатора.
 			</para>
-      <para>
+			<para>
 				Сохранение конфигурации выполняется на странице Configuration/Backup:
 			</para>
-      <figure id="backup">
-        <title>Сохранение конфигурации</title>
-        <graphic width="6in" fileref="img/config-backup.png" />
-      </figure>
-      <para>
+			<figure id="backup">
+				<title>Сохранение конфигурации</title>
+				<graphic width="6in" fileref="img/config-backup.png" />
+			</figure>
+			<para>
 				При нажатии на кнопку Backup будет предложено сохранить файл конфигурации, который в последствии можно будет загрузить.
 			</para>
-      <para>
+			<para>
 				Восстановление конфигурации выполняется на странице Configuration/Restore:
 			</para>
-      <figure id="restore">
-        <title>Восстановление конфигурации</title>
-        <graphic width="6in" fileref="img/config-restore.png" />
-      </figure>
-      <para>
+			<figure id="restore">
+				<title>Восстановление конфигурации</title>
+				<graphic width="6in" fileref="img/config-restore.png" />
+			</figure>
+			<para>
 				На вкладке default можно восстановить заводскую конфигурацию нажатием на кнопку Restore default.
 			</para>
-      <para>
+			<para>
 				После восстановления конфигурации, необходимо перезагрузить маршрутизатор.
 			</para>
-    </section>
+		</section>
 	</chapter>
 	<chapter id="iface">
 		<title>Настройка сетевых интерфейсов</title>
@@ -1385,6 +1481,11 @@
 							<para>
 								<emphasis>E1 external transmit clock</emphasis> — использовать внешний источник тактирования. По-умолчанию используется внутренний.
 							</para>
+							<note>
+								<para>
+									Если для данного интерфейса включено мультиплексирование (MXEN=1), то используются параметры из таблицы мультиплексирования (CLKM, CLKR). Если мультиплексирование выключено, то используется данный параметр.
+								</para>
+							</note>
 						</listitem>
 						<listitem>
 							<para>
@@ -1671,11 +1772,31 @@
 					<graphic fileref="img/pptp-specific.png" width="6in" />
 				</figure>
 				<itemizedlist>
-					<listitem><para>Server — имя или IP-адрес сервера PPtP, к которому будет выполняться подключение.</para></listitem>
-					<listitem><para>Username — имя пользователя.</para></listitem>
-					<listitem><para>Password — пароль.</para></listitem>
-					<listitem><para>Default route — является ли это соединение маршрутом по-умолчанию.</para></listitem>
-					<listitem><para>PPPD Options — параметры, которые будет переданы демону PPPD при подключении.</para></listitem>
+					<listitem>
+						<para>
+							<emphasis>Server</emphasis> — имя или IP-адрес сервера PPtP, к которому будет выполняться подключение.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Username</emphasis> — имя пользователя.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Password</emphasis> — пароль.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Default route</emphasis> — является ли это соединение маршрутом по-умолчанию.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>PPPD Options</emphasis> — параметры, которые будет переданы демону PPPD при подключении.
+						</para>
+					</listitem>
 				</itemizedlist>
 				<important>
 					<para>
@@ -1720,13 +1841,41 @@
 					<graphic fileref="img/pppoe-specific.png" width="6in" />
 				</figure>
 				<itemizedlist>
-					<listitem><para>Interface — физический интерфейс, в сети которого находится PPPoE сервер (eth0, eth1, ...)</para></listitem>
-					<listitem><para>Service — маршрутизатор будет устанавливать соединение с теми серверами PPPoE, которые предоставляют данный сервис. В большинстве случаев этот параметр не используется.</para></listitem>
-					<listitem><para>Access Concentrator — маршрутизатор будет устанавливать соединение только с указанным концентратором. Используется в случае наличия нескольких серверов PPPoE.</para></listitem>
-					<listitem><para>Default route — является ли это соединение маршрутом по-умолчанию.</para></listitem>
-					<listitem><para>Username — имя пользователя.</para></listitem>
-					<listitem><para>Password — пароль.</para></listitem>
-					<listitem><para>PPPD Options — параметры, которые будет переданы демону PPPD при подключении.</para></listitem>
+					<listitem>
+						<para>
+							<emphasis>Interface</emphasis> — физический интерфейс, в сети которого находится PPPoE сервер (eth0, eth1, ...).
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Service</emphasis> — маршрутизатор будет устанавливать соединение с теми серверами PPPoE, которые предоставляют данный сервис. В большинстве случаев этот параметр не используется.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Access Concentrator</emphasis> — маршрутизатор будет устанавливать соединение только с указанным концентратором. Используется в случае наличия нескольких серверов PPPoE.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Default route</emphasis> — является ли это соединение маршрутом по-умолчанию.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Username</emphasis> — имя пользователя.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Password</emphasis> — пароль.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>PPPD Options</emphasis> — параметры, которые будет переданы демону PPPD при подключении.
+						</para>
+					</listitem>
 				</itemizedlist>
 				<para>
 					Активировать соединение и включить его автоматическую инициализацию после загрузки маршрутизатора можно на вкладке General:
@@ -1782,7 +1931,7 @@
 				Различие между аппаратными и сетевыми настройками сделано из-за технических ограничений.
 			</para>
 		</section>
-  </chapter>
+	</chapter>
 	<chapter id="dhcp_server">
     	<title>Настройка сетевых служб</title>
     	<section>
@@ -1902,22 +2051,68 @@
 				Активация VPN-сервера выполняется установкой флажка напротив параметра <emphasis>Enable PPTP server</emphasis>. Настройка сервера состоит из двух стадий — конфигурации самого сервера и добавления пользователей, которые могут к нему подключаться. Рассмотрим параметры конфигурации сервера:
 			</para>
 			<itemizedlist>
-				<listitem>Name — имя VPN-сервера. Используется при аутентификации. У пользователя в *-secret файле значение имени сервера должно совпадать с этим, либо там должна стоять "звездочка".</listitem>
-				<listitem>Local IP range — диапазон IP-адресов, которые будут присвоены соединению на стороне сервера.</listitem>
-				<listitem>Remote IP range — диапазон IP-адресов, которые будут присвоены соединению на стороне клиента.</listitem>
 				<listitem>
-					Механизмы аутентификации. Имеют три значения — <emphasis>none</emphasis> — не определено,  <emphasis>require</emphasis> — обязателен, <emphasis>refuse</emphasis> — запрещен к использованию
+					<para>
+						<emphasis>Name</emphasis> — имя VPN-сервера. Используется при аутентификации. У пользователя в *-secret файле значение имени сервера должно совпадать с этим, либо там должна стоять "звездочка".
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Local IP range</emphasis> — диапазон IP-адресов, которые будут присвоены соединению на стороне сервера.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Remote IP range</emphasis> — диапазон IP-адресов, которые будут присвоены соединению на стороне клиента.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						Механизмы аутентификации. Имеют три значения — <emphasis>none</emphasis> — не определено,  <emphasis>require</emphasis> — обязателен, <emphasis>refuse</emphasis> — запрещён к использованию.
+					</para>
 					<itemizedlist>
-						<listitem>PAP Mode — метод PAP</listitem>
-						<listitem>CHAP Mode — метод CHAP</listitem>
-						<listitem>MS CHAP Mode — метод MS CHAP</listitem>
-						<listitem>MS CHAPv2 Mode — метод MS CHAPv2</listitem>
+						<listitem>
+							<para>
+								<emphasis>PAP Mode</emphasis> — метод PAP.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>CHAP Mode</emphasis> — метод CHAP.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>MS CHAP Mode</emphasis> — метод MS CHAP.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>MS CHAPv2 Mode</emphasis> — метод MS CHAPv2.
+							</para>
+						</listitem>
 					</itemizedlist>
 				</listitem>
-				<listitem>MPPE Mode — использовать шифрование трафика по алгоритму MPPE (Microsoft Point-to-Point Encryption)</listitem>
-				<listitem>DNS server — адреса первичного и вторичного сервера DNS, которые будут переданы клиенту</listitem>
-				<listitem>WINS server — адрес WINS сервера</listitem>
-				<listitem>PPPD options — опции, которые будут переданы серверу pptp</listitem>
+				<listitem>
+					<para>
+						<emphasis>MPPE Mode</emphasis> — использовать шифрование трафика по алгоритму MPPE (Microsoft Point-to-Point Encryption).
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>DNS server</emphasis> — адреса первичного и вторичного сервера DNS, которые будут переданы клиенту.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>WINS server</emphasis> — адрес WINS сервера.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>PPPD options</emphasis> — опции, которые будут переданы серверу pptp.
+					</para>
+				</listitem>
 			</itemizedlist>
 			<para id="auth_ppp">
 				После внесения изменений, конфигурацию необходимо сохранить. Для добавления пользователей VPN-сервера, перейдем на страницу System/Security/PPP secrets:
@@ -1934,10 +2129,26 @@
 				<graphic fileref="img/chap-add.png" width="6in" />
 			</figure>
 			<itemizedlist>
-				<listitem>Username — имя пользователя</listitem>
-				<listitem>Password — пароль пользователя</listitem>
-				<listitem>Server — имя сервера VPN, "звездочка" — любой</listitem>
-				<listitem>IP address — IP-адрес, выдаваемый клиенту. "Звездочка" — любой.</listitem>
+				<listitem>
+					<para>
+						<emphasis>Username</emphasis> — имя пользователя.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Password</emphasis> — пароль пользователя.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Server</emphasis> — имя сервера VPN, "*" — любой.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>IP address</emphasis> — IP-адрес, выдаваемый клиенту. "*" — любой.
+					</para>
+				</listitem>
 			</itemizedlist>
 		</section>
 		<section id="dns_server">
@@ -2290,53 +2501,57 @@
 		<section id="nat">
 			<title>NAT</title>
 			<para>
-						NAT — network address translation — позволяет заменять адреса источника или отправителя пакета.
-					</para>
+				NAT — network address translation — позволяет заменять адреса источника или отправителя пакета.
+			</para>
 			<para>
-						NAT является частью межсетевого экрана, поэтому схема управления остаётся той же, меняется только действие. Все сетевые пакеты, являются ли они транзитными или предназначаются маршрутизатору, попадают сперва в цепочку PREROUTING, где над ними может быть выполнено несколько действий. В этой цепочке не рекомендуется производить фильтрацию пакетов, для этого надо использовать цепочку FORWARD. Цепочка PREROUTING предназначена для выполнения DNAT — destination NAT, т.е. замена адреса получателя пакета.
-					</para>
+				NAT является частью межсетевого экрана, поэтому схема управления остаётся той же, меняется только действие. Все сетевые пакеты, являются ли они транзитными или предназначаются маршрутизатору, попадают сперва в цепочку PREROUTING, где над ними может быть выполнено несколько действий. В этой цепочке не рекомендуется производить фильтрацию пакетов, для этого надо использовать цепочку FORWARD. Цепочка PREROUTING предназначена для выполнения DNAT — destination NAT, т.е. замена адреса получателя пакета.
+			</para>
 			<figure id="nat_prerouting">
 				<title>Цепочка PREROUTING</title>
 				<graphic width="6in" fileref="img/nat-prerouting.png" />
 			</figure>
 			<para>
-						В цепочку POSTROUTING идут пакеты, выходящие с маршрутизатора, транзитные или сгенерированные на маршрутизаторе. В этой цепочке можно выполнить SNAT — source NAT — замену адреса отправителя, с указанием адреса, либо MASQUERADE — смысл тот же, только адрес замена будет выбираться автоматически (удобно при работе с динамическими интерфейсами и IP-адресами).
-					</para>
+				В цепочку POSTROUTING идут пакеты, выходящие с маршрутизатора, транзитные или сгенерированные на маршрутизаторе. В этой цепочке можно выполнить SNAT — source NAT — замену адреса отправителя, с указанием адреса, либо MASQUERADE — смысл тот же, только адрес замена будет выбираться автоматически (удобно при работе с динамическими интерфейсами и IP-адресами).
+			</para>
 			<figure id="nat_postrouting">
 				<title>Цепочка POSTROUTING</title>
 				<graphic width="6in" fileref="img/nat-postrouting.png" />
 			</figure>
 			<para>
-						Для этих цепочек так же выставляются политики, т.е. действия для пакетов, не попавшие ни под одно правило:
-					</para>
+				Для этих цепочек так же выставляются политики, т.е. действия для пакетов, не попавшие ни под одно правило:
+			</para>
 			<figure>
 				<title>Политики цепочек</title>
 				<graphic width="6in" fileref="img/nat-policy.png" />
 			</figure>
 			<note>
-				<simpara>
+				<para>
 					Т.к. в цепочку PREROUTING попадают пакеты, предназначающиеся самому маршрутизатору, перед выставлением политики DROP убедитесь, что в цепочке есть правило, разрешающее прохождение пакетов для управления маршрутизатором.
-				</simpara>
+				</para>
 			</note>
 			<para>
-						Добавление правил осуществляется нажатием кнопки &quot;+&quot;, расположенной рядом с заголовком соответствующей таблицы:
+				Добавление правил осуществляется нажатием кнопки &quot;+&quot;, расположенной рядом с заголовком соответствующей таблицы:
 			</para>
 			<figure id="nat_add">
 				<title>Добавление правила</title>
 				<graphic fileref="img/nat-add.png" />
 			</figure>
 			<para>
-						Добавление правила и поля аналогично добавлению правила в межсетевом экране (Network/Firewall/Filter), добавляется только одно новое поле:
-						<itemizedlist>
-				<listitem>Nat to address — IP-адрес, которым будет заменяться адрес отправителя или получателя, в зависимости от действия. При выполнении действий, отличных от SNAT и DNAT, заполнение поля необязательно.</listitem>
-				</itemizedlist>
+				Добавление правила и поля аналогично добавлению правила в межсетевом экране (Network/Firewall/Filter), добавляется только одно новое поле:
+			</para>
+			<itemizedlist>
+				<listitem>
+					<para>
+						<emphasis>Nat to address</emphasis> — IP-адрес, которым будет заменяться адрес отправителя или получателя, в зависимости от действия. При выполнении действий, отличных от SNAT и DNAT, заполнение поля необязательно.
+					</para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				Редактирование и удаление правил осуществляется с помощью кнопок &quot;e&quot; и &quot;x&quot;, расположенных рядом с правилом.
 			</para>
 			<para>
-						Редактирование и удаление правил осуществляется с помощью кнопок &quot;e&quot; и &quot;x&quot;, расположенных рядом с правилом.
-					</para>
-			<para>
-						Для работы НАТа необходимо активировать межсетевой экран на странице Network/Firewall.
-					</para>
+				Для работы НАТа необходимо активировать межсетевой экран на странице Network/Firewall.
+			</para>
 		</section>
 		<section id="qos">
 			<title>Качество обслуживания</title>
@@ -2352,12 +2567,32 @@
 					Распределять трафик по полосам можно с помощью установки битов ToS — Type of Service, которая производится средствами межсетевого экрана. Существует четыре бита ToS, в каждый момент времени может быть установлен только один:
 				</para>
 				<itemizedlist>
-					<listitem><para>Minimum Delay — минимальная задержка</para></listitem>
-					<listitem><para>Maximum Throughput — максимальная пропускная способность</para></listitem>
-					<listitem><para>Maximum Reliability — максимальная надежность</para></listitem>
-					<listitem><para>Minimum Cost — минимальная стоимость канала</para></listitem>
+					<listitem>
+						<para>
+							<emphasis>Minimum Delay</emphasis> — минимальная задержка.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Maximum Throughput</emphasis> — максимальная пропускная способность.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Maximum Reliability</emphasis> — максимальная надежность.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Minimum Cost</emphasis> — минимальная стоимость канала.
+						</para>
+					</listitem>
 				</itemizedlist>
-				<important><para>В текущей версии веб-интерфейса маршрутизатора отсутствует возможность установки битов ToS. Для этого можно воспользоваться консольным интерфейсом маршрутизатора.</para></important>
+				<important>
+					<para>
+						В текущей версии веб-интерфейса маршрутизатора отсутствует возможность установки битов ToS. Для этого можно воспользоваться консольным интерфейсом маршрутизатора.
+					</para>
+				</important>
 			</section>
 			<section id="sfq">
 				<title>Бесклассовая дисциплина SFQ</title>
@@ -2372,22 +2607,52 @@
 				</para>
 				<para>
 					Смысл работы данной дисциплины заключается в следующем. Поступающие для передачи пакеты записываются в буффер дисциплины, откуда они с заданной скоростью поступают на исходящий интерфейс. Возможно три ситуации:
-					<itemizedlist>
-						<listitem><para>Пакеты поступают со скоростью, равной скорости передачи их на исходящий интерфейс. В этом случае пакеты проходят через интерфейс без задержек.</para></listitem>
-						<listitem><para>Пакеты поступают со скоростью, меньшей скорости передачи их на исходящий интерфейс. В этом случае при кратковременном возрастании скорости входящего трафика — он будет накоплен во входящей очереди и передан с заданной скоростью.</para></listitem>
-						<listitem><para>Пакеты поступают со скоростью, превышающей скорость передачи их на исходящий интерфейс. В этом случае через некоторое время пакеты начнут сбрасываться.</para></listitem>
-					</itemizedlist>
 				</para>
-				<para>Дисциплина имеет несколько параметров, позволяющих управлять ее работой:</para>
+				<itemizedlist>
+					<listitem>
+						<para>
+							Пакеты поступают со скоростью, равной скорости передачи их на исходящий интерфейс. В этом случае пакеты проходят через интерфейс без задержек.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Пакеты поступают со скоростью, меньшей скорости передачи их на исходящий интерфейс. В этом случае при кратковременном возрастании скорости входящего трафика — он будет накоплен во входящей очереди и передан с заданной скоростью.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Пакеты поступают со скоростью, превышающей скорость передачи их на исходящий интерфейс. В этом случае через некоторое время пакеты начнут сбрасываться.
+						</para>
+					</listitem>
+				</itemizedlist>
+				<para>
+					Дисциплина имеет несколько параметров, позволяющих управлять её работой:
+				</para>
 				<figure>
 					<title>Конфигурирования TBF</title>
 					<graphic fileref="img/qos-tbf.png" width="6in" />
 				</figure>
 				<itemizedlist>
-					<listitem><para>Rate — скорость, с которой поступающий трафик передается на исходящий интерфейс</para></listitem>
-					<listitem><para>Tocken Buffer — число байт, передаваемых в момент времени на исходящий интерфейс</para></listitem>
-					<listitem><para>Limit — размер буфера в байтах, в который записываются поступающие пакеты, если скорость их поступления превышает скорость их передачи на исходящий интерфейс. При превышении этого параметра пакеты будут сбрасываться.</para></listitem>
-					<listitem><para>Latency — время, которое пакет может находиться, ожидая передачи на исходящий интерфейс. По истечении этого времени, пакет будет сброшен.</para></listitem>
+					<listitem>
+						<para>
+							<emphasis>Rate</emphasis> — скорость, с которой поступающий трафик передается на исходящий интерфейс.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Tocken Buffer</emphasis> — число байт, передаваемых в момент времени на исходящий интерфейс.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Limit</emphasis> — размер буфера в байтах, в который записываются поступающие пакеты, если скорость их поступления превышает скорость их передачи на исходящий интерфейс. При превышении этого параметра пакеты будут сбрасываться.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Latency</emphasis> — время, которое пакет может находиться, ожидая передачи на исходящий интерфейс. По истечении этого времени, пакет будет сброшен.
+						</para>
+					</listitem>
 				</itemizedlist>
 				<important>
 					<para>
@@ -3003,16 +3268,56 @@
 				Для настройки мультиплексирования задаются следующие параметры (для каждого интерфейса, участвующего в мультиплексировании):
 			</para>
 			<itemizedlist>
-				<listitem><para><emphasis>rline — </emphasis>номер линии, на которую интерфейс будет выставлять данные, полученные из физической линии</para></listitem>
-				<listitem><para><emphasis>rfs — </emphasis>номер тайм-слота линии, начиная с которого на нее выставляются данные этим интерфейсом</para></listitem>
-				<listitem><para><emphasis>tline — </emphasis>номер линии, с которой данный интерфейс забирает данные (выставленные другим интерфейсом, участвующим в мультиплексировании) для передачи в физическую линию</para></listitem>
-				<listitem><para><emphasis>tfs — </emphasis>номер тайм-слота линии, начиная с которого с нее забираются данные</para></listitem>
-				<listitem><para><emphasis>mxrate — </emphasis>число тайм-слотов, отводимых для  мультиплексирования (для интерфейсов SHDSL)</para></listitem>
-				<listitem><para><emphasis>mxsmap — </emphasis>карта слотов, используемых для мультиплексирования (для интерфейсов Е1). Эта карта не должна пересекаться с картой, которая задается при конфигурации интерфейса Е1 для передачи IP трафика. Задается в виде "1-16", "16-31", ...</para></listitem>
-				<listitem><para><emphasis>clkm — </emphasis>если 1, устройство является источником синхронизации для данного домена, если 0 —  приемником</para></listitem>
-				<listitem><para><emphasis>clkab — </emphasis>0 — устройство принадлежит домену А, 1 — к домену B</para></listitem>
-				<listitem><para><emphasis>clkr — </emphasis>1 — использовать для тактирования внешний клок, 0 — использовать для тактирования локальный клок</para></listitem>
-				<listitem><para><emphasis>mxen — </emphasis>1 — устройство принимает участие в мультиплексировании, 0 — устройство используется только для IP трафика</para></listitem>
+				<listitem>
+					<para>
+						<emphasis>rline — </emphasis>номер линии, на которую интерфейс будет выставлять данные, полученные из физической линии
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>rfs — </emphasis>номер тайм-слота линии, начиная с которого на нее выставляются данные этим интерфейсом.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>tline — </emphasis>номер линии, с которой данный интерфейс забирает данные (выставленные другим интерфейсом, участвующим в мультиплексировании) для передачи в физическую линию.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>tfs — </emphasis>номер тайм-слота линии, начиная с которого с неё забираются данные.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>mxrate — </emphasis>число тайм-слотов, отводимых для  мультиплексирования (для интерфейсов SHDSL).
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>mxsmap — </emphasis>карта слотов, используемых для мультиплексирования (для интерфейсов Е1). Эта карта не должна пересекаться с картой, которая задается при конфигурации интерфейса Е1 для передачи IP трафика. Задается в виде "1-16", "16-31", ...
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>clkm — </emphasis>если 1, устройство является источником синхронизации для данного домена, если 0 —  приемником.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>clkab — </emphasis>0 — устройство принадлежит домену А, 1 — к домену B.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>clkr — </emphasis>1 — использовать для тактирования внешний клок, 0 — использовать для тактирования локальный клок.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>mxen — </emphasis>1 — устройство принимает участие в мультиплексировании, 0 — устройство используется только для IP трафика.
+					</para>
+				</listitem>
 			</itemizedlist>
 			<important>
 				<para>
@@ -3191,7 +3496,7 @@
 				<graphic fileref="img/multiplexing-ex1-2-line.png" width="6in" />
 			</figure>
 		</section>
-  </chapter>
+	</chapter>
 	<chapter id="snmp">
 		<title>SNMP</title>
 		<section id="intro">
