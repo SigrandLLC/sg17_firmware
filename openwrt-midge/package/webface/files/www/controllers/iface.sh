@@ -92,7 +92,8 @@
 		ip=`which ip`
 		ip=${ip:-/sbin/ip}
 		realiface=$iface
-		[ -n "$real" -a -d /proc/sys/net/ipv4/conf/$real ] && realiface=$real
+		#[ -n "$real" -a -d /proc/sys/net/ipv4/conf/$real ] && realiface=$real
+		[ -n "$real" ] && realiface=$real
 		
 		# handle iface restart
 		if [ "$FORM_do" = "restart" ]; then
