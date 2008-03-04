@@ -185,16 +185,18 @@ _sg17_settings(){
 	local dev=$3
 
 	kdb_vars="\
-			str:sys_pcicfg_s${slot}_${dev}_ctrl	\
-			str:sys_pcicfg_s${slot}_${dev}_mode	\
-			str:sys_pcicfg_s${slot}_${dev}_clkmode	\
-			str:sys_pcicfg_s${slot}_${dev}_rate	\
-			int:sys_pcicfg_s${slot}_${dev}_mrate	\
-			str:sys_pcicfg_s${slot}_${dev}_code	\
-			str:sys_pcicfg_s${slot}_${dev}_annex	\
-			str:sys_pcicfg_s${slot}_${dev}_crc	\
+			str:sys_pcicfg_s${slot}_${dev}_ctrl \
+			str:sys_pcicfg_s${slot}_${dev}_mode \
+			str:sys_pcicfg_s${slot}_${dev}_clkmode \
+			str:sys_pcicfg_s${slot}_${dev}_rate \
+			int:sys_pcicfg_s${slot}_${dev}_mrate \
+			str:sys_pcicfg_s${slot}_${dev}_code \
+			str:sys_pcicfg_s${slot}_${dev}_annex \
+			str:sys_pcicfg_s${slot}_${dev}_crc \
 			str:sys_pcicfg_s${slot}_${dev}_fill	\
-			str:sys_pcicfg_s${slot}_${dev}_inv	\
+			str:sys_pcicfg_s${slot}_${dev}_inv \
+			str:sys_pcicfg_s${slot}_${dev}_pbomode \
+			int:sys_pcicfg_s${slot}_${dev}_pboval \
 			str:sys_pcicfg_s${slot}_${dev}_pwron"	
 	subsys="dsl."$slot"."$dev
 
@@ -228,7 +230,7 @@ _sg17_settings(){
 		esac
 	fi
 	render_save_stuff
-	sleep 1
+	sleep 2
 
 	# refresh configuration
 	unset 
@@ -244,6 +246,7 @@ _sg17_settings(){
 	# get device info
 	tmp=`cat /sys/class/net/$iface/sg17_private/chipver`
 	mrate=`kdb get sys_pcicfg_s${slot}_${dev}_mrate` 
+	pboval=`kdb get sys_pcicfg_s${slot}_${dev}_pboval` 
 	
 	# sys_dsl_${iface}_name
 	id='iface'
@@ -257,6 +260,8 @@ _sg17_settings(){
 	render_input_field "hidden" "hidden" chipver "$tmp"
 	id='hmrate'
 	render_input_field "hidden" "hidden" hmrate "$mrate"
+	id='hpboval'
+	render_input_field "hidden" "hidden" hpboval "$pboval"
 
 	# Control from eocd
 	tip=""
@@ -316,6 +321,14 @@ _sg17_settings(){
 	id='code'
 	onchange="OnChangeSG17Code();"
 	render_input_field select "Coding" sys_pcicfg_s${slot}_${dev}_code "$ctcpam" "$ctcpam"
+
+	# sys_pcicfg_s${slot}_${dev}_pbomode
+	tip=""
+	desc="Select Power Backoff mode and value (in dB)"
+	id='pbomode'
+	td_id='pbomode_td'
+	onchange="OnChangeSG17Code();"
+	render_input_field checkbox "PBO Forced" sys_pcicfg_s${slot}_${dev}_pbomode 
 
 	# sys_pcicfg_s${slot}_${dev}_annex
 	tip=""

@@ -62,10 +62,25 @@ _dsl_mr17ifcfg(){
 		else
 			[ -n "$rate" ] && rate="rate $rate"
 		fi
+		if [ "$pbomode" = "on" ]; then
+			pbo="pbo-forced"
+			[ -z "$pboval" ] && pboval=0 && \
+					kdb set sys_pcicfg_s${slot}_${ifnum}_pboval=0
+			echo "$pboval" > /sys/class/net/$iface/sg17_private/pbo_val
+			pboval=`cat  /sys/class/net/$iface/sg17_private/pbo_val`
+			kdb set sys_pcicfg_s${slot}_${ifnum}_pboval=$pboval
+			pbo="$pbo $pboval"
+		else
+			pbo="pbo-normal"
+		fi
+		
+		echo "$pbo" > /root/pbotest
+				
    		[ -n "$annex" ] && annex="annex $annex"
-    	$mr17h_cfg $iface $mode $rate $code $annex $fill $inv $crc $pwron $clkmode > /dev/null
+    	$mr17h_cfg $iface $mode $rate $code $annex $fill $inv $crc $pwron $clkmode $pbo > /dev/null
 		# Correct rate setted by hands
 		rate=`cat  /sys/class/net/$iface/sg17_private/rate`
+		pboval=`cat  /sys/class/net/$iface/sg17_private/pbo_val`
 		[ -n "$mrate" ] && kdb set sys_pcicfg_s${slot}_${ifnum}_mrate=$rate
 	fi
 }

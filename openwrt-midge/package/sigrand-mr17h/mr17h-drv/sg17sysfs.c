@@ -315,9 +315,9 @@ store_pbo_val( struct class_device *cdev,const char *buf, size_t size )
 	// check parameters
 	if( !size ) return size;
 	tmp=simple_strtoul( buf,&endp,0);
-	if( buf == endp || tmp > 30 )
+	if( buf == endp )
 		return endp;
-	cfg->pbo_val = tmp;
+	cfg->pbo_val = (tmp > 31) ? 31 : tmp;
 	return size;
 }
 static CLASS_DEVICE_ATTR(pbo_val, 0644 ,show_pbo_val,store_pbo_val);

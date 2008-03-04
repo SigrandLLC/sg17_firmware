@@ -218,6 +218,8 @@ function OnChangeSG17Code()
 	clkmode_ind = $('clkmode').selectedIndex;
 	annex_ind = $('annex').selectedIndex;
 	ind = $('rate').selectedIndex;
+	pbomode = $('pbomode').checked;
+	var pboval = document.getElementById('pboval');
 	var mre = document.getElementById('mrate');
 	//	alert('ratetype=' + $('ratetype').checked );
 	if( ind < 0 ){
@@ -240,8 +242,13 @@ function OnChangeSG17Code()
 		freeList($('annex'));
 		$('annex').options[0] = new Option("automatic");
 		$('annex').disabled = 1;
+		$('pbomode').disabled = 1;
 		var base = document.getElementById('rate_td');
-		base.removeChild(mre);
+		if( mre != null )
+			base.removeChild(mre);
+		base = document.getElementById('pbomode_td');
+		if( pboval != null )
+			base.removeChild(pboval);
     } else {
 		freeList($('code'));
 		$('code').disabled = 0;
@@ -318,6 +325,26 @@ function OnChangeSG17Code()
 		$('clkmode').options[1] = new Option("sync");
 		$('clkmode').selectedIndex=clkmode_ind;
 
+		// PBO
+		$('pbomode').disabled = 0;
+		if( pbomode == true && pboval == null ){
+			var base = document.getElementById('pbomode_td');
+			var oe = document.getElementById('pbomode');
+			var ne = document.createElement('input');
+			ne.setAttribute('type','text');
+			ne.setAttribute('id','pboval');
+			ne.setAttribute('class','edit');
+			ne.setAttribute('size','3');
+			ne.setAttribute('maxsize','3');
+			ne_name='sys_pcicfg_s'+$('pcislot').value+'_'+$('pcidev').value+'_pboval';
+			ne.setAttribute('name',ne_name);
+			ne.setAttribute('value',$('hpboval').value);
+			base.insertBefore(ne,oe.nextSibling);
+		}else if( pbomode == false && pboval != null ){
+			var base = document.getElementById('pbomode_td');
+			base.removeChild(pboval);
+		}
+		
 		// Annex
 		freeList($('annex'));
 		$('annex').disabled = 0;

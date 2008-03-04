@@ -779,6 +779,10 @@ printk(KERN_NOTICE"ch(%d): Result PBO_mode=%d,ELP_mode=%d\n",ch,ghs_mode->pbo_mo
 	PDEBUG(debug_sdfe4,"Caplist_V2");
 	caplist=(struct cmd_cfg_caplist_short_ver_2 *)buf;
 	memset(caplist,0,sizeof(*caplist));
+
+	caplist->pow_backoff=0x00;
+	caplist->clock_mode=SHDSL_CLK_MODE_1|SHDSL_CLK_MODE_3a;
+
 	if( cfg->mode == STU_C ){
 		if( cfg->clkmode == 0 ){
 			caplist->clock_mode=SHDSL_CLK_MODE_1;
@@ -790,15 +794,10 @@ printk(KERN_NOTICE"ch(%d): Result PBO_mode=%d,ELP_mode=%d\n",ch,ghs_mode->pbo_mo
 		if( cfg->pbo_mode == PWRBO_FORCED ){
 			caplist->pow_backoff = cfg->pbo_val;
 		}
-	}else{
-		caplist->clock_mode=SHDSL_CLK_MODE_1|SHDSL_CLK_MODE_3a;
 	}
-
-printk(KERN_NOTICE"ch(%d): Result PBO=%d\n",ch,caplist->pow_backoff);
 
 	caplist->annex = cfg->annex;
 	caplist->psd_mask=0x00;
-	caplist->pow_backoff=0x00;
 
 	switch( hwdev->type ){
 	case SDFE4v1:
@@ -844,11 +843,12 @@ printk(KERN_NOTICE"ch(%d): Result PBO=%d\n",ch,caplist->pow_backoff);
 	default:
 		PDEBUG(debug_error,"Unknown device type");
 	}
-	
 	caplist->sub_rate_min=0x00;
 	caplist->sub_rate_max=0x00;
 	caplist->enable_pmms=PMMS_OFF;
 	caplist->pmms_margin=0x00;
+
+printk(KERN_NOTICE"ch(%d): Result PBO=%d\n",ch,caplist->pow_backoff);
 	rmsg.ack_id=ACK_CFG_CAPLIST_SHORT_VER_2;
 	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_CAPLIST_SHORT_VER_2,(u8*)buf,sizeof(*caplist),&rmsg,hwdev)){
 		PDEBUG(debug_error,": error in CMD_CFG_CAPLIST_SHORT_VER_2");	

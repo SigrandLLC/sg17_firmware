@@ -69,7 +69,7 @@ print_stat()
 	if [ "$master" = "master" ]; then
 		pbo=`cat pbo_mode`
 		pbo_val=`cat pbo_val`
-		[ "$pbo_mode" = "Forced" ] && pbo="${pbo}=${pbo_val}"
+		[ "$pbo" = "Forced" ] && pbo="${pbo} ${pbo_val} dB"
 	else
 		pbo=""
 	fi
@@ -87,7 +87,7 @@ print_stat()
 
     echo "$1:"
     echo "      shdsl:   $master $rate $code $annex $clkmode"
-	[ -n "$pbo" ] && echo "               $pbo"
+	[ -n "$pbo" ] && echo "               PBO=$pbo"
     echo "      hdlc:    fill="$fill" inversion="$inv" "$crc
     echo "      PCI bus: rb$rb wb$wb"
     echo "Power:"
