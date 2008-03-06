@@ -21,27 +21,22 @@ required kdb
 
 showerr()
 {
-    echo $1
+    echo -e $1
     exit 1
 }
 
 # check for first boot or 'force'
 [ -e $FIRST_BOOT_FILE -o "x$1" = "xforce" ] || exit 0
 
-# ask for KDB updating
-echo -n "Do you want to update your KDB with correct MAC-addresses? y/N: "
-read answer
-if [ "x$answer" != "xy" ]; then
-    [ -e $FIRST_BOOT_FILE ] && rm $FIRST_BOOT_FILE
-    showerr "Aborting"
-fi
-
 # set up network interface
 $ifup eth0
 
-# require to generate kdb mac file
-echo GENERATE_MAC |nc $MACSERVER $MACPORT |grep SUCCESS >/dev/null
-[ $? = 0 ] || showerr "Error while requesting kdb mac file"
+# require to generate kdb mac file. if server is unreachable — don't try to do this in next time
+echo GENERATE_MAC |nc $MACSERVER $MACPORT 2>/dev/null |grep SUCCESS >/dev/null
+if [ $? != 0 ]; then
+	[ -e $FIRST_BOOT_FILE ] && rm $FIRST_BOOT_FILE
+	showerr "MAC-address server is unreachable. You can update your MAC-address manually by running:\n/etc/init.d/updatekdb force"
+fi
 
 # download kdb mac file
 $tftp -l $KDB_MAC_FILE_LOCAL -r $KDB_MAC_FILE_SERVER -g $MACSERVER
