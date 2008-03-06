@@ -43,7 +43,7 @@ eval `kdb -q ls sys_ifaces_mac*`
 eval `kdb -q ls sys_iface_*_mac`
 
 if [ -n "$sys_ifaces_mac_base" -a -n "$sys_ifaces_mac_next" ]; then
-	for iface in dsl0 dsl1 eth0 eth1 eth2 eth3 eth4 eth5; do
+	for iface in dsl0 dsl1 dsl2 dsl3 eth0 eth1 eth2 eth3 eth4 eth5 E1_0 E1_1; do
 		eval 'mac=$sys_iface_'${iface}'_mac'
 		if [ -z "$mac" ]; then
 			echo "Storing MAC for $iface"

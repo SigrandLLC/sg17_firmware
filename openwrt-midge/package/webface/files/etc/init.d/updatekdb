@@ -31,7 +31,7 @@ showerr()
 # ask for KDB updating
 echo -n "Do you want to update your KDB with correct MAC-addresses? y/N: "
 read answer
-if [ $answer != "y" ]; then
+if [ "x$answer" != "xy" ]; then
     [ -e $FIRST_BOOT_FILE ] && rm $FIRST_BOOT_FILE
     showerr "Aborting"
 fi
