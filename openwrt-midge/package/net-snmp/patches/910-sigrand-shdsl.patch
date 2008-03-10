@@ -1,7 +1,7 @@
 Index: net-snmp-5.1.2/configure
 ===================================================================
 --- net-snmp-5.1.2/configure	(revision 42)
-+++ net-snmp-5.1.2/configure	(revision 57)
++++ net-snmp-5.1.2/configure	(revision 59)
 @@ -27770,6 +27770,8 @@
  s,@installucdheaders@,$installucdheaders,;t t
  s,@installucdlibs@,$installucdlibs,;t t
@@ -14,17 +14,23 @@ Index: net-snmp-5.1.2/configure
 Index: net-snmp-5.1.2/compile
 ===================================================================
 --- net-snmp-5.1.2/compile	(revision 0)
-+++ net-snmp-5.1.2/compile	(revision 57)
-@@ -0,0 +1,5 @@
++++ net-snmp-5.1.2/compile	(revision 59)
+@@ -0,0 +1,11 @@
 +#!/bin/sh
 +
-+STAGING_DIR=../../../staging_dir_mipsel/
-+make LDFLAGS="-L${STAGING_DIR}/usr/lib -L${STAGING_DIR}/lib -static" INSTALL_PREFIX="/root/net_snmp" all install
++CC=/home/artpol/work/sigrand/projects/openwrt/midge.vlad.org.ua/trunk/openwrt-midge/staging_dir_mipsel/bin/mipsel-linux-uclibc-gcc
++CXX=/home/artpol/work/sigrand/projects/openwrt/midge.vlad.org.ua/trunk/openwrt-midge/staging_dir_mipsel/bin/mipsel-linux-uclibc-g++
++AR=/home/artpol/work/sigrand/projects/openwrt/midge.vlad.org.ua/trunk/openwrt-midge/staging_dir_mipsel/bin/mipsel-linux-uclibc-ar
++RANLIB=/home/artpol/work/sigrand/projects/openwrt/midge.vlad.org.ua/trunk/openwrt-midge/staging_dir_mipsel/bin/mipsel-linux-uclibc-ranlib
++export CXX AR RANLIB CC
++
++STAGING_DIR=/home/artpol/OpenWRT/staging_dir_mipsel/
++make LDFLAGS="-L${STAGING_DIR}/usr/lib -L${STAGING_DIR}/lib -static" all
 +
 Index: net-snmp-5.1.2/mibs/Makefile.in
 ===================================================================
 --- net-snmp-5.1.2/mibs/Makefile.in	(revision 42)
-+++ net-snmp-5.1.2/mibs/Makefile.in	(revision 57)
++++ net-snmp-5.1.2/mibs/Makefile.in	(revision 59)
 @@ -35,7 +35,8 @@
  	IPV6-TC.txt IPV6-MIB.txt IPV6-ICMP-MIB.txt IPV6-TCP-MIB.txt \
  	IPV6-UDP-MIB.txt \
@@ -38,7 +44,7 @@ Index: net-snmp-5.1.2/mibs/Makefile.in
 Index: net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt
 ===================================================================
 --- net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	(revision 0)
-+++ net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	(revision 57)
++++ net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	(revision 59)
 @@ -0,0 +1,2541 @@
 +-- extracted from rfc4319.txt
 +-- at Thu Dec 15 06:40:11 2005
@@ -2584,7 +2590,7 @@ Index: net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt
 Index: net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib
 ===================================================================
 --- net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib	(revision 0)
-+++ net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib	(revision 57)
++++ net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib	(revision 59)
 @@ -0,0 +1,196 @@
 +-- extracted from rfc2493.txt
 +-- at Mon Nov 15 17:11:40 1999
@@ -2785,7 +2791,7 @@ Index: net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib
 Index: net-snmp-5.1.2/agent/Makefile.in
 ===================================================================
 --- net-snmp-5.1.2/agent/Makefile.in	(revision 42)
-+++ net-snmp-5.1.2/agent/Makefile.in	(revision 57)
++++ net-snmp-5.1.2/agent/Makefile.in	(revision 59)
 @@ -75,8 +75,10 @@
  # Objects
  #
@@ -2819,7 +2825,7 @@ Index: net-snmp-5.1.2/agent/Makefile.in
 Index: net-snmp-5.1.2/agent/mibgroup/Makefile.in
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/Makefile.in	(revision 42)
-+++ net-snmp-5.1.2/agent/mibgroup/Makefile.in	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/Makefile.in	(revision 59)
 @@ -2,6 +2,7 @@
  
  CPPFLAGS=-I../../include -I$(top_srcdir)/include \
@@ -2847,7 +2853,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/Makefile.in
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h	(revision 59)
 @@ -0,0 +1,38 @@
 +#ifndef EOC_DEBUG_H
 +#define EOC_DEBUG_H
@@ -2890,7 +2896,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h	(revision 59)
 @@ -0,0 +1,64 @@
 +#ifndef APP_FRAME_H
 +#define APP_FRAME_H
@@ -2959,7 +2965,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h	(revision 59)
 @@ -0,0 +1,63 @@
 +#ifndef EOCD_APP_COMMUNICATOR_H
 +#define EOCD_APP_COMMUNICATOR_H
@@ -3027,7 +3033,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h	(revision 59)
 @@ -0,0 +1,28 @@
 +#ifndef ERROR_STRINGS_H
 +#define ERROR_STRINGS_H
@@ -3060,7 +3066,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h	(revision 59)
 @@ -0,0 +1,18 @@
 +#ifndef EOCD_APP_COMM_CLI_H
 +#define EOCD_APP_COMM_CLI_H
@@ -3083,7 +3089,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h	(revision 59)
 @@ -0,0 +1,24 @@
 +#ifndef EOC_APP_COMM_SRV_H
 +#define EOC_APP_COMM_SRV_H
@@ -3112,7 +3118,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h	(revision 59)
 @@ -0,0 +1,23 @@
 +#ifndef ERROR_CODES_H
 +#define ERROR_CODES_H
@@ -3140,7 +3146,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h	(revision 59)
 @@ -0,0 +1,295 @@
 +#ifndef APP_MESSAGES_H
 +#define APP_MESSAGES_H
@@ -3440,7 +3446,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h	(revision 59)
 @@ -0,0 +1,36 @@
 +#ifndef EOC_TYPES_H
 +#define EOC_TYPES_H
@@ -3481,7 +3487,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h	(revision 59)
 @@ -0,0 +1,51 @@
 +#ifndef EOC_MSG_H
 +#define EOC_MSG_H
@@ -3537,7 +3543,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h	(revision 59)
 @@ -0,0 +1,54 @@
 +/*
 + * EOC_requests.h:
@@ -3596,7 +3602,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h	(revision 59)
 @@ -0,0 +1,30 @@
 +#ifndef SIGRAND_EOC_GENERIC_H
 +#define SIGRAND_EOC_GENERIC_H
@@ -3631,7 +3637,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h	(revision 59)
 @@ -0,0 +1,112 @@
 +/*
 + * EOC_responses.h:
@@ -3748,8 +3754,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.h	(revision 57)
-@@ -0,0 +1,37 @@
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.h	(revision 59)
+@@ -0,0 +1,39 @@
 +#ifndef SPAN_CONF_TYPE_H
 +#define SPAN_CONF_TYPE_H
 +
@@ -3762,6 +3768,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.
 +typedef enum { localClk = 1, networkClk, dataOrNetworkClk, dataClk } clk_t;
 +typedef enum { disable = 1, enable } line_probe_t;
 +typedef enum { disabled = 1, enabled } remote_cfg_t; 
++typedef enum { err_tcpam=0,tcpam4=1,tcpam8,tcpam16,tcpam32,tcpam64,tcpam128 } tcpam_t; 
 +
 +
 +typedef struct{
@@ -3771,7 +3778,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.
 +    psd_t psd;    
 +    clk_t clk;    
 +    line_probe_t line_probe;
-+    remote_cfg_t remote_cfg; 
++    remote_cfg_t remote_cfg;
++	tcpam_t tcpam;
 +    
 +    u8 use_cur_down :1;                                                   
 +    u8 use_worst_down :1;                                                  
@@ -3790,7 +3798,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h	(revision 59)
 @@ -0,0 +1,6 @@
 +#ifndef EOC_SNMP_H
 +#define EOC_SNMP_H
@@ -3801,7 +3809,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h	(revision 59)
 @@ -0,0 +1,229 @@
 +/*
 + *  hdsl2,shdsl MIB (rfc- interfaces.h
@@ -4035,7 +4043,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h	(revision 59)
 @@ -0,0 +1,18 @@
 +#ifndef SHDSL_COMM_H
 +#define SHDSL_COMM_H
@@ -4058,14 +4066,14 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/TODO.txt
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/TODO.txt	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/TODO.txt	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/TODO.txt	(revision 59)
 @@ -0,0 +1 @@
 +(+)1. Broken pipe problem
 \ No newline at end of file
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp	(revision 59)
 @@ -0,0 +1,97 @@
 +#include <sys/types.h>
 +#include <sys/socket.h>
@@ -4167,7 +4175,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp	(revision 59)
 @@ -0,0 +1,185 @@
 +#include <sys/types.h>
 +#include <sys/socket.h>
@@ -4357,7 +4365,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp	(revision 59)
 @@ -0,0 +1,184 @@
 +#include <app-if/app_frame.h>
 +
@@ -4546,7 +4554,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp	(revision 59)
 @@ -0,0 +1,97 @@
 +#include <sys/types.h>
 +#include <sys/socket.h>
@@ -4648,7 +4656,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp	(revision 59)
 @@ -0,0 +1,83 @@
 +#include <app-if/app_frame.h>
 +#include <app-if/app_comm_cli.h>
@@ -4736,7 +4744,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile	(revision 59)
 @@ -0,0 +1,27 @@
 +ifeq ($(TOPDIR),)
 +    TOPDIR=$(PWD)/../
@@ -4768,8 +4776,8 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c	(revision 57)
-@@ -0,0 +1,1861 @@
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c	(revision 59)
+@@ -0,0 +1,1844 @@
 +#include <sys/types.h>
 +#include <sys/stat.h>
 +#include <errno.h>
@@ -4800,7 +4808,9 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +
 +
 +//#define DEBUG_ON
-+
++#define DERR 1
++#define DINFO 5
++#define DALL 10
 +#define PDEBUG(flag,fmt,args...)
 +#ifdef DEBUG_ON
 +#       undef PDEBUG
@@ -5006,7 +5016,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    PDEBUG(0,"Register Span Conf");
 +    REGISTER_MIB("mibII/hdsl2ShdslSpanConf", shdsl_spanconf, variable3,
 +                 hdsl2Shdsl_variables_oid);
-+
++				 
 +    PDEBUG(0,"Register Span Status");
 +    REGISTER_MIB("mibII/hdsl2shdslSpanStatus", shdsl_spanstat, variable3,
 +                 hdsl2Shdsl_variables_oid);
@@ -5474,7 +5484,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +	// If OID is belong to Inventory Table
 +    if( (iface = header_ifIndex(vp, name, length,1/*exact = 1*/, var_len,write_method)) 
 +	    != MATCH_FAILED ){ 	// OID belongs to Invetory table and ifIdex is valid
-+		PDEBUG(1,"OID belong to Inv Table, interface_ind=%d,if = %s\n",interface_ind,
++		PDEBUG(0,"OID belong to Inv Table, interface_ind=%d,if = %s\n",interface_ind,
 +				tbl[interface_ind].name);
 +        
 +		if( gettimeofday(&tvcur,NULL) ){
@@ -5584,7 +5594,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +	
 +    name[vp->namelen+1] = stu_c;
 +    *length = vp->namelen + 2;
-+	PDEBUG(1,"Result: unit #%d\n",name[vp->namelen+1]);
++	PDEBUG(0,"Result: unit #%d\n",name[vp->namelen+1]);
 +    ret_val = name[vp->namelen+1];
 + exit:
 +    if( fr1 )
@@ -5778,7 +5788,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    if ( ( unit = header_unitIndex(vp,name,length, 1 /*exact = 1*/,var_len,write_method) )
 +		 != MATCH_FAILED ){
 +		unit_index = unit;
-+	    PDEBUG(1,"Result : if(%s) unit(%d)",tbl[interface_ind].name,unit_index);
++	    PDEBUG(0,"Result : if(%s) unit(%d)",tbl[interface_ind].name,unit_index);
 +
 +		if( exact ){ // Need exact MATCH
 +			if( (*length >= vp->namelen+3) ){
@@ -5841,7 +5851,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		return MATCH_FAILED;
 +    }
 +    unit_index = unit;
-+	PDEBUG(1,"NEXT Result : if(%s) unit(%d)",tbl[interface_ind].name,unit_index);
++	PDEBUG(0,"NEXT Result : if(%s) unit(%d)",tbl[interface_ind].name,unit_index);
 +
 +    switch( unit ){
 +    case stu_c:
@@ -5898,17 +5908,17 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +	// ---- DEBUG ----//
 +   	struct timeval tv1,tv2;
 +    gettimeofday(&tv1,NULL);
-+	PDEBUG(1,"--------------------- >");
++	PDEBUG(0,"--------------------- >");
 +	// ---- DEBUG ----//
 +
 +    if ( ( endp = header_endpIndex(vp,name,length, 1 /*exact = 1*/,var_len,write_method) )
 +		 != MATCH_FAILED ){
 +		endp_index = endp;
 +		int k = tbl[interface_ind].wires;
-+		PDEBUG(1,"Result : if(%s) unit(%d) endp(%d)",tbl[interface_ind].name,unit_index,endp_index);
++		PDEBUG(0,"Result : if(%s) unit(%d) endp(%d)",tbl[interface_ind].name,unit_index,endp_index);
 +
 +		if( exact ){ // Need exact MATCH
-+			PDEBUG(1,"Exact Match");
++			PDEBUG(0,"Exact Match");
 +			if( (*length >= vp->namelen+4) && 
 +				(name[vp->namelen+3] > 0) && (name[vp->namelen+3] <= tbl[interface_ind].wires) ){
 +				ret_val =  name[vp->namelen+3];
@@ -5936,7 +5946,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		}
 +    }
 +	
-+	PDEBUG(1,"Exact match failed");
++	PDEBUG(0,"Exact match failed");
 +    if( exact ){
 +		goto exit;
 +    }
@@ -5946,7 +5956,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		goto exit;
 +    }
 +    endp_index = endp;
-+	PDEBUG(1,"NEXT Result : if(%s) unit(%d) endp(%d)",tbl[interface_ind].name,unit_index,endp_index);
++	PDEBUG(0,"NEXT Result : if(%s) unit(%d) endp(%d)",tbl[interface_ind].name,unit_index,endp_index);
 +    name[ vp->namelen+3] = 1; // First pair
 +    *length = vp->namelen + 4;
 +    ret_val = name[vp->namelen+3];
@@ -5959,7 +5969,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +
 +	//--- DEBUG ---//
 +    gettimeofday(&tv2,NULL);
-+	PDEBUG(1,"<------- %d ------------",tv2.tv_usec-tv1.tv_usec);
++	PDEBUG(0,"<------- %d ------------",tv2.tv_usec-tv1.tv_usec);
 +	//--- DEBUG ---//
 +    return ret_val;
 +}
@@ -5986,7 +5996,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		return NULL;
 +    }
 +
-+    PDEBUG(1,"-----!!!!!!!!!!!!!!-------->");
++    PDEBUG(0,"-----!!!!!!!!!!!!!!-------->");
 +
 +	// ------------------------------ Obtain requested information ------------------------------- //
 +
@@ -5994,24 +6004,24 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		 == MATCH_FAILED )
 +        goto exit;
 +       
-+    PDEBUG(1,"Result : if(%s) unit(%d) side(%d) pair(%d)",tbl[interface_ind].name,unit_index,endp_index,pair);
++    PDEBUG(0,"Result : if(%s) unit(%d) side(%d) pair(%d)",tbl[interface_ind].name,unit_index,endp_index,pair);
 +
 +    p = (endp_cur_payload*)comm_alloc_request(APP_ENDP_CUR,APP_GET,
 +											  tbl[interface_ind].name,&fr1);
 +    if( !p ){
 +		DEBUGMSGTL(("mibII/hdsl2Shdsl","Cannot allocate application frame"));
-+		PDEBUG(1,"var_InventoryEntry: Cannot allocate application frame");
++		PDEBUG(0,"var_InventoryEntry: Cannot allocate application frame");
 +		goto exit;
 +    }
 +    p->unit = unit_index;
 +    p->side = endp_index-1;
 +    p->loop = pair-1;
 +    fr2 = comm_request(comm,fr1);
-+    PDEBUG(1,"Request if(%s) unit(%d) side(%d) loop(%d)",
++    PDEBUG(0,"Request if(%s) unit(%d) side(%d) loop(%d)",
 +		   tbl[interface_ind].name,p->unit,p->side,p->loop);
 +    
 +    if( !fr2 && exact ){
-+		PDEBUG(1,"var_InventoryEntry: error requesting");
++		PDEBUG(0,"var_InventoryEntry: error requesting");
 +		goto exit;
 +    }
 +    
@@ -6020,20 +6030,20 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +			 == MATCH_FAILED )
 +    	    goto exit;
 +    
-+		PDEBUG(1,"Result (rep): if(%s) unit(%d) side(%d) pair(%d)",tbl[interface_ind].name,unit_index,endp_index,pair);
++		PDEBUG(0,"Result (rep): if(%s) unit(%d) side(%d) pair(%d)",tbl[interface_ind].name,unit_index,endp_index,pair);
 +		set_chan_name(fr1,tbl[interface_ind].name);
 +		p->unit = unit_index;
 +		p->side = endp_index-1;
 +		p->loop = pair-1;
 +		fr2 = comm_request(comm,fr1);
 +
-+		PDEBUG(1,"Request (rep): if(%s) unit(%d) side(%d) loop(%d)",
++		PDEBUG(0,"Request (rep): if(%s) unit(%d) side(%d) loop(%d)",
 +			   tbl[interface_ind].name,p->unit,p->side,p->loop);
 +
 +    }
 +
 +    if( !fr2 ){
-+		PDEBUG(1,"error requesting");
++		PDEBUG(0,"error requesting");
 +		goto exit;
 +    }
 +    
@@ -6133,7 +6143,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		comm_frame_free(fr2);
 +    comm_free(comm);
 +    comm = NULL;
-+    PDEBUG(1,"<------------!!!!!!!!!!!!!1----------\n\n");
++    PDEBUG(0,"<------------!!!!!!!!!!!!!1----------\n\n");
 +    return return_ptr;
 +}
 +
@@ -6417,24 +6427,14 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    cprof_payload *p;
 +    int i,l;
 +
-+	/*
-+	  printf("%s: Start\n",__FUNCTION__);
 +
-+	  printf("%s: name:\n",__FUNCTION__);
-+	  for(i=0;i<*length;i++){
-+	  if( (name[i]>='a' && name[i]<='z') || (name[i]>='0' && name[i]<='9') || name[i]=='#' )
-+	  printf("%c.",name[i]);
-+	  else
-+	  printf("%d.",name[i]);
-+	  }
-+	  printf("\n");
-+
-+	*/
-+
++	PDEBUG(DERR,"start");
 +    if( (base_compare = snmp_oid_compare(name,oid_min,vp->name,oid_min)) > 0){
 +		// OID is grater than supported
 +		return MATCH_FAILED;
 +    }
++
++	PDEBUG(DERR,"process...");
 +    
 +    if( exact ){
 +		int len;
@@ -6475,48 +6475,34 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    }
 +
 +    strncpy(p->pname,profname,SNMP_ADMIN_LEN+1);
-+	//    printf("%s: Request profile:\n",__FUNCTION__);//,p->ProfileName);
++	PDEBUG(DERR,"Request profile: %s",p->pname);
 +    fr2 = comm_request(comm,fr1);
-+	//    printf("%s, request successfull\n",__FUNCTION__);
 +    if( !fr2 ){
-+		PDEBUG(0,"Error requesting");
++		PDEBUG(DERR,"Error requesting");
 +		if( fr1 )
 +			comm_frame_free(fr1);
 +		return MATCH_FAILED;
 +    }
++	PDEBUG(DERR,"request successfull");
 +    
 +    p = (cprof_payload*)comm_frame_payload(fr2);
-+    
 +    _cprof = *p;
-+
-+	/*
-+	  printf("%s: name:\n",__FUNCTION__);
-+	  for(i=0;i<*length;i++){
-+	  if( (name[i]>='a' && name[i]<='z') || (name[i]>='0' && name[i]<='9') || name[i]=='#' )
-+	  printf("%c.",name[i]);
-+	  else 
-+	  printf("%d.",name[i]);
-+	  }
-+	  printf("\n");
-+
-+	*/    
-+	//    printf("%s: get profile - %s,len=%d,vp->namelen=%d\n",__FUNCTION__,p->ProfileName,strnlen(p->ProfileName,SNMP_ADMIN_LEN+1),vp->namelen);
++	PDEBUG(DERR,"get profile - %s,len=%d,vp->namelen=%d",p->pname,strnlen(p->pname,SNMP_ADMIN_LEN+1),vp->namelen);
 +    l = strnlen(p->pname,SNMP_ADMIN_LEN+1);
 +    for(i=0;i<l;i++){
 +		name[vp->namelen+i] = p->pname[i];
 +    }
 +    *length += strnlen(p->pname,SNMP_ADMIN_LEN+1);
-+	/*
-+	  printf("%s: name:\n",__FUNCTION__);
-+	  for(i=0;i<*length;i++){
-+	  if( (name[i]>='a' && name[i]<='z') || (name[i]>='0' && name[i]<='9') || name[i]=='#' )
-+	  printf("%c.",name[i]);
-+	  else 
-+	  printf("%d.",name[i]);
-+	  }
-+	  printf("\n");
 +
-+	*/
++printf("%s: name:\n",__FUNCTION__);
++for(i=0;i<*length;i++){
++	if( (name[i]>='a' && name[i]<='z') || (name[i]>='0' && name[i]<='9') || name[i]=='#' )
++		printf("%c.",name[i]);
++	else 
++		printf("%d.",name[i]);
++}
++printf("\n");
++
 +    if( fr1 )
 +        comm_frame_free(fr1);
 +    if( fr2 )
@@ -6533,44 +6519,47 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +    char *return_ptr = NULL;
 +    int i;
 +
++	PDEBUG(DERR,"start");
 +    comm = init_comm();
 +    if(!comm){
 +        DEBUGMSGTL(("mibII/hdsl2Shdsl","Error connecting to \"eocd\""));
 +        return NULL;
 +    }
-+    
++	PDEBUG(DERR,"Connect=OK");    
++
++printf("%s: name:\n",__FUNCTION__);
++for(i=0;i<*length;i++){
++	if( (name[i]>='a' && name[i]<='z') || (name[i]>='0' && name[i]<='9') || name[i]=='#' ){
++		printf("%c.",name[i]);
++	}else {
++		printf("%d.",name[i]);
++	}
++}
++printf("\n");
++
 +    if ( header_confProfIndex(vp,name,length,exact,var_len,write_method)
 +		 == MATCH_FAILED ){
-+		PDEBUG(0,"returning NULL");
++		PDEBUG(DERR,"Header_search=FAIL");
 +        goto exit;
 +    }
-+	/*
-+	  printf("%s: name:\n",__FUNCTION__);
-+	  for(i=0;i<*length;i++){
-+	  if( (name[i]>='a' && name[i]<='z') || (name[i]>='0' && name[i]<='9') || name[i]=='#' ){
-+	  printf("%c.",name[i]);
-+	  }else {
-+	  printf("%d.",name[i]);
-+	  }
-+	  }
-+	  printf("\n");
-+	*/
-+
++	PDEBUG(DERR,"Header_search=OK");
 +
 +    //---- ack ----//
 +    switch (vp->magic) {
 +    case CONF_WIRE_IFACE:
 +		long_return= _cprof.conf.wires;
 +		return_ptr = (u_char *)&long_return;
-+		printf("WIRE_IFACE: ret=%d", _cprof.conf.wires);
++		PDEBUG(DINFO,"WIRE_IFACE: ret=%d", _cprof.conf.wires);
 +		break;
 +    case CONF_MIN_LRATE:
 +		long_return = _cprof.conf.rate;
 +		return_ptr = (u_char *)&long_return;
++		PDEBUG(DINFO,"MIN_LRATE: ret=%d", _cprof.conf.wires);
 +		break;
 +    case CONF_MAX_LRATE:
 +		long_return = _cprof.conf.rate;
 +		return_ptr = (u_char *)&long_return;
++		PDEBUG(DINFO,"MAX_LRATE: ret=%d", _cprof.conf.wires);
 +		break;
 +    case CONF_PSD:
 +		long_return= _cprof.conf.psd;
@@ -6624,9 +6613,11 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +		*/
 +    }
 +    
++	PDEBUG(DERR,"exit:");
 + exit:
 +    comm_free(comm);
 +    comm = NULL;    
++	PDEBUG(DERR,"return");
 +    return return_ptr;
 +}
 +
@@ -6634,7 +6625,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 Index: net-snmp-5.1.2/agent/mibgroup/mibII.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII.h	(revision 42)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII.h	(revision 57)
++++ net-snmp-5.1.2/agent/mibgroup/mibII.h	(revision 59)
 @@ -13,3 +13,4 @@
  config_require(mibII/udp)
  config_require(mibII/vacm_vars)
@@ -6643,7 +6634,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII.h
 Index: net-snmp-5.1.2/Makefile.top
 ===================================================================
 --- net-snmp-5.1.2/Makefile.top	(revision 42)
-+++ net-snmp-5.1.2/Makefile.top	(revision 57)
++++ net-snmp-5.1.2/Makefile.top	(revision 59)
 @@ -52,6 +52,11 @@
  
  # Misc Compiling Stuff
