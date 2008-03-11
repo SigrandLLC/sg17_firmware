@@ -1,7 +1,7 @@
 Index: net-snmp-5.1.2/configure
 ===================================================================
 --- net-snmp-5.1.2/configure	(revision 42)
-+++ net-snmp-5.1.2/configure	(revision 59)
++++ net-snmp-5.1.2/configure	(revision 60)
 @@ -27770,6 +27770,8 @@
  s,@installucdheaders@,$installucdheaders,;t t
  s,@installucdlibs@,$installucdlibs,;t t
@@ -14,7 +14,7 @@ Index: net-snmp-5.1.2/configure
 Index: net-snmp-5.1.2/compile
 ===================================================================
 --- net-snmp-5.1.2/compile	(revision 0)
-+++ net-snmp-5.1.2/compile	(revision 59)
++++ net-snmp-5.1.2/compile	(revision 60)
 @@ -0,0 +1,11 @@
 +#!/bin/sh
 +
@@ -30,7 +30,7 @@ Index: net-snmp-5.1.2/compile
 Index: net-snmp-5.1.2/mibs/Makefile.in
 ===================================================================
 --- net-snmp-5.1.2/mibs/Makefile.in	(revision 42)
-+++ net-snmp-5.1.2/mibs/Makefile.in	(revision 59)
++++ net-snmp-5.1.2/mibs/Makefile.in	(revision 60)
 @@ -35,7 +35,8 @@
  	IPV6-TC.txt IPV6-MIB.txt IPV6-ICMP-MIB.txt IPV6-TCP-MIB.txt \
  	IPV6-UDP-MIB.txt \
@@ -44,7 +44,7 @@ Index: net-snmp-5.1.2/mibs/Makefile.in
 Index: net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt
 ===================================================================
 --- net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	(revision 0)
-+++ net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	(revision 59)
++++ net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt	(revision 60)
 @@ -0,0 +1,2541 @@
 +-- extracted from rfc4319.txt
 +-- at Thu Dec 15 06:40:11 2005
@@ -2590,7 +2590,7 @@ Index: net-snmp-5.1.2/mibs/HDSL2-SHDSL-LINE-MIB-rfc4319.txt
 Index: net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib
 ===================================================================
 --- net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib	(revision 0)
-+++ net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib	(revision 59)
++++ net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib	(revision 60)
 @@ -0,0 +1,196 @@
 +-- extracted from rfc2493.txt
 +-- at Mon Nov 15 17:11:40 1999
@@ -2791,7 +2791,7 @@ Index: net-snmp-5.1.2/mibs/PerfHist-TC-MIB.mib
 Index: net-snmp-5.1.2/agent/Makefile.in
 ===================================================================
 --- net-snmp-5.1.2/agent/Makefile.in	(revision 42)
-+++ net-snmp-5.1.2/agent/Makefile.in	(revision 59)
++++ net-snmp-5.1.2/agent/Makefile.in	(revision 60)
 @@ -75,8 +75,10 @@
  # Objects
  #
@@ -2825,7 +2825,7 @@ Index: net-snmp-5.1.2/agent/Makefile.in
 Index: net-snmp-5.1.2/agent/mibgroup/Makefile.in
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/Makefile.in	(revision 42)
-+++ net-snmp-5.1.2/agent/mibgroup/Makefile.in	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/Makefile.in	(revision 60)
 @@ -2,6 +2,7 @@
  
  CPPFLAGS=-I../../include -I$(top_srcdir)/include \
@@ -2853,7 +2853,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/Makefile.in
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h	(revision 60)
 @@ -0,0 +1,38 @@
 +#ifndef EOC_DEBUG_H
 +#define EOC_DEBUG_H
@@ -2896,7 +2896,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/eoc_debug.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h	(revision 60)
 @@ -0,0 +1,64 @@
 +#ifndef APP_FRAME_H
 +#define APP_FRAME_H
@@ -2965,7 +2965,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_frame.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h	(revision 60)
 @@ -0,0 +1,63 @@
 +#ifndef EOCD_APP_COMMUNICATOR_H
 +#define EOCD_APP_COMMUNICATOR_H
@@ -3033,7 +3033,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h	(revision 60)
 @@ -0,0 +1,28 @@
 +#ifndef ERROR_STRINGS_H
 +#define ERROR_STRINGS_H
@@ -3066,7 +3066,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_strings.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h	(revision 60)
 @@ -0,0 +1,18 @@
 +#ifndef EOCD_APP_COMM_CLI_H
 +#define EOCD_APP_COMM_CLI_H
@@ -3089,7 +3089,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_cli.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h	(revision 60)
 @@ -0,0 +1,24 @@
 +#ifndef EOC_APP_COMM_SRV_H
 +#define EOC_APP_COMM_SRV_H
@@ -3118,7 +3118,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_comm_srv.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h	(revision 60)
 @@ -0,0 +1,23 @@
 +#ifndef ERROR_CODES_H
 +#define ERROR_CODES_H
@@ -3146,7 +3146,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/err_codes.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h	(revision 60)
 @@ -0,0 +1,295 @@
 +#ifndef APP_MESSAGES_H
 +#define APP_MESSAGES_H
@@ -3446,7 +3446,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/app-if/app_messages.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h	(revision 60)
 @@ -0,0 +1,36 @@
 +#ifndef EOC_TYPES_H
 +#define EOC_TYPES_H
@@ -3487,7 +3487,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_types.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h	(revision 60)
 @@ -0,0 +1,51 @@
 +#ifndef EOC_MSG_H
 +#define EOC_MSG_H
@@ -3543,7 +3543,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_msg.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h	(revision 60)
 @@ -0,0 +1,54 @@
 +/*
 + * EOC_requests.h:
@@ -3602,7 +3602,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_requests.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h	(revision 60)
 @@ -0,0 +1,30 @@
 +#ifndef SIGRAND_EOC_GENERIC_H
 +#define SIGRAND_EOC_GENERIC_H
@@ -3637,7 +3637,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_generic.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h	(revision 60)
 @@ -0,0 +1,112 @@
 +/*
 + * EOC_responses.h:
@@ -3754,7 +3754,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/EOC_responses.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.h	(revision 60)
 @@ -0,0 +1,39 @@
 +#ifndef SPAN_CONF_TYPE_H
 +#define SPAN_CONF_TYPE_H
@@ -3798,7 +3798,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/generic/span_conf_type.
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h	(revision 60)
 @@ -0,0 +1,6 @@
 +#ifndef EOC_SNMP_H
 +#define EOC_SNMP_H
@@ -3809,7 +3809,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/include/snmp/snmp-generic.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h	(revision 60)
 @@ -0,0 +1,229 @@
 +/*
 + *  hdsl2,shdsl MIB (rfc- interfaces.h
@@ -4043,7 +4043,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h	(revision 60)
 @@ -0,0 +1,18 @@
 +#ifndef SHDSL_COMM_H
 +#define SHDSL_COMM_H
@@ -4066,14 +4066,14 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.h
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/TODO.txt
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/TODO.txt	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/TODO.txt	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/TODO.txt	(revision 60)
 @@ -0,0 +1 @@
 +(+)1. Broken pipe problem
 \ No newline at end of file
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp	(revision 60)
 @@ -0,0 +1,97 @@
 +#include <sys/types.h>
 +#include <sys/socket.h>
@@ -4175,7 +4175,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_cli.cpp
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp	(revision 60)
 @@ -0,0 +1,185 @@
 +#include <sys/types.h>
 +#include <sys/socket.h>
@@ -4365,7 +4365,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm_srv.cpp
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp	(revision 60)
 @@ -0,0 +1,184 @@
 +#include <app-if/app_frame.h>
 +
@@ -4554,7 +4554,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_frame.cpp
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp	(revision 60)
 @@ -0,0 +1,97 @@
 +#include <sys/types.h>
 +#include <sys/socket.h>
@@ -4656,7 +4656,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/app_comm.cpp
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp	(revision 60)
 @@ -0,0 +1,83 @@
 +#include <app-if/app_frame.h>
 +#include <app-if/app_comm_cli.h>
@@ -4744,7 +4744,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/comm.cpp
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile	(revision 60)
 @@ -0,0 +1,27 @@
 +ifeq ($(TOPDIR),)
 +    TOPDIR=$(PWD)/../
@@ -4776,7 +4776,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/app-if/Makefile
 Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c	(revision 0)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c	(revision 60)
 @@ -0,0 +1,1844 @@
 +#include <sys/types.h>
 +#include <sys/stat.h>
@@ -6622,10 +6622,56 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII/shdsl/shdsl.c
 +}
 +
 +
+Index: net-snmp-5.1.2/agent/mibgroup/host/hr_storage.c
+===================================================================
+--- net-snmp-5.1.2/agent/mibgroup/host/hr_storage.c	(revision 42)
++++ net-snmp-5.1.2/agent/mibgroup/host/hr_storage.c	(revision 60)
+@@ -743,20 +743,21 @@
+                 break;
+             }
+         return (u_char *) & long_return;
++
+     case HRSTORE_FAILS:
+-        if (store_idx > HRS_TYPE_FIXED_MAX)
+-#if NO_DUMMY_VALUES
+-	    goto try_next;
+-#else
++        if (store_idx > HRS_TYPE_FIXED_MAX){
++/*#if NO_DUMMY_VALUES
++			printf("HRSTORE_FAILS - store_idx > HRS_TYPE_FIXED_MAX: goto\n");
++		    goto try_next;
++#endif*/
+             long_return = 0;
+-#endif
+-        else
++        }else
+             switch (store_idx) {
+             case HRS_TYPE_MEM:
+             case HRS_TYPE_SWAP:
+-#if NO_DUMMY_VALUES
++/*#if NO_DUMMY_VALUES
+                 goto try_next;
+-#endif
++#endif */
+                 long_return = 0;
+                 break;
+ #if !defined(linux) && !defined(solaris2) && !defined(hpux10) && !defined(hpux11)  && defined(MBSTAT_SYMBOL)
+@@ -765,9 +766,9 @@
+                 break;
+ #endif                          /* !linux && !solaris2 && !hpux10 && !hpux11 && MBSTAT_SYMBOL */
+             default:
+-#if NO_DUMMY_VALUES
++/*#if NO_DUMMY_VALUES
+                 goto try_next;
+-#endif
++#endif */
+                 long_return = 0;
+                 break;
+             }
 Index: net-snmp-5.1.2/agent/mibgroup/mibII.h
 ===================================================================
 --- net-snmp-5.1.2/agent/mibgroup/mibII.h	(revision 42)
-+++ net-snmp-5.1.2/agent/mibgroup/mibII.h	(revision 59)
++++ net-snmp-5.1.2/agent/mibgroup/mibII.h	(revision 60)
 @@ -13,3 +13,4 @@
  config_require(mibII/udp)
  config_require(mibII/vacm_vars)
@@ -6634,7 +6680,7 @@ Index: net-snmp-5.1.2/agent/mibgroup/mibII.h
 Index: net-snmp-5.1.2/Makefile.top
 ===================================================================
 --- net-snmp-5.1.2/Makefile.top	(revision 42)
-+++ net-snmp-5.1.2/Makefile.top	(revision 59)
++++ net-snmp-5.1.2/Makefile.top	(revision 60)
 @@ -52,6 +52,11 @@
  
  # Misc Compiling Stuff
