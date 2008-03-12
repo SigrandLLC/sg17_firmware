@@ -4,6 +4,7 @@ kdb="/usr/bin/kdb"
 ip="/usr/sbin/ip"
 ifcfg="/sbin/ifconfig"
 tmp_file="/tmp/pcinet.config"
+eocd_file="/etc/eocd/interface-migraton"
 
 . /etc/templates/oem-vars
 . /etc/templates/sigrand-lib
@@ -56,6 +57,7 @@ pci_driver(){
 		fi
 	done
 	cd $prevdir
+
 }
 
 pcicfg_refresh(){
@@ -88,6 +90,8 @@ _move_net_settings(){
 	nif=$2
 	echo "Move network settings: $oif --> $nif"	
 	
+	echo "$oif $nif" >> $eocd_file
+	
 	$kdb ls sys_iface_$oif* | sed "s/$oif/$nif/g" >> $tmp_file
 	$kdb rm sys_iface_$oif*
 	
@@ -109,7 +113,7 @@ _move_net_settings(){
 _pci_update_netcfg(){
 	old_iflist=$1
 	new_iflist=$2
-
+	
 	nif=`echo $new_iflist | awk '{print $(1)}'`
 	oif=`echo $old_iflist | awk '{print $(1)}'`
 
@@ -137,6 +141,7 @@ _pci_commit_netcfg(){
 		# echo "remove $s slot"
 		cfgslots=`echo $cfgslots | sed "s/$s//g"`
 	done
+	
 	# echo "cfgslots=$cfgslots"
 	for s in $cfgslots; do
 		tmp=`kdb get sys_pcicfg_s${s}_ifaces`
@@ -163,16 +168,14 @@ pcinet_refresh(){
 	local s
 	local slots=`$kdb get sys_pcitbl_slots`
 	echo > $tmp_file
+	echo > $eocd_file
 	
 	for s in $slots; do
 		old_list=`$kdb get sys_pcicfg_s${s}_ifaces`
 		new_list=`$kdb get sys_pcitbl_s${s}_ifaces`
-		# echo "CHECK SLOT $s"
-		if [ ! -n "$new_list" ] || [ ! -n "$old_list" ]; then
-			continue
+		if [ -n "$new_list" ] && [ -n "$old_list" ]; then
+			_pci_update_netcfg "${old_list}" "${new_list}"
 		fi
-		# echo "UPDATE slot $s"
-		_pci_update_netcfg "${old_list}" "${new_list}"
 		$kdb set sys_pcicfg_s${s}_ifaces="${new_list}"
 	done
 	_pci_commit_netcfg
@@ -181,11 +184,12 @@ pcinet_refresh(){
 _pci_start(){
 	echo "Refresh PCI device list"
 	$kdb rm sys_pcitbl*
+
 	pci_driver "$mr16g_drvname" "E1_"
 	pci_driver "$mr16h_drvname" "dsl"
 	pci_driver "$mr17h_drvname" "dsl"
 	pcicfg_refresh
-	
+
 	# Correct Network settings
 	ifaces=`$kdb get sys_ifaces`
 	nifaces=""
