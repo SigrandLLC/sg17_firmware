@@ -725,9 +725,12 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	struct cmd_cfg_sdi_tx *sdi_tx;
 	struct cmd_cfg_sdi_rx *sdi_rx;
 	struct cmd_cfg_eoc_rx *eoc_rx;
+	struct ghs_ns_field *ns_field_set;
 	struct cmd_cfg_ghs_extended_pam_mode *extended_pam_mode;
 	struct sdfe4_msg rmsg;
 	struct sdfe4_ret ret;
+	int i;
+
 	// 1. Setup if role
 	PDEBUG(debug_sdfe4,"Setup if role");
 	sym_dsl=(struct cmd_cfg_sym_dsl_mode *)buf;
@@ -766,9 +769,6 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 		ghs_mode->epl_mode=EPL_ENABLED;
 	}		
 	rmsg.ack_id=ACK_CFG_GHS_MODE;
-
-printk(KERN_NOTICE"ch(%d): Result PBO_mode=%d,ELP_mode=%d\n",ch,ghs_mode->pbo_mode,ghs_mode->epl_mode);
-
 
 	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_GHS_MODE,(u8*)buf,sizeof(*ghs_mode),&rmsg,hwdev)){
 		PDEBUG(debug_error,": error in CMD_CFG_GHS_MODE");
@@ -848,12 +848,34 @@ printk(KERN_NOTICE"ch(%d): Result PBO_mode=%d,ELP_mode=%d\n",ch,ghs_mode->pbo_mo
 	caplist->enable_pmms=PMMS_OFF;
 	caplist->pmms_margin=0x00;
 
-printk(KERN_NOTICE"ch(%d): Result PBO=%d\n",ch,caplist->pow_backoff);
-	rmsg.ack_id=ACK_CFG_CAPLIST_SHORT_VER_2;
+	rmsg.ack_id = ACK_CFG_CAPLIST_SHORT_VER_2;
 	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_CAPLIST_SHORT_VER_2,(u8*)buf,sizeof(*caplist),&rmsg,hwdev)){
 		PDEBUG(debug_error,": error in CMD_CFG_CAPLIST_SHORT_VER_2");	
 		return -1;
 	}		
+
+	// 4 
+	if( cfg->mode == STU_C ){
+		ns_field_set=(struct ghs_ns_field*)buf;
+		memset(ns_field_set,0,sizeof(*ns_field_set));
+		switch( cfg->pbo_mode ){
+		case PWRBO_NORMAL:
+			ns_field_set->valid_ns_data = SDI_NO;
+			break;
+		case PWRBO_FORCED:
+			ns_field_set->valid_ns_data = SDI_YES;
+			for(i=0;i<8;i++){
+				ns_field_set->ns_info[i] = cfg->pbo_val+i;
+			}
+			ns_field_set->ns_info_len = 8;
+			break;
+		}
+		rmsg.ack_id = ACK_CFG_GHS_NS_FIELD;
+		if(sdfe4_pamdsl_cmd(ch,CMD_CFG_GHS_NS_FIELD,(u8*)buf,sizeof(*ns_field_set),&rmsg,hwdev)){
+			PDEBUG(debug_error,": error in CMD_CFG_GHS_NS_FIELD");	
+			return -1;
+		}		
+	}
 
 	// 5 confi AUX
 	PDEBUG(debug_sdfe4,"config AUX_SDI_IF_SEL_3");
@@ -1062,7 +1084,7 @@ sdfe4_load_config(u8 ch, struct sdfe4 *hwdev)
 	struct sdfe4_if_cfg *ch_cfg=&(hwdev->cfg[ch]);
 	int TC_PAM;
 	int r;
-	
+
 	wait_ms(10);
 	rmsg.ack_id=ACK_DSL_PARAM_GET;
 	if( (r = sdfe4_pamdsl_cmd(ch,CMD_DSL_PARAM_GET,NULL,0,&rmsg,hwdev)) ){

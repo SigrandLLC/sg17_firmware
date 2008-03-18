@@ -21,7 +21,6 @@ SNMP_MIB_MODULES_INCLUDED = \
 	host/hr_network \
 	host/hr_partition \
 	host/hr_proc \
-	host/hr_storage \
 	host/hr_system \
 	mibII/at \
 	mibII/icmp \
@@ -51,6 +50,7 @@ SNMP_MIB_MODULES_INCLUDED = \
 	ucd-snmp/vmstat \
 	util_funcs \
 	utilities/execute \
+	host/hr_storage \
 
 SNMP_MIB_MODULES_EXCLUDED = \
 	agent_mibs \

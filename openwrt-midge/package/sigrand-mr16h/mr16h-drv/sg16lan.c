@@ -92,7 +92,7 @@ MODULE_VERSION("2.0");
 #define SG16_MAX_FRAME 1536
 
 // Send timeout
-#define TX_TIMEOUT	400
+#define TX_TIMEOUT	5*HZ
 
 /* SHDSL parameters*/
 #define MAX_AUTO_RATE	2304

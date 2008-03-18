@@ -1261,8 +1261,12 @@ int
 sg17_sysfs_register(struct net_device *ndev)
 {
 	struct class_device *class_dev = &(ndev->class_dev);	
+	struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+	static char fname[10] = "device";
+
 	int ret = sysfs_create_group(&class_dev->kobj, &sg17_group);
 	ret += sysfs_create_group(&class_dev->kobj, &sg17_mx_group);
+    sysfs_create_link( &(class_dev->kobj),&(nl->dev->kobj),fname);
 	return ret;
 }
 
@@ -1271,4 +1275,5 @@ sg17_sysfs_remove(struct net_device *ndev){
 	struct class_device *class_dev = &(ndev->class_dev);	
 	sysfs_remove_group(&class_dev->kobj, &sg17_group);
 	sysfs_remove_group(&class_dev->kobj, &sg17_mx_group);
+    sysfs_remove_link(&(class_dev->kobj),"device");
 }

@@ -127,6 +127,11 @@
 #define  CMD_CFG_CAPLIST_SHORT       0x2432
 #define  CMD_CFG_CAPLIST_SHORT_VER_2 0x2452
 #define  ACK_CFG_CAPLIST_SHORT_VER_2 0x2652
+#define  CMD_GHS_NS_FIELD_GET        0x2852
+#define  ACK_GHS_NS_FIELD_GET        0x2A52
+#define  CMD_CFG_GHS_NS_FIELD        0x2442
+#define  ACK_CFG_GHS_NS_FIELD        0x2642
+
 #define  CMD_CFG_SDI_SETTINGS        0x840F
 #define  ACK_CFG_SDI_SETTINGS        0x860F
 #define  CMD_CFG_EOC_RX              0xA422
@@ -340,6 +345,15 @@ struct cmd_cfg_caplist_short_ver_2{
 	u8 octet_no_15;
 	u8 octet_val_15;
 };
+
+struct ghs_ns_field{
+	u8 valid_ns_data;
+	u8 rsvd1,rsvd2;
+	u8 ns_info_len;
+	u8 ns_info[16];
+};
+
+
 
 struct cmd_cfg_sym_dsl_mode{
 	u8 mode;
