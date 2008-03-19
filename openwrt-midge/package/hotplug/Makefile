@@ -35,7 +35,10 @@ $(IPKG_HOTPLUG):
 	$(INSTALL) -d $(etcdir)/hotplug/{usb,pci}
 	$(INSTALL) -D $(PKG_BUILD_DIR)/etc/hotplug.d/default/default.hotplug $(etcdir)/hotplug.d/default/default.hotplug
 	for F in $(PKG_BUILD_DIR)/etc/hotplug/{*.{agent,rc},hotplug.functions} ; do \
-		$(INSTALL) $$F $(etcdir)/hotplug ; \
+		tmp=`cat $$F | grep net.agent`;  \
+		if [ -z "$$tmp" ]; then \
+			$(INSTALL) $$F $(etcdir)/hotplug ; \
+		fi;  \
 		done
 	for F in $(PKG_BUILD_DIR)/etc/hotplug/{blacklist,usb.{user,hand,dist}map} ; do \
 		$(INSTALL_DATA) $$F $(etcdir)/hotplug ; \
