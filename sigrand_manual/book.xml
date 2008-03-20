@@ -1,20 +1,1415 @@
 <?xml version = '1.0' encoding = 'utf-8'?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "/usr/share/xml/docbook/schema/dtd/4.2/docbookx.dtd">
-<book lang="ru" >
+<book lang="ru">
 	<bookinfo>
-		<title>Руководство по эксплуатации маршрутизатора SG-16R/SG-17R</title>
+		<title>Руководство пользователя SG-16R/SG-17R</title>
 		<copyright>
-			<year>2007-2008</year>
-			<holder>Сигранд</holder>
+			<year>2007</year>
+			<year>2008</year>
+			<holder>ООО "Сигранд"</holder>
 		</copyright>
 		<author>Казанцев А.В.</author>
+		<legalnotice>
+			<para>
+				Все торговые марки, знаки и зарегистрированные права на именования, упомянутые в настоящем документе, принадлежат соответствующим правообладателям.
+			</para>
+		</legalnotice>
+		<abstract>
+			<para>
+				В данном руководстве рассмотрены вопросы конфигурации и эксплуатации маршрутизаторов ООО "Сигранд" 16-й и 17-й серии (SG-16R и SG-17R соответственно).
+			</para>
+			<para>
+				Приводится краткое описание характеристик и возможностей маршрутизатора, условий его эксплуатации, параметров сетевых интерфейсов, а так же описание поддерживаемых модулей.
+			</para>
+			<para>
+				Поясняются процедуры настройки сетевых интерфейсов и сервисов, а так же различных режимов работы маршрутизатора: мультиплексирование, бриджирование, объединение каналов (бондинг), VLAN, QoS и другие.
+			</para>
+		</abstract>
 	</bookinfo>
 	<chapter>
+		<title>Описание маршрутизатора SG-16R/SG-17R</title>
+		<para>
+			Маршрутизаторы Sigrand SG-16R, Sigrand SG-17R предназначены для организации межсетевого взаимодействия в сетях с произвольной конфигурацией, в которых используются различные протоколы и физические канальные уровни. Маршрутизатор SG-17R имеет наращиваемую модульную архитектуру и работает с модулями Е1 и SHDSL. Так же имеется возможность увеличения дальности связи при сохранении требуемой скорости при использовании совместно с маршрутизаторами SG-17R регенераторов SG-17E, при этом возможно получать информацию о канале связи со всех регенераторов, работающих на линии.
+		</para>
+		<para>
+			Программное обеспечение маршрутизатора разрабатывается на основе операционной системы GNU/Linux с ядром версии 2.6 и распространяется в соответствии с лицензией GNU GPL.
+		</para>
+		<important>
+			<title>Ограничение ответственности</title>
+			<para>
+				Фирма-изготовитель, по понятным соображениям, не может нести ответственность за работоспособность ПО, разработанного сторонними лицами и не прошедшего тестирования на совместимость с базовым ПО устройства в ООО «Сигранд». Также, мы не можем нести ответственность за последствия применения такого ПО, приведшего к неработоспособности или ограничению функциональности устройства.
+			</para>
+		</important>
+		<para>
+			Маршрутизаторы SG-16R и SG-17R имеют следующий функционал:
+		</para>
+		<itemizedlist>
+			<listitem>
+				<para>
+					Конфигурация через веб-интерфейс.
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					Сохранение и восстановление конфигурации.
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					Сохранение настроек сменных интерфейсов с привязкой к номеру слота.
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					Логирование событий.
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					Независимая настройка Ethernet-портов коммутатора.
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					Дополнительные Ethernet-сервисы на основе VLAN технологий.
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					Мультиплексирование синхронных каналов и/или маршрутизация IP трафика.
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					В режиме мультиплексирования при использовании многопарного соединения, агрегирование остатков полос от потоков E1 в один логический канал для транспорта Ethernet.
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					Бриджирование трафика и объединение физических интерфейсов для увеличения скорости передачи данных.
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					Поддержка сетевых интерфейсов: SHDSL, E1, Ethernet.
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					Работа с SHDSL интерфейсами: SG-17 и SG-17+, обеспечивающие скорости 5.7 и 14 Мбит/c по одной паре (для SG-17R).
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					При использовании SHDSL интерфейсов, обеспечение удалённого питания для регенераторов SG-17E (для SG-17R).
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					Поддержка сетевых служб: DHCP, PPTP, DNS.
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					Управление трафиком: NAT, Firewall, QoS.
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					Встроенный мониторинг SHDSL тракта в соответствии со стандартом G.SHDSL (G.991.2).
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					Поддержка SNMP: MIB-II, HDSL2-SHDSL-LINE-MIB.
+				</para>
+			</listitem>
+			<listitem>
+				<para>
+					Безопасное VPN соединение при использовании протоколов: IPSec, PPPoE, PPtP.
+				</para>
+			</listitem>
+		</itemizedlist>
+	</chapter>
+	<chapter>
+		<title>Комплектация поставки</title>
+		<section>
+			<title>SG-16R</title>
+			<itemizedlist>
+				<listitem>
+					<para>
+						Маршрутизатор.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						Блок питания от сети 220В/50Гц (для настольной версии) или сетевой шнур для подключения к сети 220В/50Гц (для стоечного форм-фактора).
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						Переходник DB-9F — RJ-45 для подключения к терминальному порту маршрутизатора.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						Компакт-диск с программным обеспечением и документацией.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						Гарантийный талон.
+					</para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				Схема переходника DB-9F — RJ-45 приведена на рисунке.
+			</para>
+			<figure>
+				<title>Схема переходника DB-9F — RJ-45</title>
+				<graphic fileref="img/hw-rj45_db9f.png" width="6in"/>
+			</figure>
+		</section>
+		<section>
+			<title>SG-17R</title>
+			<itemizedlist>
+				<listitem>
+					<para>
+						Шасси маршрутизатора.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						При типе питания DC 36-72В — ответная часть разъёма питания; при типе питания 220В/50Гц — сетевой шнур питания.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						Терминальный провод DB-9M — DB-9F.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						Компакт-диск с программным обеспечением и документацией.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						Гарантийный талон.
+					</para>
+				</listitem>
+			</itemizedlist>
+		</section>
+	</chapter>
+	<chapter id="hw">
+		<title>Аппаратное описание</title>
+		<section id="hw.desc">
+			<title>Характеристики и параметры устройства</title>
+			<section id="hw.desc.common">
+				<title>Общие параметры</title>
+				<itemizedlist>
+					<listitem>
+						<para>
+							<emphasis>Процессор</emphasis> — 32-разрядный MIPS процессор с ядром 4KC, производительность 227 MIPS.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Оперативная память</emphasis> — 64MB SDRAM.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Дисковая память</emphasis> — 32MB flash.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Интерфейсы</emphasis>:
+						</para>
+						<itemizedlist>
+							<listitem>
+								<para>
+									4 Ethernet/Fast Ethernet, auto negotiations, auto MDI/MDI-X.
+								</para>
+							</listitem>
+							<listitem>
+								<para>
+									<emphasis>RS-232C</emphasis> — для управления маршрутизатором.
+								</para>
+							</listitem>
+							<listitem>
+								<para>
+									4 интерфейсных слота для установки модулей (для SG-17R).
+								</para>
+							</listitem>
+						</itemizedlist>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Габариты</emphasis> — 438х258х43 мм.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Вес</emphasis> — 1,2 кг.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Питание</emphasis> — 220B/50 Гц или 36-72В постоянного тока (в зависимости от модели и поставки).
+						</para>
+					</listitem>
+				</itemizedlist>
+			</section>
+			<section id="hw.desc.shdsl">
+				<title>Параметры линейного интерфейса SHDSL</title>
+				<itemizedlist>
+					<listitem>
+						<para>
+							<emphasis>Тип разъема</emphasis>: RJ-45 (розетка).
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Тип интерфейса</emphasis>: G.SHDSL (рекоменд. ITU-T G.991.2.bis).
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Тип соединения</emphasis>: точка-точка.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Количество проводов линии связи</emphasis>: 2 (одна пара). Используются контакты 4 и 5.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Скорость передачи</emphasis>:
+						</para>
+						<itemizedlist>
+							<listitem>
+								<para>
+									<emphasis>SG-16</emphasis>: 6 Мбит/с
+								</para>
+							</listitem>
+							<listitem>
+								<para>
+									<emphasis>SG-17</emphasis>: 5.7 Мбит/с
+								</para>
+							</listitem>
+							<listitem>
+								<para>
+									<emphasis>SG-17+</emphasis>: 14 Мбит/с
+								</para>
+							</listitem>
+						</itemizedlist>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Линейный код</emphasis>: TCPAM.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Вид связи</emphasis>: полный дуплекс.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Дистанционное питание</emphasis> (для моделей с поддержкой дистанционного питания)
+						</para>
+						<itemizedlist>
+							<listitem>
+								<para>
+									<emphasis>Напряжение</emphasis>: 240В.
+								</para>
+							</listitem>
+							<listitem>
+								<para>
+									<emphasis>Максимальный ток</emphasis>: 50мА.
+								</para>
+							</listitem>
+						</itemizedlist>
+					</listitem>
+				</itemizedlist>
+			</section>
+			<section id="hw.desc.e1">
+				<title>Параметры интерфейса Е1</title>
+				<itemizedlist>
+					<listitem>
+						<para>
+							<emphasis>Тип разъема</emphasis>: RJ-45 (розетка).
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Число проводов в линии связи</emphasis>: 4 (две пары). Контакты 4, 5 используются для передачи, 1, 2 — для приёма.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Линейный код (ITU-T G.703)</emphasis>: HDB3, AMI.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Скорость передачи данных</emphasis>: Nx64 кбит/c, где N=1:32, для каждого из интерфейсов Е1  (64:2048 кбит/с с шагом 64 кбит/с).
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Расстояние до оборудования DTE, км</emphasis>: 2,4 (для кабеля 0,5 мм), 1,6 (для кабеля 0,4 мм).
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Цикловая структура (framing)</emphasis>: G.704.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Сверхциклы (superframe)</emphasis>: CRC4, CAS.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Отключение цикловой структуры (unframed mode)</emphasis>: есть.
+						</para>
+					</listitem>
+				</itemizedlist>
+			</section>
+			<section id="hw.desc.rs232">
+				<title id="hw.desc.rs232.title">Параметры интерфейса RS-232C</title>
+				<itemizedlist>
+					<listitem>
+						<para>
+							<emphasis>Тип разъема</emphasis>:
+						</para>
+						<itemizedlist>
+							<listitem>
+								<para>
+									<emphasis>SG-16R</emphasis>: RJ-45 (розетка).
+								</para>
+							</listitem>
+							<listitem>
+								<para>
+									<emphasis>SG-17R</emphasis>: DB-9F.
+								</para>
+							</listitem>
+						</itemizedlist>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Скорость передачи, бит/сек</emphasis>: 115 200.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Протокол</emphasis>: 8-N-1.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Управление потоком</emphasis>: нет.
+						</para>
+					</listitem>
+				</itemizedlist>
+			</section>
+			<section>
+				<title>Условия эксплуатации</title>
+				<para>
+					Маршрутизатор предназначен для эксплуатации в закрытом отапливаемом помещении при следующих климатических условиях:
+				</para>
+				<itemizedlist>
+					<listitem>
+						<para>
+							<emphasis>Температура воздуха</emphasis>: 10 .. 40 °C.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Относительная влажность воздуха</emphasis>: до 85%.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Атмосферное давление</emphasis>: 84 .. 107 кПа.
+						</para>
+					</listitem>
+				</itemizedlist>
+			</section>
+		</section>
+		<section id="hw.shdsl.details">
+			<title>Характеристики SHDSL</title>
+			<section id="hw.shdsl.details.tcpam">
+				<title id="hw.shdsl.details.tcpam.title">Особенности применения кодировок TCPAM</title>
+				<para>
+					Кодирование TCPAM (Trellis-Coded Pulse Amplitude Modulation), используемое для передачи информации по стандарту G.SHDSL (G.991.2), имеет несколько вариантов, отличающихся степенью сложности алгоритма кодирования. Большим скоростям передачи соответствует режим с большим количеством позиций модуляции (TCPAM32), на малых скоростях используется режим с меньшим числом позиций модуляции (TCPAM16). Соответственно, с увеличением сложности алгоритма кодирования, снижается помехоустойчивость канала, и наоборот.
+				</para>
+				<para>
+					Поэтому, при настройке скорости линии, следует обращать особое внимание на алгоритм кодирования TCPAM и, при необходимости, изменять линейный код для достижения наилучшего результата.
+				</para>
+				<para>
+					В таблице приведены соответствия значений кодировок скоростям линии.
+				</para>
+				<table frame="all" align="center">
+					<title>Таблица соответствий линейного кода скорости линии</title>
+					<tgroup cols="2" >
+						<thead>
+							<row>
+								<entry>Линейный код</entry>
+								<entry>Диапазон допустимых скоростей, кбит/с</entry>
+							</row>
+						</thead>
+						<tbody>
+							<row>
+								<entry>TCPAM128</entry>
+								<entry>до 14080 (нижняя граница пока не определена)</entry>
+							</row>
+							<row>
+								<entry>TCPAM64</entry>
+								<entry>до 7168 (нижняя граница пока не определена)</entry>
+							</row>
+							<row>
+								<entry>TCPAM32</entry>
+								<entry>2560-5696</entry>
+							</row>
+							<row>
+								<entry>TCPAM16</entry>
+								<entry>192-2496</entry>
+							</row>
+						</tbody>
+					</tgroup>
+				</table>
+			</section>
+			<section id="hw.shdsl.details.speed">
+				<title>Дальность связи и скорость соединения</title>
+				<section>
+					<title>Условия тестирования</title>
+					<para>
+						Информация о дальности связи и скорости соединения приведена ниже. Результаты получены на линиях длиной, при которой коэффициент ошибок (Bit Error Rate, BER) равен или меньше 10<superscript>-7</superscript>. Указанная дальность проверена экспериментальным путём на контрольной линии связи лаборатории компании.
+					</para>
+					<para>
+						Результаты, полученные при эксплуатации на реальных линиях связи, могут отличаться от приведённых значений ввиду отличий параметров этих линий от эталонной.
+					</para>
+					<para>
+						Разные серии маршрутизаторов и разные модули имеют различные показатели дальности/скорости.
+					</para>
+				</section>
+				<section>
+					<title>SG-16</title>
+					<para>
+						Таблица дальности/скорости для SHDSL версии SG-16 представлена ниже.
+					</para>
+					<table frame="all" align="center">
+						<title>Таблица дальности/скорости для SG-16</title>
+						<tgroup cols="3">
+							<thead>
+								<row>
+									<entry>Скорость, кбит/с</entry>
+									<entry>Кабель сечением 0,4 мм, км</entry>
+									<entry>Кабель сечением 0,5 мм, км</entry>
+								</row>
+							</thead>
+							<tbody>
+								<row>
+									<entry>6016</entry>
+									<entry>1,8</entry>
+									<entry>2,2</entry>
+								</row>
+								<row>
+									<entry>4608</entry>
+									<entry>2,0</entry>
+									<entry>2,6</entry>
+								</row>
+								<row>
+									<entry>3072</entry>
+									<entry>3,0</entry>
+									<entry>4,2</entry>
+								</row>
+								<row>
+									<entry>2304</entry>
+									<entry>3,8</entry>
+									<entry>5,4</entry>
+								</row>
+								<row>
+									<entry>1536</entry>
+									<entry>4,4</entry>
+									<entry>6,4</entry>
+								</row>
+								<row>
+									<entry>1024</entry>
+									<entry>5,0</entry>
+									<entry>7,6</entry>
+								</row>
+								<row>
+									<entry>512</entry>
+									<entry>5,8</entry>
+									<entry>9,0</entry>
+								</row>
+								<row>
+									<entry>256</entry>
+									<entry>6,6</entry>
+									<entry>10,0</entry>
+								</row>
+								<row>
+									<entry>128</entry>
+									<entry>7,4</entry>
+									<entry>11,4</entry>
+								</row>
+								<row>
+									<entry>64</entry>
+									<entry>7,4</entry>
+									<entry>11,4</entry>
+								</row>
+							</tbody>
+						</tgroup>
+					</table>
+				</section>
+				<section>
+					<title>SG-17</title>
+					<para>
+						Таблица дальности/скорости для SHDSL версии SG-17 представлена ниже.
+					</para>
+					<table frame="all" align="center">
+						<title>Таблица дальности/скорости для SG-17</title>
+						<tgroup cols="4">
+							<thead>
+								<row>
+									<entry>Скорость, кбит/с</entry>
+									<entry>Кабель сечением 0,5 мм, км</entry>
+									<entry>Кабель сечением 0,9 мм, км</entry>
+									<entry>Кабель сечением 1,2 мм, км</entry>
+								</row>
+							</thead>
+							<tbody>
+								<row>
+									<entry>5696</entry>
+									<entry>2,6</entry>
+									<entry>5,0</entry>
+									<entry>8,6</entry>
+								</row>
+								<row>
+									<entry>4608</entry>
+									<entry>3,6</entry>
+									<entry>5,6</entry>
+									<entry>9,6</entry>
+								</row>
+								<row>
+									<entry>4096</entry>
+									<entry>4,0</entry>
+									<entry>7,4</entry>
+									<entry>12,4</entry>
+								</row>
+								<row>
+									<entry>3072</entry>
+									<entry>5,0</entry>
+									<entry>8,0</entry>
+									<entry>13,4</entry>
+								</row>
+								<row>
+									<entry>2304</entry>
+									<entry>5,4</entry>
+									<entry>11,2</entry>
+									<entry>19,0</entry>
+								</row>
+								<row>
+									<entry>2048</entry>
+									<entry>6,2</entry>
+									<entry>13,0</entry>
+									<entry>22,2</entry>
+								</row>
+								<row>
+									<entry>1536</entry>
+									<entry>7,0</entry>
+									<entry>15,8</entry>
+									<entry>26,6</entry>
+								</row>
+								<row>
+									<entry>1024</entry>
+									<entry>7,8</entry>
+									<entry>17,4</entry>
+									<entry>29,6</entry>
+								</row>
+								<row>
+									<entry>768</entry>
+									<entry>8,4</entry>
+									<entry>18,6</entry>
+									<entry>31,6</entry>
+								</row>
+								<row>
+									<entry>512</entry>
+									<entry>9,0</entry>
+									<entry>20,0</entry>
+									<entry>33,8</entry>
+								</row>
+								<row>
+									<entry>384</entry>
+									<entry>9,6</entry>
+									<entry>21,0</entry>
+									<entry>35,8</entry>
+								</row>
+								<row>
+									<entry>192</entry>
+									<entry>10,4</entry>
+									<entry>23,0</entry>
+									<entry>40,0</entry>
+								</row>
+							</tbody>
+						</tgroup>
+					</table>
+				</section>
+				<section>
+					<title>SG-17+</title>
+					<para>
+						Таблица дальности/скорости для SHDSL версии SG-17+ представлена ниже.
+					</para>
+					<table frame="all">
+						<title>Таблица дальности/скорости для SG-17+</title>
+						<tgroup cols="2" align="center">
+							<thead>
+								<row>
+									<entry>Скорость, кбит/с</entry>
+									<entry>Кабель сечением 0,5 мм, км</entry>
+								</row>
+							</thead>
+							<tbody>
+								<row>
+									<entry>14080</entry>
+									<entry>1,2</entry>
+								</row>
+								<row>
+									<entry>12800</entry>
+									<entry>1,2</entry>
+								</row>
+								<row>
+									<entry>11520</entry>
+									<entry>1,4</entry>
+								</row>
+								<row>
+									<entry>10240</entry>
+									<entry>2,0</entry>
+								</row>
+								<row>
+									<entry>9216</entry>
+									<entry>2,2</entry>
+								</row>
+								<row>
+									<entry>8192</entry>
+									<entry>2,4</entry>
+								</row>
+								<row>
+									<entry>7168</entry>
+									<entry>3,0</entry>
+								</row>
+								<row>
+									<entry>6144</entry>
+									<entry>3,4</entry>
+								</row>
+								<row>
+									<entry>5696</entry>
+									<entry>3,6</entry>
+								</row>
+								<row>
+									<entry>5120</entry>
+									<entry>3,8</entry>
+								</row>
+								<row>
+									<entry>4608</entry>
+									<entry>4,0</entry>
+								</row>
+								<row>
+									<entry>4096</entry>
+									<entry>4,4</entry>
+								</row>
+								<row>
+									<entry>3072</entry>
+									<entry>5,0</entry>
+								</row>
+								<row>
+									<entry>2304</entry>
+									<entry>5,4</entry>
+								</row>
+								<row>
+									<entry>2048</entry>
+									<entry>6,2</entry>
+								</row>
+								<row>
+									<entry>1536</entry>
+									<entry>7,0</entry>
+								</row>
+								<row>
+									<entry>1024</entry>
+									<entry>7,8</entry>
+								</row>
+								<row>
+									<entry>768</entry>
+									<entry>8,4</entry>
+								</row>
+								<row>
+									<entry>512</entry>
+									<entry>9,0</entry>
+								</row>
+								<row>
+									<entry>384</entry>
+									<entry>9,6</entry>
+								</row>
+								<row>
+									<entry>192</entry>
+									<entry>10,4</entry>
+								</row>
+							</tbody>
+						</tgroup>
+					</table>
+				</section>
+			</section>
+			<section>
+				<title>Совместимость оборудования по интерфейсу SHDSL</title>
+				<para>
+					Таблица совместимости оборудования по интерфейсу SHDSL приведена ниже. SG-16R относится к серии SG-16, а SG-17R — к серии SG-17.
+				</para>
+				<table frame="all" align="center">
+					<title>Совместимость оборудования по интерфейсу SHDSL</title>
+					<tgroup cols="4">
+						<thead>
+							<row>
+								<entry>Серия/версия интерфейса</entry>
+								<entry>SG-16</entry>
+								<entry>SG-17</entry>
+								<entry>SG-17+</entry>
+							</row>
+						</thead>
+						<tbody>
+							<row>
+								<entry>SG-16</entry>
+								<entry>+</entry>
+								<entry>-</entry>
+								<entry>-</entry>
+							</row>
+							<row>
+								<entry>SG-17</entry>
+								<entry>-</entry>
+								<entry>+</entry>
+								<entry>+</entry>
+							</row>
+						</tbody>
+					</tgroup>
+				</table>
+			</section>
+			<section>
+				<title>Подключение линии связи</title>
+				<important>
+					<para>
+						Перед подключением линии связи удостоверьтесь, что на ней отсутствуют термопредохранители. Установка маршрутизаторов на таких линиях приводит к значительному снижению скоростных параметров. Так же невозможна работа на линиях, оснащённых катушками Пупина (пупинизированных линиях).
+					</para>
+				</important>
+				<warning>
+					<para>
+						Удостоверьтесь, что предоставленная Вам линия связи не имеет посторонних источников электрического напряжения, и не подключена к какому-либо постороннему оборудованию АТС! Несоблюдение этого правила может привести к выводу из строя как маршрутизаторов, так и посторонней аппаратуры на линии связи!
+					</para>
+				</warning>
+				<para>
+					Для нормальной работы маршрутизаторов и обеспечения заданных параметров линия связи должна соответствовать следующим требованиям:
+				</para>
+				<itemizedlist>
+					<listitem>
+						<para>
+							Кабель не должен иметь замыканий жил и утечек на "землю" и на иные, в том числе и не подключённые к чему-либо, проводники. Линия связи не должна иметь ответвлений.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							В многопарном кабеле жилы должны быть взяты из одной пары.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Параллельное включение нескольких пар (например, для уменьшения активного сопротивления) не допускается.
+						</para>
+					</listitem>
+				</itemizedlist>
+				<para>
+					Отступление от указанных выше требований может привести к снижению показателей, или к полной неработоспособности линии связи.
+				</para>
+				<para>
+					Для подключения линии связи к маршрутизатору, установите вилку RJ-45 на кабель. Маршрутизатор использует только одну пару проводов, контакты 4 и 5, остальные контакты не задействованы.
+				</para>
+				<figure>
+					<title>Разъём RJ-45</title>
+					<graphic fileref="img/hw-rj45.png" width="6in"/>
+				</figure>
+				<para>
+					Затем подключите кабель к разъёму SHDSL маршрутизатора.
+				</para>
+			</section>
+		</section>
+		<section id="hw.sg-16r">
+			<title>Внешний вид, назначение индикаторов и разъёмов SG-16R</title>
+			<para>
+				Маршрутизатор Sigrand SG-16R поставляется в настольном форм-факторе и в форм-факторе 19" для монтажа в коммуникационную стойку.
+			</para>
+			<para>
+				Вид передней панели маршрутизатора с одним и двумя каналами SHDSL, выполненного в форм-факторе 19", представлен ниже.
+			</para>
+			<figure>
+				<title>Вид передней панели маршрутизатора с одним каналом SHDSL в форм-факторе 19"</title>
+				<graphic fileref="img/hw-sg16-1dsl-front-text.png" width="6in"/>
+			</figure>
+			<figure>
+				<title>Вид передней панели маршрутизатора с двумя каналами SHDSL в форм-факторе 19"</title>
+				<graphic fileref="img/hw-sg16-2dsl-front-text.png" width="6in"/>
+			</figure>
+			<itemizedlist>
+				<listitem>
+					<para>
+						<emphasis>Порты Ethernet</emphasis> — RJ-45 порты для подключения по интерфейсу Ethernet.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Порты SHDSL</emphasis> — RJ-45 порты для подключения по интерфейсу SHDSL.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>PGND</emphasis> — клемма для подключения заземления.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Консольный порт</emphasis> — RJ-45 порт для управления маршрутизатором.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Индикаторы Ethernet</emphasis> — каждому каналу соответствует два индикатора:
+					</para>
+					<itemizedlist>
+						<listitem>
+							<para>
+								Верхний — <emphasis>FD/C</emphasis>:
+							</para>
+							<itemizedlist>
+								<listitem>
+									<para>
+										<emphasis>Горит</emphasis> — полнодуплексный режим работы (Full duplex).
+									</para>
+								</listitem>
+								<listitem>
+									<para>
+										<emphasis>Не горит</emphasis> — полудуплексный режим работы (Half duplex).
+									</para>
+								</listitem>
+								<listitem>
+									<para>
+										<emphasis>Мигает</emphasis> — наличие коллизии в канале (Collision).
+									</para>
+								</listitem>
+							</itemizedlist>
+						</listitem>
+						<listitem>
+							<para>
+								Нижний — <emphasis>LINK</emphasis>:
+							</para>
+							<itemizedlist>
+								<listitem>
+									<para>
+										<emphasis>Горит</emphasis> — связь с удалённым устройством есть.
+									</para>
+								</listitem>
+								<listitem>
+									<para>
+										<emphasis>Не горит</emphasis> — связи с удалённым устройством нет.
+									</para>
+								</listitem>
+								<listitem>
+									<para>
+										<emphasis>Мигает</emphasis> — идёт обмен данными.
+									</para>
+								</listitem>
+							</itemizedlist>
+						</listitem>
+					</itemizedlist>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Индикаторы SHDSL</emphasis>
+					</para>
+					<itemizedlist>
+						<listitem>
+							<para>
+								Верхний — <emphasis>ERR</emphasis>:
+							</para>
+							<itemizedlist>
+								<listitem>
+									<para>
+										<emphasis>Не горит</emphasis> — нет сбойных пакетов.
+									</para>
+								</listitem>
+								<listitem>
+									<para>
+										<emphasis>Мигает</emphasis> — получен сбойный пакет.
+									</para>
+								</listitem>
+							</itemizedlist>
+						</listitem>
+						<listitem>
+							<para>
+								Нижний — <emphasis>LINK</emphasis>:
+							</para>
+							<itemizedlist>
+								<listitem>
+									<para>
+										<emphasis>Горит</emphasis> — связь с удалённым устройством есть.
+									</para>
+								</listitem>
+								<listitem>
+									<para>
+										<emphasis>Не горит</emphasis> — связи с удалённым устройством нет.
+									</para>
+								</listitem>
+								<listitem>
+									<para>
+										<emphasis>Мигает</emphasis> — процесс установки связи.
+									</para>
+								</listitem>
+							</itemizedlist>
+						</listitem>
+					</itemizedlist>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Выключатель питания</emphasis> — выключатель питания маршрутизатора.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Индикатор питания</emphasis> — горит, когда маршрутизатор включён.
+					</para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				Вид задней панели маршрутизатора в форм-факторе 19" показан ниже.
+			</para>
+			<figure>
+				<title>Вид задней панели маршрутизатора в форм-факторе 19"</title>
+				<graphic fileref="img/hw-sg16-back-text.png" width="6in"/>
+			</figure>
+			<itemizedlist>
+				<listitem>
+					<para>
+						<emphasis>Разъём питания</emphasis> — для подключения к сети 220В/50Гц.
+					</para>
+				</listitem>
+			</itemizedlist>
+		</section>
+		<section id="hw.sg-17r">
+			<title>Внешний вид, назначение индикаторов и разъёмов SG-17R</title>
+			<para>
+				Маршрутизатор Sigrand SG-17R поставляется в форм-факторе 19" для монтажа в коммуникационную стойку. Вид передней панели без установленных модулей представлен на рисунке.
+			</para>
+			<figure>
+				<title>Передняя панель без сменных модулей</title>
+				<graphic fileref="img/hw-sg17-front-empty-text.png" width="6in"/>
+			</figure>
+			<itemizedlist>
+				<listitem>
+					<para>
+						<emphasis>A,B,C,D</emphasis> — слоты для установки сменных модулей.
+					</para>
+					<important>
+						<para>
+							В текущее время слот <emphasis>D</emphasis> не может быть использован для установки модуля.
+						</para>
+					</important>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Консольный порт</emphasis> — RS-232C порт для управления маршрутизатором.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Порты Ethernet</emphasis> — RJ-45 порты для подключения по интерфейсу Ethernet.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Индикация портов Ethernet</emphasis> — каждому каналу соответствует два индикатора:
+					</para>
+					<itemizedlist>
+						<listitem>
+							<para>
+								Верхний — <emphasis>FD/C</emphasis>:
+							</para>
+							<itemizedlist>
+								<listitem>
+									<para>
+										<emphasis>Горит</emphasis> — полнодуплексный режим работы (Full duplex).
+									</para>
+								</listitem>
+								<listitem>
+									<para>
+										<emphasis>Не горит</emphasis> — полудуплексный режим работы (Half duplex).
+									</para>
+								</listitem>
+								<listitem>
+									<para>
+										<emphasis>Мигает</emphasis> — наличие коллизии в канале (Collision).
+									</para>
+								</listitem>
+							</itemizedlist>
+						</listitem>
+						<listitem>
+							<para>
+								Нижний — <emphasis>LINK</emphasis>:
+							</para>
+							<itemizedlist>
+								<listitem>
+									<para>
+										<emphasis>Горит</emphasis> — связь с удалённым устройством есть.
+									</para>
+								</listitem>
+								<listitem>
+									<para>
+										<emphasis>Не горит</emphasis> — связи с удалённым устройством нет.
+									</para>
+								</listitem>
+								<listitem>
+									<para>
+										<emphasis>Мигает</emphasis> — идёт обмен данными.
+									</para>
+								</listitem>
+							</itemizedlist>
+						</listitem>
+					</itemizedlist>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Кнопка включения питания</emphasis> — кнопка включения маршрутизатора.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Индикатор питания</emphasis> — горит, когда маршрутизатор включён.
+					</para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				Вид задней панели маршрутизатора с питанием 36-72В постоянного тока (DC) показан ниже.
+			</para>
+			<figure>
+				<title>Вид задней панели маршрутизатора с питанием 36-72В DC</title>
+				<graphic fileref="img/hw-sg17-back-dc-text.png" width="6in"/>
+			</figure>
+			<itemizedlist>
+				<listitem>
+					<para>
+						<emphasis>Разъём питания</emphasis> — для подключения к источнику питания постоянного тока 36-72В.
+					</para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				Вид задней панели маршрутизатора с питанием 220В/50Гц показан ниже.
+			</para>
+			<figure>
+				<title>Вид задней панели маршрутизатора с питанием 220В/50Гц</title>
+				<graphic fileref="img/hw-sg17-back-ac-text.png" width="6in"/>
+			</figure>
+			<itemizedlist>
+				<listitem>
+					<para>
+						<emphasis>Разъём питания</emphasis> — для подключения к сети 220В/50Гц.
+					</para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				Вид передней панели с установленными модулями SHDSL и E1 представлен ниже.
+			</para>
+			<figure>
+				<title>Передняя панель с установленными модулями</title>
+				<graphic fileref="img/hw-sg17-front-modules-text.png" width="6in"/>
+			</figure>
+			<itemizedlist>
+				<listitem>
+					<para>
+						<emphasis>Модули SHDSL</emphasis> — два двухканальных модуля SHDSL с дистанционным питанием.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Модули Е1</emphasis> — два двухканальных модуля Е1.
+					</para>
+				</listitem>
+			</itemizedlist>
+		</section>
+		<section id="hw.modules">
+			<title>Сменные интерфейсы</title>
+			<para>
+				При использовании маршрутизатора SG-17R имеется возможность расширять его функциональные возможности за счёт использования сменных модулей — на данный момент это модули SHDSL и E1.
+			</para>
+			<section id="hw.modules.dsl">
+				<title>Модули SHDSL</title>
+				<para>
+					Существует несколько типов модулей SHDSL:
+				</para>
+				<itemizedlist>
+					<listitem>
+						<para>
+							Один канал SHDSL без дистанционного питания (MR-17H1).
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Два канала SHDSL без дистанционного питания (MR-17H2).
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Один канал SHDSL с дистанционным питанием (MR-17H1P2).
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Два канала SHDSL с дистанционным питанием (MR-17H2P2).
+						</para>
+					</listitem>
+				</itemizedlist>
+				<figure>
+					<title>Модуль на один канал SHDSL без дистанционного питания (MR-17H1)</title>
+					<graphic fileref="img/hw-module-17h1-text.png" width="6in"/>
+				</figure>
+				<figure>
+					<title>Модуль на один канал SHDSL с дистанционным питанием (MR-17H1P2)</title>
+					<graphic fileref="img/hw-module-17h1p2-text.png" width="6in"/>
+				</figure>
+				<figure>
+					<title>Модуль на два канала SHDSL без дистанционного питания (MR-17H2)</title>
+					<graphic fileref="img/hw-module-17h2-text.png" width="6in"/>
+				</figure>
+				<figure>
+					<title>Модуль на два канала SHDSL с дистанционным питанием (MR-17H2P2)</title>
+					<graphic fileref="img/hw-module-17h2p2-text.png" width="6in"/>
+				</figure>
+				<itemizedlist>
+					<listitem>
+						<para>
+							<emphasis>Порты SHDSL</emphasis> — RJ-45 порты для подключения по интерфейсу SHDSL.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Индикаторы SHDSL</emphasis>
+						</para>
+						<itemizedlist>
+							<listitem>
+								<para>
+									<emphasis>ERR</emphasis>:
+								</para>
+								<itemizedlist>
+									<listitem>
+										<para>
+											<emphasis>Не горит</emphasis> — нет сбойных пакетов.
+										</para>
+									</listitem>
+									<listitem>
+										<para>
+											<emphasis>Мигает</emphasis> — получен сбойный пакет.
+										</para>
+									</listitem>
+								</itemizedlist>
+							</listitem>
+							<listitem>
+								<para>
+									<emphasis>LINK</emphasis>:
+								</para>
+								<itemizedlist>
+									<listitem>
+										<para>
+											<emphasis>Горит</emphasis> — связь с удалённым устройством есть.
+										</para>
+									</listitem>
+									<listitem>
+										<para>
+											<emphasis>Не горит</emphasis> — связи с удалённым устройством нет.
+										</para>
+									</listitem>
+									<listitem>
+										<para>
+											<emphasis>Мигает</emphasis> — процесс установки связи.
+										</para>
+									</listitem>
+								</itemizedlist>
+							</listitem>
+							<listitem>
+								<para>
+									<emphasis>UNB</emphasis>:
+								</para>
+								<itemizedlist>
+									<listitem>
+										<para>
+											<emphasis>Горит</emphasis> — нарушен баланс питания относительно земли. В норме на одном проводе +120 В, на другом — 120 В. Если перекос больше 30 В или отсутствует земля — это означает несбалансированность питания.
+										</para>
+									</listitem>
+									<listitem>
+										<para>
+											<emphasis>Не горит</emphasis> — баланс питания в норме.
+										</para>
+									</listitem>
+								</itemizedlist>
+							</listitem>
+							<listitem>
+								<para>
+									<emphasis>OVL</emphasis>:
+								</para>
+								<itemizedlist>
+									<listitem>
+										<para>
+											<emphasis>Горит</emphasis> — перегрузка питания. Это вызвано слишком большим числом (больше 4) регенераторов на линии, настроенных на питание от данного маршрутизатора.
+										</para>
+									</listitem>
+									<listitem>
+										<para>
+											<emphasis>Не горит</emphasis> — перегрузки питания нет.
+										</para>
+									</listitem>
+								</itemizedlist>
+							</listitem>
+						</itemizedlist>
+					</listitem>
+				</itemizedlist>
+			</section>
+			<section id="hw.modules.e1">
+				<title>Модули Е1</title>
+				<para>
+					Существует несколько типов модулей Е1:
+				</para>
+				<itemizedlist>
+					<listitem>
+						<para>
+							Один канал Е1 (MR-17G).
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Два канала Е1 (MR-17G2).
+						</para>
+					</listitem>
+				</itemizedlist>
+				<figure>
+					<title>Модуль на один канал E1 (MR-17G)</title>
+					<graphic fileref="img/hw-module-1e1-text.png" width="6in"/>
+				</figure>
+				<figure>
+					<title>Модуль на два канала E1 (MR-17G2)</title>
+					<graphic fileref="img/hw-module-2e1-text.png" width="6in"/>
+				</figure>
+				<itemizedlist>
+					<listitem>
+						<para>
+							<emphasis>Порты E1</emphasis> — RJ-45 порты для подключения по интерфейсу E1.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							<emphasis>Индикаторы E1</emphasis>
+						</para>
+						<itemizedlist>
+							<listitem>
+								<para>
+									<emphasis>Горит</emphasis> — связь с удалённым устройством есть.
+								</para>
+							</listitem>
+							<listitem>
+								<para>
+									<emphasis>Не горит</emphasis> — связи с удалённым устройством нет.
+								</para>
+							</listitem>
+						</itemizedlist>
+					</listitem>
+				</itemizedlist>
+			</section>
+			<section id="hw.modules.install">
+				<title>Установка сменных интерфейсов</title>
+				<important>
+					<para>
+						Для установки модулей можно использовать только слоты A, B и C маршрутизатора.
+					</para>
+				</important>
+				<figure>
+					<title>Передняя панель без сменных модулей</title>
+					<graphic fileref="img/hw-sg17-front-empty-text.png" width="6in"/>
+				</figure>
+				<para>
+					Установка модуля выполняется следующим образом:
+				</para>
+				<orderedlist>
+					<listitem>
+						<para>
+							Выключить питание маршрутизатора.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Снять с маршрутизатора заглушку, закрывающую слот.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Установить модуль в слот.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Зафиксировать его при помощи крепёжных винтов.
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+							Включить питание маршрутизатора и произвести настройку установленного модуля.
+						</para>
+					</listitem>
+				</orderedlist>
+			</section>
+		</section>
+	</chapter>
+	<chapter>
 		<title>Начало работы с маршрутизатором</title>
-		<section id="bootloader" >
+		<section id="firstboot">
+			<title id="firstboot.title">Подготовка к первому включению</title>
+			<important>
+				<para>
+					Удостоверьтесь в отсутствии внешних повреждений, возможно, полученных при транспортировке устройства. В случае наличия таковых, просьба немедленно связаться со службой гарантийной поддержки ООО «Сигранд».
+				</para>
+			</important>
+			<warning>
+				<para>
+					В случае, если устройство перевозилось или хранилось при отрицательной температуре — включение его допускается только по истечении часа нахождения при комнатной температуре!
+				</para>
+			</warning>
+			<para>
+				Извлеките маршрутизатор из упаковки и расположите его на столе или иной ровной горизонтальной поверхности. Подключите соответствующее питание (220В/50Гц или DC 36-72В).
+			</para>
+			<para>
+				Если требуется управление маршрутизатором по консольному интерфейсу, например, для обновления прошивки маршрутизатора (см. <link linkend="update" endterm="update.title"/>, или для диагностики процесса загрузки, соедините консольный порт маршрутизатора с последовательным портом компьютера с помощью переходника (для SG-16R) или терминального провода (для SG-17R).
+			</para>
+			<para>
+				Для управления маршрутизатором по консольному интерфейсу используется любая терминальная программа — HyperTerminal для ОС Windows или Minicom для ОС GNU/Linux. Настройки последовательного порта приведены выше, в разделе <link linkend="hw.desc.rs232" endterm="hw.desc.rs232.title"/>.
+			</para>
+			<para>
+				Для настройки маршрутизатора через веб-интерфейс соедините его интерфейс eth0 с сетевым адаптером компьютера или портом коммутатора локальной сети при помощи стандартного патч-корда.
+			</para>
+			<para>
+				Включение маршрутизатора производится выключателем питания, расположенным на лицевой панели.
+			</para>
+		</section>
+		<section id="bootloader">
 			<title>Загрузчик</title>
 			<para>
-				Меню загрузчика доступно при подключении к маршрутизатору по последовательному интерфейсу. После включения питания, на экран будет выведено предложение войти в меню загрузчика. Для этого вам необходимо 3 раза быстро нажать на клавишу пробела.
+				Меню загрузчика доступно при подключении к маршрутизатору по консольному интерфейсу. После включения питания, на экран будет выведено предложение войти в меню загрузчика. Для этого вам необходимо 3 раза быстро нажать на клавишу пробела.
 			</para>
 			<screen>
 				ADM5120 Boot:
@@ -107,7 +1502,7 @@
 			</itemizedlist>
 		</section>
 		<section id="update">
-			<title>Обновление прошивки маршрутизатора</title>
+			<title id="update.title">Обновление прошивки маршрутизатора</title>
 			<important>
 				<para>
 					Перед перепрошивкой следует сохранить конфигурацию (см. раздел <link linkend="cfg" endterm="cfg.title" />), т.к. установка новой прошивки вернёт все параметры в исходное состояние, а так же сбросит установленные производителем MAC-адреса (см. раздел <link linkend="mac-address" endterm="mac-address.title" />).
@@ -119,7 +1514,7 @@
 			<itemizedlist>
 				<listitem>
 					<para>
-						<acronym>ПК</acronym> с COM-портом.
+						Компьютер с последовательным интерфейсом.
 					</para>
 				</listitem>
 				<listitem>
@@ -132,33 +1527,10 @@
 				Для обновления прошивки необходимо, чтобы маршрутизатору был доступен TFTP-сервер, на котором расположен файл образа прошивки. В старых версиях загрузчика было необходимо, чтобы этот TFTP-сервер находился в одной сети с маршрутизатором, в новой версии добавлена возможность обновления, когда сервер доступен через шлюз.
 			</para>
 			<para>
-				Если используется локальный TFTP-сервер, то после его настройки необходимо в каталог, являющийся для него (TFTP-сервера) корневым, скопировать файл прошивки, который можно скачать с веб-сайта <ulink url="http://www.sigrand.ru">www.sigrand.ru</ulink>.
+				Если используется локальный TFTP-сервер, то после его настройки необходимо в каталог, являющийся для него (TFTP-сервера) корневым, скопировать файл прошивки, который можно скачать с веб-сайта <ulink url="http://www.sigrand.ru">www.sigrand.ru</ulink>. Последняя версия прошивки находится по адресу <ulink url="http://sigrand.ru/temp/sigrand">http://sigrand.ru/temp/sigrand</ulink>.
 			</para>
 			<para>
-				Для доступа к консольному интерфейсу маршрутизатора необходимо COM-порт компьютера (разъем DB-9F) соединить с последовательным портом (разъем RJ-45 с надписью RS232, находящийся рядом с разъемом для питания) маршрутизатора.
-			</para>
-			<para>
-				Для управления маршрутизатором через консольный интерфейс может использоваться любая программа управления терминалом — HyperTerminal для ОС Windows или Minicom для ОС GNU/Linux. Настройки последовательного порта следующие:
-			</para>
-			<itemizedlist>
-				<listitem>
-					<para>
-						Скорость передачи: <emphasis>115 200</emphasis>.
-					</para>
-				</listitem>
-				<listitem>
-					<para>
-						Протокол: <emphasis>8-N-1</emphasis>.
-					</para>
-				</listitem>
-				<listitem>
-					<para>
-						Управление потоком: <emphasis>нет</emphasis>.
-					</para>
-				</listitem>
-			</itemizedlist>
-			<para>
-				После запуска программы управления терминалом и установки соответствующих настроек порта, надо включить маршрутизатор. В окне программы выведется информация о маршрутизаторе с предложением войти в меню загрузчика:
+				Как подготовить маршрутизатор для управления по консольному интерфейсу написано в разделе <link linkend="firstboot" endterm="firstboot.title"/>. После запуска программы управления терминалом и установки соответствующих настроек порта, надо включить маршрутизатор. В окне программы выведется информация о маршрутизаторе с предложением войти в меню загрузчика:
 			</para>
 			<screen>
 				ADM5120 Boot:
@@ -336,7 +1708,7 @@
 				PASS
 			</screen>
 			<para>
-				— значит обновление прошивки прошло успешно и теперь можно загрузить новую прошивку. Для этого необходимо выполнить перезагрузку маршрутизатора нажатием на кнопку RESET (или включением/выключением питания).
+				— значит, обновление прошивки прошло успешно и теперь можно загрузить новую прошивку. Для этого необходимо выполнить перезагрузку маршрутизатора нажатием на кнопку RESET (или включением/выключением питания).
 			</para>
 			<para>
 				Пункт меню [A]: Update all последовательно обновляет загрузчик и прошивку маршрутизатора.
@@ -422,7 +1794,8 @@
 						В случае, если указанный выше сервер недоступен, будет выдано соответствующее сообщение, попытки обновления MAC-адресов при последующих загрузках предприниматься не будут.
 					</para>
 					<screen>
-	MAC-address server is unreachable. You can update your MAC-address manually by running:
+	MAC-address server is unreachable. You can update your MAC-address
+	manually by running:
 	/etc/init.d/updatekdb force
 					</screen>
 				</listitem>
@@ -435,17 +1808,17 @@
 			</para>
 		</section>
 	</chapter>
-	<chapter id="begin">
+	<chapter id="configure">
 		<title>Управление маршрутизатором</title>
 		<section>
 			<title>Конфигурация маршрутизатора</title>
 			<para>
-				В заводской конфигурации и после обновления прошивки на маршрутизаторе активен интерфейс eth0 (крайний правый порт) с IP-адресом 192.168.2.100, сетевая маска 255.255.255.0.
+				В заводской конфигурации и после обновления прошивки на маршрутизаторе активен интерфейс eth0 с IP-адресом 192.168.2.100, сетевая маска 255.255.255.0.
 			</para>
 			<para>
-				Для конфигурации маршрутизатора необходимо соединить сетевую карту компьютера и крайний правый порт Ethernet проводом витой пары. На компьютере следует выставить IP-адрес из той же сети, в которой находится маршрутизатор (192.168.2.0/24), к примеру, 192.168.2.1, с сетевой маской 255.255.255.0.
+				Для конфигурации маршрутизатора необходимо соединить сетевую карту компьютера и Ethernet-порт eth0 патч-кордом. На компьютере следует выставить IP-адрес из той же сети, в которой находится маршрутизатор (192.168.2.0/24), к примеру, 192.168.2.1, с сетевой маской 255.255.255.0.
 			</para>
-			<section id="web" >
+			<section id="web">
 				<title>Конфигурация с помощью Веб-интерфейса</title>
 				<para>
 					Конфигурация маршрутизатора выполняется через веб-интерфейс любым веб-браузером, поддерживающем протокол HTTPS (Internet Explorer, Opera, Safari, Mozilla Firefox). Для конфигурации необходимо в строке адреса веб-браузера ввести https://192.168.2.100, после чего будут заданы несколько вопросов касательно сертификатов шифрования, на которые следует ответить положительно. По-умолчанию, логин/пароль установлены следующие: admin/1234.
@@ -540,10 +1913,10 @@
 					Сохранение и восстановление конфигурации производится на страницах Configuration/Backup и Configuration/Restore соответственно.
 				</para>
 			</section>
-			<section id="console" >
+			<section id="console">
 				<title>Конфигурация через консольный интерфейс</title>
 				<para>
-					Для конфигурации маршрутизатора через консольный интерфейс необходимо подключится к маршрутизатору по протоколу SSH на порт 22. Есть несколько программ, поддерживающих работу по протоколу SSH, к примеру, Putty для OS Windows и ssh для OS GNU/Linux. В качестве логина необходимо ввести root, пароль — 1234.
+					Для конфигурации маршрутизатора через консольный интерфейс необходимо подключиться к нему по последовательному интерфейсу с помощью терминальной программы, либо по сети через Ethernet-порт по протоколу SSH (порт 22). Есть несколько программ, поддерживающих работу по протоколу SSH, к примеру, Putty для OS Windows и ssh для OS GNU/Linux. В качестве логина необходимо ввести root, пароль — 1234.
 				</para>
 				<note>
 					<para>
@@ -553,29 +1926,29 @@
 			</section>
 			<section>
 				<title>Сводная информация</title>
-				<table frame="all" >
+				<table frame="all">
 					<title>Сводная таблица</title>
-					<tgroup cols="3" >
-						<colspec colname="c1" />
-						<colspec colname="c2" />
-						<colspec colname="c3" />
+					<tgroup cols="3">
+						<colspec colname="c1"/>
+						<colspec colname="c2"/>
+						<colspec colname="c3"/>
 						<thead>
 							<row>
-								<entry nameend="c2" namest="c1" >Параметр</entry>
+								<entry nameend="c2" namest="c1">Параметр</entry>
 								<entry>Значение</entry>
 							</row>
 						</thead>
 						<tbody>
 							<row>
-								<entry nameend="c2" namest="c1" >IP-адрес (крайний правый порт)</entry>
+								<entry nameend="c2" namest="c1">IP-адрес (крайний правый порт)</entry>
 								<entry>192.168.2.100</entry>
 							</row>
 							<row>
-								<entry nameend="c2" namest="c1" >Сетевая маска</entry>
+								<entry nameend="c2" namest="c1">Сетевая маска</entry>
 								<entry>255.255.255.0</entry>
 							</row>
 							<row>
-								<entry nameend="c2" namest="c1" >Веб-интерфейс</entry>
+								<entry nameend="c2" namest="c1">Веб-интерфейс</entry>
 							</row>
 							<row>
 								<entry/>
@@ -593,7 +1966,7 @@
 								<entry>1234</entry>
 							</row>
 							<row>
-								<entry nameend="c2" namest="c1" >Консольный интерфейс</entry>
+								<entry nameend="c2" namest="c1">Консольный интерфейс</entry>
 							</row>
 							<row>
 								<entry/>
@@ -615,7 +1988,7 @@
 				</table>
 			</section>
 		</section>
-		<section id="logging" >
+		<section id="logging">
 			<title>Логирование событий</title>
 			<para>
 				Из-за особенности используемой встроенной памяти (flash-память) системные события (логи) не сохраняются локально на маршрутизаторе, а пишутся в специальный буфер, доступный для просмотра через Tools/syslog. Маршрутизатор имеет несколько параметров, управляющих логированием:
@@ -742,7 +2115,7 @@
 					</listitem>
 					<listitem>
 						<para>
-							<emphasis>Rate, Annex</emphasis> — скорость и кодирование сигнала.
+							<emphasis>Rate, Annex</emphasis> — скорость и дополнения.
 						</para>
 					</listitem>
 				</itemizedlist>
@@ -1192,7 +2565,7 @@
 						</listitem>
 						<listitem>
 							<para>
-								<emphasis>Coding</emphasis> — метод кодирования. Для скоростей 192...2496 рекомендуется использовать <emphasis>TCPAM16</emphasis>, для 2560...5696 — <emphasis>TCPAM32</emphasis>.
+								<emphasis>Coding</emphasis> — метод кодирования. Подробнее см. раздел <link linkend="hw.shdsl.details.tcpam" endterm="hw.shdsl.details.tcpam.title"/>.
 							</para>
 						</listitem>
 						<listitem>
@@ -1202,7 +2575,34 @@
 						</listitem>
 						<listitem>
 							<para>
-								<emphasis>Annex, CRC, Fill, Inversion</emphasis> — настройки относятся к кодированию и заполнению сигнала, используются для обеспечения совместимости оборудования.
+								<emphasis>Annex</emphasis> — выбор дополнений. Рекомендация G.SHDSL имеет ряд дополнений, оптимизирующих работу маршрутизатора на конкретных линиях связи.
+							</para>
+							<itemizedlist>
+								<listitem>
+									<para>
+										<emphasis>Annex A</emphasis> — оптимизирует работу на кабелях с сечением провода 0.5 мм. Разработан с учетом специфики линий связи США, где преобладают линии связи с проводами 24 AWG (0.5 мм). При работе интерфейса в этом режиме, автоматически реализуется поддержка Annex F.
+									</para>
+								</listitem>
+								<listitem>
+									<para>
+										<emphasis>Annex B</emphasis> — оптимизирует работу на кабелях с сечением провода 0.4 мм. Разработан для применения на европейских линиях связи, где используются, преимущественно, кабели с проводами 26 AWG (0.4 мм). При работе интерфейса в этом режиме, автоматически реализуется поддержка Annex G.
+									</para>
+								</listitem>
+							</itemizedlist>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>CRC</emphasis> — значение контрольной суммы пакета.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Fill</emphasis> — выбор байта для заполнения канала, когда нет пакетов на передачу.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Inversion</emphasis> — логическое инвертирование всего потока.
 							</para>
 						</listitem>
 					</itemizedlist>
@@ -1261,7 +2661,7 @@
 						</listitem>
 						<listitem>
 							<para>
-								<emphasis>Coding</emphasis> — метод кодирования. Для скоростей 192...2496 рекомендуется использовать <emphasis>TCPAM16</emphasis>, для 2560...5696 — <emphasis>TCPAM32</emphasis>.
+								<emphasis>Coding</emphasis> — метод кодирования. Подробнее см. раздел <link linkend="hw.shdsl.details.tcpam" endterm="hw.shdsl.details.tcpam.title"/>.
 							</para>
 							<note>
 								<para>
@@ -1279,7 +2679,34 @@
 						</listitem>
 						<listitem>
 							<para>
-								<emphasis>Annex, CRC, Fill, Inversion</emphasis> — настройки относятся к кодированию и заполнению сигнала, используются для обеспечения совместимости оборудования.
+								<emphasis>Annex</emphasis> — выбор дополнений. Рекомендация G.SHDSL имеет ряд дополнений, оптимизирующих работу маршрутизатора на конкретных линиях связи.
+							</para>
+							<itemizedlist>
+								<listitem>
+									<para>
+										<emphasis>Annex A</emphasis> — оптимизирует работу на кабелях с сечением провода 0.5 мм. Разработан с учетом специфики линий связи США, где преобладают линии связи с проводами 24 AWG (0.5 мм). При работе интерфейса в этом режиме, автоматически реализуется поддержка Annex F.
+									</para>
+								</listitem>
+								<listitem>
+									<para>
+										<emphasis>Annex B</emphasis> — оптимизирует работу на кабелях с сечением провода 0.4 мм. Разработан для применения на европейских линиях связи, где используются, преимущественно, кабели с проводами 26 AWG (0.4 мм). При работе интерфейса в этом режиме, автоматически реализуется поддержка Annex G.
+									</para>
+								</listitem>
+							</itemizedlist>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>CRC</emphasis> — значение контрольной суммы пакета.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Fill</emphasis> — выбор байта для заполнения канала, когда нет пакетов на передачу.
+							</para>
+						</listitem>
+						<listitem>
+							<para>
+								<emphasis>Inversion</emphasis> — логическое инвертирование всего потока.
 							</para>
 						</listitem>
 						<listitem>
@@ -1421,7 +2848,7 @@
 		<section id="e1">
 			<title>Конфигурация интерфейса E1</title>
 			<para>
-				Маршрутизатор поддерживает несколько протоколов для работы с интерфейсом E1: HDLC, ETHER-HDLC, CISCO-HDLC, FR, PPP, X25. Конфигурация интерфейса выполняется на странице System/E1/E1_*.
+				Маршрутизатор поддерживает несколько протоколов для работы с интерфейсом E1 (для совместимости с разными видами оборудования DTE и различными прикладными протоколами): HDLC, ETHER-HDLC, CISCO-HDLC, FR, PPP, X25. Конфигурация интерфейса выполняется на странице System/E1/E1_*.
 			</para>
 			<important>
 				<para>
@@ -1497,17 +2924,22 @@
 						</listitem>
 						<listitem>
 							<para>
-								<emphasis>E1 long haul mode</emphasis> — включение режима Long Haul, который используется на длинных (> 400м) линиях, но так же способен работать и на коротких.
+								<emphasis>E1 long haul mode</emphasis> — при включенном режиме long haul расстояние от маршрутизатора до подключённого к нему оборудования DTE может достигать 1600 метров по кабелю сечением 0,4 мм, и 2400 по кабелю сечением 0,5 мм. При отключении, эта дистанция ограничена 400 метрами.
 							</para>
 						</listitem>
 						<listitem>
 							<para>
 								<emphasis>E1 HDB3/AMI line code</emphasis> — способ кодирования сигнала на линии связи.
 							</para>
+							<important>
+								<para>
+									Рекомендация ITU-T G.703 требует использования линейного кода HDB3!
+								</para>
+							</important>
 						</listitem>
 						<listitem>
 							<para>
-								<emphasis>CRC</emphasis> — способ контроля ошибок.
+								<emphasis>CRC</emphasis> — значение контрольной суммы пакета.
 							</para>
 						</listitem>
 						<listitem>
@@ -3184,10 +4616,14 @@
 					Без использования IPSec трафик на интерфейсе eth1 (192.168.3.100) маршрутизатора SG1 имеет следующий вид:
 				</para>
 				<screen>
-	03:11:37.423594 IP 192.168.4.1 > 192.168.5.1: ICMP echo request, id 9596, seq 5, length 64
-	03:11:37.424282 IP 192.168.5.1 > 192.168.4.1: ICMP echo reply, id 9596, seq 5, length 64
-	03:11:38.421283 IP 192.168.4.1 > 192.168.5.1: ICMP echo request, id 9596, seq 6, length 64
-	03:11:38.421947 IP 192.168.5.1 > 192.168.4.1: ICMP echo reply, id 9596, seq 6, length 64
+	03:11:37.423594 IP 192.168.4.1 > 192.168.5.1:
+		ICMP echo request, id 9596, seq 5, length 64
+	03:11:37.424282 IP 192.168.5.1 > 192.168.4.1:
+		ICMP echo reply, id 9596, seq 5, length 64
+	03:11:38.421283 IP 192.168.4.1 > 192.168.5.1:
+		ICMP echo request, id 9596, seq 6, length 64
+	03:11:38.421947 IP 192.168.5.1 > 192.168.4.1:
+		ICMP echo reply, id 9596, seq 6, length 64
 				</screen>
 				<para>
 					Из вывода <emphasis>tcpdump</emphasis> видно, что по каналу идёт нешифрованный трафик — пинг от 192.168.4.1 к 192.168.5.1.
@@ -3238,12 +4674,18 @@
 					После конфигурации IPSec трафик на интерфейсе eth1 (192.168.2.100) маршрутизатора SG1 следующий:
 				</para>
 				<screen>
-	1. 09:36:23.736136 IP 192.168.3.101 > 192.168.3.100: ESP(spi=0x00002774,seq=0x10), length 116
-	2. 09:36:23.736136 IP 192.168.4.1 > 192.168.5.1: ICMP echo request, id 29460, seq 1, length 64
-	3. 09:36:23.738225 IP 192.168.3.100 > 192.168.3.101: ESP(spi=0x00002775,seq=0x16f), length 116
-	4. 09:36:24.732904 IP 192.168.3.101 > 192.168.3.100: ESP(spi=0x00002774,seq=0x11), length 116
-	5. 09:36:24.732904 IP 192.168.4.1 > 192.168.5.1: ICMP echo request, id 29460, seq 2, length 64
-	6. 09:36:24.734876 IP 192.168.3.100 > 192.168.3.101: ESP(spi=0x00002775,seq=0x170), length 116
+	1. 09:36:23.736136 IP 192.168.3.101 > 192.168.3.100:
+		ESP(spi=0x00002774,seq=0x10), length 116
+	2. 09:36:23.736136 IP 192.168.4.1 > 192.168.5.1:
+		ICMP echo request, id 29460, seq 1, length 64
+	3. 09:36:23.738225 IP 192.168.3.100 > 192.168.3.101:
+		ESP(spi=0x00002775,seq=0x16f), length 116
+	4. 09:36:24.732904 IP 192.168.3.101 > 192.168.3.100:
+		ESP(spi=0x00002774,seq=0x11), length 116
+	5. 09:36:24.732904 IP 192.168.4.1 > 192.168.5.1:
+		ICMP echo request, id 29460, seq 2, length 64
+	6. 09:36:24.734876 IP 192.168.3.100 > 192.168.3.101:
+		ESP(spi=0x00002775,seq=0x170), length 116
 				</screen>
 				<para>
 					Проведём небольшой анализ трафика. На интерфейс от маршрутизатора SG2 (192.168.3.101) приходит ESP пакет (строка 1), который после обработки IPSec выглядит, как ICMP запрос от PC2 к PC1 (строка 2). Следует заметить, что по ESP пакету нельзя сказать, между какими узлами идёт обмен информацией. ICMP запрос отправляется узлу PC1 через интерфейс eth0 (192.168.5.100), поэтому в данном листинге его не видно. На тот же интерфейс приходит ответ, который отправляется маршрутизатору SG2 после обработки IPSec в виде ESP пакета (строка 3).
@@ -3981,5 +5423,19 @@
 				</para>
 			</important>
 		</section>
+	</chapter>
+	<chapter id="warranty">
+		<title>Гарантия и обязательства</title>
+		<para>
+			Изготовитель гарантирует работоспособность маршрутизатора при соблюдением потребителем правил эксплуатации.
+		</para>
+		<para>
+			Гарантийный срок устанавливается не менее 5 лет со дня продажи, отмеченного в паспорте, либо, при отсутствии отметки, с момента выпуска, указанного на маркировке.
+		</para>
+		<warning>
+			<para>
+				Гарантия на маршрутизаторы, эксплуатирующиеся на "воздушных" линиях, либо линиях с комбинированным способом прокладки, аннулируется.
+			</para>
+		</warning>
 	</chapter>
 </book>
