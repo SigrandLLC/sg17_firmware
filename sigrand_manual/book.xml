@@ -992,16 +992,40 @@
 				</listitem>
 			</itemizedlist>
 			<para>
-				Вид задней панели маршрутизатора в форм-факторе 19" показан ниже.
+				Вид задней панели маршрутизатора с питанием 220В/50Гц в форм-факторе 19" показан ниже.
 			</para>
 			<figure>
-				<title>Вид задней панели маршрутизатора в форм-факторе 19"</title>
+				<title>Вид задней панели маршрутизатора с питанием 220В/50Гц в форм-факторе 19"</title>
 				<graphic fileref="img/hw-sg16-back-text.png" width="6in"/>
 			</figure>
 			<itemizedlist>
 				<listitem>
 					<para>
 						<emphasis>Разъём питания</emphasis> — для подключения к сети 220В/50Гц.
+					</para>
+				</listitem>
+			</itemizedlist>
+			<para>
+				Вид задней панели маршрутизатора с питанием AC 220В/50Гц и DC 36-72В в форм-факторе 19" показан ниже.
+			</para>
+			<figure>
+				<title>Вид задней панели маршрутизатора с питанием AC 220В/50Гц и DC 36-72В в форм-факторе 19"</title>
+				<graphic fileref="img/hw-sg16-back-ac_dc-text.png" width="6in"/>
+			</figure>
+			<itemizedlist>
+				<listitem>
+					<para>
+						<emphasis>Разъём питания DC 36-72В</emphasis> — для подключения к источнику питания постоянного тока 36-72В.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Разъём питания AC 220В/50Гц</emphasis> — для подключения к сети 220В/50Гц.
+					</para>
+				</listitem>
+				<listitem>
+					<para>
+						<emphasis>Переключатель питания</emphasis> — переключатель питания DC 36-72B / AC 220В/50Гц.
 					</para>
 				</listitem>
 			</itemizedlist>
@@ -3183,6 +3207,16 @@
 					<title>Привязка к физическим интерфейсам</title>
 					<graphic width="6in" fileref="img/bridge-specific.png" />
 				</figure>
+				<note>
+					<para>
+						Количество интерфейсов в мосту может быть больше двух.
+					</para>
+				</note>
+				<important>
+					<para>
+						Физический интерфейс может быть добавлен только в <emphasis>один</emphasis> интерфейс моста! К примеру, нельзя создать интерфейсы br0 (eth0, dsl0) и br1 (eth1, dsl0), т.к. dsl0 может быть добавлен только в один интерфейс моста. Для преодоления этого ограничения воспользуйтесь технологией VLAN (см. соответствующий раздел и примеры использования).
+					</para>
+				</important>
 				<para>
 					После сохранения настроек перейдём на вкладку General, на которой установим флажки <emphasis>enabled</emphasis> и <emphasis>auto</emphasis> для автоматического запуска интерфейса во время загрузки маршрутизатора:
 				</para>
