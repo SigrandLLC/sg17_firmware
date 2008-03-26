@@ -795,7 +795,7 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 			if( cfg->pbo_vnum )
 				caplist->pow_backoff = cfg->pbo_vals[0];
 			else
-				caplist->pow_backoff = 31;
+				caplist->pow_backoff = 0;
 		}
 	}
 
@@ -868,7 +868,7 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 		case PWRBO_FORCED:
 			ns_field_set->valid_ns_data = SDI_YES;
 			for(i=1;i<cfg->pbo_vnum;i++){
-				ns_field_set->ns_info[i] = cfg->pbo_vals[i];
+				ns_field_set->ns_info[i-1] = cfg->pbo_vals[i];
 			}
 			ns_field_set->ns_info_len = cfg->pbo_vnum;
 			break;
