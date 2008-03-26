@@ -130,7 +130,7 @@ _dsl_mr16ifdefcfg(){
 	kdb set sys_pcicfg_s${slot}_${dev}_rate="192"
 	kdb set sys_pcicfg_s${slot}_${dev}_code="tcpam8"
 	kdb set sys_pcicfg_s${slot}_${dev}_cfg="preact"
-	kdb set sys_pcicfg_s${slot}_${dev}_annex="A"
+	kdb set sys_pcicfg_s${slot}_${dev}_annex="F"
 	kdb set sys_pcicfg_s${slot}_${dev}_fill="fill_ff"	
 	kdb set sys_pcicfg_s${slot}_${dev}_inv="normal"
 }
