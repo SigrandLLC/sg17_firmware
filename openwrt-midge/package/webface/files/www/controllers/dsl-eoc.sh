@@ -30,25 +30,67 @@ _eoc_settings()
 		opts=$opts" --cprof=$FORM_cprof"
 	fi
 
-	#	echo "opts=$opts<br>"
-
 	if [ -n "$opts" ]; then
 		# echo "$config -o channel -c$iface $opts -s"
 		eval `$config -o channel -c$iface $opts -s`
 		if [ "$eoc_error" -eq "1" ]; then
 			ERROR_MESSAGE="$err_string"
 			render_save_message_nohide
-		else
-			$config -us
-			render_save_message
-			render_js_refresh_window 300
-			return
+			exec_error=1
+			unset eoc_error
+		fi
+		changes=1
+	fi
+	
+	# ----- PBO-related changes
+	opts=""
+	eval `$info -i$iface -ro`
+	if [ "$eoc_error" -eq "1" ]; then
+		ERROR_MESSAGE="$err_string"
+		render_save_message_nohide
+		exec_error=1
+		unset eoc_error
+	fi
+	
+	echo "#0: $FORM_hsubmit<br>"
+	
+	if [ "$FORM_hsubmit" = "1" ]; then
+		new_pbo_mode=0
+		if [ "$FORM_pbo_mode" = "on" ]; then
+			new_pbo_mode=1
+		fi
+		echo "#1: $new_pbo_mode, $pbo_mode<br>"
+		if [ "$new_pbo_mode" != "$pbo_mode" ]; then
+			opts=$opts" -x$new_pbo_mode"
+		fi
+		if [ "$new_pbo_mode" = "1" ] &&
+			[ "$FORM_pboval" != "$pbo_val" ]; then
+			opts=$opts" -w$FORM_pboval"
+		fi
+		echo "OPTS=$opts<br>"
+		if [ -n "$opts" ]; then
+			echo "$config -ochannel -c$iface $opts <br>"
+			$config -ochannel -c$iface $opts -s
+			if [ "$eoc_error" -eq "1" ]; then
+				ERROR_MESSAGE="$err_string"
+				render_save_message_nohide
+				exec_error=1
+				unset eoc_error
+			fi
+			changes=1
 		fi
 	fi	
 	
+	if [ -z "$exec_error" ] && [ -n "$changes" ]; then
+		$config -us
+		render_save_message
+		render_js_refresh_window 300
+		return
+	fi	
+	
 	eval `$info -tr`
-	if [ "$error" -eq "1" ]; then
-		echo "Error interface name"
+	if [ "$eoc_error" -eq "1" ]; then
+		echo "Error interface names"
 		return
 	fi
 
@@ -61,11 +103,14 @@ _eoc_settings()
 	# sys_dsl_${iface}_name
 	render_input_field "hidden" "hidden" iface $iface
 	render_input_field "hidden" "hidden" page settings
+	render_input_field "hidden" "hidden" hsubmit "1"
 
   	# Interface mode
 	mode=$type
 	tip=""
+	id='mode'
 	desc="Interface mode"
+	onchange="eocIfSettings();"
 	render_input_field select "Mode" mode master 'Master' slave 'Slave'
 
 	if [ "$type" = "master" ]; then
@@ -84,6 +129,26 @@ _eoc_settings()
 	tip=""
 	desc="Span Configuration profile associated with channel $iface"
  	render_input_field select "ConfProfile" cprof $tmp
+
+
+
+  	# Power Backoff
+	# get info
+	unset eoc_error
+	eval `$info -i$iface -or`
+	if [ "$eoc_error" != "1" ]; then
+		id='hpboval'
+		render_input_field "hidden" "hidden" hpboval "$pbo_val"
+		
+		tip=""
+		id='pbomode'
+		td_id='pbomode_td'
+		desc="Power Backoff mode"
+		onchange="eocIfSettings();"
+		render_input_field checkbox "PBO Forced" pbo_mode 
+	fi
+
+	run_js_code "eocIfSettings();"
 
 	render_submit_field
 	render_form_tail
@@ -641,7 +706,7 @@ _eoc_profiles()
 		
 		# Profile rate
 		echo -n "<td>"
-		echo -n "<select $dis_set name='rate' class='edit' id='rate"$k"' onChange='eocRates();' tmt:errorclass='invalid'>"
+		echo -n "<select $dis_set name='rate' class='edit' id='rate"$k"' onChange='eocProfiles();' tmt:errorclass='invalid'>"
 		echo -n "<option value=$rate selected>$rate</option> </select>"
 		echo -n "<input type='text' style='display:none' id='mrate"$k"' name='mrate' size='5' maxlength='5' value='"$mrate"'>"
 		echo -n "</td>"
@@ -658,7 +723,7 @@ _eoc_profiles()
 		# Encoding
 		tip="Encoding"
 		id="tcpam$k"
-		onchange="eocRates();"	
+		onchange="eocProfiles();"	
 		render_input_td_field $prefix select tcpam tcpam8 TCPAM8 tcpam16 TCPAM16 tcpam32 TCPAM32 tcpam64 TCPAM64 tcpam128 TCPAM128
 
 		render_submit_field_light
@@ -703,7 +768,7 @@ _eoc_profiles()
 	tip="Channel rate"
 	id="rate"
 	rate=192
-	onchange="eocRates();"	
+	onchange="eocProfiles();"	
 	render_input_td_field select rate 192 192
 		
 	# Annex
@@ -720,14 +785,14 @@ _eoc_profiles()
 	tip="Encoding"
 	tcpam=tcpam16
 	id="tcpam"
-	onchange="eocRates();"	
+	onchange="eocProfiles();"	
 	render_input_td_field select tcpam tcpam8 TCPAM8 tcpam16 TCPAM16 tcpam32 TCPAM32 tcpam64 TCPAM64 tcpam128 TCPAM128
 
 	render_submit_field_light
 	render_form_tail_light
 	echo "</tr></table>"
 	
-	run_js_code "eocRates();"
+	run_js_code "eocProfiles();"
 }
 
 

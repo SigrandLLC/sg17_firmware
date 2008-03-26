@@ -50,11 +50,12 @@ struct sdfe4_if_cfg{
 	u32 need_reconf :1;
 	u32 clkmode :1;
 	u32 pbo_mode: 1;
-	u32 pbo_val : 5;
-	
+
 	u16 frequency;
 	u16 payload_bits;
 	u16 rate;
+	u8 pbo_vals[16];
+	u8 pbo_vnum;
 };
 
 struct sdfe4_stat {

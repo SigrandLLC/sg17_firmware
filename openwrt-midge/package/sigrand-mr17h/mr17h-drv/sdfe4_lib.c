@@ -792,7 +792,10 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 		}
 		// PBO influence	
 		if( cfg->pbo_mode == PWRBO_FORCED ){
-			caplist->pow_backoff = cfg->pbo_val;
+			if( cfg->pbo_vnum )
+				caplist->pow_backoff = cfg->pbo_vals[0];
+			else
+				caplist->pow_backoff = 31;
 		}
 	}
 
@@ -864,10 +867,10 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 			break;
 		case PWRBO_FORCED:
 			ns_field_set->valid_ns_data = SDI_YES;
-			for(i=0;i<8;i++){
-				ns_field_set->ns_info[i] = cfg->pbo_val+i;
+			for(i=1;i<cfg->pbo_vnum;i++){
+				ns_field_set->ns_info[i] = cfg->pbo_vals[i];
 			}
-			ns_field_set->ns_info_len = 8;
+			ns_field_set->ns_info_len = cfg->pbo_vnum;
 			break;
 		}
 		rmsg.ack_id = ACK_CFG_GHS_NS_FIELD;
@@ -1082,7 +1085,7 @@ sdfe4_load_config(u8 ch, struct sdfe4 *hwdev)
   	struct sdfe4_msg rmsg;
 	struct ack_dsl_param_get *dsl_par;
 	struct sdfe4_if_cfg *ch_cfg=&(hwdev->cfg[ch]);
-	int TC_PAM;
+	int TC_PAM = TCPAM16;
 	int r;
 
 	wait_ms(10);
@@ -1163,6 +1166,7 @@ sdfe4_flush_state(struct sdfe4 *hwdev)
 		chan->conn_state = 0;
 		chan->state_change = 0;
 	}
+	return 0;
 }
 
 /*
@@ -1322,7 +1326,7 @@ sdfe4_eoc_tx(struct sdfe4 *hwdev,int ch,char *ptr,int size)
 	int count = size/SDFE4_EOC_MAXMSG + 1;
 	char msg[SDFE4_EOC_MAXMSG+2];
 	struct sdfe4_msg rmsg;	
-	int i,offset = 0,j;
+	int i,offset = 0;
 	u8 cp;
 	int ret;
 

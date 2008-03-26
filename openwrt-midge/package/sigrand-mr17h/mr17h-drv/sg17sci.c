@@ -141,7 +141,7 @@ sg17_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *regs )
 	struct sdfe4_msg msg;
 	int pamdsl_type;
 	u16 in_len;
-	int i;
+	int i = 0;
 	
 	PDEBUG(debug_sci,"status=%02x",status);	
 	if( !status )
@@ -163,7 +163,7 @@ sg17_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *regs )
 		in_len = ioread16(&s->regs->RXLEN);
 		// process message		
 		
-    	ret = sdfe4_msg_init( &msg, s->rx_buf, in_len );
+    	ret = sdfe4_msg_init( &msg, (char*)s->rx_buf, in_len );
 		iowrite8( (ioread8( &s->regs->CRA ) | RXEN), &s->regs->CRA );		
 		if( !ret ){
 			pamdsl_type = sdfe4_pamdsl_parse(&msg,s->hwdev);
@@ -183,7 +183,7 @@ sg17_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *regs )
 		}
 
 		s->rx_packets++;
-		s->rx_bytes += i;
+		s->rx_bytes += in_len;
 		//--------------DEBUG --------------------------
 		PDEBUGL(debug_sci,"Incoming data: ");		
 		for(i=0; i < in_len; i++)
@@ -253,7 +253,7 @@ sg17_sci_wait_intr( struct sg17_sci *s )
 	int ret=0;
 	ret = interruptible_sleep_on_timeout( &s->wait_q, HZ*2 );
 	if( s->tx_col && !ret ){
-		PDEBUG(debug_error,"Collision detected, ret = %d");
+		PDEBUG(debug_error,"Collision detected, ret = %d",ret);
 		s->tx_col = 0;
 	}
 	return ret;

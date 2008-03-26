@@ -334,8 +334,8 @@ function OnChangeSG17Code()
 			ne.setAttribute('type','text');
 			ne.setAttribute('id','pboval');
 			ne.setAttribute('class','edit');
-			ne.setAttribute('size','3');
-			ne.setAttribute('maxsize','3');
+			ne.setAttribute('size','24');
+			ne.setAttribute('maxsize','24');
 			ne_name='sys_pcicfg_s'+$('pcislot').value+'_'+$('pcidev').value+'_pboval';
 			ne.setAttribute('name',ne_name);
 			ne.setAttribute('value',$('hpboval').value);
@@ -354,7 +354,7 @@ function OnChangeSG17Code()
     }
 };
 
-function eocRates(){
+function eocProfiles(){
 
 	for(var i=1;;i++){
 		s = $('rate' + i);
@@ -416,6 +416,43 @@ function eocRates(){
 		
 	rate_list(s,192,14080,64,rate);
 };
+
+
+function eocIfSettings(){
+
+    mode = $('mode').options[$('mode').selectedIndex].value;
+	pbomode = $('pbomode').checked;
+	var pboval = document.getElementById('pboval');
+
+    if( mode == "slave" ){
+		$('pbomode').disabled = 1;
+		base = document.getElementById('pbomode_td');
+		if( pboval != null )
+			base.removeChild(pboval);
+    } else {
+
+		// PBO
+		$('pbomode').disabled = 0;
+		if( pbomode == true && pboval == null ){
+			var base = document.getElementById('pbomode_td');
+			var oe = document.getElementById('pbomode');
+			var ne = document.createElement('input');
+			ne.setAttribute('type','text');
+			ne.setAttribute('id','pboval');
+			ne.setAttribute('class','edit');
+			ne.setAttribute('size','24');
+			ne.setAttribute('maxsize','24');
+			ne.setAttribute('name','pboval');
+			ne.setAttribute('value',$('hpboval').value);
+			base.insertBefore(ne,oe.nextSibling);
+		}else if( pbomode == false && pboval != null ){
+			var base = document.getElementById('pbomode_td');
+			base.removeChild(pboval);
+		}
+    }
+
+};
+
 
 function aaa(){
     alert("aaa func");

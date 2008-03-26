@@ -174,8 +174,22 @@ _sg17_status(){
 		tip=""
 		desc="Loop attenuation"
 		render_input_field static "Loop attenuation" status "$2 dB"
+		# Loop Attenuation
+		tip=""
+		desc="Loop attenuation"
+		render_input_field static "Loop attenuation" status "$2 dB"
 
 	fi
+
+	pbomode=`cat $conf_path/pbo_mode`
+	if [ "$pbomode" = "Forced" ]; then
+		pboval=`cat $conf_path/pbo_val`
+		# PBO
+		tip=""
+		desc="Power Backoff values"
+		render_input_field static "PBO values" status "$pboval, dB"
+	fi		
+
 	unset conf_path link link_state pwrovl pwrunb actrate actcpam actclkmode
 }
 
@@ -196,15 +210,13 @@ _sg17_settings(){
 			str:sys_pcicfg_s${slot}_${dev}_fill	\
 			str:sys_pcicfg_s${slot}_${dev}_inv \
 			str:sys_pcicfg_s${slot}_${dev}_pbomode \
-			int:sys_pcicfg_s${slot}_${dev}_pboval \
+			str:sys_pcicfg_s${slot}_${dev}_pboval \
 			str:sys_pcicfg_s${slot}_${dev}_pwron"	
 	subsys="dsl."$slot"."$dev
 
 	eval `kdb -qq sls "sys_pcicfg_s${slot}_${dev}_" ` 
 	eval "new_ctrl=\$FORM_sys_pcicfg_s${slot}_${dev}_ctrl"
 	eval "new_mode=\$FORM_sys_pcicfg_s${slot}_${dev}_mode"
-
-
 
 	if [ "$new_ctrl" != "$ctrl" ]; then
 		case "$new_ctrl" in
@@ -324,7 +336,7 @@ _sg17_settings(){
 
 	# sys_pcicfg_s${slot}_${dev}_pbomode
 	tip=""
-	desc="Select Power Backoff mode and value (in dB)"
+	desc='Example: 21:13:15, STU-C-SRU1=21,SRU1-SRU2=13,...'
 	id='pbomode'
 	td_id='pbomode_td'
 	onchange="OnChangeSG17Code();"

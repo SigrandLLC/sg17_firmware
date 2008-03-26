@@ -185,15 +185,14 @@ sg17_interrupt( int  irq,  void  *dev_id,  struct pt_regs  *regs )
 	u8 status;
 	u8 mask = ioread8(&(nl->regs->IMR));	
 
-	PDEBUG(debug_irq,"%s: status = %02x, mask=%02x",ndev->name,status,mask);
+	PDEBUG(debug_irq,"%s: mask=%02x",ndev->name,mask);
 	if( (ioread8(&(nl->regs->SR)) & mask ) == 0 )
 		return IRQ_NONE;
-
-	PDEBUG(debug_irq,"%s: status = %02x",ndev->name,status);
 
 	status = ioread8(&(nl->regs->SR));
 	iowrite8(status,&(nl->regs->SR));	
 	iowrite8( 0, &(nl->regs->IMR));
+	PDEBUG(debug_irq,"%s: status = %02x",ndev->name,status);
 
 	if( status & RXS ){
 		PDEBUG(debug_irq,"%s: RXS, CRA=%02x\n",ndev->name,nl->regs->CRA);	
@@ -1055,8 +1054,8 @@ sg17_probe_one(struct pci_dev *pdev, const struct pci_device_id *dev_id)
 {
 	struct device *dev_dev=(struct device*)&(pdev->dev);
 	struct device_driver *dev_drv=(struct device_driver*)(dev_dev->driver);
+	struct net_device *ndev = NULL;
 	struct sg17_card *card;
-	struct net_device *ndev;
 	struct net_local *nl;
 	int if_processed,i,ch_num;
 	int ret;

@@ -28,9 +28,7 @@ static ssize_t show_chipver(struct class_device *cdev, char *buf)
 {                                                                       
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
-	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
 	struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( nl->dev );
-	struct sg17_sci *s = (struct sg17_sci *)&card->sci;
 	struct sdfe4 *hwdev = &card->hwdev;
 	
 	switch( hwdev->type ){
@@ -154,10 +152,9 @@ store_rate( struct class_device *cdev,const char *buf, size_t size )
 	struct net_local *nl = netdev_priv(ndev);
 	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
 	struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( nl->dev );
-	struct sg17_sci *s = (struct sg17_sci *)&card->sci;
 	struct sdfe4 *hwdev = &card->hwdev;
 	char *endp;
-	u16 tmp,tmp1;
+	u16 tmp;
 	
 	// check parameters
 	if( !size ) return size;
@@ -218,7 +215,6 @@ store_tcpam( struct class_device *cdev,const char *buf, size_t size )
 	struct net_local *nl = netdev_priv(ndev);
 	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
 	struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( nl->dev );
-	struct sg17_sci *s = (struct sg17_sci *)&card->sci;
 	struct sdfe4 *hwdev = &card->hwdev;
 	u8 tmp;
 
@@ -270,9 +266,6 @@ store_pbo_mode( struct class_device *cdev,const char *buf, size_t size )
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
 	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
-	struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( nl->dev );
-	struct sg17_sci *s = (struct sg17_sci *)&card->sci;
-	struct sdfe4 *hwdev = &card->hwdev;
 	u8 tmp;
 
 	// if interface is up 
@@ -296,8 +289,18 @@ show_pbo_val(struct class_device *cdev, char *buf)
 {                                                                       
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
-	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;	
-	return snprintf(buf,PAGE_SIZE,"%d",cfg->pbo_val);
+	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
+	int pos = 0;
+	int i;
+	
+	// Output string in format <val1>:<val2>:<val3>:<val4>...
+	for(i=0;i<cfg->pbo_vnum;i++){
+		pos += snprintf(buf+pos,PAGE_SIZE-pos,"%d",cfg->pbo_vals[i]);
+		if( i != cfg->pbo_vnum-1 ){
+			pos += snprintf(buf+pos,PAGE_SIZE-pos,":");
+		}
+	}
+	return pos;
 }
 
 static ssize_t
@@ -306,18 +309,29 @@ store_pbo_val( struct class_device *cdev,const char *buf, size_t size )
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
 	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
-	struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( nl->dev );
-	struct sg17_sci *s = (struct sg17_sci *)&card->sci;
-	struct sdfe4 *hwdev = &card->hwdev;
 	char *endp;
-	u16 tmp,tmp1;
+	u32 tmp;
+	u8 vals[16];
+	int vnum = 0,i;
 	
 	// check parameters
 	if( !size ) return size;
-	tmp=simple_strtoul( buf,&endp,0);
-	if( buf == endp )
-		return endp;
-	cfg->pbo_val = (tmp > 31) ? 31 : tmp;
+	do{
+		tmp=simple_strtoul( buf,&endp,0);
+		if( buf != endp ){
+			vals[vnum] = (tmp > 31) ? 31 : tmp;
+			vnum++;
+		}
+		if( *endp == '\0' ){
+			break; // all string is processed
+		}
+		buf = endp + 1;
+	}while( vnum < 16 );
+	
+	for(i=0;i<vnum;i++){
+		cfg->pbo_vals[i] = vals[i];
+	}
+	cfg->pbo_vnum = vnum;
 	return size;
 }
 static CLASS_DEVICE_ATTR(pbo_val, 0644 ,show_pbo_val,store_pbo_val);
