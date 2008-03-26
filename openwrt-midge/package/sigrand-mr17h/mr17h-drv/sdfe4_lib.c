@@ -866,11 +866,15 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 			ns_field_set->valid_ns_data = SDI_NO;
 			break;
 		case PWRBO_FORCED:
-			ns_field_set->valid_ns_data = SDI_YES;
-			for(i=1;i<cfg->pbo_vnum;i++){
-				ns_field_set->ns_info[i-1] = cfg->pbo_vals[i];
-			}
-			ns_field_set->ns_info_len = cfg->pbo_vnum;
+			if( cfg->pbo_vnum > 1 ){
+				ns_field_set->valid_ns_data = SDI_YES;
+				for(i=1;i<cfg->pbo_vnum;i++){
+					ns_field_set->ns_info[i-1] = cfg->pbo_vals[i];
+				}
+				ns_field_set->ns_info_len = cfg->pbo_vnum-1;
+			}else{
+				ns_field_set->valid_ns_data = SDI_NO;
+			}				
 			break;
 		}
 		rmsg.ack_id = ACK_CFG_GHS_NS_FIELD;
