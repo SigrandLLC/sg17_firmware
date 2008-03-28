@@ -10,15 +10,19 @@ _eoc_settings()
 {
 	iface=$1
 
+
 	#--------------- Apply changes ------------------#
+	unset exec_error
 	opts=""
 	if [ -n "$FORM_mode" ] && [ "$FORM_mode" != "$type" ]; then
 		case "$FORM_mode" in
 		master)
 			opts=$opts" -m1"
+			type="master"
 			;;
 		slave)
 			opts=$opts" -m0"
+			type="slave"
 			;;
 		esac
 	fi
@@ -37,57 +41,57 @@ _eoc_settings()
 			ERROR_MESSAGE="$err_string"
 			render_save_message_nohide
 			exec_error=1
-			unset eoc_error
 		fi
 		changes=1
 	fi
 	
 	# ----- PBO-related changes
 	opts=""
-	eval `$info -i$iface -ro`
-	if [ "$eoc_error" -eq "1" ]; then
-		ERROR_MESSAGE="$err_string"
-		render_save_message_nohide
-		exec_error=1
-		unset eoc_error
+	if [ "$type" = "master" ]; then
+		eval `$info -i$iface -ro`
+		if [ "$eoc_error" -eq "1" ]; then
+			ERROR_MESSAGE="$err_string"
+			render_save_message_nohide
+			exec_error=1
+		fi
+	
+		if [ "$FORM_hsubmit" = "1" ] && [ "$master" != "0" ]; then
+			new_pbo_mode=0
+			if [ "$FORM_pbo_mode" = "on" ]; then
+				new_pbo_mode=1
+			fi
+			if [ "$new_pbo_mode" != "$pbo_mode" ]; then
+				opts=$opts" -x$new_pbo_mode"
+			fi
+			if [ "$new_pbo_mode" = "1" ] &&
+				[ "$FORM_pboval" != "$pbo_val" ]; then
+				opts=$opts" -w$FORM_pboval"
+			fi
+			if [ -n "$opts" ]; then
+				# echo "$config -ochannel -c$iface $opts <br>"
+				$config -ochannel -c$iface $opts -s
+				if [ "$eoc_error" -eq "1" ]; then
+					ERROR_MESSAGE="$err_string"
+					render_save_message_nohide
+					exec_error=1
+				fi
+				changes=1
+			fi
+		fi	
 	fi
 	
-	echo "#0: $FORM_hsubmit<br>"
-	
-	if [ "$FORM_hsubmit" = "1" ]; then
-		new_pbo_mode=0
-		if [ "$FORM_pbo_mode" = "on" ]; then
-			new_pbo_mode=1
-		fi
-		echo "#1: $new_pbo_mode, $pbo_mode<br>"
-		if [ "$new_pbo_mode" != "$pbo_mode" ]; then
-			opts=$opts" -x$new_pbo_mode"
-		fi
-		if [ "$new_pbo_mode" = "1" ] &&
-			[ "$FORM_pboval" != "$pbo_val" ]; then
-			opts=$opts" -w$FORM_pboval"
-		fi
-		echo "OPTS=$opts<br>"
-		if [ -n "$opts" ]; then
-			echo "$config -ochannel -c$iface $opts <br>"
-			$config -ochannel -c$iface $opts -s
-			if [ "$eoc_error" -eq "1" ]; then
-				ERROR_MESSAGE="$err_string"
-				render_save_message_nohide
-				exec_error=1
-				unset eoc_error
-			fi
-			changes=1
+	if [ -n "$changes" ]; then
+		if [ -z "$exec_error" ]; then		
+			$config -us
+			render_save_message
+			render_js_refresh_window 300
+			return
+		else
+			sleep 2
 		fi
 	fi	
 	
-	if [ -z "$exec_error" ] && [ -n "$changes" ]; then
-		$config -us
-		render_save_message
-		render_js_refresh_window 300
-		return
-	fi	
-	
+	unset eoc_error
 	eval `$info -tr`
 	if [ "$eoc_error" -eq "1" ]; then
 		echo "Error interface names"
@@ -143,7 +147,7 @@ _eoc_settings()
 		tip=""
 		id='pbomode'
 		td_id='pbomode_td'
-		desc="Power Backoff mode"
+		desc='Example: 21:13:15, STU-C-SRU1=21,SRU1-SRU2=13,...'
 		onchange="eocIfSettings();"
 		render_input_field checkbox "PBO Forced" pbo_mode 
 	fi
