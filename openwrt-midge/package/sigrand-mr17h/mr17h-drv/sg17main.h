@@ -27,6 +27,7 @@ static void sg17_remove_card( struct sg17_card *card );
 // Second version of module
 #define SG17v2_PCI_VENDOR 	0x55 
 #define SG17v2_PCI_DEVICE 	0x99
+#define SIOCGLRATE	(SIOCDEVPRIVATE+14)
 
 static int __devinit sg17_probe_one(struct pci_dev *,
 									const struct pci_device_id *);
@@ -41,6 +42,7 @@ static int sg17_open( struct net_device  *ndev );
 static int sg17_close(struct net_device  *ndev);
 static struct net_device_stats *sg17_get_stats(struct net_device *ndev);
 static int sg17_change_mtu(struct net_device *ndev, int new_mtu);
+static int sg17_ioctl(struct net_device *netdev, struct ifreq *ifr, int cmd);
 static void sg17_set_mcast_list( struct net_device  *ndev);
 
 /*TODO : correct */

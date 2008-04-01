@@ -120,6 +120,7 @@ sg17_probe( struct net_device  *ndev )
 	ndev->change_mtu = sg17_change_mtu;	
 	ndev->set_multicast_list = sg17_set_mcast_list;
 	ndev->tx_timeout = sg17_tx_timeout;
+	ndev->do_ioctl = sg17_ioctl;
 	ndev->watchdog_timeo = TX_TIMEOUT;
 	PDEBUG(debug_netcard,"m3");
 	// set network device private data 
@@ -296,6 +297,29 @@ sg17_set_mcast_list( struct net_device  *ndev )
 {
 	return;		// SG-17PCI always operate in promiscuos mode 
 }
+
+static int
+sg17_ioctl(struct net_device *ndev, struct ifreq *ifr, int cmd)
+{
+	struct net_local *nl = netdev_priv(ndev);
+	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
+
+	switch (cmd) {
+	case SIOCGLRATE:{
+		int *rate = (int*)ifr->ifr_data;
+		if( !netif_carrier_ok(ndev) && (cfg->mode == STU_R) ){
+			*rate = -1;
+		}else{
+			*rate = nl->shdsl_cfg->rate;
+		}
+		return 0;
+	}
+	default:
+		return -EOPNOTSUPP;
+	}
+	return -EOPNOTSUPP;
+}
+
 
 void
 sg17_link_up(struct sg17_sci *s, int if_num)
