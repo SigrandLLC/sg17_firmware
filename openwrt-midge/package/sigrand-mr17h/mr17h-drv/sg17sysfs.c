@@ -51,7 +51,7 @@ static ssize_t show_mode(struct class_device *cdev, char *buf)
 	else if( nl->shdsl_cfg->mode == STU_R )
 		return snprintf(buf,PAGE_SIZE,"slave");
 	else
-		return snprintf(buf,PAGE_SIZE,"NOT defined");	
+		return snprintf(buf,PAGE_SIZE,"unknown role");	
 }
 
 static ssize_t
@@ -97,7 +97,7 @@ static ssize_t show_annex(struct class_device *cdev, char *buf)
 			case ANNEX_F:
 			return snprintf(buf,PAGE_SIZE,"annex F");
 		*/	default:
-		return snprintf(buf,PAGE_SIZE,"NOT defined");
+		return snprintf(buf,PAGE_SIZE,"unknown annex");
 	}	
 }
 static ssize_t
@@ -204,7 +204,7 @@ static ssize_t show_tcpam(struct class_device *cdev, char *buf)
 	case TCPAM128:
 		return snprintf(buf,PAGE_SIZE,"TCPAM128");
  	default:
- 		return snprintf(buf,PAGE_SIZE,"NOT defined");
+ 		return snprintf(buf,PAGE_SIZE,"unknown TCPAM");
 	}
 }
 

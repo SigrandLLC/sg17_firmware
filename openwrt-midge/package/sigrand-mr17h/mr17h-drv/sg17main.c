@@ -874,6 +874,9 @@ sg17_def_config(struct sg17_card *card)
 	cfg_ch3->transaction = GHS_TRNS_00;
 	// ( ANNEX_A_B | ANNEX_A | ANNEX_B | ANNEX_G | ANNEX_F )
 	cfg_ch3->annex = ANNEX_A;
+	///  TC-PAM: TCPAM16  TCPAM32
+	cfg_ch3->tc_pam = TCPAM32;
+	// rate (speed)
 	// ( SDI_TDMCLK_TDMMSP | SDI_DSL3 )
 	cfg_ch3->input_mode = SDI_TDMCLK_TDMMSP ;
 	// ( Terminal=>16384 | Repeater=>12288 )
