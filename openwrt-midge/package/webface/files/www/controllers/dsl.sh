@@ -174,11 +174,6 @@ _sg17_status(){
 		tip=""
 		desc="Loop attenuation"
 		render_input_field static "Loop attenuation" status "$2 dB"
-		# Loop Attenuation
-		tip=""
-		desc="Loop attenuation"
-		render_input_field static "Loop attenuation" status "$2 dB"
-
 	fi
 
 	pbomode=`cat $conf_path/pbo_mode`
