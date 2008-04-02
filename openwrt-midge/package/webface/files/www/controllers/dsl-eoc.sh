@@ -41,6 +41,7 @@ _eoc_settings()
 			ERROR_MESSAGE="$err_string"
 			render_save_message_nohide
 			exec_error=1
+			unset eoc_error
 		fi
 		changes=1
 	fi
@@ -53,6 +54,7 @@ _eoc_settings()
 			ERROR_MESSAGE="$err_string"
 			render_save_message_nohide
 			exec_error=1
+			unset eoc_error
 		fi
 	
 		if [ "$FORM_hsubmit" = "1" ] && [ "$master" != "0" ]; then
@@ -74,6 +76,7 @@ _eoc_settings()
 					ERROR_MESSAGE="$err_string"
 					render_save_message_nohide
 					exec_error=1
+					unset eoc_error
 				fi
 				changes=1
 			fi
