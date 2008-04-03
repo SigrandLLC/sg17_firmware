@@ -232,9 +232,26 @@ function tmt_textValidatorFactory(fieldNode){
 			for(var rule in tmt_globalRules){
 				// Check if the current rule is required for the field
 				if(fieldNode.getAttribute("tmt:" + rule)){
-					// Invoke the rule
-					if(!eval("tmt_globalRules." + rule + "(fieldNode)")){
-						return false;
+					// If this rule is "pattern", and the requirement of the field is
+					// conditional and there is an attribute tmt:dependonbox,
+					// first check, that the checkbox is set
+					if (rule == "pattern" && required == "conditional" && fieldNode.getAttribute("tmt:dependonbox") != null)
+					{
+						var dependonboxVar = fieldNode.getAttribute("tmt:dependonbox");
+						if (document.getElementById(dependonboxVar).checked)
+						{
+							if(!eval("tmt_globalRules." + rule + "(fieldNode)"))
+							{
+								return false;
+							}
+						}
+					}
+					else
+					{
+						// Invoke the rule
+						if(!eval("tmt_globalRules." + rule + "(fieldNode)")){
+							return false;
+						}
 					}
 				}
 			}

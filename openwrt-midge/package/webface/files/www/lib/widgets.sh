@@ -36,6 +36,10 @@ validator_muxline='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noq
 validator_muxfs='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct frame start number" tmt:pattern="positiveinteger" tmt:minnumber=0 tmt:maxnumber=255
 '
 validator_muxrate='tmt:filters="ltrim,rtrim,nohtml,nospaces,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct rate" tmt:pattern="mxrate"'
+validator_voip_router_id='tmt:filters="ltrim,rtrim,numbersonly" tmt:message="Please input 3-digit positive number" tmt:pattern="voip_router_id"'
+validator_voip_short_number='tmt:filters="ltrim,rtrim,numbersonly" tmt:message="Please input 2-digit positive number" tmt:pattern="voip_short_number"'
+validator_voip_complete_number='tmt:filters="ltrim,rtrim,nohtml,nospaces,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct complete number" tmt:pattern="voip_complete_number"'
+validator_comment='tmt:filters="ltrim,rtrim,nohtml,nospaces,noquotes,nodoublequotes"'
 
 render_chart_h(){
 	local t="$1";
