@@ -48,6 +48,9 @@ service_reload(){
 	mux)
 		/etc/init.d/mux start
 	;;
+	voip)
+		/etc/init.d/voip restart
+	;;
 	esac
 }
 

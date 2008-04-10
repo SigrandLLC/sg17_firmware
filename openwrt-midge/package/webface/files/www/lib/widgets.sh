@@ -9,7 +9,7 @@ validator_ipaddr_asterisk='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nom
 validator_ipaddr_range='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address range, like 192.168.1.100-200" tmt:pattern="ipaddr_range"'
 validator_netmask='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip netmask" tmt:pattern="netmask"'
 validator_dnsdomain='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns domain name" tmt:pattern="dnsdomain"'
-validator_dnsdomainoripaddr=' tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns domain name" tmt:pattern="dnsdomainoripaddr"'
+validator_dnsdomainoripaddr=' tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns domain name or IP-address" tmt:pattern="dnsdomainoripaddr"'
 validator_mxprio='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input priority" tmt:pattern="positiveinteger" tmt:minnumber=1 tmt:maxnumber=999'
 validator_dnszone='tmt:filters="ltrim,rtrim,nohtml,nospaces,noquotes,nodoublequotes,nocommas,nomagic" tmt:message="Please input zone name" tmt:pattern="dnszone"'
 validator_dnszoneid='tmt:filters="ltrim,rtrim,alphanumericonly" tmt:message="Please input zone identifier" tmt:pattern="dnszoneid"'
