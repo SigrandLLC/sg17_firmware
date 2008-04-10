@@ -81,7 +81,7 @@ if [ $# = 1 ]; then
 fi
 
 ifisup=`ifconfig $interf | grep UP`
-echo "ifisup=$ifisup"
+#echo "ifisup=$ifisup"
 if [ -n "$ifisup" ]; then
     echo $0:" error, bring "$interf" down first"
     exit;

@@ -1,7 +1,7 @@
 #ifndef SG_DEBUG_H
 #define SG_DEBUG_H
 
-#define DIRQ 0 // Debug interrupt requests
+#define DIRQ 10 // Debug interrupt requests
 #define DCARR 0 // Debug carrier detection
 #define DINIT 10 // Debug driver init
 #define DXMIT 10 // Debug transmittion

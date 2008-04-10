@@ -128,9 +128,7 @@ struct net_device *devs[10];
 #define iotype u8*
 
 /* SG-16PCI ioctl params */
-#define SIOCDEVLOADFW	 	SIOCDEVPRIVATE
-#define SIOCDEVGETSTATS	 	SIOCDEVPRIVATE+1
-#define SIOCDEVCLRSTATS	 	SIOCDEVPRIVATE+2
+#define SIOCGLRATE	(SIOCDEVPRIVATE+14)
 
 /* Portability */
 //#define IO_READ_WRITE
@@ -186,7 +184,7 @@ struct shdsl_config{
     u16 mod:	2;
     u16 autob:	1;
     u16 autob_en: 1;    
-    u16 need_preact: 1;
+//    u16 need_preact: 1;
     u8 remcfg :1;
     u8 annex :2;
 u8 :5;
@@ -265,12 +263,7 @@ static int  sg16_close( struct net_device * );
 static int  sg16_start_xmit( struct sk_buff *, struct net_device * );
 static struct net_device_stats  *sg16_get_stats( struct net_device * );
 static void  set_multicast_list( struct net_device * );
-
-/*-----------------------------------------------------------------------------
-
-  static int  sg16_ioctl( struct net_device *, struct ifreq *, int );
-
-  /*-----------------------------------------------------------------------------*/
+static int  sg16_ioctl( struct net_device *, struct ifreq *, int );
 
 /*- Functions serving SG-16PCI control -*/
 
@@ -280,9 +273,7 @@ static void hdlc_shutdown( struct net_local *nl );
 static int  shdsl_ready( struct net_local *nl, u16 expect_state);
 static int  shdsl_dload_fw(struct net_device *dev, struct firmware *fw);
 static int  shdsl_dload_prepare(struct net_device *dev);
-
-/*-----------------------------------------------------------------------------*/
-
+static int  shdsl_setup(struct net_device *ndev);
 static int  shdsl_preactivation(struct net_local *nl);
 static int  shdsl_get_stat(struct net_local *nl, struct dsl_stats *ds);
 static int  shdsl_clr_stat( struct net_local  *nl );
@@ -327,9 +318,6 @@ static ssize_t show_rate( struct device *dev, ADDIT_ATTR char *buff );
 static ssize_t store_rate( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
 static DEVICE_ATTR(rate,0644,show_rate,store_rate);	
 
-static ssize_t show_crate( struct device *dev, ADDIT_ATTR char *buff );
-static DEVICE_ATTR(crate,0644,show_crate,NULL);
-
 static ssize_t show_master( struct device *dev, ADDIT_ATTR char *buff ); 
 static ssize_t store_master( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
 static DEVICE_ATTR(master,0644,show_master,store_master);	
@@ -353,6 +341,9 @@ static DEVICE_ATTR(autobaud,0644,show_autob,store_autob);
 static ssize_t show_download( struct device *dev, ADDIT_ATTR char *buff ); 
 static ssize_t store_download( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
 static DEVICE_ATTR(download,0644,show_download,store_download);	
+
+static ssize_t store_shdsl_setup( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
+static DEVICE_ATTR(shdsl_setup,0200,NULL,store_shdsl_setup);	
 
 // hdlc attribs 
 static ssize_t show_crc16( struct device *dev, ADDIT_ATTR char *buff );
@@ -389,6 +380,9 @@ static DEVICE_ATTR(statistic,0644,show_statistic,store_statistic);
 
 
 //debug
+static ssize_t show_hdlc_regs( struct device *dev, ADDIT_ATTR char *buf );
+static DEVICE_ATTR(hdlc_regs,0444,show_hdlc_regs,NULL);	
+
 static ssize_t show_debug( struct device *dev, ADDIT_ATTR char *buf );
 static ssize_t store_debug( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
 static DEVICE_ATTR(debug,0644,show_debug,store_debug);	
@@ -455,7 +449,7 @@ sg16_init( void )
     spin_lock_init( &rx_free_lock );
     spin_lock_init( &tx_alloc_lock );
     spin_lock_init( &tx_free_lock );
-    printk(KERN_NOTICE"Load "MR16H_MODNAME" SHDSL driver\n");
+    printk(KERN_NOTICE"Load "MR16H_MODNAME" SHDSL driver. Version 1.1\n");
     pci_module_init( &sg16_driver );
     return 0;
 }
@@ -521,8 +515,6 @@ sg16_init_one(struct pci_dev  *pdev,const struct pci_device_id  *ent)
         goto err2;
     }
 
-    nl->shdsl_cfg.need_preact=1;
-
 #ifndef AUTOSTART_OFF
 	
 	if( shdsl_dload_prepare(ndev) == -ENODEV ){
@@ -536,7 +528,7 @@ sg16_init_one(struct pci_dev  *pdev,const struct pci_device_id  *ent)
     /* timered link chk entire */
     INIT_WORK( &nl->wqueue,shdsl_link_chk,(void*)ndev);    
 
-    printk( KERN_NOTICE "%s: "MR16H_MODNAME" SHDSL module (irq %d, mem %#lx)\n",
+    printk( KERN_NOTICE "%s: "MR16H_MODNAME" SHDSL module (irq %d, mem %#lx). \n",
 			ndev->name, ndev->irq, ndev->mem_start );
     
     return  0;
@@ -609,7 +601,7 @@ sg16_probe( struct net_device  *ndev )
     ndev->set_multicast_list	= &set_multicast_list;
     ndev->tx_timeout		= &sg16_tx_timeout;
     ndev->watchdog_timeo	= TX_TIMEOUT;
-	//    ndev->do_ioctl           	= &sg16_ioctl;
+	ndev->do_ioctl           	= &sg16_ioctl;
 	    
 
     if( !request_mem_region( ndev->mem_start, 0x1000, ndev->name ) )
@@ -708,36 +700,7 @@ static int
 sg16_open( struct net_device  *ndev )
 {
     struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);		
-    int err;
-    u8 t;    
-    /* shdsl preactivation */
-    if( nl->shdsl_cfg.need_preact ){
-		/*TODO: is it correctly just reset SHDLS without 
-		  deactivation?
-		*/
-		iowrite8( EXT, (iotype)&(nl->regs->IMR) ); 
-		iowrite8( 0xff, (iotype)&(nl->regs->SR) ); 
-		iowrite8( XRST , (iotype)&(nl->regs->CRA));       			    
-		iowrite8( RXDE , (iotype)&(nl->regs->CRB));       			    
-		t=0;
-		if( shdsl_issue_cmd( nl, _DSL_RESET_SYSTEM, &t, 1 ) )
-			return -EBUSY;
 
-		if( !shdsl_ready(nl, _ACK_OPER_WAKE_UP )  ){
-			printk(KERN_NOTICE"%s, firmware wasn't loaded\n",ndev->name);	    
-			return -EBUSY;
-		}
-		if( shdsl_preactivation(nl) ){
-			printk(KERN_ERR"%s, I/O error\n",ndev->name);
-			return -EBUSY;
-		}
-		/* Starting device activation */
-		t=0x42;
-		if( ( err=shdsl_issue_cmd(nl,_DSL_ACTIVATION,&t,1) ) )
-			return -EIO;
-		nl->shdsl_cfg.need_preact=0;	
-	}
-    
     /* init descripts, allocate receiving buffers */
     nl->head_xq = nl->tail_xq = nl->head_rq = nl->tail_rq = 0;
     nl->head_tdesc = nl->head_rdesc = 0;
@@ -782,6 +745,28 @@ static void
 set_multicast_list( struct net_device  *dev )
 {
 	return;		/* SG-16PCI always operate in promiscuos mode */
+}
+
+static int
+sg16_ioctl(struct net_device *ndev, struct ifreq *ifr, int cmd)
+{
+	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);
+	struct shdsl_config *cfg = &nl->shdsl_cfg;
+
+	switch (cmd) {
+	case SIOCGLRATE:{
+		int *rate = (int*)ifr->ifr_data;
+		if( !netif_carrier_ok(ndev) && !cfg->master ){
+			*rate = -1;
+		}else{
+			*rate = cfg->lrate<<3;
+		}
+		return 0;
+	}
+	default:
+		return -EOPNOTSUPP;
+	}
+	return -EOPNOTSUPP;
 }
 
 
@@ -944,6 +929,48 @@ shdsl_dload_fw(struct net_device *ndev, struct firmware *fw)
 }
 
 static int
+shdsl_setup(struct net_device *ndev)
+{
+	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);
+    int err;
+	u8 t=0;
+	u8 cra_bkp= 0;
+
+	// Reset some chipset registers	
+	iowrite8( EXT, (iotype)&(nl->regs->IMR) ); 
+	iowrite8( 0xff, (iotype)&(nl->regs->SR) ); 
+	iowrite8( ioread8((iotype)&(nl->regs->CRB)) | RXDE , (iotype)&(nl->regs->CRB));       			    
+	// tell OS we lost link (it happens when we call preactivation
+	netif_stop_queue( ndev );
+	netif_carrier_off( ndev );
+	// Call usermode helper (if it enabled) tellink link is gone
+	usermode_link_event(ndev,0);
+
+	// Reset chipset
+	if( shdsl_issue_cmd( nl, _DSL_RESET_SYSTEM, &t, 1 ) )
+		return -EBUSY;
+	
+	// Wait for ready signal
+	if( !shdsl_ready(nl, _ACK_OPER_WAKE_UP )  ){
+		printk(KERN_NOTICE"%s, firmware wasn't loaded\n",ndev->name);	    
+		return -EBUSY;
+	}
+
+	// setup chipset
+	if( shdsl_preactivation(nl) ){
+		printk(KERN_ERR"%s, I/O error\n",ndev->name);
+		return -EBUSY;
+	}
+	
+	// Starting chipset activation 
+	t=0x42;
+	if( ( err=shdsl_issue_cmd(nl,_DSL_ACTIVATION,&t,1) ) )
+		return -EIO;
+
+	return 0;
+}
+
+static int
 shdsl_preactivation(struct net_local *nl)
 {
     static char  thresh[] = { +8, -4, -16, -40 };
@@ -1086,6 +1113,38 @@ shdsl_preactivation(struct net_local *nl)
 }
 
 static int
+shdsl_upd_rate( struct net_device *ndev )
+{
+    struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+    struct shdsl_config *cfg=&(nl->shdsl_cfg);
+    u8 t=0;
+    u32 tmp=0;
+
+    if( !cfg->autob && !( cfg->remcfg && !cfg->master ) ){
+		return 0;    	
+    }else{
+		if( cfg->autob  && netif_carrier_ok(ndev) ){
+			if( shdsl_issue_cmd(nl,_DSL_GHS_GET_FINAL_RATE,&t,0) )
+				return -1;
+			tmp=ioread8( (u8 *)(nl->cmdp->out_data+2));
+			tmp=(tmp<<3)+ioread8( (u8 *)(nl->cmdp->out_data+3) );
+			cfg->lrate = tmp;
+		}
+		else if( cfg->remcfg && netif_carrier_ok(ndev) ){
+			t=_DSL_DATA_RATE;
+			if( shdsl_issue_cmd(nl,_DSL_READ_CONTROL,&t,0) )
+				return -1;
+			tmp=ioread8( (u8 *)(nl->cmdp->out_data+1)) & 0x3;
+			tmp=(tmp<<8)+ioread8( (u8 *)(nl->cmdp->out_data) );
+			tmp--;		
+			cfg->lrate = tmp;
+		}
+	}
+    return 0;
+}
+
+
+static int
 shdsl_get_stat(struct net_local *nl, struct dsl_stats *ds)
 {
     u8 t;
@@ -1211,7 +1270,8 @@ shdsl_link_chk( void *data )
     struct net_local  *nl  =(struct net_local *)netdev_priv(ndev);	
     volatile struct cx28975_cmdarea  *p = nl->cmdp;
     struct timeval tv;    
-
+    u8  t = 0;
+	int ret;
 
     // Link state
     if( ioread8( (iotype)((u8*)p + 0x3c7) ) & 2 ){
@@ -1238,23 +1298,14 @@ shdsl_link_chk( void *data )
 			do_gettimeofday( &tv );
 			nl->in_stats.last_time = tv.tv_sec;
 			//reset Rx FIFO	
-			/*
-			iowrite8( 0xf0, (iotype)&(p->in_dest) );
-			iowrite8( _DSL_FR_RX_RESET, (iotype)&(p->in_opcode ) );
-			iowrite8( 0, (iotype)&(p->in_zero ) );
-			iowrite8(0, (iotype)&(p->in_length ) );
-			iowrite8( ( 0xf0 ^ _DSL_FR_RX_RESET ^ 0 ^ 0xaa ),(iotype)&(p->in_csum) ); 
-			cksum ^= 0x8;
-			iowrite8( 0x8,(iotype)&(p->in_data));	// only 1 byte per cycle!
-			iowrite8( cksum^0xaa, (iotype)&(p->in_datasum) );
-			iowrite8( _ACK_NOT_COMPLETE, (iotype)&(p->out_ack) );
-			iowrite8( 0xfe, (iotype)&(p->intr_8051) );
-			*/
+			t =0x8;
+	    	ret = shdsl_issue_cmd( nl, _DSL_FR_RX_RESET, &t, 1 );
+			//printk(KERN_NOTICE"shdsl_link_chk: ret = %d\n",ret);
 			// enable packet receiving-transmitting
 			netif_wake_queue( ndev );
 			netif_carrier_on( ndev );
 			usermode_link_event(ndev,1);
-					
+			shdsl_upd_rate(ndev);
 		}else if( (ioread8((iotype)((u8*)p+0x3c0)) & 0xc0) != 0x40 ){
 				// link down
 				PDEBUG("Deactivate");
@@ -1586,13 +1637,13 @@ init_sg16_in_sysfs(struct device *dev)
     /* creating attributes of device in sysfs */
     //shdsl
     if( device_create_file(dev,&dev_attr_rate) )	goto err_ext;
-    if( device_create_file(dev,&dev_attr_crate))	goto err_ext0;
     if( device_create_file(dev,&dev_attr_master)) 	goto err_ext1;
     if( device_create_file(dev,&dev_attr_remcfg))	goto err_ext2;    
     if( device_create_file(dev,&dev_attr_annex)) 	goto err_ext3;
     if( device_create_file(dev,&dev_attr_mod)) 		goto err_ext4;
     if( device_create_file(dev,&dev_attr_autobaud)) 	goto err_ext5;
     if( device_create_file(dev,&dev_attr_download)) 	goto err_ext6;    
+    if( device_create_file(dev,&dev_attr_shdsl_setup)) 	goto err_ext61;    
     //hdlc
     if( device_create_file(dev,&dev_attr_crc16))	goto err_ext7;
     if( device_create_file(dev,&dev_attr_fill_7e))	goto err_ext8;
@@ -1606,11 +1657,14 @@ init_sg16_in_sysfs(struct device *dev)
     if( device_create_file(dev,&dev_attr_statistic))	goto err_ext14;        
     //debug
     if( device_create_file(dev,&dev_attr_debug))	goto err_ext15;
+    if( device_create_file(dev,&dev_attr_hdlc_regs))	goto err_ext16;
     // SKB memory leak
     device_create_file(dev,&dev_attr_skb_stat);
 
     return 0;
 
+ err_ext16:
+    device_remove_file(dev,&dev_attr_debug);        
  err_ext15:
     device_remove_file(dev,&dev_attr_statistic);        
  err_ext14:
@@ -1628,6 +1682,8 @@ init_sg16_in_sysfs(struct device *dev)
  err_ext8:
     device_remove_file(dev,&dev_attr_crc16);
  err_ext7:
+    device_remove_file(dev,&dev_attr_shdsl_setup);
+ err_ext61:
     device_remove_file(dev,&dev_attr_download);    
  err_ext6:
     device_remove_file(dev,&dev_attr_autobaud);
@@ -1639,9 +1695,7 @@ init_sg16_in_sysfs(struct device *dev)
     device_remove_file(dev,&dev_attr_remcfg);        
  err_ext2:
     device_remove_file(dev,&dev_attr_master);
- err_ext1:
-    device_remove_file(dev,&dev_attr_crate);	            
- err_ext0:    
+ err_ext1:    
     device_remove_file(dev,&dev_attr_rate);	
  err_ext:
     printk("%s: error\n",__FUNCTION__);
@@ -1654,13 +1708,13 @@ del_sg16_from_sysfs(struct device *dev)
     /* removing attributes of device from sysfs */
     //shdsl
     device_remove_file(dev,&dev_attr_rate);	
-    device_remove_file(dev,&dev_attr_crate);	    
     device_remove_file(dev,&dev_attr_master);
     device_remove_file(dev,&dev_attr_remcfg);    
     device_remove_file(dev,&dev_attr_annex);    
     device_remove_file(dev,&dev_attr_mod);
     device_remove_file(dev,&dev_attr_autobaud);
     device_remove_file(dev,&dev_attr_download);    
+    device_remove_file(dev,&dev_attr_shdsl_setup);
     //hdlc
     device_remove_file(dev,&dev_attr_crc16);
     device_remove_file(dev,&dev_attr_fill_7e);
@@ -1674,6 +1728,7 @@ del_sg16_from_sysfs(struct device *dev)
     device_remove_file(dev,&dev_attr_statistic);        
     //debug
     device_remove_file(dev,&dev_attr_debug);
+    device_remove_file(dev,&dev_attr_hdlc_regs);
     device_remove_file(dev,&dev_attr_skb_stat);
 }
 
@@ -1711,50 +1766,16 @@ store_rate( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     char *endp;
     u16 tmp;
     
-    /* if interface is up*/
-    if( (ndev->flags & IFF_UP) )
-		return size;
     if( !size ) return size;
 
     tmp=simple_strtoul( buf,&endp,0);
     if( !tmp )
 		return size;
     cfg->lrate=(tmp >> 3) & 0x3ff;
-    nl->shdsl_cfg.need_preact=1;
-
     return size;
 }
 
 
-static ssize_t
-show_crate( struct device *dev, ADDIT_ATTR char *buf )
-{
-    struct net_device *ndev=(struct net_device *)dev_get_drvdata(dev);
-    struct net_local *nl=(struct net_local *)netdev_priv(ndev);
-    struct shdsl_config *cfg=&(nl->shdsl_cfg);
-    u8 t=0;
-    u32 tmp=0;
-    
-    if( !cfg->autob && !( cfg->remcfg && !cfg->master ) )
-		tmp=cfg->lrate;    	
-    else{
-		if( cfg->autob  && netif_carrier_ok(ndev) ){
-			if( !shdsl_issue_cmd(nl,_DSL_GHS_GET_FINAL_RATE,&t,0) )	{
-				tmp=ioread8( (u8 *)(nl->cmdp->out_data+2));
-				tmp=(tmp<<3)+ioread8( (u8 *)(nl->cmdp->out_data+3) );
-			}
-		}
-		else if( cfg->remcfg && netif_carrier_ok(ndev) ){
-			t=_DSL_DATA_RATE;
-			if( !shdsl_issue_cmd(nl,_DSL_READ_CONTROL,&t,0) ){
-				tmp=ioread8( (u8 *)(nl->cmdp->out_data+1)) & 0x3;
-				tmp=(tmp<<8)+ioread8( (u8 *)(nl->cmdp->out_data) );
-				tmp--;		
-			} 
-		}
-	}
-    return snprintf(buf,PAGE_SIZE,"%u\n",tmp<<3);
-}
 
 /* master attribute */
 static ssize_t
@@ -1776,10 +1797,6 @@ store_master( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     struct net_local *nl=(struct net_local *)netdev_priv(ndev);
     struct shdsl_config *cfg=&(nl->shdsl_cfg);
 
-    /* if interface is up */
-    if( ndev->flags & IFF_UP )
-		return size;
-
     if( size > 0 ){
 		if( buf[0]=='0' )
 			cfg->master=0;
@@ -1787,7 +1804,6 @@ store_master( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 			if( buf[0]=='1' )
 				cfg->master=1;
     }    
-    nl->shdsl_cfg.need_preact=1;
     return strnlen(buf,PAGE_SIZE);
 }
 
@@ -1812,18 +1828,12 @@ store_remcfg( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     struct net_local *nl=(struct net_local *)netdev_priv(ndev);
     struct shdsl_config *cfg=&(nl->shdsl_cfg);
 
-    /* if interface is up */
-    if( ndev->flags & IFF_UP )
-		return size;
-
     if( size > 0 ){
 		if( buf[0]=='0' )
 			cfg->remcfg=0;
 		else if( buf[0]=='1' )
 			cfg->remcfg=1;
     }    
-
-    nl->shdsl_cfg.need_preact=1;
     return strnlen(buf,PAGE_SIZE);
 }
 /* Annex setup */
@@ -1855,10 +1865,6 @@ store_annex( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     struct shdsl_config *cfg=&(nl->shdsl_cfg);
     u8 tmp;
 
-    /* if interface is up */
-    if( ndev->flags & IFF_UP )
-		return size;
-
     if( !size )	return size;
 
     tmp=buf[0];
@@ -1877,7 +1883,6 @@ store_annex( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 		break;
 	}
 
-    nl->shdsl_cfg.need_preact=1;
     return strnlen(buf,PAGE_SIZE);
 }
 
@@ -1921,10 +1926,6 @@ store_mod( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     struct shdsl_config *cfg=&(nl->shdsl_cfg);
     char tmp;    
 
-    /* if interface is up */
-    if( ndev->flags & IFF_UP )
-		return size;
-
     if( !size )	return size;
 	
     tmp=buf[0];
@@ -1942,7 +1943,6 @@ store_mod( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 		cfg->mod=3;
 		break;
 	}
-    nl->shdsl_cfg.need_preact=1;
     return size;
 }
 
@@ -1970,9 +1970,6 @@ store_autob( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     struct shdsl_config *cfg=&(nl->shdsl_cfg);
     u8 tmp;
     
-    /* if interface is up */
-    if( ndev->flags & IFF_UP )
-		return size;
     /* correct input data */
     if( !size )
 		return 0;
@@ -1993,7 +1990,6 @@ store_autob( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 		cfg->autob=1;
 		break;
 	}
-    nl->shdsl_cfg.need_preact=1;
     return size;
 }
 
@@ -2033,8 +2029,6 @@ store_download( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     PDEBUG("start");    
     
     if( !size )	return 0;
-    if( ndev->flags & IFF_UP )
-		return size;
 
     PDEBUG("before dload");    
     if( buf[0] == '1' ){
@@ -2045,10 +2039,22 @@ store_download( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 		}else
 			shdsl_dload_fw(ndev,fw);
     }
-
-    nl->shdsl_cfg.need_preact=1;
     return size;
 }
+
+static ssize_t
+store_shdsl_setup( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+{
+    struct net_device *ndev=(struct net_device *)dev_get_drvdata(dev);
+    struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+
+    if( !size )	return 0;
+
+	shdsl_setup(ndev);
+	
+    return size;
+}
+
 
 /* CRC count attribute */
 static ssize_t
@@ -2070,9 +2076,6 @@ store_crc16( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     struct net_local *nl=(struct net_local *)netdev_priv(ndev);
     struct hdlc_config *cfg=&(nl->hdlc_cfg);
     u8 cfg_bt;
-
-    if( ndev->flags & IFF_UP )
-		return size;
 
     if( !size )	return 0;
     
@@ -2116,9 +2119,6 @@ store_fill_7e( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     struct hdlc_config *cfg=&(nl->hdlc_cfg);
     u8 cfg_bt;
 
-    if( ndev->flags & IFF_UP )
-		return size;
-    
     if( !size )	return 0;
     
     switch(buf[0]){
@@ -2159,9 +2159,6 @@ store_inv( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     struct net_local *nl=(struct net_local *)netdev_priv(ndev);
     struct hdlc_config *cfg=&(nl->hdlc_cfg);
     u8 cfg_bt;
-
-    if( ndev->flags & IFF_UP )
-		return size;
 
     if( !size )
 		return 0;
@@ -2206,9 +2203,6 @@ store_rburst( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     struct hdlc_config *cfg=&(nl->hdlc_cfg);
     u8 cfg_bt;
 
-    if( ndev->flags & IFF_UP )
-		return size;
-    
     if( !size )	return 0;
     
     switch(buf[0]){
@@ -2251,9 +2245,6 @@ store_wburst( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     struct hdlc_config *cfg=&(nl->hdlc_cfg);
     u8 cfg_bt;
 
-    if( ndev->flags & IFF_UP )
-		return size;
-    
     if( !size )	return 0;
 
     switch(buf[0]){
@@ -2283,9 +2274,6 @@ store_maddr( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     struct net_device *ndev= (struct net_device *)dev_get_drvdata(dev);
     u16 tmp;
     char *endp;
-
-    if( ndev->flags & IFF_UP )
-		return size;
 
     if( !size ) return 0;
 
@@ -2450,3 +2438,17 @@ show_skb_stat(struct device *dev, ADDIT_ATTR char *buf )
 				   less_than_ethmin);
 }
 
+static ssize_t
+show_hdlc_regs(struct device *dev, ADDIT_ATTR char *buf )
+{
+    struct net_local *nl=(struct net_local *)netdev_priv(dev_get_drvdata(dev));
+	return	sprintf(buf,"CRA=%02x CRB=%02x SR=%02x IMR=%02x CTDR=%02x LTDR=%02x CRDR=%02x LRDR=%02x",
+				   ioread8((iotype)&(nl->regs->CRA)),
+				   ioread8((iotype)&(nl->regs->CRB)),
+				   ioread8((iotype)&(nl->regs->SR)),
+				   ioread8((iotype)&(nl->regs->IMR)),
+				   ioread8((iotype)&(nl->regs->CTDR)),
+				   ioread8((iotype)&(nl->regs->LTDR)),
+				   ioread8((iotype)&(nl->regs->CRDR)),
+				   ioread8((iotype)&(nl->regs->LRDR)) );
+}

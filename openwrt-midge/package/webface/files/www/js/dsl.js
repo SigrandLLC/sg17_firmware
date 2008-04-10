@@ -413,8 +413,19 @@ function eocProfiles(){
 	}else{
 		rate = s.options[ind].value;
 	}
-		
-	rate_list(s,192,14080,64,rate);
+	tc = $('tcpam');
+	tcpam = $('tcpam').options[$('tcpam').selectedIndex].value;
+	if( tcpam == "tcpam128" ) {
+		fixed_rate_list(s,rate,rate_list128);
+	} else if( tcpam == "tcpam64" ){
+		fixed_rate_list(s,rate,rate_list64);
+	} else if( tcpam == "tcpam32" ){
+		fixed_rate_list(s,rate,rate_list32_v2);
+	} else if( tcpam == "tcpam16" ){
+		fixed_rate_list(s,rate,rate_list16);
+	} else if( tcpam == "tcpam8" ){
+		fixed_rate_list(s,rate,rate_list8);
+	};
 };
 
 

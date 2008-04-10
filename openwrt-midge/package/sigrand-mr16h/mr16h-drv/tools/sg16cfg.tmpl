@@ -33,8 +33,7 @@ print_stat()
 
     master=`cat master`
     code=`cat mod`
-    rate1=`cat crate`    
-    rate2=`cat rate`
+    rate=`cat rate`    
     auto=`cat autobaud`
     state=`cat state`     
     mode=`cat remcfg`
@@ -48,7 +47,7 @@ print_stat()
     echo "@MANUFACTURER@ @MODNAME@ SHDSL modem statistics"
     echo "$1:    "$state
     echo "shdsl:   "$master" "$code" cfg="$mode" "$annex
-    echo "         rate="$rate1" of "$rate2"("$auto")"
+    echo "         rate=$rate ($auto)"
     echo "hdlc:    fill="$fill" inversion="$inv" "$crc
     if [ "$CARD" = "PCI" ]; then
     echo "PCI bus: rb"$rb" wb"$wb
@@ -358,3 +357,5 @@ while [ ! -z $1 ]; do
     esac
     shift
 done
+
+echo 1 > shdsl_setup

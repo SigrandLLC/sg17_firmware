@@ -161,19 +161,14 @@ _dsl_mr16ifcfg(){
 	if [ -z "$proto" ]; then
 		$kdb set sys_iface_${iface}_proto=ether
 	fi
-	
 
 	# Hardware settings
 	eval `$kdb -q sls sys_pcicfg_s${slot}_${index}_`
 	# apply configuration
-	$ifcfg $iface down 
-	$mr16h_cfg $iface reload
 	[ -n "$rate" ] && rate="rate $rate"
 	[ -n "$cfg" ] && cfg="cfg $cfg"
 	[ -n "$annex" ] && annex="annex $annex"
 	$mr16h_cfg $iface $mode $rate $code $cfg $annex $fill $inv $crc 
-    enabled=`kdb get sys_iface_${iface}_enabled`
-	[ "$enabled" = 1 ] && $ifcfg $iface up
 }
 
 _dsl_mr16cfg(){
@@ -240,7 +235,11 @@ _dsl_start(){
 		if [ "$type" != "$mr17h_drvname" ] && [ "$type" != "$mr16h_drvname" ]; then
 			continue
 		fi
-		
+
+		if [ "$type" = "$mr16h_drvname" ]; then
+			$mr16h_cfg $iface reload
+		fi
+				
 	    _dsl_modcfg $s
 
 		eval "type=\$s${s}_iftype"

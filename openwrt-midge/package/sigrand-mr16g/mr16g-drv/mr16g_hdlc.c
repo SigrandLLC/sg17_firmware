@@ -55,6 +55,9 @@
 #define DEFAULT_LEV 1
 #include "sg_debug.h"
 
+// mr16g_ioctl
+#define SIOCGLRATE	(SIOCDEVPRIVATE+14)
+
 MODULE_DESCRIPTION( "E1 PCI adapter driver Version 1.0\n" );
 MODULE_AUTHOR( "Maintainer: Polyakov Artem <artpol84@gmail.com>\n" );
 MODULE_LICENSE( "GPL" );
@@ -80,7 +83,6 @@ static DEVICE_ATTR(cas,0644,show_cas,store_cas);
 static DEVICE_ATTR(map_ts16,0644,show_map_ts16,store_map_ts16);
 
 //debug
-static DEVICE_ATTR(chk_carrier,0644,NULL,store_chk_carrier);
 static DEVICE_ATTR(hdlc_regs,0644,show_hdlcregs,NULL);
 
 #ifdef SYSFS_DEBUG
@@ -306,10 +308,10 @@ mr16g_probe( struct net_device  *ndev )
 	//initial setup	
 	mr16g_defcfg(nl);
 	mr16g_hdlc_up(nl);
-	mdelay(1);
+	mr16g_E1_setup(nl);
 	mr16g_setup_carrier(ndev,&mask);
 	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
-	PDEBUG(DINIT,"end");
+
 	return  0;
  err_exit:
 	iounmap( nl->mem_base );
@@ -329,17 +331,19 @@ mr16g_open( struct net_device  *ndev )
 
 	if( (err=hdlc_open(ndev)) )
 		return err;
-	PDEBUG(DCARR,"netif_carrier_ok=%d\n\tnetif_queue_stopped=%d",
-		   (int)netif_carrier_ok(ndev),(int)netif_queue_stopped(ndev));
+	// Enable tx/rx buffers
 	mr16g_txrx_up(ndev);		
+	// Prepare HDLC regs
 	mr16g_hdlc_open(nl);	
+	// Setup ds2155
 	mr16g_E1_setup(nl);
-	// tune linkindication
-	udelay(50);
-	PDEBUG(DCARR,"TEST carrier");
+	// Correct link representation, because of
+	// dependency of Link led & DS2155 regs!
+	// And correct interrupt mask
+	udelay(5);
 	mr16g_setup_carrier(ndev,&mask);
 	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
-	PDEBUG(DCARR,"TEST carrier: msk = %02x",mask);
+
 	// start network if queuing
 	netif_start_queue(ndev);	
 	return 0;
@@ -474,7 +478,8 @@ mr16g_ioctl_get_iface(struct net_device *ndev,struct ifreq *ifr)
   }
   return 0;
   }
-*/						       														
+*/	
+					       														
 static int
 mr16g_ioctl(struct net_device *ndev, struct ifreq *ifr, int cmd)
 {
@@ -496,6 +501,11 @@ mr16g_ioctl(struct net_device *ndev, struct ifreq *ifr, int cmd)
 		default:
 			return hdlc_ioctl(ndev, ifr, cmd);
 		}
+	case SIOCGLRATE:{
+		int *rate = (int*)ifr->ifr_data;
+		*rate = mr16g_get_rate(ndev);
+		return 0;
+	}
 
 	default:
 		/* Not one of ours. Pass through to HDLC package */
@@ -862,13 +872,19 @@ ds2155_carrier(struct net_local *nl)
 {
 	u8 ret=0;
 	u8 tmp;
+	int i = 0;
+
+	PDEBUG(DCARR,"start");
+	while( i < 10){
+		tmp = ds2155_getreg(nl,SR1);
+		udelay(1);
+		ds2155_setreg(nl,SR1,LRCL);
+		PDEBUG(DCARR,"#%d: tmp=%d",i,tmp);
+		i++;
+	}
+	udelay(1);
 	tmp = ds2155_getreg(nl,SR1);
-	ds2155_setreg(nl,SR1,LRCL);
-	udelay(5);
-	tmp = ds2155_getreg(nl,SR1);
-	ds2155_setreg(nl,SR1,LRCL);
-	udelay(5);	
-	tmp = ds2155_getreg(nl,SR1);
+	PDEBUG(DCARR,"#end: tmp=%d",tmp);
 	if( !( tmp & LRCL) ){
 		ret=1;
 	}
@@ -1127,7 +1143,6 @@ mr16g_sysfs_init(struct device *dev)
 	// debug
 	//	device_create_file(dev,&dev_attr_getreg);
 	//	device_create_file(dev,&dev_attr_setreg);
-	device_create_file(dev,&dev_attr_chk_carrier);	
 	device_create_file(dev,&dev_attr_hdlc_regs);	
 #ifdef SYSFS_DEBUG
 	device_create_file(dev,&dev_attr_winread);	
@@ -1165,7 +1180,6 @@ mr16g_sysfs_del(struct device *dev)
 	// debug
 	//	device_remove_file(dev,&dev_attr_getreg);
 	//	device_remove_file(dev,&dev_attr_setreg);
-	device_remove_file(dev,&dev_attr_chk_carrier);		
 	device_remove_file(dev,&dev_attr_hdlc_regs);	
 #ifdef SYSFS_DEBUG
 	device_remove_file(dev,&dev_attr_winread);	
@@ -1695,16 +1709,6 @@ store_cas( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 	}    
 	return size;
 }
-
-
-
-static ssize_t store_chk_carrier( struct device *dev, ADDIT_ATTR const char *buff, size_t size )
-{
-	//	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
-	//	mr16g_setup_carrier( ndev,&mask );
-	return size;
-}
-
 
 static ssize_t show_hdlcregs( struct device *dev, ADDIT_ATTR char *buf )
 {
