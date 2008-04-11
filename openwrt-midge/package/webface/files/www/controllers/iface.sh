@@ -57,7 +57,7 @@
 					tbf)
 						kdb_vars="str:sys_iface_${iface}_qos_tbf_rate int:sys_iface_${iface}_qos_tbf_limit str:sys_iface_${iface}_qos_tbf_latency int:sys_iface_${iface}_qos_tbf_buffer";;
 					htb)
-						kdb_vars="";;
+						kdb_vars="str:sys_iface_${iface}_qos_htb_default";;
 				esac
 			fi
 			;;
@@ -422,8 +422,7 @@
 		render_form_tail
 		;;
 	'qos')
-		# static dhcp list
-		if [ "$qos_sch" != sfq -a "$qos_sch" != pfifo_fast -a "$qos_sch" != htb ]; then
+		if [ "$qos_sch" != sfq -a "$qos_sch" != pfifo_fast ]; then
 			render_form_header qos
 			render_input_field hidden iface iface "$iface"
 			render_input_field hidden page page "$page"
@@ -477,6 +476,23 @@
 				render_input_field text "Latency" sys_iface_${iface}_qos_tbf_latency
 				;;
 			htb)
+				# generate list of available classes
+				CLASSES="0 none"
+				for key in `kdb kls sys_iface_${iface}_qos_htb_class_*`; do
+					val=`kdb get $key`
+					eval "$val"
+					id=`echo $classid |cut -d ':' -f2`
+					CLASSES="$CLASSES $id $name"
+				done
+				unset name enabled parent classid rate ceil id
+				
+				# default class
+				desc="Name of default class"
+				render_input_field select "Default class" sys_iface_${iface}_qos_htb_default $CLASSES
+				
+				render_submit_field
+				render_form_tail				
+				
 				eval `kdb -qq ls sys_iface_${iface}_qos_htb_*`
 	
 				# qos class list

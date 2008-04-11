@@ -20,7 +20,8 @@ eval `kdb -qq sls sys_iface_${iface}_`
 
 start_htb(){
 	local iface=$1
-	$TC qdisc add dev $iface root handle 1: htb
+	[ "x$qos_htb_default" != "x0" -a -n "$qos_htb_default" ] && default_class="default $qos_htb_default"
+	$TC qdisc add dev $iface root handle 1: htb $default_class
 	
 	for key in `kdb kls sys_iface_${iface}_qos_htb_class_*`; do 
 		val=`kdb get $key`

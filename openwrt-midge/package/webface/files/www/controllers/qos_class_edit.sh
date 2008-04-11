@@ -41,16 +41,16 @@
 	render_input_field hidden iface iface "$iface"
 	render_input_field hidden classid classid "$classid"
 	
+	# enabled
+	desc="Check this item to enable rule"
+	validator='tmt:required="true"'
+	render_input_field checkbox "Enable" enabled	
+	
 	# name
 	desc="Name of class"
 	validator="$tmtreq $validator_rulename"
 	render_input_field text "Short name" name
-	
-	# enabled
-	desc="Check this item to enable rule"
-	validator='tmt:required="true"'
-	render_input_field checkbox "Enable" enabled
-	
+		
 	# parent
 	desc="Name of parent class"
 	render_input_field select "Parent class" parent $CLASSES
