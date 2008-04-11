@@ -230,21 +230,23 @@ _dsl_start(){
 	echo -n "Configuring SHDSL: "
 	eval `kdb sls -q sys_pcitbl_`
 	for s in $slots; do
-		unset type
+		unset type num ifaces
 		eval "type=\$s${s}_iftype"
+		eval "num=\$s${s}_ifnum"
+		eval "ifaces=\$s${s}_ifaces"
+
 		if [ "$type" != "$mr17h_drvname" ] && [ "$type" != "$mr16h_drvname" ]; then
 			continue
 		fi
 
 		if [ "$type" = "$mr16h_drvname" ]; then
-			$mr16h_cfg $iface reload
+			for iface in $ifaces; do 
+				$mr16h_cfg $iface reload
+			done
 		fi
 				
-	    _dsl_modcfg $s
+	        _dsl_modcfg $s
 
-		eval "type=\$s${s}_iftype"
-		eval "num=\$s${s}_ifnum"
-		eval "ifaces=\$s${s}_ifaces"
 		case "$type" in
 			$mr16h_drvname)
 				echo -n "${mr16h_modname}x${num}($ifaces) "
