@@ -27,10 +27,16 @@
 		eval "$val"
 		CLASSES="$CLASSES $classid $name"
 	done
-	unset name enabled parent classid rate ceil
+	unset name enabled parent classid rate ceil qdisc _qdisc
 
-	eval_string="export FORM_$item=\"name=$FORM_name enabled=$FORM_enabled parent=$FORM_parent classid=$FORM_classid rate=$FORM_rate ceil=$FORM_ceil\""
+	# replace spaces in qdisc with '#' for saving
+	_qdisc=`echo $FORM_qdisc |sed s/" "/#/g`
+	
+	eval_string="export FORM_$item=\"name=$FORM_name enabled=$FORM_enabled parent=$FORM_parent classid=$FORM_classid rate=$FORM_rate ceil=$FORM_ceil qdisc=$_qdisc\""
 	render_popup_save_stuff
+	
+	# replace '#' with spacing for edit displaying
+	qdisc=`echo $qdisc |sed s/#/" "/g`
 
 	render_form_header qos_class_edit
 	help_1="htb"
@@ -66,6 +72,12 @@
 	tip="Unit can be: <br/><b>kbit</b>, <b>Mbit</b> - for bit per second<br/> and <b>kbps</b>, <b>Mbps</b> - for bytes per second"
 	validator="$validator_rate"
 	render_input_field text "Ceil" ceil
+	
+	# qdisc
+	desc="Qdisc for this class"
+	tip="Optional qdisc for this class. For example, you can enter <b>esfq limit 128 depth 128 divisor 10 hash classic perturb 15</b> or <b>sfq perturb 10</b>, etc."
+	validator=""
+	render_input_field text "Qdisc" qdisc
 	
 	render_submit_field
 	render_form_tail

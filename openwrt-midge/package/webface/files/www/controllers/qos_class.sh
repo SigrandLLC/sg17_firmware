@@ -12,7 +12,7 @@
 
 	# get name of given classid
 	get_parent(){
-		local name enabled parent classid rate ceil
+		local name enabled parent classid rate ceil qdisc
 		unset name
 		parent_name="NONE"
 		eval `kdb get sys_iface_${iface}_qos_htb_class_*|grep classid=$1`
@@ -24,6 +24,7 @@
 		local item="sys_iface_${iface}_qos_htb_class_${lineno}"
 		local target_img="<img src=img/blank.gif>"
 		local style
+		local _qdisc
 		eval "var=\$$item"
 		eval "$var"
 		
@@ -32,12 +33,15 @@
 		
 		[ "x${enabled}x" = "xx" ] && style="class='lineDisabled'"	
 		
-		echo "<tr $style><td>$lineno</td><td>$name</td><td>$parent_name</td><td>$rate</td><td>$ceil</td><td>"
+		# replace '#' in qdisc with spaces
+		_qdisc=`echo $qdisc |sed s/#/" "/g`
+
+		echo "<tr $style><td>$lineno</td><td>$name</td><td>$parent_name</td><td>$rate</td><td>$ceil</td><td>$_qdisc</td><td>"
 		render_list_btns qos_class_edit "$item" "iface=$iface"
 		echo '</td></tr>'
 	}
 	
-	render_list_header qos_class sys_iface_${iface}_qos_htb_class_ "iface=$iface" "No" "Name" "Parent" "Rate" "Ceil"
+	render_list_header qos_class sys_iface_${iface}_qos_htb_class_ "iface=$iface" "No" "Name" "Parent" "Rate" "Ceil" "Qdisc"
 	
 	render_list_cycle_stuff
 

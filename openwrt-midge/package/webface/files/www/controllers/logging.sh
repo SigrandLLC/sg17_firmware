@@ -11,12 +11,6 @@
 	render_form_header logging
 	render_table_title "Logging"
 
-	# sys_log_console
-	default=1
-	tip=""
-	desc=""
-	render_input_field select "Console priority logging" sys_log_console 0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7
-
 	# sys_log_dmesg_level
 	default=1
 	tip="For example: 1 prevents all messages, expect panic messages"

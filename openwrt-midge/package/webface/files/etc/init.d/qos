@@ -25,11 +25,25 @@ start_htb(){
 	
 	for key in `kdb kls sys_iface_${iface}_qos_htb_class_*`; do 
 		val=`kdb get $key`
-		unset enabled name parent classid rate ceil _ceil
+		unset enabled name parent classid rate ceil _ceil qdisc _qdisc handle
 		eval "$val"
 		[ -n "$ceil" ] && _ceil="ceil $ceil"
 		
-		[ "x${enabled}x" != "xx" ] && $TC class add dev $iface parent $parent classid $classid htb rate $rate $_ceil
+		[ "x${enabled}x" == "xx" ] && continue
+		
+		# add class
+		$TC class add dev $iface parent $parent classid $classid htb rate $rate $_ceil
+		
+		# add qdisc 
+		if [ -n "$qdisc" ]; then
+			# replace '#' in qdisc with spaces
+			_qdisc=`echo $qdisc |sed s/#/" "/g`
+			
+			# in qdisc $parent == $classid, $handle == second part of $classid
+			handle=`echo $classid |awk -F ':' '{print $2}'`
+
+			$TC qdisc add dev $iface parent $classid handle ${handle}:0 $_qdisc || warn "Adding qdisc failed (for class \"$name\")"
+		fi
 	done
 	
 	for key in `kdb kls sys_iface_${iface}_qos_htb_filter_*`; do 
