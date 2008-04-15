@@ -311,6 +311,9 @@ sg17_ioctl(struct net_device *ndev, struct ifreq *ifr, int cmd)
 			*rate = -1;
 		}else{
 			*rate = nl->shdsl_cfg->rate;
+			if( nl->regs->MXCR & MXEN ){
+			    *rate -= (nl->regs->MXRATE+1)*64;
+			}
 		}
 		return 0;
 	}

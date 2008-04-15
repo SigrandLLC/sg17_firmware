@@ -601,7 +601,7 @@ sg16_probe( struct net_device  *ndev )
     ndev->set_multicast_list	= &set_multicast_list;
     ndev->tx_timeout		= &sg16_tx_timeout;
     ndev->watchdog_timeo	= TX_TIMEOUT;
-	ndev->do_ioctl           	= &sg16_ioctl;
+    ndev->do_ioctl           	= &sg16_ioctl;
 	    
 
     if( !request_mem_region( ndev->mem_start, 0x1000, ndev->name ) )

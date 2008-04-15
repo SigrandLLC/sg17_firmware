@@ -503,7 +503,7 @@ mr16g_ioctl(struct net_device *ndev, struct ifreq *ifr, int cmd)
 		}
 	case SIOCGLRATE:{
 		int *rate = (int*)ifr->ifr_data;
-		*rate = mr16g_get_rate(ndev);
+		*rate = mr16g_get_rate(ndev)/1000;
 		return 0;
 	}
 
@@ -574,6 +574,11 @@ mr16g_get_rate(struct net_device *ndev)
 		else
 	  		return 64000*32;
 	}
+
+        storage &= ~1;
+	if( !cfg->ts16 ){
+	    storage &= ~(1<<16);
+	}
 	    
 	while(storage){
 		if( storage & 0x1 )
@@ -589,10 +594,20 @@ mr16g_get_slotmap(struct net_device *ndev)
 	hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct net_local *nl=(struct net_local *)hdlc->priv;
 	struct ds2155_config *cfg= (struct ds2155_config *)&nl->e1_cfg;	
-	if( cfg->framed )
-		return cfg->slotmap;
-	if( nl->hdlc_regs->MXCR & MXEN )
+	u32 storage=cfg->slotmap;
+
+	if( cfg->framed ){
+    		storage &= ~1;
+		if( !cfg->ts16 ){
+	    		storage &= ~(1<<16);
+		}
+		return storage;
+	}
+
+	if( nl->hdlc_regs->MXCR & MXEN ) 
+	// in unframed mode all slots mapped to mx
 		return 0;
+
 	return 0xffffffff;
 }
 
