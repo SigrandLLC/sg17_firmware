@@ -84,7 +84,7 @@ pre_ifup(){
         				esac
 				done
 
-				cmd /sbin/modprobe bonding mode=0 miimon=200 max_bonds=$num
+				cmd /sbin/modprobe bonding mode=7 miimon=200 max_bonds=$num
 			fi
 			[ -n "$mac" ] && cmd $ifconfig $realiface hw ether $mac
 			required /sbin/ifenslave
