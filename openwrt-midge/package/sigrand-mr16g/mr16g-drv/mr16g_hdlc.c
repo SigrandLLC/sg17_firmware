@@ -272,7 +272,11 @@ mr16g_probe( struct net_device  *ndev )
 	ndev->stop	= &mr16g_close;
 	ndev->get_stats	= &mr16g_get_stats;
 	ndev->do_ioctl	= &mr16g_ioctl;
-	ndev->tx_queue_len  = 50;   
+	ndev->tx_queue_len  = 50;
+        ndev->tx_timeout = &mr16g_tx_timeout;
+        ndev->watchdog_timeo = TX_TIMEOUT;
+	
+	
 	// Set hdlc device fields	
 	hdlc->attach = &mr16g_attach;
 	hdlc->xmit   = &mr16g_start_xmit;
@@ -340,7 +344,7 @@ mr16g_open( struct net_device  *ndev )
 	// Correct link representation, because of
 	// dependency of Link led & DS2155 regs!
 	// And correct interrupt mask
-	udelay(5);
+	mdelay(5);
 	mr16g_setup_carrier(ndev,&mask);
 	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
 
@@ -514,6 +518,22 @@ mr16g_ioctl(struct net_device *ndev, struct ifreq *ifr, int cmd)
 }
 
 
+static void
+mr16g_tx_timeout( struct net_device  *ndev )
+{
+    hdlc_device *hdlc = dev_to_hdlc(ndev);
+    struct net_local *nl=(struct net_local *)hdlc->priv;
+    
+    printk( KERN_ERR "%s: transmit timeout\n", ndev->name );
+    if( ioread8( (iotype)&(nl->hdlc_regs->SR)) & TXS ){
+		iowrite8( TXS,(iotype)&(nl->hdlc_regs->SR));
+		printk( KERN_ERR "%s: interrupt posted but not delivered\n",
+				ndev->name );
+    }
+    xmit_free_buffs( ndev );
+}
+
+
 static int
 mr16g_attach(struct net_device *dev, unsigned short encoding, unsigned short parity)
 {
@@ -679,6 +699,7 @@ mr16g_start_xmit( struct sk_buff *skb, struct net_device *ndev )
 	
 	if( nl->tail_xq == ((nl->head_xq - 1) & (XQLEN - 1)) ) {
 		netif_stop_queue( ndev );
+		printk(KERN_NOTICE"%s: netif_stop_queue(%s)\n",ndev->name);
 		goto  err_exit;
 	}
 

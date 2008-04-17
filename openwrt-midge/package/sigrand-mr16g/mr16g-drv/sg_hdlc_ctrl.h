@@ -66,6 +66,9 @@
 #       define ioread32(addr) readl(addr)
 #endif
 
+// Send timeout
+#define TX_TIMEOUT	5*HZ
+
 // E1
 #define MAX_TS_BIT 32
 
@@ -159,6 +162,7 @@ static struct net_device_stats  *mr16g_get_stats( struct net_device * );
 static irqreturn_t  mr16g_int( int, void *, struct pt_regs * );
 static void mr16g_setup_carrier(struct net_device *ndev,u8 *mask);
 static int mr16g_ioctl(struct net_device *, struct ifreq *, int );
+static void  mr16g_tx_timeout( struct net_device * );
 static int mr16g_attach(struct net_device *, unsigned short ,unsigned short );
 static u32 mr16g_get_rate(struct net_device *ndev);
 static u32 mr16g_get_slotmap(struct net_device *ndev);
