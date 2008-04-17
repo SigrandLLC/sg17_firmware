@@ -179,7 +179,7 @@ _ifup(){
 
 	[ -z $proto ] && echo "sys_iface_${iface}_proto is not set" && exit 1
 	[ -z "$method" -a "$proto" != "hdlc" ] && echo "sys_iface_${iface}_method is not set" && exit 1
-	[ "$enabled" = 0 ] && return 
+	[ -z "$enabled" -o "$enabled" == 0 ] && return 
 
 	echo 1 > /proc/sys/net/ipv4/ip_forward
 

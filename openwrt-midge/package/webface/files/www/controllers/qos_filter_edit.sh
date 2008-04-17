@@ -24,16 +24,16 @@
 	
 	render_input_field hidden iface iface "$iface"
 	
+	# enabled
+	desc="Check this item to enable rule"
+	validator='tmt:required="true"'
+	render_input_field checkbox "Enable" enabled	
+	
 	# name
 	desc="Name of filter"
 	validator="$tmtreq $validator_rulename"
 	render_input_field text "Short name" name
-	
-	# enabled
-	desc="Check this item to enable rule"
-	validator='tmt:required="true"'
-	render_input_field checkbox "Enable" enabled
-	
+		
 	# prio
 	desc="Rule priority"
 	default="1"

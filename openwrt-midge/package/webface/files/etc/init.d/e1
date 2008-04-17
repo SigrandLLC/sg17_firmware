@@ -125,9 +125,7 @@ _e1_ifcfg(){
 	echo $hcrc	> crc16
 	echo $fill	> fill_7e
 	echo $inv	> inv
-	cd $DIR
-	enabled=`kdb get sys_iface_${iface}_enabled`
-	[ "$enabled" -eq 1 ] && $ifcfg $iface up
+	cd $DIR	
 }
 
 _e1_modcfg(){
