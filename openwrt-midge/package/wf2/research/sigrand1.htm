@@ -1,0 +1,201 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>WebFace</title>
+<script type="text/javascript">function overlib(){return true;}</script>
+<script type="text/javascript" src="sigrand1_files/overlib.js"></script>
+<script type="text/javascript" src="sigrand1_files/overlib_bubble.js"> </script>
+<script type="text/javascript" src="sigrand1_files/script_tmt_validator.js"> </script>
+<script type="text/javascript" src="sigrand1_files/vlad_tmt_validator.js"> </script>
+<script type="text/javascript" src="sigrand1_files/baloon_validator.js"></script>
+<script type="text/javascript" src="sigrand1_files/misc.js"> </script>
+<script type="text/javascript" src="sigrand1_files/jquery.js"> </script>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="sigrand1_files/content.css" rel="stylesheet" type="text/css">
+<link ilo-ph-fix="tofix" alt="[Image]" ilo-full-src="favicon.ico" rel="shortcut icon" href="favicon.ico"><link href="sigrand1_files/onMouseoverStyle.css" rel="STYLESHEET"></head><body alink="#0000cc" link="#0000cc" vlink="#0000cc">
+<div id="overDiv" style="position: absolute; visibility: hidden; z-index: 1000; background-image: none; left: -10000px; top: -10000px;"><div class="tooltip"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td align="right" valign="bottom"><img ilo-ph-fix="fixed" alt="[Image]" ilo-full-src="img/cornerTL.gif" src="sigrand1_files/cornerTL.gif" style="display: block;" height="14" width="14"></td><td valign="bottom"><img ilo-ph-fix="fixed" alt="[Image]" ilo-full-src="img/edgeT.gif" src="sigrand1_files/edgeT.gif" style="display: block;" height="14" width="200"></td><td align="left" valign="bottom"><img ilo-ph-fix="fixed" alt="[Image]" ilo-full-src="img/cornerTR.gif" src="sigrand1_files/cornerTR.gif" style="display: block;" height="14" width="14"></td></tr><tr><td align="right"><img ilo-ph-fix="fixed" alt="[Image]" ilo-full-src="img/edgeL.gif" src="sigrand1_files/edgeL.gif" style="display: block;" height="28" width="14"></td><td bgcolor="#ffffcc"><table border="0" cellpadding="0" cellspacing="0" width="200"><tbody><tr><td><table border="0" cellpadding="2" cellspacing="0" width="100%"><tbody><tr><td valign="top"><font color="#000000" face="Verdana,Arial,Helvetica" size="1">Input hostname of time server <br>Example: <b>pool.ntp.org</b></font></td></tr></tbody></table></td></tr></tbody></table></td><td align="left"><img ilo-ph-fix="fixed" alt="[Image]" ilo-full-src="img/edgeR.gif" src="sigrand1_files/edgeR.gif" style="display: block;" height="28" width="14"></td></tr><tr><td align="right" valign="top"><img ilo-ph-fix="fixed" alt="[Image]" ilo-full-src="img/cornerBL.gif" src="sigrand1_files/cornerBL.gif" height="14" width="14"></td><td valign="top"><img ilo-ph-fix="fixed" alt="[Image]" ilo-full-src="img/edgeB.gif" src="sigrand1_files/edgeB.gif" height="14" width="200"></td><td align="left" valign="top"><img ilo-ph-fix="fixed" alt="[Image]" ilo-full-src="img/cornerBR.gif" src="sigrand1_files/cornerBR.gif" height="14" width="14"></td></tr></tbody></table></div>
+</div>
+<table border="0" cellpadding="2" cellspacing="0" width="750">
+  <tbody><tr valign="bottom"> 
+    <td align="center" height="65" valign="middle" width="150"> <strong><a href="http://sigrand.ru/" target="_blank"><img ilo-ph-fix="fixed" alt="[Image]" ilo-full-src="img/logo.gif" src="sigrand1_files/logo.gif" border="0" height="84" width="92"></a></strong></td>
+    <td bgcolor="#435370" height="65">
+	<table border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tbody><tr><td align="left" valign="middle"><span class="tfrtitle">&nbsp;&nbsp;&nbsp;Sigrand</span></td>
+	  <td align="right" valign="bottom">
+	  <span class="hostname">
+sigrand1
+</span>
+	  </td></tr></tbody></table>
+	</td>
+  </tr>
+  <tr valign="top"> 
+    <td bgcolor="#9d9d9d" width="150">
+		<strong><a href="?controller=welcome">System</a></strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=general" class="navlnk">General</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=passwd" class="navlnk">Security</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=auth_ppp" class="navlnk">PPP secrets</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=time" class="navlnk">Time</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=logging" class="navlnk">Logging</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=dsl" class="navlnk">SHDSL</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=adm5120sw" class="navlnk">Switch</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=multiplexing" class="navlnk">Multiplexing</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=dns" class="navlnk">DNS</a><br>
+<strong>Network</strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=ifaces" class="navlnk">Interfaces</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=iface&amp;iface=eth0" class="navlnk">eth0</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=iface&amp;iface=eth1" class="navlnk">eth1</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=iface&amp;iface=eth2" class="navlnk">eth2</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=iface&amp;iface=eth3" class="navlnk">eth3</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=fw" class="navlnk">Firewall</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=fw&amp;table=filter" class="navlnk">Filter</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=fw&amp;table=nat" class="navlnk">NAT</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=ipsec" class="navlnk">IPSec</a><br>
+<strong>Services</strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=dns_server" class="navlnk">DNS Server</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=dhcp_server" class="navlnk">DHCP Server</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=pptp_server" class="navlnk">PPTP Server</a><br>
+<strong>Tools</strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=tools&amp;page=syslog" class="navlnk">syslog</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=tools&amp;page=dmesg" class="navlnk">dmesg</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=tools&amp;page=ping" class="navlnk">ping</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=tools&amp;page=mtr" class="navlnk">mtr</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=tools&amp;page=dig" class="navlnk">dig</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=tools&amp;page=tcpdump" class="navlnk">tcpdump</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=tools&amp;page=reboot" class="navlnk">reboot</a><br>
+<strong>Configuration</strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=cfg&amp;page=backup" class="navlnk">backup</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=cfg&amp;page=restore" class="navlnk">restore</a><br>
+<strong>Expert</strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=expert&amp;page=kdb" class="navlnk">kdb</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="?controller=expert&amp;page=kdb_set" class="navlnk">kdb set</a><br>
+	<table border="0" cellpadding="6" cellspacing="0" width="100%">
+        <tbody><tr>
+
+        </tr>
+		</tbody></table></td>
+    <td width="600"><table border="0" cellpadding="10" cellspacing="0" width="100%">
+        <tbody><tr><td><br> <br>
+<form name="time" method="post" tmt:validate="true" tmt:callback="displayError" time_save="">
+<input name="controller" value="time" type="hidden">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+<tbody id="container"><tr><td></td></tr>
+
+
+
+</tbody></table> <!-- /fieldset--> </form><br>
+</td></tr></tbody></table></td>
+	</tr>
+  <tr align="center" bgcolor="#435370" valign="top"> 
+    <td colspan="2" class="cpline">WebFace is © 2005-2006 by Vladislav Moskovets. 
+      All rights reserved.&nbsp; [ <a href="http://www.sigrand.ru/" class="tblnk">Sigrand<img class="TargetAlertIcon" src="sigrand1_files/insecure.png"></a> ]</td>
+  </tr>
+</tbody></table>
+
+</body>
+
+<script src="widgets.js"></script>
+<script src="kdb.js"></script>
+<script>
+		var c = new Container("#container");
+		var field;
+
+		c.addTitle("Time settings");
+
+		field = { 
+			type: 'text',
+			name: 'sys_ntpclient_server', 
+			text: 'Time server', 
+			descr: 'Please input hostname or ip address time server',
+			required: true, 
+			filters: 'ltrim,rtrim', 
+			message: 'Please input correct dns domain name', 
+			pattern: 'dnsdomainoripaddr' 
+		}
+		c.addWidget ( field );
+
+		field = { 
+			type: 'checkbox',
+			name: 'sys_ntpclient_enabled', 
+			text: 'Enable', 
+			required: true, 
+			message: 'Please input correct dns domain name', 
+			pattern: 'dnsdomainoripaddr' 
+		}
+		c.addWidget ( field );
+</script>
+
+
+<!--
+
+
+
+
+<tr>
+<tr><td class='table_title' colspan='2'><table border='0'> <tbody><tr class='table_title'><td width='100%'>Time settings </td>
+<td></td></tr></tbody></table>
+</td></tr>
+
+<tr>
+<td class='vncellt' width='35%'><label for='sys_ntpclient_enabled' >Use time synchronizing</label></td>
+<td class='listr' width='65%'>
+	<input class='edit' name='sys_ntpclient_enabled' tmt:required='true' tmt:message='Please input timeserver' tmt:filters='ltrim,rtrim' tmt:errorclass='invalid' checked='1' type='checkbox'> 
+<br><span class='inputDesc'>Check this item if you want use time synchronizing</span></td></tr>
+
+
+
+
+
+
+
+<tr>
+<td class="vncellt" width="35%"><label for="sys_ntpclient_server" onmouseover="return overlib('Input hostname of time server <br>Example: <b>pool.ntp.org</b>', BUBBLE, BUBBLETYPE, 'roundcorners')" onmouseout="return nd();">Time server</label></td>
+<td class="listr" width="65%">
+	<input class="edit" onmouseover="return overlib('Input hostname of time server <br>Example: <b>pool.ntp.org</b>', BUBBLE, BUBBLETYPE, 'roundcorners')" onmouseout="return nd();" name="sys_ntpclient_server" size="25" maxlength="255" tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns domain name" tmt:pattern="dnsdomainoripaddr" tmt:errorclass="invalid" value="pool.ntp.org" type="text"> 
+<br><span class="inputDesc" onmouseover="return overlib('Input hostname of time server <br>Example: <b>pool.ntp.org</b>', BUBBLE, BUBBLETYPE, 'roundcorners')" onmouseout="return nd();">Please input hostname or ip address time server</span></td></tr>
+<!-- ------- /render_input_field text Time server sys_ntpclient_server  
+
+<!-- ------- render_input_field select Time zone sys_timezone bad Please select timezone -12 GMT-12 -11 GMT-11 -10 GMT-10 -9 GMT-9 -8 GMT-8 -7 GMT-7 -6 GMT-6 -5 GMT-5 -4 GMT-4 -3 GMT-3 -2 GMT-2 -1 GMT-1 0 GMT 1 GMT+1 2 GMT+2 3 GMT+3 4 GMT+4 5 GMT+5 6 GMT+6 7 GMT+7 8 GMT+8 9 GMT+9 10 GMT+10 11 GMT+11 12 GMT+12 
+<tr>
+<td class="vncellt" width="35%"><label for="sys_timezone" onmouseover="return overlib('Select time zone<br>Example: <b>GMT</b>, <b>GMT+1</b>, <b>GMT+2</b>', BUBBLE, BUBBLETYPE, 'roundcorners')" onmouseout="return nd();">Time zone</label></td>
+<td class="listr" width="65%">
+<select onmouseover="return overlib('Select time zone<br>Example: <b>GMT</b>, <b>GMT+1</b>, <b>GMT+2</b>', BUBBLE, BUBBLETYPE, 'roundcorners')" onmouseout="return nd();" name="sys_timezone" class="edit" tmt:invalidindex="0" tmt:message="Please select timezone" tmt:errorclass="invalid"><option value="bad">Please select timezone</option>
+<option value="-12">GMT-12</option>
+<option value="-11">GMT-11</option>
+<option value="-10">GMT-10</option>
+<option value="-9">GMT-9</option>
+<option value="-8">GMT-8</option>
+<option value="-7">GMT-7</option>
+<option value="-6">GMT-6</option>
+<option value="-5">GMT-5</option>
+<option value="-4" selected="selected">GMT-4</option>
+<option value="-3">GMT-3</option>
+<option value="-2">GMT-2</option>
+<option value="-1">GMT-1</option>
+<option value="0">GMT</option>
+<option value="1">GMT+1</option>
+<option value="2">GMT+2</option>
+<option value="3">GMT+3</option>
+<option value="4">GMT+4</option>
+<option value="5">GMT+5</option>
+<option value="6">GMT+6</option>
+<option value="7">GMT+7</option>
+<option value="8">GMT+8</option>
+<option value="9">GMT+9</option>
+<option value="10">GMT+10</option>
+<option value="11">GMT+11</option>
+<option value="12">GMT+12</option>
+</select>
+<br><span class="inputDesc" onmouseover="return overlib('Select time zone<br>Example: <b>GMT</b>, <b>GMT+1</b>, <b>GMT+2</b>', BUBBLE, BUBBLETYPE, 'roundcorners')" onmouseout="return nd();">Please select timezone</span></td></tr>
+<tr> <td colspan="2" style="text-align: center;"> <input class="button" name="submit" value="Save" type="submit"> </td> </tr>
+<!-- ------- /render_input_field select Time zone sys_timezone  -->
+
+
+
+
+
+
+
+
+
+
+
+
+</html>

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<messages>
+	<message>
+		<msgid><![CDATA[L10N (Localization) By Javascript]]></msgid>
+		<msgstr><![CDATA[Javascript 的本地化]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[<EM>String with HTML tag</EM>, but it work still with bugs for IE, if the tag was set with attributes.]]></msgid>
+		<msgstr><![CDATA[<EM>包含 HTML 标签的字符串</EM>，但是如果标签设置了属性，则它在 IE 下运行时仍有 bug。]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Outputted by script.]]></msgid>
+		<msgstr><![CDATA[通过脚本输出。]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[This sentence was outputted by function $.l10n._e() ( also $.l10n.__() ), it will not be translated dynamic by $(obj).l10n() if the default language is not English.]]></msgid>
+		<msgstr><![CDATA[这句话是由函数 L10N._e()（包括 L10N.__()）输出的，如果默认的语言不是英语，它将不会被 L10N.T_() 函数动态翻译。]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Download]]></msgid>
+		<msgstr><![CDATA[立即下载]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Messages Picker]]></msgid>
+		<msgstr><![CDATA[信息提取器]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[You can pick all messages easier by using this tool.]]></msgid>
+		<msgstr><![CDATA[使用该脚本，您可以很容易的将所有需要翻译的语句提取出来。]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Encode]]></msgid>
+		<msgstr><![CDATA[编码]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Parse functions (_e and __)?]]></msgid>
+		<msgstr><![CDATA[同时解析函数（_e 和 __）吗？]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Usage]]></msgid>
+		<msgstr><![CDATA[使用方法]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Include the script.]]></msgid>
+		<msgstr><![CDATA[包含脚本。]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Load language file (XML file).]]></msgid>
+		<msgstr><![CDATA[加载语言文件（XML 文件）。]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Translate. There are two ways to do this.]]></msgid>
+		<msgstr><![CDATA[进行翻译。本脚本提供了两种方法。]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Translate directly]]></msgid>
+		<msgstr><![CDATA[直接翻译]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Translate indirectly]]></msgid>
+		<msgstr><![CDATA[间接翻译]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[First, define a sentence need to be translated, e.g: span.]]></msgid>
+		<msgstr><![CDATA[首先，定义一个需要翻译的语句，例如：span 标签。]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[And then, call function $(selector).l10n()]]></msgid>
+		<msgstr><![CDATA[然后，调用 $(selector).l10n() 函数]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Select all elements of span, and translate]]></msgid>
+		<msgstr><![CDATA[筛选所有 span 元素，并翻译]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[A simple example]]></msgid>
+		<msgstr><![CDATA[一个简单的实例]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Precautions]]></msgid>
+		<msgstr><![CDATA[注意事项]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[If you want to translate the sentence before the webpage finish loading, you must load language file before transfering. The better way, do it between &lt;head&gt; and &lt;/head&gt;.]]></msgid>
+		<msgstr><![CDATA[如果您要在页面加载的同时翻译语句，请在调用函数前加载语言文件，例如在 &lt;head&gt; 和 &lt;/head&gt; 之间。]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[The msgid is case sensitive.]]></msgid>
+		<msgstr><![CDATA[msgid 是大小写敏感的。]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[This code need the library of jQuery.]]></msgid>
+		<msgstr><![CDATA[本脚本需要 jQuery 库。]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Get latest version]]></msgid>
+		<msgstr><![CDATA[获取最新版本]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Variables]]></msgid>
+		<msgstr><![CDATA[变量]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Options]]></msgid>
+		<msgstr><![CDATA[选项]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Path to the folder of language files]]></msgid>
+		<msgstr><![CDATA[语言文件的存放目录]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Current language]]></msgid>
+		<msgstr><![CDATA[当前语言类型]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[If set to false it will force the pages that you request to not be cached by the browser]]></msgid>
+		<msgstr><![CDATA[设置为 false 将不会从浏览器缓存中加载请求信息]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Language of the language file]]></msgid>
+		<msgstr><![CDATA[语言文件的语言类型]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Store all messages that read from language file]]></msgid>
+		<msgstr><![CDATA[存储语言文件中的所有消息]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Functions]]></msgid>
+		<msgstr><![CDATA[函数]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Initialization options]]></msgid>
+		<msgstr><![CDATA[初始化选项]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[The same to $.l10n.opts]]></msgid>
+		<msgstr><![CDATA[和 $.l10n.opts 一样]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Check whether to need to translate or not]]></msgid>
+		<msgstr><![CDATA[检查是否需要进行翻译]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Translate the words]]></msgid>
+		<msgstr><![CDATA[翻译语句]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Words need to be translated]]></msgid>
+		<msgstr><![CDATA[要翻译的语句]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Translate and output]]></msgid>
+		<msgstr><![CDATA[翻译并输出]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Translate all messages that was selected by jQuery.selector]]></msgid>
+		<msgstr><![CDATA[翻译由 jQuery.selector 筛选出来的所有信息]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Load the language file]]></msgid>
+		<msgstr><![CDATA[加载语言文件]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[0: Failure, 1: Success, 2: Language was loaded]]></msgid>
+		<msgstr><![CDATA[0: 加载失败, 1: 加载成功, 2: 语言文件已加载]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Read all messages from the language file]]></msgid>
+		<msgstr><![CDATA[读取语言文件中的所有消息]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Root of XML document]]></msgid>
+		<msgstr><![CDATA[XML 文档的根节点]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Pick all messages that was selected by jQuery.selector]]></msgid>
+		<msgstr><![CDATA[提取由 jQuery.selector 筛选出来的所有信息]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Encode of XML file]]></msgid>
+		<msgstr><![CDATA[XML 文件的编码]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[If set to true it will parse functions `_e` and `__`]]></msgid>
+		<msgstr><![CDATA[如果设置为 true 则将同时提取函数 `_e` 和 `__`]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Language file]]></msgid>
+		<msgstr><![CDATA[语言文件]]></msgstr>
+	</message>
+	<message>
+		<msgid><![CDATA[Words have translated]]></msgid>
+		<msgstr><![CDATA[翻译后的语句]]></msgstr>
+	</message>
+</messages>

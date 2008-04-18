@@ -1,0 +1,43 @@
+<html>
+		<head>
+				<title>jquery test </title>
+				<script type="text/javascript" src="jquery.js"></script>
+		</head>
+		<body>
+		<script type="text/javascript">
+	var kdb_conf = "sys_iface_eth0_valid=1\nsys_iface_eth0_enabled=0\n";
+	//alert("kdb_conf:\n" + kdb_conf);
+	$.getJSON("test.json", function(json){
+		alert("JSON Data: " + json.sys.iface."eth0".enabled);
+	});
+
+function Conf() {
+this.qqq="qqq";
+}
+</script>
+
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

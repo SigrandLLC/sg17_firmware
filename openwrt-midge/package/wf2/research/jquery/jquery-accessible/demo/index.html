@@ -1,0 +1,101 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" class="nojs">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+	<title>jQuery.Accessible</title>
+	<script type="text/javascript" src="../jquery.js"></script>
+	<script type="text/javascript" src="../jquery.accessible.js"></script>
+	<script type="text/javascript" src="../jquery.accessible.validator.js"></script>
+	<script type="text/javascript">
+		$.accessible();
+		$.accessible.runTests('#summary');
+	</script>
+	<style type="text/css">
+		h2,h4,ul,li{
+			padding:0;
+			margin:0;
+		}
+		#content,#summary{
+			border:1px black solid;
+			width:850px;
+			padding:19px;
+			margin:10px;
+			display:block;
+		}
+		#content{
+			background:#999;
+		}
+		#summary{
+			background:lightyellow;
+		}
+		table{
+			background:#CCC;
+			margin-bottom:3px;
+		}
+		li.passed{
+			background:lightgreen;
+		}
+		li.fixed{
+			background:lightgrey;
+		}
+		li.failed{
+			background:lightsalmon;
+		}
+		em, a.readmore{
+			margin-left:5px;
+			font-style:italic;
+		}
+		.nojs span.js-enabled{
+			display:none;
+		}
+		noscript{
+			display:block;
+			color:red;
+			margin:10px 0;
+		}
+		#links{
+			position:absolute;
+			top:10px;
+			right:5px;
+			border:1px black solid;
+			padding: 15px 20px 15px 7px;
+		}
+		#links li{
+			list-style:none;
+			margin-left:8px;
+			margin-top: 3px;
+		}
+	</style>
+</head>
+<body>
+	<h1>jQuery.Accessible Demo</h1>
+	<noscript>You need Javascript enabled, in order to see this demo :)</noscript>
+	<h2>Content</h2>
+	<div id="content">
+		<ul>
+			<li><a href="#">I have no title...</a>&nbsp;<span class="js-enabled">thanks to jQuery, now this link is more accessible (try disabling javascript)</li>
+			<li><a href="javascript:alert('baaad');">I have "javascript:" inside my href</a></li>
+			<li><img src="img.gif" />&nbsp;This image doesn't have "alt" or "longdesc"</li>
+			<li>
+				<table border="1" height="20">
+					<thead><tr><th>Oh no!</th></tr></thead>
+					<tbody><tr><td>I have no summary</td></tr></tbody>
+				</table>
+			</li>
+			<li>
+				<label for="input">Some input:</label>
+				<input type="text" id="input" value="luckily I have a label of my own :)" size="30" />
+			</li>
+		</ul>
+	</div>
+	<h2>Summary of tests</h2>
+	<div id="summary"></div>
+	<div id="links">
+		<h4>Links</h4>
+		<ul>
+			<li><a target="_blank" href="http://plugins.jquery.com/project/Accessible">Project Page</a></li>
+			<li><a target="_blank" href="http://flesler.blogspot.com/search/label/jQuery.Rule">Blog entry</a></li>
+		</ul>
+	</div>
+</body>
+</html>
