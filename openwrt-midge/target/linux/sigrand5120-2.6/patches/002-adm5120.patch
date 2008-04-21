@@ -1,6 +1,6 @@
 diff -Naur linux-2.6.16/arch/mips/adm5120/altera.c linux-2.6.16-new/arch/mips/adm5120/altera.c
 --- linux-2.6.16/arch/mips/adm5120/altera.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/arch/mips/adm5120/altera.c	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/arch/mips/adm5120/altera.c	2008-04-20 11:08:10.000000000 +0700
 @@ -0,0 +1,46 @@
 +#include <linux/config.h>
 +#include <linux/init.h>
@@ -50,7 +50,7 @@ diff -Naur linux-2.6.16/arch/mips/adm5120/altera.c linux-2.6.16-new/arch/mips/ad
 +}
 diff -Naur linux-2.6.16/arch/mips/adm5120/irq.c linux-2.6.16-new/arch/mips/adm5120/irq.c
 --- linux-2.6.16/arch/mips/adm5120/irq.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/arch/mips/adm5120/irq.c	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/arch/mips/adm5120/irq.c	2008-04-20 11:08:10.000000000 +0700
 @@ -0,0 +1,151 @@
 +/*
 + *	Copyright (C) ADMtek Incorporated.
@@ -205,7 +205,7 @@ diff -Naur linux-2.6.16/arch/mips/adm5120/irq.c linux-2.6.16-new/arch/mips/adm51
 +
 diff -Naur linux-2.6.16/arch/mips/adm5120/Kconfig linux-2.6.16-new/arch/mips/adm5120/Kconfig
 --- linux-2.6.16/arch/mips/adm5120/Kconfig	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/arch/mips/adm5120/Kconfig	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/arch/mips/adm5120/Kconfig	2008-04-20 11:08:10.000000000 +0700
 @@ -0,0 +1,4 @@
 +config PCI_ADM5120
 +	bool "Add PCI control support for ADM5120"
@@ -213,13 +213,13 @@ diff -Naur linux-2.6.16/arch/mips/adm5120/Kconfig linux-2.6.16-new/arch/mips/adm
 +	
 diff -Naur linux-2.6.16/arch/mips/adm5120/Makefile linux-2.6.16-new/arch/mips/adm5120/Makefile
 --- linux-2.6.16/arch/mips/adm5120/Makefile	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/arch/mips/adm5120/Makefile	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/arch/mips/adm5120/Makefile	2008-04-20 11:08:10.000000000 +0700
 @@ -0,0 +1,2 @@
 +
 +obj-y	:= setup.o prom.o irq.o memory.o mipsIRQ.o altera.o
 diff -Naur linux-2.6.16/arch/mips/adm5120/memory.c linux-2.6.16-new/arch/mips/adm5120/memory.c
 --- linux-2.6.16/arch/mips/adm5120/memory.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/arch/mips/adm5120/memory.c	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/arch/mips/adm5120/memory.c	2008-04-20 11:08:10.000000000 +0700
 @@ -0,0 +1,69 @@
 +/*****************************************************************************
 + * Carsten Langgaard, carstenl@mips.com
@@ -292,7 +292,7 @@ diff -Naur linux-2.6.16/arch/mips/adm5120/memory.c linux-2.6.16-new/arch/mips/ad
 +}
 diff -Naur linux-2.6.16/arch/mips/adm5120/mipsIRQ.S linux-2.6.16-new/arch/mips/adm5120/mipsIRQ.S
 --- linux-2.6.16/arch/mips/adm5120/mipsIRQ.S	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/arch/mips/adm5120/mipsIRQ.S	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/arch/mips/adm5120/mipsIRQ.S	2008-04-20 11:08:10.000000000 +0700
 @@ -0,0 +1,135 @@
 +/*
 + * Carsten Langgaard, carstenl@mips.com
@@ -431,7 +431,7 @@ diff -Naur linux-2.6.16/arch/mips/adm5120/mipsIRQ.S linux-2.6.16-new/arch/mips/a
 +
 diff -Naur linux-2.6.16/arch/mips/adm5120/prom.c linux-2.6.16-new/arch/mips/adm5120/prom.c
 --- linux-2.6.16/arch/mips/adm5120/prom.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/arch/mips/adm5120/prom.c	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/arch/mips/adm5120/prom.c	2008-04-20 11:08:10.000000000 +0700
 @@ -0,0 +1,47 @@
 +/*****************************************************************************
 + * Carsten Langgaard, carstenl@mips.com
@@ -482,7 +482,7 @@ diff -Naur linux-2.6.16/arch/mips/adm5120/prom.c linux-2.6.16-new/arch/mips/adm5
 +}
 diff -Naur linux-2.6.16/arch/mips/adm5120/setup.c linux-2.6.16-new/arch/mips/adm5120/setup.c
 --- linux-2.6.16/arch/mips/adm5120/setup.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/arch/mips/adm5120/setup.c	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/arch/mips/adm5120/setup.c	2008-04-20 11:08:10.000000000 +0700
 @@ -0,0 +1,136 @@
 +/*
 + *	Copyright (C) ADMtek Incorporated.
@@ -621,8 +621,8 @@ diff -Naur linux-2.6.16/arch/mips/adm5120/setup.c linux-2.6.16-new/arch/mips/adm
 +
 +subsys_initcall(adm5120_init);
 diff -Naur linux-2.6.16/arch/mips/Kconfig linux-2.6.16-new/arch/mips/Kconfig
---- linux-2.6.16/arch/mips/Kconfig	2007-05-10 12:09:02.000000000 +0700
-+++ linux-2.6.16-new/arch/mips/Kconfig	2007-05-10 10:27:22.000000000 +0700
+--- linux-2.6.16/arch/mips/Kconfig	2008-04-20 00:21:47.000000000 +0700
++++ linux-2.6.16-new/arch/mips/Kconfig	2008-04-20 11:08:10.000000000 +0700
 @@ -10,7 +10,16 @@
  
  choice
@@ -661,7 +661,7 @@ diff -Naur linux-2.6.16/arch/mips/Kconfig linux-2.6.16-new/arch/mips/Kconfig
  	select SOC_AU1X00
 diff -Naur linux-2.6.16/arch/mips/kernel/head.S linux-2.6.16-new/arch/mips/kernel/head.S
 --- linux-2.6.16/arch/mips/kernel/head.S	2006-03-20 11:53:29.000000000 +0600
-+++ linux-2.6.16-new/arch/mips/kernel/head.S	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/arch/mips/kernel/head.S	2008-04-20 11:08:10.000000000 +0700
 @@ -25,6 +25,7 @@
  
  #include <kernel-entry-init.h>
@@ -683,7 +683,7 @@ diff -Naur linux-2.6.16/arch/mips/kernel/head.S linux-2.6.16-new/arch/mips/kerne
  EXPORT(_stext)
 diff -Naur linux-2.6.16/arch/mips/kernel/traps.c linux-2.6.16-new/arch/mips/kernel/traps.c
 --- linux-2.6.16/arch/mips/kernel/traps.c	2006-03-20 11:53:29.000000000 +0600
-+++ linux-2.6.16-new/arch/mips/kernel/traps.c	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/arch/mips/kernel/traps.c	2008-04-20 11:08:10.000000000 +0700
 @@ -780,8 +780,19 @@
  
  asmlinkage void do_mcheck(struct pt_regs *regs)
@@ -705,8 +705,8 @@ diff -Naur linux-2.6.16/arch/mips/kernel/traps.c linux-2.6.16-new/arch/mips/kern
  	 * Some chips may have other causes of machine check (e.g. SB1
  	 * graduation timer)
 diff -Naur linux-2.6.16/arch/mips/Makefile linux-2.6.16-new/arch/mips/Makefile
---- linux-2.6.16/arch/mips/Makefile	2007-05-10 12:09:03.000000000 +0700
-+++ linux-2.6.16-new/arch/mips/Makefile	2007-05-10 10:27:22.000000000 +0700
+--- linux-2.6.16/arch/mips/Makefile	2008-04-20 00:21:47.000000000 +0700
++++ linux-2.6.16-new/arch/mips/Makefile	2008-04-20 11:08:10.000000000 +0700
 @@ -286,6 +286,12 @@
  load-$(CONFIG_MACH_JAZZ)	+= 0xffffffff80080000
  
@@ -722,7 +722,7 @@ diff -Naur linux-2.6.16/arch/mips/Makefile linux-2.6.16-new/arch/mips/Makefile
  core-$(CONFIG_SOC_AU1X00)	+= arch/mips/au1000/common/
 diff -Naur linux-2.6.16/arch/mips/mm/tlbex.c linux-2.6.16-new/arch/mips/mm/tlbex.c
 --- linux-2.6.16/arch/mips/mm/tlbex.c	2006-03-20 11:53:29.000000000 +0600
-+++ linux-2.6.16-new/arch/mips/mm/tlbex.c	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/arch/mips/mm/tlbex.c	2008-04-20 11:08:10.000000000 +0700
 @@ -742,7 +742,7 @@
  	}
  #endif
@@ -766,7 +766,7 @@ diff -Naur linux-2.6.16/arch/mips/mm/tlbex.c linux-2.6.16-new/arch/mips/mm/tlbex
  /*
 diff -Naur linux-2.6.16/arch/mips/pci/Makefile linux-2.6.16-new/arch/mips/pci/Makefile
 --- linux-2.6.16/arch/mips/pci/Makefile	2006-03-20 11:53:29.000000000 +0600
-+++ linux-2.6.16-new/arch/mips/pci/Makefile	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/arch/mips/pci/Makefile	2008-04-20 11:08:10.000000000 +0700
 @@ -7,6 +7,7 @@
  #
  # PCI bus host bridge specific code
@@ -777,7 +777,7 @@ diff -Naur linux-2.6.16/arch/mips/pci/Makefile linux-2.6.16-new/arch/mips/pci/Ma
  obj-$(CONFIG_MIPS_GT64111)	+= ops-gt64111.o
 diff -Naur linux-2.6.16/arch/mips/pci/ops-adm5120.c linux-2.6.16-new/arch/mips/pci/ops-adm5120.c
 --- linux-2.6.16/arch/mips/pci/ops-adm5120.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/arch/mips/pci/ops-adm5120.c	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/arch/mips/pci/ops-adm5120.c	2008-04-20 11:08:10.000000000 +0700
 @@ -0,0 +1,59 @@
 +/*
 + *	Copyright (C) ADMtek Incorporated.
@@ -840,8 +840,8 @@ diff -Naur linux-2.6.16/arch/mips/pci/ops-adm5120.c linux-2.6.16-new/arch/mips/p
 +};
 diff -Naur linux-2.6.16/arch/mips/pci/pci-adm5120.c linux-2.6.16-new/arch/mips/pci/pci-adm5120.c
 --- linux-2.6.16/arch/mips/pci/pci-adm5120.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/arch/mips/pci/pci-adm5120.c	2007-05-10 10:27:22.000000000 +0700
-@@ -0,0 +1,93 @@
++++ linux-2.6.16-new/arch/mips/pci/pci-adm5120.c	2008-04-20 11:10:09.000000000 +0700
+@@ -0,0 +1,98 @@
 +/*
 + *	Copyright (C) ADMtek Incorporated.
 + *	Copyright (C) 2005 Jeroen Vreeken (pe1rxq@amsat.org)
@@ -889,9 +889,13 @@ diff -Naur linux-2.6.16/arch/mips/pci/pci-adm5120.c linux-2.6.16-new/arch/mips/p
 +
 +int __init pcibios_map_irq(struct pci_dev *dev, u8 slot, u8 pin)
 +{
-+	if (slot < 2 || slot > 4)
++	if (slot < 2 || slot > 5 )
 +		return -1;
-+	return slot + 4;
++	if( slot == 5 ){
++		return 2+4; // same as for slot #2
++	}else{
++	        return (slot + 4);
++	}
 +}
 +
 +static void adm5120_pci_fixup(struct pci_dev *dev)
@@ -921,6 +925,7 @@ diff -Naur linux-2.6.16/arch/mips/pci/pci-adm5120.c linux-2.6.16-new/arch/mips/p
 +		return 1;
 +	}
 +	printk("System has PCI BIOS\n");
++	printk("\tPCI slot#5 IRQ enabled\n");
 +
 +	/* Avoid ISA compat ranges.  */
 +	PCIBIOS_MIN_IO = 0x00000000;
@@ -937,7 +942,7 @@ diff -Naur linux-2.6.16/arch/mips/pci/pci-adm5120.c linux-2.6.16-new/arch/mips/p
 +arch_initcall(adm5120_pci_setup);
 diff -Naur linux-2.6.16/compile linux-2.6.16-new/compile
 --- linux-2.6.16/compile	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/compile	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/compile	2008-04-20 11:08:10.000000000 +0700
 @@ -0,0 +1,9 @@
 +#!/bin/bash
 +
@@ -950,7 +955,7 @@ diff -Naur linux-2.6.16/compile linux-2.6.16-new/compile
 +gzip -c vmlinux.bin > vmlinuz
 diff -Naur linux-2.6.16/.config linux-2.6.16-new/.config
 --- linux-2.6.16/.config	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/.config	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/.config	2008-04-20 11:08:10.000000000 +0700
 @@ -0,0 +1,1040 @@
 +#
 +# Automatically generated make config: don't edit
@@ -1994,7 +1999,7 @@ diff -Naur linux-2.6.16/.config linux-2.6.16-new/.config
 +CONFIG_TEXTSEARCH_FSM=y
 diff -Naur linux-2.6.16/drivers/base/firmware_class.c linux-2.6.16-new/drivers/base/firmware_class.c
 --- linux-2.6.16/drivers/base/firmware_class.c	2006-03-20 11:53:29.000000000 +0600
-+++ linux-2.6.16-new/drivers/base/firmware_class.c	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/drivers/base/firmware_class.c	2008-04-20 11:08:10.000000000 +0700
 @@ -18,6 +18,7 @@
  #include <asm/semaphore.h>
  
@@ -2013,7 +2018,7 @@ diff -Naur linux-2.6.16/drivers/base/firmware_class.c linux-2.6.16-new/drivers/b
  
 diff -Naur linux-2.6.16/drivers/char/adm5120_gpio.c linux-2.6.16-new/drivers/char/adm5120_gpio.c
 --- linux-2.6.16/drivers/char/adm5120_gpio.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/drivers/char/adm5120_gpio.c	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/drivers/char/adm5120_gpio.c	2008-04-20 11:08:10.000000000 +0700
 @@ -0,0 +1,57 @@
 +/*
 + *	ADM5120 LED (GPIO) driver
@@ -2073,8 +2078,8 @@ diff -Naur linux-2.6.16/drivers/char/adm5120_gpio.c linux-2.6.16-new/drivers/cha
 +module_init(adm5120_led_init);
 +module_exit(adm5120_led_exit);
 diff -Naur linux-2.6.16/drivers/char/Kconfig linux-2.6.16-new/drivers/char/Kconfig
---- linux-2.6.16/drivers/char/Kconfig	2007-05-10 12:09:03.000000000 +0700
-+++ linux-2.6.16-new/drivers/char/Kconfig	2007-05-10 10:27:22.000000000 +0700
+--- linux-2.6.16/drivers/char/Kconfig	2008-04-20 00:21:47.000000000 +0700
++++ linux-2.6.16-new/drivers/char/Kconfig	2008-04-20 11:08:10.000000000 +0700
 @@ -468,9 +468,10 @@
         depends on SGI_TIOCX
         help
@@ -2102,8 +2107,8 @@ diff -Naur linux-2.6.16/drivers/char/Kconfig linux-2.6.16-new/drivers/char/Kconf
  config TELCLOCK
  	tristate "Telecom clock driver for MPBL0010 ATCA SBC"
 diff -Naur linux-2.6.16/drivers/char/Makefile linux-2.6.16-new/drivers/char/Makefile
---- linux-2.6.16/drivers/char/Makefile	2007-05-10 12:09:03.000000000 +0700
-+++ linux-2.6.16-new/drivers/char/Makefile	2007-05-10 10:27:22.000000000 +0700
+--- linux-2.6.16/drivers/char/Makefile	2008-04-20 00:21:47.000000000 +0700
++++ linux-2.6.16-new/drivers/char/Makefile	2008-04-20 11:08:10.000000000 +0700
 @@ -80,6 +80,7 @@
  obj-$(CONFIG_FTAPE) += ftape/
  obj-$(CONFIG_COBALT_LCD) += lcd.o
@@ -2114,7 +2119,7 @@ diff -Naur linux-2.6.16/drivers/char/Makefile linux-2.6.16-new/drivers/char/Make
  obj-$(CONFIG_AU1000_USB_RAW) += au1000_usbraw.o
 diff -Naur linux-2.6.16/drivers/debug/debug_net.c linux-2.6.16-new/drivers/debug/debug_net.c
 --- linux-2.6.16/drivers/debug/debug_net.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/drivers/debug/debug_net.c	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/drivers/debug/debug_net.c	2008-04-20 11:08:10.000000000 +0700
 @@ -0,0 +1,174 @@
 +#include <linux/time.h>
 +#include <linux/module.h>
@@ -2292,13 +2297,13 @@ diff -Naur linux-2.6.16/drivers/debug/debug_net.c linux-2.6.16-new/drivers/debug
 +module_init(debug_net_init);
 diff -Naur linux-2.6.16/drivers/debug/Makefile linux-2.6.16-new/drivers/debug/Makefile
 --- linux-2.6.16/drivers/debug/Makefile	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/drivers/debug/Makefile	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/drivers/debug/Makefile	2008-04-20 11:08:10.000000000 +0700
 @@ -0,0 +1,2 @@
 +obj-y		+= debug_net.o
 +
 diff -Naur linux-2.6.16/drivers/mtd/nand/adm5120.c linux-2.6.16-new/drivers/mtd/nand/adm5120.c
 --- linux-2.6.16/drivers/mtd/nand/adm5120.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/drivers/mtd/nand/adm5120.c	2007-05-07 10:32:51.000000000 +0700
++++ linux-2.6.16-new/drivers/mtd/nand/adm5120.c	2008-04-20 11:08:11.000000000 +0700
 @@ -0,0 +1,219 @@
 +/*
 + *  drivers/mtd/nand/adm5120.c
@@ -2521,7 +2526,7 @@ diff -Naur linux-2.6.16/drivers/mtd/nand/adm5120.c linux-2.6.16-new/drivers/mtd/
 +MODULE_AUTHOR("Artyom U. Plyakov <art@sigrand.ru");
 diff -Naur linux-2.6.16/drivers/mtd/nand/adm5120.h linux-2.6.16-new/drivers/mtd/nand/adm5120.h
 --- linux-2.6.16/drivers/mtd/nand/adm5120.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/drivers/mtd/nand/adm5120.h	2007-05-07 10:32:51.000000000 +0700
++++ linux-2.6.16-new/drivers/mtd/nand/adm5120.h	2008-04-20 11:08:11.000000000 +0700
 @@ -0,0 +1,91 @@
 +/*****************************************************************************
 +;
@@ -2616,7 +2621,7 @@ diff -Naur linux-2.6.16/drivers/mtd/nand/adm5120.h linux-2.6.16-new/drivers/mtd/
 +#endif
 diff -Naur linux-2.6.16/drivers/mtd/nand/Makefile linux-2.6.16-new/drivers/mtd/nand/Makefile
 --- linux-2.6.16/drivers/mtd/nand/Makefile	2006-03-20 11:53:29.000000000 +0600
-+++ linux-2.6.16-new/drivers/mtd/nand/Makefile	2007-05-10 10:27:22.000000000 +0700
++++ linux-2.6.16-new/drivers/mtd/nand/Makefile	2008-04-20 11:08:11.000000000 +0700
 @@ -6,10 +6,14 @@
  obj-$(CONFIG_MTD_NAND)			+= nand.o nand_ecc.o
  obj-$(CONFIG_MTD_NAND_IDS)		+= nand_ids.o
@@ -2634,7 +2639,7 @@ diff -Naur linux-2.6.16/drivers/mtd/nand/Makefile linux-2.6.16-new/drivers/mtd/n
  obj-$(CONFIG_MTD_NAND_S3C2410)		+= s3c2410.o
 diff -Naur linux-2.6.16/drivers/mtd/nand/nand_base.c linux-2.6.16-new/drivers/mtd/nand/nand_base.c
 --- linux-2.6.16/drivers/mtd/nand/nand_base.c	2006-03-20 11:53:29.000000000 +0600
-+++ linux-2.6.16-new/drivers/mtd/nand/nand_base.c	2007-05-13 18:17:45.000000000 +0700
++++ linux-2.6.16-new/drivers/mtd/nand/nand_base.c	2008-04-20 11:08:11.000000000 +0700
 @@ -5,14 +5,14 @@
   *   This is the generic MTD driver for NAND flash devices. It should be
   *   capable of working with almost all NAND chips currently available.
@@ -4649,7 +4654,7 @@ diff -Naur linux-2.6.16/drivers/mtd/nand/nand_base.c linux-2.6.16-new/drivers/mt
  MODULE_AUTHOR ("Steven J. Hill <sjhill@realitydiluted.com>, Thomas Gleixner <tglx@linutronix.de>");
 diff -Naur linux-2.6.16/drivers/mtd/nand/nand_bbt.c linux-2.6.16-new/drivers/mtd/nand/nand_bbt.c
 --- linux-2.6.16/drivers/mtd/nand/nand_bbt.c	2006-03-20 11:53:29.000000000 +0600
-+++ linux-2.6.16-new/drivers/mtd/nand/nand_bbt.c	2007-05-08 19:05:17.000000000 +0700
++++ linux-2.6.16-new/drivers/mtd/nand/nand_bbt.c	2008-04-20 11:08:11.000000000 +0700
 @@ -981,7 +981,8 @@
  };
  
@@ -4672,7 +4677,7 @@ diff -Naur linux-2.6.16/drivers/mtd/nand/nand_bbt.c linux-2.6.16-new/drivers/mtd
  
 diff -Naur linux-2.6.16/drivers/pci/setup-bus.c linux-2.6.16-new/drivers/pci/setup-bus.c
 --- linux-2.6.16/drivers/pci/setup-bus.c	2006-03-20 11:53:29.000000000 +0600
-+++ linux-2.6.16-new/drivers/pci/setup-bus.c	2007-05-10 10:27:23.000000000 +0700
++++ linux-2.6.16-new/drivers/pci/setup-bus.c	2008-04-20 11:08:11.000000000 +0700
 @@ -41,7 +41,9 @@
   * have a P2P bridge below a cardbus bridge, we need 4K.
   */
@@ -4686,7 +4691,7 @@ diff -Naur linux-2.6.16/drivers/pci/setup-bus.c linux-2.6.16-new/drivers/pci/set
  pbus_assign_resources_sorted(struct pci_bus *bus)
 diff -Naur linux-2.6.16/drivers/pcmcia/yenta_socket.c linux-2.6.16-new/drivers/pcmcia/yenta_socket.c
 --- linux-2.6.16/drivers/pcmcia/yenta_socket.c	2006-03-20 11:53:29.000000000 +0600
-+++ linux-2.6.16-new/drivers/pcmcia/yenta_socket.c	2007-05-10 10:27:23.000000000 +0700
++++ linux-2.6.16-new/drivers/pcmcia/yenta_socket.c	2008-04-20 11:08:11.000000000 +0700
 @@ -27,11 +27,12 @@
  #include "yenta_socket.h"
  #include "i82365.h"
@@ -4713,7 +4718,7 @@ diff -Naur linux-2.6.16/drivers/pcmcia/yenta_socket.c linux-2.6.16-new/drivers/p
  	cb_writel(socket, CB_SOCKET_EVENT, -1);
 diff -Naur linux-2.6.16/drivers/serial/adm5120_uart.c linux-2.6.16-new/drivers/serial/adm5120_uart.c
 --- linux-2.6.16/drivers/serial/adm5120_uart.c	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/drivers/serial/adm5120_uart.c	2007-05-10 10:27:23.000000000 +0700
++++ linux-2.6.16-new/drivers/serial/adm5120_uart.c	2008-04-20 11:08:11.000000000 +0700
 @@ -0,0 +1,523 @@
 +/*
 + *	Serial driver for ADM5120 SoC
@@ -5239,8 +5244,8 @@ diff -Naur linux-2.6.16/drivers/serial/adm5120_uart.c linux-2.6.16-new/drivers/s
 +
 +__initcall(adm5120ser_init);
 diff -Naur linux-2.6.16/drivers/serial/Kconfig linux-2.6.16-new/drivers/serial/Kconfig
---- linux-2.6.16/drivers/serial/Kconfig	2007-05-10 12:09:04.000000000 +0700
-+++ linux-2.6.16-new/drivers/serial/Kconfig	2007-05-10 10:27:23.000000000 +0700
+--- linux-2.6.16/drivers/serial/Kconfig	2008-04-20 00:21:48.000000000 +0700
++++ linux-2.6.16-new/drivers/serial/Kconfig	2008-04-20 11:08:11.000000000 +0700
 @@ -225,6 +225,22 @@
  	  to this option.  The driver can handle 1 or 2 serial ports.
  	  If unsure, say N.
@@ -5265,8 +5270,8 @@ diff -Naur linux-2.6.16/drivers/serial/Kconfig linux-2.6.16-new/drivers/serial/K
  
  config SERIAL_AMBA_PL010
 diff -Naur linux-2.6.16/drivers/serial/Makefile linux-2.6.16-new/drivers/serial/Makefile
---- linux-2.6.16/drivers/serial/Makefile	2007-05-10 12:09:04.000000000 +0700
-+++ linux-2.6.16-new/drivers/serial/Makefile	2007-05-10 10:27:23.000000000 +0700
+--- linux-2.6.16/drivers/serial/Makefile	2008-04-20 00:21:48.000000000 +0700
++++ linux-2.6.16-new/drivers/serial/Makefile	2008-04-20 11:08:11.000000000 +0700
 @@ -11,7 +11,8 @@
  serial-8250-$(CONFIG_PCI) += 8250_pci.o
  serial-8250-$(CONFIG_HP300) += 8250_hp300.o
@@ -5287,8 +5292,8 @@ diff -Naur linux-2.6.16/drivers/serial/Makefile linux-2.6.16-new/drivers/serial/
  obj-$(CONFIG_SERIAL_AMBA_PL011) += amba-pl011.o
  obj-$(CONFIG_SERIAL_CLPS711X) += clps711x.o
 diff -Naur linux-2.6.16/drivers/video/Kconfig linux-2.6.16-new/drivers/video/Kconfig
---- linux-2.6.16/drivers/video/Kconfig	2007-05-10 12:09:04.000000000 +0700
-+++ linux-2.6.16-new/drivers/video/Kconfig	2007-05-10 10:27:23.000000000 +0700
+--- linux-2.6.16/drivers/video/Kconfig	2008-04-20 00:21:48.000000000 +0700
++++ linux-2.6.16-new/drivers/video/Kconfig	2008-04-20 11:08:11.000000000 +0700
 @@ -1233,8 +1233,6 @@
  	  various panels and CRTs by passing in kernel cmd line option
  	  au1200fb:panel=<name>.
@@ -5300,7 +5305,7 @@ diff -Naur linux-2.6.16/drivers/video/Kconfig linux-2.6.16-new/drivers/video/Kco
  	depends on FB_SBUS && SPARC64
 diff -Naur linux-2.6.16/fs/jffs2/scan.c linux-2.6.16-new/fs/jffs2/scan.c
 --- linux-2.6.16/fs/jffs2/scan.c	2006-03-20 11:53:29.000000000 +0600
-+++ linux-2.6.16-new/fs/jffs2/scan.c	2007-06-04 16:25:06.000000000 +0700
++++ linux-2.6.16-new/fs/jffs2/scan.c	2008-04-20 11:08:11.000000000 +0700
 @@ -424,7 +424,7 @@
  	/* Now ofs is a complete physical flash offset as it always was... */
  	ofs += jeb->offset;
@@ -5312,7 +5317,7 @@ diff -Naur linux-2.6.16/fs/jffs2/scan.c linux-2.6.16-new/fs/jffs2/scan.c
  
 diff -Naur linux-2.6.16/include/asm-mips/am5120/adm5120.h linux-2.6.16-new/include/asm-mips/am5120/adm5120.h
 --- linux-2.6.16/include/asm-mips/am5120/adm5120.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/include/asm-mips/am5120/adm5120.h	2007-05-10 10:27:23.000000000 +0700
++++ linux-2.6.16-new/include/asm-mips/am5120/adm5120.h	2008-04-20 11:08:11.000000000 +0700
 @@ -0,0 +1,1083 @@
 +/*****************************************************************************
 +;
@@ -6399,7 +6404,7 @@ diff -Naur linux-2.6.16/include/asm-mips/am5120/adm5120.h linux-2.6.16-new/inclu
 +#endif /* __ADM5120_H__ */
 diff -Naur linux-2.6.16/include/asm-mips/am5120/debug.h linux-2.6.16-new/include/asm-mips/am5120/debug.h
 --- linux-2.6.16/include/asm-mips/am5120/debug.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/include/asm-mips/am5120/debug.h	2007-05-10 10:27:23.000000000 +0700
++++ linux-2.6.16-new/include/asm-mips/am5120/debug.h	2008-04-20 11:08:11.000000000 +0700
 @@ -0,0 +1,16 @@
 +#define PDEBUG(debug_lev,fmt,args...)
 +
@@ -6419,7 +6424,7 @@ diff -Naur linux-2.6.16/include/asm-mips/am5120/debug.h linux-2.6.16-new/include
 +#endif
 diff -Naur linux-2.6.16/include/asm-mips/am5120/mx29lv320b.h linux-2.6.16-new/include/asm-mips/am5120/mx29lv320b.h
 --- linux-2.6.16/include/asm-mips/am5120/mx29lv320b.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/include/asm-mips/am5120/mx29lv320b.h	2007-05-10 10:27:23.000000000 +0700
++++ linux-2.6.16-new/include/asm-mips/am5120/mx29lv320b.h	2008-04-20 11:08:11.000000000 +0700
 @@ -0,0 +1,79 @@
 +/*****************************************************************************
 +;
@@ -6502,7 +6507,7 @@ diff -Naur linux-2.6.16/include/asm-mips/am5120/mx29lv320b.h linux-2.6.16-new/in
 +
 diff -Naur linux-2.6.16/include/asm-mips/am5120/mx_parts.h linux-2.6.16-new/include/asm-mips/am5120/mx_parts.h
 --- linux-2.6.16/include/asm-mips/am5120/mx_parts.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/include/asm-mips/am5120/mx_parts.h	2007-05-10 10:27:23.000000000 +0700
++++ linux-2.6.16-new/include/asm-mips/am5120/mx_parts.h	2008-04-20 11:08:11.000000000 +0700
 @@ -0,0 +1,10 @@
 +/**********************************************************************************
 +;   Auto generated by target/linux/linux-2.4/adm5120.mk
@@ -6516,7 +6521,7 @@ diff -Naur linux-2.6.16/include/asm-mips/am5120/mx_parts.h linux-2.6.16-new/incl
 +#define FLASH_PART_ROOT_SIZE    0x00140000
 diff -Naur linux-2.6.16/include/asm-mips/am5120/prom.h linux-2.6.16-new/include/asm-mips/am5120/prom.h
 --- linux-2.6.16/include/asm-mips/am5120/prom.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/include/asm-mips/am5120/prom.h	2007-05-10 10:27:23.000000000 +0700
++++ linux-2.6.16-new/include/asm-mips/am5120/prom.h	2008-04-20 11:08:11.000000000 +0700
 @@ -0,0 +1,49 @@
 +/*
 + * Carsten Langgaard, carstenl@mips.com
@@ -6569,7 +6574,7 @@ diff -Naur linux-2.6.16/include/asm-mips/am5120/prom.h linux-2.6.16-new/include/
 +#endif /* !(_MIPS_PROM_H) */
 diff -Naur linux-2.6.16/include/asm-mips/asm.h linux-2.6.16-new/include/asm-mips/asm.h
 --- linux-2.6.16/include/asm-mips/asm.h	2006-03-20 11:53:29.000000000 +0600
-+++ linux-2.6.16-new/include/asm-mips/asm.h	2007-05-10 10:27:23.000000000 +0700
++++ linux-2.6.16-new/include/asm-mips/asm.h	2008-04-20 11:08:11.000000000 +0700
 @@ -107,7 +107,7 @@
  /*
   * Print formatted string
@@ -6594,7 +6599,7 @@ diff -Naur linux-2.6.16/include/asm-mips/asm.h linux-2.6.16-new/include/asm-mips
  8:		.asciiz	msg;                            \
 diff -Naur linux-2.6.16/include/asm-mips/bootinfo.h linux-2.6.16-new/include/asm-mips/bootinfo.h
 --- linux-2.6.16/include/asm-mips/bootinfo.h	2006-03-20 11:53:29.000000000 +0600
-+++ linux-2.6.16-new/include/asm-mips/bootinfo.h	2007-05-10 10:27:23.000000000 +0700
++++ linux-2.6.16-new/include/asm-mips/bootinfo.h	2008-04-20 11:08:11.000000000 +0700
 @@ -218,6 +218,13 @@
  #define MACH_GROUP_TITAN       22	/* PMC-Sierra Titan		*/
  #define  MACH_TITAN_YOSEMITE	1	/* PMC-Sierra Yosemite		*/
@@ -6611,7 +6616,7 @@ diff -Naur linux-2.6.16/include/asm-mips/bootinfo.h linux-2.6.16-new/include/asm
  const char *get_system_type(void);
 diff -Naur linux-2.6.16/include/asm-mips/system.h linux-2.6.16-new/include/asm-mips/system.h
 --- linux-2.6.16/include/asm-mips/system.h	2006-03-20 11:53:29.000000000 +0600
-+++ linux-2.6.16-new/include/asm-mips/system.h	2007-05-10 10:27:23.000000000 +0700
++++ linux-2.6.16-new/include/asm-mips/system.h	2008-04-20 11:08:11.000000000 +0700
 @@ -442,6 +442,7 @@
  extern void *set_vi_handler (int n, void *addr);
  extern void *set_vi_srs_handler (int n, void *addr, int regset);
@@ -6622,7 +6627,7 @@ diff -Naur linux-2.6.16/include/asm-mips/system.h linux-2.6.16-new/include/asm-m
  extern NORET_TYPE void die(const char *, struct pt_regs *);
 diff -Naur linux-2.6.16/include/linux/debug_net.h linux-2.6.16-new/include/linux/debug_net.h
 --- linux-2.6.16/include/linux/debug_net.h	1970-01-01 07:00:00.000000000 +0700
-+++ linux-2.6.16-new/include/linux/debug_net.h	2007-05-10 10:27:23.000000000 +0700
++++ linux-2.6.16-new/include/linux/debug_net.h	2008-04-20 11:08:11.000000000 +0700
 @@ -0,0 +1,111 @@
 +#include<linux/time.h>
 +#include<linux/delay.h>
@@ -6737,7 +6742,7 @@ diff -Naur linux-2.6.16/include/linux/debug_net.h linux-2.6.16-new/include/linux
 +
 diff -Naur linux-2.6.16/include/linux/serial_core.h linux-2.6.16-new/include/linux/serial_core.h
 --- linux-2.6.16/include/linux/serial_core.h	2006-03-20 11:53:29.000000000 +0600
-+++ linux-2.6.16-new/include/linux/serial_core.h	2007-05-10 10:27:23.000000000 +0700
++++ linux-2.6.16-new/include/linux/serial_core.h	2008-04-20 11:08:11.000000000 +0700
 @@ -82,6 +82,11 @@
  /* Samsung S3C2410 SoC and derivatives thereof */
  #define PORT_S3C2410    55
@@ -6751,8 +6756,8 @@ diff -Naur linux-2.6.16/include/linux/serial_core.h linux-2.6.16-new/include/lin
  #define PORT_IP22ZILOG	56
  
 diff -Naur linux-2.6.16/Makefile linux-2.6.16-new/Makefile
---- linux-2.6.16/Makefile	2007-05-10 12:09:04.000000000 +0700
-+++ linux-2.6.16-new/Makefile	2007-05-10 10:27:23.000000000 +0700
+--- linux-2.6.16/Makefile	2008-04-20 00:21:48.000000000 +0700
++++ linux-2.6.16-new/Makefile	2008-04-20 11:08:11.000000000 +0700
 @@ -315,7 +315,7 @@
  DEPMOD		= /sbin/depmod
  KALLSYMS	= scripts/kallsyms
