@@ -21,7 +21,7 @@ PKG_SVINIT_DISTR:=svinit-0.1.tar.gz
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/build
-PKG_SRC_DIR:=$(PKG_CONF_DIR)/files/src/
+PKG_SRC_DIR:=$(TOPDIR)/package/$(PKG_NAME)/files/src/
 
 include $(TOPDIR)/package/rules.mk
 
