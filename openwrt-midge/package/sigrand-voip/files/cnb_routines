@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# PARAMS:
+# 1 - current dist dir
+# 2 - prefix
+
+echo CONFIGURE AND BUILD SVINIT...
+	cd $1/svinit
+	mipsel-linux-uclibc-gcc -I$1/vinetic/include/ -I$1/tapi/include/ -I$1/sgatab/ svinit.c -o svinit
+	cp svinit $2/bin/
+
+#rewrite it later
+echo CONFIGURE AND BUILD SVD...
+	cd $1/svd
+	./build.sh
+	cp src/svd $2/bin/
+
+

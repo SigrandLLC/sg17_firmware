@@ -1,0 +1,4 @@
+Package: sigrand-voip
+Priority: optional
+Section: net
+Description: VoIP drivers stack and routines

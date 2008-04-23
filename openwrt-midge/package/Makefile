@@ -322,6 +322,7 @@ package-$(BR2_PACKAGE_SIGRAND_ADM5120SW) += sigrand-adm5120sw
 package-$(BR2_PACKAGE_HOTPLUG) += hotplug
 package-$(BR2_PACKAGE_SIGRAND_DOC) += sigrand-doc
 package-$(BR2_PACKAGE_SIGRAND_DOC_OEM) += sigrand-doc-oem
+package-$(BR2_PACKAGE_SIGRAND_VOIP) += sigrand-voip
 #
 #package-$(BR2_PACKAGE_APRSD) += aprsd
 #package-$(BR2_COMPILE_ARLIX-UTILS) += arlix-utils

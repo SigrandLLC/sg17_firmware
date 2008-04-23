@@ -1,0 +1,89 @@
+#!/bin/sh
+
+sgatab_module="drv_sgatab"
+sgatab_device="sgatab"
+daa_module="drv_daa"
+tapi_module="drv_tapi"
+vinetic_module="drv_vinetic"
+vinetic_device="vin"
+
+case "$1" in
+start)
+	modprobe $tapi_module || exit 1
+
+	if [ -e /dev/${vinetic_device}10 ]; then
+		rm -f /dev/${vinetic_device}*
+	fi
+
+	modprobe $vinetic_module || exit 1
+
+	major=121
+	mknod /dev/${vinetic_device}10 c $major 10 
+	mknod /dev/${vinetic_device}11 c $major 11 
+	mknod /dev/${vinetic_device}12 c $major 12
+
+	mknod /dev/${vinetic_device}20 c $major 20 
+	mknod /dev/${vinetic_device}21 c $major 21 
+	mknod /dev/${vinetic_device}22 c $major 22
+
+	mknod /dev/${vinetic_device}30 c $major 30 
+	mknod /dev/${vinetic_device}31 c $major 31 
+	mknod /dev/${vinetic_device}32 c $major 32
+
+	mknod /dev/${vinetic_device}40 c $major 40 
+	mknod /dev/${vinetic_device}41 c $major 41 
+	mknod /dev/${vinetic_device}42 c $major 42
+
+	modprobe $daa_module || exit 1
+
+	if [ -e /dev/${sgatab_device} ]; then
+		rm -f /dev/${sgatab_device}
+	fi
+
+	modprobe $sgatab_module || exit 1
+
+	major=`cat /proc/devices | grep ${sgatab_device} | sed -e s"/ sgatab//"`
+	echo sgatab_major = $major
+	mknod /dev/${sgatab_device} c $major 0 
+
+	# Testing module presence
+	card_present=`cat /proc/pci | grep 0055:009c | wc -l`
+
+	# if not existing - unload modules
+	if test $card_present == 0; then
+		if [ -e /dev/${sgatab_device} ]; then
+			rm -f /dev/${sgatab_device}
+		fi
+		if [ -e /dev/${vinetic_device}10 ]; then
+			rm -f /dev/${vinetic_device}*
+		fi
+		modprobe -r $sgatab_module $daa_module 
+		modprobe -r $vinetic_module $tapi_module
+	else
+		echo -n Starting Sigrand-VoIP services: 
+
+		/bin/svinit || exit 1
+		/bin/svd || exit 1
+
+		echo " OK"
+	fi
+	
+;;
+stop)
+	echo -n Stoping VoIP daemon: 
+	echo " FAIL"
+	exit 1
+;;
+restart)
+	echo -n Reconfigure VoIP daemon: 
+	/bin/svd || exit 1
+	echo " OK"
+;;
+*)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+;;
+esac
+
+exit 0
+

@@ -1,0 +1,510 @@
+diff -ruiN daa/src/drv_daa_board_sg4v22.c daa_patched/src/drv_daa_board_sg4v22.c
+--- daa/src/drv_daa_board_sg4v22.c	1970-01-01 00:00:00.000000000 +0000
++++ daa_patched/src/drv_daa_board_sg4v22.c	2008-02-28 15:00:57.000000000 +0000
+@@ -0,0 +1,349 @@
++/******************************************************************************
++
++                               Copyright (c) 2007
++                            Infineon Technologies AG
++                     Am Campeon 1-12; 81726 Munich, Germany
++
++  THE DELIVERY OF THIS SOFTWARE AS WELL AS THE HEREBY GRANTED NON-EXCLUSIVE,
++  WORLDWIDE LICENSE TO USE, COPY, MODIFY, DISTRIBUTE AND SUBLICENSE THIS
++  SOFTWARE IS FREE OF CHARGE.
++
++  THE LICENSED SOFTWARE IS PROVIDED "AS IS" AND INFINEON EXPRESSLY DISCLAIMS
++  ALL REPRESENTATIONS AND WARRANTIES, WHETHER EXPRESS OR IMPLIED, INCLUDING
++  WITHOUT LIMITATION, WARRANTIES OR REPRESENTATIONS OF WORKMANSHIP,
++  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, THAT THE
++  OPERATING OF THE LICENSED SOFTWARE WILL BE ERROR FREE OR FREE OF ANY THIRD
++  PARTY CLAIMS, INCLUDING WITHOUT LIMITATION CLAIMS OF THIRD PARTY INTELLECTUAL
++  PROPERTY INFRINGEMENT.
++
++  EXCEPT FOR ANY LIABILITY DUE TO WILFUL ACTS OR GROSS NEGLIGENCE AND EXCEPT
++  FOR ANY PERSONAL INJURY INFINEON SHALL IN NO EVENT BE LIABLE FOR ANY CLAIM
++  OR DAMAGES OF ANY KIND, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
++  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++  DEALINGS IN THE SOFTWARE.
++
++******************************************************************************/
++#ifdef DRV_DAA_BOARD_SG4V22
++
++#include "drv_daa.h"
++#include "drv_daa_common.h"
++
++/* board specific includes */
++#include "vinetic_io.h"
++#include "drv_vinetic_gpio.h"
++
++extern DAA_FUNCTION_MAP_t        gDaaFctMap[];
++
++static int vinDevIoHandle[ DRV_DAA_MAX_DAA_CHANNELS ];
++static int vinGPIO_io_hook[ 2 ];
++static int vinGPIO_io_ring[ 2 ];
++
++
++static IFX_return_t daa_common_init (
++	int const nDev,
++	int const nChannel,
++	int * const ioHandle,
++	void (* const ring_cb) (int nDev, int nCh, unsigned short nStatus)
++	)
++{
++	VINETIC_GPIO_CONFIG ioCfg;
++	int ret;
++	int vinDevHandle;
++
++	vinDevHandle = VINETIC_OpenKernel ( nDev, 0 );
++	if (vinDevHandle == IFX_ERROR) {
++		printk(KERN_ERR "DAA: VINETIC_OpenKernel(%d,0) failed\n", nDev);
++		return IFX_ERROR;
++	}
++
++	*ioHandle = VINETIC_GpioReserve(vinDevHandle,
++			vinGPIO_io_hook[ nChannel ] |
++			vinGPIO_io_ring[ nChannel ] );
++	
++	if (*ioHandle == 0){
++		printk(KERN_ERR "DAA: VINETIC_GpioReserve failed\n");
++		return IFX_ERROR;
++	}
++
++	/* HOOKQ */
++	ioCfg.nMode = GPIO_MODE_OUTPUT;
++	ioCfg.nGpio = vinGPIO_io_hook[ nChannel ];
++	ret = VINETIC_GpioConfig(*ioHandle, &ioCfg);
++	if (ret != IFX_SUCCESS) {
++		printk(KERN_ERR "DAA: hook cfg output failed\n\r");
++		return IFX_ERROR;
++	}
++
++	/* RINGQ */
++	ioCfg.nMode = GPIO_MODE_INPUT | GPIO_MODE_INT | GPIO_INT_FALLING;
++	ioCfg.nGpio = vinGPIO_io_ring[ nChannel ];
++	ioCfg.callback = ring_cb;
++	ret = VINETIC_GpioConfig(*ioHandle, &ioCfg);
++	if (ret != IFX_SUCCESS) {
++		printk(KERN_ERR "DAA: ring cfg input failed\n\r");
++		return IFX_ERROR;
++	}
++
++	return ret;
++};
++
++
++static IFX_return_t daa_common_hookSet (
++	IFX_TAPI_FXO_HOOK_t offhook,
++	int const nChannel,
++	int * const ioHandle )
++{
++	int ret = IFX_SUCCESS;
++
++	/* HOOKQ control GPIO 0 / 4
++	offhook => pin locic low
++	onhook  => pin logic high */
++	if (*ioHandle != 0) {
++		ret = VINETIC_GpioSet(*ioHandle,
++				(offhook == IFX_TAPI_FXO_HOOK_OFFHOOK) ?
++				0x00 : vinGPIO_io_hook[ nChannel ],
++				vinGPIO_io_hook[ nChannel ]);
++	} else {
++		ret = IFX_ERROR;
++	}
++	return ret;
++}
++
++
++static IFX_return_t daa_common_hookGet (
++	IFX_TAPI_FXO_HOOK_t *offhook,
++	int const nChannel,
++	int * const ioHandle )
++{
++	unsigned short get;
++	int ret = IFX_SUCCESS;
++
++	/* HOOKQ control GPIO2 bit 0x04
++		offhook => pin locic low
++		onhook  => pin logic high */
++	if (*ioHandle != 0){
++		ret = VINETIC_GpioGet(*ioHandle, &get, 
++				vinGPIO_io_hook[ nChannel ]);
++		*offhook = (! get) ? IFX_TAPI_FXO_HOOK_OFFHOOK : 
++				IFX_TAPI_FXO_HOOK_ONHOOK;
++	} else {
++		ret = IFX_ERROR;
++	}
++	return ret;
++}
++
++static IFX_return_t daa_common_batGet( IFX_enDis_t * enDis )
++{
++	return IFX_SUCCESS;
++};
++
++static IFX_return_t daa_common_polGet( IFX_enDis_t * enDis )
++{
++	return IFX_SUCCESS;
++};
++
++#ifdef DAA_APOH
++static IFX_return_t daa_common_apohGet( IFX_enDis_t * enDis )
++{
++	return IFX_SUCCESS;
++};
++#endif
++
++///////////////
++/** **************************************************************************
++   gpio callback function for the ringQ pin,
++   this function decodes the status and triggers the generic state machine
++*/
++static void daa_0_ring_cb (int nDev, int nCh, unsigned short nStatus)
++{	irq_DAA_COM_ring_cb ( 0 ); }
++static void daa_1_ring_cb (int nDev, int nCh, unsigned short nStatus)
++{	irq_DAA_COM_ring_cb ( 1 ); }
++static void daa_2_ring_cb (int nDev, int nCh, unsigned short nStatus)
++{	irq_DAA_COM_ring_cb ( 2 ); }
++static void daa_3_ring_cb (int nDev, int nCh, unsigned short nStatus)
++{	irq_DAA_COM_ring_cb ( 3 ); }
++static void daa_4_ring_cb (int nDev, int nCh, unsigned short nStatus)
++{	irq_DAA_COM_ring_cb ( 4 ); }
++static void daa_5_ring_cb (int nDev, int nCh, unsigned short nStatus)
++{	irq_DAA_COM_ring_cb ( 5 ); }
++static void daa_6_ring_cb (int nDev, int nCh, unsigned short nStatus)
++{	irq_DAA_COM_ring_cb ( 6 ); }
++static void daa_7_ring_cb (int nDev, int nCh, unsigned short nStatus)
++{	irq_DAA_COM_ring_cb ( 7 ); }
++
++/** **************************************************************************
++   initialisation routine of daa 0, implementation is system dependant.
++   This function is getting called on IFX_TAPI_LINE_TYPE_SET ioctl, if
++   the channel is configured as FXO. This is the place to reserve and
++   configure GPIOs for later use.
++*/
++static IFX_return_t daa_0_init (void)
++{	return daa_common_init ( 0, 0, &vinDevIoHandle[0], daa_0_ring_cb ); }
++static IFX_return_t daa_1_init (void)
++{	return daa_common_init ( 0, 1, &vinDevIoHandle[1], daa_1_ring_cb ); }
++static IFX_return_t daa_2_init (void)
++{	return daa_common_init ( 1, 0, &vinDevIoHandle[2], daa_2_ring_cb ); }
++static IFX_return_t daa_3_init (void)
++{	return daa_common_init ( 1, 1, &vinDevIoHandle[3], daa_3_ring_cb ); }
++static IFX_return_t daa_4_init (void)
++{	return daa_common_init ( 2, 0, &vinDevIoHandle[4], daa_4_ring_cb ); }
++static IFX_return_t daa_5_init (void)
++{	return daa_common_init ( 2, 1, &vinDevIoHandle[5], daa_5_ring_cb ); }
++static IFX_return_t daa_6_init (void)
++{	return daa_common_init ( 3, 0, &vinDevIoHandle[6], daa_6_ring_cb ); }
++static IFX_return_t daa_7_init (void)
++{	return daa_common_init ( 3, 1, &vinDevIoHandle[7], daa_7_ring_cb ); }
++
++/** **************************************************************************
++   daa 0 hook set implementation (board specific)
++   \param offhook - desired hook state to be set
++   \return IFX_SUCCESS or IFX_ERROR in case of failure
++*/
++static IFX_return_t daa_0_hookSet (IFX_TAPI_FXO_HOOK_t offhook)
++{	return daa_common_hookSet ( offhook, 0, &vinDevIoHandle[0] ); }
++static IFX_return_t daa_1_hookSet (IFX_TAPI_FXO_HOOK_t offhook)
++{	return daa_common_hookSet ( offhook, 1, &vinDevIoHandle[1] ); }
++static IFX_return_t daa_2_hookSet (IFX_TAPI_FXO_HOOK_t offhook)
++{	return daa_common_hookSet ( offhook, 0, &vinDevIoHandle[2] ); }
++static IFX_return_t daa_3_hookSet (IFX_TAPI_FXO_HOOK_t offhook)
++{	return daa_common_hookSet ( offhook, 1, &vinDevIoHandle[3] ); }
++static IFX_return_t daa_4_hookSet (IFX_TAPI_FXO_HOOK_t offhook)
++{	return daa_common_hookSet ( offhook, 0, &vinDevIoHandle[4] ); }
++static IFX_return_t daa_5_hookSet (IFX_TAPI_FXO_HOOK_t offhook)
++{	return daa_common_hookSet ( offhook, 1, &vinDevIoHandle[5] ); }
++static IFX_return_t daa_6_hookSet (IFX_TAPI_FXO_HOOK_t offhook)
++{	return daa_common_hookSet ( offhook, 0, &vinDevIoHandle[6] ); }
++static IFX_return_t daa_7_hookSet (IFX_TAPI_FXO_HOOK_t offhook)
++{	return daa_common_hookSet ( offhook, 1, &vinDevIoHandle[7] ); }
++
++/** **************************************************************************
++   daa 0 hook get implementation (board specific)
++   \param offhook - current hook state (read back)
++   \return IFX_SUCCESS or IFX_ERROR in case of failure
++*/
++static IFX_return_t daa_0_hookGet (IFX_TAPI_FXO_HOOK_t *offhook)
++{	return daa_common_hookGet ( offhook, 0, &vinDevIoHandle[0] ); }
++static IFX_return_t daa_1_hookGet (IFX_TAPI_FXO_HOOK_t *offhook)
++{	return daa_common_hookGet ( offhook, 1, &vinDevIoHandle[1] ); }
++static IFX_return_t daa_2_hookGet (IFX_TAPI_FXO_HOOK_t *offhook)
++{	return daa_common_hookGet ( offhook, 0, &vinDevIoHandle[2] ); }
++static IFX_return_t daa_3_hookGet (IFX_TAPI_FXO_HOOK_t *offhook)
++{	return daa_common_hookGet ( offhook, 1, &vinDevIoHandle[3] ); }
++static IFX_return_t daa_4_hookGet (IFX_TAPI_FXO_HOOK_t *offhook)
++{	return daa_common_hookGet ( offhook, 0, &vinDevIoHandle[4] ); }
++static IFX_return_t daa_5_hookGet (IFX_TAPI_FXO_HOOK_t *offhook)
++{	return daa_common_hookGet ( offhook, 1, &vinDevIoHandle[5] ); }
++static IFX_return_t daa_6_hookGet (IFX_TAPI_FXO_HOOK_t *offhook)
++{	return daa_common_hookGet ( offhook, 0, &vinDevIoHandle[6] ); }
++static IFX_return_t daa_7_hookGet (IFX_TAPI_FXO_HOOK_t *offhook)
++{	return daa_common_hookGet ( offhook, 1, &vinDevIoHandle[7] ); }
++
++//////////////////////////////////////////////////////////////////////////////
++
++
++/**
++   registration of system specific functions.
++   This function is getting called on insmod of drv_daa in Linux sytems.
++   Note that at this time you cannot access other device's GPIOs as
++   they aren't yet initialized.
++*/
++IFX_return_t daa_board_OnInsmod (void)
++{
++	memset(vinDevIoHandle, 0, sizeof(vinDevIoHandle));
++	/* Channel 0 PIN numbers */
++	vinGPIO_io_hook[ 0 ] = VINETIC_IO_DEV_GPIO_0; 
++	vinGPIO_io_ring[ 0 ] = VINETIC_IO_DEV_GPIO_2;
++	/* Channel 1 PIN numbers */
++	vinGPIO_io_hook[ 1 ] = VINETIC_IO_DEV_GPIO_4;
++	vinGPIO_io_ring[ 1 ] = VINETIC_IO_DEV_GPIO_6;
++
++	/* add functions for DAA channel 0 here */
++	gDaaFctMap[0].init      = daa_0_init;
++	gDaaFctMap[0].hookSet   = daa_0_hookSet;
++	gDaaFctMap[0].hookGet   = daa_0_hookGet;
++	gDaaFctMap[0].batGet    = daa_common_batGet;
++	gDaaFctMap[0].polGet    = daa_common_polGet;
++#ifdef DAA_APOH
++	gDaaFctMap[0].apohGet   = daa_common_apohGet;
++#endif /* DAA_APOH */
++
++	/* add functions for DAA channel 1 here */
++	gDaaFctMap[1].init      = daa_1_init;
++	gDaaFctMap[1].hookSet   = daa_1_hookSet;
++	gDaaFctMap[1].hookGet   = daa_1_hookGet;
++	gDaaFctMap[1].batGet    = daa_common_batGet;
++	gDaaFctMap[1].polGet    = daa_common_polGet;
++#ifdef DAA_APOH
++	gDaaFctMap[1].apohGet   = daa_common_apohGet;
++#endif /* DAA_APOH */
++
++	/* add functions for DAA channel 2 here */
++	gDaaFctMap[2].init      = daa_2_init;
++	gDaaFctMap[2].hookSet   = daa_2_hookSet;
++	gDaaFctMap[2].hookGet   = daa_2_hookGet;
++	gDaaFctMap[2].batGet    = daa_common_batGet;
++	gDaaFctMap[2].polGet    = daa_common_polGet;
++#ifdef DAA_APOH
++	gDaaFctMap[2].apohGet   = daa_common_apohGet;
++#endif /* DAA_APOH */
++
++	/* add functions for DAA channel 3 here */
++	gDaaFctMap[3].init      = daa_3_init;
++	gDaaFctMap[3].hookSet   = daa_3_hookSet;
++	gDaaFctMap[3].hookGet   = daa_3_hookGet;
++	gDaaFctMap[3].batGet    = daa_common_batGet;
++	gDaaFctMap[3].polGet    = daa_common_polGet;
++#ifdef DAA_APOH
++	gDaaFctMap[3].apohGet   = daa_common_apohGet;
++#endif /* DAA_APOH */
++
++	/* add functions for DAA channel 4 here */
++	gDaaFctMap[4].init      = daa_4_init;
++	gDaaFctMap[4].hookSet   = daa_4_hookSet;
++	gDaaFctMap[4].hookGet   = daa_4_hookGet;
++	gDaaFctMap[4].batGet    = daa_common_batGet;
++	gDaaFctMap[4].polGet    = daa_common_polGet;
++#ifdef DAA_APOH
++	gDaaFctMap[4].apohGet   = daa_common_apohGet;
++#endif /* DAA_APOH */
++
++	/* add functions for DAA channel 5 here */
++	gDaaFctMap[5].init      = daa_5_init;
++	gDaaFctMap[5].hookSet   = daa_5_hookSet;
++	gDaaFctMap[5].hookGet   = daa_5_hookGet;
++	gDaaFctMap[5].batGet    = daa_common_batGet;
++	gDaaFctMap[5].polGet    = daa_common_polGet;
++#ifdef DAA_APOH
++	gDaaFctMap[5].apohGet   = daa_common_apohGet;
++#endif /* DAA_APOH */
++
++	/* add functions for DAA channel 6 here */
++	gDaaFctMap[6].init      = daa_6_init;
++	gDaaFctMap[6].hookSet   = daa_6_hookSet;
++	gDaaFctMap[6].hookGet   = daa_6_hookGet;
++	gDaaFctMap[6].batGet    = daa_common_batGet;
++	gDaaFctMap[6].polGet    = daa_common_polGet;
++#ifdef DAA_APOH
++	gDaaFctMap[6].apohGet   = daa_common_apohGet;
++#endif /* DAA_APOH */
++
++	/* add functions for DAA channel 7 here */
++	gDaaFctMap[7].init      = daa_7_init;
++	gDaaFctMap[7].hookSet   = daa_7_hookSet;
++	gDaaFctMap[7].hookGet   = daa_7_hookGet;
++	gDaaFctMap[7].batGet    = daa_common_batGet;
++	gDaaFctMap[7].polGet    = daa_common_polGet;
++#ifdef DAA_APOH
++	gDaaFctMap[7].apohGet   = daa_common_apohGet;
++#endif /* DAA_APOH */
++
++	return IFX_SUCCESS;
++};
++
++IFX_return_t daa_board_OnRmmod (void)
++{
++	return IFX_SUCCESS;
++};
++
++#endif /* DRV_DAA_BOARD_SG4V22 */
++
+diff -ruiN daa/src/drv_daa_board_sg4v22.h daa_patched/src/drv_daa_board_sg4v22.h
+--- daa/src/drv_daa_board_sg4v22.h	1970-01-01 00:00:00.000000000 +0000
++++ daa_patched/src/drv_daa_board_sg4v22.h	2008-02-28 15:00:44.000000000 +0000
+@@ -0,0 +1,45 @@
++#ifndef _DRV_DAA_BOARD_SG4V22_H
++#define _DRV_DAA_BOARD_SG4V22_H
++/******************************************************************************
++
++                               Copyright (c) 2007
++                            Infineon Technologies AG
++                     Am Campeon 1-12; 81726 Munich, Germany
++
++  THE DELIVERY OF THIS SOFTWARE AS WELL AS THE HEREBY GRANTED NON-EXCLUSIVE,
++  WORLDWIDE LICENSE TO USE, COPY, MODIFY, DISTRIBUTE AND SUBLICENSE THIS
++  SOFTWARE IS FREE OF CHARGE.
++
++  THE LICENSED SOFTWARE IS PROVIDED "AS IS" AND INFINEON EXPRESSLY DISCLAIMS
++  ALL REPRESENTATIONS AND WARRANTIES, WHETHER EXPRESS OR IMPLIED, INCLUDING
++  WITHOUT LIMITATION, WARRANTIES OR REPRESENTATIONS OF WORKMANSHIP,
++  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, THAT THE
++  OPERATING OF THE LICENSED SOFTWARE WILL BE ERROR FREE OR FREE OF ANY THIRD
++  PARTY CLAIMS, INCLUDING WITHOUT LIMITATION CLAIMS OF THIRD PARTY INTELLECTUAL
++  PROPERTY INFRINGEMENT.
++
++  EXCEPT FOR ANY LIABILITY DUE TO WILFUL ACTS OR GROSS NEGLIGENCE AND EXCEPT
++  FOR ANY PERSONAL INJURY INFINEON SHALL IN NO EVENT BE LIABLE FOR ANY CLAIM
++  OR DAMAGES OF ANY KIND, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
++  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++  DEALINGS IN THE SOFTWARE.
++
++******************************************************************************/
++
++/**
++   \file drv_daa_board_sg4v22.h
++   Board specific implementation / Sigrand VoIP with 4 Vinetic v2.2 chips 
++   on board reference design
++*/
++#include "drv_config.h"
++#ifdef DRV_DAA_BOARD_SG4V22
++
++/** define the number of DAA channels on this system */
++#define DRV_DAA_MAX_DAA_CHANNELS                  8
++
++IFX_return_t daa_board_OnInsmod (void);
++IFX_return_t daa_board_OnRmmod  (void);
++
++
++#endif /* DRV_DAA_BOARD_SG4V22 */
++#endif /* _DRV_DAA_BOARD_SG4V22_H */
+diff -ruiN daa/src/drv_daa_boards.h daa_patched/src/drv_daa_boards.h
+--- daa/src/drv_daa_boards.h	2007-06-25 08:19:31.000000000 +0000
++++ daa_patched/src/drv_daa_boards.h	2008-02-28 15:00:44.000000000 +0000
+@@ -36,6 +36,7 @@
+ #include "drv_daa_board_easy3332.h"
+ #include "drv_daa_board_easy50712.h"
+ #include "drv_daa_board_easy3201.h"
++#include "drv_daa_board_sg4v22.h"
+ 
+ /* check if a boardfile is correctly included / and activated by defines,
+    DRV_DAA_MAX_DAA_CHANNELS is a board specific define which must be
+diff -ruiN daa/src/drv_daa_linux.c daa_patched/src/drv_daa_linux.c
+--- daa/src/drv_daa_linux.c	2007-04-23 14:06:42.000000000 +0000
++++ daa_patched/src/drv_daa_linux.c	2008-02-28 15:00:44.000000000 +0000
+@@ -37,10 +37,10 @@
+ /* ============================= */
+ 
+ static IFX_int8_t                debug_level       = DBG_LEVEL_HIGH;
+-
++/*
+ MODULE_PARM(debug_level, "b");
+ MODULE_PARM_DESC(debug_level, "set to get more (1) or fewer (4) debug outputs");
+-
++*/
+ 
+ #if CONFIG_PROC_FS
+ /**
+@@ -208,4 +208,6 @@
+ MODULE_DESCRIPTION("IFX TAPI DAA abstraction module");
+ MODULE_SUPPORTED_DEVICE("IFX supported DAAs");
+ 
++MODULE_LICENSE("GPL");
++
+ #endif /* LINUX */
+diff -ruiN daa/src/drv_daa_linux.h daa_patched/src/drv_daa_linux.h
+--- daa/src/drv_daa_linux.h	2006-11-21 16:17:19.000000000 +0000
++++ daa_patched/src/drv_daa_linux.h	2008-02-28 15:00:44.000000000 +0000
+@@ -47,6 +47,7 @@
+ #endif
+ 
+ /*several includes*/
++#include <linux/version.h>
+ #include <linux/fs.h>
+ #include <linux/errno.h>
+ /*proc-file system*/
+diff -ruiN daa/src/Makefile.am daa_patched/src/Makefile.am
+--- daa/src/Makefile.am	2007-08-02 07:24:59.000000000 +0000
++++ daa_patched/src/Makefile.am	2008-02-28 15:00:44.000000000 +0000
+@@ -21,7 +21,7 @@
+ # DEALINGS IN THE SOFTWARE.
+ 
+ 
+-bin_PROGRAMS = drv_daa
++bin_PROGRAMS = drv_daa.ko
+ drv_daa_SOURCES= \
+       drv_daa_api.c \
+       drv_daa_common.c \
+@@ -33,6 +33,7 @@
+       drv_daa_board_easy3332.c \
+       drv_daa_board_easy50712.c \
+       drv_daa_board_easy3201.c \
++      drv_daa_board_sg4v22.c \
+       drv_daa_linux.c
+ 
+ 
+@@ -46,12 +47,14 @@
+       drv_daa_board_template.h \
+       drv_daa_board_easy3332.h \
+       drv_daa_board_easy50712.h \
++      drv_daa_board_sg4v22.h \
+       drv_daa_board_easy3201.h
+ 
+ 
+ drv_daa_LDFLAGS = -r -nostdlib
+ drv_daa_CFLAGS  = -D@BOARD_NAME@ -D__KERNEL__ \
+                   -DLINUX -DMODULE -DMODVERSIONS -DEXPORT_SYMTAB \
++                  -DLINUX_2_6 -fno-common \
+ 				  -Wall -Wstrict-prototypes -Wno-trigraphs -Wimplicit \
+ 				  -Wreturn-type -Wunused -Wswitch -Wcomment -Wparentheses \
+ 				  $(AM_CFLAGS)
+@@ -59,6 +62,7 @@
+ INCLUDES = -I@srcdir@ \
+            -I@top_srcdir@ \
+            -I@KERNEL_INCL_PATH@ \
++           -I@KERNEL_INCL_PATH@/asm/mach-generic \
+            -I@TAPI_INCL_PATH@ -I@TAPI_INCL_PATH@/../src \
+            -I@TAPI_INCL_PATH@/../src/common/src \
+            -I@DUSLIC_INCL_PATH@ -I@DUSLIC_INCL_PATH@/../src \
+@@ -76,3 +80,19 @@
+ 		echo "  $(STRIP) --strip-debug $(DESTDIR)$(bindir)/$$p"; \
+ 	done
+ 
++# Extra rule for linux-2.6 kernel object
++drv_daa_OBJS = "$(subst .c,.o, $(drv_daa_SOURCES))"
++
++drv_daa.ko:
++	@echo -e "Making Linux 2.6.x kernel object"
++	@echo -e "# drv_daa: Generated to build Linux 2.6.x kernel object" > $(PWD)/Kbuild
++	@echo -e "obj-m := $(subst .ko,.o,$@)"			>> $(PWD)/Kbuild
++	@echo -e "$(subst .ko,,$@)-y := $(drv_daa_OBJS)"	>> $(PWD)/Kbuild
++	@echo -e "EXTRA_CFLAGS := -DHAVE_CONFIG_H  $(CFLAGS) $(drv_daa_CFLAGS) $(INCLUDES)"	>> $(PWD)/Kbuild
++	$(MAKE) ARCH=mips -C @KERNEL_INCL_PATH@/.. O=@KERNEL_INCL_PATH@/.. M=$(PWD) modules
++
++clean-generic:
++	@echo "drv_daa: Cleanup Linux 2.6.x kernel object build"
++	@- find . -name ".*.cmd" | xargs rm -f
++	@- rm -f Module.symvers Kbuild
++	@- rm -rf .tmp_versions drv_daa.mod.c
