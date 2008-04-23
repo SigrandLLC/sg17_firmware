@@ -43,7 +43,7 @@ start)
 	modprobe $sgatab_module || exit 1
 
 	major=`cat /proc/devices | grep ${sgatab_device} | sed -e s"/ sgatab//"`
-	echo sgatab_major = $major
+
 	mknod /dev/${sgatab_device} c $major 0 
 
 	# Testing module presence
@@ -62,8 +62,8 @@ start)
 	else
 		echo -n Starting Sigrand-VoIP services: 
 
-		/bin/svinit || exit 1
-		/bin/svd || exit 1
+		/bin/svinit
+		/bin/svd
 
 		echo " OK"
 	fi
@@ -76,7 +76,7 @@ stop)
 ;;
 restart)
 	echo -n Reconfigure VoIP daemon: 
-	/bin/svd || exit 1
+	/bin/svd
 	echo " OK"
 ;;
 *)
