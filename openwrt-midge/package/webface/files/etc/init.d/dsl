@@ -252,7 +252,18 @@ _dsl_start(){
 				echo -n "${mr16h_modname}x${num}($ifaces) "
 				;;
 			$mr17h_drvname)
-				echo -n "${mr17h_modname}x${num}($ifaces) "
+				unset ver pfx iface
+				iface=`echo "$ifaces" |  awk '{print $(1)}' `
+				ver=`cat  /sys/class/net/$iface/sg17_private/chipver`
+				case "$ver" in
+				"v1")
+				    pfx=${mr17h_v1pfx}
+				    ;;
+				"v2")
+				    pfx=${mr17h_v1pfx}
+				    ;;
+				esac
+				echo -n "${mr17h_modname}${pfx}x${num}($ifaces) "
 				;;
 		esac
 	done

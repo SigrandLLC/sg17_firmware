@@ -939,10 +939,6 @@ sg17_init_card( struct sg17_card *card )
 		hwdev->type = SDFE4v2;
 	}
 
-// TODO - delete //
-printk(KERN_NOTICE"DEV TYPE=%d\n",hwdev->type);
-//--------------//
-
 	// set card name
 	sprintf(card->name,"sg17card%d",card->number);
 	// IOmem

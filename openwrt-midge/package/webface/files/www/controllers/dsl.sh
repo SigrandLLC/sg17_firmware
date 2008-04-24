@@ -115,7 +115,23 @@ _sg17_status(){
 
 	#-------------- STATUS table --------------------
 	help_2="dsl.status"
-	render_table_title "$iface (module $MR17H_MODNAME) status" 2	
+	
+	#-------------- Get module type -------------------#
+	slot=$2
+	unset ver num
+	ver=`cat  /sys/class/net/$iface/sg17_private/chipver`
+	case "$ver" in
+	    "v1")
+	        pfx=${MR17H_V1PFX}
+	        ;;
+	    "v2")
+	        pfx=${MR17H_V2PFX}
+	        ;;
+	esac
+	num=`kdb get sys_pcitbl_s${slot}_ifnum`
+	
+	#----------------- Render Table ---------------------------#
+	render_table_title "$iface (module ${MR17H_MODNAME}${pfx}x${num}) status" 2	
 	conf_path="$sg17_cfg_path/$iface/sg17_private"
 	# ONLINE status
 	link_state=`cat $conf_path/link_state`	
@@ -247,8 +263,21 @@ _sg17_settings(){
 
 	render_form_header
 
+	#-------------- Get module type -------------------#
+	unset ver num
+	ver=`cat  /sys/class/net/$iface/sg17_private/chipver`
+	case "$ver" in
+	    "v1")
+	        pfx=${MR17H_V1PFX}
+	        ;;
+	    "v2")
+	        pfx=${MR17H_V2PFX}
+	        ;;
+	esac
+	num=`kdb get sys_pcitbl_s${slot}_ifnum`
+	
 	#-------------- SETTINGS table ---------------
-	render_table_title "$iface (module $MR17H_MODNAME) settings" 2
+	render_table_title "$iface (module ${MR17H_MODNAME}${pfx}x${num}) settings" 2
 	
 	# get device info
 	tmp=`cat /sys/class/net/$iface/sg17_private/chipver`
@@ -401,7 +430,7 @@ case $page in
 		_sg16_status $iface
 		;;
 	$MR17H_DRVNAME)
-		_sg17_status $iface
+		_sg17_status $iface $slot
 		;;
 	esac
 	;;

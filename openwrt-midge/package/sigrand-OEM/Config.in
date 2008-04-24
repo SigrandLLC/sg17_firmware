@@ -32,6 +32,16 @@ prompt "MR17H SHDSL module name"
 string
 default "MR17H"
 
+config BR2_SIGRAND_OEM_MR17H_V1PFX
+prompt "MR17H SHDSL module version 1 postfix"
+string
+default ""
+
+config BR2_SIGRAND_OEM_MR17H_V2PFX
+prompt "MR17H SHDSL module version 2 postfix"
+string
+default "+"
+
 config BR2_SIGRAND_OEM_MR17H_DRV
 prompt "MR17H SHDSL module driver name"
 string
