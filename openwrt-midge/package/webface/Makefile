@@ -29,6 +29,8 @@ $(PKG_BUILD_DIR)/.configured:
 	-e "s%@MR16G_DRVNAME@%$(BR2_SIGRAND_OEM_MR16G_DRV)%g" \
 	-e "s%@MR17H_TOOL@%$(BR2_SIGRAND_OEM_MR17H_TOOL)%g" \
 	-e "s%@MR17H_MODNAME@%$(BR2_SIGRAND_OEM_MR17H)%g" \
+	-e "s%@MR17H_V1PFX@%$(BR2_SIGRAND_OEM_MR17H_V1PFX)%g" \
+	-e "s%@MR17H_V2PFX@%$(BR2_SIGRAND_OEM_MR17H_V2PFX)%g" \
 	-e "s%@MR17H_DRVNAME@%$(BR2_SIGRAND_OEM_MR17H_DRV)%g" 
 	rm --force $(PKG_BUILD_DIR)/templates/etc/templates/oem-vars.tmpl
 #  E1 for controllers
@@ -57,7 +59,8 @@ $(IPKG_WEBFACE):
 	install -m0755 $(PKG_BUILD_DIR)/kdb $(IDIR_WEBFACE)/usr/bin
 	-install -m0755 $(PKG_BUILD_DIR)/hdb $(IDIR_WEBFACE)/usr/bin
 	( tar cf - -C $(PKG_BUILD_DIR)/templates --exclude .svn . | tar xvf - -C $(IDIR_WEBFACE)	 );
-	cat files/etc/kdb.default |sed "s/sigrand1/$(BR2_SIGRAND_OEM_HOSTNAME)/g" >$(IDIR_WEBFACE)/etc/kdb.default;
+	cat files/etc/kdb.default | sed "s/sigrand1/$(BR2_SIGRAND_OEM_HOSTNAME)/g" >$(IDIR_WEBFACE)/etc/kdb.default;
+	echo $(BR2_SIGRAND_OEM_HOSTNAME) > $(IDIR_WEBFACE)/etc/hostname
 	cat files/etc/lighttpd.conf |sed "s/Sigrand router/$(BR2_SIGRAND_OEM_SYSNAME)/g" >$(IDIR_WEBFACE)/etc/lighttpd.conf;
 	cat files/www/common/footer.sh | sed "s/Sigrand/$(BR2_SIGRAND_OEM_MANUFACTURER)/g" > $(IDIR_WEBFACE)/www/common/footer.sh;
 	cat files/www/common/header.sh | sed "s/Sigrand/$(BR2_SIGRAND_OEM_MANUFACTURER)/g" > $(IDIR_WEBFACE)/www/common/header.sh;
