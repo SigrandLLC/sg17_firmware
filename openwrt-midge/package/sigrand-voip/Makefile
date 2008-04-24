@@ -85,7 +85,6 @@ $(PKG_BUILD_DIR)/.configured:  $(PKG_BUILD_DIR)/.prepared
 	@echo "CONFIGURE AND BUILD DAA..."
 
 	( cd $(PKG_BUILD_DIR)/daa; \
-		make clean; \
 		aclocal; \
 		automake --foreign; \
 		$(TARGET_CONFIGURE_OPTS) \
@@ -116,7 +115,6 @@ $(PKG_BUILD_DIR)/.configured:  $(PKG_BUILD_DIR)/.prepared
 	@echo "CONFIGURE AND BUILD VINETIC..."
 
 	( cd $(PKG_BUILD_DIR)/vinetic; \
-		make clean; \
 		aclocal; \
 		automake --foreign; \
 		$(TARGET_CONFIGURE_OPTS) \
@@ -150,7 +148,6 @@ $(PKG_BUILD_DIR)/.configured:  $(PKG_BUILD_DIR)/.prepared
 	@echo "CONFIGURE AND BUILD TAPI..."
 
 	( cd $(PKG_BUILD_DIR)/tapi; \
-		make clean; \
 		aclocal; \
 		automake --foreign; \
 		$(TARGET_CONFIGURE_OPTS) \

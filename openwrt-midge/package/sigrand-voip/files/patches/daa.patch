@@ -1,6 +1,18 @@
-diff -ruiN daa/src/drv_daa_board_sg4v22.c daa_patched/src/drv_daa_board_sg4v22.c
---- daa/src/drv_daa_board_sg4v22.c	1970-01-01 00:00:00.000000000 +0000
-+++ daa_patched/src/drv_daa_board_sg4v22.c	2008-02-28 15:00:57.000000000 +0000
+diff -ruiN daa_pure/configure.in daa/configure.in
+--- daa_pure/configure.in	2008-04-24 15:12:57.000000000 +0700
++++ daa/configure.in	2008-04-24 15:13:51.000000000 +0700
+@@ -23,7 +23,7 @@
+ 
+ AC_REVISION($Revision: 1.9 $)
+ 
+-AC_INIT([IFX TAPI DAA plugin], [1.0.2.0], [Infineon Technologies AG], [drv_daa])
++AC_INIT([IFX TAPI DAA plugin], [1.0.2.0], [Infineon Technologies AG], [drv_daa.ko])
+ 
+ AM_INIT_AUTOMAKE
+ 
+diff -ruiN daa_pure/src/drv_daa_board_sg4v22.c daa/src/drv_daa_board_sg4v22.c
+--- daa_pure/src/drv_daa_board_sg4v22.c	1970-01-01 07:00:00.000000000 +0700
++++ daa/src/drv_daa_board_sg4v22.c	2008-04-24 15:12:57.000000000 +0700
 @@ -0,0 +1,349 @@
 +/******************************************************************************
 +
@@ -351,9 +363,9 @@ diff -ruiN daa/src/drv_daa_board_sg4v22.c daa_patched/src/drv_daa_board_sg4v22.c
 +
 +#endif /* DRV_DAA_BOARD_SG4V22 */
 +
-diff -ruiN daa/src/drv_daa_board_sg4v22.h daa_patched/src/drv_daa_board_sg4v22.h
---- daa/src/drv_daa_board_sg4v22.h	1970-01-01 00:00:00.000000000 +0000
-+++ daa_patched/src/drv_daa_board_sg4v22.h	2008-02-28 15:00:44.000000000 +0000
+diff -ruiN daa_pure/src/drv_daa_board_sg4v22.h daa/src/drv_daa_board_sg4v22.h
+--- daa_pure/src/drv_daa_board_sg4v22.h	1970-01-01 07:00:00.000000000 +0700
++++ daa/src/drv_daa_board_sg4v22.h	2008-04-24 15:12:57.000000000 +0700
 @@ -0,0 +1,45 @@
 +#ifndef _DRV_DAA_BOARD_SG4V22_H
 +#define _DRV_DAA_BOARD_SG4V22_H
@@ -400,9 +412,9 @@ diff -ruiN daa/src/drv_daa_board_sg4v22.h daa_patched/src/drv_daa_board_sg4v22.h
 +
 +#endif /* DRV_DAA_BOARD_SG4V22 */
 +#endif /* _DRV_DAA_BOARD_SG4V22_H */
-diff -ruiN daa/src/drv_daa_boards.h daa_patched/src/drv_daa_boards.h
---- daa/src/drv_daa_boards.h	2007-06-25 08:19:31.000000000 +0000
-+++ daa_patched/src/drv_daa_boards.h	2008-02-28 15:00:44.000000000 +0000
+diff -ruiN daa_pure/src/drv_daa_boards.h daa/src/drv_daa_boards.h
+--- daa_pure/src/drv_daa_boards.h	2008-04-24 15:12:57.000000000 +0700
++++ daa/src/drv_daa_boards.h	2008-04-24 15:12:57.000000000 +0700
 @@ -36,6 +36,7 @@
  #include "drv_daa_board_easy3332.h"
  #include "drv_daa_board_easy50712.h"
@@ -411,9 +423,9 @@ diff -ruiN daa/src/drv_daa_boards.h daa_patched/src/drv_daa_boards.h
  
  /* check if a boardfile is correctly included / and activated by defines,
     DRV_DAA_MAX_DAA_CHANNELS is a board specific define which must be
-diff -ruiN daa/src/drv_daa_linux.c daa_patched/src/drv_daa_linux.c
---- daa/src/drv_daa_linux.c	2007-04-23 14:06:42.000000000 +0000
-+++ daa_patched/src/drv_daa_linux.c	2008-02-28 15:00:44.000000000 +0000
+diff -ruiN daa_pure/src/drv_daa_linux.c daa/src/drv_daa_linux.c
+--- daa_pure/src/drv_daa_linux.c	2008-04-24 15:12:57.000000000 +0700
++++ daa/src/drv_daa_linux.c	2008-04-24 15:12:57.000000000 +0700
 @@ -37,10 +37,10 @@
  /* ============================= */
  
@@ -434,9 +446,9 @@ diff -ruiN daa/src/drv_daa_linux.c daa_patched/src/drv_daa_linux.c
 +MODULE_LICENSE("GPL");
 +
  #endif /* LINUX */
-diff -ruiN daa/src/drv_daa_linux.h daa_patched/src/drv_daa_linux.h
---- daa/src/drv_daa_linux.h	2006-11-21 16:17:19.000000000 +0000
-+++ daa_patched/src/drv_daa_linux.h	2008-02-28 15:00:44.000000000 +0000
+diff -ruiN daa_pure/src/drv_daa_linux.h daa/src/drv_daa_linux.h
+--- daa_pure/src/drv_daa_linux.h	2008-04-24 15:12:57.000000000 +0700
++++ daa/src/drv_daa_linux.h	2008-04-24 15:12:57.000000000 +0700
 @@ -47,6 +47,7 @@
  #endif
  
@@ -445,18 +457,20 @@ diff -ruiN daa/src/drv_daa_linux.h daa_patched/src/drv_daa_linux.h
  #include <linux/fs.h>
  #include <linux/errno.h>
  /*proc-file system*/
-diff -ruiN daa/src/Makefile.am daa_patched/src/Makefile.am
---- daa/src/Makefile.am	2007-08-02 07:24:59.000000000 +0000
-+++ daa_patched/src/Makefile.am	2008-02-28 15:00:44.000000000 +0000
-@@ -21,7 +21,7 @@
+diff -ruiN daa_pure/src/Makefile.am daa/src/Makefile.am
+--- daa_pure/src/Makefile.am	2008-04-24 15:12:57.000000000 +0700
++++ daa/src/Makefile.am	2008-04-24 15:15:51.000000000 +0700
+@@ -21,8 +21,8 @@
  # DEALINGS IN THE SOFTWARE.
  
  
 -bin_PROGRAMS = drv_daa
+-drv_daa_SOURCES= \
 +bin_PROGRAMS = drv_daa.ko
- drv_daa_SOURCES= \
++drv_daa_ko_SOURCES= \
        drv_daa_api.c \
        drv_daa_common.c \
+       drv_daa_common_sm_ring.c \
 @@ -33,6 +33,7 @@
        drv_daa_board_easy3332.c \
        drv_daa_board_easy50712.c \
@@ -473,8 +487,10 @@ diff -ruiN daa/src/Makefile.am daa_patched/src/Makefile.am
        drv_daa_board_easy3201.h
  
  
- drv_daa_LDFLAGS = -r -nostdlib
- drv_daa_CFLAGS  = -D@BOARD_NAME@ -D__KERNEL__ \
+-drv_daa_LDFLAGS = -r -nostdlib
+-drv_daa_CFLAGS  = -D@BOARD_NAME@ -D__KERNEL__ \
++drv_daa_ko_LDFLAGS = -r -nostdlib
++drv_daa_ko_CFLAGS  = -D@BOARD_NAME@ -D__KERNEL__ \
                    -DLINUX -DMODULE -DMODVERSIONS -DEXPORT_SYMTAB \
 +                  -DLINUX_2_6 -fno-common \
  				  -Wall -Wstrict-prototypes -Wno-trigraphs -Wimplicit \
@@ -493,14 +509,14 @@ diff -ruiN daa/src/Makefile.am daa_patched/src/Makefile.am
  	done
  
 +# Extra rule for linux-2.6 kernel object
-+drv_daa_OBJS = "$(subst .c,.o, $(drv_daa_SOURCES))"
++drv_daa_ko_OBJS = "$(subst .c,.o, $(drv_daa_ko_SOURCES))"
 +
 +drv_daa.ko:
 +	@echo -e "Making Linux 2.6.x kernel object"
 +	@echo -e "# drv_daa: Generated to build Linux 2.6.x kernel object" > $(PWD)/Kbuild
 +	@echo -e "obj-m := $(subst .ko,.o,$@)"			>> $(PWD)/Kbuild
-+	@echo -e "$(subst .ko,,$@)-y := $(drv_daa_OBJS)"	>> $(PWD)/Kbuild
-+	@echo -e "EXTRA_CFLAGS := -DHAVE_CONFIG_H  $(CFLAGS) $(drv_daa_CFLAGS) $(INCLUDES)"	>> $(PWD)/Kbuild
++	@echo -e "$(subst .ko,,$@)-y := $(drv_daa_ko_OBJS)"	>> $(PWD)/Kbuild
++	@echo -e "EXTRA_CFLAGS := -DHAVE_CONFIG_H  $(CFLAGS) $(drv_daa_ko_CFLAGS) $(INCLUDES)"	>> $(PWD)/Kbuild
 +	$(MAKE) ARCH=mips -C @KERNEL_INCL_PATH@/.. O=@KERNEL_INCL_PATH@/.. M=$(PWD) modules
 +
 +clean-generic:
