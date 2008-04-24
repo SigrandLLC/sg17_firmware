@@ -1,0 +1,33 @@
+README for telsip
+=====================
+
+What is it?
+-----------
+
+Telsip is a simple sip client which is developed by teleton company for
+DECT-VoIP router.
+
+How I can build it and install?
+-------------------------------
+
+Run 
+
+./configure --host=mipsel-linux-uclibc --build=i686-linux-gnu
+
+I'd assume that pkg-config is able to find the sofia-sip-ua library
+compiled for mips. 
+
+After that you can copy create executable to the ramdisk, upload
+it and use in target linux system.
+
+Where can I get additional information?
+---------------------------------------
+
+Look in the doc subdir.
+
+License
+-------
+
+LGPL. Note license of GNU readline (GPL), if support for it
+is enabled. See file COPYING for full details.
+

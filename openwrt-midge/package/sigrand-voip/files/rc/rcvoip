@@ -62,7 +62,7 @@ start)
 	else
 		echo -n Starting Sigrand-VoIP services: 
 
-		/bin/svinit
+		/bin/svi
 		/bin/svd
 
 		echo " OK"

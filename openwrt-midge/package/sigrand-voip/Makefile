@@ -15,24 +15,25 @@ PKG_RELEASE:=1
 PKG_TAPI_DISTR:=drv_tapi-3.6.1.tar.gz
 PKG_DAA_DISTR:=drv_daa-1.0.2.0.tar.gz
 PKG_VINETIC_DISTR:=drv_vinetic-1.3.1_tapi-3.6.1.tar.gz
-PKG_SGATAB_DISTR:=drv_sgatab-1.0.1.tar.gz
-PKG_SVD_DISTR:=svd-0.1.tar.gz
-PKG_SVINIT_DISTR:=svinit-0.1.tar.gz
+PKG_SGATAB_DISTR:=drv_sgatab
+PKG_SVD_DISTR:=svd
+PKG_SVI_DISTR:=svi
 
+PKG_CONF_DIR:=$(TOPDIR)/package/$(PKG_NAME)
+PKG_SRC_DIR:=$(PKG_CONF_DIR)/files/src/
+PKG_PATCH_DIR:=$(PKG_CONF_DIR)/files/patches/
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/build
-PKG_SRC_DIR:=$(TOPDIR)/package/$(PKG_NAME)/files/src/
 
 include $(TOPDIR)/package/rules.mk
 
-PKG_CONF_DIR:=$(TOPDIR)/package/$(PKG_NAME)
 
 TAPI_UNPACK+=tar -vxpf $(PKG_SRC_DIR)/$(PKG_TAPI_DISTR) -C $(PKG_BUILD_DIR)
 DAA_UNPACK+=tar -vxpf $(PKG_SRC_DIR)/$(PKG_DAA_DISTR) -C $(PKG_BUILD_DIR)
 VINETIC_UNPACK+=tar -vxpf $(PKG_SRC_DIR)/$(PKG_VINETIC_DISTR) -C $(PKG_BUILD_DIR)
-SGATAB_UNPACK+=tar -vxpf $(PKG_SRC_DIR)/$(PKG_SGATAB_DISTR) -C $(PKG_BUILD_DIR)
-SVD_UNPACK+=tar -vxpf $(PKG_SRC_DIR)/$(PKG_SVD_DISTR) -C $(PKG_BUILD_DIR)
-SVINIT_UNPACK+=tar -vxpf $(PKG_SRC_DIR)/$(PKG_SVINIT_DISTR) -C $(PKG_BUILD_DIR)
+SGATAB_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SGATAB_DISTR) $(PKG_BUILD_DIR)
+SVD_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVD_DISTR) $(PKG_BUILD_DIR)
+SVI_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVI_DISTR) $(PKG_BUILD_DIR)
 
 
 $(eval $(call PKG_template,SIGRAND_VOIP,sigrand-voip,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
@@ -40,27 +41,37 @@ $(eval $(call PKG_template,SIGRAND_VOIP,sigrand-voip,$(PKG_VERSION)-$(PKG_RELEAS
 
 
 $(PKG_BUILD_DIR)/.prepared:
-	mkdir -p $(PKG_BUILD_DIR);
+	mkdir -p $(PKG_BUILD_DIR)
 	
 	#---------======================================---------
 	# 			unpack sources
 	#---------======================================---------
 	
-	$(TAPI_UNPACK);
-	$(DAA_UNPACK);
-	$(VINETIC_UNPACK);
-	$(SGATAB_UNPACK);
-	$(SVD_UNPACK);
-	$(SVINIT_UNPACK);
+	$(TAPI_UNPACK)
+	$(DAA_UNPACK)
+	$(VINETIC_UNPACK)
+	$(SGATAB_UNPACK)
+	$(SVD_UNPACK)
+	$(SVI_UNPACK)
 	
 	#---------======================================---------
 	# 			prepare sources
 	#---------======================================---------
-	
-	mkdir -p $(PKG_INSTALL_DIR)
-	cp $(PKG_CONF_DIR)/files/patches/* $(PKG_BUILD_DIR)
-	cp $(PKG_CONF_DIR)/files/prepare_all $(PKG_BUILD_DIR)
-	$(PKG_BUILD_DIR)/prepare_all $(PKG_BUILD_DIR) $(LINUX_DIR) 
+
+	( mkdir -p $(PKG_INSTALL_DIR); \
+		cd $(PKG_BUILD_DIR); \
+		ln -snf drv_daa-1.0.2.0 		daa; \
+		ln -snf drv_tapi-3.6.1 			tapi; \
+		ln -snf drv_vinetic-1.3.1_tapi-3.6.1 	vinetic; \
+		ln -snf drv_sgatab 			sgatab; \
+		ln -snf $(LINUX_DIR)			linux; \
+		cd $(PKG_BUILD_DIR)/daa; \
+		patch -p1 < $(PKG_PATCH_DIR)/daa.patch; \
+		cd $(PKG_BUILD_DIR)/tapi; \
+		patch -p1 < $(PKG_PATCH_DIR)/tapi.patch; \
+		cd $(PKG_BUILD_DIR)/vinetic; \
+		patch -p1 < $(PKG_PATCH_DIR)/vinetic.patch; \
+	);
 	touch $@
 
 
@@ -70,8 +81,112 @@ $(PKG_BUILD_DIR)/.configured:  $(PKG_BUILD_DIR)/.prepared
 	#---------======================================---------
 	# 		configure and build drivers stack
 	#---------======================================---------
-	cp $(PKG_CONF_DIR)/files/cnb_stack $(PKG_BUILD_DIR)
-	$(PKG_BUILD_DIR)/cnb_stack $(PKG_BUILD_DIR) $(LINUX_DIR) $(PKG_INSTALL_DIR)
+
+	@echo "CONFIGURE AND BUILD DAA..."
+
+	( cd $(PKG_BUILD_DIR)/daa; \
+		make clean; \
+		aclocal; \
+		automake --foreign; \
+		$(TARGET_CONFIGURE_OPTS) \
+		CFLAGS="$(TARGET_CFLAGS) -I$(STAGING_DIR)/usr/include" \
+		LDFLAGS="-L$(STAGING_DIR)/usr/lib -L$(STAGING_DIR)/lib" \
+		./configure \
+		--host=$(GNU_TARGET_NAME) \
+		--build=$(GNU_HOST_NAME) \
+		--disable-apoh \
+		--disable-duslicincl \
+		--disable-dxtincl \
+		--enable-warnings \
+		--enable-vineticincl=$(PKG_BUILD_DIR)/vinetic/include \
+		--enable-tapiincl=$(PKG_BUILD_DIR)/tapi/include \
+		--enable-kernelincl=$(PKG_BUILD_DIR)/linux/include \
+		--enable-boardname=SG4V22 \
+		--prefix=$(PKG_INSTALL_DIR) \
+	);
+	cp $(PKG_BUILD_DIR)/daa/drv_config.h $(PKG_BUILD_DIR)/daa/src
+	cp $(PKG_BUILD_DIR)/daa/drv_daa_version.h $(PKG_BUILD_DIR)/daa/src
+	( cd $(PKG_BUILD_DIR)/daa; \
+		$(TARGET_CONFIGURE_OPTS) \
+		make && \
+		$(TARGET_CONFIGURE_OPTS) \
+		make install \
+	);
+
+	@echo "CONFIGURE AND BUILD VINETIC..."
+
+	( cd $(PKG_BUILD_DIR)/vinetic; \
+		make clean; \
+		aclocal; \
+		automake --foreign; \
+		$(TARGET_CONFIGURE_OPTS) \
+		CFLAGS="$(TARGET_CFLAGS) -I$(STAGING_DIR)/usr/include" \
+		LDFLAGS="-L$(STAGING_DIR)/usr/lib -L$(STAGING_DIR)/lib" \
+		./configure \
+		--host=$(GNU_TARGET_NAME) \
+		--build=$(GNU_HOST_NAME) \
+		--enable-linux-26 \
+		--enable-trace \
+		--enable-debug \
+		--enable-warnings \
+		--enable-2cpe \
+		--enable-lt \
+		--disable-v1 \
+		--disable-fax \
+		--with-max-devices=4 \
+		--with-access-mode=INTEL_MUX \
+		--with-access-width=8 \
+		--enable-tapiincl=$(PKG_BUILD_DIR)/tapi/include \
+		--enable-kernelincl=$(PKG_BUILD_DIR)/linux/include \
+		--prefix=$(PKG_INSTALL_DIR) \
+	);
+	( cd $(PKG_BUILD_DIR)/vinetic; \
+		$(TARGET_CONFIGURE_OPTS) \
+		make && \
+		$(TARGET_CONFIGURE_OPTS) \
+		make install \
+	);
+
+	@echo "CONFIGURE AND BUILD TAPI..."
+
+	( cd $(PKG_BUILD_DIR)/tapi; \
+		make clean; \
+		aclocal; \
+		automake --foreign; \
+		$(TARGET_CONFIGURE_OPTS) \
+		CFLAGS="$(TARGET_CFLAGS) -I$(STAGING_DIR)/usr/include" \
+		LDFLAGS="-L$(STAGING_DIR)/usr/lib -L$(STAGING_DIR)/lib" \
+		./configure \
+		--host=$(GNU_TARGET_NAME) \
+		--build=$(GNU_HOST_NAME) \
+		--enable-linux-26 \
+		--enable-trace \
+		--enable-debug \
+		--enable-warnings \
+		--enable-2cpe \
+		--enable-voice \
+		--enable-dtmf \
+		--enable-cid \
+		--enable-lt \
+		--enable-dect \
+		--disable-fax \ --disable-v1 \
+		--enable-kernelincl=$(PKG_BUILD_DIR)/linux/include \
+		--prefix=$(PKG_INSTALL_DIR) \
+	);
+	( cd $(PKG_BUILD_DIR)/tapi; \
+		$(TARGET_CONFIGURE_OPTS) \
+		make && \
+		$(TARGET_CONFIGURE_OPTS) \
+		make install \
+	);
+
+	@echo "CONFIGURE AND BUILD SGATAB..."
+
+	( cd $(PKG_BUILD_DIR)/sgatab; \
+		$(TARGET_CONFIGURE_OPTS) \
+		CC=mipsel-linux-gcc make  -w -C $(PKG_BUILD_DIR)/linux M=$(PKG_BUILD_DIR)/sgatab modules; \
+	);
+	$(CP) $(PKG_BUILD_DIR)/sgatab/drv_sgatab.ko $(PKG_INSTALL_DIR)/bin
 	touch $@
 
 
@@ -81,9 +196,67 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 	#---------======================================---------
 	#		configure and build routines
 	#---------======================================---------
-	cp $(PKG_CONF_DIR)/files/cnb_routines $(PKG_BUILD_DIR)
-	$(PKG_BUILD_DIR)/cnb_routines $(PKG_BUILD_DIR) $(PKG_INSTALL_DIR)
+
+	@echo "CONFIGURE AND BUILD SVI..."
+
+	( cd $(PKG_BUILD_DIR)/svi; \
+		$(TARGET_CONFIGURE_OPTS) \
+		mipsel-linux-gcc \
+		-I$(PKG_BUILD_DIR)/vinetic/include/ \
+		-I$(PKG_BUILD_DIR)/tapi/include/ \
+		-I$(PKG_BUILD_DIR)/sgatab/ \
+		svi.c -o svi; \
+		cp svi $(PKG_INSTALL_DIR)/bin/ \
+	);
+
+	@echo "CONFIGURE SVD..."
+
+	( cd $(PKG_BUILD_DIR)/svd; \
+		aclocal; \
+		autoheader; \
+		automake -a --foreign; \
+		autoconf; \
+		$(TARGET_CONFIGURE_OPTS) \
+		CFLAGS="$(TARGET_CFLAGS) -I$(STAGING_DIR)/usr/include" \
+		LDFLAGS="-L$(STAGING_DIR)/usr/lib -L$(STAGING_DIR)/lib" \
+		./configure \
+		--host=$(GNU_TARGET_NAME) \
+		--build=$(GNU_HOST_NAME) \
+		--prefix=$(PKG_INSTALL_DIR) \
+	);
+
+	@echo "BUILD LIBAB..."
+
+	( cd $(PKG_BUILD_DIR)/svd/src/libab; \
+		rm *.o; \
+		rm *.a; \
+		$(TARGET_CONFIGURE_OPTS) \
+		mipsel-linux-gcc \
+		-Wall \
+		-I./vinetic/include/ \
+		-I./tapi/include/ \
+		-I./sgatab/ \
+		-I.. -I../.. \
+		ab_basic.c \
+		ab_line.c \
+		ab_events.c \
+		ab_media.c \
+		-c; \
+		ar cr libab.a *.o \
+	);
+
+	@echo "BUILD SVD..."
+
+	( cd $(PKG_BUILD_DIR)/svd; \
+		$(TARGET_CONFIGURE_OPTS) \
+		make && \
+		$(TARGET_CONFIGURE_OPTS) \
+		make install \
+	);
 	touch $@
+
+
+
 
 $(IPKG_SIGRAND_VOIP): 
 	install -d -m0755 $(IDIR_SIGRAND_VOIP)/lib/modules/2.6.16/
