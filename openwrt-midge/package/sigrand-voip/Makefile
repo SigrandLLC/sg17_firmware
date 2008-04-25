@@ -39,49 +39,42 @@ SVI_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVI_DISTR) $(PKG_BUILD_DIR)
 
 $(eval $(call PKG_template,SIGRAND_VOIP,sigrand-voip,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
-#ifeq($(BR2_PACKAGE_SIGRAND_VOIP_BIN), y)
-
 $(PKG_BUILD_DIR)/.prepared:
-	mkdir -p $(PKG_BUILD_DIR);
-	mkdir -p $(PKG_INSTALL_DIR)/bin;
 
-	( if test $(BR2_PACKAGE_SIGRAND_VOIP_BIN) == y; then \
-		#---------======================================---------\
-		# 		using prebuild binaries\
-		#---------======================================---------\
-		cp -rpf $(PKG_CONF_DIR)/files/bin/* $(PKG_INSTALL_DIR)/bin/;\
-		touch $(PKG_BUILD_DIR)/.prepared;\
-		touch $(PKG_BUILD_DIR)/.configured;\
-		touch $(PKG_BUILD_DIR)/.built;\
-	else \
-		#---------======================================---------\
-		# 			unpack sources\
-		#---------======================================---------\
-		$(TAPI_UNPACK);\
-		$(DAA_UNPACK);\
-		$(VINETIC_UNPACK);\
-		$(SGATAB_UNPACK);\
-		$(SVD_UNPACK);\
-		$(SVI_UNPACK);\
-		#---------======================================---------\
-		# 			prepare sources\
-		#---------======================================---------\
-		mkdir -p $(PKG_INSTALL_DIR); \
-		cd $(PKG_BUILD_DIR); \
-		ln -snf drv_daa-1.0.2.0 		daa; \
-		ln -snf drv_tapi-3.6.1 			tapi; \
-		ln -snf drv_vinetic-1.3.1_tapi-3.6.1 	vinetic; \
-		ln -snf drv_sgatab 			sgatab; \
-		ln -snf $(LINUX_DIR)			linux; \
-		cd $(PKG_BUILD_DIR)/daa; \
+	mkdir -p $(PKG_BUILD_DIR);
+
+	#---------======================================---------
+	# 			unpack sources
+	#---------======================================---------
+
+	$(TAPI_UNPACK);
+	$(DAA_UNPACK);
+	$(VINETIC_UNPACK);
+	$(SGATAB_UNPACK);
+	$(SVD_UNPACK);
+	$(SVI_UNPACK);
+
+	#---------======================================---------
+	# 			prepare sources
+	#---------======================================---------
+
+	mkdir -p $(PKG_INSTALL_DIR)
+
+	ln -snf $(PKG_BUILD_DIR)/drv_daa-1.0.2.0 $(PKG_BUILD_DIR)/daa
+	ln -snf $(PKG_BUILD_DIR)/drv_tapi-3.6.1 $(PKG_BUILD_DIR)/tapi
+	ln -snf $(PKG_BUILD_DIR)/drv_vinetic-1.3.1_tapi-3.6.1 $(PKG_BUILD_DIR)/vinetic
+	ln -snf $(PKG_BUILD_DIR)/drv_sgatab $(PKG_BUILD_DIR)/sgatab
+	ln -snf $(LINUX_DIR) $(PKG_BUILD_DIR)/linux
+
+	( cd $(PKG_BUILD_DIR)/daa; \
 		patch -p1 < $(PKG_PATCH_DIR)/daa.patch; \
 		cd $(PKG_BUILD_DIR)/tapi; \
 		patch -p1 < $(PKG_PATCH_DIR)/tapi.patch; \
 		cd $(PKG_BUILD_DIR)/vinetic; \
 		patch -p1 < $(PKG_PATCH_DIR)/vinetic.patch; \
-	fi\
-		);
-		touch $@
+	);
+
+	touch $@
 	
 
 
