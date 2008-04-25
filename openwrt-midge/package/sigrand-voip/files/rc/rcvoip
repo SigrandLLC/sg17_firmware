@@ -71,11 +71,12 @@ start)
 ;;
 stop)
 	echo -n Stoping VoIP daemon: 
-	echo " FAIL"
-	exit 1
+	killall svd
+	echo " OK"
 ;;
 restart)
 	echo -n Reconfigure VoIP daemon: 
+	killall svd
 	/bin/svd
 	echo " OK"
 ;;

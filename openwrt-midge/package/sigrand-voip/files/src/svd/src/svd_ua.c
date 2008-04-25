@@ -683,7 +683,7 @@ DFS
 
 	/* BYE complete */
 		case nua_callstate_terminated:
-			SU_DEBUG_4 (("call to [%d] is terminated\n", 
+			SU_DEBUG_4 (("call on [%d] is terminated\n", 
 					chan->abs_idx));
 
 			/* deactivate media */
@@ -774,13 +774,13 @@ svd_r_get_params(int status, char const *phrase, nua_t * nua, svd_t * svd,
 		 tagi_t tags[])
 {
 DFS
-	tagi_t * curr_tag = NULL;
-	char buff [256];
 
 	SU_DEBUG_3(("The tags are :\n"
 			"=====================\n"));
 	SU_DEBUG_3(("NOT IMPLEMENTED YET\n"));
 /*
+	tagi_t * curr_tag = NULL;
+	char buff [256];
 
 	curr_tag = &tags[ 0 ];
 	while( curr_tag ){

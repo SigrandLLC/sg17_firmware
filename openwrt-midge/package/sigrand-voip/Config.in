@@ -3,3 +3,9 @@ config BR2_PACKAGE_SIGRAND_VOIP
 	default y if CONFIG_DEVEL
 	depends on BR2_LINUX_2_6_SIGRAND5120
 
+config BR2_PACKAGE_SIGRAND_VOIP_BIN
+	prompt "Sigrand-voip-bin................ Use prebuild binaries"
+	bool
+	default y
+	depends on BR2_LINUX_2_6_SIGRAND5120
+	depends on BR2_PACKAGE_SIGRAND_VOIP

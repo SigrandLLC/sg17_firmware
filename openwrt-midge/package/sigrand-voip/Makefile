@@ -25,6 +25,7 @@ PKG_PATCH_DIR:=$(PKG_CONF_DIR)/files/patches/
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/build
 
+
 include $(TOPDIR)/package/rules.mk
 
 
@@ -38,27 +39,34 @@ SVI_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVI_DISTR) $(PKG_BUILD_DIR)
 
 $(eval $(call PKG_template,SIGRAND_VOIP,sigrand-voip,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
-
+#ifeq($(BR2_PACKAGE_SIGRAND_VOIP_BIN), y)
 
 $(PKG_BUILD_DIR)/.prepared:
-	mkdir -p $(PKG_BUILD_DIR)
-	
-	#---------======================================---------
-	# 			unpack sources
-	#---------======================================---------
-	
-	$(TAPI_UNPACK)
-	$(DAA_UNPACK)
-	$(VINETIC_UNPACK)
-	$(SGATAB_UNPACK)
-	$(SVD_UNPACK)
-	$(SVI_UNPACK)
-	
-	#---------======================================---------
-	# 			prepare sources
-	#---------======================================---------
+	mkdir -p $(PKG_BUILD_DIR);
+	mkdir -p $(PKG_INSTALL_DIR)/bin;
 
-	( mkdir -p $(PKG_INSTALL_DIR); \
+	( if test $(BR2_PACKAGE_SIGRAND_VOIP_BIN) == y; then \
+		#---------======================================---------\
+		# 		using prebuild binaries\
+		#---------======================================---------\
+		cp -rpf $(PKG_CONF_DIR)/files/bin/* $(PKG_INSTALL_DIR)/bin/;\
+		touch $(PKG_BUILD_DIR)/.prepared;\
+		touch $(PKG_BUILD_DIR)/.configured;\
+		touch $(PKG_BUILD_DIR)/.built;\
+	else \
+		#---------======================================---------\
+		# 			unpack sources\
+		#---------======================================---------\
+		$(TAPI_UNPACK);\
+		$(DAA_UNPACK);\
+		$(VINETIC_UNPACK);\
+		$(SGATAB_UNPACK);\
+		$(SVD_UNPACK);\
+		$(SVI_UNPACK);\
+		#---------======================================---------\
+		# 			prepare sources\
+		#---------======================================---------\
+		mkdir -p $(PKG_INSTALL_DIR); \
 		cd $(PKG_BUILD_DIR); \
 		ln -snf drv_daa-1.0.2.0 		daa; \
 		ln -snf drv_tapi-3.6.1 			tapi; \
@@ -71,8 +79,10 @@ $(PKG_BUILD_DIR)/.prepared:
 		patch -p1 < $(PKG_PATCH_DIR)/tapi.patch; \
 		cd $(PKG_BUILD_DIR)/vinetic; \
 		patch -p1 < $(PKG_PATCH_DIR)/vinetic.patch; \
-	);
-	touch $@
+	fi\
+		);
+		touch $@
+	
 
 
 

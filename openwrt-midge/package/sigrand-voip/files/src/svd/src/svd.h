@@ -98,8 +98,6 @@ struct svd_s
 	su_home_t home[1];	/**< Our memory home */
 	nua_t * nua;		/**< Pointer to NUA object */
 	ab_t * ab;		/**< Pointer to ATA Boards object */
-	int io_fd;		/**< I/O socket descriptor */
-	struct sockaddr_un io_addr;/**< I/O socket address */
 
 	unsigned char net_is_hotlined; /**< network hotline marker */
 	/* points to g_conf value */
