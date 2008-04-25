@@ -37,7 +37,7 @@ unsigned char startup_init( int argc, char ** argv );
 
 unsigned char g_err_no;
 unsigned char g_err_tag;
-unsigned char g_err_msg[ ERR_MSG_SIZE ];
+char g_err_msg[ ERR_MSG_SIZE ];
 
 
 const unsigned char g_programm[ ] = "svinit";

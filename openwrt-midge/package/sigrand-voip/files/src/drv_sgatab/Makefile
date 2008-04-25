@@ -1,1 +1,1 @@
-obj-m += drv_sgatab.o
+obj-m := drv_sgatab.o

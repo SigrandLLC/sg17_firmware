@@ -1,27 +1,24 @@
-#!/bin/bash
+#!/bin/sh
 
 curr_path=`pwd`
-libab_path=${curr_path}/src/libab
-tapi_name=drv_tapi-3.6.1
 vinetic_name=drv_vinetic-1.3.1_tapi-3.6.1
 path_to_bin=${curr_path}/../../../../../staging_dir_mipsel/bin/
+path_to_lin=${curr_path}/../../../../../build_mipsel/linux/
 build_dir=${curr_path}/../../bin/
 
 PATH=$PATH:${path_to_bin}
 
 cd ${curr_path}/..
-tar -xvpf ${tapi_name}.tar.gz 
 tar -xvpf ${vinetic_name}.tar.gz 
-
-ln -snf drv_sgatab 	sgatab
-ln -snf ${tapi_name}	tapi
 ln -snf ${vinetic_name}	vinetic
 
 cd ${curr_path}
-mipsel-linux-gcc -Wall -I./vinetic/include/ -I./tapi/include/ -I./sgatab/ svi.c -o svi
 
-cp  svi ${build_dir}
+CC=mipsel-linux-gcc make -w -C ${path_to_lin} M=${curr_path} modules
+
+cp  drv_sgatab.ko ${build_dir}
 ./clean_there
 
 cd ${curr_path}/..
-rm -rf sgatab tapi vinetic ${tapi_name} ${vinetic_name}
+rm -rf vinetic ${vinetic_name}
+

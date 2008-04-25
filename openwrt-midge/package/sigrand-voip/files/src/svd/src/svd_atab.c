@@ -1042,6 +1042,7 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 /* ONCE RECEIVED METHOD - in while - resource temporary unavailable error */
 	received = recv(chan->data->rtp_sfd, buf, sizeof(buf), 0);
 
+	/* tag__ use for testing 
 	if( (buf[1] != 18) && (buf[1] != 8) ){
 		int i = 12;
 		SU_DEBUG_2(("%d = recv(), pd:%x[:",received, buf[1]));
@@ -1050,7 +1051,7 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 		}
 		SU_DEBUG_2(("]\n"));
 	}
-
+	*/
 	if (received == 0){
 		SU_DEBUG_2(("svd_media_vinetic_handle_remote_data() - "
 				"wrong event\n"));

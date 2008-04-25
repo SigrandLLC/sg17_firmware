@@ -96,7 +96,9 @@ $(PKG_BUILD_DIR)/.configured:  $(PKG_BUILD_DIR)/.prepared
 
 	( cd $(PKG_BUILD_DIR)/daa; \
 		aclocal; \
-		automake --foreign; \
+		autoheader; \
+		automake -a --foreign; \
+		autoconf; \
 		$(TARGET_CONFIGURE_OPTS) \
 		CFLAGS="$(TARGET_CFLAGS) -I$(STAGING_DIR)/usr/include" \
 		LDFLAGS="-L$(STAGING_DIR)/usr/lib -L$(STAGING_DIR)/lib" \
@@ -126,7 +128,9 @@ $(PKG_BUILD_DIR)/.configured:  $(PKG_BUILD_DIR)/.prepared
 
 	( cd $(PKG_BUILD_DIR)/vinetic; \
 		aclocal; \
-		automake --foreign; \
+		autoheader; \
+		automake -a --foreign; \
+		autoconf; \
 		$(TARGET_CONFIGURE_OPTS) \
 		CFLAGS="$(TARGET_CFLAGS) -I$(STAGING_DIR)/usr/include" \
 		LDFLAGS="-L$(STAGING_DIR)/usr/lib -L$(STAGING_DIR)/lib" \
@@ -159,7 +163,9 @@ $(PKG_BUILD_DIR)/.configured:  $(PKG_BUILD_DIR)/.prepared
 
 	( cd $(PKG_BUILD_DIR)/tapi; \
 		aclocal; \
-		automake --foreign; \
+		autoheader; \
+		automake -a --foreign; \
+		autoconf; \
 		$(TARGET_CONFIGURE_OPTS) \
 		CFLAGS="$(TARGET_CFLAGS) -I$(STAGING_DIR)/usr/include" \
 		LDFLAGS="-L$(STAGING_DIR)/usr/lib -L$(STAGING_DIR)/lib" \

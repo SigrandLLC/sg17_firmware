@@ -2,4 +2,4 @@
 
 rm -rf *.o
 rm -rf tags
-rm -rf svinit
+rm -rf svi
