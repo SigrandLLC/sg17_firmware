@@ -199,8 +199,7 @@ static int basicdev_inits( void )
 			close (cfg_fd);
 			goto basicdev_inits__exit;
 		}
-		err = ioctl(cfg_fd, FIO_VINETIC_BASICDEV_INIT, 
-				&binit);
+		err = ioctl (cfg_fd, FIO_VINETIC_BASICDEV_INIT, &binit);
 		if(err){
 			g_err_no = ERR_IOCTL_FAILS;
 			strcpy(g_err_msg, "BasicDev init fails (ioctl)");
@@ -658,56 +657,56 @@ static void run( void )
 	/* get mount info */
 	err = init_params_get();
 	if( err ) {
-		fprintf(stderr,"svinit ERROR : init_params_get()\n");
+		fprintf(stderr,"\nsvi ERROR : init_params_get()\n");
 		return;
 	}
 
 	/* basicdev init for every device */
 	err = basicdev_inits();
 	if( err ) {
-		fprintf(stderr,"svinit ERROR : basicdev_inits()\n");
+		fprintf(stderr,"\nsvi ERROR : basicdev_inits()\n");
 		return;
 	}
 
 	/* Load pram and dram */
 	err = fw_base_masses_init();
 	if( err ) {
-		fprintf(stderr,"svinit ERROR : fw_base_masses_init()\n");
+		fprintf(stderr,"\nsvi ERROR : fw_base_masses_init()\n");
 		return;
 	}
 
 	/* Channels init with PRAM and DRAM */
 	err = all_chans_init_fw_base();
 	if( err ) {
-		fprintf(stderr,"svinit ERROR : all_chans_init_fw_base()\n");
+		fprintf(stderr,"\nsvi ERROR : all_chans_init_fw_base()\n");
 		return;
 	}
 
 	/* get dev-types info */
 	err = devs_set_types();
 	if( err ) {
-		fprintf(stderr,"svinit ERROR : devs_set_types()\n");
+		fprintf(stderr,"\nsvi ERROR : devs_set_types()\n");
 		return;
 	}
 
 	/* Load crams */
 	err = fw_cram_masses_init();
 	if( err ) {
-		fprintf(stderr,"svinit ERROR : fw_cram_masses_init()\n");
+		fprintf(stderr,"\nsvi ERROR : fw_cram_masses_init()\n");
 		return;
 	}
 
 	/* Channels init with CRAM */
 	err = all_chans_init_fw_cram();
 	if( err ) {
-		fprintf(stderr,"svinit ERROR : all_chans_init_fw_cram()\n");
+		fprintf(stderr,"\nsvi ERROR : all_chans_init_fw_cram()\n");
 		return;
 	}
 
 	/* Channels map and tune*/
 	err = all_chans_tune();
 	if( err ) {
-		fprintf(stderr,"svinit ERROR : all_chans_tune()\n");
+		fprintf(stderr,"\nsvi ERROR : all_chans_tune()\n");
 		return;
 	}
 };

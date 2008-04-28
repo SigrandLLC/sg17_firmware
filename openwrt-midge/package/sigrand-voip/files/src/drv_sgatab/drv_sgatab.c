@@ -226,7 +226,8 @@ static int pci_init( void )
 	ab_dev->sgatab_adr = pci_resource_start(ab_dev->pci_dev, 0);
 
 	if (pci_enable_device(ab_dev->pci_dev)) {
-		printk(KERN_ERR "%s: can`t enable PCI device\n", DEV_NAME);
+		printk(KERN_ERR "%s: ERROR: can`t enable PCI device\n", 
+				DEV_NAME);
 		err = -EIO;
 		goto pci_init_exit;
 	}
@@ -238,6 +239,12 @@ static int pci_init( void )
 
 	g_slot_N = PCI_SLOT(ab_dev->pci_dev->devfn);
 	g_types = kmalloc(sizeof(*g_types) * g_devices_count, GFP_KERNEL);
+	if ( !g_types) {
+		printk(KERN_ERR "%s: ERROR: can`t allocate memory for types\n", 
+				DEV_NAME);
+		err = -EIO;
+		goto pci_init_exit;
+	}
 
 	g_parms.nBaseAddress = ab_dev->sgatab_adr;
 	g_parms.nIrqNum = ab_dev->pci_dev->irq;
@@ -345,7 +352,6 @@ static int SGATAB_gpio_type_init( void )
 
 SGATAB_gpio_type_init__exit:
 	return -EFAULT;
-
 };
 
 static int SGATAB_gpio_type_to_user( unsigned long user_data )
@@ -548,20 +554,20 @@ static int __init sgatab_module_init(void)
 	/* Register the PCI driver */
 	err = pci_register_driver ( &sgatab_pci_driver );
 	if ( err < 0 ){
-		printk(KERN_ERR "%s: Loading module ERROR: can`t "
+		printk(KERN_ERR "%s: ERROR : Loading module ERROR: can`t "
 				"register PCI driver!\n", DEV_NAME);
 		goto ___exit;
 	}
 
-	err = proc_install_sgatab_entries();
-	if ( err < 0 ){
-		printk(KERN_ERR "%s: Loading module ERROR: can`t "
+	err = proc_install_sgatab_entries ();
+	if (err){
+		printk(KERN_ERR "%s: ERROR : Loading module ERROR: can`t "
 				"register PROC entries!\n", DEV_NAME);
 		goto ___exit;
 	}
 
 	err = chardev_init ();
-	if( err ) {
+	if (err) {
 		printk(KERN_ERR "%s: ERROR : Could not allocate "
 				"character device number. EXIT\n", DEV_NAME);
 		goto ___exit;
