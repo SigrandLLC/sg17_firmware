@@ -94,6 +94,10 @@ L1 System welcome
 
 	L2 Switch	'adm5120sw'
 	L2 Multiplexing	'multiplexing'
+	
+	# check that VoIP module is installed
+	[ "x$(kdb get sys_voip_present)" == "x1" ] && L2 VoIP 'voip'	
+	
 	L2 DNS		'dns'
 	
 L1 Network

@@ -140,8 +140,8 @@ update_configs(){
 		#chmod 700 /etc/ipsec-tools.sh 
 		;;
 	voip)
-		cfg_make voip.conf /etc/voip.conf && \
-		cfg_make voip-route.conf /etc/voip-route.conf && \
+		cfg_make svd.conf /etc/svd.conf && \
+		cfg_make svd_rt.conf /etc/svd_rt.conf && \
 		cfg_commit
 		;;
 	esac

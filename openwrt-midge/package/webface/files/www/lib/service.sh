@@ -50,7 +50,7 @@ service_reload(){
 		/etc/init.d/mux start
 	;;
 	voip)
-		/etc/init.d/voip restart
+		/etc/init.d/rcvoip restart
 	;;
 	esac
 }

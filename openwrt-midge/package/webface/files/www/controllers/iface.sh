@@ -463,7 +463,7 @@
 				default="4096"
 				desc="Maximum size of tokens buffer in bytes"
 				validator='tmt:required="true" tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="positiveinteger" tmt:minnumber=10 tmt:maxnumber=65535 tmt:message="Please input number" '
-				render_input_field text "Tocken buffer" sys_iface_${iface}_qos_tbf_buffer
+				render_input_field text "Token buffer" sys_iface_${iface}_qos_tbf_buffer
 
 				default=""
 				desc="Maximum size of buffer in bytes <br/><b>Note:</b> You should use <i>limit</i> <b>OR</b> <i>latency</i>"

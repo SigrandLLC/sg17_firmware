@@ -1,11 +1,17 @@
 #!/bin/sh
 
+PORTSINFO="/proc/driver/sgatab/channels"
 sgatab_module="drv_sgatab"
 sgatab_device="sgatab"
 daa_module="drv_daa"
 tapi_module="drv_tapi"
 vinetic_module="drv_vinetic"
 vinetic_device="vin"
+
+gen_config()
+{
+	/etc/templates/Update voip
+}
 
 case "$1" in
 start)
@@ -63,6 +69,19 @@ start)
 		echo -n Starting Sigrand-VoIP services: 
 
 		/bin/svi
+
+		# set presence of VoIP module to 0
+		kdb set sys_voip_present=0
+		
+		# find VoIP module
+		if [ -r $PORTSINFO ]; then
+			porttype=`head -n1 $PORTSINFO | awk -F ':' '{print $2}'`
+			if [ "$porttype" != "UNDEFINED" ]; then
+				kdb set sys_voip_present=1
+				gen_config
+			fi
+		fi
+
 		/bin/svd
 
 		echo " OK"
@@ -75,7 +94,8 @@ stop)
 	echo " OK"
 ;;
 restart)
-	echo -n Reconfigure VoIP daemon: 
+	echo -n Reconfigure VoIP daemon:
+	gen_config
 	killall svd
 	/bin/svd
 	echo " OK"

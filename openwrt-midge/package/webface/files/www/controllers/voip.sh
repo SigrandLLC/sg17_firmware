@@ -2,7 +2,7 @@
 
 	page=${FORM_page:-settings}
 	subsys="voip"
-	PORTSINFO="/tmp/ports"
+	PORTSINFO="/proc/driver/sgatab/channels"
 	PORTS_INFO_FULL=`cat $PORTSINFO`
 	PORTS_INFO_FULL="SIP:SIP $PORTS_INFO_FULL"
 
