@@ -8,7 +8,7 @@
 
 	case $page in
 		'settings')
-			kdb_vars="str:sys_voip_settings_codec_ext_quality str:sys_voip_settings_codec_int_quality int:sys_voip_settings_selfnumber"
+			kdb_vars="str:sys_voip_settings_codec_ext_quality str:sys_voip_settings_codec_int_quality int:sys_voip_settings_selfnumber str:sys_voip_settings_selfip"
 			;;
 		'sip')
 			kdb_vars="str:sys_voip_sip_server str:sys_voip_sip_username str:sys_voip_sip_password"
@@ -41,6 +41,12 @@
 			desc="Router ID"
 			validator="$tmtreq $validator_voip_router_id"
 			render_input_field text "Router ID" sys_voip_settings_selfnumber			
+			
+			# sys_voip_selfip
+			tip=""
+			desc="Router IP"
+			validator="$tmtreq $validator_ipaddr"
+			render_input_field text "Router IP" sys_voip_settings_selfip						
 			
 			# sys_voip_codec_ext_quality
 			tip="Quality of calls through SIP-server"

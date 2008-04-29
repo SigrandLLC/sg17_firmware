@@ -93,4 +93,8 @@ sys_switch_port2_iface=2
 sys_switch_port3_iface=3
 sys_switch_ports=0\0401\0402\0403
 sys_timezone=-4
+sys_voip_settings_selfnumber=001
+sys_voip_settings_selfip=192.168.2.100
+sys_voip_settings_codec_ext_quality=speed
+sys_voip_settings_codec_int_quality=speed
 KDB END
