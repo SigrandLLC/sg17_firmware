@@ -108,8 +108,6 @@ $(PKG_BUILD_DIR)/.configured:  $(PKG_BUILD_DIR)/.prepared
 		--enable-boardname=SG4V22 \
 		--prefix=$(PKG_INSTALL_DIR) \
 	);
-	cp $(PKG_BUILD_DIR)/daa/drv_config.h $(PKG_BUILD_DIR)/daa/src
-	cp $(PKG_BUILD_DIR)/daa/drv_daa_version.h $(PKG_BUILD_DIR)/daa/src
 	( cd $(PKG_BUILD_DIR)/daa; \
 		$(TARGET_CONFIGURE_OPTS) \
 		make && \
@@ -273,7 +271,6 @@ $(IPKG_SIGRAND_VOIP):
 	cp -rpf $(PKG_INSTALL_DIR)/bin/sv* $(IDIR_SIGRAND_VOIP)/bin/
 	cp -rpf $(PKG_CONF_DIR)/files/fw/* $(IDIR_SIGRAND_VOIP)/lib/firmware/
 	cp -rpf $(PKG_CONF_DIR)/files/rc/* $(IDIR_SIGRAND_VOIP)/etc/init.d/
-	cp -rpf $(PKG_CONF_DIR)/files/*.conf $(IDIR_SIGRAND_VOIP)/etc/
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_VOIP)/CONTROL/control
 	$(RSTRIP) $(IDIR_SIGRAND_VOIP)
 	$(IPKG_BUILD) $(IDIR_SIGRAND_VOIP) $(PACKAGE_DIR)

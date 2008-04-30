@@ -40,7 +40,7 @@
 #include <linux/proc_fs.h>
 
 #include "ab_ioctl.h"
-#include "../vinetic/src/common/src/ifx_types.h"
+#include "../tapi/include/ifx_types.h"
 #include "../vinetic/include/vinetic_io.h"
 
 /* ============================= */
@@ -132,9 +132,11 @@ static unsigned char g_types_GPIO_inited = 0;
 static unsigned char g_slot_N = 0;
 static u16 g_devices_count = 0;
 static ab_dev_t g_ab_dev;
+
 /* ============================= */
 /* Local function definition     */
 /* ============================= */
+
 /****************************************************************************
 Description:
    Configuration / Control for the device.
@@ -151,7 +153,7 @@ Remarks:
 int SGATAB_Ioctl(struct inode *inode, struct file *filp,
                           unsigned int nCmd, unsigned long nArgument)
 {
-	int err = 0;
+	int err;
 	switch (nCmd) {
 		case SGAB_GET_INIT_PRMS:
 			if(copy_to_user((void *)nArgument, 
@@ -214,7 +216,6 @@ static void chardev_undef( void )
 
 static int pci_init( void )
 {
-	u8 lat;
 	ab_dev_t * ab_dev = &g_ab_dev;
 	int err;
 
@@ -233,7 +234,6 @@ static int pci_init( void )
 	}
 	ab_dev->pci_device_enabled = 1;
 
-	pci_read_config_byte(ab_dev->pci_dev, PCI_LATENCY_TIMER, &lat);
 	pci_read_config_word(ab_dev->pci_dev, PCI_SUBSYSTEM_ID, 
 			&g_devices_count);
 
@@ -257,7 +257,7 @@ static int pci_init( void )
 	g_parms.first_chan_num = 
 			( g_slot_N-1 ) * 
 			g_devices_count * 
-			MR17VOIP8_CHANS_PER_DEV + 1; 
+			MR17VOIP8_CHANS_PER_DEV + 1;
 
 	printk(KERN_INFO "%s: id=%x at bus - %02x slot "
 			"- %02x func - %x \n", DEV_NAME,
@@ -265,10 +265,10 @@ static int pci_init( void )
 			ab_dev->pci_dev->bus->number,
            		PCI_SLOT(ab_dev->pci_dev->devfn), 
 			PCI_FUNC(ab_dev->pci_dev->devfn));
-	printk(KERN_INFO "%s: irq %d, latency %d, devices count %d, "
+	printk(KERN_INFO "%s: irq %d, devices count %d, "
 			"memory address 0x%lx\n",
 			DEV_NAME, ab_dev->pci_dev->irq, 
-			lat, g_devices_count, ab_dev->sgatab_adr);
+			g_devices_count, ab_dev->sgatab_adr);
 
 	return 0;
 
@@ -308,7 +308,7 @@ static int SGATAB_gpio_type_init( void )
 	/* try to set gpio`s proper values */
 	for (i = 0; i < g_devices_count; i++){
 		vin_dev_handle = VINETIC_OpenKernel ( i, 0 );
-		if (vin_dev_handle == IFX_ERROR) {
+		if (vin_dev_handle == -1) {
 			printk(KERN_ERR "%s: ERROR : VINETIC_OpenKernel(%d,0) "
 					"failed\n", DEV_NAME, i);
 			goto SGATAB_gpio_type_init__exit;
@@ -327,14 +327,14 @@ static int SGATAB_gpio_type_init( void )
 		ioCfg.nMode = GPIO_MODE_INPUT;
 		ioCfg.nGpio = VINETIC_IO_DEV_GPIO_3 | VINETIC_IO_DEV_GPIO_7;
 		err = VINETIC_GpioConfig (io_handle, &ioCfg);
-		if (err != IFX_SUCCESS) {
+		if (err) {
 			printk(KERN_ERR "%s: ERROR : VINETIC_GpioConfig(...) "
 					"failed\n", DEV_NAME);
 			goto SGATAB_gpio_type_init__exit;
 		}
 
 		err = VINETIC_GpioGet (io_handle, &get, VINETIC_IO_DEV_GPIO_3);
-		if (err != IFX_SUCCESS) {
+		if (err) {
 			printk(KERN_ERR "%s: ERROR : VINETIC_GpioGet(...) "
 					"failed\n", DEV_NAME);
 			goto SGATAB_gpio_type_init__exit;
@@ -361,22 +361,22 @@ static int SGATAB_gpio_type_to_user( unsigned long user_data )
 	memset (&user_types, 0, sizeof(user_types));
 
 	if(copy_from_user (&user_types, (void *)user_data, sizeof(user_types))){
-		printk(KERN_ERR "%s: ERROR : copy_from_user(...) "
-				"failed\n", DEV_NAME );
+		printk(KERN_ERR "%s: ERROR : copy_from_user(...) failed\n", 
+				DEV_NAME );
 		goto SGATAB_gpio_type_to_user__exit;
 	}
 	
 	user_types.devs_count = g_devices_count;
 
 	if(copy_to_user((void *)user_data, &user_types, sizeof(user_types))){
-		printk(KERN_ERR "%s: ERROR : copy_to_user(...) "
-				"failed\n", DEV_NAME );
+		printk(KERN_ERR "%s: ERROR : copy_to_user(...) failed\n", 
+				DEV_NAME );
 		goto SGATAB_gpio_type_to_user__exit;
 	}
 	if(copy_to_user((void *)(user_types.dev_type), g_types, 
 			sizeof(*g_types) * g_devices_count)){
-		printk(KERN_ERR "%s: ERROR : copy_to_user(...) "
-				"failed\n", DEV_NAME );
+		printk(KERN_ERR "%s: ERROR : copy_to_user(...) failed\n", 
+				DEV_NAME );
 		goto SGATAB_gpio_type_to_user__exit;
 	} 
 	
@@ -401,12 +401,13 @@ static int proc_read_sgatab (char *page, char **start, off_t off,
 	int (*fn)(char *buf);
 
 	/* write data into the page */
-	if (data != NULL) {
-		fn = data;
-		len = fn(page);
-	} else {
-		return 0;
+	if( !data){
+		len = 0;
+		goto ___exit;
 	}
+
+	fn = data;
+	len = fn(page);
 
 	if (len <= off+count){
 		*eof = 1;
@@ -420,6 +421,7 @@ static int proc_read_sgatab (char *page, char **start, off_t off,
 		len = 0;
 	}
 
+___exit:
 	/* return the data length  */
 	return len;
 }

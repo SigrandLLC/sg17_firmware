@@ -743,7 +743,7 @@ static void show_help( )
 	fprintf( stdout, 
 "\
 Usage: %s [OPTION]\n\
-SVINIT. SIP VoIP cards initializer. Loads firmwire to chips and do\n\
+SVI. SIP VoIP cards initializer. Loads firmwire to chips and do\n\
 		other necessary actions.\n\
 \n\
 It can get some options :)\n\

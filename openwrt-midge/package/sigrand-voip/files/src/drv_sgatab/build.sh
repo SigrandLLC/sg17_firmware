@@ -5,6 +5,7 @@
 #
 
 curr_path=`pwd`
+tapi_name=drv_tapi-3.6.1
 vinetic_name=drv_vinetic-1.3.1_tapi-3.6.1
 path_to_bin=${curr_path}/../../../../../staging_dir_mipsel/bin/
 path_to_lin=${curr_path}/../../../../../build_mipsel/linux/
@@ -12,7 +13,9 @@ path_to_lin=${curr_path}/../../../../../build_mipsel/linux/
 PATH=$PATH:${path_to_bin}
 
 cd ${curr_path}/..
+tar -xvpf ${tapi_name}.tar.gz 
 tar -xvpf ${vinetic_name}.tar.gz 
+ln -snf ${tapi_name}	tapi
 ln -snf ${vinetic_name}	vinetic
 
 cd ${curr_path}
@@ -24,4 +27,4 @@ mv drv_sgatab.ko ${1}
 
 cd ${curr_path}/..
 rm -rf vinetic ${vinetic_name}
-
+rm -rf tapi ${tapi_name}
