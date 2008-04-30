@@ -66,7 +66,7 @@ void svd_nua_callback(	nua_event_t  event,
 			tagi_t       tags[] )
 {
 DFS
-	SU_DEBUG_3(("===> %s\n",nua_event_name(event)));
+	SU_DEBUG_3(("Event : %s\n",nua_event_name(event)));
 	switch (event) {
 
 /************ Indications ************/
@@ -271,8 +271,10 @@ DFS
 				"RTP/AVP 18 8\r\na=rtpmap:18 "
 				"G729/8000\r\na=rtpmap:8 PCMA/8000\r\n",
 				chan->data->rtp_port);
+#ifdef SVD_DEBUG_LOGS
 		SU_DEBUG_3 ((LOG_FNC_A("Answer on call")));
 		SU_DEBUG_3 (("Local SDP :\n%s\n",l_sdp_str));
+#endif
 		if (status < 200 || status >= 300){
 			SU_DEBUG_2 (("Answer status : %d, %s\n",
 					status, phrase));
@@ -438,16 +440,15 @@ DFS
 			"a=rtpmap:18 G729/8000\r\n"
 			"a=rtpmap:8 PCMA/8000\r\n",
 			chan->data->rtp_port);
+#ifdef SVD_DEBUG_LOGS
 	SU_DEBUG_3 (("SDP STRING : %s\n", l_sdp_str));
+#endif
 
 	nua_invite( nh,
 			SOATAG_USER_SDP_STR(l_sdp_str),
 			SOATAG_RTP_SORT (SOA_RTP_SORT_REMOTE),
 			SOATAG_RTP_SELECT (SOA_RTP_SELECT_SINGLE), 
 			TAG_END() );
-
-	SU_DEBUG_3 (("INVITE_COMPLETE\n"));
-
 DFE
 	return 0;
 
@@ -486,13 +487,13 @@ svd_i_invite( int status, char const * phrase, svd_t * const svd,
 		nua_handle_t * nh, ab_chan_t * chan, 
 		sip_t const *sip, tagi_t tags[])
 {
-DFS
 	ab_chan_t * req_chan;
 	sip_to_t const *to = sip->sip_to;
 	unsigned char abs_chan_idx;
 	int use_FF_FXO = 0;
 	int chan_idx;
 	int err;
+DFS
 
 	/* * 
 	 * Get requested chan number 
@@ -726,6 +727,7 @@ DFS
 	assert(chan->data);
 	assert(chan->data->op_handle == nh);
 	SU_DEBUG_3 (("BYE received\n"));
+
 DFE
 };
 
@@ -775,8 +777,7 @@ svd_r_get_params(int status, char const *phrase, nua_t * nua, svd_t * svd,
 {
 DFS
 
-	SU_DEBUG_3(("The tags are :\n"
-			"=====================\n"));
+	SU_DEBUG_3(("The tags are :\n=====================\n"));
 	SU_DEBUG_3(("NOT IMPLEMENTED YET\n"));
 /*
 	tagi_t * curr_tag = NULL;
@@ -878,7 +879,7 @@ svd_r_invite( int status, char const *phrase, nua_t * nua, svd_t * svd,
 		tagi_t tags[])
 {
 DFS
-	SU_DEBUG_3(("INVITE: %03d %s\n", status, phrase));
+	SU_DEBUG_3(("got answer on INVITE: %03d %s\n", status, phrase));
 
 	if (status >= 300) {
 		/* op->op_callstate &= ~opc_sent; */
@@ -901,7 +902,7 @@ svd_r_bye(int status, char const *phrase,
 DFS
 	assert(chan);
 	assert(chan->data->op_handle == nh);
-	SU_DEBUG_3(("BYE: %03d %s\n", status, phrase));
+	SU_DEBUG_3(("got answer on BYE: %03d %s\n", status, phrase));
 DFE
 };
 
@@ -909,7 +910,7 @@ svd_r_info(int status, char const * phrase, svd_t * const svd,
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const * sip)
 {
 DFS
-	SU_DEBUG_3(("STATUS : %d, %s\n",status,phrase));
+	SU_DEBUG_3(("got answer on INFO: %d, %s\n",status,phrase));
 DFE
 };
 
@@ -941,10 +942,11 @@ svd_media_parse_sdp(svd_t * const svd, ab_chan_t * const chan,
 
 	chan->data->payload = sdp_sess->sdp_media->m_rtpmaps->rm_pt;
 
+#ifdef SVD_DEBUG_LOGS
 	SU_DEBUG_3(("I've got remote %s:%d with payload %d\n",
 		chan->data->remote_host, chan->data->remote_port, 
 		chan->data->payload));
-
+#endif
 	sdp_parser_free(remote_sdp);
 	return;
 };

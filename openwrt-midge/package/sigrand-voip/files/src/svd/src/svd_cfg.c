@@ -134,7 +134,7 @@ svd_conf_init( void )
 	/* Load the file */
 	if (!config_read_file (&cfg, SVD_CONF_NAME)){
 		err = config_error_line (&cfg);
-		SU_DEBUG_0(("svd_conf_init() Config file syntax "
+		SU_DEBUG_0(("svd_conf_init(): Config file syntax "
 				"error in line %d\n", err));
 		goto svd_conf_init__exit;
 	} 
@@ -228,120 +228,80 @@ conf_show( void )
 	int j;
 
 	SU_DEBUG_3(("=========================\n"));
-	SU_DEBUG_3(("self_number = \"%s\"", g_conf.self_number));
-	if( g_conf.self_number == g_conf.self_number_s ){
-		SU_DEBUG_3((".. static\n"));
-	} else {
-		SU_DEBUG_3((".. dynamic\n"));
-	}
+	SU_DEBUG_3(("%s[%s] : ", g_conf.self_number, g_conf.self_ip));
+	SU_DEBUG_3(("log["));
 
 	if( g_conf.log.log_level == -1 ){
-		SU_DEBUG_3(("NOT LOGGING \n"));
+		SU_DEBUG_3(("no] : "));
 	} else {
-		SU_DEBUG_3(("LOG LEVEL = [%d]\n",g_conf.log.log_level));
-		if( !g_conf.log.log_path ){
-			SU_DEBUG_3(("\t log to [stderr]\n"));
-		} else {
-			SU_DEBUG_3(("\t log to [%s]",g_conf.log.log_path));
-			if( g_conf.log.log_path == g_conf.log.log_path_s ){
-				SU_DEBUG_3((".. static\n"));
-			} else {
-				SU_DEBUG_3((".. dynamic\n"));
-			}
-		}
+		SU_DEBUG_3(("%d,%s] :", 
+				g_conf.log.log_level, g_conf.log.log_path));
 	}
 
-	SU_DEBUG_3(("ext_codec = "));
-	switch(g_conf.ext_codec){
-		case codec_type_UNDEFINED:
-			SU_DEBUG_3(("UNDEFINED\n"));
-			break;
-
-		case codec_type_SPEED:
-			SU_DEBUG_3(("SPEED\n"));
-			break;
-			
-		case codec_type_QUALITY:
-			SU_DEBUG_3(("QUALITY\n"));
-			break;
-
-		case codec_type_MEDIUM:
-			SU_DEBUG_3(("MEDIUM\n"));
-			break;
-	}
-	SU_DEBUG_3(("int_codec = "));
+	SU_DEBUG_3(("ic/ec["));
 	switch(g_conf.int_codec){
 		case codec_type_UNDEFINED:
-			SU_DEBUG_3(("UNDEFINED\n"));
+			SU_DEBUG_3(("U/"));
 			break;
 
 		case codec_type_SPEED:
-			SU_DEBUG_3(("SPEED\n"));
+			SU_DEBUG_3(("S/"));
 			break;
 			
 		case codec_type_QUALITY:
-			SU_DEBUG_3(("QUALITY\n"));
+			SU_DEBUG_3(("Q/"));
 			break;
 
 		case codec_type_MEDIUM:
-			SU_DEBUG_3(("MEDIUM\n"));
+			SU_DEBUG_3(("M/"));
+			break;
+	}
+	switch(g_conf.ext_codec){
+		case codec_type_UNDEFINED:
+			SU_DEBUG_3(("U]\n"));
+			break;
+
+		case codec_type_SPEED:
+			SU_DEBUG_3(("S]\n"));
+			break;
+			
+		case codec_type_QUALITY:
+			SU_DEBUG_3(("Q]\n"));
+			break;
+
+		case codec_type_MEDIUM:
+			SU_DEBUG_3(("M]\n"));
 			break;
 	}
 
+	if(g_conf.address_book.records_num){
+		SU_DEBUG_3(("AddressBook :\n"));
+	}
 	j = g_conf.address_book.records_num;
-	SU_DEBUG_3(("address_book_records : %d\n", j));
-	SU_DEBUG_3(("address_book_id_len : %d\n", 
-			g_conf.address_book.id_len));
-
 	for(i = 0; i < j; i++){
 		curr_ab_rec = &g_conf.address_book.records[ i ];
-		SU_DEBUG_3(("\t[%d]\n",i+1));
-		if(curr_ab_rec->id == curr_ab_rec->id_s){
-			SU_DEBUG_3(("\tUsing static id mass\n"));
-		} else {
-			SU_DEBUG_3(("\tUsing dynamic id mass\n"));
-		}
-		SU_DEBUG_3(("\tid : %s\n",curr_ab_rec->id));
-		if(curr_ab_rec->value == curr_ab_rec->value_s){
-			SU_DEBUG_3(("\tUsing static value mass\n"));
-		} else {
-			SU_DEBUG_3(("\tUsing dynamic value mass\n"));
-		}
-		SU_DEBUG_3(("\tvalue : %s\n",curr_ab_rec->value));
+		SU_DEBUG_3(("\t%d/\"%s\" : %s\n", 
+				i+1, curr_ab_rec->id, curr_ab_rec->value));
 	}
 			
-	SU_DEBUG_3(("\n"));
+	if(g_conf.hot_line.records_num){
+		SU_DEBUG_3(("HotLine :\n"));
+	}
 	j = g_conf.hot_line.records_num;
-	SU_DEBUG_3(("hot_line_records : %d\n", j));
-
 	for(i = 0; i < j; i++){
 		curr_hl_rec = &g_conf.hot_line.records[ i ];
-		SU_DEBUG_3(("\t[%d]\n",i+1));
-		SU_DEBUG_3(("\tid : %s\n",curr_hl_rec->id));
-		if(curr_hl_rec->value == curr_hl_rec->value_s){
-			SU_DEBUG_3(("\tUsing static value mass\n"));
-		} else {
-			SU_DEBUG_3(("\tUsing dynamic value mass\n"));
-		}
-		SU_DEBUG_3(("\tvalue : %s\n",curr_hl_rec->value));
+		SU_DEBUG_3(("\t%d/\"%s\" : %s\n",
+				i+1, curr_hl_rec->id, curr_hl_rec->value ));
 	}
 
-	SU_DEBUG_3(("\n"));
+	if(g_conf.route_table.records_num){
+		SU_DEBUG_3(("RouteTable :\n"));
+	}
 	j = g_conf.route_table.records_num;
-	SU_DEBUG_3(("route_table_records : %d\n", j));
-	SU_DEBUG_3(("route_table_id_len : %d\n", 
-			g_conf.route_table.id_len));
-
 	for(i = 0; i < j; i++){
 		curr_rt_rec = &g_conf.route_table.records[ i ];
-		SU_DEBUG_3(("\t[%d]\n",i+1));
-		if(curr_rt_rec->id == curr_rt_rec->id_s){
-			SU_DEBUG_3(("\tUsing static id mass\n"));
-		} else {
-			SU_DEBUG_3(("\tUsing dynamic id mass\n"));
-		}
-		SU_DEBUG_3(("\tid : %s\n",curr_rt_rec->id));
-		SU_DEBUG_3(("\tvalue : %s\n",curr_rt_rec->value));
+		SU_DEBUG_3(("\t%d/\"%s\" : %s\n",
+				i+1, curr_rt_rec->id, curr_rt_rec->value));
 	}
 	SU_DEBUG_3(("=========================\n"));
 };
@@ -750,7 +710,7 @@ route_table_init( void )
 	/* Load the file */
 	if (!config_read_file (&route_cfg, SVD_ROUTE_NAME)){
 		err = config_error_line (&route_cfg);
-		SU_DEBUG_0 (("Route config file syntax "
+		SU_DEBUG_0 (("route_table_init(): Route config file syntax "
 				"error in line %d\n", err));
 		goto route_table_init__exit;
 	} 

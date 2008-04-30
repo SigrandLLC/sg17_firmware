@@ -110,7 +110,9 @@ DFS
 	assert (svd);
 
 	if ( !(svd->ab) ){
+#ifdef SVD_DEBUG_LOGS
 		SU_DEBUG_3 ((LOG_FNC_A("svd->ab already deleted")));
+#endif
 		goto __exit;
 	}
 
@@ -155,14 +157,14 @@ DFS
 
 	ret = su_wait_create(wait, chan->rtp_fd, SU_WAIT_IN);
 	if (ret){
-		SU_DEBUG_0 ((LOG_FNC_A ("su_wait_create()" ) ));
+		SU_DEBUG_0 ((LOG_FNC_A ("su_wait_create() fails" ) ));
 		goto __exit_fail;
 	}
 
 	ret = su_root_register (svd->root, wait, 
 			svd_media_vinetic_handle_local_data, chan, 0);
 	if (ret == -1){
-		SU_DEBUG_0 ((LOG_FNC_A ("su_root_register()" ) ));
+		SU_DEBUG_0 ((LOG_FNC_A ("su_root_register() fails" ) ));
 		goto __exit_fail;
 	}
 	chan->data->local_wait_idx = ret;
@@ -175,14 +177,14 @@ DFS
 
 	ret = su_wait_create(wait, chan->data->rtp_sfd, SU_WAIT_IN);
 	if (ret){
-		SU_DEBUG_0 ((LOG_FNC_A ("su_wait_create()" ) ));
+		SU_DEBUG_0 ((LOG_FNC_A ("su_wait_create() fails" ) ));
 		goto __exit_fail;
 	}
 
 	ret = su_root_register (svd->root, wait, 
 			svd_media_vinetic_handle_remote_data, chan, 0);
 	if (ret == -1) {
-		SU_DEBUG_0 ((LOG_FNC_A ("su_root_register()" ) ));
+		SU_DEBUG_0 ((LOG_FNC_A ("su_root_register() fails" ) ));
 		goto __exit_fail;
 	}
 	chan->data->remote_wait_idx = ret;
@@ -368,9 +370,10 @@ DFS
 
 	switch (evt.id){
 		case ab_dev_event_FXS_OFFHOOK:{
-			SU_DEBUG_0 (("OFFHOOK on device / channel : %d / %d\n ",
+#ifdef SVD_DEBUG_LOGS
+			SU_DEBUG_3 (("OFFHOOK on device / channel : %d / %d\n ",
 					dev_idx+1,evt.ch+1 ));
-
+#endif
 			/* stop ringing */
 			err = ab_FXS_line_ring( ab_chan, ab_chan_ring_MUTE );
 			if (err){
@@ -398,9 +401,10 @@ DFS
 			break;
 		}
 		case ab_dev_event_FXS_ONHOOK:{
-			SU_DEBUG_0 (("ONHOOK on device / channel : %d / %d\n ",
+#ifdef SVD_DEBUG_LOGS
+			SU_DEBUG_3 (("ONHOOK on device / channel : %d / %d\n ",
 					dev_idx+1,evt.ch+1 ));
-
+#endif
 			/* say BYE on existing connection */
 			svd_bye(svd, ab_chan);
 
@@ -418,25 +422,20 @@ DFS
 		}
 		case ab_dev_event_FXS_DIGIT_TONE:{
 			char digit = evt.data;
-			SU_DEBUG_0 (("DIGIT \'%c\', on device / channel : "
+#ifdef SVD_DEBUG_LOGS
+			SU_DEBUG_3 (("DIGIT \'%c\', on device / channel : "
 					"%d / %d\n ",
 					digit, dev_idx+1,evt.ch+1 ));
-			SU_DEBUG_0 (("local : %d, network : %d\n",
+			SU_DEBUG_3 (("local : %d, network : %d\n",
 					(evt.data >> 9),
 					(evt.data >> 8) & 1 ));
 
-			SU_DEBUG_0 (("HN : %p\n",ab_chan->data->op_handle));
+			SU_DEBUG_3 (("HN : %p\n",ab_chan->data->op_handle));
+#endif
 			if( ab_chan->data->op_handle ){
-				/* allready connected - send info *
-				char msg [INFO_DIGIT_MSG_SIZE+2];
-				snprintf (msg, INFO_DIGIT_MSG_SIZE+2, 
-						INFO_DIGIT_MSG_FORMAT"\n\r",
-						digit);
-				nua_info(ab_chan->data->op_handle,
-					SIPTAG_CONTENT_TYPE_STR("text/plain"),
-					SIPTAG_PAYLOAD_STR(msg),
-					TAG_END());
-				/**/
+				/* allready connected - send info 
+				 * see rfc_2976
+				 */
 			} else {
 				/* not connected yet - should process digits */
 				err = svd_handle_digit (svd,chan_idx, digit);
@@ -456,15 +455,19 @@ DFS
 			break;
 		}
 		case ab_dev_event_UNCATCHED:{
+#ifdef SVD_DEBUG_LOGS
 			SU_DEBUG_2 (("Got unknown event : 0x%X "
 					"on device / channel %d / %d\n",
 					evt.data, dev_idx+1,evt.ch+1 ));
+#endif
 			break;
 		}
 		case ab_dev_event_FXO_RINGING:{
+#ifdef SVD_DEBUG_LOGS
 			SU_DEBUG_3 (("Got ringing event : 0x%X "
 					"on device / channel %d / %d\n",
 					evt.data, dev_idx+1,evt.ch+1 ));
+#endif
 			/* TODO 1 : tag__ hotline to some fxs channel */
 			break;
 		}
@@ -633,14 +636,14 @@ DFS
 		curr_dev = &svd->ab->devs[ i ];
 		err = su_wait_create (wait, curr_dev->cfg_fd, POLLIN);
 		if(err){
-			SU_DEBUG_0 ((LOG_FNC_A ("su_wait_create()" ) ));
+			SU_DEBUG_0 ((LOG_FNC_A ("su_wait_create() fails" ) ));
 			goto __exit_fail;
 		}
 
 		err = su_root_register( svd->root, wait, 
 				svd_atab_handler, curr_dev, 0);
 		if (err == -1){
-			SU_DEBUG_0 ((LOG_FNC_A ("su_root_register()" ) ));
+			SU_DEBUG_0 ((LOG_FNC_A ("su_root_register() fails" ) ));
 			goto __exit_fail;
 		}
 	}
@@ -743,7 +746,7 @@ svd_handle_ROUTE_ID( ab_t * const ab, int const chan_idx, long const digit )
 		if( err ){
 			goto __exit_fail;
 		} 
-		SU_DEBUG_3 (("Choosed route [%s]\n",
+		SU_DEBUG_3 (("Choosed router [%s]\n",
 				curr_data->dial_status.route_id ));
 		curr_data->dial_status.state = dial_state_CHAN_ID;
 		curr_data->dial_status.tag = 0;
@@ -831,7 +834,7 @@ set_route_ip (svd_chan_t * const chan_data)
 	}
 	if( !strcmp(g_conf.self_number, route_id) ){
 		/* it is self */
-		SU_DEBUG_3 (("Chosed ROUTE is SELF\n"));
+		SU_DEBUG_3 (("Chosed router is self\n"));
 		chan_data->dial_status.dest_is_self = self_YES;
 		goto __exit_success;
 	}
@@ -962,12 +965,11 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 	*/
 	if (chan->data->remote_port == 0 ||
 			chan->data->remote_host == NULL){
-		SU_DEBUG_2(("!!!!!!!!!!!!!!!!! r_host = %s, r_port = %d\n",
+		SU_DEBUG_2(("HLD() ERROR : r_host = %s, r_port = %d\n",
 				chan->data->remote_host,
 				chan->data->remote_port));
 		rode = read(chan->rtp_fd, buf, sizeof(buf));
-		SU_DEBUG_2(("svd_media_vinetic_handle_local_data() "
-				"RODE FROM rtp_stream : %d\n", rode));
+		SU_DEBUG_2(("RODE FROM rtp_stream : %d\n", rode));
 		goto __exit_fail;
 	}
 
@@ -980,8 +982,7 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 
 	rode = read(chan->rtp_fd, buf, sizeof(buf));
 	if (rode == 0){
-		SU_DEBUG_2(("svd_media_vinetic_handle_local_data() - "
-				"wrong event\n"));
+		SU_DEBUG_2 ((LOG_FNC_A("wrong event")));
 		goto __exit_fail;
 	} 
 	
@@ -989,11 +990,11 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 		sent = sendto(chan->data->rtp_sfd, buf, rode, 0, 
 				&target_sock_addr, sizeof(target_sock_addr));
 		if (sent == -1){
-			su_perror("svd_media_vinetic_handle_local_data() "
-					"sent()");
+			SU_DEBUG_2 (("HLD() ERROR : sent() : %d(%s)\n",
+					errno, strerror(errno)));
 			goto __exit_fail;
 		} else if (sent != rode){
-			SU_DEBUG_2(("svd_media_vinetic_handle_local_data() "
+			SU_DEBUG_2(("HLD() ERROR :"
 					"RODE FROM rtp_stream : %d, but "
 					"SENT TO socket : %d\n",
 					rode, sent));
@@ -1019,7 +1020,8 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 	}
 	*/
 	if (rode < 0){
-		su_perror("svd_media_vinetic_handle_local_data() read()");
+		SU_DEBUG_2 (("HLD() ERROR : read() : %d(%s)\n",
+				errno, strerror(errno)));
 		goto __exit_fail;
 	} 
 
@@ -1053,23 +1055,23 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 	}
 	*/
 	if (received == 0){
-		SU_DEBUG_2(("svd_media_vinetic_handle_remote_data() - "
-				"wrong event\n"));
+		SU_DEBUG_2 ((LOG_FNC_A("wrong event")));
 		goto __exit_fail;
 	} else if (received > 0){
 		writed = write(chan->rtp_fd, buf, received);
 		if (writed == -1){
-			su_perror("svd_media_vinetic_handle_remote_data() "
-					"write()");
+			SU_DEBUG_2 (("HRD() ERROR : write() : %d(%s)\n",
+					errno, strerror(errno)));
 			goto __exit_fail;
 		} else if (writed != received){
-			SU_DEBUG_2(("svd_media_vinetic_handle_remote_data() "
+			SU_DEBUG_2(("HRD() ERROR :"
 					"RECEIVED FROM socket : %d, but "
 					"WRITED TO rtp-stream : %d\n",
 					received, writed));
 		}
 	} else {
-		su_perror("svd_media_vinetic_handle_remote_data() recv()");
+		SU_DEBUG_2 (("HRD() ERROR : recv() : %d(%s)\n",
+				errno, strerror(errno)));
 		goto __exit_fail;
 	}
 
@@ -1120,7 +1122,8 @@ svd_media_vinetic_open_rtp (svd_chan_t * const chan_d)
 DFS
 	sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock_fd == -1) {
-		su_perror("svd_media_vinetic_open_rtp() socket()");
+		SU_DEBUG_1 (("OPEN_RTP() ERROR : socket() : %d(%s)\n",
+				errno, strerror(errno)));
 		goto __exit_fail;
 	}
 
@@ -1136,7 +1139,7 @@ DFS
 		}
 	}
 	if( !rtp_binded ){
-		SU_DEBUG_0(("svd_media_vinetic_open_rtp(): "
+		SU_DEBUG_1(("svd_media_vinetic_open_rtp(): "
 				"could not find free port for RTP in "
 				"range [%d,%d]\n",
 				RTP_PORT, RTP_PORT+RTP_PORT_RANGE_LENGTH));
@@ -1148,7 +1151,8 @@ DFE
 
 __sock_opened:
 	if(close (sock_fd)){
-		su_perror("svd_media_vinetic_open_rtp() close()");
+		SU_DEBUG_2 (("OPEN_RTP() ERROR : close() : %d(%s)\n",
+				errno, strerror(errno)));
 	}
 __exit_fail:
 DFE
