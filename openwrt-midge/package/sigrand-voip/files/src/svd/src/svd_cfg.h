@@ -14,19 +14,17 @@ void svd_conf_destroy( void );
 COMMAND LINE KEYS:
   -h, --help		display this help and exit
   -V, --version		show version and exit
-  -s, --socket-name	set the socket name
 */
 
 struct _startup_options
 {
-	unsigned help : 1;
-	unsigned version : 1;
-	char * socket_name;
+	unsigned char help;
+	unsigned char version;
+	char debug_level;
 } g_so;
 
 #define SVD_CONF_NAME 	"/etc/svd.conf"
 #define SVD_ROUTE_NAME 	"/etc/svd_rt.conf"
-#define LOG_PATH_LEN_DF	50
 
 #define WAIT_MARKER ','
 #define ADBK_MARKER '#'
@@ -100,16 +98,13 @@ struct route_table_s
 };
 struct log_params_s
 {
-	char log_level; /**< if log_level = -1 - do not log anything */
-	char * log_path; /**< if log_path = NULL - log to stderr */
-	char log_path_s [LOG_PATH_LEN_DF];
 };
 struct svd_conf_s
 {
-	char 			*self_number;
-	char 			self_number_s [ROUTE_ID_LEN_DF];
-	char 			self_ip [IP_LEN_MAX];
-	struct log_params_s	log;
+	char 	*self_number;
+	char 	self_number_s [ROUTE_ID_LEN_DF];
+	char 	self_ip [IP_LEN_MAX];
+	char 	log_level; /**< if log_level = -1 - do not log anything */
 	enum codec_type_e 	ext_codec;
 	enum codec_type_e 	int_codec;
 	struct address_book_s 	address_book;

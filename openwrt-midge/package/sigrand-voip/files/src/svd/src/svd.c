@@ -24,7 +24,7 @@ static int 	svd_daemonize( void );
 static svd_t * 	svd_create( void );
 static int 	svd_destroy( svd_t ** svd );
 static void 	svd_logger(void *logarg, char const *format, va_list ap);
-static void 	svd_log_set( int const level, char * path );
+static void 	svd_log_set( int const level, int const debug);
 
 /******************************************************************************/
 
@@ -50,7 +50,13 @@ int main( int argc, char ** argv )
 	su_init();
 
 	/* preliminary log settings */
-	svd_log_set (0, NULL);
+	if(g_so.debug_level == -1){
+		/* debug do not set */
+		svd_log_set (0,0);
+	} else {
+		/* debug to stderr is set */
+		svd_log_set (g_so.debug_level, 1);
+	}
 
 	/* read svd.conf file */
 	err = svd_conf_init();
@@ -58,8 +64,10 @@ int main( int argc, char ** argv )
 		goto __conf;
 	}
 
-	/* change log level and path to config sets */
-	svd_log_set (g_conf.log.log_level, g_conf.log.log_path);
+	/* change log level, if it is not debug mode, from config sets */
+	if(g_so.debug_level == -1){
+		svd_log_set (g_conf.log_level, 0);
+	} 
 
 	/* create svd structure */
 	/* uses !!g_cnof */
@@ -134,7 +142,9 @@ svd_daemonize( void )
 	/* Redirect standard files to /dev/null */
 	freopen( "/dev/null", "r", stdin);
 	freopen( "/dev/null", "w", stdout);
-	/* freopen( "/dev/null", "w", stderr); */
+	if(g_so.debug_level == -1){
+		freopen( "/dev/null", "w", stderr);
+	}
 
 	return 0;
 
@@ -248,27 +258,29 @@ svd_logger(void *logarg, char const *format, va_list ap)
 	if( (int)logarg == -1){
 		/* do not log anything */
 		return;
-	}
-	if ( g_conf.log.log_path ){
-		FILE * log_stream = fopen (g_conf.log.log_path, "a"); 
-		if( log_stream ){
-			vfprintf(log_stream, format, ap);
-			fclose (log_stream);
-		}
-	} else {
+	} else if ( (int)logarg ) {
+		/* debug is on - log to stderr */
 		vfprintf(stderr, format, ap);
+	} else {
+		/* debug is off - standart log */
+		vsyslog (LOG_INFO, format, ap);
 	}
 };
 
 static void
-svd_log_set (int const level, char * path )
+svd_log_set( int const level, int const debug)
 {
 	if (level == -1){
 		/* do not log anything */
 		su_log_set_level (NULL, 0);
+		su_log_redirect (NULL, svd_logger, (void*)-1);
 	} else {
+		if( !debug ){
+			openlog( DAEMON_NAME, LOG_PID, LOG_LOCAL5 );
+			syslog( LOG_INFO, "starting" );
+		}
 		su_log_set_level (NULL, level);
+		su_log_redirect (NULL,svd_logger,(void*)debug);
 	}
-	su_log_redirect (NULL, svd_logger, (void*)level);
 };
 

@@ -70,29 +70,30 @@ patcher() {
 	esac
 };
 
+make_itmp() {
+	if test ! -d $cur_path/itmp; then
+		mkdir $cur_path/itmp
+		cd $cur_path/itmp
 
-if test ! -d $cur_path/itmp; then
-	mkdir $cur_path/itmp
-	cd $cur_path/itmp
+		tar -xvpf $cur_path/$tapi_name.tar.gz 
+		tar -xvpf $cur_path/$vinetic_name.tar.gz 
+		tar -xvpf $cur_path/$daa_name.tar.gz 
 
-	tar -xvpf $cur_path/$tapi_name.tar.gz 
-	tar -xvpf $cur_path/$vinetic_name.tar.gz 
-	tar -xvpf $cur_path/$daa_name.tar.gz 
+		ln -snf $daa_name daa
+		ln -snf $vinetic_name vinetic
+		ln -snf $tapi_name tapi
 
-	ln -snf $daa_name daa
-	ln -snf $vinetic_name vinetic
-	ln -snf $tapi_name tapi
-
-	cd daa
-	patch -p1 < $patch_path/daa.patch
-	touch .patched
-	cd ../tapi
-	patch -p1 < $patch_path/tapi.patch
-	touch .patched
-	cd ../vinetic
-	patch -p1 < $patch_path/vinetic.patch
-	touch .patched
-fi
+		cd daa
+		patch -p1 < $patch_path/daa.patch
+		touch .patched
+		cd ../tapi
+		patch -p1 < $patch_path/tapi.patch
+		touch .patched
+		cd ../vinetic
+		patch -p1 < $patch_path/vinetic.patch
+		touch .patched
+	fi
+};
 
 case "$1" in
   v)
@@ -117,6 +118,7 @@ case "$1" in
 		--enable-kernelincl=$linux_path/include \
 		--enable-tapiincl=$cur_path/itmp/tapi/include \
 		"
+    make_itmp
     ;;
   d)
 	cut_name=daa
@@ -135,6 +137,7 @@ case "$1" in
 		--enable-kernelincl=$linux_path/include \
 		--enable-boardname=SG4V22 \
 		"
+    make_itmp
     ;;
   t)
 	cut_name=tapi
@@ -158,6 +161,7 @@ case "$1" in
 		--disable-v1 \
 		--enable-kernelincl=$linux_path/include \
 		"
+    make_itmp
     ;;
   s|svd|svi)
 	if test $2; then

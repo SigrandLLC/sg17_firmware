@@ -28,7 +28,7 @@ static struct config_t route_cfg;
 
 static int self_number_init( void );
 static int self_ip_init( void );
-static int log_init( void );
+static void log_init( void );
 static int address_book_init( void );
 static int hot_line_init( void );
 static int route_table_init( void );
@@ -41,11 +41,11 @@ startup_init( int argc, char ** argv )
 {
 	int option_IDX;
 	int option_rez;
-	char * short_options = "hVs:";
+	char * short_options = "hVd:";
 	struct option long_options[ ] = {
 		{ "help", no_argument, NULL, 'h' },
 		{ "version", no_argument, NULL, 'V' },
-		{ "socket-name", required_argument, NULL, 's' },
+		{ "debug", required_argument, NULL, 'd' },
 		{ NULL, 0, NULL, 0 }
 		};
 
@@ -54,7 +54,7 @@ startup_init( int argc, char ** argv )
 	/* INIT WITH DEFAULT VALUES */
 	g_so.help = 0;
 	g_so.version = 0;
-	g_so.socket_name = NULL;
+	g_so.debug_level = -1;
 
 	/* INIT FROM SYSTEM CONFIG FILE "/etc/routine" */
 	/* INIT FROM SYSTEM ENVIRONMENT */
@@ -75,14 +75,14 @@ startup_init( int argc, char ** argv )
 				g_so.version = 1;
 				return 1;
 			}
-			case 's': {
-				g_so.socket_name = malloc( strlen( optarg ) );
-				if( !g_so.socket_name ) {
-					g_err_no = ERR_MEMORY_FULL;
-					return g_err_no;
+			case 'd': {
+				g_so.debug_level = strtol(optarg, NULL, 10);
+				if(g_so.debug_level > 9){
+					g_so.debug_level = 9;
+				} else if(g_so.debug_level < 0){
+					g_so.debug_level = 0;
 				}
-				strcpy( g_so.socket_name, optarg );
-				break;
+				return 0;
 			}
 			case '?' :{
 				/* unknown option found */
@@ -105,11 +105,6 @@ startup_destroy( argc, argv )
 	} 
 
 	error_message( );
-
-	if( g_so.socket_name ){
-		free (g_so.socket_name);
-		g_so.socket_name = NULL;
-	}
 };
 
 /** 
@@ -153,10 +148,7 @@ svd_conf_init( void )
 	}
 
 	/* app.log */
-	err = log_init();
-	if( err ){
-		goto svd_conf_init__exit;
-	}
+	log_init();
 
 	/* app.ext_codec */
 	str_elem = config_lookup_string (&cfg, "app.ext_codec");
@@ -231,11 +223,10 @@ conf_show( void )
 	SU_DEBUG_3(("%s[%s] : ", g_conf.self_number, g_conf.self_ip));
 	SU_DEBUG_3(("log["));
 
-	if( g_conf.log.log_level == -1 ){
+	if( g_conf.log_level == -1 ){
 		SU_DEBUG_3(("no] : "));
 	} else {
-		SU_DEBUG_3(("%d,%s] :", 
-				g_conf.log.log_level, g_conf.log.log_path));
+		SU_DEBUG_3(("%d] :", g_conf.log_level));
 	}
 
 	SU_DEBUG_3(("ic/ec["));
@@ -314,11 +305,6 @@ svd_conf_destroy( void )
 
 	if( g_conf.self_number && g_conf.self_number != g_conf.self_number_s ){
 		free (g_conf.self_number);
-	}
-
-	if( g_conf.log.log_path && 
-			g_conf.log.log_path != g_conf.log.log_path_s ){
-		free (g_conf.log.log_path);
 	}
 
 	j = g_conf.address_book.records_num;
@@ -416,58 +402,31 @@ __exit_fail:
 	return -1;
 };
 
-static int 
+static void
 log_init( void )
 {
 	struct config_setting_t * set;
-	char const * path;
-	int path_len;
-	int rec_num;
 
 	set = config_lookup (&cfg, "app.log" );
 	if( !set ){
 		/* do not log anything  */
-		g_conf.log.log_level = -1;
-		goto log_init__exit_success;
+		g_conf.log_level = -1;
+		goto __exit;
 	} 
 
-	g_conf.log.log_level = config_setting_get_int_elem (set, 0);
-	if (g_conf.log.log_level < 0){
+	g_conf.log_level = config_setting_get_int_elem (set, 0);
+	if (g_conf.log_level < 0){
 		SU_DEBUG_2 (("Wrong \"log_level\" value [%d] .. set to [0]\n",
-				g_conf.log.log_level));
-		g_conf.log.log_level = 0;
-	} else if (g_conf.log.log_level > 9){
+				g_conf.log_level));
+		g_conf.log_level = 0;
+	} else if (g_conf.log_level > 9){
 		SU_DEBUG_2 (("Wrong \"log_level\" value [%d] .. set to [9]\n",
-				g_conf.log.log_level));
-		g_conf.log.log_level = 9;
+				g_conf.log_level));
+		g_conf.log_level = 9;
 	}
 
-	rec_num = config_setting_length (set);
-	if(rec_num == 1){
-		/* put all to stderr */
-		g_conf.log.log_path = NULL; /* set in memset */
-		goto log_init__exit_success;
-	}
-
-	path = config_setting_get_string_elem (set, 1);
-	path_len = strlen (path);
-	if(path_len+1 > LOG_PATH_LEN_DF ){
-		g_conf.log.log_path = malloc( (path_len+1) * 
-				sizeof(*(g_conf.log.log_path)) );
-		if( !g_conf.log.log_path ){
-			SU_DEBUG_0 ((LOG_FNC_A(LOG_NOMEM_A("log_path"))));
-			goto log_init__exit_fail;
-		}
-	} else {
-		g_conf.log.log_path = g_conf.log.log_path_s;
-	}
-	strcpy (g_conf.log.log_path, path);
-
-log_init__exit_success:
-	return 0;
-
-log_init__exit_fail:
-	return -1;
+__exit:
+	return;
 };
 
 static int
@@ -816,14 +775,12 @@ SIP VoIP User agent Daemon.\n\
 Mandatory arguments to long options are mandatory for short options too.\n\
   -h, --help         display this help and exit\n\
   -V, --version      displey current version and license info\n\
-  -s, --socket-name  set socket path and name. DF : \"/tmp/sv.socket\".\n\
+  -d, --debug        set the debug level (form 0 to 9)\n\
 \n\
 	Execution example :\n\
-	%s -s\"/tmp/new_socket_name\"\n\
-	Means, that you wont start with \"/tmp/new_socket_name\" socket for\n\
-			i/o purposes.\n\
-	If %s process already run. It sends RECONFIGURE message to\n\
-			opened socket.\n\
+	%s -d9\n\
+	Means, that you wont start daemon in debug mode with \n\
+			maximum debug output.\n\
 \n\
 Report bugs to <%s>.\n\
 "
