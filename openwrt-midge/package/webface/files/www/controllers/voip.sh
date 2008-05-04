@@ -8,7 +8,7 @@
 
 	case $page in
 		'settings')
-			kdb_vars="str:sys_voip_settings_codec_ext_quality str:sys_voip_settings_codec_int_quality int:sys_voip_settings_selfnumber str:sys_voip_settings_selfip"
+			kdb_vars="str:sys_voip_settings_codec_ext_quality str:sys_voip_settings_codec_int_quality int:sys_voip_settings_selfnumber str:sys_voip_settings_selfip str:sys_voip_settings_log"
 			;;
 		'sip')
 			kdb_vars="str:sys_voip_sip_server str:sys_voip_sip_username str:sys_voip_sip_password"
@@ -36,27 +36,32 @@
 		'settings')
 			render_table_title "VoIP Settings"
 			
-			# sys_voip_selfnumber
+			# sys_voip_settings_selfnumber
 			tip=""
 			desc="Router ID"
 			validator="$tmtreq $validator_voip_router_id"
 			render_input_field text "Router ID" sys_voip_settings_selfnumber			
 			
-			# sys_voip_selfip
+			# sys_voip_settings_selfip
 			tip=""
 			desc="Router IP"
 			validator="$tmtreq $validator_ipaddr"
 			render_input_field text "Router IP" sys_voip_settings_selfip						
 			
-			# sys_voip_codec_ext_quality
+			# sys_voip_settings_codec_ext_quality
 			tip="Quality of calls through SIP-server"
 			desc="External call quality"
 			render_input_field select "External quality" sys_voip_settings_codec_ext_quality speed "Speed" medium "Medium" quality "Quality"
 			
-			# sys_voip_codec_int_quality
+			# sys_voip_settings_codec_int_quality
 			tip="Quality of calls between routers"
 			desc="Internal call quality"
 			render_input_field select "Internal quality" sys_voip_settings_codec_int_quality speed "Speed" medium "Medium" quality "Quality"
+
+			# sys_voip_settings_log
+			tip=""
+			desc="Level of logging"
+			render_input_field select "Logging level" sys_voip_settings_log 0 "0" 1 "1" 2 "2" 3 "3" 4 "4" 5 "5" 6 "6" 7 "7" 8 "8" 9 "9"
 
 			render_submit_field
 			;;
