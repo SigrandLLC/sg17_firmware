@@ -36,12 +36,14 @@
 #include <error.h>
 #include <stdarg.h>
 #include <syslog.h> // openlog(), syslog()
+#include "md5.h"
 
 // #define DEBUG
 #define MAX_LINES 2048
 #define MAX_LINE_SIZE 1024
 #define READ_BUFFER_LEN (1024*32)
 #define WRITE_BUFFER_LEN READ_BUFFER_LEN
+#define FILE_BUF 1024
 #define HEADER_LINE "KDB\n"
 #define FOOTER_LINE "KDB END\n"
 #define true 1
@@ -49,6 +51,9 @@
 #define COUNTS_NAME "kdb_lines_count"
 #define NEXT_NAME "kdb_next_name"
 #define ENV_STRING "%ENV"
+#define KDB_RES "/etc/kdb.res"
+#define KDB_RES_MD5 "/etc/kdb.res.md5"
+#define MD5_SUFFIX ".md5"
 #define WARN
 
 #define FLOCK(f) {if(flock(fileno(f), LOCK_EX)) { perror("flock"); syslog(LOG_ERR, "flock() fail, error code %d", errno); }; };
@@ -61,6 +66,7 @@ char *str_escape(const char *source);
 char *str_unescape(const char *source);
 int match_wildcard(const char *pattern, const char *string);
 int is_wildcarded(const char* str);
+int copyfile(const char *, const char *);
 
 typedef struct {
 	char *name;
@@ -439,7 +445,26 @@ int db_write()
 {
     int i, len, written;
     int result=true;
-	char *buf, *p;
+	char *buf, *p, filebuf[FILE_BUF], kdb_md5[FILE_BUF];
+	size_t count;
+	struct cvs_MD5Context context;
+	unsigned char checksum[16];
+	FILE *fd;
+	
+	/* generate MD5 file name */
+	snprintf(kdb_md5, FILE_BUF, "%s%s", get_dbfilename(), MD5_SUFFIX);	
+	
+	/* copy db file to reserve file */
+	if (copyfile(get_dbfilename(), KDB_RES) == false)
+	{
+		fprintf(stderr, "Can't copy %s to %s", get_dbfilename(), KDB_RES);
+		syslog(LOG_ERR, "Can't copy %s to %s", get_dbfilename(), KDB_RES);
+		return false;
+	}
+	
+	/* copy db MD5 file to reserve file */
+	copyfile(kdb_md5, KDB_RES_MD5);
+	
 	// sorts the data
 	debug("DEBUG: sorts data\n");
 	db_sort();
@@ -464,6 +489,44 @@ int db_write()
 
 	debug("DEBUG: writing data to database\n");
 	fwrite(buf, 1, p-buf, db_file);
+	free(buf);
+	
+	/* calculate MD5 */
+	rewind(db_file);
+
+	cvs_MD5Init(&context);
+	while ((count = fread(filebuf, 1, FILE_BUF, db_file)) > 0)
+		cvs_MD5Update(&context, filebuf, count);
+	if (ferror(db_file))
+	{
+		perror("fread()");
+		return false;
+	}
+	cvs_MD5Final(checksum, &context);
+	
+	/* write MD5 */
+	fd = fopen(kdb_md5, "w");
+	if (!fd)
+	{
+		fprintf(stderr, "fopen '%s' %s\n", kdb_md5, strerror(errno));
+		syslog(LOG_ERR, "fopen '%s' %s\n", kdb_md5, strerror(errno));
+		return false;
+	}
+	
+	for (i = 0; i < 16; i++)
+	{
+		if (fprintf(fd, "%02x", (unsigned int) checksum[i]) < 0)
+		{
+			perror("fprintf()");
+			return false;
+		}
+	}
+	if (fprintf(fd, "\n") < 0)
+	{
+		perror("fprintf()");
+		return false;
+	}
+	fclose(fd);
 	
     return result;
 }
@@ -1194,3 +1257,49 @@ int match_wildcard(const char *pattern, const char *string)
     return (*string_p == '\0');
 }
 
+/* copy file src to file dst */
+int copyfile(const char *src, const char *dst)
+{
+	char buf[FILE_BUF];
+	FILE *fd_src, *fd_dst;
+	size_t count;
+
+	/* open source file for RO */
+	fd_src = fopen(src, "r");
+	if (!fd_src)
+		return false;
+	
+	/* open destination file for W */
+	fd_dst = fopen(dst, "w");
+	if (!fd_dst)
+	{
+		fclose(fd_src);
+		return false;
+	}
+	
+	/* copy file */
+	while (count = fread(buf, 1, FILE_BUF, fd_src))
+	{
+		if (ferror(fd_src))
+		{
+			fclose(fd_src);
+			fclose(fd_src);
+			return false;
+		}
+		
+		if (fwrite(buf, 1, count, fd_dst) != count)
+		{
+			fclose(fd_src);
+			fclose(fd_dst);
+			return false;
+		}
+		
+		if (feof(fd_src))
+			break;		
+	}
+	
+	fclose(fd_src);
+	fclose(fd_dst);
+	
+	return true;
+}

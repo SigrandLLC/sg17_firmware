@@ -151,6 +151,9 @@ post_ifup(){
 	file=$dir/rp_filter
 	[ -n "$opt_rp_filter" -a -w "$file" ] && \
 		echo "$opt_rp_filter" >$file
+	
+	# restart VoIP daemon
+	/etc/init.d/rcvoip restart
 }
 
 _ifup(){

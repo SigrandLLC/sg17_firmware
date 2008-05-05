@@ -10,10 +10,19 @@ required head
 required cut
 required printf
 required dd
-
+required md5sum
 
 [ -f /etc/kdb ] || cp /etc/kdb.default /etc/kdb
+[ -f /etc/kdb.md5 ] || md5sum /etc/kdb |awk '{ print $1 }' > /etc/kdb.md5
 /etc/templates/Update dns
+
+# check MD5 of KDB
+kdb_md5=$(md5sum /etc/kdb |awk '{ print $1 }')
+if [ "$kdb_md5" != "$(cat /etc/kdb.md5)" ]; then
+	warn "KDB corrupted, restoring from backup"
+	cp /etc/kdb.res /etc/kdb
+	cp /etc/kdb.res.md5 /etc/kdb.md5
+fi
 
 # MAC address generation section
 
