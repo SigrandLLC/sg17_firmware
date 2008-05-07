@@ -6,13 +6,18 @@
 
 #include "ab_internal_v22.h"
 
-int ab_dev_event_get(ab_dev_t * const dev, ab_dev_event_t * const evt)
+int 
+ab_dev_event_get(ab_dev_t * const dev, 
+		ab_dev_event_t * const evt, 
+		unsigned char * const chan_available )
 {
 	IFX_TAPI_EVENT_t ioctl_evt;
 	int err = 0;
 
 	memset(&ioctl_evt, 0, sizeof(ioctl_evt));
 	memset(evt, 0, sizeof(*evt));
+
+	*chan_available = 0;
 
 	ioctl_evt.ch = IFX_TAPI_EVENT_ALL_CHANNELS;
 
@@ -74,6 +79,12 @@ int ab_dev_event_get(ab_dev_t * const dev, ab_dev_event_t * const evt)
 		}
 	}
 
+	if (ioctl_evt.ch == IFX_TAPI_EVENT_ALL_CHANNELS){
+		*chan_available = 0;
+	} else {
+		*chan_available = 1;
+	}
+
 ab_dev_event_get_exit:
 	return err;
 };
@@ -86,7 +97,8 @@ int ab_dev_event_clean(ab_dev_t * const dev)
 	memset(&evt, 0, sizeof(evt));
 
 	do {
-		err = ab_dev_event_get(dev, &evt);
+		unsigned char ch_av;
+		err = ab_dev_event_get(dev, &evt, &ch_av);
 		if(err){
 			goto ab_dev_event_clean__exit;
 		}

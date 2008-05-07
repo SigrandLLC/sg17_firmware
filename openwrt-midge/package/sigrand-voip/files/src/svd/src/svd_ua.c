@@ -212,8 +212,6 @@ svd_invite (svd_t * const svd, int const use_ff_FXO, int const chan_idx )
 	char from_idx[ CHAN_ID_LEN ];
 	int err;
 DFS
-	/* tag__ use_ff_FXO must be implemented */
-
 	/* forming from string */
 	snprintf (from_idx, CHAN_ID_LEN-1, "%d",
 			svd->ab->chans[chan_idx].abs_idx);
@@ -224,7 +222,12 @@ DFS
 
 	/* forming dest string */
 	strcpy (to_str, "sip:");
-	strcat (to_str, chan_data->dial_status.chan_id);
+
+	if (use_ff_FXO){
+		strcat (to_str, FIRST_FREE_FXO);
+	} else {
+		strcat (to_str, chan_data->dial_status.chan_id);
+	}
 	strcat (to_str, "@");
 	strcat (to_str, chan_data->dial_status.route_ip);
 	
@@ -255,14 +258,17 @@ DFE
  *
  * See also svd_i_invite().
  */
-void 
+int
 svd_answer(svd_t * const svd, ab_chan_t * const chan,  
 		int status, char const *phrase)
 {
+	int call_answered = 0;
 DFS
 	if ( chan->data->op_handle ){
 		/* we have call to answer */
 		char l_sdp_str[1000];
+
+		call_answered = 1;
 
 		/* register media waits and open sockets for rtp */
 		svd_media_register (svd, chan);
@@ -286,6 +292,7 @@ DFS
 				TAG_END());
 	} 
 DFE
+	return call_answered;
 };
 
 /**
@@ -490,7 +497,6 @@ svd_i_invite( int status, char const * phrase, svd_t * const svd,
 	ab_chan_t * req_chan;
 	sip_to_t const *to = sip->sip_to;
 	unsigned char abs_chan_idx;
-	int use_FF_FXO = 0;
 	int chan_idx;
 	int err;
 DFS
@@ -504,21 +510,28 @@ DFS
 	if (isdigit(to->a_url->url_user[0])){
 		/* 'xx@..'  - absolute channel number */
 		abs_chan_idx = strtol(to->a_url->url_user, NULL, 10);
+		chan_idx = get_dest_chan_idx (svd->ab, NULL, abs_chan_idx);
+		if( chan_idx == -1 ){
+			goto __exit;
+		}
 	} else if ( !strcmp(to->a_url->url_user, FIRST_FREE_FXO )){
 	 	/* '$FIRST_FREE_FXO@..' - first free fxo */
-		/*tag__*/SU_DEBUG_0(("FFF not implemented\n"));
-		use_FF_FXO = 1;
+		chan_idx = get_FF_FXO_idx (svd->ab, -1);
+		if( chan_idx == -1 ){
+			/* all chans busy */
+			nua_respond(nh, SIP_486_BUSY_HERE, TAG_END());
+			nua_handle_destroy(nh);
+			goto __exit;
+		}
 	} else {
 	 	/* unknown user */
-		SU_DEBUG_0(("Incoming call to unknown user \"%s\" "
+		SU_DEBUG_2(("Incoming call to unknown user \"%s\" "
 				"on this host\n",
 				to->a_url->url_user));
-	}
-
-	chan_idx = get_dest_chan_idx( svd->ab, NULL, abs_chan_idx, use_FF_FXO );
-	if( chan_idx == -1 ){
 		goto __exit;
 	}
+
+/* tag__ race on chan */
 
 	req_chan = &svd->ab->chans[chan_idx];
 
@@ -536,14 +549,14 @@ DFS
 		/* start ringing */
 		err = ab_FXS_line_ring( req_chan, ab_chan_ring_RINGING );
 		if (err){
-			SU_DEBUG_0(("can`t ring to on \"%s\"\n",
+			SU_DEBUG_1(("can`t ring to on \"%s\"\n",
 					to->a_url->url_user));
 		}
 	} else if (req_chan->parent->type == ab_dev_type_FXO){
 		/* do offhook */
 		err = ab_FXO_line_hook( req_chan, ab_chan_hook_OFFHOOK );
 		if (err){
-			SU_DEBUG_0(("can`t offhook on \"%s\"\n",
+			SU_DEBUG_1(("can`t offhook on \"%s\"\n",
 					to->a_url->url_user));
 		}
 	}
@@ -775,26 +788,13 @@ svd_r_get_params(int status, char const *phrase, nua_t * nua, svd_t * svd,
 		 nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip,
 		 tagi_t tags[])
 {
-DFS
-
-	SU_DEBUG_3(("The tags are :\n=====================\n"));
-	SU_DEBUG_3(("NOT IMPLEMENTED YET\n"));
-/*
-	tagi_t * curr_tag = NULL;
 	char buff [256];
-
-	curr_tag = &tags[ 0 ];
-	while( curr_tag ){
-		t_snprintf(curr_tag, buff, 256);
-		SU_DEBUG_3 (("%s",buff));
-		curr_tag = tl_next(tags);
-	}
-*/
-	SU_DEBUG_3(("=====================\n"));
-	/*
-	p_rintf("nua_r_getparams: %03d %s\n", status, phrase);
-	tl_print(stdout, "", tags); 
-	*/
+DFS
+	while(tags){
+		t_snprintf(tags, buff, 256);
+		SU_DEBUG_3 (("%s\n",buff));
+		tags = tl_next(tags);
+	};
 DFE
 };
 

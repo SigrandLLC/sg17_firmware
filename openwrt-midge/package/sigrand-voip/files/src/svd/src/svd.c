@@ -52,6 +52,8 @@ int main( int argc, char ** argv )
 	/* preliminary log settings */
 	if(g_so.debug_level == -1){
 		/* debug do not set */
+		openlog( DAEMON_NAME, LOG_PID, LOG_LOCAL5 );
+		syslog( LOG_INFO, "starting" );
 		svd_log_set (0,0);
 	} else {
 		/* debug to stderr is set */
@@ -275,10 +277,6 @@ svd_log_set( int const level, int const debug)
 		su_log_set_level (NULL, 0);
 		su_log_redirect (NULL, svd_logger, (void*)-1);
 	} else {
-		if( !debug ){
-			openlog( DAEMON_NAME, LOG_PID, LOG_LOCAL5 );
-			syslog( LOG_INFO, "starting" );
-		}
 		su_log_set_level (NULL, level);
 		su_log_redirect (NULL,svd_logger,(void*)debug);
 	}

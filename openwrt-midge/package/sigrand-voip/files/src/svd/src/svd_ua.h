@@ -13,7 +13,7 @@
 /****************************************************************** UAC */
 
 int  svd_invite (svd_t * const svd, int const use_ff_FXO, int const chan_idx);
-void svd_answer (svd_t * const svd, ab_chan_t * const chan,  
+int  svd_answer (svd_t * const svd, ab_chan_t * const chan,  
 		int status, char const *phrase);
 void svd_bye	(svd_t * const svd, ab_chan_t * const chan);
 void svd_cancel	(ab_chan_t * const chan);

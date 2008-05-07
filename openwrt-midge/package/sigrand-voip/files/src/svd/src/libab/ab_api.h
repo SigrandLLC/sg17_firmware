@@ -9,7 +9,17 @@ typedef struct ab_s 		ab_t;
 typedef struct ab_fw_s 		ab_fw_t;
 typedef struct ab_dev_event_s 	ab_dev_event_t;
 
-#include "ab_magic.h"
+#include "../svd.h"
+
+#ifndef AB_CMAGIC_T
+	#define AB_CMAGIC_T void
+#endif
+typedef AB_CMAGIC_T ab_cmagic_t;
+	
+#ifndef AB_DMAGIC_T
+	#define AB_DMAGIC_T void
+#endif
+typedef AB_DMAGIC_T ab_dmagic_t;
 
 enum ab_dev_type_e {
 	//ab_dev_type_UNDEFINED,   /**< Device type is not defined yet */
@@ -158,11 +168,13 @@ int ab_FXO_line_hook( ab_chan_t * const chan, enum ab_chan_hook_e hook );
 int ab_FXO_line_digit( 
 		ab_chan_t * const chan, 
 		char const data_length, char const * const data,
-		char const nInterDigitTime, char const nDigitPlayTime
-		);
+		char const nInterDigitTime, char const nDigitPlayTime );
 /** @} */
 
-int ab_dev_event_get( ab_dev_t * const dev, ab_dev_event_t * const evt );
+int ab_dev_event_get( 
+		ab_dev_t * const dev, 
+		ab_dev_event_t * const evt, 
+		unsigned char * const chan_available );
 
 // ... MEDIA 
 

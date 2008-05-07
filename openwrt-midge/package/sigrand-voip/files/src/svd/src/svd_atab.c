@@ -18,6 +18,14 @@
 
 static int svd_atab_handler (su_root_magic_t * root, su_wait_t * w, 
 		su_wakeup_arg_t * user_data);
+static int svd_handle_event_FXS_OFFHOOK
+		( svd_t * const svd, int const chan_idx );
+static int svd_handle_event_FXS_ONHOOK
+		( svd_t * const svd, int const chan_idx );
+static int svd_handle_event_FXS_DIGIT_X
+		( svd_t * const svd, int const chan_idx, long const data );
+static int svd_handle_event_FXO_RINGING 
+		( svd_t * const svd, int const chan_idx );
 
 static int svd_chans_init ( svd_t * const svd );
 static int attach_dev_cb ( svd_t * const svd );
@@ -33,17 +41,17 @@ static int svd_handle_CHAN_ID
 static int svd_handle_NET_ADDR
 		( ab_t * const ab, int const chan_idx, long const digit );
 static int svd_handle_ADDR_BOOK
-		( ab_t * const ab, int const chan_idx, long const digit );
+		( svd_t * const svd, int const chan_idx, long const digit );
 
+static int svd_ab_value_set_by_id (ab_chan_t * const ab_chan);
+static int svd_process_addr (svd_t * const svd, int const chan_idx, 
+		char const * const value, int const val_len);
 static int set_route_ip (svd_chan_t * const chan_data);
-
 static int local_connection_selector
 		( svd_t * const svd, int const use_ff_FXO, int const chan_idx);
 
-static void do_self_fxs_call
-	( ab_t * const ab, int const src_chan_idx, int const dest_chan_idx );
-static void do_self_fxo_connect
-	( ab_t * const ab, int const src_chan_idx, int const dest_chan_idx );
+static int svd_self_call
+	( svd_t * const svd, int const src_chan_idx, int const use_ff_FXO );
 
 static int svd_media_vinetic_handle_local_data (
 		su_root_magic_t * root, 
@@ -293,19 +301,13 @@ DFE
  * */
 int 
 get_dest_chan_idx( ab_t const * const ab, 
-		char const * const chan_abs_idx_str, char const chan_abs_idx, 
-		int const use_ff_FXO )
+		char const * const chan_abs_idx_str, char const chan_abs_idx )
 {
 	int ret_idx;
 	int idx_to_find;
 	int chans_num; 
 	int i;
 DFS
-	if( use_ff_FXO ){
-	/* tag__ */SU_DEBUG_3 ((LOG_FNC_A("first free FXO not implemented")));
-		goto __exit_fail;
-	}
-
 	if( !chan_abs_idx_str ){
 		idx_to_find = chan_abs_idx;
 	} else {
@@ -321,7 +323,7 @@ DFS
 		}
 	}
 	if (ret_idx == -1){
-		SU_DEBUG_2 (("Wrong chan id [%d]\n", idx_to_find));
+		SU_DEBUG_2 (("Wrong chan id [_%d_]\n", idx_to_find));
 		goto __exit_fail;
 	}
 
@@ -330,6 +332,50 @@ DFE
 __exit_fail:
 DFE
 	return -1;
+};
+
+int 
+get_FF_FXO_idx ( ab_t const * const ab, char const self_chan_idx )
+{
+	int i;
+	int j;
+DFS
+	j = ab->chans_num;
+	for (i = 0; i < j; i++){
+		if (ab->chans[i].parent->type == ab_dev_type_FXO &&
+				ab->chans[i].data->op_handle == NULL &&
+				i != self_chan_idx ){
+			break;
+		}
+	}
+	if (i == j){
+		SU_DEBUG_2(("No free FXO channel available\n"));
+		i = -1;
+	}
+DFE
+	return i;
+};
+
+int 
+get_FF_FXS_idx ( ab_t const * const ab, char const self_chan_idx )
+{
+	int i;
+	int j;
+DFS
+	j = ab->chans_num;
+	for (i = 0; i < j; i++){
+		if (ab->chans[i].parent->type == ab_dev_type_FXS &&
+				ab->chans[i].data->op_handle == NULL &&
+				i != self_chan_idx ){
+			break;
+		}
+	}
+	if (i == j){
+		SU_DEBUG_2(("No free FXS channel available\n"));
+		i = -1;
+	}
+DFE
+	return i;
 };
 
 /******************************************************************************/
@@ -348,110 +394,51 @@ svd_atab_handler (svd_t * svd, su_wait_t * w,
  * */
 DFS
 	ab_dev_t * ab_dev = (ab_dev_t *) user_data;
-	ab_chan_t * ab_chan;
 	ab_dev_event_t evt;
+	unsigned char chan_av;
 	int chan_idx;
 	int dev_idx;
 	int err;
 
 	memset(&evt, 0, sizeof(evt));
-	err = ab_dev_event_get( ab_dev, &evt );
+
+	err = ab_dev_event_get( ab_dev, &evt, &chan_av );
 	if( err ){
-		SU_DEBUG_0 ((LOG_FNC_A (ab_err_get_str(ab_dev)) ));
+		SU_DEBUG_1 ((LOG_FNC_A (ab_err_get_str(ab_dev)) ));
 		goto __exit_fail;
 	}
 
 	dev_idx = ab_dev->idx - 1;
-	chan_idx = dev_idx * svd->ab->chans_per_dev + evt.ch;
-	ab_chan	= &svd->ab->chans[chan_idx];
+	if (chan_av){
+		/* in evt.ch we have proper number of the chan */
+		chan_idx = dev_idx * svd->ab->chans_per_dev + evt.ch;
+	} else {
+		/* in evt.ch we do not have proper number of the chan 
+		 * because the event is the device event - not the chan event
+		 */
+		chan_idx = dev_idx * svd->ab->chans_per_dev;
+	}
 
 	/* in some errors we do not want to quit
 	 * assert( evt.more == 0 ); */
 
 	switch (evt.id){
 		case ab_dev_event_FXS_OFFHOOK:{
-#ifdef SVD_DEBUG_LOGS
-			SU_DEBUG_3 (("OFFHOOK on device / channel : %d / %d\n ",
-					dev_idx+1,evt.ch+1 ));
-#endif
-			/* stop ringing */
-			err = ab_FXS_line_ring( ab_chan, ab_chan_ring_MUTE );
-			if (err){
-				SU_DEBUG_0(("can`t stop ring on [%d]\n",
-					ab_chan->abs_idx));
-				svd_answer(svd, ab_chan, 
-						SIP_500_INTERNAL_SERVER_ERROR);
-				goto __exit_fail;
-			}
-
-			/* change linefeed mode to ACTIVE */
-			err = ab_FXS_line_feed (ab_chan, 
-					ab_chan_linefeed_ACTIVE);
-			if (err){
-				SU_DEBUG_0(("can`t set linefeed to "
-						"active on [%d]\n",
-						ab_chan->abs_idx));
-				svd_answer(svd, ab_chan, 
-						SIP_500_INTERNAL_SERVER_ERROR);
-				goto __exit_fail;
-			}
-
-			/* answer on call if it exists */
-			svd_answer(svd, ab_chan, SIP_200_OK);
+			err = svd_handle_event_FXS_OFFHOOK(svd, chan_idx);
 			break;
 		}
 		case ab_dev_event_FXS_ONHOOK:{
-#ifdef SVD_DEBUG_LOGS
-			SU_DEBUG_3 (("ONHOOK on device / channel : %d / %d\n ",
-					dev_idx+1,evt.ch+1 ));
-#endif
-			/* say BYE on existing connection */
-			svd_bye(svd, ab_chan);
-
-			/* change linefeed mode to STANDBY */
-			err = ab_FXS_line_feed (ab_chan, 
-					ab_chan_linefeed_STANDBY);
-			if (err){
-				SU_DEBUG_0(("can`t set linefeed to "
-						"standby on [%d]\n",
-						ab_chan->abs_idx));
-				goto __exit_fail;
-			}
-
+			err = svd_handle_event_FXS_ONHOOK(svd, chan_idx);
 			break;
 		}
-		case ab_dev_event_FXS_DIGIT_TONE:{
-			char digit = evt.data;
-#ifdef SVD_DEBUG_LOGS
-			SU_DEBUG_3 (("DIGIT \'%c\', on device / channel : "
-					"%d / %d\n ",
-					digit, dev_idx+1,evt.ch+1 ));
-			SU_DEBUG_3 (("local : %d, network : %d\n",
-					(evt.data >> 9),
-					(evt.data >> 8) & 1 ));
-
-			SU_DEBUG_3 (("HN : %p\n",ab_chan->data->op_handle));
-#endif
-			if( ab_chan->data->op_handle ){
-				/* allready connected - send info 
-				 * see rfc_2976
-				 */
-			} else {
-				/* not connected yet - should process digits */
-				err = svd_handle_digit (svd,chan_idx, digit);
-				if(err){
-					/* clear call params */
-					svd_clear_call (svd, ab_chan);
-					goto __exit_fail;
-				}
-			}
-			break;
-		}
+		case ab_dev_event_FXS_DIGIT_TONE:
 		case ab_dev_event_FXS_DIGIT_PULSE:{
-			SU_DEBUG_2 (("Dialed in pulse mode "
-					"on device / channel %d / %d\n "
-					"->You must switch to tone mode\n",
-					dev_idx+1,evt.ch+1 ));
+			err = svd_handle_event_FXS_DIGIT_X(svd, chan_idx, 
+					evt.data);
+			break;
+		}
+		case ab_dev_event_FXO_RINGING:{
+			err = svd_handle_event_FXO_RINGING (svd, chan_idx);
 			break;
 		}
 		case ab_dev_event_UNCATCHED:{
@@ -462,17 +449,170 @@ DFS
 #endif
 			break;
 		}
-		case ab_dev_event_FXO_RINGING:{
+	}
+	if (err){
+		goto __exit_fail;
+	}
+
+DFE
+	return 0;
+__exit_fail:
+DFE
+	return -1;
+};
+
+static int 
+svd_handle_event_FXS_OFFHOOK( svd_t * const svd, int const chan_idx )
+{
+	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
+	int call_answered;
+	int err;
+
+DFS
+	
 #ifdef SVD_DEBUG_LOGS
-			SU_DEBUG_3 (("Got ringing event : 0x%X "
-					"on device / channel %d / %d\n",
-					evt.data, dev_idx+1,evt.ch+1 ));
+	SU_DEBUG_3 (("OFFHOOK on channel [_%d_]\n ", ab_chan->abs_idx));
 #endif
-			/* TODO 1 : tag__ hotline to some fxs channel */
-			break;
+	/* stop ringing */
+	err = ab_FXS_line_ring( ab_chan, ab_chan_ring_MUTE );
+	if (err){
+		SU_DEBUG_0(("can`t stop ring on [_%d_]\n", ab_chan->abs_idx));
+		svd_answer(svd, ab_chan, SIP_500_INTERNAL_SERVER_ERROR);
+		goto __exit_fail;
+	}
+
+	/* change linefeed mode to ACTIVE */
+	err = ab_FXS_line_feed (ab_chan, ab_chan_linefeed_ACTIVE);
+	if (err){
+		SU_DEBUG_0(("can`t set linefeed to active on [_%d_]\n",
+				ab_chan->abs_idx));
+		svd_answer(svd, ab_chan, SIP_500_INTERNAL_SERVER_ERROR);
+		goto __exit_fail;
+	}
+
+	/* answer on call if it exists */
+	call_answered = svd_answer(svd, ab_chan, SIP_200_OK);
+	if (call_answered) {
+		goto __exit_success;
+	}
+
+	/* no call to answer */
+	/* hotline test */
+	if(ab_chan->data->is_hotlined){
+		/* process the hotline sequence */
+		err = svd_process_addr (svd, chan_idx, 
+				ab_chan->data->hotline_addr,
+				ab_chan->data->hotline_addr_len);
+		if(err){
+			goto __exit_fail;
 		}
 	}
 
+__exit_success:
+DFE
+	return 0;
+__exit_fail:
+DFE
+	return -1;
+};
+
+static int 
+svd_handle_event_FXS_ONHOOK( svd_t * const svd, int const chan_idx )
+{
+	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
+	int err;
+
+DFS
+
+#ifdef SVD_DEBUG_LOGS
+	SU_DEBUG_3 (("ONHOOK on channel [_%d_]\n ", ab_chan->abs_idx));
+#endif
+	/* say BYE on existing connection */
+	svd_bye(svd, ab_chan);
+
+	/* change linefeed mode to STANDBY */
+	err = ab_FXS_line_feed (ab_chan, ab_chan_linefeed_STANDBY);
+	if (err){
+		SU_DEBUG_0(("can`t set linefeed to standby on [_%d_]\n",
+				ab_chan->abs_idx));
+		goto __exit_fail;
+	}
+
+DFE
+	return 0;
+__exit_fail:
+DFE
+	return -1;
+};
+
+static int 
+svd_handle_event_FXS_DIGIT_X ( svd_t * const svd, int const chan_idx, 
+		long const data )
+{
+	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
+	char digit = data;
+	int err;
+
+DFS
+
+#ifdef SVD_DEBUG_LOGS
+	SU_DEBUG_3 (("DIGIT \'%c\', on channel [_%d_]\n ",
+			digit, ab_chan->abs_idx ));
+	SU_DEBUG_3 (("local : %d, network : %d\n",
+			(evt.data >> 9),
+			(evt.data >> 8) & 1 ));
+	SU_DEBUG_3 (("HN : %p\n",ab_chan->data->op_handle));
+#endif
+
+	if( ab_chan->data->op_handle ){
+		/* allready connected - send info 
+		 * see rfc_2976
+		 */
+	} else {
+		/* not connected yet - should process digits */
+		err = svd_handle_digit (svd, chan_idx, digit);
+		if(err){
+			/* clear call params */
+			svd_clear_call (svd, ab_chan);
+			goto __exit_fail;
+		}
+	}
+
+DFE
+	return 0;
+__exit_fail:
+DFE
+	return -1;
+};
+
+static int 
+svd_handle_event_FXO_RINGING ( svd_t * const svd, int const chan_idx )
+{
+	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
+	int err;
+DFS
+	if( ab_chan->data->is_hotlined ){
+		/* offhook */
+		err = ab_FXO_line_hook( ab_chan, ab_chan_hook_OFFHOOK );
+		if (err){
+			SU_DEBUG_1(("can`t offhook on [_%d_]\n", 
+					ab_chan->abs_idx));
+			goto __exit_fail;
+		}
+		/* process the hotline sequence */
+		err = svd_process_addr (svd, chan_idx,
+				ab_chan->data->hotline_addr,
+				ab_chan->data->hotline_addr_len);
+		if(err){
+			goto __exit_fail;
+		}
+	} else {
+		SU_DEBUG_2 (("Got ringing event on channel [_%d_]\n",
+				ab_chan->abs_idx));
+		SU_DEBUG_2 (("Channel [_%d_] is not hotlined, "
+				"but should be\n", ab_chan->abs_idx));
+		goto __exit_fail;
+	}
 DFE
 	return 0;
 __exit_fail:
@@ -666,7 +806,7 @@ DFS
 			err = svd_handle_START (ab, chan_idx, digit);
 			break;
 		case dial_state_ADDR_BOOK:
-			err = svd_handle_ADDR_BOOK(ab, chan_idx, digit);
+			err = svd_handle_ADDR_BOOK(svd, chan_idx, digit);
 			break;
 		case dial_state_ROUTE_ID:
 			err = svd_handle_ROUTE_ID(ab, chan_idx, digit);
@@ -798,14 +938,106 @@ __exit_fail:
 static int 
 svd_handle_NET_ADDR( ab_t * const ab, int const chan_idx, long const digit )
 {
-	/*tag__ */SU_DEBUG_3 ((LOG_FNC_A("not implemented")));
+	/*tag__ NET_ADDR */SU_DEBUG_3 ((LOG_FNC_A("not implemented")));
 	return -1;
 };
 
 static int 
-svd_handle_ADDR_BOOK( ab_t * const ab, int const chan_idx, long const digit )
+svd_handle_ADDR_BOOK( svd_t * const svd, int const chan_idx, long const digit )
 {
-	/*tag__ */SU_DEBUG_3 ((LOG_FNC_A("not implemented")));
+	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
+	svd_chan_t * chan_c = ab_chan->data;
+	int * ab_id_idx = & (chan_c->dial_status.tag);
+	int err = 0;
+
+	/* put input digits to buffer */
+	chan_c->dial_status.addrbk_id[ *ab_id_idx ] = digit;
+	++(*ab_id_idx);
+
+
+	/* when buffer is full */
+	if(*ab_id_idx == chan_c->dial_status.addrbk_id_len){
+		/* find appropriate addrbook value */
+		err = svd_ab_value_set_by_id(ab_chan);
+		if(err){
+			goto __exit_fail;
+		}
+		/* process it */
+		err = svd_process_addr (svd, chan_idx,
+				chan_c->dial_status.addrbk_value,
+				chan_c->dial_status.addrbk_value_len);
+		if(err){
+			goto __exit_fail;
+		}
+	}
+
+	return 0;
+__exit_fail:
+	return -1;
+};
+
+static int
+svd_ab_value_set_by_id (ab_chan_t * const ab_chan)
+{
+	svd_chan_t * chan_c = ab_chan->data;
+	int i;
+	int j;
+	struct adbk_record_s * cur_rec;
+	
+	j = g_conf.address_book.records_num;
+	for (i = 0; i < j; i++){
+		cur_rec = &g_conf.address_book.records[ i ];
+		if( !strcmp (cur_rec->id, chan_c->dial_status.addrbk_id) ){
+			chan_c->dial_status.addrbk_value = cur_rec->value;
+			chan_c->dial_status.addrbk_value_len = 
+					cur_rec->value_len;
+			goto __exit_success;
+		}
+	}
+	SU_DEBUG_2(("Wrong address book id : [%s]\n", 
+			chan_c->dial_status.addrbk_id));
+	return -1;
+__exit_success:
+	return 0;
+};
+
+static int
+svd_process_addr (svd_t * const svd, int const chan_idx,
+		char const * const value, int const val_len)
+{
+	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
+	int i;
+	int err;
+DFS
+	ab_chan->data->dial_status.state = dial_state_START;
+
+	for(i = 0; i < val_len; i++){
+		err = svd_handle_digit ( svd, chan_idx, value[ i ] );
+		if(err){
+			/* clear call params */
+			svd_clear_call (svd, ab_chan);
+			goto __exit_fail;
+		}
+		if( i != 0 && ab_chan->data->dial_status.state == 
+				dial_state_START ){
+			/* after that - just ',' and dialtones */
+			i++;
+			break;
+		}
+	}
+	for(; i < val_len; i++){
+		if( value[ i ] == WAIT_MARKER ){
+			/* wait a second */
+			sleep(1);
+		} else {
+			/* tag__ should play dial tone */
+			SU_DEBUG_3(("CALL : %c\n", value[ i ]));
+		}
+	}
+DFE
+	return 0;
+__exit_fail:
+DFE
 	return -1;
 };
 
@@ -867,63 +1099,23 @@ static int
 local_connection_selector
 		( svd_t * const svd, int const use_ff_FXO, int const chan_idx)
 {
-	ab_t * ab = svd->ab;
-	svd_chan_t * curr_data = svd->ab->chans[chan_idx].data;
+	svd_chan_t * chan_c = svd->ab->chans[chan_idx].data;
 	int err;
 DFS
+	chan_c->dial_status.state = dial_state_START;
 
-	curr_data->dial_status.state = dial_state_START;
-
-	if( curr_data->dial_status.dest_is_self == self_YES ){
-		/* destination router is self */
-
-		int dest_chan_ab_idx;
-		ab_dev_type_t dest_dev_type;
-
-		/* get destination channel index */
-		dest_chan_ab_idx = get_dest_chan_idx( ab,
-				curr_data->dial_status.chan_id, 0, use_ff_FXO );
-		if( dest_chan_ab_idx == -1 ){
-			goto __exit_fail;
-		} 
-		if( dest_chan_ab_idx == chan_idx ){
-			SU_DEBUG_2 ((LOG_FNC_A("you can`t call to yourself")));
-			goto __exit_fail;
-		}
-
-		/* get destination channel type */
-		dest_dev_type = ab->chans[ dest_chan_ab_idx ].parent->type;
-		if (dest_dev_type == ab_dev_type_FXS){
-			/* self FXS call */
-
-			/* clear call states */
-			svd_clear_call(svd, &ab->chans[chan_idx]);
-
-			/* make call to fxs channel on self router */
-			do_self_fxs_call (ab, chan_idx, dest_chan_ab_idx);
-
-			goto __exit_success;
-		} else if (dest_dev_type == ab_dev_type_FXO){
-			/* self FXO call */
-
-			/* clear call states */
-			svd_clear_call(svd, &ab->chans[chan_idx]);
-
-			/* make connect to fxo channel on self router */
-			do_self_fxo_connect (ab, chan_idx, dest_chan_ab_idx);
-
-			goto __exit_success;
-		}
+	if( chan_c->dial_status.dest_is_self == self_YES ){
+		/* Destination router is self */
+		err = svd_self_call (svd, chan_idx, use_ff_FXO);
+	} else {
+		/* Remote router local call */
+		/* INVITE to remote router with index channel */
+		err = svd_invite( svd, use_ff_FXO, chan_idx );
 	}
-	/* Remote router local call */
-
-	/* INVITE to remote router with index channel */
-	err = svd_invite( svd, use_ff_FXO, chan_idx );
 	if (err){
 		goto __exit_fail;
 	}
 
-__exit_success:
 DFE
 	return 0;
 __exit_fail:
@@ -931,22 +1123,17 @@ DFE
 	return -1;
 };
 
-
-static void 
-do_self_fxs_call
-	( ab_t * const ab, int const src_chan_idx, int const dest_chan_idx )
+static int
+svd_self_call
+	( svd_t * const svd, int const src_chan_idx, int const use_ff_FXO )
 {
-	/*tag__ */SU_DEBUG_3 ((LOG_FNC_A("not implemented")));
+	int err;
+	strcpy (svd->ab->chans[ src_chan_idx ].data->dial_status.route_ip,
+			g_conf.self_ip);
+	/* INVITE to self router as to remote */
+	err = svd_invite( svd, use_ff_FXO, src_chan_idx );
+	return err;
 };
-
-static void 
-do_self_fxo_connect
-	( ab_t * const ab, int const src_chan_idx, int const dest_chan_idx )
-{
-	/*tag__ */SU_DEBUG_3 ((LOG_FNC_A("not implemented")));
-};
-
-
 /******************************************************************************/
 
 static int 
@@ -978,15 +1165,12 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 	target_sock_addr.sin_family = AF_INET;
 	target_sock_addr.sin_port = htons(chan->data->remote_port);
 	inet_aton (chan->data->remote_host, &target_sock_addr.sin_addr);
-	/* ret */
 
 	rode = read(chan->rtp_fd, buf, sizeof(buf));
 	if (rode == 0){
 		SU_DEBUG_2 ((LOG_FNC_A("wrong event")));
 		goto __exit_fail;
-	} 
-	
-	else if(rode > 0){
+	} else if(rode > 0){
 		sent = sendto(chan->data->rtp_sfd, buf, rode, 0, 
 				&target_sock_addr, sizeof(target_sock_addr));
 		if (sent == -1){
@@ -998,28 +1182,9 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 					"RODE FROM rtp_stream : %d, but "
 					"SENT TO socket : %d\n",
 					rode, sent));
-		}
-	}
-
-	/*
-	while (rode > 0){
-		sent = sendto(chan->data->rtp_sfd, buf, rode, 0, 
-				&target_sock_addr, sizeof(target_sock_addr));
-		if (sent == -1){
-			su_perror("svd_media_vinetic_handle_local_data() "
-					"sent()");
 			goto __exit_fail;
-		} else if (sent != rode){
-			SU_DEBUG_2(("svd_media_vinetic_handle_local_data() "
-					"RODE FROM rtp_stream : %d, but "
-					"SENT TO socket : %d\n",
-					rode, sent));
 		}
-
-		rode = read(chan->rtp_fd, buf, sizeof(buf));
-	}
-	*/
-	if (rode < 0){
+	} else {
 		SU_DEBUG_2 (("HLD() ERROR : read() : %d(%s)\n",
 				errno, strerror(errno)));
 		goto __exit_fail;
@@ -1041,17 +1206,16 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 
 	assert( chan->data->rtp_sfd != -1 );
 
-/* ONCE RECEIVED METHOD - in while - resource temporary unavailable error */
 	received = recv(chan->data->rtp_sfd, buf, sizeof(buf), 0);
 
-	/* tag__ use for testing 
+	/* tag__ use for testing oob
 	if( (buf[1] != 18) && (buf[1] != 8) ){
 		int i = 12;
-		SU_DEBUG_2(("%d = recv(), pd:%x[:",received, buf[1]));
+		SU_DEBUG_3(("%d = recv(), pd:%x[:",received, buf[1]));
 		for (; i < received; i++){
-			SU_DEBUG_2(("%X:",buf[i] ));
+			SU_DEBUG_3(("%X:",buf[i] ));
 		}
-		SU_DEBUG_2(("]\n"));
+		SU_DEBUG_3(("]\n"));
 	}
 	*/
 	if (received == 0){
@@ -1068,45 +1232,13 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 					"RECEIVED FROM socket : %d, but "
 					"WRITED TO rtp-stream : %d\n",
 					received, writed));
+			goto __exit_fail;
 		}
 	} else {
 		SU_DEBUG_2 (("HRD() ERROR : recv() : %d(%s)\n",
 				errno, strerror(errno)));
 		goto __exit_fail;
-	}
-
-/*
-	received = recv(chan->data->rtp_sfd, buf, sizeof(buf), 0);
-	if (received == 0){
-		SU_DEBUG_2(("svd_media_vinetic_handle_remote_data() - "
-				"wrong event\n"));
-		goto __exit_fail;
-	}
-
-	while (received > 0){
-		writed = write(chan->rtp_fd, buf, received);
-		if (writed == -1){
-			su_perror("svd_media_vinetic_handle_remote_data() "
-					"write()");
-			goto __exit_fail;
-		} else if (writed != received){
-			SU_DEBUG_2(("svd_media_vinetic_handle_remote_data() "
-					"RECEIVED FROM socket : %d, but "
-					"WRITED TO rtp-stream : %d\n",
-					received, writed));
-		}
-		SU_DEBUG_2(("svd_media_vinetic_handle_remote_data() "
-					"RECEIVED FROM socket : %d, "
-					"WRITED TO rtp-stream : %d\n",
-					received, writed));
-
-		received = recv(chan->data->rtp_sfd, buf, sizeof(buf), 0);
-	}
-	if (received < 0){
-		su_perror("svd_media_vinetic_handle_remote_data() recv()");
-		goto __exit_fail;
 	} 
-*/
 	return 0;
 __exit_fail:
 	return -1;

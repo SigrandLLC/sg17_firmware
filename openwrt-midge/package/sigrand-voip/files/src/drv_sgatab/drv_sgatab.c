@@ -156,8 +156,8 @@ int SGATAB_Ioctl(struct inode *inode, struct file *filp,
 	int err;
 	switch (nCmd) {
 		case SGAB_GET_INIT_PRMS:
-			if(copy_to_user((void *)nArgument, 
-					&g_parms, sizeof(g_parms))){
+			if(copy_to_user((void *)nArgument, &g_parms, 
+					sizeof(g_parms))){
 				err = -EFAULT;
 			} else {
 				err = 0;

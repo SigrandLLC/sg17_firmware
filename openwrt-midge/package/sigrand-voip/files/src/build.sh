@@ -99,7 +99,7 @@ case "$1" in
   v)
 	cut_name=vinetic
 	src_path=$cur_path/itmp/vinetic
-	bin_path=$src_path/2cpe/
+	bin_path=$cur_path/itmp/bin/
 	src_name=drv_vinetic-1.3.1_tapi-3.6.1
 	conf_options="\
 		--build=i686-linux-gnu \
@@ -117,13 +117,14 @@ case "$1" in
 		--with-access-width=8 \
 		--enable-kernelincl=$linux_path/include \
 		--enable-tapiincl=$cur_path/itmp/tapi/include \
+		--prefix=$cur_path/itmp \
 		"
     make_itmp
     ;;
   d)
 	cut_name=daa
 	src_path=$cur_path/itmp/daa
-	bin_path=$src_path/src/
+	bin_path=$cur_path/itmp/bin/
 	src_name=drv_daa-1.0.2.0
 	conf_options="\
 		--build=i686-linux-gnu \
@@ -136,13 +137,14 @@ case "$1" in
 		--enable-tapiincl=$cur_path/itmp/tapi/include \
 		--enable-kernelincl=$linux_path/include \
 		--enable-boardname=SG4V22 \
+		--prefix=$cur_path/itmp \
 		"
     make_itmp
     ;;
   t)
 	cut_name=tapi
 	src_path=$cur_path/itmp/tapi
-	bin_path=$src_path/src/
+	bin_path=$cur_path/itmp/bin/
 	src_name=drv_tapi-3.6.1
 	conf_options="\
 		--build=i686-linux-gnu \
@@ -160,6 +162,7 @@ case "$1" in
 		--disable-fax \
 		--disable-v1 \
 		--enable-kernelincl=$linux_path/include \
+		--prefix=$cur_path/itmp \
 		"
     make_itmp
     ;;
@@ -167,7 +170,7 @@ case "$1" in
 	if test $2; then
 		build_path = $2
 	fi
-	if $1 == s; then 
+	if test $1 == s; then 
 		cd drv_sgatab
 	else
 		cd $1
@@ -204,7 +207,7 @@ case "$2" in
 	automake --foreign
 	./configure  $conf_options
 
-	make 
+	make && make install
 
 	echo "COPYING << drv_${cut_name}.ko >> $build_path"
 	cp ${bin_path}/drv_${cut_name}.ko $build_path
