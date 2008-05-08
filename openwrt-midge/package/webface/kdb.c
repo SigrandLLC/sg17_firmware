@@ -441,7 +441,11 @@ int db_del_index(int index)
 	return true;
 }
 
-int db_write()
+/*
+	md5 = 1 — generate MD5 file
+	md5 = 0 — do not generate MD5 file
+*/
+int db_write(int md5)
 {
     int i, len, written;
     int result=true;
@@ -451,19 +455,23 @@ int db_write()
 	unsigned char checksum[16];
 	FILE *fd;
 	
-	/* generate MD5 file name */
-	snprintf(kdb_md5, FILE_BUF, "%s%s", get_dbfilename(), MD5_SUFFIX);	
-	
-	/* copy db file to reserve file */
-	if (copyfile(get_dbfilename(), KDB_RES) == false)
+	/* backup kdb and MD5 of kdb */
+	if (md5)
 	{
-		fprintf(stderr, "Can't copy %s to %s", get_dbfilename(), KDB_RES);
-		syslog(LOG_ERR, "Can't copy %s to %s", get_dbfilename(), KDB_RES);
-		return false;
+		/* generate MD5 file name */
+		snprintf(kdb_md5, FILE_BUF, "%s%s", get_dbfilename(), MD5_SUFFIX);	
+		
+		/* copy db file to reserve file */
+		if (copyfile(get_dbfilename(), KDB_RES) == false)
+		{
+			fprintf(stderr, "Can't copy %s to %s", get_dbfilename(), KDB_RES);
+			syslog(LOG_ERR, "Can't copy %s to %s", get_dbfilename(), KDB_RES);
+			return false;
+		}
+		
+		/* copy db MD5 file to reserve file */
+		copyfile(kdb_md5, KDB_RES_MD5);
 	}
-	
-	/* copy db MD5 file to reserve file */
-	copyfile(kdb_md5, KDB_RES_MD5);
 	
 	// sorts the data
 	debug("DEBUG: sorts data\n");
@@ -491,42 +499,45 @@ int db_write()
 	fwrite(buf, 1, p-buf, db_file);
 	free(buf);
 	
-	/* calculate MD5 */
-	rewind(db_file);
-
-	cvs_MD5Init(&context);
-	while ((count = fread(filebuf, 1, FILE_BUF, db_file)) > 0)
-		cvs_MD5Update(&context, filebuf, count);
-	if (ferror(db_file))
+	if (md5)
 	{
-		perror("fread()");
-		return false;
-	}
-	cvs_MD5Final(checksum, &context);
+		/* calculate MD5 */
+		rewind(db_file);
 	
-	/* write MD5 */
-	fd = fopen(kdb_md5, "w");
-	if (!fd)
-	{
-		fprintf(stderr, "fopen '%s' %s\n", kdb_md5, strerror(errno));
-		syslog(LOG_ERR, "fopen '%s' %s\n", kdb_md5, strerror(errno));
-		return false;
-	}
-	
-	for (i = 0; i < 16; i++)
-	{
-		if (fprintf(fd, "%02x", (unsigned int) checksum[i]) < 0)
+		cvs_MD5Init(&context);
+		while ((count = fread(filebuf, 1, FILE_BUF, db_file)) > 0)
+			cvs_MD5Update(&context, filebuf, count);
+		if (ferror(db_file))
+		{
+			perror("fread()");
+			return false;
+		}
+		cvs_MD5Final(checksum, &context);
+		
+		/* write MD5 */
+		fd = fopen(kdb_md5, "w");
+		if (!fd)
+		{
+			fprintf(stderr, "fopen '%s' %s\n", kdb_md5, strerror(errno));
+			syslog(LOG_ERR, "fopen '%s' %s\n", kdb_md5, strerror(errno));
+			return false;
+		}
+		
+		for (i = 0; i < 16; i++)
+		{
+			if (fprintf(fd, "%02x", (unsigned int) checksum[i]) < 0)
+			{
+				perror("fprintf()");
+				return false;
+			}
+		}
+		if (fprintf(fd, "\n") < 0)
 		{
 			perror("fprintf()");
 			return false;
 		}
+		fclose(fd);
 	}
-	if (fprintf(fd, "\n") < 0)
-	{
-		perror("fprintf()");
-		return false;
-	}
-	fclose(fd);
 	
     return result;
 }
@@ -572,7 +583,10 @@ int import(const char *filename)
 
 	db_file = NULL;
 	db_open();
-	db_write();
+	
+	/* write kdb and generate md5 */
+	db_write(1);
+	
 	need_write++;
 
     return result;
@@ -599,7 +613,10 @@ int export(const char *filename)
 	db_read();
 	tmp = db_file;
 	db_file = file;
-	db_write();
+	
+	/* write KDB without generating MD5 */
+	db_write(0);
+	
     fclose(file);
 	db_file = tmp;
     return true;
@@ -1066,7 +1083,8 @@ int main(int argc, char **argv)
 
 	debug("result=%d, need_write=%d\n", result, need_write);
     if (result && need_write)
-		db_write();
+    	/* write KDB and generate MD5 */
+		db_write(1);
 	db_close();
 	return !result;
 }

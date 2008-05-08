@@ -13,7 +13,7 @@ case "$act" in
 		echo "Content-Disposition: attachment; filename=\"`hostname`-`date +%Y%m%d%H%M%S`.cfg\""
 		echo 
 
-		kdb export -
+		tar c - /etc/kdb /etc/kdb.md5 /etc/eocd/*
 	;;
 	restore)
 		echo "Content-type: text/html"
@@ -22,17 +22,16 @@ case "$act" in
 		echo "<h2>"
 
 		if [ -r $uploadfile ]; then
-			tmpkdb=$KDB
-			export KDB=/tmp/kdbupload	
-			kdb create
-			if kdb import $uploadfile; then
-				rm /tmp/kdbupload
-				export KDB=$tmpkdb
-				if kdb import $uploadfile; then
-					echo "File imported successfully"
+			if tar x -C /tmp -f $uploadfile; then
+				# check MD5 of KDB
+				kdb_md5=$(md5sum /tmp/etc/kdb |awk '{ print $1 }')
+				if [ "$kdb_md5" != "$(cat /tmp/etc/kdb.md5)" ]; then
+					echo "Backup file is corrupted"
 				else
-					echo "Something wrong"
+					tar x -C / -f $uploadfile
+					echo "File imported successfully"
 				fi
+				rm -rf /tmp/etc 
 				echo "<script language=\"JavaScript\">setTimeout('window.location = \"/\"', 2000);</script>"
 			else
 				echo "Error occured while import configuration"
