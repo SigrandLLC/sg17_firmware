@@ -45,6 +45,7 @@ case "$act" in
 		echo "Content-type: text/html"
 		echo 
 		cp /etc/kdb.default /etc/kdb
+		md5sum /etc/kdb |awk '{ print $1 }' > /etc/kdb.md5
 		echo "<html><body>"
 		echo "<h2>Default configuration restored"
 		echo "<script language=\"JavaScript\">setTimeout('window.location = \"/\"', 2000);</script>"
