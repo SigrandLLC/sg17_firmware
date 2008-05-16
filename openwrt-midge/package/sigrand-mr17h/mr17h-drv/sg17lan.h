@@ -15,6 +15,7 @@
 #include "include/sg17hw.h"
 #include "include/sdfe4_lib.h"
 #include <linux/netdevice.h>
+#include "advlink.h"
 
 // Portability 
 #define iotype void*
@@ -68,6 +69,8 @@ struct net_local{
 	struct device *dev;
 	// mapped memory address
 	volatile struct sg17_hw_regs *regs;
+	// advanced link detection
+	struct advlink_t alink;
 	// transmit and reception queues 
 	struct sg_ring rx,tx;
 	struct sdfe4_if_cfg *shdsl_cfg;

@@ -1,8 +1,8 @@
 CFLAGS+=@CFLAGS@
 obj-m := @DRVNAME@.o
-@DRVNAME@-objs := sg17main.o sg17sci.o sdfe4_lib.o sg17debug.o sg17sysfs.o eoc_ring.o
+@DRVNAME@-objs := sg17main.o sg17sci.o sdfe4_lib.o sg17debug.o sg17sysfs.o eoc_ring.o advlink.o
 
-@DRVNAME@.ko: sg17main.c sg17sci.c sdfe4_lib.c sg17debug.c sg17sysfs.c eoc_ring.c
+@DRVNAME@.ko: sg17main.c sg17sci.c sdfe4_lib.c sg17debug.c sg17sysfs.c eoc_ring.c advlink.c
 	make -C  @KERNSRC@ SUBDIRS=$(PWD) modules CROSS_COMPILE=@CROSS_PREFIX@ 
 
 all: @DRVNAME@.ko

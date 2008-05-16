@@ -31,8 +31,7 @@ print_usage()
     echo "  wboff | wbon               - PCI write burst mode off"
     echo "  fill_ff | fill_7e          - fill byte value"
     echo "  normal | invert            - data inversion"
-#    echo "Compatibility:"    
-#   echo "  NSGate_comp [on|off]       - Compatibility with NSGate qBridge"    
+    echo "  advlink [on|off]           - Advanced link checking"    
     echo "Power control:"
     echo "  pwron | pwroff             - enable/disable power feeding"
 }
@@ -83,6 +82,7 @@ print_stat()
     pwron=`cat pwron`
     pwrovl=`cat pwrovl`
     pwrunb=`cat pwrunb`
+    advlink=`cat advlink`
 
 
     echo "$1:"
@@ -90,6 +90,7 @@ print_stat()
 	[ -n "$pbo" ] && echo "               PBO=$pbo"
     echo "      hdlc:    fill="$fill" inversion="$inv" "$crc
     echo "      PCI bus: rb$rb wb$wb"
+    echo "      AdvLink: $advlink"
     echo "Power:"
     echo "      pwron=$pwron overload=$pwrovl unbalance=$pwrunb"
     echo "Statistics:"
@@ -193,6 +194,20 @@ while [ ! -z "$1" ]; do
 				shift
 			fi
 			shdsl_need_reconf=1	
+			;;
+		"advlink")
+			if [ -z "$2" ]; then
+				echo $0": syntax error, after \"annex\" "
+				break
+			fi
+
+			if [ "$2" = "on" ]; then
+				echo 1 > advlink
+				shift
+			elif [ "$2" = "off" ]; then
+				echo 0 > annex
+				shift
+			fi
 			;;
 		"tcpam4")
 			echo 1 > tcpam

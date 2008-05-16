@@ -46,7 +46,8 @@ static int sg17_ioctl(struct net_device *netdev, struct ifreq *ifr, int cmd);
 static void sg17_set_mcast_list( struct net_device  *ndev);
 
 /*TODO : correct */
-/*static */int sg17_start_xmit( struct sk_buff *skb, struct net_device *ndev );
+static int sg17_start_xmit( struct sk_buff *skb, struct net_device *ndev );
+static int sg17_start_xmit_link( struct sk_buff *skb, struct net_device *ndev );
 static void xmit_free_buffs( struct net_device *dev );
 static void recv_init_frames( struct net_device *ndev );
 static int recv_alloc_buffs( struct net_device *ndev );

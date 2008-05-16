@@ -59,6 +59,8 @@
 #include "sg17main.h"
 #include "sg17ring_funcs.h"
 
+#include "advlink.h"
+
 //---- OEM include -------//
 #include "sg17oem.h"
 
@@ -331,10 +333,9 @@ sg17_link_up(struct sg17_sci *s, int if_num)
 	struct net_device *ndev = card->ndevs[if_num];
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
 	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
-	struct timeval tv;
 
-	do_gettimeofday( &tv );
-	netif_carrier_on(ndev);
+	advlink_hwstatus(&nl->alink,ADVLINK_UP);
+
 	nl->regs->RATE = (nl->shdsl_cfg->rate/64)-1;
 	PDEBUG(debug_link,"rate = %d, RATE=%d",nl->shdsl_cfg->rate,nl->regs->RATE);	
 	iowrite8( 0xff, &nl->regs->SR );
@@ -367,7 +368,7 @@ sg17_link_down(struct sg17_sci *s, int if_num)
 
 	iowrite8(tmp,&(nl->regs->CRB) );
 	iowrite8( 0, &nl->regs->IMR );
-	netif_carrier_off( ndev );
+	advlink_hwstatus(&nl->alink,ADVLINK_DOWN);
 	PDEBUG(debug_link,"end");	
 }
 
@@ -403,25 +404,43 @@ sg17_link_support(struct sg17_sci *s)
 	struct net_device *ndev;
 	struct net_local *nl;	
 	struct sk_buff *skb;
-	int i;
-	int err;
+	u32 alink_msg[ADVLINK_MSIZE32];
+	int lstate,i,k;
 	
-	PDEBUG(100,"start");
+	PDEBUG(debug_link,"start");
 	for( i=0;i<card->if_num;i++){
 		ndev = card->ndevs[i];
 		nl = (struct net_local *)netdev_priv(ndev);
-		if( nl->nsg_comp ){			
-			PDEBUG(100,"send ctrl pkt from if#%d",i);
-			skb = dev_alloc_skb(ETH_ZLEN);
+		lstate = advlink_status(&nl->alink);
+		switch( lstate ){
+		case ADVLINK_UP:
+		    if( !netif_carrier_ok(ndev) )
+			netif_carrier_on(ndev);
+		    break;
+		case ADVLINK_DOWN:
+		    if( netif_carrier_ok(ndev) )
+			netif_carrier_off(ndev);
+		    break;
+		}
+		if( advlink_enabled(&nl->alink) &&
+		    advlink_get_hwstatus(&nl->alink) == ADVLINK_UP &&
+		    (ndev->flags & IFF_UP) ){
+    			advlink_send(&nl->alink,alink_msg);
+			PDEBUG(debug_link,"Send checking message, scntr=%d, rcntr=%d",
+			    alink_msg[1],alink_msg[2]);
+			skb = dev_alloc_skb(ADVLINK_MSIZE8);
 			if( !skb ){
-				printk(KERN_INFO"%s: sbk ENOMEM!",__FUNCTION__);
+				printk(KERN_ERR"%s: sbk ENOMEM!",__FUNCTION__);
 				return;
 			}
-			skb_put( skb, ETH_ZLEN);
-			skb->data[0] = 0x01;
-			skb->data[1] = 0x3c;
-			err = sg17_start_xmit(skb,ndev);
-			PDEBUG(100,"end with if#%d, ret=%d",i,err);
+		        skb_put( skb,ADVLINK_MSIZE8);
+			for(k=0;k<ADVLINK_MSIZE8;k++){
+			        skb->data[k] = *((char*)alink_msg + k);
+    			}
+			if( sg17_start_xmit_link(skb,ndev) ){
+				advlink_send_error(&nl->alink);
+				dev_kfree_skb_any( skb );
+			}
 		}
 	}
 }
@@ -474,8 +493,7 @@ check_skb_free( struct sk_buff *skb, struct net_device *ndev )
 	return 0;
 }
 
-/* TODO uncomment!!! */
-/*static*/ int
+static int
 sg17_start_xmit( struct sk_buff *skb, struct net_device *ndev )
 {
 	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);	
@@ -517,6 +535,27 @@ sg17_start_xmit( struct sk_buff *skb, struct net_device *ndev )
 	return  0;
 }
 
+static int
+sg17_start_xmit_link( struct sk_buff *skb, struct net_device *ndev )
+{
+	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);	
+	unsigned long flags;
+
+	PDEBUG(debug_link,"start, skb->len=%d, sci:CRA=%02x, ndev:CRA=%02x",
+		   skb->len,SCI->regs->CRA,nl->regs->CRA );
+
+	spin_lock_irqsave(&nl->tx.lock,flags);
+	if( sg_ring_add_skb(&nl->tx,skb) == -ERFULL ){
+		PDEBUG(debug_xmit,"error: cannot add skb - full queue");
+		spin_unlock_irqrestore(&nl->tx.lock,flags);
+		netif_stop_queue( ndev );
+		return 1; // don't free skb, just return 1;
+	}
+	spin_unlock_irqrestore(&nl->tx.lock,flags);
+	return  0;
+}
+
+
 // xmit_free_buffs may also be used to drop the queue - just turn
 // the transmitter off, and set CTDR == LTDR
 static void
@@ -549,8 +588,14 @@ recv_init_frames( struct net_device *ndev )
 
 	PDEBUG(debug_recv,"start");		
 	while( (skb = sg_ring_del_skb(&nl->rx,&len)) != NULL ) {
-		if( len < ETH_ZLEN )
+		if( advlink_enabled(&nl->alink) &&
+		    (len == ADVLINK_MSIZE8) ){
+			skb_put( skb, len );
+			advlink_recv(&nl->alink,skb->data);
+			continue;
+		}else if( len < ETH_ZLEN ){
 			len = ETH_ZLEN;
+		}
 		// setup skb & give it to OS
 		skb_put( skb, len );
 		skb->protocol = eth_type_trans( skb, ndev );

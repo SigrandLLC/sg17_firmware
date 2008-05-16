@@ -10,6 +10,7 @@
 #include "include/sdfe4_lib.h"
 #include "include/sg17eoc.h"
 #include "sg17lan.h"
+#include "sg17oem.h"
 
 // Debug parameters
 //#define DEBUG_ON
@@ -118,14 +119,6 @@ store_annex( struct class_device *cdev,const char *buf, size_t size )
 		break;
 	case '2':
 		cfg->annex=ANNEX_A_B;
-		break;
-		/*        case '3':
-				  cfg->annex=ANNEX_G;
-				  break;
-				  case '4':
-				  cfg->annex=ANNEX_F;
-				  break;
-		*/        default:
 		break;
 	}
 	return size;
@@ -364,7 +357,6 @@ store_clkmode( struct class_device *cdev,const char *buf, size_t size )
 	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
 	
 	// check parameters
-
 	switch( buf[0] ){
 	case '0':
 		cfg->clkmode = 0;
@@ -391,6 +383,41 @@ store_apply_cfg( struct class_device *cdev,const char *buf, size_t size )
 }
 static CLASS_DEVICE_ATTR(apply_cfg, 0200 ,NULL,store_apply_cfg);
 
+// ---------------------------- Advanced link ---------------------------------- //
+static ssize_t
+show_advlink(struct class_device *cdev, char *buf) 
+{                                                                       
+	struct net_device *ndev = to_net_dev(cdev);    
+	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
+
+	if( advlink_enabled(&nl->alink) ){
+		return snprintf(buf,PAGE_SIZE,"on");
+	}else{
+		return snprintf(buf,PAGE_SIZE,"off");
+	}
+}
+
+static ssize_t
+store_advlink(struct class_device *cdev,const char *buf, size_t size ) 
+{
+	struct net_device *ndev = to_net_dev(cdev);    
+	struct net_local *nl=(struct net_local *)netdev_priv(ndev);
+	if( !size )
+	    return size;
+	switch( buf[0] ){
+	case '1':
+		advlink_enable(&nl->alink);
+		break;
+	case '0':
+		advlink_disable(&nl->alink);
+		break;
+	default:
+		printk(KERN_ERR MR17H_MODNAME ": advlink parameter error");
+		break;
+	}
+	return size;
+}
+static CLASS_DEVICE_ATTR(advlink, 0644 ,show_advlink,store_advlink);
 
 // ---------------------------- EOC ---------------------------------- //
 static ssize_t show_eoc(struct class_device *cdev, char *buf) 
@@ -1075,39 +1102,6 @@ show_pwrunb(struct class_device *cdev, char *buf)
 }
 static CLASS_DEVICE_ATTR(pwrunb,0444,show_pwrunb,NULL);
 
-
-
-// ------------------------- Compatibility ------------------------------- //
-// NSGate compatibility
-static ssize_t
-show_nsg_comp(struct class_device *cdev, char *buf) 
-{
-	struct net_device *ndev = to_net_dev(cdev);    
-	struct net_local *nl=(struct net_local *)netdev_priv(ndev);
-	return snprintf(buf,PAGE_SIZE,"%s", nl->nsg_comp ? "on" : "off");
-}
-
-static ssize_t
-store_nsg_comp( struct class_device *cdev,const char *buf, size_t size ) 
-{
-	struct net_device *ndev = to_net_dev(cdev);
-	struct net_local *nl = netdev_priv(ndev);
-    
-	if( !size )	return 0;
-
-	switch(buf[0]){
-	case '1':
-		nl->nsg_comp = 1;
-		break;
-	case '0':
-		nl->nsg_comp = 0;	
-		break;
-	}	
-	return size;	
-}
-static CLASS_DEVICE_ATTR(nsg_comp, 0644 ,show_nsg_comp,store_nsg_comp);
-
-
 // ------------------------- DEBUG ---------------------------------------- //
 
 // debug_verbosity
@@ -1187,23 +1181,6 @@ store_loopback( struct class_device *cdev,const char *buf, size_t size )
 static CLASS_DEVICE_ATTR(loopback, 0200 ,NULL,store_loopback);
 
 
-int sg17_start_xmit( struct sk_buff *skb, struct net_device *ndev );
-static ssize_t
-store_xmit_tst( struct class_device *cdev,const char *buf, size_t size ) 
-{
-	struct net_device *ndev = to_net_dev(cdev);
-	struct sk_buff *skb;	
-	// if interface is up 
-	if( !size )	return size;
-	
-	PDEBUG(0,"TEST send");
-	skb = dev_alloc_skb(ETHER_MAX_LEN);
-	skb_put( skb, 200);
-	sg17_start_xmit(skb,ndev);
-	return size;
-}
-static CLASS_DEVICE_ATTR(xmit_tst, 0200 ,NULL,store_xmit_tst);
-
 // ------------------------------------------------------------------------ //
 static struct attribute *sg17_attr[] = {
 // shdsl
@@ -1235,13 +1212,12 @@ static struct attribute *sg17_attr[] = {
 &class_device_attr_pwron.attr,
 &class_device_attr_pwrovl.attr,
 &class_device_attr_pwrunb.attr,
-// compatibility
-&class_device_attr_nsg_comp.attr,	
+// advanced link check
+&class_device_attr_advlink.attr,
 // debug
 &class_device_attr_debug_on.attr,	
 &class_device_attr_regs.attr,
 &class_device_attr_loopback.attr,
-&class_device_attr_xmit_tst.attr,
 NULL
 };
 

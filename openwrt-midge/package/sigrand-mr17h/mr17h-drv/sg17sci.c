@@ -296,7 +296,6 @@ sg17_sci_led_fblink(struct sg17_sci *s,int i){
 	sg17_led_fblink(s,s->ch_map[i]);
 }
 
-
 int
 sg17_sci_if2ch(struct sg17_sci *s,int if_num)
 {
@@ -327,8 +326,6 @@ sdfe4_hdlc_wait_intr(int to,struct sdfe4 *hwdev){
 		return 0;
 	return -1;
 }
-
-
 
 /*todo add length*/
 int
