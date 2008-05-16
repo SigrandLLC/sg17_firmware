@@ -1,5 +1,6 @@
 #include "svd.h"
 #include "svd_ua.h"
+#include <stdlib.h>
 #include <errno.h>
 #include <assert.h>
 
@@ -213,7 +214,8 @@ svd_invite (svd_t * const svd, int const use_ff_FXO, int const chan_idx )
 	int err;
 DFS
 	/* forming from string */
-	snprintf (from_idx, CHAN_ID_LEN-1, "%d",
+	/* tag__ from */
+	snprintf (from_idx, CHAN_ID_LEN, "%d",
 			svd->ab->chans[chan_idx].abs_idx);
 	strcpy (from_str, "sip:");
 	strcat (from_str, from_idx);
@@ -425,18 +427,20 @@ DFS
 			TAG_NULL());
 
 	su_free(svd->home, to);
+	to = NULL;
 	su_free(svd->home, from);
+	from = NULL;
 
 	chan->data->op_handle = nh;
 	if( !chan->data->op_handle ){
-		SU_DEBUG_0 ((LOG_FNC_A("can`t create handle")));
+		SU_DEBUG_1 ((LOG_FNC_A("can`t create handle")));
 		goto __exit_fail;
 	}
 
 	/* register vinetic media */
 	err = svd_media_register (svd, chan);
 	if (err){
-		SU_DEBUG_0 ((LOG_FNC_A("can`t register media")));
+		SU_DEBUG_1 ((LOG_FNC_A("can`t register media")));
 		goto __exit_fail;
 	}
 
@@ -644,29 +648,35 @@ DFS
 
 	/* Initial state */
 		case nua_callstate_init:
+			chan->data->call_status = callstate_INIT;
 			break;
 
 	/* 401/407 received */
 		case nua_callstate_authenticating: 
+			chan->data->call_status = callstate_AUTHENTICATING;
 			break;
 
 	/* INVITE sent */
 		case nua_callstate_calling:
+			chan->data->call_status = callstate_CALLING;
 			break;
 
 	/* 18X received */
 		case nua_callstate_proceeding:
+			chan->data->call_status = callstate_PROCEEDING;
 			break;
 
 	/* 2XX received */
 		case nua_callstate_completing:
 			/* In auto-ack, we get nua_callstate_ready */
 			nua_ack(nh, TAG_END());
+			chan->data->call_status = callstate_COMPLETING;
 			break;
 
 	/* INVITE received */
 		case nua_callstate_received:
 			nua_respond(nh, SIP_180_RINGING, TAG_END());
+			chan->data->call_status = callstate_RECEIVED;
 			break;
 
 	/* 18X sent (w/SDP) */
@@ -676,23 +686,29 @@ DFS
 				/* answer on call */
 				svd_answer (svd, chan, SIP_200_OK);
 			} /* if FXS - answer after offhook */
+			chan->data->call_status = callstate_EARLY;
 			break;
 
 	/* 2XX sent */
 		case nua_callstate_completed:
+			chan->data->call_status = callstate_COMPLETED;
 			break;
 
 	/* 2XX received, ACK sent, or vice versa */
 		case nua_callstate_ready:
+			/*tag__ READY ON */
+			SU_DEBUG_3(("READY ON [_%d_]\n",chan->abs_idx));
 			if(ab_chan_media_activate (chan)){
 				SU_DEBUG_0(("media_activate error : %s\n",
 						ab_err_get_str(chan)));
 			}
+			chan->data->call_status = callstate_READY;
 			break;
 
 	/* BYE sent */
 		case nua_callstate_terminating:
 			/* marker we_say_bye */
+			chan->data->call_status = callstate_TERMINATING;
 			break;
 
 	/* BYE complete */
@@ -717,12 +733,12 @@ DFS
 							"channel %d\n",
 							chan->abs_idx));
 				}
-				SU_DEBUG_2(("onhook on "
-						"channel %d\n",
+				SU_DEBUG_2(("onhook on channel %d\n",
 						chan->abs_idx));
 			}
 			/* если не мы закончили разговор "FXS-FXS" */
 			/* ioctl(ssc->fd, IFX_TAPI_TONE_BUSY_PLAY, 0);*/
+			chan->data->call_status = callstate_TERMINATED;
 			break;
 	}
 DFE
@@ -752,8 +768,9 @@ svd_i_prack (nua_handle_t * nh, ab_chan_t const * const chan,
 DFS
 	rack = sip->sip_rack;
 	SU_DEBUG_3 (("received PRACK %u\n", rack ? rack->ra_response : 0));
-	if (chan == NULL)
-	nua_handle_destroy(nh);
+	if (chan == NULL){
+		nua_handle_destroy(nh);
+	}
 DFE
 };
 
@@ -762,21 +779,7 @@ svd_i_info(int status, char const * phrase, svd_t * const svd,
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const * sip)
 {
 DFS
-	int err;
-	char digit [2];
-
-	digit[0] = sip->sip_payload->pl_data[INFO_DIGIT_MSG_DIGIT_POS];
-	digit[1] = '\0';
-
-	/* ab_chan_media_switch(chan, 0, 0); */
-	err = ab_FXO_line_digit (chan, 1, digit, 0, 0);
-	if (err){
-		SU_DEBUG_1(("Cold`not dial digit '%s' "
-				"on channel [%d] : %s\n",
-				digit, chan->abs_idx, ab_err_get_str(chan) ));
-	} 	
-	/* sleep(1);
-	ab_chan_media_switch(chan, 1, 1); */
+	SU_DEBUG_3 (("%s\n",sip->sip_payload->pl_data));
 DFE
 };
 

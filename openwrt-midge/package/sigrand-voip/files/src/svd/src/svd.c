@@ -208,8 +208,8 @@ DFS
 				SIPTAG_FROM_STR(conf->ssc_aor)),
 			TAG_IF(conf->ssc_certdir,
 				NUTAG_CERTIFICATE_DIR(conf->ssc_certdir)), 
-			NUTAG_ALLOW("INFO"),
 			*/
+			NUTAG_ALLOW("INFO"),
 			NUTAG_ENABLEMESSAGE(1),
 			NUTAG_ENABLEINVITE(1),
 			NUTAG_AUTOALERT(1),

@@ -240,8 +240,9 @@ svd_clear_call (svd_t * const svd, ab_chan_t * const chan)
 	int len;
 	int size;
 DFS
-	/* STATE */
+	/* STATES */
 	chan_c->dial_status.state = dial_state_START;
+	chan_c->call_status = callstate_INIT;
 	
 	/* TAG */
 	chan_c->dial_status.tag = 0;
@@ -270,6 +271,7 @@ DFS
 		size = sizeof(*(chan_c->dial_status.addrbk_id));
 		memset(chan_c->dial_status.addrbk_id, 0, size * len);
 	}
+
 
 	/* PSTN_SIP */
 	size = sizeof(chan_c->dial_status.pstn_sip_id);
@@ -442,6 +444,7 @@ DFS
 			break;
 		}
 		case ab_dev_event_UNCATCHED:{
+
 #ifdef SVD_DEBUG_LOGS
 			SU_DEBUG_2 (("Got unknown event : 0x%X "
 					"on device / channel %d / %d\n",
@@ -1025,6 +1028,18 @@ DFS
 			break;
 		}
 	}
+	if(i < val_len){
+		SU_DEBUG_2(("Call on hotline not implemented\n"));
+		SU_DEBUG_2(("call to [%s] droped\n", &value[i]));
+	}
+#if 0
+	nua_info (ab_chan->data->op_handle, 
+			SIPTAG_CONTENT_TYPE_STR("text/plain"),
+			SIPTAG_PAYLOAD_STR(&value[i]),
+			TAG_END());
+#endif
+
+#if 0
 	for(; i < val_len; i++){
 		if( value[ i ] == WAIT_MARKER ){
 			/* wait a second */
@@ -1034,6 +1049,30 @@ DFS
 			SU_DEBUG_3(("CALL : %c\n", value[ i ]));
 		}
 	}
+	err = ab_FXO_line_digit (&svd->ab->chans[3], 1, "9", 0, 0);
+	SU_DEBUG_3(("ERR : %d\n", err));
+#endif
+
+#if 0
+	ab_FXO_line_hook(&svd->ab->chans[3], ab_chan_hook_OFFHOOK);
+	for(; i < val_len;){
+		int number_length;
+		for(j=i; (j<val_len) & (value[j]!=WAIT_MARKER); j++);
+		number_length = j - i;
+		err = ab_FXO_line_digit (&svd->ab->chans[3], number_length, 
+				&value[i], 0, 0);
+		SU_DEBUG_3(("ERR : %d\n", err));
+		SU_DEBUG_3(("CALL %d[%d;%d...] : %s\n", j-i, i, j, &value[i]));
+		i = j;
+		sleep(number_length/3+1);
+		SU_DEBUG_3(("CWAIT %d\n",number_length/3+1));
+		while(value[i] == WAIT_MARKER){
+			sleep(1);
+			SU_DEBUG_3(("WAIT 1\n"));
+			i++;
+		}
+	}
+#endif
 DFE
 	return 0;
 __exit_fail:

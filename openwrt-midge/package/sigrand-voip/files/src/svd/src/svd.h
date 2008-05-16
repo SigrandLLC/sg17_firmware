@@ -27,6 +27,7 @@ typedef struct svd_chan_s svd_chan_t;
 #include <sys/unistd.h>
 #include <errno.h>
 
+#include "libab/tapi/include/drv_tapi_io.h"
 
 /* * 
  *
@@ -71,6 +72,19 @@ struct svd_chan_s
 		char pstn_sip_id [PSTN_SIP_ID_LEN];
 	} dial_status;
 
+	enum callstate_e {
+		callstate_INIT,  	/**< Initial state */
+		callstate_AUTHENTICATING, 	/**< 401/407 received */
+		callstate_CALLING,	/**< INVITE sent */
+		callstate_PROCEEDING,	/**< 18X received */
+		callstate_COMPLETING,	/**< 2XX received */
+		callstate_RECEIVED,	/**< INVITE received */
+		callstate_EARLY,	/**< 18X sent (w/SDP) */
+		callstate_COMPLETED,	/**< 2XX sent */
+		callstate_READY,/**< 2XX received, ACK sent, or vice versa */
+		callstate_TERMINATING,	/**< BYE sent */
+		callstate_TERMINATED	/**< BYE complete */
+	} call_status;
 
 	int payload; /**< Selected payload */
 	int rtp_sfd; /**< RTP socket file descriptor */
