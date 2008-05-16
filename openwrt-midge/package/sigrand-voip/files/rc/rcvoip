@@ -15,6 +15,9 @@ gen_config()
 
 case "$1" in
 start)
+	# set presence of VoIP module to 0
+	kdb set sys_voip_present=0
+
 	modprobe $tapi_module || exit 1
 
 	if [ -e /dev/${vinetic_device}10 ]; then
@@ -69,9 +72,6 @@ start)
 		echo -n Starting Sigrand-VoIP services: 
 
 		/bin/svi
-
-		# set presence of VoIP module to 0
-		kdb set sys_voip_present=0
 		
 		# find VoIP module
 		if [ -r $PORTSINFO ]; then
@@ -98,7 +98,7 @@ restart)
 	if [ "x$(kdb get sys_voip_present)" == "x1" ]; then    
 		gen_config                                 
 		svd_loaded=`ps ax | grep svd | wc -l`      
-		if [ $svd_loaded -gt 1 ] ;then             
+		if [ $svd_loaded -gt 1 ]; then             
 			echo -n Reconfigure VoIP daemon:
 			killall svd                     
 			/bin/svd                        
