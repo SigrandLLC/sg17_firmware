@@ -422,7 +422,6 @@ self_values_init( void )
 			memset(addrmas[j], 0, sizeof(char) * ip_len );
 			strcpy(addrmas[j], ip);
 			j++;
-			fprintf(stderr,"%d/%d: %s\n",i,j,ip);
 		}
 	}
 	addrs_count = j;
