@@ -96,14 +96,10 @@ struct route_table_s
 	unsigned int records_num;
 	struct rttb_record_s * records;
 };
-struct log_params_s
-{
-};
 struct svd_conf_s
 {
-	char 	*self_number;
-	char 	self_number_s [ROUTE_ID_LEN_DF];
-	char 	self_ip [IP_LEN_MAX];
+	char 	*self_number; /**< pointer to corresponding rt.rec[].id */
+	char 	*self_ip; /**< pointer to corresponding rt.rec[].value */
 	char 	log_level; /**< if log_level = -1 - do not log anything */
 	enum codec_type_e 	ext_codec;
 	enum codec_type_e 	int_codec;

@@ -3,6 +3,13 @@
 #include "svd_cfg.h"
 #include "svd_log.h"
 
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <netinet/in.h>
+#include <net/if.h>
+#include <arpa/inet.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,8 +33,8 @@ static unsigned char g_err_no;
 static struct config_t cfg;
 static struct config_t route_cfg;
 
-static int self_number_init( void );
-static int self_ip_init( void );
+static int get_if_IP (char *ip, const char *iface);
+static int self_values_init( void );
 static void log_init( void );
 static int address_book_init( void );
 static int hot_line_init( void );
@@ -136,17 +143,6 @@ svd_conf_init( void )
 
 	/* Get values */
 
-	/* app.self_number */
-	err = self_number_init();
-	if( err ){
-		goto svd_conf_init__exit;
-	}
-	/* app.self_ip */
-	err = self_ip_init();
-	if( err ){
-		goto svd_conf_init__exit;
-	}
-
 	/* app.log */
 	log_init();
 
@@ -195,6 +191,13 @@ svd_conf_init( void )
 	if( err ){
 		goto svd_conf_init__exit;
 	}
+
+	/* self_number and self_ip init */
+	err = self_values_init();
+	if( err ){
+		goto svd_conf_init__exit;
+	}
+
 
 	/* Free the configuration */
 	config_destroy (&cfg);
@@ -303,10 +306,6 @@ svd_conf_destroy( void )
 	int i;
 	int j;
 
-	if( g_conf.self_number && g_conf.self_number != g_conf.self_number_s ){
-		free (g_conf.self_number);
-	}
-
 	j = g_conf.address_book.records_num;
 	if (j){
 		struct adbk_record_s * curr_rec; 
@@ -352,54 +351,103 @@ svd_conf_destroy( void )
 };
 
 /////////////////////////////////////////////////////////////////
-
 static int 
-self_number_init( void )
+get_if_IP (char *ip, const char *iface) 
 {
-	char const * elem;
-	int elem_len;
+	struct ifreq ifr;
+	int fd;
+	int err;
 
-	elem = config_lookup_string (&cfg, "app.self_number");
-	if( !elem ){
-		SU_DEBUG_0 ((LOG_FNC_A("self_number is not set")));
-		goto self_number_init__exit;
+	if (!ip || !iface || !(*iface)){ 
+		goto __exit_fail;
 	}
+	*ip = '\0';
 
-	elem_len = strlen(elem);
-	if(elem_len+1 > ROUTE_ID_LEN_DF){
-		g_conf.self_number = malloc( (elem_len+1) * 
-				sizeof(*(g_conf.self_number)));
-		if( !g_conf.self_number ){
-			SU_DEBUG_0 ((LOG_FNC_A(LOG_NOMEM_A("self_number"))));
-		}
-	} else {
-		g_conf.self_number = g_conf.self_number_s;
-	}
-	strcpy (g_conf.self_number, elem);
-
-	return 0;
-
-self_number_init__exit:
-	return -1;
-};
-
-static int 
-self_ip_init( void )
-{
-	char const * elem;
-
-	elem = config_lookup_string (&cfg, "app.self_ip");
-	if( !elem ){
-		SU_DEBUG_0 ((LOG_FNC_A("self_ip is not set")));
+	if (strlen(iface) > IFNAMSIZ){
 		goto __exit_fail;
 	}
 
-	strcpy (g_conf.self_ip, elem);
+	fd = socket(AF_INET, SOCK_DGRAM, 0);
 
-	return 0;
+	memset(&ifr, 0, sizeof(struct ifreq));
+	strcpy(ifr.ifr_name, iface);
+	ifr.ifr_addr.sa_family = AF_INET;
 
+	err = ioctl(fd, SIOCGIFADDR, &ifr);
+
+	close(fd);
+
+	if (!err) {
+		struct sockaddr_in *x = (struct sockaddr_in *)&ifr.ifr_addr;
+		strcpy(ip, inet_ntoa(x->sin_addr));
+		goto __exit_success;
+	}
+
+__exit_success:
+        return 0;
 __exit_fail:
-	return -1;
+        return -1;
+};
+
+
+
+static int 
+self_values_init( void )
+{
+	char ** addrmas = NULL;
+	int addrs_count;
+	int route_records_num;
+	struct rttb_record_s * curr_rec;
+	int i;
+	int j;
+	int err;
+
+	/* get ethX interface addresses on router */
+	j = 0;
+	for (i=0; i<4; i++){
+		char eth_name[5];
+		int ip_len = 16;
+		char ip[ip_len];
+
+		memset(ip, 0, 16);
+		sprintf(eth_name,"eth%d",i);
+		err = get_if_IP(ip,eth_name);
+		if(err){
+			SU_DEBUG_0 ((LOG_FNC_A("Error in get_if_IP()")));
+			goto __exit_fail;
+		}
+		if(ip[0]){
+			addrmas = realloc (addrmas, sizeof(*addrmas)*(j+1));
+			addrmas[j] = malloc(sizeof(char) * ip_len );
+			memset(addrmas[j], 0, sizeof(char) * ip_len );
+			strcpy(addrmas[j], ip);
+			j++;
+			fprintf(stderr,"%d/%d: %s\n",i,j,ip);
+		}
+	}
+	addrs_count = j;
+
+	/* set self_ip and self_number according to route table and addrmas */
+	route_records_num = g_conf.route_table.records_num;
+	for (i=0; i<route_records_num; i++){
+		curr_rec = &g_conf.route_table.records[i];
+		for (j=0; j<addrs_count; j++){
+			if (!strcmp (addrmas[j], curr_rec->value) ){
+				g_conf.self_ip = curr_rec->value;
+				g_conf.self_number = curr_rec->id;
+			}
+		}
+	}
+
+	/* free addrmas */
+	for(i =0; i <addrs_count; i++){
+		free (addrmas[i]);
+	}
+	free (addrmas);
+
+        return 0;
+__exit_fail:
+        return -1;
 };
 
 static void
