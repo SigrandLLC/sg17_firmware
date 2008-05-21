@@ -5283,7 +5283,7 @@
 			<para>
 				Добавление новой записи в таблицу показано на рисунке ниже.
 			</para>
-			<figure>
+			<figure id="voip.route.add">
 				<title>Маршрутизация звонков: добавление новой записи</title>
 				<graphic fileref="img/voip-route-add.png" width="6in"/>
 			</figure>
@@ -5324,7 +5324,7 @@
 			<para>
 				Добавление новой записи в таблицу показано ниже.
 			</para>
-			<figure>
+			<figure id="voip.address.add">
 				<title>Адресная книга: добавление новой записи</title>
 				<graphic fileref="img/voip-address-add.png" width="6in"/>
 			</figure>
