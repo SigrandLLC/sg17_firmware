@@ -8,6 +8,8 @@
 	render_popup_save_stuff
 	
 	render_form_header voip_address_edit
+	help_1="voip.address"
+	help_2="voip.address.add"
 	render_table_title "VoIP adress book edit"
 	render_popup_form_stuff
 	

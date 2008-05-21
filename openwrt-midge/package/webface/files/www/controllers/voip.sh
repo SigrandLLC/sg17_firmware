@@ -34,6 +34,8 @@
 
 	case $page in 
 		'settings')
+			help_1="voip.settings"
+			help_2=""
 			render_table_title "VoIP Settings"
 			
 			# sys_voip_settings_selfnumber
@@ -66,6 +68,8 @@
 			render_submit_field
 			;;
 		'sip')
+			help_1="voip.sip"
+			help_2=""
 			render_table_title "SIP settings"
 			
 			# sys_voip_sip_server
@@ -89,14 +93,20 @@
 			render_submit_field
 			;;
 		'route')
+			help_1="voip.route"
+			help_2=""
 			render_table_title "Route table"
 			render_iframe_list "voip_route_table"
 			;;
 		'address')
+			help_1="voip.address"
+			help_2=""
 			render_table_title "Address book"
 			render_iframe_list "voip_address_book"
 			;;
 		'hotline')
+			help_1="voip.hotline"
+			help_2=""
 			render_table_title "Hotline settings"
 			echo "
 				<tr><td colspan=\"2\">

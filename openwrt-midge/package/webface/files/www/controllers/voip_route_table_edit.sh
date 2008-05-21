@@ -8,6 +8,8 @@
 	render_popup_save_stuff
 	
 	render_form_header voip_route_edit
+	help_1="voip.route"
+	help_2="voip.route.add"
 	render_table_title "VoIP route edit"
 	render_popup_form_stuff
 	
