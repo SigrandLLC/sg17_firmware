@@ -16,10 +16,15 @@ default "Sigrand"
 
 comment "Logotypes"
 
-config BR2_SIGRAND_OEM_CLEARLOGO
-prompt "Empty logo"
-bool
-default n
+config BR2_SIGRAND_OEM_LOGO
+prompt "Left up corner logo"
+string
+default "default"
+
+config BR2_SIGRAND_OEM_HEADERBG
+prompt "Header background"
+string
+default "default"
 
 config BR2_SIGRAND_OEM_BGROUND
 prompt "Default system name"
@@ -63,7 +68,6 @@ prompt "MR16G E1 module driver name"
 string
 default "mr16g"
 
-
 config BR2_SIGRAND_OEM_MR16G_TOOL
 prompt "MR16G E1 configuration tool name"
 string
@@ -84,6 +88,3 @@ config BR2_SIGRAND_OEM_MR16H_TOOL
 prompt "MR16H SHDSL configuration tool name"
 string
 default "mr16h_cfg"
-
-
-
