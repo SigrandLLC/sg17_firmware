@@ -66,17 +66,27 @@ $(IPKG_WEBFACE):
 	cat files/etc/lighttpd.conf |sed "s/Sigrand router/$(BR2_SIGRAND_OEM_SYSNAME)/g" >$(IDIR_WEBFACE)/etc/lighttpd.conf;
 	cat files/www/common/footer.sh | sed "s/Sigrand/$(BR2_SIGRAND_OEM_MANUFACTURER)/g" > $(IDIR_WEBFACE)/www/common/footer.sh;
 	cat files/www/common/header.sh | sed "s/Sigrand/$(BR2_SIGRAND_OEM_MANUFACTURER)/g" > $(IDIR_WEBFACE)/www/common/header.sh;
-ifeq ($(BR2_SIGRAND_OEM_CLEARLOGO),y)
-		sed "s/href=\"http:\/\/www\.sigrand\.ru\/\"//g"  $(IDIR_WEBFACE)/www/common/footer.sh >  $(IDIR_WEBFACE)/www/common/footer.sh-tmp;
-		mv  $(IDIR_WEBFACE)/www/common/footer.sh-tmp  $(IDIR_WEBFACE)/www/common/footer.sh;
-		cp logos/logo.gif $(IDIR_WEBFACE)/www/img;
+
+
+ifneq ($(BR2_SIGRAND_OEM_BGROUND),"default")
+		cp logos/$(BR2_SIGRAND_OEM_BGROUND) $(IDIR_WEBFACE)/www/img/SG.jpg;
+endif
+
+ifneq ($(BR2_SIGRAND_OEM_HEADERBG),"default")
+		cp logos/$(BR2_SIGRAND_OEM_HEADERBG) $(IDIR_WEBFACE)/www/img/header_bg.png;
+		cp logos/header.sh $(IDIR_WEBFACE)/www/common/header.sh
+endif
+
+ifneq ($(BR2_SIGRAND_OEM_LOGO),"default")
+		cp logos/$(BR2_SIGRAND_OEM_LOGO) $(IDIR_WEBFACE)/www/img/logo.jpg;
+		rm -f $(IDIR_WEBFACE)/www/img/logo.gif;
+#		sed "s/href=\"http:\/\/www\.sigrand\.ru\/\"//g"  $(IDIR_WEBFACE)/www/common/footer.sh >  $(IDIR_WEBFACE)/www/common/footer.sh-tmp;
+#		mv  $(IDIR_WEBFACE)/www/common/footer.sh-tmp  $(IDIR_WEBFACE)/www/common/footer.sh;
+		cp logos/footer.sh $(IDIR_WEBFACE)/www/common/footer.sh
 		cat $(IDIR_WEBFACE)/www/common/header.sh | sed "s/sigrand\.ru//g" | \
 			sed "s/href=\"http:\/\/\"//g" > $(IDIR_WEBFACE)/www/common/header.sh-tmp;
 		mv $(IDIR_WEBFACE)/www/common/header.sh-tmp $(IDIR_WEBFACE)/www/common/header.sh;
 		chmod +x $(IDIR_WEBFACE)/www/common/header.sh $(IDIR_WEBFACE)/www/common/footer.sh;
-endif
-ifneq ($(BR2_SIGRAND_OEM_BGROUND),"default")
-		cp logos/$(BR2_SIGRAND_OEM_BGROUND) $(IDIR_WEBFACE)/www/img/SG.jpg;
 endif
 	$(RSTRIP) $(IDIR_WEBFACE)/usr/bin/*
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_WEBFACE)/CONTROL/control

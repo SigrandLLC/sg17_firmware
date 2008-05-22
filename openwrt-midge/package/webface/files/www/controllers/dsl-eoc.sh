@@ -335,12 +335,16 @@ _eoc_stat_unit()
 	case "$u" in
 	stu-c)
 		sides="CustSide"
+		sensors=0
 		;;
 	stu-r)
 		sides="NetSide"
+		sensors=0
 		;;
 	sru*)
+		sensors=1
 		sides="NetSide CustSide"
+		;;
 	esac
 
 	help_1="eoc"
@@ -401,6 +405,28 @@ _eoc_stat_unit()
 	done
 
 	echo "</table></td></tr>"
+
+	
+	if [ "$sensors" = 1 ]; then
+
+	    echo "
+		<tr><td colspan=\"2\">
+		<table width=\"800px\" border=\"1\" style=\"border: solid 1px 1px; 1px; 1px;\">
+			<tr align='center'>
+				<td>Sensor #</td><td>Current state</td><td>Event Counter</td>
+			</tr>"
+	    eval `$info -r -i${iface} -u${u} --sensors`
+	    for s in 1 2 3; do
+		unset cstate cntr
+		eval "cstate=\$sens${s}_cur"
+		eval "cntr=\$sens${s}_cnt"
+		echo "<tr align='center'>"
+		echo "<td>$s</td>"
+		echo "<td>$cstate</td>"
+		echo "<td>$cntr</td>"
+	    done
+	    echo "</table></td></tr>"
+	fi
 
 	help_1="eoc"
         help_2=""
