@@ -18,7 +18,8 @@ L3(){
 	echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='?controller=$2' class='$class'>$1</a><br>"
 }
 
-L1 System welcome
+L1 System
+	L2 Info 'welcome'
 	L2 General 	'general'
 	L2 Security 'passwd'
 		L3 'PPP secrets' 'auth_ppp'
