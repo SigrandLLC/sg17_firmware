@@ -1,16 +1,24 @@
 #!/usr/bin/haserl
+	require_js_file "mux.js"
+
 	MXCONFIG=`which mxconfig`
 
 	ifaces=`mxconfig -l |awk '{print $1}' | sed 's/://g'`
 
 	if [ $REQUEST_METHOD = POST ]; then
-		unset kdb_vars
+		unset kdb_vars _clkr
 		for i in $ifaces; do
 			if [ "x${i%%[0-9]}x" = "xdslx" ]; then
 				rate="mxrate"
 			else
 				rate="mxsmap"
 			fi
+			
+			# if the CLKR was disabled in the form, we should manually set it to 0
+			eval '_clkr=$'FORM_sys_mux_${i}_clkr
+			[ -z "$_clkr" ] && _clkr="0"
+			export FORM_sys_mux_${i}_clkr=$_clkr
+			
 			kdb_vars="$kdb_vars bool:sys_mux_${i}_mxen"
 			kdb_vars="$kdb_vars int:sys_mux_${i}_clkm"
 			kdb_vars="$kdb_vars int:sys_mux_${i}_clkab"
@@ -48,6 +56,8 @@
 		render_input_td_field checkbox sys_mux_${i}_mxen
 		
 		# sys_mux_${i}_clkm
+		id="clkm_$i"
+		onchange="OnChangeMuxCLKM(this);"
 		tip="Select interface mode: <i>clock-master</i> or <i>clock-slave</i>"
 		render_input_td_field select sys_mux_${i}_clkm 0 "clock-slave" 1 "clock-master"
 		
@@ -56,8 +66,13 @@
 		render_input_td_field select sys_mux_${i}_clkab 0 "A" 1 "B"
 		
 		# sys_mux_${i}_clkr
+		# if CLKM is slave or not set — disable CLKR
+		unset _clkm disabled
+		eval '_clkm=$'sys_mux_${i}_clkm
+		[ -z "$_clkm" -o "$_clkm" -eq "0" ] && disabled="-d" 
+		id="clkr_$i"
 		tip="Select clock source: <i>remote</i> or <i>local</i> (for <b>clock-master</b> interface only)"
-		render_input_td_field select sys_mux_${i}_clkr 0 "local" 1 "remote"
+		render_input_td_field $disabled select sys_mux_${i}_clkr 0 "local" 1 "remote"
 		
 		# sys_mux_${i}_rline
 		tip="Enter rline number (<i>0-15</i>)"
