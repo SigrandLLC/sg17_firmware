@@ -9,7 +9,7 @@ validator_ipaddr_asterisk='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nom
 validator_ipaddr_range='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address range, like 192.168.1.100-200" tmt:pattern="ipaddr_range"'
 validator_netmask='tmt:required=true tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip netmask" tmt:pattern="netmask"'
 validator_dnsdomain='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns domain name" tmt:pattern="dnsdomain"'
-validator_dnsdomainoripaddr=' tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns domain name or IP-address" tmt:pattern="dnsdomainoripaddr"'
+validator_dnsdomainoripaddr='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct dns domain name or IP-address" tmt:pattern="dnsdomainoripaddr"'
 validator_mxprio='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input priority" tmt:pattern="positiveinteger" tmt:minnumber=1 tmt:maxnumber=999'
 validator_dnszone='tmt:filters="ltrim,rtrim,nohtml,nospaces,noquotes,nodoublequotes,nocommas,nomagic" tmt:message="Please input zone name" tmt:pattern="dnszone"'
 validator_dnszoneid='tmt:filters="ltrim,rtrim,alphanumericonly" tmt:message="Please input zone identifier" tmt:pattern="dnszoneid"'
@@ -39,6 +39,9 @@ validator_muxrate='tmt:filters="ltrim,rtrim,nohtml,nospaces,nomagic,noquotes,nod
 validator_voip_router_id='tmt:filters="ltrim,rtrim,numbersonly" tmt:message="Please input 3-digit positive number" tmt:pattern="voip_router_id"'
 validator_voip_short_number='tmt:filters="ltrim,rtrim,numbersonly" tmt:message="Please input 2-digit positive number" tmt:pattern="voip_short_number"'
 validator_voip_complete_number='tmt:filters="ltrim,rtrim,nohtml,nospaces,nomagic,noquotes,nodoublequotes" tmt:message="Please input correct complete number" tmt:pattern="voip_complete_number"'
+validator_voip_registrar='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct registrar name or its IP-address, with sip: prefix" tmt:pattern="voip_registrar"'
+validator_voip_sip_uri='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct user SIP URI, with sip: prefix" tmt:pattern="voip_sip_uri"'
+validator_voip_sip_expires='tmt:filters="ltrim,rtrim,numbersonly" tmt:message="Please input expires timeout" tmt:pattern="positiveinteger" tmt:minnumber=1'
 validator_comment='tmt:filters="ltrim,rtrim,nohtml,nospaces,noquotes,nodoublequotes"'
 
 render_chart_h(){

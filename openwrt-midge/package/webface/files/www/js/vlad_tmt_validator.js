@@ -46,6 +46,8 @@ tmt_globalPatterns.ipsec_src_dst = new RegExp("((^$)|^(0?0?\\d|[01]?\\d\\d|2[0-4
 // voip
 tmt_globalPatterns.voip_router_id = new RegExp("^([0-9]){3}$");
 tmt_globalPatterns.voip_short_number = new RegExp("^([0-9]){2}$");
-tmt_globalPatterns.voip_complete_number = new RegExp("^((([0-9]{3}|[\*]))((([-,]*)([0-9]{2}|[\*])([-,]*)([-0-9,]*))|(([-,]*)[#][a-zA-Z0-9@\.]+[#])))$");
+tmt_globalPatterns.voip_complete_number = new RegExp("^((([0-9]{3}|[\*]))((([-,]*)([0-9]{2}|[\*])([-,]*)([-0-9,]*))|(([-,]*)[#]sip:([_a-zA-Z0-9]\.?)+@([_a-zA-Z0-9]\.?)+[#])))$");
+tmt_globalPatterns.voip_registrar = new RegExp("^sip:\(\([a-zA-Z0-9\-\.]\)+|\(\(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.\(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.\(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5])\\.\(0?0?\\d|[01]?\\d\\d|2[0-4]\\d|25[0-5]))\)$");
+tmt_globalPatterns.voip_sip_uri = new RegExp("^sip:([_a-zA-Z0-9]\.*)+@([_a-zA-Z0-9]\.?)+");
 
 // </Vlad>

@@ -98,4 +98,5 @@ sys_voip_settings_selfip=192.168.2.100
 sys_voip_settings_codec_ext_quality=speed
 sys_voip_settings_codec_int_quality=speed
 sys_voip_settings_log=0
+sys_voip_sip_expires=3600
 KDB END

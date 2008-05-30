@@ -11,7 +11,7 @@
 			kdb_vars="str:sys_voip_settings_codec_ext_quality str:sys_voip_settings_codec_int_quality int:sys_voip_settings_selfnumber str:sys_voip_settings_selfip str:sys_voip_settings_log"
 			;;
 		'sip')
-			kdb_vars="str:sys_voip_sip_server str:sys_voip_sip_username str:sys_voip_sip_password"
+			kdb_vars="str:sys_voip_sip_registrar str:sys_voip_sip_username str:sys_voip_sip_password str:sys_voip_sip_user_sip_uri int:sys_voip_sip_expires"
 			;;
 		'hotline')
 			for port in $PORTS_INFO_FULL; do
@@ -72,23 +72,35 @@
 			help_2=""
 			render_table_title "SIP settings"
 			
-			# sys_voip_sip_server
-			tip=""
-			desc="SIP server to register on"
-			validator="$validator_dnsdomainoripaddr"
-			render_input_field text "SIP server" sys_voip_sip_server
+			# sys_voip_sip_registrar
+			tip="f.e. <b>sip:server</b>"
+			desc="SIP registrar to register on"
+			validator="$tmtreq $validator_voip_registrar"
+			render_input_field text "Registrar" sys_voip_sip_registrar
 			
 			# sys_voip_sip_username
-			tip=""
-			desc="Username on SIP server"
-			validator=""
+			tip="f.e <b>user</b>"
+			desc="Username on SIP registrar"
+			validator="$tmtreq tmt:message='Please enter username'"
 			render_input_field text "Username" sys_voip_sip_username
 			
 			# sys_voip_sip_password
 			tip=""
-			desc="Password on SIP server"
-			validator=""
+			desc="Password on SIP registrar"
+			validator="$tmtreq tmt:message='Please enter password'"
 			render_input_field password "Password" sys_voip_sip_password
+			
+			# sys_voip_sip_user_sip_uri
+			tip="f.e. <b>sip:user@server</b>"
+			desc="User SIP URI"
+			validator="$tmtreq $validator_voip_sip_uri"
+			render_input_field text "User SIP URI" sys_voip_sip_user_sip_uri
+			
+			# sys_voip_sip_expires
+			tip=""
+			desc="Registration expiration"
+			validator="$validator_voip_sip_expires"
+			render_input_field text "Expires" sys_voip_sip_expires
 			
 			render_submit_field
 			;;
