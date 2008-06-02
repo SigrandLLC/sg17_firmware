@@ -53,35 +53,51 @@ _dsl_mr17ifcfg(){
 
 	# Hardware settings
 	eval `$kdb -qq sls sys_pcicfg_s${slot}_${ifnum}_`
+	if [ -n "$advlink" ]; then
+		advlink="advlink $advlink"
+	fi
+
+	if [ "$pbomode" = "on" ]; then
+		pbo="pbo-forced"
+		[ -z "$pboval" ] && pboval=0 && \
+				kdb set sys_pcicfg_s${slot}_${ifnum}_pboval=0
+		echo "$pboval" > /sys/class/net/$iface/sg17_private/pbo_val
+		pboval=`cat  /sys/class/net/$iface/sg17_private/pbo_val`
+		kdb set sys_pcicfg_s${slot}_${ifnum}_pboval=$pboval
+		pbo="$pbo $pboval"
+	else
+		pbo="pbo-normal"
+	fi
+
+	# reset all SHDSL specific variables if eocd mode enabled
+	if [ "$ctrl" = "eocd" ]; then
+	    rate=""
+	    mode=""
+	    code=""
+	    annex=""
+	    pbo=""
+	fi
+	    
+	
 	# apply configuration
 	if [ "$mode" == "slave" ]; then
-   		$mr17h_cfg $iface $mode $fill $inv $crc $pwron > /dev/null
+   		$mr17h_cfg $iface $mode $fill $inv $crc $pwron $advlink > /root/log
 	else
 		if [ -n "$mrate" ]; then
 			rate="rate $mrate"
 		else
 			[ -n "$rate" ] && rate="rate $rate"
 		fi
-		if [ "$pbomode" = "on" ]; then
-			pbo="pbo-forced"
-			[ -z "$pboval" ] && pboval=0 && \
-					kdb set sys_pcicfg_s${slot}_${ifnum}_pboval=0
-			echo "$pboval" > /sys/class/net/$iface/sg17_private/pbo_val
-			pboval=`cat  /sys/class/net/$iface/sg17_private/pbo_val`
-			kdb set sys_pcicfg_s${slot}_${ifnum}_pboval=$pboval
-			pbo="$pbo $pboval"
-		else
-			pbo="pbo-normal"
-		fi
 		
-		echo "$pbo" > /root/pbotest
-				
    		[ -n "$annex" ] && annex="annex $annex"
-    	$mr17h_cfg $iface $mode $rate $code $annex $fill $inv $crc $pwron $clkmode $pbo > /dev/null
+    		$mr17h_cfg $iface $mode $rate $code $annex $fill $inv $crc \
+			$pwron $clkmode $pbo $advlink > /dev/null
 		# Correct rate setted by hands
-		rate=`cat  /sys/class/net/$iface/sg17_private/rate`
-		pboval=`cat  /sys/class/net/$iface/sg17_private/pbo_val`
-		[ -n "$mrate" ] && kdb set sys_pcicfg_s${slot}_${ifnum}_mrate=$rate
+		if [ "$ctrl" = "manual" ]; then
+    		    rate=`cat  /sys/class/net/$iface/sg17_private/rate`
+		    pboval=`cat  /sys/class/net/$iface/sg17_private/pbo_val`
+		    [ -n "$mrate" ] && kdb set sys_pcicfg_s${slot}_${ifnum}_mrate=$rate
+		fi
 	fi
 }
 

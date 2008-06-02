@@ -209,25 +209,33 @@ _sg17_settings(){
 	local slot=$2
 	local dev=$3
 
-	kdb_vars="\
-			str:sys_pcicfg_s${slot}_${dev}_ctrl \
+	eval `kdb -qq sls "sys_pcicfg_s${slot}_${dev}_" ` 
+	eval "new_ctrl=\$FORM_sys_pcicfg_s${slot}_${dev}_ctrl"
+	eval "new_mode=\$FORM_sys_pcicfg_s${slot}_${dev}_mode"
+
+
+	kdb_vars="str:sys_pcicfg_s${slot}_${dev}_ctrl \
+		str:sys_pcicfg_s${slot}_${dev}_advlink \
+		str:sys_pcicfg_s${slot}_${dev}_crc \
+		str:sys_pcicfg_s${slot}_${dev}_fill	\
+		str:sys_pcicfg_s${slot}_${dev}_inv \
+		str:sys_pcicfg_s${slot}_${dev}_pwron"	
+	# if manual mode is enabled
+	if [ "$ctrl" = "manual" ]; then
+		kdb_vars="$kdb_vars \
 			str:sys_pcicfg_s${slot}_${dev}_mode \
 			str:sys_pcicfg_s${slot}_${dev}_clkmode \
 			str:sys_pcicfg_s${slot}_${dev}_rate \
 			int:sys_pcicfg_s${slot}_${dev}_mrate \
 			str:sys_pcicfg_s${slot}_${dev}_code \
 			str:sys_pcicfg_s${slot}_${dev}_annex \
-			str:sys_pcicfg_s${slot}_${dev}_crc \
-			str:sys_pcicfg_s${slot}_${dev}_fill	\
-			str:sys_pcicfg_s${slot}_${dev}_inv \
 			str:sys_pcicfg_s${slot}_${dev}_pbomode \
-			str:sys_pcicfg_s${slot}_${dev}_pboval \
-			str:sys_pcicfg_s${slot}_${dev}_pwron"	
+			str:sys_pcicfg_s${slot}_${dev}_pboval"
+	fi
+
+
 	subsys="dsl."$slot"."$dev
 
-	eval `kdb -qq sls "sys_pcicfg_s${slot}_${dev}_" ` 
-	eval "new_ctrl=\$FORM_sys_pcicfg_s${slot}_${dev}_ctrl"
-	eval "new_mode=\$FORM_sys_pcicfg_s${slot}_${dev}_mode"
 
 	if [ "$new_ctrl" != "$ctrl" ]; then
 		case "$new_ctrl" in
@@ -305,72 +313,64 @@ _sg17_settings(){
 	render_input_field select "Control type" sys_pcicfg_s${slot}_${dev}_ctrl  manual 'Manual' eocd 'EOCd'
 
 
-	if [ "$ctrl" = "eocd" ]; then
-		render_submit_field
-		render_form_tail
-		return
-	fi
-	
-	# sys_pcicfg_s${slot}_${dev}_mode
-	tip=""
-	desc="Select DSL mode"
-	id='mode'
-	onchange="OnChangeSG17Code();"	
-	render_input_field select "Mode" sys_pcicfg_s${slot}_${dev}_mode  master 'Master' slave 'Slave'
+	if [ "$ctrl" != "eocd" ]; then
+	    # sys_pcicfg_s${slot}_${dev}_mode
+	    tip=""
+	    desc="Select DSL mode"
+	    id='mode'
+	    onchange="OnChangeSG17Code();"	
+	    render_input_field select "Mode" sys_pcicfg_s${slot}_${dev}_mode  master 'Master' slave 'Slave'
 
-	# sys_pcicfg_s${slot}_${dev}_clkmode
-	tip=""
-	desc="Select DSL clock mode"
-	id='clkmode'
-	onchange="OnChangeSG17Code();"	
-	render_input_field select "Clock mode" sys_pcicfg_s${slot}_${dev}_clkmode  'plesio' 'plesio' 'sync' 'sync'
+	    # sys_pcicfg_s${slot}_${dev}_clkmode
+	    tip=""
+	    desc="Select DSL clock mode"
+	    id='clkmode'
+	    onchange="OnChangeSG17Code();"	
+	    render_input_field select "Clock mode" sys_pcicfg_s${slot}_${dev}_clkmode  'plesio' 'plesio' 'sync' 'sync'
 
-	# sys_pcicfg_s${slot}_${dev}_rate
-	eval "crate=\$sys_pcicfg_s${slot}_${dev}_rate"
-	if [ "$crate" -eq -1 ]; then
+	    # sys_pcicfg_s${slot}_${dev}_rate
+	    eval "crate=\$sys_pcicfg_s${slot}_${dev}_rate"
+	    if [ "$crate" -eq -1 ]; then
 		crtext="other"
-	else
+	    else
 		crtext="$crate"
+	    fi
+	    tip=""
+	    desc="Select DSL line rate"
+	    validator='tmt:message="'$desc'"'
+	    id='rate'
+	    td_id='rate_td'
+	    onchange="OnChangeSG17Code();"	
+	    render_input_field select "Rate" sys_pcicfg_s${slot}_${dev}_rate $crate $crtext
+
+	    # sys_pcicfg_s${slot}_${dev}_code
+    	    eval "ctcpam=\$sys_pcicfg_s${slot}_${dev}_code"
+	    [ -z "$ctcpam" ] && ctcpam=tcpam32
+	    tip=""
+	    desc="Select DSL line coding"
+	    id='code'
+	    onchange="OnChangeSG17Code();"
+	    render_input_field select "Coding" sys_pcicfg_s${slot}_${dev}_code "$ctcpam" "$ctcpam"
+
+	    # sys_pcicfg_s${slot}_${dev}_pbomode
+	    tip=""
+	    desc='Example: 21:13:15, STU-C-SRU1=21,SRU1-SRU2=13,...'
+	    id='pbomode'
+	    td_id='pbomode_td'
+	    onchange="OnChangeSG17Code();"
+	    render_input_field checkbox "PBO Forced" sys_pcicfg_s${slot}_${dev}_pbomode 
+
+	    # sys_pcicfg_s${slot}_${dev}_annex
+	    tip=""
+	    desc="Select DSL Annex"
+	    id='annex'
+	    render_input_field select "Annex" sys_pcicfg_s${slot}_${dev}_annex A "Annex A" B "Annex B"
 	fi
-	tip=""
-	desc="Select DSL line rate"
-	validator='tmt:message="'$desc'"'
-	id='rate'
-	td_id='rate_td'
-	onchange="OnChangeSG17Code();"	
-	render_input_field select "Rate" sys_pcicfg_s${slot}_${dev}_rate $crate $crtext
-
-	#eval "mrate=\$sys_pcicfg_s${slot}_${dev}_mrate"
-	#tip=""
-	#desc="Select DSL line rate"
-	#validator='tmt:message="'$desc'"'
-	#id='mrate'
-	#onchange="OnChangeSG17Code();"	
-	#render_input_field text "Variable rate" sys_pcicfg_s${slot}_${dev}_mrate $mrate $mrate
 	
-
-	# sys_pcicfg_s${slot}_${dev}_code
-	eval "ctcpam=\$sys_pcicfg_s${slot}_${dev}_code"
-	[ -z "$ctcpam" ] && ctcpam=tcpam32
+	# sys_pcicfg_s${slot}_${dev}_advlink
 	tip=""
-	desc="Select DSL line coding"
-	id='code'
-	onchange="OnChangeSG17Code();"
-	render_input_field select "Coding" sys_pcicfg_s${slot}_${dev}_code "$ctcpam" "$ctcpam"
-
-	# sys_pcicfg_s${slot}_${dev}_pbomode
-	tip=""
-	desc='Example: 21:13:15, STU-C-SRU1=21,SRU1-SRU2=13,...'
-	id='pbomode'
-	td_id='pbomode_td'
-	onchange="OnChangeSG17Code();"
-	render_input_field checkbox "PBO Forced" sys_pcicfg_s${slot}_${dev}_pbomode 
-
-	# sys_pcicfg_s${slot}_${dev}_annex
-	tip=""
-	desc="Select DSL Annex"
-	id='annex'
-	render_input_field select "Annex" sys_pcicfg_s${slot}_${dev}_annex A "Annex A" B "Annex B"
+	desc="Select DSL Advanced link detection"
+	render_input_field select "AdvLink" sys_pcicfg_s${slot}_${dev}_advlink off off on on
 
 	# sys_pcicfg_s${slot}_${dev}_crc32
 	tip=""
