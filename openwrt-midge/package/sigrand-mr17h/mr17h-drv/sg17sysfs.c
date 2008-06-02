@@ -748,11 +748,12 @@ static ssize_t
 show_link_state(struct class_device *cdev, char *buf) 
 {
 	struct net_device *ndev = to_net_dev(cdev);    
-	
-	if( netif_carrier_ok(ndev) ){
-	    return snprintf(buf,PAGE_SIZE,"1");
+	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
+
+	if( advlink_get_hwstatus(&nl->alink) == ADVLINK_UP ){
+		return snprintf(buf,PAGE_SIZE,"1");
 	} else{
-	    return snprintf(buf,PAGE_SIZE,"0");	
+		return snprintf(buf,PAGE_SIZE,"0");	
 	}
 }
 static CLASS_DEVICE_ATTR(link_state,0444,show_link_state,NULL);

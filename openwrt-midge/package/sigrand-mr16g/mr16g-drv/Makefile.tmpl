@@ -21,5 +21,9 @@ clean:
 	rm --preserve-root -f .sg16*
 	rm --preserve-root -f -R .tmp*
 
+mr16g_hdlc.s: mr16g_hdlc.c
+	make -C @KERNSRC@ CROSS_COMPILE=@CROSS_PREFIX@ $(PWD)/mr16g_hdlc.s
 
+debug: mr16g_hdlc.c mr16g_hdlc.s
+	@CROSS_PREFIX@objdump -d mr16g_hdlc.o > mr16g_hdlc.disasm
 
