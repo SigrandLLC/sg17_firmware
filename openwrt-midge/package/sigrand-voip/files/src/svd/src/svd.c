@@ -189,38 +189,42 @@ DFS
 	}
 
 	/* launch the SIP stack */
+	/* *
+	 * NUTAG_ALLOW ("INFO"),
+	 * NUTAG_AUTOANSWER (1), FXS / FXO in differ places
+	 * NUTAG_PROXY (),
+	 * NUTAG_REGISTRAR (),
+	 * NUTAG_OUTBOUND (),
+	 * NUTAG_AUTH ("scheme""realm""user""password"),
+	 * NUTAG_AUTHTIME (3600),
+	 * NUTAG_M_DISPLAY (),
+	 * */
 	svd->nua = nua_create (svd->root, svd_nua_callback, svd,
-			/* deprecated
-			TAG_IF(conf->ssc_stun_server,
-				STUNTAG_SERVER(conf->ssc_stun_server)),
-			*/
-			/* unused yet
-			TAG_IF(conf->ssc_contact, 
-				NUTAG_URL(conf->ssc_contact)),
-			TAG_IF(conf->ssc_media_addr,
-				NUTAG_MEDIA_ADDRESS(conf->ssc_media_addr)),
-			SOATAG_AF(SOA_AF_IP4_IP6), 
-			TAG_IF(conf->ssc_proxy,
-				NUTAG_PROXY(conf->ssc_proxy)),
-			TAG_IF(conf->ssc_registrar,
-				NUTAG_REGISTRAR(conf->ssc_registrar)),
-			TAG_IF(conf->ssc_aor,
-				SIPTAG_FROM_STR(conf->ssc_aor)),
-			TAG_IF(conf->ssc_certdir,
-				NUTAG_CERTIFICATE_DIR(conf->ssc_certdir)), 
-			*/
-			NUTAG_ALLOW("INFO"),
-			NUTAG_ENABLEMESSAGE(1),
-			NUTAG_ENABLEINVITE(1),
-			NUTAG_AUTOALERT(1),
-			TAG_NULL() );
-	if (svd->nua) {
-		nua_get_params(svd->nua, TAG_ANY(), TAG_NULL());
-	} else {
+			SIPTAG_USER_AGENT_STR ("Sigrand VoIP"),
+			SOATAG_AF (SOA_AF_IP4_IP6), 
+			NUTAG_AUTOALERT (1),
+			NUTAG_ENABLEMESSAGE (1),
+			NUTAG_ENABLEINVITE (1),
+			TAG_NULL () );
+	if (!svd->nua) {
 		SU_DEBUG_0 (("Network is not initialized\n"));
 		goto __exit_fail;
 	}
 
+	svd->op_reg = NULL;
+
+	if(g_conf.sip_set.all_set){
+		nua_set_params(svd->nua,
+				NUTAG_REGISTRAR (g_conf.sip_set.registrar),
+				NUTAG_OUTBOUND ("gruuize no-outbound validate "
+						"natify use-rport "
+						"options-keepalive"),
+				TAG_NULL () );
+
+		svd_refresh_registration (svd);
+	}
+
+	nua_get_params(svd->nua, TAG_ANY(), TAG_NULL());
 DFE
 	return svd;
 

@@ -54,42 +54,24 @@ struct svd_chan_s
 
 		/* remote router id */
 		char * route_id;
-		char route_id_s [ROUTE_ID_LEN_DF];
-		unsigned char route_id_len;
-		char route_ip [IP_LEN_MAX];
+		char * route_ip; /* points to g_conf value */
 
 		/* remote chan identificator */
 		char chan_id [CHAN_ID_LEN];
 
 		/* address_book values */
 		char * addrbk_id;
-		char addrbk_id_s [ADBK_ID_LEN_DF];
-		unsigned char addrbk_id_len;
 		char * addrbk_value; /* points to g_conf value */
-		unsigned char addrbk_value_len;
 
-		/* pstn or sip number */
-		char pstn_sip_id [PSTN_SIP_ID_LEN];
+		/* sip number */
+		char addr_payload [ADDR_PAYLOAD_LEN];
 	} dial_status;
-
-	enum callstate_e {
-		callstate_INIT,  	/**< Initial state */
-		callstate_AUTHENTICATING, 	/**< 401/407 received */
-		callstate_CALLING,	/**< INVITE sent */
-		callstate_PROCEEDING,	/**< 18X received */
-		callstate_COMPLETING,	/**< 2XX received */
-		callstate_RECEIVED,	/**< INVITE received */
-		callstate_EARLY,	/**< 18X sent (w/SDP) */
-		callstate_COMPLETED,	/**< 2XX sent */
-		callstate_READY,/**< 2XX received, ACK sent, or vice versa */
-		callstate_TERMINATING,	/**< BYE sent */
-		callstate_TERMINATED	/**< BYE complete */
-	} call_status;
 
 	int payload; /**< Selected payload */
 	int rtp_sfd; /**< RTP socket file descriptor */
 	int rtp_port; /**< Local RTP port */
 
+	char call_is_remote; /**< Caller in remote net */
 	int remote_port; /**< Remote RTP port */
 	char * remote_host; /**< Remote RTP host */
 
@@ -101,9 +83,8 @@ struct svd_chan_s
 
 	/* HOTLINE */
 	unsigned char is_hotlined; /**< Is this channel hotline initiator */
-	/* points to g_conf value */
-	char * hotline_addr;       /**< Hotline destintation address */
-	unsigned char hotline_addr_len;/**< Hotline dest. address length */
+	char * hotline_addr; /**< Hotline destintation address, 
+			points to g_conf value*/
 };
 
 struct svd_s
@@ -112,11 +93,13 @@ struct svd_s
 	su_home_t home[1];	/**< Our memory home */
 	nua_t * nua;		/**< Pointer to NUA object */
 	ab_t * ab;		/**< Pointer to ATA Boards object */
+	nua_handle_t * op_reg; /**< Pointer NUA Handle reg object */
+	char outbound_ip [IP_LEN_MAX]; /**< Outbound ip address */
 
+	/* tag__ net hotline is not work - just init */
 	unsigned char net_is_hotlined; /**< network hotline marker */
-	/* points to g_conf value */
-	char * net_hotline_addr;       /**< Hotline destintation address */
-	unsigned char net_hotline_addr_len;/**< Hotline dst. address length */
+	char * net_hotline_addr;       /**< Hotline destintation address, 
+			points to g_conf value */
 };
 
 extern unsigned int g_f_cnt; 

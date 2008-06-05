@@ -4,12 +4,16 @@
 #include <errno.h>
 #include <assert.h>
 
-/************************************************************************ UAC */
+#define SDP_STR_MAX_LEN 512
 
+/************************************************************************ UAC */
 static int 
 svd_pure_invite( svd_t * const svd, ab_chan_t * const chan, 
 		char const * const from_str, char const * const to_str );
 
+static void
+svd_authenticate( svd_t * svd, nua_handle_t * nh, sip_t const *sip, 
+		tagi_t * tags );
 
 /************************************************************************ UAS */
 static void 
@@ -20,8 +24,6 @@ svd_i_invite( int status, char const * phrase, svd_t * const svd,
 		sip_t const *sip, tagi_t tags[]);
 static void 
 svd_i_cancel (nua_handle_t const * const nh, ab_chan_t const * const chan);
-//static void 
-//svd_i_ack (nua_handle_t const * const nh, ab_chan_t const * const chan);
 static void
 svd_i_state (int status, char const *phrase, nua_t * nua, svd_t * svd,
 		nua_handle_t * const nh, ab_chan_t * chan, sip_t const *sip,
@@ -47,12 +49,23 @@ svd_r_shutdown( int status, char const *phrase, nua_t * nua, svd_t * svd,
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip, 
 		tagi_t tags[] );
 static void
+svd_r_register (int status, char const *phrase, nua_t * nua, svd_t * svd,
+		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip,
+		tagi_t tags[], int const is_register);
+static void
 svd_r_bye(int status, char const *phrase,
 	  nua_handle_t const * const nh, ab_chan_t const * const chan);
 
+static void
+svd_r_info(int status, char const * phrase, svd_t * const svd, 
+		nua_handle_t * nh, ab_chan_t * chan, sip_t const * sip);
+
 static void 
-svd_media_parse_sdp(svd_t * const svd, ab_chan_t * const chan, 
+svd_parse_sdp(svd_t * const svd, ab_chan_t * const chan, 
 		char const * str);
+
+static char *
+svd_new_sdp_string (long const media_port, enum codec_type_e const ct);
 
 /****************************************************************************/
 
@@ -68,24 +81,26 @@ void svd_nua_callback(	nua_event_t  event,
 {
 DFS
 	SU_DEBUG_3(("Event : %s\n",nua_event_name(event)));
+	if(sip){
+		SU_DEBUG_3(("---[ SIP ]---\n"));
+		sl_sip_log(NULL, 3, "", sip, 1);
+		SU_DEBUG_3(("---[ === ]---\n"));
+	}
 	switch (event) {
 
 /************ Indications ************/
 		case nua_i_error: /*< 0 Error indication */
-			svd_i_error(status, phrase);
+			svd_i_error (status, phrase);
 			break;
 		case nua_i_invite: /*< 1 Incoming call INVITE */
-			svd_i_invite(status,phrase,svd,nh,chan,sip,tags);
+			svd_i_invite (status, phrase, svd, nh, chan, sip, tags);
 			break;
 		case nua_i_cancel: /*< 2 Incoming INVITE has been cancelled */
-			svd_i_cancel(nh, chan);
+			svd_i_cancel (nh, chan);
 			break;
 		case nua_i_ack: /*< 3 Final response to INVITE has been ACKed */
-			//svd_i_ack(nh, chan);
-			break;
 		case nua_i_fork:	/*< 4 Outgoing call has been forked */
 			break;
-
 		/* DEPRECATED *****/
 		case nua_i_active:	/*< 5 A call has been activated */
 		case nua_i_terminated:	/*< 6 A call has been terminated */
@@ -93,26 +108,24 @@ DFS
 		/* DEPRECATED END */
 
 		case nua_i_state: /*< 7 Call state has changed */
-			svd_i_state (status, phrase, nua, svd, 
-					nh, chan, sip, tags);
+			svd_i_state (status, phrase, nua, svd,nh,chan,sip,tags);
 			break;
 		case nua_i_outbound:	/*< 8 Status from outbound processing */
 			break;
 		case nua_i_bye: 	/*< 9 Incoming BYE call hangup */
-			svd_i_bye(nh, chan);
+			svd_i_bye (nh, chan);
 			break;
-					/* Incoming set first in comment */
+	/* Incoming set first in comment */
 		case nua_i_options:	/*< 10 OPTIONS */
 		case nua_i_refer:	/*< 11 REFER call transfer */
 		case nua_i_publish:	/*< 12 PUBLISH */
 			break;
 		case nua_i_prack:  	/*< 13 PRACK */
-			svd_i_prack(nh, chan, sip);
+			svd_i_prack (nh, chan, sip);
 			break;
 		case nua_i_info:	/*< 14 session INFO */
-			svd_i_info(status, phrase, svd, nh, chan, sip);
+			svd_i_info (status, phrase, svd, nh, chan, sip);
 			break;
-
 		case nua_i_update:	/*< 15 session UPDATE */
 		case nua_i_message:	/*< 16 MESSAGE */
 		case nua_i_chat:	/*< 17 chat MESSAGE  */
@@ -120,7 +133,7 @@ DFS
 		case nua_i_subscription:/*< 19 subscription to be authorized */
 		case nua_i_notify:	/*< 20 event NOTIFY */
 		case nua_i_method:	/*< 21 unknown method */
-					/* NO Incoming set first in comment */
+	/* NO Incoming set first in comment */
 		case nua_i_media_error:	/*< 22 Offer-answer error indication */
 			break;
 
@@ -130,12 +143,11 @@ DFS
 			break;
 		/*< 24 Answer to nua_get_params() or nua_get_hparams().*/
 		case nua_r_get_params: 
-			svd_r_get_params(status, phrase, nua, svd, 
-					nh, chan, sip, tags);
+			svd_r_get_params (status,phrase,nua,svd,nh,chan,sip,
+					tags);
 			break;
 		case nua_r_shutdown:	/*< 25 Answer to nua_shutdown() */
-			svd_r_shutdown(status, phrase, nua, svd, 
-					nh, chan, sip, tags);
+			svd_r_shutdown (status,phrase,nua,svd,nh,chan,sip,tags);
 			break;
 		case nua_r_notifier:	/*< 26 Answer to nua_notifier() */
 		case nua_r_terminate:	/*< 27 Answer to nua_terminate() */
@@ -144,14 +156,12 @@ DFS
 
 /************ SIP Responses ************/
 		case nua_r_register:/**< 29 Answer to outgoing REGISTER */
-		/*	svd_r_register(status, phrase, nua, svd, 
-					nh, chan, sip, tags); 
-		*/
+			svd_r_register(status, phrase, nua, svd, 
+					nh, chan, sip, tags, 1); 
 			break;
 		case nua_r_unregister:/**< 30 Answer to outgoing un-REGISTER */
-		/*	svd_r_unregister(status, phrase, nua, svd, 
-					nh, chan, sip, tags);
-		*/
+			svd_r_register(status, phrase, nua, svd, 
+					nh, chan, sip, tags, 0);
 			break;
 		case nua_r_invite:/**< 31 Answer to outgoing INVITE */
 			svd_r_invite(status, phrase, nua, svd, 
@@ -160,7 +170,7 @@ DFS
 		case nua_r_cancel:	/*< 32 Answer to outgoing CANCEL */
 			break;
 		case nua_r_bye:		/**< 33 Answer to outgoing BYE */
-			svd_r_bye(status, phrase, nh, chan);
+			svd_r_bye (status, phrase, nh, chan);
 			break;
 		case nua_r_options:	/*< 34 Answer to outgoing OPTIONS */
 		case nua_r_refer:	/*< 35 Answer to outgoing REFER */
@@ -168,7 +178,7 @@ DFS
 		case nua_r_unpublish:/*< 37 Answer to outgoing un-PUBLISH */
 			break;
 		case nua_r_info:	 /*< 38 Answer to outgoing INFO */
-			svd_r_info(status, phrase, svd, nh, chan, sip);
+			svd_r_info (status, phrase, svd, nh, chan, sip);
 			break;
 		case nua_r_prack:	/*< 39 Answer to outgoing PRACK */
 		case nua_r_update:	 /*< 40 Answer to outgoing UPDATE */
@@ -187,8 +197,7 @@ DFS
 		 * (nua_handle_destroy) иначе (related to an existing call or 
 		 * registration for instance). - игнорировать
 		 */
-			SU_DEBUG_2(("UNKNOWN EVENT RECEIVED : %d %s\n",
-					status, phrase));
+			SU_DEBUG_2(("UNKNOWN EVENT : %d %s\n", status, phrase));
 	}
 DFE
 };
@@ -214,7 +223,6 @@ svd_invite (svd_t * const svd, int const use_ff_FXO, int const chan_idx )
 	int err;
 DFS
 	/* forming from string */
-	/* tag__ from */
 	snprintf (from_idx, CHAN_ID_LEN, "%d",
 			svd->ab->chans[chan_idx].abs_idx);
 	strcpy (from_str, "sip:");
@@ -224,7 +232,6 @@ DFS
 
 	/* forming dest string */
 	strcpy (to_str, "sip:");
-
 	if (use_ff_FXO){
 		strcat (to_str, FIRST_FREE_FXO);
 	} else {
@@ -247,11 +254,136 @@ DFE
 	return -1;
 };
 
+int  
+svd_invite_to (svd_t * const svd, int const chan_idx, char const * const to_str)
+{
+	ab_chan_t * chan = &svd->ab->chans[chan_idx];
+	nua_handle_t * nh;
+	sip_to_t *to = NULL;
+	sip_to_t *from = NULL;
+	char * l_sdp_str = NULL;
+	int err;
+DFS
+	from = sip_from_make(svd->home, g_conf.sip_set.user_URI);
+	
+	to = sip_to_make(svd->home, to_str);
+	if ( !to ) {
+		SU_DEBUG_0 (("%s sip_to_make(): invalid address: %s\n",
+				__func__, to_str));
+		goto __exit_fail;
+	}
+
+	/* Try to make sense out of the URL */
+	if (url_sanitize(to->a_url) < 0) {
+		SU_DEBUG_0 ((LOG_FNC_A("url_sanitize()")));
+		goto __exit_fail;
+	}
+
+	nh = nua_handle (svd->nua, chan,
+			NUTAG_URL(to->a_url),
+			SIPTAG_TO(to), 
+			SIPTAG_FROM(from), 
+			TAG_NULL());
+
+	su_free(svd->home, to);
+	to = NULL;
+
+	chan->data->op_handle = nh;
+	if( !chan->data->op_handle ){
+		SU_DEBUG_1 ((LOG_FNC_A("can`t create handle")));
+		goto __exit_fail;
+	}
+
+	/* register vinetic media */
+	err = svd_media_register (svd, chan);
+	if (err){
+		SU_DEBUG_1 ((LOG_FNC_A("can`t register media")));
+		goto __exit_fail;
+	}
+
+
+	l_sdp_str = svd_new_sdp_string (chan->data->rtp_port, 
+			g_conf.sip_set.ext_codec);
+	if ( !l_sdp_str){
+		goto __exit_fail;
+	}
+	
+	nua_invite( nh,
+			TAG_IF (svd->outbound_ip[0], 
+					SOATAG_ADDRESS(svd->outbound_ip)),
+			SOATAG_USER_SDP_STR(l_sdp_str),
+			SOATAG_RTP_SORT (SOA_RTP_SORT_LOCAL),
+			SOATAG_RTP_SELECT (SOA_RTP_SELECT_SINGLE), 
+			TAG_END() );
+DFE
+	free (l_sdp_str);
+	return 0;
+
+__exit_fail:
+	if (to){
+		su_free(svd->home, to);
+	}
+	if (l_sdp_str){
+		free (l_sdp_str);
+	}
+DFE
+	return -1;
+};
+
+void 
+svd_register(svd_t * svd)
+{
+DFS
+	if ( !nua_handle_has_registrations (svd->op_reg) ) {
+		sip_to_t * fr_to;
+		fr_to = sip_to_make(svd->home, g_conf.sip_set.user_URI);	
+		svd->op_reg = nua_handle( svd->nua, NULL, 
+				SIPTAG_TO(fr_to),
+				SIPTAG_FROM(fr_to),
+				TAG_NULL());
+		if (svd->op_reg) {
+			nua_register(svd->op_reg, TAG_NULL());
+		}
+	} 
+DFE
+};
+
+void 
+svd_refresh_registration (svd_t * const svd)
+{
+DFS
+	if ( nua_handle_has_registrations (svd->op_reg)){
+		nua_unregister(svd->op_reg,
+				SIPTAG_CONTACT_STR("*"),
+				TAG_NULL());
+	} else {
+		/* unregister all previously registered on server */
+		sip_to_t * fr_to = NULL;
+		fr_to = sip_to_make(svd->home, g_conf.sip_set.user_URI);
+		if( !fr_to){
+			SU_DEBUG_2((LOG_FNC_A(LOG_NOMEM)));
+			goto __exit;
+		}
+		svd->op_reg = nua_handle( svd->nua, NULL, 
+				SIPTAG_TO(fr_to),
+				SIPTAG_FROM(fr_to),
+				TAG_NULL());
+		if (svd->op_reg) {
+			nua_unregister(svd->op_reg,
+					SIPTAG_CONTACT_STR("*"),
+					TAG_NULL());
+		}
+		su_free (svd->home, fr_to);
+	}
+__exit:
+DFE
+	return;
+};
 
 void svd_shutdown(svd_t * svd)
 {
 DFS
-	nua_shutdown(svd->nua);
+	nua_shutdown (svd->nua);
 DFE
 };
 
@@ -265,34 +397,46 @@ svd_answer(svd_t * const svd, ab_chan_t * const chan,
 		int status, char const *phrase)
 {
 	int call_answered = 0;
+	char * l_sdp_str = NULL;
 DFS
 	if ( chan->data->op_handle ){
 		/* we have call to answer */
-		char l_sdp_str[1000];
+		enum codec_type_e ct;
 
 		call_answered = 1;
 
 		/* register media waits and open sockets for rtp */
 		svd_media_register (svd, chan);
 
-		snprintf(l_sdp_str, 1000, "v=0\r\nm=audio %d "
-				"RTP/AVP 18 8\r\na=rtpmap:18 "
-				"G729/8000\r\na=rtpmap:8 PCMA/8000\r\n",
-				chan->data->rtp_port);
-#ifdef SVD_DEBUG_LOGS
-		SU_DEBUG_3 ((LOG_FNC_A("Answer on call")));
-		SU_DEBUG_3 (("Local SDP :\n%s\n",l_sdp_str));
-#endif
-		if (status < 200 || status >= 300){
-			SU_DEBUG_2 (("Answer status : %d, %s\n",
-					status, phrase));
-		} 		
+		if(chan->data->call_is_remote){
+			ct = g_conf.sip_set.ext_codec;
+		} else {
+			ct = g_conf.int_codec;
+		}
+
+		/* have remote sdp make local */
+		l_sdp_str = svd_new_sdp_string (chan->data->rtp_port, ct);
+		if ( !l_sdp_str){
+			goto __exit;
+		}
+
 		nua_respond (chan->data->op_handle, status, phrase,
-				SOATAG_USER_SDP_STR(l_sdp_str),
-				SOATAG_RTP_SORT(SOA_RTP_SORT_REMOTE),
-				SOATAG_RTP_SELECT(SOA_RTP_SELECT_ALL), 
+				SOATAG_RTP_SORT (SOA_RTP_SORT_LOCAL),
+				SOATAG_RTP_SELECT (SOA_RTP_SELECT_SINGLE), 
+				TAG_IF(chan->data->call_is_remote && 
+						svd->outbound_ip[0], 
+					SOATAG_ADDRESS(svd->outbound_ip)),
+				SOATAG_USER_SDP_STR (l_sdp_str),
 				TAG_END());
+
+		/* set proper payload type to chan */
+		nua_get_hparams( chan->data->op_handle, 
+				SOATAG_LOCAL_SDP_STR(NULL), TAG_NULL() );
 	} 
+__exit:
+	if (l_sdp_str){
+		free (l_sdp_str);
+	}
 DFE
 	return call_answered;
 };
@@ -304,10 +448,10 @@ void
 svd_bye (svd_t * const svd, ab_chan_t * const chan)
 {
 DFS
-	assert( chan );
-	assert( chan->data );
+	assert ( chan );
+	assert ( chan->data );
 
-	if( chan->data->op_handle ){
+	if (chan->data->op_handle){
 		nua_bye(chan->data->op_handle, TAG_END());
 	} else {
 		/* just clear call params */
@@ -324,81 +468,25 @@ void
 svd_cancel (ab_chan_t * const chan)
 {
 DFS
-	assert( chan );
-	assert( chan->data );
-	assert( chan->data->op_handle );
+	assert ( chan );
+	assert ( chan->data );
+	assert ( chan->data->op_handle );
 
-	nua_cancel(chan->data->op_handle, TAG_END());
+	nua_cancel (chan->data->op_handle, TAG_END());
 DFE
 };
 
-#if 0 /* tag__ not realized yet UAC functions */
-
-void svd_register(svd_t * svd, const char *registrar)
-{
-  svd_oper_t *op;
-DFS
-  if (!registrar && (op = svd_oper_find_by_method(svd, sip_method_register))) {
-DMARKS("!registrar") // tag_ 
-    p_rintf("REGISTER %s\n", op->op_ident);
-    nua_register(op->op_handle, TAG_NULL());
-DFE
-    return;
-  }
-
-  if ((op =
-       svd_oper_create(svd, SIP_METHOD_REGISTER, svd->conf->svd_aor,
-		       TAG_END()))) {
-DMARKS("nua_register") // tag_
-    p_rintf("REGISTER %s\n", op->op_ident);
-    nua_register(op->op_handle,
-		 TAG_IF(registrar, NUTAG_REGISTRAR(registrar)), TAG_NULL());
-DMARKS("nua_register end") // tag_
-  }
-DFE
-}
-
-void svd_unregister(svd_t * svd, const char *registrar)
-{
-  svd_oper_t *op;
-DFS
-
-  if (!registrar && (op = svd_oper_find_by_method(svd, sip_method_register))) {
-    p_rintf("un-REGISTER %s\n", op->op_ident);
-    nua_unregister(op->op_handle, TAG_NULL());
-DFE
-    return;
-  } else {
-    op =
-      svd_oper_create(svd, SIP_METHOD_REGISTER, svd->conf->svd_aor, TAG_END());
-
-    if (op) {
-      p_rintf("un-REGISTER %s%s%s\n",
-	     op->op_ident,
-	     registrar ? " at " : "", registrar ? registrar : "");
-      nua_unregister(op->op_handle,
-		     TAG_IF(registrar, NUTAG_REGISTRAR(registrar)),
-		     SIPTAG_CONTACT_STR("*"),
-		     SIPTAG_EXPIRES_STR("0"), TAG_NULL());
-DFE
-      return;
-    }
-  }
-DFE
-}
-#endif
-
 /******************************************************************************/
+
 static int 
 svd_pure_invite( svd_t * const svd, ab_chan_t * const chan, 
 		char const * const from_str, char const * const to_str )
 {
 	sip_to_t *to = NULL;
 	sip_to_t *from = NULL;  
-	char l_sdp_str[1000];
+	char * l_sdp_str = NULL;
 	nua_handle_t * nh;
 	int err;
-
 DFS
 	to = sip_to_make(svd->home, to_str);
 	if ( !to ) {
@@ -444,22 +532,24 @@ DFS
 		goto __exit_fail;
 	}
 
- 	/* tag__ static sdp string now */
-	snprintf(l_sdp_str, 1000, 
-			"v=0\r\n"
-			"m=audio %d RTP/AVP 18 8\r\n"
-			"a=rtpmap:18 G729/8000\r\n"
-			"a=rtpmap:8 PCMA/8000\r\n",
-			chan->data->rtp_port);
+	l_sdp_str = svd_new_sdp_string (chan->data->rtp_port, g_conf.int_codec);
+	if ( !l_sdp_str){
+		goto __exit_fail;
+	}
+
 #ifdef SVD_DEBUG_LOGS
 	SU_DEBUG_3 (("SDP STRING : %s\n", l_sdp_str));
 #endif
 
 	nua_invite( nh,
 			SOATAG_USER_SDP_STR(l_sdp_str),
-			SOATAG_RTP_SORT (SOA_RTP_SORT_REMOTE),
+			SOATAG_RTP_SORT (SOA_RTP_SORT_LOCAL),
 			SOATAG_RTP_SELECT (SOA_RTP_SELECT_SINGLE), 
 			TAG_END() );
+
+	if (l_sdp_str){
+		free (l_sdp_str);
+	}
 DFE
 	return 0;
 
@@ -470,10 +560,42 @@ __exit_fail:
 	if (from){
 		su_free(svd->home, from);
 	}
+	if (l_sdp_str){
+		free (l_sdp_str);
+	}
 DFE
 	return -1;
 };
 
+static void
+svd_authenticate (svd_t * svd, nua_handle_t * nh, sip_t const *sip, 
+		tagi_t * tags)
+{
+	sip_www_authenticate_t const *wa = sip->sip_www_authenticate;
+	sip_proxy_authenticate_t const *pa = sip->sip_proxy_authenticate;
+DFS
+	tl_gets (tags,
+			SIPTAG_WWW_AUTHENTICATE_REF(wa),
+			SIPTAG_PROXY_AUTHENTICATE_REF(pa), 
+			TAG_NULL());
+	if (wa){
+		char * reply = NULL;
+		sl_header_log(SU_LOG, 3, "Server auth: %s\n",(sip_header_t*)wa);
+		reply = su_sprintf(svd->home, "%s:%s:%s:%s",
+				wa->au_scheme,
+				msg_params_find(wa->au_params, "realm="),
+				g_conf.sip_set.user_name, 
+				g_conf.sip_set.user_pass);
+		if (reply){
+			SU_DEBUG_4(("AUTHENTICATING WITH '%s'.\n", reply));
+			nua_authenticate(nh, 
+					NUTAG_AUTH(reply), 
+					TAG_END());
+			su_free(svd->home, reply);
+		}
+	}
+DFE
+};
 
 /************************************************************************ UAS */
 
@@ -501,38 +623,76 @@ svd_i_invite( int status, char const * phrase, svd_t * const svd,
 	ab_chan_t * req_chan;
 	sip_to_t const *to = sip->sip_to;
 	unsigned char abs_chan_idx;
+	unsigned char call_is_remote = 0;
 	int chan_idx;
 	int err;
 DFS
-
-	/* * 
-	 * Get requested chan number 
-	 * it can be:
-	 * '$FIRST_FREE_FXO@..' - first free fxo
-	 * 'xx@..'  - absolute channel number
-	 * */
-	if (isdigit(to->a_url->url_user[0])){
-		/* 'xx@..'  - absolute channel number */
-		abs_chan_idx = strtol(to->a_url->url_user, NULL, 10);
-		chan_idx = get_dest_chan_idx (svd->ab, NULL, abs_chan_idx);
-		if( chan_idx == -1 ){
-			goto __exit;
-		}
-	} else if ( !strcmp(to->a_url->url_user, FIRST_FREE_FXO )){
-	 	/* '$FIRST_FREE_FXO@..' - first free fxo */
-		chan_idx = get_FF_FXO_idx (svd->ab, -1);
-		if( chan_idx == -1 ){
-			/* all chans busy */
-			nua_respond(nh, SIP_486_BUSY_HERE, TAG_END());
-			nua_handle_destroy(nh);
+	if( !strcmp (g_conf.self_ip, to->a_url->url_host) ){
+		/* local call */
+		/* * 
+		 * Get requested chan number 
+		 * it can be:
+		 * '$FIRST_FREE_FXO@..' - first free fxo
+		 * 'xx@..'  - absolute channel number
+		 * */
+		if (isdigit(to->a_url->url_user[0])){
+			/* 'xx@..'  - absolute channel number */
+			abs_chan_idx = strtol(to->a_url->url_user, NULL, 10);
+			chan_idx = get_dest_chan_idx (svd->ab, NULL, 
+					abs_chan_idx);
+			if( chan_idx == -1 ){
+				nua_respond(nh, SIP_500_INTERNAL_SERVER_ERROR, 
+						TAG_END());
+				nua_handle_destroy(nh);
+				goto __exit;
+			}
+		} else if ( !strcmp(to->a_url->url_user, FIRST_FREE_FXO )){
+			/* '$FIRST_FREE_FXO@..' - first free fxo */
+			chan_idx = get_FF_FXO_idx (svd->ab, -1);
+			if( chan_idx == -1 ){
+				/* all chans busy */
+				nua_respond(nh, SIP_486_BUSY_HERE, TAG_END());
+				nua_handle_destroy(nh);
+				goto __exit;
+			}
+		} else {
+			/* unknown user */
+			SU_DEBUG_2(("Incoming call to unknown user \"%s\" "
+					"on this host\n",
+					to->a_url->url_user));
 			goto __exit;
 		}
 	} else {
-	 	/* unknown user */
-		SU_DEBUG_2(("Incoming call to unknown user \"%s\" "
-				"on this host\n",
-				to->a_url->url_user));
-		goto __exit;
+		/* remote call */
+		if (g_conf.sip_set.all_set){
+			char user_URI [USER_URI_LEN];
+			memset(user_URI, 0, USER_URI_LEN);
+			strcpy (user_URI, to->a_url->url_scheme);
+			strcat (user_URI, ":");
+			strcat (user_URI, to->a_url->url_user);
+			strcat (user_URI, "@");
+			strcat (user_URI, to->a_url->url_host);
+			if ( !strcmp (g_conf.sip_set.user_URI, user_URI)){
+				/* external call to this router */
+				/* get sip_chan */
+				abs_chan_idx = g_conf.sip_set.sip_chan;
+				chan_idx = get_dest_chan_idx (svd->ab, NULL, 
+						abs_chan_idx);
+				if( chan_idx == -1 ){
+					nua_respond(nh, 
+						SIP_500_INTERNAL_SERVER_ERROR, 
+							TAG_END());
+					nua_handle_destroy(nh);
+					goto __exit;
+				}
+				call_is_remote = 1;
+			} else {
+				/* external call to another router 
+				 * in this network */
+				nua_handle_destroy(nh);
+				goto __exit;
+			}
+		}
 	}
 
 /* tag__ race on chan */
@@ -549,22 +709,23 @@ DFS
 	req_chan->data->op_handle = nh;
 	nua_handle_bind (nh, req_chan);
 
+	req_chan->data->call_is_remote = call_is_remote;
+
 	if (req_chan->parent->type == ab_dev_type_FXS){
 		/* start ringing */
 		err = ab_FXS_line_ring( req_chan, ab_chan_ring_RINGING );
 		if (err){
-			SU_DEBUG_1(("can`t ring to on \"%s\"\n",
-					to->a_url->url_user));
+			SU_DEBUG_1(("can`t ring to on [_%d_]\n",
+					req_chan->abs_idx));
 		}
 	} else if (req_chan->parent->type == ab_dev_type_FXO){
 		/* do offhook */
 		err = ab_FXO_line_hook( req_chan, ab_chan_hook_OFFHOOK );
 		if (err){
-			SU_DEBUG_1(("can`t offhook on \"%s\"\n",
-					to->a_url->url_user));
+			SU_DEBUG_1(("can`t offhook on [_%d_]\n",
+					req_chan->abs_idx));
 		}
 	}
-
 __exit:
 DFE
 };
@@ -584,25 +745,6 @@ DFE
 };
 
 /**
- * Incoming ACK.
- */
-/*
-static void
-svd_i_ack(nua_handle_t const * const nh, ab_chan_t const * const chan)
-{
-DFS
-	assert (chan);
-	assert (chan->data->op_handle == nh);
-	SU_DEBUG_3 (("ACK received\n"));
-	
-	if(ab_chan_media_activate (chan)){
-		SU_DEBUG_0(("media_activate error : %s\n",
-				ab_err_get_str(chan)));
-	}
-DFE
-}
-*/
-/**
  * Callback issued for any change in operation state.
  */
 static void
@@ -612,25 +754,16 @@ svd_i_state(int status, char const *phrase, nua_t * nua, svd_t * svd,
 {
 	char const * l_sdp = NULL;
 	char const * r_sdp = NULL;
-	int offer_recv = 0;
-	int answer_recv = 0; 
-	int offer_sent = 0; 
-	int answer_sent = 0;
 	int ss_state = nua_callstate_init;
 	int err;
-
 DFS
-	tl_gets( tags,
-			NUTAG_CALLSTATE_REF(ss_state),
-			NUTAG_OFFER_RECV_REF(offer_recv),
-			NUTAG_ANSWER_RECV_REF(answer_recv),
-			NUTAG_OFFER_SENT_REF(offer_sent),
-			NUTAG_ANSWER_SENT_REF(answer_sent),
-			SOATAG_LOCAL_SDP_STR_REF(l_sdp),
-			SOATAG_REMOTE_SDP_STR_REF(r_sdp), 
+	tl_gets( tags, NUTAG_CALLSTATE_REF (ss_state),
+			SOATAG_LOCAL_SDP_STR_REF (l_sdp),
+			SOATAG_REMOTE_SDP_STR_REF (r_sdp), 
 			TAG_END() );
 
 	if( (!chan) && (nh)){
+		/* for incoming calls? */
 		chan = nua_handle_magic(nh);
 	}
 
@@ -638,7 +771,9 @@ DFS
 
 	if (r_sdp) {
 		SU_DEBUG_4(("Remote sdp:\n%s\n", r_sdp));
-		svd_media_parse_sdp(svd, chan, r_sdp);
+		/* parse incoming sdp (offer or answer)
+		 * and set remote host/port/first_pt */
+		svd_parse_sdp(svd, chan, r_sdp);
 	}
 	if (l_sdp) {
 		SU_DEBUG_4(("Local sdp:\n%s\n", l_sdp));
@@ -648,35 +783,28 @@ DFS
 
 	/* Initial state */
 		case nua_callstate_init:
-			chan->data->call_status = callstate_INIT;
 			break;
 
 	/* 401/407 received */
 		case nua_callstate_authenticating: 
-			chan->data->call_status = callstate_AUTHENTICATING;
 			break;
 
 	/* INVITE sent */
 		case nua_callstate_calling:
-			chan->data->call_status = callstate_CALLING;
 			break;
 
 	/* 18X received */
 		case nua_callstate_proceeding:
-			chan->data->call_status = callstate_PROCEEDING;
 			break;
 
 	/* 2XX received */
 		case nua_callstate_completing:
-			/* In auto-ack, we get nua_callstate_ready */
 			nua_ack(nh, TAG_END());
-			chan->data->call_status = callstate_COMPLETING;
 			break;
 
 	/* INVITE received */
 		case nua_callstate_received:
 			nua_respond(nh, SIP_180_RINGING, TAG_END());
-			chan->data->call_status = callstate_RECEIVED;
 			break;
 
 	/* 18X sent (w/SDP) */
@@ -686,29 +814,22 @@ DFS
 				/* answer on call */
 				svd_answer (svd, chan, SIP_200_OK);
 			} /* if FXS - answer after offhook */
-			chan->data->call_status = callstate_EARLY;
 			break;
 
 	/* 2XX sent */
 		case nua_callstate_completed:
-			chan->data->call_status = callstate_COMPLETED;
 			break;
 
 	/* 2XX received, ACK sent, or vice versa */
 		case nua_callstate_ready:
-			/*tag__ READY ON */
-			SU_DEBUG_3(("READY ON [_%d_]\n",chan->abs_idx));
 			if(ab_chan_media_activate (chan)){
-				SU_DEBUG_0(("media_activate error : %s\n",
+				SU_DEBUG_1(("media_activate error : %s\n",
 						ab_err_get_str(chan)));
 			}
-			chan->data->call_status = callstate_READY;
 			break;
 
 	/* BYE sent */
 		case nua_callstate_terminating:
-			/* marker we_say_bye */
-			chan->data->call_status = callstate_TERMINATING;
 			break;
 
 	/* BYE complete */
@@ -729,16 +850,24 @@ DFS
 				err = ab_FXO_line_hook (chan, 
 						ab_chan_hook_ONHOOK);
 				if(err){
-					SU_DEBUG_2(("Can`t onhook on "
-							"channel %d\n",
+					SU_DEBUG_2(("Can`t onhook on [_%d_]\n",
 							chan->abs_idx));
 				}
-				SU_DEBUG_2(("onhook on channel %d\n",
+				SU_DEBUG_2(("onhook on [_%d_]\n",
 						chan->abs_idx));
+			} else {
+				/* stop ringing */
+				int err;
+				err = ab_FXS_line_ring (chan, 
+						ab_chan_ring_MUTE);
+				if (err){
+					SU_DEBUG_2 (("Can`t stop ringing "
+							"on [_%d_]\n",
+							chan->abs_idx));
+				}
 			}
 			/* если не мы закончили разговор "FXS-FXS" */
 			/* ioctl(ssc->fd, IFX_TAPI_TONE_BUSY_PLAY, 0);*/
-			chan->data->call_status = callstate_TERMINATED;
 			break;
 	}
 DFE
@@ -756,7 +885,6 @@ DFS
 	assert(chan->data);
 	assert(chan->data->op_handle == nh);
 	SU_DEBUG_3 (("BYE received\n"));
-
 DFE
 };
 
@@ -792,12 +920,40 @@ svd_r_get_params(int status, char const *phrase, nua_t * nua, svd_t * svd,
 		 tagi_t tags[])
 {
 	char buff [256];
+	char const * l_sdp_str = NULL;
 DFS
+	tl_gets( tags, SOATAG_LOCAL_SDP_STR_REF(l_sdp_str),
+			TAG_NULL() );
+
+	if (l_sdp_str){
+		sdp_parser_t * remote_sdp = NULL;
+		sdp_session_t * sdp_sess = NULL;
+		const char * pa_error = NULL;
+
+		remote_sdp = sdp_parse (svd->home, l_sdp_str, 
+				strlen(l_sdp_str), sdp_f_insane);
+
+		pa_error = sdp_parsing_error (remote_sdp);
+		if (pa_error) {
+			SU_DEBUG_1(("%s(): Error parsing SDP: %s\n", 
+					__func__, pa_error));
+		} else {
+			sdp_sess = sdp_session (remote_sdp);
+			if (sdp_sess && sdp_sess->sdp_media && 
+					sdp_sess->sdp_media->m_rtpmaps){
+				chan->data->payload = 
+					sdp_sess->sdp_media->m_rtpmaps->rm_pt;
+			}
+		}
+
+		sdp_parser_free (remote_sdp);
+	}
+
 	while(tags){
 		t_snprintf(tags, buff, 256);
 		SU_DEBUG_3 (("%s\n",buff));
 		tags = tl_next(tags);
-	};
+	}
 DFE
 };
 
@@ -820,58 +976,36 @@ DFS
 DFE
 };
 
-#if 0
-void
-ssc_r_register(int status, char const *phrase,
-	       nua_t * nua, ssc_t * ssc,
-	       nua_handle_t * nh, ssc_oper_t * op, sip_t const *sip,
-	       tagi_t tags[])
+static void
+svd_r_register(int status, char const *phrase, nua_t * nua, svd_t * svd,
+		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip,
+		tagi_t tags[], int const is_register)
 {
-	sip_contact_t *m = sip ? sip->sip_contact : NULL;
 DFS
-	p_rintf("REGISTER: %03d %s\n", status, phrase);
-	if (status < 200){
-DFE
-		return;
+	if(is_register){
+		SU_DEBUG_3(("REGISTER: %03d %s\n", status, phrase));
+	} else {
+		SU_DEBUG_3(("UN-REGISTER: %03d %s\n", status, phrase));
 	}
 
-	if (status == 401 || status == 407)
-		ssc_authenticate(ssc, op, sip, tags);
-	else if (status >= 300)
-		ssc_oper_destroy(ssc, op);
-	else if (status == 200)
-		for (m = sip ? sip->sip_contact : NULL; m; m = m->m_next)
-			sl_header_print(stdout, "\tContact: %s\n", 
-					(sip_header_t *) m);
+	if (status == 200) {
+		sip_contact_t *m = sip ? sip->sip_contact : NULL;
+		for (; m; m = m->m_next){
+			sl_header_log(SU_LOG, 3, "\tContact: %s\n", 
+					(sip_header_t*)m);
+			strcpy(svd->outbound_ip, m->m_url->url_host);
+		}
+		if( !is_register){
+			sleep(1);
+			svd_register (svd);
+		}
+	} else if (status == 401 || status == 407){
+		svd_authenticate (svd, nh, sip, tags);
+	} else if (status >= 300) {
+		nua_handle_destroy (nh);
+	} 
 DFE
-}
-
-void
-ssc_r_unregister(int status, char const *phrase,
-		 nua_t * nua, ssc_t * ssc,
-		 nua_handle_t * nh, ssc_oper_t * op, sip_t const *sip,
-		 tagi_t tags[])
-{
-	sip_contact_t *m;
-DFS
-	p_rintf("un-REGISTER: %03d %s\n", status, phrase);
-	if (status < 200){
-DFE
-		return;
-	}
-
-	if (status == 200)
-		for (m = sip ? sip->sip_contact : NULL; m; m = m->m_next)
-			sl_header_print(stdout, "\tContact: %s\n", 
-					(sip_header_t *) m);
-
-	if (status == 401 || status == 407)
-		ssc_authenticate(ssc, op, sip, tags);
-	else
-		ssc_oper_destroy(ssc, op);
-DFE
-}
-#endif
+};
 
 /**
  * Callback for an outgoing INVITE request.
@@ -885,11 +1019,8 @@ DFS
 	SU_DEBUG_3(("got answer on INVITE: %03d %s\n", status, phrase));
 
 	if (status >= 300) {
-		/* op->op_callstate &= ~opc_sent; */
 		if (status == 401 || status == 407) {
-			SU_DEBUG_2(("should AUTHENTICATE - "
-					"not implemented yet\n"));
-			/* ssc_authenticate(ssc, op, sip, tags); */
+			svd_authenticate (svd, nh, sip, tags);
 		}
 	}
 DFE
@@ -909,6 +1040,7 @@ DFS
 DFE
 };
 
+static void
 svd_r_info(int status, char const * phrase, svd_t * const svd, 
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const * sip)
 {
@@ -917,40 +1049,74 @@ DFS
 DFE
 };
 
-void 
-svd_media_parse_sdp(svd_t * const svd, ab_chan_t * const chan, 
-		char const *str)
+static void 
+svd_parse_sdp(svd_t * const svd, ab_chan_t * const chan, char const *str)
 {
-	su_home_t *home = svd->home;
-	sdp_parser_t *remote_sdp;
-	sdp_session_t *sdp_sess;
-	sdp_connection_t *sdp_connection;
-	const char *pa_error;
+	sdp_parser_t * remote_sdp = NULL;
+	sdp_session_t * sdp_sess = NULL;
+	sdp_connection_t * sdp_connection = NULL;
+	const char * pa_error = NULL;
+DFS
+	remote_sdp = sdp_parse (svd->home, str, strlen(str), sdp_f_insane);
 
-	remote_sdp = sdp_parse (home, str, strlen(str), sdp_f_insane);
 	pa_error = sdp_parsing_error (remote_sdp);
 	if (pa_error) {
-		SU_DEBUG_0(("%s: error parsing SDP: %s\n", __func__, pa_error));
-		return;
+		SU_DEBUG_1(("%s(): Error parsing SDP: %s\n", 
+				__func__, pa_error));
+		goto __exit;
 	}
 
 	sdp_sess = sdp_session (remote_sdp);
 	sdp_connection = sdp_media_connections (sdp_sess->sdp_media);
-	if (sdp_sess && sdp_sess->sdp_media->m_port && sdp_connection
-			&& sdp_connection->c_address) {
+
+	if (sdp_sess && sdp_sess->sdp_media->m_port && 
+			sdp_connection && sdp_connection->c_address) {
 		chan->data->remote_port = sdp_sess->sdp_media->m_port;
-		chan->data->remote_host = su_strdup(
-				home, sdp_connection->c_address);
+		chan->data->remote_host = su_strdup (svd->home, 
+				sdp_connection->c_address);
+		chan->data->payload = sdp_sess->sdp_media->m_rtpmaps->rm_pt;
+		SU_DEBUG_5(("Got remote %s:%d with payload %d\n",
+				chan->data->remote_host, 
+				chan->data->remote_port, 
+				chan->data->payload));
 	}
-
-	chan->data->payload = sdp_sess->sdp_media->m_rtpmaps->rm_pt;
-
-#ifdef SVD_DEBUG_LOGS
-	SU_DEBUG_3(("I've got remote %s:%d with payload %d\n",
-		chan->data->remote_host, chan->data->remote_port, 
-		chan->data->payload));
-#endif
-	sdp_parser_free(remote_sdp);
+__exit:
+	sdp_parser_free (remote_sdp);
+DFE
 	return;
+};
+
+static char * 
+svd_new_sdp_string (long const media_port, enum codec_type_e const ct)
+{
+	char * ret_str = malloc (SDP_STR_MAX_LEN);
+	if( !ret_str){
+		SU_DEBUG_1 ((LOG_FNC_A(LOG_NOMEM_A("sdp_str"))));
+		goto __exit;
+	}
+	memset (ret_str, 0, SDP_STR_MAX_LEN);
+
+	switch(ct){
+		case codec_type_SPEED:
+			snprintf (ret_str, SDP_STR_MAX_LEN, 
+					"v=0\r\n"
+					"m=audio %d RTP/AVP 18 8 0\r\n"
+					"a=rtpmap:18 G729/8000\r\n"
+					"a=rtpmap:8 PCMA/8000\r\n"
+					"a=rtpmap:0 PCMU/8000\r\n",
+					media_port);
+			break;
+		case codec_type_QUALITY:
+			snprintf(ret_str, SDP_STR_MAX_LEN, 
+					"v=0\r\n"
+					"m=audio %d RTP/AVP 8 0 18\r\n"
+					"a=rtpmap:8 PCMA/8000\r\n"
+					"a=rtpmap:0 PCMU/8000\r\n"
+					"a=rtpmap:18 G729/8000\r\n",
+					media_port);
+			break;
+	}
+__exit:
+	return ret_str;
 };
 

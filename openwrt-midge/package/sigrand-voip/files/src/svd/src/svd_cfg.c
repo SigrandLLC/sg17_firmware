@@ -28,14 +28,13 @@ static unsigned char g_err_no;
 
 #define CONF_CODEC_SPEED "speed"
 #define CONF_CODEC_QUALITY "quality"
-#define CONF_CODEC_MEDIUM "medium"
 
 static struct config_t cfg;
 static struct config_t route_cfg;
 
-static int get_if_IP (char *ip, const char *iface);
 static int self_values_init( void );
 static void log_init( void );
+static void sip_set_init( void );
 static int address_book_init( void );
 static int hot_line_init( void );
 static int route_table_init( void );
@@ -146,34 +145,19 @@ svd_conf_init( void )
 	/* app.log */
 	log_init();
 
-	/* app.ext_codec */
-	str_elem = config_lookup_string (&cfg, "app.ext_codec");
-	if( !str_elem ){
-		SU_DEBUG_0((LOG_FNC_A("ext_code is not set")));
-		goto svd_conf_init__exit;
-	}
-	if( !strcmp(str_elem, CONF_CODEC_SPEED) ){
-		g_conf.ext_codec = codec_type_SPEED;
-	} else if ( !strcmp(str_elem, CONF_CODEC_MEDIUM) ){
-		g_conf.ext_codec = codec_type_MEDIUM;
-	} else if ( !strcmp(str_elem, CONF_CODEC_QUALITY) ){
-		g_conf.ext_codec = codec_type_QUALITY;
-	}
-
 	/* app.int_codec */
 	str_elem = config_lookup_string (&cfg, "app.int_codec");
 	if( !str_elem ){
-		SU_DEBUG_0((LOG_FNC_A("int_code is not set")));
-		goto svd_conf_init__exit;
-	}
-	if( !strcmp(str_elem, CONF_CODEC_SPEED) ){
+		g_conf.int_codec = codec_type_QUALITY;
+	} else if( !strcmp(str_elem, CONF_CODEC_SPEED) ){
 		g_conf.int_codec = codec_type_SPEED;
-	} else if ( !strcmp(str_elem, CONF_CODEC_MEDIUM) ){
-		g_conf.int_codec = codec_type_MEDIUM;
-	} else if ( !strcmp(str_elem, CONF_CODEC_QUALITY) ){
+	} else {
 		g_conf.int_codec = codec_type_QUALITY;
 	}
-
+	
+	/* app.sip_set */
+	sip_set_init();
+	
 	/* app.address_book */
 	err = address_book_init();
 	if( err ){
@@ -229,44 +213,39 @@ conf_show( void )
 	if( g_conf.log_level == -1 ){
 		SU_DEBUG_3(("no] : "));
 	} else {
-		SU_DEBUG_3(("%d] :", g_conf.log_level));
+		SU_DEBUG_3(("%d] : ", g_conf.log_level));
 	}
-
-	SU_DEBUG_3(("ic/ec["));
 	switch(g_conf.int_codec){
-		case codec_type_UNDEFINED:
-			SU_DEBUG_3(("U/"));
-			break;
-
 		case codec_type_SPEED:
-			SU_DEBUG_3(("S/"));
+			SU_DEBUG_3(("[Use fast codecs]\n"));
 			break;
-			
 		case codec_type_QUALITY:
-			SU_DEBUG_3(("Q/"));
-			break;
-
-		case codec_type_MEDIUM:
-			SU_DEBUG_3(("M/"));
+			SU_DEBUG_3(("[Use best quality codecs]\n"));
 			break;
 	}
-	switch(g_conf.ext_codec){
-		case codec_type_UNDEFINED:
-			SU_DEBUG_3(("U]\n"));
-			break;
 
-		case codec_type_SPEED:
-			SU_DEBUG_3(("S]\n"));
-			break;
-			
-		case codec_type_QUALITY:
-			SU_DEBUG_3(("Q]\n"));
-			break;
-
-		case codec_type_MEDIUM:
-			SU_DEBUG_3(("M]\n"));
-			break;
+	SU_DEBUG_3(("SIP net : %d\n",g_conf.sip_set.all_set));
+	if(g_conf.sip_set.all_set){
+		SU_DEBUG_3((	"\tCodecs      : "));
+		switch(g_conf.sip_set.ext_codec){
+			case codec_type_SPEED:
+				SU_DEBUG_3(("'Speed'\n"));
+				break;
+			case codec_type_QUALITY:
+				SU_DEBUG_3(("'Quality'\n"));
+				break;
+		}
+		SU_DEBUG_3((	"\tRegistRar   : '%s'\n"
+				"\tUser/Pass   : '%s/%s'\n"
+				"\tUser_URI    : '%s'\n"
+				"\tSIP_channel : '%d'\n",
+				g_conf.sip_set.registrar,
+				g_conf.sip_set.user_name,
+				g_conf.sip_set.user_pass,
+				g_conf.sip_set.user_URI,
+				g_conf.sip_set.sip_chan));
 	}
+	
 
 	if(g_conf.address_book.records_num){
 		SU_DEBUG_3(("AddressBook :\n"));
@@ -351,45 +330,6 @@ svd_conf_destroy( void )
 };
 
 /////////////////////////////////////////////////////////////////
-static int 
-get_if_IP (char *ip, const char *iface) 
-{
-	struct ifreq ifr;
-	int fd;
-	int err;
-
-	if (!ip || !iface || !(*iface)){ 
-		goto __exit_fail;
-	}
-	*ip = '\0';
-
-	if (strlen(iface) > IFNAMSIZ){
-		goto __exit_fail;
-	}
-
-	fd = socket(AF_INET, SOCK_DGRAM, 0);
-
-	memset(&ifr, 0, sizeof(struct ifreq));
-	strcpy(ifr.ifr_name, iface);
-	ifr.ifr_addr.sa_family = AF_INET;
-
-	err = ioctl(fd, SIOCGIFADDR, &ifr);
-
-	close(fd);
-
-	if (!err) {
-		struct sockaddr_in *x = (struct sockaddr_in *)&ifr.ifr_addr;
-		strcpy(ip, inet_ntoa(x->sin_addr));
-		goto __exit_success;
-	}
-
-__exit_success:
-        return 0;
-__exit_fail:
-        return -1;
-};
-
-
 
 static int 
 self_values_init( void )
@@ -399,31 +339,39 @@ self_values_init( void )
 	int route_records_num;
 	struct rttb_record_s * curr_rec;
 	int i;
-	int j;
-	int err;
+	int j = 0;
+	int sock;
 
-	/* get ethX interface addresses on router */
-	j = 0;
-	for (i=0; i<4; i++){
-		char eth_name[5];
-		int ip_len = 16;
-		char ip[ip_len];
+	/* get interfaces addresses on router */
+	sock = socket (PF_INET, SOCK_STREAM, 0);
+	if(sock == -1){
+		SU_DEBUG_0 ((LOG_FNC_A(strerror(errno))));
+		goto __exit_fail;
+	}
+	
+	for (i=1;;i++){
+		struct ifreq ifr;
+		struct sockaddr_in *sin = (struct sockaddr_in *) &ifr.ifr_addr;
+		char *ip;
 
-		memset(ip, 0, 16);
-		sprintf(eth_name,"eth%d",i);
-		err = get_if_IP(ip,eth_name);
-		if(err){
-			SU_DEBUG_0 ((LOG_FNC_A("Error in get_if_IP()")));
-			goto __exit_fail;
+		ifr.ifr_ifindex = i;
+		if (ioctl (sock, SIOCGIFNAME, &ifr) < 0){
+			break;
 		}
-		if(ip[0]){
+		if (ioctl (sock, SIOCGIFADDR, &ifr) < 0){
+			continue;
+		}
+
+		ip = inet_ntoa (sin->sin_addr);
+		if( strcmp(ifr.ifr_name, "lo") ){
 			addrmas = realloc (addrmas, sizeof(*addrmas)*(j+1));
-			addrmas[j] = malloc(sizeof(char) * ip_len );
-			memset(addrmas[j], 0, sizeof(char) * ip_len );
+			addrmas[j] = malloc(sizeof(char) * IP_LEN_MAX);
+			memset(addrmas[j], 0, sizeof(char) * IP_LEN_MAX);
 			strcpy(addrmas[j], ip);
 			j++;
 		}
 	}
+	close (sock);
 	addrs_count = j;
 
 	/* set self_ip and self_number according to route table and addrmas */
@@ -476,6 +424,62 @@ __exit:
 	return;
 };
 
+static void
+sip_set_init( void )
+{
+	char const * str_elem;
+
+	g_conf.sip_set.all_set = 0;
+
+	/* app.ext_codec */
+	str_elem = config_lookup_string (&cfg, "app.ext_codec");
+	if( !str_elem ){
+		g_conf.sip_set.ext_codec = codec_type_SPEED;
+	} else if( !strcmp(str_elem, CONF_CODEC_SPEED) ){
+		g_conf.sip_set.ext_codec = codec_type_SPEED;
+	} else {
+		g_conf.sip_set.ext_codec = codec_type_QUALITY;
+	} 
+
+	/* app.sip_registrar */
+	str_elem = config_lookup_string (&cfg, "app.sip_registrar");
+	if( !str_elem ){
+		goto __exit;
+	}
+	strncpy (g_conf.sip_set.registrar, str_elem, REGISTRAR_LEN);
+
+	/* app.sip_username */
+	str_elem = config_lookup_string (&cfg, "app.sip_username");
+	if( !str_elem ){
+		goto __exit;
+	}
+	strncpy (g_conf.sip_set.user_name, str_elem, USER_NAME_LEN);
+
+	/* app.sip_password */
+	str_elem = config_lookup_string (&cfg, "app.sip_password");
+	if( !str_elem ){
+		goto __exit;
+	}
+	strncpy (g_conf.sip_set.user_pass, str_elem, USER_PASS_LEN);
+
+	/* app.sip_uri */
+	str_elem = config_lookup_string (&cfg, "app.sip_uri");
+	if( !str_elem ){
+		goto __exit;
+	}
+	strncpy (g_conf.sip_set.user_URI, str_elem, USER_URI_LEN);
+
+	/* app.sip_chan */
+	g_conf.sip_set.sip_chan = config_lookup_int (&cfg, "app.sip_chan");
+	if ( !g_conf.sip_set.sip_chan){
+		goto __exit;
+	}
+
+	g_conf.sip_set.all_set = 1;
+__exit:
+	return;
+};
+
 static int
 address_book_init( void )
 {
@@ -486,9 +490,6 @@ address_book_init( void )
 	int elem_len;
 	int rec_num;
 	char use_id_local_buf = 1;
-	char val_tmp [VAL_IN_CONF_FILE_MAX_SIZE];
-	char * val_tmp_p;
-	int val_len;
 	int id_len;
 	int i;
 
@@ -501,14 +502,14 @@ address_book_init( void )
 	rec_num = config_setting_length (set);
 
 	g_conf.address_book.records_num = rec_num;
-	g_conf.address_book.records = malloc (
-			rec_num * sizeof(*(g_conf.address_book.records)));
+	g_conf.address_book.records = malloc (rec_num * 
+			sizeof(*(g_conf.address_book.records)));
 	if( !g_conf.address_book.records ){
 		SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
 		goto address_book_init__exit;
 	}
-	memset(g_conf.address_book.records, 0, 
-			rec_num * sizeof(*(g_conf.address_book.records)));
+	memset(g_conf.address_book.records, 0, rec_num * 
+			sizeof(*(g_conf.address_book.records)));
 
 	rec_set = config_setting_get_elem (set, 0);
 	elem = config_setting_get_string_elem (rec_set, 0);
@@ -521,7 +522,6 @@ address_book_init( void )
 	}
 
 	for(i = 0; i < rec_num; i++){
-		int j;
 		curr_rec = &g_conf.address_book.records[ i ];
 		rec_set = config_setting_get_elem (set, i);
 
@@ -531,8 +531,7 @@ address_book_init( void )
 		if (use_id_local_buf){
 			curr_rec->id = curr_rec->id_s;
 		} else {
-			curr_rec->id = malloc(
-					(id_len + 1) *
+			curr_rec->id = malloc( (id_len + 1) *
 					sizeof(*(curr_rec->id)));
 			if( !curr_rec->id ){
 				SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
@@ -541,56 +540,28 @@ address_book_init( void )
 		}
 		strcpy(curr_rec->id, elem);
 		
-		/* get value with no garbage */
+		/* get value */
 		elem = config_setting_get_string_elem (rec_set, 1);
 		elem_len = strlen(elem);
-		if(elem_len + 1 > VAL_IN_CONF_FILE_MAX_SIZE){
-			val_tmp_p = malloc(
-					(elem_len+1) *
-					sizeof(*val_tmp_p));
-			if( !val_tmp_p ){
-				SU_DEBUG_0 ((LOG_FNC_A(LOG_NOMEM)));
-				goto address_book_init__exit;
-			}
-		} else {
-			val_tmp_p = val_tmp;
-		}
-		
-		val_len = 0;
-		for(j = 0; j < elem_len; j++){
-			if( isdigit (elem [j]) || 
-					elem [j] == WAIT_MARKER ||
-					elem [j] == ADBK_MARKER ||
-					elem [j] == SELF_MARKER ||
-					elem [j] == FXO_MARKER ||
-					elem [j] == NET_MARKER ){
-				val_tmp_p [val_len] = elem [j];
-				++val_len;
-			}
-		}
-		val_tmp_p [val_len] = '\0';
-		curr_rec->value_len = val_len;
-
-		if (val_len+1 < VALUE_LEN_DF ){
+		if (elem_len+1 < VALUE_LEN_DF ){
 			curr_rec->value = curr_rec->value_s;
 		} else {
-			curr_rec->value = malloc(
-					(val_len+1) *
+			curr_rec->value = malloc((elem_len+1) *
 					sizeof(*(curr_rec->value)));
 			if( !curr_rec->value ){
 				SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
-				goto address_book_init__tmp_alloc;
+				goto address_book_init__id_alloc;
 			}
 		}
-		strcpy (curr_rec->value, val_tmp_p );
+		strcpy (curr_rec->value, elem);
 	}
 
 address_book_init__exit_success:
 	return 0;
 
-address_book_init__tmp_alloc:
-	if( val_tmp_p && val_tmp_p != val_tmp ){
-		free (val_tmp_p);
+address_book_init__id_alloc:
+	if( curr_rec->id && curr_rec->id != curr_rec->id_s ){
+		free (curr_rec->id);
 	}
 address_book_init__exit:
 	return -1;
@@ -602,12 +573,10 @@ hot_line_init( void )
 {
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
+	struct htln_record_s * curr_rec; 
 	char const * elem;
 	int elem_len;
 	int rec_num;
-	char val_tmp [VAL_IN_CONF_FILE_MAX_SIZE];
-	char * val_tmp_p;
-	int val_len;
 	int i;
 
 	set = config_lookup (&cfg, "app.hot_line" );
@@ -619,19 +588,17 @@ hot_line_init( void )
 	rec_num = config_setting_length (set);
 
 	g_conf.hot_line.records_num = rec_num;
-	g_conf.hot_line.records = malloc (
-			rec_num * sizeof(*(g_conf.hot_line.records)));
+	g_conf.hot_line.records = malloc (rec_num * 
+			sizeof(*(g_conf.hot_line.records)));
 	if( !g_conf.hot_line.records ){
 		SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
 		goto hot_line_init__exit;
 	}
-	memset(g_conf.hot_line.records, 0, 
-			rec_num * sizeof(*(g_conf.hot_line.records)));
+	memset(g_conf.hot_line.records, 0, rec_num * 
+			sizeof(*(g_conf.hot_line.records)));
 
 	for(i = 0; i < rec_num; i++){
-		int j;
-		struct htln_record_s * curr_rec = 
-				&g_conf.hot_line.records[ i ];
+		curr_rec = &g_conf.hot_line.records[ i ];
 		rec_set = config_setting_get_elem (set, i);
 		/* get id */
 		elem = config_setting_get_string_elem (rec_set, 0);
@@ -640,58 +607,21 @@ hot_line_init( void )
 		/* get value with no garbage */
 		elem = config_setting_get_string_elem (rec_set, 1);
 		elem_len = strlen(elem);
-		if(elem_len + 1 > VAL_IN_CONF_FILE_MAX_SIZE){
-			val_tmp_p = malloc(
-					(elem_len+1) *
-					sizeof(*val_tmp_p));
-			if( !val_tmp_p ){
-				SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
-				goto hot_line_init__exit;
-			}
-		} else {
-			val_tmp_p = val_tmp;
-		}
-
-		val_len = 0;
-		for(j = 0; j < elem_len; j++){
-			if( isdigit (elem [j]) ||
-					elem [j] == WAIT_MARKER ||
-					elem [j] == ADBK_MARKER ||
-					elem [j] == SELF_MARKER ||
-					elem [j] == FXO_MARKER ||
-					elem [j] == NET_MARKER ){
-				val_tmp_p [val_len] = elem [j];
-				++val_len;
-			}
-		}
-		val_tmp_p [val_len] = '\0';
-		curr_rec->value_len = val_len;
-
-		if (val_len+1 < VALUE_LEN_DF ){
+		if (elem_len+1 < VALUE_LEN_DF ){
 			curr_rec->value = curr_rec->value_s;
 		} else {
-			curr_rec->value = malloc(
-					(val_len+1) *
+			curr_rec->value = malloc((elem_len+1) *
 					sizeof(*(curr_rec->value)));
 			if( !curr_rec->value ){
 				SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
-				goto hot_line_init__tmp_alloc;
+				goto hot_line_init__exit;
 			}
 		}
-		strcpy (curr_rec->value, val_tmp_p );
-	}
-
-	if( val_tmp_p && val_tmp_p != val_tmp ){
-		free (val_tmp_p);
+		strcpy (curr_rec->value, elem);
 	}
 
 hot_line_init__exit_success:
 	return 0;
-
-hot_line_init__tmp_alloc:
-	if( val_tmp_p && val_tmp_p != val_tmp ){
-		free (val_tmp_p);
-	}
 hot_line_init__exit:
 	return -1;
 };

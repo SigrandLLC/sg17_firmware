@@ -218,6 +218,7 @@ static int pci_init( void )
 {
 	ab_dev_t * ab_dev = &g_ab_dev;
 	int err;
+/*int tmp;*/
 
 	printk(KERN_INFO "%s: %s(0x%x : 0x%x) board found\n", 
 			DEV_NAME, MR17VOIP8_NAME, 
@@ -236,7 +237,10 @@ static int pci_init( void )
 
 	pci_read_config_word(ab_dev->pci_dev, PCI_SUBSYSTEM_ID, 
 			&g_devices_count);
-
+/* tag__ 
+tmp = g_devices_count;
+g_devices_count = 1;
+*/
 	g_slot_N = PCI_SLOT(ab_dev->pci_dev->devfn);
 	g_types = kmalloc(sizeof(*g_types) * g_devices_count, GFP_KERNEL);
 	if ( !g_types) {
@@ -268,7 +272,8 @@ static int pci_init( void )
 	printk(KERN_INFO "%s: irq %d, devices count %d, "
 			"memory address 0x%lx\n",
 			DEV_NAME, ab_dev->pci_dev->irq, 
-			g_devices_count, ab_dev->sgatab_adr);
+			g_devices_count/*tmp*/, ab_dev->sgatab_adr);
+
 
 	return 0;
 

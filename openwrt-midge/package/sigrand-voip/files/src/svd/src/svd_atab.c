@@ -12,9 +12,9 @@
 
 #include "libab/tapi/include/drv_tapi_io.h"
 
-#define RTP_PORT 8010
-#define RTP_PORT_RANGE_LENGTH 1000 
-#define BUFF_PER_RTP_PACK_SIZE 128 
+#define RTP_PORT 20800
+#define RTP_PORT_RANGE_LENGTH 10 
+#define BUFF_PER_RTP_PACK_SIZE 512
 
 static int svd_atab_handler (su_root_magic_t * root, su_wait_t * w, 
 		su_wakeup_arg_t * user_data);
@@ -39,13 +39,13 @@ static int svd_handle_ROUTE_ID
 static int svd_handle_CHAN_ID
 		( svd_t * const svd, int const chan_idx, long const digit );
 static int svd_handle_NET_ADDR
-		( ab_t * const ab, int const chan_idx, long const digit );
+		( svd_t * const svd, int const chan_idx, long const digit );
 static int svd_handle_ADDR_BOOK
 		( svd_t * const svd, int const chan_idx, long const digit );
 
 static int svd_ab_value_set_by_id (ab_chan_t * const ab_chan);
 static int svd_process_addr (svd_t * const svd, int const chan_idx, 
-		char const * const value, int const val_len);
+		char const * const value);
 static int set_route_ip (svd_chan_t * const chan_data);
 static int local_connection_selector
 		( svd_t * const svd, int const use_ff_FXO, int const chan_idx);
@@ -118,9 +118,6 @@ DFS
 	assert (svd);
 
 	if ( !(svd->ab) ){
-#ifdef SVD_DEBUG_LOGS
-		SU_DEBUG_3 ((LOG_FNC_A("svd->ab already deleted")));
-#endif
 		goto __exit;
 	}
 
@@ -129,14 +126,10 @@ DFS
 	for( i = 0; i < j; i++ ){
 		svd_chan_t * curr_chan = svd->ab->chans[ i ].data;
 		if (curr_chan){
-			if( 	curr_chan->dial_status.route_id && 
-				curr_chan->dial_status.route_id != 
-				curr_chan->dial_status.route_id_s){
+			if (curr_chan->dial_status.route_id){
 				free (curr_chan->dial_status.route_id);
 			}
-			if( 	curr_chan->dial_status.addrbk_id && 
-				curr_chan->dial_status.addrbk_id != 
-				curr_chan->dial_status.addrbk_id_s){
+			if (curr_chan->dial_status.addrbk_id){
 				free (curr_chan->dial_status.addrbk_id);
 			}
 			free (curr_chan);
@@ -211,26 +204,27 @@ svd_media_unregister (svd_t * const svd, ab_chan_t * const chan)
 DFS
 	assert (chan);
 	assert (chan->data);
-	assert (chan->data->rtp_sfd != -1);
-	assert (chan->data->local_wait_idx != -1);
-	assert (chan->data->remote_wait_idx != -1);
 
 	chan_c = chan->data;
 
-	if( close (chan_c->rtp_sfd) ){
-		su_perror("svd_media_unregister() close()");
+	if(chan->data->rtp_sfd != -1){
+		if( close (chan_c->rtp_sfd) ){
+			su_perror("svd_media_unregister() close()");
+		}
+		chan_c->rtp_sfd = -1;
 	}
-	chan_c->rtp_sfd = -1;
-
-	su_root_deregister (svd->root, chan_c->local_wait_idx);
-	chan_c->local_wait_idx = -1;
-
-	su_root_deregister (svd->root, chan_c->remote_wait_idx);
-	chan_c->remote_wait_idx = -1;
+	if(chan->data->local_wait_idx != -1){
+		su_root_deregister (svd->root, chan_c->local_wait_idx);
+		chan_c->local_wait_idx = -1;
+	}
+	if(chan->data->remote_wait_idx != -1){
+		su_root_deregister (svd->root, chan_c->remote_wait_idx);
+		chan_c->remote_wait_idx = -1;
+	}
 DFE
 };
 
-/* *
+/**it uses !!g_conf
  * clears call status on the channel
  * */
 void 
@@ -242,7 +236,6 @@ svd_clear_call (svd_t * const svd, ab_chan_t * const chan)
 DFS
 	/* STATES */
 	chan_c->dial_status.state = dial_state_START;
-	chan_c->call_status = callstate_INIT;
 	
 	/* TAG */
 	chan_c->dial_status.tag = 0;
@@ -251,31 +244,31 @@ DFS
 	chan_c->dial_status.dest_is_self = self_UNDEFINED;
 
 	/* ROUTER */
-	len = chan_c->dial_status.route_id_len;
+	len = g_conf.route_table.id_len;
 	if( len ){
 		size = sizeof(*(chan_c->dial_status.route_id));
-		memset(chan_c->dial_status.route_id, 0, size * len);
+		memset(chan_c->dial_status.route_id, 0, size * (len+1));
 	}
 	/* route_ip  */
-	memset (chan_c->dial_status.route_ip, 0, 
-			sizeof(chan_c->dial_status.route_ip));
-
+	chan_c->dial_status.route_ip = NULL;
 
 	/* CHAN */
 	size = sizeof(chan_c->dial_status.chan_id);
 	memset (chan_c->dial_status.chan_id, 0, size);
 
 	/* ADDRBOOK */
-	len = chan_c->dial_status.addrbk_id_len;
+	len = g_conf.address_book.id_len;
 	if( len ){
 		size = sizeof(*(chan_c->dial_status.addrbk_id));
-		memset(chan_c->dial_status.addrbk_id, 0, size * len);
+		memset(chan_c->dial_status.addrbk_id, 0, size * (len+1));
 	}
 
+	/* ADDR_PAYLOAD */
+	size = sizeof(chan_c->dial_status.addr_payload);
+	memset (chan_c->dial_status.addr_payload, 0, size);
 
-	/* PSTN_SIP */
-	size = sizeof(chan_c->dial_status.pstn_sip_id);
-	memset (chan_c->dial_status.pstn_sip_id, 0, size);
+	/* Caller remote or not */
+	chan_c->call_is_remote = 0;
 
 	/* SDP */
 	chan_c->payload = 0;
@@ -382,8 +375,7 @@ DFE
 
 /******************************************************************************/
 static int
-svd_atab_handler (svd_t * svd, su_wait_t * w, 
-		su_wakeup_arg_t * user_data)
+svd_atab_handler (svd_t * svd, su_wait_t * w, su_wakeup_arg_t * user_data)
 {
 /* *
  * FXS : digits(mass per chan), hooks(actions per chan)
@@ -504,8 +496,7 @@ DFS
 	if(ab_chan->data->is_hotlined){
 		/* process the hotline sequence */
 		err = svd_process_addr (svd, chan_idx, 
-				ab_chan->data->hotline_addr,
-				ab_chan->data->hotline_addr_len);
+				ab_chan->data->hotline_addr);
 		if(err){
 			goto __exit_fail;
 		}
@@ -604,8 +595,7 @@ DFS
 		}
 		/* process the hotline sequence */
 		err = svd_process_addr (svd, chan_idx,
-				ab_chan->data->hotline_addr,
-				ab_chan->data->hotline_addr_len);
+				ab_chan->data->hotline_addr);
 		if(err){
 			goto __exit_fail;
 		}
@@ -632,20 +622,11 @@ svd_chans_init ( svd_t * const svd )
 	int j;
 	int k;
 	unsigned char route_id_len;
-	unsigned char route_id_dynamic = 0;
 	unsigned char addrbk_id_len;
-	unsigned char addrbk_id_dynamic = 0;
 	int chans_num;
 DFS
 	route_id_len = g_conf.route_table.id_len;
-
-	if( route_id_len + 1 > ROUTE_ID_LEN_DF ){
-		route_id_dynamic = 1;
-	}
 	addrbk_id_len = g_conf.address_book.id_len;
-	if( addrbk_id_len + 1 > ADBK_ID_LEN_DF ){
-		addrbk_id_dynamic = 1;
-	}
 
 	chans_num = svd->ab->chans_num;
 	for( i = 0; i < chans_num; i++ ){
@@ -663,48 +644,33 @@ DFS
 
 		/* ROUTER */
 		/* route_id channel data sets */
-		if( route_id_dynamic ){
-			int rem_id_sz = sizeof(
-				*(chan_d->dial_status.route_id));
+		int route_id_sz = sizeof(*(chan_d->dial_status.route_id));
 
-			chan_d->dial_status.route_id = 
-					malloc( (route_id_len+1) * rem_id_sz);
-			if( !chan_d->dial_status.route_id ){
-				SU_DEBUG_0 ((LOG_FNC_A (LOG_NOMEM_A 
-						("chans[i].data->dial_status."
-						"route_id") ) ));
-				goto __exit_fail;
-			}
-			memset (chan_d->dial_status.route_id, 0, 
-					rem_id_sz * (route_id_len + 1));
-		} else {
-			chan_d->dial_status.route_id = 
-				chan_d->dial_status.route_id_s;
+		chan_d->dial_status.route_id = 
+				malloc( (route_id_len+1) * route_id_sz);
+		if( !chan_d->dial_status.route_id ){
+			SU_DEBUG_0 ((LOG_FNC_A (LOG_NOMEM_A 
+					("chans[i].data->dial_status."
+					"route_id") ) ));
+			goto __exit_fail;
 		}
-		chan_d->dial_status.route_id_len = route_id_len;
+		memset (chan_d->dial_status.route_id, 0, 
+				route_id_sz * (route_id_len + 1));
 
 		/* ADDRBOOK */
 		/* address_book id channel data sets */
-		if( addrbk_id_dynamic ){
-			int adbk_sz = sizeof(
-				*(curr_chan->data->dial_status.addrbk_id));
+		int adbk_sz = sizeof(*(curr_chan->data->dial_status.addrbk_id));
 
-			chan_d->dial_status.addrbk_id = 
-					malloc( (addrbk_id_len+1) * adbk_sz);
-			if( !chan_d->dial_status.addrbk_id ){
-				SU_DEBUG_0 ((LOG_FNC_A (LOG_NOMEM_A 
-						("chans[i].data->"
-						"dial_status."
-						"addrbk_id") ) ));
-				goto __exit_fail;
-			}
-			memset (chan_d->dial_status.addrbk_id, 0, 
-					adbk_sz * (addrbk_id_len + 1));
-		} else {
-			chan_d->dial_status.addrbk_id = 
-				chan_d->dial_status.addrbk_id_s;
+		chan_d->dial_status.addrbk_id = 
+				malloc( (addrbk_id_len+1) * adbk_sz);
+		if( !chan_d->dial_status.addrbk_id ){
+			SU_DEBUG_0 ((LOG_FNC_A (LOG_NOMEM_A 
+					("chans[i].data->dial_status."
+					"addrbk_id") ) ));
+			goto __exit_fail;
 		}
-		chan_d->dial_status.addrbk_id_len = addrbk_id_len;
+		memset (chan_d->dial_status.addrbk_id, 0, 
+				adbk_sz * (addrbk_id_len + 1));
 
 	 	/* SDP */
 		chan_d->rtp_sfd = -1;
@@ -728,8 +694,8 @@ DFS
 		int hl_id;
 
 		if (curr_rec->id[0] == NET_MARKER){
+			/*tag__ should not be there svd->net_is_hotlined = 1;*/
 			svd->net_is_hotlined = 1;
-			svd->net_hotline_addr_len = curr_rec->value_len;
 			svd->net_hotline_addr = curr_rec->value;
 			continue;
 		}
@@ -739,10 +705,7 @@ DFS
 			ab_chan_t * curr_chan = &svd->ab->chans[ j ];
 			if( hl_id == curr_chan->abs_idx ){
 				curr_chan->data->is_hotlined = 1;
-				curr_chan->data->hotline_addr_len = 
-						curr_rec->value_len;
-				curr_chan->data->hotline_addr = 
-						curr_rec->value;
+				curr_chan->data->hotline_addr = curr_rec->value;
 			}
 		}
 	}
@@ -818,7 +781,7 @@ DFS
 			err = svd_handle_CHAN_ID(svd, chan_idx, digit);
 			break;
 		case dial_state_NET_ADDR:
-			err = svd_handle_NET_ADDR(ab, chan_idx, digit);
+			err = svd_handle_NET_ADDR(svd, chan_idx, digit);
 			break;
 	}
 DFE
@@ -829,39 +792,37 @@ DFE
 static int 
 svd_handle_START( ab_t * const ab, int const chan_idx, long const digit )
 {
-	svd_chan_t * curr_data = ab->chans[chan_idx].data;
+	svd_chan_t * chan_c = ab->chans[chan_idx].data;
 
 	switch(digit){
 		case ADBK_MARKER:
-			curr_data->dial_status.state = dial_state_ADDR_BOOK;
+			chan_c->dial_status.state = dial_state_ADDR_BOOK;
 			break;
 		case SELF_MARKER:
-			curr_data->dial_status.dest_is_self = self_YES;
-			curr_data->dial_status.state = dial_state_CHAN_ID;
+			chan_c->dial_status.dest_is_self = self_YES;
+			chan_c->dial_status.state = dial_state_CHAN_ID;
 			break;
 		default :
 			if( !isdigit (digit) ){
-				SU_DEBUG_2((LOG_FNC_A("not a digit on input")));
-				goto __exit_fail;
+				goto __exit_success;
 			}
-			curr_data->dial_status.route_id[ 0 ] = digit;
-			if( curr_data->dial_status.route_id_len != 1 ){
-				curr_data->dial_status.state = 
-						dial_state_ROUTE_ID;
-				curr_data->dial_status.tag = 1;
+			chan_c->dial_status.route_id[ 0 ] = digit;
+			if( g_conf.route_table.id_len != 1 ){
+				chan_c->dial_status.state = dial_state_ROUTE_ID;
+				chan_c->dial_status.tag = 1;
 			} else {
 				/* set route ip */
 				int err;
-				err = set_route_ip (curr_data);
+				err = set_route_ip (chan_c);
 				if (err){
 					goto __exit_fail;
 				}
-				curr_data->dial_status.state = 
-						dial_state_CHAN_ID;
+				chan_c->dial_status.state = dial_state_CHAN_ID;
 			}
 			break;
 	}
 
+__exit_success:
 	return 0;
 __exit_fail:
 	return -1;
@@ -871,30 +832,30 @@ __exit_fail:
 static int 
 svd_handle_ROUTE_ID( ab_t * const ab, int const chan_idx, long const digit )
 {
-	svd_chan_t * curr_data = ab->chans[chan_idx].data;
-	int * route_idx = & (curr_data->dial_status.tag);
-	int route_id_len = curr_data->dial_status.route_id_len;
+	svd_chan_t * chan_c = ab->chans[chan_idx].data;
+	int * route_idx = & (chan_c->dial_status.tag);
+	int route_id_len = g_conf.route_table.id_len;
 
 	if( !isdigit (digit) ){
-		SU_DEBUG_2 ((LOG_FNC_A("not a digit on input")));
-		goto __exit_fail;
+		goto __exit_success;
 	}
-	curr_data->dial_status.route_id [*route_idx] = digit;
+	chan_c->dial_status.route_id [*route_idx] = digit;
 	++(*route_idx);
 	if(*route_idx == route_id_len){
 		/* we got all digits of route_id */
 		/* set route ip */
 		int err;
-		err = set_route_ip (curr_data);
+		err = set_route_ip (chan_c);
 		if( err ){
 			goto __exit_fail;
 		} 
 		SU_DEBUG_3 (("Choosed router [%s]\n",
-				curr_data->dial_status.route_id ));
-		curr_data->dial_status.state = dial_state_CHAN_ID;
-		curr_data->dial_status.tag = 0;
+				chan_c->dial_status.route_id ));
+		chan_c->dial_status.state = dial_state_CHAN_ID;
+		chan_c->dial_status.tag = 0;
 	}
 
+__exit_success:
 	return 0;
 __exit_fail:
 	return -1;
@@ -903,8 +864,8 @@ __exit_fail:
 static int 
 svd_handle_CHAN_ID( svd_t * const svd, int const chan_idx, long const digit )
 {
-	svd_chan_t * curr_data = svd->ab->chans[chan_idx].data;
-	int * chan_mas_idx = & (curr_data->dial_status.tag);
+	svd_chan_t * chan_c = svd->ab->chans[chan_idx].data;
+	int * chan_mas_idx = & (chan_c->dial_status.tag);
 	int err = 0;
 
 	if( *chan_mas_idx == 0 ){
@@ -912,21 +873,25 @@ svd_handle_CHAN_ID( svd_t * const svd, int const chan_idx, long const digit )
 			err = local_connection_selector(svd, 1, chan_idx);
 			goto __exit;
 		} else if( digit == NET_MARKER ){
-			curr_data->dial_status.state = dial_state_NET_ADDR;
+			if (g_conf.sip_set.all_set){
+				chan_c->dial_status.state = dial_state_NET_ADDR;
+			} else {
+				SU_DEBUG_2 (("No registration available\n"));
+				goto __exit_fail;
+			}
 			goto __exit_success;
 		}
 	}
 
 	if( !isdigit (digit) ){
-		SU_DEBUG_2 ((LOG_FNC_A("not a digit on input")));
-		goto __exit_fail;
+		goto __exit_success;
 	}
-	curr_data->dial_status.chan_id [*chan_mas_idx] = digit;
+	chan_c->dial_status.chan_id [*chan_mas_idx] = digit;
 	++(*chan_mas_idx);
 	if (*chan_mas_idx == CHAN_ID_LEN-1){
 		/* we got all digits of chan_id */
 		SU_DEBUG_3 (("Choosed chan [%s]\n",
-				curr_data->dial_status.chan_id ));
+				chan_c->dial_status.chan_id ));
 		err = local_connection_selector(svd, 0, chan_idx);
 	}
 
@@ -939,12 +904,38 @@ __exit_fail:
 };
 
 static int 
-svd_handle_NET_ADDR( ab_t * const ab, int const chan_idx, long const digit )
+svd_handle_NET_ADDR( svd_t * const svd, int const chan_idx, long const digit )
 {
-	/*tag__ NET_ADDR */SU_DEBUG_3 ((LOG_FNC_A("not implemented")));
+	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
+	svd_chan_t * chan_c = ab_chan->data;
+	int * net_idx = & (chan_c->dial_status.tag);
+
+	if (digit != NET_MARKER){
+		/* put input digits to buffer */
+		chan_c->dial_status.addr_payload[ *net_idx ] = digit;
+		++(*net_idx);
+	} else {
+		/* place a call */
+		svd_invite_to(svd, chan_idx, chan_c->dial_status.addr_payload);
+		goto __exit_success;
+	}
+
+	/* when buffer is full but we did not find terminant*/
+	if(*net_idx == ADDR_PAYLOAD_LEN){
+		SU_DEBUG_2 (("Too long addr_payload [%s] it should be "
+				"not longer then %d chars\n", 
+				chan_c->dial_status.addr_payload,
+				ADDR_PAYLOAD_LEN));
+		goto __exit_fail;
+	}
+
+__exit_success:
+	return 0;
+__exit_fail:
 	return -1;
 };
 
+/** uses !!g_conf */
 static int 
 svd_handle_ADDR_BOOK( svd_t * const svd, int const chan_idx, long const digit )
 {
@@ -957,9 +948,9 @@ svd_handle_ADDR_BOOK( svd_t * const svd, int const chan_idx, long const digit )
 	chan_c->dial_status.addrbk_id[ *ab_id_idx ] = digit;
 	++(*ab_id_idx);
 
-
 	/* when buffer is full */
-	if(*ab_id_idx == chan_c->dial_status.addrbk_id_len){
+	if(*ab_id_idx == g_conf.address_book.id_len){
+		*ab_id_idx = 0;
 		/* find appropriate addrbook value */
 		err = svd_ab_value_set_by_id(ab_chan);
 		if(err){
@@ -967,8 +958,7 @@ svd_handle_ADDR_BOOK( svd_t * const svd, int const chan_idx, long const digit )
 		}
 		/* process it */
 		err = svd_process_addr (svd, chan_idx,
-				chan_c->dial_status.addrbk_value,
-				chan_c->dial_status.addrbk_value_len);
+				chan_c->dial_status.addrbk_value);
 		if(err){
 			goto __exit_fail;
 		}
@@ -992,8 +982,6 @@ svd_ab_value_set_by_id (ab_chan_t * const ab_chan)
 		cur_rec = &g_conf.address_book.records[ i ];
 		if( !strcmp (cur_rec->id, chan_c->dial_status.addrbk_id) ){
 			chan_c->dial_status.addrbk_value = cur_rec->value;
-			chan_c->dial_status.addrbk_value_len = 
-					cur_rec->value_len;
 			goto __exit_success;
 		}
 	}
@@ -1006,15 +994,16 @@ __exit_success:
 
 static int
 svd_process_addr (svd_t * const svd, int const chan_idx,
-		char const * const value, int const val_len)
+		char const * const value)
 {
 	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
+	int val_len;
 	int i;
 	int err;
 DFS
 	ab_chan->data->dial_status.state = dial_state_START;
 
-	for(i = 0; i < val_len; i++){
+	for(i = 0; value[i]; i++){
 		err = svd_handle_digit ( svd, chan_idx, value[ i ] );
 		if(err){
 			/* clear call params */
@@ -1121,8 +1110,8 @@ set_route_ip (svd_chan_t * const chan_data)
 		}
 	}
 	if (ip_find){
-		strcpy (chan_data->dial_status.route_ip,
-				g_conf.route_table.records[rec_idx].value);
+		chan_data->dial_status.route_ip =
+				g_conf.route_table.records[rec_idx].value;
 	} else {
 		SU_DEBUG_2(("Wrong router id [%s]\n", route_id ));
 		goto __exit_fail;
@@ -1167,10 +1156,10 @@ svd_self_call
 	( svd_t * const svd, int const src_chan_idx, int const use_ff_FXO )
 {
 	int err;
-	strcpy (svd->ab->chans[ src_chan_idx ].data->dial_status.route_ip,
-			g_conf.self_ip);
+	svd->ab->chans[ src_chan_idx ].data->dial_status.route_ip =
+			g_conf.self_ip;
 	/* INVITE to self router as to remote */
-	err = svd_invite( svd, use_ff_FXO, src_chan_idx );
+	err = svd_invite (svd, use_ff_FXO, src_chan_idx);
 	return err;
 };
 /******************************************************************************/
@@ -1248,7 +1237,7 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 	received = recv(chan->data->rtp_sfd, buf, sizeof(buf), 0);
 
 	/* tag__ use for testing oob
-	if( (buf[1] != 18) && (buf[1] != 8) ){
+	if (buf[1] == 0x62 || buf[1] == 0xe2){
 		int i = 12;
 		SU_DEBUG_3(("%d = recv(), pd:%x[:",received, buf[1]));
 		for (; i < received; i++){

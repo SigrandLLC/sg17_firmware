@@ -178,45 +178,6 @@ int ab_dev_event_get(
 
 // ... MEDIA 
 
-typedef struct rtp_session_prms_s {
-	enum evts_e {
-		evts_OOB_DEFAULT,
-		evts_OOB_NO,
-		evts_OOB_ONLY,
-		evts_OOB_ALL,
-		evts_OOB_BLOCK
-	} nEvents;
-	enum play_evts_e {
-		play_evts_DEFAULT,
-		play_evts_PLAY,
-		play_evts_MUTE
-	} nPlayEvents;
-} rtp_session_prms_t;
-
-typedef struct cod_prms_s {
-	enum cod_type_e {
-		/** G729 A and B, 8 kBit/s. */
-		cod_type_G729,
-		/** G711 u-Law, 64 kBit/s. */
-		cod_type_MLAW,
-		/** G711 A-Law, 64 kBit/s. */
-		cod_type_ALAW,
-		/** G711 u-law VBD, 64 kBit/s. 
-		* Voice Band Data encoding as defined by V.152.*/
-		cod_type_MLAW_VBD,
-		/** G711 A-law VBD, 64 kBit/s. 
-		* Voice Band Data encoding as defined by V.152.*/
-		cod_type_ALAW_VBD,
-	} cod_type;
-	/* volume, hp etc... */
-} cod_prms_t;
-
-int ab_chan_media_rtp_tune( ab_chan_t * const chan, 
-		rtp_session_prms_t const * const rtpp);
-int ab_chan_media_cod_tune( ab_chan_t * const chan, 
-		cod_prms_t const * const codp);
-int ab_chan_media_switch( ab_chan_t * const chan,
-		unsigned char const enc_on, unsigned char const dec_on );
 int ab_chan_media_activate( ab_chan_t * const chan );
 int ab_chan_media_deactivate( ab_chan_t * const chan );
 

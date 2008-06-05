@@ -5,24 +5,18 @@
 
 #define FIRST_FREE_FXO "fxo"
 
-#define INFO_DIGIT_MSG_FORMAT "DIGIT:'%c'"
-#define INFO_DIGIT_MSG_SIZE 10 
-/* it is ugly, but it fast and it works */
-#define INFO_DIGIT_MSG_DIGIT_POS 7 
-
 /****************************************************************** UAC */
 
 int  svd_invite (svd_t * const svd, int const use_ff_FXO, int const chan_idx);
+int  svd_invite_to (svd_t * const svd, int const chan_idx, 
+		char const * const to_str);
 int  svd_answer (svd_t * const svd, ab_chan_t * const chan,  
 		int status, char const *phrase);
 void svd_bye	(svd_t * const svd, ab_chan_t * const chan);
 void svd_cancel	(ab_chan_t * const chan);
-
-/*
-void svd_register 	(svd_t * const svd, const char *registrar);
-void svd_unregister 	(svd_t * const svd, const char *registrar);
-*/
-void svd_shutdown 	(svd_t * const svd);
+void svd_register 		(svd_t * const svd);
+void svd_refrash_registration 	(svd_t * const svd);
+void svd_shutdown 		(svd_t * const svd);
 
 
 /****************************************************************** UAS */

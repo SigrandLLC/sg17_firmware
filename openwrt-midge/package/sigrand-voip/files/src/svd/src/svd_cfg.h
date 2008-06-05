@@ -40,20 +40,21 @@ struct _startup_options
 
 /* Address book and Hot line common */
 #define VALUE_LEN_DF	40 /* static or dynamic */
-#define VAL_IN_CONF_FILE_MAX_SIZE 50
 
 /* Route table only */
 #define ROUTE_ID_LEN_DF 4 /* static or dynamic */
 #define IP_LEN_MAX	16 /* xxx.xxx.xxx.xxx\0 */
 
-#define PSTN_SIP_ID_LEN	15 /* sip id of full PSTN phone number */
+#define ADDR_PAYLOAD_LEN 40 /* sip id or address, or full PSTN phone number */
 
+#define REGISTRAR_LEN 50
+#define USER_NAME_LEN 50
+#define USER_PASS_LEN 30
+#define USER_URI_LEN 70
 
 enum codec_type_e
 {
-	codec_type_UNDEFINED,
 	codec_type_SPEED,
-	codec_type_MEDIUM,
 	codec_type_QUALITY
 };
 
@@ -62,14 +63,12 @@ struct adbk_record_s
 	char * id;
 	char id_s [ADBK_ID_LEN_DF];
 	char * value;
-	unsigned char value_len;/**< Just numbers cnt id_mas_len = id_len + 1 */
 	char value_s [VALUE_LEN_DF];
 };
 struct htln_record_s 
 {
 	char id [CHAN_ID_LEN];
 	char * value;
-	unsigned char value_len;/**< Just numbers cnt id_mas_len = id_len + 1 */
 	char value_s [VALUE_LEN_DF];
 };
 struct rttb_record_s 
@@ -96,13 +95,24 @@ struct route_table_s
 	unsigned int records_num;
 	struct rttb_record_s * records;
 };
+struct sip_settings_s
+{
+	unsigned char all_set;
+	enum codec_type_e ext_codec;
+	char registrar [REGISTRAR_LEN];
+	char user_name [USER_NAME_LEN];
+	char user_pass [USER_PASS_LEN];
+	char user_URI [USER_URI_LEN];
+	unsigned char sip_chan;
+	unsigned long reg_expires;
+};
 struct svd_conf_s
 {
 	char 	*self_number; /**< pointer to corresponding rt.rec[].id */
 	char 	*self_ip; /**< pointer to corresponding rt.rec[].value */
 	char 	log_level; /**< if log_level = -1 - do not log anything */
-	enum codec_type_e 	ext_codec;
 	enum codec_type_e 	int_codec;
+	struct sip_settings_s	sip_set;
 	struct address_book_s 	address_book;
 	struct hot_line_s 	hot_line;
 	struct route_table_s 	route_table;
