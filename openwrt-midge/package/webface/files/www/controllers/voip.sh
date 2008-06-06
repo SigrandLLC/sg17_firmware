@@ -4,14 +4,13 @@
 	subsys="voip"
 	PORTSINFO="/proc/driver/sgatab/channels"
 	PORTS_INFO_FULL=`cat $PORTSINFO`
-	PORTS_INFO_FULL="SIP:SIP $PORTS_INFO_FULL"
 
 	case $page in
 		'settings')
 			kdb_vars="str:sys_voip_settings_codec_ext_quality str:sys_voip_settings_codec_int_quality int:sys_voip_settings_selfnumber str:sys_voip_settings_selfip str:sys_voip_settings_log"
 			;;
 		'sip')
-			kdb_vars="str:sys_voip_sip_registrar str:sys_voip_sip_username str:sys_voip_sip_password str:sys_voip_sip_user_sip_uri int:sys_voip_sip_expires"
+			kdb_vars="str:sys_voip_sip_registrar str:sys_voip_sip_username str:sys_voip_sip_password str:sys_voip_sip_user_sip_uri int:sys_voip_sip_expires int:sys_voip_sip_chan"
 			;;
 		'hotline')
 			for port in $PORTS_INFO_FULL; do
@@ -53,12 +52,12 @@
 			# sys_voip_settings_codec_ext_quality
 			tip="Quality of calls through SIP-server"
 			desc="External call quality"
-			render_input_field select "External quality" sys_voip_settings_codec_ext_quality speed "Speed" medium "Medium" quality "Quality"
+			render_input_field select "External quality" sys_voip_settings_codec_ext_quality speed "Speed" quality "Quality"
 			
 			# sys_voip_settings_codec_int_quality
 			tip="Quality of calls between routers"
 			desc="Internal call quality"
-			render_input_field select "Internal quality" sys_voip_settings_codec_int_quality speed "Speed" medium "Medium" quality "Quality"
+			render_input_field select "Internal quality" sys_voip_settings_codec_int_quality speed "Speed" quality "Quality"
 
 			# sys_voip_settings_log
 			tip=""
@@ -101,6 +100,17 @@
 			desc="Registration expiration"
 			validator="$validator_voip_sip_expires"
 			render_input_field text "Expires" sys_voip_sip_expires
+			
+			# sys_voip_sip_chan
+			for port in $PORTS_INFO_FULL; do
+				portnum=`echo $port | awk -F ':' '{print $1}'`
+				porttype=`echo $port | awk -F ':' '{print $2}'`
+				[ $porttype == "FXS" ] && fxs="$fxs $portnum $portnum"
+			done
+			tip=""
+			desc="FXS channel for incoming SIP-calls"
+			validator=""
+			render_input_field select "FXS channel" sys_voip_sip_chan $fxs
 			
 			render_submit_field
 			;;
