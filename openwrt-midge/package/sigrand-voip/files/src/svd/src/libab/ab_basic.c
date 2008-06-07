@@ -12,7 +12,6 @@ int ab_g_err_idx;
 char const * ab_g_err_str;
 
 static struct ab_init_params_s params;
-static struct ab_dev_types_s types;
 
 static int ab_struct_init( ab_t ** const abp );
 static int ab_params_read( ab_t * const ab );
@@ -22,13 +21,14 @@ extern int ab_dev_event_clean(ab_dev_t * const dev);
 
 /////////////////////////////////////////////////
 
-ab_t* ab_create( void )
+ab_t* 
+ab_create( void )
 {
 	ab_t *ab = NULL;
 	int err = 0;
 
 	/* AB read config from drv_sgatab.ko */
-	err = ab_params_read( ab );
+	err = ab_params_read (ab);
 	if( err ) {
 		goto ab_create__exit;
 	}
@@ -47,7 +47,8 @@ ab_create__exit:
 	return NULL;
 }; 
 
-void ab_destroy( ab_t ** ab )
+void 
+ab_destroy( ab_t ** ab )
 {
 	ab_t * ab_tmp = *ab;
 	if(ab_tmp) {
@@ -86,12 +87,14 @@ void ab_destroy( ab_t ** ab )
 
 /////////////////////////////////////////////////
 
-static int ab_struct_init(ab_t ** const abp )
+static int 
+ab_struct_init(ab_t ** const abp )
 {
 	ab_t * ab;
+	int devs_count;
+	int dev_N;
 	int i;
 	int j;
-	unsigned int chans_per_dev;
 
 	ab = malloc(sizeof(*ab));
 	*abp = ab;
@@ -102,18 +105,16 @@ static int ab_struct_init(ab_t ** const abp )
 	}
 	memset(ab, 0, sizeof(*ab));
 
-	ab->name = malloc(SGATAB_BOARD_NAME_LENGTH);
-	if( !ab->name ){
-		ab_err_set(ab, AB_ERR_NO_MEM, NULL);
-		goto ab_struct_init__exit;
+	ab->chans_per_dev = CHANS_PER_DEV;
+
+	for (devs_count=0, i=0; i<DEVS_PER_BOARD_MAX; i++){
+		if(params.devices[i] != dev_type_ABSENT){
+			devs_count++;
+		}
 	}
-	strcpy(ab->name, params.name);
 
-	chans_per_dev = params.chans_per_dev;
-	ab->chans_per_dev = chans_per_dev;
-
-	ab->devs_num = params.devs_count;
-	ab->chans_num = params.devs_count * chans_per_dev;
+	ab->devs_num = devs_count;
+	ab->chans_num = devs_count * CHANS_PER_DEV;
 	if((! ab->devs_num) || (! ab->chans_num)) {
 		ab_err_set(ab, AB_ERR_BAD_PARAM, 
 				"devices or channels number is zero" );
@@ -133,7 +134,7 @@ static int ab_struct_init(ab_t ** const abp )
 
 	/* Devices init */ 
 	j = ab->devs_num;
-	for(i = 0; i < j; i++){
+	for( dev_N=0,i=0; i<j; i++){
 		ab_dev_t * curr_dev = &ab->devs[ i ];
 		int fd_chip;
 		char dev_node[ 50 ];
@@ -151,9 +152,12 @@ static int ab_struct_init(ab_t ** const abp )
 		}
 		curr_dev->cfg_fd = fd_chip;
 
-		if (types.dev_type[i] == dev_type_FXS){
+		while(params.devices[dev_N] == dev_type_ABSENT){
+			dev_N++;
+		}
+		if (params.devices[dev_N] == dev_type_FXS){
 			curr_dev->type = ab_dev_type_FXS;
-		} else if (types.dev_type[i] == dev_type_FXO){
+		} else if (params.devices[dev_N] == dev_type_FXO){
 			curr_dev->type = ab_dev_type_FXO;
 		}
 	}
@@ -165,8 +169,8 @@ static int ab_struct_init(ab_t ** const abp )
 		int fd_chan;
 		char dev_node[ 50 ];
 
-		curr_chan->idx = ( i % chans_per_dev ) + 1;
-		curr_chan->parent = &ab->devs[ i / chans_per_dev ];
+		curr_chan->idx = ( i % CHANS_PER_DEV) + 1;
+		curr_chan->parent = &ab->devs[ i / CHANS_PER_DEV ];
 
 		/* Initialize channel */
 		sprintf(dev_node, "/dev/vin%d%d", 
@@ -179,7 +183,7 @@ static int ab_struct_init(ab_t ** const abp )
 			goto ab_struct_init__exit;
 		}
 		curr_chan->rtp_fd = fd_chan;
-		curr_chan->abs_idx = params.first_chan_num + i;
+		curr_chan->abs_idx = params.first_chan_idx + i;
 
 		/* set channel status to initial proper values */
 		ab_chan_status_init (curr_chan);
@@ -191,13 +195,15 @@ ab_struct_init__exit:
 	return -1;
 };
 
-static int ab_params_read( ab_t * const ab )
+static int 
+ab_params_read( ab_t * const ab )
 {
+	ab_boards_presence_t bp;
 	int ab_fd;
 	int err = 0;
 
-	memset (&types, 0, sizeof(types));
 	memset (&params, 0, sizeof(params));
+	memset (&bp, 0, sizeof(bp));
 
 	/* Get board mount info */
 	ab_fd = open(AB_DRIVER_DEV_NODE, O_RDWR, 0x644);
@@ -206,28 +212,22 @@ static int ab_params_read( ab_t * const ab )
 		goto ab_params_read__exit;
 	}
 
-	err = ioctl(ab_fd, SGAB_GET_INIT_PRMS, &params);
+	err = ioctl(ab_fd, SGAB_GET_BOARDS_PRESENCE, &bp);
+	if(err) {
+		ab_err_set(ab, AB_ERR_UNKNOWN, 
+				"getting ata boards presence info (ioctl)");
+		goto ab_params_read__close;
+	}
+
+	params.requested_board_slot = bp.slots [0];
+
+	err = ioctl(ab_fd, SGAB_GET_INIT_PARAMS, &params);
 	if(err) {
 		ab_err_set(ab, AB_ERR_UNKNOWN, 
 				"getting ata init board info (ioctl)");
 		goto ab_params_read__close;
 	}
-
-	types.dev_type = malloc (params.devs_count * sizeof(*(types.dev_type)));
-	if( !types.dev_type ){
-		ab_err_set(ab, AB_ERR_NO_MEM, NULL);
-		goto ab_params_read__close;
-	}
-
-	err = ioctl(ab_fd, SGAB_BASIC_INIT_TYPES, &types);
-	if(err) {
-		ab_err_set(ab, AB_ERR_UNKNOWN, 
-				"getting ata dev types board info (ioctl)");
-		goto ab_params_read__close;
-	}
-
 	close (ab_fd);
-
 	return 0;
 
 ab_params_read__close:
@@ -236,7 +236,8 @@ ab_params_read__exit:
 	return -1;
 };
 
-static void ab_chan_status_init( ab_chan_t * const chan )
+static void 
+ab_chan_status_init( ab_chan_t * const chan )
 {
 	if(chan->parent->type == ab_dev_type_FXS){
 		/* linefeed to standby */

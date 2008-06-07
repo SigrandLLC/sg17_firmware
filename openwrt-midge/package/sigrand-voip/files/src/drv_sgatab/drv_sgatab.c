@@ -24,7 +24,10 @@
    Description : This file contains the implementation of the pci callbacks and
                  init / exit driver functions.
 *******************************************************************************/
-
+/* *
+ * tag__ what about race condition between pci_probe and ioctl ??
+ *
+ * */
 /* ============================= */
 /* Includes                      */
 /* ============================= */
@@ -51,9 +54,7 @@
 #define PCI_DEVICE_ID_MR17VOIP8 0x009C
 
 #define MR17VOIP8_ACCESS_MODE 	VIN_ACCESS_PARINTEL_MUX8
-#define MR17VOIP8_NAME 		"MR17VOIP8_0.9"
 #define MR17VOIP8_REGION_SIZE	256
-#define	MR17VOIP8_CHANS_PER_DEV 2
 
 
 #define DEV_NAME "sgatab"
@@ -90,9 +91,8 @@ static void chardev_undef ( void );
 static int  pci_init      ( void );
 static void pci_undef     ( void );
 
-/* sets gpio`s proper values and read devices types */
-static int SGATAB_gpio_type_init( void );
-static int SGATAB_gpio_type_to_user( unsigned long user_data );
+static int SGATAB_boards_presence( unsigned long user_data );
+static int SGATAB_init_params( unsigned long user_data );
 
 int SGATAB_Ioctl(struct inode *inode, struct file *filp,
 		unsigned int nCmd, unsigned long nArgument );
@@ -127,11 +127,9 @@ static struct pci_driver sgatab_pci_driver = {
 };
 
 static ab_init_params_t g_parms;
-static enum dev_types_e * g_types = NULL;
-static unsigned char g_types_GPIO_inited = 0;
-static unsigned char g_slot_N = 0;
-static u16 g_devices_count = 0;
+static long g_slot_N = BOARD_SLOT_FREE;
 static ab_dev_t g_ab_dev;
+static ab_boards_presence_t g_bp;
 
 /* ============================= */
 /* Local function definition     */
@@ -155,19 +153,11 @@ int SGATAB_Ioctl(struct inode *inode, struct file *filp,
 {
 	int err;
 	switch (nCmd) {
-		case SGAB_GET_INIT_PRMS:
-			if(copy_to_user((void *)nArgument, &g_parms, 
-					sizeof(g_parms))){
-				err = -EFAULT;
-			} else {
-				err = 0;
-			}
+		case SGAB_GET_BOARDS_PRESENCE:
+			err = SGATAB_boards_presence (nArgument);
 			break;
-		case SGAB_BASIC_INIT_TYPES:
-			if ( !g_types_GPIO_inited ){
-				err = SGATAB_gpio_type_init( );
-			}
-			err = SGATAB_gpio_type_to_user( nArgument );
+		case SGAB_GET_INIT_PARAMS:
+			err = SGATAB_init_params (nArgument);
 			break;
 		default:
 			printk(KERN_WARNING "%s: Unknown IOCTL command %d\n",
@@ -214,14 +204,16 @@ static void chardev_undef( void )
 	unregister_chrdev_region ( dev, 1 );
 };
 
-static int pci_init( void )
+static int 
+pci_init( void )
 {
 	ab_dev_t * ab_dev = &g_ab_dev;
+	u16 sub_id = 0;
+	int i;
 	int err;
-/*int tmp;*/
 
-	printk(KERN_INFO "%s: %s(0x%x : 0x%x) board found\n", 
-			DEV_NAME, MR17VOIP8_NAME, 
+	printk(KERN_INFO "%s:(0x%x : 0x%x) board found\n", 
+			DEV_NAME, 
 			ab_dev->pci_dev->vendor,
 			ab_dev->pci_dev->device);
 
@@ -235,45 +227,30 @@ static int pci_init( void )
 	}
 	ab_dev->pci_device_enabled = 1;
 
-	pci_read_config_word(ab_dev->pci_dev, PCI_SUBSYSTEM_ID, 
-			&g_devices_count);
-/* tag__ 
-tmp = g_devices_count;
-g_devices_count = 1;
-*/
+	pci_read_config_word(ab_dev->pci_dev, PCI_SUBSYSTEM_ID, &sub_id);
+
 	g_slot_N = PCI_SLOT(ab_dev->pci_dev->devfn);
-	g_types = kmalloc(sizeof(*g_types) * g_devices_count, GFP_KERNEL);
-	if ( !g_types) {
-		printk(KERN_ERR "%s: ERROR: can`t allocate memory for types\n", 
-				DEV_NAME);
-		err = -EIO;
-		goto pci_init_exit;
-	}
 
 	g_parms.nBaseAddress = ab_dev->sgatab_adr;
 	g_parms.nIrqNum = ab_dev->pci_dev->irq;
 	g_parms.AccessMode = MR17VOIP8_ACCESS_MODE;
-	strcpy(g_parms.name, MR17VOIP8_NAME );
-
 	g_parms.region_size = MR17VOIP8_REGION_SIZE;
-	g_parms.devs_count = g_devices_count;
-	g_parms.chans_per_dev = MR17VOIP8_CHANS_PER_DEV;
-	g_parms.first_chan_num = 
-			( g_slot_N-1 ) * 
-			g_devices_count * 
-			MR17VOIP8_CHANS_PER_DEV + 1;
+	g_parms.first_chan_idx = 
+			g_slot_N * DEVS_PER_BOARD_MAX * CHANS_PER_DEV + 1;
 
-	printk(KERN_INFO "%s: id=%x at bus - %02x slot "
-			"- %02x func - %x \n", DEV_NAME,
-           		ab_dev->pci_dev->device, 
+	for (i=0; i<DEVS_PER_BOARD_MAX; i++){
+		dev_type_t dt = (sub_id >> (i*DEV_TYPE_LENGTH)) & DEV_TYPE_MASK;
+		g_parms.devices [i] = dt;
+	}
+
+	printk(KERN_INFO "%s: id=%x at bus - %02x slot - %02x func - %x\n", 
+			DEV_NAME, ab_dev->pci_dev->device, 
 			ab_dev->pci_dev->bus->number,
            		PCI_SLOT(ab_dev->pci_dev->devfn), 
 			PCI_FUNC(ab_dev->pci_dev->devfn));
-	printk(KERN_INFO "%s: irq %d, devices count %d, "
-			"memory address 0x%lx\n",
-			DEV_NAME, ab_dev->pci_dev->irq, 
-			g_devices_count/*tmp*/, ab_dev->sgatab_adr);
-
+	printk(KERN_INFO "%s: irq %d, subsystem id %d, memory address 0x%lx\n",
+			DEV_NAME, ab_dev->pci_dev->irq, sub_id, 
+			ab_dev->sgatab_adr);
 
 	return 0;
 
@@ -289,10 +266,6 @@ pci_undef ( void )
 	if( g_ab_dev.pci_device_enabled ) {
 		pci_disable_device ( g_ab_dev.pci_dev );
 		g_ab_dev.pci_device_enabled = 0;
-		if(g_types){
-			kfree(g_types);
-			g_types = NULL;
-		}
 	}
 
 	/* remember physical address */
@@ -301,94 +274,58 @@ pci_undef ( void )
 	printk(KERN_INFO "%s: (%s) Resources released!\n", DEV_NAME, __func__);
 };
 
-static int SGATAB_gpio_type_init( void )
+static int 
+SGATAB_boards_presence( unsigned long user_data )
 {
-	VINETIC_GPIO_CONFIG ioCfg;
-	unsigned short get;
-	int io_handle;
-	int vin_dev_handle;
 	int i;
-	int err = 0;
 
-	/* try to set gpio`s proper values */
-	for (i = 0; i < g_devices_count; i++){
-		vin_dev_handle = VINETIC_OpenKernel ( i, 0 );
-		if (vin_dev_handle == -1) {
-			printk(KERN_ERR "%s: ERROR : VINETIC_OpenKernel(%d,0) "
-					"failed\n", DEV_NAME, i);
-			goto SGATAB_gpio_type_init__exit;
-		}
-
-		io_handle = VINETIC_GpioReserve (vin_dev_handle,
-				 VINETIC_IO_DEV_GPIO_3 | VINETIC_IO_DEV_GPIO_7);
-		if (io_handle == 0){
-			printk(KERN_ERR "%s: ERROR : VINETIC_GpioReserve(...) "
-					"failed\n", DEV_NAME);
-			goto SGATAB_gpio_type_init__exit;
-		}
-
-		memset (&ioCfg, 0, sizeof(ioCfg));
-
-		ioCfg.nMode = GPIO_MODE_INPUT;
-		ioCfg.nGpio = VINETIC_IO_DEV_GPIO_3 | VINETIC_IO_DEV_GPIO_7;
-		err = VINETIC_GpioConfig (io_handle, &ioCfg);
-		if (err) {
-			printk(KERN_ERR "%s: ERROR : VINETIC_GpioConfig(...) "
-					"failed\n", DEV_NAME);
-			goto SGATAB_gpio_type_init__exit;
-		}
-
-		err = VINETIC_GpioGet (io_handle, &get, VINETIC_IO_DEV_GPIO_3);
-		if (err) {
-			printk(KERN_ERR "%s: ERROR : VINETIC_GpioGet(...) "
-					"failed\n", DEV_NAME);
-			goto SGATAB_gpio_type_init__exit;
-		}
-		if(get) {
-			g_types[i] = dev_type_FXS;
-		} else {
-			g_types[i] = dev_type_FXO;
-		}
+	for (i=0; i<BOARDS_MAX; i++){
+		g_bp.slots [i] = BOARD_SLOT_FREE;
 	}
 
-	g_types_GPIO_inited = 1;
+	g_bp.slots [0] = g_slot_N;
+
+	if(copy_to_user((void *)user_data, &g_bp, sizeof(g_bp))){
+		printk(KERN_ERR "%s: ERROR : copy_to_user(...) failed\n", 
+				DEV_NAME );
+		goto __exit_fail;
+	}
 
 	return 0;
-
-SGATAB_gpio_type_init__exit:
-	return -EFAULT;
+__exit_fail:
+	return -1;
 };
 
-static int SGATAB_gpio_type_to_user( unsigned long user_data )
+static int 
+SGATAB_init_params( unsigned long user_data )
 {
-	ab_dev_types_t user_types;
+	ab_init_params_t ip;
 
-	memset (&user_types, 0, sizeof(user_types));
-
-	if(copy_from_user (&user_types, (void *)user_data, sizeof(user_types))){
+	if(copy_from_user (&ip, (void *)user_data, sizeof(ip))){
 		printk(KERN_ERR "%s: ERROR : copy_from_user(...) failed\n", 
 				DEV_NAME );
-		goto SGATAB_gpio_type_to_user__exit;
+		goto __exit_fail;
 	}
-	
-	user_types.devs_count = g_devices_count;
 
-	if(copy_to_user((void *)user_data, &user_types, sizeof(user_types))){
-		printk(KERN_ERR "%s: ERROR : copy_to_user(...) failed\n", 
-				DEV_NAME );
-		goto SGATAB_gpio_type_to_user__exit;
+	if( ip.requested_board_slot == BOARD_SLOT_FREE ||
+			ip.requested_board_slot != g_bp.slots [0]){
+		printk(KERN_ERR "%s: ERROR:wrong req_slot %ld should be %ld\n", 
+				DEV_NAME, ip.requested_board_slot, 
+				g_bp.slots [0] );
+		goto __exit_fail;
 	}
-	if(copy_to_user((void *)(user_types.dev_type), g_types, 
-			sizeof(*g_types) * g_devices_count)){
+
+	g_parms.requested_board_slot = ip.requested_board_slot;
+
+	if(copy_to_user((void *)user_data, &g_parms, sizeof(g_parms))){
 		printk(KERN_ERR "%s: ERROR : copy_to_user(...) failed\n", 
 				DEV_NAME );
-		goto SGATAB_gpio_type_to_user__exit;
-	} 
-	
+		goto __exit_fail;
+	}
+
 	return 0;
-
-SGATAB_gpio_type_to_user__exit:
-	return -EFAULT;
+__exit_fail:
+	return -1;
 };
 
 /**
@@ -444,28 +381,31 @@ static int proc_get_sgatab_channels(char *buf)
 	int i;
 	int start_num;
 	int chans_total;
-	int dev_id;
 	int len = 0;
 
-	chans_total = g_devices_count * MR17VOIP8_CHANS_PER_DEV;
-	start_num = ( g_slot_N-1 ) * chans_total + 1;
+	chans_total = DEVS_PER_BOARD_MAX * CHANS_PER_DEV;
+	start_num = g_parms.first_chan_idx;
 
 	for (i = 0; i < chans_total; i++){
-		len += sprintf(buf+len, "%02d:",start_num + i);
-		if( g_types_GPIO_inited ){
-			dev_id = i / MR17VOIP8_CHANS_PER_DEV;
-			if(g_types [dev_id] == dev_type_FXS){
-				len += sprintf(buf+len, "FXS\n");
-			} else if(g_types [dev_id] == dev_type_FXO){
-				len += sprintf(buf+len, "FXO\n");
-			}
-		} else {
-			len += sprintf(buf+len, "UNDEFINED\n");
+		switch(g_parms.devices[i/CHANS_PER_DEV]){
+			case dev_type_ABSENT:
+				break;
+			case dev_type_FXO:
+				len += sprintf(buf+len, "%02d:FXO\n",
+						start_num + i);
+				break;
+			case dev_type_FXS:
+				len += sprintf(buf+len, "%02d:FXS\n",
+						start_num + i);
+				break;
+			case dev_type_RESERVED:
+				len += sprintf(buf+len, "%02d:RESERVED\n",
+						start_num + i);
+				break;
 		}
 	}
-
 	return len;
-}
+};
 
 /**
    Initialize and install the proc entry

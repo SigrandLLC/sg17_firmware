@@ -40,7 +40,7 @@ unsigned char g_err_tag;
 char g_err_msg[ ERR_MSG_SIZE ];
 
 
-const unsigned char g_programm[ ] = "svinit";
+const unsigned char g_programm[ ] = "svi";
 const unsigned char g_version[ ] = "0.01-beta";
 const unsigned char g_author[ ] = "Vladimir Luchko";
 const unsigned char g_email[ ] = "vlad.luch@mail.ru";
@@ -60,9 +60,8 @@ static unsigned long fw_pram_size = 0;
 static unsigned long fw_dram_size = 0;
 static unsigned long fw_cram_fxs_size = 0;
 static unsigned long fw_cram_fxo_size = 0;
-static struct ab_init_params_s params;
-static struct ab_dev_types_s types;
-
+static ab_init_params_t params;
+static ab_boards_presence_t bp;
 
 static void Error_message( int argc, char ** argv );
 static void show_help( void );
@@ -70,7 +69,8 @@ static void show_version( void );
 static void show_version( void );
 static void run( void );
 
-unsigned char startup_init( int argc, char ** argv )
+unsigned char 
+startup_init( int argc, char ** argv )
 {
 	int option_IDX;
 	int option_rez;
@@ -109,7 +109,8 @@ unsigned char startup_init( int argc, char ** argv )
 	return 0;
 };
 
-int main( int argc, char ** argv )
+int 
+main( int argc, char ** argv )
 {
 	g_err_no = ERR_SUCCESS;
 	g_err_tag = 0;
@@ -123,14 +124,12 @@ int main( int argc, char ** argv )
 
 	if( g_so.help ){
 		show_help( );
-		goto main_exit;
 	} else if( g_so.version ){
 		show_version( );
-		goto main_exit;
-	} 
-
-	/* engine start */
-	run();
+	} else {
+		/* engine start */
+		run();
+	}
 
 main_exit:
 	Error_message( argc, argv );
@@ -139,10 +138,14 @@ main_exit:
 };
 
 /////////////////////////////////////////////////////////////////
-static int init_params_get( void )
+static int 
+params_get( void )
 {
 	int ab_fd;
 	int err = 0;
+
+	memset (&bp, 0, sizeof(bp));
+	memset (&params, 0, sizeof(params));
 
 	/* Get board mount info */
 	ab_fd = open(AB_DRIVER_DEV_NODE, O_RDWR, 0x644);
@@ -151,26 +154,38 @@ static int init_params_get( void )
 		strcpy(g_err_msg, "opening board device node");
 		goto init_params_get__exit;
 	}
-	err = ioctl(ab_fd, SGAB_GET_INIT_PRMS, &params);
-	close (ab_fd);
+
+	err = ioctl(ab_fd, SGAB_GET_BOARDS_PRESENCE, &bp);
 	if(err) {
 		g_err_no = ERR_IOCTL_FAILS;
-		strcpy(g_err_msg, "opening board device node");
+		strcpy(g_err_msg, "SGAB_GET_BOARDS_PRESENCE fails");
+		goto init_params_get__exit;
+	}
+	
+	params.requested_board_slot = bp.slots[0];
+
+	err = ioctl(ab_fd, SGAB_GET_INIT_PARAMS, &params);
+	if(err) {
+		g_err_no = ERR_IOCTL_FAILS;
+		strcpy(g_err_msg, "SGAB_GET_INIT_PARAMS fails");
 		goto init_params_get__exit;
 	}
 
+	close (ab_fd);
 	return 0;
 
 init_params_get__exit:
+	close (ab_fd);
 	return -1;
 };
 
-static int basicdev_inits( void )
+static int 
+basicdev_inits( void )
 { 
 	IFX_int32_t err;
 	VINETIC_BasicDeviceInit_t binit;
 	int i;
-	int j;
+	int dev_N;
 	unsigned long region_size = params.region_size;
 
 	memset(&binit, 0, sizeof(binit));
@@ -178,12 +193,16 @@ static int basicdev_inits( void )
 	binit.nIrqNum = params.nIrqNum;
 	binit.nBaseAddress = params.nBaseAddress;
 
-	j = params.devs_count;
-	for ( i = 0; i < j; i++ ) {
+	for (dev_N=1, i=0; i<DEVS_PER_BOARD_MAX; i++) {
 		char dev_node[ 50 ];
 		int cfg_fd;
 
-		sprintf(dev_node,"/dev/vin%d0", i+1 );
+		if(params.devices[i] == dev_type_ABSENT){
+			binit.nBaseAddress += region_size;
+			continue;
+		}
+
+		sprintf(dev_node,"/dev/vin%d0", dev_N );
 
 		cfg_fd = open(dev_node, O_RDWR, 0x644);
 		if( cfg_fd <= 0 ){
@@ -207,7 +226,7 @@ static int basicdev_inits( void )
 			goto basicdev_inits__exit;
 		}
 		binit.nBaseAddress += region_size;
-
+		dev_N++;
 		close (cfg_fd);
 	}
 
@@ -217,7 +236,8 @@ basicdev_inits__exit:
 	return -1;
 };
 
-static void fw_masses_free( )
+static void 
+fw_masses_free( )
 {
 	if(fw_pram) {
 		free(fw_pram);
@@ -237,10 +257,9 @@ static void fw_masses_free( )
 	}
 };
 
-static int fw_masses_init_from_path(
-	char ** const fw_buff, 
-	unsigned long * const buff_size, 
-	char const * const path )
+static int 
+fw_masses_init_from_path (char ** const fw_buff, 
+		unsigned long * const buff_size, char const * const path )
 {
 	int fd;
 
@@ -278,70 +297,58 @@ fw_masses_init_from_path__exit:
 	return -1;
 };
 
-static int fw_base_masses_init( void )
-{
-	int err;
-
-	err = fw_masses_init_from_path(
-			&fw_pram, &fw_pram_size, AB_FW_PRAM_NAME );
-	if( err ){
-		goto fw_base_masses_init__exit;
-	}
-
-	err = fw_masses_init_from_path(
-			&fw_dram, &fw_dram_size, AB_FW_DRAM_NAME );
-	if( err ){
-		goto fw_base_masses_init__free_masses;
-	}
-
-	return 0;
-
-fw_base_masses_init__free_masses:
-	fw_masses_free( );
-fw_base_masses_init__exit:
-	return -1;
-};
-
-static int fw_cram_masses_init( void )
+static int 
+fw_masses_init( void )
 {
 	int i;
-	int j;
-	int err;
 	int fxs_inited = 0;
 	int fxo_inited = 0;
+	int err;
 
-	j = params.devs_count;
-	for( i = 0; i < j; i++ ){
+	for (i=0; i<DEVS_PER_BOARD_MAX; i++){
 		if(fxs_inited && fxo_inited){
 			break;
 		}
-		if(!fxo_inited && types.dev_type [i] == dev_type_FXO ){
+		if(!fxo_inited && params.devices[i] == dev_type_FXO){
 			err = fw_masses_init_from_path(
 					&fw_cram_fxo, &fw_cram_fxo_size, 
 					AB_FW_CRAM_FXO_NAME );
 			if( err ){
-				goto fw_cram_masses_init__free_masses;
+				goto __free_masses;
 			}
 			fxo_inited = 1;
-		} else if (!fxs_inited && types.dev_type [i] == dev_type_FXS) {
+		} else if (!fxs_inited && params.devices[i] == dev_type_FXS){
 			err = fw_masses_init_from_path(
 					&fw_cram_fxs, &fw_cram_fxs_size, 
 					AB_FW_CRAM_FXS_NAME );
 			if( err ){
-				goto fw_cram_masses_init__free_masses;
+				goto __free_masses;
 			}
 			fxs_inited = 1;
 		}
 	}
 
+	err = fw_masses_init_from_path(
+			&fw_pram, &fw_pram_size, AB_FW_PRAM_NAME );
+	if( err ){
+		goto __free_masses;
+	}
+
+	err = fw_masses_init_from_path(
+			&fw_dram, &fw_dram_size, AB_FW_DRAM_NAME );
+	if( err ){
+		goto __free_masses;
+	}
+
 	return 0;
 
-fw_cram_masses_init__free_masses:
+__free_masses:
 	fw_masses_free( );
 	return -1;
 };
 
-static int chan_init_fw_base( int const rtp_fd )
+static int 
+chan_init_fw( int const rtp_fd, dev_type_t dtype )
 {
 	IFX_TAPI_CH_INIT_t init;
 	VINETIC_IO_INIT vinit;
@@ -353,75 +360,6 @@ static int chan_init_fw_base( int const rtp_fd )
 	vinit.pram_size = fw_pram_size;
 	vinit.pDRAMfw = (IFX_uint8_t *) fw_dram;
 	vinit.dram_size = fw_dram_size;
-	
-	/* Set the pointer to the VINETIC dev specific init structure */
-	memset(&init, 0, sizeof(IFX_TAPI_CH_INIT_t));
-	init.pProc = (IFX_void_t *) &vinit;
-	/* Init the VoIP application */
-	init.nMode = IFX_TAPI_INIT_MODE_VOICE_CODER;
-
-	/* Initialize channel */
-	err = ioctl(rtp_fd, IFX_TAPI_CH_INIT, (IFX_uint32_t) &init);
-	if( err ){
-		g_err_no = ERR_IOCTL_FAILS;
-		strcpy(g_err_msg, "initilizing channel with firmware (ioctl)");
-		goto chan_init_fw_base__exit;
-	}
-
-	return 0;
-
-chan_init_fw_base__exit:
-	return -1;
-};
-static int all_chans_init_fw_base( void )
-{
-	int i;
-	int j;
-	int dev_idx;
-	int chan_idx;
-	int err = 0;
-
-	j = params.devs_count;
-	i = params.chans_per_dev;
-	for(dev_idx = 0; dev_idx < j; dev_idx++){
-		for(chan_idx = 0; chan_idx < i; chan_idx++){
-			int fd_chan;
-			char dev_node[ 50 ];
-
-			/* Initialize channel */
-			sprintf(dev_node, "/dev/vin%d%d", 
-					dev_idx+1, chan_idx+1);
-
-			fd_chan = open(dev_node, O_RDWR, 0x644);
-			if (fd_chan <= 0){
-				g_err_no = ERR_COULD_NOT_OPEN_FILE;
-				strcpy(g_err_msg, 
-						"opening vinetic channel node");
-				goto all_chans_init_fw_base__exit;
-			}
-			err = chan_init_fw_base( fd_chan );
-
-			close (fd_chan);
-
-			if(err){
-				goto all_chans_init_fw_base__exit;
-			}
-		}
-	}
-
-	return 0;
-
-all_chans_init_fw_base__exit:
-	return -1;
-};
-static int chan_init_fw_cram( int const fd_chan, dev_type_t dtype )
-{
-	IFX_TAPI_CH_INIT_t init;
-	VINETIC_IO_INIT vinit;
-	int err = 0;
-
-	memset(&vinit, 0, sizeof(VINETIC_IO_INIT));
-
 	/* FXS / FXO personal */
 	if(dtype == dev_type_FXS) {
 		vinit.pCram = (IFX_uint8_t *) fw_cram_fxs;
@@ -435,7 +373,6 @@ static int chan_init_fw_cram( int const fd_chan, dev_type_t dtype )
 		vinit.bbd_size = fw_cram_fxo_size;
 	}
 	
-	
 	/* Set the pointer to the VINETIC dev specific init structure */
 	memset(&init, 0, sizeof(IFX_TAPI_CH_INIT_t));
 	init.pProc = (IFX_void_t *) &vinit;
@@ -443,100 +380,21 @@ static int chan_init_fw_cram( int const fd_chan, dev_type_t dtype )
 	init.nMode = IFX_TAPI_INIT_MODE_VOICE_CODER;
 
 	/* Initialize channel */
-	err = ioctl(fd_chan, IFX_TAPI_CH_INIT, (IFX_uint32_t) &init);
+	err = ioctl(rtp_fd, IFX_TAPI_CH_INIT, (IFX_uint32_t) &init);
 	if( err ){
 		g_err_no = ERR_IOCTL_FAILS;
-		strcpy(g_err_msg, "initilizing channel with cram (ioctl)");
-		goto chan_init_fw_cram__exit;
+		strcpy(g_err_msg, "initilizing channel with firmware (ioctl)");
+		goto __exit_fail;
 	}
 
 	return 0;
 
-chan_init_fw_cram__exit:
-	return -1;
-}
-
-static int all_chans_init_fw_cram( void )
-{
-	int i;
-	int j;
-	int dev_idx;
-	int chan_idx;
-	int err = 0;
-
-	j = params.devs_count;
-	i = params.chans_per_dev;
-	for(dev_idx = 0; dev_idx < j; dev_idx++){
-		for(chan_idx = 0; chan_idx < i; chan_idx++){
-			int fd_chan;
-			char dev_node[ 50 ];
-
-			/* Initialize channel */
-			sprintf(dev_node, "/dev/vin%d%d", 
-					dev_idx+1, chan_idx+1);
-
-			fd_chan = open(dev_node, O_RDWR, 0x644);
-			if (fd_chan <= 0){
-				g_err_no = ERR_COULD_NOT_OPEN_FILE;
-				strcpy(g_err_msg, 
-						"opening vinetic channel node");
-				goto all_chans_init_fw_cram__exit;
-			}
-			err = chan_init_fw_cram( fd_chan, 
-					types.dev_type[ dev_idx ] );
-
-			close (fd_chan);
-			
-			if(err){
-				goto all_chans_init_fw_cram__exit;
-			}
-		}
-	}
-
-	return 0;
-
-all_chans_init_fw_cram__exit:
+__exit_fail:
 	return -1;
 };
 
-static int devs_set_types( void )
-{
-	int ab_fd;
-	int err = 0;
-
-	memset (&types, 0, sizeof(types));
-
-	types.dev_type = malloc (params.devs_count * sizeof(*(types.dev_type)));
-	if( !types.dev_type ){
-		g_err_no = ERR_MEMORY_FULL;
-		goto devs_set_types__exit;
-	}
-
-	ab_fd = open(AB_DRIVER_DEV_NODE, O_RDWR, 0x644);
-	if (ab_fd < 0) {
-		g_err_no = ERR_COULD_NOT_OPEN_FILE;
-		strcpy(g_err_msg, "opening board device node");
-		goto devs_set_types__types_alloc;
-	}
-
-	err = ioctl(ab_fd, SGAB_BASIC_INIT_TYPES, &types);
-	close (ab_fd);
-	if(err) {
-		g_err_no = ERR_IOCTL_FAILS;
-		strcpy(g_err_msg, "getting ata board info (ioctl)");
-		goto devs_set_types__types_alloc;
-	}
-
-	return 0;
-
-devs_set_types__types_alloc:
-	free ( types.dev_type );
-devs_set_types__exit:
-	return -1;
-};
-
-static int chan_init_tune( int const rtp_fd, 
-		int const chan_idx, int const dev_idx,
+static int 
+chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 		dev_type_t const dtype )
 {
 	IFX_TAPI_MAP_DATA_t datamap;
@@ -562,9 +420,8 @@ static int chan_init_tune( int const rtp_fd,
 	if(dtype == dev_type_FXS) {
 		lineTypeCfg.lineType = IFX_TAPI_LINE_TYPE_FXS_NB;
 	} else if(dtype == dev_type_FXO) {
-		int chans_num = params.chans_per_dev;
 		lineTypeCfg.lineType = IFX_TAPI_LINE_TYPE_FXO_NB;
-		lineTypeCfg.nDaaCh = dev_idx * chans_num + chan_idx;
+		lineTypeCfg.nDaaCh = dev_idx * CHANS_PER_DEV + chan_idx;
 	}
 
 	err = ioctl (rtp_fd, IFX_TAPI_LINE_TYPE_SET, &lineTypeCfg);
@@ -606,58 +463,65 @@ ab_chan_init_tune__exit:
 	return -1;
 };
 
-static int all_chans_tune( void )
+static int 
+all_chans_init( void )
 {
-	int i;
-	int j;
+	int dev_N;
 	int dev_idx;
 	int chan_idx;
 	int err = 0;
 
-	j = params.devs_count;
-	i = params.chans_per_dev;
-	for(dev_idx = 0; dev_idx < j; dev_idx++){
-		for(chan_idx = 0; chan_idx < i; chan_idx++){
+	for (dev_N=1, dev_idx=0; dev_idx<DEVS_PER_BOARD_MAX; dev_idx++){
+		if (params.devices [dev_idx] == dev_type_ABSENT){
+			continue;
+		}
+		for (chan_idx=0; chan_idx<CHANS_PER_DEV; chan_idx++){
 			int fd_chan;
 			char dev_node[ 50 ];
 
 			/* Initialize channel */
 			sprintf(dev_node, "/dev/vin%d%d", 
-					dev_idx+1, chan_idx+1);
+					dev_N, chan_idx+1);
 
 			fd_chan = open(dev_node, O_RDWR, 0x644);
-			if (fd_chan <= 0){
+			if (fd_chan<=0){
 				g_err_no = ERR_COULD_NOT_OPEN_FILE;
 				strcpy(g_err_msg, 
 						"opening vinetic channel node");
-				goto all_chans_tune__exit;
+				goto __exit_fail;
 			}
-
-			err = chan_init_tune( fd_chan, chan_idx, dev_idx,
-					types.dev_type[ dev_idx ] );
-
-			close (fd_chan);
-			
+			err = chan_init_fw (fd_chan, params.devices [dev_idx]);
 			if(err){
-				goto all_chans_tune__exit;
+				close (fd_chan);
+				goto __exit_fail;
+			}
+			err = chan_init_tune (fd_chan, chan_idx, dev_N-1,
+					params.devices [dev_idx]);
+			close (fd_chan);
+			if(err){
+				goto __exit_fail;
 			}
 		}
+		dev_N++;
 	}
 
+	fw_masses_free( );
 	return 0;
 
-all_chans_tune__exit:
+__exit_fail:
+	fw_masses_free( );
 	return -1;
 };
 
-static void run( void )
+static void 
+run( void )
 {
 	int err = 0;
 
 	/* get mount info */
-	err = init_params_get();
+	err = params_get();
 	if( err ) {
-		fprintf(stderr,"\nsvi ERROR : init_params_get()\n");
+		fprintf(stderr,"\nsvi ERROR : params_get()\n");
 		return;
 	}
 
@@ -668,50 +532,23 @@ static void run( void )
 		return;
 	}
 
-	/* Load pram and dram */
-	err = fw_base_masses_init();
+	/* Load PRAM, DRAM and CRAM */
+	err = fw_masses_init();
 	if( err ) {
-		fprintf(stderr,"\nsvi ERROR : fw_base_masses_init()\n");
+		fprintf(stderr,"\nsvi ERROR : fw_masses_init()\n");
 		return;
 	}
 
-	/* Channels init with PRAM and DRAM */
-	err = all_chans_init_fw_base();
+	/* Channels init with PRAM, DRAM and CRAM and tune media */
+	err = all_chans_init();
 	if( err ) {
-		fprintf(stderr,"\nsvi ERROR : all_chans_init_fw_base()\n");
-		return;
-	}
-
-	/* get dev-types info */
-	err = devs_set_types();
-	if( err ) {
-		fprintf(stderr,"\nsvi ERROR : devs_set_types()\n");
-		return;
-	}
-
-	/* Load crams */
-	err = fw_cram_masses_init();
-	if( err ) {
-		fprintf(stderr,"\nsvi ERROR : fw_cram_masses_init()\n");
-		return;
-	}
-
-	/* Channels init with CRAM */
-	err = all_chans_init_fw_cram();
-	if( err ) {
-		fprintf(stderr,"\nsvi ERROR : all_chans_init_fw_cram()\n");
-		return;
-	}
-
-	/* Channels map and tune*/
-	err = all_chans_tune();
-	if( err ) {
-		fprintf(stderr,"\nsvi ERROR : all_chans_tune()\n");
+		fprintf(stderr,"\nsvi ERROR : all_chans_init()\n");
 		return;
 	}
 };
 
-static void Error_message( int argc, char ** argv )
+static void 
+Error_message( int argc, char ** argv )
 {
 	if( g_err_no == ERR_SUCCESS ){
 		return;	
@@ -738,7 +575,8 @@ static void Error_message( int argc, char ** argv )
 
 //------------------------------------------------------------
 
-static void show_help( )
+static void 
+show_help( )
 {
 	fprintf( stdout, 
 "\
@@ -757,7 +595,8 @@ Report bugs to <%s>.\n\
 
 //------------------------------------------------------------
 
-static void show_version( )
+static void 
+show_version( )
 {
 	fprintf( stdout, 
 "\
