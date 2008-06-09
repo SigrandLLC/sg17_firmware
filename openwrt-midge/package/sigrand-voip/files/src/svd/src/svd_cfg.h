@@ -104,7 +104,6 @@ struct sip_settings_s
 	char user_pass [USER_PASS_LEN];
 	char user_URI [USER_URI_LEN];
 	unsigned char sip_chan;
-	unsigned long reg_expires;
 };
 struct svd_conf_s
 {
@@ -112,6 +111,8 @@ struct svd_conf_s
 	char 	*self_ip; /**< pointer to corresponding rt.rec[].value */
 	char 	log_level; /**< if log_level = -1 - do not log anything */
 	enum codec_type_e 	int_codec;
+	unsigned long 		rtp_port_first;
+	unsigned long 		rtp_port_last;
 	struct sip_settings_s	sip_set;
 	struct address_book_s 	address_book;
 	struct hot_line_s 	hot_line;

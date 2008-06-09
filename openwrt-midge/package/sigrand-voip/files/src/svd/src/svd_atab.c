@@ -12,8 +12,8 @@
 
 #include "libab/tapi/include/drv_tapi_io.h"
 
-#define RTP_PORT 20800
-#define RTP_PORT_RANGE_LENGTH 10 
+#define RTP_PORT 20811
+#define RTP_PORT_RANGE_LENGTH 9
 #define BUFF_PER_RTP_PACK_SIZE 512
 
 static int svd_atab_handler (su_root_magic_t * root, su_wait_t * w, 
@@ -1276,6 +1276,7 @@ static int
 svd_media_vinetic_open_rtp (svd_chan_t * const chan_d)
 {
 	int i;
+	long ports_count;
 	struct sockaddr_in my_addr;
 	int sock_fd;
 	int rtp_binded = 0;
@@ -1287,13 +1288,14 @@ DFS
 		goto __exit_fail;
 	}
 
-	for (i = 0; i < RTP_PORT_RANGE_LENGTH; i++) {
+	ports_count = g_conf.rtp_port_last - g_conf.rtp_port_first + 1;
+	for (i = 0; i < ports_count; i++) {
 		memset(&my_addr, 0, sizeof(my_addr));
 		my_addr.sin_family = AF_INET;
-		my_addr.sin_port = htons(RTP_PORT + i);
+		my_addr.sin_port = htons(g_conf.rtp_port_first + i);
 		my_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 		if ((bind(sock_fd, &my_addr, sizeof(my_addr))) != -1) {
-			chan_d->rtp_port = RTP_PORT + i;
+			chan_d->rtp_port =g_conf.rtp_port_first + i;
 			rtp_binded = 1;
 			break;
 		}
@@ -1302,7 +1304,7 @@ DFS
 		SU_DEBUG_1(("svd_media_vinetic_open_rtp(): "
 				"could not find free port for RTP in "
 				"range [%d,%d]\n",
-				RTP_PORT, RTP_PORT+RTP_PORT_RANGE_LENGTH));
+				g_conf.rtp_port_first, g_conf.rtp_port_last));
 		goto __sock_opened;
 	}
 

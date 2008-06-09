@@ -155,6 +155,15 @@ svd_conf_init( void )
 		g_conf.int_codec = codec_type_QUALITY;
 	}
 	
+	/* app.rtp_port_first/last */
+	g_conf.rtp_port_first = config_lookup_int (&cfg, "app.rtp_port_first");
+	g_conf.rtp_port_last = config_lookup_int (&cfg, "app.rtp_port_last");
+	if ((!g_conf.rtp_port_first) || (!g_conf.rtp_port_last) || 
+			g_conf.rtp_port_first > g_conf.rtp_port_last ){
+		SU_DEBUG_0(("rtp_port values was not set or set badly"));
+		goto svd_conf_init__exit;
+	}
+
 	/* app.sip_set */
 	sip_set_init();
 	
@@ -215,6 +224,10 @@ conf_show( void )
 	} else {
 		SU_DEBUG_3(("%d] : ", g_conf.log_level));
 	}
+	SU_DEBUG_3(("ports[%d:%d] : ", 
+			g_conf.rtp_port_first,
+			g_conf.rtp_port_last));
+	
 	switch(g_conf.int_codec){
 		case codec_type_SPEED:
 			SU_DEBUG_3(("[Use fast codecs]\n"));
