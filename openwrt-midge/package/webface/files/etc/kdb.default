@@ -95,8 +95,9 @@ sys_switch_ports=0\0401\0402\0403
 sys_timezone=-4
 sys_voip_settings_selfnumber=001
 sys_voip_settings_selfip=192.168.2.100
+sys_voip_settings_rtp_port_first=5000
+sys_voip_settings_rtp_port_last=5500
 sys_voip_settings_codec_ext_quality=speed
 sys_voip_settings_codec_int_quality=speed
 sys_voip_settings_log=0
-sys_voip_sip_expires=3600
 KDB END

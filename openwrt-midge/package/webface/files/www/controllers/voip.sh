@@ -7,10 +7,10 @@
 
 	case $page in
 		'settings')
-			kdb_vars="str:sys_voip_settings_codec_ext_quality str:sys_voip_settings_codec_int_quality int:sys_voip_settings_selfnumber str:sys_voip_settings_selfip str:sys_voip_settings_log"
+			kdb_vars="str:sys_voip_settings_codec_ext_quality str:sys_voip_settings_codec_int_quality int:sys_voip_settings_selfnumber str:sys_voip_settings_selfip str:sys_voip_settings_log int:sys_voip_settings_rtp_port_first int:sys_voip_settings_rtp_port_last"
 			;;
 		'sip')
-			kdb_vars="str:sys_voip_sip_registrar str:sys_voip_sip_username str:sys_voip_sip_password str:sys_voip_sip_user_sip_uri int:sys_voip_sip_expires int:sys_voip_sip_chan"
+			kdb_vars="str:sys_voip_sip_registrar str:sys_voip_sip_username str:sys_voip_sip_password str:sys_voip_sip_user_sip_uri int:sys_voip_sip_chan"
 			;;
 		'hotline')
 			for port in $PORTS_INFO_FULL; do
@@ -48,6 +48,18 @@
 			desc="Router IP"
 			validator="$tmtreq $validator_ipaddr"
 			render_input_field text "Router IP" sys_voip_settings_selfip						
+			
+			# sys_voip_settings_rtp_port_first
+			tip=""
+			desc="Begin of ports range to use for RTP"
+			validator="$tmtreq $validator_ipport"
+			render_input_field text "RTP port start" sys_voip_settings_rtp_port_first						
+			
+			# sys_voip_settings_rtp_port_last
+			tip=""
+			desc="End of ports range to use for RTP"
+			validator="$tmtreq $validator_ipport"
+			render_input_field text "RTP port end" sys_voip_settings_rtp_port_last						
 			
 			# sys_voip_settings_codec_ext_quality
 			tip="Quality of calls through SIP-server"
@@ -94,12 +106,6 @@
 			desc="User SIP URI"
 			validator="$tmtreq $validator_voip_sip_uri"
 			render_input_field text "User SIP URI" sys_voip_sip_user_sip_uri
-			
-			# sys_voip_sip_expires
-			tip=""
-			desc="Registration expiration"
-			validator="$validator_voip_sip_expires"
-			render_input_field text "Expires" sys_voip_sip_expires
 			
 			# sys_voip_sip_chan
 			for port in $PORTS_INFO_FULL; do
