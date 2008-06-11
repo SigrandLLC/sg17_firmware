@@ -134,7 +134,7 @@ ab_struct_init(ab_t ** const abp )
 
 	/* Devices init */ 
 	j = ab->devs_num;
-	for( dev_N=0,i=0; i<j; i++){
+	for (dev_N=0,i=0; i<j; i++,dev_N++){
 		ab_dev_t * curr_dev = &ab->devs[ i ];
 		int fd_chip;
 		char dev_node[ 50 ];
@@ -152,9 +152,9 @@ ab_struct_init(ab_t ** const abp )
 		}
 		curr_dev->cfg_fd = fd_chip;
 
-		while(params.devices[dev_N] == dev_type_ABSENT){
-			dev_N++;
-		}
+		for(;params.devices[dev_N] == dev_type_ABSENT && 
+				dev_N < DEVS_PER_BOARD_MAX; dev_N++ );
+
 		if (params.devices[dev_N] == dev_type_FXS){
 			curr_dev->type = ab_dev_type_FXS;
 		} else if (params.devices[dev_N] == dev_type_FXO){

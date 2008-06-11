@@ -22,56 +22,55 @@ typedef AB_CMAGIC_T ab_cmagic_t;
 typedef AB_DMAGIC_T ab_dmagic_t;
 
 enum ab_dev_type_e {
-	//ab_dev_type_UNDEFINED,   /**< Device type is not defined yet */
 	ab_dev_type_FXO,   /**< Device type is FXO */
 	ab_dev_type_FXS    /**< Device type is FXS */
 	};
 
 enum ab_chan_tone_e {
-	ab_chan_tone_MUTE, /**< */
-	ab_chan_tone_DIAL,   /**< */
-	ab_chan_tone_BUSY,   /**< */
-	ab_chan_tone_RINGBACK   /**< */
+	ab_chan_tone_MUTE, /**< Mute any tone */
+	ab_chan_tone_DIAL,   /**< Play dial tone */
+	ab_chan_tone_BUSY,   /**< Play busy tone */
+	ab_chan_tone_RINGBACK   /**< Play ringback tone */
 	};
 
 enum ab_chan_ring_e {
-	ab_chan_ring_MUTE, /**< */
-	ab_chan_ring_RINGING   /**< */
+	ab_chan_ring_MUTE, /**< Mute the ring */
+	ab_chan_ring_RINGING   /**< Make ring */
 	};
 
 enum ab_chan_hook_e {
-	ab_chan_hook_ONHOOK, /**< */
-	ab_chan_hook_OFFHOOK /**< */
+	ab_chan_hook_ONHOOK, /**< Do onhook */
+	ab_chan_hook_OFFHOOK /**< Do offhook */
 	};
 
 enum ab_chan_linefeed_e {
-	ab_chan_linefeed_DISABLED, /**< */
-	ab_chan_linefeed_STANDBY, /**< */
-	ab_chan_linefeed_ACTIVE /**< */
+	ab_chan_linefeed_DISABLED, /**< Set linefeed to disabled */
+	ab_chan_linefeed_STANDBY, /**< Set linefeed to standby */
+	ab_chan_linefeed_ACTIVE /**< Set linefeed to active */
 	};
 
 enum ab_dev_event_e {
-	ab_dev_event_NONE, /**< */
-	ab_dev_event_UNCATCHED, /**< */
-	ab_dev_event_FXO_RINGING, /**< */
-	ab_dev_event_FXS_DIGIT_TONE, /**< */
-	ab_dev_event_FXS_DIGIT_PULSE, /**< */
-	ab_dev_event_FXS_ONHOOK, /**< */
-	ab_dev_event_FXS_OFFHOOK /**< */
+	ab_dev_event_NONE, /**< No event */
+	ab_dev_event_UNCATCHED, /**< Unknown event */
+	ab_dev_event_FXO_RINGING, /**< Ring on FXO */
+	ab_dev_event_FXS_DIGIT_TONE, /**< Dial a digit on FXS in tone mode */
+	ab_dev_event_FXS_DIGIT_PULSE, /**< Dial a digit on FXO in pulse mode */
+	ab_dev_event_FXS_ONHOOK, /**< Onhook on FXS */
+	ab_dev_event_FXS_OFFHOOK /**< Offhook on FXS */
 	};
 
 struct ab_chan_status_s {
-	enum ab_chan_tone_e	tone;	/**< */
-	enum ab_chan_ring_e	ring;	/**< */
-	enum ab_chan_hook_e	hook;	/**< */
-	enum ab_chan_linefeed_e	linefeed; /**< */
+	enum ab_chan_tone_e	tone;	/**< tone state */
+	enum ab_chan_ring_e	ring;	/**< ring state */
+	enum ab_chan_hook_e	hook;	/**< hoot state */
+	enum ab_chan_linefeed_e	linefeed; /**< linefeed state*/
 	};
 
 struct ab_dev_event_s {
-	enum ab_dev_event_e id;
-	unsigned char ch;
-	unsigned char more;
-	long data;
+	enum ab_dev_event_e id; /**< Event identificator */
+	unsigned char ch;	/**< Ret Channel of event */
+	unsigned char more;	/**< is there more events */
+	long data;		/**< Event specific data */
 	};
 
 struct ab_chan_s {
@@ -109,24 +108,32 @@ struct ab_s {
 	char const * err_s;	/**< Last error on this board message string */
 	};
 
-#define AB_DEFAULT_CFG_PATH "/etc/sgatab.conf"
-
 /* ERROR HANDLING */
+/** no error happens */
 #define AB_ERR_NO_ERR 		0
+/** In most cases ioctl error */
 #define AB_ERR_UNKNOWN		1
+/** Not enough memory */
 #define AB_ERR_NO_MEM		2
+/** error on file operation */
 #define AB_ERR_NO_FILE		3
+/** Bad parameter set */
 #define AB_ERR_BAD_PARAM 	4
 
+/** global error index */
 extern int ab_g_err_idx;
+/** global error characteristic string */
 extern char const * ab_g_err_str;
 
+/** get error index from object or global */
 #define ab_err_get_idx(objp) \
 	(objp) ? (objp)->err : ab_g_err_idx
+/** get error string from object or global */
 #define ab_err_get_str(objp) \
 	(objp) ? (objp)->err_s : ab_g_err_str
-
+/** get global error index (last for all objects) */
 #define ab_err_get_idx_last	ab_g_err_idx
+/** get global error string (last for all objects) */
 #define ab_err_get_str_last	ab_g_err_str
 
 /** @defgroup AB_BASIC ACTIONS Basic libab interface

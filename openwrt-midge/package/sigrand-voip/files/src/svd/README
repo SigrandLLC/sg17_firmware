@@ -1,24 +1,18 @@
-README for telsip
+README for SVD
 =====================
 
 What is it?
 -----------
 
-Telsip is a simple sip client which is developed by teleton company for
-DECT-VoIP router.
+SVD is a simple sip client which is developed by Sigrand company for 
+VoIP router.
 
 How I can build it and install?
 -------------------------------
 
 Run 
 
-./configure --host=mipsel-linux-uclibc --build=i686-linux-gnu
-
-I'd assume that pkg-config is able to find the sofia-sip-ua library
-compiled for mips. 
-
-After that you can copy create executable to the ramdisk, upload
-it and use in target linux system.
+./build.sh
 
 Where can I get additional information?
 ---------------------------------------

@@ -3,11 +3,11 @@ AC_CONFIG_SRCDIR([src/svd.c])
 AC_CONFIG_HEADER([config.h])
 
 AC_DEFINE(DFS, 
-	[for(g_f_cnt = 0; g_f_cnt < g_f_offset; g_f_cnt++)					SU_DEBUG_9(("  "));							SU_DEBUG_9(("vvvv %s() vvvv\n", __func__));					g_f_offset++;], 
+	[for(g_f_cnt=0; g_f_cnt<g_f_offset; g_f_cnt++)						SU_DEBUG_9(("  "));							SU_DEBUG_9(("vvvv %s() vvvv\n", __func__));					g_f_offset++;], 
 	[Debug Function Start marker])
 
 AC_DEFINE(DFE, 
-	[g_f_offset--;									for(g_f_cnt = 0; g_f_cnt < g_f_offset; g_f_cnt++)					SU_DEBUG_9(("  "));							SU_DEBUG_9(("^^^^ %s() ^^^^\n", __func__));], 
+	[g_f_offset--;									for(g_f_cnt=0; g_f_cnt<g_f_offset; g_f_cnt++)						SU_DEBUG_9(("  "));							SU_DEBUG_9(("^^^^ %s() ^^^^\n", __func__));], 
 	[Debug Function End marker])
 
 AM_INIT_AUTOMAKE
