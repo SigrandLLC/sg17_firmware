@@ -46,6 +46,11 @@ case "$act" in
 		echo 
 		cp /etc/kdb.default /etc/kdb
 		md5sum /etc/kdb |awk '{ print $1 }' > /etc/kdb.md5
+		# Restore eocd state
+    		if [ -f /etc/eocd/eocd.conf ]; then
+		    cp /etc/eocd/eocd.conf.default /etc/eocd/eocd.conf
+		    killall -HUP eocd
+		fi
 		echo "<html><body>"
 		echo "<h2>Default configuration restored"
 		echo "<script language=\"JavaScript\">setTimeout('window.location = \"/\"', 2000);</script>"

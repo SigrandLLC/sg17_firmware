@@ -3,7 +3,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=eocd
-PKG_VERSION:=2.11
+PKG_VERSION:=2.12
 PKG_RELEASE:=0
 PKG_SOURCE_URL:=http://sigrand.ru/temp
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -57,7 +57,8 @@ $(IPKG_SIGRAND_EOCD):
 	install -d -m0755 $(IDIR_SIGRAND_EOCD)/lib
 	$(STRIP) $(PKG_BUILD_DIR)/eocd-src/eocd
 	cp $(PKG_BUILD_DIR)/eocd-src/eocd  $(IDIR_SIGRAND_EOCD)/sbin
-	cp $(PKG_BUILD_DIR)/eocd-src/eocd.conf $(IDIR_SIGRAND_EOCD)/etc/eocd
+	cp $(PKG_BUILD_DIR)/eocd-src/eocd.conf.default $(IDIR_SIGRAND_EOCD)/etc/eocd
+	cp $(PKG_BUILD_DIR)/eocd-src/eocd.conf.default $(IDIR_SIGRAND_EOCD)/etc/eocd/eocd.conf
 	cp $(PKG_BUILD_DIR)/S80eocd $(IDIR_SIGRAND_EOCD)/etc/init.d
 	cp $(STAGING_DIR)/lib/libstdc++.so.6 $(IDIR_SIGRAND_EOCD)/lib
 	$(STRIP) $(PKG_BUILD_DIR)/eocd-src/app-if/applications/eoc-info 
