@@ -23,6 +23,8 @@ if [ -n "$iface" ]; then
 			int:sys_pcicfg_s${slot}_${dev}_lcode	\
 			int:sys_pcicfg_s${slot}_${dev}_hcrc	\
 			int:sys_pcicfg_s${slot}_${dev}_fill	\
+			int:sys_pcicfg_s${slot}_${dev}_llpb	\
+			int:sys_pcicfg_s${slot}_${dev}_rlpb	\
 			int:sys_pcicfg_s${slot}_${dev}_inv	"
 
 	fram=`kdb get sys_pcicfg_s${slot}_${dev}_fram`	
@@ -137,7 +139,7 @@ if [ -n "$iface" ]; then
     # sys_pcicfg_s${slot}_${dev}_lcode
     tip=""
     desc=""
-    render_input_field select " E1 HDB3/AMI line code" sys_pcicfg_s${slot}_${dev}_lcode  1 HDB3 0 AMI
+    render_input_field select "E1 HDB3/AMI line code" sys_pcicfg_s${slot}_${dev}_lcode  1 HDB3 0 AMI
 
     # sys_pcicfg_s${slot}_${dev}_crc32
     tip=""
@@ -150,11 +152,23 @@ if [ -n "$iface" ]; then
     render_input_field select "Fill" sys_pcicfg_s${slot}_${dev}_fill  0 FF 1 7E
 							
     # sys_pcicfg_s${slot}_${dev}_inv
-	tip=""
-	desc="Select HDLC inversion mode"
-	render_input_field select "Inversion" sys_pcicfg_s${slot}_${dev}_inv  0 off 1 on
+    tip=""
+    desc="Select HDLC inversion mode"
+    render_input_field select "Inversion" sys_pcicfg_s${slot}_${dev}_inv  0 off 1 on
+
+
+    # sys_pcicfg_s${slot}_${dev}_llpb
+    tip=""
+    desc="Enable E1 Local Loopback"
+    render_input_field checkbox "Local Loopback" sys_pcicfg_s${slot}_${dev}_llpb
+
+    # sys_pcicfg_s${slot}_${dev}_rlpb
+    tip=""
+    desc="Enable E1 Remote Loopback"
+    render_input_field checkbox "Remote Loopback" sys_pcicfg_s${slot}_${dev}_rlpb
+
 												
-	render_submit_field
-	render_form_tail
+    render_submit_field
+    render_form_tail
 
 fi

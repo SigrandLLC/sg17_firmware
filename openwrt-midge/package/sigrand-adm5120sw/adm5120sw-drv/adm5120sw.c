@@ -82,10 +82,10 @@ PSW_CONTEXT_T sw_context;
 
 static int vlan_mx[] = { 0x41,0x42,0x44,0x48,0x50,0x60 };
 
-MODULE_DESCRIPTION("ADM5120 switch ethernet driver");
-MODULE_AUTHOR("Joco (rjoco77@kezdionline.ro)");
-MODULE_LICENSE("GPL");
-MODULE_VERSION("2.0");
+MODULE_DESCRIPTION( "ADM5120 switch ethernet driver\n" );
+MODULE_AUTHOR( "Joco (rjoco77@kezdionline.ro)\n" );
+MODULE_LICENSE( "GPL" );
+MODULE_VERSION( "2.0" );
 
 struct net_device adm5120sw_devs[MAX_VLAN_GROUP] = {
     { name: "eth0", init:adm5120sw_init },

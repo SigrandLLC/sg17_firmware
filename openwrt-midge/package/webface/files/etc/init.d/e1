@@ -24,6 +24,8 @@ _e1_mr16ifdefcfg(){
 	kdb set sys_pcicfg_s${slot}_${dev}_hcrc="1"
 	kdb set sys_pcicfg_s${slot}_${dev}_fill="1"	
 	kdb set sys_pcicfg_s${slot}_${dev}_inv="normal"
+	kdb set sys_pcicfg_s${slot}_${dev}_llpb="0"
+	kdb set sys_pcicfg_s${slot}_${dev}_rlpb="0"
 }
 
 _e1_mr16defcfg(){
@@ -121,10 +123,21 @@ _e1_ifcfg(){
 		kdb set sys_pcicfg_s${slot}_${dev}_cas=0
 	fi
 	echo $lhaul > long_haul
-	echo $lcode	> hdb3
-	echo $hcrc	> crc16
-	echo $fill	> fill_7e
-	echo $inv	> inv
+	echo $lcode > hdb3
+	echo $hcrc > crc16
+	echo $fill > fill_7e
+	echo $inv > inv
+	echo "LLoop=$llpb RLoop=$rlpb" >> /root/E1.log
+	if [ "$llpb" = "on" ]; then
+	    echo 1 > llpb
+	else
+	    echo 0 > llpb
+	fi
+	if [ "$rlpb" = "on" ]; then
+	    echo 1 > rlpb
+	else
+	    echo 0 > rlpb
+	fi
 	cd $DIR	
 }
 
