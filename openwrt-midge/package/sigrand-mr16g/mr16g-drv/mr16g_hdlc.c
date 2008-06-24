@@ -1,4 +1,4 @@
-/* mr16g_hdlc.c,v 1.00 04.09.2006\
+/* mr16g_hdlc.c,v 1.2 22.06.2008 
  *  	Sigrand MR16G E1 PCI adapter driver for linux (kernel 2.6.x)
  *
  *	Written 2006 by Artem U. Polyakov (artpol84@gmail.com)
@@ -10,11 +10,16 @@
  *	of the GNU General Public License.
  *
  *	04.09.2006	version 1.0
+ *	15.04.2008	version 1.1 Add RateBalance Bonding mode support (added ioctl command)
+ *	22.06.2008	version 1.2 Add Local and Remote loopback.
+ *			Make settings change independent from ifconfig down
  */
 
 /* TODO
    (+)	1. Handle insmod when driver is compiled into the kernel
 */
+
+#define MR16G_VER "1.2"
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -58,10 +63,10 @@
 // mr16g_ioctl
 #define SIOCGLRATE	(SIOCDEVPRIVATE+14)
 
-MODULE_DESCRIPTION( "E1 PCI adapter driver Version 1.0\n" );
+MODULE_DESCRIPTION( "E1 PCI adapter driver Version 1.2\n" );
 MODULE_AUTHOR( "Maintainer: Polyakov Artem <artpol84@gmail.com>\n" );
 MODULE_LICENSE( "GPL" );
-MODULE_VERSION("1.0");
+MODULE_VERSION("1.1");
 
 struct net_device *bkp_dev=NULL;
 
@@ -81,6 +86,8 @@ static DEVICE_ATTR(long_haul,0644,show_lhaul,store_lhaul);
 static DEVICE_ATTR(crc4,0644,show_crc4,store_crc4);
 static DEVICE_ATTR(cas,0644,show_cas,store_cas);
 static DEVICE_ATTR(map_ts16,0644,show_map_ts16,store_map_ts16);
+static DEVICE_ATTR(rlpb,0644,show_rloopback,store_rloopback);
+static DEVICE_ATTR(llpb,0644,show_lloopback,store_lloopback);
 
 //debug
 static DEVICE_ATTR(hdlc_regs,0644,show_hdlcregs,NULL);
@@ -142,7 +149,7 @@ static struct pci_driver  mr16g_driver = {
 static int
 mr16g_init( void )
 {
-	printk(KERN_NOTICE"Load "MR16G_MODNAME" E1 driver\n");
+	printk(KERN_NOTICE"Load "MR16G_MODNAME" E1 driver. Version "MR16G_VER"\n");
 	return pci_module_init( &mr16g_driver );
 }
 
@@ -312,10 +319,10 @@ mr16g_probe( struct net_device  *ndev )
 	//initial setup	
 	mr16g_defcfg(nl);
 	mr16g_hdlc_up(nl);
+	mr16g_hdlc_setup(nl);
 	mr16g_E1_setup(nl);
 	mr16g_setup_carrier(ndev,&mask);
 	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
-
 	return  0;
  err_exit:
 	iounmap( nl->mem_base );
@@ -331,7 +338,6 @@ mr16g_open( struct net_device  *ndev )
 	hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct net_local *nl=(struct net_local*)hdlc->priv;
 	int err;
-	u8 mask = EXT;
 
 	if( (err=hdlc_open(ndev)) )
 		return err;
@@ -339,15 +345,6 @@ mr16g_open( struct net_device  *ndev )
 	mr16g_txrx_up(ndev);		
 	// Prepare HDLC regs
 	mr16g_hdlc_open(nl);	
-	// Setup ds2155
-	mr16g_E1_setup(nl);
-	// Correct link representation, because of
-	// dependency of Link led & DS2155 regs!
-	// And correct interrupt mask
-	mdelay(5);
-	mr16g_setup_carrier(ndev,&mask);
-	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
-
 	// start network if queuing
 	netif_start_queue(ndev);	
 	return 0;
@@ -362,10 +359,8 @@ mr16g_close( struct net_device  *ndev )
 	PDEBUG(DINIT,"start");
 	hdlc_close(ndev);
 	netif_tx_disable(ndev);		
-
 	mr16g_hdlc_close(nl);	
 	mr16g_txrx_down(ndev);
-
 	PDEBUG(DINIT,"end");
 	return 0;
 }
@@ -562,21 +557,21 @@ mr16g_setup_carrier(struct net_device *ndev,u8 *mask)
 	PDEBUG(DCARR,"(%s) carrier = %d\n",ndev->name,carrier);
 
 	// iface status control
-	if( !carrier ){
-		iowrite8( ioread8( (iotype)&(nl->hdlc_regs->CRB) ) | RXDE,
-				  (iotype)&(nl->hdlc_regs->CRB) );
-		*mask = EXT;
-		hdlc_set_carrier(0,ndev);
-		netif_carrier_off(ndev);
-		ds2155_setreg(nl,CCR4,0x00);
-	}else{
+	if( carrier || (ds2155_getreg(nl,LBCR) & LLB) ){
+	// if carrier is on or Loal loopback is on
 		iowrite8( ioread8( (iotype)&(nl->hdlc_regs->CRB) ) & ~RXDE,
 				  (iotype)&(nl->hdlc_regs->CRB) );
 		*mask = EXT | UFL | OFL | RXS | TXS | CRC;
 		hdlc_set_carrier(1,ndev);
 		netif_carrier_on(ndev);
 		ds2155_setreg(nl,CCR4,0x01);
-		
+	}else{
+		iowrite8( ioread8( (iotype)&(nl->hdlc_regs->CRB) ) | RXDE,
+				  (iotype)&(nl->hdlc_regs->CRB) );
+		*mask = EXT;
+		hdlc_set_carrier(0,ndev);
+		netif_carrier_off(ndev);
+		ds2155_setreg(nl,CCR4,0x00);
 	}
 }
 
@@ -699,7 +694,7 @@ mr16g_start_xmit( struct sk_buff *skb, struct net_device *ndev )
 	
 	if( nl->tail_xq == ((nl->head_xq - 1) & (XQLEN - 1)) ) {
 		netif_stop_queue( ndev );
-		printk(KERN_NOTICE"%s: netif_stop_queue(%s)\n",ndev->name);
+		printk(KERN_NOTICE"%s: netif_stop_queue(%s)\n",__FUNCTION__,ndev->name);
 		goto  err_exit;
 	}
 
@@ -859,36 +854,61 @@ mr16g_hdlc_up( struct net_local *nl)
 }	
 
 inline void	
-mr16g_hdlc_open( struct net_local *nl)
+mr16g_hdlc_setup( struct net_local *nl)
 {
 	u8 cfg_byte;
 
 	// Control register A
-	cfg_byte= XRST | RXEN | TXEN;
+	cfg_byte= ioread8( (iotype)&(nl->hdlc_regs->CRA));
+	// CRC16/CRC32
 	if( nl->hdlc_cfg.crc16 )
-		cfg_byte|=CMOD;
+		cfg_byte |= CMOD;
+	else 
+		cfg_byte &= ~CMOD;
+	// Fill mode
 	if( nl->hdlc_cfg.fill_7e )
-		cfg_byte|=FMOD;
+		cfg_byte |= FMOD;
+	else 
+		cfg_byte &= ~FMOD;
+	// Polarity mode
 	if( nl->hdlc_cfg.inv )
-		cfg_byte|=PMOD;
+		cfg_byte |= PMOD;
+	else
+		cfg_byte &= ~PMOD;
 	iowrite8(cfg_byte,(iotype)&(nl->hdlc_regs->CRA));
 
 	// Control register B
 	cfg_byte=ioread8( (iotype)&(nl->hdlc_regs->CRB)) | RODD;
+	// Read burst mode
 	if( nl->hdlc_cfg.rburst )
-		cfg_byte|=RDBE;
+		cfg_byte |= RDBE;
+	else
+		cfg_byte &= ~RDBE;
+	// Write burst mode
 	if( nl->hdlc_cfg.wburst )
-		cfg_byte|=WTBE;
+		cfg_byte |= WTBE;
+	else
+		cfg_byte &= ~WTBE;
 	iowrite8(cfg_byte,(iotype)&(nl->hdlc_regs->CRB));
+}
+
+
+inline void	
+mr16g_hdlc_open( struct net_local *nl)
+{
+	u8 cfg_byte;
+	// Control register A
+	cfg_byte= ioread8( (iotype)&(nl->hdlc_regs->CRA)) | (XRST | RXEN | TXEN);
+	iowrite8(cfg_byte,(iotype)&(nl->hdlc_regs->CRA));
 }
 
 inline void	
 mr16g_hdlc_close( struct net_local *nl)
 {
+	u8 cfg_byte;
 	// Control register A
-	iowrite8(XRST,(iotype)&(nl->hdlc_regs->CRA));
-	// Control register B
-	iowrite8(0,(iotype)&(nl->hdlc_regs->CRB));
+	cfg_byte= ioread8( (iotype)&(nl->hdlc_regs->CRA)) & ~(RXEN | TXEN);
+	iowrite8(cfg_byte,(iotype)&(nl->hdlc_regs->CRA));
 }
 
 /*----------------------------------------------------------
@@ -1144,7 +1164,7 @@ static void
 mr16g_defcfg(struct net_local *nl)
 {
 	//E1 initial setup			
-	nl->e1_cfg.framed=1;
+	nl->e1_cfg.framed=0;
 	nl->e1_cfg.hdb3=1;
 	nl->e1_cfg.int_clck=1;
 	//HDLC initial setup				
@@ -1176,9 +1196,9 @@ mr16g_sysfs_init(struct device *dev)
 	device_create_file(dev,&dev_attr_cas);
 	device_create_file(dev,&dev_attr_map_ts16);
 	device_create_file(dev,&dev_attr_clck);
+	device_create_file(dev,&dev_attr_rlpb);
+	device_create_file(dev,&dev_attr_llpb);
 	// debug
-	//	device_create_file(dev,&dev_attr_getreg);
-	//	device_create_file(dev,&dev_attr_setreg);
 	device_create_file(dev,&dev_attr_hdlc_regs);	
 #ifdef SYSFS_DEBUG
 	device_create_file(dev,&dev_attr_winread);	
@@ -1212,10 +1232,10 @@ mr16g_sysfs_del(struct device *dev)
 	device_remove_file(dev,&dev_attr_cas);
 	device_remove_file(dev,&dev_attr_map_ts16);
 	device_remove_file(dev,&dev_attr_clck);
+	device_remove_file(dev,&dev_attr_rlpb);
+	device_remove_file(dev,&dev_attr_llpb);
 
 	// debug
-	//	device_remove_file(dev,&dev_attr_getreg);
-	//	device_remove_file(dev,&dev_attr_setreg);
 	device_remove_file(dev,&dev_attr_hdlc_regs);	
 #ifdef SYSFS_DEBUG
 	device_remove_file(dev,&dev_attr_winread);	
@@ -1244,10 +1264,8 @@ static ssize_t
 store_crc16( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 {
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
 	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
-
-	if( ndev->flags & IFF_UP )
-		return size;
 
 	if( !size )	return 0;
     
@@ -1255,7 +1273,7 @@ store_crc16( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 		cfg->crc16=1;
 	else if( buf[0] == '0' )
 		cfg->crc16=0;
-
+	mr16g_hdlc_setup(nl);
 	return size;	
 }
 
@@ -1275,18 +1293,16 @@ static ssize_t
 store_fill_7e( struct device *dev, ADDIT_ATTR const char *buf, size_t size ) 
 {
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
 	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
 
-	if( ndev->flags & IFF_UP )
-		return size;
-    
 	if( !size )	return 0;
 	
 	if(buf[0] == '1' )
 		cfg->fill_7e=1;
 	else if( buf[0] == '0' )
 		cfg->fill_7e=0;
-	
+	mr16g_hdlc_setup(nl);
 	return size;	
 }
 
@@ -1306,10 +1322,8 @@ static ssize_t
 store_inv( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 {
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
 	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
-
-	if( ndev->flags & IFF_UP )
-		return size;
 
 	if( !size )
 		return 0;
@@ -1318,7 +1332,7 @@ store_inv( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 		cfg->inv=1;
 	else if( buf[0] == '0' )
 		cfg->inv=0;
-
+	mr16g_hdlc_setup(nl);
 	return size;	
 }
 
@@ -1338,17 +1352,16 @@ static ssize_t
 store_rburst( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 {
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
 	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
 
-	if( ndev->flags & IFF_UP )
-		return size;
-    
 	if( !size )	return 0;
 
 	if(buf[0] == '1' )
 		cfg->rburst=1;
 	else if( buf[0] == '0' )
 		cfg->rburst=0;
+	mr16g_hdlc_setup(nl);
 	return size;	
 }
 
@@ -1368,17 +1381,16 @@ static ssize_t
 store_wburst( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 {
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
 	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);
 
-	if( ndev->flags & IFF_UP )
-		return size;
-    
 	if( !size )	return 0;
 
 	if(buf[0] == '1' )
 		cfg->wburst=1;
 	else if( buf[0] == '0' )
 		cfg->wburst=0;
+	mr16g_hdlc_setup(nl);
 	return size;	
 }
 
@@ -1482,15 +1494,15 @@ static ssize_t
 store_slotmap( struct device *dev, ADDIT_ATTR const char *buf, size_t size ) 
 {
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 	u32 ts=0;
 	int err;
 	char *str;
+	u8 mask = EXT;
+	
 
 	PDEBUG(DSYSFS,"start");	
-	/* if interface is up */
-	if( ndev->flags & IFF_UP )
-		return size;
 
 	if( !size )
 		return size;
@@ -1506,7 +1518,9 @@ store_slotmap( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 		return size;
 	}
 	cfg->slotmap=ts;
-	
+	mr16g_E1_setup(nl);		
+	mr16g_setup_carrier(ndev,&mask);
+	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
 	return size;
 }
 
@@ -1526,23 +1540,26 @@ static ssize_t
 store_map_ts16( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 {
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);	
-
-	/* if interface is up */
-	if( ndev->flags & IFF_UP )
-		return size;
+	u8 mask = EXT;
 
 	if( size > 0 ){
 		if( buf[0] == '0' ){
 			cfg->ts16 = 0;
 		}else if( buf[0] == '1' ){
-		    cfg->ts16 = 1;
+			cfg->ts16 = 1;
 			if( cfg->cas ){
 			    cfg->cas = 0;
 			}
-		}
-    }    
-    return size;
+		}else
+			return size;
+		mr16g_E1_setup(nl);
+		mr16g_setup_carrier(ndev,&mask);
+		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+		
+	}    
+	return size;
 }
 
 
@@ -1563,17 +1580,21 @@ static ssize_t
 store_framed( struct device *dev, ADDIT_ATTR const char *buf, size_t size ) 
 {
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
-
-	/* if interface is up */
-	if( ndev->flags & IFF_UP )
-		return size;
+	u8 mask = EXT;
 
 	if( size > 0 ){
 		if( buf[0]=='0' )
 			cfg->framed=0;
 		else if( buf[0]=='1' )
 			cfg->framed=1;
+		else 
+			return size;
+		mr16g_E1_setup(nl);		
+		mr16g_setup_carrier(ndev,&mask);
+		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+		
 	}    
 	return size;
 }
@@ -1595,18 +1616,21 @@ static ssize_t
 store_clck( struct device *dev, ADDIT_ATTR const char *buf, size_t size ) 
 {
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
-
-	/* if interface is up */
-	if( ndev->flags & IFF_UP )
-		return size;
+	u8 mask = EXT;
 
 	if( size > 0 ){
 		if( buf[0]=='0' )
 			cfg->int_clck=1;
-		else
-			if( buf[0]=='1' )
+		else if( buf[0]=='1' )
 		        cfg->int_clck=0;
+		else
+			return size;
+		mr16g_E1_setup(nl);
+		mr16g_setup_carrier(ndev,&mask);
+		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+		
 	}    
 	return size;
 }
@@ -1629,17 +1653,20 @@ static ssize_t
 store_lhaul( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 {
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
-
-	/* if interface is up */
-	if( ndev->flags & IFF_UP )
-		return size;
+	u8 mask = EXT;
 
 	if( size > 0 ){
 		if( buf[0]=='0' )
 			cfg->long_haul=0;
 		else if( buf[0]=='1' )
 			cfg->long_haul=1;
+		else
+			return size;
+		mr16g_E1_setup(nl);		
+		mr16g_setup_carrier(ndev,&mask);
+		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
 	}    
 	return size;
 }
@@ -1663,18 +1690,20 @@ static ssize_t
 store_hdb3( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 {
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
-
-	/* if interface is up */
-	if( ndev->flags & IFF_UP )
-		return size;
+	u8 mask = EXT;
 
 	if( size > 0 ){
 		if( buf[0]=='0' )
 			cfg->hdb3=0;
-		else
-			if( buf[0]=='1' )
+		else if( buf[0]=='1' )
 		        cfg->hdb3=1;
+		else
+			return size;
+		mr16g_E1_setup(nl);		
+		mr16g_setup_carrier(ndev,&mask);
+		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
 	}    
 	return size;
 }
@@ -1697,18 +1726,20 @@ static ssize_t
 store_crc4( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 {
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
-
-	/* if interface is up */
-	if( ndev->flags & IFF_UP )
-		return size;
+	u8 mask = EXT;
 
 	if( size > 0 ){
 		if( buf[0]=='0' )
 			cfg->crc4=0;
-		else
-			if( buf[0]=='1' )
+		else if( buf[0]=='1' )
 		        cfg->crc4=1;
+		else
+			return size;
+		mr16g_E1_setup(nl);		
+		mr16g_setup_carrier(ndev,&mask);
+		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
 	}    
 	return size;
 }
@@ -1731,20 +1762,111 @@ static ssize_t
 store_cas( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 {
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
-
-	/* if interface is up */
-	if( ndev->flags & IFF_UP )
-		return size;
+	u8 mask = EXT;
 
 	if( size > 0 ){
 		if( buf[0]=='0' )
 			cfg->cas=0;
 		else if( buf[0]=='1' && !cfg->ts16 )
 			cfg->cas=1;
+		else
+			return size;
+		mr16g_E1_setup(nl);		
+		mr16g_setup_carrier(ndev,&mask);
+		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
 	}    
+
 	return size;
 }
+
+
+//--------------- Loopback rgisters
+
+// Remote loopback
+static ssize_t
+show_rloopback( struct device *dev, ADDIT_ATTR char *buf )
+{
+	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
+
+	return snprintf(buf,PAGE_SIZE,"%s",(ds2155_getreg(nl,LBCR) & RLB) ? "on" : "off");
+}
+
+static ssize_t
+store_rloopback( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+{
+	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
+	u8 tmp;
+
+	// check parameters
+	if( !size)
+		return size;
+	switch( buf[0] ){
+	case '0':
+		tmp = ds2155_getreg(nl,LBCR) & (~RLB);
+    		ds2155_setreg(nl,LBCR,tmp);
+		break;
+	case '1':
+		tmp = ds2155_getreg(nl,LBCR) | RLB;
+    		ds2155_setreg(nl,LBCR,tmp);
+		break;
+	default:
+		break;
+	}
+	return size;
+}
+
+
+		
+
+
+// Local loopback
+static ssize_t
+show_lloopback( struct device *dev, ADDIT_ATTR char *buf )
+{
+	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
+
+	return snprintf(buf,PAGE_SIZE,"%s",(ds2155_getreg(nl,LBCR) & LLB) ? "on" : "off");
+}
+
+static ssize_t
+store_lloopback( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+{
+	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_local *nl=mr16g_priv(ndev);
+	u8 tmp, mask;
+
+	// check parameters
+	if( !size)
+		return size;
+	switch( buf[0] ){
+	case '0':
+		tmp = ds2155_getreg(nl,LBCR) & (~LLB);
+    		ds2155_setreg(nl,LBCR,tmp);
+		// Reset carrier state
+		mr16g_setup_carrier(ndev,&mask);
+    		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+		break;
+	case '1':
+		tmp = ds2155_getreg(nl,LBCR) | LLB;
+    		ds2155_setreg(nl,LBCR,tmp);
+		// Force carrier on
+		mr16g_setup_carrier(ndev,&mask);
+    		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+		break;
+	default:
+		break;
+	}
+	return size;
+}
+
+
+
+// DEBUG
 
 static ssize_t show_hdlcregs( struct device *dev, ADDIT_ATTR char *buf )
 {
@@ -1868,10 +1990,10 @@ store_mx_slotmap(struct class_device *cdev,const char *buf,size_t size)
 	struct net_device *ndev = to_net_dev(cdev);    
 	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
-
 	u32 ts=0;
 	int err;
 	char *str;
+	u8 mask = EXT;
 
 	PDEBUG(DSYSFS,"start, buf=%s",buf);	
 
@@ -1893,7 +2015,9 @@ store_mx_slotmap(struct class_device *cdev,const char *buf,size_t size)
 
 	if( ndev->flags & IFF_UP ){
 		PDEBUG(DSYSFS,"reset all");
-		mr16g_E1_setup(nl);		
+		mr16g_E1_setup(nl);
+		mr16g_setup_carrier(ndev,&mask);
+		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
 	}
 	
 	return size;

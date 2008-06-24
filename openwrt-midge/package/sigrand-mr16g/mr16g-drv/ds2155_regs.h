@@ -100,6 +100,8 @@
 #define EBCR1	0x48
 #define EBCR2	0x49
 #define LBCR	0x4A
+#	define RLB 0x04
+#	define LLB 0x08
 #define PCLR1	0x4B
 #define PCLR2	0x4C
 #define PCLR3	0x4D

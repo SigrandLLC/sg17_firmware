@@ -180,6 +180,7 @@ static void recv_free_buffs( struct net_device * );
 // HDLC controller functions
 inline void mr16g_hdlc_down(struct net_local *nl);
 inline void mr16g_hdlc_up( struct net_local *nl);
+inline void mr16g_hdlc_setup( struct net_local *nl);
 inline void mr16g_hdlc_open( struct net_local *nl);
 inline void mr16g_hdlc_close( struct net_local *nl);
 
@@ -248,8 +249,16 @@ static ssize_t store_cas( struct device *dev, ADDIT_ATTR const char *buf, size_t
 static ssize_t show_map_ts16( struct device *dev, ADDIT_ATTR char *buf );
 static ssize_t store_map_ts16(struct device *dev, ADDIT_ATTR const char *buf, size_t size);
 
+// Loopback rgisters
+// Remote loopback
+static ssize_t show_rloopback( struct device *dev, ADDIT_ATTR char *buf );
+static ssize_t store_rloopback( struct device *dev, ADDIT_ATTR const char *buf, size_t size );
+// Local loopback
+static ssize_t show_lloopback( struct device *dev, ADDIT_ATTR char *buf );
+static ssize_t store_lloopback( struct device *dev, ADDIT_ATTR const char *buf, size_t size );
+
 //debug
-static ssize_t store_chk_carrier( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
+//static ssize_t store_chk_carrier( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
 static ssize_t show_hdlcregs( struct device *dev, ADDIT_ATTR char *buf );
 
 #ifdef SYSFS_DEBUG
@@ -293,5 +302,6 @@ static ssize_t store_mx_clkab(struct class_device *cdev,const char *buf,size_t s
 // CLKR
 static ssize_t show_mx_clkr(struct class_device *cdev, char *buf);
 static ssize_t store_mx_clkr(struct class_device *cdev,const char *buf,size_t size);
+
 
 #endif

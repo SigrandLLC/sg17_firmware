@@ -24,6 +24,8 @@ print_stat()
 	echo "    ts16:      "`cat map_ts16`
     fi
     echo "    long haul: "`cat long_haul`    
+    echo "E1 loopback settings:"
+    echo "    local="`cat llpb`" remote="`cat rlpb`
     echo "HDLC controller settings:"
     echo "    "`cat crc16`" "`cat inv`" "`cat fill_7e`" "`cat rburst`" "`cat wburst`
 }					    
@@ -53,6 +55,8 @@ if [ $# = 0 ]; then
     echo "PCI options:"
     echo "  rboff | rbon               - PCI read burst mode off"
     echo "  wboff | wbon               - PCI write burst mode off"
+    echo "  lloop on|off               - E1 Local Loopback on/off"
+    echo "  rloop on|off               - E1 Remote Loopback on/off"
     exit
 fi
 cdir=`pwd`
@@ -81,10 +85,8 @@ if [ $# = 1 ]; then
 fi
 
 ifisup=`ifconfig $interf | grep UP`
-#echo "ifisup=$ifisup"
 if [ -n "$ifisup" ]; then
-    echo $0:" error, bring "$interf" down first"
-    exit;
+    ifisup=1
 fi
 							    
 
@@ -211,6 +213,30 @@ while [ ! -z "$1" ]; do
     "fill_7e")
 	echo 1 > fill_7e
 	;;
+    "lloop")
+	if [ -z $2 ]; then
+	    echo $0": syntax error, after \"lloop\" "
+	    break
+	fi
+	if [ $2 = "on" ]; then
+	    echo 1 > llpb
+	elif [ $2 = "off" ]; then
+	    echo 0 > llpb
+	fi
+	shift	
+	;;    
+    "rloop")
+	if [ -z $2 ]; then
+	    echo $0": syntax error, after \"rloop\" "
+	    break
+	fi
+	if [ $2 = "on" ]; then
+	    echo 1 > rlpb
+	elif [ $2 = "off" ]; then
+	    echo 0 > rlpb
+	fi
+	shift	
+	;;    
     *)
 	echo $0": error parameter - "$1
 	;;
