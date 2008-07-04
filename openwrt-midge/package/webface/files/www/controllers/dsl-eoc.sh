@@ -1,5 +1,8 @@
 #!/usr/bin/haserl
 
+# SHDSL modules web-control through EOC daemon 
+# Written by Polyakov A.U. <artpol84@gmail.com>
+
 info=/sbin/eoc-info
 config=/sbin/eoc-config
 

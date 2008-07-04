@@ -3,7 +3,7 @@
 modprobe adm5120sw
 
 # if DSL <--> Ethernet is on
-MAPCFG=/etc/sigrand/dsl2eth.map
+MAPCFG=/etc/dsl2eth/dsl2eth.map
 [ -f "$MAPCFG" ] || exit 0
 
 tmp=`grep eth $MAPCFG`

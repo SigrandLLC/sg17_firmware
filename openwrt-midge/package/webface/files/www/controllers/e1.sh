@@ -1,5 +1,8 @@
 #!/usr/bin/haserl
 
+# E1 modules web-control script
+# Written by Polyakov A.U. <artpol84@gmail.com>
+
 . /www/oem.sh
 
 cfg_path="/sys/bus/pci/drivers/"$MR16G_DRVNAME

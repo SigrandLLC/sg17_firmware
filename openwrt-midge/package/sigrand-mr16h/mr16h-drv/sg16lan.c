@@ -1,6 +1,6 @@
 /* sg16lan.c:  Sigrand SG-16PCI SHDSL modem driver for linux (kernel 2.6.x)
  *
- *	Written 2005-2006 by Artem U. Polyakov (artpol@sigrand.ru)
+ *	Written 2005-2006 by Artem Y. Polyakov (artpol@sigrand.ru)
  *
  *	This driver presents SG-16PCI modem 
  *	to system as common ethernet-like netcard.

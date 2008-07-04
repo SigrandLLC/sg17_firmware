@@ -1,5 +1,8 @@
 #!/usr/bin/haserl
 
+# SHDSL modules web-control script
+# Written by Polyakov A.U. <artpol84@gmail.com> 
+
 eoc_config=/sbin/eoc-config
 eoc_info=/sbin/eoc-info
 

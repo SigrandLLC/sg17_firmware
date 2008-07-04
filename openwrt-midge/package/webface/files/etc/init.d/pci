@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# PCI bus devices control
+# Written by Polyakov A.U. <artpol84@gmail.com>
+
+
 kdb="/usr/bin/kdb"
 ip="/usr/sbin/ip"
 ifcfg="/sbin/ifconfig"
@@ -7,7 +11,6 @@ tmp_file="/tmp/pcinet.config"
 eocd_file="/etc/eocd/interface-migraton"
 
 . /etc/templates/oem-vars
-. /etc/templates/sigrand-lib
 
 pci_driver(){
 

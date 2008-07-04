@@ -1,6 +1,6 @@
 /* sg17main.c:  Sigrand SG-17PCI SHDSL modem driver for linux (kernel 2.6.x)
  *
- *	Written 2006-2007 by Artem U. Polyakov <artpol84@gmail.com>
+ *	Written 2006-2007 by Artem Y. Polyakov <artpol84@gmail.com>
  *
  *	This driver presents SG-17PCI modem 
  *	to system as common ethernet-like netcard.
@@ -9,7 +9,7 @@
  *	of the GNU General Public License.
  *
  *
- *	25.01.2007	Version 1.0 - Artem U. Polyakov <art@sigrand.ru>
+ *	25.01.2007	Version 1.0 - Artem Y. Polyakov <art@sigrand.ru>
  */
 
 #include <linux/init.h>

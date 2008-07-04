@@ -1,10 +1,12 @@
 #!/bin/sh
 
+# SHDSL modules boot configuration script
+# Written by Polyakov A.U. <artpol84@gmail.com>
+
 kdb="kdb"
 ifcfg="/sbin/ifconfig"
 
 . /etc/templates/oem-vars
-. /etc/templates/sigrand-lib
 # checks that DSL service is enabled
 
 # Device configurations

@@ -197,7 +197,7 @@ mr16g_init_one( struct pci_dev *pdev,const struct pci_device_id *ent )
 	// register net device
 	err = register_hdlc_device(ndev);
 	if( err < 0 ){
-		printk("%s: cannot register net device, err=%d",__FILE__,err);
+		printk("%s: cannot register net device, err=%d",__FUNCTION__,err);
 		goto err2;
 	}
 		
@@ -290,7 +290,7 @@ mr16g_probe( struct net_device  *ndev )
 
 	// setup IO mem
 	if( !(request_mem_region(ndev->mem_start,0x1000,ndev->name)) ){
-		printk("%s:error requesting mem region",__FILE__);
+		printk("%s:error requesting mem region",__FUNCTION__);
 		return err;
 	}
 	nl->mem_base = (void *) ioremap(ndev->mem_start, 0x1000);
