@@ -69,7 +69,7 @@ start)
 		modprobe -r $sgatab_module $daa_module 
 		modprobe -r $vinetic_module $tapi_module
 	else
-		echo -n Starting Sigrand-VoIP services: 
+		echo -n "Starting VoIP services:" 
 
 		/bin/svi
 		
@@ -90,7 +90,7 @@ start)
 	
 ;;
 stop)
-	echo -n Stoping VoIP daemon: 
+	echo -n "Stoping VoIP daemon:"
 	killall svd
 	echo " OK"
 ;;
@@ -109,4 +109,3 @@ restart)
 esac
 
 exit 0
-
