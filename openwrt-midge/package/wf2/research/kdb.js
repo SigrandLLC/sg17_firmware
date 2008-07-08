@@ -17,7 +17,7 @@ Config.prototype.ParseRawKDB = function (data) {
 };
 
 Config.prototype.LoadKDB = function (params) {
-	var url = "kdb.default";
+	var url = "kdb/kdb_load.cgi";
 	if (params) {
 		if (params.url) url = params.url;
 	}
@@ -37,6 +37,16 @@ Config.prototype.Get = function (name) {
 	return "";
 }
 
+Config.prototype.Save = function (val) {
+	for (var i = 0; i < this.conf.length; i++) {
+		if ( this.conf[i].name == "sys_hostname" ) 
+			this.conf[i].value = val;
+	}
+	$.get(
+		'kdb/kdb_save.cgi',
+		{hostname: val}
+	);
+}
 
 config = new Config();
 config.LoadKDB( );

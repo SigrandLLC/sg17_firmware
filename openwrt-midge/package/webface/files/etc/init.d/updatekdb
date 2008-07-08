@@ -1,7 +1,6 @@
 #!/bin/sh
 # Downloads kdb mac file with MAC-addresses at first boot (or by 'force' key).
 # Updates KDB with new MAC-addresses.
-# Written by Kazantsev A.V., Sigrand, Novosibirsk, kazantsev@sigrand.ru
 
 MACSERVER="192.168.2.1"
 MACPORT="1030"
