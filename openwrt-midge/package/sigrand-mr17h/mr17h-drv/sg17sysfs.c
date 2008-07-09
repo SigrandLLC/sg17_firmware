@@ -67,6 +67,7 @@ store_mode( struct class_device *cdev,const char *buf, size_t size )
 			cfg->mode = STU_R;
 			cfg->startup_initialization = STARTUP_FAREND;
 			cfg->transaction = GHS_TRNS_00;
+			cfg->annex = ANNEX_A_B;
 		}else if( buf[0] == '1' ){
 			cfg->mode = STU_C;
 			cfg->startup_initialization = STARTUP_LOCAL;

@@ -921,7 +921,7 @@ sg17_def_config(struct sg17_card *card)
 	//	cfg_ch3->transaction = GHS_TRNS_10;
 	cfg_ch3->transaction = GHS_TRNS_00;
 	// ( ANNEX_A_B | ANNEX_A | ANNEX_B | ANNEX_G | ANNEX_F )
-	cfg_ch3->annex = ANNEX_A;
+	cfg_ch3->annex = ANNEX_A_B;
 	///  TC-PAM: TCPAM16  TCPAM32
 	cfg_ch3->tc_pam = TCPAM32;
 	// rate (speed)
@@ -945,7 +945,7 @@ sg17_def_config(struct sg17_card *card)
 	// ( GHS_TRNS_00 | GHS_TRNS_01 | GHS_TRNS_11 | GHS_TRNS_10 )
 	cfg_ch0->transaction = GHS_TRNS_10;
 	// ( ANNEX_A_B | ANNEX_A | ANNEX_B | ANNEX_G | ANNEX_F )
-	cfg_ch0->annex = ANNEX_A;
+	cfg_ch0->annex = ANNEX_A_B;
 	///  TC-PAM: TCPAM16  TCPAM32
 	cfg_ch0->tc_pam = TCPAM32;
 	// rate (speed)

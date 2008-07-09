@@ -731,6 +731,11 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	struct sdfe4_ret ret;
 	int i;
 
+	// 0. Prepare
+	if( cfg->mode == STU_R ){
+	    cfg->annex = ANNEX_A_B;
+	}
+
 	// 1. Setup if role
 	PDEBUG(debug_sdfe4,"Setup if role");
 	sym_dsl=(struct cmd_cfg_sym_dsl_mode *)buf;
