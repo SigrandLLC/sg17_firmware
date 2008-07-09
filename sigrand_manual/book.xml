@@ -1418,8 +1418,7 @@
 				[2] TFTP Download
 				[3] Print Boot Params
 				[4] Set Boot Params
-				[5] Check flash
-				[6] Exit
+				[5] Exit
 				
 				Please enter your number:
 			</screen>
@@ -1434,7 +1433,7 @@
 				</listitem>
 				<listitem>
 					<para>
-						<emphasis>TFTP Download</emphasis> — обновление системы или загрузчика с помощью TFTP сервера.
+						<emphasis>TFTP Download</emphasis> — обновление системы или загрузчика с помощью TFTP-сервера.
 					</para>
 				</listitem>
 				<listitem>
@@ -1450,24 +1449,6 @@
 				<listitem>
 					<para>
 						<emphasis>Check flash</emphasis> — проверка флэш-памяти маршрутизатора на наличие поврежденных блоков.
-					</para>
-				</listitem>
-			</itemizedlist>
-			<para>
-				Чтобы проверить маршрутизатор на наличие повреждённых блоков, перейдём в меню Check flash:
-			</para>
-			<screen>
-				Please enter your number:5
-				Flash Client Menu
-				===============================
-				[P]: Print existent bad blocks 
-				[X]: exit
-				Enter your option:
-			</screen>
-			<itemizedlist>
-				<listitem>
-					<para>
-						<emphasis>Print existent bad blocks</emphasis> — тестирует флэш-память на наличие повреждённых блоков.
 					</para>
 				</listitem>
 			</itemizedlist>
@@ -1527,8 +1508,7 @@
 				[2] TFTP Download
 				[3] Print Boot Params
 				[4] Set Boot Params
-				[5] Check flash
-				[6] Exit
+				[5] Exit
 				
 				Please enter your number:
 			</screen>
@@ -1536,16 +1516,6 @@
 				Перед обновлением прошивки необходимо выставить сетевые параметры, которые соответствуют вашей сети. Для этого нужно перейти в пункт меню <emphasis>Set Boot Params</emphasis>, нажав клавишу 4. Здесь будет предложено указать:
 			</para>
 			<itemizedlist>
-				<listitem>
-					<para>
-						<emphasis>Серийный номер маршрутизатора</emphasis> — (Enter new serial number) — можно пропустить.
-					</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis>Версию аппаратной части</emphasis> — (Enter new hardware version) — можно пропустить.
-					</para>
-				</listitem>
 				<listitem>
 					<para>
 						<emphasis>MAC-адрес сетевого интерфейса</emphasis> — (Enter new mac address) — можно оставить установленный MAC адрес (его значение отображено выше, Current Mac Address), или ввести новое значение.
@@ -1558,7 +1528,7 @@
 				</listitem>
 				<listitem>
 					<para>
-						<emphasis>IP-адрес</emphasis> — (Enter new IP address for this board) — следует ввести IP адрес, находящийся в одной сети с TFTP сервером.
+						<emphasis>IP-адрес</emphasis> — (Enter new IP address for this board) — следует ввести IP-адрес, находящийся в одной сети с TFTP-сервером.
 					</para>
 				</listitem>
 			</itemizedlist>
@@ -1568,10 +1538,6 @@
 			<screen>
 				Set Boot Parameters.
 				==========================
-				Enter new serial number:
-				Serial Number unchanged.
-				Enter new hardware version:
-				Hardware version unchanged.
 				Current mac addres: 00-05-5D-77-86-01
 				Number of mac address: 1
 				Enter new mac address (AA-AA-AA-AA-AA-AA):
@@ -1582,38 +1548,35 @@
 				IP updated successfully.
 			</screen>
 			<para>
-				В приведенном примере был введен только IP адрес маршрутизатора, остальные параметры оставлены без изменений.
+				В приведённом примере был введён только IP адрес маршрутизатора, остальные параметры оставлены без изменений.
 			</para>
 			<para>
-				После настройки сетевых параметров, следует выбрать пункт меню 2 (TFTP Client Download) для настройки параметров обновления с помощью TFTP сервера. Содержание этого меню приведено ниже:
+				После настройки сетевых параметров, следует выбрать пункт меню 2 (TFTP Download) для настройки параметров обновления с помощью TFTP-сервера. Содержание этого меню приведено ниже:
 			</para>
 			<screen>
 				Server IP: 80.66.88.167
 				Gateway IP: 10.10.10.2
-				Remote File bootloader: bootgw
 				Remote File system: openwrt
 				
 				TFTP Client Menu
 				===============================
-				[B]: Update bootloader
 				[S]: Update system
-				[A]: Update all
 				[P]: Set parameters
 				[X]: exit
 				Enter your option:
 			</screen>
 			<note>
 				<para>
-					Приведённое выше меню соответствует новому загрузчику, в который была добавлена возможность загрузки образов загрузчика и системы с TFTP-сервера, находящегося за маршрутизатором. Меню в старых версиях загрузчика отличается отсутствием возможности установки шлюза и обновления загрузчика.
+					Приведённое выше меню соответствует новому загрузчику, в который была добавлена возможность загрузки системы с TFTP-сервера, находящегося за маршрутизатором. Меню в старых версиях загрузчика отличается отсутствием возможности установки шлюза.
 				</para>
 			</note>
 			<para>
-				Первые четыре строчки над меню содержат информацию, установленную во время последнего обновления прошивки. Для их изменения следует выбрать пункт меню set parameters нажатием клавиши p. В ответ на это будет предложено ввести:
+				Первые три строчки над меню содержат информацию, установленную во время последнего обновления прошивки. Для их изменения следует выбрать пункт меню set parameters нажатием клавиши p. В ответ на это будет предложено ввести:
 			</para>
 			<itemizedlist>
 				<listitem>
 					<para>
-						<emphasis>IP-адрес TFTP сервера</emphasis> — (Please Enter TFTP Server IP) — IP адрес TFTP сервера, на котором находится файл прошивки. Можно использовать TFTP-сервер, предоставляемый компанией Сигранд —  <emphasis>sigrand.ru</emphasis>. Вводить следует IP-адрес сервера.
+						<emphasis>IP-адрес TFTP-сервера</emphasis> — (Please Enter TFTP Server IP) — IP-адрес TFTP-сервера, на котором находится файл прошивки. Можно использовать TFTP-сервер, предоставляемый компанией Сигранд —  <emphasis>sigrand.ru</emphasis>. Вводить следует IP-адрес сервера.
 					</para>
 				</listitem>
 				<listitem>
@@ -1623,38 +1586,15 @@
 				</listitem>
 				<listitem>
 					<para>
-						<emphasis>Имя файла образа загрузчика</emphasis> — (Enter remote bootloader file name).
-					</para>
-				</listitem>
-				<listitem>
-					<para>
-						<emphasis>Имя файла прошивки</emphasis> — (Enter remote system file name) — имя файла прошивки, расположенного на TFTP сервере.
+						<emphasis>Имя файла прошивки</emphasis> — (Enter remote system file name) — имя файла прошивки, расположенного на TFTP-сервере.
 					</para>
 				</listitem>
 			</itemizedlist>
 			<screen>
 				Please enter TFTP server IP : 80.66.88.167
 				Please enter gateway IP : 10.10.10.2
-				Enter remote bootloader file name : bootgw
 				Enter remote system file name : openwrt
 			</screen>
-			<para>
-				После настройки необходимых параметров, можно перейти к прошивке маршрутизатора или обновлению загрузчика. Для обновления загрузчика выбираем пункт меню [B]: Update bootloader:
-			</para>
-			<screen>
-				Enter your option:b
-				Starting the TFTP download(ESC to stop)...
-				PASS
-				File total Length: 00010DF0
-				
-				Eraseing flash.......
-				PASS
-				Programming flash....
-				PASS
-			</screen>
-			<para>
-				PASS, соответствующий строчкам Eraseing flash и Programming flash означает, что обновление загрузчика прошло успешно. FAIL говорит о возникших проблемах, как правило это неправильный IP-адрес TFTP-сервера (маршрутизатор и TFTP-сервер находятся в разных сетях) или неправильное имя файла на сервере.
-			</para>
 			<para>
 				Для обновления прошивки маршрутизатора переходим в пункт меню [S]: Update system:
 			</para>
@@ -1670,19 +1610,7 @@
 				PASS
 			</screen>
 			<para>
-				Если на экране присутствуют строчки:
-			</para>
-			<screen>
-				Eraseing flash.......
-				PASS
-				Programming flash....
-				PASS
-			</screen>
-			<para>
-				— значит, обновление прошивки прошло успешно и теперь можно загрузить новую прошивку. Для этого необходимо выполнить перезагрузку маршрутизатора нажатием на кнопку RESET (или включением/выключением питания).
-			</para>
-			<para>
-				Пункт меню [A]: Update all последовательно обновляет загрузчик и прошивку маршрутизатора.
+				PASS, соответствующий строчкам Eraseing flash и Programming flash означает, что обновление прошло успешно. FAIL говорит о возникших проблемах, как правило это неправильный IP-адрес TFTP-сервера (маршрутизатор и TFTP-сервер находятся в разных сетях) или неправильное имя файла на сервере. Для загрузки новой прошивки необходимо выполнить перезагрузку маршрутизатора нажатием на кнопку RESET или включением/выключением питания.
 			</para>
 			<para>
 				После загрузки маршрутизатора (при обычной загрузке не требуется входить в меню загрузчика, поэтому надо подождать, пока истечёт таймер и начнётся загрузка операционной системы), можно перейти к настройке посредством веб-интерфейса. Доступ к консоли больше не требуется, поэтому провод и соответствующее <acronym>ПО</acronym> можно отключить.
@@ -1692,7 +1620,7 @@
 			</para>
 			<screen>Starting the TFTP download(ESC to stop)..FAIL</screen>
 			<para>
-				— значит, загрузчику не удалось загрузить файл прошивки с указанного TFTP сервера. В этом случае следует проверить корректность указания IP адреса TFTP сервера и имени файла прошивки на нем. Если все корректно, то следует проверить настройки, введенные в пункте Set Boot Params. Может помочь смена MAC адреса и проверка, не блокирует ли сервер TFTP соединения с маршрутизатора.
+				— значит, загрузчику не удалось загрузить файл прошивки с указанного TFTP-сервера. В этом случае следует проверить корректность указания IP адреса TFTP-сервера и имени файла прошивки на нем. Если всё корректно, то следует проверить настройки, введённые в пункте Set Boot Params. Так же может помочь смена MAC-адреса и проверка, не блокирует ли сервер TFTP соединения с маршрутизатора.
 			</para>
 		</section>
 		<section>
@@ -1711,12 +1639,12 @@
 				</listitem>
 				<listitem>
 					<para>
-						Разместить на TFTP сервере и загрузить с помощью <command>tftp</command> клиента.
+						Разместить на TFTP-сервере и загрузить с помощью <command>tftp</command> клиента.
 					</para>
 				</listitem>
 			</itemizedlist>
 			<para>
-				Загрузка пакета с TFTP сервера:
+				Загрузка пакета с TFTP-сервера:
 			</para>
 			<para>
 				# <command>tftp</command>
@@ -2022,15 +1950,15 @@
 			<para>
 				Для создания сложных взаимосвязей между интерфейсами была добавлена возможность
 				управления состоянием Ethernet порта в зависимости от состояния соответствующего ему
-				SHDSL порта
+				SHDSL порта.
 			</para>
 			<para>
 				На данный момент управление соответствием осуществляется через консольный
-				интерфейс, и устанавливается в конфигурационном файле /etc/sigrand/dsl2eth.map.
+				интерфейс, и устанавливается в конфигурационном файле /etc/dsl2eth/dsl2eth.map.
 			</para>
 			<para>
-				Изначально файл /etc/sigrand/dsl2eth.map пустой. Пример его заполнения показан в файле 
-				/etc/sigrand/dsl2eth.map.example и выглядит следующим образом:
+				Изначально файл /etc/dsl2eth/dsl2eth.map пустой. Пример его заполнения показан в файле 
+				/etc/dsl2eth/dsl2eth.map.example и выглядит следующим образом:
 			</para>
 			<screen>
 	dsl0 eth0
@@ -2041,7 +1969,7 @@
 				упадет, что так же будет отключен линк на eth0. Редактировать файл можно любым текстовым редактором, к примеру следующей командой:
 			</para>
 			<para>
-				<command>nano</command> <replaceable>/etc/sigrand/dsl2eth.map</replaceable>
+				<command>nano</command> <replaceable>/etc/dsl2eth/dsl2eth.map</replaceable>
 			</para>
 			<para>
 				После внесения изменений в конфигурационный файл рекомендуется перезагрузить маршрутизатор.
