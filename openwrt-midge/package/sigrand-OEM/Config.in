@@ -7,7 +7,7 @@ default "Sigrand"
 config BR2_SIGRAND_OEM_URL
 prompt "Manufacturer URL"
 string
-default "http:://www.sigrand.ru"
+default "http://www.sigrand.ru"
 
 config BR2_SIGRAND_OEM_HOSTNAME
 prompt "Default Hostname"
