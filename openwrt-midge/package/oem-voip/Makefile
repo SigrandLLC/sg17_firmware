@@ -8,7 +8,7 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=sigrand-voip
+PKG_NAME:=oem-voip
 PKG_VERSION:=0.1
 PKG_RELEASE:=1
 
@@ -37,7 +37,7 @@ SVD_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVD_DISTR) $(PKG_BUILD_DIR)
 SVI_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVI_DISTR) $(PKG_BUILD_DIR)
 
 
-$(eval $(call PKG_template,SIGRAND_VOIP,sigrand-voip,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
+$(eval $(call PKG_template,OEM_VOIP,oem-voip,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
 $(PKG_BUILD_DIR)/.prepared:
 
@@ -262,18 +262,18 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 
 
 
-$(IPKG_SIGRAND_VOIP): 
-	install -d -m0755 $(IDIR_SIGRAND_VOIP)/lib/modules/2.6.16/
-	install -d -m0755 $(IDIR_SIGRAND_VOIP)/bin/
-	install -d -m0755 $(IDIR_SIGRAND_VOIP)/lib/firmware/
-	install -d -m0755 $(IDIR_SIGRAND_VOIP)/etc/init.d/
-	cp -rpf $(PKG_INSTALL_DIR)/bin/*.ko $(IDIR_SIGRAND_VOIP)/lib/modules/2.6.16/
-	cp -rpf $(PKG_INSTALL_DIR)/bin/sv* $(IDIR_SIGRAND_VOIP)/bin/
-	cp -rpf $(PKG_CONF_DIR)/files/fw/* $(IDIR_SIGRAND_VOIP)/lib/firmware/
-	cp -rpf $(PKG_CONF_DIR)/files/rc/* $(IDIR_SIGRAND_VOIP)/etc/init.d/
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_VOIP)/CONTROL/control
-	$(RSTRIP) $(IDIR_SIGRAND_VOIP)
-	$(IPKG_BUILD) $(IDIR_SIGRAND_VOIP) $(PACKAGE_DIR)
-	#---------============== IPKG_SIGRAN_VOIP ===========---------
+$(IPKG_OEM_VOIP): 
+	install -d -m0755 $(IDIR_OEM_VOIP)/lib/modules/2.6.16/
+	install -d -m0755 $(IDIR_OEM_VOIP)/bin/
+	install -d -m0755 $(IDIR_OEM_VOIP)/lib/firmware/
+	install -d -m0755 $(IDIR_OEM_VOIP)/etc/init.d/
+	cp -rpf $(PKG_INSTALL_DIR)/bin/*.ko $(IDIR_OEM_VOIP)/lib/modules/2.6.16/
+	cp -rpf $(PKG_INSTALL_DIR)/bin/sv* $(IDIR_OEM_VOIP)/bin/
+	cp -rpf $(PKG_CONF_DIR)/files/fw/* $(IDIR_OEM_VOIP)/lib/firmware/
+	cp -rpf $(PKG_CONF_DIR)/files/rc/* $(IDIR_OEM_VOIP)/etc/init.d/
+	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_OEM_VOIP)/CONTROL/control
+	$(RSTRIP) $(IDIR_OEM_VOIP)
+	$(IPKG_BUILD) $(IDIR_OEM_VOIP) $(PACKAGE_DIR)
+	#---------============ IPKG_OEM_VOIP ===========---------
 	#---------- make ipkg
 	#---------======================================---------

@@ -101,6 +101,7 @@ toolchain/%:
 oem_clean: root_clean
 	@$(TRACE) oem_clean
 	rm -rf $(BUILD_DIR)/sigrand-* $(BUILD_DIR)/webface
+	rm -rf $(BUILD_DIR)/oem-* 
 	rm -rf $(BUILD_DIR)/eocd
 #	rm -rf $(BUILD_DIR)/net-snmp*
 

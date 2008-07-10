@@ -391,7 +391,7 @@ source "package/sigrand-mr17h/Config.in"
 source "package/sigrand-mr16h/Config.in"
 source "package/sigrand-mr16g/Config.in"
 source "package/sigrand-adm5120sw/Config.in"
-source "package/sigrand-voip/Config.in"
+source "package/oem-voip/Config.in"
 endmenu
 
 endmenu
