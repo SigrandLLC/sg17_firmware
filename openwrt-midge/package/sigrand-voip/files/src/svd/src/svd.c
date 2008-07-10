@@ -200,7 +200,7 @@ DFS
 	 * NUTAG_M_DISPLAY (),
 	 * */
 	svd->nua = nua_create (svd->root, svd_nua_callback, svd,
-			SIPTAG_USER_AGENT_STR ("Sigrand VoIP"),
+			SIPTAG_USER_AGENT_STR ("svd VoIP agent"),
 			SOATAG_AF (SOA_AF_IP4_IP6), 
 			NUTAG_AUTOALERT (1),
 			NUTAG_ENABLEMESSAGE (1),

@@ -59,8 +59,8 @@
 
 #define DEV_NAME "sgatab"
 
-MODULE_DESCRIPTION("SGATAB driver - www.sigrand.ru");
-MODULE_AUTHOR("SIGRAND, Vladimir Luchko <vlad.luch@mail.ru>");
+MODULE_DESCRIPTION("SGATAB driver");
+MODULE_AUTHOR("Vladimir Luchko <vlad.luch@mail.ru>");
 MODULE_LICENSE("GPL");
 
 /* ============================= */

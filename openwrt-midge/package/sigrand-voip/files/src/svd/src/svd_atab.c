@@ -12,8 +12,6 @@
 
 #include "libab/tapi/include/drv_tapi_io.h"
 
-#define RTP_PORT 20811
-#define RTP_PORT_RANGE_LENGTH 9
 #define BUFF_PER_RTP_PACK_SIZE 512
 
 static int svd_atab_handler (su_root_magic_t * root, su_wait_t * w, 

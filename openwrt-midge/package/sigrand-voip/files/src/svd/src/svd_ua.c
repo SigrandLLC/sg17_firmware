@@ -193,9 +193,9 @@ DFS
 
 		default:
 			/* unknown event received */
-		/*  если unknown event и nh неизвестен - нужно его уничтожить 
-		 * (nua_handle_destroy) иначе (related to an existing call or 
-		 * registration for instance). - игнорировать
+		/* if unknown event and nh unknown - it shold be destroyed 
+		 *(nua_handle_destroy) otherwise(related to an existing call or 
+		 * registration for instance). - ignore it.
 		 */
 			SU_DEBUG_2(("UNKNOWN EVENT : %d %s\n", status, phrase));
 	}
@@ -866,7 +866,7 @@ DFS
 							chan->abs_idx));
 				}
 			}
-			/* если не мы закончили разговор "FXS-FXS" */
+			/* ���� �� �� ��������� �������� "FXS-FXS" */
 			/* ioctl(ssc->fd, IFX_TAPI_TONE_BUSY_PLAY, 0);*/
 			break;
 	}

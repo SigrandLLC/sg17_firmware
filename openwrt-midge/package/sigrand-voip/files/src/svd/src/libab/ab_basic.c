@@ -21,6 +21,15 @@ extern int ab_dev_event_clean(ab_dev_t * const dev);
 
 /////////////////////////////////////////////////
 
+/**
+	Create the ab_t object. 
+\return
+	Pointer to created object or NULL if something nasty happens.
+\remark
+	This function:
+	- allocates memory
+	- make nessesary initializations
+*/
 ab_t* 
 ab_create( void )
 {
@@ -47,6 +56,15 @@ ab_create__exit:
 	return NULL;
 }; 
 
+/**
+	Destroy the ab_t object. 
+\param
+	ab - pointer to pointer to destroying object.
+		pointer to object will set to NULL
+		after destroying
+\remark
+	After all ab = NULL.
+*/
 void 
 ab_destroy( ab_t ** ab )
 {

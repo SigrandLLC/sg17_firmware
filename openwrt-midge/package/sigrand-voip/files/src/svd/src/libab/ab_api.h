@@ -1,7 +1,6 @@
 #ifndef __AB_API_H__
 #define __AB_API_H__
 
-
 typedef enum ab_dev_type_e 	ab_dev_type_t;
 typedef struct ab_chan_s 	ab_chan_t;
 typedef struct ab_dev_s 	ab_dev_t;
@@ -139,58 +138,50 @@ extern char const * ab_g_err_str;
 /** @defgroup AB_BASIC ACTIONS Basic libab interface
 	Basic interface.
   @{ */
-
-/**
-	Create the ab_t object. 
-\return
-	Pointer to created object or NULL if something nasty happens.
-\remark
-	This function:
-	- allocates memory
-	- make nessesary initializations
-*/
-ab_t* ab_create( void );
-
-/**
-	Destroy the ab_t object. 
-\param
-	ab - pointer to pointer to destroying object.
-		pointer to object will set to NULL
-		after destroying
-\remark
-	After all ab = NULL.
-*/
-void ab_destroy( ab_t ** ab );
-
+/** Create the ab_t object. */
+ab_t* ab_create (void);
+/** Destroy the ab_t object. */
+void ab_destroy (ab_t ** ab);
 /** @} */
+
 
 /** @defgroup AB_RINGS_TONES Ringing and toneplay libab interface.
 	Rings and Tones.
   @{ */
+/** Play ring or mute it */
 int ab_FXS_line_ring( ab_chan_t * const chan, enum ab_chan_ring_e ring );
+/** Play tone or mute it */
 int ab_FXS_line_tone( ab_chan_t * const chan, enum ab_chan_tone_e tone );
+/** Change linefeed mode */
 int ab_FXS_line_feed( ab_chan_t * const chan, enum ab_chan_linefeed_e feed );
-
+/** Onhook or offhook on FXO line */
 int ab_FXO_line_hook( ab_chan_t * const chan, enum ab_chan_hook_e hook );
+/** Dial a digit on FXO line */
 int ab_FXO_line_digit( 
 		ab_chan_t * const chan, 
 		char const data_length, char const * const data,
 		char const nInterDigitTime, char const nDigitPlayTime );
 /** @} */
 
+/** @defgroup AB_EVENTS Events libab interface.
+	Events.
+  @{ */
+/** Get the events occures on given device */
 int ab_dev_event_get( 
 		ab_dev_t * const dev, 
 		ab_dev_event_t * const evt, 
 		unsigned char * const chan_available );
+/** @} */
 
-// ... MEDIA 
 
+/** @defgroup AB_MEDIA Media libab interface.
+	Codecs RTP-frames etc.
+  @{ */
+/** Activate media on selected chan */
 int ab_chan_media_activate( ab_chan_t * const chan );
+/** De-Activate media on selected chan */
 int ab_chan_media_deactivate( ab_chan_t * const chan );
-
-// ... INTERNAL CALLS ( FROM CHAN TO CHAN / CONFERENCE )
-//
-
-// ... 
+/** @} */
 
 #endif /* __AB_API_H__ */
+

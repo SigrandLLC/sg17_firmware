@@ -774,7 +774,7 @@ Mandatory arguments to long options are mandatory for short options too.\n\
 \n\
 Report bugs to <%s>.\n\
 "
-		, PACKAGE_NAME, PACKAGE_NAME, PACKAGE_NAME, PACKAGE_BUGREPORT );
+		, PACKAGE_NAME, PACKAGE_NAME, PACKAGE_BUGREPORT );
 };
 
 //------------------------------------------------------------
