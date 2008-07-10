@@ -153,7 +153,7 @@ post_ifup(){
 		echo "$opt_rp_filter" >$file
 	
 	# restart VoIP daemon
-	/etc/init.d/rcvoip restart
+	[ -r /etc/init.d/rcvoip ] && /etc/init.d/rcvoip restart
 }
 
 _ifup(){
