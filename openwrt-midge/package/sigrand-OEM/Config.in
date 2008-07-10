@@ -4,6 +4,11 @@ prompt "Manufacturer"
 string
 default "Sigrand"
 
+config BR2_SIGRAND_OEM_URL
+prompt "Manufacturer URL"
+string
+default "www.sigrand.ru"
+
 config BR2_SIGRAND_OEM_HOSTNAME
 prompt "Default Hostname"
 string

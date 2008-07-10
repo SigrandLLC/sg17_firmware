@@ -17,6 +17,8 @@ $(PKG_BUILD_DIR)/.prepared:
 	cp -R templates $(PKG_BUILD_DIR)
 	touch $@
 
+OEM_URL_INFO=[ <a href=\"$(BR2_SIGRAND_OEM_URL)\" class=\"tblnk\">$(BR2_SIGRAND_OEM_MANUFACTURER)</a> ]
+
 $(PKG_BUILD_DIR)/.configured:
 #------------------- OEM -------------------------#
 # Sigrand modules
@@ -64,8 +66,17 @@ $(IPKG_WEBFACE):
 	cat files/etc/kdb.default | sed "s/sigrand1/$(BR2_SIGRAND_OEM_HOSTNAME)/g" >$(IDIR_WEBFACE)/etc/kdb.default;
 	echo $(BR2_SIGRAND_OEM_HOSTNAME) > $(IDIR_WEBFACE)/etc/hostname
 	cat files/etc/lighttpd.conf |sed "s/Sigrand router/$(BR2_SIGRAND_OEM_SYSNAME)/g" >$(IDIR_WEBFACE)/etc/lighttpd.conf;
-	cat files/www/common/footer.sh | sed "s/Sigrand/$(BR2_SIGRAND_OEM_MANUFACTURER)/g" > $(IDIR_WEBFACE)/www/common/footer.sh;
-	cat files/www/common/header.sh | sed "s/Sigrand/$(BR2_SIGRAND_OEM_MANUFACTURER)/g" > $(IDIR_WEBFACE)/www/common/header.sh;
+	
+	sed < $(IDIR_WEBFACE)/www/common/footer.sh.tmpl > $(IDIR_WEBFACE)/www/common/footer.sh \
+	    -e "s%@OEM_URL_INFO@%$(OEM_URL_INFO)%g"
+	rm -f $(IDIR_WEBFACE)/www/common/footer.sh.tmpl
+	chmod +x $(IDIR_WEBFACE)/www/common/footer.sh
+	
+	sed < $(IDIR_WEBFACE)/www/common/header.sh.tmpl > $(IDIR_WEBFACE)/www/common/header.sh \
+	    -e "s%@OEM_URL@%$(BR2_SIGRAND_OEM_URL)%g" \
+	    -e "s%@OEM_MANUFACTURER@%$(BR2_SIGRAND_OEM_MANUFACTURER)%g"
+	rm -f $(IDIR_WEBFACE)/www/common/header.sh.tmpl
+	chmod +x $(IDIR_WEBFACE)/www/common/header.sh
 
 
 ifneq ($(BR2_SIGRAND_OEM_BGROUND),"default")
