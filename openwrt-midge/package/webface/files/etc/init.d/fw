@@ -67,6 +67,8 @@ start(){
 		$SET_POLICY POSTROUTING $sys_fw_nat_policy_postrouting -t nat
 		chain nat prerouting
 		chain nat postrouting
+		echo 1024 > /sys/module/ip_conntrack/parameters/hashsize
+		echo 16384 > /proc/sys/net/ipv4/netfilter/ip_conntrack_max
 	fi
 	echo " done."
 }
