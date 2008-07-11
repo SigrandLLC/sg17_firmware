@@ -4,7 +4,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=sigrand-doc
 PKG_RELEASE:=1
-PKG_VERSION:=1.1.7
+PKG_VERSION:=1.1.8
 PKG_SOURCE_URL:=http://sigrand.ru/temp/doc/
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_CAT:=bzcat
