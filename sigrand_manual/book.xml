@@ -2903,7 +2903,7 @@
 				</para>
 				<figure>
 					<title>Е1: локальная петля</title>
-					<graphic fileref="img/E1-local_loopback.png"/>
+					<graphic fileref="img/E1-local_loopback.png" width="6in"/>
 				</figure>
 				<para>
 					Для активации этого вида петли необходимо на странице настройки интерфейса Е1 активировать параметр "Local Loopback" на маршрутизаторе, на котором создаётся петля (на нашей схеме — на маршрутизаторе R1).
@@ -2913,7 +2913,7 @@
 				</para>
 				<figure>
 					<title>Е1: удалённая петля</title>
-					<graphic fileref="img/E1-remote_loopback.png"/>
+					<graphic fileref="img/E1-remote_loopback.png" width="6in"/>
 				</figure>
 				<para>
 					Для активации этого вида петли необходимо на странице настройки интерфейса Е1 активировать параметр "Remote Loopback" на маршрутизаторе, на котором создаётся петля (на нашей схеме — на маршрутизаторе R2).
