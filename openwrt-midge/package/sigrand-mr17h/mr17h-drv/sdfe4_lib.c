@@ -486,43 +486,52 @@ sdfe4_download_fw(struct sdfe4 *hwdev
 	struct sdfe4_msg rmsg;
 #endif	
 	u8 *ret8;
-	// v1 chipset firmware CRC-s
-	u8 CODE_CRCv1[4]={0xE0,0xF3,0x4E,0x7D};	
-	u8 DATA_CRCv1[4]={0x8F,0xED,0xEF,0xFC};
-	// v2 chipset firmware CRC-s
-	u8 CODE_CRCv2[4]={0x0B,0xBF,0x5A,0xBC};	
-	u8 DATA_CRCv2[4]={0x54,0xA2,0xFF,0x42};
-	// General CRC-s
-	u8 *CODE_CRC,*DATA_CRC;
+	// chipset firmware CRC-s
+	u8 CODE_CRC[4];	
+	u8 DATA_CRC[4];
 	u32 code_size, data_size, data_offs, code_offs;
 	u32 fw_dtpnt;
 
 	switch(hwdev->type){
 	case SDFE4v1:
-		CODE_CRC = CODE_CRCv1;
-		DATA_CRC = DATA_CRCv1;
+        for(i=0;i<4;i++){
+            CODE_CRC[i] = fw[FW_CODE_CRC_OFFS+3-i];
+		    DATA_CRC[i] = fw[FW_DATA_CRC_OFFS+3-i];
+        }
 		code_size = FW_CODE_SIZE;
 		data_size = FW_DATA_SIZE;
 		code_offs = FW_CODE_OFFS;
 		data_offs = FW_DATA_OFFS;
 		fw_dtpnt = FWdtpnt;		
-		PDEBUG(debug_sdfe4,"use CRC for v1");
 		break;
 	case SDFE4v2:
-		CODE_CRC = CODE_CRCv2;
-		DATA_CRC = DATA_CRCv2;
+        for(i=0;i<4;i++){
+            CODE_CRC[i] = fw[FW_CODE_CRC_OFFSv2+3-i];
+		    DATA_CRC[i] = fw[FW_DATA_CRC_OFFSv2+3-i];
+        }
 		code_size = FW_CODE_SIZEv2;
 		data_size = FW_DATA_SIZEv2;
 		code_offs = FW_CODE_OFFSv2;
 		data_offs = FW_DATA_OFFSv2;
 		fw_dtpnt = FWdtpnt_v2;		
-		PDEBUG(debug_sdfe4,"use CRC for v2");
 		break;
 	default:
 		PDEBUG(debug_error,"Unknown device type: %d",hwdev->type);
 		return -1;
 	}
 	wait_ms(2);
+
+// TODO: remove
+//    printk(KERN_NOTICE"Result CRC values. CODE: ");
+//    for(i=0;i<4;i++){
+//           printk("%02x:",CODE_CRC[i]);
+//    }
+//    printk(" DATA: ");
+//    for(i=0;i<4;i++){
+///           printk("%02x:",DATA_CRC[i]);
+//    }
+//    printk("\n");
+// --- REMOVE
 
 	PDEBUG(debug_sdfe4,"hwdev = %08x,type=%d",(u32)hwdev,hwdev->type);
 	PDEBUG(debug_sdfe4,"hwdev->data = %08x",(u32)hwdev->data);	
