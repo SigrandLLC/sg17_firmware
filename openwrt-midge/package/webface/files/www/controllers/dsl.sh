@@ -222,18 +222,19 @@ _sg17_settings(){
 		str:sys_pcicfg_s${slot}_${dev}_crc \
 		str:sys_pcicfg_s${slot}_${dev}_fill	\
 		str:sys_pcicfg_s${slot}_${dev}_inv \
-		str:sys_pcicfg_s${slot}_${dev}_pwron"	
+		str:sys_pcicfg_s${slot}_${dev}_clkmode"
 	# if manual mode is enabled
 	if [ "$ctrl" = "manual" ]; then
 		kdb_vars="$kdb_vars \
 			str:sys_pcicfg_s${slot}_${dev}_mode \
-			str:sys_pcicfg_s${slot}_${dev}_clkmode \
 			str:sys_pcicfg_s${slot}_${dev}_rate \
 			int:sys_pcicfg_s${slot}_${dev}_mrate \
 			str:sys_pcicfg_s${slot}_${dev}_code \
 			str:sys_pcicfg_s${slot}_${dev}_annex \
 			str:sys_pcicfg_s${slot}_${dev}_pbomode \
-			str:sys_pcicfg_s${slot}_${dev}_pboval"
+			str:sys_pcicfg_s${slot}_${dev}_pboval \
+		    str:sys_pcicfg_s${slot}_${dev}_pwron"	
+
 	fi
 
 
@@ -323,13 +324,16 @@ _sg17_settings(){
 	    id='mode'
 	    onchange="OnChangeSG17Code();"	
 	    render_input_field select "Mode" sys_pcicfg_s${slot}_${dev}_mode  master 'Master' slave 'Slave'
+	fi
 
-	    # sys_pcicfg_s${slot}_${dev}_clkmode
-	    tip=""
-	    desc="Select DSL clock mode"
-	    id='clkmode'
-	    onchange="OnChangeSG17Code();"	
-	    render_input_field select "Clock mode" sys_pcicfg_s${slot}_${dev}_clkmode  'plesio' 'plesio' 'sync' 'sync'
+	# sys_pcicfg_s${slot}_${dev}_clkmode
+	tip=""
+	desc="Select DSL clock mode"
+	id='clkmode'
+	onchange="OnChangeSG17Code();"	
+	render_input_field select "Clock mode" sys_pcicfg_s${slot}_${dev}_clkmode  'plesio' 'plesio' 'sync' 'sync'
+
+	if [ "$ctrl" != "eocd" ]; then
 
 	    # sys_pcicfg_s${slot}_${dev}_rate
 	    eval "crate=\$sys_pcicfg_s${slot}_${dev}_rate"
@@ -385,10 +389,12 @@ _sg17_settings(){
 	desc="Select DSL fill byte value"
 	render_input_field select "Fill" sys_pcicfg_s${slot}_${dev}_fill  fill_ff FF fill_7e 7E
 
-	# sys_pcicfg_s${slot}_${dev}_pwron
-	tip=""
-	desc="Select DSL Power feeding mode"
-	render_input_field select "Power" sys_pcicfg_s${slot}_${dev}_pwron  pwroff off pwron on
+	if [ "$ctrl" != "eocd" ]; then
+	    # sys_pcicfg_s${slot}_${dev}_pwron
+	    tip=""
+	    desc="Select DSL Power feeding mode"
+	    render_input_field select "Power" sys_pcicfg_s${slot}_${dev}_pwron  pwroff off pwron on
+	fi
 
 	render_submit_field
 	render_form_tail

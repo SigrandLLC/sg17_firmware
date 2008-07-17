@@ -78,6 +78,7 @@ _dsl_mr17ifcfg(){
 	    code=""
 	    annex=""
 	    pbo=""
+        pwron=""
 	fi
 	    
 	

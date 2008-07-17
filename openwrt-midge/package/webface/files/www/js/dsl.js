@@ -230,59 +230,56 @@ function OnChangeSG17Code()
 	}
 
     if( mode == "slave" ){
-		freeList($('rate'));
-		$('rate').options[0] = new Option("automatic");
-		$('rate').disabled = 1;
-		freeList($('code'));
-		$('code').options[0] = new Option("automatic");
-		$('code').disabled = 1;
-		freeList($('clkmode'));
-		$('clkmode').options[0] = new Option("automatic");
-		$('clkmode').disabled = 1;
-		freeList($('annex'));
-		$('annex').options[0] = new Option("automatic");
-		$('annex').disabled = 1;
-		$('pbomode').disabled = 1;
-		var base = document.getElementById('rate_td');
-		if( mre != null )
-			base.removeChild(mre);
-		base = document.getElementById('pbomode_td');
-		if( pboval != null )
-			base.removeChild(pboval);
-    } else {
-		freeList($('code'));
-		$('code').disabled = 0;
-		
-		if( $('chipver').value == 'v1' ){
-			start=1;
-			end=2;
-		}else{
-			start=0;
-			end=4;
-		}
-		
-		flag = 0;
-		for(i=end;i>=start;i--){
-			var el = new Option;
-			el.value = TCPAM[i][0];
-			el.text = TCPAM[i][1];
-			if( TCPAM[i][0] == tcpam ){
-				el.selected = 1;
-			};
-			$('code').options.add(el);
-			if( TCPAM[i][0] == tcpam ){
-				$('code').selectedIndex = end-i;
-				flag = 1;
-			}
-		};
-		if( !flag ){
-			$('code').selectedIndex = 0;
-		}			
-
-		$('rate').disabled = 0;
+	    freeList($('rate'));
+	    $('rate').options[0] = new Option("automatic");
+	    $('rate').disabled = 1;
+	    freeList($('code'));
+	    $('code').options[0] = new Option("automatic");
+	    $('code').disabled = 1;
+	    freeList($('clkmode'));
+	    $('clkmode').options[0] = new Option("automatic");
+	    $('clkmode').disabled = 1;
+	    freeList($('annex'));
+	    $('annex').options[0] = new Option("automatic");
+	    $('annex').disabled = 1;
+	    $('pbomode').disabled = 1;
+	    var base = document.getElementById('rate_td');
+	    if( mre != null )
+		    base.removeChild(mre);
+	    base = document.getElementById('pbomode_td');
+	    if( pboval != null )
+		    base.removeChild(pboval);
+        } else {
+	    freeList($('code'));
+	    $('code').disabled = 0;
+	    if( $('chipver').value == 'v1' ){
+		    start=1;
+		    end=2;
+	    }else{
+		    start=0;
+		    end=4;
+	    }
+	    flag = 0;
+	    for(i=end;i>=start;i--){
+    	    var el = new Option;
+	        el.value = TCPAM[i][0];
+	        el.text = TCPAM[i][1];
+    	    if( TCPAM[i][0] == tcpam ){
+	    	el.selected = 1;
+	    };
+	    $('code').options.add(el);
+	    if( TCPAM[i][0] == tcpam ){
+	        $('code').selectedIndex = end-i;
+	        flag = 1;
+	    }
+    };
+    if( !flag ){
+        $('code').selectedIndex = 0;
+    }			
+	$('rate').disabled = 0;
 		tcpam = $('code').options[$('code').selectedIndex].value;
 		if( $('chipver').value == 'v1' ){
-			if( tcpam == "tcpam16" ) {
+		    if( tcpam == "tcpam16" ) {
 				fixed_rate_list($('rate'),rate,rate_list16);
 			} else if( tcpam == "tcpam32" ){
 				fixed_rate_list($('rate'),rate,rate_list32_v1);
@@ -349,8 +346,10 @@ function OnChangeSG17Code()
 		freeList($('annex'));
 		$('annex').disabled = 0;
 		$('annex').options[0] = new Option("Annex A");
+        $('annex').options[0].value = 'A';
 		$('annex').options[1] = new Option("Annex B");
-		$('annex').selectedIndex=clkmode_ind;
+        $('annex').options[1].value = 'B';
+		$('annex').selectedIndex=annex_ind;
     }
 };
 
