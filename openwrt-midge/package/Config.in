@@ -362,7 +362,7 @@ source "package/webface/Config.in"
 source "package/hotplug/Config.in"
 
 choice
-	prompt "Sigrand context help"
+	prompt "Context help"
 	default NONE
 
 config NONE
@@ -370,15 +370,15 @@ config NONE
 	help
 		Don't include context help
 
-config BR2_PACKAGE_SIGRAND_DOC
-	bool "Sigrand context help"
+config BR2_PACKAGE_CONTEXT_HELP
+	bool "Context help"
         help
-                Include Sigrand context help
+                Include webface context help
 
-config BR2_PACKAGE_SIGRAND_DOC_OEM
+config BR2_PACKAGE_CONTEXT_HELP_OEM
         bool "OEM context help"
         help
-                Include OEM context help
+                Include webface OEM context help
 
 endchoice
 
