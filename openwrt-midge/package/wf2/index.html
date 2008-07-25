@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ru" xml:lang="ru">
+<head>
+	<title>Sigrand</title>
+	<meta http-equiv="Content-type" content="text/html; charset=utf8" />
+	<meta http-equiv="Content-Language" content="ru" />
+	<script type="text/javascript" src="jquery/jquery-1.2.3.pack.js"></script>
+	<script type="text/javascript" src="jquery/jquery.history_remote.pack.js"></script>
+	<script type="text/javascript" src="jquery/jquery.cookie.js"></script>
+	<script type="text/javascript" src="jquery/jquery.tabs.pack.js"></script>
+	<script type="text/javascript" src="jquery/jquery-treeview/jquery.treeview.js"></script>
+	<script type="text/javascript" src="jquery/jquery.gettext.js"></script>
+	<script type="text/javascript" src="jquery/jquery-validate/jquery.validate.js"></script>
+	<script type="text/javascript" src="jquery/jquery.flydom-3.1.1.js"></script>
+	<script type="text/javascript" src="jquery/jquery.form.js"></script>
+	<script type="text/javascript" src="_js/widgets.js"></script>
+	<script type="text/javascript" src="_js/kdb.js"></script>
+	<script type="text/javascript" src="_js/controllers.js"></script>
+	
+	<!-- <link href="translation/ru.json" lang="ru" rel="gettext"/> -->
+
+	<link rel="stylesheet" href="_css/jquery.tabs.css" type="text/css" media="print, projection, screen" />
+    <!-- Additional IE/Win specific style sheet (Conditional Comments) -->
+    <!--[if lte IE 7]>
+    <link rel="stylesheet" href="_css/jquery.tabs-ie.css" type="text/css" media="projection, screen">
+    <![endif]-->
+	<style type="text/css"><!-- @import url(_css/styles.css); --></style>
+	<style type="text/css"><!-- @import url(_css/content.css); --></style>
+	<link rel="stylesheet" href="_css/jquery.treeview.css" type="text/css" media="print, projection, screen" />
+	<link ilo-ph-fix="tofix" alt="[Image]" ilo-full-src="favicon.ico" rel="shortcut icon" href="favicon.ico"><link href="sigrand1_files/onMouseoverStyle.css" rel="STYLESHEET"></head><body alink="#0000cc" link="#0000cc" vlink="#0000cc">
+	
+
+    <script type="text/javascript">
+		$(document).ready(function(){
+			$('#container').tabs({fxAutoHeight: true});
+			
+			$("#menu").treeview(
+			{
+				persist: "location",
+				unique: true,
+				collapsed: true
+			});
+		});
+	</script> 
+</head>
+
+<body>
+	<div id="mainmain">
+		<div id="wrapper">
+			<div id="top"></div><!-- /top -->
+				<div id="content">	
+					<div id="left">
+						<div id="left_menu">
+							<ul class="treeview" id="menu">
+								<li><span>System</span>
+									<ul>
+										<li><span><a href="#" onclick="Controllers.general()">General</a></span></li>
+										<li><span><a href="#" onclick="Controllers.security()">Security</a></span></li>
+										<li><span><a href="#" onclick="cDns('#container')">DNS</a></span></li>
+										<li><span><a href="#" onclick="cTime('#container')">Time</a></span></li>
+									</ul>
+								</li>
+								<li><span>Network</span>
+								    <ul>
+								        <li><span>Interfaces</span>
+											<ul>
+												<li><span><a href="#" onclick="cInterface('#container', 'eth0')">eth0</a></span></li>
+												<li><span><a href="#" onclick="cInterface('#container', 'eth1')">eth1</a></span></li>
+												<li><span><a href="#" onclick="cInterface('#container', 'ppp0')">ppp0</a></span></li>
+												<li><span><a href="#" onclick="cInterface('#container', 'dsl0')">dsl0</a></span></li>
+												<li><span><a href="#" onclick="cInterface('#container', 'dsl1')">dsl1</a></span></li>
+											</ul>
+										</li>				
+								        <li><span>Firewall</span></li>
+								        <li><span>IPSec</span>
+								        	<ul>
+												<li><span>SA</span></li>
+												<li><span>SP</span></li>
+								        	</ul>
+								        </li>
+								    </ul>
+								</li>		
+								<li><span>Services</span>
+								    <ul>
+								        <li><span>DNS</span></li>
+								        <li><span>AAA</span></li>
+								        <li><span>BBB</span></li>
+								        <li><span>CCC</span></li>
+								    </ul>
+								</li>		
+								<li><span>Tools</span></li>
+							</ul>
+							<div id="shadow"></div>
+						</div><!-- /left_menu -->
+					</div><!-- /left -->
+					
+					<div id="right">	
+						<div id="container"></div><!-- /container-1 -->
+					</div><!-- /right -->
+
+					<div style="clear: both;"></div>
+				</div><!-- /content -->
+
+				<div id="footer">
+					<img src="_img/footer_logo.png" align="left" width="217" height="97" />
+					<p>Sigrand  &copy;  2008<br />About | About | About </p>
+				</div><!-- /footer -->
+			</div><!-- /wrapper -->
+		</div><!-- /mainmain -->
+	</body>
+</html>

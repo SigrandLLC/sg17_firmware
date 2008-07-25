@@ -1,0 +1,11 @@
+{ 
+	"Hostname" : "Имя маршрутизатора",
+	"Please enter router's hostname" : "Пожалуйста, введите имя маршрутизтора",
+	"General settings" : "Общие настройки",
+	"General" : "Общее",
+	"Webface admin password" : "Пароль к веб-интерфейсу",
+	"Password" : "Пароль",
+	"Security" : "Безопасность",
+	"root system password" : "Пароль к системе",
+	"Save" : "Сохранить"
+}
