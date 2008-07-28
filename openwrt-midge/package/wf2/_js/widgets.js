@@ -42,11 +42,10 @@ function TabContents(tab) {
 function Container(p) {
 	this.validator_rules = new Object();
 	this.validator_messages = new Object();
-	//this.form = $("<form action='#' onsubmit='return false'></form>").appendTo(p).get();
 	$("<div id='error_message'>" +
 			_("Please, enter a valid data into the form below to be able to save it successfully.") +
 			"</div>").appendTo(p);
-	this.form = $("<form action='' id='form'></form>").appendTo(p).get();
+	this.form = $("<form action=''></form>").appendTo(p).get();
 	this.table = $("<table id='conttable' cellpadding='0' cellspacing='0' border='0'></table>").appendTo(this.form).get();
 
 	/* template for table title */
@@ -168,17 +167,15 @@ function Container(p) {
      			error.prependTo(element.parent());
      		},
      		submitHandler: function(form) {
-     			console.warn("Submit");
-     			alert("submit");
-     			//config.doSubmit(form);
      			$(form).ajaxSubmit({
+     				url: "/info.php",
+     				type: "POST",
+     				resetForm: true,
 					beforeSubmit: function() {
-						console.warn("before");
-						alert("before");
+						config.saveTmpVals(form);
 					},
 					success: function() {
-						console.warn("after");
-						alert("after");
+						config.saveVals();
 					}
 				});
      		}

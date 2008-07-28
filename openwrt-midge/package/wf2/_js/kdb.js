@@ -1,12 +1,39 @@
 function Config() {
+	this.confTmp;
 	this.conf = new Array();
 	
-	this.doSubmit = function(form) {
-		var value = $(form).formSerialize();
-		console.warn("re");
-		//$(form).get().each(function() {
-		//	console.warn(this.value);
-		//});
+	/* before Ajax request, saves new settings in temporary object */
+	this.saveTmpVals = function(form) {
+		var values = $(form).formSerialize();
+		this.confTmp = this.parseUrl(values);
+	};
+	
+	/* after Ajax request, copy new settings to current config object */
+	this.saveVals = function(form) {
+		for (var name in this.confTmp) {
+			this.conf[name] = this.confTmp[name];
+		}
+		delete this.confTmp;
+	};
+	
+	/* parse URL (par1=val1&par2=val2), return hash */
+	this.parseUrl = function(url) {
+		var parsed = new Object();
+		var data = url.split("&");
+		var par;
+		var idx;
+		var name;
+		var value;
+		
+		for (var key in data) {
+			par = data[key];
+			idx = par.indexOf("=");
+			name = par.substring(0, idx);
+			value = par.substring(idx + 1);
+			parsed[name] = value;
+		}
+		
+		return parsed;
 	};
 }
 
@@ -58,6 +85,3 @@ Config.prototype.Save = function (val) {
 /* current settings */
 var config = new Config();
 config.LoadKDB( );
-
-/* */
-//var configTmp = new Object
