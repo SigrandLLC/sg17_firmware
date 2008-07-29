@@ -42,9 +42,7 @@ function TabContents(tab) {
 function Container(p) {
 	this.validator_rules = new Object();
 	this.validator_messages = new Object();
-	$("<div id='error_message'>" +
-			_("Please, enter a valid data into the form below to be able to save it successfully.") +
-			"</div>").appendTo(p);
+	$("<div class='message' id='info_message'></div>").appendTo(p);
 	this.form = $("<form action=''></form>").appendTo(p).get();
 	this.table = $("<table id='conttable' cellpadding='0' cellspacing='0' border='0'></table>").appendTo(this.form).get();
 
@@ -72,7 +70,7 @@ function Container(p) {
 		var attrs = {
 						type: 'text',
 						name: this.name,
-						value: this.value,
+						value: config.get(this.name),
 						size: '25'
 		};
 		this.id && (attrs.id = this.id);
@@ -152,30 +150,57 @@ function Container(p) {
 	};
 
 	this.addSubmit = function() {
-		var val = $('#sys_hostname');
-		//var button = $("<button type='button' class='button'>Save</button>");
-		//button.attr('onclick', 'config.Save($("#sys_hostname").attr("value"))');
-		var button = $("<input type='submit' class='button' value='" + _("Save") + "'/>");
-		button.appendTo(this.form);
+		var setError = function(text) {
+			$("#info_message").html(_(text));
+			if ($("#info_message").hasClass("success_message")) {
+				$("#info_message").removeClass("success_message");
+			}
+			$("#info_message").addClass("error_message");
+		};
+		
+		var showError = function() {
+			$("#info_message").show();
+		};
+
+		$("<input type='submit' class='button' value='" + _("Save") + "'/>").appendTo(this.form);
 		
 		/* apply validate rules to form */
 		$(this.form).validate({
 			rules: this.validator_rules,
 			messages: this.validator_messages,
-			errorContainer: "#error_message",
+			
+			/* container where to show error */
+			errorContainer: "#info_message",
+			
+			/* Set error text to container (closure to setError var) */
+			showErrors: function(errorMap, errorList) {
+				setError("Please, enter a valid data into the form below to be able to save it successfully.");
+				this.defaultShowErrors();
+			},
 			errorPlacement: function(error, element) {
      			error.prependTo(element.parent());
      		},
      		submitHandler: function(form) {
      			$(form).ajaxSubmit({
-     				url: "/info.php",
+     				url: "kdb/kdb_save.cgi",
      				type: "POST",
-     				resetForm: true,
+     				timeout: 3000,
+     				/* show error when unable to save data (closure to setError and showError var) */
+     				error: function() {
+     					setError("Unable to save data.");
+     					showError();
+     				},
 					beforeSubmit: function() {
 						config.saveTmpVals(form);
 					},
 					success: function() {
 						config.saveVals();
+						$("#info_message").html(_("Data saved successfully."));
+						if ($("#info_message").hasClass("error_message")) {
+							$("#info_message").removeClass("error_message");
+						}
+						$("#info_message").addClass("success_message");
+						$("#info_message").show();
 					}
 				});
      		}

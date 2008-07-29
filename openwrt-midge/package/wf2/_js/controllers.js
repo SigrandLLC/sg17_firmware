@@ -4,7 +4,7 @@ var Controllers = {
 	container: "#container"
 };
 
-Controllers['general'] = function () {
+Controllers['general'] = function() {
 	var tabs = new pageTabs(this.container, {general: _("General")});
 	var c = tabs.tabs['general'].addContainer();
 	var field;
@@ -15,26 +15,40 @@ Controllers['general'] = function () {
 		type: 'text',
 		name: 'sys_hostname',
 		text: _('Hostname'),
-		value: config.Get('sys_hostname'),
 		descr: _("Please enter router's hostname"),
 		validator: {required: true, minlength: 3},
 		message: "Enter hostname"
 	}
 	c.addWidget(field);
 
-	field = {
+	c.addSubmit();
+};
+
+Controllers['dns'] = function() {
+	var tabs = new pageTabs(this.container, {dns: _("DNS")});
+	var c = tabs.tabs['dns'].addContainer();
+	var field;
+
+	c.addTitle(_("DNS settings"));
+
+	field = { 
 		type: 'text',
-		name: 'sys_hostname2',
-		text: _('Hostname2'),
-		value: config.Get('sys_hostname2'),
-		descr: _("Please enter router's hostname2"),
-		validator: {required: true},
-		message: "Enter hostname2"
+		name: 'sys_dns_nameserver',
+		text: 'Upstream server',
+		descr: 'Please enter ip address of upstream dns server'
+	}
+	c.addWidget(field);
+
+	field = { 
+		type: 'text',
+		name: 'sys_dns_domain',
+		text: 'Domain',
+		descr: 'Please enter your domain'
 	}
 	c.addWidget(field);
 
 	c.addSubmit();
-};
+}
 
 Controllers['security'] = function() {
 	var tabs = new pageTabs(this.container, {security: _("Security")});
@@ -131,39 +145,7 @@ function cTime(container) {
 }
 
 
-function cDns(container) {
-	var tabs = new pageTabs(container, {dns: "DNS"});
-	var c = tabs.tabs['dns'].addContainer();
-	var field;
 
-	c.addTitle("DNS settings");
-
-	field = { 
-		type: 'text',
-		name: 'sys_hostname',
-		text: 'Upstream server',
-		descr: 'Please enter ip address of upstream dns server',
-		required: true, 
-		filters: 'ltrim,rtrim', 
-		message: 'Please input correct dns domain name', 
-		pattern: 'dnsdomainoripaddr' 
-	}
-	c.addWidget(field);
-	
-	field = { 
-		type: 'text',
-		name: 'sys_hostname',
-		text: 'Domain',
-		descr: 'Please enter your domain',
-		required: true, 
-		filters: 'ltrim,rtrim', 
-		message: 'Please input correct dns domain name', 
-		pattern: 'dnsdomainoripaddr' 
-	}
-	c.addWidget(field);
-
-	c.addSubmit();
-}
 
 function cInterface(container, iface) {
 	var field;

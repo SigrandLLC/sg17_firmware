@@ -231,19 +231,24 @@ ul.treeview li li li li li span {
 	border: none;
 }
 
-#error_message {
-	display: none; /*   display: none; */
+.message {
+	display: none;
 	margin-bottom: 10px;
 	padding: 10px 10px 10px 60px;
 	background-color: #444;
 	color: #5cffff;
 	text-align: left;
-	background-image: url(../_img/message2.jpg);
 	background-position: 2%;
 	background-repeat: no-repeat;
-	/*border: 1px solid #aa0808;*/
 }
 
+.error_message {
+	background-image: url(../_img/message2.jpg);
+}
+
+.success_message {
+	background-image: url(../_img/message1.jpg);
+}
 
 /* ---------- FOOTER ---------- */
 
