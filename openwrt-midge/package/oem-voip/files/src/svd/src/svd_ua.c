@@ -216,7 +216,7 @@ DFE
 int
 svd_invite (svd_t * const svd, int const use_ff_FXO, int const chan_idx )
 {
-	svd_chan_t * chan_data = svd->ab->chans[chan_idx].data;
+	svd_chan_t * chan_ctx = svd->ab->chans[chan_idx].ctx;
 	char to_str[100];
 	char from_str[100];
 	char from_idx[ CHAN_ID_LEN ];
@@ -235,10 +235,10 @@ DFS
 	if (use_ff_FXO){
 		strcat (to_str, FIRST_FREE_FXO);
 	} else {
-		strcat (to_str, chan_data->dial_status.chan_id);
+		strcat (to_str, chan_ctx->dial_status.chan_id);
 	}
 	strcat (to_str, "@");
-	strcat (to_str, chan_data->dial_status.route_ip);
+	strcat (to_str, chan_ctx->dial_status.route_ip);
 	
 	/* send invite request */
 	err = svd_pure_invite (svd, &svd->ab->chans[chan_idx], 
@@ -288,8 +288,8 @@ DFS
 	su_free(svd->home, to);
 	to = NULL;
 
-	chan->data->op_handle = nh;
-	if( !chan->data->op_handle ){
+	chan->ctx->op_handle = nh;
+	if( !chan->ctx->op_handle ){
 		SU_DEBUG_1 ((LOG_FNC_A("can`t create handle")));
 		goto __exit_fail;
 	}
@@ -302,7 +302,7 @@ DFS
 	}
 
 
-	l_sdp_str = svd_new_sdp_string (chan->data->rtp_port, 
+	l_sdp_str = svd_new_sdp_string (chan->ctx->rtp_port, 
 			g_conf.sip_set.ext_codec);
 	if ( !l_sdp_str){
 		goto __exit_fail;
@@ -399,7 +399,7 @@ svd_answer(svd_t * const svd, ab_chan_t * const chan,
 	int call_answered = 0;
 	char * l_sdp_str = NULL;
 DFS
-	if ( chan->data->op_handle ){
+	if ( chan->ctx->op_handle ){
 		/* we have call to answer */
 		enum codec_type_e ct;
 
@@ -408,29 +408,29 @@ DFS
 		/* register media waits and open sockets for rtp */
 		svd_media_register (svd, chan);
 
-		if(chan->data->call_is_remote){
+		if(chan->ctx->call_is_remote){
 			ct = g_conf.sip_set.ext_codec;
 		} else {
 			ct = g_conf.int_codec;
 		}
 
 		/* have remote sdp make local */
-		l_sdp_str = svd_new_sdp_string (chan->data->rtp_port, ct);
+		l_sdp_str = svd_new_sdp_string (chan->ctx->rtp_port, ct);
 		if ( !l_sdp_str){
 			goto __exit;
 		}
 
-		nua_respond (chan->data->op_handle, status, phrase,
+		nua_respond (chan->ctx->op_handle, status, phrase,
 				SOATAG_RTP_SORT (SOA_RTP_SORT_LOCAL),
 				SOATAG_RTP_SELECT (SOA_RTP_SELECT_SINGLE), 
-				TAG_IF(chan->data->call_is_remote && 
+				TAG_IF(chan->ctx->call_is_remote && 
 						svd->outbound_ip[0], 
 					SOATAG_ADDRESS(svd->outbound_ip)),
 				SOATAG_USER_SDP_STR (l_sdp_str),
 				TAG_END());
 
 		/* set proper payload type to chan */
-		nua_get_hparams( chan->data->op_handle, 
+		nua_get_hparams( chan->ctx->op_handle, 
 				SOATAG_LOCAL_SDP_STR(NULL), TAG_NULL() );
 	} 
 __exit:
@@ -449,10 +449,10 @@ svd_bye (svd_t * const svd, ab_chan_t * const chan)
 {
 DFS
 	assert ( chan );
-	assert ( chan->data );
+	assert ( chan->ctx );
 
-	if (chan->data->op_handle){
-		nua_bye(chan->data->op_handle, TAG_END());
+	if (chan->ctx->op_handle){
+		nua_bye(chan->ctx->op_handle, TAG_END());
 	} else {
 		/* just clear call params */
 		svd_clear_call (svd, chan);
@@ -469,10 +469,10 @@ svd_cancel (ab_chan_t * const chan)
 {
 DFS
 	assert ( chan );
-	assert ( chan->data );
-	assert ( chan->data->op_handle );
+	assert ( chan->ctx );
+	assert ( chan->ctx->op_handle );
 
-	nua_cancel (chan->data->op_handle, TAG_END());
+	nua_cancel (chan->ctx->op_handle, TAG_END());
 DFE
 };
 
@@ -519,8 +519,8 @@ DFS
 	su_free(svd->home, from);
 	from = NULL;
 
-	chan->data->op_handle = nh;
-	if( !chan->data->op_handle ){
+	chan->ctx->op_handle = nh;
+	if( !chan->ctx->op_handle ){
 		SU_DEBUG_1 ((LOG_FNC_A("can`t create handle")));
 		goto __exit_fail;
 	}
@@ -532,7 +532,7 @@ DFS
 		goto __exit_fail;
 	}
 
-	l_sdp_str = svd_new_sdp_string (chan->data->rtp_port, g_conf.int_codec);
+	l_sdp_str = svd_new_sdp_string (chan->ctx->rtp_port, g_conf.int_codec);
 	if ( !l_sdp_str){
 		goto __exit_fail;
 	}
@@ -699,17 +699,17 @@ DFS
 
 	req_chan = &svd->ab->chans[chan_idx];
 
-	if( req_chan->data->op_handle ){
+	if( req_chan->ctx->op_handle ){
 		/* user is busy */
 		nua_respond(nh, SIP_486_BUSY_HERE, TAG_END());
 		nua_handle_destroy(nh);
 		goto __exit;
 	}
 
-	req_chan->data->op_handle = nh;
+	req_chan->ctx->op_handle = nh;
 	nua_handle_bind (nh, req_chan);
 
-	req_chan->data->call_is_remote = call_is_remote;
+	req_chan->ctx->call_is_remote = call_is_remote;
 
 	if (req_chan->parent->type == ab_dev_type_FXS){
 		/* start ringing */
@@ -739,7 +739,7 @@ svd_i_cancel (nua_handle_t const * const nh, ab_chan_t const * const chan)
 DFS
 	/* tag_? should destroy operation handle ?? */
 	assert (chan);
-	assert (chan->data->op_handle == nh);
+	assert (chan->ctx->op_handle == nh);
 	SU_DEBUG_3 (("CANCEL received\n"));
 DFE
 };
@@ -882,8 +882,8 @@ svd_i_bye(nua_handle_t const * const nh, ab_chan_t const * const chan)
 {
 DFS
 	assert(chan);
-	assert(chan->data);
-	assert(chan->data->op_handle == nh);
+	assert(chan->ctx);
+	assert(chan->ctx->op_handle == nh);
 	SU_DEBUG_3 (("BYE received\n"));
 DFE
 };
@@ -941,7 +941,7 @@ DFS
 			sdp_sess = sdp_session (remote_sdp);
 			if (sdp_sess && sdp_sess->sdp_media && 
 					sdp_sess->sdp_media->m_rtpmaps){
-				chan->data->payload = 
+				chan->ctx->payload = 
 					sdp_sess->sdp_media->m_rtpmaps->rm_pt;
 			}
 		}
@@ -1035,7 +1035,7 @@ svd_r_bye(int status, char const *phrase,
 {
 DFS
 	assert(chan);
-	assert(chan->data->op_handle == nh);
+	assert(chan->ctx->op_handle == nh);
 	SU_DEBUG_3(("got answer on BYE: %03d %s\n", status, phrase));
 DFE
 };
@@ -1071,14 +1071,14 @@ DFS
 
 	if (sdp_sess && sdp_sess->sdp_media->m_port && 
 			sdp_connection && sdp_connection->c_address) {
-		chan->data->remote_port = sdp_sess->sdp_media->m_port;
-		chan->data->remote_host = su_strdup (svd->home, 
+		chan->ctx->remote_port = sdp_sess->sdp_media->m_port;
+		chan->ctx->remote_host = su_strdup (svd->home, 
 				sdp_connection->c_address);
-		chan->data->payload = sdp_sess->sdp_media->m_rtpmaps->rm_pt;
+		chan->ctx->payload = sdp_sess->sdp_media->m_rtpmaps->rm_pt;
 		SU_DEBUG_5(("Got remote %s:%d with payload %d\n",
-				chan->data->remote_host, 
-				chan->data->remote_port, 
-				chan->data->payload));
+				chan->ctx->remote_host, 
+				chan->ctx->remote_port, 
+				chan->ctx->payload));
 	}
 __exit:
 	sdp_parser_free (remote_sdp);

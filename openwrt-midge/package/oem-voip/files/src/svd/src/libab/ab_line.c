@@ -31,7 +31,7 @@ err_set_ioctl (ab_chan_t * const chan, int const request, int const data,
 		ab_err_set(chan, AB_ERR_UNKNOWN, (char const *)err_msg); 
 	}
 	return err;
-};
+}
 
 /**
 	Plays the given tone 
@@ -87,7 +87,7 @@ ab_FXS_line_just_play_it (ab_chan_t * const chan, enum ab_chan_tone_e tone)
 		}
 	}
 	return err;
-};
+}
 
 //////////////////////////////////
 
@@ -123,7 +123,7 @@ ab_FXS_line_ring (ab_chan_t * const chan, enum ab_chan_ring_e ring)
 		}
 	}
 	return err;
-};
+}
 
 /**
 	Play the given tone
@@ -164,7 +164,7 @@ ab_FXS_line_tone (ab_chan_t * const chan, enum ab_chan_tone_e tone)
 	}
 __exit:
 	return err;
-};
+}
 
 /**
 	Change current linefeed to given
@@ -231,7 +231,7 @@ ab_FXS_line_feed (ab_chan_t * const chan, enum ab_chan_linefeed_e feed)
 	}
 __exit:
 	return err;
-};
+}
 
 /**
 	Do onhook or offhook
@@ -272,7 +272,7 @@ ab_FXO_line_hook (ab_chan_t * const chan, enum ab_chan_hook_e hook)
 		} 
 	}
 	return err;
-};
+}
 
 /**
 	Dial the given sequence of numbers
@@ -332,5 +332,5 @@ ab_FXO_line_digit (ab_chan_t * const chan, char const data_length,
 	} 
 __exit:
 	return err;
-};
+}
 

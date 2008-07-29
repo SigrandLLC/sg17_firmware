@@ -23,30 +23,30 @@ typedef AB_DMAGIC_T ab_dmagic_t;
 enum ab_dev_type_e {
 	ab_dev_type_FXO,   /**< Device type is FXO */
 	ab_dev_type_FXS    /**< Device type is FXS */
-	};
+};
 
 enum ab_chan_tone_e {
 	ab_chan_tone_MUTE, /**< Mute any tone */
 	ab_chan_tone_DIAL,   /**< Play dial tone */
 	ab_chan_tone_BUSY,   /**< Play busy tone */
 	ab_chan_tone_RINGBACK   /**< Play ringback tone */
-	};
+};
 
 enum ab_chan_ring_e {
 	ab_chan_ring_MUTE, /**< Mute the ring */
 	ab_chan_ring_RINGING   /**< Make ring */
-	};
+};
 
 enum ab_chan_hook_e {
 	ab_chan_hook_ONHOOK, /**< Do onhook */
 	ab_chan_hook_OFFHOOK /**< Do offhook */
-	};
+};
 
 enum ab_chan_linefeed_e {
 	ab_chan_linefeed_DISABLED, /**< Set linefeed to disabled */
 	ab_chan_linefeed_STANDBY, /**< Set linefeed to standby */
 	ab_chan_linefeed_ACTIVE /**< Set linefeed to active */
-	};
+};
 
 enum ab_dev_event_e {
 	ab_dev_event_NONE, /**< No event */
@@ -56,21 +56,21 @@ enum ab_dev_event_e {
 	ab_dev_event_FXS_DIGIT_PULSE, /**< Dial a digit on FXO in pulse mode */
 	ab_dev_event_FXS_ONHOOK, /**< Onhook on FXS */
 	ab_dev_event_FXS_OFFHOOK /**< Offhook on FXS */
-	};
+};
 
 struct ab_chan_status_s {
 	enum ab_chan_tone_e	tone;	/**< tone state */
 	enum ab_chan_ring_e	ring;	/**< ring state */
 	enum ab_chan_hook_e	hook;	/**< hoot state */
 	enum ab_chan_linefeed_e	linefeed; /**< linefeed state*/
-	};
+};
 
 struct ab_dev_event_s {
 	enum ab_dev_event_e id; /**< Event identificator */
 	unsigned char ch;	/**< Ret Channel of event */
 	unsigned char more;	/**< is there more events */
 	long data;		/**< Event specific data */
-	};
+};
 
 struct ab_chan_s {
 	unsigned int idx;   /**< Channel index on device (from 1) */
@@ -78,34 +78,33 @@ struct ab_chan_s {
 	ab_dev_t * parent;  /**< device that channel belongs */
 	int rtp_fd;         /**< Channel file descriptor */
 	struct ab_chan_status_s status;  /**< Channel status info */
-	ab_cmagic_t * data; /**< Channel magic data (for user app) */
+	ab_cmagic_t * ctx; /**< Channel context pointer (for user app) */
 	/* for internal purposes */
 	int err;	/**< Last error on this channel index */
 	char const * err_s;/**< Last error on this channel message string */
-	};
+};
 
 struct ab_dev_s {
-	unsigned int idx;	/**< Device index on board (from 1) */
+	unsigned int idx;	/**< Device index on boards (from 1) */
 	ab_dev_type_t type;	/**< Device type */
 	ab_t * parent;		/**< Parent board pointer */
 	int cfg_fd;             /**< Device config file descriptor */
-	ab_dmagic_t * data; /**< Device magic data (for user app) */
+	ab_dmagic_t * ctx; /**< Device context (for user app) */
 	/* for internal purposes */
 	int err;	/**< Last error on this device index */
 	char const * err_s;	/**< Last error on this device message string */
-	};
+};
 
 struct ab_s {
-	char * name;		/**< Board name */
-	unsigned int devs_num;	/**< Devices number on the board */
-	ab_dev_t * devs;	/**< Devices of the board */
-	unsigned int chans_num;	/**< Channels number on the board */
-	ab_chan_t * chans;	/**< Channels of the board */
+	unsigned int devs_num;	/**< Devices number on the boards */
+	ab_dev_t * devs;	/**< Devices of the boards */
+	unsigned int chans_num;	/**< Channels number on the boards */
+	ab_chan_t * chans;	/**< Channels of the boards */
 	unsigned int chans_per_dev;/**< Channels number per device */
 	/* for internal purposes */
 	int err;	/**< Last error on this board index */
 	char const * err_s;	/**< Last error on this board message string */
-	};
+};
 
 /* ERROR HANDLING */
 /** no error happens */

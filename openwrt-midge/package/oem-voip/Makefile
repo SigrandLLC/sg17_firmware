@@ -105,7 +105,7 @@ $(PKG_BUILD_DIR)/.configured:  $(PKG_BUILD_DIR)/.prepared
 		--enable-vineticincl=$(PKG_BUILD_DIR)/vinetic/include \
 		--enable-tapiincl=$(PKG_BUILD_DIR)/tapi/include \
 		--enable-kernelincl=$(PKG_BUILD_DIR)/linux/include \
-		--enable-boardname=SG4V22 \
+		--enable-boardname=SG \
 		--prefix=$(PKG_INSTALL_DIR) \
 	);
 	( cd $(PKG_BUILD_DIR)/daa; \

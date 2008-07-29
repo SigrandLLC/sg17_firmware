@@ -87,7 +87,7 @@ ab_dev_event_get(ab_dev_t * const dev,
 
 ab_dev_event_get_exit:
 	return err;
-};
+}
 
 int ab_dev_event_clean(ab_dev_t * const dev)
 {
@@ -108,6 +108,6 @@ int ab_dev_event_clean(ab_dev_t * const dev)
 
 ab_dev_event_clean__exit:
 	return -1;
-};
+}
 
 

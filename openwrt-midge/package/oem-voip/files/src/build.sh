@@ -136,7 +136,7 @@ case "$1" in
 		--enable-vineticincl=$cur_path/itmp/vinetic/include \
 		--enable-tapiincl=$cur_path/itmp/tapi/include \
 		--enable-kernelincl=$linux_path/include \
-		--enable-boardname=SG4V22 \
+		--enable-boardname=SG \
 		--prefix=$cur_path/itmp \
 		"
     make_itmp

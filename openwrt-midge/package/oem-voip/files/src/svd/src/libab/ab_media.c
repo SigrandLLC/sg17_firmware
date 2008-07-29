@@ -132,7 +132,7 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan,
 	}
 
 	return err;
-};
+}
 
 static int 
 ab_chan_media_switch( ab_chan_t * const chan,
@@ -169,7 +169,7 @@ ab_chan_media_switch( ab_chan_t * const chan,
 		return -1;
 	}
 	return 0;
-};
+}
 
 int 
 ab_chan_media_activate ( ab_chan_t * const chan )
@@ -199,7 +199,8 @@ ab_chan_media_activate ( ab_chan_t * const chan )
 
 	encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_20;
 
-	switch(chan->data->payload){
+	/* tag__ using context - this is bad */
+	switch(chan->ctx->payload){
 		case cod_pt_MLAW:
 			//fprintf(stderr,">>>>>>>>>>>>>MLAW\n");
 			encCfg.nEncType = IFX_TAPI_COD_TYPE_MLAW;
@@ -286,7 +287,7 @@ ab_chan_media_activate ( ab_chan_t * const chan )
 
 //fprintf(stderr,"MEDIA ACTIVATED!\n");
 	return err;
-};
+}
 
 int 
 ab_chan_media_deactivate ( ab_chan_t * const chan )
@@ -295,5 +296,5 @@ ab_chan_media_deactivate ( ab_chan_t * const chan )
 	err = ab_chan_media_switch (chan, 0, 0);
 //fprintf(stderr,"MEDIA DE_ACTIVATED!\n");
 	return err;
-};
+}
 
