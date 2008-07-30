@@ -1,21 +1,45 @@
 /* Global hash for controllers */
 var Controllers = {
-	/* container to display controllers content */
-	container: "#container"
+	/* container for displaying controllers content */
+	container: "#container",
+	
+	/* delegates to pageTabs() defined in widgets.js */
+	pageTabs: function(tabs) {
+		return new pageTabs(this.container, tabs);
+	}
 };
 
-Controllers['general'] = function() {
-	var tabs = new pageTabs(this.container, {general: _("General")});
+Controllers['interface'] = function() {
+	var tabs = this.pageTabs({general: "Interface"});
 	var c = tabs.tabs['general'].addContainer();
 	var field;
 
-	c.addTitle(_("General settings"));
+	c.addTitle("Interface settings");
 
 	field = {
-		type: 'text',
-		name: 'sys_hostname',
-		text: _('Hostname'),
-		descr: _("Please enter router's hostname"),
+		type: "select",
+		name: "sys_interface_language",
+		text: "Interface language",
+		descr: "Please select language",
+		options: {"en": "English", "ru": "Russian"} 
+	}
+	c.addWidget(field);
+
+	c.addSubmit();
+};
+
+Controllers['general'] = function() {
+	var tabs = this.pageTabs({general: "General"});
+	var c = tabs.tabs['general'].addContainer();
+	var field;
+
+	c.addTitle("General settings");
+
+	field = {
+		type: "text",
+		name: "sys_hostname",
+		text: "Hostname",
+		descr: "Please enter router's hostname",
 		validator: {required: true, minlength: 3},
 		message: "Enter hostname"
 	}

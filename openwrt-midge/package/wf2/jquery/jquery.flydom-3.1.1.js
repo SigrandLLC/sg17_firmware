@@ -1,4 +1,8 @@
 /**
+ * K.A.V. "fixes"
+ */
+
+/**
  * jQuery Plugin FlyDOM v3.0
  *
  * Create DOM elements on the fly and automatically append or prepend them to another DOM object.
@@ -330,7 +334,7 @@ String.prototype.toCamelCase = function()
                     'lowsrc': 'lowSrc', 'longdesc': 'longDesc', 'ismap': 'isMap', 'codebase': 'codeBase', 'codetype': 'codeType',
                     'valuetype': 'valueType', 'nohref': 'noHref', 'thead': 'tHead', 'tfoot': 'tFoot', 'cellpadding': 'cellPadding',
                     'cellspacing': 'cellSpacing', 'charoff': 'chOff', 'valign': 'vAlign', 'frameborder': 'frameBorder',
-                    'marginheight': 'marginHeight', 'marginwidth': 'marginWidth', 'noresize': 'noResize' };
+                    'marginheight': 'marginHeight', 'marginwidth': 'marginWidth', 'noresize': 'noResize', 'optionValue': 'value' };
 
     // It seems some elements may slip through the first condition (i.e., 'border'),
     // so we use the typeof condition as a fail-safe.

@@ -1,4 +1,4 @@
-//$("head").append("<link href='translation/ru.json' lang='ru' rel='gettext'/>");
+$("head").append("<link href='translation/ru.json' lang='ru' rel='gettext'/>");
 
 /* current settings */
 var config = new Config();

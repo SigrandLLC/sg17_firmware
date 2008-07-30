@@ -1,6 +1,7 @@
 /*
  * Add tabs to 'p' container.
  * tabs: hash, key — id, value — name of tab
+ * I18N for tab name.
  */
 function pageTabs(p, tabsInfo) {
 	/* clear page */
@@ -8,7 +9,7 @@ function pageTabs(p, tabsInfo) {
 	
 	var tabsList = "<ul>";
 	for (tab in tabsInfo) {
-		tabsList += "<li><a href='#" + tab + "'><span>" + tabsInfo[tab] + "</span></a></li>";
+		tabsList += "<li><a href='#" + tab + "'><span>" + _(tabsInfo[tab]) + "</span></a></li>";
 	}
 	tabsList += "</ul>";
 	$(tabsList).appendTo(p);
@@ -37,7 +38,8 @@ function TabContents(tab) {
 }
 
 /*
- * Container for widgets.
+ * Container for widgets
+ * I18N for widgets.
  */
 function Container(p) {
 	this.validator_rules = new Object();
@@ -55,12 +57,14 @@ function Container(p) {
 		];
 	};
 	
-	/* common widget's template */
+	/* Common widget's template
+	 * I18N for text, descr
+	 */
 	this.widget_tpl = function() {
 		return [
 			'tr', {}, [
-				'td', {className: 'tdleft'}, this.text,
-				'td', {id: 'td_' + this.name}, '<br /><p>' + this.descr + '</p>'
+				'td', {className: 'tdleft'}, _(this.text),
+				'td', {id: 'td_' + this.name}, '<br /><p>' + _(this.descr) + '</p>'
 			]
 		];
 	};
@@ -106,15 +110,19 @@ function Container(p) {
 		return ['select', attrs];
 	};
 	
-	/* template for option */
+	/* template for option
+	 * I18N for name
+	 */
 	this.option_tpl = function() {
-		var attrs = { value: this.value };
-		return ['option', attrs, this.name];
+		var attrs = { optionValue: this.value };
+		return ['option', attrs, _(this.name)];
 	};
 	
-	/* add title to table */
+	/* Adds title to table
+	 * I18N for title
+	 */
 	this.addTitle = function(title) {
-		var json = {title: title};
+		var json = {title: _(title)};
 		$(this.table).tplAppend(json, this.table_title_tpl);
 	};
 
@@ -146,10 +154,20 @@ function Container(p) {
 		}
 		
 		w.validator && (this.validator_rules[w.name] = w.validator);
-		w.message && (this.validator_messages[w.name] = w.message);
+		/* I18N for element's error messages */
+		w.message && (this.validator_messages[w.name] = _(w.message));
 	};
 
-	this.addSubmit = function() {
+	/**
+	 * Ads submit button, form validation rules and submit's events handlers.
+	 * ajaxTimeout — time in seconds to wait for server reply before show an error message,
+	 * defaults to 10 seconds.
+	 */
+	this.addSubmit = function(ajaxTimeout) {
+		var timeout = ajaxTimeout ? ajaxTimeout * 1000 : 10000;
+		/* sets error message
+		 * I18N for text
+		 */
 		var setError = function(text) {
 			$("#info_message").html(_(text));
 			if ($("#info_message").hasClass("success_message")) {
@@ -158,10 +176,23 @@ function Container(p) {
 			$("#info_message").addClass("error_message");
 		};
 		
-		var showError = function() {
+		/* sets info message
+		 * I18N for text
+		 */
+		var setInfo = function(text) {
+			$("#info_message").html(_(text));
+			if ($("#info_message").hasClass("error_message")) {
+				$("#info_message").removeClass("error_message");
+			}
+			$("#info_message").addClass("success_message");
+		};
+		
+		/* shows message */
+		var showMsg = function() {
 			$("#info_message").show();
 		};
 
+		/* create submit button */
 		$("<input type='submit' class='button' value='" + _("Save") + "'/>").appendTo(this.form);
 		
 		/* apply validate rules to form */
@@ -177,30 +208,40 @@ function Container(p) {
 				setError("Please, enter a valid data into the form below to be able to save it successfully.");
 				this.defaultShowErrors();
 			},
+			
 			errorPlacement: function(error, element) {
      			error.prependTo(element.parent());
      		},
+     		
+     		/* (closure to timeout var) */
      		submitHandler: function(form) {
      			$(form).ajaxSubmit({
      				url: "kdb/kdb_save.cgi",
      				type: "POST",
-     				timeout: 3000,
-     				/* show error when unable to save data (closure to setError and showError var) */
+     				timeout: timeout,
+     				
+     				/* show error when unable to save data (closure to setError and showMsg var) */
      				error: function() {
-     					setError("Unable to save data.");
-     					showError();
+     					setError("Error: unable to save data.");
+     					showMsg();
      				},
+     				
+     				/* save data to tmp local cache and show message before submit data
+     				 * (closure to setInfo and showMsg var)
+     				 */
 					beforeSubmit: function() {
 						config.saveTmpVals(form);
+						setInfo("Saving data...");
+						showMsg();
 					},
+					
+					/* sava data to local cache and show message after submit data
+					 * (closure to setInfo and showMsg var)
+					 */
 					success: function() {
 						config.saveVals();
-						$("#info_message").html(_("Data saved successfully."));
-						if ($("#info_message").hasClass("error_message")) {
-							$("#info_message").removeClass("error_message");
-						}
-						$("#info_message").addClass("success_message");
-						$("#info_message").show();
+						setInfo("Data saved successfully.");
+						showMsg();
 					}
 				});
      		}
