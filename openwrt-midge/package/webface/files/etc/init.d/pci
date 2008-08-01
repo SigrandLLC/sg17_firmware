@@ -218,7 +218,7 @@ _pci_stop(){
 	return 0
 }
 
-_dsl_restart(){
+_pci_restart(){
 	_pci_start
 }
 

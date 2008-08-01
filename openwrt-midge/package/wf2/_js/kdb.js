@@ -36,10 +36,12 @@ function Config() {
 		return parsed;
 	};
 	
+	/* return key's value */
 	this.get = function(name) {
 		return this.conf[name] ? this.conf[name] : "";
 	};
 	
+	/* parse KDB file */
 	this.parseRawKDB = function(data) {
 		var str = data.split("\n");
 		var line;
@@ -56,6 +58,7 @@ function Config() {
 		}
 	};
 	
+	/* load KDB file from server */
 	this.loadKDB = function(params) {
 		var url = "kdb/kdb_load.cgi";
 		if (params) {

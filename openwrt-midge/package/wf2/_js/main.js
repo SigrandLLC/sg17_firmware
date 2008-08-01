@@ -1,8 +1,11 @@
-$("head").append("<link href='translation/ru.json' lang='ru' rel='gettext'/>");
-
-/* current settings */
+/* load KDB settings */
 var config = new Config();
 config.loadKDB( );
+
+var lang = config.get("sys_interface_language");
+if (lang != "en") {
+	$("head").append("<link href='translation/" + lang + ".json' lang='" + lang + "' rel='gettext'/>");
+}
 
 $(document).ready(function() {
 	$('#container').tabs({fxAutoHeight: true});

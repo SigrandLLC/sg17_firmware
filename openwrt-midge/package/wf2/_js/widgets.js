@@ -114,7 +114,8 @@ function Container(p) {
 	 * I18N for name
 	 */
 	this.option_tpl = function() {
-		var attrs = { optionValue: this.value };
+		var attrs = { optionValue: this.value};
+		if (this.selected) attrs['selected'] = this.selected;
 		return ['option', attrs, _(this.name)];
 	};
 	
@@ -147,6 +148,7 @@ function Container(p) {
 						value: value,
 						name: w.options[value]
 					};
+					if (config.get(w.name) == option['value']) option['selected'] = true;
 					/* add select's option to previously added select element */
 					$('#td_' + w.name + ' select').tplAppend(option, this.option_tpl);
 				}
@@ -160,11 +162,12 @@ function Container(p) {
 
 	/**
 	 * Ads submit button, form validation rules and submit's events handlers.
-	 * ajaxTimeout — time in seconds to wait for server reply before show an error message,
+	 * options.ajaxTimeout — time in seconds to wait for server reply before show an error message,
 	 * defaults to 10 seconds.
+	 * options.reload — reload page after AJAX request (e.g., for update translation)
 	 */
-	this.addSubmit = function(ajaxTimeout) {
-		var timeout = ajaxTimeout ? ajaxTimeout * 1000 : 10000;
+	this.addSubmit = function(options) {
+		var timeout = (options && options.ajaxTimeout) ? options.ajaxTimeout * 1000 : 10000;
 		/* sets error message
 		 * I18N for text
 		 */
@@ -242,6 +245,7 @@ function Container(p) {
 						config.saveVals();
 						setInfo("Data saved successfully.");
 						showMsg();
+						if (options && options.reload) document.location.reload();
 					}
 				});
      		}
