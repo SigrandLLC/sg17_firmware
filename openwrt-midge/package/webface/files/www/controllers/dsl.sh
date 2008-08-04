@@ -331,7 +331,7 @@ _sg17_settings(){
 	desc="Select DSL clock mode"
 	id='clkmode'
 	onchange="OnChangeSG17Code();"	
-	render_input_field select "Clock mode" sys_pcicfg_s${slot}_${dev}_clkmode  'plesio' 'plesio' 'sync' 'sync'
+	render_input_field select "Clock mode" sys_pcicfg_s${slot}_${dev}_clkmode  'plesio' 'plesio' 'plesio-ref' 'plesio-ref' 'sync' 'sync'
 
 	if [ "$ctrl" != "eocd" ]; then
 

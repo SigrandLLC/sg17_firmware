@@ -319,7 +319,8 @@ function OnChangeSG17Code()
 		freeList($('clkmode'));
 		$('clkmode').disabled = 0;
 		$('clkmode').options[0] = new Option("plesio");
-		$('clkmode').options[1] = new Option("sync");
+		$('clkmode').options[1] = new Option("plesio-ref");
+		$('clkmode').options[2] = new Option("sync");
 		$('clkmode').selectedIndex=clkmode_ind;
 
 		// PBO
