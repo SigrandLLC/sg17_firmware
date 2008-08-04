@@ -39,7 +39,7 @@
 							<ul class="treeview" id="menu">
 								<li><span>System</span>
 									<ul>
-										<li><span><a href="#" onclick="Controllers.interface()">Interface</a></span></li>
+										<li><span><a href="#" onclick="Controllers.webface()">Interface</a></span></li>
 										<li><span><a href="#" onclick="Controllers.general()">General</a></span></li>
 										<li><span><a href="#" onclick="Controllers.security()">Security</a></span></li>
 										<li><span><a href="#" onclick="Controllers.dns()">DNS</a></span></li>
@@ -51,11 +51,11 @@
 								    <ul>
 								        <li><span>Interfaces</span>
 											<ul>
-												<li><span><a href="#" onclick="cInterface('#container', 'eth0')">eth0</a></span></li>
-												<li><span><a href="#" onclick="cInterface('#container', 'eth1')">eth1</a></span></li>
-												<li><span><a href="#" onclick="cInterface('#container', 'ppp0')">ppp0</a></span></li>
-												<li><span><a href="#" onclick="cInterface('#container', 'dsl0')">dsl0</a></span></li>
-												<li><span><a href="#" onclick="cInterface('#container', 'dsl1')">dsl1</a></span></li>
+												<li><span><a href="#" onclick="Controllers.iface('eth0')">eth0</a></span></li>
+												<li><span><a href="#" onclick="Controllers.iface('eth1')">eth1</a></span></li>
+												<li><span><a href="#" onclick="Controllers.iface('ppp0')">ppp0</a></span></li>
+												<li><span><a href="#" onclick="Controllers.iface('dsl0')">dsl0</a></span></li>
+												<li><span><a href="#" onclick="Controllers.iface('dsl1')">dsl1</a></span></li>
 											</ul>
 										</li>				
 								        <li><span>Firewall</span></li>

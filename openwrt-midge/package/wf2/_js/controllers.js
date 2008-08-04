@@ -4,17 +4,17 @@ var Controllers = {
 	container: "#container",
 	
 	/* delegates to pageTabs() defined in widgets.js */
-	pageTabs: function(tabs) {
-		return new pageTabs(this.container, tabs);
+	pageTabs: function(tabs, subsystem) {
+		return new pageTabs(this.container, tabs, subsystem);
 	}
 };
 
-Controllers['interface'] = function() {
-	var tabs = this.pageTabs({general: "Interface"});
+Controllers['webface'] = function() {
+	var tabs = this.pageTabs({general: "Webface"});
 	var c = tabs.tabs['general'].addContainer();
 	var field;
 
-	c.addTitle("Interface settings");
+	c.addTitle("Webface settings");
 
 	field = {
 		type: "select",
@@ -152,7 +152,7 @@ Controllers['time'] = function() {
 }
 
 Controllers['logging'] = function() {
-	var tabs = this.pageTabs({logging: "Logging"});
+	var tabs = this.pageTabs({logging: "Logging"}, "logging");
 	var c = tabs.tabs['logging'].addContainer();
 	var field;
 
@@ -190,6 +190,55 @@ Controllers['logging'] = function() {
 		name: "sys_log_remote_server",
 		text: "Remote syslog server",
 		descr: "Domain name or ip address of remote syslog server"
+	}
+	c.addWidget(field);
+
+	c.addSubmit();
+}
+
+Controllers['iface'] = function(iface) {
+	var tabs = this.pageTabs({status: "Status", general: "General", method: "Method",
+		options: "Options", specific: "Specific", qos: "QoS", routes: "Routes"}, "network");
+	var c = tabs.tabs['general'].addContainer();
+	var field;
+
+	c.addTitle("Interface general settings");
+
+	field = { 
+		type: "text",
+		name: "sys_iface_" + iface + "_desc",
+		text: "Description"
+	}
+	c.addWidget(field);
+
+	field = { 
+		type: "checkbox",
+		name: "sys_iface_" + iface + "_enabled",
+		text: "Enabled"
+	}
+	c.addWidget(field);
+	
+	field = { 
+		type: "checkbox",
+		name: "sys_iface_" + iface + "_auto",
+		text: "Auto"
+	}
+	c.addWidget(field);
+	
+	field = { 
+		type: "select",
+		name: "sys_iface_" + iface + "_method",
+		text: "Method",
+		descr: "Select method of setting IP address",
+		options: {"none": "None", "static": "Static address", "zeroconf": "Zero Configuration", "dynamic": "Dynamic address"}
+	}
+	c.addWidget(field);
+	
+	field = { 
+		type: "select",
+		name: "sys_iface_" + iface + "_depend_on",
+		text: "Depended on",
+		options: {}
 	}
 	c.addWidget(field);
 

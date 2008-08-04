@@ -1,9 +1,10 @@
 /*
  * Add tabs to 'p' container.
  * tabs: hash, key — id, value — name of tab
+ * subsystem — name of a subsystem for all tabs on the page.
  * I18N for tab name.
  */
-function pageTabs(p, tabsInfo) {
+function pageTabs(p, tabsInfo, subsystem) {
 	/* clear page */
 	$(p).empty();
 	
@@ -15,7 +16,7 @@ function pageTabs(p, tabsInfo) {
 	$(tabsList).appendTo(p);
 	this.tabs = new Array();
 	for (tab in tabsInfo) {
-		this.tabs[tab] = new TabContents($("<div id='" + tab + "'></div>").appendTo(p).get());
+		this.tabs[tab] = new TabContents($("<div id='" + tab + "'></div>").appendTo(p).get(), subsystem);
 	}
 	
 	/* update tabs */
@@ -25,11 +26,12 @@ function pageTabs(p, tabsInfo) {
 /*
  * Contents of one tab.
  */
-function TabContents(tab) {
+function TabContents(tab, subsystem) {
 	this.tab = tab;
+	this.subsystem = subsystem;
 
 	this.addContainer = function() {
-		return new Container(this.tab);
+		return new Container(this.tab, this.subsystem);
 	}
 	
 	this.addBr = function() {
@@ -41,12 +43,17 @@ function TabContents(tab) {
  * Container for widgets
  * I18N for widgets.
  */
-function Container(p) {
+function Container(p, subsystem) {
+	this.subsystem = subsystem;
 	this.validator_rules = new Object();
 	this.validator_messages = new Object();
 	$("<div class='message' id='info_message'></div>").appendTo(p);
 	this.form = $("<form action=''></form>").appendTo(p).get();
 	this.table = $("<table id='conttable' cellpadding='0' cellspacing='0' border='0'></table>").appendTo(this.form).get();
+
+	this.setSubsystem = function(subsystem) {
+		this.subsystem = subsystem;
+	}
 
 	/* template for table title */
 	this.table_title_tpl = function() {
@@ -57,6 +64,15 @@ function Container(p) {
 		];
 	};
 	
+	this.subsystem_tpl = function() {
+		var attrs = {
+						type: "hidden",
+						name: "subsystem",
+						value: this.subsystem
+		};
+		return ['input', attrs];
+	};
+	
 	/* Common widget's template
 	 * I18N for text, descr
 	 */
@@ -64,7 +80,7 @@ function Container(p) {
 		return [
 			'tr', {}, [
 				'td', {className: 'tdleft'}, _(this.text),
-				'td', {id: 'td_' + this.name}, '<br /><p>' + _(this.descr) + '</p>'
+				'td', {id: 'td_' + this.name}, '<br /><p>' + _(this.descr || "") + '</p>'
 			]
 		];
 	};
@@ -97,9 +113,11 @@ function Container(p) {
 		var attrs = {
 						type: 'checkbox',
 						name: this.name,
-						className: 'check'
+						className: 'check',
+						value: 1
 		};
 		this.id && (attrs.id = this.id);
+		if (config.get(this.name) == "1") attrs['checked'] = true;
 		return ['input', attrs];
 	};
 	
@@ -195,6 +213,11 @@ function Container(p) {
 			$("#info_message").show();
 		};
 
+		/* if subsystem is set — add it to the form */
+		if (this.subsystem) {
+			$("<input type='hidden' name='subsystem' value='" + this.subsystem + "'/>").appendTo(this.form);
+		}
+
 		/* create submit button */
 		$("<input type='submit' class='button' value='" + _("Save") + "'/>").appendTo(this.form);
 		
@@ -218,6 +241,16 @@ function Container(p) {
      		
      		/* (closure to timeout var) */
      		submitHandler: function(form) {
+     			/*
+     			 * All checkboxes return values, even they are unchecked.
+     			 * Here we find all unchecked checkboxes, temporarily check them, set
+     			 * their value, and set their class to doUncheck, to uncheck them later.
+     			 */
+     			$(":checkbox").not(":checked").each(function() {
+					this.checked = true;
+					this.value = 0;
+				}).addClass("doUncheck");
+				
      			$(form).ajaxSubmit({
      				url: "kdb/kdb_save.cgi",
      				type: "POST",
@@ -233,6 +266,12 @@ function Container(p) {
      				 * (closure to setInfo and showMsg var)
      				 */
 					beforeSubmit: function() {
+						/* Here we uncheck temporarily checked checkboxes */
+						$(".doUncheck").each(function() {
+							this.checked = false;
+							this.value = 1;
+						}).removeClass("doUncheck");
+						
 						config.saveTmpVals(form);
 						setInfo("Saving data...");
 						showMsg();
