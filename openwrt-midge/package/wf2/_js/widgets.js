@@ -78,10 +78,12 @@ function Container(p, subsystem) {
 	 * I18N for text, descr
 	 */
 	this.widget_tpl = function() {
+		var description = this.descr ? "<br /><p>" + _(this.descr) + "</p>" : "";
+		
 		return [
 			'tr', {}, [
 				'td', {className: 'tdleft'}, _(this.text),
-				'td', {id: 'td_' + this.name}, '<br /><p>' + _(this.descr || "") + '</p>'
+				'td', {id: 'td_' + this.name}, description
 			]
 		];
 	};
