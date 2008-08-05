@@ -47,7 +47,8 @@ function Container(p, subsystem) {
 	this.subsystem = subsystem;
 	this.validator_rules = new Object();
 	this.validator_messages = new Object();
-	$("<div class='message' id='info_message'></div>").appendTo(p);
+	this.info_message = "info_message_" + $(p).attr("id");
+	$("<div class='message'></div>").attr("id", this.info_message).appendTo(p);
 	this.form = $("<form action=''></form>").appendTo(p).get();
 	this.table = $("<table id='conttable' cellpadding='0' cellspacing='0' border='0'></table>").appendTo(this.form).get();
 
@@ -179,38 +180,39 @@ function Container(p, subsystem) {
 	};
 
 	/**
-	 * Ads submit button, form validation rules and submit's events handlers.
-	 * options.ajaxTimeout — time in seconds to wait for server reply before show an error message,
-	 * defaults to 10 seconds.
+	 * Adds submit button, form validation rules and submit's events handlers.
+	 * options.ajaxTimeout — time in seconds to wait for server reply before show an error message.
 	 * options.reload — reload page after AJAX request (e.g., for update translation)
 	 */
 	this.addSubmit = function(options) {
-		var timeout = (options && options.ajaxTimeout) ? options.ajaxTimeout * 1000 : 10000;
+		var timeout = (options && options.ajaxTimeout) ? options.ajaxTimeout * 1000 : null;
+		var id_info_message = "#" + this.info_message;
+		
 		/* sets error message
 		 * I18N for text
 		 */
 		var setError = function(text) {
-			$("#info_message").html(_(text));
-			if ($("#info_message").hasClass("success_message")) {
-				$("#info_message").removeClass("success_message");
+			$(id_info_message).html(_(text));
+			if ($(id_info_message).hasClass("success_message")) {
+				$(id_info_message).removeClass("success_message");
 			}
-			$("#info_message").addClass("error_message");
+			$(id_info_message).addClass("error_message");
 		};
 		
 		/* sets info message
 		 * I18N for text
 		 */
 		var setInfo = function(text) {
-			$("#info_message").html(_(text));
-			if ($("#info_message").hasClass("error_message")) {
-				$("#info_message").removeClass("error_message");
+			$(id_info_message).html(_(text));
+			if ($(id_info_message).hasClass("error_message")) {
+				$(id_info_message).removeClass("error_message");
 			}
-			$("#info_message").addClass("success_message");
+			$(id_info_message).addClass("success_message");
 		};
 		
 		/* shows message */
 		var showMsg = function() {
-			$("#info_message").show();
+			$(id_info_message).show();
 		};
 
 		/* if subsystem is set — add it to the form */
@@ -227,7 +229,7 @@ function Container(p, subsystem) {
 			messages: this.validator_messages,
 			
 			/* container where to show error */
-			errorContainer: "#info_message",
+			errorContainer: id_info_message,
 			
 			/* Set error text to container (closure to setError var) */
 			showErrors: function(errorMap, errorList) {

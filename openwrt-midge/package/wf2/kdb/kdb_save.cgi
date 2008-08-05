@@ -25,7 +25,7 @@
 		fail_str="Update config failed: $ERROR_DETAIL"
 		[ "$ERROR_MESSAGE" ] && return
 		for service in $subsys; do
-			service_reload $service 2>&1 | $LOGGER &
+			service_reload $service 2>&1 | $LOGGER
 		done
 	}
 	

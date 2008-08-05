@@ -89,12 +89,12 @@
 }
 .tabs-container {
 	margin-right: 20px;
-   padding: 0 10px;
+	padding: 0 5px;
 	background-image: url(../_img/menu_grad.jpg);
 	background-repeat: repeat-x;
     /*padding: 1em 8px;*/
     /*background: #fff;*/ /* declare background color for container to avoid distorted fonts in IE while fading */
-	border-top: 10px solid #555;
+	border-top: 5px solid #555;
 }
 .tabs-loading em {
     padding: 0 0 0 20px;

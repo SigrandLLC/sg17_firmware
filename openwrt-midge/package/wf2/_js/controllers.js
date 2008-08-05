@@ -197,11 +197,13 @@ Controllers['logging'] = function() {
 }
 
 Controllers['iface'] = function(iface) {
+	var field;
+	var c;
 	var tabs = this.pageTabs({status: "Status", general: "General", method: "Method",
 		options: "Options", specific: "Specific", qos: "QoS", routes: "Routes"}, "network");
-	var c = tabs.tabs['general'].addContainer();
-	var field;
-
+	
+	/* general tab */
+	c = tabs.tabs['general'].addContainer();
 	c.addTitle("Interface general settings");
 
 	field = { 
@@ -242,5 +244,48 @@ Controllers['iface'] = function(iface) {
 	}
 	c.addWidget(field);
 
+	c.addSubmit();
+	
+	/* method tab */
+	var c = tabs.tabs['method'].addContainer();
+
+	c.addTitle("Static address settings");
+
+	field = { 
+		type: "text",
+		name: "sys_iface_" + iface + "_ipaddr",
+		text: "Static address",
+		desc: "Address (dotted quad) <b>required</b>",
+		validator: {required: true},
+		message: "Please enter correct IP address"
+	}
+	c.addWidget(field);
+	
+	field = { 
+		type: "text",
+		name: "sys_iface_" + iface + "_netmask",
+		text: "Netmask",
+		desc: "Netmask (dotted quad) <b>required</b>",
+		validator: {required: true},
+		message: "Please enter correct IP netmask"
+	}
+	c.addWidget(field);
+	
+	field = { 
+		type: "text",
+		name: "sys_iface_" + iface + "_broadcast",
+		text: "Broadcast",
+		desc: "Broadcast (dotted quad)"
+	}
+	c.addWidget(field);
+	
+	field = { 
+		type: "text",
+		name: "sys_iface_" + iface + "_gateway",
+		text: "Gateway",
+		desc: "Default gateway (dotted quad)"
+	}
+	c.addWidget(field);
+	
 	c.addSubmit();
 }

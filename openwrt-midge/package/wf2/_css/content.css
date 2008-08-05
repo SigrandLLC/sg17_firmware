@@ -422,9 +422,9 @@ td.pagesel, td.pagesel_a{
 	font-family: Tahoma, Verdana, Arial, Helvetica, sans-serif;
 	font-size: 13px;
 	background-color: #435370;
-	height: 30;
-	padding-left: 20;
-	padding-right: 20;
+	height: 30px;
+	padding-left: 20px;
+	padding-right: 20px;
 	border: 1px solid #999999;
 
 }

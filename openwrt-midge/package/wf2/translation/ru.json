@@ -14,8 +14,8 @@
 	"Please, enter a valid data into the form below to be able to save it successfully." :
 	"Пожалуйста, введите корректные данные в поля формы чтобы успешно сохранить изменения.",
 	"Enter hostname" : "Введите имя маршрутизатора",
-	"Interface": "Интерфейс",
-	"Interface settings": "Настройки интерфейса",
+	"Webface": "Веб-нтерфейс",
+	"Webface settings": "Настройки веб-интерфейса",
 	"Interface language": "Язык интерфейса",
 	"Please select language": "Пожалуйста, выберите язык",
 	"Russian": "Русский",
