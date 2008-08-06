@@ -79,10 +79,11 @@ function Container(p, subsystem) {
 	 */
 	this.widget_tpl = function() {
 		var description = this.descr ? "<br /><p>" + _(this.descr) + "</p>" : "";
+		var required = (this.validator && this.validator['required']) ? " *" : "";
 		
 		return [
 			'tr', {}, [
-				'td', {className: 'tdleft'}, _(this.text),
+				'td', {className: 'tdleft'}, _(this.text) + required,
 				'td', {id: 'td_' + this.name}, description
 			]
 		];
@@ -97,6 +98,7 @@ function Container(p, subsystem) {
 						size: '25'
 		};
 		this.id && (attrs.id = this.id);
+		this.tip && (attrs.title = this.tip);
 		return ['input', attrs];
 	};
 	
@@ -120,6 +122,7 @@ function Container(p, subsystem) {
 						value: 1
 		};
 		this.id && (attrs.id = this.id);
+		this.tip && (attrs.title = this.tip);
 		if (config.get(this.name) == "1") attrs['checked'] = true;
 		return ['input', attrs];
 	};
@@ -128,6 +131,7 @@ function Container(p, subsystem) {
 	this.select_tpl = function() {
 		var attrs = { name: this.name };
 		this.id && (attrs.id = this.id);
+		this.tip && (attrs.title = this.tip);
 		return ['select', attrs];
 	};
 	
@@ -175,7 +179,6 @@ function Container(p, subsystem) {
 				}
 				break;
 		}
-		
 		w.validator && (this.validator_rules[w.name] = w.validator);
 		/* I18N for element's error messages */
 		w.message && (this.validator_messages[w.name] = _(w.message));
@@ -224,6 +227,8 @@ function Container(p, subsystem) {
 
 		/* create submit button */
 		$("<input type='submit' class='button' value='" + _("Save") + "'/>").appendTo(this.form);
+		
+		$("*").tooltip({track: true});
 		
 		/* apply validate rules to form */
 		$(this.form).validate({

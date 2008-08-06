@@ -96,7 +96,8 @@ Controllers['dns'] = function() {
 		type: "text",
 		name: "sys_dns_nameserver",
 		text: "Upstream server",
-		descr: "Please enter ip address of upstream dns server"
+		descr: "Please enter ip address of upstream dns server",
+		tip: "E.g., 192.168.2.1"
 	}
 	c.addWidget(field);
 
@@ -104,7 +105,8 @@ Controllers['dns'] = function() {
 		type: "text",
 		name: "sys_dns_domain",
 		text: "Domain",
-		descr: "Please enter your domain"
+		descr: "Please enter your domain",
+		tip: "E.g., localnet"
 	}
 	c.addWidget(field);
 
@@ -122,7 +124,8 @@ Controllers['time'] = function() {
 		type: "checkbox",
 		name: "sys_ntpclient_enabled",
 		text: "Use time synchronizing",
-		descr: "Check this item if you want use time synchronizing"
+		descr: "Check this item if you want use time synchronizing",
+		tip: "Time synchronization via NTP protocol"
 	}
 	c.addWidget(field);
 	
