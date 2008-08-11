@@ -1,10 +1,12 @@
 /*
  * Add tabs to 'p' container.
  * tabs: hash, key — id, value — name of tab
- * subsystem — name of a subsystem for all tabs on the page.
+ * options — optional settings for page, may include:
+ * 	- subsystem — name of a subsystem for all tabs on the page.
+ *  - help — name of html file with context help for all tabs on the page.
  * I18N for tab name.
  */
-function pageTabs(p, tabsInfo, subsystem) {
+function pageTabs(p, tabsInfo, options) {
 	/* clear page */
 	$(p).empty();
 	
@@ -16,7 +18,7 @@ function pageTabs(p, tabsInfo, subsystem) {
 	$(tabsList).appendTo(p);
 	this.tabs = new Array();
 	for (tab in tabsInfo) {
-		this.tabs[tab] = new TabContents($("<div id='" + tab + "'></div>").appendTo(p).get(), subsystem);
+		this.tabs[tab] = new TabContents($("<div id='" + tab + "'></div>").appendTo(p).get(), options);
 	}
 	
 	/* update tabs */
@@ -24,14 +26,22 @@ function pageTabs(p, tabsInfo, subsystem) {
 }
 
 /*
- * Contents of one tab.
+ * Content of an one tab.
+ * options — additional options for container.
  */
-function TabContents(tab, subsystem) {
+function TabContents(tab, options) {
 	this.tab = tab;
-	this.subsystem = subsystem;
+	this.options = options;
 
-	this.addContainer = function() {
-		return new Container(this.tab, this.subsystem);
+	/*
+	 * Adds container to tab.
+	 * helpSection — if string, then this is a name of the section (e.g., "logging");
+	 * 			   — if object, then - page: html page name,
+	 * 								 - section: section
+	 * 				 (e.g, {page: "logging", section: "asd"})
+	 */
+	this.addContainer = function(helpSection) {
+		return new Container(this.tab, this.options, helpSection);
 	}
 	
 	this.addBr = function() {
@@ -39,12 +49,32 @@ function TabContents(tab, subsystem) {
 	}
 }
 
+/* show HTML page in popup window */
+function popup(url) {
+	 var width  = 608;
+	 var height = 700;
+	 var left   = (screen.width - width)/2;
+	 var top    = (screen.height - height)/2;
+	 var params = 'width='+width+', height='+height;
+	 params += ', top='+top+', left='+left;
+	 params += ', directories=no';
+	 params += ', location=no';
+	 params += ', menubar=no';
+	 params += ', resizable=no';
+	 params += ', scrollbars=1';
+	 params += ', status=1';
+	 params += ', toolbar=no';
+	 newwin=window.open(url,'help', params);
+	 if (window.focus) {newwin.focus()}
+	 return false;
+}
+
 /*
  * Container for widgets
  * I18N for widgets.
  */
-function Container(p, subsystem) {
-	this.subsystem = subsystem;
+function Container(p, options, helpSection) {
+	if (options && options.subsystem) this.subsystem = options.subsystem;
 	this.validator_rules = new Object();
 	this.validator_messages = new Object();
 	this.info_message = "info_message_" + $(p).attr("id");
@@ -58,9 +88,19 @@ function Container(p, subsystem) {
 
 	/* template for table title */
 	this.table_title_tpl = function() {
+		var url;
+		if (helpSection && typeof helpSection == "object") {
+			url = "popup('/help/" + helpSection.page + ".html#" + helpSection.section + "')";
+		} else if (options && options.help) {
+			url = helpSection ? "popup('/help/" + options.help + ".html#" + helpSection + "')" :
+				"popup('/help/" + options.help + ".html')";
+		} else {
+			url = null;
+		}
+		var help = url ? " <a href='#' onclick=" + url + " class='helpLink'>[?]</a>" : "";
 		return [
 			'tr', {}, [
-				'th', {colspan: '2'}, this.title
+				'th', {colspan: '2'}, this.title + help
 			]
 		];
 	};
@@ -228,7 +268,7 @@ function Container(p, subsystem) {
 		/* create submit button */
 		$("<input type='submit' class='button' value='" + _("Save") + "'/>").appendTo(this.form);
 		
-		$("*").tooltip({track: true});
+		$("input").tooltip({track: true});
 		
 		/* apply validate rules to form */
 		$(this.form).validate({

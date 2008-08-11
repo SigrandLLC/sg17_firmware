@@ -4,8 +4,8 @@ var Controllers = {
 	container: "#container",
 	
 	/* delegates to pageTabs() defined in widgets.js */
-	pageTabs: function(tabs, subsystem) {
-		return new pageTabs(this.container, tabs, subsystem);
+	pageTabs: function(tabs, options) {
+		return new pageTabs(this.container, tabs, options);
 	}
 };
 
@@ -29,8 +29,8 @@ Controllers['webface'] = function() {
 };
 
 Controllers['general'] = function() {
-	var tabs = this.pageTabs({general: "General"});
-	var c = tabs.tabs['general'].addContainer();
+	var tabs = this.pageTabs({general: "General"}, {help: "begin"});
+	var c = tabs.tabs['general'].addContainer("hostname");
 	var field;
 
 	c.addTitle("General settings");
@@ -49,8 +49,8 @@ Controllers['general'] = function() {
 };
 
 Controllers['security'] = function() {
-	var tabs = this.pageTabs({security: "Security"});
-	var c = tabs.tabs['security'].addContainer();
+	var tabs = this.pageTabs({security: "Security"}, {help: "begin"});
+	var c = tabs.tabs['security'].addContainer("passwd");
 	var field;
 
 	c.addTitle("Webface password");
@@ -155,7 +155,7 @@ Controllers['time'] = function() {
 }
 
 Controllers['logging'] = function() {
-	var tabs = this.pageTabs({logging: "Logging"}, "logging");
+	var tabs = this.pageTabs({logging: "Logging"}, {subsystem: "logging", help: "logging"});
 	var c = tabs.tabs['logging'].addContainer();
 	var field;
 
@@ -203,7 +203,8 @@ Controllers['iface'] = function(iface) {
 	var field;
 	var c;
 	var tabs = this.pageTabs({status: "Status", general: "General", method: "Method",
-		options: "Options", specific: "Specific", qos: "QoS", routes: "Routes"}, "network");
+		options: "Options", specific: "Specific", qos: "QoS", routes: "Routes"},
+		{subsystem: "network"});
 	
 	/* general tab */
 	c = tabs.tabs['general'].addContainer();
