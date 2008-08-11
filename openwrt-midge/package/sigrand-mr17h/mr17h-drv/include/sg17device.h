@@ -28,6 +28,7 @@ int sdfe4_link_led_up(int i,struct sdfe4 *hwdev);
 int sdfe4_link_led_down(int i,struct sdfe4 *hwdev);
 int sdfe4_link_led_blink(int i, struct sdfe4 *hwdev);
 int sdfe4_link_led_fast_blink(int i,struct sdfe4 *hwdev);
+int sdfe4_clock_setup(int i, struct sdfe4 *hwdev);
 // locking
 void sdfe4_lock_chip(struct sdfe4 *hwdev);
 void sdfe4_unlock_chip(struct sdfe4 *hwdev);

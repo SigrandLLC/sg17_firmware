@@ -31,13 +31,10 @@
 #define WTBE    0x02            // write burst enable
 #define RODD    0x04            // receive 2-byte alignment
 #define RXDE    0x08            // receive data enable
-#define EXTC    0x20            // receive data enable
+#define REFE	0x10		// clock reference enable
+#define EXTC    0x20            // external transmit clock
 #define LED1	0x40		// Led blink control bit 1
 #define LED2	0x80		// Led blink control bit 2
-
-// SR and IMR bits
-#define TXS     0x01            // transmit success
-#define RXS     0x02            // receive success
 
 // SR and IMR bits
 #define TXS     0x01            // transmit success

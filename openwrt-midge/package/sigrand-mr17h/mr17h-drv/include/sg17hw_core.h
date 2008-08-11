@@ -48,8 +48,8 @@ struct sdfe4_if_cfg{
 	u32 loop :2;
 	u32 tc_pam :3;
 	u32 need_reconf :1;
-	u32 clkmode :1;
-	u32 pbo_mode: 1;
+	u32 clkmode :2;
+	u32 pbo_mode :1;
 
 	u16 frequency;
 	u16 payload_bits;

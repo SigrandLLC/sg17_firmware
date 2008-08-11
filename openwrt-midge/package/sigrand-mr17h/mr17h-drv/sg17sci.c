@@ -296,6 +296,11 @@ sg17_sci_led_fblink(struct sg17_sci *s,int i){
 	sg17_led_fblink(s,s->ch_map[i]);
 }
 
+inline void
+sg17_sci_clock_setup(struct sg17_sci *s,int i){
+	sg17_clock_setup(s,s->ch_map[i]);
+}
+
 int
 sg17_sci_if2ch(struct sg17_sci *s,int if_num)
 {
@@ -378,6 +383,12 @@ inline void
 sdfe4_memcpy(void *dst,const void *src,int size){	
 	memcpy(dst,src,size);
 }
+void
+sdfe4_clock_setup(int i, struct sdfe4 *hwdev){
+	PDEBUG(debug_link,"chan#%d",i);
+	sg17_sci_clock_setup((struct sg17_sci *)hwdev->data,i);
+}
+
 
 
 // locking

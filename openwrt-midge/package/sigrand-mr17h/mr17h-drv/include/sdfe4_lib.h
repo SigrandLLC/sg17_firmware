@@ -164,6 +164,9 @@
 #define  ACK_CFG_GHS_EXTENDED_PAM_MODE  0x2672
 #	define	EXT_PAM_DISABLE	0
 #	define  EXT_PAM_ENABLE	1
+#define  CMD_GHS_CAP_GET	     0x2822
+#define  ACK_GHS_CAP_GET	     0x2A22
+
 //------------------------------------
 #define  NFC_CONNECT_CTRL		0x0D04
 #	define  MAIN_INIT		0x00
@@ -192,6 +195,8 @@
 #define  NFC_MULTIWIRE_PAIR_NR		0xB96F
 
 #define  SLIP_FAST                   0x00
+#define  SLIP_NORMAL4		     0x01	
+#define	 SLIP_NORMAL8		     0x03
 #define  SDI_FALLING                 0x00
 #define  SDI_RISING                  0x01
 #define  SDI_HIGH                    0x01
@@ -228,9 +233,10 @@
 
 #define  SDI_INCLK_INSP_TDMMSP       0x05
 #define  SDI_TDMSP_TDMMSP            0x08
+#define  SDI_TDMCLK                  0x00
+#define  SDI_TDMCLK_TDMSP	     0x01	
 #define  SDI_TDMCLK_TDMMSP           0x02
 #define  SDI_TDMCLK_TDMSP_TDMMSP     0x03
-#define  SDI_TDMCLK                  0x00
 #define  SDI_DSL3                    0x09
 #define  SDI_DSL3_NS                 0x0D
 #define  PMMS_OFF                    0x00
@@ -265,7 +271,10 @@
 #define  CLK_INTERNAL                0x00
 #define  FRAME_PLESIO                0x0
 #define  FRAME_SYNC                  0x1
-
+#define  OWN			     0x0
+#define  REMOTE			     0x1	
+#define  TPS_TC_A		     0x66
+#define  TPS_TC_B		     0x68
 
 // ERROR codes
 #define EXMIT	1
@@ -463,6 +472,29 @@ struct cmd_cfg_ghs_extended_pam_mode {
 	u8  bits_per_symbol;
 	u16 speed_rate;
 };
+
+struct cmd_ghs_cap_get {
+	u8 ClType;
+	u8 ClParam;
+	u8 rsvd0;
+	u8 rsvd1;
+	u8 rsvd2;
+	u8 rsvd3;
+	u8 rsvd4;
+	u8 rsvd5;
+};	
+
+struct ack_ghs_cap_get {
+	u8 ClType;
+	u8 ClParam;
+	u8 ClOctetNrNPar;
+	u8 ClOctetNrSPar;
+	u8 rsvd0;
+	u8 rsvd1;
+	u8 rsvd2;
+	u8 rsvd3;
+	u8 ClData[4];
+};	
 
 u32 u8_to_u32(u8 *src);
 int sdfe4_msg_init(struct sdfe4_msg *msg, char *cmsg, int len);

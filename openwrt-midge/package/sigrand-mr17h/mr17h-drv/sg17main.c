@@ -332,7 +332,7 @@ sg17_link_up(struct sg17_sci *s, int if_num)
 	struct sg17_card *card = container_of(s,struct sg17_card,sci);
 	struct net_device *ndev = card->ndevs[if_num];
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
-	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
+//	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
 
 	advlink_hwstatus(&nl->alink,ADVLINK_UP);
 
@@ -341,13 +341,14 @@ sg17_link_up(struct sg17_sci *s, int if_num)
 	iowrite8( 0xff, &nl->regs->SR );
 	iowrite8( (ioread8( &nl->regs->CRB )&(~(RXDE|LED1|LED2)) ), &nl->regs->CRB );
 	iowrite8( (UFL|CRC|OFL|RXS|TXS), &nl->regs->IMR );
-	if( cfg->clkmode == FRAME_SYNC ){ // Synchronuous mode
-		if( cfg->mode == STU_R ){ // Slave
-			iowrite8( (ioread8( &nl->regs->CRB ) | EXTC ), &nl->regs->CRB );			
-		}else{ // Master
-			iowrite8( (ioread8( &nl->regs->CRB ) & ~EXTC ), &nl->regs->CRB );
-		}
-	}	
+// EXTC=1 for Slave in ALL clock modes independent of link state
+/*  *** Moved to sg17_clock_setup ***
+	if( cfg->mode == STU_R ){ // Slave
+		iowrite8( (ioread8( &nl->regs->CRB ) | EXTC ), &nl->regs->CRB );			
+	}else{ // Master
+		iowrite8( (ioread8( &nl->regs->CRB ) & ~EXTC ), &nl->regs->CRB );
+	}
+*/
 }
 
 void 
@@ -356,14 +357,15 @@ sg17_link_down(struct sg17_sci *s, int if_num)
 	struct sg17_card *card = container_of(s,struct sg17_card,sci);
 	struct net_device *ndev = card->ndevs[if_num];
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
-	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
+//	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
 	u8 tmp = ioread8(&nl->regs->CRB) | RXDE;
 
 	tmp &= ~(LED1 | LED2); 
-	if( cfg->clkmode == FRAME_SYNC && cfg->mode == STU_R ){ // Slave
-		tmp &= ~EXTC;
-	}	
-
+//  *** Moved to sg17_clock_setup ***
+/*	if( cfg->clkmode == FRAME_SYNC && cfg->mode == STU_R ){ // Slave
+ 		tmp &= ~EXTC;
+ 	}	
+*/
 	PDEBUG(debug_link,"");
 
 	iowrite8(tmp,&(nl->regs->CRB) );
@@ -395,6 +397,28 @@ sg17_led_fblink(struct sg17_sci *s, int if_num)
 	u8 tmp = (ioread8(&nl->regs->CRB) & (~LED1)) | LED2;
 	PDEBUG(debug_link,"");
 	iowrite8(tmp,&(nl->regs->CRB) );
+}
+
+void
+sg17_clock_setup(struct sg17_sci *s, int if_num)
+{
+	struct sg17_card *card = container_of(s,struct sg17_card,sci);
+	struct net_device *ndev = card->ndevs[if_num];
+	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
+	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
+
+// EXTC=1 for Slave in ALL clock modes independent of link state
+// REFE=1 for Master in "Plesiochronous with Timing Reference" clock mode
+	if( cfg->mode == STU_R ){ // Slave
+		iowrite8( ((ioread8( &nl->regs->CRB ) & ~REFE) | EXTC ), &nl->regs->CRB );			
+	}else{ // Master
+		iowrite8( (ioread8( &nl->regs->CRB ) & ~EXTC ), &nl->regs->CRB );
+		if( cfg->clkmode == 2){
+			iowrite8( (ioread8( &nl->regs->CRB ) | REFE ), &nl->regs->CRB );
+		}else{	
+			iowrite8( (ioread8( &nl->regs->CRB ) & ~REFE ), &nl->regs->CRB );
+ 		}	
+	}
 }
 
 void
@@ -926,7 +950,7 @@ sg17_def_config(struct sg17_card *card)
 	cfg_ch3->tc_pam = TCPAM32;
 	// rate (speed)
 	// ( SDI_TDMCLK_TDMMSP | SDI_DSL3 )
-	cfg_ch3->input_mode = SDI_TDMCLK_TDMMSP ;
+	cfg_ch3->input_mode = SDI_TDMCLK_TDMSP ;
 	// ( Terminal=>16384 | Repeater=>12288 )
 	cfg_ch3->frequency = 16384;
 	// ( Terminal=>5696 | Repeater=>2048 )
@@ -935,7 +959,7 @@ sg17_def_config(struct sg17_card *card)
 	cfg_ch3->loop = SDI_NO_LOOP;
 	// Multiplexing related
 		
-	//---- config SDFE chenal 0 ------------------
+	//---- config SDFE channel 0 ------------------
 	// ( STU_C | STU_R )
 	cfg_ch0->mode = STU_R;
 	// ( REPEATER | TERMINATOR )
@@ -951,7 +975,7 @@ sg17_def_config(struct sg17_card *card)
 	// rate (speed)
 	cfg_ch0->rate = 5696;
 	// ( SDI_TDMCLK_TDMMSP | SDI_DSL3 )
-	cfg_ch0->input_mode = SDI_TDMCLK_TDMMSP;
+	cfg_ch0->input_mode = SDI_TDMCLK_TDMSP;
 	// ( Terminal=>16384 | Repeater=>12288 )
 	cfg_ch0->frequency = 16384;
 	// ( Terminal=>5696 | Repeater=>2048 )

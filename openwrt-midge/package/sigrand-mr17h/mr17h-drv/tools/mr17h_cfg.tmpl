@@ -19,12 +19,11 @@ print_usage()
     echo "  <if> - @MODNAME@ network interface name"
     echo "Possible arguments:"
     echo "  master | slave             - set modem mode: master(STU-C) or slave(STU-R)"
-    echo "  tcpamXXX                   - line coding, SG17: XXX={4,8,16,32}"
-	echo "                               SG17+ XXX={4,8,16,32,64,128}"
+    echo "  tcpamXXX                   - line coding, XXX={8,16,32,64,128}"
     echo "  annex A|B|AB               - G.SHDSL.bis Annex type"    
     echo "  rate <value>               - line rate"
-    echo "  plesio | sync              - Plesiochronous/Synchronous modes"
-	echo "  pbo-normal|pbo-forced <val>- Power Backoff mode, <val> - value in dB"
+    echo "  plesio | plesio-ref | sync - Plesiochronous/Plesio-Ref/Synchronous modes"
+    echo "  pbo-normal|pbo-forced <val>- Power Backoff mode, <val> - value in dB"
     echo "  crc32 | crc16              - CRC length"
     echo "  mac-addr <value>           - less significant part of MAC-address"
     echo "  rboff | rbon               - PCI read burst mode off"
@@ -261,6 +260,10 @@ while [ ! -z "$1" ]; do
 			;;
 		"sync")
 			echo 1 > clkmode
+			shdsl_need_reconf=1	
+			;;
+		"plesio-ref")
+			echo 2 > clkmode
 			shdsl_need_reconf=1	
 			;;
 		"pbo-normal")

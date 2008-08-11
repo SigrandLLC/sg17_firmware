@@ -795,15 +795,23 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	memset(caplist,0,sizeof(*caplist));
 
 	caplist->pow_backoff=0x00;
-	caplist->clock_mode=SHDSL_CLK_MODE_1|SHDSL_CLK_MODE_3a;
+	caplist->clock_mode=SHDSL_CLK_MODE_1|SHDSL_CLK_MODE_2|SHDSL_CLK_MODE_3a;
 
 	if( cfg->mode == STU_C ){
-		if( cfg->clkmode == 0 ){
+		switch( cfg->clkmode ){
+		case 0:
 			caplist->clock_mode=SHDSL_CLK_MODE_1;
-		}else{
+			break;
+		case 1:
 			//	printk(KERN_NOTICE"Configure sync mode\n");
 			caplist->clock_mode=SHDSL_CLK_MODE_3a;
+			break;
+		case 2:
+			caplist->clock_mode=SHDSL_CLK_MODE_2;
+			break;
 		}
+
+
 		// PBO influence	
 		if( cfg->pbo_mode == PWRBO_FORCED ){
 			if( cfg->pbo_vnum )
@@ -898,19 +906,23 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 		}		
 	}
 
-	// 5 confi AUX
-	PDEBUG(debug_sdfe4,"config AUX_SDI_IF_SEL_3");
-	wait_ms(20);
-	if(sdfe4_aux_cmd(CMD_WR_REG_AUX_SDI_IF_SEL_3,0x03, &ret,hwdev)){
-		PDEBUG(debug_error,": error in CMD_WR_REG_AUX_SDI_IF_SEL_3");		
-		return -1;
+	// 5 config AUX
+	if (ch == 0){ 
+		PDEBUG(debug_sdfe4,"config AUX_SDI_IF_SEL_0");		
+		wait_ms(20);
+		if(sdfe4_aux_cmd(CMD_WR_REG_AUX_SDI_IF_SEL_0,0x00+0x04, &ret,hwdev)){  // +0x04 - REFCLK input
+			PDEBUG(debug_error,": error in CMD_WR_REG_AUX_SDI_IF_SEL_0");		
+			return -1;
+		}
 	}
-	PDEBUG(debug_sdfe4,"config AUX_SDI_IF_SEL_0");		
-	wait_ms(20);
-	if(sdfe4_aux_cmd(CMD_WR_REG_AUX_SDI_IF_SEL_0,0x00, &ret,hwdev)){
-		PDEBUG(debug_error,": error in CMD_WR_REG_AUX_SDI_IF_SEL_0");		
-		return -1;
-	}
+	if (ch == 3){
+		PDEBUG(debug_sdfe4,"config AUX_SDI_IF_SEL_3");
+		wait_ms(20);
+		if(sdfe4_aux_cmd(CMD_WR_REG_AUX_SDI_IF_SEL_3,0x03+0x04, &ret,hwdev)){  // +0x04 - REFCLK input
+			PDEBUG(debug_error,": error in CMD_WR_REG_AUX_SDI_IF_SEL_3");		
+			return -1;
+		}
+	}	
 		
 	PDEBUG(debug_sdfe4,"config AUX_AUX_IF_MODE");
 	wait_ms(20);
@@ -925,16 +937,25 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	wait_ms(20);
 	sdi_settings=(struct cmd_cfg_sdi_settings*)buf;
 	memset(sdi_settings,0,sizeof(*sdi_settings));
-	sdi_settings->input_mode=cfg->input_mode ;
+	sdi_settings->input_mode=SDI_TDMCLK_TDMSP ;
 	sdi_settings->output_mode=SDI_TDMSP_TDMMSP;
 	sdi_settings->frequency=cfg->frequency;
 	sdi_settings->payload_bits=cfg->payload_bits;
 	sdi_settings->frames=0x30;
 	sdi_settings->loop=cfg->loop;
 	sdi_settings->ext_clk8k=SDI_NO;
-	sdi_settings->dpll4bclk=SDI_NODPLL;
-	sdi_settings->refclkin_freq=TIM_DATA_CLK_8KHZ;
-	sdi_settings->refclkout_freq=TIM_REF_CLK_OUT_SYM_8KHZ;
+	switch( hwdev->type ){
+	case SDFE4v1:
+		sdi_settings->dpll4bclk=SDI_NODPLL;
+		break;
+	case SDFE4v2:
+		sdi_settings->dpll4bclk=SDI_DPLL4IN;
+		break;
+	default:
+		PDEBUG(debug_error,"Unknown device type");
+	}
+	sdi_settings->refclkin_freq=TIM_REF_CLK_IN_8192KHZ;
+	sdi_settings->refclkout_freq=TIM_DATA_CLK_8192KHZ;
 	rmsg.ack_id=ACK_CFG_SDI_SETTINGS;
 	if(sdfe4_pamdsl_cmd(ch,CMD_CFG_SDI_SETTINGS,(u8*)buf,sizeof(*sdi_settings),&rmsg,hwdev)){
 		PDEBUG(debug_error,": error in CMD_CFG_SDI_SETTINGS");		
@@ -949,7 +970,16 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	sdi_rx->sp_level=SDI_HIGH;
 	sdi_rx->driving_edg=SDI_RISING;
 	sdi_rx->data_shift_edg=SDI_NO;
-	sdi_rx->lstwr_1strd_dly=0x93;
+	switch( hwdev->type ){
+	case SDFE4v1:
+		sdi_rx->lstwr_1strd_dly=0x93;
+		break;
+	case SDFE4v2:
+		sdi_rx->lstwr_1strd_dly=0x64;
+		break;
+	default:
+		PDEBUG(debug_error,"Unknown device type");
+	}
 	sdi_rx->slip_mode=SLIP_FAST;
 	sdi_rx->align=SDI_NO;
 	rmsg.ack_id=ACK_CFG_SDI_RX;
@@ -966,7 +996,16 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 	sdi_tx->sp_level=SDI_HIGH;
 	sdi_tx->sp_sample_edg=SDI_FALLING;
 	sdi_tx->data_sample_edg=SDI_FALLING;
-	sdi_tx->lstwr_1strd_dly=0x93;
+	switch( hwdev->type ){
+	case SDFE4v1:
+		sdi_tx->lstwr_1strd_dly=0x93;
+		break;
+	case SDFE4v2:
+		sdi_tx->lstwr_1strd_dly=0x16;
+		break;
+	default:
+		PDEBUG(debug_error,"Unknown device type");
+	}
 	sdi_tx->slip_mode=SLIP_FAST;
 	sdi_tx->align=SDI_NO;
 	rmsg.ack_id=ACK_CFG_SDI_TX;
@@ -1103,8 +1142,11 @@ sdfe4_load_config(u8 ch, struct sdfe4 *hwdev)
   	struct sdfe4_msg rmsg;
 	struct ack_dsl_param_get *dsl_par;
 	struct sdfe4_if_cfg *ch_cfg=&(hwdev->cfg[ch]);
+	struct cmd_ghs_cap_get *cmd_cap_get;
+	struct ack_ghs_cap_get *ack_cap_get;
 	int TC_PAM = TCPAM16;
 	int r;
+	u8 buf[sizeof(*cmd_cap_get)];
 
 	wait_ms(10);
 	rmsg.ack_id=ACK_DSL_PARAM_GET;
@@ -1134,14 +1176,37 @@ sdfe4_load_config(u8 ch, struct sdfe4 *hwdev)
 	ch_cfg->annex = dsl_par->annex;
 	ch_cfg->tc_pam = TC_PAM;
 	ch_cfg->rate = dsl_par->base_rate;
-	switch( dsl_par->frame_mode ){
-	case FRAME_PLESIO:
-		ch_cfg->clkmode = 0;
+
+	cmd_cap_get = (struct cmd_ghs_cap_get *)buf;
+	memset(cmd_cap_get,0,sizeof(* cmd_cap_get));
+	cmd_cap_get->ClType=REMOTE;	
+
+	if(ch_cfg->annex == ANNEX_A){
+		cmd_cap_get->ClParam=TPS_TC_A;
+	}else{
+		cmd_cap_get->ClParam=TPS_TC_B;
+	}
+	
+	rmsg.ack_id=ACK_GHS_CAP_GET;
+	if( (r = sdfe4_pamdsl_cmd(ch,CMD_GHS_CAP_GET,(u8*)buf,sizeof(*cmd_cap_get),&rmsg,hwdev)) ){
+		PDEBUG(debug_error,"error(%d) in CMD_GHS_CAP_GET",r);
+		return -1;
+	}
+
+	ack_cap_get=(struct ack_ghs_cap_get *)&(rmsg.buf[8]);
+
+	switch(ack_cap_get->ClData[0]){
+	case SHDSL_CLK_MODE_1:
+		ch_cfg->clkmode = 0;  // plesiochronous
 		break;
-	case FRAME_SYNC:
-		ch_cfg->clkmode = 1;
+	case SHDSL_CLK_MODE_2:
+		ch_cfg->clkmode = 2;  // plesiochronous with timing reference
+		break;
+	case SHDSL_CLK_MODE_3a:
+		ch_cfg->clkmode = 1;  // synchronous
 		break;
 	}
+	
 	PDEBUG(debug_sdfe4,"rate = %d",ch_cfg->rate);	
 	return 0;
 }
@@ -1217,6 +1282,7 @@ sdfe4_state_mon(struct sdfe4 *hwdev)
 				break;
 			case MAIN_INIT:
 				sdfe4_link_led_down(i,hwdev);
+				sdfe4_clock_setup(i,hwdev);
 				sdfe4_reset_hwdev_chan(&(hwdev->ch[i]));
 				if( sdfe4_setup_channel(i,hwdev) ){
 					PDEBUG(debug_error,"error in sdfe4_setup_channel");
@@ -1263,6 +1329,7 @@ sdfe4_state_mon(struct sdfe4 *hwdev)
 
 			sdfe4_disable_channel(i,hwdev);
 			sdfe4_link_led_down(i,hwdev);
+			sdfe4_clock_setup(i,hwdev);
 			sdfe4_reset_hwdev_chan(&(hwdev->ch[i]));			
 			wait_ms(200);
 			if( sdfe4_setup_channel(i,hwdev) ){

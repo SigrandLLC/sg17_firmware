@@ -345,6 +345,8 @@ static ssize_t show_clkmode(struct class_device *cdev, char *buf)
 		return snprintf(buf,PAGE_SIZE,"plesio");
 	case 1:
 		return snprintf(buf,PAGE_SIZE,"sync");
+	case 2:
+		return snprintf(buf,PAGE_SIZE,"plesio-ref");
 	}
 	return snprintf(buf,PAGE_SIZE,"unknown");
 }
@@ -364,6 +366,10 @@ store_clkmode( struct class_device *cdev,const char *buf, size_t size )
 		break;
 	case '1':
 		cfg->clkmode = 1;
+		break;
+	case '2':
+		cfg->clkmode = 2;
+		break;
 	}
 	return size;
 }
