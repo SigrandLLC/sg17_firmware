@@ -98,10 +98,10 @@ ab_create( void )
 		ab_chan_t * curr_chan = &ab->chans[ i ];
 		int fd_chan;
 		char dev_node[ 50 ];
-		int chan_idx_in_dev = i % CHANS_PER_DEV;
+		int chan_idx_in_dev = CHANS_PER_DEV - 1 - i % CHANS_PER_DEV;
 		int pdev_idx = i / CHANS_PER_DEV;
 
-		curr_chan->idx = chan_idx_in_dev +1;
+		curr_chan->idx = chan_idx_in_dev + 1;
 		curr_chan->parent = &ab->devs[pdev_idx];
 
 		/* Initialize channel */

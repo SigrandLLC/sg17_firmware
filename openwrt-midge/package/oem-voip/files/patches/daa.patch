@@ -1,6 +1,6 @@
 diff -ruiN daa_pure/configure.in daa/configure.in
---- daa_pure/configure.in	2008-07-22 12:57:02.000000000 +0700
-+++ daa/configure.in	2008-07-22 12:57:02.000000000 +0700
+--- daa_pure/configure.in	2008-08-12 15:06:52.000000000 +0700
++++ daa/configure.in	2008-08-12 15:06:52.000000000 +0700
 @@ -23,7 +23,7 @@
  
  AC_REVISION($Revision: 1.9 $)
@@ -11,8 +11,8 @@ diff -ruiN daa_pure/configure.in daa/configure.in
  AM_INIT_AUTOMAKE
  
 diff -ruiN daa_pure/src/drv_daa_api.c daa/src/drv_daa_api.c
---- daa_pure/src/drv_daa_api.c	2008-07-22 12:57:02.000000000 +0700
-+++ daa/src/drv_daa_api.c	2008-07-22 12:57:02.000000000 +0700
+--- daa_pure/src/drv_daa_api.c	2008-08-12 15:06:52.000000000 +0700
++++ daa/src/drv_daa_api.c	2008-08-12 15:06:52.000000000 +0700
 @@ -112,7 +112,7 @@
             ("DAA ERR DAA_COM_init failed for daa resource %d\n\r", nDaa));
  
@@ -41,8 +41,8 @@ diff -ruiN daa_pure/src/drv_daa_api.c daa/src/drv_daa_api.c
  
 diff -ruiN daa_pure/src/drv_daa_board_sg.c daa/src/drv_daa_board_sg.c
 --- daa_pure/src/drv_daa_board_sg.c	1970-01-01 07:00:00.000000000 +0700
-+++ daa/src/drv_daa_board_sg.c	2008-07-22 12:57:02.000000000 +0700
-@@ -0,0 +1,220 @@
++++ daa/src/drv_daa_board_sg.c	2008-08-12 15:07:50.000000000 +0700
+@@ -0,0 +1,236 @@
 +/******************************************************************************
 +
 +                               Copyright (c) 2007
@@ -70,6 +70,8 @@ diff -ruiN daa_pure/src/drv_daa_board_sg.c daa/src/drv_daa_board_sg.c
 +******************************************************************************/
 +#ifdef DRV_DAA_BOARD_SG
 +
++#define CHANS_PER_DEV 2
++
 +#include "drv_daa.h"
 +#include "drv_daa_common.h"
 +
@@ -79,9 +81,9 @@ diff -ruiN daa_pure/src/drv_daa_board_sg.c daa/src/drv_daa_board_sg.c
 +
 +extern DAA_FUNCTION_MAP_t        gDaaFctMap[];
 +
-+static int vinDevIoHandle[ DRV_DAA_MAX_DAA_CHANNELS ];
-+static int vinGPIO_io_hook[ 2 ];
-+static int vinGPIO_io_ring[ 2 ];
++static int vinDevIoHandle[ DRV_DAA_MAX_DAA_CHANNELS/CHANS_PER_DEV ];
++static int vinGPIO_io_hook[ CHANS_PER_DEV ];
++static int vinGPIO_io_ring[ CHANS_PER_DEV ];
 +
 +
 +static IFX_return_t 
@@ -105,15 +107,18 @@ diff -ruiN daa_pure/src/drv_daa_board_sg.c daa/src/drv_daa_board_sg.c
 +#endif
 +
 +/** **************************************************************************
-+   gpio callback function for the ringQ pin,
-+   this function decodes the status and triggers the generic state machine
++   gpio callback functions for the ringQ pin,
++   this functions decodes the status and triggers the generic state machine
 +*/
 +static void 
-+daa_common_ring_cb (int nDev, int nCh, unsigned short nEvt)
++daa_common_ring_0_cb (int nDev, int nCh, unsigned short nEvt)
 +{
-+	/* tag__ suppose that nDev and nCh numeration starts from zero */
-+	IFX_uint16_t nDaa = nDev * CHANS_PER_DEV + nCh;
-+	return irq_DAA_COM_ring_cb ( nDaa );
++	return irq_DAA_COM_ring_cb ( (nDev * CHANS_PER_DEV) );
++}
++static void 
++daa_common_ring_1_cb (int nDev, int nCh, unsigned short nEvt)
++{
++	return irq_DAA_COM_ring_cb ( (nDev * CHANS_PER_DEV + 1) );
 +}
 +
 +/** **************************************************************************
@@ -125,27 +130,32 @@ diff -ruiN daa_pure/src/drv_daa_board_sg.c daa/src/drv_daa_board_sg.c
 +static IFX_return_t 
 +daa_common_init (IFX_uint16_t nDaa)
 +{	
-+	/* tag__ ring_cb rewrite ioCfg */
 +	int const nDev = nDaa / CHANS_PER_DEV; /*{ 0 0 1 1 2 2 ...}*/
 +	int const nChannel = nDaa % CHANS_PER_DEV; /*{ 0 1 0 1 ...}*/
-+	int * const ioHandle = &vinDevIoHandle[nDaa];
++	int * const ioHandle = &vinDevIoHandle [nDev];
 +	VINETIC_GPIO_CONFIG ioCfg;
 +	int ret;
 +	int vinDevHandle;
++	static int dev_allready_opened [DRV_DAA_MAX_DAA_CHANNELS/CHANS_PER_DEV]={0};
 +
-+	vinDevHandle = VINETIC_OpenKernel ( nDev, 0 );
-+	if (vinDevHandle == IFX_ERROR) {
-+		printk(KERN_ERR "DAA: VINETIC_OpenKernel(%d,0) failed\n", nDev);
-+		return IFX_ERROR;
-+	}
++	if( !dev_allready_opened[ nDev ]){
++		int i;
++		int mask=0;
++		vinDevHandle = VINETIC_OpenKernel ( nDev, 0 );
++		if (vinDevHandle == IFX_ERROR) {
++			printk(KERN_ERR "DAA: VINETIC_OpenKernel(%d,0) failed\n", nDev);
++			return IFX_ERROR;
++		}
++		dev_allready_opened [nDev] = 1;
 +
-+	*ioHandle = VINETIC_GpioReserve(vinDevHandle,
-+			vinGPIO_io_hook[ nChannel ] |
-+			vinGPIO_io_ring[ nChannel ] );
-+	
-+	if (*ioHandle == 0){
-+		printk(KERN_ERR "DAA: VINETIC_GpioReserve failed\n");
-+		return IFX_ERROR;
++		for(i=0;i<CHANS_PER_DEV;i++){
++			mask |= (vinGPIO_io_hook [i] | vinGPIO_io_ring [i]);
++		}
++		*ioHandle = VINETIC_GpioReserve (vinDevHandle, mask);
++		if (*ioHandle == 0){
++			printk(KERN_ERR "DAA: VINETIC_GpioReserve failed\n");
++			return IFX_ERROR;
++		}
 +	}
 +
 +	/* HOOKQ */
@@ -160,7 +170,11 @@ diff -ruiN daa_pure/src/drv_daa_board_sg.c daa/src/drv_daa_board_sg.c
 +	/* RINGQ */
 +	ioCfg.nMode = GPIO_MODE_INPUT | GPIO_MODE_INT | GPIO_INT_FALLING;
 +	ioCfg.nGpio = vinGPIO_io_ring[ nChannel ];
-+	ioCfg.callback = daa_common_ring_cb;
++	if(nChannel==0){
++		ioCfg.callback = daa_common_ring_0_cb;
++	} else if(nChannel==1){
++		ioCfg.callback = daa_common_ring_1_cb;
++	}
 +	ret = VINETIC_GpioConfig(*ioHandle, &ioCfg);
 +	if (ret != IFX_SUCCESS) {
 +		printk(KERN_ERR "DAA: ring cfg input failed\n\r");
@@ -179,8 +193,9 @@ diff -ruiN daa_pure/src/drv_daa_board_sg.c daa/src/drv_daa_board_sg.c
 +static IFX_return_t 
 +daa_common_hookSet (IFX_uint16_t nDaa, IFX_TAPI_FXO_HOOK_t offhook)
 +{	
++	int const nDev = nDaa / CHANS_PER_DEV; /*{ 0 0 1 1 2 2 ...}*/
 +	int const nChannel = nDaa % CHANS_PER_DEV;
-+	int * const ioHandle = &vinDevIoHandle[nDaa];
++	int * const ioHandle = &vinDevIoHandle[nDev];
 +	int ret = IFX_SUCCESS;
 +
 +	/* HOOKQ control GPIO 0 / 4
@@ -206,8 +221,9 @@ diff -ruiN daa_pure/src/drv_daa_board_sg.c daa/src/drv_daa_board_sg.c
 +static IFX_return_t 
 +daa_common_hookGet (IFX_uint16_t nDaa, IFX_TAPI_FXO_HOOK_t *offhook)
 +{
++	int const nDev = nDaa / CHANS_PER_DEV; /*{ 0 0 1 1 2 2 ...}*/
 +	int const nChannel = nDaa % CHANS_PER_DEV;
-+	int * const ioHandle = &vinDevIoHandle[nDaa];
++	int * const ioHandle = &vinDevIoHandle[nDev];
 +	unsigned short get;
 +	int ret = IFX_SUCCESS;
 +
@@ -265,8 +281,8 @@ diff -ruiN daa_pure/src/drv_daa_board_sg.c daa/src/drv_daa_board_sg.c
 +
 diff -ruiN daa_pure/src/drv_daa_board_sg.h daa/src/drv_daa_board_sg.h
 --- daa_pure/src/drv_daa_board_sg.h	1970-01-01 07:00:00.000000000 +0700
-+++ daa/src/drv_daa_board_sg.h	2008-07-22 12:57:02.000000000 +0700
-@@ -0,0 +1,46 @@
++++ daa/src/drv_daa_board_sg.h	2008-08-12 15:06:52.000000000 +0700
+@@ -0,0 +1,45 @@
 +#ifndef _DRV_DAA_BOARD_SG_H
 +#define _DRV_DAA_BOARD_SG_H
 +/******************************************************************************
@@ -305,7 +321,6 @@ diff -ruiN daa_pure/src/drv_daa_board_sg.h daa/src/drv_daa_board_sg.h
 +
 +/** define the number of DAA channels on this system */
 +#define DRV_DAA_MAX_DAA_CHANNELS 32
-+#define CHANS_PER_DEV 2
 +
 +IFX_return_t daa_board_OnInsmod (void);
 +IFX_return_t daa_board_OnRmmod  (void);
@@ -314,8 +329,8 @@ diff -ruiN daa_pure/src/drv_daa_board_sg.h daa/src/drv_daa_board_sg.h
 +#endif /* DRV_DAA_BOARD_SG */
 +#endif /* _DRV_DAA_BOARD_SG_H */
 diff -ruiN daa_pure/src/drv_daa_boards.h daa/src/drv_daa_boards.h
---- daa_pure/src/drv_daa_boards.h	2008-07-22 12:57:02.000000000 +0700
-+++ daa/src/drv_daa_boards.h	2008-07-22 12:57:49.000000000 +0700
+--- daa_pure/src/drv_daa_boards.h	2008-08-12 15:06:52.000000000 +0700
++++ daa/src/drv_daa_boards.h	2008-08-12 15:06:52.000000000 +0700
 @@ -32,10 +32,13 @@
     To add support for a new board, include the board header file here
     and the .c file to the Makefile.am. */
@@ -331,8 +346,8 @@ diff -ruiN daa_pure/src/drv_daa_boards.h daa/src/drv_daa_boards.h
  /* check if a boardfile is correctly included / and activated by defines,
     DRV_DAA_MAX_DAA_CHANNELS is a board specific define which must be
 diff -ruiN daa_pure/src/drv_daa_common.c daa/src/drv_daa_common.c
---- daa_pure/src/drv_daa_common.c	2008-07-22 12:57:02.000000000 +0700
-+++ daa/src/drv_daa_common.c	2008-07-22 12:57:02.000000000 +0700
+--- daa_pure/src/drv_daa_common.c	2008-08-12 15:06:52.000000000 +0700
++++ daa/src/drv_daa_common.c	2008-08-12 15:06:52.000000000 +0700
 @@ -102,7 +102,7 @@
  
     /* hook flash is a short onHook,
@@ -379,8 +394,8 @@ diff -ruiN daa_pure/src/drv_daa_common.c daa/src/drv_daa_common.c
                             DAA_POL_STATE_NORMAL : DAA_POL_STATE_REVERSE;
        TRACE(DAA_DRV, DBG_LEVEL_LOW,
 diff -ruiN daa_pure/src/drv_daa_common.h daa/src/drv_daa_common.h
---- daa_pure/src/drv_daa_common.h	2008-07-22 12:57:02.000000000 +0700
-+++ daa/src/drv_daa_common.h	2008-07-22 12:57:02.000000000 +0700
+--- daa_pure/src/drv_daa_common.h	2008-08-12 15:06:52.000000000 +0700
++++ daa/src/drv_daa_common.h	2008-08-12 15:06:52.000000000 +0700
 @@ -41,12 +41,12 @@
  /* ============================= */
  typedef struct
@@ -401,8 +416,8 @@ diff -ruiN daa_pure/src/drv_daa_common.h daa/src/drv_daa_common.h
  
  
 diff -ruiN daa_pure/src/drv_daa_linux.c daa/src/drv_daa_linux.c
---- daa_pure/src/drv_daa_linux.c	2008-07-22 12:57:02.000000000 +0700
-+++ daa/src/drv_daa_linux.c	2008-07-22 12:57:02.000000000 +0700
+--- daa_pure/src/drv_daa_linux.c	2008-08-12 15:06:52.000000000 +0700
++++ daa/src/drv_daa_linux.c	2008-08-12 15:06:52.000000000 +0700
 @@ -37,10 +37,10 @@
  /* ============================= */
  
@@ -424,8 +439,8 @@ diff -ruiN daa_pure/src/drv_daa_linux.c daa/src/drv_daa_linux.c
 +
  #endif /* LINUX */
 diff -ruiN daa_pure/src/drv_daa_linux.h daa/src/drv_daa_linux.h
---- daa_pure/src/drv_daa_linux.h	2008-07-22 12:57:02.000000000 +0700
-+++ daa/src/drv_daa_linux.h	2008-07-22 12:57:02.000000000 +0700
+--- daa_pure/src/drv_daa_linux.h	2008-08-12 15:06:52.000000000 +0700
++++ daa/src/drv_daa_linux.h	2008-08-12 15:06:52.000000000 +0700
 @@ -47,6 +47,7 @@
  #endif
  
@@ -435,8 +450,8 @@ diff -ruiN daa_pure/src/drv_daa_linux.h daa/src/drv_daa_linux.h
  #include <linux/errno.h>
  /*proc-file system*/
 diff -ruiN daa_pure/src/Makefile.am daa/src/Makefile.am
---- daa_pure/src/Makefile.am	2008-07-22 12:57:02.000000000 +0700
-+++ daa/src/Makefile.am	2008-07-22 12:57:02.000000000 +0700
+--- daa_pure/src/Makefile.am	2008-08-12 15:06:52.000000000 +0700
++++ daa/src/Makefile.am	2008-08-12 15:06:52.000000000 +0700
 @@ -21,18 +21,15 @@
  # DEALINGS IN THE SOFTWARE.
  

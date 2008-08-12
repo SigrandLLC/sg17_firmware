@@ -99,9 +99,6 @@ static struct cdev g_cdev;
 
 /* Local helper functions */
 static void set_free_board_idx ( void );
-static int  get_chan_chars (unsigned char const  board_idx, 
-		unsigned char const dev_idx,unsigned char const chan_idx, 
-		dev_type_t * const dev_type,unsigned char * const chan_abs_idx);
 static int  chardev_init  ( void );
 static void chardev_undef ( void );
 static int  pci_init      ( struct ab_board_dev_s * c_brd );
@@ -192,31 +189,6 @@ set_free_board_idx ( void )
 			}
 		}
 	}
-}
-
-static int  
-get_chan_chars (unsigned char const  board_idx, unsigned char const dev_idx, 
-		unsigned char const chan_idx, dev_type_t * const dev_type, 
-		unsigned char * const chan_abs_idx)
-{
-	struct ab_board_dev_s * c_brd = NULL;
-	c_brd = &g_boardsman.boards[board_idx];
-
-	spin_lock(g_boardsman.lock);
-
-	if( !c_brd->pci_dev ){
-		goto ___exit_fail;
-	}
-
-	*dev_type = (c_brd->sub_id>>(dev_idx*DEV_TYPE_LENGTH)) & DEV_TYPE_MASK;
-	*chan_abs_idx = c_brd->first_chan_idx + dev_idx * CHANS_PER_DEV +
-			chan_idx;
-
-	spin_unlock (g_boardsman.lock);
-	return 0;
-___exit_fail:
-	spin_unlock (g_boardsman.lock);
-	return -1;
 }
 
 static int 
@@ -383,8 +355,8 @@ SGATAB_board_params (unsigned long user_data)
 		cd->type = (c_brd->sub_id>>(i*DEV_TYPE_LENGTH))&DEV_TYPE_MASK;
 		cd->nBaseAddress = base_addr;
 		cd->AccessMode = MR17VOIP8_ACCESS_MODE;
-		for(j=0; j<CHANS_PER_DEV; j++){
-			cd->chans_idx[j] = chan_idx++;
+		for(j=CHANS_PER_DEV-1; j>=0; j--,chan_idx++){
+			cd->chans_idx[j] = chan_idx;
 		}
 		base_addr += MR17VOIP8_DEV_MEM_OFFSET;
 	}
@@ -456,19 +428,22 @@ proc_get_sgatab_channels(char *buf)
 	int j;
 	int k;
 	int len = 0;
-	int err;
+	struct ab_board_dev_s * c_brd = NULL;
+
+	spin_lock(g_boardsman.lock);
 
 	for (i=0; i<BOARDS_MAX; i++){
+		c_brd = &g_boardsman.boards[i];
+		if( !c_brd->pci_dev ){
+			continue;
+		}
 		for (j=0; j<DEVS_PER_BOARD_MAX; j++){
+			dev_type_t dev_type = (c_brd->sub_id>>(j*DEV_TYPE_LENGTH)) & 
+					DEV_TYPE_MASK;
+			unsigned char chan_idx = c_brd->first_chan_idx + 
+					j * CHANS_PER_DEV;
 			for (k=0; k<CHANS_PER_DEV; k++){
-				dev_type_t dev_type;
-				unsigned char chan_idx;
-
-				err = get_chan_chars(i, j, k, 
-						&dev_type, &chan_idx);
-				if(err){
-					continue;
-				}
+				chan_idx +=k;
 				switch (dev_type){
 				case dev_type_ABSENT:
 				break;
@@ -488,6 +463,7 @@ proc_get_sgatab_channels(char *buf)
 			}
 		}
 	}
+	spin_unlock (g_boardsman.lock);
 	return len;
 }
 

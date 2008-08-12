@@ -34,7 +34,7 @@
 #define AB_SGATAB_MAJOR_FILE "/proc/driver/sgatab/major"
 #define VIN_DEV_NODE_BASE "/dev/vin"
 #define VINETIC_MAJOR 121
-
+#define FXO_OSI_MAX 600
 /*
 COMMAND LINE KEYS:
   -h, --help		display this help and exit
@@ -52,16 +52,6 @@ struct _startup_options
 	unsigned devices : 1;
 	unsigned channels : 1;
 } g_so;
-/*
-struct _startup_options
-{
-	unsigned char help;
-	unsigned char version;
-	unsigned char modules;
-	unsigned char devices;
-	unsigned char channels;
-} g_so;
-*/
 
 static unsigned char g_err_no;
 static unsigned char g_err_tag;
@@ -594,6 +584,7 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 	} else if(dtype == dev_type_FXO) {
 		/* DISABLE detection of DTMF tones 
 		 * from local interface (ALM X) */
+		IFX_TAPI_FXO_OSI_CFG_t osi_cfg;
 		memset(&dtmfDetection, 0, sizeof (dtmfDetection));
 		dtmfDetection.sig = IFX_TAPI_SIG_DTMFTX;
 		err = ioctl (rtp_fd,IFX_TAPI_SIG_DETECT_DISABLE,&dtmfDetection);
@@ -603,10 +594,17 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 					"detection (ioctl)" );
 			goto ab_chan_init_tune__exit;
 		}
+		/* set OSI timing */
+		memset(&osi_cfg, 0, sizeof (osi_cfg));
+		osi_cfg.nOSIMax = FXO_OSI_MAX;
+		err = ioctl(rtp_fd, IFX_TAPI_FXO_OSI_CFG_SET, &osi_cfg);
+		if( err ){
+			g_err_no = ERR_IOCTL_FAILS;
+			strcpy(g_err_msg, "trying to set OSI timing (ioctl)" );
+			goto ab_chan_init_tune__exit;
+		}
 	}
-	
 	return 0;
-
 ab_chan_init_tune__exit:
 	return -1;
 };
@@ -615,15 +613,19 @@ static int
 pd_ram_load( void )
 {
 	int err;
-	err = fw_masses_init_from_path (&fw_pram, &fw_pram_size, 
-			AB_FW_PRAM_NAME );
-	if(err){
-		goto __exit_fail;
+	if( !fw_pram){
+		err = fw_masses_init_from_path (&fw_pram, &fw_pram_size, 
+				AB_FW_PRAM_NAME );
+		if(err){
+			goto __exit_fail;
+		}
 	}
-	err = fw_masses_init_from_path (&fw_dram, &fw_dram_size, 
-			AB_FW_DRAM_NAME );
-	if(err){
-		goto __exit_fail;
+	if( !fw_dram){
+		err = fw_masses_init_from_path (&fw_dram, &fw_dram_size, 
+				AB_FW_DRAM_NAME );
+		if(err){
+			goto __exit_fail;
+		}
 	}
 	return 0; 
 __exit_fail:
@@ -634,10 +636,12 @@ static int
 cram_fxs_load( void )
 {
 	int err;
-	err = fw_masses_init_from_path (&fw_cram_fxs, &fw_cram_fxs_size, 
-			AB_FW_CRAM_FXS_NAME);
-	if(err){
-		goto __exit_fail;
+	if( !fw_cram_fxs){
+		err = fw_masses_init_from_path (&fw_cram_fxs, &fw_cram_fxs_size, 
+				AB_FW_CRAM_FXS_NAME);
+		if(err){
+			goto __exit_fail;
+		}
 	}
 	return 0; 
 __exit_fail:
@@ -648,10 +652,12 @@ static int
 cram_fxo_load( void )
 {
 	int err;
-	err = fw_masses_init_from_path (&fw_cram_fxo, &fw_cram_fxo_size, 
-			AB_FW_CRAM_FXO_NAME);
-	if(err){
-		goto __exit_fail;
+	if( !fw_cram_fxo){
+		err = fw_masses_init_from_path (&fw_cram_fxo, &fw_cram_fxo_size, 
+				AB_FW_CRAM_FXO_NAME);
+		if(err){
+			goto __exit_fail;
+		}
 	}
 	return 0; 
 __exit_fail:

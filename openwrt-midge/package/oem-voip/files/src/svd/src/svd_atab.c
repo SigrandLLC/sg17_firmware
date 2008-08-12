@@ -401,7 +401,8 @@ DFS
 	dev_idx = ab_dev->idx - 1;
 	if (chan_av){
 		/* in evt.ch we have proper number of the chan */
-		chan_idx = dev_idx * svd->ab->chans_per_dev + evt.ch;
+		chan_idx = dev_idx * svd->ab->chans_per_dev + 
+				(svd->ab->chans_per_dev - evt.ch - 1);
 	} else {
 		/* in evt.ch we do not have proper number of the chan 
 		 * because the event is the device event - not the chan event
@@ -414,10 +415,12 @@ DFS
 
 	switch (evt.id){
 		case ab_dev_event_FXS_OFFHOOK:{
+			SU_DEBUG_0 (("Got fxs offhook event\n"));
 			err = svd_handle_event_FXS_OFFHOOK(svd, chan_idx);
 			break;
 		}
 		case ab_dev_event_FXS_ONHOOK:{
+			SU_DEBUG_0 (("Got fxs onhook event\n"));
 			err = svd_handle_event_FXS_ONHOOK(svd, chan_idx);
 			break;
 		}
@@ -428,6 +431,8 @@ DFS
 			break;
 		}
 		case ab_dev_event_FXO_RINGING:{
+										  /* tag__ */
+			SU_DEBUG_0 (("Got fxo ringing event\n"));
 			err = svd_handle_event_FXO_RINGING (svd, chan_idx);
 			break;
 		}
@@ -596,10 +601,9 @@ DFS
 			goto __exit_fail;
 		}
 	} else {
-		SU_DEBUG_2 (("Got ringing event on channel [_%d_]\n",
+		SU_DEBUG_2 (("Got ringing event on channel [_%d_], "
+				"it is not hotlined, but should be\n",
 				ab_chan->abs_idx));
-		SU_DEBUG_2 (("Channel [_%d_] is not hotlined, "
-				"but should be\n", ab_chan->abs_idx));
 		goto __exit_fail;
 	}
 DFE
