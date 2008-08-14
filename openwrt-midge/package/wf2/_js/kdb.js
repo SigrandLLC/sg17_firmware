@@ -20,18 +20,11 @@ function Config() {
 	this.parseUrl = function(url) {
 		var parsed = new Object();
 		var data = url.split("&");
-		var par;
-		var idx;
-		var name;
-		var value;
 		
-		for (var key in data) {
-			par = data[key];
-			idx = par.indexOf("=");
-			name = par.substring(0, idx);
-			value = par.substring(idx + 1);
-			parsed[name] = value;
-		}
+		$(data).each(function(name, value) {
+			var variable = value.split("=");
+			parsed[variable[0]] = variable[1];
+		});
 		
 		return parsed;
 	};
@@ -43,20 +36,44 @@ function Config() {
 	
 	/* parse KDB file */
 	this.parseRawKDB = function(data) {
-		var str = data.split("\n");
-		var line;
-		var name;
-		var value;
-
-		for (key in str) {
-			line = str[key];
-			var eqindex = line.indexOf("=");
-			if (line == "KDB" || eqindex == -1 || line == "") continue;
-			name = line.substring(0, eqindex);
-			value = line.substring(eqindex + 1);
-			this.conf[name] = value;
-		}
+		/* we need the context of this function in each's callback */
+		var outer = this;
+		
+		var lines = data.split("\n");
+		$(lines).each(function(name, line) {
+			if (line == "KDB" || line.length == 0) return true;
+			var record = line.split("=");
+			if (record.length > 1) {
+				outer.conf[record[0]] = outer.parseRecord(record[1]);
+			}
+		});
 	};
+	
+	/* 
+	 * Parse record from KDB. If it consist of several variables — return array.
+	 */
+	this.parseRecord = function(record) {
+		var parsedRecord = new Array();
+		/* \040 is a " " symbol */
+		var variableSet = record.split("\\040");
+		
+		/* if we have single variable in the record — simply return it */
+		if (variableSet.length == 1) return record;
+		
+		/* parse every variable in record */
+		$(variableSet).each(function(name, value) {
+			/* \075 is a "=" symbol */
+			var variable = value.split("\\075");
+			/* if we have only value */
+			if (variable.length == 1) {
+				parsedRecord.push(value);
+			/* if we have key and value like key=value */
+			} else {
+				parsedRecord[variable[0]] = variable[1];
+			}
+		});
+		return parsedRecord;
+	}
 	
 	/* load KDB file from server */
 	this.loadKDB = function(params) {

@@ -340,3 +340,54 @@ function Container(p, options, helpSection) {
 		});
 	};
 }
+
+/*
+ * Adds a new item to the menu.
+ * path — place for a new item (e.g., "Network:Interfaces" means menu Network, submenu Interfaces)
+ * func — function to call when user clicks on the menu item.
+ * name — name of the menu item.
+ * Example of the menu structure is given below.
+ * <ul class="treeview" id="menu">
+ *		<li><span>System</span>
+ *			<ul>
+ *				<li><span><a href="#" onclick="Controllers.webface()">Interface</a></span></li>
+ *				<li><span><a href="#" onclick="Controllers.general()">General</a></span></li>
+ *			</ul>
+ *		</li>
+ *		<li><span>Network</span>
+ *		    <ul>
+ *		        <li><span>Interfaces</span>
+ *					<ul>
+ *						<li><span><a href="#" onclick="Controllers.iface('eth0')">eth0</a></span></li>
+ *						<li><span><a href="#" onclick="Controllers.iface('eth1')">eth1</a></span></li>
+ *					</ul>
+ *				</li>
+ *			</ul>
+ *		</li>
+ *	</ul>
+ */
+function addItem(path, func, name) {
+	/* menu element */
+	var idMenu = "#menu";
+	
+	var curLevel = idMenu;
+	var pathElems = path.split(":");
+	for (var pathElem in pathElems) {
+		/* check if the corresponding submenu is exist */
+		if ($(" > li > span:contains('" + pathElems[pathElem] + "')", curLevel).length == 0) {
+			/* if not, add it */
+			$(curLevel).append("<li><span>" + pathElems[pathElem] + "</span><ul></ul></li>");
+		}
+		/* change current level in the menu */
+		curLevel = $(" > li > span:contains('" + pathElems[pathElem] + "')", curLevel).next();
+	}
+	
+	/* add new item */
+	$(curLevel).append("<li><span><a href='#' onclick=" + func + ">" + _(name) + "</a></span></li>");
+	
+	/* highlight selected item */
+	$(" > li > span > a:contains('" + _(name) + "')", curLevel).click(function() {
+		$("a", idMenu).removeClass("clicked");
+		$(this).addClass("clicked");
+	});
+}

@@ -29,6 +29,7 @@ Controllers['webface'] = function() {
 };
 
 Controllers['general'] = function() {
+	/* create tabs on the page with common help page */
 	var tabs = this.pageTabs({general: "General"}, {help: "begin"});
 	var c = tabs.tabs['general'].addContainer("hostname");
 	var field;
@@ -155,6 +156,7 @@ Controllers['time'] = function() {
 }
 
 Controllers['logging'] = function() {
+	/* create tabs for the page with specified subsystem and common help page */
 	var tabs = this.pageTabs({logging: "Logging"}, {subsystem: "logging", help: "logging"});
 	var c = tabs.tabs['logging'].addContainer();
 	var field;
