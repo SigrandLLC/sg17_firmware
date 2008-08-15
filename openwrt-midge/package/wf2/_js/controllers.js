@@ -206,7 +206,23 @@ Controllers['iface'] = function(iface) {
 	var c;
 	var tabs = this.pageTabs({status: "Status", general: "General", method: "Method",
 		options: "Options", specific: "Specific", qos: "QoS", routes: "Routes"},
-		{subsystem: "network"});
+		{subsystem: "network", help: "iface"});
+	
+	/* status tab */
+	c = tabs.tabs['status'].addContainer();
+	c.addTitle("Interface status");
+	c.addConsole(["/sbin/ifconfig " + iface, "/usr/sbin/ip addr show dev " + iface,
+		"/usr/sbin/ip link show dev " + iface]);
+	
+	c = tabs.tabs['status'].addBr();
+	c = tabs.tabs['status'].addContainer();
+	c.addTitle("Routes");
+	c.addConsole("/usr/sbin/ip route show dev " + iface);
+	
+	c = tabs.tabs['status'].addBr();
+	c = tabs.tabs['status'].addContainer();
+	c.addTitle("ARP");
+	c.addConsole("/usr/sbin/ip neigh show dev " + iface);
 	
 	/* general tab */
 	c = tabs.tabs['general'].addContainer();

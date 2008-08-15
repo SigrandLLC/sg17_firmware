@@ -58,27 +58,32 @@
 		load: function() {
 			$('link[rel=gettext]').each(function(){
 				var lang = this.lang;
-				$.get(this.href, function(data){
-					$.gt.messages[lang] = $.gt.messages[lang] || {};
-					try {
-						var messages = eval('(' + data + ')');
-					} catch(e) {
-						return;
-					}
-
-					$.extend($.gt.messages[lang], messages);
-
-					var pl = $.gt.pl_re.exec($.gt.messages[lang]['']);
-					if(pl){
-						var expr = pl[2];
-						var np = pl[1];
-						var v = pl[3];
+				$.ajax({
+					type: 'GET',
+					url: this.href,
+					async: false,
+					success: function(data, textStatus) {
+						$.gt.messages[lang] = $.gt.messages[lang] || {};
 						try {
-							var fn = eval('(function(' + v + ') {return ' + expr + ';})');
+							var messages = eval('(' + data + ')');
 						} catch(e) {
 							return;
 						}
-						$.gt.plural = fn;
+	
+						$.extend($.gt.messages[lang], messages);
+	
+						var pl = $.gt.pl_re.exec($.gt.messages[lang]['']);
+						if(pl){
+							var expr = pl[2];
+							var np = pl[1];
+							var v = pl[3];
+							try {
+								var fn = eval('(function(' + v + ') {return ' + expr + ';})');
+							} catch(e) {
+								return;
+							}
+							$.gt.plural = fn;
+						}
 					}
 				});
 			});

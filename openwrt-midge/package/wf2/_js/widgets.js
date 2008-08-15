@@ -78,7 +78,9 @@ function Container(p, options, helpSection) {
 	this.validator_rules = new Object();
 	this.validator_messages = new Object();
 	this.info_message = "info_message_" + $(p).attr("id");
-	$("<div class='message'></div>").attr("id", this.info_message).appendTo(p);
+	if ($("div[id='" + this.info_message + "']").length == 0) {
+		$("<div class='message'></div>").attr("id", this.info_message).appendTo(p);
+	}
 	this.form = $("<form action=''></form>").appendTo(p).get();
 	this.table = $("<table id='conttable' cellpadding='0' cellspacing='0' border='0'></table>").appendTo(this.form).get();
 
@@ -223,6 +225,45 @@ function Container(p, options, helpSection) {
 		/* I18N for element's error messages */
 		w.message && (this.validator_messages[w.name] = _(w.message));
 	};
+	
+	/* template for console output */
+	this.console_tpl = function() {
+		return [
+			'tr', {}, [
+				'td', {}, [
+					'pre', {}, [
+						'b', {}, this.cmd,
+						'br', {}, "",
+						'p'
+					]
+				]
+			]
+		];
+	};
+	
+	/*
+	 * Add output of command execution to the page.
+	 * cmd — string or array with cmds' to execute.
+	 */
+	this.addConsole = function(cmd) {
+		var outer = this;
+		
+		/* adds command name to the page, and makes AJAX request to the server */
+		var addConsoleOut = function(name, value) {
+			$(outer.table).tplAppend({cmd: value}, outer.console_tpl);
+			$("tr > td > pre > b:contains('" + value + "')", outer.table).nextAll("p")
+				.load("kdb/execute.cgi", {cmd: value});
+		}
+		
+		/* we can have one or several commands */
+		if (typeof cmd == "object") {
+			$(cmd).each(function(name, value) {
+				addConsoleOut(name, value);
+			});
+		} else {
+			addConsoleOut(0, cmd);
+		}
+	}
 
 	/**
 	 * Adds submit button, form validation rules and submit's events handlers.
@@ -374,12 +415,12 @@ function addItem(path, func, name) {
 	var pathElems = path.split(":");
 	for (var pathElem in pathElems) {
 		/* check if the corresponding submenu is exist */
-		if ($(" > li > span:contains('" + pathElems[pathElem] + "')", curLevel).length == 0) {
+		if ($(" > li > span:contains('" + _(pathElems[pathElem]) + "')", curLevel).length == 0) {
 			/* if not, add it */
-			$(curLevel).append("<li><span>" + pathElems[pathElem] + "</span><ul></ul></li>");
+			$(curLevel).append("<li><span>" + _(pathElems[pathElem]) + "</span><ul></ul></li>");
 		}
 		/* change current level in the menu */
-		curLevel = $(" > li > span:contains('" + pathElems[pathElem] + "')", curLevel).next();
+		curLevel = $(" > li > span:contains('" + _(pathElems[pathElem]) + "')", curLevel).next();
 	}
 	
 	/* add new item */
