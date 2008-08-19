@@ -51,11 +51,12 @@ function Config() {
 	
 	/* 
 	 * Parse record from KDB. If it consist of several variables — return array.
+	 * Variables are separated by '\040' character or by '\n'.
 	 */
 	this.parseRecord = function(record) {
 		var parsedRecord = new Array();
 		/* \040 is a " " symbol */
-		var variableSet = record.split("\\040");
+		var variableSet = record.split(/\\040|\\n/);
 		
 		/* if we have single variable in the record — simply return it */
 		if (variableSet.length == 1) return record;
