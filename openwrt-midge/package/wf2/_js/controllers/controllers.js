@@ -22,7 +22,7 @@ Controllers['webface'] = function() {
 		text: "Interface language",
 		descr: "Please select language",
 		options: {"en": "English", "ru": "Russian"} 
-	}
+	};
 	c.addWidget(field);
 
 	c.addSubmit({reload: true});
@@ -42,8 +42,9 @@ Controllers['general'] = function() {
 		text: "Hostname",
 		descr: "Please enter router's hostname",
 		validator: {required: true},
-		message: "Enter hostname"
-	}
+		message: "Enter hostname",
+		tip: "Hey"
+	};
 	c.addWidget(field);
 
 	c.addSubmit();
@@ -63,7 +64,7 @@ Controllers['security'] = function() {
 		descr: "Password for webface user <i>admin</i>",
 		validator: {required: true},
 		message: "Enter webface password"
-	}
+	};
 	c.addWidget(field);
 
 	c.addSubmit();
@@ -80,7 +81,7 @@ Controllers['security'] = function() {
 		descr: "Password for system user <i>root</i>",
 		validator: {required: true},
 		message: "Enter system password"
-	}
+	};
 	c.addWidget(field);
 
 	c.addSubmit();
@@ -99,7 +100,7 @@ Controllers['dns'] = function() {
 		text: "Upstream server",
 		descr: "Please enter ip address of upstream dns server",
 		tip: "E.g., 192.168.2.1"
-	}
+	};
 	c.addWidget(field);
 
 	field = { 
@@ -108,7 +109,7 @@ Controllers['dns'] = function() {
 		text: "Domain",
 		descr: "Please enter your domain",
 		tip: "E.g., localnet"
-	}
+	};
 	c.addWidget(field);
 
 	c.addSubmit();
@@ -127,7 +128,7 @@ Controllers['time'] = function() {
 		text: "Use time synchronizing",
 		descr: "Check this item if you want use time synchronizing",
 		tip: "Time synchronization via NTP protocol"
-	}
+	};
 	c.addWidget(field);
 	
 	field = { 
@@ -135,7 +136,7 @@ Controllers['time'] = function() {
 		name: "sys_ntpclient_server",
 		text: "Time server",
 		descr: "Please input time server's hostname or ip address"
-	}
+	};
 	c.addWidget(field);
 	
 	field = {
@@ -149,7 +150,7 @@ Controllers['time'] = function() {
 					"1": "GMT+1", "2": "GMT+2", "3": "GMT+3", "4": "GMT+4", "5": "GMT+5", "6": "GMT+6", 
 					"7": "GMT+7", "8": "GMT+8", "9": "GMT+9", "10": "GMT+10", "11": "GMT+11", 
 					"12": "GMT+12"}
-	}
+	};
 	c.addWidget(field);
 	
 	c.addSubmit();
@@ -169,7 +170,7 @@ Controllers['logging'] = function() {
 		text: "Kernel console priority logging",
 		descr: "Set the level at which logging of messages is done to the console",
 		options: {"1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7"}
-	}
+	};
 	c.addWidget(field);
 
 	field = { 
@@ -179,7 +180,7 @@ Controllers['logging'] = function() {
 		descr: "Circular buffer size",
 		options: {"0": "0k", "8": "8k", "16": "16k", "32": "32k", "64": "64k", "128": "128k",
 					"256": "256k", "512": "512k"}
-	}
+	};
 	c.addWidget(field);
 	
 	field = { 
@@ -187,7 +188,7 @@ Controllers['logging'] = function() {
 		name: "sys_log_remote_enabled",
 		text: "Enable remote syslog logging",
 		descr: "Check this item if you want to enable remote logging"
-	}
+	};
 	c.addWidget(field);
 	
 	field = { 
@@ -195,7 +196,7 @@ Controllers['logging'] = function() {
 		name: "sys_log_remote_server",
 		text: "Remote syslog server",
 		descr: "Domain name or ip address of remote syslog server"
-	}
+	};
 	c.addWidget(field);
 
 	c.addSubmit();

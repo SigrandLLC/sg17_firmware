@@ -29,21 +29,21 @@ Controllers['iface'] = function(iface) {
 		type: "text",
 		name: "sys_iface_" + iface + "_desc",
 		text: "Description"
-	}
+	};
 	c.addWidget(field);
 
 	field = { 
 		type: "checkbox",
 		name: "sys_iface_" + iface + "_enabled",
 		text: "Enabled"
-	}
+	};
 	c.addWidget(field);
 	
 	field = { 
 		type: "checkbox",
 		name: "sys_iface_" + iface + "_auto",
 		text: "Auto"
-	}
+	};
 	c.addWidget(field);
 	
 	field = { 
@@ -52,15 +52,22 @@ Controllers['iface'] = function(iface) {
 		text: "Method",
 		descr: "Select method of setting IP address",
 		options: {"none": "None", "static": "Static address", "zeroconf": "Zero Configuration", "dynamic": "Dynamic address"}
-	}
+	};
 	c.addWidget(field);
 	
+	/* TODO: default to none */
+	var dependList = new Object();
+	$.each(config.getParsed("sys_ifaces"), function(name, value) {
+		dependList[value] = value;
+	});
+	dependList['none'] = "None";
 	field = { 
 		type: "select",
 		name: "sys_iface_" + iface + "_depend_on",
 		text: "Depended on",
-		options: config.get("sys_ifaces")
-	}
+		options: dependList,
+		optionDefault: 'none'
+	};
 	c.addWidget(field);
 
 	c.addSubmit();
@@ -78,7 +85,7 @@ Controllers['iface'] = function(iface) {
 			descr: "Point-to-Point local address (dotted quad)",
 			validator: {required: true},
 			message: "Please enter correct IP address"
-		}
+		};
 		c.addWidget(field);
 		
 		field = { 
@@ -88,7 +95,7 @@ Controllers['iface'] = function(iface) {
 			descr: "Point-to-Point remote address (dotted quad)",
 			validator: {required: true},
 			message: "Please enter correct IP address"
-		}
+		};
 		c.addWidget(field);
 		
 		c.addSubmit();
@@ -105,7 +112,7 @@ Controllers['iface'] = function(iface) {
 			descr: "Address (dotted quad)",
 			validator: {required: true},
 			message: "Please enter correct IP address"
-		}
+		};
 		c.addWidget(field);
 		
 		field = { 
@@ -115,7 +122,7 @@ Controllers['iface'] = function(iface) {
 			descr: "Netmask (dotted quad)",
 			validator: {required: true},
 			message: "Please enter correct IP netmask"
-		}
+		};
 		c.addWidget(field);
 		
 		field = { 
@@ -123,7 +130,7 @@ Controllers['iface'] = function(iface) {
 			name: "sys_iface_" + iface + "_broadcast",
 			text: "Broadcast",
 			descr: "Broadcast (dotted quad)"
-		}
+		};
 		c.addWidget(field);
 		
 		field = { 
@@ -131,7 +138,7 @@ Controllers['iface'] = function(iface) {
 			name: "sys_iface_" + iface + "_gateway",
 			text: "Gateway",
 			descr: "Default gateway (dotted quad)"
-		}
+		};
 		c.addWidget(field);
 		
 		c.addSubmit();
@@ -145,28 +152,28 @@ Controllers['iface'] = function(iface) {
 		type: "checkbox",
 		name: "sys_iface_" + iface + "_opt_accept_redirects",
 		text: "Accept redirects"
-	}
+	};
 	c.addWidget(field);
 	
 	field = { 
 		type: "checkbox",
 		name: "sys_iface_" + iface + "_opt_forwarding",
 		text: "Forwarding"
-	}
+	};
 	c.addWidget(field);
 	
 	field = { 
 		type: "checkbox",
 		name: "sys_iface_" + iface + "_opt_proxy_arp",
 		text: "Proxy ARP"
-	}
+	};
 	c.addWidget(field);
 	
 	field = { 
 		type: "checkbox",
 		name: "sys_iface_" + iface + "_opt_rp_filter",
 		text: "RP Filter"
-	}
+	};
 	c.addWidget(field);
 	
 	c.addSubmit();
@@ -184,7 +191,7 @@ Controllers['iface'] = function(iface) {
 				name: "sys_iface_" + iface + "_mac",
 				text: "MAC address",
 				descr: "MAC address for the interface"
-			}
+			};
 			c.addWidget(field);
 			
 			c.addSubmit();
@@ -199,7 +206,7 @@ Controllers['iface'] = function(iface) {
 				name: "sys_iface_" + iface + "_pppoe_iface",
 				text: "Interface",
 				descr: "Parent interface name"
-			}
+			};
 			c.addWidget(field);
 			
 			field = { 
@@ -210,7 +217,7 @@ Controllers['iface'] = function(iface) {
 				tip: "Router will only initiate sessions with access concentrators which" + 
 					" can provide the specified service.<br>  In most cases, you should <b>not</b>" + 
 					" specify this option."
-			}
+			};
 			c.addWidget(field);
 			
 			field = { 
@@ -221,7 +228,7 @@ Controllers['iface'] = function(iface) {
 				tip: "Router will only initiate sessions with the specified access concentrator." + 
 					" In most cases, you should <b>not</b> specify this option. Use it only if you" + 
 					" know that there are multiple access concentrators."
-			}
+			};
 			c.addWidget(field);
 			
 			field = { 
@@ -229,28 +236,28 @@ Controllers['iface'] = function(iface) {
 				name: "sys_iface_" + iface + "_pppoe_defaultroute",
 				text: "Default route",
 				descr: "Add a default route to the system routing tables, using the peer as the gateway"
-			}
+			};
 			c.addWidget(field);
 			
 			field = { 
 				type: "text",
 				name: "sys_iface_" + iface + "_pppoe_username",
 				text: "Username"
-			}
+			};
 			c.addWidget(field);
 			
 			field = { 
 				type: "text",
 				name: "sys_iface_" + iface + "_pppoe_password",
 				text: "Password"
-			}
+			};
 			c.addWidget(field);
 			
 			field = { 
 				type: "text",
 				name: "sys_iface_" + iface + "_pppoe_pppdopt",
 				text: "PPPD options"
-			}
+			};
 			c.addWidget(field);
 			
 			c.addSubmit();
@@ -265,21 +272,21 @@ Controllers['iface'] = function(iface) {
 				name: "sys_iface_" + iface + "_pptp_server",
 				text: "Server",
 				descr: "PPtP server"
-			}
+			};
 			c.addWidget(field);
 			
 			field = { 
 				type: "text",
 				name: "sys_iface_" + iface + "_pptp_username",
 				text: "Username"
-			}
+			};
 			c.addWidget(field);
 			
 			field = { 
 				type: "text",
 				name: "sys_iface_" + iface + "_pptp_password",
 				text: "Password"
-			}
+			};
 			c.addWidget(field);
 			
 			field = { 
@@ -287,14 +294,14 @@ Controllers['iface'] = function(iface) {
 				name: "sys_iface_" + iface + "_pptp_defaultroute",
 				text: "Default route",
 				descr: "Add a default route to the system routing tables, using the peer as the gateway"
-			}
+			};
 			c.addWidget(field);
 			
 			field = { 
 				type: "text",
 				name: "sys_iface_" + iface + "_pptp_pppdopt",
 				text: "PPPD options"
-			}
+			};
 			c.addWidget(field);
 			
 			c.addSubmit();
@@ -314,7 +321,7 @@ Controllers['iface'] = function(iface) {
 				tip: "<b>Example:</b>eth0 eth1 dsl0<br><b>Note:</b>You can use only Ethernet-like" + 
 					" interfaces, like ethX, dslX, bondX<br><b>Note:</b> Interfaces should be" + 
 					" enabled, but <b>auto</b> should be switched <b>off</b>"
-			}
+			};
 			c.addWidget(field);
 			
 			c.addSubmit();
@@ -335,7 +342,7 @@ Controllers['iface'] = function(iface) {
 					" of ethernets using the IEEE 802.1d spanning tree protocol.This protocol is" + 
 					" used for finding the shortest path between two ethernets, and for eliminating" + 
 					" loops from the topology."
-			}
+			};
 			c.addWidget(field);
 			
 			field = { 
@@ -346,7 +353,7 @@ Controllers['iface'] = function(iface) {
 				tip: "<b>Example:</b> eth0 eth1 dsl0<br><b>Note:</b> You can use only" + 
 				" Ethernet-like interfaces, like ethX, dslX<br><b>Note:</b> Interfaces should" + 
 				" be enabled, but <b>auto</b> should be switched <b>off</b>."
-			}
+			};
 			c.addWidget(field);
 			
 			field = { 
@@ -357,7 +364,7 @@ Controllers['iface'] = function(iface) {
 				tip: "The priority value is an unsigned 16-bit quantity (a number between 0" + 
 					" and 65535), and has no dimension. Lower priority values are better. The bridge" +
 					" with the lowest priority will be elected <b>root bridge</b>."
-			}
+			};
 			c.addWidget(field);
 			
 			field = { 
@@ -365,21 +372,21 @@ Controllers['iface'] = function(iface) {
 				name: "sys_iface_" + iface + "_br_fd",
 				text: "Forward delay",
 				descr: "Sets the bridges <b>bridge forward delay</b> to <time> seconds."
-			}
+			};
 			c.addWidget(field);
 			
 			field = { 
 				type: "text",
 				name: "sys_iface_" + iface + "_br_hello",
 				text: "Hello time"
-			}
+			};
 			c.addWidget(field);
 			
 			field = { 
 				type: "text",
 				name: "sys_iface_" + iface + "_br_maxage",
 				text: "Max age"
-			}
+			};
 			c.addWidget(field);
 			
 			c.addSubmit();

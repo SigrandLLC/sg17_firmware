@@ -6,11 +6,11 @@
 	KDB_PARAMS=""
 	
 	kdb_set_val() {
-		KDB_PARAMS="${KDB_PARAMS} : set $1 "
+		KDB_PARAMS="${KDB_PARAMS} : set '$1' "
 	}
 	
 	kdb_commit() {
-		eval `kdb ${KDB_PARAMS}`
+		eval "/usr/bin/kdb ${KDB_PARAMS}"
 		return $?
 	}
 
@@ -29,13 +29,16 @@
 		done
 	}
 	
+IFS='
+'
 	for variable in $(env |grep FORM); do
 		[ $(echo $variable |grep -c "FORM_SESSIONID") -eq 1 ] && continue
 		[ $(echo $variable |grep -c "FORM_subsystem") -eq 1 ] && continue
 		variable=$(echo $variable |sed s/FORM_//)
-		kdb_set_val $variable
+		kdb_set_val "$variable"
 	done
-	
+IFS=' '
+
 	kdb_commit
 	
 	SUBSYSTEM=$FORM_subsystem

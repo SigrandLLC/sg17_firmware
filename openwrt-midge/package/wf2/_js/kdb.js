@@ -21,7 +21,7 @@ function Config() {
 		var parsed = new Object();
 		var data = url.split("&");
 		
-		$(data).each(function(name, value) {
+		$.each(data, function(name, value) {
 			var variable = value.split("=");
 			parsed[variable[0]] = variable[1];
 		});
@@ -29,9 +29,18 @@ function Config() {
 		return parsed;
 	};
 	
-	/* return key's value */
+	/*
+	 * Return key's value with replaced special characters.
+	 */
 	this.get = function(name) {
-		return this.conf[name] ? this.conf[name] : "";
+		return this.conf[name] ? this.replaceSpecialChars(this.conf[name]) : "";
+	};
+	
+	/*
+	 * Return key's parsed value.
+	 */
+	this.getParsed = function(name) {
+		return this.conf[name] ? this.parseRecord(this.conf[name]) : "";
 	};
 	
 	/* parse KDB file */
@@ -40,11 +49,11 @@ function Config() {
 		var outer = this;
 		
 		var lines = data.split("\n");
-		$(lines).each(function(name, line) {
+		$.each(lines, function(name, line) {
 			if (line == "KDB" || line.length == 0) return true;
 			var record = line.split("=");
 			if (record.length > 1) {
-				outer.conf[record[0]] = outer.parseRecord(record[1]);
+				outer.conf[record[0]] = record[1];
 			}
 		});
 	};
@@ -62,7 +71,7 @@ function Config() {
 		if (variableSet.length == 1) return record;
 		
 		/* parse every variable in record */
-		$(variableSet).each(function(name, value) {
+		$.each(variableSet, function(name, value) {
 			/* \075 is a "=" symbol */
 			var variable = value.split("\\075");
 			/* if we have only value */
@@ -74,7 +83,17 @@ function Config() {
 			}
 		});
 		return parsedRecord;
-	}
+	};
+	
+	/*
+	 * Replaces special KDB characters with next characters:
+	 * \040 — ' '
+	 * \075 — '='
+	 */
+	this.replaceSpecialChars = function(value) {
+		var str1 = value.replace(/\\040|\\n/, ' ');
+		return str1.replace(/\\075/, '=');
+	};
 	
 	/* load KDB file from server */
 	this.loadKDB = function(params) {

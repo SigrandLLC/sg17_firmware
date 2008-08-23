@@ -7,7 +7,7 @@ function generateMenu() {
 	addItem("System", "Controllers.logging()", "Logging");
 	
 	/* generate list of interfaces */
-	var ifaces = config.get("sys_ifaces");
+	var ifaces = config.getParsed("sys_ifaces");
 	/* if we have several interfaces */
 	if (typeof ifaces == "object") {
 		$(ifaces).each(function(name, value) {

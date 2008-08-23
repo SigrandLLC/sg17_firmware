@@ -27,7 +27,7 @@ function pageTabs(p, tabsInfo, options) {
 
 /*
  * Content of an one tab.
- * options — additional options for container.
+ * options — additional options for container, passed from pageTabs.
  */
 function TabContents(tab, options) {
 	this.tab = tab;
@@ -64,13 +64,16 @@ function popup(url) {
 	 params += ', scrollbars=1';
 	 params += ', status=1';
 	 params += ', toolbar=no';
-	 newwin=window.open(url,'help', params);
+	 newwin = window.open(url,'help', params);
 	 if (window.focus) {newwin.focus()}
 	 return false;
 }
 
 /*
- * Container for widgets
+ * Container for widgets.
+ * p — parent container.
+ * options — container options (subsystem & help), initially passed to pageTabs.
+ * helpSection — see details in addContainer method of TabContents object.
  * I18N for widgets.
  */
 function Container(p, options, helpSection) {
@@ -87,138 +90,183 @@ function Container(p, options, helpSection) {
 	this.setSubsystem = function(subsystem) {
 		this.subsystem = subsystem;
 	}
-
-	/* template for table title */
-	this.table_title_tpl = function() {
+	
+	/* 
+	 * Adds title and context help link to container and adds it to container's table.
+	 * I18N for title.
+	 */
+	this.addTitle = function(title) {
 		var url;
-		if (helpSection && typeof helpSection == "object") {
-			url = "popup('/help/" + helpSection.page + ".html#" + helpSection.section + "')";
+		
+		/* if helpSection is object, it contains page and section names */
+		if (helpSection && typeof helpSection == "object" && helpSection.page && helpSection.section) {
+			url = "/help/" + helpSection.page + ".html#" + helpSection.section;
+		/* if we have common help page setted for all tabs */
 		} else if (options && options.help) {
-			url = helpSection ? "popup('/help/" + options.help + ".html#" + helpSection + "')" :
-				"popup('/help/" + options.help + ".html')";
+			/* if helpSection is set — it is string with section name */
+			url = helpSection ? "/help/" + options.help + ".html#" + helpSection :
+				"/help/" + options.help + ".html";
 		} else {
 			url = null;
 		}
-		var help = url ? " <a href='#' onclick=" + url + " class='helpLink'>[?]</a>" : "";
-		return [
-			'tr', {}, [
-				'th', {colspan: '2'}, this.title + help
-			]
-		];
-	};
-	
-	this.subsystem_tpl = function() {
-		var attrs = {
-						type: "hidden",
-						name: "subsystem",
-						value: this.subsystem
-		};
-		return ['input', attrs];
-	};
-	
-	/* Common widget's template
-	 * I18N for text, descr
-	 */
-	this.widget_tpl = function() {
-		var description = this.descr ? "<br /><p>" + _(this.descr) + "</p>" : "";
-		var required = (this.validator && this.validator['required']) ? " *" : "";
 		
-		return [
-			'tr', {}, [
-				'td', {className: 'tdleft'}, _(this.text) + required,
-				'td', {id: 'td_' + this.name}, description
+		/* if url is set — create context help link object, otherwise set it to null */
+		var help = url ? $.create('a', {'href': '#', 'className': 'helpLink'}, '[?]')
+			.click(function() {
+				popup(url);
+			}) : null;
+		
+		/* create table's row for title and context help link */
+		$.create('tr', {},
+			$.create('th', {'colSpan': '2'},
+				[
+					_(title),
+					" ",
+					help
+				]
+			)
+		).appendTo(this.table);
+	};
+	
+	/*
+	 * Adds general for all widgets elements.
+	 * w — widget's info.
+	 * p — destination container.
+	 * I18N for text and description.
+	 */
+	this.addGeneralWidget = function(w, p) {
+		/* if this field is required — show "*" */
+		var required = (w.validator && w.validator['required']) ? " *" : "";
+	
+		/* if description is specified — show it */
+		var tdElements;
+		if (w.descr) {
+			tdElements = new Array();
+			tdElements.push($.create('br'));
+			tdElements.push($.create('p', {}, _(w.descr)));
+		}
+		
+		/* create table row for widget */
+		$.create('tr', {}, 
+			[
+				$.create('td', {'className': 'tdleft'}, _(w.text) + required),
+				$.create('td', {'id': 'td_' + w.name}, tdElements)
 			]
-		];
-	};
+		).appendTo(p);
+	}
 	
-	/* template for text widget */
-	this.text_tpl = function() {
-		var attrs = {
-						type: 'text',
-						name: this.name,
-						value: config.get(this.name),
-						size: '25'
-		};
-		this.id && (attrs.id = this.id);
-		this.tip && (attrs.title = this.tip);
-		return ['input', attrs];
-	};
-	
-	/* template for password widget */
-	this.password_tpl = function() {
-		var attrs = {
-						type: 'password',
-						name: this.name,
-						size: '25'
-		};
-		this.id && (attrs.id = this.id);
-		return ['input', attrs];
-	};
-	
-	/* template for checkbox widget */
-	this.checkbox_tpl = function() {
-		var attrs = {
-						type: 'checkbox',
-						name: this.name,
-						className: 'check',
-						value: 1
-		};
-		this.id && (attrs.id = this.id);
-		this.tip && (attrs.title = this.tip);
-		if (config.get(this.name) == "1") attrs['checked'] = true;
-		return ['input', attrs];
-	};
-	
-	/* template for select widget */
-	this.select_tpl = function() {
-		var attrs = { name: this.name };
-		this.id && (attrs.id = this.id);
-		this.tip && (attrs.title = this.tip);
-		return ['select', attrs];
-	};
-	
-	/* template for option
-	 * I18N for name
+	/*
+	 * Add text widget.
 	 */
-	this.option_tpl = function() {
-		var attrs = { optionValue: this.value};
-		if (this.selected) attrs['selected'] = this.selected;
-		return ['option', attrs, _(this.name)];
+	this.addTextWidget = function(w, p) {
+		var attrs = {
+			'type': 'text',
+			'name': w.name,
+			'value': config.get(w.name),
+			'size': '25'
+		};
+		w.id && (attrs['id'] = w.id);
+		w.tip && (attrs['title'] = w.tip);
+		
+		$.create('input', attrs).prependTo(p);
 	};
 	
-	/* Adds title to table
-	 * I18N for title
+	/*
+	 * Add password widget.
 	 */
-	this.addTitle = function(title) {
-		var json = {title: _(title)};
-		$(this.table).tplAppend(json, this.table_title_tpl);
+	this.addPasswordWidget = function(w, p) {
+		var attrs = {
+			'type': 'password',
+			'name': w.name,
+			'size': '25'
+		};
+		w.id && (attrs['id'] = w.id);
+		w.tip && (attrs['title'] = w.tip);
+		
+		$.create('input', attrs).prependTo(p);
+	};
+	
+	/*
+	 * Add checkbox widget.
+	 */
+	this.addCheckboxWidget = function(w, p) {
+		var attrs = {
+			'type': 'checkbox',
+			'name': w.name,
+			'className': 'check',
+			'value': '1'
+		};
+		w.id && (attrs['id'] = w.id);
+		w.tip && (attrs['title'] = w.tip);
+		if (config.get(w.name) == "1") attrs['checked'] = true;
+		
+		$.create('input', attrs).prependTo(p);
+	};
+	
+	/*
+	 * Add select widget.
+	 */
+	this.addSelectWidget = function(w, p) {
+		var attrs = { 'name': w.name };
+		w.id && (attrs['id'] = w.id);
+		w.tip && (attrs['title'] = w.tip);
+		
+		$.create('select', attrs).prependTo(p);
 	};
 
 	/* add widget to container */
 	this.addWidget = function(w) {
 		/* add common widget's data */
-		$(this.table).tplAppend(w, this.widget_tpl);
+		this.addGeneralWidget(w, this.table);
 		switch (w.type) {
 			case "text": 
-				$('#td_' + w.name).tplPrepend(w, this.text_tpl);
+				this.addTextWidget(w, '#td_' + w.name);
 				break;
 			case "password": 
-				$('#td_' + w.name).tplPrepend(w, this.password_tpl);
+				this.addPasswordWidget(w, '#td_' + w.name);
 				break;
 			case "checkbox":
-				$('#td_' + w.name).tplPrepend(w, this.checkbox_tpl);
+				this.addCheckboxWidget(w, '#td_' + w.name);
 				break;
 			case "select":
-				$('#td_' + w.name).tplPrepend(w, this.select_tpl);
-				for (var value in w.options) {
-					var option = {
-						value: value,
-						name: w.options[value]
-					};
-					if (config.get(w.name) == option['value']) option['selected'] = true;
-					/* add select's option to previously added select element */
-					$('#td_' + w.name + ' select').tplAppend(option, this.option_tpl);
+				this.addSelectWidget(w, '#td_' + w.name);
+
+				var selectedIndex = -1;
+				var defaultIndex = -1;
+				var selectedItem;
+				
+				/* go though list of options */
+				$.each(w.options, function(name, value) {
+					/*
+					 * Heh. In options list property name is the value of option, and
+					 * property value is the text of option.
+					 */
+					var attrs = { 'value': name };
+					
+					/* if current option should be selected */
+					if (config.get(w.name) == name) {
+						selectedItem = name;
+					}
+					
+					/* add option to previously added select element */
+					$.create('option', attrs, _(value)).prependTo('#td_' + w.name + ' select');
+				});
+				
+				/* find selectedIndex and defaultIndex */
+				$('#td_' + w.name + ' select option').each(function(idx) {
+					this.value == selectedItem && (selectedIndex = idx);
+					this.value == w.optionDefault && (defaultIndex = idx);
+				});
+
+				/* set selected index in select element */
+				if (selectedIndex != -1) {
+					$('#td_' + w.name + ' select').attr("selectedIndex", selectedIndex);
 				}
+				/* if nothing is selected — select default item */
+				else if (defaultIndex != -1) {
+					$('#td_' + w.name + ' select').attr("selectedIndex", defaultIndex);
+				}
+
 				break;
 		}
 		w.validator && (this.validator_rules[w.name] = w.validator);
