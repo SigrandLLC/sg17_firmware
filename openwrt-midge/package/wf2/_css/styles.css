@@ -269,3 +269,7 @@ ul.treeview li li li li li span {
 a.clicked {
 	font-weight: bold;
 }
+
+div.pre {
+	font-family: monospace;
+}

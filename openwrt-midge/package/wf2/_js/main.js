@@ -1,3 +1,11 @@
+/*
+ * Set AJAX options.
+ * Without this option IE caches all AJAX requests.
+ */
+$.ajaxSetup({
+	cache: false
+});
+
 /* load KDB settings */
 var config = new Config();
 config.loadKDB( );

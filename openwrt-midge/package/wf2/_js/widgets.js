@@ -118,8 +118,7 @@ function Container(p, options, helpSection) {
 		
 		/* create table's row for title and context help link */
 		$.create('tr', {},
-			$.create('th', {'colSpan': '2'},
-				[
+			$.create('th', {'colSpan': '2'}, [
 					_(title),
 					" ",
 					help
@@ -147,13 +146,12 @@ function Container(p, options, helpSection) {
 		}
 		
 		/* create table row for widget */
-		$.create('tr', {}, 
-			[
+		$.create('tr', {}, [
 				$.create('td', {'className': 'tdleft'}, _(w.text) + required),
 				$.create('td', {'id': 'td_' + w.name}, tdElements)
 			]
 		).appendTo(p);
-	}
+	};
 	
 	/*
 	 * Add text widget.
@@ -162,11 +160,18 @@ function Container(p, options, helpSection) {
 		var attrs = {
 			'type': 'text',
 			'name': w.name,
-			'value': config.get(w.name),
 			'size': '25'
 		};
 		w.id && (attrs['id'] = w.id);
 		w.tip && (attrs['title'] = w.tip);
+		
+		/* set KDB value */
+		if (config.get(w.name)) {
+			attrs['value'] = config.get(w.name);
+		/* if KDB value does't exists — set default value, if it exists */
+		} else if (w.defaultValue) {
+			attrs['value'] = w.defaultValue;
+		}
 		
 		$.create('input', attrs).prependTo(p);
 	};
@@ -274,19 +279,18 @@ function Container(p, options, helpSection) {
 		w.message && (this.validator_messages[w.name] = _(w.message));
 	};
 	
-	/* template for console output */
-	this.console_tpl = function() {
-		return [
-			'tr', {}, [
-				'td', {}, [
-					'pre', {}, [
-						'b', {}, this.cmd,
-						'br', {}, "",
-						'p'
-					]
+	/*
+	 * Adds HTML code for command output.
+	 */
+	this.addConsoleHTML = function(cmd, p) {
+		$.create('tr', {},
+			$.create('td', {}, [
+					$.create('b', {}, cmd),
+					$.create('br'),
+					$.create('div', {'className': 'pre'})
 				]
-			]
-		];
+			)
+		).appendTo(p);
 	};
 	
 	/*
@@ -296,12 +300,31 @@ function Container(p, options, helpSection) {
 	this.addConsole = function(cmd) {
 		var outer = this;
 		
-		/* adds command name to the page, and makes AJAX request to the server */
+		/*
+		 * Do AJAX request for command execution, and
+		 * replace '\n' in output with '<br>'.
+		 */
+		var cmdExecute = function(url, cmd, p) {
+			$.ajax({
+				type: "POST",
+				url: url,
+				dataType: "text",
+				data: cmd,
+				dataFilter: function(data, type) {
+					return data.replace(/\n/g, "<br>");
+				},
+				success: function(html) {
+					$(p).html(html);
+				}
+			});
+		};
+		
+		/* adds command's HTML to the page, and makes AJAX request to the server */
 		var addConsoleOut = function(name, value) {
-			$(outer.table).tplAppend({cmd: value}, outer.console_tpl);
-			$("tr > td > pre > b:contains('" + value + "')", outer.table).nextAll("p")
-				.load("kdb/execute.cgi", {cmd: value});
-		}
+			outer.addConsoleHTML(value, outer.table);
+			cmdExecute("kdb/execute.cgi", {cmd: value},
+				$("tr > td > b:contains('" + value + "')", outer.table).nextAll("div.pre"));
+		};
 		
 		/* we can have one or several commands */
 		if (typeof cmd == "object") {
@@ -313,7 +336,7 @@ function Container(p, options, helpSection) {
 		}
 	}
 
-	/**
+	/*
 	 * Adds submit button, form validation rules and submit's events handlers.
 	 * options.ajaxTimeout — time in seconds to wait for server reply before show an error message.
 	 * options.reload — reload page after AJAX request (e.g., for update translation)
@@ -322,7 +345,8 @@ function Container(p, options, helpSection) {
 		var timeout = (options && options.ajaxTimeout) ? options.ajaxTimeout * 1000 : null;
 		var id_info_message = "#" + this.info_message;
 		
-		/* sets error message
+		/* 
+		 * sets error message
 		 * I18N for text
 		 */
 		var setError = function(text) {
@@ -432,9 +456,11 @@ function Container(p, options, helpSection) {
 
 /*
  * Adds a new item to the menu.
- * path — place for a new item (e.g., "Network:Interfaces" means menu Network, submenu Interfaces)
- * func — function to call when user clicks on the menu item.
+ * path — place for a new item (e.g., "Network:Interfaces" means menu Network, submenu Interfaces).
  * name — name of the menu item.
+ * func — name of the function in a Controllers object to call when user clicks on the menu item.
+ * params — function parameters.
+ * 
  * Example of the menu structure is given below.
  * <ul class="treeview" id="menu">
  *		<li><span>System</span>
@@ -455,9 +481,12 @@ function Container(p, options, helpSection) {
  *		</li>
  *	</ul>
  */
-function addItem(path, func, name) {
+function addItem(path, name, func, params) {
 	/* menu element */
 	var idMenu = "#menu";
+	
+	/* context which is set when menu functions are called */
+	var defaultContext = Controllers;
 	
 	var curLevel = idMenu;
 	var pathElems = path.split(":");
@@ -471,12 +500,17 @@ function addItem(path, func, name) {
 		curLevel = $(" > li > span:contains('" + _(pathElems[pathElem]) + "')", curLevel).next();
 	}
 	
-	/* add new item */
-	$(curLevel).append("<li><span><a href='#' onclick=" + func + ">" + _(name) + "</a></span></li>");
+	/* create link object */
+	var link = $.create('a', {'href': '#'}, _(name))
+		.click(function() {
+			if (params) defaultContext[func](params);
+			else defaultContext[func]();
+			
+			/* highlight selected item */
+			$("a", idMenu).removeClass("clicked");
+			$(this).addClass("clicked");
+		});
 	
-	/* highlight selected item */
-	$(" > li > span > a:contains('" + _(name) + "')", curLevel).click(function() {
-		$("a", idMenu).removeClass("clicked");
-		$(this).addClass("clicked");
-	});
+	/* create menu item and add it to the menu */
+	$.create('li', {}, $.create('span', {}, link)).appendTo(curLevel);
 }

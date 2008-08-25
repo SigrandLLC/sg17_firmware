@@ -33,14 +33,14 @@ function Config() {
 	 * Return key's value with replaced special characters.
 	 */
 	this.get = function(name) {
-		return this.conf[name] ? this.replaceSpecialChars(this.conf[name]) : "";
+		return this.conf[name] ? this.replaceSpecialChars(this.conf[name]) : null;
 	};
 	
 	/*
 	 * Return key's parsed value.
 	 */
 	this.getParsed = function(name) {
-		return this.conf[name] ? this.parseRecord(this.conf[name]) : "";
+		return this.conf[name] ? this.parseRecord(this.conf[name]) : null;
 	};
 	
 	/* parse KDB file */

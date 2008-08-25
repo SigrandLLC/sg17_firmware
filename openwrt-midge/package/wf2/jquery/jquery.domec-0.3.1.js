@@ -65,7 +65,7 @@
 			
 			// add passed child elements
 			if (typeof(children) == 'string') {
-				elem.text(children);
+				elem.html(children);
 			} else if (typeof(children) == 'object') {
 				for (i = 0; i < children.length; i++) {
 					elem.append(children[i]);

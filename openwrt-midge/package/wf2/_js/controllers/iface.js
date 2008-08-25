@@ -256,7 +256,8 @@ Controllers['iface'] = function(iface) {
 			field = { 
 				type: "text",
 				name: "sys_iface_" + iface + "_pppoe_pppdopt",
-				text: "PPPD options"
+				text: "PPPD options",
+				defaultValue: "noauth nobsdcomp nodeflate"
 			};
 			c.addWidget(field);
 			
@@ -300,7 +301,8 @@ Controllers['iface'] = function(iface) {
 			field = { 
 				type: "text",
 				name: "sys_iface_" + iface + "_pptp_pppdopt",
-				text: "PPPD options"
+				text: "PPPD options",
+				defaultValue: "noauth nobsdcomp nodeflate nomppe"
 			};
 			c.addWidget(field);
 			

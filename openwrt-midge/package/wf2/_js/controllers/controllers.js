@@ -88,7 +88,7 @@ Controllers['security'] = function() {
 }
 
 Controllers['dns'] = function() {
-	var tabs = this.pageTabs({dns: "DNS"});
+	var tabs = this.pageTabs({dns: "DNS"}, {subsystem: "dns"});
 	var c = tabs.tabs['dns'].addContainer();
 	var field;
 
