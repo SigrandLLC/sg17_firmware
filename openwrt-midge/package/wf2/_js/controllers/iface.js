@@ -1,9 +1,8 @@
 Controllers['iface'] = function(iface) {
 	var field;
 	var c;
-	var tabs = this.pageTabs({status: "Status", general: "General", method: "Method",
-		options: "Options", specific: "Specific", qos: "QoS", routes: "Routes"},
-		{subsystem: "network", help: "iface"});
+	var tabs = this.pageTabs({status: "Status", general: "General", tabMethod: "Method",
+		options: "Options", specific: "Specific"}, {subsystem: "network", help: "iface"});
 	
 	/* status tab */
 	c = tabs.tabs['status'].addContainer("status");
@@ -55,7 +54,6 @@ Controllers['iface'] = function(iface) {
 	};
 	c.addWidget(field);
 	
-	/* TODO: default to none */
 	var dependList = new Object();
 	$.each(config.getParsed("sys_ifaces"), function(name, value) {
 		dependList[value] = value;
@@ -73,7 +71,7 @@ Controllers['iface'] = function(iface) {
 	c.addSubmit();
 	
 	/* method tab */
-	var c = tabs.tabs['method'].addContainer("method");
+	var c = tabs.tabs['tabMethod'].addContainer("method");
 	if (config.get("sys_iface_" + iface + "_proto") == "hdlc")
 	{
 		c.addTitle("Point-to-Point address settings");

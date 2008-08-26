@@ -42,8 +42,7 @@ Controllers['general'] = function() {
 		text: "Hostname",
 		descr: "Please enter router's hostname",
 		validator: {required: true},
-		message: "Enter hostname",
-		tip: "Hey"
+		message: "Enter hostname"
 	};
 	c.addWidget(field);
 
@@ -99,7 +98,7 @@ Controllers['dns'] = function() {
 		name: "sys_dns_nameserver",
 		text: "Upstream server",
 		descr: "Please enter ip address of upstream dns server",
-		tip: "E.g., 192.168.2.1"
+		tip: "DNS server used for resolving domain names. E.g., 192.168.2.1"
 	};
 	c.addWidget(field);
 
@@ -108,7 +107,7 @@ Controllers['dns'] = function() {
 		name: "sys_dns_domain",
 		text: "Domain",
 		descr: "Please enter your domain",
-		tip: "E.g., localnet"
+		tip: "Domain for this router. E.g., localnet"
 	};
 	c.addWidget(field);
 

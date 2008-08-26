@@ -155,6 +155,7 @@ function Container(p, options, helpSection) {
 	
 	/*
 	 * Add text widget.
+	 * I18N for tip.
 	 */
 	this.addTextWidget = function(w, p) {
 		var attrs = {
@@ -163,7 +164,7 @@ function Container(p, options, helpSection) {
 			'size': '25'
 		};
 		w.id && (attrs['id'] = w.id);
-		w.tip && (attrs['title'] = w.tip);
+		w.tip && (attrs['title'] = _(w.tip));
 		
 		/* set KDB value */
 		if (config.get(w.name)) {
@@ -178,6 +179,7 @@ function Container(p, options, helpSection) {
 	
 	/*
 	 * Add password widget.
+	 * I18N for tip.
 	 */
 	this.addPasswordWidget = function(w, p) {
 		var attrs = {
@@ -186,13 +188,14 @@ function Container(p, options, helpSection) {
 			'size': '25'
 		};
 		w.id && (attrs['id'] = w.id);
-		w.tip && (attrs['title'] = w.tip);
+		w.tip && (attrs['title'] = _(w.tip));
 		
 		$.create('input', attrs).prependTo(p);
 	};
 	
 	/*
 	 * Add checkbox widget.
+	 * I18N for tip.
 	 */
 	this.addCheckboxWidget = function(w, p) {
 		var attrs = {
@@ -202,7 +205,7 @@ function Container(p, options, helpSection) {
 			'value': '1'
 		};
 		w.id && (attrs['id'] = w.id);
-		w.tip && (attrs['title'] = w.tip);
+		w.tip && (attrs['title'] = _(w.tip));
 		if (config.get(w.name) == "1") attrs['checked'] = true;
 		
 		$.create('input', attrs).prependTo(p);
@@ -210,11 +213,12 @@ function Container(p, options, helpSection) {
 	
 	/*
 	 * Add select widget.
+	 * I18N for tip.
 	 */
 	this.addSelectWidget = function(w, p) {
 		var attrs = { 'name': w.name };
 		w.id && (attrs['id'] = w.id);
-		w.tip && (attrs['title'] = w.tip);
+		w.tip && (attrs['title'] = _(w.tip));
 		
 		$.create('select', attrs).prependTo(p);
 	};
@@ -413,42 +417,16 @@ function Container(p, options, helpSection) {
 					this.value = 0;
 				}).addClass("doUncheck");
 				
-     			$(form).ajaxSubmit({
-     				url: "kdb/kdb_save.cgi",
-     				type: "POST",
-     				timeout: timeout,
-     				
-     				/* show error when unable to save data (closure to setError and showMsg var) */
-     				error: function() {
-     					setError("Error: unable to save data.");
-     					showMsg();
-     				},
-     				
-     				/* save data to tmp local cache and show message before submit data
-     				 * (closure to setInfo and showMsg var)
-     				 */
-					beforeSubmit: function() {
-						/* Here we uncheck temporarily checked checkboxes */
-						$(".doUncheck").each(function() {
-							this.checked = false;
-							this.value = 1;
-						}).removeClass("doUncheck");
-						
-						config.saveTmpVals(form);
-						setInfo("Saving data...");
-						showMsg();
-					},
-					
-					/* sava data to local cache and show message after submit data
-					 * (closure to setInfo and showMsg var)
-					 */
-					success: function() {
-						config.saveVals();
-						setInfo("Data saved successfully.");
-						showMsg();
-						if (options && options.reload) document.location.reload();
-					}
-				});
+				var reload = (options && options.reload) ? true : false;
+				
+				/* submit task (updating settings) for execution */
+     			config.kdbSubmit(form, timeout, reload);
+				
+				/* set checkboxes to their original state */
+				$(".doUncheck").each(function() {
+					this.checked = false;
+					this.value = 1;
+				}).removeClass("doUncheck");
      		}
 		});
 	};
