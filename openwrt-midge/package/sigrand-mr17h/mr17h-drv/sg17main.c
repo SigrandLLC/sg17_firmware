@@ -438,34 +438,38 @@ sg17_link_support(struct sg17_sci *s)
 		lstate = advlink_status(&nl->alink);
 		switch( lstate ){
 		case ADVLINK_UP:
-		    if( !netif_carrier_ok(ndev) )
-			netif_carrier_on(ndev);
+		    if( !netif_carrier_ok(ndev) ){
+    			netif_carrier_on(ndev);
+                printk(KERN_NOTICE"%s: link is UP\n",ndev->name);
+            }
 		    break;
 		case ADVLINK_DOWN:
-		    if( netif_carrier_ok(ndev) )
-			netif_carrier_off(ndev);
+		    if( netif_carrier_ok(ndev) ){
+			    netif_carrier_off(ndev);
+                printk(KERN_NOTICE"%s: link is DOWN\n",ndev->name);
+            }
 		    break;
 		}
 		if( advlink_enabled(&nl->alink) &&
-		    advlink_get_hwstatus(&nl->alink) == ADVLINK_UP &&
-		    (ndev->flags & IFF_UP) ){
-    			advlink_send(&nl->alink,alink_msg);
+		        advlink_get_hwstatus(&nl->alink) == ADVLINK_UP &&
+		        (ndev->flags & IFF_UP) ){
+    		advlink_send(&nl->alink,alink_msg);
 			PDEBUG(debug_link,"Send checking message, scntr=%d, rcntr=%d",
 			    alink_msg[1],alink_msg[2]);
 			skb = dev_alloc_skb(ADVLINK_MSIZE8);
 			if( !skb ){
-				printk(KERN_ERR"%s: sbk ENOMEM!",__FUNCTION__);
-				return;
-			}
-		        skb_put( skb,ADVLINK_MSIZE8);
-			for(k=0;k<ADVLINK_MSIZE8;k++){
-			        skb->data[k] = *((char*)alink_msg + k);
-    			}
+			    printk(KERN_ERR"%s: sbk ENOMEM!",__FUNCTION__);
+    			return;
+	        }
+		    skb_put( skb,ADVLINK_MSIZE8);
+		    for(k=0;k<ADVLINK_MSIZE8;k++){
+			    skb->data[k] = *((char*)alink_msg + k);
+    		}
 			if( sg17_start_xmit_link(skb,ndev) ){
-				advlink_send_error(&nl->alink);
-				dev_kfree_skb_any( skb );
-			}
-		}
+			    advlink_send_error(&nl->alink);
+    			dev_kfree_skb_any( skb );
+	    	}
+	    }
 	}
 }
 

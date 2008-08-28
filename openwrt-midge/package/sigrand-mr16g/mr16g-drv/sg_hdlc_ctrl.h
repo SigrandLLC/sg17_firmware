@@ -24,7 +24,7 @@
 #define WTBE    0x02            // write burst enable
 #define RODD    0x04            // receive 2-byte alignment
 #define RXDE    0x08            // receive data enable
-#define FRM	0x10		// framed mode
+#define FRM     0x10		// framed mode
 #define EXTC	0x20		// sync from external generator
 
 // SR and IMR bits
@@ -94,8 +94,8 @@ struct ds2155_config{
 
 struct hdlc_config
 {
-        u8  crc16: 1;
-        u8  fill_7e: 1;
+    u8  crc16: 1;
+    u8  fill_7e: 1;
 	u8  inv: 1;
 	u8  rburst: 1;
 	u8  wburst: 1;
@@ -103,14 +103,14 @@ struct hdlc_config
 		    
 
 struct mr16g_hw_regs {
-        u8  CRA,CRB,SR,IMR,CTDR,LTDR,CRDR,LRDR;
+    u8  CRA,CRB,SR,IMR,CTDR,LTDR,CRDR,LRDR;
 	u8 MAP0,MAP1,MAP2,MAP3;
 	u8 MXMAP0,MXMAP1,MXMAP2,MXMAP3;
 	u8 RATE,MXRATE,TFS,RFS,TLINE,RLINE,MXCR;
 };
 
 struct mr16g_hw_descr{
-        u32  address;
+    u32  address;
 	u32  length;
 };
 																	 
@@ -302,6 +302,5 @@ static ssize_t store_mx_clkab(struct class_device *cdev,const char *buf,size_t s
 // CLKR
 static ssize_t show_mx_clkr(struct class_device *cdev, char *buf);
 static ssize_t store_mx_clkr(struct class_device *cdev,const char *buf,size_t size);
-
 
 #endif

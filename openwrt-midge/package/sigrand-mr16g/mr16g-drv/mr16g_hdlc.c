@@ -280,8 +280,8 @@ mr16g_probe( struct net_device  *ndev )
 	ndev->get_stats	= &mr16g_get_stats;
 	ndev->do_ioctl	= &mr16g_ioctl;
 	ndev->tx_queue_len  = 50;
-        ndev->tx_timeout = &mr16g_tx_timeout;
-        ndev->watchdog_timeo = TX_TIMEOUT;
+    ndev->tx_timeout = &mr16g_tx_timeout;
+    ndev->watchdog_timeo = TX_TIMEOUT;
 	
 	
 	// Set hdlc device fields	
@@ -1134,12 +1134,15 @@ mr16g_E1_setup(struct net_local *nl)
 	tmp = slot_cnt(tmpmap);
 	tmp--;
 	iowrite8(tmp,(iotype)&(nl->hdlc_regs->MXRATE));	
-	
 
 	if( !cfg->int_clck ){
-		tmp = EXTC | ioread8((iotype)&(nl->hdlc_regs->CRB));
+		tmp = EXTC|ioread8((iotype)&(nl->hdlc_regs->CRB));
 		iowrite8(tmp,(iotype)&(nl->hdlc_regs->CRB));
-	}
+	}else{
+		tmp = ioread8((iotype)&(nl->hdlc_regs->CRB))&(~EXTC);
+		iowrite8(tmp,(iotype)&(nl->hdlc_regs->CRB));
+    }
+        
 	
 	return 0;
 } 
@@ -2267,4 +2270,3 @@ store_mx_clkr( struct class_device *cdev,const char *buf, size_t size )
 	}
 	return size;
 }
-
