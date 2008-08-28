@@ -66,9 +66,6 @@ function KDBQueue() {
 	
 	/* send task to router */
 	this.sendTask = function(task) {
-		/* save values to temporary array */
-		config.saveTmpVals(task['values']);
-		
 		var outer = this;
 		var options = {
 			url: "kdb/kdb_save.cgi",
@@ -77,16 +74,13 @@ function KDBQueue() {
 			
 			/* network error */
 			error: function() {
-				/* clear temporary array */
-				config.removeTmpVals();
-				
 				/* unblock queue */
 				outer.block = false;
 				
 				/* clear task's queue */
 				outer.queue = new Array();
 				
-				outer.setError("Connection error");
+				outer.setError("Connection error. You should reload page");
 			},
 			
 			success: function() {
@@ -95,9 +89,6 @@ function KDBQueue() {
 					this.block = false;
 					document.location.reload();
 				}
-				
-				/* save values from temporary array in current KDB object */
-				config.saveVals();
 				
 				/* remove completed task from queue */
 				outer.queue.shift();
@@ -120,31 +111,22 @@ function KDBQueue() {
 }
 
 function Config() {
-	this.confTmp;
 	this.conf = new Object();
 	this.kdbQueue = new KDBQueue();
 	
 	/* submit task for execution */
 	this.kdbSubmit = function(form, timeout, reload) {
 		var values = $(form).formSerialize();
+		this.saveVals(this.parseUrl(values));
 		this.kdbQueue.addTask(values, timeout, reload);
 	};
 	
-	/* before Ajax request, saves new settings in temporary object */
-	this.saveTmpVals = function(values) {
-		this.confTmp = this.parseUrl(values);
-	};
-	
-	/* after Ajax request, copy new settings to current config object */
-	this.saveVals = function() {
-		for (var name in this.confTmp) {
-			this.conf[name] = this.confTmp[name];
-		}
-		this.removeTmpVals();
-	};
-	
-	this.removeTmpVals = function() {
-		delete this.confTmp;
+	/* save values */
+	this.saveVals = function(values) {
+		var outer = this;
+		$.each(values, function(name, value) {
+			outer.conf[name] = value;
+		});
 	};
 	
 	/* parse URL (par1=val1&par2=val2), return hash */

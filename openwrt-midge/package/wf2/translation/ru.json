@@ -54,5 +54,6 @@
 	"Domain name or ip address of remote syslog server": "Имя или IP-адрес удалённого syslog-сервера",
 	"task": "задача",
 	"tasks": "задачи",
-	"in queue": "в очереди"
+	"in queue": "в очереди",
+	"Connection error. Reload page": "Сетевая ошибка. Вам следует перезагрузить страницу"
 }

@@ -1,51 +1,104 @@
 /*
- * Add tabs to 'p' container.
- * tabs: hash, key — id, value — name of tab
- * options — optional settings for page, may include:
- * 	- subsystem — name of a subsystem for all tabs on the page.
- *  - help — name of html file with context help for all tabs on the page.
- * I18N for tab name.
+ * Create page element. Page consist of tabs.
  */
-function pageTabs(p, tabsInfo, options) {
-	/* clear page */
+function Page(p) {
+	/* prefix to tab's id */
+	var tabIdPrefix = "tab_";
+	
+	/* pointer to the first link for a tab */
+	var firstTab = null;
+	
+	/* clear container */
 	$(p).empty();
 	
-	var tabsList = "<ul>";
-	for (tab in tabsInfo) {
-		tabsList += "<li><a href='#" + tab + "'><span>" + _(tabsInfo[tab]) + "</span></a></li>";
-	}
-	tabsList += "</ul>";
-	$(tabsList).appendTo(p);
-	this.tabs = new Array();
-	for (tab in tabsInfo) {
-		this.tabs[tab] = new TabContents($("<div id='" + tab + "'></div>").appendTo(p).get(), options);
-	}
+	/* array with tabs' info */
+	this.tabsInfo = new Array();
 	
-	/* update tabs */
-	$(p).tabs({fxAutoHeight: true});
-}
-
-/*
- * Content of an one tab.
- * options — additional options for container, passed from pageTabs.
- */
-function TabContents(tab, options) {
-	this.tab = tab;
-	this.options = options;
-
+	/* common for all tabs subsystem and help */
+	this.subsystem = null;
+	this.help = null;
+	
+	/* set subsystem */
+	this.setSubsystem = function(subsystem) {
+		this.subsystem = subsystem;
+	};
+	
+	/* set help */
+	this.setHelp = function(help) {
+		this.help = help;
+	};
+	
 	/*
-	 * Adds container to tab.
-	 * helpSection — if string, then this is a name of the section (e.g., "logging");
-	 * 			   — if object, then - page: html page name,
-	 * 								 - section: section
-	 * 				 (e.g, {page: "logging", section: "asd"})
+	 * Add tab.
+	 * - tab: tab.id — id of the tab;
+	 *        tab.name — name of the tab;
+	 *        tab.func — function to call to generate tab's content.
 	 */
-	this.addContainer = function(helpSection) {
-		return new Container(this.tab, this.options, helpSection);
-	}
+	this.addTab = function(tab) {
+		this.tabsInfo.push(tab);
+	};
 	
-	this.addBr = function() {
-		$("<br />").appendTo(this.tab);
+	/* generate tabs' links and divs */
+	this.generateTabs = function() {
+		/* create ul for tabs' links */
+		var tabsList = $.create('ul');
+		
+		/* go through tabs' info */
+		$.each(this.tabsInfo, function(num, tab) {
+			/* create link to a tab */
+			var href = $.create('a', {'href': '#' + tabIdPrefix + tab['id']},
+				$.create('span', {}, _(tab['name']))
+			);
+			
+			/* add click event */
+			href.click(function(e) {
+				/* clear container */
+				$('#' + tabIdPrefix + tab['id']).empty();
+				
+				/* render tab's content */
+				tab['func']();
+			});
+			
+			/* save pointer to the first link for a tab */
+			if (!firstTab) firstTab = href;
+			
+			/* add link to the list */
+			$.create('li', {}, href).appendTo(tabsList);
+		});
+		
+		/* add list with links to a page */
+		tabsList.appendTo(p);
+		
+		/* go through tabs' info */
+		$.each(this.tabsInfo, function(num, tab) {
+			/* create div for a tab */
+			$.create('div', {'id': tabIdPrefix + tab['id']}).appendTo(p);
+		});
+		
+		/* update tabs */
+		$(p).tabs({fxAutoHeight: true});
+		
+		/* render content of the first tab */
+		firstTab.click();
+	};
+	
+	/*
+	 * Create Container for a tab.
+	 * - tabId — ID of tab to create container for;
+	 * - help: if string, then this is a name of the section (e.g., "logging");
+	 * 		   if object, then - help.page: html page name;
+	 * 						   - help.section: section name
+	 * 			(e.g, {page: "logging", section: "asd"})
+	 * 		   if not specified — section is set to tabId.
+	 */
+	this.addContainer = function(tabId, help) {
+		return new Container($('#' + tabIdPrefix + tabId),
+			{'subsystem': this.subsystem, 'help': this.help}, help ? help : tabId);
+	};
+	
+	/* Add line break to the tab */
+	this.addBr = function(tabId) {
+		$.create('br').appendTo($('#' + tabIdPrefix + tabId));
 	}
 }
 
@@ -479,7 +532,7 @@ function addItem(path, name, func, params) {
 	}
 	
 	/* create link object */
-	var link = $.create('a', {'href': '#'}, _(name))
+	var link = $.create('a', {}, _(name))
 		.click(function() {
 			if (params) defaultContext[func](params);
 			else defaultContext[func]();
