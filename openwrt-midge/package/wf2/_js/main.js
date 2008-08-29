@@ -28,4 +28,6 @@ $(document).ready(function() {
 		unique: true,
 		collapsed: true
 	});
+	
+	Controllers['info']();
 });

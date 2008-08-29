@@ -9,6 +9,9 @@
 	"Interfaces": "Сетевые интерфейсы",
 	"Time": "Время",
 	"Logging": "Логирование",
+	"Info": "Информация",
+	"System information": "Системная информация",
+	"Firmware version": "Версия ПО",
 	"Webface admin password" : "Пароль к веб-интерфейсу",
 	"Password" : "Пароль",
 	"Security" : "Безопасность",
@@ -55,5 +58,7 @@
 	"task": "задача",
 	"tasks": "задачи",
 	"in queue": "в очереди",
-	"Connection error. Reload page": "Сетевая ошибка. Вам следует перезагрузить страницу"
+	"Connection error. Reload page": "Сетевая ошибка. Вам следует перезагрузить страницу",
+	"Uptime": "Время работы",
+	"Load average": "Средняя загрузка"
 }

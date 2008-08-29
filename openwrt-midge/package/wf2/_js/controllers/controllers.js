@@ -9,6 +9,62 @@ var Controllers = {
 	}
 };
 
+Controllers['info'] = function() {
+	var page = this.Page();
+	
+	page.addTab({
+		"id": "info",
+		"name": "System information",
+		"func": function() {
+			var c;
+			c = page.addContainer("info");
+			c.addTitle("System information");
+			
+			field = {
+				"type": "html",
+				"name": "sys_hostname",
+				"text": "Hostname",
+				"kdb": "sys_hostname"
+			};
+			c.addWidget(field);
+			
+			field = {
+				"type": "html",
+				"name": "version",
+				"text": "Firmware version",
+				"cmd": "/bin/cat /etc/version"
+			};
+			c.addWidget(field);
+			
+			field = {
+				"type": "html",
+				"name": "time",
+				"text": "Time",
+				"cmd": "/bin/date"
+			};
+			c.addWidget(field);
+			
+			field = {
+				"type": "html",
+				"name": "uptime",
+				"text": "Uptime",
+				"cmd": "/usr/bin/uptime |/usr/bin/cut -f1 -d ','"
+			};
+			c.addWidget(field);
+			
+			field = {
+				"type": "html",
+				"name": "la",
+				"text": "Load average",
+				"cmd": "/usr/bin/uptime | cut -f5 -d ':'"
+			};
+			c.addWidget(field);
+		}
+	});
+	
+	page.generateTabs();
+};
+
 Controllers['webface'] = function() {
 	var page = this.Page();
 
@@ -250,3 +306,33 @@ Controllers['logging'] = function() {
 	
 	page.generateTabs();
 }
+
+Controllers['tools'] = function() {
+	var page = this.Page();
+
+	page.addTab({
+		"id": "syslog",
+		"name": "syslog",
+		"func": function() {
+			var c;
+			c = page.addContainer("syslog");
+			c.addTitle("syslog");
+			
+			/* working directory for script is ./wf2/sh, where execute.cgi is located */
+			c.addConsole("/sbin/logread |/usr/bin/tail -n 40 |./colorizelog.sh");
+		}
+	});
+	
+	page.addTab({
+		"id": "dmesg",
+		"name": "dmesg",
+		"func": function() {
+			var c;
+			c = page.addContainer("dmesg");
+			c.addTitle("dmesg");
+			c.addConsole("/bin/dmesg |/usr/bin/tail -n 40");
+		}
+	});
+	
+	page.generateTabs();
+};

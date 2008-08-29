@@ -68,7 +68,7 @@ function KDBQueue() {
 	this.sendTask = function(task) {
 		var outer = this;
 		var options = {
-			url: "kdb/kdb_save.cgi",
+			url: "sh/kdb_save.cgi",
 			type: "POST",
 			data: task['values'],
 			
@@ -210,7 +210,7 @@ function Config() {
 	
 	/* load KDB file from server */
 	this.loadKDB = function(params) {
-		var url = "kdb/kdb_load.cgi";
+		var url = "sh/kdb_load.cgi";
 		if (params) {
 			if (params.url) url = params.url;
 		}

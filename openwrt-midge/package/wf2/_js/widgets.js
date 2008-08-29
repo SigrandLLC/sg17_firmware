@@ -123,6 +123,26 @@ function popup(url) {
 }
 
 /*
+ * Do Ajax request for command execution,
+ * replace '\n' in output with '<br>',
+ * and set html of p element to command output.
+ */
+function cmdExecute(cmd, p) {
+	$.ajax({
+		type: "POST",
+		url: "sh/execute.cgi",
+		dataType: "text",
+		data: {"cmd": cmd},
+		dataFilter: function(data, type) {
+			return data.replace(/\n/g, "<br>");
+		},
+		success: function(html) {
+			$(p).html(html);
+		}
+	});
+}
+
+/*
  * Container for widgets.
  * p — parent container.
  * options — container options (subsystem & help), initially passed to pageTabs.
@@ -275,6 +295,14 @@ function Container(p, options, helpSection) {
 		
 		$.create('select', attrs).prependTo(p);
 	};
+	
+	this.addHtml = function(w, p) {
+		if (w.kdb) {
+			$(p).html(config.get(w.name));
+		} else if (w.cmd) {
+			cmdExecute(w.cmd, p);
+		}
+	};
 
 	/* add widget to container */
 	this.addWidget = function(w) {
@@ -289,6 +317,9 @@ function Container(p, options, helpSection) {
 				break;
 			case "checkbox":
 				this.addCheckboxWidget(w, '#td_' + w.name);
+				break;
+			case "html":
+				this.addHtml(w, '#td_' + w.name);
 				break;
 			case "select":
 				this.addSelectWidget(w, '#td_' + w.name);
@@ -357,36 +388,16 @@ function Container(p, options, helpSection) {
 	this.addConsole = function(cmd) {
 		var outer = this;
 		
-		/*
-		 * Do AJAX request for command execution, and
-		 * replace '\n' in output with '<br>'.
-		 */
-		var cmdExecute = function(url, cmd, p) {
-			$.ajax({
-				type: "POST",
-				url: url,
-				dataType: "text",
-				data: cmd,
-				dataFilter: function(data, type) {
-					return data.replace(/\n/g, "<br>");
-				},
-				success: function(html) {
-					$(p).html(html);
-				}
-			});
-		};
-		
 		/* adds command's HTML to the page, and makes AJAX request to the server */
-		var addConsoleOut = function(name, value) {
-			outer.addConsoleHTML(value, outer.table);
-			cmdExecute("kdb/execute.cgi", {cmd: value},
-				$("tr > td > b:contains('" + value + "')", outer.table).nextAll("div.pre"));
+		var addConsoleOut = function(num, cmd) {
+			outer.addConsoleHTML(cmd, outer.table);
+			cmdExecute(cmd, $("tr > td > b:contains('" + cmd + "')", outer.table).nextAll("div.pre"));
 		};
 		
 		/* we can have one or several commands */
 		if (typeof cmd == "object") {
-			$(cmd).each(function(name, value) {
-				addConsoleOut(name, value);
+			$(cmd).each(function(num, cmd) {
+				addConsoleOut(num, cmd);
 			});
 		} else {
 			addConsoleOut(0, cmd);
