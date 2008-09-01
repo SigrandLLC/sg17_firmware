@@ -5,10 +5,10 @@
 #define ERFULL 20 // Ring is full
 #define ERINIT 21 // incorrect ring initialisation
 
-#define HW_RING_MASK 0x7f
+#define HW_RING_MASK 0x3F
 #define LAST_FRAG 0x00008000
-#define ETHER_MAX_LEN   1536 - 4 // Find out clearly
-#define IP_ALIGN 16
+#define IP_ALIGN 2
+#define PKG_MAX_LEN   1536 + IP_ALIGN // Find out clearly
 
 #define SW_RING_LEN 8
 #define SW_RING_MASK 7

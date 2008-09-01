@@ -49,7 +49,7 @@ sg_ring_add_skb(struct sg_ring *r, struct sk_buff *skb)
 		dma_type = DMA_TO_DEVICE;
 	}else if( r->type == RX_RING ){
 		desc_len = 0;
-		dma_len = ETHER_MAX_LEN;
+		dma_len = PKG_MAX_LEN;
 		dma_type = DMA_FROM_DEVICE;
 	}else{
 		// Error case. Bad ring type initialisation
@@ -89,7 +89,7 @@ sg_ring_del_skb(struct sg_ring *r,int *len)
 		dma_len=r->sw_ring[r->head]->len;		
 		dma_type=DMA_TO_DEVICE;
 	}else if( r->type == RX_RING ){
-		dma_len=ETHER_MAX_LEN;	
+		dma_len=PKG_MAX_LEN;	
 		dma_type=DMA_FROM_DEVICE;
 	}else{
 		// Error case. Bad ring type initialisation

@@ -99,6 +99,7 @@ struct pef22554_read_ack{
 #define PRBSTS2 0x00DC
 #define PRBSTS3 0x00DD
 #define PRBSTS4 0x00DE
+#define CMDR    0x0002
 #define CCR1  0x0009
 #define CCR2  0x000A
 #define RDICR 0x000B
@@ -286,7 +287,8 @@ int pef22554_setup_sci(struct mr17g_chip *chip);
 int pef22554_writereg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 val);
 int pef22554_readreg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 *val);
 int pef22554_basic_card(struct mr17g_chip *chip);
-int pef22554_basic_channel(struct mr17g_chip *chip, int ch);
+void pef22554_defcfg(struct mr17g_channel *chan);
+int pef22554_basic_channel(struct mr17g_channel *chan);
 int pef22554_channel(struct mr17g_channel *chan);
 int pef22554_linkstate(struct mr17g_chip *chip, int chnum);
 

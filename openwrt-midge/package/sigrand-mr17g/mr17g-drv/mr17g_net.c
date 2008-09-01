@@ -96,6 +96,7 @@ mr17g_net_init(struct mr17g_chip *chip)
             printk(KERN_ERR"%s: cannot register parameters in sysfs for %s\n",MR17G_MODNAME,ndev->name);
 	    	goto ndevunreg;
         }
+        
         chip->ifs[i] = ndev;
     }
 
@@ -200,9 +201,15 @@ mr17g_probe( struct net_device  *ndev )
 		goto error;
 	}
 
-    // Basic setup of channel
-    if( pef22554_basic_channel(ch->chip,ch->num) ){
+    // Default setup of channel
+    pef22554_defcfg(ch);
+    if( pef22554_basic_channel(ch) ){
 		printk( KERN_ERR "%s(%s): error while basic setup\n",MR17G_MODNAME,ndev->name);
+        err = -1;
+		goto irqfree;
+	}
+    if( pef22554_channel(ch) ){
+		printk( KERN_ERR "%s(%s): error while default setup\n",MR17G_MODNAME,ndev->name);
         err = -1;
 		goto irqfree;
 	}
@@ -713,7 +720,7 @@ recv_alloc_buffs( struct net_device *ndev )
 
 	PDEBUG(debug_recv,"start");		    
 	while( sg_ring_have_space(&ch->rx) ){
-		if( !(skb = dev_alloc_skb(ETHER_MAX_LEN + IP_ALIGN)) )
+		if( !(skb = dev_alloc_skb(PKG_MAX_LEN)) )
 			return -ENOMEM;
 		skb->dev = ndev;
 		skb_reserve( skb, 2 );	// align ip on longword boundaries

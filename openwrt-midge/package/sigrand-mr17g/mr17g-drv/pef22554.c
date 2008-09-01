@@ -43,6 +43,17 @@ error:
     return -1;
 }
 
+void
+pef22554_defcfg(struct mr17g_channel *chan)
+{   
+    struct mr17g_chan_config *cfg = &chan->cfg;
+    memset(cfg,0,sizeof(*cfg));
+    // Default config: framed, HDB3, slotmap = 1-15;
+    cfg->framed = 1;
+    cfg->hdb3 = 1;
+    cfg->slotmap = 0xFFFE;
+}
+
 int
 pef22554_writereg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 val)
 {
@@ -196,8 +207,11 @@ error:
 
 
 int
-pef22554_basic_channel(struct mr17g_chip *chip, int ch)
+pef22554_basic_channel(struct mr17g_channel *chan)
 {
+    struct mr17g_chip *chip = chan->chip;
+    int ch = chan->num;
+
     if( pef22554_writereg(chip,ch,CCR1,0x00)){
         goto error;
     }
@@ -282,7 +296,7 @@ pef22554_basic_channel(struct mr17g_chip *chip, int ch)
     if( pef22554_writereg(chip,ch,TSWM,0x00)){
         goto error;
     }
-    if( pef22554_writereg(chip,ch,SIC4,0x00)){
+    if( pef22554_writereg(chip,ch,SIC4,0x06)){ // SYPR Edge
         goto error;
     }
     if( pef22554_writereg(chip,ch,IDLE,0xFF)){
@@ -351,7 +365,8 @@ pef22554_basic_channel(struct mr17g_chip *chip, int ch)
     if( pef22554_writereg(chip,ch,CMR4,0x05)){  // 16.384 MHz
         goto error;
     }
-    if( pef22554_writereg(chip,ch,CMR5,0x00)){
+//    printk(KERN_NOTICE"Chan %d: WRITE to CMR5 %02x\n",ch,ch<<5);
+    if( pef22554_writereg(chip,ch,CMR5,ch<<5)){
         goto error;
     }
     if( pef22554_writereg(chip,ch,CMR6,0x0C)){  // 16.384 MHz
@@ -549,6 +564,24 @@ pef22554_channel(struct mr17g_channel *chan)
     if( pef22554_writereg(chip,chan->num,PC5,tmp)){
         goto error;
     }  
+
+    // CMR2: 0x04 when (!!MXEN || (MXEN && CLKM && CLKR)) else 0x00 
+    if( !(regs->MXCR & MXEN) || (regs->MXCR & (MXEN|CLKM|CLKR)) ){
+        tmp = 0x04;
+    }else{
+        tmp = 0x00;
+    }
+    if( pef22554_writereg(chip,chan->num,CMR2,tmp)){
+        goto error;
+    }  
+
+
+    // Reset should be written last
+    if( pef22554_writereg(chip,chan->num,CMDR,0x50)){
+        goto error;
+    }  
+
+    
     return 0;
 error:
     return -1;

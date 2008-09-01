@@ -20,6 +20,11 @@
 #define DEFAULT_LEV 10
 #include "mr17g_debug.h"
 
+// DEBUG
+static int gen_interrupts = 0;
+static int sci_interrupts = 0;
+//DEBUG
+
 int
 mr17g_sci_enable(struct mr17g_chip *chip)
 {
@@ -187,10 +192,14 @@ mr17g_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *regs )
     volatile struct mr17g_sci_iomem *sci = &chip->iomem->sci;
 	u8 mask = ioread8(&sci->regs.IMR);
 	u8 status = (ioread8(&sci->regs.SR) & mask);	
+
+    gen_interrupts++;
 	
-	PDEBUG(debug_sci,"status=%02x",status);	
 	if( !status )
 		return IRQ_NONE;
+    
+    sci_interrupts++;
+	PDEBUG(debug_sci,"status=%02x, gen=%d, sci=%d",status,gen_interrupts,sci_interrupts);	
 
 	iowrite8(0xff,&sci->regs.SR);   // ack all interrupts
 	iowrite8(0,&sci->regs.IMR);  // disable interrupts
