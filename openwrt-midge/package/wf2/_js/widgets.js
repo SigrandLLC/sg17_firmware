@@ -137,7 +137,7 @@ function cmdExecute(cmd, p) {
 			return data.replace(/\n/g, "<br>");
 		},
 		success: function(html) {
-			$(p).html(html);
+			if (p) $(p).html(html);
 		}
 	});
 }
@@ -289,7 +289,7 @@ function Container(p, options, helpSection) {
 	 * I18N for tip.
 	 */
 	this.addSelectWidget = function(w, p) {
-		var attrs = { 'name': w.name };
+		var attrs = {'name': w.name};
 		w.id && (attrs['id'] = w.id);
 		w.tip && (attrs['title'] = _(w.tip));
 		
@@ -297,10 +297,14 @@ function Container(p, options, helpSection) {
 	};
 	
 	this.addHtml = function(w, p) {
+		var attrs = {'className': 'htmlWidget'};
+		w.tip && (attrs['title'] = _(w.tip));
+		
+		var span = $.create('span', attrs).appendTo(p);
 		if (w.kdb) {
-			$(p).html(config.get(w.name));
+			$(span).html(config.get(w.name));
 		} else if (w.cmd) {
-			cmdExecute(w.cmd, p);
+			cmdExecute(w.cmd, span);
 		}
 	};
 
@@ -492,6 +496,65 @@ function Container(p, options, helpSection) {
 					this.value = 1;
 				}).removeClass("doUncheck");
      		}
+		});
+	};
+	
+	/*
+	 * Run command with specified parameters.
+	 * First argument — command template (e.g., "/bin/ping -c %ARG %ARG").
+	 * Next arguments — name of form's fields to pass as command arguments.
+	 * E.g.: addRun("/bin/ping -c %ARG %ARG", "count", "host");
+	 */
+	this.addRun = function() {
+		/* create submit button */
+		$.create('input', {'type': 'submit', 'className': 'button', 'value': _("Run")}).appendTo(this.form);
+
+		/* create div for command output */
+		$.create('div', {'className': 'pre, cmdOutput'}).appendTo(this.form);
+		
+		var runArgs = arguments;
+		var outer = this;
+		$(this.form).submit(function() {
+			var cmd;
+			
+			/* find div for command output for this form (tab) */
+			var cmdOutput = $(".cmdOutput", outer.form);
+			
+			/* make from command template real command */
+			$.each(runArgs, function(num, name) {
+				if (num == 0) {
+					cmd = name;
+					return true;
+				}
+				var value = $("input[name=" + name + "]").val();
+				cmd = cmd.replace("%ARG", value);
+			});
+
+			/* clear div for command output */
+			cmdOutput.empty();
+			
+			/* add HTML to div */
+			outer.addConsoleHTML(cmd, cmdOutput);
+			
+			/* set waiting text */
+			$("div", cmdOutput).text("Waiting...");
+			
+			/* execute command */
+			cmdExecute(cmd, $("div", cmdOutput));
+			
+			/* prevent form submission */
+			return false;
+		});
+	};
+	
+	this.addAction = function(name, cmd) {
+		/* create submit button */
+		$.create('input', {'type': 'submit', 'className': 'button', 'value': _(name)}).appendTo(this.form);
+		
+		$(this.form).submit(function() {
+			/* execute command */
+			cmdExecute(cmd);
+			return false;
 		});
 	};
 }

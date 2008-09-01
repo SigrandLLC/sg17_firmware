@@ -56,7 +56,8 @@ Controllers['info'] = function() {
 				"type": "html",
 				"name": "la",
 				"text": "Load average",
-				"cmd": "/usr/bin/uptime | cut -f5 -d ':'"
+				"cmd": "/bin/cat /proc/loadavg",
+				"tip": "The first three numbers represent the number of active tasks on the system - processes that are actually running - averaged over the last 1, 5, and 15 minutes. The next entry shows the instantaneous current number of runnable tasks - processes that are currently scheduled to run rather than being blocked in a system call - and the total number of processes on the system. The final entry is the process ID of the process that most recently ran."
 			};
 			c.addWidget(field);
 		}
@@ -334,5 +335,75 @@ Controllers['tools'] = function() {
 		}
 	});
 	
+	page.addTab({
+		"id": "ping",
+		"name": "ping",
+		"func": function() {
+			var c;
+			c = page.addContainer("ping");
+			c.addTitle("ping");
+			
+			field = { 
+				"type": "text",
+				"name": "host",
+				"text": "Host"
+			};
+			c.addWidget(field);
+			
+			field = { 
+				"type": "text",
+				"name": "count",
+				"text": "Count"
+			};
+			c.addWidget(field);
+			
+			c.addRun("/bin/ping -c %ARG %ARG", "count", "host");
+		}
+	});
+	
+	page.addTab({
+		"id": "mtr",
+		"name": "mtr",
+		"func": function() {
+			var c;
+			c = page.addContainer("mtr");
+			c.addTitle("mtr");
+			
+			field = { 
+				"type": "text",
+				"name": "mtr_host",
+				"text": "Host"
+			};
+			c.addWidget(field);
+			
+			field = { 
+				"type": "text",
+				"name": "mtr_count",
+				"text": "Count"
+			};
+			c.addWidget(field);
+			
+			c.addRun("/usr/sbin/mtr -r -n -s 100 -c %ARG %ARG", "mtr_count", "mtr_host");
+		}
+	});
+	
 	page.generateTabs();
 };
+
+Controllers['reboot'] = function() {
+	var page = this.Page();
+	
+	page.addTab({
+		"id": "reboot",
+		"name": "Reboot",
+		"func": function() {
+			var c;
+			c = page.addContainer("reboot");
+			c.addTitle("Reboot");
+			
+			c.addAction("Reboot", "/sbin/reboot");
+		}
+	});
+	
+	page.generateTabs();
+}

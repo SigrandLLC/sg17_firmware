@@ -7,6 +7,7 @@ function generateMenu() {
 	addItem("System", "Time", "time");
 	addItem("System", "Logging", "logging");
 	addItem("System", "Tools", "tools");
+	addItem("System", "Reboot", "reboot");
 	
 	/* generate list of interfaces */
 	var ifaces = config.getParsed("sys_ifaces");
