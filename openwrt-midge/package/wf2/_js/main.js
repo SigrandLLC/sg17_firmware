@@ -8,7 +8,8 @@ $.ajaxSetup({
 
 /* load KDB settings */
 var config = new Config();
-config.loadKDB( );
+config.loadKDB();
+config.loadOEM();
 
 /* set page title to router's hostname */
 document.title = config.get("sys_hostname") ? config.get("sys_hostname") : "";

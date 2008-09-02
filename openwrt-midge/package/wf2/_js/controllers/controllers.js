@@ -16,7 +16,7 @@ Controllers['info'] = function() {
 		"id": "info",
 		"name": "System information",
 		"func": function() {
-			var c;
+			var c, field;
 			c = page.addContainer("info");
 			c.addTitle("System information");
 			
@@ -73,7 +73,7 @@ Controllers['webface'] = function() {
 		"id": "webface",
 		"name": "Webface",
 		"func": function() {
-			var c;
+			var c, field;
 			c = page.addContainer("webface");
 			c.addTitle("Webface settings");
 
@@ -101,7 +101,7 @@ Controllers['general'] = function() {
 		"id": "general",
 		"name": "General",
 		"func": function() {
-			var c;
+			var c, field;
 			c = page.addContainer("general", "hostname");
 			c.addTitle("General settings");
 
@@ -130,7 +130,7 @@ Controllers['security'] = function() {
 		"id": "security",
 		"name": "Security",
 		"func": function() {
-			var c;
+			var c, field;
 			c = page.addContainer("security", "passwd");
 			c.addTitle("Webface password");
 
@@ -175,7 +175,7 @@ Controllers['dns'] = function() {
 		"id": "dns",
 		"name": "DNS",
 		"func": function() {
-			var c;
+			var c, field;
 			c = page.addContainer("dns");
 			c.addTitle("DNS settings");
 
@@ -211,7 +211,7 @@ Controllers['time'] = function() {
 		"id": "time",
 		"name": "Time settings",
 		"func": function() {
-			var c;
+			var c, field;
 			c = page.addContainer("time");
 			c.addTitle("Time settings");
 
@@ -262,7 +262,7 @@ Controllers['logging'] = function() {
 		"id": "logging",
 		"name": "Logging",
 		"func": function() {
-			var c;
+			var c, field;
 			c = page.addContainer("logging");
 			c.addTitle("Logging settings");
 
@@ -339,21 +339,23 @@ Controllers['tools'] = function() {
 		"id": "ping",
 		"name": "ping",
 		"func": function() {
-			var c;
+			var c, field;
 			c = page.addContainer("ping");
 			c.addTitle("ping");
 			
 			field = { 
 				"type": "text",
 				"name": "host",
-				"text": "Host"
+				"text": "Host",
+				"defaultValue": "localhost"
 			};
 			c.addWidget(field);
 			
 			field = { 
 				"type": "text",
 				"name": "count",
-				"text": "Count"
+				"text": "Count",
+				"defaultValue": "5"
 			};
 			c.addWidget(field);
 			
@@ -365,21 +367,23 @@ Controllers['tools'] = function() {
 		"id": "mtr",
 		"name": "mtr",
 		"func": function() {
-			var c;
+			var c, field;
 			c = page.addContainer("mtr");
 			c.addTitle("mtr");
 			
 			field = { 
 				"type": "text",
 				"name": "mtr_host",
-				"text": "Host"
+				"text": "Host",
+				"defaultValue": "localhost"
 			};
 			c.addWidget(field);
 			
 			field = { 
 				"type": "text",
 				"name": "mtr_count",
-				"text": "Count"
+				"text": "Count",
+				"defaultValue": "5"
 			};
 			c.addWidget(field);
 			

@@ -112,6 +112,7 @@ function KDBQueue() {
 
 function Config() {
 	this.conf = new Object();
+	this.oem = new Object();
 	this.kdbQueue = new KDBQueue();
 	
 	/* submit task for execution */
@@ -143,10 +144,17 @@ function Config() {
 	};
 	
 	/*
-	 * Return key's value with replaced special characters.
+	 * Return KDB key's value with replaced special characters.
 	 */
 	this.get = function(name) {
 		return this.conf[name] ? this.replaceSpecialChars(this.conf[name]) : null;
+	};
+	
+	/*
+	 * Return OEM key's value with replaced special characters.
+	 */
+	this.getOEM = function(name) {
+		return this.oem[name] ? this.replaceSpecialChars(this.oem[name]) : null;
 	};
 	
 	/*
@@ -156,17 +164,22 @@ function Config() {
 		return this.conf[name] ? this.parseRecord(this.conf[name]) : null;
 	};
 	
-	/* parse KDB file */
-	this.parseRawKDB = function(data) {
-		/* we need the context of this function in each's callback */
-		var outer = this;
-		
+	/*
+	 * Parse config file.
+	 * data — data to parse.
+	 * config — where to write parsed values.
+	 */
+	this.parseConfig = function(data, config) {
 		var lines = data.split("\n");
 		$.each(lines, function(name, line) {
 			if (line == "KDB" || line.length == 0) return true;
 			var record = line.split("=");
 			if (record.length > 1) {
-				outer.conf[record[0]] = record[1];
+				/* remove double qoutes " at beginning and end of the line */
+				var value = record[1].replace(/^"/g, "");
+				value = value.replace(/"$/g, "");
+				
+				config[record[0]] = value;
 			}
 		});
 	};
@@ -208,17 +221,29 @@ function Config() {
 		return str1.replace(/\\075/, '=');
 	};
 	
-	/* load KDB file from server */
-	this.loadKDB = function(params) {
+	/*
+	 * Load KDB file from router.
+	 */
+	this.loadKDB = function() {
 		var url = "sh/kdb_load.cgi";
-		if (params) {
-			if (params.url) url = params.url;
-		}
-		this.parseRawKDB($.ajax({
+		this.parseConfig($.ajax({
 			type: "GET",
 			url: url,
 			dataType: "text",
 			async: false
-		}).responseText);
+		}).responseText, this.conf);
+	};
+	
+	/*
+	 * Load OEM file from router.
+	 */
+	this.loadOEM = function() {
+		var url = "sh/oem_load.cgi";
+		this.parseConfig($.ajax({
+			type: "GET",
+			url: url,
+			dataType: "text",
+			async: false
+		}).responseText, this.oem);
 	};
 }

@@ -312,21 +312,22 @@ function Container(p, options, helpSection) {
 	this.addWidget = function(w) {
 		/* add common widget's data */
 		this.addGeneralWidget(w, this.table);
+		var widgetId = '#td_' + w.name;
 		switch (w.type) {
 			case "text": 
-				this.addTextWidget(w, '#td_' + w.name);
+				this.addTextWidget(w, widgetId);
 				break;
 			case "password": 
-				this.addPasswordWidget(w, '#td_' + w.name);
+				this.addPasswordWidget(w, widgetId);
 				break;
 			case "checkbox":
-				this.addCheckboxWidget(w, '#td_' + w.name);
+				this.addCheckboxWidget(w, widgetId);
 				break;
 			case "html":
-				this.addHtml(w, '#td_' + w.name);
+				this.addHtml(w, widgetId);
 				break;
 			case "select":
-				this.addSelectWidget(w, '#td_' + w.name);
+				this.addSelectWidget(w, widgetId);
 
 				var selectedIndex = -1;
 				var defaultIndex = -1;
@@ -366,10 +367,22 @@ function Container(p, options, helpSection) {
 
 				break;
 		}
+		
+		this.bindEvents(w, widgetId);
+		
 		w.validator && (this.validator_rules[w.name] = w.validator);
 		/* I18N for element's error messages */
 		w.message && (this.validator_messages[w.name] = _(w.message));
 	};
+	
+	/*
+	 * Bind events to widget.
+	 */
+	this.bindEvents = function(w, widgetId) {
+		if (w.onChange) {
+			$(widgetId).change(w.onChange);
+		}
+	}
 	
 	/*
 	 * Adds HTML code for command output.
@@ -608,7 +621,7 @@ function addItem(path, name, func, params) {
 	/* create link object */
 	var link = $.create('a', {}, _(name))
 		.click(function() {
-			if (params) defaultContext[func](params);
+			if (params) defaultContext[func].apply(defaultContext, params);
 			else defaultContext[func]();
 			
 			/* highlight selected item */

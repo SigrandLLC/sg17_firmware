@@ -31,7 +31,7 @@ Controllers['iface'] = function(iface) {
 		"id": "general",
 		"name": "General",
 		"func": function() {
-			var c;
+			var c, field;
 			c = page.addContainer("general");
 			c.addTitle("Interface general settings");
 		
@@ -88,7 +88,7 @@ Controllers['iface'] = function(iface) {
 		"id": "method",
 		"name": "Method",
 		"func": function() {
-			var c;
+			var c, field;
 			c = page.addContainer("method");
 			if (config.get("sys_iface_" + iface + "_proto") == "hdlc")
 			{
@@ -167,7 +167,7 @@ Controllers['iface'] = function(iface) {
 		"id": "options",
 		"name": "Options",
 		"func": function() {
-			var c;
+			var c, field;
 			c = page.addContainer("options");
 			c.addTitle("Interface options");
 		
@@ -208,7 +208,7 @@ Controllers['iface'] = function(iface) {
 		"id": "specific",
 		"name": "Specific",
 		"func": function() {
-			var c;
+			var c, field;
 			c = page.addContainer("specific");
 			
 			switch (config.get("sys_iface_" + iface + "_proto"))
