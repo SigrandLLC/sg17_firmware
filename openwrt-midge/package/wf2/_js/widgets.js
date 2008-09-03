@@ -219,11 +219,15 @@ function Container(p, options, helpSection) {
 		}
 		
 		/* create table row for widget */
-		$.create('tr', {}, [
+		var tr = $.create('tr', {}, [
 				$.create('td', {'className': 'tdleft'}, _(w.text) + required),
 				$.create('td', {'id': 'td_' + w.name}, tdElements)
 			]
-		).appendTo(p);
+		);
+		
+		/* insert new widget after specified widget, otherwise insert last */
+		if (w.insertAfter) tr.insertAfter(w.insertAfter);
+		else tr.appendTo(p);
 	};
 	
 	/*
@@ -333,6 +337,15 @@ function Container(p, options, helpSection) {
 				var defaultIndex = -1;
 				var selectedItem;
 				
+				/* if option's list is string — convert it to hash */
+				if (typeof w.options == "string") {
+					var vals = w.options;
+					w.options = new Object();
+					$.each(vals.split(" "), function(num, value) {
+						w.options[value] = value;
+					});
+				}
+				
 				/* go though list of options */
 				$.each(w.options, function(name, value) {
 					/*
@@ -423,8 +436,9 @@ function Container(p, options, helpSection) {
 
 	/*
 	 * Adds submit button, form validation rules and submit's events handlers.
-	 * options.ajaxTimeout — time in seconds to wait for server reply before show an error message.
-	 * options.reload — reload page after AJAX request (e.g., for update translation)
+	 * options.ajaxTimeout — time in seconds to wait for server reply before show an error message;
+	 * options.reload — reload page after AJAX request (e.g., for update translation);
+	 * options.onSuccess — callback on request successfully completion.
 	 */
 	this.addSubmit = function(options) {
 		var timeout = (options && options.ajaxTimeout) ? options.ajaxTimeout * 1000 : null;
@@ -499,9 +513,10 @@ function Container(p, options, helpSection) {
 				}).addClass("doUncheck");
 				
 				var reload = (options && options.reload) ? true : false;
+				var onSuccess = (options && options.onSuccess) ? options.onSuccess : false;
 				
 				/* submit task (updating settings) for execution */
-     			config.kdbSubmit(form, timeout, reload);
+     			config.kdbSubmit(form, timeout, reload, onSuccess);
 				
 				/* set checkboxes to their original state */
 				$(".doUncheck").each(function() {

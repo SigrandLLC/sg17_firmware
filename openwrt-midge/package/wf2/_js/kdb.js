@@ -27,15 +27,16 @@ function KDBQueue() {
 	};
 	
 	/* add task to queue */
-	this.addTask = function(values, timeout, reload) {
+	this.addTask = function(values, timeout, reload, onSuccess) {
 		/* check if queue is blocked */
 		if (this.block) return;
 		
 		/* create task and add it to queue */
 		task = {
-			'values': values,
-			'timeout': timeout,
-			'reload': reload
+			"values": values,
+			"timeout": timeout,
+			"reload": reload,
+			"onSuccess": onSuccess
 		};
 		this.queue.push(task);
 		
@@ -95,6 +96,8 @@ function KDBQueue() {
 				
 				outer.updateMessage();
 				
+				if (task['onSuccess']) task['onSuccess']();
+				
 				/* run next task */
 				outer.nextTask();
 			}
@@ -111,15 +114,15 @@ function KDBQueue() {
 }
 
 function Config() {
-	this.conf = new Object();
-	this.oem = new Object();
+	//this.conf = new Object();
+	//this.oem = new Object();
 	this.kdbQueue = new KDBQueue();
 	
 	/* submit task for execution */
-	this.kdbSubmit = function(form, timeout, reload) {
+	this.kdbSubmit = function(form, timeout, reload, onSuccess) {
 		var values = $(form).formSerialize();
 		this.saveVals(this.parseUrl(values));
-		this.kdbQueue.addTask(values, timeout, reload);
+		this.kdbQueue.addTask(values, timeout, reload, onSuccess);
 	};
 	
 	/* save values */
@@ -225,6 +228,7 @@ function Config() {
 	 * Load KDB file from router.
 	 */
 	this.loadKDB = function() {
+		this.conf = new Object();
 		var url = "sh/kdb_load.cgi";
 		this.parseConfig($.ajax({
 			type: "GET",
@@ -238,6 +242,7 @@ function Config() {
 	 * Load OEM file from router.
 	 */
 	this.loadOEM = function() {
+		this.oem = new Object();
 		var url = "sh/oem_load.cgi";
 		this.parseConfig($.ajax({
 			type: "GET",

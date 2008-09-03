@@ -24,13 +24,13 @@ service_reload(){
 		/etc/init.d/bind restart
 	;;
 	dsl*)
-		tmp=${sybsys#*.}
+		tmp=${service#*.}
 		slot=${tmp%.*}
 		dev=${tmp#*.}
 		/etc/init.d/dsl restart $slot $dev
 	;;
 	e1*)
-		tmp=${sybsys#*.}
+		tmp=${service#*.}
 		slot=${tmp%.*}
 		dev=${tmp#*.}
 		/etc/init.d/e1 restart "$slot" "$dev"
