@@ -96,6 +96,7 @@ function KDBQueue() {
 				
 				outer.updateMessage();
 				
+				/* if callback is set — call it */
 				if (task['onSuccess']) task['onSuccess']();
 				
 				/* run next task */

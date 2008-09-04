@@ -381,7 +381,8 @@ function Container(p, options, helpSection) {
 				break;
 		}
 		
-		this.bindEvents(w, widgetId);
+		/* bind specified events */
+		this.bindEvents(w);
 		
 		w.validator && (this.validator_rules[w.name] = w.validator);
 		/* I18N for element's error messages */
@@ -391,9 +392,13 @@ function Container(p, options, helpSection) {
 	/*
 	 * Bind events to widget.
 	 */
-	this.bindEvents = function(w, widgetId) {
+	this.bindEvents = function(w) {
 		if (w.onChange) {
-			$(widgetId).change(w.onChange);
+			$("#" + w.name).change(w.onChange);
+		}
+		
+		if (w.onClick) {
+			$("#" + w.name).click(w.onClick);
 		}
 	}
 	

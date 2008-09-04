@@ -228,7 +228,7 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 				"name": id,
 				"id": id,
 				"text": "E1 framed mode",
-				"onChange": function() {
+				"onClick": function() {
 					var id = $.sprintf("sys_pcicfg_s%s_%s_fram", pcislot, pcidev);
 					
 					if ($("#" + id).attr("checked")) addFramedWidgets();
