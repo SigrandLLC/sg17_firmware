@@ -274,14 +274,18 @@ _dsl_start(){
 				unset ver pfx iface
 				iface=`echo "$ifaces" |  awk '{print $(1)}' `
 				ver=`cat  /sys/class/net/$iface/sg17_private/chipver`
+				pwr=`cat  /sys/class/net/$iface/sg17_private/pwr_source`
 				case "$ver" in
 				"v1")
-				    pfx=${mr17h_v1pfx}
+				    pfx=${mr17h_v1sfx}
 				    ;;
 				"v2")
-				    pfx=${mr17h_v1pfx}
+				    pfx=${mr17h_v2sfx}
 				    ;;
 				esac
+                if [ "$pwr" = "1" ]; then
+                    pfx=${pfx}${mr17h_pwrsfx}
+                fi
 				echo -n "${mr17h_modname}${pfx}x${num}($ifaces) "
 				;;
 		esac

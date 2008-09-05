@@ -15,7 +15,8 @@ _sg16_status(){
 
 	cpath="$sg16_cfg_path/$iface"
 	help_2="dsl.status"
-	render_table_title "$iface (module $MR16H_MODNAME) status" 2
+	num=`kdb get sys_pcitbl_s${slot}_ifnum`
+	render_table_title "$iface (module ${MR16H_MODNAME}x${num}) status" 2
 	# ONLINE status
 	
 	link=`cat $cpath/state`
@@ -46,7 +47,7 @@ _sg16_settings(){
 	render_form_header
 	# refresh configuration
 	eval `kdb -qq ls "sys_pcicfg_s${slot}_${dev}*" ` 
-	render_table_title "$iface (module $MR16H_MODNAME) settings" 2
+	render_table_title "$iface (module ${MR16H_MODNAME}x${num}) settings" 2	
 
 	# sys_dsl_${iface}_name
 	render_input_field "hidden" "hidden" iface $iface
@@ -121,16 +122,20 @@ _sg17_status(){
 	
 	#-------------- Get module type -------------------#
 	slot=$2
-	unset ver num
+	unset ver num pwr
 	ver=`cat  /sys/class/net/$iface/sg17_private/chipver`
+	pwr=`cat  /sys/class/net/$iface/sg17_private/pwr_source`
 	case "$ver" in
 	    "v1")
-	        pfx=${MR17H_V1PFX}
+	        pfx=${MR17H_V1SFX}
 	        ;;
 	    "v2")
-	        pfx=${MR17H_V2PFX}
+	        pfx=${MR17H_V2SFX}
 	        ;;
 	esac
+    if [ "$pwr" = "1" ]; then
+        pfx=${pfx}${MR17H_PWRSFX}
+    fi
 	num=`kdb get sys_pcitbl_s${slot}_ifnum`
 	
 	#----------------- Render Table ---------------------------#
@@ -147,24 +152,27 @@ _sg17_status(){
 	desc="Link state"
 	render_input_field static "Link state" status "$link"
 	# power status
+    pwr_presence=`cat $conf_path/pwr_source`
 	pwrovl=`cat $conf_path/pwrovl`
 	pwrunb=`cat $conf_path/pwrunb`
-	if [ "$pwrovl" -eq "0" ]; then
-		pwrovl="no overload"
-	else
-		pwrovl="overload"
-	fi
-	if [ "$pwrunb" -eq "0" ]; then
-		pwrunb="balanced"
-	else
-		pwrunb="unbalanced"
-	fi
+    if [ "$pwr_presence" = "1" ]; then
+    	if [ "$pwrovl" -eq "0" ]; then
+	    	pwrovl="no overload"
+    	else
+	    	pwrovl="overload"
+    	fi
+	    if [ "$pwrunb" -eq "0" ]; then
+    		pwrunb="balanced"
+	    else
+    		pwrunb="unbalanced"
+	    fi
  	tip=""
 	desc="Power balance"
 	render_input_field static "Power balance" status "$pwrunb"
 	tip=""
 	desc="Power overload"
 	render_input_field static "Power overload" status "$pwrovl"
+    fi
 
 	if [ "$link_state" -eq "1" ]; then
 		# rate
@@ -276,16 +284,20 @@ _sg17_settings(){
 	render_form_header
 
 	#-------------- Get module type -------------------#
-	unset ver num
+	unset ver num pwr
 	ver=`cat  /sys/class/net/$iface/sg17_private/chipver`
+	pwr=`cat  /sys/class/net/$iface/sg17_private/pwr_source`
 	case "$ver" in
 	    "v1")
-	        pfx=${MR17H_V1PFX}
+	        pfx=${MR17H_V1SFX}
 	        ;;
 	    "v2")
-	        pfx=${MR17H_V2PFX}
+	        pfx=${MR17H_V2SFX}
 	        ;;
 	esac
+    if [ "$pwr" = "1" ]; then
+        pfx=${pfx}${MR17H_PWRSFX}    
+    fi
 	num=`kdb get sys_pcitbl_s${slot}_ifnum`
 	
 	#-------------- SETTINGS table ---------------

@@ -65,8 +65,8 @@
 #include "sg17oem.h"
 
 // Debug parameters
-//#define DEBUG_ON
-#define DEFAULT_LEV 1
+#define DEBUG_ON
+#define DEFAULT_LEV 10
 #include "sg17debug.h"
 
 MODULE_DESCRIPTION( "Infineon SHDSL driver Version 1.0\n" );
@@ -932,13 +932,46 @@ sg17_def_config(struct sg17_card *card)
 	memset(hwdev,0,sizeof(struct sdfe4));
 	hwdev->type = type;
 	hwdev->data = (void*)&card->sci;
-	hwdev->ch[3].enabled = 1;
-	hwdev->ch[0].enabled = 1;
 
 	hwdev->msg_cntr = 0;		
 	PDEBUG(debug_init,"hwdev->data = %08x",(u32)hwdev->data);
+
+	//---- config SDFE channel 0 ------------------
+    
+    // If this is 2 channel device
+   	hwdev->ch[0].enabled = 1;
+    // ( STU_C | STU_R )
+   	cfg_ch0->mode = STU_R;
+    // ( REPEATER | TERMINATOR )
+   	cfg_ch0->repeater = TERMINATOR;
+    // ( STARTUP_FAREND | STARTUP_LOCAL )
+	cfg_ch3->startup_initialization = STARTUP_FAREND;
+	// ( GHS_TRNS_00 | GHS_TRNS_01 | GHS_TRNS_11 | GHS_TRNS_10 )
+	cfg_ch3->transaction = GHS_TRNS_00;
+    // ( ANNEX_A_B | ANNEX_A | ANNEX_B | ANNEX_G | ANNEX_F )
+   	cfg_ch0->annex = ANNEX_A_B;
+    ///  TC-PAM: TCPAM16  TCPAM32
+   	cfg_ch0->tc_pam = TCPAM32;
+    // rate (speed)
+       cfg_ch0->rate = 5696;
+   	// ( SDI_TDMCLK_TDMMSP | SDI_DSL3 )
+    cfg_ch0->input_mode = SDI_TDMCLK_TDMSP;
+    // ( Terminal=>16384 | Repeater=>12288 )
+	cfg_ch0->frequency = 16384;
+    // ( Terminal=>5696 | Repeater=>2048 )
+	cfg_ch0->payload_bits = 5696;
+    // ( SDI_NO_LOOP | SDI_REMOTE_LOOP )
+	cfg_ch0->loop = SDI_NO_LOOP;
+    // Multiplexing related
+ 
+    if( card->if_num == 1 ){
+        // We have only one channel, cancel def config
+        return 0;
+    }
+
 				
 	//---- config SDFE channel 3 -----------------
+	hwdev->ch[3].enabled = 1;
 	// (STU_C | STU_R)
 	cfg_ch3->mode = STU_R;
 	// ( REPEATER | TERMINATOR )
@@ -963,31 +996,6 @@ sg17_def_config(struct sg17_card *card)
 	cfg_ch3->loop = SDI_NO_LOOP;
 	// Multiplexing related
 		
-	//---- config SDFE channel 0 ------------------
-	// ( STU_C | STU_R )
-	cfg_ch0->mode = STU_R;
-	// ( REPEATER | TERMINATOR )
-	cfg_ch0->repeater = TERMINATOR;
-	// ( STARTUP_FAREND | STARTUP_LOCAL )
-	cfg_ch0->startup_initialization= STARTUP_LOCAL;
-	// ( GHS_TRNS_00 | GHS_TRNS_01 | GHS_TRNS_11 | GHS_TRNS_10 )
-	cfg_ch0->transaction = GHS_TRNS_10;
-	// ( ANNEX_A_B | ANNEX_A | ANNEX_B | ANNEX_G | ANNEX_F )
-	cfg_ch0->annex = ANNEX_A_B;
-	///  TC-PAM: TCPAM16  TCPAM32
-	cfg_ch0->tc_pam = TCPAM32;
-	// rate (speed)
-	cfg_ch0->rate = 5696;
-	// ( SDI_TDMCLK_TDMMSP | SDI_DSL3 )
-	cfg_ch0->input_mode = SDI_TDMCLK_TDMSP;
-	// ( Terminal=>16384 | Repeater=>12288 )
-	cfg_ch0->frequency = 16384;
-	// ( Terminal=>5696 | Repeater=>2048 )
-	cfg_ch0->payload_bits = 5696;
-	// ( SDI_NO_LOOP | SDI_REMOTE_LOOP )
-	cfg_ch0->loop = SDI_NO_LOOP;
-	// Multiplexing related
-
 	return 0;
 }
 
@@ -1023,11 +1031,31 @@ sg17_init_card( struct sg17_card *card )
 		return  -ENODEV;
 	PDEBUG(debug_init,"request_mem_region - ok");
 	card->mem_base = (void *) ioremap( iomem_start, SG17_OIMEM_SIZE );	
-	// determine if number
-	card->if_num = ((iomem_end - iomem_start + 1) - SG17_SCI_MEMSIZE) / SG17_HDLC_MEMSIZE ;
-	PDEBUG(debug_netcard,"card->if_num = %d",card->if_num);
-	card->if_num = (card->if_num<SG17_IF_MAX) ? card->if_num : SG17_IF_MAX;
-	PDEBUG(debug_netcard,"card->if_num = %d",card->if_num);
+	// determine if number & power feeding presence
+//    prinkt(KERN_INFO,"SUBSYS_ID=%04x\n",card->pdev->subsystem_device);
+    switch(card->pdev->subsystem_device){
+    case SUBSYS_ID_1CH:
+        card->if_num = 1;
+        card->pwr_source = 0;
+        break;
+    case SUBSYS_ID_1CH_PWR:
+        card->if_num = 1;
+        card->pwr_source = 1;
+        break;
+    case SUBSYS_ID_2CH:
+        card->if_num = 2;
+        card->pwr_source = 0;
+        break;
+    case SUBSYS_ID_2CH_PWR:
+        card->if_num = 2;
+        card->pwr_source = 1;
+        break;
+    default:
+        printk("%s: error hardware PCI Subsystem ID for module\n",MR17H_MODNAME);
+        error = -1;
+        goto err_release_mem;
+    }
+
 	// setup SCI
 	sci->mem_base = card->mem_base + SG17_SCI_MEMOFFS;
 	sci->irq = card->pdev->irq;
@@ -1076,7 +1104,7 @@ sg17_enable_card( struct sg17_card *card )
 	sg17_def_config(card);
 	mdelay(2);
 	// Allocate EOC data structures
-	PDEBUG(debug_eoc,"EIC: init sctructures\n");
+	PDEBUG(debug_eoc,"EOC: init sctructures\n");
 	hwdev->ch[3].eoc = eoc_init();
 	hwdev->ch[0].eoc = eoc_init();
 	i=0;
@@ -1285,7 +1313,7 @@ sg17_remove_one(struct pci_dev *pdev)
 int __devinit
 sg17_init( void ){
 #ifdef DEBUG_ON
-	debug_error = error_output;
+//	debug_error = error_output;
 #endif
 	int i = pci_register_driver( &sg17_driver );
 	printk(KERN_NOTICE"Load "MR17H_MODNAME" driver\n");	

@@ -28,6 +28,11 @@ static void sg17_remove_card( struct sg17_card *card );
 #define SG17v2_PCI_VENDOR 	0x55 
 #define SG17v2_PCI_DEVICE 	0x99
 #define SIOCGLRATE	(SIOCDEVPRIVATE+14)
+// Equipment of modules 
+#define SUBSYS_ID_1CH       0x00
+#define SUBSYS_ID_1CH_PWR   0x01
+#define SUBSYS_ID_2CH       0x02
+#define SUBSYS_ID_2CH_PWR   0x03
 
 static int __devinit sg17_probe_one(struct pci_dev *,
 									const struct pci_device_id *);

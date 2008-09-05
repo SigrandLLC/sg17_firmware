@@ -39,6 +39,7 @@ $(PKG_BUILD_DIR)/.configured:
 	sed <$(PKG_BUILD_DIR)/mr16g-drv/mr16oem.h.tmpl \
 	> $(PKG_BUILD_DIR)/mr16g-drv/sg16oem.h \
 	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR16G)%g" \
+	-e "s%@PWRSFX@%$(BR2_SIGRAND_OEM_PWRSFX)%g" \
 	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR16G_DRV)%g" 
 #-------- Driver configuration OEM ------------#
 	sed <$(PKG_BUILD_DIR)/mr16g-drv/tools/mr16gcfg.tmpl  \

@@ -78,6 +78,7 @@ print_stat()
     fill=`cat fill_7e`
     inv=`cat inv`
     crc=`cat crc16`
+    pwr_mod=`cat pwr_source`
     pwron=`cat pwron`
     pwrovl=`cat pwrovl`
     pwrunb=`cat pwrunb`
@@ -90,8 +91,10 @@ print_stat()
     echo "      hdlc:    fill="$fill" inversion="$inv" "$crc
     echo "      PCI bus: rb$rb wb$wb"
     echo "      AdvLink: $advlink"
-    echo "Power:"
-    echo "      pwron=$pwron overload=$pwrovl unbalance=$pwrunb"
+    if [ "$pwr_mod" = "1" ]; then
+        echo "Power:"
+        echo "      pwron=$pwron overload=$pwrovl unbalance=$pwrunb"
+    fi
     echo "Statistics:"
     cat statistics
 }

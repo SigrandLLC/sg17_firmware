@@ -33,7 +33,8 @@
 //--- SG-17PCI Card control ----//
 struct sg17_card{
 	int number;
-	int if_num;	
+	int if_num;
+    u8 pwr_source;
 	char name[40];
 	atomic_t locked; // if some of cards interfaces are up
 	

@@ -42,6 +42,18 @@ static ssize_t show_chipver(struct class_device *cdev, char *buf)
 }
 static CLASS_DEVICE_ATTR(chipver,0444,show_chipver,NULL);
 
+// Chipset type
+static ssize_t show_pwr_source(struct class_device *cdev, char *buf) 
+{                                                                       
+	struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
+	struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( nl->dev );
+	
+    return snprintf(buf,PAGE_SIZE,"%d",card->pwr_source);
+}
+static CLASS_DEVICE_ATTR(pwr_source,0444,show_pwr_source,NULL);
+
+
 // Mode control (master/slave)
 static ssize_t show_mode(struct class_device *cdev, char *buf) 
 {                                                                       
@@ -1193,6 +1205,7 @@ static CLASS_DEVICE_ATTR(loopback, 0200 ,NULL,store_loopback);
 static struct attribute *sg17_attr[] = {
 // shdsl
 &class_device_attr_chipver.attr,
+&class_device_attr_pwr_source.attr,
 &class_device_attr_mode.attr,
 &class_device_attr_annex.attr,
 &class_device_attr_rate.attr,
@@ -1223,9 +1236,11 @@ static struct attribute *sg17_attr[] = {
 // advanced link check
 &class_device_attr_advlink.attr,
 // debug
+#ifdef DEBUG_ON
 &class_device_attr_debug_on.attr,	
 &class_device_attr_regs.attr,
 &class_device_attr_loopback.attr,
+#endif
 NULL
 };
 

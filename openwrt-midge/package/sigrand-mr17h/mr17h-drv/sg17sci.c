@@ -251,7 +251,7 @@ inline int
 sg17_sci_wait_intr( struct sg17_sci *s )
 {
 	int ret=0;
-	ret = interruptible_sleep_on_timeout( &s->wait_q, HZ*2 );
+	ret = interruptible_sleep_on_timeout( &s->wait_q, HZ/2 );
 	if( s->tx_col && !ret ){
 		PDEBUG(debug_error,"Collision detected, ret = %d",ret);
 		s->tx_col = 0;
