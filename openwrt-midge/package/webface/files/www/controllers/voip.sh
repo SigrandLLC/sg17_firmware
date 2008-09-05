@@ -20,13 +20,26 @@
 				kdb_vars="$kdb_vars str:sys_voip_hotline_${portnum}_comment"
 			done
 			;;
+		'sound')
+			for port in $PORTS_INFO_FULL; do
+				portnum=`echo $port | awk -F ':' '{print $1}'`
+				kdb_vars="$kdb_vars str:sys_voip_sound_${portnum}_oob"
+				kdb_vars="$kdb_vars str:sys_voip_sound_${portnum}_oob_play"
+				kdb_vars="$kdb_vars str:sys_voip_sound_${portnum}_neventpt"
+				kdb_vars="$kdb_vars str:sys_voip_sound_${portnum}_neventplaypt"
+				kdb_vars="$kdb_vars int:sys_voip_sound_${portnum}_cod_tx_vol"
+				kdb_vars="$kdb_vars int:sys_voip_sound_${portnum}_cod_rx_vol"
+				kdb_vars="$kdb_vars str:sys_voip_sound_${portnum}_vad"
+				kdb_vars="$kdb_vars str:sys_voip_sound_${portnum}_hpf"
+			done
+			;;
 	esac
 	
 	render_save_stuff
 
 	eval `kdb -qq ls sys_voip_*`
 	
-	render_page_selection "" settings "Settings" sip "SIP settings" route "Route table" address "Address book" hotline "Hotline" 
+	render_page_selection "" settings "Settings" sip "SIP settings" route "Route table" address "Address book" hotline "Hotline" sound "Sound settings" 
 	
 	render_form_header
 	render_input_field hidden page page "$page"
@@ -164,7 +177,63 @@
 				# sys_voip_hotline_${portnum}_comment
 				tip=""
 				validator="$validator_comment"
-				render_input_td_field $disabled text sys_voip_hotline_${portnum}_comment				
+				render_input_td_field $disabled text sys_voip_hotline_${portnum}_comment
+				
+				echo "</tr>"
+			done
+			
+			echo "</table></td></tr>"
+			render_submit_field
+			;;
+		'sound')
+			help_1="voip"
+			help_2=""
+			render_table_title "Sound settings"
+			echo "
+				<tr><td colspan=\"2\">
+				<table width=\"600px\" border=\"1\" style=\"border: solid 1px; 1px; 1px; 1px;\">
+					<tr align='center'>
+						<td>Channel</td><td>OOB</td><td>OOB_play</td><td>nEventPT</td>
+						<td>nEventPlayPT</td><td>COD_Tx_vol</td><td>COD_Rx_vol</td>
+						<td>VAD</td><td>HPF</td>
+					</tr>"
+
+			for port in $PORTS_INFO_FULL; do
+				portnum=`echo $port | awk -F ':' '{print $1}'`
+				
+				echo "<tr><td>$portnum</td>"	
+				
+				# sys_voip_sound_${portnum}_oob
+				default="default"
+				render_input_td_field select sys_voip_sound_${portnum}_oob default "default" in-band "in-band" out-of-band "out-of-band" both "both" block "block"			
+				
+				# sys_voip_sound_${portnum}_oob_play
+				default="default"
+				render_input_td_field select sys_voip_sound_${portnum}_oob_play default "default" play "play" mute "mute" play_diff_pt "play_diff_pt"
+				
+				# sys_voip_sound_${portnum}_neventpt
+				default="0x62"
+				render_input_td_field text sys_voip_sound_${portnum}_neventpt
+				
+				# sys_voip_sound_${portnum}_neventplaypt
+				default="0x62"
+				render_input_td_field text sys_voip_sound_${portnum}_neventplaypt
+
+				# sys_voip_sound_${portnum}_cod_tx_vol
+				default="0"
+				render_input_td_field select sys_voip_sound_${portnum}_cod_tx_vol $(for i in `seq -24 2 24`; do echo $i $i; done)
+				
+				# sys_voip_sound_${portnum}_cod_rx_vol
+				default="0"
+				render_input_td_field select sys_voip_sound_${portnum}_cod_rx_vol $(for i in `seq -24 2 24`; do echo $i $i; done)
+
+				# sys_voip_sound_${portnum}_vad
+				default="off"
+				render_input_td_field select sys_voip_sound_${portnum}_vad on "on" off "off" g711 "g711" CNG_only "CNG_only" SC_only "SC_only"
+				
+				# sys_voip_sound_${portnum}_hpf
+				default="0"
+				render_input_td_field select sys_voip_sound_${portnum}_hpf 0 "off" 1 "on"
 				
 				echo "</tr>"
 			done
