@@ -1124,6 +1124,7 @@ static CLASS_DEVICE_ATTR(pwrunb,0444,show_pwrunb,NULL);
 
 // ------------------------- DEBUG ---------------------------------------- //
 
+#ifdef DEBUG_ON
 // debug_verbosity
 static ssize_t
 store_debug_on( struct class_device *cdev,const char *buf, size_t size ) 
@@ -1200,6 +1201,7 @@ store_loopback( struct class_device *cdev,const char *buf, size_t size )
 }
 static CLASS_DEVICE_ATTR(loopback, 0200 ,NULL,store_loopback);
 
+#endif DEBUG_ON
 
 // ------------------------------------------------------------------------ //
 static struct attribute *sg17_attr[] = {
