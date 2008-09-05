@@ -19,6 +19,12 @@ prompt "Default system name"
 string
 default "Sigrand"
 
+config BR2_SIGRAND_OEM_IFPFX
+prompt "OEM interface prefix in module names."
+string
+default ""
+
+
 comment "Logotypes"
 
 config BR2_SIGRAND_OEM_LOGO
@@ -55,7 +61,8 @@ default "+"
 config BR2_SIGRAND_OEM_MR17H_PWRSFX
 prompt "MR17H SHDSL module power source suffix"
 string
-default "P"
+default "P2"
+
 
 
 config BR2_SIGRAND_OEM_MR17H_DRV

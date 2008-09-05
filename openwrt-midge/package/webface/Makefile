@@ -24,6 +24,7 @@ $(PKG_BUILD_DIR)/.configured:
 # Sigrand modules
 	sed <$(PKG_BUILD_DIR)/templates/etc/templates/oem-vars.tmpl  \
 	> $(PKG_BUILD_DIR)/templates/etc/templates/oem-vars \
+	-e "s%@OEM_IFPFX@%$(BR2_SIGRAND_OEM_IFPFX)%g" \
 	-e "s%@MR16H_TOOL@%$(BR2_SIGRAND_OEM_MR16H_TOOL)%g" \
 	-e "s%@MR16H_MODNAME@%$(BR2_SIGRAND_OEM_MR16H)%g" \
 	-e "s%@MR16H_DRVNAME@%$(BR2_SIGRAND_OEM_MR16H_DRV)%g" \
@@ -39,6 +40,7 @@ $(PKG_BUILD_DIR)/.configured:
 #  E1 for controllers
 	sed <$(PKG_BUILD_DIR)/templates/www/oem.sh.tmpl  \
 	> $(PKG_BUILD_DIR)/templates/www/oem.sh \
+	-e "s%@OEM_IFPFX@%$(BR2_SIGRAND_OEM_IFPFX)%g" \
 	-e "s%@MR17H_MODNAME@%$(BR2_SIGRAND_OEM_MR17H)%g" \
 	-e "s%@MR17H_DRVNAME@%$(BR2_SIGRAND_OEM_MR17H_DRV)%g" \
 	-e "s%@MR17H_V1SFX@%$(BR2_SIGRAND_OEM_MR17H_V1SFX)%g" \

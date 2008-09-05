@@ -43,7 +43,9 @@ if [ -n "$iface" ]; then
 	render_save_stuff
 
 	render_form_header
-	render_table_title "$iface (module $MR16G_MODNAME) settings" 2
+
+	num=`kdb get sys_pcitbl_s${slot}_ifnum`
+	render_table_title "$iface (module ${MR16G_MODNAME}${OEM_IFPFX}${num}) settings" 2
 
 	# Seems that config script ends later than this code
 	# So need delay because config script can change smap

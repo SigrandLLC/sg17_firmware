@@ -273,7 +273,7 @@ _dsl_start(){
 
 		case "$type" in
 			$mr16h_drvname)
-				echo -n "${mr16h_modname}x${num}($ifaces) "
+				echo -n "${mr16h_modname}${oem_ifpfx}${num}($ifaces) "
 				;;
 			$mr17h_drvname)
 				unset ver pfx iface
@@ -291,7 +291,7 @@ _dsl_start(){
                 if [ "$pwr" = "1" ]; then
                     pfx=${pfx}${mr17h_pwrsfx}
                 fi
-				echo -n "${mr17h_modname}${num}${pfx}($ifaces) "
+				echo -n "${mr17h_modname}${oem_ifpfx}${num}${pfx}($ifaces) "
 				;;
 		esac
 	done

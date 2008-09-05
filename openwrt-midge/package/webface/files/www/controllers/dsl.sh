@@ -16,7 +16,7 @@ _sg16_status(){
 	cpath="$sg16_cfg_path/$iface"
 	help_2="dsl.status"
 	num=`kdb get sys_pcitbl_s${slot}_ifnum`
-	render_table_title "$iface (module ${MR16H_MODNAME}x${num}) status" 2
+	render_table_title "$iface (module ${MR16H_MODNAME}${OEM_IFPFX}${num}) status" 2
 	# ONLINE status
 	
 	link=`cat $cpath/state`
@@ -47,7 +47,7 @@ _sg16_settings(){
 	render_form_header
 	# refresh configuration
 	eval `kdb -qq ls "sys_pcicfg_s${slot}_${dev}*" ` 
-	render_table_title "$iface (module ${MR16H_MODNAME}x${num}) settings" 2	
+	render_table_title "$iface (module ${MR16H_MODNAME}${OEM_IFPFX}${num}) settings" 2	
 
 	# sys_dsl_${iface}_name
 	render_input_field "hidden" "hidden" iface $iface
@@ -139,7 +139,7 @@ _sg17_status(){
 	num=`kdb get sys_pcitbl_s${slot}_ifnum`
 	
 	#----------------- Render Table ---------------------------#
-	render_table_title "$iface (module ${MR17H_MODNAME}${num}${sfx}) status" 2	
+	render_table_title "$iface (module ${MR17H_MODNAME}${OEM_IFPFX}${num}${sfx}) status" 2	
 	conf_path="$sg17_cfg_path/$iface/sg17_private"
 	# ONLINE status
 	link_state=`cat $conf_path/link_state`	
@@ -304,7 +304,7 @@ _sg17_settings(){
 	num=`kdb get sys_pcitbl_s${slot}_ifnum`
 	
 	#-------------- SETTINGS table ---------------
-	render_table_title "$iface (module ${MR17H_MODNAME}${num}${sfx}) settings" 2
+	render_table_title "$iface (module ${MR17H_MODNAME}${OEM_IFPFX}${num}${sfx}) settings" 2
 	
 	# get device info
 	tmp=`cat /sys/class/net/$iface/sg17_private/chipver`

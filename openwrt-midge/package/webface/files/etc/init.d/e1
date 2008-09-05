@@ -194,7 +194,7 @@ _e1_start(){
 			continue
 		fi
 	    _e1_modcfg $s
-		echo -n "${mr16g_modname}x${num}($ifaces) "
+		echo -n "${mr16g_modname}${oem_ifpfx}${num}($ifaces) "
 	done
 	echo
 }
