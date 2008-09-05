@@ -53,7 +53,7 @@ string
 default "+"
 
 config BR2_SIGRAND_OEM_MR17H_PWRSFX
-prompt "MR17H SHDSL module pover source suffix"
+prompt "MR17H SHDSL module power source suffix"
 string
 default "P"
 
