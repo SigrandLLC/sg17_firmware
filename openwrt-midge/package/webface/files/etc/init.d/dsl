@@ -14,13 +14,16 @@ _dsl_mr17ifdefcfg(){
 	local slot=$1
 	local dev=$2
 	kdb rm sls sys_pcicfg_s${slot}_${dev}*
+	kdb set sys_pcicfg_s${slot}_${dev}_advlink="off"
 	kdb set sys_pcicfg_s${slot}_${dev}_mode="slave"
 	kdb set sys_pcicfg_s${slot}_${dev}_clkmode="plesio"
 	kdb set sys_pcicfg_s${slot}_${dev}_rate="768"
 	kdb set sys_pcicfg_s${slot}_${dev}_code="tcpam32"
 	kdb set sys_pcicfg_s${slot}_${dev}_annex="A"
+	kdb set sys_pcicfg_s${slot}_${dev}_crc="crc32"	
+	kdb set sys_pcicfg_s${slot}_${dev}_ctrl="manual"	
 	kdb set sys_pcicfg_s${slot}_${dev}_fill="fill_ff"	
-	kdb set sys_pcicfg_s${slot}_${dev}_inv="normal"
+	kdb set sys_pcicfg_s${slot}_${dev}_inv=""
 	kdb set sys_pcicfg_s${slot}_${dev}_pwron="pwroff"
 }
 
@@ -113,6 +116,7 @@ _dsl_mr17cfg(){
 
 	ifaces=`kdb get sys_pcitbl_s${slot}_ifaces`
 	type=`kdb get sys_pcicfg_s${slot}_iftype`
+    # Check changing in number of channels
 	cur_cnt=`kdb get sys_pcitbl_s${slot}_ifnum`
 	cfg_cnt=`kdb get sys_pcicfg_s${slot}_ifnum`
 	if [ -z "$type" ]; then
@@ -126,6 +130,7 @@ _dsl_mr17cfg(){
 			tmp=`expr $tmp + 1`
 		done
 	fi
+    kdb set sys_pcicfg_s${slot}_ifnum=$cur_cnt
 	
 	ifaces=`kdb get sys_pcitbl_s${slot}_ifaces`
 	for iface in $ifaces; do
