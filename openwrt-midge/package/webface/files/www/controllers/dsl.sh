@@ -224,6 +224,9 @@ _sg17_settings(){
 	eval "new_ctrl=\$FORM_sys_pcicfg_s${slot}_${dev}_ctrl"
 	eval "new_mode=\$FORM_sys_pcicfg_s${slot}_${dev}_mode"
 
+	unset pwr_src
+	pwr_src=`cat  /sys/class/net/$iface/sg17_private/pwr_source`
+
 
 	kdb_vars="str:sys_pcicfg_s${slot}_${dev}_ctrl \
 		str:sys_pcicfg_s${slot}_${dev}_advlink \
@@ -284,9 +287,8 @@ _sg17_settings(){
 	render_form_header
 
 	#-------------- Get module type -------------------#
-	unset ver num pwr sfx
+	unset ver num sfx
 	ver=`cat  /sys/class/net/$iface/sg17_private/chipver`
-	pwr=`cat  /sys/class/net/$iface/sg17_private/pwr_source`
 	case "$ver" in
 	    "v1")
 	        sfx=${MR17H_V1SFX}
@@ -295,9 +297,10 @@ _sg17_settings(){
 	        sfx=${MR17H_V2SFX}
 	        ;;
 	esac
-    if [ "$pwr" = "1" ]; then
-        sfx=${sfx}${MR17H_PWRSFX}    
-    fi
+        if [ "$pwr_src" = "1" ]; then
+	    sfx=${sfx}${MR17H_PWRSFX}    
+        fi
+
 	num=`kdb get sys_pcitbl_s${slot}_ifnum`
 	
 	#-------------- SETTINGS table ---------------
@@ -401,7 +404,8 @@ _sg17_settings(){
 	desc="Select DSL fill byte value"
 	render_input_field select "Fill" sys_pcicfg_s${slot}_${dev}_fill  fill_ff FF fill_7e 7E
 
-	if [ "$ctrl" != "eocd" ]; then
+	
+	if [ "$ctrl" != "eocd" ] && [ "$pwr_src" = "1" ]; then
 	    # sys_pcicfg_s${slot}_${dev}_pwron
 	    tip=""
 	    desc="Select DSL Power feeding mode"
