@@ -286,7 +286,7 @@ _dsl_start(){
                 if [ "$pwr" = "1" ]; then
                     pfx=${pfx}${mr17h_pwrsfx}
                 fi
-				echo -n "${mr17h_modname}${pfx}x${num}($ifaces) "
+				echo -n "${mr17h_modname}${num}${pfx}($ifaces) "
 				;;
 		esac
 	done

@@ -122,24 +122,24 @@ _sg17_status(){
 	
 	#-------------- Get module type -------------------#
 	slot=$2
-	unset ver num pwr
+	unset ver num pwr sfx
 	ver=`cat  /sys/class/net/$iface/sg17_private/chipver`
 	pwr=`cat  /sys/class/net/$iface/sg17_private/pwr_source`
 	case "$ver" in
 	    "v1")
-	        pfx=${MR17H_V1SFX}
+	        sfx=${MR17H_V1SFX}
 	        ;;
 	    "v2")
-	        pfx=${MR17H_V2SFX}
+	        sfx=${MR17H_V2SFX}
 	        ;;
 	esac
     if [ "$pwr" = "1" ]; then
-        pfx=${pfx}${MR17H_PWRSFX}
+        sfx=${sfx}${MR17H_PWRSFX}
     fi
 	num=`kdb get sys_pcitbl_s${slot}_ifnum`
 	
 	#----------------- Render Table ---------------------------#
-	render_table_title "$iface (module ${MR17H_MODNAME}${pfx}x${num}) status" 2	
+	render_table_title "$iface (module ${MR17H_MODNAME}${num}${sfx}) status" 2	
 	conf_path="$sg17_cfg_path/$iface/sg17_private"
 	# ONLINE status
 	link_state=`cat $conf_path/link_state`	
@@ -284,24 +284,24 @@ _sg17_settings(){
 	render_form_header
 
 	#-------------- Get module type -------------------#
-	unset ver num pwr
+	unset ver num pwr sfx
 	ver=`cat  /sys/class/net/$iface/sg17_private/chipver`
 	pwr=`cat  /sys/class/net/$iface/sg17_private/pwr_source`
 	case "$ver" in
 	    "v1")
-	        pfx=${MR17H_V1SFX}
+	        sfx=${MR17H_V1SFX}
 	        ;;
 	    "v2")
-	        pfx=${MR17H_V2SFX}
+	        sfx=${MR17H_V2SFX}
 	        ;;
 	esac
     if [ "$pwr" = "1" ]; then
-        pfx=${pfx}${MR17H_PWRSFX}    
+        sfx=${sfx}${MR17H_PWRSFX}    
     fi
 	num=`kdb get sys_pcitbl_s${slot}_ifnum`
 	
 	#-------------- SETTINGS table ---------------
-	render_table_title "$iface (module ${MR17H_MODNAME}${pfx}x${num}) settings" 2
+	render_table_title "$iface (module ${MR17H_MODNAME}${num}${sfx}) settings" 2
 	
 	# get device info
 	tmp=`cat /sys/class/net/$iface/sg17_private/chipver`
