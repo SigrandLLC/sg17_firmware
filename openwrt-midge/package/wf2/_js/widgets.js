@@ -394,11 +394,11 @@ function Container(p, options, helpSection) {
 	 */
 	this.bindEvents = function(w) {
 		if (w.onChange) {
-			$("#" + w.name).change(w.onChange);
+			$("#" + w.id).change(w.onChange);
 		}
 		
 		if (w.onClick) {
-			$("#" + w.name).click(w.onClick);
+			$("#" + w.id).click(w.onClick);
 		}
 	}
 	
