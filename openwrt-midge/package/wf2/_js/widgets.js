@@ -300,6 +300,9 @@ function Container(p, options, helpSection) {
 		$.create('select', attrs).prependTo(p);
 	};
 	
+	/*
+	 * Add HTML text.
+	 */
 	this.addHtml = function(w, p) {
 		var attrs = {'className': 'htmlWidget'};
 		w.tip && (attrs['title'] = _(w.tip));
@@ -332,52 +335,8 @@ function Container(p, options, helpSection) {
 				break;
 			case "select":
 				this.addSelectWidget(w, widgetId);
-
-				var selectedIndex = -1;
-				var defaultIndex = -1;
-				var selectedItem;
-				
-				/* if option's list is string — convert it to hash */
-				if (typeof w.options == "string") {
-					var vals = w.options;
-					w.options = new Object();
-					$.each(vals.split(" "), function(num, value) {
-						w.options[value] = value;
-					});
-				}
-				
-				/* go though list of options */
-				$.each(w.options, function(name, value) {
-					/*
-					 * Heh. In options list property name is the value of option, and
-					 * property value is the text of option.
-					 */
-					var attrs = { 'value': name };
-					
-					/* if current option should be selected */
-					if (config.get(w.name) == name) {
-						selectedItem = name;
-					}
-					
-					/* add option to previously added select element */
-					$.create('option', attrs, _(value)).prependTo('#td_' + w.name + ' select');
-				});
-				
-				/* find selectedIndex and defaultIndex */
-				$('#td_' + w.name + ' select option').each(function(idx) {
-					this.value == selectedItem && (selectedIndex = idx);
-					this.value == w.optionDefault && (defaultIndex = idx);
-				});
-
-				/* set selected index in select element */
-				if (selectedIndex != -1) {
-					$('#td_' + w.name + ' select').attr("selectedIndex", selectedIndex);
-				}
-				/* if nothing is selected — select default item */
-				else if (defaultIndex != -1) {
-					$('#td_' + w.name + ' select').attr("selectedIndex", defaultIndex);
-				}
-
+				$('#td_' + w.name + ' select').setOptionsForSelect(w.options,
+					config.get(w.name), w.defaultValue);
 				break;
 		}
 		

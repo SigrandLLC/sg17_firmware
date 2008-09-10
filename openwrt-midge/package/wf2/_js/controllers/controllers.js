@@ -82,7 +82,7 @@ Controllers['webface'] = function() {
 				name: "sys_interface_language",
 				text: "Interface language",
 				descr: "Please select language",
-				options: {"en": "English", "ru": "Russian"} 
+				options: {"en": "English", "ru": _("Russian")} 
 			};
 			c.addWidget(field);
 		
