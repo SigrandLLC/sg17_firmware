@@ -123,7 +123,7 @@ function popup(url) {
 }
 
 /*
- * Do Ajax request for command execution,
+ * Do async Ajax request for command execution,
  * replace '\n' in output with '<br>',
  * and set html of p element to command output.
  */
@@ -140,6 +140,24 @@ function cmdExecute(cmd, p) {
 			if (p) $(p).html(html);
 		}
 	});
+}
+
+/*
+ * Do sync Ajax request for command execution,
+ * replace '\n' in output with '<br>',
+ * and return command output.
+ */
+function getCmdOutput(cmd) {
+	return $.ajax({
+		type: "POST",
+		url: "sh/execute.cgi",
+		dataType: "text",
+		async: false,
+		data: {"cmd": cmd},
+		dataFilter: function(data, type) {
+			return data.replace(/\n/g, "<br>");
+		}
+	}).responseText;
 }
 
 /*
@@ -307,11 +325,13 @@ function Container(p, options, helpSection) {
 		var attrs = {'className': 'htmlWidget'};
 		w.tip && (attrs['title'] = _(w.tip));
 		
-		var span = $.create('span', attrs).appendTo(p);
+		var span = $.create('span', attrs).prependTo(p);
 		if (w.kdb) {
 			$(span).html(config.get(w.name));
 		} else if (w.cmd) {
 			cmdExecute(w.cmd, span);
+		} else if (w.str) {
+			$(span).html(w.str);
 		}
 	};
 
@@ -335,8 +355,10 @@ function Container(p, options, helpSection) {
 				break;
 			case "select":
 				this.addSelectWidget(w, widgetId);
-				$('#td_' + w.name + ' select').setOptionsForSelect(w.options,
-					config.get(w.name), w.defaultValue);
+				if (w.options) {
+					$('#td_' + w.name + ' select').setOptionsForSelect(w.options,
+						config.get(w.name), w.defaultValue);
+				}
 				break;
 		}
 		

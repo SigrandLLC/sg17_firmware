@@ -115,8 +115,6 @@ function KDBQueue() {
 }
 
 function Config() {
-	//this.conf = new Object();
-	//this.oem = new Object();
 	this.kdbQueue = new KDBQueue();
 	
 	/* submit task for execution */
@@ -151,14 +149,14 @@ function Config() {
 	 * Return KDB key's value with replaced special characters.
 	 */
 	this.get = function(name) {
-		return this.conf[name] ? this.replaceSpecialChars(this.conf[name]) : null;
+		return this.conf[name] != undefined ? this.replaceSpecialChars(this.conf[name]) : null;
 	};
 	
 	/*
 	 * Return OEM key's value with replaced special characters.
 	 */
 	this.getOEM = function(name) {
-		return this.oem[name] ? this.replaceSpecialChars(this.oem[name]) : null;
+		return this.oem[name] != undefined ? this.replaceSpecialChars(this.oem[name]) : null;
 	};
 	
 	/*

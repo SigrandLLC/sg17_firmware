@@ -104,7 +104,7 @@ oem_clean: root_clean
 	rm -rf $(BUILD_DIR)/oem-* 
 	rm -rf $(BUILD_DIR)/eocd
 #	rm -rf $(BUILD_DIR)/net-snmp*
-
+	rm -rf $(BUILD_DIR)/wf2
 
 root_clean:
 	@$(TRACE) root_clean

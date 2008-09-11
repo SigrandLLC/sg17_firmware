@@ -359,6 +359,7 @@ source "package/sigrand-OEM/Config.in"
 endmenu
 menu "Packages"
 source "package/webface/Config.in"
+source "package/wf2/Config.in"
 source "package/hotplug/Config.in"
 
 choice
