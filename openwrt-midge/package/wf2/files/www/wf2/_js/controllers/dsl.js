@@ -336,6 +336,177 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		}
 	};
 	
+	/* show settings for 17 series */
+	var sg17Settings = function() {
+		var c, field, id;
+		c = page.addContainer("settings");
+		var confPath = $.sprintf("%s/%s/sg17_private", config.getOEM("sg17_cfg_path"), iface);
+		
+		/* power status */
+		var pwrPresence = getCmdOutput($.sprintf("/bin/cat %s/pwr_source", confPath));
+		
+		c.addTitle(getSg17Title(pwrPresence) + "settings");
+		
+		/* IDs of manual widgets */
+		var manualWidgetsIDs = new Array();
+		
+		/* add, if not exist, widgets for manual mode */
+		var addManualWidgets = function() {
+			if (manualWidgetsIDs.length != 0) return;
+			
+			/* widget after which insert this element */
+			var parentWidget = $("#ctrl").parents("tr");
+						
+			if (pwrPresence == 1) {
+				/* pwron */
+				manualWidgetsIDs.push("pwron");
+				field = { 
+					"type": "select",
+					"name": $.sprintf("sys_pcicfg_s%s_%s_pwron", pcislot, pcidev),
+					"id": "pwron",
+					"text": "Power",
+					"descr": "Select DSL Power feeding mode",
+					"options": {"pwroff": "off", "pwron": "on"},
+					"insertAfter": parentWidget
+				};
+				c.addWidget(field);
+			}
+			
+			/* pbo */
+			manualWidgetsIDs.push("pbomode");
+			field = { 
+				"type": "checkbox",
+				"name": $.sprintf("sys_pcicfg_s%s_%s_pbomode", pcislot, pcidev),
+				"id": "pbomode",
+				"text": "PBO forced",
+				"descr": "Example: 21:13:15, STU-C-SRU1=21,SRU1-SRU2=13,...",
+				"insertAfter": parentWidget
+			};
+			c.addWidget(field);
+			
+			/* annex */
+			manualWidgetsIDs.push("annex");
+			field = { 
+				"type": "select",
+				"name": $.sprintf("sys_pcicfg_s%s_%s_annex", pcislot, pcidev),
+				"id": "annex",
+				"text": "Annex",
+				"descr": "Select DSL Annex",
+				"options": {"A": "Annex A", "B": "Annex B"},
+				"insertAfter": parentWidget
+			};
+			c.addWidget(field);
+			
+			/* code */
+			manualWidgetsIDs.push("code");
+			var name = $.sprintf("sys_pcicfg_s%s_%s_code", pcislot, pcidev);
+			var value = config.get(name).length == 0 ? "tcpam32" : config.get(name);
+			field = { 
+				"type": "select",
+				"name": name,
+				"id": "code",
+				"text": "Coding",
+				"descr": "Select DSL line coding",
+				"options": value,
+				"insertAfter": parentWidget
+			};
+			c.addWidget(field);
+			
+			/* rate */
+			manualWidgetsIDs.push("rate");
+			var name = $.sprintf("sys_pcicfg_s%s_%s_rate", pcislot, pcidev);
+			var value = config.get(name) == "-1" ? "other" : config.get(name);
+			var rateOptions = new Object();
+			rateOptions[config.get(name)] = value;
+			field = { 
+				"type": "select",
+				"name": name,
+				"id": "rate",
+				"text": "Rate",
+				"descr": "Select DSL line rate",
+				"options": rateOptions,
+				"insertAfter": parentWidget
+			};
+			c.addWidget(field);
+			
+			/* mode */
+			manualWidgetsIDs.push("mode");
+			field = { 
+				"type": "select",
+				"name": $.sprintf("sys_pcicfg_s%s_%s_mode", pcislot, pcidev),
+				"id": "mode",
+				"text": "Mode",
+				"descr": "Select DSL mode",
+				"options": {"master": "Master", "slave": "Slave"},
+				"insertAfter": parentWidget
+			};
+			c.addWidget(field);
+		};
+		
+		/* remove, if exist, widgets for manual mode */
+		var removeManualWidgets = function() {
+			if (manualWidgetsIDs.length != 0) {
+				$.each(manualWidgetsIDs, function(num, value) {
+					$("#" + value).parents("tr").remove();
+				});
+				manualWidgetsIDs = new Array();
+			}
+		};
+		
+		field = { 
+			"type": "select",
+			"name": $.sprintf("sys_pcicfg_s%s_%s_ctrl", pcislot, pcidev),
+			"id": "ctrl",
+			"text": "Control type",
+			"descr": "Control type (manual or by EOC daemon)",
+			"options": {"manual": "Manual", "eocd": "EOCd"},
+			"onChange": function() {
+				if ($("#ctrl").val() == "manual") {
+					addManualWidgets();
+				} else {
+					removeManualWidgets();
+				}
+			}
+		};
+		c.addWidget(field);
+		
+		field = { 
+			"type": "select",
+			"name": $.sprintf("sys_pcicfg_s%s_%s_clkmode", pcislot, pcidev),
+			"text": "Clock mode",
+			"descr": "Select DSL clock mode",
+			"options": "plesio plesio-ref sync"
+		};
+		c.addWidget(field);
+		
+		field = { 
+			"type": "select",
+			"name": $.sprintf("sys_pcicfg_s%s_%s_advlink", pcislot, pcidev),
+			"text": "AdvLink",
+			"descr": "Select DSL Advanced link detection",
+			"options": "off on"
+		};
+		c.addWidget(field);
+		
+		field = { 
+			"type": "select",
+			"name": $.sprintf("sys_pcicfg_s%s_%s_crc", pcislot, pcidev),
+			"text": "CRC",
+			"descr": "Select DSL CRC length",
+			"options": {"crc32": "CRC32", "crc16": "CRC16"}
+		};
+		c.addWidget(field);
+		
+		field = { 
+			"type": "select",
+			"name": $.sprintf("sys_pcicfg_s%s_%s_fill", pcislot, pcidev),
+			"text": "Fill",
+			"descr": "Select DSL fill byte value",
+			"options": {"fill_ff": "FF", "fill_7e": "7E"}
+		};
+		c.addWidget(field);
+	}
+	
 	/* get driver name */
 	var type = config.get($.sprintf("sys_pcitbl_s%s_iftype", pcislot));
 	
@@ -357,6 +528,8 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		"func": function() {
 			if (type == config.getOEM("MR16H_DRVNAME")) {
 				sg16Settings();
+			} else if (type == config.getOEM("MR17H_DRVNAME")) {
+				sg17Settings();
 			}
 		}
 	});
