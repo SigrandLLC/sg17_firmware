@@ -219,12 +219,12 @@ function Container(p, options, helpSection) {
 	};
 	
 	/*
-	 * Adds general for all widgets elements.
+	 * Create general data for all widgets elements.
 	 * w — widget's info.
 	 * p — destination container.
 	 * I18N for text and description.
 	 */
-	this.addGeneralWidget = function(w, p) {
+	this.createGeneralWidget = function(w) {
 		/* if this field is required — show "*" */
 		var required = (w.validator && w.validator['required']) ? " *" : "";
 	
@@ -243,16 +243,14 @@ function Container(p, options, helpSection) {
 			]
 		);
 		
-		/* insert new widget after specified widget, otherwise insert last */
-		if (w.insertAfter) tr.insertAfter(w.insertAfter);
-		else tr.appendTo(p);
+		return tr;
 	};
 	
 	/*
-	 * Add text widget.
+	 * Create text widget.
 	 * I18N for tip.
 	 */
-	this.addTextWidget = function(w, p) {
+	this.createTextWidget = function(w) {
 		var attrs = {
 			'type': 'text',
 			'name': w.name,
@@ -269,14 +267,14 @@ function Container(p, options, helpSection) {
 			attrs['value'] = w.defaultValue;
 		}
 		
-		$.create('input', attrs).prependTo(p);
+		return $.create('input', attrs);
 	};
 	
 	/*
-	 * Add password widget.
+	 * Create password widget.
 	 * I18N for tip.
 	 */
-	this.addPasswordWidget = function(w, p) {
+	this.createPasswordWidget = function(w) {
 		var attrs = {
 			'type': 'password',
 			'name': w.name,
@@ -285,14 +283,14 @@ function Container(p, options, helpSection) {
 		w.id && (attrs['id'] = w.id);
 		w.tip && (attrs['title'] = _(w.tip));
 		
-		$.create('input', attrs).prependTo(p);
+		return $.create('input', attrs);
 	};
 	
 	/*
-	 * Add checkbox widget.
+	 * Create checkbox widget.
 	 * I18N for tip.
 	 */
-	this.addCheckboxWidget = function(w, p) {
+	this.createCheckboxWidget = function(w) {
 		var attrs = {
 			'type': 'checkbox',
 			'name': w.name,
@@ -303,29 +301,29 @@ function Container(p, options, helpSection) {
 		w.tip && (attrs['title'] = _(w.tip));
 		if (config.get(w.name) == "1") attrs['checked'] = true;
 		
-		$.create('input', attrs).prependTo(p);
+		return $.create('input', attrs);
 	};
 	
 	/*
-	 * Add select widget.
+	 * Create select widget.
 	 * I18N for tip.
 	 */
-	this.addSelectWidget = function(w, p) {
+	this.createSelectWidget = function(w) {
 		var attrs = {'name': w.name};
 		w.id && (attrs['id'] = w.id);
 		w.tip && (attrs['title'] = _(w.tip));
 		
-		$.create('select', attrs).prependTo(p);
+		return $.create('select', attrs);
 	};
 	
 	/*
 	 * Add HTML text.
 	 */
-	this.addHtml = function(w, p) {
+	this.createHtml = function(w) {
 		var attrs = {'className': 'htmlWidget'};
 		w.tip && (attrs['title'] = _(w.tip));
 		
-		var span = $.create('span', attrs).prependTo(p);
+		var span = $.create('span', attrs);
 		if (w.kdb) {
 			$(span).html(config.get(w.name));
 		} else if (w.cmd) {
@@ -333,39 +331,61 @@ function Container(p, options, helpSection) {
 		} else if (w.str) {
 			$(span).html(w.str);
 		}
+		
+		return span;
 	};
 
-	/* add widget to container */
-	this.addWidget = function(w) {
-		/* add common widget's data */
-		this.addGeneralWidget(w, this.table);
-		var widgetId = '#td_' + w.name;
+	/*
+	 * Add complete widget (table's TR) to container.
+	 * w — widget to add.
+	 * insertAfter — if specified, insert new widget after this element.
+	 */
+	this.addWidget = function(w, insertAfter) {
+		/* add common widget's data. insert specified widget, otherwise insert last */
+		if (insertAfter) this.createGeneralWidget(w).insertAfter(insertAfter);
+		else this.createGeneralWidget(w).appendTo(this.table);
+		
+		this.addSubWidget(w);
+	};
+	
+	/*
+	 * Add subwidget (input, select, etc) to complete widget or to specified element.
+	 * w — widget to add.
+	 * insertAfter — if specified, insert new subwidget after this element.
+	 */
+	this.addSubWidget = function(w, insertAfter) {
+		var widget;
 		switch (w.type) {
 			case "text": 
-				this.addTextWidget(w, widgetId);
+				widget = this.createTextWidget(w);
 				break;
 			case "password": 
-				this.addPasswordWidget(w, widgetId);
+				widget = this.createPasswordWidget(w);
 				break;
 			case "checkbox":
-				this.addCheckboxWidget(w, widgetId);
+				widget = this.createCheckboxWidget(w);
 				break;
 			case "html":
-				this.addHtml(w, widgetId);
+				widget = this.createHtml(w);
 				break;
 			case "select":
-				this.addSelectWidget(w, widgetId);
+				widget = this.createSelectWidget(w);
 				if (w.options) {
-					$('#td_' + w.name + ' select').setOptionsForSelect(w.options,
+					$(widget).setOptionsForSelect(w.options,
 						config.get(w.name), w.defaultValue);
 				}
 				break;
 		}
 		
+		/* insert new subwidget at specified position */
+		if (insertAfter) $(widget).insertAfter(insertAfter);
+		else $(widget).prependTo("#td_" + w.name);
+		
 		/* bind specified events */
 		this.bindEvents(w);
 		
 		w.validator && (this.validator_rules[w.name] = w.validator);
+		
 		/* I18N for element's error messages */
 		w.message && (this.validator_messages[w.name] = _(w.message));
 	};
@@ -381,7 +401,7 @@ function Container(p, options, helpSection) {
 		if (w.onClick) {
 			$("#" + w.id).click(w.onClick);
 		}
-	}
+	};
 	
 	/*
 	 * Adds HTML code for command output.
@@ -418,7 +438,7 @@ function Container(p, options, helpSection) {
 		} else {
 			addConsoleOut(0, cmd);
 		}
-	}
+	};
 
 	/*
 	 * Adds submit button, form validation rules and submit's events handlers.

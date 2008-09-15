@@ -13,6 +13,16 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		$(select).setOptionsForSelect(rates, cur);
 	};
 
+	/* fill select with fixed rates */
+	var fixedRateList = function(select, cur, rates) {
+		var ratesList = new Object();
+		$.each(rates, function(num, rate){
+			ratesList[rate] = "" + rate;
+		});
+		ratesList["-1"] = "other";
+		$(select).setOptionsForSelect(ratesList, cur);
+	};
+
 	/* title of sg16 */
 	var getSg16Title = function() {
 		return $.sprintf("%s (module %s%s%s) ", iface,
@@ -347,6 +357,134 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		
 		c.addTitle(getSg17Title(pwrPresence) + "settings");
 		
+		/* available TCPAM values */
+		var TCPAM = {
+			"tcpam128": "TCPAM128",
+			"tcpam64": "TCPAM64",
+			"tcpam32": "TCPAM32",
+			"tcpam16": "TCPAM16",
+			"tcpam8": "TCPAM8"
+		};
+		
+		/* list of rates */
+		var rateList8 = new Array(192,256,320,384,512,640,768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840);
+		var rateList16 = new Array(192,256,320,384,512,640,768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840);
+		var rateList32_v1 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696);
+		var rateList32_v2 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10176);
+		var rateList64 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10240,11520,12736);
+		var rateList128 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10240,11520,12800,14080);
+		
+		/* updates parameters */
+		var onChangeSG17Code = function() {
+			if ($("#ctrl").val() == "manual") {
+				addManualWidgets();
+			} else {
+				removeManualWidgets();
+			}
+				
+			var mode = $("#mode").val();
+			var code = $("#code").val();
+			var rate = $("#rate").val();
+			
+			if (mode == "slave") {
+				$("#rate").setOptionsForSelect("automatic");
+				$("#rate").attr("readonly", true);
+				
+				$("#code").setOptionsForSelect("automatic");
+				$("#code").attr("readonly", true);
+				
+				$("#clkmode").setOptionsForSelect("automatic");
+				$("#clkmode").attr("readonly", true);
+				
+				$("#annex").setOptionsForSelect("automatic");
+				$("#annex").attr("readonly", true);
+				
+				$("#pbomode").attr("readonly", true);
+				
+				$("#mrate").remove();
+				$("#pboval").remove();
+			} else {
+				$("#code").removeAttr("readonly");
+				var chipVer = getCmdOutput($.sprintf("/bin/cat %s/chipver", confPath));
+				if (chipVer == "v1") {
+					$("#code").setOptionsForSelect({
+						"tcpam16": TCPAM["tcpam16"],
+						"tcpam32": TCPAM["tcpam32"]
+					}, code);
+				} else {
+					$("#code").setOptionsForSelect(TCPAM, code);
+				}
+				
+				/* update varibale's value */
+				code = $("#code").val();
+				
+				$("#rate").removeAttr("readonly");
+				if (chipVer == "v1") {
+					switch (code) {
+						case "tcpam8":
+							fixedRateList("#rate", rate, rateList8);
+							break;
+						case "tcpam16":
+							fixedRateList("#rate", rate, rateList16);
+							break;
+						case "tcpam32":
+							fixedRateList("#rate", rate, rateList32_v1);
+							break;
+					}
+				} else {
+					switch (code) {
+						case "tcpam8":
+							fixedRateList("#rate", rate, rateList8);
+							break;
+						case "tcpam16":
+							fixedRateList("#rate", rate, rateList16);
+							break;
+						case "tcpam32":
+							fixedRateList("#rate", rate, rateList32_v2);
+							break;
+						case "tcpam64":
+							fixedRateList("#rate", rate, rateList64);
+							break;
+						case "tcpam128":
+							fixedRateList("#rate", rate, rateList128);
+							break;
+					}
+				}
+				
+				/* if rate is "other", add text widget to enter rate value */
+				if (rate == -1 && $("#mrate").length == 0) {
+					field = { 
+						"type": "text",
+						"name": $.sprintf("sys_pcicfg_s%s_%s_mrate", pcislot, pcidev),
+						"id": "mrate"
+					};
+					c.addSubWidget(field, "#rate");
+				/* otherwise, remove it */
+				} else if (rate > 0) {
+					$("#mrate").remove();
+				}
+				
+				$("#clkmode").removeAttr("readonly");
+				$("#clkmode").setOptionsForSelect("plesio plesio-ref sync");
+				
+				$("#pbomode").removeAttr("readonly");
+				/* If PBO is active, add text field for it's value */
+				if ($("#pbomode").attr("checked") == true && $("#pboval").length == 0) {
+					field = { 
+						"type": "text",
+						"name": $.sprintf("sys_pcicfg_s%s_%s_pboval", pcislot, pcidev),
+						"id": "pboval"
+					};
+					c.addSubWidget(field, "#pbomode");
+				} else if ($("#pbomode").attr("checked") == false) {
+					$("#pboval").remove();
+				}
+				
+				$("#annex").removeAttr("readonly");
+				$("#annex").setOptionsForSelect({"A": "Annex A", "B": "Annex B"});
+			}
+		}
+		
 		/* IDs of manual widgets */
 		var manualWidgetsIDs = new Array();
 		
@@ -366,10 +504,9 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 					"id": "pwron",
 					"text": "Power",
 					"descr": "Select DSL Power feeding mode",
-					"options": {"pwroff": "off", "pwron": "on"},
-					"insertAfter": parentWidget
+					"options": {"pwroff": "off", "pwron": "on"}
 				};
-				c.addWidget(field);
+				c.addWidget(field, parentWidget);
 			}
 			
 			/* pbo */
@@ -380,9 +517,9 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 				"id": "pbomode",
 				"text": "PBO forced",
 				"descr": "Example: 21:13:15, STU-C-SRU1=21,SRU1-SRU2=13,...",
-				"insertAfter": parentWidget
+				"onChange": onChangeSG17Code
 			};
-			c.addWidget(field);
+			c.addWidget(field, parentWidget);
 			
 			/* annex */
 			manualWidgetsIDs.push("annex");
@@ -392,10 +529,9 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 				"id": "annex",
 				"text": "Annex",
 				"descr": "Select DSL Annex",
-				"options": {"A": "Annex A", "B": "Annex B"},
-				"insertAfter": parentWidget
+				"options": {"A": "Annex A", "B": "Annex B"}
 			};
-			c.addWidget(field);
+			c.addWidget(field, parentWidget);
 			
 			/* code */
 			manualWidgetsIDs.push("code");
@@ -408,9 +544,9 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 				"text": "Coding",
 				"descr": "Select DSL line coding",
 				"options": value,
-				"insertAfter": parentWidget
+				"onChange": onChangeSG17Code
 			};
-			c.addWidget(field);
+			c.addWidget(field, parentWidget);
 			
 			/* rate */
 			manualWidgetsIDs.push("rate");
@@ -425,9 +561,9 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 				"text": "Rate",
 				"descr": "Select DSL line rate",
 				"options": rateOptions,
-				"insertAfter": parentWidget
+				"onChange": onChangeSG17Code
 			};
-			c.addWidget(field);
+			c.addWidget(field, parentWidget);
 			
 			/* mode */
 			manualWidgetsIDs.push("mode");
@@ -438,9 +574,9 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 				"text": "Mode",
 				"descr": "Select DSL mode",
 				"options": {"master": "Master", "slave": "Slave"},
-				"insertAfter": parentWidget
+				"onChange": onChangeSG17Code
 			};
-			c.addWidget(field);
+			c.addWidget(field, parentWidget);
 		};
 		
 		/* remove, if exist, widgets for manual mode */
@@ -453,6 +589,8 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 			}
 		};
 		
+		/* add parameters */
+		
 		field = { 
 			"type": "select",
 			"name": $.sprintf("sys_pcicfg_s%s_%s_ctrl", pcislot, pcidev),
@@ -460,19 +598,14 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 			"text": "Control type",
 			"descr": "Control type (manual or by EOC daemon)",
 			"options": {"manual": "Manual", "eocd": "EOCd"},
-			"onChange": function() {
-				if ($("#ctrl").val() == "manual") {
-					addManualWidgets();
-				} else {
-					removeManualWidgets();
-				}
-			}
+			"onChange": onChangeSG17Code
 		};
 		c.addWidget(field);
 		
 		field = { 
 			"type": "select",
 			"name": $.sprintf("sys_pcicfg_s%s_%s_clkmode", pcislot, pcidev),
+			"id": "clkmode",
 			"text": "Clock mode",
 			"descr": "Select DSL clock mode",
 			"options": "plesio plesio-ref sync"
@@ -505,6 +638,10 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 			"options": {"fill_ff": "FF", "fill_7e": "7E"}
 		};
 		c.addWidget(field);
+		
+		c.addSubmit();
+		
+		onChangeSG17Code();
 	}
 	
 	/* get driver name */

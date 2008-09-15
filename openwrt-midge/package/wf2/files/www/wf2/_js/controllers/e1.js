@@ -30,10 +30,9 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 					"name": id,
 					"id": id,
 					"text": "Encoding",
-					"options": encodings,
-					"insertAfter": protoWidget
+					"options": encodings
 				};
-				c.addWidget(field);
+				c.addWidget(field, protoWidget);
 
 				/* parity */
 				id = $.sprintf("sys_pcicfg_s%s_%s_hdlc_parity", pcislot, pcidev);
@@ -44,10 +43,9 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 					"name": id,
 					"id": id,
 					"text": "Parity",
-					"options": parity,
-					"insertAfter": protoWidget
+					"options": parity
 				};
-				c.addWidget(field);
+				c.addWidget(field, protoWidget);
 			};
 			
 			/* remove, if exist, widgets for HDLC and ETHER-HDLC protocol */
@@ -84,10 +82,9 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 					"id": id,
 					"text": "Interval",
 					"options": interval,
-					"defaultValue": "10",
-					"insertAfter": protoWidget
+					"defaultValue": "10"
 				};
-				c.addWidget(field);
+				c.addWidget(field, protoWidget);
 				
 				/* timeout */
 				id = $.sprintf("sys_pcicfg_s%s_%s_cisco_to", pcislot, pcidev);
@@ -103,10 +100,9 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 					"id": id,
 					"text": "Timeout",
 					"options": to,
-					"defaultValue": "25",
-					"insertAfter": protoWidget
+					"defaultValue": "25"
 				};
-				c.addWidget(field);
+				c.addWidget(field, protoWidget);
 			};
 			
 			/* remove, if exist, widgets for CISCO protocol */
@@ -136,10 +132,9 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 					"type": "checkbox",
 					"name": id,
 					"id": id,
-					"text": "Use time slot 16",
-					"insertAfter": framWidget
+					"text": "Use time slot 16"
 				};
-				c.addWidget(field);
+				c.addWidget(field, framWidget);
 				
 				id = $.sprintf("sys_pcicfg_s%s_%s_smap", pcislot, pcidev);
 				framedWidgetsIDs.push(id);
@@ -148,10 +143,9 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 					"name": id,
 					"id": id,
 					"text": "Slotmap",
-					"descr": "example: 2-3,6-9,15-20",
-					"insertAfter": framWidget
+					"descr": "example: 2-3,6-9,15-20"
 				};
-				c.addWidget(field);
+				c.addWidget(field, framWidget);
 				
 				id = $.sprintf("sys_pcicfg_s%s_%s_crc4", pcislot, pcidev);
 				framedWidgetsIDs.push(id);
@@ -159,10 +153,9 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 					"type": "checkbox",
 					"name": id,
 					"id": id,
-					"text": "E1 CRC4 multiframe",
-					"insertAfter": framWidget
+					"text": "E1 CRC4 multiframe"
 				};
-				c.addWidget(field);
+				c.addWidget(field, framWidget);
 				
 				id = $.sprintf("sys_pcicfg_s%s_%s_cas", pcislot, pcidev);
 				framedWidgetsIDs.push(id);
@@ -170,10 +163,9 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 					"type": "checkbox",
 					"name": id,
 					"id": id,
-					"text": "E1 CAS multiframe",
-					"insertAfter": framWidget
+					"text": "E1 CAS multiframe"
 				};
-				c.addWidget(field);
+				c.addWidget(field, framWidget);
 			};
 			
 			/* remove, if exist, widgets for framed mode */
@@ -312,7 +304,7 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 			 */
 			c.addSubmit({
 				"onSuccess": function() {
-					/* name of filed */
+					/* name of field */
 					var smap = $.sprintf("sys_pcicfg_s%s_%s_smap", pcislot, pcidev);
 					
 					/* save old value, update local KDB and get new value */

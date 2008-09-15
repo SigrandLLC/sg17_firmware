@@ -249,7 +249,7 @@ function OnChangeSG17Code()
 	    base = document.getElementById('pbomode_td');
 	    if( pboval != null )
 		    base.removeChild(pboval);
-        } else {
+    } else {
 	    freeList($('code'));
 	    $('code').disabled = 0;
 	    if( $('chipver').value == 'v1' ){
@@ -265,18 +265,18 @@ function OnChangeSG17Code()
 	        el.value = TCPAM[i][0];
 	        el.text = TCPAM[i][1];
     	    if( TCPAM[i][0] == tcpam ){
-	    	el.selected = 1;
+		    	el.selected = 1;
+		    };
+		    $('code').options.add(el);
+		    if( TCPAM[i][0] == tcpam ){
+		        $('code').selectedIndex = end-i;
+		        flag = 1;
+		    }
 	    };
-	    $('code').options.add(el);
-	    if( TCPAM[i][0] == tcpam ){
-	        $('code').selectedIndex = end-i;
-	        flag = 1;
+	    if( !flag ){
+	        $('code').selectedIndex = 0;
 	    }
-    };
-    if( !flag ){
-        $('code').selectedIndex = 0;
-    }			
-	$('rate').disabled = 0;
+		$('rate').disabled = 0;
 		tcpam = $('code').options[$('code').selectedIndex].value;
 		if( $('chipver').value == 'v1' ){
 		    if( tcpam == "tcpam16" ) {
