@@ -2,7 +2,7 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=oem-e1-ver2
+PKG_NAME:=oem-e1-gen2
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 

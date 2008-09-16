@@ -156,3 +156,22 @@ string
 default "mr17g_debug"
 
 
+#-------------- OEM RS232 modules ------------------------#
+
+comment "MR17S RS232 module"
+config BR2_SIGRAND_OEM_MR17S
+prompt "MR17S RS232 module name"
+string
+default "MR17S"
+
+config BR2_SIGRAND_OEM_MR17S_DRV
+prompt "MR17S RS232 module driver name"
+string
+default "mr17s"
+
+config BR2_SIGRAND_OEM_MR17S_DBGTOOL
+prompt "MR17S RS232 debugging tool name"
+string
+default "mr17s_debug"
+
+

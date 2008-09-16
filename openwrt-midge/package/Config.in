@@ -394,6 +394,7 @@ source "package/sigrand-mr16g/Config.in"
 source "package/sigrand-adm5120sw/Config.in"
 # OEM-ed package names
 source "package/oem-e1-gen2/Config.in"
+source "package/oem-rs232-gen1/Config.in"
 source "package/oem-voip/Config.in"
 
 
