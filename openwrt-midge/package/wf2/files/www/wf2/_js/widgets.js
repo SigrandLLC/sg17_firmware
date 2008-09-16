@@ -508,6 +508,9 @@ function Container(p, options, helpSection) {
      		
      		/* (closure to timeout var) */
      		submitHandler: function(form) {
+     			/* remove alert text */
+				$(".alertText").remove();
+		
      			/*
      			 * All checkboxes return values, even they are unchecked.
      			 * Here we find all unchecked checkboxes, temporarily check them, set
@@ -652,4 +655,30 @@ function addItem(path, name, func, params) {
 	
 	/* create menu item and add it to the menu */
 	$.create('li', {}, $.create('span', {}, link)).appendTo(curLevel);
+}
+
+/*
+ * Update specified field:
+ * update our local KDB, and if value of field was changed — update field and alert user
+ * by appending text to field name.
+ * ! Field must have ID identical to it's name !
+ * 
+ * name — name and id of field to update.
+ */
+function updateField(name) {
+	/* save old value, update local KDB and get new value */
+	var oldValue = config.get(name);
+	config.loadKDB();
+	var newValue = config.get(name);
+	
+	/* if value was updated */
+	if (oldValue != newValue) {
+		/* set new value */
+		$("#" + name).val(newValue);
+		
+		/* add info text to field name */
+		var widgetText = $("#" + name).parents("tr").children(".tdleft");
+		var alertText = $.create("span", {"style": "color: red", "className": "alertText"}, " updated");
+		widgetText.append(alertText);
+	}
 }

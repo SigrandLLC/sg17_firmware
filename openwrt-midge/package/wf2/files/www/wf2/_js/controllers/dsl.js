@@ -374,6 +374,9 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		var rateList64 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10240,11520,12736);
 		var rateList128 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10240,11520,12800,14080);
 		
+		/* name and id of mrate field (used for manual speed setting, can be updated by subsystem) */
+		var mrateId = $.sprintf("sys_pcicfg_s%s_%s_mrate", pcislot, pcidev);
+		
 		/* updates parameters */
 		var onChangeSG17Code = function() {
 			if ($("#ctrl").val() == "manual") {
@@ -385,6 +388,8 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 			var mode = $("#mode").val();
 			var code = $("#code").val();
 			var rate = $("#rate").val();
+			var annex = $("#annex").val();
+			var clkmode = $("#clkmode").val();
 			
 			if (mode == "slave") {
 				$("#rate").setOptionsForSelect("automatic");
@@ -401,13 +406,14 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 				
 				$("#pbomode").attr("readonly", true);
 				
-				$("#mrate").remove();
+				$("#" + mrateId).remove();
 				$("#pboval").remove();
 			} else {
 				$("#code").removeAttr("readonly");
 				var chipVer = getCmdOutput($.sprintf("/bin/cat %s/chipver", confPath));
 				if (chipVer == "v1") {
 					$("#code").setOptionsForSelect({
+						"tcpam8": TCPAM["tcpam8"],
 						"tcpam16": TCPAM["tcpam16"],
 						"tcpam32": TCPAM["tcpam32"]
 					}, code);
@@ -452,20 +458,20 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 				}
 				
 				/* if rate is "other", add text widget to enter rate value */
-				if (rate == -1 && $("#mrate").length == 0) {
+				if (rate == -1 && $("#" + mrateId).length == 0) {
 					field = { 
 						"type": "text",
-						"name": $.sprintf("sys_pcicfg_s%s_%s_mrate", pcislot, pcidev),
-						"id": "mrate"
+						"name": mrateId,
+						"id": mrateId
 					};
 					c.addSubWidget(field, "#rate");
 				/* otherwise, remove it */
 				} else if (rate > 0) {
-					$("#mrate").remove();
+					$("#" + mrateId).remove();
 				}
 				
 				$("#clkmode").removeAttr("readonly");
-				$("#clkmode").setOptionsForSelect("plesio plesio-ref sync");
+				$("#clkmode").setOptionsForSelect("plesio plesio-ref sync", clkmode);
 				
 				$("#pbomode").removeAttr("readonly");
 				/* If PBO is active, add text field for it's value */
@@ -481,7 +487,7 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 				}
 				
 				$("#annex").removeAttr("readonly");
-				$("#annex").setOptionsForSelect({"A": "Annex A", "B": "Annex B"});
+				$("#annex").setOptionsForSelect({"A": "Annex A", "B": "Annex B"}, annex);
 			}
 		}
 		
@@ -639,7 +645,11 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		};
 		c.addWidget(field);
 		
-		c.addSubmit();
+		c.addSubmit({
+			"onSuccess": function() {
+				updateField(mrateId);
+			}
+		});
 		
 		onChangeSG17Code();
 	}

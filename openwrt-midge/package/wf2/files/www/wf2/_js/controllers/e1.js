@@ -298,29 +298,11 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 			c.addWidget(field);
 			
 			/*
-			 * subsystem can change slotmap value, so after request is performed, update
-			 * our local KDB, and if smap was changed — update field and alert user
-			 * by appending text to field name.
+			 * subsystem can change slotmap value, so after request is performed, update it.
 			 */
 			c.addSubmit({
 				"onSuccess": function() {
-					/* name of field */
-					var smap = $.sprintf("sys_pcicfg_s%s_%s_smap", pcislot, pcidev);
-					
-					/* save old value, update local KDB and get new value */
-					var oldValue = config.get(smap);
-					config.loadKDB();
-					var newValue = config.get(smap);
-					
-					/* if smap was updated */
-					if (oldValue != newValue) {
-						/* set new value */
-						$("#" + smap).val(newValue);
-						
-						/* add info text to field name */
-						var widgetText = $("#td_" + smap).prev();
-						widgetText.append(" <span style='color: red'>updated</span>");
-					}
+					updateField($.sprintf("sys_pcicfg_s%s_%s_smap", pcislot, pcidev));
 				}
 			});
 		}
