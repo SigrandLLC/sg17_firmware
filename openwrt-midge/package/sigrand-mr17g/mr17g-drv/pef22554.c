@@ -1,3 +1,14 @@
+/* pef22554.c
+ *  Sigrand MR17G E1 PCI adapter driver for linux (kernel 2.6.x)
+ *
+ *	Written 2008 by Artem Y. Polyakov (artpol84@gmail.com)
+ *
+ *	This driver presents MR17G modem to OS as common hdlc interface.
+ *
+ *	This software may be used and distributed according to the terms
+ *	of the GNU General Public License.
+ *
+ */
 
 #include "mr17g.h"
 #include "mr17g_sci.h"
@@ -52,6 +63,8 @@ pef22554_defcfg(struct mr17g_channel *chan)
     cfg->framed = 1;
     cfg->hdb3 = 1;
     cfg->slotmap = 0xFFFE;
+    cfg->crc16 = 1;
+    cfg->fill_7e = 1;
 }
 
 int
@@ -77,8 +90,8 @@ pef22554_writereg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 val)
     cmd->data = val;
     size = mr17g_sci_request(chip,buf,PEF22554_WCMD_SIZE);
     if( size != PEF22554_WACK_SIZE ){
-        printk(KERN_ERR"%s: Error setting QuadFALC register %04x = %02x\n",
-                MR17G_MODNAME,addr,val);
+        printk(KERN_ERR"%s: Error setting QuadFALC register %04x = %02x, size=%d(need %d)\n",
+                MR17G_MODNAME,addr,val,size,PEF22554_WACK_SIZE);
         goto error;
     }
     ack = (struct pef22554_write_ack*)buf;
@@ -116,8 +129,8 @@ pef22554_readreg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 *val)
     cmd->rdepth = 1;
     size = mr17g_sci_request(chip,buf,PEF22554_RCMD_SIZE);
     if( size != PEF22554_RACK_SIZE ){
-        printk(KERN_ERR"%s: Error reading QuadFALC register %04x\n",
-                MR17G_MODNAME,addr);
+        printk(KERN_ERR"%s: Error reading QuadFALC register %04x, size=%d(need %d)\n",
+                MR17G_MODNAME,addr,size,PEF22554_RACK_SIZE);
         goto error;
     }
     ack = (struct pef22554_read_ack*)buf;
@@ -484,7 +497,7 @@ pef22554_channel(struct mr17g_channel *chan)
 		cfg->cas=0;
 		cfg->crc4=0;
 	}else if( cfg->cas ){
-		cfg->ts16=0;
+//		cfg->ts16=0;
 	}
 
     // FMR0: 0xF0 - HDB3, 0xA0 - AMI

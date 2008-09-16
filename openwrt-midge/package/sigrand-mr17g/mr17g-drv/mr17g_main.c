@@ -18,7 +18,7 @@
 #include "pef22554.h"
 
 // Debug settings
-#define DEBUG_ON
+//#define DEBUG_ON
 #define DEFAULT_LEV 10
 #include "mr17g_debug.h"
 
@@ -92,10 +92,6 @@ mr17g_init_one( struct pci_dev *pdev,const struct pci_device_id *ent )
     }
 	pci_set_drvdata(pdev,card);
 
-//!!!!!!!!!1
-//debug_sci = 40;
-//!!!!!!!!!!!!!1
-
 	PDEBUG(debug_init,"end, card = %p",card);
 	return 0;
 pcifree:	
@@ -126,6 +122,7 @@ mr17g_init_card(struct pci_dev *pdev)
 {
     struct mr17g_card *card = NULL;
     int i,j;
+    u32 len;
 
     PDEBUG(debug_init,"start");
 
@@ -140,6 +137,7 @@ mr17g_init_card(struct pci_dev *pdev)
     card->number = cur_card_number++;
 	card->iomem_start = pci_resource_start( card->pdev, 1 );
 	card->iomem_end = pci_resource_end( card->pdev, 1 );
+    len = pci_resource_len(pdev,1);
 	sprintf(card->name,MR17G_DRVNAME"_%d",card->number);
     switch( card->pdev->device ){
     case MR17G4_PCI_DEV:

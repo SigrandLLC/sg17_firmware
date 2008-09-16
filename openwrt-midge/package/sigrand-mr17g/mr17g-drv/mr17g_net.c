@@ -18,7 +18,7 @@
 #include "mr17g_sysfs.h"
 
 // Debug settings
-#define DEBUG_ON
+//#define DEBUG_ON
 #define DEFAULT_LEV 10
 #include "mr17g_debug.h"
 
@@ -440,9 +440,9 @@ mr17g_get_rate(struct net_device *ndev)
     // in unframed mode bit0 allways unmapped
     storage &= ~1;
     // check if bit16 is mapped
-	if( !cfg->ts16 ){
-	    storage &= ~(1<<16);
-	}
+//	if( !cfg->ts16 ){
+//	    storage &= ~(1<<16);
+//	}
 	    
     // Count rate
 	while(storage){
@@ -465,9 +465,9 @@ mr17g_get_slotmap(struct net_device *ndev)
     // form slotmap for framed mode
 	if( cfg->framed ){
         storage &= ~1;
-		if( !cfg->ts16 ){
-	    		storage &= ~(1<<16);
-		}
+//		if( !cfg->ts16 ){
+//	    		storage &= ~(1<<16);
+//		}
 		return storage;
 	}
 
@@ -560,8 +560,8 @@ mr17g_transceiver_setup(struct mr17g_channel *ch)
 		tmpmap = 0;
 	}else{
 	    tmpmap &= ~(1);
-		if( !cfg->ts16 )
-		    tmpmap &= ~(1<<16);
+//		if( !cfg->ts16 )
+//		    tmpmap &= ~(1<<16);
 	}
 	smap=(u8*)&tmpmap;
 	iowrite8(smap[0],&regs->MAP0);
@@ -573,8 +573,8 @@ mr17g_transceiver_setup(struct mr17g_channel *ch)
 	tmpmap = cfg->mxslotmap;
 	if( cfg->framed ){
 	    tmpmap &= ~(1);
-		if( !cfg->ts16 )
-	  		tmpmap &= ~(1<<16);
+//		if( !cfg->ts16 )
+//	  		tmpmap &= ~(1<<16);
 	}else{
 		tmpmap = 0xffffffff;
 	}
@@ -749,4 +749,3 @@ recv_free_buffs( struct net_device *ndev)
 	PDEBUG(debug_recv,"end");			
 	return;
 }
-

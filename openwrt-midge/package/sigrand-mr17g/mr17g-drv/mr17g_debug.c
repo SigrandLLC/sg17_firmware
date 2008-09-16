@@ -10,10 +10,10 @@
  *
  */
 
-int debug_xmit=0;
-int debug_recv=0;
-int debug_irq=0;
-int debug_sci=0;
+int debug_xmit=40;
+int debug_recv=40;
+int debug_irq=40;
+int debug_sci=40;
 int debug_init=40;
 int debug_pef=40;
 int debug_cur=50;

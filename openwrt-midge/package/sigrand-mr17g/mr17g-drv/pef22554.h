@@ -1,3 +1,15 @@
+/* pef22554.h
+ *  Sigrand MR17G E1 PCI adapter driver for linux (kernel 2.6.x)
+ *
+ *	Written 2008 by Artem Y. Polyakov (artpol84@gmail.com)
+ *
+ *	This driver presents MR17G modem to OS as common hdlc interface.
+ *
+ *	This software may be used and distributed according to the terms
+ *	of the GNU General Public License.
+ *
+ */
+
 #ifndef PEF22554_H
 #define PEF22554_H
 
@@ -151,6 +163,7 @@ struct pef22554_read_ack{
 #define PCR     0x0039
 #define LIM2    0x003A
 #define LCR1    0x003B
+#   define      FLLB 0x02
 #define LCR2    0x003C
 #define LCR3    0x003D
 #define SIC1    0x003E

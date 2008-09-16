@@ -1,3 +1,15 @@
+/* mr17g_sysfs.c
+ *  Sigrand MR17G E1 PCI adapter driver for linux (kernel 2.6.x)
+ *
+ *	Written 2008 by Artem Y. Polyakov (artpol84@gmail.com)
+ *
+ *	This driver presents MR17G modem to OS as common hdlc interface.
+ *
+ *	This software may be used and distributed according to the terms
+ *	of the GNU General Public License.
+ *
+ */
+
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -11,7 +23,7 @@
 #include "mr17g_net.h"
 #include "pef22554.h"
 
-#define DEBUG_ON
+//#define DEBUG_ON
 #define DEBUG_LEV 10
 #include "mr17g_debug.h"
 
@@ -59,8 +71,8 @@ slotmap2str(u32 smap,struct mr17g_chan_config *cfg,char *buf)
 	
 	if( cfg->framed ){
 	    smap &= ~1;
-		if( !cfg->ts16 )
-			smap &= ~(1<<16);
+//		if( !cfg->ts16 )
+//			smap &= ~(1<<16);
 	}
 	
 	for(i=0;i<32;i++){
@@ -537,7 +549,7 @@ store_cas( struct class_device *cdev,const char *buf, size_t size )
 	if( size > 0 ){
 		if( buf[0]=='0' )
 			cfg->cas=0;
-		else if( buf[0]=='1' && !cfg->ts16 )
+		else if( buf[0]=='1' /*&& !cfg->ts16*/ )
 			cfg->cas=1;
 		else
 			return size;

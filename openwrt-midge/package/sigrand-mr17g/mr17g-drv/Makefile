@@ -1,3 +1,7 @@
+# Makefile for Sigrand MR17G module driver
+# Written by Artem Y. Polyakov <artpol84@gmail.com>
+# 01.09.2008
+
 obj-m := mr17g.o
 mr17g-objs := mr17g_main.o mr17g_sci.o mr17g_net.o pef22554.o mr17g_sysfs.o mr17g_debug.o
 

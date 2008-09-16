@@ -1,3 +1,13 @@
+/* sg17ring_funcs.h
+ *  Sigrand Ring descriptor buffer control code
+ *
+ *	Written 2008 by Artem Y. Polyakov (artpol84@gmail.com)
+ *
+ *	This software may be used and distributed according to the terms
+ *	of the GNU General Public License.
+ *
+ */
+
 #ifndef SIGRAND_RING_FUNCS_H
 #define SIGRAND_RING_FUNCS_H
 

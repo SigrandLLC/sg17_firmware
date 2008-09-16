@@ -2,30 +2,30 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=sigrand-mr16g
+PKG_NAME:=oem-e1-ver2
 PKG_RELEASE:=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
-ifeq ($(BR2_PACKAGE_SIGRAND_MR16G_DEBUG),y)
+ifeq ($(BR2_PACKAGE_SIGRAND_MR17G_DEBUG),y)
     CFLAGS +=-DSYSFS_DEBUG
     DEBUG := yes
 endif
 
 include $(TOPDIR)/package/rules.mk
 
-$(eval $(call PKG_template,SIGRAND_MR16G,sigrand-mr16g,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
+$(eval $(call PKG_template,SIGRAND_MR16G,oem-e1-gen2,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
 $(PKG_BUILD_DIR)/.prepared:
 	@echo "PKG_DIR="$(PKG_BUILD_DIR)
 	mkdir -p $(PKG_BUILD_DIR)
-	cp -R mr16g-drv $(PKG_BUILD_DIR)
+	cp -R mr17g-drv $(PKG_BUILD_DIR)
 	touch $@
 
 $(PKG_BUILD_DIR)/.configured:
-	rm --preserve-root -f $(PKG_BUILD_DIR)/mr16g-drv/Makefile
-	sed <$(PKG_BUILD_DIR)/mr16g-drv/Makefile.tmpl \
-	> $(PKG_BUILD_DIR)/mr16g-drv/Makefile \
+	rm --preserve-root -f $(PKG_BUILD_DIR)/mr17g-drv/Makefile
+	sed <$(PKG_BUILD_DIR)/mr17g-drv/Makefile.tmpl \
+	> $(PKG_BUILD_DIR)/mr17g-drv/Makefile \
 	-e "s%@KERNSRC@%$(LINUX_DIR)%g" \
 	-e "s%@CROSS_PREFIX@%$(KERNEL_CROSS)%g" \
 	-e "s%@CFLAGS@%$(CFLAGS)%g" \
@@ -36,13 +36,13 @@ $(PKG_BUILD_DIR)/.configured:
 	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR16G_TOOL)%g" 
 
 # ------------- OEM ----------------------#
-	sed <$(PKG_BUILD_DIR)/mr16g-drv/mr16oem.h.tmpl \
-	> $(PKG_BUILD_DIR)/mr16g-drv/sg16oem.h \
-	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR16G)%g" \
+	sed <$(PKG_BUILD_DIR)/mr17g-drv/mr17_oem.h.tmpl \
+	> $(PKG_BUILD_DIR)/mr17g-drv/mr17g_oem.h \
+	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR17G)%g" \
 	-e "s%@PWRSFX@%$(BR2_SIGRAND_OEM_PWRSFX)%g" \
-	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR16G_DRV)%g" 
+	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17G_DRV)%g" 
 #-------- Driver configuration OEM ------------#
-	sed <$(PKG_BUILD_DIR)/mr16g-drv/tools/mr16gcfg.tmpl  \
+	sed <$(PKG_BUILD_DIR)/mr17g-drv/tools/mr17gcfg.tmpl  \
 	> $(PKG_BUILD_DIR)/mr16g-drv/tools/mr16gcfg \
 	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR16G)%g" \
 	-e "s%@MANUFACTURER@%$(BR2_SIGRAND_OEM_MANUFACTURER)%g" \
