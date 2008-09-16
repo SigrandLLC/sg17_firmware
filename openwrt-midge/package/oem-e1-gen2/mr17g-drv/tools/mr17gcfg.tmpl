@@ -7,6 +7,10 @@
 #
 #---------------------------------------------------------
 
+MANUFACTURER=@MANUFACTURER@
+MODNAME=@MODNAME@
+DRVNAME=@DRVNAME@
+
 print_stat()
 {
 
@@ -15,7 +19,7 @@ print_stat()
     fi
     iface=$1
     echo "---------------------------------------"
-    echo "@MANUFACTURER@ @MODNAME@ E1 adapter"
+    echo "$MANUFACTURER $MODNAME E1 adapter"
     echo "Common E1 settings:"
     sethdlc $iface
     echo "E1 settings:"
@@ -25,12 +29,11 @@ print_stat()
     echo "    mode:      "$fr
     if [ "$fr" != "unframed" ]; then
 	echo "    crc4:      "`cat crc4`
-        echo "    cas:       "`cat cas`       			
-	echo "    ts16:      "`cat map_ts16`
+    echo "    cas:       "`cat cas`       			
     fi
-    echo "    long haul: "`cat long_haul`    
-    echo "E1 loopback settings:"
-    echo "    local="`cat llpb`" remote="`cat rlpb`
+    echo "    long haul: "`cat lhaul`    
+#    echo "E1 loopback settings:"
+#    echo "    local="`cat llpb`" remote="`cat rlpb`
     echo "HDLC controller settings:"
     echo "    "`cat crc16`" "`cat inv`" "`cat fill_7e`" "`cat rburst`" "`cat wburst`
 }					    
@@ -39,14 +42,14 @@ print_stat()
 
 # Check that interface name specifyed
 if [ $# = 0 ]; then
-    echo "@MANUFACTURER@ @MODNAME@ configuration tool"
+    echo "$MANUFACTURER $MODNAME configuration tool"
     echo "Usage:"
-    echo "  $0 <if> [args]        - set @MODNAME@ card parameters"
-    echo "  <if> - @MODNAME@ network interface name (hdlcX)"
+    echo "  $0 <if> [args]        - set $MODNAME card parameters"
+    echo "  <if> - $MODNAME network interface name (hdlcX)"
     echo "Possible arguments:"
     echo "E1 options:"    
     echo "  framed | unframed          - set framed/unframed mode"
-    echo "  ts16 on|off                - use timeslot 16"        
+#    echo "  ts16 on|off                - use timeslot 16"        
     echo "  slotmap SLOTMAP            - set slotmap in format: \"2-3,6-9,15-20\""
     echo "  clk int|ext                - transmit clock: internal/extrnal(from receiver)"
     echo "  hdb3|ami                   - E1 HDB3/AMI line code"    
@@ -66,21 +69,19 @@ if [ $# = 0 ]; then
 fi
 cdir=`pwd`
 
-cd /sys/bus/pci/drivers
+DRV_PATH=/sys/bus/pci/drivers/$DRVNAME
 
-if [ ! -d "@DRVNAME@" ]; then
+if [ ! -d "$DRV_PATH" ]; then
     echo "$0 driver was not loaded!"
     exit
 fi
-cd @DRVNAME@
 
-
-# CD to the device dir
-if [ ! -d $1 ]; then
+IF_PATH="/sys/class/net/$1/hw_private"
+if [ ! -d "$IF_PATH" ]; then
     echo $0": No such device "$1
     exit
 fi
-cd $1
+cd $IF_PATH
 interf=$1
 
 # settings
@@ -88,12 +89,6 @@ if [ $# = 1 ]; then
     print_stat $interf
     exit
 fi
-
-ifisup=`ifconfig $interf | grep UP`
-if [ -n "$ifisup" ]; then
-    ifisup=1
-fi
-							    
 
 # initial config
 shift
@@ -115,18 +110,18 @@ while [ ! -z "$1" ]; do
 	shift
 	;;
 	
-    "ts16")
-	if [ -z "$2" ]; then
-	    echo $0": syntax error, after \"ts16\" "
-	    break
-	fi
-	if [ "$2" = "on" ]; then
-	    echo 1 > map_ts16
-	elif [ "$2" = "off" ]; then
-	    echo 0 > map_ts16
-	fi
-	shift	
-	;;    
+#    "ts16")
+#	if [ -z "$2" ]; then
+#	    echo $0": syntax error, after \"ts16\" "
+#	    break
+#	fi
+#	if [ "$2" = "on" ]; then
+#	    echo 1 > map_ts16
+#	elif [ "$2" = "off" ]; then
+#	    echo 0 > map_ts16
+#	fi
+#	shift	
+#	;;    
 
     "lhaul")
 	if [ -z "$2" ]; then
@@ -134,9 +129,9 @@ while [ ! -z "$1" ]; do
 	    break
 	fi
 	if [ "$2" = "on" ]; then
-	    echo 1 > long_haul
+	    echo 1 > lhaul
 	elif [ "$2" = "off" ]; then
-	    echo 0 > long_haul
+	    echo 0 > lhaul
 	fi
 	shift	
 	;;    
@@ -155,10 +150,10 @@ while [ ! -z "$1" ]; do
 	;;    
 
     "hdb3")
-	echo 1 > hdb3   
+    	echo 1 > hdb3   
 	;;    
     "ami")
-	echo 0 > hdb3
+	    echo 0 > hdb3
 	;;    
 
     "crc4")
@@ -218,30 +213,32 @@ while [ ! -z "$1" ]; do
     "fill_7e")
 	echo 1 > fill_7e
 	;;
-    "lloop")
-	if [ -z $2 ]; then
-	    echo $0": syntax error, after \"lloop\" "
-	    break
-	fi
-	if [ $2 = "on" ]; then
-	    echo 1 > llpb
-	elif [ $2 = "off" ]; then
-	    echo 0 > llpb
-	fi
-	shift	
-	;;    
-    "rloop")
-	if [ -z $2 ]; then
-	    echo $0": syntax error, after \"rloop\" "
-	    break
-	fi
-	if [ $2 = "on" ]; then
-	    echo 1 > rlpb
-	elif [ $2 = "off" ]; then
-	    echo 0 > rlpb
-	fi
-	shift	
-	;;    
+ 
+#   "lloop")
+#	if [ -z $2 ]; then
+#	    echo $0": syntax error, after \"lloop\" "
+#	    break
+#	fi
+#	if [ $2 = "on" ]; then
+#	    echo 1 > llpb
+#	elif [ $2 = "off" ]; then
+#	    echo 0 > llpb
+#	fi
+#	shift	
+#	;;    
+#   "rloop")
+#	if [ -z $2 ]; then
+#	    echo $0": syntax error, after \"rloop\" "
+#	    break
+#	fi
+#	if [ $2 = "on" ]; then
+#	    echo 1 > rlpb
+#	elif [ $2 = "off" ]; then
+#	    echo 0 > rlpb
+#	fi
+#	shift	
+#	;;    
+
     *)
 	echo $0": error parameter - "$1
 	;;

@@ -33,7 +33,8 @@ $(PKG_BUILD_DIR)/.configured:
 	-e "s%@INST_PATH@%$(IDIR_SIGRAND_MR16G)%g" \
 	-e "s%@DEBUG@%$(DEBUG)%g" \
 	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR16G_DRV)%g" \
-	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR16G_TOOL)%g" 
+	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR16G_TOOL)%g" \
+	-e "s%@DBGTOOLNAME@%$(BR2_SIGRAND_OEM_MR16G_DBGTOOL)%g" 
 
 # ------------- OEM ----------------------#
 	sed <$(PKG_BUILD_DIR)/mr16g-drv/mr16oem.h.tmpl \
@@ -45,12 +46,14 @@ $(PKG_BUILD_DIR)/.configured:
 	> $(PKG_BUILD_DIR)/mr16g-drv/tools/mr16gcfg \
 	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR16G)%g" \
 	-e "s%@MANUFACTURER@%$(BR2_SIGRAND_OEM_MANUFACTURER)%g" \
+	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR16G_TOOL)%g" \
 	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR16G_DRV)%g" 
 #------- Driver debugger OEM -----------#
 	sed <$(PKG_BUILD_DIR)/mr16g-drv/tools/mr16g_debug.tmpl  \
 	> $(PKG_BUILD_DIR)/mr16g-drv/tools/mr16g_debug \
 	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR16G_DRV)%g" \
 	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR16G)%g" \
+	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR16G_DBGTOOL)%g" \
 	-e "s%@MANUFACTURER@%$(BR2_SIGRAND_OEM_MANUFACTURER)%g" 
 
 # ------------- OEM end ------------------#

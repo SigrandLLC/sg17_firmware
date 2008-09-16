@@ -1124,7 +1124,7 @@ static CLASS_DEVICE_ATTR(pwrunb,0444,show_pwrunb,NULL);
 
 // ------------------------- DEBUG ---------------------------------------- //
 
-#ifdef DEBUG_ON
+#ifdef DEBUG_SYSFS
 // debug_verbosity
 static ssize_t
 store_debug_on( struct class_device *cdev,const char *buf, size_t size ) 
@@ -1201,7 +1201,7 @@ store_loopback( struct class_device *cdev,const char *buf, size_t size )
 }
 static CLASS_DEVICE_ATTR(loopback, 0200 ,NULL,store_loopback);
 
-#endif DEBUG_ON
+#endif // DEBUG_SYSFS
 
 // ------------------------------------------------------------------------ //
 static struct attribute *sg17_attr[] = {
@@ -1238,11 +1238,12 @@ static struct attribute *sg17_attr[] = {
 // advanced link check
 &class_device_attr_advlink.attr,
 // debug
-#ifdef DEBUG_ON
+#ifdef DEBUG_SYSFS
 &class_device_attr_debug_on.attr,	
 &class_device_attr_regs.attr,
 &class_device_attr_loopback.attr,
-#endif
+#endif // DEBUG_SYSFS
+
 NULL
 };
 

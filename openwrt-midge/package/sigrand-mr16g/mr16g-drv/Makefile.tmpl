@@ -10,7 +10,7 @@ all: @DRVNAME@.ko
 install: @DRVNAME@.ko
 	install -m 600 @DRVNAME@.ko @INST_PATH@/lib/modules/@KERNVER@/
 	install -m 700 ./tools/mr16gcfg @INST_PATH@/sbin/@TOOLNAME@
-	[ "yes" != "@DEBUG@" ] || install -m 744 ./tools/mr16g_debug @INST_PATH@/sbin
+	[ "yes" != "@DEBUG@" ] || install -m 744 ./tools/mr16g_debug @INST_PATH@/sbin/@DBGTOOLNAME@
 
 clean:
 	rm --preserve-root -f .*.o*

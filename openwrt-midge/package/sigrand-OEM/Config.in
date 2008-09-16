@@ -1,3 +1,4 @@
+#-------------- General OEM information ------------------------#
 comment "General OEM information"
 config BR2_SIGRAND_OEM_MANUFACTURER
 prompt "Manufacturer"
@@ -24,7 +25,7 @@ prompt "OEM interface prefix in module names."
 string
 default ""
 
-
+#-------------- OEM Logos ------------------------#
 comment "Logotypes"
 
 config BR2_SIGRAND_OEM_LOGO
@@ -41,6 +42,8 @@ config BR2_SIGRAND_OEM_BGROUND
 prompt "Default system name"
 string
 default "default"
+
+#-------------- OEM SHDSL modules ------------------------#
 
 comment "MR17H SHDSL module"
 config BR2_SIGRAND_OEM_MR17H
@@ -63,8 +66,6 @@ prompt "MR17H SHDSL module power source suffix"
 string
 default "P2"
 
-
-
 config BR2_SIGRAND_OEM_MR17H_DRV
 prompt "MR17H SHDSL module driver name"
 string
@@ -75,21 +76,12 @@ prompt "MR17H SHDSL configuration tool name"
 string
 default "mr17h_cfg"
 
-comment "E1 module"
-config BR2_SIGRAND_OEM_MR16G
-prompt "MR16G E1 module name"
+config BR2_SIGRAND_OEM_MR17H_DBGTOOL
+prompt "MR17H SHDSL debugging tool name"
 string
-default "MR16G"
+default "mr17h_debug"
 
-config BR2_SIGRAND_OEM_MR16G_DRV
-prompt "MR16G E1 module driver name"
-string
-default "mr16g"
-
-config BR2_SIGRAND_OEM_MR16G_TOOL
-prompt "MR16G E1 configuration tool name"
-string
-default "mr16g_cfg"
+#-------------
 
 comment "MR16H SHDSL module"
 config BR2_SIGRAND_OEM_MR16H
@@ -106,3 +98,61 @@ config BR2_SIGRAND_OEM_MR16H_TOOL
 prompt "MR16H SHDSL configuration tool name"
 string
 default "mr16h_cfg"
+
+config BR2_SIGRAND_OEM_MR16H_DBGTOOL
+prompt "MR16H SHDSL debugging tool name"
+string
+default "mr16h_debug"
+
+#-------------- OEM E1 modules ------------------------#
+
+comment "MR16G E1 module"
+config BR2_SIGRAND_OEM_MR16G
+prompt "MR16G E1 module name"
+string
+default "MR16G"
+
+config BR2_SIGRAND_OEM_MR16G_DRV
+prompt "MR16G E1 module driver name"
+string
+default "mr16g"
+
+config BR2_SIGRAND_OEM_MR16G_TOOL
+prompt "MR16G E1 configuration tool name"
+string
+default "mr16g_cfg"
+
+config BR2_SIGRAND_OEM_MR16G_TOOL
+prompt "MR16G E1 configuration tool name"
+string
+default "mr16g_cfg"
+
+config BR2_SIGRAND_OEM_MR16G_DBGTOOL
+prompt "MR16G E1 debugging tool name"
+string
+default "mr16g_debug"
+
+#-------------
+
+comment "MR17G E1 module"
+config BR2_SIGRAND_OEM_MR17G
+prompt "MR17G E1 module name"
+string
+default "MR17G"
+
+config BR2_SIGRAND_OEM_MR17G_DRV
+prompt "MR17G E1 module driver name"
+string
+default "mr17g"
+
+config BR2_SIGRAND_OEM_MR17G_TOOL
+prompt "MR17G E1 configuration tool name"
+string
+default "mr17g_cfg"
+
+config BR2_SIGRAND_OEM_MR17G_DBGTOOL
+prompt "MR17G E1 debugging tool name"
+string
+default "mr17g_debug"
+
+

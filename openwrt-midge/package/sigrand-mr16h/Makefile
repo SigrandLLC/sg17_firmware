@@ -34,7 +34,8 @@ $(PKG_BUILD_DIR)/.configured:
 	-e "s%@KERNVER@%2.6.16%g" \
 	-e "s%@INST_PATH@%$(IDIR_SIGRAND_MR16H)%g" \
 	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR16H_DRV)%g" \
-	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR16H_TOOL)%g" 
+	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR16H_TOOL)%g" \
+	-e "s%@DBGTOOLNAME@%$(BR2_SIGRAND_OEM_MR16H_DBGTOOL)%g" 
 # OEM
 #-------- Driver OEM ------------#
 	sed <$(PKG_BUILD_DIR)/mr16h-drv/sg16oem.h.tmpl \

@@ -7,6 +7,11 @@
 #
 #---------------------------------------------------------
 
+MANUFACTURER=@MANUFACTURER@
+MODNAME=@MODNAME@
+TOOLNAME=@TOOLNAME@
+DRVNAME=@DRVNAME@
+
 print_stat()
 {
 
@@ -15,7 +20,7 @@ print_stat()
     fi
     iface=$1
     echo "---------------------------------------"
-    echo "@MANUFACTURER@ @MODNAME@ E1 adapter"
+    echo "$MANUFACTURER $MODNAME E1 adapter"
     echo "Common E1 settings:"
     sethdlc $iface
     echo "E1 settings:"
@@ -39,10 +44,10 @@ print_stat()
 
 # Check that interface name specifyed
 if [ $# = 0 ]; then
-    echo "@MANUFACTURER@ @MODNAME@ configuration tool"
+    echo "$MANUFACTURER $MODNAME configuration tool"
     echo "Usage:"
-    echo "  $0 <if> [args]        - set @MODNAME@ card parameters"
-    echo "  <if> - @MODNAME@ network interface name (hdlcX)"
+    echo "  $TOOLNAME <if> [args]        - set $MODNAME card parameters"
+    echo "  <if> - $MODNAME network interface name (hdlcX)"
     echo "Possible arguments:"
     echo "E1 options:"    
     echo "  framed | unframed          - set framed/unframed mode"
@@ -68,11 +73,11 @@ cdir=`pwd`
 
 cd /sys/bus/pci/drivers
 
-if [ ! -d "@DRVNAME@" ]; then
+if [ ! -d "$DRVNAME" ]; then
     echo "$0 driver was not loaded!"
     exit
 fi
-cd @DRVNAME@
+cd "$DRVNAME"
 
 
 # CD to the device dir

@@ -323,6 +323,7 @@ package-$(BR2_PACKAGE_SIGRAND_ADM5120SW) += sigrand-adm5120sw
 package-$(BR2_PACKAGE_HOTPLUG) += hotplug
 package-$(BR2_PACKAGE_CONTEXT_HELP) += context-help
 package-$(BR2_PACKAGE_CONTEXT_HELP_OEM) += context-help-oem
+package-$(BR2_PACKAGE_SIGRAND_MR17G) += oem-e1-gen2
 package-$(BR2_PACKAGE_OEM_VOIP) += oem-voip
 #
 #package-$(BR2_PACKAGE_APRSD) += aprsd

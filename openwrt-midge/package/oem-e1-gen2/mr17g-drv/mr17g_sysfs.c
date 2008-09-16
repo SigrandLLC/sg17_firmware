@@ -961,6 +961,8 @@ static CLASS_DEVICE_ATTR(mx_clkr,0644,show_mx_clkr,store_mx_clkr);
 
 //-------------------------------- DEBUG -----------------------------------------//
 
+#ifdef DEBUG_SYSFS
+
 // HDLC registers
 static ssize_t 
 show_hdlc_regs(struct class_device *cdev, char *buf) 
@@ -1048,9 +1050,8 @@ store_writereg(struct class_device *cdev,const char *buf,size_t size)
 }
 static CLASS_DEVICE_ATTR(chip_writereg,0200,NULL,store_writereg);
 
-//---------------- DEBUG -------------------------//
-// Memory window debug 
 
+// Memory window debug 
 static u32 win_start=0,win_count=0;
 static ssize_t
 show_winread(struct class_device *cdev, char *buf) 
@@ -1156,6 +1157,8 @@ store_testxmit(struct class_device *cdev,const char *buf,size_t size)
 }
 static CLASS_DEVICE_ATTR(testxmit,0200,NULL,store_testxmit);
 
+#endif // DEBUG_SYSFS
+
 
 // ------------------------------------------------------------------------ //
 static struct attribute *mr17g_attr[] = {
@@ -1174,13 +1177,17 @@ static struct attribute *mr17g_attr[] = {
 // PCI
 &class_device_attr_rburst.attr,
 &class_device_attr_wburst.attr,
+
 // debug
+#ifdef DEBUG_SYSFS
 &class_device_attr_hdlc_regs.attr,
 &class_device_attr_chip_readreg.attr,
 &class_device_attr_chip_writereg.attr,
 &class_device_attr_winread.attr,
 &class_device_attr_winwrite.attr,
 &class_device_attr_testxmit.attr,
+#endif // DEBUG_SYSFS
+
 NULL
 };
 

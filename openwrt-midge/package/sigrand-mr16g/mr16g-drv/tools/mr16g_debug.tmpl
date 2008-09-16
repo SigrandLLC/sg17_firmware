@@ -8,14 +8,20 @@
 
 PCI_PATH="/sys/bus/pci/drivers/@DRVNAME@"
 
+MANUFACTURER=@MANUFACTURER@
+MODNAME=@MODNAME@
+TOOLNAME=@TOOLNAME@
+DRVNAME=@DRVNAME@
+
+
 #---------------------------------------------------------
 
 print_usage()
 {
-    echo "@MANUFACTURER@ @DRVNAME@ IO window debug tool"
+    echo "$MANUFACTURER $DRVNAME IO window debug tool"
     echo "Usage:"
-    echo "  $0 <if> s <addr> <val>     - set register <addr> to <val>"
-    echo "  $0 <if> r <addr> <count>   - read <count> bytes starting from <addr>"    
+    echo "  $TOOLNAME <if> s <addr> <val>     - set register <addr> to <val>"
+    echo "  $TOOLNAME <if> r <addr> <count>   - read <count> bytes starting from <addr>"    
 }
 
 

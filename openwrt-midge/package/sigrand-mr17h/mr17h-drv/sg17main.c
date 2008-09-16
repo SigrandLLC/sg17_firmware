@@ -730,8 +730,8 @@ sg17_tranceiver_up( struct net_local *nl)
  *      Card related functions
  * -------------------------------------------------------------------------- */
  
-//#define SYSFS_DEBUG
-#ifdef SYSFS_DEBUG
+//#define DEBUG_SYSFS
+#ifdef DEBUG_SYSFS
 
 //-----------   DEBUG ------------------//
 
@@ -916,7 +916,7 @@ sg17_sci_sysfs_register(struct device *dev) { }
 inline void
 sg17_sci_sysfs_remove(struct device *dev){ }
 
-#endif // SYSFS_DEBUG
+#endif // DEBUG_SYSFS
  
  
  
