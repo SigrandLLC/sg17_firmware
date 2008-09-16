@@ -484,7 +484,6 @@ static void mr17s_shutdown(struct uart_port *port)
     struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
     struct mr17s_hw_regs *regs = &mem->regs;
     PDEBUG(debug_hw,"");
-    printk(KERN_NOTICE"%s\n",__FUNCTION__);
     // Disable interrupts
     iowrite8(0,&regs->IMR);
     iowrite8(0,&regs->CRA);
@@ -539,14 +538,12 @@ mr17s_tx_empty(struct uart_port *port)
     struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
     struct mr17s_hw_regs *regs = &mem->regs;
     
-    printk(KERN_NOTICE"port timeout=%d\n",port->timeout);
     if( ioread8(&regs->MXCR) & MXEN){
         // In mux mode - allways empty
         return TIOCSER_TEMT;
     }
     if( ioread8(&regs->CTR) == ioread8(&regs->LTR) )
         return TIOCSER_TEMT;
-    printk(KERN_NOTICE"%s: not empty: %d %d\n",__FUNCTION__,ioread8(&regs->CTR),ioread8(&regs->LTR));
     return 0;
 }
 
