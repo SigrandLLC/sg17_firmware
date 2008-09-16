@@ -11,6 +11,7 @@
 
 #include "debug.h"
 #include "dev_interface.h"
+#include "mxconfig.h"
 
 #define MAX_TS_BIT 32
 
@@ -88,20 +89,25 @@ fill_iflist(char *conf_path,ifdescr_t **iflist,int ifcnt)
 		iflist[i] = NULL;
     }
 
+    // Network devices supporting Sigrand multiplexing
     if( !(dir = opendir(conf_path)) ){
 		PDEBUG(DERR,"Cannot open dir: %s",conf_path);
 		return -1;
     }
-
-    while( ent = readdir(dir) ){
+    while( (ent = readdir(dir)) && (cnt < ifcnt)){
 		iflist[cnt] = malloc(sizeof(ifdescr_t));
+        if( !iflist[cnt] ){
+            mxerror("not enough memory");
+            return 0;
+        }
         iflist[cnt]->name = strdup(ent->d_name);
+        iflist[cnt]->type = network;
 		if( check_for_mxsupport(conf_path,iflist[cnt]) ){
 			free(iflist[cnt]->name);
 			free(iflist[cnt]);
 			iflist[cnt] = NULL;
 		}else{
-			if( accum_settings(conf_path,iflist[cnt]) ){
+			if( accum_settings_net(conf_path,iflist[cnt]) ){
 				free(iflist[cnt]->name);
 				free(iflist[cnt]);
 				iflist[cnt] = NULL;
@@ -110,8 +116,50 @@ fill_iflist(char *conf_path,ifdescr_t **iflist,int ifcnt)
 			cnt++;
 		}
     }
-
     closedir(dir);
+
+    // Serial devices supporting Sigrand multiplexing
+    for(i=0;;i++){
+        char name[64];
+        struct mxsettings dset;
+        int fd, ret;
+        devsetup_t *set;
+        snprintf(name,64,"%s/%s%d",DEVBASEPATH,DEVBASENAME,i);
+        
+        // Open device node
+        if( (fd=open(name,O_NONBLOCK)) < 0){
+            break;
+        }
+        // Test mux ability and get current settings
+        dset.magic = 0xAFAF;
+        if( ioctl(fd,TIOCGMX,(char*)&dset,sizeof(dset)) ){
+            mxwarn("Device with name %s not support multiplexing!",name);
+            continue;
+        }
+
+        // Add new element        
+        iflist[cnt] = malloc(sizeof(ifdescr_t));
+        if( !iflist[cnt] ){
+            mxerror("not enough memory");
+            return 0;
+        }
+        snprintf(name,64,"%s%d",DEVBASENAME,i);
+        iflist[cnt]->name = strdup(name);
+        iflist[cnt]->type = serial;
+        // Fill settings
+        set = &iflist[cnt]->settings;
+        set->type = continual_ts;
+        set->mxrate = dset.mxrate;
+        set->rline = dset.rline;
+        set->tline = dset.tline;
+        set->rfs = dset.rfs;
+        set->tfs = dset.tfs;
+        set->clkm = dset.clkm;    
+        set->clkab = dset.clkab;
+        set->clkr = dset.clkr;
+        set->mxen = dset.mxen;
+        cnt++;
+    }    
     return cnt;
 }
 
@@ -302,7 +350,7 @@ get_char_option(char *conf_path,char *name,char **val)
 }
 
 int
-apply_settings(char *conf_path,ifdescr_t *ifd)
+apply_settings_net(char *conf_path,ifdescr_t *ifd)
 {
     char conf[MAX_FNAME];
     char buf[BUF_SIZE];
@@ -354,7 +402,7 @@ apply_settings(char *conf_path,ifdescr_t *ifd)
 }
 
 int
-accum_settings(char *conf_path,ifdescr_t *ifd)
+accum_settings_net(char *conf_path,ifdescr_t *ifd)
 {
     char conf[MAX_FNAME];
     char *buf;
@@ -423,4 +471,38 @@ accum_settings(char *conf_path,ifdescr_t *ifd)
     return 0;
 }
 
+int
+apply_settings_ser(ifdescr_t *ifd)
+{
+    char name[64];
+    struct mxsettings dset;
+    int fd, ret;
+    devsetup_t *set;
+        
+    snprintf(name,64,"%s/%s",DEVBASEPATH,ifd->name);
+    // Open device node
+    if( (fd=open(name,O_NONBLOCK)) < 0){
+        mxerror("No such device %s",ifd->name);
+        return -1;
+    }
 
+    // Test mux ability and get current settings
+    dset.magic = 0xAFAF;
+    set = &ifd->settings;
+    dset.mxrate = set->mxrate;
+    dset.rline = set->rline;
+    dset.tline = set->tline;
+    dset.rfs = set->rfs;
+    dset.tfs = set->tfs;
+    dset.clkm = set->clkm;    
+    dset.clkab = set->clkab;
+    dset.clkr = set->clkr;
+    dset.mxen = set->mxen;
+    
+    // apply changes
+    if( ioctl(fd,TIOCSMX,(char*)&dset,sizeof(dset)) ){
+        mxerror("Device %s does not support multiplexing",ifd->name);
+        return -1;
+    }
+    return 0;
+}

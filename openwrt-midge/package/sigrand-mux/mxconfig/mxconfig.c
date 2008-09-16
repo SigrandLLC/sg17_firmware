@@ -646,25 +646,18 @@ int main(int argc, char *argv[] )
 					break;
 			}
 			if( i == cnt || !set){
-				printf("Error: cannot find interface %s\n",ifname);
+				mxerror("Error: cannot find interface %s\n",ifname);
 				return -1;
 			}
-
-			/*	    
-					char err_str[256];
-					switch( set->type ){
-					case continual_ts:
-					strcpy(err_str,"mxrate");
-					break;
-					case selective_ts:
-					strcpy(err_str,"mxsmap");
-					break;
-					}    
-					printf("Error: %s: for this type of interface you must specify %s\n",ifname,err_str);
-					return 0;
-			*/
-			iflist[i]->settings = settings;	    
-			apply_settings(IFS_ROOT,iflist[i]);
+			iflist[i]->settings = settings;
+            switch( iflist[i]->type ){
+            case network:
+    			apply_settings_net(IFS_ROOT,iflist[i]);
+                break;
+            case serial:
+    			apply_settings_ser(iflist[i]);
+                break;
+            }
 		}
 		break;
     case chck:
