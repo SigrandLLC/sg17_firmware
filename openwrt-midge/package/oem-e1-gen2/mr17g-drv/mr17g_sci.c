@@ -85,7 +85,7 @@ mr17g_sci_endmon(struct mr17g_chip *chip)
 }
 
 int 
-mr17g_sci_request(struct mr17g_chip *chip,char buf[SCI_BUF_SIZE],int size)
+mr17g_sci_request_one(struct mr17g_chip *chip,char buf[SCI_BUF_SIZE],int size)
 {
     volatile struct mr17g_sci_iomem *sci = &chip->iomem->sci;
 	u8 tmp = ioread8(&sci->regs.CRA);
@@ -184,6 +184,22 @@ exit:
 	PDEBUG(debug_sci,"end");	
     return size;
 }
+
+
+int 
+mr17g_sci_request(struct mr17g_chip *chip,char buf[SCI_BUF_SIZE],int size)
+{
+    int i,ret = 0;;
+    
+    for(i=0;i<3;i++){
+        if( (ret = mr17g_sci_request_one(chip,buf,size)) >= 0 ){
+            return ret;
+        }
+        PDEBUG(debug_error,"Iter %d, error",i);
+    }
+    return ret;
+}
+
 
 irqreturn_t
 mr17g_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *regs )
