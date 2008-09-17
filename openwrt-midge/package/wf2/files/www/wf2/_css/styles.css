@@ -209,6 +209,10 @@ ul.treeview li li li li li span {
 	border: 1px solid #6c9;
 }
 
+#conttable input.table {
+	width: 50px;
+}
+
 #conttable input.error {
 	background-color: yellow;
 }
@@ -279,4 +283,8 @@ a.clicked {
 
 div.pre {
 	font-family: monospace;
+}
+
+.fieldUpdated {
+	background-color: green;
 }

@@ -184,9 +184,11 @@ function Container(p, options, helpSection) {
 	
 	/* 
 	 * Adds title and context help link to container and adds it to container's table.
-	 * I18N for title.
+	 * 
+	 * title — I18N title.
+	 * colspan — number of cols to span for title cell.
 	 */
-	this.addTitle = function(title) {
+	this.addTitle = function(title, colspan) {
 		var url;
 		
 		/* if helpSection is object, it contains page and section names */
@@ -209,7 +211,7 @@ function Container(p, options, helpSection) {
 		
 		/* create table's row for title and context help link */
 		$.create('tr', {},
-			$.create('th', {'colSpan': '2'}, [
+			$.create('th', {'colSpan': colspan ? colspan : "2"}, [
 					_(title),
 					" ",
 					help
@@ -252,9 +254,8 @@ function Container(p, options, helpSection) {
 	 */
 	this.createTextWidget = function(w) {
 		var attrs = {
-			'type': 'text',
-			'name': w.name,
-			'size': '25'
+			"type": "text",
+			"name": w.name
 		};
 		w.id && (attrs['id'] = w.id);
 		w.tip && (attrs['title'] = _(w.tip));
@@ -276,9 +277,8 @@ function Container(p, options, helpSection) {
 	 */
 	this.createPasswordWidget = function(w) {
 		var attrs = {
-			'type': 'password',
-			'name': w.name,
-			'size': '25'
+			"type": "password",
+			"name": w.name
 		};
 		w.id && (attrs['id'] = w.id);
 		w.tip && (attrs['title'] = _(w.tip));
@@ -352,6 +352,8 @@ function Container(p, options, helpSection) {
 	 * Add subwidget (input, select, etc) to complete widget or to specified element.
 	 * w — widget to add.
 	 * insertAfter — if specified, insert new subwidget after this element.
+	 * 
+	 * return added widget.
 	 */
 	this.addSubWidget = function(w, insertAfter) {
 		var widget;
@@ -388,6 +390,8 @@ function Container(p, options, helpSection) {
 		
 		/* I18N for element's error messages */
 		w.message && (this.validator_messages[w.name] = _(w.message));
+		
+		return widget;
 	};
 	
 	/*
@@ -439,6 +443,18 @@ function Container(p, options, helpSection) {
 			addConsoleOut(0, cmd);
 		}
 	};
+	
+	/*
+	 * Create div in the form and add console output to it.
+	 * 
+	 * cmd — command to execute.
+	 */
+	this.addConsoleToForm = function(cmd) {
+		/* create div for command output */
+		var div = $.create('div', {'className': 'pre, cmdOutput'}).appendTo(this.form);
+		
+		cmdExecute(cmd, div);
+	};
 
 	/*
 	 * Adds submit button, form validation rules and submit's events handlers.
@@ -487,6 +503,7 @@ function Container(p, options, helpSection) {
 		$("<input type='submit' class='button' value='" + _("Save") + "'/>").appendTo(this.form);
 		
 		$("input").tooltip({track: true});
+		$("select").tooltip({track: true});
 		
 		/* apply validate rules to form */
 		$(this.form).validate({
@@ -508,8 +525,14 @@ function Container(p, options, helpSection) {
      		
      		/* (closure to timeout var) */
      		submitHandler: function(form) {
+     			/* call user function on submit event */
+     			if (options && options.onSubmit) options.onSubmit();
+     			
      			/* remove alert text */
-				$(".alertText").remove();
+				$(".alertText", form).remove();
+				
+				/* remove class indicating field updation */
+				$("*", form).removeClass("fieldUpdated");
 		
      			/*
      			 * All checkboxes return values, even they are unchecked.
@@ -584,6 +607,12 @@ function Container(p, options, helpSection) {
 		});
 	};
 	
+	/*
+	 * Add button which executes console command.
+	 * 
+	 * name — I18N name of button.
+	 * cmd — command to execute.
+	 */
 	this.addAction = function(name, cmd) {
 		/* create submit button */
 		$.create('input', {'type': 'submit', 'className': 'button', 'value': _(name)}).appendTo(this.form);
@@ -593,6 +622,43 @@ function Container(p, options, helpSection) {
 			cmdExecute(cmd);
 			return false;
 		});
+	};
+	
+	/* Add header for table */
+	this.addTableHeader = function(header) {
+		var tr = $.create("tr", {"align": "center"});
+		$.each(header.split(" "), function(num, value) {
+			$.create("td", {}, _(value)).appendTo(tr);
+		});
+		tr.appendTo(this.table);
+	};
+	
+	/* Adds row to the table */
+	this.addTableRow = function() {
+		return $.create("tr", {"align": "center"}).appendTo(this.table);
+	};
+	
+	/*
+	 * Adds table's cell with proper id.
+	 * 
+	 * w — widget.
+	 * row — destination row.
+	 */
+	this.addGeneralTableWidget = function(w, row) {
+		$.create("td", {"id": "td_" + w.name}).appendTo(row);
+	};
+	
+	/*
+	 * Add widget to table.
+	 * 
+	 * w — widget.
+	 * row — destination row.
+	 */
+	this.addTableWidget = function(w, row) {
+		this.addGeneralTableWidget(w, row);
+		
+		/* add subwidget and style it */
+		this.addSubWidget(w).addClass("table");		
 	};
 }
 
@@ -665,7 +731,7 @@ function addItem(path, name, func, params) {
  * 
  * name — name and id of field to update.
  */
-function updateField(name) {
+function updateField(name, alertText) {
 	/* save old value, update local KDB and get new value */
 	var oldValue = config.get(name);
 	config.loadKDB();
@@ -676,9 +742,14 @@ function updateField(name) {
 		/* set new value */
 		$("#" + name).val(newValue);
 		
+		/* set class */
+		$("#" + name).addClass("fieldUpdated");
+		
 		/* add info text to field name */
-		var widgetText = $("#" + name).parents("tr").children(".tdleft");
-		var alertText = $.create("span", {"style": "color: red", "className": "alertText"}, " updated");
-		widgetText.append(alertText);
+		if (alertText) {
+			var widgetText = $("#" + name).parents("tr").children(".tdleft");
+			var alertText = $.create("span", {"style": "color: red", "className": "alertText"}, " updated");
+			widgetText.append(alertText);
+		}
 	}
 }

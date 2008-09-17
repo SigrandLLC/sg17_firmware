@@ -647,7 +647,7 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		
 		c.addSubmit({
 			"onSuccess": function() {
-				updateField(mrateId);
+				updateField(mrateId, true);
 			}
 		});
 		

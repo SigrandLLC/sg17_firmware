@@ -128,7 +128,7 @@ function Config() {
 	this.saveVals = function(values) {
 		var outer = this;
 		$.each(values, function(name, value) {
-			outer.conf[name] = value;
+			outer.conf[name] = unescape(value);
 		});
 	};
 	
@@ -189,14 +189,20 @@ function Config() {
 	/* 
 	 * Parse record from KDB. If it consist of several variables — return array.
 	 * Variables are separated by '\040' character or by '\n'.
+	 * 
+	 * record — record to parse.
+	 * alwaysArray — always return array object, even there is only one value in whole record.
 	 */
-	this.parseRecord = function(record) {
+	this.parseRecord = function(record, alwaysArray) {
 		var parsedRecord = new Array();
 		/* \040 is a " " symbol */
 		var variableSet = record.split(/\\040|\\n/);
 		
 		/* if we have single variable in the record — simply return it */
-		if (variableSet.length == 1) return record;
+		if (variableSet.length == 1) {
+			if (alwaysArray) parsedRecord.push(record);
+			else return record;
+		}
 		
 		/* parse every variable in record */
 		$.each(variableSet, function(name, value) {

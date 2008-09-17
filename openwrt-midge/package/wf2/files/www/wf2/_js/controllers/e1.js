@@ -302,7 +302,7 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 			 */
 			c.addSubmit({
 				"onSuccess": function() {
-					updateField($.sprintf("sys_pcicfg_s%s_%s_smap", pcislot, pcidev));
+					updateField($.sprintf("sys_pcicfg_s%s_%s_smap", pcislot, pcidev), true);
 				}
 			});
 		}

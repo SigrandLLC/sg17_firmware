@@ -9,6 +9,8 @@ function generateMenu() {
 	addItem("System", "Tools", "tools");
 	addItem("System", "Reboot", "reboot");
 	
+	addItem("Hardware", "Multiplexing", "multiplexing");
+	
 	/* get list of PCI slots */
 	var slots = config.getParsed("sys_pcitbl_slots");
 	
