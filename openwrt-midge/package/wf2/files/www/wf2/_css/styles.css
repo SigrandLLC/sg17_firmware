@@ -210,7 +210,7 @@ ul.treeview li li li li li span {
 }
 
 #conttable input.table {
-	width: 50px;
+	width: 80%;
 }
 
 #conttable input.error {
@@ -287,4 +287,8 @@ div.pre {
 
 .fieldUpdated {
 	background-color: green;
+}
+
+tr.tableHeader {
+	font-weight: bold;
 }

@@ -626,7 +626,7 @@ function Container(p, options, helpSection) {
 	
 	/* Add header for table */
 	this.addTableHeader = function(header) {
-		var tr = $.create("tr", {"align": "center"});
+		var tr = $.create("tr", {"align": "center", "className": "tableHeader"});
 		$.each(header.split(" "), function(num, value) {
 			$.create("td", {}, _(value)).appendTo(tr);
 		});
@@ -724,32 +724,47 @@ function addItem(path, name, func, params) {
 }
 
 /*
- * Update specified field:
+ * Update specified fields:
  * update our local KDB, and if value of field was changed — update field and alert user
  * by appending text to field name.
  * ! Field must have ID identical to it's name !
  * 
- * name — name and id of field to update.
+ * fields — name (or array with names) of field to update.
+ * showAlertText — if field was updated — add message.
  */
-function updateField(name, alertText) {
-	/* save old value, update local KDB and get new value */
-	var oldValue = config.get(name);
-	config.loadKDB();
-	var newValue = config.get(name);
+function updateFields(fields, showAlertText) {
+	var oldValues = new Object();
 	
-	/* if value was updated */
-	if (oldValue != newValue) {
-		/* set new value */
-		$("#" + name).val(newValue);
-		
-		/* set class */
-		$("#" + name).addClass("fieldUpdated");
-		
-		/* add info text to field name */
-		if (alertText) {
-			var widgetText = $("#" + name).parents("tr").children(".tdleft");
-			var alertText = $.create("span", {"style": "color: red", "className": "alertText"}, " updated");
-			widgetText.append(alertText);
-		}
+	/* convert single field to array */
+	if (typeof fields == "string") {
+		var field = fields;
+		fields = new Array();
+		fields.push(field);
 	}
+	
+	/* save old values of fields */
+	$.each(fields, function(num, field) {
+		oldValues[field] = config.get(field);
+	});
+	
+	/* update local KDB */
+	config.loadKDB();
+	
+	/* check if fields was updated */
+	$.each(fields, function(num, field) {
+		if (oldValues[field] != config.get(field)) {
+			/* set new value */
+			$("#" + field).val(config.get(field));
+			
+			/* set class */
+			$("#" + field).addClass("fieldUpdated");
+			
+			/* add info text to field name */
+			if (showAlertText) {
+				var widgetText = $("#" + field).parents("tr").children(".tdleft");
+				var alertText = $.create("span", {"style": "color: red", "className": "alertText"}, " updated");
+				widgetText.append(alertText);
+			}
+		}
+	});
 }

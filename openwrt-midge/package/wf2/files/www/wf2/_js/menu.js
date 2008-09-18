@@ -9,17 +9,15 @@ function generateMenu() {
 	addItem("System", "Tools", "tools");
 	addItem("System", "Reboot", "reboot");
 	
-	addItem("Hardware", "Multiplexing", "multiplexing");
-	
-	/* get list of PCI slots */
-	var slots = config.getParsed("sys_pcitbl_slots");
-	
-	/* slots always should be of array type */
-	if (typeof slots == "string") {
-		var slot = slots;
-		slots = new Array();
-		slots.push(slot);
+	/* if we have interfaces with multiplexing support, add item to the menu */
+	if (config.getParsed("sys_mux_ifaces").length > 0) {
+		addItem("Hardware", "Multiplexing", "multiplexing");
 	}
+	
+	addItem("Hardware", "VoIP", "voip");
+	
+	/* get array of PCI slots */
+	var slots = config.getParsed("sys_pcitbl_slots");
 	
 	/* generate list of SHDSL interfaces */
 	$.each(slots, function(num, pcislot) {
@@ -42,15 +40,9 @@ function generateMenu() {
 		});
 	});
 	
-	/* generate list of interfaces */
+	/* generate list of network interfaces */
 	var ifaces = config.getParsed("sys_ifaces");
-	/* if we have several interfaces */
-	if (typeof ifaces == "object") {
-		$(ifaces).each(function(name, value) {
-			addItem("Network:Interfaces", value, "iface", [value]);
-		});
-	/* if we have only one interface */
-	} else {
-		addItem("Network:Interfaces", ifaces, "iface", [ifaces]);
-	}
+	$(ifaces).each(function(name, iface) {
+		addItem("Network:Interfaces", iface, "iface", [iface]);
+	});
 }

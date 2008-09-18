@@ -161,9 +161,11 @@ function Config() {
 	
 	/*
 	 * Return key's parsed value.
+	 * 
+	 * name — field's name.
 	 */
 	this.getParsed = function(name) {
-		return this.conf[name] ? this.parseRecord(this.conf[name]) : null;
+		return this.conf[name] != undefined ? this.parseRecord(this.conf[name]) : null;
 	};
 	
 	/*
@@ -191,17 +193,19 @@ function Config() {
 	 * Variables are separated by '\040' character or by '\n'.
 	 * 
 	 * record — record to parse.
-	 * alwaysArray — always return array object, even there is only one value in whole record.
 	 */
-	this.parseRecord = function(record, alwaysArray) {
+	this.parseRecord = function(record) {
 		var parsedRecord = new Array();
+		
+		if (record.length == 0) return parsedRecord;
+		
 		/* \040 is a " " symbol */
 		var variableSet = record.split(/\\040|\\n/);
 		
-		/* if we have single variable in the record — simply return it */
+		/* if we have single variable in the record, add it to the array and return */
 		if (variableSet.length == 1) {
-			if (alwaysArray) parsedRecord.push(record);
-			else return record;
+			parsedRecord.push(record);
+			return parsedRecord;
 		}
 		
 		/* parse every variable in record */

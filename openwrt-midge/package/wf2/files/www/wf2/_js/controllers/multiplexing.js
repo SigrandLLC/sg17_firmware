@@ -22,7 +22,7 @@ Controllers['multiplexing'] = function() {
 				}
 			};
 			
-			$.each(config.getParsed("sys_mux_ifaces", true), function(num, iface) {
+			$.each(config.getParsed("sys_mux_ifaces"), function(num, iface) {
 				var row = c.addTableRow();
 				
 				field = {
@@ -109,7 +109,7 @@ Controllers['multiplexing'] = function() {
 					tip = "Enter <i>mxrate</i> for DSL interface. <i>mxrate</i> is a number of time-slots (e.g., <i>12</i>).";
 				} else {
 					rate = "mxsmap";
-					tip = "Enter <i>mxsmap</i> for E1 interface. <i>mxsmap</i> is a map of time-slots (e.g., <i>0-31</i>). This value can be changed after saving.";
+					tip = "Enter <i>mxsmap</i> for E1 interface. <i>mxsmap</i> is a map of time-slots (e.g., <i>1-31</i>). This value can be changed after saving.";
 				}
 				
 				id = $.sprintf("sys_mux_%s_%s", iface, rate);
@@ -132,11 +132,13 @@ Controllers['multiplexing'] = function() {
 				},
 				"onSuccess": function() {
 					/* MXSMAP can be cnanged by system */
-					$.each(config.getParsed("sys_mux_ifaces", true), function(num, iface) {
+					var fields = new Array();
+					$.each(config.getParsed("sys_mux_ifaces"), function(num, iface) {
 						if (iface.search("E1") != -1) {
-							updateField($.sprintf("sys_mux_%s_mxsmap", iface));
+							fields.push($.sprintf("sys_mux_%s_mxsmap", iface));
 						}
 					});
+					updateFields(fields);
 					/* execute command */
 					c.addConsoleToForm("/sbin/mxconfig --check");
 				}
