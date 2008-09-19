@@ -160,12 +160,12 @@ function Config() {
 	};
 	
 	/*
-	 * Return key's parsed value.
+	 * Return key's parsed value. Always returns array, even there is no such key.
 	 * 
 	 * name — field's name.
 	 */
 	this.getParsed = function(name) {
-		return this.conf[name] != undefined ? this.parseRecord(this.conf[name]) : null;
+		return this.conf[name] != undefined ? this.parseRecord(this.conf[name]) : new Array();
 	};
 	
 	/*
