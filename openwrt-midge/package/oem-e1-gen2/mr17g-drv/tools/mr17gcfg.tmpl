@@ -31,7 +31,7 @@ print_stat()
 	echo "    crc4:      "`cat crc4`
     echo "    cas:       "`cat cas`       			
     fi
-    echo "    long haul: "`cat lhaul`    
+    echo "    long haul: "`cat long_haul`    
 #    echo "E1 loopback settings:"
 #    echo "    local="`cat llpb`" remote="`cat rlpb`
     echo "HDLC controller settings:"
@@ -55,7 +55,7 @@ if [ $# = 0 ]; then
     echo "  hdb3|ami                   - E1 HDB3/AMI line code"    
     echo "  crc4 on|off                - enable/disable E1 CRC4 multiframe"
     echo "  cas  on|off                - enable/disable E1 CAS multiframe"
-    echo "  lhaul on|off               - enable/disable E1 long haul mode"
+    echo "  long_haul on|off               - enable/disable E1 long haul mode"
     echo "HDLC options:"
     echo "  crc32 | crc16              - HDLC checksum type"
     echo "  fill_ff | fill_7e          - interframe fill byte"
@@ -125,7 +125,7 @@ while [ ! -z "$1" ]; do
 
     "lhaul")
 	if [ -z "$2" ]; then
-	    echo $0": syntax error, after \"ts16\" "
+	    echo $0": syntax error, after \"lhaul\" "
 	    break
 	fi
 	if [ "$2" = "on" ]; then

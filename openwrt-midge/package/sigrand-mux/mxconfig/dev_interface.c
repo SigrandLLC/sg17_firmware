@@ -14,6 +14,9 @@
 #include "mxconfig.h"
 
 #define MAX_TS_BIT 32
+static char *mux_dirs[] = {"sg_multiplexing","hw_multiplexing"};
+static int mux_dirs_cnt = sizeof(mux_dirs)/sizeof(char *);
+
 
 int
 check_for_mxsupport(char *conf_path,ifdescr_t *ifd) 
@@ -27,12 +30,18 @@ check_for_mxsupport(char *conf_path,ifdescr_t *ifd)
     int optsize = sizeof(opts)/sizeof(char *);
     iftype_t type;
     
-    snprintf(d,MAX_FNAME,"%s/%s/sg_multiplexing",conf_path,ifd->name);
     
-    if( !(dir = opendir(d)) ){
-		PDEBUG(DERR,"Cannot open dir: %s",d);
-		return -1;
+    for(i=0;i<mux_dirs_cnt;i++){
+        snprintf(d,MAX_FNAME,"%s/%s/%s",conf_path,ifd->name,mux_dirs[i]);
+        if( dir = opendir(d) ){
+            break;
+        }
     }
+    if( i == mux_dirs_cnt ){
+        PDEBUG(DERR,"Iface %s do not support multiplexing",ifd->name);
+        return -1;
+    }
+    ifd->conf_ind = i;
 
     type = unknown_ts;
     while( ent = readdir(dir) ){
@@ -71,9 +80,19 @@ check_for_mxsupport(char *conf_path,ifdescr_t *ifd)
     }
     closedir(dir);
     ifd->settings.type = type;
-    PDEBUG(DFULL,"ocnt = %d, opts_num = %d",ocnt,opts_num);
+    PDEBUG(DFULL,"ocnt = %d",ocnt);
     return (ocnt == optsize ) ? 0 : -1;	
 }
+
+static int
+compare_func(const void *p1, const void *p2)
+{
+    ifdescr_t *d1 = *(ifdescr_t**)p1;
+    ifdescr_t *d2 = *(ifdescr_t**)p2;
+    
+	return strcmp((const char*)d1->name,(const char*)d2->name);
+}
+
 
 int
 fill_iflist(char *conf_path,ifdescr_t **iflist,int ifcnt)
@@ -160,6 +179,11 @@ fill_iflist(char *conf_path,ifdescr_t **iflist,int ifcnt)
         set->mxen = dset.mxen;
         cnt++;
     }    
+    
+    
+    // Bubble sort of channels
+    qsort((void*)iflist,cnt,sizeof(ifdescr_t *),compare_func);
+
     return cnt;
 }
 
@@ -273,7 +297,7 @@ set_char_option(char *conf_path,char *name,char *str)
     int len,cnt;
     char fname[MAX_FNAME];
 	
-    PDEBUG(DFULL,"set_dev_option(%s,%s)",name,val); 
+    PDEBUG(DFULL,"set_dev_option(%s,%s)",name,str); 
     snprintf(fname,MAX_FNAME,"%s/%s",conf_path,name);
     if( (fd = open(fname,O_WRONLY)) < 0 ){
 		PDEBUG(DERR,"set_dev_option: Cannot open %s",fname);
@@ -356,7 +380,7 @@ apply_settings_net(char *conf_path,ifdescr_t *ifd)
     char buf[BUF_SIZE];
     devsetup_t *set = &ifd->settings;
     
-    snprintf(conf,MAX_FNAME,"%s/%s/sg_multiplexing",conf_path,ifd->name);
+    snprintf(conf,MAX_FNAME,"%s/%s/%s",conf_path,ifd->name,mux_dirs[ifd->conf_ind]);
     
     if( set->type == continual_ts && set->mxrate>=0 ){
 		if( set_int_option(conf,"mxrate",set->mxrate) )
@@ -410,7 +434,7 @@ accum_settings_net(char *conf_path,ifdescr_t *ifd)
     devsetup_t *set = &ifd->settings;
     int tmp=0;
     
-    snprintf(conf,MAX_FNAME,"%s/%s/sg_multiplexing",conf_path,ifd->name);
+    snprintf(conf,MAX_FNAME,"%s/%s/%s",conf_path,ifd->name,mux_dirs[ifd->conf_ind]);
     
     // Read used timeslots information
     switch( set->type ){

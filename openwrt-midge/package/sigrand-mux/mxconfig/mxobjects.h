@@ -5,7 +5,7 @@
 #include "ltypes.h"
 
 #define MAX_IFS 100
-#define MX_LINES 15
+#define MX_LINES 16
 #define MX_LWIDTH 256
 #define MX_LWIDTH32 8
 

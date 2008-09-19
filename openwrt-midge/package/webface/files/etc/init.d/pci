@@ -189,6 +189,7 @@ _pci_start(){
 	$kdb rm sys_pcitbl*
 
 	pci_driver "$mr16g_drvname" "E1_"
+	pci_driver "$mr17g_drvname" "E1_"
 	pci_driver "$mr16h_drvname" "dsl"
 	pci_driver "$mr17h_drvname" "dsl"
 	pcicfg_refresh

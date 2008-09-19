@@ -46,6 +46,7 @@ struct mxsettings{
 
 typedef struct {
     char *name;
+    u8 conf_ind;
     devsetup_t settings;
     device_type_t type;
 } ifdescr_t;

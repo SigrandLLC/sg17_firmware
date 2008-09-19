@@ -13,6 +13,7 @@
 #define IFS_ROOT "/sys/class/net"
 #endif
 
+int debug_lev;
 
 typedef enum { help,setup,info,full_info,chck } action_t;
 
@@ -71,7 +72,7 @@ process_args(int argc,char **argv,char **ifname,devsetup_t *settings)
 		{0, 0, 0, 0}
 	};
 
-		int c = getopt_long (argc, argv, "i:slr:t:a:b:cd:e:f:g:m:",
+		int c = getopt_long (argc, argv, "i:slr:t:a:b:cd:e:f:j:g:m:u:o:",
 							 long_options, &option_index);
         if (c == -1)
     	    break;
@@ -449,6 +450,7 @@ check(ifdescr_t **iflist,int iflsize)
 		u32 mxrate = 0;
 		mxelem_t el;
 		devsetup_t *set = &iflist[i]->settings;
+
 		if( !set->mxen )
 			continue;
 		switch( set->clkab ){
@@ -474,7 +476,7 @@ check(ifdescr_t **iflist,int iflsize)
 		}else if( set->clkr ){
 			mxwarn("%s: clkR option is ignored - not clock master",iflist[i]->name);
 		}
-	
+
 		switch( set->type ){
 		case continual_ts:
 			mxrate = set->mxrate;
@@ -491,6 +493,7 @@ check(ifdescr_t **iflist,int iflsize)
 		if( !rlines[set->rline] ){
 			rlines[set->rline] = mxline_init();
 		}
+        
 		if( mxline_add(rlines[set->rline],set->clkab,el) ){
 			mxerror("Cannot add device %s to line %d, too many interfaces",
 					iflist[i]->name,set->rline);
@@ -501,6 +504,7 @@ check(ifdescr_t **iflist,int iflsize)
 		if( !tlines[set->tline] ){
 			tlines[set->tline] = mxline_init();
 		}
+
 		if( mxline_add(tlines[set->tline],set->clkab,el) ){
 			mxerror("Cannot add device %s to line %d, too many interfaces",
 					iflist[i]->name,set->tline);
@@ -562,15 +566,10 @@ check(ifdescr_t **iflist,int iflsize)
 			mxerror("Unknown error whileprocess Line%d",i);
     }
     
-    // Check for E1 timeslots that HDLC & MUX timeslots don't cross
+    // 4. Check for E1 timeslots that HDLC & MUX timeslots don't cross
 	for(i=0;i<iflsize;i++){
 		check_hdsc_mux(iflist[i]);
 	}
-    // 3. Проверить что на линии один мастер
-    // 4. Проверить что у всех устройств шины один домен
-    // 5. ?? Проверить что устройства обмениваются ПОПАРНО, а не второем, например
-    //
-    //
 }
 
 int main(int argc, char *argv[] )

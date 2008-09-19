@@ -450,6 +450,10 @@ static ssize_t show_eoc(struct class_device *cdev, char *buf)
 	char *ptr;
 	int size;
 
+    if( !netif_carrier_ok(ndev) ){    
+        return 0;
+    }
+
 	if( (size = sdfe4_eoc_rx(ch,&ptr)) < 0 )
 		return 0;
 	memcpy(buf,ptr,size);
@@ -465,7 +469,10 @@ store_eoc(struct class_device *cdev,const char *buf, size_t size )
 	struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( nl->dev );
 	struct sg17_sci *s = (struct sg17_sci *)&card->sci;
 	struct sdfe4 *hwdev = &card->hwdev;
-	sdfe4_eoc_tx(hwdev,sg17_sci_if2ch(s,nl->number),(char*)buf,size);
+
+    if( netif_carrier_ok(ndev) ){    
+    	sdfe4_eoc_tx(hwdev,sg17_sci_if2ch(s,nl->number),(char*)buf,size);
+    }
 	return size;
 }
 static CLASS_DEVICE_ATTR(eoc, 0644 ,show_eoc,store_eoc);

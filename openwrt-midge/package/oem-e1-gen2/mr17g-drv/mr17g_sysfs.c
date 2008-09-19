@@ -447,7 +447,7 @@ store_lhaul(struct class_device *cdev,const char *buf, size_t size )
 	}    
 	return size;
 }
-static CLASS_DEVICE_ATTR(lhaul,0644,show_lhaul,store_lhaul);
+static CLASS_DEVICE_ATTR(long_haul,0644,show_lhaul,store_lhaul);
 
 // HDB3 mode
 static ssize_t
@@ -642,38 +642,55 @@ store_lloopback( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 
 // ------------------------- Multiplexing ------------------------------- //
 
-// MXRATE rgister
+// MXMAP
 static ssize_t
-show_mx_rate(struct class_device *cdev, char *buf) 
+show_mx_slotmap(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
-	u8 reg = ioread8(&regs->MXRATE)+1;
-
-	return snprintf(buf,PAGE_SIZE,"%d",reg);
+    struct mr17g_chan_config *cfg = &ch->cfg;
+	if( cfg->framed ){
+		return slotmap2str(cfg->mxslotmap,cfg,buf);
+	}else{
+		return slotmap2str(0xffffffff,cfg,buf);
+	}
 }
 
+
 static ssize_t
-store_mx_rate( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_slotmap(struct class_device *cdev,const char *buf,size_t size)
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
-	char *endp;
-	u8 tmp;
-	
-	// check parameters
-	if( !size)
+    struct mr17g_chan_config *cfg = &ch->cfg;
+	u32 ts=0;
+	int err;
+	char *str;
+
+	PDEBUG(debug_sysfs,"start, buf=%s",buf);	
+
+	if( !size )
 		return size;
-	tmp=simple_strtoul( buf,&endp,0);
-	tmp--;
-	iowrite8(tmp,&regs->MXRATE);
+
+	str=(char *)(buf+(size-1));
+	*str=0;
+	str=(char *)buf;
+	PDEBUG(debug_sysfs,"call str2slotmap for (%s)",str);
+	ts=str2slotmap(str,size,&err);
+	PDEBUG(debug_sysfs,"str2slotmap completed, ts=%08x",ts);	
+	if( err ){
+		printk(KERN_NOTICE MR17G_DRVNAME": error in timeslot string (%s)\n",buf);
+		return size;
+	}
+	
+	cfg->mxslotmap = ts;	
+	mr17g_transceiver_setup(ch);		
+	
 	return size;
 }
-static CLASS_DEVICE_ATTR(mxrate,0644,show_mx_rate,store_mx_rate);
+static CLASS_DEVICE_ATTR(mx_slotmap,0644,show_mx_slotmap,store_mx_slotmap);
 
 // TFS rgister
 static ssize_t
@@ -1166,7 +1183,7 @@ static struct attribute *mr17g_attr[] = {
 &class_device_attr_framed.attr,
 &class_device_attr_slotmap.attr,
 &class_device_attr_clck.attr,
-&class_device_attr_lhaul.attr,
+&class_device_attr_long_haul.attr,
 &class_device_attr_hdb3.attr,
 &class_device_attr_crc4.attr,
 &class_device_attr_cas.attr,
@@ -1193,7 +1210,7 @@ NULL
 
 static struct attribute *sg17_mx_attr[] = {
 // multiplexing
-&class_device_attr_mxrate.attr,
+&class_device_attr_mx_slotmap.attr,
 &class_device_attr_mx_txstart.attr,
 &class_device_attr_mx_rxstart.attr,
 &class_device_attr_mx_tline.attr,

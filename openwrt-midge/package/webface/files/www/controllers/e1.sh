@@ -5,12 +5,11 @@
 
 . /www/oem.sh
 
-cfg_path="/sys/bus/pci/drivers/"$MR16G_DRVNAME
-
 iface="${FORM_iface}"
 slot="${FORM_pcislot}"
 dev="${FORM_pcidev}"
-	
+
+type=`kdb get "sys_pcitbl_s${slot}_iftype" `
 eval `kdb -qq ls "sys_pcicfg_s${slot}_${dev}*" `
 	
 
@@ -33,10 +32,12 @@ if [ -n "$iface" ]; then
 	fram=`kdb get sys_pcicfg_s${slot}_${dev}_fram`	
 	if [ "$fram" -eq "1" ]; then
 		kdb_vars=${kdb_vars}" \
-			bool:sys_pcicfg_s${slot}_${dev}_ts16	\
 			str:sys_pcicfg_s${slot}_${dev}_smap	\
 			bool:sys_pcicfg_s${slot}_${dev}_crc4	\
 			bool:sys_pcicfg_s${slot}_${dev}_cas"
+        if [ "$type" = "$MR16G_DRVNAME" ]; then
+    		kdb_vars=${kdb_vars}"bool:sys_pcicfg_s${slot}_${dev}_ts16"
+        fi
 	fi
 
 	subsys="e1."$slot"."$dev
@@ -45,7 +46,18 @@ if [ -n "$iface" ]; then
 	render_form_header
 
 	num=`kdb get sys_pcitbl_s${slot}_ifnum`
-	render_table_title "$iface (module ${MR16G_MODNAME}${OEM_IFPFX}${num}) settings" 2
+    unset MODNAME
+    case "$type" in
+    "$MR16G_DRVNAME")
+        MODNAME="$MR16G_MODNAME"
+        ;;
+    "$MR17G_DRVNAME")
+        MODNAME="$MR17G_MODNAME"
+        ;;
+    esac
+    
+    
+	render_table_title "$iface (${MODNAME}${OEM_IFPFX}${num}, slot "`expr $slot - 2`") settings" 2
 
 	# Seems that config script ends later than this code
 	# So need delay because config script can change smap
@@ -110,10 +122,12 @@ if [ -n "$iface" ]; then
 	fram=`kdb get sys_pcicfg_s${slot}_${dev}_fram`	
 	if [ "$fram" -eq "1" ]; then
 
-	    # sys_pcicfg_s${slot}_${dev}_ts16
-		tip=""
-		desc="check to use"
-	    render_input_field checkbox "Use time slot 16" sys_pcicfg_s${slot}_${dev}_ts16
+        if [ "$type" = "$mr16g_drvname" ]; then
+            # sys_pcicfg_s${slot}_${dev}_ts16
+		    tip=""
+		    desc="check to use"
+	        render_input_field checkbox "Use time slot 16" sys_pcicfg_s${slot}_${dev}_ts16
+        fi
 
    		# sys_pcicfg_s${slot}_${dev}_smap
 	    tip=""
@@ -172,7 +186,6 @@ if [ -n "$iface" ]; then
     desc="Enable E1 Remote Loopback"
     render_input_field checkbox "Remote Loopback" sys_pcicfg_s${slot}_${dev}_rlpb
 
-												
     render_submit_field
     render_form_tail
 

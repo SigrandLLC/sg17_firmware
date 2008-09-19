@@ -6,16 +6,19 @@
 . /etc/templates/oem-vars
 
 kdb="kdb"
-e1_cfg="/sys/bus/pci/drivers/"${mr16g_drvname}
+e1_mr16g="/sys/bus/pci/drivers/"$mr16_drvname
+e1_mr17g="/sys/class/net/"
+
 ifcfg="/sbin/ifconfig"
 
-_e1_mr16ifdefcfg(){	
+_e1_ifdefcfg(){	
 	local slot=$1
 	local dev=$2	
+    local type=$3
+    
 	kdb rm sls sys_pcicfg_s${slot}_${dev}*
 	kdb set sys_pcicfg_s${slot}_${dev}_proto="cisco"
 	kdb set sys_pcicfg_s${slot}_${dev}_fram="0"
-	kdb set sys_pcicfg_s${slot}_${dev}_ts16="1"
 	kdb set sys_pcicfg_s${slot}_${dev}_smap=""
 	kdb set sys_pcicfg_s${slot}_${dev}_crc4="0"
 	kdb set sys_pcicfg_s${slot}_${dev}_cas="0"
@@ -25,18 +28,23 @@ _e1_mr16ifdefcfg(){
 	kdb set sys_pcicfg_s${slot}_${dev}_hcrc="1"
 	kdb set sys_pcicfg_s${slot}_${dev}_fill="1"	
 	kdb set sys_pcicfg_s${slot}_${dev}_inv="normal"
-	kdb set sys_pcicfg_s${slot}_${dev}_llpb="0"
-	kdb set sys_pcicfg_s${slot}_${dev}_rlpb="0"
+
+    if [ "$type" = "$mr16g_drvname" ]; then
+    	kdb set sys_pcicfg_s${slot}_${dev}_ts16="1"
+	    kdb set sys_pcicfg_s${slot}_${dev}_llpb="0"
+    	kdb set sys_pcicfg_s${slot}_${dev}_rlpb="0"
+    fi
 }
 
-_e1_mr16defcfg(){
+_e1_defcfg(){
 	local slot=$1
+    local type=$2
 	local ifnum=`kdb get sys_pcitbl_s${slot}_ifnum`
 	local i=0
 
 	kdb set sys_pcicfg_s${slot}_ifnum="$ifnum"
 	while [ $i -lt $ifnum ]; do
-		_e1_mr16ifdefcfg $slot $i
+		_e1_ifdefcfg $slot $i $type
 		i=`expr $i + 1`
 	done
 }
@@ -45,6 +53,7 @@ _e1_ifcfg(){
 	local iface=$1
 	local slot=$2
 	local dev=$3
+    local type=$4
 
 	# Network settings
 	valid=`$kdb get sys_iface_${iface}_valid`
@@ -99,14 +108,24 @@ _e1_ifcfg(){
 		;;
 	esac
 	DIR=`pwd`
-	cd $e1_cfg/$iface
+    
+    case "$type" in
+    "$mr16g_drvname")
+        cd $e1_mr16g/$type/$iface
+        ;;
+    "$mr17g_drvname")
+        cd $e1_mr17g/$iface/"hw_private"
+        ;;
+    esac    
 
 	# Change slotmap only if it really changed
 	
 	echo $fram 	> framed
 	if [ "$fram" = "1" ]; then
 		smap_old=`cat slotmap`
-		echo $ts16 	> map_ts16
+        if [ -f "map_ts16" ]; then
+    		echo $ts16 	> map_ts16
+        fi
 		if [ "$smap_old" != "$smap" ]; then
 			echo "$smap" > slotmap
 		fi
@@ -128,7 +147,11 @@ _e1_ifcfg(){
 	echo $hcrc > crc16
 	echo $fill > fill_7e
 	echo $inv > inv
-	echo "LLoop=$llpb RLoop=$rlpb" >> /root/E1.log
+    
+    if [ "$type" = "$mr17g_drvname" ]; then
+        return
+    fi
+    
 	if [ "$llpb" = "on" ]; then
 	    echo 1 > llpb
 	else
@@ -150,17 +173,18 @@ _e1_modcfg(){
 	local iface
 	
 	ifaces=`kdb get sys_pcitbl_s${slot}_ifaces`
-	type=`kdb get sys_pcicfg_s${slot}_iftype`
+	cur_type=`kdb get sys_pcitbl_s${slot}_iftype`
 	cur_cnt=`kdb get sys_pcitbl_s${slot}_ifnum`
 	cfg_cnt=`kdb get sys_pcicfg_s${slot}_ifnum`
-	if [ -z "$type" ] || [ -z "$cfg_cnt" ]; then
-		kdb set sys_pcicfg_s${slot}_iftype="$mr16g_drvname"
+	cfg_type=`kdb get sys_pcicfg_s${slot}_iftype`
+	if [ -z "$cfg_type" ] || [ -z "$cfg_cnt" ]; then
+		kdb set sys_pcicfg_s${slot}_iftype="$cur_type"
 		kdb set sys_pcicfg_s${slot}_ifaces="$ifaces"
-		_e1_mr16defcfg $slot
+		_e1_defcfg "$slot" "$cur_type"
 	elif [ "$cur_cnt" -gt "$cfg_cnt" ]; then
 		tmp="$cfg_cnt"
 		while [ "$tmp" -lt "$cur_cnt" ]; do
-			_e1_mr16ifdefcfg "$slot" "$tmp"
+			_e1_ifdefcfg "$slot" "$tmp" "$cur_type"
 			tmp=`expr $tmp + 1`
 		done
 	fi
@@ -170,11 +194,11 @@ _e1_modcfg(){
 	for iface in $ifaces; do
 		if [ -n "$dev" ]; then
 			if [ "$dev" -eq "$ifnum" ]; then
-				_e1_ifcfg $iface $slot $ifnum
+				_e1_ifcfg "$iface" "$slot" "$ifnum" "$cur_type" 
 				break
 			fi
 		else
-			_e1_ifcfg $iface $slot $ifnum
+			_e1_ifcfg "$iface" $slot $ifnum  "$cur_type"
 		fi
 		ifnum=`expr $ifnum + 1`
 	done
@@ -190,21 +214,24 @@ _e1_start(){
 		eval "type=\$s${s}_iftype"
 		eval "num=\$s${s}_ifnum"
 		eval "ifaces=\$s${s}_ifaces"
-		if [ "$type" != "$mr16g_drvname" ]; then
+		if [ "$type" != "$mr16g_drvname" ] && [ "$type" != "$mr17g_drvname" ]; then
 			continue
 		fi
 	    _e1_modcfg $s
-		echo -n "${mr16g_modname}${oem_ifpfx}${num}($ifaces) "
+        case "$type" in 
+        "$mr16g_drvname")
+    		echo -n "${mr16g_modname}${oem_ifpfx}${num}($ifaces) "
+            ;;
+        "$mr17g_drvname")
+    		echo -n "${mr17g_modname}${oem_ifpfx}${num}($ifaces) "
+            ;;
+        esac
 	done
 	echo
 }
  
 _e1_stop(){
 	return 0
-}
-
-_e1_restart(){
-	_e1_ifcfg $1 $2
 }
 
 case "$1" in

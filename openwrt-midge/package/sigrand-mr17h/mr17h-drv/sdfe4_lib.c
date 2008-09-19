@@ -1455,4 +1455,3 @@ sdfe4_eoc_tx(struct sdfe4 *hwdev,int ch,char *ptr,int size)
 	PDEBUG(debug_eoc,"TX success");	
 	return 0;
 }
-

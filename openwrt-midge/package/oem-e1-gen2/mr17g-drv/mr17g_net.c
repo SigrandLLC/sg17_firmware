@@ -60,9 +60,11 @@ slot_cnt(u32 smap)
 int __devinit
 mr17g_net_init(struct mr17g_chip *chip)
 {
-    int i,j,err;
+	struct device *dev = (struct device*)&(chip->pdev->dev);
+	struct device_driver *drv = (struct device_driver*)(dev->driver);
     struct mr17g_channel *ch;
     struct net_device *ndev;
+    int i,j,err;
 
 	PDEBUG(debug_net,"start");
     
@@ -92,9 +94,15 @@ mr17g_net_init(struct mr17g_chip *chip)
             printk(KERN_ERR"%s: cannot register hdlc interface, err=%d\n",MR17G_MODNAME,err);
 	    	goto ndevfree;
 	    }
+
+    	// Init control through sysfs
+    	if( (err = sysfs_create_link( &(drv->kobj),&(dev->kobj),ndev->name )) ){
+	    	printk(KERN_NOTICE"%s: error in sysfs_create_link\n",__FUNCTION__);	
+		    goto ndevunreg;
+    	}
         if( mr17g_netsysfs_register(ndev) ){
             printk(KERN_ERR"%s: cannot register parameters in sysfs for %s\n",MR17G_MODNAME,ndev->name);
-	    	goto ndevunreg;
+	    	goto rmlink;
         }
         
         chip->ifs[i] = ndev;
@@ -103,6 +111,8 @@ mr17g_net_init(struct mr17g_chip *chip)
 	PDEBUG(debug_net,"end");
 	return 0;
 
+rmlink:
+	sysfs_remove_link(&(drv->kobj),ndev->name);
 ndevunreg:
     unregister_netdev(ndev);
 ndevfree:
@@ -123,12 +133,15 @@ error:
 int __devexit
 mr17g_net_uninit(struct mr17g_chip *chip)
 {
+	struct device *dev = (struct device*)&(chip->pdev->dev);
+	struct device_driver *drv = (struct device_driver*)(dev->driver);
     int i;
 
 	PDEBUG(debug_net,"start, chip = %p",chip);
     for(i=0;i<chip->if_quan;i++){
         PDEBUG(debug_net,"Unregister %s",chip->ifs[i]->name);
         mr17g_netsysfs_remove(chip->ifs[i]);
+    	sysfs_remove_link(&(drv->kobj),chip->ifs[i]->name);
        	unregister_netdev( chip->ifs[i] );
         PDEBUG(debug_net,"Free %s",chip->ifs[i]->name);
     	free_netdev(chip->ifs[i]);	

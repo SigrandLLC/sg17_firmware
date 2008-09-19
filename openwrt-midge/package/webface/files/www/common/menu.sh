@@ -32,8 +32,7 @@ L1 System
 	
 	for s in $slots; do
 		type=`kdb get sys_pcitbl_s${s}_iftype`
-		if [ "$type" != "$MR16H_DRVNAME" ] && [ "$type" != "$MR17H_DRVNAME" ]; 
-		then
+		if [ "$type" != "$MR16H_DRVNAME" ] && [ "$type" != "$MR17H_DRVNAME" ]; then
 			continue
 		fi
 		
@@ -74,7 +73,7 @@ L1 System
 	have_ifs=0
 	for s in $slots; do
 		type=`kdb get sys_pcitbl_s${s}_iftype`
-		if [ "$type" != "$MR16G_DRVNAME" ]; then
+		if [ "$type" != "$MR16G_DRVNAME" ] && [ "$type" != "$MR17G_DRVNAME" ]; then
 			continue
 		fi
 		
