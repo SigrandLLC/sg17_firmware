@@ -67,7 +67,7 @@ _e1_ifcfg(){
 	
 
 	# Hardware settings
-	unset proto fram ts16 smap crc4 cas clk lhaul lcode hcrc inv fill 
+	unset proto fram ts16 smap crc4 cas clk lhaul lcode hcrc inv fill cisco_int cisco_to
 	eval `$kdb -qq sls sys_pcicfg_s${slot}_${dev}_`
 	# apply configuration
 	$ifcfg $iface down
@@ -94,7 +94,7 @@ _e1_ifcfg(){
 		sethdlc $iface $proto ${cisco_int} ${cisco_to}
 		;;
 	*)
-		if [ -n "$proto" ]; then
+    		if [ -n "$proto" ]; then
 		    sethdlc $iface $proto
 		fi
 	esac
