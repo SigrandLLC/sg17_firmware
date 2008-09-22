@@ -26,8 +26,7 @@ kdb_vars="str:sys_pcicfg_s${slot}_${dev}_baudrate	\
 		str:sys_pcicfg_s${slot}_${dev}_stopb	\
 		str:sys_pcicfg_s${slot}_${dev}_fctrl	\
 		str:sys_pcicfg_s${slot}_${dev}_sigfwd	\
-		int:sys_pcicfg_s${slot}_${dev}_parenb	\
-		int:sys_pcicfg_s${slot}_${dev}_parodd"
+		int:sys_pcicfg_s${slot}_${dev}_parity"
 
 subsys="rs232."$slot"."$dev
 render_save_stuff
@@ -65,19 +64,10 @@ tip=""
 desc=""
 render_input_field select "Stop bits" sys_pcicfg_s${slot}_${dev}_stopb "-cstopb" 1 "cstopb" 2
 
-# sys_pcicfg_s${slot}_${dev}_parenb
+# sys_pcicfg_s${slot}_${dev}_parity
 tip=""
 desc=""
-id='parenb'
-onchange="OnChangeSerial();"	
-render_input_field select "Use parity bit" sys_pcicfg_s${slot}_${dev}_parenb "-parenb" off "parenb" on
-
-# sys_pcicfg_s${slot}_${dev}_parodd
-tip=""
-desc=""
-id='parodd'
-onchange="OnChangeSerial();"	
-render_input_field select "Odd parity" sys_pcicfg_s${slot}_${dev}_parodd  "-parodd" off "parodd" on
+render_input_field select "Parity" sys_pcicfg_s${slot}_${dev}_parity none None even Even odd Odd
 
 # sys_pcicfg_s${slot}_${dev}_fctrl
 tip=""

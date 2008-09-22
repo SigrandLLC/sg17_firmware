@@ -49,7 +49,6 @@ function OnChangeSerial()
 {
 	ind = $('baudrate').selectedIndex;
 
-//	alert('Start');
 	if( ind < 0 || ind==undefined ){
 		ind = 0;
 		rate = 230400;
@@ -57,15 +56,5 @@ function OnChangeSerial()
 		rate = $('baudrate').options[ind].value;
 	}
 	fixed_rate_list($('baudrate'),rate,baudrates);
-	
-    parenb = $('parenb').options[$('parenb').selectedIndex].value;
-    parodd = $('parodd').options[$('parodd').selectedIndex].value;
-	
-	if( parenb == "-parenb" ){
-	    parodd = $('parodd').selectedIndex=0;
-		$('parodd').disabled=1;
-	}else{
-		$('parodd').disabled=0;
-	}
 };
 

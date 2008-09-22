@@ -20,8 +20,7 @@ _rs232_node_defcfg(){
 	# One stop bit by default
 	kdb set sys_pcicfg_s${slot}_${dev}_stopb="-cstopb"
 	# parity: none
-	kdb set sys_pcicfg_s${slot}_${dev}_parenb="-parenb"
-	kdb set sys_pcicfg_s${slot}_${dev}_parodd="-parodd"
+	kdb set sys_pcicfg_s${slot}_${dev}_parity="none"
 	# 
 	kdb set sys_pcicfg_s${slot}_${dev}_fctrl="0"
 	kdb set sys_pcicfg_s${slot}_${dev}_sigfwd="0"
@@ -46,10 +45,21 @@ _rs232_nodecfg(){
 	local dev=$3
 
 	# Hardware settings
-	unset cs stopb baudrate paren parodd
+	unset cs stopb baudrate parity
 	eval `$kdb -qq sls sys_pcicfg_s${slot}_${dev}_`
+	case "$parity" in
+	"none")
+		parity="-parenb -parodd" 
+		;;
+	"even")
+		parity="parenb -parodd"
+		;;
+	"odd")
+		parity="parenb parodd"
+		;;
+	esac
 	if [ -f "$rscfg" ]; then 
-		$rscfg -F /dev/$node $baudrate $cs $stopb $parenb $parodd
+		$rscfg -F /dev/$node $baudrate $cs $stopb $parity
 	else
 		echo "No configuration tool: $rscfg"
 		return 
