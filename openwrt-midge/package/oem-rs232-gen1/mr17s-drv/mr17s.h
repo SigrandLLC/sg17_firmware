@@ -76,11 +76,13 @@
 
 // ioctl commands
 #define MXMAGIC 0xAFAF
-#define TIOCGMX 0xA000 /* Get Hayes ESP configuration */
-#define TIOCSMX	0xA001 /* Set Hayes ESP configuration */
+#define TIOCGMX 0xA000 /* Get MUX configuration */
+#define TIOCSMX	0xA001 /* Set MUX configuration */
+#define TIOCGHW 0xA002 /* Get HW configuration */
+#define TIOCSHW	0xA003 /* Set HW configuration */
 
 struct mxsettings{
-    s16 magic;
+    u16 magic;
     s32 mxrate;
     s8 rline,tline;
     s16 tfs,rfs;
@@ -88,6 +90,12 @@ struct mxsettings{
     s8 clkab;
     s8 clkr;
     s8 mxen;
+};
+
+struct hwsettings{
+    u16 magic;
+    u8 flow_ctrl : 1;
+    u8 fwd_sig : 1;
 };
 
 //---------- General memory map constants --------------//

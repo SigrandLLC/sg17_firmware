@@ -44,6 +44,8 @@ static int mr17s_ioctl(struct uart_port *port, unsigned int cmd, unsigned long a
 
 static int mr17s_mux_get(struct uart_port *port,struct mxsettings *set);
 static int mr17s_mux_set(struct uart_port *port,struct mxsettings *set);
+static int mr17s_hw_get(struct uart_port *port,struct hwsettings *set);
+static int mr17s_hw_set(struct uart_port *port,struct hwsettings *set);
 static irqreturn_t mr17s_interrupt(int irq,void *dev_id,struct pt_regs *regs);
 static int mr17s_port_interrupt(struct uart_port *port, struct pt_regs *regs);
 static void mr17s_recv_bytes(struct uart_port *port,struct pt_regs *regs);

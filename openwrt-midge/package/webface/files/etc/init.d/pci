@@ -192,6 +192,7 @@ _pci_start(){
 	pci_driver "$mr17g_drvname" "E1_"
 	pci_driver "$mr16h_drvname" "dsl"
 	pci_driver "$mr17h_drvname" "dsl"
+	pci_driver "$mr17s_drvname" "ttyRS"
 	pcicfg_refresh
 
 	# Correct Network settings

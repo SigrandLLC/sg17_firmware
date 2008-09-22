@@ -92,6 +92,31 @@ L1 System
 		done
 	done
 
+	# RS232 section
+	slots=`kdb get sys_pcitbl_slots`
+	have_ifs=0
+	for s in $slots; do
+		type=`kdb get sys_pcitbl_s${s}_iftype`
+		if [ "$type" != "$MR17S_DRVNAME" ]; then
+			continue
+		fi
+		
+		# output title
+		if [ "$have_ifs" -eq 0 ]; then
+			L2 RS232
+			have_ifs=1
+		fi
+		unset num
+		num=0
+		for i in `kdb get sys_pcitbl_s${s}_ifaces`; do
+			class=""
+			[ "$FORM_iface" = "$i" ] && class="navlnk_a"
+			L3	$i "rs232&node=$i&pcislot=$s&pcidev=$num" $class
+			num=`expr $num + 1`
+		done
+	done
+
+
 	L2 Switch	'adm5120sw'
 	L2 Multiplexing	'multiplexing'
 	

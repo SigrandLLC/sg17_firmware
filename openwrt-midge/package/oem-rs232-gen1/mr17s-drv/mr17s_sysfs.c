@@ -166,7 +166,7 @@ store_hdlcregs( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 
 #else
 
-int mr17s_sysfs_register(struct device *dev){}
+int mr17s_sysfs_register(struct device *dev){ return 0; }
 void mr17s_sysfs_free(struct device *dev){}
 
 #endif // DEBUG_SYSFS

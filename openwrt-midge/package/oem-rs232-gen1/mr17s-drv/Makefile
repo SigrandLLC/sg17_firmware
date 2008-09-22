@@ -2,11 +2,13 @@
 # Written by Artem Y. Polyakov <artpol84@gmail.com>
 # 01.09.2008
 
+CFLAGS+=-DDEBUG_SYSFS
 obj-m := mr17s.o
 mr17s-objs := mr17s_main.o mr17s_debug.o mr17s_sysfs.o
 
 mr17s.ko: mr17s_main.c mr17s_debug.c mr17s_sysfs.c
-	make -C /home/artpol/OpenWRT/build_mipsel/linux SUBDIRS=$(PWD) modules CROSS_COMPILE=/home/artpol/OpenWRT/staging_dir_mipsel/bin/mipsel-linux-uclibc-
+	make -C /home/artpol/Sigrand/OpenWrt/openwrt-midge/build_mipsel/linux SUBDIRS=$(PWD) modules CROSS_COMPILE=/home/artpol/Sigrand/OpenWrt/openwrt-midge/staging_dir_mipsel/bin/mipsel-linux-uclibc-
+	cd tools && make
 
 all: mr17s.ko
 

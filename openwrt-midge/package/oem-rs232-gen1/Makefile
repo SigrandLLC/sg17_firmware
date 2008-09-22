@@ -32,6 +32,7 @@ $(PKG_BUILD_DIR)/.configured:
 	-e "s%@INST_PATH@%$(IDIR_SIGRAND_MR17S)%g" \
 	-e "s%@DEBUG@%$(DEBUG)%g" \
 	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17S_DRV)%g" \
+	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR17S_TOOL)%g" \
 	-e "s%@DBGTOOLNAME@%$(BR2_SIGRAND_OEM_MR17S_DBGTOOL)%g" 
 
 # ------------- OEM ----------------------#
@@ -51,6 +52,7 @@ $(PKG_BUILD_DIR)/.configured:
 
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	cd $(PKG_BUILD_DIR)/mr17s-drv && make
+	$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/mr17s-drv/tools/mr17s_cfg $(PKG_BUILD_DIR)/mr17s-drv/tools/mr17s_cfg.c
 	touch $@
 
 $(IPKG_SIGRAND_MR17S):

@@ -36,6 +36,12 @@ service_reload(){
 		/etc/init.d/e1 restart "$slot" "$dev"
 		/etc/init.d/network restart
 	;;
+	rs232*)
+		tmp=${service#*.}
+		slot=${tmp%.*}
+		dev=${tmp#*.}
+		/etc/init.d/rs232 restart "$slot" "$dev"
+	;;
 	fw)
 		/etc/init.d/fw restart
 	;;

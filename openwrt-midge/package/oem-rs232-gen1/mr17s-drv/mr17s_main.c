@@ -19,7 +19,7 @@
 
 
 // DEBUG
-//#define DEBUG_ON 
+#define DEBUG_ON 
 #define DEBUG_LEV 10
 #include "mr17s_debug.h"
 
@@ -122,6 +122,8 @@ mr17s_exit( void ){
 static int __devinit
 mr17s_init_one(struct pci_dev *pdev,const struct pci_device_id *ent)
 {
+	struct device *dev = (struct device*)&(pdev->dev);
+	struct device_driver *drv = (struct device_driver*)(dev->driver);
     struct mr17s_device *rsdev = NULL;
     int i,j, err = -1;
     u32 len;
@@ -205,6 +207,8 @@ mr17s_init_one(struct pci_dev *pdev,const struct pci_device_id *ent)
     for(i=0;i<rsdev->port_quan;i++){
         struct mr17s_uart_port *hw_port = rsdev->ports + i;
         struct uart_port *port = &hw_port->port;
+		char port_name[32];
+
         memset(hw_port,0,sizeof(*hw_port));
         hw_port->type = rsdev->type;
         // port I/O setup
@@ -230,6 +234,14 @@ mr17s_init_one(struct pci_dev *pdev,const struct pci_device_id *ent)
                    pdev->bus->number,PCI_SLOT(pdev->devfn),PCI_FUNC(pdev->devfn));
             goto porterr;
         }
+
+    	// Symlink to device in sysfs
+		snprintf(port_name,32,MR17S_SERIAL_NAME"%d",port->line);
+    	if( (err = sysfs_create_link( &(drv->kobj),&(dev->kobj),port_name )) ){
+	    	printk(KERN_NOTICE"%s: error in sysfs_create_link\n",__FUNCTION__);	
+		    goto porterr;
+    	}
+		
     }
 
     // Save MR17S internal structure in PCI device struct
@@ -253,6 +265,10 @@ freeirq:
 porterr:
     for(j=0;j<i;j++){
         struct mr17s_uart_port *hw_port = rsdev->ports + j;
+        struct uart_port *port = &hw_port->port;
+		char port_name[32];
+		snprintf(port_name,32,MR17S_SERIAL_NAME"%d",port->line);
+		sysfs_remove_link(&(drv->kobj),port_name);
         uart_remove_one_port(&mr17s_uartdrv,(struct uart_port*)&hw_port->port);
     }
     kfree(rsdev->ports);
@@ -272,12 +288,18 @@ static void __devexit
 mr17s_remove_one( struct pci_dev *pdev )
 {
 	struct mr17s_device *rsdev = (struct mr17s_device*)pci_get_drvdata(pdev);
+	struct device *dev = (struct device*)&(pdev->dev);
+	struct device_driver *drv = (struct device_driver*)(dev->driver);
     int i;
     
     mr17s_sysfs_free(&pdev->dev);
     free_irq(pdev->irq,rsdev);
     for(i=0;i<rsdev->port_quan;i++){
-        uart_remove_one_port(&mr17s_uartdrv,(struct uart_port*)(rsdev->ports + i));
+		struct uart_port *port = (struct uart_port*)(rsdev->ports + i);
+		char port_name[32];
+		snprintf(port_name,32,MR17S_SERIAL_NAME"%d",port->line);
+		sysfs_remove_link(&(drv->kobj),port_name);
+        uart_remove_one_port(&mr17s_uartdrv,port);
     }
     kfree(rsdev->ports);
     iounmap(rsdev->iomem);
@@ -456,6 +478,7 @@ static void mr17s_set_termios(struct uart_port *port,
         u8 rate = hw_port->baud/MUX_TIMESLOT;
         if( hw_port->baud%MUX_TIMESLOT )
             rate++;
+		rate--;
         PDEBUG(debug_hw,"baud=%d,rate=%d",hw_port->baud,rate);
         iowrite8(rate,&regs->MXRATE);
     }
@@ -469,13 +492,15 @@ static int mr17s_startup(struct uart_port *port)
 {
     struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
     struct mr17s_hw_regs *regs = &mem->regs;
+	u8 cra;
     PDEBUG(debug_hw,"");
     // Clear ring
 
     // Enable interrupts
     iowrite8(0xff,&regs->SR);
+	cra = ioread8(&regs->CRA) | (DTR|RTS);
+    iowrite8(cra,&regs->CRA);
     iowrite8(TXS|RXS|RXE,&regs->IMR);
-    iowrite8(TXEN|RXEN|DTR|RTS,&regs->CRA);
     return 0;
 }
 
@@ -483,10 +508,12 @@ static void mr17s_shutdown(struct uart_port *port)
 {
     struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
     struct mr17s_hw_regs *regs = &mem->regs;
+	u8 cra;
     PDEBUG(debug_hw,"");
     // Disable interrupts
     iowrite8(0,&regs->IMR);
-    iowrite8(0,&regs->CRA);
+	cra = ioread8(&regs->CRA) & (FCEN|MCFW|TXEN|RXEN);
+    iowrite8(cra,&regs->CRA);
 }
 
 static const char *mr17s_type(struct uart_port *port)
@@ -524,6 +551,9 @@ static void mr17s_config_port(struct uart_port *port, int flags)
     iowrite8(0,&regs->TFS);
     iowrite8(0,&regs->RFS);
     iowrite8(0,&regs->MXCR);
+	
+	// Enable Transceiver
+	iowrite8(TXEN|RXEN,&regs->CRA);
 }
 
 static int mr17s_verify_port(struct uart_port *port, struct serial_struct *ser)
@@ -552,6 +582,7 @@ mr17s_ioctl(struct uart_port *port, unsigned int cmd, unsigned long arg)
 {
 	void __user *uarg = (void __user *)arg;
     struct mxsettings setting;
+    struct hwsettings hwsetting;
     u16 magic;
     int ret = -ENOIOCTLCMD;
 
@@ -576,6 +607,20 @@ mr17s_ioctl(struct uart_port *port, unsigned int cmd, unsigned long arg)
     	if(copy_from_user(&setting,uarg, sizeof(setting)))
 	    	return -EFAULT;
 		ret = mr17s_mux_set(port,&setting);
+		break;
+	case TIOCGHW:
+        PDEBUG(debug_hw,"SIOCHWGET");
+		ret = mr17s_hw_get(port,&hwsetting);
+        PDEBUG(debug_hw,"SIOCHWGET - end");
+    	if(copy_to_user(uarg,&hwsetting,sizeof(hwsetting)))
+	    	return -EFAULT;
+		break;
+	case TIOCSHW:
+        PDEBUG(debug_hw,"SIOCHWSET");
+    	if(copy_from_user(&hwsetting,uarg, sizeof(hwsetting)))
+	    	return -EFAULT;
+		ret = mr17s_hw_set(port,&hwsetting);
+        PDEBUG(debug_hw,"SIOCHWSET - end");
 		break;
 	}
     return ret;
@@ -679,6 +724,55 @@ mr17s_mux_set(struct uart_port *port,struct mxsettings *set)
     if( set->tfs >=0 ){
         iowrite8(set->tfs,&regs->TFS);
     }
+    spin_unlock_irqrestore(&port->lock,flags);
+
+    return 0;
+}
+
+static int
+mr17s_hw_get(struct uart_port *port,struct hwsettings *set)
+{
+    struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
+    struct mr17s_hw_regs *regs = &mem->regs;
+    u8 cra = ioread8(&regs->CRA);
+
+	memset(set,0,sizeof(*set));
+	if( cra & FCEN ){
+		set->flow_ctrl = 1;
+	}
+	if( cra & MCFW ){
+		set->fwd_sig = 1;
+	}
+    return 0;
+}
+
+
+static int
+mr17s_hw_set(struct uart_port *port,struct hwsettings *set)
+{
+    struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
+    struct mr17s_hw_regs *regs = &mem->regs;
+    u8 cra = ioread8(&regs->CRA);
+	unsigned long flags;
+
+    PDEBUG(debug_hw,"start");
+
+	if( set->flow_ctrl ){
+		cra |= FCEN;
+	}else{
+		cra &= (~FCEN);
+	}
+
+	if( set->fwd_sig ){
+		cra |= MCFW;
+	}else{
+		cra &= (~MCFW);
+	}
+    
+    PDEBUG(debug_hw,"CRA=%02x",cra);
+
+    spin_lock_irqsave(&port->lock,flags);
+    iowrite8(cra,&regs->CRA);
     spin_unlock_irqrestore(&port->lock,flags);
 
     return 0;
