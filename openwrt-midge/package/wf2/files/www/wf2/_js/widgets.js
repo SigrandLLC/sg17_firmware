@@ -168,6 +168,7 @@ function getCmdOutput(cmd) {
  * I18N for widgets.
  */
 function Container(p, options, helpSection) {
+	this.p = p;
 	if (options && options.subsystem) this.subsystem = options.subsystem;
 	this.validator_rules = new Object();
 	this.validator_messages = new Object();
@@ -175,8 +176,10 @@ function Container(p, options, helpSection) {
 	if ($("div[id='" + this.info_message + "']").length == 0) {
 		$("<div class='message'></div>").attr("id", this.info_message).appendTo(p);
 	}
-	this.form = $("<form action=''></form>").appendTo(p).get();
-	this.table = $("<table id='conttable' cellpadding='0' cellspacing='0' border='0'></table>").appendTo(this.form).get();
+	this.form = $.create("form", {"action": ""}).appendTo(p);
+	this.table = $.create("table",
+		{"id": "conttable", "cellpadding": "0", "cellspacing": "0", "border": "0"}).appendTo(this.form);
+	this.table.append($.create("thead"));
 
 	this.setSubsystem = function(subsystem) {
 		this.subsystem = subsystem;
@@ -210,14 +213,16 @@ function Container(p, options, helpSection) {
 			}) : null;
 		
 		/* create table's row for title and context help link */
-		$.create('tr', {},
-			$.create('th', {'colSpan': colspan ? colspan : "2"}, [
+		$("thead", this.table).append(
+			$.create("tr", {},
+				$.create("th", {"colSpan": colspan ? colspan : "2"}, [
 					_(title),
 					" ",
 					help
 				]
+				)
 			)
-		).appendTo(this.table);
+		);
 	};
 	
 	/*
@@ -547,8 +552,49 @@ function Container(p, options, helpSection) {
 				var reload = (options && options.reload) ? true : false;
 				var onSuccess = (options && options.onSuccess) ? options.onSuccess : false;
 				
+				/* array with fields for saving */
+				var fields;
+				
+				/*
+				 * complexValue is name of variable, which value consist of other variables
+				 * (e.g., complexValue is sys_voip_route_15, and it's value will be
+				 * "enabled=1 router_id=135")
+				 */
+				if (options && options.complexValue) {
+					var bigValue = "";
+					var subsystem;
+					/* go through form's fields and create complex value */
+					$.each($(form).formToArray(), function(num, field) {
+						/* write subsystem in separate variable */
+						if (field['name'] == "subsystem") subsystem = field['value'];
+						/* add variable and it's value to complex value */
+						else bigValue += field['name'] + "=" + field['value'] + " ";
+					});
+					bigValue = $.trim(bigValue);
+
+					/* create array for fields */
+					fields = new Array();
+					
+					/* add complex value */
+					fields.push({
+						"name": options.complexValue,
+						"value": bigValue
+					});
+					
+					/* if subsystem is set, add it to array with fields */
+					if (subsystem) {
+						fields.push({
+							"name": "subsystem",
+							"value": subsystem
+						});
+					}
+				/* if we are not in need of complex value, create array with form's fields */
+				} else {
+					fields = $(form).formToArray();
+				}
+				
 				/* submit task (updating settings) for execution */
-     			config.kdbSubmit(form, timeout, reload, onSuccess);
+     			config.kdbSubmit(fields, timeout, reload, onSuccess);
 				
 				/* set checkboxes to their original state */
 				$(".doUncheck").each(function() {
@@ -624,13 +670,33 @@ function Container(p, options, helpSection) {
 		});
 	};
 	
-	/* Add header for table */
-	this.addTableHeader = function(header) {
+	/*
+	 * Add header for table.
+	 * 
+	 * header — separated with "|" list of table column's header.
+	 * addFunc ­— function to call for rendering page for adding new element to table.
+	 */
+	this.addTableHeader = function(header, addFunc) {
 		var tr = $.create("tr", {"align": "center", "className": "tableHeader"});
-		$.each(header.split(" "), function(num, value) {
-			$.create("td", {}, _(value)).appendTo(tr);
+		$.each(header.split("|"), function(num, value) {
+			$.create("th", {}, _(value)).appendTo(tr);
 		});
-		tr.appendTo(this.table);
+		
+		/* add button for adding new elements */
+		if (addFunc) {
+			/* create link and set event handler */
+			var link = $.create("a", {}, "add");
+			link.click(function(e) {
+				$(p).empty();
+				addFunc();
+			});
+			
+			/* we use colSpan because future rows will contain buttons for editing and deleting */
+			$.create("th", {"colSpan": "2"}, link).appendTo(tr);
+		}
+		
+		/* add to thead section of current table */
+		$("thead", this.table).append(tr);
 	};
 	
 	/* Adds row to the table */
@@ -659,6 +725,51 @@ function Container(p, options, helpSection) {
 		
 		/* add subwidget and style it */
 		this.addSubWidget(w).addClass("table");		
+	};
+	
+	/*
+	 * Generate list.
+	 * 
+	 * item — masked item to use for list values. End of this item must contain "*" symbol
+	 * (e.g., sys_voip_route_* means sys_voip_route_0, sys_voip_route_1, etc.).
+	 * cols — space-separated names of variables in item's value to use in table's cells.
+	 * (e.g., "router_id address comment")
+	 * addFunc — function to call for editing row's value.
+	 * delFunc — function to call for deleting row.
+	 */
+	this.generateList = function(item, cols, addFunc, delFunc) {
+		var outer = this;
+		
+		/* get list of items */
+		var items = config.getParsed(item);
+		
+		/* go through item's list */
+		$.each(items, function(key, value) {
+			var row = outer.addTableRow();
+			
+			/* for each variable in item's value create table cell with variable's value */
+			$.each(cols.split(" "), function(num, variable) {
+				$.create("td", {}, value[variable]).appendTo(row);
+			});
+			
+			/* create button for editing */
+			var link = $.create("a", {}, "edit");
+			link.click(function(e) {
+				$(p).empty();
+				addFunc(key);
+			});
+			$.create("td", {}, link).appendTo(row);
+			
+			/* create button for deleting */
+			link = $.create("a", {}, "del");
+			link.click(function(e) {
+				delFunc(key);
+			});
+			$.create("td", {}, link).appendTo(row);
+		});
+		
+		/* add current table to scrollable div */
+		this.table.wrap($.create("div", {"className": "scrolledTable"}));
 	};
 }
 

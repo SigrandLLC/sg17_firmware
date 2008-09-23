@@ -11,7 +11,7 @@ Controllers['multiplexing'] = function() {
 			c = page.addContainer("multiplexing");
 			c.addTitle("Multiplexing", 10);
 			
-			c.addTableHeader("DEV MXEN CLKM CLKAB CLKR RLINE TLINE RFS TFS MXRATE/MXSMAP");
+			c.addTableHeader("DEV|MXEN|CLKM|CLKAB|CLKR|RLINE|TLINE|RFS|TFS|MXRATE/MXSMAP");
 			
 			/* enables/disables CLKR field depending on CLKM value */
 			var onMuxChange = function(iface) {				

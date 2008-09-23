@@ -151,7 +151,7 @@ ul.treeview li li li li li span {
 
 /* ------------- TABLES ---------------- */
 #conttable {
-	width: 100%;
+	width: 745px;
 	/*margin: 10px 0 5px 0;*/
 	border: 1px solid #000;
 	border-bottom: none;
@@ -291,4 +291,10 @@ div.pre {
 
 tr.tableHeader {
 	font-weight: bold;
+}
+
+div.scrolledTable {
+	width: 765px;
+	height: 150px;
+	overflow: auto;
 }

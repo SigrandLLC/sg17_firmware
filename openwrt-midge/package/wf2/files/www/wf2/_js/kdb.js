@@ -114,35 +114,36 @@ function KDBQueue() {
 	};
 }
 
+/*
+ * Local config.
+ */
 function Config() {
 	this.kdbQueue = new KDBQueue();
 	
-	/* submit task for execution */
-	this.kdbSubmit = function(form, timeout, reload, onSuccess) {
-		var values = $(form).formSerialize();
-		this.saveVals(this.parseUrl(values));
-		this.kdbQueue.addTask(values, timeout, reload, onSuccess);
+	/*
+	 * Submit task for execution.
+	 * 
+	 * fields — array with fields
+	 * (e.g., [ { name: 'username', value: 'jresig' }, { name: 'password', value: 'secret' } ]).
+	 * timeout — timeout for AJAX request.
+	 * reload — reload page after request is finished.
+	 * onSuccess — callback on request success.
+	 */
+	this.kdbSubmit = function(fields, timeout, reload, onSuccess) {
+		this.saveVals(fields);
+		
+		/* encode fields with $.param() */
+		this.kdbQueue.addTask($.param(fields), timeout, reload, onSuccess);
 	};
 	
-	/* save values */
-	this.saveVals = function(values) {
+	/*
+	 * Save values to local KDB.
+	 */
+	this.saveVals = function(fields) {
 		var outer = this;
-		$.each(values, function(name, value) {
-			outer.conf[name] = unescape(value);
+		$.each(fields, function(num, field) {
+			outer.conf[field['name']] = field['value'];
 		});
-	};
-	
-	/* parse URL (par1=val1&par2=val2), return hash */
-	this.parseUrl = function(url) {
-		var parsed = new Object();
-		var data = url.split("&");
-		
-		$.each(data, function(name, value) {
-			var variable = value.split("=");
-			parsed[variable[0]] = variable[1];
-		});
-		
-		return parsed;
 	};
 	
 	/*
@@ -161,11 +162,26 @@ function Config() {
 	
 	/*
 	 * Return key's parsed value. Always returns array, even there is no such key.
+	 * If key's string ends with "*", returns array with keys, where "*" replaced with number.
 	 * 
 	 * name — field's name.
 	 */
-	this.getParsed = function(name) {
-		return this.conf[name] != undefined ? this.parseRecord(this.conf[name]) : new Array();
+	this.getParsed = function(key) {
+		/* if key have mask */
+		if (key.search(/\*$/) != -1) {
+			var values = new Object();
+			key = key.replace(/\*$/g, "");
+			for (var i = 0; ; i++) {
+				/* add number to an end of key */
+				var curKey = key + i;
+				if (this.conf[curKey] != undefined) {
+					values[curKey] = this.parseRecord(this.conf[curKey]);
+				} else {
+					return values;
+				}
+			}
+		}
+		return this.conf[key] != undefined ? this.parseRecord(this.conf[key]) : new Array();
 	};
 	
 	/*
@@ -200,7 +216,7 @@ function Config() {
 		if (record.length == 0) return parsedRecord;
 		
 		/* \040 is a " " symbol */
-		var variableSet = record.split(/\\040|\\n/);
+		var variableSet = record.split(/\\040|\\n| /);
 		
 		/* if we have single variable in the record, add it to the array and return */
 		if (variableSet.length == 1) {
@@ -211,7 +227,7 @@ function Config() {
 		/* parse every variable in record */
 		$.each(variableSet, function(name, value) {
 			/* \075 is a "=" symbol */
-			var variable = value.split("\\075");
+			var variable = value.split(/\\075|=/);
 			/* if we have only value */
 			if (variable.length == 1) {
 				parsedRecord.push(value);
@@ -229,8 +245,8 @@ function Config() {
 	 * \075 — '='
 	 */
 	this.replaceSpecialChars = function(value) {
-		var str1 = value.replace(/\\040|\\n/, ' ');
-		return str1.replace(/\\075/, '=');
+		var str1 = value.replace(/\\040|\\n/g, " ");
+		return str1.replace(/\\075/g, "=");
 	};
 	
 	/*

@@ -132,15 +132,70 @@ Controllers['voip'] = function() {
 	});
 	
 	/* route table tab */
+	
+	/* route item */
+	var routeItem = "sys_voip_route_";
+	
+	/* generate page with fields for adding new route */
+	var addFunc = function(item) {
+		var c, field;
+		c = page.addContainer("route");
+		c.addTitle("Add route");
+
+		if (!item) {
+			values = config.getParsed(routeItem + "*");
+			item = routeItem + $.len(values);
+		}
+
+		field = { 
+			"type": "checkbox",
+			"name": "enabled",
+			"text": "Enabled",
+			"descr": "Check this item to enable rule"
+		};
+		c.addWidget(field);
+
+		field = { 
+			"type": "text",
+			"name": "router_id",
+			"text": "Router ID",
+			"descr": "Router ID"
+		};
+		c.addWidget(field);
+		
+		field = { 
+			"type": "text",
+			"name": "address",
+			"text": "Address",
+			"descr": "Router address"
+		};
+		c.addWidget(field);
+		
+		field = { 
+			"type": "text",
+			"name": "comment",
+			"text": "Comment",
+			"descr": "Comment for this record"
+		};
+		c.addWidget(field);
+		
+		c.addSubmit({"complexValue": item});
+	};
+	
+	var delFunc = function() {
+		alert("del");
+	};
+	
 	page.addTab({
 		"id": "route",
 		"name": "Route table",
 		"func": function() {
 			var c, field;
 			c = page.addContainer("route");
-			c.addTitle("Route table");
+			c.addTitle("Route table", 5);
 		
-			
+			c.addTableHeader("Router ID|Address|Comment", addFunc);
+			c.generateList("sys_voip_route_*", "router_id address comment", addFunc, delFunc);
 		}
 	});
 	
