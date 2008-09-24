@@ -99,7 +99,11 @@ function Page(p) {
 	/* Add line break to the tab */
 	this.addBr = function(tabId) {
 		$.create('br').appendTo($('#' + tabIdPrefix + tabId));
-	}
+	};
+	
+	this.clearTab = function(tabId) {
+		$('#' + tabIdPrefix + tabId).empty();
+	};
 }
 
 /* show HTML page in popup window */
@@ -257,7 +261,7 @@ function Container(p, options, helpSection) {
 	 * Create text widget.
 	 * I18N for tip.
 	 */
-	this.createTextWidget = function(w) {
+	this.createTextWidget = function(w, value) {
 		var attrs = {
 			"type": "text",
 			"name": w.name
@@ -266,8 +270,8 @@ function Container(p, options, helpSection) {
 		w.tip && (attrs['title'] = _(w.tip));
 		
 		/* set KDB value */
-		if (config.get(w.name)) {
-			attrs['value'] = config.get(w.name);
+		if (value) {
+			attrs['value'] = value;
 		/* if KDB value does't exists — set default value, if it exists */
 		} else if (w.defaultValue) {
 			attrs['value'] = w.defaultValue;
@@ -295,16 +299,16 @@ function Container(p, options, helpSection) {
 	 * Create checkbox widget.
 	 * I18N for tip.
 	 */
-	this.createCheckboxWidget = function(w) {
+	this.createCheckboxWidget = function(w, value) {
 		var attrs = {
-			'type': 'checkbox',
-			'name': w.name,
-			'className': 'check',
-			'value': '1'
+			"type": "checkbox",
+			"name": w.name,
+			"className": "check",
+			"value": "1"
 		};
 		w.id && (attrs['id'] = w.id);
 		w.tip && (attrs['title'] = _(w.tip));
-		if (config.get(w.name) == "1") attrs['checked'] = true;
+		if (value == "1" || value == "on") attrs['checked'] = true;
 		
 		return $.create('input', attrs);
 	};
@@ -324,13 +328,13 @@ function Container(p, options, helpSection) {
 	/*
 	 * Add HTML text.
 	 */
-	this.createHtml = function(w) {
+	this.createHtml = function(w, value) {
 		var attrs = {'className': 'htmlWidget'};
 		w.tip && (attrs['title'] = _(w.tip));
 		
 		var span = $.create('span', attrs);
 		if (w.kdb) {
-			$(span).html(config.get(w.name));
+			$(span).html(value);
 		} else if (w.cmd) {
 			cmdExecute(w.cmd, span);
 		} else if (w.str) {
@@ -361,25 +365,28 @@ function Container(p, options, helpSection) {
 	 * return added widget.
 	 */
 	this.addSubWidget = function(w, insertAfter) {
+		/* get field's value */
+		var value = w.item ? config.getParsed(w.item)[w.name] : config.get(w.name);
+		
 		var widget;
 		switch (w.type) {
 			case "text": 
-				widget = this.createTextWidget(w);
+				widget = this.createTextWidget(w, value);
 				break;
 			case "password": 
 				widget = this.createPasswordWidget(w);
 				break;
 			case "checkbox":
-				widget = this.createCheckboxWidget(w);
+				widget = this.createCheckboxWidget(w, value);
 				break;
 			case "html":
-				widget = this.createHtml(w);
+				widget = this.createHtml(w, value);
 				break;
 			case "select":
 				widget = this.createSelectWidget(w);
 				if (w.options) {
 					$(widget).setOptionsForSelect(w.options,
-						config.get(w.name), w.defaultValue);
+						value, w.defaultValue);
 				}
 				break;
 		}
@@ -505,7 +512,19 @@ function Container(p, options, helpSection) {
 		}
 
 		/* create submit button */
-		$("<input type='submit' class='button' value='" + _("Save") + "'/>").appendTo(this.form);
+		$.create("input", {
+			"type": "submit",
+			"className": "button",
+			"value": options && options.submitName ? _(options.submitName) : _("Save")
+		}).appendTo(this.form);
+		
+		if (options && options.extraButton) {
+			var button = $.create("input", {
+				"type": "button",
+				"value": options.extraButton.name
+			}).appendTo(this.form);
+			button.click(options.extraButton.func);
+		}
 		
 		$("input").tooltip({track: true});
 		$("select").tooltip({track: true});
@@ -530,9 +549,6 @@ function Container(p, options, helpSection) {
      		
      		/* (closure to timeout var) */
      		submitHandler: function(form) {
-     			/* call user function on submit event */
-     			if (options && options.onSubmit) options.onSubmit();
-     			
      			/* remove alert text */
 				$(".alertText", form).remove();
 				
@@ -601,6 +617,9 @@ function Container(p, options, helpSection) {
 					this.checked = false;
 					this.value = 1;
 				}).removeClass("doUncheck");
+				
+				/* call user function on submit event */
+     			if (options && options.onSubmit) options.onSubmit();
      		}
 		});
 	};
@@ -687,7 +706,6 @@ function Container(p, options, helpSection) {
 			/* create link and set event handler */
 			var link = $.create("a", {}, "add");
 			link.click(function(e) {
-				$(p).empty();
 				addFunc();
 			});
 			
@@ -736,8 +754,9 @@ function Container(p, options, helpSection) {
 	 * (e.g., "router_id address comment")
 	 * addFunc — function to call for editing row's value.
 	 * delFunc — function to call for deleting row.
+	 * height — height of table.
 	 */
-	this.generateList = function(item, cols, addFunc, delFunc) {
+	this.generateList = function(item, cols, addFunc, delFunc, height) {
 		var outer = this;
 		
 		/* get list of items */
@@ -755,7 +774,6 @@ function Container(p, options, helpSection) {
 			/* create button for editing */
 			var link = $.create("a", {}, "edit");
 			link.click(function(e) {
-				$(p).empty();
 				addFunc(key);
 			});
 			$.create("td", {}, link).appendTo(row);
@@ -769,7 +787,7 @@ function Container(p, options, helpSection) {
 		});
 		
 		/* add current table to scrollable div */
-		this.table.wrap($.create("div", {"className": "scrolledTable"}));
+		this.table.wrap($.create("div", {"className": "scrolledTable"}).height(height ? height : 350));
 	};
 }
 

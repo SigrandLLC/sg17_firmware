@@ -184,6 +184,10 @@ function Config() {
 		return this.conf[key] != undefined ? this.parseRecord(this.conf[key]) : new Array();
 	};
 	
+	this.delListKey = function(key) {
+		
+	};
+	
 	/*
 	 * Parse config file.
 	 * data — data to parse.

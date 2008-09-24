@@ -71,7 +71,6 @@ body {
 
 #right input.button {
 	margin: 10px 0 0 261px;
-	border: 1px solid #6c9;
 }
 
 /* --------------------- LEFT MENU ----------------------- */
@@ -295,6 +294,5 @@ tr.tableHeader {
 
 div.scrolledTable {
 	width: 765px;
-	height: 150px;
 	overflow: auto;
 }

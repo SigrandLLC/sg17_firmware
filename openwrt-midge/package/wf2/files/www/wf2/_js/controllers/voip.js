@@ -139,6 +139,7 @@ Controllers['voip'] = function() {
 	/* generate page with fields for adding new route */
 	var addFunc = function(item) {
 		var c, field;
+		page.clearTab("route");
 		c = page.addContainer("route");
 		c.addTitle("Add route");
 
@@ -149,6 +150,7 @@ Controllers['voip'] = function() {
 
 		field = { 
 			"type": "checkbox",
+			"item": item,
 			"name": "enabled",
 			"text": "Enabled",
 			"descr": "Check this item to enable rule"
@@ -157,6 +159,7 @@ Controllers['voip'] = function() {
 
 		field = { 
 			"type": "text",
+			"item": item,
 			"name": "router_id",
 			"text": "Router ID",
 			"descr": "Router ID"
@@ -165,6 +168,7 @@ Controllers['voip'] = function() {
 		
 		field = { 
 			"type": "text",
+			"item": item,
 			"name": "address",
 			"text": "Address",
 			"descr": "Router address"
@@ -173,30 +177,42 @@ Controllers['voip'] = function() {
 		
 		field = { 
 			"type": "text",
+			"item": item,
 			"name": "comment",
 			"text": "Comment",
 			"descr": "Comment for this record"
 		};
 		c.addWidget(field);
 		
-		c.addSubmit({"complexValue": item});
+		c.addSubmit({
+			"complexValue": item,
+			"submitName": "Add/Update",
+			"extraButton": {
+				"name": "Back",
+				"func": showRoutes
+			},
+			"onSubmit": showRoutes
+		});
 	};
 	
-	var delFunc = function() {
+	var delFunc = function(item) {
 		alert("del");
+	};
+	
+	var showRoutes = function() {
+		var c;
+		page.clearTab("route");
+		c = page.addContainer("route");
+		c.addTitle("Route table", 5);
+	
+		c.addTableHeader("Router ID|Address|Comment", addFunc);
+		c.generateList(routeItem + "*", "router_id address comment", addFunc, delFunc);
 	};
 	
 	page.addTab({
 		"id": "route",
 		"name": "Route table",
-		"func": function() {
-			var c, field;
-			c = page.addContainer("route");
-			c.addTitle("Route table", 5);
-		
-			c.addTableHeader("Router ID|Address|Comment", addFunc);
-			c.generateList("sys_voip_route_*", "router_id address comment", addFunc, delFunc);
-		}
+		"func": showRoutes
 	});
 	
 	page.generateTabs();
