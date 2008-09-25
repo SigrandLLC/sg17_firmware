@@ -36,7 +36,8 @@ if [ -n "$iface" ]; then
 			bool:sys_pcicfg_s${slot}_${dev}_crc4	\
 			bool:sys_pcicfg_s${slot}_${dev}_cas"
         if [ "$type" = "$MR16G_DRVNAME" ]; then
-    		kdb_vars=${kdb_vars}"bool:sys_pcicfg_s${slot}_${dev}_ts16"
+    		kdb_vars=${kdb_vars}" \
+				bool:sys_pcicfg_s${slot}_${dev}_ts16"
         fi
 	fi
 
@@ -122,7 +123,7 @@ if [ -n "$iface" ]; then
 	fram=`kdb get sys_pcicfg_s${slot}_${dev}_fram`	
 	if [ "$fram" -eq "1" ]; then
 
-        if [ "$type" = "$mr16g_drvname" ]; then
+        if [ "$type" = "$MR16G_DRVNAME" ]; then
             # sys_pcicfg_s${slot}_${dev}_ts16
 		    tip=""
 		    desc="check to use"
