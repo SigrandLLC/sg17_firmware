@@ -2,6 +2,7 @@
 <?
 	. /etc/templates/lib
 	. /www/lib/service.sh
+	. ./lib.sh
 	
 	KDB_PARAMS=""
 	
@@ -12,21 +13,6 @@
 	kdb_commit() {
 		eval "/usr/bin/kdb ${KDB_PARAMS}"
 		return $?
-	}
-
-	update_configs_and_service_reload(){
-		local subsys="$1"
-		local s
-		local service
-		for s in $subsys; do 
-			update_configs $s
-			[ "$ERROR_MESSAGE" ] && return
-		done
-		fail_str="Update config failed: $ERROR_DETAIL"
-		[ "$ERROR_MESSAGE" ] && return
-		for service in $subsys; do
-			service_reload $service 2>&1 | $LOGGER
-		done
 	}
 	
 IFS='
@@ -41,9 +27,7 @@ IFS=' '
 
 	kdb_commit
 	
-	SUBSYSTEM=$FORM_subsystem
-	
-	update_configs_and_service_reload "$SUBSYSTEM"
+	[ -n "$FORM_subsystem" ] && update_configs_and_service_reload "$FORM_subsystem"
 	
 	echo ""
 ?>

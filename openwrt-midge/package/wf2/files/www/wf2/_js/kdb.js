@@ -26,8 +26,17 @@ function KDBQueue() {
 		}
 	};
 	
-	/* add task to queue */
-	this.addTask = function(values, timeout, reload, onSuccess) {
+	/*
+	 * Add task to queue.
+	 * 
+	 * values — values for sending to router.
+	 * timeout — request timeout.
+	 * reload — reload page after finishing request (on success).
+	 * onSuccess — callback on success.
+	 * kdbCmd — command for KDB. If not set — it saves values,
+	 * if set to "lrm" — removes key from KDB with name passed in parameter "item".
+	 */
+	this.addTask = function(values, timeout, reload, onSuccess, kdbCmd) {
 		/* check if queue is blocked */
 		if (this.block) return;
 		
@@ -36,7 +45,8 @@ function KDBQueue() {
 			"values": values,
 			"timeout": timeout,
 			"reload": reload,
-			"onSuccess": onSuccess
+			"onSuccess": onSuccess,
+			"kdbCmd": kdbCmd
 		};
 		this.queue.push(task);
 		
@@ -69,7 +79,8 @@ function KDBQueue() {
 	this.sendTask = function(task) {
 		var outer = this;
 		var options = {
-			url: "sh/kdb_save.cgi",
+			/* if kdbCmd is lrm, call kdb_del_list.cgi */
+			url: task['kdbCmd'] == "lrm" ? "sh/kdb_del_list.cgi" : "sh/kdb_save.cgi",
 			type: "POST",
 			data: task['values'],
 			
@@ -137,6 +148,27 @@ function Config() {
 	};
 	
 	/*
+	 * Delete list key.
+	 * 
+	 * item — key to delete.
+	 * subsystem — subsystem to restart.
+	 * timeout — timeout for request.
+	 */
+	this.kdbDelListKey = function(item, subsystem, timeout) {
+		/* delete item for local KDB */
+		this.delListKey(item);
+		
+		/* create fields for sending to router */
+		fields = [
+			{"name": "item", "value": item},
+			{"name": "subsystem", "value": subsystem}
+		];
+		
+		/* encode fields with $.param(), and set kdbCmd to "lrm" */
+		this.kdbQueue.addTask($.param(fields), timeout, null, null, "lrm");
+	};
+	
+	/*
 	 * Save values to local KDB.
 	 */
 	this.saveVals = function(fields) {
@@ -184,8 +216,37 @@ function Config() {
 		return this.conf[key] != undefined ? this.parseRecord(this.conf[key]) : new Array();
 	};
 	
+	/*
+	 * Delete key from local KDB.
+	 */
+	this.del = function(key) {
+		delete this.conf[key];
+	};
+	
+	/*
+	 * Delete list key from local KDB.
+	 */
 	this.delListKey = function(key) {
+		/* delete key from local KDB */
+		this.del(key);
 		
+		/* remove key list's index */
+		key = key.replace(/[0-9]+$/g, "");
+		
+		/* rename remaining keys */
+		for (var oldIdx = 0, newIdx = 0; ; oldIdx++) {
+			if (this.conf[key + oldIdx] != undefined) {
+				this.conf[key + newIdx] = this.conf[key + oldIdx];
+				newIdx++;
+			/* 
+			 * if next index is also undefined and we've deleted key not 
+			 * from the end — delete last key, because we copied it to previous index.
+			 */
+			} else if (this.conf[key + (oldIdx + 1)] == undefined && oldIdx != newIdx) {
+				delete this.conf[key + (oldIdx - 1)];
+				break;
+			}
+		}
 	};
 	
 	/*

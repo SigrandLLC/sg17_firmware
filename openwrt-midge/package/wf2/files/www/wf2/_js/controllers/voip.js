@@ -141,12 +141,12 @@ Controllers['voip'] = function() {
 		var c, field;
 		page.clearTab("route");
 		c = page.addContainer("route");
-		c.addTitle("Add route");
 
 		if (!item) {
+			c.addTitle("Add route");
 			values = config.getParsed(routeItem + "*");
 			item = routeItem + $.len(values);
-		}
+		} else c.addTitle("Edit route");
 
 		field = { 
 			"type": "checkbox",
@@ -195,10 +195,6 @@ Controllers['voip'] = function() {
 		});
 	};
 	
-	var delFunc = function(item) {
-		alert("del");
-	};
-	
 	var showRoutes = function() {
 		var c;
 		page.clearTab("route");
@@ -206,7 +202,7 @@ Controllers['voip'] = function() {
 		c.addTitle("Route table", 5);
 	
 		c.addTableHeader("Router ID|Address|Comment", addFunc);
-		c.generateList(routeItem + "*", "router_id address comment", addFunc, delFunc);
+		c.generateList(routeItem + "*", "router_id address comment", addFunc, showRoutes);
 	};
 	
 	page.addTab({

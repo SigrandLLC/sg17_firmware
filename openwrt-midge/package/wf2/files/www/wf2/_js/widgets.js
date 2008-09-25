@@ -176,9 +176,9 @@ function Container(p, options, helpSection) {
 	if (options && options.subsystem) this.subsystem = options.subsystem;
 	this.validator_rules = new Object();
 	this.validator_messages = new Object();
-	this.info_message = "info_message_" + $(p).attr("id");
-	if ($("div[id='" + this.info_message + "']").length == 0) {
-		$("<div class='message'></div>").attr("id", this.info_message).appendTo(p);
+	this.infoMessage = "info_message_" + $(p).attr("id");
+	if ($("div[id='" + this.infoMessage + "']").length == 0) {
+		$("<div class='message'></div>").attr("id", this.infoMessage).appendTo(p);
 	}
 	this.form = $.create("form", {"action": ""}).appendTo(p);
 	this.table = $.create("table",
@@ -187,7 +187,15 @@ function Container(p, options, helpSection) {
 
 	this.setSubsystem = function(subsystem) {
 		this.subsystem = subsystem;
-	}
+	};
+	
+	/*
+	 * Set time in seconds to wait for server reply before show an error message.
+	 */
+	this.ajaxTimeout = null;
+	this.setAjaxTimeout = function(timeout)  {
+		this.ajaxTimeout = timeout * 1000;
+	};
 	
 	/* 
 	 * Adds title and context help link to container and adds it to container's table.
@@ -468,42 +476,41 @@ function Container(p, options, helpSection) {
 		cmdExecute(cmd, div);
 	};
 
+	/* 
+	 * Sets error message.
+	 * I18N for text.
+	 */
+	this.setError = function(text) {
+		var idInfoMessage = "#" + this.infoMessage;
+		$(idInfoMessage).html(_(text));
+		$(idInfoMessage).removeClass("success_message");
+		$(idInfoMessage).addClass("error_message");
+	};
+	
+	/* 
+	 * Sets info message.
+	 * I18N for text.
+	 */
+	this.setInfo = function(text) {
+		var idInfoMessage = "#" + this.infoMessage;
+		$(idInfoMessage).html(_(text));
+		$(idInfoMessage).removeClass("error_message");
+		$(idInfoMessage).addClass("success_message");
+	};
+
 	/*
 	 * Adds submit button, form validation rules and submit's events handlers.
-	 * options.ajaxTimeout — time in seconds to wait for server reply before show an error message;
 	 * options.reload — reload page after AJAX request (e.g., for update translation);
 	 * options.onSuccess — callback on request successfully completion.
 	 */
 	this.addSubmit = function(options) {
-		var timeout = (options && options.ajaxTimeout) ? options.ajaxTimeout * 1000 : null;
-		var id_info_message = "#" + this.info_message;
-		
-		/* 
-		 * sets error message
-		 * I18N for text
-		 */
-		var setError = function(text) {
-			$(id_info_message).html(_(text));
-			if ($(id_info_message).hasClass("success_message")) {
-				$(id_info_message).removeClass("success_message");
-			}
-			$(id_info_message).addClass("error_message");
-		};
-		
-		/* sets info message
-		 * I18N for text
-		 */
-		var setInfo = function(text) {
-			$(id_info_message).html(_(text));
-			if ($(id_info_message).hasClass("error_message")) {
-				$(id_info_message).removeClass("error_message");
-			}
-			$(id_info_message).addClass("success_message");
-		};
+		var idInfoMessage = "#" + this.infoMessage;
+		var timeout = this.ajaxTimeout;
+		var outer = this;
 		
 		/* shows message */
 		var showMsg = function() {
-			$(id_info_message).show();
+			$(idInfoMessage).show();
 		};
 
 		/* if subsystem is set — add it to the form */
@@ -521,7 +528,7 @@ function Container(p, options, helpSection) {
 		if (options && options.extraButton) {
 			var button = $.create("input", {
 				"type": "button",
-				"value": options.extraButton.name
+				"value": _(options.extraButton.name)
 			}).appendTo(this.form);
 			button.click(options.extraButton.func);
 		}
@@ -535,11 +542,11 @@ function Container(p, options, helpSection) {
 			messages: this.validator_messages,
 			
 			/* container where to show error */
-			errorContainer: id_info_message,
+			errorContainer: idInfoMessage,
 			
-			/* Set error text to container (closure to setError var) */
+			/* Set error text to container */
 			showErrors: function(errorMap, errorList) {
-				setError("Please, enter a valid data into the form below to be able to save it successfully.");
+				outer.setError("Please, enter a valid data into the form below to be able to save it successfully.");
 				this.defaultShowErrors();
 			},
 			
@@ -547,7 +554,7 @@ function Container(p, options, helpSection) {
      			error.prependTo(element.parent());
      		},
      		
-     		/* (closure to timeout var) */
+     		/* on submit event */
      		submitHandler: function(form) {
      			/* remove alert text */
 				$(".alertText", form).remove();
@@ -753,10 +760,10 @@ function Container(p, options, helpSection) {
 	 * cols — space-separated names of variables in item's value to use in table's cells.
 	 * (e.g., "router_id address comment")
 	 * addFunc — function to call for editing row's value.
-	 * delFunc — function to call for deleting row.
+	 * showFunc — function to call after deleting rot. Usually this func reloads table.
 	 * height — height of table.
 	 */
-	this.generateList = function(item, cols, addFunc, delFunc, height) {
+	this.generateList = function(item, cols, addFunc, showFunc, height) {
 		var outer = this;
 		
 		/* get list of items */
@@ -765,29 +772,92 @@ function Container(p, options, helpSection) {
 		/* go through item's list */
 		$.each(items, function(key, value) {
 			var row = outer.addTableRow();
+			var cssClass = {};
+			
+			/* change text color for disabled items */
+			if (value['enabled'] == "off" || value['enabled'] == "0") {
+				cssClass = {"className": "disabled"};
+			}
 			
 			/* for each variable in item's value create table cell with variable's value */
 			$.each(cols.split(" "), function(num, variable) {
-				$.create("td", {}, value[variable]).appendTo(row);
+				var td = $.create("td", cssClass, value[variable]).appendTo(row);
 			});
 			
-			/* create button for editing */
-			var link = $.create("a", {}, "edit");
-			link.click(function(e) {
+			/* create "button" for editing */
+			var img = $.create("img", {"src": "_img/e.png", "alt": "edit"});
+			img.click(function(e) {
 				addFunc(key);
 			});
-			$.create("td", {}, link).appendTo(row);
+			
+			/* change image when mouse is over it */
+			img.hover(
+				function() {
+					$(this).attr("src", "_img/e2.png")
+				},
+				function() {
+					$(this).attr("src", "_img/e.png")
+				}
+			);
+			$.create("td", {}, img).appendTo(row);
 			
 			/* create button for deleting */
-			link = $.create("a", {}, "del");
+			var link = $.create("a", {}, "del");
 			link.click(function(e) {
-				delFunc(key);
+				/* unhilight previous selected item */
+				$(".selected", outer.table).removeClass("selected");
+				
+				/* highlight selected item */
+				$(this).parents("tr").addClass("selected");
+				
+				/* confirm for deleting */
+				outer.deleteConfirm(key, showFunc);
 			});
 			$.create("td", {}, link).appendTo(row);
 		});
 		
 		/* add current table to scrollable div */
 		this.table.wrap($.create("div", {"className": "scrolledTable"}).height(height ? height : 350));
+	};
+	
+	/*
+	 * Confirm deletion.
+	 * 
+	 * item — item (KDB's key) to delete.
+	 * showFunc — func to call after deletion.
+	 */
+	this.deleteConfirm = function(item, showFunc) {
+		var idInfoMessage = "#" + this.infoMessage;
+		this.setError("Are you sure you want to delete this item?<br>");
+		
+		var button = $.create("input", {
+			"type": "button",
+			"className": "button",
+			"value": _("Yes")
+		}).appendTo(idInfoMessage);
+		
+		var outer = this;
+		button.click(function() {
+			$(idInfoMessage).hide();
+			$(".selected", outer.table).removeClass("selected");
+			
+			/* delete item and restart subsystem */
+			config.kdbDelListKey(item, outer.subsystem, outer.ajaxTimeout);
+			
+			/* if set, call func after deleting (usually updates table) */
+			if (showFunc) showFunc();
+		});
+		
+		button = $.create("input", {
+			"type": "button",
+			"value": _("No")
+		}).appendTo(idInfoMessage);
+		button.click(function() {
+			$(idInfoMessage).hide();
+			$(".selected", outer.table).removeClass("selected");
+		});
+		
+		$(idInfoMessage).show();
 	};
 }
 
