@@ -494,7 +494,7 @@ check(ifdescr_t **iflist,int iflsize)
 			rlines[set->rline] = mxline_init();
 		}
         
-		if( mxline_add(rlines[set->rline],set->clkab,el) ){
+		if( mxline_add(rlines[set->rline],set->clkab,el,set->tline) ){
 			mxerror("Cannot add device %s to line %d, too many interfaces",
 					iflist[i]->name,set->rline);
 		}
@@ -505,7 +505,7 @@ check(ifdescr_t **iflist,int iflsize)
 			tlines[set->tline] = mxline_init();
 		}
 
-		if( mxline_add(tlines[set->tline],set->clkab,el) ){
+		if( mxline_add(tlines[set->tline],set->clkab,el,set->tline) ){
 			mxerror("Cannot add device %s to line %d, too many interfaces",
 					iflist[i]->name,set->tline);
 		}
@@ -541,12 +541,21 @@ check(ifdescr_t **iflist,int iflsize)
 			mxerror("Line%d: not all writing devices in same domain",i);
 			mxline_print(rlines[i],i,"write");
 			derr = 1;
+			rerr = 1;
 		}
 		if( tlines[i] && tlines[i]->domain_err){
 			mxerror("Line%d: not all reading devices in same domain",i);
 			mxline_print(tlines[i],i,"read");
 			derr = 1;
+			terr = 1;
 		}
+		if( tlines[i]->domain != rlines[i]->domain ){
+			mxerror("Line%d: not all reading devices in same domain",i);
+			if( !rerr )
+				mxline_print(rlines[i],i,"write");
+			if( !terr )
+				mxline_print(tlines[i],i,"read");
+		}			
     }
 
     // 3. Check that timeslots inside line do not cross

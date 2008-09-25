@@ -36,7 +36,7 @@ typedef struct{
 } mxdomain_t;
 
 mxline_t *mxline_init();
-int mxline_add(mxline_t *l,domain_t domain,mxelem_t el);
+int mxline_add(mxline_t *l,domain_t domain,mxelem_t el,int ind);
 void mxline_free(mxline_t *l);
 
 #endif

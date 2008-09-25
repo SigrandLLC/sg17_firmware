@@ -205,7 +205,13 @@ _pci_start(){
 			nifaces="$nifaces \n $i"
 		fi
 	done
+
 	for s in `$kdb get sys_pcitbl_slots`; do
+		#skip RS232 modules
+		type=`$kdb get sys_pcitbl_s${s}_iftype`
+		if [ "$type" = "$mr17s_drvname" ] ;then
+			continue
+		fi
 		for i in `$kdb get sys_pcitbl_s${s}_ifaces`; do
 			nifaces="$nifaces \n $i"
 		done

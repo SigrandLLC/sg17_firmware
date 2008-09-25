@@ -2016,12 +2016,10 @@ store_mx_slotmap(struct class_device *cdev,const char *buf,size_t size)
 	
 	cfg->mxslotmap = ts;	
 
-	if( ndev->flags & IFF_UP ){
-		PDEBUG(DSYSFS,"reset all");
-		mr16g_E1_setup(nl);
-		mr16g_setup_carrier(ndev,&mask);
-		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
-	}
+	PDEBUG(DSYSFS,"reset all");
+	mr16g_E1_setup(nl);
+	mr16g_setup_carrier(ndev,&mask);
+	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
 	
 	return size;
 }

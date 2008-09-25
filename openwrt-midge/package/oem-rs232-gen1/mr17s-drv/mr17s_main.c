@@ -490,30 +490,61 @@ static void mr17s_set_termios(struct uart_port *port,
 
 static int mr17s_startup(struct uart_port *port)
 {
+    struct mr17s_uart_port *hw_port = (struct mr17s_uart_port *)port;
     struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
     struct mr17s_hw_regs *regs = &mem->regs;
+	unsigned long flags;
 	u8 cra;
-    PDEBUG(debug_hw,"");
-    // Clear ring
+	
+    spin_lock_irqsave(&port->lock,flags);
+	
+	PDEBUG(debug_hw,"");
+    // No startup in MUX mode
+	if( ioread8(&regs->MXCR) & MXEN ){
+		// Create backup regs, so startup values will be applied while MUX down 
+ 		hw_port->hdlc_bkp.cra = (ioread8(&regs->CRA)&(FCEN|MCFW))|TXEN|RXEN|DTR|RTS;
+		hw_port->hdlc_bkp.imr = (TXS|RXS|RXE);
 
-    // Enable interrupts
-    iowrite8(0xff,&regs->SR);
-	cra = ioread8(&regs->CRA) | (DTR|RTS);
-    iowrite8(cra,&regs->CRA);
-    iowrite8(TXS|RXS|RXE,&regs->IMR);
+		PDEBUG(debug_hw,"Backup CRA=%02x(now=%02x), IMR=%02x(now=%02x)",hw_port->hdlc_bkp.cra,ioread8(&regs->CRA),
+				hw_port->hdlc_bkp.imr,ioread8(&regs->IMR));
+	}else{
+	    // Enable interrupts
+    	iowrite8(0xff,&regs->SR);
+		cra = ioread8(&regs->CRA) | (DTR|RTS);
+    	iowrite8(cra,&regs->CRA);
+	    iowrite8(TXS|RXS|RXE,&regs->IMR);
+		PDEBUG(debug_hw,"Enable port CRA=%02x, IMR=%02x",ioread8(&regs->CRA),ioread8(&regs->IMR));
+	}
+    spin_unlock_irqrestore(&port->lock,flags);
+
     return 0;
 }
 
 static void mr17s_shutdown(struct uart_port *port)
 {
+    struct mr17s_uart_port *hw_port = (struct mr17s_uart_port *)port;
     struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
     struct mr17s_hw_regs *regs = &mem->regs;
+	unsigned long flags;
 	u8 cra;
     PDEBUG(debug_hw,"");
+
+    spin_lock_irqsave(&port->lock,flags);
+    // Reset backups if in MUX mode
+	if( ioread8(&regs->MXCR) & MXEN ){
+ 		hw_port->hdlc_bkp.cra &= (FCEN|MCFW|TXEN|RXEN);
+		hw_port->hdlc_bkp.imr = 0;
+		goto exit;
+	}
     // Disable interrupts
     iowrite8(0,&regs->IMR);
 	cra = ioread8(&regs->CRA) & (FCEN|MCFW|TXEN|RXEN);
     iowrite8(cra,&regs->CRA);
+
+exit:
+	PDEBUG(debug_hw,"BkpCRA=%02x, CRA=%02x, BkpIMR=%02x, IMR=%02x",hw_port->hdlc_bkp.cra,ioread8(&regs->CRA),
+		hw_port->hdlc_bkp.imr,ioread8(&regs->IMR));
+    spin_unlock_irqrestore(&port->lock,flags);
 }
 
 static const char *mr17s_type(struct uart_port *port)
@@ -654,6 +685,21 @@ mr17s_mux_get(struct uart_port *port,struct mxsettings *set)
     return 0;
 }
 
+void setup_mxrate(struct mr17s_uart_port *hw_port)
+{
+    struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)hw_port->port.membase;
+    struct mr17s_hw_regs *regs = &mem->regs;
+	u8 mcfw_en = ioread8(&regs->CRA) & MCFW;
+	u8 rate = hw_port->baud/MUX_TIMESLOT;
+
+	if( hw_port->baud%MUX_TIMESLOT )
+    	rate++;
+	if( mcfw_en )
+		rate++;
+    rate--;
+    PDEBUG(debug_hw,"baud=%d,rate=%d",hw_port->baud,rate);
+    iowrite8(rate,&regs->MXRATE);
+}
 
 static int
 mr17s_mux_set(struct uart_port *port,struct mxsettings *set)
@@ -662,7 +708,12 @@ mr17s_mux_set(struct uart_port *port,struct mxsettings *set)
     struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
     struct mr17s_hw_regs *regs = &mem->regs;
     unsigned long flags;
-    u8 mxcr = ioread8(&regs->MXCR);
+    u8 mxcr;
+
+	// Lock chip
+    spin_lock_irqsave(&port->lock,flags);
+
+	mxcr = ioread8(&regs->MXCR);
 
     switch(set->clkm){
     case 0:
@@ -691,39 +742,52 @@ mr17s_mux_set(struct uart_port *port,struct mxsettings *set)
         break;
     }
 
-    switch(set->mxen){
-    case 0:
-        mxcr &= (~MXEN);
-        break;
-    case 1:
-        mxcr |= MXEN;
-        break;
-    }
-    
-    spin_lock_irqsave(&port->lock,flags);
+	
+	if( set->mxen && !(mxcr & MXEN)){
+		u8 cra;
+		// if mux mode not already activated
+		// 1. Backup HDLC registers for later restore
+		hw_port->hdlc_bkp.cra = ioread8(&regs->CRA);
+		cra = hw_port->hdlc_bkp.cra & (FCEN|MCFW);
+    	hw_port->hdlc_bkp.imr = ioread8(&regs->IMR);
+		// 2. Setup HDLC registers for MUX
+    	iowrite8(0,&regs->IMR);
+		iowrite8(0xff,&regs->SR);
+		iowrite8(cra|TXEN|RXEN|DTR|RTS,&regs->CRA);
+	}else if( !set->mxen && (mxcr & MXEN) ){
+		// if mux mode already activated & we want to deactivate
+		// 1. Restore HDLC registers
+		iowrite8(0xff,&regs->SR);
+		iowrite8(hw_port->hdlc_bkp.cra,&regs->CRA);
+    	iowrite8(hw_port->hdlc_bkp.imr,&regs->IMR);
+	}
+
+	PDEBUG(debug_hw,"BkpCRA=%02x, CRA=%02x, BkpIMR=%02x, IMR=%02x",hw_port->hdlc_bkp.cra,ioread8(&regs->CRA),
+		hw_port->hdlc_bkp.imr,ioread8(&regs->IMR));
+
 
     iowrite8(mxcr,&regs->MXCR);
-
     if( mxcr & MXEN ){
-        u8 rate = hw_port->baud/MUX_TIMESLOT;
-        if( hw_port->baud%MUX_TIMESLOT )
-            rate++;
-        rate--;
-        PDEBUG(debug_hw,"baud=%d,rate=%d",hw_port->baud,rate);
-        iowrite8(rate,&regs->MXRATE);
+		setup_mxrate(hw_port);
     }        
+
     if( set->rline >=0 ){
         iowrite8(set->rline,&regs->RLINE);
     }
+
     if( set->tline >=0 ){
         iowrite8(set->tline,&regs->TLINE);
     }
+
     if( set->rfs >=0 ){
         iowrite8(set->rfs,&regs->RFS);
     }
+
     if( set->tfs >=0 ){
         iowrite8(set->tfs,&regs->TFS);
     }
+
+	// Unlock chip 
     spin_unlock_irqrestore(&port->lock,flags);
 
     return 0;
@@ -750,12 +814,18 @@ mr17s_hw_get(struct uart_port *port,struct hwsettings *set)
 static int
 mr17s_hw_set(struct uart_port *port,struct hwsettings *set)
 {
+    struct mr17s_uart_port *hw_port = (struct mr17s_uart_port *)port;
     struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
     struct mr17s_hw_regs *regs = &mem->regs;
-    u8 cra = ioread8(&regs->CRA);
 	unsigned long flags;
+    u8 cra, mxcr;
 
     PDEBUG(debug_hw,"start");
+
+    spin_lock_irqsave(&port->lock,flags);
+    
+	cra = ioread8(&regs->CRA);
+    mxcr = ioread8(&regs->MXCR);
 
 	if( set->flow_ctrl ){
 		cra |= FCEN;
@@ -763,7 +833,7 @@ mr17s_hw_set(struct uart_port *port,struct hwsettings *set)
 		cra &= (~FCEN);
 	}
 
-	if( set->fwd_sig ){
+	if( set->fwd_sig  ){
 		cra |= MCFW;
 	}else{
 		cra &= (~MCFW);
@@ -771,8 +841,12 @@ mr17s_hw_set(struct uart_port *port,struct hwsettings *set)
     
     PDEBUG(debug_hw,"CRA=%02x",cra);
 
-    spin_lock_irqsave(&port->lock,flags);
     iowrite8(cra,&regs->CRA);
+	if( mxcr & MXEN ){
+		// Recalculate MXRATE in MUX mode
+		setup_mxrate(hw_port);
+	}
+
     spin_unlock_irqrestore(&port->lock,flags);
 
     return 0;

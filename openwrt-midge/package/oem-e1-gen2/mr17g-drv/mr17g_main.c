@@ -18,7 +18,7 @@
 #include "pef22554.h"
 
 // Debug settings
-//#define DEBUG_ON
+#define DEBUG_ON
 #define DEFAULT_LEV 10
 #include "mr17g_debug.h"
 
@@ -60,6 +60,7 @@ static int  __devinit
 mr17g_init( void )
 {
 	printk(KERN_NOTICE"Load "MR17G_MODNAME" E1 driver. Version "MR17G_VER"\n");
+	PDEBUG(debug_error,"debug error test");
 	return pci_module_init( &mr17g_driver );
 }
 

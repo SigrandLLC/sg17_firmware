@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "mxobjects.h"
+#include "debug.h"
 
 //------------ MX line ----------------//
 
@@ -17,8 +18,10 @@ mxline_init()
 }
 
 int
-mxline_add(mxline_t *l,domain_t domain,mxelem_t el)
+mxline_add(mxline_t *l,domain_t domain,mxelem_t el,int ind)
 {
+	debug_lev = DINFO;
+	PDEBUG(DINFO,"line%d devcnt=%d, domain=%d,domain=%d",ind,l->devcnt,l->domain,domain);
     if( !(l->devcnt < MAX_IFS) )
 	    return -ELSPACE;
     if( !l->devcnt ){

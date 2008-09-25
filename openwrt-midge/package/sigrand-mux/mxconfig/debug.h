@@ -11,11 +11,11 @@ extern int debug_lev;
 #define DFULL 10
 
 #ifdef APP_DEBUG
-#	include <cassert>
-#	define ASSERT(x) assert(x)
-#       define PDEBUG(lev,fmt,args...) \
+//#	include <cassert>
+//#	define ASSERT(x) assert(x)
+#   define PDEBUG(lev,fmt,args...) \
 		if( lev<=debug_lev ) \
-			printf("eocd(%s): " fmt " \n",__FUNCTION__, ## args  )
+			printf("mxconfig(%s): " fmt " \n",__FUNCTION__, ## args  )
 
 
 #	define EDEBUG(lev,function) \
