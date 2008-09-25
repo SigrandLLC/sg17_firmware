@@ -180,14 +180,10 @@ struct mr17s_device{
 };
 
 
-struct mr17s_regs_bkp{
-	u8 cra,crb,imr;
-};
 struct mr17s_uart_port{
     struct uart_port port;
     enum mr17s_type type;
     u32 baud;
-	struct mr17s_regs_bkp hdlc_bkp; 
 };
 
 #endif
