@@ -16,7 +16,7 @@
 		local style
 		eval "var=\$$item"
 		eval "$var"
-		[ "x${enabled}x" = "xx" ] && style="class='lineDisabled'"
+		[ "x${enabled}x" = "xx" -o "x${enabled}x" = "x0x" ] && style="class='lineDisabled'"
 		
 		echo "<tr $style><td>$short_number</td><td>$complete_number</td><td>$comment</td><td>"
 		

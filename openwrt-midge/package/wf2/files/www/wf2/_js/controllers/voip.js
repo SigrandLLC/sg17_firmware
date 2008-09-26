@@ -137,7 +137,7 @@ Controllers['voip'] = function() {
 	var routeItem = "sys_voip_route_";
 	
 	/* generate page with fields for adding new route */
-	var addFunc = function(item) {
+	var addRouteFunc = function(item) {
 		var c, field;
 		page.clearTab("route");
 		c = page.addContainer("route");
@@ -162,7 +162,8 @@ Controllers['voip'] = function() {
 			"item": item,
 			"name": "router_id",
 			"text": "Router ID",
-			"descr": "Router ID"
+			"descr": "Router ID",
+			"validator": {"required": true}
 		};
 		c.addWidget(field);
 		
@@ -171,7 +172,8 @@ Controllers['voip'] = function() {
 			"item": item,
 			"name": "address",
 			"text": "Address",
-			"descr": "Router address"
+			"descr": "Router address",
+			"validator": {"required": true}
 		};
 		c.addWidget(field);
 		
@@ -201,14 +203,96 @@ Controllers['voip'] = function() {
 		c = page.addContainer("route");
 		c.addTitle("Route table", 5);
 	
-		c.addTableHeader("Router ID|Address|Comment", addFunc);
-		c.generateList(routeItem + "*", "router_id address comment", addFunc, showRoutes);
+		c.addTableHeader("Router ID|Address|Comment", addRouteFunc);
+		c.generateList(routeItem + "*", "router_id address comment", addRouteFunc, showRoutes);
 	};
 	
 	page.addTab({
 		"id": "route",
 		"name": "Route table",
 		"func": showRoutes
+	});
+	
+	/* address book tab */
+	
+	/* address item */
+	var addressItem = "sys_voip_address_";
+	
+	/* generate page with fields for adding new route */
+	var addAddressFunc = function(item) {
+		var c, field;
+		page.clearTab("address");
+		c = page.addContainer("address");
+
+		if (!item) {
+			c.addTitle("Add address");
+			values = config.getParsed(addressItem + "*");
+			item = addressItem + $.len(values);
+		} else c.addTitle("Edit address");
+
+		field = { 
+			"type": "checkbox",
+			"item": item,
+			"name": "enabled",
+			"text": "Enabled",
+			"descr": "Check this item to enable rule"
+		};
+		c.addWidget(field);
+
+		field = { 
+			"type": "text",
+			"item": item,
+			"name": "short_number",
+			"text": "Short number",
+			"descr": "Short number for speed dialing",
+			"validator": {"required": true}
+		};
+		c.addWidget(field);
+		
+		field = { 
+			"type": "text",
+			"item": item,
+			"name": "complete_number",
+			"text": "Complete number",
+			"descr": "Complete telephone number",
+			"validator": {"required": true}
+		};
+		c.addWidget(field);
+		
+		field = { 
+			"type": "text",
+			"item": item,
+			"name": "comment",
+			"text": "Comment",
+			"descr": "Comment for this record"
+		};
+		c.addWidget(field);
+		
+		c.addSubmit({
+			"complexValue": item,
+			"submitName": "Add/Update",
+			"extraButton": {
+				"name": "Back",
+				"func": showAddresses
+			},
+			"onSubmit": showAddresses
+		});
+	};
+	
+	var showAddresses = function() {
+		var c;
+		page.clearTab("address");
+		c = page.addContainer("address");
+		c.addTitle("Address book", 5);
+	
+		c.addTableHeader("Short number|Complete number|Comment", addAddressFunc);
+		c.generateList(addressItem + "*", "short_number complete_number comment", addAddressFunc, showAddresses);
+	};
+	
+	page.addTab({
+		"id": "address",
+		"name": "Address book",
+		"func": showAddresses
 	});
 	
 	page.generateTabs();

@@ -710,14 +710,24 @@ function Container(p, options, helpSection) {
 		
 		/* add button for adding new elements */
 		if (addFunc) {
-			/* create link and set event handler */
-			var link = $.create("a", {}, "add");
-			link.click(function(e) {
+			/* create "button" for adding */
+			var img = $.create("img", {"src": "_img/plus.png", "alt": "add"});
+			img.click(function(e) {
 				addFunc();
 			});
 			
+			/* change image when mouse is over it */
+			img.hover(
+				function() {
+					$(this).attr("src", "_img/plus2.png")
+				},
+				function() {
+					$(this).attr("src", "_img/plus.png")
+				}
+			);
+			
 			/* we use colSpan because future rows will contain buttons for editing and deleting */
-			$.create("th", {"colSpan": "2"}, link).appendTo(tr);
+			$.create("th", {"colSpan": "2"}, img).appendTo(tr);
 		}
 		
 		/* add to thead section of current table */
@@ -801,9 +811,9 @@ function Container(p, options, helpSection) {
 			);
 			$.create("td", {}, img).appendTo(row);
 			
-			/* create button for deleting */
-			var link = $.create("a", {}, "del");
-			link.click(function(e) {
+			/* create "button" for deleting */
+			img = $.create("img", {"src": "_img/minus.png", "alt": "delete"});
+			img.click(function(e) {
 				/* unhilight previous selected item */
 				$(".selected", outer.table).removeClass("selected");
 				
@@ -813,7 +823,17 @@ function Container(p, options, helpSection) {
 				/* confirm for deleting */
 				outer.deleteConfirm(key, showFunc);
 			});
-			$.create("td", {}, link).appendTo(row);
+			
+			/* change image when mouse is over it */
+			img.hover(
+				function() {
+					$(this).attr("src", "_img/minus2.png")
+				},
+				function() {
+					$(this).attr("src", "_img/minus.png")
+				}
+			);
+			$.create("td", {}, img).appendTo(row);
 		});
 		
 		/* add current table to scrollable div */
@@ -852,6 +872,7 @@ function Container(p, options, helpSection) {
 			"type": "button",
 			"value": _("No")
 		}).appendTo(idInfoMessage);
+		
 		button.click(function() {
 			$(idInfoMessage).hide();
 			$(".selected", outer.table).removeClass("selected");
