@@ -183,7 +183,7 @@ struct mr17g_chan_config{
     u8 framed	:1;
     u8 cas   	:1;
     u8 crc4 	:1;
-//    u8 ts16     :1;
+    u8 ts16     :1;
     u8 hdb3 	:1;
     u8 long_haul:1;
     u8 ext_clck :1;

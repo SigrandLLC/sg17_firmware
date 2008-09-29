@@ -38,9 +38,9 @@ pef22554_setup_sci(struct mr17g_chip *chip)
     cmd->reg_addr = 0; // First register
     cmd->ctrl_bits = WR_SCI; 
     cmd->data = (PP | ACK_EN | CRC_EN | DUP ); //0x95;
-    size = mr17g_sci_request(chip,buf,PEF22554_WCMD_SIZE);
-    if( size != PEF22554_WACK_SIZE ){
-        printk(KERN_ERR"%s: Error setting SCI controller\n",MR17G_MODNAME);
+    if( (size = mr17g_sci_request(chip,buf,PEF22554_WCMD_SIZE,PEF22554_WACK_SIZE)) < 0){
+        printk(KERN_ERR"%s: Error setting SCI controller, size=%d, need_size = %d\n",
+				MR17G_MODNAME,(-1)*size,PEF22554_WACK_SIZE);
         goto error;
     }
     ack = (struct pef22554_write_ack*)buf;
@@ -59,12 +59,13 @@ pef22554_defcfg(struct mr17g_channel *chan)
 {   
     struct mr17g_chan_config *cfg = &chan->cfg;
     memset(cfg,0,sizeof(*cfg));
-    // Default config: framed, HDB3, slotmap = 1-15;
+    // Default config: framed, HDB3, slotmap = 1-31;
     cfg->framed = 1;
     cfg->hdb3 = 1;
-    cfg->slotmap = 0xFFFE;
+    cfg->slotmap = 0xFFFFFFFE;
     cfg->crc16 = 1;
     cfg->fill_7e = 1;
+	cfg->ts16 = 1;
 }
 
 int
@@ -88,10 +89,9 @@ pef22554_writereg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 val)
     }
     cmd->ctrl_bits = WR_FALC;
     cmd->data = val;
-    size = mr17g_sci_request(chip,buf,PEF22554_WCMD_SIZE);
-    if( size != PEF22554_WACK_SIZE ){
+    if( (size = mr17g_sci_request(chip,buf,PEF22554_WCMD_SIZE,PEF22554_WACK_SIZE)) <  0){
         printk(KERN_ERR"%s: Error setting QuadFALC register %04x = %02x, size=%d(need %d)\n",
-                MR17G_MODNAME,addr,val,size,PEF22554_WACK_SIZE);
+                MR17G_MODNAME,addr,val,(-1)*size,PEF22554_WACK_SIZE);
         goto error;
     }
     ack = (struct pef22554_write_ack*)buf;
@@ -127,10 +127,9 @@ pef22554_readreg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 *val)
     }
     cmd->ctrl_bits = RD_FALC;
     cmd->rdepth = 1;
-    size = mr17g_sci_request(chip,buf,PEF22554_RCMD_SIZE);
-    if( size != PEF22554_RACK_SIZE ){
+    if( (size = mr17g_sci_request(chip,buf,PEF22554_RCMD_SIZE,PEF22554_RACK_SIZE))<0 ){
         printk(KERN_ERR"%s: Error reading QuadFALC register %04x, size=%d(need %d)\n",
-                MR17G_MODNAME,addr,size,PEF22554_RACK_SIZE);
+                MR17G_MODNAME,addr,(-1)*size,PEF22554_RACK_SIZE);
         goto error;
     }
     ack = (struct pef22554_read_ack*)buf;
@@ -496,8 +495,8 @@ pef22554_channel(struct mr17g_channel *chan)
 	if( !cfg->framed ){
 		cfg->cas=0;
 		cfg->crc4=0;
-	}else if( cfg->cas ){
-//		cfg->ts16=0;
+	}else if( cfg->ts16 ){
+		cfg->cas = 0;
 	}
 
     // FMR0: 0xF0 - HDB3, 0xA0 - AMI
@@ -569,7 +568,9 @@ pef22554_channel(struct mr17g_channel *chan)
     }
 
     // PC5: 0x02 when (!!MXEN || (MXEN && CLKM && CLKR)) else 0x00 
-    if( !(regs->MXCR & MXEN) || (regs->MXCR & (MXEN|CLKM|CLKR)) ){
+	tmp = ioread8(&regs->MXCR);
+	printk(KERN_NOTICE"Test: %02x - %02x\n",(tmp&(MXEN|CLKM|CLKR)),(MXEN|CLKM|CLKR));
+    if( !(tmp&MXEN) || ( (tmp&(MXEN|CLKM|CLKR))==(MXEN|CLKM|CLKR)) ){
         tmp = 0x02;
     }else{
         tmp = 0x00;
@@ -579,7 +580,8 @@ pef22554_channel(struct mr17g_channel *chan)
     }  
 
     // CMR2: 0x04 when (!!MXEN || (MXEN && CLKM && CLKR)) else 0x00 
-    if( !(regs->MXCR & MXEN) || (regs->MXCR & (MXEN|CLKM|CLKR)) ){
+	tmp = ioread8(&regs->MXCR);
+    if( !(tmp&MXEN) || ( (tmp&(MXEN|CLKM|CLKR))==(MXEN|CLKM|CLKR)) ){
         tmp = 0x04;
     }else{
         tmp = 0x00;
@@ -588,12 +590,10 @@ pef22554_channel(struct mr17g_channel *chan)
         goto error;
     }  
 
-
     // Reset should be written last
     if( pef22554_writereg(chip,chan->num,CMDR,0x50)){
         goto error;
     }  
-
     
     return 0;
 error:

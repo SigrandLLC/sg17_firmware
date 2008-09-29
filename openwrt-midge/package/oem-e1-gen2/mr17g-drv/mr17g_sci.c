@@ -135,7 +135,7 @@ mr17g_sci_request_one(struct mr17g_chip *chip,char buf[SCI_BUF_SIZE],int size)
 
     // Wait for message
     if( !chip->sci.rxs ){
-       ret = interruptible_sleep_on_timeout( &chip->wait_q, HZ/2 );
+       ret = interruptible_sleep_on_timeout( &chip->wait_q, HZ/100 );
     }else{
         ret = 1;
     }
@@ -187,17 +187,17 @@ exit:
 
 
 int 
-mr17g_sci_request(struct mr17g_chip *chip,char buf[SCI_BUF_SIZE],int size)
+mr17g_sci_request(struct mr17g_chip *chip,char buf[SCI_BUF_SIZE],int size,int acksize)
 {
     int i,ret = 0;;
     
     for(i=0;i<3;i++){
-        if( (ret = mr17g_sci_request_one(chip,buf,size)) >= 0 ){
+        if( (ret = mr17g_sci_request_one(chip,buf,size)) == acksize ){
             return ret;
         }
         PDEBUG(debug_error,"Iter %d, error",i);
     }
-    return ret;
+    return (-1)*ret;
 }
 
 

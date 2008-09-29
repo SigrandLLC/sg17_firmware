@@ -71,8 +71,8 @@ slotmap2str(u32 smap,struct mr17g_chan_config *cfg,char *buf)
 	
 	if( cfg->framed ){
 	    smap &= ~1;
-//		if( !cfg->ts16 )
-//			smap &= ~(1<<16);
+		if( !cfg->ts16 )
+			smap &= ~(1<<16);
 	}
 	
 	for(i=0;i<32;i++){
@@ -375,6 +375,44 @@ store_framed( struct class_device *cdev,const char *buf, size_t size )
 }
 static CLASS_DEVICE_ATTR(framed,0644,show_framed,store_framed);
 
+static ssize_t
+show_map_ts16(struct class_device *cdev, char *buf) 
+{                                                                       
+	struct net_device *ndev = to_net_dev(cdev);
+    hdlc_device *hdlc = dev_to_hdlc(ndev);
+	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
+    struct mr17g_chan_config *cfg = &ch->cfg;
+
+	if( cfg->ts16 )
+		return snprintf(buf,PAGE_SIZE,"mapped");
+	else
+		return snprintf(buf,PAGE_SIZE,"not mapped"); 
+}
+
+static ssize_t
+store_map_ts16(struct class_device *cdev,const char *buf, size_t size ) 
+{
+	struct net_device *ndev = to_net_dev(cdev);
+    hdlc_device *hdlc = dev_to_hdlc(ndev);
+	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
+    struct mr17g_chan_config *cfg = &ch->cfg;
+
+	if( !(size>0) )
+		return size;
+
+	if( buf[0] == '0' ){
+		cfg->ts16 = 0;
+	}else if( buf[0] == '1' ){
+		cfg->ts16 = 1;
+	}else
+		return size;
+	mr17g_transceiver_setup(ch);
+	pef22554_channel(ch);
+	return size;
+}
+static CLASS_DEVICE_ATTR(map_ts16,0644,show_map_ts16,store_map_ts16);
+
+
 // internal/external clock 
 static ssize_t
 show_clck(struct class_device *cdev, char *buf) 
@@ -398,16 +436,18 @@ store_clck( struct class_device *cdev,const char *buf, size_t size )
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
     struct mr17g_chan_config *cfg = &ch->cfg;
 
-	if( size > 0 ){
-		if( buf[0]=='0' )
-			cfg->ext_clck=0;
-		else if( buf[0]=='1' )
-		    cfg->ext_clck=1;
-		else
-			return size;
-		mr17g_transceiver_setup(ch);
-        pef22554_channel(ch);
-	}    
+	if( !(size > 0) )
+		return size;
+
+	if( buf[0]=='0' )
+		cfg->ext_clck=0;
+	else if( buf[0]=='1' )
+	    cfg->ext_clck=1;
+	else
+		return size;
+	mr17g_transceiver_setup(ch);
+    pef22554_channel(ch);
+    
 	return size;
 }
 static CLASS_DEVICE_ATTR(clck,0644,show_clck,store_clck);
@@ -435,16 +475,18 @@ store_lhaul(struct class_device *cdev,const char *buf, size_t size )
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
     struct mr17g_chan_config *cfg = &ch->cfg;
 
-	if( size > 0 ){
-		if( buf[0]=='0' )
-			cfg->long_haul=0;
-		else if( buf[0]=='1' )
-			cfg->long_haul=1;
-		else
-			return size;
-		mr17g_transceiver_setup(ch);		
-        pef22554_channel(ch);
-	}    
+	if( !(size > 0) )
+		return size;
+	
+	if( buf[0]=='0' )
+		cfg->long_haul=0;
+	else if( buf[0]=='1' )
+		cfg->long_haul=1;
+	else
+		return size;
+	mr17g_transceiver_setup(ch);		
+    pef22554_channel(ch);
+
 	return size;
 }
 static CLASS_DEVICE_ATTR(long_haul,0644,show_lhaul,store_lhaul);
@@ -472,16 +514,18 @@ store_hdb3( struct class_device *cdev,const char *buf, size_t size )
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
     struct mr17g_chan_config *cfg = &ch->cfg;
 
-	if( size > 0 ){
-		if( buf[0]=='0' )
-			cfg->hdb3=0;
-		else if( buf[0]=='1' )
-		        cfg->hdb3=1;
-		else
-			return size;
-		mr17g_transceiver_setup(ch);		
-        pef22554_channel(ch);
-	}    
+	if( !(size > 0) )
+		return size;
+	
+	if( buf[0]=='0' )
+		cfg->hdb3=0;
+	else if( buf[0]=='1' )
+        cfg->hdb3=1;
+	else
+		return size;
+	mr17g_transceiver_setup(ch);		
+    pef22554_channel(ch);
+    
 	return size;
 }
 static CLASS_DEVICE_ATTR(hdb3,0644,show_hdb3,store_hdb3);
@@ -509,16 +553,18 @@ store_crc4( struct class_device *cdev,const char *buf, size_t size )
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
     struct mr17g_chan_config *cfg = &ch->cfg;
 
-	if( size > 0 ){
-		if( buf[0]=='0' )
-			cfg->crc4=0;
-		else if( buf[0]=='1' )
-		        cfg->crc4=1;
-		else
-			return size;
-		mr17g_transceiver_setup(ch);		
-        pef22554_channel(ch);
-	}    
+	if( !(size > 0) )
+		return size;
+
+	if( buf[0]=='0' )
+		cfg->crc4=0;
+	else if( buf[0]=='1' )
+        cfg->crc4=1;
+	else
+		return size;
+	mr17g_transceiver_setup(ch);		
+    pef22554_channel(ch);
+
 	return size;
 }
 static CLASS_DEVICE_ATTR(crc4,0644,show_crc4,store_crc4);
@@ -546,16 +592,18 @@ store_cas( struct class_device *cdev,const char *buf, size_t size )
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
     struct mr17g_chan_config *cfg = &ch->cfg;
 
-	if( size > 0 ){
-		if( buf[0]=='0' )
-			cfg->cas=0;
-		else if( buf[0]=='1' /*&& !cfg->ts16*/ )
-			cfg->cas=1;
-		else
-			return size;
-		mr17g_transceiver_setup(ch);		
-        pef22554_channel(ch);
-	}    
+	if( !(size > 0) )
+		return size;
+	
+	if( buf[0]=='0' )
+		cfg->cas=0;
+	else if( buf[0]=='1' )
+		cfg->cas=1;
+	else
+		return size;
+	mr17g_transceiver_setup(ch);		
+    pef22554_channel(ch);
+	    
 	return size;
 }
 static CLASS_DEVICE_ATTR(cas,0644,show_cas,store_cas);
@@ -687,6 +735,7 @@ store_mx_slotmap(struct class_device *cdev,const char *buf,size_t size)
 	
 	cfg->mxslotmap = ts;	
 	mr17g_transceiver_setup(ch);		
+    pef22554_channel(ch);
 	
 	return size;
 }
@@ -860,6 +909,10 @@ store_mx_enable( struct class_device *cdev,const char *buf, size_t size )
 	default:
 		break;
 	}
+	
+	mr17g_transceiver_setup(ch);		
+    pef22554_channel(ch);
+
 	return size;
 }
 static CLASS_DEVICE_ATTR(mx_enable,0644,show_mx_enable,store_mx_enable);
@@ -897,6 +950,9 @@ store_mx_clkm( struct class_device *cdev,const char *buf, size_t size )
 	default:
 		break;
 	}
+
+	mr17g_transceiver_setup(ch);		
+    pef22554_channel(ch);
 	return size;
 }
 static CLASS_DEVICE_ATTR(mx_clkm,0644,show_mx_clkm,store_mx_clkm);
@@ -934,6 +990,8 @@ store_mx_clkab( struct class_device *cdev,const char *buf, size_t size )
 	default:
 		break;
 	}
+	mr17g_transceiver_setup(ch);		
+    pef22554_channel(ch);
 	return size;
 }
 static CLASS_DEVICE_ATTR(mx_clkab,0644,show_mx_clkab,store_mx_clkab);
@@ -972,6 +1030,8 @@ store_mx_clkr( struct class_device *cdev,const char *buf, size_t size )
 		break;
 	}
 
+	mr17g_transceiver_setup(ch);		
+    pef22554_channel(ch);
 	return size;
 }
 static CLASS_DEVICE_ATTR(mx_clkr,0644,show_mx_clkr,store_mx_clkr);
@@ -1181,6 +1241,7 @@ static CLASS_DEVICE_ATTR(testxmit,0200,NULL,store_testxmit);
 static struct attribute *mr17g_attr[] = {
 //E1
 &class_device_attr_framed.attr,
+&class_device_attr_map_ts16.attr,
 &class_device_attr_slotmap.attr,
 &class_device_attr_clck.attr,
 &class_device_attr_long_haul.attr,

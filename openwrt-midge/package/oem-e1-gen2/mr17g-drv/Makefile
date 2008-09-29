@@ -6,7 +6,7 @@ obj-m := mr17g.o
 mr17g-objs := mr17g_main.o mr17g_sci.o mr17g_net.o pef22554.o mr17g_sysfs.o mr17g_debug.o
 
 mr17g.ko: mr17g_main.c mr17g_sci.c mr17g_net.c pef22554.c mr17g_sysfs.c mr17g_debug.c 
-	make -C /home/artpol/OpenWRT//build_mipsel/linux SUBDIRS=$(PWD) modules CROSS_COMPILE=/home/artpol/OpenWRT//staging_dir_mipsel/bin/mipsel-linux-uclibc-
+	make -C /home/artpol/OpenWrt/build_mipsel/linux/ SUBDIRS=$(PWD) modules CROSS_COMPILE=/home/artpol/OpenWrt/staging_dir_mipsel/bin/mipsel-linux-uclibc-
 
 all: mr17g.ko
 

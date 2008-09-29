@@ -30,6 +30,7 @@ print_stat()
     if [ "$fr" != "unframed" ]; then
 	echo "    crc4:      "`cat crc4`
     echo "    cas:       "`cat cas`       			
+	echo "    ts16:      "`cat map_ts16`
     fi
     echo "    long haul: "`cat long_haul`    
 #    echo "E1 loopback settings:"
@@ -49,7 +50,7 @@ if [ $# = 0 ]; then
     echo "Possible arguments:"
     echo "E1 options:"    
     echo "  framed | unframed          - set framed/unframed mode"
-#    echo "  ts16 on|off                - use timeslot 16"        
+    echo "  ts16 on|off                - use timeslot 16"        
     echo "  slotmap SLOTMAP            - set slotmap in format: \"2-3,6-9,15-20\""
     echo "  clk int|ext                - transmit clock: internal/extrnal(from receiver)"
     echo "  hdb3|ami                   - E1 HDB3/AMI line code"    
@@ -110,18 +111,18 @@ while [ ! -z "$1" ]; do
 	shift
 	;;
 	
-#    "ts16")
-#	if [ -z "$2" ]; then
-#	    echo $0": syntax error, after \"ts16\" "
-#	    break
-#	fi
-#	if [ "$2" = "on" ]; then
-#	    echo 1 > map_ts16
-#	elif [ "$2" = "off" ]; then
-#	    echo 0 > map_ts16
-#	fi
-#	shift	
-#	;;    
+    "ts16")
+	if [ -z "$2" ]; then
+	    echo $0": syntax error, after \"ts16\" "
+	    break
+	fi
+	if [ "$2" = "on" ]; then
+	    echo 1 > map_ts16
+	elif [ "$2" = "off" ]; then
+	    echo 0 > map_ts16
+	fi
+	shift	
+	;;    
 
     "lhaul")
 	if [ -z "$2" ]; then
