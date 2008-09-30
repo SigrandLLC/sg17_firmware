@@ -9,7 +9,7 @@
 #define AB_DRIVER_DEV_NODE "/dev/sgatab"
 
 int ab_g_err_idx;
-char const * ab_g_err_str;
+char ab_g_err_str[ERR_STR_LENGTH];
 
 static void ab_chan_status_init( ab_chan_t * const chan );
 static int get_devs_params (unsigned int * const devs_num, 
@@ -43,7 +43,7 @@ ab_create( void )
 
 	ab = malloc(sizeof(*ab));
 	if( !ab){
-		ab_err_set(ab, AB_ERR_NO_MEM, NULL);
+		ab_err_set(AB_ERR_NO_MEM, "Not enough memory for ab");
 		goto __free_and_exit_fail;
 	}
 	memset(ab, 0, sizeof(*ab));
@@ -53,7 +53,7 @@ ab_create( void )
 	ab->chans_num = chans_num;
 	ab->chans_per_dev = CHANS_PER_DEV;
 	if((! ab->devs_num) || (! ab->chans_num)) {
-		ab_err_set(ab, AB_ERR_BAD_PARAM, 
+		ab_err_set(AB_ERR_BAD_PARAM, 
 				"devices or channels number is zero" );
 		goto __free_and_exit_fail;
 	}
@@ -61,7 +61,7 @@ ab_create( void )
 	ab->chans = malloc(sizeof(*(ab->chans)) * ab->chans_num);
 	ab->devs = malloc(sizeof(*(ab->devs)) * ab->devs_num);
 	if( (! ab->chans) || (! ab->devs) ){
-		ab_err_set(ab, AB_ERR_NO_MEM, "no memory for chans or devs " 
+		ab_err_set(AB_ERR_NO_MEM, "no memory for chans or devs " 
 				"structures");
 		goto __free_and_exit_fail;
 	}
@@ -81,8 +81,7 @@ ab_create( void )
 
 		fd_chip = open(dev_node, O_RDWR);
 		if(fd_chip==-1){
-			ab_err_set(curr_dev, AB_ERR_NO_FILE, 
-					"opening vinetic device node");
+			ab_err_set(AB_ERR_NO_FILE, "opening vinetic device node");
 			goto __free_and_exit_fail;
 		}
 		curr_dev->cfg_fd = fd_chip;
@@ -110,8 +109,7 @@ ab_create( void )
 
 		fd_chan = open(dev_node, O_RDWR);
 		if (fd_chan==-1){
-			ab_err_set(curr_chan, AB_ERR_NO_FILE, 
-					"opening vinetic channel node");
+			ab_err_set(AB_ERR_NO_FILE, "opening vinetic channel node");
 			goto __free_and_exit_fail;
 		}
 		curr_chan->rtp_fd = fd_chan;
@@ -135,10 +133,19 @@ __exit_fail:
 	return NULL;
 } 
 
+/**
+	This one returns the parameters of all devices on the all boards
+\param
+	devs_num - number of the found devices will be returned
+	dprms - devices parameters
+\return 
+	ioctl result
+\remark
+	it allocates memory for *dprms, that should be freed outside
+*/
 static int 
 get_devs_params (unsigned int * const devs_num, ab_dev_params_t ** const dprms)
 {
-	ab_t * ab = NULL; /* to set the errors */
 	ab_board_params_t bp;
 	ab_dev_params_t tmp_prms [BOARDS_MAX*DEVS_PER_BOARD_MAX];
 	int cp;
@@ -154,15 +161,14 @@ get_devs_params (unsigned int * const devs_num, ab_dev_params_t ** const dprms)
 	/* open sgatab dev node */
 	ab_fd = open(AB_DRIVER_DEV_NODE, O_RDWR);
 	if (ab_fd==-1) {
-		ab_err_set(ab, AB_ERR_NO_FILE, "opening board device node");
+		ab_err_set(AB_ERR_NO_FILE, "opening board device node");
 		goto __exit_fail;
 	}
 
 	/* Get boards count info */
 	err = ioctl(ab_fd, SGAB_GET_BOARDS_COUNT, &cp);
 	if(err) {
-		ab_err_set(ab, AB_ERR_UNKNOWN, 
-				"getting ata boards count info (ioctl)");
+		ab_err_set(AB_ERR_UNKNOWN, "getting ata boards count info (ioctl)");
 		goto __close_and_exit_fail;
 	}
 
@@ -172,11 +178,10 @@ get_devs_params (unsigned int * const devs_num, ab_dev_params_t ** const dprms)
 		bp.board_idx = i;
 		err = ioctl (ab_fd, SGAB_GET_BOARD_PARAMS, &bp);
 		if(err){
-			ab_err_set(ab,AB_ERR_UNKNOWN,"SGAB_GET_BOARD_PARAMS");
+			ab_err_set(AB_ERR_UNKNOWN,"SGAB_GET_BOARD_PARAMS");
 			goto __close_and_exit_fail;
 		} else if( !bp.is_present){
-			ab_err_set(ab, AB_ERR_UNKNOWN, "internal error bp"
-					" is not present");
+			ab_err_set(AB_ERR_UNKNOWN, "internal error bp is not present");
 			goto __close_and_exit_fail;
 		}
 		for(j=0;j<DEVS_PER_BOARD_MAX; j++){
@@ -189,7 +194,7 @@ get_devs_params (unsigned int * const devs_num, ab_dev_params_t ** const dprms)
 	
 	*dprms = malloc(sizeof(**dprms)*(*devs_num));
 	if( !(*dprms)){
-		ab_err_set(ab, AB_ERR_NO_MEM, "no memory for devparams");
+		ab_err_set(AB_ERR_NO_MEM, "no memory for devparams");
 		goto __close_and_exit_fail;
 	}
 
@@ -248,6 +253,13 @@ ab_destroy( ab_t ** ab )
 	}
 }
 
+/**
+	Sets the proper state and status of the channel structure 
+\param
+	chan - channel struture 
+\remark
+	it mutes all rings and tones on the FXS channel and do onhook on FXO
+*/
 static void 
 ab_chan_status_init( ab_chan_t * const chan )
 {
@@ -264,7 +276,6 @@ ab_chan_status_init( ab_chan_t * const chan )
 		/* tone to mute */
 		ioctl( chan->rtp_fd, IFX_TAPI_TONE_LOCAL_PLAY, 0 );
 		chan->status.tone = ab_chan_tone_MUTE;
-
 	} else if (chan->parent->type == ab_dev_type_FXO){
 		/* hook to onhook */
 		ioctl( chan->rtp_fd, IFX_TAPI_FXO_HOOK_SET,
@@ -272,13 +283,7 @@ ab_chan_status_init( ab_chan_t * const chan )
 		chan->status.hook= ab_chan_hook_ONHOOK;
 	}
 
-	/* TODO : initial onhook detected  (from channel) */
+	/* initial onhook detected  (from channel) */
 	ab_dev_event_clean(chan->parent);
-
-	/*
-	if(chan->parent->type == ab_dev_type_FXS){
-		ab_FXS_line_feed(chan, ab_chan_linefeed_DISABLED);
-	}
-	*/
 }
 

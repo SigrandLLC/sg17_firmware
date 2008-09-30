@@ -9,6 +9,9 @@
 #define AB_INTER_DIGIT_TIME_DF 100
 #define AB_DIGIT_PLAY_TIME_DF  100
 
+#define CHAN_VOLUME_MIN_GAIN (-24)
+#define CHAN_VOLUME_MAX_GAIN 24
+
 /**
 	Run the appropriate ioctl command and set the error if necessary. 
 \param
@@ -28,7 +31,7 @@ err_set_ioctl (ab_chan_t * const chan, int const request, int const data,
 	int err = 0;
 	err = ioctl(chan->rtp_fd, request, data);
 	if (err){
-		ab_err_set(chan, AB_ERR_UNKNOWN, (char const *)err_msg); 
+		ab_err_set(AB_ERR_UNKNOWN, (char const *)err_msg); 
 	}
 	return err;
 }
@@ -88,8 +91,6 @@ ab_FXS_line_just_play_it (ab_chan_t * const chan, enum ab_chan_tone_e tone)
 	}
 	return err;
 }
-
-//////////////////////////////////
 
 /**
 	Ring or mute on given channel

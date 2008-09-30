@@ -20,7 +20,24 @@
 #define LOG_NOMEM_A(str) " not enough memory for \"" str "\""
 #define LOG_NOFILE_A(str) " could not operate on file \"" str "\""
 
-#define LOG_FILE_PATH_DF "/var/log/svd.log"
+#define DFS												\
+	do {												\
+		for(g_f_cnt=0; g_f_cnt<g_f_offset; g_f_cnt++)	\
+			SU_DEBUG_9(("  "));							\
+		SU_DEBUG_9(("vvvv %s() vvvv\n", __func__));		\
+		g_f_offset++; 									\
+	}while(0);
+
+#define DFE												\
+	do {												\
+		g_f_offset--; 									\
+		for(g_f_cnt=0; g_f_cnt<g_f_offset; g_f_cnt++)	\
+			SU_DEBUG_9(("  "));							\
+		SU_DEBUG_9(("^^^^ %s() ^^^^\n", __func__));		\
+	}while(0);
+
+extern unsigned int g_f_cnt; 
+extern unsigned int g_f_offset;
 
 #endif /* __SVD_LOG_H__ */
 

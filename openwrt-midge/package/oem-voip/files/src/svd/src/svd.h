@@ -2,11 +2,9 @@
 #define __SVD_H__
 
 typedef struct svd_s svd_t;
-typedef struct svd_oper_s svd_oper_t;
 typedef struct svd_chan_s svd_chan_t;
 
-#define AB_CMAGIC_T     svd_chan_t
-#include "libab/ab_api.h"
+#include "ab_api.h"
 
 /* define type of context pointers for callbacks */
 #define NUA_IMAGIC_T    ab_chan_t
@@ -16,8 +14,7 @@ typedef struct svd_chan_s svd_chan_t;
 #define SU_ROOT_MAGIC_T svd_t
 
 /* tag__ debug logs */
-/* #define SVD_DEBUG_LOGS 1 */
-
+#define SVD_DEBUG_LOGS 1
 
 #include "config.h"
 #include "sofia.h"
@@ -30,14 +27,9 @@ typedef struct svd_chan_s svd_chan_t;
 #include <sys/unistd.h>
 #include <errno.h>
 
-#include "libab/tapi/include/drv_tapi_io.h"
+#include "tapi/include/drv_tapi_io.h"
 
-/* * 
- *
- * this structure will attach to every svd->ab->chans[i] 
- * to store the channel info / status / etc in svd routine 
- *
- * */
+/** Channel context structure - store channel info / status / etc */
 struct svd_chan_s
 {
 	struct dial_state_s {
@@ -47,28 +39,26 @@ struct svd_chan_s
 			dial_state_ROUTE_ID,
 			dial_state_CHAN_ID,
 			dial_state_NET_ADDR,
-		} state;
-		int tag;
+		} state; /**< State of dialing process */
+		int tag; /**< additional info in dialing process */
 		enum self_e {
 			self_UNDEFINED = 0,
 			self_YES,
 			self_NO
-		} dest_is_self;
+		} dest_is_self; /**< is the desitnation router - self */
 
-		/* remote router id */
-		char * route_id;
-		char * route_ip; /* points to g_conf value */
+		char * route_id; /**< desitnation router identifier if it is not self */
+		char * route_ip; /**< destination router ip - points to g_conf value */
 
-		/* remote chan identificator */
-		char chan_id [CHAN_ID_LEN];
+		char chan_id [CHAN_ID_LEN]; /**< destination channel identificator */
 
 		/* address_book values */
-		char * addrbk_id;
-		char * addrbk_value; /* points to g_conf value */
+		char * addrbk_id;/**< address book identificator */
+		char * addrbk_value; /**< address book value - points to g_conf value */
 
 		/* sip number */
-		char addr_payload [ADDR_PAYLOAD_LEN];
-	} dial_status;
+		char addr_payload [ADDR_PAYLOAD_LEN]; /**< sip number or other info */
+	} dial_status; /**< dial status and values, gets in dial process */
 
 	int payload; /**< Selected payload */
 	int rtp_sfd; /**< RTP socket file descriptor */
@@ -90,6 +80,7 @@ struct svd_chan_s
 			points to g_conf value*/
 };
 
+/** Routine main context structure */
 struct svd_s
 {
 	su_root_t *root;	/**< Pointer to application root */
@@ -98,14 +89,11 @@ struct svd_s
 	ab_t * ab;		/**< Pointer to ATA Boards object */
 	nua_handle_t * op_reg; /**< Pointer NUA Handle reg object */
 	char outbound_ip [IP_LEN_MAX]; /**< Outbound ip address */
-
 	/* tag__ net hotline is not work - just init */
 	unsigned char net_is_hotlined; /**< network hotline marker */
 	char * net_hotline_addr;       /**< Hotline destintation address, 
 			points to g_conf value */
 };
 
-extern unsigned int g_f_cnt; 
-extern unsigned int g_f_offset;
 #endif /* __SVD_H__ */
 

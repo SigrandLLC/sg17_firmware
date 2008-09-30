@@ -1,24 +1,60 @@
 #ifndef __AB_API_H__
 #define __AB_API_H__
 
-typedef enum ab_dev_type_e 	ab_dev_type_t;
-typedef struct ab_chan_s 	ab_chan_t;
-typedef struct ab_dev_s 	ab_dev_t;
-typedef struct ab_s 		ab_t;
-typedef struct ab_fw_s 		ab_fw_t;
-typedef struct ab_dev_event_s 	ab_dev_event_t;
+typedef enum ab_dev_type_e ab_dev_type_t;
+typedef struct rtp_session_prms_s rtp_session_prms_t;
+typedef struct ab_chan_s ab_chan_t;
+typedef struct ab_dev_s ab_dev_t;
+typedef struct ab_s ab_t;
+typedef struct ab_fw_s ab_fw_t;
+typedef struct ab_dev_event_s ab_dev_event_t;
 
-#include "../svd.h"
-
-#ifndef AB_CMAGIC_T
-	#define AB_CMAGIC_T void
-#endif
-typedef AB_CMAGIC_T ab_cmagic_t;
+/** Codec default payload types */
+enum cod_pt_e {
+	cod_pt_MLAW = 0,
+	cod_pt_ALAW = 8,
+	cod_pt_G729 = 18,
+	cod_pt_G726_16 = 94,
+	cod_pt_G726_24 = 95,
+	cod_pt_G726_32 = 96,
+	cod_pt_G726_40 = 97,
+	cod_pt_ILBC_133 = 99,
+};
+enum evts_2833_e {
+	evts_OOB_DEFAULT,
+	evts_OOB_NO,
+	evts_OOB_ONLY,
+	evts_OOB_ALL,
+	evts_OOB_BLOCK
+};
+enum play_evts_2833_e {
+	play_evts_DEFAULT,
+	play_evts_PLAY,
+	play_evts_MUTE,
+	play_evts_APT_PLAY
+};
+enum vad_cfg_e {
+	vad_cfg_OFF,
+	vad_cfg_ON,
+	vad_cfg_G711,
+	vad_cfg_CNG_only,
+	vad_cfg_SC_only
+};
 	
-#ifndef AB_DMAGIC_T
-	#define AB_DMAGIC_T void
-#endif
-typedef AB_DMAGIC_T ab_dmagic_t;
+/** RTP session configuration parameters */
+struct rtp_session_prms_s {
+	enum evts_2833_e nEvents; /**< Out Of Band frames configuration */
+	enum play_evts_2833_e nPlayEvents; /**< Out Of Band play configuration */
+	int evtPT; /**< rfc2833 outgoing events Payload type */
+	int evtPTplay; /**< rfc2833 incoming events Payload type */
+	enum cod_pt_e cod_pt;/**< Codec Payload type */
+	struct cod_volume_s {
+		int enc_dB;
+		int dec_dB;
+	} cod_volume; /**< Coder volume in both directions */
+	enum vad_cfg_e VAD_cfg; /**< Voice Activity Detector configuration */
+	unsigned char HPF_is_ON; /**< High Pass Filter is ON? */
+};
 
 enum ab_dev_type_e {
 	ab_dev_type_FXO,   /**< Device type is FXO */
@@ -78,10 +114,8 @@ struct ab_chan_s {
 	ab_dev_t * parent;  /**< device that channel belongs */
 	int rtp_fd;         /**< Channel file descriptor */
 	struct ab_chan_status_s status;  /**< Channel status info */
-	ab_cmagic_t * ctx; /**< Channel context pointer (for user app) */
-	/* for internal purposes */
-	int err;	/**< Last error on this channel index */
-	char const * err_s;/**< Last error on this channel message string */
+	struct rtp_session_prms_s rtp_cfg; /**< Channel RTP configuration */
+	void * ctx; /**< Channel context pointer (for user app) */
 };
 
 struct ab_dev_s {
@@ -89,10 +123,7 @@ struct ab_dev_s {
 	ab_dev_type_t type;	/**< Device type */
 	ab_t * parent;		/**< Parent board pointer */
 	int cfg_fd;             /**< Device config file descriptor */
-	ab_dmagic_t * ctx; /**< Device context (for user app) */
-	/* for internal purposes */
-	int err;	/**< Last error on this device index */
-	char const * err_s;	/**< Last error on this device message string */
+	void * ctx; /**< Device context (for user app) */
 };
 
 struct ab_s {
@@ -101,13 +132,10 @@ struct ab_s {
 	unsigned int chans_num;	/**< Channels number on the boards */
 	ab_chan_t * chans;	/**< Channels of the boards */
 	unsigned int chans_per_dev;/**< Channels number per device */
-	/* for internal purposes */
-	int err;	/**< Last error on this board index */
-	char const * err_s;	/**< Last error on this board message string */
 };
 
 /* ERROR HANDLING */
-/** no error happens */
+/** No errors */
 #define AB_ERR_NO_ERR 		0
 /** In most cases ioctl error */
 #define AB_ERR_UNKNOWN		1
@@ -118,21 +146,13 @@ struct ab_s {
 /** Bad parameter set */
 #define AB_ERR_BAD_PARAM 	4
 
+/** global error characteristic string length */
+#define ERR_STR_LENGTH		256
+
 /** global error index */
 extern int ab_g_err_idx;
 /** global error characteristic string */
-extern char const * ab_g_err_str;
-
-/** get error index from object or global */
-#define ab_err_get_idx(objp) \
-	(objp) ? (objp)->err : ab_g_err_idx
-/** get error string from object or global */
-#define ab_err_get_str(objp) \
-	(objp) ? (objp)->err_s : ab_g_err_str
-/** get global error index (last for all objects) */
-#define ab_err_get_idx_last	ab_g_err_idx
-/** get global error string (last for all objects) */
-#define ab_err_get_str_last	ab_g_err_str
+extern char ab_g_err_str[ERR_STR_LENGTH];
 
 /** @defgroup AB_BASIC ACTIONS Basic libab interface
 	Basic interface.
@@ -176,10 +196,11 @@ int ab_dev_event_get(
 /** @defgroup AB_MEDIA Media libab interface.
 	Codecs RTP-frames etc.
   @{ */
-/** Activate media on selected chan */
-int ab_chan_media_activate( ab_chan_t * const chan );
-/** De-Activate media on selected chan */
-int ab_chan_media_deactivate( ab_chan_t * const chan );
+/** Tune rtp parameters on selected chan */
+int ab_chan_media_rtp_tune( ab_chan_t * const chan );
+/** Switch on/off media on selected chan */
+int ab_chan_media_switch( ab_chan_t * const chan,
+		unsigned char const enc_on, unsigned char const dec_on );
 /** @} */
 
 #endif /* __AB_API_H__ */

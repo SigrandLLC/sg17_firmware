@@ -5,7 +5,7 @@
 #
 
 curr_path=`pwd`
-libab_path=${curr_path}/src/libab
+libab_path=${curr_path}/../libab
 tapi_name=drv_tapi-3.6.1
 vinetic_name=drv_vinetic-1.3.1_tapi-3.6.1
 path_to_bin=${curr_path}/../../../../../staging_dir_mipsel/bin/

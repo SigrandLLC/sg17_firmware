@@ -8,6 +8,7 @@
 #	s 	- drv_sgatab
 #	svd 	- svd
 #	svi 	- svi
+#	mtst	- mtst
 #
 # $2 - action 
 #	p1 	- prepare for making patch
@@ -17,7 +18,7 @@
 # NOTE :
 #	p1 and p2 can be used with (d|v|t)-targets only
 #	if no path has been set - using default path - <build_path>
-#	You SHOLD set <build_path_DF> and MUST set <path_to_bin> manually
+#	You SHOULD set <build_path_DF> and MUST set <path_to_bin> manually
 #
 
 build_path=/home/vlad/tftpboot/
@@ -112,7 +113,7 @@ case "$1" in
 		--enable-lt \
 		--disable-v1 \
 		--disable-fax \
-		--with-max-devices=4 \
+		--with-max-devices=16 \
 		--with-access-mode=INTEL_MUX \
 		--with-access-width=8 \
 		--enable-kernelincl=$linux_path/include \
@@ -166,7 +167,7 @@ case "$1" in
 		"
     make_itmp
     ;;
-  s|svd|svi)
+  s|svd|svi|mtst)
 	if test $2; then
 		build_path = $2
 	fi

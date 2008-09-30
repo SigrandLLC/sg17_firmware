@@ -29,6 +29,21 @@ static unsigned char g_err_no;
 #define CONF_CODEC_SPEED "speed"
 #define CONF_CODEC_QUALITY "quality"
 
+#define CONF_OOB_DEFAULT "default"
+#define CONF_OOB_NO "in-band"
+#define CONF_OOB_ONLY "out-of-band"
+#define CONF_OOB_ALL "both"
+#define CONF_OOB_BLOCK "block"
+#define CONF_OOBPLAY_DEFAULT "default"
+#define CONF_OOBPLAY_PLAY "play"
+#define CONF_OOBPLAY_MUTE "mute"
+#define CONF_OOBPLAY_APT_PLAY "play_diff_pt"
+#define CONF_VAD_ON "on"
+#define CONF_VAD_NOVAD "off"
+#define CONF_VAD_G711 "g711"
+#define CONF_VAD_CNG_ONLY "CNG_only"
+#define CONF_VAD_SC_ONLY "SC_only"
+
 static struct config_t cfg;
 static struct config_t route_cfg;
 
@@ -38,6 +53,7 @@ static void sip_set_init( void );
 static int address_book_init( void );
 static int hot_line_init( void );
 static int route_table_init( void );
+static int rtp_prms_init( void );
 static void error_message( );
 static void show_help( void );
 static void show_version( void );
@@ -99,7 +115,7 @@ startup_init( int argc, char ** argv )
 		}
 	}
 	return 0;
-};
+}
 	
 void 
 startup_destroy( argc, argv )
@@ -111,7 +127,7 @@ startup_destroy( argc, argv )
 	} 
 
 	error_message( );
-};
+}
 
 /** 
  * Parses <svd.conf> file and 
@@ -185,6 +201,12 @@ svd_conf_init( void )
 		goto svd_conf_init__exit;
 	}
 
+	/* app.rtp_prms */
+	err = rtp_prms_init();
+	if( err ){
+		goto svd_conf_init__exit;
+	}
+
 	/* self_number and self_ip init */
 	err = self_values_init();
 	if( err ){
@@ -204,7 +226,7 @@ svd_conf_init__exit:
 
 	conf_show();
 	return -1;
-};
+}
 
 void 
 conf_show( void )
@@ -290,7 +312,7 @@ conf_show( void )
 				i+1, curr_rt_rec->id, curr_rt_rec->value));
 	}
 	SU_DEBUG_3(("=========================\n"));
-};
+}
 
 void 
 svd_conf_destroy( void )
@@ -340,7 +362,7 @@ svd_conf_destroy( void )
 	}
 
 	memset(&g_conf, 0, sizeof(g_conf));
-};
+}
 
 /////////////////////////////////////////////////////////////////
 
@@ -408,7 +430,7 @@ self_values_init( void )
         return 0;
 __exit_fail:
         return -1;
-};
+}
 
 static void
 log_init( void )
@@ -435,7 +457,7 @@ log_init( void )
 
 __exit:
 	return;
-};
+}
 
 static void
 sip_set_init( void )
@@ -491,7 +513,7 @@ sip_set_init( void )
 	g_conf.sip_set.all_set = 1;
 __exit:
 	return;
-};
+}
 
 static int
 address_book_init( void )
@@ -578,7 +600,7 @@ address_book_init__id_alloc:
 	}
 address_book_init__exit:
 	return -1;
-};
+}
 
 
 static int 
@@ -637,7 +659,7 @@ hot_line_init__exit_success:
 	return 0;
 hot_line_init__exit:
 	return -1;
-};
+}
 
 
 static int
@@ -728,7 +750,92 @@ route_table_init__exit:
 	config_destroy (&route_cfg);
 
 	return -1;
-};
+}
+
+static int
+rtp_prms_init( void )
+{
+	struct config_setting_t * set;
+	struct config_setting_t * rec_set;
+	struct rtp_record_s * curr_rec;
+	char const * elem;
+	int rec_num;
+	int i;
+
+	/* Get values */
+	set = config_lookup (&cfg, "app.rtp_prms" );
+	if( !set ){
+		/* Config params for all channels must be in cfg file */
+		goto __exit_fail;
+	} 
+
+	rec_num = config_setting_length (set);
+
+	g_conf.rtp_prms.records_num = rec_num;
+	g_conf.rtp_prms.records = malloc (rec_num * 
+			sizeof(*(g_conf.rtp_prms.records)));
+	if( !g_conf.rtp_prms.records ){
+		SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
+		goto __exit_fail;
+	}
+	memset(g_conf.rtp_prms.records, 0, rec_num * 
+			sizeof(*(g_conf.rtp_prms.records)));
+
+	for(i=0; i<rec_num; i++){
+		curr_rec = &g_conf.rtp_prms.records[ i ];
+		rec_set = config_setting_get_elem (set, i);
+
+		/* get chan id */
+		elem = config_setting_get_string_elem (rec_set, 0);
+		strcpy(curr_rec->id, elem);
+		
+		/* get rtp params */
+		elem = config_setting_get_string_elem (rec_set, 1);
+		if( !strcmp(elem, CONF_OOB_DEFAULT)){
+			curr_rec->OOB = evts_OOB_DEFAULT;
+		} else if( !strcmp(elem, CONF_OOB_NO)){
+			curr_rec->OOB = evts_OOB_NO;
+		} else if( !strcmp(elem, CONF_OOB_ONLY)){
+			curr_rec->OOB = evts_OOB_ONLY;
+		} else if( !strcmp(elem, CONF_OOB_ALL)){
+			curr_rec->OOB = evts_OOB_ALL;
+		} else if( !strcmp(elem, CONF_OOB_BLOCK)){
+			curr_rec->OOB = evts_OOB_BLOCK;
+		}
+
+		elem = config_setting_get_string_elem (rec_set, 2);
+		if( !strcmp(elem, CONF_OOBPLAY_DEFAULT)){
+			curr_rec->OOB_play = play_evts_DEFAULT;
+		} else if( !strcmp(elem, CONF_OOBPLAY_PLAY)){
+			curr_rec->OOB_play = play_evts_PLAY;
+		} else if( !strcmp(elem, CONF_OOBPLAY_MUTE)){
+			curr_rec->OOB_play = play_evts_MUTE;
+		} else if( !strcmp(elem, CONF_OOBPLAY_APT_PLAY)){
+			curr_rec->OOB_play = play_evts_APT_PLAY;
+		}
+
+		curr_rec->evtPT = config_setting_get_int_elem(rec_set, 3);
+		curr_rec->evtPTplay = config_setting_get_int_elem(rec_set, 4);
+		curr_rec->COD_Tx_vol = config_setting_get_int_elem(rec_set, 5);
+		curr_rec->COD_Rx_vol = config_setting_get_int_elem(rec_set, 6);
+		elem = config_setting_get_string_elem (rec_set, 7);
+		if( !strcmp(elem, CONF_VAD_NOVAD)){
+			curr_rec->VAD_cfg = vad_cfg_OFF;
+		} else if( !strcmp(elem, CONF_VAD_ON)){
+			curr_rec->VAD_cfg = vad_cfg_ON;
+		} else if( !strcmp(elem, CONF_VAD_G711)){
+			curr_rec->VAD_cfg = vad_cfg_G711;
+		} else if( !strcmp(elem, CONF_VAD_CNG_ONLY)){
+			curr_rec->VAD_cfg = vad_cfg_CNG_only;
+		} else if( !strcmp(elem, CONF_VAD_SC_ONLY)){
+			curr_rec->VAD_cfg = vad_cfg_SC_only;
+		}
+		curr_rec->HPF_is_ON = config_setting_get_int_elem(rec_set, 8);
+	}
+	return 0;
+__exit_fail:
+	return -1;
+}
 
 static void 
 error_message( void )
@@ -750,7 +857,7 @@ error_message( void )
 	}
 	fprintf( stderr,"Try '%s --help' for more information.\n", 
 			PACKAGE_NAME );
-};
+}
 
 //------------------------------------------------------------
 
@@ -775,7 +882,7 @@ Mandatory arguments to long options are mandatory for short options too.\n\
 Report bugs to <%s>.\n\
 "
 		, PACKAGE_NAME, PACKAGE_NAME, PACKAGE_BUGREPORT );
-};
+}
 
 //------------------------------------------------------------
 
@@ -794,7 +901,7 @@ Written by Vladimir Luchko. <%s>\n\
 "
 		, PACKAGE_NAME, PACKAGE_VERSION, 
 		__DATE__, __TIME__, PACKAGE_BUGREPORT);
-};
+}
 
 //------------------------------------------------------------
 

@@ -286,7 +286,7 @@ __exit_fail:
 }
 
 static int
-board_iterator( int (*func)(ab_board_params_t const * const bp) )
+board_iterator (int (*func)(ab_board_params_t const * const bp))
 {
 	ab_board_params_t bp;
 	int bc;
@@ -433,7 +433,8 @@ basicdev_init( int const dev_idx, ab_dev_params_t const * const dp,
 	cfg_fd = open(dev_node, O_RDWR);
 	if(cfg_fd==-1){
 		g_err_no = ERR_COULD_NOT_OPEN_FILE;
-		sprintf(g_err_msg, "%s() opening vinetic device node",__func__);
+		sprintf(g_err_msg, "%s() opening vinetic device node '%s'",
+				__func__, dev_node);
 		goto __exit_fail;
 	}
 

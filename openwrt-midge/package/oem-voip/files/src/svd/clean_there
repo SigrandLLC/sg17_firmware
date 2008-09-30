@@ -17,10 +17,6 @@ rm -rf stamp-h1
 rm -rf doc/Makefile
 rm -rf doc/Makefile.in
 
-rm -rf src/libab/*.o
-rm -rf src/libab/*.a
-rm -rf src/libab/tags
-
 rm -rf src/Makefile.in
 rm -rf src/Makefile
 rm -rf src/*.o

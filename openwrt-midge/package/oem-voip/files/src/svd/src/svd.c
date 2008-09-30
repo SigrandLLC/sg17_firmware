@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <errno.h>
 
+/** Name of daemon (using in logs) */
 #define DAEMON_NAME "svd"
 
 /******************************************************************************/
@@ -22,9 +23,9 @@ unsigned int g_f_offset = 0;
 
 static int 	svd_daemonize( void );
 static svd_t * 	svd_create( void );
-static int 	svd_destroy( svd_t ** svd );
-static void 	svd_logger(void *logarg, char const *format, va_list ap);
-static void 	svd_log_set( int const level, int const debug);
+static void svd_destroy( svd_t ** svd );
+static void svd_logger(void *logarg, char const *format, va_list ap);
+static void svd_log_set( int const level, int const debug);
 
 /******************************************************************************/
 
@@ -89,9 +90,18 @@ __conf:
 __startup:
 	startup_destroy (argc, argv);
 	return err;
-};
+}
 
 /////////////////////////////////////////////////////////////////
+/**
+	Set the routine daemon mode 
+\return
+	0 - everything fine
+	-1 - error occures 
+\remark
+	error messages will pass to stderr
+	if debug is off stderr redirect to /dev/null as stdout and stdin
+*/
 static int
 svd_daemonize( void )
 {
@@ -152,10 +162,20 @@ svd_daemonize( void )
 
 __exit_fail:
 	return -1;
-};
+}
 
-/* uses g_cnof */
-static svd_t * svd_create( void )
+/**
+	Create the svd structure
+\return
+	pointer to proper svd structure or NULL if somthing nasty happens
+\remark
+	if NULL returns \ref svd_destroy() should be called to free the memory
+	it init`s the internal ab structure
+	it calls all appropriate functions to create sofia-sip objects
+	it uses g_conf values
+*/
+static svd_t * 
+svd_create( void )
 {
 	svd_t * svd;
 	int err;
@@ -231,13 +251,21 @@ DFE
 __exit_fail:
 DFE
 	return NULL;
-};
+}
 
-static int
+/**
+	Correct destroy function for svd structure
+\param
+	svd - pointer to pointer to svd structure that should be destroyed 
+\remark
+	it destroy the internal ab structure
+	it calls all appropriate functions to destroy sofia-sip objects
+	it destroys the structure and sets the pointer *svd to NULL
+*/
+static void
 svd_destroy( svd_t ** svd )
 {
 DFS
-	int err = 0;
 	if(*svd){
 		svd_atab_delete (*svd);
 
@@ -255,9 +283,17 @@ DFS
 		*svd = NULL;
 	}
 DFE
-	return err;
-};
+}
 
+/**
+	Log callback function
+\param
+	logarg - debug value or (-1) if logging is off
+	format - internal sofia log value
+	ap -  internal sofia log value
+\remark
+	it calls for every log action and make a decision what to do
+*/
 static void 
 svd_logger(void *logarg, char const *format, va_list ap)
 {
@@ -271,8 +307,19 @@ svd_logger(void *logarg, char const *format, va_list ap)
 		/* debug is off - standart log */
 		vsyslog (LOG_INFO, format, ap);
 	}
-};
+}
 
+/**
+	Sets the log configuration
+\param
+	level - log level 
+		-1 - do not log anything 
+		0 - very pure logs to 9 - very verbose
+	debug - 1 - log to stderr or 0 - log to jornal
+\remark
+	it attaches the callback logger function with proper params and uses
+	sofia sip logging system
+*/
 static void
 svd_log_set( int const level, int const debug)
 {
@@ -284,5 +331,5 @@ svd_log_set( int const level, int const debug)
 		su_log_set_level (NULL, level);
 		su_log_redirect (NULL,svd_logger,(void*)debug);
 	}
-};
+}
 

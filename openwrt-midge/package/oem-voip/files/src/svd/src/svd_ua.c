@@ -1,5 +1,6 @@
 #include "svd.h"
 #include "svd_ua.h"
+#include "svd_atab.h"
 #include <stdlib.h>
 #include <errno.h>
 #include <assert.h>
@@ -155,21 +156,21 @@ DFS
 			break;
 
 /************ SIP Responses ************/
-		case nua_r_register:/**< 29 Answer to outgoing REGISTER */
+		case nua_r_register:/*< 29 Answer to outgoing REGISTER */
 			svd_r_register(status, phrase, nua, svd, 
 					nh, chan, sip, tags, 1); 
 			break;
-		case nua_r_unregister:/**< 30 Answer to outgoing un-REGISTER */
+		case nua_r_unregister:/*< 30 Answer to outgoing un-REGISTER */
 			svd_r_register(status, phrase, nua, svd, 
 					nh, chan, sip, tags, 0);
 			break;
-		case nua_r_invite:/**< 31 Answer to outgoing INVITE */
+		case nua_r_invite:/*< 31 Answer to outgoing INVITE */
 			svd_r_invite(status, phrase, nua, svd, 
 					nh, chan, sip, tags);
 			break;
 		case nua_r_cancel:	/*< 32 Answer to outgoing CANCEL */
 			break;
-		case nua_r_bye:		/**< 33 Answer to outgoing BYE */
+		case nua_r_bye:		/*< 33 Answer to outgoing BYE */
 			svd_r_bye (status, phrase, nh, chan);
 			break;
 		case nua_r_options:	/*< 34 Answer to outgoing OPTIONS */
@@ -183,7 +184,7 @@ DFS
 		case nua_r_prack:	/*< 39 Answer to outgoing PRACK */
 		case nua_r_update:	 /*< 40 Answer to outgoing UPDATE */
 		case nua_r_message:	/*< 41 Answer to outgoing MESSAGE */
-		case nua_r_chat: /**< 42 Answer to outgoing chat message */
+		case nua_r_chat: /*< 42 Answer to outgoing chat message */
 		case nua_r_subscribe:	/*< 43 Answer to outgoing SUBSCRIBE */
 		case nua_r_unsubscribe:/*< 44 Answer to outgoing un-SUBSCRIBE */
 		case nua_r_notify:	/*< 45 Answer to outgoing NOTIFY */
@@ -200,7 +201,7 @@ DFS
 			SU_DEBUG_2(("UNKNOWN EVENT : %d %s\n", status, phrase));
 	}
 DFE
-};
+}
 
 /********************************************************************** UAC */
 
@@ -252,12 +253,13 @@ DFE
 __exit_fail:
 DFE
 	return -1;
-};
+}
 
 int  
 svd_invite_to (svd_t * const svd, int const chan_idx, char const * const to_str)
 {
 	ab_chan_t * chan = &svd->ab->chans[chan_idx];
+	svd_chan_t * chan_ctx = chan->ctx;
 	nua_handle_t * nh;
 	sip_to_t *to = NULL;
 	sip_to_t *from = NULL;
@@ -288,8 +290,8 @@ DFS
 	su_free(svd->home, to);
 	to = NULL;
 
-	chan->ctx->op_handle = nh;
-	if( !chan->ctx->op_handle ){
+	chan_ctx->op_handle = nh;
+	if( !chan_ctx->op_handle ){
 		SU_DEBUG_1 ((LOG_FNC_A("can`t create handle")));
 		goto __exit_fail;
 	}
@@ -302,7 +304,7 @@ DFS
 	}
 
 
-	l_sdp_str = svd_new_sdp_string (chan->ctx->rtp_port, 
+	l_sdp_str = svd_new_sdp_string (chan_ctx->rtp_port, 
 			g_conf.sip_set.ext_codec);
 	if ( !l_sdp_str){
 		goto __exit_fail;
@@ -328,7 +330,7 @@ __exit_fail:
 	}
 DFE
 	return -1;
-};
+}
 
 void 
 svd_register(svd_t * svd)
@@ -346,7 +348,7 @@ DFS
 		}
 	} 
 DFE
-};
+}
 
 void 
 svd_refresh_registration (svd_t * const svd)
@@ -378,14 +380,14 @@ DFS
 __exit:
 DFE
 	return;
-};
+}
 
 void svd_shutdown(svd_t * svd)
 {
 DFS
 	nua_shutdown (svd->nua);
 DFE
-};
+}
 
 /** 
  * Answers a call (processed in two phases). 
@@ -398,8 +400,9 @@ svd_answer(svd_t * const svd, ab_chan_t * const chan,
 {
 	int call_answered = 0;
 	char * l_sdp_str = NULL;
+	svd_chan_t * chan_ctx = chan->ctx;
 DFS
-	if ( chan->ctx->op_handle ){
+	if ( chan_ctx->op_handle ){
 		/* we have call to answer */
 		enum codec_type_e ct;
 
@@ -408,29 +411,29 @@ DFS
 		/* register media waits and open sockets for rtp */
 		svd_media_register (svd, chan);
 
-		if(chan->ctx->call_is_remote){
+		if(chan_ctx->call_is_remote){
 			ct = g_conf.sip_set.ext_codec;
 		} else {
 			ct = g_conf.int_codec;
 		}
 
 		/* have remote sdp make local */
-		l_sdp_str = svd_new_sdp_string (chan->ctx->rtp_port, ct);
+		l_sdp_str = svd_new_sdp_string (chan_ctx->rtp_port, ct);
 		if ( !l_sdp_str){
 			goto __exit;
 		}
 
-		nua_respond (chan->ctx->op_handle, status, phrase,
+		nua_respond (chan_ctx->op_handle, status, phrase,
 				SOATAG_RTP_SORT (SOA_RTP_SORT_LOCAL),
 				SOATAG_RTP_SELECT (SOA_RTP_SELECT_SINGLE), 
-				TAG_IF(chan->ctx->call_is_remote && 
+				TAG_IF(chan_ctx->call_is_remote && 
 						svd->outbound_ip[0], 
 					SOATAG_ADDRESS(svd->outbound_ip)),
 				SOATAG_USER_SDP_STR (l_sdp_str),
 				TAG_END());
 
 		/* set proper payload type to chan */
-		nua_get_hparams( chan->ctx->op_handle, 
+		nua_get_hparams( chan_ctx->op_handle, 
 				SOATAG_LOCAL_SDP_STR(NULL), TAG_NULL() );
 	} 
 __exit:
@@ -439,7 +442,7 @@ __exit:
 	}
 DFE
 	return call_answered;
-};
+}
 
 /**
  * Sends a BYE request to an operation on the chan.
@@ -450,15 +453,16 @@ svd_bye (svd_t * const svd, ab_chan_t * const chan)
 DFS
 	assert ( chan );
 	assert ( chan->ctx );
+	svd_chan_t * chan_ctx = chan->ctx;
 
-	if (chan->ctx->op_handle){
-		nua_bye(chan->ctx->op_handle, TAG_END());
+	if (chan_ctx->op_handle){
+		nua_bye(chan_ctx->op_handle, TAG_END());
 	} else {
 		/* just clear call params */
 		svd_clear_call (svd, chan);
 	}
 DFE
-};
+}
 
 
 /**
@@ -469,12 +473,16 @@ svd_cancel (ab_chan_t * const chan)
 {
 DFS
 	assert ( chan );
-	assert ( chan->ctx );
-	assert ( chan->ctx->op_handle );
 
-	nua_cancel (chan->ctx->op_handle, TAG_END());
+	svd_chan_t * chan_ctx = chan->ctx;
+
+	assert ( chan_ctx );
+	assert ( chan_ctx->op_handle );
+
+
+	nua_cancel (chan_ctx->op_handle, TAG_END());
 DFE
-};
+}
 
 /******************************************************************************/
 
@@ -486,6 +494,7 @@ svd_pure_invite( svd_t * const svd, ab_chan_t * const chan,
 	sip_to_t *from = NULL;  
 	char * l_sdp_str = NULL;
 	nua_handle_t * nh;
+	svd_chan_t * chan_ctx = chan->ctx;
 	int err;
 DFS
 	to = sip_to_make(svd->home, to_str);
@@ -519,8 +528,8 @@ DFS
 	su_free(svd->home, from);
 	from = NULL;
 
-	chan->ctx->op_handle = nh;
-	if( !chan->ctx->op_handle ){
+	chan_ctx->op_handle = nh;
+	if( !chan_ctx->op_handle ){
 		SU_DEBUG_1 ((LOG_FNC_A("can`t create handle")));
 		goto __exit_fail;
 	}
@@ -532,7 +541,7 @@ DFS
 		goto __exit_fail;
 	}
 
-	l_sdp_str = svd_new_sdp_string (chan->ctx->rtp_port, g_conf.int_codec);
+	l_sdp_str = svd_new_sdp_string (chan_ctx->rtp_port, g_conf.int_codec);
 	if ( !l_sdp_str){
 		goto __exit_fail;
 	}
@@ -565,7 +574,7 @@ __exit_fail:
 	}
 DFE
 	return -1;
-};
+}
 
 static void
 svd_authenticate (svd_t * svd, nua_handle_t * nh, sip_t const *sip, 
@@ -595,7 +604,7 @@ DFS
 		}
 	}
 DFE
-};
+}
 
 /************************************************************************ UAS */
 
@@ -610,7 +619,7 @@ svd_i_error(int const status, char const * const phrase)
 DFS
 	SU_DEBUG_2(("NUA STACK ERROR : %03d %s\n", status, phrase));
 DFE
-};
+}
 
 /**
  * Incoming INVITE request.
@@ -621,6 +630,7 @@ svd_i_invite( int status, char const * phrase, svd_t * const svd,
 		sip_t const *sip, tagi_t tags[])
 {
 	ab_chan_t * req_chan;
+	svd_chan_t * chan_ctx;
 	sip_to_t const *to = sip->sip_to;
 	unsigned char abs_chan_idx;
 	unsigned char call_is_remote = 0;
@@ -698,18 +708,19 @@ DFS
 /* tag__ race on chan */
 
 	req_chan = &svd->ab->chans[chan_idx];
+	chan_ctx = req_chan->ctx;
 
-	if( req_chan->ctx->op_handle ){
+	if( chan_ctx->op_handle ){
 		/* user is busy */
 		nua_respond(nh, SIP_486_BUSY_HERE, TAG_END());
 		nua_handle_destroy(nh);
 		goto __exit;
 	}
 
-	req_chan->ctx->op_handle = nh;
+	chan_ctx->op_handle = nh;
 	nua_handle_bind (nh, req_chan);
 
-	req_chan->ctx->call_is_remote = call_is_remote;
+	chan_ctx->call_is_remote = call_is_remote;
 
 	if (req_chan->parent->type == ab_dev_type_FXS){
 		/* start ringing */
@@ -728,7 +739,7 @@ DFS
 	}
 __exit:
 DFE
-};
+}
 
 /**
  * Incoming CANCEL.
@@ -739,10 +750,10 @@ svd_i_cancel (nua_handle_t const * const nh, ab_chan_t const * const chan)
 DFS
 	/* tag_? should destroy operation handle ?? */
 	assert (chan);
-	assert (chan->ctx->op_handle == nh);
+	assert (((svd_chan_t *)(chan->ctx))->op_handle == nh);
 	SU_DEBUG_3 (("CANCEL received\n"));
 DFE
-};
+}
 
 /**
  * Callback issued for any change in operation state.
@@ -823,8 +834,7 @@ DFS
 	/* 2XX received, ACK sent, or vice versa */
 		case nua_callstate_ready:
 			if(ab_chan_media_activate (chan)){
-				SU_DEBUG_1(("media_activate error : %s\n",
-						ab_err_get_str(chan)));
+				SU_DEBUG_1(("media_activate error : %s\n", ab_g_err_str));
 			}
 			break;
 
@@ -871,7 +881,7 @@ DFS
 			break;
 	}
 DFE
-};
+}
 
 /**
  * Incoming BYE request. Note, call state related actions are
@@ -883,10 +893,10 @@ svd_i_bye(nua_handle_t const * const nh, ab_chan_t const * const chan)
 DFS
 	assert(chan);
 	assert(chan->ctx);
-	assert(chan->ctx->op_handle == nh);
+	assert(((svd_chan_t *)(chan->ctx))->op_handle == nh);
 	SU_DEBUG_3 (("BYE received\n"));
 DFE
-};
+}
 
 static void 
 svd_i_prack (nua_handle_t * nh, ab_chan_t const * const chan, 
@@ -900,7 +910,7 @@ DFS
 		nua_handle_destroy(nh);
 	}
 DFE
-};
+}
 
 static void 
 svd_i_info(int status, char const * phrase, svd_t * const svd, 
@@ -909,7 +919,7 @@ svd_i_info(int status, char const * phrase, svd_t * const svd,
 DFS
 	SU_DEBUG_3 (("%s\n",sip->sip_payload->pl_data));
 DFE
-};
+}
 
 /**
  * Result callback for nua_r_get_params request.
@@ -941,7 +951,7 @@ DFS
 			sdp_sess = sdp_session (remote_sdp);
 			if (sdp_sess && sdp_sess->sdp_media && 
 					sdp_sess->sdp_media->m_rtpmaps){
-				chan->ctx->payload = 
+				((svd_chan_t *)(chan->ctx))->payload = 
 					sdp_sess->sdp_media->m_rtpmaps->rm_pt;
 			}
 		}
@@ -955,7 +965,7 @@ DFS
 		tags = tl_next(tags);
 	}
 DFE
-};
+}
 
 static void 
 svd_r_shutdown( int status, char const *phrase, nua_t * nua, svd_t * svd, 
@@ -974,7 +984,7 @@ DFS
 		svd->nua = NULL;
 	}
 DFE
-};
+}
 
 static void
 svd_r_register(int status, char const *phrase, nua_t * nua, svd_t * svd,
@@ -1005,7 +1015,7 @@ DFS
 		nua_handle_destroy (nh);
 	} 
 DFE
-};
+}
 
 /**
  * Callback for an outgoing INVITE request.
@@ -1024,7 +1034,7 @@ DFS
 		}
 	}
 DFE
-};
+}
 
 /**
  * Callback for an outgoing BYE request.
@@ -1035,10 +1045,10 @@ svd_r_bye(int status, char const *phrase,
 {
 DFS
 	assert(chan);
-	assert(chan->ctx->op_handle == nh);
+	assert(((svd_chan_t *)(chan->ctx))->op_handle == nh);
 	SU_DEBUG_3(("got answer on BYE: %03d %s\n", status, phrase));
 DFE
-};
+}
 
 static void
 svd_r_info(int status, char const * phrase, svd_t * const svd, 
@@ -1047,7 +1057,7 @@ svd_r_info(int status, char const * phrase, svd_t * const svd,
 DFS
 	SU_DEBUG_3(("got answer on INFO: %d, %s\n",status,phrase));
 DFE
-};
+}
 
 static void 
 svd_parse_sdp(svd_t * const svd, ab_chan_t * const chan, char const *str)
@@ -1071,20 +1081,21 @@ DFS
 
 	if (sdp_sess && sdp_sess->sdp_media->m_port && 
 			sdp_connection && sdp_connection->c_address) {
-		chan->ctx->remote_port = sdp_sess->sdp_media->m_port;
-		chan->ctx->remote_host = su_strdup (svd->home, 
+		svd_chan_t * chan_ctx = chan->ctx;
+		chan_ctx->remote_port = sdp_sess->sdp_media->m_port;
+		chan_ctx->remote_host = su_strdup (svd->home, 
 				sdp_connection->c_address);
-		chan->ctx->payload = sdp_sess->sdp_media->m_rtpmaps->rm_pt;
+		chan_ctx->payload = sdp_sess->sdp_media->m_rtpmaps->rm_pt;
 		SU_DEBUG_5(("Got remote %s:%d with payload %d\n",
-				chan->ctx->remote_host, 
-				chan->ctx->remote_port, 
-				chan->ctx->payload));
+				chan_ctx->remote_host, 
+				chan_ctx->remote_port, 
+				chan_ctx->payload));
 	}
 __exit:
 	sdp_parser_free (remote_sdp);
 DFE
 	return;
-};
+}
 
 static char * 
 svd_new_sdp_string (long const media_port, enum codec_type_e const ct)
@@ -1118,5 +1129,5 @@ svd_new_sdp_string (long const media_port, enum codec_type_e const ct)
 	}
 __exit:
 	return ret_str;
-};
+}
 

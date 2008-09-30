@@ -6,9 +6,19 @@
 
 #include "ab_internal_v22.h"
 
+/**
+	Get event from device
+\param
+	dev - device to operate on it
+	evt - occured event
+	chan_available - is event occured on chan or on whole device
+\return 
+	0 in success case and other value otherwise
+\remark
+	returns the ioctl error value and writes error message
+*/
 int 
-ab_dev_event_get(ab_dev_t * const dev, 
-		ab_dev_event_t * const evt, 
+ab_dev_event_get(ab_dev_t * const dev, ab_dev_event_t * const evt, 
 		unsigned char * const chan_available )
 {
 	IFX_TAPI_EVENT_t ioctl_evt;
@@ -23,7 +33,7 @@ ab_dev_event_get(ab_dev_t * const dev,
 
 	err = ioctl(dev->cfg_fd, IFX_TAPI_EVENT_GET, &ioctl_evt);
 	if( err ){
-		ab_err_set(dev, AB_ERR_UNKNOWN, "Getting event (ioctl)"); 
+		ab_err_set(AB_ERR_UNKNOWN, "Getting event (ioctl)"); 
 		goto ab_dev_event_get_exit;
 	}
 
@@ -89,6 +99,15 @@ ab_dev_event_get_exit:
 	return err;
 }
 
+/**
+	Cleaning the given device from events on it 
+\param
+	dev - device to operate on it
+\return 
+	0 in success case and other value otherwise
+\remark
+	returns the ioctl error value and writes error message
+*/
 int ab_dev_event_clean(ab_dev_t * const dev)
 {
 	ab_dev_event_t evt;
@@ -100,14 +119,12 @@ int ab_dev_event_clean(ab_dev_t * const dev)
 		unsigned char ch_av;
 		err = ab_dev_event_get(dev, &evt, &ch_av);
 		if(err){
-			goto ab_dev_event_clean__exit;
+			goto __exit_fail;
 		}
 	} while (evt.more);
 
 	return 0;
-
-ab_dev_event_clean__exit:
+__exit_fail:
 	return -1;
 }
-
 

@@ -3,24 +3,46 @@
 
 #include "sofia.h"
 
+/** Use first free fxo channel on self router - marker */
 #define FIRST_FREE_FXO "fxo"
 
-/****************************************************************** UAC */
-
+/** @defgroup UAC User Agent Client part.
+  	User Agent Client actions.
+  @{ */
+/** make INVITE SIP request */
 int  svd_invite (svd_t * const svd, int const use_ff_FXO, int const chan_idx);
+
+/** make INVITE SIP request with given destination address */
 int  svd_invite_to (svd_t * const svd, int const chan_idx, 
 		char const * const to_str);
+
+/** make answer to SIP call */
 int  svd_answer (svd_t * const svd, ab_chan_t * const chan,  
 		int status, char const *phrase);
+
+/** make BYE SIP action */
 void svd_bye	(svd_t * const svd, ab_chan_t * const chan);
+
+/** make CANCEL SIP action */
 void svd_cancel	(ab_chan_t * const chan);
+
+/** make REGISTER SIP action */
 void svd_register 		(svd_t * const svd);
-void svd_refrash_registration 	(svd_t * const svd);
+
+/** make un-REGISTER and REGISTER again on SIP server */
+void svd_refresh_registration 	(svd_t * const svd);
+
+/** shutdown SIP stack */
 void svd_shutdown 		(svd_t * const svd);
 
+/** @} */
 
-/****************************************************************** UAS */
 
+/** @defgroup UAS User Agent Server part.
+  	User Agent Server actions.
+  @{ */
+
+/** Callback for react on SIP events */
 void svd_nua_callback(	nua_event_t  event,
 			int          status,
 			char const   *phrase,
@@ -30,6 +52,8 @@ void svd_nua_callback(	nua_event_t  event,
 			ab_chan_t    *chan,
 			sip_t const  *sip,
 			tagi_t       tags[] );
+
+/** @} */
 
 #endif /* __SVD_UA_H__ */
 
