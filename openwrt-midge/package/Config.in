@@ -387,14 +387,14 @@ source "package/eocd/Config.in"
 source "package/sigrand-mux/Config.in"
 endmenu
 menu "Drivers"
-source "package/sethdlc/Config.in"
-source "package/sigrand-mr17h/Config.in"
-source "package/sigrand-mr16h/Config.in"
-source "package/sigrand-mr16g/Config.in"
-source "package/sigrand-adm5120sw/Config.in"
 # OEM-ed package names
-source "package/oem-e1-gen2/Config.in"
-source "package/oem-rs232-gen1/Config.in"
+source "package/oem-sethdlc/Config.in"
+source "package/oem-shdsl.g1/Config.in"
+source "package/oem-shdsl.g2/Config.in"
+source "package/oem-e1.g1/Config.in"
+source "package/oem-e1.g2/Config.in"
+source "package/oem-rs232.g1/Config.in"
+source "package/oem-adm5120sw/Config.in"
 source "package/oem-voip/Config.in"
 
 
