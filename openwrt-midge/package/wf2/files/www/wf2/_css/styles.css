@@ -23,6 +23,10 @@ body {
 	background-color: black;
 	}
 
+select {
+	padding-right: 4px;
+}
+
 #mainmain {
 	width: 100%;
 	height: 100%;
@@ -70,7 +74,7 @@ body {
 }
 
 #right input.button {
-	margin: 10px 0 0 261px;
+	margin-left: 261px;
 }
 
 /* --------------------- LEFT MENU ----------------------- */
@@ -300,7 +304,19 @@ tr.tableHeader {
 	font-weight: bold;
 }
 
-div.scrolledTable {
-	width: 765px;
+div.scrollable {
+	max-height: 450px;
 	overflow: auto;
+}
+
+/* applied to lists (like in VoIP Route table). $.minmax() does't work
+ * in this case, so we set height manually */
+form div.scrollable {
+	width: 765px;
+	height: 450px;
+}
+
+td div.scrollable {
+	width: 745px;
+	height: auto;
 }

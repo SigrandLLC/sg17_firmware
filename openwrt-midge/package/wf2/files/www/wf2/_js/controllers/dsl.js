@@ -264,14 +264,14 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		c.addWidget(field);
 		
 		if (pwrPresence == 1) {
-			var pwrUnb = getCmdOutput($.sprintf("/bin/cat %s/pwrunb", confPath));
-			var pwrOvl = getCmdOutput($.sprintf("/bin/cat %s/pwrovl", confPath));
-			
 			field = {
 				"type": "html",
 				"name": "pwrUnb",
 				"text": "Power balance",
-				"str": pwrUnb == 0 ? "balanced" : "unbalanced"
+				"cmd": $.sprintf("/bin/cat %s/pwrunb", confPath),
+				"dataFilter": function(data) {
+					return data == 0 ? "balanced" : "unbalanced"
+				}
 			};
 			c.addWidget(field);
 			
@@ -279,7 +279,10 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 				"type": "html",
 				"name": "pwrOvl",
 				"text": "Power overload",
-				"str": pwrUnb == 0 ? "no overload" : "overload"
+				"cmd": $.sprintf("/bin/cat %s/pwrovl", confPath),
+				"dataFilter": function(data) {
+					return data == 0 ? "no overload" : "overload"
+				}
 			};
 			c.addWidget(field);
 		}

@@ -40,6 +40,9 @@ function generateMenu() {
 		});
 	});
 	
+	/* add dynamic interface controller */
+	addItem("Network", "Dynamic interfaces", "dynamic_ifaces");
+	
 	/* generate list of network interfaces */
 	var ifaces = config.getParsed("sys_ifaces");
 	$(ifaces).each(function(name, iface) {

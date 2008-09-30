@@ -54,7 +54,6 @@ function Page(p) {
 			href.click(function(e) {
 				/* clear container */
 				$('#' + tabIdPrefix + tab['id']).empty();
-				
 				/* render tab's content */
 				tab['func']();
 			});
@@ -130,18 +129,29 @@ function popup(url) {
  * Do async Ajax request for command execution,
  * replace '\n' in output with '<br>',
  * and set html of p element to command output.
+ * 
+ * cmd — command to execute.
+ * p — container to place command's output.
+ * filter — function to filter command's output.
  */
-function cmdExecute(cmd, p) {
+function cmdExecute(cmd, p, filter) {
 	$.ajax({
 		type: "POST",
 		url: "sh/execute.cgi",
 		dataType: "text",
 		data: {"cmd": cmd},
 		dataFilter: function(data, type) {
-			return data.replace(/\n/g, "<br>");
+			var newData = data.replace(/\n/g, "<br>");
+			if (filter) return filter(newData);
+			else return newData;
 		},
 		success: function(html) {
-			if (p) $(p).html(html);
+			if (p) {
+				$(p).html(html);
+				
+				/* workaround for max-height in IE */
+				$(p).minmax();
+			}
 		}
 	});
 }
@@ -335,16 +345,20 @@ function Container(p, options, helpSection) {
 	
 	/*
 	 * Add HTML text.
+	 * 
+	 * w.dataFilter — may be used with w.cmd — function to filter command output data.
 	 */
 	this.createHtml = function(w, value) {
-		var attrs = {'className': 'htmlWidget'};
+		var attrs = {"className": "htmlWidget"};
 		w.tip && (attrs['title'] = _(w.tip));
 		
-		var span = $.create('span', attrs);
+		var span = $.create("span", attrs);
 		if (w.kdb) {
 			$(span).html(value);
 		} else if (w.cmd) {
-			cmdExecute(w.cmd, span);
+			$(span).html("Loading...");
+			if (w.dataFilter) cmdExecute(w.cmd, span, w.dataFilter);
+			else cmdExecute(w.cmd, span);
 		} else if (w.str) {
 			$(span).html(w.str);
 		}
@@ -425,55 +439,6 @@ function Container(p, options, helpSection) {
 		if (w.onClick) {
 			$("#" + w.id).click(w.onClick);
 		}
-	};
-	
-	/*
-	 * Adds HTML code for command output.
-	 */
-	this.addConsoleHTML = function(cmd, p) {
-		$.create('tr', {},
-			$.create('td', {}, [
-					$.create('b', {}, cmd),
-					$.create('br'),
-					$.create('div', {'className': 'pre'})
-				]
-			)
-		).appendTo(p);
-	};
-	
-	/*
-	 * Add output of command execution to the page.
-	 * cmd — string or array with cmds' to execute.
-	 */
-	this.addConsole = function(cmd) {
-		var outer = this;
-		
-		/* adds command's HTML to the page, and makes AJAX request to the server */
-		var addConsoleOut = function(num, cmd) {
-			outer.addConsoleHTML(cmd, outer.table);
-			cmdExecute(cmd, $("tr > td > b:contains('" + cmd + "')", outer.table).nextAll("div.pre"));
-		};
-		
-		/* we can have one or several commands */
-		if (typeof cmd == "object") {
-			$(cmd).each(function(num, cmd) {
-				addConsoleOut(num, cmd);
-			});
-		} else {
-			addConsoleOut(0, cmd);
-		}
-	};
-	
-	/*
-	 * Create div in the form and add console output to it.
-	 * 
-	 * cmd — command to execute.
-	 */
-	this.addConsoleToForm = function(cmd) {
-		/* create div for command output */
-		var div = $.create('div', {'className': 'pre, cmdOutput'}).appendTo(this.form);
-		
-		cmdExecute(cmd, div);
 	};
 
 	/* 
@@ -632,6 +597,63 @@ function Container(p, options, helpSection) {
 	};
 	
 	/*
+	 * Creates and returns command header and output's body.
+	 */
+	this.createCmdTitleAndBody = function(cmd) {
+		var result = 
+			[
+				$.create("b", {}, cmd),
+				$.create("br"),
+				$.create("div", {"className": "pre scrollable"}, _("Loading..."))
+			];
+		return result;
+	};
+	
+	/*
+	 * Adds HTML code for command output to table.
+	 */
+	this.addConsoleHTML = function(cmd, p) {
+		$.create("tr", {},
+			$.create("td", {}, this.createCmdTitleAndBody(cmd))
+		).appendTo(p);
+	};
+	
+	/*
+	 * Add output of command execution to the page.
+	 * cmd — string or array with cmds' to execute.
+	 */
+	this.addConsole = function(cmd) {
+		var outer = this;
+		
+		/* adds command's HTML to the page, and makes AJAX request to the server */
+		var addConsoleOut = function(num, cmd) {
+			outer.addConsoleHTML(cmd, outer.table);
+			cmdExecute(cmd, $("tr > td > b:contains('" + cmd + "')", outer.table).nextAll("div.pre"));
+		};
+		
+		/* we can have one or several commands */
+		if (typeof cmd == "object") {
+			$(cmd).each(function(num, cmd) {
+				addConsoleOut(num, cmd);
+			});
+		} else {
+			addConsoleOut(0, cmd);
+		}
+	};
+	
+	/*
+	 * Create div in the form and add console output to it.
+	 * 
+	 * cmd — command to execute.
+	 */
+	this.addConsoleToForm = function(cmd) {
+		/* create div for command output */
+		var div = $.create("div", {"className": "pre, cmdOutput"}, _("Loading...")).appendTo(this.form);
+		
+		cmdExecute(cmd, div);
+	};
+	
+	/*
 	 * Run command with specified parameters.
 	 * First argument — command template (e.g., "/bin/ping -c %ARG %ARG").
 	 * Next arguments — name of form's fields to pass as command arguments.
@@ -639,18 +661,15 @@ function Container(p, options, helpSection) {
 	 */
 	this.addRun = function() {
 		/* create submit button */
-		$.create('input', {'type': 'submit', 'className': 'button', 'value': _("Run")}).appendTo(this.form);
-
+		$.create("input", {"type": "submit", "className": "button", "value": _("Run")}).appendTo(this.form);
+		
 		/* create div for command output */
-		$.create('div', {'className': 'pre, cmdOutput'}).appendTo(this.form);
+		var cmdOutput = $.create("div").appendTo(this.form);
 		
 		var runArgs = arguments;
 		var outer = this;
 		$(this.form).submit(function() {
 			var cmd;
-			
-			/* find div for command output for this form (tab) */
-			var cmdOutput = $(".cmdOutput", outer.form);
 			
 			/* make from command template real command */
 			$.each(runArgs, function(num, name) {
@@ -665,14 +684,13 @@ function Container(p, options, helpSection) {
 			/* clear div for command output */
 			cmdOutput.empty();
 			
-			/* add HTML to div */
-			outer.addConsoleHTML(cmd, cmdOutput);
-			
-			/* set waiting text */
-			$("div", cmdOutput).text("Waiting...");
+			/* add command header and body to div */
+			$.each(outer.createCmdTitleAndBody(cmd), function(num, element) {
+				element.appendTo(cmdOutput);
+			});
 			
 			/* execute command */
-			cmdExecute(cmd, $("div", cmdOutput));
+			cmdExecute(cmd, $("div.pre", cmdOutput));
 			
 			/* prevent form submission */
 			return false;
@@ -711,7 +729,7 @@ function Container(p, options, helpSection) {
 		/* add button for adding new elements */
 		if (addFunc) {
 			/* create "button" for adding */
-			var img = $.create("img", {"src": "_img/plus.png", "alt": "add"});
+			var img = $.create("img", {"src": "_img/plus.gif", "alt": "add"});
 			img.click(function(e) {
 				addFunc();
 			});
@@ -719,10 +737,10 @@ function Container(p, options, helpSection) {
 			/* change image when mouse is over it */
 			img.hover(
 				function() {
-					$(this).attr("src", "_img/plus2.png")
+					$(this).attr("src", "_img/plus2.gif")
 				},
 				function() {
-					$(this).attr("src", "_img/plus.png")
+					$(this).attr("src", "_img/plus.gif")
 				}
 			);
 			
@@ -773,7 +791,7 @@ function Container(p, options, helpSection) {
 	 * showFunc — function to call after deleting rot. Usually this func reloads table.
 	 * height — height of table.
 	 */
-	this.generateList = function(item, cols, addFunc, showFunc, height) {
+	this.generateList = function(item, cols, addFunc, showFunc) {
 		var outer = this;
 		
 		/* get list of items */
@@ -791,11 +809,12 @@ function Container(p, options, helpSection) {
 			
 			/* for each variable in item's value create table cell with variable's value */
 			$.each(cols.split(" "), function(num, variable) {
-				var td = $.create("td", cssClass, value[variable]).appendTo(row);
+				var td = $.create("td", cssClass, value[variable] ? value[variable] : "&nbsp;")
+					.appendTo(row);
 			});
 			
 			/* create "button" for editing */
-			var img = $.create("img", {"src": "_img/e.png", "alt": "edit"});
+			var img = $.create("img", {"src": "_img/e.gif", "alt": "edit"});
 			img.click(function(e) {
 				addFunc(key);
 			});
@@ -803,16 +822,16 @@ function Container(p, options, helpSection) {
 			/* change image when mouse is over it */
 			img.hover(
 				function() {
-					$(this).attr("src", "_img/e2.png")
+					$(this).attr("src", "_img/e2.gif")
 				},
 				function() {
-					$(this).attr("src", "_img/e.png")
+					$(this).attr("src", "_img/e.gif")
 				}
 			);
 			$.create("td", {}, img).appendTo(row);
 			
 			/* create "button" for deleting */
-			img = $.create("img", {"src": "_img/minus.png", "alt": "delete"});
+			img = $.create("img", {"src": "_img/minus.gif", "alt": "delete"});
 			img.click(function(e) {
 				/* unhilight previous selected item */
 				$(".selected", outer.table).removeClass("selected");
@@ -827,17 +846,20 @@ function Container(p, options, helpSection) {
 			/* change image when mouse is over it */
 			img.hover(
 				function() {
-					$(this).attr("src", "_img/minus2.png")
+					$(this).attr("src", "_img/minus2.gif")
 				},
 				function() {
-					$(this).attr("src", "_img/minus.png")
+					$(this).attr("src", "_img/minus.gif")
 				}
 			);
 			$.create("td", {}, img).appendTo(row);
 		});
 		
+		/* create scrollable div */
+		var div = $.create("div", {"className": "scrollable"});
+
 		/* add current table to scrollable div */
-		this.table.wrap($.create("div", {"className": "scrolledTable"}).height(height ? height : 350));
+		this.table.wrap(div);
 	};
 	
 	/*

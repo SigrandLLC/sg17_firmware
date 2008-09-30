@@ -320,7 +320,7 @@ Controllers['tools'] = function() {
 			c.addTitle("syslog");
 			
 			/* working directory for script is ./wf2/sh, where execute.cgi is located */
-			c.addConsole("/sbin/logread |/usr/bin/tail -n 40 |./colorizelog.sh");
+			c.addConsole("/sbin/logread |./colorizelog.sh");
 		}
 	});
 	
@@ -331,7 +331,7 @@ Controllers['tools'] = function() {
 			var c;
 			c = page.addContainer("dmesg");
 			c.addTitle("dmesg");
-			c.addConsole("/bin/dmesg |/usr/bin/tail -n 40");
+			c.addConsole("/bin/dmesg");
 		}
 	});
 	
