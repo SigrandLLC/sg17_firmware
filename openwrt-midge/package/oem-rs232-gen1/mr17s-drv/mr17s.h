@@ -184,6 +184,7 @@ struct mr17s_uart_port{
     struct uart_port port;
     enum mr17s_type type;
     u32 baud;
+	atomic_t inuse_cntr;
 };
 
 #endif

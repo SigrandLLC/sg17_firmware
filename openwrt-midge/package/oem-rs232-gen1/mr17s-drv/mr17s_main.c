@@ -211,6 +211,7 @@ mr17s_init_one(struct pci_dev *pdev,const struct pci_device_id *ent)
 
         memset(hw_port,0,sizeof(*hw_port));
         hw_port->type = rsdev->type;
+		atomic_set(&hw_port->inuse_cntr,0);
         // port I/O setup
         port->iotype = UPIO_MEM;
         port->iobase = 0;
@@ -429,7 +430,7 @@ static void mr17s_set_termios(struct uart_port *port,
     struct mr17s_uart_port *hw_port = (struct mr17s_uart_port *)port;
     struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
     struct mr17s_hw_regs *regs = &mem->regs;
-    u8 cur = ioread8(&regs->CRB);
+    u8 cur;
 	u32 baud, quot;
     int div1,div2;
 	unsigned long flags;
@@ -447,13 +448,17 @@ static void mr17s_set_termios(struct uart_port *port,
         printk(KERN_ERR"%s: error baud rate %d, cannot count divisor\n",MR17S_MODNAME,baud);
     }
 
+
+	// Locked area - configure hardware
+	spin_lock_irqsave(&port->lock, flags);
+
 	switch (new->c_cflag & CSIZE) {
-		case CS7:
-			cur |= DATA7;
-			break;
-		default:
-            cur &= (~DATA7);
-			break;
+	case CS7:
+		cur |= DATA7;
+		break;
+	default:
+        cur &= (~DATA7);
+		break;
 	}
     
 	if (new->c_cflag & CSTOPB){
@@ -470,50 +475,76 @@ static void mr17s_set_termios(struct uart_port *port,
 	}else{
         cur &= ~(PAR0|PAR1);
     }
-    
 
-	uart_update_timeout(port, new->c_cflag, baud);
     hw_port->baud = baud;
-    if( ioread8(&regs->MXCR) & MXEN ){
-        u8 rate = hw_port->baud/MUX_TIMESLOT;
-        if( hw_port->baud%MUX_TIMESLOT )
-            rate++;
-		rate--;
-        PDEBUG(debug_hw,"baud=%d,rate=%d",hw_port->baud,rate);
-        iowrite8(rate,&regs->MXRATE);
-    }
+	uart_update_timeout(port, new->c_cflag, baud);
 
-	spin_lock_irqsave(&port->lock, flags);
     iowrite8(cur,&regs->CRB);
 	spin_unlock_irqrestore(&port->lock, flags);
+
 }
 
-static int mr17s_startup(struct uart_port *port)
+inline static void
+mr17s_transceiver_up(struct uart_port *port)
 {
     struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
     struct mr17s_hw_regs *regs = &mem->regs;
 	u8 cra;
-    PDEBUG(debug_hw,"");
-    // Clear ring
-
     // Enable interrupts
     iowrite8(0xff,&regs->SR);
-	cra = ioread8(&regs->CRA) | (DTR|RTS);
+	cra = ioread8(&regs->CRA) | (DTR|RTS|CD);
     iowrite8(cra,&regs->CRA);
     iowrite8(TXS|RXS|RXE,&regs->IMR);
+}
+
+inline static void
+mr17s_transceiver_down(struct uart_port *port)
+{
+    struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
+    struct mr17s_hw_regs *regs = &mem->regs;
+	u8 cra;
+    // Disable interrupts
+    iowrite8(0,&regs->IMR);
+	cra = ioread8(&regs->CRA) & (FCEN|MCFW|TXEN|RXEN);
+    iowrite8(cra,&regs->CRA);
+}
+
+
+static int mr17s_startup(struct uart_port *port)
+{
+    struct mr17s_uart_port *hw_port = (struct mr17s_uart_port *)port;
+    struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
+    struct mr17s_hw_regs *regs = &mem->regs;
+	unsigned long flags;
+	u8 cra;
+
+    PDEBUG(debug_hw,"");
+	atomic_inc(&hw_port->inuse_cntr);
+	if( ioread8(&regs->MXCR) & MXEN ){
+		return 0;
+	}
+	spin_lock_irqsave(&port->lock, flags);
+	mr17s_transceiver_up(port);
+	spin_unlock_irqrestore(&port->lock, flags);
+
     return 0;
 }
 
 static void mr17s_shutdown(struct uart_port *port)
 {
+    struct mr17s_uart_port *hw_port = (struct mr17s_uart_port *)port;
     struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
     struct mr17s_hw_regs *regs = &mem->regs;
+	unsigned long flags;
 	u8 cra;
     PDEBUG(debug_hw,"");
-    // Disable interrupts
-    iowrite8(0,&regs->IMR);
-	cra = ioread8(&regs->CRA) & (FCEN|MCFW|TXEN|RXEN);
-    iowrite8(cra,&regs->CRA);
+
+	if(atomic_dec_and_test(&hw_port->inuse_cntr) ){
+		// shutdown port only if it is last shutdown
+		spin_lock_irqsave(&port->lock, flags);
+		mr17s_transceiver_down(port);
+		spin_unlock_irqrestore(&port->lock, flags);
+	}
 }
 
 static const char *mr17s_type(struct uart_port *port)
@@ -663,6 +694,7 @@ mr17s_mux_set(struct uart_port *port,struct mxsettings *set)
     struct mr17s_hw_regs *regs = &mem->regs;
     unsigned long flags;
     u8 mxcr = ioread8(&regs->MXCR);
+	u8 mxen_change = ((mxcr & MXEN) && !(set->mxen)) || ( !(mxcr&MXEN) && set->mxen);
 
     switch(set->clkm){
     case 0:
@@ -702,17 +734,23 @@ mr17s_mux_set(struct uart_port *port,struct mxsettings *set)
     
     spin_lock_irqsave(&port->lock,flags);
 
+	// Setup MUX control register
     iowrite8(mxcr,&regs->MXCR);
+	// Setup MUX rate
+	iowrite8(--set->mxrate,&regs->MXRATE);
 
-    if( mxcr & MXEN ){
-        u8 rate = hw_port->baud/MUX_TIMESLOT;
-        if( hw_port->baud%MUX_TIMESLOT )
-            rate++;
-        rate--;
-        PDEBUG(debug_hw,"baud=%d,rate=%d",hw_port->baud,rate);
-        iowrite8(rate,&regs->MXRATE);
-    }        
-    if( set->rline >=0 ){
+    if( (mxcr&MXEN) && mxen_change ){
+		// setup transceiver
+		atomic_inc(&hw_port->inuse_cntr);
+		mr17s_transceiver_up(port);
+    }else if( !(mxcr&MXEN) && mxen_change ) {
+		if(atomic_dec_and_test(&hw_port->inuse_cntr) ){
+			// shutdown port only if it is last shutdown
+			mr17s_transceiver_down(port);
+		}
+	}        
+    
+	if( set->rline >=0 ){
         iowrite8(set->rline,&regs->RLINE);
     }
     if( set->tline >=0 ){

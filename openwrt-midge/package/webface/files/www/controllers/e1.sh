@@ -34,11 +34,8 @@ if [ -n "$iface" ]; then
 		kdb_vars=${kdb_vars}" \
 			str:sys_pcicfg_s${slot}_${dev}_smap	\
 			bool:sys_pcicfg_s${slot}_${dev}_crc4	\
-			bool:sys_pcicfg_s${slot}_${dev}_cas"
-        if [ "$type" = "$MR16G_DRVNAME" ]; then
-    		kdb_vars=${kdb_vars}" \
-				bool:sys_pcicfg_s${slot}_${dev}_ts16"
-        fi
+			bool:sys_pcicfg_s${slot}_${dev}_cas		\
+			bool:sys_pcicfg_s${slot}_${dev}_ts16"
 	fi
 
 	subsys="e1."$slot"."$dev
@@ -123,12 +120,10 @@ if [ -n "$iface" ]; then
 	fram=`kdb get sys_pcicfg_s${slot}_${dev}_fram`	
 	if [ "$fram" -eq "1" ]; then
 
-        if [ "$type" = "$MR16G_DRVNAME" ]; then
-            # sys_pcicfg_s${slot}_${dev}_ts16
-		    tip=""
-		    desc="check to use"
-	        render_input_field checkbox "Use time slot 16" sys_pcicfg_s${slot}_${dev}_ts16
-        fi
+        # sys_pcicfg_s${slot}_${dev}_ts16
+	    tip=""
+	    desc="check to use"
+        render_input_field checkbox "Use time slot 16" sys_pcicfg_s${slot}_${dev}_ts16
 
    		# sys_pcicfg_s${slot}_${dev}_smap
 	    tip=""

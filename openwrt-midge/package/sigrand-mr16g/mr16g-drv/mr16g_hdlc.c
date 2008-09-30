@@ -1822,10 +1822,6 @@ store_rloopback( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 	return size;
 }
 
-
-		
-
-
 // Local loopback
 static ssize_t
 show_lloopback( struct device *dev, ADDIT_ATTR char *buf )
