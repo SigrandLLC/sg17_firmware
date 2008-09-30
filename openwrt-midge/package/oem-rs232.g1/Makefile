@@ -2,7 +2,7 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=oem-rs232-gen1
+PKG_NAME:=oem-rs232.g1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
@@ -13,7 +13,7 @@ endif
 
 include $(TOPDIR)/package/rules.mk
 
-$(eval $(call PKG_template,SIGRAND_MR17S,oem-rs232-gen1,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
+$(eval $(call PKG_template,SIGRAND_MR17S,oem-rs232.g1,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
 $(PKG_BUILD_DIR)/.prepared:
 	@echo "PKG_DIR="$(PKG_BUILD_DIR)
