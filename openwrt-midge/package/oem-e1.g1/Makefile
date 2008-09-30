@@ -2,7 +2,7 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=sigrand-mr16g
+PKG_NAME:=oem-e1.g1
 PKG_RELEASE:=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
@@ -14,7 +14,7 @@ endif
 
 include $(TOPDIR)/package/rules.mk
 
-$(eval $(call PKG_template,SIGRAND_MR16G,sigrand-mr16g,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
+$(eval $(call PKG_template,SIGRAND_MR16G,oem-e1.g1,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
 $(PKG_BUILD_DIR)/.prepared:
 	@echo "PKG_DIR="$(PKG_BUILD_DIR)

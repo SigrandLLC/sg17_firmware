@@ -2,7 +2,7 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=sigrand-adm5120sw
+PKG_NAME:=oem-adm5120sw
 PKG_RELEASE:=1
 
 CFLAGS:=
@@ -15,7 +15,7 @@ PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
 include $(TOPDIR)/package/rules.mk
 
-$(eval $(call PKG_template,SIGRAND_ADM5120SW,sigrand-adm5120sw,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
+$(eval $(call PKG_template,SIGRAND_ADM5120SW,oem-adm5120sw,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
 $(PKG_BUILD_DIR)/.prepared:
 	@echo "PKG_DIR="$(PKG_BUILD_DIR)

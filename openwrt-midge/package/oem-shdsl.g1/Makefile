@@ -2,7 +2,7 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=sigrand-mr16h
+PKG_NAME:=oem-shdsl.g1
 PKG_RELEASE:=1
 
 CFLAGS:=-DSG16_NORBURST -DSG16_NOWBURST
@@ -15,7 +15,7 @@ PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
 include $(TOPDIR)/package/rules.mk
 
-$(eval $(call PKG_template,SIGRAND_MR16H,sigrand-mr16h,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
+$(eval $(call PKG_template,SIGRAND_MR16H,oem-shdsl.g1,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
 $(PKG_BUILD_DIR)/.prepared:
 	@echo "PKG_DIR="$(PKG_BUILD_DIR)

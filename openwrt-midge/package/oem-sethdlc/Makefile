@@ -2,7 +2,7 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=sigrand-sethdlc
+PKG_NAME:=oem-sethdlc
 PKG_RELEASE:=1
 
 
@@ -10,7 +10,7 @@ PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
 include $(TOPDIR)/package/rules.mk
 
-$(eval $(call PKG_template,SIGRAND_SETHDLC,sigrand-sethdlc,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
+$(eval $(call PKG_template,SIGRAND_SETHDLC,oem-sethdlc,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
 $(PKG_BUILD_DIR)/.prepared:
 	mkdir -p $(PKG_BUILD_DIR)

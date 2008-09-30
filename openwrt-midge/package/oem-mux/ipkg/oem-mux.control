@@ -1,4 +1,4 @@
-Package: sigrand-sethdlc
+Package: oem-mux
 Priority: optional
 Section: net
 Description: drivers_stuff
