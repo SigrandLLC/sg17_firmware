@@ -355,7 +355,7 @@ endmenu
 comment "Extra stuff"
 menu "Sigrand"
 menu "OEM settings"
-source "package/sigrand-OEM/Config.in"
+source "package/oem-vendor/Config.in"
 endmenu
 menu "Packages"
 source "package/webface/Config.in"
@@ -384,7 +384,7 @@ config BR2_PACKAGE_CONTEXT_HELP_OEM
 endchoice
 
 source "package/eocd/Config.in"
-source "package/sigrand-mux/Config.in"
+source "package/oem-mux/Config.in"
 endmenu
 menu "Drivers"
 # OEM-ed package names

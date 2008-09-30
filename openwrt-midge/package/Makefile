@@ -313,7 +313,7 @@ package-$(BR2_PACKAGE_ZLIB) += zlib
 #
 package-$(BR2_PACKAGE_WEBFACE) += webface
 package-$(BR2_PACKAGE_WF2) += wf2
-package-$(BR2_PACKAGE_SIGRAND_SETHDLC) += sethdlc
+package-$(BR2_PACKAGE_SIGRAND_SETHDLC) += oem-sethdlc
 package-$(BR2_PACKAGE_SIGRAND_MUX) += oem-mux
 package-$(BR2_PACKAGE_SIGRAND_EOCD) += eocd
 package-$(BR2_PACKAGE_SIGRAND_MR16H) += oem-shdsl.g1
