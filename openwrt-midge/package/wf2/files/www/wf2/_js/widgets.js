@@ -521,6 +521,12 @@ function Container(p, options, helpSection) {
      		
      		/* on submit event */
      		submitHandler: function(form) {
+     			/* if noSubmit is set — do not submit the form */
+     			if (options && options.noSubmit) {
+     				if (options.onSubmit) options.onSubmit();
+     				return;
+     			}
+     			
      			/* remove alert text */
 				$(".alertText", form).remove();
 				

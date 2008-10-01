@@ -341,4 +341,51 @@ function Config() {
 			async: false
 		}).responseText, this.oem);
 	};
+	
+	/*
+	 * Add new interface to KDB.
+	 * 
+	 * options — interface parameters.
+	 */
+	this.addIface = function(options) {
+		var outer = this;
+		
+		/* return next interface name for given protocol */
+		var getNextIface = function(proto) {
+			/* replace protocol with inteface name */
+			proto = proto.replace("bonding", "bond");
+			proto = proto.replace("bridge", "br");
+			
+			/* find max interface index */
+			var maxIdx = -1;
+			var ifaces = outer.getParsed("sys_ifaces");
+			$.each(ifaces, function(num, iface) {
+				if (iface.search(proto) != -1) {
+					var idx = parseInt(iface.replace(proto, ""));
+					if (idx > maxIdx) maxIdx = idx;
+				}
+			});
+			
+			/* return next interface's name */
+			return proto + (maxIdx + 1);
+		};
+		
+		/* create interface parameters */
+		var iface = getNextIface(options['proto']);
+		var ifaceProp = new Array();
+		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_proto", iface), options['proto']);
+		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_real", iface),
+			options['real'] ? options['real'] : iface);
+		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_depend_on", iface),
+			options['dependOn'] ? options['dependOn'] : "none");
+		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_valid", iface), "1");
+		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_auto", iface), "0");
+		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_method", iface), "none");
+		if (options['vlan_id']) {
+			$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_vlan_id", iface),
+				options['vlan_id']);
+		}
+		
+		this.kdbSubmit(ifaceProp);
+	};
 }

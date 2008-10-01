@@ -73,7 +73,13 @@ Controllers['dynamic_ifaces'] = function() {
 			};
 			c.addWidget(field);
 			
-			c.addSubmit({"submitName": "Add"});
+			c.addSubmit({
+				"submitName": "Add",
+				"noSubmit": true,
+				"onSubmit": function() {
+					config.addIface({"proto": $("#iface_proto").val()});
+				}
+			});
 			
 			page.addBr("dynamic_ifaces");
 			var c2 = page.addContainer("dynamic_ifaces");
@@ -91,7 +97,7 @@ Controllers['dynamic_ifaces'] = function() {
 				"name": "del_iface",
 				"text": "Interface",
 				"descr": "Interface to delete",
-				"options": ifaces,
+				"options": ifaces
 			};
 			c2.addWidget(field);
 		
