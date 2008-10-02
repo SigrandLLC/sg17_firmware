@@ -78,14 +78,29 @@ function KDBQueue() {
 	/* send task to router */
 	this.sendTask = function(task) {
 		var outer = this;
+		var url;
+		
+		/* decide what to do */
+		switch (task['kdbCmd']) {
+			case "lrm":
+				url = "sh/kdb_del_list.cgi";
+				break;
+			case "rm":
+				url = "sh/kdb_del.cgi";
+				break;
+			default:
+				url = "sh/kdb_save.cgi";
+				break;
+		}
+		
 		var options = {
 			/* if kdbCmd is lrm, call kdb_del_list.cgi */
-			url: task['kdbCmd'] == "lrm" ? "sh/kdb_del_list.cgi" : "sh/kdb_save.cgi",
-			type: "POST",
-			data: task['values'],
+			"url": url,
+			"type": "POST",
+			"data": task['values'],
 			
 			/* network error */
-			error: function() {
+			"error": function() {
 				/* unblock queue */
 				outer.block = false;
 				
@@ -95,7 +110,7 @@ function KDBQueue() {
 				outer.setError("Connection error. You should reload page");
 			},
 			
-			success: function() {
+			"success": function() {
 				/* if task need page reloading — reload */
 				if (task['reload']) {
 					this.block = false;
@@ -217,10 +232,39 @@ function Config() {
 	};
 	
 	/*
-	 * Delete key from local KDB.
+	 * Returns object with keys, that match the regexp.
+	 * 
+	 * regexp — regexp to match.
+	 * parse — if true, returns parsed values, otherwise returns raw values.
+	 */
+	this.getByRegexp = function(regexp, parse) {
+		var outer = this;
+		var result = new Object();
+		$.each(this.conf, function(key, value) {
+			if (regexp.test(key)) {
+				result[key] = parse ? outer.parseRecord(value) : outer.replaceSpecialChars(value);
+			}
+		});
+		return result;
+	};
+	
+	/*
+	 * Deletes key from local KDB.
 	 */
 	this.del = function(key) {
 		delete this.conf[key];
+	};
+	
+	/*
+	 * Deletes keys from local KDB by regexp.
+	 */
+	this.delByRegexp = function(regexp) {
+		var outer = this;
+		$.each(this.conf, function(key, value) {
+			if (regexp.test(key)) {
+				delete outer.conf[key];
+			}
+		});
 	};
 	
 	/*
@@ -343,6 +387,33 @@ function Config() {
 	};
 	
 	/*
+	 * Update list of network interfaces.
+	 */
+	this.updateIfaces = function() {
+		/* get "valid" records for interfaces */
+		var validIfaces = config.getByRegexp(/(sys_iface_)*(_valid)/);
+		
+		/* create sorted array with interfaces */
+		var ifaces = new Array();
+		$.each(validIfaces, function(key, value) {
+			/* push to array only interface name */
+			key = key.replace(/sys_iface_/, "");
+			ifaces.push(key.replace(/_valid\w*/, ""));
+		});
+		ifaces = $.unique(ifaces);
+		ifaces.sort();
+		ifaces = ifaces.toString().replace(/,/g, " ");
+
+		/* create data for submission */		
+		var ifacesProp = new Array();
+		$.addObjectWithProperty(ifacesProp, "sys_ifaces", ifaces);
+		this.kdbSubmit(ifacesProp);
+		
+		/* update menu */
+		generateMenu();
+	};
+	
+	/*
 	 * Add new interface to KDB.
 	 * 
 	 * options — interface parameters.
@@ -370,8 +441,10 @@ function Config() {
 			return proto + (maxIdx + 1);
 		};
 		
+		/* get interface name */
+		var iface = options['iface'] ? options['iface'] : getNextIface(options['proto']);
+		
 		/* create interface parameters */
-		var iface = getNextIface(options['proto']);
 		var ifaceProp = new Array();
 		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_proto", iface), options['proto']);
 		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_real", iface),
@@ -381,11 +454,31 @@ function Config() {
 		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_valid", iface), "1");
 		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_auto", iface), "0");
 		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_method", iface), "none");
-		if (options['vlan_id']) {
+		if (options['vlanId']) {
 			$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_vlan_id", iface),
-				options['vlan_id']);
+				options['vlanId']);
 		}
 		
 		this.kdbSubmit(ifaceProp);
+		this.updateIfaces();
+	};
+	
+	/*
+	 * Delete network interface from KDB.
+	 * 
+	 * iface — interface to delete.
+	 */
+	this.delIface = function(iface) {
+		/* delete all interface parameters from local KDB */
+		this.delByRegexp(new RegExp($.sprintf("sys_iface_%s_\w*", iface)));
+		
+		/* create data for submission */		
+		var submitData = new Array();
+		$.addObjectWithProperty(submitData, "item", $.sprintf("sys_iface_%s_*", iface));
+		$.addObjectWithProperty(submitData, "subsystem", $.sprintf("iface_del.%s", iface));
+		
+		/* encode data with $.param(), and set kdbCmd to "rm" */
+		this.kdbQueue.addTask($.param(submitData), null, null, null, "rm");
+		this.updateIfaces();
 	};
 }

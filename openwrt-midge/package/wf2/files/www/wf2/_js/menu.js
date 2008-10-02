@@ -1,4 +1,5 @@
 function generateMenu() {
+	$("#menu").empty();
 	addItem("System", "Info", "info");
 	addItem("System", "Webface", "webface");
 	addItem("System", "General", "general");
@@ -47,5 +48,11 @@ function generateMenu() {
 	var ifaces = config.getParsed("sys_ifaces");
 	$(ifaces).each(function(name, iface) {
 		addItem("Network:Interfaces", iface, "iface", [iface]);
+	});
+	
+	/* generate menu */
+	$("#menu").treeview({
+		unique: true,
+		collapsed: true
 	});
 }

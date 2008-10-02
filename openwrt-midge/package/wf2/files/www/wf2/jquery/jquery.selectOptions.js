@@ -18,6 +18,15 @@
 			});
 		}
 		
+		/* if option's list is array — convert it to hash */
+		if (options.constructor == Array) {
+			var arr = options;
+			options = new Object();
+			$.each(arr, function(num, value) {
+				options[value] = value;
+			});
+		}
+		
 		/* go though list of options */
 		$.each(options, function(name, value) {
 			/*

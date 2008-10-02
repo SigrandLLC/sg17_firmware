@@ -23,12 +23,5 @@ if (lang != "en") {
 $(document).ready(function() {
 	generateMenu();
 	
-	$("#menu").treeview(
-	{
-		persist: "location",
-		unique: true,
-		collapsed: true
-	});
-	
 	Controllers['info']();
 });

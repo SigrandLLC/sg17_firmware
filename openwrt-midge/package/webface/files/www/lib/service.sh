@@ -57,6 +57,10 @@ service_reload(){
 	voip)
 		/etc/init.d/rcvoip restart
 	;;
+	iface_del*)
+		iface=${service#*.}
+		/sbin/ifdown $iface 2>&1 | ${LOGGER}
+	;;
 	esac
 }
 

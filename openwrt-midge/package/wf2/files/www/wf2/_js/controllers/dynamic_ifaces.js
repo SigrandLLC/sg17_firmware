@@ -77,7 +77,23 @@ Controllers['dynamic_ifaces'] = function() {
 				"submitName": "Add",
 				"noSubmit": true,
 				"onSubmit": function() {
-					config.addIface({"proto": $("#iface_proto").val()});
+					var parameters = {"proto": $("#iface_proto").val()};
+					
+					/* set parameters for VLAN interface */
+					if ($("#iface_proto").val() == "vlan") {
+						/* set real (in system) interface name */
+						parameters['real'] =
+							$.sprintf("%s.%s", $("#phys_iface").val(), $("#vlan_id").val());
+							
+						/* set interface name, used in KDB (and webface) */
+						parameters['iface'] =
+							$.sprintf("%sv%s", $("#phys_iface").val(), $("#vlan_id").val());
+						
+						/* set dependOn interface and VLAN ID */
+						parameters['dependOn'] = $("#phys_iface").val();
+						parameters['vlanId'] = $("#vlan_id").val();
+					}
+					config.addIface(parameters);
 				}
 			});
 			
@@ -95,13 +111,20 @@ Controllers['dynamic_ifaces'] = function() {
 			field = { 
 				"type": "select",
 				"name": "del_iface",
+				"id": "del_iface",
 				"text": "Interface",
 				"descr": "Interface to delete",
 				"options": ifaces
 			};
 			c2.addWidget(field);
 		
-			c2.addSubmit({"submitName": "Delete"});
+			c2.addSubmit({
+				"submitName": "Delete",
+				"noSubmit": true,
+				"onSubmit": function() {
+					config.delIface($("#del_iface").val());
+				}
+			});
 		}
 	});
 	
