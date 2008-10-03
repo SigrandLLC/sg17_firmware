@@ -570,6 +570,12 @@ static void mr17s_config_port(struct uart_port *port, int flags)
 
     port->type = MR17S_PORT;
 
+    // Reset HDLC regs
+    iowrite8(0,&regs->SR);
+    iowrite8(0,&regs->IMR);
+    iowrite8(0,&regs->CRA);
+    iowrite8(0,&regs->CRB);
+
     // Transceiver reset
     iowrite8(0,&regs->CTR);
     iowrite8(0,&regs->LTR);
@@ -742,12 +748,10 @@ mr17s_mux_set(struct uart_port *port,struct mxsettings *set)
     if( (mxcr&MXEN) && mxen_change ){
 		// setup transceiver
 		atomic_inc(&hw_port->inuse_cntr);
-		mr17s_transceiver_up(port);
+		iowrite8(0,&regs->IMR);
     }else if( !(mxcr&MXEN) && mxen_change ) {
-		if(atomic_dec_and_test(&hw_port->inuse_cntr) ){
-			// shutdown port only if it is last shutdown
-			mr17s_transceiver_down(port);
-		}
+		atomic_dec(&hw_port->inuse_cntr);
+		iowrite8(TXS|RXS|RXE,&regs->IMR);
 	}        
     
 	if( set->rline >=0 ){

@@ -10,7 +10,7 @@ obj-m := @DRVNAME@.o
 	make -C  @KERNSRC@ SUBDIRS=$(PWD) modules CROSS_COMPILE=@CROSS_PREFIX@ 
 	cd tools && make all && cd ../
 
-all: @DRVNAME@.ko mr17s_cfg
+all: @DRVNAME@.ko 
 
 install: @DRVNAME@.ko
 	install -m 644 @DRVNAME@.ko @INST_PATH@/lib/modules/@KERNVER@/
