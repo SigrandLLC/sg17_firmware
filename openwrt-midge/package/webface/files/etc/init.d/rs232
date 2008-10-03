@@ -115,7 +115,7 @@ _rs232_modcfg(){
 	
 _rs232_start(){
 	
-	echo -n "Configuring RS232: "
+	echo "Configuring RS232: "
 	eval `kdb sls -q sys_pcitbl_`
 	for s in $slots; do
 		unset type
@@ -126,7 +126,7 @@ _rs232_start(){
 			continue
 		fi
 	    _rs232_modcfg $s
-    	echo -n "${mr17s_modname}${oem_ifpfx}${num}($ifaces) "
+    	echo "    ${mr17s_modname}${oem_ifpfx}${num}($ifaces) "
 	done
 	echo
 }

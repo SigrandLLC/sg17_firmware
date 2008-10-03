@@ -7,8 +7,11 @@
 
 	if [ $REQUEST_METHOD = POST ]; then
 		unset kdb_vars _clkr
+
 		for i in $ifaces; do
 			if [ "x${i%%[0-9]}x" = "xdslx" ]; then
+				rate="mxrate"
+			elif [ "x${i%%[0-9]}x" = "xttyRSx" ]; then
 				rate="mxrate"
 			else
 				rate="mxsmap"
@@ -100,6 +103,8 @@
 		
 		# sys_mux_${i}_(mxrate/mxsmap)
 		if [ "x${i%%[0-9]}x" = "xdslx" ]; then
+			rate="mxrate"
+		elif [ "x${i%%[0-9]}x" = "xttyRSx" ]; then
 			rate="mxrate"
 		else
 			rate="mxsmap"

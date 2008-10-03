@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "mxconfig.h"
+#include "debug.h"
 
 #ifndef ARCH
 #define IFS_ROOT "/home/artpol/work/tmp/ifs-root"
@@ -13,7 +14,7 @@
 #define IFS_ROOT "/sys/class/net"
 #endif
 
-int debug_lev;
+int debug_lev=DFULL;
 
 typedef enum { help,setup,info,full_info,chck } action_t;
 
@@ -445,6 +446,8 @@ check(ifdescr_t **iflist,int iflsize)
     memset(clkAm,0,sizeof(clkAm));
     memset(clkBm,0,sizeof(clkBm));
 
+PDEBUG(DFULL,"Start");
+
     // Fill lines
     for(i=0;i<iflsize;i++){
 		u32 mxrate = 0;
@@ -510,7 +513,8 @@ check(ifdescr_t **iflist,int iflsize)
 					iflist[i]->name,set->tline);
 		}
     }
-    
+
+PDEBUG(DFULL,"#1");    
     // 1. In each domain one and only one master 
     if( !clkAm_cnt && clkA_cnt )
 		mxerror("No clock master in domain A");
@@ -523,6 +527,9 @@ check(ifdescr_t **iflist,int iflsize)
     }
     if( !clkBm_cnt && clkB_cnt)
 		mxerror("No clock master in domain B");
+
+PDEBUG(DFULL,"#2");    
+
     if( clkBm_cnt>1 ){
 		int i;
 		mxerror("More than one clock master in domain B:");
@@ -531,32 +538,42 @@ check(ifdescr_t **iflist,int iflsize)
 		}
     }
 
+PDEBUG(DFULL,"#3");    
+
     // 2. All devices of line in one domain
     for(i=0;i<MX_LINES;i++){
+PDEBUG(DFULL,"#3.%d",i);    
+
 		int rerr=0,terr=0;
 		if( !rlines[i] && !tlines[i] )
 			continue; // line is not used
-	
+
 		if( rlines[i] && rlines[i]->domain_err ){
 			mxerror("Line%d: not all writing devices in same domain",i);
-			mxline_print(rlines[i],i,"write");
-			derr = 1;
 			rerr = 1;
 		}
+
 		if( tlines[i] && tlines[i]->domain_err){
 			mxerror("Line%d: not all reading devices in same domain",i);
-			mxline_print(tlines[i],i,"read");
-			derr = 1;
 			terr = 1;
 		}
-		if( tlines[i]->domain != rlines[i]->domain ){
+
+		if( tlines[i] && !rlines[i] ){
+			continue;
+		} else if( !tlines[i] && rlines[i] ){
+			continue;
+		} else if( tlines[i]->domain != rlines[i]->domain ){
 			mxerror("Line%d: not all reading devices in same domain",i);
-			if( !rerr )
-				mxline_print(rlines[i],i,"write");
-			if( !terr )
-				mxline_print(tlines[i],i,"read");
-		}			
+			rerr = 1;
+			terr = 1;
+		}
+		if( terr && tlines[i] )
+			mxline_print(tlines[i],i,"read");
+		if( rerr && rlines[i])
+			mxline_print(rlines[i],i,"write");
     }
+
+PDEBUG(DFULL,"#4");    
 
     // 3. Check that timeslots inside line do not cross
     for(i=0;i<MX_LINES;i++){
@@ -574,11 +591,17 @@ check(ifdescr_t **iflist,int iflsize)
 		if( check_hanging_tslots(rlines[i],tlines[i],i) )
 			mxerror("Unknown error whileprocess Line%d",i);
     }
+
+PDEBUG(DFULL,"#5");    
     
+
     // 4. Check for E1 timeslots that HDLC & MUX timeslots don't cross
 	for(i=0;i<iflsize;i++){
 		check_hdsc_mux(iflist[i]);
 	}
+
+PDEBUG(DFULL,"#6");    
+
 }
 
 int main(int argc, char *argv[] )

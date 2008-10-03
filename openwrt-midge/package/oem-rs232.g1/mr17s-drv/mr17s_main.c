@@ -19,7 +19,7 @@
 
 
 // DEBUG
-#define DEBUG_ON 
+//#define DEBUG_ON 
 #define DEBUG_LEV 10
 #include "mr17s_debug.h"
 

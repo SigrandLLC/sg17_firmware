@@ -207,7 +207,7 @@ _e1_modcfg(){
 	
 _e1_start(){
 	
-	echo -n "Configuring E1: "
+	echo  "Configuring E1: "
 	eval `kdb sls -q sys_pcitbl_`
 	for s in $slots; do
 		unset type
@@ -220,10 +220,10 @@ _e1_start(){
 	    _e1_modcfg $s
         case "$type" in 
         "$mr16g_drvname")
-    		echo -n "${mr16g_modname}${oem_ifpfx}${num}($ifaces) "
+    		echo "    ${mr16g_modname}${oem_ifpfx}${num}($ifaces) "
             ;;
         "$mr17g_drvname")
-    		echo -n "${mr17g_modname}${oem_ifpfx}${num}($ifaces) "
+    		echo "    ${mr17g_modname}${oem_ifpfx}${num}($ifaces) "
             ;;
         esac
 	done
