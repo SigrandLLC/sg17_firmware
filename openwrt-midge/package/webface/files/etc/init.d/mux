@@ -23,7 +23,6 @@ start(){
 		done
 		
 		# apply settings
-		echo "MUX test: $args" >> /root/mux.test
 		[ -n "$args" ] && $MXCONFIG --iface $i $args
 		
 		# mxconfig can change mxsmap parameter, so update value, saved in KDB
