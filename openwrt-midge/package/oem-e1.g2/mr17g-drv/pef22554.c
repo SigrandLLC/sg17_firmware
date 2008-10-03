@@ -569,7 +569,6 @@ pef22554_channel(struct mr17g_channel *chan)
 
     // PC5: 0x02 when (!!MXEN || (MXEN && CLKM && CLKR)) else 0x00 
 	tmp = ioread8(&regs->MXCR);
-	printk(KERN_NOTICE"Test: %02x - %02x\n",(tmp&(MXEN|CLKM|CLKR)),(MXEN|CLKM|CLKR));
     if( !(tmp&MXEN) || ( (tmp&(MXEN|CLKM|CLKR))==(MXEN|CLKM|CLKR)) ){
         tmp = 0x02;
     }else{
