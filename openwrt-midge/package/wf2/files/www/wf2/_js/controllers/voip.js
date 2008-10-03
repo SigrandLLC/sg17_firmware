@@ -15,7 +15,8 @@ Controllers['voip'] = function() {
 			field = { 
 				"type": "text",
 				"name": "sys_voip_settings_selfnumber",
-				"text": "Router ID"
+				"text": "Router ID",
+				"validator": {"required": true, "voipRouterID": true}
 			};
 			c.addWidget(field);
 			

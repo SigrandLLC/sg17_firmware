@@ -139,7 +139,7 @@ Controllers['security'] = function() {
 				name: "htpasswd",
 				text: "Password",
 				descr: "Password for webface user <i>admin</i>",
-				validator: {required: true},
+				validator: {"required": true},
 				message: "Enter webface password"
 			};
 			c.addWidget(field);
@@ -180,11 +180,12 @@ Controllers['dns'] = function() {
 			c.addTitle("DNS settings");
 
 			field = { 
-				type: "text",
-				name: "sys_dns_nameserver",
-				text: "Upstream server",
-				descr: "Please enter ip address of upstream dns server",
-				tip: "DNS server used for resolving domain names. E.g., 192.168.2.1"
+				"type": "text",
+				"name": "sys_dns_nameserver",
+				"text": "Upstream server",
+				"descr": "Please enter ip address of upstream dns server",
+				"tip": "DNS server used for resolving domain names. E.g., 192.168.2.1",
+				"validator": {"ipAddr": true}
 			};
 			c.addWidget(field);
 		

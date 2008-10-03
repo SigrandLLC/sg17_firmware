@@ -501,26 +501,22 @@ function Container(p, options, helpSection) {
 		$("input").tooltip({track: true});
 		$("select").tooltip({track: true});
 		
-		/* apply validate rules to form */
-		$(this.form).validate({
-			rules: this.validator_rules,
-			messages: this.validator_messages,
+		/* options for form validation */
+		var validateOptions = {
+			"rules": this.validator_rules,
+			"messages": this.validator_messages,
 			
 			/* container where to show error */
-			errorContainer: idInfoMessage,
+			"errorContainer": idInfoMessage,
 			
 			/* Set error text to container */
-			showErrors: function(errorMap, errorList) {
+			"showErrors": function(errorMap, errorList) {
 				outer.setError("Please, enter a valid data into the form below to be able to save it successfully.");
 				this.defaultShowErrors();
 			},
-			
-			errorPlacement: function(error, element) {
-     			error.prependTo(element.parent());
-     		},
      		
      		/* on submit event */
-     		submitHandler: function(form) {
+     		"submitHandler": function(form) {
      			/* if noSubmit is set — do not submit the form */
      			if (options && options.noSubmit) {
      				if (options.onSubmit) options.onSubmit();
@@ -599,7 +595,23 @@ function Container(p, options, helpSection) {
 				/* call user function on submit event */
      			if (options && options.onSubmit) options.onSubmit();
      		}
-		});
+		};
+		
+		/* if widgets are placed in a table */
+		if (this.isTable) {
+			/* show errors for fields in the error's container above table */
+			validateOptions['errorLabelContainer'] = idInfoMessage;
+     		
+     		/* wrap errors in "li" elements */
+     		validateOptions['wrapper'] = "li"
+		} else {
+			validateOptions['errorPlacement'] = function(error, element) {
+     			error.prependTo(element.parent());
+     		}
+		}
+		
+		/* apply validate rules to form */
+		$(this.form).validate(validateOptions);
 	};
 	
 	/*
@@ -727,6 +739,9 @@ function Container(p, options, helpSection) {
 	 * addFunc ­— function to call for rendering page for adding new element to table.
 	 */
 	this.addTableHeader = function(header, addFunc) {
+		/* set table flag (for validation) */
+		this.isTable = true;
+		
 		var tr = $.create("tr", {"align": "center", "className": "tableHeader"});
 		$.each(header.split("|"), function(num, value) {
 			$.create("th", {}, _(value)).appendTo(tr);
