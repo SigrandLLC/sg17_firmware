@@ -52,7 +52,7 @@
 						kdb_vars="int:sys_iface_${iface}_qos_fifo_limit";;
 					sqf)
 						kdb_vars="";;
-					esqf)
+					esfq)
 						kdb_vars="int:sys_iface_${iface}_qos_esfq_limit int:sys_iface_${iface}_qos_esfq_depth int:sys_iface_${iface}_qos_esfq_hash";;
 					tbf)
 						kdb_vars="str:sys_iface_${iface}_qos_tbf_rate int:sys_iface_${iface}_qos_tbf_limit str:sys_iface_${iface}_qos_tbf_latency int:sys_iface_${iface}_qos_tbf_buffer";;
@@ -451,6 +451,7 @@
 				desc="Depth"
 				validator='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="positiveinteger" tmt:minnumber=10 tmt:maxnumber=65535 tmt:message="Please input number" '
 				render_input_field text "Depth" sys_iface_${iface}_qos_esfq_depth
+				
 				render_input_field select "Hash" sys_iface_${iface}_qos_esfq_hash classic 'Classic' src 'Source address' dst 'Destination address'
 				;;
 			tbf)

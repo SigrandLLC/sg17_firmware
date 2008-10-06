@@ -95,14 +95,15 @@ Controllers['webface'] = function() {
 
 Controllers['general'] = function() {
 	var page = this.Page();
-	page.setHelp("begin");
+	page.setHelpPage("begin");
 
 	page.addTab({
 		"id": "general",
 		"name": "General",
 		"func": function() {
 			var c, field;
-			c = page.addContainer("general", "hostname");
+			c = page.addContainer("general");
+			c.setHelpSection("hostname");
 			c.addTitle("General settings");
 
 			field = {
@@ -124,14 +125,15 @@ Controllers['general'] = function() {
 
 Controllers['security'] = function() {
 	var page = this.Page();
-	page.setHelp("begin");
+	page.setHelpPage("begin");
 	
 	page.addTab({
 		"id": "security",
 		"name": "Security",
 		"func": function() {
 			var c, field;
-			c = page.addContainer("security", "passwd");
+			c = page.addContainer("security");
+			c.setHelpSection("passwd");
 			c.addTitle("Webface password");
 
 			field = { 
@@ -147,7 +149,8 @@ Controllers['security'] = function() {
 			c.addSubmit();
 			
 			page.addBr("security");
-			c = page.addContainer("security", "passwd");
+			c = page.addContainer("security");
+			c.setHelpSection("passwd");
 			c.addTitle("System password");
 		
 			field = { 
@@ -256,7 +259,7 @@ Controllers['time'] = function() {
 
 Controllers['logging'] = function() {
 	var page = this.Page();
-	page.setHelp("logging");
+	page.setHelpPage("logging");
 	page.setSubsystem("logging");
 	
 	page.addTab({

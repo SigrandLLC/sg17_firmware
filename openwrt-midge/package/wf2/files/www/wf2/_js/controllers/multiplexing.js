@@ -1,6 +1,6 @@
 Controllers['multiplexing'] = function() {
 	var page = this.Page();
-	page.setHelp("multiplexing");
+	page.setHelpPage("multiplexing");
 	page.setSubsystem("mux");
 	
 	page.addTab({
@@ -121,7 +121,7 @@ Controllers['multiplexing'] = function() {
 				} else {
 					rate = "mxsmap";
 					tip = "Enter <i>mxsmap</i> for E1 interface. <i>mxsmap</i> is a map of time-slots (e.g., <i>1-31</i>). This value can be changed after saving.";
-					validator = {"required": $.sprintf("#sys_mux_%s_mxen:checked", iface), "mxsmap": true};
+					validator = {"required": $.sprintf("#sys_mux_%s_mxen:checked", iface), "smap": true};
 				}
 				
 				id = $.sprintf("sys_mux_%s_%s", iface, rate);

@@ -1,7 +1,6 @@
 Controllers['voip'] = function() {
 	var page = this.Page();
 	page.setSubsystem("voip");
-	page.setHelp("voip");
 	
 	/* settings tab */
 	page.addTab({
@@ -10,6 +9,7 @@ Controllers['voip'] = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("settings");
+			c.setHelpPage("voip.settings");
 			c.addTitle("VoIP settings");
 		
 			field = { 
@@ -23,7 +23,8 @@ Controllers['voip'] = function() {
 			field = { 
 				"type": "text",
 				"name": "sys_voip_settings_selfip",
-				"text": "Router IP"
+				"text": "Router IP",
+				"validator": {"required": true, "ipAddr": true}
 			};
 			c.addWidget(field);
 			
@@ -31,7 +32,8 @@ Controllers['voip'] = function() {
 				"type": "text",
 				"name": "sys_voip_settings_rtp_port_first",
 				"text": "RTP port start",
-				"descr": "Begin of ports range to use for RTP"
+				"descr": "Begin of ports range to use for RTP",
+				"validator": {"required": true, "min": 0, "max": 65535}
 			};
 			c.addWidget(field);
 			
@@ -39,7 +41,8 @@ Controllers['voip'] = function() {
 				"type": "text",
 				"name": "sys_voip_settings_rtp_port_last",
 				"text": "RTP port end",
-				"descr": "End of ports range to use for RTP"
+				"descr": "End of ports range to use for RTP",
+				"validator": {"required": true, "min": 0, "max": 65535}
 			};
 			c.addWidget(field);
 			
@@ -83,6 +86,7 @@ Controllers['voip'] = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("sip");
+			c.setHelpPage("voip.sip");
 			c.addTitle("SIP settings");
 		
 			field = { 
@@ -90,7 +94,8 @@ Controllers['voip'] = function() {
 				"name": "sys_voip_sip_registrar",
 				"text": "Registrar",
 				"descr": "SIP registrar to register on",
-				"tip": "e.g., <i>sip:server</i>"
+				"tip": "e.g., <i>sip:server</i>",
+				"validator": {"required": true, "voipRegistrar": true}
 			};
 			c.addWidget(field);
 			
@@ -99,7 +104,8 @@ Controllers['voip'] = function() {
 				"name": "sys_voip_sip_username",
 				"text": "Username",
 				"descr": "Username on SIP registrar",
-				"tip": "e.g., <i>user</i>"
+				"tip": "e.g., <i>user</i>",
+				"validator": {"required": true}
 			};
 			c.addWidget(field);
 			
@@ -107,7 +113,8 @@ Controllers['voip'] = function() {
 				"type": "password",
 				"name": "sys_voip_sip_password",
 				"text": "Password",
-				"descr": "Password on SIP registrar"
+				"descr": "Password on SIP registrar",
+				"validator": {"required": true}
 			};
 			c.addWidget(field);
 			
@@ -115,7 +122,8 @@ Controllers['voip'] = function() {
 				"type": "text",
 				"name": "sys_voip_sip_user_sip_uri",
 				"text": "User SIP URI",
-				"tip": "e.g., <i>sip:user@server</i>"
+				"tip": "e.g., <i>sip:user@server</i>",
+				"validator": {"required": true, "voipSipUri": true}
 			};
 			c.addWidget(field);
 			
@@ -142,6 +150,8 @@ Controllers['voip'] = function() {
 		var c, field;
 		page.clearTab("route");
 		c = page.addContainer("route");
+		c.setHelpPage("voip.route");
+		c.setHelpSection("voip.route.add");
 
 		if (!item) {
 			c.addTitle("Add route");
@@ -164,7 +174,7 @@ Controllers['voip'] = function() {
 			"name": "router_id",
 			"text": "Router ID",
 			"descr": "Router ID",
-			"validator": {"required": true}
+			"validator": {"required": true, "voipRouterID": true}
 		};
 		c.addWidget(field);
 		
@@ -174,7 +184,7 @@ Controllers['voip'] = function() {
 			"name": "address",
 			"text": "Address",
 			"descr": "Router address",
-			"validator": {"required": true}
+			"validator": {"required": true, "ipAddr": true}
 		};
 		c.addWidget(field);
 		
@@ -202,6 +212,7 @@ Controllers['voip'] = function() {
 		var c;
 		page.clearTab("route");
 		c = page.addContainer("route");
+		c.setHelpPage("voip.route");
 		c.addTitle("Route table", 5);
 	
 		c.addTableHeader("Router ID|Address|Comment", addRouteFunc);
@@ -224,6 +235,8 @@ Controllers['voip'] = function() {
 		var c, field;
 		page.clearTab("address");
 		c = page.addContainer("address");
+		c.setHelpPage("voip.address");
+		c.setHelpSection("voip.address.add");
 
 		if (!item) {
 			c.addTitle("Add address");
@@ -246,7 +259,7 @@ Controllers['voip'] = function() {
 			"name": "short_number",
 			"text": "Short number",
 			"descr": "Short number for speed dialing",
-			"validator": {"required": true}
+			"validator": {"required": true, "voipShortNumber": true}
 		};
 		c.addWidget(field);
 		
@@ -256,7 +269,7 @@ Controllers['voip'] = function() {
 			"name": "complete_number",
 			"text": "Complete number",
 			"descr": "Complete telephone number",
-			"validator": {"required": true}
+			"validator": {"required": true, "voipCompleteNumber": true}
 		};
 		c.addWidget(field);
 		
@@ -284,6 +297,7 @@ Controllers['voip'] = function() {
 		var c;
 		page.clearTab("address");
 		c = page.addContainer("address");
+		c.setHelpPage("voip.address");
 		c.addTitle("Address book", 5);
 	
 		c.addTableHeader("Short number|Complete number|Comment", addAddressFunc);

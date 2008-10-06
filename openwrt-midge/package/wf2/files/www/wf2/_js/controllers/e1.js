@@ -1,6 +1,6 @@
 Controllers['e1'] = function(iface, pcislot, pcidev) {
 	var page = this.Page();
-	page.setHelp("e1");
+	page.setHelpPage("e1");
 	page.setSubsystem($.sprintf("e1.%s.%s", pcislot, pcidev));
 	
 	page.addTab({
@@ -143,7 +143,8 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 					"name": id,
 					"id": id,
 					"text": "Slotmap",
-					"descr": "example: 2-3,6-9,15-20"
+					"descr": "example: 2-3,6-9,15-20",
+					"validator": {"required": true, "smap": true}
 				};
 				c.addWidget(field, framWidget);
 				

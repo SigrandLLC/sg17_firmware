@@ -1,6 +1,6 @@
 Controllers['dsl'] = function(iface, pcislot, pcidev) {
 	var page = this.Page();
-	page.setHelp("dsl");
+	page.setHelpPage("dsl");
 	page.setSubsystem($.sprintf("dsl.%s.%s", pcislot, pcidev));
 
 	/* fill select with rates */
@@ -337,13 +337,15 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		/* PBO */
 		var pboMode = getCmdOutput($.sprintf("/bin/cat %s/pbo_mode", confPath));
 		if (pboMode == "Forced") {
-			var pboVal = getCmdOutput($.sprintf("/bin/cat %s/pbo_val", confPath));
 			field = {
 				"type": "html",
 				"name": "pboVal",
 				"text": "PBO values",
 				"descr": "Power backoff values",
-				"str": $.sprintf("%s dB", pboVal)
+				"cmd": $.sprintf("/bin/cat %s/pbo_val", confPath),
+				"dataFilter": function(data) {
+					return data + " dB"
+				}
 			};
 			c.addWidget(field);
 		}
@@ -465,7 +467,8 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 					field = { 
 						"type": "text",
 						"name": mrateId,
-						"id": mrateId
+						"id": mrateId,
+						"validator": {"required": true, "min": 0}
 					};
 					c.addSubWidget(field, "#rate");
 				/* otherwise, remove it */
@@ -482,7 +485,8 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 					field = { 
 						"type": "text",
 						"name": $.sprintf("sys_pcicfg_s%s_%s_pboval", pcislot, pcidev),
-						"id": "pboval"
+						"id": "pboval",
+						"validator": {"required": true, "pbo": true}
 					};
 					c.addSubWidget(field, "#pbomode");
 				} else if ($("#pbomode").attr("checked") == false) {

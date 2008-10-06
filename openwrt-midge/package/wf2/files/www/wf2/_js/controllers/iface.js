@@ -1,7 +1,7 @@
 Controllers['iface'] = function(iface) {
 	var page = this.Page();
 	page.setSubsystem("network");
-	page.setHelp("iface");
+	page.setHelpPage("iface");
 	
 	/* status tab */
 	page.addTab({

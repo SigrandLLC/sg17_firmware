@@ -16,16 +16,16 @@ function Page(p) {
 	
 	/* common for all tabs subsystem and help */
 	this.subsystem = null;
-	this.help = null;
+	this.helpPage = null;
 	
-	/* set subsystem */
+	/* set subsystem common for all tabs */
 	this.setSubsystem = function(subsystem) {
 		this.subsystem = subsystem;
 	};
 	
-	/* set help */
-	this.setHelp = function(help) {
-		this.help = help;
+	/* Set help page common for all tabs. Help section is set to the id of tab */
+	this.setHelpPage = function(helpPage) {
+		this.helpPage = helpPage;
 	};
 	
 	/*
@@ -75,7 +75,7 @@ function Page(p) {
 		});
 		
 		/* update tabs */
-		$(p).tabs({fxAutoHeight: true});
+		$(p).tabs({"fxAutoHeight": true});
 		
 		/* render content of the first tab */
 		firstTab.click();
@@ -83,16 +83,11 @@ function Page(p) {
 	
 	/*
 	 * Create Container for a tab.
-	 * - tabId — ID of tab to create container for;
-	 * - help: if string, then this is a name of the section (e.g., "logging");
-	 * 		   if object, then - help.page: html page name;
-	 * 						   - help.section: section name
-	 * 			(e.g, {page: "logging", section: "asd"})
-	 * 		   if not specified — section is set to tabId.
+	 * - tabId — ID of tab to create container for.
 	 */
-	this.addContainer = function(tabId, help) {
-		return new Container($('#' + tabIdPrefix + tabId),
-			{'subsystem': this.subsystem, 'help': this.help}, help ? help : tabId);
+	this.addContainer = function(tabId) {
+		return new Container($("#" + tabIdPrefix + tabId),
+			{"subsystem": this.subsystem, "help": {"page": this.helpPage, "section": tabId}});
 	};
 	
 	/* Add line break to the tab */
@@ -177,13 +172,18 @@ function getCmdOutput(cmd) {
 /*
  * Container for widgets.
  * p — parent container.
- * options — container options (subsystem & help), initially passed to pageTabs.
- * helpSection — see details in addContainer method of TabContents object.
+ * options — container options (subsystem & help), set in Page object.
  * I18N for widgets.
  */
-function Container(p, options, helpSection) {
+function Container(p, options) {
 	this.p = p;
-	if (options && options.subsystem) this.subsystem = options.subsystem;
+	
+	/* set subsystem common for all tabs */
+	this.subsystem = options.subsystem;
+	
+	/* set help page common for all tabs */
+	this.help = options.help;
+	
 	this.validator_rules = new Object();
 	this.validator_messages = new Object();
 	this.infoMessage = "info_message_" + $(p).attr("id");
@@ -195,8 +195,19 @@ function Container(p, options, helpSection) {
 		{"id": "conttable", "cellpadding": "0", "cellspacing": "0", "border": "0"}).appendTo(this.form);
 	this.table.append($.create("thead"));
 
+	/* set subsystem for this tab */
 	this.setSubsystem = function(subsystem) {
 		this.subsystem = subsystem;
+	};
+	
+	/* set help page for this tab */
+	this.setHelpPage = function(helpPage) {
+		this.help['page'] = helpPage;
+	};
+	
+	/* set subsystem for this tab */
+	this.setHelpSection = function(helpSection) {
+		this.help['section'] = helpSection;
 	};
 	
 	/*
@@ -214,18 +225,13 @@ function Container(p, options, helpSection) {
 	 * colspan — number of cols to span for title cell.
 	 */
 	this.addTitle = function(title, colspan) {
-		var url;
+		var url = null;
 		
-		/* if helpSection is object, it contains page and section names */
-		if (helpSection && typeof helpSection == "object" && helpSection.page && helpSection.section) {
-			url = "/help/" + helpSection.page + ".html#" + helpSection.section;
-		/* if we have common help page setted for all tabs */
-		} else if (options && options.help) {
-			/* if helpSection is set — it is string with section name */
-			url = helpSection ? "/help/" + options.help + ".html#" + helpSection :
-				"/help/" + options.help + ".html";
-		} else {
-			url = null;
+		/* create url for context help */
+		if (this.help['page'] && this.help['section']) {
+			url = "/help/" + this.help['page'] + ".html#" + this.help['section'];
+		} else if (this.help['page']) {
+			url = "/help/" + this.help['page'] + ".html";
 		}
 		
 		/* if url is set — create context help link object, otherwise set it to null */
@@ -237,11 +243,12 @@ function Container(p, options, helpSection) {
 		/* create table's row for title and context help link */
 		$("thead", this.table).append(
 			$.create("tr", {},
-				$.create("th", {"colSpan": colspan ? colspan : "2"}, [
-					_(title),
-					" ",
-					help
-				]
+				$.create("th", {"colSpan": colspan ? colspan : "2"},
+					[
+						_(title),
+						" ",
+						help
+					]
 				)
 			)
 		);
@@ -415,7 +422,7 @@ function Container(p, options, helpSection) {
 		
 		/* insert new subwidget at specified position */
 		if (insertAfter) $(widget).insertAfter(insertAfter);
-		else $(widget).prependTo("#td_" + w.name);
+		else $("#td_" + w.name, this.form).prepend(widget);
 		
 		/* bind specified events */
 		this.bindEvents(w);
