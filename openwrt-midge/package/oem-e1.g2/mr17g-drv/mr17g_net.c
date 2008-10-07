@@ -623,7 +623,7 @@ void mr17g_net_link(struct net_device *ndev)
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
     volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
-    int lstat = pef22554_linkstate(ch->chip,ch->num);
+    int lstat = pef22554_linkstate(ch->chip,ch->num,ch->cfg.framed);
 
     PDEBUG(debug_link,"%s: lstate = %d, car_ok=%d",ndev->name,lstat,netif_carrier_ok(ndev));
     if(  lstat > 0 ){

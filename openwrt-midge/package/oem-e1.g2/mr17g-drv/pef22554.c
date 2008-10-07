@@ -600,18 +600,25 @@ error:
 }
 
 int
-pef22554_linkstate(struct mr17g_chip *chip, int chnum)
+pef22554_linkstate(struct mr17g_chip *chip, int chnum,u8 framed)
 {
     u8 tmp = 0;
     int i, ret = -1;
 
     for(i=0;i<3;i++){
-       if( pef22554_readreg(chip,chnum,FRS0,&tmp) ){
+		u8 link_down = 0;
+		if( pef22554_readreg(chip,chnum,FRS0,&tmp) ){
             continue;
         }
-// ???????? Condition not guessed yet ?????????????????????????
-        if( (tmp & LOS) || (tmp & LFA)  ){
-// ???????? Condition not guessed yet ?????????????????????????
+		
+		// ???? May be need in condition correction
+		if( framed ){
+			link_down = (tmp & LOS) || (tmp & LFA);
+		}else{
+			link_down = (tmp & LOS);
+		}
+		
+        if(  link_down ){
             ret = 0;
             goto exit;
         }else{

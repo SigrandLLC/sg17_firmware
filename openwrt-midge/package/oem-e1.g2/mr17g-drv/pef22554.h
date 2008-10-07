@@ -303,7 +303,7 @@ int pef22554_basic_card(struct mr17g_chip *chip);
 void pef22554_defcfg(struct mr17g_channel *chan);
 int pef22554_basic_channel(struct mr17g_channel *chan);
 int pef22554_channel(struct mr17g_channel *chan);
-int pef22554_linkstate(struct mr17g_chip *chip, int chnum);
+int pef22554_linkstate(struct mr17g_chip *chip,int chnum,u8 framed);
 
 
 
