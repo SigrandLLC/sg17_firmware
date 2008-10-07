@@ -62,7 +62,7 @@ _dsl_mr17ifcfg(){
 		advlink="advlink $advlink"
 	fi
 
-	if [ "$pbomode" = "on" ]; then
+	if [ "$pbomode" = "on" -o "$pbomode" = "1" ]; then
 		pbo="pbo-forced"
 		[ -z "$pboval" ] && pboval=0 && \
 				kdb set sys_pcicfg_s${slot}_${ifnum}_pboval=0

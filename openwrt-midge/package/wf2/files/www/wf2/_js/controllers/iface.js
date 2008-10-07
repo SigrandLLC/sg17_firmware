@@ -36,32 +36,32 @@ Controllers['iface'] = function(iface) {
 			c.addTitle("Interface general settings");
 		
 			field = { 
-				type: "text",
-				name: "sys_iface_" + iface + "_desc",
-				text: "Description"
+				"type": "text",
+				"name": "sys_iface_" + iface + "_desc",
+				"text": "Description"
 			};
 			c.addWidget(field);
 		
 			field = { 
-				type: "checkbox",
-				name: "sys_iface_" + iface + "_enabled",
-				text: "Enabled"
+				"type": "checkbox",
+				"name": "sys_iface_" + iface + "_enabled",
+				"text": "Enabled"
 			};
 			c.addWidget(field);
 			
 			field = { 
-				type: "checkbox",
-				name: "sys_iface_" + iface + "_auto",
-				text: "Auto"
+				"type": "checkbox",
+				"name": "sys_iface_" + iface + "_auto",
+				"text": "Auto"
 			};
 			c.addWidget(field);
 			
 			field = { 
-				type: "select",
-				name: "sys_iface_" + iface + "_method",
-				text: "Method",
-				descr: "Select method of setting IP address",
-				options: {"none": "None", "static": "Static address", "zeroconf": "Zero Configuration", "dynamic": "Dynamic address"}
+				"type": "select",
+				"name": "sys_iface_" + iface + "_method",
+				"text": "Method",
+				"descr": "Select method of setting IP address",
+				"options": {"none": "None", "static": "Static address", "zeroconf": "Zero Configuration", "dynamic": "Dynamic address"}
 			};
 			c.addWidget(field);
 			
@@ -71,11 +71,11 @@ Controllers['iface'] = function(iface) {
 			});
 			dependList['none'] = "None";
 			field = { 
-				type: "select",
-				name: "sys_iface_" + iface + "_depend_on",
-				text: "Depended on",
-				options: dependList,
-				optionDefault: 'none'
+				"type": "select",
+				"name": "sys_iface_" + iface + "_depend_on",
+				"text": "Depended on",
+				"options": dependList,
+				"defaultValue": "none"
 			};
 			c.addWidget(field);
 		
@@ -95,22 +95,22 @@ Controllers['iface'] = function(iface) {
 				c.addTitle("Point-to-Point address settings");
 			
 				field = { 
-					type: "text",
-					name: "sys_iface_" + iface + "_pointopoint_local",
-					text: "Point to Point local",
-					descr: "Point-to-Point local address (dotted quad)",
-					validator: {required: true},
-					message: "Please enter correct IP address"
+					"type": "text",
+					"name": "sys_iface_" + iface + "_pointopoint_local",
+					"text": "Point to Point local",
+					"descr": "Point-to-Point local address",
+					"tip": "e.g., 10.0.0.1",
+					"validator": {"required": true, "ipAddr": true}
 				};
 				c.addWidget(field);
 				
 				field = { 
-					type: "text",
-					name: "sys_iface_" + iface + "_pointopoint_remote",
-					text: "Point to Point remote",
-					descr: "Point-to-Point remote address (dotted quad)",
-					validator: {required: true},
-					message: "Please enter correct IP address"
+					"type": "text",
+					"name": "sys_iface_" + iface + "_pointopoint_remote",
+					"text": "Point to Point remote",
+					"descr": "Point-to-Point remote address",
+					"tip": "e.g., 10.0.0.2",
+					"validator": {"required": true, "ipAddr": true}
 				};
 				c.addWidget(field);
 				
@@ -122,38 +122,42 @@ Controllers['iface'] = function(iface) {
 				c.addTitle("Static address settings");
 			
 				field = { 
-					type: "text",
-					name: "sys_iface_" + iface + "_ipaddr",
-					text: "Static address",
-					descr: "Address (dotted quad)",
-					validator: {required: true},
-					message: "Please enter correct IP address"
+					"type": "text",
+					"name": "sys_iface_" + iface + "_ipaddr",
+					"text": "Static address",
+					"descr": "Address",
+					"tip": "e.g., 192.168.2.100",
+					"validator": {"required": true, "ipAddr": true}
 				};
 				c.addWidget(field);
 				
 				field = { 
-					type: "text",
-					name: "sys_iface_" + iface + "_netmask",
-					text: "Netmask",
-					descr: "Netmask (dotted quad)",
-					validator: {required: true},
-					message: "Please enter correct IP netmask"
+					"type": "text",
+					"name": "sys_iface_" + iface + "_netmask",
+					"text": "Netmask",
+					"descr": "Network mask",
+					"tip": "e.g., 255.255.255.0",
+					"validator": {"required": true, "netmask": true}
 				};
 				c.addWidget(field);
 				
 				field = { 
-					type: "text",
-					name: "sys_iface_" + iface + "_broadcast",
-					text: "Broadcast",
-					descr: "Broadcast (dotted quad)"
+					"type": "text",
+					"name": "sys_iface_" + iface + "_broadcast",
+					"text": "Broadcast",
+					"descr": "Broadcast address",
+					"tip": "e.g., 192.168.2.255",
+					"validator": {"ipAddr": true}
 				};
 				c.addWidget(field);
 				
 				field = { 
-					type: "text",
-					name: "sys_iface_" + iface + "_gateway",
-					text: "Gateway",
-					descr: "Default gateway (dotted quad)"
+					"type": "text",
+					"name": "sys_iface_" + iface + "_gateway",
+					"text": "Gateway",
+					"descr": "Default gateway",
+					"tip": "e.g., 192.168.2.1",
+					"validator": {"ipAddr": true}
 				};
 				c.addWidget(field);
 				
@@ -172,30 +176,30 @@ Controllers['iface'] = function(iface) {
 			c.addTitle("Interface options");
 		
 			field = { 
-				type: "checkbox",
-				name: "sys_iface_" + iface + "_opt_accept_redirects",
-				text: "Accept redirects"
+				"type": "checkbox",
+				"name": "sys_iface_" + iface + "_opt_accept_redirects",
+				"text": "Accept redirects"
 			};
 			c.addWidget(field);
 			
 			field = { 
-				type: "checkbox",
-				name: "sys_iface_" + iface + "_opt_forwarding",
-				text: "Forwarding"
+				"type": "checkbox",
+				"name": "sys_iface_" + iface + "_opt_forwarding",
+				"text": "Forwarding"
 			};
 			c.addWidget(field);
 			
 			field = { 
-				type: "checkbox",
-				name: "sys_iface_" + iface + "_opt_proxy_arp",
-				text: "Proxy ARP"
+				"type": "checkbox",
+				"name": "sys_iface_" + iface + "_opt_proxy_arp",
+				"text": "Proxy ARP"
 			};
 			c.addWidget(field);
 			
 			field = { 
-				type: "checkbox",
-				name: "sys_iface_" + iface + "_opt_rp_filter",
-				text: "RP Filter"
+				"type": "checkbox",
+				"name": "sys_iface_" + iface + "_opt_rp_filter",
+				"text": "RP Filter"
 			};
 			c.addWidget(field);
 			
@@ -217,10 +221,10 @@ Controllers['iface'] = function(iface) {
 					c.addTitle("Ethernet Specific parameters");
 					
 					field = { 
-						type: "text",
-						name: "sys_iface_" + iface + "_mac",
-						text: "MAC address",
-						descr: "MAC address for the interface"
+						"type": "text",
+						"name": "sys_iface_" + iface + "_mac",
+						"text": "MAC address",
+						"descr": "MAC address for the interface"
 					};
 					c.addWidget(field);
 					
@@ -232,62 +236,62 @@ Controllers['iface'] = function(iface) {
 					c.addTitle("PPPoE Specific parameters");
 					
 					field = { 
-						type: "text",
-						name: "sys_iface_" + iface + "_pppoe_iface",
-						text: "Interface",
-						descr: "Parent interface name"
+						"type": "text",
+						"name": "sys_iface_" + iface + "_pppoe_iface",
+						"text": "Interface",
+						"descr": "Parent interface name"
 					};
 					c.addWidget(field);
 					
 					field = { 
-						type: "text",
-						name: "sys_iface_" + iface + "_pppoe_service",
-						text: "Service",
-						descr: "Desired service name",
-						tip: "Router will only initiate sessions with access concentrators which" + 
+						"type": "text",
+						"name": "sys_iface_" + iface + "_pppoe_service",
+						"text": "Service",
+						"descr": "Desired service name",
+						"tip": "Router will only initiate sessions with access concentrators which" + 
 							" can provide the specified service.<br>  In most cases, you should <b>not</b>" + 
 							" specify this option."
 					};
 					c.addWidget(field);
 					
 					field = { 
-						type: "text",
-						name: "sys_iface_" + iface + "_pppoe_ac",
-						text: "Access Concentrator",
-						descr: "Desired access concentrator name",
-						tip: "Router will only initiate sessions with the specified access concentrator." + 
+						"type": "text",
+						"name": "sys_iface_" + iface + "_pppoe_ac",
+						"text": "Access Concentrator",
+						"descr": "Desired access concentrator name",
+						"tip": "Router will only initiate sessions with the specified access concentrator." + 
 							" In most cases, you should <b>not</b> specify this option. Use it only if you" + 
 							" know that there are multiple access concentrators."
 					};
 					c.addWidget(field);
 					
 					field = { 
-						type: "checkbox",
-						name: "sys_iface_" + iface + "_pppoe_defaultroute",
-						text: "Default route",
-						descr: "Add a default route to the system routing tables, using the peer as the gateway"
+						"type": "checkbox",
+						"name": "sys_iface_" + iface + "_pppoe_defaultroute",
+						"text": "Default route",
+						"descr": "Add a default route to the system routing tables, using the peer as the gateway"
 					};
 					c.addWidget(field);
 					
 					field = { 
-						type: "text",
-						name: "sys_iface_" + iface + "_pppoe_username",
-						text: "Username"
+						"type": "text",
+						"name": "sys_iface_" + iface + "_pppoe_username",
+						"text": "Username"
 					};
 					c.addWidget(field);
 					
 					field = { 
-						type: "text",
-						name: "sys_iface_" + iface + "_pppoe_password",
-						text: "Password"
+						"type": "text",
+						"name": "sys_iface_" + iface + "_pppoe_password",
+						"text": "Password"
 					};
 					c.addWidget(field);
 					
 					field = { 
-						type: "text",
-						name: "sys_iface_" + iface + "_pppoe_pppdopt",
-						text: "PPPD options",
-						defaultValue: "noauth nobsdcomp nodeflate"
+						"type": "text",
+						"name": "sys_iface_" + iface + "_pppoe_pppdopt",
+						"text": "PPPD options",
+						"defaultValue": "noauth nobsdcomp nodeflate"
 					};
 					c.addWidget(field);
 					
@@ -299,40 +303,40 @@ Controllers['iface'] = function(iface) {
 					c.addTitle("PPtP Specific parameters");
 					
 					field = { 
-						type: "text",
-						name: "sys_iface_" + iface + "_pptp_server",
-						text: "Server",
-						descr: "PPtP server"
+						"type": "text",
+						"name": "sys_iface_" + iface + "_pptp_server",
+						"text": "Server",
+						"descr": "PPtP server"
 					};
 					c.addWidget(field);
 					
 					field = { 
-						type: "text",
-						name: "sys_iface_" + iface + "_pptp_username",
-						text: "Username"
+						"type": "text",
+						"name": "sys_iface_" + iface + "_pptp_username",
+						"text": "Username"
 					};
 					c.addWidget(field);
 					
 					field = { 
-						type: "text",
-						name: "sys_iface_" + iface + "_pptp_password",
-						text: "Password"
+						"type": "text",
+						"name": "sys_iface_" + iface + "_pptp_password",
+						"text": "Password"
 					};
 					c.addWidget(field);
 					
 					field = { 
-						type: "checkbox",
-						name: "sys_iface_" + iface + "_pptp_defaultroute",
-						text: "Default route",
-						descr: "Add a default route to the system routing tables, using the peer as the gateway"
+						"type": "checkbox",
+						"name": "sys_iface_" + iface + "_pptp_defaultroute",
+						"text": "Default route",
+						"descr": "Add a default route to the system routing tables, using the peer as the gateway"
 					};
 					c.addWidget(field);
 					
 					field = { 
-						type: "text",
-						name: "sys_iface_" + iface + "_pptp_pppdopt",
-						text: "PPPD options",
-						defaultValue: "noauth nobsdcomp nodeflate nomppe"
+						"type": "text",
+						"name": "sys_iface_" + iface + "_pptp_pppdopt",
+						"text": "PPPD options",
+						"defaultValue": "noauth nobsdcomp nodeflate nomppe"
 					};
 					c.addWidget(field);
 					
@@ -341,16 +345,14 @@ Controllers['iface'] = function(iface) {
 					break;
 				
 				case "bonding":
-					/* TODO: we need to unset 'auto' option for interfaces this bonding consist of */
-					
 					c.addTitle("Bonding Specific parameters");
 					
 					field = { 
-						type: "text",
-						name: "sys_iface_" + iface + "_bond_ifaces",
-						text: "Interfaces",
-						descr: "Interfaces for bonding separated by space",
-						tip: "<b>Example:</b>eth0 eth1 dsl0<br><b>Note:</b>You can use only Ethernet-like" + 
+						"type": "text",
+						"name": "sys_iface_" + iface + "_bond_ifaces",
+						"text": "Interfaces",
+						"descr": "Interfaces for bonding separated by space",
+						"tip": "<b>Example:</b>eth0 eth1 dsl0<br><b>Note:</b>You can use only Ethernet-like" + 
 							" interfaces, like ethX, dslX, bondX<br><b>Note:</b> Interfaces should be" + 
 							" enabled, but <b>auto</b> should be switched <b>off</b>"
 					};
@@ -361,16 +363,14 @@ Controllers['iface'] = function(iface) {
 					break;
 					
 				case "bridge":
-					/* TODO: we need to unset 'auto' option for interfaces this bonding consist of */
-			
 					c.addTitle("Bridge Specific parameters");
 					
 					field = { 
-						type: "checkbox",
-						name: "sys_iface_" + iface + "_br_stp",
-						text: "STP enabled",
-						descr: "Enable Spanning Tree Protocol",
-						tip: "Multiple ethernet bridges can work together to create even larger networks" + 
+						"type": "checkbox",
+						"name": "sys_iface_" + iface + "_br_stp",
+						"text": "STP enabled",
+						"descr": "Enable Spanning Tree Protocol",
+						"tip": "Multiple ethernet bridges can work together to create even larger networks" + 
 							" of ethernets using the IEEE 802.1d spanning tree protocol.This protocol is" + 
 							" used for finding the shortest path between two ethernets, and for eliminating" + 
 							" loops from the topology."
@@ -378,46 +378,46 @@ Controllers['iface'] = function(iface) {
 					c.addWidget(field);
 					
 					field = { 
-						type: "text",
-						name: "sys_iface_" + iface + "_br_ifaces",
-						text: "Interfaces",
-						descr: "Interfaces for bridge separated by space",
-						tip: "<b>Example:</b> eth0 eth1 dsl0<br><b>Note:</b> You can use only" + 
+						"type": "text",
+						"name": "sys_iface_" + iface + "_br_ifaces",
+						"text": "Interfaces",
+						"descr": "Interfaces for bridge separated by space",
+						"tip": "<b>Example:</b> eth0 eth1 dsl0<br><b>Note:</b> You can use only" + 
 						" Ethernet-like interfaces, like ethX, dslX<br><b>Note:</b> Interfaces should" + 
 						" be enabled, but <b>auto</b> should be switched <b>off</b>."
 					};
 					c.addWidget(field);
 					
 					field = { 
-						type: "text",
-						name: "sys_iface_" + iface + "_br_prio",
-						text: "Priority",
-						descr: "Bridge priority",
-						tip: "The priority value is an unsigned 16-bit quantity (a number between 0" + 
+						"type": "text",
+						"name": "sys_iface_" + iface + "_br_prio",
+						"text": "Priority",
+						"descr": "Bridge priority",
+						"tip": "The priority value is an unsigned 16-bit quantity (a number between 0" + 
 							" and 65535), and has no dimension. Lower priority values are better. The bridge" +
 							" with the lowest priority will be elected <b>root bridge</b>."
 					};
 					c.addWidget(field);
 					
 					field = { 
-						type: "text",
-						name: "sys_iface_" + iface + "_br_fd",
-						text: "Forward delay",
-						descr: "Sets the bridges <b>bridge forward delay</b> to <time> seconds."
+						"type": "text",
+						"name": "sys_iface_" + iface + "_br_fd",
+						"text": "Forward delay",
+						"descr": "Sets the bridges <b>bridge forward delay</b> to <time> seconds."
 					};
 					c.addWidget(field);
 					
 					field = { 
-						type: "text",
-						name: "sys_iface_" + iface + "_br_hello",
-						text: "Hello time"
+						"type": "text",
+						"name": "sys_iface_" + iface + "_br_hello",
+						"text": "Hello time"
 					};
 					c.addWidget(field);
 					
 					field = { 
-						type: "text",
-						name: "sys_iface_" + iface + "_br_maxage",
-						text: "Max age"
+						"type": "text",
+						"name": "sys_iface_" + iface + "_br_maxage",
+						"text": "Max age"
 					};
 					c.addWidget(field);
 					

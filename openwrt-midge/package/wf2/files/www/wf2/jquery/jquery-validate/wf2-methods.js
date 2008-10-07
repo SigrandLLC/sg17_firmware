@@ -9,6 +9,12 @@ jQuery.validator.addMethod("ipPort", function(value, element) {
 	return this.optional(element) || /^((\d)+|any)$/.test(value);
 }, "Please enter correct IP port.");
 
+/* IP netmask */
+jQuery.validator.addMethod("netmask", function(value, element) {
+	return this.optional(element) ||
+		/^(0?0?\d|[01]?\d\d|2[0-4]\d|25[0-5])\.(0?0?\d|[01]?\d\d|2[0-4]\d|25[0-5])\.(0?0?\d|[01]?\d\d|2[0-4]\d|25[0-5])\.(0?0?\d|[01]?\d\d|2[0-4]\d|25[0-5])$/.test(value);
+}, "Please enter correct ip netmask.");
+
 /* Domain name */
 jQuery.validator.addMethod("domainName", function(value, element) {
 	return this.optional(element) || /^[a-zA-Z0-9]+([a-zA-Z0-9\-\.]+)?$/.test(value);
