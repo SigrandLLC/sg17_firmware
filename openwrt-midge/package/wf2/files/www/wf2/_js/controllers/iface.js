@@ -224,7 +224,9 @@ Controllers['iface'] = function(iface) {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_mac",
 						"text": "MAC address",
-						"descr": "MAC address for the interface"
+						"descr": "MAC address for the interface",
+						"tip": "e.g., 00:ff:1f:00:75:99",
+						"validator": {"macAddr": true}
 					};
 					c.addWidget(field);
 					
@@ -239,7 +241,8 @@ Controllers['iface'] = function(iface) {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_pppoe_iface",
 						"text": "Interface",
-						"descr": "Parent interface name"
+						"descr": "Parent interface name",
+						"validator": {"required": true}
 					};
 					c.addWidget(field);
 					
@@ -276,14 +279,16 @@ Controllers['iface'] = function(iface) {
 					field = { 
 						"type": "text",
 						"name": "sys_iface_" + iface + "_pppoe_username",
-						"text": "Username"
+						"text": "Username",
+						"validator": {"required": true}
 					};
 					c.addWidget(field);
 					
 					field = { 
 						"type": "text",
 						"name": "sys_iface_" + iface + "_pppoe_password",
-						"text": "Password"
+						"text": "Password",
+						"validator": {"required": true}
 					};
 					c.addWidget(field);
 					
@@ -306,21 +311,24 @@ Controllers['iface'] = function(iface) {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_pptp_server",
 						"text": "Server",
-						"descr": "PPtP server"
+						"descr": "PPtP server",
+						"validator": {"required": true, "domainNameOrIpAddr": true}
 					};
 					c.addWidget(field);
 					
 					field = { 
 						"type": "text",
 						"name": "sys_iface_" + iface + "_pptp_username",
-						"text": "Username"
+						"text": "Username",
+						"validator": {"required": true}
 					};
 					c.addWidget(field);
 					
 					field = { 
 						"type": "text",
 						"name": "sys_iface_" + iface + "_pptp_password",
-						"text": "Password"
+						"text": "Password",
+						"validator": {"required": true}
 					};
 					c.addWidget(field);
 					
@@ -354,7 +362,8 @@ Controllers['iface'] = function(iface) {
 						"descr": "Interfaces for bonding separated by space",
 						"tip": "<b>Example:</b>eth0 eth1 dsl0<br><b>Note:</b>You can use only Ethernet-like" + 
 							" interfaces, like ethX, dslX, bondX<br><b>Note:</b> Interfaces should be" + 
-							" enabled, but <b>auto</b> should be switched <b>off</b>"
+							" enabled, but <b>auto</b> should be switched <b>off</b>",
+						"validator": {"required": true}
 					};
 					c.addWidget(field);
 					
@@ -384,7 +393,8 @@ Controllers['iface'] = function(iface) {
 						"descr": "Interfaces for bridge separated by space",
 						"tip": "<b>Example:</b> eth0 eth1 dsl0<br><b>Note:</b> You can use only" + 
 						" Ethernet-like interfaces, like ethX, dslX<br><b>Note:</b> Interfaces should" + 
-						" be enabled, but <b>auto</b> should be switched <b>off</b>."
+						" be enabled, but <b>auto</b> should be switched <b>off</b>.",
+						"validator": {"required": true}
 					};
 					c.addWidget(field);
 					
@@ -395,7 +405,8 @@ Controllers['iface'] = function(iface) {
 						"descr": "Bridge priority",
 						"tip": "The priority value is an unsigned 16-bit quantity (a number between 0" + 
 							" and 65535), and has no dimension. Lower priority values are better. The bridge" +
-							" with the lowest priority will be elected <b>root bridge</b>."
+							" with the lowest priority will be elected <b>root bridge</b>.",
+						"validator": {"min": 1, "max": 65535}
 					};
 					c.addWidget(field);
 					
@@ -403,21 +414,26 @@ Controllers['iface'] = function(iface) {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_br_fd",
 						"text": "Forward delay",
-						"descr": "Sets the bridges <b>bridge forward delay</b> to <time> seconds."
+						"descr": "Forward delay in seconds.",
+						"validator": {"min": 0, "max": 60}
 					};
 					c.addWidget(field);
 					
 					field = { 
 						"type": "text",
 						"name": "sys_iface_" + iface + "_br_hello",
-						"text": "Hello time"
+						"text": "Hello time",
+						"descr": "Hello time in seconds",
+						"validator": {"min": 0, "max": 60}
 					};
 					c.addWidget(field);
 					
 					field = { 
 						"type": "text",
 						"name": "sys_iface_" + iface + "_br_maxage",
-						"text": "Max age"
+						"text": "Max age",
+						"descr": "Max age in seconds",
+						"validator": {"min": 0, "max": 600}
 					};
 					c.addWidget(field);
 					

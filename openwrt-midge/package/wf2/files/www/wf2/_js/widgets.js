@@ -152,8 +152,7 @@ function cmdExecute(cmd, p, filter) {
 }
 
 /*
- * Do sync Ajax request for command execution,
- * replace '\n' in output with '<br>',
+ * Do sync Ajax request for command execution
  * and return command output.
  */
 function getCmdOutput(cmd) {
@@ -162,10 +161,7 @@ function getCmdOutput(cmd) {
 		url: "sh/execute.cgi",
 		dataType: "text",
 		async: false,
-		data: {"cmd": cmd},
-		dataFilter: function(data, type) {
-			return data.replace(/\n/g, "<br>");
-		}
+		data: {"cmd": cmd}
 	}).responseText;
 }
 

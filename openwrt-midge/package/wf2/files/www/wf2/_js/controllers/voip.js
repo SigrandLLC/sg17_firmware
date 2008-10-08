@@ -269,6 +269,8 @@ Controllers['voip'] = function() {
 			"name": "complete_number",
 			"text": "Complete number",
 			"descr": "Complete telephone number",
+			"tip": "Enter phone number in format: router_id-router_channel-optional_number (e.g., 300-02 or 300-02-3345), " +
+				"or SIP address in format: #sip:sip_uri# (e.g., #sip:user@domain#)",
 			"validator": {"required": true, "voipCompleteNumber": true}
 		};
 		c.addWidget(field);
@@ -308,6 +310,73 @@ Controllers['voip'] = function() {
 		"id": "address",
 		"name": "Address book",
 		"func": showAddresses
+	});
+	
+	/* Hotline tab */
+	page.addTab({
+		"id": "hotline",
+		"name": "Hotline",
+		"func": function() {
+			var c, field, id;
+			c = page.addContainer("hotline");
+			c.setHelpPage("voip.hotline");
+			c.addTitle("Hotline settings", 5);
+			
+			c.addTableHeader("Channel|Type|Hotline|Complete number|Comment");
+			
+			var channels = getCmdOutput("/bin/cat /proc/driver/sgatab/channels").split("\n");
+			$.each(channels, function(num, record) {
+				var field;
+				if (record.length == 0) return true;
+				var row = c.addTableRow();
+				
+				/* channel[0] — number of channel, channel[1] — type of channel */
+				var channel = record.split(":");
+				
+				field = {
+					"type": "html",
+					"name": channel[0],
+					"str": channel[0]
+				};
+				c.addTableWidget(field, row);
+				
+				field = {
+					"type": "html",
+					"name": channel[1] + channel[0],
+					"str": channel[1]
+				};
+				c.addTableWidget(field, row);
+				
+				field = { 
+					"type": "checkbox",
+					"name": $.sprintf("sys_voip_hotline_%s_hotline", channel[0]),
+					"id": $.sprintf("sys_voip_hotline_%s_hotline", channel[0]),
+					"tip": "Enable hotline for this channel"
+				};
+				c.addTableWidget(field, row);
+				
+				field = { 
+					"type": "text",
+					"name": $.sprintf("sys_voip_hotline_%s_number", channel[0]),
+					"tip": "Number to call on channel event",
+					"validator": 
+						{
+							"required": $.sprintf("#sys_voip_hotline_%s_hotline:checked", channel[0]),
+							"voipCompleteNumber": true
+						}
+				};
+				c.addTableWidget(field, row);
+				
+				field = { 
+					"type": "text",
+					"name": $.sprintf("sys_voip_hotline_%s_comment", channel[0]),
+					"validator": {"alphanum": true}
+				};
+				c.addTableWidget(field, row);
+			});
+			
+			c.addSubmit();
+		}
 	});
 	
 	page.generateTabs();

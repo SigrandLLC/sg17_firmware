@@ -15,7 +15,10 @@ function generateMenu() {
 		addItem("Hardware", "Multiplexing", "multiplexing");
 	}
 	
-	addItem("Hardware", "VoIP", "voip");
+	/* Add VoIP controller */
+	if (config.get("sys_voip_present") == "1") {
+		addItem("Hardware", "VoIP", "voip");
+	}
 	
 	/* get array of PCI slots */
 	var slots = config.getParsed("sys_pcitbl_slots");
