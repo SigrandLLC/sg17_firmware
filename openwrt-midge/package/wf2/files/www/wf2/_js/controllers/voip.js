@@ -323,8 +323,7 @@ Controllers['voip'] = function() {
 			c.addTitle("Hotline settings", 5);
 			
 			c.addTableHeader("Channel|Type|Hotline|Complete number|Comment");
-			
-			var channels = getCmdOutput("/bin/cat /proc/driver/sgatab/channels").split("\n");
+			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("<br>");
 			$.each(channels, function(num, record) {
 				var field;
 				if (record.length == 0) return true;

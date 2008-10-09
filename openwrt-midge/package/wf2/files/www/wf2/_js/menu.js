@@ -17,6 +17,9 @@ function generateMenu() {
 	
 	/* Add VoIP controller */
 	if (config.get("sys_voip_present") == "1") {
+		/* cache channels info */
+		config.runCmd("/bin/cat /proc/driver/sgatab/channels");
+
 		addItem("Hardware", "VoIP", "voip");
 	}
 	
@@ -31,6 +34,13 @@ function generateMenu() {
 		}
 		var ifaces = config.getParsed("sys_pcitbl_s" + pcislot + "_ifaces");
 		$.each(ifaces, function(num, iface) {
+			if (type == config.getOEM("MR17H_DRVNAME")) {
+				var confPath = $.sprintf("%s/%s/sg17_private", config.getOEM("sg17_cfg_path"), iface);
+				
+				config.runCmd($.sprintf("/bin/cat %s/chipver", confPath));
+				config.runCmd($.sprintf("/bin/cat %s/pwr_source", confPath));
+			}
+			
 			addItem("Hardware:SHDSL", iface, "dsl", [iface, pcislot, num]);
 		});
 	});

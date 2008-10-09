@@ -145,6 +145,7 @@ function KDBQueue() {
  */
 function Config() {
 	this.kdbQueue = new KDBQueue();
+	var cmdCache = new CmdCache();
 	
 	/*
 	 * Submit task for execution.
@@ -481,4 +482,33 @@ function Config() {
 		this.kdbQueue.addTask($.param(submitData), null, null, null, "rm");
 		this.updateIfaces();
 	};
+	
+	this.runCmd = cmdCache.runCmd;
+	
+	this.getCachedOutput = cmdCache.getCachedOutput;
 }
+
+/*
+ * Cache for command's output.
+ */
+function CmdCache() {
+	var cache = new Object();
+	
+	/*
+	 * Run asynchronously cmd and add it's output to cache.
+	 */
+	this.runCmd = function(cmd) {
+		cmdExecute(cmd, {
+			"callback": function(data) {
+				cache[cmd] = data;
+			}
+		});
+	};
+	
+	/*
+	 * Get output of cmd.
+	 */
+	this.getCachedOutput = function(cmd) {
+		return cache[cmd] ? cache[cmd] : cmdExecute(cmd, {"async": true});
+	};
+};

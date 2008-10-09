@@ -222,7 +222,7 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 	/* title of sg17 */
 	var getSg17Title = function(pwr) {
 		var sfx;
-		var ver = getCmdOutput($.sprintf("cat %s/%s/sg17_private/chipver",
+		var ver = config.getCachedOutput($.sprintf("/bin/cat %s/%s/sg17_private/chipver",
 			config.getOEM("sg17_cfg_path"), iface));
 		
 		if (ver == "v1") {
@@ -248,12 +248,12 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		var confPath = $.sprintf("%s/%s/sg17_private", config.getOEM("sg17_cfg_path"), iface);
 		
 		/* power status */
-		var pwrPresence = getCmdOutput($.sprintf("/bin/cat %s/pwr_source", confPath));
+		var pwrPresence = config.getCachedOutput($.sprintf("/bin/cat %s/pwr_source", confPath));
 		
 		c.addTitle(getSg17Title(pwrPresence) + "status");
 		
 		/* get link state */
-		var link = getCmdOutput($.sprintf("/bin/cat %s/link_state", confPath));
+		var link = cmdExecute($.sprintf("/bin/cat %s/link_state", confPath), {"async": true});
 		
 		field = {
 			"type": "html",
@@ -314,8 +314,7 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 			c.addWidget(field);
 			
 			/* statistics */
-			var stat = getCmdOutput($.sprintf("/bin/cat %s/statistics_row", confPath)).split(" ");
-			
+			var stat = cmdExecute($.sprintf("/bin/cat %s/statistics_row", confPath), {"async": true}).split(" ");
 			field = {
 				"type": "html",
 				"name": "snrMargin",
@@ -335,7 +334,7 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		}
 		
 		/* PBO */
-		var pboMode = getCmdOutput($.sprintf("/bin/cat %s/pbo_mode", confPath));
+		var pboMode = cmdExecute($.sprintf("/bin/cat %s/pbo_mode", confPath), {"async": true});
 		if (pboMode == "Forced") {
 			field = {
 				"type": "html",
@@ -358,7 +357,7 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		var confPath = $.sprintf("%s/%s/sg17_private", config.getOEM("sg17_cfg_path"), iface);
 		
 		/* power status */
-		var pwrPresence = getCmdOutput($.sprintf("/bin/cat %s/pwr_source", confPath));
+		var pwrPresence = config.getCachedOutput($.sprintf("/bin/cat %s/pwr_source", confPath));
 		
 		c.addTitle(getSg17Title(pwrPresence) + "settings");
 		
@@ -415,7 +414,7 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 				$("#pboval").remove();
 			} else {
 				$("#code").removeAttr("readonly");
-				var chipVer = getCmdOutput($.sprintf("/bin/cat %s/chipver", confPath));
+				var chipVer = config.getCachedOutput($.sprintf("/bin/cat %s/chipver", confPath));
 				if (chipVer == "v1") {
 					$("#code").setOptionsForSelect({
 						"tcpam8": TCPAM["tcpam8"],

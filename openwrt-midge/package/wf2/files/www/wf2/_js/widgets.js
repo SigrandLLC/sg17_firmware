@@ -121,48 +121,47 @@ function popup(url) {
 }
 
 /*
- * Do async Ajax request for command execution,
- * replace '\n' in output with '<br>',
- * and set html of p element to command output.
+ * Do Ajax request for command execution,
+ * replace '\n' in output with '<br>'.
  * 
  * cmd — command to execute.
- * p — container to place command's output.
+ * dst — destination for command output:
+ *  - dst['container'] — set html of container to command's output;
+ *  - dst['callback'] — function to call after request. command's output is passed to func as arg.
+ *  - dst['async'] — do sync request and return command's output to calling function.
  * filter — function to filter command's output.
  */
-function cmdExecute(cmd, p, filter) {
-	$.ajax({
-		type: "POST",
-		url: "sh/execute.cgi",
-		dataType: "text",
-		data: {"cmd": cmd},
-		dataFilter: function(data, type) {
+function cmdExecute(cmd, dst, filter) {
+	var result = null;
+	var options = {
+		"type": "POST",
+		"url": "sh/execute.cgi",
+		"dataType": "text",
+		"data": {"cmd": cmd},
+		"dataFilter": function(data, type) {
 			var newData = data.replace(/\n/g, "<br>");
 			if (filter) return filter(newData);
 			else return newData;
 		},
-		success: function(html) {
-			if (p) {
-				$(p).html(html);
+		"success": function(data) {
+			if (dst && dst['container']) {
+				$(dst['container']).html(data);
 				
 				/* workaround for max-height in IE */
-				$(p).minmax();
+				$(dst['container']).minmax();
+			} else if (dst && dst['callback']) {
+				dst['callback'](data);
+			} else if (dst && dst['async']) {
+				result = data;
 			}
 		}
-	});
-}
-
-/*
- * Do sync Ajax request for command execution
- * and return command output.
- */
-function getCmdOutput(cmd) {
-	return $.ajax({
-		type: "POST",
-		url: "sh/execute.cgi",
-		dataType: "text",
-		async: false,
-		data: {"cmd": cmd}
-	}).responseText;
+	};
+	
+	if (dst && dst['async']) options['async'] = false;
+	
+	$.ajax(options);
+	
+	return result;
 }
 
 /*
@@ -360,8 +359,8 @@ function Container(p, options) {
 			$(span).html(value);
 		} else if (w.cmd) {
 			$(span).html("Loading...");
-			if (w.dataFilter) cmdExecute(w.cmd, span, w.dataFilter);
-			else cmdExecute(w.cmd, span);
+			if (w.dataFilter) cmdExecute(w.cmd, {"container": span}, w.dataFilter);
+			else cmdExecute(w.cmd, {"container": span});
 		} else if (w.str) {
 			$(span).html(w.str);
 		}
@@ -649,7 +648,7 @@ function Container(p, options) {
 		/* adds command's HTML to the page, and makes AJAX request to the server */
 		var addConsoleOut = function(num, cmd) {
 			outer.addConsoleHTML(cmd, outer.table);
-			cmdExecute(cmd, $("tr > td > b:contains('" + cmd + "')", outer.table).nextAll("div.pre"));
+			cmdExecute(cmd, {"container": $("tr > td > b:contains('" + cmd + "')", outer.table).nextAll("div.pre")});
 		};
 		
 		/* we can have one or several commands */
@@ -671,7 +670,7 @@ function Container(p, options) {
 		/* create div for command output */
 		var div = $.create("div", {"className": "pre, cmdOutput"}, _("Loading...")).appendTo(this.form);
 		
-		cmdExecute(cmd, div);
+		cmdExecute(cmd, {"container": div});
 	};
 	
 	/*
@@ -711,7 +710,7 @@ function Container(p, options) {
 			});
 			
 			/* execute command */
-			cmdExecute(cmd, $("div.pre", cmdOutput));
+			cmdExecute(cmd, {"container": $("div.pre", cmdOutput)});
 			
 			/* prevent form submission */
 			return false;
