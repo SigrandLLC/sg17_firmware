@@ -127,12 +127,23 @@ Controllers['voip'] = function() {
 			};
 			c.addWidget(field);
 			
-			/* TODO */
+			/* create array with FSX ports */
+			var fxsChannels = new Array();
+			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("<br>");
+			$.each(channels, function(num, record) {
+				if (record.length == 0) return true;
+				
+				/* channel[0] — number of channel, channel[1] — type of channel */
+				var channel = record.split(":");
+				if (channel[1] == "FXS") fxsChannels.push(channel[0]);
+			});
+			
 			field = { 
 				"type": "select",
 				"name": "sys_voip_sip_chan",
 				"text": "FXS channel",
-				"descr": "FXS channel for incoming SIP-calls"
+				"descr": "FXS channel for incoming SIP-calls",
+				"options": fxsChannels
 			};
 			c.addWidget(field);
 			
@@ -317,7 +328,7 @@ Controllers['voip'] = function() {
 		"id": "hotline",
 		"name": "Hotline",
 		"func": function() {
-			var c, field, id;
+			var c, field;
 			c = page.addContainer("hotline");
 			c.setHelpPage("voip.hotline");
 			c.addTitle("Hotline settings", 5);
@@ -370,6 +381,112 @@ Controllers['voip'] = function() {
 					"type": "text",
 					"name": $.sprintf("sys_voip_hotline_%s_comment", channel[0]),
 					"validator": {"alphanum": true}
+				};
+				c.addTableWidget(field, row);
+			});
+			
+			c.addSubmit();
+		}
+	});
+	
+	/* Sound tab */
+	page.addTab({
+		"id": "sound",
+		"name": "Sound settings",
+		"func": function() {
+			var c, field, id;
+			c = page.addContainer("sound");
+			c.addTitle("Sound settings", 9);
+			
+			c.addTableHeader("Channel|OOB|OOB_play|nEventPT|nEventPlayPT|Tx_vol|Rx_vol|VAD|HPF");
+			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("<br>");
+			$.each(channels, function(num, record) {
+				var field;
+				if (record.length == 0) return true;
+				var row = c.addTableRow();
+				
+				/* channel[0] — number of channel, channel[1] — type of channel */
+				var channel = record.split(":");
+				
+				field = {
+					"type": "html",
+					"name": channel[0],
+					"str": channel[0]
+				};
+				c.addTableWidget(field, row);
+				
+				/* OOB */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_sound_%s_oob", channel[0]),
+					"options": "default in-band out-of-band both block",
+					"defaultValue": "default"
+				};
+				c.addTableWidget(field, row);
+				
+				/* OOB_play */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_sound_%s_oob_play", channel[0]),
+					"options": "default play mute play_diff_pt",
+					"defaultValue": "default"
+				};
+				c.addTableWidget(field, row);
+				
+				/* nEventPT */
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_voip_sound_%s_neventpt", channel[0]),
+					"defaultValue": "0x62"
+				};
+				c.addTableWidget(field, row);
+				
+				/* nEventPlayPT */
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_voip_sound_%s_neventplaypt", channel[0]),
+					"defaultValue": "0x62"
+				};
+				c.addTableWidget(field, row);
+				
+				/* calculate volume values */
+				var vol = "";
+				for (var i = -24; i <= 24; i += 2) vol += i + " ";
+				vol = $.trim(vol);
+				
+				/* COD_Tx_vol */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_sound_%s_cod_tx_vol", channel[0]),
+					"options": vol,
+					"defaultValue": "0"
+				};
+				c.addTableWidget(field, row);
+				
+				/* COD_Rx_vol */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_sound_%s_cod_rx_vol", channel[0]),
+					"options": vol,
+					"defaultValue": "0"
+				};
+				c.addTableWidget(field, row);
+				
+				/* VAD */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_sound_%s_vad", channel[0]),
+					"options": "off on g711 CNG_only SC_only",
+					"defaultValue": "off"
+				};
+				c.addTableWidget(field, row);
+				
+				/* HPF */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_sound_%s_hpf", channel[0]),
+					"options": {"0": "off", "1": "on"},
+					"defaultValue": "0"
 				};
 				c.addTableWidget(field, row);
 			});

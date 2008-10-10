@@ -198,19 +198,20 @@ function Config() {
 	 * Return KDB key's value with replaced special characters.
 	 */
 	this.get = function(name) {
-		return this.conf[name] != undefined ? this.replaceSpecialChars(this.conf[name]) : null;
+		return this.conf[name] != undefined ? this.conf[name] : null;
 	};
 	
 	/*
 	 * Return OEM key's value with replaced special characters.
 	 */
 	this.getOEM = function(name) {
-		return this.oem[name] != undefined ? this.replaceSpecialChars(this.oem[name]) : null;
+		return this.oem[name] != undefined ? this.oem[name] : null;
 	};
 	
 	/*
 	 * Return key's parsed value. Always returns array, even there is no such key.
-	 * If key's string ends with "*", returns array with keys, where "*" replaced with number.
+	 * If key's string ends with "*", returns array with keys, where "*" replaced with number
+	 * (this method is faster than getByRegexp).
 	 * 
 	 * name — field's name.
 	 */
@@ -243,7 +244,7 @@ function Config() {
 		var result = new Object();
 		$.each(this.conf, function(key, value) {
 			if (regexp.test(key)) {
-				result[key] = parse ? outer.parseRecord(value) : outer.replaceSpecialChars(value);
+				result[key] = parse ? outer.parseRecord(value) : value;
 			}
 		});
 		return result;
@@ -295,12 +296,14 @@ function Config() {
 	};
 	
 	/*
-	 * Parse config file.
+	 * Parse config file. Decodes KDB special characters.
+	 * 
 	 * data — data to parse.
 	 * config — where to write parsed values.
 	 */
 	this.parseConfig = function(data, config) {
 		var lines = data.split("\n");
+		var outer = this;
 		$.each(lines, function(name, line) {
 			if (line == "KDB" || line.length == 0) return true;
 			var record = line.split("=");
@@ -309,14 +312,15 @@ function Config() {
 				var value = record[1].replace(/^"/g, "");
 				value = value.replace(/"$/g, "");
 				
-				config[record[0]] = value;
+				/* decode space,=,#, encoded by KDB's export */
+				config[record[0]] = outer.replaceSpecialChars(value);
 			}
 		});
 	};
 	
 	/* 
 	 * Parse record from KDB. If it consist of several variables — return array.
-	 * Variables are separated by '\040' character or by '\n'.
+	 * Variables are separated by '\040', space character or by '\n'.
 	 * 
 	 * record — record to parse.
 	 */
@@ -325,7 +329,7 @@ function Config() {
 		
 		if (record.length == 0) return parsedRecord;
 		
-		/* \040 is a " " symbol */
+		/* \040 is a " " symbol. split records by space or new line */
 		var variableSet = record.split(/\\040|\\n| /);
 		
 		/* if we have single variable in the record, add it to the array and return */
@@ -351,12 +355,14 @@ function Config() {
 	
 	/*
 	 * Replaces special KDB characters with next characters:
-	 * \040 — ' '
-	 * \075 — '='
+	 * \040 — ' ';
+	 * \075 — '=';
+	 * \043 — '#';
 	 */
 	this.replaceSpecialChars = function(value) {
-		var str1 = value.replace(/\\040|\\n/g, " ");
-		return str1.replace(/\\075/g, "=");
+		value = value.replace(/\\040|\\n/g, " ");
+		value = value.replace(/\\043/g, "#");
+		return value.replace(/\\075/g, "=");
 	};
 	
 	/*

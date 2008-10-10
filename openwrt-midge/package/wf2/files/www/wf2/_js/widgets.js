@@ -54,6 +54,7 @@ function Page(p) {
 			href.click(function(e) {
 				/* clear container */
 				$('#' + tabIdPrefix + tab['id']).empty();
+				
 				/* render tab's content */
 				tab['func']();
 			});
