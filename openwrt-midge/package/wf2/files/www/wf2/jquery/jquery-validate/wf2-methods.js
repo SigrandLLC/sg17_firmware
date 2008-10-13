@@ -9,11 +9,22 @@ jQuery.validator.addMethod("ipPort", function(value, element) {
 	return this.optional(element) || /^((\d)+|any)$/.test(value);
 }, "Please enter correct IP port.");
 
+/* IP port range */
+jQuery.validator.addMethod("ipPortRange", function(value, element) {
+	return this.optional(element) || /^((\d)+(:)?((\d)+)?|(:)((\d)+)|any)$/.test(value);
+}, "Please enter correct IP port or port range.");
+
 /* IP netmask */
 jQuery.validator.addMethod("netmask", function(value, element) {
 	return this.optional(element) ||
 		/^(0?0?\d|[01]?\d\d|2[0-4]\d|25[0-5])\.(0?0?\d|[01]?\d\d|2[0-4]\d|25[0-5])\.(0?0?\d|[01]?\d\d|2[0-4]\d|25[0-5])\.(0?0?\d|[01]?\d\d|2[0-4]\d|25[0-5])$/.test(value);
 }, "Please enter correct ip netmask.");
+
+/* IP address with optional netmask */
+jQuery.validator.addMethod("ipNetMaskIptables", function(value, element) {
+	return this.optional(element) ||
+		/^[!]?(0?0?\d|[01]?\d\d|2[0-4]\d|25[0-5])\.(0?0?\d|[01]?\d\d|2[0-4]\d|25[0-5])\.(0?0?\d|[01]?\d\d|2[0-4]\d|25[0-5])\.(0?0?\d|[01]?\d\d|2[0-4]\d|25[0-5])(\/\d\d*)?$/.test(value);
+}, "Please enter correct ip address with optional mask.");
 
 /* MAC address */
 jQuery.validator.addMethod("macAddr", function(value, element) {
