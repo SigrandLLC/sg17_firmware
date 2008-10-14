@@ -309,11 +309,9 @@ div.scrollable {
 	overflow: auto;
 }
 
-/* applied to lists (like in VoIP Route table). $.minmax() does't work
- * in this case, so we set height manually */
+/* applied to lists (like in VoIP Route table). */
 form div.scrollable {
 	width: 765px;
-	height: 450px;
 }
 
 td div.scrollable {

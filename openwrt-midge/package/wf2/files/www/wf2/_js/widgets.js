@@ -884,6 +884,12 @@ function Container(p, options) {
 
 		/* add current table to scrollable div */
 		this.table.wrap(div);
+		
+		/* rendering of table takes a long time, set timeout and call minmax() to fix IE */
+		setTimeout(function(){ $("div.scrollable", this.form).minmax(); }, 50);
+		
+		/* add div for showing delete confirm message */
+		this.form.prepend($.create("div", {"className": "message error_message"}));
 	};
 	
 	/*
@@ -893,18 +899,22 @@ function Container(p, options) {
 	 * showFunc — func to call after deletion.
 	 */
 	this.deleteConfirm = function(item, showFunc) {
-		var idInfoMessage = "#" + this.infoMessage;
-		this.setError("Are you sure you want to delete this item?<br>");
+		/* find div for showing delete confirm message  */
+		var msgDiv = $("div.error_message", this.form);
 		
+		msgDiv.html(_("Are you sure you want to delete this item?<br>"));
+		
+		/* create Yes button */
 		var button = $.create("input", {
 			"type": "button",
 			"className": "button",
 			"value": _("Yes")
-		}).appendTo(idInfoMessage);
+		}).appendTo(msgDiv);
 		
+		/* delete item */
 		var outer = this;
 		button.click(function() {
-			$(idInfoMessage).hide();
+			msgDiv.hide();
 			$(".selected", outer.table).removeClass("selected");
 			
 			/* delete item and restart subsystem */
@@ -914,17 +924,19 @@ function Container(p, options) {
 			if (showFunc) showFunc();
 		});
 		
+		/* create No button */
 		button = $.create("input", {
 			"type": "button",
 			"value": _("No")
-		}).appendTo(idInfoMessage);
+		}).appendTo(msgDiv);
 		
+		/* cancel delete */
 		button.click(function() {
-			$(idInfoMessage).hide();
+			msgDiv.hide();
 			$(".selected", outer.table).removeClass("selected");
 		});
-		
-		$(idInfoMessage).show();
+
+		msgDiv.show();
 	};
 }
 

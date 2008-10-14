@@ -34,17 +34,19 @@ Controllers['fw'] = function() {
 	 * options['itemTpl'] — name of rule item template (e.g., sys_fw_filter_forward_);
 	 * options['showFunc'] — func to call on submit and on click on Back buton (to show list of items).
 	 */
-	var addRule = function(options) {
+	var addFwRule = function(options) {
 		var c, field, item;
 		page.clearTab(options['tab']);
 		c = page.addContainer(options['tab']);
 		options['helpPage'] && c.setHelpPage(options['helpPage']);
 		options['helpSection'] && c.setHelpSection(options['helpSection']);
 
+		/* add new item */
 		if (!options['item']) {
 			c.addTitle("Add rule");
 			values = config.getParsed(options['itemTpl'] + "*");
 			item = options['itemTpl'] + $.len(values);
+		/* edit selected item */
 		} else {
 			c.addTitle("Edit rule");
 			item = options['item'];
@@ -122,6 +124,20 @@ Controllers['fw'] = function() {
 		};
 		c.addWidget(field);
 		
+		field = { 
+			"type": "text",
+			"item": item,
+			"name": "dport",
+			"text": "Destination port",
+			"descr": "Destination port or port range",
+			"validator": {"required": true, "ipPortRange": true},
+			"defaultValue": "any",
+			"tip": tip
+		};
+		c.addWidget(field);
+		
+		
+		
 		c.addSubmit({
 			"complexValue": item,
 			"submitName": "Add/Update",
@@ -173,9 +189,9 @@ Controllers['fw'] = function() {
 		page.addBr("filter");
 		c = page.addContainer("filter");
 		c.setHelpSection("filter_forward");
-		c.addTitle("Filter", 9);
+		c.addTitle("Filter, FORWARD chain", 9);
 
-		/* calls addRule with parameters for forward chain */
+		/* calls addFwRule with parameters for forward chain */
 		var addForwardRule = function(item) {
 			var options = {
 				"tab": "filter",
@@ -184,12 +200,36 @@ Controllers['fw'] = function() {
 				"itemTpl": "sys_fw_filter_forward_",
 				"showFunc": showFilter
 			};
+			
 			item && (options['item'] = item);
-			addRule(options);
+			addFwRule(options);
 		};
 		
 		c.addTableHeader("Rule name|Src|Dst|Proto|Src port|Dst port|Action", addForwardRule);
 		c.generateList("sys_fw_filter_forward_*", "name src dst proto sport dport target", addForwardRule, showFilter);
+		
+		/* input chain */
+		page.addBr("filter");
+		c = page.addContainer("filter");
+		c.setHelpSection("filter_input");
+		c.addTitle("Filter, INPUT chain", 9);
+		
+		/* calls addFwRule with parameters for input chain */
+		var addInputRule = function(item) {
+			var options = {
+				"tab": "filter",
+				"helpPage": "filter",
+				"helpSection": "filter_add",
+				"itemTpl": "sys_fw_filter_input_",
+				"showFunc": showFilter
+			};
+			
+			item && (options['item'] = item);
+			addFwRule(options);
+		};
+		
+		c.addTableHeader("Rule name|Src|Dst|Proto|Src port|Dst port|Action", addInputRule);
+		c.generateList("sys_fw_filter_input_*", "name src dst proto sport dport target", addInputRule, showFilter);
 	};
 	
 	/* filter tab */
