@@ -9,6 +9,12 @@ jQuery.validator.addMethod("ipPort", function(value, element) {
 	return this.optional(element) || /^((\d)+|any)$/.test(value);
 }, "Please enter correct IP port.");
 
+/* IP address with optional port */
+jQuery.validator.addMethod("ipAddrPort", function(value, element) {
+	return this.optional(element) ||
+		/^(0?0?\d|[01]?\d\d|2[0-4]\d|25[0-5])\.(0?0?\d|[01]?\d\d|2[0-4]\d|25[0-5])\.(0?0?\d|[01]?\d\d|2[0-4]\d|25[0-5])\.(0?0?\d|[01]?\d\d|2[0-4]\d|25[0-5])(:\d*)?$/.test(value);
+}, "Please enter correct IP address with optional port.");
+
 /* IP port range */
 jQuery.validator.addMethod("ipPortRange", function(value, element) {
 	return this.optional(element) || /^((\d)+(:)?((\d)+)?|(:)((\d)+)|any)$/.test(value);

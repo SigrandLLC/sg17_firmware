@@ -371,6 +371,7 @@ function Container(p, options) {
 
 	/*
 	 * Add complete widget (table's TR) to container.
+	 * 
 	 * w — widget to add.
 	 * insertAfter — if specified, insert new widget after this element.
 	 */
@@ -385,7 +386,7 @@ function Container(p, options) {
 	/*
 	 * Add subwidget (input, select, etc) to complete widget or to specified element.
 	 * w — widget to add.
-	 * insertAfter — if specified, insert new subwidget after this element.
+	 * insertAfter — if specified, insert new subwidget after this element (just plain element).
 	 * 
 	 * return added widget.
 	 */
@@ -824,11 +825,11 @@ function Container(p, options) {
 		/* go through item's list */
 		$.each(items, function(key, value) {
 			var row = outer.addTableRow();
-			var cssClass = {};
+			var cssClass = new Object();
 			
 			/* change text color for disabled items */
 			if (value['enabled'] == "off" || value['enabled'] == "0") {
-				cssClass = {"className": "disabled"};
+				cssClass['className'] = "disabled";
 			}
 			
 			/* for each variable in item's value create table cell with variable's value */
