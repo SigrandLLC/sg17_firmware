@@ -52,8 +52,11 @@ function Page(p) {
 			
 			/* add click event */
 			href.click(function(e) {
-				/* clear container */
-				$('#' + tabIdPrefix + tab['id']).empty();
+				/*
+				 * Clear all tabs (to prevent problems when elements have identical IDs on
+				 * different tabs).
+				 */
+				$(".tabs-container").empty();
 				
 				/* render tab's content */
 				tab['func']();

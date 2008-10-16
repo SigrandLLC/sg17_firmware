@@ -3,7 +3,7 @@ Controllers['iface'] = function(iface) {
 	page.setSubsystem("network");
 	page.setHelpPage("iface");
 	
-	/* status tab */
+	/* STATUS tab */
 	page.addTab({
 		"id": "status",
 		"name": "Status",
@@ -26,7 +26,7 @@ Controllers['iface'] = function(iface) {
 		}
 	});
 	
-	/* general tab */
+	/* GENERAL tab */
 	page.addTab({
 		"id": "general",
 		"name": "General",
@@ -83,7 +83,7 @@ Controllers['iface'] = function(iface) {
 		}
 	});
 	
-	/* method tab */
+	/* METHOD tab */
 	page.addTab({
 		"id": "method",
 		"name": "Method",
@@ -166,7 +166,7 @@ Controllers['iface'] = function(iface) {
 		}
 	});
 	
-	/* options tab */
+	/* OPTIONS tab */
 	page.addTab({
 		"id": "options",
 		"name": "Options",
@@ -207,7 +207,7 @@ Controllers['iface'] = function(iface) {
 		}
 	});
 	
-	/* specific tab */
+	/* SPECIFIC tab */
 	page.addTab({
 		"id": "specific",
 		"name": "Specific",
@@ -442,6 +442,87 @@ Controllers['iface'] = function(iface) {
 					break;
 			}
 		}
+	});
+	
+	/* ROUTES tab */
+	
+	/* route item */
+	var routeItem = $.sprintf("sys_iface_%s_route_", iface);
+	
+	/* generate page with fields for adding new route */
+	var addRoute = function(item) {
+		var c, field;
+		page.clearTab("routes");
+		c = page.addContainer("routes");
+		c.setHelpPage("traffic");
+		c.setHelpSection("routes.list");
+
+		if (!item) {
+			c.addTitle("Add route");
+			values = config.getParsed(routeItem + "*");
+			item = routeItem + $.len(values);
+		} else c.addTitle("Edit route");
+
+		field = { 
+			"type": "text",
+			"item": item,
+			"name": "net",
+			"text": "Network",
+			"descr": "Network (without mask) or host",
+			"tip": "E.g., 192.168.0.0 or 10.0.0.1",
+			"validator": {"required": true, "ipAddr": true}
+		};
+		c.addWidget(field);
+		
+		field = { 
+			"type": "text",
+			"item": item,
+			"name": "netmask",
+			"text": "Netmask",
+			"descr": "Netmask for network or host (in xxx.xxx.xxx.xxx format)",
+			"tip": "E.g., 255.255.255.0 — /24 — Class C network<br>255.255.255.252 — /30" +
+				"<br>255.255.255.255 — /32 — for a single host",
+			"validator": {"required": true, "netmask": true}
+		};
+		c.addWidget(field);
+		
+		field = { 
+			"type": "text",
+			"item": item,
+			"name": "gw",
+			"text": "Gateway",
+			"descr": "Gateway for route",
+			"validator": {"required": true, "ipAddr": true}
+		};
+		c.addWidget(field);
+		
+		c.addSubmit({
+			"complexValue": item,
+			"submitName": "Add/Update",
+			"extraButton": {
+				"name": "Back",
+				"func": showRoutes
+			},
+			"onSubmit": showRoutes
+		});
+	};
+	
+	var showRoutes = function() {
+		var c;
+		page.clearTab("routes");
+		c = page.addContainer("routes");
+		c.setHelpPage("traffic");
+		c.setHelpSection("routes");
+		c.addTitle("Routes", 5);
+	
+		c.addTableHeader("Network|Mask|Gateway", addRoute);
+		c.generateList(routeItem + "*", "net netmask gw", addRoute, showRoutes);
+	};
+	
+	page.addTab({
+		"id": "routes",
+		"name": "Routes",
+		"func": showRoutes
 	});
 	
 	page.generateTabs();
