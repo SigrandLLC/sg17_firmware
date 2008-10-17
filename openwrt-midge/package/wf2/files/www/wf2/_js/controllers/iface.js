@@ -525,5 +525,152 @@ Controllers['iface'] = function(iface) {
 		"func": showRoutes
 	});
 	
+
+	/* QoS tab */
+	var showQos = function() {
+		var c, field;
+		c = page.addContainer("qos");
+		c.addTitle("QoS settings");
+		c.setHelpPage("qos");
+		
+		/* IDs of widgets */
+		var widgetsIDs = new Array();
+		
+		/* remove widgets */
+		var removeWidgets = function() {
+			if (widgetsIDs.length != 0) {
+				$.each(widgetsIDs, function(num, value) {
+					$("#" + value).parents("tr").remove();
+				});
+				widgetsIDs = new Array();
+			}
+		};
+		
+		/* add widgets for pfifo and bfifo */
+		var addFifoWidgets = function(type) {
+			var id;
+			
+			id = $.sprintf("sys_iface_%s_qos_fifo_limit", iface);
+			widgetsIDs.push(id);
+			field = { 
+				"type": "text",
+				"name": id,
+				"id": id,
+				"text": "Buffer size",
+				"validator": {"required": true, "min": 1, "max": 65535},
+				"defaultValue": type == "pfifo" ? "128" : "10240"
+			};
+			c.addWidget(field);
+		};
+		
+		/* add widgets for esfq */
+		var addEsfqWidgets = function() {
+			var id;
+			
+			id = $.sprintf("sys_iface_%s_qos_esfq_limit", iface);
+			widgetsIDs.push(id);
+			field = { 
+				"type": "text",
+				"name": id,
+				"id": id,
+				"text": "Limit",
+				"descr": "Maximum packets in buffer",
+				"validator": {"required": true, "min": 10, "max": 65535},
+				"defaultValue": "128"
+			};
+			c.addWidget(field);
+			
+			id = $.sprintf("sys_iface_%s_qos_esfq_depth", iface);
+			widgetsIDs.push(id);
+			field = { 
+				"type": "text",
+				"name": id,
+				"id": id,
+				"text": "Depth",
+				"validator": {"required": true, "min": 10, "max": 65535},
+				"defaultValue": "128"
+			};
+			c.addWidget(field);
+			
+			id = $.sprintf("sys_iface_%s_qos_esfq_hash", iface);
+			widgetsIDs.push(id);
+			field = { 
+				"type": "select",
+				"name": id,
+				"id": id,
+				"text": "Hash",
+				"options": {"classic": "Classic", "src": "Source address",
+					"dst": "Destination address"},
+				"defaultValue": "128"
+			};
+			c.addWidget(field);
+		};
+		
+		/* add widgets for tbf */
+		var addTbfWidgets = function() {
+			var id;
+			
+			id = $.sprintf("sys_iface_%s_qos_tbf_rate", iface);
+			widgetsIDs.push(id);
+			field = { 
+				"type": "text",
+				"name": id,
+				"id": id,
+				"text": "Rate",
+				"descr": "Maximum rate for interface",
+				"validator": {"qosBandwith": true},
+				"defaultValue": "512kbit",
+				"tip": "Unit can be: <br><i>kbit</i>, <i>Mbit</i> — for bit per second<br>" +
+					"and <i>kbps</i>, <i>Mbps</i> — for bytes per second"
+			};
+			c.addWidget(field);
+		};
+		
+		field = { 
+			"type": "select",
+			"name": $.sprintf("sys_iface_%s_qos_sch", iface),
+			"id": $.sprintf("sys_iface_%s_qos_sch", iface),
+			"text": "Scheduler",
+			"descr": "Scheduler for the interface",
+			"options": {"pfifo_fast": "Default discipline pfifo_fast", "bfifo": "FIFO with bytes buffer",
+				"pfifo": "FIFO with packets buffer", "tbf": "Token Bucket Filter",
+				"sfq": "Stochastic Fairness Queueing", "esfq": "Enhanced Stochastic Fairness Queueing",
+				"htb": "Hierarchical Token Bucket"},
+			"onChange": function() {
+				/* remove previous widgets */
+				removeWidgets();
+				
+				var sch = $($.sprintf("#sys_iface_%s_qos_sch", iface)).val();
+				switch (sch) {
+					case "bfifo":
+					case "pfifo":
+						addFifoWidgets(sch);
+						break;
+					
+					case "esfq":
+						addEsfqWidgets();
+						break;
+					
+					case "tbf":
+						addTbfWidgets();
+						break;
+				}
+				
+				/* set nice tooltips for new fields */
+				$("input").tooltip({"track": true});
+				$("select").tooltip({"track": true});
+			}
+		};
+		c.addWidget(field);
+	
+		c.addSubmit();
+	}
+	
+	page.addTab({
+		"id": "qos",
+		"name": "QoS",
+		"func": showQos
+	});
+	
 	page.generateTabs();
 };

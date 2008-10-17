@@ -88,3 +88,8 @@ jQuery.validator.addMethod("pbo", function(value, element) {
 jQuery.validator.addMethod("alphanum", function(value, element) {
 	return this.optional(element) || /^[_a-zA-Z0-9]+$/.test(value);
 }, "Please enter alphanumeric characters only (without spaces).");
+
+/* QoS bandwith */
+jQuery.validator.addMethod("qosBandwith", function(value, element) {
+	return this.optional(element) || /^([0-9]+(k|M)(bit|bps))$/.test(value);
+}, "Please enter correct bandwith.");
