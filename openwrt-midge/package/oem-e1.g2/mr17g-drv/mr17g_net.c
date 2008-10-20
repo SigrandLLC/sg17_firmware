@@ -18,7 +18,7 @@
 #include "mr17g_sysfs.h"
 
 // Debug settings
-//#define DEBUG_ON
+#define DEBUG_ON
 #define DEFAULT_LEV 10
 #include "mr17g_debug.h"
 
@@ -65,10 +65,12 @@ mr17g_net_init(struct mr17g_chip *chip)
     struct mr17g_channel *ch;
     struct net_device *ndev;
     int i,j,err;
+   	void *base;
 
 	PDEBUG(debug_net,"start");
     
     for(i=0;i<chip->if_quan;i++){
+		PDEBUG(debug_net,"Chip#%d",i);
         if( !(ch = (struct mr17g_channel*)kmalloc(sizeof(struct mr17g_channel),GFP_KERNEL)) ){ 
 	    	err = -ENOMEM;
 		    goto error;
@@ -77,17 +79,36 @@ mr17g_net_init(struct mr17g_chip *chip)
     	memset(ch,0,sizeof(struct mr17g_channel));
 		ch->chip = chip;
         ch->num = i;
-        ch->iomem = &chip->iomem->channels[i];
-
         if( !(ndev=alloc_hdlcdev(ch)) ){
 	    	err = -ENOMEM;
 		    goto error;
 	    }
+PDEBUG(debug_net,"Mark1");
     	ndev->init = mr17g_probe;
     	ndev->uninit = mr17g_uninit;
-    	ndev->mem_start = chip->iomem_start + ((u32)ch->iomem - (u32)chip->iomem);
-	    ndev->mem_end = ndev->mem_start + sizeof(struct mr17g_chan_iomem);
     	ndev->irq = chip->pdev->irq;
+        // Initialize iomemory
+        switch(chip->type){
+        case MR17G_STANDARD:
+        	PDEBUG(debug_net,"Register standard netdev");
+        	base = chip->iomem + ch->num*MR17G_CHAN1_SIZE;
+        	ch->iomem.regs = (struct mr17g_hw_regs*)((u8*)base + CHAN1_REGS_OFFS);
+        	ch->iomem.tx_buf = (struct sg_hw_descr*)((u8*)base + CHAN1_HDLCTX_OFFS);
+        	ch->iomem.rx_buf = (struct sg_hw_descr*)((u8*)base + CHAN1_HDLCRX_OFFS);
+	    	ndev->mem_start = chip->iomem_start + ch->num*MR17G_CHAN1_SIZE;
+	    	ndev->mem_end = ndev->mem_start + MR17G_CHAN1_SIZE;
+			break;
+		case MR17G_MUXONLY:
+        	PDEBUG(debug_net,"Register muxonly netdev");
+        	base = chip->iomem + ch->num*MR17G_CHAN2_SIZE;
+        	ch->iomem.regs = (struct mr17g_hw_regs*)((u8*)base + CHAN2_REGS_OFFS);
+        	ch->iomem.tx_buf = NULL;
+        	ch->iomem.rx_buf = NULL;
+	    	ndev->mem_start = chip->iomem_start + ch->num*MR17G_CHAN2_SIZE;
+	    	ndev->mem_end = ndev->mem_start + MR17G_CHAN2_SIZE;
+        	break; 
+        }	
+PDEBUG(debug_net,"Mark2");
 		
         // register net device
     	if( (err = register_hdlc_device(ndev)) < 0){
@@ -95,16 +116,23 @@ mr17g_net_init(struct mr17g_chip *chip)
 	    	goto ndevfree;
 	    }
 
+PDEBUG(0,"\t!%s TX=%x,RX=%x,REGs=%x",ndev->name,
+		(u32)ch->iomem.tx_buf - (u32)chip->iomem,
+		(u32)ch->iomem.rx_buf - (u32)chip->iomem,
+		(u32)ch->iomem.regs - (u32)chip->iomem);
+		
+PDEBUG(debug_net,"Mark3");
     	// Init control through sysfs
     	if( (err = sysfs_create_link( &(drv->kobj),&(dev->kobj),ndev->name )) ){
 	    	printk(KERN_NOTICE"%s: error in sysfs_create_link\n",__FUNCTION__);	
 		    goto ndevunreg;
     	}
+PDEBUG(debug_net,"Mark4");
         if( mr17g_netsysfs_register(ndev) ){
             printk(KERN_ERR"%s: cannot register parameters in sysfs for %s\n",MR17G_MODNAME,ndev->name);
 	    	goto rmlink;
         }
-        
+PDEBUG(debug_net,"Mark5");
         chip->ifs[i] = ndev;
     }
 
@@ -183,58 +211,73 @@ mr17g_probe( struct net_device  *ndev )
 	hdlc->attach = &mr17g_attach;
 	hdlc->xmit   = &mr17g_start_xmit;
 
-	// shut down transceiver 
-	mr17g_transceiver_shutdown(ch);
+PDEBUG(debug_net,"Mark1");
 
-	// setup transmit and receive rings
-	ch->tx.hw_ring = (struct sg_hw_descr *)ch->iomem->tx_buf;
-	ch->rx.hw_ring = (struct sg_hw_descr *)ch->iomem->rx_buf;
-	ch->tx.hw_mask=ch->rx.hw_mask=HW_RING_MASK;
-	ch->tx.sw_mask=ch->rx.sw_mask=SW_RING_MASK;
-	ch->tx.CxDR=(u8*)&(ch->iomem->regs.CTDR);
-	ch->rx.CxDR=(u8*)&(ch->iomem->regs.CRDR);
-	ch->tx.LxDR=(u8*)&(ch->iomem->regs.LTDR);
-	ch->rx.LxDR=(u8*)&(ch->iomem->regs.LRDR);
-	ch->tx.type=TX_RING;
-	ch->rx.type=RX_RING;
-	ch->tx.dev = ch->rx.dev = &ch->chip->pdev->dev;
+	// No interrupts for multiplexing only devices
+    if( ch->chip->type != MR17G_MUXONLY ){
+		// shut down transceiver 
+		mr17g_transceiver_shutdown(ch);
+		// setup transmit and receive rings
+		ch->tx.hw_ring = (struct sg_hw_descr *)ch->iomem.tx_buf;
+		ch->rx.hw_ring = (struct sg_hw_descr *)ch->iomem.rx_buf;
+		ch->tx.hw_mask=ch->rx.hw_mask=HW_RING_MASK;
+		ch->tx.sw_mask=ch->rx.sw_mask=SW_RING_MASK;
+		ch->tx.CxDR=(u8*)&(ch->iomem.regs->CTDR);
+		ch->rx.CxDR=(u8*)&(ch->iomem.regs->CRDR);
+		ch->tx.LxDR=(u8*)&(ch->iomem.regs->LTDR);
+		ch->rx.LxDR=(u8*)&(ch->iomem.regs->LRDR);
+		ch->tx.type=TX_RING;
+		ch->rx.type=RX_RING;
+		ch->tx.dev = ch->rx.dev = &ch->chip->pdev->dev;
 
-    // Init locking
-	spin_lock_init( &ch->tx.lock );
-	spin_lock_init( &ch->rx.lock );
-	spin_lock_init( &ch->lock );
+	    // Init locking
+		spin_lock_init( &ch->tx.lock );
+		spin_lock_init( &ch->rx.lock );
 	
+		// net device interrupt register
+		if( (err = request_irq(ndev->irq, mr17g_interrupt, SA_SHIRQ, ndev->name, ndev)) ){
+			printk( KERN_ERR "%s(%s): unable to get IRQ %d, error= %08x\n",MR17G_MODNAME,
+				ndev->name, ndev->irq, err );
+			goto error;
+		}
+    }
+
+PDEBUG(debug_net,"Mark1");
+
 	//default HDLC X config
 	ch->cfg.rburst = ch->cfg.wburst = 0;	
-	
-	// net device interrupt register
-	if( (err = request_irq(ndev->irq, mr17g_interrupt, SA_SHIRQ, ndev->name, ndev)) ){
-		printk( KERN_ERR "%s(%s): unable to get IRQ %d, error= %08x\n",MR17G_MODNAME,
-				ndev->name, ndev->irq, err );
-		goto error;
-	}
-
     // Default setup of channel
     pef22554_defcfg(ch);
+
+PDEBUG(debug_net,"Mark2");
+
     if( pef22554_basic_channel(ch) ){
 		printk( KERN_ERR "%s(%s): error while basic setup\n",MR17G_MODNAME,ndev->name);
         err = -1;
 		goto irqfree;
 	}
+PDEBUG(debug_net,"Mark3");
+
     if( pef22554_channel(ch) ){
 		printk( KERN_ERR "%s(%s): error while default setup\n",MR17G_MODNAME,ndev->name);
         err = -1;
 		goto irqfree;
 	}
-
-    mr17g_transceiver_setup(ch);        
+PDEBUG(debug_net,"Mark4");
+    if( ch->chip->type != MR17G_MUXONLY ){
+	    mr17g_transceiver_setup(ch);
+    }        
 	printk( KERN_NOTICE "%s: " MR17G_MODNAME " E1 module (irq %d, mem %#lx)\n",
 			ndev->name, ndev->irq, ndev->mem_start );
-	SET_MODULE_OWNER( ndev );
 
+PDEBUG(debug_net,"Mark5");
+
+	SET_MODULE_OWNER( ndev );
 	return  0;
 irqfree:
-	free_irq( ndev->irq, ndev );
+    if( ch->chip->type != MR17G_MUXONLY ){    
+		free_irq(ndev->irq, ndev);
+    }
 error:
     return err;
 }
@@ -246,8 +289,10 @@ mr17g_uninit(struct net_device *ndev)
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
     
     PDEBUG(debug_net,"iface = %s",ndev->name);
-	free_irq( ndev->irq, ndev );
-	mr17g_transceiver_shutdown(ch);
+    if( ch->chip->type != MR17G_MUXONLY ){    
+		free_irq( ndev->irq, ndev );
+		mr17g_transceiver_shutdown(ch);
+    }
     kfree(ch);
 }
 
@@ -257,10 +302,19 @@ mr17g_interrupt( int  irq,  void  *dev_id,  struct pt_regs  *pregs )
 	struct net_device *ndev = (struct net_device *) dev_id;
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs; // = ch->iomem.regs;
 	u8 status;
-	u8 mask = ioread8(&(regs->IMR));
+	u8 mask; // = ioread8(&(regs->IMR));
 
+	//PDEBUG(debug_irq,"start");
+	regs = ch->iomem.regs;
+	mask = ioread8(&(regs->IMR));
+
+
+	// No interrupts for multiplexing only devices
+    if( ch->chip->type == MR17G_MUXONLY )
+		return IRQ_NONE;
+	
 	if( (ioread8(&(regs->SR)) & mask ) == 0 )
 		return IRQ_NONE;
 
@@ -309,7 +363,11 @@ mr17g_open( struct net_device  *ndev )
 {
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
+    
+    if( ch->chip->type == MR17G_MUXONLY ){
+		return -EBUSY;
+	}
     
 	// init descripts, allocate receiving buffers 
 	ch->tx.head = ch->tx.tail = ch->rx.head = ch->rx.tail = 0;
@@ -331,8 +389,11 @@ mr17g_close(struct net_device  *ndev)
 {
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 
+	if( ch->chip->type == MR17G_MUXONLY ){
+		return 0;
+	}
 	// disable receive/transmit functions
 	iowrite8(ioread8(&regs->CRA)&(~(RXEN|TXEN)),&regs->CRA);
 	netif_tx_disable(ndev);
@@ -357,7 +418,7 @@ mr17g_tx_timeout( struct net_device  *ndev )
 {
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
     
     printk(KERN_ERR"%s: transmit timeout\n", ndev->name );
     // Enable transmitter 
@@ -438,7 +499,7 @@ mr17g_get_rate(struct net_device *ndev)
 {
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 	struct mr17g_chan_config *cfg= &ch->cfg;
 	u32 rate=0, storage=cfg->slotmap;
 	
@@ -471,7 +532,7 @@ mr17g_get_slotmap(struct net_device *ndev)
 {
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 	struct mr17g_chan_config *cfg= &ch->cfg;
 	u32 storage=cfg->slotmap;
 
@@ -508,7 +569,10 @@ mr17g_get_clock(struct net_device *ndev)
 static void
 mr17g_transceiver_shutdown(struct mr17g_channel *ch)
 {
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
+
+    PDEBUG(debug_net,"TRVR regs = %p",(void*)regs);
+    
 	iowrite8( 0, &(regs->CRA));    
 	iowrite8( RXDE , &(regs->CRB));
 	iowrite8( 0, &(regs->IMR));
@@ -534,14 +598,14 @@ mr17g_transceiver_shutdown(struct mr17g_channel *ch)
 void
 mr17g_transceiver_setup(struct mr17g_channel *ch)
 {
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
     struct mr17g_chan_config *cfg = &ch->cfg;
 	u8 cfg_byte;
 	u32 tmpmap;
 	u8 tmp,*smap;
 
     // 1. Setup CRA register
-	cfg_byte = ioread8(&regs->CRA) | XRST;
+	cfg_byte = ioread8(&regs->CRA) | XRST0;
     // Setup CRC16/32 check
 	if( cfg->crc16 )
 		cfg_byte |= CMOD;
@@ -622,25 +686,31 @@ void mr17g_net_link(struct net_device *ndev)
 {
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
     int lstat = pef22554_linkstate(ch->chip,ch->num,ch->cfg.framed);
 
     PDEBUG(debug_link,"%s: lstate = %d, car_ok=%d",ndev->name,lstat,netif_carrier_ok(ndev));
     if(  lstat > 0 ){
 	    if( !netif_carrier_ok(ndev) ){
             PDEBUG(debug_link,"%s: link UP",ndev->name);
-        	iowrite8( 0xff, &regs->SR );
-        	iowrite8(ioread8(&regs->CRB)&(~RXDE),&regs->CRB );
-        	iowrite8((UFL|CRC|OFL|RXS|TXS),&regs->IMR );
        		netif_carrier_on(ndev);
+		    if( ch->chip->type != MR17G_MUXONLY ){
+		    	// Setup HDLC controller
+	        	iowrite8( 0xff, &regs->SR );
+    	    	iowrite8(ioread8(&regs->CRB)&(~RXDE),&regs->CRB );
+        		iowrite8((UFL|CRC|OFL|RXS|TXS),&regs->IMR );
+		    }
         }
     }else if( lstat == 0 ){
 	    if( netif_carrier_ok(ndev) ){
             PDEBUG(debug_link,"%s: link DOWN",ndev->name);
 			netif_carrier_off(ndev);
-        	iowrite8(ioread8(&regs->CRB)|RXDE,&regs->CRB);
-        	iowrite8(0,&regs->IMR );
-        	iowrite8(0xff,&regs->SR );
+		    if( ch->chip->type != MR17G_MUXONLY ){
+		    	// Setup HDLC controller
+	        	iowrite8(ioread8(&regs->CRB)|RXDE,&regs->CRB);
+    	    	iowrite8(0,&regs->IMR );
+        		iowrite8(0xff,&regs->SR );
+		    }
         }
     }else{
         printk(KERN_ERR"%s: error reading link status for %s\n",MR17G_MODNAME,ndev->name);
@@ -655,6 +725,10 @@ mr17g_start_xmit( struct sk_buff *skb, struct net_device *ndev )
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
 	unsigned long flags;
+
+	// No xmit from MUX only ports
+    if( ch->chip->type == MR17G_MUXONLY )
+    	return 0;
 
 	PDEBUG(debug_xmit,"start, skb->len=%d",skb->len );
 	if ( !netif_carrier_ok(ndev) ){
@@ -712,7 +786,7 @@ xmit_drop_buffs(struct net_device *ndev)
 {
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 
     iowrite8(ioread8(&regs->LTDR),&regs->CTDR);
     xmit_free_buffs( ndev );

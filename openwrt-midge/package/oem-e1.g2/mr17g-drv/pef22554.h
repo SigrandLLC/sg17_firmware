@@ -296,11 +296,11 @@ struct pef22554_read_ack{
     (reg_addr == DSTR) \
     )
 
-int pef22554_setup_sci(struct mr17g_chip *chip);
+int pef22554_setup_sci(struct mr17g_card *card);
+void pef22554_defcfg(struct mr17g_channel *chan);
 int pef22554_writereg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 val);
 int pef22554_readreg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 *val);
-int pef22554_basic_card(struct mr17g_chip *chip);
-void pef22554_defcfg(struct mr17g_channel *chan);
+int pef22554_basic_chip(struct mr17g_chip *chip);
 int pef22554_basic_channel(struct mr17g_channel *chan);
 int pef22554_channel(struct mr17g_channel *chan);
 int pef22554_linkstate(struct mr17g_chip *chip,int chnum,u8 framed);

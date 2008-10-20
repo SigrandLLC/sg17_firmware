@@ -109,6 +109,23 @@ static CLASS_DEVICE_ATTR(,0644,show_X,store_X);
 */
 
 
+//----------- Interface type -----------------------//
+static ssize_t
+show_muxonly(struct class_device *cdev, char *buf) 
+{                                                                       
+	struct net_device *ndev = to_net_dev(cdev);
+    hdlc_device *hdlc = dev_to_hdlc(ndev);
+	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
+    
+    if( ch->chip->type == MR17G_MUXONLY ){
+    	return snprintf(buf,PAGE_SIZE,"1");
+    }else{
+    	return snprintf(buf,PAGE_SIZE,"0");
+    }    	
+}
+static CLASS_DEVICE_ATTR(muxonly,0444,show_muxonly,NULL);
+
+
 
 //----------- HDLC settings ------------------------//
 
@@ -293,7 +310,7 @@ show_slotmap(struct class_device *cdev, char *buf)
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
     struct mr17g_chan_config *cfg = &ch->cfg;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 
 	if( cfg->framed )
 		return slotmap2str(cfg->slotmap,cfg,buf);
@@ -748,7 +765,7 @@ show_mx_txstart(struct class_device *cdev, char *buf)
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 	
 	return snprintf(buf,PAGE_SIZE,"%d",ioread8(&regs->TFS));
 }
@@ -759,7 +776,7 @@ store_mx_txstart( struct class_device *cdev,const char *buf, size_t size )
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 	char *endp;
 	u16 tmp;
 
@@ -782,7 +799,7 @@ show_mx_rxstart(struct class_device *cdev, char *buf)
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 
 	return snprintf(buf,PAGE_SIZE,"%d",ioread8(&regs->RFS));
 }
@@ -793,7 +810,7 @@ store_mx_rxstart( struct class_device *cdev,const char *buf, size_t size )
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 	char *endp;
 	u16 tmp;
 
@@ -815,7 +832,7 @@ show_mx_tline(struct class_device *cdev, char *buf)
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 	
 	return snprintf(buf,PAGE_SIZE,"%d",ioread8(&regs->TLINE));
 }
@@ -826,7 +843,7 @@ store_mx_tline( struct class_device *cdev,const char *buf, size_t size )
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 	char *endp;
 	u16 tmp;
 
@@ -848,7 +865,7 @@ show_mx_rline(struct class_device *cdev, char *buf)
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 
 	return snprintf(buf,PAGE_SIZE,"%d",ioread8(&regs->RLINE));
 }
@@ -859,7 +876,7 @@ store_mx_rline( struct class_device *cdev,const char *buf, size_t size )
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 	char *endp;
 	u16 tmp;
 
@@ -883,7 +900,7 @@ show_mx_enable(struct class_device *cdev, char *buf)
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 	
 	return snprintf(buf,PAGE_SIZE,"%s",(ioread8(&regs->MXCR) & MXEN) ? "1" : "0");
 }
@@ -894,7 +911,7 @@ store_mx_enable( struct class_device *cdev,const char *buf, size_t size )
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 
 	// check parameters
 	if( !size) return size;
@@ -924,7 +941,7 @@ show_mx_clkm(struct class_device *cdev, char *buf)
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 	
 	return snprintf(buf,PAGE_SIZE,"%s",(ioread8(&regs->MXCR)&CLKM) ? "1" : "0");
 }
@@ -935,7 +952,7 @@ store_mx_clkm( struct class_device *cdev,const char *buf, size_t size )
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 
 	// check parameters
 	if( !size) return size;
@@ -964,7 +981,7 @@ show_mx_clkab(struct class_device *cdev, char *buf)
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 	
 	return snprintf(buf,PAGE_SIZE,"%s",(ioread8(&regs->MXCR)&CLKAB) ? "1" : "0");
 }
@@ -975,7 +992,7 @@ store_mx_clkab( struct class_device *cdev,const char *buf, size_t size )
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 
 	// check parameters
 	if( !size) return size;
@@ -1003,7 +1020,7 @@ show_mx_clkr(struct class_device *cdev, char *buf)
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 	
 	return snprintf(buf,PAGE_SIZE,"%s",(ioread8(&regs->MXCR)&CLKR) ? "1" : "0");
 }
@@ -1014,7 +1031,7 @@ store_mx_clkr( struct class_device *cdev,const char *buf, size_t size )
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
 
 	// check parameters
 	if( !size)
@@ -1047,7 +1064,7 @@ show_hdlc_regs(struct class_device *cdev, char *buf)
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    volatile struct mr17g_hw_regs *regs = &ch->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
     int len;
 
 	len = snprintf(buf,PAGE_SIZE,"CRA(%02x),CRB(%02x),SR(%02x),IMR(%02x)\n"
@@ -1151,7 +1168,29 @@ static ssize_t
 store_winread(struct class_device *cdev,const char *buf,size_t size )
 {
 	char *endp;
+	struct net_device *ndev = to_net_dev(cdev);
+    hdlc_device *hdlc = dev_to_hdlc(ndev);
+	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
+    struct mr17g_chip *chip = ch->chip;
+    int iomem_size;
+
 	if( !size ) return 0;
+	
+    switch( chip->type ){
+    case MR17G_STANDARD:
+		iomem_size = 4*MR17G_CHAN1_SIZE;
+		if( !chip->num ){
+			iomem_size += MR17G_SCI_SIZE;
+		}
+        break;
+    case MR17G_MUXONLY:
+		iomem_size = 4*MR17G_CHAN2_SIZE;
+        break;
+    default:
+        printk("%s: error chip type\n",MR17G_MODNAME);
+		return size;
+	}
+
 	win_start = simple_strtoul(buf,&endp,16);
 	PDEBUG(0,"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);	
 	while( *endp == ' '){
@@ -1162,8 +1201,8 @@ store_winread(struct class_device *cdev,const char *buf,size_t size )
 	PDEBUG(0,"Set start=%d,count=%d",win_start,win_count);
 	if( !win_count )
 		win_count = 1;
-	if( (win_start + win_count) > MR17G_IOMEM_SIZE ){
-		if( win_start >= (MR17G_IOMEM_SIZE-1) ){
+	if( (win_start + win_count) > iomem_size ){
+		if( win_start >= (iomem_size-1) ){
 			win_start = 0;
 			win_count = 1;
 		} else {
@@ -1193,7 +1232,22 @@ store_winwrite(struct class_device *cdev,const char *buf,size_t size)
 	char *win = (char*)chip->iomem;
 	int start, val;
 	char *endp;
+	int iomem_size = 0;
+
 	if( !size ) return 0;
+
+    switch( chip->type ){
+    case MR17G_STANDARD:
+		iomem_size = 4*MR17G_CHAN1_SIZE;
+        break;
+    case MR17G_MUXONLY:
+		iomem_size = 4*MR17G_CHAN2_SIZE;
+        break;
+    default:
+        printk("%s: error chip type\n",MR17G_MODNAME);
+		return size;
+	}
+
 	start = simple_strtoul(buf,&endp,16);
 	PDEBUG(0,"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);	
 	while( *endp == ' '){
@@ -1202,7 +1256,7 @@ store_winwrite(struct class_device *cdev,const char *buf,size_t size)
 	val = simple_strtoul(endp,&endp,16);
 	PDEBUG(0,"buf=%p, endp=%p",buf,endp);		
 	PDEBUG(0,"Set start=%d,val=%d",start,val);
-	if( start > MR17G_IOMEM_SIZE ){
+	if( start > (iomem_size - 1) ){
 		start = 0;
 	}
 	win_written = start;
@@ -1239,6 +1293,8 @@ static CLASS_DEVICE_ATTR(testxmit,0200,NULL,store_testxmit);
 
 // ------------------------------------------------------------------------ //
 static struct attribute *mr17g_attr[] = {
+// Iface type
+&class_device_attr_muxonly.attr,
 //E1
 &class_device_attr_framed.attr,
 &class_device_attr_map_ts16.attr,

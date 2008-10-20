@@ -20,34 +20,39 @@
 
 
 // Chiset register access
-
 int 
-pef22554_setup_sci(struct mr17g_chip *chip)
+pef22554_setup_sci(struct mr17g_card *card)
 {
+	struct mr17g_sci *sci = &card->sci;
     char buf[SCI_BUF_SIZE];
-    struct pef22554_write_cmd *cmd = (struct pef22554_write_cmd*)buf;
+	struct pef22554_write_cmd *cmd = (struct pef22554_write_cmd*)buf;
     struct pef22554_write_ack *ack;
-    int size;
+    int size,i;
 
-    // setup PEF22554 SCI controller
-    memset((u8*)cmd,0,sizeof(*cmd));
-    cmd->src.addr = 0x3f;
-    cmd->src.cr = 1;
-    cmd->dst.addr = 0; 
-    cmd->dst.cr = 1;
-    cmd->reg_addr = 0; // First register
-    cmd->ctrl_bits = WR_SCI; 
-    cmd->data = (PP | ACK_EN | CRC_EN | DUP ); //0x95;
-    if( (size = mr17g_sci_request(chip,buf,PEF22554_WCMD_SIZE,PEF22554_WACK_SIZE)) < 0){
-        printk(KERN_ERR"%s: Error setting SCI controller, size=%d, need_size = %d\n",
-				MR17G_MODNAME,(-1)*size,PEF22554_WACK_SIZE);
-        goto error;
-    }
-    ack = (struct pef22554_write_ack*)buf;
-    if( !( ack->rsta.vfr && ack->rsta.crc && !ack->rsta.rab ) ){
-        printk(KERN_ERR"%s: Error setting SCI controller, RSTA=%02x\n",
-                MR17G_MODNAME,*((u8*)&ack->rsta));
-        goto error;
+    // Setup PEF22554 SCI controller for all chips
+    for(i=0;i<card->chip_quan;i++){
+    	PDEBUG(0,"Set SCI for chip #%d",i);
+	    memset((u8*)cmd,0,sizeof(*cmd));
+    	cmd->src.addr = 0x3f;
+    	cmd->src.cr = 0;
+	    cmd->dst.addr = i; 
+    	cmd->dst.cr = 1;
+    	cmd->reg_addr = 0; // First register
+    	cmd->ctrl_bits = WR_SCI; 
+    	cmd->data = (PP | ACK_EN | CRC_EN | DUP ); //0x95;
+    	   
+    	if((size=mr17g_sci_request(sci,i,buf,PEF22554_WCMD_SIZE,PEF22554_WACK_SIZE)) < 0){
+        	printk(KERN_ERR"%s: Error setting SCI controller, size=%d, need_size = %d\n",
+				MR17G_MODNAME,size,PEF22554_WACK_SIZE);
+        	goto error;
+    	}
+    	
+    	ack = (struct pef22554_write_ack*)buf;
+    	if( !( ack->rsta.vfr && ack->rsta.crc && !ack->rsta.rab ) ){
+        	printk(KERN_ERR"%s: Error setting SCI controller, RSTA=%02x\n",
+            	    MR17G_MODNAME,*((u8*)&ack->rsta));
+        	goto error;
+    	}
     }
     return 0;
 error:
@@ -71,6 +76,7 @@ pef22554_defcfg(struct mr17g_channel *chan)
 int
 pef22554_writereg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 val)
 {
+	struct mr17g_sci *sci = chip->sci;
     char buf[SCI_BUF_SIZE];
     struct pef22554_write_cmd *cmd = (struct pef22554_write_cmd*)buf;
     struct pef22554_write_ack *ack;
@@ -89,7 +95,8 @@ pef22554_writereg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 val)
     }
     cmd->ctrl_bits = WR_FALC;
     cmd->data = val;
-    if( (size = mr17g_sci_request(chip,buf,PEF22554_WCMD_SIZE,PEF22554_WACK_SIZE)) <  0){
+    if( (size = mr17g_sci_request(sci,chip->num,buf,PEF22554_WCMD_SIZE,
+    			PEF22554_WACK_SIZE)) <  0){
         printk(KERN_ERR"%s: Error setting QuadFALC register %04x = %02x, size=%d(need %d)\n",
                 MR17G_MODNAME,addr,val,(-1)*size,PEF22554_WACK_SIZE);
         goto error;
@@ -108,6 +115,7 @@ error:
 int
 pef22554_readreg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 *val)
 {
+	struct mr17g_sci *sci = chip->sci;
     char buf[SCI_BUF_SIZE];
     struct pef22554_read_cmd *cmd = (struct pef22554_read_cmd*)buf;
     struct pef22554_read_ack *ack;
@@ -127,7 +135,8 @@ pef22554_readreg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 *val)
     }
     cmd->ctrl_bits = RD_FALC;
     cmd->rdepth = 1;
-    if( (size = mr17g_sci_request(chip,buf,PEF22554_RCMD_SIZE,PEF22554_RACK_SIZE))<0 ){
+    if( (size = mr17g_sci_request(sci,chip->num,buf,PEF22554_RCMD_SIZE,
+    			PEF22554_RACK_SIZE))<0 ){
         printk(KERN_ERR"%s: Error reading QuadFALC register %04x, size=%d(need %d)\n",
                 MR17G_MODNAME,addr,(-1)*size,PEF22554_RACK_SIZE);
         goto error;
@@ -147,7 +156,7 @@ error:
 
 // Basic Sigrand chipset setup
 int
-pef22554_basic_card(struct mr17g_chip *chip)
+pef22554_basic_chip(struct mr17g_chip *chip)
 {
     if( pef22554_writereg(chip,0,IPC,0x01) ){
         goto error;
@@ -488,7 +497,7 @@ pef22554_channel(struct mr17g_channel *chan)
 {   
     struct mr17g_chip *chip = chan->chip;
     struct mr17g_chan_config *cfg = &chan->cfg;
-    volatile struct mr17g_hw_regs *regs = &chan->iomem->regs;
+    volatile struct mr17g_hw_regs *regs = chan->iomem.regs;
     u8 tmp;
 
 	// Check inter-option depends
@@ -610,7 +619,6 @@ pef22554_linkstate(struct mr17g_chip *chip, int chnum,u8 framed)
 		if( pef22554_readreg(chip,chnum,FRS0,&tmp) ){
             continue;
         }
-		
 		// ???? May be need in condition correction
 		if( framed ){
 			link_down = (tmp & LOS) || (tmp & LFA);
@@ -618,7 +626,7 @@ pef22554_linkstate(struct mr17g_chip *chip, int chnum,u8 framed)
 			link_down = (tmp & LOS);
 		}
 		
-        if(  link_down ){
+        if( link_down ){
             ret = 0;
             goto exit;
         }else{

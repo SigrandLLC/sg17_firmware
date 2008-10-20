@@ -10,90 +10,83 @@
  *
  */
 
-
 #include "mr17g.h"
 #include "mr17g_sci.h"
 #include "mr17g_net.h"
 #include "pef22554.h"
 // Debug settings
 #define DEBUG_ON
-#define DEFAULT_LEV 10
+#define DEFAULT_LEV 0
 #include "mr17g_debug.h"
 
-// DEBUG
-static int gen_interrupts = 0;
-static int sci_interrupts = 0;
-//DEBUG
-
 int
-mr17g_sci_enable(struct mr17g_chip *chip)
+mr17g_sci_enable(struct mr17g_card *card)
 {
-    volatile struct mr17g_sci_iomem *sci = &chip->iomem->sci;
-
+	struct mr17g_sci *sci = &card->sci;
+	volatile struct mr17g_sci_regs *regs = &sci->iomem->regs;
     // setup HDLC registers
-	iowrite8( 0,&sci->regs.CRA);
+	iowrite8(0,&regs->CRA);
 	mdelay(100);
-	iowrite8( (XRST | RXEN),&sci->regs.CRA);
-	iowrite8(1,&sci->regs.SR);
-    iowrite8((RXS | TXS | CRC | COL | OFL),&sci->regs.IMR);	
+	iowrite8((XRST0|XRST1|RXEN),&regs->CRA);
+	iowrite8(1,&regs->SR);
+    iowrite8((RXS | TXS | CRC | COL | OFL),&regs->IMR);	
 
     // Init chip locking
-	spin_lock_init(&chip->sci.lock );
+	spin_lock_init(&sci->lock);
     // Init interrupt wait queue
-    init_waitqueue_head( &chip->wait_q );
-    // Init monitoring work queue
-	INIT_WORK( &chip->wqueue, mr17g_sci_monitor,(void*)chip);
-
+    init_waitqueue_head( &sci->wait_q );
+	// Initialize work queue for link monitoring
+	INIT_WORK(&sci->wqueue, mr17g_sci_monitor,(void*)card);
     // setup SCI controller
-    if( pef22554_setup_sci(chip) ){
+    if( pef22554_setup_sci(card) ){
         goto error;
     }
     // Display result HDLC registers content
-    sci = &chip->iomem->sci;
     PDEBUG(debug_sci,"CRA=%02x, CRB=%02x, IMR=%02x, SR=%02x",
-    sci->regs.CRA,sci->regs.CRB,sci->regs.IMR,sci->regs.SR);
-
+    	ioread8(&regs->CRA),ioread8(&regs->CRB),
+    	ioread8(&regs->IMR),ioread8(&regs->SR));
 	PDEBUG(debug_sci,"SCI enabled");
 	return 0;
 error:
-	iowrite8( 0,&sci->regs.CRA);
-    iowrite8(0,&sci->regs.IMR);	
+	iowrite8( 0,&regs->CRA);
+    iowrite8(0,&regs->IMR);	
     return -1;
 }
 
 int
-mr17g_sci_disable(struct mr17g_chip *chip)
+mr17g_sci_disable(struct mr17g_card *card)
 {
-    volatile struct mr17g_sci_iomem *sci = &chip->iomem->sci;
+	struct mr17g_sci *sci = &card->sci;
+	volatile struct mr17g_sci_regs *regs = &sci->iomem->regs;
 
 	PDEBUG(debug_sci,"start");
-
 	// shut down device
-	iowrite8( 0,&sci->regs.CRA);
-	iowrite8( 0,&sci->regs.IMR);	
-	iowrite8( 0xff ,&sci->regs.SR );
+	iowrite8(0,&regs->CRA);
+	iowrite8(0,&regs->IMR);	
+	iowrite8(0xff,&regs->SR);
 	PDEBUG(debug_sci,"SCI disabled");
 	return 0;
 }
 
 void
-mr17g_sci_endmon(struct mr17g_chip *chip)
+mr17g_sci_endmon(struct mr17g_card *card)
 {
+	struct mr17g_sci *sci = &card->sci;
 	PDEBUG(debug_sci,"start");
     // Cancel monitoring
-	cancel_delayed_work(&chip->wqueue);
+	cancel_delayed_work(&sci->wqueue);
 }
 
 int 
-mr17g_sci_request_one(struct mr17g_chip *chip,char buf[SCI_BUF_SIZE],int size)
+mr17g_sci_request_one(struct mr17g_sci *sci,int chipnum,char buf[SCI_BUF_SIZE],int size)
 {
-    volatile struct mr17g_sci_iomem *sci = &chip->iomem->sci;
-	u8 tmp = ioread8(&sci->regs.CRA);
+    volatile struct mr17g_sci_iomem *mem = sci->iomem;
+	volatile struct mr17g_sci_regs *regs = &mem->regs;
+	u8 tmp = ioread8(&regs->CRA);
     int i,ret;
 
-	PDEBUG(debug_sci,"start");	
-//    PDEBUG(debug_sci,"CRA=%02x, CRB=%02x, IMR=%02x, SR=%02x",
-//            sci->regs.CRA,sci->regs.CRB,sci->regs.IMR,sci->regs.SR);
+	PDEBUG(debug_sci,"start, CRA=%02x, CRB=%02x, IMR=%02x, SR=%02x",
+		ioread8(&regs->CRA),ioread8(&regs->CRB),ioread8(&regs->IMR),ioread8(&regs->SR));	
 
     // SCI is busy now, fail to transmit
     if( tmp & TXEN ){
@@ -110,45 +103,58 @@ mr17g_sci_request_one(struct mr17g_chip *chip,char buf[SCI_BUF_SIZE],int size)
     //---------------- Transmit message --------------------
 
     // Lock chipset until end of request
-    spin_lock(&chip->sci.lock);
+    spin_lock(&sci->lock);
 
     // Move outgoing data to toransmit buffer
 	for( i=0; i<size; i++)
-		iowrite8( buf[i],(u8*)sci->tx_buf + i);
+		iowrite8( buf[i],(u8*)mem->tx_buf + i);
 
     // Prepare for transmission
-    chip->sci.rxs = 0;
-    chip->sci.crc_err = 0;
-	iowrite16( 0, &sci->regs.RXLEN);
-	iowrite16( size, &sci->regs.TXLEN);
+    sci->rxs = 0;
+    sci->crc_err = 0;
+	iowrite16(0,&regs->RXLEN);
+	iowrite16(size,&regs->TXLEN);
+	// Chip select
+	if( !chipnum ){
+		u8 cra = ioread8(&regs->CRA) & (~CSEL);
+		iowrite8(cra,&regs->CRA);
+	}else{
+		u8 cra = ioread8(&regs->CRA) | CSEL;
+		iowrite8(cra,&regs->CRA);
+	}
     // Delay for hardware correct work
     mdelay(1);
 
-    PDEBUG(debug_sci,"Before enable transmitter. First part of message, second - registers");
-    mr17g_sci_dump((u8*)&sci->tx_buf,7);
-    mr17g_sci_dump((u8*)&sci->regs,7);
+//    PDEBUG(debug_sci,"Before enable transmitter. First part of message, second - registers");
+//    mr17g_sci_dump((u8*)&sci->tx_buf,7);
+//    mr17g_sci_dump((u8*)&sci->regs,7);
+
+mdelay(1);
+	PDEBUG(debug_sci,"start, CRA=%02x, CRB=%02x, IMR=%02x, SR=%02x",
+		ioread8(&regs->CRA),ioread8(&regs->CRB),ioread8(&regs->IMR),ioread8(&regs->SR));	
+
 
     // Enable SCI transmitter
-	iowrite8( (ioread8(&sci->regs.CRA) | TXEN ), &sci->regs.CRA);
+	iowrite8((ioread8(&regs->CRA)|TXEN ),&regs->CRA);
 
     //----------------- Receive reply ------------------------
-
     // Wait for message
-    if( !chip->sci.rxs ){
-       ret = interruptible_sleep_on_timeout( &chip->wait_q, HZ/100 );
+    if( !sci->rxs ){
+       ret = interruptible_sleep_on_timeout( &sci->wait_q,HZ/100);
     }else{
         ret = 1;
     }
     PDEBUG(debug_sci,"After interrupt wait");	
     // Check correctness of transmission and receiving
-	if( chip->sci.crc_err || !chip->sci.rxs ){
-		PDEBUG(debug_error,"Collision detected, sci.rxs = %d, sci.crc_err=%d",chip->sci.rxs,chip->sci.crc_err);
-		chip->sci.crc_err = 0;
+	if( sci->crc_err || !sci->rxs ){
+		PDEBUG(debug_error,"Collision detected, sci.rxs = %d, sci.crc_err=%d",sci->rxs,sci->crc_err);
+		sci->crc_err = 0;
         size = -1;
         goto exit;
 	}
+	
     // Read & check incoming message length
-	size = ioread16(&sci->regs.RXLEN);
+	size = ioread16(&regs->RXLEN);
     PDEBUG(debug_sci,"size = %d", size);
 	if( !size ){
 		PDEBUG(debug_error,"Zero length");
@@ -162,108 +168,110 @@ mr17g_sci_request_one(struct mr17g_chip *chip,char buf[SCI_BUF_SIZE],int size)
 
     // Move incoming message to local buffer
 	for( i=0; i<size; i++){
-		buf[i] = ioread8((u8*)sci->rx_buf + i);
+		buf[i] = ioread8((u8*)mem->rx_buf + i);
     }
 
 //----------- DEBUG ---------------------------
-    PDEBUGL(debug_sci,"Recv msg:");
-    for( i=0; i<size; i++){
-       PDEBUGL(debug_sci,"%02x ",buf[i] & 0xff);
-    }
-    PDEBUGL(debug_sci,"\n");
+//    PDEBUGL(debug_sci,"Recv msg:");
+//    for( i=0; i<size; i++){
+//       PDEBUGL(debug_sci,"%02x ",buf[i] & 0xff);
+//    }
+//    PDEBUGL(debug_sci,"\n");
 //----------- DEBUG ---------------------------
 
 exit:
     // Restore receiver on error exit
-	iowrite8( (ioread8( &sci->regs.CRA ) | RXEN), &sci->regs.CRA );		
+	iowrite8((ioread8(&regs->CRA)|RXEN),&regs->CRA);		
     // Unlock chip
-    spin_unlock(&chip->sci.lock);
-
-    PDEBUG(debug_sci,"CRA=%02x, CRB=%02x, IMR=%02x, SR=%02x",
-            sci->regs.CRA,sci->regs.CRB,sci->regs.IMR,sci->regs.SR);
+    spin_unlock(&sci->lock);
+//    PDEBUG(debug_sci,"CRA=%02x, CRB=%02x, IMR=%02x, SR=%02x",
+//            sci->regs.CRA,sci->regs.CRB,sci->regs.IMR,sci->regs.SR);
 	PDEBUG(debug_sci,"end");	
     return size;
 }
 
 
 int 
-mr17g_sci_request(struct mr17g_chip *chip,char buf[SCI_BUF_SIZE],int size,int acksize)
+mr17g_sci_request(struct mr17g_sci *sci,int cnum,char buf[SCI_BUF_SIZE],int size,
+		int acksize)
 {
     int i,ret = 0;;
-    
+	// Try to make request several times
     for(i=0;i<3;i++){
-        if( (ret = mr17g_sci_request_one(chip,buf,size)) == acksize ){
+        if( (ret = mr17g_sci_request_one(sci,cnum,buf,size)) == acksize ){
             return ret;
         }
         PDEBUG(debug_error,"Iter %d, error",i);
     }
-    return (-1)*ret;
+    if( ret > 0 )
+    	ret *= -1;
+    return ret;
 }
 
 
 irqreturn_t
-mr17g_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *regs )
+mr17g_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *ptregs )
 {
-	struct mr17g_chip *chip = (struct mr17g_chip *)dev_id;
-    volatile struct mr17g_sci_iomem *sci = &chip->iomem->sci;
-	u8 mask = ioread8(&sci->regs.IMR);
-	u8 status = (ioread8(&sci->regs.SR) & mask);	
+	struct mr17g_sci *sci = (struct mr17g_sci *)dev_id;
+	volatile struct mr17g_sci_regs *regs = &sci->iomem->regs;
+	u8 mask = ioread8(&regs->IMR);
+	u8 status = (ioread8(&regs->SR) & mask);	
 
-    gen_interrupts++;
-	
+	PDEBUG(debug_sci,"start");
+
 	if( !status )
 		return IRQ_NONE;
-    
-    sci_interrupts++;
-	PDEBUG(debug_sci,"status=%02x, gen=%d, sci=%d",status,gen_interrupts,sci_interrupts);	
 
-	iowrite8(0xff,&sci->regs.SR);   // ack all interrupts
-	iowrite8(0,&sci->regs.IMR);  // disable interrupts
+	iowrite8(0xff,&regs->SR);   // ack all interrupts
+	iowrite8(0,&regs->IMR);		// disable interrupts
 
 	if( status & TXS ){
 		PDEBUG(debug_sci,"TXS");
-		chip->sci.tx_packets++;
-		chip->sci.tx_bytes += ioread16(&sci->regs.TXLEN);
+		sci->tx_packets++;
+		sci->tx_bytes += ioread16(&regs->TXLEN);
 	}
 
 	if( status & RXS ){
 		int in_len;
 		PDEBUG(debug_sci,"RXS");
-		in_len = ioread16(&sci->regs.RXLEN);
-		chip->sci.rx_packets++;
-		chip->sci.rx_bytes += in_len;
-		wake_up( &chip->wait_q );
-        chip->sci.rxs = 1;
+		in_len = ioread16(&regs->RXLEN);
+		sci->rx_packets++;
+		sci->rx_bytes += in_len;
+		wake_up(&sci->wait_q );
+        sci->rxs = 1;
 	}
 
 	if( status & CRC ){
-        chip->sci.crc_errors++;
-		chip->sci.crc_err = 1;
-		iowrite8( (ioread8( &sci->regs.CRA ) | RXEN), &sci->regs.CRA );
+        sci->crc_errors++;
+		sci->crc_err = 1;
+		iowrite8( (ioread8(&regs->CRA )|RXEN),&regs->CRA );
 		PDEBUG(debug_error,"CRC");
-		wake_up( &chip->wait_q );
+		wake_up(&sci->wait_q );
 	}
 	
 	if( status & COL ){
-        chip->sci.tx_collisions++;
+        sci->tx_collisions++;
 		PDEBUG(debug_error,"COL");
-		wake_up( &chip->wait_q );
+		wake_up( &sci->wait_q );
 	}
 	
-	iowrite8(mask, &sci->regs.IMR); // enable interrupts
+	iowrite8(mask, &regs->IMR); // enable interrupts
 	return IRQ_HANDLED;
 }
 
 void
 mr17g_sci_monitor(void *data)
 {
-	struct mr17g_chip *chip = (struct mr17g_chip *)data;
-    int i;
-    for(i=0;i<chip->if_quan;i++){
-        mr17g_net_link(chip->ifs[i]);
+	struct mr17g_card *card = (struct mr17g_card *)data;
+    int i,j;
+    for(i=0;i<card->chip_quan;i++){
+    	struct mr17g_chip *chip = card->chips + i;
+    	for(j=0;j<chip->if_quan;j++){
+        	mr17g_net_link(chip->ifs[j]);
+    	}
     }
     // Schedule next monitoring
-	schedule_delayed_work(&chip->wqueue,2*HZ);
+	schedule_delayed_work(&card->sci.wqueue,2*HZ);
 }
 
 
@@ -281,6 +289,19 @@ mr17g_sci_dump(u8 *addr, int size)
     PDEBUGL(debug_sci,"\n");
 }
 
+
+
+
+
+
+
+
+
+
+
+
+// ------------------------ OLD debugging stuff -----------------------//
+/*
 void 
 mr17g_sci_memcheck(u8 *addr){
     int i,j;
@@ -336,3 +357,4 @@ return;
     }
 }
 
+*/

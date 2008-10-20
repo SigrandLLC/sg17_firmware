@@ -69,23 +69,37 @@
 
 //----------------------- Types of hardware -----------
 #define MR17G_PCI_VEN 0x0055
-// 1. MR17G4 (4*E1, PEF22554 chipset)
-#define MR17G4_PCI_DEV 0x0098
-// 1. MR17G8 (8*E1, 2*PEF22554 chipset)
-#define MR17G8_PCI_DEV 0x0097
+#define MR17G_PCI_DEV 0x0098
+
+// MR17G4 (4*E1, PEF22554 chipset)
+#define MR17G4_SUBSYS_ID 0x0001
+#define MR17G4_IOMEM_SIZE 16*1024
+// MR17G84 (8*E1, 2*PEF22554 chipsets, 4*E1 only for MULTIPLEXING)
+#define MR17G84_SUBSYS_ID 0x0002
+#define MR17G84_IOMEM_SIZE 16*1024
+// MR17G8 (8*E1, 2*PEF22554 chipsets)
+#define MR17G8_SUBSYS_ID 0x0003
 
 //---------- General memory map constants --------------
 #define MR17G_CH_SIZE 2*1024  // 2Kb
 
-// CR bits
+// Channel & SCI CRA bits
 #define TXEN    0x01            // transmitter enable
 #define RXEN    0x02            // receiver  enable
 #define NCRC    0x04            // ignore received CRC
 #define DLBK    0x08            // digital loopback
-#define CMOD    0x10            // 0 - use CRC-32, 1 - CRC-16
+#define CSEL    0x10            // In SCI Chip select bit
 #define FMOD    0x20            // interframe fill: 0 - all ones, 1 - 0xfe
+#define XRST0    0x80            // reset the transceiver
+
+// Channel only CRA bits
+#define CMOD    0x10            // 0 - use CRC-32, 1 - CRC-16
 #define PMOD    0x40            // data polarity: 0 - normal, 1 - invert
-#define XRST    0x80            // reset the transceiver
+
+// SCI only CRA bits
+#define CSEL    0x10            // In SCI Chip select bit
+#define XRST1    0x40            // 
+
 
 // CRB bits
 #define RDBE    0x01            // read burst enable
@@ -120,6 +134,22 @@
 #define MAX_TS_BIT 32
 
 
+//--------------- Memory map ------------------------------ //
+#define MR17G_CHAN1_SIZE 2*1024
+#	define CHAN1_BUFSIZE	512
+#	define CHAN1_HDLCTX_OFFS 0
+#	define CHAN1_HDLCRX_OFFS (CHAN1_HDLCTX_OFFS + CHAN1_BUFSIZE)  
+#	define CHAN1_REGS_OFFS (CHAN1_HDLCRX_OFFS + CHAN1_BUFSIZE)  
+#define MR17G_SCI_SIZE 4*1024
+#define MR17G_CHAN2_SIZE 256
+#	define CHAN2_REGS_OFFS 0
+
+#define MR17G_CHAN1_START 0x0000
+#define MR17G_SCI_START (MR17G_CHAN1_START + 4*MR17G_CHAN1_SIZE)
+#define MR17G_CHAN2_START (MR17G_SCI_START + MR17G_SCI_SIZE)
+
+
+
 // -------------- Channel memory -------------------------- //
 
 // Channel registers
@@ -132,10 +162,9 @@ struct mr17g_hw_regs{
 
 // Channel memory map
 struct mr17g_chan_iomem{
-    struct sg_hw_descr  tx_buf[64];
-    struct sg_hw_descr  rx_buf[64];
-    struct mr17g_hw_regs regs;
-    u8 pad[1000];
+    volatile struct mr17g_hw_regs *regs;
+    volatile struct sg_hw_descr  *tx_buf;
+    volatile struct sg_hw_descr  *rx_buf;
 };
 
 // ---------------- SCI  ----------------------- //
@@ -154,21 +183,16 @@ struct mr17g_sci_iomem {
 };
 
 // SCI service structure
-struct mr17g_sci_srv{
-    spinlock_t lock;
+struct mr17g_sci{
+	volatile struct mr17g_sci_iomem *iomem;
+	spinlock_t lock;
+	wait_queue_head_t  wait_q;
+	struct work_struct wqueue;
     u8 rxs:1;
     u8 crc_err:1;
     u32 tx_packets,tx_bytes;
     u32 rx_packets,rx_bytes;
     u32 crc_errors,tx_collisions;
-};
-
-// ------------------- General mapping ----------------------//
-// General memory map
-#define MR17G_IOMEM_SIZE 0x3000
-struct mr17g_iomem {
-    volatile struct mr17g_chan_iomem  channels[4];
-    volatile struct mr17g_sci_iomem sci;
 };
 
 //------------------- MR17G card service structures ----------//
@@ -197,35 +221,39 @@ struct mr17g_chan_config{
 
 
 // Chipset description
+enum mr17g_chiptype {MR17G_STANDARD,MR17G_MUXONLY};
 struct mr17g_chip{
-    volatile struct mr17g_iomem *iomem;
+	enum mr17g_chiptype type;
+	int num;
     unsigned long iomem_start;
-    struct mr17g_sci_srv sci;
-    struct pci_dev *pdev;
-	wait_queue_head_t  wait_q;
-	struct work_struct wqueue;
+    void *iomem;
     struct net_device *ifs[4];
+    struct mr17g_sci *sci;
+    struct pci_dev *pdev;
     u8 if_quan;
 };
 
 struct mr17g_channel{
+    struct mr17g_chan_iomem iomem;
     struct mr17g_chan_config cfg;
 	struct sg_ring rx,tx;
-    volatile struct mr17g_chan_iomem *iomem;
     struct mr17g_chip *chip;
     u8 num;
-    spinlock_t lock;
 	struct net_device_stats	stats;
-
 };
 
 //
+enum mr17g_cardtype { MR17G4,MR17G84,MR17G8 };
 struct mr17g_card{
     char name[32];
     int number;
-    u8 *iomem;
+	// resources
     unsigned long iomem_start,iomem_end;
+    void *iomem;
     struct pci_dev *pdev;
+	enum mr17g_cardtype type;
+	// devices
+	struct mr17g_sci sci;
     struct mr17g_chip *chips;
     u8 chip_quan;
 };

@@ -14,11 +14,13 @@
 
 #include "mr17g.h"
 
-int mr17g_sci_enable(struct mr17g_chip *chip);
-int mr17g_sci_disable(struct mr17g_chip *chip);
-void mr17g_sci_endmon(struct mr17g_chip *chip);
+int mr17g_sci_enable(struct mr17g_card *card);
+int mr17g_sci_disable(struct mr17g_card *card);
+void mr17g_sci_endmon(struct mr17g_card *card);
 irqreturn_t mr17g_sci_intr(int irq,void *dev_id,struct pt_regs *regs);
-int mr17g_sci_request(struct mr17g_chip *chip,char buf[SCI_BUF_SIZE],int size,int acksize);
+int mr17g_sci_request(struct mr17g_sci *sci,int cnum,char buf[SCI_BUF_SIZE],int size,int acksize);
+void pef22554_defcfg(struct mr17g_channel *chan);
+
 void mr17g_sci_monitor(void *data);
 
 //debug

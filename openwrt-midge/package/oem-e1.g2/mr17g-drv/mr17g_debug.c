@@ -10,14 +10,14 @@
  *
  */
 
-int debug_xmit=40;
-int debug_recv=40;
-int debug_irq=40;
+int debug_xmit=20;
+int debug_recv=20;
+int debug_irq=0;
 int debug_sci=40;
-int debug_init=40;
-int debug_pef=40;
+int debug_init=20;
+int debug_pef=20;
 int debug_cur=50;
-int debug_net=40;
-int debug_link=40;
-int debug_error=0;
-int debug_sysfs=40;
+int debug_net=20;
+int debug_link=20;
+int debug_error=20;
+int debug_sysfs=20;

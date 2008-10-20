@@ -36,13 +36,12 @@ static unsigned int cur_card_number = 0;
 module_init(mr17g_init);
 module_exit(mr17g_exit);
 
-
 /*----------------------------------------------------------
  * Driver initialisation 
  *----------------------------------------------------------*/
 static struct pci_device_id  mr17g_pci_tbl[] __devinitdata = {
-{ PCI_DEVICE(MR17G_PCI_VEN,MR17G4_PCI_DEV) },
-{ PCI_DEVICE(MR17G_PCI_VEN,MR17G8_PCI_DEV) },
+{ PCI_DEVICE(MR17G_PCI_VEN,MR17G_PCI_DEV) },
+{ PCI_DEVICE(MR17G_PCI_VEN,MR17G_PCI_DEV) },
 { 0 }
 };
 
@@ -117,13 +116,45 @@ mr17g_remove_one( struct pci_dev *pdev )
 	PDEBUG(debug_init,"end");
 }
 
+inline int
+mr17g_setup_chip(struct mr17g_card *card,int ind,enum mr17g_chiptype type)
+{
+	struct mr17g_chip *chip = card->chips + ind;
+    PDEBUG(debug_init,"New chip = %p",chip);
+    chip->pdev = card->pdev;
+	chip->if_quan = 4; // TODO: in future may be cards vith 2 and 1 interfaces
+	chip->sci = &card->sci;
+	chip->type = type;
+	chip->num = ind;
+	switch( ind ){
+	case 0:
+		chip->iomem_start = card->iomem_start + MR17G_CHAN1_START;
+		chip->iomem = card->iomem + MR17G_CHAN1_START;
+		break;
+	case 1:
+		chip->iomem_start = card->iomem_start + MR17G_CHAN2_START;
+		chip->iomem = card->iomem + MR17G_CHAN2_START;
+		break;
+	default:
+		printk(KERN_ERR"%s: wrong chip number (%d), may be only 0,1\n",MR17G_MODNAME,ind);
+		return -1;
+	}	
+	// Setup PEF22554 basic general registers
+	if( pef22554_basic_chip(chip) ){
+		return -1;
+    }
+    // Initialise network interfaces
+    if( mr17g_net_init(chip) )
+    	return -1;  
+	return 0;
+} 
+
 // Initialize MR17G hardware 
 struct mr17g_card * __devinit
 mr17g_init_card(struct pci_dev *pdev)
 {
     struct mr17g_card *card = NULL;
-    int i,j;
-    u32 len;
+    u32 len,iomem_size;
 
     PDEBUG(debug_init,"start");
 
@@ -133,93 +164,111 @@ mr17g_init_card(struct pci_dev *pdev)
         goto error;
     }
 
+	// Clear card structure
 	memset((void*)card,0,sizeof(struct mr17g_card));
+	// Setup card resources
 	card->pdev = pdev;
-    card->number = cur_card_number++;
-	card->iomem_start = pci_resource_start( card->pdev, 1 );
+	card->number = cur_card_number++;
+	card->iomem_start = pci_resource_start(card->pdev,1);
 	card->iomem_end = pci_resource_end( card->pdev, 1 );
     len = pci_resource_len(pdev,1);
 	sprintf(card->name,MR17G_DRVNAME"_%d",card->number);
-    switch( card->pdev->device ){
-    case MR17G4_PCI_DEV:
-        card->chip_quan = 1;
+	
+	// Setup card subtype
+    switch(card->pdev->subsystem_device){
+    case MR17G4_SUBSYS_ID:
+        card->type = MR17G4;
+		iomem_size = MR17G4_IOMEM_SIZE;
+		card->chip_quan = 1;
         break;
-    case MR17G8_PCI_DEV:
-        card->chip_quan = 2;
+    case MR17G84_SUBSYS_ID:
+        card->type = MR17G84;
+		iomem_size = MR17G84_IOMEM_SIZE;
+		card->chip_quan = 2;
+        break;
+    case MR17G8_SUBSYS_ID:
+        card->type = MR17G8;
+		iomem_size = MR17G84_IOMEM_SIZE;
+		card->chip_quan = 2;
         break;
     default:
-        card->chip_quan = 0;
-    }
-    if( (card->iomem_end - card->iomem_start) < (card->chip_quan * MR17G_IOMEM_SIZE) ){
-		printk(KERN_ERR"%s: wrong size of I/O Memory Window for chip %s\n",MR17G_MODNAME,card->name);
+        printk("%s: error hardware PCI Subsystem ID = %04x for module\n",
+        		MR17G_MODNAME,card->pdev->subsystem_device);
         goto cardfree;
-    }    
+    }
+
+	// Check & request memory region
+    if( (card->iomem_end - card->iomem_start) + 1 != iomem_size ){
+		printk(KERN_ERR"%s: wrong size of I/O Memory Window (%ld != %d) for chip %s\n",
+				MR17G_MODNAME,(card->iomem_end-card->iomem_start) + 1, iomem_size,card->name);
+        goto cardfree;
+    }
+   	if( !request_mem_region(card->iomem_start,iomem_size,card->name) ){
+	    	printk(KERN_ERR"%s: error requesting io memory region for %s\n",MR17G_MODNAME,card->name);
+            goto cardfree;
+    }
+   	card->iomem = (void*)ioremap(card->iomem_start,iomem_size);
+
+   	PDEBUG(debug_init,"request IRQ");
+    if( request_irq( pdev->irq, mr17g_sci_intr, SA_SHIRQ, card->name, (void*)&card->sci) ){
+	    printk(KERN_ERR"%s: error requesting irq(%d) for %s\n",MR17G_MODNAME,pdev->irq,card->name);
+   		goto memfree;
+    }
+	
+	// Initialise SCI controller
+	card->sci.iomem = card->iomem + MR17G_SCI_START;
+	PDEBUG(0,"SCI=%x",(unsigned long)(card->sci.iomem) - (unsigned long)(card->iomem));
+    if( mr17g_sci_enable(card) ){
+		goto irqfree;
+    }
+
+	// Allocate chip structures
     card->chips = (struct mr17g_chip*)
             kmalloc( card->chip_quan*sizeof(struct mr17g_card), GFP_KERNEL );
     if( !card->chips ){
 		printk(KERN_ERR"%s: error allocating memory for chips ctructures\n",MR17G_MODNAME);
-        goto cardfree;
+        goto irqfree;
     }
 
-    // Setup chipsets structures on the card
-    for(i=0;i<card->chip_quan;i++){
-        struct mr17g_chip *chip = (card->chips + i);
-        PDEBUG(debug_init,"New chip = %p",chip);
-        chip->pdev = card->pdev;
-        chip->if_quan = 4; // TODO: in future may be cards vith 2 and 1 interfaces
-        // Init MR17G memory window
-	    PDEBUG(debug_init,"request memory region ");
-        chip->iomem_start = card->iomem_start + i*MR17G_IOMEM_SIZE;
-    	if( !request_mem_region(chip->iomem_start,MR17G_IOMEM_SIZE,card->name ) ){
-	    	printk(KERN_ERR"%s: error requesting io memory region for %s\n",MR17G_MODNAME,card->name);
-            goto memfree;
-        }
-    	chip->iomem = (struct mr17g_iomem*)ioremap(chip->iomem_start, MR17G_IOMEM_SIZE );
-    	PDEBUG(debug_init,"request IRQ");
-	    if( request_irq( pdev->irq, mr17g_sci_intr, SA_SHIRQ, card->name, (void*)chip) ){
-		    printk(KERN_ERR"%s: error requesting irq(%d) for %s\n",MR17G_MODNAME,pdev->irq,card->name);
-    		goto mapfree;
-	    }
+	// Setup first chip
+	if( mr17g_setup_chip(card,0,MR17G_STANDARD) )
+		goto chipsfree;
+
+	switch(card->type){
+	case MR17G4:
+		// Card has only one chip
+		break;
+	case MR17G84:
+		// Setup second chip (Only with multiplexing)	
+		if( mr17g_setup_chip(card,1,MR17G_MUXONLY) )
+			goto chip1free;
+		break;
+	case MR17G8:
+		// Setup second chip normally	
+		if( mr17g_setup_chip(card,1,MR17G_STANDARD) )
+			goto chip1free;
+		break;
+	}	
+
+	// Start chipsets monitoring
+    mr17g_sci_monitor((void*)card);
+
+	PDEBUG(0,"CHAN1=%p, CHAN2=%p, SCI=%p",
+		(void*)card->chips->iomem_start,(void*)(card->chips+1)->iomem_start,card->sci.iomem);
 
 
-        // Initialise SCI interface
-        if( mr17g_sci_enable(chip) ){
-            goto mapfree;
-        }
-
-        // Setup PEF22554 basic general registers
-        if( pef22554_basic_card(chip) ){
-            goto mapfree;
-        }
-
-        // Initialise network interfaces
-        if( mr17g_net_init(chip) )  
-            goto mapfree;
-        
-        // Start chip monitoring
-        mr17g_sci_monitor((void*)chip);
-    }
     PDEBUG(debug_init,"Return card = %p",card);
     return card;
-
-mapfree:
-    {
-        struct mr17g_chip *chip = (card->chips + i);
-        PDEBUG(debug_init,"memfree: i=%d",i);
-        iounmap( (void*)chip->iomem );
-  	    release_mem_region( chip->iomem_start, MR17G_IOMEM_SIZE );
-	    free_irq(chip->pdev->irq, chip);
-    }
-memfree:
-    for(j=0;j<i;j++){
-        struct mr17g_chip *chip = (card->chips + j);
-        mr17g_net_uninit(chip);
-        mr17g_sci_disable(chip);
-        iounmap( (void*)chip->iomem );
-    	release_mem_region( chip->iomem_start, MR17G_IOMEM_SIZE );
-	    free_irq(chip->pdev->irq, chip);
-    }        
+	
+chip1free:
+	mr17g_net_uninit(card->chips);
+chipsfree:
     kfree(card->chips);
+irqfree:
+    free_irq(pdev->irq,&card->sci);
+memfree:
+	iounmap( (void*)card->iomem );
+    release_mem_region(card->iomem_start,iomem_size);
 cardfree:
     kfree(card);
 error:
@@ -230,19 +279,22 @@ error:
 static void  __devexit
 mr17g_shutdown_card(struct mr17g_card *card)
 {
+    int iomem_size = card->iomem_end - card->iomem_start + 1;
     int i;
-    PDEBUG(debug_init,"start, card = %p",card);
-    for(i=0;i<card->chip_quan;i++){
-        struct mr17g_chip *chip = (card->chips + i);
-        PDEBUG(debug_init,"start, card = %p, chip = %p",card,chip);
-        mr17g_sci_endmon(chip);
-        mr17g_net_uninit(chip);
-        mr17g_sci_disable(chip);
-        iounmap( (void*)chip->iomem );
-    	release_mem_region( card->iomem_start + i*MR17G_IOMEM_SIZE, MR17G_IOMEM_SIZE );
-	    free_irq(chip->pdev->irq, chip);
+    
+	PDEBUG(debug_init,"start, card = %p",card);
+	mr17g_sci_endmon(card);
+	for(i=0;i<card->chip_quan;i++){
+		struct mr17g_chip *chip = (card->chips + i);
+		PDEBUG(debug_init,"uninit, card = %p, chip = %p",card,chip);
+		mr17g_net_uninit(chip);
     }
-    kfree(card->chips);
-    PDEBUG(debug_init,"end");
+	mr17g_sci_disable(card);
+	mr17g_sci_endmon(card);
+	kfree(card->chips);
+	free_irq(card->pdev->irq,(void*)&card->sci);
+	iounmap((void*)card->iomem);
+	release_mem_region(card->iomem_start,iomem_size);
+	PDEBUG(debug_init,"end");
 }
 
