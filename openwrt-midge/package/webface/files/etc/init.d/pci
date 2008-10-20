@@ -12,6 +12,17 @@ eocd_file="/etc/eocd/interface-migraton"
 
 . /etc/templates/oem-vars
 
+mr17g_muxonly(){
+	local file="/sys/class/net/$1/hw_private/muxonly"
+	if [ -f "$file" ]; then
+		local muxonly=`cat $file`
+		[ "$muxonly" = "0" ] && return 1;
+		return 0;
+	else
+		return 0;
+	fi
+}
+
 pci_driver(){
 
 	if [ $# -lt 2 ]; then 
@@ -213,6 +224,9 @@ _pci_start(){
 			continue
 		fi
 		for i in `$kdb get sys_pcitbl_s${s}_ifaces`; do
+			if [ "$type" = "$mr17g_drvname" ]; then
+				mr17g_muxonly $i && continue
+			fi
 			nifaces="$nifaces \n $i"
 		done
 	done
