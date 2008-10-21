@@ -1,85 +1,137 @@
+/**
+ * @file svd_ua.c
+ * User Agent implementation.
+ * It contains main User Agent (Client and Server) actions and callbacks.
+ */ 
+
+/*Includes {{{*/
 #include "svd.h"
 #include "svd_ua.h"
 #include "svd_atab.h"
 #include <stdlib.h>
 #include <errno.h>
 #include <assert.h>
+/*}}}*/
 
-#define SDP_STR_MAX_LEN 512
-
-/************************************************************************ UAC */
+/** @defgroup UAC_I User Agent Client internals.
+ *  @ingroup UAC_P
+ *  Internal helper functions using with UAC interface functions.
+ *  @{*/
+/** Create INVITE message.*/
 static int 
 svd_pure_invite( svd_t * const svd, ab_chan_t * const chan, 
 		char const * const from_str, char const * const to_str );
-
-static void
+/** Make AUTHENTICATION.*/
+static void 
 svd_authenticate( svd_t * svd, nua_handle_t * nh, sip_t const *sip, 
 		tagi_t * tags );
+/** @}*/ 
 
-/************************************************************************ UAS */
+
+/** @defgroup UAS_I User Agent Server internals.
+ *  @ingroup UAS_P
+ *  Internal helper functions using with man callback.
+ *  @{*/
+/** Error indication.*/
 static void 
 svd_i_error(int const status, char const * const phrase);
+/** Incoming call INVITE.*/
 static void 
 svd_i_invite( int status, char const * phrase, svd_t * const svd, 
 		nua_handle_t * nh, ab_chan_t * chan, 
 		sip_t const *sip, tagi_t tags[]);
+/** Incoming INVITE has been cancelled.*/
 static void 
 svd_i_cancel (nua_handle_t const * const nh, ab_chan_t const * const chan);
-static void
-svd_i_state (int status, char const *phrase, nua_t * nua, svd_t * svd,
-		nua_handle_t * const nh, ab_chan_t * chan, sip_t const *sip,
-		tagi_t tags[]);
+/** Call state has changed.*/
+static void 
+svd_i_state (int status, char const *phrase, nua_t * nua, 
+		svd_t * svd, nua_handle_t * const nh, ab_chan_t * chan, 
+		sip_t const *sip, tagi_t tags[]);
+/** Incoming BYE call hangup.*/
 static void
 svd_i_bye (nua_handle_t const * const nh, ab_chan_t const * const chan);
+/** PRACK.*/
 static void 
 svd_i_prack (nua_handle_t * nh, ab_chan_t const * const chan, 
 		sip_t const * const sip);
+/** Session INFO.*/
 static void 
 svd_i_info(int status, char const * phrase, svd_t * const svd, 
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const * sip);
+/** Make REGISTER SIP action.*/
+static void svd_register (svd_t * const svd);
+
+
+/** Answer to outgoing INVITE.*/
 static void 
 svd_r_invite( int status, char const *phrase, nua_t * nua, svd_t * svd,
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip,
 		tagi_t tags[]);
+/** Answer to nua_get_params() or nua_get_hparams().*/
 static void 
 svd_r_get_params( int status, char const *phrase, nua_t * nua, svd_t * svd, 
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip, 
 		tagi_t tags[] );
+/** Answer to nua_shutdown().*/
 static void 
 svd_r_shutdown( int status, char const *phrase, nua_t * nua, svd_t * svd, 
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip, 
 		tagi_t tags[] );
+/** Answer to outgoing REGISTER.*/
 static void
 svd_r_register (int status, char const *phrase, nua_t * nua, svd_t * svd,
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip,
 		tagi_t tags[], int const is_register);
+/** Answer to outgoing BYE.*/
 static void
 svd_r_bye(int status, char const *phrase,
 	  nua_handle_t const * const nh, ab_chan_t const * const chan);
-
+/** Answer to outgoing INFO.*/
 static void
 svd_r_info(int status, char const * phrase, svd_t * const svd, 
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const * sip);
+/** @}*/ 
 
+
+/** @defgroup UA_MAIN User Agent
+ *  User agent - main SIP abstraction for the caller.
+ *  @{*/
+/** Maximum length of SDP string.*/
+#define SDP_STR_MAX_LEN 512
+/** Parse SDP string and set appropriate session parameters.*/
 static void 
-svd_parse_sdp(svd_t * const svd, ab_chan_t * const chan, 
-		char const * str);
-
+svd_parse_sdp(svd_t * const svd, ab_chan_t * const chan, char const * str);
+/** Create SDP string depends on codec choice policy.*/
 static char *
 svd_new_sdp_string (long const media_port, enum codec_type_e const ct);
+/** @}*/ 
+
 
 /****************************************************************************/
 
-void svd_nua_callback(	nua_event_t  event,
-			int          status,
-			char const   *phrase,
-			nua_t        *nua,
-			svd_t        *svd,
-			nua_handle_t *nh,
-			ab_chan_t    *chan,
-			sip_t const  *sip,
-			tagi_t       tags[] )
-{
+/**
+ * It reacts on SIP events and call appropriate 
+ * functions from \c UAS.
+ *
+ * \param[in] 	event	occured event.
+ * \param[in] 	status	status on event.
+ * \param[in] 	phrase	status string on event.
+ * \param[in] 	nua		nua parent object.
+ * \param[in] 	svd		svd context structure.
+ * \param[in] 	nh		event handle.
+ * \param[in] 	chan	channel context structure.
+ * \param[in] 	sip		sip headers.
+ * \param[in] 	tags	event tags.
+ * \remark
+ *		Mainly just call in switch-case appropriate handler 
+ *		for occured event.
+ */ 
+void 
+svd_nua_callback (nua_event_t event, int status, char const * phrase,
+		nua_t * nua, svd_t * svd, nua_handle_t * nh, ab_chan_t * chan,
+		sip_t const * sip, tagi_t tags[] )
+{/*{{{*/
 DFS
 	SU_DEBUG_3(("Event : %s\n",nua_event_name(event)));
 	if(sip){
@@ -201,22 +253,23 @@ DFS
 			SU_DEBUG_2(("UNKNOWN EVENT : %d %s\n", status, phrase));
 	}
 DFE
-}
+}/*}}}*/
 
 /********************************************************************** UAC */
 
 /**
  * Sends an outgoing INVITE request.
  *
- * @param svd context pointer
- * @param use_ff_FXO use first free fxo port on destination router
- * @param chan_idx initiator channel index
+ * \param[in] svd 			context pointer.
+ * \param[in] use_ff_FXO 	use first free fxo port on destination router.
+ * \param[in] chan_idx 		initiator channel index.
  *
- * use use !!g_conf
+ * \remark
+ * 		Uses global \ref g_conf.
  */
 int
 svd_invite (svd_t * const svd, int const use_ff_FXO, int const chan_idx )
-{
+{/*{{{*/
 	svd_chan_t * chan_ctx = svd->ab->chans[chan_idx].ctx;
 	char to_str[100];
 	char from_str[100];
@@ -253,11 +306,22 @@ DFE
 __exit_fail:
 DFE
 	return -1;
-}
+}/*}}}*/
 
+/**
+ * Sends an outgoing INVITE request to internet SIP address 
+ * 		(set in address book).
+ *
+ * \param[in] svd 		context pointer.
+ * \param[in] chan_idx 	initiator channel index.
+ * \param[in] to_str 	destination address.
+ *
+ * \remark
+ * 		Uses global \ref g_conf strutcture.
+ */
 int  
 svd_invite_to (svd_t * const svd, int const chan_idx, char const * const to_str)
-{
+{/*{{{*/
 	ab_chan_t * chan = &svd->ab->chans[chan_idx];
 	svd_chan_t * chan_ctx = chan->ctx;
 	nua_handle_t * nh;
@@ -330,11 +394,17 @@ __exit_fail:
 	}
 DFE
 	return -1;
-}
+}/*}}}*/
 
-void 
+/**
+ * Register user to server according to \ref g_conf settings if user
+ * 		have no such registration.
+ *
+ * \param[in] svd context pointer
+ */ 
+static void 
 svd_register(svd_t * svd)
-{
+{/*{{{*/
 DFS
 	if ( !nua_handle_has_registrations (svd->op_reg) ) {
 		sip_to_t * fr_to;
@@ -348,11 +418,21 @@ DFS
 		}
 	} 
 DFE
-}
+}/*}}}*/
 
+/**
+ * Unregister all previously registered users from server (\ref g_conf).
+ *
+ * \param[in] svd context pointer
+ * \remark
+ *		It initiates nua_r_unregister event and in its handler svd_register()
+ *		make a new registration. That long way is necessary, because we do
+ *		not need multiple old registrations on the server.
+ * \sa svd_register(). 
+ */ 
 void 
 svd_refresh_registration (svd_t * const svd)
-{
+{/*{{{*/
 DFS
 	if ( nua_handle_has_registrations (svd->op_reg)){
 		nua_unregister(svd->op_reg,
@@ -380,24 +460,39 @@ DFS
 __exit:
 DFE
 	return;
-}
+}/*}}}*/
 
-void svd_shutdown(svd_t * svd)
-{
+/**
+ * It shotdown all the SIP stack. 
+ * We cann add there necessary actions before quit.
+ *
+ * \param[in] svd context pointer
+ * \remark
+ * 		It is not using in normal behavior, but in \ref svd_destroy(). 	
+ */ 
+void 
+svd_shutdown(svd_t * svd)
+{/*{{{*/
 DFS
 	nua_shutdown (svd->nua);
 DFE
-}
+}/*}}}*/
 
 /** 
- * Answers a call (processed in two phases). 
- *
- * See also svd_i_invite().
+ * Answers on  call (or just leave).  
+ * 
+ * \param[in,out] 	svd		context svd stucture.
+ * \param[in,out] 	chan	chan to operate on it.
+ * \param[in] 		status	status on event.
+ * \param[in] 		phrase	event phrase.
+ * \retval 0 we do not have calls to answer (normal case).
+ * \retval 1 we answer on some call (also normal case).
+ * \sa svd_i_invite().
  */
 int
 svd_answer(svd_t * const svd, ab_chan_t * const chan,  
 		int status, char const *phrase)
-{
+{/*{{{*/
 	int call_answered = 0;
 	char * l_sdp_str = NULL;
 	svd_chan_t * chan_ctx = chan->ctx;
@@ -442,14 +537,19 @@ __exit:
 	}
 DFE
 	return call_answered;
-}
+}/*}}}*/
 
 /**
- * Sends a BYE request to an operation on the chan.
+ * Sends a BYE request to an operation handle on the chan.
+ *
+ * \param[in,out] svd	context svd stucture.
+ * \param[in,out] chan	chan to operate on it.
+ * \remark
+ * 		It also clears the chan call info from previous call.
  */
 void 
 svd_bye (svd_t * const svd, ab_chan_t * const chan)
-{
+{/*{{{*/
 DFS
 	assert ( chan );
 	assert ( chan->ctx );
@@ -462,34 +562,23 @@ DFS
 		svd_clear_call (svd, chan);
 	}
 DFE
-}
+}/*}}}*/
 
 
 /**
- * Cancels a call operation currently in progress (if any).
- */
-void 
-svd_cancel (ab_chan_t * const chan)
-{
-DFS
-	assert ( chan );
-
-	svd_chan_t * chan_ctx = chan->ctx;
-
-	assert ( chan_ctx );
-	assert ( chan_ctx->op_handle );
-
-
-	nua_cancel (chan_ctx->op_handle, TAG_END());
-DFE
-}
-
-/******************************************************************************/
-
+ * Just make INVITE SIP action from address to address.
+ *
+ * \param[in] svd 		context svd struct.
+ * \param[in] chan 		chan to operate on it.
+ * \param[in] from_str	make INVITE _from_ SIP URI.
+ * \param[in] to_str	make INVITE _to_ SIP URI.
+ * \retval 0 	etherything ok.
+ * \retval -1	something nasty happens.
+ */ 
 static int 
 svd_pure_invite( svd_t * const svd, ab_chan_t * const chan, 
 		char const * const from_str, char const * const to_str )
-{
+{/*{{{*/
 	sip_to_t *to = NULL;
 	sip_to_t *from = NULL;  
 	char * l_sdp_str = NULL;
@@ -546,7 +635,7 @@ DFS
 		goto __exit_fail;
 	}
 
-#ifdef SVD_DEBUG_LOGS
+#if SVD_DEBUG_LOGS
 	SU_DEBUG_3 (("SDP STRING : %s\n", l_sdp_str));
 #endif
 
@@ -574,12 +663,20 @@ __exit_fail:
 	}
 DFE
 	return -1;
-}
+}/*}}}*/
 
+/**
+ * Make athentication with parameters from \ref g_conf.
+ *
+ * \param[in] svd 		context svd struct.
+ * \param[in] nh		nua handle to operate on it.
+ * \param[in] sip 		SIP headers.
+ * \param[in] tags 		event tags.
+ */ 
 static void
 svd_authenticate (svd_t * svd, nua_handle_t * nh, sip_t const *sip, 
 		tagi_t * tags)
-{
+{/*{{{*/
 	sip_www_authenticate_t const *wa = sip->sip_www_authenticate;
 	sip_proxy_authenticate_t const *pa = sip->sip_proxy_authenticate;
 DFS
@@ -591,44 +688,49 @@ DFS
 		char * reply = NULL;
 		sl_header_log(SU_LOG, 3, "Server auth: %s\n",(sip_header_t*)wa);
 		reply = su_sprintf(svd->home, "%s:%s:%s:%s",
-				wa->au_scheme,
-				msg_params_find(wa->au_params, "realm="),
-				g_conf.sip_set.user_name, 
-				g_conf.sip_set.user_pass);
+				wa->au_scheme, msg_params_find(wa->au_params, "realm="),
+				g_conf.sip_set.user_name, g_conf.sip_set.user_pass);
 		if (reply){
 			SU_DEBUG_4(("AUTHENTICATING WITH '%s'.\n", reply));
-			nua_authenticate(nh, 
-					NUTAG_AUTH(reply), 
-					TAG_END());
+			nua_authenticate (nh, NUTAG_AUTH(reply), TAG_END());
 			su_free(svd->home, reply);
 		}
 	}
 DFE
-}
+}/*}}}*/
 
-/************************************************************************ UAS */
-
-/******************************************************************************/
 
 /**
  * Prints verbose error information to stdout.
+ *
+ * \param[in] status 	error status value.
+ * \param[in] phrase 	error message.
  */
 static void
 svd_i_error(int const status, char const * const phrase)
-{
+{/*{{{*/
 DFS
 	SU_DEBUG_2(("NUA STACK ERROR : %03d %s\n", status, phrase));
 DFE
-}
+}/*}}}*/
 
 /**
- * Incoming INVITE request.
+ * Actions on incoming INVITE request.
+ *
+ * \param[in] 	status	status on event.
+ * \param[in] 	phrase	status string on event.
+ * \param[in] 	svd		svd context structure.
+ * \param[in] 	nh		event handle.
+ * \param[in] 	chan	channel context structure.
+ * \param[in] 	sip		sip headers.
+ * \param[in] 	tags	event tags.
+ *
  */
 static void
 svd_i_invite( int status, char const * phrase, svd_t * const svd, 
 		nua_handle_t * nh, ab_chan_t * chan, 
 		sip_t const *sip, tagi_t tags[])
-{
+{/*{{{*/
 	ab_chan_t * req_chan;
 	svd_chan_t * chan_ctx;
 	sip_to_t const *to = sip->sip_to;
@@ -739,30 +841,42 @@ DFS
 	}
 __exit:
 DFE
-}
+}/*}}}*/
 
 /**
  * Incoming CANCEL.
+ *
+ * \param[in] 	nh		event handle.
+ * \param[in] 	chan	channel context structure.
  */
 static void
 svd_i_cancel (nua_handle_t const * const nh, ab_chan_t const * const chan)
-{
+{/*{{{*/
 DFS
 	/* tag_? should destroy operation handle ?? */
 	assert (chan);
 	assert (((svd_chan_t *)(chan->ctx))->op_handle == nh);
 	SU_DEBUG_3 (("CANCEL received\n"));
 DFE
-}
+}/*}}}*/
 
 /**
  * Callback issued for any change in operation state.
+ *
+ * \param[in] 	status	status on event.
+ * \param[in] 	phrase	status string on event.
+ * \param[in] 	nua		nua parent object.
+ * \param[in] 	svd		svd context structure.
+ * \param[in] 	nh		event handle.
+ * \param[in] 	chan	channel context structure.
+ * \param[in] 	sip		sip headers.
+ * \param[in] 	tags	event tags.
  */
 static void
 svd_i_state(int status, char const *phrase, nua_t * nua, svd_t * svd,
 		nua_handle_t * const nh, ab_chan_t * chan, sip_t const *sip,
 		tagi_t tags[])
-{
+{/*{{{*/
 	char const * l_sdp = NULL;
 	char const * r_sdp = NULL;
 	int ss_state = nua_callstate_init;
@@ -876,32 +990,42 @@ DFS
 							chan->abs_idx));
 				}
 			}
-			/* если не мы закончили разговор "FXS-FXS" */
 			/* ioctl(ssc->fd, IFX_TAPI_TONE_BUSY_PLAY, 0);*/
 			break;
 	}
 DFE
-}
+}/*}}}*/
 
 /**
- * Incoming BYE request. Note, call state related actions are
- * done in the svd_i_state() callback.
+ * Incoming BYE request.\ Note, call state related actions are
+ * done in the \ref svd_i_state() callback.
+ *
+ * \param[in] 	nh		event handle.
+ * \param[in] 	chan	channel context structure.
  */
 static void
 svd_i_bye(nua_handle_t const * const nh, ab_chan_t const * const chan)
-{
+{/*{{{*/
 DFS
 	assert(chan);
 	assert(chan->ctx);
 	assert(((svd_chan_t *)(chan->ctx))->op_handle == nh);
 	SU_DEBUG_3 (("BYE received\n"));
 DFE
-}
+}/*}}}*/
 
+/**
+ * Incoming PRACK request.\ Note, call state related actions are
+ * done in the \ref svd_i_state() callback.
+ *
+ * \param[in] 	nh		event handle.
+ * \param[in] 	chan	channel context structure.
+ * \param[in] 	sip		sip headers.
+ */
 static void 
 svd_i_prack (nua_handle_t * nh, ab_chan_t const * const chan, 
 		sip_t const * const sip)
-{
+{/*{{{*/
 	sip_rack_t const * rack;
 DFS
 	rack = sip->sip_rack;
@@ -910,25 +1034,49 @@ DFS
 		nua_handle_destroy(nh);
 	}
 DFE
-}
+}/*}}}*/
 
+/**
+ * Incoming INFO request.
+ *
+ * \param[in] 	status	status on event.
+ * \param[in] 	phrase	status string on event.
+ * \param[in] 	svd		svd context structure.
+ * \param[in] 	nh		event handle.
+ * \param[in] 	chan	channel context structure.
+ * \param[in] 	sip		sip headers.
+ * \remark
+ * 		This is not using now. But later it can be used for DIGIT transmition.
+ */
 static void 
 svd_i_info(int status, char const * phrase, svd_t * const svd, 
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const * sip)
-{
+{/*{{{*/
 DFS
 	SU_DEBUG_3 (("%s\n",sip->sip_payload->pl_data));
 DFE
-}
+}/*}}}*/
 
 /**
- * Result callback for nua_r_get_params request.
+ * Result callback for nua_r_get_params() request.
+ *
+ * \param[in] 	status	status on event.
+ * \param[in] 	phrase	status string on event.
+ * \param[in] 	nua		nua parent object.
+ * \param[in] 	svd		svd context structure.
+ * \param[in] 	nh		event handle.
+ * \param[in] 	chan	channel context structure.
+ * \param[in] 	sip		sip headers.
+ * \param[in] 	tags	event tags.
+ * \remark
+ * 		It sets the chan->ctx payload (RTP codec type from sdp string), 
+ * 		and show all tags.
  */
 void
 svd_r_get_params(int status, char const *phrase, nua_t * nua, svd_t * svd,
 		 nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip,
 		 tagi_t tags[])
-{
+{/*{{{*/
 	char buff [256];
 	char const * l_sdp_str = NULL;
 DFS
@@ -965,13 +1113,25 @@ DFS
 		tags = tl_next(tags);
 	}
 DFE
-}
+}/*}}}*/
 
+/**
+ * Result callback for nua_shutdowns() request.
+ *
+ * \param[in] 	status	status on event.
+ * \param[in] 	phrase	status string on event.
+ * \param[in] 	nua		nua parent object.
+ * \param[in] 	svd		svd context structure.
+ * \param[in] 	nh		event handle.
+ * \param[in] 	chan	channel context structure.
+ * \param[in] 	sip		sip headers.
+ * \param[in] 	tags	event tags.
+ */
 static void 
 svd_r_shutdown( int status, char const *phrase, nua_t * nua, svd_t * svd, 
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip, 
 		tagi_t tags[] )
-{
+{/*{{{*/
 DFS
 	/*
 	 * 100 - shutdown started
@@ -984,13 +1144,26 @@ DFS
 		svd->nua = NULL;
 	}
 DFE
-}
+}/*}}}*/
 
+/**
+ * Callback on nua-(un)register event.
+ *
+ * \param[in] 	status	status on event.
+ * \param[in] 	phrase	status string on event.
+ * \param[in] 	nua		nua parent object.
+ * \param[in] 	svd		svd context structure.
+ * \param[in] 	nh		event handle.
+ * \param[in] 	chan	channel context structure.
+ * \param[in] 	sip		sip headers.
+ * \param[in] 	tags	event tags.
+ * \param[in] 	is_register try we register(1) on unregister(0).
+ */
 static void
 svd_r_register(int status, char const *phrase, nua_t * nua, svd_t * svd,
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip,
 		tagi_t tags[], int const is_register)
-{
+{/*{{{*/
 DFS
 	if(is_register){
 		SU_DEBUG_3(("REGISTER: %03d %s\n", status, phrase));
@@ -1015,16 +1188,27 @@ DFS
 		nua_handle_destroy (nh);
 	} 
 DFE
-}
+}/*}}}*/
 
 /**
  * Callback for an outgoing INVITE request.
+ *
+ * \param[in] 	status	status on event.
+ * \param[in] 	phrase	status string on event.
+ * \param[in] 	nua		nua parent object.
+ * \param[in] 	svd		svd context structure.
+ * \param[in] 	nh		event handle.
+ * \param[in] 	chan	channel context structure.
+ * \param[in] 	sip		sip headers.
+ * \param[in] 	tags	event tags.
+ * \remark
+ * 		Make athentications if we need it.
  */
 static void 
 svd_r_invite( int status, char const *phrase, nua_t * nua, svd_t * svd,
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip,
 		tagi_t tags[])
-{
+{/*{{{*/
 DFS
 	SU_DEBUG_3(("got answer on INVITE: %03d %s\n", status, phrase));
 
@@ -1034,34 +1218,61 @@ DFS
 		}
 	}
 DFE
-}
+}/*}}}*/
 
 /**
  * Callback for an outgoing BYE request.
+ *
+ * \param[in] 	status	status on event.
+ * \param[in] 	phrase	status string on event.
+ * \param[in] 	nh		event handle.
+ * \param[in] 	chan	channel context structure.
  */
 static void
 svd_r_bye(int status, char const *phrase,
 	  nua_handle_t const * const nh, ab_chan_t const * const chan)
-{
+{/*{{{*/
 DFS
 	assert(chan);
 	assert(((svd_chan_t *)(chan->ctx))->op_handle == nh);
 	SU_DEBUG_3(("got answer on BYE: %03d %s\n", status, phrase));
 DFE
-}
+}/*}}}*/
 
+/**
+ * Callback for an outgoing INVITE request.
+ *
+ * \param[in] 	status	status on event.
+ * \param[in] 	phrase	status string on event.
+ * \param[in] 	svd		svd context structure.
+ * \param[in] 	nh		event handle.
+ * \param[in] 	chan	channel context structure.
+ * \param[in] 	sip		sip headers.
+ * \remark
+ * 		Not using yet. But in the future it can be using for 
+ * 		EVENTS transmission.
+ */
 static void
 svd_r_info(int status, char const * phrase, svd_t * const svd, 
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const * sip)
-{
+{/*{{{*/
 DFS
 	SU_DEBUG_3(("got answer on INFO: %d, %s\n",status,phrase));
 DFE
-}
+}/*}}}*/
 
+/**
+ * Sets channel RTP parameters from SDP string.
+ *
+ * \param[in] 		svd		svd context structure.
+ * \param[in,out] 	chan	channel context structure.
+ * \param[in] 		str		SDP string for parsing.
+ * \remark
+ * 		It sets chan-ctx port, host and payload from SDP string.
+ */
 static void 
 svd_parse_sdp(svd_t * const svd, ab_chan_t * const chan, char const *str)
-{
+{/*{{{*/
 	sdp_parser_t * remote_sdp = NULL;
 	sdp_session_t * sdp_sess = NULL;
 	sdp_connection_t * sdp_connection = NULL;
@@ -1083,8 +1294,7 @@ DFS
 			sdp_connection && sdp_connection->c_address) {
 		svd_chan_t * chan_ctx = chan->ctx;
 		chan_ctx->remote_port = sdp_sess->sdp_media->m_port;
-		chan_ctx->remote_host = su_strdup (svd->home, 
-				sdp_connection->c_address);
+		chan_ctx->remote_host = su_strdup(svd->home,sdp_connection->c_address);
 		chan_ctx->payload = sdp_sess->sdp_media->m_rtpmaps->rm_pt;
 		SU_DEBUG_5(("Got remote %s:%d with payload %d\n",
 				chan_ctx->remote_host, 
@@ -1095,11 +1305,21 @@ __exit:
 	sdp_parser_free (remote_sdp);
 DFE
 	return;
-}
+}/*}}}*/
 
+
+/**
+ * Creates SDP string according to given values.
+ *
+ * \param[in] 	media_port	port for RTP connection.
+ * \param[in] 	ct 			codec choice policy.
+ * \remark
+ * 		It creates new SDP string. Memory should be freed outside of 
+ * 		the function.
+ */
 static char * 
 svd_new_sdp_string (long const media_port, enum codec_type_e const ct)
-{
+{/*{{{*/
 	char * ret_str = malloc (SDP_STR_MAX_LEN);
 	if( !ret_str){
 		SU_DEBUG_1 ((LOG_FNC_A(LOG_NOMEM_A("sdp_str"))));
@@ -1129,5 +1349,5 @@ svd_new_sdp_string (long const media_port, enum codec_type_e const ct)
 	}
 __exit:
 	return ret_str;
-}
+}/*}}}*/
 

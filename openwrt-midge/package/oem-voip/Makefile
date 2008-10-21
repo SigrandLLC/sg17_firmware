@@ -19,7 +19,7 @@ PKG_SGATAB_DISTR:=drv_sgatab
 PKG_SVD_DISTR:=svd
 PKG_SVI_DISTR:=svi
 PKG_LIBAB_DISTR:=libab
-PKG_MTST_DISTR:=mtst
+PKG_TST_DISTR:=tst
 
 PKG_CONF_DIR:=$(TOPDIR)/package/$(PKG_NAME)
 PKG_SRC_DIR:=$(PKG_CONF_DIR)/files/src/
@@ -38,7 +38,7 @@ SGATAB_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SGATAB_DISTR) $(PKG_BUILD_DIR)
 SVD_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVD_DISTR) $(PKG_BUILD_DIR)
 SVI_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVI_DISTR) $(PKG_BUILD_DIR)
 LIBAB_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_LIBAB_DISTR) $(PKG_BUILD_DIR)
-MTST_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_MTST_DISTR) $(PKG_BUILD_DIR)
+TST_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_TST_DISTR) $(PKG_BUILD_DIR)
 
 
 $(eval $(call PKG_template,OEM_VOIP,oem-voip,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
@@ -58,7 +58,7 @@ $(PKG_BUILD_DIR)/.prepared:
 	$(SVD_UNPACK);
 	$(SVI_UNPACK);
 	$(LIBAB_UNPACK);
-	$(MTST_UNPACK);
+	$(TST_UNPACK);
 
 	#---------======================================---------
 	# 			prepare sources
@@ -264,9 +264,9 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 	);
 	touch $@
 
-	@echo "BUILD MTST..."
+	@echo "BUILD ?TST..."
 
-	( cd $(PKG_BUILD_DIR)/mtst; \
+	( cd $(PKG_BUILD_DIR)/tst; \
 		$(TARGET_CONFIGURE_OPTS) \
 		mipsel-linux-gcc \
 		-Wall \
@@ -275,10 +275,21 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 		-I../drv_sgatab/ \
 		-I../libab \
 		-L../libab \
-		mtst.c \
-		-o mtst \
+		etst.c \
+		-o etst \
 		-lab; \
-		${CP} mtst $(PKG_INSTALL_DIR)/bin/ \
+		$(TARGET_CONFIGURE_OPTS) \
+		mipsel-linux-gcc \
+		-Wall \
+		-I../vinetic/include/ \
+		-I../tapi/include/ \
+		-I../drv_sgatab/ \
+		-I../libab \
+		-L../libab \
+		vtst.c \
+		-o vtst \
+		-lab; \
+		${CP} *tst $(PKG_INSTALL_DIR)/bin/ \
 	);
 	touch $@
 
@@ -291,12 +302,12 @@ $(IPKG_OEM_VOIP):
 	install -d -m0755 $(IDIR_OEM_VOIP)/etc/init.d/
 	cp -rpf $(PKG_INSTALL_DIR)/bin/*.ko $(IDIR_OEM_VOIP)/lib/modules/2.6.16/
 	cp -rpf $(PKG_INSTALL_DIR)/bin/sv* $(IDIR_OEM_VOIP)/bin/
-	cp -rpf $(PKG_INSTALL_DIR)/bin/mtst $(IDIR_OEM_VOIP)/bin/
+	cp -rpf $(PKG_INSTALL_DIR)/bin/*tst $(IDIR_OEM_VOIP)/bin/
 	cp -rpf $(PKG_CONF_DIR)/files/fw/* $(IDIR_OEM_VOIP)/lib/firmware/
 	cp -rpf $(PKG_CONF_DIR)/files/rc/* $(IDIR_OEM_VOIP)/etc/init.d/
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_OEM_VOIP)/CONTROL/control
 	$(RSTRIP) $(IDIR_OEM_VOIP)/bin/sv*
-	$(RSTRIP) $(IDIR_OEM_VOIP)/bin/mtst
+	$(RSTRIP) $(IDIR_OEM_VOIP)/bin/*tst
 	$(IPKG_BUILD) $(IDIR_OEM_VOIP) $(PACKAGE_DIR)
 	#---------============ IPKG_OEM_VOIP ===========---------
 	#---------- make ipkg

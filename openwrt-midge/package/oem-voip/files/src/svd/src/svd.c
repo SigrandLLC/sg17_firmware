@@ -1,3 +1,10 @@
+/** 
+ * @file svd.c
+ * Main file of the project.
+ * It containes main initializtions and main cycle start.
+ * */ 
+
+/* Includes {{{ */
 #include "svd.h"
 #include "svd_cfg.h"
 #include "svd_ua.h"
@@ -12,25 +19,39 @@
 #include <syslog.h>
 #include <signal.h>
 #include <errno.h>
+/*}}}*/
 
-/** Name of daemon (using in logs) */
+/** Name of the daemon (using in logs).*/
 #define DAEMON_NAME "svd"
-
-/******************************************************************************/
 
 unsigned int g_f_cnt= 0; 
 unsigned int g_f_offset = 0;
 
-static int 	svd_daemonize( void );
-static svd_t * 	svd_create( void );
+/** Switch to daemon mode.*/ 
+static int 	svd_daemonize(void);
+/** Create svd structure.*/ 
+static svd_t * 	svd_create(void);
+/** Destroy svd structure.*/ 
 static void svd_destroy( svd_t ** svd );
+/** Logging function.*/ 
 static void svd_logger(void *logarg, char const *format, va_list ap);
+/** Set logging function.*/ 
 static void svd_log_set( int const level, int const debug);
 
-/******************************************************************************/
-
-int main( int argc, char ** argv )
-{
+/**
+ * Main.
+ *
+ * \param[in] argc 	arguments count
+ * \param[in] argv 	arguments values
+ * \retval 0 	etherything is fine
+ * \retval -1 	error occures
+ * \remark
+ *		In the real it shold never returns if etherything is fine
+ *		because of main cycle.
+ */ 
+int 
+main (int argc, char ** argv)
+{/*{{{*/
 	svd_t *svd;
 	int err = 0;
 	int nothing_to_do;
@@ -42,11 +63,10 @@ int main( int argc, char ** argv )
 
 	/* daemonization */
 	err = svd_daemonize ();
-	if( err == -1 ){
+	if(err){
 		goto __startup;
 	}	
 	/* the daemon from now */
-
 
 	su_init();
 
@@ -63,12 +83,12 @@ int main( int argc, char ** argv )
 
 	/* read svd.conf file */
 	err = svd_conf_init();
-	if( err ){
+	if (err){
 		goto __conf;
 	}
 
 	/* change log level, if it is not debug mode, from config sets */
-	if(g_so.debug_level == -1){
+	if (g_so.debug_level == -1){
 		svd_log_set (g_conf.log_level, 0);
 	} 
 
@@ -76,35 +96,32 @@ int main( int argc, char ** argv )
 	/* uses !!g_cnof */
 	svd = svd_create( );
 	if (svd == NULL) {
-		goto __svd;
+		goto __conf;
 	}
 
 	/* run main cycle */
 	su_root_run (svd->root);
 
-__svd:
-	svd_destroy (&svd);
 __conf:
 	svd_conf_destroy ();
 	su_deinit ();
 __startup:
 	startup_destroy (argc, argv);
 	return err;
-}
+}/*}}}*/
 
-/////////////////////////////////////////////////////////////////
-/**
-	Set the routine daemon mode 
-\return
-	0 - everything fine
-	-1 - error occures 
-\remark
-	error messages will pass to stderr
-	if debug is off stderr redirect to /dev/null as stdout and stdin
-*/
+/** 
+ * Switch main process to daemon mode.
+ *
+ * \retval 0 	etherything is fine
+ * \retval -1 	error occures
+ * \remark
+ * 		Error messages will pass to stderr if debug is on, 
+ * 		otherwise, stderr redirect to /dev/null as stdout and stdin
+ */ 
 static int
-svd_daemonize( void )
-{
+svd_daemonize (void)
+{/*{{{*/
 	pid_t pid; 
 	pid_t sid; 
 
@@ -162,26 +179,26 @@ svd_daemonize( void )
 
 __exit_fail:
 	return -1;
-}
+}/*}}}*/
 
 /**
-	Create the svd structure
-\return
-	pointer to proper svd structure or NULL if somthing nasty happens
-\remark
-	if NULL returns \ref svd_destroy() should be called to free the memory
-	it init`s the internal ab structure
-	it calls all appropriate functions to create sofia-sip objects
-	it uses g_conf values
-*/
+ * Create the svd structure with all appropriate initializations.
+ *
+ * \retval NULL 			something nasty happens
+ * \retval valid_pointer 	new svd structure
+ * \remark
+ *		It init`s the internal ab structure
+ *  	It calls all appropriate functions to create sofia-sip objects
+ *  	It uses \ref g_conf values
+ */ 
 static svd_t * 
-svd_create( void )
-{
+svd_create (void)
+{/*{{{*/
 	svd_t * svd;
 	int err;
 DFS
 	svd = malloc( sizeof(*svd) );
-	if (!svd) {
+	if ( !svd) {
     		SU_DEBUG_0 (("svd_create() not enough memory\n"));
 		goto __exit_fail;
 	}
@@ -250,27 +267,31 @@ DFE
 
 __exit_fail:
 DFE
+	if(svd){
+		svd_destroy (&svd);
+	}
 	return NULL;
-}
+}/*}}}*/
 
 /**
-	Correct destroy function for svd structure
-\param
-	svd - pointer to pointer to svd structure that should be destroyed 
-\remark
-	it destroy the internal ab structure
-	it calls all appropriate functions to destroy sofia-sip objects
-	it destroys the structure and sets the pointer *svd to NULL
-*/
+ * Correct destroy function for svd structure	
+ *
+ * \param[in] svd 	pointer to pointer to svd structure 
+ * 		that should be destroyed
+ * \remark
+ * 		It destroy the internal ab structure
+ * 		It calls all appropriate functions to destroy sofia-sip objects
+ * 		It destroys the structure and sets the pointer *svd to NULL
+ */ 
 static void
 svd_destroy( svd_t ** svd )
-{
+{/*{{{*/
 DFS
 	if(*svd){
 		svd_atab_delete (*svd);
 
 		if((*svd)->nua){
-			nua_shutdown ((*svd)->nua);
+			svd_shutdown (*svd);
 		}
 		if((*svd)->root){
 			su_root_destroy ((*svd)->root);
@@ -283,20 +304,20 @@ DFS
 		*svd = NULL;
 	}
 DFE
-}
+}/*}}}*/
 
 /**
-	Log callback function
-\param
-	logarg - debug value or (-1) if logging is off
-	format - internal sofia log value
-	ap -  internal sofia log value
-\remark
-	it calls for every log action and make a decision what to do
-*/
+ * Logging callback function
+ *
+ * \param[in] logarg 	debug value or (-1) if logging is off
+ * \param[in] format 	message format (internal sofia log value)
+ * \param[in] ap 		message arguments (internal sofia log value)
+ * \remark
+ *		It calls for every log action and make a decision what to do.
+ */ 
 static void 
 svd_logger(void *logarg, char const *format, va_list ap)
-{
+{/*{{{*/
 	if( (int)logarg == -1){
 		/* do not log anything */
 		return;
@@ -307,29 +328,31 @@ svd_logger(void *logarg, char const *format, va_list ap)
 		/* debug is off - standart log */
 		vsyslog (LOG_INFO, format, ap);
 	}
-}
+}/*}}}*/
 
 /**
-	Sets the log configuration
-\param
-	level - log level 
-		-1 - do not log anything 
-		0 - very pure logs to 9 - very verbose
-	debug - 1 - log to stderr or 0 - log to jornal
-\remark
-	it attaches the callback logger function with proper params and uses
-	sofia sip logging system
-*/
+ * Sets the log configuration
+ *
+ * \param[in] level
+ *		\arg \c -1 - do not log anything 
+ *		\arg \c 0 - very pure logs to \c 9 - very verbose
+ * \param[in] debug
+ *		\arg \c 1 - log to stderr or 
+ *		\arg \c 0 - log to jornal
+ * \remark
+ *		It attaches the callback logger function with proper params and uses
+ *		sofia sip logging system
+ */ 
 static void
 svd_log_set( int const level, int const debug)
-{
+{/*{{{*/
 	if (level == -1){
-		/* do not log anything */
+ 		/* do not log anything */
 		su_log_set_level (NULL, 0);
 		su_log_redirect (NULL, svd_logger, (void*)-1);
 	} else {
 		su_log_set_level (NULL, level);
 		su_log_redirect (NULL,svd_logger,(void*)debug);
 	}
-}
+}/*}}}*/
 

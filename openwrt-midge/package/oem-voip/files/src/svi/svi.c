@@ -44,6 +44,15 @@ COMMAND LINE KEYS:
   -c, --skip-channels	skip channels firmware download
 */
 
+
+void
+show_last_err(char * msg, int fd)
+{
+	int error;
+	ioctl (fd, FIO_VINETIC_LASTERR, &error);
+	fprintf (stderr,"%s: 0x%X\n", msg, error);
+}
+
 struct _startup_options
 {
 	unsigned help : 1;
@@ -139,20 +148,24 @@ run( void )
 	/* test the voip modules presence */
 	err = voip_in_slots();
 	if(err){
-		return;
+		goto __exit;
 	}
 
 	/* load drivers stack and create node files */
 	err = load_modules();
 	if(err){
-		return;
+		goto __exit;
 	}
 
 	/* init devices and channels */
 	err = init_voip();
 	if(err){
-		return;
+		goto __exit_ioctl_msg;
 	}
+__exit:
+	return;
+__exit_ioctl_msg:
+	return;
 }
 
 static int 
@@ -442,12 +455,14 @@ basicdev_init( int const dev_idx, ab_dev_params_t const * const dp,
 	if(err){
 		g_err_no = ERR_IOCTL_FAILS;
 		sprintf(g_err_msg, "%s() device reset fails (ioctl)",__func__);
+		show_last_err(">>", cfg_fd);
 		goto __exit_fail_close;
 	}
 	err = ioctl (cfg_fd, FIO_VINETIC_BASICDEV_INIT, &binit);
 	if(err){
 		g_err_no = ERR_IOCTL_FAILS;
 		sprintf(g_err_msg, "%s() BasicDev init fails (ioctl)",__func__);
+		show_last_err(">>", cfg_fd);
 		goto __exit_fail_close;
 	}
 
@@ -516,7 +531,8 @@ chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt)
 	if( err ){
 		g_err_no = ERR_IOCTL_FAILS;
 		sprintf(g_err_msg,"%s() initilizing channel with"
-				"firmware (ioctl)",__func__);
+				" firmware (ioctl)",__func__);
+		show_last_err(">>", cfd);
 		goto __exit_fail_close;
 	}
 
@@ -553,6 +569,7 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 		g_err_no = ERR_IOCTL_FAILS;
 		strcpy(g_err_msg, "mapping channel to it`s "
 				"own data (ioctl)");
+		show_last_err(">>", rtp_fd);
 		goto ab_chan_init_tune__exit;
 	} 
 
@@ -568,6 +585,7 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 	if( err ){
 		g_err_no = ERR_IOCTL_FAILS;
 		strcpy(g_err_msg, "setting channel type (ioctl)" );
+		show_last_err(">>", rtp_fd);
 		goto ab_chan_init_tune__exit;
 	} 
 	if(dtype == dev_type_FXS) {
@@ -580,6 +598,7 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 			g_err_no = ERR_IOCTL_FAILS;
 			strcpy(g_err_msg, "trying to enable DTMF ALM signal "
 					"detection (ioctl)" );
+			show_last_err(">>", rtp_fd);
 			goto ab_chan_init_tune__exit;
 		}
 	} else if(dtype == dev_type_FXO) {
@@ -593,6 +612,7 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 			g_err_no = ERR_IOCTL_FAILS;
 			strcpy(g_err_msg, "trying to disable DTMF ALM signal "
 					"detection (ioctl)" );
+			show_last_err(">>", rtp_fd);
 			goto ab_chan_init_tune__exit;
 		}
 		/* set OSI timing */
@@ -602,6 +622,7 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 		if( err ){
 			g_err_no = ERR_IOCTL_FAILS;
 			strcpy(g_err_msg, "trying to set OSI timing (ioctl)" );
+			show_last_err(">>", rtp_fd);
 			goto ab_chan_init_tune__exit;
 		}
 	}

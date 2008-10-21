@@ -8,7 +8,7 @@
 #include "ab_api.h"
 
 #define WAIT_INTERVAL 500000
-#define EVENTS_PRECLEAN 3
+#define EVENTS_PRECLEAN 8
 
 struct ch_couple_s {
 	unsigned char chans[2]; /* 0 - FXS / 1 - FXO */
@@ -118,6 +118,7 @@ linefeed_keeper( ab_t * ab, unsigned int action )
 			}
 		}
 		free(lf);
+		lf = NULL;
 	}
 }
 
@@ -214,6 +215,13 @@ process_FXS(ab_chan_t * const chan)
 	int j;
 	int err;
 	int couple_has_been_found = 0;
+	int couple_idx;
+	int self_idx;
+
+	for(self_idx=0;
+			(self_idx < ab->chans_num) && 
+			(chan->abs_idx != ab->chans[self_idx].abs_idx); 
+			self_idx++);
 
 	/* emits ring and find couple (it can exists) */
 	err = ab_FXS_line_ring(chan, ab_chan_ring_RINGING);
@@ -273,6 +281,7 @@ process_FXS(ab_chan_t * const chan)
 				return;
 			} 
 			couple_has_been_found = 1;
+			couple_idx = chan_idx;
 
 			/* parse other events on this device */
 			while(evt.more){
@@ -314,7 +323,8 @@ process_FXS(ab_chan_t * const chan)
 	/* if no couple - tell about it */
 	if( !couple_has_been_found){
 		fprintf(stdout,"!ATT no couple found for [%d]\n", chan->abs_idx);
-	}
+		return;
+	} 
 }
 
 void
@@ -329,6 +339,12 @@ process_FXO(ab_chan_t * const chan)
 	int couple_has_been_found = 0;
 	int couple_idx = -1;
 	int chan_idx;
+	int self_idx;
+
+	for(self_idx=0;
+			(self_idx < ab->chans_num) && 
+			(chan->abs_idx != ab->chans[self_idx].abs_idx); 
+			self_idx++);
 
 	/* emits offhook and find couple (it can exists) */
 	err = ab_FXO_line_hook(chan, ab_chan_hook_OFFHOOK);
@@ -481,7 +497,7 @@ process_FXO(ab_chan_t * const chan)
 		}
 
 		/* set linefeed to previous on all FXSchans */
-		linefeed_keeper( ab, 1);
+		linefeed_keeper (ab, 1);
 	}
 }
 

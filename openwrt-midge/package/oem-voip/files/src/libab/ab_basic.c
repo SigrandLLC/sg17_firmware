@@ -172,7 +172,6 @@ get_devs_params (unsigned int * const devs_num, ab_dev_params_t ** const dprms)
 		goto __close_and_exit_fail;
 	}
 
-
 	for (*devs_num=0,i=0; i<cp; i++){
 		memset(&bp, 0, sizeof(bp));
 		bp.board_idx = i;

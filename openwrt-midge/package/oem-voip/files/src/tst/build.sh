@@ -9,7 +9,7 @@ vinetic_name=drv_vinetic-1.3.1_tapi-3.6.1
 path_to_bin=/home/vlad/OpenWRT/staging_dir_mipsel/bin/
 PATH=$PATH:${path_to_bin}
 
-echo MAKING MTST...
+echo MAKING [E,V]TST...
 
 cd ${cur_path}/..
 tar -xvpf ${tapi_name}.tar.gz 
@@ -23,10 +23,12 @@ cd $lib_path
 ./build.sh
 
 cd $cur_path
-mipsel-linux-uclibc-gcc -Wall -I$asrc_path/vinetic/include/ -I$asrc_path/tapi/include/ -I$asrc_path/sgatab/ -I$asrc_path -L$asrc_path mtst.c -o mtst -lab
+mipsel-linux-uclibc-gcc -Wall -I$asrc_path/vinetic/include/ -I$asrc_path/tapi/include/ -I$asrc_path/sgatab/ -I$asrc_path -L$asrc_path vtst.c -o vtst -lab
 
-echo COPYING TO TFTPBOOT...
-	cp mtst ~/tftpboot
+mipsel-linux-uclibc-gcc -Wall -I$asrc_path/vinetic/include/ -I$asrc_path/tapi/include/ -I$asrc_path/sgatab/ -I$asrc_path -L$asrc_path etst.c -o etst -lab
+
+echo COPING TO TFTPBOOT...
+	cp *tst ~/tftpboot
 
 cd ${cur_path}/..
 rm -rf sgatab tapi vinetic ${tapi_name} ${vinetic_name}

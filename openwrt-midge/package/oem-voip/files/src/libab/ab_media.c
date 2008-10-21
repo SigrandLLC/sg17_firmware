@@ -62,21 +62,21 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan )
 
 	/* set out-of-band (RFC 2833 packet) transmission type */
 	switch(rtpp->nEvents){
-		case evts_OOB_DEFAULT:
-			rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_DEFAULT;
-			break;
-		case evts_OOB_NO:
-			rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_NO;
-			break;
-		case evts_OOB_ONLY:
-			rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_ONLY;
-			break;
-		case evts_OOB_ALL:
-			rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_ALL;
-			break;
-		case evts_OOB_BLOCK:
-			rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_BLOCK;
-			break;
+	case evts_OOB_DEFAULT:
+		rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_DEFAULT;
+		break;
+	case evts_OOB_NO:
+		rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_NO;
+		break;
+	case evts_OOB_ONLY:
+		rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_ONLY;
+		break;
+	case evts_OOB_ALL:
+		rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_ALL;
+		break;
+	case evts_OOB_BLOCK:
+		rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_BLOCK;
+		break;
 	}
 
 	/* Configure payload type for RFC 2833 packets */
@@ -85,53 +85,53 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan )
 
 	/* What to do upon RFC 2833 packets reception */
 	switch(rtpp->nPlayEvents){
-		case play_evts_DEFAULT:
-			rtpConf.nPlayEvents = IFX_TAPI_PKT_EV_OOBPLAY_DEFAULT;
-			break;
-		case play_evts_PLAY:
-			rtpConf.nPlayEvents = IFX_TAPI_PKT_EV_OOBPLAY_PLAY;
-			break;
-		case play_evts_MUTE:
-			rtpConf.nPlayEvents = IFX_TAPI_PKT_EV_OOBPLAY_MUTE;
-			break;
-		case play_evts_APT_PLAY:
-			rtpConf.nPlayEvents = IFX_TAPI_PKT_EV_OOBPLAY_APT_PLAY;
-			break;
+	case play_evts_DEFAULT:
+		rtpConf.nPlayEvents = IFX_TAPI_PKT_EV_OOBPLAY_DEFAULT;
+		break;
+	case play_evts_PLAY:
+		rtpConf.nPlayEvents = IFX_TAPI_PKT_EV_OOBPLAY_PLAY;
+		break;
+	case play_evts_MUTE:
+		rtpConf.nPlayEvents = IFX_TAPI_PKT_EV_OOBPLAY_MUTE;
+		break;
+	case play_evts_APT_PLAY:
+		rtpConf.nPlayEvents = IFX_TAPI_PKT_EV_OOBPLAY_APT_PLAY;
+		break;
 	}
 
 	encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_20;
 
 	switch(rtpp->cod_pt){
-		case cod_pt_MLAW:
-			encCfg.nEncType = IFX_TAPI_COD_TYPE_MLAW;
-			break;
-		case cod_pt_ALAW:
-			encCfg.nEncType = IFX_TAPI_COD_TYPE_ALAW;
-			break;
-		case cod_pt_G729:
-			encCfg.nEncType = IFX_TAPI_COD_TYPE_G729;
-			encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_10;
-			break;
-		case cod_pt_G726_16:
-			encCfg.nEncType = IFX_TAPI_COD_TYPE_G726_16;
-			encCfg.AAL2BitPack = IFX_TAPI_COD_AAL2_BITPACK;
-			break;
-		case cod_pt_G726_24:
-			encCfg.nEncType = IFX_TAPI_COD_TYPE_G726_24;
-			encCfg.AAL2BitPack = IFX_TAPI_COD_AAL2_BITPACK;
-			break;
-		case cod_pt_G726_32:
-			encCfg.nEncType = IFX_TAPI_COD_TYPE_G726_32;
-			encCfg.AAL2BitPack = IFX_TAPI_COD_AAL2_BITPACK;
-			break;
-		case cod_pt_G726_40:
-			encCfg.nEncType = IFX_TAPI_COD_TYPE_G726_40;
-			encCfg.AAL2BitPack = IFX_TAPI_COD_AAL2_BITPACK;
-			break;
-		case cod_pt_ILBC_133:
-			encCfg.nEncType = IFX_TAPI_COD_TYPE_ILBC_133;
-			encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_30;
-			break;
+	case cod_pt_MLAW:
+		encCfg.nEncType = IFX_TAPI_COD_TYPE_MLAW;
+		break;
+	case cod_pt_ALAW:
+		encCfg.nEncType = IFX_TAPI_COD_TYPE_ALAW;
+		break;
+	case cod_pt_G729:
+		encCfg.nEncType = IFX_TAPI_COD_TYPE_G729;
+		encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_10;
+		break;
+	case cod_pt_G726_16:
+		encCfg.nEncType = IFX_TAPI_COD_TYPE_G726_16;
+		encCfg.AAL2BitPack = IFX_TAPI_COD_AAL2_BITPACK;
+		break;
+	case cod_pt_G726_24:
+		encCfg.nEncType = IFX_TAPI_COD_TYPE_G726_24;
+		encCfg.AAL2BitPack = IFX_TAPI_COD_AAL2_BITPACK;
+		break;
+	case cod_pt_G726_32:
+		encCfg.nEncType = IFX_TAPI_COD_TYPE_G726_32;
+		encCfg.AAL2BitPack = IFX_TAPI_COD_AAL2_BITPACK;
+		break;
+	case cod_pt_G726_40:
+		encCfg.nEncType = IFX_TAPI_COD_TYPE_G726_40;
+		encCfg.AAL2BitPack = IFX_TAPI_COD_AAL2_BITPACK;
+		break;
+	case cod_pt_ILBC_133:
+		encCfg.nEncType = IFX_TAPI_COD_TYPE_ILBC_133;
+		encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_30;
+		break;
 	}
 
 	/* Configure encoder and decoder gains */
@@ -139,16 +139,22 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan )
 	codVolume.nDec = rtpp->cod_volume.dec_dB;
 
 	/* Set the VAD configuration */
-	if(rtpp->VAD_cfg == vad_cfg_ON){
+	switch(rtpp->VAD_cfg){
+	case vad_cfg_ON:
 		vad_param = IFX_TAPI_ENC_VAD_ON;
-	} else if(rtpp->VAD_cfg == vad_cfg_OFF){
+		break;
+	case vad_cfg_OFF:
 		vad_param = IFX_TAPI_ENC_VAD_NOVAD;
-	} else if(rtpp->VAD_cfg == vad_cfg_G711){
+		break;
+	case vad_cfg_G711:
 		vad_param = IFX_TAPI_ENC_VAD_G711;
-	} else if(rtpp->VAD_cfg == vad_cfg_CNG_only){
+		break;
+	case vad_cfg_CNG_only:
 		vad_param = IFX_TAPI_ENC_VAD_CNG_ONLY;
-	} else if(rtpp->VAD_cfg == vad_cfg_SC_only){
+		break;
+	case vad_cfg_SC_only:
 		vad_param = IFX_TAPI_ENC_VAD_SC_ONLY;
+		break;
 	}
 
 	/* Configure high-pass filter */
@@ -158,6 +164,78 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan )
 		hpf_param = IFX_FALSE;
 	}
 
+/* tag__ show choose */
+fprintf(stderr,"[%d]: OOB[",chan->abs_idx);
+switch(rtpp->nEvents){
+	case evts_OOB_DEFAULT:
+fprintf(stderr,"def");
+		break;
+	case evts_OOB_NO:
+fprintf(stderr,"no");
+		break;
+	case evts_OOB_ONLY:
+fprintf(stderr,"only");
+		break;
+	case evts_OOB_ALL:
+fprintf(stderr,"all");
+		break;
+	case evts_OOB_BLOCK:
+fprintf(stderr,"block");
+		break;
+	}
+fprintf(stderr,"/");
+switch(rtpp->nPlayEvents){
+	case play_evts_DEFAULT:
+fprintf(stderr,"def");
+		break;
+	case play_evts_PLAY:
+fprintf(stderr,"play");
+		break;
+	case play_evts_MUTE:
+fprintf(stderr,"mute");
+		break;
+	case play_evts_APT_PLAY:
+fprintf(stderr,"apt");
+		break;
+	}
+fprintf(stderr,"] |0x%X/0x%X| ",rtpConf.nEventPT,rtpConf.nEventPlayPT);
+switch(rtpp->cod_pt){
+	case cod_pt_MLAW:
+fprintf(stderr,"mlaw");
+		break;
+	case cod_pt_ALAW:
+fprintf(stderr,"alaw");
+		break;
+	case cod_pt_G729:
+fprintf(stderr,"g729");
+		break;
+	default:
+fprintf(stderr,"cod_");
+}
+fprintf(stderr,"[e%d/d%d] ",codVolume.nEnc,codVolume.nDec);
+switch(rtpp->VAD_cfg){
+	case vad_cfg_ON:
+fprintf(stderr,"vad on");
+		break;
+	case vad_cfg_OFF:
+fprintf(stderr,"vad off");
+		break;
+	case vad_cfg_G711:
+fprintf(stderr,"vad g711");
+		break;
+	case vad_cfg_CNG_only:
+fprintf(stderr,"vad cng_only");
+		break;
+	case vad_cfg_SC_only:
+fprintf(stderr,"vad sc_only");
+		break;
+	}
+
+if(rtpp->HPF_is_ON){
+fprintf(stderr," hpf on\n");
+	} else {
+fprintf(stderr," hpf off\n");
+	}
 
 	/*********** ioctl seq */
 
@@ -168,6 +246,7 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan )
 		err_summary++;
 		ab_err_set(AB_ERR_UNKNOWN, "media rtp PT tune ioctl error");
 	}
+
 	/* Set the rtp configuration (OOB, pkt params, etc.) */ 
 	err = 0;
 	err = ioctl(chan->rtp_fd, IFX_TAPI_PKT_RTP_CFG_SET, &rtpConf);
@@ -175,6 +254,7 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan )
 		err_summary++;
 		ab_err_set(AB_ERR_UNKNOWN, "media rtp tune ioctl error");
 	}
+
 	/* Set the coder */ 
 	err = 0;
 	err = ioctl(chan->rtp_fd, IFX_TAPI_ENC_CFG_SET, &encCfg);
@@ -189,6 +269,7 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan )
 		ab_err_set(AB_ERR_UNKNOWN, "vad set ioctl error");
 		err_summary++;
 	}
+
 	/* Configure encoder and decoder gains */
 	err = 0;
 	err = ioctl(chan->rtp_fd, IFX_TAPI_COD_VOLUME_SET, &codVolume);
@@ -196,6 +277,7 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan )
 		ab_err_set(AB_ERR_UNKNOWN, "volume set ioctl error");
 		err_summary++;
 	}
+
 	/* Configure high-pass filter */
 	err = 0;
 	err = ioctl(chan->rtp_fd, IFX_TAPI_COD_DEC_HP_SET, hpf_param);

@@ -1,3 +1,11 @@
+/**
+ * @file svd_cfg.c
+ * Configuration implementation.
+ * It contains startup \ref g_so and main \ref g_conf 
+ * 		configuration features implementation.
+ */ 
+
+/*Includes {{{*/
 #include "svd.h"
 #include "libconfig.h"
 #include "svd_cfg.h"
@@ -19,16 +27,25 @@
 #include <errno.h>
 
 #include <getopt.h>
+/*}}}*/
 
+/** @defgroup STARTUP_I Stratup internals.
+ *  @ingroup STARTUP
+ *  Internal startup definitons.
+ *  @{*/
 #define ERR_SUCCESS 0
 #define ERR_MEMORY_FULL 1
 #define ERR_UNKNOWN_OPTION 2
-
 static unsigned char g_err_no;
+/** @}*/ 
 
+
+/** @defgroup CFG_N Config file text values.
+ *  @ingroup CFG_M
+ *  Text values that can be in config file.
+ *  @{*/
 #define CONF_CODEC_SPEED "speed"
 #define CONF_CODEC_QUALITY "quality"
-
 #define CONF_OOB_DEFAULT "default"
 #define CONF_OOB_NO "in-band"
 #define CONF_OOB_ONLY "out-of-band"
@@ -43,24 +60,54 @@ static unsigned char g_err_no;
 #define CONF_VAD_G711 "g711"
 #define CONF_VAD_CNG_ONLY "CNG_only"
 #define CONF_VAD_SC_ONLY "SC_only"
+/** @}*/ 
 
+/** Common config.*/
 static struct config_t cfg;
+/** Routes config.*/
 static struct config_t route_cfg;
 
-static int self_values_init( void );
-static void log_init( void );
-static void sip_set_init( void );
-static int address_book_init( void );
-static int hot_line_init( void );
-static int route_table_init( void );
-static int rtp_prms_init( void );
-static void error_message( );
-static void show_help( void );
-static void show_version( void );
+/** @defgroup CFG_IF Config internal functions.
+ *  @ingroup CFG_M
+ *  This functions using while reading config file.
+ *  @{*/
+/** Init self router ip and number.*/
+static int self_values_init (void);
+/** Init logging configuration.*/
+static void log_init (void);
+/** Init SIP configuration.*/
+static void sip_set_init (void);
+/** Init addres book configuration.*/
+static int address_book_init (void);
+/** Init hot line configuration.*/
+static int hot_line_init (void);
+/** Init route table configuration.*/
+static int route_table_init (void);
+/** Init RTP parameters configuration.*/
+static int rtp_prms_init (void);
+/** Print error message if something occures.*/
+static void error_message (void);
+/** Print help message.*/
+static void show_help (void);
+/** Print version message.*/
+static void show_version (void);
+/** @}*/ 
 
+/**
+ * Init startup parameters structure \ref g_so.
+ *
+ * \param[in] argc parameters count.
+ * \param[in] argv parameters values.
+ * \retval 0 if etherything ok
+ * \retval error_code if something nasty happens
+ * 		\arg \ref ERR_MEMORY_FULL - not enough memory
+ * 		\arg \ref ERR_UNKNOWN_OPTION - bad startup option.
+ * \remark
+ *		It sets help, version and debug tags to \ref g_so struct.
+ */
 int 
 startup_init( int argc, char ** argv )
-{
+{/*{{{*/
 	int option_IDX;
 	int option_rez;
 	char * short_options = "hVd:";
@@ -115,32 +162,38 @@ startup_init( int argc, char ** argv )
 		}
 	}
 	return 0;
-}
+}/*}}}*/
 	
+/**
+ * 	Destroys startup parameters structure \ref g_so.
+ *
+ * \param[in] argc parameters count.
+ * \param[in] argv parameters values.
+ * \remark
+ *		It prints necessary messages.
+ */ 
 void 
-startup_destroy( argc, argv )
-{
+startup_destroy( int argc, char ** argv )
+{/*{{{*/
 	if( g_so.help ){
 		show_help( );
 	} else if( g_so.version ){
 		show_version( );
 	} 
-
 	error_message( );
-}
+}/*}}}*/
 
-/** 
- * Parses <svd.conf> file and 
- * write parsed info into <g_conf>
+/**
+ *	Parses configuration file and write parsed info into \ref g_conf.
  *
- * return 
- * -1 - in error case
- *  0 - in success 
- *
- * */
+ * \retval 0 success.
+ * \retval -1 in error case.
+ * \remark
+ *		It init`s main routine configuration \ref g_conf.
+ */ 
 int 
 svd_conf_init( void )
-{
+{/*{{{*/
 	char const * str_elem;
 	int err;
 
@@ -226,11 +279,17 @@ svd_conf_init__exit:
 
 	conf_show();
 	return -1;
-}
+}/*}}}*/
 
+/**
+ * Show config parameters.
+ *
+ * \remark
+ * 		It`s debug feature.
+ */ 
 void 
 conf_show( void )
-{
+{/*{{{*/
 	struct adbk_record_s * curr_ab_rec;
 	struct htln_record_s * curr_hl_rec;
 	struct rttb_record_s * curr_rt_rec;
@@ -312,11 +371,14 @@ conf_show( void )
 				i+1, curr_rt_rec->id, curr_rt_rec->value));
 	}
 	SU_DEBUG_3(("=========================\n"));
-}
+}/*}}}*/
 
+/**
+ * Free allocated memory for main configuration structure.
+ */
 void 
-svd_conf_destroy( void )
-{
+svd_conf_destroy (void)
+{/*{{{*/
 	int i;
 	int j;
 
@@ -362,13 +424,18 @@ svd_conf_destroy( void )
 	}
 
 	memset(&g_conf, 0, sizeof(g_conf));
-}
+}/*}}}*/
 
-/////////////////////////////////////////////////////////////////
 
+/**
+ * 	Init`s self ip and number settings in main routine configuration 
+ *
+ * \retval 0 success.
+ * \retval -1 fail.
+ */ 
 static int 
 self_values_init( void )
-{
+{/*{{{*/
 	char ** addrmas = NULL;
 	int addrs_count;
 	int route_records_num;
@@ -430,11 +497,14 @@ self_values_init( void )
         return 0;
 __exit_fail:
         return -1;
-}
+}/*}}}*/
 
+/**
+ * Init`s log settings in main routine configuration \ref g_conf structure.
+ */
 static void
 log_init( void )
-{
+{/*{{{*/
 	struct config_setting_t * set;
 
 	set = config_lookup (&cfg, "app.log" );
@@ -457,11 +527,14 @@ log_init( void )
 
 __exit:
 	return;
-}
+}/*}}}*/
 
+/**
+ * Init`s SIP settings in main routine configuration \ref g_conf structure.
+ */
 static void
 sip_set_init( void )
-{
+{/*{{{*/
 	char const * str_elem;
 
 	g_conf.sip_set.all_set = 0;
@@ -513,11 +586,18 @@ sip_set_init( void )
 	g_conf.sip_set.all_set = 1;
 __exit:
 	return;
-}
+}/*}}}*/
 
+/**
+ * Init`s address book records in main routine configuration 
+ * 		\ref g_conf structure.
+ *
+ * \retval 0 success.
+ * \retval -1 fail.
+ */ 
 static int
 address_book_init( void )
-{
+{/*{{{*/
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
 	struct adbk_record_s * curr_rec;
@@ -600,12 +680,18 @@ address_book_init__id_alloc:
 	}
 address_book_init__exit:
 	return -1;
-}
+}/*}}}*/
 
 
+/**
+ * Init`s hot line records in main routine configuration \ref g_conf structure.
+ *
+ * \retval 0 success.
+ * \retval -1 fail.
+ */ 
 static int 
 hot_line_init( void )
-{
+{/*{{{*/
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
 	struct htln_record_s * curr_rec; 
@@ -659,12 +745,18 @@ hot_line_init__exit_success:
 	return 0;
 hot_line_init__exit:
 	return -1;
-}
+}/*}}}*/
 
 
+/**
+ * Init`s route table in main routine configuration \ref g_conf structure.
+ *
+ * \retval 0 success.
+ * \retval -1 fail.
+ */ 
 static int
 route_table_init( void )
-{
+{/*{{{*/
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
 	struct rttb_record_s * curr_rec;
@@ -750,11 +842,17 @@ route_table_init__exit:
 	config_destroy (&route_cfg);
 
 	return -1;
-}
+}/*}}}*/
 
+/**
+ * Init`s RTP parameters in main routine configuration \ref g_conf structure.
+ *
+ * \retval 0 success.
+ * \retval -1 fail.
+ */ 
 static int
 rtp_prms_init( void )
-{
+{/*{{{*/
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
 	struct rtp_record_s * curr_rec;
@@ -765,8 +863,8 @@ rtp_prms_init( void )
 	/* Get values */
 	set = config_lookup (&cfg, "app.rtp_prms" );
 	if( !set ){
-		/* Config params for all channels must be in cfg file */
-		goto __exit_fail;
+		/* We will use statndart params for all channels */
+		goto __exit_success;
 	} 
 
 	rec_num = config_setting_length (set);
@@ -832,14 +930,18 @@ rtp_prms_init( void )
 		}
 		curr_rec->HPF_is_ON = config_setting_get_int_elem(rec_set, 8);
 	}
+__exit_success:
 	return 0;
 __exit_fail:
 	return -1;
-}
+}/*}}}*/
 
+/**
+ * Show error if something nasty happens.
+ */
 static void 
 error_message( void )
-{
+{/*{{{*/
 	switch( g_err_no ){
 		case ERR_SUCCESS :{
 			return;	
@@ -857,13 +959,16 @@ error_message( void )
 	}
 	fprintf( stderr,"Try '%s --help' for more information.\n", 
 			PACKAGE_NAME );
-}
+}/*}}}*/
 
 //------------------------------------------------------------
 
+/**
+ * Show help message.
+ */
 static void 
 show_help( void )
-{
+{/*{{{*/
 	fprintf( stdout, 
 "\
 Usage: %s [OPTION]\n\
@@ -882,13 +987,16 @@ Mandatory arguments to long options are mandatory for short options too.\n\
 Report bugs to <%s>.\n\
 "
 		, PACKAGE_NAME, PACKAGE_NAME, PACKAGE_BUGREPORT );
-}
+}/*}}}*/
 
 //------------------------------------------------------------
 
+/**
+ * Show program version, built info and license.
+ */
 static void 
 show_version( void )
-{
+{/*{{{*/
 	fprintf( stdout, 
 "\
 %s-%s, built [%s]-[%s]\n\n\
@@ -901,7 +1009,7 @@ Written by Vladimir Luchko. <%s>\n\
 "
 		, PACKAGE_NAME, PACKAGE_VERSION, 
 		__DATE__, __TIME__, PACKAGE_BUGREPORT);
-}
+}/*}}}*/
 
 //------------------------------------------------------------
 
