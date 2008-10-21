@@ -31,6 +31,8 @@ chain(){
 		unset enabled name proto _proto src _src dst _dst sport _sport dport _dport target natto _nat addr
 		eval "$val"
 
+		[ "x${enabled}x" = "xx" -o "x${enabled}x" = "x0x" ] && continue
+
 		[ "$proto" != "all" ] && _proto="-p $proto"
 
 		prepare_addr -s $src
@@ -48,7 +50,7 @@ chain(){
 		[ "$target" = "DNAT" ] && _nat="--to-destination=$natto"
 		[ "$target" = "SNAT" ] && _nat="--to-source=$natto"
 
-		[ "x${enabled}x" != "xx" ] && $ADD $uchain -t $table $_src $_dst $_proto $_sport $_dport -j $target $_nat
+		$ADD $uchain -t $table $_src $_dst $_proto $_sport $_dport -j $target $_nat
 	done
 }
 

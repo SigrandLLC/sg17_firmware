@@ -528,51 +528,26 @@ Controllers['iface'] = function(iface) {
 
 	/* QoS tab */
 	var showQos = function() {
-		var c, field;
-		c = page.addContainer("qos");
-		c.addTitle("QoS settings");
-		c.setHelpPage("qos");
-		
-		/* IDs of widgets */
-		var widgetsIDs = new Array();
-		
-		/* remove widgets */
-		var removeWidgets = function() {
-			if (widgetsIDs.length != 0) {
-				$.each(widgetsIDs, function(num, value) {
-					$("#" + value).parents("tr").remove();
-				});
-				widgetsIDs = new Array();
-			}
-		};
-		
-		/* add widgets for pfifo and bfifo */
+		/* add widgets for PFIFO and BFIFO */
 		var addFifoWidgets = function(type) {
-			var id;
-			
-			id = $.sprintf("sys_iface_%s_qos_fifo_limit", iface);
-			widgetsIDs.push(id);
+			var field;
 			field = { 
 				"type": "text",
-				"name": id,
-				"id": id,
+				"name": $.sprintf("sys_iface_%s_qos_fifo_limit", iface),
 				"text": "Buffer size",
+				"descr": $.sprintf("Queue length in %s", type == "pfifo" ? "packets" : "bytes"),
 				"validator": {"required": true, "min": 1, "max": 65535},
 				"defaultValue": type == "pfifo" ? "128" : "10240"
 			};
 			c.addWidget(field);
 		};
 		
-		/* add widgets for esfq */
+		/* add widgets for ESFQ */
 		var addEsfqWidgets = function() {
-			var id;
-			
-			id = $.sprintf("sys_iface_%s_qos_esfq_limit", iface);
-			widgetsIDs.push(id);
+			var field;
 			field = { 
 				"type": "text",
-				"name": id,
-				"id": id,
+				"name": $.sprintf("sys_iface_%s_qos_esfq_limit", iface),
 				"text": "Limit",
 				"descr": "Maximum packets in buffer",
 				"validator": {"required": true, "min": 10, "max": 65535},
@@ -580,24 +555,18 @@ Controllers['iface'] = function(iface) {
 			};
 			c.addWidget(field);
 			
-			id = $.sprintf("sys_iface_%s_qos_esfq_depth", iface);
-			widgetsIDs.push(id);
 			field = { 
 				"type": "text",
-				"name": id,
-				"id": id,
+				"name": $.sprintf("sys_iface_%s_qos_esfq_depth", iface),
 				"text": "Depth",
 				"validator": {"required": true, "min": 10, "max": 65535},
 				"defaultValue": "128"
 			};
 			c.addWidget(field);
 			
-			id = $.sprintf("sys_iface_%s_qos_esfq_hash", iface);
-			widgetsIDs.push(id);
 			field = { 
 				"type": "select",
-				"name": id,
-				"id": id,
+				"name": $.sprintf("sys_iface_%s_qos_esfq_hash", iface),
 				"text": "Hash",
 				"options": {"classic": "Classic", "src": "Source address",
 					"dst": "Destination address"},
@@ -606,19 +575,16 @@ Controllers['iface'] = function(iface) {
 			c.addWidget(field);
 		};
 		
-		/* add widgets for tbf */
+		/* add widgets for TBF */
 		var addTbfWidgets = function() {
-			var id;
-			
-			id = $.sprintf("sys_iface_%s_qos_tbf_rate", iface);
-			widgetsIDs.push(id);
+			var field;
+	
 			field = { 
 				"type": "text",
-				"name": id,
-				"id": id,
+				"name": $.sprintf("sys_iface_%s_qos_tbf_rate", iface),
 				"text": "Rate",
 				"descr": "Maximum rate for interface",
-				"validator": {"qosBandwith": true},
+				"validator": {"required": true, "qosBandwith": true},
 				"defaultValue": "512kbit",
 				"tip": "Unit can be: <br><i>kbit</i>, <i>Mbit</i> — for bit per second<br>" +
 					"and <i>kbps</i>, <i>Mbps</i> — for bytes per second"
@@ -626,43 +592,402 @@ Controllers['iface'] = function(iface) {
 			c.addWidget(field);
 		};
 		
+		/* add widgets for HTB */
+		var addHtbWidgets = function() {
+			var field;
+			
+			/* generate list of available default classes */
+			var classes = {"0": "none"};
+			$.each(config.getParsed($.sprintf("sys_iface_%s_qos_htb_class_*", iface)),
+				function(key, value) {
+					var classId = value['classid'].split(":")[1];
+					classes[classId] = value['name'];
+				}
+			);
+	
+			field = { 
+				"type": "select",
+				"name": $.sprintf("sys_iface_%s_qos_htb_default", iface),
+				"text": "Default class",
+				"descr": "Name of default class",
+				"options": classes,
+				"defaultValue": "0"
+			};
+			c.addWidget(field);
+			
+			/* generate page with fields for adding new class */
+			var classItem = $.sprintf("sys_iface_%s_qos_htb_class_", iface);
+			var addClass = function(item) {
+				var c, field;
+				page.clearTab("qos");
+				c = page.addContainer("qos");
+				c.setHelpPage("htb");
+				c.setHelpSection("htb_class_add");
+		
+				if (!item) {
+					c.addTitle("Add QoS HTB class");
+					values = config.getParsed(classItem + "*");
+					item = classItem + $.len(values);
+				} else c.addTitle("Edit QoS HTB class");
+		
+				field = {
+					"type": "checkbox",
+					"item": item,
+					"name": "enabled",
+					"text": "Enabled",
+					"descr": "Check this item to enable class"
+				};
+				c.addWidget(field);
+				
+				field = {
+					"type": "text",
+					"item": item,
+					"name": "name",
+					"text": "Name",
+					"descr": "Name of class",
+					"validator": {"required": true, "alphanum": true}
+				};
+				c.addWidget(field);
+				
+				/* generate list of available parent classes and find next classid */
+				var max = 0;
+				var classes = {"1:0": "root"};
+				$.each(config.getParsed($.sprintf("sys_iface_%s_qos_htb_class_*", iface)),
+					function(key, value) {
+						classes[value['classid']] = value['name'];
+						var cur = parseInt(value['classid'].split(":")[1]);
+						if (cur > max) max = cur;
+					}
+				);
+				var classid = "1:" + (max + 1);
+				
+				/*
+				 * if we are editing class — it's classid will be get from KDB,
+				 * if we are adding new class — we generate new classid and set it as default value.
+				 */
+				field = {
+					"type": "hidden",
+					"item": item,
+					"name": "classid",
+					"defaultValue": classid
+				};
+				c.addWidget(field);
+				
+				field = { 
+					"type": "select",
+					"item": item,
+					"name": "parent",
+					"text": "Parent class",
+					"descr": "Name of parent class",
+					"options": classes
+				};
+				c.addWidget(field);
+				
+				field = {
+					"type": "text",
+					"item": item,
+					"name": "rate",
+					"text": "Rate",
+					"descr": "Class rate",
+					"tip": "Unit can be: <br><i>kbit</i>, <i>Mbit</i> — for bit per second<br>" +
+						"and <i>kbps</i>, <i>Mbps</i> — for bytes per second.",
+					"validator": {"required": true, "qosBandwith": true}
+				};
+				c.addWidget(field);
+				
+				field = {
+					"type": "text",
+					"item": item,
+					"name": "ceil",
+					"text": "Ceil",
+					"descr": "Max rate",
+					"tip": "Unit can be: <br><i>kbit</i>, <i>Mbit</i> — for bit per second<br>" +
+						"and <i>kbps</i>, <i>Mbps</i> — for bytes per second.",
+					"validator": {"qosBandwith": true}
+				};
+				c.addWidget(field);
+				
+				field = {
+					"type": "text",
+					"item": item,
+					"name": "qdisc",
+					"text": "Qdisc",
+					"descr": "Qdisc for this class",
+					"tip": "Optional qdisc for this class.<br><i>ATTENTION! At this moment, " +
+						"you have to use character '#' for spaces.</i><br>For example, you can enter " +
+						"<i>esfq#limit#128#depth#128#divisor#10#hash#classic#perturb#15</i> " +
+						"or <i>sfq#perturb#10</i>, etc."
+				};
+				c.addWidget(field);
+				
+				c.addSubmit({
+					"complexValue": item,
+					"submitName": "Add/Update",
+					"extraButton": {
+						"name": "Back",
+						"func": showQos
+					},
+					"onSubmit": showQos
+				});
+			};
+			
+			/* generate page with fields for adding new filter */
+			var filterItem = $.sprintf("sys_iface_%s_qos_htb_filter_", iface);
+			var addFilter = function(item) {
+				var c, field;
+				page.clearTab("qos");
+				c = page.addContainer("qos");
+				c.setHelpPage("htb");
+				c.setHelpSection("htb_filter_add");
+		
+				if (!item) {
+					c.addTitle("Add QoS HTB filter");
+					values = config.getParsed(filterItem + "*");
+					item = filterItem + $.len(values);
+				} else c.addTitle("Edit QoS HTB filter");
+		
+				field = {
+					"type": "checkbox",
+					"item": item,
+					"name": "enabled",
+					"text": "Enabled",
+					"descr": "Check this item to enable class"
+				};
+				c.addWidget(field);
+				
+				field = {
+					"type": "text",
+					"item": item,
+					"name": "name",
+					"text": "Name",
+					"descr": "Name of filter",
+					"validator": {"required": true, "alphanum": true}
+				};
+				c.addWidget(field);
+				
+				field = {
+					"type": "text",
+					"item": item,
+					"name": "prio",
+					"text": "Prio",
+					"descr": "Rule priority",
+					"tip": "Prio can be any positive integer value.<br><i>Examples:</i> 1, 10, 17.",
+					"validator": {"required": true, "min": 1, "max": 65535},
+					"defaultValue": "1"
+				};
+				c.addWidget(field);
+				
+				field = { 
+					"type": "select",
+					"item": item,
+					"name": "proto",
+					"text": "Protocol",
+					"descr": "A protocol of the packet to check",
+					"defaultValue": "any",
+					"options": "any tcp udp icmp"
+				};
+				c.addWidget(field);
+				
+				var tip = "Address can be either a network IP address (with /mask), or a plain IP address, " +
+					"A ! argument before the address specification inverts the sense of the address." +
+					"<br><b>Examples:</b> 192.168.1.0/24, 192.168.1.5<br> Use 0.0.0.0/0 for <b>any</b>";
+			
+				field = { 
+					"type": "text",
+					"item": item,
+					"name": "src",
+					"text": "Source IP",
+					"descr": "Source address",
+					"validator": {"required": true, "ipNetMaskIptables": true},
+					"defaultValue": "0.0.0.0/0",
+					"tip": tip
+				};
+				c.addWidget(field);
+				
+				field = { 
+					"type": "text",
+					"item": item,
+					"name": "dst",
+					"text": "Destination IP",
+					"descr": "Destination address",
+					"validator": {"required": true, "ipNetMaskIptables": true},
+					"defaultValue": "0.0.0.0/0",
+					"tip": tip
+				};
+				c.addWidget(field);
+				
+				field = { 
+					"type": "text",
+					"item": item,
+					"name": "src_port",
+					"text": "Source port",
+					"descr": "Source port",
+					"validator": {"required": true, "ipPort": true},
+					"defaultValue": "any"
+				};
+				c.addWidget(field);
+				
+				field = { 
+					"type": "text",
+					"item": item,
+					"name": "dst_port",
+					"text": "Destination port",
+					"descr": "Destination port",
+					"validator": {"required": true, "ipPort": true},
+					"defaultValue": "any"
+				};
+				c.addWidget(field);
+				
+				/* generate list of available classes */
+				var classes = new Object();
+				$.each(config.getParsed($.sprintf("sys_iface_%s_qos_htb_class_*", iface)),
+					function(key, value) {
+						classes[value['classid']] = value['name'];
+					}
+				);
+				field = { 
+					"type": "select",
+					"item": item,
+					"name": "flowid",
+					"text": "Class",
+					"descr": "Put matching packets in this class",
+					"options": classes
+				};
+				c.addWidget(field);
+				
+				c.addSubmit({
+					"complexValue": item,
+					"submitName": "Add/Update",
+					"extraButton": {
+						"name": "Back",
+						"func": showQos
+					},
+					"onSubmit": showQos
+				});
+			};
+			
+			/*
+			 * Callback for generateList(), returns name of parent class.
+			 * 
+			 * varName — item's variable name;
+			 * varValue — item's variable value.
+			 */
+			var getParentName = function(varName, varValue) {
+				/* if current variable is not "parent" — return without modification */
+				if (varName != "parent" && varName != "flowid") return varValue;
+				
+				/* if value of variable is "1:0" — class name is root */
+				if (varValue == "1:0") return "root";
+				
+				/* search class with classid varValue and saves it's name to parentName */
+				var parentName = "ERROR";
+				var classes = config.getParsed($.sprintf("sys_iface_%s_qos_htb_class_*", iface));
+				$.each(classes, function(classKey, classValues) {
+					if (classValues['classid'] == varValue) {
+						parentName = classValues['name'];
+						return false;
+					}
+				});
+				
+				return parentName;
+			};
+			
+			/* add Classes table */
+			page.addBr("qos");
+			
+			/* we use different variable because "c" is used to add elements to main form */
+			var c2 = page.addContainer("qos");
+			c2.setHelpPage("htb");
+			c2.setHelpSection("htb");
+			c2.addTitle($.sprintf("Classes on %s", iface), 7);
+			
+			c2.addTableHeader("Name|Parent|Rate|Ceil|Qdisc", addClass);
+			c2.generateList(classItem + "*", 
+				"name parent rate ceil qdisc", addClass, showQos, getParentName);
+			
+			/* add Filter table */
+			page.addBr("qos");
+			
+			/* we use different variable because "c" is used to add elements to main form */
+			c2 = page.addContainer("qos");
+			c2.setHelpPage("htb");
+			c2.setHelpSection("htb");
+			c2.addTitle($.sprintf("Filters on %s", iface), 10);
+			
+			c2.addTableHeader("Name|Prio|Proto|Src addr|Dst addr|Src port|Dst port|Class", addFilter);
+			c2.generateList(filterItem + "*", 
+				"name prio proto src dst src_port dst_port flowid", addFilter, showQos, getParentName);
+		};
+		
+		/* add widgets specific for selected scheduler */
+		var addSchedulerWidgets = function() {
+			var sch = $("#sch").val();
+			switch (sch) {
+				case "bfifo":
+				case "pfifo":
+					addFifoWidgets(sch);
+					break;
+				
+				case "esfq":
+					addEsfqWidgets();
+					break;
+				
+				case "tbf":
+					addTbfWidgets();
+					break;
+				
+				case "htb":
+					addHtbWidgets();
+					break;
+			}
+		};
+		
+		/*
+		 * on scheduler change remove unnecessary widgets (all except scheduler select)
+		 * and add new widgets.
+		 */
+		var onSchedulerUpdate = function() {
+			/* get tab object */
+			var tab = page.getTab("qos");
+			
+			/* remove all widgets except scheduler select */
+			$("tbody > tr", tab).not("tr:has(#sch)").remove();
+			
+			/* remove all forms except first one (with scheduler select) */
+			$("form:not(:first)", tab).remove();
+			
+			/* remove all br between forms */
+			$("form:first ~ br", tab).remove();
+			
+			/* add new widgets */
+			addSchedulerWidgets();
+		};
+		
+		/* add main form */
+		var c, field;
+		page.clearTab("qos");
+		c = page.addContainer("qos");
+		c.setHelpPage("qos");
+		c.addTitle("QoS settings");
+		
+		/* Scheduler */
 		field = { 
 			"type": "select",
 			"name": $.sprintf("sys_iface_%s_qos_sch", iface),
-			"id": $.sprintf("sys_iface_%s_qos_sch", iface),
+			"id": "sch",
 			"text": "Scheduler",
 			"descr": "Scheduler for the interface",
 			"options": {"pfifo_fast": "Default discipline pfifo_fast", "bfifo": "FIFO with bytes buffer",
 				"pfifo": "FIFO with packets buffer", "tbf": "Token Bucket Filter",
 				"sfq": "Stochastic Fairness Queueing", "esfq": "Enhanced Stochastic Fairness Queueing",
 				"htb": "Hierarchical Token Bucket"},
-			"onChange": function() {
-				/* remove previous widgets */
-				removeWidgets();
-				
-				var sch = $($.sprintf("#sys_iface_%s_qos_sch", iface)).val();
-				switch (sch) {
-					case "bfifo":
-					case "pfifo":
-						addFifoWidgets(sch);
-						break;
-					
-					case "esfq":
-						addEsfqWidgets();
-						break;
-					
-					case "tbf":
-						addTbfWidgets();
-						break;
-				}
-				
-				/* set nice tooltips for new fields */
-				$("input").tooltip({"track": true});
-				$("select").tooltip({"track": true});
-			}
+			"onChange": onSchedulerUpdate,
+			"defaultValue": "pfifo_fast"
 		};
 		c.addWidget(field);
-	
+		
+		addSchedulerWidgets();
+		
 		c.addSubmit();
 	}
 	

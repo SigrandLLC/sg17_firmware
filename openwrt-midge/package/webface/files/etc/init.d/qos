@@ -29,7 +29,7 @@ start_htb(){
 		eval "$val"
 		[ -n "$ceil" ] && _ceil="ceil $ceil"
 		
-		[ "x${enabled}x" == "xx" ] && continue
+		[ "x${enabled}x" = "xx" -o "x${enabled}x" = "x0x" ] && continue
 		
 		# add class
 		$TC class add dev $iface parent $parent classid $classid htb rate $rate $_ceil
@@ -56,6 +56,8 @@ start_htb(){
 		_src=""
 		eval "$val"
 		
+		[ "x${enabled}x" = "xx" -o "x${enabled}x" = "x0x" ] && continue
+		
 		if [ "$proto" != "any" ]; then
 			_proto="match ip protocol"
 			[ "$proto" = "icmp" ] && _proto="$_proto 1 0xff"
@@ -71,7 +73,7 @@ start_htb(){
 		# if no one of criteria is set - set dummy src
 		[ -z "$_proto" -a -z "$_src_port" -a -z "$_dst_port" -a -z "$_dst" -a -z "$_src" ] && _src="match ip src $src"
 		
-		[ "x${enabled}x" != "xx" ] && $TC filter add dev $iface parent 1: protocol ip prio $prio u32 $_proto $_src_port $_dst_port $_dst $_src flowid $flowid
+		$TC filter add dev $iface parent 1: protocol ip prio $prio u32 $_proto $_src_port $_dst_port $_dst $_src flowid $flowid
 	done
 }
 

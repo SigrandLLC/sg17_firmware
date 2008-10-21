@@ -102,6 +102,10 @@ function Page(p) {
 	this.clearTab = function(tabId) {
 		$('#' + tabIdPrefix + tabId).empty();
 	};
+	
+	this.getTab = function(tabId) {
+		return $("#" + tabIdPrefix + tabId);
+	};
 }
 
 /* show HTML page in popup window */
@@ -354,7 +358,7 @@ function Container(p, options) {
 	 * 
 	 * w.dataFilter — may be used with w.cmd — function to filter command output data.
 	 */
-	this.createHtml = function(w, value) {
+	this.createHtmlWidget = function(w, value) {
 		var attrs = {"className": "htmlWidget"};
 		w.tip && (attrs['title'] = _(w.tip));
 		
@@ -373,15 +377,38 @@ function Container(p, options) {
 	};
 
 	/*
+	 * Create hidden widget.
+	 */
+	this.createHiddenWidget = function(w, value) {
+		var attrs = {
+			"type": "hidden",
+			"name": w.name
+		};
+		w.id && (attrs['id'] = w.id);
+		
+		/* set KDB value */
+		if (value) {
+			attrs['value'] = value;
+		/* if KDB value does't exists — set default value, if it exists */
+		} else if (w.defaultValue) {
+			attrs['value'] = w.defaultValue;
+		}
+		
+		return $.create("input", attrs);
+	};
+
+	/*
 	 * Add complete widget (table's TR) to container.
 	 * 
 	 * w — widget to add.
 	 * insertAfter — if specified, insert new widget after this element.
 	 */
 	this.addWidget = function(w, insertAfter) {
-		/* add common widget's data. insert specified widget, otherwise insert last */
-		if (insertAfter) this.createGeneralWidget(w).insertAfter(insertAfter);
-		else this.createGeneralWidget(w).appendTo(this.table);
+		if (w['type'] != "hidden") {
+			/* add common widget's data. insert specified widget, otherwise insert last */
+			if (insertAfter) this.createGeneralWidget(w).insertAfter(insertAfter);
+			else this.createGeneralWidget(w).appendTo(this.table);
+		}
 		
 		this.addSubWidget(w);
 	};
@@ -402,6 +429,9 @@ function Container(p, options) {
 			case "text": 
 				widget = this.createTextWidget(w, value);
 				break;
+			case "hidden":
+				widget = this.createHiddenWidget(w, value);
+				break;
 			case "password": 
 				widget = this.createPasswordWidget(w);
 				break;
@@ -409,20 +439,24 @@ function Container(p, options) {
 				widget = this.createCheckboxWidget(w, value);
 				break;
 			case "html":
-				widget = this.createHtml(w, value);
+				widget = this.createHtmlWidget(w, value);
 				break;
 			case "select":
 				widget = this.createSelectWidget(w);
 				if (w.options) {
-					$(widget).setOptionsForSelect(w.options,
+					widget.setOptionsForSelect(w.options,
 						value, w.defaultValue);
 				}
 				break;
 		}
 		
-		/* insert new subwidget at specified position */
-		if (insertAfter) $(widget).insertAfter(insertAfter);
+		/* insert new subwidget at specified position or just in form for hidden widget */
+		if (w['type'] == "hidden") this.form.append(widget);
+		else if (insertAfter) widget.insertAfter(insertAfter);
 		else $("#td_" + w.name, this.form).prepend(widget);
+		
+		/* set nice tooltip */
+		widget.tooltip({"track": true});
 		
 		/* bind specified events */
 		this.bindEvents(w);
@@ -504,9 +538,6 @@ function Container(p, options) {
 			}).appendTo(this.form);
 			button.click(options.extraButton.func);
 		}
-		
-		$("input").tooltip({track: true});
-		$("select").tooltip({track: true});
 		
 		/* options for form validation */
 		var validateOptions = {
@@ -817,9 +848,11 @@ function Container(p, options) {
 	 * (e.g., "router_id address comment")
 	 * addFunc — function to call for editing row's value.
 	 * showFunc — function to call after deleting rot. Usually this func reloads table.
-	 * height — height of table.
+	 * processValueFunc — optional callback, which can be used for editing values of item's variable.
+	 *  It is called with two parameters — name of variable and variable's value. It must return
+	 *  variable's value.
 	 */
-	this.generateList = function(item, cols, addFunc, showFunc) {
+	this.generateList = function(item, cols, addFunc, showFunc, processValueFunc) {
 		var outer = this;
 		
 		/* get list of items */
@@ -837,7 +870,9 @@ function Container(p, options) {
 			
 			/* for each variable in item's value create table cell with variable's value */
 			$.each(cols.split(" "), function(num, variable) {
-				var td = $.create("td", cssClass, value[variable] ? value[variable] : "&nbsp;")
+				var finalVal = processValueFunc ?
+					processValueFunc(variable, value[variable]) : value[variable];
+				var td = $.create("td", cssClass, finalVal ? finalVal : "&nbsp;")
 					.appendTo(row);
 			});
 			

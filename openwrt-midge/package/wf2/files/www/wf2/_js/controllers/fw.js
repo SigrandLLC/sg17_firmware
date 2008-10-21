@@ -73,9 +73,6 @@ Controllers['fw'] = function() {
 				};
 				c.addWidget(field, $("#dport").parents("tr"));
 				
-				/* set nice tooltips for new field */
-				$("#natto").tooltip({"track": true});
-				
 			/* remove field */
 			} else {
 				$("#natto").parents("tr").remove();
@@ -109,7 +106,7 @@ Controllers['fw'] = function() {
 			"type": "text",
 			"item": item,
 			"name": "src",
-			"text": "Source",
+			"text": "Source IP",
 			"descr": "Source address",
 			"validator": {"required": true, "ipNetMaskIptables": true},
 			"defaultValue": "0.0.0.0/0",
@@ -121,7 +118,7 @@ Controllers['fw'] = function() {
 			"type": "text",
 			"item": item,
 			"name": "dst",
-			"text": "Destination",
+			"text": "Destination IP",
 			"descr": "Destination address",
 			"validator": {"required": true, "ipNetMaskIptables": true},
 			"defaultValue": "0.0.0.0/0",
@@ -142,6 +139,7 @@ Controllers['fw'] = function() {
 		
 		tip = "An inclusive range can also be specified, using the format <b>port:port</b>. " +
 				"If the first port is omitted, 0 is assumed; if the last is omitted, 65535 is assumed.";
+
 		field = { 
 			"type": "text",
 			"item": item,
