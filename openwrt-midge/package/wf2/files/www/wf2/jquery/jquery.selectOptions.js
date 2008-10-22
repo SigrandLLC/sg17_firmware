@@ -23,7 +23,8 @@
 			var arr = options;
 			options = new Object();
 			$.each(arr, function(num, value) {
-				options[value] = value;
+				/* values have to be strings */
+				options[value + ""] = value + "";
 			});
 		}
 		

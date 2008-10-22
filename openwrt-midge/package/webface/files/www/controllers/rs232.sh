@@ -26,7 +26,7 @@ kdb_vars="str:sys_pcicfg_s${slot}_${dev}_baudrate	\
 		str:sys_pcicfg_s${slot}_${dev}_stopb	\
 		str:sys_pcicfg_s${slot}_${dev}_fctrl	\
 		str:sys_pcicfg_s${slot}_${dev}_sigfwd	\
-		int:sys_pcicfg_s${slot}_${dev}_parity"
+		str:sys_pcicfg_s${slot}_${dev}_parity"
 
 subsys="rs232."$slot"."$dev
 render_save_stuff

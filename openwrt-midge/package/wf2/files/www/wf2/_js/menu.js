@@ -29,11 +29,11 @@ function generateMenu() {
 	
 	/* generate list of SHDSL interfaces */
 	$.each(slots, function(num, pcislot) {
-		var type = config.get("sys_pcitbl_s" + pcislot + "_iftype");
+		var type = config.get($.sprintf("sys_pcitbl_s%s_iftype", pcislot));
 		if (type != config.getOEM("MR16H_DRVNAME") && type != config.getOEM("MR17H_DRVNAME")) {
 			return true;
 		}
-		var ifaces = config.getParsed("sys_pcitbl_s" + pcislot + "_ifaces");
+		var ifaces = config.getParsed($.sprintf("sys_pcitbl_s%s_ifaces", pcislot));
 		$.each(ifaces, function(num, iface) {
 			if (type == config.getOEM("MR17H_DRVNAME")) {
 				var confPath = $.sprintf("%s/%s/sg17_private", config.getOEM("sg17_cfg_path"), iface);
@@ -48,10 +48,23 @@ function generateMenu() {
 	
 	/* generate list of E1 inrefaces */
 	$.each(slots, function(num, pcislot) {
-		if (config.get("sys_pcitbl_s" + pcislot + "_iftype") != "mr16g") return true;
-		var ifaces = config.getParsed("sys_pcitbl_s" + pcislot + "_ifaces");
+		if (config.get($.sprintf("sys_pcitbl_s%s_iftype", pcislot)) != config.getOEM("MR16G_DRVNAME")) {
+			return true;
+		}
+		var ifaces = config.getParsed($.sprintf("sys_pcitbl_s%s_ifaces", pcislot));
 		$.each(ifaces, function(num, iface) {
 			addItem("Hardware:E1", iface, "e1", [iface, pcislot, num]);
+		});
+	});
+	
+	/* generate list of RS232 inrefaces */
+	$.each(slots, function(num, pcislot) {
+		if (config.get($.sprintf("sys_pcitbl_s%s_iftype", pcislot)) != config.getOEM("MR17S_DRVNAME")) {
+			return true;
+		}
+		var ifaces = config.getParsed($.sprintf("sys_pcitbl_s%s_ifaces", pcislot));
+		$.each(ifaces, function(num, node) {
+			addItem("Hardware:RS232", node, "rs232", [node, pcislot, num]);
 		});
 	});
 	
