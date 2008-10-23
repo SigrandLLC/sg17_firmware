@@ -144,7 +144,9 @@ function KDBQueue() {
  * Local config.
  */
 function Config() {
-	this.kdbQueue = new KDBQueue();
+	var online = true;
+	var offlineMessage = _("Router is OFFLINE! Check that router is available via your network.");
+	var kdbQueue = new KDBQueue();
 	var cmdCache = new CmdCache();
 	
 	/*
@@ -157,10 +159,16 @@ function Config() {
 	 * onSuccess — callback on request success.
 	 */
 	this.kdbSubmit = function(fields, timeout, reload, onSuccess) {
+		/* if router is offline, show error message and do nothing */
+		if (!online) {
+			alert(offlineMessage);
+			return;
+		}
+		
 		this.saveVals(fields);
 		
 		/* encode fields with $.param() */
-		this.kdbQueue.addTask($.param(fields), timeout, reload, onSuccess);
+		kdbQueue.addTask($.param(fields), timeout, reload, onSuccess);
 	};
 	
 	/*
@@ -171,6 +179,12 @@ function Config() {
 	 * timeout — timeout for request.
 	 */
 	this.kdbDelListKey = function(item, subsystem, timeout) {
+		/* if router is offline, show error message and do nothing */
+		if (!online) {
+			alert(offlineMessage);
+			return;
+		}
+		
 		/* delete item for local KDB */
 		this.delListKey(item);
 		
@@ -181,7 +195,7 @@ function Config() {
 		];
 		
 		/* encode fields with $.param(), and set kdbCmd to "lrm" */
-		this.kdbQueue.addTask($.param(fields), timeout, null, null, "lrm");
+		kdbQueue.addTask($.param(fields), timeout, null, null, "lrm");
 	};
 	
 	/*
@@ -395,8 +409,10 @@ function Config() {
 	
 	/*
 	 * Update list of network interfaces.
+	 * Private function.
 	 */
-	this.updateIfaces = function() {
+	var outer = this;
+	var updateIfaces = function() {
 		/* get "valid" records for interfaces */
 		var validIfaces = config.getByRegexp(/(sys_iface_)*(_valid)/);
 		
@@ -414,7 +430,7 @@ function Config() {
 		/* create data for submission */		
 		var ifacesProp = new Array();
 		$.addObjectWithProperty(ifacesProp, "sys_ifaces", ifaces);
-		this.kdbSubmit(ifacesProp);
+		outer.kdbSubmit(ifacesProp);
 		
 		/* update menu */
 		generateMenu();
@@ -426,6 +442,12 @@ function Config() {
 	 * options — interface parameters.
 	 */
 	this.addIface = function(options) {
+		/* if router is offline, show error message and do nothing */
+		if (!online) {
+			alert(offlineMessage);
+			return;
+		}
+		
 		var outer = this;
 		
 		/* return next interface name for given protocol */
@@ -467,7 +489,7 @@ function Config() {
 		}
 		
 		this.kdbSubmit(ifaceProp);
-		this.updateIfaces();
+		updateIfaces();
 	};
 	
 	/*
@@ -476,6 +498,12 @@ function Config() {
 	 * iface — interface to delete.
 	 */
 	this.delIface = function(iface) {
+		/* if router is offline, show error message and do nothing */
+		if (!online) {
+			alert(offlineMessage);
+			return;
+		}
+		
 		/* delete all interface parameters from local KDB */
 		this.delByRegexp(new RegExp($.sprintf("sys_iface_%s_\w*", iface)));
 		
@@ -485,13 +513,42 @@ function Config() {
 		$.addObjectWithProperty(submitData, "subsystem", $.sprintf("iface_del.%s", iface));
 		
 		/* encode data with $.param(), and set kdbCmd to "rm" */
-		this.kdbQueue.addTask($.param(submitData), null, null, null, "rm");
-		this.updateIfaces();
+		kdbQueue.addTask($.param(submitData), null, null, null, "rm");
+		updateIfaces();
 	};
 	
 	this.runCmd = cmdCache.runCmd;
 	
 	this.getCachedOutput = cmdCache.getCachedOutput;
+	
+	/*
+	 * Start checking for router state (online or offline) every timeout seconds.
+	 * If router is offline, show OFFLINE message above the menu.
+	 */
+	this.startCheckStatus = function(timeout) {
+		var checkStatus = function() {
+			var options = {
+				"type": "POST",
+				"url": "sh/execute.cgi",
+				"dataType": "text",
+				"data": {"cmd": "/bin/true"},
+				"timeout": timeout * 1000,
+				"success": function(data) {
+					if (!online) {
+						$("#kdb").html("&nbsp;");
+						online = true;
+					}
+				},
+				"error": function() {
+					online = false;
+					$("#kdb").html("<span id='offline' style='color: red'><b>Router is OFFLINE</b></span>");
+				}
+			};
+			$.ajax(options);
+		}
+		
+		setInterval(checkStatus, timeout * 1000);
+	};
 }
 
 /*
@@ -515,6 +572,6 @@ function CmdCache() {
 	 * Get output of cmd.
 	 */
 	this.getCachedOutput = function(cmd) {
-		return cache[cmd] ? cache[cmd] : cmdExecute(cmd, {"async": true});
+		return cache[cmd] ? cache[cmd] : cmdExecute(cmd, {"sync": true});
 	};
 };

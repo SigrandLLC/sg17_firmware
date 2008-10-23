@@ -253,7 +253,7 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		c.addTitle(getSg17Title(pwrPresence) + "status");
 		
 		/* get link state */
-		var link = cmdExecute($.sprintf("/bin/cat %s/link_state", confPath), {"async": true});
+		var link = cmdExecute($.sprintf("/bin/cat %s/link_state", confPath), {"sync": true});
 		
 		field = {
 			"type": "html",
@@ -314,7 +314,7 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 			c.addWidget(field);
 			
 			/* statistics */
-			var stat = cmdExecute($.sprintf("/bin/cat %s/statistics_row", confPath), {"async": true}).split(" ");
+			var stat = cmdExecute($.sprintf("/bin/cat %s/statistics_row", confPath), {"sync": true}).split(" ");
 			field = {
 				"type": "html",
 				"name": "snrMargin",
@@ -334,7 +334,7 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		}
 		
 		/* PBO */
-		var pboMode = cmdExecute($.sprintf("/bin/cat %s/pbo_mode", confPath), {"async": true});
+		var pboMode = cmdExecute($.sprintf("/bin/cat %s/pbo_mode", confPath), {"sync": true});
 		if (pboMode == "Forced") {
 			field = {
 				"type": "html",

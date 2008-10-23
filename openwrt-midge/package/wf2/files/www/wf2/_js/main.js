@@ -11,6 +11,9 @@ var config = new Config();
 config.loadKDB();
 config.loadOEM();
 
+/* check router every 5 seconds */
+config.startCheckStatus(5);
+
 /* set page title to router's hostname */
 document.title = config.get("sys_hostname") ? config.get("sys_hostname") : "";
 

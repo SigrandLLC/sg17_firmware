@@ -152,6 +152,7 @@ Controllers['multiplexing'] = function() {
 						}
 					});
 					updateFields(fields);
+					
 					/* execute command */
 					c.addConsoleToForm("/sbin/mxconfig --check");
 				}

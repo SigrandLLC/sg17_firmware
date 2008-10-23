@@ -136,7 +136,7 @@ function popup(url) {
  * dst — destination for command output:
  *  - dst['container'] — set html of container to command's output;
  *  - dst['callback'] — function to call after request. command's output is passed to func as arg.
- *  - dst['async'] — do sync request and return command's output to calling function.
+ *  - dst['sync'] — do sync request and return command's output to calling function.
  * filter — function to filter command's output.
  */
 function cmdExecute(cmd, dst, filter) {
@@ -159,13 +159,13 @@ function cmdExecute(cmd, dst, filter) {
 				$(dst['container']).minmax();
 			} else if (dst && dst['callback']) {
 				dst['callback'](data);
-			} else if (dst && dst['async']) {
+			} else if (dst && dst['sync']) {
 				result = data;
 			}
 		}
 	};
 	
-	if (dst && dst['async']) options['async'] = false;
+	if (dst && dst['sync']) options['async'] = false;
 	
 	$.ajax(options);
 	
