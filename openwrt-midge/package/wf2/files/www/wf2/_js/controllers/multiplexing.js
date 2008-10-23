@@ -11,7 +11,7 @@ Controllers['multiplexing'] = function() {
 			c = page.addContainer("multiplexing");
 			c.addTitle("Multiplexing", 10);
 			
-			c.addTableHeader("DEV|MXEN|CLKM|CLKAB|CLKR|RLINE|TLINE|RFS|TFS|MXRATE/MXSMAP");
+			c.addTableHeader("DEV|MXEN|CLKM|CLKAB|CLKR|RLINE|TLINE|RFS|TFS|MXSMAP/MXRATE");
 			
 			/* enables/disables CLKR field depending on CLKM value */
 			var onMuxChange = function(iface) {				
@@ -114,14 +114,14 @@ Controllers['multiplexing'] = function() {
 				var rate;
 				var tip;
 				var validator;
-				if (iface.search("dsl") != -1) {
-					rate = "mxrate";
-					tip = "Enter <i>mxrate</i> for DSL interface. <i>mxrate</i> is a number of time-slots (e.g., <i>12</i>).";
-					validator = {"required": $.sprintf("#sys_mux_%s_mxen:checked", iface), "min": 0};
-				} else {
+				if (iface.search("E1") != -1) {
 					rate = "mxsmap";
 					tip = "Enter <i>mxsmap</i> for E1 interface. <i>mxsmap</i> is a map of time-slots (e.g., <i>1-31</i>). This value can be changed after saving.";
 					validator = {"required": $.sprintf("#sys_mux_%s_mxen:checked", iface), "smap": true};
+				} else {
+					rate = "mxrate";
+					tip = "Enter <i>mxrate</i> for DSL interface. <i>mxrate</i> is a number of time-slots (e.g., <i>12</i>).";
+					validator = {"required": $.sprintf("#sys_mux_%s_mxen:checked", iface), "min": 0};
 				}
 				
 				id = $.sprintf("sys_mux_%s_%s", iface, rate);
