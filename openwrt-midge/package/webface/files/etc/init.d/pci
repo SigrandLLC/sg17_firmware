@@ -206,19 +206,10 @@ _pci_start(){
 	pci_driver "$mr17s_drvname" "ttyRS"
 	pcicfg_refresh
 
-	# Correct Network settings
-	ifaces=`$kdb get sys_ifaces`
 	nifaces=""
-	for i in $ifaces; do
-		tmp=`echo $i | grep E1_`
-		tmp2=`echo $i | grep dsl`
-		if [ ! -n "$tmp" ] && [ ! -n "$tmp2" ]; then
-			nifaces="$nifaces \n $i"
-		fi
-	done
-
+	# Correct Network settings
 	for s in `$kdb get sys_pcitbl_slots`; do
-		#skip RS232 modules
+		# skip RS232 modules
 		type=`$kdb get sys_pcitbl_s${s}_iftype`
 		if [ "$type" = "$mr17s_drvname" ] ;then
 			continue
@@ -230,6 +221,28 @@ _pci_start(){
 			nifaces="$nifaces \n $i"
 		done
 	done
+	
+	ifaces=`$kdb get sys_ifaces`
+	for i in $ifaces; do
+		# add not E1_ and not dsl interfaces
+		tmp=`echo $i | grep E1_`
+		tmp2=`echo $i | grep dsl`
+		if [ ! -n "$tmp" ] && [ ! -n "$tmp2" ]; then
+			nifaces="$nifaces \n $i"
+		fi
+		
+		# if this is VLAN interface
+		if echo $i |grep -Eq ".+v[0-9]+"; then
+			# get name of physical interface for VLAN interface
+			phys=${i%%v[0-9]*}
+			
+			# if physical interface exists in interface list, add VLAN interface
+			if echo $nifaces |grep -q $phys; then
+				nifaces="$nifaces \n $i"
+			fi
+		fi
+	done
+	
 	nifaces=`echo -e $nifaces | sort`
 	nifaces=`echo $nifaces`
 	$kdb set sys_ifaces="$nifaces"

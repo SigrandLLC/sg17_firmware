@@ -9,12 +9,10 @@
 		unset kdb_vars _clkr
 
 		for i in $ifaces; do
-			if [ "x${i%%[0-9]}x" = "xdslx" ]; then
-				rate="mxrate"
-			elif [ "x${i%%[0-9]}x" = "xttyRSx" ]; then
-				rate="mxrate"
-			else
+			if [ "x${i%%_[0-9]*}x" = "xE1x" ]; then
 				rate="mxsmap"
+			else
+				rate="mxrate"
 			fi
 			
 			# if the CLKR was disabled in the form, we should manually set it to 0
@@ -102,16 +100,14 @@
 		render_input_td_field text sys_mux_${i}_tfs
 		
 		# sys_mux_${i}_(mxrate/mxsmap)
-		if [ "x${i%%[0-9]}x" = "xdslx" ]; then
-			rate="mxrate"
-		elif [ "x${i%%[0-9]}x" = "xttyRSx" ]; then
-			rate="mxrate"
-		else
+		if [ "x${i%%_[0-9]*}x" = "xE1x" ]; then
 			rate="mxsmap"
 			unset mxsmap
 			eval `mxconfig --iface $i --list |grep mxsmap |sed "s/$i://g"`
 			kdb set "sys_mux_${i}_mxsmap=$mxsmap"
 			eval `$kdb -qq list sys_mux_${i}_mxsmap`
+		else
+			rate="mxrate"
 		fi
 		tip="Enter <b>mxrate</b> for DSL interface or <b>mxsmap</b> for E1 interface (f.e. <i>12</i> or <i>0-31</i>)"
 		validator="$tmtreq $validator_muxrate"
@@ -149,5 +145,3 @@
 		echo "No errors found"
 	fi
 	echo "</td></tr>"
-
-# vim:foldmethod=indent:foldlevel=1

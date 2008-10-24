@@ -65,19 +65,21 @@ Controllers['iface'] = function(iface) {
 			};
 			c.addWidget(field);
 			
-			var dependList = new Object();
-			$.each(config.getParsed("sys_ifaces"), function(name, value) {
-				dependList[value] = value;
-			});
-			dependList['none'] = "None";
-			field = { 
-				"type": "select",
-				"name": "sys_iface_" + iface + "_depend_on",
-				"text": "Depended on",
-				"options": dependList,
-				"defaultValue": "none"
-			};
-			c.addWidget(field);
+			if (config.get($.sprintf("sys_iface_%s_proto", iface)) != "vlan") {
+				var dependList = new Object();
+				$.each(config.getParsed("sys_ifaces"), function(name, value) {
+					dependList[value] = value;
+				});
+				dependList['none'] = "None";
+				field = { 
+					"type": "select",
+					"name": "sys_iface_" + iface + "_depend_on",
+					"text": "Depended on",
+					"options": dependList,
+					"defaultValue": "none"
+				};
+				c.addWidget(field);
+			}
 		
 			c.addSubmit();
 		}
@@ -90,7 +92,7 @@ Controllers['iface'] = function(iface) {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("method");
-			if (config.get("sys_iface_" + iface + "_proto") == "hdlc")
+			if (config.get($.sprintf("sys_iface_%s_proto", iface)) == "hdlc")
 			{
 				c.addTitle("Point-to-Point address settings");
 			
