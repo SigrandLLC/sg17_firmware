@@ -117,11 +117,11 @@ Controllers['multiplexing'] = function() {
 				if (iface.search("E1") != -1) {
 					rate = "mxsmap";
 					tip = "Enter <i>mxsmap</i> for E1 interface. <i>mxsmap</i> is a map of time-slots (e.g., <i>1-31</i>). This value can be changed after saving.";
-					validator = {"required": $.sprintf("#sys_mux_%s_mxen:checked", iface), "smap": true};
+					validator = {"smap": true};
 				} else {
 					rate = "mxrate";
 					tip = "Enter <i>mxrate</i> for DSL interface. <i>mxrate</i> is a number of time-slots (e.g., <i>12</i>).";
-					validator = {"required": $.sprintf("#sys_mux_%s_mxen:checked", iface), "min": 0};
+					validator = {"min": 0};
 				}
 				
 				id = $.sprintf("sys_mux_%s_%s", iface, rate);

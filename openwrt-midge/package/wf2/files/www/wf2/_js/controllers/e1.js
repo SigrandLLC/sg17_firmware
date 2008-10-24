@@ -144,7 +144,7 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 					"id": id,
 					"text": "Slotmap",
 					"descr": "example: 2-3,6-9,15-20",
-					"validator": {"required": true, "smap": true}
+					"validator": {"smap": true}
 				};
 				c.addWidget(field, framWidget);
 				
@@ -180,22 +180,21 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 			};
 
 			/* protocol select */
-			id = $.sprintf("sys_pcicfg_s%s_%s_proto", pcislot, pcidev);
 			field = { 
 				"type": "select",
-				"name": id,
-				"id": id,
+				"name": $.sprintf("sys_pcicfg_s%s_%s_proto", pcislot, pcidev),
+				"id": "pcicfgProto",
 				"text": "HDLC protocol",
 				"onChange": function() {
-					var id = $.sprintf("sys_pcicfg_s%s_%s_proto", pcislot, pcidev);
+					var pcicfgProto = $("#pcicfgProto");
 					
 					/* if selected *HDLC protocol */
-					if ($("#" + id).val() == "hdlc" || $("#" + id).val() == "hdlc-eth") {
+					if (pcicfgProto.val() == "hdlc" || pcicfgProto.val() == "hdlc-eth") {
 						/* add widgets for *HDLC protocol */
 						addHdlcWidgets();
 						removeCiscoWidgets();
 					/* if selected CISCO protocol */
-					} else if ($("#" + id).val() == "cisco") {
+					} else if (pcicfgProto.val() == "cisco") {
 						addCiscoWidgets();
 						removeHdlcWidgets();
 					/* if selected another protocol */
@@ -203,6 +202,9 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 						removeCiscoWidgets();
 						removeHdlcWidgets();
 					}
+					
+					/* set network interface proto */
+					$("#ifaceProto").val(pcicfgProto.val() == "hdlc-eth" ? "ether" : "hdlc");
 				},
 				"options": {"hdlc": "HDLC", "hdlc-eth": "ETHER-HDLC", "cisco": "CISCO-HDLC", "fr": "FR",
 					"ppp": "PPP", "x25": "X25"}
@@ -295,6 +297,19 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 				"name": $.sprintf("sys_pcicfg_s%s_%s_rlpb", pcislot, pcidev),
 				"text": "Remote Loopback",
 				"descr": "Enable E1 Remote Loopback"
+			};
+			c.addWidget(field);
+			
+			/*
+			 * This key (interface protocol) is set in the /etc/init.d/e1, but we need
+			 * it in web before current request will be completed.
+			 */
+			field = {
+				"type": "hidden",
+				"name": $.sprintf("sys_iface_%s_proto", iface),
+				"id": "ifaceProto",
+				"defaultValue":
+					$("#pcicfgProto").val() == "hdlc-eth" ? "ether" : "hdlc"
 			};
 			c.addWidget(field);
 			

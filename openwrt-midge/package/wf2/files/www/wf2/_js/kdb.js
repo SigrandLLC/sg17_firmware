@@ -394,6 +394,28 @@ function Config() {
 	};
 	
 	/*
+	 * Updates specified key's values from router's KDB.
+	 * 
+	 * keys — keys to update.
+	 */
+	this.updateValues = function(keys) {
+		/* prepare KDB command */
+		var kdbArg = "";
+		$.each(keys, function(num, key) {
+			kdbArg += $.sprintf("get %s : ", key);
+		});
+		
+		/* execute command */
+		var newVals = cmdExecute($.sprintf("/usr/bin/kdb %s", kdbArg), {"sync": true}).split("<br>");
+		
+		/* update keys in local KDB with new values */
+		var conf = this.conf;
+		$.each(keys, function(num, key) {
+			conf[key] = newVals[num];
+		});
+	};
+	
+	/*
 	 * Load OEM file from router.
 	 */
 	this.loadOEM = function() {

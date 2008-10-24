@@ -363,7 +363,7 @@ Controllers['tools'] = function() {
 			};
 			c.addWidget(field);
 			
-			c.addRun("/bin/ping -c %ARG %ARG", "count", "host");
+			c.addRun("/sbin/ping -c %ARG %ARG", "count", "host");
 		}
 	});
 	

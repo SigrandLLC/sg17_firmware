@@ -162,6 +162,9 @@ function cmdExecute(cmd, dst, filter) {
 			} else if (dst && dst['sync']) {
 				result = data;
 			}
+		},
+		"error": function() {
+			alert(_("Connection error while executing command on router. Please, reload page."));
 		}
 	};
 	
@@ -1065,7 +1068,7 @@ function updateFields(fields, showAlertText) {
 	});
 	
 	/* update local KDB */
-	config.loadKDB();
+	config.updateValues(fields);
 	
 	/* check if fields was updated */
 	$.each(fields, function(num, field) {

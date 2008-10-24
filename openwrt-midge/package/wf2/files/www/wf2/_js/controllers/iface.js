@@ -74,7 +74,7 @@ Controllers['iface'] = function(iface) {
 				field = { 
 					"type": "select",
 					"name": "sys_iface_" + iface + "_depend_on",
-					"text": "Depended on",
+					"text": "Depends on",
 					"options": dependList,
 					"defaultValue": "none"
 				};
