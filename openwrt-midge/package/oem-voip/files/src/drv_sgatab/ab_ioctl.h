@@ -10,7 +10,6 @@
 
 #define SGATAB_IOC_MAGIC 's'
 
-/* tag__ remove boards count ioctl? */
 #define SGAB_GET_BOARDS_COUNT _IO(SGATAB_IOC_MAGIC, 1)
 #define SGAB_GET_BOARD_PARAMS _IO(SGATAB_IOC_MAGIC, 2)
 

@@ -18,9 +18,6 @@ typedef struct svd_chan_s svd_chan_t;
 #define SU_ROOT_MAGIC_T svd_t
 /*}}}*/
 
-/* tag__ debug logs */
-#define SVD_DEBUG_LOGS 1
-
 /* Includes {{{*/
 #include "config.h"
 #include "ab_api.h"

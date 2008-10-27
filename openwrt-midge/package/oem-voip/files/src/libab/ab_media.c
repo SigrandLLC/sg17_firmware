@@ -18,7 +18,7 @@
 */
 int 
 ab_chan_media_rtp_tune( ab_chan_t * const chan )
-{
+{/*{{{*/
 	IFX_TAPI_PKT_RTP_PT_CFG_t rtpPTConf;
 	IFX_TAPI_PKT_RTP_CFG_t rtpConf;
 	IFX_TAPI_PKT_VOLUME_t codVolume;
@@ -164,7 +164,7 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan )
 		hpf_param = IFX_FALSE;
 	}
 
-/* tag__ show choose */
+#if 0/*{{{*/
 fprintf(stderr,"[%d]: OOB[",chan->abs_idx);
 switch(rtpp->nEvents){
 	case evts_OOB_DEFAULT:
@@ -236,6 +236,7 @@ fprintf(stderr," hpf on\n");
 	} else {
 fprintf(stderr," hpf off\n");
 	}
+#endif/*}}}*/
 
 	/*********** ioctl seq */
 
@@ -290,7 +291,7 @@ fprintf(stderr," hpf off\n");
 		err = -1;
 	}
 	return err;
-}
+}/*}}}*/
 
 /**
 	Switch media on / off on the given channel
@@ -306,7 +307,7 @@ fprintf(stderr," hpf off\n");
 int 
 ab_chan_media_switch( ab_chan_t * const chan,
 		unsigned char const enc_on, unsigned char const dec_on )
-{
+{/*{{{*/
 	int err;
 	int err_summary = 0;
 
@@ -336,5 +337,5 @@ ab_chan_media_switch( ab_chan_t * const chan,
 		return -1;
 	}
 	return 0;
-}
+}/*}}}*/
 

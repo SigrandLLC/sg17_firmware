@@ -27,14 +27,14 @@
 static int 
 err_set_ioctl (ab_chan_t * const chan, int const request, int const data,
 		char const * const err_msg )
-{
+{/*{{{*/
 	int err = 0;
 	err = ioctl(chan->rtp_fd, request, data);
 	if (err){
 		ab_err_set(AB_ERR_UNKNOWN, (char const *)err_msg); 
 	}
 	return err;
-}
+}/*}}}*/
 
 /**
 	Plays the given tone 
@@ -48,7 +48,7 @@ err_set_ioctl (ab_chan_t * const chan, int const request, int const data,
 */
 static int 
 ab_FXS_line_just_play_it (ab_chan_t * const chan, enum ab_chan_tone_e tone)
-{
+{/*{{{*/
 	int err = 0;
 	switch(tone){
 		case ab_chan_tone_MUTE: {
@@ -90,7 +90,7 @@ ab_FXS_line_just_play_it (ab_chan_t * const chan, enum ab_chan_tone_e tone)
 		}
 	}
 	return err;
-}
+}/*}}}*/
 
 /**
 	Ring or mute on given channel
@@ -104,7 +104,7 @@ ab_FXS_line_just_play_it (ab_chan_t * const chan, enum ab_chan_tone_e tone)
 */
 int 
 ab_FXS_line_ring (ab_chan_t * const chan, enum ab_chan_ring_e ring)
-{
+{/*{{{*/
 	int err = 0;
 	if (chan->status.ring != ring){
 		if( ring == ab_chan_ring_RINGING ) {
@@ -124,7 +124,7 @@ ab_FXS_line_ring (ab_chan_t * const chan, enum ab_chan_ring_e ring)
 		}
 	}
 	return err;
-}
+}/*}}}*/
 
 /**
 	Play the given tone
@@ -138,7 +138,7 @@ ab_FXS_line_ring (ab_chan_t * const chan, enum ab_chan_ring_e ring)
 */
 int 
 ab_FXS_line_tone (ab_chan_t * const chan, enum ab_chan_tone_e tone)
-{
+{/*{{{*/
 	int err = 0;
 	if (chan->status.tone != tone){
 		/* Status is not actual - should do smth */
@@ -165,7 +165,7 @@ ab_FXS_line_tone (ab_chan_t * const chan, enum ab_chan_tone_e tone)
 	}
 __exit:
 	return err;
-}
+}/*}}}*/
 
 /**
 	Change current linefeed to given
@@ -181,7 +181,7 @@ __exit:
 */
 int 
 ab_FXS_line_feed (ab_chan_t * const chan, enum ab_chan_linefeed_e feed) 
-{
+{/*{{{*/
 	int err = 0;
 
 	if (chan->status.linefeed != feed){
@@ -232,7 +232,7 @@ ab_FXS_line_feed (ab_chan_t * const chan, enum ab_chan_linefeed_e feed)
 	}
 __exit:
 	return err;
-}
+}/*}}}*/
 
 /**
 	Do onhook or offhook
@@ -243,13 +243,13 @@ __exit:
 	ioctl result
 \remark
 	it test the state and do not do the unnecessary actions
+\todo
+	we can also test hook by ioctl there
 */
 int 
 ab_FXO_line_hook (ab_chan_t * const chan, enum ab_chan_hook_e hook)
-{
+{/*{{{*/
 	int err = 0;
-
-	/* tag__ we can test hook by ioctl there */
 
 	if (chan->status.hook != hook){
 		char const * err_msg;
@@ -273,7 +273,7 @@ ab_FXO_line_hook (ab_chan_t * const chan, enum ab_chan_hook_e hook)
 		} 
 	}
 	return err;
-}
+}/*}}}*/
 
 /**
 	Dial the given sequence of numbers
@@ -294,7 +294,7 @@ int
 ab_FXO_line_digit (ab_chan_t * const chan, char const data_length, 
 		char const * const data, char const nInterDigitTime,
 		char const nDigitPlayTime)
-{
+{/*{{{*/
 	IFX_TAPI_FXO_DIAL_CFG_t dialCfg;
 	IFX_TAPI_FXO_DIAL_t 	dialDigits;
 	int err = 0;
@@ -333,5 +333,5 @@ ab_FXO_line_digit (ab_chan_t * const chan, char const data_length,
 	} 
 __exit:
 	return err;
-}
+}/*}}}*/
 

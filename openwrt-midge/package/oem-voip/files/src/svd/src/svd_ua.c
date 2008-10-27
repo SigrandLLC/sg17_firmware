@@ -635,9 +635,7 @@ DFS
 		goto __exit_fail;
 	}
 
-#if SVD_DEBUG_LOGS
-	SU_DEBUG_3 (("SDP STRING : %s\n", l_sdp_str));
-#endif
+	SU_DEBUG_3 (("LOCAL SDP STRING : %s\n", l_sdp_str));
 
 	nua_invite( nh,
 			SOATAG_USER_SDP_STR(l_sdp_str),
@@ -725,6 +723,9 @@ DFE
  * \param[in] 	sip		sip headers.
  * \param[in] 	tags	event tags.
  *
+ * \todo
+ * 		Think about race conditions in this section. 
+ * 		At first look it is not so creepy.
  */
 static void
 svd_i_invite( int status, char const * phrase, svd_t * const svd, 
@@ -806,8 +807,6 @@ DFS
 			}
 		}
 	}
-
-/* tag__ race on chan */
 
 	req_chan = &svd->ab->chans[chan_idx];
 	chan_ctx = req_chan->ctx;

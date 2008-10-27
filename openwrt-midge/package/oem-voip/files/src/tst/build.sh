@@ -27,6 +27,8 @@ mipsel-linux-uclibc-gcc -Wall -I$asrc_path/vinetic/include/ -I$asrc_path/tapi/in
 
 mipsel-linux-uclibc-gcc -Wall -I$asrc_path/vinetic/include/ -I$asrc_path/tapi/include/ -I$asrc_path/sgatab/ -I$asrc_path -L$asrc_path etst.c -o etst -lab
 
+mipsel-linux-uclibc-gcc -Wall -I$asrc_path/vinetic/include/ -I$asrc_path/tapi/include/ -I$asrc_path/sgatab/ -I$asrc_path -L$asrc_path iotst.c -o iotst -lab
+
 echo COPING TO TFTPBOOT...
 	cp *tst ~/tftpboot
 

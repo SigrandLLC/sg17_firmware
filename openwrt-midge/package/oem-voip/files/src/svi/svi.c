@@ -35,6 +35,10 @@
 #define VIN_DEV_NODE_BASE "/dev/vin"
 #define VINETIC_MAJOR 121
 #define FXO_OSI_MAX 600
+
+#define BEFORE_BASICDEV_INIT_USLEEP 2000
+#define AFTER_BASICDEV_INIT_USLEEP 2000
+
 /*
 COMMAND LINE KEYS:
   -h, --help		display this help and exit
@@ -409,6 +413,7 @@ dev_init (int const dev_idx, ab_dev_params_t const * const dp,
 	if(g_so.channels){
 		goto __exit_success;
 	}
+
 	/* download fw and chans init */
 	for(j=0; j<CHANS_PER_DEV; j++){
 		/* channel init */
@@ -417,6 +422,73 @@ dev_init (int const dev_idx, ab_dev_params_t const * const dp,
 			goto __exit_fail;
 		}
 	}
+
+#if 0
+	if(dp->type == dev_type_FXS){
+		int cfg_fd;
+		char devnode[30] = {0};
+		VINETIC_IO_GPIO_CONTROL gpio;
+
+		/*set all gpio pins to out 1*/
+		snprintf(devnode,30,VIN_DEV_NODE_BASE"%d0",dev_idx+1);
+		cfg_fd = open(devnode,O_RDWR);
+		if(cfg_fd ==-1){
+			fprintf(stderr,"svi: can`t open '%s' to set GPIO\n",devnode);
+			goto __exit_fail;
+		}
+		memset(&gpio, 0, sizeof(gpio));
+
+		gpio.nGpio = VINETIC_IO_DEV_GPIO_0 | VINETIC_IO_DEV_GPIO_1 | 
+				VINETIC_IO_DEV_GPIO_2 | VINETIC_IO_DEV_GPIO_3 |
+				VINETIC_IO_DEV_GPIO_4 | VINETIC_IO_DEV_GPIO_5 |
+				VINETIC_IO_DEV_GPIO_6 | VINETIC_IO_DEV_GPIO_7;
+
+		err = ioctl(cfg_fd, FIO_VINETIC_GPIO_RESERVE, &gpio);
+		if(err){
+			fprintf(stderr,"svi: [%d] can`t reserve GPIO before set\n",dev_idx);
+			close(cfg_fd);
+			goto __exit_fail;
+		}
+
+		/*set all pins to output*/
+		gpio.nMask = VINETIC_IO_DEV_GPIO_0 | VINETIC_IO_DEV_GPIO_1 | 
+				VINETIC_IO_DEV_GPIO_2 | VINETIC_IO_DEV_GPIO_3 |
+				VINETIC_IO_DEV_GPIO_4 | VINETIC_IO_DEV_GPIO_5 |
+				VINETIC_IO_DEV_GPIO_6 | VINETIC_IO_DEV_GPIO_7;
+		gpio.nGpio = gpio.nMask;
+		err = ioctl(cfg_fd, FIO_VINETIC_GPIO_CONFIG, &gpio);
+		if(err){
+			fprintf(stderr,"svi: [%d] can`t config GPIO before set\n",dev_idx);
+			close(cfg_fd);
+			goto __exit_fail;
+		}
+
+		/*set all pins to 1*/
+		gpio.nMask = VINETIC_IO_DEV_GPIO_0 | VINETIC_IO_DEV_GPIO_1 | 
+				VINETIC_IO_DEV_GPIO_2 | VINETIC_IO_DEV_GPIO_3 |
+				VINETIC_IO_DEV_GPIO_4 | VINETIC_IO_DEV_GPIO_5 |
+				VINETIC_IO_DEV_GPIO_6 | VINETIC_IO_DEV_GPIO_7;
+		gpio.nGpio = gpio.nMask;
+		err = ioctl(cfg_fd, FIO_VINETIC_GPIO_SET, &gpio);
+		if(err){
+			fprintf(stderr,"svi: [%d] can`t set GPIO values to 1\n",dev_idx);
+			close(cfg_fd);
+			goto __exit_fail;
+		}
+
+		/* release all gpio pins */
+		err = ioctl(cfg_fd, FIO_VINETIC_GPIO_RELEASE, &gpio);
+		if(err){
+			fprintf(stderr,"svi: [%d] can`t release GPIO pins\n",dev_idx);
+			close(cfg_fd);
+			goto __exit_fail;
+		}
+
+		fprintf(stderr,"svi: [%d] set all GPIO to output 1\n",dev_idx);
+		close(cfg_fd);
+	}
+#endif 
+
 __exit_success:
 	return 0;
 __exit_fail:
@@ -458,6 +530,9 @@ basicdev_init( int const dev_idx, ab_dev_params_t const * const dp,
 		show_last_err(">>", cfg_fd);
 		goto __exit_fail_close;
 	}
+
+	//usleep (BEFORE_BASICDEV_INIT_USLEEP);
+
 	err = ioctl (cfg_fd, FIO_VINETIC_BASICDEV_INIT, &binit);
 	if(err){
 		g_err_no = ERR_IOCTL_FAILS;
@@ -465,6 +540,8 @@ basicdev_init( int const dev_idx, ab_dev_params_t const * const dp,
 		show_last_err(">>", cfg_fd);
 		goto __exit_fail_close;
 	}
+
+	//usleep (AFTER_BASICDEV_INIT_USLEEP);
 
 	close (cfg_fd);
 __exit_success:
@@ -530,8 +607,8 @@ chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt)
 	err = ioctl(cfd, IFX_TAPI_CH_INIT, (IFX_uint32_t) &init);
 	if( err ){
 		g_err_no = ERR_IOCTL_FAILS;
-		sprintf(g_err_msg,"%s() initilizing channel with"
-				" firmware (ioctl)",__func__);
+		sprintf(g_err_msg,"%s() initilizing channel with firmware (ioctl)",
+				__func__);
 		show_last_err(">>", cfd);
 		goto __exit_fail_close;
 	}

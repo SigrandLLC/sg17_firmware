@@ -1,6 +1,6 @@
 diff -ruiN vinetic_pure/2cpe/drv_vinetic_gpio.c vinetic/2cpe/drv_vinetic_gpio.c
---- vinetic_pure/2cpe/drv_vinetic_gpio.c	2008-10-10 12:34:50.000000000 +0700
-+++ vinetic/2cpe/drv_vinetic_gpio.c	2008-10-10 12:34:50.000000000 +0700
+--- vinetic_pure/2cpe/drv_vinetic_gpio.c	2008-08-20 13:56:05.000000000 +0700
++++ vinetic/2cpe/drv_vinetic_gpio.c	2008-08-20 13:56:05.000000000 +0700
 @@ -801,4 +801,9 @@
  
     return err;
@@ -11,9 +11,22 @@ diff -ruiN vinetic_pure/2cpe/drv_vinetic_gpio.c vinetic/2cpe/drv_vinetic_gpio.c
 +EXPORT_SYMBOL( VINETIC_GpioConfig );
 +EXPORT_SYMBOL( VINETIC_GpioReserve );
  /* @} */
+diff -ruiN vinetic_pure/2cpe/drv_vinetic_host.c vinetic/2cpe/drv_vinetic_host.c
+--- vinetic_pure/2cpe/drv_vinetic_host.c	2008-08-20 13:56:05.000000000 +0700
++++ vinetic/2cpe/drv_vinetic_host.c	2008-08-20 13:56:05.000000000 +0700
+@@ -927,7 +927,8 @@
+       V2CPE_ERR_IEN_HW_ERR    |     /* EDSP hardware error */
+       V2CPE_ERR_IEN_WD_FAIL   |     /* EDSP watchdog timeout */
+       V2CPE_ERR_IEN_MCLK_FAIL |     /* MCLK failure */
+-      V2CPE_ERR_IEN_SYNC_FAIL |     /* PLL clock out of sync */
++      /*  Remarked to prevent wrong SYNC_FAIL interrupt (BUG_8)  */
++      /* V2CPE_ERR_IEN_SYNC_FAIL |     PLL clock out of sync */
+       V2CPE_ERR_IEN_EDSP_MIPS_OL |  /* EDSP MIPS overload */
+       V2CPE_ERR_IEN_PCMB_CRASH|     /* PCM transmit highway B crash */
+       V2CPE_ERR_IEN_PCMA_CRASH|     /* PCM transmit highway A crash */
 diff -ruiN vinetic_pure/2cpe/Makefile.am vinetic/2cpe/Makefile.am
---- vinetic_pure/2cpe/Makefile.am	2008-10-10 12:34:50.000000000 +0700
-+++ vinetic/2cpe/Makefile.am	2008-10-10 12:34:50.000000000 +0700
+--- vinetic_pure/2cpe/Makefile.am	2008-08-20 13:56:05.000000000 +0700
++++ vinetic/2cpe/Makefile.am	2008-08-20 13:56:05.000000000 +0700
 @@ -218,7 +218,7 @@
  
  # Extra rule for linux-2.6 kernel object
@@ -24,8 +37,8 @@ diff -ruiN vinetic_pure/2cpe/Makefile.am vinetic/2cpe/Makefile.am
  drv_vinetic.ko:
  	@echo -e "Making Linux 2.6.x kernel object"
 diff -ruiN vinetic_pure/src/drv_vinetic_linux.c vinetic/src/drv_vinetic_linux.c
---- vinetic_pure/src/drv_vinetic_linux.c	2008-10-10 12:34:50.000000000 +0700
-+++ vinetic/src/drv_vinetic_linux.c	2008-10-10 12:34:50.000000000 +0700
+--- vinetic_pure/src/drv_vinetic_linux.c	2008-08-20 13:56:05.000000000 +0700
++++ vinetic/src/drv_vinetic_linux.c	2008-08-20 13:56:05.000000000 +0700
 @@ -1551,6 +1551,7 @@
  module_init(vinetic_module_init);
  module_exit(vinetic_module_exit);

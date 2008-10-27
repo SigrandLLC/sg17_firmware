@@ -483,17 +483,16 @@ DFE
  * \sa ab_chan_media_deactivate().
  * \remark
  * 		It also tuning RTP modes according to channel parameters.
+ * \todo
+ *		\c cod_pt is enum and \c payload is int 
+ * 		there we should make choise more verbosity then we add dinamic
+ * 		codecs
  */ 
 int 
 ab_chan_media_activate ( ab_chan_t * const chan )
 {/*{{{*/
 	int err;
 
-	/* *
-	 * tag__ cod_pt is enum and payload is int 
-	 * there we should make choise more verbosity then we add dinamic
-	 * codecs
-	 * */
 	chan->rtp_cfg.cod_pt = ((svd_chan_t *)(chan->ctx))->payload;
 
 	err = ab_chan_media_rtp_tune (chan);
@@ -597,11 +596,11 @@ DFS
 		}
 		case ab_dev_event_UNCATCHED:{
 
-#if SVD_DEBUG_LOGS
+		DEBUG_CODE(
 			SU_DEBUG_2 (("Got unknown event : 0x%X "
 					"on device / channel %d / %d\n",
 					evt.data, dev_idx+1,evt.ch+1 ));
-#endif
+		);
 			break;
 		}
 	}
@@ -631,10 +630,10 @@ svd_handle_event_FXS_OFFHOOK( svd_t * const svd, int const chan_idx )
 	int err;
 
 DFS
-	
-#if SVD_DEBUG_LOGS
-	SU_DEBUG_3 (("OFFHOOK on channel [_%d_]\n ", ab_chan->abs_idx));
-#endif
+	DEBUG_CODE (
+		SU_DEBUG_3 (("OFFHOOK on channel [_%d_]\n ", ab_chan->abs_idx));
+	);
+
 	/* stop ringing */
 	err = ab_FXS_line_ring( ab_chan, ab_chan_ring_MUTE );
 	if (err){
@@ -690,10 +689,9 @@ svd_handle_event_FXS_ONHOOK( svd_t * const svd, int const chan_idx )
 	int err;
 
 DFS
-
-#if SVD_DEBUG_LOGS
-	SU_DEBUG_3 (("ONHOOK on channel [_%d_]\n ", ab_chan->abs_idx));
-#endif
+	DEBUG_CODE (
+		SU_DEBUG_3 (("ONHOOK on channel [_%d_]\n ", ab_chan->abs_idx));
+	);
 	/* say BYE on existing connection */
 	svd_bye(svd, ab_chan);
 
@@ -729,15 +727,14 @@ svd_handle_event_FXS_DIGIT_X ( svd_t * const svd, int const chan_idx,
 	int err;
 
 DFS
-
-#if SVD_DEBUG_LOGS
-	SU_DEBUG_3 (("DIGIT \'%c\', on channel [_%d_]\n ",
-			digit, ab_chan->abs_idx ));
-	SU_DEBUG_3 (("local : %d, network : %d\n",
-			(data >> 9),
-			(data >> 8) & 1 ));
-	SU_DEBUG_3 (("HN : %p\n",chan_ctx->op_handle));
-#endif
+	DEBUG_CODE (
+		SU_DEBUG_3 (("DIGIT \'%c\', on channel [_%d_]\n ",
+				digit, ab_chan->abs_idx ));
+		SU_DEBUG_3 (("local : %d, network : %d\n",
+				(data >> 9),
+				(data >> 8) & 1 ));
+		SU_DEBUG_3 (("HN : %p\n",chan_ctx->op_handle));
+	);
 
 	if( chan_ctx->op_handle ){
 		/* allready connected - we can send info 
@@ -1322,7 +1319,7 @@ DFS
 			/* wait a second */
 			sleep(1);
 		} else {
-			/* tag__ should play dial tone */
+			/* should play dial tone there */
 			SU_DEBUG_3(("CALL : %c\n", value[ i ]));
 		}
 	}
@@ -1561,7 +1558,7 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 
 	received = recv(chan_ctx->rtp_sfd, buf, sizeof(buf), 0);
 
-	/* tag__ use for testing oob
+	/* use for testing oob 
 	if (buf[1] == 0x62 || buf[1] == 0xe2){
 		int i = 12;
 		SU_DEBUG_3(("%d = recv(), pd:%x[:",received, buf[1]));
