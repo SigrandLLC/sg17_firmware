@@ -31,8 +31,8 @@ case "$act" in
 					tar x -C / -f $uploadfile
 					echo "File imported successfully"
 				fi
-				rm -rf /tmp/etc 
-				echo "<script language=\"JavaScript\">setTimeout('window.location = \"/\"', 2000);</script>"
+				rm -rf /tmp/etc
+				echo "<br><br><b>Router have to be rebooted.</b>"
 			else
 				echo "Error occured while import configuration"
 			fi
@@ -53,7 +53,7 @@ case "$act" in
 		fi
 		echo "<html><body>"
 		echo "<h2>Default configuration restored"
-		echo "<script language=\"JavaScript\">setTimeout('window.location = \"/\"', 2000);</script>"
+		echo "<br><br><b>Router have to be rebooted.</b>"
 	;;
 esac
 		

@@ -415,3 +415,92 @@ Controllers['reboot'] = function() {
 	
 	page.generateTabs();
 }
+
+Controllers['cfg'] = function() {
+	var page = this.Page();
+	page.setHelpPage("cfg");
+	
+	page.addTab({
+		"id": "backup",
+		"name": "Backup configuration",
+		"func": function() {
+			var c, field;
+			c = page.addContainer("backup");
+			c.setHelpSection("backup");
+			c.addTitle("Backup configuration");
+			
+			/* tell what to do cfg.cgi */
+			field = {
+				"type": "hidden",
+				"name": "act",
+				"defaultValue": "backup"
+			};
+			c.addWidget(field);
+			
+			c.addSubmitNoAjax({
+				"submitName": "Backup",
+				"formAction": "/cfg.cgi"
+			});
+		}
+	});
+	
+	page.addTab({
+		"id": "restore",
+		"name": "Restore configuration",
+		"func": function() {
+			var c, field;
+			c = page.addContainer("restore");
+			c.setHelpSection("restore");
+			c.addTitle("Restore configuration");
+			
+			/* tell what to do cfg.cgi */
+			field = {
+				"type": "hidden",
+				"name": "act",
+				"defaultValue": "restore"
+			};
+			c.addWidget(field);
+			
+			field = {
+				"type": "file",
+				"name": "uploadfile",
+				"text": "Backuped configuration",
+				"descr": "Restore configuration from file"
+			};
+			c.addWidget(field);
+			
+			c.addSubmitNoAjax({
+				"submitName": "Restore",
+				"formAction": "/cfg.cgi",
+				"method": "post",
+				"encType": "multipart/form-data"
+			});
+		}
+	});
+	
+	page.addTab({
+		"id": "default",
+		"name": "Default configuration",
+		"func": function() {
+			var c, field;
+			c = page.addContainer("default");
+			c.setHelpSection("default");
+			c.addTitle("Restore default configuration");
+			
+			/* tell what to do cfg.cgi */
+			field = {
+				"type": "hidden",
+				"name": "act",
+				"defaultValue": "default"
+			};
+			c.addWidget(field);
+			
+			c.addSubmitNoAjax({
+				"submitName": "Restore",
+				"formAction": "/cfg.cgi"
+			});
+		}
+	});
+	
+	page.generateTabs();
+};

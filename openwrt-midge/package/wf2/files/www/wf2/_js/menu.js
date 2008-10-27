@@ -9,6 +9,7 @@ function generateMenu() {
 	addItem("System", "Logging", "logging");
 	addItem("System", "Tools", "tools");
 	addItem("System", "Reboot", "reboot");
+	addItem("System", "Configuration", "cfg");
 	addItem("Network", "Firewall", "fw");
 	
 	/* if we have interfaces with multiplexing support, add item to the menu */

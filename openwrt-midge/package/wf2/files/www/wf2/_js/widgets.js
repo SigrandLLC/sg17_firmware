@@ -399,6 +399,19 @@ function Container(p, options) {
 		
 		return $.create("input", attrs);
 	};
+	
+	/*
+	 * Create file widget.
+	 */
+	this.createFileWidget = function(w) {
+		var attrs = {
+			"type": "file",
+			"name": w['name']
+		};
+		w['id'] && (attrs['id'] = w['id']);
+		
+		return $.create("input", attrs);
+	};
 
 	/*
 	 * Add complete widget (table's TR) to container.
@@ -443,6 +456,9 @@ function Container(p, options) {
 				break;
 			case "html":
 				widget = this.createHtmlWidget(w, value);
+				break;
+			case "file":
+				widget = this.createFileWidget(w);
 				break;
 			case "select":
 				widget = this.createSelectWidget(w);
@@ -653,6 +669,26 @@ function Container(p, options) {
 		
 		/* apply validate rules to form */
 		$(this.form).validate(validateOptions);
+	};
+	
+	/*
+	 * Submit form in traditional way, without AJAX.
+	 * 
+	 * options['submitName'] — name of button for submitting;
+	 * options['formAction'] — action for the form;
+	 * options['encType'] — enctype property for the form.
+	 */
+	this.addSubmitNoAjax = function(options) {
+		if (options && options['formAction']) this.form.attr("action", "/cfg.cgi");
+		if (options && options['encType']) this.form.attr("enctype", "multipart/form-data");
+		if (options && options['method']) this.form.attr("method", "post");
+		
+		/* create submit button */
+		$.create("input", {
+			"type": "submit",
+			"className": "button",
+			"value": options && options['submitName'] ? _(options['submitName']) : _("Save")
+		}).appendTo(this.form);
 	};
 	
 	/*
