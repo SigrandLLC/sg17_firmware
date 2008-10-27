@@ -9,20 +9,23 @@ Controllers['iface'] = function(iface) {
 		"name": "Status",
 		"func": function() {
 			var c;
+			var realIface = config.get($.sprintf("sys_iface_%s_real", iface)) ?
+				config.get($.sprintf("sys_iface_%s_real", iface)) : iface;
+			
 			c = page.addContainer("status");
 			c.addTitle("Interface status");
-			c.addConsole(["/sbin/ifconfig " + iface, "/usr/sbin/ip addr show dev " + iface,
-				"/usr/sbin/ip link show dev " + iface]);
+			c.addConsole(["/sbin/ifconfig " + realIface, "/usr/sbin/ip addr show dev " + realIface,
+				"/usr/sbin/ip link show dev " + realIface]);
 			
 			page.addBr("status");
 			c = page.addContainer("status");
 			c.addTitle("Routes");
-			c.addConsole("/usr/sbin/ip route show dev " + iface);
+			c.addConsole("/usr/sbin/ip route show dev " + realIface);
 			
 			page.addBr("status");
 			c = page.addContainer("status");
 			c.addTitle("ARP");
-			c.addConsole("/usr/sbin/ip neigh show dev " + iface);
+			c.addConsole("/usr/sbin/ip neigh show dev " + realIface);
 		}
 	});
 	

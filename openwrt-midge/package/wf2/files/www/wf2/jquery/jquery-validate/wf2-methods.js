@@ -81,7 +81,7 @@ jQuery.validator.addMethod("voipCompleteNumber", function(value, element) {
 
 /* PBO value */
 jQuery.validator.addMethod("pbo", function(value, element) {
-	return this.optional(element) || /^(\d+(:\d+)?)+$/.test(value);
+	return this.optional(element) || /^(\d+(:\d+)*)+$/.test(value);
 }, "Please enter correct PBO value.");
 
 /* Alphanumeric only */

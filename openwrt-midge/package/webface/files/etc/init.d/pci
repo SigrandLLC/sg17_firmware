@@ -224,13 +224,6 @@ _pci_start(){
 	
 	ifaces=`$kdb get sys_ifaces`
 	for i in $ifaces; do
-		# add not E1_ and not dsl interfaces
-		tmp=`echo $i | grep E1_`
-		tmp2=`echo $i | grep dsl`
-		if [ ! -n "$tmp" ] && [ ! -n "$tmp2" ]; then
-			nifaces="$nifaces \n $i"
-		fi
-		
 		# if this is VLAN interface
 		if echo $i |grep -Eq ".+v[0-9]+"; then
 			# get name of physical interface for VLAN interface
@@ -238,6 +231,11 @@ _pci_start(){
 			
 			# if physical interface exists in interface list, add VLAN interface
 			if echo $nifaces |grep -q $phys; then
+				nifaces="$nifaces \n $i"
+			fi
+		else
+			# add not E1_ and not dsl interfaces
+			if ! echo $i |grep -q "dsl" && ! echo $i |grep -q "E1_"; then
 				nifaces="$nifaces \n $i"
 			fi
 		fi
