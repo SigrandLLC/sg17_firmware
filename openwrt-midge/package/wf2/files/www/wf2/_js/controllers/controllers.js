@@ -133,37 +133,88 @@ Controllers['security'] = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("security");
+			c.setSubsystem("security");
 			c.setHelpSection("passwd");
 			c.addTitle("Webface password");
 
 			field = { 
-				type: "password",
-				name: "htpasswd",
-				text: "Password",
-				descr: "Password for webface user <i>admin</i>",
-				validator: {"required": true},
-				message: "Enter webface password"
+				"type": "password",
+				"name": "htpasswd",
+				"id": "htpasswd",
+				"text": "Password",
+				"descr": "Password for webface user <i>admin</i>",
+				"validator": {"required": true, "alphanum": true}
+			};
+			c.addWidget(field);
+			
+			field = { 
+				"type": "password",
+				"name": "htpasswd2",
+				"id": "htpasswd2",
+				"text": "Repeat password",
+				"descr": "Password for webface user <i>admin</i>",
+				"validator": {"equalTo": "#htpasswd"}
 			};
 			c.addWidget(field);
 		
-			c.addSubmit();
+			c.addSubmit({
+				/* set a value to a subsystem field before a form will be submitted */
+				"preSubmit": function() {
+					$("#subsystem").val($.sprintf("security.htpasswd.%s", $("#htpasswd").val()));
+				},
+				"onSubmit": function() {
+					$("#htpasswd").val("");
+					$("#htpasswd2").val("");
+				}
+			});
 			
+			/* system (console) password */
 			page.addBr("security");
 			c = page.addContainer("security");
 			c.setHelpSection("passwd");
-			c.addTitle("System password");
+			c.addTitle("System console password");
 		
+			/*
+			 * We set subsystem via API (with id 'subsystem') in previous form,
+			 * so, for excluding duplication of the id, we set it manually here.
+			 */
 			field = { 
-				type: "password",
-				name: "passwd",
-				text: "Password",
-				descr: "Password for system user <i>root</i>",
-				validator: {required: true},
-				message: "Enter system password"
+				"type": "hidden",
+				"name": "subsystem",
+				"id": "subsystem2"
+			};
+			c.addWidget(field);
+
+			field = { 
+				"type": "password",
+				"name": "passwd",
+				"id": "passwd",
+				"text": "Password",
+				"descr": "Password for system user <i>root</i> to log in via console",
+				"validator": {"required": true, "alphanum": true}
+			};
+			c.addWidget(field);
+			
+			field = { 
+				"type": "password",
+				"name": "passwd2",
+				"id": "passwd2",
+				"text": "Repeat password",
+				"descr": "Password for system user <i>root</i> to log in via console",
+				"validator": {"equalTo": "#passwd"}
 			};
 			c.addWidget(field);
 		
-			c.addSubmit();
+			c.addSubmit({
+				/* set a value to a subsystem field before a form will be submitted */
+				"preSubmit": function() {
+					$("#subsystem2").val($.sprintf("security.passwd.%s", $("#passwd").val()));
+				},
+				"onSubmit": function() {
+					$("#passwd").val("");
+					$("#passwd2").val("");
+				}
+			});
 		}
 	});
 	
@@ -499,6 +550,52 @@ Controllers['cfg'] = function() {
 				"submitName": "Restore",
 				"formAction": "/cfg.cgi"
 			});
+		}
+	});
+	
+	page.generateTabs();
+};
+
+Controllers['adm5120sw'] = function() {
+	var page = this.Page();
+	page.setHelpPage("adm5120sw");
+
+	page.addTab({
+		"id": "adm5120sw",
+		"name": "Internal switch configuration",
+		"func": function() {
+			var c, field;
+			c = page.addContainer("adm5120sw");
+			c.addTitle("Internal switch configuration", 2);
+
+			/* make list of ethernet interfaces */
+			var ethIfaces = new Object();
+			$.each(config.getParsed("sys_switch_ports"), function(num, port) {
+				ethIfaces[port] = "eth" + port;
+			});
+
+			c.addTableHeader("Port|Interface");
+			c.addTableTfootStr("Router have to be rebooted for apply changes.", 2);
+			$.each(config.getParsed("sys_switch_ports"), function(num, port) {
+				var row = c.addTableRow();
+				
+				field = {
+					"type": "html",
+					"name": port,
+					"str": "Port " + port
+				};
+				c.addTableWidget(field, row);
+				
+				field = { 
+					"type": "select",
+					"name": $.sprintf("sys_switch_port%s_iface", port),
+					"tip": "Attach port to selected interface",
+					"options": ethIfaces
+				};
+				c.addTableWidget(field, row);
+			});
+			
+			c.addSubmit();
 		}
 	});
 	

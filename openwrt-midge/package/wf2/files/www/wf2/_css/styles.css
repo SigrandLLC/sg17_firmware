@@ -318,3 +318,7 @@ td div.scrollable {
 	width: 745px;
 	height: auto;
 }
+
+table tfoot tr td {
+	font-size: 10px;
+}

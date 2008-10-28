@@ -8,10 +8,23 @@ Controllers['multiplexing'] = function() {
 		"name": "Multiplexing",
 		"func": function() {
 			var c, field, id;
+			var colSpan = 10;
 			c = page.addContainer("multiplexing");
-			c.addTitle("Multiplexing", 10);
+			c.addTitle("Multiplexing", colSpan);
 			
 			c.addTableHeader("DEV|MXEN|CLKM|CLKAB|CLKR|RLINE|TLINE|RFS|TFS|MXSMAP/MXRATE");
+			
+			/* describe parameters */
+			c.addTableTfootStr("MXEN - enable multiplexing.", colSpan);
+			c.addTableTfootStr("CLKM - clock-master or clock-slave.", colSpan);
+			c.addTableTfootStr("CLKAB - clock domain.", colSpan);
+			c.addTableTfootStr("CLKR - clock source.", colSpan);
+			c.addTableTfootStr("RLINE - transmit multiplexer bus line.", colSpan);
+			c.addTableTfootStr("TLINE - receive multiplexer bus line.", colSpan);
+			c.addTableTfootStr("RFS - receive frame start.", colSpan);
+			c.addTableTfootStr("TFS - transmit frame start.", colSpan);
+			c.addTableTfootStr("MXSMAP/MXRATE - multiplexing rate (for SHDSL and RS232) / " +
+				"Slotmap for multiplexing (for E1).", colSpan);
 			
 			/* enables/disables CLKR field depending on CLKM value */
 			var onMuxChange = function(iface) {				

@@ -130,7 +130,7 @@
 				<li>CLKR - clock source</li>
 				<li>RLINE - Transmit multiplexer bus line</li>
 				<li>TLINE - Receive multiplexer bus line</li>
-				<li>RFS - Receive Frame Start </li>
+				<li>RFS - Receive Frame Start</li>
 				<li>TFS - Transmit Frame Start</li>
 				<li>MXRATE/MXSMAP - multiplexing rate (use for SHDSL) / Slotmap used for multiplexing (use for E1)</li>
 			</ul>

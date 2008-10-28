@@ -11,6 +11,7 @@ function generateMenu() {
 	addItem("System", "Reboot", "reboot");
 	addItem("System", "Configuration", "cfg");
 	addItem("Network", "Firewall", "fw");
+	addItem("Hardware", "Switch", "adm5120sw");
 	
 	/* if we have interfaces with multiplexing support, add item to the menu */
 	if (config.getParsed("sys_mux_ifaces").length > 0) {

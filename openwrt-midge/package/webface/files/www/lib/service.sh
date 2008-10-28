@@ -61,6 +61,20 @@ service_reload(){
 		iface=${service#*.}
 		/sbin/ifdown $iface 2>&1 | ${LOGGER}
 	;;
+	security*)
+		tmp=${service#*.}
+		form=${tmp%.*}
+		passwd=${tmp#*.}
+
+		case $form in
+			htpasswd)
+				echo $passwd | htpasswd /etc/htpasswd admin 2>&1 | $LOGGER
+			;;
+			passwd)
+				(echo $passwd; sleep 1; echo $passwd) | passwd root 2>&1 | $LOGGER
+			;;
+		esac
+	;;
 	esac
 }
 

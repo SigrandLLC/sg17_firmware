@@ -525,8 +525,12 @@ function Container(p, options) {
 
 	/*
 	 * Adds submit button, form validation rules and submit's events handlers.
-	 * options.reload — reload page after AJAX request (e.g., for update translation);
-	 * options.onSuccess — callback on request successfully completion.
+	 * 
+	 * options['reload'] — reload page after AJAX request (e.g., for update translation);
+	 * options['onSuccess'] — callback on request successfully completion;
+	 * options['noSubmit'] — do not submit the form, but call onSubmit and preSubmit callbacks;
+	 * options['onSubmit'] — callback on submit event to call after submitting the form;
+	 * options['preSubmit'] — callback on submit event to call before submitting the form.
 	 */
 	this.addSubmit = function(options) {
 		var idInfoMessage = "#" + this.infoMessage;
@@ -540,7 +544,11 @@ function Container(p, options) {
 
 		/* if subsystem is set — add it to the form */
 		if (this.subsystem) {
-			$("<input type='hidden' name='subsystem' value='" + this.subsystem + "'/>").appendTo(this.form);
+			this.form.append(
+				$.create("input",
+					{"type": "hidden", "name": "subsystem", "id": "subsystem", "value": this.subsystem}
+				)
+			);
 		}
 
 		/* create submit button */
@@ -575,10 +583,14 @@ function Container(p, options) {
      		/* on submit event */
      		"submitHandler": function(form) {
      			/* if noSubmit is set — do not submit the form */
-     			if (options && options.noSubmit) {
-     				if (options.onSubmit) options.onSubmit();
+     			if (options && options['noSubmit']) {
+     				if (options['onSubmit']) options['onSubmit']();
+     				if (options['preSubmit']) options['preSubmit']();
      				return;
      			}
+     			
+     			/* call user function on submit event before submitting form */
+     			if (options && options['preSubmit']) options['preSubmit']();
      			
      			/* remove alert text */
 				$(".alertText", form).remove();
@@ -650,7 +662,7 @@ function Container(p, options) {
 				}).removeClass("doUncheck");
 				
 				/* call user function on submit event */
-     			if (options && options.onSubmit) options.onSubmit();
+     			if (options && options['onSubmit']) options['onSubmit']();
      		}
 		};
 		
@@ -848,6 +860,18 @@ function Container(p, options) {
 		
 		/* add to thead section of current table */
 		$("thead", this.table).append(tr);
+	};
+	
+	/*
+	 * Add text to tfoot section in the table.
+	 * I18N for str.
+	 * 
+	 * str — text to add;
+	 * colspan — number of columns to span for tfoot's row.
+	 */
+	this.addTableTfootStr = function(str, colspan) {
+		if ($("tfoot", this.table).length == 0) $("thead", this.table).after($.create("tfoot"));
+		$("tfoot", this.table).append($.create("tr", {}, $.create("td", {"colSpan": colspan}, _(str))));
 	};
 	
 	/* Adds row to the table */
