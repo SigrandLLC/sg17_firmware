@@ -187,6 +187,7 @@ _e1_modcfg(){
 			_e1_ifdefcfg "$slot" "$tmp" "$cur_type"
 			tmp=`expr $tmp + 1`
 		done
+		kdb set sys_pcicfg_s${slot}_ifnum="$cur_cnt"
 	fi
 	
 	ifaces=`kdb get sys_pcitbl_s${slot}_ifaces`
