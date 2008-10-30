@@ -12,6 +12,7 @@ function generateMenu() {
 	addItem("System", "Configuration", "cfg");
 	addItem("Network", "Firewall", "fw");
 	addItem("Hardware", "Switch", "adm5120sw");
+	addItem("Services", "DHCP server", "dhcp");
 	
 	/* if we have interfaces with multiplexing support, add item to the menu */
 	if (config.getParsed("sys_mux_ifaces").length > 0) {

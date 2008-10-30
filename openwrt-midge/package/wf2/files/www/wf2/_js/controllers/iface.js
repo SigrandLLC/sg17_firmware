@@ -1002,5 +1002,14 @@ Controllers['iface'] = function(iface) {
 		"func": showQos
 	});
 	
+	/* DHCP tab */
+	page.addTab({
+		"id": "dhcp",
+		"name": "DHCP",
+		"func": function() {
+			serviceDHCP(page, iface);
+		}
+	});
+	
 	page.generateTabs();
 };

@@ -17,7 +17,8 @@ service_reload(){
 			/etc/init.d/network restart
 		fi
 	;;
-	dhcp)
+	dhcp*)
+		[ -z "$iface" ] && iface=${service#*.}
 		/etc/init.d/udhcpd restart $iface
 	;;
 	dns_server)

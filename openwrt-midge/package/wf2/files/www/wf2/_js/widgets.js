@@ -41,13 +41,17 @@ function Page(p) {
 	/* generate tabs' links and divs */
 	this.generateTabs = function() {
 		/* create ul for tabs' links */
-		var tabsList = $.create('ul');
+		var tabsList = $.create("ul");
 		
 		/* go through tabs' info */
 		$.each(this.tabsInfo, function(num, tab) {
 			/* create link to a tab */
-			var href = $.create('a', {'href': '#' + tabIdPrefix + tab['id']},
-				$.create('span', {}, _(tab['name']))
+			var href = $.create("a",
+				{
+					"href": "#" + tabIdPrefix + tab['id'],
+					"id": tabIdPrefix + tab['id'] + "_link"
+				},
+				$.create("span", {}, _(tab['name']))
 			);
 			
 			/* add click event */
@@ -60,6 +64,8 @@ function Page(p) {
 				
 				/* render tab's content */
 				tab['func']();
+				
+				scrollTo(0, 0);
 			});
 			
 			/* save pointer to the first link for a tab */
@@ -192,7 +198,7 @@ function Container(p, options) {
 	
 	this.validator_rules = new Object();
 	this.validator_messages = new Object();
-	this.infoMessage = "info_message_" + $(p).attr("id");
+	this.infoMessage = "info_message_" + p.attr("id");
 	if ($("div[id='" + this.infoMessage + "']").length == 0) {
 		$("<div class='message'></div>").attr("id", this.infoMessage).appendTo(p);
 	}
@@ -214,6 +220,10 @@ function Container(p, options) {
 	/* set subsystem for this tab */
 	this.setHelpSection = function(helpSection) {
 		this.help['section'] = helpSection;
+	};
+	
+	this.getTab = function() {
+		return p;
 	};
 	
 	/*
@@ -438,7 +448,11 @@ function Container(p, options) {
 	 */
 	this.addSubWidget = function(w, insertAfter) {
 		/* get field's value */
-		var value = w.item ? config.getParsed(w.item)[w.name] : config.get(w.name);
+		var value;
+		
+		/* TODO: make full support for cookies (do not write it to KDB but save in cookie) */
+		if (w['cookie']) value = $.cookie(w['name']);
+		else value = w.item ? config.getParsed(w.item)[w.name] : config.get(w.name);
 		
 		var widget;
 		switch (w.type) {
@@ -842,6 +856,7 @@ function Container(p, options) {
 			var img = $.create("img", {"src": "_img/plus.gif", "alt": "add"});
 			img.click(function(e) {
 				addFunc();
+				scrollTo(0, 0);
 			});
 			
 			/* change image when mouse is over it */
@@ -910,7 +925,7 @@ function Container(p, options) {
 	 * cols — space-separated names of variables in item's value to use in table's cells.
 	 * (e.g., "router_id address comment")
 	 * addFunc — function to call for editing row's value.
-	 * showFunc — function to call after deleting rot. Usually this func reloads table.
+	 * showFunc — function to call after deleting row. Usually this func reloads table.
 	 * processValueFunc — optional callback, which can be used for editing values of item's variable.
 	 *  It is called with two parameters — name of variable and variable's value. It must return
 	 *  variable's value.
@@ -943,6 +958,7 @@ function Container(p, options) {
 			var img = $.create("img", {"src": "_img/e.gif", "alt": "edit"});
 			img.click(function(e) {
 				addFunc(key);
+				scrollTo(0, 0);
 			});
 			
 			/* change image when mouse is over it */
