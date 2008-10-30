@@ -188,24 +188,37 @@ function cmdExecute(cmd, dst, filter) {
  * I18N for widgets.
  */
 function Container(p, options) {
-	this.p = p;
-	
 	/* set subsystem common for all tabs */
 	this.subsystem = options.subsystem;
 	
 	/* set help page common for all tabs */
 	this.help = options.help;
 	
-	this.validator_rules = new Object();
-	this.validator_messages = new Object();
-	this.infoMessage = "info_message_" + p.attr("id");
-	if ($("div[id='" + this.infoMessage + "']").length == 0) {
-		$("<div class='message'></div>").attr("id", this.infoMessage).appendTo(p);
-	}
-	this.form = $.create("form", {"action": ""}).appendTo(p);
-	this.table = $.create("table",
-		{"id": "conttable", "cellpadding": "0", "cellspacing": "0", "border": "0"}).appendTo(this.form);
-	this.table.append($.create("thead"));
+	this.ajaxTimeout = null;
+	
+	/*
+	 * Create necessary data structures and page elements.
+	 */
+	this.initContainer = function(options) {
+		if (options && options['clear']) p.empty();
+		
+		this.validator_rules = new Object();
+		this.validator_messages = new Object();
+		
+		/* create div for info or error messages */
+		this.infoMessage = "info_message_" + p.attr("id");
+		if ($("#" + this.infoMessage).length == 0) {
+			$.create("div", {"className": "message", "id": this.infoMessage}).appendTo(p);
+		}
+		
+		this.form = $.create("form", {"action": ""}).appendTo(p);
+		this.table = $.create("table",
+			{"id": "conttable", "cellpadding": "0", "cellspacing": "0", "border": "0"}).appendTo(this.form);
+		this.table.append($.create("thead"));
+	};
+	
+	/* init container */
+	this.initContainer();
 
 	/* set subsystem for this tab */
 	this.setSubsystem = function(subsystem) {
@@ -222,14 +235,9 @@ function Container(p, options) {
 		this.help['section'] = helpSection;
 	};
 	
-	this.getTab = function() {
-		return p;
-	};
-	
 	/*
 	 * Set time in seconds to wait for server reply before show an error message.
 	 */
-	this.ajaxTimeout = null;
 	this.setAjaxTimeout = function(timeout)  {
 		this.ajaxTimeout = timeout * 1000;
 	};
@@ -431,7 +439,7 @@ function Container(p, options) {
 	 */
 	this.addWidget = function(w, insertAfter) {
 		if (w['type'] != "hidden") {
-			/* add common widget's data. insert specified widget, otherwise insert last */
+			/* add common widget's data. insert after specified widget, otherwise insert last */
 			if (insertAfter) this.createGeneralWidget(w).insertAfter(insertAfter);
 			else this.createGeneralWidget(w).appendTo(this.table);
 		}
@@ -1055,6 +1063,263 @@ function Container(p, options) {
 		});
 
 		msgDiv.show();
+	};
+	
+	/*
+	 * Adds list to a container "c". It gets list values from KDB
+	 * by key "listItem*", renders list title, creates function to
+	 * add and delete new elements. After adding or deleting
+	 * element, it redraws the page by calling click() event on
+	 * tab link.
+	 * 
+	 * c — container to add list to;
+	 * options — object with options:
+	 *  - tabId — id of tab this list is added to (is used for search tab link);
+	 *  - header — array with columns' headers of the list (I18N);
+	 *  - varList — array with variables' names;
+	 *  - listItem — template of name for list item (e.g., sys_voip_route_);
+	 *  - listTitle — title for the list (I18N);
+	 * 
+	 *  optional parameters:
+	 *  - processValueFunc — optional callback, which can be used for editing values of item's
+	 *     variable. It is called for each item' variable with two parameters — name of variable
+	 *     and variable's value. It have to return variable's value.
+	 *  - helpPage — help page;
+	 *  - helpSection — help section;
+	 *  - subsystem — subsystem;
+	 *  - addMessage — title for add page (I18N);
+	 *  - editMessage — title for edit page (I18N).
+	 */
+	var List = function(c, options) {
+		/* array with widgets for add/edit page */
+		var widgets = new Array();
+		
+		/* redraw page after adding/editing list item */
+		var showPage = function() {
+			$($.sprintf("#tab_%s_link", options['tabId'])).click();
+		};
+		
+		/* 
+		 * Add/edit item.
+		 * 
+		 * item — if this parameter is set, then edit this item.
+		 */
+		var addOrEditItem = function(item) {
+			/* clear this container */
+			c.initContainer({"clear": true});
+
+			if (options['helpPage']) c.setHelpPage(options['helpPage']);
+			if (options['helpSection']) c.setHelpSection(options['helpSection']);
+			if (options['subsystem']) c.setSubsystem(options['subsystem']);
+
+			/* decide, if we will add or edit item */
+			if (!item) {
+				c.addTitle(options['addMessage'] || "Add");
+				values = config.getParsed(options['listItem'] + "*");
+				item = options['listItem'] + $.len(values);
+			} else c.addTitle(options['editMessage'] || "Edit");
+
+			/* add widgets */
+			$.each(widgets, function(num, widget) {
+				/* item property is used for properly get the value of a widget */
+				widget['widget']['item'] = item;
+				c.addWidget(widget['widget'], widget['insertAfter']);
+			});
+			
+			/* add submit (with special for list options) */
+			c.addSubmit({
+				"complexValue": item,
+				"submitName": "Add/Update",
+				"extraButton": {
+					"name": "Back",
+					"func": showPage
+				},
+				"onSubmit": showPage
+			});
+		};
+		
+		/* add list header */
+		var addListHeader = function() {
+			var tr = $.create("tr", {"align": "center", "className": "tableHeader"});
+			
+			/* add columns headers */
+			var thNum = 0;
+			$.each(options['header'], function(num, value) {
+				$.create("th", {}, _(value)).appendTo(tr);
+				thNum++;
+			});
+			
+			/* add list header with colSpan parameter */
+			c.addTitle(options['listTitle'], thNum + 2);
+			
+			/* create "button" for adding */
+			var img = $.create("img", {"src": "_img/plus.gif", "alt": "add"});
+			img.click(function(e) {
+				addOrEditItem();
+				scrollTo(0, 0);
+			});
+			
+			/* change image when mouse is over it */
+			img.hover(
+				function() {
+					$(this).attr("src", "_img/plus2.gif")
+				},
+				function() {
+					$(this).attr("src", "_img/plus.gif")
+				}
+			);
+			
+			/* we use colSpan because future rows will contain buttons for editing and deleting */
+			$.create("th", {"colSpan": "2"}, img).appendTo(tr);
+			
+			/* add to thead section of current table */
+			$("thead", c.table).append(tr);
+		};
+		
+		/*
+		 * Confirm item deletion.
+		 * 
+		 * item — item to delete.
+		 */
+		var deleteConfirm = function(item) {
+			/* find div for showing delete confirm message  */
+			var msgDiv = $("div.error_message", c.form);
+			
+			msgDiv.html(_("Are you sure you want to delete this item?<br>"));
+			
+			/* create Yes button */
+			var button = $.create("input", {
+				"type": "button",
+				"className": "button",
+				"value": _("Yes")
+			}).appendTo(msgDiv);
+			
+			/* delete item */
+			button.click(function() {
+				msgDiv.hide();
+				$(".selected", c.table).removeClass("selected");
+				
+				/* delete item and restart subsystem */
+				config.kdbDelListKey(item, c.subsystem, c.ajaxTimeout);
+				
+				/* call func after deleting (updates page) */
+				showPage();
+			});
+			
+			/* create No button */
+			button = $.create("input", {
+				"type": "button",
+				"value": _("No")
+			}).appendTo(msgDiv);
+			
+			/* cancel delete */
+			button.click(function() {
+				msgDiv.hide();
+				$(".selected", c.table).removeClass("selected");
+			});
+	
+			msgDiv.show();
+		};
+		
+		/*
+		 * Add widget to add/edit page.
+		 */
+		this.addWidget = function(w, insertAfter) {
+			widgets.push({"widget": w, "insertAfter": insertAfter});
+		};
+		
+		/*
+		 * Generate list.
+		 */
+		this.generateList = function() {
+			/* add list header */
+			addListHeader();
+			
+			/* get list of items */
+			var items = config.getParsed(options['listItem'] + "*");
+			
+			/* go through item's list */
+			$.each(items, function(key, value) {
+				var row = c.addTableRow();
+				var cssClass = new Object();
+				
+				/* change text color for disabled items */
+				if (value['enabled'] == "off" || value['enabled'] == "0") {
+					cssClass['className'] = "disabled";
+				}
+				
+				/* for each variable in item's value create table cell with variable's value */
+				$.each(options['varList'], function(num, variable) {
+					var finalVal = options['processValueFunc'] ?
+						options['processValueFunc'](variable, value[variable]) : value[variable];
+					var td = $.create("td", cssClass, finalVal ? finalVal : "&nbsp;")
+						.appendTo(row);
+				});
+				
+				/* create "button" for editing */
+				var img = $.create("img", {"src": "_img/e.gif", "alt": "edit"});
+				img.click(function(e) {
+					addOrEditItem(key);
+					scrollTo(0, 0);
+				});
+				
+				/* change image when mouse is over it */
+				img.hover(
+					function() {
+						$(this).attr("src", "_img/e2.gif")
+					},
+					function() {
+						$(this).attr("src", "_img/e.gif")
+					}
+				);
+				$.create("td", {}, img).appendTo(row);
+				
+				/* create "button" for deleting */
+				img = $.create("img", {"src": "_img/minus.gif", "alt": "delete"});
+				img.click(function(e) {
+					/* unhilight previous selected item */
+					$(".selected", c.table).removeClass("selected");
+					
+					/* highlight selected item */
+					$(this).parents("tr").addClass("selected");
+					
+					/* confirm for deleting */
+					deleteConfirm(key);
+				});
+				
+				/* change image when mouse is over it */
+				img.hover(
+					function() {
+						$(this).attr("src", "_img/minus2.gif")
+					},
+					function() {
+						$(this).attr("src", "_img/minus.gif")
+					}
+				);
+				$.create("td", {}, img).appendTo(row);
+			});
+			
+			/* create scrollable div */
+			var div = $.create("div", {"className": "scrollable"});
+	
+			/* add current table to scrollable div */
+			c.table.wrap(div);
+			
+			/* rendering of table takes a long time, set timeout and call minmax() to fix IE */
+			setTimeout(function(){ $("div.scrollable", c.form).minmax(); }, 50);
+			
+			/* add div for showing delete confirm message */
+			c.form.prepend($.create("div", {"className": "message error_message"}));
+		};
+	};
+	
+	/*
+	 * Returns new object for creating list.
+	 * 
+	 * options — list options.
+	 */
+	this.createList = function(options) {
+		return new List(this, options);
 	};
 }
 

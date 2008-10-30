@@ -171,81 +171,56 @@ function serviceDHCP(page, iface) {
 }
 
 /*
- * Adds DHCP static lease table.
+ * Adds DHCP static lease table. ID of destination tab MUST BE "dhcp".
  * 
  * page — destination page;
  * iface — interface.
  */
 function serviceDHCPStatic(page, iface) {
-	/*
-	 * DHCP page can be accessed from interface page and from DHCP service page,
-	 * which are different. But both pages have the same tab id, so we just imitate
-	 * the click on the tab name to generate the contents of the page.
-	 */
-	var showDHCP = function() {
-		$("#tab_dhcp_link").click();
-	};
+	var field;
 	
-	var dhcpItem = $.sprintf("sys_iface_%s_dhcp_host_", iface);
-	
-	/* generate page with fields for adding new static lease */
-	var addStatic = function(item) {
-		var c, field;
-		page.clearTab("dhcp");
-		c = page.addContainer("dhcp");
-		c.setHelpPage("dhcp_server");
-		c.setHelpSection("dhcp_server.static_add");
-		c.setSubsystem("dhcp." + iface);
-
-		if (!item) {
-			c.addTitle("Add static lease");
-			values = config.getParsed(dhcpItem + "*");
-			item = dhcpItem + $.len(values);
-		} else c.addTitle("Edit static lease");
-		
-		field = { 
-			"type": "text",
-			"item": item,
-			"name": "name",
-			"text": "Host name",
-			"validator": {"required": true, "alphanum": true}
-		};
-		c.addWidget(field);
-		
-		field = { 
-			"type": "text",
-			"item": item,
-			"name": "ipaddr",
-			"text": "IP Address",
-			"descr": "IP address for host",
-			"validator": {"required": true, "ipAddr": true}
-		};
-		c.addWidget(field);
-		
-		field = { 
-			"type": "text",
-			"item": item,
-			"name": "hwaddr",
-			"text": "MAC Address",
-			"descr": "MAC Address of host",
-			"validator": {"required": true, "macAddr": true}
-		};
-		c.addWidget(field);
-		
-		c.addSubmit({
-			"complexValue": item,
-			"submitName": "Add/Update",
-			"extraButton": {
-				"name": "Back",
-				"func": showDHCP
-			},
-			"onSubmit": showDHCP
-		});
-	};
-	
-	c = page.addContainer("dhcp");
+	var c = page.addContainer("dhcp");
 	c.setSubsystem("dhcp." + iface);
-	c.addTitle("DHCP static addresses on interface " + iface, 5);
-	c.addTableHeader("Name|IP address|MAC address", addStatic);
-	c.generateList(dhcpItem + "*", "name ipaddr hwaddr", addStatic, showDHCP);
+	
+	/* create list of routes */
+	var list = c.createList({
+		"tabId": "dhcp",
+		"header": ["Name", "IP address", "MAC address"],
+		"varList": ["name", "ipaddr", "hwaddr"],
+		"listItem": $.sprintf("sys_iface_%s_dhcp_host_", iface),
+		"addMessage": "Add static lease",
+		"editMessage": "Edit static lease",
+		"listTitle": "DHCP static addresses on interface " + iface,
+		"helpPage": "dhcp_server",
+		"helpSection": "dhcp_server.static_add",
+		"subsystem": "dhcp." + iface
+	});
+	
+	field = { 
+		"type": "text",
+		"name": "name",
+		"text": "Host name",
+		"validator": {"required": true, "alphanum": true}
+	};
+	list.addWidget(field);
+	
+	field = { 
+		"type": "text",
+		"name": "ipaddr",
+		"text": "IP Address",
+		"descr": "IP Address for host",
+		"validator": {"required": true, "ipAddr": true}
+	};
+	list.addWidget(field);
+	
+	field = { 
+		"type": "text",
+		"name": "hwaddr",
+		"text": "MAC Address",
+		"descr": "MAC Address of host",
+		"validator": {"required": true, "macAddr": true}
+	};
+	list.addWidget(field);
+	
+	list.generateList();
 }

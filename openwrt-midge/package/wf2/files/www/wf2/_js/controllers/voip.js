@@ -152,88 +152,61 @@ Controllers['voip'] = function() {
 	});
 	
 	/* route table tab */
-	
-	/* route item */
-	var routeItem = "sys_voip_route_";
-	
-	/* generate page with fields for adding new route */
-	var addRouteFunc = function(item) {
-		var c, field;
-		page.clearTab("route");
-		c = page.addContainer("route");
-		c.setHelpPage("voip.route");
-		c.setHelpSection("voip.route.add");
-
-		if (!item) {
-			c.addTitle("Add route");
-			values = config.getParsed(routeItem + "*");
-			item = routeItem + $.len(values);
-		} else c.addTitle("Edit route");
-
-		field = { 
-			"type": "checkbox",
-			"item": item,
-			"name": "enabled",
-			"text": "Enabled",
-			"descr": "Check this item to enable rule"
-		};
-		c.addWidget(field);
-
-		field = { 
-			"type": "text",
-			"item": item,
-			"name": "router_id",
-			"text": "Router ID",
-			"descr": "Router ID",
-			"validator": {"required": true, "voipRouterID": true}
-		};
-		c.addWidget(field);
-		
-		field = { 
-			"type": "text",
-			"item": item,
-			"name": "address",
-			"text": "Address",
-			"descr": "Router address",
-			"validator": {"required": true, "ipAddr": true}
-		};
-		c.addWidget(field);
-		
-		field = { 
-			"type": "text",
-			"item": item,
-			"name": "comment",
-			"text": "Comment",
-			"descr": "Comment for this record"
-		};
-		c.addWidget(field);
-		
-		c.addSubmit({
-			"complexValue": item,
-			"submitName": "Add/Update",
-			"extraButton": {
-				"name": "Back",
-				"func": showRoutes
-			},
-			"onSubmit": showRoutes
-		});
-	};
-	
-	var showRoutes = function() {
-		var c;
-		page.clearTab("route");
-		c = page.addContainer("route");
-		c.setHelpPage("voip.route");
-		c.addTitle("Route table", 5);
-	
-		c.addTableHeader("Router ID|Address|Comment", addRouteFunc);
-		c.generateList(routeItem + "*", "router_id address comment", addRouteFunc, showRoutes);
-	};
-	
 	page.addTab({
-		"id": "route",
+		"id": "voipRoute",
 		"name": "Route table",
-		"func": showRoutes
+		"func": function() {
+			var c = page.addContainer("voipRoute");
+			c.setHelpPage("voip.route");
+			
+			var list = c.createList({
+				"tabId": "voipRoute",
+				"header": ["Router ID", "Address", "Comment"],
+				"varList": ["router_id", "address", "comment"],
+				"listItem": "sys_voip_route_",
+				"addMessage": "Add VoIP route",
+				"editMessage": "Edit VoIP route",
+				"listTitle": "VoIP route table",
+				"helpPage": "voip.route",
+				"helpSection": "voip.route.add"
+			});
+			
+			field = { 
+				"type": "checkbox",
+				"name": "enabled",
+				"text": "Enabled",
+				"descr": "Check this item to enable rule"
+			};
+			list.addWidget(field);
+	
+			field = { 
+				"type": "text",
+				"name": "router_id",
+				"text": "Router ID",
+				"descr": "Router ID",
+				"validator": {"required": true, "voipRouterID": true}
+			};
+			list.addWidget(field);
+			
+			field = { 
+				"type": "text",
+				"name": "address",
+				"text": "Address",
+				"descr": "Router address",
+				"validator": {"required": true, "ipAddr": true}
+			};
+			list.addWidget(field);
+			
+			field = { 
+				"type": "text",
+				"name": "comment",
+				"text": "Comment",
+				"descr": "Comment for this record"
+			};
+			list.addWidget(field);
+			
+			list.generateList();
+		}
 	});
 	
 	/* address book tab */

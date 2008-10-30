@@ -449,87 +449,61 @@ Controllers['iface'] = function(iface) {
 		}
 	});
 	
-	/* ROUTES tab */
-	
-	/* route item */
-	var routeItem = $.sprintf("sys_iface_%s_route_", iface);
-	
-	/* generate page with fields for adding new route */
-	var addRoute = function(item) {
-		var c, field;
-		page.clearTab("routes");
-		c = page.addContainer("routes");
-		c.setHelpPage("traffic");
-		c.setHelpSection("routes.list");
-
-		if (!item) {
-			c.addTitle("Add route");
-			values = config.getParsed(routeItem + "*");
-			item = routeItem + $.len(values);
-		} else c.addTitle("Edit route");
-
-		field = { 
-			"type": "text",
-			"item": item,
-			"name": "net",
-			"text": "Network",
-			"descr": "Network (without mask) or host",
-			"tip": "E.g., 192.168.0.0 or 10.0.0.1",
-			"validator": {"required": true, "ipAddr": true}
-		};
-		c.addWidget(field);
-		
-		field = { 
-			"type": "text",
-			"item": item,
-			"name": "netmask",
-			"text": "Netmask",
-			"descr": "Netmask for network or host (in xxx.xxx.xxx.xxx format)",
-			"tip": "E.g., 255.255.255.0 — /24 — Class C network<br>255.255.255.252 — /30" +
-				"<br>255.255.255.255 — /32 — for a single host",
-			"validator": {"required": true, "netmask": true}
-		};
-		c.addWidget(field);
-		
-		field = { 
-			"type": "text",
-			"item": item,
-			"name": "gw",
-			"text": "Gateway",
-			"descr": "Gateway for route",
-			"validator": {"required": true, "ipAddr": true}
-		};
-		c.addWidget(field);
-		
-		c.addSubmit({
-			"complexValue": item,
-			"submitName": "Add/Update",
-			"extraButton": {
-				"name": "Back",
-				"func": showRoutes
-			},
-			"onSubmit": showRoutes
-		});
-	};
-	
-	var showRoutes = function() {
-		var c;
-		page.clearTab("routes");
-		c = page.addContainer("routes");
-		c.setHelpPage("traffic");
-		c.setHelpSection("routes");
-		c.addTitle("Routes", 5);
-	
-		c.addTableHeader("Network|Mask|Gateway", addRoute);
-		c.generateList(routeItem + "*", "net netmask gw", addRoute, showRoutes);
-	};
-	
+	/* ROUTES tab */	
 	page.addTab({
 		"id": "routes",
 		"name": "Routes",
-		"func": showRoutes
+		"func": function() {
+			var c = page.addContainer("routes");
+			c.setHelpPage("traffic");
+			c.setHelpSection("routes");
+			
+			/* create list of routes */
+			var list = c.createList({
+				"tabId": "routes",
+				"header": ["Network", "Mask", "Gateway"],
+				"varList": ["net", "netmask", "gw"],
+				"listItem": $.sprintf("sys_iface_%s_route_", iface),
+				"addMessage": "Add route",
+				"editMessage": "Edit route",
+				"listTitle": "Routes",
+				"helpPage": "traffic",
+				"helpSection": "routes.list"
+			});
+			
+			field = { 
+				"type": "text",
+				"name": "net",
+				"text": "Network",
+				"descr": "Network (without mask) or host",
+				"tip": "E.g., 192.168.0.0 or 10.0.0.1",
+				"validator": {"required": true, "ipAddr": true}
+			};
+			list.addWidget(field);
+			
+			field = { 
+				"type": "text",
+				"name": "netmask",
+				"text": "Netmask",
+				"descr": "Netmask for network or host (in xxx.xxx.xxx.xxx format)",
+				"tip": "E.g., 255.255.255.0 — /24 — Class C network<br>255.255.255.252 — /30" +
+					"<br>255.255.255.255 — /32 — for a single host",
+				"validator": {"required": true, "netmask": true}
+			};
+			list.addWidget(field);
+			
+			field = { 
+				"type": "text",
+				"name": "gw",
+				"text": "Gateway",
+				"descr": "Gateway for route",
+				"validator": {"required": true, "ipAddr": true}
+			};
+			list.addWidget(field);
+			
+			list.generateList();
+		}
 	});
-	
 
 	/* QoS tab */
 	var showQos = function() {
