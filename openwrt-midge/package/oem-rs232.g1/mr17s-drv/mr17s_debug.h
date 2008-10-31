@@ -15,7 +15,7 @@
 
 #include "mr17s_oem.h"
 
-//#undef DEBUG_ON
+#undef DEBUG_ON
 
 #ifndef DEBUG_LEV 
 #	define DEBUG_LEV 0
