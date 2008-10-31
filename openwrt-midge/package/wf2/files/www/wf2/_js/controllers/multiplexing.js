@@ -48,7 +48,6 @@ Controllers['multiplexing'] = function() {
 				field = { 
 					"type": "checkbox",
 					"name": $.sprintf("sys_mux_%s_mxen", iface),
-					"id": $.sprintf("sys_mux_%s_mxen", iface),
 					"tip": "Enable multiplexing on this interface"
 				};
 				c.addTableWidget(field, row);
@@ -89,8 +88,7 @@ Controllers['multiplexing'] = function() {
 					"name": $.sprintf("sys_mux_%s_rline", iface),
 					"defaultValue": "0",
 					"tip": "Enter rline number (<i>0-15</i>)",
-					"validator": {"required": $.sprintf("#sys_mux_%s_mxen:checked", iface),
-						"min": 0, "max": 15}
+					"validator": {"required": true, "min": 0, "max": 15}
 				};
 				c.addTableWidget(field, row);
 				
@@ -99,8 +97,7 @@ Controllers['multiplexing'] = function() {
 					"name": $.sprintf("sys_mux_%s_tline", iface),
 					"defaultValue": "0",
 					"tip": "Enter tline number (<i>0-15</i>)",
-					"validator": {"required": $.sprintf("#sys_mux_%s_mxen:checked", iface),
-						"min": 0, "max": 15}
+					"validator": {"required": true, "min": 0, "max": 15}
 				};
 				c.addTableWidget(field, row);
 				
@@ -109,8 +106,7 @@ Controllers['multiplexing'] = function() {
 					"name": $.sprintf("sys_mux_%s_rfs", iface),
 					"defaultValue": "0",
 					"tip": "Enter recieve frame start number (<i>0-255</i>)",
-					"validator": {"required": $.sprintf("#sys_mux_%s_mxen:checked", iface),
-						"min": 0, "max": 255}
+					"validator": {"required": true, "min": 0, "max": 255}
 				};
 				c.addTableWidget(field, row);
 				
@@ -119,8 +115,7 @@ Controllers['multiplexing'] = function() {
 					"name": $.sprintf("sys_mux_%s_tfs", iface),
 					"defaultValue": "0",
 					"tip": "Enter transmit frame start number (<i>0-255</i>)",
-					"validator": {"required": $.sprintf("#sys_mux_%s_mxen:checked", iface),
-						"min": 0, "max": 255}
+					"validator": {"required": true, "min": 0, "max": 255}
 				};
 				c.addTableWidget(field, row);
 				
@@ -134,7 +129,7 @@ Controllers['multiplexing'] = function() {
 				} else {
 					rate = "mxrate";
 					tip = "Enter <i>mxrate</i> for DSL interface. <i>mxrate</i> is a number of time-slots (e.g., <i>12</i>).";
-					validator = {"min": 0};
+					validator = {"required": true, "min": 0};
 				}
 				
 				id = $.sprintf("sys_mux_%s_%s", iface, rate);
@@ -142,7 +137,6 @@ Controllers['multiplexing'] = function() {
 					"type": "text",
 					"name": id,
 					"id": id,
-					"defaultValue": "0",
 					"tip": tip,
 					"validator": validator
 				};

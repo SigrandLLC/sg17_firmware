@@ -8,7 +8,7 @@ html {
 
 html * {
 	margin: 0;
-	padding: 0;
+	/*padding: 0;*/
 }
 
 body {
@@ -21,10 +21,6 @@ body {
 	font-size: 10pt;
 /*	background-image: url(../_img/136.gif);*/
 	background-color: black;
-	}
-
-select {
-	padding-right: 4px;
 }
 
 #mainmain {

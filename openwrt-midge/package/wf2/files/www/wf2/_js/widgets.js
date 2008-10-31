@@ -714,8 +714,13 @@ function Container(p, options) {
 	 */
 	this.addSubmitNoAjax = function(options) {
 		if (options && options['formAction']) this.form.attr("action", "/cfg.cgi");
-		if (options && options['encType']) this.form.attr("enctype", "multipart/form-data");
 		if (options && options['method']) this.form.attr("method", "post");
+		if (options && options['encType']) {
+			this.form.attr("enctype", "multipart/form-data");
+			
+			/* IE fix */
+			this.form.attr("encoding", "multipart/form-data");
+		}
 		
 		/* create submit button */
 		$.create("input", {
