@@ -210,90 +210,63 @@ Controllers['voip'] = function() {
 	});
 	
 	/* address book tab */
-	
-	/* address item */
-	var addressItem = "sys_voip_address_";
-	
-	/* generate page with fields for adding new route */
-	var addAddressFunc = function(item) {
-		var c, field;
-		page.clearTab("address");
-		c = page.addContainer("address");
-		c.setHelpPage("voip.address");
-		c.setHelpSection("voip.address.add");
-
-		if (!item) {
-			c.addTitle("Add address");
-			values = config.getParsed(addressItem + "*");
-			item = addressItem + $.len(values);
-		} else c.addTitle("Edit address");
-
-		field = { 
-			"type": "checkbox",
-			"item": item,
-			"name": "enabled",
-			"text": "Enabled",
-			"descr": "Check this item to enable rule"
-		};
-		c.addWidget(field);
-
-		field = { 
-			"type": "text",
-			"item": item,
-			"name": "short_number",
-			"text": "Short number",
-			"descr": "Short number for speed dialing",
-			"validator": {"required": true, "voipShortNumber": true}
-		};
-		c.addWidget(field);
-		
-		field = { 
-			"type": "text",
-			"item": item,
-			"name": "complete_number",
-			"text": "Complete number",
-			"descr": "Complete telephone number",
-			"tip": "Enter phone number in format: router_id-router_channel-optional_number (e.g., 300-02 or 300-02-3345), " +
-				"or SIP address in format: #sip:sip_uri# (e.g., #sip:user@domain#)",
-			"validator": {"required": true, "voipCompleteNumber": true}
-		};
-		c.addWidget(field);
-		
-		field = { 
-			"type": "text",
-			"item": item,
-			"name": "comment",
-			"text": "Comment",
-			"descr": "Comment for this record"
-		};
-		c.addWidget(field);
-		
-		c.addSubmit({
-			"complexValue": item,
-			"submitName": "Add/Update",
-			"extraButton": {
-				"name": "Back",
-				"func": showAddresses
-			},
-			"onSubmit": showAddresses
-		});
-	};
-	
-	var showAddresses = function() {
-		var c;
-		page.clearTab("address");
-		c = page.addContainer("address");
-		c.setHelpPage("voip.address");
-		c.addTitle("Address book", 5);
-	
-		c.addTableHeader("Short number|Complete number|Comment", addAddressFunc);
-		c.generateList(addressItem + "*", "short_number complete_number comment", addAddressFunc, showAddresses);
-	};
-	
 	page.addTab({
 		"id": "address",
 		"name": "Address book",
-		"func": showAddresses
+		"func": function() {
+			var c = page.addContainer("address");
+			c.setHelpPage("voip.address");
+			
+			var list = c.createList({
+				"tabId": "address",
+				"header": ["Short number", "Complete number", "Comment"],
+				"varList": ["short_number", "complete_number", "comment"],
+				"listItem": "sys_voip_address_",
+				"addMessage": "Add address",
+				"editMessage": "Edit address",
+				"listTitle": "Address book",
+				"helpPage": "voip.address",
+				"helpSection": "voip.address.add"
+			});
+			
+			field = { 
+				"type": "checkbox",
+				"name": "enabled",
+				"text": "Enabled",
+				"descr": "Check this item to enable rule"
+			};
+			list.addWidget(field);
+	
+			field = { 
+				"type": "text",
+				"name": "short_number",
+				"text": "Short number",
+				"descr": "Short number for speed dialing",
+				"validator": {"required": true, "voipShortNumber": true}
+			};
+			list.addWidget(field);
+			
+			field = { 
+				"type": "text",
+				"name": "complete_number",
+				"text": "Complete number",
+				"descr": "Complete telephone number",
+				"tip": "Enter phone number in format: router_id-router_channel-optional_number (e.g., 300-02 or 300-02-3345), " +
+					"or SIP address in format: #sip:sip_uri# (e.g., #sip:user@domain#)",
+				"validator": {"required": true, "voipCompleteNumber": true}
+			};
+			list.addWidget(field);
+			
+			field = { 
+				"type": "text",
+				"name": "comment",
+				"text": "Comment",
+				"descr": "Comment for this record"
+			};
+			list.addWidget(field);
+			
+			list.generateList();
+		}
 	});
 	
 	/* Hotline tab */
@@ -367,8 +340,7 @@ Controllers['voip'] = function() {
 		"id": "sound",
 		"name": "Sound settings",
 		"func": function() {
-			var c, field, id;
-			c = page.addContainer("sound");
+			var c = page.addContainer("sound");
 			c.addTitle("Sound settings", 9);
 			
 			c.addTableHeader("Channel|OOB|OOB_play|nEventPT|nEventPlayPT|Tx_vol|Rx_vol|VAD|HPF");

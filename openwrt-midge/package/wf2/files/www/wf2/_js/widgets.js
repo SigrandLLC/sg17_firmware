@@ -137,6 +137,7 @@ function popup(url) {
 /*
  * Do Ajax request for command execution,
  * replace '\n' in output with '<br>'.
+ * If router is online, result is "Router is offline".
  * 
  * cmd — command to execute.
  * dst — destination for command output:
@@ -147,6 +148,25 @@ function popup(url) {
  */
 function cmdExecute(cmd, dst, filter) {
 	var result = null;
+	
+	var processResult = function(data) {
+		if (dst && dst['container']) {
+			$(dst['container']).html(data);
+			
+			/* workaround for max-height in IE */
+			$(dst['container']).minmax();
+		} else if (dst && dst['callback']) {
+			dst['callback'](data);
+		} else if (dst && dst['sync']) {
+			result = data;
+		}
+	};
+	
+	if (!config.isOnline()) {
+		processResult("Router is offline");
+		return;
+	}
+	
 	var options = {
 		"type": "POST",
 		"url": "sh/execute.cgi",
@@ -157,20 +177,9 @@ function cmdExecute(cmd, dst, filter) {
 			if (filter) return filter(newData);
 			else return newData;
 		},
-		"success": function(data) {
-			if (dst && dst['container']) {
-				$(dst['container']).html(data);
-				
-				/* workaround for max-height in IE */
-				$(dst['container']).minmax();
-			} else if (dst && dst['callback']) {
-				dst['callback'](data);
-			} else if (dst && dst['sync']) {
-				result = data;
-			}
-		},
+		"success": processResult,
 		"error": function() {
-			alert(_("Connection error while executing command on router. Please, reload page."));
+			processResult("Connection timeout");
 		}
 	};
 	
@@ -322,7 +331,7 @@ function Container(p, options) {
 		if (value) {
 			attrs['value'] = value;
 		/* if KDB value does't exists — set default value, if it exists */
-		} else if (w.defaultValue) {
+		} else if (w.defaultValue != undefined) {
 			attrs['value'] = w.defaultValue;
 		}
 		
@@ -411,7 +420,7 @@ function Container(p, options) {
 		if (value) {
 			attrs['value'] = value;
 		/* if KDB value does't exists — set default value, if it exists */
-		} else if (w.defaultValue) {
+		} else if (w.defaultValue != undefined) {
 			attrs['value'] = w.defaultValue;
 		}
 		

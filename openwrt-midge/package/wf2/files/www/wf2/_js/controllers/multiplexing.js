@@ -7,9 +7,8 @@ Controllers['multiplexing'] = function() {
 		"id": "multiplexing",
 		"name": "Multiplexing",
 		"func": function() {
-			var c, field, id;
 			var colSpan = 10;
-			c = page.addContainer("multiplexing");
+			var c = page.addContainer("multiplexing");
 			c.addTitle("Multiplexing", colSpan);
 			
 			c.addTableHeader("DEV|MXEN|CLKM|CLKAB|CLKR|RLINE|TLINE|RFS|TFS|MXSMAP/MXRATE");
@@ -36,6 +35,7 @@ Controllers['multiplexing'] = function() {
 			};
 			
 			$.each(config.getParsed("sys_mux_ifaces"), function(num, iface) {
+				var id, field;
 				var row = c.addTableRow();
 				
 				field = {
@@ -119,17 +119,17 @@ Controllers['multiplexing'] = function() {
 				};
 				c.addTableWidget(field, row);
 				
-				var rate;
-				var tip;
-				var validator;
+				var rate, tip, validator, defaultValue;
 				if (iface.search("E1") != -1) {
 					rate = "mxsmap";
 					tip = "Enter <i>mxsmap</i> for E1 interface. <i>mxsmap</i> is a map of time-slots (e.g., <i>1-31</i>). This value can be changed after saving.";
 					validator = {"smap": true};
+					defaultValue = "";
 				} else {
 					rate = "mxrate";
 					tip = "Enter <i>mxrate</i> for DSL interface. <i>mxrate</i> is a number of time-slots (e.g., <i>12</i>).";
 					validator = {"required": true, "min": 0};
+					defaultValue = "0";
 				}
 				
 				id = $.sprintf("sys_mux_%s_%s", iface, rate);
@@ -138,6 +138,7 @@ Controllers['multiplexing'] = function() {
 					"name": id,
 					"id": id,
 					"tip": tip,
+					"defaultValue": defaultValue,
 					"validator": validator
 				};
 				c.addTableWidget(field, row);

@@ -149,6 +149,10 @@ function Config() {
 	var kdbQueue = new KDBQueue();
 	var cmdCache = new CmdCache();
 	
+	this.isOnline = function() {
+		return online;
+	};
+	
 	/*
 	 * Submit task for execution.
 	 * 
