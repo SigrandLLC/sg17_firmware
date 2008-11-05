@@ -197,6 +197,9 @@ function cmdExecute(cmd, dst, filter) {
  * I18N for widgets.
  */
 function Container(p, options) {
+	/* link to this object */
+	var thisContainer = this;
+	
 	/* set subsystem common for all tabs */
 	this.subsystem = options.subsystem;
 	
@@ -521,14 +524,22 @@ function Container(p, options) {
 	
 	/*
 	 * Bind events to widget.
+	 * If w['eventHandlerObject'] is set, then pass it as parameter to event handler,
+	 * otherwise pass current container.
 	 */
 	this.bindEvents = function(w) {
-		if (w.onChange) {
-			$("#" + w.id).change(w.onChange);
+		if (w['onChange']) {
+			$("#" + w['id']).change(function() {
+				if (w['eventHandlerObject']) w['onChange'](w['eventHandlerObject']);
+				else w['onChange'](thisContainer);
+			});
 		}
 		
-		if (w.onClick) {
-			$("#" + w.id).click(w.onClick);
+		if (w['onClick']) {
+			$("#" + w['id']).click(function() {
+				if (w['eventHandlerObject']) w['onClick'](w['eventHandlerObject']);
+				else w['onClick'](thisContainer);
+			});
 		}
 	};
 
@@ -940,146 +951,6 @@ function Container(p, options) {
 	};
 	
 	/*
-	 * Generate list.
-	 * 
-	 * item — masked item to use for list values. End of this item must contain "*" symbol
-	 * (e.g., sys_voip_route_* means sys_voip_route_0, sys_voip_route_1, etc.).
-	 * cols — space-separated names of variables in item's value to use in table's cells.
-	 * (e.g., "router_id address comment")
-	 * addFunc — function to call for editing row's value.
-	 * showFunc — function to call after deleting row. Usually this func reloads table.
-	 * processValueFunc — optional callback, which can be used for editing values of item's variable.
-	 *  It is called with two parameters — name of variable and variable's value. It must return
-	 *  variable's value.
-	 */
-	this.generateList = function(item, cols, addFunc, showFunc, processValueFunc) {
-		var outer = this;
-		
-		/* get list of items */
-		var items = config.getParsed(item);
-		
-		/* go through item's list */
-		$.each(items, function(key, value) {
-			var row = outer.addTableRow();
-			var cssClass = new Object();
-			
-			/* change text color for disabled items */
-			if (value['enabled'] == "off" || value['enabled'] == "0") {
-				cssClass['className'] = "disabled";
-			}
-			
-			/* for each variable in item's value create table cell with variable's value */
-			$.each(cols.split(" "), function(num, variable) {
-				var finalVal = processValueFunc ?
-					processValueFunc(variable, value[variable]) : value[variable];
-				var td = $.create("td", cssClass, finalVal ? finalVal : "&nbsp;")
-					.appendTo(row);
-			});
-			
-			/* create "button" for editing */
-			var img = $.create("img", {"src": "_img/e.gif", "alt": "edit"});
-			img.click(function(e) {
-				addFunc(key);
-				scrollTo(0, 0);
-			});
-			
-			/* change image when mouse is over it */
-			img.hover(
-				function() {
-					$(this).attr("src", "_img/e2.gif")
-				},
-				function() {
-					$(this).attr("src", "_img/e.gif")
-				}
-			);
-			$.create("td", {}, img).appendTo(row);
-			
-			/* create "button" for deleting */
-			img = $.create("img", {"src": "_img/minus.gif", "alt": "delete"});
-			img.click(function(e) {
-				/* unhilight previous selected item */
-				$(".selected", outer.table).removeClass("selected");
-				
-				/* highlight selected item */
-				$(this).parents("tr").addClass("selected");
-				
-				/* confirm for deleting */
-				outer.deleteConfirm(key, showFunc);
-			});
-			
-			/* change image when mouse is over it */
-			img.hover(
-				function() {
-					$(this).attr("src", "_img/minus2.gif")
-				},
-				function() {
-					$(this).attr("src", "_img/minus.gif")
-				}
-			);
-			$.create("td", {}, img).appendTo(row);
-		});
-		
-		/* create scrollable div */
-		var div = $.create("div", {"className": "scrollable"});
-
-		/* add current table to scrollable div */
-		this.table.wrap(div);
-		
-		/* rendering of table takes a long time, set timeout and call minmax() to fix IE */
-		setTimeout(function(){ $("div.scrollable", this.form).minmax(); }, 50);
-		
-		/* add div for showing delete confirm message */
-		this.form.prepend($.create("div", {"className": "message error_message"}));
-	};
-	
-	/*
-	 * Confirm deletion.
-	 * 
-	 * item — item (KDB's key) to delete.
-	 * showFunc — func to call after deletion.
-	 */
-	this.deleteConfirm = function(item, showFunc) {
-		/* find div for showing delete confirm message  */
-		var msgDiv = $("div.error_message", this.form);
-		
-		msgDiv.html(_("Are you sure you want to delete this item?<br>"));
-		
-		/* create Yes button */
-		var button = $.create("input", {
-			"type": "button",
-			"className": "button",
-			"value": _("Yes")
-		}).appendTo(msgDiv);
-		
-		/* delete item */
-		var outer = this;
-		button.click(function() {
-			msgDiv.hide();
-			$(".selected", outer.table).removeClass("selected");
-			
-			/* delete item and restart subsystem */
-			config.kdbDelListKey(item, outer.subsystem, outer.ajaxTimeout);
-			
-			/* if set, call func after deleting (usually updates table) */
-			if (showFunc) showFunc();
-		});
-		
-		/* create No button */
-		button = $.create("input", {
-			"type": "button",
-			"value": _("No")
-		}).appendTo(msgDiv);
-		
-		/* cancel delete */
-		button.click(function() {
-			msgDiv.hide();
-			$(".selected", outer.table).removeClass("selected");
-		});
-
-		msgDiv.show();
-	};
-	
-	/*
 	 * Adds list to a container "c". It gets list values from KDB
 	 * by key "listItem*", renders list title, creates function to
 	 * add and delete new elements. After adding or deleting
@@ -1098,6 +969,8 @@ function Container(p, options) {
 	 *  - processValueFunc — optional callback, which can be used for editing values of item's
 	 *     variable. It is called for each item' variable with two parameters — name of variable
 	 *     and variable's value. It have to return variable's value.
+	 *  - onAddOrEditItemRender — optional callback, which is called when page for adding or
+	 *     editing list's elements is rendered. It is called with one parameter — this list.
 	 *  - helpPage — help page;
 	 *  - helpSection — help section;
 	 *  - subsystem — subsystem;
@@ -1105,6 +978,8 @@ function Container(p, options) {
 	 *  - editMessage — title for edit page (I18N).
 	 */
 	var List = function(c, options) {
+		var list = this;
+		
 		/* array with widgets for add/edit page */
 		var widgets = new Array();
 		
@@ -1132,11 +1007,15 @@ function Container(p, options) {
 				values = config.getParsed(options['listItem'] + "*");
 				item = options['listItem'] + $.len(values);
 			} else c.addTitle(options['editMessage'] || "Edit");
+			
+			/* set calculated item in options object for later use in dynamic widgets */
+			options['currentItem'] = item;
 
 			/* add widgets */
 			$.each(widgets, function(num, widget) {
 				/* item property is used for properly get the value of a widget */
 				widget['widget']['item'] = item;
+				
 				c.addWidget(widget['widget'], widget['insertAfter']);
 			});
 			
@@ -1150,6 +1029,9 @@ function Container(p, options) {
 				},
 				"onSubmit": showPage
 			});
+			
+			/* if set callback on render event, call it with this object as a parameter */
+			if (options['onAddOrEditItemRender']) options['onAddOrEditItemRender'](list);
 		};
 		
 		/* add list header */
@@ -1239,7 +1121,21 @@ function Container(p, options) {
 		 * Add widget to add/edit page.
 		 */
 		this.addWidget = function(w, insertAfter) {
+			/* save link to this object to use later in events' handlers */
+			w['eventHandlerObject'] = list;
+			
 			widgets.push({"widget": w, "insertAfter": insertAfter});
+		};
+		
+		/*
+		 * Add widget to add/edit page after it generation (e.g., in event's handler).
+		 */
+		this.addDynamicWidget = function(w, insertAfter) {
+			/* save link to this object to use later in events' handlers */
+			w['eventHandlerObject'] = list;
+			
+			w['item'] = options['currentItem'];
+			c.addWidget(w, insertAfter);
 		};
 		
 		/*
