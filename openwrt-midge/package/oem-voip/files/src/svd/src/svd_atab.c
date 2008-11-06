@@ -16,6 +16,9 @@
 #include <stdio.h>
 #include <errno.h>
 #include <assert.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/ip.h>
 
 #include "tapi/include/drv_tapi_io.h"
 /*}}}*/
@@ -500,6 +503,7 @@ ab_chan_media_activate ( ab_chan_t * const chan )
 		SU_DEBUG_1(("Media_tune error : %s",ab_g_err_str));
 		goto __exit;
 	}
+
 	err = ab_chan_media_switch (chan, 1, 1);
 	if(err){
 		SU_DEBUG_1(("Media activate error : %s",ab_g_err_str));
@@ -549,6 +553,7 @@ DFS
 	int dev_idx;
 	int err;
 
+do{
 	memset(&evt, 0, sizeof(evt));
 
 	err = ab_dev_event_get( ab_dev, &evt, &chan_av );
@@ -585,8 +590,7 @@ DFS
 		}
 		case ab_dev_event_FXS_DIGIT_TONE:
 		case ab_dev_event_FXS_DIGIT_PULSE:{
-			err = svd_handle_event_FXS_DIGIT_X(svd, chan_idx, 
-					evt.data);
+			err = svd_handle_event_FXS_DIGIT_X(svd, chan_idx, evt.data);
 			break;
 		}
 		case ab_dev_event_FXO_RINGING:{
@@ -595,15 +599,15 @@ DFS
 			break;
 		}
 		case ab_dev_event_UNCATCHED:{
-
-		DEBUG_CODE(
-			SU_DEBUG_2 (("Got unknown event : 0x%X "
-					"on device / channel %d / %d\n",
-					evt.data, dev_idx+1,evt.ch+1 ));
-		);
+			DEBUG_CODE(
+				SU_DEBUG_2 (("Got unknown event : 0x%X on [%d/%d]\n",
+						evt.data, dev_idx+1,evt.ch+1 ));
+			);
 			break;
 		}
 	}
+}while(evt.more);
+
 	if (err){
 		goto __exit_fail;
 	}
@@ -658,6 +662,7 @@ DFS
 	}
 
 	/* no call to answer */
+
 	/* hotline test */
 	if(((svd_chan_t *)(ab_chan->ctx))->is_hotlined){
 		/* process the hotline sequence */
@@ -666,6 +671,15 @@ DFS
 		if(err){
 			goto __exit_fail;
 		}
+	} else {
+		/* no hotline - play dialtone */
+		err = ab_FXS_line_tone (ab_chan, ab_chan_tone_DIAL);
+		if(err){
+			SU_DEBUG_2(("can`t play dialtone on [_%d_]\n",ab_chan->abs_idx));
+		}
+		DEBUG_CODE(
+		SU_DEBUG_2(("play dialtone on [_%d_]\n",ab_chan->abs_idx));
+		);
 	}
 
 __exit_success:
@@ -694,6 +708,18 @@ DFS
 	);
 	/* say BYE on existing connection */
 	svd_bye(svd, ab_chan);
+
+	/* stop playing any tone on the chan */
+	err = ab_FXS_line_tone (ab_chan, ab_chan_tone_MUTE);
+	if(err){
+		SU_DEBUG_2(("can`t stop playing tone on [_%d_]\n",
+				ab_chan->abs_idx));
+	}
+	/* stop playing tone */
+	DEBUG_CODE(
+	SU_DEBUG_2(("stop playing tone on [_%d_]\n",
+				ab_chan->abs_idx));
+	);
 
 	/* change linefeed mode to STANDBY */
 	err = ab_FXS_line_feed (ab_chan, ab_chan_linefeed_STANDBY);
@@ -748,6 +774,17 @@ DFS
 			svd_clear_call (svd, ab_chan);
 			goto __exit_fail;
 		}
+		/* stop playing any tone while dialing a number */
+		err = ab_FXS_line_tone (ab_chan, ab_chan_tone_MUTE);
+		if(err){
+			SU_DEBUG_2(("can`t stop playing tone on [_%d_]\n",
+					ab_chan->abs_idx));
+		}
+		/* stop playing tone */
+		DEBUG_CODE(
+		SU_DEBUG_2(("stop playing tone on [_%d_]\n",
+					ab_chan->abs_idx));
+		);
 	}
 
 DFE
@@ -1092,8 +1129,7 @@ svd_handle_ROUTE_ID( ab_t * const ab, int const chan_idx, long const digit )
 		if( err ){
 			goto __exit_fail;
 		} 
-		SU_DEBUG_3 (("Choosed router [%s]\n",
-				chan_ctx->dial_status.route_id ));
+		SU_DEBUG_3 (("Choosed router [%s]\n",chan_ctx->dial_status.route_id ));
 		chan_ctx->dial_status.state = dial_state_CHAN_ID;
 		chan_ctx->dial_status.tag = 0;
 	}
@@ -1142,9 +1178,8 @@ svd_handle_CHAN_ID( svd_t * const svd, int const chan_idx, long const digit )
 	++(*chan_mas_idx);
 	if (*chan_mas_idx == CHAN_ID_LEN-1){
 		/* we got all digits of chan_id */
-		SU_DEBUG_3 (("Choosed chan [%s]\n",
-				chan_ctx->dial_status.chan_id ));
-		err = local_connection_selector(svd, 0, chan_idx);
+		SU_DEBUG_3 (("Choosed chan [%s]\n",chan_ctx->dial_status.chan_id ));
+		err = local_connection_selector (svd, 0, chan_idx);
 	}
 
 __exit:
@@ -1611,12 +1646,21 @@ svd_media_vinetic_open_rtp (svd_chan_t * const chan_ctx)
 	struct sockaddr_in my_addr;
 	int sock_fd;
 	int rtp_binded = 0;
+	int err;
+	int tos;
 DFS
 	sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock_fd == -1) {
 		SU_DEBUG_1 (("OPEN_RTP() ERROR : socket() : %d(%s)\n",
 				errno, strerror(errno)));
 		goto __exit_fail;
+	}
+
+	tos = IPTOS_LOWDELAY;
+
+	err = setsockopt(sock_fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos));
+	if( err){
+		SU_DEBUG_2(("Can`t set TOS :%s",strerror(errno)));
 	}
 
 	ports_count = g_conf.rtp_port_last - g_conf.rtp_port_first + 1;

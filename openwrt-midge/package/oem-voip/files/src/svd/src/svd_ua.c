@@ -827,15 +827,13 @@ DFS
 		/* start ringing */
 		err = ab_FXS_line_ring( req_chan, ab_chan_ring_RINGING );
 		if (err){
-			SU_DEBUG_1(("can`t ring to on [_%d_]\n",
-					req_chan->abs_idx));
+			SU_DEBUG_1(("can`t ring to on [_%d_]\n",req_chan->abs_idx));
 		}
 	} else if (req_chan->parent->type == ab_dev_type_FXO){
 		/* do offhook */
 		err = ab_FXO_line_hook( req_chan, ab_chan_hook_OFFHOOK );
 		if (err){
-			SU_DEBUG_1(("can`t offhook on [_%d_]\n",
-					req_chan->abs_idx));
+			SU_DEBUG_1(("can`t offhook on [_%d_]\n",req_chan->abs_idx));
 		}
 	}
 __exit:
@@ -915,10 +913,19 @@ DFS
 
 	/* INVITE sent */
 		case nua_callstate_calling:
-			break;
+		break;
 
 	/* 18X received */
 		case nua_callstate_proceeding:
+			/* play ringback */
+			err = ab_FXS_line_tone (chan, ab_chan_tone_RINGBACK);
+			if(err){
+				SU_DEBUG_2(("can`t play ringback on [_%d_]\n",chan->abs_idx));
+			}
+			/* play ringback */
+			DEBUG_CODE(
+			SU_DEBUG_2(("play ringback on [_%d_]\n",chan->abs_idx));
+			);
 			break;
 
 	/* 2XX received */
@@ -946,6 +953,16 @@ DFS
 
 	/* 2XX received, ACK sent, or vice versa */
 		case nua_callstate_ready:
+			/* stop playing any tone on the chan */
+			if(ab_FXS_line_tone (chan, ab_chan_tone_MUTE)){
+				SU_DEBUG_2(("can`t stop playing tone on [_%d_]\n",
+						chan->abs_idx));
+			}
+			/* stop playing tone */
+			DEBUG_CODE(
+			SU_DEBUG_2(("stop playing tone on [_%d_]\n", chan->abs_idx));
+			);
+
 			if(ab_chan_media_activate (chan)){
 				SU_DEBUG_1(("media_activate error : %s\n", ab_g_err_str));
 			}
@@ -957,8 +974,7 @@ DFS
 
 	/* BYE complete */
 		case nua_callstate_terminated:
-			SU_DEBUG_4 (("call on [%d] is terminated\n", 
-					chan->abs_idx));
+			SU_DEBUG_4 (("call on [%d] is terminated\n", chan->abs_idx));
 
 			/* deactivate media */
 			ab_chan_media_deactivate (chan);
@@ -970,26 +986,29 @@ DFS
 			svd_clear_call (svd, chan);
 
 			if (chan->parent->type == ab_dev_type_FXO){
-				err = ab_FXO_line_hook (chan, 
-						ab_chan_hook_ONHOOK);
+				err = ab_FXO_line_hook (chan, ab_chan_hook_ONHOOK);
 				if(err){
-					SU_DEBUG_2(("Can`t onhook on [_%d_]\n",
-							chan->abs_idx));
+					SU_DEBUG_2(("Can`t onhook on [_%d_]\n",chan->abs_idx));
 				}
-				SU_DEBUG_2(("onhook on [_%d_]\n",
-						chan->abs_idx));
+				SU_DEBUG_2(("onhook on [_%d_]\n",chan->abs_idx));
 			} else {
 				/* stop ringing */
 				int err;
-				err = ab_FXS_line_ring (chan, 
-						ab_chan_ring_MUTE);
+				err = ab_FXS_line_ring (chan, ab_chan_ring_MUTE);
 				if (err){
-					SU_DEBUG_2 (("Can`t stop ringing "
-							"on [_%d_]\n",
+					SU_DEBUG_2 (("Can`t stop ringing on [_%d_]\n",
 							chan->abs_idx));
 				}
+				/* playing busy tone on the chan */
+				if(ab_FXS_line_tone (chan, ab_chan_tone_BUSY)){
+					SU_DEBUG_2(("can`t playing busy tone on [_%d_]\n",
+							chan->abs_idx));
+				}
+				/* playing busy tone */
+				DEBUG_CODE(
+				SU_DEBUG_2(("playing busy tone on [_%d_]\n", chan->abs_idx));
+				);
 			}
-			/* ioctl(ssc->fd, IFX_TAPI_TONE_BUSY_PLAY, 0);*/
 			break;
 	}
 DFE
@@ -1214,6 +1233,18 @@ DFS
 	if (status >= 300) {
 		if (status == 401 || status == 407) {
 			svd_authenticate (svd, nh, sip, tags);
+		}
+		if (status == 486){
+			/* busy - play busy tone */
+			/* playing busy tone on the chan */
+			if(ab_FXS_line_tone (chan, ab_chan_tone_BUSY)){
+				SU_DEBUG_2(("can`t playing busy tone on [_%d_]\n",
+						chan->abs_idx));
+			}
+			/* playing busy tone */
+			DEBUG_CODE(
+			SU_DEBUG_2(("playing busy tone on [_%d_]\n", chan->abs_idx));
+			);
 		}
 	}
 DFE

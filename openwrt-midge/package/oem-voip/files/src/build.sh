@@ -111,8 +111,8 @@ case "$1" in
 		--enable-warnings \
 		--enable-2cpe \
 		--enable-lt \
+		--enable-fax \
 		--disable-v1 \
-		--disable-fax \
 		--with-max-devices=16 \
 		--with-access-mode=INTEL_MUX \
 		--with-access-width=8 \
@@ -160,7 +160,7 @@ case "$1" in
 		--enable-cid \
 		--enable-lt \
 		--enable-dect \
-		--disable-fax \
+		--enable-fax \
 		--disable-v1 \
 		--enable-kernelincl=$linux_path/include \
 		--prefix=$cur_path/itmp \

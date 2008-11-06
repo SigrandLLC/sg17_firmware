@@ -140,8 +140,8 @@ $(PKG_BUILD_DIR)/.configured:  $(PKG_BUILD_DIR)/.prepared
 		--enable-warnings \
 		--enable-2cpe \
 		--enable-lt \
+		--enable-fax \
 		--disable-v1 \
-		--disable-fax \
 		--with-max-devices=16 \
 		--with-access-mode=INTEL_MUX \
 		--with-access-width=8 \
@@ -179,7 +179,8 @@ $(PKG_BUILD_DIR)/.configured:  $(PKG_BUILD_DIR)/.prepared
 		--enable-cid \
 		--enable-lt \
 		--enable-dect \
-		--disable-fax \ --disable-v1 \
+		--enable-fax \
+		--disable-v1 \
 		--enable-kernelincl=$(PKG_BUILD_DIR)/linux/include \
 		--prefix=$(PKG_INSTALL_DIR) \
 	);

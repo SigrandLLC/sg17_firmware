@@ -1,3 +1,4 @@
+/* INCLUDE {{{*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,7 +16,9 @@
 #include "drv_tapi_io.h"	/* from TAPI_HL_driver */
 #include "vinetic_io.h" 	/* from Vinetic_LL_driver */
 #include "ab_ioctl.h"		/* from ATA_Board_driver */
+/*}}}*/
 
+/* DEFINE {{{*/
 #define ERR_SUCCESS 0
 #define ERR_MEMORY_FULL 1
 #define ERR_UNKNOWN_OPTION 2
@@ -32,12 +35,13 @@
 
 #define AB_SGATAB_DEV_NODE "/dev/sgatab"
 #define AB_SGATAB_MAJOR_FILE "/proc/driver/sgatab/major"
-#define VIN_DEV_NODE_BASE "/dev/vin"
+#define VIN_DEV_NODE_PREFIX "/dev/vin"
 #define VINETIC_MAJOR 121
 #define FXO_OSI_MAX 600
 
 #define BEFORE_BASICDEV_INIT_USLEEP 2000
 #define AFTER_BASICDEV_INIT_USLEEP 2000
+/*}}}*/
 
 /*
 COMMAND LINE KEYS:
@@ -51,11 +55,11 @@ COMMAND LINE KEYS:
 
 void
 show_last_err(char * msg, int fd)
-{
+{/*{{{*/
 	int error;
 	ioctl (fd, FIO_VINETIC_LASTERR, &error);
 	fprintf (stderr,"%s: 0x%X\n", msg, error);
-}
+}/*}}}*/
 
 struct _startup_options
 {
@@ -118,7 +122,7 @@ static void show_version( void );
 
 int 
 main( int argc, char ** argv )
-{
+{/*{{{*/
 	g_err_no = ERR_SUCCESS;
 	g_err_tag = 0;
 	strcpy( g_err_msg, "" );
@@ -142,11 +146,11 @@ main_exit:
 	Error_message( argc, argv );
 
 	return g_err_no;
-}
+}/*}}}*/
 
 static void 
 run( void )
-{
+{/*{{{*/
 	int err = 0;
 
 	/* test the voip modules presence */
@@ -170,19 +174,19 @@ __exit:
 	return;
 __exit_ioctl_msg:
 	return;
-}
+}/*}}}*/
 
 static int 
 voip_in_slots( void )
-{
+{/*{{{*/
 	int err;
 	err = system("cat /proc/pci | grep 0055:009c > /dev/null || exit 1");
 	return err;
-}
+}/*}}}*/
 
 static int 
 load_modules( void )
-{
+{/*{{{*/
 	char sgatab_major_str[20];
 	int sgatab_major;
 	int fd;
@@ -200,7 +204,7 @@ load_modules( void )
 	system("modprobe -r drv_daa");
 	system("modprobe -r drv_vinetic");
 	system("modprobe -r drv_tapi");
-	system("rm -f "VIN_DEV_NODE_BASE"*");
+	system("rm -f "VIN_DEV_NODE_PREFIX"*");
 	remove(AB_SGATAB_DEV_NODE);
 
 	/* load sgatab module */
@@ -272,11 +276,11 @@ __exit_success:
 	return 0;
 __exit_fail:
 	return -1;
-}
+}/*}}}*/
 
 static int
 create_vinetic_nodes( void )
-{
+{/*{{{*/
 	int err;
 	err = board_iterator(create_vin_board);
 	if(err){
@@ -285,11 +289,11 @@ create_vinetic_nodes( void )
 	return 0;
 __exit_fail:
 	return -1;
-}
+}/*}}}*/
 
 static int 
 init_voip( void )
-{
+{/*{{{*/
 	int err;
 	err = board_iterator(board_init);
 	if(err){
@@ -300,11 +304,11 @@ init_voip( void )
 __exit_fail:
 	fw_masses_free();
 	return -1;
-}
+}/*}}}*/
 
 static int
 board_iterator (int (*func)(ab_board_params_t const * const bp))
-{
+{/*{{{*/
 	ab_board_params_t bp;
 	int bc;
 	int fd;
@@ -373,11 +377,11 @@ __exit_fail_close:
 	close (fd);
 __exit_fail:
 	return -1;
-}
+}/*}}}*/
 
 static int 
 board_init (ab_board_params_t const * const bp)
-{
+{/*{{{*/
 	int i;
 	int err;
 	static int dev_idx = 0;
@@ -395,12 +399,12 @@ board_init (ab_board_params_t const * const bp)
 	return 0;
 __exit_fail:
 	return -1;
-}
+}/*}}}*/
 
 static int 
 dev_init (int const dev_idx, ab_dev_params_t const * const dp, 
 		long const nIrqNum)
-{
+{/*{{{*/
 	int j;
 	int err;
 
@@ -423,14 +427,14 @@ dev_init (int const dev_idx, ab_dev_params_t const * const dp,
 		}
 	}
 
-#if 0
+#if 0/* GPIO SET {{{*/
 	if(dp->type == dev_type_FXS){
 		int cfg_fd;
 		char devnode[30] = {0};
 		VINETIC_IO_GPIO_CONTROL gpio;
 
 		/*set all gpio pins to out 1*/
-		snprintf(devnode,30,VIN_DEV_NODE_BASE"%d0",dev_idx+1);
+		snprintf(devnode,30,VIN_DEV_NODE_PREFIX"%d0",dev_idx+1);
 		cfg_fd = open(devnode,O_RDWR);
 		if(cfg_fd ==-1){
 			fprintf(stderr,"svi: can`t open '%s' to set GPIO\n",devnode);
@@ -487,18 +491,18 @@ dev_init (int const dev_idx, ab_dev_params_t const * const dp,
 		fprintf(stderr,"svi: [%d] set all GPIO to output 1\n",dev_idx);
 		close(cfg_fd);
 	}
-#endif 
+#endif /*}}}*/
 
 __exit_success:
 	return 0;
 __exit_fail:
 	return -1;
-}
+}/*}}}*/
 
 static int 
 basicdev_init( int const dev_idx, ab_dev_params_t const * const dp, 
 		long const nIrqNum)
-{ 
+{ /*{{{*/
 	IFX_int32_t err;
 	VINETIC_BasicDeviceInit_t binit;
 	int cfg_fd;
@@ -513,7 +517,7 @@ basicdev_init( int const dev_idx, ab_dev_params_t const * const dp,
 	binit.nBaseAddress = dp->nBaseAddress;
 	binit.nIrqNum = nIrqNum;
 
-	sprintf(dev_node,VIN_DEV_NODE_BASE"%d0", dev_idx+1);
+	sprintf(dev_node,VIN_DEV_NODE_PREFIX"%d0", dev_idx+1);
 
 	cfg_fd = open(dev_node, O_RDWR);
 	if(cfg_fd==-1){
@@ -550,11 +554,11 @@ __exit_fail_close:
 	close (cfg_fd);
 __exit_fail:
 	return -1;
-}
+}/*}}}*/
 
 static int
 chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt)
-{
+{/*{{{*/
 	IFX_TAPI_CH_INIT_t init;
 	VINETIC_IO_INIT vinit;
 	char cnode[ 50 ];
@@ -624,15 +628,16 @@ __exit_fail_close:
 	close(cfd);
 __exit_fail:
 	return -1;
-}
+}/*}}}*/
 
 static int 
 chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 		dev_type_t const dtype )
-{
+{/*{{{*/
 	IFX_TAPI_MAP_DATA_t datamap;
 	IFX_TAPI_LINE_TYPE_CFG_t lineTypeCfg;
 	IFX_TAPI_SIG_DETECTION_t dtmfDetection;
+	IFX_TAPI_SIG_DETECTION_t faxSig;
 	int err = 0;
 
 	memset(&datamap, 0, sizeof (datamap));
@@ -678,6 +683,23 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 			show_last_err(">>", rtp_fd);
 			goto ab_chan_init_tune__exit;
 		}
+		/* ENABLE detection of FAX signals */
+#if 0
+		memset (&faxSig, 0, sizeof(faxSig));
+		faxSig.sig = 
+				IFX_TAPI_SIG_DISRX | IFX_TAPI_SIG_DISTX |
+				IFX_TAPI_SIG_CEDRX | IFX_TAPI_SIG_CEDTX |
+				IFX_TAPI_SIG_CNGFAXRX | IFX_TAPI_SIG_CNGFAXTX |
+				IFX_TAPI_SIG_CNGMODRX | IFX_TAPI_SIG_CNGMODTX |
+				IFX_TAPI_SIG_TONEHOLDING_END;
+		err = ioctl (rtp_fd,IFX_TAPI_SIG_DETECT_ENABLE,&faxSig);
+		if(err){
+			g_err_no = ERR_IOCTL_FAILS;
+			strcpy(g_err_msg, "trying to enable FAX signal detection (ioctl)" );
+			show_last_err(">>", rtp_fd);
+			goto ab_chan_init_tune__exit;
+		}
+#endif
 	} else if(dtype == dev_type_FXO) {
 		/* DISABLE detection of DTMF tones 
 		 * from local interface (ALM X) */
@@ -706,11 +728,11 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 	return 0;
 ab_chan_init_tune__exit:
 	return -1;
-};
+};/*}}}*/
 
 static int
 pd_ram_load( void )
-{
+{/*{{{*/
 	int err;
 	if( !fw_pram){
 		err = fw_masses_init_from_path (&fw_pram, &fw_pram_size, 
@@ -729,11 +751,11 @@ pd_ram_load( void )
 	return 0; 
 __exit_fail:
 	return -1;
-}
+}/*}}}*/
 
 static int
 cram_fxs_load( void )
-{
+{/*{{{*/
 	int err;
 	if( !fw_cram_fxs){
 		err = fw_masses_init_from_path (&fw_cram_fxs, &fw_cram_fxs_size, 
@@ -745,11 +767,11 @@ cram_fxs_load( void )
 	return 0; 
 __exit_fail:
 	return -1;
-}
+}/*}}}*/
 
 static int
 cram_fxo_load( void )
-{
+{/*{{{*/
 	int err;
 	if( !fw_cram_fxo){
 		err = fw_masses_init_from_path (&fw_cram_fxo, &fw_cram_fxo_size, 
@@ -761,12 +783,12 @@ cram_fxo_load( void )
 	return 0; 
 __exit_fail:
 	return -1;
-}
+}/*}}}*/
 
 static int 
 fw_masses_init_from_path (unsigned char ** const fw_buff, 
 		unsigned long * const buff_size, char const * const path )
-{
+{/*{{{*/
 	int fd;
 
 	fd = open(path, O_RDONLY);
@@ -801,11 +823,11 @@ fw_masses_init_from_path__open_file:
 	*buff_size = 0;
 fw_masses_init_from_path__exit:
 	return -1;
-}
+}/*}}}*/
 
 static void 
 fw_masses_free( void )
-{
+{/*{{{*/
 	if(fw_pram) {
 		free(fw_pram);
 		fw_pram_size = 0;
@@ -826,11 +848,11 @@ fw_masses_free( void )
 		fw_cram_fxo_size = 0;
 		fw_cram_fxo = NULL;
 	}
-}
+}/*}}}*/
 
 static int 
 create_vin_board (ab_board_params_t const * const bp)
-{
+{/*{{{*/
 	int i;
 	int err;
 	mode_t uma;
@@ -844,7 +866,7 @@ create_vin_board (ab_board_params_t const * const bp)
 			char dev_name[50];
 			memset(dev_name, 0, sizeof(dev_name));
 			snprintf (dev_name, sizeof(dev_name), "%s%d0",
-					VIN_DEV_NODE_BASE, dev_idx+1);
+					VIN_DEV_NODE_PREFIX, dev_idx+1);
 			err = mknod(dev_name, S_IFCHR|uma,MKDEV(VINETIC_MAJOR,
 					(dev_idx+1)*10));
 			if(err){
@@ -858,7 +880,7 @@ create_vin_board (ab_board_params_t const * const bp)
 				char ch_name[50];
 				memset(ch_name, 0, sizeof(ch_name));
 				snprintf (ch_name, sizeof(ch_name), "%s%d%d",
-						VIN_DEV_NODE_BASE, 
+						VIN_DEV_NODE_PREFIX, 
 						dev_idx+1, j+1);
 				err = mknod(ch_name, S_IFCHR|uma, MKDEV(
 						VINETIC_MAJOR,(dev_idx+1)*10+
@@ -879,11 +901,11 @@ create_vin_board (ab_board_params_t const * const bp)
 	return 0;
 __exit_fail:
 	return -1;
-}
+}/*}}}*/
 
 static unsigned char 
 startup_init( int argc, char ** argv )
-{
+{/*{{{*/
 	int option_IDX;
 	int option_rez;
 	char * short_options = "hVmdc";
@@ -934,11 +956,11 @@ startup_init( int argc, char ** argv )
 		}
 	}
 	return 0;
-}
+}/*}}}*/
 
 static void 
 Error_message( int argc, char ** argv )
-{
+{/*{{{*/
 	if( g_err_no == ERR_SUCCESS ){
 		return;	
 	}
@@ -967,14 +989,11 @@ Error_message( int argc, char ** argv )
 
 	fprintf( stderr,"Try '%s --help' for more information.\n", 
 		g_programm );
-}
-
-
-//------------------------------------------------------------
+}/*}}}*/
 
 static void 
 show_help( )
-{
+{/*{{{*/
 	fprintf( stdout, 
 "\
 Usage: %s [OPTION]\n\
@@ -991,13 +1010,11 @@ It can get some options :)\n\
 Report bugs to <%s>.\n\
 "
 			, g_programm, g_email );
-}
-
-//------------------------------------------------------------
+}/*}}}*/
 
 static void 
 show_version( )
-{
+{/*{{{*/
 	fprintf( stdout, 
 "\
 %s-%s, built [%s]-[%s]\n\n\
@@ -1010,7 +1027,5 @@ Written by %s. <%s>\n\
 "
 		, g_programm, g_version, 
 		__DATE__, __TIME__, g_author, g_email);
-}
-
-//------------------------------------------------------------
+}/*}}}*/
 

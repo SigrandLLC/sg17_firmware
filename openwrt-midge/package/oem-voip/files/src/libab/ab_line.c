@@ -150,8 +150,7 @@ ab_FXS_line_tone (ab_chan_t * const chan, enum ab_chan_tone_e tone)
 			} 
 		} else {
 			/* Something playing, but not that what we need */
-			err = ab_FXS_line_just_play_it( chan, 
-					ab_chan_tone_MUTE );
+			err = ab_FXS_line_just_play_it (chan, ab_chan_tone_MUTE);
 			if (err){
 				goto __exit;
 			} else if (tone != ab_chan_tone_MUTE){

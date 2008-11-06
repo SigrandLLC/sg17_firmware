@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <linux/ioctl.h>
+#include <sys/ioctl.h>
 #include <fcntl.h>
 #include <sys/poll.h>
 #include <unistd.h>
@@ -27,7 +28,7 @@ struct g_status_s {
 /* start connection */
 int 
 start_connection(ab_t * const ab)
-{
+{/*{{{*/
 	ab_chan_t * c1 = &ab->chans[g_status.c1_id];
 	ab_chan_t * c2 = &ab->chans[g_status.c2_id];
 	int err = 0;
@@ -60,23 +61,70 @@ start_connection(ab_t * const ab)
 	err += ab_chan_media_switch (c2, 1,1);
 
 	return err;
-}
+}/*}}}*/
 
 /* stop connection */
 int 
 stop_connection(ab_t * const ab)
-{
+{/*{{{*/
 	int err = 0;
-
 	/* stop enc / dec */
 	err += ab_chan_media_switch (&ab->chans[g_status.c1_id], 0,0);
 	err += ab_chan_media_switch (&ab->chans[g_status.c2_id], 0,0);
 	return err;
-}
+}/*}}}*/
+
+void
+start_fax(ab_t * const ab,int chan_id)
+{/*{{{*/
+	IFX_TAPI_T38_MOD_DATA_t mod;
+	IFX_TAPI_T38_DEMOD_DATA_t demod;
+	int cfd = ab->chans[chan_id].rtp_fd;
+	int err;
+
+	/* config parameters */
+	memset (&mod, 0, sizeof(mod));
+	memset (&demod, 0, sizeof(demod));
+
+	mod.nStandard = 0x01;
+	mod.nSigLen = 500;
+
+	demod.nStandard1 = 0x01;
+	demod.nStandard2 = 0x09;
+	demod.nSigLen = 500;
+	
+	/* start FAX connection */
+	err = ioctl(cfd, IFX_TAPI_T38_MOD_START, &mod);
+	if(err != IFX_SUCCESS){
+		int error;
+		ioctl (cfd, FIO_VINETIC_LASTERR, &error);
+		fprintf (stderr,"IFX_TAPI_T38_MOD_START error: 0x%X\n", error);
+	}
+	err = ioctl(cfd, IFX_TAPI_T38_DEMOD_START, &demod);
+	if(err != IFX_SUCCESS){
+		int error;
+		ioctl (cfd, FIO_VINETIC_LASTERR, &error);
+		fprintf (stderr,"IFX_TAPI_T38_DEMOD_START error: 0x%X\n", error);
+	}
+}/*}}}*/
+
+void
+stop_fax(ab_t * const ab,int chan_id)
+{/*{{{*/
+	int err;
+
+	/* stop FAX connection */
+	err = ioctl(ab->chans[chan_id].rtp_fd, IFX_TAPI_T38_STOP,0);
+	if(err){
+		int error;
+		ioctl (ab->chans[chan_id].rtp_fd, FIO_VINETIC_LASTERR, &error);
+		fprintf (stderr,"IFX_TAPI_T38_STOP error: 0x%X\n", error);
+	}
+}/*}}}*/
 
 void
 rwdata(int ffd,int tfd, unsigned char const f_aid, unsigned char const t_aid)
-{
+{/*{{{*/
 	int rode;
 	int written;
 	unsigned char buff[RTP_READ_MAX];
@@ -97,6 +145,7 @@ rwdata(int ffd,int tfd, unsigned char const f_aid, unsigned char const t_aid)
 			fprintf(stderr,"[%d]=>[%d]: RWD error: [%d/%d]\n",
 					f_aid,t_aid,rode,written);
 		} else {
+#if 0
 			int i;
 			fprintf(stderr,"[%d]=>_",f_aid);
 			for(i=0;i<12;i++){
@@ -107,13 +156,14 @@ rwdata(int ffd,int tfd, unsigned char const f_aid, unsigned char const t_aid)
 				fprintf(stderr, "%02X|",buff[i]);
 			}
 			fprintf(stderr,"...%d=>[%d]\n",rode,t_aid);
+#endif
 		}
 	}
-}
+}/*}}}*/
 
 void
 chaev (ab_t * ab, struct pollfd * fds)
-{
+{/*{{{*/
 	if(fds[g_status.c1_id].revents){
 		if(fds[g_status.c1_id].revents != POLLIN){
 			fprintf(stderr,"[%d]: revents: 0x%X\n",
@@ -136,11 +186,11 @@ chaev (ab_t * ab, struct pollfd * fds)
 				ab->chans[g_status.c2_id].abs_idx,
 				ab->chans[g_status.c1_id].abs_idx);
 	}
-}
+}/*}}}*/
 
 void
 devact(ab_t * ab, int dev_id)
-{
+{/*{{{*/
 	ab_dev_t * dev = &ab->devs[dev_id];
 	ab_dev_event_t evt;
 	unsigned char ca;
@@ -150,8 +200,8 @@ devact(ab_t * ab, int dev_id)
 	/* data on device */
 	err = ab_dev_event_get(dev, &evt, &ca);
 	if(err || !ca || evt.more){
-		fprintf(stderr,">> DEV: %s [e%d/c%d/m%d/d0x%lX]\n",
-				ab_g_err_str,err,ca, evt.more, evt.data);
+		fprintf(stderr,">> DEV: (%s) [e%d/c%d/m%d/d0x%lX]\n",
+				ab_g_err_str, err, ca, evt.more, evt.data);
 		return;
 	} 
 
@@ -230,14 +280,62 @@ devact(ab_t * ab, int dev_id)
 			}
 		}
 	} else {
-		fprintf(stderr,"(%d,%d) [%d | 0x%lX]\n", 
-				dev_id, evt.ch, evt.id, evt.data);
+		if(evt.data == IFX_TAPI_EVENT_FAXMODEM_HOLDEND){
+			fprintf(stderr,"[%d/%d] : HOLDEND\n",dev_id,(evt.ch+1)%2);
+		} else if(evt.data == IFX_TAPI_EVENT_FAXMODEM_CED){
+			fprintf(stderr,"[%d/%d] : CED\n",dev_id,(evt.ch+1)%2);
+		} else if(evt.data == IFX_TAPI_EVENT_FAXMODEM_CEDEND){
+			fprintf(stderr,"[%d/%d] : CEDEND\n",dev_id,(evt.ch+1)%2);
+		} else if(evt.data == IFX_TAPI_EVENT_FAXMODEM_DIS){
+			fprintf(stderr,"[%d/%d] : DIS\n",dev_id,(evt.ch+1)%2);
+		} else if(evt.data == IFX_TAPI_EVENT_FAXMODEM_CNGFAX){
+			fprintf(stderr,"[%d/%d] : CNGFAX\n",dev_id,(evt.ch+1)%2);
+		} else if(evt.data == IFX_TAPI_EVENT_FAXMODEM_CNGMOD){
+			fprintf(stderr,"[%d/%d] : CNGMOD\n",dev_id,(evt.ch+1)%2);
+		} else {
+			fprintf(stderr,"UNCATCHED EVENT: [%d/%d] (%d| 0x%lX)\n", 
+					dev_id, evt.ch, evt.id, evt.data);
+		}
+#if 0
+		/* got CNGFAX / CEDEND */
+		if(evt.data == IFX_TAPI_EVENT_FAXMODEM_CEDEND ||
+				evt.data == IFX_TAPI_EVENT_FAXMODEM_CNGFAX){
+		} /* got DIS */ else if(evt.data == IFX_TAPI_EVENT_FAXMODEM_DIS){
+			if(g_status.enc_dec_is_on){
+				/*stop encoding - decoding*/
+				err = stop_connection(ab);
+				if(err){
+					fprintf(stderr,"DOWN ERROR");
+					exit(EXIT_FAILURE);
+				} else {
+					g_status.enc_dec_is_on = 0;
+					fprintf(stderr,"DOWN\n");	
+				}
+			}
+			/*start fax transmitting*/
+			start_fax (ab,chan_id);
+		}/* got HOLDEND */ else if(evt.data == IFX_TAPI_EVENT_FAXMODEM_HOLDEND){
+			/*stop fax transmitting*/
+			stop_fax (ab,chan_id);
+			if( !g_status.enc_dec_is_on){
+				/*start voice*/
+				err = start_connection(ab);
+				if(err){
+					fprintf(stderr,"UP ERROR");
+					exit(EXIT_FAILURE);
+				} else {
+					g_status.enc_dec_is_on = 1;
+					fprintf(stderr,"UP\n");	
+				}
+			}
+		}
+#endif
 	}
-}
+}/*}}}*/
 
 void
 devev(ab_t * ab, struct pollfd * fds)
-{
+{/*{{{*/
 	int i;
 	int j;
 
@@ -252,11 +350,11 @@ devev(ab_t * ab, struct pollfd * fds)
 			devact(ab, i-ab->chans_num);
 		}
 	} 
-}
+}/*}}}*/
 
 void
 start_polling(ab_t * const ab)
-{
+{/*{{{*/
 	struct pollfd * fds;
 	int i;
 	int j;
@@ -285,11 +383,11 @@ start_polling(ab_t * const ab)
 		/* test events on devices */
 		devev (ab,fds);
 	}
-}
+}/*}}}*/
 
 int 
 main (int argc, char *argv[])
-{
+{/*{{{*/
 	ab_t * ab;
 
 	ab = ab_create();
@@ -315,5 +413,5 @@ main (int argc, char *argv[])
 	fprintf(stderr,"THE END: %d:%s\n",ab_g_err_idx, ab_g_err_str);
 	ab_destroy(&ab);
 	return 0;
-}
+}/*}}}*/
 

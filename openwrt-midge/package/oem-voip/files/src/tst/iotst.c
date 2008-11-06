@@ -17,12 +17,17 @@
 #include "vinetic_io.h"
 /*}}}*/
 
+#define DEV_COUNT_MAX 16
 #define DEV_NODE_LENGTH 30
 #define WRITE_VAL	0xDEAD 
 #define PRINT_SCALE	10000
 #define PRINT_SCALE_STR	"0000"
 
-unsigned long int g_error_counter=0;
+
+unsigned long int g_error_counter = 0;
+
+unsigned long int g_error_counters[DEV_COUNT_MAX] = {0};
+unsigned long int g_devs_num = 0;
 
 typedef unsigned char byte_t;
 
@@ -32,6 +37,7 @@ struct opts_s {/*{{{*/
 	int first_dev;
 	int second_dev;
 	int both;
+	int all;
 	int help;
 } g_so;/*}}}*/
 
@@ -40,7 +46,7 @@ startup_init (int argc, char * const argv[])
 {/*{{{*/
 	int option_IDX;
 	int option_rez;
-	char * short_options = "hrwbdf:s:";
+	char * short_options = "hrwbdf:s:a";
 	struct option long_options[ ] = {
 		{ "help", no_argument, NULL, 'h' },
 		{ "read", no_argument, NULL, 'r' },
@@ -49,6 +55,7 @@ startup_init (int argc, char * const argv[])
 		{ "double-byte-wide", no_argument, NULL, 'd' },
 		{ "first-device", required_argument, NULL, 'f' },
 		{ "second-device", required_argument, NULL, 's' },
+		{ "all-devices", no_argument, NULL, 'a' },
 		{ NULL, 0, NULL, 0 }
 	};
 
@@ -65,25 +72,33 @@ startup_init (int argc, char * const argv[])
 			g_so.help = 1;
 			return 1;
 		case 'r':
-			if(g_so.mode == mode_none){
-				g_so.mode = mode_read;
-			} else if(g_so.mode == mode_read){
-				g_so.mode = mode_read;
-			} else if(g_so.mode == mode_write){
+			if(g_so.all){
 				g_so.mode = mode_wrrd;
-			} else if(g_so.mode == mode_wrrd){
-				g_so.mode = mode_wrrd;
+			} else {
+				if(g_so.mode == mode_none){
+					g_so.mode = mode_read;
+				} else if(g_so.mode == mode_read){
+					g_so.mode = mode_read;
+				} else if(g_so.mode == mode_write){
+					g_so.mode = mode_wrrd;
+				} else if(g_so.mode == mode_wrrd){
+					g_so.mode = mode_wrrd;
+				}
 			}
 			break;
 		case 'w':
-			if(g_so.mode == mode_none){
-				g_so.mode = mode_write;
-			} else if(g_so.mode == mode_read){
+			if(g_so.all){
 				g_so.mode = mode_wrrd;
-			} else if(g_so.mode == mode_write){
-				g_so.mode = mode_write;
-			} else if(g_so.mode == mode_wrrd){
-				g_so.mode = mode_wrrd;
+			} else {
+				if(g_so.mode == mode_none){
+					g_so.mode = mode_write;
+				} else if(g_so.mode == mode_read){
+					g_so.mode = mode_wrrd;
+				} else if(g_so.mode == mode_write){
+					g_so.mode = mode_write;
+				} else if(g_so.mode == mode_wrrd){
+					g_so.mode = mode_wrrd;
+				}
 			}
 			break;
 		case 'b':
@@ -98,6 +113,10 @@ startup_init (int argc, char * const argv[])
 		case 's':
 			g_so.second_dev = strtol(optarg, NULL, 10);
 			break;
+		case 'a':
+			g_so.mode = mode_wrrd;
+			g_so.all = 1;
+			break;
 		case '?' :
 			return -1;
 		}
@@ -106,15 +125,21 @@ startup_init (int argc, char * const argv[])
 	if(g_so.mode == mode_none){
 		g_so.mode = mode_wrrd;
 	}
-	if((g_so.first_dev == -1) && (g_so.second_dev != -1)){
-		g_so.first_dev = g_so.second_dev;
-		g_so.second_dev = -1;
-	}
-	if((g_so.first_dev == -1) && (g_so.second_dev == -1)){
-		g_so.first_dev = 0;
-	}
-	if((g_so.first_dev != -1) && (g_so.second_dev != -1)){
-		g_so.both = 1;
+	if( g_so.all){
+		g_so.mode = mode_wrrd;
+	} else {
+		/* --all-devices flag do not set */
+		if((g_so.first_dev == -1) && (g_so.second_dev == -1)){
+			g_so.mode = mode_wrrd;
+			g_so.all = 1;
+		}
+		if((g_so.first_dev == -1) && (g_so.second_dev != -1)){
+			g_so.first_dev = g_so.second_dev;
+			g_so.second_dev = -1;
+		}
+		if((g_so.first_dev != -1) && (g_so.second_dev != -1)){
+			g_so.both = 1;
+		}
 	}
 	return 0;
 }/*}}}*/
@@ -138,6 +163,7 @@ print_help(void)
 ==============================\n\
 \t-f, --first-device = <num>   - first device index.\n\
 \t-s, --second-device = <num>  - second device index.\n\
+\t-a, --all-devices            - test all devices on board.\n\
 \n\
 \t\tif no options set, using just first device with index 0\n\
 ==============================\n\
@@ -146,14 +172,29 @@ print_help(void)
 }/*}}}*/
 
 void
-print_it_info(int it_val)
+print_it_info_all(int it_val)
 {/*{{{*/
-	static unsigned long int scaled_counter=0;
+	static unsigned long int scale_counter=0;
+	int i;
 
 	if(!(it_val % PRINT_SCALE)){
-		scaled_counter++;
-		fprintf(stderr, "\r[%ld%s] errors : %ld",
-				scaled_counter,PRINT_SCALE_STR,g_error_counter);
+		scale_counter++;
+		fprintf(stderr, "\r[%ld%s] errors:", scale_counter,PRINT_SCALE_STR);
+		for(i=0; i<g_devs_num; i++){
+			fprintf(stderr, " [%ld]",g_error_counters[i]);
+		}
+	}
+}/*}}}*/
+
+void
+print_it_info(int it_val)
+{/*{{{*/
+	static unsigned long int scale_counter=0;
+
+	if(!(it_val % PRINT_SCALE)){
+		scale_counter++;
+		fprintf(stderr, "\r[%ld%s] errors: %ld", 
+				scale_counter,PRINT_SCALE_STR, g_error_counter);
 	}
 }/*}}}*/
 
@@ -465,6 +506,75 @@ wrrd_mode(void)
 	}
 }/*}}}*/
 
+void
+wrrd_mode_all(void)
+{/*{{{*/
+	char dnode[DEV_NODE_LENGTH];
+	int  cfg_fds[DEV_COUNT_MAX];
+	unsigned short int vars[DEV_COUNT_MAX];
+	unsigned short int wr_val = 1;
+	unsigned long int it_val = 1;
+	int i;
+
+	for(i=0; i<DEV_COUNT_MAX; i++){
+		int fd;
+		memset(dnode, 0, DEV_NODE_LENGTH);
+		sprintf(dnode, "/dev/vin%d0",i+1);
+
+		fd = open(dnode,O_RDWR);
+		if(fd == -1){
+			g_devs_num = i;
+			break;
+		} else {
+			cfg_fds[i] = fd;
+		}
+	}
+
+	while(1){
+		print_it_info_all(it_val);
+
+		if(!wr_val){
+			wr_val++;
+		}
+
+		for(i=0; i<g_devs_num; i++){
+			/* write */
+			ioctl(cfg_fds[i], FIO_VINETIC_TCA, wr_val);
+		}
+
+		for(i=0; i<g_devs_num; i++){
+			/* read */
+			vars[i] = ioctl(cfg_fds[i], FIO_VINETIC_TCA, 0);
+		}
+
+		for(i=0; i<g_devs_num; i++){
+			if(g_so.wide == wide_byte){
+				/* test values */
+				if((byte_t)vars[i] != (byte_t)wr_val){
+					fprintf(stderr,"\n[%ld]DEV_[%d] W/R fail: "
+							"Write=0x%02X W/R=0x%02X\n",
+							it_val, i, (byte_t)wr_val, (byte_t)vars[i]);
+					g_error_counters[i]++;
+				}
+			} else {
+				/* test values */
+				if(vars[i] != wr_val){
+					fprintf(stderr,"\n[%ld]DEV_[%d] W/R fail: "
+							"Write=0x%04X W/R=0x%04X\n",
+							it_val, i, wr_val, vars[i]);
+					g_error_counters[i]++;
+				}
+			}
+		}
+		it_val++;
+		wr_val++;
+	}
+
+	for(i=0; i<g_devs_num; i++){
+		close(cfg_fds[i]);
+	}
+}/*}}}*/
+
 int 
 main (int argc, char * const argv[])
 {/*{{{*/
@@ -480,19 +590,27 @@ main (int argc, char * const argv[])
 	}
 
 	fprintf(stderr,"wide[%d] ",g_so.wide+1); 
+	if(g_so.all){
+		fprintf(stderr,"test: all ");
+	} else {
+		fprintf(stderr,"test: first[%d] second[%d] ", 
+				g_so.first_dev,g_so.second_dev);
+	}
 
 	if(g_so.mode == mode_read){
-		fprintf(stderr,"mode[read] first[%d] second[%d]\n",
-				g_so.first_dev,g_so.second_dev); 
+		fprintf(stderr,"mode[read]\n");
 		read_mode();
 	} else if (g_so.mode == mode_write){
-		fprintf(stderr,"mode[write] first[%d] second[%d]\n",
-				g_so.first_dev,g_so.second_dev); 
+		fprintf(stderr,"mode[write]\n");
 		write_mode();
 	} else {
-		fprintf(stderr,"mode[wrrd] first[%d] second[%d]\n",
-				g_so.first_dev,g_so.second_dev); 
-		wrrd_mode();
+		fprintf(stderr,"mode[wrrd]\n");
+		if(g_so.all){
+			wrrd_mode_all();
+		} else {
+			wrrd_mode();
+		}
+
 	}
 
 	return 0;
