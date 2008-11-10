@@ -66,4 +66,4 @@ Controllers['rs232'] = function(node, pcislot, pcidev) {
 	});
 	
 	page.generateTabs();
-}
+};

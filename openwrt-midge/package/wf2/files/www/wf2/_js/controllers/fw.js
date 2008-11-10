@@ -48,7 +48,6 @@ Controllers['fw'] = function() {
 				"tip": "You can add port number after ip address<br><i>Example: 192.168.0.1:80</i>"
 			};
 			list.addDynamicWidget(field, $("#dport").parents("tr"));
-			
 		/* remove field */
 		} else {
 			$("#natto").parents("tr").remove();
@@ -78,7 +77,7 @@ Controllers['fw'] = function() {
 			"name": "name",
 			"text": "Short name",
 			"descr": "Name of rule",
-			"validator": {"required": true, "alphanum": true}
+			"validator": {"required": true, "alphanumU": true}
 		};
 		options['list'].addWidget(field);
 		
@@ -376,4 +375,4 @@ Controllers['fw'] = function() {
 	});
 	
 	page.generateTabs();
-}
+};

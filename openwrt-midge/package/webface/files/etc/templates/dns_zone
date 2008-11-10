@@ -28,6 +28,7 @@ echo "			)"
 echo 
 
 for k in `kdb kls svc_dns_zone_${zoneid}_*`; do
+	unset prio domain datatype data
 	val=`kdb get $k`
 	eval "$val"
 	echo "$domain		IN	$datatype	$prio		$data"

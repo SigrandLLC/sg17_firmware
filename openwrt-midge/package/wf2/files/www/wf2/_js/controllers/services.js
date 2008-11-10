@@ -200,7 +200,7 @@ function serviceDHCPStatic(page, iface) {
 		"type": "text",
 		"name": "name",
 		"text": "Host name",
-		"validator": {"required": true, "alphanum": true}
+		"validator": {"required": true, "alphanumU": true}
 	};
 	list.addWidget(field);
 	
@@ -223,4 +223,4 @@ function serviceDHCPStatic(page, iface) {
 	list.addWidget(field);
 	
 	list.generateList();
-}
+};

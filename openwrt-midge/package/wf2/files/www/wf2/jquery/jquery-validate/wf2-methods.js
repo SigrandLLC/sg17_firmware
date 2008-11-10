@@ -43,6 +43,11 @@ jQuery.validator.addMethod("domainName", function(value, element) {
 	return this.optional(element) || /^[a-zA-Z0-9]+([a-zA-Z0-9\-\.]+)?$/.test(value);
 }, "Please enter correct domain name.");
 
+/* DNS record domain */
+jQuery.validator.addMethod("dnsRecordDomainOrIpAddr", function(value, element) {
+	return this.optional(element) || /(^@$)|(^[a-zA-Z0-9]+([a-zA-Z0-9\-\.]+)?$)|(^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$)$/.test(value);
+}, "Please enter correct domain name.");
+
 /* Domain name or IP address */
 jQuery.validator.addMethod("domainNameOrIpAddr", function(value, element) {
 	return this.optional(element) || /(^[a-zA-Z0-9]+([a-zA-Z0-9\-\.]+)?$)|(^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$)/.test(value);
@@ -84,9 +89,14 @@ jQuery.validator.addMethod("pbo", function(value, element) {
 	return this.optional(element) || /^(\d+(:\d+)*)+$/.test(value);
 }, "Please enter correct PBO value.");
 
+/* Alphanumeric and underline only */
+jQuery.validator.addMethod("alphanumU", function(value, element) {
+	return this.optional(element) || /^[_a-zA-Z0-9]+$/.test(value);
+}, "Please enter alphanumeric and underline characters only (without spaces).");
+
 /* Alphanumeric only */
 jQuery.validator.addMethod("alphanum", function(value, element) {
-	return this.optional(element) || /^[_a-zA-Z0-9]+$/.test(value);
+	return this.optional(element) || /^[a-zA-Z0-9]+$/.test(value);
 }, "Please enter alphanumeric characters only (without spaces).");
 
 /* QoS bandwith */

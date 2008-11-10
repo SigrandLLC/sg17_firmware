@@ -655,7 +655,7 @@ Controllers['iface'] = function(iface) {
 				"name": "name",
 				"text": "Name",
 				"descr": "Name of class",
-				"validator": {"required": true, "alphanum": true}
+				"validator": {"required": true, "alphanumU": true}
 			};
 			list.addWidget(field);
 			
@@ -762,7 +762,7 @@ Controllers['iface'] = function(iface) {
 				"name": "name",
 				"text": "Name",
 				"descr": "Name of filter",
-				"validator": {"required": true, "alphanum": true}
+				"validator": {"required": true, "alphanumU": true}
 			};
 			list.addWidget(field);
 			

@@ -1,5 +1,6 @@
 Controllers['dynamic_ifaces'] = function() {
 	var page = this.Page();
+	page.setHelpPage("ifaces");
 	
 	page.addTab({
 		"id": "dynamic_ifaces",

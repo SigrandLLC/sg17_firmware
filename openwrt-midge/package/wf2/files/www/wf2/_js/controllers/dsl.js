@@ -688,4 +688,4 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 	});
 	
 	page.generateTabs();
-}
+};

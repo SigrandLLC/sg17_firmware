@@ -318,3 +318,12 @@ td div.scrollable {
 table tfoot tr td {
 	font-size: 10px;
 }
+
+td.clickable {
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+td.clickable:hover {
+	color: yellow;
+}

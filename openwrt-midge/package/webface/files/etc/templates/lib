@@ -118,10 +118,10 @@ update_configs(){
 		ok="true"
 		[ -d /etc/bind/zones ] && rm -rf /etc/bind/zones
 		mkdir -p /etc/bind/zones
-		for k in `kdb  kls svc_dns_zonelist* `; do 
+		for k in `kdb kls svc_dns_zonelist* `; do 
 			unset zone enabled zoneid nameserver admin serial refresh ttl retry expire zonetype
-			zonedata=`kdb  get $k`; 
-			eval "export $zonedata"; 
+			zonedata=`kdb get $k`; 
+			eval "$zonedata"; 
 			if [ "x${enabled}x" != "xx" ]; then
 				cfg_make dns_zone /etc/bind/zones/$zoneid $k $zoneid || ok="false"
 			fi

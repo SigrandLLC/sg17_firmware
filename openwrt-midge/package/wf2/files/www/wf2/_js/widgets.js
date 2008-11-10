@@ -444,6 +444,28 @@ function Container(p, options) {
 	};
 
 	/*
+	 * Create button with click event handler.
+	 * I18N for text and tip.
+	 */
+	this.createButtonWidget = function(w) {
+		var attrs = {
+			"type": "button",
+			"value": _(w['text']),
+			"className": "button"
+		};
+		w['tip'] && (attrs['title'] = _(w['tip']));
+		
+		var button = $.create("input", attrs);
+		
+		/* set action */
+		button.click(function() {
+			w['func']();
+		});
+		
+		return button;
+	};
+
+	/*
 	 * Add complete widget (table's TR) to container.
 	 * 
 	 * w — widget to add.
@@ -472,7 +494,7 @@ function Container(p, options) {
 		
 		/* TODO: make full support for cookies (do not write it to KDB but save in cookie) */
 		if (w['cookie']) value = $.cookie(w['name']);
-		else value = w.item ? config.getParsed(w.item)[w.name] : config.get(w.name);
+		else if (w.name) value = w.item ? config.getParsed(w.item)[w.name] : config.get(w.name);
 		
 		var widget;
 		switch (w.type) {
@@ -496,15 +518,15 @@ function Container(p, options) {
 				break;
 			case "select":
 				widget = this.createSelectWidget(w);
-				if (w.options) {
-					widget.setOptionsForSelect(w.options,
-						value, w.defaultValue);
-				}
+				if (w.options) widget.setOptionsForSelect(w.options, value, w.defaultValue);
+				break;
+			case "button":
+				widget = this.createButtonWidget(w);
 				break;
 		}
 		
 		/* insert new subwidget at specified position or just in form for hidden widget */
-		if (w['type'] == "hidden") this.form.append(widget);
+		if (w['type'] == "hidden" || w['type'] == "button") this.form.append(widget);
 		else if (insertAfter) widget.insertAfter(insertAfter);
 		else $("#td_" + w.name, this.form).prepend(widget);
 		
@@ -524,6 +546,7 @@ function Container(p, options) {
 	
 	/*
 	 * Bind events to widget.
+	 * To bind an event to the widget, you have to set widget's ID.
 	 * If w['eventHandlerObject'] is set, then pass it as parameter to event handler,
 	 * otherwise pass current container.
 	 */
@@ -968,9 +991,15 @@ function Container(p, options) {
 	 *  optional parameters:
 	 *  - processValueFunc — optional callback, which can be used for editing values of item's
 	 *     variable. It is called for each item' variable with two parameters — name of variable
-	 *     and variable's value. It have to return variable's value.
+	 *     and variable's value. It have to return variable's value;
 	 *  - onAddOrEditItemRender — optional callback, which is called when page for adding or
-	 *     editing list's elements is rendered. It is called with one parameter — this list.
+	 *     editing list's elements is rendered. It is called with one parameter — this list;
+	 *  - onAddItemRender — optional callback, which is called when page for adding
+	 *     list's elements is rendered. It is called with one parameter — this list;
+	 *  - onEditItemRender — optional callback, which is called when page for editing
+	 *     list's elements is rendered. It is called with one parameter — this list;
+	 *  - showPage — function to render a page after adding/editing list's item or
+	 *     clicking Back button on adding/editin page. If not set, tab's function is called.
 	 *  - helpPage — help page;
 	 *  - helpSection — help section;
 	 *  - subsystem — subsystem;
@@ -983,6 +1012,9 @@ function Container(p, options) {
 		/* array with widgets for add/edit page */
 		var widgets = new Array();
 		
+		/* array with widgets for adding page only */
+		var widgetsForAdding = new Array();
+		
 		/* redraw page after adding/editing list item */
 		var showPage = function() {
 			$($.sprintf("#tab_%s_link", options['tabId'])).click();
@@ -994,6 +1026,9 @@ function Container(p, options) {
 		 * item — if this parameter is set, then edit this item.
 		 */
 		var addOrEditItem = function(item) {
+			/* are we adding or editing item */
+			var isAdding;
+			
 			/* clear this container */
 			c.initContainer({"clear": true});
 
@@ -1003,10 +1038,14 @@ function Container(p, options) {
 
 			/* decide, if we will add or edit item */
 			if (!item) {
+				isAdding = true;
 				c.addTitle(options['addMessage'] || "Add");
 				values = config.getParsed(options['listItem'] + "*");
 				item = options['listItem'] + $.len(values);
-			} else c.addTitle(options['editMessage'] || "Edit");
+			} else {
+				isAdding = false;
+				c.addTitle(options['editMessage'] || "Edit");
+			}
 			
 			/* set calculated item in options object for later use in dynamic widgets */
 			options['currentItem'] = item;
@@ -1025,12 +1064,29 @@ function Container(p, options) {
 				"submitName": "Add/Update",
 				"extraButton": {
 					"name": "Back",
-					"func": showPage
+					"func": options['showPage'] ? options['showPage'] : showPage
 				},
-				"onSubmit": showPage
+				"onSubmit": options['showPage'] ? options['showPage'] : showPage
 			});
 			
-			/* if set callback on render event, call it with this object as a parameter */
+			/* do adding/editing specific actions */
+			if (isAdding) {
+				/* add widgets for adding page */
+				$.each(widgetsForAdding, function(num, widget) {
+					/* item property is used for properly get the value of a widget */
+					widget['widget']['item'] = item;
+					
+					c.addWidget(widget['widget'], widget['insertAfter']);
+				});
+				
+				/* run callback for adding page with this object as a parameter */
+				if (options['onAddItemRender']) options['onAddItemRender'](list);
+			} else {
+				/* run callback for editing page with this object as a parameter */
+				if (options['onEditItemRender']) options['onEditItemRender'](list);
+			}
+			
+			/* run callback for adding/editing page with this object as a parameter */
 			if (options['onAddOrEditItemRender']) options['onAddOrEditItemRender'](list);
 		};
 		
@@ -1058,10 +1114,10 @@ function Container(p, options) {
 			/* change image when mouse is over it */
 			img.hover(
 				function() {
-					$(this).attr("src", "_img/plus2.gif")
+					$(this).attr("src", "_img/plus2.gif");
 				},
 				function() {
-					$(this).attr("src", "_img/plus.gif")
+					$(this).attr("src", "_img/plus.gif");
 				}
 			);
 			
@@ -1099,7 +1155,7 @@ function Container(p, options) {
 				config.kdbDelListKey(item, c.subsystem, c.ajaxTimeout);
 				
 				/* call func after deleting (updates page) */
-				showPage();
+				options['showPage'] ? options['showPage']() : showPage();
 			});
 			
 			/* create No button */
@@ -1125,6 +1181,16 @@ function Container(p, options) {
 			w['eventHandlerObject'] = list;
 			
 			widgets.push({"widget": w, "insertAfter": insertAfter});
+		};
+		
+		/*
+		 * Add widget to ADD page only.
+		 */
+		this.addWidgetForAdding = function(w, insertAfter) {
+			/* save link to this object to use later in events' handlers */
+			w['eventHandlerObject'] = list;
+			
+			widgetsForAdding.push({"widget": w, "insertAfter": insertAfter});
 		};
 		
 		/*
@@ -1154,7 +1220,8 @@ function Container(p, options) {
 				var cssClass = new Object();
 				
 				/* change text color for disabled items */
-				if (value['enabled'] == "off" || value['enabled'] == "0") {
+				if (value['enabled'] != undefined && 
+						(value['enabled'] != "on" && value['enabled'] != "1")) {
 					cssClass['className'] = "disabled";
 				}
 				
@@ -1162,8 +1229,28 @@ function Container(p, options) {
 				$.each(options['varList'], function(num, variable) {
 					var finalVal = options['processValueFunc'] ?
 						options['processValueFunc'](variable, value[variable]) : value[variable];
+					
+					/* create td */
 					var td = $.create("td", cssClass, finalVal ? finalVal : "&nbsp;")
 						.appendTo(row);
+	
+					/* if function is set for this variable */
+					if (options['varFunctions'] && options['varFunctions'][variable]) {
+						/* add clickable class */
+						td.addClass("clickable");
+						
+						/* if set tip — add it */
+						if (options['varFunctions'][variable]['tip']) {
+							td.attr("title", options['varFunctions'][variable]['tip']);
+							td.tooltip({"track": true});
+						}
+						
+						/* set click handler to passed function */
+						td.click(function() {
+							/* call passed function with variable's value as argument */
+							options['varFunctions'][variable]['func'](finalVal);
+						});
+					}
 				});
 				
 				/* create "button" for editing */
@@ -1176,10 +1263,10 @@ function Container(p, options) {
 				/* change image when mouse is over it */
 				img.hover(
 					function() {
-						$(this).attr("src", "_img/e2.gif")
+						$(this).attr("src", "_img/e2.gif");
 					},
 					function() {
-						$(this).attr("src", "_img/e.gif")
+						$(this).attr("src", "_img/e.gif");
 					}
 				);
 				$.create("td", {}, img).appendTo(row);
@@ -1200,10 +1287,10 @@ function Container(p, options) {
 				/* change image when mouse is over it */
 				img.hover(
 					function() {
-						$(this).attr("src", "_img/minus2.gif")
+						$(this).attr("src", "_img/minus2.gif");
 					},
 					function() {
-						$(this).attr("src", "_img/minus.gif")
+						$(this).attr("src", "_img/minus.gif");
 					}
 				);
 				$.create("td", {}, img).appendTo(row);

@@ -326,7 +326,7 @@ Controllers['voip'] = function() {
 				field = { 
 					"type": "text",
 					"name": $.sprintf("sys_voip_hotline_%s_comment", channel[0]),
-					"validator": {"alphanum": true}
+					"validator": {"alphanumU": true}
 				};
 				c.addTableWidget(field, row);
 			});
@@ -441,4 +441,4 @@ Controllers['voip'] = function() {
 	});
 	
 	page.generateTabs();
-}
+};

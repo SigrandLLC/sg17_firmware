@@ -143,7 +143,7 @@ Controllers['security'] = function() {
 				"id": "htpasswd",
 				"text": "Password",
 				"descr": "Password for webface user <i>admin</i>",
-				"validator": {"required": true, "alphanum": true}
+				"validator": {"required": true, "alphanumU": true}
 			};
 			c.addWidget(field);
 			
@@ -191,7 +191,7 @@ Controllers['security'] = function() {
 				"id": "passwd",
 				"text": "Password",
 				"descr": "Password for system user <i>root</i> to log in via console",
-				"validator": {"required": true, "alphanum": true}
+				"validator": {"required": true, "alphanumU": true}
 			};
 			c.addWidget(field);
 			
@@ -219,7 +219,7 @@ Controllers['security'] = function() {
 	});
 	
 	page.generateTabs();
-}
+};
 
 Controllers['dns'] = function() {
 	var page = this.Page();
@@ -257,7 +257,7 @@ Controllers['dns'] = function() {
 	});
 	
 	page.generateTabs();
-}
+};
 
 Controllers['time'] = function() {
 	var page = this.Page();
@@ -306,7 +306,7 @@ Controllers['time'] = function() {
 	});
 	
 	page.generateTabs();
-}
+};
 
 Controllers['logging'] = function() {
 	var page = this.Page();
@@ -361,7 +361,7 @@ Controllers['logging'] = function() {
 	});
 	
 	page.generateTabs();
-}
+};
 
 Controllers['tools'] = function() {
 	var page = this.Page();
@@ -465,7 +465,7 @@ Controllers['reboot'] = function() {
 	});
 	
 	page.generateTabs();
-}
+};
 
 Controllers['cfg'] = function() {
 	var page = this.Page();
