@@ -316,6 +316,7 @@ package-$(BR2_PACKAGE_WF2) += wf2
 package-$(BR2_PACKAGE_SIGRAND_SETHDLC) += oem-sethdlc
 package-$(BR2_PACKAGE_SIGRAND_MUX) += oem-mux
 package-$(BR2_PACKAGE_SIGRAND_EOCD) += eocd
+package-$(BR2_PACKAGE_SIGRAND_EOCD) += oem-linkdeps
 package-$(BR2_PACKAGE_SIGRAND_MR16H) += oem-shdsl.g1
 package-$(BR2_PACKAGE_SIGRAND_MR17H) += oem-shdsl.g2
 package-$(BR2_PACKAGE_SIGRAND_MR16G) += oem-e1.g1

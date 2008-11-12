@@ -384,6 +384,7 @@ config BR2_PACKAGE_CONTEXT_HELP_OEM
 endchoice
 
 source "package/eocd/Config.in"
+source "package/oem-linkdeps/Config.in"
 source "package/oem-mux/Config.in"
 endmenu
 menu "Drivers"
