@@ -73,30 +73,63 @@ struct net_device *bkp_dev=NULL;
 module_init(mr16g_init);
 module_exit(mr16g_exit);
 
-static DEVICE_ATTR(crc16,0644,show_crc16,store_crc16);	
-static DEVICE_ATTR(fill_7e,0644,show_fill_7e,store_fill_7e);	
-static DEVICE_ATTR(inv,0644,show_inv,store_inv);	
-static DEVICE_ATTR(rburst,0644,show_rburst,store_rburst);
-static DEVICE_ATTR(wburst,0644,show_wburst,store_wburst);	
-static DEVICE_ATTR(slotmap,0644,show_slotmap,store_slotmap);
-static DEVICE_ATTR(framed,0644,show_framed,store_framed);
-static DEVICE_ATTR(clck,0644,show_clck,store_clck);
-static DEVICE_ATTR(hdb3,0644,show_hdb3,store_hdb3);
-static DEVICE_ATTR(long_haul,0644,show_lhaul,store_lhaul);
-static DEVICE_ATTR(crc4,0644,show_crc4,store_crc4);
-static DEVICE_ATTR(cas,0644,show_cas,store_cas);
-static DEVICE_ATTR(map_ts16,0644,show_map_ts16,store_map_ts16);
-static DEVICE_ATTR(rlpb,0644,show_rloopback,store_rloopback);
-static DEVICE_ATTR(llpb,0644,show_lloopback,store_lloopback);
+//------- E1 settings & stat-----------------
 
+static CLASS_DEVICE_ATTR(crc16,0644,show_crc16,store_crc16);	
+static CLASS_DEVICE_ATTR(fill_7e,0644,show_fill_7e,store_fill_7e);	
+static CLASS_DEVICE_ATTR(inv,0644,show_inv,store_inv);	
+static CLASS_DEVICE_ATTR(rburst,0644,show_rburst,store_rburst);
+static CLASS_DEVICE_ATTR(wburst,0644,show_wburst,store_wburst);	
+static CLASS_DEVICE_ATTR(slotmap,0644,show_slotmap,store_slotmap);
+static CLASS_DEVICE_ATTR(framed,0644,show_framed,store_framed);
+static CLASS_DEVICE_ATTR(clck,0644,show_clck,store_clck);
+static CLASS_DEVICE_ATTR(hdb3,0644,show_hdb3,store_hdb3);
+static CLASS_DEVICE_ATTR(long_haul,0644,show_lhaul,store_lhaul);
+static CLASS_DEVICE_ATTR(crc4,0644,show_crc4,store_crc4);
+static CLASS_DEVICE_ATTR(cas,0644,show_cas,store_cas);
+static CLASS_DEVICE_ATTR(map_ts16,0644,show_map_ts16,store_map_ts16);
+static CLASS_DEVICE_ATTR(rlpb,0644,show_rloopback,store_rloopback);
+static CLASS_DEVICE_ATTR(llpb,0644,show_lloopback,store_lloopback);
+static CLASS_DEVICE_ATTR(force_link_down,0644,show_flinkdown,store_flinkdown);
 //debug
-static DEVICE_ATTR(hdlc_regs,0644,show_hdlcregs,NULL);
-
+static CLASS_DEVICE_ATTR(hdlc_regs,0644,show_hdlcregs,NULL);
 #ifdef SYSFS_DEBUG
-static DEVICE_ATTR(winread,0644,show_winread,store_winread);
-static DEVICE_ATTR(winwrite,0644,show_winwrite,store_winwrite);
+static CLASS_DEVICE_ATTR(winread,0644,show_winread,store_winread);
+static CLASS_DEVICE_ATTR(winwrite,0644,show_winwrite,store_winwrite);
 #endif
 
+
+
+static struct attribute *sg17_attr[] = {
+// multiplexing
+&class_device_attr_crc16.attr,
+&class_device_attr_fill_7e.attr,
+&class_device_attr_inv.attr,
+&class_device_attr_rburst.attr,
+&class_device_attr_wburst.attr,
+&class_device_attr_slotmap.attr,
+&class_device_attr_framed.attr,
+&class_device_attr_clck.attr,
+&class_device_attr_hdb3.attr,
+&class_device_attr_long_haul.attr,
+&class_device_attr_crc4.attr,
+&class_device_attr_cas.attr,
+&class_device_attr_map_ts16.attr,
+&class_device_attr_rlpb.attr,
+&class_device_attr_llpb.attr,
+&class_device_attr_force_link_down.attr,
+&class_device_attr_hdlc_regs.attr,
+#ifdef SYSFS_DEBUG
+&class_device_attr_winread.attr,
+&class_device_attr_winwrite.attr,
+#endif
+NULL
+};
+
+static struct attribute_group sg17_group = {
+	.name  = "hw_private",
+	.attrs  = sg17_attr,
+};
 //------- Multiplexing-----------------
 
 static CLASS_DEVICE_ATTR(mx_slotmap,0644,show_mx_slotmap,store_mx_slotmap);
@@ -124,8 +157,8 @@ NULL
 };
 
 static struct attribute_group sg17_mx_group = {
-.name  = "sg_multiplexing",
-.attrs  = sg17_mx_attr,
+	.name  = "hw_multiplexing",
+	.attrs  = sg17_mx_attr,
 };
 
 /*----------------------------------------------------------
@@ -162,6 +195,10 @@ mr16g_exit( void ){
 /*----------------------------------------------------------
  * PCI related functions 
  *----------------------------------------------------------*/
+ 
+
+ 
+ 
 static int __devinit
 mr16g_init_one( struct pci_dev *pdev,const struct pci_device_id *ent )
 {
@@ -203,20 +240,21 @@ mr16g_init_one( struct pci_dev *pdev,const struct pci_device_id *ent )
 		
 	// Init control through sysfs
 	nl->dev = dev_dev;
-	if( (err = sysfs_create_link( &(dev_drv->kobj),&(dev_dev->kobj),ndev->name )) ){
-		printk(KERN_NOTICE"%s: error in sysfs_create_link\n",__FUNCTION__);	
-		goto err3;
-	}
-	if( (err = mr16g_sysfs_init( nl->dev )) ){
+   	// Init control through sysfs
+   	if( (err = sysfs_create_link( &(dev_drv->kobj),&(dev_dev->kobj),ndev->name )) ){
+    	printk(KERN_NOTICE"%s: error in sysfs_create_link\n",__FUNCTION__);	
+	    goto err3;
+   	}
+	if( (err = mr16g_sysfs_init(nl->dev)) ){
 		printk(KERN_NOTICE"%s: error in mr16g_sysfs_init\n",__FUNCTION__);	
 		goto err4;
 	}
 
 	PDEBUG(DINIT,"end");
 	return 0;
-		
- err4:			     
-	sysfs_remove_link(&(dev_drv->kobj),ndev->name);
+	
+ err4:
+	sysfs_remove_link(&(dev_drv->kobj),ndev->name);	
  err3:
 	iounmap( nl->mem_base );
 	release_mem_region( ndev->mem_start, 0x1000 );
@@ -237,7 +275,8 @@ static void __devexit mr16g_remove_one( struct pci_dev *pdev )
 	struct net_device  *ndev = pci_get_drvdata( pdev );
 	hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct net_local *nl=(struct net_local*)hdlc->priv;
-	struct device_driver *dev_drv=nl->dev->driver;
+	struct device_driver *dev_drv = (struct device_driver*)(nl->dev->driver);
+	
 	
 	PDEBUG(DINIT,"start");
 	// shutdown device
@@ -245,9 +284,9 @@ static void __devexit mr16g_remove_one( struct pci_dev *pdev )
 	
 	// Remove sysfs entires
 	mr16g_sysfs_del(nl->dev);
+	sysfs_remove_link(&(dev_drv->kobj),ndev->name);	
 	
 	// Remove network device from OS
-	sysfs_remove_link(&(dev_drv->kobj),ndev->name);
 	iounmap( nl->mem_base );
 	release_mem_region( ndev->mem_start, 0x1000 );
 	free_irq( ndev->irq, ndev );
@@ -1183,33 +1222,14 @@ mr16g_sysfs_init(struct device *dev)
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
 	struct class_device *class_dev = &(ndev->class_dev);	
 
-	//hdlc-controller
-	device_create_file(dev,&dev_attr_crc16);
-	device_create_file(dev,&dev_attr_fill_7e);
-	device_create_file(dev,&dev_attr_inv);
-	device_create_file(dev,&dev_attr_rburst);
-	device_create_file(dev,&dev_attr_wburst);
-
-	//E1
-	device_create_file(dev,&dev_attr_slotmap);	
-	device_create_file(dev,&dev_attr_framed);
-	device_create_file(dev,&dev_attr_hdb3);
-	device_create_file(dev,&dev_attr_long_haul);	
-	device_create_file(dev,&dev_attr_crc4);
-	device_create_file(dev,&dev_attr_cas);
-	device_create_file(dev,&dev_attr_map_ts16);
-	device_create_file(dev,&dev_attr_clck);
-	device_create_file(dev,&dev_attr_rlpb);
-	device_create_file(dev,&dev_attr_llpb);
-	// debug
-	device_create_file(dev,&dev_attr_hdlc_regs);	
-#ifdef SYSFS_DEBUG
-	device_create_file(dev,&dev_attr_winread);	
-	device_create_file(dev,&dev_attr_winwrite);	
-#endif
-	// multiplexing
+	// Create control/status entries
+	sysfs_create_group(&class_dev->kobj, &sg17_group);
+	// Create multiplexing etries
 	sysfs_create_group(&class_dev->kobj, &sg17_mx_group);
-	
+
+	if( sysfs_create_link( &(class_dev->kobj),&(dev->kobj),"device") ){
+		return -1;
+	}
 	return 0;
 }
 
@@ -1219,42 +1239,21 @@ mr16g_sysfs_del(struct device *dev)
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
 	struct class_device *class_dev = &(ndev->class_dev);	
 
-	//hdlc-controller
-	device_remove_file(dev,&dev_attr_crc16);
-	device_remove_file(dev,&dev_attr_fill_7e);
-	device_remove_file(dev,&dev_attr_inv);
-	device_remove_file(dev,&dev_attr_rburst);
-	device_remove_file(dev,&dev_attr_wburst);
-
-	// E1
-	device_remove_file(dev,&dev_attr_slotmap);		
-	device_remove_file(dev,&dev_attr_framed);
-	device_remove_file(dev,&dev_attr_hdb3);
-	device_remove_file(dev,&dev_attr_long_haul);	
-	device_remove_file(dev,&dev_attr_crc4);
-	device_remove_file(dev,&dev_attr_cas);
-	device_remove_file(dev,&dev_attr_map_ts16);
-	device_remove_file(dev,&dev_attr_clck);
-	device_remove_file(dev,&dev_attr_rlpb);
-	device_remove_file(dev,&dev_attr_llpb);
-
-	// debug
-	device_remove_file(dev,&dev_attr_hdlc_regs);	
-#ifdef SYSFS_DEBUG
-	device_remove_file(dev,&dev_attr_winread);	
-	device_remove_file(dev,&dev_attr_winwrite);	
-#endif
-	// multiplexing
+	// Remove control/status entries
+	sysfs_remove_group(&class_dev->kobj, &sg17_group);
+	// Remove multiplexing entries
 	sysfs_remove_group(&class_dev->kobj, &sg17_mx_group);
+	// Remove device link from class object	
+	sysfs_remove_link(&(class_dev->kobj),ndev->name);
 }	    
 
 //---------- hdlc -----------------//
 
 // CRC count attribute 
 static ssize_t
-show_crc16( struct device *dev, ADDIT_ATTR char *buf )
+show_crc16(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
 
 	if( cfg->crc16 )
@@ -1264,9 +1263,9 @@ show_crc16( struct device *dev, ADDIT_ATTR char *buf )
 }
 
 static ssize_t
-store_crc16( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+store_crc16( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
 
@@ -1281,9 +1280,9 @@ store_crc16( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 }
 
 static ssize_t
-show_fill_7e( struct device *dev, ADDIT_ATTR char *buf )
+show_fill_7e(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
 
 	if( cfg->fill_7e )
@@ -1293,9 +1292,9 @@ show_fill_7e( struct device *dev, ADDIT_ATTR char *buf )
 }
 
 static ssize_t
-store_fill_7e( struct device *dev, ADDIT_ATTR const char *buf, size_t size ) 
+store_fill_7e( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
 
@@ -1310,9 +1309,9 @@ store_fill_7e( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 }
 
 static ssize_t 
-show_inv( struct device *dev, ADDIT_ATTR char *buf )
+show_inv(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);
 
 	if( cfg->inv )
@@ -1322,9 +1321,9 @@ show_inv( struct device *dev, ADDIT_ATTR char *buf )
 }
 
 static ssize_t
-store_inv( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+store_inv( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
 
@@ -1340,9 +1339,9 @@ store_inv( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 }
 
 static ssize_t
-show_rburst( struct device *dev, ADDIT_ATTR char *buf )
+show_rburst(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
 
 	if( cfg->rburst )
@@ -1352,9 +1351,9 @@ show_rburst( struct device *dev, ADDIT_ATTR char *buf )
 }
 
 static ssize_t
-store_rburst( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+store_rburst( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
 
@@ -1369,9 +1368,9 @@ store_rburst( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 }
 
 static ssize_t
-show_wburst( struct device *dev, ADDIT_ATTR char *buf ) 
+show_wburst(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
 
 	if( cfg->wburst )
@@ -1381,9 +1380,9 @@ show_wburst( struct device *dev, ADDIT_ATTR char *buf )
 }
 
 static ssize_t
-store_wburst( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+store_wburst( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);
 
@@ -1479,24 +1478,24 @@ slot_cnt(u32 smap)
 
 
 static ssize_t
-show_slotmap( struct device *dev, ADDIT_ATTR char *buff )
+show_slotmap(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 	if( cfg->framed )
-		return slotmap2str(cfg->slotmap,cfg,buff);
+		return slotmap2str(cfg->slotmap,cfg,buf);
 	// in unframed mode multiplexing is overlap hdlc	
 	if( nl->hdlc_regs->MXCR & MXEN ) 
-		return slotmap2str(0,cfg,buff);
-	return slotmap2str(0xffffffff,cfg,buff);
+		return slotmap2str(0,cfg,buf);
+	return slotmap2str(0xffffffff,cfg,buf);
 }
 
 
 static ssize_t
-store_slotmap( struct device *dev, ADDIT_ATTR const char *buf, size_t size ) 
+store_slotmap( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 	u32 ts=0;
@@ -1528,9 +1527,9 @@ store_slotmap( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 }
 
 static ssize_t
-show_map_ts16( struct device *dev, ADDIT_ATTR char *buf )
+show_map_ts16(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 
 	if( cfg->ts16 )
@@ -1540,9 +1539,9 @@ show_map_ts16( struct device *dev, ADDIT_ATTR char *buf )
 }
 
 static ssize_t
-store_map_ts16( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+store_map_ts16( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);	
 	u8 mask = EXT;
@@ -1568,9 +1567,9 @@ store_map_ts16( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 
 // framed/unframed mode 
 static ssize_t
-show_framed( struct device *dev, ADDIT_ATTR char *buf ) 
+show_framed(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 
 	if( cfg->framed )
@@ -1580,9 +1579,9 @@ show_framed( struct device *dev, ADDIT_ATTR char *buf )
 }
 
 static ssize_t
-store_framed( struct device *dev, ADDIT_ATTR const char *buf, size_t size ) 
+store_framed( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 	u8 mask = EXT;
@@ -1604,9 +1603,9 @@ store_framed( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 
 // internal/external clock 
 static ssize_t
-show_clck( struct device *dev, ADDIT_ATTR char *buf ) 
+show_clck(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 
 	if( cfg->int_clck )
@@ -1616,9 +1615,9 @@ show_clck( struct device *dev, ADDIT_ATTR char *buf )
 }
 
 static ssize_t
-store_clck( struct device *dev, ADDIT_ATTR const char *buf, size_t size ) 
+store_clck( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 	u8 mask = EXT;
@@ -1640,9 +1639,9 @@ store_clck( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 
 // Long haul mode
 static ssize_t
-show_lhaul( struct device *dev, ADDIT_ATTR char *buf )
+show_lhaul(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 
 	if( cfg->long_haul )
@@ -1653,9 +1652,9 @@ show_lhaul( struct device *dev, ADDIT_ATTR char *buf )
 }
 
 static ssize_t
-store_lhaul( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+store_lhaul( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 	u8 mask = EXT;
@@ -1677,9 +1676,9 @@ store_lhaul( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 
 // HDB3 mode
 static ssize_t
-show_hdb3( struct device *dev, ADDIT_ATTR char *buf )
+show_hdb3(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 
 	if( cfg->hdb3 )
@@ -1690,9 +1689,9 @@ show_hdb3( struct device *dev, ADDIT_ATTR char *buf )
 }
 
 static ssize_t
-store_hdb3( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+store_hdb3( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 	u8 mask = EXT;
@@ -1714,9 +1713,9 @@ store_hdb3( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 // CRC4 mode
 
 static ssize_t
-show_crc4( struct device *dev, ADDIT_ATTR char *buf )
+show_crc4(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 
 	if( cfg->crc4 )
@@ -1726,9 +1725,9 @@ show_crc4( struct device *dev, ADDIT_ATTR char *buf )
 
 }
 static ssize_t
-store_crc4( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+store_crc4( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 	u8 mask = EXT;
@@ -1750,9 +1749,9 @@ store_crc4( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 // CAS mode
 
 static ssize_t
-show_cas( struct device *dev, ADDIT_ATTR char *buf )
+show_cas(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 
 	if( cfg->cas )
@@ -1762,9 +1761,9 @@ show_cas( struct device *dev, ADDIT_ATTR char *buf )
 }
 
 static ssize_t
-store_cas( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+store_cas( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 	u8 mask = EXT;
@@ -1789,18 +1788,18 @@ store_cas( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 
 // Remote loopback
 static ssize_t
-show_rloopback( struct device *dev, ADDIT_ATTR char *buf )
+show_rloopback(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 
 	return snprintf(buf,PAGE_SIZE,"%s",(ds2155_getreg(nl,LBCR) & RLB) ? "on" : "off");
 }
 
 static ssize_t
-store_rloopback( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+store_rloopback( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	u8 tmp;
 
@@ -1824,18 +1823,18 @@ store_rloopback( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 
 // Local loopback
 static ssize_t
-show_lloopback( struct device *dev, ADDIT_ATTR char *buf )
+show_lloopback(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 
 	return snprintf(buf,PAGE_SIZE,"%s",(ds2155_getreg(nl,LBCR) & LLB) ? "on" : "off");
 }
 
 static ssize_t
-store_lloopback( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+store_lloopback( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	u8 tmp, mask;
 
@@ -1845,17 +1844,17 @@ store_lloopback( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 	switch( buf[0] ){
 	case '0':
 		tmp = ds2155_getreg(nl,LBCR) & (~LLB);
-    		ds2155_setreg(nl,LBCR,tmp);
+   		ds2155_setreg(nl,LBCR,tmp);
 		// Reset carrier state
 		mr16g_setup_carrier(ndev,&mask);
-    		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+   		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
 		break;
 	case '1':
 		tmp = ds2155_getreg(nl,LBCR) | LLB;
-    		ds2155_setreg(nl,LBCR,tmp);
+   		ds2155_setreg(nl,LBCR,tmp);
 		// Force carrier on
 		mr16g_setup_carrier(ndev,&mask);
-    		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+   		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
 		break;
 	default:
 		break;
@@ -1863,13 +1862,46 @@ store_lloopback( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 	return size;
 }
 
+// Forcing link to indicate alarm when it depended on other interfaces
+static ssize_t
+show_flinkdown(struct class_device *cdev, char *buf) 
+{
+	struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl=mr16g_priv(ndev);
 
+	return snprintf(buf,PAGE_SIZE,"%s",(ds2155_getreg(nl,E1TCR1) & TUA1) ? "on" : "off");
+}
+
+static ssize_t
+store_flinkdown( struct class_device *cdev,const char *buf, size_t size ) 
+{
+	struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl=mr16g_priv(ndev);
+	u8 tmp, mask;
+
+	// check parameters
+	if( !size)
+		return size;
+	switch( buf[0] ){
+	case '0':
+		tmp = ds2155_getreg(nl,E1TCR1) & (~TUA1);
+   		ds2155_setreg(nl,E1TCR1,tmp);
+		break;
+	case '1':
+		tmp = ds2155_getreg(nl,E1TCR1) | TUA1;
+   		ds2155_setreg(nl,E1TCR1,tmp);
+		break;
+	default:
+		break;
+	}
+	return size;
+}
 
 // DEBUG
-
-static ssize_t show_hdlcregs( struct device *dev, ADDIT_ATTR char *buf )
+static ssize_t 
+show_hdlcregs(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	int len = 0;
 
@@ -1892,9 +1924,9 @@ static ssize_t show_hdlcregs( struct device *dev, ADDIT_ATTR char *buf )
 
 static u32 win_start=0,win_count=0;
 static ssize_t
-show_winread( struct device *dev, ADDIT_ATTR char *buf )
-{                               
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+show_winread(struct class_device *cdev, char *buf) 
+{
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	char *win = (char*)nl->mem_base + win_start;
 
@@ -1908,8 +1940,9 @@ show_winread( struct device *dev, ADDIT_ATTR char *buf )
 }
 
 static ssize_t
-store_winread( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+store_winread( struct class_device *cdev,const char *buf, size_t size ) 
 {
+	struct net_device *ndev = to_net_dev(cdev);
 	char *endp;
 	if( !size ) return 0;
 	win_start = simple_strtoul(buf,&endp,16);
@@ -1936,15 +1969,15 @@ store_winread( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 
 static u32 win_written = 0;
 static ssize_t
-show_winwrite( struct device *dev, ADDIT_ATTR char *buf )
-{                               
+show_winwrite(struct class_device *cdev, char *buf) 
+{
 	return sprintf(buf,"Byte %x is written",win_written);
 }
 
 static ssize_t
-store_winwrite( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+store_winwrite( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	char *win = (char*)nl->mem_base;
 
@@ -1968,6 +2001,8 @@ store_winwrite( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 }
 
 #endif
+
+// ------------- Multiplexing -------------------- //
 
 // MXMAP
 static ssize_t

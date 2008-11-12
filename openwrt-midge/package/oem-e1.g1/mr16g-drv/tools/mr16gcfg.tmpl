@@ -71,21 +71,13 @@ if [ $# = 0 ]; then
 fi
 cdir=`pwd`
 
-cd /sys/bus/pci/drivers
-
-if [ ! -d "$DRVNAME" ]; then
-    echo "$0 driver was not loaded!"
-    exit
-fi
-cd "$DRVNAME"
-
-
+CFG_PATH="/sys/class/net/$1/hw_private"
 # CD to the device dir
-if [ ! -d $1 ]; then
+if [ ! -d ${CFG_PATH} ]; then
     echo $0": No such device "$1
     exit
 fi
-cd $1
+cd $CFG_PATH
 interf=$1
 
 # settings

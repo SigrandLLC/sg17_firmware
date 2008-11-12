@@ -208,71 +208,68 @@ static void mr16g_defcfg(struct net_local *nl);
 static int mr16g_sysfs_init( struct device *);
 static void mr16g_sysfs_del(struct device *);
 
-// hdlc attribs 
-static ssize_t show_crc16( struct device *dev, ADDIT_ATTR char *buff );
-static ssize_t store_crc16( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
-
-static ssize_t show_fill_7e( struct device *dev, ADDIT_ATTR char *buff ); 
-static ssize_t store_fill_7e( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
-
-static ssize_t show_inv( struct device *dev, ADDIT_ATTR char *buff ); 
-static ssize_t store_inv( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
-
-static ssize_t show_rburst( struct device *dev, ADDIT_ATTR char *buff ); 
-static ssize_t store_rburst( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
-
-static ssize_t show_wburst( struct device *dev, ADDIT_ATTR char *buff ); 
-static ssize_t store_wburst( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
-
-// E1
-static ssize_t show_slotmap( struct device *dev, ADDIT_ATTR char *buff ); 
-static ssize_t store_slotmap( struct device *dev, ADDIT_ATTR const char *buf, size_t size );
-
-static ssize_t show_framed( struct device *dev, ADDIT_ATTR char *buf );
-static ssize_t store_framed( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
-
-static ssize_t show_clck( struct device *dev, ADDIT_ATTR char *buf );
-static ssize_t store_clck( struct device *dev, ADDIT_ATTR const char *buf, size_t size );
-
-static ssize_t show_hdb3( struct device *dev, ADDIT_ATTR char *buf );
-static ssize_t store_hdb3( struct device *dev, ADDIT_ATTR const char *buf, size_t size );
-
-static ssize_t show_lhaul( struct device *dev, ADDIT_ATTR char *buf );
-static ssize_t store_lhaul( struct device *dev, ADDIT_ATTR const char *buf, size_t size );
-
-static ssize_t show_crc4( struct device *dev, ADDIT_ATTR char *buf );
-static ssize_t store_crc4( struct device *dev, ADDIT_ATTR const char *buf, size_t size );
-
-static ssize_t show_cas( struct device *dev, ADDIT_ATTR char *buf );
-static ssize_t store_cas( struct device *dev, ADDIT_ATTR const char *buf, size_t size );
-
-static ssize_t show_map_ts16( struct device *dev, ADDIT_ATTR char *buf );
-static ssize_t store_map_ts16(struct device *dev, ADDIT_ATTR const char *buf, size_t size);
-
-// Loopback rgisters
-// Remote loopback
-static ssize_t show_rloopback( struct device *dev, ADDIT_ATTR char *buf );
-static ssize_t store_rloopback( struct device *dev, ADDIT_ATTR const char *buf, size_t size );
-// Local loopback
-static ssize_t show_lloopback( struct device *dev, ADDIT_ATTR char *buf );
-static ssize_t store_lloopback( struct device *dev, ADDIT_ATTR const char *buf, size_t size );
-
-//debug
-//static ssize_t store_chk_carrier( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
-static ssize_t show_hdlcregs( struct device *dev, ADDIT_ATTR char *buf );
-
-#ifdef SYSFS_DEBUG
-
-static ssize_t show_winread( struct device *dev, ADDIT_ATTR char *buf );
-static ssize_t store_winread( struct device *dev, ADDIT_ATTR const char *buf, size_t size);
-
-static ssize_t show_winwrite( struct device *dev, ADDIT_ATTR char *buf );
-static ssize_t store_winwrite( struct device *dev, ADDIT_ATTR const char *buf, size_t size );
-
-#endif
-
 #define to_net_dev(class) container_of(class, struct net_device, class_dev)
 
+static ssize_t show_crc16(struct class_device *cdev, char *buf);
+static ssize_t store_crc16( struct class_device *cdev,const char *buf, size_t size );
+
+static ssize_t show_fill_7e(struct class_device *cdev, char *buf);
+static ssize_t store_fill_7e( struct class_device *cdev,const char *buf, size_t size );
+
+static ssize_t show_inv(struct class_device *cdev, char *buf);
+static ssize_t store_inv( struct class_device *cdev,const char *buf, size_t size);
+
+static ssize_t show_rburst(struct class_device *cdev, char *buf);
+static ssize_t store_rburst( struct class_device *cdev,const char *buf, size_t size );
+
+static ssize_t show_wburst(struct class_device *cdev, char *buf);
+static ssize_t store_wburst( struct class_device *cdev,const char *buf, size_t size );
+
+static ssize_t show_slotmap(struct class_device *cdev, char *buf);
+static ssize_t store_slotmap( struct class_device *cdev,const char *buf, size_t size );
+
+static ssize_t show_map_ts16(struct class_device *cdev, char *buf);
+static ssize_t store_map_ts16( struct class_device *cdev,const char *buf, size_t size );
+
+static ssize_t show_framed(struct class_device *cdev, char *buf);
+static ssize_t store_framed( struct class_device *cdev,const char *buf, size_t size );
+
+static ssize_t show_clck(struct class_device *cdev, char *buf);
+static ssize_t store_clck( struct class_device *cdev,const char *buf, size_t size );
+
+static ssize_t show_lhaul(struct class_device *cdev, char *buf);
+static ssize_t store_lhaul( struct class_device *cdev,const char *buf, size_t size );
+
+static ssize_t show_hdb3(struct class_device *cdev, char *buf);
+static ssize_t store_hdb3( struct class_device *cdev,const char *buf, size_t size );
+
+static ssize_t show_crc4(struct class_device *cdev, char *buf);
+static ssize_t store_crc4( struct class_device *cdev,const char *buf, size_t size );
+
+static ssize_t show_cas(struct class_device *cdev, char *buf);
+static ssize_t store_cas( struct class_device *cdev,const char *buf, size_t size );
+
+static ssize_t show_rloopback(struct class_device *cdev, char *buf);
+static ssize_t store_rloopback( struct class_device *cdev,const char *buf, size_t size );
+
+static ssize_t show_lloopback(struct class_device *cdev, char *buf);
+static ssize_t store_lloopback( struct class_device *cdev,const char *buf, size_t size );
+
+static ssize_t show_flinkdown(struct class_device *cdev, char *buf);
+static ssize_t store_flinkdown( struct class_device *cdev,const char *buf, size_t size );
+
+// DEBUG
+static ssize_t show_hdlcregs(struct class_device *cdev, char *buf);
+//-------------- Memory window debug -----------------------------//
+#ifdef SYSFS_DEBUG
+static ssize_t show_winread(struct class_device *cdev, char *buf);
+static ssize_t store_winread( struct class_device *cdev,const char *buf, size_t size );
+
+static ssize_t show_winwrite(struct class_device *cdev, char *buf);
+static ssize_t store_winwrite( struct class_device *cdev,const char *buf, size_t size );
+#endif
+
+// ---------------- Multiplexing -------------------------------------//
 // MXMAP rgisters
 static ssize_t show_mx_slotmap(struct class_device *cdev, char *buf);
 static ssize_t store_mx_slotmap(struct class_device *cdev,const char *buf,size_t size);

@@ -73,10 +73,11 @@
 #	define RSIGM 0x40
 #define E1RCR2	0x34
 #define E1TCR1	0x35
-#	define TFPT  0x80
-#	define THDB3 0x04
 #	define TCRC4 0x01
+#	define THDB3 0x04
+#	define TUA1	 0x20
 #	define T16S  0x40
+#	define TFPT  0x80
 #define E1TCR2	0x36
 #define BOCC	0x37
 #define RSINFO1	0x38
