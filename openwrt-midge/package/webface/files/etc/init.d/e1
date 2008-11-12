@@ -6,8 +6,8 @@
 . /etc/templates/oem-vars
 
 kdb="kdb"
-e1_mr16g="/sys/bus/pci/drivers/"
-e1_mr17g="/sys/class/net/"
+#e1_mr16g="/sys/bus/pci/drivers/"
+e1_cfgpath="/sys/class/net/"
 
 ifcfg="/sbin/ifconfig"
 
@@ -108,16 +108,9 @@ _e1_ifcfg(){
 		;;
 	esac
 	DIR=`pwd`
-    
-    case "$type" in
-    "$mr16g_drvname")
-        cd $e1_mr16g/$type/$iface
-        ;;
-    "$mr17g_drvname")
-        cd $e1_mr17g/$iface/"hw_private"
-        ;;
-    esac    
 
+    cd $e1_cfgpath/$iface/"hw_private"
+    
 	# Change slotmap only if it really changed
 	
 	echo $fram 	> framed
