@@ -1869,7 +1869,7 @@ show_flinkdown(struct class_device *cdev, char *buf)
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 
-	return snprintf(buf,PAGE_SIZE,"%s",(ds2155_getreg(nl,E1TCR1) & TUA1) ? "on" : "off");
+	return snprintf(buf,PAGE_SIZE,"%s",(ds2155_getreg(nl,E1TCR1) & TUA1_2) ? "on" : "off");
 }
 
 static ssize_t
@@ -1884,11 +1884,11 @@ store_flinkdown( struct class_device *cdev,const char *buf, size_t size )
 		return size;
 	switch( buf[0] ){
 	case '0':
-		tmp = ds2155_getreg(nl,E1TCR1) & (~TUA1);
+		tmp = ds2155_getreg(nl,E1TCR1) & (~TUA1_2);
    		ds2155_setreg(nl,E1TCR1,tmp);
 		break;
 	case '1':
-		tmp = ds2155_getreg(nl,E1TCR1) | TUA1;
+		tmp = ds2155_getreg(nl,E1TCR1) | TUA1_2;
    		ds2155_setreg(nl,E1TCR1,tmp);
 		break;
 	default:
