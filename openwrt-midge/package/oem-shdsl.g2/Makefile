@@ -12,6 +12,10 @@ ifeq ($(BR2_PACKAGE_SIGRAND_MR17H_DEBUG),y)
     DEBUG := yes
 endif
 
+ifeq ($(BR2_PACKAGE_SIGRAND_MR17H_UEVENTS),y)
+    CFLAGS +=-DMR17H_UEVENTS
+endif
+
 include $(TOPDIR)/package/rules.mk
 
 $(eval $(call PKG_template,SIGRAND_MR17H,oem-shdsl.g2,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))

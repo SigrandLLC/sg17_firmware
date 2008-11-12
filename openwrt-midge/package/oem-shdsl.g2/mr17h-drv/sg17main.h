@@ -62,5 +62,15 @@ static void sg17_tx_timeout( struct net_device  *ndev );
 static void sg17_tranceiver_down(struct net_local *nl);
 static void sg17_tranceiver_up(struct net_local *nl);
 
+
+#ifdef MR17H_UEVENTS
+#define USERMODE_HELPER "/sbin/_linkhandler"
+static int usermode_link_event(struct net_device *ndev,int link_up);
+#else
+static inline int
+usermode_link_event(struct net_device *ndev,int link_up){ return 0; }
+#endif
+
+
 #endif
 

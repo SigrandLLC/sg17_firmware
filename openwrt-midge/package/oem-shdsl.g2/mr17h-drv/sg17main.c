@@ -85,7 +85,6 @@ static int error_output = 40;
 module_param(error_output, int, 40);
 MODULE_PARM_DESC(error_output, "Debug output option - print messages about errors");
 
-
 /* --------------------------------------------------------------------------
  *      SG17 network interfaces
  * -------------------------------------------------------------------------- */
@@ -332,23 +331,16 @@ sg17_link_up(struct sg17_sci *s, int if_num)
 	struct sg17_card *card = container_of(s,struct sg17_card,sci);
 	struct net_device *ndev = card->ndevs[if_num];
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
-//	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
 
+	// Link UP handlers
 	advlink_hwstatus(&nl->alink,ADVLINK_UP);
-
+	usermode_link_event(ndev,1);
+	// Cnfigure hardware
 	nl->regs->RATE = (nl->shdsl_cfg->rate/64)-1;
 	PDEBUG(debug_link,"rate = %d, RATE=%d",nl->shdsl_cfg->rate,nl->regs->RATE);	
 	iowrite8( 0xff, &nl->regs->SR );
 	iowrite8( (ioread8( &nl->regs->CRB )&(~(RXDE|LED1|LED2)) ), &nl->regs->CRB );
 	iowrite8( (UFL|CRC|OFL|RXS|TXS), &nl->regs->IMR );
-// EXTC=1 for Slave in ALL clock modes independent of link state
-/*  *** Moved to sg17_clock_setup ***
-	if( cfg->mode == STU_R ){ // Slave
-		iowrite8( (ioread8( &nl->regs->CRB ) | EXTC ), &nl->regs->CRB );			
-	}else{ // Master
-		iowrite8( (ioread8( &nl->regs->CRB ) & ~EXTC ), &nl->regs->CRB );
-	}
-*/
 }
 
 void 
@@ -357,20 +349,16 @@ sg17_link_down(struct sg17_sci *s, int if_num)
 	struct sg17_card *card = container_of(s,struct sg17_card,sci);
 	struct net_device *ndev = card->ndevs[if_num];
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
-//	struct sdfe4_if_cfg *cfg = (struct sdfe4_if_cfg *)nl->shdsl_cfg;
 	u8 tmp = ioread8(&nl->regs->CRB) | RXDE;
 
-	tmp &= ~(LED1 | LED2); 
-//  *** Moved to sg17_clock_setup ***
-/*	if( cfg->clkmode == FRAME_SYNC && cfg->mode == STU_R ){ // Slave
- 		tmp &= ~EXTC;
- 	}	
-*/
 	PDEBUG(debug_link,"");
-
+	// Configure hardware
+	tmp &= ~(LED1 | LED2); 
 	iowrite8(tmp,&(nl->regs->CRB) );
 	iowrite8( 0, &nl->regs->IMR );
+	// Link DOWN handlers
 	advlink_hwstatus(&nl->alink,ADVLINK_DOWN);
+	usermode_link_event(ndev,0);
 	PDEBUG(debug_link,"end");	
 }
 
@@ -472,6 +460,26 @@ sg17_link_support(struct sg17_sci *s)
 	    }
 	}
 }
+
+#ifdef MR17H_UEVENTS
+static int
+usermode_link_event(struct net_device *ndev,int link_up)
+{
+	char *argv[4] = { USERMODE_HELPER, NULL, NULL,NULL };
+	char *envp[3] = { NULL, NULL, NULL };
+	char ifname[256];
+	char lstate[256];
+	sprintf(ifname,"%s",ndev->name);
+	sprintf(lstate,"%d",link_up);
+	argv[1] = ifname;
+	argv[2] = lstate;
+	envp[0] = "HOME=/";
+	envp[1] = "PATH=/sbin:/bin:/usr/sbin:/usr/bin";
+	//	printk("Start usermode helper\n");		
+	return call_usermodehelper(argv[0],argv,envp,1);
+}
+
+#endif
 
 
 /* --------------------------------------------------------------------------
@@ -1141,7 +1149,7 @@ sg17_disable_card( struct sg17_card *card )
 	PDEBUG(debug_eoc,"EIC: remove sctructures\n");	
 	eoc_free(hwdev->ch[3].eoc);
 	eoc_free(hwdev->ch[0].eoc);
-	PDEBUG(debug_init,"success");			
+	PDEBUG(debug_init,"success");		
 }
 
 
