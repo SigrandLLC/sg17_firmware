@@ -6,8 +6,8 @@ PKG_NAME:=oem-shdsl.g1
 PKG_RELEASE:=1
 
 CFLAGS:=-DSG16_NORBURST -DSG16_NOWBURST
-ifeq ($(BR2_PACKAGE_SIGRAND_MR16H_LINKMAP),y)
-    CFLAGS +=-DSG16_USERMODE_EVENTS
+ifeq ($(BR2_PACKAGE_SIGRAND_MR16H_UEVENTS),y)
+    CFLAGS +=-DMR16H_UEVENTS
 endif
 
 
@@ -61,11 +61,5 @@ $(IPKG_SIGRAND_MR16H):
 	install -d -m0755 $(IDIR_SIGRAND_MR16H)/lib/modules/2.6.16
 	install -d -m0755 $(IDIR_SIGRAND_MR16H)/lib/firmware
 	cd $(PKG_BUILD_DIR)/mr16h-drv && make install
-ifeq ($(BR2_PACKAGE_SIGRAND_MR16H_LINKMAP),y)
-	install -m0700  dsl2eth_map/__dsl2eth_link_hndl $(IDIR_SIGRAND_MR16H)/sbin
-	install -d -m755 $(IDIR_SIGRAND_MR16H)/etc/dsl2eth
-	install -m0600  dsl2eth_map/dsl2eth.map $(IDIR_SIGRAND_MR16H)/etc/dsl2eth
-	install -m0600  dsl2eth_map/dsl2eth.map.example $(IDIR_SIGRAND_MR16H)/etc/dsl2eth
-endif
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_MR16H)/CONTROL/control
 	$(IPKG_BUILD) $(IDIR_SIGRAND_MR16H) $(PACKAGE_DIR)	

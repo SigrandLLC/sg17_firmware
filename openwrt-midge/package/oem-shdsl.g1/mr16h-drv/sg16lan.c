@@ -282,9 +282,9 @@ static void shdsl_interrupt( struct net_device * );
 static void shdsl_link_chk( void * );
 
 
-#ifdef SG16_USERMODE_EVENTS
+#ifdef MR16H_UEVENTS
 
-#define USERMODE_HELPER "/sbin/__dsl2eth_link_hndl"
+#define USERMODE_HELPER "/sbin/_linkhandler"
 static int usermode_link_event(struct net_device *ndev,int link_up);
 
 #else
@@ -1320,7 +1320,7 @@ shdsl_link_chk( void *data )
 	}
 }
 
-#ifdef SG16_USERMODE_EVENTS
+#ifdef MR16H_UEVENTS
 static int
 usermode_link_event(struct net_device *ndev,int link_up)
 {
