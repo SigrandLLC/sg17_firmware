@@ -585,11 +585,16 @@ function CmdCache() {
 	
 	/*
 	 * Run asynchronously cmd and add it's output to cache.
+	 * 
+	 * cmd — cmd to run;
+	 * alias — by default, you get cmd output by calling getCachedOutput()
+	 * with cmd as parameter, but with alias you can use it instead of cmd.
+	 * This can be usefull if cmd is too long or complex.
 	 */
-	this.runCmd = function(cmd) {
+	this.runCmd = function(cmd, alias) {
 		cmdExecute(cmd, {
 			"callback": function(data) {
-				cache[cmd] = data;
+				cache[alias ? alias : cmd] = data;
 			}
 		});
 	};

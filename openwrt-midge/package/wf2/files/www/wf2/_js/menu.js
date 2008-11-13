@@ -11,6 +11,7 @@ function generateMenu() {
 	addItem("System", "Reboot", "reboot");
 	addItem("System", "Configuration", "cfg");
 	addItem("Network", "Firewall", "fw");
+	addItem("Network", "Dynamic interfaces", "dynamic_ifaces");
 	addItem("Hardware", "Switch", "adm5120sw");
 	addItem("Services", "DHCP server", "dhcp");
 	addItem("Services", "DNS server", "dns_server");
@@ -31,49 +32,46 @@ function generateMenu() {
 	/* get array of PCI slots */
 	var slots = config.getParsed("sys_pcitbl_slots");
 	
-	/* generate list of SHDSL interfaces */
+	/* generate list of SHDSL/E1/RS232 interfaces */
 	$.each(slots, function(num, pcislot) {
 		var type = config.get($.sprintf("sys_pcitbl_s%s_iftype", pcislot));
-		if (type != config.getOEM("MR16H_DRVNAME") && type != config.getOEM("MR17H_DRVNAME")) {
-			return true;
-		}
 		var ifaces = config.getParsed($.sprintf("sys_pcitbl_s%s_ifaces", pcislot));
+		
+		/* go through ifaces of this slot */
 		$.each(ifaces, function(num, iface) {
-			if (type == config.getOEM("MR17H_DRVNAME")) {
-				var confPath = $.sprintf("%s/%s/sg17_private", config.getOEM("sg17_cfg_path"), iface);
+			switch (type) {
+				/* SHDSL */
+				case config.getOEM("MR16H_DRVNAME"):
+				case config.getOEM("MR17H_DRVNAME"):
+					if (type == config.getOEM("MR17H_DRVNAME")) {
+						var confPath = $.sprintf("%s/%s/sg17_private", config.getOEM("sg17_cfg_path"), iface);
+						
+						config.runCmd($.sprintf("/bin/cat %s/chipver", confPath));
+						config.runCmd($.sprintf("/bin/cat %s/pwr_source", confPath));
+					}
+					
+					addItem("Hardware:SHDSL", iface, "dsl", [iface, pcislot, num]);
+					break;
 				
-				config.runCmd($.sprintf("/bin/cat %s/chipver", confPath));
-				config.runCmd($.sprintf("/bin/cat %s/pwr_source", confPath));
+				/* E1 */
+				case config.getOEM("MR16G_DRVNAME"):
+				case config.getOEM("MR17G_DRVNAME"):
+					config.runCmd(
+						$.sprintf("[ -f /sys/class/net/%s/hw_private/muxonly ] && cat /sys/class/net/%s/hw_private/muxonly || echo -n 0", iface, iface),
+						$.sprintf("muxonly_%s", iface));
+					addItem("Hardware:E1", iface, "e1", [iface, pcislot, num]);
+					break;
+					
+				/* RS232 */
+				case config.getOEM("MR17S_DRVNAME"):
+					addItem("Hardware:RS232", node, "rs232", [node, pcislot, num]);
+					break;
+				
+				default:
+					return true;
 			}
-			
-			addItem("Hardware:SHDSL", iface, "dsl", [iface, pcislot, num]);
 		});
 	});
-	
-	/* generate list of E1 inrefaces */
-	$.each(slots, function(num, pcislot) {
-		if (config.get($.sprintf("sys_pcitbl_s%s_iftype", pcislot)) != config.getOEM("MR16G_DRVNAME")) {
-			return true;
-		}
-		var ifaces = config.getParsed($.sprintf("sys_pcitbl_s%s_ifaces", pcislot));
-		$.each(ifaces, function(num, iface) {
-			addItem("Hardware:E1", iface, "e1", [iface, pcislot, num]);
-		});
-	});
-	
-	/* generate list of RS232 inrefaces */
-	$.each(slots, function(num, pcislot) {
-		if (config.get($.sprintf("sys_pcitbl_s%s_iftype", pcislot)) != config.getOEM("MR17S_DRVNAME")) {
-			return true;
-		}
-		var ifaces = config.getParsed($.sprintf("sys_pcitbl_s%s_ifaces", pcislot));
-		$.each(ifaces, function(num, node) {
-			addItem("Hardware:RS232", node, "rs232", [node, pcislot, num]);
-		});
-	});
-	
-	/* add dynamic interface controller */
-	addItem("Network", "Dynamic interfaces", "dynamic_ifaces");
 	
 	/* generate list of network interfaces */
 	var ifaces = config.getParsed("sys_ifaces");

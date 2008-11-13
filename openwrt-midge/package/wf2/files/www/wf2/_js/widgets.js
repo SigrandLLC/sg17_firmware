@@ -48,10 +48,11 @@ function Page(p) {
 			/* create link to a tab */
 			var href = $.create("a",
 				{
-					"href": "#" + tabIdPrefix + tab['id'],
-					"id": tabIdPrefix + tab['id'] + "_link"
+					"href": "#" + tabIdPrefix + tab.id,
+					"id": tabIdPrefix + tab.id + "_link"
 				},
-				$.create("span", {}, _(tab['name']))
+				$.create("span", {}, [
+					$.create("img", {"src": "_img/agt_reload_3236_12.gif", "border": "0"}), _(tab.name)])
 			);
 			
 			/* add click event */
@@ -63,7 +64,7 @@ function Page(p) {
 				$(".tabs-container").empty();
 				
 				/* render tab's content */
-				tab['func']();
+				tab.func();
 				
 				scrollTo(0, 0);
 			});
@@ -72,7 +73,7 @@ function Page(p) {
 			if (!firstTab) firstTab = href;
 			
 			/* add link to the list */
-			$.create('li', {}, href).appendTo(tabsList);
+			$.create("li", {}, href).appendTo(tabsList);
 		});
 		
 		/* add list with links to a page */
@@ -81,7 +82,7 @@ function Page(p) {
 		/* go through tabs' info */
 		$.each(this.tabsInfo, function(num, tab) {
 			/* create div for a tab */
-			$.create('div', {'id': tabIdPrefix + tab['id']}).appendTo(p);
+			$.create("div", {"id": tabIdPrefix + tab.id}).appendTo(p);
 		});
 		
 		/* update tabs */
@@ -141,23 +142,23 @@ function popup(url) {
  * 
  * cmd — command to execute.
  * dst — destination for command output:
- *  - dst['container'] — set html of container to command's output;
- *  - dst['callback'] — function to call after request. command's output is passed to func as arg.
- *  - dst['sync'] — do sync request and return command's output to calling function.
+ *  - dst.container — set html of container to command's output;
+ *  - dst.callback — function to call after request. command's output is passed to func as arg.
+ *  - dst.sync — do sync request and return command's output to calling function.
  * filter — function to filter command's output.
  */
 function cmdExecute(cmd, dst, filter) {
 	var result = null;
 	
 	var processResult = function(data) {
-		if (dst && dst['container']) {
-			$(dst['container']).html(data);
+		if (dst && dst.container) {
+			$(dst.container).html(data);
 			
 			/* workaround for max-height in IE */
-			$(dst['container']).minmax();
-		} else if (dst && dst['callback']) {
-			dst['callback'](data);
-		} else if (dst && dst['sync']) {
+			$(dst.container).minmax();
+		} else if (dst && dst.callback) {
+			dst.callback(data);
+		} else if (dst && dst.sync) {
 			result = data;
 		}
 	};
@@ -183,7 +184,7 @@ function cmdExecute(cmd, dst, filter) {
 		}
 	};
 	
-	if (dst && dst['sync']) options['async'] = false;
+	if (dst && dst.sync) options.async = false;
 	
 	$.ajax(options);
 	
@@ -212,7 +213,7 @@ function Container(p, options) {
 	 * Create necessary data structures and page elements.
 	 */
 	this.initContainer = function(options) {
-		if (options && options['clear']) p.empty();
+		if (options && options.clear) p.empty();
 		
 		this.validator_rules = new Object();
 		this.validator_messages = new Object();
@@ -239,12 +240,12 @@ function Container(p, options) {
 	
 	/* set help page for this tab */
 	this.setHelpPage = function(helpPage) {
-		this.help['page'] = helpPage;
+		this.help.page = helpPage;
 	};
 	
 	/* set subsystem for this tab */
 	this.setHelpSection = function(helpSection) {
-		this.help['section'] = helpSection;
+		this.help.section = helpSection;
 	};
 	
 	/*
@@ -264,10 +265,10 @@ function Container(p, options) {
 		var url = null;
 		
 		/* create url for context help */
-		if (this.help['page'] && this.help['section']) {
-			url = "/help/" + this.help['page'] + ".html#" + this.help['section'];
-		} else if (this.help['page']) {
-			url = "/help/" + this.help['page'] + ".html";
+		if (this.help.page && this.help.section) {
+			url = "/help/" + this.help.page + ".html#" + this.help.section;
+		} else if (this.help.page) {
+			url = "/help/" + this.help.page + ".html";
 		}
 		
 		/* if url is set — create context help link object, otherwise set it to null */
@@ -279,39 +280,30 @@ function Container(p, options) {
 		/* create table's row for title and context help link */
 		$("thead", this.table).append(
 			$.create("tr", {},
-				$.create("th", {"colSpan": colspan ? colspan : "2"},
-					[
-						_(title),
-						" ",
-						help
-					]
-				)
+				$.create("th", {"colSpan": colspan ? colspan : "2"}, [_(title), " ", help])
 			)
 		);
 	};
 	
 	/*
 	 * Create general data for all widgets elements.
+	 * I18N for text and description.
+	 * 
 	 * w — widget's info.
 	 * p — destination container.
-	 * I18N for text and description.
 	 */
 	this.createGeneralWidget = function(w) {
 		/* if this field is required — show "*" */
-		var required = (w.validator && w.validator['required']) ? " *" : "";
+		var required = (w.validator && w.validator.required) ? " *" : "";
 	
 		/* if description is specified — show it */
 		var tdElements;
-		if (w.descr) {
-			tdElements = new Array();
-			tdElements.push($.create('br'));
-			tdElements.push($.create('p', {}, _(w.descr)));
-		}
+		if (w.descr) tdElements = [$.create("br"), $.create("p", {}, _(w.descr))];
 		
 		/* create table row for widget */
-		var tr = $.create('tr', {}, [
-				$.create('td', {'className': 'tdleft'}, _(w.text) + required),
-				$.create('td', {'id': 'td_' + w.name}, tdElements)
+		var tr = $.create("tr", {}, [
+				$.create("td", {"className": "tdleft"}, _(w.text) + required),
+				$.create("td", {"id": "td_" + w.name}, tdElements)
 			]
 		);
 		
@@ -325,20 +317,20 @@ function Container(p, options) {
 	this.createTextWidget = function(w, value) {
 		var attrs = {
 			"type": "text",
-			"name": w.name
+			"name": w.name,
+			"id": w.id
 		};
-		w.id && (attrs['id'] = w.id);
-		w.tip && (attrs['title'] = _(w.tip));
+		w.tip && (attrs.title = _(w.tip));
 		
 		/* set KDB value */
 		if (value) {
-			attrs['value'] = value;
+			attrs.value = value;
 		/* if KDB value does't exists — set default value, if it exists */
 		} else if (w.defaultValue != undefined) {
-			attrs['value'] = w.defaultValue;
+			attrs.value = w.defaultValue;
 		}
 		
-		return $.create('input', attrs);
+		return $.create("input", attrs);
 	};
 	
 	/*
@@ -348,12 +340,12 @@ function Container(p, options) {
 	this.createPasswordWidget = function(w) {
 		var attrs = {
 			"type": "password",
-			"name": w.name
+			"name": w.name,
+			"id": w.id
 		};
-		w.id && (attrs['id'] = w.id);
-		w.tip && (attrs['title'] = _(w.tip));
+		w.tip && (attrs.title = _(w.tip));
 		
-		return $.create('input', attrs);
+		return $.create("input", attrs);
 	};
 	
 	/*
@@ -364,14 +356,14 @@ function Container(p, options) {
 		var attrs = {
 			"type": "checkbox",
 			"name": w.name,
+			"id": w.id,
 			"className": "check",
 			"value": "1"
 		};
-		w.id && (attrs['id'] = w.id);
-		w.tip && (attrs['title'] = _(w.tip));
-		if (value == "1" || value == "on") attrs['checked'] = true;
+		w.tip && (attrs.title = _(w.tip));
+		if (value == "1" || value == "on") attrs.checked = true;
 		
-		return $.create('input', attrs);
+		return $.create("input", attrs);
 	};
 	
 	/*
@@ -379,11 +371,13 @@ function Container(p, options) {
 	 * I18N for tip.
 	 */
 	this.createSelectWidget = function(w) {
-		var attrs = {'name': w.name};
-		w.id && (attrs['id'] = w.id);
-		w.tip && (attrs['title'] = _(w.tip));
+		var attrs = {
+			"name": w.name,
+			"id": w.id
+		};
+		w.tip && (attrs.title = _(w.tip));
 		
-		return $.create('select', attrs);
+		return $.create("select", attrs);
 	};
 	
 	/*
@@ -393,7 +387,7 @@ function Container(p, options) {
 	 */
 	this.createHtmlWidget = function(w, value) {
 		var attrs = {"className": "htmlWidget"};
-		w.tip && (attrs['title'] = _(w.tip));
+		w.tip && (attrs.title = _(w.tip));
 		
 		var span = $.create("span", attrs);
 		if (w.kdb) {
@@ -415,16 +409,16 @@ function Container(p, options) {
 	this.createHiddenWidget = function(w, value) {
 		var attrs = {
 			"type": "hidden",
-			"name": w.name
+			"name": w.name,
+			"id": w.id
 		};
-		w.id && (attrs['id'] = w.id);
 		
 		/* set KDB value */
 		if (value) {
-			attrs['value'] = value;
+			attrs.value = value;
 		/* if KDB value does't exists — set default value, if it exists */
 		} else if (w.defaultValue != undefined) {
-			attrs['value'] = w.defaultValue;
+			attrs.value = w.defaultValue;
 		}
 		
 		return $.create("input", attrs);
@@ -436,9 +430,9 @@ function Container(p, options) {
 	this.createFileWidget = function(w) {
 		var attrs = {
 			"type": "file",
-			"name": w['name']
+			"name": w.name,
+			"id": w.id
 		};
-		w['id'] && (attrs['id'] = w['id']);
 		
 		return $.create("input", attrs);
 	};
@@ -450,16 +444,18 @@ function Container(p, options) {
 	this.createButtonWidget = function(w) {
 		var attrs = {
 			"type": "button",
-			"value": _(w['text']),
+			"name": w.name,
+			"id": w.id,
+			"value": _(w.text),
 			"className": "button"
 		};
-		w['tip'] && (attrs['title'] = _(w['tip']));
+		w.tip && (attrs.title = _(w.tip));
 		
 		var button = $.create("input", attrs);
 		
 		/* set action */
 		button.click(function() {
-			w['func']();
+			w.func();
 		});
 		
 		return button;
@@ -472,7 +468,7 @@ function Container(p, options) {
 	 * insertAfter — if specified, insert new widget after this element.
 	 */
 	this.addWidget = function(w, insertAfter) {
-		if (w['type'] != "hidden") {
+		if (w.type != "hidden") {
 			/* add common widget's data. insert after specified widget, otherwise insert last */
 			if (insertAfter) this.createGeneralWidget(w).insertAfter(insertAfter);
 			else this.createGeneralWidget(w).appendTo(this.table);
@@ -483,20 +479,23 @@ function Container(p, options) {
 	
 	/*
 	 * Add subwidget (input, select, etc) to complete widget or to specified element.
-	 * w — widget to add.
+	 * 
+	 * w — widget to add;
 	 * insertAfter — if specified, insert new subwidget after this element (just plain element).
 	 * 
 	 * return added widget.
 	 */
 	this.addSubWidget = function(w, insertAfter) {
 		/* get field's value */
-		var value;
+		var value, widget;
 		
 		/* TODO: make full support for cookies (do not write it to KDB but save in cookie) */
-		if (w['cookie']) value = $.cookie(w['name']);
+		if (w.cookie) value = $.cookie(w.name);
 		else if (w.name) value = w.item ? config.getParsed(w.item)[w.name] : config.get(w.name);
 		
-		var widget;
+		/* if ID is not set, set it to the name */
+		if (w.id == undefined) w.id = w.name;
+		
 		switch (w.type) {
 			case "text": 
 				widget = this.createTextWidget(w, value);
@@ -523,6 +522,8 @@ function Container(p, options) {
 			case "button":
 				widget = this.createButtonWidget(w);
 				break;
+			default:
+				throw "unknown widget type";
 		}
 		
 		/* insert new subwidget at specified position or just in form for hidden widget */
@@ -578,7 +579,7 @@ function Container(p, options) {
 	};
 	
 	/* 
-	 * Sets info message.
+	 * Set info message.
 	 * I18N for text.
 	 */
 	this.setInfo = function(text) {
@@ -586,6 +587,38 @@ function Container(p, options) {
 		$(idInfoMessage).html(_(text));
 		$(idInfoMessage).removeClass("error_message");
 		$(idInfoMessage).addClass("success_message");
+	};
+	
+	/* show message */
+	var showMsg = function() {
+		$("#" + thisContainer.infoMessage).show();
+	};
+	
+	/* hide message */
+	var hideMsg = function() {
+		$("#" + thisContainer.infoMessage).hide();
+	};
+	
+	/*
+	 * Show to user that data is saved. After clicking on widgets remove info message.
+	 */
+	var formSaved = function() {
+		thisContainer.setInfo("Data saved or this task is added to queue.");
+		showMsg();
+		
+		/* set event handlers to remove info message */
+		$("input, select", thisContainer.form).bind("click.tmp", function() {
+			hideMsg();
+			
+			/* remove alert text */
+			$(".alertText", thisContainer.form).remove();
+			
+			/* remove class indicating field updation */
+			$("*", thisContainer.form).removeClass("fieldUpdated");
+			
+			/* remove all events handlers */
+			$("input, select", thisContainer.form).unbind("click.tmp");
+		});
 	};
 
 	/*
@@ -601,11 +634,6 @@ function Container(p, options) {
 		var idInfoMessage = "#" + this.infoMessage;
 		var timeout = this.ajaxTimeout;
 		var outer = this;
-		
-		/* shows message */
-		var showMsg = function() {
-			$(idInfoMessage).show();
-		};
 
 		/* if subsystem is set — add it to the form */
 		if (this.subsystem) {
@@ -647,6 +675,8 @@ function Container(p, options) {
      		
      		/* on submit event */
      		"submitHandler": function(form) {
+     			formSaved();
+     			
      			/* if noSubmit is set — do not submit the form */
      			if (options && options['noSubmit']) {
      				if (options['onSubmit']) options['onSubmit']();

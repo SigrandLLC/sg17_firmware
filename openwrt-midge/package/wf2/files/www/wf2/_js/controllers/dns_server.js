@@ -54,7 +54,6 @@ Controllers['dns_server'] = function() {
 			var field = { 
 				"type": "text",
 				"name": "prio",
-				"id": "prio",
 				"text": "Priority",
 				"descr": "Priority for MX record.",
 				"validator": {"required": true, "min": 1, "max": 999}
@@ -100,7 +99,6 @@ Controllers['dns_server'] = function() {
 		field = { 
 			"type": "select",
 			"name": "datatype",
-			"id": "datatype",
 			"text": "Type of record",
 			"descr": "Select type of record.",
 			"options": "A CNAME MX NS PTR TXT",
@@ -121,7 +119,6 @@ Controllers['dns_server'] = function() {
 		field = { 
 			"type": "text",
 			"name": "data",
-			"id": "data",
 			"text": "Data",
 			"descr": "Data of the record.",
 			"validator": {"required": true, "domainNameOrIpAddr": true},
@@ -136,6 +133,7 @@ Controllers['dns_server'] = function() {
 		/* create button for returning back to the list of zones */
 		field = {
 			"type": "button",
+			"name": "back_button",
 			"text": "Back to list of zones",
 			"func": function() {
 				$("#tab_zones_link").click();
@@ -182,7 +180,6 @@ Controllers['dns_server'] = function() {
 			field = { 
 				"type": "text",
 				"name": "zoneid",
-				"id": "zoneid",
 				"text": "Zone ID",
 				"descr": "Identifier of zone - just a simple name",
 				"validator": {"required": true, "alphanum": true},

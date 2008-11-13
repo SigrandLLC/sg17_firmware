@@ -35,6 +35,7 @@ service_reload(){
 		slot=${tmp%.*}
 		dev=${tmp#*.}
 		/etc/init.d/e1 restart "$slot" "$dev"
+		/etc/init.d/mux start
 		/etc/init.d/network restart
 	;;
 	rs232*)
