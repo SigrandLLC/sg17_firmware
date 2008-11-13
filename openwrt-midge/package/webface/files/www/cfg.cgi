@@ -32,7 +32,7 @@ case "$act" in
 					echo "File imported successfully"
 				fi
 				rm -rf /tmp/etc
-				echo "<br><br><b>Router have to be rebooted.</b>"
+				echo "<br><br><b>Device has to be rebooted.</b>"
 			else
 				echo "Error occured while import configuration"
 			fi
@@ -53,7 +53,7 @@ case "$act" in
 		fi
 		echo "<html><body>"
 		echo "<h2>Default configuration restored"
-		echo "<br><br><b>Router have to be rebooted.</b>"
+		echo "<br><br><b>Device has to be rebooted.</b>"
 	;;
 esac
 		
