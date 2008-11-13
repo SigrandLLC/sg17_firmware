@@ -48,26 +48,6 @@ Controllers['voip'] = function() {
 			
 			field = { 
 				"type": "select",
-				"name": "sys_voip_settings_codec_ext_quality",
-				"text": "External quality",
-				"descr": "External call quality",
-				"tip": "Quality of calls through SIP-server",
-				"options": {"speed": "Speed", "quality": "Quality"}
-			};
-			c.addWidget(field);
-			
-			field = { 
-				"type": "select",
-				"name": "sys_voip_settings_codec_int_quality",
-				"text": "Internal quality",
-				"descr": "Internal call quality",
-				"tip": "Quality of calls between routers",
-				"options": {"speed": "Speed", "quality": "Quality"}
-			};
-			c.addWidget(field);
-			
-			field = { 
-				"type": "select",
 				"name": "sys_voip_settings_log",
 				"text": "Logging level",
 				"descr": "Level of logging",
@@ -79,10 +59,107 @@ Controllers['voip'] = function() {
 		}
 	});
 	
+	/* Sound tab */
+	page.addTab({
+		"id": "quality",
+		"name": "Quality",
+		"func": function() {
+			var c = page.addContainer("quality");
+			c.addTitle("Quality settings", 3);
+
+			/*
+			 * At one time only one type can be selected.
+			 * 
+			 * container — main container;
+			 * src — event src;
+			 * scope — settings scope.
+			 */
+			var setUniqueType = function(container, src, scope) {
+				var newVal = $(src.currentTarget).val();
+				if (newVal != "none") {
+					$(".type_" + scope).not(src.currentTarget).each(function(num, element) {
+						if ($(element).val() == newVal) $(element).val("none");
+					});
+				}
+			};
+			
+			/*
+			 * Add specified number of widgets for specified scope.
+			 * 
+			 * num — number of widgets;
+			 * scope — scope (external, internal).
+			 */
+			var addCodecsWidgets = function(num, scope) {
+				for (var i = 0; i < num; i++) {
+					var field;
+					var row = c.addTableRow();
+					
+					/* type */
+					field = {
+						"type": "select",
+						"name": $.sprintf("sys_voip_quality_%s_codec%s_type", scope, i),
+						"options": ["g729", "aLaw", "uLaw", "none"],
+						"cssClass": "type_" + scope,
+						"onChange": function(container, src) {
+							setUniqueType(container, src, scope);
+						},
+						"defaultValue": scope == "int" ? (["aLaw", "uLaw", "g729"])[i]
+							: (["g729", "aLaw", "uLaw"])[i]
+					};
+					c.addTableWidget(field, row);
+					
+					/* pkt_sz */
+					field = {
+						"type": "select",
+						"name": $.sprintf("sys_voip_quality_%s_codec%s_pktsz", scope, i),
+						"options": ["2.5", "5", "5.5", "10", "11", "20", "30", "40", "50", "60"]
+					};
+					c.addTableWidget(field, row);
+					
+					/* payload */
+					field = {
+						"type": "text",
+						"name": $.sprintf("sys_voip_quality_%s_codec%s_payload", scope, i),
+						"cssClass": "voipQualityPayload",
+						"validator": {"required": true},
+						"defaultValue": scope == "int" ? (["0x08", "0x00", "0x12"])[i] :
+							(["0x12", "0x08", "0x00"])[i]
+					};
+					c.addTableWidget(field, row);
+				}
+			};
+			
+			c.addTableHeader("Type|Pkt_sz|Payload");
+			
+			c.addInternalTableTitle("Internal", 3);
+			addCodecsWidgets(3, "int");
+			
+			c.addInternalTableTitle("External", 3);
+			addCodecsWidgets(3, "ext");
+			
+			c.addInternalTableTitle("Fax", 3);
+			var row = c.addTableRow();
+			
+			/* fax type */
+			var field = {
+				"type": "select",
+				"name": "sys_voip_quality_fax_type",
+				"options": ["aLaw", "uLaw"]
+			};
+			c.addTableWidget(field, row);
+			
+			/* add two fake widgets */
+			c.addGeneralTableWidget({"name": "fax_fake1"}, row);
+			c.addGeneralTableWidget({"name": "fax_fake2"}, row);
+			
+			c.addSubmit();
+		}
+	});
+	
 	/* settings tab */
 	page.addTab({
 		"id": "sip",
-		"name": "SIP settings",
+		"name": "SIP",
 		"func": function() {
 			var c, field;
 			c = page.addContainer("sip");
@@ -338,7 +415,7 @@ Controllers['voip'] = function() {
 	/* Sound tab */
 	page.addTab({
 		"id": "sound",
-		"name": "Sound settings",
+		"name": "Sound",
 		"func": function() {
 			var c = page.addContainer("sound");
 			c.addTitle("Sound settings", 9);

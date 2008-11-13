@@ -193,6 +193,14 @@ ul.treeview li li li li li span {
 	border-bottom: 1px solid #000;
 }
 
+#conttable td.header {
+	height: 28px;
+	padding: 0 0 0 10px;
+	border: 0;
+	background-image: url(../_img/table_head.png);
+	border-bottom: 1px solid #000;
+}
+
 #conttable label.error {
 	display: block;
 	text-align: left;
@@ -326,4 +334,8 @@ td.clickable {
 
 td.clickable:hover {
 	color: yellow;
+}
+
+#conttable input.voipQualityPayload {
+	width: 20%;
 }

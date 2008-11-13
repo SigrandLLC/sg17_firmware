@@ -228,6 +228,7 @@ function Container(p, options) {
 		this.table = $.create("table",
 			{"id": "conttable", "cellpadding": "0", "cellspacing": "0", "border": "0"}).appendTo(this.form);
 		this.table.append($.create("thead"));
+		this.table.append($.create("tbody"));
 	};
 	
 	/* init container */
@@ -471,7 +472,7 @@ function Container(p, options) {
 		if (w.type != "hidden") {
 			/* add common widget's data. insert after specified widget, otherwise insert last */
 			if (insertAfter) this.createGeneralWidget(w).insertAfter(insertAfter);
-			else this.createGeneralWidget(w).appendTo(this.table);
+			else $("tbody", this.table).append(this.createGeneralWidget(w));
 		}
 		
 		this.addSubWidget(w);
@@ -531,6 +532,9 @@ function Container(p, options) {
 		else if (insertAfter) widget.insertAfter(insertAfter);
 		else $("#td_" + w.name, this.form).prepend(widget);
 		
+		/* set CSS class if specified */
+		if (w.cssClass) widget.addClass(w.cssClass);
+		
 		/* set nice tooltip */
 		widget.tooltip({"track": true});
 		
@@ -550,19 +554,20 @@ function Container(p, options) {
 	 * To bind an event to the widget, you have to set widget's ID.
 	 * If w['eventHandlerObject'] is set, then pass it as parameter to event handler,
 	 * otherwise pass current container.
+	 * Always pass event source as second parameter.
 	 */
 	this.bindEvents = function(w) {
-		if (w['onChange']) {
-			$("#" + w['id']).change(function() {
-				if (w['eventHandlerObject']) w['onChange'](w['eventHandlerObject']);
-				else w['onChange'](thisContainer);
+		if (w.onChange) {
+			$("#" + w.id).change(function(src) {
+				if (w.eventHandlerObject) w.onChange(w.eventHandlerObject, src);
+				else w.onChange(thisContainer, src);
 			});
 		}
 		
-		if (w['onClick']) {
-			$("#" + w['id']).click(function() {
-				if (w['eventHandlerObject']) w['onClick'](w['eventHandlerObject']);
-				else w['onClick'](thisContainer);
+		if (w.onClick) {
+			$("#" + w.id).click(function(src) {
+				if (w.eventHandlerObject) w.onClick(w.eventHandlerObject, src);
+				else w.onClick(thisContainer, src);
 			});
 		}
 	};
@@ -925,9 +930,8 @@ function Container(p, options) {
 	 * Add header for table.
 	 * 
 	 * header — separated with "|" list of table column's header.
-	 * addFunc ­— function to call for rendering page for adding new element to table.
 	 */
-	this.addTableHeader = function(header, addFunc) {
+	this.addTableHeader = function(header) {
 		/* set table flag (for validation) */
 		this.isTable = true;
 		
@@ -936,31 +940,19 @@ function Container(p, options) {
 			$.create("th", {}, _(value)).appendTo(tr);
 		});
 		
-		/* add button for adding new elements */
-		if (addFunc) {
-			/* create "button" for adding */
-			var img = $.create("img", {"src": "_img/plus.gif", "alt": "add"});
-			img.click(function(e) {
-				addFunc();
-				scrollTo(0, 0);
-			});
-			
-			/* change image when mouse is over it */
-			img.hover(
-				function() {
-					$(this).attr("src", "_img/plus2.gif")
-				},
-				function() {
-					$(this).attr("src", "_img/plus.gif")
-				}
-			);
-			
-			/* we use colSpan because future rows will contain buttons for editing and deleting */
-			$.create("th", {"colSpan": "2"}, img).appendTo(tr);
-		}
-		
 		/* add to thead section of current table */
 		$("thead", this.table).append(tr);
+	};
+	
+	/*
+	 * Add title inside a table.
+	 * I18N for title.
+	 */
+	this.addInternalTableTitle = function(title, colspan) {
+		var tr = $.create("tr", {"align": "center"});
+		$.create("td", {"colSpan": colspan, "className": "header"}, _(title)).appendTo(tr);
+		
+		$("tbody", this.table).append(tr);
 	};
 	
 	/*
