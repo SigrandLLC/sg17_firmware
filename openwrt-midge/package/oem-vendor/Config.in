@@ -122,11 +122,6 @@ prompt "MR16G E1 configuration tool name"
 string
 default "mr16g_cfg"
 
-config BR2_SIGRAND_OEM_MR16G_TOOL
-prompt "MR16G E1 configuration tool name"
-string
-default "mr16g_cfg"
-
 config BR2_SIGRAND_OEM_MR16G_DBGTOOL
 prompt "MR16G E1 debugging tool name"
 string
