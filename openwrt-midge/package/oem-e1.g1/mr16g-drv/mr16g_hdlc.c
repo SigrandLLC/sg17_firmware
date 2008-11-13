@@ -196,9 +196,6 @@ mr16g_exit( void ){
  * PCI related functions 
  *----------------------------------------------------------*/
  
-
- 
- 
 static int __devinit
 mr16g_init_one( struct pci_dev *pdev,const struct pci_device_id *ent )
 {
@@ -360,6 +357,7 @@ mr16g_probe( struct net_device  *ndev )
 	mr16g_hdlc_up(nl);
 	mr16g_hdlc_setup(nl);
 	mr16g_E1_setup(nl);
+	mdelay(1);
 	mr16g_setup_carrier(ndev,&mask);
 	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
 	return  0;
@@ -885,6 +883,7 @@ mr16g_hdlc_down(struct net_local *nl)
 inline void	
 mr16g_hdlc_up( struct net_local *nl)
 {
+	ds2155_setreg(nl,CCR4,0x00);
 	iowrite8( EXT, (iotype)&(nl->hdlc_regs->IMR) );                              
 	iowrite8( 0xff, (iotype)&(nl->hdlc_regs->SR) );                              
 	iowrite8( XRST , (iotype)&(nl->hdlc_regs->CRA));                             
