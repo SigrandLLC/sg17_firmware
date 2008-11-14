@@ -391,13 +391,13 @@ function Container(p, options) {
 		w.tip && (attrs.title = _(w.tip));
 		
 		var span = $.create("span", attrs);
-		if (w.kdb) {
+		if (w.kdb != undefined) {
 			$(span).html(value);
-		} else if (w.cmd) {
+		} else if (w.cmd != undefined) {
 			$(span).html("Loading...");
 			if (w.dataFilter) cmdExecute(w.cmd, {"container": span}, w.dataFilter);
 			else cmdExecute(w.cmd, {"container": span});
-		} else if (w.str) {
+		} else if (w.str != undefined) {
 			$(span).html(w.str);
 		}
 		

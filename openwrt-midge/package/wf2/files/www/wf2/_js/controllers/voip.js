@@ -65,7 +65,7 @@ Controllers['voip'] = function() {
 		"name": "Quality",
 		"func": function() {
 			var c = page.addContainer("quality");
-			c.addTitle("Quality settings", 3);
+			c.addTitle("Codecs settings", 4);
 			
 			/* default values */
 			var pktszDefault = {
@@ -124,6 +124,14 @@ Controllers['voip'] = function() {
 					var field;
 					var row = c.addTableRow();
 					
+					/* priority */
+					field = {
+						"type": "html",
+						"name": "priority_" + scope + i,
+						"str": "" + i
+					};
+					c.addTableWidget(field, row);
+					
 					/* type */
 					field = {
 						"type": "select",
@@ -168,28 +176,31 @@ Controllers['voip'] = function() {
 				}
 			};
 			
-			c.addTableHeader("Type|Pkt_sz|Payload");
+			c.addTableHeader("Priority|Type|Packetization time (ms)|Payload");
 			
-			c.addInternalTableTitle("Internal", 3);
+			c.addInternalTableTitle("Internal", 4);
 			addCodecsWidgets(3, "int");
 			
-			c.addInternalTableTitle("External", 3);
+			c.addInternalTableTitle("External", 4);
 			addCodecsWidgets(3, "ext");
 			
-			c.addInternalTableTitle("Fax", 3);
+			c.addInternalTableTitle("Fax", 4);
 			var row = c.addTableRow();
+			
+			/* add fake widget */
+			c.addGeneralTableWidget({"name": "fax_fake1"}, row);
 			
 			/* fax type */
 			var field = {
 				"type": "select",
 				"name": "sys_voip_quality_fax_type",
-				"options": ["aLaw", "uLaw"]
+				"options": ["uLaw", "aLaw"]
 			};
 			c.addTableWidget(field, row);
 			
 			/* add two fake widgets */
-			c.addGeneralTableWidget({"name": "fax_fake1"}, row);
 			c.addGeneralTableWidget({"name": "fax_fake2"}, row);
+			c.addGeneralTableWidget({"name": "fax_fake3"}, row);
 			
 			c.addSubmit();
 		}
