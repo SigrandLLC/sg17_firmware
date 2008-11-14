@@ -59,7 +59,7 @@ Controllers['voip'] = function() {
 		}
 	});
 	
-	/* Sound tab */
+	/* Quality tab */
 	page.addTab({
 		"id": "quality",
 		"name": "Quality",
@@ -97,6 +97,17 @@ Controllers['voip'] = function() {
 						if ($(element).val() == newVal) $(element).val("none");
 					});
 				}
+				
+				/* if all types is "none", set one to aLaw */
+				var allNone = true;
+				$(".type_" + scope).each(function(num, element) {
+					if ($(element).val() != "none") {
+						allNone = false;
+						return false;
+					}
+				});
+				
+				if (allNone) $(".type_" + scope).eq(0).val("aLaw");
 			};
 			
 			/*
@@ -176,7 +187,8 @@ Controllers['voip'] = function() {
 				}
 			};
 			
-			c.addTableHeader("Priority|Type|Packetization time (ms)|Payload");
+			c.addTableHeader("Priority*|Type|Packetization time (ms)|Payload");
+			c.addTableTfootStr("* 0 — max priority.", 4);
 			
 			c.addInternalTableTitle("Internal", 4);
 			addCodecsWidgets(3, "int");
@@ -464,10 +476,10 @@ Controllers['voip'] = function() {
 	
 	/* Sound tab */
 	page.addTab({
-		"id": "sound",
-		"name": "Sound",
+		"id": "rtp",
+		"name": "RTP",
 		"func": function() {
-			var c = page.addContainer("sound");
+			var c = page.addContainer("rtp");
 			c.addTitle("Sound settings", 9);
 			
 			c.addTableHeader("Channel|OOB|OOB_play|nEventPT|nEventPlayPT|Tx_vol|Rx_vol|VAD|HPF");
