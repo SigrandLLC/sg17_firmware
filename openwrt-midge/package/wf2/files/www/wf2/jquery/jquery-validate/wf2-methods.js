@@ -84,6 +84,11 @@ jQuery.validator.addMethod("voipCompleteNumber", function(value, element) {
 	return this.optional(element) || /(^([0-9]{3}|[\*])([-,]*)([0-9]{2}|[\*])([-,]*)([-0-9,]*)$)|(^#sip:([_a-zA-Z0-9](\.[_a-zA-Z0-9])?)+@([_a-zA-Z0-9]\.?)+#$)/.test(value);
 }, "Please enter correct complete number.");
 
+/* VoIP's payload */
+jQuery.validator.addMethod("voipPayload", function(value, element) {
+	return this.optional(element) || /^0x[0-9a-fA-F]+$/.test(value);
+}, "Please enter correct payload type (must begin with 0x) in hexidemical format.");
+
 /* PBO value */
 jQuery.validator.addMethod("pbo", function(value, element) {
 	return this.optional(element) || /^(\d+(:\d+)*)+$/.test(value);

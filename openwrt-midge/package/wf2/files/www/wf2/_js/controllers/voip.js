@@ -66,21 +66,51 @@ Controllers['voip'] = function() {
 		"func": function() {
 			var c = page.addContainer("quality");
 			c.addTitle("Quality settings", 3);
+			
+			/* default values */
+			var pktszDefault = {
+				"aLaw": "20",
+				"uLaw": "20",
+				"g729": "10",
+				"none": ""
+			};
+			
+			var payloadDefault = {
+				"aLaw": "0x08",
+				"uLaw": "0x00",
+				"g729": "0x12",
+				"none": ""
+			};
 
 			/*
 			 * At one time only one type can be selected.
 			 * 
-			 * container — main container;
-			 * src — event src;
-			 * scope — settings scope.
+			 * scope — settings scope;
+			 * i — codec index.
 			 */
-			var setUniqueType = function(container, src, scope) {
-				var newVal = $(src.currentTarget).val();
+			var setUniqueType = function(scope, i) {
+				setDefaults(scope, i);
+				var newVal = $($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, i)).val();
 				if (newVal != "none") {
-					$(".type_" + scope).not(src.currentTarget).each(function(num, element) {
+					$(".type_" + scope).not($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, i))
+						.each(function(num, element) {
 						if ($(element).val() == newVal) $(element).val("none");
 					});
 				}
+			};
+			
+			/*
+			 * Set default values depending on selected code type.
+			 * 
+			 * scope — settings scope;
+			 * i — codec index.
+			 */
+			var setDefaults = function(scope, i) {
+				$($.sprintf("#sys_voip_quality_%s_codec%s_pktsz", scope, i)).val(
+					pktszDefault[$($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, i)).val()]);
+				
+				$($.sprintf("#sys_voip_quality_%s_codec%s_payload", scope, i)).val(
+					payloadDefault[$($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, i)).val()]);
 			};
 			
 			/*
@@ -100,9 +130,16 @@ Controllers['voip'] = function() {
 						"name": $.sprintf("sys_voip_quality_%s_codec%s_type", scope, i),
 						"options": ["g729", "aLaw", "uLaw", "none"],
 						"cssClass": "type_" + scope,
-						"onChange": function(container, src) {
-							setUniqueType(container, src, scope);
-						},
+						/*
+						 * We use double-closure here, because in single-closure each
+						 * onChange callback will have var i with value of 3. More info
+						 * in http://dklab.ru/chicken/nablas/39.html.
+						 */
+						"onChange": function(x) {
+							return function() {
+								setUniqueType(scope, x);
+							}
+						}(i),
 						"defaultValue": scope == "int" ? (["aLaw", "uLaw", "g729"])[i]
 							: (["g729", "aLaw", "uLaw"])[i]
 					};
@@ -112,7 +149,9 @@ Controllers['voip'] = function() {
 					field = {
 						"type": "select",
 						"name": $.sprintf("sys_voip_quality_%s_codec%s_pktsz", scope, i),
-						"options": ["2.5", "5", "5.5", "10", "11", "20", "30", "40", "50", "60"]
+						"options": ["2.5", "5", "5.5", "10", "11", "20", "30", "40", "50", "60"],
+						"defaultValue":
+							pktszDefault[$($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, i)).val()]
 					};
 					c.addTableWidget(field, row);
 					
@@ -121,9 +160,9 @@ Controllers['voip'] = function() {
 						"type": "text",
 						"name": $.sprintf("sys_voip_quality_%s_codec%s_payload", scope, i),
 						"cssClass": "voipQualityPayload",
-						"validator": {"required": true},
-						"defaultValue": scope == "int" ? (["0x08", "0x00", "0x12"])[i] :
-							(["0x12", "0x08", "0x00"])[i]
+						"validator": {"required": true, "voipPayload": true},
+						"defaultValue":
+							payloadDefault[$($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, i)).val()]
 					};
 					c.addTableWidget(field, row);
 				}
