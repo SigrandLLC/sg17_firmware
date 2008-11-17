@@ -362,7 +362,9 @@ function Container(p, options) {
 			"value": "1"
 		};
 		w.tip && (attrs.title = _(w.tip));
-		if (value == "1" || value == "on") attrs.checked = true;
+		if (value) {
+			if (value == "1" || value == "on") attrs.checked = true;
+		} else if (w.defaultState == "checked") attrs.checked = true;
 		
 		return $.create("input", attrs);
 	};
@@ -625,6 +627,26 @@ function Container(p, options) {
 			$("input, select", thisContainer.form).unbind("click.tmp");
 		});
 	};
+	
+	/*
+	 * If the router is offline, show message and returns false, otherwise returns true.
+	 */
+	var isRouterOffline = function() {
+		if (!config.isOnline()) {
+			thisContainer.setError("Router is OFFLINE! Check that router is available via your network.");
+			showMsg();
+			
+			/* set event handlers to remove info message */
+			$("input, select", thisContainer.form).bind("click.tmp", function() {
+				hideMsg();
+				
+				/* remove all events handlers */
+				$("input, select", thisContainer.form).unbind("click.tmp");
+			});
+			return true;
+		}
+		return false;
+	};
 
 	/*
 	 * Adds submit button, form validation rules and submit's events handlers.
@@ -634,6 +656,9 @@ function Container(p, options) {
 	 * options['noSubmit'] — do not submit the form, but call onSubmit and preSubmit callbacks;
 	 * options['onSubmit'] — callback on submit event to call after submitting the form;
 	 * options['preSubmit'] — callback on submit event to call before submitting the form.
+	 * NOTE:
+	 *  - if preSubmit returns false, form is not submitting;
+	 *  - if noSubmit is set and preSubmit return false, onSubmit is not calling.
 	 */
 	this.addSubmit = function(options) {
 		var idInfoMessage = "#" + this.infoMessage;
@@ -666,6 +691,9 @@ function Container(p, options) {
 		
 		/* options for form validation */
 		var validateOptions = {
+			"onfocusout": false,
+			"onkeyup": false,
+			"onclick": false,
 			"rules": this.validator_rules,
 			"messages": this.validator_messages,
 			
@@ -680,17 +708,28 @@ function Container(p, options) {
      		
      		/* on submit event */
      		"submitHandler": function(form) {
-     			formSaved();
+     			/* if router is offline — return */
+     			if (isRouterOffline()) return;
      			
      			/* if noSubmit is set — do not submit the form */
      			if (options && options['noSubmit']) {
-     				if (options['onSubmit']) options['onSubmit']();
-     				if (options['preSubmit']) options['preSubmit']();
+     				if (options['preSubmit']) {
+     					if (options['preSubmit']() == false) return;
+     				}
+     				
+     				if (options['onSubmit']) {
+     					if (options['onSubmit']() == false) return;
+     				}
+     				
+     				formSaved();
+     				
      				return;
      			}
      			
      			/* call user function on submit event before submitting form */
-     			if (options && options['preSubmit']) options['preSubmit']();
+     			if (options && options['preSubmit']) {
+     				if (options['preSubmit']() == false) return;
+     			}
      			
      			/* remove alert text */
 				$(".alertText", form).remove();
@@ -754,6 +793,8 @@ function Container(p, options) {
 				
 				/* submit task (updating settings) for execution */
      			config.kdbSubmit(fields, timeout, reload, onSuccess);
+     			
+     			formSaved();
 				
 				/* set checkboxes to their original state */
 				$(".doUncheck").each(function() {
@@ -1156,6 +1197,9 @@ function Container(p, options) {
 		 * item — item to delete.
 		 */
 		var deleteConfirm = function(item) {
+			/* hide global info message (e.g., about offline state) */
+			hideMsg();
+				
 			/* find div for showing delete confirm message  */
 			var msgDiv = $("div.error_message", c.form);
 			
@@ -1171,6 +1215,10 @@ function Container(p, options) {
 			/* delete item */
 			button.click(function() {
 				msgDiv.hide();
+				
+				/* if router is offline — return */
+     			if (isRouterOffline()) return;
+				
 				$(".selected", c.table).removeClass("selected");
 				
 				/* delete item and restart subsystem */
@@ -1296,6 +1344,9 @@ function Container(p, options) {
 				/* create "button" for deleting */
 				img = $.create("img", {"src": "_img/minus.gif", "alt": "delete"});
 				img.click(function(e) {
+					/* if router is offline — return */
+     				if (isRouterOffline()) return;
+     		
 					/* unhilight previous selected item */
 					$(".selected", c.table).removeClass("selected");
 					

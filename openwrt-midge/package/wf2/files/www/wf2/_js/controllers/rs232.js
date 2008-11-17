@@ -12,7 +12,16 @@ Controllers['rs232'] = function(node, pcislot, pcidev) {
 			c.addTitle($.sprintf("%s (module %s%s%s, slot %s) settings", node,
 				config.getOEM("MR17S_MODNAME"), config.getOEM("OEM_IFPFX"),
 				config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot)),	pcislot - 2));
-		
+
+			field = { 
+				"type": "checkbox",
+				"name": $.sprintf("sys_mux_%s_mxen", node),
+				"text": "Enable multiplexing",
+				"descr": "Enable multiplexing on this interface",
+				"tip": "This option is equivalent to MXEN on a multiplexing page."
+			};
+			c.addWidget(field);
+
 			field = { 
 				"type": "select",
 				"name": $.sprintf("sys_pcicfg_s%s_%s_baudrate", pcislot, pcidev),

@@ -24,11 +24,14 @@ service_reload(){
 	dns_server)
 		/etc/init.d/bind restart
 	;;
+	# we can enable/disable multiplexing on module settings page, so restart
+	# multiplexing on module settings change
 	dsl*)
 		tmp=${service#*.}
 		slot=${tmp%.*}
 		dev=${tmp#*.}
 		/etc/init.d/dsl restart $slot $dev
+		/etc/init.d/mux start
 	;;
 	e1*)
 		tmp=${service#*.}
@@ -43,6 +46,7 @@ service_reload(){
 		slot=${tmp%.*}
 		dev=${tmp#*.}
 		/etc/init.d/rs232 restart "$slot" "$dev"
+		/etc/init.d/mux start
 	;;
 	fw)
 		/etc/init.d/fw restart

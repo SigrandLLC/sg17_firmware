@@ -604,6 +604,15 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		/* add parameters */
 		
 		field = { 
+			"type": "checkbox",
+			"name": $.sprintf("sys_mux_%s_mxen", iface),
+			"text": "Enable multiplexing",
+			"descr": "Enable multiplexing on this interface",
+			"tip": "This option is equivalent to MXEN on a multiplexing page."
+		};
+		c.addWidget(field);
+		
+		field = { 
 			"type": "select",
 			"name": $.sprintf("sys_pcicfg_s%s_%s_ctrl", pcislot, pcidev),
 			"id": "ctrl",

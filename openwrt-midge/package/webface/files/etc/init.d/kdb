@@ -62,4 +62,3 @@ if [ -n "$sys_ifaces_mac_base" -a -n "$sys_ifaces_mac_next" ]; then
 		fi
 	done
 fi
-

@@ -123,7 +123,8 @@ Controllers['dynamic_ifaces'] = function() {
 				"submitName": "Delete",
 				"noSubmit": true,
 				"onSubmit": function() {
-					config.delIface($("#del_iface").val());
+					if ($("#del_iface").val() != null) config.delIface($("#del_iface").val());
+					else return false;
 				}
 			});
 		}

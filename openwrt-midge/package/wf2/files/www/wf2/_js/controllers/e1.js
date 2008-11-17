@@ -145,7 +145,8 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 					"name": $.sprintf("sys_pcicfg_s%s_%s_ts16", pcislot, pcidev),
 					"id": "ts16",
 					"text": "Use time slot 16",
-					"onClick": onTS16Change
+					"onClick": onTS16Change,
+					"defaultState": "checked"
 				};
 				c.addWidget(field, framWidget);
 				framedWidgetsIDs.push("ts16");
