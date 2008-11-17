@@ -21,7 +21,6 @@ $(PKG_BUILD_DIR)/.prepared:
 	@echo "PKG_DIR="$(PKG_BUILD_DIR)
 	mkdir -p $(PKG_BUILD_DIR)
 	cp -R mr16h-drv $(PKG_BUILD_DIR)
-	cp -R dsl2eth_map $(PKG_BUILD_DIR)	
 	touch $@
 
 $(PKG_BUILD_DIR)/.configured:
