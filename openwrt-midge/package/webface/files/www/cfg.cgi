@@ -32,7 +32,8 @@ case "$act" in
 					echo "File imported successfully"
 				fi
 				rm -rf /tmp/etc
-				echo "<br><br><b>Device has to be rebooted.</b>"
+				echo "<br><br><b>Device is rebooting.</b>"
+				/sbin/reboot
 			else
 				echo "Error occured while import configuration"
 			fi
@@ -44,16 +45,20 @@ case "$act" in
 	default)
 		echo "Content-type: text/html"
 		echo 
-		cp /etc/kdb.default /etc/kdb
-		md5sum /etc/kdb |awk '{ print $1 }' > /etc/kdb.md5
+		
+		# remove KDB files. they will be restored from kdb.default on boot by /etc/init.d/kdb script
+		rm /etc/kdb
+		rm /etc/kdb.md5
+		
 		# Restore eocd state
-    		if [ -f /etc/eocd/eocd.conf ]; then
+		if [ -f /etc/eocd/eocd.conf ]; then
 		    cp /etc/eocd/eocd.conf.default /etc/eocd/eocd.conf
 		    killall -HUP eocd
 		fi
 		echo "<html><body>"
 		echo "<h2>Default configuration restored"
-		echo "<br><br><b>Device has to be rebooted.</b>"
+		echo "<br><br><b>Device is rebooting.</b>"
+		/sbin/reboot
 	;;
 esac
 		
