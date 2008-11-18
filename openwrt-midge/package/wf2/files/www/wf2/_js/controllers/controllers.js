@@ -32,7 +32,7 @@ Controllers['info'] = function() {
 				"type": "html",
 				"name": "version",
 				"text": "Firmware version",
-				"cmd": "/bin/cat /etc/version"
+				"str": config.getCachedOutput("/bin/cat /etc/version")
 			};
 			c.addWidget(field);
 			

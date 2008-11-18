@@ -614,17 +614,17 @@ function Container(p, options) {
 		showMsg();
 		
 		/* set event handlers to remove info message */
-		$("input, select", thisContainer.form).bind("click.tmp", function() {
+		$("input, select").bind("click.tmp", function() {
 			hideMsg();
 			
 			/* remove alert text */
-			$(".alertText", thisContainer.form).remove();
+			$(".alertText").remove();
 			
 			/* remove class indicating field updation */
-			$("*", thisContainer.form).removeClass("fieldUpdated");
+			$("*").removeClass("fieldUpdated");
 			
 			/* remove all events handlers */
-			$("input, select", thisContainer.form).unbind("click.tmp");
+			$("input, select").unbind("click.tmp");
 		});
 	};
 	
@@ -637,11 +637,11 @@ function Container(p, options) {
 			showMsg();
 			
 			/* set event handlers to remove info message */
-			$("input, select", thisContainer.form).bind("click.tmp", function() {
+			$("input, select").bind("click.tmp", function() {
 				hideMsg();
 				
 				/* remove all events handlers */
-				$("input, select", thisContainer.form).unbind("click.tmp");
+				$("input, select").unbind("click.tmp");
 			});
 			return true;
 		}

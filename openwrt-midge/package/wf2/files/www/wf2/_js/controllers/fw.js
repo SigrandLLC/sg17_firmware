@@ -31,26 +31,66 @@ Controllers['fw'] = function() {
 	 * 
 	 * list — current list to add new widget to (passed automatically by framework).
 	 */
-	var onChangeTarget = function(list) {
+	var onChangeTargetOrProto = function(list) {
+		var field;
+		
 		/* get type of target */
 		var target = $("#target").val();
 		
-		/* if target is DNAT or SNAT and there is no NatTo field — add it */
-		if ((target == "DNAT" || target == "SNAT") && $("#natto").length == 0) {
-			/* add new field */
-			var field = { 
-				"type": "text",
-				"name": "natto",
-				"id": "natto",
-				"text": "Nat to address",
-				"descr": target == "DNAT" ? "Do Destination NAT to address" : "Do Source NAT to address",
-				"validator": {"required": true, "ipAddrPort": true},
-				"tip": "You can add port number after ip address<br><i>Example: 192.168.0.1:80</i>"
-			};
-			list.addDynamicWidget(field, $("#dport").parents("tr"));
+		/* if target is DNAT or SNAT */
+		if (target == "DNAT" || target == "SNAT") {
+			/* if there is no NatTo field — add it */
+			if ($("#natto").length == 0) {
+				/* add new field */
+				field = { 
+					"type": "text",
+					"name": "natto",
+					"text": "Nat to address",
+					"descr": target == "DNAT" ? "Do Destination NAT to address" : "Do Source NAT to address",
+					"validator": {"required": true, "ipAddrPort": true},
+					"tip": "You can add port number after ip address<br><i>Example: 192.168.0.1:80</i>"
+				};
+				list.addDynamicWidget(field, $("#dst").parents("tr"));
+			}
 		/* remove field */
+		} else $("#natto").parents("tr").remove();
+		
+		/* get proto */
+		var proto = $("#proto").val();
+		
+		/* if protocol is TCP or UDP */
+		if (proto == "tcp" || proto == "udp") {
+			/* if there is no dport field (and in this case sport too) — add it */
+			if ($("#dport").length == 0) {
+				tip = "An inclusive range can also be specified, using the format <b>port:port</b>. " +
+						"If the first port is omitted, 0 is assumed; if the last is omitted, 65535 is assumed.";
+		
+				field = { 
+					"type": "text",
+					"name": "sport",
+					"text": "Source port",
+					"descr": "Source port or port range",
+					"validator": {"required": true, "ipPortRange": true},
+					"defaultValue": "any",
+					"tip": tip
+				};
+				list.addDynamicWidget(field, $("#proto").parents("tr"));
+				
+				field = { 
+					"type": "text",
+					"name": "dport",
+					"text": "Destination port",
+					"descr": "Destination port or port range",
+					"validator": {"required": true, "ipPortRange": true},
+					"defaultValue": "any",
+					"tip": tip
+				};
+				list.addDynamicWidget(field, $("#proto").parents("tr"));
+			}
+		/* remove fields */
 		} else {
-			$("#natto").parents("tr").remove();
+			$("#sport").parents("tr").remove();
+			$("#dport").parents("tr").remove();
 		}
 	};
 	
@@ -81,6 +121,17 @@ Controllers['fw'] = function() {
 		};
 		options['list'].addWidget(field);
 		
+		field = { 
+			"type": "select",
+			"name": "proto",
+			"text": "Protocol",
+			"descr": "A protocol of the packet to check",
+			"defaultValue": "all",
+			"options": "all tcp udp icmp",
+			"onChange": onChangeTargetOrProto
+		};
+		options['list'].addWidget(field);
+		
 		var tip = "Address can be either a network IP address (with /mask), or a plain IP address, " +
 				"A ! argument before the address specification inverts the sense of the address." +
 				"<br><b>Examples:</b> 192.168.1.0/24, 192.168.1.5<br> Use 0.0.0.0/0 for <b>any</b>";
@@ -107,43 +158,7 @@ Controllers['fw'] = function() {
 		};
 		options['list'].addWidget(field);
 		
-		field = { 
-			"type": "select",
-			"name": "proto",
-			"text": "Protocol",
-			"descr": "A protocol of the packet to check",
-			"defaultValue": "all",
-			"options": "all tcp udp icmp"
-		};
-		options['list'].addWidget(field);
-		
-		tip = "An inclusive range can also be specified, using the format <b>port:port</b>. " +
-				"If the first port is omitted, 0 is assumed; if the last is omitted, 65535 is assumed.";
-
-		field = { 
-			"type": "text",
-			"name": "sport",
-			"text": "Source port",
-			"descr": "Source port or port range",
-			"validator": {"required": true, "ipPortRange": true},
-			"defaultValue": "any",
-			"tip": tip
-		};
-		options['list'].addWidget(field);
-		
-		field = { 
-			"type": "text",
-			"name": "dport",
-			"id": "dport",
-			"text": "Destination port",
-			"descr": "Destination port or port range",
-			"validator": {"required": true, "ipPortRange": true},
-			"defaultValue": "any",
-			"tip": tip
-		};
-		options['list'].addWidget(field);
-		
-		var targets = "ACCEPT DROP REJECT";
+		var targets = "ACCEPT DROP";
 		
 		/* depending on chain add additional targets */
 		switch (options['chain']) {
@@ -154,17 +169,22 @@ Controllers['fw'] = function() {
 			case "POSTROUTING":
 				targets += " SNAT MASQUERADE";
 				break;
+			
+			case "INPUT":
+			case "OUTPUT":
+			case "FORWARD":
+				targets += " REJECT";
+				break;
 		}
 		
 		field = { 
 			"type": "select",
 			"name": "target",
-			"id": "target",
 			"text": "Action",
 			"descr": "What to do with packet",
 			"defaultValue": "ACCEPT",
 			"options": targets,
-			"onChange": onChangeTarget
+			"onChange": onChangeTargetOrProto
 		};
 		options['list'].addWidget(field);
 	};
@@ -218,7 +238,7 @@ Controllers['fw'] = function() {
 				"header": ["Name", "Src", "Dst", "Proto", "Src port", "Dst port", "Action"],
 				"varList": ["name", "src", "dst", "proto", "sport", "dport", "target"],
 				"listItem": "sys_fw_filter_forward_",
-				"onAddOrEditItemRender": onChangeTarget,
+				"onAddOrEditItemRender": onChangeTargetOrProto,
 				"addMessage": "Add rule to FORWARD chain",
 				"editMessage": "Edit rule in FORWARD chain",
 				"listTitle": "Filter, FORWARD chain",
@@ -244,7 +264,7 @@ Controllers['fw'] = function() {
 				"header": ["Name", "Src", "Dst", "Proto", "Src port", "Dst port", "Action"],
 				"varList": ["name", "src", "dst", "proto", "sport", "dport", "target"],
 				"listItem": "sys_fw_filter_input_",
-				"onAddOrEditItemRender": onChangeTarget,
+				"onAddOrEditItemRender": onChangeTargetOrProto,
 				"addMessage": "Add rule to INPUT chain",
 				"editMessage": "Edit rule in INPUT chain",
 				"listTitle": "Filter, INPUT chain",
@@ -270,7 +290,7 @@ Controllers['fw'] = function() {
 				"header": ["Name", "Src", "Dst", "Proto", "Src port", "Dst port", "Action"],
 				"varList": ["name", "src", "dst", "proto", "sport", "dport", "target"],
 				"listItem": "sys_fw_filter_output_",
-				"onAddOrEditItemRender": onChangeTarget,
+				"onAddOrEditItemRender": onChangeTargetOrProto,
 				"addMessage": "Add rule to OUTPUT chain",
 				"editMessage": "Edit rule in OUTPUT chain",
 				"listTitle": "Filter, OUTPUT chain",
@@ -330,7 +350,7 @@ Controllers['fw'] = function() {
 				"header": ["Name", "Src", "Dst", "Proto", "Src port", "Dst port", "Action"],
 				"varList": ["name", "src", "dst", "proto", "sport", "dport", "target"],
 				"listItem": "sys_fw_nat_prerouting_",
-				"onAddOrEditItemRender": onChangeTarget,
+				"onAddOrEditItemRender": onChangeTargetOrProto,
 				"addMessage": "Add rule to PREROUTING chain",
 				"editMessage": "Edit rule in PREROUTING chain",
 				"listTitle": "NAT, PREROUTING chain",
@@ -357,7 +377,7 @@ Controllers['fw'] = function() {
 				"header": ["Name", "Src", "Dst", "Proto", "Src port", "Dst port", "Action"],
 				"varList": ["name", "src", "dst", "proto", "sport", "dport", "target"],
 				"listItem": "sys_fw_nat_postrouting_",
-				"onAddOrEditItemRender": onChangeTarget,
+				"onAddOrEditItemRender": onChangeTargetOrProto,
 				"addMessage": "Add rule to POSTROUTING chain",
 				"editMessage": "Edit rule in POSTROUTING chain",
 				"listTitle": "NAT, POSTROUTING chain",

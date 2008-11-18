@@ -95,6 +95,8 @@ Controllers['dynamic_ifaces'] = function() {
 						parameters['vlanId'] = $("#vlan_id").val();
 					}
 					config.addIface(parameters);
+					
+					setIfaces();
 				}
 			});
 			
@@ -102,12 +104,17 @@ Controllers['dynamic_ifaces'] = function() {
 			var c2 = page.addContainer("dynamic_ifaces");
 			c2.addTitle("Delete dynamic network interface");
 			
-			var ifaces = new Array();
-			$.each(config.getParsed("sys_ifaces"), function(name, value) {
-				if (value.search(/\w+\d+v\d+/) != -1 || value.search(/eth|dsl|E1/) == -1) {
-					ifaces.push(value);
-				}
-			});
+			/* update list of ifaces for deletion */
+			var setIfaces = function() {
+				var ifaces = new Array();
+				$.each(config.getParsed("sys_ifaces"), function(name, value) {
+					if (value.search(/\w+\d+v\d+/) != -1 || value.search(/eth|dsl|E1/) == -1) {
+						ifaces.push(value);
+					}
+				});
+				
+				$("#del_iface").setOptionsForSelect(ifaces);
+			};
 			
 			field = { 
 				"type": "select",
@@ -115,15 +122,21 @@ Controllers['dynamic_ifaces'] = function() {
 				"id": "del_iface",
 				"text": "Interface",
 				"descr": "Interface to delete",
-				"options": ifaces
+				"options": ""
 			};
 			c2.addWidget(field);
+			
+			setIfaces();
 		
 			c2.addSubmit({
 				"submitName": "Delete",
 				"noSubmit": true,
 				"onSubmit": function() {
-					if ($("#del_iface").val() != null) config.delIface($("#del_iface").val());
+					if ($("#del_iface").val() != null) {
+						config.delIface($("#del_iface").val());
+						
+						setIfaces();
+					}
 					else return false;
 				}
 			});

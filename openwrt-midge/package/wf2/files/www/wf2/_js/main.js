@@ -11,6 +11,9 @@ var config = new Config();
 config.loadKDB();
 config.loadOEM();
 
+/* load firmware version */
+config.runCmd("/bin/cat /etc/version");
+
 /* check router every 5 seconds */
 config.startCheckStatus(5);
 

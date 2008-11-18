@@ -26,6 +26,24 @@ Controllers['iface'] = function(iface) {
 			c = page.addContainer("status");
 			c.addTitle("ARP");
 			c.addConsole("/usr/sbin/ip neigh show dev " + realIface);
+			
+			/* add additional info for bridge interface */
+			if (realIface.search(/^br/) != -1) {
+				page.addBr("status");
+				c = page.addContainer("status");
+				c.addTitle("System bridges");
+				c.addConsole("/usr/sbin/brctl show");
+				
+				page.addBr("status");
+				c = page.addContainer("status");
+				c.addTitle($.sprintf("Bridge %s info", realIface));
+				c.addConsole("/usr/sbin/brctl showmacs " + realIface);
+				
+				page.addBr("status");
+				c = page.addContainer("status");
+				c.addTitle($.sprintf("STP bridge %s info", realIface));
+				c.addConsole("/usr/sbin/brctl showstp " + realIface);
+			}
 		}
 	});
 	

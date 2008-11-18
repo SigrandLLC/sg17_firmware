@@ -16,15 +16,15 @@ start(){
 			
 			$MXCONFIG --iface $i --mxen "1" --clkab $clkab --clkm $clkm --clkr $clkr --rfs $rfs \
 --rline $rline --tfs $tfs --tline $tline $timeslots
+
+			# mxconfig can change mxsmap parameter, so update value, saved in KDB
+			if [ "x${i%%_[0-9]*}x" = "xE1x" ]; then
+				unset mxsmap
+				eval `mxconfig --iface $i --list |grep mxsmap |sed "s/$i://g"`
+				kdb set "sys_mux_${i}_mxsmap=$mxsmap"
+			fi
 		else
 			$MXCONFIG --iface $i --mxen "0"
-		fi
-		
-		# mxconfig can change mxsmap parameter, so update value, saved in KDB
-		if [ "x${i%%_[0-9]*}x" = "xE1x" ]; then
-			unset mxsmap
-			eval `mxconfig --iface $i --list |grep mxsmap |sed "s/$i://g"`
-			kdb set "sys_mux_${i}_mxsmap=$mxsmap"
 		fi
 	done
 }
