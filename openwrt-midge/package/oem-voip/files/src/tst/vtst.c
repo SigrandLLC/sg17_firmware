@@ -7,6 +7,7 @@
 #include <sys/poll.h>
 #include <unistd.h>
 #include <errno.h>
+#include <getopt.h>
 
 #include "ifx_types.h"
 #include "drv_tapi_io.h"
@@ -14,18 +15,280 @@
 #include "ab_api.h"
 #include "ab_ioctl.h"
 
-#define RTP_READ_MAX 512
+#define RTP_READ_MAX 1024
+#define ALAW_PT_DF 8
+#define MLAW_PT_DF 0
 
-struct g_status_s {
+#define ALAW_CFG_NAME "aLaw"
+#define MLAW_CFG_NAME "uLaw"
+#define G729_CFG_NAME "g729"
+#define VADOFF_CFG_NAME "off"
+#define VADON_CFG_NAME "on"
+#define VADG711_CFG_NAME "g711"
+#define VADCNG_CFG_NAME "cng_only"
+#define VADSC_CFG_NAME "sc_only"
+
+struct opts_s {/*{{{*/
+	int help;
+	codec_t vcod;
+	codec_t fcod;
+	int vol;
+	enum vad_cfg_e vad;
+	int hpf;
+} g_so;/*}}}*/
+
+struct status_s {/*{{{*/
 	int c1_is_offhook;
 	int c2_is_offhook;
 	int enc_dec_is_on;
 	int c1_id;
 	int c2_id;
 	int poll_fd_num;
-} g_status;
+} g_status;/*}}}*/
 
-/* start connection */
+int
+startup_init (int argc, char * const argv[])
+{/*{{{*/
+	int option_IDX;
+	int option_rez;
+	char * short_options = "hc:f:v:pa:";
+	struct option long_options[ ] = {
+		{ "help", no_argument, NULL, 'h' },
+		{ "vcod", required_argument, NULL, 'c' },
+		{ "fcod", required_argument, NULL, 'f' },
+		{ "volume", required_argument, NULL, 'v' },
+		{ "hpf", no_argument, NULL, 'p' },
+		{ "vad", required_argument, NULL, 'a' },
+		{ NULL, 0, NULL, 0 }
+	};
+
+
+	memset(&g_so, 0, sizeof(g_so));
+
+	/* Default values */
+	g_so.vcod.type = cod_type_G729;
+	g_so.vcod.sdp_selected_payload = 0x12;
+	g_so.vcod.pkt_size = cod_pkt_size_60;
+	g_so.fcod.type = cod_type_MLAW;
+	g_so.fcod.sdp_selected_payload = 0x0;
+	g_so.vol = 0;
+	g_so.hpf = 0;
+	g_so.vad = vad_cfg_OFF;
+
+	/* Get user values */
+	opterr = 0;
+	while ((option_rez = getopt_long ( 
+			argc, argv, short_options, long_options, &option_IDX)) != -1){
+		switch( option_rez ){
+		case 'h':
+			g_so.help = 1;
+			return 1;
+		case 'v':
+			g_so.vol = strtol(optarg, NULL, 10);
+			break;
+		case 'c':{
+			char * token = NULL;
+			token = strtok(optarg, "[:]");
+			if(token) {
+				if       ( !strcmp(token,ALAW_CFG_NAME)){
+					g_so.vcod.type = cod_type_ALAW;
+				} else if( !strcmp(token,MLAW_CFG_NAME)) {
+					g_so.vcod.type = cod_type_MLAW;
+				} else if( !strcmp(token,G729_CFG_NAME)) {
+					g_so.vcod.type = cod_type_G729;
+				/* }else if( !strcmp(token,"aLaw")) {
+					g_so.vcod.type = cod_type_ALAW;
+				} else if( !strcmp(token,"aLaw")) {
+					g_so.vcod.type = cod_type_ALAW;
+				} else if( !strcmp(token,"aLaw")) {
+					g_so.vcod.type = cod_type_ALAW;
+				} else if( !strcmp(token,"aLaw")) {
+					g_so.vcod.type = cod_type_ALAW;*/
+				} else {
+					return -1;
+				}
+			} else {
+				return -1;
+			}
+
+			token = strtok(NULL, "[:]");
+			if(token) {
+				g_so.vcod.sdp_selected_payload = strtol(token, NULL, 10);
+			} else {
+				return -1;
+			}
+
+			token = strtok(NULL, "[:]");
+			if(token) {
+				if       ( !strcmp(token,"2.5")){
+					g_so.vcod.pkt_size = cod_pkt_size_2_5;
+				} else if( !strcmp(token,"5")){
+					g_so.vcod.pkt_size = cod_pkt_size_5;
+				} else if( !strcmp(token,"5.5")){
+					g_so.vcod.pkt_size = cod_pkt_size_5_5;
+				} else if( !strcmp(token,"10")){
+					g_so.vcod.pkt_size = cod_pkt_size_10;
+				} else if( !strcmp(token,"11")){
+					g_so.vcod.pkt_size = cod_pkt_size_11;
+				} else if( !strcmp(token,"20")){
+					g_so.vcod.pkt_size = cod_pkt_size_20;
+				} else if( !strcmp(token,"30")){
+					g_so.vcod.pkt_size = cod_pkt_size_30;
+				} else if( !strcmp(token,"40")){
+					g_so.vcod.pkt_size = cod_pkt_size_40;
+				} else if( !strcmp(token,"50")){
+					g_so.vcod.pkt_size = cod_pkt_size_50;
+				} else if( !strcmp(token,"60")){
+					g_so.vcod.pkt_size = cod_pkt_size_60;
+				} else {
+					return -1;
+				}
+			} else {
+				return -1;
+			}
+			break;
+		}
+		case 'f':
+			if       ( !strcmp(optarg,ALAW_CFG_NAME)){
+				g_so.fcod.type = cod_type_ALAW;
+			} else if( !strcmp(optarg,MLAW_CFG_NAME)) {
+				g_so.fcod.type = cod_type_MLAW;
+			} else {
+				return -1;
+			}
+			break;
+		case 'p' :
+			g_so.hpf = 1;
+			break;
+		case 'a' :
+			if       ( !strcmp(optarg,VADOFF_CFG_NAME)){
+				g_so.vad = vad_cfg_OFF;
+			} else if( !strcmp(optarg,VADON_CFG_NAME)) {
+				g_so.vad = vad_cfg_ON;
+			} else if( !strcmp(optarg,VADG711_CFG_NAME)) {
+				g_so.vad = vad_cfg_G711;
+			} else if( !strcmp(optarg,VADCNG_CFG_NAME)) {
+				g_so.vad = vad_cfg_CNG_only;
+			} else if( !strcmp(optarg,VADSC_CFG_NAME)) {
+				g_so.vad = vad_cfg_SC_only;
+			} else {
+				return -1;
+			}
+			break;
+		case '?' :
+			return -1;
+		}
+	}
+
+	if(g_so.vcod.type == g_so.fcod.type){
+		g_so.fcod.sdp_selected_payload = g_so.vcod.sdp_selected_payload;
+	} else if(g_so.fcod.type == cod_type_ALAW){
+		g_so.fcod.sdp_selected_payload = ALAW_PT_DF;
+	} else if(g_so.fcod.type == cod_type_MLAW){
+		g_so.fcod.sdp_selected_payload = MLAW_PT_DF;
+	}
+
+	return 0;
+}/*}}}*/
+
+void
+startup_print (void)
+{/*{{{*/
+	fprintf(stderr,"Choosed configuration:\n");
+	fprintf(stderr,"====================================\n");
+	fprintf(stderr,"  Voice coder type   : ");
+	if       (g_so.vcod.type == cod_type_ALAW){
+		fprintf(stderr,"%s\n",ALAW_CFG_NAME);
+	} else if(g_so.vcod.type == cod_type_MLAW){
+		fprintf(stderr,"%s\n",MLAW_CFG_NAME);
+	} else if(g_so.vcod.type == cod_type_G729){
+		fprintf(stderr,"%s\n",G729_CFG_NAME);
+	}
+	fprintf(stderr,"  Voice coder payload: %d\n",
+			g_so.vcod.sdp_selected_payload);
+	fprintf(stderr,"  Voice coder pk size: ");
+	if       (g_so.vcod.pkt_size == 0){
+		fprintf(stderr,"2.5\n");
+	} else if(g_so.vcod.pkt_size == 1){
+		fprintf(stderr,"5\n");
+	} else if(g_so.vcod.pkt_size == 2){
+		fprintf(stderr,"5.5\n");
+	} else if(g_so.vcod.pkt_size == 3){
+		fprintf(stderr,"10\n");
+	} else if(g_so.vcod.pkt_size == 4){
+		fprintf(stderr,"11\n");
+	} else if(g_so.vcod.pkt_size == 5){
+		fprintf(stderr,"20\n");
+	} else if(g_so.vcod.pkt_size == 6){
+		fprintf(stderr,"30\n");
+	} else if(g_so.vcod.pkt_size == 7){
+		fprintf(stderr,"40\n");
+	} else if(g_so.vcod.pkt_size == 8){
+		fprintf(stderr,"50\n");
+	} else if(g_so.vcod.pkt_size == 9){
+		fprintf(stderr,"60\n");
+	}
+	fprintf(stderr,"============\n");
+	fprintf(stderr,"  Fax coder type     : ");
+	if       (g_so.fcod.type == cod_type_ALAW){
+		fprintf(stderr,"%s\n",ALAW_CFG_NAME);
+	} else if(g_so.fcod.type == cod_type_MLAW){
+		fprintf(stderr,"%s\n",MLAW_CFG_NAME);
+	}
+	fprintf(stderr,"  Fax coder payload  : %d\n",
+			g_so.fcod.sdp_selected_payload);
+	fprintf(stderr,"============\n");
+	fprintf(stderr,"  Voice activity detector: ");
+	if       (g_so.vad == vad_cfg_OFF){
+		fprintf(stderr,"%s\n",VADOFF_CFG_NAME);
+	} else if(g_so.vad == vad_cfg_ON){
+		fprintf(stderr,"%s\n",VADON_CFG_NAME);
+	} else if(g_so.vad == vad_cfg_G711){
+		fprintf(stderr,"%s\n",VADG711_CFG_NAME);
+	} else if(g_so.vad == vad_cfg_CNG_only){
+		fprintf(stderr,"%s\n",VADCNG_CFG_NAME);
+	} else if(g_so.vad == vad_cfg_SC_only){
+		fprintf(stderr,"%s\n",VADSC_CFG_NAME);
+	} 
+	fprintf(stderr,"  High-pass filter       : ");
+	if(g_so.hpf){
+		fprintf(stderr,"on\n");
+	} else {
+		fprintf(stderr,"off\n");
+	}
+	fprintf(stderr,"============\n");
+	fprintf(stderr,"  Volume gains       : %d\n",g_so.vol);
+	fprintf(stderr,"====================================\n");
+}/*}}}*/
+
+void 
+print_help(void)
+{/*{{{*/
+	printf("Use it with options:\n\
+\t-h, --help - help message.\n\
+==============================\n\
+\t-c, --vcod                   - set voice coder.\n\
+\t-f, --fcod                   - set fax data coder.\n\
+\t-v, --volume                 - set coder volume gains.\n\
+\t-p, --hpf                    - set turns on high-pass filter in decoder.\n\
+\t-a, --vad                    - set voice activity detector mode.\n\
+\n\
+\t\tvcod must be set in the format '[<type>:<pt>:<pkt_sz>]',\n\
+\t\t\twhere <type> is one of \"aLaw\",\"uLaw\" or \"g729\",\n\
+\t\t\t<pt> - any digit value, and\n\
+\t\t\t<pkt_size> can be \"2.5\",\"5\", \"5.5\", \"10\",\"11\",\n\
+\t\t\t\"\"20\",\"30\", \"40\",\"50\" and \"60\".\n\
+\t\tfcod must be set in the format '<type>',\n\
+\t\t\twhere <type> is one of \"aLaw\"or \"uLaw\".\n\
+\t\tvolume the digit from '-24' to '+24'\n\
+\t\thpf just switch on the filter - it is not required argument.\n\
+\t\tvad can be one of \"on\",\"off\",\"g711\",\"cng_only\" and \"sc_only\".\n\
+==============================\n\
+\t\tBy default the follow options are set:\n\
+\t\t--vcod='[g729:18:60]' --fcod='aLaw' --volume='0' --vad='off'\n\
+==============================\n");
+}/*}}}*/
+
 int 
 start_connection(ab_t * const ab)
 {/*{{{*/
@@ -42,19 +305,17 @@ start_connection(ab_t * const ab)
 		c2->rtp_cfg.evtPT =				0x62;
 	c1->rtp_cfg.evtPTplay = 
 		c2->rtp_cfg.evtPTplay =			0x62;
-	c1->rtp_cfg.cod_pt = 
-		c2->rtp_cfg.cod_pt =			cod_pt_ALAW;
 	c1->rtp_cfg.cod_volume.enc_dB = 
-		c2->rtp_cfg.cod_volume.enc_dB =	0;
+		c2->rtp_cfg.cod_volume.enc_dB = g_so.vol;
 	c1->rtp_cfg.cod_volume.dec_dB = 
-		c2->rtp_cfg.cod_volume.dec_dB =	0;
+		c2->rtp_cfg.cod_volume.dec_dB =	g_so.vol;
 	c1->rtp_cfg.VAD_cfg = 
-		c2->rtp_cfg.VAD_cfg =			vad_cfg_OFF;
+		c2->rtp_cfg.VAD_cfg =			g_so.vad;
 	c1->rtp_cfg.HPF_is_ON = 
-		c2->rtp_cfg.HPF_is_ON =			0;
+		c2->rtp_cfg.HPF_is_ON =			g_so.hpf;
 
-	err += ab_chan_media_rtp_tune(c1);
-	err += ab_chan_media_rtp_tune(c2);
+	err += ab_chan_media_rtp_tune(c1, &g_so.vcod, &g_so.fcod);
+	err += ab_chan_media_rtp_tune(c2, &g_so.vcod, &g_so.fcod);
 
 	/* start enc / dec */
 	err += ab_chan_media_switch (c1, 1,1);
@@ -63,7 +324,6 @@ start_connection(ab_t * const ab)
 	return err;
 }/*}}}*/
 
-/* stop connection */
 int 
 stop_connection(ab_t * const ab)
 {/*{{{*/
@@ -72,54 +332,6 @@ stop_connection(ab_t * const ab)
 	err += ab_chan_media_switch (&ab->chans[g_status.c1_id], 0,0);
 	err += ab_chan_media_switch (&ab->chans[g_status.c2_id], 0,0);
 	return err;
-}/*}}}*/
-
-void
-start_fax(ab_t * const ab,int chan_id)
-{/*{{{*/
-	IFX_TAPI_T38_MOD_DATA_t mod;
-	IFX_TAPI_T38_DEMOD_DATA_t demod;
-	int cfd = ab->chans[chan_id].rtp_fd;
-	int err;
-
-	/* config parameters */
-	memset (&mod, 0, sizeof(mod));
-	memset (&demod, 0, sizeof(demod));
-
-	mod.nStandard = 0x01;
-	mod.nSigLen = 500;
-
-	demod.nStandard1 = 0x01;
-	demod.nStandard2 = 0x09;
-	demod.nSigLen = 500;
-	
-	/* start FAX connection */
-	err = ioctl(cfd, IFX_TAPI_T38_MOD_START, &mod);
-	if(err != IFX_SUCCESS){
-		int error;
-		ioctl (cfd, FIO_VINETIC_LASTERR, &error);
-		fprintf (stderr,"IFX_TAPI_T38_MOD_START error: 0x%X\n", error);
-	}
-	err = ioctl(cfd, IFX_TAPI_T38_DEMOD_START, &demod);
-	if(err != IFX_SUCCESS){
-		int error;
-		ioctl (cfd, FIO_VINETIC_LASTERR, &error);
-		fprintf (stderr,"IFX_TAPI_T38_DEMOD_START error: 0x%X\n", error);
-	}
-}/*}}}*/
-
-void
-stop_fax(ab_t * const ab,int chan_id)
-{/*{{{*/
-	int err;
-
-	/* stop FAX connection */
-	err = ioctl(ab->chans[chan_id].rtp_fd, IFX_TAPI_T38_STOP,0);
-	if(err){
-		int error;
-		ioctl (ab->chans[chan_id].rtp_fd, FIO_VINETIC_LASTERR, &error);
-		fprintf (stderr,"IFX_TAPI_T38_STOP error: 0x%X\n", error);
-	}
 }/*}}}*/
 
 void
@@ -206,7 +418,7 @@ devact(ab_t * ab, int dev_id)
 	} 
 
 	/* if evt.ch == 0 -> chans[i+1] if 1 -> chans[i] */
-	chan_id = ((evt.ch + 1) % 2) + dev_id*ab->chans_per_dev;
+	chan_id = evt.ch + dev_id*ab->chans_per_dev;
 
 	if(evt.id == ab_dev_event_FXS_OFFHOOK){
 		/* OFFHOOK on some chan */
@@ -238,6 +450,10 @@ devact(ab_t * ab, int dev_id)
 		}
 
 		if(g_status.c1_is_offhook && g_status.c2_is_offhook){
+			/* tag__ 
+			fax_data_pump_start (ab,g_status.c1_id);
+			fax_data_pump_start (ab,g_status.c2_id);
+			*/
 			err = start_connection (ab);
 			if(err){
 				fprintf(stderr,"UP ERROR");
@@ -279,57 +495,18 @@ devact(ab_t * ab, int dev_id)
 				fprintf(stderr,"DOWN\n");	
 			}
 		}
-	} else {
-		if(evt.data == IFX_TAPI_EVENT_FAXMODEM_HOLDEND){
-			fprintf(stderr,"[%d/%d] : HOLDEND\n",dev_id,(evt.ch+1)%2);
-		} else if(evt.data == IFX_TAPI_EVENT_FAXMODEM_CED){
-			fprintf(stderr,"[%d/%d] : CED\n",dev_id,(evt.ch+1)%2);
-		} else if(evt.data == IFX_TAPI_EVENT_FAXMODEM_CEDEND){
-			fprintf(stderr,"[%d/%d] : CEDEND\n",dev_id,(evt.ch+1)%2);
-		} else if(evt.data == IFX_TAPI_EVENT_FAXMODEM_DIS){
-			fprintf(stderr,"[%d/%d] : DIS\n",dev_id,(evt.ch+1)%2);
-		} else if(evt.data == IFX_TAPI_EVENT_FAXMODEM_CNGFAX){
-			fprintf(stderr,"[%d/%d] : CNGFAX\n",dev_id,(evt.ch+1)%2);
-		} else if(evt.data == IFX_TAPI_EVENT_FAXMODEM_CNGMOD){
-			fprintf(stderr,"[%d/%d] : CNGMOD\n",dev_id,(evt.ch+1)%2);
-		} else {
-			fprintf(stderr,"UNCATCHED EVENT: [%d/%d] (%d| 0x%lX)\n", 
-					dev_id, evt.ch, evt.id, evt.data);
-		}
-#if 0
-		/* got CNGFAX / CEDEND */
-		if(evt.data == IFX_TAPI_EVENT_FAXMODEM_CEDEND ||
-				evt.data == IFX_TAPI_EVENT_FAXMODEM_CNGFAX){
-		} /* got DIS */ else if(evt.data == IFX_TAPI_EVENT_FAXMODEM_DIS){
-			if(g_status.enc_dec_is_on){
-				/*stop encoding - decoding*/
-				err = stop_connection(ab);
-				if(err){
-					fprintf(stderr,"DOWN ERROR");
-					exit(EXIT_FAILURE);
-				} else {
-					g_status.enc_dec_is_on = 0;
-					fprintf(stderr,"DOWN\n");	
-				}
-			}
+	} else if(evt.id == ab_dev_event_FXS_FM_CED){
+		if(evt.data == 0){
 			/*start fax transmitting*/
-			start_fax (ab,chan_id);
-		}/* got HOLDEND */ else if(evt.data == IFX_TAPI_EVENT_FAXMODEM_HOLDEND){
-			/*stop fax transmitting*/
-			stop_fax (ab,chan_id);
-			if( !g_status.enc_dec_is_on){
-				/*start voice*/
-				err = start_connection(ab);
-				if(err){
-					fprintf(stderr,"UP ERROR");
-					exit(EXIT_FAILURE);
-				} else {
-					g_status.enc_dec_is_on = 1;
-					fprintf(stderr,"UP\n");	
-				}
-			}
+			err = ab_chan_fax_pass_through_start
+					(&ab->chans[chan_id], g_so.fcod.type);
+			fprintf(stderr,"ab_chan_fax_pass_through_start() "
+					"on [%d] error: %s\n",
+					chan_id, ab_g_err_str);
 		}
-#endif
+	} else {
+		fprintf(stderr,"UNCATCHED EVENT: [%d/%d] (%d| 0x%lX)\n", 
+				dev_id, evt.ch, evt.id, evt.data);
 	}
 }/*}}}*/
 
@@ -390,6 +567,19 @@ main (int argc, char *argv[])
 {/*{{{*/
 	ab_t * ab;
 
+	int ret;
+	ret = startup_init (argc,argv);
+	if(ret == 1){
+		print_help();
+		return 0;
+	} else if(ret == -1){
+		printf("ERROR!\n");
+		print_help();
+		return 1;
+	}
+
+	startup_print();
+
 	ab = ab_create();
 	if(!ab) {
 		fprintf(stderr,"ERROR: %s\n", ab_g_err_str);
@@ -412,6 +602,7 @@ main (int argc, char *argv[])
 
 	fprintf(stderr,"THE END: %d:%s\n",ab_g_err_idx, ab_g_err_str);
 	ab_destroy(&ab);
+
 	return 0;
 }/*}}}*/
 

@@ -64,6 +64,11 @@ void startup_destroy( int argc, char ** argv );
 /** @addtogroup CFG_M
  *  @{*/
 /* g_conf inner definitions {{{*/
+/** Codecs massives sizes. 
+ * First unusing codec \c type will be set as \c codec_type_NONE.
+ * It should be greater then codecs count because application can 
+ * test the end of the list by \c == \c codec_type_NONE */
+#define COD_MAS_SIZE 5
 /* Address book only */
 /** Addressbook identifier standard length.*/
 #define ADBK_ID_LEN_DF	5 /* static or dynamic */
@@ -96,6 +101,16 @@ int  svd_conf_init( void );
 void conf_show( void );
 /** Destroy \ref g_conf.*/
 void svd_conf_destroy( void );
+
+/** Codec rtp and sdp parameters.*/ 
+typedef struct cod_prms_s {
+	cod_type_t type;
+	char sdp_name[COD_NAME_LEN];
+	int rate;
+} cod_prms_t;
+
+/** Initilize codecs parameters structure */
+int svd_init_cod_params( cod_prms_t * const cp );
 
 /* g_conf inner structures {{{*/
 /** Codec choose policy.*/
@@ -159,20 +174,28 @@ struct rtp_prms_s {
 /** SIP registration and codec choise policy.*/
 struct sip_settings_s {
 	unsigned char all_set; /**< Shall we register on sip server?*/
-	enum codec_type_e ext_codec; /**< Codec choise policy in internet calls.*/
+	codec_t ext_codecs[COD_MAS_SIZE];/**< Codecs sorted by priority in internet calls.*/
 	char registrar [REGISTRAR_LEN]; /**< SIP registrar address.*/
 	char user_name [USER_NAME_LEN]; /**< SIP user name.*/
 	char user_pass [USER_PASS_LEN]; /**< SIP user password.*/
 	char user_URI [USER_URI_LEN]; /**< SIP URI.*/
 	unsigned char sip_chan;/**< FXS Channel absolute id to catch sip call.*/
-};/*}}}*/
+};
+/** Fax parameters.*/
+struct fax_s {
+	enum cod_type_e codec_type;
+	int internal_pt;
+	int external_pt;
+};
+/*}}}*/
 
 /** Routine main configuration struct.*/
 struct svd_conf_s {/*{{{*/
 	char * self_number; /**< Pointer to corresponding rt.rec[].id.*/
 	char * self_ip; /**< Pointer to corresponding rt.rec[].value.*/
 	char log_level; /**< If log_level = -1 - do not log anything.*/
-	enum codec_type_e int_codec; /**< Codec choice policy in local calls.*/
+	codec_t int_codecs[COD_MAS_SIZE];/**< Codecs sorted by priority in local calls.*/
+	struct fax_s fax;/**< Fax parameters.*/
 	unsigned long rtp_port_first; /**< Min ports range bound for RTP.*/
 	unsigned long rtp_port_last; /**< Max ports range bound for RTP.*/
 	struct sip_settings_s sip_set; /**< SIP settings for registration.*/

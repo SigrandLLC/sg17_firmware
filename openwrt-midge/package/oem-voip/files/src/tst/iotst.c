@@ -298,8 +298,6 @@ write_mode(void)
 	char dnode_2[DEV_NODE_LENGTH];
 	int cfg_fd_1;
 	int cfg_fd_2;
-	unsigned short int var11, var12, var13;
-	unsigned short int var21, var22, var23;
 	unsigned short int wr_val = 1;
 	unsigned long int it_val = 1;
 
@@ -334,70 +332,6 @@ write_mode(void)
 		if(g_so.both){
 			ioctl(cfg_fd_2, FIO_VINETIC_TCA, wr_val);
 		}
-
-#if 0
-		/* read */
-		var11 = ioctl(cfg_fd_1, FIO_VINETIC_TCA, 0);
-		var12 = ioctl(cfg_fd_1, FIO_VINETIC_TCA, 0);
-		var13 = ioctl(cfg_fd_1, FIO_VINETIC_TCA, 0);
-		if(g_so.both){
-			var21 = ioctl(cfg_fd_2, FIO_VINETIC_TCA, 0);
-			var22 = ioctl(cfg_fd_2, FIO_VINETIC_TCA, 0);
-			var23 = ioctl(cfg_fd_2, FIO_VINETIC_TCA, 0);
-		}
-
-		if(g_so.wide == wide_byte){
-			int error1 = (
-					((byte_t)wr_val != (byte_t)var11) && 
-					((byte_t)wr_val != (byte_t)var12) && 
-					((byte_t)wr_val != (byte_t)var12));
-			int error2 = (
-					((byte_t)wr_val != (byte_t)var21) && 
-					((byte_t)wr_val != (byte_t)var22) && 
-					((byte_t)wr_val != (byte_t)var22));
-			if(error1){
-				fprintf(stderr,"\n[%ld]DEV_[%d] W/R fail: "
-						"W=0x%02X R1=0x%02X R2=0x%02X R3=0x%02X",
-						it_val, g_so.first_dev, (byte_t)wr_val, 
-						(byte_t)var11, (byte_t)var12, (byte_t)var13);
-			}
-			if(g_so.both && error2){
-				fprintf(stderr,"\n[%ld]DEV_[%d] Read fail: "
-						"W=0x%02X R1=0x%02X R2=0x%02X R3=0x%02X",
-						it_val, g_so.second_dev, (byte_t)wr_val, 
-						(byte_t)var21, (byte_t)var22, (byte_t)var23);
-			}
-			if(error1 || (g_so.both && error2)){
-				fprintf(stderr, "\n");
-				g_error_counter++;
-			}
-		} else {
-			int error1 = (
-					(wr_val != var11) || 
-					(wr_val != var12) || 
-					(wr_val != var12));
-			int error2 = (
-					(wr_val != var21) || 
-					(wr_val != var22) || 
-					(wr_val != var22));
-			if(error1){
-				fprintf(stderr,"\n[%ld]DEV_[%d] W/R fail: "
-						"W=0x%04X R1=0x%04X R2=0x%04X R3=0x%04X",
-						it_val, g_so.first_dev, wr_val, 
-						var11, var12, var13);
-			}
-			if(g_so.both && error2){
-				fprintf(stderr,"\n[%ld]DEV_[%d] Read fail: "
-						"W=0x%04X R1=0x%04X R2=0x%04X R3=0x%04X",
-						it_val, g_so.second_dev, wr_val, 
-						var21, var22, var23);
-			}
-			if(error1 || (g_so.both && error2)){
-				fprintf(stderr, "\n");
-				g_error_counter++;
-			}
-		}
-#endif
 		it_val++;
 		wr_val++;
 	}
@@ -610,7 +544,6 @@ main (int argc, char * const argv[])
 		} else {
 			wrrd_mode();
 		}
-
 	}
 
 	return 0;

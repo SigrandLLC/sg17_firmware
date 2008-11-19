@@ -18,6 +18,9 @@ typedef struct svd_chan_s svd_chan_t;
 #define SU_ROOT_MAGIC_T svd_t
 /*}}}*/
 
+/* Using in svd_cfg.h too.*/
+#define COD_NAME_LEN 15
+
 /* Includes {{{*/
 #include "config.h"
 #include "ab_api.h"
@@ -61,11 +64,21 @@ struct svd_chan_s
 		char addr_payload [ADDR_PAYLOAD_LEN]; /**< SIP number or other info.*/
 	} dial_status; /**< Dial status and values, gets in dial process.*/
 
-	int payload; /**< Selected payload.*/
+	codec_t vcod; /**< voice coder */
+	codec_t fcod; /**< faxmodem coder */
+
+	char sdp_cod_name[COD_NAME_LEN]; /**< SDP selected codec.*/
+	int sdp_payload; /**< SDP Selected payload.*/
 	int rtp_sfd; /**< RTP socket file descriptor.*/
 	int rtp_port; /**< Local RTP port.*/
 
-	char call_is_remote; /**< Caller in remote net.*/
+	enum calltype_e {
+		calltype_UNDEFINED, /**< call type was not defined */
+		calltype_LOCAL, /**< call in the local network */
+		calltype_REMOTE,/**< call to internet */
+	} call_type; /**< Remote or local call */
+	//char call_is_remote; /**< Caller in remote net.*/
+
 	int remote_port; /**< Remote RTP port.*/
 	char * remote_host; /**< Remote RTP host.*/
 

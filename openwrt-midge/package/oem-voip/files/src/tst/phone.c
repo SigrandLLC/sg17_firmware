@@ -114,7 +114,6 @@ int main (int argc, char *argv[])
 
 		fprintf(stderr,"\t---=========================---\n");	
 		fprintf(stderr,"\t---=== FXO_DEVICE_EVENTS ===---\n");	
-#if 0	
 				do {
 					unsigned char chan_avail;
 					err = ab_dev_event_get( 
@@ -158,9 +157,6 @@ int main (int argc, char *argv[])
 			}	
 		}
 				} while(evt.more);
-#else 
-		fprintf(stderr,"\tCUTED\n");	
-#endif 
 		fprintf(stderr,"\t---=========================---\n");	
 				break;
 			}

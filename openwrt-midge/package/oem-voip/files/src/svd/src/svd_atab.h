@@ -39,6 +39,8 @@ void svd_media_unregister (svd_t * const svd, ab_chan_t * const chan);
 int ab_chan_media_activate ( ab_chan_t * const chan );
 /** Stop encoding / decoding on given channel.*/
 int ab_chan_media_deactivate ( ab_chan_t * const chan );
+/** Get parameters of given codec type or name.*/
+cod_prms_t const * svd_cod_prms_get(enum cod_type_e ct ,char const * const cn);
 /** @}*/
 
 #endif /* __SVD_ATAB_H__ */

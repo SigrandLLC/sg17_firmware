@@ -7,17 +7,87 @@
 #include "ab_internal_v22.h"
 
 /**
-	Tune RTP parameters on given channel
-\param
-	chan - channel to operate on it
-	rtpp - RTP parameters
-\return 
-	0 in success case and other value otherwise
-\remark
-	returns the ioctl error value and writes error message
-*/
+ * \param[in,out] chan channel to operate on.
+ * \param[in] fcod codec for fax transmittion.
+ * \retval	0 in success.
+ * \retval	-1 if fail.
+ * \remark
+ *	Set coder type fo MLAW
+ *	Set Jitter Buffer fixed
+ *	Set WLEC type NE with NLP off
+ *	fcodt must be ALAW or MLAW
+ */ 
 int 
-ab_chan_media_rtp_tune( ab_chan_t * const chan )
+ab_chan_fax_pass_through_start( ab_chan_t * const chan, 
+		enum cod_type_e const fcodt )
+{/*{{{*/
+	IFX_TAPI_JB_CFG_t jbCfgData;
+	IFX_TAPI_WLEC_CFG_t lecConf;
+	IFX_TAPI_COD_TYPE_t encTypeData;
+	int cfd = chan->rtp_fd;
+	int err;
+	int err_sum = 0;
+
+	memset(&jbCfgData, 0, sizeof(jbCfgData));
+	memset(&encTypeData, 0, sizeof(encTypeData));
+	memset(&lecConf, 0, sizeof(lecConf));
+
+	if       (fcodt == cod_type_MLAW){
+		encTypeData = IFX_TAPI_COD_TYPE_MLAW;
+	} else if(fcodt == cod_type_ALAW){
+		encTypeData = IFX_TAPI_COD_TYPE_ALAW;
+	} else {
+		ab_err_set(AB_ERR_BAD_PARAM, "wrong fax coder");
+		err_sum++;
+		goto __exit;
+	}
+	/* Configure coder for fax/modem communications */
+	err = ioctl(cfd, IFX_TAPI_ENC_TYPE_SET, encTypeData);
+	if(err != IFX_SUCCESS){
+		ioctl (cfd, FIO_VINETIC_LASTERR, &ab_g_err_extra_value);
+		ab_err_set(AB_ERR_UNKNOWN, "IFX_TAPI_ENC_TYPE_SET");
+		err_sum++;
+	}
+
+	/* Reconfigure JB for fax/modem communications */
+	jbCfgData.nJbType = IFX_TAPI_JB_TYPE_FIXED;
+	jbCfgData.nPckAdpt = IFX_TAPI_JB_PKT_ADAPT_DATA;
+	err = ioctl(cfd, IFX_TAPI_JB_CFG_SET, &jbCfgData);
+	if(err != IFX_SUCCESS){
+		ioctl (cfd, FIO_VINETIC_LASTERR, &ab_g_err_extra_value);
+		ab_err_set(AB_ERR_UNKNOWN, "IFX_TAPI_JB_CFG_SET");
+		err_sum++;
+	}
+	
+	/* Reconfigure LEC for fax/modem communications */
+	lecConf.nType = IFX_TAPI_WLEC_TYPE_NE;
+	lecConf.bNlp = IFX_TAPI_LEC_NLP_OFF;
+	err =ioctl(cfd,IFX_TAPI_WLEC_PHONE_CFG_SET,&lecConf);
+	if(err != IFX_SUCCESS){
+		ioctl (cfd, FIO_VINETIC_LASTERR, &ab_g_err_extra_value);
+		ab_err_set(AB_ERR_UNKNOWN, "IFX_TAPI_WLEC_PHONE_CFG_SET");
+		err_sum++;
+	}
+__exit:
+	err = err_sum ? -1 : 0;
+	return err;
+}/*}}}*/
+
+
+/**
+ *	Tune RTP parameters on given channel
+ *
+ * \param[in,out] chan channel to operate on.
+ * \param[in] cod codec type and parameters.
+ * \param[in] fcod fax codec type and parameters.
+ * \retval	0 in success.
+ * \retval	-1 if fail.
+ * \remark
+ * 	from \c fcod using just \c type and \c sdp_selected_payload_type.
+ */ 
+int 
+ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
+		codec_t const * const fcod)
 {/*{{{*/
 	IFX_TAPI_PKT_RTP_PT_CFG_t rtpPTConf;
 	IFX_TAPI_PKT_RTP_CFG_t rtpConf;
@@ -26,6 +96,7 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan )
 	rtp_session_prms_t * rtpp = &chan->rtp_cfg;
 	int vad_param;
 	int hpf_param;
+	int fcodt;
 	int err_summary = 0;
 	int err;
 
@@ -34,84 +105,19 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan )
 	memset(&codVolume, 0, sizeof(codVolume));
 	memset(&encCfg, 0, sizeof(encCfg));
 
-	/* Payload types table */
-	rtpPTConf.nPTup [IFX_TAPI_COD_TYPE_MLAW] = 
-			rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_MLAW] = 
-			cod_pt_MLAW;
-	rtpPTConf.nPTup [IFX_TAPI_COD_TYPE_ALAW] = 
-			rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_ALAW] = 
-			cod_pt_ALAW;
-	rtpPTConf.nPTup [IFX_TAPI_COD_TYPE_G729] = 
-			rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_G729] = 
-			cod_pt_G729;
-	rtpPTConf.nPTup [IFX_TAPI_COD_TYPE_G726_16] = 
-			rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_G726_16] = 
-			cod_pt_G726_16;
-	rtpPTConf.nPTup [IFX_TAPI_COD_TYPE_G726_24] = 
-			rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_G726_24] = 
-			cod_pt_G726_24;
-	rtpPTConf.nPTup [IFX_TAPI_COD_TYPE_G726_32] = 
-			rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_G726_32] = 
-			cod_pt_G726_32;
-	rtpPTConf.nPTup [IFX_TAPI_COD_TYPE_G726_40] = 
-			rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_G726_40] = 
-			cod_pt_G726_40;
-
-	rtpConf.nSeqNr = 0;
-	rtpConf.nSsrc = 0;
-
-	/* set out-of-band (RFC 2833 packet) transmission type */
-	switch(rtpp->nEvents){
-	case evts_OOB_DEFAULT:
-		rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_DEFAULT;
-		break;
-	case evts_OOB_NO:
-		rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_NO;
-		break;
-	case evts_OOB_ONLY:
-		rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_ONLY;
-		break;
-	case evts_OOB_ALL:
-		rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_ALL;
-		break;
-	case evts_OOB_BLOCK:
-		rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_BLOCK;
-		break;
-	}
-
-	/* Configure payload type for RFC 2833 packets */
-	rtpConf.nEventPT = rtpp->evtPT;
-	rtpConf.nEventPlayPT = rtpp->evtPTplay;
-
-	/* What to do upon RFC 2833 packets reception */
-	switch(rtpp->nPlayEvents){
-	case play_evts_DEFAULT:
-		rtpConf.nPlayEvents = IFX_TAPI_PKT_EV_OOBPLAY_DEFAULT;
-		break;
-	case play_evts_PLAY:
-		rtpConf.nPlayEvents = IFX_TAPI_PKT_EV_OOBPLAY_PLAY;
-		break;
-	case play_evts_MUTE:
-		rtpConf.nPlayEvents = IFX_TAPI_PKT_EV_OOBPLAY_MUTE;
-		break;
-	case play_evts_APT_PLAY:
-		rtpConf.nPlayEvents = IFX_TAPI_PKT_EV_OOBPLAY_APT_PLAY;
-		break;
-	}
-
-	encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_20;
-
-	switch(rtpp->cod_pt){
-	case cod_pt_MLAW:
+	/* Payload types table and encCfg */
+	if       (cod->type == cod_type_MLAW){
 		encCfg.nEncType = IFX_TAPI_COD_TYPE_MLAW;
-		break;
-	case cod_pt_ALAW:
+	} else if(cod->type == cod_type_ALAW){
 		encCfg.nEncType = IFX_TAPI_COD_TYPE_ALAW;
-		break;
-	case cod_pt_G729:
+	} else if(cod->type == cod_type_G729){
 		encCfg.nEncType = IFX_TAPI_COD_TYPE_G729;
-		encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_10;
-		break;
+	} else if(cod->type == cod_type_NONE){
+		err_summary++;
+		ab_err_set(AB_ERR_BAD_PARAM, "codec type not set");
+		goto __exit;
+	}
+		/*
 	case cod_pt_G726_16:
 		encCfg.nEncType = IFX_TAPI_COD_TYPE_G726_16;
 		encCfg.AAL2BitPack = IFX_TAPI_COD_AAL2_BITPACK;
@@ -132,6 +138,79 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan )
 		encCfg.nEncType = IFX_TAPI_COD_TYPE_ILBC_133;
 		encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_30;
 		break;
+		*/
+	/* tuning voice transmission codec */
+	rtpPTConf.nPTup [encCfg.nEncType] = rtpPTConf.nPTdown [encCfg.nEncType] = 
+				cod->sdp_selected_payload;
+
+	if       (fcod->type == cod_type_MLAW){
+		fcodt = IFX_TAPI_COD_TYPE_MLAW;
+	} else if(fcod->type == cod_type_ALAW){
+		fcodt = IFX_TAPI_COD_TYPE_ALAW;
+	} else {
+		err_summary++;
+		ab_err_set(AB_ERR_UNKNOWN, "fax codec type must be aLaw or uLaw");
+		goto __exit;
+	}
+	/* tuning fax transmission codec */
+	rtpPTConf.nPTup [fcodt] = rtpPTConf.nPTdown [fcodt] = 
+			fcod->sdp_selected_payload;
+
+	rtpConf.nSeqNr = 0;
+	rtpConf.nSsrc = 0;
+
+	/* set out-of-band (RFC 2833 packet) transmission type */
+	if       (rtpp->nEvents == evts_OOB_DEFAULT){
+		rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_DEFAULT;
+	} else if(rtpp->nEvents == evts_OOB_NO){
+		rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_NO;
+	} else if(rtpp->nEvents == evts_OOB_ONLY){
+		rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_ONLY;
+	} else if(rtpp->nEvents == evts_OOB_ALL){
+		rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_ALL;
+	} else if(rtpp->nEvents == evts_OOB_BLOCK){
+		rtpConf.nEvents = IFX_TAPI_PKT_EV_OOB_BLOCK;
+	}
+
+	/* Configure payload type for RFC 2833 packets */
+	rtpConf.nEventPT = rtpp->evtPT;
+	rtpConf.nEventPlayPT = rtpp->evtPTplay;
+
+	/* What to do upon RFC 2833 packets reception */
+	if       (rtpp->nPlayEvents == play_evts_DEFAULT){
+		rtpConf.nPlayEvents = IFX_TAPI_PKT_EV_OOBPLAY_DEFAULT;
+	} else if(rtpp->nPlayEvents == play_evts_PLAY){
+		rtpConf.nPlayEvents = IFX_TAPI_PKT_EV_OOBPLAY_PLAY;
+	} else if(rtpp->nPlayEvents == play_evts_MUTE){
+		rtpConf.nPlayEvents = IFX_TAPI_PKT_EV_OOBPLAY_MUTE;
+	} else if(rtpp->nPlayEvents == play_evts_APT_PLAY){
+		rtpConf.nPlayEvents = IFX_TAPI_PKT_EV_OOBPLAY_APT_PLAY;
+	}
+
+	/* tag__ df - 20 - set in cfg_file
+	 * 729 - df 10 - set in cfg_file
+	 * encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_20; */
+
+	if       (cod->pkt_size == cod_pkt_size_2_5){
+		encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_2_5;
+	} else if(cod->pkt_size == cod_pkt_size_5){
+		encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_5;
+	} else if(cod->pkt_size == cod_pkt_size_5_5){
+		encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_5_5;
+	} else if(cod->pkt_size == cod_pkt_size_10){
+		encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_10;
+	} else if(cod->pkt_size == cod_pkt_size_11){
+		encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_11;
+	} else if(cod->pkt_size == cod_pkt_size_20){
+		encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_20;
+	} else if(cod->pkt_size == cod_pkt_size_30){
+		encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_30;
+	} else if(cod->pkt_size == cod_pkt_size_40){
+		encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_40;
+	} else if(cod->pkt_size == cod_pkt_size_50){
+		encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_50;
+	} else if(cod->pkt_size == cod_pkt_size_60){
+		encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_60;
 	}
 
 	/* Configure encoder and decoder gains */
@@ -287,6 +366,7 @@ fprintf(stderr," hpf off\n");
 		err_summary++;
 	}
 
+__exit:
 	if(err_summary){
 		err = -1;
 	}

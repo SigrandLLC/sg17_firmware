@@ -104,7 +104,7 @@ static void
 svd_parse_sdp(svd_t * const svd, ab_chan_t * const chan, char const * str);
 /** Create SDP string depends on codec choice policy.*/
 static char *
-svd_new_sdp_string (long const media_port, enum codec_type_e const ct);
+svd_new_sdp_string (long const media_port, enum calltype_e const ct);
 /** @}*/ 
 
 
@@ -258,7 +258,7 @@ DFE
 /********************************************************************** UAC */
 
 /**
- * Sends an outgoing INVITE request.
+ * Sends an outgoing INVITE request to localnet router.
  *
  * \param[in] svd 			context pointer.
  * \param[in] use_ff_FXO 	use first free fxo port on destination router.
@@ -294,6 +294,9 @@ DFS
 	strcat (to_str, "@");
 	strcat (to_str, chan_ctx->dial_status.route_ip);
 	
+	/* set call type as local */
+	chan_ctx->call_type = calltype_LOCAL;
+
 	/* send invite request */
 	err = svd_pure_invite (svd, &svd->ab->chans[chan_idx], 
 			from_str, to_str );
@@ -367,9 +370,9 @@ DFS
 		goto __exit_fail;
 	}
 
+	chan_ctx->call_type = calltype_REMOTE;
 
-	l_sdp_str = svd_new_sdp_string (chan_ctx->rtp_port, 
-			g_conf.sip_set.ext_codec);
+	l_sdp_str = svd_new_sdp_string (chan_ctx->rtp_port, chan_ctx->call_type);
 	if ( !l_sdp_str){
 		goto __exit_fail;
 	}
@@ -499,21 +502,14 @@ svd_answer(svd_t * const svd, ab_chan_t * const chan,
 DFS
 	if ( chan_ctx->op_handle ){
 		/* we have call to answer */
-		enum codec_type_e ct;
 
 		call_answered = 1;
 
 		/* register media waits and open sockets for rtp */
 		svd_media_register (svd, chan);
 
-		if(chan_ctx->call_is_remote){
-			ct = g_conf.sip_set.ext_codec;
-		} else {
-			ct = g_conf.int_codec;
-		}
-
 		/* have remote sdp make local */
-		l_sdp_str = svd_new_sdp_string (chan_ctx->rtp_port, ct);
+		l_sdp_str = svd_new_sdp_string (chan_ctx->rtp_port,chan_ctx->call_type);
 		if ( !l_sdp_str){
 			goto __exit;
 		}
@@ -521,7 +517,7 @@ DFS
 		nua_respond (chan_ctx->op_handle, status, phrase,
 				SOATAG_RTP_SORT (SOA_RTP_SORT_LOCAL),
 				SOATAG_RTP_SELECT (SOA_RTP_SELECT_SINGLE), 
-				TAG_IF(chan_ctx->call_is_remote && 
+				TAG_IF((chan_ctx->call_type == calltype_REMOTE) && 
 						svd->outbound_ip[0], 
 					SOATAG_ADDRESS(svd->outbound_ip)),
 				SOATAG_USER_SDP_STR (l_sdp_str),
@@ -630,7 +626,7 @@ DFS
 		goto __exit_fail;
 	}
 
-	l_sdp_str = svd_new_sdp_string (chan_ctx->rtp_port, g_conf.int_codec);
+	l_sdp_str = svd_new_sdp_string (chan_ctx->rtp_port, chan_ctx->call_type);
 	if ( !l_sdp_str){
 		goto __exit_fail;
 	}
@@ -821,7 +817,11 @@ DFS
 	chan_ctx->op_handle = nh;
 	nua_handle_bind (nh, req_chan);
 
-	chan_ctx->call_is_remote = call_is_remote;
+	if(call_is_remote){
+		chan_ctx->call_type = calltype_REMOTE;
+	} else {
+		chan_ctx->call_type = calltype_LOCAL;
+	}
 
 	if (req_chan->parent->type == ab_dev_type_FXS){
 		/* start ringing */
@@ -940,7 +940,6 @@ DFS
 
 	/* 18X sent (w/SDP) */
 		case nua_callstate_early:
-
 			if(chan->parent->type == ab_dev_type_FXO){
 				/* answer on call */
 				svd_answer (svd, chan, SIP_200_OK);
@@ -1106,8 +1105,8 @@ DFS
 		sdp_session_t * sdp_sess = NULL;
 		const char * pa_error = NULL;
 
-		remote_sdp = sdp_parse (svd->home, l_sdp_str, 
-				strlen(l_sdp_str), sdp_f_insane);
+		remote_sdp = sdp_parse (svd->home, l_sdp_str, strlen(l_sdp_str), 
+				sdp_f_insane);
 
 		pa_error = sdp_parsing_error (remote_sdp);
 		if (pa_error) {
@@ -1117,11 +1116,19 @@ DFS
 			sdp_sess = sdp_session (remote_sdp);
 			if (sdp_sess && sdp_sess->sdp_media && 
 					sdp_sess->sdp_media->m_rtpmaps){
-				((svd_chan_t *)(chan->ctx))->payload = 
-					sdp_sess->sdp_media->m_rtpmaps->rm_pt;
+				svd_chan_t * chan_ctx = (svd_chan_t *)(chan->ctx);
+				chan_ctx->sdp_payload = sdp_sess->sdp_media->m_rtpmaps->rm_pt;
+				memset(chan_ctx->sdp_cod_name,0,sizeof(chan_ctx->sdp_cod_name));
+				if(strlen(sdp_sess->sdp_media->m_rtpmaps->rm_encoding) < 
+						COD_NAME_LEN){
+					strncpy(chan_ctx->sdp_cod_name, 
+							sdp_sess->sdp_media->m_rtpmaps->rm_encoding,
+							COD_NAME_LEN);
+				} else {
+					SU_DEBUG_0((LOG_FNC_A("ERROR: Too long rm_encoding")));
+				}
 			}
 		}
-
 		sdp_parser_free (remote_sdp);
 	}
 
@@ -1325,11 +1332,23 @@ DFS
 		svd_chan_t * chan_ctx = chan->ctx;
 		chan_ctx->remote_port = sdp_sess->sdp_media->m_port;
 		chan_ctx->remote_host = su_strdup(svd->home,sdp_connection->c_address);
-		chan_ctx->payload = sdp_sess->sdp_media->m_rtpmaps->rm_pt;
-		SU_DEBUG_5(("Got remote %s:%d with payload %d\n",
+
+		chan_ctx->sdp_payload = sdp_sess->sdp_media->m_rtpmaps->rm_pt;
+		memset(chan_ctx->sdp_cod_name, 0, sizeof(chan_ctx->sdp_cod_name));
+		if(strlen(sdp_sess->sdp_media->m_rtpmaps->rm_encoding) < 
+				sizeof(chan_ctx->sdp_cod_name)){
+			strcpy(chan_ctx->sdp_cod_name, 
+					sdp_sess->sdp_media->m_rtpmaps->rm_encoding);
+		} else {
+			SU_DEBUG_0(("ERROR: SDP CODNAME string size too small\n"));
+			goto __exit;
+		}
+
+		SU_DEBUG_5(("Got remote %s:%d with coder/payload [%s/%d]\n",
 				chan_ctx->remote_host, 
 				chan_ctx->remote_port, 
-				chan_ctx->payload));
+				chan_ctx->sdp_cod_name, 
+				chan_ctx->sdp_payload));
 	}
 __exit:
 	sdp_parser_free (remote_sdp);
@@ -1342,42 +1361,106 @@ DFE
  * Creates SDP string according to given values.
  *
  * \param[in] 	media_port	port for RTP connection.
- * \param[in] 	ct 			codec choice policy.
+ * \param[in] 	ct 	call type.
  * \remark
  * 		It creates new SDP string. Memory should be freed outside of 
  * 		the function.
  */
 static char * 
-svd_new_sdp_string (long const media_port, enum codec_type_e const ct)
+svd_new_sdp_string (long const media_port, enum calltype_e const ct)
 {/*{{{*/
-	char * ret_str = malloc (SDP_STR_MAX_LEN);
+	char * ret_str = NULL; 
+	codec_t * cp = NULL;
+	int limit = SDP_STR_MAX_LEN;
+	int ltmp;
+	int i;
+
+#if 0
+	FOR EXAMPLE
+"v=0\r\n"
+"m=audio %d RTP/AVP 18 8 0\r\n"
+"a=rtpmap:18 G729/8000\r\n"
+"a=rtpmap:8 PCMA/8000\r\n"
+"a=rtpmap:0 PCMU/8000\r\n"
+#endif
+
+	ret_str = malloc (SDP_STR_MAX_LEN);
 	if( !ret_str){
 		SU_DEBUG_1 ((LOG_FNC_A(LOG_NOMEM_A("sdp_str"))));
-		goto __exit;
+		goto __exit_fail;
 	}
 	memset (ret_str, 0, SDP_STR_MAX_LEN);
 
-	switch(ct){
-		case codec_type_SPEED:
-			snprintf (ret_str, SDP_STR_MAX_LEN, 
-					"v=0\r\n"
-					"m=audio %d RTP/AVP 18 8 0\r\n"
-					"a=rtpmap:18 G729/8000\r\n"
-					"a=rtpmap:8 PCMA/8000\r\n"
-					"a=rtpmap:0 PCMU/8000\r\n",
-					media_port);
-			break;
-		case codec_type_QUALITY:
-			snprintf(ret_str, SDP_STR_MAX_LEN, 
-					"v=0\r\n"
-					"m=audio %d RTP/AVP 8 0 18\r\n"
-					"a=rtpmap:8 PCMA/8000\r\n"
-					"a=rtpmap:0 PCMU/8000\r\n"
-					"a=rtpmap:18 G729/8000\r\n",
-					media_port);
-			break;
+	if       (ct == calltype_LOCAL){
+		cp = &g_conf.int_codecs[0];
+	} else if(ct == calltype_REMOTE){
+		cp = &g_conf.sip_set.ext_codecs[0];
+	} else {
+		SU_DEBUG_0((LOG_FNC_A("ERROR: calltype still UNDEFINED")));
+		goto __exit_fail_allocated;
 	}
-__exit:
+
+	ltmp = snprintf (ret_str, limit, 
+			"v=0\r\n"
+			"m=audio %d RTP/AVP",media_port);
+	if(ltmp > -1 && ltmp < limit){
+		limit -= ltmp;
+	} else {
+		SU_DEBUG_0((LOG_FNC_A("ERROR: SDP string buffer too small")));
+		goto __exit_fail_allocated;
+	}
+
+	for(i=0; cp[i].type != cod_type_NONE; i++){
+		char pld_str[SDP_STR_MAX_LEN];
+		memset(pld_str, 0, sizeof(pld_str));
+		ltmp = snprintf(pld_str, SDP_STR_MAX_LEN, " %d", cp[i].user_payload);
+		if((ltmp == -1) || (ltmp >= SDP_STR_MAX_LEN)){
+			SU_DEBUG_0((LOG_FNC_A(
+					"ERROR: Codac PAYLOAD string buffer too small")));
+			goto __exit_fail_allocated;
+		} else if(ltmp >= limit){
+			SU_DEBUG_0((LOG_FNC_A("ERROR: SDP string buffer too small")));
+			goto __exit_fail_allocated;
+		}
+		strncat(ret_str, pld_str, limit);
+		limit -= ltmp;
+	}
+	if(limit > strlen("\r\n")){
+		strcat(ret_str,"\r\n");
+		limit -= strlen("\r\n");
+	} else {
+		SU_DEBUG_0((LOG_FNC_A("ERROR: SDP string buffer too small")));
+		goto __exit_fail_allocated;
+	}
+
+	for(i=0; cp[i].type != cod_type_NONE; i++){
+		char rtp_str[SDP_STR_MAX_LEN];
+		cod_prms_t const * cod_pr = NULL;
+
+		cod_pr = svd_cod_prms_get(cp[i].type, NULL);
+		if( !cod_pr){
+			SU_DEBUG_0((LOG_FNC_A("ERROR: Codec type UNKNOWN")));
+			goto __exit_fail_allocated;
+		}
+
+		memset(rtp_str, 0, sizeof(rtp_str));
+		ltmp = snprintf(rtp_str, SDP_STR_MAX_LEN, "a=rtpmap:%d %s/%d\r\n", 
+				cp[i].user_payload, cod_pr->sdp_name, cod_pr->rate);
+		if((ltmp == -1) || (ltmp >= SDP_STR_MAX_LEN)){
+			SU_DEBUG_0((LOG_FNC_A("ERROR: RTPMAP string buffer too small")));
+			goto __exit_fail_allocated;
+		} else if(ltmp >= limit){
+			SU_DEBUG_0((LOG_FNC_A("ERROR: SDP string buffer too small")));
+			goto __exit_fail_allocated;
+		}
+		strncat(ret_str, rtp_str, limit);
+		limit -= ltmp;
+	}
+
 	return ret_str;
+__exit_fail_allocated:
+	free(ret_str);
+__exit_fail:
+	return NULL;
 }/*}}}*/
 

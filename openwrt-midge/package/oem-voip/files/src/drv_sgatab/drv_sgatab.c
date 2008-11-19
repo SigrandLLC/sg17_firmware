@@ -54,6 +54,8 @@
 #define MR17VOIP8_ACCESS_MODE 	VIN_ACCESS_PARINTEL_MUX8
 #define MR17VOIP8_DEV_MEM_OFFSET 256
 
+#define MIN_BOARD_SLOT 2
+
 #define DEV_TYPE_MASK    0x3
 #define DEV_TYPE_LENGTH    2
 
@@ -256,8 +258,14 @@ pci_init( struct ab_board_dev_s * c_brd )
 
 	pci_read_config_word (c_brd->pci_dev, PCI_SUBSYSTEM_ID, 
 			&(c_brd->sub_id));
+	/* Becouse slot always starts from [2] (MIN_BOARD_SLOT) we always 
+	 * got channels absolute numbers from 17, 
+	 * thats not good - we wont it from zero.
 	c_brd->first_chan_idx = c_brd->slot * DEVS_PER_BOARD_MAX *
 			CHANS_PER_DEV + 1;
+	*/
+	c_brd->first_chan_idx = (c_brd->slot - MIN_BOARD_SLOT) * 
+			DEVS_PER_BOARD_MAX * CHANS_PER_DEV;
 	printk(KERN_INFO "%s: id=%x at bus - 0x%02x func - 0x%x\n", 
 			DEV_NAME, c_brd->pci_dev->device, 
 			c_brd->pci_dev->bus->number,

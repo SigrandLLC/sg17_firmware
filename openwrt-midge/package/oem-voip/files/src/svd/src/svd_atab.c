@@ -9,6 +9,7 @@
 #include "svd_cfg.h"
 #include "ab_api.h"
 #include "svd_ua.h"
+#include "svd_atab.h"
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -22,6 +23,14 @@
 
 #include "tapi/include/drv_tapi_io.h"
 /*}}}*/
+
+/** @defgroup MEDIA_INT Media helpers (internals).
+ *  @ingroup MEDIA 
+ *  It contains helper functions for media turning and activation.
+ *  @{*/
+/** Initiate voice and fax codec parameters on given channel.*/
+int svd_prepare_chan_codecs( ab_chan_t * const chan );
+/** @}*/ 
 
 /** @defgroup ATA_EVT ATA board events (internals).
  *  @ingroup ATA_B
@@ -42,6 +51,9 @@ static int svd_handle_event_FXS_DIGIT_X
 /** Process FXO Ring event.*/
 static int svd_handle_event_FXO_RINGING 
 		( svd_t * const svd, int const chan_idx );
+/** Process FXS Faxmodem CED event.*/
+static int svd_handle_event_FXS_FM_CED 
+		( svd_t * const svd, int const chan_idx, long const data );
 /** @}*/ 
 
 
@@ -345,12 +357,16 @@ DFS
 	memset (chan_ctx->dial_status.addr_payload, 0, size);
 
 	/* Caller remote or not */
-	chan_ctx->call_is_remote = 0;
+	chan_ctx->call_type = calltype_UNDEFINED;
 
 	/* SDP */
-	chan_ctx->payload = 0;
-	chan_ctx->rtp_port = 0;
+	chan_ctx->sdp_payload = -1;
+	memset(chan_ctx->sdp_cod_name,0,sizeof(chan_ctx->sdp_cod_name));
 
+	memset(&chan_ctx->vcod, 0, sizeof(chan_ctx->vcod));
+	memset(&chan_ctx->fcod, 0, sizeof(chan_ctx->fcod));
+
+	chan_ctx->rtp_port = 0;
 	chan_ctx->remote_port = 0;
 	if(chan_ctx->remote_host){
 		su_free (svd->home, chan_ctx->remote_host);
@@ -486,19 +502,20 @@ DFE
  * \sa ab_chan_media_deactivate().
  * \remark
  * 		It also tuning RTP modes according to channel parameters.
- * \todo
- *		\c cod_pt is enum and \c payload is int 
- * 		there we should make choise more verbosity then we add dinamic
- * 		codecs
  */ 
 int 
 ab_chan_media_activate ( ab_chan_t * const chan )
 {/*{{{*/
 	int err;
+	svd_chan_t * ctx = chan->ctx;
 
-	chan->rtp_cfg.cod_pt = ((svd_chan_t *)(chan->ctx))->payload;
+	err = svd_prepare_chan_codecs(chan);
+	if(err){
+		SU_DEBUG_1((LOG_FNC_A(
+				"ERROR: Could not prepare channel codecs params.")));
+	}
 
-	err = ab_chan_media_rtp_tune (chan);
+	err = ab_chan_media_rtp_tune (chan, &ctx->vcod, &ctx->fcod);
 	if(err){
 		SU_DEBUG_1(("Media_tune error : %s",ab_g_err_str));
 		goto __exit;
@@ -508,6 +525,7 @@ ab_chan_media_activate ( ab_chan_t * const chan )
 	if(err){
 		SU_DEBUG_1(("Media activate error : %s",ab_g_err_str));
 	}
+
 __exit:
 	return err;
 }/*}}}*/
@@ -531,6 +549,124 @@ ab_chan_media_deactivate ( ab_chan_t * const chan )
 }/*}}}*/
 
 /**
+ * It prepares chan voice coder and fax coder parameters.
+ *
+ * \param[in,out] chan channel to operate on it.
+ * \retval 0 Success.
+ * \retval -1 Fail.
+ */ 
+int 
+svd_prepare_chan_codecs( ab_chan_t * const chan )
+{/*{{{*/
+	svd_chan_t * ctx = chan->ctx;
+	codec_t * ct = NULL;
+	cod_prms_t const * cp = NULL;
+	int i;
+
+	/* prepare fcod */
+	ctx->fcod.type = g_conf.fax.codec_type;
+	if       (ctx->call_type == calltype_LOCAL){
+		ct = g_conf.int_codecs;
+		ctx->fcod.sdp_selected_payload = g_conf.fax.internal_pt;
+	} else if(ctx->call_type == calltype_REMOTE){
+		ct = g_conf.sip_set.ext_codecs;
+		ctx->fcod.sdp_selected_payload = g_conf.fax.external_pt;
+	} else if(ctx->call_type == calltype_UNDEFINED){
+		SU_DEBUG_1((LOG_FNC_A("Calltype still undefined, can`t start media")));
+		goto __exit_fail;
+	}
+
+	/* prepare vcod */
+	/* find codec type by sdp_name */
+	cp = svd_cod_prms_get(cod_type_NONE ,ctx->sdp_cod_name);
+	if( !cp){
+		SU_DEBUG_1((LOG_FNC_A("Can`t get codec params by name")));
+		goto __exit_fail;
+	}
+	ctx->vcod.type = cp->type;
+	ctx->vcod.sdp_selected_payload = ctx->sdp_payload;
+
+	for (i=0; ct[i].type!=cod_type_NONE; i++){
+		if(ct[i].type == cp->type){
+			ctx->vcod.pkt_size = ct[i].pkt_size;
+			break;
+		}
+	}
+
+	return 0;
+__exit_fail:
+	return -1;
+}/*}}}*/
+
+/**
+ * \param[in] ct codec type.
+ * \param[in] cn codec sdp name.
+ * \return cod_prms_t pointer.
+ * \retval NULL if fail.
+ * \retval valid_address if success.
+ * \remark
+ *	if  \code  ct == cod_type_NONE \endcode  or 
+ *	\code  cp == NULL \endcode, then you get parameters by 
+ *	other valid given value. If both are unset, then you get the next
+ *	codec`s parameters from the all, until you got the empty set. After
+ *	that all rounds again.
+ */ 
+cod_prms_t const * 
+svd_cod_prms_get(enum cod_type_e ct ,char const * const cn)
+{/*{{{*/
+	static int cp_inited = 0;
+	static int get_next = 0;
+	static cod_prms_t cp[COD_MAS_SIZE] = {0};
+	int i;
+	int ret_idx = -1;
+	int err;
+	int pass_type = 0;
+	int pass_name = 0;
+
+	if(ct == cod_type_NONE){
+		pass_type = 1;
+	}
+	if( !cn){
+		pass_name = 1;
+	}
+	if( !cp_inited){
+		err = svd_init_cod_params(cp);
+		if(err){
+			goto __exit_fail;
+		}
+		cp_inited = 1;
+	}
+
+	if(pass_type && pass_name){
+		ret_idx = get_next;
+		if(cp[get_next].type == cod_type_NONE){
+			get_next = 0;
+		} else {
+			get_next++;
+		}
+		goto __exit_success;
+	}
+
+	for (i=0; cp[i].type != cod_type_NONE; i++){
+		if(		(pass_type || (cp[i].type == ct)) &&
+				(pass_name || (!strcmp(cp[i].sdp_name, cn)))){
+			ret_idx = i;
+			break;
+		}
+	} 
+
+	if(ret_idx == -1){
+		goto __exit_fail;
+	}
+
+
+__exit_success:
+	return &cp[ret_idx];
+__exit_fail:
+	return NULL;
+}/*}}}*/
+
+/**
  * \param[in] svd 			svd context structure.
  * \param[in] w 			wait object, that emits.
  * \param[in] user_data 	device on witch event occures.
@@ -540,7 +676,7 @@ ab_chan_media_deactivate ( ab_chan_t * const chan )
  * 		It work with DIGITS and HOOKS  events on FXS 
  * 		and  RING event on FXO.
  * \todo
- * 		In ideal world it shold be reenterable or mutexes must be used.
+ * 		In ideal world it shold be reenterable or mutexes should be used.
  */ 
 static int
 svd_atab_handler (svd_t * svd, su_wait_t * w, su_wakeup_arg_t * user_data)
@@ -564,9 +700,9 @@ do{
 
 	dev_idx = ab_dev->idx - 1;
 	if (chan_av){
+		/* tag__ there should be ab_get_chan_idx() func ?? */
 		/* in evt.ch we have proper number of the chan */
-		chan_idx = dev_idx * svd->ab->chans_per_dev + 
-				(svd->ab->chans_per_dev - 1 - evt.ch);
+		chan_idx = dev_idx * svd->ab->chans_per_dev + evt.ch;
 	} else {
 		/* in evt.ch we do not have proper number of the chan 
 		 * because the event is the device event - not the chan event
@@ -574,37 +710,48 @@ do{
 		chan_idx = dev_idx * svd->ab->chans_per_dev;
 	}
 
-	/* in some errors we do not want to quit
-	 * assert( evt.more == 0 ); */
-
-	switch (evt.id){
-		case ab_dev_event_FXS_OFFHOOK:{
-			SU_DEBUG_0 (("Got fxs offhook event\n"));
-			err = svd_handle_event_FXS_OFFHOOK(svd, chan_idx);
-			break;
-		}
-		case ab_dev_event_FXS_ONHOOK:{
-			SU_DEBUG_0 (("Got fxs onhook event\n"));
-			err = svd_handle_event_FXS_ONHOOK(svd, chan_idx);
-			break;
-		}
-		case ab_dev_event_FXS_DIGIT_TONE:
-		case ab_dev_event_FXS_DIGIT_PULSE:{
-			err = svd_handle_event_FXS_DIGIT_X(svd, chan_idx, evt.data);
-			break;
-		}
-		case ab_dev_event_FXO_RINGING:{
-			SU_DEBUG_0 (("Got fxo ringing event\n"));
-			err = svd_handle_event_FXO_RINGING (svd, chan_idx);
-			break;
-		}
-		case ab_dev_event_UNCATCHED:{
-			DEBUG_CODE(
-				SU_DEBUG_2 (("Got unknown event : 0x%X on [%d/%d]\n",
-						evt.data, dev_idx+1,evt.ch+1 ));
-			);
-			break;
-		}
+	if(evt.id == ab_dev_event_FXS_OFFHOOK){
+		DEBUG_CODE(
+		SU_DEBUG_0 (("Got fxs offhook event: 0x%X on [%d/%d]\n",
+				evt.data, dev_idx,evt.ch ));
+		);
+		err = svd_handle_event_FXS_OFFHOOK(svd, chan_idx);
+	} else if(evt.id == ab_dev_event_FXS_ONHOOK){
+		DEBUG_CODE(
+		SU_DEBUG_0 (("Got fxs onhook event: 0x%X on [%d/%d]\n",
+				evt.data, dev_idx,evt.ch ));
+		);
+		err = svd_handle_event_FXS_ONHOOK(svd, chan_idx);
+	} else if(evt.id == ab_dev_event_FXS_DIGIT_TONE ||
+			  evt.id == ab_dev_event_FXS_DIGIT_PULSE){
+		err = svd_handle_event_FXS_DIGIT_X(svd, chan_idx, evt.data);
+	} else if(evt.id == ab_dev_event_FXO_RINGING){
+		DEBUG_CODE(
+		SU_DEBUG_0 (("Got fxo ringing event: 0x%X on [%d/%d]\n",
+				evt.data, dev_idx,evt.ch ));
+		);
+		err = svd_handle_event_FXO_RINGING (svd, chan_idx);
+	} else if(evt.id == ab_dev_event_FXS_FM_CED){
+		DEBUG_CODE(
+		SU_DEBUG_0 (("Got fxs ced event: 0x%X on [%d/%d]\n",
+				evt.data, dev_idx,evt.ch ));
+		);
+		err = svd_handle_event_FXS_FM_CED (svd, chan_idx, evt.data);
+	} else if(evt.id == ab_dev_event_COD){
+		DEBUG_CODE(
+		SU_DEBUG_0 (("Got coder event: 0x%X on [%d/%d]\n",
+				evt.data,dev_idx,evt.ch ));
+		);
+	} else if(evt.id == ab_dev_event_TONE){
+		DEBUG_CODE(
+		SU_DEBUG_0 (("Got tone event: 0x%X on [%d/%d]\n",
+				evt.data,dev_idx,evt.ch ));
+		);
+	} else if(evt.id == ab_dev_event_UNCATCHED){
+		DEBUG_CODE(
+		SU_DEBUG_0 (("Got unknown event : 0x%X on [%d/%d]\n",
+				evt.data, dev_idx,evt.ch ));
+		);
 	}
 }while(evt.more);
 
@@ -618,7 +765,6 @@ __exit_fail:
 DFE
 	return -1;
 }/*}}}*/
-
 
 /**
  * \param[in] svd 		svd context structure.
@@ -634,10 +780,6 @@ svd_handle_event_FXS_OFFHOOK( svd_t * const svd, int const chan_idx )
 	int err;
 
 DFS
-	DEBUG_CODE (
-		SU_DEBUG_3 (("OFFHOOK on channel [_%d_]\n ", ab_chan->abs_idx));
-	);
-
 	/* stop ringing */
 	err = ab_FXS_line_ring( ab_chan, ab_chan_ring_MUTE );
 	if (err){
@@ -703,9 +845,6 @@ svd_handle_event_FXS_ONHOOK( svd_t * const svd, int const chan_idx )
 	int err;
 
 DFS
-	DEBUG_CODE (
-		SU_DEBUG_3 (("ONHOOK on channel [_%d_]\n ", ab_chan->abs_idx));
-	);
 	/* say BYE on existing connection */
 	svd_bye(svd, ab_chan);
 
@@ -834,6 +973,37 @@ DFE
 	return -1;
 }/*}}}*/
 
+/**
+ * \param[in] svd 		svd context structure.
+ * \param[in] chan_idx 	channel on which event occures.
+ * \param[in] data 		event data (0 if cedend and 1 if ced).
+ * 		\retval -1	if somthing nasty happens.
+ * 		\retval 0 	if etherything ok.
+ */ 
+static int 
+svd_handle_event_FXS_FM_CED ( svd_t * const svd, int const chan_idx, 
+		long const data  )
+{/*{{{*/
+	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
+	int err;
+DFS
+	if( !data){ /* CEDEND */
+		err = ab_chan_fax_pass_through_start (ab_chan, g_conf.fax.codec_type);
+		if( err){
+			SU_DEBUG_1(("can`t start fax_pass_through on [_%d_]\n", 
+					ab_chan->abs_idx));
+			goto __exit_fail;
+		}
+	} else { /* CED */
+		/* empty now
+		 * maybe in the future try to start fax there */
+	}
+DFE
+	return 0;
+__exit_fail:
+DFE
+	return -1;
+}/*}}}*/
 
 /**
  * \param[out] svd	svd context structure to initialize channels in it`s ab.

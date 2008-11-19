@@ -10,6 +10,7 @@
 
 int ab_g_err_idx;
 char ab_g_err_str[ERR_STR_LENGTH];
+int ab_g_err_extra_value;
 
 static void ab_chan_status_init( ab_chan_t * const chan );
 static int get_devs_params (unsigned int * const devs_num, 

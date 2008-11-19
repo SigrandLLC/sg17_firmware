@@ -2,6 +2,8 @@
 #define __AB_API_H__
 
 typedef enum ab_dev_type_e ab_dev_type_t;
+typedef enum cod_type_e cod_type_t;
+typedef struct codec_s codec_t;
 typedef struct rtp_session_prms_s rtp_session_prms_t;
 typedef struct ab_chan_s ab_chan_t;
 typedef struct ab_dev_s ab_dev_t;
@@ -9,7 +11,41 @@ typedef struct ab_s ab_t;
 typedef struct ab_fw_s ab_fw_t;
 typedef struct ab_dev_event_s ab_dev_event_t;
 
-/** Codec default payload types */
+enum cod_type_e {
+	cod_type_NONE,
+	cod_type_MLAW,
+	cod_type_ALAW,
+	cod_type_G729,
+	/*
+	cod_type_G726_16,
+	cod_type_G726_24,
+	cod_type_G726_32,
+	cod_type_G726_40,
+	cod_type_ILBC_133,
+	*/
+};
+
+enum cod_pkt_size_e {
+	cod_pkt_size_2_5,
+	cod_pkt_size_5,
+	cod_pkt_size_5_5,
+	cod_pkt_size_10,
+	cod_pkt_size_11,
+	cod_pkt_size_20,
+	cod_pkt_size_30,
+	cod_pkt_size_40,
+	cod_pkt_size_50,
+	cod_pkt_size_60,
+};
+
+struct codec_s {
+	enum cod_type_e 	type;
+	enum cod_pkt_size_e pkt_size;
+	int user_payload;
+	int sdp_selected_payload;
+};
+
+/* Codec default payload types tag__ to remove
 enum cod_pt_e {
 	cod_pt_MLAW = 0,
 	cod_pt_ALAW = 8,
@@ -20,6 +56,7 @@ enum cod_pt_e {
 	cod_pt_G726_40 = 97,
 	cod_pt_ILBC_133 = 99,
 };
+ */
 enum evts_2833_e {
 	evts_OOB_DEFAULT,
 	evts_OOB_NO,
@@ -47,7 +84,7 @@ struct rtp_session_prms_s {
 	enum play_evts_2833_e nPlayEvents; /**< Out Of Band play configuration */
 	int evtPT; /**< rfc2833 outgoing events Payload type */
 	int evtPTplay; /**< rfc2833 incoming events Payload type */
-	enum cod_pt_e cod_pt;/**< Codec Payload type */
+	//enum cod_pt_e cod_pt;/**< Codec Payload type tag__ to remove */
 	struct cod_volume_s {
 		int enc_dB;
 		int dec_dB;
@@ -85,13 +122,16 @@ enum ab_chan_linefeed_e {
 };
 
 enum ab_dev_event_e {
-	ab_dev_event_NONE, /**< No event */
-	ab_dev_event_UNCATCHED, /**< Unknown event */
-	ab_dev_event_FXO_RINGING, /**< Ring on FXO */
-	ab_dev_event_FXS_DIGIT_TONE, /**< Dial a digit on FXS in tone mode */
-	ab_dev_event_FXS_DIGIT_PULSE, /**< Dial a digit on FXO in pulse mode */
-	ab_dev_event_FXS_ONHOOK, /**< Onhook on FXS */
-	ab_dev_event_FXS_OFFHOOK /**< Offhook on FXS */
+	ab_dev_event_NONE, /**< No event. */
+	ab_dev_event_UNCATCHED, /**< Unknown event. */
+	ab_dev_event_FXO_RINGING, /**< Ring on FXO. */
+	ab_dev_event_FXS_DIGIT_TONE, /**< Dial a digit on FXS in tone mode. */
+	ab_dev_event_FXS_DIGIT_PULSE, /**< Dial a digit on FXO in pulse mode. */
+	ab_dev_event_FXS_ONHOOK, /**< Onhook on FXS. */
+	ab_dev_event_FXS_OFFHOOK, /**< Offhook on FXS. */
+	ab_dev_event_FXS_FM_CED, /**< CED and CEDEND FAX events. */
+	ab_dev_event_COD, /**< Coder event. */
+	ab_dev_event_TONE, /**< Tone generator event. */
 };
 
 struct ab_chan_status_s {
@@ -153,6 +193,8 @@ struct ab_s {
 extern int ab_g_err_idx;
 /** global error characteristic string */
 extern char ab_g_err_str[ERR_STR_LENGTH];
+/** global error extra value (using in some cases) */
+extern int ab_g_err_extra_value;
 
 /** @defgroup AB_BASIC ACTIONS Basic libab interface
 	Basic interface.
@@ -196,8 +238,12 @@ int ab_dev_event_get(
 /** @defgroup AB_MEDIA Media libab interface.
 	Codecs RTP-frames etc.
   @{ */
+/** Tune rtp parameters for fax transmittion */
+int ab_chan_fax_pass_through_start( ab_chan_t * const chan,
+		enum cod_type_e const fcodt );
 /** Tune rtp parameters on selected chan */
-int ab_chan_media_rtp_tune( ab_chan_t * const chan );
+int ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
+		codec_t const * const fcod);
 /** Switch on/off media on selected chan */
 int ab_chan_media_switch( ab_chan_t * const chan,
 		unsigned char const enc_on, unsigned char const dec_on );

@@ -39,13 +39,21 @@
 static unsigned char g_err_no;
 /** @}*/ 
 
+/** @defgroup CFG_DF Default values.
+ *  @ingroup CFG_M
+ *  Some default values that will be set if they will not find in config file.
+ *  @{*/
+#define ALAW_PT_DF 0
+#define MLAW_PT_DF 8
+/** @}*/ 
 
 /** @defgroup CFG_N Config file text values.
  *  @ingroup CFG_M
  *  Text values that can be in config file.
  *  @{*/
-#define CONF_CODEC_SPEED "speed"
-#define CONF_CODEC_QUALITY "quality"
+#define CONF_CODEC_G729 "g729"
+#define CONF_CODEC_ALAW "aLaw"
+#define CONF_CODEC_MLAW "uLaw"
 #define CONF_OOB_DEFAULT "default"
 #define CONF_OOB_NO "in-band"
 #define CONF_OOB_ONLY "out-of-band"
@@ -75,8 +83,15 @@ static struct config_t route_cfg;
 static int self_values_init (void);
 /** Init logging configuration.*/
 static void log_init (void);
+/** Init codec_t from rec_set. */
+static void init_codec_el(struct config_setting_t const * const rec_set, 
+		codec_t * const cod);
+/** Init internas codecs.*/
+static int int_codecs_init (void);
 /** Init SIP configuration.*/
 static void sip_set_init (void);
+/** Init faxmodem parameters.*/
+static void fax_init (void);
 /** Init addres book configuration.*/
 static int address_book_init (void);
 /** Init hot line configuration.*/
@@ -194,7 +209,6 @@ startup_destroy( int argc, char ** argv )
 int 
 svd_conf_init( void )
 {/*{{{*/
-	char const * str_elem;
 	int err;
 
 	memset (&g_conf, 0, sizeof(g_conf));
@@ -214,16 +228,12 @@ svd_conf_init( void )
 	/* app.log */
 	log_init();
 
-	/* app.int_codec */
-	str_elem = config_lookup_string (&cfg, "app.int_codec");
-	if( !str_elem ){
-		g_conf.int_codec = codec_type_QUALITY;
-	} else if( !strcmp(str_elem, CONF_CODEC_SPEED) ){
-		g_conf.int_codec = codec_type_SPEED;
-	} else {
-		g_conf.int_codec = codec_type_QUALITY;
+	/* app.int_codecs */
+	err = int_codecs_init();
+	if( err ){
+		goto svd_conf_init__exit;
 	}
-	
+
 	/* app.rtp_port_first/last */
 	g_conf.rtp_port_first = config_lookup_int (&cfg, "app.rtp_port_first");
 	g_conf.rtp_port_last = config_lookup_int (&cfg, "app.rtp_port_last");
@@ -235,6 +245,9 @@ svd_conf_init( void )
 
 	/* app.sip_set */
 	sip_set_init();
+
+	/* app.fax_codec */
+	fax_init();
 	
 	/* app.address_book */
 	err = address_book_init();
@@ -309,26 +322,23 @@ conf_show( void )
 			g_conf.rtp_port_first,
 			g_conf.rtp_port_last));
 	
-	switch(g_conf.int_codec){
-		case codec_type_SPEED:
-			SU_DEBUG_3(("[Use fast codecs]\n"));
-			break;
-		case codec_type_QUALITY:
-			SU_DEBUG_3(("[Use best quality codecs]\n"));
-			break;
-	}
+	for (i=0; g_conf.int_codecs[i].type != cod_type_NONE; i++){
+		SU_DEBUG_3(("t:%d/sz%d/pt:0x%X\n",
+				g_conf.int_codecs[i].type,
+				g_conf.int_codecs[i].pkt_size,
+				g_conf.int_codecs[i].user_payload));
+	} 
 
 	SU_DEBUG_3(("SIP net : %d\n",g_conf.sip_set.all_set));
 	if(g_conf.sip_set.all_set){
-		SU_DEBUG_3((	"\tCodecs      : "));
-		switch(g_conf.sip_set.ext_codec){
-			case codec_type_SPEED:
-				SU_DEBUG_3(("'Speed'\n"));
-				break;
-			case codec_type_QUALITY:
-				SU_DEBUG_3(("'Quality'\n"));
-				break;
-		}
+		SU_DEBUG_3((	"\tCodecs:\n"));
+		for (i=0; g_conf.sip_set.ext_codecs[i].type != cod_type_NONE; i++){
+			SU_DEBUG_3(("t:%d/sz%d/pt:0x%X\n",
+					g_conf.sip_set.ext_codecs[i].type,
+					g_conf.sip_set.ext_codecs[i].pkt_size,
+					g_conf.sip_set.ext_codecs[i].user_payload));
+		} 
+
 		SU_DEBUG_3((	"\tRegistRar   : '%s'\n"
 				"\tUser/Pass   : '%s/%s'\n"
 				"\tUser_URI    : '%s'\n"
@@ -339,7 +349,6 @@ conf_show( void )
 				g_conf.sip_set.user_URI,
 				g_conf.sip_set.sip_chan));
 	}
-	
 
 	if(g_conf.address_book.records_num){
 		SU_DEBUG_3(("AddressBook :\n"));
@@ -424,6 +433,53 @@ svd_conf_destroy (void)
 	}
 
 	memset(&g_conf, 0, sizeof(g_conf));
+}/*}}}*/
+
+/**
+ * \param[out] cp codecs parameters.
+ * \retval 0 Success;
+ * \retval -1 Fail;
+ * \remark
+ * 	\c cp should be a pointer on the allocated memory for \c COD_MAS_SIZE
+ * 	elements.
+ */ 
+int 
+svd_init_cod_params( cod_prms_t * const cp )
+{/*{{{*/
+	int i;
+	memset(cp, 0, sizeof(*cp)*COD_MAS_SIZE);
+
+	for (i=0; i<COD_MAS_SIZE; i++){
+		cp[i].type = cod_type_NONE;
+	} 
+
+	/* G711 ALAW parameters. */
+	cp[0].type = cod_type_ALAW;
+	if(strlen("PCMA") >= COD_NAME_LEN){
+		goto __exit_fail;
+	}
+	strcpy(cp[0].sdp_name, "PCMA");
+	cp[0].rate = 8000;
+	
+	/* G711 MLAW parameters. */
+	cp[1].type = cod_type_MLAW;
+	if(strlen("PCMU") >= COD_NAME_LEN){
+		goto __exit_fail;
+	}
+	strcpy(cp[1].sdp_name, "PCMU");
+	cp[1].rate = 8000;
+
+	/* G729 parameters. */
+	cp[2].type = cod_type_G729;
+	if(strlen("G729") >= COD_NAME_LEN){
+		goto __exit_fail;
+	}
+	strcpy(cp[2].sdp_name, "G729");
+	cp[2].rate = 8000;
+
+	return 0;
+__exit_fail:
+	return -1;
 }/*}}}*/
 
 
@@ -530,23 +586,164 @@ __exit:
 }/*}}}*/
 
 /**
+ * Initilize one codec element from appropriate config setting.
+ *
+ * \param[in] rec_set config setting.
+ * \param[out] cod codec_t element to initilize.
+ */ 
+static void
+init_codec_el(struct config_setting_t const *const rec_set, codec_t *const cod)
+{/*{{{*/
+	char const * codel = NULL;
+	/* codec type */
+	codel = config_setting_get_string_elem (rec_set, 0);
+	if       ( !strcmp(codel, CONF_CODEC_G729)){
+		cod->type = cod_type_G729;
+	} else if( !strcmp(codel, CONF_CODEC_ALAW)){
+		cod->type = cod_type_ALAW;
+	} else if( !strcmp(codel, CONF_CODEC_MLAW)){
+		cod->type = cod_type_MLAW;
+	}
+
+	/* codec packet size */
+	codel = config_setting_get_string_elem (rec_set, 1);
+	if       ( !strcmp(codel, "2.5")){
+		cod->pkt_size = cod_pkt_size_2_5;
+	} else if( !strcmp(codel, "5")){
+		cod->pkt_size = cod_pkt_size_5;
+	} else if( !strcmp(codel, "5.5")){
+		cod->pkt_size = cod_pkt_size_5_5;
+	} else if( !strcmp(codel, "10")){
+		cod->pkt_size = cod_pkt_size_10;
+	} else if( !strcmp(codel, "11")){
+		cod->pkt_size = cod_pkt_size_11;
+	} else if( !strcmp(codel, "20")){
+		cod->pkt_size = cod_pkt_size_20;
+	} else if( !strcmp(codel, "30")){
+		cod->pkt_size = cod_pkt_size_30;
+	} else if( !strcmp(codel, "40")){
+		cod->pkt_size = cod_pkt_size_40;
+	} else if( !strcmp(codel, "50")){
+		cod->pkt_size = cod_pkt_size_50;
+	} else if( !strcmp(codel, "60")){
+		cod->pkt_size = cod_pkt_size_60;
+	}
+
+	/* codec payload type */
+	cod->user_payload = config_setting_get_int_elem (rec_set, 2);
+}/*}}}*/
+
+/**
+ * Init`s internal codec sequence in main routine configuration 
+ * \ref g_conf structure.
+ *
+ * \retval 0 in success case
+ * \retval -1 in error case
+ */ 
+static int 
+int_codecs_init ( void )
+{/*{{{*/
+	struct config_setting_t * set;
+	struct config_setting_t * rec_set;
+	int rec_num;
+	int i;
+
+	/* set all to NONE */
+	memset(g_conf.int_codecs, 0, sizeof(g_conf.int_codecs));
+	for (i=0; i<COD_MAS_SIZE; i++){
+		g_conf.int_codecs[i].type = cod_type_NONE;
+	} 
+
+	set = config_lookup (&cfg, "app.int_codecs" );
+	if( !set ){
+		SU_DEBUG_0(("No app.int_codecs entries in config file"));
+		goto __exit_fail;
+	} 
+	rec_num = config_setting_length (set);
+
+	/* init one by one */
+	for (i=0; i<rec_num; i++){
+		rec_set = config_setting_get_elem (set, i);
+		init_codec_el(rec_set, &g_conf.int_codecs[i]);
+	} 
+	return 0;
+__exit_fail:
+	return -1;
+}/*}}}*/
+
+/**
+ * \remark
+ *	It should be run after internal and external codec initializations.
+ */ 
+void
+fax_init ( void )
+{/*{{{*/
+	char const * ct = NULL;
+	int i;
+	ct = config_lookup_string (&cfg, "app.fax_codec");
+
+	/* set type and standart payload type values */
+	if       ( !strcmp(ct, CONF_CODEC_ALAW)){
+		g_conf.fax.codec_type = cod_type_ALAW;
+		g_conf.fax.internal_pt = g_conf.fax.external_pt = ALAW_PT_DF;
+	} else if( !strcmp(ct, CONF_CODEC_MLAW)){
+		g_conf.fax.codec_type = cod_type_MLAW;
+		g_conf.fax.internal_pt = g_conf.fax.external_pt = MLAW_PT_DF;
+	} else {
+		SU_DEBUG_2(("Wrong codec type for fax '%s'",ct));
+		return;
+	}
+
+	/* set internal fax payload type if it defined in config file */
+	for (i=0; g_conf.int_codecs[i].type!=cod_type_NONE; i++){
+		if(g_conf.int_codecs[i].type == g_conf.fax.codec_type){
+			g_conf.fax.internal_pt = g_conf.int_codecs[i].user_payload;
+			break;
+		}
+	} 
+	/* set external fax payload type if it defined in config file */
+	if(g_conf.sip_set.all_set){
+		for (i=0; g_conf.sip_set.ext_codecs[i].type!=cod_type_NONE; i++){
+			if(g_conf.sip_set.ext_codecs[i].type == g_conf.fax.codec_type){
+				g_conf.fax.external_pt = 
+						g_conf.sip_set.ext_codecs[i].user_payload;
+				break;
+			}
+		} 
+	}
+}/*}}}*/
+
+/**
  * Init`s SIP settings in main routine configuration \ref g_conf structure.
  */
 static void
 sip_set_init( void )
 {/*{{{*/
-	char const * str_elem;
+	struct config_setting_t * set = NULL;
+	struct config_setting_t * rec_set = NULL;
+	char const * str_elem = NULL;
+	int i;
+	int rec_num;
 
 	g_conf.sip_set.all_set = 0;
 
+	/* set all to NONE */
+	memset(g_conf.sip_set.ext_codecs, 0, sizeof(g_conf.sip_set.ext_codecs));
+	for (i=0; i<COD_MAS_SIZE; i++){
+		g_conf.sip_set.ext_codecs[i].type = cod_type_NONE;
+	} 
+
 	/* app.ext_codec */
-	str_elem = config_lookup_string (&cfg, "app.ext_codec");
-	if( !str_elem ){
-		g_conf.sip_set.ext_codec = codec_type_SPEED;
-	} else if( !strcmp(str_elem, CONF_CODEC_SPEED) ){
-		g_conf.sip_set.ext_codec = codec_type_SPEED;
-	} else {
-		g_conf.sip_set.ext_codec = codec_type_QUALITY;
+	set = config_lookup (&cfg, "app.ext_codecs");
+	if( !set){
+		goto __exit;
+	}
+	rec_num = config_setting_length (set);
+
+	/* init one by one */
+	for (i=0; i<rec_num; i++){
+		rec_set = config_setting_get_elem (set, i);
+		init_codec_el(rec_set, &g_conf.sip_set.ext_codecs[i]);
 	} 
 
 	/* app.sip_registrar */
