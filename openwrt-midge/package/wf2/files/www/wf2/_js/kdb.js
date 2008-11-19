@@ -145,6 +145,7 @@ function KDBQueue() {
  */
 function Config() {
 	var online = true;
+	var outer = this;
 	var offlineMessage = _("Router is OFFLINE! Check that router is available via your network.");
 	var kdbQueue = new KDBQueue();
 	var cmdCache = new CmdCache();
@@ -206,7 +207,6 @@ function Config() {
 	 * Save values to local KDB.
 	 */
 	this.saveVals = function(fields) {
-		var outer = this;
 		$.each(fields, function(num, field) {
 			outer.conf[field['name']] = field['value'];
 		});
@@ -258,7 +258,6 @@ function Config() {
 	 * parse — if true, returns parsed values, otherwise returns raw values.
 	 */
 	this.getByRegexp = function(regexp, parse) {
-		var outer = this;
 		var result = new Object();
 		$.each(this.conf, function(key, value) {
 			if (regexp.test(key)) {
@@ -279,7 +278,6 @@ function Config() {
 	 * Deletes keys from local KDB by regexp.
 	 */
 	this.delByRegexp = function(regexp) {
-		var outer = this;
 		$.each(this.conf, function(key, value) {
 			if (regexp.test(key)) {
 				delete outer.conf[key];
@@ -314,14 +312,19 @@ function Config() {
 	};
 	
 	/*
-	 * Parse config file. Decodes KDB special characters.
+	 * Parse data with format:
+	 *  sys_pcitbl_s0004_ifnum=2\n
+     *  sys_pcitbl_s0004_iftype=mr17h
+	 * 
+	 * Decodes KDB special characters.
+	 * Returns hash with parsed data.
 	 * 
 	 * data — data to parse.
-	 * config — where to write parsed values.
 	 */
-	this.parseConfig = function(data, config) {
+	this.parseData = function(data) {
+		var config = new Object();
+		
 		var lines = data.split("\n");
-		var outer = this;
 		$.each(lines, function(name, line) {
 			if (line == "KDB" || line.length == 0) return true;
 			var record = line.split("=");
@@ -334,6 +337,8 @@ function Config() {
 				config[record[0]] = outer.replaceSpecialChars(value);
 			}
 		});
+		
+		return config;
 	};
 	
 	/* 
@@ -387,14 +392,24 @@ function Config() {
 	 * Load KDB file from router.
 	 */
 	this.loadKDB = function() {
-		this.conf = new Object();
-		var url = "sh/kdb_load.cgi";
-		this.parseConfig($.ajax({
+		this.conf = this.parseData($.ajax({
 			type: "GET",
-			url: url,
+			url: "sh/kdb_load.cgi",
 			dataType: "text",
 			async: false
-		}).responseText, this.conf);
+		}).responseText);
+	};
+	
+	/*
+	 * Load OEM file from router.
+	 */
+	this.loadOEM = function() {
+		this.oem = this.parseData($.ajax({
+			type: "GET",
+			url: "sh/oem_load.cgi",
+			dataType: "text",
+			async: false
+		}).responseText);
 	};
 	
 	/*
@@ -410,7 +425,10 @@ function Config() {
 		});
 		
 		/* execute command */
-		var newVals = cmdExecute($.sprintf("/usr/bin/kdb %s", kdbArg), {"sync": true}).split("<br>");
+		var newVals = cmdExecute({
+			"cmd": $.sprintf("/usr/bin/kdb %s", kdbArg),
+			"async": false
+		}).split("\n");
 		
 		/* update keys in local KDB with new values */
 		var conf = this.conf;
@@ -420,24 +438,9 @@ function Config() {
 	};
 	
 	/*
-	 * Load OEM file from router.
-	 */
-	this.loadOEM = function() {
-		this.oem = new Object();
-		var url = "sh/oem_load.cgi";
-		this.parseConfig($.ajax({
-			type: "GET",
-			url: url,
-			dataType: "text",
-			async: false
-		}).responseText, this.oem);
-	};
-	
-	/*
 	 * Update list of network interfaces.
 	 * Private function.
 	 */
-	var outer = this;
 	var updateIfaces = function() {
 		/* get "valid" records for interfaces */
 		var validIfaces = config.getByRegexp(/(sys_iface_)*(_valid)/);
@@ -473,8 +476,6 @@ function Config() {
 			alert(offlineMessage);
 			return;
 		}
-		
-		var outer = this;
 		
 		/* return next interface name for given protocol */
 		var getNextIface = function(proto) {
@@ -592,7 +593,8 @@ function CmdCache() {
 	 * This can be usefull if cmd is too long or complex.
 	 */
 	this.runCmd = function(cmd, alias) {
-		cmdExecute(cmd, {
+		cmdExecute({
+			"cmd": cmd,
 			"callback": function(data) {
 				cache[alias ? alias : cmd] = data;
 			}
@@ -603,6 +605,6 @@ function CmdCache() {
 	 * Get output of cmd.
 	 */
 	this.getCachedOutput = function(cmd) {
-		return cache[cmd] ? cache[cmd] : cmdExecute(cmd, {"sync": true});
+		return cache[cmd] ? cache[cmd] : cmdExecute({"cmd": cmd, "async": false});
 	};
 };

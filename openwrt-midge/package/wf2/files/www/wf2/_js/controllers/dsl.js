@@ -1,4 +1,6 @@
 Controllers['dsl'] = function(iface, pcislot, pcidev) {
+	var eocInfoCmd = "/sbin/eoc-info";
+	
 	var page = this.Page();
 	page.setHelpPage("dsl");
 	page.setSubsystem($.sprintf("dsl.%s.%s", pcislot, pcidev));
@@ -253,7 +255,10 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		c.addTitle(getSg17Title(pwrPresence) + "status");
 		
 		/* get link state */
-		var link = cmdExecute($.sprintf("/bin/cat %s/link_state", confPath), {"sync": true});
+		var link = cmdExecute({
+			"cmd": $.sprintf("/bin/cat %s/link_state", confPath),
+			"async": false
+		});
 		
 		field = {
 			"type": "html",
@@ -314,13 +319,16 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 			c.addWidget(field);
 			
 			/* statistics */
-			var stat = cmdExecute($.sprintf("/bin/cat %s/statistics_row", confPath), {"sync": true}).split(" ");
+			
 			field = {
 				"type": "html",
 				"name": "snrMargin",
 				"text": "SNR margin",
 				"descr": "Signal/Noise ratio margin",
-				"str": $.sprintf("%s dB", stat[0])
+				"cmd": $.sprintf("/bin/cat %s/statistics_row", confPath),
+				"dataFilter": function(data) {
+					return data.split(" ")[0]
+				}
 			};
 			c.addWidget(field);
 			
@@ -328,13 +336,20 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 				"type": "html",
 				"name": "loopAttn",
 				"text": "Loop attenuation",
-				"str": $.sprintf("%s dB", stat[1])
+				"cmd": $.sprintf("/bin/cat %s/statistics_row", confPath),
+				"dataFilter": function(data) {
+					return data.split(" ")[1]
+				}
 			};
 			c.addWidget(field);
 		}
 		
 		/* PBO */
-		var pboMode = cmdExecute($.sprintf("/bin/cat %s/pbo_mode", confPath), {"sync": true});
+		var pboMode = cmdExecute({
+			"cmd": $.sprintf("/bin/cat %s/pbo_mode", confPath),
+			"async": false
+		});
+		
 		if (pboMode == "Forced") {
 			field = {
 				"type": "html",
@@ -695,6 +710,34 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 			}
 		}
 	});
+	
+	var showStatistics = function(eocInfo) {
+		var c = page.addContainer("statistics");
+		c.addTitle(iface + " statistics " + eocInfo['link']);
+	};
+	
+	/* add statistics tab for MR17H */
+	if (type == config.getOEM("MR17H_DRVNAME")) {
+		page.addTab({
+			"id": "statistics",
+			"name": "Statistics",
+			"func": function() {
+				/* do not show statistics for manual-controlled interfaces */
+				if (config.get($.sprintf("sys_pcicfg_s%s_%s_ctrl", pcislot, pcidev)) == "manual") {
+					var c = page.addContainer("statistics");
+					c.setHelpPage("eoc");
+					c.addTitle("Statistics is available only for interfaces with EOCd control.");
+					return;
+				}
+				
+				cmdExecute({
+					"cmd": $.sprintf("%s -ri%s", eocInfoCmd, iface),
+					"callback": showStatistics,
+					"filter": config.parseData
+				});
+			}
+		});
+	}
 	
 	page.generateTabs();
 };

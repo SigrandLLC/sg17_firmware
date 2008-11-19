@@ -136,59 +136,64 @@ function popup(url) {
 }
 
 /*
- * Do Ajax request for command execution,
- * replace '\n' in output with '<br>'.
- * If router is online, result is "Router is offline".
+ * Do Ajax request for command execution.
+ * If router is offline, result is "Router is offline".
+ * Returns command's output (for sync request).
  * 
- * cmd — command to execute.
- * dst — destination for command output:
- *  - dst.container — set html of container to command's output;
- *  - dst.callback — function to call after request. command's output is passed to func as arg.
- *  - dst.sync — do sync request and return command's output to calling function.
- * filter — function to filter command's output.
+ * options.cmd — command to execute;
+ * options.container — set html of container to command's output;
+ * options.callback — function to call after request. filtered command's output is passed to func as arg;
+ * options.async — sync/async request (by default request is ASYNC);
+ * options.filter — function to filter command's output. command's output is passed to func as arg.
  */
-function cmdExecute(cmd, dst, filter) {
-	var result = null;
+function cmdExecute(options) {
+	var output = null;
 	
-	var processResult = function(data) {
-		if (dst && dst.container) {
-			$(dst.container).html(data);
-			
-			/* workaround for max-height in IE */
-			$(dst.container).minmax();
-		} else if (dst && dst.callback) {
-			dst.callback(data);
-		} else if (dst && dst.sync) {
-			result = data;
-		}
-	};
-	
+	/* if router is offline show corresponding message */
 	if (!config.isOnline()) {
 		processResult("Router is offline");
 		return;
 	}
 	
-	var options = {
-		"type": "POST",
-		"url": "sh/execute.cgi",
-		"dataType": "text",
-		"data": {"cmd": cmd},
-		"dataFilter": function(data, type) {
-			var newData = data.replace(/\n/g, "<br>");
-			if (filter) return filter(newData);
-			else return newData;
-		},
-		"success": processResult,
-		"error": function() {
-			processResult("Connection timeout");
+	/* process Ajax result */
+	var processResult = function(data) {
+		/* save data to output */
+		output = data;
+		
+		/* set data to conainer */
+		if (options.container) {
+			$(options.container).html(data);
+			
+			/* workaround for max-height in IE */
+			$(options.container).minmax();
+		}
+		
+		/* call callback with data as argument */
+		if (options.callback) {
+			options.callback(data);
 		}
 	};
 	
-	if (dst && dst.sync) options.async = false;
+	/* set AJAX options */
+	var ajaxOptions = {
+		"type": "POST",
+		"url": "sh/execute.cgi",
+		"async": options.async != undefined ? options.async : true,
+		"dataType": "text",
+		"data": {"cmd": options.cmd},
+		"dataFilter": function(data) {
+			if (options.filter) return options.filter(data);
+			else return data;
+		},
+		"success": processResult,
+		"error": function() {
+			processResult("Connection error.");
+		}
+	};
 	
-	$.ajax(options);
+	$.ajax(ajaxOptions);
 	
-	return result;
+	return output;
 }
 
 /*
@@ -386,7 +391,7 @@ function Container(p, options) {
 	/*
 	 * Add HTML text.
 	 * 
-	 * w.dataFilter — may be used with w.cmd — function to filter command output data.
+	 * w.dataFilter — may be used with w.cmd — function to filter command's output data.
 	 */
 	this.createHtmlWidget = function(w, value) {
 		var attrs = {"className": "htmlWidget"};
@@ -397,8 +402,8 @@ function Container(p, options) {
 			$(span).html(value);
 		} else if (w.cmd != undefined) {
 			$(span).html("Loading...");
-			if (w.dataFilter) cmdExecute(w.cmd, {"container": span}, w.dataFilter);
-			else cmdExecute(w.cmd, {"container": span});
+			if (w.dataFilter) cmdExecute({"cmd": w.cmd, "container": span, "filter": w.dataFilter});
+			else cmdExecute({"cmd": w.cmd, "container": span});
 		} else if (w.str != undefined) {
 			$(span).html(w.str);
 		}
@@ -873,6 +878,7 @@ function Container(p, options) {
 	
 	/*
 	 * Add output of command execution to the page.
+	 * 
 	 * cmd — string or array with cmds' to execute.
 	 */
 	this.addConsole = function(cmd) {
@@ -881,7 +887,13 @@ function Container(p, options) {
 		/* adds command's HTML to the page, and makes AJAX request to the server */
 		var addConsoleOut = function(num, cmd) {
 			outer.addConsoleHTML(cmd, outer.table);
-			cmdExecute(cmd, {"container": $("tr > td > b:contains('" + cmd + "')", outer.table).nextAll("div.pre")});
+			cmdExecute({
+				"cmd": cmd,
+				"container": $($.sprintf("tr > td > b:contains('%s')", cmd), outer.table).nextAll("div.pre"),
+				"filter": function(data) {
+					return data.replace(/\n/g, "<br>");
+				}
+			});
 		};
 		
 		/* we can have one or several commands */
@@ -903,7 +915,13 @@ function Container(p, options) {
 		/* create div for command output */
 		var div = $.create("div", {"className": "pre, cmdOutput"}, _("Loading...")).appendTo(this.form);
 		
-		cmdExecute(cmd, {"container": div});
+		cmdExecute({
+			"cmd": cmd,
+			"container": div,
+			"filter": function(data) {
+				return data.replace(/\n/g, "<br>");
+			}
+		});
 	};
 	
 	/*
@@ -943,7 +961,13 @@ function Container(p, options) {
 			});
 			
 			/* execute command */
-			cmdExecute(cmd, {"container": $("div.pre", cmdOutput)});
+			cmdExecute({
+				"cmd": cmd,
+				"container": $("div.pre", cmdOutput),
+				"filter": function(data) {
+					return data.replace(/\n/g, "<br>");
+				}
+			});
 			
 			/* prevent form submission */
 			return false;
@@ -962,7 +986,7 @@ function Container(p, options) {
 		
 		$(this.form).submit(function() {
 			/* execute command */
-			cmdExecute(cmd);
+			cmdExecute({"cmd": cmd});
 			return false;
 		});
 	};
