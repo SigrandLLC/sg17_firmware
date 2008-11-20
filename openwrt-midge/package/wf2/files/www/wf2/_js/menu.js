@@ -64,11 +64,8 @@ function generateMenu() {
 					
 				/* RS232 */
 				case config.getOEM("MR17S_DRVNAME"):
-					addItem("Hardware:RS232", node, "rs232", [node, pcislot, num]);
+					addItem("Hardware:RS232", iface, "rs232", [iface, pcislot, num]);
 					break;
-				
-				default:
-					return true;
 			}
 		});
 	});
