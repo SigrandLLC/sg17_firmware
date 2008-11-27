@@ -3,8 +3,9 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ppp
-PKG_VERSION:=2.4.4
+PKG_VERSION:=2.4.3
 PKG_RELEASE:=7
+PKG_MD5SUM:=848f6c3cafeb6074ffeb293c3af79b7c
 
 PKG_SOURCE_URL:=ftp://ftp.samba.org/pub/ppp/
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
@@ -70,7 +71,19 @@ $(PKG_BUILD_DIR)/.configured:
 	)
 	touch $@
 
-$(PKG_BUILD_DIR)/.built:
+$(PKG_BUILD_DIR)/.built:$(PKG_BUILD_DIR)/.configured
+	@echo "----------------------------"
+	@echo ""
+	@echo ""
+	@echo ""
+	@echo ""
+	@echo "TARG_FLAGS=$(TARGET_CFLAGS)"
+	set
+	@echo ""
+	@echo ""
+	@echo ""
+	@echo ""
+	@echo "----------------------------"
 	rm -rf $(PKG_INSTALL_DIR)
 	mkdir -p $(PKG_INSTALL_DIR)/usr
 	$(MAKE) -C $(PKG_BUILD_DIR) \
@@ -80,7 +93,6 @@ $(PKG_BUILD_DIR)/.built:
 		$(ENABLE_FILTER) \
 		STAGING_DIR=$(STAGING_DIR) \
 		DESTDIR="$(PKG_INSTALL_DIR)/usr" \
-		STRIP="$(STRIP)" \
 		all install
 	touch $@
 
