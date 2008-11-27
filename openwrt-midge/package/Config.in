@@ -385,6 +385,7 @@ endchoice
 
 source "package/eocd/Config.in"
 source "package/oem-linkdeps/Config.in"
+source "package/oem-pppft-mp/Config.in"
 source "package/oem-mux/Config.in"
 endmenu
 menu "Drivers"
