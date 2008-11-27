@@ -16,6 +16,6 @@
 #ifndef MR17S_VERSION_H
 #define MR17S_VERSION_H
 
-#define MR17S_VER "1.0"
+#define MR17S_VER "1.1"
 
 #endif

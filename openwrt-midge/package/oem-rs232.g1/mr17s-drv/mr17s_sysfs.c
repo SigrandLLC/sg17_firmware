@@ -29,12 +29,17 @@ static DEVICE_ATTR(winread,0600,show_winread,store_winread);
 static DEVICE_ATTR(winwrite,0600,show_winwrite,store_winwrite);	
 static DEVICE_ATTR(hdlcregs,0600,show_hdlcregs,store_hdlcregs);	
 
+static ssize_t store_CD( struct device *dev, ADDIT_ATTR const char *buff, size_t size );
+static DEVICE_ATTR(car,0200,NULL,store_CD);	
+
+
 int mr17s_sysfs_register(struct device *dev)
 {
     int err = 0;
     if( (err = device_create_file(dev,&dev_attr_winread)) )  goto err_ext;
     if( (err = device_create_file(dev,&dev_attr_winwrite)) ) goto err_ext1;
     if( (err = device_create_file(dev,&dev_attr_hdlcregs)) ) goto err_ext2;    
+    if( (err = device_create_file(dev,&dev_attr_car)) ) goto err_ext2;    
     return 0;
 err_ext2:
     device_remove_file(dev,&dev_attr_winread);
@@ -50,6 +55,7 @@ void mr17s_sysfs_free(struct device *dev)
     device_remove_file(dev,&dev_attr_winread);
     device_remove_file(dev,&dev_attr_winwrite);
     device_remove_file(dev,&dev_attr_hdlcregs);
+    device_remove_file(dev,&dev_attr_car);
 }
 
 //-------------------- Read memory window ----------------------------------//
@@ -163,6 +169,35 @@ store_hdlcregs( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
     }
 	return size;
 }
+
+static ssize_t
+store_CD( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+{
+	struct mr17s_device *rsdev = (struct mr17s_device *)dev_get_drvdata( dev );
+    struct mr17s_uart_port *hw_port = rsdev->ports;
+    struct uart_port *port = (struct uart_port *)hw_port;
+	struct uart_info *info = port->info;
+	PDEBUG(debug_tty,"Port addr = %p, info = %p",hw_port,info);
+
+	if( !size ) return 0;
+	switch(buf[0]){
+	case '0':
+		if (info->flags & UIF_CHECK_CD) {
+			if (info->tty)
+				tty_hangup(info->tty);
+		}
+		break;
+	case '1':
+		if (info->flags & UIF_CHECK_CD) {
+			wake_up_interruptible(&info->open_wait);
+		}
+		break;
+	}
+	wake_up_interruptible(&info->delta_msr_wait);
+	return size;
+}
+
+
 
 #else
 

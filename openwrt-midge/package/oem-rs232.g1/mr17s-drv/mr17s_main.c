@@ -8,6 +8,8 @@
  *	This software may be used and distributed according to the terms
  *	of the GNU General Public License.
  *
+ *	18.11.08 ver 1.1 - Fix transceiver cleanup while wtartup
+ *
  */
 
 #include "mr17s_version.h"
@@ -102,6 +104,7 @@ mr17s_init( void )
     	uart_unregister_driver(&mr17s_uartdrv);
         return result;
 	}
+	PDEBUG(0,"DEBUG is ON. Test #1");
     return 0;
 }
 
@@ -235,7 +238,7 @@ mr17s_init_one(struct pci_dev *pdev,const struct pci_device_id *ent)
                    pdev->bus->number,PCI_SLOT(pdev->devfn),PCI_FUNC(pdev->devfn));
             goto porterr;
         }
-
+		PDEBUG(debug_tty,"Add port ttyRS%d, uart_port addr = %p, info = %p",port->line,port,port->info);
     	// Symlink to device in sysfs
 		snprintf(port_name,32,MR17S_SERIAL_NAME"%d",port->line);
     	if( (err = sysfs_create_link( &(drv->kobj),&(dev->kobj),port_name )) ){
@@ -374,42 +377,43 @@ static unsigned int mr17s_get_mctrl(struct uart_port *port)
     unsigned int ret = 0;
     u8 cur = ioread8(&regs->SR);
 
-//    PDEBUG(debug_hw,"");
+    PDEBUG(debug_tty,"start");
 
     switch(hw_port->type){
     case DTE:
         if( cur & DSR ){
             ret |= TIOCM_DSR;
-            PDEBUG(debug_hw,"DSR");
+            PDEBUG(debug_tty,"DSR");
         }
         if( cur & CTS ){
             ret |= TIOCM_CTS;
-            PDEBUG(debug_hw,"CTS");
+            PDEBUG(debug_tty,"CTS");
         }
         if( cur & CD ){
             ret |= TIOCM_CAR;
-            PDEBUG(debug_hw,"CD");
+            PDEBUG(debug_tty,"CD");
         }
 
         if( cur & RI ){
             ret |= TIOCM_RNG;
-            PDEBUG(debug_hw,"RI");
+            PDEBUG(debug_tty,"RI");
         }
 
         break;
     case DCE:
         if( cur & DTR ){
             ret |= TIOCM_DTR;
-            PDEBUG(debug_hw,"DTR");
+            PDEBUG(debug_tty,"DTR");
         }
 
         if( cur & RTS ){
             ret |= TIOCM_RTS;
-            PDEBUG(debug_hw,"RTS");
+            PDEBUG(debug_tty,"RTS");
         }
 
         break;
     }
+	
 	return ret;
 }
 
@@ -487,14 +491,23 @@ static void mr17s_set_termios(struct uart_port *port,
 inline static void
 mr17s_transceiver_up(struct uart_port *port)
 {
-    struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
+    struct mr17s_uart_port *hw_port = (struct mr17s_uart_port *)port;
+	struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
     struct mr17s_hw_regs *regs = &mem->regs;
-	u8 cra;
+	u8 reg;
+
+	// Clean state
+	hw_port->old_status = 0;
     // Enable interrupts
     iowrite8(0xff,&regs->SR);
-	cra = ioread8(&regs->CRA) | (DTR|RTS|CD);
-    iowrite8(cra,&regs->CRA);
-    iowrite8(TXS|RXS|RXE,&regs->IMR);
+	reg = ioread8(&regs->CRA) | (DTR|RTS|CD|TXEN|RXEN);
+    iowrite8(reg,&regs->CRA);
+    iowrite8(TXS|RXS|RXE|MCC,&regs->IMR);
+	// Cleanup Transceiver
+	reg = ioread8(&regs->LRR);
+	iowrite8(reg,&regs->CRR);
+    reg = ioread8(&regs->CTR);
+	iowrite8(reg,&regs->LTR);
 }
 
 inline static void
@@ -505,7 +518,7 @@ mr17s_transceiver_down(struct uart_port *port)
 	u8 cra;
     // Disable interrupts
     iowrite8(0,&regs->IMR);
-	cra = ioread8(&regs->CRA) & (FCEN|MCFW|TXEN|RXEN);
+	cra = ioread8(&regs->CRA) & (FCEN|MCFW|TXEN|RXEN|DTR);
     iowrite8(cra,&regs->CRA);
 }
 
@@ -527,6 +540,8 @@ static int mr17s_startup(struct uart_port *port)
 	mr17s_transceiver_up(port);
 	spin_unlock_irqrestore(&port->lock, flags);
 
+	// Update modem ststus
+	mr17s_modem_status(port);
     return 0;
 }
 
@@ -590,7 +605,8 @@ static void mr17s_config_port(struct uart_port *port, int flags)
     iowrite8(0,&regs->MXCR);
 	
 	// Enable Transceiver
-	iowrite8(TXEN|RXEN,&regs->CRA);
+	iowrite8(TXEN|RXEN|DTR,&regs->CRA);
+    iowrite8(0,&regs->SR);
 }
 
 static int mr17s_verify_port(struct uart_port *port, struct serial_struct *ser)
@@ -821,6 +837,7 @@ mr17s_hw_set(struct uart_port *port,struct hwsettings *set)
 }
 
 // Hardware related functions
+
 static int
 mr17s_port_interrupt(struct uart_port *port, struct pt_regs *ptregs)
 {
@@ -846,10 +863,72 @@ mr17s_port_interrupt(struct uart_port *port, struct pt_regs *ptregs)
     }
 
     if( status & RXE ){
-
+        PDEBUG(debug_irq,"RXS");
     }
+	
+	if( status & MCC ){
+		PDEBUG(debug_hw,"MCC: status=%02x",status);
+		mr17s_modem_status(port);
+	}
     return 1;
 }
+
+
+static inline void mr17s_modem_status(struct uart_port *port)
+{
+    struct mr17s_uart_port *hw_port = (struct mr17s_uart_port*)port;
+    struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
+    struct mr17s_hw_regs *regs = &mem->regs;
+	u8 old_status = 0;
+	unsigned long flags;
+    // Read mask & status
+    u8 status = ioread8(&regs->SR);
+	
+	
+	spin_lock_irqsave(&port->lock,flags);
+	old_status = hw_port->old_status;
+	PDEBUG(/*debug_hw*/0,"ttyRS%d: Check modem status: old=%02x new=%02x",port->line,old_status,status);
+
+	// Carrier Detected bit 
+	if( (status & CD) && !(old_status & CD) ){
+		PDEBUG(/*debug_hw*/0,"ttyRS%d: Carrier detected",port->line);
+		if( port->info )
+			uart_handle_dcd_change(port,1);
+	}else if( !(status & CD) && (old_status & CD) ){
+		PDEBUG(/*debug_hw*/0,"ttyRS%d: Carrier lost",port->line);
+		if( port->info )
+			uart_handle_dcd_change(port,0);
+	}else{
+		PDEBUG(debug_hw,"ttyRS%d: No carrier change",port->line);
+	}
+	if( (status & RI) && !(old_status & RI) ){
+		PDEBUG(/*debug_hw*/0,"ttyRS%d: Ring",port->line);
+		port->icount.rng++;
+	}
+
+	if( (status & DSR) && !(old_status & DSR) ){
+		PDEBUG(/*debug_hw*/0,"ttyRS%d: Device on cable",port->line);
+		port->icount.dsr++;
+	}
+
+	if( (status & CTS) && !(old_status & CTS) ){
+		PDEBUG(/*debug_hw*/0,"ttyRS%d: Device can receive",port->line);
+		if( port->info )
+			uart_handle_cts_change(port,1);
+	}else if( !(status & CTS) && (old_status & CTS) ){
+		PDEBUG(/*debug_hw*/0,"ttyRS%d: Device receive stop",port->line);
+		if( port->info )
+			uart_handle_cts_change(port,0);
+	}else{
+		PDEBUG(debug_hw,"ttyRS%d: No Dev can recv change",port->line);
+	}
+	
+	if( port->info )
+		wake_up_interruptible(&port->info->delta_msr_wait);
+	hw_port->old_status = status;
+	spin_unlock_irqrestore(&port->lock,flags);
+}
+
 
 void
 mr17s_recv_bytes(struct uart_port *port,struct pt_regs *ptregs)
@@ -857,10 +936,17 @@ mr17s_recv_bytes(struct uart_port *port,struct pt_regs *ptregs)
     struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
     struct mr17s_hw_regs *regs = &mem->regs;
 	struct tty_struct *tty = port->info->tty;
-    u8 cur = ioread8(&regs->CRR);
-    u8 last = ioread8(&regs->LRR);
+    u8 cur, last;
     unsigned int ch,flg = TTY_NORMAL;
     int i;
+    unsigned long flags;
+
+    // Block port. This function can run both 
+    // in process and interrupt context
+    spin_lock_irqsave(&port->lock,flags);
+
+    cur = ioread8(&regs->CRR);
+    last = ioread8(&regs->LRR);
 
     PDEBUGL(debug_irq," ");
     for(i=cur;i!=last;i=(i+1)&RING_MASK){
@@ -871,8 +957,11 @@ mr17s_recv_bytes(struct uart_port *port,struct pt_regs *ptregs)
 			continue;
 		tty_insert_flip_char(tty,ch,flg);
     }
+    PDEBUGL(debug_irq,"\n");
 	tty_flip_buffer_push(tty);
     iowrite8(i,&regs->CRR);
+
+    spin_unlock_irqrestore(&port->lock,flags);
 	return;
 }
 
