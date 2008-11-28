@@ -110,7 +110,7 @@ Controllers['general'] = function() {
 				type: "text",
 				name: "sys_hostname",
 				text: "Hostname",
-				descr: "Please enter router's hostname",
+				descr: "Please enter device's hostname",
 				validator: {required: true},
 				message: "Enter hostname"
 			};

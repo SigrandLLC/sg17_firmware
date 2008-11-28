@@ -103,7 +103,9 @@ function Page(p) {
 	
 	/* Add line break to the tab */
 	this.addBr = function(tabId) {
-		$.create('br').appendTo($('#' + tabIdPrefix + tabId));
+		/* if there is no infoMessage, append line break to the tab, otherwise insert before it */
+		if ($("#info_message").length == 0) $.create("br").appendTo($("#" + tabIdPrefix + tabId));
+		else $.create("br").insertBefore("#info_message");
 	};
 	
 	this.clearTab = function(tabId) {
@@ -136,67 +138,6 @@ function popup(url) {
 }
 
 /*
- * Do Ajax request for command execution.
- * If router is offline, result is "Router is offline".
- * Returns command's output (for sync request).
- * 
- * options.cmd — command to execute;
- * options.container — set html of container to command's output;
- * options.callback — function to call after request. filtered command's output is passed to func as arg;
- * options.async — sync/async request (by default request is ASYNC);
- * options.filter — function to filter command's output. command's output is passed to func as arg.
- */
-function cmdExecute(options) {
-	var output = null;
-	
-	/* if router is offline show corresponding message */
-	if (!config.isOnline()) {
-		processResult("Router is offline");
-		return;
-	}
-	
-	/* process Ajax result */
-	var processResult = function(data) {
-		/* save data to output */
-		output = data;
-		
-		/* set data to conainer */
-		if (options.container) {
-			$(options.container).html(data);
-			
-			/* workaround for max-height in IE */
-			$(options.container).minmax();
-		}
-		
-		/* call callback with data as argument */
-		if (options.callback) {
-			options.callback(data);
-		}
-	};
-	
-	/* set AJAX options */
-	var ajaxOptions = {
-		"type": "POST",
-		"url": "sh/execute.cgi",
-		"async": options.async != undefined ? options.async : true,
-		"dataType": "text",
-		"data": {"cmd": options.cmd},
-		"dataFilter": function(data) {
-			if (options.filter) return options.filter(data);
-			else return data;
-		},
-		"success": processResult,
-		"error": function() {
-			processResult("Connection error.");
-		}
-	};
-	
-	$.ajax(ajaxOptions);
-	
-	return output;
-}
-
-/*
  * Container for widgets.
  * p — parent container.
  * options — container options (subsystem & help), set in Page object.
@@ -206,30 +147,49 @@ function Container(p, options) {
 	/* link to this object */
 	var thisContainer = this;
 	
+	/* ID of div for info or error messages */
+	var infoMessage = "info_message";
+	
 	/* set subsystem common for all tabs */
 	this.subsystem = options.subsystem;
 	
 	/* set help page common for all tabs */
 	this.help = options.help;
 	
-	this.ajaxTimeout = null;
-	
 	/*
 	 * Create necessary data structures and page elements.
 	 */
 	this.initContainer = function(options) {
+		/* clear current form */
+		if (options && options.clearForm) {
+			this.form.empty();
+			
+			this.validator_rules = new Object();
+			this.validator_messages = new Object();
+			
+			this.table = $.create("table", 
+				{"id": "conttable", "cellpadding": "0", "cellspacing": "0", "border": "0"}).appendTo(this.form);
+			this.table.append($.create("thead"));
+			this.table.append($.create("tbody"));
+			
+			return;
+		}
+		
+		/* clear complete tab */
 		if (options && options.clear) p.empty();
+		
+		/* create, if is not exist, div for info or error messages */
+		if ($("#" + infoMessage).length == 0) {
+			$.create("div", {"className": "message", "id": infoMessage}).appendTo(p);
+		}
 		
 		this.validator_rules = new Object();
 		this.validator_messages = new Object();
 		
-		/* create div for info or error messages */
-		this.infoMessage = "info_message_" + p.attr("id");
-		if ($("#" + this.infoMessage).length == 0) {
-			$.create("div", {"className": "message", "id": this.infoMessage}).appendTo(p);
-		}
+		/* insert new form before div with info message */
+		this.form = $.create("form", {"action": ""}).insertBefore("#" + infoMessage);
 		
-		this.form = $.create("form", {"action": ""}).appendTo(p);
+		/* create table and add it to form */
 		this.table = $.create("table",
 			{"id": "conttable", "cellpadding": "0", "cellspacing": "0", "border": "0"}).appendTo(this.form);
 		this.table.append($.create("thead"));
@@ -252,13 +212,6 @@ function Container(p, options) {
 	/* set subsystem for this tab */
 	this.setHelpSection = function(helpSection) {
 		this.help.section = helpSection;
-	};
-	
-	/*
-	 * Set time in seconds to wait for server reply before show an error message.
-	 */
-	this.setAjaxTimeout = function(timeout)  {
-		this.ajaxTimeout = timeout * 1000;
 	};
 	
 	/* 
@@ -296,7 +249,6 @@ function Container(p, options) {
 	 * I18N for text and description.
 	 * 
 	 * w — widget's info.
-	 * p — destination container.
 	 */
 	this.createGeneralWidget = function(w) {
 		/* if this field is required — show "*" */
@@ -402,8 +354,8 @@ function Container(p, options) {
 			$(span).html(value);
 		} else if (w.cmd != undefined) {
 			$(span).html("Loading...");
-			if (w.dataFilter) cmdExecute({"cmd": w.cmd, "container": span, "filter": w.dataFilter});
-			else cmdExecute({"cmd": w.cmd, "container": span});
+			if (w.dataFilter) config.cmdExecute({"cmd": w.cmd, "container": span, "filter": w.dataFilter});
+			else config.cmdExecute({"cmd": w.cmd, "container": span});
 		} else if (w.str != undefined) {
 			$(span).html(w.str);
 		}
@@ -454,8 +406,7 @@ function Container(p, options) {
 			"type": "button",
 			"name": w.name,
 			"id": w.id,
-			"value": _(w.text),
-			"className": "button"
+			"value": _(w.text)
 		};
 		w.tip && (attrs.title = _(w.tip));
 		
@@ -470,80 +421,116 @@ function Container(p, options) {
 	};
 
 	/*
+	 * Place element (widget or subwidget) depending on it's type and placement option.
+	 * 
+	 * element — jQuery element to place;
+	 * type — type of element (widget/subwidget):
+	 *  if placement is not set:
+	 *   widget element is appended to the end of a table;
+	 *   subwidget element is added to it's widget;
+	 * name — name property of element (w.name);
+	 * placement — optional placement strategy:
+	 *  - placement.type — where to place element;
+	 *  - placement.anchor — another element which is used for placing this element.
+	 */
+	var placeElement = function(element, type, name, placement) {
+		if (placement) {
+			switch (placement.type) {
+				case "insertAfter":
+					if (placement.anchor == null || placement.anchor == undefined)
+						throw "placement.anchor is not specified or invalid";
+					element.insertAfter(placement.anchor);
+					break;
+				case "appendToForm":
+					thisContainer.form.append(element);
+					break;
+				case "appendToTable":
+					$("tbody", thisContainer.table).append(element);
+					break;
+				default:
+					throw "placement.type is not specified or unsupported";
+			}
+		} else {
+			/* by default, append widget to table */
+			if (type == "widget") $("tbody", thisContainer.table).append(element);
+			/* by default, add subwidget to it's widget */
+			else $("#td_" + name, thisContainer.form).prepend(element);
+		}
+	};
+
+	/*
 	 * Add complete widget (table's TR) to container.
 	 * 
-	 * w — widget to add.
-	 * insertAfter — if specified, insert new widget after this element.
+	 * w — widget to add;
+	 * placement — how to place widget (look at placeElement());
 	 */
-	this.addWidget = function(w, insertAfter) {
-		if (w.type != "hidden") {
-			/* add common widget's data. insert after specified widget, otherwise insert last */
-			if (insertAfter) this.createGeneralWidget(w).insertAfter(insertAfter);
-			else $("tbody", this.table).append(this.createGeneralWidget(w));
-		}
+	this.addWidget = function(w, placement) {
+		if (w.type != "hidden")
+			placeElement(this.createGeneralWidget(w), "widget", w.name, placement);
 		
 		this.addSubWidget(w);
 	};
 	
 	/*
-	 * Add subwidget (input, select, etc) to complete widget or to specified element.
+	 * Add subwidget (pure HTML element: input, select, etc) to it's widget or specified position.
 	 * 
 	 * w — widget to add;
-	 * insertAfter — if specified, insert new subwidget after this element (just plain element).
+	 * placement — how to place subwidget (look at placeElement()).
 	 * 
 	 * return added widget.
 	 */
-	this.addSubWidget = function(w, insertAfter) {
-		/* get field's value */
-		var value, widget;
+	this.addSubWidget = function(w, placement) {
+		var value, subwidget;
 		
 		/* TODO: make full support for cookies (do not write it to KDB but save in cookie) */
+		/* get field's value */
 		if (w.cookie) value = $.cookie(w.name);
 		else if (w.name) value = w.item ? config.getParsed(w.item)[w.name] : config.get(w.name);
 		
 		/* if ID is not set, set it to the name */
 		if (w.id == undefined) w.id = w.name;
 		
+		/* create subwidget of specified type */
 		switch (w.type) {
 			case "text": 
-				widget = this.createTextWidget(w, value);
+				subwidget = this.createTextWidget(w, value);
 				break;
 			case "hidden":
-				widget = this.createHiddenWidget(w, value);
+				subwidget = this.createHiddenWidget(w, value);
 				break;
 			case "password": 
-				widget = this.createPasswordWidget(w);
+				subwidget = this.createPasswordWidget(w);
 				break;
 			case "checkbox":
-				widget = this.createCheckboxWidget(w, value);
+				subwidget = this.createCheckboxWidget(w, value);
 				break;
 			case "html":
-				widget = this.createHtmlWidget(w, value);
+				subwidget = this.createHtmlWidget(w, value);
 				break;
 			case "file":
-				widget = this.createFileWidget(w);
+				subwidget = this.createFileWidget(w);
 				break;
 			case "select":
-				widget = this.createSelectWidget(w);
-				if (w.options) widget.setOptionsForSelect(w.options, value, w.defaultValue);
+				subwidget = this.createSelectWidget(w);
+				if (w.options) subwidget.setOptionsForSelect(w.options, value, w.defaultValue);
 				break;
 			case "button":
-				widget = this.createButtonWidget(w);
+				subwidget = this.createButtonWidget(w);
 				break;
 			default:
 				throw "unknown widget type";
 		}
 		
-		/* insert new subwidget at specified position or just in form for hidden widget */
-		if (w['type'] == "hidden" || w['type'] == "button") this.form.append(widget);
-		else if (insertAfter) widget.insertAfter(insertAfter);
-		else $("#td_" + w.name, this.form).prepend(widget);
+		/* subwidgets of hidden type are always added to the end of a form */
+		if (w.type == "hidden") this.form.append(subwidget);
+		/* other subwidgets are placed depending on their placement property */
+		else placeElement(subwidget, "subwidget", w.name, placement);
 		
 		/* set CSS class if specified */
-		if (w.cssClass) widget.addClass(w.cssClass);
+		if (w.cssClass) subwidget.addClass(w.cssClass);
 		
 		/* set nice tooltip */
-		widget.tooltip({"track": true});
+		subwidget.tooltip({"track": true});
 		
 		/* bind specified events */
 		this.bindEvents(w);
@@ -553,7 +540,7 @@ function Container(p, options) {
 		/* I18N for element's error messages */
 		w.message && (this.validator_messages[w.name] = _(w.message));
 		
-		return widget;
+		return subwidget;
 	};
 	
 	/*
@@ -584,7 +571,7 @@ function Container(p, options) {
 	 * I18N for text.
 	 */
 	this.setError = function(text) {
-		var idInfoMessage = "#" + this.infoMessage;
+		var idInfoMessage = "#" + infoMessage;
 		$(idInfoMessage).html(_(text));
 		$(idInfoMessage).removeClass("success_message");
 		$(idInfoMessage).addClass("error_message");
@@ -595,7 +582,7 @@ function Container(p, options) {
 	 * I18N for text.
 	 */
 	this.setInfo = function(text) {
-		var idInfoMessage = "#" + this.infoMessage;
+		var idInfoMessage = "#" + infoMessage;
 		$(idInfoMessage).html(_(text));
 		$(idInfoMessage).removeClass("error_message");
 		$(idInfoMessage).addClass("success_message");
@@ -603,12 +590,12 @@ function Container(p, options) {
 	
 	/* show message */
 	var showMsg = function() {
-		$("#" + thisContainer.infoMessage).show();
+		$("#" + infoMessage).show();
 	};
 	
 	/* hide message */
 	var hideMsg = function() {
-		$("#" + thisContainer.infoMessage).hide();
+		$("#" + infoMessage).hide();
 	};
 	
 	/*
@@ -666,8 +653,7 @@ function Container(p, options) {
 	 *  - if noSubmit is set and preSubmit return false, onSubmit is not calling.
 	 */
 	this.addSubmit = function(options) {
-		var idInfoMessage = "#" + this.infoMessage;
-		var timeout = this.ajaxTimeout;
+		var idInfoMessage = "#" + infoMessage;
 		var outer = this;
 
 		/* if subsystem is set — add it to the form */
@@ -797,7 +783,7 @@ function Container(p, options) {
 				}
 				
 				/* submit task (updating settings) for execution */
-     			config.kdbSubmit(fields, timeout, reload, onSuccess);
+     			config.kdbSubmit(fields, reload, onSuccess);
      			
      			formSaved();
 				
@@ -887,7 +873,7 @@ function Container(p, options) {
 		/* adds command's HTML to the page, and makes AJAX request to the server */
 		var addConsoleOut = function(num, cmd) {
 			outer.addConsoleHTML(cmd, outer.table);
-			cmdExecute({
+			config.cmdExecute({
 				"cmd": cmd,
 				"container": $($.sprintf("tr > td > b:contains('%s')", cmd), outer.table).nextAll("div.pre"),
 				"filter": function(data) {
@@ -915,7 +901,7 @@ function Container(p, options) {
 		/* create div for command output */
 		var div = $.create("div", {"className": "pre, cmdOutput"}, _("Loading...")).appendTo(this.form);
 		
-		cmdExecute({
+		config.cmdExecute({
 			"cmd": cmd,
 			"container": div,
 			"filter": function(data) {
@@ -961,7 +947,7 @@ function Container(p, options) {
 			});
 			
 			/* execute command */
-			cmdExecute({
+			config.cmdExecute({
 				"cmd": cmd,
 				"container": $("div.pre", cmdOutput),
 				"filter": function(data) {
@@ -986,7 +972,7 @@ function Container(p, options) {
 		
 		$(this.form).submit(function() {
 			/* execute command */
-			cmdExecute({"cmd": cmd});
+			config.cmdExecute({"cmd": cmd});
 			return false;
 		});
 	};
@@ -1104,7 +1090,7 @@ function Container(p, options) {
 		
 		/* redraw page after adding/editing list item */
 		var showPage = function() {
-			$($.sprintf("#tab_%s_link", options['tabId'])).click();
+			$($.sprintf("#tab_%s_link", options.tabId)).click();
 		};
 		
 		/* 
@@ -1119,30 +1105,30 @@ function Container(p, options) {
 			/* clear this container */
 			c.initContainer({"clear": true});
 
-			if (options['helpPage']) c.setHelpPage(options['helpPage']);
-			if (options['helpSection']) c.setHelpSection(options['helpSection']);
-			if (options['subsystem']) c.setSubsystem(options['subsystem']);
+			if (options.helpPage) c.setHelpPage(options.helpPage);
+			if (options.helpSection) c.setHelpSection(options.helpSection);
+			if (options.subsystem) c.setSubsystem(options.subsystem);
 
 			/* decide, if we will add or edit item */
 			if (!item) {
 				isAdding = true;
-				c.addTitle(options['addMessage'] || "Add");
-				values = config.getParsed(options['listItem'] + "*");
-				item = options['listItem'] + $.len(values);
+				c.addTitle(options.addMessage || "Add");
+				values = config.getParsed(options.listItem + "*");
+				item = options.listItem + $.len(values);
 			} else {
 				isAdding = false;
-				c.addTitle(options['editMessage'] || "Edit");
+				c.addTitle(options.editMessage || "Edit");
 			}
 			
 			/* set calculated item in options object for later use in dynamic widgets */
-			options['currentItem'] = item;
+			options.currentItem = item;
 
 			/* add widgets */
 			$.each(widgets, function(num, widget) {
 				/* item property is used for properly get the value of a widget */
-				widget['widget']['item'] = item;
+				widget.widget.item = item;
 				
-				c.addWidget(widget['widget'], widget['insertAfter']);
+				c.addWidget(widget.widget, widget.placement);
 			});
 			
 			/* add submit (with special for list options) */
@@ -1151,9 +1137,9 @@ function Container(p, options) {
 				"submitName": "Add/Update",
 				"extraButton": {
 					"name": "Back",
-					"func": options['showPage'] ? options['showPage'] : showPage
+					"func": options.showPage ? options.showPage : showPage
 				},
-				"onSubmit": options['showPage'] ? options['showPage'] : showPage
+				"onSubmit": options.showPage ? options.showPage : showPage
 			});
 			
 			/* do adding/editing specific actions */
@@ -1161,20 +1147,20 @@ function Container(p, options) {
 				/* add widgets for adding page */
 				$.each(widgetsForAdding, function(num, widget) {
 					/* item property is used for properly get the value of a widget */
-					widget['widget']['item'] = item;
+					widget.widget.item = item;
 					
-					c.addWidget(widget['widget'], widget['insertAfter']);
+					c.addWidget(widget.widget, widget.placement);
 				});
 				
 				/* run callback for adding page with this object as a parameter */
-				if (options['onAddItemRender']) options['onAddItemRender'](list);
+				if (options.onAddItemRender) options.onAddItemRender(list);
 			} else {
 				/* run callback for editing page with this object as a parameter */
-				if (options['onEditItemRender']) options['onEditItemRender'](list);
+				if (options.onEditItemRender) options.onEditItemRender(list);
 			}
 			
 			/* run callback for adding/editing page with this object as a parameter */
-			if (options['onAddOrEditItemRender']) options['onAddOrEditItemRender'](list);
+			if (options.onAddOrEditItemRender) options.onAddOrEditItemRender(list);
 		};
 		
 		/* add list header */
@@ -1246,10 +1232,10 @@ function Container(p, options) {
 				$(".selected", c.table).removeClass("selected");
 				
 				/* delete item and restart subsystem */
-				config.kdbDelListKey(item, c.subsystem, c.ajaxTimeout);
+				config.kdbDelListKey(item, c.subsystem);
 				
 				/* call func after deleting (updates page) */
-				options['showPage'] ? options['showPage']() : showPage();
+				options.showPage ? options.showPage() : showPage();
 			});
 			
 			/* create No button */
@@ -1270,32 +1256,32 @@ function Container(p, options) {
 		/*
 		 * Add widget to add/edit page.
 		 */
-		this.addWidget = function(w, insertAfter) {
+		this.addWidget = function(w, placement) {
 			/* save link to this object to use later in events' handlers */
-			w['eventHandlerObject'] = list;
+			w.eventHandlerObject = list;
 			
-			widgets.push({"widget": w, "insertAfter": insertAfter});
+			widgets.push({"widget": w, "placement": placement});
 		};
 		
 		/*
 		 * Add widget to ADD page only.
 		 */
-		this.addWidgetForAdding = function(w, insertAfter) {
+		this.addWidgetForAdding = function(w, placement) {
 			/* save link to this object to use later in events' handlers */
-			w['eventHandlerObject'] = list;
+			w.eventHandlerObject = list;
 			
-			widgetsForAdding.push({"widget": w, "insertAfter": insertAfter});
+			widgetsForAdding.push({"widget": w, "placement": placement});
 		};
 		
 		/*
 		 * Add widget to add/edit page after it generation (e.g., in event's handler).
 		 */
-		this.addDynamicWidget = function(w, insertAfter) {
+		this.addDynamicWidget = function(w, placement) {
 			/* save link to this object to use later in events' handlers */
-			w['eventHandlerObject'] = list;
+			w.eventHandlerObject = list;
 			
-			w['item'] = options['currentItem'];
-			c.addWidget(w, insertAfter);
+			w.item = options.currentItem;
+			c.addWidget(w, placement);
 		};
 		
 		/*

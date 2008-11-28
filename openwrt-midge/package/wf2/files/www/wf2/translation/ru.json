@@ -1,6 +1,6 @@
 { 
-	"Hostname" : "Имя маршрутизатора",
-	"Please enter router's hostname" : "Пожалуйста, введите имя маршрутизтора",
+	"Hostname" : "Имя устройства",
+	"Please enter device's hostname" : "Пожалуйста, введите имя устройства",
 	"General settings" : "Общие настройки",
 	"System": "Системные настройки",
 	"General" : "Общее",

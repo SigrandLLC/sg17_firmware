@@ -50,7 +50,8 @@ Controllers['fw'] = function() {
 					"validator": {"required": true, "ipAddrPort": true},
 					"tip": "You can add port number after ip address<br><i>Example: 192.168.0.1:80</i>"
 				};
-				list.addDynamicWidget(field, $("#dst").parents("tr"));
+				list.addDynamicWidget(field,
+					{"type": "insertAfter", "anchor": $("#dst").parents("tr")});
 			}
 		/* remove field */
 		} else $("#natto").parents("tr").remove();
@@ -74,7 +75,8 @@ Controllers['fw'] = function() {
 					"defaultValue": "any",
 					"tip": tip
 				};
-				list.addDynamicWidget(field, $("#proto").parents("tr"));
+				list.addDynamicWidget(field,
+					{"type": "insertAfter", "anchor": $("#proto").parents("tr")});
 				
 				field = { 
 					"type": "text",
@@ -85,7 +87,8 @@ Controllers['fw'] = function() {
 					"defaultValue": "any",
 					"tip": tip
 				};
-				list.addDynamicWidget(field, $("#proto").parents("tr"));
+				list.addDynamicWidget(field,
+					{"type": "insertAfter", "anchor": $("#proto").parents("tr")});
 			}
 		/* remove fields */
 		} else {

@@ -46,7 +46,7 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 					"text": "Encoding",
 					"options": "nrz nrzi fm-mark fm-space manchester"
 				};
-				c.addWidget(field, protoWidget);
+				c.addWidget(field, {"type": "insertAfter", "anchor": protoWidget});
 				hdlcWidgetsIDs.push("enc");
 
 				/* parity */
@@ -57,7 +57,7 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 					"text": "Parity",
 					"options": "crc16-itu no-parity crc16 crc16-pr0 crc16-itu-pr0 crc32-itu"
 				};
-				c.addWidget(field, protoWidget);
+				c.addWidget(field, {"type": "insertAfter", "anchor": protoWidget});
 				hdlcWidgetsIDs.push("parity");
 			};
 			
@@ -82,7 +82,7 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 					"options": interval,
 					"defaultValue": "10"
 				};
-				c.addWidget(field, protoWidget);
+				c.addWidget(field, {"type": "insertAfter", "anchor": protoWidget});
 				ciscoWidgetsIDs.push("cisco_int");
 				
 				/* timeout */
@@ -99,7 +99,7 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 					"options": to,
 					"defaultValue": "25"
 				};
-				c.addWidget(field, protoWidget);
+				c.addWidget(field, {"type": "insertAfter", "anchor": protoWidget});
 				ciscoWidgetsIDs.push("cisco_to");
 			};
 			
@@ -122,7 +122,7 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 						"descr": "example: 2-3,6-9,15-20",
 						"validator": {"smap": true}
 					};
-					c.addWidget(field, framWidget);
+					c.addWidget(field, {"type": "insertAfter", "anchor": framWidget});
 					framedWidgetsIDs.push(id);
 					
 					/* subsystem can change slotmap value, so after request is performed, update it */
@@ -137,7 +137,7 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 					"id": "crc4",
 					"text": "E1 CRC4 multiframe"
 				};
-				c.addWidget(field, framWidget);
+				c.addWidget(field, {"type": "insertAfter", "anchor": framWidget});
 				framedWidgetsIDs.push("crc4");
 				
 				field = { 
@@ -148,7 +148,7 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 					"onClick": onTS16Change,
 					"defaultState": "checked"
 				};
-				c.addWidget(field, framWidget);
+				c.addWidget(field, {"type": "insertAfter", "anchor": framWidget});
 				framedWidgetsIDs.push("ts16");
 			};
 			
@@ -192,7 +192,7 @@ Controllers['e1'] = function(iface, pcislot, pcidev) {
 						"id": "cas",
 						"text": "E1 CAS multiframe"
 					};
-					c.addWidget(field, $("#ts16").parents("tr"));
+					c.addWidget(field, {"type": "insertAfter", "anchor": $("#ts16").parents("tr")});
 				}
 			};
 			

@@ -58,7 +58,8 @@ Controllers['dns_server'] = function() {
 				"descr": "Priority for MX record.",
 				"validator": {"required": true, "min": 1, "max": 999}
 			};
-			list.addDynamicWidget(field, $("#data").parents("tr"));
+			list.addDynamicWidget(field,
+				{"type": "insertAfter", "anchor": $("#data").parents("tr")});
 		/* remove field */
 		} else {
 			$("#prio").parents("tr").remove();
@@ -135,11 +136,12 @@ Controllers['dns_server'] = function() {
 			"type": "button",
 			"name": "back_button",
 			"text": "Back to list of zones",
+			"cssName": "button",
 			"func": function() {
 				$("#tab_zones_link").click();
 			}
 		};
-		c.addSubWidget(field);
+		c.addSubWidget(field, {"type": "appendToForm"});
 	};
 	
 	/* zones tab */

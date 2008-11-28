@@ -1,87 +1,66 @@
 /* Object for commands' queue */
 function KDBQueue() {
-	this.queue = new Array();
-	this.block = false;
+	var queue = new Array();
+	var block = false;
+	var performingTask = false;
 	
-	/* set info message */
-	this.setMessage = function(msg) {
-		$("#kdb").html(msg);
-	};
-	
-	/* set error message */
-	this.setError = function(msg) {
-		$("#kdb").html("<span style='color: red'>" + msg + "</span>");
+	this.getTasksNumber = function() {
+		return performingTask ? queue.length + 1 : queue.length;
 	};
 	
 	/*
-	 * Update info message.
-	 * I18N for message.
+	 * Update status.
 	 */
-	this.updateMessage = function() {
-		if (this.queue.length > 0) {
-			var word = this.queue.length == 1 ? _("task") : _("tasks");
-			this.setMessage(this.queue.length + " " + word + " " + _("in queue"));
-		} else {
-			this.setMessage("&nbsp;");
-		}
+	var updateMessage = function() {
+		if (queue.length > 0) $("#status_tasks").text(queue.length);
+		else $("#status_tasks").text("none");
 	};
 	
 	/*
 	 * Add task to queue.
 	 * 
-	 * values — values for sending to router.
-	 * timeout — request timeout.
-	 * reload — reload page after finishing request (on success).
-	 * onSuccess — callback on success.
-	 * kdbCmd — command for KDB. If not set — it saves values,
-	 * if set to "lrm" — removes key from KDB with name passed in parameter "item".
+	 * task.values — values for sending to router;
+	 * task.reload — reload page after finishing request (on success);
+	 * task.onSuccess — callback on success;
+	 * task.kdbCmd — command for KDB. If not set — it saves values,
+	 *  if set to "lrm" — removes key from KDB with name passed in parameter "item".
 	 */
-	this.addTask = function(values, timeout, reload, onSuccess, kdbCmd) {
+	this.addTask = function(task) {
 		/* check if queue is blocked */
-		if (this.block) return;
+		if (block) return;
 		
-		/* create task and add it to queue */
-		task = {
-			"values": values,
-			"timeout": timeout,
-			"reload": reload,
-			"onSuccess": onSuccess,
-			"kdbCmd": kdbCmd
-		};
-		this.queue.push(task);
+		/* add task to queue */
+		queue.push(task);
 		
 		/* if after task's completion we need to reload page — block queue */
-		if (reload) {
-			this.block = true;
-		}
+		if (task.reload) block = true;
 		
 		/* try to start task */
-		this.runTask();
+		runTask();
 	};
 	
 	/* if nothing is running — run task from queue */
-	this.runTask = function() {
-		this.updateMessage();
-		if (this.queue.length == 1) {
-			this.sendTask(this.queue[0]);
+	var runTask = function() {
+		updateMessage();
+		if (queue.length == 1) {
+			sendTask(queue[0]);
 		}
 	};
 	
 	/* run next task in queue */
-	this.nextTask = function() {
-		this.updateMessage();
-		if (this.queue.length > 0) {
-			this.sendTask(this.queue[0]);
+	var nextTask = function() {
+		updateMessage();
+		if (queue.length > 0) {
+			sendTask(queue[0]);
 		}
 	};
 	
 	/* send task to router */
-	this.sendTask = function(task) {
-		var outer = this;
+	var sendTask = function(task) {
 		var url;
 		
 		/* decide what to do */
-		switch (task['kdbCmd']) {
+		switch (task.kdbCmd) {
 			case "lrm":
 				url = "sh/kdb_del_list.cgi";
 				break;
@@ -94,49 +73,66 @@ function KDBQueue() {
 		}
 		
 		var options = {
-			/* if kdbCmd is lrm, call kdb_del_list.cgi */
 			"url": url,
 			"type": "POST",
-			"data": task['values'],
-			
-			/* network error */
-			"error": function() {
-				/* unblock queue */
-				outer.block = false;
-				
-				/* clear task's queue */
-				outer.queue = new Array();
-				
-				outer.setError("Connection error. You should reload page");
-			},
-			
+			"data": task.values,
 			"success": function() {
+				performingTask = false;
+				
 				/* if task need page reloading — reload */
-				if (task['reload']) {
-					this.block = false;
+				if (task.reload) {
+					block = false;
 					document.location.reload();
 				}
 				
 				/* remove completed task from queue */
-				outer.queue.shift();
+				queue.shift();
 				
-				outer.updateMessage();
+				updateMessage();
 				
 				/* if callback is set — call it */
-				if (task['onSuccess']) task['onSuccess']();
+				if (task.onSuccess) task.onSuccess();
 				
 				/* run next task */
-				outer.nextTask();
+				nextTask();
 			}
 		};
 		
-		/* if timeout is passed — set it */
-		if (task['timeout']) {
-			options['timeout'] = task['timeout'];
-		}
+		performingTask = true;
 		
 		/* perform request */
 		$.ajax(options);
+	};
+}
+
+/*
+ * Cache for command's output.
+ */
+function CmdCache() {
+	var cache = new Object();
+	
+	/*
+	 * Run asynchronously cmd and add it's output to cache.
+	 * 
+	 * cmd — cmd to run;
+	 * alias — by default, you get cmd output by calling getCachedOutput()
+	 * with cmd as parameter, but with alias you can use it instead of cmd.
+	 * This can be usefull if cmd is too long or complex.
+	 */
+	this.runCmd = function(cmd, alias) {
+		config.cmdExecute({
+			"cmd": cmd,
+			"callback": function(data) {
+				cache[alias ? alias : cmd] = data;
+			}
+		});
+	};
+	
+	/*
+	 * Get output of cmd.
+	 */
+	this.getCachedOutput = function(cmd) {
+		return cache[cmd] ? cache[cmd] : config.cmdExecute({"cmd": cmd, "async": false});
 	};
 }
 
@@ -159,11 +155,10 @@ function Config() {
 	 * 
 	 * fields — array with fields
 	 * (e.g., [ { name: 'username', value: 'jresig' }, { name: 'password', value: 'secret' } ]).
-	 * timeout — timeout for AJAX request.
 	 * reload — reload page after request is finished.
 	 * onSuccess — callback on request success.
 	 */
-	this.kdbSubmit = function(fields, timeout, reload, onSuccess) {
+	this.kdbSubmit = function(fields, reload, onSuccess) {
 		/* if router is offline, show error message and do nothing */
 		if (!online) {
 			alert(offlineMessage);
@@ -173,7 +168,7 @@ function Config() {
 		this.saveVals(fields);
 		
 		/* encode fields with $.param() */
-		kdbQueue.addTask($.param(fields), timeout, reload, onSuccess);
+		kdbQueue.addTask({"values": $.param(fields), "reload": reload, "onSuccess": onSuccess});
 	};
 	
 	/*
@@ -181,9 +176,8 @@ function Config() {
 	 * 
 	 * item — key to delete.
 	 * subsystem — subsystem to restart.
-	 * timeout — timeout for request.
 	 */
-	this.kdbDelListKey = function(item, subsystem, timeout) {
+	this.kdbDelListKey = function(item, subsystem) {
 		/* if router is offline, show error message and do nothing */
 		if (!online) {
 			alert(offlineMessage);
@@ -200,7 +194,7 @@ function Config() {
 		];
 		
 		/* encode fields with $.param(), and set kdbCmd to "lrm" */
-		kdbQueue.addTask($.param(fields), timeout, null, null, "lrm");
+		kdbQueue.addTask({"values": $.param(fields), "kdbCmd": "lrm"});
 	};
 	
 	/*
@@ -425,7 +419,7 @@ function Config() {
 		});
 		
 		/* execute command */
-		var newVals = cmdExecute({
+		var newVals = config.cmdExecute({
 			"cmd": $.sprintf("/usr/bin/kdb %s", kdbArg),
 			"async": false
 		}).split("\n");
@@ -540,7 +534,7 @@ function Config() {
 		$.addObjectWithProperty(submitData, "subsystem", $.sprintf("iface_del.%s", iface));
 		
 		/* encode data with $.param(), and set kdbCmd to "rm" */
-		kdbQueue.addTask($.param(submitData), null, null, null, "rm");
+		kdbQueue.addTask({"values": $.param(submitData), "kdbCmd": "rm"});
 		updateIfaces();
 	};
 	
@@ -562,13 +556,25 @@ function Config() {
 				"timeout": timeout * 1000,
 				"success": function(data) {
 					if (!online) {
-						$("#kdb").html("&nbsp;");
 						online = true;
+						$("#status_state").text(_("online")).removeClass("error");
 					}
 				},
 				"error": function() {
 					online = false;
-					$("#kdb").html("<span id='offline' style='color: red'><b>Router is OFFLINE</b></span>");
+					if (ajaxNum > 0) {
+						ajaxNum = 0;
+						$("#status_ajax").text("requests are lost");
+					}
+					if (kdbQueue.getTasksNumber() > 0) {
+						document.write(
+							$.sprintf("<html><head><title>%s</title></head><body><h1>%s</h1><br><a href='/wf2/'>%s</a></body></html>",
+								_("Connection error"),
+								_("Connection error while performing tasks on a device. Check your connection to the device and reload web-interface. All unfinished tasks are lost."),
+								_("Reload web-interface"))
+						);
+						document.close();
+					} else $("#status_state").text(_("offline")).addClass("error");
 				}
 			};
 			$.ajax(options);
@@ -576,35 +582,75 @@ function Config() {
 		
 		setInterval(checkStatus, timeout * 1000);
 	};
-}
-
-/*
- * Cache for command's output.
- */
-function CmdCache() {
-	var cache = new Object();
 	
 	/*
-	 * Run asynchronously cmd and add it's output to cache.
+	 * Do Ajax request for command execution.
+	 * If router is offline, result is "Router is offline".
+	 * Returns command's output (for sync request).
 	 * 
-	 * cmd — cmd to run;
-	 * alias — by default, you get cmd output by calling getCachedOutput()
-	 * with cmd as parameter, but with alias you can use it instead of cmd.
-	 * This can be usefull if cmd is too long or complex.
+	 * options.cmd — command to execute;
+	 * options.container — set html of container to command's output;
+	 * options.callback — function to call after request. filtered command's output is passed to func as arg;
+	 * options.async — sync/async request (by default request is ASYNC);
+	 * options.filter — function to filter command's output. command's output is passed to func as arg.
 	 */
-	this.runCmd = function(cmd, alias) {
-		cmdExecute({
-			"cmd": cmd,
-			"callback": function(data) {
-				cache[alias ? alias : cmd] = data;
+	var ajaxNum = 0;
+	this.cmdExecute = function(options) {
+		var output = null;
+		
+		/* process Ajax result */
+		var processResult = function(data) {
+			/* save data to output */
+			output = data;
+			
+			/* set data to conainer */
+			if (options.container) {
+				$(options.container).html(data);
+				
+				/* workaround for max-height in IE */
+				$(options.container).minmax();
 			}
-		});
+			
+			/* call callback with data as argument */
+			if (options.callback) {
+				options.callback(data);
+			}
+		};
+		
+		/* set AJAX options */
+		var ajaxOptions = {
+			"type": "POST",
+			"url": "sh/execute.cgi",
+			"async": options.async != undefined ? options.async : true,
+			"dataType": "text",
+			"data": {"cmd": options.cmd},
+			"dataFilter": function(data) {
+				if (options.filter) return options.filter(data);
+				else return data;
+			},
+			"success": function(data) {
+				if (ajaxNum > 0) ajaxNum--;
+				if (ajaxNum == 0) $("#status_ajax").text("none");
+				else $("#status_ajax").text($.sprintf("%s (%s requests)", _("loading data"), ajaxNum));
+				processResult(data);
+			},
+			"error": function() {
+				processResult("Connection error.");
+			}
+		};
+		
+		/* if router is offline show corresponding message */
+		if (!config.isOnline()) {
+			processResult("Router is offline");
+			return;
+		}
+		
+		/* increase number of processing Ajax requests and update status */
+		ajaxNum++;
+		$("#status_ajax").text($.sprintf("%s (%s requests)",  _("loading data"), ajaxNum));
+		
+		$.ajax(ajaxOptions);
+		
+		return output;
 	};
-	
-	/*
-	 * Get output of cmd.
-	 */
-	this.getCachedOutput = function(cmd) {
-		return cache[cmd] ? cache[cmd] : cmdExecute({"cmd": cmd, "async": false});
-	};
-};
+}
