@@ -57,16 +57,20 @@ function Page(p) {
 			
 			/* add click event */
 			href.click(function(e) {
-				/*
-				 * Clear all tabs (to prevent problems when elements have identical IDs on
-				 * different tabs).
-				 */
-				$(".tabs-container").empty();
-				
-				/* render tab's content */
-				tab.func();
-				
-				scrollTo(0, 0);
+				$(".tabs-container").html("Generating content...");
+				setTimeout(function() {
+						/*
+						 * Clear all tabs (to prevent problems when elements have identical IDs on
+						 * different tabs).
+						 */
+						$(".tabs-container").empty();
+						
+						/* render tab's content */
+						tab.func();
+						
+						scrollTo(0, 0);
+					},
+				10);
 			});
 			
 			/* save pointer to the first link for a tab */

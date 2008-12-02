@@ -86,8 +86,8 @@ jQuery.validator.addMethod("voipCompleteNumber", function(value, element) {
 
 /* VoIP's payload */
 jQuery.validator.addMethod("voipPayload", function(value, element) {
-	return this.optional(element) || /^0x[0-9a-fA-F]+$/.test(value);
-}, "Please enter correct payload type (must begin with 0x) in hexidemical format.");
+	return this.optional(element) || /(^0x[0-9a-fA-F]+$)|(^[0-9]+$)/.test(value);
+}, "Please enter correct payload type.");
 
 /* PBO value */
 jQuery.validator.addMethod("pbo", function(value, element) {
