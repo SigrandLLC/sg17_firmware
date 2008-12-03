@@ -64,7 +64,6 @@ pre_ifup(){
 				/sbin/ifup $i
 				get_real_iface $i
 				cmd $ip addr flush dev $i_real 2>/dev/null
-				cmd $ip link set $i_real up
 				cmd ifconfig $i_real mtu 1518 2>/dev/null
 				cmd brctl addif $realiface $i_real 2>/dev/null
 			done
@@ -80,6 +79,8 @@ pre_ifup(){
 				num=0
 				for i in $sys_ifaces; do
         				case $i in
+        						# skip VLAN interfaces
+        						*v*) ;;
                 				bond*)	num=$(($num+1)) ;;
         				esac
 				done
@@ -90,12 +91,19 @@ pre_ifup(){
 			required /sbin/ifenslave
 			cmd $ip link set $realiface up
 			for i in $bond_ifaces; do
-				# start interfaces bonding consist of
+				# try to start interfaces bonding consist of (they must have enabled=1 to be started)
 				/sbin/ifup $i
 				get_real_iface $i
 				cmd $ip addr flush dev $i_real 2>/dev/null
-				cmd $ip link set $i_real up
+				
+				# get state of slave interface to restore it after ifenslave
+				$ip addr show dev $i_real 2>/dev/null |grep UP >/dev/null 2>&1 && STATE=up || STATE=down				
+				
+				# after ifenslave slave interface will be in UP state
 				cmd /sbin/ifenslave $realiface $i_real 2>/dev/null
+				
+				# restore previous state of slave interface
+				cmd $ip link set $i_real $STATE
 			done
 			;;
 		vlan)
@@ -124,7 +132,7 @@ post_ifup(){
 			warn "Something wrong, \$gw is empty"
 			#cmd $ip route add $net dev $realiface
 		else
-			cmd /sbin/route add -net $net  netmask $netmask gw $gw
+			cmd /sbin/route add -net $net netmask $netmask gw $gw
 			#cmd $ip route add $net via $gw dev $realiface
 		fi
 	done
@@ -360,10 +368,6 @@ _network(){
 	for iface in $ifaces; do 
         	unset auto depend_on
 		eval `kdb -lqq sls sys_iface_${iface}_`
-		# start depends interfaces 
-		#if [ -n "$depend_on" ]; then
-		#	[ "$action" = "start" -a "$auto" = "1" ] && /sbin/ifup $depend_on
-		#fi
 		[ "$action" = "start" -a "$auto" = "1" ] && /sbin/ifup $iface
 		[ "$action" = "stop" ] && /sbin/ifdown $iface
 		if [ "$1" = "restart" ]; then

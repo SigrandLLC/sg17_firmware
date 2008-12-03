@@ -435,9 +435,9 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 						"tcpam8": TCPAM["tcpam8"],
 						"tcpam16": TCPAM["tcpam16"],
 						"tcpam32": TCPAM["tcpam32"]
-					}, code);
+					}, code, "tcpam32");
 				} else {
-					$("#code").setOptionsForSelect(TCPAM, code);
+					$("#code").setOptionsForSelect(TCPAM, code, "tcpam32");
 				}
 				
 				/* update varibale's value */
