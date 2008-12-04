@@ -137,10 +137,8 @@ post_ifup(){
 		fi
 	done
 	
-
 	/etc/init.d/qos start $realiface
 	/etc/init.d/ntpclient start
-
 
 	# setup interface options
 	local dir=/proc/sys/net/ipv4/conf/$realiface
@@ -162,6 +160,33 @@ post_ifup(){
 	
 	# restart VoIP daemon
 	[ -r /etc/init.d/rcvoip ] && /etc/init.d/rcvoip restart
+	
+	# restart bridge interfaces which contain this interface
+	#for key in `kdb kls sys_iface*_br_ifaces`; do
+	#	if kdb get $key |grep -q "$iface"; then
+	#		master=`echo $key |sed s/sys_iface_// |sed s/_br_ifaces//`
+	#		_network stop $master
+	#		_network start $master
+	#	fi
+	#done
+	
+	# restart bonding interfaces which contain this interface
+	#for key in `kdb kls sys_iface*_bond_ifaces`; do
+	#	if kdb get $key |grep -q "$iface"; then
+	#		master=`echo $key |sed s/sys_iface_// |sed s/_bond_ifaces//`
+	#		_network stop $master
+	#		_network start $master
+	#	fi
+	#done
+	
+	# restart interfaces which depends on this interface
+	#for key in `kdb kls sys_iface*_depend_on`; do
+	#	if kdb get $key |grep -q "$iface"; then
+	#		master=`echo $key |sed s/sys_iface_// |sed s/_depend_on//`
+	#		_network stop $master
+	#		_network start $master
+	#	fi
+	#done
 }
 
 _ifup(){
@@ -363,33 +388,46 @@ _ifdown(){
 
 _network(){
 	local action="$1"
-	# TODO: write restarting single interface at $2	
-	local ifaces="`kdb sskls 'sys*valid=1' sys_iface_ _valid`"
-	for iface in $ifaces; do 
-        	unset auto depend_on
+	local iface="$2"
+	
+	if [ -n "$iface" ]; then
 		eval `kdb -lqq sls sys_iface_${iface}_`
 		[ "$action" = "start" -a "$auto" = "1" ] && /sbin/ifup $iface
 		[ "$action" = "stop" ] && /sbin/ifdown $iface
-		if [ "$1" = "restart" ]; then
-			/sbin/ifdown $iface
-			/sbin/ifup $iface 
-		fi
-	done
+	else
+		local ifaces="`kdb sskls 'sys*valid=1' sys_iface_ _valid`"
+		for iface in $ifaces; do 
+			unset auto depend_on
+			eval `kdb -lqq sls sys_iface_${iface}_`
+			[ "$action" = "start" -a "$auto" = "1" ] && /sbin/ifup $iface
+			[ "$action" = "stop" ] && /sbin/ifdown $iface
+		done
+	fi
 }
 
 eval `kdb -qq ls sys_iface*`
 
 case "$0" in
 	*network)
-		# starts all ifaces
-		_network $@
+		if [ "$1" = "restart" ]; then
+			_network stop $2
+			_network start $2
+		else
+			_network $@
+		fi
 		;;
 	*ifup)
-		[ "x$1" = "x-a" ] && /etc/init.d/network start || _ifup $1
+		_ifup $1
 		;;
 	*ifdown)
-		[ "x$1" = "x-a" ] && /etc/init.d/network stop || _ifdown $1
+		_ifdown $1
 		;;
+	#*ifup)
+	#	[ "x$1" = "x-a" ] && /etc/init.d/network start || _ifup $1
+	#	;;
+	#*ifdown)
+	#	[ "x$1" = "x-a" ] && /etc/init.d/network stop || _ifdown $1
+	#	;;
 esac
 
 

@@ -388,7 +388,7 @@ Controllers['voip'] = function() {
 			
 			/* create array with FSX ports */
 			var fxsChannels = new Array();
-			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("<br>");
+			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("\n");
 			$.each(channels, function(num, record) {
 				if (record.length == 0) return true;
 				
@@ -539,7 +539,7 @@ Controllers['voip'] = function() {
 			c.addTitle("Hotline settings", 5);
 			
 			c.addTableHeader("Channel|Type|Hotline|Complete number|Comment");
-			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("<br>");
+			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("\n");
 			$.each(channels, function(num, record) {
 				var field;
 				if (record.length == 0) return true;
@@ -603,7 +603,7 @@ Controllers['voip'] = function() {
 			c.addTitle("Sound settings", 9);
 			
 			c.addTableHeader("Channel|OOB|OOB_play|nEventPT|nEventPlayPT|Tx_vol|Rx_vol|VAD|HPF");
-			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("<br>");
+			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("\n");
 			$.each(channels, function(num, record) {
 				var field;
 				if (record.length == 0) return true;
