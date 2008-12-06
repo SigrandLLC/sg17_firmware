@@ -1,9 +1,8 @@
 #!/usr/bin/haserl
-
-	subsys="network"
 	
 	item=$FORM_item
 	iface=$FORM_iface
+	subsys="network.$iface"
 	
 	# generate list of available classes
 	for key in `kdb kls sys_iface_${iface}_qos_htb_class_*`; do

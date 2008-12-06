@@ -1,9 +1,8 @@
 #!/usr/bin/haserl
-
-	subsys="network"
 	
 	item=$FORM_item
 	iface=$FORM_iface
+	subsys="network.$iface"
 	
 	# calculate next classid identifier
 	if [ "$REQUEST_METHOD" = POST -a -n "$FORM_additem" ]; then

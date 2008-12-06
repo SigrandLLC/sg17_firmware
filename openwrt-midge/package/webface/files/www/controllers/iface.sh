@@ -3,7 +3,7 @@
 	. ./common/dhcp_server.sh
 	export iface=${FORM_iface:-eth0}
 	page=${FORM_page:-status}
-	subsys="network"
+	subsys="network.$iface"
 
 	handle_list_del_item
 

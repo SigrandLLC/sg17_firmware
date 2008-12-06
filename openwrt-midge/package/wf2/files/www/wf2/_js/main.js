@@ -14,8 +14,8 @@ config.loadOEM();
 /* load firmware version */
 config.runCmd("/bin/cat /etc/version");
 
-/* check router every 5 seconds */
-config.startCheckStatus(5);
+/* check router every 10 seconds */
+config.startCheckStatus(10);
 
 /* set page title to router's hostname */
 document.title = config.get("sys_hostname");

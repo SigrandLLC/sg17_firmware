@@ -4,12 +4,16 @@
 
 service_reload(){
 	local service="$1"
-	local auto;
 	
 	case "$service" in
-	network)
-		if [ -n "$iface" ]; then
+	network*)
+		# get interface name
+		local iface=${service#*.}
+		
+		# if interface name is specified, restart only that interface
+		if [ "$iface" != "network" ]; then
 			/etc/init.d/network restart $iface
+		# otherwise, restart full subsystem 
 		else
 			/etc/init.d/network restart
 		fi

@@ -530,8 +530,12 @@ function Container(p, options) {
 		/* other subwidgets are placed depending on their placement property */
 		else placeElement(subwidget, "subwidget", w.name, placement);
 		
-		/* set CSS class if specified */
-		if (w.cssClass) subwidget.addClass(w.cssClass);
+		/* set CSS classes if specified. they can be space-separated */
+		if (w.cssClass) {
+			$.each(w.cssClass.split(" "), function(num, class) {
+				subwidget.addClass(class);
+			});
+		}
 		
 		/* set nice tooltip */
 		subwidget.tooltip({"track": true});

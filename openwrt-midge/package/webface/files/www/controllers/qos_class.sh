@@ -1,9 +1,8 @@
 #!/usr/bin/haserl
 
-	subsys="network"
-	frame=1
-		
+	frame=1		
 	iface=${FORM_iface}
+	subsys="network.$iface"
 	
 	handle_list_del_item $subsys
 	

@@ -1,6 +1,6 @@
-Controllers['iface'] = function(iface) {
+Controllers.iface = function(iface) {
 	var page = this.Page();
-	page.setSubsystem("network");
+	page.setSubsystem("network." + iface);
 	page.setHelpPage("iface");
 	
 	/* STATUS tab */

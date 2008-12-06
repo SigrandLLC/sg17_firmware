@@ -1,4 +1,4 @@
-Controllers['voip'] = function() {
+Controllers.voip = function() {
 	var page = this.Page();
 	page.setSubsystem("voip");
 	
@@ -74,7 +74,6 @@ Controllers['voip'] = function() {
 				"g729": "10",
 				"g723": "30",
 				"iLBC_133": "30",
-				"iLBC_152": "20",
 				"g729e": "10",
 				"g726_16": "10",
 				"g726_24": "10",
@@ -84,12 +83,11 @@ Controllers['voip'] = function() {
 			};
 			
 			var payloadDefault = {
-				"aLaw": "0x08",
-				"uLaw": "0x00",
-				"g729": "0x12",
+				"aLaw": "08",
+				"uLaw": "00",
+				"g729": "12",
 				"g723": "4",
 				"iLBC_133": "100",
-				"iLBC_152": "100",
 				"g729e": "101",
 				"g726_16": "102",
 				"g726_24": "103",
@@ -98,7 +96,7 @@ Controllers['voip'] = function() {
 				"none": ""
 			};
 			
-			var codecs = ["g729", "aLaw", "uLaw", "g723", "iLBC_133", "iLBC_152",
+			var codecs = ["g729", "aLaw", "uLaw", "g723", "iLBC_133",
 				"g729e", "g726_16", "g726_24", "g726_32", "g726_40", "none"];
 
 			/*
@@ -138,35 +136,8 @@ Controllers['voip'] = function() {
 			var setDefaults = function(scope, i, codecsNum) {
 				var codec = $($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, i)).val();
 				
-				$($.sprintf("#sys_voip_quality_%s_codec%s_pktsz", scope, i)).val(
-					pktszDefault[codec]);
-				
-				/*
-				 * if this codec is iLBC, find any iLBC codec, and if it is exist
-				 * — set payload for this codec to it.
-				 */
-				if (codec.search("iLBC") != -1) {
-					for (var j = 0; j < codecsNum; j++) {
-						/* skip current object */
-						if (i == j) continue;
-						
-						if ($($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, j)).val().search("iLBC") != -1) {
-							$($.sprintf("#sys_voip_quality_%s_codec%s_payload", scope, i))
-								.val($($.sprintf("#sys_voip_quality_%s_codec%s_payload", scope, j)).val());
-							break;
-						}
-					}
-					
-					/* if iLBC codec is not finded — set default value */
-					if (j >= codecsNum) {
-						$($.sprintf("#sys_voip_quality_%s_codec%s_payload", scope, i)).val(
-							payloadDefault[codec]);
-					}
-				/* for not iLBC codecs set default value */
-				} else {
-					$($.sprintf("#sys_voip_quality_%s_codec%s_payload", scope, i)).val(
-						payloadDefault[codec]);
-				}
+				$($.sprintf("#sys_voip_quality_%s_codec%s_pktsz", scope, i)).val(pktszDefault[codec]);
+				$($.sprintf("#sys_voip_quality_%s_codec%s_payload", scope, i)).val(payloadDefault[codec]);
 				
 				/* set default for bitpack */
 				if (codec.search("g726") != -1) {
@@ -201,7 +172,7 @@ Controllers['voip'] = function() {
 				var codec = $($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, i)).val();
 				
 				/* for g723 and iLBC* pkt_sz is read-only */
-				if (codec == "g723" || codec == "iLBC_133" || codec == "iLBC_152")
+				if (codec == "g723" || codec == "iLBC_133")
 				{
 					/* set disabled and readonly attributes */
 					$($.sprintf("#sys_voip_quality_%s_codec%s_pktsz", scope, i))
@@ -265,7 +236,7 @@ Controllers['voip'] = function() {
 					field = {
 						"type": "text",
 						"name": $.sprintf("sys_voip_quality_%s_codec%s_payload", scope, i),
-						"cssClass": "voipQualityPayload",
+						"cssClass": "voipQualityPayload payload_" + scope,
 						"validator":
 						{
 							"required": function(x) {
@@ -273,15 +244,8 @@ Controllers['voip'] = function() {
 									return $($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, x)).val() != "none";
 								}
 							}(i),
-							"voipPayload": true
-						},
-						/* payload value for all iLBC codecs are the same, so change it on all codecs */
-						"onChange": function(thisContainer, src) {
-							for (var j = 0; j < num; j++) {
-								if ($($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, j)).val().search("iLBC") != -1) {
-									$($.sprintf("#sys_voip_quality_%s_codec%s_payload", scope, j)).val($(src.currentTarget).val());
-								}
-							}
+							"voipPayload": true,
+							"uniqueValue": ".payload_" + scope
 						}
 					};
 					c.addTableWidget(field, row);
