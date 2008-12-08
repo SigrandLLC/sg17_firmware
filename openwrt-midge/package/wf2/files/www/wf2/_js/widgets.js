@@ -227,11 +227,14 @@ function Container(p, options) {
 	this.addTitle = function(title, colspan) {
 		var url = null;
 		
-		/* create url for context help */
-		if (this.help.page && this.help.section) {
-			url = "/help/" + this.help.page + ".html#" + this.help.section;
-		} else if (this.help.page) {
-			url = "/help/" + this.help.page + ".html";
+		/* if we have context-help — add links to it */
+		if (config.getCachedOutput("context-help") == "1") {
+			/* create url for context help */
+			if (this.help.page && this.help.section) {
+				url = $.sprintf("/help/%s.html#%s", this.help.page, this.help.section);
+			} else if (this.help.page) {
+				url = $.sprintf("/help/%s.html", this.help.page);
+			}
 		}
 		
 		/* if url is set — create context help link object, otherwise set it to null */
@@ -655,7 +658,9 @@ function Container(p, options) {
 	 * options['onSuccess'] — callback on request successfully completion;
 	 * options['noSubmit'] — do not submit the form, but call onSubmit and preSubmit callbacks;
 	 * options['onSubmit'] — callback on submit event to call after submitting the form;
-	 * options['preSubmit'] — callback on submit event to call before submitting the form.
+	 * options['preSubmit'] — callback on submit event to call before submitting the form;
+	 * options.additionalKeys — additional keys to save in KDB in the correct format
+	 *  ([ { name: 'username', value: 'jresig' }, { name: 'password', value: 'secret' } ]).
 	 * NOTE:
 	 *  - if preSubmit returns false, form is not submitting;
 	 *  - if noSubmit is set and preSubmit return false, onSubmit is not calling.
@@ -789,6 +794,9 @@ function Container(p, options) {
 				} else {
 					fields = $(form).formToArray();
 				}
+				
+				/* if additionalKeys is specified — add them */
+				if (options && options.additionalKeys) fields = $.merge(fields, options.additionalKeys);
 				
 				/* submit task (updating settings) for execution */
      			config.kdbSubmit(fields, reload, onSuccess);

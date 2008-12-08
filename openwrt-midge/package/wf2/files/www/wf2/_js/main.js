@@ -14,6 +14,9 @@ config.loadOEM();
 /* load firmware version */
 config.runCmd("/bin/cat /etc/version");
 
+/* get availability for context-help */
+config.runCmd("[ -r '/www/help/index.html' ] && echo -n 1 || echo -n 0", "context-help");
+
 /* check router every 10 seconds */
 config.startCheckStatus(10);
 

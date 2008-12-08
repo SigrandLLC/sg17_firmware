@@ -380,7 +380,7 @@ Controllers.iface = function(iface) {
 					
 					field = { 
 						"type": "text",
-						"name": "sys_iface_" + iface + "_bond_ifaces",
+						"name": $.sprintf("sys_iface_%s_bond_ifaces", iface),
 						"text": "Interfaces",
 						"descr": "Interfaces for bonding separated by space",
 						"tip": "<b>Example:</b>eth0 eth1 dsl0<br><b>Note:</b>You can use only Ethernet-like" + 
@@ -390,7 +390,18 @@ Controllers.iface = function(iface) {
 					};
 					c.addWidget(field);
 					
-					c.addSubmit();
+					/* set auto=0 enabled=1 for depending interfaces */
+					var additionalKeys = [];
+					c.addSubmit({
+						"additionalKeys": additionalKeys,
+						"preSubmit": function() {
+							$.each($($.sprintf("#sys_iface_%s_bond_ifaces", iface)).val().split(" "),
+								function(num, value) {
+									$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_auto", value), "0");
+									$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_enabled", value), "1");
+								});
+						}
+					});
 					
 					break;
 					
@@ -460,7 +471,18 @@ Controllers.iface = function(iface) {
 					};
 					c.addWidget(field);
 					
-					c.addSubmit();
+					/* set auto=0 enabled=1 for depending interfaces */
+					var additionalKeys = [];
+					c.addSubmit({
+						"additionalKeys": additionalKeys,
+						"preSubmit": function() {
+							$.each($($.sprintf("#sys_iface_%s_br_ifaces", iface)).val().split(" "),
+								function(num, value) {
+									$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_auto", value), "0");
+									$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_enabled", value), "1");
+								});
+						}
+					});
 					
 					break;
 			}

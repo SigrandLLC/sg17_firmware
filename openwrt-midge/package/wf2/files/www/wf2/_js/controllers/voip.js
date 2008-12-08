@@ -377,7 +377,7 @@ Controllers.voip = function() {
 	/* route table tab */
 	page.addTab({
 		"id": "voipRoute",
-		"name": "Route table",
+		"name": "Routes",
 		"func": function() {
 			var c = page.addContainer("voipRoute");
 			c.setHelpPage("voip.route");
@@ -435,7 +435,7 @@ Controllers.voip = function() {
 	/* address book tab */
 	page.addTab({
 		"id": "address",
-		"name": "Address book",
+		"name": "Addresses",
 		"func": function() {
 			var c = page.addContainer("address");
 			c.setHelpPage("voip.address");

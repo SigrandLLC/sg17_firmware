@@ -78,7 +78,8 @@ function generateMenu() {
 	
 	/* generate menu */
 	$("#menu").treeview({
-		unique: true,
-		collapsed: true
+		"unique": true,
+		"collapsed": true,
+		"persist": "cookie"
 	});
 }
