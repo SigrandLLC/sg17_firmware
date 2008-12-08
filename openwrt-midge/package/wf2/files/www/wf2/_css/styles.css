@@ -224,6 +224,10 @@ ul.treeview li li li li li span {
 	border: 1px solid #6c9;
 }
 
+#conttable input[type=button] {
+	width: auto;
+}
+
 #conttable input.table {
 	width: 80%;
 }

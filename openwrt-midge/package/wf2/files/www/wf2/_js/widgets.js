@@ -69,6 +69,9 @@ function Page(p) {
 						tab.func();
 						
 						scrollTo(0, 0);
+						
+						/* save selected tab ID in cookie */
+						$.cookie("wf2-tab", tab.id);
 					},
 				10);
 			});
@@ -92,8 +95,13 @@ function Page(p) {
 		/* update tabs */
 		$(p).tabs({"fxAutoHeight": true});
 		
-		/* render content of the first tab */
-		firstTab.click();
+		/* if tab ID is saved in cookie and this page have tab with this ID — show this tab */
+		if ($.cookie("wf2-tab") && $($.sprintf("#%s%s_link", tabIdPrefix, $.cookie("wf2-tab"))).length > 0) {
+			$($.sprintf("#%s%s_link", tabIdPrefix, $.cookie("wf2-tab"))).click();
+		/* otherwise show first tab */
+		} else {
+			firstTab.click();
+		}
 	};
 	
 	/*
@@ -216,6 +224,11 @@ function Container(p, options) {
 	/* set subsystem for this tab */
 	this.setHelpSection = function(helpSection) {
 		this.help.section = helpSection;
+	};
+	
+	/* redraw current tab */
+	this.containerRedraw = function() {
+		$($.sprintf("#%s_link", p.attr("id"))).click();
 	};
 	
 	/* 
@@ -420,8 +433,9 @@ function Container(p, options) {
 		var button = $.create("input", attrs);
 		
 		/* set action */
-		button.click(function() {
-			w.func();
+		button.click(function(src) {
+			if (w.eventHandlerObject) w.func(w.eventHandlerObject, src);
+			else w.func(thisContainer, src);
 		});
 		
 		return button;
@@ -448,6 +462,9 @@ function Container(p, options) {
 						throw "placement.anchor is not specified or invalid";
 					element.insertAfter(placement.anchor);
 					break;
+				case "prependToAnchor":
+					element.prependTo(placement.anchor);
+					break;
 				case "appendToForm":
 					thisContainer.form.append(element);
 					break;
@@ -467,13 +484,18 @@ function Container(p, options) {
 
 	/*
 	 * Add complete widget (table's TR) to container.
+	 * If type is general, add only table's TR.
 	 * 
 	 * w — widget to add;
 	 * placement — how to place widget (look at placeElement());
 	 */
 	this.addWidget = function(w, placement) {
-		if (w.type != "hidden")
+		if (w.type != "hidden") {
 			placeElement(this.createGeneralWidget(w), "widget", w.name, placement);
+			if (w.type == "general") {
+				return;
+			}
+		}
 		
 		this.addSubWidget(w);
 	};

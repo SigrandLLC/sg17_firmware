@@ -8,10 +8,88 @@ Controllers.iface = function(iface) {
 		"id": "status",
 		"name": "Status",
 		"func": function() {
-			var c;
+			var c, field;
 			var realIface = config.get($.sprintf("sys_iface_%s_real", iface)) ?
 				config.get($.sprintf("sys_iface_%s_real", iface)) : iface;
 			
+			c = page.addContainer("status");
+			c.addTitle("Interface status");
+			
+			/* add general widget, which will contain three buttons */
+			field = {
+				"type": "general",
+				"name": "interface_ctrl",
+				"text": "Interface control"
+			};
+			c.addWidget(field);
+			
+			/* restart button */
+			field = {
+				"type": "button",
+				"name": "btn_restart",
+				"text": "Restart",
+				"func": function(thisContainer, src) {
+					$(src.currentTarget).attr("disabled", true);
+					config.cmdExecute({
+						"cmd": $.sprintf("/etc/init.d/network restart %s", realIface),
+						"callback": function() {
+							$(src.currentTarget).removeAttr("disabled");
+							c.containerRedraw();
+						}
+					});
+				}
+			};
+			c.addSubWidget(field, {
+					"type": "prependToAnchor",
+					"anchor": "#td_interface_ctrl"
+				}
+			);
+			
+			/* stop button */
+			field = {
+				"type": "button",
+				"name": "btn_stop",
+				"text": "Stop",
+				"func": function(thisContainer, src) {
+					$(src.currentTarget).attr("disabled", true);
+					config.cmdExecute({
+						"cmd": $.sprintf("/sbin/ifdown %s", realIface),
+						"callback": function() {
+							$(src.currentTarget).removeAttr("disabled");
+							c.containerRedraw();
+						}
+					});
+				}
+			};
+			c.addSubWidget(field, {
+					"type": "prependToAnchor",
+					"anchor": "#td_interface_ctrl"
+				}
+			);
+			
+			/* start button */
+			field = {
+				"type": "button",
+				"name": "btn_start",
+				"text": "Start",
+				"func": function(thisContainer, src) {
+					$(src.currentTarget).attr("disabled", true);
+					config.cmdExecute({
+						"cmd": $.sprintf("/sbin/ifup %s", realIface),
+						"callback": function() {
+							$(src.currentTarget).removeAttr("disabled");
+							c.containerRedraw();
+						}
+					});
+				}
+			};
+			c.addSubWidget(field, {
+					"type": "prependToAnchor",
+					"anchor": "#td_interface_ctrl"
+				}
+			);
+			
+			page.addBr("status");
 			c = page.addContainer("status");
 			c.addTitle("Interface status");
 			c.addConsole(["/sbin/ifconfig " + realIface, "/usr/sbin/ip addr show dev " + realIface,
