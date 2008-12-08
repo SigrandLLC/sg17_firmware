@@ -16,13 +16,14 @@ enum cod_type_e {
 	cod_type_MLAW,
 	cod_type_ALAW,
 	cod_type_G729,
-	/*
+	cod_type_G729E,
+	cod_type_ILBC_133,
+/*	cod_type_ILBC_152, */
+	cod_type_G723,
 	cod_type_G726_16,
 	cod_type_G726_24,
 	cod_type_G726_32,
 	cod_type_G726_40,
-	cod_type_ILBC_133,
-	*/
 };
 
 enum cod_pkt_size_e {
@@ -38,25 +39,19 @@ enum cod_pkt_size_e {
 	cod_pkt_size_60,
 };
 
+enum bitpack_e {
+	bitpack_RTP,
+	bitpack_AAL2,
+};
+
 struct codec_s {
 	enum cod_type_e 	type;
 	enum cod_pkt_size_e pkt_size;
+	enum bitpack_e bpack;
 	int user_payload;
 	int sdp_selected_payload;
 };
 
-/* Codec default payload types tag__ to remove
-enum cod_pt_e {
-	cod_pt_MLAW = 0,
-	cod_pt_ALAW = 8,
-	cod_pt_G729 = 18,
-	cod_pt_G726_16 = 94,
-	cod_pt_G726_24 = 95,
-	cod_pt_G726_32 = 96,
-	cod_pt_G726_40 = 97,
-	cod_pt_ILBC_133 = 99,
-};
- */
 enum evts_2833_e {
 	evts_OOB_DEFAULT,
 	evts_OOB_NO,

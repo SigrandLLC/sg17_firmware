@@ -1127,6 +1127,8 @@ DFS
 				} else {
 					SU_DEBUG_0((LOG_FNC_A("ERROR: Too long rm_encoding")));
 				}
+				SU_DEBUG_5(("rm_fmtp: %s\n"
+						,sdp_sess->sdp_media->m_rtpmaps->rm_fmtp));
 			}
 		}
 		sdp_parser_free (remote_sdp);
@@ -1344,11 +1346,12 @@ DFS
 			goto __exit;
 		}
 
-		SU_DEBUG_5(("Got remote %s:%d with coder/payload [%s/%d]\n",
+		SU_DEBUG_5(("Got remote %s:%d with coder/payload [%s/%d], fmtp: %s\n",
 				chan_ctx->remote_host, 
 				chan_ctx->remote_port, 
 				chan_ctx->sdp_cod_name, 
-				chan_ctx->sdp_payload));
+				chan_ctx->sdp_payload,
+				sdp_sess->sdp_media->m_rtpmaps->rm_fmtp));
 	}
 __exit:
 	sdp_parser_free (remote_sdp);
@@ -1410,6 +1413,7 @@ svd_new_sdp_string (long const media_port, enum calltype_e const ct)
 		goto __exit_fail_allocated;
 	}
 
+// "m=audio %d RTP/AVP 18 8 0\r\n"
 	for(i=0; cp[i].type != cod_type_NONE; i++){
 		char pld_str[SDP_STR_MAX_LEN];
 		memset(pld_str, 0, sizeof(pld_str));
@@ -1433,6 +1437,10 @@ svd_new_sdp_string (long const media_port, enum calltype_e const ct)
 		goto __exit_fail_allocated;
 	}
 
+//"a=rtpmap:18 G729/8000\r\n"
+//"a=rtpmap:8 PCMA/8000\r\n"
+//"a=rtpmap:0 PCMU/8000\r\n"
+//"a=fmtp:100 mode=20\r\n"
 	for(i=0; cp[i].type != cod_type_NONE; i++){
 		char rtp_str[SDP_STR_MAX_LEN];
 		cod_prms_t const * cod_pr = NULL;
@@ -1455,6 +1463,22 @@ svd_new_sdp_string (long const media_port, enum calltype_e const ct)
 		}
 		strncat(ret_str, rtp_str, limit);
 		limit -= ltmp;
+
+		if(cod_pr->fmtp_str[0]){
+			memset(rtp_str, 0, sizeof(rtp_str));
+			ltmp = snprintf(rtp_str, SDP_STR_MAX_LEN, "a=fmtp:%d %s\r\n", 
+					cp[i].user_payload, cod_pr->fmtp_str);
+			if((ltmp == -1) || (ltmp >= SDP_STR_MAX_LEN)){
+				SU_DEBUG_0((LOG_FNC_A(
+						"ERROR: RTPMAP string buffer too small")));
+				goto __exit_fail_allocated;
+			} else if(ltmp >= limit){
+				SU_DEBUG_0((LOG_FNC_A("ERROR: SDP string buffer too small")));
+				goto __exit_fail_allocated;
+			}
+			strncat(ret_str, rtp_str, limit);
+			limit -= ltmp;
+		}
 	}
 
 	return ret_str;

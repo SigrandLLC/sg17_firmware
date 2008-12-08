@@ -54,6 +54,16 @@ static unsigned char g_err_no;
 #define CONF_CODEC_G729 "g729"
 #define CONF_CODEC_ALAW "aLaw"
 #define CONF_CODEC_MLAW "uLaw"
+#define CONF_CODEC_G723 "g723"
+#define CONF_CODEC_ILBC133 "iLBC_133"
+/*#define CONF_CODEC_ILBC152 "iLBC_152"*/
+#define CONF_CODEC_G729E "g729e"
+#define CONF_CODEC_G72616 "g726_16"
+#define CONF_CODEC_G72624 "g726_24"
+#define CONF_CODEC_G72632 "g726_32"
+#define CONF_CODEC_G72640 "g726_40"
+#define CONF_CODEC_BITPACK_RTP "rtp"
+#define CONF_CODEC_BITPACK_AAL2 "aal2"
 #define CONF_OOB_DEFAULT "default"
 #define CONF_OOB_NO "in-band"
 #define CONF_OOB_ONLY "out-of-band"
@@ -453,35 +463,115 @@ svd_init_cod_params( cod_prms_t * const cp )
 		cp[i].type = cod_type_NONE;
 	} 
 
+	i=0;
+
 	/* G711 ALAW parameters. */
-	cp[0].type = cod_type_ALAW;
+	cp[i].type = cod_type_ALAW;
 	if(strlen("PCMA") >= COD_NAME_LEN){
 		goto __exit_fail;
 	}
-	strcpy(cp[0].sdp_name, "PCMA");
-	cp[0].rate = 8000;
+	strcpy(cp[i].sdp_name, "PCMA");
+	cp[i].rate = 8000;
+	i++;
 	
 	/* G711 MLAW parameters. */
-	cp[1].type = cod_type_MLAW;
+	cp[i].type = cod_type_MLAW;
 	if(strlen("PCMU") >= COD_NAME_LEN){
 		goto __exit_fail;
 	}
-	strcpy(cp[1].sdp_name, "PCMU");
-	cp[1].rate = 8000;
+	strcpy(cp[i].sdp_name, "PCMU");
+	cp[i].rate = 8000;
+	i++;
 
 	/* G729 parameters. */
-	cp[2].type = cod_type_G729;
+	cp[i].type = cod_type_G729;
 	if(strlen("G729") >= COD_NAME_LEN){
 		goto __exit_fail;
 	}
-	strcpy(cp[2].sdp_name, "G729");
-	cp[2].rate = 8000;
+	strcpy(cp[i].sdp_name, "G729");
+	cp[i].rate = 8000;
+	i++;
+
+	/* G729E parameters. */
+	cp[i].type = cod_type_G729E;
+	if(strlen("G729E") >= COD_NAME_LEN){
+		goto __exit_fail;
+	}
+	strcpy(cp[i].sdp_name, "G729E");
+	cp[i].rate = 8000;
+	i++;
+
+	/* G723 parameters. */
+	cp[i].type = cod_type_G723;
+	if(strlen("G723") >= COD_NAME_LEN){
+		goto __exit_fail;
+	}
+	strcpy(cp[i].sdp_name, "G723");
+	cp[i].rate = 8000;
+	i++;
+
+	/* iLBC_133 parameters. */
+	cp[i].type = cod_type_ILBC_133;
+	if(     strlen("iLBC") >= COD_NAME_LEN ||
+			strlen("mode=30") >= FMTP_STR_LEN){
+		goto __exit_fail;
+	}
+	strcpy(cp[i].sdp_name, "iLBC");
+	strcpy(cp[i].fmtp_str, "mode=30");
+	cp[i].rate = 8000;
+	i++;
+
+	/* iLBC_152 parameters.
+	cp[i].type = cod_type_ILBC_152;
+	if(     strlen("iLBC") >= COD_NAME_LEN ||
+			strlen("mode=20") >= FMTP_STR_LEN){
+		goto __exit_fail;
+	}
+	strcpy(cp[i].sdp_name, "iLBC");
+	strcpy(cp[i].fmtp_str, "mode=20");
+	cp[i].rate = 8000;
+	i++;
+	*/
+
+	/* G726_16 parameters. */
+	cp[i].type = cod_type_G726_16;
+	if(strlen("G726-16") >= COD_NAME_LEN){
+		goto __exit_fail;
+	}
+	strcpy(cp[i].sdp_name, "G726-16");
+	cp[i].rate = 8000;
+	i++;
+
+	/* G726_ parameters. */
+	cp[i].type = cod_type_G726_24;
+	if(strlen("G726-24") >= COD_NAME_LEN){
+		goto __exit_fail;
+	}
+	strcpy(cp[i].sdp_name, "G726-24");
+	cp[i].rate = 8000;
+	i++;
+
+	/* G726_ parameters. */
+	cp[i].type = cod_type_G726_32;
+	if(strlen("G726-32") >= COD_NAME_LEN){
+		goto __exit_fail;
+	}
+	strcpy(cp[i].sdp_name, "G726-32");
+	cp[i].rate = 8000;
+	i++;
+
+	/* G726_ parameters. */
+	cp[i].type = cod_type_G726_40;
+	if(strlen("G726-40") >= COD_NAME_LEN){
+		goto __exit_fail;
+	}
+	strcpy(cp[i].sdp_name, "G726-40");
+	cp[i].rate = 8000;
 
 	return 0;
 __exit_fail:
 	return -1;
 }/*}}}*/
-
 
 /**
  * 	Init`s self ip and number settings in main routine configuration 
@@ -603,6 +693,24 @@ init_codec_el(struct config_setting_t const *const rec_set, codec_t *const cod)
 		cod->type = cod_type_ALAW;
 	} else if( !strcmp(codel, CONF_CODEC_MLAW)){
 		cod->type = cod_type_MLAW;
+	} else if( !strcmp(codel, CONF_CODEC_G723)){
+		cod->type = cod_type_G723;
+	} else if( !strcmp(codel, CONF_CODEC_ILBC133)){
+		cod->type = cod_type_ILBC_133;
+		/*
+	} else if( !strcmp(codel, CONF_CODEC_ILBC152)){
+		cod->type = cod_type_ILBC_152;
+		*/
+	} else if( !strcmp(codel, CONF_CODEC_G729E)){
+		cod->type = cod_type_G729E;
+	} else if( !strcmp(codel, CONF_CODEC_G72616)){
+		cod->type = cod_type_G726_16;
+	} else if( !strcmp(codel, CONF_CODEC_G72624)){
+		cod->type = cod_type_G726_24;
+	} else if( !strcmp(codel, CONF_CODEC_G72632)){
+		cod->type = cod_type_G726_32;
+	} else if( !strcmp(codel, CONF_CODEC_G72640)){
+		cod->type = cod_type_G726_40;
 	}
 
 	/* codec packet size */
@@ -631,6 +739,18 @@ init_codec_el(struct config_setting_t const *const rec_set, codec_t *const cod)
 
 	/* codec payload type */
 	cod->user_payload = config_setting_get_int_elem (rec_set, 2);
+
+	/* codec bitpack */
+	codel = config_setting_get_string_elem (rec_set, 3);
+	if( !codel){
+		SU_DEBUG_2(("No BITPACK entries for some codecs!!!"));
+		return;
+	}
+	if       ( !strcmp(codel, CONF_CODEC_BITPACK_RTP)){
+		cod->bpack = bitpack_RTP;
+	} else if( !strcmp(codel, CONF_CODEC_BITPACK_AAL2)){
+		cod->bpack = bitpack_AAL2;
+	}
 }/*}}}*/
 
 /**

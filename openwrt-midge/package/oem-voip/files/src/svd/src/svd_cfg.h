@@ -68,7 +68,7 @@ void startup_destroy( int argc, char ** argv );
  * First unusing codec \c type will be set as \c codec_type_NONE.
  * It should be greater then codecs count because application can 
  * test the end of the list by \c == \c codec_type_NONE */
-#define COD_MAS_SIZE 5
+#define COD_MAS_SIZE 12
 /* Address book only */
 /** Addressbook identifier standard length.*/
 #define ADBK_ID_LEN_DF	5 /* static or dynamic */
@@ -102,10 +102,14 @@ void conf_show( void );
 /** Destroy \ref g_conf.*/
 void svd_conf_destroy( void );
 
+
+#define FMTP_STR_LEN 20
+
 /** Codec rtp and sdp parameters.*/ 
 typedef struct cod_prms_s {
 	cod_type_t type;
 	char sdp_name[COD_NAME_LEN];
+	char fmtp_str[FMTP_STR_LEN];
 	int rate;
 } cod_prms_t;
 
@@ -113,11 +117,6 @@ typedef struct cod_prms_s {
 int svd_init_cod_params( cod_prms_t * const cp );
 
 /* g_conf inner structures {{{*/
-/** Codec choose policy.*/
-enum codec_type_e {
-	codec_type_SPEED, /**< Choose fastest */
-	codec_type_QUALITY /**< Choose most high-quality */
-};
 /** Address book record.*/
 struct adbk_record_s {
 	char * id; /**< Short number pointer.*/

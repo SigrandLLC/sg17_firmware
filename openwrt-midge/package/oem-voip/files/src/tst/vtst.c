@@ -19,14 +19,25 @@
 #define ALAW_PT_DF 8
 #define MLAW_PT_DF 0
 
-#define ALAW_CFG_NAME "aLaw"
-#define MLAW_CFG_NAME "uLaw"
-#define G729_CFG_NAME "g729"
-#define VADOFF_CFG_NAME "off"
-#define VADON_CFG_NAME "on"
+#define DEFAULT_CFG_NAME    "*"
+#define ALAW_CFG_NAME    "aLaw"
+#define MLAW_CFG_NAME    "uLaw"
+#define G729_CFG_NAME    "g729"
+#define G729E_CFG_NAME   "g729e"
+#define ILBC133_CFG_NAME "iLBC_133"
+#define ILBC152_CFG_NAME "iLBC_152"
+#define G723_CFG_NAME    "g723"
+#define G72616_CFG_NAME  "g726_16"
+#define G72624_CFG_NAME  "g726_24"
+#define G72632_CFG_NAME  "g726_32"
+#define G72640_CFG_NAME  "g726_40"
+#define VADOFF_CFG_NAME  "off"
+#define VADON_CFG_NAME   "on"
 #define VADG711_CFG_NAME "g711"
-#define VADCNG_CFG_NAME "cng_only"
-#define VADSC_CFG_NAME "sc_only"
+#define VADCNG_CFG_NAME  "cng_only"
+#define VADSC_CFG_NAME   "sc_only"
+
+
 
 struct opts_s {/*{{{*/
 	int help;
@@ -46,12 +57,63 @@ struct status_s {/*{{{*/
 	int poll_fd_num;
 } g_status;/*}}}*/
 
+void
+set_df_pt( void )
+{/*{{{*/
+	if       (g_so.vcod.type == cod_type_ALAW){
+		g_so.vcod.sdp_selected_payload = 8;
+	} else if(g_so.vcod.type == cod_type_MLAW){
+		g_so.vcod.sdp_selected_payload = 0;
+	} else if(g_so.vcod.type == cod_type_G729){
+		g_so.vcod.sdp_selected_payload = 18;
+	} else if(g_so.vcod.type == cod_type_G729E){
+		g_so.vcod.sdp_selected_payload = 99;
+	} else if(g_so.vcod.type == cod_type_ILBC_133){
+		g_so.vcod.sdp_selected_payload = 100;
+	} else if(g_so.vcod.type == cod_type_ILBC_152){
+		g_so.vcod.sdp_selected_payload = 100;
+	} else if(g_so.vcod.type == cod_type_G723){
+		g_so.vcod.sdp_selected_payload = 4;
+	} else if(g_so.vcod.type == cod_type_G726_16){
+		g_so.vcod.sdp_selected_payload = 101;
+	} else if(g_so.vcod.type == cod_type_G726_24){
+		g_so.vcod.sdp_selected_payload = 101;
+	} else if(g_so.vcod.type == cod_type_G726_32){
+		g_so.vcod.sdp_selected_payload = 101;
+	} else if(g_so.vcod.type == cod_type_G726_40){
+		g_so.vcod.sdp_selected_payload = 101;
+	}
+}/*}}}*/
+
+void
+set_df_sz( void )
+{/*{{{*/
+	if( g_so.vcod.type == cod_type_G729 ||
+		g_so.vcod.type == cod_type_G729E ||
+		g_so.vcod.type == cod_type_G726_16 ||
+		g_so.vcod.type == cod_type_G726_24 ||
+		g_so.vcod.type == cod_type_G726_32 ||
+		g_so.vcod.type == cod_type_G726_40){
+			g_so.vcod.pkt_size = cod_pkt_size_10;
+	} else if(	
+		g_so.vcod.type == cod_type_ALAW ||
+		g_so.vcod.type == cod_type_MLAW ||
+		g_so.vcod.type == cod_type_ILBC_152){
+			g_so.vcod.pkt_size = cod_pkt_size_20;
+	} else if(
+		g_so.vcod.type == cod_type_ILBC_133 ||
+		g_so.vcod.type == cod_type_G723){
+			g_so.vcod.pkt_size = cod_pkt_size_30;
+	}
+}/*}}}*/
+
 int
 startup_init (int argc, char * const argv[])
 {/*{{{*/
+	int check_bitpack = 0;
 	int option_IDX;
 	int option_rez;
-	char * short_options = "hc:f:v:pa:";
+	char * short_options = "hc:f:v:pa:o";
 	struct option long_options[ ] = {
 		{ "help", no_argument, NULL, 'h' },
 		{ "vcod", required_argument, NULL, 'c' },
@@ -59,6 +121,7 @@ startup_init (int argc, char * const argv[])
 		{ "volume", required_argument, NULL, 'v' },
 		{ "hpf", no_argument, NULL, 'p' },
 		{ "vad", required_argument, NULL, 'a' },
+		{ "use-aal2-order", no_argument, NULL, 'o' },
 		{ NULL, 0, NULL, 0 }
 	};
 
@@ -67,10 +130,11 @@ startup_init (int argc, char * const argv[])
 
 	/* Default values */
 	g_so.vcod.type = cod_type_G729;
-	g_so.vcod.sdp_selected_payload = 0x12;
-	g_so.vcod.pkt_size = cod_pkt_size_60;
+	g_so.vcod.sdp_selected_payload = 18;
+	g_so.vcod.pkt_size = cod_pkt_size_10;
+	g_so.vcod.bpack = bitpack_RTP;
 	g_so.fcod.type = cod_type_MLAW;
-	g_so.fcod.sdp_selected_payload = 0x0;
+	g_so.fcod.sdp_selected_payload = 0;
 	g_so.vol = 0;
 	g_so.hpf = 0;
 	g_so.vad = vad_cfg_OFF;
@@ -96,14 +160,26 @@ startup_init (int argc, char * const argv[])
 					g_so.vcod.type = cod_type_MLAW;
 				} else if( !strcmp(token,G729_CFG_NAME)) {
 					g_so.vcod.type = cod_type_G729;
-				/* }else if( !strcmp(token,"aLaw")) {
-					g_so.vcod.type = cod_type_ALAW;
-				} else if( !strcmp(token,"aLaw")) {
-					g_so.vcod.type = cod_type_ALAW;
-				} else if( !strcmp(token,"aLaw")) {
-					g_so.vcod.type = cod_type_ALAW;
-				} else if( !strcmp(token,"aLaw")) {
-					g_so.vcod.type = cod_type_ALAW;*/
+				} else if( !strcmp(token,G729E_CFG_NAME)) {
+					g_so.vcod.type = cod_type_G729E;
+				} else if( !strcmp(token,ILBC133_CFG_NAME)) {
+					g_so.vcod.type = cod_type_ILBC_133;
+				} else if( !strcmp(token,ILBC152_CFG_NAME)) {
+					g_so.vcod.type = cod_type_ILBC_152;
+				} else if( !strcmp(token,G723_CFG_NAME)) {
+					g_so.vcod.type = cod_type_G723;
+				} else if( !strcmp(token,G72616_CFG_NAME)) {
+					g_so.vcod.type = cod_type_G726_16;
+					check_bitpack = 1;
+				} else if( !strcmp(token,G72624_CFG_NAME)) {
+					g_so.vcod.type = cod_type_G726_24;
+					check_bitpack = 1;
+				} else if( !strcmp(token,G72632_CFG_NAME)) {
+					g_so.vcod.type = cod_type_G726_32;
+					check_bitpack = 1;
+				} else if( !strcmp(token,G72640_CFG_NAME)) {
+					g_so.vcod.type = cod_type_G726_40;
+					check_bitpack = 1;
 				} else {
 					return -1;
 				}
@@ -113,7 +189,11 @@ startup_init (int argc, char * const argv[])
 
 			token = strtok(NULL, "[:]");
 			if(token) {
-				g_so.vcod.sdp_selected_payload = strtol(token, NULL, 10);
+				if( !strcmp(token, DEFAULT_CFG_NAME)){
+					set_df_pt();
+				} else {
+					g_so.vcod.sdp_selected_payload = strtol(token, NULL, 10);
+				}
 			} else {
 				return -1;
 			}
@@ -140,6 +220,8 @@ startup_init (int argc, char * const argv[])
 					g_so.vcod.pkt_size = cod_pkt_size_50;
 				} else if( !strcmp(token,"60")){
 					g_so.vcod.pkt_size = cod_pkt_size_60;
+				} else if( !strcmp(token,DEFAULT_CFG_NAME)){
+					set_df_sz();
 				} else {
 					return -1;
 				}
@@ -175,6 +257,9 @@ startup_init (int argc, char * const argv[])
 				return -1;
 			}
 			break;
+		case 'o' :
+			g_so.vcod.bpack = bitpack_AAL2;
+			break;
 		case '?' :
 			return -1;
 		}
@@ -186,6 +271,10 @@ startup_init (int argc, char * const argv[])
 		g_so.fcod.sdp_selected_payload = ALAW_PT_DF;
 	} else if(g_so.fcod.type == cod_type_MLAW){
 		g_so.fcod.sdp_selected_payload = MLAW_PT_DF;
+	}
+
+	if( !check_bitpack){
+		g_so.vcod.bpack = bitpack_RTP;
 	}
 
 	return 0;
@@ -203,6 +292,22 @@ startup_print (void)
 		fprintf(stderr,"%s\n",MLAW_CFG_NAME);
 	} else if(g_so.vcod.type == cod_type_G729){
 		fprintf(stderr,"%s\n",G729_CFG_NAME);
+	} else if(g_so.vcod.type == cod_type_G729E){
+		fprintf(stderr,"%s\n",G729E_CFG_NAME);
+	} else if(g_so.vcod.type == cod_type_ILBC_133){
+		fprintf(stderr,"%s\n",ILBC133_CFG_NAME);
+	} else if(g_so.vcod.type == cod_type_ILBC_152){
+		fprintf(stderr,"%s\n",ILBC152_CFG_NAME);
+	} else if(g_so.vcod.type == cod_type_G723){
+		fprintf(stderr,"%s\n",G723_CFG_NAME);
+	} else if(g_so.vcod.type == cod_type_G726_16){
+		fprintf(stderr,"%s\n",G72616_CFG_NAME);
+	} else if(g_so.vcod.type == cod_type_G726_24){
+		fprintf(stderr,"%s\n",G72624_CFG_NAME);
+	} else if(g_so.vcod.type == cod_type_G726_32){
+		fprintf(stderr,"%s\n",G72632_CFG_NAME);
+	} else if(g_so.vcod.type == cod_type_G726_40){
+		fprintf(stderr,"%s\n",G72640_CFG_NAME);
 	}
 	fprintf(stderr,"  Voice coder payload: %d\n",
 			g_so.vcod.sdp_selected_payload);
@@ -227,6 +332,12 @@ startup_print (void)
 		fprintf(stderr,"50\n");
 	} else if(g_so.vcod.pkt_size == 9){
 		fprintf(stderr,"60\n");
+	}
+	fprintf(stderr,"  BitPack            : ");
+	if(g_so.vcod.bpack == bitpack_RTP){
+		fprintf(stderr,"RTP\n");
+	} else {
+		fprintf(stderr,"AAL2\n");
 	}
 	fprintf(stderr,"============\n");
 	fprintf(stderr,"  Fax coder type     : ");
@@ -261,6 +372,42 @@ startup_print (void)
 	fprintf(stderr,"====================================\n");
 }/*}}}*/
 
+void
+capabilities_print (ab_t * ab)
+{/*{{{*/
+	IFX_TAPI_CAP_t * caps = NULL;
+	int fdc;
+	int caps_cnt;
+	int i;
+	int j;
+	int err;
+
+	for (i=0; i<ab->chans_num; i++){
+		fdc = ab->chans[i].rtp_fd;
+		ioctl (fdc, IFX_TAPI_CAP_NR, &caps_cnt);
+		caps = malloc (sizeof(*caps)*caps_cnt);
+		err = ioctl (fdc, IFX_TAPI_CAP_LIST, caps);
+		if(err){
+			fprintf(stderr,"ERROR on IFX_TAPI_CAP_LIST\n");
+		}
+
+		fprintf(stderr,"Channel [%d]:\n",ab->chans[i].abs_idx);
+		for (j=0; j<caps_cnt; j++){
+			if(caps[j].captype == IFX_TAPI_CAP_TYPE_CODEC){
+				fprintf(stderr,"Codec: %s\n",caps[j].desc);
+			} else if(caps[j].captype == IFX_TAPI_CAP_TYPE_PCM){
+				fprintf(stderr,"PCM: %d\n",caps[j].cap);
+			} else if(caps[j].captype == IFX_TAPI_CAP_TYPE_CODECS){
+				fprintf(stderr,"Coder: %d\n",caps[j].cap);
+			} else if(caps[j].captype == IFX_TAPI_CAP_TYPE_PHONES){
+				fprintf(stderr,"Phones: %d\n",caps[j].cap);
+			}
+		}
+		free(caps);
+		caps = NULL;
+	}
+}/*}}}*/
+
 void 
 print_help(void)
 {/*{{{*/
@@ -272,20 +419,24 @@ print_help(void)
 \t-v, --volume                 - set coder volume gains.\n\
 \t-p, --hpf                    - set turns on high-pass filter in decoder.\n\
 \t-a, --vad                    - set voice activity detector mode.\n\
+\t-o, --use-aal2-order         - set aal2 bitpack instead of rtp.\n\
 \n\
 \t\tvcod must be set in the format '[<type>:<pt>:<pkt_sz>]',\n\
-\t\t\twhere <type> is one of \"aLaw\",\"uLaw\" or \"g729\",\n\
-\t\t\t<pt> - any digit value, and\n\
+\t\t\twhere <type> is one of \"aLaw\",\"uLaw\",\"iLBC_133\",\n\
+\t\t\t\"iLBC_152\",\"g723\",\"g726_16\",\"g726_24\",\"g726_32\",\n\
+\"g726_40\", \"g729\" or \"g729e\"\n\
+\t\t\t<pt> - any digit value or \"*\" for default value, and\n\
 \t\t\t<pkt_size> can be \"2.5\",\"5\", \"5.5\", \"10\",\"11\",\n\
-\t\t\t\"\"20\",\"30\", \"40\",\"50\" and \"60\".\n\
+\t\t\t\"\"20\",\"30\", \"40\",\"50\" and \"60\", or \"*\" for default value.\n\
 \t\tfcod must be set in the format '<type>',\n\
 \t\t\twhere <type> is one of \"aLaw\"or \"uLaw\".\n\
 \t\tvolume the digit from '-24' to '+24'\n\
 \t\thpf just switch on the filter - it is not required argument.\n\
 \t\tvad can be one of \"on\",\"off\",\"g711\",\"cng_only\" and \"sc_only\".\n\
+\t\tuse-aal2-order just switch bitpack - works just with g726_* codecs.\n\
 ==============================\n\
 \t\tBy default the follow options are set:\n\
-\t\t--vcod='[g729:18:60]' --fcod='aLaw' --volume='0' --vad='off'\n\
+\t\t--vcod='[g729:18:10]' --fcod='aLaw' --volume='0' --vad='off'\n\
 ==============================\n");
 }/*}}}*/
 
@@ -337,6 +488,7 @@ stop_connection(ab_t * const ab)
 void
 rwdata(int ffd,int tfd, unsigned char const f_aid, unsigned char const t_aid)
 {/*{{{*/
+	//static int iter = 0;
 	int rode;
 	int written;
 	unsigned char buff[RTP_READ_MAX];
@@ -358,6 +510,39 @@ rwdata(int ffd,int tfd, unsigned char const f_aid, unsigned char const t_aid)
 					f_aid,t_aid,rode,written);
 		} else {
 #if 0
+			int first = (buff[12] >> 1) & 0x01;
+			int second = buff[12] & 0x01;
+			fprintf(stderr,"%d_[%d]=/%d/=>..._0x%02X_%d_%d\n",
+					iter,
+					f_aid,
+					rode,
+					buff[12],
+					first,second);
+			if(iter == 500){
+				IFX_TAPI_ENC_CFG_t encCfg;
+				int err;
+				memset (&encCfg, 0, sizeof(encCfg));
+				encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_30;
+				encCfg.nEncType = IFX_TAPI_COD_TYPE_G723_63;
+
+				/* Set the encoder */ 
+				err = ioctl(ffd, IFX_TAPI_ENC_CFG_SET, &encCfg);
+				if(err){
+					fprintf(stderr,"Can`t set bitrate.\n");
+				}
+				err = ioctl(tfd, IFX_TAPI_ENC_CFG_SET, &encCfg);
+				if(err){
+					fprintf(stderr,"Can`t set bitrate.\n");
+				}
+			}
+			iter++;
+			/* for g723 */
+			bits  content           	           octets/frame
+			00    high-rate speech (6.3 kb/s)            24 (36) 12 - header
+			01    low-rate speech  (5.3 kb/s)            20 (32) 12 - header
+			10    SID frame                               4
+			11    reserved
+
 			int i;
 			fprintf(stderr,"[%d]=>_",f_aid);
 			for(i=0;i<12;i++){
@@ -585,6 +770,8 @@ main (int argc, char *argv[])
 		fprintf(stderr,"ERROR: %s\n", ab_g_err_str);
 		return -1;
 	}
+
+	/*capabilities_print(ab);*/
 
 	memset(&g_status, 0, sizeof(g_status));
 	/*
