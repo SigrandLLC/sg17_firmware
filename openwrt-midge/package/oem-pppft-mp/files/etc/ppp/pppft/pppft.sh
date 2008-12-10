@@ -4,7 +4,6 @@
 
 LOGFILE="/etc/ppp/pppft/log"
 PPPD_OPTIONS="modem lock noauth multilink passive"
-TTYSPEED=115200
 
 LOG_WARN=0
 LOG_ERR=1
@@ -53,8 +52,13 @@ add_ttys()
 				kill -KILL $tty_pid
 			fi
 		fi
+		eval "TTYSPEED=\$${iface}_$tty"
+		if [ -z "$TTYSPEED" ]; then
+			TTYSPEED=115200
+			log_error "$iface: No speed for $tty found, use default = 115200"
+		fi
 		log_notice "add_ttys: pppd $PPPD_OPTIONS unit $ifindex $IPPART $tty $TTYSPEED "
-		pppd $tty $PPPD_OPTIONS $IPPART  $TTYSPEED
+		pppd $tty $TTYSPEED $PPPD_OPTIONS $IPPART  
 	done
 }
 
