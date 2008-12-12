@@ -1,4 +1,4 @@
-Controllers['dsl'] = function(iface, pcislot, pcidev) {
+Controllers.dsl = function(iface, pcislot, pcidev) {
 	var eocInfoCmd = "/sbin/eoc-info";
 	
 	var page = this.Page();
@@ -716,8 +716,30 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		var c = page.addContainer("statistics");
 		c.setHelpPage("eoc");
 		
+		/* this means that we received not JSON data */
+		if (eocInfo == "Connection error.") {
+			c.addTitle("Error on the device while performing AJAX request.");
+			return;
+		}
+		
+		/* if error, show corresponding field */
+		if (eocInfo.eoc_error == "1") {
+			c.addTitle("EOC error");
+			
+			var field = {
+				"type": "html",
+				"name": "eoc_error",
+				"text": "EOC ERROR",
+				"descr": "EOC daemon returned error while performing this request.",
+				"str": eocInfo.err_string
+			};
+			c.addWidget(field);
+			
+			return;
+		}
+		
 		/* statistics is available only for master */
-		if (eocInfo.type == "slave") {
+		if (eocInfo.conf.type == "slave") {
 			c.addTitle("Statistics is available only for MASTER interfaces.");
 			return;
 		}
@@ -733,17 +755,15 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 			
 			if ($("#unit").val() == "general") {
 				config.cmdExecute({
-					"cmd": $.sprintf("%s -ri%s", eocInfoCmd, iface),
+					"cmd": $.sprintf("%s -n -i%s", eocInfoCmd, iface),
 					"callback": showGeneral,
-					"filter": config.parseData
+					"dataType": "json"
 				});
 			} else {
 				config.cmdExecute({
-					"cmd": $.sprintf("%s -ri%s", eocInfoCmd, iface),
-					"callback": function(eocInfo) {
-						showStatUnit(eocInfo, $("#unit").val());
-					},
-					"filter": config.parseData
+					"cmd": $.sprintf("%s -n -i%s -u%s", eocInfoCmd, iface, $("#unit").val()),
+					"callback": showStatUnit,
+					"dataType": "json"
 				});
 			}
 		};
@@ -754,10 +774,11 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 			units['stu-c'] = "STU-C";
 			if (eocInfo.link == "1") {
 				units['stu-r'] = "STU-R";
-				for (var i = 1; i <= eocInfo.reg_num; i++) units['sru' + i] = "SRU" + i;
-			} else
+				for (var i = 1; i <= eocInfo.status.reg_num; i++) units['sru' + i] = "SRU" + i;
+			} else {
 				/* do not show statistics for last regenerator if EOC is offline */
-				for (var i = 1; i < eocInfo.reg_num; i++) units['sru' + i] = "SRU" + i;
+				for (var i = 1; i < eocInfo.status.reg_num; i++) units['sru' + i] = "SRU" + i;
+			}
 		}
 		
 		/* value of this widget is saved in cookie, because we not need it in KDB */
@@ -781,6 +802,29 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 	var showGeneral = function(eocInfo) {
 		var c = page.addContainer("statistics");
 		c.setHelpPage("eoc");
+		
+		/* this means that we received not JSON data */
+		if (eocInfo == "Connection error.") {
+			c.addTitle("Error on the device while performing AJAX request.");
+			return;
+		}
+		
+		/* if error, show corresponding field */
+		if (eocInfo.eoc_error == "1") {
+			c.addTitle("EOC error");
+			
+			var field = {
+				"type": "html",
+				"name": "eoc_error",
+				"text": "EOC ERROR",
+				"descr": "EOC daemon returned error while performing this request.",
+				"str": eocInfo.err_string
+			};
+			c.addWidget(field);
+			
+			return;
+		}
+	
 		c.addTitle(iface + " state");
 	
 		var field = {
@@ -797,7 +841,7 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 			"name": "regs",
 			"text": "Regenerators",
 			"descr": "Regenerators in channel (actual number).",
-			"str": eocInfo.reg_num
+			"str": eocInfo.status.reg_num
 		};
 		c.addWidget(field);
 		
@@ -815,7 +859,7 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 			"name": "rate",
 			"text": "Rate",
 			"descr": "Channel rate value.",
-			"str": eocInfo.rate
+			"str": eocInfo.status.rate
 		};
 		c.addWidget(field);
 		
@@ -824,7 +868,7 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 			"name": "annex",
 			"text": "Annex",
 			"descr": "Channel annex value.",
-			"str": eocInfo.annex
+			"str": eocInfo.status.annex
 		};
 		c.addWidget(field);
 		
@@ -833,164 +877,204 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 			"name": "encoding",
 			"text": "Encoding",
 			"descr": "Channel tcpam value.",
-			"str": eocInfo.tcpam
+			"str": eocInfo.status.tcpam
 		};
 		c.addWidget(field);
 	};
 	
 	/* show unit statistics */
-	var showStatUnit = function(eocInfo, unit) {
+	var showStatUnit = function(eocInfo) {
 		/* Show current state of interface */
-		var showState = function(eocInfo, side, loop, c, row) {
+		var showState = function(loop, side, c) {
 			var field;
+			var row = c.addTableRow();
 			
 			field = {
 				"type": "html",
-				"name": "state_side_" + side + loop,
+				"name": "state_side_" + side + loop.name,
 				"str": side
 			};
 			c.addTableWidget(field, row);
 			
 			field = {
 				"type": "html",
-				"name": "state_loop_" + side + loop,
-				"str": $.sprintf("Pair%s", loop + 1)
+				"name": "state_loop_" + side + loop.name,
+				"str": loop.name
 			};
 			c.addTableWidget(field, row);
 			
 			field = {
 				"type": "html",
-				"name": "snr_" + side + loop,
-				"str": eocInfo.snr
+				"name": "snr_" + side + loop.name,
+				"str": loop.cur.snr
 			};
 			c.addTableWidget(field, row);
 			
 			field = {
 				"type": "html",
-				"name": "lattn_" + side + loop,
-				"str": eocInfo.lattn
+				"name": "lattn_" + side + loop.name,
+				"str": loop.cur.lattn
 			};
 			c.addTableWidget(field, row);
 			
 			field = {
 				"type": "html",
-				"name": "es_" + side + loop,
-				"str": eocInfo.es
+				"name": "es_" + side + loop.name,
+				"str": loop.cur.es
 			};
 			c.addTableWidget(field, row);
 			
 			field = {
 				"type": "html",
-				"name": "ses_" + side + loop,
-				"str": eocInfo.ses
+				"name": "ses_" + side + loop.name,
+				"str": loop.cur.ses
 			};
 			c.addTableWidget(field, row);
 			
 			field = {
 				"type": "html",
-				"name": "crc_" + side + loop,
-				"str": eocInfo.crc
+				"name": "crc_" + side + loop.name,
+				"str": loop.cur.crc
 			};
 			c.addTableWidget(field, row);
 			
 			field = {
 				"type": "html",
-				"name": "losws_" + side + loop,
-				"str": eocInfo.losws
+				"name": "losws_" + side + loop.name,
+				"str": loop.cur.losws
 			};
 			c.addTableWidget(field, row);
 			
 			field = {
 				"type": "html",
-				"name": "uas_" + side + loop,
-				"str": eocInfo.uas
+				"name": "uas_" + side + loop.name,
+				"str": loop.cur.uas
 			};
 			c.addTableWidget(field, row);
 		};
 		
-		/* show relative counters for interface */
-		var showRelativeCounters = function(eocInfo, side, loop, c, row, reload) {
+		/*
+		 * Show relative counters for interface.
+		 * 
+		 * loop — current loop;
+		 * side — current side name;
+		 * c — container;
+		 * unit — current unit;
+		 * sideNum — index of side in sides array;
+		 * loopNum — index of loop in loops array;
+		 * row — row in table. If specified — it is empties, if not — new row is added to a table.
+		 */
+		var showRelativeCounters = function(loop, side, c, unit, sideNum, loopNum, row) {
 			var field;
 			
-			if (reload) row.empty();
+			/* empty row if it is specified */
+			if (row) {
+				row.empty();
+			} else {
+				row = c.addTableRow();
+			}
 			
 			field = {
 				"type": "html",
-				"name": "tdate_" + side + loop,
-				"str": eocInfo.tdate
+				"name": "tdate_" + side + loop.name,
+				"str": loop.rel.date
 			};
 			c.addTableWidget(field, row);
 			
 			field = {
 				"type": "html",
-				"name": "ttime_" + side + loop,
-				"str": eocInfo.ttime
+				"name": "ttime_" + side + loop.name,
+				"str": loop.rel.time
 			};
 			c.addTableWidget(field, row);
 			
 			field = {
 				"type": "html",
-				"name": "relative_side_" + side + loop,
+				"name": "relative_side_" + side + loop.name,
 				"str": side
 			};
 			c.addTableWidget(field, row);
 			
 			field = {
 				"type": "html",
-				"name": "relative_loop_" + side + loop,
-				"str": $.sprintf("Pair%s", loop + 1)
+				"name": "relative_loop_" + side + loop.name,
+				"str": loop.name
 			};
 			c.addTableWidget(field, row);
 			
 			field = {
 				"type": "html",
-				"name": "tes_" + side + loop,
-				"str": eocInfo.tes
+				"name": "tes_" + side + loop.name,
+				"str": loop.rel.es
 			};
 			c.addTableWidget(field, row);
 			
 			field = {
 				"type": "html",
-				"name": "tses_" + side + loop,
-				"str": eocInfo.tses
+				"name": "tses_" + side + loop.name,
+				"str": loop.rel.ses
 			};
 			c.addTableWidget(field, row);
 			
 			field = {
 				"type": "html",
-				"name": "tcrc_" + side + loop,
-				"str": eocInfo.tcrc
+				"name": "tcrc_" + side + loop.name,
+				"str": loop.rel.crc
 			};
 			c.addTableWidget(field, row);
 			
 			field = {
 				"type": "html",
-				"name": "tlosws_" + side + loop,
-				"str": eocInfo.tlosws
+				"name": "tlosws_" + side + loop.name,
+				"str": loop.rel.losws
 			};
 			c.addTableWidget(field, row);
 			
 			field = {
 				"type": "html",
-				"name": "tuas_" + side + loop,
-				"str": eocInfo.tuas
+				"name": "tuas_" + side + loop.name,
+				"str": loop.rel.uas
 			};
 			c.addTableWidget(field, row);
 			
+			/*
+			 * when user presses reset button, first AJAX request zeroes relative counters,
+			 * second AJAX request updates table's row.
+			 */
 			field = {
 				"type": "button",
-				"name": "reset_" + side + loop,
+				"name": "reset_" + side + loop.name,
 				"text": "reset",
-				"func": function() {
+				"func": function(thisContainer, src) {
+					$(src.currentTarget).attr("disabled", true);
 					config.cmdExecute({
-						"cmd": $.sprintf("%s -r -i%s -u%s -e%s -l%s -v", eocInfoCmd, iface, unit, side, loop),
+						"cmd": $.sprintf("%s -i%s -u%s -e%s -l%s -v", eocInfoCmd, iface, unit, side, loopNum),
 						"callback": function() {
 							config.cmdExecute({
-								"cmd": $.sprintf("%s -r -i%s -u%s -e%s -l%s", eocInfoCmd, iface, unit, side, loop),
+								"cmd": $.sprintf("%s -n -i%s -u%s", eocInfoCmd, iface, unit),
 								"callback": function(eocInfo) {
-									showRelativeCounters(eocInfo, side, loop, cRelative, row, true);
+									/* if error, show corresponding message */
+									if (eocInfo == "Connection error." || eocInfo.eoc_error == "1") {
+										row.remove();
+										row = c.addTableRow();
+										
+										var field = {
+											"type": "html",
+											"name": "eoc_error",
+											"str": eocInfo == "Connection error." ?
+												"Error on the device while performing AJAX request."
+												: "EOC ERROR: " + eocInfo.err_string
+										};
+										c.addTableWidget(field, row, 10);
+										
+										return;
+									}
+									
+									showRelativeCounters(eocInfo.sides[sideNum].loops[loopNum],
+											eocInfo.sides[sideNum].name, c, unit, sideNum,
+											loopNum, row);
 								},
-								"filter": config.parseData
+								"dataType": "json"
 							});
 						}
 					});
@@ -1000,414 +1084,348 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 		};
 		
 		/* show current 15 minutes and 1 day intervals */
-		var showCurrentIntervals = function(eocInfo, side, loop, c, row1, row2) {
+		var showCurrentIntervals = function(loop, side, c) {
 			var field;
 			
-			var showInterval = function(name, varPrefix, row) {
+			/*
+			 * name — name of interval;
+			 * keyName — name for key in "cur" section for current loop.
+			 */
+			var showInterval = function(name, keyName) {
+				var row = c.addTableRow();
+				
 				field = {
 					"type": "html",
-					"name": "name_" + side + loop + varPrefix,
+					"name": "name_" + side + loop.name + keyName,
 					"str": name
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "side_" + side + loop + varPrefix,
+					"name": "side_" + side + loop.name + keyName,
 					"str": side
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "loop_" + side + loop + varPrefix,
-					"str": $.sprintf("Pair%s", loop + 1)
+					"name": "loop_" + side + loop.name + keyName,
+					"str": loop.name
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "es_" + side + loop + varPrefix,
-					"str": eocInfo[varPrefix + 'es']
+					"name": "es_" + side + loop.name + keyName,
+					"str": loop.cur[keyName].es
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "ses_" + side + loop + varPrefix,
-					"str": eocInfo[varPrefix + 'ses']
+					"name": "ses_" + side + loop.name + keyName,
+					"str": loop.cur[keyName].ses
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "crc_" + side + loop + varPrefix,
-					"str": eocInfo[varPrefix + 'crc']
+					"name": "crc_" + side + loop.name + keyName,
+					"str": loop.cur[keyName].crc
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "losws_" + side + loop + varPrefix,
-					"str": eocInfo[varPrefix + 'losws']
+					"name": "losws_" + side + loop.name + keyName,
+					"str": loop.cur[keyName].losws
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "uas_" + side + loop + varPrefix,
-					"str": eocInfo[varPrefix + 'uas']
+					"name": "uas_" + side + loop.name + keyName,
+					"str": loop.cur[keyName].uas
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "elaps_" + side + loop + varPrefix,
-					"str": eocInfo[varPrefix + 'elaps']
+					"name": "elaps_" + side + loop.name + keyName,
+					"str": loop.cur[keyName].elapsed
 				};
 				c.addTableWidget(field, row);
 			};
 			
-			showInterval("Curr 15 minutes", "m15", row1);
-			showInterval("Curr 1 day", "d1", row2);
+			showInterval("Curr 15 minutes", "m15int");
+			showInterval("Curr 1 day", "d1int");
 		};
 		
 		/* show all 15 minutes intervals */
-		var show15MinIntervals = function(eocInfo, side, loop, c, row) {
-			if (eocInfo.eoc_error == 1) return;
-			
+		var show15MinIntervals = function(loop, side, c) {
 			var field;
 			
-			field = {
-				"type": "html",
-				"name": "int_day_" + side + loop + eocInfo['int'],
-				"str": eocInfo.int_day
-			};
-			c.addTableWidget(field, row);
+			$.each(loop.m15int, function(num, int) {
+				var row = c.addTableRow();
 			
-			field = {
-				"type": "html",
-				"name": "time_start_" + side + loop + eocInfo['int'],
-				"str": eocInfo.time_start
-			};
-			c.addTableWidget(field, row);
-			
-			field = {
-				"type": "html",
-				"name": "time_end_" + side + loop + eocInfo['int'],
-				"str": eocInfo.time_end
-			};
-			c.addTableWidget(field, row);
-			
-			field = {
-				"type": "html",
-				"name": "es_" + side + loop + eocInfo['int'],
-				"str": eocInfo.es
-			};
-			c.addTableWidget(field, row);
-			
-			field = {
-				"type": "html",
-				"name": "ses_" + side + loop + eocInfo['int'],
-				"str": eocInfo.ses
-			};
-			c.addTableWidget(field, row);
-			
-			field = {
-				"type": "html",
-				"name": "crc_" + side + loop + eocInfo['int'],
-				"str": eocInfo.crc
-			};
-			c.addTableWidget(field, row);
-			
-			field = {
-				"type": "html",
-				"name": "losws_" + side + loop + eocInfo['int'],
-				"str": eocInfo.losws
-			};
-			c.addTableWidget(field, row);
-			
-			field = {
-				"type": "html",
-				"name": "uas_" + side + loop + eocInfo['int'],
-				"str": eocInfo.uas
-			};
-			c.addTableWidget(field, row);
-			
-			field = {
-				"type": "html",
-				"name": "mon_pers_" + side + loop + eocInfo['int'],
-				"str": eocInfo.mon_pers
-			};
-			c.addTableWidget(field, row);
-			
-			/* we have only 96 intervals */
-			if (parseInt(eocInfo['int']) + 1 > 96) return;
-			
-			var rowNext = c.addTableRow();
-			
-			/* call this function with next interval */
-			config.cmdExecute({
-				"cmd": $.sprintf("%s -r -i%s -u%s -e%s -l%s -m%s", eocInfoCmd, iface, unit, side,
-					loop, parseInt(eocInfo['int']) + 1),
-				"callback": function(eocInfo) {
-					show15MinIntervals(eocInfo, side, loop, c, rowNext);
-				},
-				"filter": config.parseData
+				field = {
+					"type": "html",
+					"name": "int_day_" + side + loop.name + int.int,
+					"str": int.int_day
+				};
+				c.addTableWidget(field, row);
+				
+				field = {
+					"type": "html",
+					"name": "time_start_" + side + loop.name + int.int,
+					"str": int.time_start
+				};
+				c.addTableWidget(field, row);
+				
+				field = {
+					"type": "html",
+					"name": "time_end_" + side + loop.name + int.int,
+					"str": int.time_end
+				};
+				c.addTableWidget(field, row);
+				
+				field = {
+					"type": "html",
+					"name": "es_" + side + loop.name + int.int,
+					"str": int.es
+				};
+				c.addTableWidget(field, row);
+				
+				field = {
+					"type": "html",
+					"name": "ses_" + side + loop.name + int.int,
+					"str": int.ses
+				};
+				c.addTableWidget(field, row);
+				
+				field = {
+					"type": "html",
+					"name": "crc_" + side + loop.name + int.int,
+					"str": int.crc
+				};
+				c.addTableWidget(field, row);
+				
+				field = {
+					"type": "html",
+					"name": "losws_" + side + loop.name + int.int,
+					"str": int.losws
+				};
+				c.addTableWidget(field, row);
+				
+				field = {
+					"type": "html",
+					"name": "uas_" + side + loop.name + int.int,
+					"str": int.uas
+				};
+				c.addTableWidget(field, row);
+				
+				field = {
+					"type": "html",
+					"name": "mon_pers_" + side + loop.name + int.int,
+					"str": int.mon_pers
+				};
+				c.addTableWidget(field, row);
 			});
 		};
 		
 		/* show all 1 days intervals */
-		var show1DayIntervals = function(eocInfo, side, loop, c, row) {
-			if (eocInfo.eoc_error == 1) return;
-			
+		var show1DayIntervals = function(loop, side, c) {
 			var field;
 			
-			field = {
-				"type": "html",
-				"name": "int_day_" + side + loop + eocInfo['int'],
-				"str": eocInfo.int_day
-			};
-			c.addTableWidget(field, row);
-			
-			field = {
-				"type": "html",
-				"name": "es_" + side + loop + eocInfo['int'],
-				"str": eocInfo.es
-			};
-			c.addTableWidget(field, row);
-			
-			field = {
-				"type": "html",
-				"name": "ses_" + side + loop + eocInfo['int'],
-				"str": eocInfo.ses
-			};
-			c.addTableWidget(field, row);
-			
-			field = {
-				"type": "html",
-				"name": "crc_" + side + loop + eocInfo['int'],
-				"str": eocInfo.crc
-			};
-			c.addTableWidget(field, row);
-			
-			field = {
-				"type": "html",
-				"name": "losws_" + side + loop + eocInfo['int'],
-				"str": eocInfo.losws
-			};
-			c.addTableWidget(field, row);
-			
-			field = {
-				"type": "html",
-				"name": "uas_" + side + loop + eocInfo['int'],
-				"str": eocInfo.uas
-			};
-			c.addTableWidget(field, row);
-			
-			field = {
-				"type": "html",
-				"name": "mon_pers_" + side + loop + eocInfo['int'],
-				"str": eocInfo.mon_pers
-			};
-			c.addTableWidget(field, row);
-			
-			/* we have only 30 intervals */
-			if (parseInt(eocInfo['int']) + 1 > 30) return;
-			
-			var rowNext = c.addTableRow();
-			
-			/* call this function with next interval */
-			config.cmdExecute({
-				"cmd": $.sprintf("%s -r -i%s -u%s -e%s -l%s -d%s", eocInfoCmd, iface, unit, side,
-					loop, parseInt(eocInfo['int']) + 1),
-				"callback": function(eocInfo) {
-					show1DayIntervals(eocInfo, side, loop, c, rowNext);
-				},
-				"filter": config.parseData
+			$.each(loop.d1int, function(num, int) {
+				var row = c.addTableRow();
+				
+				field = {
+					"type": "html",
+					"name": "time_end_" + side + loop.name + int.int,
+					"str": int.int_day
+				};
+				c.addTableWidget(field, row);
+				
+				field = {
+					"type": "html",
+					"name": "es_" + side + loop.name + int.int,
+					"str": int.es
+				};
+				c.addTableWidget(field, row);
+				
+				field = {
+					"type": "html",
+					"name": "ses_" + side + loop.name + int.int,
+					"str": int.ses
+				};
+				c.addTableWidget(field, row);
+				
+				field = {
+					"type": "html",
+					"name": "crc_" + side + loop.name + int.int,
+					"str": int.crc
+				};
+				c.addTableWidget(field, row);
+				
+				field = {
+					"type": "html",
+					"name": "losws_" + side + loop.name + int.int,
+					"str": int.losws
+				};
+				c.addTableWidget(field, row);
+				
+				field = {
+					"type": "html",
+					"name": "uas_" + side + loop.name + int.int,
+					"str": int.uas
+				};
+				c.addTableWidget(field, row);
+				
+				field = {
+					"type": "html",
+					"name": "mon_pers_" + side + loop.name + int.int,
+					"str": int.mon_pers
+				};
+				c.addTableWidget(field, row);
 			});
 		};
 		
 		/* show sensors status */
 		var showSensors = function(eocInfo, c) {
-			if (eocInfo.eoc_error == 1) return;
-			
 			var field;
-			for (var sensor = 1; sensor <= 3; sensor++) {
+			
+			$.each(eocInfo.sensors, function(num, sensor) {
 				var row = c.addTableRow();
 				
 				field = {
 					"type": "html",
-					"name": "sensor_num" + sensor,
-					"str": sensor
+					"name": "sensor_num" + sensor.num,
+					"str": sensor.num
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "sensor_state" + sensor,
-					"str": eocInfo[$.sprintf("sens%s_cur", sensor)]
+					"name": "sensor_state" + sensor.num,
+					"str": sensor.cur
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "sensor_counter" + sensor,
-					"str": eocInfo[$.sprintf("sens%s_cnt", sensor)]
+					"name": "sensor_counter" + sensor.num,
+					"str": sensor.cnt
 				};
 				c.addTableWidget(field, row);
-			}
+			});
 		};
 		
-		/* type of sides */
-		var sides = [];
-		if (unit == "stu-c") sides.push("CustSide");
-		else if (unit == "stu-r") sides.push("NetSide");
-		else {
-			sides.push("NetSide");
-			sides.push("CustSide");
+		/* container */
+		var c;
+		
+		/* this means that we received not JSON data */
+		if (eocInfo == "Connection error.") {
+			c = page.addContainer("statistics");
+			c.setHelpPage("eoc");
+			c.addTitle("Error on the device while performing AJAX request.");
+			return;
+		}
+		
+		/* if error, show corresponding field */
+		if (eocInfo.eoc_error == "1") {
+			c = page.addContainer("statistics");
+			c.setHelpPage("eoc");
+			c.addTitle("EOC error");
+			
+			var field = {
+				"type": "html",
+				"name": "eoc_error",
+				"text": "EOC ERROR",
+				"descr": "EOC daemon returned error while performing this request.",
+				"str": eocInfo.err_string
+			};
+			c.addWidget(field);
+			
+			return;
 		}
 		
 		/* add State table */
-		var cState = page.addContainer("statistics");
-		cState.setHelpPage("eoc");
-		cState.addTitle(iface + " state", 9);
-		cState.addTableHeader("Side|Pair|SNR|LoopAttn|ES|SES|CV|LOSWS|UAS");
+		c = page.addContainer("statistics");
+		c.setHelpPage("eoc");
+		c.addTitle(iface + " state", 9);
+		c.addTableHeader("Side|Pair|SNR|LoopAttn|ES|SES|CV|LOSWS|UAS");
 		
-		$.each(sides, function(num, side) {
-			for (var loop = 0; loop < eocInfo.loop_num; loop++) {
-				var row = cState.addTableRow();
-				
-				config.cmdExecute({
-					"cmd": $.sprintf("%s -r -i%s -u%s -e%s -l%s", eocInfoCmd, iface, unit, side, loop),
-					/* 
-					 * because loop is common variable, we use double-closure to ensure that every callback
-					 * has it's own copy of this variable.
-					 */
-					"callback": function(loop2) {
-						return function(eocInfo) {
-							showState(eocInfo, side, loop2, cState, row);
-						}
-					}(loop),
-					"filter": config.parseData
-				});
-			}
+		$.each(eocInfo.sides, function(num, side) {
+			$.each(side.loops, function(num, loop) {
+				showState(loop, side.name, c);
+			});
 		});
 		
 		/* for regenerators add Sensors table */
-		if (unit.search("sru") != -1) {
+		if (eocInfo.unit.search("SRU") != -1) {
 			page.addBr("statistics");
-			var cSensors = page.addContainer("statistics");
-			cSensors.setHelpPage("eoc");
-			cSensors.addTitle(iface + " sensors", 9);
-			cSensors.addTableHeader("Sensor #|Current state|Event Counter");
+			c = page.addContainer("statistics");
+			c.setHelpPage("eoc");
+			c.addTitle(iface + " sensors", 9);
+			c.addTableHeader("Sensor #|Current state|Event Counter");
 			
-			config.cmdExecute({
-				"cmd": $.sprintf("%s -r -i%s -u%s --sensors", eocInfoCmd, iface, unit),
-				"callback": function(eocInfo) {
-					showSensors(eocInfo, cSensors);
-				},
-				"filter": config.parseData
-			});
+			showSensors(eocInfo, c);
 		}
 		
 		/* add Relative counters table */
 		page.addBr("statistics");
-		var cRelative = page.addContainer("statistics");
-		cRelative.setHelpPage("eoc");
-		cRelative.addTitle(iface + " relative counters", 10);
-		cRelative.addTableHeader("Start date|Start time|Side|Pair|ES|SES|CV|LOSWS|UAS|Reset");
+		c = page.addContainer("statistics");
+		c.setHelpPage("eoc");
+		c.addTitle(iface + " relative counters", 10);
+		c.addTableHeader("Start date|Start time|Side|Pair|ES|SES|CV|LOSWS|UAS|Reset");
 		
-		$.each(sides, function(num, side) {
-			for (var loop = 0; loop < eocInfo.loop_num; loop++) {
-				var row = cRelative.addTableRow();
-				
-				config.cmdExecute({
-					"cmd": $.sprintf("%s -r -i%s -u%s -e%s -l%s", eocInfoCmd, iface, unit, side, loop),
-					"callback": function(loop2) {
-						return function(eocInfo) {
-							showRelativeCounters(eocInfo, side, loop2, cRelative, row);
-						}
-					}(loop),
-					"filter": config.parseData
-				});
-			}
+		$.each(eocInfo.sides, function(sideNum, side) {
+			$.each(side.loops, function(loopNum, loop) {
+				showRelativeCounters(loop, side.name, c, eocInfo.unit, sideNum, loopNum);
+			});
 		});
 		
-		/* add current intervals */
+		/* add Current intervals */
 		page.addBr("statistics");
-		var cCurrIntervals = page.addContainer("statistics");
-		cCurrIntervals.setHelpPage("eoc");
-		cCurrIntervals.addTitle(iface + " current intervals", 9);
-		cCurrIntervals.addTableHeader("Interval|Side|Pair|ES|SES|CV|LOSWS|UAS|Time elapsed");
+		c = page.addContainer("statistics");
+		c.setHelpPage("eoc");
+		c.addTitle(iface + " current intervals", 9);
+		c.addTableHeader("Interval|Side|Pair|ES|SES|CV|LOSWS|UAS|Time elapsed");
 		
-		$.each(sides, function(num, side) {
-			for (var loop = 0; loop < eocInfo.loop_num; loop++) {
-				var row1 = cCurrIntervals.addTableRow();
-				var row2 = cCurrIntervals.addTableRow();
-				
-				config.cmdExecute({
-					"cmd": $.sprintf("%s -r -i%s -u%s -e%s -l%s", eocInfoCmd, iface, unit, side, loop),
-					"callback": function(loop2) {
-						return function(eocInfo) {
-							showCurrentIntervals(eocInfo, side, loop2, cCurrIntervals, row1, row2);
-						}
-					}(loop),
-					"filter": config.parseData
-				});
-			}
+		$.each(eocInfo.sides, function(num, side) {
+			$.each(side.loops, function(num, loop) {
+				showCurrentIntervals(loop, side.name, c);
+			});
 		});
 		
 		/* add 15 minutes intervals */
-		$.each(sides, function(num, side) {
-			for (var loop = 0; loop < eocInfo.loop_num; loop++) {
-				/* create table for each side and pair */
+		$.each(eocInfo.sides, function(num, side) {
+			$.each(side.loops, function(num, loop) {
+				/* create table for each side and loop */
 				page.addBr("statistics");
-				var c15MinIntervals = page.addContainer("statistics");
-				c15MinIntervals.setHelpPage("eoc");
-				c15MinIntervals.addTitle(
-					$.sprintf("%s %s Pair%s 15 Minutes error intervals", iface, side, loop + 1), 9);
-				c15MinIntervals.addTableHeader("Date|Start time|End time|ES|SES|CV|LOSWS|UAS|Monitoring (%)");
-
-				var row = c15MinIntervals.addTableRow();
-				
-				/* call function with initial interval number (1) */
-				config.cmdExecute({
-					"cmd": $.sprintf("%s -r -i%s -u%s -e%s -l%s -m%s", eocInfoCmd, iface, unit, side, loop, "1"),
-					"callback": function(loop2) {
-						return function(eocInfo) {
-							show15MinIntervals(eocInfo, side, loop2, c15MinIntervals, row);
-						}
-					}(loop),
-					"filter": config.parseData
-				});
-			}
+				c = page.addContainer("statistics");
+				c.setHelpPage("eoc");
+				c.addTitle(
+					$.sprintf("%s %s %s 15 Minutes error intervals", iface, side.name, loop.name), 9);
+				c.addTableHeader("Date|Start time|End time|ES|SES|CV|LOSWS|UAS|Monitoring (%)");
+				show15MinIntervals(loop, side.name, c);
+			});
 		});
 		
 		/* add 1 days intervals */
-		$.each(sides, function(num, side) {
-			for (var loop = 0; loop < eocInfo.loop_num; loop++) {
-				/* create table for each side and pair */
+		$.each(eocInfo.sides, function(num, side) {
+			$.each(side.loops, function(num, loop) {
+				/* create table for each side and loop */
 				page.addBr("statistics");
-				var c1DayIntervals = page.addContainer("statistics");
-				c1DayIntervals.setHelpPage("eoc");
-				c1DayIntervals.addTitle(
-					$.sprintf("%s %s Pair%s 1 Day error intervals", iface, side, loop + 1), 7);
-				c1DayIntervals.addTableHeader("Date|ES|SES|CV|LOSWS|UAS|Monitoring (%)");
-
-				var row = c1DayIntervals.addTableRow();
-				
-				/* call function with initial interval number (1) */
-				config.cmdExecute({
-					"cmd": $.sprintf("%s -r -i%s -u%s -e%s -l%s -d%s", eocInfoCmd, iface, unit, side, loop, "1"),
-					"callback": function(loop2) {
-						return function(eocInfo) {
-							show1DayIntervals(eocInfo, side, loop2, c1DayIntervals, row);
-						}
-					}(loop),
-					"filter": config.parseData
-				});
-			}
+				c = page.addContainer("statistics");
+				c.setHelpPage("eoc");
+				c.addTitle(
+					$.sprintf("%s %s %s 1 Day error intervals", iface, side.name, loop.name), 7);
+				c.addTableHeader("Date|ES|SES|CV|LOSWS|UAS|Monitoring (%)");
+				show1DayIntervals(loop, side.name, c);
+			});
 		});
 	};
 	
@@ -1426,11 +1444,9 @@ Controllers['dsl'] = function(iface, pcislot, pcidev) {
 				}
 				
 				config.cmdExecute({
-					"cmd": $.sprintf("%s -ri%s", eocInfoCmd, iface),
-					"callback": function(eocInfo) {
-						showStatistics(eocInfo);
-					},
-					"filter": config.parseData
+					"cmd": $.sprintf("%s -n -i%s", eocInfoCmd, iface),
+					"callback": showStatistics,
+					"dataType": "json"
 				});
 			}
 		});

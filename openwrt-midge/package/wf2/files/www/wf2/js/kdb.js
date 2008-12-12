@@ -592,6 +592,7 @@ function Config() {
 	 * options.container — set html of container to command's output;
 	 * options.callback — function to call after request. filtered command's output is passed to func as arg;
 	 * options.async — sync/async request (by default request is ASYNC);
+	 * options.dataType — if not specified, "text" is used;
 	 * options.filter — function to filter command's output. command's output is passed to func as arg.
 	 */
 	var ajaxNum = 0;
@@ -622,19 +623,34 @@ function Config() {
 			"type": "POST",
 			"url": "sh/execute.cgi",
 			"async": options.async != undefined ? options.async : true,
-			"dataType": "text",
+			"dataType": options.dataType != undefined ? options.dataType : "text",
 			"data": {"cmd": options.cmd},
 			"dataFilter": function(data) {
 				if (options.filter) return options.filter(data);
 				else return data;
 			},
 			"success": function(data) {
-				if (ajaxNum > 0) ajaxNum--;
-				if (ajaxNum == 0) $("#status_ajax").text("none");
-				else $("#status_ajax").text($.sprintf("%s (%s requests)", _("loading data"), ajaxNum));
+				if (ajaxNum > 0) {
+					ajaxNum--;
+				}
+				
+				if (ajaxNum == 0) {
+					$("#status_ajax").text("none");
+				} else {
+					$("#status_ajax").text($.sprintf("%s (%s requests)", _("loading data"), ajaxNum));
+				}
+				
 				processResult(data);
 			},
 			"error": function() {
+				if (ajaxNum > 0) {
+					ajaxNum--;
+				}
+				
+				if (ajaxNum == 0) {
+					$("#status_ajax").text("none");
+				}
+				
 				processResult("Connection error.");
 			}
 		};

@@ -1120,7 +1120,9 @@ function Container(p, options) {
 		$("tfoot", this.table).append($.create("tr", {}, $.create("td", {"colSpan": colspan}, _(str))));
 	};
 	
-	/* Adds row to the table */
+	/*
+	 * Adds row to the table.
+	 */
 	this.addTableRow = function() {
 		return $.create("tr", {"align": "center"}).appendTo(this.table);
 	};
@@ -1128,21 +1130,26 @@ function Container(p, options) {
 	/*
 	 * Adds table's cell with proper id.
 	 * 
-	 * w — widget.
+	 * w — widget;
 	 * row — destination row.
 	 */
-	this.addGeneralTableWidget = function(w, row) {
-		$.create("td", {"id": "td_" + w.name}).appendTo(row);
+	this.addGeneralTableWidget = function(w, row, colspan) {
+		var td = $.create("td", {"id": "td_" + w.name}).appendTo(row);
+		
+		if (colspan) {
+			td.attr("colSpan", colspan);
+		}
 	};
 	
 	/*
 	 * Add widget to table.
 	 * 
-	 * w — widget.
-	 * row — destination row.
+	 * w — widget;
+	 * row — destination row;
+	 * colspan — optional colspan property for widget's TD.
 	 */
-	this.addTableWidget = function(w, row) {
-		this.addGeneralTableWidget(w, row);
+	this.addTableWidget = function(w, row, colspan) {
+		this.addGeneralTableWidget(w, row, colspan);
 		
 		/* add subwidget and style it */
 		this.addSubWidget(w).addClass("table");		

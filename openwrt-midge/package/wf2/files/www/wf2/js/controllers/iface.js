@@ -33,7 +33,6 @@ Controllers.iface = function(iface) {
 					config.cmdExecute({
 						"cmd": $.sprintf("/etc/init.d/network restart %s", realIface),
 						"callback": function() {
-							$(src.currentTarget).removeAttr("disabled");
 							c.containerRedraw();
 						}
 					});
