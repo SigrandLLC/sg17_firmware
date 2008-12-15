@@ -601,3 +601,29 @@ Controllers['adm5120sw'] = function() {
 	
 	page.generateTabs();
 };
+
+Controllers.debug = function() {
+	var page = this.Page();
+
+	page.addTab({
+		"id": "debug",
+		"name": "Debug",
+		"func": function() {
+			var c, field;
+			c = page.addContainer("debug");
+			c.addTitle("Debug info");
+
+			$.each(wf2Logs.logs, function(num, log) {
+				field = {
+					"type": "html",
+					"name": "debug_" + num,
+					"text": log.title,
+					"str": log.text
+				};
+				c.addWidget(field);
+			});
+		}
+	});
+	
+	page.generateTabs();
+};

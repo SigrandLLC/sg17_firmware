@@ -59,21 +59,20 @@ function Page(p) {
 			href.click(function(e) {
 				$(".tabs-container").html("Generating content...");
 				setTimeout(function() {
-						/*
-						 * Clear all tabs (to prevent problems when elements have identical IDs on
-						 * different tabs).
-						 */
-						$(".tabs-container").empty();
-						
-						/* render tab's content */
-						tab.func();
-						
-						scrollTo(0, 0);
-						
-						/* save selected tab ID in cookie */
-						$.cookie("wf2-tab", tab.id);
-					},
-				10);
+					/*
+					 * Clear all tabs (to prevent problems when elements have identical IDs on
+					 * different tabs).
+					 */
+					$(".tabs-container").empty();
+					
+					/* render tab's content */
+					tab.func();
+					
+					scrollTo(0, 0);
+					
+					/* save selected tab ID in cookie */
+					$.cookie("wf2-tab", tab.id);
+				}, 10);
 			});
 			
 			/* save pointer to the first link for a tab */

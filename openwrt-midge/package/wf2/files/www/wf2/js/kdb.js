@@ -110,6 +110,8 @@ function KDBQueue() {
  */
 function CmdCache() {
 	var cache = new Object();
+	var callbacks = [];
+	var cmds = 0;
 	
 	/*
 	 * Run asynchronously cmd and add it's output to cache.
@@ -120,10 +122,19 @@ function CmdCache() {
 	 * This can be usefull if cmd is too long or complex.
 	 */
 	this.runCmd = function(cmd, alias) {
+		cmds++;
+		cache[alias ? alias : cmd] = "waiting result...";
 		config.cmdExecute({
 			"cmd": cmd,
 			"callback": function(data) {
 				cache[alias ? alias : cmd] = data;
+				cmds--;
+				
+				if (cmds <= 0) {
+					$.each(callbacks, function(num, callback) {
+						callback();
+					});
+				}
 			}
 		});
 	};
@@ -132,7 +143,14 @@ function CmdCache() {
 	 * Get output of cmd.
 	 */
 	this.getCachedOutput = function(cmd) {
-		return cache[cmd] ? cache[cmd] : config.cmdExecute({"cmd": cmd, "async": false});
+		return cache[cmd];
+	};
+	
+	/*
+	 * Add callback to call when all backgrounded requests will be finished.
+	 */
+	this.onFinish = function(callback) {
+		callbacks.push(callback);
 	};
 }
 
@@ -542,6 +560,8 @@ function Config() {
 	
 	this.getCachedOutput = cmdCache.getCachedOutput;
 	
+	this.onCmdCacheFinish = cmdCache.onFinish;
+	
 	/*
 	 * Start checking for router state (online or offline) every timeout seconds.
 	 * If router is offline, show OFFLINE message above the menu.
@@ -595,6 +615,7 @@ function Config() {
 	 * options.dataType — if not specified, "text" is used;
 	 * options.filter — function to filter command's output. command's output is passed to func as arg.
 	 */
+	/* number of performing requests */
 	var ajaxNum = 0;
 	this.cmdExecute = function(options) {
 		var output = null;
@@ -626,10 +647,16 @@ function Config() {
 			"dataType": options.dataType != undefined ? options.dataType : "text",
 			"data": {"cmd": options.cmd},
 			"dataFilter": function(data) {
-				if (options.filter) return options.filter(data);
-				else return data;
+				if (options.filter) {
+					return options.filter(data);
+				} else {
+					return data;
+				}
 			},
-			"success": function(data) {
+			"success": function(data, textStatus) {
+				wf2Logs.addLog("AJAX response", $.sprintf("status: %s, url: %s, data: %s",
+						textStatus, this.url, this.data));
+				
 				if (ajaxNum > 0) {
 					ajaxNum--;
 				}
@@ -642,7 +669,10 @@ function Config() {
 				
 				processResult(data);
 			},
-			"error": function() {
+			"error": function(XMLHttpRequest, textStatus, errorThrown) {
+				wf2Logs.addLog("AJAX error", $.sprintf("status: %s, url: %s, data: %s",
+						textStatus, this.url, this.data));
+
 				if (ajaxNum > 0) {
 					ajaxNum--;
 				}
@@ -665,7 +695,11 @@ function Config() {
 		ajaxNum++;
 		$("#status_ajax").text($.sprintf("%s (%s requests)",  _("loading data"), ajaxNum));
 		
+		/* perform request */
 		$.ajax(ajaxOptions);
+		
+		/* log request */
+		wf2Logs.addLog("AJAX request", ajaxOptions.url + ", " + options.cmd)
 		
 		return output;
 	};
