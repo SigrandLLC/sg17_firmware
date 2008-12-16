@@ -243,40 +243,26 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 	};
 	
 	/* show status for 17 series */
-	var sg17Status = function() {
-		var c, field;
+	var sg17Status = function(dsl17status) {
+		var field;
 		c = page.addContainer("status");
-		
-		var confPath = $.sprintf("%s/%s/sg17_private", config.getOEM("sg17_cfg_path"), iface);
-		
-		/* power status */
-		var pwrPresence = config.getCachedOutput($.sprintf("/bin/cat %s/pwr_source", confPath));
-		
-		c.addTitle(getSg17Title(pwrPresence) + "status");
-		
-		/* get link state */
-		var link = config.cmdExecute({
-			"cmd": $.sprintf("/bin/cat %s/link_state", confPath),
-			"async": false
-		});
+		c.addTitle(getSg17Title(dsl17status.pwr.presence) + "status");
 		
 		field = {
 			"type": "html",
 			"name": "link_state",
 			"text": "Link state",
-			"str": link == 1 ? "online" : "offline"
+			"str": dsl17status.link.link_state == "1" ? "online" : "offline"
 		};
 		c.addWidget(field);
 		
-		if (pwrPresence == 1) {
+		/* power present */
+		if (dsl17status.pwr.presence == "1") {
 			field = {
 				"type": "html",
 				"name": "pwrUnb",
 				"text": "Power balance",
-				"cmd": $.sprintf("/bin/cat %s/pwrunb", confPath),
-				"dataFilter": function(data) {
-					return data == 0 ? "balanced" : "unbalanced"
-				}
+				"str": dsl17status.pwr.unb == "0" ? "balanced" : "unbalanced"
 			};
 			c.addWidget(field);
 			
@@ -284,21 +270,18 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"type": "html",
 				"name": "pwrOvl",
 				"text": "Power overload",
-				"cmd": $.sprintf("/bin/cat %s/pwrovl", confPath),
-				"dataFilter": function(data) {
-					return data == 0 ? "no overload" : "overload"
-				}
+				"str": dsl17status.pwr.ovl == "0" ? "no overload" : "overload"
 			};
 			c.addWidget(field);
 		}
 		
 		/* online */
-		if (link == 1) {
+		if (dsl17status.link.link_state == "1") {
 			field = {
 				"type": "html",
 				"name": "actualRate",
 				"text": "Actual rate",
-				"cmd": $.sprintf("/bin/cat %s/rate", confPath)
+				"str": dsl17status.link.rate
 			};
 			c.addWidget(field);
 			
@@ -306,7 +289,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"type": "html",
 				"name": "actualLineCode",
 				"text": "Actual line code",
-				"cmd": $.sprintf("/bin/cat %s/tcpam", confPath)
+				"str": dsl17status.link.tcpam
 			};
 			c.addWidget(field);
 			
@@ -314,21 +297,17 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"type": "html",
 				"name": "actualClockMode",
 				"text": "Actual clock mode",
-				"cmd": $.sprintf("/bin/cat %s/clkmode", confPath)
+				"str": dsl17status.link.clkmode
 			};
 			c.addWidget(field);
 			
 			/* statistics */
-			
 			field = {
 				"type": "html",
 				"name": "snrMargin",
 				"text": "SNR margin",
 				"descr": "Signal/Noise ratio margin",
-				"cmd": $.sprintf("/bin/cat %s/statistics_row", confPath),
-				"dataFilter": function(data) {
-					return data.split(" ")[0]
-				}
+				"str": dsl17status.link.statistics_row.split(" ")[0]
 			};
 			c.addWidget(field);
 			
@@ -336,30 +315,28 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"type": "html",
 				"name": "loopAttn",
 				"text": "Loop attenuation",
-				"cmd": $.sprintf("/bin/cat %s/statistics_row", confPath),
-				"dataFilter": function(data) {
-					return data.split(" ")[1]
-				}
+				"str": dsl17status.link.statistics_row.split(" ")[1]
 			};
 			c.addWidget(field);
 		}
 		
 		/* PBO */
-		var pboMode = config.cmdExecute({
-			"cmd": $.sprintf("/bin/cat %s/pbo_mode", confPath),
-			"async": false
-		});
+		field = {
+			"type": "html",
+			"name": "pboMode",
+			"text": "PBO",
+			"descr": "Power backoff",
+			"str": dsl17status.pbo.mode
+		};
+		c.addWidget(field);
 		
-		if (pboMode == "Forced") {
+		if (dsl17status.pbo.mode == "Forced") {
 			field = {
 				"type": "html",
 				"name": "pboVal",
 				"text": "PBO values",
 				"descr": "Power backoff values",
-				"cmd": $.sprintf("/bin/cat %s/pbo_val", confPath),
-				"dataFilter": function(data) {
-					return data + " dB"
-				}
+				"str": dsl17status.pbo.val + " dB"
 			};
 			c.addWidget(field);
 		}
@@ -683,33 +660,6 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		
 		onChangeSG17Code();
 	}
-	
-	/* get driver name */
-	var type = config.get($.sprintf("sys_pcitbl_s%s_iftype", pcislot));
-	
-	page.addTab({
-		"id": "status",
-		"name": "Status",
-		"func": function() {
-			if (type == config.getOEM("MR16H_DRVNAME")) {
-				sg16Status();
-			} else if (type == config.getOEM("MR17H_DRVNAME")) {
-				sg17Status();
-			}
-		}
-	});
-	
-	page.addTab({
-		"id": "settings",
-		"name": "Settings",
-		"func": function() {
-			if (type == config.getOEM("MR16H_DRVNAME")) {
-				sg16Settings();
-			} else if (type == config.getOEM("MR17H_DRVNAME")) {
-				sg17Settings();
-			}
-		}
-	});
 	
 	/* show main statistics page with unit selection */
 	var showStatistics = function(eocInfo) {
@@ -1428,6 +1378,37 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			});
 		});
 	};
+	
+	/* get driver name */
+	var type = config.get($.sprintf("sys_pcitbl_s%s_iftype", pcislot));
+	
+	page.addTab({
+		"id": "status",
+		"name": "Status",
+		"func": function() {
+			if (type == config.getOEM("MR16H_DRVNAME")) {
+				sg16Status();
+			} else if (type == config.getOEM("MR17H_DRVNAME")) {
+				config.cmdExecute({
+					"cmd": "./dsl17status_json.sh " + iface,
+					"callback": sg17Status,
+					"dataType": "json"
+				});
+			}
+		}
+	});
+	
+	page.addTab({
+		"id": "settings",
+		"name": "Settings",
+		"func": function() {
+			if (type == config.getOEM("MR16H_DRVNAME")) {
+				sg16Settings();
+			} else if (type == config.getOEM("MR17H_DRVNAME")) {
+				sg17Settings();
+			}
+		}
+	});
 	
 	/* add statistics tab for MR17H */
 	if (type == config.getOEM("MR17H_DRVNAME")) {

@@ -556,7 +556,7 @@ Controllers['cfg'] = function() {
 	page.generateTabs();
 };
 
-Controllers['adm5120sw'] = function() {
+Controllers.adm5120sw = function() {
 	var page = this.Page();
 	page.setHelpPage("adm5120sw");
 
@@ -575,7 +575,7 @@ Controllers['adm5120sw'] = function() {
 			});
 
 			c.addTableHeader("Port|Interface");
-			c.addTableTfootStr("Router have to be rebooted for apply changes.", 2);
+			c.addTableTfootStr("Device has to be rebooted to apply changes.", 2);
 			$.each(config.getParsed("sys_switch_ports"), function(num, port) {
 				var row = c.addTableRow();
 				
