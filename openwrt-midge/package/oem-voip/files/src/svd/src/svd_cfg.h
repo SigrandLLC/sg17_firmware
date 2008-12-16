@@ -130,6 +130,14 @@ struct htln_record_s {
 	char * value; /**< Hotline address pointer.*/
 	char value_s [VALUE_LEN_DF]; /**< Hotline static massive.*/
 };
+/** Hard link record.*/
+struct hdln_record_s {
+	char id [CHAN_ID_LEN]; /**< Channel absolute identifier.*/
+	char * pair_route; /**< Channel pair router identifier.*/
+	char pair_route_s [ROUTE_ID_LEN_DF]; /**< Channel pair router massive.*/
+	char pair_chan [CHAN_ID_LEN]; /**< Channel pair channel identifier.*/
+	int am_i_caller; /**< Set to 1 if this channel should call to it`s pair.*/
+};
 /** Route table record.*/
 struct rttb_record_s {
 	char * id; /**< Router identifier pointer.*/
@@ -158,6 +166,11 @@ struct address_book_s {
 struct hot_line_s {
 	unsigned int records_num; /**< Number of hotline records.*/
 	struct htln_record_s * records; /**< Records massive.*/
+};
+/** Hard links.*/
+struct hard_link_s {
+	unsigned int records_num; /**< Number of hotline records.*/
+	struct hdln_record_s * records; /**< Records massive.*/
 };
 /** Route table.*/
 struct route_table_s {
@@ -200,6 +213,7 @@ struct svd_conf_s {/*{{{*/
 	struct sip_settings_s sip_set; /**< SIP settings for registration.*/
 	struct address_book_s address_book; /**< Address book.*/
 	struct hot_line_s hot_line; /**< Hot line.*/
+	struct hard_link_s hard_link; /**< Hard linked channels.*/
 	struct route_table_s route_table; /**< Routes table.*/
 	struct rtp_prms_s rtp_prms; /**< RTP parameters.*/
 } g_conf;/*}}}*/

@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/ip.h>
+#include <net/if.h>
 
 #include "tapi/include/drv_tapi_io.h"
 /*}}}*/
@@ -358,6 +359,8 @@ DFS
 
 	/* Caller remote or not */
 	chan_ctx->call_type = calltype_UNDEFINED;
+	/* Caller router is self or not */
+	chan_ctx->caller_router_is_self = 0;
 
 	/* SDP */
 	chan_ctx->sdp_payload = -1;
@@ -799,7 +802,7 @@ DFS
 
 	/* answer on call if it exists */
 	call_answered = svd_answer(svd, ab_chan, SIP_200_OK);
-	if (call_answered) {
+	if (call_answered){
 		goto __exit_success;
 	}
 
@@ -1814,6 +1817,7 @@ svd_media_vinetic_open_rtp (svd_chan_t * const chan_ctx)
 	int i;
 	long ports_count;
 	struct sockaddr_in my_addr;
+	struct ifreq ifr;
 	int sock_fd;
 	int rtp_binded = 0;
 	int err;
@@ -1827,12 +1831,67 @@ DFS
 	}
 
 	tos = IPTOS_LOWDELAY;
-
 	err = setsockopt(sock_fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos));
 	if( err){
 		SU_DEBUG_2(("Can`t set TOS :%s",strerror(errno)));
 	}
 
+	/* Set SO_BINDTODEVICE for right ip using */ 
+	if(chan_ctx->dial_status.dest_is_self == self_YES || 
+			chan_ctx->caller_router_is_self){
+		/* use local interface */
+		strcpy(ifr.ifr_name, "lo");
+		if(setsockopt (sock_fd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, 
+				sizeof (ifr)) < 0 ){
+			goto __sock_opened;
+		}
+	} else if(chan_ctx->dial_status.dest_is_self == self_NO ||
+			(!chan_ctx->caller_router_is_self)){
+		/* use <self> set interface */
+		/* get device name by self_ip */
+		int stmp;
+		int device_finded = 0;
+
+		stmp = socket (PF_INET, SOCK_STREAM, 0);
+		if(stmp == -1){
+			SU_DEBUG_1 ((LOG_FNC_A(strerror(errno))));
+			goto __exit_fail;
+		}
+		for(i=1;;i++){
+			struct sockaddr_in *sin = (struct sockaddr_in *) &ifr.ifr_addr;
+			char *ip;
+
+			ifr.ifr_ifindex = i;
+			if (ioctl (stmp, SIOCGIFNAME, &ifr) < 0){
+				break;
+			}
+			if (ioctl (stmp, SIOCGIFADDR, &ifr) < 0){
+				continue;
+			}
+			ip = inet_ntoa (sin->sin_addr);
+			if( !strcmp(ip, g_conf.self_ip)){
+				DEBUG_CODE(	
+				SU_DEBUG_1 (("THE NAME OF THE DEVICE : %s\n",ifr.ifr_name));
+				);
+				if(setsockopt (sock_fd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, 
+						sizeof (ifr)) < 0 ){
+					goto __sock_opened;
+				}
+				device_finded = 1;
+				break;
+			}
+		}
+		close (stmp);
+		if( !device_finded){
+			SU_DEBUG_1 (("ERROR: Network interface with self_ip %s not found", 
+					g_conf.self_ip));
+			goto __sock_opened;
+		}
+	} else {
+		SU_DEBUG_0((LOG_FNC_A("SHOULDN`T BE THERE!!")));
+	}
+
+	/* Bind socket to appropriate address */
 	ports_count = g_conf.rtp_port_last - g_conf.rtp_port_first + 1;
 	for (i = 0; i < ports_count; i++) {
 		memset(&my_addr, 0, sizeof(my_addr));
@@ -1846,9 +1905,8 @@ DFS
 		}
 	}
 	if( !rtp_binded ){
-		SU_DEBUG_1(("svd_media_vinetic_open_rtp(): "
-				"could not find free port for RTP in "
-				"range [%d,%d]\n",
+		SU_DEBUG_1(("svd_media_vinetic_open_rtp(): could not find free "
+				"port for RTP in range [%d,%d]\n",
 				g_conf.rtp_port_first, g_conf.rtp_port_last));
 		goto __sock_opened;
 	}

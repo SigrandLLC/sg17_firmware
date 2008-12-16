@@ -106,6 +106,8 @@ static void fax_init (void);
 static int address_book_init (void);
 /** Init hot line configuration.*/
 static int hot_line_init (void);
+/** Init hard link configuration.*/
+static int hard_link_init (void);
 /** Init route table configuration.*/
 static int route_table_init (void);
 /** Init RTP parameters configuration.*/
@@ -289,6 +291,11 @@ svd_conf_init( void )
 		goto svd_conf_init__exit;
 	}
 
+	/* app.hard_link */
+	err = hard_link_init();
+	if( err ){
+		goto svd_conf_init__exit;
+	}
 
 	/* Free the configuration */
 	config_destroy (&cfg);
@@ -315,6 +322,7 @@ conf_show( void )
 {/*{{{*/
 	struct adbk_record_s * curr_ab_rec;
 	struct htln_record_s * curr_hl_rec;
+	struct hdln_record_s * curr_hk_rec;
 	struct rttb_record_s * curr_rt_rec;
 	int i;
 	int j;
@@ -378,6 +386,17 @@ conf_show( void )
 		curr_hl_rec = &g_conf.hot_line.records[ i ];
 		SU_DEBUG_3(("\t%d/\"%s\" : %s\n",
 				i+1, curr_hl_rec->id, curr_hl_rec->value ));
+	}
+
+	if(g_conf.hard_link.records_num){
+		SU_DEBUG_3(("HardLinks :\n"));
+	}
+	j = g_conf.hard_link.records_num;
+	for(i=0; i<j; i++){
+		curr_hk_rec = &g_conf.hard_link.records[ i ];
+		SU_DEBUG_3(("\t%d/\"%s\":%s:%s\n",
+				i+1, curr_hk_rec->id, 
+				curr_hk_rec->pair_route, curr_hk_rec->pair_chan));
 	}
 
 	if(g_conf.route_table.records_num){
@@ -578,6 +597,9 @@ __exit_fail:
  *
  * \retval 0 success.
  * \retval -1 fail.
+ * \remark
+ * 	It should be run after route table initialization because
+ * 	it uses this value for self values pointed to.
  */ 
 static int 
 self_values_init( void )
@@ -589,6 +611,7 @@ self_values_init( void )
 	int i;
 	int j = 0;
 	int sock;
+	int self_found;
 
 	/* get interfaces addresses on router */
 	sock = socket (PF_INET, SOCK_STREAM, 0);
@@ -623,6 +646,7 @@ self_values_init( void )
 	addrs_count = j;
 
 	/* set self_ip and self_number according to route table and addrmas */
+	self_found = 0;
 	route_records_num = g_conf.route_table.records_num;
 	for (i=0; i<route_records_num; i++){
 		curr_rec = &g_conf.route_table.records[i];
@@ -630,6 +654,7 @@ self_values_init( void )
 			if (!strcmp (addrmas[j], curr_rec->value) ){
 				g_conf.self_ip = curr_rec->value;
 				g_conf.self_number = curr_rec->id;
+				self_found = 1;
 			}
 		}
 	}
@@ -640,9 +665,14 @@ self_values_init( void )
 	}
 	free (addrmas);
 
-        return 0;
+	if( !self_found){
+		SU_DEBUG_0 ((LOG_FNC_A("ERROR: "
+				"No interfaces with ip from route table")));
+		goto __exit_fail;
+	}
+	return 0;
 __exit_fail:
-        return -1;
+	return -1;
 }/*}}}*/
 
 /**
@@ -1042,7 +1072,7 @@ hot_line_init( void )
 		elem = config_setting_get_string_elem (rec_set, 0);
 		strncpy(curr_rec->id, elem, CHAN_ID_LEN-1);
 		
-		/* get value with no garbage */
+		/* get value */
 		elem = config_setting_get_string_elem (rec_set, 1);
 		elem_len = strlen(elem);
 		if (elem_len+1 < VALUE_LEN_DF ){
@@ -1064,6 +1094,111 @@ hot_line_init__exit:
 	return -1;
 }/*}}}*/
 
+/**
+ * Init`s hard link records in main routine configuration \ref g_conf structure.
+ *
+ * \retval 0 success.
+ * \retval -1 fail.
+ * \remark
+ * 	It should be run after self number initialization because
+ * 	it uses this value for am_i_caller flag set.
+ */ 
+static int 
+hard_link_init( void )
+{/*{{{*/
+	/* ("chan_id", "pair_chan_id", "pair_route_id"), */
+	struct config_setting_t * set;
+	struct config_setting_t * rec_set;
+	struct hdln_record_s * curr_rec; 
+	char const * elem;
+	int elem_len;
+	int rec_num;
+	int i;
+
+	set = config_lookup (&cfg, "app.hard_link" );
+	if( !set){
+		g_conf.hard_link.records_num = 0;
+		goto __exit_success;
+	} 
+
+	rec_num = config_setting_length (set);
+
+	g_conf.hard_link.records_num = rec_num;
+	g_conf.hard_link.records = malloc 
+			(rec_num * sizeof(*(g_conf.hard_link.records)));
+	if( !g_conf.hard_link.records ){
+		SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
+		goto __exit_fail;
+	}
+	memset(g_conf.hard_link.records, 0, rec_num * 
+			sizeof(*(g_conf.hard_link.records)));
+
+	for(i = 0; i < rec_num; i++){
+		int router_is_self;
+		curr_rec = &g_conf.hard_link.records[ i ];
+		rec_set = config_setting_get_elem (set, i);
+
+		/* get chan_id */
+		elem = config_setting_get_string_elem (rec_set, 0);
+		strncpy(curr_rec->id, elem, CHAN_ID_LEN-1);
+
+		/* get pair_chan_id */
+		elem = config_setting_get_string_elem (rec_set, 1);
+		strncpy(curr_rec->id, elem, CHAN_ID_LEN-1);
+		
+		/* get pair_route_id */
+		elem = config_setting_get_string_elem (rec_set, 2);
+		elem_len = strlen(elem);
+		if (elem_len+1 < ROUTE_ID_LEN_DF){
+			curr_rec->pair_route = curr_rec->pair_route_s;
+		} else {
+			curr_rec->pair_route = malloc
+					((elem_len+1)*sizeof(*(curr_rec->pair_route)));
+			if( !curr_rec->pair_route){
+				SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
+				goto __exit_fail;
+			}
+		}
+		strcpy (curr_rec->pair_route, elem);
+
+		/* set am_i_caller flag by parsing the value string */
+		router_is_self = (curr_rec->pair_route[0] == SELF_MARKER) ||
+				(!strcmp(curr_rec->pair_route, g_conf.self_number));
+		if (router_is_self){
+			/* test what chan is greater */
+			int ret = strcmp(curr_rec->id,curr_rec->pair_chan);
+			if       (ret > 0){
+				/* current is greater */
+				curr_rec->am_i_caller = 1;
+			} else if(ret < 0){
+				/* address is greater */
+				curr_rec->am_i_caller = 0;
+			} else {
+				/* error - can`t hardlink to self */
+				SU_DEBUG_1((LOG_FNC_A("ERROR: can`t hardlink to self")));
+				goto __exit_fail;
+			}
+		} else {
+			/* test what router is greater */
+			int ret = strcmp(g_conf.self_number, curr_rec->pair_route);
+			if       (ret > 0){
+				/* current is greater */
+				curr_rec->am_i_caller = 1;
+			} else if(ret < 0){
+				/* address is greater */
+				curr_rec->am_i_caller = 0;
+			} else {
+				/* error - can`t hardlink to self */
+				SU_DEBUG_1((LOG_FNC_A("ERROR:internal-bad router self test")));
+				goto __exit_fail;
+			}
+		}
+	}
+__exit_success:
+	return 0;
+__exit_fail:
+	return -1;
+}/*}}}*/
 
 /**
  * Init`s route table in main routine configuration \ref g_conf structure.

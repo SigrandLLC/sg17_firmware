@@ -277,8 +277,7 @@ svd_invite (svd_t * const svd, int const use_ff_FXO, int const chan_idx )
 	int err;
 DFS
 	/* forming from string */
-	snprintf (from_idx, CHAN_ID_LEN, "%d",
-			svd->ab->chans[chan_idx].abs_idx);
+	snprintf (from_idx, CHAN_ID_LEN, "%d", svd->ab->chans[chan_idx].abs_idx);
 	strcpy (from_str, "sip:");
 	strcat (from_str, from_idx);
 	strcat (from_str, "@");
@@ -376,10 +375,9 @@ DFS
 	if ( !l_sdp_str){
 		goto __exit_fail;
 	}
-	
+
 	nua_invite( nh,
-			TAG_IF (svd->outbound_ip[0], 
-					SOATAG_ADDRESS(svd->outbound_ip)),
+			TAG_IF (svd->outbound_ip[0], SOATAG_ADDRESS(svd->outbound_ip)),
 			SOATAG_USER_SDP_STR(l_sdp_str),
 			SOATAG_RTP_SORT (SOA_RTP_SORT_LOCAL),
 			SOATAG_RTP_SELECT (SOA_RTP_SELECT_SINGLE), 
@@ -493,8 +491,8 @@ DFE
  * \sa svd_i_invite().
  */
 int
-svd_answer(svd_t * const svd, ab_chan_t * const chan,  
-		int status, char const *phrase)
+svd_answer (svd_t * const svd, ab_chan_t * const chan, int status, 
+		char const *phrase)
 {/*{{{*/
 	int call_answered = 0;
 	char * l_sdp_str = NULL;
@@ -519,7 +517,7 @@ DFS
 				SOATAG_RTP_SELECT (SOA_RTP_SELECT_SINGLE), 
 				TAG_IF((chan_ctx->call_type == calltype_REMOTE) && 
 						svd->outbound_ip[0], 
-					SOATAG_ADDRESS(svd->outbound_ip)),
+						SOATAG_ADDRESS(svd->outbound_ip)),
 				SOATAG_USER_SDP_STR (l_sdp_str),
 				TAG_END());
 
@@ -725,19 +723,24 @@ DFE
  */
 static void
 svd_i_invite( int status, char const * phrase, svd_t * const svd, 
-		nua_handle_t * nh, ab_chan_t * chan, 
-		sip_t const *sip, tagi_t tags[])
+		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip, tagi_t tags[])
 {/*{{{*/
 	ab_chan_t * req_chan;
 	svd_chan_t * chan_ctx;
 	sip_to_t const *to = sip->sip_to;
+	sip_from_t const *from = sip->sip_from;
 	unsigned char abs_chan_idx;
 	unsigned char call_is_remote = 0;
 	int chan_idx;
+	int caller_router_is_self = 0;
 	int err;
 DFS
 	if( !strcmp (g_conf.self_ip, to->a_url->url_host) ){
 		/* local call */
+		if( !strcmp (g_conf.self_ip, from->a_url->url_host)){
+			/* call from the same router */
+			caller_router_is_self = 1;
+		}
 		/* * 
 		 * Get requested chan number 
 		 * it can be:
@@ -747,11 +750,9 @@ DFS
 		if (isdigit(to->a_url->url_user[0])){
 			/* 'xx@..'  - absolute channel number */
 			abs_chan_idx = strtol(to->a_url->url_user, NULL, 10);
-			chan_idx = get_dest_chan_idx (svd->ab, NULL, 
-					abs_chan_idx);
+			chan_idx = get_dest_chan_idx (svd->ab, NULL, abs_chan_idx);
 			if( chan_idx == -1 ){
-				nua_respond(nh, SIP_500_INTERNAL_SERVER_ERROR, 
-						TAG_END());
+				nua_respond(nh, SIP_500_INTERNAL_SERVER_ERROR, TAG_END());
 				nua_handle_destroy(nh);
 				goto __exit;
 			}
@@ -766,8 +767,7 @@ DFS
 			}
 		} else {
 			/* unknown user */
-			SU_DEBUG_2(("Incoming call to unknown user \"%s\" "
-					"on this host\n",
+			SU_DEBUG_2(("Incoming call to unknown user \"%s\" on this host\n",
 					to->a_url->url_user));
 			goto __exit;
 		}
@@ -785,12 +785,9 @@ DFS
 				/* external call to this router */
 				/* get sip_chan */
 				abs_chan_idx = g_conf.sip_set.sip_chan;
-				chan_idx = get_dest_chan_idx (svd->ab, NULL, 
-						abs_chan_idx);
+				chan_idx = get_dest_chan_idx (svd->ab, NULL, abs_chan_idx);
 				if( chan_idx == -1 ){
-					nua_respond(nh, 
-						SIP_500_INTERNAL_SERVER_ERROR, 
-							TAG_END());
+					nua_respond(nh, SIP_500_INTERNAL_SERVER_ERROR, TAG_END());
 					nua_handle_destroy(nh);
 					goto __exit;
 				}
@@ -821,6 +818,12 @@ DFS
 		chan_ctx->call_type = calltype_REMOTE;
 	} else {
 		chan_ctx->call_type = calltype_LOCAL;
+		if(caller_router_is_self){
+			/* caller - the same router */
+			chan_ctx->caller_router_is_self = 1;
+		} else {
+			chan_ctx->caller_router_is_self = 0;
+		}
 	}
 
 	if (req_chan->parent->type == ab_dev_type_FXS){

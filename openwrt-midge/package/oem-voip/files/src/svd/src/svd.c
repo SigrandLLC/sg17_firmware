@@ -99,6 +99,35 @@ main (int argc, char ** argv)
 		goto __conf;
 	}
 
+#if 0 
+/*	it worked !*/
+	/* tag__
+	 *		svd_invite to hardlinked channels here?
+	 *		try with normal channels first
+	 *		call from 01 to 02
+	 */
+	/* set 0 chan_ctx values */
+	/* chan_ctx->dial_status.chan_id - dest channel
+	 * chan_ctx->dial_status.route_ip - dest router
+	 */
+ 	chan_ctx = svd->ab->chans[0].ctx;
+	strcpy(chan_ctx->dial_status.chan_id,"01");
+	chan_ctx->dial_status.route_ip = g_conf.self_ip;
+
+	/* place a call */
+	err = svd_invite(svd, 0, 0);
+	if(err){
+		SU_DEBUG_0 (("!!!!!!!!!!!!!!!!! CAN`T PLACE INITIAL CALL\n"));
+		goto __conf;
+	}
+#endif
+	/* place hardlinked calls */
+	/*
+	err = svd_place_hardlinks(svd);
+	if(err){
+		goto __conf;
+	}
+*/	
 	/* run main cycle */
 	su_root_run (svd->root);
 
@@ -195,6 +224,8 @@ static svd_t *
 svd_create (void)
 {/*{{{*/
 	svd_t * svd;
+	sip_to_t *from = NULL;
+	char contact_url[256];
 	int err;
 DFS
 	svd = malloc( sizeof(*svd) );
@@ -225,6 +256,12 @@ DFS
 		goto __exit_fail;
 	}
 
+	/* Set from address and contact url according to config */
+	memset(contact_url, 0, sizeof(contact_url));
+	strcpy(contact_url, "sip:");
+	strcat(contact_url, g_conf.self_ip);
+	from = sip_from_make(svd->home, contact_url);
+
 	/* launch the SIP stack */
 	/* *
 	 * NUTAG_ALLOW ("INFO"),
@@ -239,6 +276,9 @@ DFS
 	svd->nua = nua_create (svd->root, svd_nua_callback, svd,
 			SIPTAG_USER_AGENT_STR ("svd VoIP agent"),
 			SOATAG_AF (SOA_AF_IP4_IP6), 
+	 		SOATAG_ADDRESS (g_conf.self_ip), 
+			SIPTAG_FROM(from), 
+			NUTAG_URL(contact_url), 
 			NUTAG_AUTOALERT (1),
 			NUTAG_ENABLEMESSAGE (1),
 			NUTAG_ENABLEINVITE (1),
@@ -248,23 +288,23 @@ DFS
 		goto __exit_fail;
 	}
 
+	su_free(svd->home, from);
+	from = NULL;
+
 	svd->op_reg = NULL;
 
 	if(g_conf.sip_set.all_set){
 		nua_set_params(svd->nua,
 				NUTAG_REGISTRAR (g_conf.sip_set.registrar),
 				NUTAG_OUTBOUND ("gruuize no-outbound validate "
-						"natify use-rport "
-						"options-keepalive"),
+						"natify use-rport options-keepalive"),
 				TAG_NULL () );
 
 		svd_refresh_registration (svd);
 	}
-
 	nua_get_params(svd->nua, TAG_ANY(), TAG_NULL());
 DFE
 	return svd;
-
 __exit_fail:
 DFE
 	if(svd){

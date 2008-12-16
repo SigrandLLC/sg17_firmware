@@ -77,7 +77,7 @@ struct svd_chan_s
 		calltype_LOCAL, /**< call in the local network */
 		calltype_REMOTE,/**< call to internet */
 	} call_type; /**< Remote or local call */
-	//char call_is_remote; /**< Caller in remote net.*/
+	int caller_router_is_self; /**< Does we get call from self router.*/
 
 	int remote_port; /**< Remote RTP port.*/
 	char * remote_host; /**< Remote RTP host.*/
