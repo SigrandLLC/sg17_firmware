@@ -82,6 +82,9 @@ service_reload(){
 			;;
 		esac
 	;;
+	time)
+		/etc/init.d/timesync start
+	;;
 	esac
 }
 

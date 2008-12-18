@@ -138,7 +138,6 @@ post_ifup(){
 	done
 	
 	/etc/init.d/qos start $realiface
-	/etc/init.d/ntpclient start
 
 	# setup interface options
 	local dir=/proc/sys/net/ipv4/conf/$realiface

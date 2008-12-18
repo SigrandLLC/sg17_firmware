@@ -9,7 +9,7 @@ var Controllers = {
 	}
 };
 
-Controllers['info'] = function() {
+Controllers.info = function() {
 	var page = this.Page();
 	
 	page.addTab({
@@ -66,7 +66,7 @@ Controllers['info'] = function() {
 	page.generateTabs();
 };
 
-Controllers['webface'] = function() {
+Controllers.webface = function() {
 	var page = this.Page();
 
 	page.addTab({
@@ -78,22 +78,22 @@ Controllers['webface'] = function() {
 			c.addTitle("Webface settings");
 
 			field = {
-				type: "select",
-				name: "sys_interface_language",
-				text: "Interface language",
-				descr: "Please select language",
-				options: {"en": "English", "ru": _("Russian")} 
+				"type": "select",
+				"name": "sys_interface_language",
+				"text": "Interface language",
+				"descr": "Please select language",
+				"options": {"en": "English", "ru": _("Russian")} 
 			};
 			c.addWidget(field);
 		
-			c.addSubmit({reload: true});
+			c.addSubmit({"reload": true});
 		}
 	});
 	
 	page.generateTabs();
 };
 
-Controllers['general'] = function() {
+Controllers.general = function() {
 	var page = this.Page();
 	page.setHelpPage("begin");
 
@@ -107,12 +107,12 @@ Controllers['general'] = function() {
 			c.addTitle("General settings");
 
 			field = {
-				type: "text",
-				name: "sys_hostname",
-				text: "Hostname",
-				descr: "Please enter device's hostname",
-				validator: {required: true},
-				message: "Enter hostname"
+				"type": "text",
+				"name": "sys_hostname",
+				"text": "Hostname",
+				"descr": "Please enter device's hostname",
+				"validator": {required: true},
+				"message": "Enter hostname"
 			};
 			c.addWidget(field);
 		
@@ -123,7 +123,7 @@ Controllers['general'] = function() {
 	page.generateTabs();
 };
 
-Controllers['security'] = function() {
+Controllers.security = function() {
 	var page = this.Page();
 	page.setHelpPage("begin");
 	
@@ -221,7 +221,7 @@ Controllers['security'] = function() {
 	page.generateTabs();
 };
 
-Controllers['dns'] = function() {
+Controllers.dns = function() {
 	var page = this.Page();
 	page.setSubsystem("dns");
 	
@@ -244,11 +244,11 @@ Controllers['dns'] = function() {
 			c.addWidget(field);
 		
 			field = { 
-				type: "text",
-				name: "sys_dns_domain",
-				text: "Domain",
-				descr: "Please enter your domain",
-				tip: "Domain for this router. E.g., localnet"
+				"type": "text",
+				"name": "sys_dns_domain",
+				"text": "Domain",
+				"descr": "Please enter your domain",
+				"tip": "Domain for this router. E.g., localnet"
 			};
 			c.addWidget(field);
 		
@@ -259,8 +259,9 @@ Controllers['dns'] = function() {
 	page.generateTabs();
 };
 
-Controllers['time'] = function() {
+Controllers.time = function() {
 	var page = this.Page();
+	page.setSubsystem("time");
 	
 	page.addTab({
 		"id": "time",
@@ -270,38 +271,75 @@ Controllers['time'] = function() {
 			c = page.addContainer("time");
 			c.addTitle("Time settings");
 
+			field = {
+				"type": "html",
+				"name": "time",
+				"text": "Time",
+				"descr": "Current date and time on the device.",
+				"cmd": "/bin/date"
+			};
+			c.addWidget(field);
+
 			field = { 
-				type: "checkbox",
-				name: "sys_ntpclient_enabled",
-				text: "Use time synchronizing",
-				descr: "Check this item if you want use time synchronizing",
-				tip: "Time synchronization via NTP protocol"
+				"type": "checkbox",
+				"name": "sys_ntpclient_enabled",
+				"text": "Use time synchronizing",
+				"descr": "Check this item if you want use time synchronizing.",
+				"tip": "Time synchronization via NTP protocol."
 			};
 			c.addWidget(field);
 			
 			field = { 
-				type: "text",
-				name: "sys_ntpclient_server",
-				text: "Time server",
-				descr: "Please input time server's hostname or ip address"
+				"type": "text",
+				"name": "sys_ntpclient_server",
+				"text": "Time server",
+				"descr": "Hostname or IP address of time server."
 			};
 			c.addWidget(field);
 			
 			field = {
-				type: "select",
-				name: "sys_timezone",
-				text: "Time zone",
-				descr: "Please select timezone",
-				options: {"bad": "Please select timezone", "-12": "GMT-12", "-11": "GMT-11", "-10": "GMT-10",
-							"-9": "GMT-9", "-8": "GMT-8", "-7": "GMT-7", "-6": "GMT-6", "-5": "GMT-5", 
-							"-4": "GMT-4", "-3": "GMT-3", "-2": "GMT-2", "-1": "GMT-1", "0": "GMT", 
-							"1": "GMT+1", "2": "GMT+2", "3": "GMT+3", "4": "GMT+4", "5": "GMT+5", "6": "GMT+6", 
-							"7": "GMT+7", "8": "GMT+8", "9": "GMT+9", "10": "GMT+10", "11": "GMT+11", 
-							"12": "GMT+12"}
+				"type": "select",
+				"name": "sys_timezone",
+				"text": "Time zone",
+				"descr": "Time zone.",
+				"options": function() {
+					var tz = {};
+					for (var i = -12; i <= 12; i++) {
+						var offset = i > 0 ? "+" + i : "" + i;
+						
+						/*
+						 * "Confusingly, the offset in the TZ value specifies the time value
+						 * you must add to the local time to get a UTC value, so this is positive
+						 * if the local time zone is west of the Prime Meridian and negative if 
+						 * it is east.", http://martybugs.net/wireless/openwrt/timesync.cgi
+						 * So, we inverse the value of GMT offset.
+						 */
+						var gmtOffset = i * -1 > 0 ? "+" + i * -1 : "" + i * -1;
+						tz[offset] = "GMT" + (gmtOffset != "0" ? gmtOffset : "");
+					}
+					return tz;
+				}()
 			};
 			c.addWidget(field);
 			
-			c.addSubmit();
+			field = { 
+				"type": "checkbox",
+				"name": "sys_time_auto_switch",
+				"text": "Auto winter/summer time",
+				"descr": "Auto switch to winter/summer time.",
+				"tip": "Adds one hour to local time in summer."
+			};
+			c.addWidget(field);
+			
+			/* update date and time after form saving */
+			c.addSubmit({
+				"onSuccess": function() {
+					config.cmdExecute({
+						"cmd": "/bin/date",
+						"container": "#td_time > span.htmlWidget"
+					});
+				}
+			});
 		}
 	});
 	
@@ -322,37 +360,37 @@ Controllers['logging'] = function() {
 			c.addTitle("Logging settings");
 
 			field = { 
-				type: "select",
-				name: "sys_log_dmesg_level",
-				text: "Kernel console priority logging",
-				descr: "Set the level at which logging of messages is done to the console",
-				options: {"1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7"}
+				"type": "select",
+				"name": "sys_log_dmesg_level",
+				"text": "Kernel console priority logging",
+				"descr": "Set the level at which logging of messages is done to the console",
+				"options": {"1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7"}
 			};
 			c.addWidget(field);
 		
 			field = { 
-				type: "select",
-				name: "sys_log_buf_size",
-				text: "Circular buffer",
-				descr: "Circular buffer size",
-				options: {"0": "0k", "8": "8k", "16": "16k", "32": "32k", "64": "64k", "128": "128k",
+				"type": "select",
+				"name": "sys_log_buf_size",
+				"text": "Circular buffer",
+				"descr": "Circular buffer size",
+				"options": {"0": "0k", "8": "8k", "16": "16k", "32": "32k", "64": "64k", "128": "128k",
 							"256": "256k", "512": "512k"}
 			};
 			c.addWidget(field);
 			
 			field = { 
-				type: "checkbox",
-				name: "sys_log_remote_enabled",
-				text: "Enable remote syslog logging",
-				descr: "Check this item if you want to enable remote logging"
+				"type": "checkbox",
+				"name": "sys_log_remote_enabled",
+				"text": "Enable remote syslog logging",
+				"descr": "Check this item if you want to enable remote logging"
 			};
 			c.addWidget(field);
 			
 			field = { 
-				type: "text",
-				name: "sys_log_remote_server",
-				text: "Remote syslog server",
-				descr: "Domain name or ip address of remote syslog server"
+				"type": "text",
+				"name": "sys_log_remote_server",
+				"text": "Remote syslog server",
+				"descr": "Domain name or ip address of remote syslog server"
 			};
 			c.addWidget(field);
 		
