@@ -9,7 +9,7 @@ Controllers['multiplexing'] = function() {
 		"func": function() {
 			var colSpan = 10;
 			var c = page.addContainer("multiplexing");
-			c.addTitle("Multiplexing", colSpan);
+			c.addTitle("Multiplexing", {"colspan": colSpan});
 			
 			c.addTableHeader("DEV|MXEN|CLKM|CLKAB|CLKR|RLINE|TLINE|RFS|TFS|MXSMAP/MXRATE");
 			

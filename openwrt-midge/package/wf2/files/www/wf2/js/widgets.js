@@ -240,34 +240,51 @@ function Container(p, options) {
 	/* 
 	 * Adds title and context help link to container and adds it to container's table.
 	 * 
-	 * title — I18N title.
-	 * colspan — number of cols to span for title cell.
+	 * title — I18N title;
+	 * options.colspan — number of cols to span for title cell;
+	 * options.internal — place title inside table (add row to table's body);
+	 * options.noHelp — do not show link for context-help;
+	 * options.help — use this context-help settings instead of container's.
 	 */
-	this.addTitle = function(title, colspan) {
+	this.addTitle = function(title, options) {
+		var colspan = options && options.colspan ? options.colspan : "2";
 		var url = null;
 		
-		/* if we have context-help — add links to it */
-		if (config.getCachedOutput("context-help") == "1") {
-			/* create url for context help */
-			if (this.help.page && this.help.section) {
-				url = $.sprintf("/help/%s.html#%s", this.help.page, this.help.section);
-			} else if (this.help.page) {
-				url = $.sprintf("/help/%s.html", this.help.page);
+		/* if we have context-help and options.noHelp is not set — add links to context-help */
+		if (config.getCachedOutput("context-help") == "1" &&
+			(!options || (options && !options.noHelp))) {
+			/* define which parameter to use */
+			var help = options && options.help ? options.help : this.help;
+			
+			/* add context-help link */
+			if (help.page && help.section) {
+				url = $.sprintf("/help/%s.html#%s", help.page, help.section);
+			} else if (help.page) {
+				url = $.sprintf("/help/%s.html", help.page);
 			}
 		}
 		
 		/* if url is set — create context help link object, otherwise set it to null */
-		var help = url ? $.create('a', {'href': '#', 'className': 'helpLink'}, '[?]')
-			.click(function() {
-				popup(url);
-			}) : null;
+		var helpLink = url ? $.create("a", {"href": "#", "className": "helpLink"}, "[?]")
+				.click(function() {
+					popup(url);
+				}) : null;
 		
-		/* create table's row for title and context help link */
-		$("thead", this.table).append(
-			$.create("tr", {},
-				$.create("th", {"colSpan": colspan ? colspan : "2"}, [_(title), " ", help])
-			)
-		);
+		/* title is placed inside table */
+		if (options && options.internal) {
+			var tr = $.create("tr", {"align": "center"});
+			$.create("td", {"colSpan": colspan, "className": "header"}, [_(title), " ", helpLink])
+					.appendTo(tr);
+			$("tbody", this.table).append(tr);
+		/* title is placed in the header section of the table */
+		} else {
+			/* create table's row for title and context help link */
+			$("thead", this.table).append(
+				$.create("tr", {},
+					$.create("th", {"colSpan": colspan}, [_(title), " ", helpLink])
+				)
+			);
+		}
 	};
 	
 	/*
@@ -1094,17 +1111,6 @@ function Container(p, options) {
 	};
 	
 	/*
-	 * Add title inside a table.
-	 * I18N for title.
-	 */
-	this.addInternalTableTitle = function(title, colspan) {
-		var tr = $.create("tr", {"align": "center"});
-		$.create("td", {"colSpan": colspan, "className": "header"}, _(title)).appendTo(tr);
-		
-		$("tbody", this.table).append(tr);
-	};
-	
-	/*
 	 * Add text to tfoot section in the table.
 	 * I18N for str.
 	 * 
@@ -1291,13 +1297,13 @@ function Container(p, options) {
 			
 			/* add columns headers */
 			var thNum = 0;
-			$.each(options['header'], function(num, value) {
+			$.each(options.header, function(num, value) {
 				$.create("th", {}, _(value)).appendTo(tr);
 				thNum++;
 			});
 			
 			/* add list header with colSpan parameter */
-			c.addTitle(options['listTitle'], thNum + 2);
+			c.addTitle(options.listTitle, {"colspan": thNum + 2});
 			
 			/* create "button" for adding */
 			var img = $.create("img", {"src": "ui/img/plus.gif", "alt": "add"});

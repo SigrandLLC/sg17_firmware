@@ -9,9 +9,11 @@ Controllers.voip = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("settings");
-			c.setHelpPage("voip.settings");
 			c.addTitle("VoIP settings");
-		
+			
+			/* General settings */
+			c.addTitle("General settings", {"internal": true, "help": {"page": "voip.settings"}});
+			
 			field = { 
 				"type": "text",
 				"name": "sys_voip_settings_selfnumber",
@@ -55,6 +57,70 @@ Controllers.voip = function() {
 			};
 			c.addWidget(field);
 			
+			/* SIP settings */
+			c.addTitle("SIP settings", {"internal": true, "help": {"page": "voip.sip"}});
+			
+			field = { 
+				"type": "text",
+				"name": "sys_voip_sip_registrar",
+				"text": "Registrar",
+				"descr": "SIP registrar to register on.",
+				"tip": "e.g., <i>sip:server</i>",
+				"validator": {"required": true, "voipRegistrar": true}
+			};
+			c.addWidget(field);
+			
+			field = { 
+				"type": "text",
+				"name": "sys_voip_sip_username",
+				"text": "Username",
+				"descr": "Username on SIP registrar.",
+				"tip": "e.g., <i>user</i>",
+				"validator": {"required": true}
+			};
+			c.addWidget(field);
+			
+			field = { 
+				"type": "password",
+				"name": "sys_voip_sip_password",
+				"text": "Password",
+				"descr": "Password on SIP registrar.",
+				"validator": {"required": true}
+			};
+			c.addWidget(field);
+			
+			field = { 
+				"type": "text",
+				"name": "sys_voip_sip_user_sip_uri",
+				"text": "User SIP URI",
+				"tip": "e.g., <i>sip:user@server</i>",
+				"validator": {"required": true, "voipSipUri": true}
+			};
+			c.addWidget(field);
+			
+			field = { 
+				"type": "select",
+				"name": "sys_voip_sip_chan",
+				"text": "FXS channel",
+				"descr": "FXS channel for incoming SIP-calls.",
+				"options": function() {
+					/* create array with FSX ports */
+					var fxsChannels = new Array();
+					var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels")
+							.split("\n");
+					$.each(channels, function(num, record) {
+						if (record.length == 0) return true;
+						
+						/* channel[0] — number of channel, channel[1] — type of channel */
+						var channel = record.split(":");
+						if (channel[1] == "FXS") fxsChannels.push(channel[0]);
+					});
+					
+					return fxsChannels;
+				}()
+			};
+			c.addWidget(field);
+			
 			c.addSubmit();
 		}
 	});
@@ -65,7 +131,7 @@ Controllers.voip = function() {
 		"name": "Quality",
 		"func": function() {
 			var c = page.addContainer("quality");
-			c.addTitle("Codecs settings", 5);
+			c.addTitle("Codecs settings", {"colspan": 5});
 			
 			/* default values */
 			var pktszDefault = {
@@ -264,13 +330,13 @@ Controllers.voip = function() {
 			c.addTableHeader("Priority*|Type|Packetization time (ms)|Payload|Bitpack");
 			c.addTableTfootStr("* 0 — max priority.", 5);
 			
-			c.addInternalTableTitle("Internal", 5);
+			c.addTitle("Internal", {"internal": true, "colspan": 5});
 			addCodecsWidgets(codecs.length - 1, "int");
 			
-			c.addInternalTableTitle("External", 5);
+			c.addTitle("External", {"internal": true, "colspan": 5});
 			addCodecsWidgets(codecs.length - 1, "ext");
 			
-			c.addInternalTableTitle("Fax", 5);
+			c.addTitle("Fax", {"internal": true, "colspan": 5});
 			var row = c.addTableRow();
 			
 			/* add fake widget */
@@ -299,78 +365,6 @@ Controllers.voip = function() {
 					$("[readonly]").attr("disabled", true);
 				}
 			});
-		}
-	});
-	
-	/* settings tab */
-	page.addTab({
-		"id": "sip",
-		"name": "SIP",
-		"func": function() {
-			var c, field;
-			c = page.addContainer("sip");
-			c.setHelpPage("voip.sip");
-			c.addTitle("SIP settings");
-		
-			field = { 
-				"type": "text",
-				"name": "sys_voip_sip_registrar",
-				"text": "Registrar",
-				"descr": "SIP registrar to register on",
-				"tip": "e.g., <i>sip:server</i>",
-				"validator": {"required": true, "voipRegistrar": true}
-			};
-			c.addWidget(field);
-			
-			field = { 
-				"type": "text",
-				"name": "sys_voip_sip_username",
-				"text": "Username",
-				"descr": "Username on SIP registrar",
-				"tip": "e.g., <i>user</i>",
-				"validator": {"required": true}
-			};
-			c.addWidget(field);
-			
-			field = { 
-				"type": "password",
-				"name": "sys_voip_sip_password",
-				"text": "Password",
-				"descr": "Password on SIP registrar",
-				"validator": {"required": true}
-			};
-			c.addWidget(field);
-			
-			field = { 
-				"type": "text",
-				"name": "sys_voip_sip_user_sip_uri",
-				"text": "User SIP URI",
-				"tip": "e.g., <i>sip:user@server</i>",
-				"validator": {"required": true, "voipSipUri": true}
-			};
-			c.addWidget(field);
-			
-			/* create array with FSX ports */
-			var fxsChannels = new Array();
-			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("\n");
-			$.each(channels, function(num, record) {
-				if (record.length == 0) return true;
-				
-				/* channel[0] — number of channel, channel[1] — type of channel */
-				var channel = record.split(":");
-				if (channel[1] == "FXS") fxsChannels.push(channel[0]);
-			});
-			
-			field = { 
-				"type": "select",
-				"name": "sys_voip_sip_chan",
-				"text": "FXS channel",
-				"descr": "FXS channel for incoming SIP-calls",
-				"options": fxsChannels
-			};
-			c.addWidget(field);
-			
-			c.addSubmit();
 		}
 	});
 	
@@ -500,7 +494,7 @@ Controllers.voip = function() {
 			var c, field;
 			c = page.addContainer("hotline");
 			c.setHelpPage("voip.hotline");
-			c.addTitle("Hotline settings", 5);
+			c.addTitle("Hotline settings", {"colspan": 5});
 			
 			c.addTableHeader("Channel|Type|Hotline|Complete number|Comment");
 			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("\n");
@@ -564,7 +558,7 @@ Controllers.voip = function() {
 		"name": "RTP",
 		"func": function() {
 			var c = page.addContainer("rtp");
-			c.addTitle("Sound settings", 9);
+			c.addTitle("Sound settings", {"colspan": 9});
 			
 			c.addTableHeader("Channel|OOB|OOB_play|nEventPT|nEventPlayPT|Tx_vol|Rx_vol|VAD|HPF");
 			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("\n");

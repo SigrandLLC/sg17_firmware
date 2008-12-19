@@ -1304,7 +1304,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		/* add State table */
 		c = page.addContainer("statistics");
 		c.setHelpPage("eoc");
-		c.addTitle(iface + " state", 9);
+		c.addTitle(iface + " state", {"colspan": 9});
 		c.addTableHeader("Side|Pair|SNR|LoopAttn|ES|SES|CV|LOSWS|UAS");
 		
 		$.each(eocInfo.sides, function(num, side) {
@@ -1318,7 +1318,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			page.addBr("statistics");
 			c = page.addContainer("statistics");
 			c.setHelpPage("eoc");
-			c.addTitle(iface + " sensors", 9);
+			c.addTitle(iface + " sensors", {"colspan": 9});
 			c.addTableHeader("Sensor #|Current state|Event Counter");
 			
 			showSensors(eocInfo, c);
@@ -1328,7 +1328,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		page.addBr("statistics");
 		c = page.addContainer("statistics");
 		c.setHelpPage("eoc");
-		c.addTitle(iface + " relative counters", 10);
+		c.addTitle(iface + " relative counters", {"colspan": 10});
 		c.addTableHeader("Start date|Start time|Side|Pair|ES|SES|CV|LOSWS|UAS|Reset");
 		
 		$.each(eocInfo.sides, function(sideNum, side) {
@@ -1341,7 +1341,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		page.addBr("statistics");
 		c = page.addContainer("statistics");
 		c.setHelpPage("eoc");
-		c.addTitle(iface + " current intervals", 9);
+		c.addTitle(iface + " current intervals", {"colspan": 9});
 		c.addTableHeader("Interval|Side|Pair|ES|SES|CV|LOSWS|UAS|Time elapsed");
 		
 		$.each(eocInfo.sides, function(num, side) {
@@ -1358,7 +1358,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				c = page.addContainer("statistics");
 				c.setHelpPage("eoc");
 				c.addTitle(
-					$.sprintf("%s %s %s 15 Minutes error intervals", iface, side.name, loop.name), 9);
+					$.sprintf("%s %s %s 15 Minutes error intervals", iface, side.name, loop.name),
+					{"colspan": 9});
 				c.addTableHeader("Date|Start time|End time|ES|SES|CV|LOSWS|UAS|Monitoring (%)");
 				show15MinIntervals(loop, side.name, c);
 			});
@@ -1372,7 +1373,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				c = page.addContainer("statistics");
 				c.setHelpPage("eoc");
 				c.addTitle(
-					$.sprintf("%s %s %s 1 Day error intervals", iface, side.name, loop.name), 7);
+					$.sprintf("%s %s %s 1 Day error intervals", iface, side.name, loop.name),
+					{"colspan": 7});
 				c.addTableHeader("Date|ES|SES|CV|LOSWS|UAS|Monitoring (%)");
 				show1DayIntervals(loop, side.name, c);
 			});

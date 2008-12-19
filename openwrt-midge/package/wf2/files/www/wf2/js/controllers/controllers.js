@@ -604,7 +604,7 @@ Controllers.adm5120sw = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("adm5120sw");
-			c.addTitle("Internal switch configuration", 2);
+			c.addTitle("Internal switch configuration");
 
 			/* make list of ethernet interfaces */
 			var ethIfaces = new Object();
