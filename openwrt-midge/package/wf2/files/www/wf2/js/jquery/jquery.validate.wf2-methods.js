@@ -64,6 +64,16 @@ jQuery.validator.addMethod("voipRouterID", function(value, element) {
 	return this.optional(element) || /^([0-9]){3}$/.test(value);
 }, "Please enter correct Router ID.");
 
+/* VoIP's router id with "*" */
+jQuery.validator.addMethod("voipRouterIDWithSelf", function(value, element) {
+	return this.optional(element) || /(^([0-9]){3}$)|(^\*$)/.test(value);
+}, "Please enter correct Router ID.");
+
+/* VoIP's FXO/FXS channel */
+jQuery.validator.addMethod("voipChannel", function(value, element) {
+	return this.optional(element) || /^([0-9]){2}$/.test(value);
+}, "Please enter correct FXO/FXS channel.");
+
 /* VoIP's registrar */
 jQuery.validator.addMethod("voipRegistrar", function(value, element) {
 	return this.optional(element) || /^sip:(([a-zA-Z0-9]+([a-zA-Z0-9\-\.]+)?)|((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])))$/.test(value);

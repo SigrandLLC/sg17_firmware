@@ -241,7 +241,7 @@ function Container(p, options) {
 	 * Adds title and context help link to container and adds it to container's table.
 	 * 
 	 * title — I18N title;
-	 * options.colspan — number of cols to span for title cell;
+	 * options.colspan — number of cols to span for title cell (default is 2);
 	 * options.internal — place title inside table (add row to table's body);
 	 * options.noHelp — do not show link for context-help;
 	 * options.help — use this context-help settings instead of container's.

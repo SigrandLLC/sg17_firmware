@@ -34,7 +34,7 @@ Controllers.voip = function() {
 				"type": "text",
 				"name": "sys_voip_settings_rtp_port_first",
 				"text": "RTP port start",
-				"descr": "Begin of ports range to use for RTP",
+				"descr": "Begin of ports range to use for RTP.",
 				"validator": {"required": true, "min": 0, "max": 65535}
 			};
 			c.addWidget(field);
@@ -43,7 +43,7 @@ Controllers.voip = function() {
 				"type": "text",
 				"name": "sys_voip_settings_rtp_port_last",
 				"text": "RTP port end",
-				"descr": "End of ports range to use for RTP",
+				"descr": "End of ports range to use for RTP.",
 				"validator": {"required": true, "min": 0, "max": 65535}
 			};
 			c.addWidget(field);
@@ -52,7 +52,7 @@ Controllers.voip = function() {
 				"type": "select",
 				"name": "sys_voip_settings_log",
 				"text": "Logging level",
-				"descr": "Level of logging",
+				"descr": "Level of logging.",
 				"options": "0 1 2 3 4 5 6 7 8 9"
 			};
 			c.addWidget(field);
@@ -120,6 +120,374 @@ Controllers.voip = function() {
 				}()
 			};
 			c.addWidget(field);
+			
+			c.addSubmit();
+		}
+	});
+	
+	/* Hotline tab */
+	page.addTab({
+		"id": "hotline",
+		"name": "Hotline",
+		"func": function() {
+			var c, field;
+			c = page.addContainer("hotline");
+			c.setHelpPage("voip.hotline");
+			c.addTitle("Hotline settings", {"colspan": 5});
+			
+			c.addTableHeader("Channel|Type|Hotline|Complete number|Comment");
+			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("\n");
+			$.each(channels, function(num, record) {
+				var field;
+				if (record.length == 0) return true;
+				var row = c.addTableRow();
+				
+				/* channel[0] — number of channel, channel[1] — type of channel */
+				var channel = record.split(":");
+				
+				field = {
+					"type": "html",
+					"name": channel[0],
+					"str": channel[0]
+				};
+				c.addTableWidget(field, row);
+				
+				field = {
+					"type": "html",
+					"name": channel[1] + channel[0],
+					"str": channel[1]
+				};
+				c.addTableWidget(field, row);
+				
+				field = { 
+					"type": "checkbox",
+					"name": $.sprintf("sys_voip_hotline_%s_hotline", channel[0]),
+					"id": $.sprintf("sys_voip_hotline_%s_hotline", channel[0]),
+					"tip": "Enable hotline for this channel."
+				};
+				c.addTableWidget(field, row);
+				
+				field = { 
+					"type": "text",
+					"name": $.sprintf("sys_voip_hotline_%s_number", channel[0]),
+					"tip": "Number to call on channel event.",
+					"validator": 
+						{
+							"required": $.sprintf("#sys_voip_hotline_%s_hotline:checked", channel[0]),
+							"voipCompleteNumber": true
+						}
+				};
+				c.addTableWidget(field, row);
+				
+				field = { 
+					"type": "text",
+					"name": $.sprintf("sys_voip_hotline_%s_comment", channel[0]),
+					"validator": {"alphanumU": true}
+				};
+				c.addTableWidget(field, row);
+			});
+			
+			c.addSubmit();
+		}
+	});
+	
+	/* Hardlink tab */
+	page.addTab({
+		"id": "hardlink",
+		"name": "Hardlink",
+		"func": function() {
+			var c, field;
+			c = page.addContainer("hardlink");
+			c.addTitle("Hardlink settings", {"colspan": 6});
+			
+			c.addTableHeader("Channel|Type|Hardlink|Router ID|Channel|Comment");
+			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("\n");
+			$.each(channels, function(num, record) {
+				var field;
+				
+				/* channel[0] — number of channel, channel[1] — type of channel */
+				var channel = record.split(":");
+				
+				/* hardlink is available only for FXS channels */
+				if (record.length == 0 || channel[1] == "FXO") return true;
+				
+				var row = c.addTableRow();
+				
+				field = {
+					"type": "html",
+					"name": channel[0],
+					"str": channel[0]
+				};
+				c.addTableWidget(field, row);
+				
+				field = {
+					"type": "html",
+					"name": channel[1] + channel[0],
+					"str": channel[1]
+				};
+				c.addTableWidget(field, row);
+				
+				field = { 
+					"type": "checkbox",
+					"name": $.sprintf("sys_voip_hardlink_%s_hardlink", channel[0]),
+					"tip": "Enable hardlink for this channel."
+				};
+				c.addTableWidget(field, row);
+				
+				field = { 
+					"type": "text",
+					"name": $.sprintf("sys_voip_hardlink_%s_routerid", channel[0]),
+					"tip": "ID of router to connect with.",
+					"validator": 
+						{
+							"required": $.sprintf("#sys_voip_hardlink_%s_hardlink:checked", channel[0]),
+							"voipRouterIDWithSelf": true
+						}
+				};
+				c.addTableWidget(field, row);
+				
+				field = { 
+					"type": "text",
+					"name": $.sprintf("sys_voip_hardlink_%s_channel", channel[0]),
+					"tip": "FXS channel on specified router to connect with.",
+					"validator": 
+						{
+							"required": $.sprintf("#sys_voip_hardlink_%s_hardlink:checked", channel[0]),
+							"voipChannel": true
+						}
+				};
+				c.addTableWidget(field, row);
+				
+				field = { 
+					"type": "text",
+					"name": $.sprintf("sys_voip_hardlink_%s_comment", channel[0]),
+					"validator": {"alphanumU": true}
+				};
+				c.addTableWidget(field, row);
+			});
+			
+			c.addSubmit();
+		}
+	});
+	
+	/* route table tab */
+	page.addTab({
+		"id": "voipRoute",
+		"name": "Routes",
+		"func": function() {
+			var c = page.addContainer("voipRoute");
+			c.setHelpPage("voip.route");
+			
+			var list = c.createList({
+				"tabId": "voipRoute",
+				"header": ["Router ID", "Address", "Comment"],
+				"varList": ["router_id", "address", "comment"],
+				"listItem": "sys_voip_route_",
+				"addMessage": "Add VoIP route",
+				"editMessage": "Edit VoIP route",
+				"listTitle": "VoIP route table",
+				"helpPage": "voip.route",
+				"helpSection": "voip.route.add"
+			});
+			
+			field = { 
+				"type": "checkbox",
+				"name": "enabled",
+				"text": "Enabled",
+				"descr": "Check this item to enable rule"
+			};
+			list.addWidget(field);
+	
+			field = { 
+				"type": "text",
+				"name": "router_id",
+				"text": "Router ID",
+				"descr": "Router ID",
+				"validator": {"required": true, "voipRouterID": true}
+			};
+			list.addWidget(field);
+			
+			field = { 
+				"type": "text",
+				"name": "address",
+				"text": "Address",
+				"descr": "Router address",
+				"validator": {"required": true, "ipAddr": true}
+			};
+			list.addWidget(field);
+			
+			field = { 
+				"type": "text",
+				"name": "comment",
+				"text": "Comment",
+				"descr": "Comment for this record"
+			};
+			list.addWidget(field);
+			
+			list.generateList();
+		}
+	});
+	
+	/* address book tab */
+	page.addTab({
+		"id": "address",
+		"name": "Addresses",
+		"func": function() {
+			var c = page.addContainer("address");
+			c.setHelpPage("voip.address");
+			
+			var list = c.createList({
+				"tabId": "address",
+				"header": ["Short number", "Complete number", "Comment"],
+				"varList": ["short_number", "complete_number", "comment"],
+				"listItem": "sys_voip_address_",
+				"addMessage": "Add address",
+				"editMessage": "Edit address",
+				"listTitle": "Address book",
+				"helpPage": "voip.address",
+				"helpSection": "voip.address.add"
+			});
+			
+			field = { 
+				"type": "checkbox",
+				"name": "enabled",
+				"text": "Enabled",
+				"descr": "Check this item to enable rule"
+			};
+			list.addWidget(field);
+	
+			field = { 
+				"type": "text",
+				"name": "short_number",
+				"text": "Short number",
+				"descr": "Short number for speed dialing",
+				"validator": {"required": true, "voipShortNumber": true}
+			};
+			list.addWidget(field);
+			
+			field = { 
+				"type": "text",
+				"name": "complete_number",
+				"text": "Complete number",
+				"descr": "Complete telephone number",
+				"tip": "Enter phone number in format: router_id-router_channel-optional_number (e.g., 300-02 or 300-02-3345), " +
+					"or SIP address in format: #sip:sip_uri# (e.g., #sip:user@domain#)",
+				"validator": {"required": true, "voipCompleteNumber": true}
+			};
+			list.addWidget(field);
+			
+			field = { 
+				"type": "text",
+				"name": "comment",
+				"text": "Comment",
+				"descr": "Comment for this record"
+			};
+			list.addWidget(field);
+			
+			list.generateList();
+		}
+	});
+	
+	/* RTP tab */
+	page.addTab({
+		"id": "rtp",
+		"name": "RTP",
+		"func": function() {
+			var c = page.addContainer("rtp");
+			c.addTitle("Sound settings", {"colspan": 9});
+			
+			c.addTableHeader("Channel|OOB|OOB_play|nEventPT|nEventPlayPT|Tx_vol|Rx_vol|VAD|HPF");
+			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("\n");
+			$.each(channels, function(num, record) {
+				var field;
+				if (record.length == 0) return true;
+				var row = c.addTableRow();
+				
+				/* channel[0] — number of channel, channel[1] — type of channel */
+				var channel = record.split(":");
+				
+				field = {
+					"type": "html",
+					"name": channel[0],
+					"str": channel[0]
+				};
+				c.addTableWidget(field, row);
+				
+				/* OOB */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_sound_%s_oob", channel[0]),
+					"options": "default in-band out-of-band both block",
+					"defaultValue": "default"
+				};
+				c.addTableWidget(field, row);
+				
+				/* OOB_play */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_sound_%s_oob_play", channel[0]),
+					"options": "default play mute play_diff_pt",
+					"defaultValue": "default"
+				};
+				c.addTableWidget(field, row);
+				
+				/* nEventPT */
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_voip_sound_%s_neventpt", channel[0]),
+					"defaultValue": "0x62"
+				};
+				c.addTableWidget(field, row);
+				
+				/* nEventPlayPT */
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_voip_sound_%s_neventplaypt", channel[0]),
+					"defaultValue": "0x62"
+				};
+				c.addTableWidget(field, row);
+				
+				/* calculate volume values */
+				var vol = "";
+				for (var i = -24; i <= 24; i += 2) vol += i + " ";
+				vol = $.trim(vol);
+				
+				/* COD_Tx_vol */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_sound_%s_cod_tx_vol", channel[0]),
+					"options": vol,
+					"defaultValue": "0"
+				};
+				c.addTableWidget(field, row);
+				
+				/* COD_Rx_vol */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_sound_%s_cod_rx_vol", channel[0]),
+					"options": vol,
+					"defaultValue": "0"
+				};
+				c.addTableWidget(field, row);
+				
+				/* VAD */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_sound_%s_vad", channel[0]),
+					"options": "off on g711 CNG_only SC_only",
+					"defaultValue": "off"
+				};
+				c.addTableWidget(field, row);
+				
+				/* HPF */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_sound_%s_hpf", channel[0]),
+					"options": {"0": "off", "1": "on"},
+					"defaultValue": "0"
+				};
+				c.addTableWidget(field, row);
+			});
 			
 			c.addSubmit();
 		}
@@ -365,295 +733,6 @@ Controllers.voip = function() {
 					$("[readonly]").attr("disabled", true);
 				}
 			});
-		}
-	});
-	
-	/* route table tab */
-	page.addTab({
-		"id": "voipRoute",
-		"name": "Routes",
-		"func": function() {
-			var c = page.addContainer("voipRoute");
-			c.setHelpPage("voip.route");
-			
-			var list = c.createList({
-				"tabId": "voipRoute",
-				"header": ["Router ID", "Address", "Comment"],
-				"varList": ["router_id", "address", "comment"],
-				"listItem": "sys_voip_route_",
-				"addMessage": "Add VoIP route",
-				"editMessage": "Edit VoIP route",
-				"listTitle": "VoIP route table",
-				"helpPage": "voip.route",
-				"helpSection": "voip.route.add"
-			});
-			
-			field = { 
-				"type": "checkbox",
-				"name": "enabled",
-				"text": "Enabled",
-				"descr": "Check this item to enable rule"
-			};
-			list.addWidget(field);
-	
-			field = { 
-				"type": "text",
-				"name": "router_id",
-				"text": "Router ID",
-				"descr": "Router ID",
-				"validator": {"required": true, "voipRouterID": true}
-			};
-			list.addWidget(field);
-			
-			field = { 
-				"type": "text",
-				"name": "address",
-				"text": "Address",
-				"descr": "Router address",
-				"validator": {"required": true, "ipAddr": true}
-			};
-			list.addWidget(field);
-			
-			field = { 
-				"type": "text",
-				"name": "comment",
-				"text": "Comment",
-				"descr": "Comment for this record"
-			};
-			list.addWidget(field);
-			
-			list.generateList();
-		}
-	});
-	
-	/* address book tab */
-	page.addTab({
-		"id": "address",
-		"name": "Addresses",
-		"func": function() {
-			var c = page.addContainer("address");
-			c.setHelpPage("voip.address");
-			
-			var list = c.createList({
-				"tabId": "address",
-				"header": ["Short number", "Complete number", "Comment"],
-				"varList": ["short_number", "complete_number", "comment"],
-				"listItem": "sys_voip_address_",
-				"addMessage": "Add address",
-				"editMessage": "Edit address",
-				"listTitle": "Address book",
-				"helpPage": "voip.address",
-				"helpSection": "voip.address.add"
-			});
-			
-			field = { 
-				"type": "checkbox",
-				"name": "enabled",
-				"text": "Enabled",
-				"descr": "Check this item to enable rule"
-			};
-			list.addWidget(field);
-	
-			field = { 
-				"type": "text",
-				"name": "short_number",
-				"text": "Short number",
-				"descr": "Short number for speed dialing",
-				"validator": {"required": true, "voipShortNumber": true}
-			};
-			list.addWidget(field);
-			
-			field = { 
-				"type": "text",
-				"name": "complete_number",
-				"text": "Complete number",
-				"descr": "Complete telephone number",
-				"tip": "Enter phone number in format: router_id-router_channel-optional_number (e.g., 300-02 or 300-02-3345), " +
-					"or SIP address in format: #sip:sip_uri# (e.g., #sip:user@domain#)",
-				"validator": {"required": true, "voipCompleteNumber": true}
-			};
-			list.addWidget(field);
-			
-			field = { 
-				"type": "text",
-				"name": "comment",
-				"text": "Comment",
-				"descr": "Comment for this record"
-			};
-			list.addWidget(field);
-			
-			list.generateList();
-		}
-	});
-	
-	/* Hotline tab */
-	page.addTab({
-		"id": "hotline",
-		"name": "Hotline",
-		"func": function() {
-			var c, field;
-			c = page.addContainer("hotline");
-			c.setHelpPage("voip.hotline");
-			c.addTitle("Hotline settings", {"colspan": 5});
-			
-			c.addTableHeader("Channel|Type|Hotline|Complete number|Comment");
-			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("\n");
-			$.each(channels, function(num, record) {
-				var field;
-				if (record.length == 0) return true;
-				var row = c.addTableRow();
-				
-				/* channel[0] — number of channel, channel[1] — type of channel */
-				var channel = record.split(":");
-				
-				field = {
-					"type": "html",
-					"name": channel[0],
-					"str": channel[0]
-				};
-				c.addTableWidget(field, row);
-				
-				field = {
-					"type": "html",
-					"name": channel[1] + channel[0],
-					"str": channel[1]
-				};
-				c.addTableWidget(field, row);
-				
-				field = { 
-					"type": "checkbox",
-					"name": $.sprintf("sys_voip_hotline_%s_hotline", channel[0]),
-					"id": $.sprintf("sys_voip_hotline_%s_hotline", channel[0]),
-					"tip": "Enable hotline for this channel"
-				};
-				c.addTableWidget(field, row);
-				
-				field = { 
-					"type": "text",
-					"name": $.sprintf("sys_voip_hotline_%s_number", channel[0]),
-					"tip": "Number to call on channel event",
-					"validator": 
-						{
-							"required": $.sprintf("#sys_voip_hotline_%s_hotline:checked", channel[0]),
-							"voipCompleteNumber": true
-						}
-				};
-				c.addTableWidget(field, row);
-				
-				field = { 
-					"type": "text",
-					"name": $.sprintf("sys_voip_hotline_%s_comment", channel[0]),
-					"validator": {"alphanumU": true}
-				};
-				c.addTableWidget(field, row);
-			});
-			
-			c.addSubmit();
-		}
-	});
-	
-	/* Sound tab */
-	page.addTab({
-		"id": "rtp",
-		"name": "RTP",
-		"func": function() {
-			var c = page.addContainer("rtp");
-			c.addTitle("Sound settings", {"colspan": 9});
-			
-			c.addTableHeader("Channel|OOB|OOB_play|nEventPT|nEventPlayPT|Tx_vol|Rx_vol|VAD|HPF");
-			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("\n");
-			$.each(channels, function(num, record) {
-				var field;
-				if (record.length == 0) return true;
-				var row = c.addTableRow();
-				
-				/* channel[0] — number of channel, channel[1] — type of channel */
-				var channel = record.split(":");
-				
-				field = {
-					"type": "html",
-					"name": channel[0],
-					"str": channel[0]
-				};
-				c.addTableWidget(field, row);
-				
-				/* OOB */
-				field = {
-					"type": "select",
-					"name": $.sprintf("sys_voip_sound_%s_oob", channel[0]),
-					"options": "default in-band out-of-band both block",
-					"defaultValue": "default"
-				};
-				c.addTableWidget(field, row);
-				
-				/* OOB_play */
-				field = {
-					"type": "select",
-					"name": $.sprintf("sys_voip_sound_%s_oob_play", channel[0]),
-					"options": "default play mute play_diff_pt",
-					"defaultValue": "default"
-				};
-				c.addTableWidget(field, row);
-				
-				/* nEventPT */
-				field = {
-					"type": "text",
-					"name": $.sprintf("sys_voip_sound_%s_neventpt", channel[0]),
-					"defaultValue": "0x62"
-				};
-				c.addTableWidget(field, row);
-				
-				/* nEventPlayPT */
-				field = {
-					"type": "text",
-					"name": $.sprintf("sys_voip_sound_%s_neventplaypt", channel[0]),
-					"defaultValue": "0x62"
-				};
-				c.addTableWidget(field, row);
-				
-				/* calculate volume values */
-				var vol = "";
-				for (var i = -24; i <= 24; i += 2) vol += i + " ";
-				vol = $.trim(vol);
-				
-				/* COD_Tx_vol */
-				field = {
-					"type": "select",
-					"name": $.sprintf("sys_voip_sound_%s_cod_tx_vol", channel[0]),
-					"options": vol,
-					"defaultValue": "0"
-				};
-				c.addTableWidget(field, row);
-				
-				/* COD_Rx_vol */
-				field = {
-					"type": "select",
-					"name": $.sprintf("sys_voip_sound_%s_cod_rx_vol", channel[0]),
-					"options": vol,
-					"defaultValue": "0"
-				};
-				c.addTableWidget(field, row);
-				
-				/* VAD */
-				field = {
-					"type": "select",
-					"name": $.sprintf("sys_voip_sound_%s_vad", channel[0]),
-					"options": "off on g711 CNG_only SC_only",
-					"defaultValue": "off"
-				};
-				c.addTableWidget(field, row);
-				
-				/* HPF */
-				field = {
-					"type": "select",
-					"name": $.sprintf("sys_voip_sound_%s_hpf", channel[0]),
-					"options": {"0": "off", "1": "on"},
-					"defaultValue": "0"
-				};
-				c.addTableWidget(field, row);
-			});
-			
-			c.addSubmit();
 		}
 	});
 	
