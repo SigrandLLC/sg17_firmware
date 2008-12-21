@@ -130,10 +130,14 @@ function CmdCache() {
 				cache[alias ? alias : cmd] = data;
 				cmds--;
 				
+				/* run callbacks when all cmds are finished */
 				if (cmds <= 0) {
 					$.each(callbacks, function(num, callback) {
 						callback();
 					});
+					
+					/* remove calbacks */
+					callbacks = [];
 				}
 			}
 		});

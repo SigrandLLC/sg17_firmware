@@ -11,11 +11,11 @@ function generateMenu() {
 	addItem("System", "Reboot", "reboot");
 	addItem("System", "Configuration", "cfg");
 	addItem("Network", "Firewall", "fw");
-	addItem("Network", "Dynamic interfaces", "dynamic_ifaces");
+	addItem("Network:Dynamic interfaces", "Manage", "dynamic_ifaces");
 	addItem("Hardware", "Switch", "adm5120sw");
 	addItem("Services", "DHCP server", "dhcp");
 	addItem("Services", "DNS server", "dns_server");
-	
+
 	/* if we have interfaces with multiplexing support, add item to the menu */
 	if (config.getParsed("sys_mux_ifaces").length > 0) {
 		addItem("Hardware", "Multiplexing", "multiplexing");
@@ -73,7 +73,13 @@ function generateMenu() {
 	/* generate list of network interfaces */
 	var ifaces = config.getParsed("sys_ifaces");
 	$(ifaces).each(function(name, iface) {
-		addItem("Network:Interfaces", iface, "iface", [iface]);
+		/* add dynamic interfaces */
+		if (iface.search(/\w+\d+v\d+/) != -1 || iface.search(/eth|dsl|E1/) == -1) {
+			addItem("Network:Dynamic interfaces", iface, "iface", [iface]);
+		/* add physical interfaces */
+		} else {
+			addItem("Network:Interfaces", iface, "iface", [iface]);
+		}
 	});
 	
 	/* generate menu */

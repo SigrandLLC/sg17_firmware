@@ -1,4 +1,4 @@
-Controllers['dynamic_ifaces'] = function() {
+Controllers.dynamic_ifaces = function() {
 	var page = this.Page();
 	page.setHelpPage("ifaces");
 	
@@ -6,6 +6,19 @@ Controllers['dynamic_ifaces'] = function() {
 		"id": "dynamic_ifaces",
 		"name": "Dynamic ifaces",
 		"func": function() {
+			/* update list of ifaces for deletion */
+			var setIfaces = function() {
+				var ifaces = new Array();
+				$.each(config.getParsed("sys_ifaces"), function(name, value) {
+					if (value.search(/\w+\d+v\d+/) != -1 || value.search(/eth|dsl|E1/) == -1) {
+						ifaces.push(value);
+					}
+				});
+				
+				$("#del_iface").setOptionsForSelect(ifaces);
+			};
+			
+			
 			var c, field;
 			c = page.addContainer("dynamic_ifaces");
 			c.addTitle("Add dynamic network interface");
@@ -29,7 +42,6 @@ Controllers['dynamic_ifaces'] = function() {
 				field = { 
 					"type": "select",
 					"name": "phys_iface",
-					"id": "phys_iface",
 					"text": "Physical interface",
 					"options": physIfaces
 				};
@@ -40,7 +52,6 @@ Controllers['dynamic_ifaces'] = function() {
 				field = { 
 					"type": "text",
 					"name": "vlan_id",
-					"id": "vlan_id",
 					"text": "VLAN ID"
 				};
 				c.addWidget(field);
@@ -83,16 +94,16 @@ Controllers['dynamic_ifaces'] = function() {
 					/* set parameters for VLAN interface */
 					if ($("#iface_proto").val() == "vlan") {
 						/* set real (in system) interface name */
-						parameters['real'] =
+						parameters.real =
 							$.sprintf("%s.%s", $("#phys_iface").val(), $("#vlan_id").val());
 							
 						/* set interface name, used in KDB (and webface) */
-						parameters['iface'] =
+						parameters.iface =
 							$.sprintf("%sv%s", $("#phys_iface").val(), $("#vlan_id").val());
 						
 						/* set dependOn interface and VLAN ID */
-						parameters['dependOn'] = $("#phys_iface").val();
-						parameters['vlanId'] = $("#vlan_id").val();
+						parameters.dependOn = $("#phys_iface").val();
+						parameters.vlanId = $("#vlan_id").val();
 					}
 					config.addIface(parameters);
 					
@@ -103,18 +114,6 @@ Controllers['dynamic_ifaces'] = function() {
 			page.addBr("dynamic_ifaces");
 			var c2 = page.addContainer("dynamic_ifaces");
 			c2.addTitle("Delete dynamic network interface");
-			
-			/* update list of ifaces for deletion */
-			var setIfaces = function() {
-				var ifaces = new Array();
-				$.each(config.getParsed("sys_ifaces"), function(name, value) {
-					if (value.search(/\w+\d+v\d+/) != -1 || value.search(/eth|dsl|E1/) == -1) {
-						ifaces.push(value);
-					}
-				});
-				
-				$("#del_iface").setOptionsForSelect(ifaces);
-			};
 			
 			field = { 
 				"type": "select",
