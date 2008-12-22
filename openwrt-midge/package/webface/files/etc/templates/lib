@@ -144,11 +144,14 @@ update_configs(){
 		cfg_make svd_rt.conf /etc/svd_rt.conf && \
 		cfg_commit
 		;;
+	linkdeps)
+		cfg_make link.map /etc/linkdeps/link.map && \
+		cfg_commit
+		;;
 	esac
-		
 }
 
-ip2int () (
+ip2int() (
   set $(echo $1 | tr '\.' ' ')
   echo $(($1<<24|$2<<16|$3<<8|$4))
 )
@@ -156,6 +159,3 @@ ip2int () (
 int2ip () {
   echo $(($1>>24&255)).$(($1>>16&255)).$(($1>>8&255)).$(($1&255))
 }
-
-
-

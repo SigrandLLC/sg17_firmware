@@ -1,0 +1,12 @@
+#!/bin/sh
+
+. /etc/templates/lib
+show_header "/etc/templates/link.map"
+
+for key in `kdb kls sys_linkdeps_*`; do
+	unset link_master link_slave
+	val=`kdb get $key`
+	eval "$val"
+	
+	echo "$link_master $link_slave"
+done
