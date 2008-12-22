@@ -707,4 +707,13 @@ function Config() {
 		
 		return output;
 	};
+	
+	var savedData = {};
+	this.saveData = function(name, value) {
+		savedData[name] = value;
+	};
+	
+	this.getData = function(name) {
+		return savedData[name];
+	};
 }

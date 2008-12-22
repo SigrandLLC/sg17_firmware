@@ -1185,6 +1185,7 @@ function Container(p, options) {
 	 *     list's elements is rendered. It is called with one parameter — this list;
 	 *  - onEditItemRender — optional callback, which is called when page for editing
 	 *     list's elements is rendered. It is called with one parameter — this list;
+	 *  - preSubmit — optional callback, which is called before submitting add/editing form;
 	 *  - showPage — function to render a page after adding/editing list's item or
 	 *     clicking Back button on adding/editin page. If not set, tab's function is called.
 	 *  - helpPage — help page;
@@ -1261,7 +1262,8 @@ function Container(p, options) {
 					"name": "Back",
 					"func": options.showPage ? options.showPage : showPage
 				},
-				"onSubmit": options.showPage ? options.showPage : showPage
+				"onSubmit": options.showPage ? options.showPage : showPage,
+				"preSubmit": options.preSubmit
 			});
 			
 			/* do adding/editing specific actions */

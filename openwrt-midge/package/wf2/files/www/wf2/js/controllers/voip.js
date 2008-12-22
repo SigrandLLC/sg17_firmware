@@ -105,16 +105,18 @@ Controllers.voip = function() {
 				"descr": "FXS channel for incoming SIP-calls.",
 				"options": function() {
 					/* create array with FSX ports */
-					var fxsChannels = new Array();
-					var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels")
-							.split("\n");
-					$.each(channels, function(num, record) {
-						if (record.length == 0) return true;
-						
-						/* channel[0] — number of channel, channel[1] — type of channel */
-						var channel = record.split(":");
-						if (channel[1] == "FXS") fxsChannels.push(channel[0]);
-					});
+					var fxsChannels = [];
+					var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels");
+					
+					if (channels) {
+						$.each(channels.split("\n"), function(num, record) {
+							if (record.length == 0) return true;
+							
+							/* channel[0] — number of channel, channel[1] — type of channel */
+							var channel = record.split(":");
+							if (channel[1] == "FXS") fxsChannels.push(channel[0]);
+						});
+					}
 					
 					return fxsChannels;
 				}()

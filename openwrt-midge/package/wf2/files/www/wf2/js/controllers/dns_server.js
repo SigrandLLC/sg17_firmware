@@ -1,4 +1,4 @@
-Controllers['dns_server'] = function() {
+Controllers.dns_server = function() {
 	var page = this.Page();
 	page.setSubsystem("dns_server");
 	page.setHelpPage("dns_server");

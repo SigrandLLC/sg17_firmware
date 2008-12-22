@@ -136,21 +136,24 @@ Controllers.iface = function(iface) {
 			field = { 
 				"type": "text",
 				"name": "sys_iface_" + iface + "_desc",
-				"text": "Description"
+				"text": "Description",
+				"descr": "Description of interface."
 			};
 			c.addWidget(field);
 		
 			field = { 
 				"type": "checkbox",
 				"name": "sys_iface_" + iface + "_enabled",
-				"text": "Enabled"
+				"text": "Enabled",
+				"descr": "If set, interface can be start on boot or by another interface."
 			};
 			c.addWidget(field);
 			
 			field = { 
 				"type": "checkbox",
 				"name": "sys_iface_" + iface + "_auto",
-				"text": "Auto"
+				"text": "Auto",
+				"descr": "If set and interface is enabled, it will be start on boot."
 			};
 			c.addWidget(field);
 			
@@ -158,7 +161,7 @@ Controllers.iface = function(iface) {
 				"type": "select",
 				"name": "sys_iface_" + iface + "_method",
 				"text": "Method",
-				"descr": "Select method of setting IP address",
+				"descr": "Method of setting IP address.",
 				"options": {"none": "None", "static": "Static address", "zeroconf": "Zero Configuration", "dynamic": "Dynamic address"}
 			};
 			c.addWidget(field);
@@ -168,16 +171,45 @@ Controllers.iface = function(iface) {
 				$.each(config.getParsed("sys_ifaces"), function(name, value) {
 					dependList[value] = value;
 				});
-				dependList['none'] = "None";
+				dependList.none = "None";
 				field = { 
 					"type": "select",
 					"name": "sys_iface_" + iface + "_depend_on",
 					"text": "Depends on",
 					"options": dependList,
-					"defaultValue": "none"
+					"defaultValue": "none",
+					"descr": $.sprintf("Start specified interface before this (%s) interface.", iface)
 				};
 				c.addWidget(field);
 			}
+			
+			field= { 
+				"type": "checkbox",
+				"name": "sys_iface_" + iface + "_opt_accept_redirects",
+				"text": "Accept redirects"
+			};
+			c.addWidget(field);
+			
+			field = { 
+				"type": "checkbox",
+				"name": "sys_iface_" + iface + "_opt_forwarding",
+				"text": "Forwarding"
+			};
+			c.addWidget(field);
+			
+			field = { 
+				"type": "checkbox",
+				"name": "sys_iface_" + iface + "_opt_proxy_arp",
+				"text": "Proxy ARP"
+			};
+			c.addWidget(field);
+			
+			field = { 
+				"type": "checkbox",
+				"name": "sys_iface_" + iface + "_opt_rp_filter",
+				"text": "RP Filter"
+			};
+			c.addWidget(field);
 		
 			c.addSubmit();
 		}
@@ -190,8 +222,7 @@ Controllers.iface = function(iface) {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("method");
-			if (config.get($.sprintf("sys_iface_%s_proto", iface)) == "hdlc")
-			{
+			if (config.get($.sprintf("sys_iface_%s_proto", iface)) == "hdlc") {
 				c.addTitle("Point-to-Point address settings");
 			
 				field = { 
@@ -217,8 +248,7 @@ Controllers.iface = function(iface) {
 				c.addSubmit();
 				
 			}
-			else if (config.get("sys_iface_" + iface + "_method") == "static")
-			{
+			else if (config.get("sys_iface_" + iface + "_method") == "static") {
 				c.addTitle("Static address settings");
 			
 				field = { 
@@ -263,47 +293,6 @@ Controllers.iface = function(iface) {
 				
 				c.addSubmit();
 			}
-		}
-	});
-	
-	/* OPTIONS tab */
-	page.addTab({
-		"id": "options",
-		"name": "Options",
-		"func": function() {
-			var c, field;
-			c = page.addContainer("options");
-			c.addTitle("Interface options");
-		
-			field = { 
-				"type": "checkbox",
-				"name": "sys_iface_" + iface + "_opt_accept_redirects",
-				"text": "Accept redirects"
-			};
-			c.addWidget(field);
-			
-			field = { 
-				"type": "checkbox",
-				"name": "sys_iface_" + iface + "_opt_forwarding",
-				"text": "Forwarding"
-			};
-			c.addWidget(field);
-			
-			field = { 
-				"type": "checkbox",
-				"name": "sys_iface_" + iface + "_opt_proxy_arp",
-				"text": "Proxy ARP"
-			};
-			c.addWidget(field);
-			
-			field = { 
-				"type": "checkbox",
-				"name": "sys_iface_" + iface + "_opt_rp_filter",
-				"text": "RP Filter"
-			};
-			c.addWidget(field);
-			
-			c.addSubmit();
 		}
 	});
 	

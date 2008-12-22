@@ -73,8 +73,7 @@ Controllers.dynamic_ifaces = function() {
 				"id": "iface_proto",
 				"text": "Protocol",
 				"descr": "Please select interface protocol",
-				"options": {"bridge": "Bridge", "bonding": "Bonding", "vlan": "VLAN",
-					"pppoe": "PPPoE", "pptp": "PPtP"},
+				"options": {"bridge": "Bridge", "bonding": "Bonding", "vlan": "VLAN"},
 				"onChange": function() {
 					if ($("#iface_proto").val() == "vlan") {
 						addVlanWidgets();

@@ -60,6 +60,124 @@ Controllers.info = function() {
 				"tip": "The first three numbers represent the number of active tasks on the system - processes that are actually running - averaged over the last 1, 5, and 15 minutes. The next entry shows the instantaneous current number of runnable tasks - processes that are currently scheduled to run rather than being blocked in a system call - and the total number of processes on the system. The final entry is the process ID of the process that most recently ran."
 			};
 			c.addWidget(field);
+			
+			/* Hardware section */
+			page.addBr("info");
+			c = page.addContainer("info");
+			c.addTitle("Hardware information");
+			
+			field = {
+				"type": "html",
+				"name": "ethernet",
+				"text": "Ethernet",
+				"str": function() {
+					var ethIfaces = "";
+					$(config.getParsed("sys_ifaces")).each(function(name, iface) {
+						if (iface.search(/eth/) != -1) {
+							ethIfaces += iface + " ";
+						}
+					});
+					return ethIfaces ? ethIfaces : "none";
+				}()
+			};
+			c.addWidget(field);
+			
+			field = {
+				"type": "html",
+				"name": "shdsl",
+				"text": "SHDSL",
+				"str": function() {
+					var info = "";
+					
+					var ifaces = config.getData(config.getOEM("MR16H_DRVNAME"));
+					if (ifaces) {
+						var modName = config.getOEM("MR16H_MODNAME");
+						$.each(ifaces, function(num, iface) {
+							info += $.sprintf("%s (%s) ", iface, modName);
+						});
+					}
+					
+					ifaces = config.getData(config.getOEM("MR17H_DRVNAME"));
+					if (ifaces) {
+						var modName = config.getOEM("MR17H_MODNAME");
+						$.each(ifaces, function(num, iface) {
+							info += $.sprintf("%s (%s) ", iface, modName);
+						});
+					}
+					
+					return info ? info : "none";
+				}()
+			};
+			c.addWidget(field);
+			
+			field = {
+				"type": "html",
+				"name": "e1",
+				"text": "E1",
+				"str": function() {
+					var info = "";
+					
+					var ifaces = config.getData(config.getOEM("MR16G_DRVNAME"));
+					if (ifaces) {
+						var modName = config.getOEM("MR16G_MODNAME");
+						$.each(ifaces, function(num, iface) {
+							info += $.sprintf("%s (%s) ", iface, modName);
+						});
+					}
+					
+					ifaces = config.getData(config.getOEM("MR17G_DRVNAME"));
+					if (ifaces) {
+						var modName = config.getOEM("MR17G_MODNAME");
+						$.each(ifaces, function(num, iface) {
+							info += $.sprintf("%s (%s) ", iface, modName);
+						});
+					}
+					
+					return info ? info : "none";
+				}()
+			};
+			c.addWidget(field);
+			
+			field = {
+				"type": "html",
+				"name": "rs232",
+				"text": "RS232",
+				"str": function() {
+					var info = "";
+					
+					var ifaces = config.getData(config.getOEM("MR17S_DRVNAME"));
+					if (ifaces) {
+						var modName = config.getOEM("MR17S_MODNAME");
+						$.each(ifaces, function(num, iface) {
+							info += $.sprintf("%s (%s) ", iface, modName);
+						});
+					}
+					
+					return info ? info : "none";
+				}()
+			};
+			c.addWidget(field);
+			
+			field = {
+				"type": "html",
+				"name": "voip",
+				"text": "VoIP",
+				"str": function() {
+					var info = "";
+					
+					var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels");
+					
+					if (channels) {
+						$.each(channels.split("\n"), function(num, channel) {
+							if (channel.length == 0) return true;
+							var channel = channel.split(":");
+							info += $.sprintf("%s (%s) ", channel[0], channel[1]);
+						});
+					}
+					return info ? info : "none";
+				}()
+			};
+			c.addWidget(field);
 		}
 	});
 	
@@ -111,7 +229,7 @@ Controllers.general = function() {
 				"name": "sys_hostname",
 				"text": "Hostname",
 				"descr": "Please enter device's hostname",
-				"validator": {required: true},
+				"validator": {"required": true, "alphanumU": true},
 				"message": "Enter hostname"
 			};
 			c.addWidget(field);
@@ -346,7 +464,7 @@ Controllers.time = function() {
 	page.generateTabs();
 };
 
-Controllers['logging'] = function() {
+Controllers.logging = function() {
 	var page = this.Page();
 	page.setHelpPage("logging");
 	page.setSubsystem("logging");
@@ -401,7 +519,7 @@ Controllers['logging'] = function() {
 	page.generateTabs();
 };
 
-Controllers['tools'] = function() {
+Controllers.tools = function() {
 	var page = this.Page();
 
 	page.addTab({
@@ -487,7 +605,7 @@ Controllers['tools'] = function() {
 	page.generateTabs();
 };
 
-Controllers['reboot'] = function() {
+Controllers.reboot = function() {
 	var page = this.Page();
 	
 	page.addTab({
@@ -505,7 +623,7 @@ Controllers['reboot'] = function() {
 	page.generateTabs();
 };
 
-Controllers['cfg'] = function() {
+Controllers.cfg = function() {
 	var page = this.Page();
 	page.setHelpPage("cfg");
 	

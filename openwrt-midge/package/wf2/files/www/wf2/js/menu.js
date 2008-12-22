@@ -13,6 +13,7 @@ function generateMenu() {
 	addItem("Network", "Firewall", "fw");
 	addItem("Network:Dynamic interfaces", "Manage", "dynamic_ifaces");
 	addItem("Hardware", "Switch", "adm5120sw");
+	addItem("Hardware", "Linkdeps", "linkdeps");
 	addItem("Services", "DHCP server", "dhcp");
 	addItem("Services", "DNS server", "dns_server");
 
@@ -36,6 +37,9 @@ function generateMenu() {
 	$.each(slots, function(num, pcislot) {
 		var type = config.get($.sprintf("sys_pcitbl_s%s_iftype", pcislot));
 		var ifaces = config.getParsed($.sprintf("sys_pcitbl_s%s_ifaces", pcislot));
+		
+		/* save interfaces info */
+		config.saveData(type, ifaces);
 		
 		/* go through ifaces of this slot */
 		$.each(ifaces, function(num, iface) {

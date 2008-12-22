@@ -1,4 +1,4 @@
-Controllers['dhcp'] = function() {
+Controllers.dhcp = function() {
 	var page = this.Page();
 	
 	/* DHCP tab */
