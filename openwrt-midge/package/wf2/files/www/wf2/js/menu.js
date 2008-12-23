@@ -13,9 +13,13 @@ function generateMenu() {
 	addItem("Network", "Firewall", "fw");
 	addItem("Network:Dynamic interfaces", "Manage", "dynamic_ifaces");
 	addItem("Hardware", "Switch", "adm5120sw");
-	addItem("Hardware", "Linkdeps", "linkdeps");
 	addItem("Services", "DHCP server", "dhcp");
 	addItem("Services", "DNS server", "dns_server");
+
+	/* if we have support for linkdeps */
+	if (config.getCachedOutput("linkdeps") == "1") {
+		addItem("Hardware", "Linkdeps", "linkdeps");
+	}
 
 	/* if we have interfaces with multiplexing support, add item to the menu */
 	if (config.getParsed("sys_mux_ifaces").length > 0) {

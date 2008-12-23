@@ -33,6 +33,9 @@ config.runCmd("/bin/cat /etc/version");
 /* get availability for context-help */
 config.runCmd("[ -r '/www/help/index.html' ] && echo -n 1 || echo -n 0", "context-help");
 
+/* get availability for linkdeps */
+config.runCmd("[ -r '/etc/linkdeps' ] && echo -n 1 || echo -n 0", "linkdeps");
+
 /* check router every 10 seconds */
 config.startCheckStatus(10);
 
@@ -67,13 +70,12 @@ $(document).ready(function() {
 	
 	/* add status bar tip */
 	$("#status").attr("title",
-		"<ul><li>Hostname - device's hostname;</li><li>Status - is router online or offline;</li><li>Tasks - number of performing and queuened tasks;</li><li>Ajax - number of active ajax requests.</li></ul>"
+		"<ul><li>Hostname - device's hostname;</li><li>Status - is router online or offline;</li><li>Tasks - number of performing and queuened tasks;</li><li>Ajax - number of active ajax requests.</li></ul><br>You can click here with CTRL pressed to open debug panel."
 		).tooltip({"track": true});
-	
-	generateMenu();
 	
 	/* call info controller when all config.runCmd will be finished */
 	config.onCmdCacheFinish(function() {
+		generateMenu();
 		Controllers.info();
 	});
 });
