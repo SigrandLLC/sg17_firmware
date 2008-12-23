@@ -42,12 +42,11 @@ stop)
 	echo " OK"
 ;;
 restart)
-	# check that VoIP module is installed                                   
-	if [ "x$(kdb get sys_voip_present)" == "x1" ]; then    
-		gen_config                                 
+	# check that VoIP module is installed
+	if [ "x$(kdb get sys_voip_present)" = "x1" ]; then
 		killall svd 2>/dev/null
-		/bin/svd                        
-	fi   
+		/bin/svd
+	fi
 ;;
 *)
 	echo "Usage: $0 {start|stop|restart}"

@@ -129,19 +129,43 @@ update_configs(){
 		cfg_make named.conf /etc/bind/named.conf || ok="false"
 		[ "$ok" = "true" ] && cfg_commit
 		;;
-#	dsl*)
-#		iface=${sybsys##*.}
-#		cfg_make dsl-interfaces "/etc/dsl/${iface}" $iface && \
-#		cfg_commit
-#		;;
-	ipsec)
-		#cfg_make ipsec-tools.sh /etc/ipsec-tools.sh && \
-		#	cfg_commit
-		#chmod 700 /etc/ipsec-tools.sh 
-		;;
 	voip)
-		cfg_make svd.conf /etc/svd.conf && \
-		cfg_make svd_rt.conf /etc/svd_rt.conf && \
+		# generate all configs for VoIP
+		cfg_make svd-main.conf /etc/svd/main.conf && \
+		cfg_make svd-routet.conf /etc/svd/routet.conf && \
+		cfg_make svd-hardlink.conf /etc/svd/hardlink.conf && \
+		cfg_make svd-hotline.conf /etc/svd/hotline.conf && \
+		cfg_make svd-addressb.conf /etc/svd/addressb.conf && \
+		cfg_make svd-rtp.conf /etc/svd/rtp.conf && \
+		cfg_make svd-quality.conf /etc/svd/quality.conf && \
+		cfg_commit
+		;;
+	svd-main)
+		cfg_make svd-main.conf /etc/svd/main.conf && \
+		cfg_commit
+		;;
+	svd-routet)
+		cfg_make svd-routet.conf /etc/svd/routet.conf && \
+		cfg_commit
+		;;
+	svd-hardlink)
+		cfg_make svd-hardlink.conf /etc/svd/hardlink.conf && \
+		cfg_commit
+		;;
+	svd-hotline)
+		cfg_make svd-hotline.conf /etc/svd/hotline.conf && \
+		cfg_commit
+		;;
+	svd-addressb)
+		cfg_make svd-addressb.conf /etc/svd/addressb.conf && \
+		cfg_commit
+		;;
+	svd-rtp)
+		cfg_make svd-rtp.conf /etc/svd/rtp.conf && \
+		cfg_commit
+		;;
+	svd-quality)
+		cfg_make svd-quality.conf /etc/svd/quality.conf && \
 		cfg_commit
 		;;
 	linkdeps)

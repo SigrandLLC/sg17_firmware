@@ -1,6 +1,5 @@
 Controllers.voip = function() {
 	var page = this.Page();
-	page.setSubsystem("voip");
 	
 	/* settings tab */
 	page.addTab({
@@ -9,26 +8,11 @@ Controllers.voip = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("settings");
+			c.setSubsystem("svd-main");
 			c.addTitle("VoIP settings");
 			
 			/* General settings */
 			c.addTitle("General settings", {"internal": true, "help": {"page": "voip.settings"}});
-			
-			field = { 
-				"type": "text",
-				"name": "sys_voip_settings_selfnumber",
-				"text": "Router ID",
-				"validator": {"required": true, "voipRouterID": true}
-			};
-			c.addWidget(field);
-			
-			field = { 
-				"type": "text",
-				"name": "sys_voip_settings_selfip",
-				"text": "Router IP",
-				"validator": {"required": true, "ipAddr": true}
-			};
-			c.addWidget(field);
 			
 			field = { 
 				"type": "text",
@@ -53,7 +37,16 @@ Controllers.voip = function() {
 				"name": "sys_voip_settings_log",
 				"text": "Logging level",
 				"descr": "Level of logging.",
-				"options": "0 1 2 3 4 5 6 7 8 9"
+				"options": function() {
+					var options = {};
+					
+					options["-1"] = "off";
+					for (var i = 0; i < 10; i++) {
+						options[i] = i;
+					}
+					
+					return options;
+				}()
 			};
 			c.addWidget(field);
 			
@@ -66,7 +59,7 @@ Controllers.voip = function() {
 				"text": "Registrar",
 				"descr": "SIP registrar to register on.",
 				"tip": "e.g., <i>sip:server</i>",
-				"validator": {"required": true, "voipRegistrar": true}
+				"validator": {"voipRegistrar": true}
 			};
 			c.addWidget(field);
 			
@@ -75,8 +68,7 @@ Controllers.voip = function() {
 				"name": "sys_voip_sip_username",
 				"text": "Username",
 				"descr": "Username on SIP registrar.",
-				"tip": "e.g., <i>user</i>",
-				"validator": {"required": true}
+				"tip": "e.g., <i>user</i>"
 			};
 			c.addWidget(field);
 			
@@ -84,8 +76,7 @@ Controllers.voip = function() {
 				"type": "password",
 				"name": "sys_voip_sip_password",
 				"text": "Password",
-				"descr": "Password on SIP registrar.",
-				"validator": {"required": true}
+				"descr": "Password on SIP registrar."
 			};
 			c.addWidget(field);
 			
@@ -94,7 +85,7 @@ Controllers.voip = function() {
 				"name": "sys_voip_sip_user_sip_uri",
 				"text": "User SIP URI",
 				"tip": "e.g., <i>sip:user@server</i>",
-				"validator": {"required": true, "voipSipUri": true}
+				"validator": {"voipSipUri": true}
 			};
 			c.addWidget(field);
 			
@@ -134,6 +125,7 @@ Controllers.voip = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("hotline");
+			c.setSubsystem("svd-hotline");
 			c.setHelpPage("voip.hotline");
 			c.addTitle("Hotline settings", {"colspan": 5});
 			
@@ -200,6 +192,7 @@ Controllers.voip = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("hardlink");
+			c.setSubsystem("svd-hardlink");
 			c.addTitle("Hardlink settings", {"colspan": 6});
 			
 			c.addTableHeader("Channel|Type|Hardlink|Router ID|Channel|Comment");
@@ -278,6 +271,7 @@ Controllers.voip = function() {
 		"name": "Routes",
 		"func": function() {
 			var c = page.addContainer("voipRoute");
+			c.setSubsystem("svd-routet");
 			c.setHelpPage("voip.route");
 			
 			var list = c.createList({
@@ -296,7 +290,8 @@ Controllers.voip = function() {
 				"type": "checkbox",
 				"name": "enabled",
 				"text": "Enabled",
-				"descr": "Check this item to enable rule"
+				"descr": "Check this item to enable rule",
+				"defaultState": "checked"
 			};
 			list.addWidget(field);
 	
@@ -336,6 +331,7 @@ Controllers.voip = function() {
 		"name": "Addresses",
 		"func": function() {
 			var c = page.addContainer("address");
+			c.setSubsystem("svd-addressb");
 			c.setHelpPage("voip.address");
 			
 			var list = c.createList({
@@ -354,7 +350,8 @@ Controllers.voip = function() {
 				"type": "checkbox",
 				"name": "enabled",
 				"text": "Enabled",
-				"descr": "Check this item to enable rule"
+				"descr": "Check this item to enable rule.",
+				"defaultState": "checked"
 			};
 			list.addWidget(field);
 	
@@ -362,7 +359,7 @@ Controllers.voip = function() {
 				"type": "text",
 				"name": "short_number",
 				"text": "Short number",
-				"descr": "Short number for speed dialing",
+				"descr": "Short number for speed dialing.",
 				"validator": {"required": true, "voipShortNumber": true}
 			};
 			list.addWidget(field);
@@ -371,7 +368,7 @@ Controllers.voip = function() {
 				"type": "text",
 				"name": "complete_number",
 				"text": "Complete number",
-				"descr": "Complete telephone number",
+				"descr": "Complete telephone number.",
 				"tip": "Enter phone number in format: router_id-router_channel-optional_number (e.g., 300-02 or 300-02-3345), " +
 					"or SIP address in format: #sip:sip_uri# (e.g., #sip:user@domain#)",
 				"validator": {"required": true, "voipCompleteNumber": true}
@@ -382,7 +379,7 @@ Controllers.voip = function() {
 				"type": "text",
 				"name": "comment",
 				"text": "Comment",
-				"descr": "Comment for this record"
+				"descr": "Comment for this record."
 			};
 			list.addWidget(field);
 			
@@ -396,6 +393,7 @@ Controllers.voip = function() {
 		"name": "RTP",
 		"func": function() {
 			var c = page.addContainer("rtp");
+			c.setSubsystem("svd-rtp");
 			c.addTitle("Sound settings", {"colspan": 9});
 			
 			c.addTableHeader("Channel|OOB|OOB_play|nEventPT|nEventPlayPT|Tx_vol|Rx_vol|VAD|HPF");
@@ -501,6 +499,7 @@ Controllers.voip = function() {
 		"name": "Quality",
 		"func": function() {
 			var c = page.addContainer("quality");
+			c.setSubsystem("svd-quality");
 			c.addTitle("Codecs settings", {"colspan": 5});
 			
 			/* default values */

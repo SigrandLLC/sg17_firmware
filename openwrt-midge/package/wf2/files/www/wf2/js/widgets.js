@@ -340,13 +340,18 @@ function Container(p, options) {
 	 * Create password widget.
 	 * I18N for tip.
 	 */
-	this.createPasswordWidget = function(w) {
+	this.createPasswordWidget = function(w, value) {
 		var attrs = {
 			"type": "password",
 			"name": w.name,
 			"id": w.id
 		};
 		w.tip && (attrs.title = _(w.tip));
+		
+		/* set KDB value */
+		if (value) {
+			attrs.value = value;
+		}
 		
 		return $.create("input", attrs);
 	};
@@ -573,7 +578,7 @@ function Container(p, options) {
 				subwidget = this.createHiddenWidget(w, value);
 				break;
 			case "password": 
-				subwidget = this.createPasswordWidget(w);
+				subwidget = this.createPasswordWidget(w, value);
 				break;
 			case "checkbox":
 				subwidget = this.createCheckboxWidget(w, value);

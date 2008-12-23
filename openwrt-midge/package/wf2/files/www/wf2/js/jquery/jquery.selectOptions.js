@@ -9,10 +9,10 @@
 		/* remove previous options */
 		selectObject.empty();
 		
-		/* if option's list is string — convert it to hash */
+		/* if option's list is a string — convert it to hash */
 		if (typeof options == "string") {
 			var vals = options;
-			options = new Object();
+			options = {};
 			$.each(vals.split(" "), function(num, value) {
 				options[value] = value;
 			});
@@ -21,7 +21,7 @@
 		/* if option's list is array — convert it to hash */
 		if (options.constructor == Array) {
 			var arr = options;
-			options = new Object();
+			options = {};
 			$.each(arr, function(num, value) {
 				/* values have to be strings */
 				options[value + ""] = value + "";
@@ -30,11 +30,15 @@
 		
 		/* go though list of options */
 		$.each(options, function(name, value) {
+			/* convert value and name of option to string */
+			name = name + "";
+			value = value + "";			
+			
 			/*
 			 * Heh. In options list property name is the value of option, and
 			 * property value is the text of option.
 			 */
-			var attrs = {'value': name};
+			var attrs = {"value": name};
 			
 			/* if current option should be selected */
 			if (curValue == name) {

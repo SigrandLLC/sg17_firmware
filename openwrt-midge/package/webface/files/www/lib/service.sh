@@ -61,7 +61,12 @@ service_reload(){
 	mux)
 		/etc/init.d/mux start
 	;;
+	# old web
 	voip)
+		/etc/init.d/rcvoip restart
+	;;
+	# wf2
+	svd*)
 		/etc/init.d/rcvoip restart
 	;;
 	iface_del*)
