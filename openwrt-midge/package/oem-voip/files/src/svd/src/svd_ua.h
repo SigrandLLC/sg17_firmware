@@ -31,6 +31,8 @@ void svd_bye (svd_t * const svd, ab_chan_t * const chan);
 void svd_refresh_registration (svd_t * const svd);
 /** Shutdown SIP stack.*/
 void svd_shutdown (svd_t * const svd);
+/** Place hardlinked calls.*/
+int svd_place_hardlinks (svd_t * const svd);
 /** @}*/
 
 

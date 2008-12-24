@@ -80,38 +80,29 @@ static unsigned char g_err_no;
 #define CONF_VAD_SC_ONLY "SC_only"
 /** @}*/ 
 
-/** Common config.*/
-static struct config_t cfg;
-/** Routes config.*/
-static struct config_t route_cfg;
-
 /** @defgroup CFG_IF Config internal functions.
  *  @ingroup CFG_M
  *  This functions using while reading config file.
  *  @{*/
 /** Init self router ip and number.*/
 static int self_values_init (void);
-/** Init logging configuration.*/
-static void log_init (void);
 /** Init codec_t from rec_set. */
 static void init_codec_el(struct config_setting_t const * const rec_set, 
 		codec_t * const cod);
-/** Init internas codecs.*/
-static int int_codecs_init (void);
-/** Init SIP configuration.*/
-static void sip_set_init (void);
-/** Init faxmodem parameters.*/
-static void fax_init (void);
-/** Init addres book configuration.*/
-static int address_book_init (void);
-/** Init hot line configuration.*/
-static int hot_line_init (void);
-/** Init hard link configuration.*/
-static int hard_link_init (void);
+/** Init main configuration.*/
+static int main_init (void);
 /** Init route table configuration.*/
-static int route_table_init (void);
+static int routet_init (void);
+/** Init hard link configuration.*/
+static int hardlink_init (void);
+/** Init hot line configuration.*/
+static int hotline_init (void);
+/** Init addres book configuration.*/
+static int addressb_init (void);
+/** Init internal, external and fax codecs configuration.*/
+static int quality_init (void);
 /** Init RTP parameters configuration.*/
-static int rtp_prms_init (void);
+static int rtp_init (void);
 /** Print error message if something occures.*/
 static void error_message (void);
 /** Print help message.*/
@@ -221,92 +212,21 @@ startup_destroy( int argc, char ** argv )
 int 
 svd_conf_init( void )
 {/*{{{*/
-	int err;
-
 	memset (&g_conf, 0, sizeof(g_conf));
-	/* Initialize the configuration */
-	config_init (&cfg);
-
-	/* Load the file */
-	if (!config_read_file (&cfg, SVD_CONF_NAME)){
-		err = config_error_line (&cfg);
-		SU_DEBUG_0(("svd_conf_init(): Config file syntax "
-				"error in line %d\n", err));
-		goto svd_conf_init__exit;
-	} 
-
-	/* Get values */
-
-	/* app.log */
-	log_init();
-
-	/* app.int_codecs */
-	err = int_codecs_init();
-	if( err ){
-		goto svd_conf_init__exit;
+	if(		main_init() 	||
+			routet_init()	||
+			hardlink_init() ||
+			hotline_init()	||
+			addressb_init()	||
+			quality_init()	||
+			rtp_init()){
+		goto __exit_fail;
 	}
-
-	/* app.rtp_port_first/last */
-	g_conf.rtp_port_first = config_lookup_int (&cfg, "app.rtp_port_first");
-	g_conf.rtp_port_last = config_lookup_int (&cfg, "app.rtp_port_last");
-	if ((!g_conf.rtp_port_first) || (!g_conf.rtp_port_last) || 
-			g_conf.rtp_port_first > g_conf.rtp_port_last ){
-		SU_DEBUG_0(("rtp_port values was not set or set badly"));
-		goto svd_conf_init__exit;
-	}
-
-	/* app.sip_set */
-	sip_set_init();
-
-	/* app.fax_codec */
-	fax_init();
-	
-	/* app.address_book */
-	err = address_book_init();
-	if( err ){
-		goto svd_conf_init__exit;
-	}
-
-	/* app.hot_line */
-	err = hot_line_init();
-	if( err ){
-		goto svd_conf_init__exit;
-	}
-
-	/* app.route_table */
-	err = route_table_init();
-	if( err ){
-		goto svd_conf_init__exit;
-	}
-
-	/* app.rtp_prms */
-	err = rtp_prms_init();
-	if( err ){
-		goto svd_conf_init__exit;
-	}
-
-	/* self_number and self_ip init */
-	err = self_values_init();
-	if( err ){
-		goto svd_conf_init__exit;
-	}
-
-	/* app.hard_link */
-	err = hard_link_init();
-	if( err ){
-		goto svd_conf_init__exit;
-	}
-
-	/* Free the configuration */
-	config_destroy (&cfg);
 
 	conf_show();
 	return 0;
 
-svd_conf_init__exit:
-	/* Free the configuration */
-	config_destroy (&cfg);
-
+__exit_fail:
 	conf_show();
 	return -1;
 }/*}}}*/
@@ -676,36 +596,6 @@ __exit_fail:
 }/*}}}*/
 
 /**
- * Init`s log settings in main routine configuration \ref g_conf structure.
- */
-static void
-log_init( void )
-{/*{{{*/
-	struct config_setting_t * set;
-
-	set = config_lookup (&cfg, "app.log" );
-	if( !set ){
-		/* do not log anything  */
-		g_conf.log_level = -1;
-		goto __exit;
-	} 
-
-	g_conf.log_level = config_setting_get_int_elem (set, 0);
-	if (g_conf.log_level < 0){
-		SU_DEBUG_2 (("Wrong \"log_level\" value [%d] .. set to [0]\n",
-				g_conf.log_level));
-		g_conf.log_level = 0;
-	} else if (g_conf.log_level > 9){
-		SU_DEBUG_2 (("Wrong \"log_level\" value [%d] .. set to [9]\n",
-				g_conf.log_level));
-		g_conf.log_level = 9;
-	}
-
-__exit:
-	return;
-}/*}}}*/
-
-/**
  * Initilize one codec element from appropriate config setting.
  *
  * \param[in] rec_set config setting.
@@ -784,207 +674,143 @@ init_codec_el(struct config_setting_t const *const rec_set, codec_t *const cod)
 }/*}}}*/
 
 /**
- * Init`s internal codec sequence in main routine configuration 
- * \ref g_conf structure.
+ * Init`s main settings in main routine configuration \ref g_conf structure.
  *
- * \retval 0 in success case
- * \retval -1 in error case
- */ 
-static int 
-int_codecs_init ( void )
+ * \retval 0 success.
+ * \retval -1 fail.
+ */
+static int
+main_init( void )
 {/*{{{*/
-	struct config_setting_t * set;
-	struct config_setting_t * rec_set;
-	int rec_num;
-	int i;
+	struct config_t cfg;
+	char const * str_elem = NULL;
+	int err;
 
-	/* set all to NONE */
-	memset(g_conf.int_codecs, 0, sizeof(g_conf.int_codecs));
-	for (i=0; i<COD_MAS_SIZE; i++){
-		g_conf.int_codecs[i].type = cod_type_NONE;
-	} 
+	config_init (&cfg);
 
-	set = config_lookup (&cfg, "app.int_codecs" );
-	if( !set ){
-		SU_DEBUG_0(("No app.int_codecs entries in config file"));
+	/* Load the file */
+	if (!config_read_file (&cfg, MAIN_CONF_NAME)){
+		err = config_error_line (&cfg);
+		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n",
+				__func__, err));
 		goto __exit_fail;
 	} 
-	rec_num = config_setting_length (set);
 
-	/* init one by one */
-	for (i=0; i<rec_num; i++){
-		rec_set = config_setting_get_elem (set, i);
-		init_codec_el(rec_set, &g_conf.int_codecs[i]);
-	} 
-	return 0;
-__exit_fail:
-	return -1;
-}/*}}}*/
+	/* log */
+	g_conf.log_level = config_lookup_int (&cfg, "log");
 
-/**
- * \remark
- *	It should be run after internal and external codec initializations.
- */ 
-void
-fax_init ( void )
-{/*{{{*/
-	char const * ct = NULL;
-	int i;
-	ct = config_lookup_string (&cfg, "app.fax_codec");
+	/* rtp_port_first/last */
+	g_conf.rtp_port_first = config_lookup_int (&cfg, "rtp_port_first");
+	g_conf.rtp_port_last = config_lookup_int (&cfg, "rtp_port_last");
 
-	/* set type and standart payload type values */
-	if       ( !strcmp(ct, CONF_CODEC_ALAW)){
-		g_conf.fax.codec_type = cod_type_ALAW;
-		g_conf.fax.internal_pt = g_conf.fax.external_pt = ALAW_PT_DF;
-	} else if( !strcmp(ct, CONF_CODEC_MLAW)){
-		g_conf.fax.codec_type = cod_type_MLAW;
-		g_conf.fax.internal_pt = g_conf.fax.external_pt = MLAW_PT_DF;
-	} else {
-		SU_DEBUG_2(("Wrong codec type for fax '%s'",ct));
-		return;
-	}
-
-	/* set internal fax payload type if it defined in config file */
-	for (i=0; g_conf.int_codecs[i].type!=cod_type_NONE; i++){
-		if(g_conf.int_codecs[i].type == g_conf.fax.codec_type){
-			g_conf.fax.internal_pt = g_conf.int_codecs[i].user_payload;
-			break;
-		}
-	} 
-	/* set external fax payload type if it defined in config file */
-	if(g_conf.sip_set.all_set){
-		for (i=0; g_conf.sip_set.ext_codecs[i].type!=cod_type_NONE; i++){
-			if(g_conf.sip_set.ext_codecs[i].type == g_conf.fax.codec_type){
-				g_conf.fax.external_pt = 
-						g_conf.sip_set.ext_codecs[i].user_payload;
-				break;
-			}
-		} 
-	}
-}/*}}}*/
-
-/**
- * Init`s SIP settings in main routine configuration \ref g_conf structure.
- */
-static void
-sip_set_init( void )
-{/*{{{*/
-	struct config_setting_t * set = NULL;
-	struct config_setting_t * rec_set = NULL;
-	char const * str_elem = NULL;
-	int i;
-	int rec_num;
-
+	/* SIP settings */
 	g_conf.sip_set.all_set = 0;
 
-	/* set all to NONE */
-	memset(g_conf.sip_set.ext_codecs, 0, sizeof(g_conf.sip_set.ext_codecs));
-	for (i=0; i<COD_MAS_SIZE; i++){
-		g_conf.sip_set.ext_codecs[i].type = cod_type_NONE;
-	} 
-
-	/* app.ext_codec */
-	set = config_lookup (&cfg, "app.ext_codecs");
-	if( !set){
-		goto __exit;
-	}
-	rec_num = config_setting_length (set);
-
-	/* init one by one */
-	for (i=0; i<rec_num; i++){
-		rec_set = config_setting_get_elem (set, i);
-		init_codec_el(rec_set, &g_conf.sip_set.ext_codecs[i]);
-	} 
-
 	/* app.sip_registrar */
-	str_elem = config_lookup_string (&cfg, "app.sip_registrar");
+	str_elem = config_lookup_string (&cfg, "sip_registrar");
 	if( !str_elem ){
-		goto __exit;
+		goto __exit_success;
 	}
 	strncpy (g_conf.sip_set.registrar, str_elem, REGISTRAR_LEN);
 
 	/* app.sip_username */
-	str_elem = config_lookup_string (&cfg, "app.sip_username");
+	str_elem = config_lookup_string (&cfg, "sip_username");
 	if( !str_elem ){
-		goto __exit;
+		goto __exit_success;
 	}
 	strncpy (g_conf.sip_set.user_name, str_elem, USER_NAME_LEN);
 
 	/* app.sip_password */
-	str_elem = config_lookup_string (&cfg, "app.sip_password");
+	str_elem = config_lookup_string (&cfg, "sip_password");
 	if( !str_elem ){
-		goto __exit;
+		goto __exit_success;
 	}
 	strncpy (g_conf.sip_set.user_pass, str_elem, USER_PASS_LEN);
 
 	/* app.sip_uri */
-	str_elem = config_lookup_string (&cfg, "app.sip_uri");
+	str_elem = config_lookup_string (&cfg, "sip_uri");
 	if( !str_elem ){
-		goto __exit;
+		goto __exit_success;
 	}
 	strncpy (g_conf.sip_set.user_URI, str_elem, USER_URI_LEN);
 
 	/* app.sip_chan */
-	g_conf.sip_set.sip_chan = config_lookup_int (&cfg, "app.sip_chan");
+	g_conf.sip_set.sip_chan = config_lookup_int (&cfg, "sip_chan");
 	if ( !g_conf.sip_set.sip_chan){
-		goto __exit;
+		goto __exit_success;
 	}
 
 	g_conf.sip_set.all_set = 1;
-__exit:
-	return;
+
+__exit_success:
+	config_destroy (&cfg);
+	return 0;
+__exit_fail:
+	config_destroy (&cfg);
+	return err;
 }/*}}}*/
 
 /**
- * Init`s address book records in main routine configuration 
- * 		\ref g_conf structure.
+ * Init`s route table in main routine configuration \ref g_conf structure.
  *
  * \retval 0 success.
  * \retval -1 fail.
  */ 
 static int
-address_book_init( void )
+routet_init( void )
 {/*{{{*/
+	struct config_t cfg;
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
-	struct adbk_record_s * curr_rec;
+	struct rttb_record_s * curr_rec;
 	char const * elem;
-	int elem_len;
 	int rec_num;
 	char use_id_local_buf = 1;
 	int id_len;
 	int i;
+	int err;
 
-	set = config_lookup (&cfg, "app.address_book" );
+	config_init (&cfg);
+
+	/* Load the file */
+	if (!config_read_file (&cfg, ROUTET_CONF_NAME)){
+		err = config_error_line (&cfg);
+		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n",
+				__func__, err));
+		goto __exit_fail;
+	} 
+
+	/* Get values */
+	set = config_lookup (&cfg, "route_table" );
 	if( !set ){
-		g_conf.address_book.records_num = 0;
-		goto address_book_init__exit_success;
+		SU_DEBUG_0 ((LOG_FNC_A("no data")));
+		goto __exit_fail;
 	} 
 
 	rec_num = config_setting_length (set);
 
-	g_conf.address_book.records_num = rec_num;
-	g_conf.address_book.records = malloc (rec_num * 
-			sizeof(*(g_conf.address_book.records)));
-	if( !g_conf.address_book.records ){
+	g_conf.route_table.records_num = rec_num;
+	g_conf.route_table.records = malloc (
+			rec_num * sizeof(*(g_conf.route_table.records)));
+	if( !g_conf.route_table.records ){
 		SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
-		goto address_book_init__exit;
+		goto __exit_fail;
 	}
-	memset(g_conf.address_book.records, 0, rec_num * 
-			sizeof(*(g_conf.address_book.records)));
+	memset(g_conf.route_table.records, 0, 
+			rec_num * sizeof(*(g_conf.route_table.records)));
 
 	rec_set = config_setting_get_elem (set, 0);
 	elem = config_setting_get_string_elem (rec_set, 0);
 	id_len = strlen(elem);
 
-	g_conf.address_book.id_len = id_len;
+	g_conf.route_table.id_len = id_len;
 
-	if (id_len + 1 > ADBK_ID_LEN_DF){
+	if (id_len + 1 > ROUTE_ID_LEN_DF){
 		use_id_local_buf = 0;
 	}
 
 	for(i = 0; i < rec_num; i++){
-		curr_rec = &g_conf.address_book.records[ i ];
+		curr_rec = &g_conf.route_table.records[ i ];
 		rec_set = config_setting_get_elem (set, i);
 
 		/* get id */
@@ -993,104 +819,41 @@ address_book_init( void )
 		if (use_id_local_buf){
 			curr_rec->id = curr_rec->id_s;
 		} else {
-			curr_rec->id = malloc( (id_len + 1) *
-					sizeof(*(curr_rec->id)));
+			curr_rec->id = malloc((id_len + 1)* sizeof(*(curr_rec->id)));
 			if( !curr_rec->id ){
-				SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
-				goto address_book_init__exit;
+				SU_DEBUG_0 ((LOG_FNC_A(LOG_NOMEM)));
+				goto __exit_fail;
 			}
 		}
 		strcpy(curr_rec->id, elem);
 		
 		/* get value */
 		elem = config_setting_get_string_elem (rec_set, 1);
-		elem_len = strlen(elem);
-		if (elem_len+1 < VALUE_LEN_DF ){
-			curr_rec->value = curr_rec->value_s;
-		} else {
-			curr_rec->value = malloc((elem_len+1) *
-					sizeof(*(curr_rec->value)));
-			if( !curr_rec->value ){
-				SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
-				goto address_book_init__id_alloc;
-			}
-		}
 		strcpy (curr_rec->value, elem);
 	}
 
-address_book_init__exit_success:
+	err = self_values_init();
+	if(err){
+		goto __exit_fail;
+	}
+
+	config_destroy (&cfg);
 	return 0;
-
-address_book_init__id_alloc:
-	if( curr_rec->id && curr_rec->id != curr_rec->id_s ){
-		free (curr_rec->id);
-	}
-address_book_init__exit:
-	return -1;
-}/*}}}*/
-
-
-/**
- * Init`s hot line records in main routine configuration \ref g_conf structure.
- *
- * \retval 0 success.
- * \retval -1 fail.
- */ 
-static int 
-hot_line_init( void )
-{/*{{{*/
-	struct config_setting_t * set;
-	struct config_setting_t * rec_set;
-	struct htln_record_s * curr_rec; 
-	char const * elem;
-	int elem_len;
-	int rec_num;
-	int i;
-
-	set = config_lookup (&cfg, "app.hot_line" );
-	if( !set ){
-		g_conf.hot_line.records_num = 0;
-		goto hot_line_init__exit_success;
-	} 
-
-	rec_num = config_setting_length (set);
-
-	g_conf.hot_line.records_num = rec_num;
-	g_conf.hot_line.records = malloc (rec_num * 
-			sizeof(*(g_conf.hot_line.records)));
-	if( !g_conf.hot_line.records ){
-		SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
-		goto hot_line_init__exit;
-	}
-	memset(g_conf.hot_line.records, 0, rec_num * 
-			sizeof(*(g_conf.hot_line.records)));
-
-	for(i = 0; i < rec_num; i++){
-		curr_rec = &g_conf.hot_line.records[ i ];
-		rec_set = config_setting_get_elem (set, i);
-		/* get id */
-		elem = config_setting_get_string_elem (rec_set, 0);
-		strncpy(curr_rec->id, elem, CHAN_ID_LEN-1);
-		
-		/* get value */
-		elem = config_setting_get_string_elem (rec_set, 1);
-		elem_len = strlen(elem);
-		if (elem_len+1 < VALUE_LEN_DF ){
-			curr_rec->value = curr_rec->value_s;
-		} else {
-			curr_rec->value = malloc((elem_len+1) *
-					sizeof(*(curr_rec->value)));
-			if( !curr_rec->value ){
-				SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
-				goto hot_line_init__exit;
+__exit_fail:
+	if(g_conf.route_table.records) {
+		if( !use_id_local_buf){
+			for(i=0; i<rec_num; i++){
+				curr_rec = &g_conf.route_table.records[ i ];
+				if( curr_rec->id && curr_rec->id != curr_rec->id_s ){
+					free (curr_rec->id);
+					curr_rec->id = NULL;
+				}
 			}
 		}
-		strcpy (curr_rec->value, elem);
+		free(g_conf.address_book.records);
+		g_conf.address_book.records = NULL;
 	}
-
-hot_line_init__exit_success:
-	return 0;
-hot_line_init__exit:
+	config_destroy (&cfg);
 	return -1;
 }/*}}}*/
 
@@ -1100,13 +863,14 @@ hot_line_init__exit:
  * \retval 0 success.
  * \retval -1 fail.
  * \remark
- * 	It should be run after self number initialization because
+ * 	It should be run after routes table initialization because
  * 	it uses this value for am_i_caller flag set.
  */ 
 static int 
-hard_link_init( void )
+hardlink_init( void )
 {/*{{{*/
-	/* ("chan_id", "pair_chan_id", "pair_route_id"), */
+	/* ("chan_id", "pair_route_id", "pair_chan_id" ), */
+	struct config_t cfg;
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
 	struct hdln_record_s * curr_rec; 
@@ -1114,8 +878,19 @@ hard_link_init( void )
 	int elem_len;
 	int rec_num;
 	int i;
+	int err;
 
-	set = config_lookup (&cfg, "app.hard_link" );
+	config_init (&cfg);
+
+	/* Load the file */
+	if (!config_read_file (&cfg, HARDLINK_CONF_NAME)){
+		err = config_error_line (&cfg);
+		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n",
+				__func__, err));
+		goto __exit_fail;
+	} 
+
+	set = config_lookup (&cfg, "hard_link" );
 	if( !set){
 		g_conf.hard_link.records_num = 0;
 		goto __exit_success;
@@ -1142,24 +917,24 @@ hard_link_init( void )
 		elem = config_setting_get_string_elem (rec_set, 0);
 		strncpy(curr_rec->id, elem, CHAN_ID_LEN-1);
 
-		/* get pair_chan_id */
-		elem = config_setting_get_string_elem (rec_set, 1);
-		strncpy(curr_rec->id, elem, CHAN_ID_LEN-1);
-		
 		/* get pair_route_id */
-		elem = config_setting_get_string_elem (rec_set, 2);
+		elem = config_setting_get_string_elem (rec_set, 1);
 		elem_len = strlen(elem);
 		if (elem_len+1 < ROUTE_ID_LEN_DF){
 			curr_rec->pair_route = curr_rec->pair_route_s;
 		} else {
-			curr_rec->pair_route = malloc
-					((elem_len+1)*sizeof(*(curr_rec->pair_route)));
+			curr_rec->pair_route = malloc((elem_len+1)*
+					sizeof(*(curr_rec->pair_route)));
 			if( !curr_rec->pair_route){
 				SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
 				goto __exit_fail;
 			}
 		}
 		strcpy (curr_rec->pair_route, elem);
+
+		/* get pair_chan_id */
+		elem = config_setting_get_string_elem (rec_set, 2);
+		strncpy(curr_rec->id, elem, CHAN_ID_LEN-1);
 
 		/* set am_i_caller flag by parsing the value string */
 		router_is_self = (curr_rec->pair_route[0] == SELF_MARKER) ||
@@ -1195,72 +970,175 @@ hard_link_init( void )
 		}
 	}
 __exit_success:
+	config_destroy (&cfg);
 	return 0;
 __exit_fail:
+	if(g_conf.hard_link.records) {
+		for(i=0; i<rec_num; i++){
+			curr_rec = &g_conf.hard_link.records[ i ];
+			if( curr_rec->pair_route && 
+					curr_rec->pair_route != curr_rec->pair_route_s ){
+				free (curr_rec->pair_route);
+				curr_rec->pair_route = NULL;
+			}
+		}
+		free(g_conf.hard_link.records);
+		g_conf.hard_link.records = NULL;
+	}
+	config_destroy (&cfg);
 	return -1;
 }/*}}}*/
 
 /**
- * Init`s route table in main routine configuration \ref g_conf structure.
+ * Init`s hot line records in main routine configuration \ref g_conf structure.
+ *
+ * \retval 0 success.
+ * \retval -1 fail.
+ */ 
+static int 
+hotline_init( void )
+{/*{{{*/
+	struct config_t cfg;
+	struct config_setting_t * set;
+	struct config_setting_t * rec_set;
+	struct htln_record_s * curr_rec; 
+	char const * elem;
+	int elem_len;
+	int rec_num;
+	int i;
+	int err;
+
+	config_init (&cfg);
+
+	/* Load the file */
+	if (!config_read_file (&cfg, HOTLINE_CONF_NAME)){
+		err = config_error_line (&cfg);
+		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n",
+				__func__, err));
+		goto __exit_fail;
+	} 
+
+	set = config_lookup (&cfg, "hot_line" );
+	if( !set ){
+		g_conf.hot_line.records_num = 0;
+		goto __exit_success;
+	} 
+
+	rec_num = config_setting_length (set);
+
+	g_conf.hot_line.records_num = rec_num;
+	g_conf.hot_line.records = malloc (rec_num * 
+			sizeof(*(g_conf.hot_line.records)));
+	if( !g_conf.hot_line.records ){
+		SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
+		goto __exit_fail;
+	}
+	memset(g_conf.hot_line.records, 0, rec_num * 
+			sizeof(*(g_conf.hot_line.records)));
+
+	for(i = 0; i < rec_num; i++){
+		curr_rec = &g_conf.hot_line.records[ i ];
+		rec_set = config_setting_get_elem (set, i);
+		/* get id */
+		elem = config_setting_get_string_elem (rec_set, 0);
+		strncpy(curr_rec->id, elem, CHAN_ID_LEN-1);
+		
+		/* get value */
+		elem = config_setting_get_string_elem (rec_set, 1);
+		elem_len = strlen(elem);
+		if (elem_len+1 < VALUE_LEN_DF ){
+			curr_rec->value = curr_rec->value_s;
+		} else {
+			curr_rec->value = malloc((elem_len+1)* sizeof(*(curr_rec->value)));
+			if( !curr_rec->value ){
+				SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
+				goto __exit_fail;
+			}
+		}
+		strcpy (curr_rec->value, elem);
+	}
+
+__exit_success:
+	config_destroy (&cfg);
+	return 0;
+__exit_fail:
+	if(g_conf.hot_line.records) {
+		for(i=0; i<rec_num; i++){
+			curr_rec = &g_conf.hot_line.records[ i ];
+			if( curr_rec->value && curr_rec->value != curr_rec->value_s ){
+				free (curr_rec->value);
+				curr_rec->value = NULL;
+			}
+		}
+		free(g_conf.hot_line.records);
+		g_conf.hot_line.records = NULL;
+	}
+	config_destroy (&cfg);
+	return -1;
+}/*}}}*/
+
+/**
+ * Init`s address book records in main routine configuration 
+ * 		\ref g_conf structure.
  *
  * \retval 0 success.
  * \retval -1 fail.
  */ 
 static int
-route_table_init( void )
+addressb_init( void )
 {/*{{{*/
+	struct config_t cfg;
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
-	struct rttb_record_s * curr_rec;
+	struct adbk_record_s * curr_rec;
 	char const * elem;
+	int elem_len;
 	int rec_num;
 	char use_id_local_buf = 1;
 	int id_len;
 	int i;
 	int err;
 
-	/* Initialize the configuration */
-	config_init (&route_cfg);
+	config_init (&cfg);
 
 	/* Load the file */
-	if (!config_read_file (&route_cfg, SVD_ROUTE_NAME)){
-		err = config_error_line (&route_cfg);
-		SU_DEBUG_0 (("route_table_init(): Route config file syntax "
-				"error in line %d\n", err));
-		goto route_table_init__exit;
+	if (!config_read_file (&cfg, ADDRESSB_CONF_NAME)){
+		err = config_error_line (&cfg);
+		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n",
+				__func__, err));
+		goto __exit_fail;
 	} 
 
-	/* Get values */
-	set = config_lookup (&route_cfg, "route_table" );
+	set = config_lookup (&cfg, "address_book" );
 	if( !set ){
-		SU_DEBUG_0 ((LOG_FNC_A("no data")));
-		goto route_table_init__exit;
+		g_conf.address_book.records_num = 0;
+		goto __exit_success;
 	} 
 
 	rec_num = config_setting_length (set);
 
-	g_conf.route_table.records_num = rec_num;
-	g_conf.route_table.records = malloc (
-			rec_num * sizeof(*(g_conf.route_table.records)));
-	if( !g_conf.route_table.records ){
+	g_conf.address_book.records_num = rec_num;
+	g_conf.address_book.records = malloc (rec_num * 
+			sizeof(*(g_conf.address_book.records)));
+	if( !g_conf.address_book.records ){
 		SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
-		goto route_table_init__exit;
+		goto __exit_fail;
 	}
-	memset(g_conf.route_table.records, 0, 
-			rec_num * sizeof(*(g_conf.route_table.records)));
+	memset(g_conf.address_book.records, 0, rec_num * 
+			sizeof(*(g_conf.address_book.records)));
 
 	rec_set = config_setting_get_elem (set, 0);
 	elem = config_setting_get_string_elem (rec_set, 0);
 	id_len = strlen(elem);
 
-	g_conf.route_table.id_len = id_len;
+	g_conf.address_book.id_len = id_len;
 
-	if (id_len + 1 > ROUTE_ID_LEN_DF){
+	if (id_len + 1 > ADBK_ID_LEN_DF){
 		use_id_local_buf = 0;
 	}
 
 	for(i = 0; i < rec_num; i++){
-		curr_rec = &g_conf.route_table.records[ i ];
+		curr_rec = &g_conf.address_book.records[ i ];
 		rec_set = config_setting_get_elem (set, i);
 
 		/* get id */
@@ -1269,31 +1147,157 @@ route_table_init( void )
 		if (use_id_local_buf){
 			curr_rec->id = curr_rec->id_s;
 		} else {
-			curr_rec->id = malloc(
-					(id_len + 1) *
-					sizeof(*(curr_rec->id)));
+			curr_rec->id = malloc( (id_len + 1) * sizeof(*(curr_rec->id)));
 			if( !curr_rec->id ){
-				SU_DEBUG_0 ((LOG_FNC_A(LOG_NOMEM)));
-				goto route_table_init__exit;
+				SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
+				goto __exit_fail;
 			}
 		}
 		strcpy(curr_rec->id, elem);
 		
 		/* get value */
 		elem = config_setting_get_string_elem (rec_set, 1);
+		elem_len = strlen(elem);
+		if (elem_len+1 < VALUE_LEN_DF ){
+			curr_rec->value = curr_rec->value_s;
+		} else {
+			curr_rec->value = malloc((elem_len+1) * sizeof(*(curr_rec->value)));
+			if( !curr_rec->value){
+				SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
+				goto __exit_fail;
+			}
+		}
 		strcpy (curr_rec->value, elem);
 	}
 
-	/* Free the configuration */
-	config_destroy (&route_cfg);
-
+__exit_success:
+	config_destroy (&cfg);
 	return 0;
-
-route_table_init__exit:
-	/* Free the configuration */
-	config_destroy (&route_cfg);
-
+__exit_fail:
+	if(g_conf.address_book.records) {
+		for(i=0; i<rec_num; i++){
+			curr_rec = &g_conf.address_book.records[ i ];
+			if( curr_rec->id && curr_rec->id != curr_rec->id_s ){
+				free (curr_rec->id);
+				curr_rec->id = NULL;
+			}
+			if( curr_rec->value && curr_rec->value != curr_rec->value_s ){
+				free (curr_rec->value);
+				curr_rec->value = NULL;
+			}
+		}
+		free(g_conf.address_book.records);
+		g_conf.address_book.records = NULL;
+	}
+	config_destroy (&cfg);
 	return -1;
+}/*}}}*/
+
+/**
+ * Init`s codecs settings in main routine configuration \ref g_conf structure.
+ *
+ * \retval 0 success.
+ * \retval -1 fail.
+ */
+static int
+quality_init( void )
+{/*{{{*/
+	struct config_t cfg;
+	struct config_setting_t * set = NULL;
+	struct config_setting_t * rec_set = NULL;
+	char const * str_elem = NULL;
+	int i;
+	int rec_num;
+	int err;
+
+	config_init (&cfg);
+
+	/* Load the file */
+	if (!config_read_file (&cfg, QUALITY_CONF_NAME)){
+		err = config_error_line (&cfg);
+		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n",
+				__func__, err));
+		goto __exit_fail;
+	} 
+
+	/* set all to NONE */
+	memset(g_conf.int_codecs, 0, sizeof(g_conf.int_codecs));
+	memset(g_conf.sip_set.ext_codecs, 0, sizeof(g_conf.sip_set.ext_codecs));
+	for (i=0; i<COD_MAS_SIZE; i++){
+		g_conf.int_codecs[i].type = cod_type_NONE;
+		g_conf.sip_set.ext_codecs[i].type = cod_type_NONE;
+	} 
+
+	/* CODECS FOR INTERNAL USAGE */
+	set = config_lookup (&cfg, "int_codecs" );
+	if( !set ){
+		SU_DEBUG_0(("No int_codecs entries in config file"));
+		goto __exit_fail;
+	} 
+	rec_num = config_setting_length (set);
+
+	/* init one by one */
+	for (i=0; i<rec_num; i++){
+		rec_set = config_setting_get_elem (set, i);
+		init_codec_el(rec_set, &g_conf.int_codecs[i]);
+	} 
+
+	/* CODECS FOR EXTERNAL USAGE */
+	set = config_lookup (&cfg, "ext_codecs");
+	if( !set){
+		g_conf.sip_set.all_set = 0;
+	} else {
+		rec_num = config_setting_length (set);
+
+		/* init one by one */
+		for (i=0; i<rec_num; i++){
+			rec_set = config_setting_get_elem (set, i);
+			init_codec_el(rec_set, &g_conf.sip_set.ext_codecs[i]);
+		} 
+	}
+
+	/* CODECS FOR FAX USAGE */
+	str_elem = config_lookup_string (&cfg, "fax_codec");
+	if( !str_elem){
+		SU_DEBUG_0(("No fax_codec entry in config file"));
+		goto __exit_fail;
+	}
+
+	/* set type and standart payload type values */
+	if       ( !strcmp(str_elem, CONF_CODEC_ALAW)){
+		g_conf.fax.codec_type = cod_type_ALAW;
+		g_conf.fax.internal_pt = g_conf.fax.external_pt = ALAW_PT_DF;
+	} else if( !strcmp(str_elem, CONF_CODEC_MLAW)){
+		g_conf.fax.codec_type = cod_type_MLAW;
+		g_conf.fax.internal_pt = g_conf.fax.external_pt = MLAW_PT_DF;
+	} else {
+		SU_DEBUG_2(("Wrong codec type for fax '%s'",str_elem));
+		goto __exit_fail;
+	}
+
+	/* set internal fax payload type if it defined in config file */
+	for (i=0; g_conf.int_codecs[i].type!=cod_type_NONE; i++){
+		if(g_conf.int_codecs[i].type == g_conf.fax.codec_type){
+			g_conf.fax.internal_pt = g_conf.int_codecs[i].user_payload;
+			break;
+		}
+	} 
+	/* set external fax payload type if it defined in config file */
+	if(g_conf.sip_set.all_set){
+		for (i=0; g_conf.sip_set.ext_codecs[i].type!=cod_type_NONE; i++){
+			if(g_conf.sip_set.ext_codecs[i].type == g_conf.fax.codec_type){
+				g_conf.fax.external_pt = 
+						g_conf.sip_set.ext_codecs[i].user_payload;
+				break;
+			}
+		} 
+	}
+
+	config_destroy (&cfg);
+	return 0;
+__exit_fail:
+	config_destroy (&cfg);
+	return err;
 }/*}}}*/
 
 /**
@@ -1303,19 +1307,31 @@ route_table_init__exit:
  * \retval -1 fail.
  */ 
 static int
-rtp_prms_init( void )
+rtp_init( void )
 {/*{{{*/
+	struct config_t cfg;
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
 	struct rtp_record_s * curr_rec;
 	char const * elem;
 	int rec_num;
 	int i;
+	int err;
+
+	config_init (&cfg);
+
+	/* Load the file */
+	if (!config_read_file (&cfg, RTP_CONF_NAME)){
+		err = config_error_line (&cfg);
+		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n",
+				__func__, err));
+		goto __exit_fail;
+	} 
 
 	/* Get values */
-	set = config_lookup (&cfg, "app.rtp_prms" );
+	set = config_lookup (&cfg, "rtp_prms" );
 	if( !set ){
-		/* We will use statndart params for all channels */
+		/* We will use standart params for all channels */
 		goto __exit_success;
 	} 
 
@@ -1383,8 +1399,10 @@ rtp_prms_init( void )
 		curr_rec->HPF_is_ON = config_setting_get_int_elem(rec_set, 8);
 	}
 __exit_success:
+	config_destroy (&cfg);
 	return 0;
 __exit_fail:
+	config_destroy (&cfg);
 	return -1;
 }/*}}}*/
 
@@ -1413,8 +1431,6 @@ error_message( void )
 			PACKAGE_NAME );
 }/*}}}*/
 
-//------------------------------------------------------------
-
 /**
  * Show help message.
  */
@@ -1441,8 +1457,6 @@ Report bugs to <%s>.\n\
 		, PACKAGE_NAME, PACKAGE_NAME, PACKAGE_BUGREPORT );
 }/*}}}*/
 
-//------------------------------------------------------------
-
 /**
  * Show program version, built info and license.
  */
@@ -1462,6 +1476,4 @@ Written by Vladimir Luchko. <%s>\n\
 		, PACKAGE_NAME, PACKAGE_VERSION, 
 		__DATE__, __TIME__, PACKAGE_BUGREPORT);
 }/*}}}*/
-
-//------------------------------------------------------------
 

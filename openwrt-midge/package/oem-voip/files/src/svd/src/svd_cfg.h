@@ -14,10 +14,13 @@
  *  It contains cfg files names, and functions for manipulations with 
  *  main configuration.
  *  @{*/
-/** Config file path */
-#define SVD_CONF_NAME 	"/etc/svd.conf"
-/** Route config path */
-#define SVD_ROUTE_NAME 	"/etc/svd_rt.conf"
+#define MAIN_CONF_NAME      "/etc/svd/main.conf"
+#define ROUTET_CONF_NAME    "/etc/svd/routet.conf"
+#define HARDLINK_CONF_NAME  "/etc/svd/hardlink.conf"
+#define HOTLINE_CONF_NAME   "/etc/svd/hotline.conf"
+#define ADDRESSB_CONF_NAME  "/etc/svd/addressb.conf"
+#define QUALITY_CONF_NAME   "/etc/svd/quality.conf"
+#define RTP_CONF_NAME       "/etc/svd/rtp.conf"
 /** @}*/
 
 

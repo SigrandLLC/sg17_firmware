@@ -29,7 +29,7 @@ extern int ab_dev_event_clean(ab_dev_t * const dev);
 */
 ab_t* 
 ab_create( void )
-{
+{/*{{{*/
 	ab_t *ab = NULL;
 	ab_dev_params_t * dprms = NULL;
 	unsigned int devs_num;
@@ -132,7 +132,7 @@ __free_and_exit_fail:
 	}
 __exit_fail:
 	return NULL;
-} 
+} /*}}}*/
 
 /**
 	This one returns the parameters of all devices on the all boards
@@ -146,7 +146,7 @@ __exit_fail:
 */
 static int 
 get_devs_params (unsigned int * const devs_num, ab_dev_params_t ** const dprms)
-{
+{/*{{{*/
 	ab_board_params_t bp;
 	ab_dev_params_t tmp_prms [BOARDS_MAX*DEVS_PER_BOARD_MAX];
 	int cp;
@@ -208,7 +208,7 @@ __close_and_exit_fail:
 	close(ab_fd);
 __exit_fail:
 	return -1;
-}
+}/*}}}*/
 
 /**
 	Destroy the ab_t object. 
@@ -221,7 +221,7 @@ __exit_fail:
 */
 void 
 ab_destroy( ab_t ** ab )
-{
+{/*{{{*/
 	ab_t * ab_tmp = *ab;
 	if(ab_tmp) {
 		if(ab_tmp->chans) {
@@ -251,7 +251,32 @@ ab_destroy( ab_t ** ab )
 		free (ab_tmp);
 		ab_tmp = NULL;
 	}
-}
+}/*}}}*/
+
+/**
+ * \param[in] ab - ata board 
+ * \param[in] abs_idx - absolute channel index
+ *
+ * \retval -1 if something nasty happens
+ * \retval 0 and greater - the channel number
+ */ 
+int 
+ab_get_chan_idx_by_abs(ab_t const * const ab, int const abs_idx)
+{/*{{{*/
+	int ret_idx;
+	int chans_num; 
+	int i;
+
+	ret_idx = -1;
+	chans_num = ab->chans_num;
+	for(i=0; i<chans_num; i++){
+		if (abs_idx == ab->chans[ i ].abs_idx){
+			ret_idx = i;
+			break;
+		}
+	}
+	return ret_idx;
+}/*}}}*/
 
 /**
 	Sets the proper state and status of the channel structure 
@@ -262,7 +287,7 @@ ab_destroy( ab_t ** ab )
 */
 static void 
 ab_chan_status_init( ab_chan_t * const chan )
-{
+{/*{{{*/
 	if(chan->parent->type == ab_dev_type_FXS){
 		/* linefeed to standby */
 		ioctl(chan->rtp_fd, IFX_TAPI_LINE_FEED_SET, 
@@ -285,5 +310,5 @@ ab_chan_status_init( ab_chan_t * const chan )
 
 	/* initial onhook detected  (from channel) */
 	ab_dev_event_clean(chan->parent);
-}
+}/*}}}*/
 

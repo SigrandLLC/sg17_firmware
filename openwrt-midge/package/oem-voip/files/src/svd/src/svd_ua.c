@@ -397,88 +397,6 @@ DFE
 	return -1;
 }/*}}}*/
 
-/**
- * Register user to server according to \ref g_conf settings if user
- * 		have no such registration.
- *
- * \param[in] svd context pointer
- */ 
-static void 
-svd_register(svd_t * svd)
-{/*{{{*/
-DFS
-	if ( !nua_handle_has_registrations (svd->op_reg) ) {
-		sip_to_t * fr_to;
-		fr_to = sip_to_make(svd->home, g_conf.sip_set.user_URI);	
-		svd->op_reg = nua_handle( svd->nua, NULL, 
-				SIPTAG_TO(fr_to),
-				SIPTAG_FROM(fr_to),
-				TAG_NULL());
-		if (svd->op_reg) {
-			nua_register(svd->op_reg, TAG_NULL());
-		}
-	} 
-DFE
-}/*}}}*/
-
-/**
- * Unregister all previously registered users from server (\ref g_conf).
- *
- * \param[in] svd context pointer
- * \remark
- *		It initiates nua_r_unregister event and in its handler svd_register()
- *		make a new registration. That long way is necessary, because we do
- *		not need multiple old registrations on the server.
- * \sa svd_register(). 
- */ 
-void 
-svd_refresh_registration (svd_t * const svd)
-{/*{{{*/
-DFS
-	if ( nua_handle_has_registrations (svd->op_reg)){
-		nua_unregister(svd->op_reg,
-				SIPTAG_CONTACT_STR("*"),
-				TAG_NULL());
-	} else {
-		/* unregister all previously registered on server */
-		sip_to_t * fr_to = NULL;
-		fr_to = sip_to_make(svd->home, g_conf.sip_set.user_URI);
-		if( !fr_to){
-			SU_DEBUG_2((LOG_FNC_A(LOG_NOMEM)));
-			goto __exit;
-		}
-		svd->op_reg = nua_handle( svd->nua, NULL, 
-				SIPTAG_TO(fr_to),
-				SIPTAG_FROM(fr_to),
-				TAG_NULL());
-		if (svd->op_reg) {
-			nua_unregister(svd->op_reg,
-					SIPTAG_CONTACT_STR("*"),
-					TAG_NULL());
-		}
-		su_free (svd->home, fr_to);
-	}
-__exit:
-DFE
-	return;
-}/*}}}*/
-
-/**
- * It shotdown all the SIP stack. 
- * We cann add there necessary actions before quit.
- *
- * \param[in] svd context pointer
- * \remark
- * 		It is not using in normal behavior, but in \ref svd_destroy(). 	
- */ 
-void 
-svd_shutdown(svd_t * svd)
-{/*{{{*/
-DFS
-	nua_shutdown (svd->nua);
-DFE
-}/*}}}*/
-
 /** 
  * Answers on  call (or just leave).  
  * 
@@ -558,6 +476,166 @@ DFS
 DFE
 }/*}}}*/
 
+/**
+ * Unregister all previously registered users from server (\ref g_conf).
+ *
+ * \param[in] svd context pointer
+ * \remark
+ *		It initiates nua_r_unregister event and in its handler svd_register()
+ *		make a new registration. That long way is necessary, because we do
+ *		not need multiple old registrations on the server.
+ * \sa svd_register(). 
+ */ 
+void 
+svd_refresh_registration (svd_t * const svd)
+{/*{{{*/
+DFS
+	if ( nua_handle_has_registrations (svd->op_reg)){
+		nua_unregister(svd->op_reg,
+				SIPTAG_CONTACT_STR("*"),
+				TAG_NULL());
+	} else {
+		/* unregister all previously registered on server */
+		sip_to_t * fr_to = NULL;
+		fr_to = sip_to_make(svd->home, g_conf.sip_set.user_URI);
+		if( !fr_to){
+			SU_DEBUG_2((LOG_FNC_A(LOG_NOMEM)));
+			goto __exit;
+		}
+		svd->op_reg = nua_handle( svd->nua, NULL, 
+				SIPTAG_TO(fr_to),
+				SIPTAG_FROM(fr_to),
+				TAG_NULL());
+		if (svd->op_reg) {
+			nua_unregister(svd->op_reg,
+					SIPTAG_CONTACT_STR("*"),
+					TAG_NULL());
+		}
+		su_free (svd->home, fr_to);
+	}
+__exit:
+DFE
+	return;
+}/*}}}*/
+
+/**
+ * It shotdown all the SIP stack. 
+ * We cann add there necessary actions before quit.
+ *
+ * \param[in] svd context pointer
+ * \remark
+ * 		It is not using in normal behavior, but in \ref svd_destroy(). 	
+ */ 
+void 
+svd_shutdown(svd_t * svd)
+{/*{{{*/
+DFS
+	nua_shutdown (svd->nua);
+DFE
+}/*}}}*/
+
+/**
+ * It create connections between hardlinked channels.
+ *
+ * \param[in] svd context pointer
+ * \retval 0 	etherything ok.
+ * \retval -1	something nasty happens.
+ * \remark
+ * 		There must be offhook on both chennels in the link.
+ */ 
+int 
+svd_place_hardlinks (svd_t * const svd)
+{/*{{{*/
+#if 0 
+/* Hard links.*/
+struct hard_link_s {
+	unsigned int records_num; /**< Number of hotline records.*/
+	struct hdln_record_s * records; /**< Records massive.*/
+};
+/* Hard link record.*/
+struct hdln_record_s {
+	char id [CHAN_ID_LEN]; /**< Channel absolute identifier.*/
+	char * pair_route; /**< Channel pair router identifier.*/
+	char pair_route_s [ROUTE_ID_LEN_DF]; /**< Channel pair router massive.*/
+	char pair_chan [CHAN_ID_LEN]; /**< Channel pair channel identifier.*/
+	int am_i_caller; /**< Set to 1 if this channel should call to it`s pair.*/
+};
+	int i;
+	int j;
+	int offhooked;
+	j = g_conf.hard_link.records_num;
+
+	/* for i in records */
+	for(i=0; i<j; i++){
+		struct hdln_record_s * curr_rec = g_conf.hard_link.records[i];
+		int chan_abs_idx = strtol (curr_rec->id, NULL, 10);
+		int chan_idx = ab_get_chan_idx_by_abs(svd->ab, chan_abs_idx);
+		ab_chan_t * curr_chan = &svd->ab->chans[chan_idx];
+		
+		/* if offhook curr_chan */
+		offhooked = ab_funk_is_offhooked(curr_chan); /* tag__ */
+		if(offhooked){
+			/* if am_i_caller */
+			if(curr_rec->am_i_caller){
+				/* get pair_route, pair_chan tag__ */
+				/* place a call tag__ */
+			}
+		/* offhooked else */
+		} else {
+			/* error2 - hardlinked chan should be offhook */
+			SU_DEBUG_2(("ERROR: Hardlinked chan [%d] is in onhook", ));
+		}
+	}
+#endif
+
+	return 0;
+#if 0 
+/*	it worked !*/
+	/* tag__
+	 *		svd_invite to hardlinked channels here?
+	 *		try with normal channels first
+	 *		call from 01 to 02
+	 */
+	/* set 0 chan_ctx values */
+	/* chan_ctx->dial_status.chan_id - dest channel
+	 * chan_ctx->dial_status.route_ip - dest router
+	 */
+ 	chan_ctx = svd->ab->chans[0].ctx;
+	strcpy(chan_ctx->dial_status.chan_id,"01");
+	chan_ctx->dial_status.route_ip = g_conf.self_ip;
+
+	/* place a call */
+	err = svd_invite(svd, 0, 0);
+	if(err){
+		SU_DEBUG_0 (("!!!!!!!!!!!!!!!!! CAN`T PLACE INITIAL CALL\n"));
+		goto __conf;
+	}
+#endif
+}/*}}}*/
+
+/**
+ * Register user to server according to \ref g_conf settings if user
+ * 		have no such registration.
+ *
+ * \param[in] svd context pointer
+ */ 
+static void 
+svd_register(svd_t * svd)
+{/*{{{*/
+DFS
+	if ( !nua_handle_has_registrations (svd->op_reg) ) {
+		sip_to_t * fr_to;
+		fr_to = sip_to_make(svd->home, g_conf.sip_set.user_URI);	
+		svd->op_reg = nua_handle( svd->nua, NULL, 
+				SIPTAG_TO(fr_to),
+				SIPTAG_FROM(fr_to),
+				TAG_NULL());
+		if (svd->op_reg) {
+			nua_register(svd->op_reg, TAG_NULL());
+		}
+	} 
+DFE
+}/*}}}*/
 
 /**
  * Just make INVITE SIP action from address to address.
@@ -690,7 +768,6 @@ DFS
 	}
 DFE
 }/*}}}*/
-
 
 /**
  * Prints verbose error information to stdout.

@@ -198,6 +198,10 @@ extern int ab_g_err_extra_value;
 ab_t* ab_create (void);
 /** Destroy the ab_t object. */
 void ab_destroy (ab_t ** ab);
+/** Get chan idx by absolute number. */
+int ab_get_chan_idx_by_abs(ab_t const * const ab, int const abs_idx);
+//ab_chan_t * ab_get_chan_by_abs(int const abs_idx);
+//ab_chan_t * ab_get_chan_by_idx(int const idx);
 /** @} */
 
 

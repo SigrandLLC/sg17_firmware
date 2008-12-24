@@ -99,35 +99,12 @@ main (int argc, char ** argv)
 		goto __conf;
 	}
 
-#if 0 
-/*	it worked !*/
-	/* tag__
-	 *		svd_invite to hardlinked channels here?
-	 *		try with normal channels first
-	 *		call from 01 to 02
-	 */
-	/* set 0 chan_ctx values */
-	/* chan_ctx->dial_status.chan_id - dest channel
-	 * chan_ctx->dial_status.route_ip - dest router
-	 */
- 	chan_ctx = svd->ab->chans[0].ctx;
-	strcpy(chan_ctx->dial_status.chan_id,"01");
-	chan_ctx->dial_status.route_ip = g_conf.self_ip;
-
-	/* place a call */
-	err = svd_invite(svd, 0, 0);
-	if(err){
-		SU_DEBUG_0 (("!!!!!!!!!!!!!!!!! CAN`T PLACE INITIAL CALL\n"));
-		goto __conf;
-	}
-#endif
 	/* place hardlinked calls */
-	/*
 	err = svd_place_hardlinks(svd);
 	if(err){
 		goto __conf;
 	}
-*/	
+
 	/* run main cycle */
 	su_root_run (svd->root);
 
