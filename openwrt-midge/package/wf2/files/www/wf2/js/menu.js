@@ -28,9 +28,6 @@ function generateMenu() {
 	
 	/* Add VoIP controller */
 	if (config.get("sys_voip_present") == "1") {
-		/* cache channels info */
-		config.runCmd("/bin/cat /proc/driver/sgatab/channels");
-
 		addItem("Hardware", "VoIP", "voip");
 	}
 	

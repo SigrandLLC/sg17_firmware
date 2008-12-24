@@ -1,7 +1,7 @@
 /* WF2 logs */
 var wf2Logs = new function() {
-	var logsNum = 10;
-	var logsMax = 15;
+	var logsNum = 40;
+	var logsMax = 45;
 	this.logs = [];
 
 	this.addLog = function(title, text) {
@@ -36,6 +36,9 @@ config.runCmd("[ -r '/www/help/index.html' ] && echo -n 1 || echo -n 0", "contex
 /* get availability for linkdeps */
 config.runCmd("[ -r '/etc/linkdeps' ] && echo -n 1 || echo -n 0", "linkdeps");
 
+/* get VoIP channels list */
+config.runCmd("/bin/cat /proc/driver/sgatab/channels");
+
 /* check router every 10 seconds */
 config.startCheckStatus(10);
 
@@ -50,14 +53,9 @@ if (lang != "en") {
 
 $(document).ready(function() {
 	/* on click on status bar with CTRL key, show debug */
-	$("#status").click(function(e){
+	$("#status").click(function(e) {
 		if (e.ctrlKey == true) {
-			setTimeout(function() {
-				$(".tabs-container").empty();
-				scrollTo(0, 0);
-				
-				Controllers.debug();
-			}, 10);
+            Controllers.debug();
 		}
 	});
 	
@@ -72,7 +70,7 @@ $(document).ready(function() {
 	$("#status").attr("title",
 		"<ul><li>Hostname - device's hostname;</li><li>Status - is router online or offline;</li><li>Tasks - number of performing and queuened tasks;</li><li>Ajax - number of active ajax requests.</li></ul><br>You can click here with CTRL pressed to open debug panel."
 		).tooltip({"track": true});
-	
+
 	/* call info controller when all config.runCmd will be finished */
 	config.onCmdCacheFinish(function() {
 		generateMenu();

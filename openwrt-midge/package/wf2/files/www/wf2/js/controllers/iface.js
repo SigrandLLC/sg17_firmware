@@ -132,10 +132,85 @@ Controllers.iface = function(iface) {
 			var c, field;
 			c = page.addContainer("general");
 			c.addTitle("Interface general settings");
-		
+
+			var showMethod = function() {
+				/* remove method's widgets */
+				$(".tmpMethod").parents("tr").remove();
+
+				if ($("#method").val() == "static") {
+					if (config.get($.sprintf("sys_iface_%s_proto", iface)) == "hdlc") {
+						field = {
+							"type": "text",
+							"name": $.sprintf("sys_iface_%s_pointopoint_local", iface),
+							"text": "Point to Point local",
+							"descr": "Point-to-Point local address.",
+							"tip": "e.g., 10.0.0.1",
+							"validator": {"required": true, "ipAddr": true},
+							"cssClass": "tmpMethod"
+						};
+						c.addWidget(field);
+
+						field = {
+							"type": "text",
+							"name": $.sprintf("sys_iface_%s_pointopoint_remote", iface),
+							"text": "Point to Point remote",
+							"descr": "Point-to-Point remote address.",
+							"tip": "e.g., 10.0.0.2",
+							"validator": {"required": true, "ipAddr": true},
+							"cssClass": "tmpMethod"
+						};
+						c.addWidget(field);
+					} else {
+						field = {
+							"type": "text",
+							"name": $.sprintf("sys_iface_%s_ipaddr", iface),
+							"text": "Static address",
+							"descr": "IP address.",
+							"tip": "e.g., 192.168.2.100",
+							"validator": {"required": true, "ipAddr": true},
+							"cssClass": "tmpMethod"
+						};
+						c.addWidget(field);
+
+						field = {
+							"type": "text",
+							"name": $.sprintf("sys_iface_%s_netmask", iface),
+							"text": "Netmask",
+							"descr": "Network mask.",
+							"tip": "e.g., 255.255.255.0",
+							"validator": {"required": true, "netmask": true},
+							"cssClass": "tmpMethod"
+						};
+						c.addWidget(field);
+
+						field = {
+							"type": "text",
+							"name": $.sprintf("sys_iface_%s_broadcast", iface),
+							"text": "Broadcast",
+							"descr": "Broadcast address.",
+							"tip": "e.g., 192.168.2.255",
+							"validator": {"ipAddr": true},
+							"cssClass": "tmpMethod"
+						};
+						c.addWidget(field);
+
+						field = {
+							"type": "text",
+							"name": $.sprintf("sys_iface_%s_gateway", iface),
+							"text": "Gateway",
+							"descr": "Default gateway.",
+							"tip": "e.g., 192.168.2.1",
+							"validator": {"ipAddr": true},
+							"cssClass": "tmpMethod"
+						};
+						c.addWidget(field);
+					}
+				}
+			};
+
 			field = { 
 				"type": "text",
-				"name": "sys_iface_" + iface + "_desc",
+				"name": $.sprintf("sys_iface_%s_desc", iface),
 				"text": "Description",
 				"descr": "Description of interface."
 			};
@@ -143,7 +218,7 @@ Controllers.iface = function(iface) {
 		
 			field = { 
 				"type": "checkbox",
-				"name": "sys_iface_" + iface + "_enabled",
+				"name": $.sprintf("sys_iface_%s_enabled", iface),
 				"text": "Enabled",
 				"descr": "If set, interface can be start on boot or by another interface."
 			};
@@ -151,30 +226,22 @@ Controllers.iface = function(iface) {
 			
 			field = { 
 				"type": "checkbox",
-				"name": "sys_iface_" + iface + "_auto",
+				"name": $.sprintf("sys_iface_%s_auto", iface),
 				"text": "Auto",
 				"descr": "If set and interface is enabled, it will be start on boot."
 			};
 			c.addWidget(field);
-			
-			field = { 
-				"type": "select",
-				"name": "sys_iface_" + iface + "_method",
-				"text": "Method",
-				"descr": "Method of setting IP address.",
-				"options": {"none": "None", "static": "Static address", "zeroconf": "Zero Configuration", "dynamic": "Dynamic address"}
-			};
-			c.addWidget(field);
-			
+
 			if (config.get($.sprintf("sys_iface_%s_proto", iface)) != "vlan") {
 				var dependList = new Object();
 				$.each(config.getParsed("sys_ifaces"), function(name, value) {
 					dependList[value] = value;
 				});
 				dependList.none = "None";
-				field = { 
+				field = {
 					"type": "select",
 					"name": "sys_iface_" + iface + "_depend_on",
+					"id": "depend_on",
 					"text": "Depends on",
 					"options": dependList,
 					"defaultValue": "none",
@@ -182,7 +249,22 @@ Controllers.iface = function(iface) {
 				};
 				c.addWidget(field);
 			}
-			
+
+			field = { 
+				"type": "select",
+				"name": $.sprintf("sys_iface_%s_method", iface),
+				"id": "method",
+				"text": "Method",
+				"descr": "Method of setting IP address.",
+				"options": config.get($.sprintf("sys_iface_%s_proto", iface)) == "hdlc" ?
+					{"none": "None", "static": "Static address"} :
+					{"none": "None", "static": "Static address", "zeroconf": "Zero Configuration",
+							"dynamic": "Dynamic address"},
+				"onChange": showMethod
+			};
+			c.addWidget(field);
+
+            /* TODO
 			field= { 
 				"type": "checkbox",
 				"name": "sys_iface_" + iface + "_opt_accept_redirects",
@@ -210,89 +292,10 @@ Controllers.iface = function(iface) {
 				"text": "RP Filter"
 			};
 			c.addWidget(field);
-		
+            */
+
+			showMethod();
 			c.addSubmit();
-		}
-	});
-	
-	/* METHOD tab */
-	page.addTab({
-		"id": "method",
-		"name": "Method",
-		"func": function() {
-			var c, field;
-			c = page.addContainer("method");
-			if (config.get($.sprintf("sys_iface_%s_proto", iface)) == "hdlc") {
-				c.addTitle("Point-to-Point address settings");
-			
-				field = { 
-					"type": "text",
-					"name": "sys_iface_" + iface + "_pointopoint_local",
-					"text": "Point to Point local",
-					"descr": "Point-to-Point local address",
-					"tip": "e.g., 10.0.0.1",
-					"validator": {"required": true, "ipAddr": true}
-				};
-				c.addWidget(field);
-				
-				field = { 
-					"type": "text",
-					"name": "sys_iface_" + iface + "_pointopoint_remote",
-					"text": "Point to Point remote",
-					"descr": "Point-to-Point remote address",
-					"tip": "e.g., 10.0.0.2",
-					"validator": {"required": true, "ipAddr": true}
-				};
-				c.addWidget(field);
-				
-				c.addSubmit();
-				
-			}
-			else if (config.get("sys_iface_" + iface + "_method") == "static") {
-				c.addTitle("Static address settings");
-			
-				field = { 
-					"type": "text",
-					"name": "sys_iface_" + iface + "_ipaddr",
-					"text": "Static address",
-					"descr": "Address",
-					"tip": "e.g., 192.168.2.100",
-					"validator": {"required": true, "ipAddr": true}
-				};
-				c.addWidget(field);
-				
-				field = { 
-					"type": "text",
-					"name": "sys_iface_" + iface + "_netmask",
-					"text": "Netmask",
-					"descr": "Network mask",
-					"tip": "e.g., 255.255.255.0",
-					"validator": {"required": true, "netmask": true}
-				};
-				c.addWidget(field);
-				
-				field = { 
-					"type": "text",
-					"name": "sys_iface_" + iface + "_broadcast",
-					"text": "Broadcast",
-					"descr": "Broadcast address",
-					"tip": "e.g., 192.168.2.255",
-					"validator": {"ipAddr": true}
-				};
-				c.addWidget(field);
-				
-				field = { 
-					"type": "text",
-					"name": "sys_iface_" + iface + "_gateway",
-					"text": "Gateway",
-					"descr": "Default gateway",
-					"tip": "e.g., 192.168.2.1",
-					"validator": {"ipAddr": true}
-				};
-				c.addWidget(field);
-				
-				c.addSubmit();
-			}
 		}
 	});
 	
@@ -448,7 +451,7 @@ Controllers.iface = function(iface) {
 						"type": "text",
 						"name": $.sprintf("sys_iface_%s_bond_ifaces", iface),
 						"text": "Interfaces",
-						"descr": "Interfaces for bonding separated by space",
+						"descr": "Interfaces for bonding separated by space.",
 						"tip": "<b>Example:</b>eth0 eth1 dsl0<br><b>Note:</b>You can use only Ethernet-like" + 
 							" interfaces, like ethX, dslX, bondX<br><b>Note:</b> Interfaces should be" + 
 							" enabled, but <b>auto</b> should be switched <b>off</b>",
@@ -465,7 +468,8 @@ Controllers.iface = function(iface) {
 								function(num, value) {
 									$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_auto", value), "0");
 									$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_enabled", value), "1");
-								});
+								}
+							);
 						}
 					});
 					
@@ -478,7 +482,7 @@ Controllers.iface = function(iface) {
 						"type": "checkbox",
 						"name": "sys_iface_" + iface + "_br_stp",
 						"text": "STP enabled",
-						"descr": "Enable Spanning Tree Protocol",
+						"descr": "Enable Spanning Tree Protocol.",
 						"tip": "Multiple ethernet bridges can work together to create even larger networks" + 
 							" of ethernets using the IEEE 802.1d spanning tree protocol.This protocol is" + 
 							" used for finding the shortest path between two ethernets, and for eliminating" + 
@@ -490,7 +494,7 @@ Controllers.iface = function(iface) {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_br_ifaces",
 						"text": "Interfaces",
-						"descr": "Interfaces for bridge separated by space",
+						"descr": "Interfaces for bridge separated by space.",
 						"tip": "<b>Example:</b> eth0 eth1 dsl0<br><b>Note:</b> You can use only" + 
 						" Ethernet-like interfaces, like ethX, dslX<br><b>Note:</b> Interfaces should" + 
 						" be enabled, but <b>auto</b> should be switched <b>off</b>.",
@@ -502,7 +506,7 @@ Controllers.iface = function(iface) {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_br_prio",
 						"text": "Priority",
-						"descr": "Bridge priority",
+						"descr": "Bridge priority.",
 						"tip": "The priority value is an unsigned 16-bit quantity (a number between 0" + 
 							" and 65535), and has no dimension. Lower priority values are better. The bridge" +
 							" with the lowest priority will be elected <b>root bridge</b>.",
@@ -546,7 +550,8 @@ Controllers.iface = function(iface) {
 								function(num, value) {
 									$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_auto", value), "0");
 									$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_enabled", value), "1");
-								});
+								}
+							);
 						}
 					});
 					

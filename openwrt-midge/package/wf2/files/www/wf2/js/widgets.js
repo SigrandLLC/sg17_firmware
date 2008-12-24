@@ -64,11 +64,11 @@ function Page(p) {
 					 * different tabs).
 					 */
 					$(".tabs-container").empty();
-					
+
+                    scrollTo(0, 0);
+
 					/* render tab's content */
 					tab.func();
-					
-					scrollTo(0, 0);
 					
 					/* save selected tab ID in cookie */
 					$.cookie("wf2-tab", tab.id);
@@ -503,6 +503,12 @@ function Container(p, options) {
 						throw "placement.anchor is not specified or invalid";
 					}
 					element.insertAfter(placement.anchor);
+					break;
+				case "insertBefore":
+					if (placement.anchor == null || placement.anchor == undefined) {
+						throw "placement.anchor is not specified or invalid";
+					}
+					element.insertBefore(placement.anchor);
 					break;
 				case "prependToAnchor":
 					element.prependTo(placement.anchor);
@@ -1589,21 +1595,20 @@ function addItem(path, name, func, params) {
 	}
 	
 	/* create link object */
-	var link = $.create('a', {}, _(name))
-		.click(function() {
-			if (params) {
-				defaultContext[func].apply(defaultContext, params);
-			} else {
-				defaultContext[func]();
-			}
-			
-			/* highlight selected item */
-			$("a", idMenu).removeClass("clicked");
-			$(this).addClass("clicked");
-		});
+	var link = $.create("a", {}, _(name)).click(function() {
+        if (params) {
+            defaultContext[func].apply(defaultContext, params);
+        } else {
+            defaultContext[func]();
+        }
+
+        /* highlight selected item */
+        $("a", idMenu).removeClass("clicked");
+        $(this).addClass("clicked");
+    });
 	
 	/* create menu item and add it to the menu */
-	$.create('li', {}, $.create('span', {}, link)).appendTo(curLevel);
+	$.create("li", {}, $.create("span", {}, link)).appendTo(curLevel);
 }
 
 /*

@@ -76,7 +76,10 @@ function KDBQueue() {
 			"url": url,
 			"type": "POST",
 			"data": task.values,
-			"success": function() {
+			"success": function(data, textStatus) {
+				wf2Logs.addLog("AJAX task response", $.sprintf("status: %s, url: %s, data: %s",
+						textStatus, this.url, this.data));
+
 				performingTask = false;
 				
 				/* if task need page reloading — reload */
@@ -102,6 +105,8 @@ function KDBQueue() {
 		
 		/* perform request */
 		$.ajax(options);
+
+		wf2Logs.addLog("AJAX task request", url + ", " + task.values);
 	};
 }
 
@@ -485,6 +490,7 @@ function Config() {
 	 * Add new interface to KDB.
 	 * 
 	 * options — interface parameters.
+	 * return new interface name.
 	 */
 	this.addIface = function(options) {
 		/* if router is offline, show error message and do nothing */
@@ -533,6 +539,9 @@ function Config() {
 		
 		this.kdbSubmit(ifaceProp);
 		updateIfaces();
+
+		/* return interface name */
+		return iface;
 	};
 	
 	/*

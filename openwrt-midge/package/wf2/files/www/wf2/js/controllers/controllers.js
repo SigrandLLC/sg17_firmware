@@ -169,7 +169,9 @@ Controllers.info = function() {
 					
 					if (channels) {
 						$.each(channels.split("\n"), function(num, channel) {
-							if (channel.length == 0) return true;
+							if (channel.length == 0) {
+								return true;
+							}
 							var channel = channel.split(":");
 							info += $.sprintf("%s (%s) ", channel[0], channel[1]);
 						});
