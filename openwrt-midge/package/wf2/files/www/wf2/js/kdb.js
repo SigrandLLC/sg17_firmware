@@ -12,8 +12,11 @@ function KDBQueue() {
 	 * Update status.
 	 */
 	var updateMessage = function() {
-		if (queue.length > 0) $("#status_tasks").text(queue.length);
-		else $("#status_tasks").text("none");
+		if (queue.length > 0) {
+			$("#status_tasks").text(queue.length);
+		} else {
+			$("#status_tasks").text(_("none"));
+		}
 	};
 	
 	/*
@@ -675,9 +678,10 @@ function Config() {
 				}
 				
 				if (ajaxNum == 0) {
-					$("#status_ajax").text("none");
+					$("#status_ajax").text(_("none"));
 				} else {
-					$("#status_ajax").text($.sprintf("%s (%s requests)", _("loading data"), ajaxNum));
+					$("#status_ajax").text($.sprintf("%s (%s: %s)", _("loading data"), _("requests"),
+						ajaxNum));
 				}
 				
 				processResult(data);
@@ -691,22 +695,22 @@ function Config() {
 				}
 				
 				if (ajaxNum == 0) {
-					$("#status_ajax").text("none");
+					$("#status_ajax").text(_("none"));
 				}
 				
-				processResult("Connection error.");
+				processResult(_("Connection error"));
 			}
 		};
 		
 		/* if router is offline show corresponding message */
 		if (!config.isOnline()) {
-			processResult("Router is offline");
+			processResult(_("Router is offline"));
 			return;
 		}
 		
 		/* increase number of processing Ajax requests and update status */
 		ajaxNum++;
-		$("#status_ajax").text($.sprintf("%s (%s requests)",  _("loading data"), ajaxNum));
+		$("#status_ajax").text($.sprintf("%s (%s: %s)", _("loading data"), _("requests"), ajaxNum));
 		
 		/* perform request */
 		$.ajax(ajaxOptions);

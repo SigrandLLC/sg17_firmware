@@ -11,6 +11,7 @@
 	"Logging": "Логирование",
 	"Info": "Информация",
 	"System information": "Системная информация",
+	"Hardware information": "Аппаратная информация",
 	"Firmware version": "Версия ПО",
 	"Webface admin password" : "Пароль к веб-интерфейсу",
 	"Password" : "Пароль",
@@ -64,5 +65,12 @@
 	"The first three numbers represent the number of active tasks on the system - processes that are actually running - averaged over the last 1, 5, and 15 minutes. The next entry shows the instantaneous current number of runnable tasks - processes that are currently scheduled to run rather than being blocked in a system call - and the total number of processes on the system. The final entry is the process ID of the process that most recently ran."
 		: "Первые три числа показывают число активных задач в системе — процессы, действительно занимающие процессор — усреднённое за последние 1, 5 и 15 минут. Следующая запись показывает текущее число выполняемых задач (не находящихся в заблокированном состоянии) и общее число процессов в системе. Последнее число — PID последнего запущенного процесса.",
 	"Tools": "Утилиты",
-	"Reboot": "Перезагрузка"
+	"Reboot": "Перезагрузка",
+	"Configuration": "Конфигурация",
+	"Hardware": "Аппаратное обеспечение",
+	"Services": "Сервисы",
+	"status": "статус",
+	"none": "нет",
+	"loading data": "загрузка данных",
+	"requests": "запросы"
 }
