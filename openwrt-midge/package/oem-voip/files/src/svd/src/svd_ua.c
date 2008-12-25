@@ -997,15 +997,18 @@ DFS
 
 	/* 18X received */
 		case nua_callstate_proceeding:
-			/* play ringback */
-			err = ab_FXS_line_tone (chan, ab_chan_tone_RINGBACK);
-			if(err){
-				SU_DEBUG_2(("can`t play ringback on [_%d_]\n",chan->abs_idx));
+			if(chan->parent->type == ab_dev_type_FXS){
+				/* play ringback */
+				err = ab_FXS_line_tone (chan, ab_chan_tone_RINGBACK);
+				if(err){
+					SU_DEBUG_2(("can`t play ringback on [_%d_]\n",
+							chan->abs_idx));
+				}
+				/* play ringback */
+				DEBUG_CODE(
+				SU_DEBUG_2(("play ringback on [_%d_]\n",chan->abs_idx));
+				);
 			}
-			/* play ringback */
-			DEBUG_CODE(
-			SU_DEBUG_2(("play ringback on [_%d_]\n",chan->abs_idx));
-			);
 			break;
 
 	/* 2XX received */
@@ -1032,15 +1035,17 @@ DFS
 
 	/* 2XX received, ACK sent, or vice versa */
 		case nua_callstate_ready:
-			/* stop playing any tone on the chan */
-			if(ab_FXS_line_tone (chan, ab_chan_tone_MUTE)){
-				SU_DEBUG_2(("can`t stop playing tone on [_%d_]\n",
-						chan->abs_idx));
+			if(chan->parent->type == ab_dev_type_FXS){
+				/* stop playing any tone on the chan */
+				if(ab_FXS_line_tone (chan, ab_chan_tone_MUTE)){
+					SU_DEBUG_2(("can`t stop playing tone on [_%d_]\n",
+							chan->abs_idx));
+				}
+				/* stop playing tone */
+				DEBUG_CODE(
+				SU_DEBUG_2(("stop playing tone on [_%d_]\n", chan->abs_idx));
+				);
 			}
-			/* stop playing tone */
-			DEBUG_CODE(
-			SU_DEBUG_2(("stop playing tone on [_%d_]\n", chan->abs_idx));
-			);
 
 			if(ab_chan_media_activate (chan)){
 				SU_DEBUG_1(("media_activate error : %s\n", ab_g_err_str));

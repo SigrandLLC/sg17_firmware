@@ -29,7 +29,7 @@
 /** File error template with user message (filename).*/
 #define LOG_NOFILE_A(str) " could not operate on file \"" str "\""
 
-#if 0
+#if 1
 	#define DEBUG_CODE(code) 	do { code }while(0)
 #else
 	#define DEBUG_CODE(code) 	

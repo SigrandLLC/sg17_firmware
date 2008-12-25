@@ -94,15 +94,11 @@ static int svd_handle_ADDR_BOOK
 /** Maximum size of RTP packet.*/
 #define BUFF_PER_RTP_PACK_SIZE 512
 /** Move RTP data from channel to RTP socket.*/
-static int svd_media_vinetic_handle_local_data (
-		su_root_magic_t * root, 
-		su_wait_t * w,
-		su_wakeup_arg_t * user_data );
+static int svd_media_vinetic_handle_local_data (su_root_magic_t * root, 
+		su_wait_t * w, su_wakeup_arg_t * user_data );
 /** Move RTP data from RTP socket to channel.*/
-static int svd_media_vinetic_handle_remote_data (
-		su_root_magic_t * root, 
-		su_wait_t * w,
-		su_wakeup_arg_t * user_data );
+static int svd_media_vinetic_handle_remote_data (su_root_magic_t * root, 
+		su_wait_t * w, su_wakeup_arg_t * user_data );
 /** Open RTP socket.*/
 static int svd_media_vinetic_open_rtp (svd_chan_t * const chan_ctx);
 /** @}*/ 
@@ -234,6 +230,15 @@ DFS
 
 	svd_chan_t * chan_ctx = chan->ctx;
 
+	DEBUG_CODE(
+		SU_DEBUG_3 (("REG ON %d\n",chan->abs_idx));
+		if(chan_ctx->local_wait_idx != -1 ||
+				chan_ctx->remote_wait_idx != -1){
+			SU_DEBUG_0 (("ERROR!!!! : local %d remote %d\n",
+					chan_ctx->local_wait_idx,
+					chan_ctx->remote_wait_idx));
+		}
+	);
 	assert (chan_ctx->local_wait_idx == -1);
 	assert (chan_ctx->remote_wait_idx == -1);
 
@@ -271,9 +276,19 @@ DFS
 	}
 	chan_ctx->remote_wait_idx = ret;
 
+	DEBUG_CODE(
+	SU_DEBUG_0 (("!!!!!!REGISTERED LOCAL : %d, REMOTE %d\n",
+				chan_ctx->local_wait_idx,
+				chan_ctx->remote_wait_idx));
+	);
 DFE
 	return 0;
 __exit_fail:
+	DEBUG_CODE(
+	SU_DEBUG_0 (("FAIL !!!!!!REGISTERED LOCAL : %d, REMOTE %d\n",
+				chan_ctx->local_wait_idx,
+				chan_ctx->remote_wait_idx));
+	);
 DFE
 	return -1;
 }/*}}}*/
@@ -294,6 +309,12 @@ DFS
 
 	chan_ctx = chan->ctx;
 
+	DEBUG_CODE(
+		SU_DEBUG_0 (("UNREG ON %d\n",chan->abs_idx));
+		SU_DEBUG_0 (("!!!!!!UNREGISTERING LOCAL : %d, REMOTE %d\n",
+					chan_ctx->local_wait_idx,
+					chan_ctx->remote_wait_idx));
+	);
 	if(chan_ctx->rtp_sfd != -1){
 		if( close (chan_ctx->rtp_sfd) ){
 			su_perror("svd_media_unregister() close()");
@@ -308,6 +329,12 @@ DFS
 		su_root_deregister (svd->root, chan_ctx->remote_wait_idx);
 		chan_ctx->remote_wait_idx = -1;
 	}
+
+	DEBUG_CODE(
+	SU_DEBUG_0 (("!!!!!!UNREGISTERED LOCAL : %d, REMOTE %d\n",
+				chan_ctx->local_wait_idx,
+				chan_ctx->remote_wait_idx));
+	);
 DFE
 }/*}}}*/
 
@@ -713,7 +740,7 @@ do{
 		chan_idx = dev_idx * svd->ab->chans_per_dev;
 	}
 
-	if(evt.id == ab_dev_event_FXS_OFFHOOK){
+	if        (evt.id == ab_dev_event_FXS_OFFHOOK){
 		DEBUG_CODE(
 		SU_DEBUG_0 (("Got fxs offhook event: 0x%X on [%d/%d]\n",
 				evt.data, dev_idx,evt.ch ));
@@ -733,7 +760,14 @@ do{
 		SU_DEBUG_0 (("Got fxo ringing event: 0x%X on [%d/%d]\n",
 				evt.data, dev_idx,evt.ch ));
 		);
-		err = svd_handle_event_FXO_RINGING (svd, chan_idx);
+		if(svd->ab->chans[chan_idx].status.hook == ab_chan_hook_ONHOOK){
+			err = svd_handle_event_FXO_RINGING (svd, chan_idx);
+		} else {
+			SU_DEBUG_3(("Allready offhooked: 0x%X on [%d/%d], "
+					"drop ring processing\n",
+					evt.data, dev_idx,evt.ch));
+			err = 0;
+		}
 	} else if(evt.id == ab_dev_event_FXS_FM_CED){
 		DEBUG_CODE(
 		SU_DEBUG_0 (("Got fxs ced event: 0x%X on [%d/%d]\n",
@@ -756,11 +790,16 @@ do{
 				evt.data, dev_idx,evt.ch ));
 		);
 	}
-}while(evt.more);
-
+	DEBUG_CODE(
+		if(evt.more){
+			SU_DEBUG_0 (("GOT MORE THEN ONE EVENT IN ONE TIME: on [%d/%d]\n",
+					evt.data, dev_idx,evt.ch ));
+		}
+	);
 	if (err){
 		goto __exit_fail;
 	}
+} while(evt.more);
 
 DFE
 	return 0;
@@ -952,20 +991,20 @@ DFS
 	if( chan_ctx->is_hotlined ){
 		/* offhook */
 		err = ab_FXO_line_hook( ab_chan, ab_chan_hook_OFFHOOK );
-		if (err){
-			SU_DEBUG_1(("can`t offhook on [_%d_]\n", 
-					ab_chan->abs_idx));
+		if ( !err){
+			SU_DEBUG_1(("do offhook on [_%d_]\n", ab_chan->abs_idx));
+		} else {
+			SU_DEBUG_1(("can`t offhook on [_%d_]\n", ab_chan->abs_idx));
 			goto __exit_fail;
 		}
 		/* process the hotline sequence */
-		err = svd_process_addr (svd, chan_idx,
-				chan_ctx->hotline_addr);
+		err = svd_process_addr (svd, chan_idx, chan_ctx->hotline_addr);
 		if(err){
 			goto __exit_fail;
 		}
 	} else {
-		SU_DEBUG_2 (("Got ringing event on channel [_%d_], "
-				"it is not hotlined, but should be\n",
+		SU_DEBUG_2 (("Got ringing event on channel [_%d_], it is not "
+				"hotlined, but should be\n",
 				ab_chan->abs_idx));
 		goto __exit_fail;
 	}
@@ -1482,8 +1521,8 @@ __exit_success:
  * 		\retval -1	if somthing nasty happens.
  * 		\retval 0 	if etherything ok.
  * \todo
- * 		Call on hotline is not implemented. In hotline we can just choose 
- * 		the router and the chan.
+ * 		Calling number on hotline is not implemented. 
+ * 		In hotline we can just choose the router and the chan.
  */ 
 static int
 svd_process_addr (svd_t * const svd, int const chan_idx,
@@ -1497,7 +1536,7 @@ svd_process_addr (svd_t * const svd, int const chan_idx,
 DFS
 	chan_ctx->dial_status.state = dial_state_START;
 
-	for(i = 0; value[i]; i++){
+	for(i=0; value[i]; i++){
 		err = svd_handle_digit ( svd, chan_idx, value[ i ] );
 		if(err){
 			/* clear call params */
@@ -1584,11 +1623,12 @@ set_route_ip (svd_chan_t * const chan_ctx)
 	int ip_find = 0;
 
 	if(chan_ctx->dial_status.dest_is_self == self_YES){
+		SU_DEBUG_3 (("Choosed router is self\n"));
 		goto __exit_success;
 	}
 	if( !strcmp(g_conf.self_number, route_id) ){
 		/* it is self */
-		SU_DEBUG_3 (("Chosed router is self\n"));
+		SU_DEBUG_3 (("Choosed router is self\n"));
 		chan_ctx->dial_status.dest_is_self = self_YES;
 		goto __exit_success;
 	}
@@ -1596,7 +1636,7 @@ set_route_ip (svd_chan_t * const chan_ctx)
 
 	routers_num = g_conf.route_table.records_num;
 
-	for( rec_idx = 0; rec_idx < routers_num; rec_idx++ ){
+	for( rec_idx=0; rec_idx<routers_num; rec_idx++ ){
 		g_conf_id = g_conf.route_table.records [rec_idx].id;
 		if( !strcmp( g_conf_id, route_id ) ){
 			ip_find = 1;
@@ -1671,10 +1711,11 @@ svd_self_call
 {/*{{{*/
 	int err;
 	svd_chan_t * chan_ctx = svd->ab->chans[ src_chan_idx ].ctx;
-
+DFS
 	chan_ctx->dial_status.route_ip = g_conf.self_ip;
 	/* INVITE to self router as to remote */
 	err = svd_invite (svd, use_ff_FXO, src_chan_idx);
+DFE
 	return err;
 }/*}}}*/
 
