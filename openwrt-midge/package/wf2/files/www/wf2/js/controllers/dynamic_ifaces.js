@@ -158,7 +158,7 @@ Controllers.wizard = function(iface) {
 
 	page.addTab({
 		"id": "bridge",
-		"name": "Bridge",
+		"name": "Setup wizard",
 		"func": function() {
 			var c, field;
 			c = page.addContainer("bridge");
