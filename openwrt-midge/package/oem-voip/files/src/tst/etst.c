@@ -5,6 +5,8 @@
 #include <errno.h>
 #include <assert.h>
 
+//fprintf(stderr,"!!!!!!!!%s()_%d\n",__func__,__LINE__);
+
 #include "ab_api.h"
 
 #define WAIT_INTERVAL 500000
@@ -12,12 +14,17 @@
 
 enum action_e {action_PUT, action_GET};
 enum ch_e {ch_FXS, ch_FXO};
+enum ch_state_e {
+	ch_state_NOT_PROCESSED, 
+	ch_state_HAVE_NO_PAIR, 
+	ch_state_HAVE_PAIR, 
+};
 
-struct ch_couple_s {
-	enum ch_e chans[2];
-} * g_cps = NULL;
+struct ch_status_s {
+	enum ch_state_e chan_state;
+	int pair_idx;
+} * g_ch_status = NULL;
 
-unsigned int g_cps_num = 0;
 int g_verbose = 0;
 
 void
@@ -45,90 +52,58 @@ int
 make_a_couple(ab_chan_t const * const chan_fxs, 
 		ab_chan_t const * const chan_fxo)
 {/*{{{*/
-	int i;
+	struct ch_status_s * const fxs_sts = (struct ch_status_s *)chan_fxs->ctx;
+	struct ch_status_s * const fxo_sts = (struct ch_status_s *)chan_fxo->ctx;
+	enum ch_state_e fxs_s = fxs_sts->chan_state;
+	enum ch_state_e fxo_s = fxo_sts->chan_state;
 
-	/* is this chans in any couples allready */
-	for (i=0; i<g_cps_num; i++){
-		int cross_couple = 
-			(
-				(chan_fxs->abs_idx == g_cps [i].chans[ch_FXS]) &&
-				(chan_fxo->abs_idx != g_cps [i].chans[ch_FXO])
-			) || (
-				(chan_fxs->abs_idx != g_cps [i].chans[ch_FXS]) &&
-				(chan_fxo->abs_idx == g_cps [i].chans[ch_FXO])
-			);
-		int allready_in = 
-			(chan_fxs->abs_idx == g_cps [i].chans[ch_FXS]) &&
-			(chan_fxo->abs_idx == g_cps [i].chans[ch_FXO]);
-		if( cross_couple ){
-			fprintf(stderr,"[%d] and [%d] are in different couples\n",
+	int cross_couples = 0;
+	/* processed chans never been processed before */
+	int new_couple = 
+			(fxs_s == ch_state_NOT_PROCESSED) &&
+			(fxo_s == ch_state_NOT_PROCESSED);
+	/* one of processed chans already have
+	 * been processed but not included in some couple */
+	int fxs_broken_couple = (fxs_s == ch_state_HAVE_NO_PAIR);
+	int fxo_broken_couple = (fxo_s == ch_state_HAVE_NO_PAIR);
+	/* one of processed chans already belongs to other couple */
+	int fxs_cross_couple =
+			(fxs_s == ch_state_HAVE_PAIR) &&
+			(fxs_sts->pair_idx != chan_fxo->abs_idx);
+	int fxo_cross_couple =
+			(fxo_s == ch_state_HAVE_PAIR) &&
+			(fxo_sts->pair_idx != chan_fxs->abs_idx);
+
+	if(new_couple){
+		fxs_sts->chan_state = ch_state_HAVE_PAIR;
+		fxo_sts->chan_state = ch_state_HAVE_PAIR;
+		fxs_sts->pair_idx = chan_fxo->abs_idx;
+		fxo_sts->pair_idx = chan_fxs->abs_idx;
+		fprintf(stdout,"FXS[%d] and FXO[%d] is a new couple\n",
 				chan_fxs->abs_idx, chan_fxo->abs_idx);
-			return -1;
-		} else if(allready_in) {
-			return 0;
+	} else {
+		if(fxs_broken_couple) {
+			fprintf(stderr,"!ERROR: FXS[%d] didn`t find FXO[%d] "
+					"as pair before\n",
+					chan_fxs->abs_idx, chan_fxo->abs_idx);
 		}
-	} 
-
-	/* create new couple */
-	g_cps [g_cps_num].chans[ch_FXS] = chan_fxs->abs_idx;
-	g_cps [g_cps_num].chans[ch_FXO] = chan_fxo->abs_idx;
-	fprintf(stdout,"[%d] and [%d] are in couple\n",
-			g_cps [g_cps_num].chans[ch_FXS],
-			g_cps [g_cps_num].chans[ch_FXO]);
-	g_cps_num++;
-
-	return 0;
-}/*}}}*/
-
-int
-find_couple (ab_chan_t const * const chan_fxs, ab_chan_t const * const chan_fxo)
-{/*{{{*/
-	ab_chan_t const * source_chan = NULL;
-	int idx_to_find;
-	int source_idx;
-	int check = 0;
-	int i;
-
-
-	if( chan_fxs && chan_fxo){
-		/* check that couple 
-		 * return 0 - success
-		 * 1 - fail
-		 * */
-		check = 1;
-	} else if( !chan_fxs || !chan_fxo){
-		if(chan_fxs){
-			/* should find fxo by fxs */	
-			idx_to_find = ch_FXO;
-			source_idx = ch_FXS;
-			source_chan = chan_fxs;
-		} else if(chan_fxo){
-			/* should find fxs by fxo */	
-			idx_to_find = ch_FXS;
-			source_idx = ch_FXO;
-			source_chan = chan_fxo;
-		} else {
-			/* error - nothing to find */	
-			return -1;
+		if(fxo_broken_couple) {
+			fprintf(stderr,"!ERROR: FXO[%d] didn`t find FXS[%d] "
+					"as pair before\n",
+					chan_fxo->abs_idx, chan_fxs->abs_idx);
+		}
+		if(fxs_cross_couple) {
+			fprintf(stderr,"!ERROR: FXS[%d] already in couple with FXO[%d]\n",
+					chan_fxs->abs_idx, fxs_sts->pair_idx);
+			cross_couples = 1;
+		}
+		if(fxo_cross_couple) {
+			fprintf(stderr,"!ERROR: FXO[%d] already in couple with FXS[%d]\n",
+					chan_fxo->abs_idx, fxo_sts->pair_idx);
+			cross_couples = 1;
 		}
 	}
-
-	/* is this chans in any couples allready */
-	for (i=0; i<g_cps_num; i++){
-		if(check){
-			int allready_in = 
-				(chan_fxs->abs_idx == g_cps [i].chans[ch_FXS]) &&
-				(chan_fxo->abs_idx == g_cps [i].chans[ch_FXO]);
-			if(allready_in){
-				return 0; /*couple is in*/
-			}
-		} else {
-			if(source_chan->abs_idx == g_cps [i].chans[source_idx]){
-				return g_cps [i].chans[idx_to_find];
-			}
-		}
-	} 
-	return -1;
+	return cross_couples;
 }/*}}}*/
 
 void
@@ -197,13 +172,11 @@ digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS)
 		err = ab_FXO_line_digit (cFXO, 1, &to_dial [dial_idx], 0, 0);
 		if(err){
 			/* error happen on event getting ioctl */
-			fprintf(stderr,"!ERROR : dial a '%c' on [%d]\n",
+			fprintf(stderr,"!ERROR: dial a '%c' on FXO[%d]\n",
 					to_dial [dial_idx], cFXO->abs_idx);
 			return;
-		} else if( g_verbose){
-			fprintf(stdout,"[%d] >> tone dial '%c'\n",
-					cFXO->abs_idx, to_dial [dial_idx]);
-		}
+		} 
+
 		usleep (WAIT_INTERVAL);
 
 		devs_num=ab->devs_num;
@@ -215,7 +188,7 @@ digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS)
 			err = ab_dev_event_get (cur_dev, &evt, &ca);
 			if(err){
 				/* error happen on event getting ioctl */
-				fprintf(stderr,"!ERROR : dev[%d] : %s\n",i,ab_g_err_str);
+				fprintf(stderr,"!ERROR: dev[%d]: %s\n",i,ab_g_err_str);
 				return;
 			} else if(evt.id == ab_dev_event_NONE){
 				/* no event on current device */
@@ -223,7 +196,7 @@ digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS)
 			}
 			if( !ca){
 				/* no channel number available */
-				fprintf(stderr,"!ERROR !ca : dev[%d] : %s\n",i,ab_g_err_str);
+				fprintf(stderr,"!ERROR: !ca: dev[%d]: %s\n",i,ab_g_err_str);
 				return;
 			}
 			event_acceptor_found = 1;
@@ -232,31 +205,30 @@ digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS)
 
 			if(ab->chans[chan_idx].abs_idx != cFXS->abs_idx){
 				/* got event on channel not in couple */
-				fprintf(stderr,"!ERROR event[%d:0x%lX] on wrong chan[%d]\n",
+				fprintf(stderr,"!ERROR: event[%d:0x%lX] on wrong [%d]\n",
 						evt.id, evt.data, ab->chans[chan_idx].abs_idx);
 				return;
 			} else if((evt.id != ab_dev_event_FXS_DIGIT_TONE) ||
 					((char)evt.data != to_dial[dial_idx])){
 				/* wrong event or data */
-				fprintf(stderr,"!ERROR wrong event %d or data '%c'"
-						" on [%d]\n",
+				fprintf(stderr,"!ERROR: wrong event %d or data '%c' on [%d]\n",
 						evt.id, to_dial[dial_idx], ab->chans[chan_idx].abs_idx);
 				return;
 			} else if(evt.more){
 				/* additional events on correct chan */
-				fprintf(stderr,"!ERROR additional events while diled '%c'"
-						" on [%d]\n",
+				fprintf(stderr,"!ERROR: addit. events while diled '%c'on[%d]\n",
 						to_dial[dial_idx], ab->chans[chan_idx].abs_idx);
 				return;
 			}
 			if( g_verbose){
-				fprintf(stdout,"[%d] << tone dial '%c'\n",
-						ab->chans[chan_idx].abs_idx, to_dial [dial_idx]);
+				fprintf(stdout,"FXS[%d] <<==<< tone '%c' << FXO[%d]\n",
+						ab->chans[chan_idx].abs_idx, to_dial [dial_idx],
+						cFXO->abs_idx);
 			}
 		}
 		if( !event_acceptor_found){
 			/* additional events on correct chan */
-			fprintf(stderr,"!ERROR [%d] can`t detect digit '%c' from [%d]\n",
+			fprintf(stderr,"!ERROR FXS[%d] <<=|=<< tone '%c' << FXO[%d]\n",
 					cFXS->abs_idx,to_dial[dial_idx],cFXO->abs_idx);
 		}
 	} 
@@ -272,33 +244,24 @@ process_FXS(ab_chan_t * const chan)
 	int j;
 	int err;
 	int couple_has_been_found = 0;
-	int couple_idx;
-	int self_idx;
 	int ch;
 	int chan_idx;
-
-	for(self_idx=0;
-			(self_idx < ab->chans_num) && 
-			(chan->abs_idx != ab->chans[self_idx].abs_idx); 
-			self_idx++);
 
 	/* emits ring and mutes it afrterwords {{{ */
 	err = ab_FXS_line_ring(chan, ab_chan_ring_RINGING);
 	if( err){
-		fprintf(stderr,"!ERROR : chan [%d] : %s\n",
-				chan->abs_idx,ab_g_err_str);
+		fprintf(stderr,"!ERROR: FXS[%d]: %s\n", chan->abs_idx,ab_g_err_str);
 		return;
 	} else if( g_verbose){
-		fprintf(stdout,"[%d] >> RING\n",chan->abs_idx);
+		fprintf(stdout,"FXS[%d] >> RING\n",chan->abs_idx);
 	}
 	usleep (WAIT_INTERVAL);
 	err = ab_FXS_line_ring(chan, ab_chan_ring_MUTE);
 	if( err){
-		fprintf(stderr,"!ERROR : chan [%d] : %s\n",
-				chan->abs_idx,ab_g_err_str);
+		fprintf(stderr,"!ERROR: FXS[%d]: %s\n", chan->abs_idx,ab_g_err_str);
 		return;
 	} else if( g_verbose){
-		fprintf(stdout,"[%d] >> RING (mute)\n",chan->abs_idx);
+		fprintf(stdout,"FXS[%d] Stops RINGING\n",chan->abs_idx);
 	}/*}}}*/
 
 	usleep (WAIT_INTERVAL);
@@ -310,7 +273,7 @@ process_FXS(ab_chan_t * const chan)
 		err = ab_dev_event_get (cur_dev, &evt, &ca);
 		if(err){
 			/* error happen on event getting ioctl */
-			fprintf(stderr,"!ERROR : dev[%d] : %s\n",i,ab_g_err_str);
+			fprintf(stderr,"!ERROR: dev[%d]: %s\n",i,ab_g_err_str);
 			return;
 		} else if(evt.id == ab_dev_event_NONE){
 			/* no event on current device */
@@ -329,17 +292,16 @@ process_FXS(ab_chan_t * const chan)
 		if(	evt.id == ab_dev_event_FXO_RINGING &&
 				cur_dev->type == ab_dev_type_FXO){
 			if( g_verbose){
-				fprintf(stdout,"[%d] << RING(or mute)\n",
+				fprintf(stdout,"FXO[%d] << RING (START or STOP)\n",
 						ab->chans[chan_idx].abs_idx);
 			}
-			/* make them a couple, 
-			 * it emits error if channels in differ couples*/
+			/* make them a couple */
 			err = make_a_couple(chan, &ab->chans[chan_idx]);
 			if(err){
+				/* cross_couples find */
 				return;
 			} 
 			couple_has_been_found = 1;
-			couple_idx = chan_idx;
 
 			/* parse other events on this device */
 			while(evt.more){
@@ -351,27 +313,23 @@ process_FXS(ab_chan_t * const chan)
 				chan_idx = i * ab->chans_per_dev + evt.ch;
 				/* event on unexpected channel */
 				if(evt.ch != ch){
-					fprintf(stderr,"!ERROR Event on wrong "
-							"channel [%d]\n",
+					fprintf(stderr,"!ERROR Event on wrong channel [%d]\n",
 							ab->chans[chan_idx].abs_idx);
 					return;
 				}
 				/* unexpected event on channel in couple */
 				if(evt.id != ab_dev_event_FXO_RINGING){
-					fprintf(stderr,"!ERROR Wrong event [%d/0x%lX] "
-							"on channel [%d]\n",
-							evt.id, evt.data,
-							ab->chans[chan_idx].abs_idx);
+					fprintf(stderr,"!ERROR Wrong event [%d/0x%lX] on FXO[%d]\n",
+							evt.id, evt.data, ab->chans[chan_idx].abs_idx);
 					return;
 				}
 				if( g_verbose){
-					fprintf(stdout,"[%d] << RING(or mute)\n",
+					fprintf(stdout,"FXO[%d] << RING (START or STOP)\n",
 							ab->chans[chan_idx].abs_idx);
 				}
 			}
 		} else {
-			fprintf(stderr,"!ERROR FXS[%d] >> RING and [%d]"
-					" detcts [%d/0x%lX]\n",
+			fprintf(stderr,"!ERROR FXS[%d] >> RING and [%d] << [%d/0x%lX]\n",
 					chan->abs_idx, ab->chans[chan_idx].abs_idx,
 					evt.id, evt.data);
 			return;
@@ -379,13 +337,13 @@ process_FXS(ab_chan_t * const chan)
 	}/*}}}*/
 	/* if no couple - tell about it {{{*/
 	if( !couple_has_been_found){
-		int rez;
-		rez = find_couple(chan, NULL);
-		if(rez != -1){
-			fprintf(stdout,"!ERROR [%d] can`t detect events from [%d]\n", 
-					rez, chan->abs_idx);
+		struct ch_status_s * const sts = (struct ch_status_s * )chan->ctx;
+		if(sts->chan_state == ch_state_HAVE_PAIR){
+			fprintf(stdout,"!ERROR FXO[%d] <<=|=<< RING FXS[%d]\n", 
+					sts->pair_idx, chan->abs_idx);
 		} else {
-			fprintf(stdout,"!ATT no couple found for [%d]\n", chan->abs_idx);
+			fprintf(stdout,"!ATT no couple found for FXS[%d]\n", chan->abs_idx);
+			sts->chan_state = ch_state_HAVE_NO_PAIR;
 		}
 		return;
 	} /*}}}*/
@@ -403,22 +361,16 @@ process_FXO(ab_chan_t * const chan)
 	int couple_has_been_found = 0;
 	int couple_idx = -1;
 	int chan_idx;
-	int self_idx;
 	int ch;
-
-	for(self_idx=0;
-			(self_idx < ab->chans_num) && 
-			(chan->abs_idx != ab->chans[self_idx].abs_idx); 
-			self_idx++);
 
 	/* emits offhook {{{*/
 	err = ab_FXO_line_hook(chan, ab_chan_hook_OFFHOOK);
 	if( err){
-		fprintf(stderr,"!ERROR : chan [%d] : %s\n",
+		fprintf(stderr,"!ERROR: FXO[%d]: %s\n",
 				chan->abs_idx,ab_g_err_str);
 		return;
 	} else if( g_verbose){
-		fprintf(stdout,"[%d] >> OFFHOOK\n",chan->abs_idx);
+		fprintf(stdout,"FXO[%d] >> OFFHOOK\n",chan->abs_idx);
 	}
 	/*}}}*/
 
@@ -431,7 +383,7 @@ process_FXO(ab_chan_t * const chan)
 		err = ab_dev_event_get (cur_dev, &evt, &ca);
 		if(err){
 			/* error happen on event getting ioctl */
-			fprintf(stderr,"!ERROR : dev[%d] : %s\n",i,ab_g_err_str);
+			fprintf(stderr,"!ERROR: dev[%d]: %s\n",i,ab_g_err_str);
 			return;
 		} else if(evt.id == ab_dev_event_NONE){
 			/* no event on current device */
@@ -439,7 +391,7 @@ process_FXO(ab_chan_t * const chan)
 		}
 		if( !ca){
 			/* no channel number available */
-			fprintf(stderr,"!ERROR !ca : dev[%d] : %s\n",i,ab_g_err_str);
+			fprintf(stderr,"!ERROR !ca: dev[%d]: %s\n",i,ab_g_err_str);
 			return;
 		}
 
@@ -451,13 +403,13 @@ process_FXO(ab_chan_t * const chan)
 		if(	evt.id == ab_dev_event_FXS_OFFHOOK &&
 				cur_dev->type == ab_dev_type_FXS){
 			if( g_verbose){
-				fprintf(stdout,"[%d] << OFFHOOK\n",
+				fprintf(stdout,"FXS[%d] << OFFHOOK\n",
 						ab->chans[chan_idx].abs_idx);
 			}
-			/* make them a couple, 
-			 * it emits error if channels in differ couples*/
+			/* make them a couple */
 			err = make_a_couple (&ab->chans[chan_idx], chan);
 			if(err){
+			 /* channels in differ couples */
 				return;
 			} 
 			couple_has_been_found = 1;
@@ -467,7 +419,7 @@ process_FXO(ab_chan_t * const chan)
 			if(evt.more){
 				err = ab_dev_event_get(cur_dev, &evt, &ca);
 				if(err){
-					fprintf(stderr,"!ERROR : %s\n",ab_g_err_str);
+					fprintf(stderr,"!ERROR: %s\n",ab_g_err_str);
 					return;
 				}
 				chan_idx = i * ab->chans_per_dev + evt.ch;
@@ -475,21 +427,19 @@ process_FXO(ab_chan_t * const chan)
 				/* event on unexpected channel */
 				if(evt.ch != ch){
 					fprintf(stderr,"!ERROR Wrong event [%d/0x%lX] on "
-							"wrong channel [%d]\n",
+							"wrong FXS[%d]\n",
 							evt.id, evt.data,
 							ab->chans[chan_idx].abs_idx);
 					return;
 				}
 				/* unexpected event on channel in couple */
-				fprintf(stderr,"!ERROR Wrong event [%d/0x%lX] "
-						"on channel [%d]\n",
+				fprintf(stderr,"!ERROR Wrong event [%d/0x%lX] on FXS[%d]\n",
 						evt.id, evt.data,
 						ab->chans[chan_idx].abs_idx);
 				return;
 			}
 		} else {
-			fprintf(stderr,"!ERROR FXS[%d] >> OFFHOOK and [%d]"
-					"detcts [%d/0x%lX]\n",
+			fprintf(stderr,"!ERROR FXS[%d] >> OFFHOOK and [%d] << [%d/0x%lX]\n",
 					chan->abs_idx, ab->chans[chan_idx].abs_idx,
 					evt.id, evt.data);
 			return;
@@ -497,24 +447,26 @@ process_FXO(ab_chan_t * const chan)
 	} /*}}}*/
 	/* if no couple - tell about it {{{*/
 	if( !couple_has_been_found){
-		int rez;
-		rez = find_couple(NULL, chan);
-		if(rez != -1){
-			fprintf(stdout,"!ERROR [%d] can`t detect events from [%d]\n", 
-					rez, chan->abs_idx);
+		struct ch_status_s * const sts = (struct ch_status_s * )chan->ctx;
+		if(sts->chan_state == ch_state_HAVE_PAIR){
+			fprintf(stdout,"!ERROR FXS[%d] <<=|=<< OFFHOOK FXO[%d]\n", 
+					sts->pair_idx, chan->abs_idx);
+			fprintf(stdout,"!=>!ATT SKIP digits test on FXS[%d] and FXO[%d]\n", 
+					sts->pair_idx, chan->abs_idx);
 		} else {
-			fprintf(stdout,"!ATT no couple found for [%d]\n", chan->abs_idx);
+			fprintf(stdout,"!ATT no couple found for FXO[%d]\n", chan->abs_idx);
+			sts->chan_state = ch_state_HAVE_NO_PAIR;
 		} /*}}}*/
 	} else {
 		/* then emits digits and onhook for this chan {{{*/
 		/* remember the last state and set linefeed to active on all FXSchans */
-		linefeed_keeper( ab, action_PUT);
+		linefeed_keeper (ab, action_PUT);
 		j=ab->chans_num;
 		for (i=0; i<j; i++){
 			if(ab->chans[i].parent->type == ab_dev_type_FXS){
 				err = ab_FXS_line_feed(&ab->chans[i],ab_chan_linefeed_ACTIVE);
 				if(err){
-					fprintf(stderr,"!ERROR : set linefeed to active on [%d]\n",
+					fprintf(stderr,"!ERROR: set lfeed to active on FXS[%d]\n",
 							ab->chans[i].abs_idx);
 					return;
 				}
@@ -527,11 +479,11 @@ process_FXO(ab_chan_t * const chan)
 		/* onhook on the tested chan */
 		err = ab_FXO_line_hook(chan, ab_chan_hook_ONHOOK);
 		if(err){
-			fprintf(stderr,"!ERROR : set hook to onhook [%d]\n",
+			fprintf(stderr,"!ERROR: set hook to onhook [%d]\n",
 					ab->chans[couple_idx].abs_idx);
 			return;
 		} else if( g_verbose){
-			fprintf(stdout,"[%d] >> ONHOOK\n",chan->abs_idx);
+			fprintf(stdout,"FXO[%d] >> ONHOOK\n",chan->abs_idx);
 		}
 
 		/* get onhook from couple */
@@ -539,18 +491,18 @@ process_FXO(ab_chan_t * const chan)
 		err = ab_dev_event_get (ab->chans[couple_idx].parent, &evt, &ca);
 		if(err){
 			/* error happen on event getting ioctl */
-			fprintf(stderr,"!ERROR : chan[%d] : %s\n",
+			fprintf(stderr,"!ERROR: chan[%d]: %s\n",
 					ab->chans[couple_idx].abs_idx,ab_g_err_str);
 			return;
 		} else if(evt.id == ab_dev_event_NONE){
 			/* no event on current device */
-			fprintf(stderr,"!ERROR [%d] can`t dectect ONHOOK\n",
+			fprintf(stderr,"!ERROR: FXS[%d] <<=|=<< ONHOOK\n",
 					ab->chans[couple_idx].abs_idx);
 			return;
 		}
 		if( !ca){
 			/* no channel number available */
-			fprintf(stderr,"!ERROR !ca : chan[%d] : %s\n",
+			fprintf(stderr,"!ERROR: !ca: FXS[%d]: %s\n",
 					ab->chans[couple_idx].abs_idx,ab_g_err_str);
 			return;
 		}
@@ -559,12 +511,12 @@ process_FXO(ab_chan_t * const chan)
 
 		if((chan_idx != couple_idx) || (evt.id != ab_dev_event_FXS_ONHOOK)){
 			/* got unexpected event or(and) the unexpected channel */
-			fprintf(stderr,"!ERROR event [%d/0x%lX] on channel [%d]\n",
+			fprintf(stderr,"!ERROR: event [%d/0x%lX] on channel [%d]\n",
 					evt.id, evt.data,
 					ab->chans[chan_idx].abs_idx);
 			return;
 		} else if( g_verbose){
-			fprintf(stdout,"[%d] << ONHOOK\n",
+			fprintf(stdout,"FXS[%d] << ONHOOK\n",
 					ab->chans[chan_idx].abs_idx);
 		}
 
@@ -583,7 +535,7 @@ main (int argc, char *argv[])
 	if(argc==2){
 		if( !strcmp (argv[1], "-v")){
 			g_verbose = 1;
-		} else{
+		} else {
 			fprintf(stdout,"use -v for verbosity output\n");
 			exit (EXIT_SUCCESS);
 		}
@@ -596,20 +548,23 @@ main (int argc, char *argv[])
 		exit (EXIT_FAILURE);
 	}
 
-	/* allocate memory for g_cps*/
-	g_cps = malloc(sizeof(*g_cps)*ab->chans_num);
-	if( !g_cps){
-		fprintf(stderr,"!ERROR : Not enough memory for cps\n");
+	g_ch_status = malloc(sizeof(*g_ch_status)*ab->chans_num);
+	if( !g_ch_status){
+		fprintf(stderr,"!ERROR : Not enough memory for ch_status\n");
 		ab_destroy(&ab);
 		exit (EXIT_FAILURE);
 	}
 
 	usleep (WAIT_INTERVAL);
 
-	/* for initial onhook events from FXO channels */
 	j=ab->chans_num;
 	for (i=0; i<j; i++){
-		events_clean(&ab->chans[i]);
+		ab_chan_t * curr_chan = &ab->chans[i];
+		/* for initial onhook events from FXO channels */
+		events_clean(curr_chan);
+		/* init all channels context and state of it */
+		curr_chan->ctx = &g_ch_status[i];
+		g_ch_status[i].chan_state = ch_state_NOT_PROCESSED;
 	}
 
 	usleep (WAIT_INTERVAL);
@@ -631,7 +586,7 @@ main (int argc, char *argv[])
 	ab_destroy(&ab);
 
 	/* free g_cps memory */
-	free (g_cps);
+	free (g_ch_status);
 
 	return 0;
 }/*}}}*/

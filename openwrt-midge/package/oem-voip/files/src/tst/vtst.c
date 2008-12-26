@@ -70,8 +70,10 @@ set_df_pt( void )
 		g_so.vcod.sdp_selected_payload = 99;
 	} else if(g_so.vcod.type == cod_type_ILBC_133){
 		g_so.vcod.sdp_selected_payload = 100;
+		/*
 	} else if(g_so.vcod.type == cod_type_ILBC_152){
 		g_so.vcod.sdp_selected_payload = 100;
+		*/
 	} else if(g_so.vcod.type == cod_type_G723){
 		g_so.vcod.sdp_selected_payload = 4;
 	} else if(g_so.vcod.type == cod_type_G726_16){
@@ -97,8 +99,8 @@ set_df_sz( void )
 			g_so.vcod.pkt_size = cod_pkt_size_10;
 	} else if(	
 		g_so.vcod.type == cod_type_ALAW ||
-		g_so.vcod.type == cod_type_MLAW ||
-		g_so.vcod.type == cod_type_ILBC_152){
+		g_so.vcod.type == cod_type_MLAW /*||
+		g_so.vcod.type == cod_type_ILBC_152*/){
 			g_so.vcod.pkt_size = cod_pkt_size_20;
 	} else if(
 		g_so.vcod.type == cod_type_ILBC_133 ||
@@ -164,8 +166,10 @@ startup_init (int argc, char * const argv[])
 					g_so.vcod.type = cod_type_G729E;
 				} else if( !strcmp(token,ILBC133_CFG_NAME)) {
 					g_so.vcod.type = cod_type_ILBC_133;
+					/*
 				} else if( !strcmp(token,ILBC152_CFG_NAME)) {
 					g_so.vcod.type = cod_type_ILBC_152;
+					*/
 				} else if( !strcmp(token,G723_CFG_NAME)) {
 					g_so.vcod.type = cod_type_G723;
 				} else if( !strcmp(token,G72616_CFG_NAME)) {
@@ -296,8 +300,10 @@ startup_print (void)
 		fprintf(stderr,"%s\n",G729E_CFG_NAME);
 	} else if(g_so.vcod.type == cod_type_ILBC_133){
 		fprintf(stderr,"%s\n",ILBC133_CFG_NAME);
+		/*
 	} else if(g_so.vcod.type == cod_type_ILBC_152){
 		fprintf(stderr,"%s\n",ILBC152_CFG_NAME);
+		*/
 	} else if(g_so.vcod.type == cod_type_G723){
 		fprintf(stderr,"%s\n",G723_CFG_NAME);
 	} else if(g_so.vcod.type == cod_type_G726_16){

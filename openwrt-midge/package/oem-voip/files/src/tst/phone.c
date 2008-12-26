@@ -109,6 +109,18 @@ int main (int argc, char *argv[])
 				fprintf(stderr,"[%d]-FXS_OFFHOOK\n", evt.ch);	
 				break;
 			}	
+			case ab_dev_event_FXS_FM_CED: {
+				fprintf(stderr,"[%d]-FXS_FM_CED\n", evt.ch);	
+				break;
+			}	
+			case ab_dev_event_COD: {
+				fprintf(stderr,"[%d]-COD\n", evt.ch);	
+				break;
+			}	
+			case ab_dev_event_TONE: {
+				fprintf(stderr,"[%d]-TONE\n", evt.ch);	
+				break;
+			}	
 		}
 				} while(evt.more);
 
@@ -153,6 +165,18 @@ int main (int argc, char *argv[])
 			}	
 			case ab_dev_event_FXS_OFFHOOK: {
 				fprintf(stderr,"[%d]-FXS_OFFHOOK\n", evt.ch);
+				break;
+			}	
+			case ab_dev_event_FXS_FM_CED: {
+				fprintf(stderr,"[%d]-FXS_FM_CED\n", evt.ch);	
+				break;
+			}	
+			case ab_dev_event_COD: {
+				fprintf(stderr,"[%d]-COD\n", evt.ch);	
+				break;
+			}	
+			case ab_dev_event_TONE: {
+				fprintf(stderr,"[%d]-TONE\n", evt.ch);	
 				break;
 			}	
 		}
