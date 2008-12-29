@@ -163,7 +163,7 @@ Controllers.info = function() {
 				"name": "voip",
 				"text": "VoIP",
 				"str": function() {
-					var info = "";
+					var info = {};
 					
 					var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels");
 					
@@ -172,11 +172,37 @@ Controllers.info = function() {
 							if (channel.length == 0) {
 								return true;
 							}
+
 							var channel = channel.split(":");
-							info += $.sprintf("%s (%s) ", channel[0], channel[1]);
+							var channelIdx = parseInt(channel[0]);
+							if (channelIdx <= 7) {
+								channelIdx = 1;
+							} else if (channelIdx <= 15) {
+								channelIdx = 2;
+							} else if (channelIdx <= 23) {
+								channelIdx = 3;
+							} else if (channelIdx <= 31) {
+								channelIdx = 4;
+							}
+
+							if (!info[channelIdx]) {
+								info[channelIdx] = $.sprintf("Module %s: ", channelIdx);
+							}
+
+							info[channelIdx] += $.sprintf("%s (%s) ", channel[0], channel[1]);
 						});
+
+						var result = "";
+						$.each(info, function(num, val) {
+							if (result.length > 0) {
+								result += "<br>";
+							}
+							result += val;
+						});
+						return result;
+					} else {
+						return "none";
 					}
-					return info ? info : "none";
 				}()
 			};
 			c.addWidget(field);
