@@ -938,32 +938,34 @@ function Container(p, options) {
 	/*
 	 * Submit form in traditional way, without AJAX.
 	 * 
-	 * options['submitName'] — name of button for submitting;
-	 * options['formAction'] — action for the form;
-	 * options['encType'] — enctype property for the form.
+	 * options.submitName — name of button for submitting;
+	 * options.formAction — action for the form;
+	 * options.encType — enctype property for the form.
 	 */
 	this.addSubmitNoAjax = function(options) {
-		if (options && options['formAction']) {
-			this.form.attr("action", "/cfg.cgi");
+		if (options && options.formAction) {
+			this.form.attr("action", options.formAction);
 		}
 		
-		if (options && options['method']) {
-			this.form.attr("method", "post");
+		if (options && options.method) {
+			this.form.attr("method", options.method);
 		}
 		
-		if (options && options['encType']) {
-			this.form.attr("enctype", "multipart/form-data");
+		if (options && options.encType) {
+			this.form.attr("enctype", options.encType);
 			
 			/* IE fix */
-			this.form.attr("encoding", "multipart/form-data");
+			this.form.attr("encoding", options.encType);
 		}
 		
 		/* create submit button */
-		$.create("input", {
-			"type": "submit",
-			"className": "button",
-			"value": options && options['submitName'] ? _(options['submitName']) : _("Save")
-		}).appendTo(this.form);
+		$.create("input",
+			{
+				"type": "submit",
+				"className": "button",
+				"value": options && options.submitName ? _(options.submitName) : _("Save")
+			}
+		).appendTo(this.form);
 	};
 	
 	/*

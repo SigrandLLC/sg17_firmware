@@ -1,8 +1,716 @@
+Controllers.dynamic_ifaces = function() {
+	var page = this.Page();
+	page.setHelpPage("ifaces");
+
+	page.addTab({
+		"id": "dynamic_ifaces",
+		"name": "Dynamic ifaces",
+		"func": function() {
+			/* update list of ifaces for deletion */
+			var setIfaces = function() {
+				var ifaces = new Array();
+				$.each(config.getParsed("sys_ifaces"), function(name, value) {
+					if (value.search(/\w+\d+v\d+/) != -1 || value.search(/eth|dsl|E1/) == -1) {
+						ifaces.push(value);
+					}
+				});
+
+				$("#del_iface").setOptionsForSelect(ifaces);
+			};
+
+
+			var c, field;
+			c = page.addContainer("dynamic_ifaces");
+			c.addTitle("Add dynamic network interface");
+
+			/* IDs of VLAN widgets */
+			var vlanWidgetsIDs = new Array();
+
+			/* add, if not exist, widgets for VLAN */
+			var addVlanWidgets = function() {
+				if (vlanWidgetsIDs.length != 0) return;
+
+				/* phys_iface */
+				var physIfaces = new Array();
+				$.each(config.getParsed("sys_ifaces"), function(name, value) {
+					if (value.search(/\w+\d+v\d+/) == -1) {
+						physIfaces.push(value);
+					}
+				});
+
+				vlanWidgetsIDs.push("phys_iface");
+				field = {
+					"type": "select",
+					"name": "phys_iface",
+					"text": "Physical interface",
+					"options": physIfaces
+				};
+				c.addWidget(field);
+
+				/* vlan_id */
+				vlanWidgetsIDs.push("vlan_id");
+				field = {
+					"type": "text",
+					"name": "vlan_id",
+					"text": "VLAN ID"
+				};
+				c.addWidget(field);
+			};
+
+			/* remove, if exist, widgets for VLAN */
+			var removeVlanWidgets = function() {
+				if (vlanWidgetsIDs.length != 0) {
+					$.each(vlanWidgetsIDs, function(num, value) {
+						$("#" + value).parents("tr").remove();
+					});
+					vlanWidgetsIDs = new Array();
+				}
+			};
+
+			field = {
+				"type": "select",
+				"name": "iface_proto",
+				"id": "iface_proto",
+				"text": "Protocol",
+				"descr": "Please select interface protocol",
+				"options": {"bridge": "Bridge", "bonding": "Bonding", "vlan": "VLAN"},
+				"onChange": function() {
+					if ($("#iface_proto").val() == "vlan") {
+						addVlanWidgets();
+					} else {
+						removeVlanWidgets();
+					}
+				}
+			};
+			c.addWidget(field);
+
+			c.addSubmit({
+				"submitName": "Add",
+				"noSubmit": true,
+				"onSubmit": function() {
+					var parameters = {"proto": $("#iface_proto").val()};
+
+					/* set parameters for VLAN interface */
+					if ($("#iface_proto").val() == "vlan") {
+						/* set real (in system) interface name */
+						parameters.real =
+							$.sprintf("%s.%s", $("#phys_iface").val(), $("#vlan_id").val());
+
+						/* set interface name, used in KDB (and webface) */
+						parameters.iface =
+							$.sprintf("%sv%s", $("#phys_iface").val(), $("#vlan_id").val());
+
+						/* set dependOn interface and VLAN ID */
+						parameters.dependOn = $("#phys_iface").val();
+						parameters.vlanId = $("#vlan_id").val();
+					}
+					var newIface = config.addIface(parameters);
+
+					setIfaces();
+
+                    if ($("#iface_proto").val() == "bridge" || $("#iface_proto").val() == "bonding") {
+                        Controllers.wizard(newIface);
+                    }
+				}
+			});
+
+			page.addBr("dynamic_ifaces");
+			var c2 = page.addContainer("dynamic_ifaces");
+			c2.addTitle("Delete dynamic network interface");
+
+			field = {
+				"type": "select",
+				"name": "del_iface",
+				"id": "del_iface",
+				"text": "Interface",
+				"descr": "Interface to delete",
+				"options": ""
+			};
+			c2.addWidget(field);
+
+			setIfaces();
+
+			c2.addSubmit({
+				"submitName": "Delete",
+				"noSubmit": true,
+				"onSubmit": function() {
+					if ($("#del_iface").val() != null) {
+						config.delIface($("#del_iface").val());
+						setIfaces();
+                        return true;
+					} else {
+                        return false;
+                    }
+				}
+			});
+		}
+	});
+
+	page.generateTabs();
+};
+
+/*
+ * Controller for fast & simple bridge setup.
+ */
+Controllers.wizard = function(iface) {
+    var page = this.Page();
+	page.setSubsystem("network." + iface);
+
+	page.addTab({
+		"id": "bridge",
+		"name": "Setup wizard",
+		"func": function() {
+			var c, field;
+			c = page.addContainer("bridge");
+
+			if (iface.search("br") != -1) {
+				c.addTitle("Bridge setup wizard");
+			} else {
+				c.addTitle("Bonding setup wizard");
+			}
+
+			var showMethod = function() {
+				/* remove method's widgets */
+				$(".tmpMethod").parents("tr").remove();
+
+				if ($("#method").val() == "static") {
+					field = {
+						"type": "text",
+						"name": $.sprintf("sys_iface_%s_ipaddr", iface),
+						"text": "Static address",
+						"descr": "IP address.",
+						"tip": "e.g., 192.168.2.100",
+						"validator": {"required": true, "ipAddr": true},
+						"cssClass": "tmpMethod"
+					};
+					c.addWidget(field);
+
+					field = {
+						"type": "text",
+						"name": $.sprintf("sys_iface_%s_netmask", iface),
+						"text": "Netmask",
+						"descr": "Network mask.",
+						"tip": "e.g., 255.255.255.0",
+						"validator": {"required": true, "netmask": true},
+						"cssClass": "tmpMethod"
+					};
+					c.addWidget(field);
+
+					field = {
+						"type": "text",
+						"name": $.sprintf("sys_iface_%s_broadcast", iface),
+						"text": "Broadcast",
+						"descr": "Broadcast address.",
+						"tip": "e.g., 192.168.2.255",
+						"validator": {"ipAddr": true},
+						"cssClass": "tmpMethod"
+					};
+					c.addWidget(field);
+
+					field = {
+						"type": "text",
+						"name": $.sprintf("sys_iface_%s_gateway", iface),
+						"text": "Gateway",
+						"descr": "Default gateway.",
+						"tip": "e.g., 192.168.2.1",
+						"validator": {"ipAddr": true},
+						"cssClass": "tmpMethod"
+					};
+					c.addWidget(field);
+				}
+			};
+
+			field = {
+				"type": "text",
+				"name": $.sprintf("sys_iface_%s_desc", iface),
+				"text": "Description",
+				"descr": "Description of interface."
+			};
+			c.addWidget(field);
+
+			/* we setup bridge */
+			if (iface.search("br") != -1) {
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_iface_%s_br_ifaces", iface),
+					"id": "ifaces",
+					"text": "Bridge interfaces",
+					"descr": "Interfaces for bridge separated by space.",
+					"tip": "<b>Example:</b> eth0 eth1 dsl0<br><b>Note:</b> You can use only" +
+							" Ethernet-like interfaces, like ethX, dslX<br><b>Note:</b> Interfaces should" +
+							" be enabled, but <b>auto</b> should be switched <b>off</b>.",
+					"validator": {"required": true}
+				};
+				c.addWidget(field);
+			/* we setup bonding */
+			} else {
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_iface_%s_bond_ifaces", iface),
+					"id": "ifaces",
+					"text": "Bonding interfaces",
+					"descr": "Interfaces for bonding separated by space.",
+					"tip": "<b>Example:</b>eth0 eth1 dsl0<br><b>Note:</b>You can use only Ethernet-like" +
+							" interfaces, like ethX, dslX, bondX<br><b>Note:</b> Interfaces should be" +
+							" enabled, but <b>auto</b> should be switched <b>off</b>.",
+					"validator": {"required": true}
+				};
+				c.addWidget(field);
+			}
+
+			field = {
+				"type": "checkbox",
+				"name": $.sprintf("sys_iface_%s_enabled", iface),
+				"text": "Enabled",
+				"descr": "If set, interface can be start on boot or by another interface."
+			};
+			c.addWidget(field);
+
+			field = {
+				"type": "checkbox",
+				"name": $.sprintf("sys_iface_%s_auto", iface),
+				"text": "Auto",
+				"descr": "If set and interface is enabled, it will be start on boot."
+			};
+			c.addWidget(field);
+
+			field = {
+				"type": "select",
+				"name": $.sprintf("sys_iface_%s_method", iface),
+				"id": "method",
+				"text": "Method",
+				"descr": "Method of setting IP address.",
+				"options": {"none": "None", "static": "Static address", "zeroconf": "Zero Configuration",
+							"dynamic": "Dynamic address"},
+				"onChange": showMethod
+			};
+			c.addWidget(field);
+
+			/* set auto=0 enabled=1 for depending interfaces */
+			var additionalKeys = [];
+			c.addSubmit({
+				"additionalKeys": additionalKeys,
+				"preSubmit": function() {
+					$.each($("#ifaces").val().split(" "),
+						function(num, value) {
+							$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_auto", value), "0");
+							$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_enabled", value), "1");
+						}
+					);
+				}
+			});
+		}
+	});
+
+	page.generateTabs();
+};
+
+Controllers.fw = function() {
+	var page = this.Page();
+	page.setSubsystem("fw");
+	page.setHelpPage("fw");
+
+	/* settings tab */
+	page.addTab({
+		"id": "settings",
+		"name": "Firewall settings",
+		"func": function() {
+			var c, field;
+			c = page.addContainer("settings");
+			c.addTitle("Firewall settings");
+
+			field = {
+				"type": "checkbox",
+				"name": "sys_fw_enabled",
+				"text": "Enable firewall"
+			};
+			c.addWidget(field);
+
+			c.addSubmit();
+		}
+	});
+
+	/*
+	 * Event handler.
+	 * When adding or editing FW rule:
+	 * when selected targets DNAT or SNAT, add NatTo widget.
+	 *
+	 * list — current list to add new widget to (passed automatically by framework).
+	 */
+	var onChangeTargetOrProto = function(list) {
+		var field;
+
+		/* get type of target */
+		var target = $("#target").val();
+
+		/* if target is DNAT or SNAT */
+		if (target == "DNAT" || target == "SNAT") {
+			/* if there is no NatTo field — add it */
+			if ($("#natto").length == 0) {
+				/* add new field */
+				field = {
+					"type": "text",
+					"name": "natto",
+					"text": "Nat to address",
+					"descr": target == "DNAT" ? "Do Destination NAT to address" : "Do Source NAT to address",
+					"validator": {"required": true, "ipAddrPort": true},
+					"tip": "You can add port number after ip address<br><i>Example: 192.168.0.1:80</i>"
+				};
+				list.addDynamicWidget(field,
+					{"type": "insertAfter", "anchor": $("#dst").parents("tr")});
+			}
+		/* remove field */
+		} else $("#natto").parents("tr").remove();
+
+		/* get proto */
+		var proto = $("#proto").val();
+
+		/* if protocol is TCP or UDP */
+		if (proto == "tcp" || proto == "udp") {
+			/* if there is no dport field (and in this case sport too) — add it */
+			if ($("#dport").length == 0) {
+				tip = "An inclusive range can also be specified, using the format <b>port:port</b>. " +
+						"If the first port is omitted, 0 is assumed; if the last is omitted, 65535 is assumed.";
+
+				field = {
+					"type": "text",
+					"name": "sport",
+					"text": "Source port",
+					"descr": "Source port or port range",
+					"validator": {"required": true, "ipPortRange": true},
+					"defaultValue": "any",
+					"tip": tip
+				};
+				list.addDynamicWidget(field,
+					{"type": "insertAfter", "anchor": $("#proto").parents("tr")});
+
+				field = {
+					"type": "text",
+					"name": "dport",
+					"text": "Destination port",
+					"descr": "Destination port or port range",
+					"validator": {"required": true, "ipPortRange": true},
+					"defaultValue": "any",
+					"tip": tip
+				};
+				list.addDynamicWidget(field,
+					{"type": "insertAfter", "anchor": $("#proto").parents("tr")});
+			}
+		/* remove fields */
+		} else {
+			$("#sport").parents("tr").remove();
+			$("#dport").parents("tr").remove();
+		}
+	};
+
+	/*
+	 * Adds widgets for adding or editing FW rules.
+	 *
+	 * options — array of options:
+	 *  - list — list object to add widgets to;
+	 *  - chain — name of chain for which widgets is added.
+	 */
+	var addFwAddingRuleWidgets = function(options) {
+		var field;
+
+		field = {
+			"type": "checkbox",
+			"name": "enabled",
+			"text": "Enabled",
+			"descr": "Check this item to enable rule"
+		};
+		options['list'].addWidget(field);
+
+		field = {
+			"type": "text",
+			"name": "name",
+			"text": "Short name",
+			"descr": "Name of rule",
+			"validator": {"required": true, "alphanumU": true}
+		};
+		options['list'].addWidget(field);
+
+		field = {
+			"type": "select",
+			"name": "proto",
+			"text": "Protocol",
+			"descr": "A protocol of the packet to check",
+			"defaultValue": "all",
+			"options": "all tcp udp icmp",
+			"onChange": onChangeTargetOrProto
+		};
+		options['list'].addWidget(field);
+
+		var tip = "Address can be either a network IP address (with /mask), or a plain IP address, " +
+				"A ! argument before the address specification inverts the sense of the address." +
+				"<br><b>Examples:</b> 192.168.1.0/24, 192.168.1.5<br> Use 0.0.0.0/0 for <b>any</b>";
+
+		field = {
+			"type": "text",
+			"name": "src",
+			"text": "Source IP",
+			"descr": "Source address",
+			"validator": {"required": true, "ipNetMaskIptables": true},
+			"defaultValue": "0.0.0.0/0",
+			"tip": tip
+		};
+		options['list'].addWidget(field);
+
+		field = {
+			"type": "text",
+			"name": "dst",
+			"text": "Destination IP",
+			"descr": "Destination address",
+			"validator": {"required": true, "ipNetMaskIptables": true},
+			"defaultValue": "0.0.0.0/0",
+			"tip": tip
+		};
+		options['list'].addWidget(field);
+
+		var targets = "ACCEPT DROP";
+
+		/* depending on chain add additional targets */
+		switch (options['chain']) {
+			case "PREROUTING":
+				targets += " DNAT";
+				break;
+
+			case "POSTROUTING":
+				targets += " SNAT MASQUERADE";
+				break;
+
+			case "INPUT":
+			case "OUTPUT":
+			case "FORWARD":
+				targets += " REJECT";
+				break;
+		}
+
+		field = {
+			"type": "select",
+			"name": "target",
+			"text": "Action",
+			"descr": "What to do with packet",
+			"defaultValue": "ACCEPT",
+			"options": targets,
+			"onChange": onChangeTargetOrProto
+		};
+		options['list'].addWidget(field);
+	};
+
+	/* FILTER tab */
+	page.addTab({
+		"id": "filter",
+		"name": "Filter",
+		"func": function() {
+			var c, field, list;
+
+			/* policies */
+			c = page.addContainer("filter");
+			c.setHelpSection("filter_policy");
+			c.addTitle("Default policies");
+
+			field = {
+				"type": "select",
+				"name": "sys_fw_filter_policy_forward",
+				"text": "Default policy for FORWARD",
+				"options": "ACCEPT DROP"
+			};
+			c.addWidget(field);
+
+			field = {
+				"type": "select",
+				"name": "sys_fw_filter_policy_input",
+				"text": "Default policy for INPUT",
+				"options": "ACCEPT DROP"
+			};
+			c.addWidget(field);
+
+			field = {
+				"type": "select",
+				"name": "sys_fw_filter_policy_output",
+				"text": "Default policy for OUTPUT",
+				"options": "ACCEPT DROP"
+			};
+			c.addWidget(field);
+
+			c.addSubmit();
+
+			/* FORWARD chain */
+			page.addBr("filter");
+			c = page.addContainer("filter");
+			c.setHelpSection("filter_forward");
+
+			/* create list of forward rules */
+			list = c.createList({
+				"tabId": "filter",
+				"header": ["Name", "Src", "Dst", "Proto", "Src port", "Dst port", "Action"],
+				"varList": ["name", "src", "dst", "proto", "sport", "dport", "target"],
+				"listItem": "sys_fw_filter_forward_",
+				"onAddOrEditItemRender": onChangeTargetOrProto,
+				"addMessage": "Add rule to FORWARD chain",
+				"editMessage": "Edit rule in FORWARD chain",
+				"listTitle": "Filter, FORWARD chain",
+				"helpPage": "filter",
+				"helpSection": "filter_add"
+			});
+
+			addFwAddingRuleWidgets({
+				"list": list,
+				"chain": "FORWARD"
+			});
+
+			list.generateList();
+
+			/* INPUT chain */
+			page.addBr("filter");
+			c = page.addContainer("filter");
+			c.setHelpSection("filter_input");
+
+			/* create list of input rules */
+			list = c.createList({
+				"tabId": "filter",
+				"header": ["Name", "Src", "Dst", "Proto", "Src port", "Dst port", "Action"],
+				"varList": ["name", "src", "dst", "proto", "sport", "dport", "target"],
+				"listItem": "sys_fw_filter_input_",
+				"onAddOrEditItemRender": onChangeTargetOrProto,
+				"addMessage": "Add rule to INPUT chain",
+				"editMessage": "Edit rule in INPUT chain",
+				"listTitle": "Filter, INPUT chain",
+				"helpPage": "filter",
+				"helpSection": "filter_add"
+			});
+
+			addFwAddingRuleWidgets({
+				"list": list,
+				"chain": "INPUT"
+			});
+
+			list.generateList();
+
+			/* OUTPUT chain */
+			page.addBr("filter");
+			c = page.addContainer("filter");
+			c.setHelpSection("filter_output");
+
+			/* create list of output rules */
+			list = c.createList({
+				"tabId": "filter",
+				"header": ["Name", "Src", "Dst", "Proto", "Src port", "Dst port", "Action"],
+				"varList": ["name", "src", "dst", "proto", "sport", "dport", "target"],
+				"listItem": "sys_fw_filter_output_",
+				"onAddOrEditItemRender": onChangeTargetOrProto,
+				"addMessage": "Add rule to OUTPUT chain",
+				"editMessage": "Edit rule in OUTPUT chain",
+				"listTitle": "Filter, OUTPUT chain",
+				"helpPage": "filter",
+				"helpSection": "filter_add"
+			});
+
+			addFwAddingRuleWidgets({
+				"list": list,
+				"chain": "OUTPUT"
+			});
+
+			list.generateList();
+		}
+	});
+
+	/* NAT tab */
+	page.addTab({
+		"id": "nat",
+		"name": "NAT",
+		"func": function() {
+			var c, field, list;
+
+			/* policies */
+			c = page.addContainer("nat");
+			c.setHelpPage("nat");
+			c.setHelpSection("nat_policy");
+			c.addTitle("Default policies");
+
+			field = {
+				"type": "select",
+				"name": "sys_fw_nat_policy_prerouting",
+				"text": "Default policy for PREROUTING",
+				"options": "ACCEPT DROP"
+			};
+			c.addWidget(field);
+
+			field = {
+				"type": "select",
+				"name": "sys_fw_nat_policy_postrouting",
+				"text": "Default policy for POSTROUTING",
+				"options": "ACCEPT DROP"
+			};
+			c.addWidget(field);
+
+			c.addSubmit();
+
+			/* PREROUTING chain */
+			page.addBr("nat");
+			c = page.addContainer("nat");
+			c.setHelpPage("nat");
+			c.setHelpSection("nat_prerouting");
+
+			/* create list of prerouting rules */
+			list = c.createList({
+				"tabId": "nat",
+				"header": ["Name", "Src", "Dst", "Proto", "Src port", "Dst port", "Action"],
+				"varList": ["name", "src", "dst", "proto", "sport", "dport", "target"],
+				"listItem": "sys_fw_nat_prerouting_",
+				"onAddOrEditItemRender": onChangeTargetOrProto,
+				"addMessage": "Add rule to PREROUTING chain",
+				"editMessage": "Edit rule in PREROUTING chain",
+				"listTitle": "NAT, PREROUTING chain",
+				"helpPage": "nat",
+				"helpSection": "nat_add"
+			});
+
+			addFwAddingRuleWidgets({
+				"list": list,
+				"chain": "PREROUTING"
+			});
+
+			list.generateList();
+
+			/* POSTROUTING chain */
+			page.addBr("nat");
+			c = page.addContainer("nat");
+			c.setHelpPage("nat");
+			c.setHelpSection("nat_postrouting");
+
+			/* create list of postrouting rules */
+			list = c.createList({
+				"tabId": "nat",
+				"header": ["Name", "Src", "Dst", "Proto", "Src port", "Dst port", "Action"],
+				"varList": ["name", "src", "dst", "proto", "sport", "dport", "target"],
+				"listItem": "sys_fw_nat_postrouting_",
+				"onAddOrEditItemRender": onChangeTargetOrProto,
+				"addMessage": "Add rule to POSTROUTING chain",
+				"editMessage": "Edit rule in POSTROUTING chain",
+				"listTitle": "NAT, POSTROUTING chain",
+				"helpPage": "nat",
+				"helpSection": "nat_add"
+			});
+
+			addFwAddingRuleWidgets({
+				"list": list,
+				"chain": "POSTROUTING"
+			});
+
+			list.generateList();
+		}
+	});
+
+	page.generateTabs();
+};
+
 Controllers.iface = function(iface) {
 	var page = this.Page();
 	page.setSubsystem("network." + iface);
 	page.setHelpPage("iface");
-	
+
 	/* STATUS tab */
 	page.addTab({
 		"id": "status",
@@ -11,10 +719,10 @@ Controllers.iface = function(iface) {
 			var c, field;
 			var realIface = config.get($.sprintf("sys_iface_%s_real", iface)) ?
 				config.get($.sprintf("sys_iface_%s_real", iface)) : iface;
-			
+
 			c = page.addContainer("status");
 			c.addTitle("Interface status");
-			
+
 			/* add general widget, which will contain three buttons */
 			field = {
 				"type": "general",
@@ -22,7 +730,7 @@ Controllers.iface = function(iface) {
 				"text": "Interface control"
 			};
 			c.addWidget(field);
-			
+
 			/* restart button */
 			field = {
 				"type": "button",
@@ -43,7 +751,7 @@ Controllers.iface = function(iface) {
 					"anchor": "#td_interface_ctrl"
 				}
 			);
-			
+
 			/* stop button */
 			field = {
 				"type": "button",
@@ -65,7 +773,7 @@ Controllers.iface = function(iface) {
 					"anchor": "#td_interface_ctrl"
 				}
 			);
-			
+
 			/* start button */
 			field = {
 				"type": "button",
@@ -87,35 +795,35 @@ Controllers.iface = function(iface) {
 					"anchor": "#td_interface_ctrl"
 				}
 			);
-			
+
 			page.addBr("status");
 			c = page.addContainer("status");
 			c.addTitle("Interface status");
 			c.addConsole(["/sbin/ifconfig " + realIface, "/usr/sbin/ip addr show dev " + realIface,
 				"/usr/sbin/ip link show dev " + realIface]);
-			
+
 			page.addBr("status");
 			c = page.addContainer("status");
 			c.addTitle("Routes");
 			c.addConsole("/usr/sbin/ip route show dev " + realIface);
-			
+
 			page.addBr("status");
 			c = page.addContainer("status");
 			c.addTitle("ARP");
 			c.addConsole("/usr/sbin/ip neigh show dev " + realIface);
-			
+
 			/* add additional info for bridge interface */
 			if (realIface.search(/^br/) != -1) {
 				page.addBr("status");
 				c = page.addContainer("status");
 				c.addTitle("System bridges");
 				c.addConsole("/usr/sbin/brctl show");
-				
+
 				page.addBr("status");
 				c = page.addContainer("status");
 				c.addTitle($.sprintf("Bridge %s info", realIface));
 				c.addConsole("/usr/sbin/brctl showmacs " + realIface);
-				
+
 				page.addBr("status");
 				c = page.addContainer("status");
 				c.addTitle($.sprintf("STP bridge %s info", realIface));
@@ -123,7 +831,7 @@ Controllers.iface = function(iface) {
 			}
 		}
 	});
-	
+
 	/* GENERAL tab */
 	page.addTab({
 		"id": "general",
@@ -208,23 +916,23 @@ Controllers.iface = function(iface) {
 				}
 			};
 
-			field = { 
+			field = {
 				"type": "text",
 				"name": $.sprintf("sys_iface_%s_desc", iface),
 				"text": "Description",
 				"descr": "Description of interface."
 			};
 			c.addWidget(field);
-		
-			field = { 
+
+			field = {
 				"type": "checkbox",
 				"name": $.sprintf("sys_iface_%s_enabled", iface),
 				"text": "Enabled",
 				"descr": "If set, interface can be start on boot or by another interface."
 			};
 			c.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "checkbox",
 				"name": $.sprintf("sys_iface_%s_auto", iface),
 				"text": "Auto",
@@ -250,7 +958,7 @@ Controllers.iface = function(iface) {
 				c.addWidget(field);
 			}
 
-			field = { 
+			field = {
 				"type": "select",
 				"name": $.sprintf("sys_iface_%s_method", iface),
 				"id": "method",
@@ -265,28 +973,28 @@ Controllers.iface = function(iface) {
 			c.addWidget(field);
 
             /* TODO
-			field= { 
+			field= {
 				"type": "checkbox",
 				"name": "sys_iface_" + iface + "_opt_accept_redirects",
 				"text": "Accept redirects"
 			};
 			c.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "checkbox",
 				"name": "sys_iface_" + iface + "_opt_forwarding",
 				"text": "Forwarding"
 			};
 			c.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "checkbox",
 				"name": "sys_iface_" + iface + "_opt_proxy_arp",
 				"text": "Proxy ARP"
 			};
 			c.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "checkbox",
 				"name": "sys_iface_" + iface + "_opt_rp_filter",
 				"text": "RP Filter"
@@ -298,7 +1006,7 @@ Controllers.iface = function(iface) {
 			c.addSubmit();
 		}
 	});
-	
+
 	/* SPECIFIC tab */
 	page.addTab({
 		"id": "specific",
@@ -306,13 +1014,13 @@ Controllers.iface = function(iface) {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("specific");
-			
+
 			switch (config.get("sys_iface_" + iface + "_proto"))
 			{
 				case "ether":
 					c.addTitle("Ethernet Specific parameters");
-					
-					field = { 
+
+					field = {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_mac",
 						"text": "MAC address",
@@ -321,15 +1029,15 @@ Controllers.iface = function(iface) {
 						"validator": {"macAddr": true}
 					};
 					c.addWidget(field);
-					
+
 					c.addSubmit();
-					
+
 					break;
-					
+
 				case "pppoe":
 					c.addTitle("PPPoE Specific parameters");
-					
-					field = { 
+
+					field = {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_pppoe_iface",
 						"text": "Interface",
@@ -337,69 +1045,69 @@ Controllers.iface = function(iface) {
 						"validator": {"required": true}
 					};
 					c.addWidget(field);
-					
-					field = { 
+
+					field = {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_pppoe_service",
 						"text": "Service",
 						"descr": "Desired service name",
-						"tip": "Router will only initiate sessions with access concentrators which" + 
-							" can provide the specified service.<br>  In most cases, you should <b>not</b>" + 
+						"tip": "Router will only initiate sessions with access concentrators which" +
+							" can provide the specified service.<br>  In most cases, you should <b>not</b>" +
 							" specify this option."
 					};
 					c.addWidget(field);
-					
-					field = { 
+
+					field = {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_pppoe_ac",
 						"text": "Access Concentrator",
 						"descr": "Desired access concentrator name",
-						"tip": "Router will only initiate sessions with the specified access concentrator." + 
-							" In most cases, you should <b>not</b> specify this option. Use it only if you" + 
+						"tip": "Router will only initiate sessions with the specified access concentrator." +
+							" In most cases, you should <b>not</b> specify this option. Use it only if you" +
 							" know that there are multiple access concentrators."
 					};
 					c.addWidget(field);
-					
-					field = { 
+
+					field = {
 						"type": "checkbox",
 						"name": "sys_iface_" + iface + "_pppoe_defaultroute",
 						"text": "Default route",
 						"descr": "Add a default route to the system routing tables, using the peer as the gateway"
 					};
 					c.addWidget(field);
-					
-					field = { 
+
+					field = {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_pppoe_username",
 						"text": "Username",
 						"validator": {"required": true}
 					};
 					c.addWidget(field);
-					
-					field = { 
+
+					field = {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_pppoe_password",
 						"text": "Password",
 						"validator": {"required": true}
 					};
 					c.addWidget(field);
-					
-					field = { 
+
+					field = {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_pppoe_pppdopt",
 						"text": "PPPD options",
 						"defaultValue": "noauth nobsdcomp nodeflate"
 					};
 					c.addWidget(field);
-					
+
 					c.addSubmit();
-					
+
 					break;
-					
+
 				case "pptp":
 					c.addTitle("PPtP Specific parameters");
-					
-					field = { 
+
+					field = {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_pptp_server",
 						"text": "Server",
@@ -407,58 +1115,58 @@ Controllers.iface = function(iface) {
 						"validator": {"required": true, "domainNameOrIpAddr": true}
 					};
 					c.addWidget(field);
-					
-					field = { 
+
+					field = {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_pptp_username",
 						"text": "Username",
 						"validator": {"required": true}
 					};
 					c.addWidget(field);
-					
-					field = { 
+
+					field = {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_pptp_password",
 						"text": "Password",
 						"validator": {"required": true}
 					};
 					c.addWidget(field);
-					
-					field = { 
+
+					field = {
 						"type": "checkbox",
 						"name": "sys_iface_" + iface + "_pptp_defaultroute",
 						"text": "Default route",
 						"descr": "Add a default route to the system routing tables, using the peer as the gateway"
 					};
 					c.addWidget(field);
-					
-					field = { 
+
+					field = {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_pptp_pppdopt",
 						"text": "PPPD options",
 						"defaultValue": "noauth nobsdcomp nodeflate nomppe"
 					};
 					c.addWidget(field);
-					
+
 					c.addSubmit();
-					
+
 					break;
-				
+
 				case "bonding":
 					c.addTitle("Bonding Specific parameters");
-					
-					field = { 
+
+					field = {
 						"type": "text",
 						"name": $.sprintf("sys_iface_%s_bond_ifaces", iface),
 						"text": "Interfaces",
 						"descr": "Interfaces for bonding separated by space.",
-						"tip": "<b>Example:</b>eth0 eth1 dsl0<br><b>Note:</b>You can use only Ethernet-like" + 
-							" interfaces, like ethX, dslX, bondX<br><b>Note:</b> Interfaces should be" + 
+						"tip": "<b>Example:</b>eth0 eth1 dsl0<br><b>Note:</b>You can use only Ethernet-like" +
+							" interfaces, like ethX, dslX, bondX<br><b>Note:</b> Interfaces should be" +
 							" enabled, but <b>auto</b> should be switched <b>off</b>",
 						"validator": {"required": true}
 					};
 					c.addWidget(field);
-					
+
 					/* set auto=0 enabled=1 for depending interfaces */
 					var additionalKeys = [];
 					c.addSubmit({
@@ -472,49 +1180,49 @@ Controllers.iface = function(iface) {
 							);
 						}
 					});
-					
+
 					break;
-					
+
 				case "bridge":
 					c.addTitle("Bridge Specific parameters");
-					
-					field = { 
+
+					field = {
 						"type": "checkbox",
 						"name": "sys_iface_" + iface + "_br_stp",
 						"text": "STP enabled",
 						"descr": "Enable Spanning Tree Protocol.",
-						"tip": "Multiple ethernet bridges can work together to create even larger networks" + 
-							" of ethernets using the IEEE 802.1d spanning tree protocol.This protocol is" + 
-							" used for finding the shortest path between two ethernets, and for eliminating" + 
+						"tip": "Multiple ethernet bridges can work together to create even larger networks" +
+							" of ethernets using the IEEE 802.1d spanning tree protocol.This protocol is" +
+							" used for finding the shortest path between two ethernets, and for eliminating" +
 							" loops from the topology."
 					};
 					c.addWidget(field);
-					
-					field = { 
+
+					field = {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_br_ifaces",
 						"text": "Interfaces",
 						"descr": "Interfaces for bridge separated by space.",
-						"tip": "<b>Example:</b> eth0 eth1 dsl0<br><b>Note:</b> You can use only" + 
-						" Ethernet-like interfaces, like ethX, dslX<br><b>Note:</b> Interfaces should" + 
+						"tip": "<b>Example:</b> eth0 eth1 dsl0<br><b>Note:</b> You can use only" +
+						" Ethernet-like interfaces, like ethX, dslX<br><b>Note:</b> Interfaces should" +
 						" be enabled, but <b>auto</b> should be switched <b>off</b>.",
 						"validator": {"required": true}
 					};
 					c.addWidget(field);
-					
-					field = { 
+
+					field = {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_br_prio",
 						"text": "Priority",
 						"descr": "Bridge priority.",
-						"tip": "The priority value is an unsigned 16-bit quantity (a number between 0" + 
+						"tip": "The priority value is an unsigned 16-bit quantity (a number between 0" +
 							" and 65535), and has no dimension. Lower priority values are better. The bridge" +
 							" with the lowest priority will be elected <b>root bridge</b>.",
 						"validator": {"min": 1, "max": 65535}
 					};
 					c.addWidget(field);
-					
-					field = { 
+
+					field = {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_br_fd",
 						"text": "Forward delay",
@@ -522,8 +1230,8 @@ Controllers.iface = function(iface) {
 						"validator": {"min": 0, "max": 60}
 					};
 					c.addWidget(field);
-					
-					field = { 
+
+					field = {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_br_hello",
 						"text": "Hello time",
@@ -531,8 +1239,8 @@ Controllers.iface = function(iface) {
 						"validator": {"min": 0, "max": 60}
 					};
 					c.addWidget(field);
-					
-					field = { 
+
+					field = {
 						"type": "text",
 						"name": "sys_iface_" + iface + "_br_maxage",
 						"text": "Max age",
@@ -540,7 +1248,7 @@ Controllers.iface = function(iface) {
 						"validator": {"min": 0, "max": 600}
 					};
 					c.addWidget(field);
-					
+
 					/* set auto=0 enabled=1 for depending interfaces */
 					var additionalKeys = [];
 					c.addSubmit({
@@ -554,13 +1262,13 @@ Controllers.iface = function(iface) {
 							);
 						}
 					});
-					
+
 					break;
 			}
 		}
 	});
-	
-	/* ROUTES tab */	
+
+	/* ROUTES tab */
 	page.addTab({
 		"id": "routes",
 		"name": "Routes",
@@ -568,7 +1276,7 @@ Controllers.iface = function(iface) {
 			var c = page.addContainer("routes");
 			c.setHelpPage("traffic");
 			c.setHelpSection("routes");
-			
+
 			/* create list of routes */
 			var list = c.createList({
 				"tabId": "routes",
@@ -581,8 +1289,8 @@ Controllers.iface = function(iface) {
 				"helpPage": "traffic",
 				"helpSection": "routes.list"
 			});
-			
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "net",
 				"text": "Network",
@@ -591,8 +1299,8 @@ Controllers.iface = function(iface) {
 				"validator": {"required": true, "ipAddr": true}
 			};
 			list.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "netmask",
 				"text": "Netmask",
@@ -602,8 +1310,8 @@ Controllers.iface = function(iface) {
 				"validator": {"required": true, "netmask": true}
 			};
 			list.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "gw",
 				"text": "Gateway",
@@ -611,7 +1319,7 @@ Controllers.iface = function(iface) {
 				"validator": {"required": true, "ipAddr": true}
 			};
 			list.addWidget(field);
-			
+
 			list.generateList();
 		}
 	});
@@ -621,7 +1329,7 @@ Controllers.iface = function(iface) {
 		/* add widgets for PFIFO and BFIFO */
 		var addFifoWidgets = function(type) {
 			var field;
-			field = { 
+			field = {
 				"type": "text",
 				"name": $.sprintf("sys_iface_%s_qos_fifo_limit", iface),
 				"text": "Buffer size",
@@ -631,11 +1339,11 @@ Controllers.iface = function(iface) {
 			};
 			c.addWidget(field);
 		};
-		
+
 		/* add widgets for ESFQ */
 		var addEsfqWidgets = function() {
 			var field;
-			field = { 
+			field = {
 				"type": "text",
 				"name": $.sprintf("sys_iface_%s_qos_esfq_limit", iface),
 				"text": "Limit",
@@ -644,8 +1352,8 @@ Controllers.iface = function(iface) {
 				"defaultValue": "128"
 			};
 			c.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": $.sprintf("sys_iface_%s_qos_esfq_depth", iface),
 				"text": "Depth",
@@ -653,8 +1361,8 @@ Controllers.iface = function(iface) {
 				"defaultValue": "128"
 			};
 			c.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "select",
 				"name": $.sprintf("sys_iface_%s_qos_esfq_hash", iface),
 				"text": "Hash",
@@ -664,12 +1372,12 @@ Controllers.iface = function(iface) {
 			};
 			c.addWidget(field);
 		};
-		
+
 		/* add widgets for TBF */
 		var addTbfWidgets = function() {
 			var field;
-	
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": $.sprintf("sys_iface_%s_qos_tbf_rate", iface),
 				"text": "Rate",
@@ -681,11 +1389,11 @@ Controllers.iface = function(iface) {
 			};
 			c.addWidget(field);
 		};
-		
+
 		/* add widgets for HTB */
 		var addHtbWidgets = function() {
 			var field;
-			
+
 			/* generate list of available default classes */
 			var defaultClasses = {"0": "none"};
 			$.each(config.getParsed($.sprintf("sys_iface_%s_qos_htb_class_*", iface)),
@@ -694,8 +1402,8 @@ Controllers.iface = function(iface) {
 					defaultClasses[classId] = value['name'];
 				}
 			);
-	
-			field = { 
+
+			field = {
 				"type": "select",
 				"name": $.sprintf("sys_iface_%s_qos_htb_default", iface),
 				"text": "Default class",
@@ -703,21 +1411,21 @@ Controllers.iface = function(iface) {
 				"options": defaultClasses,
 				"defaultValue": "0"
 			};
-			c.addWidget(field);			
-			
+			c.addWidget(field);
+
 			/*
 			 * Callback for generateList(), returns name of parent class.
-			 * 
+			 *
 			 * varName — item's variable name;
 			 * varValue — item's variable value.
 			 */
 			var getParentName = function(varName, varValue) {
 				/* if current variable is not "parent" — return without modification */
 				if (varName != "parent" && varName != "flowid") return varValue;
-				
+
 				/* if value of variable is "1:0" — class name is root */
 				if (varValue == "1:0") return "root";
-				
+
 				/* search class with classid varValue and saves it's name to parentName */
 				var parentName = "ERROR";
 				var classes = config.getParsed($.sprintf("sys_iface_%s_qos_htb_class_*", iface));
@@ -727,10 +1435,10 @@ Controllers.iface = function(iface) {
 						return false;
 					}
 				});
-				
+
 				return parentName;
 			};
-			
+
 			/* add Classes table */
 			page.addBr("qos");
 
@@ -738,7 +1446,7 @@ Controllers.iface = function(iface) {
 			var c2 = page.addContainer("qos");
 			c2.setHelpPage("htb");
 			c2.setHelpSection("htb");
-			
+
 			/* create list of classes */
 			var list = c2.createList({
 				"tabId": "qos",
@@ -752,7 +1460,7 @@ Controllers.iface = function(iface) {
 				"helpPage": "htb",
 				"helpSection": "htb_class_add"
 			});
-			
+
 			field = {
 				"type": "checkbox",
 				"name": "enabled",
@@ -760,7 +1468,7 @@ Controllers.iface = function(iface) {
 				"descr": "Check this item to enable class"
 			};
 			list.addWidget(field);
-			
+
 			field = {
 				"type": "text",
 				"name": "name",
@@ -769,7 +1477,7 @@ Controllers.iface = function(iface) {
 				"validator": {"required": true, "alphanumU": true}
 			};
 			list.addWidget(field);
-			
+
 			/* generate list of available parent classes and find next classid */
 			var max = 0;
 			var parentClasses = {"1:0": "root"};
@@ -781,7 +1489,7 @@ Controllers.iface = function(iface) {
 				}
 			);
 			var classid = "1:" + (max + 1);
-			
+
 			/*
 			 * if we are editing class — it's classid will be get from KDB,
 			 * if we are adding new class — we generate new classid and set it as default value.
@@ -792,8 +1500,8 @@ Controllers.iface = function(iface) {
 				"defaultValue": classid
 			};
 			list.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "select",
 				"name": "parent",
 				"text": "Parent class",
@@ -801,7 +1509,7 @@ Controllers.iface = function(iface) {
 				"options": parentClasses
 			};
 			list.addWidget(field);
-			
+
 			field = {
 				"type": "text",
 				"name": "rate",
@@ -812,7 +1520,7 @@ Controllers.iface = function(iface) {
 				"validator": {"required": true, "qosBandwith": true}
 			};
 			list.addWidget(field);
-			
+
 			field = {
 				"type": "text",
 				"name": "ceil",
@@ -823,7 +1531,7 @@ Controllers.iface = function(iface) {
 				"validator": {"qosBandwith": true}
 			};
 			list.addWidget(field);
-			
+
 			field = {
 				"type": "text",
 				"name": "qdisc",
@@ -835,9 +1543,9 @@ Controllers.iface = function(iface) {
 					"or <i>sfq#perturb#10</i>, etc."
 			};
 			list.addWidget(field);
-			
+
 			list.generateList();
-			
+
 			/* add Filter table */
 			page.addBr("qos");
 
@@ -845,7 +1553,7 @@ Controllers.iface = function(iface) {
 			c2 = page.addContainer("qos");
 			c2.setHelpPage("htb");
 			c2.setHelpSection("htb");
-			
+
 			/* create list of filter */
 			var list = c2.createList({
 				"tabId": "qos",
@@ -859,7 +1567,7 @@ Controllers.iface = function(iface) {
 				"helpPage": "htb",
 				"helpSection": "htb_filter_add"
 			});
-			
+
 			field = {
 				"type": "checkbox",
 				"name": "enabled",
@@ -867,7 +1575,7 @@ Controllers.iface = function(iface) {
 				"descr": "Check this item to enable class"
 			};
 			list.addWidget(field);
-			
+
 			field = {
 				"type": "text",
 				"name": "name",
@@ -876,7 +1584,7 @@ Controllers.iface = function(iface) {
 				"validator": {"required": true, "alphanumU": true}
 			};
 			list.addWidget(field);
-			
+
 			field = {
 				"type": "text",
 				"name": "prio",
@@ -887,8 +1595,8 @@ Controllers.iface = function(iface) {
 				"defaultValue": "1"
 			};
 			list.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "select",
 				"name": "proto",
 				"text": "Protocol",
@@ -897,12 +1605,12 @@ Controllers.iface = function(iface) {
 				"options": "any tcp udp icmp"
 			};
 			list.addWidget(field);
-			
+
 			var tip = "Address can be either a network IP address (with /mask), or a plain IP address, " +
 				"A ! argument before the address specification inverts the sense of the address." +
 				"<br><b>Examples:</b> 192.168.1.0/24, 192.168.1.5<br> Use 0.0.0.0/0 for <b>any</b>";
-		
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "src",
 				"text": "Source IP",
@@ -912,8 +1620,8 @@ Controllers.iface = function(iface) {
 				"tip": tip
 			};
 			list.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "dst",
 				"text": "Destination IP",
@@ -923,8 +1631,8 @@ Controllers.iface = function(iface) {
 				"tip": tip
 			};
 			list.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "src_port",
 				"text": "Source port",
@@ -933,8 +1641,8 @@ Controllers.iface = function(iface) {
 				"defaultValue": "any"
 			};
 			list.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "dst_port",
 				"text": "Destination port",
@@ -943,7 +1651,7 @@ Controllers.iface = function(iface) {
 				"defaultValue": "any"
 			};
 			list.addWidget(field);
-			
+
 			/* generate list of available classes */
 			var classes = new Object();
 			$.each(config.getParsed($.sprintf("sys_iface_%s_qos_htb_class_*", iface)),
@@ -951,8 +1659,8 @@ Controllers.iface = function(iface) {
 					classes[value['classid']] = value['name'];
 				}
 			);
-			
-			field = { 
+
+			field = {
 				"type": "select",
 				"name": "flowid",
 				"text": "Class",
@@ -960,10 +1668,10 @@ Controllers.iface = function(iface) {
 				"options": classes
 			};
 			list.addWidget(field);
-			
+
 			list.generateList();
 		};
-		
+
 		/* add widgets specific for selected scheduler */
 		var addSchedulerWidgets = function() {
 			var sch = $("#sch").val();
@@ -972,21 +1680,21 @@ Controllers.iface = function(iface) {
 				case "pfifo":
 					addFifoWidgets(sch);
 					break;
-				
+
 				case "esfq":
 					addEsfqWidgets();
 					break;
-				
+
 				case "tbf":
 					addTbfWidgets();
 					break;
-				
+
 				case "htb":
 					addHtbWidgets();
 					break;
 			}
 		};
-		
+
 		/*
 		 * on scheduler change remove unnecessary widgets (all except scheduler select)
 		 * and add new widgets.
@@ -994,29 +1702,29 @@ Controllers.iface = function(iface) {
 		var onSchedulerUpdate = function() {
 			/* get tab object */
 			var tab = page.getTab("qos");
-			
+
 			/* remove all widgets except scheduler select */
 			$("tbody > tr", tab).not("tr:has(#sch)").remove();
-			
+
 			/* remove all forms except first one (with scheduler select) */
 			$("form:not(:first)", tab).remove();
-			
+
 			/* remove all br between forms */
 			$("form:first ~ br", tab).remove();
-			
+
 			/* add new widgets */
 			addSchedulerWidgets();
 		};
-		
+
 		/* add main form */
 		var c, field;
 		page.clearTab("qos");
 		c = page.addContainer("qos");
 		c.setHelpPage("qos");
 		c.addTitle("QoS settings");
-		
+
 		/* Scheduler */
-		field = { 
+		field = {
 			"type": "select",
 			"name": $.sprintf("sys_iface_%s_qos_sch", iface),
 			"id": "sch",
@@ -1035,18 +1743,18 @@ Controllers.iface = function(iface) {
 			"defaultValue": "pfifo_fast"
 		};
 		c.addWidget(field);
-		
+
 		addSchedulerWidgets();
-		
+
 		c.addSubmit();
 	}
-	
+
 	page.addTab({
 		"id": "qos",
 		"name": "QoS",
 		"func": showQos
 	});
-	
+
 	/* DHCP tab */
 	page.addTab({
 		"id": "dhcp",
@@ -1055,6 +1763,6 @@ Controllers.iface = function(iface) {
 			serviceDHCP(page, iface);
 		}
 	});
-	
+
 	page.generateTabs();
 };

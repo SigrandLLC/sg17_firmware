@@ -700,7 +700,7 @@ Controllers.cfg = function() {
 				"type": "file",
 				"name": "uploadfile",
 				"text": "Backuped configuration",
-				"descr": "Restore configuration from file"
+				"descr": "Restore configuration from file."
 			};
 			c.addWidget(field);
 			
@@ -809,5 +809,47 @@ Controllers.debug = function() {
 		}
 	});
 	
+	page.generateTabs();
+};
+
+Controllers.upload = function() {
+	var page = this.Page();
+
+	page.addTab({
+		"id": "upload",
+		"name": "Upload file",
+		"func": function() {
+			var c, field;
+			c = page.addContainer("upload");
+			c.addTitle("Upload file to device");
+
+			field = {
+				"type": "text",
+				"name": "path",
+				"text": "Path",
+				"descr": "Where to place uploaded file.",
+				"defaultValue": "/root",
+				"validator": {"required": true}
+			};
+			c.addWidget(field);
+
+			field = {
+				"type": "file",
+				"name": "uploadfile",
+				"text": "File",
+				"descr": "File to upload.",
+				"validator": {"required": true}
+			};
+			c.addWidget(field);
+
+			c.addSubmitNoAjax({
+				"submitName": "Upload",
+				"formAction": "sh/upload.cgi",
+				"method": "post",
+				"encType": "multipart/form-data"
+			});
+		}
+	});
+
 	page.generateTabs();
 };
