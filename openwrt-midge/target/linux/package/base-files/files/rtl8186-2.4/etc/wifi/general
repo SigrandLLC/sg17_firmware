@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #Set ESSID of wirelless Infrastructure Network
-iwpriv wlan0 set_mib ssid="FlyRouter"
+iwpriv wlan0 set_mib ssid="Midge-WiFi"
 
 iwpriv wlan0 set_mib hiddenAP=0
 

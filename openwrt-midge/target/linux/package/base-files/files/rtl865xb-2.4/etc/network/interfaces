@@ -1,0 +1,14 @@
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+    address 192.168.0.1
+    netmask 255.255.255.0
+
+auto eth1
+iface eth1 inet static
+    address 192.168.1.1
+    netmask 255.255.255.0
+    up ip a add 172.28.251.55/24 dev eth1
+    down ip a del 172.28.251.55/24 dev eth1

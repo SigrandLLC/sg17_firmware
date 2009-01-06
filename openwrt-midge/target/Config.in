@@ -96,6 +96,13 @@ config BR2_LINUX_2_4_RTL8186
 	  Build firmware images for RTL8186 based routers
 	  (e.g. Edimax BR6204WG )
 
+config BR2_LINUX_2_4_RTL865xB
+	bool "RTL865xB based routers [2.4]"
+	select BR2_mips
+	help
+	  Build firmware images for RTL865xB based routers
+	  (e.g. Edimax BR6214K, D-Link DIR120/DIR320/DI604UP/DI524UP)
+
 config BR2_LINUX_2_6_ADM5120
 	bool "ADM5120 based routers [2.6]"
 	select BR2_mipsel
