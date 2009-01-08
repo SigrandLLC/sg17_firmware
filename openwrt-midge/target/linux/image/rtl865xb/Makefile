@@ -57,7 +57,7 @@ $(BIN_DIR)/openwrt-rtl865xb-$(KERNEL)-$(FSNAME).bin:
 	#$(STAGING_DIR)/bin/packbin $(KDIR)/edimax.bin k 0 $(KDIR)/br6214k.bix
 	#
 	# Copy firmware to website
-	install -m0644 $(KDIR)/br6214k.bix /var/www/rootfs/br6214k.bix
+	#install -m0644 $(KDIR)/br6214k.bix /var/www/rootfs/br6214k.bix
 
 
 install: $(BIN_DIR)/openwrt-rtl865xb-$(KERNEL)-$(FSNAME).bin

@@ -27,11 +27,14 @@ hack_toolchain(){
 
     # This is very stupid install toolchain, sorry
 
-    STAGDIR="./staging_dir_mips_nofpu"
-
+    STAGDIR="staging_dir_mips_nofpu"
+    #
     rm -rf $STAGDIR; mkdir -p $STAGDIR
     tar xvfj dl/toolchain_mips_nofpu-3.3.5.tar.bz2 -C $STAGDIR --strip-components 1 toolchain_mips_nofpu
-    ln -f $STAGDIR/mips-linux-uclibc/lib/* $STAGDIR/lib/
+    ln -vf $STAGDIR/mips-linux-uclibc/lib/* $STAGDIR/lib/
+    #
+    mkdir -vp /opt/gcc-3.3.5/toolchain_build_mips_nofpu/ccache-2.3/cache
+    ln -vfs `pwd`/${STAGDIR} /opt/toolchain_mips_nofpu
 
     mkdir $STAGDIR/stampfiles
     touch \
@@ -62,11 +65,11 @@ clean_root(){
 }
 
 clean_linux(){
-	rm -rf build_mipsel/linux*
+	rm -rf build_mips_nofpu/linux*
 }
 
 clean_build(){
-	rm -rf build_mipsel
+	rm -rf build_mips_nofpu
 }
 
 install(){
@@ -128,11 +131,9 @@ make_snapshot() {
 }
 
 
-rm -rf ./bin ./build_mips_nofpu ./staging_dir_mips_nofpu ./toolchain_build_mips_nofpu
-
 download_component
 hack_toolchain
-
+#
 clean_build
 clean_root
 build 2.4 test-eddy
