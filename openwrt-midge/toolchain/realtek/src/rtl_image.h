@@ -35,7 +35,10 @@
 #define _RTL_IMAGE_H_
 
 /* "productMagic" field of fileImageHeader_t for ROME
-0x59a0e842 - D-Link ; 0x47363134 - Netgear ; 0x47363134 - Edimax_Official
+0x59a0e842 - D-Link
+0x47363134 - Netgear
+0x47363134 - Edimax official
+0x59a0e845 - Edimax non-public
  */
 #define RTL_PRODUCT_MAGIC     0x59a0e842
 

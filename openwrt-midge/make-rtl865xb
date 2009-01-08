@@ -1,10 +1,10 @@
 #!/bin/sh
 
-INSTALL_DIR=~/public
+INSTALL_DIR=/home/`whoami`/public
 
-mkdir -p -v ~/INSTALL_DIR/download
-rm -rf ./dl
-ln -s ~/INSTALL_DIR/download dl
+mkdir -vp ${INSTALL_DIR}/download
+rm -vrf ./dl
+ln -vs ${INSTALL_DIR}/download dl
 
 download_component(){
 
@@ -15,6 +15,11 @@ download_component(){
     # Download pre-compiled toolchain, sorry
     wget -c -O dl/toolchain_mips_nofpu-3.3.5.tar.bz2 \
 	http://midge.vlad.org.ua/zig/source/rtl865xb/toolchain_mips_nofpu-3.3.5.tar.bz2
+
+    # Download RTL865xB source for Flash
+    wget -c -O dl/rtl865x-flash.tgz \
+	http://midge.vlad.org.ua/zig/source/rtl865xb/rtl865x-flash.tgz
+
 }
 
 
@@ -25,9 +30,9 @@ hack_toolchain(){
     STAGDIR="./staging_dir_mips_nofpu"
 
     rm -rf $STAGDIR; mkdir -p $STAGDIR
-    tar xvfj dl/toolchain_mips_nofpu-3.3.5.tar.bz2 -C ${STAGDIR} --strip-components 1 toolchain_mips_nofpu
+    tar xvfj dl/toolchain_mips_nofpu-3.3.5.tar.bz2 -C $STAGDIR --strip-components 1 toolchain_mips_nofpu
     ln -f $STAGDIR/mips-linux-uclibc/lib/* $STAGDIR/lib/
-    
+
     mkdir $STAGDIR/stampfiles
     touch \
 	$STAGDIR/stampfiles/.toolchain_binutils-compile \
