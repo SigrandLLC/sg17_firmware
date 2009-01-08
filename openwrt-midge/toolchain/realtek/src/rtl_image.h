@@ -40,7 +40,7 @@
 0x47363134 - Edimax official
 0x59a0e845 - Edimax non-public
  */
-#define RTL_PRODUCT_MAGIC     0x59a0e842
+#define RTL_PRODUCT_MAGIC     0x59a0e845
 
 
 /* "imageType" field of rootDirEntry_t and
