@@ -6,6 +6,8 @@ iface eth0 inet static
     address 192.168.0.1
     netmask 255.255.255.0
     up ip a add 172.28.200.79/25 dev eth0
+    up ip r add default via 172.28.200.1
+    down ip r del default via 172.28.200.1
     down ip a del 172.28.200.79/25 dev eth0
 
 auto eth1
