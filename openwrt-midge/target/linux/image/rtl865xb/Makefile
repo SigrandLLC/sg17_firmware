@@ -37,9 +37,8 @@ $(BIN_DIR)/openwrt-rtl865xb-$(KERNEL)-$(FSNAME).bin:
 	# Remove bysybox init (test only) 
 	rm -f $(KDIR)/root/sbin/init
 	#
-	# Create squashfs (now support external v2.1 creator)
-	#$(STAGING_DIR)/bin/mksquashfs-lzma $(KDIR)/root $(KDIR)/root.sqfs -be -noappend -nopad -all-root $(MAKE_TRACE)
-	/var/www/download/br6214k/tools/mksquashfs-lzma $(KDIR)/root $(KDIR)/root.sqfs -be -noappend -nopad -all-root $(MAKE_TRACE)
+	# Create squashfs-lzma
+	$(STAGING_DIR)/bin/mksquashfs-lzma $(KDIR)/root $(KDIR)/root.sqfs -be -noappend -nopad -all-root $(MAKE_TRACE)
 	#
 	# Compress kernel with lzma
 	$(STAGING_DIR)/bin/lzma e $(KDIR)/vmlinux $(KDIR)/kernel.edimax.lzma -a1 -d18
