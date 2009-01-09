@@ -132,7 +132,7 @@ make_snapshot() {
 download_component
 hack_toolchain
 #
-clean_build
+clean_linux
 clean_root
 build 2.4 test-eddy
 #make_snapshot
