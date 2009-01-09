@@ -33,26 +33,25 @@ $(BIN_DIR)/openwrt-rtl865xb-$(KERNEL)-$(FSNAME).bin:
 	# Edimax BR6214K section:
 	# Todo:
 	#    * check kernel or rootfs size if bigger than flash size
-	#    * add support more Realtek "magic number" to packbin 
 	#
 	# Remove bysybox init (test only) 
 	rm -f $(KDIR)/root/sbin/init
 	#
-	# Create squashfs
+	# Create squashfs (now support external v2.1 creator)
 	#$(STAGING_DIR)/bin/mksquashfs-lzma $(KDIR)/root $(KDIR)/root.sqfs -be -noappend -nopad -all-root $(MAKE_TRACE)
 	/var/www/download/br6214k/tools/mksquashfs-lzma $(KDIR)/root $(KDIR)/root.sqfs -be -noappend -nopad -all-root $(MAKE_TRACE)
 	#
 	# Compress kernel with lzma
 	$(STAGING_DIR)/bin/lzma e $(KDIR)/vmlinux $(KDIR)/kernel.edimax.lzma -a1 -d18
 	#
-	# Write magic number for kernel
-	$(STAGING_DIR)/bin/packbin $(KDIR)/kernel.edimax.lzma r 0 $(KDIR)/kernel.edimax.bix
+	# Write Edimax magic number for kernel
+	$(STAGING_DIR)/bin/packbin $(KDIR)/kernel.edimax.lzma r 0 $(KDIR)/kernel.edimax.bix 0x59a0e845
 	#
 	# Link kernel with root_fs
 	$(STAGING_DIR)/bin/kfspad $(KDIR)/kernel.edimax.bix 0x100000 $(KDIR)/root.sqfs $(KDIR)/edimax.bin
 	#
-	# Write magic number for firmware
-	$(STAGING_DIR)/bin/packbin $(KDIR)/edimax.bin k 0 $(KDIR)/br6214k.bix
+	# Write Edimax magic number for firmware
+	$(STAGING_DIR)/bin/packbin $(KDIR)/edimax.bin k 0 $(KDIR)/br6214k.bix 0x59a0e845
 
 
 install: $(BIN_DIR)/openwrt-rtl865xb-$(KERNEL)-$(FSNAME).bin

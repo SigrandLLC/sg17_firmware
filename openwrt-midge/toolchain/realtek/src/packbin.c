@@ -71,6 +71,7 @@ main(int argc, char *argv[])
 	struct timeval timeval;
 	struct tm *ut;
 	time_t tt;
+    uint32 magic = RTL_PRODUCT_MAGIC; /* Product Magic Number */
 
 	tt = time(NULL);
 	gettimeofday(&timeval,NULL);
@@ -92,7 +93,7 @@ main(int argc, char *argv[])
     /* Check arguments */
     if (argc < 5)
     {
-        printf("Usage: PACKBIN input_file image_type pad_to output_file\n");
+        printf("Usage: PACKBIN input_file image_type pad_to output_file [magic]\n");
         printf("    input_file    Name of the input binary image file.\n");
         printf("    image_type    [r|b|k] for [runtime|boot|kernel+fs].\n");
         printf("    pad_to        Size of the output binary image. (0 means no padding)\n");
@@ -100,6 +101,13 @@ main(int argc, char *argv[])
         
         return;
     }
+	if (argc == 6) {
+		if (! sscanf(argv[5], "%x", &magic)) {
+			fprintf(stderr, "bad magic");
+			exit(1);
+		}
+	}
+
     
     /* Open file */
      if ((fp1=fopen(argv[1], "r+b")) == NULL)
@@ -180,8 +188,8 @@ main(int argc, char *argv[])
             fputc(0, fp2);
     
     /* Forge image header */
-    printf("      Magic Number = 0x%lx\n", RTL_PRODUCT_MAGIC);
-    imghdr.productMagic = ENDIAN_SWITCH32(RTL_PRODUCT_MAGIC);
+    printf("      Magic Number = 0x%lx\n", magic);
+    imghdr.productMagic = ENDIAN_SWITCH32(magic);
     imghdr.imageHdrVer = RTL_IMAGE_HDR_VER_1_0;
     /* date and time to be implemented */
     imghdr.date=ENDIAN_SWITCH32(dateofday);
