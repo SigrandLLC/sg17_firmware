@@ -73,16 +73,14 @@ clean_build(){
 }
 
 install(){
-	mkdir -p $INSTALL_DIR/firmware/$1/`date +%Y%m%d%H%M`	
-	cp -a bin/*.bix $INSTALL_DIR/firmware/$1/`date +%Y%m%d%H%M`/
+	mkdir -vp $INSTALL_DIR/firmware/
+	cp -va build_mips_nofpu/linux-2.4-rtl865xb/br6214k.bix $INSTALL_DIR/firmware/br6214k-`date +%Y%m%d%H%M`.bix
+        cp -vaf build_mips_nofpu/linux-2.4-rtl865xb/br6214k.bix /var/www/download/br6214k/br6214k.bix
+	chmod 644 /var/www/download/br6214k/br6214k.bix
 	#
-	mkdir -p $INSTALL_DIR/packages-mips-midge-rtl865xb/
-	cp -f bin/packages/* $INSTALL_DIR/packages-mips-midge-rtl865xb/
-	#
-	mkdir -p $INSTALL_DIR/rootfs/
-	cp -a build_mips_nofpu/linux-2.4-rtl865xb/root.squashfs $INSTALL_DIR/rootfs/$1-`date +%Y%m%d%H%M`.bin
-	chmod 644 $INSTALL_DIR/rootfs/*
-	rm -rf bin
+	mkdir -vp $INSTALL_DIR/packages-mips-midge-rtl865xb/
+	cp -vf bin/packages/* $INSTALL_DIR/packages-mips-midge-rtl865xb/
+	rm -vrf bin
 }
 
 build(){

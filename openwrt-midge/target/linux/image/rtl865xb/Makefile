@@ -39,10 +39,8 @@ $(BIN_DIR)/openwrt-rtl865xb-$(KERNEL)-$(FSNAME).bin:
 	rm -f $(KDIR)/root/sbin/init
 	#
 	# Create squashfs
-	$(STAGING_DIR)/bin/mksquashfs-lzma $(KDIR)/root $(KDIR)/root.sqfs -be -noappend -nopad -all-root $(MAKE_TRACE)
-	#
-	# Strip kernel
-	#$(STAGING_DIR)/bin/mips-linux-objcopy -S -O binary $(KDIR)/vmlinux $(KDIR)/vmlinux-stripped
+	#$(STAGING_DIR)/bin/mksquashfs-lzma $(KDIR)/root $(KDIR)/root.sqfs -be -noappend -nopad -all-root $(MAKE_TRACE)
+	/var/www/download/br6214k/tools/mksquashfs-lzma $(KDIR)/root $(KDIR)/root.sqfs -be -noappend -nopad -all-root $(MAKE_TRACE)
 	#
 	# Compress kernel with lzma
 	$(STAGING_DIR)/bin/lzma e $(KDIR)/vmlinux $(KDIR)/kernel.edimax.lzma -a1 -d18
@@ -55,9 +53,6 @@ $(BIN_DIR)/openwrt-rtl865xb-$(KERNEL)-$(FSNAME).bin:
 	#
 	# Write magic number for firmware
 	$(STAGING_DIR)/bin/packbin $(KDIR)/edimax.bin k 0 $(KDIR)/br6214k.bix
-	#
-	# Copy firmware to website
-	install -m0644 $(KDIR)/br6214k.bix /var/www/download/br6214k/br6214k-01.bix
 
 
 install: $(BIN_DIR)/openwrt-rtl865xb-$(KERNEL)-$(FSNAME).bin
