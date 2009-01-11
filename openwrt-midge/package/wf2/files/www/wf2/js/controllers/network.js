@@ -352,9 +352,10 @@ Controllers.fw = function() {
 					"type": "text",
 					"name": "natto",
 					"text": "Nat to address",
-					"descr": target == "DNAT" ? "Do Destination NAT to address" : "Do Source NAT to address",
+					"descr": target == "DNAT" ? "Do Destination NAT to address."
+											  : "Do Source NAT to address.",
 					"validator": {"required": true, "ipAddrPort": true},
-					"tip": "You can add port number after ip address<br><i>Example: 192.168.0.1:80</i>"
+					"tip": "You can add port number after IP address<br><i>Example: 192.168.0.1:80</i>."
 				};
 				list.addDynamicWidget(field,
 					{"type": "insertAfter", "anchor": $("#dst").parents("tr")});
@@ -376,7 +377,7 @@ Controllers.fw = function() {
 					"type": "text",
 					"name": "sport",
 					"text": "Source port",
-					"descr": "Source port or port range",
+					"descr": "Source port or port range.",
 					"validator": {"required": true, "ipPortRange": true},
 					"defaultValue": "any",
 					"tip": tip
@@ -388,7 +389,7 @@ Controllers.fw = function() {
 					"type": "text",
 					"name": "dport",
 					"text": "Destination port",
-					"descr": "Destination port or port range",
+					"descr": "Destination port or port range.",
 					"validator": {"required": true, "ipPortRange": true},
 					"defaultValue": "any",
 					"tip": tip
@@ -417,33 +418,33 @@ Controllers.fw = function() {
 			"type": "checkbox",
 			"name": "enabled",
 			"text": "Enabled",
-			"descr": "Check this item to enable rule"
+			"descr": "Enable rule."
 		};
-		options['list'].addWidget(field);
+		options.list.addWidget(field);
 
 		field = {
 			"type": "text",
 			"name": "name",
 			"text": "Short name",
-			"descr": "Name of rule",
+			"descr": "Name of rule.",
 			"validator": {"required": true, "alphanumU": true}
 		};
-		options['list'].addWidget(field);
+		options.list.addWidget(field);
 
 		field = {
 			"type": "select",
 			"name": "proto",
 			"text": "Protocol",
-			"descr": "A protocol of the packet to check",
+			"descr": "Protocol of packet.",
 			"defaultValue": "all",
 			"options": "all tcp udp icmp",
 			"onChange": onChangeTargetOrProto
 		};
-		options['list'].addWidget(field);
+		options.list.addWidget(field);
 
-		var tip = "Address can be either a network IP address (with /mask), or a plain IP address, " +
+		var tip = "IP address can be either a network IP address (with /mask), or a plain IP address. " +
 				"A ! argument before the address specification inverts the sense of the address." +
-				"<br><b>Examples:</b> 192.168.1.0/24, 192.168.1.5<br> Use 0.0.0.0/0 for <b>any</b>";
+				"<br><b>Examples:</b> 192.168.1.0/24, 192.168.1.5<br> Use 0.0.0.0/0 for <b>any</b>.";
 
 		field = {
 			"type": "text",
@@ -548,9 +549,9 @@ Controllers.fw = function() {
 				"varList": ["name", "src", "dst", "proto", "sport", "dport", "target"],
 				"listItem": "sys_fw_filter_forward_",
 				"onAddOrEditItemRender": onChangeTargetOrProto,
-				"addMessage": "Add rule to FORWARD chain",
-				"editMessage": "Edit rule in FORWARD chain",
-				"listTitle": "Filter, FORWARD chain",
+				"addMessage": _("Add rule to FORWARD chain"),
+				"editMessage": _("Edit rule in FORWARD chain"),
+				"listTitle": _("Filter, FORWARD chain"),
 				"helpPage": "filter",
 				"helpSection": "filter_add"
 			});
@@ -574,9 +575,9 @@ Controllers.fw = function() {
 				"varList": ["name", "src", "dst", "proto", "sport", "dport", "target"],
 				"listItem": "sys_fw_filter_input_",
 				"onAddOrEditItemRender": onChangeTargetOrProto,
-				"addMessage": "Add rule to INPUT chain",
-				"editMessage": "Edit rule in INPUT chain",
-				"listTitle": "Filter, INPUT chain",
+				"addMessage": _("Add rule to INPUT chain"),
+				"editMessage": _("Edit rule in INPUT chain"),
+				"listTitle": _("Filter, INPUT chain"),
 				"helpPage": "filter",
 				"helpSection": "filter_add"
 			});
@@ -600,9 +601,9 @@ Controllers.fw = function() {
 				"varList": ["name", "src", "dst", "proto", "sport", "dport", "target"],
 				"listItem": "sys_fw_filter_output_",
 				"onAddOrEditItemRender": onChangeTargetOrProto,
-				"addMessage": "Add rule to OUTPUT chain",
-				"editMessage": "Edit rule in OUTPUT chain",
-				"listTitle": "Filter, OUTPUT chain",
+				"addMessage": _("Add rule to OUTPUT chain"),
+				"editMessage": _("Edit rule in OUTPUT chain"),
+				"listTitle": _("Filter, OUTPUT chain"),
 				"helpPage": "filter",
 				"helpSection": "filter_add"
 			});
@@ -660,9 +661,9 @@ Controllers.fw = function() {
 				"varList": ["name", "src", "dst", "proto", "sport", "dport", "target"],
 				"listItem": "sys_fw_nat_prerouting_",
 				"onAddOrEditItemRender": onChangeTargetOrProto,
-				"addMessage": "Add rule to PREROUTING chain",
-				"editMessage": "Edit rule in PREROUTING chain",
-				"listTitle": "NAT, PREROUTING chain",
+				"addMessage": _("Add rule to PREROUTING chain"),
+				"editMessage": _("Edit rule in PREROUTING chain"),
+				"listTitle": _("NAT, PREROUTING chain"),
 				"helpPage": "nat",
 				"helpSection": "nat_add"
 			});
@@ -687,9 +688,9 @@ Controllers.fw = function() {
 				"varList": ["name", "src", "dst", "proto", "sport", "dport", "target"],
 				"listItem": "sys_fw_nat_postrouting_",
 				"onAddOrEditItemRender": onChangeTargetOrProto,
-				"addMessage": "Add rule to POSTROUTING chain",
-				"editMessage": "Edit rule in POSTROUTING chain",
-				"listTitle": "NAT, POSTROUTING chain",
+				"addMessage": _("Add rule to POSTROUTING chain"),
+				"editMessage": _("Edit rule in POSTROUTING chain"),
+				"listTitle": _("NAT, POSTROUTING chain"),
 				"helpPage": "nat",
 				"helpSection": "nat_add"
 			});

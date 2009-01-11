@@ -227,7 +227,6 @@ Controllers.webface = function() {
 				"type": "select",
 				"name": "sys_interface_language",
 				"text": "Interface language",
-				"descr": "Please select language",
 				"options": {"en": "English", "ru": _("Russian")} 
 			};
 			c.addWidget(field);
@@ -256,9 +255,9 @@ Controllers.general = function() {
 				"type": "text",
 				"name": "sys_hostname",
 				"text": "Hostname",
-				"descr": "Please enter device's hostname",
+				"descr": "Device's hostname.",
 				"validator": {"required": true, "alphanumU": true},
-				"message": "Enter hostname"
+				"message": "Enter correct hostname"
 			};
 			c.addWidget(field);
 		
@@ -288,7 +287,7 @@ Controllers.security = function() {
 				"name": "htpasswd",
 				"id": "htpasswd",
 				"text": "Password",
-				"descr": "Password for webface user <i>admin</i>",
+				"descr": "Password for webface user <i>admin</i>.",
 				"validator": {"required": true, "alphanumU": true}
 			};
 			c.addWidget(field);
@@ -298,7 +297,7 @@ Controllers.security = function() {
 				"name": "htpasswd2",
 				"id": "htpasswd2",
 				"text": "Repeat password",
-				"descr": "Password for webface user <i>admin</i>",
+				"descr": "Password for webface user <i>admin</i>.",
 				"validator": {"equalTo": "#htpasswd"}
 			};
 			c.addWidget(field);
@@ -336,7 +335,7 @@ Controllers.security = function() {
 				"name": "passwd",
 				"id": "passwd",
 				"text": "Password",
-				"descr": "Password for system user <i>root</i> to log in via console",
+				"descr": "Password for system user <i>root</i> to log in via console.",
 				"validator": {"required": true, "alphanumU": true}
 			};
 			c.addWidget(field);
@@ -346,7 +345,7 @@ Controllers.security = function() {
 				"name": "passwd2",
 				"id": "passwd2",
 				"text": "Repeat password",
-				"descr": "Password for system user <i>root</i> to log in via console",
+				"descr": "Password for system user <i>root</i> to log in via console.",
 				"validator": {"equalTo": "#passwd"}
 			};
 			c.addWidget(field);
@@ -379,22 +378,32 @@ Controllers.dns = function() {
 			c = page.addContainer("dns");
 			c.addTitle("DNS settings");
 
-			field = { 
+			field = {
 				"type": "text",
 				"name": "sys_dns_nameserver",
-				"text": "Upstream server",
-				"descr": "Please enter ip address of upstream dns server",
-				"tip": "DNS server used for resolving domain names. E.g., 192.168.2.1",
+				"text": "DNS server 1",
+				"descr": "IP address of upstream dns server.",
+				"tip": "DNS server used for resolving domain names. E.g., 192.168.2.1.",
 				"validator": {"ipAddr": true}
 			};
 			c.addWidget(field);
 		
+			field = {
+				"type": "text",
+				"name": "sys_dns_nameserver2",
+				"text": "DNS server 2",
+				"descr": "IP address of upstream dns server.",
+				"tip": "DNS server used for resolving domain names. E.g., 192.168.2.1.",
+				"validator": {"ipAddr": true}
+			};
+			c.addWidget(field);
+
 			field = { 
 				"type": "text",
 				"name": "sys_dns_domain",
 				"text": "Domain",
-				"descr": "Please enter your domain",
-				"tip": "Domain for this router. E.g., localnet"
+				"descr": "Your domain.",
+				"tip": "Domain for this router. E.g., localnet."
 			};
 			c.addWidget(field);
 		
