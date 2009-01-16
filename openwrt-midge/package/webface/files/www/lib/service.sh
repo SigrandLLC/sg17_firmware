@@ -33,6 +33,9 @@ service_reload(){
 		dev=${tmp#*.}
 		/etc/init.d/dsl restart $slot $dev
 		/etc/init.d/mux start
+
+		# restart EOCd
+		/usr/bin/killall -HUP eocd
 	;;
 	e1*)
 		tmp=${service#*.}
@@ -61,11 +64,11 @@ service_reload(){
 	mux)
 		/etc/init.d/mux start
 	;;
-	# old web
+	# VoIP in old web
 	voip)
 		/etc/init.d/rcvoip restart
 	;;
-	# wf2
+	# VoIP in WF2
 	svd*)
 		/etc/init.d/rcvoip restart
 	;;
@@ -92,4 +95,3 @@ service_reload(){
 	;;
 	esac
 }
-

@@ -15,7 +15,7 @@ PIDFILE=/var/run/$NAME.pid
 start(){
 	echo "Starting $NAME."
 	if [ ! -r /etc/ssl/server.pem -a -x /usr/bin/openssl ]; then
-		echo "Generationg SSL certificate."
+		echo "Generating SSL certificate."
 		/usr/bin/openssl req -new -x509  -keyout /etc/ssl/server.pem -out /etc/ssl/server.pem  -days 1095 -nodes -batch
 	fi
 	start-stop-daemon --quiet --start --pid=$PIDFILE --exec $DAEMON -- $DAEMON_ARGS >/dev/null 2>&1
