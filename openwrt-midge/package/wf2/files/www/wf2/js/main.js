@@ -11,6 +11,7 @@ function generateMenu() {
 	addItem("System", "Reboot", "reboot");
 	addItem("System", "Configuration", "cfg");
 	addItem("System", "Upload file", "upload");
+	addItem("System", "Console", "console");
 	addItem("Network", "Firewall", "fw");
 	addItem("Network:Dynamic interfaces", "Manage", "dynamic_ifaces");
 	addItem("Hardware", "Switch", "adm5120sw");

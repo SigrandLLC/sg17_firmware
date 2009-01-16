@@ -1,6 +1,5 @@
 Controllers.dsl = function(iface, pcislot, pcidev) {
-	var eocInfoCmd = "/sbin/eoc-info";
-	
+	/* create page and set common settings */
 	var page = this.Page();
 	page.setHelpPage("dsl");
 	page.setSubsystem($.sprintf("dsl.%s.%s", pcislot, pcidev));
@@ -15,24 +14,14 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		$(select).setOptionsForSelect(rates, cur);
 	};
 
-	/* fill select with fixed rates */
-	var fixedRateList = function(select, cur, rates) {
-		var ratesList = new Object();
-		$.each(rates, function(num, rate){
-			ratesList[rate] = "" + rate;
-		});
-		ratesList["-1"] = "other";
-		$(select).setOptionsForSelect(ratesList, cur);
-	};
-
-	/* title of sg16 */
+	/* title for MR16H */
 	var getSg16Title = function() {
 		return $.sprintf("%s (module %s%s%s) ", iface,
-			config.getOEM("MR16H_MODNAME"), config.getOEM("OEM_IFPFX"),
-			config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot)));
+				config.getOEM("MR16H_MODNAME"), config.getOEM("OEM_IFPFX"),
+				config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot)));
 	};
 
-	/* show status for 16 series */
+	/* status for MR16H */
 	var sg16Status = function() {
 		var c, field;
 		c = page.addContainer("status");
@@ -47,9 +36,9 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		c.addWidget(field);
 	};
 
-	/* show settings for 16 series */
+	/* settings for MR16H */
 	var sg16Settings = function() {
-		var c, field, id;
+		var c, field;
 		c = page.addContainer("settings");
 		c.addTitle(getSg16Title() + "settings");
 		
@@ -221,32 +210,32 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		onChangeSG16Code();
 	};
 	
-	/* title of sg17 */
-	var getSg17Title = function(pwr) {
-		var sfx;
-		var ver = config.getCachedOutput($.sprintf("/bin/cat %s/%s/sg17_private/chipver",
-			config.getOEM("sg17_cfg_path"), iface));
+	/* title for MR17H */
+	var getSg17Title = function() {
+		var sfx, compatibility;
 		
-		if (ver == "v1") {
+		if (chipVer == "v1") {
 			sfx = config.getOEM("MR17H_V1SFX");
-		} else if (ver == "v2") {
+			compatibility = "base";
+		} else if (chipVer == "v2") {
 			sfx = config.getOEM("MR17H_V2SFX");
+			compatibility = "extended";
 		}
 		
-		if (pwr == 1) {
+		if (pwrPresence == 1) {
 			sfx += config.getOEM("MR17H_PWRSFX");
 		}
 		
-		return $.sprintf("%s (module %s%s%s%s) ", iface, config.getOEM("MR17H_MODNAME"),
-			config.getOEM("OEM_IFPFX"), config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot)),
-			sfx);
+		return $.sprintf("%s (module %s%s%s%s, %s compatibility) ", iface,
+				config.getOEM("MR17H_MODNAME"), config.getOEM("OEM_IFPFX"),
+				config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot)), sfx, compatibility);
 	};
 	
 	/* show status for 17 series */
 	var sg17Status = function(dsl17status) {
-		var field;
-		c = page.addContainer("status");
-		c.addTitle(getSg17Title(dsl17status.pwr.presence) + "status");
+		var c, field;
+		c = page.addContainer("status", {"clear": true});
+		c.addTitle(getSg17Title() + "status");
 		
 		field = {
 			"type": "html",
@@ -342,264 +331,293 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		}
 	};
 	
-	/* show settings for 17 series */
+	/* show settings for MR17H */
 	var sg17Settings = function() {
-		var c, field, id;
+		var c, field;
 		c = page.addContainer("settings");
-		var confPath = $.sprintf("%s/%s/sg17_private", config.getOEM("sg17_cfg_path"), iface);
+		c.addTitle(getSg17Title() + "settings");
 		
-		/* power status */
-		var pwrPresence = config.getCachedOutput($.sprintf("/bin/cat %s/pwr_source", confPath));
-		
-		c.addTitle(getSg17Title(pwrPresence) + "settings");
-		
-		/* available TCPAM values */
-		var TCPAM = {
-			"tcpam128": "TCPAM128",
-			"tcpam64": "TCPAM64",
-			"tcpam32": "TCPAM32",
-			"tcpam16": "TCPAM16",
-			"tcpam8": "TCPAM8"
-		};
-		
-		/* list of rates */
-		var rateList8 = new Array(192,256,320,384,512,640,768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840);
-		var rateList16 = new Array(192,256,320,384,512,640,768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840);
-		var rateList32_v1 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696);
-		var rateList32_v2 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10176);
-		var rateList64 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10240,11520,12736);
-		var rateList128 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10240,11520,12800,14080);
-		
-		/* name and id of mrate field (used for manual speed setting, can be updated by subsystem) */
-		var mrateId = $.sprintf("sys_pcicfg_s%s_%s_mrate", pcislot, pcidev);
-		
-		/* updates parameters */
-		var onChangeSG17Code = function() {
+		/* control mode change (manual or by EOCd) */
+		var onCtrlChange = function() {
 			if ($("#ctrl").val() == "manual") {
+				$(".widgetEocd, .widgetEocdMaster, .widgetMaster").parents("tr").remove();
 				addManualWidgets();
 			} else {
-				removeManualWidgets();
+				$(".widgetManual, .widgetManualMaster, .widgetMaster").parents("tr").remove();
+				addEocdWidgets();
 			}
-				
-			var mode = $("#mode").val();
-			var code = $("#code").val();
-			var rate = $("#rate").val();
-			var annex = $("#annex").val();
-			var clkmode = $("#clkmode").val();
-			
-			if (mode == "slave") {
-				$("#rate").setOptionsForSelect("automatic");
-				$("#rate").attr("readonly", true);
-				
-				$("#code").setOptionsForSelect("automatic");
-				$("#code").attr("readonly", true);
-				
-				$("#clkmode").setOptionsForSelect("automatic");
-				$("#clkmode").attr("readonly", true);
-				
-				$("#annex").setOptionsForSelect("automatic");
-				$("#annex").attr("readonly", true);
-				
-				$("#pbomode").attr("readonly", true);
-				
-				$("#" + mrateId).remove();
-				$("#pboval").remove();
+		};
+
+		/* dsl mode change */
+		var onModeChange = function() {
+			if ($("#mode").val() == "slave") {
+				$(".widgetManualMaster, .widgetMaster").parents("tr").remove();
 			} else {
-				$("#code").removeAttr("readonly");
-				var chipVer = config.getCachedOutput($.sprintf("/bin/cat %s/chipver", confPath));
-				if (chipVer == "v1") {
-					$("#code").setOptionsForSelect({
-						"tcpam8": TCPAM["tcpam8"],
-						"tcpam16": TCPAM["tcpam16"],
-						"tcpam32": TCPAM["tcpam32"]
-					}, code, "tcpam32");
-				} else {
-					$("#code").setOptionsForSelect(TCPAM, code, "tcpam32");
-				}
-				
-				/* update varibale's value */
-				code = $("#code").val();
-				
-				$("#rate").removeAttr("readonly");
-				if (chipVer == "v1") {
-					switch (code) {
-						case "tcpam8":
-							fixedRateList("#rate", rate, rateList8);
-							break;
-						case "tcpam16":
-							fixedRateList("#rate", rate, rateList16);
-							break;
-						case "tcpam32":
-							fixedRateList("#rate", rate, rateList32_v1);
-							break;
-					}
-				} else {
-					switch (code) {
-						case "tcpam8":
-							fixedRateList("#rate", rate, rateList8);
-							break;
-						case "tcpam16":
-							fixedRateList("#rate", rate, rateList16);
-							break;
-						case "tcpam32":
-							fixedRateList("#rate", rate, rateList32_v2);
-							break;
-						case "tcpam64":
-							fixedRateList("#rate", rate, rateList64);
-							break;
-						case "tcpam128":
-							fixedRateList("#rate", rate, rateList128);
-							break;
-					}
-				}
-				
-				/* if rate is "other", add text widget to enter rate value */
-				if (rate == -1 && $("#" + mrateId).length == 0) {
-					field = { 
-						"type": "text",
-						"name": mrateId,
-						"id": mrateId,
-						"validator": {"required": true, "min": 0}
-					};
-					c.addSubWidget(field, {"type": "insertAfter", "anchor": "#rate"});
-				/* otherwise, remove it */
-				} else if (rate > 0) {
-					$("#" + mrateId).remove();
-				}
-				
-				$("#clkmode").removeAttr("readonly");
-				$("#clkmode").setOptionsForSelect("plesio plesio-ref sync", clkmode);
-				
-				$("#pbomode").removeAttr("readonly");
-				/* If PBO is active, add text field for it's value */
-				if ($("#pbomode").attr("checked") == true && $("#pboval").length == 0) {
-					field = { 
-						"type": "text",
-						"name": $.sprintf("sys_pcicfg_s%s_%s_pboval", pcislot, pcidev),
-						"id": "pboval",
-						"validator": {"required": true, "pbo": true}
-					};
-					c.addSubWidget(field, {"type": "insertAfter", "anchor": "#pbomode"});
-				} else if ($("#pbomode").attr("checked") == false) {
-					$("#pboval").remove();
-				}
-				
-				$("#annex").removeAttr("readonly");
-				$("#annex").setOptionsForSelect({"A": "Annex A", "B": "Annex B"}, annex);
+				addManualMasterWidgets();
 			}
-		}
-		
-		/* IDs of manual widgets */
-		var manualWidgetsIDs = new Array();
-		
+		};
+
+		/* EOCd master change */
+		var onEocdMasterChange = function() {
+			if ($("#eocdMaster").val() == "0") {
+				$(".widgetEocdMaster, .widgetMaster").parents("tr").remove();
+			} else {
+				addEocdMasterWidgets();
+			}
+		};
+
+		/* add or remove pboval field depending on pbomode value */
+		var setPboval = function() {
+			/* If PBO is active, add text widget to enter it's value */
+			if ($("#pbomode").attr("checked") == true && $("#pboval").length == 0) {
+				field = {
+					"type": "text",
+					/* depending on control mode, write value to corresponding KDB key */
+					"name": $("#ctrl").val() == "manual"
+							? $.sprintf("sys_pcicfg_s%s_%s_pboval", pcislot, pcidev)
+							: $.sprintf("sys_eocd_chan_s%s_%s_pboval", pcislot, pcidev),
+					"id": "pboval",
+					"validator": {"required": true, "pbo": true}
+				};
+				c.addSubWidget(field, {"type": "insertAfter", "anchor": "#pbomode"});
+			} else if ($("#pbomode").attr("checked") == false) {
+				$("#pboval").remove();
+			}
+		};
+
+		/* add or remove mrate field depending on rate value */
+		var setMrate = function() {
+			var mrateId = $.sprintf("sys_pcicfg_s%s_%s_mrate", pcislot, pcidev);
+
+			/* if rate is "other", add text widget to enter rate value */
+			if ($("#rate").val() == "-1" && $("#" + mrateId).length == 0) {
+				var field = {
+					"type": "text",
+					"name": mrateId,
+					"validator": {"required": true, "min": 0},
+					"cssClass": "widgetManualMaster"
+				};
+				c.addSubWidget(field, {"type": "insertAfter", "anchor": "#rate"});
+			/* otherwise, remove it */
+			} else if ($("#rate").val() != "-1") {
+				$("#" + mrateId).remove();
+			}
+		};
+
 		/* add, if not exist, widgets for manual mode */
 		var addManualWidgets = function() {
-			if (manualWidgetsIDs.length != 0) return;
-			
-			/* widget after which insert this element */
-			var parentWidget = $("#ctrl").parents("tr");
-						
+			if ($(".widgetManual").length > 0) {
+				return;
+			}
+
+			/* mode */
+			field = {
+				"type": "select",
+				"name": $.sprintf("sys_pcicfg_s%s_%s_mode", pcislot, pcidev),
+				"id": "mode",
+				"text": "Mode",
+				"descr": "DSL mode.",
+				"options": {"master": "Master", "slave": "Slave"},
+				"cssClass": "widgetManual",
+				"onChange": onModeChange
+			};
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#ctrl").parents("tr")});
+
+			/* add widget for power-capable interfaces */
 			if (pwrPresence == 1) {
 				/* pwron */
-				manualWidgetsIDs.push("pwron");
-				field = { 
+				field = {
 					"type": "select",
 					"name": $.sprintf("sys_pcicfg_s%s_%s_pwron", pcislot, pcidev),
-					"id": "pwron",
+					"id": "power",
 					"text": "Power",
-					"descr": "Select DSL Power feeding mode",
-					"options": {"pwroff": "off", "pwron": "on"}
+					"descr": "DSL power feeding mode.",
+					"options": {"pwroff": "off", "pwron": "on"},
+					"cssClass": "widgetManual"
 				};
-				c.addWidget(field, {"type": "insertAfter", "anchor": parentWidget});
+				c.addWidget(field, {"type": "insertBefore", "anchor": $("#advlink").parents("tr")});
 			}
-			
-			/* pbo */
-			manualWidgetsIDs.push("pbomode");
-			field = { 
+
+			/* add widgets for manual & master mode */
+			if ($("#mode").val() == "master") {
+				addManualMasterWidgets();
+			}
+		};
+
+		/* add widgets for manual & master */
+		var addManualMasterWidgets = function() {
+			if ($(".widgetManualMaster").length > 0) {
+				return;
+			}
+
+			/* code */
+			field = {
+				"type": "select",
+				"name": $.sprintf("sys_pcicfg_s%s_%s_code", pcislot, pcidev),
+				"id": "code",
+				"text": "Coding",
+				"descr": "DSL line coding.",
+				"options": chipVer == "v1"	? "tcpam8 tcpam16 tcpam32"
+											: "tcpam8 tcpam16 tcpam32 tcpam64 tcpam128",
+				"defaultValue": "tcpam32",
+				"cssClass": "widgetManualMaster",
+				"onChange": function() {
+					/* update rate list */
+					$("#rate").setOptionsForSelect(getRates($("#code").val(), chipVer));
+				}
+			};
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#mode").parents("tr")});
+
+			/* rate */
+			field = {
+				"type": "select",
+				"name": $.sprintf("sys_pcicfg_s%s_%s_rate", pcislot, pcidev),
+				"id": "rate",
+				"text": "Rate",
+				"descr": "DSL line rate.",
+				"onChange": setMrate,
+				"cssClass": "widgetManualMaster",
+				"options": getRates($("#code").val(), chipVer)
+			};
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#code").parents("tr")});
+			setMrate();
+
+			/* annex */
+			field = {
+				"type": "select",
+				"name": $.sprintf("sys_pcicfg_s%s_%s_annex", pcislot, pcidev),
+				"text": "Annex",
+				"descr": "DSL Annex.",
+				"options": {"A": "Annex A", "B": "Annex B"},
+				"cssClass": "widgetManualMaster"
+			};
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#rate").parents("tr")});
+
+			/* pbomode manual */
+			field = {
 				"type": "checkbox",
 				"name": $.sprintf("sys_pcicfg_s%s_%s_pbomode", pcislot, pcidev),
 				"id": "pbomode",
 				"text": "PBO forced",
 				"descr": "Example: 21:13:15, STU-C-SRU1=21,SRU1-SRU2=13,...",
-				"onChange": onChangeSG17Code
+				"onClick": setPboval,
+				"cssClass": "widgetManualMaster"
 			};
-			c.addWidget(field, {"type": "insertAfter", "anchor": parentWidget});
-			
-			/* annex */
-			manualWidgetsIDs.push("annex");
-			field = { 
-				"type": "select",
-				"name": $.sprintf("sys_pcicfg_s%s_%s_annex", pcislot, pcidev),
-				"id": "annex",
-				"text": "Annex",
-				"descr": "Select DSL Annex",
-				"options": {"A": "Annex A", "B": "Annex B"}
-			};
-			c.addWidget(field, {"type": "insertAfter", "anchor": parentWidget});
-			
-			/* code */
-			manualWidgetsIDs.push("code");
-			var name = $.sprintf("sys_pcicfg_s%s_%s_code", pcislot, pcidev);
-			var value = config.get(name).length == 0 ? "tcpam32" : config.get(name);
-			field = { 
-				"type": "select",
-				"name": name,
-				"id": "code",
-				"text": "Coding",
-				"descr": "Select DSL line coding",
-				"options": value,
-				"onChange": onChangeSG17Code
-			};
-			c.addWidget(field, {"type": "insertAfter", "anchor": parentWidget});
-			
-			/* rate */
-			manualWidgetsIDs.push("rate");
-			var name = $.sprintf("sys_pcicfg_s%s_%s_rate", pcislot, pcidev);
-			var value = config.get(name) == "-1" ? "other" : config.get(name);
-			var rateOptions = new Object();
-			rateOptions[config.get(name)] = value;
-			field = { 
-				"type": "select",
-				"name": name,
-				"id": "rate",
-				"text": "Rate",
-				"descr": "Select DSL line rate",
-				"options": rateOptions,
-				"onChange": onChangeSG17Code
-			};
-			c.addWidget(field, {"type": "insertAfter", "anchor": parentWidget});
-			
-			/* mode */
-			manualWidgetsIDs.push("mode");
-			field = { 
-				"type": "select",
-				"name": $.sprintf("sys_pcicfg_s%s_%s_mode", pcislot, pcidev),
-				"id": "mode",
-				"text": "Mode",
-				"descr": "Select DSL mode",
-				"options": {"master": "Master", "slave": "Slave"},
-				"onChange": onChangeSG17Code
-			};
-			c.addWidget(field, {"type": "insertAfter", "anchor": parentWidget});
+			c.addWidget(field, {"type": "insertBefore", "anchor": $("#power").parents("tr")});
+			setPboval();
+
+			addMasterWidgets();
 		};
-		
-		/* remove, if exist, widgets for manual mode */
-		var removeManualWidgets = function() {
-			if (manualWidgetsIDs.length != 0) {
-				$.each(manualWidgetsIDs, function(num, value) {
-					$("#" + value).parents("tr").remove();
-				});
-				manualWidgetsIDs = new Array();
+
+		/* add, if not exist, widgets for EOCd mode */
+		var addEocdWidgets = function() {
+			if ($(".widgetEocd").length > 0) {
+				return;
+			}
+
+			/* eocdMaster */
+			field = {
+				"type": "select",
+				"name": $.sprintf("sys_eocd_chan_s%s_%s_master", pcislot, pcidev),
+				"id": "eocdMaster",
+				"text": "Mode",
+				"descr": "DSL mode.",
+				"options": {"1": "Master", "0": "Slave"},
+				"cssClass": "widgetEocd",
+				"onChange": onEocdMasterChange
+			};
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#ctrl").parents("tr")});
+
+			/* profile */
+			field = {
+				"type": "select",
+				"name": $.sprintf("sys_eocd_chan_s%s_%s_confprof", pcislot, pcidev),
+				"id": "profile",
+				"text": "Config profile",
+				"descr": "EOC configuration profile associated with this channel.",
+				"options": function() {
+					/* determine compatibility for current interface */
+					var compatibility = (chipVer == "v1") ? "base" : "extended";
+
+					/* get EOC profiles */
+					var profiles = config.getParsed("sys_eocd_sprof_*");
+
+					var resultProfiles = ["default"];
+					$.each(profiles, function(profileKey, profile) {
+						if (compatibility == profile.comp) {
+							resultProfiles.push(profile.name);
+						}
+					});
+
+					return resultProfiles;
+				}(),
+				"cssClass": "widgetEocd"
+			};
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#eocdMaster").parents("tr")});
+
+			if ($("#eocdMaster").val() == "1") {
+				addEocdMasterWidgets();
 			}
 		};
+
+		/* add widgets for EOCd & master */
+		var addEocdMasterWidgets = function() {
+			if ($(".widgetEocdMaster").length > 0) {
+				return;
+			}
+			
+			/* regs */
+			field = {
+				"type": "text",
+				"name": $.sprintf("sys_eocd_chan_s%s_%s_regs", pcislot, pcidev),
+				"text": "Regenerators",
+				"descr": "Number of installed regenerators (theoretical).",
+				"validator": {"min": 0},
+				"cssClass": "widgetEocdMaster"
+			};
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#profile").parents("tr")});
+
+			/* pbomode EOCd */
+			field = {
+				"type": "checkbox",
+				"name": $.sprintf("sys_eocd_chan_s%s_%s_pbomode", pcislot, pcidev),
+				"id": "pbomode",
+				"text": "PBO forced",
+				"descr": "Example: 21:13:15, STU-C-SRU1=21,SRU1-SRU2=13,...",
+				"onClick": setPboval,
+				"cssClass": "widgetEocdMaster"
+			};
+			c.addWidget(field, {"type": "insertBefore", "anchor": $("#advlink").parents("tr")});
+			setPboval();
+
+			addMasterWidgets();
+		};
+
+		/* add, if not exist, widgets for master mode which are common for manual and eocd */
+		var addMasterWidgets = function() {
+			if ($(".widgetMaster").length > 0) {
+				return;
+			}
+
+			field = {
+				"type": "select",
+				"name": $.sprintf("sys_pcicfg_s%s_%s_clkmode", pcislot, pcidev),
+				"id": "clockMode",
+				"text": "Clock mode",
+				"descr": "DSL clock mode.",
+				"options": "plesio plesio-ref sync",
+				"cssClass": "widgetMaster"
+			};
+			c.addWidget(field, {"type": "insertBefore", "anchor": $("#pbomode").parents("tr")});
+		};
 		
-		/* add parameters */
+		/* add parameters which are common for all controls and modes */
 		
 		field = { 
 			"type": "checkbox",
 			"name": $.sprintf("sys_mux_%s_mxen", iface),
 			"text": "Enable multiplexing",
-			"descr": "Enable multiplexing on this interface",
+			"descr": "Enable multiplexing on this interface.",
 			"tip": "This option is equivalent to MXEN on a multiplexing page."
 		};
 		c.addWidget(field);
@@ -609,27 +627,18 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"name": $.sprintf("sys_pcicfg_s%s_%s_ctrl", pcislot, pcidev),
 			"id": "ctrl",
 			"text": "Control type",
-			"descr": "Control type (manual or by EOC daemon)",
+			"descr": "Control type (manual or by EOC daemon).",
 			"options": {"manual": "Manual", "eocd": "EOCd"},
-			"onChange": onChangeSG17Code
-		};
-		c.addWidget(field);
-		
-		field = { 
-			"type": "select",
-			"name": $.sprintf("sys_pcicfg_s%s_%s_clkmode", pcislot, pcidev),
-			"id": "clkmode",
-			"text": "Clock mode",
-			"descr": "Select DSL clock mode",
-			"options": "plesio plesio-ref sync"
+			"onChange": onCtrlChange
 		};
 		c.addWidget(field);
 		
 		field = { 
 			"type": "select",
 			"name": $.sprintf("sys_pcicfg_s%s_%s_advlink", pcislot, pcidev),
+			"id": "advlink",
 			"text": "AdvLink",
-			"descr": "Select DSL Advanced link detection",
+			"descr": "DSL Advanced link detection.",
 			"options": "off on"
 		};
 		c.addWidget(field);
@@ -638,7 +647,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"type": "select",
 			"name": $.sprintf("sys_pcicfg_s%s_%s_crc", pcislot, pcidev),
 			"text": "CRC",
-			"descr": "Select DSL CRC length",
+			"descr": "DSL CRC length.",
 			"options": {"crc32": "CRC32", "crc16": "CRC16"}
 		};
 		c.addWidget(field);
@@ -647,23 +656,51 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"type": "select",
 			"name": $.sprintf("sys_pcicfg_s%s_%s_fill", pcislot, pcidev),
 			"text": "Fill",
-			"descr": "Select DSL fill byte value",
+			"descr": "DSL fill byte value.",
 			"options": {"fill_ff": "FF", "fill_7e": "7E"}
 		};
 		c.addWidget(field);
-		
+
+		/* on submit, add or remove current channel from EOCd interfaces */
+		var additionalKeys = [];
 		c.addSubmit({
+			"additionalKeys": additionalKeys,
+			"preSubmit": function() {
+				var channel = $.sprintf("%s:%s", pcislot, pcidev);
+
+				/* eocd control */
+				if ($("#ctrl").val() == "eocd") {
+					/* if this channel is not yet included to the eocd channel list, include it */
+					if (!config.get("sys_eocd_channels") ||
+							config.get("sys_eocd_channels").search(channel) == -1) {
+						$.addObjectWithProperty(additionalKeys, "sys_eocd_channels",
+								config.get("sys_eocd_channels")
+								? $.sprintf("%s %s", config.get("sys_eocd_channels"), channel)
+								: channel);
+					}
+				/* manual control */
+				} else {
+					/* if this channel is inculded to the eocd channel list, exclude it */
+					if (config.get("sys_eocd_channels") &&
+							config.get("sys_eocd_channels").search(channel) != -1) {
+						var channels = config.get("sys_eocd_channels").replace(channel, "");
+						channels = $.trim(channels);
+						$.addObjectWithProperty(additionalKeys, "sys_eocd_channels", channels);
+					}
+				}
+			},
 			"onSuccess": function() {
-				updateFields(mrateId, true);
+				updateFields($.sprintf("sys_pcicfg_s%s_%s_mrate", pcislot, pcidev), true);
 			}
 		});
-		
-		onChangeSG17Code();
-	}
+
+		onCtrlChange();
+	};
 	
 	/* show main statistics page with unit selection */
 	var showStatistics = function(eocInfo) {
-		var c = page.addContainer("statistics");
+		var c, field;
+		c = page.addContainer("statistics");
 		c.setHelpPage("eoc");
 		
 		/* this means that we received not JSON data */
@@ -676,7 +713,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		if (eocInfo.eoc_error == "1") {
 			c.addTitle("EOC error");
 			
-			var field = {
+			field = {
 				"type": "html",
 				"name": "eoc_error",
 				"text": "EOC ERROR",
@@ -685,12 +722,6 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			};
 			c.addWidget(field);
 			
-			return;
-		}
-		
-		/* statistics is available only for master */
-		if (eocInfo.conf.type == "slave") {
-			c.addTitle("Statistics is available only for MASTER interfaces.");
 			return;
 		}
 		
@@ -724,15 +755,19 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			units['stu-c'] = "STU-C";
 			if (eocInfo.link == "1") {
 				units['stu-r'] = "STU-R";
-				for (var i = 1; i <= eocInfo.status.reg_num; i++) units['sru' + i] = "SRU" + i;
+				for (var i = 1; i <= eocInfo.status.reg_num; i++) {
+					units['sru' + i] = "SRU" + i;
+				}
 			} else {
 				/* do not show statistics for last regenerator if EOC is offline */
-				for (var i = 1; i < eocInfo.status.reg_num; i++) units['sru' + i] = "SRU" + i;
+				for (var i = 1; i < eocInfo.status.reg_num; i++) {
+					units['sru' + i] = "SRU" + i;
+				}
 			}
 		}
 		
 		/* value of this widget is saved in cookie, because we not need it in KDB */
-		var field = { 
+		field = { 
 			"type": "select",
 			"name": "unit",
 			"cookie": true,
@@ -750,7 +785,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 	
 	/* show general interface statistics */
 	var showGeneral = function(eocInfo) {
-		var c = page.addContainer("statistics");
+		var c, field;
+		c = page.addContainer("statistics");
 		c.setHelpPage("eoc");
 		
 		/* this means that we received not JSON data */
@@ -763,7 +799,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		if (eocInfo.eoc_error == "1") {
 			c.addTitle("EOC error");
 			
-			var field = {
+			field = {
 				"type": "html",
 				"name": "eoc_error",
 				"text": "EOC ERROR",
@@ -777,16 +813,16 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 	
 		c.addTitle(iface + " state");
 	
-		var field = {
+		field = {
 			"type": "html",
 			"name": "status",
 			"text": "Channel link",
-			"descr": "STU-C connected to STU-R.",
+			"descr": "Connection of STU-C to STU-R.",
 			"str": eocInfo.link == "1" ? "online": "offline"
 		};
 		c.addWidget(field);
 		
-		var field = {
+		field = {
 			"type": "html",
 			"name": "regs",
 			"text": "Regenerators",
@@ -795,7 +831,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		};
 		c.addWidget(field);
 		
-		var field = {
+		field = {
 			"type": "html",
 			"name": "pairs",
 			"text": "Wire pairs",
@@ -804,7 +840,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		};
 		c.addWidget(field);
 		
-		var field = {
+		field = {
 			"type": "html",
 			"name": "rate",
 			"text": "Rate",
@@ -813,7 +849,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		};
 		c.addWidget(field);
 		
-		var field = {
+		field = {
 			"type": "html",
 			"name": "annex",
 			"text": "Annex",
@@ -822,7 +858,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		};
 		c.addWidget(field);
 		
-		var field = {
+		field = {
 			"type": "html",
 			"name": "encoding",
 			"text": "Encoding",
@@ -1116,69 +1152,69 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		var show15MinIntervals = function(loop, side, c) {
 			var field;
 			
-			$.each(loop.m15int, function(num, int) {
+			$.each(loop.m15int, function(num, interval) {
 				var row = c.addTableRow();
 			
 				field = {
 					"type": "html",
-					"name": "int_day_" + side + loop.name + int.int,
-					"str": int.int_day
+					"name": "int_day_" + side + loop.name + interval.int,
+					"str": interval.int_day
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "time_start_" + side + loop.name + int.int,
-					"str": int.time_start
+					"name": "time_start_" + side + loop.name + interval.int,
+					"str": interval.time_start
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "time_end_" + side + loop.name + int.int,
-					"str": int.time_end
+					"name": "time_end_" + side + loop.name + interval.int,
+					"str": interval.time_end
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "es_" + side + loop.name + int.int,
-					"str": int.es
+					"name": "es_" + side + loop.name + interval.int,
+					"str": interval.es
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "ses_" + side + loop.name + int.int,
-					"str": int.ses
+					"name": "ses_" + side + loop.name + interval.int,
+					"str": interval.ses
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "crc_" + side + loop.name + int.int,
-					"str": int.crc
+					"name": "crc_" + side + loop.name + interval.int,
+					"str": interval.crc
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "losws_" + side + loop.name + int.int,
-					"str": int.losws
+					"name": "losws_" + side + loop.name + interval.int,
+					"str": interval.losws
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "uas_" + side + loop.name + int.int,
-					"str": int.uas
+					"name": "uas_" + side + loop.name + interval.int,
+					"str": interval.uas
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "mon_pers_" + side + loop.name + int.int,
-					"str": int.mon_pers
+					"name": "mon_pers_" + side + loop.name + interval.int,
+					"str": interval.mon_pers
 				};
 				c.addTableWidget(field, row);
 			});
@@ -1188,55 +1224,55 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		var show1DayIntervals = function(loop, side, c) {
 			var field;
 			
-			$.each(loop.d1int, function(num, int) {
+			$.each(loop.d1int, function(num, interval) {
 				var row = c.addTableRow();
 				
 				field = {
 					"type": "html",
-					"name": "time_end_" + side + loop.name + int.int,
-					"str": int.int_day
+					"name": "time_end_" + side + loop.name + interval.int,
+					"str": interval.int_day
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "es_" + side + loop.name + int.int,
-					"str": int.es
+					"name": "es_" + side + loop.name + interval.int,
+					"str": interval.es
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "ses_" + side + loop.name + int.int,
-					"str": int.ses
+					"name": "ses_" + side + loop.name + interval.int,
+					"str": interval.ses
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "crc_" + side + loop.name + int.int,
-					"str": int.crc
+					"name": "crc_" + side + loop.name + interval.int,
+					"str": interval.crc
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "losws_" + side + loop.name + int.int,
-					"str": int.losws
+					"name": "losws_" + side + loop.name + interval.int,
+					"str": interval.losws
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "uas_" + side + loop.name + int.int,
-					"str": int.uas
+					"name": "uas_" + side + loop.name + interval.int,
+					"str": interval.uas
 				};
 				c.addTableWidget(field, row);
 				
 				field = {
 					"type": "html",
-					"name": "mon_pers_" + side + loop.name + int.int,
-					"str": int.mon_pers
+					"name": "mon_pers_" + side + loop.name + interval.int,
+					"str": interval.mon_pers
 				};
 				c.addTableWidget(field, row);
 			});
@@ -1380,10 +1416,149 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			});
 		});
 	};
-	
-	/* get driver name */
+
+	/* manage EOC profiles */
+	var eocProfiles = function() {
+		var c, field;
+		c = page.addContainer("eoc_profiles");
+		c.setHelpPage("dsl-eoc");
+
+		/*
+		 * Callback for generateList(), returns correct value for rate, if it's value is -1.
+		 *
+		 * data - hash with current key's variable info.
+		 */
+		var showCorrectRate = function(data) {
+			if (data.varName == "rate" && data.varValue == "-1") {
+				return data.keyValues.mrate;
+			} else {
+				return data.varValue;
+			}
+		};
+
+		/* get available TCPAM values depending on compatibility level */
+		var getTcpamValues = function() {
+			return $("#comp").val() == "base"
+					? "tcpam8 tcpam16 tcpam32"
+					: "tcpam8 tcpam16 tcpam32 tcpam64 tcpam128";
+		};
+
+		/* add widgets which values are calculated in runtime */
+		var addDynamicWidgets = function(list) {
+			var field;
+
+			/* add or remove mrate field depending on rate value */
+			var setMrate = function() {
+				/* if rate is "other", add text widget to enter rate value */
+				if ($("#rate").val() == "-1" && $("#mrate").length == 0) {
+					var field = {
+						"type": "text",
+						"name": "mrate",
+						"validator": {"required": true, "min": 0}
+					};
+					list.addDynamicSubWidget(field, {"type": "insertAfter", "anchor": "#rate"});
+				/* otherwise, remove it */
+				} else if ($("#rate").val() != "-1") {
+					$("#mrate").remove();
+				}
+			};
+
+			/* name */
+			field = {
+				"type": "text",
+				"name": "name",
+				"text": "Name",
+				"descr": "Name of profile.",
+				"validator": {"required": true, "alphanumU": true}
+			};
+			list.addDynamicWidget(field);
+
+			/* comp */
+			field = {
+				"type": "select",
+				"name": "comp",
+				"text": "Compatibility",
+				"descr": "Profile's compatibility level.",
+				"options": "base extended",
+				"onChange": function() {
+					/* update tcpam list */
+					$("#tcpam").setOptionsForSelect(getTcpamValues(), "tcpam32");
+
+					/* update rate list */
+					$("#rate").setOptionsForSelect(getRates($("#tcpam").val(),
+							$("#comp").val() == "base" ? "v1" : "v2"));
+				}
+			};
+			list.addDynamicWidget(field);
+
+			/* tcpam */
+			field = {
+				"type": "select",
+				"name": "tcpam",
+				"text": "Encoding",
+				"descr": "DSL line coding.",
+				"options": getTcpamValues(),
+				"defaultValue": "tcpam32",
+				"onChange": function() {
+					/* update rate list */
+					$("#rate").setOptionsForSelect(getRates($("#tcpam").val(),
+							$("#comp").val() == "base" ? "v1" : "v2"));
+				}
+			};
+			list.addDynamicWidget(field);
+
+			/* rate */
+			field = {
+				"type": "select",
+				"name": "rate",
+				"text": "Rate",
+				"descr": "DSL line rate.",
+				"options": getRates($("#tcpam").val(), $("#comp").val() == "base" ? "v1" : "v2"),
+				"onChange": setMrate
+			};
+			list.addDynamicWidget(field);
+			setMrate();
+
+			/* annex */
+			field = {
+				"type": "select",
+				"name": "annex",
+				"text": "Annex",
+				"descr": "DSL Annex.",
+				"options": {"A": "Annex A", "B": "Annex B"}
+			};
+			list.addDynamicWidget(field);
+
+			/* pwron */
+			field = {
+				"type": "select",
+				"name": "power",
+				"text": "Power",
+				"descr": "DSL power feeding mode.",
+				"options": "off on"
+			};
+			list.addDynamicWidget(field);
+		};
+
+		var list = c.createList({
+			"tabId": "eoc_profiles",
+			"header": ["Name", "Compatibility", "Encoding", "Rate", "Annex", "Power"],
+			"varList": ["name", "comp", "tcpam", "rate", "annex", "power"],
+			"listItem": "sys_eocd_sprof_",
+			"addMessage": "Add EOC profile",
+			"editMessage": "Edit EOC profile",
+			"listTitle": "EOC profiles",
+			"onAddOrEditItemRender": addDynamicWidgets,
+			"processValueFunc": showCorrectRate
+		});
+
+		list.generateList();
+	};
+
+	/* get driver name to determine interface version (MR16H/MR17H) */
 	var type = config.get($.sprintf("sys_pcitbl_s%s_iftype", pcislot));
-	
+
+	/* status tab available for both MR16H/MR17H */
 	page.addTab({
 		"id": "status",
 		"name": "Status",
@@ -1391,6 +1566,9 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			if (type == config.getOEM("MR16H_DRVNAME")) {
 				sg16Status();
 			} else if (type == config.getOEM("MR17H_DRVNAME")) {
+				var c = page.addContainer("status");
+				c.addTitle("Loading data...");
+
 				config.cmdExecute({
 					"cmd": "./dsl17status_json.sh " + iface,
 					"callback": sg17Status,
@@ -1399,7 +1577,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			}
 		}
 	});
-	
+
+	/* settings tab available for both MR16H/MR17H */
 	page.addTab({
 		"id": "settings",
 		"name": "Settings",
@@ -1411,21 +1590,96 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			}
 		}
 	});
-	
-	/* add statistics tab for MR17H */
+
+	/* statistics and EOC profiles tab available only for MR17H */
 	if (type == config.getOEM("MR17H_DRVNAME")) {
+		/* path for eoc-info utility */
+		var eocInfoCmd = "/sbin/eoc-info";
+
+		/* config path */
+		var confPath = $.sprintf("%s/%s/sg17_private", config.getOEM("sg17_cfg_path"), iface);
+
+		/* power status */
+		var pwrPresence = config.getCachedOutput($.sprintf("/bin/cat %s/pwr_source", confPath));
+
+		/* chip version */
+		var chipVer = config.getCachedOutput($.sprintf("/bin/cat %s/chipver", confPath));
+
+		/* get rate list depending on TCPAM and chipVer value */
+		var getRates = function(tcpam, chipVer) {
+			/* list of rates */
+			var rateList8 = new Array(192,256,320,384,512,640,768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840);
+			var rateList16 = new Array(192,256,320,384,512,640,768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840);
+			var rateList32_v1 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696);
+			var rateList32_v2 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10176);
+			var rateList64 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10240,11520,12736);
+			var rateList128 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10240,11520,12800,14080);
+
+			/* fill select with fixed rates */
+			var createRateList = function(rates) {
+				var ratesList = {};
+
+				$.each(rates, function(num, rate) {
+					ratesList[rate] = rate;
+				});
+
+				ratesList['-1'] = "other";
+
+				return ratesList;
+			};
+
+			/* v1 */
+			if (chipVer == "v1") {
+				switch (tcpam) {
+				case "tcpam8":
+					return createRateList(rateList8);
+				case "tcpam16":
+					return createRateList(rateList16);
+				case "tcpam32":
+					return createRateList(rateList32_v1);
+				}
+			/* v2 */
+			} else {
+				switch (tcpam) {
+				case "tcpam8":
+					return createRateList(rateList8);
+				case "tcpam16":
+					return createRateList(rateList16);
+				case "tcpam32":
+					return createRateList(rateList32_v2);
+				case "tcpam64":
+					return createRateList(rateList64);
+				case "tcpam128":
+					return createRateList(rateList128);
+				}
+			}
+		};
+
+		page.addTab({
+			"id": "eoc_profiles",
+			"name": "EOC profiles",
+			"func": eocProfiles
+		});
+
 		page.addTab({
 			"id": "statistics",
 			"name": "Statistics",
 			"func": function() {
+				var c;
+
 				/* do not show statistics for manual-controlled interfaces */
 				if (config.get($.sprintf("sys_pcicfg_s%s_%s_ctrl", pcislot, pcidev)) == "manual") {
-					var c = page.addContainer("statistics");
+					c = page.addContainer("statistics");
 					c.setHelpPage("eoc");
 					c.addTitle("Statistics is available only for interfaces with EOCd control.");
 					return;
+				} else if (config.get($.sprintf("sys_eocd_chan_s%s_%s_master", pcislot, pcidev)) != "1") {
+					c = page.addContainer("statistics");
+					c.setHelpPage("eoc");
+					c.addTitle("Statistics is available only for master interface.");
+					return;
 				}
-				
+
 				config.cmdExecute({
 					"cmd": $.sprintf("%s -n -i%s", eocInfoCmd, iface),
 					"callback": showStatistics,
@@ -1434,6 +1688,6 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			}
 		});
 	}
-	
+
 	page.generateTabs();
 };

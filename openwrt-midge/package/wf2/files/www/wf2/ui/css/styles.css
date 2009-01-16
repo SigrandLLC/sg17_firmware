@@ -293,3 +293,12 @@ td.clickable:hover {
 #status .error {
 	color: yellow;
 }
+
+#consoleDiv {
+	height: 450px;
+	width: 745px;
+}
+
+#consoleCursor {
+	display: inline;
+}

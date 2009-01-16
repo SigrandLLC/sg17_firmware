@@ -12,7 +12,7 @@ function Page(p) {
 	$(p).empty();
 	
 	/* array with tabs' info */
-	this.tabsInfo = new Array();
+	this.tabsInfo = [];
 	
 	/* common for all tabs subsystem and help */
 	this.subsystem = null;
@@ -107,11 +107,26 @@ function Page(p) {
 	
 	/*
 	 * Create Container for a tab.
-	 * - tabId — ID of tab to create container for.
+	 *
+	 * - tabId - ID of tab to create container for;
+	 * - options - additional container options.
 	 */
-	this.addContainer = function(tabId) {
-		return new Container($("#" + tabIdPrefix + tabId),
-			{"subsystem": this.subsystem, "help": {"page": this.helpPage, "section": tabId}});
+	this.addContainer = function(tabId, options) {
+		var params = {"subsystem": this.subsystem, "help": {"page": this.helpPage, "section": tabId}};
+		if (options) {
+			params = $.extend(params, options);
+		}
+		
+		return new Container($("#" + tabIdPrefix + tabId), params);
+	};
+
+	/*
+	 * Returns raw div for specified tab.
+	 *
+	 * - tabId — ID of tab.
+	 */
+	this.getRaw = function(tabId) {
+		return $("#" + tabIdPrefix + tabId);
 	};
 	
 	/* Add line break to the tab */
@@ -180,11 +195,12 @@ function Container(p, options) {
 		if (options && options.clearForm) {
 			this.form.empty();
 			
-			this.validator_rules = new Object();
-			this.validator_messages = new Object();
+			this.validator_rules = {};
+			this.validator_messages = {};
 			
 			this.table = $.create("table", 
-				{"id": "conttable", "cellpadding": "0", "cellspacing": "0", "border": "0"}).appendTo(this.form);
+					{"id": "conttable", "cellpadding": "0", "cellspacing": "0", "border": "0"})
+					.appendTo(this.form);
 			this.table.append($.create("thead"));
 			this.table.append($.create("tbody"));
 			
@@ -197,25 +213,27 @@ function Container(p, options) {
 		}
 		
 		/* create, if is not exist, div for info or error messages */
-		if ($("#" + infoMessage).length == 0) {
+		if ($("#" + infoMessage, p).length == 0) {
 			$.create("div", {"className": "message", "id": infoMessage}).appendTo(p);
 		}
 		
-		this.validator_rules = new Object();
-		this.validator_messages = new Object();
-		
 		/* insert new form before div with info message */
-		this.form = $.create("form", {"action": ""}).insertBefore("#" + infoMessage);
+		this.form = $.create("form", {"action": ""});
+		$("#" + infoMessage, p).before(this.form);
 		
 		/* create table and add it to form */
 		this.table = $.create("table",
-			{"id": "conttable", "cellpadding": "0", "cellspacing": "0", "border": "0"}).appendTo(this.form);
+				{"id": "conttable", "cellpadding": "0", "cellspacing": "0", "border": "0"})
+				.appendTo(this.form);
 		this.table.append($.create("thead"));
 		this.table.append($.create("tbody"));
+
+		this.validator_rules = {};
+		this.validator_messages = {};
 	};
 	
 	/* init container */
-	this.initContainer();
+	this.initContainer(options);
 
 	/* set subsystem for this tab */
 	this.setSubsystem = function(subsystem) {
@@ -639,29 +657,32 @@ function Container(p, options) {
 	
 	/*
 	 * Bind events to widget.
-	 * To bind an event to the widget, you have to set widget's ID.
-	 * If w['eventHandlerObject'] is set, then pass it as parameter to event handler,
+	 * If w.eventHandlerObject is set, then pass it as parameter to event handler,
 	 * otherwise pass current container.
 	 * Always pass event source as second parameter.
 	 */
 	this.bindEvents = function(w) {
 		if (w.onChange) {
 			$("#" + w.id).change(function(src) {
-				if (w.eventHandlerObject) {
-					w.onChange(w.eventHandlerObject, src);
-				} else {
-					w.onChange(thisContainer, src);
-				}
+				return w.onChange(w.eventHandlerObject ? w.eventHandlerObject : thisContainer, src);
 			});
 		}
 		
 		if (w.onClick) {
 			$("#" + w.id).click(function(src) {
-				if (w.eventHandlerObject) {
-					w.onClick(w.eventHandlerObject, src);
-				} else {
-					w.onClick(thisContainer, src);
-				}
+				return w.onClick(w.eventHandlerObject ? w.eventHandlerObject : thisContainer, src);
+			});
+		}
+
+		if (w.onKeydown) {
+			$("#" + w.id).keydown(function(src) {
+				return w.onKeydown(w.eventHandlerObject ? w.eventHandlerObject : thisContainer, src);
+			});
+		}
+
+		if (w.onKeypress) {
+			$("#" + w.id).keypress(function(src) {
+				return w.onKeypress(w.eventHandlerObject ? w.eventHandlerObject : thisContainer, src);
 			});
 		}
 	};
@@ -743,11 +764,11 @@ function Container(p, options) {
 	/*
 	 * Adds submit button, form validation rules and submit's events handlers.
 	 * 
-	 * options['reload'] — reload page after AJAX request (e.g., for update translation);
-	 * options['onSuccess'] — callback on request successfully completion;
-	 * options['noSubmit'] — do not submit the form, but call onSubmit and preSubmit callbacks;
-	 * options['onSubmit'] — callback on submit event to call after submitting the form;
-	 * options['preSubmit'] — callback on submit event to call before submitting the form;
+	 * options.reload — reload page after AJAX request (e.g., for update translation);
+	 * options.onSuccess — callback on request successfully completion;
+	 * options.noSubmit — do not submit the form, but call onSubmit and preSubmit callbacks;
+	 * options.onSubmit — callback on submit event to call after submitting the form;
+	 * options.preSubmit — callback on submit event to call before submitting the form;
 	 * options.additionalKeys — additional keys to save in KDB in the correct format
 	 *  ([ { name: 'username', value: 'jresig' }, { name: 'password', value: 'secret' } ]).
 	 * NOTE:
@@ -862,6 +883,7 @@ function Container(p, options) {
 				if (options && options.complexValue) {
 					var bigValue = "";
 					var subsystem;
+
 					/* go through form's fields and create complex value */
 					$.each($(form).formToArray(), function(num, field) {
 						/* write subsystem in separate variable */
@@ -875,7 +897,7 @@ function Container(p, options) {
 					bigValue = $.trim(bigValue);
 
 					/* create array for fields */
-					fields = new Array();
+					fields = [];
 					
 					/* add complex value */
 					fields.push({
@@ -1249,7 +1271,7 @@ function Container(p, options) {
 			if (!item) {
 				isAdding = true;
 				c.addTitle(options.addMessage || "Add");
-				values = config.getParsed(options.listItem + "*");
+				var values = config.getParsed(options.listItem + "*");
 				item = options.listItem + $.len(values);
 			} else {
 				isAdding = false;
@@ -1428,6 +1450,17 @@ function Container(p, options) {
 			w.item = options.currentItem;
 			c.addWidget(w, placement);
 		};
+
+		/*
+		 * Add subwidget to add/edit page after it generation (e.g., in event's handler).
+		 */
+		this.addDynamicSubWidget = function(w, placement) {
+			/* save link to this object to use later in events' handlers */
+			w.eventHandlerObject = list;
+
+			w.item = options.currentItem;
+			c.addSubWidget(w, placement);
+		};
 		
 		/*
 		 * Generate list.
@@ -1437,12 +1470,12 @@ function Container(p, options) {
 			addListHeader();
 			
 			/* get list of items */
-			var items = config.getParsed(options['listItem'] + "*");
+			var items = config.getParsed(options.listItem + "*");
 			
 			/* go through item's list */
 			$.each(items, function(key, value) {
 				var row = c.addTableRow();
-				var cssClass = new Object();
+				var cssClass = {};
 				
 				/* change text color for disabled items */
 				if (value['enabled'] != undefined && 
@@ -1451,9 +1484,13 @@ function Container(p, options) {
 				}
 				
 				/* for each variable in item's value create table cell with variable's value */
-				$.each(options['varList'], function(num, variable) {
-					var finalVal = options['processValueFunc'] ?
-						options['processValueFunc'](variable, value[variable]) : value[variable];
+				$.each(options.varList, function(num, variable) {
+					var finalVal = options.processValueFunc
+							? options.processValueFunc({
+									"varName": variable,
+									"varValue": value[variable],
+									"keyValues": value})
+							: value[variable];
 					
 					/* create td */
 					var td = $.create("td", cssClass, finalVal ? finalVal : "&nbsp;")
@@ -1533,7 +1570,7 @@ function Container(p, options) {
 			c.table.wrap(div);
 			
 			/* rendering of table takes a long time, set timeout and call minmax() to fix IE */
-			setTimeout(function(){ $("div.scrollable", c.form).minmax(); }, 50);
+			setTimeout(function() { $("div.scrollable", c.form).minmax(); }, 50);
 			
 			/* add div for showing delete confirm message */
 			c.form.prepend($.create("div", {"className": "message error_message"}));

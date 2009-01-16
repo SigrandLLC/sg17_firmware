@@ -862,3 +862,116 @@ Controllers.upload = function() {
 
 	page.generateTabs();
 };
+
+Controllers.console = function() {
+	var page = this.Page();
+
+	page.addTab({
+		"id": "console",
+		"name": "Console",
+		"func": function() {
+			var cmd = "";
+			var p = page.getRaw("console");
+
+			var consoleDiv = $.create("div", {"id": "consoleDiv", "className": "pre scrollable",
+					"tabindex": "0"}, "# ").appendTo(p).focus();
+
+			/* this element is used as anchor for scrolling */
+			$.create("span", {"id": "bottomAnchor"}, "&nbsp;").appendTo(p);
+
+			/* add blinking cursor */
+			var cursor = $.create("span", {"id": "consoleCursor"}, "_").appendTo(consoleDiv);
+			var cursorAnimate = function() {
+				var nextDisplay = cursor.css("display") == "inline" ? "none" : "inline";
+				cursor.css("display", nextDisplay);
+			};
+			setInterval(cursorAnimate, 500);
+
+			/* span for current command text */
+			var cmdSpan = $.create("span").insertBefore(cursor);
+
+			/* keypress event handler */
+			var keypressDisabled = false;
+			var onKeypress = function(src) {
+				var ch;
+
+				if (keypressDisabled) {
+					return false;
+				}
+
+				/* ENTER pressed, send text to router */
+				if (src.keyCode == 13) {
+					config.cmdExecute({
+						"cmd": cmd,
+						"callback": function(data) {
+							/* enable keypress event */
+							keypressDisabled = false;
+
+							$("#executingCmd").remove();
+
+							/* format data */
+							data = data.replace(/\n/g, "<br>");
+							cursor.before(data.replace(/ /g, "&nbsp;"));
+							cursor.before("# ");
+
+							/* add new span for command text */
+							cmdSpan = $.create("span").insertBefore(cursor);
+							
+							consoleDiv.scrollTo($("#bottomAnchor"), 700);
+						}
+					});
+
+					/* disable keypress event */
+					keypressDisabled = true;
+
+					/* clear cmd */
+					cmd = "";
+
+					cursor.before("<br/>");
+					cursor.before($.create("span", {"id": "executingCmd"}, _("executing command...")));
+					consoleDiv.scrollTo($("#bottomAnchor"), 700);
+
+					/* disable statndart event handler */
+					return false;
+				} else if (src.keyCode == 16 || src.keyCode == 17 || src.keyCode == 18
+						|| src.keyCode == 37 || src.keyCode == 38 || src.keyCode == 39
+						|| src.keyCode == 40 || src.keyCode == 8) {
+					return false;
+				}
+
+				/* get pressed character depending on browser */
+				if (src.which == null) {
+					/* IE */
+					ch = String.fromCharCode(src.keyCode);
+				} else if (src.which > 0) {
+					/* others */
+					ch = String.fromCharCode(src.which);
+				}
+
+				/* append pressed character to command */
+				cmdSpan.append(ch);
+				cmd += ch;
+
+				/* disable statndart event handler */
+				return false;
+			};
+
+			/* when BACKSPACE pressed, remove last entered character */
+			var onBackspace = function() {
+				cmd = cmd.substring(0, cmd.length - 1);
+				cmdSpan.text(cmd);
+
+				return false;
+			};
+
+			consoleDiv.keypress(onKeypress);
+			consoleDiv.keydown(function(src) {
+				if (src.keyCode == 8) {
+					return onBackspace();
+				}
+			});
+		}
+	});
+
+	page.generateTabs();
+};

@@ -1417,22 +1417,25 @@ Controllers.iface = function(iface) {
 			/*
 			 * Callback for generateList(), returns name of parent class.
 			 *
-			 * varName — item's variable name;
-			 * varValue — item's variable value.
+			 * data - hash with current key's variable info.
 			 */
-			var getParentName = function(varName, varValue) {
+			var getParentName = function(data) {
 				/* if current variable is not "parent" — return without modification */
-				if (varName != "parent" && varName != "flowid") return varValue;
+				if (data.varName != "parent" && data.varName != "flowid") {
+					return data.varValue;
+				}
 
 				/* if value of variable is "1:0" — class name is root */
-				if (varValue == "1:0") return "root";
+				if (data.varValue == "1:0") {
+					return "root";
+				}
 
 				/* search class with classid varValue and saves it's name to parentName */
 				var parentName = "ERROR";
 				var classes = config.getParsed($.sprintf("sys_iface_%s_qos_htb_class_*", iface));
 				$.each(classes, function(classKey, classValues) {
-					if (classValues['classid'] == varValue) {
-						parentName = classValues['name'];
+					if (classValues.classid == data.varValue) {
+						parentName = classValues.name;
 						return false;
 					}
 				});
