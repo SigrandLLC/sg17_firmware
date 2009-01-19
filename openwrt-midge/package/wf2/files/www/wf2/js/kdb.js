@@ -278,11 +278,11 @@ function Config() {
 	/*
 	 * Returns object with keys, that match the regexp.
 	 * 
-	 * regexp — regexp to match.
+	 * regexp — regexp to match;
 	 * parse — if true, returns parsed values, otherwise returns raw values.
 	 */
 	this.getByRegexp = function(regexp, parse) {
-		var result = new Object();
+		var result = {};
 		$.each(this.conf, function(key, value) {
 			if (regexp.test(key)) {
 				result[key] = parse ? outer.parseRecord(value) : value;
@@ -526,7 +526,7 @@ function Config() {
 		var iface = options['iface'] ? options['iface'] : getNextIface(options['proto']);
 		
 		/* create interface parameters */
-		var ifaceProp = new Array();
+		var ifaceProp = [];
 		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_proto", iface), options['proto']);
 		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_real", iface),
 			options['real'] ? options['real'] : iface);

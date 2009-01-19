@@ -529,7 +529,16 @@ function Container(p, options) {
 					element.insertBefore(placement.anchor);
 					break;
 				case "prependToAnchor":
+					if (placement.anchor == null || placement.anchor == undefined) {
+						throw "placement.anchor is not specified or invalid";
+					}
 					element.prependTo(placement.anchor);
+					break;
+				case "appendToAnchor":
+					if (placement.anchor == null || placement.anchor == undefined) {
+						throw "placement.anchor is not specified or invalid";
+					}
+					element.appendTo(placement.anchor);
 					break;
 				case "appendToForm":
 					thisContainer.form.append(element);
@@ -1300,7 +1309,12 @@ function Container(p, options) {
 				"onSubmit": options.showPage ? options.showPage : showPage,
 				"preSubmit": options.preSubmit
 			});
-			
+
+			/* run callback for adding/editing page with this object as a parameter */
+			if (options.onAddOrEditItemRender) {
+				options.onAddOrEditItemRender(list);
+			}
+
 			/* do adding/editing specific actions */
 			if (isAdding) {
 				/* add widgets for adding page */
@@ -1320,11 +1334,6 @@ function Container(p, options) {
 				if (options.onEditItemRender) {
 					options.onEditItemRender(list);
 				}
-			}
-			
-			/* run callback for adding/editing page with this object as a parameter */
-			if (options.onAddOrEditItemRender) {
-				options.onAddOrEditItemRender(list);
 			}
 		};
 		
@@ -1372,13 +1381,45 @@ function Container(p, options) {
 		 * item — item to delete.
 		 */
 		var deleteConfirm = function(item) {
-			/* hide global info message (e.g., about offline state) */
-			hideMsg();
-				
+			/* action to perform after deleting */
+			var actionOnDelete;
+
 			/* find div for showing delete confirm message  */
 			var msgDiv = $("div.error_message", c.form);
-			
-			msgDiv.html(_("Are you sure you want to delete this item?<br>"));
+
+			var cancelDelete = function() {
+				msgDiv.hide();
+				$(".selected", c.table).removeClass("selected");
+			};
+
+			/* hide global info message */
+			hideMsg();
+
+			if (options.checkOnDelete) {
+				var result = options.checkOnDelete(item);
+				actionOnDelete = result.actionOnDelete;
+
+				if (result.deleteAllowed == false) {
+					msgDiv.html(result.message + "<br>");
+					msgDiv.show();
+
+					var field = {
+						"type": "button",
+						"name": "ok",
+						"text": "Ok",
+						"cssClass": "button",
+						"func": cancelDelete
+					};
+					c.addSubWidget(field, {"anchor":  msgDiv, "type": "appendToAnchor"});
+					return;
+				} else if (result.deleteAllowed == true && result.message) {
+					msgDiv.html(result.message + "<br>");
+				} else {
+					msgDiv.html(_("Are you sure you want to delete this item?") + "<br>");
+				}
+			} else {
+				msgDiv.html(_("Are you sure you want to delete this item?") + "<br>");
+			}
 			
 			/* create Yes button */
 			var button = $.create("input", {
@@ -1400,6 +1441,10 @@ function Container(p, options) {
 				
 				/* delete item and restart subsystem */
 				config.kdbDelListKey(item, c.subsystem);
+
+				if (actionOnDelete) {
+					actionOnDelete();
+				}
 				
 				/* call func after deleting (updates page) */
 				options.showPage ? options.showPage() : showPage();
@@ -1412,12 +1457,10 @@ function Container(p, options) {
 			}).appendTo(msgDiv);
 			
 			/* cancel delete */
-			button.click(function() {
-				msgDiv.hide();
-				$(".selected", c.table).removeClass("selected");
-			});
+			button.click(cancelDelete);
 	
 			msgDiv.show();
+			return;
 		};
 		
 		/*

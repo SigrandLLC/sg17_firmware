@@ -766,7 +766,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			}
 		}
 		
-		/* value of this widget is saved in cookie, because we not need it in KDB */
+		/* value of this widget is saved in cookie, because we need it between browser requests */
 		field = { 
 			"type": "select",
 			"name": "unit",
@@ -1444,7 +1444,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		};
 
 		/* add widgets which values are calculated in runtime */
-		var addDynamicWidgets = function(list) {
+		var addProfileWidgets = function(list) {
 			var field;
 
 			/* add or remove mrate field depending on rate value */
@@ -1540,6 +1540,79 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			list.addDynamicWidget(field);
 		};
 
+		/* on profile editing, forbid changing it's name and compatibility */
+		var onEditProfile = function(list) {
+			$("#name").attr("readonly", true);
+			$("#comp").setSelectReadonly(true);
+		};
+
+		/* check that this profile is not in use, if it is in use - alert user */
+		var checkOnProfileDelete = function(item) {
+			/* get deleting profile values */
+			var profile = config.getParsed(item);
+
+			/* get profiles, which are in use */
+			var channels = config.getByRegexp(/(sys_eocd_chan_)*(_confprof)/);
+
+			/* list of interfaces, which are using this profile */
+			var profileIfaces = "";
+
+			/* KDB keys which contain this profile (e.g., sys_eocd_chan_s0004_0_confprof) */
+			var profileIfacesKeys = [];
+
+			/* go through list of profiles, which are in use */
+			$.each(channels, function(key, value) {
+				/* if this profile is in use */
+				if (value == profile.name) {
+					profileIfacesKeys.push(key);
+					
+					/* get pcislot and pcidev of interface, which is using this profile */
+					var pciSlotPciDev = key.replace("sys_eocd_chan_s", "").replace("_confprof", "")
+							.split("_");
+
+					/* if pcislot and pcidev are available */
+					if (pciSlotPciDev.constructor == Array && pciSlotPciDev.length >= 2) {
+						/* get ifaces for this pcislot */
+						var ifaces = config.getParsed(
+								$.sprintf("sys_pcitbl_s%s_ifaces", pciSlotPciDev[0]));
+
+						/* if ifaces is available */
+						if (ifaces.constructor == Array && ifaces.length > 0) {
+							/* if interface with this pcislot and pcidev is available */
+							if (ifaces[pciSlotPciDev[1]]) {
+								/* add it to the list of interfaces, which are using this profile */
+								profileIfaces += ifaces[pciSlotPciDev[1]] + " ";
+							}
+						}
+					}
+
+					/* if we didn't find interfaces name */
+					if (profileIfaces.length == 0) {
+						profileIfaces = "undefined";
+					}
+				}
+			});
+			profileIfaces = $.trim(profileIfaces);
+
+			if (profileIfaces.length > 0) {
+				return	{
+							"deleteAllowed": true,
+							"message": $.sprintf("%s %s. %s", _("This profile is used by interfaces:"),
+									profileIfaces, _("If this profile will be deleted, it will be replaced by default profile. Are you sure you want to delete this profile?")),
+							"actionOnDelete": function() {
+								/* set profile to default on interfaces, which are using this profile */
+								var kdbFields = [];
+								$.each(profileIfacesKeys, function(num, profileIfacesKey) {
+									$.addObjectWithProperty(kdbFields, profileIfacesKey, "default");
+								});
+								config.kdbSubmit(kdbFields);
+							}
+						};
+			} else {
+				return {"deleteAllowed": true};
+			}
+		};
+
 		var list = c.createList({
 			"tabId": "eoc_profiles",
 			"header": ["Name", "Compatibility", "Encoding", "Rate", "Annex", "Power"],
@@ -1548,8 +1621,10 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"addMessage": "Add EOC profile",
 			"editMessage": "Edit EOC profile",
 			"listTitle": "EOC profiles",
-			"onAddOrEditItemRender": addDynamicWidgets,
-			"processValueFunc": showCorrectRate
+			"onAddOrEditItemRender": addProfileWidgets,
+			"onEditItemRender": onEditProfile,
+			"processValueFunc": showCorrectRate,
+			"checkOnDelete": checkOnProfileDelete
 		});
 
 		list.generateList();

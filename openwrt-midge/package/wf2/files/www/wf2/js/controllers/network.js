@@ -1306,8 +1306,8 @@ Controllers.iface = function(iface) {
 				"name": "netmask",
 				"text": "Netmask",
 				"descr": "Netmask for network or host (in xxx.xxx.xxx.xxx format)",
-				"tip": "E.g., 255.255.255.0 — /24 — Class C network<br>255.255.255.252 — /30" +
-					"<br>255.255.255.255 — /32 — for a single host",
+				"tip": "E.g., 255.255.255.0 - /24 - Class C network<br>255.255.255.252 - /30" +
+						"<br>255.255.255.255 - /32 - for a single host",
 				"validator": {"required": true, "netmask": true}
 			};
 			list.addWidget(field);
@@ -1385,8 +1385,8 @@ Controllers.iface = function(iface) {
 				"descr": "Maximum rate for interface",
 				"validator": {"required": true, "qosBandwith": true},
 				"defaultValue": "512kbit",
-				"tip": "Unit can be: <br><i>kbit</i>, <i>Mbit</i> — for bit per second<br>" +
-					"and <i>kbps</i>, <i>Mbps</i> — for bytes per second"
+				"tip": "Unit can be: <br><i>kbit</i>, <i>Mbit</i> - for bit per second<br>" +
+					"and <i>kbps</i>, <i>Mbps</i> - for bytes per second"
 			};
 			c.addWidget(field);
 		};
@@ -1399,8 +1399,8 @@ Controllers.iface = function(iface) {
 			var defaultClasses = {"0": "none"};
 			$.each(config.getParsed($.sprintf("sys_iface_%s_qos_htb_class_*", iface)),
 				function(key, value) {
-					var classId = value['classid'].split(":")[1];
-					defaultClasses[classId] = value['name'];
+					var classId = value.classid.split(":")[1];
+					defaultClasses[classId] = value.name;
 				}
 			);
 
@@ -1519,8 +1519,8 @@ Controllers.iface = function(iface) {
 				"name": "rate",
 				"text": "Rate",
 				"descr": "Class rate",
-				"tip": "Unit can be: <br><i>kbit</i>, <i>Mbit</i> — for bit per second<br>" +
-					"and <i>kbps</i>, <i>Mbps</i> — for bytes per second.",
+				"tip": "Unit can be: <br><i>kbit</i>, <i>Mbit</i> - for bit per second<br>" +
+					"and <i>kbps</i>, <i>Mbps</i> - for bytes per second.",
 				"validator": {"required": true, "qosBandwith": true}
 			};
 			list.addWidget(field);
@@ -1530,8 +1530,8 @@ Controllers.iface = function(iface) {
 				"name": "ceil",
 				"text": "Ceil",
 				"descr": "Max rate",
-				"tip": "Unit can be: <br><i>kbit</i>, <i>Mbit</i> — for bit per second<br>" +
-					"and <i>kbps</i>, <i>Mbps</i> — for bytes per second.",
+				"tip": "Unit can be: <br><i>kbit</i>, <i>Mbit</i> - for bit per second<br>" +
+					"and <i>kbps</i>, <i>Mbps</i> - for bytes per second.",
 				"validator": {"qosBandwith": true}
 			};
 			list.addWidget(field);
@@ -1559,7 +1559,7 @@ Controllers.iface = function(iface) {
 			c2.setHelpSection("htb");
 
 			/* create list of filter */
-			var list = c2.createList({
+			list = c2.createList({
 				"tabId": "qos",
 				"header": ["Name", "Prio", "Proto", "Src addr", "Dst addr", "Src port", "Dst port", "Class"],
 				"varList": ["name", "prio", "proto", "src", "dst", "src_port", "dst_port", "flowid"],
