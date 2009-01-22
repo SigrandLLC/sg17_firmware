@@ -106,9 +106,9 @@ jQuery.validator.addMethod("pbo", function(value, element) {
 	return this.optional(element) || /^(\d+(:\d+)*)+$/.test(value);
 }, "Please enter correct PBO value.");
 
-/* Alphanumeric and underline only */
+/* Alphanumeric, underline and "-" only */
 jQuery.validator.addMethod("alphanumU", function(value, element) {
-	return this.optional(element) || /^[_a-zA-Z0-9]+$/.test(value);
+	return this.optional(element) || /^[-_a-zA-Z0-9]+$/.test(value);
 }, "Please enter alphanumeric and underline characters only (without spaces).");
 
 /* Alphanumeric only */

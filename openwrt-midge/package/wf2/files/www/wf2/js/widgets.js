@@ -596,6 +596,11 @@ function Container(p, options) {
 		} else if (w.name) {
 			value = w.item ? config.getParsed(w.item)[w.name] : config.get(w.name);
 		}
+
+		/* if valueFilter is set */
+		if (w.valueFilter) {
+			value = w.valueFilter(value);
+		}
 		
 		/* if ID is not set, set it to the name */
 		if (w.id == undefined) {
@@ -700,7 +705,7 @@ function Container(p, options) {
 	 * Sets error message.
 	 * I18N for text.
 	 */
-	this.setError = function(text) {
+	var setError = function(text) {
 		var idInfoMessage = "#" + infoMessage;
 		$(idInfoMessage).html(_(text));
 		$(idInfoMessage).removeClass("success_message");
@@ -711,7 +716,7 @@ function Container(p, options) {
 	 * Set info message.
 	 * I18N for text.
 	 */
-	this.setInfo = function(text) {
+	var setInfo = function(text) {
 		var idInfoMessage = "#" + infoMessage;
 		$(idInfoMessage).html(_(text));
 		$(idInfoMessage).removeClass("error_message");
@@ -732,7 +737,7 @@ function Container(p, options) {
 	 * Show to user that data is saved. After clicking on widgets remove info message.
 	 */
 	var formSaved = function() {
-		thisContainer.setInfo("Data saved or this task is added to queue.");
+		setInfo("Data saved or this task is added to queue.");
 		showMsg();
 		
 		/* set event handlers to remove info message */
@@ -755,7 +760,7 @@ function Container(p, options) {
 	 */
 	var isRouterOffline = function() {
 		if (!config.isOnline()) {
-			thisContainer.setError("Router is OFFLINE! Check that router is available via your network.");
+			setError("Router is OFFLINE! Check that router is available via your network.");
 			showMsg();
 			
 			/* set event handlers to remove info message */
@@ -825,7 +830,7 @@ function Container(p, options) {
 			
 			/* Set error text to container */
 			"showErrors": function(errorMap, errorList) {
-				outer.setError("Please, enter a valid data into the form below to be able to save it successfully.");
+				setError("Please, enter a valid data into the form below to be able to save it successfully.");
 				this.defaultShowErrors();
 			},
      		
@@ -837,15 +842,15 @@ function Container(p, options) {
      			}
      			
      			/* if noSubmit is set — do not submit the form */
-     			if (options && options['noSubmit']) {
-     				if (options['preSubmit']) {
-     					if (options['preSubmit']() == false) {
+     			if (options && options.noSubmit) {
+     				if (options.preSubmit) {
+     					if (options.preSubmit() == false) {
      						return;
      					}
      				}
      				
-     				if (options['onSubmit']) {
-     					if (options['onSubmit']() == false) {
+     				if (options.onSubmit) {
+     					if (options.onSubmit() == false) {
      						return;
      					}
      				}
@@ -856,8 +861,8 @@ function Container(p, options) {
      			}
      			
      			/* call user function on submit event before submitting form */
-     			if (options && options['preSubmit']) {
-     				if (options['preSubmit']() == false) {
+     			if (options && options.preSubmit) {
+     				if (options.preSubmit() == false) {
      					return;
      				}
      			}
@@ -1077,7 +1082,8 @@ function Container(p, options) {
 	 */
 	this.addRun = function() {
 		/* create submit button */
-		$.create("input", {"type": "submit", "className": "button", "value": _("Run")}).appendTo(this.form);
+		$.create("input", {"type": "submit", "className": "button", "value": _("Run")})
+				.appendTo(this.form);
 		
 		/* create div for command output */
 		var cmdOutput = $.create("div").appendTo(this.form);
@@ -1221,14 +1227,27 @@ function Container(p, options) {
 	 * 
 	 *  optional parameters:
 	 *  - processValueFunc — optional callback, which can be used for editing values of item's
-	 *     variable. It is called for each item' variable with two parameters — name of variable
-	 *     and variable's value. It have to return variable's value;
+	 *     variable. It is called for each item's variable with hash as a parameter. Keys of hash are:
+	 *      - varName - current variable name;
+	 *      - varValue - value of current variable;
+	 *      - keyValues - hash with all values for current key (varValue = keyValues.varName).
+	 *     It has to return current variable's value;
 	 *  - onAddOrEditItemRender — optional callback, which is called when page for adding or
 	 *     editing list's elements is rendered. It is called with one parameter — this list;
 	 *  - onAddItemRender — optional callback, which is called when page for adding
 	 *     list's elements is rendered. It is called with one parameter — this list;
 	 *  - onEditItemRender — optional callback, which is called when page for editing
 	 *     list's elements is rendered. It is called with one parameter — this list;
+	 *  - checkOnDelete — optional callback, which is called when when list's item is deleting.
+	 *     Callback has to return hash with following keys:
+	 *      - deleteAllowed - if true, delete is allowed, if false, delete is forbidden (impossible);
+	 *      - message - custom message, showed to user;
+	 *      - actionOnDelete - (optional) if delete is happens, run this callback;
+	 *  - checkOnSubmit — optional callback, which is called when when list's item is adding. It is
+	 *     called with parameter isAdding, which indicate current operation: adding or editing.
+	 *     Callback has to return hash with following keys:
+	 *      - addAllowed - if true, adding is allowed, if false - is forbidden;
+	 *      - message - custom message, showed to user;
 	 *  - preSubmit — optional callback, which is called before submitting add/editing form;
 	 *  - showPage — function to render a page after adding/editing list's item or
 	 *     clicking Back button on adding/editin page. If not set, tab's function is called.
@@ -1297,7 +1316,12 @@ function Container(p, options) {
 				
 				c.addWidget(widget.widget, widget.placement);
 			});
-			
+
+			/* only checkOnSubmit or preSubmit is available */
+			if (options.preSubmit && options.checkOnSubmit) {
+				throw "Use only checkOnSubmit or preSubmit!"
+			}
+
 			/* add submit (with special for list options) */
 			c.addSubmit({
 				"complexValue": item,
@@ -1307,7 +1331,21 @@ function Container(p, options) {
 					"func": options.showPage ? options.showPage : showPage
 				},
 				"onSubmit": options.showPage ? options.showPage : showPage,
-				"preSubmit": options.preSubmit
+				"preSubmit": function() {
+					if (options.preSubmit) {
+						options.preSubmit();
+					} else if (options.checkOnSubmit) {
+						var result = options.checkOnSubmit(isAdding);
+						if (result.addAllowed == false) {
+							setError(result.message);
+							showMsg();
+
+							return false;
+						} else {
+							return true;
+						}
+					}
+				}
 			});
 
 			/* run callback for adding/editing page with this object as a parameter */
@@ -1384,9 +1422,10 @@ function Container(p, options) {
 			/* action to perform after deleting */
 			var actionOnDelete;
 
-			/* find div for showing delete confirm message  */
+			/* find div for showing delete confirm message */
 			var msgDiv = $("div.error_message", c.form);
 
+			/* delete is cancelled */
 			var cancelDelete = function() {
 				msgDiv.hide();
 				$(".selected", c.table).removeClass("selected");
@@ -1521,9 +1560,8 @@ function Container(p, options) {
 				var cssClass = {};
 				
 				/* change text color for disabled items */
-				if (value['enabled'] != undefined && 
-						(value['enabled'] != "on" && value['enabled'] != "1")) {
-					cssClass['className'] = "disabled";
+				if (value.enabled != undefined && (value.enabled != "on" && value.enabled != "1")) {
+					cssClass.className = "disabled";
 				}
 				
 				/* for each variable in item's value create table cell with variable's value */
@@ -1540,70 +1578,76 @@ function Container(p, options) {
 						.appendTo(row);
 	
 					/* if function is set for this variable */
-					if (options['varFunctions'] && options['varFunctions'][variable]) {
+					if (options.varFunctions && options.varFunctions[variable]) {
 						/* add clickable class */
 						td.addClass("clickable");
 						
 						/* if set tip — add it */
-						if (options['varFunctions'][variable]['tip']) {
-							td.attr("title", options['varFunctions'][variable]['tip']);
+						if (options.varFunctions[variable].tip) {
+							td.attr("title", options.varFunctions[variable].tip);
 							td.tooltip({"track": true});
 						}
 						
 						/* set click handler to passed function */
 						td.click(function() {
 							/* call passed function with variable's value as argument */
-							options['varFunctions'][variable]['func'](finalVal);
+							options.varFunctions[variable].func(finalVal);
 						});
 					}
 				});
-				
-				/* create "button" for editing */
-				var img = $.create("img", {"src": "ui/img/e.gif", "alt": "edit"});
-				img.click(function(e) {
-					addOrEditItem(key);
-					scrollTo(0, 0);
-				});
-				
-				/* change image when mouse is over it */
-				img.hover(
-					function() {
-						$(this).attr("src", "ui/img/e2.gif");
-					},
-					function() {
-						$(this).attr("src", "ui/img/e.gif");
-					}
-				);
-				$.create("td", {}, img).appendTo(row);
-				
-				/* create "button" for deleting */
-				img = $.create("img", {"src": "ui/img/minus.gif", "alt": "delete"});
-				img.click(function(e) {
-					/* if router is offline — return */
-     				if (isRouterOffline()) {
-     					return;
-     				}
-     		
-					/* unhilight previous selected item */
-					$(".selected", c.table).removeClass("selected");
-					
-					/* highlight selected item */
-					$(this).parents("tr").addClass("selected");
-					
-					/* confirm for deleting */
-					deleteConfirm(key);
-				});
-				
-				/* change image when mouse is over it */
-				img.hover(
-					function() {
-						$(this).attr("src", "ui/img/minus2.gif");
-					},
-					function() {
-						$(this).attr("src", "ui/img/minus.gif");
-					}
-				);
-				$.create("td", {}, img).appendTo(row);
+
+				/* if readonly attribute is set, add empty table td */
+				if (value._attrReadonly) {
+					$.create("td", {"colSpan": "2"}, "&nbsp;").appendTo(row);
+				/* if readonly attribute is not set, add buttons for edit and delete */
+				} else {
+					/* create "button" for editing */
+					var img = $.create("img", {"src": "ui/img/e.gif", "alt": "edit"});
+					img.click(function(e) {
+						addOrEditItem(key);
+						scrollTo(0, 0);
+					});
+
+					/* change image when mouse is over it */
+					img.hover(
+						function() {
+							$(this).attr("src", "ui/img/e2.gif");
+						},
+						function() {
+							$(this).attr("src", "ui/img/e.gif");
+						}
+					);
+					$.create("td", {}, img).appendTo(row);
+
+					/* create "button" for deleting */
+					img = $.create("img", {"src": "ui/img/minus.gif", "alt": "delete"});
+					img.click(function(e) {
+						/* if router is offline — return */
+						if (isRouterOffline()) {
+							return;
+						}
+
+						/* unhilight previous selected item */
+						$(".selected", c.table).removeClass("selected");
+
+						/* highlight selected item */
+						$(this).parents("tr").addClass("selected");
+
+						/* confirm for deleting */
+						deleteConfirm(key);
+					});
+
+					/* change image when mouse is over it */
+					img.hover(
+						function() {
+							$(this).attr("src", "ui/img/minus2.gif");
+						},
+						function() {
+							$(this).attr("src", "ui/img/minus.gif");
+						}
+					);
+					$.create("td", {}, img).appendTo(row);
+				}
 			});
 			
 			/* create scrollable div */

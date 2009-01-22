@@ -2,7 +2,6 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 	/* create page and set common settings */
 	var page = this.Page();
 	page.setHelpPage("dsl");
-	page.setSubsystem($.sprintf("dsl.%s.%s", pcislot, pcidev));
 
 	/* fill select with rates */
 	var rateList = function(select, first, last, step, cur) {
@@ -41,6 +40,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		var c, field;
 		c = page.addContainer("settings");
 		c.addTitle(getSg16Title() + "settings");
+		c.setSubsystem($.sprintf("dsl.%s.%s", pcislot, pcidev));
 		
 		/* available TCPAM values */
 		var TCPAM = {
@@ -210,7 +210,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		onChangeSG16Code();
 	};
 	
-	/* title for MR17H */
+	/* return title for MR17H */
 	var getSg17Title = function() {
 		var sfx, compatibility;
 		
@@ -336,6 +336,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		var c, field;
 		c = page.addContainer("settings");
 		c.addTitle(getSg17Title() + "settings");
+		c.setSubsystem($.sprintf("dsl.%s.%s", pcislot, pcidev));
 		
 		/* control mode change (manual or by EOCd) */
 		var onCtrlChange = function() {
@@ -387,20 +388,26 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 
 		/* add or remove mrate field depending on rate value */
 		var setMrate = function() {
-			var mrateId = $.sprintf("sys_pcicfg_s%s_%s_mrate", pcislot, pcidev);
-
 			/* if rate is "other", add text widget to enter rate value */
-			if ($("#rate").val() == "-1" && $("#" + mrateId).length == 0) {
+			if ($("#rate").val() == "-1" && $("#mrate").length == 0) {
 				var field = {
 					"type": "text",
-					"name": mrateId,
+					"name": $.sprintf("sys_pcicfg_s%s_%s_mrate", pcislot, pcidev),
+					"id": "mrate",
 					"validator": {"required": true, "min": 0},
-					"cssClass": "widgetManualMaster"
+					"cssClass": "widgetManualMaster",
+					"onChange": function() {
+						$("#mrate").val(getNearestCorrectRate(chipVer, $("#tcpam").val(),
+								$("#mrate").val()))
+					},
+					"valueFilter": function(value) {
+						return getNearestCorrectRate(chipVer, $("#tcpam").val(), value);
+					}
 				};
 				c.addSubWidget(field, {"type": "insertAfter", "anchor": "#rate"});
 			/* otherwise, remove it */
 			} else if ($("#rate").val() != "-1") {
-				$("#" + mrateId).remove();
+				$("#mrate").remove();
 			}
 		};
 
@@ -450,11 +457,11 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				return;
 			}
 
-			/* code */
+			/* tcpam */
 			field = {
 				"type": "select",
 				"name": $.sprintf("sys_pcicfg_s%s_%s_code", pcislot, pcidev),
-				"id": "code",
+				"id": "tcpam",
 				"text": "Coding",
 				"descr": "DSL line coding.",
 				"options": chipVer == "v1"	? "tcpam8 tcpam16 tcpam32"
@@ -463,7 +470,11 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"cssClass": "widgetManualMaster",
 				"onChange": function() {
 					/* update rate list */
-					$("#rate").setOptionsForSelect(getRates($("#code").val(), chipVer));
+					$("#rate").setOptionsForSelect(getRates(chipVer, $("#tcpam").val()));
+					setMrate();
+
+					/* update description */
+					$("#rate").nextAll("p").html(getDslRateDescr(chipVer, $("#tcpam").val()));
 				}
 			};
 			c.addWidget(field, {"type": "insertAfter", "anchor": $("#mode").parents("tr")});
@@ -474,12 +485,12 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"name": $.sprintf("sys_pcicfg_s%s_%s_rate", pcislot, pcidev),
 				"id": "rate",
 				"text": "Rate",
-				"descr": "DSL line rate.",
+				"descr": getDslRateDescr(chipVer, $("#tcpam").val()),
 				"onChange": setMrate,
 				"cssClass": "widgetManualMaster",
-				"options": getRates($("#code").val(), chipVer)
+				"options": getRates(chipVer, $("#tcpam").val())
 			};
-			c.addWidget(field, {"type": "insertAfter", "anchor": $("#code").parents("tr")});
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#tcpam").parents("tr")});
 			setMrate();
 
 			/* annex */
@@ -704,8 +715,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		c.setHelpPage("eoc");
 		
 		/* this means that we received not JSON data */
-		if (eocInfo == "Connection error.") {
-			c.addTitle("Error on the device while performing AJAX request.");
+		if (typeof eocInfo != "object") {
+			c.addTitle("Error on the device while performing AJAX request or router is offline.");
 			return;
 		}
 		
@@ -790,8 +801,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		c.setHelpPage("eoc");
 		
 		/* this means that we received not JSON data */
-		if (eocInfo == "Connection error.") {
-			c.addTitle("Error on the device while performing AJAX request.");
+		if (typeof eocInfo != "object") {
+			c.addTitle("Error on the device while performing AJAX request or router is offline.");
 			return;
 		}
 		
@@ -1040,15 +1051,15 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 								"cmd": $.sprintf("%s -n -i%s -u%s", eocInfoCmd, iface, unit),
 								"callback": function(eocInfo) {
 									/* if error, show corresponding message */
-									if (eocInfo == "Connection error." || eocInfo.eoc_error == "1") {
+									if (typeof eocInfo != "object" || eocInfo.eoc_error == "1") {
 										row.remove();
 										row = c.addTableRow();
 										
 										var field = {
 											"type": "html",
 											"name": "eoc_error",
-											"str": eocInfo == "Connection error." ?
-												"Error on the device while performing AJAX request."
+											"str": (typeof eocInfo != "object") ?
+												"Error on the device while performing AJAX request or router is offline."
 												: "EOC ERROR: " + eocInfo.err_string
 										};
 										c.addTableWidget(field, row, 10);
@@ -1281,6 +1292,12 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		/* show sensors status */
 		var showSensors = function(eocInfo, c) {
 			var field;
+
+			/* this means that we received not JSON data */
+			if (typeof eocInfo != "object") {
+				c.addTitle("Error on the device while performing AJAX request or router is offline.");
+				return;
+			}
 			
 			$.each(eocInfo.sensors, function(num, sensor) {
 				var row = c.addTableRow();
@@ -1312,10 +1329,10 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		var c;
 		
 		/* this means that we received not JSON data */
-		if (eocInfo == "Connection error.") {
+		if (typeof eocInfo != "object") {
 			c = page.addContainer("statistics");
 			c.setHelpPage("eoc");
-			c.addTitle("Error on the device while performing AJAX request.");
+			c.addTitle("Error on the device while performing AJAX request or router is offline.");
 			return;
 		}
 		
@@ -1454,7 +1471,16 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 					var field = {
 						"type": "text",
 						"name": "mrate",
-						"validator": {"required": true, "min": 0}
+						"validator": {"required": true, "min": 0},
+						"onChange": function() {
+							$("#mrate").val(getNearestCorrectRate(
+									($("#comp").val() == "base") ? "v1" : "v2",
+									$("#tcpam").val(), $("#mrate").val()));
+						},
+						"valueFilter": function(value) {
+							return getNearestCorrectRate(($("#comp").val() == "base") ? "v1" : "v2",
+									$("#tcpam").val(), value);
+						}
 					};
 					list.addDynamicSubWidget(field, {"type": "insertAfter", "anchor": "#rate"});
 				/* otherwise, remove it */
@@ -1485,8 +1511,13 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 					$("#tcpam").setOptionsForSelect(getTcpamValues(), "tcpam32");
 
 					/* update rate list */
-					$("#rate").setOptionsForSelect(getRates($("#tcpam").val(),
-							$("#comp").val() == "base" ? "v1" : "v2"));
+					$("#rate").setOptionsForSelect(
+							getRates(($("#comp").val() == "base") ? "v1" : "v2", $("#tcpam").val()));
+					setMrate();
+
+					/* update description */
+					$("#rate").nextAll("p").html(getDslRateDescr(
+							($("#comp").val() == "base") ? "v1" : "v2", $("#tcpam").val()));
 				}
 			};
 			list.addDynamicWidget(field);
@@ -1501,8 +1532,13 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"defaultValue": "tcpam32",
 				"onChange": function() {
 					/* update rate list */
-					$("#rate").setOptionsForSelect(getRates($("#tcpam").val(),
-							$("#comp").val() == "base" ? "v1" : "v2"));
+					$("#rate").setOptionsForSelect(
+							getRates(($("#comp").val() == "base") ? "v1" : "v2", $("#tcpam").val()));
+					setMrate();
+
+					/* update description */
+					$("#rate").nextAll("p").html(getDslRateDescr(
+							($("#comp").val() == "base") ? "v1" : "v2", $("#tcpam").val()));
 				}
 			};
 			list.addDynamicWidget(field);
@@ -1512,8 +1548,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"type": "select",
 				"name": "rate",
 				"text": "Rate",
-				"descr": "DSL line rate.",
-				"options": getRates($("#tcpam").val(), $("#comp").val() == "base" ? "v1" : "v2"),
+				"descr": getDslRateDescr(($("#comp").val() == "base") ? "v1" : "v2", $("#tcpam").val()),
+				"options": getRates(($("#comp").val() == "base") ? "v1" : "v2", $("#tcpam").val()),
 				"onChange": setMrate
 			};
 			list.addDynamicWidget(field);
@@ -1613,6 +1649,34 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			}
 		};
 
+		/* check that name of this profile is unique */
+		var checkOnProfileAdd = function(isAdding) {
+			/* allow editing */
+			if (!isAdding) {
+				return {"addAllowed": true};
+			}
+			
+			var newProfileName = $("#name").val();
+			var profiles = config.getParsed("sys_eocd_sprof_*");
+			var uniqueProfile = true;
+
+			$.each(profiles, function(key, profile) {
+				if (newProfileName == profile.name) {
+					uniqueProfile = false;
+					return false;
+				}
+			});
+
+			if (uniqueProfile) {
+				return	{"addAllowed": true};
+			} else {
+				return	{
+							"addAllowed": false,
+							"message": _("Profile with such name is already exists.")
+						};
+			}
+		};
+
 		var list = c.createList({
 			"tabId": "eoc_profiles",
 			"header": ["Name", "Compatibility", "Encoding", "Rate", "Annex", "Power"],
@@ -1624,7 +1688,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"onAddOrEditItemRender": addProfileWidgets,
 			"onEditItemRender": onEditProfile,
 			"processValueFunc": showCorrectRate,
-			"checkOnDelete": checkOnProfileDelete
+			"checkOnDelete": checkOnProfileDelete,
+			"checkOnSubmit": checkOnProfileAdd
 		});
 
 		list.generateList();
@@ -1642,8 +1707,14 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				sg16Status();
 			} else if (type == config.getOEM("MR17H_DRVNAME")) {
 				var c = page.addContainer("status");
-				c.addTitle("Loading data...");
 
+				/* check that router is online */
+				if (!config.isOnline()) {
+					c.addTitle("Router is offline");
+					return;
+				}
+
+				c.addTitle("Loading data...");
 				config.cmdExecute({
 					"cmd": "./dsl17status_json.sh " + iface,
 					"callback": sg17Status,
@@ -1680,54 +1751,96 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		/* chip version */
 		var chipVer = config.getCachedOutput($.sprintf("/bin/cat %s/chipver", confPath));
 
-		/* get rate list depending on TCPAM and chipVer value */
-		var getRates = function(tcpam, chipVer) {
-			/* list of rates */
-			var rateList8 = new Array(192,256,320,384,512,640,768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840);
-			var rateList16 = new Array(192,256,320,384,512,640,768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840);
-			var rateList32_v1 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696);
-			var rateList32_v2 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10176);
-			var rateList64 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10240,11520,12736);
-			var rateList128 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10240,11520,12800,14080);
+		/* list of rates */
+		var rateList8 = [192,256,320,384,512,640,768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840];
+		var rateList16 = [192,256,320,384,512,640,768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840];
+		var rateList32_v1 = [768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696];
+		var rateList32_v2 = [768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10176];
+		var rateList64 = [768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10240,11520,12736];
+		var rateList128 = [768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4096,4608,5120,5696,6144,7168,8192,9216,10240,11520,12800,14080];
 
-			/* fill select with fixed rates */
-			var createRateList = function(rates) {
-				var ratesList = {};
-
-				$.each(rates, function(num, rate) {
-					ratesList[rate] = rate;
-				});
-
-				ratesList['-1'] = "other";
-
-				return ratesList;
-			};
-
+		/* return rate list depending on passed chipVer and tcpam */
+		var getRateList = function(chipVer, tcpam) {
 			/* v1 */
 			if (chipVer == "v1") {
 				switch (tcpam) {
 				case "tcpam8":
-					return createRateList(rateList8);
+					return rateList8;
 				case "tcpam16":
-					return createRateList(rateList16);
+					return rateList16;
 				case "tcpam32":
-					return createRateList(rateList32_v1);
+					return rateList32_v1;
 				}
 			/* v2 */
 			} else {
 				switch (tcpam) {
 				case "tcpam8":
-					return createRateList(rateList8);
+					return rateList8;
 				case "tcpam16":
-					return createRateList(rateList16);
+					return rateList16;
 				case "tcpam32":
-					return createRateList(rateList32_v2);
+					return rateList32_v2;
 				case "tcpam64":
-					return createRateList(rateList64);
+					return rateList64;
 				case "tcpam128":
-					return createRateList(rateList128);
+					return rateList128;
 				}
 			}
+		};
+
+		/* return minimum rate for passed rateList */
+		var getMinRate = function(rateList) {
+			return rateList[0];
+		};
+
+		/* return maximum rate for passed rateList */
+		var getMaxRate = function(rateList) {
+			return rateList[rateList.length - 1];
+		};
+
+		/* get rate list depending on TCPAM and chipVer value, with added "other" value */
+		var getRates = function(chipVer, tcpam) {
+			var rates = getRateList(chipVer, tcpam);
+			var ratesList = {};
+
+			$.each(rates, function(num, rate) {
+				ratesList[rate] = rate;
+			});
+			ratesList['-1'] = "other";
+
+			return ratesList;
+		};
+
+		/* returns correct rate for passed chipVer and tcpam */
+		var getNearestCorrectRate = function(chipVer, tcpam, rate) {
+			var rateList = getRateList(chipVer, tcpam);
+			var availableRate = parseInt(rate);
+			var min = getMinRate(rateList);
+			var max = getMaxRate(rateList);
+
+			if (availableRate < min || availableRate < 64) {
+				return min;
+			} else if (availableRate > max) {
+				return max;
+			} else if ((availableRate % 64) != 0) {
+				var remainder = availableRate % 64;
+				if (remainder < 32) {
+					availableRate -= remainder;
+					return availableRate;
+				} else {
+					availableRate += (64 - remainder);
+					return availableRate;
+				}
+			} else {
+				return availableRate;
+			}
+		};
+
+		/* return description for Rate field */
+		var getDslRateDescr = function(chipVer, tcpam) {
+			var rateList = getRateList(chipVer, tcpam);
+			return $.sprintf("%s, %s %s %s %s.", _("DSL line rate in kbit/s"), _("from"),
+					getMinRate(rateList), _("to"), getMaxRate(rateList));
 		};
 
 		page.addTab({
@@ -1745,13 +1858,15 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				/* do not show statistics for manual-controlled interfaces */
 				if (config.get($.sprintf("sys_pcicfg_s%s_%s_ctrl", pcislot, pcidev)) == "manual") {
 					c = page.addContainer("statistics");
-					c.setHelpPage("eoc");
-					c.addTitle("Statistics is available only for interfaces with EOCd control.");
+					c.addTitle("Statistics is available only for interfaces with EOCd control");
 					return;
 				} else if (config.get($.sprintf("sys_eocd_chan_s%s_%s_master", pcislot, pcidev)) != "1") {
 					c = page.addContainer("statistics");
-					c.setHelpPage("eoc");
-					c.addTitle("Statistics is available only for master interface.");
+					c.addTitle("Statistics is available only for master interface");
+					return;
+				} else if (!config.isOnline()) {
+					c = page.addContainer("statistics");
+					c.addTitle("Router is offline");
 					return;
 				}
 
