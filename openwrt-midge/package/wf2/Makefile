@@ -22,5 +22,14 @@ $(PKG_BUILD_DIR)/.built:
 
 $(IPKG_WF2):
 	( tar cf - -C files --exclude .svn . | tar xvf - -C $(IDIR_WF2) );
+
+ifneq ($(BR2_SIGRAND_OEM_WF2_HEADER_LOGO),"default")
+	cp logos/$(BR2_SIGRAND_OEM_WF2_HEADER_LOGO) $(IDIR_WF2)/www/wf2/ui/img/header.jpg;
+endif
+
+ifneq ($(BR2_SIGRAND_OEM_WF2_BOTTOM_LOGO),"default")
+	cp logos/$(BR2_SIGRAND_OEM_WF2_BOTTOM_LOGO) $(IDIR_WF2)/www/wf2/ui/img/footer_logo.png;
+endif
+
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_WF2)/CONTROL/control
 	$(IPKG_BUILD) $(IDIR_WF2) $(PACKAGE_DIR)

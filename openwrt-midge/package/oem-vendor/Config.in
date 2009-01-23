@@ -43,6 +43,16 @@ prompt "Default system name"
 string
 default "default"
 
+config BR2_SIGRAND_OEM_WF2_HEADER_LOGO
+prompt "WF2: header logo"
+string
+default "default"
+
+config BR2_SIGRAND_OEM_WF2_BOTTOM_LOGO
+prompt "WF2: bottom logo"
+string
+default "default"
+
 #-------------- OEM SHDSL modules ------------------------#
 
 comment "MR17H SHDSL module"
