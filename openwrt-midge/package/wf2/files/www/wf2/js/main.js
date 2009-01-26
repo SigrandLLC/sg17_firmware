@@ -167,8 +167,8 @@ $(document).ready(function() {
 	
 	/* add status bar tip */
 	$("#status").attr("title",
-		_("<ul><li>Hostname - device's hostname;</li><li>Status - is router online or offline;</li><li>Tasks - number of performing and queuened tasks;</li><li>Ajax - number of active ajax requests.</li></ul><br>You can click here with CTRL pressed to open debug panel.")
-		).tooltip({"track": true});
+		_("|<ul><li>Hostname - device's hostname;</li><li>Status - is device online or offline;</li><li>Tasks - number of performing and queuened tasks;</li><li>Ajax - number of active ajax requests.</li></ul><br>You can click here with CTRL pressed to open debug panel.")
+		).tooltip({"track": true, "showBody": "|"});
 
 	/* call info controller when all config.runCmd will be finished */
 	config.onCmdCacheFinish(function() {

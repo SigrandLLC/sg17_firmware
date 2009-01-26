@@ -1858,11 +1858,11 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				/* do not show statistics for manual-controlled interfaces */
 				if (config.get($.sprintf("sys_pcicfg_s%s_%s_ctrl", pcislot, pcidev)) == "manual") {
 					c = page.addContainer("statistics");
-					c.addTitle("Statistics is available only for interfaces with EOCd control");
+					c.addTitle("Statistics are available only for interfaces with EOCd control");
 					return;
 				} else if (config.get($.sprintf("sys_eocd_chan_s%s_%s_master", pcislot, pcidev)) != "1") {
 					c = page.addContainer("statistics");
-					c.addTitle("Statistics is available only for master interface");
+					c.addTitle("Statistics are available only for master interface");
 					return;
 				} else if (!config.isOnline()) {
 					c = page.addContainer("statistics");

@@ -606,6 +606,10 @@ function Container(p, options) {
 		if (w.id == undefined) {
 			w.id = w.name;
 		}
+
+		if (w.tip) {
+			w.tip = "|" + w.tip;
+		}
 		
 		/* create subwidget of specified type */
 		switch (w.type) {
@@ -656,7 +660,7 @@ function Container(p, options) {
 		}
 		
 		/* set nice tooltip */
-		subwidget.tooltip({"track": true});
+		subwidget.tooltip({"track": true, "showBody": "|"});
 		
 		/* bind specified events */
 		this.bindEvents(w);
