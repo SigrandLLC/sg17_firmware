@@ -28,7 +28,7 @@ ifneq ($(BR2_SIGRAND_OEM_WF2_HEADER_LOGO),"default")
 endif
 
 ifneq ($(BR2_SIGRAND_OEM_WF2_BOTTOM_LOGO),"default")
-	cp logos/$(BR2_SIGRAND_OEM_WF2_BOTTOM_LOGO) $(IDIR_WF2)/www/wf2/ui/img/footer_logo.png;
+	cp logos/$(BR2_SIGRAND_OEM_WF2_BOTTOM_LOGO) $(IDIR_WF2)/www/wf2/ui/img/footer_logo.gif;
 endif
 
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_WF2)/CONTROL/control
