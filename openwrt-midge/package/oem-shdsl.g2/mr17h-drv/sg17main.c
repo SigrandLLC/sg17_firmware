@@ -10,7 +10,11 @@
  *
  *
  *	25.01.2007	Version 1.0 - Artem Y. Polyakov <art@sigrand.ru>
+ *	23.01.2009	Version 1.1 - Artem Y. Polyakov <art@sigrand.ru>
+ *		Fix AdvLink memory leack
  */
+ 
+#define DRIVER_VERSION "1.1"
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -69,10 +73,10 @@
 #define DEFAULT_LEV 10
 #include "sg17debug.h"
 
-MODULE_DESCRIPTION( "Infineon SHDSL driver Version 1.0\n" );
+MODULE_DESCRIPTION( "Infineon SHDSL driver Version "DRIVER_VERSION"\n" );
 MODULE_AUTHOR( "Maintainer: Artem U. Polyakov artpol84@gmail.com\n" );
 MODULE_LICENSE( "GPL" );
-MODULE_VERSION("1.0");
+MODULE_VERSION(DRIVER_VERSION);
 
 
 // DEBUG //
@@ -628,6 +632,7 @@ recv_init_frames( struct net_device *ndev )
 		    (len == ADVLINK_MSIZE8) ){
 			skb_put( skb, len );
 			advlink_recv(&nl->alink,skb->data);
+			dev_kfree_skb_any( skb );
 			continue;
 		}else if( len < ETH_ZLEN ){
 			len = ETH_ZLEN;
