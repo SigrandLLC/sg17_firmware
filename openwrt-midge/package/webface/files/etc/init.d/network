@@ -72,17 +72,16 @@ pre_ifup(){
 			[ -n "$br_hello" ] && cmd brctl sethello $realiface $br_hello 
 			[ -n "$br_maxage" ] && cmd brctl setmaxage $realiface $br_maxage 
 			[ -n "$br_fd" ] && cmd brctl setfd $realiface $br_fd 
-
 			;;
 		bonding)
 			if ! cmd $lsmod |grep bonding >/dev/null 2>&1; then
 				num=0
 				for i in $sys_ifaces; do
-        				case $i in
-        						# skip VLAN interfaces
-        						*v*) ;;
-                				bond*)	num=$(($num+1)) ;;
-        				esac
+        			case $i in
+        				# skip VLAN interfaces
+        				*v*) ;;
+                		bond*)	num=$(($num+1)) ;;
+        			esac
 				done
 
 				cmd /sbin/modprobe bonding mode=7 miimon=200 max_bonds=$num
@@ -159,33 +158,6 @@ post_ifup(){
 	
 	# restart VoIP daemon
 	[ -r /etc/init.d/rcvoip ] && /etc/init.d/rcvoip restart
-	
-	# restart bridge interfaces which contain this interface
-	#for key in `kdb kls sys_iface*_br_ifaces`; do
-	#	if kdb get $key |grep -q "$iface"; then
-	#		master=`echo $key |sed s/sys_iface_// |sed s/_br_ifaces//`
-	#		_network stop $master
-	#		_network start $master
-	#	fi
-	#done
-	
-	# restart bonding interfaces which contain this interface
-	#for key in `kdb kls sys_iface*_bond_ifaces`; do
-	#	if kdb get $key |grep -q "$iface"; then
-	#		master=`echo $key |sed s/sys_iface_// |sed s/_bond_ifaces//`
-	#		_network stop $master
-	#		_network start $master
-	#	fi
-	#done
-	
-	# restart interfaces which depends on this interface
-	#for key in `kdb kls sys_iface*_depend_on`; do
-	#	if kdb get $key |grep -q "$iface"; then
-	#		master=`echo $key |sed s/sys_iface_// |sed s/_depend_on//`
-	#		_network stop $master
-	#		_network start $master
-	#	fi
-	#done
 }
 
 _ifup(){
@@ -193,7 +165,7 @@ _ifup(){
 	eval `kdb -qq sls sys_iface_${iface}_`
 	realiface=$iface
 	[ -n "$real" ] && realiface=$real
-	
+
 	# check that current interface is not already running
 	$ip addr show dev $iface 2>/dev/null |grep UP >/dev/null 2>&1 && return
 
@@ -213,7 +185,6 @@ _ifup(){
 	fi
 
 	[ -z "$proto" ] && echo "sys_iface_${iface}_proto is not set" && exit 1
-	#[ -z "$method" -a "$proto" != "hdlc" ] && echo "sys_iface_${iface}_method is not set" && exit 1
 
 	# default method is "none"
 	[ -z "$method" ] && method="none"
@@ -374,8 +345,7 @@ _ifdown(){
 	realiface=$iface
 	[ -n "$real" ] && realiface=$real
 
-	[ -z $proto ] && echo "sys_iface_${iface}_proto is not set" && exit 1
-	[ -z "$method" -a "$proto" != "hdlc" ] && echo "sys_iface_${iface}_method is not set" && exit 1
+	[ -z "$proto" ] && echo "sys_iface_${iface}_proto is not set" && exit 1
 	info 1 "Setting down $iface: "
 	info 1 "  Interface deconfiguration"
 
@@ -396,8 +366,19 @@ _network(){
 	
 	if [ -n "$iface" ]; then
 		eval `kdb -lqq sls sys_iface_${iface}_`
-		[ "$action" = "start" -a "$auto" = "1" ] && /sbin/ifup $iface
-		[ "$action" = "stop" ] && /sbin/ifdown $iface
+		case "$action" in
+		# restart interface without checking for auto
+		restart)
+			/sbin/ifdown $iface
+			/sbin/ifup $iface
+			;;
+		start)
+			[ "$auto" = "1" ] && /sbin/ifup $iface
+			;;
+		stop)
+			/sbin/ifdown $iface
+			;;
+		esac
 	else
 		local ifaces="`kdb sskls 'sys*valid=1' sys_iface_ _valid`"
 		for iface in $ifaces; do 
@@ -412,27 +393,17 @@ _network(){
 eval `kdb -qq ls sys_iface*`
 
 case "$0" in
-	*network)
-		if [ "$1" = "restart" ]; then
-			_network stop $2
-			_network start $2
-		else
-			_network $@
-		fi
-		;;
-	*ifup)
-		_ifup $1
-		;;
-	*ifdown)
-		_ifdown $1
-		;;
-	#*ifup)
-	#	[ "x$1" = "x-a" ] && /etc/init.d/network start || _ifup $1
-	#	;;
-	#*ifdown)
-	#	[ "x$1" = "x-a" ] && /etc/init.d/network stop || _ifdown $1
-	#	;;
+*network)
+	if [ "$1" = "restart" ]; then
+		_network restart $2
+	else
+		_network $@
+	fi
+	;;
+*ifup)
+	_ifup $1
+	;;
+*ifdown)
+	_ifdown $1
+	;;
 esac
-
-
-
