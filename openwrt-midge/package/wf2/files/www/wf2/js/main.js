@@ -91,7 +91,7 @@ function generateMenu() {
 			addItem("Network:Dynamic interfaces", iface, "iface", [iface]);
 		/* add physical interfaces */
 		} else {
-			addItem("Network:Interfaces", iface, "iface", [iface]);
+			addItem("Network:Static interfaces", iface, "iface", [iface]);
 		}
 	});
 

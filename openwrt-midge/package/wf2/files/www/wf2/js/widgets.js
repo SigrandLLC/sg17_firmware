@@ -1214,6 +1214,15 @@ function Container(p, options) {
 		/* add subwidget and style it */
 		this.addSubWidget(w).addClass("table");		
 	};
+
+	/*
+	 * Add div with static message to the top of container before form.
+	 *
+	 * message - text of message.
+	 */
+	this.addStaticMessage = function(message) {
+		$.create("div", {"className": "message"}, _(message)).prependTo(p).show();
+	};
 	
 	/*
 	 * Adds list to a container "c". It gets list values from KDB

@@ -1,3 +1,225 @@
+/*
+ * Renders content of network General tab.
+ */
+Controllers.ifaceGeneral = function(c, iface) {
+	var field;
+	c.setSubsystem("network." + iface);
+	c.setHelpPage("iface");
+	c.setHelpSection("general");
+	c.addTitle("Interface general settings");
+
+	var showMethod = function() {
+		/* remove method's widgets */
+		$(".tmpMethod").parents("tr").remove();
+
+		if ($("#method").val() == "static") {
+			if (config.get($.sprintf("sys_iface_%s_proto", iface)) == "hdlc") {
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_iface_%s_pointopoint_local", iface),
+					"text": "Point to Point local",
+					"descr": "Point-to-Point local address.",
+					"tip": "e.g., 10.0.0.1",
+					"validator": {"required": true, "ipAddr": true},
+					"cssClass": "tmpMethod"
+				};
+				c.addWidget(field);
+
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_iface_%s_pointopoint_remote", iface),
+					"text": "Point to Point remote",
+					"descr": "Point-to-Point remote address.",
+					"tip": "e.g., 10.0.0.2",
+					"validator": {"required": true, "ipAddr": true},
+					"cssClass": "tmpMethod"
+				};
+				c.addWidget(field);
+			} else {
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_iface_%s_ipaddr", iface),
+					"text": "Static address",
+					"descr": "IP address.",
+					"tip": "e.g., 192.168.2.100",
+					"validator": {"required": true, "ipAddr": true},
+					"cssClass": "tmpMethod"
+				};
+				c.addWidget(field);
+
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_iface_%s_netmask", iface),
+					"text": "Netmask",
+					"descr": "Network mask.",
+					"tip": "e.g., 255.255.255.0",
+					"validator": {"required": true, "netmask": true},
+					"cssClass": "tmpMethod"
+				};
+				c.addWidget(field);
+
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_iface_%s_broadcast", iface),
+					"text": "Broadcast",
+					"descr": "Broadcast address.",
+					"tip": "e.g., 192.168.2.255",
+					"validator": {"ipAddr": true},
+					"cssClass": "tmpMethod"
+				};
+				c.addWidget(field);
+
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_iface_%s_gateway", iface),
+					"text": "Gateway",
+					"descr": "Default gateway.",
+					"tip": "e.g., 192.168.2.1",
+					"validator": {"ipAddr": true},
+					"cssClass": "tmpMethod"
+				};
+				c.addWidget(field);
+			}
+		}
+	};
+
+	field = {
+		"type": "text",
+		"name": $.sprintf("sys_iface_%s_desc", iface),
+		"text": "Description",
+		"descr": "Description of interface."
+	};
+	c.addWidget(field);
+
+	/* this interface is bridge */
+	if (iface.search("br") != -1) {
+		field = {
+			"type": "text",
+			"name": $.sprintf("sys_iface_%s_br_ifaces", iface),
+			"id": "ifaces",
+			"text": "Bridge interfaces",
+			"descr": "Interfaces for bridge separated by space.",
+			"tip": "<b>Example:</b> eth0 eth1 dsl0<br><b>Note:</b> You can use only" +
+					" Ethernet-like interfaces, like ethX, dslX<br><b>Note:</b> Interfaces should" +
+					" be enabled, but <b>auto</b> should be switched <b>off</b>.",
+			"validator": {"required": true}
+		};
+		c.addWidget(field);
+	/* this interface is bonding */
+	} else if (iface.search("bond") != -1) {
+		field = {
+			"type": "text",
+			"name": $.sprintf("sys_iface_%s_bond_ifaces", iface),
+			"id": "ifaces",
+			"text": "Bonding interfaces",
+			"descr": "Interfaces for bonding separated by space.",
+			"tip": "<b>Example:</b>eth0 eth1 dsl0<br><b>Note:</b>You can use only Ethernet-like" +
+					" interfaces, like ethX, dslX, bondX<br><b>Note:</b> Interfaces should be" +
+					" enabled, but <b>auto</b> should be switched <b>off</b>.",
+			"validator": {"required": true}
+		};
+		c.addWidget(field);
+	}
+
+	field = {
+		"type": "checkbox",
+		"name": $.sprintf("sys_iface_%s_enabled", iface),
+		"text": "Enabled",
+		"descr": "If set, interface can be start on boot or by another interface."
+	};
+	c.addWidget(field);
+
+	field = {
+		"type": "checkbox",
+		"name": $.sprintf("sys_iface_%s_auto", iface),
+		"text": "Auto",
+		"descr": "If set and interface is enabled, it will be start on boot."
+	};
+	c.addWidget(field);
+
+	if (config.get($.sprintf("sys_iface_%s_proto", iface)) != "vlan") {
+		var dependList = new Object();
+		$.each(config.getParsed("sys_ifaces"), function(name, value) {
+			dependList[value] = value;
+		});
+		dependList.none = "None";
+		field = {
+			"type": "select",
+			"name": "sys_iface_" + iface + "_depend_on",
+			"id": "depend_on",
+			"text": "Depends on",
+			"options": dependList,
+			"defaultValue": "none",
+			"descr": $.sprintf("Start specified interface before this (%s) interface.", iface)
+		};
+		c.addWidget(field);
+	}
+
+	field = {
+		"type": "select",
+		"name": $.sprintf("sys_iface_%s_method", iface),
+		"id": "method",
+		"text": "Method",
+		"descr": "Method of setting IP address.",
+		"options": config.get($.sprintf("sys_iface_%s_proto", iface)) == "hdlc" ?
+			{"none": "None", "static": "Static address"} :
+			{"none": "None", "static": "Static address", "zeroconf": "Zero Configuration",
+					"dynamic": "Dynamic address"},
+		"onChange": showMethod
+	};
+	c.addWidget(field);
+
+	/* TODO
+	field= {
+		"type": "checkbox",
+		"name": "sys_iface_" + iface + "_opt_accept_redirects",
+		"text": "Accept redirects"
+	};
+	c.addWidget(field);
+
+	field = {
+		"type": "checkbox",
+		"name": "sys_iface_" + iface + "_opt_forwarding",
+		"text": "Forwarding"
+	};
+	c.addWidget(field);
+
+	field = {
+		"type": "checkbox",
+		"name": "sys_iface_" + iface + "_opt_proxy_arp",
+		"text": "Proxy ARP"
+	};
+	c.addWidget(field);
+
+	field = {
+		"type": "checkbox",
+		"name": "sys_iface_" + iface + "_opt_rp_filter",
+		"text": "RP Filter"
+	};
+	c.addWidget(field);
+	*/
+
+	showMethod();
+
+	/* set auto=0 enabled=1 for depending interfaces */
+	var additionalKeys = [];
+	c.addSubmit({
+		"additionalKeys": additionalKeys,
+		"preSubmit": function() {
+			if ($("#ifaces").length == 0) {
+				return;
+			}
+			$.each($("#ifaces").val().split(" "),
+				function(num, iface) {
+					$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_auto", iface), "0");
+					$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_enabled", iface), "1");
+					$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_method", iface), "none");
+				}
+			);
+		}
+	});
+};
+
 Controllers.dynamic_ifaces = function() {
 	var page = this.Page();
 	page.setHelpPage("ifaces");
@@ -109,7 +331,7 @@ Controllers.dynamic_ifaces = function() {
 					setIfaces();
 
                     if ($("#iface_proto").val() == "bridge" || $("#iface_proto").val() == "bonding") {
-                        Controllers.wizard(newIface);
+                        Controllers.fastBridgeOrBondSetup(newIface);
                     }
 				}
 			});
@@ -150,155 +372,18 @@ Controllers.dynamic_ifaces = function() {
 };
 
 /*
- * Controller for fast & simple bridge setup.
+ * Controller for fast & simple bridge/bonding setup.
  */
-Controllers.wizard = function(iface) {
+Controllers.fastBridgeOrBondSetup = function(iface) {
     var page = this.Page();
-	page.setSubsystem("network." + iface);
 
 	page.addTab({
-		"id": "bridge",
-		"name": "Setup wizard",
+		"id": "fast_setup",
+		"name": $.sprintf("Fast %s configuration (%s)",
+				(iface.search("br") != -1) ? "bridge" : "bonding", iface),
 		"func": function() {
-			var c, field;
-			c = page.addContainer("bridge");
-
-			if (iface.search("br") != -1) {
-				c.addTitle("Bridge setup wizard");
-			} else {
-				c.addTitle("Bonding setup wizard");
-			}
-
-			var showMethod = function() {
-				/* remove method's widgets */
-				$(".tmpMethod").parents("tr").remove();
-
-				if ($("#method").val() == "static") {
-					field = {
-						"type": "text",
-						"name": $.sprintf("sys_iface_%s_ipaddr", iface),
-						"text": "Static address",
-						"descr": "IP address.",
-						"tip": "e.g., 192.168.2.100",
-						"validator": {"required": true, "ipAddr": true},
-						"cssClass": "tmpMethod"
-					};
-					c.addWidget(field);
-
-					field = {
-						"type": "text",
-						"name": $.sprintf("sys_iface_%s_netmask", iface),
-						"text": "Netmask",
-						"descr": "Network mask.",
-						"tip": "e.g., 255.255.255.0",
-						"validator": {"required": true, "netmask": true},
-						"cssClass": "tmpMethod"
-					};
-					c.addWidget(field);
-
-					field = {
-						"type": "text",
-						"name": $.sprintf("sys_iface_%s_broadcast", iface),
-						"text": "Broadcast",
-						"descr": "Broadcast address.",
-						"tip": "e.g., 192.168.2.255",
-						"validator": {"ipAddr": true},
-						"cssClass": "tmpMethod"
-					};
-					c.addWidget(field);
-
-					field = {
-						"type": "text",
-						"name": $.sprintf("sys_iface_%s_gateway", iface),
-						"text": "Gateway",
-						"descr": "Default gateway.",
-						"tip": "e.g., 192.168.2.1",
-						"validator": {"ipAddr": true},
-						"cssClass": "tmpMethod"
-					};
-					c.addWidget(field);
-				}
-			};
-
-			field = {
-				"type": "text",
-				"name": $.sprintf("sys_iface_%s_desc", iface),
-				"text": "Description",
-				"descr": "Description of interface."
-			};
-			c.addWidget(field);
-
-			/* we setup bridge */
-			if (iface.search("br") != -1) {
-				field = {
-					"type": "text",
-					"name": $.sprintf("sys_iface_%s_br_ifaces", iface),
-					"id": "ifaces",
-					"text": "Bridge interfaces",
-					"descr": "Interfaces for bridge separated by space.",
-					"tip": "<b>Example:</b> eth0 eth1 dsl0<br><b>Note:</b> You can use only" +
-							" Ethernet-like interfaces, like ethX, dslX<br><b>Note:</b> Interfaces should" +
-							" be enabled, but <b>auto</b> should be switched <b>off</b>.",
-					"validator": {"required": true}
-				};
-				c.addWidget(field);
-			/* we setup bonding */
-			} else {
-				field = {
-					"type": "text",
-					"name": $.sprintf("sys_iface_%s_bond_ifaces", iface),
-					"id": "ifaces",
-					"text": "Bonding interfaces",
-					"descr": "Interfaces for bonding separated by space.",
-					"tip": "<b>Example:</b>eth0 eth1 dsl0<br><b>Note:</b>You can use only Ethernet-like" +
-							" interfaces, like ethX, dslX, bondX<br><b>Note:</b> Interfaces should be" +
-							" enabled, but <b>auto</b> should be switched <b>off</b>.",
-					"validator": {"required": true}
-				};
-				c.addWidget(field);
-			}
-
-			field = {
-				"type": "checkbox",
-				"name": $.sprintf("sys_iface_%s_enabled", iface),
-				"text": "Enabled",
-				"descr": "If set, interface can be start on boot or by another interface."
-			};
-			c.addWidget(field);
-
-			field = {
-				"type": "checkbox",
-				"name": $.sprintf("sys_iface_%s_auto", iface),
-				"text": "Auto",
-				"descr": "If set and interface is enabled, it will be start on boot."
-			};
-			c.addWidget(field);
-
-			field = {
-				"type": "select",
-				"name": $.sprintf("sys_iface_%s_method", iface),
-				"id": "method",
-				"text": "Method",
-				"descr": "Method of setting IP address.",
-				"options": {"none": "None", "static": "Static address", "zeroconf": "Zero Configuration",
-							"dynamic": "Dynamic address"},
-				"onChange": showMethod
-			};
-			c.addWidget(field);
-
-			/* set auto=0 enabled=1 for depending interfaces */
-			var additionalKeys = [];
-			c.addSubmit({
-				"additionalKeys": additionalKeys,
-				"preSubmit": function() {
-					$.each($("#ifaces").val().split(" "),
-						function(num, value) {
-							$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_auto", value), "0");
-							$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_enabled", value), "1");
-						}
-					);
-				}
-			});
+			var c = page.addContainer("fast_setup");
+			Controllers.ifaceGeneral(c, iface);
 		}
 	});
 
@@ -713,6 +798,23 @@ Controllers.iface = function(iface) {
 	page.setSubsystem("network." + iface);
 	page.setHelpPage("iface");
 
+	/* find and set in static message name of master interface, if it exists */
+	var setMasterInterface = function(c) {
+		var master;
+		var mIfaces = config.getByRegexp(/(sys_iface_)*((_br_ifaces)|(_bond_ifaces))/);
+		$.each(mIfaces, function(mIfaceKey, mIface) {
+			if (mIface.search(iface) != -1) {
+				master = mIfaceKey.replace("sys_iface_", "").replace("_br_ifaces", "")
+						.replace("_bond_ifaces", "");
+				return false;
+			}
+		});
+
+		if (master) {
+			c.addStaticMessage(_("This interface is a part of") + " " + master);
+		}
+	};
+
 	/* STATUS tab */
 	page.addTab({
 		"id": "status",
@@ -724,6 +826,7 @@ Controllers.iface = function(iface) {
 
 			c = page.addContainer("status");
 			c.addTitle("Interface status");
+			setMasterInterface(c);
 
 			/* add general widget, which will contain three buttons */
 			field = {
@@ -839,173 +942,9 @@ Controllers.iface = function(iface) {
 		"id": "general",
 		"name": "General",
 		"func": function() {
-			var c, field;
-			c = page.addContainer("general");
-			c.addTitle("Interface general settings");
-
-			var showMethod = function() {
-				/* remove method's widgets */
-				$(".tmpMethod").parents("tr").remove();
-
-				if ($("#method").val() == "static") {
-					if (config.get($.sprintf("sys_iface_%s_proto", iface)) == "hdlc") {
-						field = {
-							"type": "text",
-							"name": $.sprintf("sys_iface_%s_pointopoint_local", iface),
-							"text": "Point to Point local",
-							"descr": "Point-to-Point local address.",
-							"tip": "e.g., 10.0.0.1",
-							"validator": {"required": true, "ipAddr": true},
-							"cssClass": "tmpMethod"
-						};
-						c.addWidget(field);
-
-						field = {
-							"type": "text",
-							"name": $.sprintf("sys_iface_%s_pointopoint_remote", iface),
-							"text": "Point to Point remote",
-							"descr": "Point-to-Point remote address.",
-							"tip": "e.g., 10.0.0.2",
-							"validator": {"required": true, "ipAddr": true},
-							"cssClass": "tmpMethod"
-						};
-						c.addWidget(field);
-					} else {
-						field = {
-							"type": "text",
-							"name": $.sprintf("sys_iface_%s_ipaddr", iface),
-							"text": "Static address",
-							"descr": "IP address.",
-							"tip": "e.g., 192.168.2.100",
-							"validator": {"required": true, "ipAddr": true},
-							"cssClass": "tmpMethod"
-						};
-						c.addWidget(field);
-
-						field = {
-							"type": "text",
-							"name": $.sprintf("sys_iface_%s_netmask", iface),
-							"text": "Netmask",
-							"descr": "Network mask.",
-							"tip": "e.g., 255.255.255.0",
-							"validator": {"required": true, "netmask": true},
-							"cssClass": "tmpMethod"
-						};
-						c.addWidget(field);
-
-						field = {
-							"type": "text",
-							"name": $.sprintf("sys_iface_%s_broadcast", iface),
-							"text": "Broadcast",
-							"descr": "Broadcast address.",
-							"tip": "e.g., 192.168.2.255",
-							"validator": {"ipAddr": true},
-							"cssClass": "tmpMethod"
-						};
-						c.addWidget(field);
-
-						field = {
-							"type": "text",
-							"name": $.sprintf("sys_iface_%s_gateway", iface),
-							"text": "Gateway",
-							"descr": "Default gateway.",
-							"tip": "e.g., 192.168.2.1",
-							"validator": {"ipAddr": true},
-							"cssClass": "tmpMethod"
-						};
-						c.addWidget(field);
-					}
-				}
-			};
-
-			field = {
-				"type": "text",
-				"name": $.sprintf("sys_iface_%s_desc", iface),
-				"text": "Description",
-				"descr": "Description of interface."
-			};
-			c.addWidget(field);
-
-			field = {
-				"type": "checkbox",
-				"name": $.sprintf("sys_iface_%s_enabled", iface),
-				"text": "Enabled",
-				"descr": "If set, interface can be start on boot or by another interface."
-			};
-			c.addWidget(field);
-
-			field = {
-				"type": "checkbox",
-				"name": $.sprintf("sys_iface_%s_auto", iface),
-				"text": "Auto",
-				"descr": "If set and interface is enabled, it will be start on boot."
-			};
-			c.addWidget(field);
-
-			if (config.get($.sprintf("sys_iface_%s_proto", iface)) != "vlan") {
-				var dependList = new Object();
-				$.each(config.getParsed("sys_ifaces"), function(name, value) {
-					dependList[value] = value;
-				});
-				dependList.none = "None";
-				field = {
-					"type": "select",
-					"name": "sys_iface_" + iface + "_depend_on",
-					"id": "depend_on",
-					"text": "Depends on",
-					"options": dependList,
-					"defaultValue": "none",
-					"descr": $.sprintf("Start specified interface before this (%s) interface.", iface)
-				};
-				c.addWidget(field);
-			}
-
-			field = {
-				"type": "select",
-				"name": $.sprintf("sys_iface_%s_method", iface),
-				"id": "method",
-				"text": "Method",
-				"descr": "Method of setting IP address.",
-				"options": config.get($.sprintf("sys_iface_%s_proto", iface)) == "hdlc" ?
-					{"none": "None", "static": "Static address"} :
-					{"none": "None", "static": "Static address", "zeroconf": "Zero Configuration",
-							"dynamic": "Dynamic address"},
-				"onChange": showMethod
-			};
-			c.addWidget(field);
-
-            /* TODO
-			field= {
-				"type": "checkbox",
-				"name": "sys_iface_" + iface + "_opt_accept_redirects",
-				"text": "Accept redirects"
-			};
-			c.addWidget(field);
-
-			field = {
-				"type": "checkbox",
-				"name": "sys_iface_" + iface + "_opt_forwarding",
-				"text": "Forwarding"
-			};
-			c.addWidget(field);
-
-			field = {
-				"type": "checkbox",
-				"name": "sys_iface_" + iface + "_opt_proxy_arp",
-				"text": "Proxy ARP"
-			};
-			c.addWidget(field);
-
-			field = {
-				"type": "checkbox",
-				"name": "sys_iface_" + iface + "_opt_rp_filter",
-				"text": "RP Filter"
-			};
-			c.addWidget(field);
-            */
-
-			showMethod();
-			c.addSubmit();
+			var c = page.addContainer("general");
+			setMasterInterface(c);
+			Controllers.ifaceGeneral(c, iface);
 		}
 	});
 
@@ -1016,6 +955,7 @@ Controllers.iface = function(iface) {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("specific");
+			setMasterInterface(c);
 
 			switch (config.get("sys_iface_" + iface + "_proto"))
 			{
@@ -1278,6 +1218,7 @@ Controllers.iface = function(iface) {
 			var c = page.addContainer("routes");
 			c.setHelpPage("traffic");
 			c.setHelpSection("routes");
+			setMasterInterface(c);
 
 			/* create list of routes */
 			var list = c.createList({
@@ -1727,6 +1668,7 @@ Controllers.iface = function(iface) {
 		c = page.addContainer("qos");
 		c.setHelpPage("qos");
 		c.addTitle("QoS settings");
+		setMasterInterface(c);
 
 		/* Scheduler */
 		field = {
