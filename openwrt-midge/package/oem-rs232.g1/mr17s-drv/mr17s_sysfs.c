@@ -16,6 +16,27 @@
 //#define DEBUG_ON
 #include "mr17s_debug.h"
 
+
+static ssize_t show_dev_type( struct device *dev, ADDIT_ATTR char *buff ); 
+static DEVICE_ATTR(dev_type,0444,show_dev_type,NULL);	
+
+static ssize_t
+show_dev_type( struct device *dev, ADDIT_ATTR char *buf)
+{
+	struct mr17s_device  *rsdev = (struct mr17s_device *)dev_get_drvdata( dev );
+	switch( rsdev->type ){
+	case DTE:
+		return snprintf(buf,PAGE_SIZE,"DTE");
+	case DCE:
+		return snprintf(buf,PAGE_SIZE,"DCE");
+	default:
+		break;
+	}		
+	return 0;
+}
+
+
+
 #ifdef DEBUG_SYSFS
 
 static ssize_t show_winread( struct device *dev, ADDIT_ATTR char *buff ); 
@@ -33,30 +54,6 @@ static ssize_t store_CD( struct device *dev, ADDIT_ATTR const char *buff, size_t
 static DEVICE_ATTR(car,0200,NULL,store_CD);	
 
 
-int mr17s_sysfs_register(struct device *dev)
-{
-    int err = 0;
-    if( (err = device_create_file(dev,&dev_attr_winread)) )  goto err_ext;
-    if( (err = device_create_file(dev,&dev_attr_winwrite)) ) goto err_ext1;
-    if( (err = device_create_file(dev,&dev_attr_hdlcregs)) ) goto err_ext2;    
-    if( (err = device_create_file(dev,&dev_attr_car)) ) goto err_ext2;    
-    return 0;
-err_ext2:
-    device_remove_file(dev,&dev_attr_winread);
-err_ext1:
-    device_remove_file(dev,&dev_attr_winwrite);
-err_ext:
-    return err;
-}
-
-
-void mr17s_sysfs_free(struct device *dev)
-{
-    device_remove_file(dev,&dev_attr_winread);
-    device_remove_file(dev,&dev_attr_winwrite);
-    device_remove_file(dev,&dev_attr_hdlcregs);
-    device_remove_file(dev,&dev_attr_car);
-}
 
 //-------------------- Read memory window ----------------------------------//
 static u32 win_start=0,win_count=0;
@@ -197,11 +194,47 @@ store_CD( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 	return size;
 }
 
-
-
-#else
-
-int mr17s_sysfs_register(struct device *dev){ return 0; }
-void mr17s_sysfs_free(struct device *dev){}
-
 #endif // DEBUG_SYSFS
+
+
+
+int mr17s_sysfs_register(struct device *dev)
+{
+    int err = 0;
+
+
+    if( (err = device_create_file(dev,&dev_attr_dev_type)) )  goto err_ext;
+#ifdef DEBUG_SYSFS
+    if( (err = device_create_file(dev,&dev_attr_winread)) )  goto err_ext1;
+    if( (err = device_create_file(dev,&dev_attr_winwrite)) ) goto err_ext2;
+    if( (err = device_create_file(dev,&dev_attr_hdlcregs)) ) goto err_ext3;    
+    if( (err = device_create_file(dev,&dev_attr_car)) ) goto err_ext4;    
+#endif // DEBUG_SYSFS
+    
+	return 0;
+#ifdef DEBUG_SYSFS
+err_ext4:
+    device_remove_file(dev,&dev_attr_hdlcregs);
+err_ext3:
+    device_remove_file(dev,&dev_attr_winwrite);
+err_ext2:
+    device_remove_file(dev,&dev_attr_winread);
+err_ext1:
+    device_remove_file(dev,&dev_attr_dev_type);
+#endif
+err_ext:
+    return err;
+}
+
+
+void mr17s_sysfs_free(struct device *dev)
+{
+
+    device_remove_file(dev,&dev_attr_dev_type);
+#ifdef DEBUG_SYSFS
+    device_remove_file(dev,&dev_attr_winread);
+    device_remove_file(dev,&dev_attr_winwrite);
+    device_remove_file(dev,&dev_attr_hdlcregs);
+    device_remove_file(dev,&dev_attr_car);
+#endif
+}
