@@ -114,19 +114,27 @@ _rs232_modcfg(){
 
 	
 _rs232_start(){
-	
+	local iface1
 	echo "Configuring RS232: "
 	eval `kdb sls -q sys_pcitbl_`
 	for s in $slots; do
-		unset type
+		unset type iface1
 		eval "type=\$s${s}_iftype"
 		eval "num=\$s${s}_ifnum"
 		eval "ifaces=\$s${s}_ifaces"
 		if [ "$type" != "$mr17s_drvname" ]; then
 			continue
 		fi
+		for i in $ifaces; do
+			iface1=$i
+			break
+		done
+		type=""
+		if [ -f /sys/bus/pci/drivers/${mr17s_drvname}/${iface1}/dev_type ]; then
+			type="-"`cat /sys/bus/pci/drivers/${mr17s_drvname}/${iface1}/dev_type`
+		fi
+    	echo "    ${mr17s_modname}${oem_ifpfx}${num}${type}($ifaces) "
 	    _rs232_modcfg $s
-    	echo "    ${mr17s_modname}${oem_ifpfx}${num}($ifaces) "
 	done
 	echo
 }
