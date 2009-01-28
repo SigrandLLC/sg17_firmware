@@ -40,6 +40,7 @@ function generateMenu() {
 	$.each(slots, function(num, pcislot) {
 		var type = config.get($.sprintf("sys_pcitbl_s%s_iftype", pcislot));
 		var ifaces = config.getParsed($.sprintf("sys_pcitbl_s%s_ifaces", pcislot));
+		var rs232Defined = false;
 
 		/* save interfaces info */
 		config.saveData(type, ifaces);
@@ -63,14 +64,19 @@ function generateMenu() {
 				/* E1 */
 				case config.getOEM("MR16G_DRVNAME"):
 				case config.getOEM("MR17G_DRVNAME"):
-					config.runCmd(
-						$.sprintf("[ -f /sys/class/net/%s/hw_private/muxonly ] && cat /sys/class/net/%s/hw_private/muxonly || echo -n 0", iface, iface),
-						$.sprintf("muxonly_%s", iface));
+					config.runCmd($.sprintf("[ -f /sys/class/net/%s/hw_private/muxonly ] && cat /sys/class/net/%s/hw_private/muxonly || echo -n 0",
+							iface, iface), $.sprintf("muxonly_%s", iface));
 					addItem("Hardware:E1", iface, "e1", [iface, pcislot, num]);
 					break;
 
 				/* RS232 */
 				case config.getOEM("MR17S_DRVNAME"):
+					if (!rs232Defined) {
+						rs232Defined = true;
+						config.runCmd($.sprintf("[ -f /sys/bus/pci/drivers/%s/%s/dev_type ] && cat /sys/bus/pci/drivers/%s/%s/dev_type || echo -n 'undefined'",
+								config.getOEM("MR17S_DRVNAME"), iface, config.getOEM("MR17S_DRVNAME"),
+								iface), $.sprintf("rs232Type_%s", pcislot));
+					}
 					addItem("Hardware:RS232", iface, "rs232", [iface, pcislot, num]);
 					break;
 			}
@@ -113,44 +119,40 @@ var wf2Logs = new function() {
 	};
 };
 
-/*
- * Set AJAX options.
- * Without this option IE caches all AJAX requests.
- */
-$.ajaxSetup({
-	cache: false
-});
-
-/* load KDB settings */
+/* device config */
 var config = new Config();
-config.loadKDB();
-config.loadOEM();
-
-/* load firmware version */
-config.runCmd("/bin/cat /etc/version");
-
-/* get availability for context-help */
-config.runCmd("[ -r '/www/help/index.html' ] && echo -n 1 || echo -n 0", "context-help");
-
-/* get availability for linkdeps */
-config.runCmd("[ -r '/etc/linkdeps' ] && echo -n 1 || echo -n 0", "linkdeps");
-
-/* get VoIP channels list */
-config.runCmd("/bin/cat /proc/driver/sgatab/channels");
-
-/* check router every 10 seconds */
-config.startCheckStatus(10);
-
-/* set page title to router's hostname */
-document.title = config.get("sys_hostname");
-
-/* set interface lguage */
-var lang = config.get("sys_interface_language");
-if (lang != "en") {
-	$("head").append("<link href='translation/" + lang + ".json' lang='" + lang + "' rel='gettext'/>");
-}
 
 $(document).ready(function() {
+	/* Set AJAX options. Without this option IE caches all AJAX requests */
+	$.ajaxSetup({
+		cache: false
+	});
+
+	/* load KDB settings */
+	config.loadKDB();
+	config.loadOEM();
+
+	/* load firmware version */
+	config.runCmd("/bin/cat /etc/version");
+
+	/* get availability for context-help */
+	config.runCmd("[ -r '/www/help/index.html' ] && echo -n 1 || echo -n 0", "context-help");
+
+	/* get availability for linkdeps */
+	config.runCmd("[ -r '/etc/linkdeps' ] && echo -n 1 || echo -n 0", "linkdeps");
+
+	/* get VoIP channels list */
+	config.runCmd("/bin/cat /proc/driver/sgatab/channels");
+
+	/* set page title to router's hostname */
+	document.title = config.get("sys_hostname");
+
+	/* set interface lguage */
+	var lang = config.get("sys_interface_language");
+	if (lang) {
+		$.gt.load(lang, $.sprintf("translation/%s.json", lang));
+	}
+
 	/* on click on status bar with CTRL key, show debug */
 	$("#status").click(function(e) {
 		if (e.ctrlKey == true) {
@@ -174,5 +176,8 @@ $(document).ready(function() {
 	config.onCmdCacheFinish(function() {
 		generateMenu();
 		Controllers.info();
+
+		/* check router every 10 seconds */
+		config.startCheckStatus(10);
 	});
 });

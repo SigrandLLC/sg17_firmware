@@ -55,37 +55,34 @@
 		setLang: function(code) { $.gt.lang = typeof code == 'string' && code != ' ' ? code : 'C'; },
 		pl_re: /^Plural-Forms:\s*nplurals\s*=\s*(\d+);\s*plural\s*=\s*([^a-zA-Z0-9\$]*([a-zA-Z0-9\$]+).+)$/m,
 		plural: function(n) {return n != 1;},
-		load: function() {
-			$('link[rel=gettext]').each(function(){
-				var lang = this.lang;
-				$.ajax({
-					type: 'GET',
-					url: this.href,
-					async: false,
-					success: function(data, textStatus) {
-						$.gt.messages[lang] = $.gt.messages[lang] || {};
+		load: function(lang, href) {
+			$.ajax({
+				type: 'GET',
+				url: href,
+				async: false,
+				success: function(data, textStatus) {
+					$.gt.messages[lang] = $.gt.messages[lang] || {};
+					try {
+						var messages = eval('(' + data + ')');
+					} catch(e) {
+						return;
+					}
+
+					$.extend($.gt.messages[lang], messages);
+
+					var pl = $.gt.pl_re.exec($.gt.messages[lang]['']);
+					if(pl){
+						var expr = pl[2];
+						var np = pl[1];
+						var v = pl[3];
 						try {
-							var messages = eval('(' + data + ')');
+							var fn = eval('(function(' + v + ') {return ' + expr + ';})');
 						} catch(e) {
 							return;
 						}
-	
-						$.extend($.gt.messages[lang], messages);
-	
-						var pl = $.gt.pl_re.exec($.gt.messages[lang]['']);
-						if(pl){
-							var expr = pl[2];
-							var np = pl[1];
-							var v = pl[3];
-							try {
-								var fn = eval('(function(' + v + ') {return ' + expr + ';})');
-							} catch(e) {
-								return;
-							}
-							$.gt.plural = fn;
-						}
+						$.gt.plural = fn;
 					}
-				});
+				}
 			});
 			$.gt.setLang($('html').attr('lang'));
 		},
@@ -132,13 +129,12 @@
 			return sg;
 		}
 	});
-
-	$('document').ready($.gt.load);
 })(jQuery);
 
 if(typeof _ == 'undefined') {
 	var _ = jQuery.gt.gettext;
 }
+
 if(typeof n_ == 'undefined') {
 	var n_ = jQuery.gt.ngettext;
 }

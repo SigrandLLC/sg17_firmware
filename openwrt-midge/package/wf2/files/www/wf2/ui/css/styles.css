@@ -285,9 +285,9 @@ td.clickable:hover {
 	margin-top: 15px;
 	float: left;
 	color: #c0c0c0;
-	width: 100%;
+	width: 90%;
 	text-align: left;
-	margin-left: 10px;
+	padding-left: 10px;
 }
 
 #status .error {

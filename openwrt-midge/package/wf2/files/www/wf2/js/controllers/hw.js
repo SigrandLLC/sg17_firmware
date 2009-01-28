@@ -620,9 +620,18 @@ Controllers.rs232 = function(node, pcislot, pcidev) {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("settings");
-			c.addTitle($.sprintf("%s (module %s%s%s, slot %s) settings", node,
-				config.getOEM("MR17S_MODNAME"), config.getOEM("OEM_IFPFX"),
-				config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot)),	pcislot - 2));
+
+			/* get type (DTE or DCE) for this RS232 node */
+			var rs232Type = config.getCachedOutput($.sprintf("rs232Type_%s", pcislot));
+			if (rs232Type != "undefined") {
+				rs232Type = "-" + rs232Type;
+			} else {
+				rs232Type = "";
+			}
+
+			c.addTitle($.sprintf("%s (module %s%s%s%s, slot %s) settings", node,
+					config.getOEM("MR17S_MODNAME"), config.getOEM("OEM_IFPFX"),
+					config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot)), rs232Type, pcislot - 2));
 
 			field = {
 				"type": "checkbox",

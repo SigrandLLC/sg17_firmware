@@ -34,7 +34,8 @@
 	"Please select language": "Пожалуйста, выберите язык",
 	"Russian": "Русский",
 	"DNS settings": "Настройки DNS",
-	"Upstream server": "Сервер DNS",
+	"DNS server 1": "Сервер DNS 1",
+	"DNS server 2": "Сервер DNS 2",
 	"IP address of upstream dns server.": "Укажите IP-адрес сервера DNS.",
 	"DNS server used for resolving domain names. E.g., 192.168.2.1": "Сервер DNS, используемый для разрешения имён. К примеру, 192.168.2.1",
 	"Domain": "Домен",
@@ -46,7 +47,7 @@
 	"Check this item if you want use time synchronizing.": "Установите флажок если вы хотите использовать синхронизацию времени.",
 	"Time server": "Сервер времени",
 	"Hostname or IP address of time server.": "Имя или IP-адрес сервера времени.",
-	"Time zone": "Часовой пояс",
+	"Time zone.": "Часовой пояс.",
 	"Please select timezone": "Укажите часовой пояс",
 	"Auto winter/summer time": "Автоматическое зимнее/летнее время",
 	"Auto switch to winter/summer time.": "Автоматический переход на зимнее/летнее время.",
@@ -98,6 +99,7 @@
 	"Firewall": "Межсетевой экран",
 	"Firewall settings": "Настройки межсетевого экрана",
 	"Enable firewall": "Включить межсетевой экран",
+	"Firewall allows you to perform packet filtering.": "Межсетевой экран позволяет выполнять пакетную фильтрацию.",
 	"Default policies": "Политики по-умолчанию",
 	"Default policy for FORWARD": "Политика по-умолчанию для FORWARD",
 	"Default policy for INPUT": "Политика по-умолчанию для INPUT",
@@ -131,5 +133,6 @@
 	"Name of rule.": "Имя правила.",
 	"Protocol of packet.": "Используемый пакетом протокол.",
 	"IP address can be either a network IP address (with /mask), or a plain IP address. A ! argument before the address specification inverts the sense of the address.<br><b>Examples:</b> 192.168.1.0/24, 192.168.1.5<br> Use 0.0.0.0/0 for <b>any</b>."
-		: "IP-адрес может быть адресом сети (с указанием её маски через /mask), или простым IP-адресом. Аргумент ! перед адресом инвертирует это значение.<br><b>Например:</b> 192.168.1.0/24, 192.168.1.5<br>Используйте 0.0.0.0/0 для <b>any</b>."
+		: "IP-адрес может быть адресом сети (с указанием её маски через /mask), или простым IP-адресом. Аргумент ! перед адресом инвертирует это значение.<br><b>Например:</b> 192.168.1.0/24, 192.168.1.5<br>Используйте 0.0.0.0/0 для <b>any</b>.",
+	"Console": "Консоль"
 }

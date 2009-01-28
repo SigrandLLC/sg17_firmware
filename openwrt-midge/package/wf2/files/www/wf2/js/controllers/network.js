@@ -322,7 +322,8 @@ Controllers.fw = function() {
 			field = {
 				"type": "checkbox",
 				"name": "sys_fw_enabled",
-				"text": "Enable firewall"
+				"text": "Enable firewall",
+				"descr": "Firewall allows you to perform packet filtering."
 			};
 			c.addWidget(field);
 

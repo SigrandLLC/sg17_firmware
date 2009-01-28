@@ -1045,7 +1045,8 @@ function Container(p, options) {
 				"cmd": cmd,
 				"container": $($.sprintf("tr > td > b:contains('%s')", cmd), outer.table).nextAll("div.pre"),
 				"filter": function(data) {
-					return data.replace(/\n/g, "<br>");
+					return data.replace(/\n/g, "<br>").replace(/ /g, "&nbsp;")
+							.replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
 				}
 			});
 		};

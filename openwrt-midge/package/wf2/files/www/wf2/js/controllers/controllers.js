@@ -910,8 +910,9 @@ Controllers.console = function() {
 							$("#executingCmd").remove();
 
 							/* format data */
-							data = data.replace(/\n/g, "<br>");
-							cursor.before(data.replace(/ /g, "&nbsp;"));
+							data = data.replace(/\n/g, "<br>").replace(/ /g, "&nbsp;")
+									.replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+							cursor.before(data);
 							cursor.before("# ");
 
 							/* add new span for command text */

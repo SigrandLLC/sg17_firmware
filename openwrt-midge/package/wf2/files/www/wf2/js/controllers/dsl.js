@@ -555,7 +555,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 
 					var resultProfiles = ["default"];
 					$.each(profiles, function(profileKey, profile) {
-						if (compatibility == profile.comp) {
+						if (compatibility == "extended" || compatibility == profile.comp) {
 							resultProfiles.push(profile.name);
 						}
 					});
