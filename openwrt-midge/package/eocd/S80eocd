@@ -1,3 +1,32 @@
 #!/bin/sh
 
 /sbin/eocd -d
+
+kdb="/usr/bin/kdb"
+eocinfo="/sbin/eoc-info"
+
+[ -n "`$kdb -qq ls sys_eocd_sprof_0`" ] && exit 0
+
+$eocinfo -npa | (
+ profile=""
+ process=false
+while read line; do
+ if echo $line | grep -q "default"; then
+   process=true
+ fi
+
+ if echo $line | grep -q "}"; then
+   process=false
+ fi
+
+ if [ "$process" = "true" ]; then
+   name=`echo $line |awk -F ':' '{print $1}' |sed s/\"//g |sed s/" "//g`
+   value=$(echo $line |awk -F ':' '{print $2}' |sed s/\"//g |sed s/" "//g|sed s/,//g)
+   [ -n "$profile" ] && profile="$profile $name=$value" || profile="$name=$value"
+ fi
+done
+if [ -n "$profile" ]; then
+ profile="$profile _attrReadonly=true"
+ $kdb set sys_eocd_sprof_0="$profile"
+fi
+)
