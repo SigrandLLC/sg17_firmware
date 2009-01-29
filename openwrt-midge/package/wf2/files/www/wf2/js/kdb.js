@@ -30,13 +30,17 @@ function KDBQueue() {
 	 */
 	this.addTask = function(task) {
 		/* check if queue is blocked */
-		if (block) return;
+		if (block) {
+			return;
+		}
 		
 		/* add task to queue */
 		queue.push(task);
 		
 		/* if after task's completion we need to reload page — block queue */
-		if (task.reload) block = true;
+		if (task.reload) {
+			block = true;
+		}
 		
 		/* try to start task */
 		runTask();
@@ -97,7 +101,9 @@ function KDBQueue() {
 				updateMessage();
 				
 				/* if callback is set — call it */
-				if (task.onSuccess) task.onSuccess();
+				if (task.onSuccess) {
+					task.onSuccess();
+				}
 				
 				/* run next task */
 				nextTask();
@@ -604,7 +610,7 @@ function Config() {
 					}
 					if (kdbQueue.getTasksNumber() > 0) {
 						document.write(
-							$.sprintf("<html><head><title>%s</title></head><body><h1>%s</h1><br><a href='/wf2/'>%s</a></body></html>",
+							$.sprintf("<html><head><title>%s</title></head><body><h2>%s</h2><br><a href='/wf2/'>%s</a></body></html>",
 								_("Connection error"),
 								_("Connection error while performing tasks on a device. Check your connection to the device and reload web-interface. All unfinished tasks are lost."),
 								_("Reload web-interface"))
@@ -629,7 +635,8 @@ function Config() {
 	 * options.callback — function to call after request. filtered command's output is passed to func as arg;
 	 * options.async — sync/async request (by default request is ASYNC);
 	 * options.dataType — if not specified, "text" is used;
-	 * options.filter — function to filter command's output. command's output is passed to func as arg.
+	 * options.filter — function to filter command's output. command's output is passed to func as arg;
+	 * options.formatData — if true, formats data for correct output in browser.
 	 */
 	/* number of performing requests */
 	var ajaxNum = 0;
@@ -663,6 +670,12 @@ function Config() {
 			"dataType": options.dataType != undefined ? options.dataType : "text",
 			"data": {"cmd": options.cmd},
 			"dataFilter": function(data) {
+				if (options.formatData == true) {
+					data = data.replace(/&/g, "&amp;").replace(/ /g, "&nbsp;")
+							.replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
+							.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+				}
+
 				if (options.filter) {
 					return options.filter(data);
 				} else {

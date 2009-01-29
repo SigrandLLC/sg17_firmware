@@ -39,6 +39,7 @@ Controllers.ifaceGeneral = function(c, iface) {
 				field = {
 					"type": "text",
 					"name": $.sprintf("sys_iface_%s_ipaddr", iface),
+					"id": "ipaddr",
 					"text": "Static address",
 					"descr": "IP address.",
 					"tip": "e.g., 192.168.2.100",
@@ -206,16 +207,44 @@ Controllers.ifaceGeneral = function(c, iface) {
 	c.addSubmit({
 		"additionalKeys": additionalKeys,
 		"preSubmit": function() {
-			if ($("#ifaces").length == 0) {
-				return;
-			}
-			$.each($("#ifaces").val().split(" "),
-				function(num, iface) {
-					$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_auto", iface), "0");
-					$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_enabled", iface), "1");
-					$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_method", iface), "none");
+			/* if this interface is used for accessing the web interface */
+			if (window.location.hostname.search(
+					config.get($.sprintf("sys_iface_%s_ipaddr", iface))) != -1) {
+				/* if this interface have static IP address */
+				if ($("#ipaddr").length > 0) {
+					/* if IP address was changed */
+					if (config.get($.sprintf("sys_iface_%s_ipaddr", iface)) != $("#ipaddr").val()) {
+						c.setSuccessMessage(_("IP address for this interface is changed. This page will be closed in 5 seconds. Web interface will be available at") + " " + $("#ipaddr").val());
+						setTimeout(function() {
+							document.write(
+									$.sprintf("<html><head><title>%s</title></head><body><h2>%s</h2><br><a href='https://" + $("#ipaddr").val() + "/wf2/'>%s</a></body></html>",
+									_("IP address is changed"),
+									_("IP address of network interface which was used for accessing the web interface was changed, use new IP address") + " " + "(" + $("#ipaddr").val() + ").",
+									_("Reload web-interface from new IP address")));
+							document.close();
+						}, 5000);
+					}
+				/* do not save form - this interface must have static IP address */
+				} else {
+					c.setError("This network interface must have static IP address to allow you to access the web interface.");
+					c.showMsg();
+					return false;
 				}
-			);
+			}
+
+			/* if #ifaces widget is exist */
+			if ($("#ifaces").length > 0) {
+				$.each($("#ifaces").val().split(" "),
+					function(num, iface) {
+						$.addObjectWithProperty(additionalKeys,
+								$.sprintf("sys_iface_%s_auto", iface), "0");
+						$.addObjectWithProperty(additionalKeys,
+								$.sprintf("sys_iface_%s_enabled", iface), "1");
+						$.addObjectWithProperty(additionalKeys,
+								$.sprintf("sys_iface_%s_method", iface), "none");
+					}
+				);
+			}
 		}
 	});
 };
@@ -798,8 +827,9 @@ Controllers.iface = function(iface) {
 	page.setSubsystem("network." + iface);
 	page.setHelpPage("iface");
 
-	/* find and set in static message name of master interface, if it exists */
-	var setMasterInterface = function(c) {
+	/* set info message about master interface or other information */
+	var setInfoText = function(c) {
+		/* find name of master interface, if it exists */
 		var master;
 		var mIfaces = config.getByRegexp(/(sys_iface_)*((_br_ifaces)|(_bond_ifaces))/);
 		$.each(mIfaces, function(mIfaceKey, mIface) {
@@ -810,8 +840,26 @@ Controllers.iface = function(iface) {
 			}
 		});
 
+		/* check if this interface is used for accessing the web interface */
+		var control = false;
+		if (window.location.hostname.search(
+					config.get($.sprintf("sys_iface_%s_ipaddr", iface))) != -1) {
+			control = true;
+		}
+
+		var msg = "";
 		if (master) {
-			c.addStaticMessage(_("This interface is a part of") + " " + master);
+			msg += _("This interface is a part of") + " " + master + ".";
+		}
+		if (control) {
+			if (msg.length > 0) {
+				msg += "<br>";
+			}
+			msg += _("This network interface is used for accessing the web interface.");
+		}
+
+		if (msg.length > 0) {
+			c.addStaticMessage(msg);
 		}
 	};
 
@@ -826,7 +874,7 @@ Controllers.iface = function(iface) {
 
 			c = page.addContainer("status");
 			c.addTitle("Interface status");
-			setMasterInterface(c);
+			setInfoText(c);
 
 			/* add general widget, which will contain three buttons */
 			field = {
@@ -943,7 +991,7 @@ Controllers.iface = function(iface) {
 		"name": "General",
 		"func": function() {
 			var c = page.addContainer("general");
-			setMasterInterface(c);
+			setInfoText(c);
 			Controllers.ifaceGeneral(c, iface);
 		}
 	});
@@ -955,7 +1003,7 @@ Controllers.iface = function(iface) {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("specific");
-			setMasterInterface(c);
+			setInfoText(c);
 
 			switch (config.get("sys_iface_" + iface + "_proto"))
 			{
@@ -1218,7 +1266,7 @@ Controllers.iface = function(iface) {
 			var c = page.addContainer("routes");
 			c.setHelpPage("traffic");
 			c.setHelpSection("routes");
-			setMasterInterface(c);
+			setInfoText(c);
 
 			/* create list of routes */
 			var list = c.createList({
@@ -1668,7 +1716,7 @@ Controllers.iface = function(iface) {
 		c = page.addContainer("qos");
 		c.setHelpPage("qos");
 		c.addTitle("QoS settings");
-		setMasterInterface(c);
+		setInfoText(c);
 
 		/* Scheduler */
 		field = {

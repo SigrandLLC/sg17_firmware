@@ -180,6 +180,9 @@ function Container(p, options) {
 	
 	/* ID of div for info or error messages */
 	var infoMessage = "info_message";
+
+	/* message to show on success form saving */
+	var successMessage;
 	
 	/* set subsystem common for all tabs */
 	this.subsystem = options.subsystem;
@@ -254,6 +257,10 @@ function Container(p, options) {
 	this.containerRedraw = function() {
 		$($.sprintf("#%s_link", p.attr("id"))).click();
 	};
+
+	this.setSuccessMessage = function(msg) {
+		successMessage = msg;
+	}
 	
 	/* 
 	 * Adds title and context help link to container and adds it to container's table.
@@ -709,7 +716,7 @@ function Container(p, options) {
 	 * Sets error message.
 	 * I18N for text.
 	 */
-	var setError = function(text) {
+	this.setError = function(text) {
 		var idInfoMessage = "#" + infoMessage;
 		$(idInfoMessage).html(_(text));
 		$(idInfoMessage).removeClass("success_message");
@@ -720,43 +727,47 @@ function Container(p, options) {
 	 * Set info message.
 	 * I18N for text.
 	 */
-	var setInfo = function(text) {
+	this.setInfo = function(text) {
 		var idInfoMessage = "#" + infoMessage;
 		$(idInfoMessage).html(_(text));
 		$(idInfoMessage).removeClass("error_message");
 		$(idInfoMessage).addClass("success_message");
 	};
 	
-	/* show message */
-	var showMsg = function() {
+	/* Show message. After clicking on widgets remove info message. */
+	this.showMsg = function() {
 		$("#" + infoMessage).show();
+
+		/* set event handlers to remove info message */
+		$("input, select").bind("click.tmp", function() {
+			thisContainer.hideMsg();
+
+			/* remove alert text */
+			$(".alertText").remove();
+
+			/* remove class indicating field updation */
+			$("*").removeClass("fieldUpdated");
+
+			/* remove all events handlers */
+			$("input, select").unbind("click.tmp");
+		});
 	};
 	
 	/* hide message */
-	var hideMsg = function() {
+	this.hideMsg = function() {
 		$("#" + infoMessage).hide();
 	};
 	
 	/*
-	 * Show to user that data is saved. After clicking on widgets remove info message.
+	 * Show to user that data is saved.
 	 */
 	var formSaved = function() {
-		setInfo("Data saved or this task is added to queue.");
-		showMsg();
-		
-		/* set event handlers to remove info message */
-		$("input, select").bind("click.tmp", function() {
-			hideMsg();
-			
-			/* remove alert text */
-			$(".alertText").remove();
-			
-			/* remove class indicating field updation */
-			$("*").removeClass("fieldUpdated");
-			
-			/* remove all events handlers */
-			$("input, select").unbind("click.tmp");
-		});
+		var msg = _("Data saved or this task is added to queue.");
+		if (successMessage) {
+			msg += "<br>" + _(successMessage);
+		}
+		thisContainer.setInfo(msg);
+		thisContainer.showMsg();
 	};
 	
 	/*
@@ -764,16 +775,8 @@ function Container(p, options) {
 	 */
 	var isRouterOffline = function() {
 		if (!config.isOnline()) {
-			setError("Router is OFFLINE! Check that router is available via your network.");
-			showMsg();
-			
-			/* set event handlers to remove info message */
-			$("input, select").bind("click.tmp", function() {
-				hideMsg();
-				
-				/* remove all events handlers */
-				$("input, select").unbind("click.tmp");
-			});
+			thisContainer.setError("Router is OFFLINE! Check that router is available via your network.");
+			thisContainer.showMsg();
 			return true;
 		}
 		return false;
@@ -834,7 +837,7 @@ function Container(p, options) {
 			
 			/* Set error text to container */
 			"showErrors": function(errorMap, errorList) {
-				setError("Please, enter a valid data into the form below to be able to save it successfully.");
+				thisContainer.setError("Please, enter a valid data into the form below to be able to save it successfully.");
 				this.defaultShowErrors();
 			},
      		
@@ -1044,10 +1047,7 @@ function Container(p, options) {
 			config.cmdExecute({
 				"cmd": cmd,
 				"container": $($.sprintf("tr > td > b:contains('%s')", cmd), outer.table).nextAll("div.pre"),
-				"filter": function(data) {
-					return data.replace(/\n/g, "<br>").replace(/ /g, "&nbsp;")
-							.replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-				}
+				"formatData": true
 			});
 		};
 		
@@ -1351,8 +1351,8 @@ function Container(p, options) {
 					} else if (options.checkOnSubmit) {
 						var result = options.checkOnSubmit(isAdding);
 						if (result.addAllowed == false) {
-							setError(result.message);
-							showMsg();
+							thisContainer.setError(result.message);
+							thisContainer.showMsg();
 
 							return false;
 						} else {
@@ -1446,7 +1446,7 @@ function Container(p, options) {
 			};
 
 			/* hide global info message */
-			hideMsg();
+			thisContainer.hideMsg();
 
 			if (options.checkOnDelete) {
 				var result = options.checkOnDelete(item);

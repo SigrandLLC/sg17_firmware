@@ -903,15 +903,13 @@ Controllers.console = function() {
 				if (src.keyCode == 13) {
 					config.cmdExecute({
 						"cmd": cmd,
+						"formatData": true,
 						"callback": function(data) {
 							/* enable keypress event */
 							keypressDisabled = false;
 
 							$("#executingCmd").remove();
 
-							/* format data */
-							data = data.replace(/\n/g, "<br>").replace(/ /g, "&nbsp;")
-									.replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
 							cursor.before(data);
 							cursor.before("# ");
 
