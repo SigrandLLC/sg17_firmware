@@ -125,6 +125,7 @@ Controllers.ifaceGeneral = function(c, iface) {
 	field = {
 		"type": "checkbox",
 		"name": $.sprintf("sys_iface_%s_enabled", iface),
+		"id": "enabled",
 		"text": "Enabled",
 		"descr": "If set, interface can be start on boot or by another interface."
 	};
@@ -202,11 +203,14 @@ Controllers.ifaceGeneral = function(c, iface) {
 
 	showMethod();
 
-	/* set auto=0 enabled=1 for depending interfaces */
+	/* check that web interface will be available via network interfaces and set parameters for slaves */
 	var additionalKeys = [];
 	c.addSubmit({
 		"additionalKeys": additionalKeys,
 		"preSubmit": function() {
+			/* remove old keys from additionalKeys */
+			additionalKeys.splice(0);
+			
 			/* if this interface is used for accessing the web interface */
 			if (window.location.hostname.search(
 					config.get($.sprintf("sys_iface_%s_ipaddr", iface))) != -1) {
@@ -232,18 +236,43 @@ Controllers.ifaceGeneral = function(c, iface) {
 				}
 			}
 
-			/* if #ifaces widget is exist */
+			/* if #ifaces widget is exist - bridge/bonding is setuped */
 			if ($("#ifaces").length > 0) {
-				$.each($("#ifaces").val().split(" "),
-					function(num, iface) {
-						$.addObjectWithProperty(additionalKeys,
-								$.sprintf("sys_iface_%s_auto", iface), "0");
-						$.addObjectWithProperty(additionalKeys,
-								$.sprintf("sys_iface_%s_enabled", iface), "1");
-						$.addObjectWithProperty(additionalKeys,
-								$.sprintf("sys_iface_%s_method", iface), "none");
+				var saveAllowed = true;
+				var errInterface;
+				$.each($("#ifaces").val().split(" "), function(num, slaveIface) {
+					/* if slave interface is used for accessing the webface */
+					if (window.location.hostname.search(
+							config.get($.sprintf("sys_iface_%s_ipaddr", slaveIface))) != -1) {
+						/* bridge/bonding must have static ipaddr */
+						if ($("#ipaddr").length == 0) {
+							saveAllowed = false;
+							errInterface = slaveIface;
+							return false;
+						}
 					}
-				);
+					
+					/* if this interface is enabled */
+					if ($("#enabled").attr("checked") == true) {
+						/* set auto=0 enabled=1 method=none for slave interfaces */
+						$.addObjectWithProperty(additionalKeys,
+								$.sprintf("sys_iface_%s_auto", slaveIface), "0");
+						$.addObjectWithProperty(additionalKeys,
+								$.sprintf("sys_iface_%s_enabled", slaveIface), "1");
+						$.addObjectWithProperty(additionalKeys,
+								$.sprintf("sys_iface_%s_method", slaveIface), "none");
+					}
+				});
+
+				if (!saveAllowed) {
+					c.setError(_("You are including network interface")
+							+ $.sprintf(" (%s), ", errInterface)
+							+ _("which is used for accessing the web interface, so current network interface")
+							+ $.sprintf(" (%s) ", iface)
+							+ _("must have static IP address to allow you to access the web interface."));
+					c.showMsg();
+					return false;
+				}
 			}
 		}
 	});
@@ -827,18 +856,18 @@ Controllers.iface = function(iface) {
 	page.setSubsystem("network." + iface);
 	page.setHelpPage("iface");
 
-	/* set info message about master interface or other information */
+	/* set info message about master interfaces or other information */
 	var setInfoText = function(c) {
-		/* find name of master interface, if it exists */
-		var master;
+		/* find name of master interfaces, if it exists */
+		var master = "";
 		var mIfaces = config.getByRegexp(/(sys_iface_)*((_br_ifaces)|(_bond_ifaces))/);
 		$.each(mIfaces, function(mIfaceKey, mIface) {
 			if (mIface.search(iface) != -1) {
-				master = mIfaceKey.replace("sys_iface_", "").replace("_br_ifaces", "")
-						.replace("_bond_ifaces", "");
-				return false;
+				master += mIfaceKey.replace("sys_iface_", "").replace("_br_ifaces", "")
+						.replace("_bond_ifaces", "") + " ";
 			}
 		});
+		master = $.trim(master);
 
 		/* check if this interface is used for accessing the web interface */
 		var control = false;
@@ -848,7 +877,7 @@ Controllers.iface = function(iface) {
 		}
 
 		var msg = "";
-		if (master) {
+		if (master.length > 0) {
 			msg += _("This interface is a part of") + " " + master + ".";
 		}
 		if (control) {
