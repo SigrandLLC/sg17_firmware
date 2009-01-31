@@ -934,14 +934,14 @@ hardlink_init( void )
 
 		/* get pair_chan_id */
 		elem = config_setting_get_string_elem (rec_set, 2);
-		strncpy(curr_rec->id, elem, CHAN_ID_LEN-1);
+		strncpy(curr_rec->pair_chan, elem, CHAN_ID_LEN-1);
 
 		/* set am_i_caller flag by parsing the value string */
 		router_is_self = (curr_rec->pair_route[0] == SELF_MARKER) ||
 				(!strcmp(curr_rec->pair_route, g_conf.self_number));
 		if (router_is_self){
 			/* test what chan is greater */
-			int ret = strcmp(curr_rec->id,curr_rec->pair_chan);
+			int ret = strcmp(curr_rec->id, curr_rec->pair_chan);
 			if       (ret > 0){
 				/* current is greater */
 				curr_rec->am_i_caller = 1;

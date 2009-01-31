@@ -232,8 +232,7 @@ DFS
 
 	DEBUG_CODE(
 		SU_DEBUG_3 (("REG ON %d\n",chan->abs_idx));
-		if(chan_ctx->local_wait_idx != -1 ||
-				chan_ctx->remote_wait_idx != -1){
+		if(chan_ctx->local_wait_idx != -1 || chan_ctx->remote_wait_idx != -1){
 			SU_DEBUG_0 (("ERROR!!!! : local %d remote %d\n",
 					chan_ctx->local_wait_idx,
 					chan_ctx->remote_wait_idx));
@@ -714,6 +713,7 @@ svd_atab_handler (svd_t * svd, su_wait_t * w, su_wakeup_arg_t * user_data)
 DFS
 	ab_dev_t * ab_dev = (ab_dev_t *) user_data;
 	ab_dev_event_t evt;
+	svd_chan_t * chan_ctx;
 	unsigned char chan_av;
 	int chan_idx;
 	int dev_idx;
@@ -738,6 +738,12 @@ do{
 		 * because the event is the device event - not the chan event
 		 */
 		chan_idx = dev_idx * svd->ab->chans_per_dev;
+	}
+	chan_ctx = svd->ab->chans[chan_idx].ctx;
+
+	/* tag__ do not process hardlinked event */
+	if( chan_ctx->is_hardlinked ){
+		continue;
 	}
 
 	if        (evt.id == ab_dev_event_FXS_OFFHOOK){
@@ -1061,6 +1067,7 @@ svd_chans_init ( svd_t * const svd )
 	unsigned char route_id_len;
 	unsigned char addrbk_id_len;
 	int chans_num;
+	int err;
 DFS
 	route_id_len = g_conf.route_table.id_len;
 	addrbk_id_len = g_conf.address_book.id_len;
@@ -1086,8 +1093,7 @@ DFS
 				malloc( (route_id_len+1) * route_id_sz);
 		if( !chan_ctx->dial_status.route_id ){
 			SU_DEBUG_0 ((LOG_FNC_A (LOG_NOMEM_A 
-					("chans[i].ctx->dial_status."
-					"route_id") ) ));
+					("chans[i].ctx->dial_status.route_id") ) ));
 			goto __exit_fail;
 		}
 		memset (chan_ctx->dial_status.route_id, 0, 
@@ -1101,8 +1107,7 @@ DFS
 				malloc( (addrbk_id_len+1) * adbk_sz);
 		if( !chan_ctx->dial_status.addrbk_id ){
 			SU_DEBUG_0 ((LOG_FNC_A (LOG_NOMEM_A 
-					("chans[i].ctx->dial_status."
-					"addrbk_id") ) ));
+					("chans[i].ctx->dial_status.addrbk_id") ) ));
 			goto __exit_fail;
 		}
 		memset (chan_ctx->dial_status.addrbk_id, 0, 
@@ -1136,6 +1141,28 @@ DFS
 			if( hl_id == curr_chan->abs_idx ){
 				chan_ctx->is_hotlined = 1;
 				chan_ctx->hotline_addr = curr_rec->value;
+			}
+		}
+	}
+
+	/* HARDLINK */
+	k = g_conf.hard_link.records_num;
+	for (i=0; i<k; i++){
+		struct hdln_record_s * curr_rec = &g_conf.hard_link.records[ i ];
+		int hl_id;
+
+		hl_id = strtol (curr_rec->id, NULL, 10);
+		for (j=0; j<chans_num; j++){
+			ab_chan_t * curr_chan = &svd->ab->chans [j];
+			svd_chan_t * chan_ctx = curr_chan->ctx;
+			if( hl_id == curr_chan->abs_idx ){
+				chan_ctx->is_hardlinked = 1;
+				chan_ctx->hardlink = curr_rec;
+				/* set linefeed to active for all hardlinked channels */
+				err = ab_FXS_line_feed(curr_chan, ab_chan_linefeed_ACTIVE);
+				if(err){
+					goto __exit_fail;
+				}
 			}
 		}
 	}
@@ -1769,8 +1796,7 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 					errno, strerror(errno)));
 			goto __exit_fail;
 		} else if (sent != rode){
-			SU_DEBUG_2(("HLD() ERROR :"
-					"RODE FROM rtp_stream : %d, but "
+			SU_DEBUG_2(("HLD() ERROR :RODE FROM rtp_stream : %d, but "
 					"SENT TO socket : %d\n",
 					rode, sent));
 			goto __exit_fail;

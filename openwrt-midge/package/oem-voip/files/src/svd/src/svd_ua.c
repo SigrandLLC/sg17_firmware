@@ -546,71 +546,59 @@ DFE
 int 
 svd_place_hardlinks (svd_t * const svd)
 {/*{{{*/
-#if 0 
-/* Hard links.*/
-struct hard_link_s {
-	unsigned int records_num; /**< Number of hotline records.*/
-	struct hdln_record_s * records; /**< Records massive.*/
-};
-/* Hard link record.*/
-struct hdln_record_s {
-	char id [CHAN_ID_LEN]; /**< Channel absolute identifier.*/
-	char * pair_route; /**< Channel pair router identifier.*/
-	char pair_route_s [ROUTE_ID_LEN_DF]; /**< Channel pair router massive.*/
-	char pair_chan [CHAN_ID_LEN]; /**< Channel pair channel identifier.*/
-	int am_i_caller; /**< Set to 1 if this channel should call to it`s pair.*/
-};
 	int i;
 	int j;
-	int offhooked;
-	j = g_conf.hard_link.records_num;
+	int err;
+	int routers_num;
+
+DFS
+	routers_num = g_conf.route_table.records_num;
+	j = svd->ab->chans_num;
 
 	/* for i in records */
 	for(i=0; i<j; i++){
-		struct hdln_record_s * curr_rec = g_conf.hard_link.records[i];
-		int chan_abs_idx = strtol (curr_rec->id, NULL, 10);
-		int chan_idx = ab_get_chan_idx_by_abs(svd->ab, chan_abs_idx);
-		ab_chan_t * curr_chan = &svd->ab->chans[chan_idx];
-		
-		/* if offhook curr_chan */
-		offhooked = ab_funk_is_offhooked(curr_chan); /* tag__ */
-		if(offhooked){
-			/* if am_i_caller */
-			if(curr_rec->am_i_caller){
-				/* get pair_route, pair_chan tag__ */
-				/* place a call tag__ */
+		ab_chan_t * curr_chan = &svd->ab->chans[i];
+		svd_chan_t * ctx = curr_chan->ctx;
+		struct hdln_record_s * curr_rec = ctx->hardlink;
+		if(ctx->is_hardlinked && curr_rec->am_i_caller){
+			/* get pair_chan */
+			strcpy (ctx->dial_status.chan_id, curr_rec->pair_chan);
+			/* get pair_route */
+			err = 1;
+			for(j=0;j<routers_num;j++){
+				if( !strcmp(curr_rec->pair_route, 
+							g_conf.route_table.records[j].id)){
+					ctx->dial_status.route_ip = 
+							g_conf.route_table.records[j].value;
+					err = 0;
+					break;
+				}
 			}
-		/* offhooked else */
-		} else {
-			/* error2 - hardlinked chan should be offhook */
-			SU_DEBUG_2(("ERROR: Hardlinked chan [%d] is in onhook", ));
+			/* set dest router */
+			if(!strcmp(curr_rec->pair_route, g_conf.self_number)){
+				ctx->dial_status.dest_is_self = self_YES;
+			}
+
+			/* place a call 
+			 * tag__ hardlinks calls just in local network */
+			if(err || svd_invite(svd, 0, i)){
+				SU_DEBUG_0 (("!!!!! CAN`T PLACE HARDLINK CALL\n"));
+				goto __exit_fail;
+			} else {
+DEBUG_CODE(
+				SU_DEBUG_0 (("!!!!! PLACE HARDLINK CALL from "
+						"%s[%d] to %s[%s]\n",
+						g_conf.self_ip, i, 
+						ctx->dial_status.route_ip, curr_rec->pair_chan));
+);
+			}
 		}
 	}
-#endif
-
+DFE
 	return 0;
-#if 0 
-/*	it worked !*/
-	/* tag__
-	 *		svd_invite to hardlinked channels here?
-	 *		try with normal channels first
-	 *		call from 01 to 02
-	 */
-	/* set 0 chan_ctx values */
-	/* chan_ctx->dial_status.chan_id - dest channel
-	 * chan_ctx->dial_status.route_ip - dest router
-	 */
- 	chan_ctx = svd->ab->chans[0].ctx;
-	strcpy(chan_ctx->dial_status.chan_id,"01");
-	chan_ctx->dial_status.route_ip = g_conf.self_ip;
-
-	/* place a call */
-	err = svd_invite(svd, 0, 0);
-	if(err){
-		SU_DEBUG_0 (("!!!!!!!!!!!!!!!!! CAN`T PLACE INITIAL CALL\n"));
-		goto __conf;
-	}
-#endif
+__exit_fail:
+DFE
+	return -1;
 }/*}}}*/
 
 /**
@@ -904,10 +892,15 @@ DFS
 	}
 
 	if (req_chan->parent->type == ab_dev_type_FXS){
-		/* start ringing */
-		err = ab_FXS_line_ring( req_chan, ab_chan_ring_RINGING );
-		if (err){
-			SU_DEBUG_1(("can`t ring to on [_%d_]\n",req_chan->abs_idx));
+		svd_chan_t * ctx = req_chan->ctx;
+		if(ctx->is_hardlinked){
+			svd_answer(svd, req_chan, SIP_200_OK);
+		} else {
+			/* start ringing */
+			err = ab_FXS_line_ring( req_chan, ab_chan_ring_RINGING );
+			if (err){
+				SU_DEBUG_1(("can`t ring to on [_%d_]\n",req_chan->abs_idx));
+			}
 		}
 	} else if (req_chan->parent->type == ab_dev_type_FXO){
 		/* do offhook */
@@ -996,8 +989,9 @@ DFS
 		break;
 
 	/* 18X received */
-		case nua_callstate_proceeding:
-			if(chan->parent->type == ab_dev_type_FXS){
+		case nua_callstate_proceeding:{
+			svd_chan_t * ctx = chan->ctx;
+			if( !ctx->is_hardlinked && chan->parent->type == ab_dev_type_FXS){
 				/* play ringback */
 				err = ab_FXS_line_tone (chan, ab_chan_tone_RINGBACK);
 				if(err){
@@ -1010,6 +1004,7 @@ DFS
 				);
 			}
 			break;
+		}
 
 	/* 2XX received */
 		case nua_callstate_completing:
@@ -1022,12 +1017,16 @@ DFS
 			break;
 
 	/* 18X sent (w/SDP) */
-		case nua_callstate_early:
+		case nua_callstate_early:{
+			//svd_chan_t * ctx = chan->ctx;
 			if(chan->parent->type == ab_dev_type_FXO){
 				/* answer on call */
 				svd_answer (svd, chan, SIP_200_OK);
-			} /* if FXS - answer after offhook */
+			} /*else if(ctx->is_hardlinked){
+				svd_answer (svd, chan, SIP_200_OK);
+			} *//* if FXS not hardlinked - answer after offhook */
 			break;
+		}
 
 	/* 2XX sent */
 		case nua_callstate_completed:
@@ -1328,7 +1327,7 @@ DFS
 		if (status == 401 || status == 407) {
 			svd_authenticate (svd, nh, sip, tags);
 		}
-		if (status == 486){
+		if (status == 486){ /*tag___ FXS/FXO*/
 			/* busy - play busy tone */
 			/* playing busy tone on the chan */
 			if(ab_FXS_line_tone (chan, ab_chan_tone_BUSY)){

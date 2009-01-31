@@ -54,16 +54,14 @@ ab_create( void )
 	ab->chans_num = chans_num;
 	ab->chans_per_dev = CHANS_PER_DEV;
 	if((! ab->devs_num) || (! ab->chans_num)) {
-		ab_err_set(AB_ERR_BAD_PARAM, 
-				"devices or channels number is zero" );
+		ab_err_set(AB_ERR_BAD_PARAM, "devices or channels number is zero" );
 		goto __free_and_exit_fail;
 	}
 
 	ab->chans = malloc(sizeof(*(ab->chans)) * ab->chans_num);
 	ab->devs = malloc(sizeof(*(ab->devs)) * ab->devs_num);
 	if( (! ab->chans) || (! ab->devs) ){
-		ab_err_set(AB_ERR_NO_MEM, "no memory for chans or devs " 
-				"structures");
+		ab_err_set(AB_ERR_NO_MEM, "no memory for chans or devs structures");
 		goto __free_and_exit_fail;
 	}
 	memset(ab->chans, 0, sizeof(*(ab->chans)) * ab->chans_num);
@@ -290,24 +288,19 @@ ab_chan_status_init( ab_chan_t * const chan )
 {/*{{{*/
 	if(chan->parent->type == ab_dev_type_FXS){
 		/* linefeed to standby */
-		ioctl(chan->rtp_fd, IFX_TAPI_LINE_FEED_SET, 
-				IFX_TAPI_LINE_FEED_STANDBY);
+		ioctl(chan->rtp_fd, IFX_TAPI_LINE_FEED_SET, IFX_TAPI_LINE_FEED_STANDBY);
 		chan->status.linefeed = ab_chan_linefeed_STANDBY;
-
 		/* ring to mute */
-		ioctl( chan->rtp_fd, IFX_TAPI_RING_STOP, 0 );
+		ioctl (chan->rtp_fd, IFX_TAPI_RING_STOP, 0);
 		chan->status.ring = ab_chan_ring_MUTE;
-
 		/* tone to mute */
-		ioctl( chan->rtp_fd, IFX_TAPI_TONE_LOCAL_PLAY, 0 );
+		ioctl (chan->rtp_fd, IFX_TAPI_TONE_LOCAL_PLAY, 0);
 		chan->status.tone = ab_chan_tone_MUTE;
 	} else if (chan->parent->type == ab_dev_type_FXO){
 		/* hook to onhook */
-		ioctl( chan->rtp_fd, IFX_TAPI_FXO_HOOK_SET,
-				IFX_TAPI_FXO_HOOK_ONHOOK );
+		ioctl (chan->rtp_fd, IFX_TAPI_FXO_HOOK_SET, IFX_TAPI_FXO_HOOK_ONHOOK);
 		chan->status.hook= ab_chan_hook_ONHOOK;
 	}
-
 	/* initial onhook detected  (from channel) */
 	ab_dev_event_clean(chan->parent);
 }/*}}}*/

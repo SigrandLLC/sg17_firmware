@@ -195,22 +195,16 @@ ab_FXS_line_feed (ab_chan_t * const chan, enum ab_chan_linefeed_e feed)
 				break;	
 			}
 			case ab_chan_linefeed_ACTIVE: {
-				/* linefeed_STANDBY should be 
-				 * set before ACTIVE */
-				if( chan->status.linefeed == 
-						ab_chan_linefeed_DISABLED){
-					err = err_set_ioctl( chan, 
-						IFX_TAPI_LINE_FEED_SET, 
+				/* linefeed_STANDBY should be set before ACTIVE */
+				if( chan->status.linefeed == ab_chan_linefeed_DISABLED){
+					err = err_set_ioctl (chan, IFX_TAPI_LINE_FEED_SET, 
 						IFX_TAPI_LINE_FEED_STANDBY, 
-						"Setting linefeed to "
-						"standby before set "
-						"it to active "
-						"(ioctl)"); 
+						"Setting linefeed to standby before set "
+						"it to active (ioctl)"); 
 					if( err ){
 						goto __exit;
 					} else {
-						chan->status.linefeed = 
-						ab_chan_linefeed_STANDBY;
+						chan->status.linefeed = ab_chan_linefeed_STANDBY;
 					}
 				}
 				err_msg = "Setting linefeed to active (ioctl)";
@@ -218,8 +212,7 @@ ab_FXS_line_feed (ab_chan_t * const chan, enum ab_chan_linefeed_e feed)
 				break;	
 			}
 		}
-		err = err_set_ioctl (chan, 
-				IFX_TAPI_LINE_FEED_SET, lf_to_set, err_msg);
+		err = err_set_ioctl (chan, IFX_TAPI_LINE_FEED_SET, lf_to_set, err_msg);
 		if ( !err){
 			chan->status.linefeed = feed;
 		} 
