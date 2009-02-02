@@ -307,9 +307,9 @@ _ifup(){
 }
 
 pre_ifdown() {
-	if [ -r "/var/run/udhcpd.$iface.pid" ]; then
-		info 2 "  Killing udhcpd"
-		kill `cat /var/run/udhcpd.$iface.pid`
+	if [ -r "/var/run/udhcpc.$realiface.pid" ]; then
+		info 2 "  Killing udhcpc"
+		kill `cat /var/run/udhcpc.$realiface.pid`
 	fi
 	/etc/init.d/udhcpd stop $iface
 }
@@ -348,6 +348,8 @@ _ifdown(){
 	[ -z "$proto" ] && echo "sys_iface_${iface}_proto is not set" && exit 1
 	info 1 "Setting down $iface: "
 	info 1 "  Interface deconfiguration"
+
+	pre_ifdown
 
 	cmd $ifconfig $realiface down 2>/dev/null
 	cmd $ip addr flush dev $realiface 2>/dev/null
