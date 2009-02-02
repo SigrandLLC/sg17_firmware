@@ -602,6 +602,7 @@ mr16g_setup_carrier(struct net_device *ndev,u8 *mask)
 		hdlc_set_carrier(1,ndev);
 		netif_carrier_on(ndev);
 		ds2155_setreg(nl,CCR4,0x01);
+		printk(KERN_INFO"%s: link is UP\n",ndev->name);
 	}else{
 		iowrite8( ioread8( (iotype)&(nl->hdlc_regs->CRB) ) | RXDE,
 				  (iotype)&(nl->hdlc_regs->CRB) );
@@ -609,6 +610,7 @@ mr16g_setup_carrier(struct net_device *ndev,u8 *mask)
 		hdlc_set_carrier(0,ndev);
 		netif_carrier_off(ndev);
 		ds2155_setreg(nl,CCR4,0x00);
+		printk(KERN_INFO"%s: link is DOWN\n",ndev->name);
 	}
 }
 
@@ -1876,7 +1878,7 @@ store_flinkdown( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
-	u8 tmp, mask;
+	u8 tmp;
 
 	// check parameters
 	if( !size)
@@ -1941,7 +1943,7 @@ show_winread(struct class_device *cdev, char *buf)
 static ssize_t
 store_winread( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev = to_net_dev(cdev);
+	//struct net_device *ndev = to_net_dev(cdev);
 	char *endp;
 	if( !size ) return 0;
 	win_start = simple_strtoul(buf,&endp,16);
