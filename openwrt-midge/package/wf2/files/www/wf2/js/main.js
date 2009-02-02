@@ -30,6 +30,8 @@ function generateMenu() {
 
 	/* Add VoIP controller */
 	if (config.get("sys_voip_present") == "1") {
+		/* get VoIP channels list */
+		config.runCmd("/bin/cat /proc/driver/sgatab/channels");
 		addItem("Hardware", "VoIP", "voip");
 	}
 
@@ -147,9 +149,6 @@ $(document).ready(function() {
 
 	/* get availability for linkdeps */
 	config.runCmd("[ -r '/etc/linkdeps' ] && echo -n 1 || echo -n 0", "linkdeps");
-
-	/* get VoIP channels list */
-	config.runCmd("/bin/cat /proc/driver/sgatab/channels");
 
 	/* set page title to router's hostname */
 	document.title = config.get("sys_hostname");

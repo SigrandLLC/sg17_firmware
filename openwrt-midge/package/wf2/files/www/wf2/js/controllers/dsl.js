@@ -381,10 +381,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			if ($("#pbomode").attr("checked") == true && $("#pboval").length == 0) {
 				field = {
 					"type": "text",
-					/* depending on control mode, write value to corresponding KDB key */
-					"name": $("#ctrl").val() == "manual"
-							? $.sprintf("sys_pcicfg_s%s_%s_pboval", pcislot, pcidev)
-							: $.sprintf("sys_eocd_chan_s%s_%s_pboval", pcislot, pcidev),
+					"name": $.sprintf("sys_pcicfg_s%s_%s_pboval", pcislot, pcidev),
 					"id": "pboval",
 					"validator": {"required": true, "pbo": true}
 				};
@@ -512,19 +509,6 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			};
 			c.addWidget(field, {"type": "insertAfter", "anchor": $("#rate").parents("tr")});
 
-			/* pbomode manual */
-			field = {
-				"type": "checkbox",
-				"name": $.sprintf("sys_pcicfg_s%s_%s_pbomode", pcislot, pcidev),
-				"id": "pbomode",
-				"text": "PBO forced",
-				"descr": "Example: 21:13:15, STU-C-SRU1=21,SRU1-SRU2=13,...",
-				"onClick": setPboval,
-				"cssClass": "widgetManualMaster"
-			};
-			c.addWidget(field, {"type": "insertBefore", "anchor": $("#power").parents("tr")});
-			setPboval();
-
 			addMasterWidgets();
 		};
 
@@ -596,19 +580,6 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			};
 			c.addWidget(field, {"type": "insertAfter", "anchor": $("#profile").parents("tr")});
 
-			/* pbomode EOCd */
-			field = {
-				"type": "checkbox",
-				"name": $.sprintf("sys_eocd_chan_s%s_%s_pbomode", pcislot, pcidev),
-				"id": "pbomode",
-				"text": "PBO forced",
-				"descr": "Example: 21:13:15, STU-C-SRU1=21,SRU1-SRU2=13,...",
-				"onClick": setPboval,
-				"cssClass": "widgetEocdMaster"
-			};
-			c.addWidget(field, {"type": "insertBefore", "anchor": $("#advlink").parents("tr")});
-			setPboval();
-
 			addMasterWidgets();
 		};
 
@@ -618,6 +589,20 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				return;
 			}
 
+			/* pbomode */
+			field = {
+				"type": "checkbox",
+				"name": $.sprintf("sys_pcicfg_s%s_%s_pbomode", pcislot, pcidev),
+				"id": "pbomode",
+				"text": "PBO forced",
+				"descr": "Example: 21:13:15, STU-C-SRU1=21,SRU1-SRU2=13,...",
+				"onClick": setPboval,
+				"cssClass": "widgetMaster"
+			};
+			c.addWidget(field, {"type": "insertBefore", "anchor": $("#advlink").parents("tr")});
+			setPboval();
+
+			/* clock mode */
 			field = {
 				"type": "select",
 				"name": $.sprintf("sys_pcicfg_s%s_%s_clkmode", pcislot, pcidev),
