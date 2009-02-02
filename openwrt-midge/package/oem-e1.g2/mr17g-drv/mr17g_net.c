@@ -692,7 +692,7 @@ void mr17g_net_link(struct net_device *ndev)
     PDEBUG(debug_link,"%s: lstate = %d, car_ok=%d",ndev->name,lstat,netif_carrier_ok(ndev));
     if(  lstat > 0 ){
 	    if( !netif_carrier_ok(ndev) ){
-            PDEBUG(debug_link,"%s: link UP",ndev->name);
+            printk(KERN_NOTICE"%s: link UP\n",ndev->name);
        		netif_carrier_on(ndev);
 		    if( ch->chip->type != MR17G_MUXONLY ){
 		    	// Setup HDLC controller
@@ -703,7 +703,7 @@ void mr17g_net_link(struct net_device *ndev)
         }
     }else if( lstat == 0 ){
 	    if( netif_carrier_ok(ndev) ){
-            PDEBUG(debug_link,"%s: link DOWN",ndev->name);
+            printk(KERN_NOTICE"%s: link DOWN\n",ndev->name);
 			netif_carrier_off(ndev);
 		    if( ch->chip->type != MR17G_MUXONLY ){
 		    	// Setup HDLC controller
