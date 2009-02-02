@@ -1,3 +1,13 @@
+function mr16gModuleName(pcislot) {
+	return $.sprintf("%s%s%s", config.getOEM("MR16G_MODNAME"), config.getOEM("OEM_IFPFX"),
+			config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot)));
+}
+
+function mr17gModuleName(pcislot) {
+	return $.sprintf("%s%s%s", config.getOEM("MR17G_MODNAME"), config.getOEM("OEM_IFPFX"),
+			config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot)));
+}
+
 Controllers.e1 = function(iface, pcislot, pcidev) {
 	var page = this.Page();
 	page.setHelpPage("e1");
@@ -14,10 +24,9 @@ Controllers.e1 = function(iface, pcislot, pcidev) {
 
 			/* set title */
 			var moduleType = config.get($.sprintf("sys_pcitbl_s%s_iftype", pcislot));
-			var moduleName = moduleType == config.getOEM("MR16G_DRVNAME") ?
-				config.getOEM("MR16G_MODNAME") : config.getOEM("MR17G_MODNAME");
-			c.addTitle($.sprintf("%s (%s%s%s, %s, %s %s) %s", iface, moduleName,
-				config.getOEM("OEM_IFPFX"), config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot)),
+			var moduleName = (moduleType == config.getOEM("MR16G_DRVNAME")) ?
+					mr16gModuleName(pcislot) : mr17gModuleName(pcislot);
+			c.addTitle($.sprintf("%s (%s, %s, %s %s) %s", iface, moduleName,
 				config.getCachedOutput($.sprintf("muxonly_%s", iface)) == 0
 				? _("full capabilities") : _("multiplexing only"), _("slot"), pcislot - 2,
 				_("settings")));
@@ -609,6 +618,19 @@ Controllers.multiplexing = function() {
 	page.generateTabs();
 };
 
+function mr17sModuleName(pcislot) {
+	/* get type (DTE or DCE) for this RS232 node */
+	var rs232Type = config.getCachedOutput($.sprintf("rs232Type_%s", pcislot));
+	if (rs232Type != "undefined") {
+		rs232Type = "-" + rs232Type;
+	} else {
+		rs232Type = "";
+	}
+
+	return $.sprintf("%s%s%s%s", config.getOEM("MR17S_MODNAME"), config.getOEM("OEM_IFPFX"),
+			config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot)), rs232Type);
+}
+
 Controllers.rs232 = function(node, pcislot, pcidev) {
 	var page = this.Page();
 	page.setSubsystem($.sprintf("rs232.%s.%s", pcislot, pcidev));
@@ -621,17 +643,8 @@ Controllers.rs232 = function(node, pcislot, pcidev) {
 			var c, field;
 			c = page.addContainer("settings");
 
-			/* get type (DTE or DCE) for this RS232 node */
-			var rs232Type = config.getCachedOutput($.sprintf("rs232Type_%s", pcislot));
-			if (rs232Type != "undefined") {
-				rs232Type = "-" + rs232Type;
-			} else {
-				rs232Type = "";
-			}
-
-			c.addTitle($.sprintf("%s (module %s%s%s%s, slot %s) settings", node,
-					config.getOEM("MR17S_MODNAME"), config.getOEM("OEM_IFPFX"),
-					config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot)), rs232Type, pcislot - 2));
+			c.addTitle($.sprintf("%s (module %s, slot %s) settings", node,
+					mr17sModuleName(pcislot), pcislot - 2));
 
 			field = {
 				"type": "checkbox",

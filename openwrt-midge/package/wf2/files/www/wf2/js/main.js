@@ -42,11 +42,18 @@ function generateMenu() {
 		var ifaces = config.getParsed($.sprintf("sys_pcitbl_s%s_ifaces", pcislot));
 		var rs232Defined = false;
 
-		/* save interfaces info */
-		config.saveData(type, ifaces);
-
+		/* get or create array with info for module of current type */
+		var ifaceInfo = config.getData(type);
+		if (!ifaceInfo) {
+			ifaceInfo = [];
+			config.saveData(type, ifaceInfo);
+		}
+		
 		/* go through ifaces of this slot */
 		$.each(ifaces, function(num, iface) {
+			/* add info about this interface */
+			ifaceInfo.push({"iface": iface, "pcislot": pcislot, "pcidev": num});
+
 			switch (type) {
 				/* SHDSL */
 				case config.getOEM("MR16H_DRVNAME"):
@@ -175,9 +182,12 @@ $(document).ready(function() {
 	/* call info controller when all config.runCmd will be finished */
 	config.onCmdCacheFinish(function() {
 		generateMenu();
-		Controllers.info();
+		
+		config.onCmdCacheFinish(function() {
+			Controllers.info();
 
-		/* check router every 10 seconds */
-		config.startCheckStatus(10);
+			/* check router every 10 seconds */
+			config.startCheckStatus(10);
+		});
 	});
 });

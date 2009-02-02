@@ -138,6 +138,7 @@ function CmdCache() {
 	this.runCmd = function(cmd, alias) {
 		cmds++;
 		cache[alias ? alias : cmd] = "waiting result...";
+
 		config.cmdExecute({
 			"cmd": cmd,
 			"callback": function(data) {
@@ -146,12 +147,13 @@ function CmdCache() {
 				
 				/* run callbacks when all cmds are finished */
 				if (cmds <= 0) {
-					$.each(callbacks, function(num, callback) {
-						callback();
-					});
-					
-					/* remove calbacks */
-					callbacks = [];
+					/* callback can add another cmds and callbacks, so fix number of current callbacks */
+					var callbacksNum = callbacks.length;
+					for (var i = 0; i < callbacksNum; i++) {
+						callbacks[i]();
+					}
+					/* remove only called callbacks */
+					callbacks.splice(0, callbacksNum);
 				}
 			}
 		});
@@ -168,7 +170,12 @@ function CmdCache() {
 	 * Add callback to call when all backgrounded requests will be finished.
 	 */
 	this.onFinish = function(callback) {
-		callbacks.push(callback);
+		/* if there is no cmds, run callback immediately */
+		if (cmds <= 0) {
+			callback();
+		} else {
+			callbacks.push(callback);
+		}
 	};
 }
 

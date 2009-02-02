@@ -1,3 +1,33 @@
+function mr16hModuleName(pcislot) {
+	return $.sprintf("%s%s%s", config.getOEM("MR16H_MODNAME"), config.getOEM("OEM_IFPFX"),
+			config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot)));
+}
+
+function mr17hModuleName(iface, pcislot) {
+	/* config path */
+	var confPath = $.sprintf("%s/%s/sg17_private", config.getOEM("sg17_cfg_path"), iface);
+
+	/* power status */
+	var pwrPresence = config.getCachedOutput($.sprintf("/bin/cat %s/pwr_source", confPath));
+
+	/* chip version */
+	var chipVer = config.getCachedOutput($.sprintf("/bin/cat %s/chipver", confPath));
+
+	var sfx;
+	if (chipVer == "v1") {
+		sfx = config.getOEM("MR17H_V1SFX");
+	} else if (chipVer == "v2") {
+		sfx = config.getOEM("MR17H_V2SFX");
+	}
+
+	if (pwrPresence == "1") {
+		sfx += config.getOEM("MR17H_PWRSFX");
+	}
+
+	return $.sprintf("%s%s%s%s", config.getOEM("MR17H_MODNAME"), config.getOEM("OEM_IFPFX"),
+			config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot)), sfx);
+}
+
 Controllers.dsl = function(iface, pcislot, pcidev) {
 	/* create page and set common settings */
 	var page = this.Page();
@@ -13,18 +43,11 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		$(select).setOptionsForSelect(rates, cur);
 	};
 
-	/* title for MR16H */
-	var getSg16Title = function() {
-		return $.sprintf("%s (module %s%s%s) ", iface,
-				config.getOEM("MR16H_MODNAME"), config.getOEM("OEM_IFPFX"),
-				config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot)));
-	};
-
 	/* status for MR16H */
 	var sg16Status = function() {
 		var c, field;
 		c = page.addContainer("status");
-		c.addTitle(getSg16Title() + "status");
+		c.addTitle($.sprintf("%s (module %s) status", iface, mr16hModuleName(pcislot)));
 		
 		field = {
 			"type": "html",
@@ -39,7 +62,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 	var sg16Settings = function() {
 		var c, field;
 		c = page.addContainer("settings");
-		c.addTitle(getSg16Title() + "settings");
+		c.addTitle($.sprintf("%s (module %s) settings", iface, mr16hModuleName(pcislot)));
 		c.setSubsystem($.sprintf("dsl.%s.%s", pcislot, pcidev));
 		
 		/* available TCPAM values */
@@ -212,23 +235,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 	
 	/* return title for MR17H */
 	var getSg17Title = function() {
-		var sfx, compatibility;
-		
-		if (chipVer == "v1") {
-			sfx = config.getOEM("MR17H_V1SFX");
-			compatibility = "base";
-		} else if (chipVer == "v2") {
-			sfx = config.getOEM("MR17H_V2SFX");
-			compatibility = "extended";
-		}
-		
-		if (pwrPresence == 1) {
-			sfx += config.getOEM("MR17H_PWRSFX");
-		}
-		
-		return $.sprintf("%s (module %s%s%s%s, %s compatibility) ", iface,
-				config.getOEM("MR17H_MODNAME"), config.getOEM("OEM_IFPFX"),
-				config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot)), sfx, compatibility);
+		return $.sprintf("%s (module %s, %s compatibility) ", iface, 
+				mr17hModuleName(iface, pcislot), (chipVer == "v1") ? "base" : "extended");
 	};
 	
 	/* show status for 17 series */

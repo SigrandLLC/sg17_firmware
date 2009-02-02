@@ -74,7 +74,7 @@ Controllers.info = function() {
 					var ethIfaces = "";
 					$(config.getParsed("sys_ifaces")).each(function(name, iface) {
 						if (iface.search(/eth/) != -1) {
-							ethIfaces += iface + " ";
+							ethIfaces += iface + "<br/>";
 						}
 					});
 					return ethIfaces ? ethIfaces : "none";
@@ -91,17 +91,17 @@ Controllers.info = function() {
 					
 					var ifaces = config.getData(config.getOEM("MR16H_DRVNAME"));
 					if (ifaces) {
-						var modName = config.getOEM("MR16H_MODNAME");
-						$.each(ifaces, function(num, iface) {
-							info += $.sprintf("%s (%s) ", iface, modName);
+						$.each(ifaces, function(num, ifaceInfo) {
+							info += $.sprintf("%s (%s)<br/>", ifaceInfo.iface,
+									mr16hModuleName(ifaceInfo.pcislot));
 						});
 					}
 					
 					ifaces = config.getData(config.getOEM("MR17H_DRVNAME"));
 					if (ifaces) {
-						var modName = config.getOEM("MR17H_MODNAME");
-						$.each(ifaces, function(num, iface) {
-							info += $.sprintf("%s (%s) ", iface, modName);
+						$.each(ifaces, function(num, ifaceInfo) {
+							info += $.sprintf("%s (%s)<br/>", ifaceInfo.iface,
+									mr17hModuleName(ifaceInfo.iface, ifaceInfo.pcislot));
 						});
 					}
 					
@@ -116,20 +116,20 @@ Controllers.info = function() {
 				"text": "E1",
 				"str": function() {
 					var info = "";
-					
+
 					var ifaces = config.getData(config.getOEM("MR16G_DRVNAME"));
 					if (ifaces) {
-						var modName = config.getOEM("MR16G_MODNAME");
-						$.each(ifaces, function(num, iface) {
-							info += $.sprintf("%s (%s) ", iface, modName);
+						$.each(ifaces, function(num, ifaceInfo) {
+							info += $.sprintf("%s (%s)<br/>", ifaceInfo.iface,
+									mr16gModuleName(ifaceInfo.pcislot));
 						});
 					}
 					
 					ifaces = config.getData(config.getOEM("MR17G_DRVNAME"));
 					if (ifaces) {
-						var modName = config.getOEM("MR17G_MODNAME");
-						$.each(ifaces, function(num, iface) {
-							info += $.sprintf("%s (%s) ", iface, modName);
+						$.each(ifaces, function(num, ifaceInfo) {
+							info += $.sprintf("%s (%s)<br/>", ifaceInfo.iface,
+									mr17gModuleName(ifaceInfo.pcislot));
 						});
 					}
 					
@@ -144,12 +144,12 @@ Controllers.info = function() {
 				"text": "RS232",
 				"str": function() {
 					var info = "";
-					
+
 					var ifaces = config.getData(config.getOEM("MR17S_DRVNAME"));
 					if (ifaces) {
-						var modName = config.getOEM("MR17S_MODNAME");
-						$.each(ifaces, function(num, iface) {
-							info += $.sprintf("%s (%s) ", iface, modName);
+						$.each(ifaces, function(num, ifaceInfo) {
+							info += $.sprintf("%s (%s)<br/>", ifaceInfo.iface,
+									mr17sModuleName(ifaceInfo.pcislot));
 						});
 					}
 					
@@ -189,13 +189,14 @@ Controllers.info = function() {
 								info[channelIdx] = $.sprintf("Module %s: ", channelIdx);
 							}
 
-							info[channelIdx] += $.sprintf("%s (%s) ", channel[0], channel[1]);
+							info[channelIdx] += $.sprintf("<br/>&nbsp;&nbsp;&nbsp;&nbsp;%s (%s)",
+									channel[0], channel[1]);
 						});
 
 						var result = "";
 						$.each(info, function(num, val) {
 							if (result.length > 0) {
-								result += "<br>";
+								result += "<br/>";
 							}
 							result += val;
 						});
