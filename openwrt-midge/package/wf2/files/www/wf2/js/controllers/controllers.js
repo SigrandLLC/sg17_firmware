@@ -174,7 +174,10 @@ Controllers.info = function() {
 							}
 
 							var channel = channel.split(":");
-							var channelIdx = parseInt(channel[0]);
+							var channelIdx = parseInt(channel[0], 10);
+							if (!channelIdx) {
+								return true;
+							}
 							if (channelIdx <= 7) {
 								channelIdx = 1;
 							} else if (channelIdx <= 15) {

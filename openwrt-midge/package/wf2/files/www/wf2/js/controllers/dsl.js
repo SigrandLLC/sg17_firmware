@@ -1807,7 +1807,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		/* returns correct rate for passed chipVer and tcpam */
 		var getNearestCorrectRate = function(chipVer, tcpam, rate) {
 			var rateList = getRateList(chipVer, tcpam);
-			var availableRate = parseInt(rate);
+			var availableRate = parseInt(rate, 10);
 			var min = getMinRate(rateList);
 			var max = getMaxRate(rateList);
 

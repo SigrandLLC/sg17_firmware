@@ -526,8 +526,10 @@ function Config() {
 			var ifaces = outer.getParsed("sys_ifaces");
 			$.each(ifaces, function(num, iface) {
 				if (iface.search(proto) != -1) {
-					var idx = parseInt(iface.replace(proto, ""));
-					if (idx > maxIdx) maxIdx = idx;
+					var idx = parseInt(iface.replace(proto, ""), 10);
+					if (idx > maxIdx) {
+						maxIdx = idx;
+					}
 				}
 			});
 			

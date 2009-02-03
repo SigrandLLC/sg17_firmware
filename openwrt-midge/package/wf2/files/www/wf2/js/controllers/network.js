@@ -1507,7 +1507,7 @@ Controllers.iface = function(iface) {
 			$.each(config.getParsed($.sprintf("sys_iface_%s_qos_htb_class_*", iface)),
 				function(key, value) {
 					parentClasses[value['classid']] = value['name'];
-					var cur = parseInt(value['classid'].split(":")[1]);
+					var cur = parseInt(value['classid'].split(":")[1], 10);
 					if (cur > max) max = cur;
 				}
 			);
