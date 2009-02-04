@@ -104,7 +104,7 @@ static int fw_masses_init_from_path (unsigned char ** const fw_buff,
 static void fw_masses_free( void );
 
 static void Error_message( int argc, char ** argv );
-static void show_last_err(char * msg, int fd)
+static void show_last_err(char * msg, int fd);
 static void show_help( void );
 static void show_version( void );
 /*}}}*/

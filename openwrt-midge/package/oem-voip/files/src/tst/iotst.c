@@ -159,7 +159,7 @@ print_help(void)
 \t-b, --byte-wide              - byte wide operations.\n\
 \t-d, --double-byte-wide       - double byte wide operations\n\
 \n\
-\t\tdefault mode is --double-byte-wide.\n\
+\t\tdefault mode is --byte-wide.\n\
 ==============================\n\
 \t-f, --first-device = <num>   - first device index.\n\
 \t-s, --second-device = <num>  - second device index.\n\
