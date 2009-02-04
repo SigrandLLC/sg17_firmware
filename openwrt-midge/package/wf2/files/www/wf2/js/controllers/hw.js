@@ -169,7 +169,7 @@ Controllers.e1 = function(iface, pcislot, pcidev) {
 					});
 
 					/* remove all IDs from array */
-					widgetsIDs.splice(0);
+					widgetsIDs.splice(0, widgetsIDs.length);
 				}
 			};
 

@@ -209,7 +209,7 @@ Controllers.ifaceGeneral = function(c, iface) {
 		"additionalKeys": additionalKeys,
 		"preSubmit": function() {
 			/* remove old keys from additionalKeys */
-			additionalKeys.splice(0);
+			additionalKeys.splice(0, additionalKeys.length);
 			
 			/* if this interface is used for accessing the web interface */
 			if (window.location.hostname.search(
