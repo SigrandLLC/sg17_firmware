@@ -64,8 +64,12 @@
 #define MR17S_DCE4CH    0x03
 
 //----------------------- UART parameters --------------//
-#define MR17S_SERIAL_NAME "ttyRS"
-#define MR17S_SERIAL_NAMEDFS "ttyRS%d"
+#ifndef MR17S_SERIAL_NAME
+#	define MR17S_SERIAL_NAME "ttyRS"
+#endif
+#ifndef MR17S_SERIAL_NAMEDFS
+#	define MR17S_SERIAL_NAMEDFS "ttyRS%d"
+#endif
 #define MR17S_SERIAL_MAJOR  TTY_MAJOR
 #define MR17S_SERIAL_MINORS 128
 #define MR17S_UART_NR 32

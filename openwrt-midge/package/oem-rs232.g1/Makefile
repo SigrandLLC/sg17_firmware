@@ -11,6 +11,10 @@ ifeq ($(BR2_PACKAGE_SIGRAND_MR17S_DEBUG),y)
     DEBUG := yes
 endif
 
+ifneq ($(BR2_SIGRAND_OEM_MR17S_TTYNAME),)
+	CFLAGS += -D'MR17S_SERIAL_NAME=\"$(BR2_SIGRAND_OEM_MR17S_TTYNAME)\"' -D'MR17S_SERIAL_NAMEDFS=\"$(BR2_SIGRAND_OEM_MR17S_TTYNAME)\%d\"'
+endif
+
 include $(TOPDIR)/package/rules.mk
 
 $(eval $(call PKG_template,SIGRAND_MR17S,oem-rs232.g1,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
@@ -51,6 +55,7 @@ $(PKG_BUILD_DIR)/.configured:
 	touch $@
 
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
+	@echo "CFLAGS=$(CFLAGS)"
 	cd $(PKG_BUILD_DIR)/mr17s-drv && make
 	$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/mr17s-drv/tools/mr17s_cfg $(PKG_BUILD_DIR)/mr17s-drv/tools/mr17s_cfg.c
 	touch $@

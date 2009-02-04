@@ -238,7 +238,7 @@ mr17s_init_one(struct pci_dev *pdev,const struct pci_device_id *ent)
                    pdev->bus->number,PCI_SLOT(pdev->devfn),PCI_FUNC(pdev->devfn));
             goto porterr;
         }
-		PDEBUG(debug_tty,"Add port ttyRS%d, uart_port addr = %p, info = %p",port->line,port,port->info);
+		PDEBUG(debug_tty,"Add port "MR17S_SERIAL_NAME"%d, uart_port addr = %p, info = %p",port->line,port,port->info);
     	// Symlink to device in sysfs
 		snprintf(port_name,32,MR17S_SERIAL_NAME"%d",port->line);
     	if( (err = sysfs_create_link( &(drv->kobj),&(dev->kobj),port_name )) ){

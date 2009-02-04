@@ -184,4 +184,7 @@ prompt "MR17S RS232 tool name"
 string
 default "mr17s_cfg"
 
-
+config BR2_SIGRAND_OEM_MR17S_TTYNAME
+prompt "MR17S RS232 tty name"
+string
+default "ttyRS"
