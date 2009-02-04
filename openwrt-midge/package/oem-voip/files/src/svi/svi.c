@@ -17,7 +17,6 @@
 #include "vinetic_io.h" 	/* from Vinetic_LL_driver */
 #include "ab_ioctl.h"		/* from ATA_Board_driver */
 /*}}}*/
-
 /* DEFINE {{{*/
 #define ERR_SUCCESS 0
 #define ERR_MEMORY_FULL 1
@@ -42,7 +41,7 @@
 #define BEFORE_BASICDEV_INIT_USLEEP 2000
 #define AFTER_BASICDEV_INIT_USLEEP 2000
 /*}}}*/
-
+/*{{{ Global VARS */
 /*
 COMMAND LINE KEYS:
   -h, --help		display this help and exit
@@ -51,16 +50,6 @@ COMMAND LINE KEYS:
   -d, --skip-devices	skip devices basicdev init
   -c, --skip-channels	skip channels firmware download
 */
-
-
-void
-show_last_err(char * msg, int fd)
-{/*{{{*/
-	int error;
-	ioctl (fd, FIO_VINETIC_LASTERR, &error);
-	fprintf (stderr,"%s: 0x%X\n", msg, error);
-}/*}}}*/
-
 struct _startup_options
 {
 	unsigned help : 1;
@@ -69,7 +58,6 @@ struct _startup_options
 	unsigned devices : 1;
 	unsigned channels : 1;
 } g_so;
-
 static unsigned char g_err_no;
 static unsigned char g_err_tag;
 static char g_err_msg[ ERR_MSG_SIZE ];
@@ -87,7 +75,8 @@ static unsigned long fw_pram_size = 0;
 static unsigned long fw_dram_size = 0;
 static unsigned long fw_cram_fxs_size = 0;
 static unsigned long fw_cram_fxo_size = 0;
-
+/*}}}*/
+/*{{{ Global FUNCTIONS */
 static unsigned char startup_init( int argc, char ** argv );
 static void run( void );
 
@@ -115,10 +104,10 @@ static int fw_masses_init_from_path (unsigned char ** const fw_buff,
 static void fw_masses_free( void );
 
 static void Error_message( int argc, char ** argv );
+static void show_last_err(char * msg, int fd)
 static void show_help( void );
 static void show_version( void );
-static void show_version( void );
-
+/*}}}*/
 
 int 
 main( int argc, char ** argv )
@@ -427,72 +416,6 @@ dev_init (int const dev_idx, ab_dev_params_t const * const dp,
 		}
 	}
 
-#if 0/* GPIO SET {{{*/
-	if(dp->type == dev_type_FXS){
-		int cfg_fd;
-		char devnode[30] = {0};
-		VINETIC_IO_GPIO_CONTROL gpio;
-
-		/*set all gpio pins to out 1*/
-		snprintf(devnode,30,VIN_DEV_NODE_PREFIX"%d0",dev_idx+1);
-		cfg_fd = open(devnode,O_RDWR);
-		if(cfg_fd ==-1){
-			fprintf(stderr,"svi: can`t open '%s' to set GPIO\n",devnode);
-			goto __exit_fail;
-		}
-		memset(&gpio, 0, sizeof(gpio));
-
-		gpio.nGpio = VINETIC_IO_DEV_GPIO_0 | VINETIC_IO_DEV_GPIO_1 | 
-				VINETIC_IO_DEV_GPIO_2 | VINETIC_IO_DEV_GPIO_3 |
-				VINETIC_IO_DEV_GPIO_4 | VINETIC_IO_DEV_GPIO_5 |
-				VINETIC_IO_DEV_GPIO_6 | VINETIC_IO_DEV_GPIO_7;
-
-		err = ioctl(cfg_fd, FIO_VINETIC_GPIO_RESERVE, &gpio);
-		if(err){
-			fprintf(stderr,"svi: [%d] can`t reserve GPIO before set\n",dev_idx);
-			close(cfg_fd);
-			goto __exit_fail;
-		}
-
-		/*set all pins to output*/
-		gpio.nMask = VINETIC_IO_DEV_GPIO_0 | VINETIC_IO_DEV_GPIO_1 | 
-				VINETIC_IO_DEV_GPIO_2 | VINETIC_IO_DEV_GPIO_3 |
-				VINETIC_IO_DEV_GPIO_4 | VINETIC_IO_DEV_GPIO_5 |
-				VINETIC_IO_DEV_GPIO_6 | VINETIC_IO_DEV_GPIO_7;
-		gpio.nGpio = gpio.nMask;
-		err = ioctl(cfg_fd, FIO_VINETIC_GPIO_CONFIG, &gpio);
-		if(err){
-			fprintf(stderr,"svi: [%d] can`t config GPIO before set\n",dev_idx);
-			close(cfg_fd);
-			goto __exit_fail;
-		}
-
-		/*set all pins to 1*/
-		gpio.nMask = VINETIC_IO_DEV_GPIO_0 | VINETIC_IO_DEV_GPIO_1 | 
-				VINETIC_IO_DEV_GPIO_2 | VINETIC_IO_DEV_GPIO_3 |
-				VINETIC_IO_DEV_GPIO_4 | VINETIC_IO_DEV_GPIO_5 |
-				VINETIC_IO_DEV_GPIO_6 | VINETIC_IO_DEV_GPIO_7;
-		gpio.nGpio = gpio.nMask;
-		err = ioctl(cfg_fd, FIO_VINETIC_GPIO_SET, &gpio);
-		if(err){
-			fprintf(stderr,"svi: [%d] can`t set GPIO values to 1\n",dev_idx);
-			close(cfg_fd);
-			goto __exit_fail;
-		}
-
-		/* release all gpio pins */
-		err = ioctl(cfg_fd, FIO_VINETIC_GPIO_RELEASE, &gpio);
-		if(err){
-			fprintf(stderr,"svi: [%d] can`t release GPIO pins\n",dev_idx);
-			close(cfg_fd);
-			goto __exit_fail;
-		}
-
-		fprintf(stderr,"svi: [%d] set all GPIO to output 1\n",dev_idx);
-		close(cfg_fd);
-	}
-#endif /*}}}*/
-
 __exit_success:
 	return 0;
 __exit_fail:
@@ -535,7 +458,8 @@ basicdev_init( int const dev_idx, ab_dev_params_t const * const dp,
 		goto __exit_fail_close;
 	}
 
-	//usleep (BEFORE_BASICDEV_INIT_USLEEP);
+	/*tag__ usleep added */
+	usleep (BEFORE_BASICDEV_INIT_USLEEP);
 
 	err = ioctl (cfg_fd, FIO_VINETIC_BASICDEV_INIT, &binit);
 	if(err){
@@ -545,7 +469,7 @@ basicdev_init( int const dev_idx, ab_dev_params_t const * const dp,
 		goto __exit_fail_close;
 	}
 
-	//usleep (AFTER_BASICDEV_INIT_USLEEP);
+	usleep (AFTER_BASICDEV_INIT_USLEEP);
 
 	close (cfg_fd);
 __exit_success:
@@ -589,16 +513,16 @@ chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt)
 
 	if(dt==dev_type_FXO){
 		cram_fxo_load();
-		vinit.pCram = fw_cram_fxo;
+		vinit.pCram     = fw_cram_fxo;
 		vinit.cram_size = fw_cram_fxo_size;
-		vinit.pBBDbuf = fw_cram_fxo;
-		vinit.bbd_size = fw_cram_fxo_size;
+		vinit.pBBDbuf   = fw_cram_fxo;
+		vinit.bbd_size  = fw_cram_fxo_size;
 	} else if(dt==dev_type_FXS){
 		cram_fxs_load();
-		vinit.pCram = fw_cram_fxs;
+		vinit.pCram     = fw_cram_fxs;
 		vinit.cram_size = fw_cram_fxs_size;
-		vinit.pBBDbuf = fw_cram_fxs;
-		vinit.bbd_size = fw_cram_fxs_size;
+		vinit.pBBDbuf   = fw_cram_fxs;
+		vinit.bbd_size  = fw_cram_fxs_size;
 	}
 
 	/* Set the pointer to the VINETIC dev specific init structure */
@@ -649,8 +573,7 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 	err = ioctl(rtp_fd, IFX_TAPI_MAP_DATA_ADD, &datamap);
 	if( err ){
 		g_err_no = ERR_IOCTL_FAILS;
-		strcpy(g_err_msg, "mapping channel to it`s "
-				"own data (ioctl)");
+		strcpy(g_err_msg, "mapping channel to it`s own data (ioctl)");
 		show_last_err(">>", rtp_fd);
 		goto ab_chan_init_tune__exit;
 	} 
@@ -661,6 +584,7 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 	} else if(dtype == dev_type_FXO) {
 		lineTypeCfg.lineType = IFX_TAPI_LINE_TYPE_FXO_NB;
 		lineTypeCfg.nDaaCh = dev_idx * CHANS_PER_DEV + chan_idx;
+		fprintf(stderr,">>>>>>>>>>> nDaaCh : %d\n", lineTypeCfg.nDaaCh);
 	}
 
 	err = ioctl (rtp_fd, IFX_TAPI_LINE_TYPE_SET, &lineTypeCfg);
@@ -983,6 +907,14 @@ Error_message( int argc, char ** argv )
 
 	fprintf( stderr,"Try '%s --help' for more information.\n", 
 		g_programm );
+}/*}}}*/
+
+static void
+show_last_err(char * msg, int fd)
+{/*{{{*/
+	int error;
+	ioctl (fd, FIO_VINETIC_LASTERR, &error);
+	fprintf (stderr,"%s: 0x%X\n", msg, error);
 }/*}}}*/
 
 static void 

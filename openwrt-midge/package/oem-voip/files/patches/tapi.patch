@@ -1,6 +1,18 @@
-diff -ruN tapi/src/drv_tapi.h tapi_patched/src/drv_tapi.h
---- tapi/src/drv_tapi.h	2007-10-22 13:31:33.000000000 +0000
-+++ tapi_patched/src/drv_tapi.h	2008-01-17 13:34:40.000000000 +0000
+diff -ruiN tapi_pure/src/drv_tapi_fxo.c tapi/src/drv_tapi_fxo.c
+--- tapi_pure/src/drv_tapi_fxo.c	2009-02-04 20:28:48.000000000 +0600
++++ tapi/src/drv_tapi_fxo.c	2009-02-04 20:30:14.000000000 +0600
+@@ -37,7 +37,7 @@
+ 
+ /** maximum number of DAA channels TAPI can handle,
+     (size of the DAA to TAPI_CH lookuptable) */
+-#define IFX_TAPI_FXO_MAX_DAA_CH             16
++#define IFX_TAPI_FXO_MAX_DAA_CH             32
+ 
+ 
+ static IFX_TAPI_DRV_CTX_DAA_t *gpDaaCtx = IFX_NULL;
+diff -ruiN tapi_pure/src/drv_tapi.h tapi/src/drv_tapi.h
+--- tapi_pure/src/drv_tapi.h	2009-02-04 20:28:48.000000000 +0600
++++ tapi/src/drv_tapi.h	2009-02-04 20:28:48.000000000 +0600
 @@ -143,8 +143,6 @@
  /* Declarations for debug interface */
  DECLARE_TRACE_GROUP  (TAPI_DRV);
@@ -18,9 +30,9 @@ diff -ruN tapi/src/drv_tapi.h tapi_patched/src/drv_tapi.h
 +extern struct _IFX_TAPI_HL_DRV_CTX gHLDrvCtx [TAPI_MAX_LL_DEVICES];
 +
  #endif  /* DRV_TAPI_H */
-diff -ruN tapi/src/Makefile.am tapi_patched/src/Makefile.am
---- tapi/src/Makefile.am	2007-10-01 14:03:06.000000000 +0000
-+++ tapi_patched/src/Makefile.am	2008-01-17 13:34:40.000000000 +0000
+diff -ruiN tapi_pure/src/Makefile.am tapi/src/Makefile.am
+--- tapi_pure/src/Makefile.am	2009-02-04 20:28:48.000000000 +0600
++++ tapi/src/Makefile.am	2009-02-04 20:28:48.000000000 +0600
 @@ -160,7 +160,7 @@
  
  # Extra rule for linux-2.6 kernel object

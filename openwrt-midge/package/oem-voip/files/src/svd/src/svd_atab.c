@@ -1182,14 +1182,15 @@ DFS
 	} 
 
 	/* set values for all/some chans from cfg */
-	k = g_conf.rtp_prms.records_num;
-	for (i=0; i<k; i++){
-		struct rtp_record_s * curr_rec = &g_conf.rtp_prms.records[ i ];
-		int rp_id;
-		rp_id = strtol (curr_rec->id, NULL, 10);
+	for (i=0; i<CHANS_MAX; i++){
+		struct rtp_prms_s * curr_rec = &g_conf.rtp_prms[ i ];
+		if( !curr_rec->is_set){
+			continue;
+		}
+
 		for (j=0; j<chans_num; j++){
 			ab_chan_t * curr_chan = &svd->ab->chans [j];
-			if( rp_id == curr_chan->abs_idx ){
+			if( i == curr_chan->abs_idx ){
 				if ( curr_rec->OOB == evts_OOB_DEFAULT){
 					curr_chan->rtp_cfg.nEvents = evts_OOB_ONLY;
 				} else {

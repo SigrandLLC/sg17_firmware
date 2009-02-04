@@ -142,7 +142,7 @@ $(PKG_BUILD_DIR)/.configured:  $(PKG_BUILD_DIR)/.prepared
 		--enable-lt \
 		--enable-fax \
 		--disable-v1 \
-		--with-max-devices=16 \
+		--with-max-devices=32 \
 		--with-access-mode=INTEL_MUX \
 		--with-access-width=8 \
 		--enable-tapiincl=$(PKG_BUILD_DIR)/tapi/include \

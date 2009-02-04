@@ -93,6 +93,8 @@ static void init_codec_el(struct config_setting_t const * const rec_set,
 static int main_init (void);
 /** Init route table configuration.*/
 static int routet_init (void);
+/** Init RTP parameters configuration.*/
+static int rtp_init (void);
 /** Init hard link configuration.*/
 static int hardlink_init (void);
 /** Init hot line configuration.*/
@@ -101,8 +103,6 @@ static int hotline_init (void);
 static int addressb_init (void);
 /** Init internal, external and fax codecs configuration.*/
 static int quality_init (void);
-/** Init RTP parameters configuration.*/
-static int rtp_init (void);
 /** Print error message if something occures.*/
 static void error_message (void);
 /** Print help message.*/
@@ -215,11 +215,12 @@ svd_conf_init( void )
 	memset (&g_conf, 0, sizeof(g_conf));
 	if(		main_init() 	||
 			routet_init()	||
+			rtp_init()		||
 			hardlink_init() ||
 			hotline_init()	||
 			addressb_init()	||
-			quality_init()	||
-			rtp_init()){
+			quality_init()
+			){
 		goto __exit_fail;
 	}
 
@@ -864,7 +865,8 @@ __exit_fail:
  * \retval -1 fail.
  * \remark
  * 	It should be run after routes table initialization because
- * 	it uses this value for am_i_caller flag set.
+ * 	it uses this value for am_i_caller flag set. And after rtp_init, 
+ * 	because it can reinits it`s values.
  */ 
 static int 
 hardlink_init( void )
@@ -1312,7 +1314,7 @@ rtp_init( void )
 	struct config_t cfg;
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
-	struct rtp_record_s * curr_rec;
+	struct rtp_prms_s * curr_rec;
 	char const * elem;
 	int rec_num;
 	int i;
@@ -1337,23 +1339,21 @@ rtp_init( void )
 
 	rec_num = config_setting_length (set);
 
-	g_conf.rtp_prms.records_num = rec_num;
-	g_conf.rtp_prms.records = malloc (rec_num * 
-			sizeof(*(g_conf.rtp_prms.records)));
-	if( !g_conf.rtp_prms.records ){
-		SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
+	if(rec_num > CHANS_MAX){
+		SU_DEBUG_0(("%s(): Too many channels (%d) in config - max is %d\n",
+				__func__, rec_num, CHANS_MAX));
 		goto __exit_fail;
 	}
-	memset(g_conf.rtp_prms.records, 0, rec_num * 
-			sizeof(*(g_conf.rtp_prms.records)));
 
 	for(i=0; i<rec_num; i++){
-		curr_rec = &g_conf.rtp_prms.records[ i ];
+		int abs_idx;
 		rec_set = config_setting_get_elem (set, i);
 
 		/* get chan id */
 		elem = config_setting_get_string_elem (rec_set, 0);
-		strcpy(curr_rec->id, elem);
+		abs_idx = strtol(elem, NULL, 10);
+
+		curr_rec = &g_conf.rtp_prms[ abs_idx ];
 		
 		/* get rtp params */
 		elem = config_setting_get_string_elem (rec_set, 1);

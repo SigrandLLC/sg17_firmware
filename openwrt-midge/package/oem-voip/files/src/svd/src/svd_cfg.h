@@ -67,6 +67,8 @@ void startup_destroy( int argc, char ** argv );
 /** @addtogroup CFG_M
  *  @{*/
 /* g_conf inner definitions {{{*/
+/** Maximum channels on the router */
+#define CHANS_MAX 32
 /** Codecs massives sizes. 
  * First unusing codec \c type will be set as \c codec_type_NONE.
  * It should be greater then codecs count because application can 
@@ -148,6 +150,7 @@ struct rttb_record_s {
 	char value [IP_LEN_MAX]; /**< Router ip address.*/
 };
 /** RTP record.*/
+#if 0
 struct rtp_record_s {
 	char id [CHAN_ID_LEN]; /**< Channel absolute identifier.*/
 	enum evts_2833_e OOB; /**< Out-of-band events generation mode.*/
@@ -159,6 +162,7 @@ struct rtp_record_s {
 	enum vad_cfg_e VAD_cfg; /**< Voice activity detector mode.*/
 	unsigned char HPF_is_ON; /**< High-pass filter (on or off).*/
 };
+#endif
 /** Address book.*/
 struct address_book_s {
 	unsigned char id_len; /**< Just numbers cnt id_mas_len = id_len + 1.*/
@@ -172,6 +176,7 @@ struct hot_line_s {
 };
 /** Hard links.*/
 struct hard_link_s {
+	codec_t hl_codec;
 	unsigned int records_num; /**< Number of hotline records.*/
 	struct hdln_record_s * records; /**< Records massive.*/
 };
@@ -183,8 +188,15 @@ struct route_table_s {
 };
 /** RTP parameters.*/
 struct rtp_prms_s {
-	unsigned int records_num; /**< Number of records (max 1 rec per channel).*/
-	struct rtp_record_s * records; /**< Records massive.*/
+	unsigned char is_set; /**< Is there settings for the chan or it is garbage*/
+	enum evts_2833_e OOB; /**< Out-of-band events generation mode.*/
+	enum play_evts_2833_e OOB_play; /**< Out-of-band events play mode.*/
+	int evtPT; /**< RFC_2833 events payload type for generator side.*/
+	int evtPTplay; /**< RFC_2833 events payload type for receiver side.*/
+	int COD_Tx_vol; /**< Coder tx volume gain (from -24 to 24).*/
+	int COD_Rx_vol; /**< Coder rx volume gain (from -24 to 24).*/
+	enum vad_cfg_e VAD_cfg; /**< Voice activity detector mode.*/
+	unsigned char HPF_is_ON; /**< High-pass filter (on or off).*/
 };
 /** SIP registration and codec choise policy.*/
 struct sip_settings_s {
@@ -218,7 +230,7 @@ struct svd_conf_s {/*{{{*/
 	struct hot_line_s hot_line; /**< Hot line.*/
 	struct hard_link_s hard_link; /**< Hard linked channels.*/
 	struct route_table_s route_table; /**< Routes table.*/
-	struct rtp_prms_s rtp_prms; /**< RTP parameters.*/
+	struct rtp_prms_s rtp_prms[CHANS_MAX]; /**< RTP channel parameters.*/
 } g_conf;/*}}}*/
 /** @} */
 
