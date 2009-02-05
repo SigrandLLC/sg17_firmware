@@ -290,6 +290,17 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 		vtst.c \
 		-o vtst \
 		-lab; \
+		$(TARGET_CONFIGURE_OPTS) \
+		mipsel-linux-gcc \
+		-Wall \
+		-I../vinetic/include/ \
+		-I../tapi/include/ \
+		-I../drv_sgatab/ \
+		-I../libab \
+		-L../libab \
+		iotst.c \
+		-o iotst \
+		-lab; \
 		${CP} *tst $(PKG_INSTALL_DIR)/bin/ \
 	);
 	touch $@

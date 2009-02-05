@@ -584,7 +584,6 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 	} else if(dtype == dev_type_FXO) {
 		lineTypeCfg.lineType = IFX_TAPI_LINE_TYPE_FXO_NB;
 		lineTypeCfg.nDaaCh = dev_idx * CHANS_PER_DEV + chan_idx;
-		fprintf(stderr,">>>>>>>>>>> nDaaCh : %d\n", lineTypeCfg.nDaaCh);
 	}
 
 	err = ioctl (rtp_fd, IFX_TAPI_LINE_TYPE_SET, &lineTypeCfg);
