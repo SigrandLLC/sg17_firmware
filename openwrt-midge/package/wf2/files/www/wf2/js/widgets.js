@@ -408,6 +408,8 @@ function Container(p, options) {
 	/*
 	 * Create select widget.
 	 * I18N for tip.
+	 *
+	 * w.addCurrentValue - if current value is not in select's options list, add it and select.
 	 */
 	this.createSelectWidget = function(w) {
 		var attrs = {
@@ -640,9 +642,26 @@ function Container(p, options) {
 				break;
 			case "select":
 				subwidget = this.createSelectWidget(w);
+
+				/* add list's options */
 				if (w.options) {
-					subwidget.setOptionsForSelect(w.options, value, w.defaultValue);
+					subwidget.setOptionsForSelect({
+							"options": w.options,
+							"curValue": value,
+							"defaultValue": w.defaultValue
+					});
 				}
+
+				/* if addCurrentValue is set and this value is not in options list, add it and select */
+				if (value && w.addCurrentValue
+						&& $($.sprintf("option[value=%s]", value), subwidget).length == 0) {
+					subwidget.setOptionsForSelect({
+							"options": value,
+							"curValue": value,
+							"doNotClear": true
+					});
+				}
+				
 				break;
 			case "button":
 				subwidget = this.createButtonWidget(w);

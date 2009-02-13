@@ -295,7 +295,7 @@ Controllers.dynamic_ifaces = function() {
 					}
 				});
 
-				$("#del_iface").setOptionsForSelect(ifaces);
+				$("#del_iface").setOptionsForSelect({"options": ifaces});
 			};
 
 
@@ -1010,6 +1010,14 @@ Controllers.iface = function(iface) {
 				c = page.addContainer("status");
 				c.addTitle($.sprintf("STP bridge %s info", realIface));
 				c.addConsole("/usr/sbin/brctl showstp " + realIface);
+			}
+
+			/* show switch info for ethernet interfaces */
+			if (realIface.search(/^eth/) != -1) {
+				page.addBr("status");
+				c = page.addContainer("status");
+				c.addTitle("Internal ethernet switch status");
+				c.addConsole("/bin/cat /proc/sys/net/adm5120sw/status");
 			}
 		}
 	});

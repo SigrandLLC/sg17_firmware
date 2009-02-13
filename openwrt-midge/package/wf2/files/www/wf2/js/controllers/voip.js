@@ -97,7 +97,7 @@ Controllers.voip = function() {
 				"options": function() {
 					/* create array with FSX ports */
 					var fxsChannels = [];
-					var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels");
+					var channels = config.getCachedOutput("voipChannels");
 					
 					if (channels) {
 						$.each(channels.split("\n"), function(num, record) {
@@ -130,7 +130,7 @@ Controllers.voip = function() {
 			c.addTitle("Hotline settings", {"colspan": 5});
 			
 			c.addTableHeader("Channel|Type|Hotline|Complete number|Comment");
-			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("\n");
+			var channels = config.getCachedOutput("voipChannels").split("\n");
 			$.each(channels, function(num, record) {
 				var field;
 				if (record.length == 0) return true;
@@ -184,8 +184,8 @@ Controllers.voip = function() {
 			c.addSubmit();
 		}
 	});
-	
-	/* Hardlink tab */
+
+	/* hardlink tab */
 	page.addTab({
 		"id": "hardlink",
 		"name": "Hardlink",
@@ -193,75 +193,181 @@ Controllers.voip = function() {
 			var c, field;
 			c = page.addContainer("hardlink");
 			c.setSubsystem("svd-hardlink");
-			c.addTitle("Hardlink settings", {"colspan": 6});
-			
-			c.addTableHeader("Channel|Type|Hardlink|Router ID|Channel|Comment");
-			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("\n");
-			$.each(channels, function(num, record) {
-				var field;
-				
-				/* channel[0] — number of channel, channel[1] — type of channel */
-				var channel = record.split(":");
-				
-				/* hardlink is available only for FXS channels */
-				if (record.length == 0 || channel[1] == "FXO") return true;
-				
-				var row = c.addTableRow();
-				
-				field = {
-					"type": "html",
-					"name": channel[0],
-					"str": channel[0]
-				};
-				c.addTableWidget(field, row);
-				
-				field = {
-					"type": "html",
-					"name": channel[1] + channel[0],
-					"str": channel[1]
-				};
-				c.addTableWidget(field, row);
-				
-				field = { 
-					"type": "checkbox",
-					"name": $.sprintf("sys_voip_hardlink_%s_hardlink", channel[0]),
-					"tip": "Enable hardlink for this channel."
-				};
-				c.addTableWidget(field, row);
-				
-				field = { 
-					"type": "text",
-					"name": $.sprintf("sys_voip_hardlink_%s_routerid", channel[0]),
-					"tip": "ID of router to connect with.",
-					"validator": 
-						{
-							"required": $.sprintf("#sys_voip_hardlink_%s_hardlink:checked", channel[0]),
-							"voipRouterIDWithSelf": true
+
+			/* define arrays of local and remote channels */
+			var localChannels = config.getCachedOutput("voipChannels").split("\n");
+			var remoteChannels = [];
+			for (var i = 0; i < 32; i++) {
+				remoteChannels.push(((i < 10) ? "0" + i : i) + ":FXS");
+			}
+
+			var getUnusedChannels = function(channels) {
+				/* list of local channels which are already in use */
+				var inUse = "";
+				$.each(config.getParsed("sys_voip_hardlink_*"), function(num, channel) {
+					inUse += channel.ch_idx + " ";
+				});
+
+				$.each(channels, function(num, channel) {
+					var channelParts = channel.split("/");
+					if (inUse.search(channelParts[0]) != -1) {
+						delete channels[channel];
+					} else if (channelParts[1] && inUse.search(channelParts[1]) != -1) {
+						delete channels[channel];
+					}
+				});
+
+				return channels;
+			};
+
+			/* returns list of correct channels in proper format depending on hardink type (2w/4w) */
+			var getChannelList = function(channels) {
+				var result = {};
+
+				$.each(channels, function(num, record) {
+					if (record.length == 0) {
+						return true;
+					}
+
+					/* channel[0] — number of channel, channel[1] — type of channel */
+					var channel = record.split(":");
+
+					/* only FXS channels */
+					if (channel[1] == "FXO") {
+						return true;
+					}
+
+					/* hardlink type */
+					if ($("#wire_type").val() == "2w") {
+						result[channel[0]] = channel[0];
+					} else {
+						var chNum = parseInt(channel[0], 10);
+						/* even number */
+						if ((chNum % 2) == 0) {
+							var chString = ((chNum < 10) ? "0" + chNum : chNum)
+									+ "/" + (((chNum + 1) < 10) ? "0" + (chNum + 1) : (chNum + 1));
+							result[chString] = chString;
 						}
+					}
+				});
+
+				return result;
+			};
+
+			/* add widgets for adding/editing hardlink channels */
+			var addHardlinkWidgets = function(list) {
+				field = {
+					"type": "select",
+					"name": "wire_type",
+					"text": "2-wire/4-wire",
+					"descr": "Hardlink wire type: 2-wire or 4-wire.",
+					"options": {"2w": "2-wire", "4w": "4-wire"},
+					"onChange": function() {
+						$("#ch_idx").setOptionsForSelect(
+								{"options": getUnusedChannels(getChannelList(localChannels))});
+						$("#pair_chan").setOptionsForSelect(
+								{"options": getChannelList(remoteChannels)});
+					},
+					"validator": {"required": true}
 				};
-				c.addTableWidget(field, row);
-				
-				field = { 
+				list.addDynamicWidget(field);
+
+				field = {
+					"type": "select",
+					"name": "ch_idx",
+					"text": "Local channel",
+					"descr": "FXS channel on current router.",
+					"options": getUnusedChannels(getChannelList(localChannels)),
+					"validator": {"required": true},
+					"addCurrentValue": true
+				};
+				list.addDynamicWidget(field);
+
+				field = {
 					"type": "text",
-					"name": $.sprintf("sys_voip_hardlink_%s_channel", channel[0]),
-					"tip": "FXS channel on specified router to connect with.",
-					"validator": 
-						{
-							"required": $.sprintf("#sys_voip_hardlink_%s_hardlink:checked", channel[0]),
-							"voipChannel": true
-						}
+					"name": "pair_route",
+					"text": "Router ID",
+					"descr": "ID of router to connect with.",
+					"validator": {"required": true, "voipRouterIDWithSelf": true}
 				};
-				c.addTableWidget(field, row);
-				
-				field = { 
-					"type": "text",
-					"name": $.sprintf("sys_voip_hardlink_%s_comment", channel[0]),
-					"validator": {"alphanumU": true}
+				list.addDynamicWidget(field);
+
+				field = {
+					"type": "select",
+					"name": "pair_chan",
+					"text": "Remote channel",
+					"descr": "FXS channel on remote router.",
+					"options": getChannelList(remoteChannels),
+					"validator": {"required": true}
 				};
-				c.addTableWidget(field, row);
+				list.addDynamicWidget(field);;
+
+				field = {
+					"type": "select",
+					"name": "codec",
+					"text": "Codec",
+					"descr": "Codec to use.",
+					"options": "aLaw uLaw",
+					"validator": {"required": true}
+				};
+				list.addDynamicWidget(field);
+
+				field = {
+					"type": "select",
+					"name": "pkt_sz",
+					"text": "Packetization time (ms)",
+					"descr": "Packetization time in ms.",
+					"options": ["2.5", "5", "5.5", "10", "11", "20", "30", "40", "50", "60"],
+					"defaultValue": "20",
+					"validator": {"required": true}
+				};
+				list.addDynamicWidget(field);
+
+				/* calculate volume values */
+				var vol = "";
+				for (var i = -24; i <= 24; i += 2) {
+					vol += i + " ";
+				}
+				vol = $.trim(vol);
+
+				field = {
+					"type": "select",
+					"name": "vol_tx",
+					"text": "Tx_vol",
+					"descr": "Transmit volume. This parameter has higher priority than Tx_vol on RTP tab.",
+					"options": vol,
+					"defaultValue": "0",
+					"validator": {"required": true}
+				};
+				list.addDynamicWidget(field);
+
+				field = {
+					"type": "select",
+					"name": "vol_rx",
+					"text": "Rx_vol",
+					"descr": "Recieve volume. This parameter has higher priority than Rx_vol on RTP tab.",
+					"options": vol,
+					"defaultValue": "0",
+					"validator": {"required": true}
+				};
+				list.addDynamicWidget(field);
+			};
+
+			var list = c.createList({
+				"tabId": "hardlink",
+				"header": ["Type", "Local chan", "Router ID", "Remote chan", "Codec", "Packet. time",
+						"Tx_vol", "Rx_vol"],
+				"varList": ["wire_type", "ch_idx", "pair_route", "pair_chan", "codec", "pkt_sz",
+						"vol_tx", "vol_rx"],
+				"listItem": "sys_voip_hardlink_",
+				"addMessage": "Add hardlink",
+				"editMessage": "Edit hardlink",
+				"listTitle": "Hardlink",
+				"helpPage": "voip",
+				"onAddOrEditItemRender": addHardlinkWidgets
 			});
-			
-			c.addSubmit();
+
+			list.generateList();
 		}
 	});
 	
@@ -270,7 +376,8 @@ Controllers.voip = function() {
 		"id": "voipRoute",
 		"name": "Routes",
 		"func": function() {
-			var c = page.addContainer("voipRoute");
+			var c, field;
+			c = page.addContainer("voipRoute");
 			c.setSubsystem("svd-routet");
 			c.setHelpPage("voip.route");
 			
@@ -330,7 +437,8 @@ Controllers.voip = function() {
 		"id": "address",
 		"name": "Addresses",
 		"func": function() {
-			var c = page.addContainer("address");
+			var c, field;
+			c = page.addContainer("address");
 			c.setSubsystem("svd-addressb");
 			c.setHelpPage("voip.address");
 			
@@ -397,7 +505,7 @@ Controllers.voip = function() {
 			c.addTitle("Sound settings", {"colspan": 9});
 			
 			c.addTableHeader("Channel|OOB|OOB_play|nEventPT|nEventPlayPT|Tx_vol|Rx_vol|VAD|HPF");
-			var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels").split("\n");
+			var channels = config.getCachedOutput("voipChannels").split("\n");
 			$.each(channels, function(num, record) {
 				var field;
 				if (record.length == 0) return true;
@@ -449,7 +557,9 @@ Controllers.voip = function() {
 				
 				/* calculate volume values */
 				var vol = "";
-				for (var i = -24; i <= 24; i += 2) vol += i + " ";
+				for (var i = -24; i <= 24; i += 2) {
+					vol += i + " ";
+				}
 				vol = $.trim(vol);
 				
 				/* COD_Tx_vol */

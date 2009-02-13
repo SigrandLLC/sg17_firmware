@@ -400,6 +400,7 @@ Controllers.linkdeps = function() {
 				"text": "Link-slave",
 				"descr": "Interface to down if link-master is down.",
 				"validator": {"required": true},
+				"addCurrentValue": true,
 				"options": function() {
 					var ifaces = [];
 

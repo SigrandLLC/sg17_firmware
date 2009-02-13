@@ -40,7 +40,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			rates += i + " ";
 		}
 		rates = $.trim(rates);
-		$(select).setOptionsForSelect(rates, cur);
+		$(select).setOptionsForSelect({"options": rates, "curValue": cur});
 	};
 
 	/* status for MR16H */
@@ -83,19 +83,19 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			
 			if (cfg == "preact" && annex == "F") {
 				if (mode == "slave") {
-					$("#code").setOptionsForSelect({"tcpam32": TCPAM["tcpam32"]});
+					$("#code").setOptionsForSelect({"options": {"tcpam32": TCPAM["tcpam32"]}});
 					$("#code").attr("readonly", true);
 					
-					$("#rate").setOptionsForSelect("automatic");
+					$("#rate").setOptionsForSelect({"options": "automatic"});
 					$("#rate").attr("readonly", true);
 				} else {					
 					$("#code").removeAttr("readonly");
 					$("#rate").removeAttr("readonly");
 					
 					$("#code").setOptionsForSelect({
-						"tcpam16": TCPAM["tcpam16"],
-						"tcpam32": TCPAM["tcpam32"]
-					}, code);
+							"options": {"tcpam16": TCPAM["tcpam16"], "tcpam32": TCPAM["tcpam32"]},
+							"curValue": code
+					});
 					
 					/* update varibale's value */
 					code = $("#code").val();
@@ -107,11 +107,11 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 					}
 				}
 			} else if (cfg == "preact") {
-				$("#code").setOptionsForSelect({"tcpam16": TCPAM["tcpam16"]});
+				$("#code").setOptionsForSelect({"options": {"tcpam16": TCPAM["tcpam16"]}});
 				$("#code").attr("readonly", true);
 				
 				if (mode == "slave") {
-					$("#rate").setOptionsForSelect("automatic");
+					$("#rate").setOptionsForSelect({"options": "automatic"});
 					$("#rate").attr("readonly", true);
 				} else {
 					$("#rate").removeAttr("readonly");
@@ -121,7 +121,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				$("#code").removeAttr("readonly");
 				$("#rate").removeAttr("readonly");
 				
-				$("#code").setOptionsForSelect(TCPAM, code);
+				$("#code").setOptionsForSelect({"options": TCPAM, "curValue": code});
 				
 				/* update varibale's value */
 				code = $("#code").val();
@@ -475,7 +475,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"cssClass": "widgetManualMaster",
 				"onChange": function() {
 					/* update rate list */
-					$("#rate").setOptionsForSelect(getRates(chipVer, $("#tcpam").val()));
+					$("#rate").setOptionsForSelect({"options": getRates(chipVer, $("#tcpam").val())});
 					setMrate();
 
 					/* update description */
@@ -1501,11 +1501,12 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"options": "base extended",
 				"onChange": function() {
 					/* update tcpam list */
-					$("#tcpam").setOptionsForSelect(getTcpamValues(), "tcpam32");
+					$("#tcpam").setOptionsForSelect({"options": getTcpamValues(), "curValue": "tcpam32"});
 
 					/* update rate list */
-					$("#rate").setOptionsForSelect(
-							getRates(($("#comp").val() == "base") ? "v1" : "v2", $("#tcpam").val()));
+					$("#rate").setOptionsForSelect({
+							"options": getRates(($("#comp").val() == "base") ? "v1" : "v2", $("#tcpam").val())
+					});
 					setMrate();
 
 					/* update description */
@@ -1525,8 +1526,9 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"defaultValue": "tcpam32",
 				"onChange": function() {
 					/* update rate list */
-					$("#rate").setOptionsForSelect(
-							getRates(($("#comp").val() == "base") ? "v1" : "v2", $("#tcpam").val()));
+					$("#rate").setOptionsForSelect({
+							"options": getRates(($("#comp").val() == "base") ? "v1" : "v2", $("#tcpam").val())
+					});
 					setMrate();
 
 					/* update description */

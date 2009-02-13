@@ -165,7 +165,7 @@ Controllers.info = function() {
 				"str": function() {
 					var info = {};
 					
-					var channels = config.getCachedOutput("/bin/cat /proc/driver/sgatab/channels");
+					var channels = config.getCachedOutput("voipChannels");
 					
 					if (channels) {
 						$.each(channels.split("\n"), function(num, channel) {
@@ -175,7 +175,7 @@ Controllers.info = function() {
 
 							var channel = channel.split(":");
 							var channelIdx = parseInt(channel[0], 10);
-							if (!channelIdx) {
+							if (!channelIdx && channelIdx != 0) {
 								return true;
 							}
 							if (channelIdx <= 7) {

@@ -179,16 +179,17 @@ jQuery.validator.addMethod("uniqueValue", function(value, element, params) {
 	/*
 	 * Plugin name: setOptionsForSelect.
 	 *
-	 * Adds options elements to select element, removes old one.
+	 * Adds options elements to select element.
 	 *
-	 * options - list of options, may be:
+	 * options.options - list of options, may be:
 	 *  - string with options, separated by space (option value = option name);
-	 *  - array (option value = option name);
+	 *  - array (option value == option name);
 	 *  - hash ({optionValue: optionName});
-	 * curValue - select option with this value;
-	 * defaultValue - if no option is selected, select option with this value.
+	 * options.curValue - select option with this value;
+	 * options.defaultValue - if no option is selected, select option with this value;
+	 * options.doNotClear - dot not empty current select's list.
 	 */
-	$.fn.setOptionsForSelect = function(options, curValue, defaultValue) {
+	$.fn.setOptionsForSelect = function(options) {
 		var selectedIndex = -1;
 		var defaultIndex = -1;
 		var selectedItem;
@@ -196,29 +197,31 @@ jQuery.validator.addMethod("uniqueValue", function(value, element, params) {
 		var selectObject = $(this);
 
 		/* remove previous options */
-		selectObject.empty();
+		if (!options.doNotClear) {
+			selectObject.empty();
+		}
 
 		/* if option's list is a string — convert it to hash */
-		if (typeof options == "string") {
-			var vals = options;
-			options = {};
+		if (typeof options.options == "string") {
+			var vals = options.options;
+			options.options = {};
 			$.each(vals.split(" "), function(num, value) {
-				options[value] = value;
+				options.options[value] = value;
 			});
 		}
 
 		/* if option's list is array — convert it to hash */
-		if (options.constructor == Array) {
-			var arr = options;
-			options = {};
+		if (options.options.constructor == Array) {
+			var arr = options.options;
+			options.options = {};
 			$.each(arr, function(num, value) {
 				/* values have to be strings */
-				options[value + ""] = value + "";
+				options.options[value + ""] = value + "";
 			});
 		}
 
 		/* go though list of options */
-		$.each(options, function(name, value) {
+		$.each(options.options, function(name, value) {
 			/* convert value and name of option to string */
 			name = name + "";
 			value = value + "";
@@ -230,7 +233,7 @@ jQuery.validator.addMethod("uniqueValue", function(value, element, params) {
 			var attrs = {"value": name};
 
 			/* if current option should be selected */
-			if (curValue == name) {
+			if (options.curValue == name) {
 				selectedItem = name;
 			}
 
@@ -241,7 +244,7 @@ jQuery.validator.addMethod("uniqueValue", function(value, element, params) {
 		/* find selectedIndex and defaultIndex */
 		$("option", selectObject).each(function(idx) {
 			this.value == selectedItem && (selectedIndex = idx);
-			this.value == defaultValue && (defaultIndex = idx);
+			this.value == options.defaultValue && (defaultIndex = idx);
 		});
 
 		/* set selected index in select element */
@@ -253,51 +256,7 @@ jQuery.validator.addMethod("uniqueValue", function(value, element, params) {
 			$(selectObject).attr("selectedIndex", defaultIndex);
 		}
 	},
-
-	/*
-	 * Plugin name: addOptionsForSelect.
-	 *
-	 * Adds options elements to select element.
-	 *
-	 * options - list of options, may be:
-	 *  - string with options, separated by space (option value = option name);
-	 *  - array (option value = option name);
-	 *  - hash ({optionValue: optionName}).
-	 */
-	$.fn.addOptionsForSelect = function(options) {
-		var selectObject = $(this);
-
-		/* if option's list is string — convert it to hash */
-		if (typeof options == "string") {
-			var vals = options;
-			options = new Object();
-			$.each(vals.split(" "), function(num, value) {
-				options[value] = value;
-			});
-		}
-
-		/* if option's list is array — convert it to hash */
-		if (options.constructor == Array) {
-			var arr = options;
-			options = new Object();
-			$.each(arr, function(num, value) {
-				/* values have to be strings */
-				options[value + ""] = value + "";
-			});
-		}
-
-		/* go though list of options */
-		$.each(options, function(name, value) {
-			/*
-			 * Heh. In options list property name is the value of option, and
-			 * property value is the text of option.
-			 */
-			var attrs = {"value": name};
-
-			/* add option to select element */
-			$.create("option", attrs, value).appendTo(selectObject);
-		});
-	},
+	
 
 	/*
 	 * Plugin name: setSelectReadonly.
