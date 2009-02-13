@@ -130,7 +130,7 @@ _e1_ifcfg(){
 	# CAS depends on TS16 (it uses TIMESLOT#16 - so update from hardware)
 	echo $cas 	> cas
 	tmp=`cat cas`
-	if [ "$tmp" = "on" ]; then
+	if [ "$tmp" = "on" -o "$tmp" = "1" ]; then
 		kdb set sys_pcicfg_s${slot}_${dev}_cas=1
 	else
 		kdb set sys_pcicfg_s${slot}_${dev}_cas=0
@@ -145,12 +145,12 @@ _e1_ifcfg(){
         return
     fi
     
-	if [ "$llpb" = "on" ]; then
+	if [ "$llpb" = "on" -o "$llpb" = "1" ]; then
 	    echo 1 > llpb
 	else
 	    echo 0 > llpb
 	fi
-	if [ "$rlpb" = "on" ]; then
+	if [ "$rlpb" = "on" -o "$rlpb" = "1" ]; then
 	    echo 1 > rlpb
 	else
 	    echo 0 > rlpb
