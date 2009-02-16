@@ -104,7 +104,7 @@ static void
 svd_parse_sdp(svd_t * const svd, ab_chan_t * const chan, char const * str);
 /** Create SDP string depends on codec choice policy.*/
 static char *
-svd_new_sdp_string (long const media_port, enum calltype_e const ct);
+svd_new_sdp_string (svd_chan_t const * const ctx);
 /** @}*/ 
 
 
@@ -371,7 +371,7 @@ DFS
 
 	chan_ctx->call_type = calltype_REMOTE;
 
-	l_sdp_str = svd_new_sdp_string (chan_ctx->rtp_port, chan_ctx->call_type);
+	l_sdp_str = svd_new_sdp_string (chan_ctx);
 	if ( !l_sdp_str){
 		goto __exit_fail;
 	}
@@ -425,7 +425,7 @@ DFS
 		svd_media_register (svd, chan);
 
 		/* have remote sdp make local */
-		l_sdp_str = svd_new_sdp_string (chan_ctx->rtp_port,chan_ctx->call_type);
+		l_sdp_str = svd_new_sdp_string (chan_ctx);
 		if ( !l_sdp_str){
 			goto __exit;
 		}
@@ -550,7 +550,6 @@ svd_place_hardlinks (svd_t * const svd)
 	int j;
 	int err;
 	int routers_num;
-
 DFS
 	routers_num = g_conf.route_table.records_num;
 	j = svd->ab->chans_num;
@@ -559,7 +558,7 @@ DFS
 	for(i=0; i<j; i++){
 		ab_chan_t * curr_chan = &svd->ab->chans[i];
 		svd_chan_t * ctx = curr_chan->ctx;
-		struct hdln_record_s * curr_rec = ctx->hardlink;
+		struct hard_link_s * curr_rec = ctx->hardlink;
 		if(ctx->is_hardlinked && curr_rec->am_i_caller){
 			/* get pair_chan */
 			strcpy (ctx->dial_status.chan_id, curr_rec->pair_chan);
@@ -567,9 +566,9 @@ DFS
 			err = 1;
 			for(j=0;j<routers_num;j++){
 				if( !strcmp(curr_rec->pair_route, 
-							g_conf.route_table.records[j].id)){
+									g_conf.route_table.records[j].id)){
 					ctx->dial_status.route_ip = 
-							g_conf.route_table.records[j].value;
+									g_conf.route_table.records[j].value;
 					err = 0;
 					break;
 				}
@@ -579,8 +578,7 @@ DFS
 				ctx->dial_status.dest_is_self = self_YES;
 			}
 
-			/* place a call 
-			 * tag__ hardlinks calls just in local network */
+			/* place a call */
 			if(err || svd_invite(svd, 0, i)){
 				SU_DEBUG_0 (("!!!!! CAN`T PLACE HARDLINK CALL\n"));
 				goto __exit_fail;
@@ -588,7 +586,7 @@ DFS
 DEBUG_CODE(
 				SU_DEBUG_0 (("!!!!! PLACE HARDLINK CALL from "
 						"%s[%d] to %s[%s]\n",
-						g_conf.self_ip, i, 
+						g_conf.self_ip, curr_chan->abs_idx, 
 						ctx->dial_status.route_ip, curr_rec->pair_chan));
 );
 			}
@@ -690,7 +688,7 @@ DFS
 		goto __exit_fail;
 	}
 
-	l_sdp_str = svd_new_sdp_string (chan_ctx->rtp_port, chan_ctx->call_type);
+	l_sdp_str = svd_new_sdp_string (chan_ctx);
 	if ( !l_sdp_str){
 		goto __exit_fail;
 	}
@@ -1017,24 +1015,21 @@ DFS
 			break;
 
 	/* 18X sent (w/SDP) */
-		case nua_callstate_early:{
-			//svd_chan_t * ctx = chan->ctx;
+		case nua_callstate_early:
 			if(chan->parent->type == ab_dev_type_FXO){
 				/* answer on call */
 				svd_answer (svd, chan, SIP_200_OK);
-			} /*else if(ctx->is_hardlinked){
-				svd_answer (svd, chan, SIP_200_OK);
-			} *//* if FXS not hardlinked - answer after offhook */
+			} 
 			break;
-		}
 
 	/* 2XX sent */
 		case nua_callstate_completed:
 			break;
 
 	/* 2XX received, ACK sent, or vice versa */
-		case nua_callstate_ready:
-			if(chan->parent->type == ab_dev_type_FXS){
+		case nua_callstate_ready:{
+			svd_chan_t * ctx = chan->ctx;
+			if( (!ctx->is_hardlinked) && chan->parent->type == ab_dev_type_FXS){
 				/* stop playing any tone on the chan */
 				if(ab_FXS_line_tone (chan, ab_chan_tone_MUTE)){
 					SU_DEBUG_2(("can`t stop playing tone on [_%d_]\n",
@@ -1050,7 +1045,7 @@ DFS
 				SU_DEBUG_1(("media_activate error : %s\n", ab_g_err_str));
 			}
 			break;
-
+		 }
 	/* BYE sent */
 		case nua_callstate_terminating:
 			break;
@@ -1445,22 +1440,22 @@ DFE
 
 
 /**
- * Creates SDP string according to given values.
+ * Creates SDP string for given channel context.
  *
- * \param[in] 	media_port	port for RTP connection.
- * \param[in] 	ct 	call type.
+ * \param[in] 	ctx		channel context with connection parameters.
  * \remark
- * 		It creates new SDP string. Memory should be freed outside of 
- * 		the function.
+ * 		Memory should be freed outside of the function.
  */
 static char * 
-svd_new_sdp_string (long const media_port, enum calltype_e const ct)
+svd_new_sdp_string (svd_chan_t const * const ctx)
 {/*{{{*/
 	char * ret_str = NULL; 
 	codec_t * cp = NULL;
 	int limit = SDP_STR_MAX_LEN;
 	int ltmp;
 	int i;
+	long media_port = ctx->rtp_port;
+	enum calltype_e const ct = ctx->call_type;
 
 #if 0
 	FOR EXAMPLE
@@ -1477,6 +1472,36 @@ svd_new_sdp_string (long const media_port, enum calltype_e const ct)
 		goto __exit_fail;
 	}
 	memset (ret_str, 0, SDP_STR_MAX_LEN);
+
+	if(ctx->is_hardlinked){
+		cod_prms_t const * cod_pr[2] = {NULL};
+		int pt[2];
+
+		if(ctx->hardlink->hl_codec.type == cod_type_MLAW){
+			cod_pr[0] = svd_cod_prms_get(cod_type_MLAW, NULL);
+			cod_pr[1] = svd_cod_prms_get(cod_type_ALAW, NULL);
+			pt[0] = MLAW_PT_DF;
+			pt[1] = ALAW_PT_DF;
+		} else if(ctx->hardlink->hl_codec.type == cod_type_ALAW){
+			cod_pr[1] = svd_cod_prms_get(cod_type_MLAW, NULL);
+			cod_pr[0] = svd_cod_prms_get(cod_type_ALAW, NULL);
+			pt[1] = MLAW_PT_DF;
+			pt[0] = ALAW_PT_DF;
+		}
+		if( !cod_pr[0] || !cod_pr[1] ){
+			SU_DEBUG_0((LOG_FNC_A("ERROR: Codec type UNKNOWN")));
+			goto __exit_fail_allocated;
+		}
+		snprintf(ret_str, SDP_STR_MAX_LEN, 
+				"v=0\r\n"
+				"m=audio %d RTP/AVP %d %d\r\n"
+				"a=rtpmap:%d %s/%d\r\n"
+				"a=rtpmap:%d %s/%d\r\n",
+				media_port, pt[0], pt[1],
+				pt[0], cod_pr[0]->sdp_name, cod_pr[0]->rate,
+				pt[1], cod_pr[1]->sdp_name, cod_pr[1]->rate);
+		goto __exit_success;
+	}
 
 	if       (ct == calltype_LOCAL){
 		cp = &g_conf.int_codecs[0];
@@ -1565,6 +1590,7 @@ svd_new_sdp_string (long const media_port, enum calltype_e const ct)
 		}
 	}
 
+__exit_success:
 	return ret_str;
 __exit_fail_allocated:
 	free(ret_str);

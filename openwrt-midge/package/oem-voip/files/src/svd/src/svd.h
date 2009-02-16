@@ -89,11 +89,12 @@ struct svd_chan_s
 
 	/* HOTLINE */
 	unsigned char is_hotlined; /**< Is this channel hotline initiator.*/
+	
 	char * hotline_addr; /**< Hotline destintation address, points to 
 						   \ref g_conf value.*/
 	/* HARDLINK */
 	int is_hardlinked;
-	struct hdln_record_s * hardlink;
+	struct hard_link_s * hardlink;
 };/*}}}*/
 
 /** Routine main context structure.*/

@@ -114,6 +114,12 @@ ab_create( void )
 		curr_chan->rtp_fd = fd_chan;
 		curr_chan->abs_idx = dprms[pdev_idx].chans_idx[chan_idx_in_dev];
 
+		if(curr_chan->abs_idx >= CHANS_MAX){
+			ab_err_set(AB_ERR_BAD_PARAM, "too many channels on boards");
+			goto __free_and_exit_fail;
+		}
+		ab->pchans[curr_chan->abs_idx] = curr_chan;
+
 		/* set channel status to initial proper values */
 		ab_chan_status_init (curr_chan);
 	}

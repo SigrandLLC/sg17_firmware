@@ -23,6 +23,13 @@
 #define RTP_CONF_NAME       "/etc/svd/rtp.conf"
 /** @}*/
 
+/** @defgroup CFG_DF Default values.
+ *  @ingroup CFG_M
+ *  Some default values that will be set if they will not find in config file.
+ *  @{*/
+#define ALAW_PT_DF 0
+#define MLAW_PT_DF 8
+/** @}*/ 
 
 /** @defgroup DIAL_MARK Dial string markers.
  * 	@ingroup DIAL_SEQ
@@ -51,11 +58,11 @@ COMMAND LINE KEYS:
 */
 
 /** Sturtup keys set. */
-struct _startup_options {/*{{{*/
+struct _startup_options {
 	unsigned char help; /**< Show help and exit. */
 	unsigned char version; /**< Show version and exit. */
 	char debug_level; /**< Logging level in debug mode. */
-} g_so;/*}}}*/
+} g_so;
 
 /** Getting parameters from startup keys. */
 int  startup_init( int argc, char ** argv );
@@ -67,8 +74,6 @@ void startup_destroy( int argc, char ** argv );
 /** @addtogroup CFG_M
  *  @{*/
 /* g_conf inner definitions {{{*/
-/** Maximum channels on the router */
-#define CHANS_MAX 32
 /** Codecs massives sizes. 
  * First unusing codec \c type will be set as \c codec_type_NONE.
  * It should be greater then codecs count because application can 
@@ -135,13 +140,11 @@ struct htln_record_s {
 	char * value; /**< Hotline address pointer.*/
 	char value_s [VALUE_LEN_DF]; /**< Hotline static massive.*/
 };
-/** Hard link record.*/
-struct hdln_record_s {
-	char id [CHAN_ID_LEN]; /**< Channel absolute identifier.*/
-	char * pair_route; /**< Channel pair router identifier.*/
-	char pair_route_s [ROUTE_ID_LEN_DF]; /**< Channel pair router massive.*/
-	char pair_chan [CHAN_ID_LEN]; /**< Channel pair channel identifier.*/
-	int am_i_caller; /**< Set to 1 if this channel should call to it`s pair.*/
+/** Hard link channels types.*/
+enum hl_type_e {
+	hl_type_UNDEFINED, 
+	hl_type_2_WIRED, 
+	hl_type_4_WIRED,
 };
 /** Route table record.*/
 struct rttb_record_s {
@@ -149,20 +152,6 @@ struct rttb_record_s {
 	char id_s [ROUTE_ID_LEN_DF]; /**< Router identifier static massive.*/
 	char value [IP_LEN_MAX]; /**< Router ip address.*/
 };
-/** RTP record.*/
-#if 0
-struct rtp_record_s {
-	char id [CHAN_ID_LEN]; /**< Channel absolute identifier.*/
-	enum evts_2833_e OOB; /**< Out-of-band events generation mode.*/
-	enum play_evts_2833_e OOB_play; /**< Out-of-band events play mode.*/
-	int evtPT; /**< RFC_2833 events payload type for generator side.*/
-	int evtPTplay; /**< RFC_2833 events payload type for receiver side.*/
-	int COD_Tx_vol; /**< Coder tx volume gain (from -24 to 24).*/
-	int COD_Rx_vol; /**< Coder rx volume gain (from -24 to 24).*/
-	enum vad_cfg_e VAD_cfg; /**< Voice activity detector mode.*/
-	unsigned char HPF_is_ON; /**< High-pass filter (on or off).*/
-};
-#endif
 /** Address book.*/
 struct address_book_s {
 	unsigned char id_len; /**< Just numbers cnt id_mas_len = id_len + 1.*/
@@ -176,9 +165,13 @@ struct hot_line_s {
 };
 /** Hard links.*/
 struct hard_link_s {
-	codec_t hl_codec;
-	unsigned int records_num; /**< Number of hotline records.*/
-	struct hdln_record_s * records; /**< Records massive.*/
+	enum hl_type_e type;
+	char id [CHAN_ID_LEN]; /**< Channel absolute identifier.*/
+	char * pair_route; /**< Channel pair router identifier.*/
+	char pair_route_s [ROUTE_ID_LEN_DF]; /**< Channel pair router massive.*/
+	char pair_chan [CHAN_ID_LEN]; /**< Channel pair channel identifier.*/
+	codec_t hl_codec; /**< codec parameters.*/
+	int am_i_caller; /**< Set to 1 if this channel should call to it`s pair.*/
 };
 /** Route table.*/
 struct route_table_s {
@@ -228,7 +221,7 @@ struct svd_conf_s {/*{{{*/
 	struct sip_settings_s sip_set; /**< SIP settings for registration.*/
 	struct address_book_s address_book; /**< Address book.*/
 	struct hot_line_s hot_line; /**< Hot line.*/
-	struct hard_link_s hard_link; /**< Hard linked channels.*/
+	struct hard_link_s hard_link[CHANS_MAX]; /**< Hard linked channels.*/
 	struct route_table_s route_table; /**< Routes table.*/
 	struct rtp_prms_s rtp_prms[CHANS_MAX]; /**< RTP channel parameters.*/
 } g_conf;/*}}}*/

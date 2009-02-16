@@ -39,13 +39,6 @@
 static unsigned char g_err_no;
 /** @}*/ 
 
-/** @defgroup CFG_DF Default values.
- *  @ingroup CFG_M
- *  Some default values that will be set if they will not find in config file.
- *  @{*/
-#define ALAW_PT_DF 0
-#define MLAW_PT_DF 8
-/** @}*/ 
 
 /** @defgroup CFG_N Config file text values.
  *  @ingroup CFG_M
@@ -64,6 +57,8 @@ static unsigned char g_err_no;
 #define CONF_CODEC_G72640 "g726_40"
 #define CONF_CODEC_BITPACK_RTP "rtp"
 #define CONF_CODEC_BITPACK_AAL2 "aal2"
+#define CONF_WIRETYPE_2 "2w"
+#define CONF_WIRETYPE_4 "4w"
 #define CONF_OOB_DEFAULT "default"
 #define CONF_OOB_NO "in-band"
 #define CONF_OOB_ONLY "out-of-band"
@@ -243,8 +238,8 @@ conf_show( void )
 {/*{{{*/
 	struct adbk_record_s * curr_ab_rec;
 	struct htln_record_s * curr_hl_rec;
-	struct hdln_record_s * curr_hk_rec;
 	struct rttb_record_s * curr_rt_rec;
+	struct hard_link_s   * curr_hk_rec;
 	int i;
 	int j;
 
@@ -309,15 +304,29 @@ conf_show( void )
 				i+1, curr_hl_rec->id, curr_hl_rec->value ));
 	}
 
-	if(g_conf.hard_link.records_num){
-		SU_DEBUG_3(("HardLinks :\n"));
-	}
-	j = g_conf.hard_link.records_num;
-	for(i=0; i<j; i++){
-		curr_hk_rec = &g_conf.hard_link.records[ i ];
-		SU_DEBUG_3(("\t%d/\"%s\":%s:%s\n",
-				i+1, curr_hk_rec->id, 
-				curr_hk_rec->pair_route, curr_hk_rec->pair_chan));
+	SU_DEBUG_3(("HardLinks :\n"));
+	for(i=0; i<CHANS_MAX; i++){
+		curr_hk_rec = &g_conf.hard_link[ i ];
+		if(curr_hk_rec->type == hl_type_UNDEFINED){
+			continue;
+		} else if(curr_hk_rec->type == hl_type_2_WIRED){
+			SU_DEBUG_3(("\t2w/"));
+		} else if(curr_hk_rec->type == hl_type_4_WIRED){
+			SU_DEBUG_3(("\t4w/"));
+		}
+		if(curr_hk_rec->hl_codec.type == cod_type_MLAW){
+			SU_DEBUG_3(("uL/"));
+		} else if(curr_hk_rec->hl_codec.type == cod_type_ALAW){
+			SU_DEBUG_3(("aL/"));
+		}
+		SU_DEBUG_3(("s%d/up%d/",
+				curr_hk_rec->hl_codec.pkt_size,
+				curr_hk_rec->hl_codec.user_payload));
+
+		SU_DEBUG_3(("i%d/id\"%s\":%s:%s/aic_%d\n",
+				i, curr_hk_rec->id, 
+				curr_hk_rec->pair_route, curr_hk_rec->pair_chan,
+				curr_hk_rec->am_i_caller));
 	}
 
 	if(g_conf.route_table.records_num){
@@ -871,11 +880,12 @@ __exit_fail:
 static int 
 hardlink_init( void )
 {/*{{{*/
-	/* ("chan_id", "pair_route_id", "pair_chan_id" ), */
+	/* ("w_type", "chan_id", "pair_route_id", "pair_chan_id",
+	 * 		codec_name, pkt_sz, vol_tx, vol_rx), */
 	struct config_t cfg;
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
-	struct hdln_record_s * curr_rec; 
+	struct hard_link_s * curr_rec; 
 	char const * elem;
 	int elem_len;
 	int rec_num;
@@ -894,39 +904,67 @@ hardlink_init( void )
 
 	set = config_lookup (&cfg, "hard_link" );
 	if( !set){
-		g_conf.hard_link.records_num = 0;
+		/* no hardlinked channels */
 		goto __exit_success;
 	} 
 
 	rec_num = config_setting_length (set);
 
-	g_conf.hard_link.records_num = rec_num;
-	g_conf.hard_link.records = malloc 
-			(rec_num * sizeof(*(g_conf.hard_link.records)));
-	if( !g_conf.hard_link.records ){
-		SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
+	if(rec_num > CHANS_MAX){
+		SU_DEBUG_0(("%s(): Too many channels (%d) in config - max is %d\n",
+				__func__, rec_num, CHANS_MAX));
 		goto __exit_fail;
 	}
-	memset(g_conf.hard_link.records, 0, rec_num * 
-			sizeof(*(g_conf.hard_link.records)));
 
-	for(i = 0; i < rec_num; i++){
+	for(i=0; i<rec_num; i++){
+		int chan_id;
+		int pair_chan;
 		int router_is_self;
-		curr_rec = &g_conf.hard_link.records[ i ];
+
 		rec_set = config_setting_get_elem (set, i);
 
 		/* get chan_id */
+		elem = config_setting_get_string_elem (rec_set, 1);
+		chan_id = strtol (elem, NULL, 10);
+
+		/* get pair_chan_id */
+		elem = config_setting_get_string_elem (rec_set, 3);
+		pair_chan = strtol (elem, NULL, 10);
+
+		/* get wire type */
 		elem = config_setting_get_string_elem (rec_set, 0);
-		strncpy(curr_rec->id, elem, CHAN_ID_LEN-1);
+		if( !strcmp(elem, CONF_WIRETYPE_2)){
+			curr_rec = &g_conf.hard_link[ chan_id ];
+			curr_rec->type = hl_type_2_WIRED;
+		} else if( !strcmp(elem, CONF_WIRETYPE_4)){
+			/* we should choise proper channels (even_odd_pair) */
+			if( chan_id%2){
+				/* if chan is odd (0X) - make it even (X0) */
+				chan_id--;
+			}
+			if( !(pair_chan%2)){
+				/* if pair is even (X0)* - make it odd (0X) */
+				pair_chan++;
+			}
+			curr_rec = &g_conf.hard_link[ chan_id ];
+			curr_rec->type = hl_type_4_WIRED;
+		}
+
+		/* set chan_id to rec */
+		fprintf(stderr,"i%d, ch=%d, pch=%d\n", i, chan_id, pair_chan);
+		snprintf(curr_rec->id, CHAN_ID_LEN, "%02d", chan_id);
+
+		/* set pair_chan chan to rec */
+		snprintf(curr_rec->pair_chan, CHAN_ID_LEN, "%02d", pair_chan);
 
 		/* get pair_route_id */
-		elem = config_setting_get_string_elem (rec_set, 1);
+		elem = config_setting_get_string_elem (rec_set, 2);
 		elem_len = strlen(elem);
 		if (elem_len+1 < ROUTE_ID_LEN_DF){
 			curr_rec->pair_route = curr_rec->pair_route_s;
 		} else {
-			curr_rec->pair_route = malloc((elem_len+1)*
-					sizeof(*(curr_rec->pair_route)));
+			curr_rec->pair_route = malloc(
+					(elem_len+1)*sizeof(*(curr_rec->pair_route)));
 			if( !curr_rec->pair_route){
 				SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
 				goto __exit_fail;
@@ -934,16 +972,14 @@ hardlink_init( void )
 		}
 		strcpy (curr_rec->pair_route, elem);
 
-		/* get pair_chan_id */
-		elem = config_setting_get_string_elem (rec_set, 2);
-		strncpy(curr_rec->pair_chan, elem, CHAN_ID_LEN-1);
-
 		/* set am_i_caller flag by parsing the value string */
-		router_is_self = (curr_rec->pair_route[0] == SELF_MARKER) ||
-				(!strcmp(curr_rec->pair_route, g_conf.self_number));
+		if(curr_rec->pair_route[0] == SELF_MARKER){
+			strcpy(curr_rec->pair_route, g_conf.self_number);
+		}
+		router_is_self = !strcmp(curr_rec->pair_route, g_conf.self_number);
 		if (router_is_self){
 			/* test what chan is greater */
-			int ret = strcmp(curr_rec->id, curr_rec->pair_chan);
+			int ret = chan_id - pair_chan;
 			if       (ret > 0){
 				/* current is greater */
 				curr_rec->am_i_caller = 1;
@@ -970,22 +1006,86 @@ hardlink_init( void )
 				goto __exit_fail;
 			}
 		}
+
+		/* get codec name and payload set */
+		elem = config_setting_get_string_elem (rec_set, 4);
+		if( !strcmp(elem, CONF_CODEC_ALAW)){
+			curr_rec->hl_codec.type = cod_type_ALAW;
+		} else if( !strcmp(elem, CONF_CODEC_MLAW)){
+			curr_rec->hl_codec.type = cod_type_MLAW;
+		} 
+
+		/* get packet size */
+		elem = config_setting_get_string_elem (rec_set, 5);
+		if       ( !strcmp(elem, "2.5")){
+			curr_rec->hl_codec.pkt_size = cod_pkt_size_2_5;
+		} else if( !strcmp(elem, "5")){
+			curr_rec->hl_codec.pkt_size = cod_pkt_size_5;
+		} else if( !strcmp(elem, "5.5")){
+			curr_rec->hl_codec.pkt_size = cod_pkt_size_5_5;
+		} else if( !strcmp(elem, "10")){
+			curr_rec->hl_codec.pkt_size = cod_pkt_size_10;
+		} else if( !strcmp(elem, "11")){
+			curr_rec->hl_codec.pkt_size = cod_pkt_size_11;
+		} else if( !strcmp(elem, "20")){
+			curr_rec->hl_codec.pkt_size = cod_pkt_size_20;
+		} else if( !strcmp(elem, "30")){
+			curr_rec->hl_codec.pkt_size = cod_pkt_size_30;
+		} else if( !strcmp(elem, "40")){
+			curr_rec->hl_codec.pkt_size = cod_pkt_size_40;
+		} else if( !strcmp(elem, "50")){
+			curr_rec->hl_codec.pkt_size = cod_pkt_size_50;
+		} else if( !strcmp(elem, "60")){
+			curr_rec->hl_codec.pkt_size = cod_pkt_size_60;
+		}
+
+		/* bit pack set */
+		curr_rec->hl_codec.bpack = bitpack_RTP;
+
+		/* set rtp parameters */
+		g_conf.rtp_prms[chan_id].is_set = 1;
+		g_conf.rtp_prms[chan_id].OOB = evts_OOB_NO;
+		g_conf.rtp_prms[chan_id].OOB_play = play_evts_MUTE;
+		g_conf.rtp_prms[chan_id].evtPT = 0x62;
+		g_conf.rtp_prms[chan_id].evtPTplay = 0x62;
+		g_conf.rtp_prms[chan_id].COD_Tx_vol= 
+				config_setting_get_int_elem (rec_set, 5);
+		g_conf.rtp_prms[chan_id].COD_Rx_vol = 
+				config_setting_get_int_elem (rec_set, 6);
+		g_conf.rtp_prms[chan_id].VAD_cfg = vad_cfg_OFF;
+		g_conf.rtp_prms[chan_id].HPF_is_ON = 0;
+
+		if (curr_rec->type == hl_type_4_WIRED){
+			/* add record for this channel and for the second stream */
+			/* copy rtp_params */
+			memcpy(&g_conf.rtp_prms[chan_id+1], &g_conf.rtp_prms[chan_id], 
+					sizeof(g_conf.rtp_prms[chan_id]));
+
+			/* copy hardlinked params */
+			memcpy(&g_conf.hard_link[ chan_id+1 ], 
+					&g_conf.hard_link[ chan_id ],
+					sizeof(g_conf.hard_link[chan_id]));
+
+			/* revert channels for feedback chan */
+			snprintf (g_conf.hard_link[ chan_id+1 ].id,
+					CHAN_ID_LEN, "%02d", chan_id+1);
+			snprintf (g_conf.hard_link[ chan_id+1 ].pair_chan,
+					CHAN_ID_LEN, "%02d", pair_chan-1);
+		}
 	}
+
 __exit_success:
 	config_destroy (&cfg);
 	return 0;
 __exit_fail:
-	if(g_conf.hard_link.records) {
-		for(i=0; i<rec_num; i++){
-			curr_rec = &g_conf.hard_link.records[ i ];
-			if( curr_rec->pair_route && 
-					curr_rec->pair_route != curr_rec->pair_route_s ){
-				free (curr_rec->pair_route);
-				curr_rec->pair_route = NULL;
-			}
+	for(i=0; i<CHANS_MAX; i++){
+		curr_rec = &g_conf.hard_link[ i ];
+		if( curr_rec->type != hl_type_UNDEFINED && 
+				curr_rec->pair_route && 
+				curr_rec->pair_route != curr_rec->pair_route_s ){
+			free (curr_rec->pair_route);
+			curr_rec->pair_route = NULL;
 		}
-		free(g_conf.hard_link.records);
-		g_conf.hard_link.records = NULL;
 	}
 	config_destroy (&cfg);
 	return -1;

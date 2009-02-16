@@ -1,6 +1,9 @@
 #ifndef __AB_API_H__
 #define __AB_API_H__
 
+/* Maximum channels on the boards */
+#define CHANS_MAX 32
+
 typedef enum ab_dev_type_e ab_dev_type_t;
 typedef enum cod_type_e cod_type_t;
 typedef struct codec_s codec_t;
@@ -145,7 +148,7 @@ struct ab_dev_event_s {
 
 struct ab_chan_s {
 	unsigned int idx;   /**< Channel index on device (from 1) */
-	unsigned char abs_idx; /**< Channel index on boards (from 1) */
+	unsigned char abs_idx; /**< Channel index on boards (from 0) */
 	ab_dev_t * parent;  /**< device that channel belongs */
 	int rtp_fd;         /**< Channel file descriptor */
 	struct ab_chan_status_s status;  /**< Channel status info */
@@ -165,7 +168,9 @@ struct ab_s {
 	unsigned int devs_num;	/**< Devices number on the boards */
 	ab_dev_t * devs;	/**< Devices of the boards */
 	unsigned int chans_num;	/**< Channels number on the boards */
-	ab_chan_t * chans;	/**< Channels of the boards */
+	ab_chan_t * chans;	/**< Channels of the boards according to idx */
+	ab_chan_t * pchans[CHANS_MAX]; /**< Pointers to channels according 
+									to abs_idx*/
 	unsigned int chans_per_dev;/**< Channels number per device */
 };
 
@@ -198,8 +203,8 @@ extern int ab_g_err_extra_value;
 ab_t* ab_create (void);
 /** Destroy the ab_t object. */
 void ab_destroy (ab_t ** ab);
-/** Get chan idx by absolute number. */
-int ab_get_chan_idx_by_abs(ab_t const * const ab, int const abs_idx);
+//** Get chan idx by absolute number. */
+//int ab_get_chan_idx_by_abs(ab_t const * const ab, int const abs_idx);
 //ab_chan_t * ab_get_chan_by_abs(int const abs_idx);
 //ab_chan_t * ab_get_chan_by_idx(int const idx);
 /** @} */

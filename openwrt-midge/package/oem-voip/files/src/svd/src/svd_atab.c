@@ -741,7 +741,7 @@ do{
 	}
 	chan_ctx = svd->ab->chans[chan_idx].ctx;
 
-	/* tag__ do not process hardlinked event */
+	/* do not process hardlinked event */
 	if( chan_ctx->is_hardlinked ){
 		continue;
 	}
@@ -1062,7 +1062,6 @@ static int
 svd_chans_init ( svd_t * const svd )
 {/*{{{*/
 	int i;
-	int j;
 	int k;
 	unsigned char route_id_len;
 	unsigned char addrbk_id_len;
@@ -1133,37 +1132,36 @@ DFS
 	for (i=0; i<k; i++){
 		struct htln_record_s * curr_rec = &g_conf.hot_line.records[ i ];
 		int hl_id;
-
 		hl_id = strtol (curr_rec->id, NULL, 10);
-		for (j=0; j<chans_num; j++){
-			ab_chan_t * curr_chan = &svd->ab->chans [j];
-			svd_chan_t * chan_ctx = curr_chan->ctx;
-			if( hl_id == curr_chan->abs_idx ){
-				chan_ctx->is_hotlined = 1;
-				chan_ctx->hotline_addr = curr_rec->value;
-			}
-		}
+		ab_chan_t * curr_chan = svd->ab->pchans [hl_id];
+		svd_chan_t * chan_ctx = curr_chan->ctx;
+
+		chan_ctx->is_hotlined = 1;
+		chan_ctx->hotline_addr = curr_rec->value;
 	}
 
 	/* HARDLINK */
-	k = g_conf.hard_link.records_num;
-	for (i=0; i<k; i++){
-		struct hdln_record_s * curr_rec = &g_conf.hard_link.records[ i ];
+	for (i=0; i<CHANS_MAX; i++){
+		struct hard_link_s * curr_rec = &g_conf.hard_link[ i ];
 		int hl_id;
 
+		if(curr_rec->type == hl_type_UNDEFINED){
+			continue;
+		}
+
 		hl_id = strtol (curr_rec->id, NULL, 10);
-		for (j=0; j<chans_num; j++){
-			ab_chan_t * curr_chan = &svd->ab->chans [j];
-			svd_chan_t * chan_ctx = curr_chan->ctx;
-			if( hl_id == curr_chan->abs_idx ){
-				chan_ctx->is_hardlinked = 1;
-				chan_ctx->hardlink = curr_rec;
-				/* set linefeed to active for all hardlinked channels */
-				err = ab_FXS_line_feed(curr_chan, ab_chan_linefeed_ACTIVE);
-				if(err){
-					goto __exit_fail;
-				}
-			}
+		ab_chan_t * curr_chan = svd->ab->pchans [hl_id];
+		svd_chan_t * chan_ctx = curr_chan->ctx;
+
+/*tag__*/
+		fprintf(stderr,">>> hardlinked : %d\n",svd->ab->pchans[i]->abs_idx);
+
+		chan_ctx->is_hardlinked = 1;
+		chan_ctx->hardlink = curr_rec;
+		/* set linefeed to active for all hardlinked channels */
+		err = ab_FXS_line_feed(curr_chan, ab_chan_linefeed_ACTIVE);
+		if(err){
+			goto __exit_fail;
 		}
 	}
 
@@ -1183,34 +1181,32 @@ DFS
 
 	/* set values for all/some chans from cfg */
 	for (i=0; i<CHANS_MAX; i++){
-		struct rtp_prms_s * curr_rec = &g_conf.rtp_prms[ i ];
+		struct rtp_prms_s * curr_rec = &g_conf.rtp_prms[i];
+		ab_chan_t * curr_chan = svd->ab->pchans[i];
 		if( !curr_rec->is_set){
 			continue;
 		}
-
-		for (j=0; j<chans_num; j++){
-			ab_chan_t * curr_chan = &svd->ab->chans [j];
-			if( i == curr_chan->abs_idx ){
-				if ( curr_rec->OOB == evts_OOB_DEFAULT){
-					curr_chan->rtp_cfg.nEvents = evts_OOB_ONLY;
-				} else {
-					curr_chan->rtp_cfg.nEvents = curr_rec->OOB;
-				}
-				if ( curr_rec->OOB_play == play_evts_DEFAULT){
-					curr_chan->rtp_cfg.nPlayEvents = play_evts_PLAY;
-				} else {
-					curr_chan->rtp_cfg.nEvents = curr_rec->OOB_play;
-				}
-				curr_chan->rtp_cfg.evtPT = curr_rec->evtPT;
-				curr_chan->rtp_cfg.evtPTplay = curr_rec->evtPTplay;
-				curr_chan->rtp_cfg.cod_volume.enc_dB = curr_rec->COD_Tx_vol;
-				curr_chan->rtp_cfg.cod_volume.dec_dB = curr_rec->COD_Rx_vol;
-				curr_chan->rtp_cfg.VAD_cfg = curr_rec->VAD_cfg;
-				curr_chan->rtp_cfg.HPF_is_ON = curr_rec->HPF_is_ON;
-
-				break;
-			}
+		if( !curr_chan){
+			SU_DEBUG_0((LOG_FNC_A("rtp_record for unexistent channel")));
+			goto __exit_fail;
 		}
+
+		if ( curr_rec->OOB == evts_OOB_DEFAULT){
+			curr_chan->rtp_cfg.nEvents = evts_OOB_ONLY;
+		} else {
+			curr_chan->rtp_cfg.nEvents = curr_rec->OOB;
+		}
+		if ( curr_rec->OOB_play == play_evts_DEFAULT){
+			curr_chan->rtp_cfg.nPlayEvents = play_evts_PLAY;
+		} else {
+			curr_chan->rtp_cfg.nEvents = curr_rec->OOB_play;
+		}
+		curr_chan->rtp_cfg.evtPT = curr_rec->evtPT;
+		curr_chan->rtp_cfg.evtPTplay = curr_rec->evtPTplay;
+		curr_chan->rtp_cfg.cod_volume.enc_dB = curr_rec->COD_Tx_vol;
+		curr_chan->rtp_cfg.cod_volume.dec_dB = curr_rec->COD_Rx_vol;
+		curr_chan->rtp_cfg.VAD_cfg = curr_rec->VAD_cfg;
+		curr_chan->rtp_cfg.HPF_is_ON = curr_rec->HPF_is_ON;
 	}
 DFE
 	return 0;
@@ -1790,17 +1786,26 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 		SU_DEBUG_2 ((LOG_FNC_A("wrong event")));
 		goto __exit_fail;
 	} else if(rode > 0){
-		sent = sendto(chan_ctx->rtp_sfd, buf, rode, 0, 
-				&target_sock_addr, sizeof(target_sock_addr));
-		if (sent == -1){
-			SU_DEBUG_2 (("HLD() ERROR : sent() : %d(%s)\n",
-					errno, strerror(errno)));
-			goto __exit_fail;
-		} else if (sent != rode){
-			SU_DEBUG_2(("HLD() ERROR :RODE FROM rtp_stream : %d, but "
-					"SENT TO socket : %d\n",
-					rode, sent));
-			goto __exit_fail;
+		int should_block = 
+				chan_ctx->is_hardlinked &&
+				(chan_ctx->hardlink->type == hl_type_4_WIRED) &&
+				(chan->idx == 2);  
+		/* hardlinked 4w chan feedback (rx) channel */
+
+		if( !should_block){
+			/* should not block */
+			sent = sendto(chan_ctx->rtp_sfd, buf, rode, 0, 
+					&target_sock_addr, sizeof(target_sock_addr));
+			if (sent == -1){
+				SU_DEBUG_2 (("HLD() ERROR : sent() : %d(%s)\n",
+						errno, strerror(errno)));
+				goto __exit_fail;
+			} else if (sent != rode){
+				SU_DEBUG_2(("HLD() ERROR :RODE FROM rtp_stream : %d, but "
+						"SENT TO socket : %d\n",
+						rode, sent));
+				goto __exit_fail;
+			}
 		}
 	} else {
 		SU_DEBUG_2 (("HLD() ERROR : read() : %d(%s)\n",
@@ -1848,17 +1853,26 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 		SU_DEBUG_2 ((LOG_FNC_A("wrong event")));
 		goto __exit_fail;
 	} else if (received > 0){
-		writed = write(chan->rtp_fd, buf, received);
-		if (writed == -1){
-			SU_DEBUG_2 (("HRD() ERROR : write() : %d(%s)\n",
-					errno, strerror(errno)));
-			goto __exit_fail;
-		} else if (writed != received){
-			SU_DEBUG_2(("HRD() ERROR :"
-					"RECEIVED FROM socket : %d, but "
-					"WRITED TO rtp-stream : %d\n",
-					received, writed));
-			goto __exit_fail;
+		int should_block = 
+				chan_ctx->is_hardlinked &&
+				(chan_ctx->hardlink->type == hl_type_4_WIRED) &&
+				(chan->idx == 1); 
+		/* hardlinked 4w chan direct (tx) channel */
+
+		if( !should_block){
+			/* should not block */
+			writed = write(chan->rtp_fd, buf, received);
+			if (writed == -1){
+				SU_DEBUG_2 (("HRD() ERROR : write() : %d(%s)\n",
+						errno, strerror(errno)));
+				goto __exit_fail;
+			} else if (writed != received){
+				SU_DEBUG_2(("HRD() ERROR :"
+						"RECEIVED FROM socket : %d, but "
+						"WRITED TO rtp-stream : %d\n",
+						received, writed));
+				goto __exit_fail;
+			}
 		}
 	} else {
 		SU_DEBUG_2 (("HRD() ERROR : recv() : %d(%s)\n",
