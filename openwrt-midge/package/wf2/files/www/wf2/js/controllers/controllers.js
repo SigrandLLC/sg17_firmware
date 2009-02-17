@@ -572,7 +572,7 @@ Controllers.tools = function() {
 			c.addTitle("syslog");
 			
 			/* working directory for script is ./wf2/sh, where execute.cgi is located */
-			c.addConsole("/sbin/logread |./colorizelog.sh");
+			c.addConsole("/sbin/logread");
 		}
 	});
 	

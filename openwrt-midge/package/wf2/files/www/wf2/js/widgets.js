@@ -1240,7 +1240,14 @@ function Container(p, options) {
 	 * message - text of message.
 	 */
 	this.addStaticMessage = function(message) {
-		$.create("div", {"className": "message"}, _(message)).prependTo(p).show();
+		$.create("div", {"className": "message staticMessage"}, _(message)).prependTo(p).show();
+	};
+
+	/*
+	 * Remove divs with static message.
+	 */
+	this.removeStaticMessages = function() {
+		$(".staticMessage", p).remove();
 	};
 	
 	/*

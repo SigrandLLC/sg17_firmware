@@ -737,6 +737,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			
 			/* remove br and all forms, except first */
 			$("form:eq(1) ~ br, form:eq(0) ~ form").remove();
+
+			c.removeStaticMessages();
 			
 			if ($("#unit").val() == "general") {
 				config.cmdExecute({
@@ -756,17 +758,11 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		/* create hash with channel units */
 		var units = {"general": "General"};
 		if (eocInfo.unit_num > 0) {
+			/* statistics for each unit is available even EOC is offline */
 			units['stu-c'] = "STU-C";
-			if (eocInfo.link == "1") {
-				units['stu-r'] = "STU-R";
-				for (var i = 1; i <= eocInfo.status.reg_num; i++) {
-					units['sru' + i] = "SRU" + i;
-				}
-			} else {
-				/* do not show statistics for last regenerator if EOC is offline */
-				for (var i = 1; i < eocInfo.status.reg_num; i++) {
-					units['sru' + i] = "SRU" + i;
-				}
+			units['stu-r'] = "STU-R";
+			for (var i = 1; i <= eocInfo.status.reg_num; i++) {
+				units['sru' + i] = "SRU" + i;
 			}
 		}
 		
@@ -1319,20 +1315,17 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		};
 		
 		/* container */
-		var c;
+		var c = page.addContainer("statistics");
+		c.setHelpPage("eoc");
 		
 		/* this means that we received not JSON data */
 		if (typeof eocInfo != "object") {
-			c = page.addContainer("statistics");
-			c.setHelpPage("eoc");
 			c.addTitle("Error on the device while performing AJAX request or router is offline.");
 			return;
 		}
 		
 		/* if error, show corresponding field */
 		if (eocInfo.eoc_error == "1") {
-			c = page.addContainer("statistics");
-			c.setHelpPage("eoc");
 			c.addTitle("EOC error");
 			
 			var field = {
@@ -1346,10 +1339,21 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			
 			return;
 		}
+
+		/* show message if EOC is offline and this unit is not STU-C, which is always available */
+		if (eocInfo.unit != "STU-C") {
+			config.cmdExecute({
+				"cmd": $.sprintf("%s -n -i%s", eocInfoCmd, iface),
+				"callback": function(eocInfo) {
+					if (eocInfo.link == "0") {
+						c.addStaticMessage("EOC is offline, this data is outdated.");
+					}
+				},
+				"dataType": "json"
+			});
+		}
 		
 		/* add State table */
-		c = page.addContainer("statistics");
-		c.setHelpPage("eoc");
 		c.addTitle(iface + " state", {"colspan": 9});
 		c.addTableHeader("Side|Pair|SNR|LoopAttn|ES|SES|CV|LOSWS|UAS");
 		
@@ -1853,11 +1857,11 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				/* do not show statistics for manual-controlled interfaces */
 				if (config.get($.sprintf("sys_pcicfg_s%s_%s_ctrl", pcislot, pcidev)) == "manual") {
 					c = page.addContainer("statistics");
-					c.addTitle("Statistics are available only for interfaces with EOCd control");
+					c.addTitle("Statistics is available only for interfaces with EOCd control");
 					return;
 				} else if (config.get($.sprintf("sys_eocd_chan_s%s_%s_master", pcislot, pcidev)) != "1") {
 					c = page.addContainer("statistics");
-					c.addTitle("Statistics are available only for master interface");
+					c.addTitle("Statistics is available only for master interface");
 					return;
 				} else if (!config.isOnline()) {
 					c = page.addContainer("statistics");
