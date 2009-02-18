@@ -1355,7 +1355,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		
 		/* add State table */
 		c.addTitle(iface + " state", {"colspan": 9});
-		c.addTableHeader("Side|Pair|SNR|LoopAttn|ES|SES|CV|LOSWS|UAS");
+		c.addTableHeader("Side|Pair|SNR margin|LoopAttn|ES|SES|CV|LOSWS|UAS");
 		
 		$.each(eocInfo.sides, function(num, side) {
 			$.each(side.loops, function(num, loop) {
