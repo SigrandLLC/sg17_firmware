@@ -77,6 +77,7 @@ sys_switch_port3_iface=3
 sys_switch_ports=0\0401\0402\0403
 sys_timezone=0
 sys_voip_route_0=enabled\0751\040router_id\075100\040address\075192.168.2.100\040comment\075self
+sys_eocd_sprof_0=name=default annex=A power=off rate=2304 tcpam=tcpam16 comp=base _attrReadonly=true
 sys_voip_settings_rtp_port_first=5000
 sys_voip_settings_rtp_port_last=5500
 sys_voip_settings_log=0

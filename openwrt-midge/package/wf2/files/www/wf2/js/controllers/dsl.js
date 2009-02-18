@@ -1435,6 +1435,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 	var eocProfiles = function() {
 		var c, field;
 		c = page.addContainer("eoc_profiles");
+		c.setSubsystem("eoc_profile");
 		c.setHelpPage("dsl-eoc");
 
 		/*

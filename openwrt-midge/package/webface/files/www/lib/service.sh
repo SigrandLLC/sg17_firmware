@@ -37,6 +37,9 @@ service_reload(){
 		# restart EOCd
 		/usr/bin/killall -HUP eocd
 	;;
+	eoc_profile)
+		/usr/bin/killall -HUP eocd
+	;;
 	e1*)
 		tmp=${service#*.}
 		slot=${tmp%.*}
