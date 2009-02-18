@@ -80,7 +80,6 @@ _dsl_mr17ifcfg(){
 	    mode=""
 	    code=""
 	    annex=""
-	    pbo=""
         pwron=""
 	fi
 	    
