@@ -471,11 +471,14 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"descr": "DSL line coding.",
 				"options": chipVer == "v1"	? "tcpam8 tcpam16 tcpam32"
 											: "tcpam8 tcpam16 tcpam32 tcpam64 tcpam128",
-				"defaultValue": "tcpam32",
+				"defaultValue": "tcpam16",
 				"cssClass": "widgetManualMaster",
 				"onChange": function() {
 					/* update rate list */
-					$("#rate").setOptionsForSelect({"options": getRates(chipVer, $("#tcpam").val())});
+					$("#rate").setOptionsForSelect({
+							"options": getRates(chipVer, $("#tcpam").val()),
+							"curValue": getNearestCorrectRate(chipVer, $("#tcpam").val(), $("#rate").val())
+					});
 					setMrate();
 
 					/* update description */
@@ -493,7 +496,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"descr": getDslRateDescr(chipVer, $("#tcpam").val()),
 				"onChange": setMrate,
 				"cssClass": "widgetManualMaster",
-				"options": getRates(chipVer, $("#tcpam").val())
+				"options": getRates(chipVer, $("#tcpam").val()),
+				"defaultValue": "2304"
 			};
 			c.addWidget(field, {"type": "insertAfter", "anchor": $("#tcpam").parents("tr")});
 			setMrate();
@@ -609,7 +613,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"id": "clockMode",
 				"text": "Clock mode",
 				"descr": "DSL clock mode.",
-				"options": "plesio plesio-ref sync",
+				"options": "sync plesio plesio-ref",
 				"cssClass": "widgetMaster"
 			};
 			c.addWidget(field, {"type": "insertBefore", "anchor": $("#pbomode").parents("tr")});
@@ -1505,18 +1509,24 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"descr": "Profile's compatibility level.",
 				"options": "base extended",
 				"onChange": function() {
+					var comp = ($("#comp").val() == "base") ? "v1" : "v2";
+
 					/* update tcpam list */
-					$("#tcpam").setOptionsForSelect({"options": getTcpamValues(), "curValue": "tcpam32"});
+					$("#tcpam").setOptionsForSelect({
+							"options": getTcpamValues(),
+							"curValue": $("#tcpam").val(),
+							"defaultValue": "tcpam16"
+					});
 
 					/* update rate list */
 					$("#rate").setOptionsForSelect({
-							"options": getRates(($("#comp").val() == "base") ? "v1" : "v2", $("#tcpam").val())
+							"options": getRates(comp, $("#tcpam").val()),
+							"curValue": getNearestCorrectRate(comp, $("#tcpam").val(), $("#rate").val())
 					});
 					setMrate();
 
 					/* update description */
-					$("#rate").nextAll("p").html(getDslRateDescr(
-							($("#comp").val() == "base") ? "v1" : "v2", $("#tcpam").val()));
+					$("#rate").nextAll("p").html(getDslRateDescr(comp, $("#tcpam").val()));
 				}
 			};
 			list.addDynamicWidget(field);
@@ -1528,17 +1538,19 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"text": "Encoding",
 				"descr": "DSL line coding.",
 				"options": getTcpamValues(),
-				"defaultValue": "tcpam32",
+				"defaultValue": "tcpam16",
 				"onChange": function() {
+					var comp = ($("#comp").val() == "base") ? "v1" : "v2";
+
 					/* update rate list */
 					$("#rate").setOptionsForSelect({
-							"options": getRates(($("#comp").val() == "base") ? "v1" : "v2", $("#tcpam").val())
+							"options": getRates(comp, $("#tcpam").val()),
+							"curValue": getNearestCorrectRate(comp, $("#tcpam").val(), $("#rate").val())
 					});
 					setMrate();
 
 					/* update description */
-					$("#rate").nextAll("p").html(getDslRateDescr(
-							($("#comp").val() == "base") ? "v1" : "v2", $("#tcpam").val()));
+					$("#rate").nextAll("p").html(getDslRateDescr(comp, $("#tcpam").val()));
 				}
 			};
 			list.addDynamicWidget(field);
@@ -1550,6 +1562,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"text": "Rate",
 				"descr": getDslRateDescr(($("#comp").val() == "base") ? "v1" : "v2", $("#tcpam").val()),
 				"options": getRates(($("#comp").val() == "base") ? "v1" : "v2", $("#tcpam").val()),
+				"defaultValue": "2304",
 				"onChange": setMrate
 			};
 			list.addDynamicWidget(field);

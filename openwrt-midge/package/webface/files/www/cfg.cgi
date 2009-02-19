@@ -58,6 +58,7 @@ case "$act" in
 		echo "<html><body>"
 		echo "<h2>Default configuration restored"
 		echo "<br><br><b>Device is rebooting.</b>"
+		echo "<br><br><a href='/wf2/'>Open web-interface</a>"
 		/sbin/reboot
 	;;
 esac
