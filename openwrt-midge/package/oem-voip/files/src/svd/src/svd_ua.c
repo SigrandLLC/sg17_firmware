@@ -548,6 +548,7 @@ svd_place_hardlinks (svd_t * const svd)
 {/*{{{*/
 	int i;
 	int j;
+	int k;
 	int err;
 	int routers_num;
 DFS
@@ -564,11 +565,11 @@ DFS
 			strcpy (ctx->dial_status.chan_id, curr_rec->pair_chan);
 			/* get pair_route */
 			err = 1;
-			for(j=0;j<routers_num;j++){
+			for(k=0;k<routers_num;k++){
 				if( !strcmp(curr_rec->pair_route, 
-									g_conf.route_table.records[j].id)){
+									g_conf.route_table.records[k].id)){
 					ctx->dial_status.route_ip = 
-									g_conf.route_table.records[j].value;
+									g_conf.route_table.records[k].value;
 					err = 0;
 					break;
 				}
@@ -1308,7 +1309,7 @@ DFE
  * \param[in] 	sip		sip headers.
  * \param[in] 	tags	event tags.
  * \remark
- * 		Make athentications if we need it.
+ * 		Make authentications if we need it.
  */
 static void 
 svd_r_invite( int status, char const *phrase, nua_t * nua, svd_t * svd,
@@ -1322,7 +1323,7 @@ DFS
 		if (status == 401 || status == 407) {
 			svd_authenticate (svd, nh, sip, tags);
 		}
-		if (status == 486){ /*tag___ FXS/FXO*/
+		if (status == 486){
 			/* busy - play busy tone */
 			/* playing busy tone on the chan */
 			if(ab_FXS_line_tone (chan, ab_chan_tone_BUSY)){

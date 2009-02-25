@@ -951,7 +951,6 @@ hardlink_init( void )
 		}
 
 		/* set chan_id to rec */
-		fprintf(stderr,"i%d, ch=%d, pch=%d\n", i, chan_id, pair_chan);
 		snprintf(curr_rec->id, CHAN_ID_LEN, "%02d", chan_id);
 
 		/* set pair_chan chan to rec */

@@ -1153,9 +1153,6 @@ DFS
 		ab_chan_t * curr_chan = svd->ab->pchans [hl_id];
 		svd_chan_t * chan_ctx = curr_chan->ctx;
 
-/*tag__*/
-		fprintf(stderr,">>> hardlinked : %d\n",svd->ab->pchans[i]->abs_idx);
-
 		chan_ctx->is_hardlinked = 1;
 		chan_ctx->hardlink = curr_rec;
 		/* set linefeed to active for all hardlinked channels */
@@ -1761,18 +1758,11 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 	int rode; 
 	int sent; 
 
-	/*
-	assert( chan->ctx->remote_port != 0 );
-	assert( chan->ctx->remote_host );
-	*/
 	if (chan_ctx->remote_port == 0 ||
 			chan_ctx->remote_host == NULL){
-		SU_DEBUG_2(("HLD() ERROR : r_host = %s, r_port = %d\n",
-				chan_ctx->remote_host,
-				chan_ctx->remote_port));
 		rode = read(chan->rtp_fd, buf, sizeof(buf));
-		SU_DEBUG_2(("RODE FROM rtp_stream : %d\n", rode));
-		goto __exit_fail;
+		SU_DEBUG_2(("HLD(0):%d\n",rode));
+		goto __exit_success;
 	}
 
 	memset(&target_sock_addr, 0, sizeof(target_sock_addr));
@@ -1786,7 +1776,7 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 		SU_DEBUG_2 ((LOG_FNC_A("wrong event")));
 		goto __exit_fail;
 	} else if(rode > 0){
-		int should_block = 
+		int should_block = /*0 tag__ */
 				chan_ctx->is_hardlinked &&
 				(chan_ctx->hardlink->type == hl_type_4_WIRED) &&
 				(chan->idx == 2);  
@@ -1806,6 +1796,8 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 						rode, sent));
 				goto __exit_fail;
 			}
+		} else {
+			SU_DEBUG_2 (("HLD() BLOCKED\n"));
 		}
 	} else {
 		SU_DEBUG_2 (("HLD() ERROR : read() : %d(%s)\n",
@@ -1813,6 +1805,7 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 		goto __exit_fail;
 	} 
 
+__exit_success:
 	return 0;
 __exit_fail:
 	return -1;
@@ -1853,7 +1846,7 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 		SU_DEBUG_2 ((LOG_FNC_A("wrong event")));
 		goto __exit_fail;
 	} else if (received > 0){
-		int should_block = 
+		int should_block = /* 0; tag__ */
 				chan_ctx->is_hardlinked &&
 				(chan_ctx->hardlink->type == hl_type_4_WIRED) &&
 				(chan->idx == 1); 
@@ -1863,16 +1856,17 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 			/* should not block */
 			writed = write(chan->rtp_fd, buf, received);
 			if (writed == -1){
-				SU_DEBUG_2 (("HRD() ERROR : write() : %d(%s)\n",
+				SU_DEBUG_2 (("HRD() ERROR: write() : %d(%s)\n",
 						errno, strerror(errno)));
 				goto __exit_fail;
 			} else if (writed != received){
-				SU_DEBUG_2(("HRD() ERROR :"
-						"RECEIVED FROM socket : %d, but "
+				SU_DEBUG_2(("HRD() ERROR: RECEIVED FROM socket : %d, but "
 						"WRITED TO rtp-stream : %d\n",
 						received, writed));
 				goto __exit_fail;
 			}
+		} else {
+			SU_DEBUG_2 (("HRD() BLOCKED\n"));
 		}
 	} else {
 		SU_DEBUG_2 (("HRD() ERROR : recv() : %d(%s)\n",
