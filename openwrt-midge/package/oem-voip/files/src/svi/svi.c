@@ -37,9 +37,6 @@
 #define VIN_DEV_NODE_PREFIX "/dev/vin"
 #define VINETIC_MAJOR 121
 #define FXO_OSI_MAX 600
-
-#define BEFORE_BASICDEV_INIT_USLEEP 2000
-#define AFTER_BASICDEV_INIT_USLEEP 2000
 /*}}}*/
 /*{{{ Global VARS */
 /*
@@ -458,9 +455,6 @@ basicdev_init( int const dev_idx, ab_dev_params_t const * const dp,
 		goto __exit_fail_close;
 	}
 
-	/*tag__ usleep added */
-	usleep (BEFORE_BASICDEV_INIT_USLEEP);
-
 	err = ioctl (cfg_fd, FIO_VINETIC_BASICDEV_INIT, &binit);
 	if(err){
 		g_err_no = ERR_IOCTL_FAILS;
@@ -468,8 +462,6 @@ basicdev_init( int const dev_idx, ab_dev_params_t const * const dp,
 		show_last_err(">>", cfg_fd);
 		goto __exit_fail_close;
 	}
-
-	usleep (AFTER_BASICDEV_INIT_USLEEP);
 
 	close (cfg_fd);
 __exit_success:
@@ -922,9 +914,9 @@ show_help( )
 	fprintf( stdout, 
 "\
 Usage: %s [OPTION]\n\
-SVI. SIP VoIP cards initializer. Loads firmwire to chips and do\n\
+SVI. SIP VoIP cards Initializer. Loads firmwire to chips and do\n\
 		other necessary actions.\n\
-\n\
+\n
 It can get some options :)\n\
   -h, --help     	display this help and exit\n\
   -V, --version  	displey current version and license info\n\

@@ -8,10 +8,9 @@
 
 /**
 	Get event from device
-\param
-	dev - device to operate on it
-	evt - occured event
-	chan_available - is event occured on chan or on whole device
+\param dev - device to operate on it
+\param evt - occured event
+\param chan_available - is event occured on chan or on whole device
 \return 
 	0 in success case and other value otherwise
 \remark

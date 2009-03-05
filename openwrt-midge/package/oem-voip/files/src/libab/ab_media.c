@@ -8,7 +8,7 @@
 
 /**
  * \param[in,out] chan channel to operate on.
- * \param[in] fcod codec for fax transmittion.
+ * \param[in] fcodt codec for fax transmittion.
  * \retval	0 in success.
  * \retval	-1 if fail.
  * \remark
@@ -24,6 +24,8 @@ ab_chan_fax_pass_through_start( ab_chan_t * const chan,
 	IFX_TAPI_JB_CFG_t jbCfgData;
 	IFX_TAPI_WLEC_CFG_t lecConf;
 	IFX_TAPI_COD_TYPE_t encTypeData;
+	IFX_TAPI_ENC_CFG_t encCfg;
+	IFX_TAPI_DEC_CFG_t decCfg;
 	int cfd = chan->rtp_fd;
 	int err;
 	int err_sum = 0;
@@ -31,6 +33,8 @@ ab_chan_fax_pass_through_start( ab_chan_t * const chan,
 	memset(&jbCfgData, 0, sizeof(jbCfgData));
 	memset(&encTypeData, 0, sizeof(encTypeData));
 	memset(&lecConf, 0, sizeof(lecConf));
+	memset(&encCfg, 0, sizeof(encCfg));
+	memset(&decCfg, 0, sizeof(decCfg));
 
 	if       (fcodt == cod_type_MLAW){
 		encTypeData = IFX_TAPI_COD_TYPE_MLAW;
@@ -41,6 +45,26 @@ ab_chan_fax_pass_through_start( ab_chan_t * const chan,
 		err_sum++;
 		goto __exit;
 	}
+
+	/* set normal encoder/decoder seq for fax */
+	encCfg.AAL2BitPack = 
+			decCfg.AAL2BitPack = IFX_TAPI_COD_RTP_BITPACK;
+
+	/* Set the encoder */ 
+	err = 0;
+	err = ioctl(cfd, IFX_TAPI_ENC_CFG_SET, &encCfg);
+	if(err){
+		ab_err_set(AB_ERR_UNKNOWN, "encoder set ioctl error");
+		err_sum++;
+	}
+	/* Set the decoder */ 
+	err = 0;
+	err = ioctl(cfd, IFX_TAPI_DEC_CFG_SET, &decCfg);
+	if(err){
+		ab_err_set(AB_ERR_UNKNOWN, "decoder set ioctl error");
+		err_sum++;
+	}
+
 	/* Configure coder for fax/modem communications */
 	err = ioctl(cfd, IFX_TAPI_ENC_TYPE_SET, encTypeData);
 	if(err != IFX_SUCCESS){
@@ -48,8 +72,6 @@ ab_chan_fax_pass_through_start( ab_chan_t * const chan,
 		ab_err_set(AB_ERR_UNKNOWN, "IFX_TAPI_ENC_TYPE_SET");
 		err_sum++;
 	}
-
-	/* tag__ set normal decoder seq if after g726 */
 
 	/* Reconfigure JB for fax/modem communications */
 	jbCfgData.nJbType = IFX_TAPI_JB_TYPE_FIXED;
@@ -108,6 +130,7 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 	memset(&rtpConf, 0, sizeof(rtpConf));
 	memset(&codVolume, 0, sizeof(codVolume));
 	memset(&encCfg, 0, sizeof(encCfg));
+	memset(&decCfg, 0, sizeof(decCfg));
 
 	/* frame len {{{*/
 	if       (cod->pkt_size == cod_pkt_size_2_5){
@@ -439,10 +462,9 @@ __exit:
 
 /**
 	Switch media on / off on the given channel
-\param
-	chan - channel to operate on it
-	enc_on - on (1) or off (0) encoding
-	dec_on - on (1) or off (0) decoding
+\param chan - channel to operate on it
+\param enc_on - on (1) or off (0) encoding
+\param dec_on - on (1) or off (0) decoding
 \return 
 	0 in success case and other value otherwise
 \remark

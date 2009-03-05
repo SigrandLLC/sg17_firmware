@@ -29,11 +29,15 @@ mipsel-linux-uclibc-gcc -Wall -I$asrc_path/vinetic/include/ -I$asrc_path/tapi/in
 
 mipsel-linux-uclibc-gcc -Wall -I$asrc_path/vinetic/include/ -I$asrc_path/tapi/include/ -I$asrc_path/sgatab/ -I$asrc_path -L$asrc_path iotst.c -o iotst -lab
 
-mipsel-linux-uclibc-gcc -Wall -I$asrc_path/vinetic/include/ -I$asrc_path/tapi/include/ -I$asrc_path/sgatab/ -I$asrc_path -L$asrc_path phone.c -o phone -lab
+if test -e phone.c; then
+	mipsel-linux-uclibc-gcc -Wall -I$asrc_path/vinetic/include/ -I$asrc_path/tapi/include/ -I$asrc_path/sgatab/ -I$asrc_path -L$asrc_path phone.c -o phone -lab
+fi
 
 echo COPING TO TFTPBOOT...
 	cp *tst ~/tftpboot
-	cp phone ~/tftpboot
+	if test -e phone; then
+		cp phone ~/tftpboot
+	fi
 
 cd ${cur_path}/..
 rm -rf sgatab tapi vinetic ${tapi_name} ${vinetic_name}

@@ -140,9 +140,8 @@ __exit_fail:
 
 /**
 	This one returns the parameters of all devices on the all boards
-\param
-	devs_num - number of the found devices will be returned
-	dprms - devices parameters
+\param devs_num - number of the found devices will be returned
+\param dprms - devices parameters
 \return 
 	ioctl result
 \remark

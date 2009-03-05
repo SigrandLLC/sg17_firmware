@@ -82,7 +82,6 @@ struct rtp_session_prms_s {
 	enum play_evts_2833_e nPlayEvents; /**< Out Of Band play configuration */
 	int evtPT; /**< rfc2833 outgoing events Payload type */
 	int evtPTplay; /**< rfc2833 incoming events Payload type */
-	//enum cod_pt_e cod_pt;/**< Codec Payload type tag__ to remove */
 	struct cod_volume_s {
 		int enc_dB;
 		int dec_dB;
@@ -109,8 +108,8 @@ enum ab_chan_ring_e {
 };
 
 enum ab_chan_hook_e {
-	ab_chan_hook_ONHOOK, /**< Do onhook */
-	ab_chan_hook_OFFHOOK /**< Do offhook */
+	ab_chan_hook_ONHOOK, /**< onhook state */
+	ab_chan_hook_OFFHOOK /**< offhook state */
 };
 
 enum ab_chan_linefeed_e {
@@ -203,10 +202,6 @@ extern int ab_g_err_extra_value;
 ab_t* ab_create (void);
 /** Destroy the ab_t object. */
 void ab_destroy (ab_t ** ab);
-//** Get chan idx by absolute number. */
-//int ab_get_chan_idx_by_abs(ab_t const * const ab, int const abs_idx);
-//ab_chan_t * ab_get_chan_by_abs(int const abs_idx);
-//ab_chan_t * ab_get_chan_by_idx(int const idx);
 /** @} */
 
 

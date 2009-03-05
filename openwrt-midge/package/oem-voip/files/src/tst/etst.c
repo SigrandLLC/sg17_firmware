@@ -5,8 +5,6 @@
 #include <errno.h>
 #include <assert.h>
 
-//fprintf(stderr,"!!!!!!!!%s()_%d\n",__func__,__LINE__);
-
 #include "ab_api.h"
 
 #define WAIT_INTERVAL 500000

@@ -14,11 +14,10 @@
 
 /**
 	Run the appropriate ioctl command and set the error if necessary. 
-\param
-	chan - channel to write error message and run ioctl
-	request - ioctl macro
-	data - ioctl data
-	err_msg - error message if ioctl fails
+\param [in] chan - channel to write error message and run ioctl
+\param [in] request - ioctl macro
+\param [in] data - ioctl data
+\param [in] err_msg - error message if ioctl fails
 \return 
 	ioctl result
 \remark
@@ -38,16 +37,15 @@ err_set_ioctl (ab_chan_t * const chan, int const request, int const data,
 
 /**
 	Plays the given tone 
-\param
-	chan - channel to play tone
-	tone - tone to play 
+\param [in] chan - channel to play tone
+\param [in] tone - tone to play 
 \return 
 	ioctl result
 \remark
 	it just play the tone without any test of actual state.
 */
 static int 
-ab_FXS_line_just_play_it (ab_chan_t * const chan, enum ab_chan_tone_e tone)
+ab_FXS_line_just_play_it (ab_chan_t * const chan, enum ab_chan_tone_e const tone)
 {/*{{{*/
 	int err = 0;
 	switch(tone){
@@ -89,9 +87,8 @@ ab_FXS_line_just_play_it (ab_chan_t * const chan, enum ab_chan_tone_e tone)
 
 /**
 	Ring or mute on given channel
-\param
-	chan - channel to ring
-	ring - can be RINGING or MUTE
+\param chan - channel to ring
+\param ring - can be RINGING or MUTE
 \return 
 	ioctl result
 \remark
@@ -123,9 +120,8 @@ ab_FXS_line_ring (ab_chan_t * const chan, enum ab_chan_ring_e ring)
 
 /**
 	Play the given tone
-\param
-	chan - channel to play tone
-	tone - tone to play 
+\param chan - channel to play tone
+\param tone - tone to play 
 \return 
 	ioctl result
 \remark
@@ -163,9 +159,8 @@ __exit:
 
 /**
 	Change current linefeed to given
-\param
-	chan - channel to operate on it
-	feed - linefeed to set
+\param chan - channel to operate on it
+\param feed - linefeed to set
 \return 
 	ioctl result
 \remark
@@ -223,9 +218,8 @@ __exit:
 
 /**
 	Do onhook or offhook
-\param
-	chan - channel to operate on it
-	hook - desired hookstate
+\param chan - channel to operate on it
+\param hook - desired hookstate
 \return 
 	ioctl result
 \remark
@@ -263,12 +257,11 @@ ab_FXO_line_hook (ab_chan_t * const chan, enum ab_chan_hook_e hook)
 
 /**
 	Dial the given sequence of numbers
-\param
-	chan - channel dial numbers in it
-	data_length - sequence length
-	data - sequence of numbers
-	nInterDigitTime - interval between dialed digits
-	nDigitPlayTime - interval to play digits
+\param chan - channel dial numbers in it
+\param data_length - sequence length
+\param data - sequence of numbers
+\param nInterDigitTime - interval between dialed digits
+\param nDigitPlayTime - interval to play digits
 \return 
 	ioctl result
 \remark

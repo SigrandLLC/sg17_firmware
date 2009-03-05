@@ -706,6 +706,8 @@ __exit_fail:
  * 		and  RING event on FXO.
  * \todo
  * 		In ideal world it shold be reenterable or mutexes should be used.
+ * 		Also, then we calculate chan_idx, we should use more abstract way, 
+ * 		that encapsulate internals.
  */ 
 static int
 svd_atab_handler (svd_t * svd, su_wait_t * w, su_wakeup_arg_t * user_data)
@@ -730,7 +732,6 @@ do{
 
 	dev_idx = ab_dev->idx - 1;
 	if (chan_av){
-		/* tag__ there should be ab_get_chan_idx() func ?? */
 		/* in evt.ch we have proper number of the chan */
 		chan_idx = dev_idx * svd->ab->chans_per_dev + evt.ch;
 	} else {
@@ -1776,7 +1777,7 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 		SU_DEBUG_2 ((LOG_FNC_A("wrong event")));
 		goto __exit_fail;
 	} else if(rode > 0){
-		int should_block = /*0 tag__ */
+		int should_block = 
 				chan_ctx->is_hardlinked &&
 				(chan_ctx->hardlink->type == hl_type_4_WIRED) &&
 				(chan->idx == 2);  
@@ -1846,7 +1847,7 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 		SU_DEBUG_2 ((LOG_FNC_A("wrong event")));
 		goto __exit_fail;
 	} else if (received > 0){
-		int should_block = /* 0; tag__ */
+		int should_block = 
 				chan_ctx->is_hardlinked &&
 				(chan_ctx->hardlink->type == hl_type_4_WIRED) &&
 				(chan->idx == 1); 

@@ -641,10 +641,6 @@ devact(ab_t * ab, int dev_id)
 		}
 
 		if(g_status.c1_is_offhook && g_status.c2_is_offhook){
-			/* tag__ 
-			fax_data_pump_start (ab,g_status.c1_id);
-			fax_data_pump_start (ab,g_status.c2_id);
-			*/
 			err = start_connection (ab);
 			if(err){
 				fprintf(stderr,"UP ERROR");

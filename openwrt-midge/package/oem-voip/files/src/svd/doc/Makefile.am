@@ -1,1 +1,1 @@
-EXTRA_DIST = TODO HACKING Doxyfile
+EXTRA_DIST = Doxyfile
