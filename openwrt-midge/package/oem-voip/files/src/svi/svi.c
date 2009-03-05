@@ -911,12 +911,11 @@ show_last_err(char * msg, int fd)
 static void 
 show_help( )
 {/*{{{*/
-	fprintf( stdout, 
-"\
+	fprintf( stdout, "\
 Usage: %s [OPTION]\n\
 SVI. SIP VoIP cards Initializer. Loads firmwire to chips and do\n\
 		other necessary actions.\n\
-\n
+\n\
 It can get some options :)\n\
   -h, --help     	display this help and exit\n\
   -V, --version  	displey current version and license info\n\
