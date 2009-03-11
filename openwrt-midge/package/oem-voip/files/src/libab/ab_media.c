@@ -195,7 +195,8 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 		rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_ILBC_133] = 
 				cod->sdp_selected_payload;
 	} else if(cod->type == cod_type_G723){
-		encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_30;
+		/* tag__ can be set 30 or 60 - should test 60 */
+		//encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_30;
 		encCfg.nEncType = IFX_TAPI_COD_TYPE_G723_53;
 		//encCfg.nEncType = IFX_TAPI_COD_TYPE_G723_63;
 		rtpPTConf.nPTup   [IFX_TAPI_COD_TYPE_G723_63] = 

@@ -1,7 +1,7 @@
 #ifndef __AB_API_H__
 #define __AB_API_H__
 
-/* Maximum channels on the boards */
+/** Maximum channels on the boards */
 #define CHANS_MAX 32
 
 typedef enum ab_dev_type_e ab_dev_type_t;
@@ -51,8 +51,8 @@ struct codec_s {
 	enum cod_type_e 	type;
 	enum cod_pkt_size_e pkt_size;
 	enum bitpack_e bpack;
-	int user_payload;
-	int sdp_selected_payload;
+	int user_payload;			/**< User preset to sdp payload. */
+	int sdp_selected_payload;	/**< Selected in sdp session payload. */
 };
 
 enum evts_2833_e {

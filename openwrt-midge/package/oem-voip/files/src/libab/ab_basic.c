@@ -140,8 +140,8 @@ __exit_fail:
 
 /**
 	This one returns the parameters of all devices on the all boards
-\param devs_num - number of the found devices will be returned
-\param dprms - devices parameters
+\param[out] devs_num - number of the found devices will be returned
+\param[out] dprms - devices parameters
 \return 
 	ioctl result
 \remark
@@ -215,7 +215,7 @@ __exit_fail:
 
 /**
 	Destroy the ab_t object. 
-\param
+\param [in]
 	ab - pointer to pointer to destroying object.
 		pointer to object will set to NULL
 		after destroying
@@ -283,8 +283,7 @@ ab_get_chan_idx_by_abs(ab_t const * const ab, int const abs_idx)
 
 /**
 	Sets the proper state and status of the channel structure 
-\param
-	chan - channel struture 
+\param chan[in,out] - channel struture 
 \remark
 	it mutes all rings and tones on the FXS channel and do onhook on FXO
 */

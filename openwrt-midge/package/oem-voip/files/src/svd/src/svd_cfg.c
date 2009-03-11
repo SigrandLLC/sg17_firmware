@@ -1048,9 +1048,9 @@ hardlink_init( void )
 		g_conf.rtp_prms[chan_id].evtPT = 0x62;
 		g_conf.rtp_prms[chan_id].evtPTplay = 0x62;
 		g_conf.rtp_prms[chan_id].COD_Tx_vol= 
-				config_setting_get_int_elem (rec_set, 5);
-		g_conf.rtp_prms[chan_id].COD_Rx_vol = 
 				config_setting_get_int_elem (rec_set, 6);
+		g_conf.rtp_prms[chan_id].COD_Rx_vol = 
+				config_setting_get_int_elem (rec_set, 7);
 		g_conf.rtp_prms[chan_id].VAD_cfg = vad_cfg_OFF;
 		g_conf.rtp_prms[chan_id].HPF_is_ON = 0;
 
