@@ -564,19 +564,25 @@ DFS
 			/* get pair_chan */
 			strcpy (ctx->dial_status.chan_id, curr_rec->pair_chan);
 			/* get pair_route */
-			err = 1;
-			for(k=0;k<routers_num;k++){
-				if( !strcmp(curr_rec->pair_route, 
-									g_conf.route_table.records[k].id)){
-					ctx->dial_status.route_ip = 
-									g_conf.route_table.records[k].value;
-					err = 0;
-					break;
-				}
-			}
-			/* set dest router */
-			if(!strcmp(curr_rec->pair_route, g_conf.self_number)){
+			if ( !curr_rec->pair_route){
+				ctx->dial_status.route_ip = g_conf.lo_ip;
 				ctx->dial_status.dest_is_self = self_YES;
+				err = 0;
+			} else {
+				err = 1;
+				for(k=0; k<routers_num; k++){
+					if( !strcmp(curr_rec->pair_route, 
+										g_conf.route_table.records[k].id)){
+						ctx->dial_status.route_ip = 
+										g_conf.route_table.records[k].value;
+						err = 0;
+						break;
+					}
+				}
+				/* set dest router */
+				if(!strcmp(curr_rec->pair_route, g_conf.self_number)){
+					ctx->dial_status.dest_is_self = self_YES;
+				}
 			}
 
 			/* place a call */

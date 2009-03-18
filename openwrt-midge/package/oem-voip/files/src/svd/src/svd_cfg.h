@@ -167,7 +167,7 @@ struct hot_line_s {
 struct hard_link_s {
 	enum hl_type_e type;
 	char id [CHAN_ID_LEN]; /**< Channel absolute identifier.*/
-	char * pair_route; /**< Channel pair router identifier.*/
+	char * pair_route; /**< Channel pair router identifier or NULL if self. */
 	char pair_route_s [ROUTE_ID_LEN_DF]; /**< Channel pair router massive.*/
 	char pair_chan [CHAN_ID_LEN]; /**< Channel pair channel identifier.*/
 	codec_t hl_codec; /**< codec parameters.*/
@@ -211,8 +211,9 @@ struct fax_s {
 
 /** Routine main configuration struct.*/
 struct svd_conf_s {/*{{{*/
-	char * self_number; /**< Pointer to corresponding rt.rec[].id.*/
-	char * self_ip; /**< Pointer to corresponding rt.rec[].value.*/
+	char * self_number; /**< Pointer to corresponding rt.rec[].id or NULL.*/
+	char * self_ip; /**< Pointer to corresponding rt.rec[].value or lo_ip.*/
+	char lo_ip[IP_LEN_MAX]; /**< Local Address IP. */
 	char log_level; /**< If log_level = -1 - do not log anything.*/
 	codec_t int_codecs[COD_MAS_SIZE];/**< Codecs sorted by priority in local calls.*/
 	struct fax_s fax;/**< Fax parameters.*/

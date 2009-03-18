@@ -208,6 +208,7 @@ int
 svd_conf_init( void )
 {/*{{{*/
 	memset (&g_conf, 0, sizeof(g_conf));
+	strcpy (g_conf.lo_ip, "127.0.0.1");
 	if(		main_init() 	||
 			routet_init()	||
 			rtp_init()		||
@@ -240,6 +241,7 @@ conf_show( void )
 	struct htln_record_s * curr_hl_rec;
 	struct rttb_record_s * curr_rt_rec;
 	struct hard_link_s   * curr_hk_rec;
+	struct rtp_prms_s    * rtp_rec;
 	int i;
 	int j;
 
@@ -283,6 +285,17 @@ conf_show( void )
 				g_conf.sip_set.user_URI,
 				g_conf.sip_set.sip_chan));
 	}
+
+	/* RTP parameters */
+	for (i=0; i<CHANS_MAX; i++){
+		rtp_rec = &g_conf.rtp_prms[i];
+		if(rtp_rec->is_set){
+			SU_DEBUG_3(("%d: OOB(%d/%d) evtPT(%d/%d) vol(%d/%d) vh(%d/%d)\n",
+					i, rtp_rec->OOB, rtp_rec->OOB_play, rtp_rec->evtPT,
+					rtp_rec->evtPTplay, rtp_rec->COD_Tx_vol, rtp_rec->COD_Rx_vol,
+					rtp_rec->VAD_cfg, rtp_rec->HPF_is_ON));
+		}
+	} 
 
 	if(g_conf.address_book.records_num){
 		SU_DEBUG_3(("AddressBook :\n"));
@@ -555,6 +568,7 @@ self_values_init( void )
 		struct sockaddr_in *sin = (struct sockaddr_in *) &ifr.ifr_addr;
 		char *ip;
 
+		fprintf(stderr, "I: %d\n", i);
 		ifr.ifr_ifindex = i;
 		if (ioctl (sock, SIOCGIFNAME, &ifr) < 0){
 			break;
@@ -570,6 +584,7 @@ self_values_init( void )
 			memset(addrmas[j], 0, sizeof(char) * IP_LEN_MAX);
 			strcpy(addrmas[j], ip);
 			j++;
+			fprintf(stderr, "%s : %s\n", ifr.ifr_name, ip);
 		}
 	}
 	close (sock);
@@ -597,7 +612,7 @@ self_values_init( void )
 
 	if( !self_found){
 		SU_DEBUG_0 ((LOG_FNC_A("ERROR: "
-				"No interfaces with ip from route table")));
+				"No interfaces found with ip from route table")));
 		goto __exit_fail;
 	}
 	return 0;
@@ -793,8 +808,9 @@ routet_init( void )
 	/* Get values */
 	set = config_lookup (&cfg, "route_table" );
 	if( !set ){
-		SU_DEBUG_0 ((LOG_FNC_A("no data")));
-		goto __exit_fail;
+		/* one router in the system */
+		g_conf.self_ip = g_conf.lo_ip;
+		goto __exit_success;
 	} 
 
 	rec_num = config_setting_length (set);
@@ -847,6 +863,7 @@ routet_init( void )
 		goto __exit_fail;
 	}
 
+__exit_success:
 	config_destroy (&cfg);
 	return 0;
 __exit_fail:
@@ -973,9 +990,19 @@ hardlink_init( void )
 
 		/* set am_i_caller flag by parsing the value string */
 		if(curr_rec->pair_route[0] == SELF_MARKER){
-			strcpy(curr_rec->pair_route, g_conf.self_number);
+			if(curr_rec->pair_route && 
+					curr_rec->pair_route != curr_rec->pair_route_s){
+				free (curr_rec->pair_route);
+			}
+			curr_rec->pair_route = NULL;
+			router_is_self = 1;
+		} else if(g_conf.self_number){
+			router_is_self = !strcmp(curr_rec->pair_route, g_conf.self_number);
+		} else {
+			SU_DEBUG_1((LOG_FNC_A("ERROR: empty route table and "
+					"dest router is not self")));
+			goto __exit_fail;
 		}
-		router_is_self = !strcmp(curr_rec->pair_route, g_conf.self_number);
 		if (router_is_self){
 			/* test what chan is greater */
 			int ret = chan_id - pair_chan;
@@ -1453,7 +1480,8 @@ rtp_init( void )
 		abs_idx = strtol(elem, NULL, 10);
 
 		curr_rec = &g_conf.rtp_prms[ abs_idx ];
-		
+
+		curr_rec->is_set = 1;	
 		/* get rtp params */
 		elem = config_setting_get_string_elem (rec_set, 1);
 		if( !strcmp(elem, CONF_OOB_DEFAULT)){
