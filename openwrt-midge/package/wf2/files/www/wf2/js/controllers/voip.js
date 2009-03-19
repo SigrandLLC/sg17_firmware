@@ -325,7 +325,7 @@ Controllers.voip = function() {
 
 				/* calculate volume values */
 				var vol = "";
-				for (var i = -24; i <= 24; i += 2) {
+				for (var i = -24; i <= 24; i += 1) {
 					vol += i + " ";
 				}
 				vol = $.trim(vol);
@@ -557,7 +557,7 @@ Controllers.voip = function() {
 				
 				/* calculate volume values */
 				var vol = "";
-				for (var i = -24; i <= 24; i += 2) {
+				for (var i = -24; i <= 24; i += 1) {
 					vol += i + " ";
 				}
 				vol = $.trim(vol);
@@ -645,31 +645,49 @@ Controllers.voip = function() {
 				"g729e", "g726_16", "g726_24", "g726_32", "g726_40", "none"];
 
 			/*
-			 * At one time only one type can be selected.
+			 * At one time only one type of codec can be selected.
+             * If current codec type is none, set next to none too and disable all next.
 			 * 
 			 * scope — settings scope;
 			 * i — codec index.
 			 */
-			var setUniqueType = function(scope, i, codecsNum) {
-				setDefaults(scope, i, codecsNum);
+			var setUniqueType = function(scope, i) {
+				setDefaults(scope, i);
 				var newVal = $($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, i)).val();
 				if (newVal != "none") {
 					$(".type_" + scope).not($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, i))
-						.each(function(num, element) {
-						if ($(element).val() == newVal) $(element).val("none");
+                            .each(function(num, element) {
+						if ($(element).val() == newVal) {
+                            $(element).val("none");
+                        }
 					});
 				}
 				
-				/* if all types is "none", set one to aLaw */
 				var allNone = true;
+                var isNone = false;
 				$(".type_" + scope).each(function(num, element) {
-					if ($(element).val() != "none") {
+					/* set type of current codec to none, if we've set isNone to true in previous step */
+                    if (isNone) {
+						$(element).val("none").attr("readonly", true).attr("disabled", true);
+                        setDefaults(scope, num);
+                    /* if type of current codec is none, next will be set to none too */
+                    } else if ($(element).val() == "none") {
+                        isNone = true;
+                        $(element).removeAttr("readonly").removeAttr("disabled");
+					}
+
+                    if ($(element).val() != "none") {
 						allNone = false;
-						return false;
 					}
 				});
-				
-				if (allNone) $(".type_" + scope).eq(0).val("aLaw");
+
+                /* if all types is "none", set first to aLaw. */
+				if (allNone) {
+                    $(".type_" + scope).eq(0).val("aLaw");
+                    setDefaults(scope, 0);
+
+                    $(".type_" + scope).eq(1).removeAttr("readonly").removeAttr("disabled");
+                }
 			};
 			
 			/*
@@ -678,7 +696,7 @@ Controllers.voip = function() {
 			 * scope — settings scope;
 			 * i — codec index.
 			 */
-			var setDefaults = function(scope, i, codecsNum) {
+			var setDefaults = function(scope, i) {
 				var codec = $($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, i)).val();
 				
 				$($.sprintf("#sys_voip_quality_%s_codec%s_pktsz", scope, i)).val(pktszDefault[codec]);
@@ -691,7 +709,7 @@ Controllers.voip = function() {
 					$($.sprintf("#sys_voip_quality_%s_codec%s_bitpack", scope, i)).val("rtp");
 				}
 				
-				setPtkszReadonly(scope, i);
+				setPtksz(scope, i);
 				setBitpackReadonly(scope, i);
 			};
 			
@@ -713,16 +731,19 @@ Controllers.voip = function() {
 			/*
 			 * Set for some codecs pkt_sz readonly.
 			 */
-			var setPtkszReadonly = function(scope, i) {
+			var setPtksz = function(scope, i) {
 				var codec = $($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, i)).val();
 				
-				/* for g723 and iLBC* pkt_sz is read-only */
-				if (codec == "g723" || codec == "iLBC_133")
-				{
+				/* for iLBC* pkt_sz is read-only */
+				if (codec == "iLBC_133") {
 					/* set disabled and readonly attributes */
 					$($.sprintf("#sys_voip_quality_%s_codec%s_pktsz", scope, i))
 						.attr("readonly", true).attr("disabled", true);
-				} else {
+				/* for g723 set fixed values: 30 and 60 */
+                } else if (codec == "g723") {
+                    var field = $($.sprintf("#sys_voip_quality_%s_codec%s_pktsz", scope, i));
+                    field.setOptionsForSelect({"options": "30 60", "curValue": field.val()});
+                } else {
 					/* remove disabled and readonly attributes */
 					$($.sprintf("#sys_voip_quality_%s_codec%s_pktsz", scope, i))
 						.removeAttr("readonly").removeAttr("disabled");
@@ -761,11 +782,13 @@ Controllers.voip = function() {
 						 */
 						"onChange": function(x) {
 							return function() {
-								setUniqueType(scope, x, num);
+								setUniqueType(scope, x);
 							}
 						}(i)
 					};
-					if (num > 2) field.defaultValue = "none";
+					if (num > 2) {
+                        field.defaultValue = "none";
+                    }
 					c.addTableWidget(field, row);
 					
 					/* pkt_sz */
@@ -775,7 +798,7 @@ Controllers.voip = function() {
 						"options": ["2.5", "5", "5.5", "10", "11", "20", "30", "40", "50", "60"]
 					};
 					c.addTableWidget(field, row);
-					setPtkszReadonly(scope, i);
+					setPtksz(scope, i);
 					
 					/* payload */
 					field = {
@@ -803,11 +826,16 @@ Controllers.voip = function() {
 					};
 					c.addTableWidget(field, row);
 					setBitpackReadonly(scope, i);
+
+                    if (i == (num - 1)) {
+                        setUniqueType(scope, i);
+                    }
 				}
 			};
 			
-			c.addTableHeader("Priority*|Type|Packetization time (ms)|Payload|Bitpack");
+			c.addTableHeader("Priority*|Type**|Packetization time (ms)|Payload|Bitpack");
 			c.addTableTfootStr("* 0 — max priority.", 5);
+            c.addTableTfootStr("** Each codec can be selected only once.", 5);
 			
 			c.addTitle("Internal", {"internal": true, "colspan": 5});
 			addCodecsWidgets(codecs.length - 1, "int");
