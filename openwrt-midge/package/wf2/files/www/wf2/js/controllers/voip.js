@@ -300,7 +300,18 @@ Controllers.voip = function() {
 					"options": getChannelList(remoteChannels),
 					"validator": {"required": true}
 				};
-				list.addDynamicWidget(field);;
+				list.addDynamicWidget(field);
+
+                field = {
+					"type": "select",
+					"name": "role",
+					"text": "Role",
+					"descr": "Current side role: receiver or caller.",
+					"options": "receiver caller",
+					"defaultValue": "receiver",
+					"validator": {"required": true}
+				};
+				list.addDynamicWidget(field);
 
 				field = {
 					"type": "select",
@@ -356,9 +367,9 @@ Controllers.voip = function() {
 			var list = c.createList({
 				"tabId": "hardlink",
 				"header": ["Type", "Local chan", "Router ID", "Remote chan", "Codec", "Packet. time",
-						"Tx_vol", "Rx_vol"],
+						"Tx_vol", "Rx_vol", "Role"],
 				"varList": ["wire_type", "ch_idx", "pair_route", "pair_chan", "codec", "pkt_sz",
-						"vol_tx", "vol_rx"],
+						"vol_tx", "vol_rx", "role"],
 				"listItem": "sys_voip_hardlink_",
 				"addMessage": "Add hardlink",
 				"editMessage": "Edit hardlink",
