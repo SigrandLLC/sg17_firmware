@@ -59,6 +59,8 @@ static unsigned char g_err_no;
 #define CONF_CODEC_BITPACK_AAL2 "aal2"
 #define CONF_WIRETYPE_2 "2w"
 #define CONF_WIRETYPE_4 "4w"
+#define CONF_HARDLINK_CALLER "caller"
+#define CONF_HARDLINK_RECEIVER "receiver"
 #define CONF_OOB_DEFAULT "default"
 #define CONF_OOB_NO "in-band"
 #define CONF_OOB_ONLY "out-of-band"
@@ -890,19 +892,17 @@ __exit_fail:
  * \retval 0 success.
  * \retval -1 fail.
  * \remark
- * 	It should be run after routes table initialization because
- * 	it uses this value for am_i_caller flag set. And after rtp_init, 
- * 	because it can reinits it`s values.
+ * 	It should be run after rtp_init, because it can reinits it`s values.
  */ 
 static int 
 hardlink_init( void )
 {/*{{{*/
 	/* ("w_type", "chan_id", "pair_route_id", "pair_chan_id",
-	 * 		codec_name, pkt_sz, vol_tx, vol_rx), */
+	 * 		codec_name, pkt_sz, am_i_caller), */
 	struct config_t cfg;
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
-	struct hard_link_s * curr_rec; 
+	struct hard_link_s * curr_rec;
 	char const * elem;
 	int elem_len;
 	int rec_num;
@@ -934,6 +934,7 @@ hardlink_init( void )
 	}
 
 	for(i=0; i<rec_num; i++){
+		int length; /* tag__ to remove */
 		int chan_id;
 		int pair_chan;
 		int router_is_self;
@@ -950,8 +951,9 @@ hardlink_init( void )
 
 		/* get wire type */
 		elem = config_setting_get_string_elem (rec_set, 0);
+
+		curr_rec = &g_conf.hard_link[ chan_id ];
 		if( !strcmp(elem, CONF_WIRETYPE_2)){
-			curr_rec = &g_conf.hard_link[ chan_id ];
 			curr_rec->type = hl_type_2_WIRED;
 		} else if( !strcmp(elem, CONF_WIRETYPE_4)){
 			/* we should choise proper channels (even_odd_pair) */
@@ -963,7 +965,6 @@ hardlink_init( void )
 				/* if pair is even (X0)* - make it odd (0X) */
 				pair_chan++;
 			}
-			curr_rec = &g_conf.hard_link[ chan_id ];
 			curr_rec->type = hl_type_4_WIRED;
 		}
 
@@ -988,7 +989,6 @@ hardlink_init( void )
 		}
 		strcpy (curr_rec->pair_route, elem);
 
-		/* set am_i_caller flag by parsing the value string */
 		if(curr_rec->pair_route[0] == SELF_MARKER){
 			if(curr_rec->pair_route && 
 					curr_rec->pair_route != curr_rec->pair_route_s){
@@ -1002,35 +1002,6 @@ hardlink_init( void )
 			SU_DEBUG_1((LOG_FNC_A("ERROR: empty route table and "
 					"dest router is not self")));
 			goto __exit_fail;
-		}
-		if (router_is_self){
-			/* test what chan is greater */
-			int ret = chan_id - pair_chan;
-			if       (ret > 0){
-				/* current is greater */
-				curr_rec->am_i_caller = 1;
-			} else if(ret < 0){
-				/* address is greater */
-				curr_rec->am_i_caller = 0;
-			} else {
-				/* error - can`t hardlink to self */
-				SU_DEBUG_1((LOG_FNC_A("ERROR: can`t hardlink to self")));
-				goto __exit_fail;
-			}
-		} else {
-			/* test what router is greater */
-			int ret = strcmp(g_conf.self_number, curr_rec->pair_route);
-			if       (ret > 0){
-				/* current is greater */
-				curr_rec->am_i_caller = 1;
-			} else if(ret < 0){
-				/* address is greater */
-				curr_rec->am_i_caller = 0;
-			} else {
-				/* error - can`t hardlink to self */
-				SU_DEBUG_1((LOG_FNC_A("ERROR:internal-bad router self test")));
-				goto __exit_fail;
-			}
 		}
 
 		/* get codec name and payload set */
@@ -1074,19 +1045,37 @@ hardlink_init( void )
 		g_conf.rtp_prms[chan_id].OOB_play = play_evts_MUTE;
 		g_conf.rtp_prms[chan_id].evtPT = 0x62;
 		g_conf.rtp_prms[chan_id].evtPTplay = 0x62;
-		g_conf.rtp_prms[chan_id].COD_Tx_vol= 
-				config_setting_get_int_elem (rec_set, 6);
-		g_conf.rtp_prms[chan_id].COD_Rx_vol = 
-				config_setting_get_int_elem (rec_set, 7);
 		g_conf.rtp_prms[chan_id].VAD_cfg = vad_cfg_OFF;
 		g_conf.rtp_prms[chan_id].HPF_is_ON = 0;
+
+		/* tag__ to remove */
+		length = config_setting_length (rec_set);
+		if (length >= 8){
+			/* vol still in config */
+			elem = config_setting_get_string_elem (rec_set, 8);
+		} else if(length <= 7){
+			/* vol removed from config */
+			elem = config_setting_get_string_elem (rec_set, 6);
+		}
+		/* set caller flag */
+		if( !elem){
+			/* to remove - no aic flag */
+			curr_rec->am_i_caller = 0;
+		} else if( !strcmp(elem, CONF_HARDLINK_CALLER)){
+			curr_rec->am_i_caller = 1;
+		} else if( !strcmp(elem, CONF_HARDLINK_RECEIVER)){
+			curr_rec->am_i_caller = 0;
+		}
 
 		if (curr_rec->type == hl_type_4_WIRED){
 			/* add record for this channel and for the second stream */
 			/* copy rtp_params */
+			int rx_tmp = g_conf.rtp_prms[chan_id+1].COD_Rx_vol;
+			int tx_tmp = g_conf.rtp_prms[chan_id+1].COD_Tx_vol;
 			memcpy(&g_conf.rtp_prms[chan_id+1], &g_conf.rtp_prms[chan_id], 
 					sizeof(g_conf.rtp_prms[chan_id]));
-
+			g_conf.rtp_prms[chan_id+1].COD_Rx_vol = rx_tmp;
+			g_conf.rtp_prms[chan_id+1].COD_Tx_vol = tx_tmp;
 			/* copy hardlinked params */
 			memcpy(&g_conf.hard_link[ chan_id+1 ], 
 					&g_conf.hard_link[ chan_id ],
@@ -1097,6 +1086,48 @@ hardlink_init( void )
 					CHAN_ID_LEN, "%02d", chan_id+1);
 			snprintf (g_conf.hard_link[ chan_id+1 ].pair_chan,
 					CHAN_ID_LEN, "%02d", pair_chan-1);
+		}
+		/* Create automatic mirror record if dest router is self */
+		if(curr_rec->pair_route == NULL){
+			struct hard_link_s * mirr_rec = &g_conf.hard_link[ pair_chan ];
+			int rx_tmp = g_conf.rtp_prms[pair_chan].COD_Rx_vol;
+			int tx_tmp = g_conf.rtp_prms[pair_chan].COD_Tx_vol;
+			/* copy rtp_params */
+			memcpy(&g_conf.rtp_prms[pair_chan], &g_conf.rtp_prms[chan_id], 
+					sizeof(g_conf.rtp_prms[chan_id]));
+			g_conf.rtp_prms[pair_chan].COD_Rx_vol = rx_tmp;
+			g_conf.rtp_prms[pair_chan].COD_Tx_vol = tx_tmp;
+
+			/* copy hardlinked params */
+			memcpy(&g_conf.hard_link[ pair_chan ], &g_conf.hard_link[ chan_id ],
+					sizeof(g_conf.hard_link[chan_id]));
+
+			/* revert pair, self channels, vol and caller flag on mirror record */
+			snprintf (mirr_rec->id, CHAN_ID_LEN, "%02d", pair_chan);
+			snprintf (mirr_rec->pair_chan, CHAN_ID_LEN, "%02d", chan_id);
+			mirr_rec->am_i_caller = mirr_rec->am_i_caller ? 0:1;
+
+			/* create additional record for 4-wired hardlink */
+			if (curr_rec->type == hl_type_4_WIRED){
+				/* add record for this channel and for the second stream */
+				/* copy rtp_params */
+				rx_tmp = g_conf.rtp_prms[pair_chan-1].COD_Rx_vol;
+				tx_tmp = g_conf.rtp_prms[pair_chan-1].COD_Tx_vol;
+				memcpy(&g_conf.rtp_prms[pair_chan-1], &g_conf.rtp_prms[pair_chan], 
+						sizeof(g_conf.rtp_prms[pair_chan-1]));
+				g_conf.rtp_prms[pair_chan-1].COD_Rx_vol = rx_tmp;
+				g_conf.rtp_prms[pair_chan-1].COD_Tx_vol = tx_tmp;
+
+				/* copy hardlinked params */
+				memcpy(&g_conf.hard_link[pair_chan-1], &g_conf.hard_link[pair_chan],
+						sizeof(g_conf.hard_link[pair_chan]));
+
+				/* revert channels for feedback chan */
+				snprintf (g_conf.hard_link[ pair_chan-1 ].id,
+						CHAN_ID_LEN, "%02d", pair_chan-1);
+				snprintf (g_conf.hard_link[ pair_chan-1 ].pair_chan,
+						CHAN_ID_LEN, "%02d", chan_id+1);
+			}
 		}
 	}
 

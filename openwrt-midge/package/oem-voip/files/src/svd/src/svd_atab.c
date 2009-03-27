@@ -1798,7 +1798,7 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 				goto __exit_fail;
 			}
 		} else {
-			SU_DEBUG_2 (("HLD() BLOCKED\n"));
+			//SU_DEBUG_2 (("HLD() BLOCKED\n"));
 		}
 	} else {
 		SU_DEBUG_2 (("HLD() ERROR : read() : %d(%s)\n",
@@ -1867,7 +1867,7 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 				goto __exit_fail;
 			}
 		} else {
-			SU_DEBUG_2 (("HRD() BLOCKED\n"));
+			//SU_DEBUG_2 (("HRD() BLOCKED\n"));
 		}
 	} else {
 		SU_DEBUG_2 (("HRD() ERROR : recv() : %d(%s)\n",
