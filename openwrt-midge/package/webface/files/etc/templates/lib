@@ -138,6 +138,7 @@ update_configs(){
 		cfg_make svd-addressb.conf /etc/svd/addressb.conf && \
 		cfg_make svd-rtp.conf /etc/svd/rtp.conf && \
 		cfg_make svd-quality.conf /etc/svd/quality.conf && \
+        cfg_make svd-wlec.conf /etc/svd/wlec.conf && \
 		cfg_commit
 		;;
 	svd-main)
@@ -166,6 +167,10 @@ update_configs(){
 		;;
 	svd-quality)
 		cfg_make svd-quality.conf /etc/svd/quality.conf && \
+		cfg_commit
+		;;
+    svd-wlec)
+		cfg_make svd-wlec.conf /etc/svd/wlec.conf && \
 		cfg_commit
 		;;
 	linkdeps)

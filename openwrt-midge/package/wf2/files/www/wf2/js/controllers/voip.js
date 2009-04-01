@@ -1,7 +1,6 @@
-Controllers.voip = function() {
+Controllers.voipSettings = function() {
 	var page = this.Page();
 	
-	/* settings tab */
 	page.addTab({
 		"id": "settings",
 		"name": "Settings",
@@ -118,7 +117,12 @@ Controllers.voip = function() {
 		}
 	});
 	
-	/* Hotline tab */
+	page.generateTabs();
+};
+
+Controllers.voipHotline = function() {
+	var page = this.Page();
+
 	page.addTab({
 		"id": "hotline",
 		"name": "Hotline",
@@ -128,64 +132,69 @@ Controllers.voip = function() {
 			c.setSubsystem("svd-hotline");
 			c.setHelpPage("voip.hotline");
 			c.addTitle("Hotline settings", {"colspan": 5});
-			
+
 			c.addTableHeader("Channel|Type|Hotline|Complete number|Comment");
 			var channels = config.getCachedOutput("voipChannels").split("\n");
 			$.each(channels, function(num, record) {
 				var field;
 				if (record.length == 0) return true;
 				var row = c.addTableRow();
-				
+
 				/* channel[0] — number of channel, channel[1] — type of channel */
 				var channel = record.split(":");
-				
+
 				field = {
 					"type": "html",
 					"name": channel[0],
 					"str": channel[0]
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": channel[1] + channel[0],
 					"str": channel[1]
 				};
 				c.addTableWidget(field, row);
-				
-				field = { 
+
+				field = {
 					"type": "checkbox",
 					"name": $.sprintf("sys_voip_hotline_%s_hotline", channel[0]),
 					"id": $.sprintf("sys_voip_hotline_%s_hotline", channel[0]),
 					"tip": "Enable hotline for this channel."
 				};
 				c.addTableWidget(field, row);
-				
-				field = { 
+
+				field = {
 					"type": "text",
 					"name": $.sprintf("sys_voip_hotline_%s_number", channel[0]),
 					"tip": "Number to call on channel event.",
-					"validator": 
+					"validator":
 						{
 							"required": $.sprintf("#sys_voip_hotline_%s_hotline:checked", channel[0]),
 							"voipCompleteNumber": true
 						}
 				};
 				c.addTableWidget(field, row);
-				
-				field = { 
+
+				field = {
 					"type": "text",
 					"name": $.sprintf("sys_voip_hotline_%s_comment", channel[0]),
 					"validator": {"alphanumU": true}
 				};
 				c.addTableWidget(field, row);
 			});
-			
+
 			c.addSubmit();
 		}
 	});
 
-	/* hardlink tab */
+	page.generateTabs();
+};
+
+Controllers.voipHardlink = function() {
+	var page = this.Page();
+
 	page.addTab({
 		"id": "hardlink",
 		"name": "Hardlink",
@@ -436,8 +445,13 @@ Controllers.voip = function() {
 			list.generateList();
 		}
 	});
-	
-	/* route table tab */
+
+	page.generateTabs();
+};
+
+Controllers.voipRoutes = function() {
+	var page = this.Page();
+
 	page.addTab({
 		"id": "voipRoute",
 		"name": "Routes",
@@ -446,7 +460,7 @@ Controllers.voip = function() {
 			c = page.addContainer("voipRoute");
 			c.setSubsystem("svd-routet");
 			c.setHelpPage("voip.route");
-			
+
 			var list = c.createList({
 				"tabId": "voipRoute",
 				"header": ["Router ID", "Address", "Comment"],
@@ -458,8 +472,8 @@ Controllers.voip = function() {
 				"helpPage": "voip.route",
 				"helpSection": "voip.route.add"
 			});
-			
-			field = { 
+
+			field = {
 				"type": "checkbox",
 				"name": "enabled",
 				"text": "Enabled",
@@ -467,8 +481,8 @@ Controllers.voip = function() {
 				"defaultState": "checked"
 			};
 			list.addWidget(field);
-	
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "router_id",
 				"text": "Router ID",
@@ -476,8 +490,8 @@ Controllers.voip = function() {
 				"validator": {"required": true, "voipRouterID": true}
 			};
 			list.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "address",
 				"text": "Address",
@@ -485,20 +499,25 @@ Controllers.voip = function() {
 				"validator": {"required": true, "ipAddr": true}
 			};
 			list.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "comment",
 				"text": "Comment",
 				"descr": "Comment for this record"
 			};
 			list.addWidget(field);
-			
+
 			list.generateList();
 		}
 	});
-	
-	/* address book tab */
+
+	page.generateTabs();
+};
+
+Controllers.voipAddresses = function() {
+	var page = this.Page();
+
 	page.addTab({
 		"id": "address",
 		"name": "Addresses",
@@ -507,7 +526,7 @@ Controllers.voip = function() {
 			c = page.addContainer("address");
 			c.setSubsystem("svd-addressb");
 			c.setHelpPage("voip.address");
-			
+
 			var list = c.createList({
 				"tabId": "address",
 				"header": ["Short number", "Complete number", "Comment"],
@@ -519,8 +538,8 @@ Controllers.voip = function() {
 				"helpPage": "voip.address",
 				"helpSection": "voip.address.add"
 			});
-			
-			field = { 
+
+			field = {
 				"type": "checkbox",
 				"name": "enabled",
 				"text": "Enabled",
@@ -528,8 +547,8 @@ Controllers.voip = function() {
 				"defaultState": "checked"
 			};
 			list.addWidget(field);
-	
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "short_number",
 				"text": "Short number",
@@ -537,8 +556,8 @@ Controllers.voip = function() {
 				"validator": {"required": true, "voipShortNumber": true}
 			};
 			list.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "complete_number",
 				"text": "Complete number",
@@ -548,20 +567,25 @@ Controllers.voip = function() {
 				"validator": {"required": true, "voipCompleteNumber": true}
 			};
 			list.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "comment",
 				"text": "Comment",
 				"descr": "Comment for this record."
 			};
 			list.addWidget(field);
-			
+
 			list.generateList();
 		}
 	});
-	
-	/* RTP tab */
+
+	page.generateTabs();
+};
+
+Controllers.voipRtp = function() {
+	var page = this.Page();
+
 	page.addTab({
 		"id": "rtp",
 		"name": "RTP",
@@ -569,24 +593,24 @@ Controllers.voip = function() {
 			var c = page.addContainer("rtp");
 			c.setSubsystem("svd-rtp");
 			c.addTitle("Sound settings", {"colspan": 9});
-			
+
 			c.addTableHeader("Channel|OOB|OOB_play|nEventPT|nEventPlayPT|Tx_vol|Rx_vol|VAD|HPF");
 			var channels = config.getCachedOutput("voipChannels").split("\n");
 			$.each(channels, function(num, record) {
 				var field;
 				if (record.length == 0) return true;
 				var row = c.addTableRow();
-				
+
 				/* channel[0] — number of channel, channel[1] — type of channel */
 				var channel = record.split(":");
-				
+
 				field = {
 					"type": "html",
 					"name": channel[0],
 					"str": channel[0]
 				};
 				c.addTableWidget(field, row);
-				
+
 				/* OOB */
 				field = {
 					"type": "select",
@@ -595,7 +619,7 @@ Controllers.voip = function() {
 					"defaultValue": "default"
 				};
 				c.addTableWidget(field, row);
-				
+
 				/* OOB_play */
 				field = {
 					"type": "select",
@@ -604,7 +628,7 @@ Controllers.voip = function() {
 					"defaultValue": "default"
 				};
 				c.addTableWidget(field, row);
-				
+
 				/* nEventPT */
 				field = {
 					"type": "text",
@@ -612,7 +636,7 @@ Controllers.voip = function() {
 					"defaultValue": "0x62"
 				};
 				c.addTableWidget(field, row);
-				
+
 				/* nEventPlayPT */
 				field = {
 					"type": "text",
@@ -620,14 +644,14 @@ Controllers.voip = function() {
 					"defaultValue": "0x62"
 				};
 				c.addTableWidget(field, row);
-				
+
 				/* calculate volume values */
 				var vol = "";
 				for (var i = -24; i <= 24; i += 1) {
 					vol += i + " ";
 				}
 				vol = $.trim(vol);
-				
+
 				/* COD_Tx_vol */
 				field = {
 					"type": "select",
@@ -636,7 +660,7 @@ Controllers.voip = function() {
 					"defaultValue": "0"
 				};
 				c.addTableWidget(field, row);
-				
+
 				/* COD_Rx_vol */
 				field = {
 					"type": "select",
@@ -645,7 +669,7 @@ Controllers.voip = function() {
 					"defaultValue": "0"
 				};
 				c.addTableWidget(field, row);
-				
+
 				/* VAD */
 				field = {
 					"type": "select",
@@ -654,7 +678,7 @@ Controllers.voip = function() {
 					"defaultValue": "off"
 				};
 				c.addTableWidget(field, row);
-				
+
 				/* HPF */
 				field = {
 					"type": "select",
@@ -664,12 +688,17 @@ Controllers.voip = function() {
 				};
 				c.addTableWidget(field, row);
 			});
-			
+
 			c.addSubmit();
 		}
 	});
-	
-	/* Quality tab */
+
+	page.generateTabs();
+};
+
+Controllers.voipQuality = function() {
+	var page = this.Page();
+
 	page.addTab({
 		"id": "quality",
 		"name": "Quality",
@@ -677,7 +706,7 @@ Controllers.voip = function() {
 			var c = page.addContainer("quality");
 			c.setSubsystem("svd-quality");
 			c.addTitle("Codecs settings", {"colspan": 5});
-			
+
 			/* default values */
 			var pktszDefault = {
 				"aLaw": "20",
@@ -692,7 +721,7 @@ Controllers.voip = function() {
 				"g726_40": "10",
 				"none": ""
 			};
-			
+
 			var payloadDefault = {
 				"aLaw": "08",
 				"uLaw": "00",
@@ -706,14 +735,14 @@ Controllers.voip = function() {
 				"g726_40": "105",
 				"none": ""
 			};
-			
+
 			var codecs = ["g729", "aLaw", "uLaw", "g723", "iLBC_133",
 				"g729e", "g726_16", "g726_24", "g726_32", "g726_40", "none"];
 
 			/*
 			 * At one time only one type of codec can be selected.
              * If current codec type is none, set next to none too and disable all next.
-			 * 
+			 *
 			 * scope — settings scope;
 			 * i — codec index.
 			 */
@@ -728,7 +757,7 @@ Controllers.voip = function() {
                         }
 					});
 				}
-				
+
 				var allNone = true;
                 var isNone = false;
 				$(".type_" + scope).each(function(num, element) {
@@ -755,36 +784,36 @@ Controllers.voip = function() {
                     $(".type_" + scope).eq(1).removeAttr("readonly").removeAttr("disabled");
                 }
 			};
-			
+
 			/*
 			 * Set default values depending on selected code type.
-			 * 
+			 *
 			 * scope — settings scope;
 			 * i — codec index.
 			 */
 			var setDefaults = function(scope, i) {
 				var codec = $($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, i)).val();
-				
+
 				$($.sprintf("#sys_voip_quality_%s_codec%s_pktsz", scope, i)).val(pktszDefault[codec]);
 				$($.sprintf("#sys_voip_quality_%s_codec%s_payload", scope, i)).val(payloadDefault[codec]);
-				
+
 				/* set default for bitpack */
 				if (codec.search("g726") != -1) {
 					$($.sprintf("#sys_voip_quality_%s_codec%s_bitpack", scope, i)).val("aal2");
 				} else {
 					$($.sprintf("#sys_voip_quality_%s_codec%s_bitpack", scope, i)).val("rtp");
 				}
-				
+
 				setPtksz(scope, i);
 				setBitpackReadonly(scope, i);
 			};
-			
+
 			/*
 			 * Set for some codecs bitpack readonly.
 			 */
 			var setBitpackReadonly = function(scope, i) {
 				var codec = $($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, i)).val();
-				
+
 				if (codec.search("g726") != -1) {
 					$($.sprintf("#sys_voip_quality_%s_codec%s_bitpack", scope, i))
 						.removeAttr("readonly").removeAttr("disabled");
@@ -793,7 +822,7 @@ Controllers.voip = function() {
 						.attr("readonly", true).attr("disabled", true);
 				}
 			};
-			
+
 			/*
 			 * Set for some codecs pkt_sz readonly.
 			 */
@@ -817,7 +846,7 @@ Controllers.voip = function() {
                             "options": "30 60",
                             "curValue": pktszField.val()
                     });
-                    
+
                     /* remove disabled and readonly attributes */
 					pktszField.removeAttr("readonly").removeAttr("disabled");
                 } else {
@@ -825,10 +854,10 @@ Controllers.voip = function() {
 					pktszField.removeAttr("readonly").removeAttr("disabled");
 				}
 			};
-			
+
 			/*
 			 * Add specified number of widgets for specified scope.
-			 * 
+			 *
 			 * num — number of widgets;
 			 * scope — scope (external, internal).
 			 */
@@ -836,7 +865,7 @@ Controllers.voip = function() {
 				for (var i = 0; i < num; i++) {
 					var field;
 					var row = c.addTableRow();
-					
+
 					/* priority */
 					field = {
 						"type": "html",
@@ -844,7 +873,7 @@ Controllers.voip = function() {
 						"str": "" + i
 					};
 					c.addTableWidget(field, row);
-					
+
 					/* type */
 					field = {
 						"type": "select",
@@ -866,7 +895,7 @@ Controllers.voip = function() {
                         field.defaultValue = "none";
                     }
 					c.addTableWidget(field, row);
-					
+
 					/* pkt_sz */
 					field = {
 						"type": "select",
@@ -875,7 +904,7 @@ Controllers.voip = function() {
 					};
 					c.addTableWidget(field, row);
 					setPtksz(scope, i);
-					
+
 					/* payload */
 					field = {
 						"type": "text",
@@ -893,7 +922,7 @@ Controllers.voip = function() {
 						}
 					};
 					c.addTableWidget(field, row);
-					
+
 					/* bitpack */
 					field = {
 						"type": "select",
@@ -908,23 +937,23 @@ Controllers.voip = function() {
                     }
 				}
 			};
-			
+
 			c.addTableHeader("Priority*|Type**|Packetization time (ms)|Payload|Bitpack");
 			c.addTableTfootStr("* 0 — max priority.", 5);
             c.addTableTfootStr("** Each codec can be selected only once.", 5);
-			
+
 			c.addTitle("Internal", {"internal": true, "colspan": 5});
 			addCodecsWidgets(codecs.length - 1, "int");
-			
+
 			c.addTitle("External", {"internal": true, "colspan": 5});
 			addCodecsWidgets(codecs.length - 1, "ext");
-			
+
 			c.addTitle("Fax", {"internal": true, "colspan": 5});
 			var row = c.addTableRow();
-			
+
 			/* add fake widget */
 			c.addGeneralTableWidget({"name": "fax_fake1"}, row);
-			
+
 			/* fax type */
 			var field = {
 				"type": "select",
@@ -932,12 +961,12 @@ Controllers.voip = function() {
 				"options": ["uLaw", "aLaw"]
 			};
 			c.addTableWidget(field, row);
-			
+
 			/* add three fake widgets */
 			c.addGeneralTableWidget({"name": "fax_fake2"}, row);
 			c.addGeneralTableWidget({"name": "fax_fake3"}, row);
 			c.addGeneralTableWidget({"name": "fax_fake4"}, row);
-			
+
 			c.addSubmit({
 				/* remove disabled attribute */
 				"preSubmit": function() {
@@ -950,6 +979,96 @@ Controllers.voip = function() {
 			});
 		}
 	});
-	
+
+	page.generateTabs();
+};
+
+Controllers.voipWlec = function() {
+	var page = this.Page();
+
+	page.addTab({
+		"id": "wlec",
+		"name": "WLEC",
+		"func": function() {
+			var c = page.addContainer("wlec");
+			c.setSubsystem("svd-wlec");
+			c.addTitle("Window-based Line Echo Canceller", {"colspan": 6});
+
+			c.addTableHeader("Channel|WLEC type|NLP|Near-end window NB|Far-end window NB|Near-end window WB");
+            c.addTableTfootStr("NLP - Non-linear processing.", 6);
+            c.addTableTfootStr("WLEC type: ", 6);
+            c.addTableTfootStr("- NE: near-end only.", 6);
+            c.addTableTfootStr("- NFE: near-end and far-end.", 6);
+            c.addTableTfootStr("NB - Narrow band.", 6);
+            c.addTableTfootStr("WB - Wide band.", 6);
+
+			var channels = config.getCachedOutput("voipChannels").split("\n");
+			$.each(channels, function(num, record) {
+				var field;
+				if (record.length == 0) {
+                    return true;
+                }
+				var row = c.addTableRow();
+
+				/* channel[0] — number of channel, channel[1] — type of channel */
+				var channel = record.split(":");
+
+				field = {
+					"type": "html",
+					"name": channel[0],
+					"str": channel[0]
+				};
+				c.addTableWidget(field, row);
+
+				/* Type */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_wlec_%s_type", channel[0]),
+					"options": "off NE NFE",
+					"defaultValue": "off"
+				};
+				c.addTableWidget(field, row);
+
+				/* NLP */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_wlec_%s_nlp", channel[0]),
+					"options": "default off on",
+					"defaultValue": "default"
+				};
+				c.addTableWidget(field, row);
+
+				/* Near-end window NB */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_wlec_%s_new_nb", channel[0]),
+                    "options": "4 6 8 16",
+					"defaultValue": "4"
+				};
+				c.addTableWidget(field, row);
+
+				/* Far-end window NB */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_wlec_%s_few_nb", channel[0]),
+                    "options": "4 6 8 16",
+					"defaultValue": "4"
+				};
+				c.addTableWidget(field, row);
+
+                /* Near-end window WB */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_wlec_%s_new_wb", channel[0]),
+                    "options": "4 6 8 16",
+					"defaultValue": "4"
+				};
+				c.addTableWidget(field, row);
+			});
+
+			c.addSubmit();
+		}
+	});
+
 	page.generateTabs();
 };

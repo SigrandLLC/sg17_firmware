@@ -32,7 +32,15 @@ function generateMenu() {
 	if (config.get("sys_voip_present") == "1") {
 		/* get VoIP channels list */
 		config.runCmd("/bin/cat /proc/driver/sgatab/channels", "voipChannels");
-		addItem("Hardware", "VoIP", "voip");
+		addItem("Hardware:VoIP", "Settings", "voipSettings");
+        addItem("Hardware:VoIP", "Hotline", "voipHotline");
+        addItem("Hardware:VoIP", "Hardlink", "voipHardlink");
+        addItem("Hardware:VoIP", "Hotline", "voipHotline");
+        addItem("Hardware:VoIP", "Routes", "voipRoutes");
+        addItem("Hardware:VoIP", "Addresses", "voipAddresses");
+        addItem("Hardware:VoIP", "RTP", "voipRtp");
+        addItem("Hardware:VoIP", "Quality", "voipQuality");
+        addItem("Hardware:VoIP", "WLEC", "voipWlec");
 	}
 
 	/* get array of PCI slots */
