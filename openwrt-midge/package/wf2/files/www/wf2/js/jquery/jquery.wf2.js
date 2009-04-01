@@ -270,12 +270,15 @@ jQuery.validator.addMethod("uniqueValue", function(value, element, params) {
 	$.fn.setSelectReadonly = function(state) {
 		if (state) {
 			$(this).attr("disabled", true);
-			$.create("input", {
+
+            /* add hidden field if it doesn't exist */
+            if ($($.sprintf("input[type=hidden][name=%s]", $(this).attr("name"))).length == 0) {
+                $.create("input", {
 					"type": "hidden",
 					"name": $(this).attr("name"),
 					"value": $(this).val()
-				}
-			).insertAfter(this);
+				}).insertAfter(this);
+            }
 		} else {
 			$(this).removeAttr("disabled");
 			$($.sprintf("input[type=hidden][name=%s]", $(this).attr("name"))).remove();

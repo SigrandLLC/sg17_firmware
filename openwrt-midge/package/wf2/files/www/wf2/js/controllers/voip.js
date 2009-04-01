@@ -254,6 +254,62 @@ Controllers.voip = function() {
 				return result;
 			};
 
+            /*
+             * Parameters for codecs:
+             * - pkt_sz — default value;
+             * - pkt_sz_ro — read-only (default set to false);
+             * - pkt_sz_vals — available values (by default "2.5 5 5.5 10 11 20 30 40 50 60");
+             * - payload — default value;
+             * - bitpack — default value;
+             * - bitpack_ro — read-only (default set to false);
+             */
+            var codecsParameters = {
+                "aLaw": {"pkt_sz": "20", "payload": "08", "bitpack": "rtp", "bitpack_ro": true},
+				"uLaw": {"pkt_sz": "20", "payload": "00", "bitpack": "rtp", "bitpack_ro": true},
+				"g729": {"pkt_sz": "10", "payload": "12", "bitpack": "rtp", "bitpack_ro": true},
+				"g723": {"pkt_sz": "30", "payload": "4", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "30 60"},
+				"iLBC_133": {"pkt_sz": "30", "payload": "100", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_ro": true},
+				"g729e": {"pkt_sz": "10", "payload": "101", "bitpack": "rtp", "bitpack_ro": true},
+				"g726_16": {"pkt_sz": "10", "payload": "102", "bitpack": "aal2"},
+				"g726_24": {"pkt_sz": "10", "payload": "103", "bitpack": "aal2"},
+				"g726_32": {"pkt_sz": "10", "payload": "104", "bitpack": "aal2"},
+				"g726_40": {"pkt_sz": "10", "payload": "105", "bitpack": "aal2"}
+            };
+
+            var pktszDefaultValues = "2.5 5 5.5 10 11 20 30 40 50 60";
+
+            /* set codec parameters */
+            var onCodecChange = function() {
+                var codec = $("#codec").val();
+
+                /* set values for pkt_sz */
+                $("#pkt_sz").setOptionsForSelect({
+                        "options": codecsParameters[codec].pkt_sz_vals == undefined
+                                ? pktszDefaultValues
+                                : codecsParameters[codec].pkt_sz_vals,
+                        "curValue": $("#pkt_sz").val()
+                });
+
+                /* set pkt_sz default */
+                $("#pkt_sz").val(codecsParameters[codec].pkt_sz);
+
+                /* set/unset pkt_sz read-only */
+                $("#pkt_sz").setSelectReadonly(codecsParameters[codec].pkt_sz_ro == undefined
+                        ? false
+                        : codecsParameters[codec].pkt_sz_ro);
+
+                /* set payload default */
+                $("#payload").val(codecsParameters[codec].payload);
+
+                /* set bitpack default */
+                $("#bitpack").val(codecsParameters[codec].bitpack);
+
+                /* set/unset bitpack read-only */
+                $("#bitpack").setSelectReadonly(codecsParameters[codec].bitpack_ro == undefined
+                        ? false
+                        : codecsParameters[codec].bitpack_ro);
+            };
+
 			/* add widgets for adding/editing hardlink channels */
 			var addHardlinkWidgets = function(list) {
 				field = {
@@ -318,8 +374,15 @@ Controllers.voip = function() {
 					"name": "codec",
 					"text": "Codec",
 					"descr": "Codec to use.",
-					"options": "aLaw uLaw",
-					"validator": {"required": true}
+					"options": function() {
+                        var codecs = [];
+                        $.each(codecsParameters, function(key) {
+                            codecs.push(key);
+                        });
+                        return codecs;
+                    }(),
+					"validator": {"required": true},
+                    "onChange": onCodecChange
 				};
 				list.addDynamicWidget(field);
 
@@ -328,48 +391,40 @@ Controllers.voip = function() {
 					"name": "pkt_sz",
 					"text": "Packetization time (ms)",
 					"descr": "Packetization time in ms.",
-					"options": ["2.5", "5", "5.5", "10", "11", "20", "30", "40", "50", "60"],
-					"defaultValue": "20",
 					"validator": {"required": true}
 				};
 				list.addDynamicWidget(field);
 
-				/* calculate volume values */
-				var vol = "";
-				for (var i = -24; i <= 24; i += 1) {
-					vol += i + " ";
-				}
-				vol = $.trim(vol);
+				/* payload */
+                field = {
+                    "type": "text",
+                    "name": "payload",
+                    "text": "Payload",
+                    "descr": "RTP codec identificator.",
+                    "validator": {"required": true, "voipPayload": true}
+                };
+                list.addDynamicWidget(field);
 
-				field = {
-					"type": "select",
-					"name": "vol_tx",
-					"text": "Tx_vol",
-					"descr": "Transmit volume. This parameter has higher priority than Tx_vol on RTP tab.",
-					"options": vol,
-					"defaultValue": "0",
-					"validator": {"required": true}
-				};
-				list.addDynamicWidget(field);
+                /* bitpack */
+                field = {
+                    "type": "select",
+                    "name": "bitpack",
+                    "text": "Bitpack",
+                    "descr": "Bits packetization type.",
+                    "options": "rtp aal2",
+                    "validator": {"required": true}
+                };
+                list.addDynamicWidget(field);
 
-				field = {
-					"type": "select",
-					"name": "vol_rx",
-					"text": "Rx_vol",
-					"descr": "Recieve volume. This parameter has higher priority than Rx_vol on RTP tab.",
-					"options": vol,
-					"defaultValue": "0",
-					"validator": {"required": true}
-				};
-				list.addDynamicWidget(field);
+                onCodecChange();
 			};
 
 			var list = c.createList({
 				"tabId": "hardlink",
 				"header": ["Type", "Local chan", "Router ID", "Remote chan", "Codec", "Packet. time",
-						"Tx_vol", "Rx_vol", "Role"],
+						"Payload", "Bitpack", "Role"],
 				"varList": ["wire_type", "ch_idx", "pair_route", "pair_chan", "codec", "pkt_sz",
-						"vol_tx", "vol_rx", "role"],
+						"payload", "bitpack", "role"],
 				"listItem": "sys_voip_hardlink_",
 				"addMessage": "Add hardlink",
 				"editMessage": "Edit hardlink",
@@ -744,20 +799,30 @@ Controllers.voip = function() {
 			 */
 			var setPtksz = function(scope, i) {
 				var codec = $($.sprintf("#sys_voip_quality_%s_codec%s_type", scope, i)).val();
-				
-				/* for iLBC* pkt_sz is read-only */
+                var pktszField = $($.sprintf("#sys_voip_quality_%s_codec%s_pktsz", scope, i));
+
+                /* set default pkt_sz values */
+                pktszField.setOptionsForSelect({
+                        "options": "2.5 5 5.5 10 11 20 30 40 50 60",
+                        "curValue": pktszField.val()
+                });
+
+				/* for iLBC_133 pkt_sz is read-only */
 				if (codec == "iLBC_133") {
 					/* set disabled and readonly attributes */
-					$($.sprintf("#sys_voip_quality_%s_codec%s_pktsz", scope, i))
-						.attr("readonly", true).attr("disabled", true);
+					pktszField.attr("readonly", true).attr("disabled", true);
 				/* for g723 set fixed values: 30 and 60 */
                 } else if (codec == "g723") {
-                    var field = $($.sprintf("#sys_voip_quality_%s_codec%s_pktsz", scope, i));
-                    field.setOptionsForSelect({"options": "30 60", "curValue": field.val()});
+                    pktszField.setOptionsForSelect({
+                            "options": "30 60",
+                            "curValue": pktszField.val()
+                    });
+                    
+                    /* remove disabled and readonly attributes */
+					pktszField.removeAttr("readonly").removeAttr("disabled");
                 } else {
 					/* remove disabled and readonly attributes */
-					$($.sprintf("#sys_voip_quality_%s_codec%s_pktsz", scope, i))
-						.removeAttr("readonly").removeAttr("disabled");
+					pktszField.removeAttr("readonly").removeAttr("disabled");
 				}
 			};
 			
