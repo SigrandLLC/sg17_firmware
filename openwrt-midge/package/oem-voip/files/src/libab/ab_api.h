@@ -7,6 +7,7 @@
 typedef enum ab_dev_type_e ab_dev_type_t;
 typedef enum cod_type_e cod_type_t;
 typedef struct codec_s codec_t;
+typedef struct wlec_s wlec_t;
 typedef struct rtp_session_prms_s rtp_session_prms_t;
 typedef struct ab_chan_s ab_chan_t;
 typedef struct ab_dev_s ab_dev_t;
@@ -53,6 +54,30 @@ struct codec_s {
 	enum bitpack_e bpack;
 	int user_payload;			/**< User preset to sdp payload. */
 	int sdp_selected_payload;	/**< Selected in sdp session payload. */
+};
+
+enum wlec_mode_e {
+	wlec_mode_OFF,
+	wlec_mode_NE,
+	wlec_mode_NFE,
+};
+enum wlec_nlp_e {
+	wlec_nlp_DEFAULT,
+	wlec_nlp_ON,
+	wlec_nlp_OFF,
+};
+enum wlec_window_size_e {
+	wlec_window_size_4 = 4,
+	wlec_window_size_6 = 6,
+	wlec_window_size_8 = 8,
+	wlec_window_size_16 = 16,
+};
+struct wlec_s {
+	enum wlec_mode_e mode;
+	enum wlec_nlp_e nlp;
+	enum wlec_window_size_e ne_nb;
+	enum wlec_window_size_e fe_nb;
+	enum wlec_window_size_e ne_wb;
 };
 
 enum evts_2833_e {
@@ -243,6 +268,8 @@ int ab_chan_fax_pass_through_start( ab_chan_t * const chan,
 /** Tune rtp parameters on selected chan */
 int ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 		codec_t const * const fcod);
+/** Tune wlec parameters on selected chan */
+int ab_chan_media_wlec_tune (ab_chan_t * const chan, wlec_t const * const wp);
 /** Switch on/off media on selected chan */
 int ab_chan_media_switch( ab_chan_t * const chan,
 		unsigned char const enc_on, unsigned char const dec_on );

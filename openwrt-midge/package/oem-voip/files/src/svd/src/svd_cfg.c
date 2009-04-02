@@ -75,6 +75,12 @@ static unsigned char g_err_no;
 #define CONF_VAD_G711 "g711"
 #define CONF_VAD_CNG_ONLY "CNG_only"
 #define CONF_VAD_SC_ONLY "SC_only"
+#define CONF_WLEC_TYPE_OFF "off"
+#define CONF_WLEC_TYPE_NE  "NE"
+#define CONF_WLEC_TYPE_NFE "NFE"
+#define CONF_WLEC_NLP_DF   "defualt"
+#define CONF_WLEC_NLP_ON   "on"
+#define CONF_WLEC_NLP_OFF  "off"
 /** @}*/ 
 
 /** @defgroup CFG_IF Config internal functions.
@@ -85,13 +91,15 @@ static unsigned char g_err_no;
 static int self_values_init (void);
 /** Init codec_t from rec_set. */
 static void init_codec_el(struct config_setting_t const * const rec_set, 
-		codec_t * const cod);
+		int const prms_offset, codec_t * const cod);
 /** Init main configuration.*/
 static int main_init (void);
 /** Init route table configuration.*/
 static int routet_init (void);
 /** Init RTP parameters configuration.*/
 static int rtp_init (void);
+/** Init WLEC parameters configuration.*/
+static int wlec_init (void);
 /** Init hard link configuration.*/
 static int hardlink_init (void);
 /** Init hot line configuration.*/
@@ -214,6 +222,7 @@ svd_conf_init( void )
 	if(		main_init() 	||
 			routet_init()	||
 			rtp_init()		||
+			wlec_init()		||
 			hardlink_init() ||
 			hotline_init()	||
 			addressb_init()	||
@@ -291,12 +300,10 @@ conf_show( void )
 	/* RTP parameters */
 	for (i=0; i<CHANS_MAX; i++){
 		rtp_rec = &g_conf.rtp_prms[i];
-		if(rtp_rec->is_set){
-			SU_DEBUG_3(("%d: OOB(%d/%d) evtPT(%d/%d) vol(%d/%d) vh(%d/%d)\n",
-					i, rtp_rec->OOB, rtp_rec->OOB_play, rtp_rec->evtPT,
-					rtp_rec->evtPTplay, rtp_rec->COD_Tx_vol, rtp_rec->COD_Rx_vol,
-					rtp_rec->VAD_cfg, rtp_rec->HPF_is_ON));
-		}
+		SU_DEBUG_3(("%d: OOB(%d/%d) evtPT(%d/%d) vol(%d/%d) vh(%d/%d)\n",
+				i, rtp_rec->OOB, rtp_rec->OOB_play, rtp_rec->evtPT,
+				rtp_rec->evtPTplay, rtp_rec->COD_Tx_vol, rtp_rec->COD_Rx_vol,
+				rtp_rec->VAD_cfg, rtp_rec->HPF_is_ON));
 	} 
 
 	if(g_conf.address_book.records_num){
@@ -329,12 +336,8 @@ conf_show( void )
 		} else if(curr_hk_rec->type == hl_type_4_WIRED){
 			SU_DEBUG_3(("\t4w/"));
 		}
-		if(curr_hk_rec->hl_codec.type == cod_type_MLAW){
-			SU_DEBUG_3(("uL/"));
-		} else if(curr_hk_rec->hl_codec.type == cod_type_ALAW){
-			SU_DEBUG_3(("aL/"));
-		}
-		SU_DEBUG_3(("s%d/up%d/",
+		SU_DEBUG_3(("t%d/s%d/up%d/",
+				curr_hk_rec->hl_codec.type,
 				curr_hk_rec->hl_codec.pkt_size,
 				curr_hk_rec->hl_codec.user_payload));
 
@@ -626,14 +629,16 @@ __exit_fail:
  * Initilize one codec element from appropriate config setting.
  *
  * \param[in] rec_set config setting.
+ * \param[in] prms_offset from there starts the codec params in offset.
  * \param[out] cod codec_t element to initilize.
  */ 
 static void
-init_codec_el(struct config_setting_t const *const rec_set, codec_t *const cod)
+init_codec_el(struct config_setting_t const *const rec_set, 
+		int const prms_offset, codec_t *const cod)
 {/*{{{*/
 	char const * codel = NULL;
 	/* codec type */
-	codel = config_setting_get_string_elem (rec_set, 0);
+	codel = config_setting_get_string_elem (rec_set, prms_offset);
 	if       ( !strcmp(codel, CONF_CODEC_G729)){
 		cod->type = cod_type_G729;
 	} else if( !strcmp(codel, CONF_CODEC_ALAW)){
@@ -661,7 +666,7 @@ init_codec_el(struct config_setting_t const *const rec_set, codec_t *const cod)
 	}
 
 	/* codec packet size */
-	codel = config_setting_get_string_elem (rec_set, 1);
+	codel = config_setting_get_string_elem (rec_set, prms_offset+1);
 	if       ( !strcmp(codel, "2.5")){
 		cod->pkt_size = cod_pkt_size_2_5;
 	} else if( !strcmp(codel, "5")){
@@ -685,14 +690,10 @@ init_codec_el(struct config_setting_t const *const rec_set, codec_t *const cod)
 	}
 
 	/* codec payload type */
-	cod->user_payload = config_setting_get_int_elem (rec_set, 2);
+	cod->user_payload = config_setting_get_int_elem (rec_set, prms_offset+2);
 
 	/* codec bitpack */
-	codel = config_setting_get_string_elem (rec_set, 3);
-	if( !codel){
-		SU_DEBUG_2(("No BITPACK entries for some codecs!!!"));
-		return;
-	}
+	codel = config_setting_get_string_elem (rec_set, prms_offset+3);
 	if       ( !strcmp(codel, CONF_CODEC_BITPACK_RTP)){
 		cod->bpack = bitpack_RTP;
 	} else if( !strcmp(codel, CONF_CODEC_BITPACK_AAL2)){
@@ -891,14 +892,12 @@ __exit_fail:
  *
  * \retval 0 success.
  * \retval -1 fail.
- * \remark
- * 	It should be run after rtp_init, because it can reinits it`s values.
  */ 
 static int 
 hardlink_init( void )
 {/*{{{*/
 	/* ("w_type", "chan_id", "pair_route_id", "pair_chan_id",
-	 * 		codec_name, pkt_sz, am_i_caller), */
+	 * 		codec_name, pkt_sz, payload_type, bitpack, am_i_caller), */
 	struct config_t cfg;
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
@@ -934,7 +933,6 @@ hardlink_init( void )
 	}
 
 	for(i=0; i<rec_num; i++){
-		int length; /* tag__ to remove */
 		int chan_id;
 		int pair_chan;
 		int router_is_self;
@@ -1004,64 +1002,12 @@ hardlink_init( void )
 			goto __exit_fail;
 		}
 
-		/* get codec name and payload set */
-		elem = config_setting_get_string_elem (rec_set, 4);
-		if( !strcmp(elem, CONF_CODEC_ALAW)){
-			curr_rec->hl_codec.type = cod_type_ALAW;
-		} else if( !strcmp(elem, CONF_CODEC_MLAW)){
-			curr_rec->hl_codec.type = cod_type_MLAW;
-		} 
+		/* get codec params */
+		init_codec_el(rec_set, 4, &curr_rec->hl_codec);
 
-		/* get packet size */
-		elem = config_setting_get_string_elem (rec_set, 5);
-		if       ( !strcmp(elem, "2.5")){
-			curr_rec->hl_codec.pkt_size = cod_pkt_size_2_5;
-		} else if( !strcmp(elem, "5")){
-			curr_rec->hl_codec.pkt_size = cod_pkt_size_5;
-		} else if( !strcmp(elem, "5.5")){
-			curr_rec->hl_codec.pkt_size = cod_pkt_size_5_5;
-		} else if( !strcmp(elem, "10")){
-			curr_rec->hl_codec.pkt_size = cod_pkt_size_10;
-		} else if( !strcmp(elem, "11")){
-			curr_rec->hl_codec.pkt_size = cod_pkt_size_11;
-		} else if( !strcmp(elem, "20")){
-			curr_rec->hl_codec.pkt_size = cod_pkt_size_20;
-		} else if( !strcmp(elem, "30")){
-			curr_rec->hl_codec.pkt_size = cod_pkt_size_30;
-		} else if( !strcmp(elem, "40")){
-			curr_rec->hl_codec.pkt_size = cod_pkt_size_40;
-		} else if( !strcmp(elem, "50")){
-			curr_rec->hl_codec.pkt_size = cod_pkt_size_50;
-		} else if( !strcmp(elem, "60")){
-			curr_rec->hl_codec.pkt_size = cod_pkt_size_60;
-		}
-
-		/* bit pack set */
-		curr_rec->hl_codec.bpack = bitpack_RTP;
-
-		/* set rtp parameters */
-		g_conf.rtp_prms[chan_id].is_set = 1;
-		g_conf.rtp_prms[chan_id].OOB = evts_OOB_NO;
-		g_conf.rtp_prms[chan_id].OOB_play = play_evts_MUTE;
-		g_conf.rtp_prms[chan_id].evtPT = 0x62;
-		g_conf.rtp_prms[chan_id].evtPTplay = 0x62;
-		g_conf.rtp_prms[chan_id].VAD_cfg = vad_cfg_OFF;
-		g_conf.rtp_prms[chan_id].HPF_is_ON = 0;
-
-		/* tag__ to remove */
-		length = config_setting_length (rec_set);
-		if (length >= 8){
-			/* vol still in config */
-			elem = config_setting_get_string_elem (rec_set, 8);
-		} else if(length <= 7){
-			/* vol removed from config */
-			elem = config_setting_get_string_elem (rec_set, 6);
-		}
 		/* set caller flag */
-		if( !elem){
-			/* to remove - no aic flag */
-			curr_rec->am_i_caller = 0;
-		} else if( !strcmp(elem, CONF_HARDLINK_CALLER)){
+		elem = config_setting_get_string_elem (rec_set, 8);
+		if( !strcmp(elem, CONF_HARDLINK_CALLER)){
 			curr_rec->am_i_caller = 1;
 		} else if( !strcmp(elem, CONF_HARDLINK_RECEIVER)){
 			curr_rec->am_i_caller = 0;
@@ -1069,13 +1015,6 @@ hardlink_init( void )
 
 		if (curr_rec->type == hl_type_4_WIRED){
 			/* add record for this channel and for the second stream */
-			/* copy rtp_params */
-			int rx_tmp = g_conf.rtp_prms[chan_id+1].COD_Rx_vol;
-			int tx_tmp = g_conf.rtp_prms[chan_id+1].COD_Tx_vol;
-			memcpy(&g_conf.rtp_prms[chan_id+1], &g_conf.rtp_prms[chan_id], 
-					sizeof(g_conf.rtp_prms[chan_id]));
-			g_conf.rtp_prms[chan_id+1].COD_Rx_vol = rx_tmp;
-			g_conf.rtp_prms[chan_id+1].COD_Tx_vol = tx_tmp;
 			/* copy hardlinked params */
 			memcpy(&g_conf.hard_link[ chan_id+1 ], 
 					&g_conf.hard_link[ chan_id ],
@@ -1090,13 +1029,6 @@ hardlink_init( void )
 		/* Create automatic mirror record if dest router is self */
 		if(curr_rec->pair_route == NULL){
 			struct hard_link_s * mirr_rec = &g_conf.hard_link[ pair_chan ];
-			int rx_tmp = g_conf.rtp_prms[pair_chan].COD_Rx_vol;
-			int tx_tmp = g_conf.rtp_prms[pair_chan].COD_Tx_vol;
-			/* copy rtp_params */
-			memcpy(&g_conf.rtp_prms[pair_chan], &g_conf.rtp_prms[chan_id], 
-					sizeof(g_conf.rtp_prms[chan_id]));
-			g_conf.rtp_prms[pair_chan].COD_Rx_vol = rx_tmp;
-			g_conf.rtp_prms[pair_chan].COD_Tx_vol = tx_tmp;
 
 			/* copy hardlinked params */
 			memcpy(&g_conf.hard_link[ pair_chan ], &g_conf.hard_link[ chan_id ],
@@ -1110,14 +1042,6 @@ hardlink_init( void )
 			/* create additional record for 4-wired hardlink */
 			if (curr_rec->type == hl_type_4_WIRED){
 				/* add record for this channel and for the second stream */
-				/* copy rtp_params */
-				rx_tmp = g_conf.rtp_prms[pair_chan-1].COD_Rx_vol;
-				tx_tmp = g_conf.rtp_prms[pair_chan-1].COD_Tx_vol;
-				memcpy(&g_conf.rtp_prms[pair_chan-1], &g_conf.rtp_prms[pair_chan], 
-						sizeof(g_conf.rtp_prms[pair_chan-1]));
-				g_conf.rtp_prms[pair_chan-1].COD_Rx_vol = rx_tmp;
-				g_conf.rtp_prms[pair_chan-1].COD_Tx_vol = tx_tmp;
-
 				/* copy hardlinked params */
 				memcpy(&g_conf.hard_link[pair_chan-1], &g_conf.hard_link[pair_chan],
 						sizeof(g_conf.hard_link[pair_chan]));
@@ -1398,7 +1322,7 @@ quality_init( void )
 	/* init one by one */
 	for (i=0; i<rec_num; i++){
 		rec_set = config_setting_get_elem (set, i);
-		init_codec_el(rec_set, &g_conf.int_codecs[i]);
+		init_codec_el(rec_set, 0, &g_conf.int_codecs[i]);
 	} 
 
 	/* CODECS FOR EXTERNAL USAGE */
@@ -1411,7 +1335,7 @@ quality_init( void )
 		/* init one by one */
 		for (i=0; i<rec_num; i++){
 			rec_set = config_setting_get_elem (set, i);
-			init_codec_el(rec_set, &g_conf.sip_set.ext_codecs[i]);
+			init_codec_el(rec_set, 0, &g_conf.sip_set.ext_codecs[i]);
 		} 
 	}
 
@@ -1487,6 +1411,21 @@ rtp_init( void )
 		goto __exit_fail;
 	} 
 
+	/* Standart params for all chans */
+	curr_rec = &g_conf.rtp_prms[0];
+	curr_rec->OOB = evts_OOB_ONLY;
+	curr_rec->OOB_play = play_evts_PLAY;
+	curr_rec->evtPT = 0x62;
+	curr_rec->evtPTplay = 0x62;
+	curr_rec->COD_Tx_vol = 0;
+	curr_rec->COD_Rx_vol = 0;
+	curr_rec->VAD_cfg = vad_cfg_OFF;
+	curr_rec->HPF_is_ON = 0;
+	for (i=1; i<CHANS_MAX; i++){
+		curr_rec = &g_conf.rtp_prms[i];
+		memcpy(curr_rec, &g_conf.rtp_prms[0], sizeof(*curr_rec));
+	} 
+
 	/* Get values */
 	set = config_lookup (&cfg, "rtp_prms" );
 	if( !set ){
@@ -1512,7 +1451,6 @@ rtp_init( void )
 
 		curr_rec = &g_conf.rtp_prms[ abs_idx ];
 
-		curr_rec->is_set = 1;	
 		/* get rtp params */
 		elem = config_setting_get_string_elem (rec_set, 1);
 		if( !strcmp(elem, CONF_OOB_DEFAULT)){
@@ -1555,6 +1493,99 @@ rtp_init( void )
 			curr_rec->VAD_cfg = vad_cfg_SC_only;
 		}
 		curr_rec->HPF_is_ON = config_setting_get_int_elem(rec_set, 8);
+	}
+__exit_success:
+	config_destroy (&cfg);
+	return 0;
+__exit_fail:
+	config_destroy (&cfg);
+	return -1;
+}/*}}}*/
+
+/**
+ * Init`s WLEC parameters in main routine configuration \ref g_conf structure.
+ *
+ * \retval 0 success.
+ * \retval -1 fail.
+ */ 
+static int
+wlec_init( void )
+{/*{{{*/
+	struct config_t cfg;
+	struct config_setting_t * set;
+	struct config_setting_t * rec_set;
+	struct wlec_s * curr_rec;
+	char const * elem;
+	int rec_num;
+	int i;
+	int err;
+
+	config_init (&cfg);
+
+	/* Load the file */
+	if (!config_read_file (&cfg, RTP_CONF_NAME)){
+		err = config_error_line (&cfg);
+		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n",
+				__func__, err));
+		goto __exit_fail;
+	} 
+
+	/* Standart params for all chans */
+	curr_rec = &g_conf.wlec_prms[0];
+	memset (curr_rec, 0, sizeof(*curr_rec));
+	curr_rec->mode = wlec_mode_OFF;
+	for (i=1; i<CHANS_MAX; i++){
+		curr_rec = &g_conf.wlec_prms[i];
+		memcpy(curr_rec, &g_conf.wlec_prms[0], sizeof(*curr_rec));
+	} 
+
+	/* Get values */
+	set = config_lookup (&cfg, "wlec_prms" );
+	if( !set ){
+		/* We will use standart params for all channels */
+		goto __exit_success;
+	} 
+
+	rec_num = config_setting_length (set);
+
+	if(rec_num > CHANS_MAX){
+		SU_DEBUG_0(("%s(): Too many channels (%d) in config - max is %d\n",
+				__func__, rec_num, CHANS_MAX));
+		goto __exit_fail;
+	}
+
+	for(i=0; i<rec_num; i++){
+		int abs_idx;
+		rec_set = config_setting_get_elem (set, i);
+
+		/* get chan id */
+		elem = config_setting_get_string_elem (rec_set, 0);
+		abs_idx = strtol(elem, NULL, 10);
+
+		curr_rec = &g_conf.wlec_prms[ abs_idx ];
+
+		/* get rtp params */
+		elem = config_setting_get_string_elem (rec_set, 1);
+		if       ( !strcmp(elem, CONF_WLEC_TYPE_OFF)){
+			curr_rec->mode = wlec_mode_OFF;
+		} else if( !strcmp(elem, CONF_WLEC_TYPE_NE)){
+			curr_rec->mode = wlec_mode_NE;
+		} else if( !strcmp(elem, CONF_WLEC_TYPE_NFE)){
+			curr_rec->mode = wlec_mode_NFE;
+		}
+
+		elem = config_setting_get_string_elem (rec_set, 2);
+		if       ( !strcmp(elem, CONF_WLEC_NLP_DF)){
+			curr_rec->nlp = wlec_nlp_DEFAULT;
+		} else if( !strcmp(elem, CONF_WLEC_NLP_ON)){
+			curr_rec->nlp = wlec_nlp_ON;
+		} else if( !strcmp(elem, CONF_WLEC_NLP_OFF)){
+			curr_rec->nlp = wlec_nlp_OFF;
+		}
+
+		curr_rec->ne_nb = config_setting_get_int_elem(rec_set, 3);
+		curr_rec->fe_nb = config_setting_get_int_elem(rec_set, 4);
+		curr_rec->ne_wb = config_setting_get_int_elem(rec_set, 5);
 	}
 __exit_success:
 	config_destroy (&cfg);

@@ -181,7 +181,6 @@ struct route_table_s {
 };
 /** RTP parameters.*/
 struct rtp_prms_s {
-	unsigned char is_set; /**< Is there settings for the chan or it is garbage*/
 	enum evts_2833_e OOB; /**< Out-of-band events generation mode.*/
 	enum play_evts_2833_e OOB_play; /**< Out-of-band events play mode.*/
 	int evtPT; /**< RFC_2833 events payload type for generator side.*/
@@ -191,6 +190,7 @@ struct rtp_prms_s {
 	enum vad_cfg_e VAD_cfg; /**< Voice activity detector mode.*/
 	unsigned char HPF_is_ON; /**< High-pass filter (on or off).*/
 };
+
 /** SIP registration and codec choise policy.*/
 struct sip_settings_s {
 	unsigned char all_set; /**< Shall we register on sip server?*/
@@ -225,6 +225,7 @@ struct svd_conf_s {/*{{{*/
 	struct hard_link_s hard_link[CHANS_MAX]; /**< Hard linked channels.*/
 	struct route_table_s route_table; /**< Routes table.*/
 	struct rtp_prms_s rtp_prms[CHANS_MAX]; /**< RTP channel parameters.*/
+	struct wlec_s wlec_prms[CHANS_MAX]; /**< WLEC channel parameters.*/
 } g_conf;/*}}}*/
 /** @} */
 

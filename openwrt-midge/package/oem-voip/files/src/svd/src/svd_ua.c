@@ -1480,36 +1480,6 @@ svd_new_sdp_string (svd_chan_t const * const ctx)
 	}
 	memset (ret_str, 0, SDP_STR_MAX_LEN);
 
-	if(ctx->is_hardlinked){
-		cod_prms_t const * cod_pr[2] = {NULL};
-		int pt[2];
-
-		if(ctx->hardlink->hl_codec.type == cod_type_MLAW){
-			cod_pr[0] = svd_cod_prms_get(cod_type_MLAW, NULL);
-			cod_pr[1] = svd_cod_prms_get(cod_type_ALAW, NULL);
-			pt[0] = MLAW_PT_DF;
-			pt[1] = ALAW_PT_DF;
-		} else if(ctx->hardlink->hl_codec.type == cod_type_ALAW){
-			cod_pr[1] = svd_cod_prms_get(cod_type_MLAW, NULL);
-			cod_pr[0] = svd_cod_prms_get(cod_type_ALAW, NULL);
-			pt[1] = MLAW_PT_DF;
-			pt[0] = ALAW_PT_DF;
-		}
-		if( !cod_pr[0] || !cod_pr[1] ){
-			SU_DEBUG_0((LOG_FNC_A("ERROR: Codec type UNKNOWN")));
-			goto __exit_fail_allocated;
-		}
-		snprintf(ret_str, SDP_STR_MAX_LEN, 
-				"v=0\r\n"
-				"m=audio %d RTP/AVP %d %d\r\n"
-				"a=rtpmap:%d %s/%d\r\n"
-				"a=rtpmap:%d %s/%d\r\n",
-				media_port, pt[0], pt[1],
-				pt[0], cod_pr[0]->sdp_name, cod_pr[0]->rate,
-				pt[1], cod_pr[1]->sdp_name, cod_pr[1]->rate);
-		goto __exit_success;
-	}
-
 	if       (ct == calltype_LOCAL){
 		cp = &g_conf.int_codecs[0];
 	} else if(ct == calltype_REMOTE){
@@ -1517,6 +1487,9 @@ svd_new_sdp_string (svd_chan_t const * const ctx)
 	} else {
 		SU_DEBUG_0((LOG_FNC_A("ERROR: calltype still UNDEFINED")));
 		goto __exit_fail_allocated;
+	}
+	if(ctx->is_hardlinked){
+		cp = &ctx->hardlink->hl_codec;
 	}
 
 	ltmp = snprintf (ret_str, limit, 
@@ -1544,6 +1517,9 @@ svd_new_sdp_string (svd_chan_t const * const ctx)
 		}
 		strncat(ret_str, pld_str, limit);
 		limit -= ltmp;
+		if(ctx->is_hardlinked){
+			break;
+		}
 	}
 	if(limit > strlen("\r\n")){
 		strcat(ret_str,"\r\n");
@@ -1595,9 +1571,11 @@ svd_new_sdp_string (svd_chan_t const * const ctx)
 			strncat(ret_str, rtp_str, limit);
 			limit -= ltmp;
 		}
+		if(ctx->is_hardlinked){
+			break;
+		}
 	}
 
-__exit_success:
 	return ret_str;
 __exit_fail_allocated:
 	free(ret_str);

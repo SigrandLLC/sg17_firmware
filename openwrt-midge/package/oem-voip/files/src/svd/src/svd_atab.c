@@ -530,7 +530,7 @@ DFE
  * 		\retval 0 	if etherything ok.
  * \sa ab_chan_media_deactivate().
  * \remark
- * 		It also tuning RTP modes according to channel parameters.
+ * 		It also tuning RTP modes and WLEC according to channel parameters.
  */ 
 int 
 ab_chan_media_activate ( ab_chan_t * const chan )
@@ -542,17 +542,29 @@ ab_chan_media_activate ( ab_chan_t * const chan )
 	if(err){
 		SU_DEBUG_1((LOG_FNC_A(
 				"ERROR: Could not prepare channel codecs params.")));
+		goto __exit;
 	}
 
+	/* RTP */
 	err = ab_chan_media_rtp_tune (chan, &ctx->vcod, &ctx->fcod);
 	if(err){
 		SU_DEBUG_1(("Media_tune error : %s",ab_g_err_str));
 		goto __exit;
 	}
 
+	/* WLEC */
+	if (g_conf.wlec_prms[chan->abs_idx].mode != wlec_mode_OFF){
+		err = ab_chan_media_wlec_tune(chan, &g_conf.wlec_prms[chan->abs_idx]);
+		if (err) {
+			SU_DEBUG_1(("WLEC activate error : %s",ab_g_err_str));
+			goto __exit;
+		}
+	}
+
 	err = ab_chan_media_switch (chan, 1, 1);
 	if(err){
 		SU_DEBUG_1(("Media activate error : %s",ab_g_err_str));
+		goto __exit;
 	}
 
 __exit:
@@ -565,15 +577,31 @@ __exit:
  * 		\retval 0 	if etherything ok.
  * \sa ab_chan_media_activate().
  * \remark
- * 		It also tuning RTP modes according to channel parameters.
+ * 		It also tuning RTP modes and WLEC according to channel parameters.
  */ 
 int 
 ab_chan_media_deactivate ( ab_chan_t * const chan )
 {/*{{{*/
-	int err = ab_chan_media_switch (chan, 0, 0);
+	int err; 
+
+	err = ab_chan_media_switch (chan, 0, 0);
 	if(err){
 		SU_DEBUG_1(("Media deactivate error : %s",ab_g_err_str));
+		goto __exit;
 	}
+
+	/* WLEC */
+	if (g_conf.wlec_prms[chan->abs_idx].mode != wlec_mode_OFF){
+		wlec_t wc;
+		memset (&wc, 0, sizeof(wc));
+		wc.mode = wlec_mode_OFF;
+		err = ab_chan_media_wlec_tune(chan, &wc);
+		if (err) {
+			SU_DEBUG_1(("WLEC deactivate error : %s",ab_g_err_str));
+			goto __exit;
+		}
+	}
+__exit:
 	return err;
 }/*}}}*/
 
@@ -605,6 +633,10 @@ svd_prepare_chan_codecs( ab_chan_t * const chan )
 		goto __exit_fail;
 	}
 
+	if(ctx->is_hardlinked){
+		ct = &ctx->hardlink->hl_codec;
+	}
+
 	/* prepare vcod */
 	/* find codec type by sdp_name */
 	cp = svd_cod_prms_get(cod_type_NONE ,ctx->sdp_cod_name);
@@ -618,6 +650,9 @@ svd_prepare_chan_codecs( ab_chan_t * const chan )
 	for (i=0; ct[i].type!=cod_type_NONE; i++){
 		if(ct[i].type == cp->type){
 			ctx->vcod.pkt_size = ct[i].pkt_size;
+			break;
+		}
+		if(ctx->is_hardlinked){
 			break;
 		}
 	}
@@ -1164,29 +1199,11 @@ DFS
 	}
 
 	/* RTP parameters */
-	/* set default values for all chans */
-	for (i=0; i<chans_num; i++){
-		ab_chan_t * curr_chan = &svd->ab->chans [i];
-		curr_chan->rtp_cfg.nEvents = evts_OOB_ONLY;
-		curr_chan->rtp_cfg.nPlayEvents = play_evts_PLAY;
-		curr_chan->rtp_cfg.evtPT = 0x62;
-		curr_chan->rtp_cfg.evtPTplay = 0x62;
-		curr_chan->rtp_cfg.cod_volume.enc_dB = 0;
-		curr_chan->rtp_cfg.cod_volume.dec_dB = 0;
-		curr_chan->rtp_cfg.VAD_cfg = vad_cfg_OFF;
-		curr_chan->rtp_cfg.HPF_is_ON = 0;
-	} 
-
-	/* set values for all/some chans from cfg */
 	for (i=0; i<CHANS_MAX; i++){
 		struct rtp_prms_s * curr_rec = &g_conf.rtp_prms[i];
 		ab_chan_t * curr_chan = svd->ab->pchans[i];
-		if( !curr_rec->is_set){
-			continue;
-		}
 		if( !curr_chan){
-			SU_DEBUG_0((LOG_FNC_A("rtp_record for unexistent channel")));
-			goto __exit_fail;
+			continue;
 		}
 
 		if ( curr_rec->OOB == evts_OOB_DEFAULT){

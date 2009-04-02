@@ -466,6 +466,81 @@ __exit:
 }/*}}}*/
 
 /**
+ *	Tune WLEC (Window-based Line Echo Canceller) parameters on given channel
+ *
+ * \param[in,out] chan channel to operate on.
+ * \param[in] wp wlec parameters.
+ * \retval	0 in success.
+ * \retval	-1 if fail.
+ */ 
+int 
+ab_chan_media_wlec_tune( ab_chan_t * const chan, wlec_t const * const wp )
+{/*{{{*/
+	IFX_TAPI_WLEC_CFG_t lecConf;
+	int err;
+
+	memset(&lecConf, 0, sizeof(lecConf));
+
+	/* WLEC mode */
+	if        (wp->mode == wlec_mode_OFF){
+		lecConf.nType = IFX_TAPI_WLEC_TYPE_OFF;
+	} else if (wp->mode == wlec_mode_NE){
+		lecConf.nType = IFX_TAPI_WLEC_TYPE_NE;
+	} else if (wp->mode == wlec_mode_NFE){
+		lecConf.nType = IFX_TAPI_WLEC_TYPE_NFE;
+	}
+
+	/* NLP */
+	if        (wp->nlp == wlec_nlp_DEFAULT){
+		lecConf.bNlp = IFX_TAPI_WLEC_NLP_DEFAULT;
+	} else if (wp->nlp == wlec_nlp_ON){
+		lecConf.bNlp = IFX_TAPI_WLEC_NLP_ON;
+	} else if (wp->nlp == wlec_nlp_OFF){
+		lecConf.bNlp = IFX_TAPI_WLEC_NLP_OFF;
+	}
+
+	/* Windows */
+	if        (wp->ne_nb == wlec_window_size_4){
+		lecConf.nNBNEwindow = IFX_TAPI_WLEN_WSIZE_4;
+	} else if (wp->ne_nb == wlec_window_size_6){
+		lecConf.nNBNEwindow = IFX_TAPI_WLEN_WSIZE_6;
+	} else if (wp->ne_nb == wlec_window_size_8){
+		lecConf.nNBNEwindow = IFX_TAPI_WLEN_WSIZE_8;
+	} else if (wp->ne_nb == wlec_window_size_16){
+		lecConf.nNBNEwindow = IFX_TAPI_WLEN_WSIZE_16;
+	}
+
+	if        (wp->fe_nb == wlec_window_size_4){
+		lecConf.nNBFEwindow = IFX_TAPI_WLEN_WSIZE_4;
+	} else if (wp->fe_nb == wlec_window_size_6){
+		lecConf.nNBFEwindow = IFX_TAPI_WLEN_WSIZE_6;
+	} else if (wp->fe_nb == wlec_window_size_8){
+		lecConf.nNBFEwindow = IFX_TAPI_WLEN_WSIZE_8;
+	} else if (wp->fe_nb == wlec_window_size_16){
+		lecConf.nNBFEwindow = IFX_TAPI_WLEN_WSIZE_16;
+	}
+
+	if        (wp->ne_wb == wlec_window_size_4){
+		lecConf.nWBNEwindow = IFX_TAPI_WLEN_WSIZE_4;
+	} else if (wp->ne_wb == wlec_window_size_6){
+		lecConf.nWBNEwindow = IFX_TAPI_WLEN_WSIZE_6;
+	} else if (wp->ne_wb == wlec_window_size_8){
+		lecConf.nWBNEwindow = IFX_TAPI_WLEN_WSIZE_8;
+	} else if (wp->ne_wb == wlec_window_size_16){
+		lecConf.nWBNEwindow = IFX_TAPI_WLEN_WSIZE_16;
+	}
+
+	/* Set configuration */
+	err = ioctl(chan->rtp_fd, IFX_TAPI_WLEC_PHONE_CFG_SET, &lecConf);
+
+	if (err){
+		ab_err_set(AB_ERR_UNKNOWN, "wlec_phone_cfg_set ioctl error");
+		err = -1;
+	}
+	return err;
+}/*}}}*/
+
+/**
 	Switch media on / off on the given channel
 \param chan - channel to operate on it
 \param enc_on - on (1) or off (0) encoding
@@ -479,10 +554,9 @@ int
 ab_chan_media_switch( ab_chan_t * const chan,
 		unsigned char const enc_on, unsigned char const dec_on )
 {/*{{{*/
-	int err;
+	int err = 0;
 	int err_summary = 0;
 
-	err = 0;
 	if (enc_on){
 		err = ioctl(chan->rtp_fd, IFX_TAPI_ENC_START, 0);
 	} else {
