@@ -35,7 +35,6 @@ function generateMenu() {
 		addItem("Hardware:VoIP", "Settings", "voipSettings");
         addItem("Hardware:VoIP", "Hotline", "voipHotline");
         addItem("Hardware:VoIP", "Hardlink", "voipHardlink");
-        addItem("Hardware:VoIP", "Hotline", "voipHotline");
         addItem("Hardware:VoIP", "Routes", "voipRoutes");
         addItem("Hardware:VoIP", "Addresses", "voipAddresses");
         addItem("Hardware:VoIP", "RTP", "voipRtp");
