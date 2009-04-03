@@ -746,13 +746,13 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			
 			if ($("#unit").val() == "general") {
 				config.cmdExecute({
-					"cmd": $.sprintf("%s -n -i%s", eocInfoCmd, iface),
+					"cmd": $.sprintf("%s -j -i%s", eocInfoCmd, iface),
 					"callback": showGeneral,
 					"dataType": "json"
 				});
 			} else {
 				config.cmdExecute({
-					"cmd": $.sprintf("%s -n -i%s -u%s", eocInfoCmd, iface, $("#unit").val()),
+					"cmd": $.sprintf("%s -j -i%s -u%s", eocInfoCmd, iface, $("#unit").val()),
 					"callback": showStatUnit,
 					"dataType": "json"
 				});
@@ -764,7 +764,12 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		if (eocInfo.unit_num > 0) {
 			/* statistics for each unit is available even EOC is offline */
 			units['stu-c'] = "STU-C";
-			units['stu-r'] = "STU-R";
+
+            /* to show STU-R we must have all regenertors and STU-C and STU-R */
+            if ((parseInt(eocInfo.status.reg_num, 10) + 2) == eocInfo.unit_num) {
+                units['stu-r'] = "STU-R";
+            }
+
 			for (var i = 1; i <= eocInfo.status.reg_num; i++) {
 				units['sru' + i] = "SRU" + i;
 			}
@@ -1038,10 +1043,10 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"func": function(thisContainer, src) {
 					$(src.currentTarget).attr("disabled", true);
 					config.cmdExecute({
-						"cmd": $.sprintf("%s -i%s -u%s -e%s -l%s -v", eocInfoCmd, iface, unit, side, loopNum),
+						"cmd": $.sprintf("%s --relative-rst -i%s -u%s -e%s", eocInfoCmd, iface, unit, side),
 						"callback": function() {
 							config.cmdExecute({
-								"cmd": $.sprintf("%s -n -i%s -u%s", eocInfoCmd, iface, unit),
+								"cmd": $.sprintf("%s -j -i%s -u%s", eocInfoCmd, iface, unit),
 								"callback": function(eocInfo) {
 									/* if error, show corresponding message */
 									if (typeof eocInfo != "object" || eocInfo.eoc_error == "1") {
@@ -1347,7 +1352,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		/* show message if EOC is offline and this unit is not STU-C, which is always available */
 		if (eocInfo.unit != "STU-C") {
 			config.cmdExecute({
-				"cmd": $.sprintf("%s -n -i%s", eocInfoCmd, iface),
+				"cmd": $.sprintf("%s -j -i%s", eocInfoCmd, iface),
 				"callback": function(eocInfo) {
 					if (eocInfo.link == "0") {
 						c.addStaticMessage("EOC is offline, this data is outdated.");
@@ -1884,7 +1889,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				}
 
 				config.cmdExecute({
-					"cmd": $.sprintf("%s -n -i%s", eocInfoCmd, iface),
+					"cmd": $.sprintf("%s -j -i%s", eocInfoCmd, iface),
 					"callback": showStatistics,
 					"dataType": "json"
 				});
