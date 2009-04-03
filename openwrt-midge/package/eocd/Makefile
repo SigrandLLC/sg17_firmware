@@ -63,8 +63,8 @@ $(IPKG_SIGRAND_EOCD):
 	cp $(STAGING_DIR)/lib/libstdc++.so.6 $(IDIR_SIGRAND_EOCD)/lib
 	$(STRIP) $(PKG_BUILD_DIR)/eocd-src/app-if/applications/eoc-info 
 	cp $(PKG_BUILD_DIR)/eocd-src/app-if/applications/eoc-info  $(IDIR_SIGRAND_EOCD)/sbin
-	$(STRIP) $(PKG_BUILD_DIR)/eocd-src/app-if/applications/eoc-config 
-	cp $(PKG_BUILD_DIR)/eocd-src/app-if/applications/eoc-config  $(IDIR_SIGRAND_EOCD)/sbin
+#	$(STRIP) $(PKG_BUILD_DIR)/eocd-src/app-if/applications/eoc-config 
+#	cp $(PKG_BUILD_DIR)/eocd-src/app-if/applications/eoc-config  $(IDIR_SIGRAND_EOCD)/sbin
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_EOCD)/CONTROL/control
 	$(IPKG_BUILD) $(IDIR_SIGRAND_EOCD) $(PACKAGE_DIR)	
 
