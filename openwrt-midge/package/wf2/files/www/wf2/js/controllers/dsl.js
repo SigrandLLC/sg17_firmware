@@ -5,7 +5,7 @@ function mr16hModuleName(pcislot) {
 
 function mr17hModuleName(iface, pcislot) {
 	/* config path */
-	var confPath = $.sprintf("%s/%s/sg17_private", config.getOEM("sg17_cfg_path"), iface);
+	var confPath = $.sprintf("%s/%s/sg_private", config.getOEM("sg17_cfg_path"), iface);
 
 	/* power status */
 	var pwrPresence = config.getCachedOutput($.sprintf("/bin/cat %s/pwr_source", confPath));
@@ -1761,7 +1761,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		var eocInfoCmd = "/sbin/eoc-info";
 
 		/* config path */
-		var confPath = $.sprintf("%s/%s/sg17_private", config.getOEM("sg17_cfg_path"), iface);
+		var confPath = $.sprintf("%s/%s/sg_private", config.getOEM("sg17_cfg_path"), iface);
 
 		/* power status */
 		var pwrPresence = config.getCachedOutput($.sprintf("/bin/cat %s/pwr_source", confPath));

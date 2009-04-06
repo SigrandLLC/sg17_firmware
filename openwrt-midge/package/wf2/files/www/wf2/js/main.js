@@ -68,7 +68,7 @@ function generateMenu() {
 				case config.getOEM("MR16H_DRVNAME"):
 				case config.getOEM("MR17H_DRVNAME"):
 					if (type == config.getOEM("MR17H_DRVNAME")) {
-						var confPath = $.sprintf("%s/%s/sg17_private", config.getOEM("sg17_cfg_path"), iface);
+						var confPath = $.sprintf("%s/%s/sg_private", config.getOEM("sg17_cfg_path"), iface);
 
 						config.runCmd($.sprintf("/bin/cat %s/chipver", confPath));
 						config.runCmd($.sprintf("/bin/cat %s/pwr_source", confPath));

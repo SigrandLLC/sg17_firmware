@@ -6,7 +6,7 @@
 
 iface=$1
 debug=$2
-conf="$sg17_cfg_path/$iface/sg17_private"
+conf="$sg17_cfg_path/$iface/sg_private"
 RESULT=""
 
 # print indentation tabs, enabled only in debug mode
