@@ -105,9 +105,9 @@ print_stat_all()
 	cd "$PCI_PATH"
     echo "@MANUFACTURER@ @MODNAME@ SHDSL modem statistics"	
 	for iface in *; do
-		if [ -d "$iface/sg17_private" ]; then
+		if [ -d "$iface/sg_private" ]; then
 			bkp_dir=`pwd`
-			cd "$iface/sg17_private"
+			cd "$iface/sg_private"
 			print_stat $iface
 			cd $bkp_dir
 		fi
@@ -132,8 +132,8 @@ iface=$1
 
 
 
-if [ -d "$PCI_PATH/$1/sg17_private" ]; then
-	cd "$PCI_PATH/$1/sg17_private"
+if [ -d "$PCI_PATH/$1/sg_private" ]; then
+	cd "$PCI_PATH/$1/sg_private"
 else
 	echo "$0: No such device $1"
 	exit

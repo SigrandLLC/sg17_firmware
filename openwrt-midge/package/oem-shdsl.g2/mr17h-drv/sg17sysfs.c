@@ -1271,7 +1271,7 @@ NULL
 
 
 static struct attribute_group sg17_group = {
-.name  = "sg17_private",
+.name  = "sg_private",
 .attrs  = sg17_attr,
 };
 

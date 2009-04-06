@@ -5,6 +5,7 @@
 
 kdb="kdb"
 ifcfg="/sbin/ifconfig"
+priv_dir="sg_private"
 
 . /etc/templates/oem-vars
 # checks that DSL service is enabled
@@ -66,8 +67,8 @@ _dsl_mr17ifcfg(){
 		pbo="pbo-forced"
 		[ -z "$pboval" ] && pboval=0 && \
 				kdb set sys_pcicfg_s${slot}_${ifnum}_pboval=0
-		echo "$pboval" > /sys/class/net/$iface/sg17_private/pbo_val
-		pboval=`cat  /sys/class/net/$iface/sg17_private/pbo_val`
+		echo "$pboval" > /sys/class/net/$iface/$priv_dir/pbo_val
+		pboval=`cat  /sys/class/net/$iface/$priv_dir/pbo_val`
 		kdb set sys_pcicfg_s${slot}_${ifnum}_pboval=$pboval
 		pbo="$pbo $pboval"
 	else
@@ -99,8 +100,8 @@ _dsl_mr17ifcfg(){
 			$pwron $clkmode $pbo $advlink > /dev/null
 		# Correct rate setted by hands
 		if [ "$ctrl" = "manual" ]; then
-    		    rate=`cat  /sys/class/net/$iface/sg17_private/rate`
-		    pboval=`cat  /sys/class/net/$iface/sg17_private/pbo_val`
+    		rate=`cat  /sys/class/net/$iface/$priv_dir/rate`
+		    pboval=`cat  /sys/class/net/$iface/$priv_dir/pbo_val`
 		    [ -n "$mrate" ] && kdb set sys_pcicfg_s${slot}_${ifnum}_mrate=$rate
 		fi
 	fi
@@ -277,8 +278,8 @@ _dsl_start(){
 			$mr17h_drvname)
 				unset ver pfx iface
 				iface=`echo "$ifaces" |  awk '{print $(1)}' `
-				ver=`cat  /sys/class/net/$iface/sg17_private/chipver`
-				pwr=`cat  /sys/class/net/$iface/sg17_private/pwr_source`
+				ver=`cat  /sys/class/net/$iface/$priv_dir/chipver`
+				pwr=`cat  /sys/class/net/$iface/$priv_dir/pwr_source`
 				case "$ver" in
 				"v1")
 				    pfx=${mr17h_v1sfx}

@@ -12,7 +12,9 @@
 #define BUF_SIZE 256
 
 // TTY device part
+#ifndef DEVBASENAME
 #define DEVBASENAME "ttyRS"
+#endif
 #define DEVBASEPATH "/dev"
 #define TIOCGMX 0xA000 // Get mux info
 #define TIOCSMX	0xA001 // set mux info

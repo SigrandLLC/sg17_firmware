@@ -21,7 +21,7 @@ $(PKG_BUILD_DIR)/.configured:
 	touch $@
 
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
-	cd $(PKG_BUILD_DIR)/mxconfig && make CC=$(TARGET_CC) CFLAGS=-DARCH=1
+	cd $(PKG_BUILD_DIR)/mxconfig && make CC=$(TARGET_CC) CFLAGS="-DARCH=1 -DDEVBASENAME='\"$(BR2_SIGRAND_OEM_MR17S_TTYNAME)\"'"
 	touch $@
 
 $(IPKG_SIGRAND_MUX):
