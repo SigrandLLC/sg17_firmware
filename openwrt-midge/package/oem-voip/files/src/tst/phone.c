@@ -17,10 +17,10 @@
 #include "ab_api.h"
 #include "ab_ioctl.h"
 
-#define FXS_DEV_ID 0
-#define FXS_CHAN_ID 0
-#define FXO_DEV_ID 1
-#define FXO_CHAN_ID 2
+#define FXS_DEV_ID 1
+#define FXS_CHAN_ID 2
+#define FXO_DEV_ID 0
+#define FXO_CHAN_ID 0
 
 int main (int argc, char *argv[])
 {

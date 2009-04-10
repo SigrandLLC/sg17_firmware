@@ -350,6 +350,7 @@ board_iterator (int (*func)(ab_board_params_t const * const bp))
 					" boards count changed", __func__ );
 			goto __exit_fail_close;
 		}
+
 		/* execute func on current board */
 		err = func (&bp);
 		if(err){
@@ -504,13 +505,19 @@ chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt)
 	vinit.dram_size = fw_dram_size;
 
 	if(dt==dev_type_FXO){
-		cram_fxo_load();
+		err = cram_fxo_load();
+		if(err){
+			goto __exit_fail_close;
+		}
 		vinit.pCram     = fw_cram_fxo;
 		vinit.cram_size = fw_cram_fxo_size;
 		vinit.pBBDbuf   = fw_cram_fxo;
 		vinit.bbd_size  = fw_cram_fxo_size;
 	} else if(dt==dev_type_FXS){
-		cram_fxs_load();
+		err = cram_fxs_load();
+		if(err){
+			goto __exit_fail_close;
+		}
 		vinit.pCram     = fw_cram_fxs;
 		vinit.cram_size = fw_cram_fxs_size;
 		vinit.pBBDbuf   = fw_cram_fxs;
@@ -518,13 +525,13 @@ chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt)
 	}
 
 	/* Set the pointer to the VINETIC dev specific init structure */
-	memset(&init, 0, sizeof(IFX_TAPI_CH_INIT_t));
+	memset(&init, 0, sizeof(init));
 	init.pProc = (IFX_void_t *) &vinit;
 	/* Init the VoIP application */
 	init.nMode = IFX_TAPI_INIT_MODE_VOICE_CODER;
 
 	/* Initialize channel */
-	err = ioctl(cfd, IFX_TAPI_CH_INIT, (IFX_uint32_t) &init);
+	err = ioctl(cfd, IFX_TAPI_CH_INIT, &init);
 	if( err ){
 		g_err_no = ERR_IOCTL_FAILS;
 		sprintf(g_err_msg,"%s() initilizing channel with firmware (ioctl)",
@@ -559,6 +566,21 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 	memset(&datamap, 0, sizeof (datamap));
 	memset(&lineTypeCfg, 0, sizeof (lineTypeCfg));
 
+	/* Set channel type */	
+	if(dtype == dev_type_FXS) {
+		lineTypeCfg.lineType = IFX_TAPI_LINE_TYPE_FXS_NB;
+	} else if(dtype == dev_type_FXO) {
+		lineTypeCfg.lineType = IFX_TAPI_LINE_TYPE_FXO_NB;
+		lineTypeCfg.nDaaCh = dev_idx * CHANS_PER_DEV + chan_idx;
+	}
+	err = ioctl (rtp_fd, IFX_TAPI_LINE_TYPE_SET, &lineTypeCfg);
+	if( err ){
+		g_err_no = ERR_IOCTL_FAILS;
+		strcpy(g_err_msg, "setting channel type (ioctl)" );
+		show_last_err(">>", rtp_fd);
+		goto ab_chan_init_tune__exit;
+	} 
+
 	/* Map channels */	
 	datamap.nDstCh = chan_idx; 
 	datamap.nChType = IFX_TAPI_MAP_TYPE_PHONE;
@@ -570,21 +592,6 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 		goto ab_chan_init_tune__exit;
 	} 
 
-	/* Set channel type */	
-	if(dtype == dev_type_FXS) {
-		lineTypeCfg.lineType = IFX_TAPI_LINE_TYPE_FXS_NB;
-	} else if(dtype == dev_type_FXO) {
-		lineTypeCfg.lineType = IFX_TAPI_LINE_TYPE_FXO_NB;
-		lineTypeCfg.nDaaCh = dev_idx * CHANS_PER_DEV + chan_idx;
-	}
-
-	err = ioctl (rtp_fd, IFX_TAPI_LINE_TYPE_SET, &lineTypeCfg);
-	if( err ){
-		g_err_no = ERR_IOCTL_FAILS;
-		strcpy(g_err_msg, "setting channel type (ioctl)" );
-		show_last_err(">>", rtp_fd);
-		goto ab_chan_init_tune__exit;
-	} 
 	if(dtype == dev_type_FXS) {
 		/* ENABLE detection of DTMF tones 
 		 * from local interface (ALM X) */

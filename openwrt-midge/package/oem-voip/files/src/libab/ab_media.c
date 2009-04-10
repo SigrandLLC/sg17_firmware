@@ -439,9 +439,7 @@ fprintf(stderr," hpf off\n");
 		err_summary++;
 	}
 
-	/* Configure encoder and decoder gains tag__ */
-	fprintf(stderr, "!!!!! Activate media with %d/%d\n", codVolume.nEnc,
-			codVolume.nDec);
+	/* Configure encoder and decoder gains */
 	err = 0;
 	err = ioctl(chan->rtp_fd, IFX_TAPI_COD_VOLUME_SET, &codVolume);
 	if(err){

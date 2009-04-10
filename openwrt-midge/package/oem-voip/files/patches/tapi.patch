@@ -1,6 +1,6 @@
 diff -ruiN tapi_pure/src/drv_tapi_fxo.c tapi/src/drv_tapi_fxo.c
---- tapi_pure/src/drv_tapi_fxo.c	2009-02-04 20:28:48.000000000 +0600
-+++ tapi/src/drv_tapi_fxo.c	2009-02-04 20:30:14.000000000 +0600
+--- tapi_pure/src/drv_tapi_fxo.c	2009-04-10 14:51:15.000000000 +0700
++++ tapi/src/drv_tapi_fxo.c	2009-04-10 14:51:15.000000000 +0700
 @@ -37,7 +37,7 @@
  
  /** maximum number of DAA channels TAPI can handle,
@@ -11,8 +11,8 @@ diff -ruiN tapi_pure/src/drv_tapi_fxo.c tapi/src/drv_tapi_fxo.c
  
  static IFX_TAPI_DRV_CTX_DAA_t *gpDaaCtx = IFX_NULL;
 diff -ruiN tapi_pure/src/drv_tapi.h tapi/src/drv_tapi.h
---- tapi_pure/src/drv_tapi.h	2009-02-04 20:28:48.000000000 +0600
-+++ tapi/src/drv_tapi.h	2009-02-04 20:28:48.000000000 +0600
+--- tapi_pure/src/drv_tapi.h	2009-04-10 14:51:15.000000000 +0700
++++ tapi/src/drv_tapi.h	2009-04-10 14:51:15.000000000 +0700
 @@ -143,8 +143,6 @@
  /* Declarations for debug interface */
  DECLARE_TRACE_GROUP  (TAPI_DRV);
@@ -30,9 +30,40 @@ diff -ruiN tapi_pure/src/drv_tapi.h tapi/src/drv_tapi.h
 +extern struct _IFX_TAPI_HL_DRV_CTX gHLDrvCtx [TAPI_MAX_LL_DEVICES];
 +
  #endif  /* DRV_TAPI_H */
+diff -ruiN tapi_pure/src/drv_tapi_opcontrol.c tapi/src/drv_tapi_opcontrol.c
+--- tapi_pure/src/drv_tapi_opcontrol.c	2009-04-10 14:51:15.000000000 +0700
++++ tapi/src/drv_tapi_opcontrol.c	2009-04-10 14:53:07.000000000 +0700
+@@ -212,11 +212,11 @@
+ 
+    if (TAPI_SUCCESS(ret))
+    {
+-      /* Save new type and DAA number */
+-      pChannel->TapiOpControlData.nLineType = pCfg->lineType;
+-      pChannel->TapiOpControlData.nDAA      = pCfg->nDaaCh;
+       if (pCfg->lineType == IFX_TAPI_LINE_TYPE_FXO)
+       {
++	     /* Save new type and DAA number should not do this if FXS ?? */
++	     pChannel->TapiOpControlData.nLineType = pCfg->lineType;
++   	     pChannel->TapiOpControlData.nDAA      = pCfg->nDaaCh;
+          ret = TAPI_FXO_Register_DAA(pChannel->TapiOpControlData.nDAA, pChannel);
+          /* init the DAA channel */
+          if ((TAPI_SUCCESS(ret)) &&
+@@ -229,10 +229,12 @@
+             }
+          }
+       }
++	  /* If it is FXS - leave it as default (what to do if FXS_WB ??)
+       else
+       {
+          ret = TAPI_FXO_Register_DAA (pChannel->TapiOpControlData.nDAA, IFX_NULL);
+       }
++	  */
+    }
+    return ret;
+ }
 diff -ruiN tapi_pure/src/Makefile.am tapi/src/Makefile.am
---- tapi_pure/src/Makefile.am	2009-02-04 20:28:48.000000000 +0600
-+++ tapi/src/Makefile.am	2009-02-04 20:28:48.000000000 +0600
+--- tapi_pure/src/Makefile.am	2009-04-10 14:51:15.000000000 +0700
++++ tapi/src/Makefile.am	2009-04-10 14:51:15.000000000 +0700
 @@ -160,7 +160,7 @@
  
  # Extra rule for linux-2.6 kernel object

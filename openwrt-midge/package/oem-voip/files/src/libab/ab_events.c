@@ -44,6 +44,7 @@ ab_dev_event_get(ab_dev_t * const dev, ab_dev_event_t * const evt,
 		goto ab_dev_event_get_exit;
 	}
 
+	/* ioctl_evt.ch = [0;1] ?- swap channels */
 	evt->ch = (ioctl_evt.ch + 1) % 2;
 	evt->more = ioctl_evt.more;
 

@@ -96,7 +96,8 @@ ab_create( void )
 		ab_chan_t * curr_chan = &ab->chans[ i ];
 		int fd_chan;
 		char dev_node[ 50 ];
-		int chan_idx_in_dev = CHANS_PER_DEV - 1 - i % CHANS_PER_DEV;
+		/* it should be 0 if i is odd(!/2) and 1 if i is even(/2) */
+		int chan_idx_in_dev = CHANS_PER_DEV - (1 + i%CHANS_PER_DEV);
 		int pdev_idx = i / CHANS_PER_DEV;
 
 		curr_chan->idx = chan_idx_in_dev + 1;
@@ -303,7 +304,7 @@ ab_chan_status_init( ab_chan_t * const chan )
 	} else if (chan->parent->type == ab_dev_type_FXO){
 		/* hook to onhook */
 		ioctl (chan->rtp_fd, IFX_TAPI_FXO_HOOK_SET, IFX_TAPI_FXO_HOOK_ONHOOK);
-		chan->status.hook= ab_chan_hook_ONHOOK;
+		chan->status.hook = ab_chan_hook_ONHOOK;
 	}
 	/* initial onhook detected  (from channel) */
 	ab_dev_event_clean(chan->parent);
