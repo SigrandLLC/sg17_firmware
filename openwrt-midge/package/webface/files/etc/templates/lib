@@ -139,6 +139,7 @@ update_configs(){
 		cfg_make svd-rtp.conf /etc/svd/rtp.conf && \
 		cfg_make svd-quality.conf /etc/svd/quality.conf && \
         cfg_make svd-wlec.conf /etc/svd/wlec.conf && \
+        cfg_make svd-fxo.conf /etc/svd/fxo.conf && \
 		cfg_commit
 		;;
 	svd-main)
@@ -171,6 +172,10 @@ update_configs(){
 		;;
     svd-wlec)
 		cfg_make svd-wlec.conf /etc/svd/wlec.conf && \
+		cfg_commit
+		;;
+    svd-fxo)
+		cfg_make svd-fxo.conf /etc/svd/fxo.conf && \
 		cfg_commit
 		;;
 	linkdeps)

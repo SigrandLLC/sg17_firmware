@@ -48,6 +48,27 @@ Controllers.voipSettings = function() {
 				}()
 			};
 			c.addWidget(field);
+
+            /* ToS settings */
+			c.addTitle("ToS settings", {"internal": true});
+
+			field = {
+				"type": "text",
+				"name": "sys_voip_settings_rtp_tos",
+				"text": "RTP ToS",
+				"descr": "ToS (8 bits) for RTP packets.",
+				"validator": {"required": true, "tos": true}
+			};
+			c.addWidget(field);
+
+            field = {
+				"type": "text",
+				"name": "sys_voip_settings_sip_tos",
+				"text": "SIP ToS",
+				"descr": "ToS (8 bits) for SIP packets.",
+				"validator": {"required": true, "tos": true}
+			};
+			c.addWidget(field);
 			
 			/* SIP settings */
 			c.addTitle("SIP settings", {"internal": true, "help": {"page": "voip.sip"}});
@@ -104,7 +125,9 @@ Controllers.voipSettings = function() {
 							
 							/* channel[0] — number of channel, channel[1] — type of channel */
 							var channel = record.split(":");
-							if (channel[1] == "FXS") fxsChannels.push(channel[0]);
+							if (channel[1] == "FXS") {
+                                fxsChannels.push(channel[0]);
+                            }
 						});
 					}
 					
@@ -192,6 +215,7 @@ Controllers.voipHotline = function() {
 	page.generateTabs();
 };
 
+/* TODO: remove uLaw from Hardlink */
 Controllers.voipHardlink = function() {
 	var page = this.Page();
 
@@ -592,9 +616,9 @@ Controllers.voipRtp = function() {
 		"func": function() {
 			var c = page.addContainer("rtp");
 			c.setSubsystem("svd-rtp");
-			c.addTitle("Sound settings", {"colspan": 9});
+			c.addTitle("Sound settings", {"colspan": 5});
 
-			c.addTableHeader("Channel|OOB|OOB_play|nEventPT|nEventPlayPT|Tx_vol|Rx_vol|VAD|HPF");
+			c.addTableHeader("Channel|Tx_vol|Rx_vol|VAD|HPF");
 			var channels = config.getCachedOutput("voipChannels").split("\n");
 			$.each(channels, function(num, record) {
 				var field;
@@ -608,40 +632,6 @@ Controllers.voipRtp = function() {
 					"type": "html",
 					"name": channel[0],
 					"str": channel[0]
-				};
-				c.addTableWidget(field, row);
-
-				/* OOB */
-				field = {
-					"type": "select",
-					"name": $.sprintf("sys_voip_sound_%s_oob", channel[0]),
-					"options": "default in-band out-of-band both block",
-					"defaultValue": "default"
-				};
-				c.addTableWidget(field, row);
-
-				/* OOB_play */
-				field = {
-					"type": "select",
-					"name": $.sprintf("sys_voip_sound_%s_oob_play", channel[0]),
-					"options": "default play mute play_diff_pt",
-					"defaultValue": "default"
-				};
-				c.addTableWidget(field, row);
-
-				/* nEventPT */
-				field = {
-					"type": "text",
-					"name": $.sprintf("sys_voip_sound_%s_neventpt", channel[0]),
-					"defaultValue": "0x62"
-				};
-				c.addTableWidget(field, row);
-
-				/* nEventPlayPT */
-				field = {
-					"type": "text",
-					"name": $.sprintf("sys_voip_sound_%s_neventplaypt", channel[0]),
-					"defaultValue": "0x62"
 				};
 				c.addTableWidget(field, row);
 
@@ -710,7 +700,6 @@ Controllers.voipQuality = function() {
 			/* default values */
 			var pktszDefault = {
 				"aLaw": "20",
-				"uLaw": "20",
 				"g729": "10",
 				"g723": "30",
 				"iLBC_133": "30",
@@ -724,7 +713,6 @@ Controllers.voipQuality = function() {
 
 			var payloadDefault = {
 				"aLaw": "08",
-				"uLaw": "00",
 				"g729": "12",
 				"g723": "4",
 				"iLBC_133": "100",
@@ -736,7 +724,7 @@ Controllers.voipQuality = function() {
 				"none": ""
 			};
 
-			var codecs = ["g729", "aLaw", "uLaw", "g723", "iLBC_133",
+			var codecs = ["g729", "aLaw", "g723", "iLBC_133",
 				"g729e", "g726_16", "g726_24", "g726_32", "g726_40", "none"];
 
 			/*
@@ -948,25 +936,6 @@ Controllers.voipQuality = function() {
 			c.addTitle("External", {"internal": true, "colspan": 5});
 			addCodecsWidgets(codecs.length - 1, "ext");
 
-			c.addTitle("Fax", {"internal": true, "colspan": 5});
-			var row = c.addTableRow();
-
-			/* add fake widget */
-			c.addGeneralTableWidget({"name": "fax_fake1"}, row);
-
-			/* fax type */
-			var field = {
-				"type": "select",
-				"name": "sys_voip_quality_fax_type",
-				"options": ["uLaw", "aLaw"]
-			};
-			c.addTableWidget(field, row);
-
-			/* add three fake widgets */
-			c.addGeneralTableWidget({"name": "fax_fake2"}, row);
-			c.addGeneralTableWidget({"name": "fax_fake3"}, row);
-			c.addGeneralTableWidget({"name": "fax_fake4"}, row);
-
 			c.addSubmit({
 				/* remove disabled attribute */
 				"preSubmit": function() {
@@ -1062,6 +1031,60 @@ Controllers.voipWlec = function() {
 					"name": $.sprintf("sys_voip_wlec_%s_new_wb", channel[0]),
                     "options": "4 6 8 16",
 					"defaultValue": "4"
+				};
+				c.addTableWidget(field, row);
+			});
+
+			c.addSubmit();
+		}
+	});
+
+	page.generateTabs();
+};
+
+Controllers.voipFxo = function() {
+	var page = this.Page();
+
+	page.addTab({
+		"id": "fxo",
+		"name": "FXO",
+		"func": function() {
+			var c = page.addContainer("fxo");
+			c.setSubsystem("svd-fxo");
+			c.addTitle("FXO settings", {"colspan": 2});
+
+			c.addTableHeader("Channel|PSTN_type*");
+            c.addTableTfootStr("tone/pulse - tone or pulse.", 2);
+            c.addTableTfootStr("pulse - pulse only.", 2);
+
+			var channels = config.getCachedOutput("voipChannels").split("\n");
+			$.each(channels, function(num, record) {
+				var field;
+				if (record.length == 0) {
+                    return true;
+                }
+				var row = c.addTableRow();
+
+				/* channel[0] — number of channel, channel[1] — type of channel */
+				var channel = record.split(":");
+
+                /* only FXO channels */
+                if (channel[1] == "FXS") {
+                    return true;
+                }
+
+				field = {
+					"type": "html",
+					"name": channel[0],
+					"str": channel[0]
+				};
+				c.addTableWidget(field, row);
+
+				/* PSTN_type */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_fxo_%s_pstn_type", channel[0]),
+					"options": {"tone": "tone/pulse", "pulse": "pulse"}
 				};
 				c.addTableWidget(field, row);
 			});

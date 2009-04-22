@@ -121,6 +121,12 @@ jQuery.validator.addMethod("qosBandwith", function(value, element) {
 	return this.optional(element) || /^([0-9]+(k|M)(bit|bps))$/.test(value);
 }, "Please enter correct bandwith.");
 
+/* ToS */
+jQuery.validator.addMethod("tos", function(value, element) {
+	return this.optional(element) ||
+		/^(0x)([0-9a-fA-F])?([0-9a-fA-F])?$/.test(value);
+}, "Please enter correct ToS (e.g., 0x5).");
+
 /* Unique value among all elements specified with selector in parameter */
 jQuery.validator.addMethod("uniqueValue", function(value, element, params) {
 	if (this.optional(element)) return true;
