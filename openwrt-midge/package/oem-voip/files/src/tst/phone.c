@@ -7,9 +7,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <linux/ioctl.h>
+//#include <linux/ioctl.h>
+#include <sys/ioctl.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "ifx_types.h"
 #include "drv_tapi_io.h"
@@ -17,10 +19,10 @@
 #include "ab_api.h"
 #include "ab_ioctl.h"
 
-#define FXS_DEV_ID 1
-#define FXS_CHAN_ID 2
-#define FXO_DEV_ID 0
-#define FXO_CHAN_ID 0
+#define FXS_DEV_ID 0
+#define FXS_CHAN_ID 0
+#define FXO_DEV_ID 2
+#define FXO_CHAN_ID 4
 
 int main (int argc, char *argv[])
 {
@@ -41,25 +43,18 @@ int main (int argc, char *argv[])
 	choise = 0;
 	while(1) {
 		printf("\n");
-		printf("=====================\n");
 		printf("[1] Event test.\n");
-		printf("[21] Ring START.\n");
-		printf("[22] Ring STOP.\n");
-		printf("[23] PLAY DIAL.\n");
-		printf("[24] PLAY BUSY.\n");
-		printf("[25] PLAY RINGBACK.\n");
-		printf("[26] PLAY MUTE.\n");
-		printf("[31] OFFHOOK.\n");
-		printf("[32] ONHOOK.\n");
-		printf("[41] LINEFEED DISABLED.\n");
-		printf("[42] LINEFEED STANDBY.\n");
-		printf("[43] LINEFEED ACTIVE.\n");
-		printf("[51] DIAL #*1234.\n");
-		printf("[52] DIAL 567890.\n");
-		printf("[53] DIAL ABCD.\n");
-
-		printf("[0] Exit.\n");
+		printf("======== FXS ========\n");
+		printf("[21/22]        Ring     START / STOP.\n");
+		printf("[23/24/25/26]  PLAY     DIAL / BUSY / RINGBACK / MUTE.\n");
+		printf("[27/28/29]     LINEFEED DIS / STNDBY / ACT.\n");
+		printf("======== FXO ========\n");
+		printf("[31/32]        OFFHOOK / ONHOOK.\n");
+		printf("[33/34]        TONE / PULSE DIAL #*1234.\n");
+		printf("[35/36]        TONE / PULSE DIAL 567890.\n");
+		printf("[37/38]        TONE / PULSE DIAL ABCD.\n");
 		printf("=====================\n");
+		printf("[0] Exit.\n");
 		printf("=> ");
 		fgets(str, 9, stdin);
 		choise = strtol(str, NULL, 10);
@@ -182,6 +177,9 @@ int main (int argc, char *argv[])
 		}
 				} while(evt.more);
 		fprintf(stderr,"\t---=========================---\n");	
+			err = ioctl(ab->chans[FXO_CHAN_ID].rtp_fd, 
+						IFX_TAPI_TONE_CPTD_STOP, 0); // stop detect tones
+			fprintf(stderr,"stop detect tones on FXS err : %d\n",err);
 				break;
 			}
 
@@ -199,26 +197,141 @@ int main (int argc, char *argv[])
 				break;
 			}
 			case 23: {
+				IFX_TAPI_TONE_CPTD_t cpt;
+				memset (&cpt, 0, sizeof(cpt));
+
+				cpt.tone = 25; //dial tone
+				/* Tone to be detected in transmit direction (typical for FXO) */
+				cpt.signal = IFX_TAPI_TONE_CPTD_DIRECTION_TX;
+				/* Start CPT detector */
+				err = ioctl(ab->chans[FXO_CHAN_ID].rtp_fd, 
+						IFX_TAPI_TONE_CPTD_START, &cpt);
+				fprintf(stderr,"start dialtone detection ERR = %d\n",err);
+
  				err = ab_FXS_line_tone( &ab->chans[FXS_CHAN_ID], 
 						ab_chan_tone_DIAL);
 				fprintf(stderr,"ERR = %d\n",err);	
 				break;
 			}
 			case 24: {
+				IFX_TAPI_TONE_CPTD_t cpt;
+				memset (&cpt, 0, sizeof(cpt));
+
+				cpt.tone = 27; //busy tone
+				/* Tone to be detected in transmit direction (typical for FXO) */
+				cpt.signal = IFX_TAPI_TONE_CPTD_DIRECTION_TX;
+				/* Start CPT detector */
+				err = ioctl(ab->chans[FXO_CHAN_ID].rtp_fd, 
+						IFX_TAPI_TONE_CPTD_START, &cpt);
+				fprintf(stderr,"start busytone detection ERR = %d\n",err);
+
  				err = ab_FXS_line_tone( &ab->chans[FXS_CHAN_ID], 
 						ab_chan_tone_BUSY);
 				fprintf(stderr,"ERR = %d\n",err);	
 				break;
 			}
 			case 25: {
- 				err = ab_FXS_line_tone( &ab->chans[FXS_CHAN_ID], 
-						ab_chan_tone_RINGBACK);
+IFX_TAPI_TONE_t tone;
+memset(&tone, 0, sizeof(tone));
+/* define a simple tone for tone table index 71 */
+tone.simple.format = IFX_TAPI_TONE_TYPE_SIMPLE;
+tone.simple.index = 71;
+/* using two frequencies */
+/* 0 <= till < 4000 Hz */
+tone.simple.freqA = 480;
+tone.simple.freqB = 620;
+/* tone level for freqA */
+/* -300 < till < 0 */
+tone.simple.levelA = -11;
+/* tone level for freqB */
+tone.simple.levelB = -9;
+/* program first cadences (on time) */
+tone.simple.cadence[0] = 2000;
+/* program second cadences (off time) */
+tone.simple.cadence[1] = 2000;
+/* in the first cadence, both frequencies must be played */
+tone.simple.frequencies[0] = IFX_TAPI_TONE_FREQA | IFX_TAPI_TONE_FREQB;
+/* in the second cadence, all frequencies are off */
+tone.simple.frequencies[1] = IFX_TAPI_TONE_FREQA | IFX_TAPI_TONE_FREQB;
+//tone.simple.frequencies[1] = IFX_TAPI_TONE_FREQNONE;
+/* the tone will be played two times (2 loops) */
+tone.simple.loop = 2;
+/* at the end of each loop there is a pause */
+//tone.simple.pause = 200;
+tone.simple.pause = 0;
+/* update the tone table with the simple tone */
+err = ioctl(ab->chans[FXO_CHAN_ID].rtp_fd, IFX_TAPI_TONE_TABLE_CFG_SET, &tone);
+fprintf(stderr,"set new tone to FXO table ERR = %d\n",err);
+err = ioctl(ab->chans[FXS_CHAN_ID].rtp_fd, IFX_TAPI_TONE_TABLE_CFG_SET, &tone);
+fprintf(stderr,"set new tone to FXS table ERR = %d\n",err);
+/* now the simple tone is added to the tone table at index 71 */
+
+				IFX_TAPI_TONE_CPTD_t cpt;
+				IFX_TAPI_LINE_VOLUME_t vol;
+				memset (&cpt, 0, sizeof(cpt));
+				memset (&vol, 0, sizeof(vol));
+
+
+				//cpt.tone = 26; //ringing tone
+				cpt.tone = 71; //ringing tone
+				/* Tone to be detected in transmit direction (typical for FXO) */
+				cpt.signal = IFX_TAPI_TONE_CPTD_DIRECTION_TX;
+				/* Start CPT detector */
+				err = ioctl(ab->chans[FXO_CHAN_ID].rtp_fd, 
+						IFX_TAPI_TONE_CPTD_START, &cpt);
+				fprintf(stderr,"start ringingtone detection ERR = %d\n",err);
+
+				err = ioctl(ab->chans[FXS_CHAN_ID].rtp_fd, 
+					IFX_TAPI_LINE_LEVEL_SET, 0); //en(1)(dis-0)able
+				fprintf(stderr,"line high level enable ERR = %d\n",err);
+
+				vol.nGainRx = -4;
+				vol.nGainTx = -4;
+				err = ioctl(ab->chans[FXS_CHAN_ID].rtp_fd, 
+					IFX_TAPI_PHONE_VOLUME_SET, &vol); 
+				fprintf(stderr,"line volume set ERR = %d\n",err);
+
+				/* play the tone 71 */
+				err = ioctl( ab->chans[FXS_CHAN_ID].rtp_fd, 
+						IFX_TAPI_TONE_LOCAL_PLAY, 71);
+
+				sleep (4);
+				err = ioctl( ab->chans[FXS_CHAN_ID].rtp_fd, 
+						IFX_TAPI_TONE_LOCAL_PLAY, 0);
+
+				vol.nGainRx = 0;
+				vol.nGainTx = 0;
+				err = ioctl(ab->chans[FXS_CHAN_ID].rtp_fd, 
+					IFX_TAPI_PHONE_VOLUME_SET, &vol); 
+				fprintf(stderr,"line volume set ERR = %d\n",err);
+
+
+ 				//err = ab_FXS_line_tone( &ab->chans[FXS_CHAN_ID], 
+				//		ab_chan_tone_RINGBACK);
 				fprintf(stderr,"ERR = %d\n",err);	
 				break;
 			}
 			case 26: {
  				err = ab_FXS_line_tone( &ab->chans[FXS_CHAN_ID], 
 						ab_chan_tone_MUTE);
+				fprintf(stderr,"ERR = %d\n",err);	
+				break;
+			}
+			case 27: {
+				err = ab_FXS_line_feed( &ab->chans[FXS_CHAN_ID], 
+						ab_chan_linefeed_DISABLED );
+				fprintf(stderr,"ERR = %d\n",err);	
+				break;
+			}
+			case 28: {
+				err = ab_FXS_line_feed( &ab->chans[FXS_CHAN_ID], 
+						ab_chan_linefeed_STANDBY );
+				fprintf(stderr,"ERR = %d\n",err);	
+				break;
+			}
+			case 29: {
+				err = ab_FXS_line_feed( &ab->chans[FXS_CHAN_ID], 
+						ab_chan_linefeed_ACTIVE );
 				fprintf(stderr,"ERR = %d\n",err);	
 				break;
 			}
@@ -234,42 +347,39 @@ int main (int argc, char *argv[])
 				fprintf(stderr,"ERR = %d\n",err);	
 				break;
 			}
-			case 41: {
-				err = ab_FXS_line_feed( &ab->chans[FXS_CHAN_ID], 
-						ab_chan_linefeed_DISABLED );
-				fprintf(stderr,"ERR = %d\n",err);	
-				break;
-			}
-			case 42: {
-				err = ab_FXS_line_feed( &ab->chans[FXS_CHAN_ID], 
-						ab_chan_linefeed_STANDBY );
-				fprintf(stderr,"ERR = %d\n",err);	
-				break;
-			}
-			case 43: {
-				err = ab_FXS_line_feed( &ab->chans[FXS_CHAN_ID], 
-						ab_chan_linefeed_ACTIVE );
-				fprintf(stderr,"ERR = %d\n",err);	
-				break;
-			}
-			case 51: {
+			case 33: 
+			case 34: {
 				char data[] = {'#','*','1','2','3','4'};
+				int pulse = 0;
+				if(choise == 34){
+					pulse = 1;
+				}
 				err = ab_FXO_line_digit( &ab->chans[FXO_CHAN_ID],
-						6, data, 100,100 );
+						6, data, 100,100, pulse );
 				fprintf(stderr,"ERR = %d\n",err);	
 				break;
 			}
-			case 52: {
+			case 35: 
+			case 36: {
 				char data[] = {'5','6','7','8','9','0'};
+				int pulse = 0;
+				if(choise == 36){
+					pulse = 1;
+				}
 				err = ab_FXO_line_digit( &ab->chans[FXO_CHAN_ID],
-						6, data, 100,100 );
+						6, data, 100,100, pulse );
 				fprintf(stderr,"ERR = %d\n",err);	
 				break;
 			}
-			case 53: {
+			case 37: 
+			case 38: {
 				char data[] = {'A','B','C','D'};
+				int pulse = 0;
+				if(choise == 38){
+					pulse = 1;
+				}
 				err = ab_FXO_line_digit( &ab->chans[FXO_CHAN_ID],
-						4, data, 100,100 );
+						4, data, 100,100, pulse );
 				fprintf(stderr,"ERR = %d\n",err);	
 				break;
 			}

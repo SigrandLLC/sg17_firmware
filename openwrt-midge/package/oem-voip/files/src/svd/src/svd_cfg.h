@@ -15,12 +15,14 @@
  *  main configuration.
  *  @{*/
 #define MAIN_CONF_NAME      "/etc/svd/main.conf"
+#define FXO_CONF_NAME       "/etc/svd/fxo.conf"
 #define ROUTET_CONF_NAME    "/etc/svd/routet.conf"
 #define HARDLINK_CONF_NAME  "/etc/svd/hardlink.conf"
 #define HOTLINE_CONF_NAME   "/etc/svd/hotline.conf"
 #define ADDRESSB_CONF_NAME  "/etc/svd/addressb.conf"
 #define QUALITY_CONF_NAME   "/etc/svd/quality.conf"
 #define RTP_CONF_NAME       "/etc/svd/rtp.conf"
+#define WLEC_CONF_NAME      "/etc/svd/wlec.conf"
 /** @}*/
 
 /** @defgroup CFG_DF Default values.
@@ -28,7 +30,6 @@
  *  Some default values that will be set if they will not find in config file.
  *  @{*/
 #define ALAW_PT_DF 0
-#define MLAW_PT_DF 8
 /** @}*/ 
 
 /** @defgroup DIAL_MARK Dial string markers.
@@ -41,6 +42,7 @@
 #define ADBK_MARKER '#'
 /** Marker of self router while dial a number */
 #define SELF_MARKER '*'
+#define SELF_MARKER2 '0'
 /** Marker of net address start and end in address book or while dialing */
 #define NET_MARKER '#'
 /** Marker of first free fxo channel while dial a number to call on */
@@ -181,10 +183,6 @@ struct route_table_s {
 };
 /** RTP parameters.*/
 struct rtp_prms_s {
-	enum evts_2833_e OOB; /**< Out-of-band events generation mode.*/
-	enum play_evts_2833_e OOB_play; /**< Out-of-band events play mode.*/
-	int evtPT; /**< RFC_2833 events payload type for generator side.*/
-	int evtPTplay; /**< RFC_2833 events payload type for receiver side.*/
 	int COD_Tx_vol; /**< Coder tx volume gain (from -24 to 24).*/
 	int COD_Rx_vol; /**< Coder rx volume gain (from -24 to 24).*/
 	enum vad_cfg_e VAD_cfg; /**< Voice activity detector mode.*/
@@ -207,6 +205,11 @@ struct fax_s {
 	int internal_pt;
 	int external_pt;
 };
+/** PSTN type.*/
+enum pstn_type_e {
+	pstn_type_TONE_AND_PULSE,
+	pstn_type_PULSE_ONLY,
+};
 /*}}}*/
 
 /** Routine main configuration struct.*/
@@ -225,8 +228,12 @@ struct svd_conf_s {/*{{{*/
 	struct hard_link_s hard_link[CHANS_MAX]; /**< Hard linked channels.*/
 	struct route_table_s route_table; /**< Routes table.*/
 	struct rtp_prms_s rtp_prms[CHANS_MAX]; /**< RTP channel parameters.*/
+	enum pstn_type_e fxo_PSTN_type[CHANS_MAX]; /**< FXO pstn types.*/
+	unsigned char sip_tos; /** Type of Service byte for sip-packets.*/
+	unsigned char rtp_tos; /** Type of Service byte for rtp-packets.*/
 	struct wlec_s wlec_prms[CHANS_MAX]; /**< WLEC channel parameters.*/
 } g_conf;/*}}}*/
+
 /** @} */
 
 #endif /* __SVD_CFG_H__ */

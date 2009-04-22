@@ -154,14 +154,13 @@ case "$1" in
 		--enable-trace \
 		--enable-debug \
 		--enable-warnings \
-		--enable-2cpe \
 		--enable-voice \
 		--enable-dtmf \
 		--enable-cid \
 		--enable-lt \
 		--enable-dect \
 		--enable-fax \
-		--disable-v1 \
+		--enable-extkeypad \
 		--enable-kernelincl=$linux_path/include \
 		--prefix=$cur_path/itmp \
 		"

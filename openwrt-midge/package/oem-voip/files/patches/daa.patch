@@ -1,6 +1,6 @@
 diff -ruiN daa_pure/configure.in daa/configure.in
---- daa_pure/configure.in	2009-04-14 15:13:22.000000000 +0700
-+++ daa/configure.in	2009-04-14 15:13:22.000000000 +0700
+--- daa_pure/configure.in	2009-04-21 16:19:43.000000000 +0700
++++ daa/configure.in	2009-04-21 16:19:43.000000000 +0700
 @@ -23,7 +23,7 @@
  
  AC_REVISION($Revision: 1.9 $)
@@ -11,8 +11,8 @@ diff -ruiN daa_pure/configure.in daa/configure.in
  AM_INIT_AUTOMAKE
  
 diff -ruiN daa_pure/src/drv_daa_api.c daa/src/drv_daa_api.c
---- daa_pure/src/drv_daa_api.c	2009-04-14 15:13:22.000000000 +0700
-+++ daa/src/drv_daa_api.c	2009-04-14 15:13:22.000000000 +0700
+--- daa_pure/src/drv_daa_api.c	2009-04-21 16:19:43.000000000 +0700
++++ daa/src/drv_daa_api.c	2009-04-21 16:19:43.000000000 +0700
 @@ -112,7 +112,7 @@
             ("DAA ERR DAA_COM_init failed for daa resource %d\n\r", nDaa));
  
@@ -41,8 +41,8 @@ diff -ruiN daa_pure/src/drv_daa_api.c daa/src/drv_daa_api.c
  
 diff -ruiN daa_pure/src/drv_daa_board_sg.c daa/src/drv_daa_board_sg.c
 --- daa_pure/src/drv_daa_board_sg.c	1970-01-01 07:00:00.000000000 +0700
-+++ daa/src/drv_daa_board_sg.c	2009-04-14 15:13:22.000000000 +0700
-@@ -0,0 +1,233 @@
++++ daa/src/drv_daa_board_sg.c	2009-04-21 16:19:43.000000000 +0700
+@@ -0,0 +1,242 @@
 +/******************************************************************************
 +
 +                               Copyright (c) 2007
@@ -80,6 +80,7 @@ diff -ruiN daa_pure/src/drv_daa_board_sg.c daa/src/drv_daa_board_sg.c
 +#include "drv_vinetic_gpio.h"
 +
 +extern DAA_FUNCTION_MAP_t        gDaaFctMap[];
++extern IFX_TAPI_DRV_CTX_DAA_t*   DAA_CtxGet(void);
 +
 +static int vinDevIoHandle[ DRV_DAA_MAX_DAA_CHANNELS/CHANS_PER_DEV ];
 +static int vinGPIO_io_hook[ CHANS_PER_DEV ];
@@ -266,11 +267,19 @@ diff -ruiN daa_pure/src/drv_daa_board_sg.c daa/src/drv_daa_board_sg.c
 +		gDaaFctMap[i].apohGet   = daa_common_apohGet;
 +#endif /* DAA_APOH */
 +	}
++
++	/* Registration of VineticDaaCtx */
++	VINETIC_Register_DAA_Ctx(DAA_CtxGet());
++
 +	return IFX_SUCCESS;
 +}/*}}}*/
 +
 +IFX_return_t daa_board_OnRmmod (void)
 +{/*{{{*/
++	/* De-Registration of VineticDaaCtx 
++	 * pointer not valid now */
++	VINETIC_Register_DAA_Ctx(IFX_NULL);
++
 +	return IFX_SUCCESS;
 +}/*}}}*/
 +
@@ -278,7 +287,7 @@ diff -ruiN daa_pure/src/drv_daa_board_sg.c daa/src/drv_daa_board_sg.c
 +
 diff -ruiN daa_pure/src/drv_daa_board_sg.h daa/src/drv_daa_board_sg.h
 --- daa_pure/src/drv_daa_board_sg.h	1970-01-01 07:00:00.000000000 +0700
-+++ daa/src/drv_daa_board_sg.h	2009-04-14 15:13:22.000000000 +0700
++++ daa/src/drv_daa_board_sg.h	2009-04-21 16:19:43.000000000 +0700
 @@ -0,0 +1,45 @@
 +#ifndef _DRV_DAA_BOARD_SG_H
 +#define _DRV_DAA_BOARD_SG_H
@@ -326,8 +335,8 @@ diff -ruiN daa_pure/src/drv_daa_board_sg.h daa/src/drv_daa_board_sg.h
 +#endif /* DRV_DAA_BOARD_SG */
 +#endif /* _DRV_DAA_BOARD_SG_H */
 diff -ruiN daa_pure/src/drv_daa_boards.h daa/src/drv_daa_boards.h
---- daa_pure/src/drv_daa_boards.h	2009-04-14 15:13:22.000000000 +0700
-+++ daa/src/drv_daa_boards.h	2009-04-14 15:13:22.000000000 +0700
+--- daa_pure/src/drv_daa_boards.h	2009-04-21 16:19:43.000000000 +0700
++++ daa/src/drv_daa_boards.h	2009-04-21 16:19:43.000000000 +0700
 @@ -32,10 +32,13 @@
     To add support for a new board, include the board header file here
     and the .c file to the Makefile.am. */
@@ -343,8 +352,8 @@ diff -ruiN daa_pure/src/drv_daa_boards.h daa/src/drv_daa_boards.h
  /* check if a boardfile is correctly included / and activated by defines,
     DRV_DAA_MAX_DAA_CHANNELS is a board specific define which must be
 diff -ruiN daa_pure/src/drv_daa_common.c daa/src/drv_daa_common.c
---- daa_pure/src/drv_daa_common.c	2009-04-14 15:13:22.000000000 +0700
-+++ daa/src/drv_daa_common.c	2009-04-14 15:13:22.000000000 +0700
+--- daa_pure/src/drv_daa_common.c	2009-04-21 16:19:43.000000000 +0700
++++ daa/src/drv_daa_common.c	2009-04-21 16:19:43.000000000 +0700
 @@ -102,7 +102,7 @@
  
     /* hook flash is a short onHook,
@@ -391,8 +400,8 @@ diff -ruiN daa_pure/src/drv_daa_common.c daa/src/drv_daa_common.c
                             DAA_POL_STATE_NORMAL : DAA_POL_STATE_REVERSE;
        TRACE(DAA_DRV, DBG_LEVEL_LOW,
 diff -ruiN daa_pure/src/drv_daa_common.h daa/src/drv_daa_common.h
---- daa_pure/src/drv_daa_common.h	2009-04-14 15:13:22.000000000 +0700
-+++ daa/src/drv_daa_common.h	2009-04-14 15:13:22.000000000 +0700
+--- daa_pure/src/drv_daa_common.h	2009-04-21 16:19:43.000000000 +0700
++++ daa/src/drv_daa_common.h	2009-04-21 16:19:43.000000000 +0700
 @@ -41,12 +41,12 @@
  /* ============================= */
  typedef struct
@@ -413,8 +422,8 @@ diff -ruiN daa_pure/src/drv_daa_common.h daa/src/drv_daa_common.h
  
  
 diff -ruiN daa_pure/src/drv_daa_common_priv.h daa/src/drv_daa_common_priv.h
---- daa_pure/src/drv_daa_common_priv.h	2009-04-14 15:13:22.000000000 +0700
-+++ daa/src/drv_daa_common_priv.h	2009-04-14 15:13:22.000000000 +0700
+--- daa_pure/src/drv_daa_common_priv.h	2009-04-21 16:19:43.000000000 +0700
++++ daa/src/drv_daa_common_priv.h	2009-04-21 16:19:43.000000000 +0700
 @@ -36,6 +36,15 @@
  
  #define DRV_DAA_DEBOUNCE_TIME       70 /* ms */
@@ -432,8 +441,8 @@ diff -ruiN daa_pure/src/drv_daa_common_priv.h daa/src/drv_daa_common_priv.h
  IFX_void_t daa_tcb_bat  (IFX_void_t * timer_id, IFX_uint32_t arg);
  IFX_void_t daa_tcb_apoh (IFX_void_t * timer_id, IFX_uint32_t arg);
 diff -ruiN daa_pure/src/drv_daa_common_sm_ring.c daa/src/drv_daa_common_sm_ring.c
---- daa_pure/src/drv_daa_common_sm_ring.c	2009-04-14 15:13:22.000000000 +0700
-+++ daa/src/drv_daa_common_sm_ring.c	2009-04-14 15:13:22.000000000 +0700
+--- daa_pure/src/drv_daa_common_sm_ring.c	2009-04-21 16:19:43.000000000 +0700
++++ daa/src/drv_daa_common_sm_ring.c	2009-04-21 16:20:11.000000000 +0700
 @@ -26,13 +26,23 @@
  
  /*   Description : common ring state machine */
@@ -491,8 +500,8 @@ diff -ruiN daa_pure/src/drv_daa_common_sm_ring.c daa/src/drv_daa_common_sm_ring.
           {
 +			 unsigned int j_diff;
 +			 int ds;
-+			 unsigned int * ims = sts[daa_idx].imp;
-+			 unsigned int * tagp = &sts[daa_idx].i_tag;
++			 volatile unsigned int * ims = sts[daa_idx].imp;
++			 volatile unsigned int * tagp = &sts[daa_idx].i_tag;
 +
 +			 /* set the bound and compare with previous */
 +		   	j_cur[daa_idx] = jiffies;
@@ -561,8 +570,8 @@ diff -ruiN daa_pure/src/drv_daa_common_sm_ring.c daa/src/drv_daa_common_sm_ring.
 +			 unsigned int daa_idx = pDaa->nDaa;
 +			 unsigned int j_diff;
 +			 int ds;
-+			 unsigned int * ims = sts[daa_idx].imp;
-+			 unsigned int * tagp = &sts[daa_idx].i_tag;
++			 volatile unsigned int * ims = sts[daa_idx].imp;
++			 volatile unsigned int * tagp = &sts[daa_idx].i_tag;
 +			 /* set the bound and compare with previous */
 +		   	j_cur[daa_idx] = jiffies;
 +			j_diff = j_cur[daa_idx] - j_prev[daa_idx];
@@ -609,8 +618,8 @@ diff -ruiN daa_pure/src/drv_daa_common_sm_ring.c daa/src/drv_daa_common_sm_ring.
  }
  
 diff -ruiN daa_pure/src/drv_daa_linux.c daa/src/drv_daa_linux.c
---- daa_pure/src/drv_daa_linux.c	2009-04-14 15:13:22.000000000 +0700
-+++ daa/src/drv_daa_linux.c	2009-04-14 15:13:22.000000000 +0700
+--- daa_pure/src/drv_daa_linux.c	2009-04-21 16:19:43.000000000 +0700
++++ daa/src/drv_daa_linux.c	2009-04-21 16:19:43.000000000 +0700
 @@ -37,10 +37,10 @@
  /* ============================= */
  
@@ -632,8 +641,8 @@ diff -ruiN daa_pure/src/drv_daa_linux.c daa/src/drv_daa_linux.c
 +
  #endif /* LINUX */
 diff -ruiN daa_pure/src/drv_daa_linux.h daa/src/drv_daa_linux.h
---- daa_pure/src/drv_daa_linux.h	2009-04-14 15:13:22.000000000 +0700
-+++ daa/src/drv_daa_linux.h	2009-04-14 15:13:22.000000000 +0700
+--- daa_pure/src/drv_daa_linux.h	2009-04-21 16:19:43.000000000 +0700
++++ daa/src/drv_daa_linux.h	2009-04-21 16:19:43.000000000 +0700
 @@ -47,6 +47,7 @@
  #endif
  
@@ -643,8 +652,8 @@ diff -ruiN daa_pure/src/drv_daa_linux.h daa/src/drv_daa_linux.h
  #include <linux/errno.h>
  /*proc-file system*/
 diff -ruiN daa_pure/src/Makefile.am daa/src/Makefile.am
---- daa_pure/src/Makefile.am	2009-04-14 15:13:22.000000000 +0700
-+++ daa/src/Makefile.am	2009-04-14 15:13:22.000000000 +0700
+--- daa_pure/src/Makefile.am	2009-04-21 16:19:43.000000000 +0700
++++ daa/src/Makefile.am	2009-04-21 16:19:43.000000000 +0700
 @@ -21,18 +21,15 @@
  # DEALINGS IN THE SOFTWARE.
  

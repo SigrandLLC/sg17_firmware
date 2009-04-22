@@ -977,18 +977,25 @@ svd_handle_event_FXS_DIGIT_X ( svd_t * const svd, int const chan_idx,
 
 DFS
 	DEBUG_CODE (
-		SU_DEBUG_3 (("DIGIT \'%c\', on channel [_%d_]\n ",
-				digit, ab_chan->abs_idx ));
-		SU_DEBUG_3 (("local : %d, network : %d\n",
-				(data >> 9),
-				(data >> 8) & 1 ));
-		SU_DEBUG_3 (("HN : %p\n",chan_ctx->op_handle));
+		SU_DEBUG_3 (("[_%d_] DIGIT \'%c\'(l:%d,n:%d)HN:%p\n",
+				ab_chan->abs_idx, digit, (data >> 9),(data >> 8) & 1,
+				chan_ctx->op_handle));
 	);
 
 	if( chan_ctx->op_handle ){
 		/* allready connected - we can send info 
 		 * see rfc_2976
 		 */
+		int tone = (data >> 8);
+		char pd[INFO_STR_LENGTH];
+
+		memset (pd, 0, sizeof(pd[0]));
+		snprintf(pd, INFO_STR_LENGTH, INFO_STR, tone, digit);
+
+		/* send INFO */
+		nua_info(chan_ctx->op_handle,
+				SIPTAG_PAYLOAD_STR(pd),
+				TAG_NULL());
 	} else {
 		/* not connected yet - should process digits */
 		err = svd_handle_digit (svd, chan_idx, digit);
@@ -1072,7 +1079,7 @@ svd_handle_event_FXS_FM_CED ( svd_t * const svd, int const chan_idx,
 	int err;
 DFS
 	if( !data){ /* CEDEND */
-		err = ab_chan_fax_pass_through_start (ab_chan, g_conf.fax.codec_type);
+		err = ab_chan_fax_pass_through_start (ab_chan);
 		if( err){
 			SU_DEBUG_1(("can`t start fax_pass_through on [_%d_]\n", 
 					ab_chan->abs_idx));
@@ -1102,7 +1109,6 @@ svd_chans_init ( svd_t * const svd )
 	unsigned char route_id_len;
 	unsigned char addrbk_id_len;
 	int chans_num;
-	int err;
 DFS
 	route_id_len = g_conf.route_table.id_len;
 	addrbk_id_len = g_conf.address_book.id_len;
@@ -1177,6 +1183,7 @@ DFS
 	}
 
 	/* HARDLINK */
+#if 0
 	for (i=0; i<CHANS_MAX; i++){
 		struct hard_link_s * curr_rec = &g_conf.hard_link[ i ];
 		int hl_id;
@@ -1197,7 +1204,7 @@ DFS
 			goto __exit_fail;
 		}
 	}
-
+#endif
 	/* RTP parameters */
 	for (i=0; i<CHANS_MAX; i++){
 		struct rtp_prms_s * curr_rec = &g_conf.rtp_prms[i];
@@ -1205,19 +1212,6 @@ DFS
 		if( !curr_chan){
 			continue;
 		}
-
-		if ( curr_rec->OOB == evts_OOB_DEFAULT){
-			curr_chan->rtp_cfg.nEvents = evts_OOB_ONLY;
-		} else {
-			curr_chan->rtp_cfg.nEvents = curr_rec->OOB;
-		}
-		if ( curr_rec->OOB_play == play_evts_DEFAULT){
-			curr_chan->rtp_cfg.nPlayEvents = play_evts_PLAY;
-		} else {
-			curr_chan->rtp_cfg.nEvents = curr_rec->OOB_play;
-		}
-		curr_chan->rtp_cfg.evtPT = curr_rec->evtPT;
-		curr_chan->rtp_cfg.evtPTplay = curr_rec->evtPTplay;
 		curr_chan->rtp_cfg.cod_volume.enc_dB = curr_rec->COD_Tx_vol;
 		curr_chan->rtp_cfg.cod_volume.dec_dB = curr_rec->COD_Rx_vol;
 		curr_chan->rtp_cfg.VAD_cfg = curr_rec->VAD_cfg;
@@ -1322,6 +1316,7 @@ svd_handle_START( ab_t * const ab, int const chan_idx, long const digit )
 			chan_ctx->dial_status.state = dial_state_ADDR_BOOK;
 			break;
 		case SELF_MARKER:
+		case SELF_MARKER2:
 			chan_ctx->dial_status.dest_is_self = self_YES;
 			chan_ctx->dial_status.state = dial_state_CHAN_ID;
 			break;
@@ -1772,7 +1767,7 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 	ab_chan_t * chan = user_data;
 	svd_chan_t * chan_ctx = chan->ctx;
 	struct sockaddr_in target_sock_addr;
-	char buf [BUFF_PER_RTP_PACK_SIZE];
+	unsigned char buf [BUFF_PER_RTP_PACK_SIZE];
 	int rode; 
 	int sent; 
 
@@ -1804,6 +1799,16 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 			/* should not block */
 			sent = sendto(chan_ctx->rtp_sfd, buf, rode, 0, 
 					&target_sock_addr, sizeof(target_sock_addr));
+/* use for testing oob
+if (buf[1] == 0x62 || buf[1] == 0xe2){
+	int i = 12;
+	SU_DEBUG_3(("%d = rode(), pd:%x[:",rode, buf[1]));
+	for (; i < rode; i++){
+		SU_DEBUG_3(("%X:",buf[i] ));
+	}
+	SU_DEBUG_3(("]\n"));
+}
+ */
 			if (sent == -1){
 				SU_DEBUG_2 (("HLD() ERROR : sent() : %d(%s)\n",
 						errno, strerror(errno)));
@@ -1850,7 +1855,7 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 
 	received = recv(chan_ctx->rtp_sfd, buf, sizeof(buf), 0);
 
-	/* use for testing oob 
+	/* use for testing oob
 	if (buf[1] == 0x62 || buf[1] == 0xe2){
 		int i = 12;
 		SU_DEBUG_3(("%d = recv(), pd:%x[:",received, buf[1]));
@@ -1859,7 +1864,7 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 		}
 		SU_DEBUG_3(("]\n"));
 	}
-	*/
+ */	
 	if (received == 0){
 		SU_DEBUG_2 ((LOG_FNC_A("wrong event")));
 		goto __exit_fail;
@@ -1915,7 +1920,7 @@ svd_media_vinetic_open_rtp (svd_chan_t * const chan_ctx)
 	int sock_fd;
 	int rtp_binded = 0;
 	int err;
-	int tos;
+	int tos = 0;
 DFS
 	sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock_fd == -1) {
@@ -1924,7 +1929,7 @@ DFS
 		goto __exit_fail;
 	}
 
-	tos = IPTOS_LOWDELAY;
+	tos = g_conf.rtp_tos & IPTOS_TOS_MASK;
 	err = setsockopt(sock_fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos));
 	if( err){
 		SU_DEBUG_2(("Can`t set TOS :%s",strerror(errno)));

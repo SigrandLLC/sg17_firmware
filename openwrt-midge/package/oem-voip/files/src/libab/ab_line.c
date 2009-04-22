@@ -272,7 +272,7 @@ ab_FXO_line_hook (ab_chan_t * const chan, enum ab_chan_hook_e hook)
 int 
 ab_FXO_line_digit (ab_chan_t * const chan, char const data_length, 
 		char const * const data, char const nInterDigitTime,
-		char const nDigitPlayTime)
+		char const nDigitPlayTime, char const pulseMode)
 {/*{{{*/
 	IFX_TAPI_FXO_DIAL_CFG_t dialCfg;
 	IFX_TAPI_FXO_DIAL_t 	dialDigits;
@@ -290,11 +290,13 @@ ab_FXO_line_digit (ab_chan_t * const chan, char const data_length,
 	if( nInterDigitTime ) {
 		dialCfg.nDigitPlayTime = nDigitPlayTime;
 	}
+	dialCfg.pulseMode = pulseMode;
 
 	err = err_set_ioctl( chan, 
 			IFX_TAPI_FXO_DIAL_CFG_SET, (int)&dialCfg, 
 			"Try to configure dial params (ioctl)");
 	if( err ){
+		fprintf(stderr,"CONFIGURE ERROR\n");
 		goto __exit;
 	} 
 
@@ -308,9 +310,61 @@ ab_FXO_line_digit (ab_chan_t * const chan, char const data_length,
 			IFX_TAPI_FXO_DIAL_START, (int)(&dialDigits), 
 			"Try to dial sequence (ioctl)");
 	if( err ){
+		fprintf(stderr,"DIAL ERROR\n");
 		goto __exit;
 	} 
 __exit:
 	return err;
+}/*}}}*/
+
+/**
+ * Play to rtp flow some event in-band or out-of-band.
+ *
+ * \param[in] chan - channel to play in.
+ * \param[in] tone - tone to play play.
+ *
+ * \retval 0 - success
+ * \retval -1 - fail
+ *
+ * \remark
+ *	tones can be '0' - '9', '*', '#', 'A' - 'D', or 'b'/'r'/'d' for
+ *	busy ringing and dialtones.
+ */
+int 
+ab_FXS_net_play (ab_chan_t * const chan, char tone)
+{/*{{{*/
+	int err;
+	int idx;
+	if(tone >= '1' && tone <= '9'){
+		idx = tone - '0';
+	} else if(tone == '0'){
+		idx = 11;
+	} else if(tone == '*'){
+		idx = 10;
+	} else if(tone == '#'){
+		idx = 12;
+	} else if(tone == 'A'){
+		idx = 28;
+	} else if(tone == 'B'){
+		idx = 29;
+	} else if(tone == 'C'){
+		idx = 30;
+	} else if(tone == 'D'){
+		idx = 31;
+	} else if(tone == 'd'){
+		idx = 25;
+	} else if(tone == 'r'){
+		idx = 26;
+	} else if(tone == 'b'){
+		idx = 27;
+	} 
+	err = err_set_ioctl (chan, IFX_TAPI_TONE_NET_PLAY, idx, 
+			"Try to play network tone (ioctl)");
+	if( err){
+		goto __exit_fail;
+	} 
+	return 0;
+__exit_fail:
+	return -1;
 }/*}}}*/
 

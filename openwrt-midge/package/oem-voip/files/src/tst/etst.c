@@ -167,7 +167,7 @@ digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS)
 	seq_length=strlen(to_dial);
 	for (dial_idx=0; dial_idx<seq_length; dial_idx++){
 		/* dial digits all by one */
-		err = ab_FXO_line_digit (cFXO, 1, &to_dial [dial_idx], 0, 0);
+		err = ab_FXO_line_digit (cFXO, 1, &to_dial [dial_idx], 0, 0, 0);
 		if(err){
 			/* error happen on event getting ioctl */
 			fprintf(stderr,"!ERROR: dial a '%c' on FXO[%d]\n",

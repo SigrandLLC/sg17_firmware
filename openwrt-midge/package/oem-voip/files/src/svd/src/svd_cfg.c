@@ -46,7 +46,6 @@ static unsigned char g_err_no;
  *  @{*/
 #define CONF_CODEC_G729 "g729"
 #define CONF_CODEC_ALAW "aLaw"
-#define CONF_CODEC_MLAW "uLaw"
 #define CONF_CODEC_G723 "g723"
 #define CONF_CODEC_ILBC133 "iLBC_133"
 /*#define CONF_CODEC_ILBC152 "iLBC_152"*/
@@ -81,6 +80,8 @@ static unsigned char g_err_no;
 #define CONF_WLEC_NLP_DF   "defualt"
 #define CONF_WLEC_NLP_ON   "on"
 #define CONF_WLEC_NLP_OFF  "off"
+#define CONF_FXO_PULSE   "pulse"
+#define CONF_FXO_TONE    "tone"
 /** @}*/ 
 
 /** @defgroup CFG_IF Config internal functions.
@@ -94,14 +95,18 @@ static void init_codec_el(struct config_setting_t const * const rec_set,
 		int const prms_offset, codec_t * const cod);
 /** Init main configuration.*/
 static int main_init (void);
+/** Init fxo channels parameters.*/
+static int fxo_init (void);
 /** Init route table configuration.*/
 static int routet_init (void);
 /** Init RTP parameters configuration.*/
 static int rtp_init (void);
 /** Init WLEC parameters configuration.*/
 static int wlec_init (void);
+#if 0
 /** Init hard link configuration.*/
 static int hardlink_init (void);
+#endif
 /** Init hot line configuration.*/
 static int hotline_init (void);
 /** Init addres book configuration.*/
@@ -220,10 +225,11 @@ svd_conf_init( void )
 	memset (&g_conf, 0, sizeof(g_conf));
 	strcpy (g_conf.lo_ip, "127.0.0.1");
 	if(		main_init() 	||
+			fxo_init()		||
 			routet_init()	||
 			rtp_init()		||
 			wlec_init()		||
-			hardlink_init() ||
+			/*hardlink_init() ||*/
 			hotline_init()	||
 			addressb_init()	||
 			quality_init()
@@ -251,7 +257,7 @@ conf_show( void )
 	struct adbk_record_s * curr_ab_rec;
 	struct htln_record_s * curr_hl_rec;
 	struct rttb_record_s * curr_rt_rec;
-	struct hard_link_s   * curr_hk_rec;
+//	struct hard_link_s   * curr_hk_rec;
 	struct rtp_prms_s    * rtp_rec;
 	int i;
 	int j;
@@ -300,10 +306,14 @@ conf_show( void )
 	/* RTP parameters */
 	for (i=0; i<CHANS_MAX; i++){
 		rtp_rec = &g_conf.rtp_prms[i];
-		SU_DEBUG_3(("%d: OOB(%d/%d) evtPT(%d/%d) vol(%d/%d) vh(%d/%d)\n",
-				i, rtp_rec->OOB, rtp_rec->OOB_play, rtp_rec->evtPT,
-				rtp_rec->evtPTplay, rtp_rec->COD_Tx_vol, rtp_rec->COD_Rx_vol,
+		SU_DEBUG_3(("%d: vol(%d/%d) vh(%d/%d)\n",
+				i, rtp_rec->COD_Tx_vol, rtp_rec->COD_Rx_vol,
 				rtp_rec->VAD_cfg, rtp_rec->HPF_is_ON));
+	} 
+
+	/* PSTN parameters */
+	for (i=0; i<CHANS_MAX; i++){
+		SU_DEBUG_3(("%d: %d\n", i, g_conf.fxo_PSTN_type[i]));
 	} 
 
 	if(g_conf.address_book.records_num){
@@ -326,6 +336,7 @@ conf_show( void )
 				i+1, curr_hl_rec->id, curr_hl_rec->value ));
 	}
 
+#if 0
 	SU_DEBUG_3(("HardLinks :\n"));
 	for(i=0; i<CHANS_MAX; i++){
 		curr_hk_rec = &g_conf.hard_link[ i ];
@@ -346,7 +357,7 @@ conf_show( void )
 				curr_hk_rec->pair_route, curr_hk_rec->pair_chan,
 				curr_hk_rec->am_i_caller));
 	}
-
+#endif
 	if(g_conf.route_table.records_num){
 		SU_DEBUG_3(("RouteTable :\n"));
 	}
@@ -441,15 +452,6 @@ svd_init_cod_params( cod_prms_t * const cp )
 	cp[i].rate = 8000;
 	i++;
 	
-	/* G711 MLAW parameters. */
-	cp[i].type = cod_type_MLAW;
-	if(strlen("PCMU") >= COD_NAME_LEN){
-		goto __exit_fail;
-	}
-	strcpy(cp[i].sdp_name, "PCMU");
-	cp[i].rate = 8000;
-	i++;
-
 	/* G729 parameters. */
 	cp[i].type = cod_type_G729;
 	if(strlen("G729") >= COD_NAME_LEN){
@@ -643,8 +645,6 @@ init_codec_el(struct config_setting_t const *const rec_set,
 		cod->type = cod_type_G729;
 	} else if( !strcmp(codel, CONF_CODEC_ALAW)){
 		cod->type = cod_type_ALAW;
-	} else if( !strcmp(codel, CONF_CODEC_MLAW)){
-		cod->type = cod_type_MLAW;
 	} else if( !strcmp(codel, CONF_CODEC_G723)){
 		cod->type = cod_type_G723;
 	} else if( !strcmp(codel, CONF_CODEC_ILBC133)){
@@ -731,6 +731,10 @@ main_init( void )
 	g_conf.rtp_port_first = config_lookup_int (&cfg, "rtp_port_first");
 	g_conf.rtp_port_last = config_lookup_int (&cfg, "rtp_port_last");
 
+	/* tos */
+	g_conf.sip_tos = config_lookup_int (&cfg, "sip_tos");
+	g_conf.rtp_tos = config_lookup_int (&cfg, "rtp_tos");
+
 	/* SIP settings */
 	g_conf.sip_set.all_set = 0;
 
@@ -776,6 +780,78 @@ __exit_success:
 __exit_fail:
 	config_destroy (&cfg);
 	return err;
+}/*}}}*/
+
+/**
+ * Init`s fxo settings in main routine configuration \ref g_conf structure.
+ *
+ * \retval 0 success.
+ * \retval -1 fail.
+ */
+static int
+fxo_init( void )
+{/*{{{*/
+	struct config_t cfg;
+	struct config_setting_t * set;
+	struct config_setting_t * rec_set;
+	enum pstn_type_e * curr_rec;
+	char const * elem;
+	int rec_num;
+	int i;
+	int err;
+
+	config_init (&cfg);
+
+	/* Load the file */
+	if (!config_read_file (&cfg, FXO_CONF_NAME)){
+		err = config_error_line (&cfg);
+		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n",
+				__func__, err));
+		goto __exit_fail;
+	} 
+
+	/* Standart params for all chans already set
+	 * when it memset(&g_conf,0) before this function call */
+
+	/* Get values */
+	set = config_lookup (&cfg, "fxo_prms" );
+	if( !set ){
+		/* We will use standart params for all channels */
+		goto __exit_success;
+	} 
+
+	rec_num = config_setting_length (set);
+
+	if(rec_num > CHANS_MAX){
+		SU_DEBUG_0(("%s(): Too many channels (%d) in config - max is %d\n",
+				__func__, rec_num, CHANS_MAX));
+		goto __exit_fail;
+	}
+
+	for(i=0; i<rec_num; i++){
+		int abs_idx;
+		rec_set = config_setting_get_elem (set, i);
+
+		/* get chan id */
+		elem = config_setting_get_string_elem (rec_set, 0);
+		abs_idx = strtol(elem, NULL, 10);
+
+		curr_rec = &g_conf.fxo_PSTN_type[ abs_idx ];
+
+		/* get fxo line type */
+		elem = config_setting_get_string_elem (rec_set, 1);
+		if       ( !strcmp(elem, CONF_FXO_PULSE)){
+			*curr_rec = pstn_type_PULSE_ONLY;
+		} else if( !strcmp(elem, CONF_FXO_TONE)){
+			*curr_rec = pstn_type_TONE_AND_PULSE;
+		} 
+	}
+__exit_success:
+	config_destroy (&cfg);
+	return 0;
+__exit_fail:
+	config_destroy (&cfg);
+	return -1;
 }/*}}}*/
 
 /**
@@ -887,7 +963,8 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
-/**
+#if 0
+/*
  * Init`s hard link records in main routine configuration \ref g_conf structure.
  *
  * \retval 0 success.
@@ -1071,7 +1148,7 @@ __exit_fail:
 	config_destroy (&cfg);
 	return -1;
 }/*}}}*/
-
+#endif
 /**
  * Init`s hot line records in main routine configuration \ref g_conf structure.
  *
@@ -1281,6 +1358,10 @@ __exit_fail:
  *
  * \retval 0 success.
  * \retval -1 fail.
+ *
+ * \remark
+ *	It must calls after main init becouse it can modify 
+ *	g_conf.sip_set.all_set setting.
  */
 static int
 quality_init( void )
@@ -1288,7 +1369,6 @@ quality_init( void )
 	struct config_t cfg;
 	struct config_setting_t * set = NULL;
 	struct config_setting_t * rec_set = NULL;
-	char const * str_elem = NULL;
 	int i;
 	int rec_num;
 	int err;
@@ -1340,23 +1420,9 @@ quality_init( void )
 	}
 
 	/* CODECS FOR FAX USAGE */
-	str_elem = config_lookup_string (&cfg, "fax_codec");
-	if( !str_elem){
-		SU_DEBUG_0(("No fax_codec entry in config file"));
-		goto __exit_fail;
-	}
-
 	/* set type and standart payload type values */
-	if       ( !strcmp(str_elem, CONF_CODEC_ALAW)){
-		g_conf.fax.codec_type = cod_type_ALAW;
-		g_conf.fax.internal_pt = g_conf.fax.external_pt = ALAW_PT_DF;
-	} else if( !strcmp(str_elem, CONF_CODEC_MLAW)){
-		g_conf.fax.codec_type = cod_type_MLAW;
-		g_conf.fax.internal_pt = g_conf.fax.external_pt = MLAW_PT_DF;
-	} else {
-		SU_DEBUG_2(("Wrong codec type for fax '%s'",str_elem));
-		goto __exit_fail;
-	}
+	g_conf.fax.codec_type = cod_type_ALAW;
+	g_conf.fax.internal_pt = g_conf.fax.external_pt = ALAW_PT_DF;
 
 	/* set internal fax payload type if it defined in config file */
 	for (i=0; g_conf.int_codecs[i].type!=cod_type_NONE; i++){
@@ -1413,10 +1479,6 @@ rtp_init( void )
 
 	/* Standart params for all chans */
 	curr_rec = &g_conf.rtp_prms[0];
-	curr_rec->OOB = evts_OOB_ONLY;
-	curr_rec->OOB_play = play_evts_PLAY;
-	curr_rec->evtPT = 0x62;
-	curr_rec->evtPTplay = 0x62;
 	curr_rec->COD_Tx_vol = 0;
 	curr_rec->COD_Rx_vol = 0;
 	curr_rec->VAD_cfg = vad_cfg_OFF;
@@ -1451,36 +1513,9 @@ rtp_init( void )
 
 		curr_rec = &g_conf.rtp_prms[ abs_idx ];
 
-		/* get rtp params */
-		elem = config_setting_get_string_elem (rec_set, 1);
-		if( !strcmp(elem, CONF_OOB_DEFAULT)){
-			curr_rec->OOB = evts_OOB_DEFAULT;
-		} else if( !strcmp(elem, CONF_OOB_NO)){
-			curr_rec->OOB = evts_OOB_NO;
-		} else if( !strcmp(elem, CONF_OOB_ONLY)){
-			curr_rec->OOB = evts_OOB_ONLY;
-		} else if( !strcmp(elem, CONF_OOB_ALL)){
-			curr_rec->OOB = evts_OOB_ALL;
-		} else if( !strcmp(elem, CONF_OOB_BLOCK)){
-			curr_rec->OOB = evts_OOB_BLOCK;
-		}
-
-		elem = config_setting_get_string_elem (rec_set, 2);
-		if( !strcmp(elem, CONF_OOBPLAY_DEFAULT)){
-			curr_rec->OOB_play = play_evts_DEFAULT;
-		} else if( !strcmp(elem, CONF_OOBPLAY_PLAY)){
-			curr_rec->OOB_play = play_evts_PLAY;
-		} else if( !strcmp(elem, CONF_OOBPLAY_MUTE)){
-			curr_rec->OOB_play = play_evts_MUTE;
-		} else if( !strcmp(elem, CONF_OOBPLAY_APT_PLAY)){
-			curr_rec->OOB_play = play_evts_APT_PLAY;
-		}
-
-		curr_rec->evtPT = config_setting_get_int_elem(rec_set, 3);
-		curr_rec->evtPTplay = config_setting_get_int_elem(rec_set, 4);
-		curr_rec->COD_Tx_vol = config_setting_get_int_elem(rec_set, 5);
-		curr_rec->COD_Rx_vol = config_setting_get_int_elem(rec_set, 6);
-		elem = config_setting_get_string_elem (rec_set, 7);
+		curr_rec->COD_Tx_vol = config_setting_get_int_elem(rec_set, 1);
+		curr_rec->COD_Rx_vol = config_setting_get_int_elem(rec_set, 2);
+		elem = config_setting_get_string_elem (rec_set, 3);
 		if( !strcmp(elem, CONF_VAD_NOVAD)){
 			curr_rec->VAD_cfg = vad_cfg_OFF;
 		} else if( !strcmp(elem, CONF_VAD_ON)){
@@ -1492,7 +1527,7 @@ rtp_init( void )
 		} else if( !strcmp(elem, CONF_VAD_SC_ONLY)){
 			curr_rec->VAD_cfg = vad_cfg_SC_only;
 		}
-		curr_rec->HPF_is_ON = config_setting_get_int_elem(rec_set, 8);
+		curr_rec->HPF_is_ON = config_setting_get_int_elem(rec_set, 4);
 	}
 __exit_success:
 	config_destroy (&cfg);
@@ -1523,7 +1558,7 @@ wlec_init( void )
 	config_init (&cfg);
 
 	/* Load the file */
-	if (!config_read_file (&cfg, RTP_CONF_NAME)){
+	if (!config_read_file (&cfg, WLEC_CONF_NAME)){
 		err = config_error_line (&cfg);
 		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n",
 				__func__, err));

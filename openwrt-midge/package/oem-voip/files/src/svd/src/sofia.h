@@ -22,6 +22,7 @@
 #include <sofia-sip/sdp.h>
 #include <sofia-sip/sip_status.h>
 #include <sofia-sip/stun_tag.h>
+#include <sofia-sip/tport_tag.h>
 
 #endif /* __SOFIA_H__ */
 

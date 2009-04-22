@@ -21,11 +21,9 @@
 
 #define DEFAULT_CFG_NAME    "*"
 #define ALAW_CFG_NAME    "aLaw"
-#define MLAW_CFG_NAME    "uLaw"
 #define G729_CFG_NAME    "g729"
 #define G729E_CFG_NAME   "g729e"
 #define ILBC133_CFG_NAME "iLBC_133"
-#define ILBC152_CFG_NAME "iLBC_152"
 #define G723_CFG_NAME    "g723"
 #define G72616_CFG_NAME  "g726_16"
 #define G72624_CFG_NAME  "g726_24"
@@ -62,8 +60,6 @@ set_df_pt( void )
 {/*{{{*/
 	if       (g_so.vcod.type == cod_type_ALAW){
 		g_so.vcod.sdp_selected_payload = 8;
-	} else if(g_so.vcod.type == cod_type_MLAW){
-		g_so.vcod.sdp_selected_payload = 0;
 	} else if(g_so.vcod.type == cod_type_G729){
 		g_so.vcod.sdp_selected_payload = 18;
 	} else if(g_so.vcod.type == cod_type_G729E){
@@ -98,9 +94,7 @@ set_df_sz( void )
 		g_so.vcod.type == cod_type_G726_40){
 			g_so.vcod.pkt_size = cod_pkt_size_10;
 	} else if(	
-		g_so.vcod.type == cod_type_ALAW ||
-		g_so.vcod.type == cod_type_MLAW /*||
-		g_so.vcod.type == cod_type_ILBC_152*/){
+		g_so.vcod.type == cod_type_ALAW){
 			g_so.vcod.pkt_size = cod_pkt_size_20;
 	} else if(
 		g_so.vcod.type == cod_type_ILBC_133 ||
@@ -135,8 +129,8 @@ startup_init (int argc, char * const argv[])
 	g_so.vcod.sdp_selected_payload = 18;
 	g_so.vcod.pkt_size = cod_pkt_size_10;
 	g_so.vcod.bpack = bitpack_RTP;
-	g_so.fcod.type = cod_type_MLAW;
-	g_so.fcod.sdp_selected_payload = 0;
+	g_so.fcod.type = cod_type_ALAW;
+	g_so.fcod.sdp_selected_payload = 8;
 	g_so.vol = 0;
 	g_so.hpf = 0;
 	g_so.vad = vad_cfg_OFF;
@@ -158,18 +152,12 @@ startup_init (int argc, char * const argv[])
 			if(token) {
 				if       ( !strcmp(token,ALAW_CFG_NAME)){
 					g_so.vcod.type = cod_type_ALAW;
-				} else if( !strcmp(token,MLAW_CFG_NAME)) {
-					g_so.vcod.type = cod_type_MLAW;
 				} else if( !strcmp(token,G729_CFG_NAME)) {
 					g_so.vcod.type = cod_type_G729;
 				} else if( !strcmp(token,G729E_CFG_NAME)) {
 					g_so.vcod.type = cod_type_G729E;
 				} else if( !strcmp(token,ILBC133_CFG_NAME)) {
 					g_so.vcod.type = cod_type_ILBC_133;
-					/*
-				} else if( !strcmp(token,ILBC152_CFG_NAME)) {
-					g_so.vcod.type = cod_type_ILBC_152;
-					*/
 				} else if( !strcmp(token,G723_CFG_NAME)) {
 					g_so.vcod.type = cod_type_G723;
 				} else if( !strcmp(token,G72616_CFG_NAME)) {
@@ -237,8 +225,6 @@ startup_init (int argc, char * const argv[])
 		case 'f':
 			if       ( !strcmp(optarg,ALAW_CFG_NAME)){
 				g_so.fcod.type = cod_type_ALAW;
-			} else if( !strcmp(optarg,MLAW_CFG_NAME)) {
-				g_so.fcod.type = cod_type_MLAW;
 			} else {
 				return -1;
 			}
@@ -273,8 +259,6 @@ startup_init (int argc, char * const argv[])
 		g_so.fcod.sdp_selected_payload = g_so.vcod.sdp_selected_payload;
 	} else if(g_so.fcod.type == cod_type_ALAW){
 		g_so.fcod.sdp_selected_payload = ALAW_PT_DF;
-	} else if(g_so.fcod.type == cod_type_MLAW){
-		g_so.fcod.sdp_selected_payload = MLAW_PT_DF;
 	}
 
 	if( !check_bitpack){
@@ -292,18 +276,12 @@ startup_print (void)
 	fprintf(stderr,"  Voice coder type   : ");
 	if       (g_so.vcod.type == cod_type_ALAW){
 		fprintf(stderr,"%s\n",ALAW_CFG_NAME);
-	} else if(g_so.vcod.type == cod_type_MLAW){
-		fprintf(stderr,"%s\n",MLAW_CFG_NAME);
 	} else if(g_so.vcod.type == cod_type_G729){
 		fprintf(stderr,"%s\n",G729_CFG_NAME);
 	} else if(g_so.vcod.type == cod_type_G729E){
 		fprintf(stderr,"%s\n",G729E_CFG_NAME);
 	} else if(g_so.vcod.type == cod_type_ILBC_133){
 		fprintf(stderr,"%s\n",ILBC133_CFG_NAME);
-		/*
-	} else if(g_so.vcod.type == cod_type_ILBC_152){
-		fprintf(stderr,"%s\n",ILBC152_CFG_NAME);
-		*/
 	} else if(g_so.vcod.type == cod_type_G723){
 		fprintf(stderr,"%s\n",G723_CFG_NAME);
 	} else if(g_so.vcod.type == cod_type_G726_16){
@@ -349,8 +327,6 @@ startup_print (void)
 	fprintf(stderr,"  Fax coder type     : ");
 	if       (g_so.fcod.type == cod_type_ALAW){
 		fprintf(stderr,"%s\n",ALAW_CFG_NAME);
-	} else if(g_so.fcod.type == cod_type_MLAW){
-		fprintf(stderr,"%s\n",MLAW_CFG_NAME);
 	}
 	fprintf(stderr,"  Fax coder payload  : %d\n",
 			g_so.fcod.sdp_selected_payload);
@@ -454,14 +430,6 @@ start_connection(ab_t * const ab)
 	int err = 0;
 
 	/* tune all */
-	c1->rtp_cfg.nEvents = 
-		c2->rtp_cfg.nEvents =			evts_OOB_ONLY;
-	c1->rtp_cfg.nPlayEvents = 
-		c2->rtp_cfg.nPlayEvents =		play_evts_PLAY;
-	c1->rtp_cfg.evtPT = 
-		c2->rtp_cfg.evtPT =				0x62;
-	c1->rtp_cfg.evtPTplay = 
-		c2->rtp_cfg.evtPTplay =			0x62;
 	c1->rtp_cfg.cod_volume.enc_dB = 
 		c2->rtp_cfg.cod_volume.enc_dB = g_so.vol;
 	c1->rtp_cfg.cod_volume.dec_dB = 
@@ -686,7 +654,7 @@ devact(ab_t * ab, int dev_id)
 		if(evt.data == 0){
 			/*start fax transmitting*/
 			err = ab_chan_fax_pass_through_start
-					(&ab->chans[chan_id], g_so.fcod.type);
+					(&ab->chans[chan_id]);
 			fprintf(stderr,"ab_chan_fax_pass_through_start() "
 					"on [%d] error: %s\n",
 					chan_id, ab_g_err_str);

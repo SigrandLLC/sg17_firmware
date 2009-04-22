@@ -18,6 +18,7 @@
 #include <stdarg.h>
 #include <syslog.h>
 #include <signal.h>
+#include <netinet/ip.h>
 #include <errno.h>
 /*}}}*/
 
@@ -203,6 +204,7 @@ svd_create (void)
 	svd_t * svd;
 	sip_to_t *from = NULL;
 	char contact_url[256];
+	int tos;
 	int err;
 DFS
 	svd = malloc( sizeof(*svd) );
@@ -244,17 +246,18 @@ DFS
 	 * NUTAG_ALLOW ("INFO"),
 	 * NUTAG_AUTOANSWER (1), FXS / FXO in differ places
 	 * NUTAG_PROXY (),
-	 * NUTAG_REGISTRAR (),
-	 * NUTAG_OUTBOUND (),
 	 * NUTAG_AUTH ("scheme""realm""user""password"),
 	 * NUTAG_AUTHTIME (3600),
 	 * NUTAG_M_DISPLAY (),
 	 * */
+	tos = g_conf.sip_tos & IPTOS_TOS_MASK;
 	svd->nua = nua_create (svd->root, svd_nua_callback, svd,
 			SIPTAG_USER_AGENT_STR ("svd VoIP agent"),
 			SOATAG_AF (SOA_AF_IP4_IP6), 
 	 		SOATAG_ADDRESS (g_conf.self_ip), 
 			SIPTAG_FROM(from), 
+			TPTAG_TOS (tos),
+	 		NUTAG_ALLOW ("INFO"),
 			NUTAG_URL(contact_url), 
 			NUTAG_AUTOALERT (1),
 			NUTAG_ENABLEMESSAGE (1),

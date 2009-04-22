@@ -21,6 +21,12 @@ typedef struct svd_chan_s svd_chan_t;
 /* Using in svd_cfg.h too.*/
 #define COD_NAME_LEN 15
 
+/* used to transmitt digits with SIP INFO,
+ * first val is indicator, that it was tone digit,
+ * second val is the digit itself or '*', '#', 'A'-'D' */
+#define INFO_STR "tone:%d\ndigit:'%c'\n"
+#define INFO_STR_LENGTH 50
+
 /* Includes {{{*/
 #include "config.h"
 #include "ab_api.h"

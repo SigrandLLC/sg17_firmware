@@ -173,14 +173,13 @@ $(PKG_BUILD_DIR)/.configured:  $(PKG_BUILD_DIR)/.prepared
 		--enable-trace \
 		--enable-debug \
 		--enable-warnings \
-		--enable-2cpe \
 		--enable-voice \
 		--enable-dtmf \
 		--enable-cid \
 		--enable-lt \
 		--enable-dect \
 		--enable-fax \
-		--disable-v1 \
+		--enable-extkeypad \
 		--enable-kernelincl=$(PKG_BUILD_DIR)/linux/include \
 		--prefix=$(PKG_INSTALL_DIR) \
 	);

@@ -1156,7 +1156,39 @@ svd_i_info(int status, char const * phrase, svd_t * const svd,
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const * sip)
 {/*{{{*/
 DFS
-	SU_DEBUG_3 (("%s\n",sip->sip_payload->pl_data));
+	if(chan->parent->type == ab_dev_type_FXO){
+		int err;
+		int tone;
+		char digit;
+		if(sip && sip->sip_payload && sip->sip_payload->pl_data){
+			/* should be sended if can`t recognize info payload
+			 * (but auto-acc always send 200)
+			nua_respond(nh, SIP_415_UNSUPPORTED_MEDIA, TAG_END());
+			*/
+			sscanf(sip->sip_payload->pl_data, INFO_STR, &tone, &digit);
+
+			SU_DEBUG_3 (("%d:'%c'... ",tone, digit));
+		} else {
+			goto __exit;
+		} 
+		if(!tone || 
+			(g_conf.fxo_PSTN_type[chan->abs_idx] == pstn_type_PULSE_ONLY)){
+			/* dialed in pulse - should redial in pulse */
+			/* or pulse PSTN only - also should redial in pulse */
+			SU_DEBUG_3 (("Dial in pulse:'%c'.. ", digit));
+			err = ab_FXO_line_digit (chan, 1, &digit, 0, 0, 1);
+			if(!err){
+				SU_DEBUG_3 (("SUCCESS\n"));
+			} else {
+				SU_DEBUG_3 (("ERROR\n"));
+			}
+		} else {
+			/* PSTN recognizes tones and we dialed in tone 
+			 * - should not dial anything - pass-through */
+			SU_DEBUG_3 (("DON`T Dial anything\n"));
+		}
+	}
+__exit:
 DFE
 }/*}}}*/
 

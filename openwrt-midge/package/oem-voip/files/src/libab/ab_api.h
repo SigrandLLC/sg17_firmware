@@ -17,12 +17,10 @@ typedef struct ab_dev_event_s ab_dev_event_t;
 
 enum cod_type_e {
 	cod_type_NONE,
-	cod_type_MLAW,
 	cod_type_ALAW,
 	cod_type_G729,
 	cod_type_G729E,
 	cod_type_ILBC_133,
-/*	cod_type_ILBC_152, */
 	cod_type_G723,
 	cod_type_G726_16,
 	cod_type_G726_24,
@@ -79,20 +77,6 @@ struct wlec_s {
 	enum wlec_window_size_e fe_nb;
 	enum wlec_window_size_e ne_wb;
 };
-
-enum evts_2833_e {
-	evts_OOB_DEFAULT,
-	evts_OOB_NO,
-	evts_OOB_ONLY,
-	evts_OOB_ALL,
-	evts_OOB_BLOCK
-};
-enum play_evts_2833_e {
-	play_evts_DEFAULT,
-	play_evts_PLAY,
-	play_evts_MUTE,
-	play_evts_APT_PLAY
-};
 enum vad_cfg_e {
 	vad_cfg_OFF,
 	vad_cfg_ON,
@@ -103,10 +87,6 @@ enum vad_cfg_e {
 	
 /** RTP session configuration parameters */
 struct rtp_session_prms_s {
-	enum evts_2833_e nEvents; /**< Out Of Band frames configuration */
-	enum play_evts_2833_e nPlayEvents; /**< Out Of Band play configuration */
-	int evtPT; /**< rfc2833 outgoing events Payload type */
-	int evtPTplay; /**< rfc2833 incoming events Payload type */
 	struct cod_volume_s {
 		int enc_dB;
 		int dec_dB;
@@ -245,7 +225,10 @@ int ab_FXO_line_hook( ab_chan_t * const chan, enum ab_chan_hook_e hook );
 int ab_FXO_line_digit( 
 		ab_chan_t * const chan, 
 		char const data_length, char const * const data,
-		char const nInterDigitTime, char const nDigitPlayTime );
+		char const nInterDigitTime, char const nDigitPlayTime, 
+		char const pulseMode);
+/** Play DTMF or busy/dial/ringing to the network connection (rtp-flow) */
+int ab_FXS_net_play( ab_chan_t * const chan, char tone);
 /** @} */
 
 /** @defgroup AB_EVENTS Events libab interface.
@@ -263,8 +246,7 @@ int ab_dev_event_get(
 	Codecs RTP-frames etc.
   @{ */
 /** Tune rtp parameters for fax transmittion */
-int ab_chan_fax_pass_through_start( ab_chan_t * const chan,
-		enum cod_type_e const fcodt );
+int ab_chan_fax_pass_through_start( ab_chan_t * const chan );
 /** Tune rtp parameters on selected chan */
 int ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 		codec_t const * const fcod);

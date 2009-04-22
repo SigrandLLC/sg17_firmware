@@ -9,6 +9,7 @@ libab_path=${curr_path}/../libab
 tapi_name=drv_tapi-3.6.1
 vinetic_name=drv_vinetic-1.3.1_tapi-3.6.1
 path_to_bin=${curr_path}/../../../../../staging_dir_mipsel/bin/
+patch_path=$curr_path/../../patches
 
 PATH=$PATH:${path_to_bin}
 
@@ -26,6 +27,11 @@ tar -xvpf ${vinetic_name}.tar.gz
 ln -snf drv_sgatab 	sgatab
 ln -snf ${tapi_name}	tapi
 ln -snf ${vinetic_name}	vinetic
+
+cd tapi
+patch -p1 < $patch_path/tapi.patch
+cd ../vinetic
+patch -p1 < $patch_path/vinetic.patch
 
 cd $libab_path
 ./build.sh
