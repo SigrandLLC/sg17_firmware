@@ -53,7 +53,7 @@ static int svd_handle_event_FXS_DIGIT_X
 static int svd_handle_event_FXO_RINGING 
 		( svd_t * const svd, int const chan_idx );
 /** Process FXS Faxmodem CED event.*/
-static int svd_handle_event_FXS_FM_CED 
+static int svd_handle_event_FM_CED 
 		( svd_t * const svd, int const chan_idx, long const data );
 /** @}*/ 
 
@@ -230,14 +230,6 @@ DFS
 
 	svd_chan_t * chan_ctx = chan->ctx;
 
-	DEBUG_CODE(
-		SU_DEBUG_3 (("REG ON %d\n",chan->abs_idx));
-		if(chan_ctx->local_wait_idx != -1 || chan_ctx->remote_wait_idx != -1){
-			SU_DEBUG_0 (("ERROR!!!! : local %d remote %d\n",
-					chan_ctx->local_wait_idx,
-					chan_ctx->remote_wait_idx));
-		}
-	);
 	assert (chan_ctx->local_wait_idx == -1);
 	assert (chan_ctx->remote_wait_idx == -1);
 
@@ -275,19 +267,9 @@ DFS
 	}
 	chan_ctx->remote_wait_idx = ret;
 
-	DEBUG_CODE(
-	SU_DEBUG_0 (("!!!!!!REGISTERED LOCAL : %d, REMOTE %d\n",
-				chan_ctx->local_wait_idx,
-				chan_ctx->remote_wait_idx));
-	);
 DFE
 	return 0;
 __exit_fail:
-	DEBUG_CODE(
-	SU_DEBUG_0 (("FAIL !!!!!!REGISTERED LOCAL : %d, REMOTE %d\n",
-				chan_ctx->local_wait_idx,
-				chan_ctx->remote_wait_idx));
-	);
 DFE
 	return -1;
 }/*}}}*/
@@ -308,12 +290,6 @@ DFS
 
 	chan_ctx = chan->ctx;
 
-	DEBUG_CODE(
-		SU_DEBUG_0 (("UNREG ON %d\n",chan->abs_idx));
-		SU_DEBUG_0 (("!!!!!!UNREGISTERING LOCAL : %d, REMOTE %d\n",
-					chan_ctx->local_wait_idx,
-					chan_ctx->remote_wait_idx));
-	);
 	if(chan_ctx->rtp_sfd != -1){
 		if( close (chan_ctx->rtp_sfd) ){
 			su_perror("svd_media_unregister() close()");
@@ -329,11 +305,6 @@ DFS
 		chan_ctx->remote_wait_idx = -1;
 	}
 
-	DEBUG_CODE(
-	SU_DEBUG_0 (("!!!!!!UNREGISTERED LOCAL : %d, REMOTE %d\n",
-				chan_ctx->local_wait_idx,
-				chan_ctx->remote_wait_idx));
-	);
 DFE
 }/*}}}*/
 
@@ -810,12 +781,12 @@ do{
 					evt.data, dev_idx,evt.ch));
 			err = 0;
 		}
-	} else if(evt.id == ab_dev_event_FXS_FM_CED){
+	} else if(evt.id == ab_dev_event_FM_CED){
 		DEBUG_CODE(
 		SU_DEBUG_0 (("Got fxs ced event: 0x%X on [%d/%d]\n",
 				evt.data, dev_idx,evt.ch ));
 		);
-		err = svd_handle_event_FXS_FM_CED (svd, chan_idx, evt.data);
+		err = svd_handle_event_FM_CED (svd, chan_idx, evt.data);
 	} else if(evt.id == ab_dev_event_COD){
 		DEBUG_CODE(
 		SU_DEBUG_0 (("Got coder event: 0x%X on [%d/%d]\n",
@@ -1072,7 +1043,7 @@ DFE
  * 		\retval 0 	if etherything ok.
  */ 
 static int 
-svd_handle_event_FXS_FM_CED ( svd_t * const svd, int const chan_idx, 
+svd_handle_event_FM_CED ( svd_t * const svd, int const chan_idx, 
 		long const data  )
 {/*{{{*/
 	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
@@ -1564,7 +1535,6 @@ svd_process_addr (svd_t * const svd, int const chan_idx,
 {/*{{{*/
 	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
 	svd_chan_t * chan_ctx = ab_chan->ctx;
-	int val_len;
 	int i;
 	int err;
 DFS
@@ -1578,56 +1548,13 @@ DFS
 			goto __exit_fail;
 		}
 		if(i!=0 && chan_ctx->dial_status.state==dial_state_START){
-			/* after that - just ',' and dialtones */
+			/* after that - just ',' and dialtones 
+			 * not processed now if want to process -
+			 * should store to buffer and play it later */
 			i++;
 			break;
 		}
 	}
-	if(i<val_len){
-		SU_DEBUG_2(("Call on hotline not implemented\n"));
-		SU_DEBUG_2(("call to [%s] droped\n", &value[i]));
-	}
-#if 0
-	nua_info (ab_chan->ctx->op_handle, 
-			SIPTAG_CONTENT_TYPE_STR("text/plain"),
-			SIPTAG_PAYLOAD_STR(&value[i]),
-			TAG_END());
-#endif
-
-#if 0
-	for(; i < val_len; i++){
-		if( value[ i ] == WAIT_MARKER ){
-			/* wait a second */
-			sleep(1);
-		} else {
-			/* should play dial tone there */
-			SU_DEBUG_3(("CALL : %c\n", value[ i ]));
-		}
-	}
-	err = ab_FXO_line_digit (&svd->ab->chans[3], 1, "9", 0, 0);
-	SU_DEBUG_3(("ERR : %d\n", err));
-#endif
-
-#if 0
-	ab_FXO_line_hook(&svd->ab->chans[3], ab_chan_hook_OFFHOOK);
-	for(; i < val_len;){
-		int number_length;
-		for(j=i; (j<val_len) & (value[j]!=WAIT_MARKER); j++);
-		number_length = j - i;
-		err = ab_FXO_line_digit (&svd->ab->chans[3], number_length, 
-				&value[i], 0, 0);
-		SU_DEBUG_3(("ERR : %d\n", err));
-		SU_DEBUG_3(("CALL %d[%d;%d...] : %s\n", j-i, i, j, &value[i]));
-		i = j;
-		sleep(number_length/3+1);
-		SU_DEBUG_3(("CWAIT %d\n",number_length/3+1));
-		while(value[i] == WAIT_MARKER){
-			sleep(1);
-			SU_DEBUG_3(("WAIT 1\n"));
-			i++;
-		}
-	}
-#endif
 DFE
 	return 0;
 __exit_fail:

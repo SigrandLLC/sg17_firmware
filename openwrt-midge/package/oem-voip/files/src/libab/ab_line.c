@@ -262,6 +262,7 @@ ab_FXO_line_hook (ab_chan_t * const chan, enum ab_chan_hook_e hook)
 \param data - sequence of numbers
 \param nInterDigitTime - interval between dialed digits
 \param nDigitPlayTime - interval to play digits
+\param pulseMode - if set - dial in pulse mode - not tone
 \return 
 	ioctl result
 \remark
@@ -296,7 +297,6 @@ ab_FXO_line_digit (ab_chan_t * const chan, char const data_length,
 			IFX_TAPI_FXO_DIAL_CFG_SET, (int)&dialCfg, 
 			"Try to configure dial params (ioctl)");
 	if( err ){
-		fprintf(stderr,"CONFIGURE ERROR\n");
 		goto __exit;
 	} 
 
@@ -310,7 +310,6 @@ ab_FXO_line_digit (ab_chan_t * const chan, char const data_length,
 			IFX_TAPI_FXO_DIAL_START, (int)(&dialDigits), 
 			"Try to dial sequence (ioctl)");
 	if( err ){
-		fprintf(stderr,"DIAL ERROR\n");
 		goto __exit;
 	} 
 __exit:
@@ -328,10 +327,11 @@ __exit:
  *
  * \remark
  *	tones can be '0' - '9', '*', '#', 'A' - 'D', or 'b'/'r'/'d' for
- *	busy ringing and dialtones.
+ *	busy ringing and dialtones. Or 'f' / 'F' for CNG and CED fax signals and
+ *	'm' for muting previously playing tone.
  */
 int 
-ab_FXS_net_play (ab_chan_t * const chan, char tone)
+ab_FXS_netlo_play (ab_chan_t * const chan, char tone, char local)
 {/*{{{*/
 	int err;
 	int idx;
@@ -357,9 +357,20 @@ ab_FXS_net_play (ab_chan_t * const chan, char tone)
 		idx = 26;
 	} else if(tone == 'b'){
 		idx = 27;
+	} else if(tone == 'f'){
+		idx = 17;
+	} else if(tone == 'F'){
+		idx = 22;
+	} else if(tone == 'm'){
+		idx = 0;
 	} 
-	err = err_set_ioctl (chan, IFX_TAPI_TONE_NET_PLAY, idx, 
-			"Try to play network tone (ioctl)");
+	if(local){
+		err = err_set_ioctl (chan, IFX_TAPI_TONE_LOCAL_PLAY, idx, 
+				"Try to play network tone (ioctl)");
+	} else {
+		err = err_set_ioctl (chan, IFX_TAPI_TONE_NET_PLAY, idx, 
+				"Try to play network tone (ioctl)");
+	}
 	if( err){
 		goto __exit_fail;
 	} 

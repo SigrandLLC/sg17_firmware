@@ -650,7 +650,7 @@ devact(ab_t * ab, int dev_id)
 				fprintf(stderr,"DOWN\n");	
 			}
 		}
-	} else if(evt.id == ab_dev_event_FXS_FM_CED){
+	} else if(evt.id == ab_dev_event_FM_CED){
 		if(evt.data == 0){
 			/*start fax transmitting*/
 			err = ab_chan_fax_pass_through_start

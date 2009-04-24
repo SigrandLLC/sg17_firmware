@@ -605,17 +605,6 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 			show_last_err(">>", rtp_fd);
 			goto ab_chan_init_tune__exit;
 		}
-		/* ENABLE detection of FAX signals */
-		memset (&faxSig, 0, sizeof(faxSig));
-		faxSig.sig = IFX_TAPI_SIG_CEDRX | IFX_TAPI_SIG_CEDTX |
-			IFX_TAPI_SIG_CEDENDRX | IFX_TAPI_SIG_CEDENDTX;
-		err = ioctl (rtp_fd,IFX_TAPI_SIG_DETECT_ENABLE,&faxSig);
-		if(err){
-			g_err_no = ERR_IOCTL_FAILS;
-			strcpy(g_err_msg, "trying to enable FAX signal detection (ioctl)" );
-			show_last_err(">>", rtp_fd);
-			goto ab_chan_init_tune__exit;
-		}
 	} else if(dtype == dev_type_FXO) {
 		/* DISABLE detection of DTMF tones 
 		 * from local interface (ALM X) */
@@ -640,6 +629,17 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 			show_last_err(">>", rtp_fd);
 			goto ab_chan_init_tune__exit;
 		}
+	}
+	/* ENABLE detection of FAX signals */
+	memset (&faxSig, 0, sizeof(faxSig));
+	faxSig.sig = IFX_TAPI_SIG_CEDRX | IFX_TAPI_SIG_CEDTX |
+		IFX_TAPI_SIG_CEDENDRX | IFX_TAPI_SIG_CEDENDTX;
+	err = ioctl (rtp_fd,IFX_TAPI_SIG_DETECT_ENABLE,&faxSig);
+	if(err){
+		g_err_no = ERR_IOCTL_FAILS;
+		strcpy(g_err_msg, "trying to enable FAX signal detection (ioctl)" );
+		show_last_err(">>", rtp_fd);
+		goto ab_chan_init_tune__exit;
 	}
 	return 0;
 ab_chan_init_tune__exit:

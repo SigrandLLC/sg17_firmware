@@ -76,10 +76,10 @@ ab_dev_event_get(ab_dev_t * const dev, ab_dev_event_t * const evt,
 		evt->id = ab_dev_event_FXO_RINGING;
 		evt->data = 0;
 	} else if(ioctl_evt.id == IFX_TAPI_EVENT_FAXMODEM_CED){
-		evt->id = ab_dev_event_FXS_FM_CED;
+		evt->id = ab_dev_event_FM_CED;
 		evt->data = 1;
 	} else if(ioctl_evt.id == IFX_TAPI_EVENT_FAXMODEM_CEDEND){
-		evt->id = ab_dev_event_FXS_FM_CED;
+		evt->id = ab_dev_event_FM_CED;
 		evt->data = 0;
 	} else if(evt_type == IFX_TAPI_EVENT_TYPE_COD){
 		evt->id = ab_dev_event_COD;

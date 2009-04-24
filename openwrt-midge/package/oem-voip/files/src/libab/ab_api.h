@@ -131,7 +131,7 @@ enum ab_dev_event_e {
 	ab_dev_event_FXS_DIGIT_PULSE, /**< Dial a digit on FXO in pulse mode. */
 	ab_dev_event_FXS_ONHOOK, /**< Onhook on FXS. */
 	ab_dev_event_FXS_OFFHOOK, /**< Offhook on FXS. */
-	ab_dev_event_FXS_FM_CED, /**< CED and CEDEND FAX events. */
+	ab_dev_event_FM_CED, /**< CED and CEDEND FAX events. */
 	ab_dev_event_COD, /**< Coder event. */
 	ab_dev_event_TONE, /**< Tone generator event. */
 };
@@ -228,7 +228,7 @@ int ab_FXO_line_digit(
 		char const nInterDigitTime, char const nDigitPlayTime, 
 		char const pulseMode);
 /** Play DTMF or busy/dial/ringing to the network connection (rtp-flow) */
-int ab_FXS_net_play( ab_chan_t * const chan, char tone);
+int ab_FXS_netlo_play( ab_chan_t * const chan, char tone, char local );
 /** @} */
 
 /** @defgroup AB_EVENTS Events libab interface.

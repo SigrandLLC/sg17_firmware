@@ -149,7 +149,7 @@ linefeed_keeper( ab_t * ab, enum action_e action )
 void
 digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS)
 {/*{{{*/
-	/* play all digits in tone mode (can`t generate pulse )
+	/* play all digits in tone mode (tag__ add pulse later)
 	 * and find channel that detects it... if other event on another chan
 	 * 	- error */
 	ab_t * ab = cFXO->parent->parent;
@@ -228,6 +228,105 @@ digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS)
 			/* additional events on correct chan */
 			fprintf(stderr,"!ERROR FXS[%d] <<=|=<< tone '%c' << FXO[%d]\n",
 					cFXS->abs_idx,to_dial[dial_idx],cFXO->abs_idx);
+		}
+	} 
+}/*}}}*/
+
+void
+fax_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS)
+{/*{{{*/
+	/* play all digits in tone mode (can`t generate pulse )
+	 * and find channel that detects it... if other event on another chan
+	 * 	- error */
+	ab_t * ab = cFXO->parent->parent;
+	ab_dev_event_t evt;
+	unsigned char ca;
+	int i;
+	int event_acceptor_found = 0;
+	int seq_length;
+	int devs_num;
+	int dial_idx;
+	char to_dial[] = {'F','m','\0'};
+	int err;
+
+	seq_length=strlen(to_dial);
+	for (dial_idx=0; dial_idx<seq_length; dial_idx++){
+		/* dial digits all by one */
+		err = ab_FXS_netlo_play (cFXS, to_dial [dial_idx], 1);
+		if(err){
+			/* error happen on event getting ioctl */
+			fprintf(stderr,"!ERROR: play a '%c' on FXS[%d]\n",
+					to_dial [dial_idx], cFXS->abs_idx);
+			return;
+		} 
+
+		usleep (WAIT_INTERVAL);
+		usleep (WAIT_INTERVAL);
+		usleep (WAIT_INTERVAL);
+
+		devs_num=ab->devs_num;
+		for (i=0; i<devs_num; i++){
+			/* for each dev - test event presense */
+			int chan_idx;
+			int error_get;
+			ab_dev_t * cur_dev = &ab->devs[i];
+
+			err = ab_dev_event_get (cur_dev, &evt, &ca);
+			if(err){
+				/* error happen on event getting ioctl */
+				fprintf(stderr,"!ERROR: dev[%d]: %s\n",i,ab_g_err_str);
+				return;
+			} else if(evt.id == ab_dev_event_NONE){
+				/* no event on current device */
+				continue;
+			}
+			if( !ca){
+				/* no channel number available */
+				fprintf(stderr,"!ERROR: !ca: dev[%d]: %s\n",i,ab_g_err_str);
+				return;
+			}
+			event_acceptor_found = 1;
+
+			chan_idx = (cur_dev->idx - 1) * ab->chans_per_dev + evt.ch;
+
+			error_get =
+				/* this is TONE event on not generator chan (not FXS)*/
+				((evt.id == ab_dev_event_TONE) && 
+				 (ab->chans[chan_idx].abs_idx != cFXS->abs_idx)) 
+				||
+				/* this is CED event on unexpected chan */
+				((evt.id == ab_dev_event_FM_CED) &&
+				 (ab->chans[chan_idx].abs_idx != cFXO->abs_idx))
+				||
+				/* this is nor CED, nor TONE event */
+				((evt.id != ab_dev_event_FM_CED) &&
+				 (evt.id != ab_dev_event_TONE));
+
+			if(error_get){
+				fprintf(stderr,"!ERROR: event[%d:0x%lX] on [%d]\n",
+						evt.id, evt.data, ab->chans[chan_idx].abs_idx);
+				return;
+			} 
+			if(evt.more){
+				/* additional events on correct chan */
+				fprintf(stderr,"!ERROR: addit. events while diled '%c' to [%d]\n",
+						to_dial[dial_idx], ab->chans[chan_idx].abs_idx);
+			}
+			if( g_verbose){
+				if(evt.id == ab_dev_event_FM_CED){
+					fprintf(stdout,"FXO[%d] <<==<< 'CED%s' << FXS[%d]\n",
+							ab->chans[chan_idx].abs_idx,
+							evt.data? "":"END", cFXS->abs_idx);
+				} else if(evt.id == ab_dev_event_TONE){
+					fprintf(stdout,"FXS[%d] TONE-(%ld)\n",
+							ab->chans[chan_idx].abs_idx, evt.data);
+				}
+			}
+		}
+		if( !event_acceptor_found){
+			/* additional events on correct chan */
+			fprintf(stderr,"!ERROR FXO[%d] <<=|=<< CED/CEDEND << FXS[%d]\n",
+					cFXO->abs_idx, cFXS->abs_idx);
 		}
 	} 
 }/*}}}*/
@@ -343,8 +442,7 @@ process_FXS(ab_chan_t * const chan)
 			fprintf(stdout,"!ATT no couple found for FXS[%d]\n", chan->abs_idx);
 			sts->chan_state = ch_state_HAVE_NO_PAIR;
 		}
-		return;
-	} /*}}}*/
+	}/*}}}*/
 }/*}}}*/
 
 void
@@ -473,6 +571,9 @@ process_FXO(ab_chan_t * const chan)
 
 		/* play digits and test events on couple chan */
 		digits_test(chan, &ab->chans[couple_idx]);
+
+		/* play fax event on couple chan and test events on fxo */
+		fax_test(chan, &ab->chans[couple_idx]);
 
 		/* onhook on the tested chan */
 		err = ab_FXO_line_hook(chan, ab_chan_hook_ONHOOK);

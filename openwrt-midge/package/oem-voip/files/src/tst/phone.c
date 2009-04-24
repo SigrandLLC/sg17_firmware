@@ -19,10 +19,8 @@
 #include "ab_api.h"
 #include "ab_ioctl.h"
 
-#define FXS_DEV_ID 0
-#define FXS_CHAN_ID 0
-#define FXO_DEV_ID 2
-#define FXO_CHAN_ID 4
+#define FXS_CHAN_ID 2
+#define FXO_CHAN_ID 0
 
 int main (int argc, char *argv[])
 {
@@ -66,7 +64,7 @@ int main (int argc, char *argv[])
 				do {
 					unsigned char chan_avail;
 					err = ab_dev_event_get( 
-							&ab->devs[FXS_DEV_ID], &evt, &chan_avail);
+							ab->chans[FXS_CHAN_ID].parent, &evt, &chan_avail);
 					if( !chan_avail){
 						fprintf(stderr,"No CHAN AVAILABLE\n");
 						break;
@@ -104,7 +102,7 @@ int main (int argc, char *argv[])
 				fprintf(stderr,"[%d]-FXS_OFFHOOK\n", evt.ch);	
 				break;
 			}	
-			case ab_dev_event_FXS_FM_CED: {
+			case ab_dev_event_FM_CED: {
 				fprintf(stderr,"[%d]-FXS_FM_CED\n", evt.ch);	
 				break;
 			}	
@@ -124,7 +122,7 @@ int main (int argc, char *argv[])
 				do {
 					unsigned char chan_avail;
 					err = ab_dev_event_get( 
-							&ab->devs[FXO_DEV_ID], &evt, &chan_avail);
+							ab->chans[FXO_CHAN_ID].parent, &evt, &chan_avail);
 					if( !chan_avail){
 						fprintf(stderr,"No CHAN AVAILABLE\n");
 						break;
@@ -162,7 +160,7 @@ int main (int argc, char *argv[])
 				fprintf(stderr,"[%d]-FXS_OFFHOOK\n", evt.ch);
 				break;
 			}	
-			case ab_dev_event_FXS_FM_CED: {
+			case ab_dev_event_FM_CED: {
 				fprintf(stderr,"[%d]-FXS_FM_CED\n", evt.ch);	
 				break;
 			}	
