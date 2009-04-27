@@ -783,7 +783,7 @@ do{
 		}
 	} else if(evt.id == ab_dev_event_FM_CED){
 		DEBUG_CODE(
-		SU_DEBUG_0 (("Got fxs ced event: 0x%X on [%d/%d]\n",
+		SU_DEBUG_0 (("Got CED event: 0x%X on [%d/%d]\n",
 				evt.data, dev_idx,evt.ch ));
 		);
 		err = svd_handle_event_FM_CED (svd, chan_idx, evt.data);
@@ -1052,9 +1052,12 @@ DFS
 	if( !data){ /* CEDEND */
 		err = ab_chan_fax_pass_through_start (ab_chan);
 		if( err){
-			SU_DEBUG_1(("can`t start fax_pass_through on [_%d_]\n", 
-					ab_chan->abs_idx));
+			SU_DEBUG_3(("can`t start fax_pass_through on [_%d_]: %s\n", 
+					ab_chan->abs_idx, ab_g_err_str));
 			goto __exit_fail;
+		} else {
+			SU_DEBUG_3(("fax_pass_through started on [_%d_]\n", 
+					ab_chan->abs_idx));
 		}
 	} else { /* CED */
 		/* empty now
