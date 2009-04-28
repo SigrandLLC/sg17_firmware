@@ -60,7 +60,6 @@ enum wlec_mode_e {
 	wlec_mode_NFE,
 };
 enum wlec_nlp_e {
-	wlec_nlp_DEFAULT,
 	wlec_nlp_ON,
 	wlec_nlp_OFF,
 };

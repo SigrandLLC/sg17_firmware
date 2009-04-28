@@ -353,9 +353,7 @@ ab_chan_media_wlec_tune( ab_chan_t * const chan, wlec_t const * const wp )
 	}
 
 	/* NLP */
-	if        (wp->nlp == wlec_nlp_DEFAULT){
-		lecConf.bNlp = IFX_TAPI_WLEC_NLP_DEFAULT;
-	} else if (wp->nlp == wlec_nlp_ON){
+	if        (wp->nlp == wlec_nlp_ON){
 		lecConf.bNlp = IFX_TAPI_WLEC_NLP_ON;
 	} else if (wp->nlp == wlec_nlp_OFF){
 		lecConf.bNlp = IFX_TAPI_WLEC_NLP_OFF;

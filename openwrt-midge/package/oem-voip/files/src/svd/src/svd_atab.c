@@ -81,6 +81,9 @@ static int svd_handle_NET_ADDR
 /** ADDR_BOOK state in dialed sequence.*/
 static int svd_handle_ADDR_BOOK
 		( svd_t * const svd, int const chan_idx, long const digit );
+
+/** Wait for second and etc. ring on fxo before sent CANCEL to hotlined FXS. */
+#define RING_WAIT_DROP 5
 /** @}*/ 
 
 
@@ -524,12 +527,10 @@ ab_chan_media_activate ( ab_chan_t * const chan )
 	}
 
 	/* WLEC */
-	if (g_conf.wlec_prms[chan->abs_idx].mode != wlec_mode_OFF){
-		err = ab_chan_media_wlec_tune(chan, &g_conf.wlec_prms[chan->abs_idx]);
-		if (err) {
-			SU_DEBUG_1(("WLEC activate error : %s",ab_g_err_str));
-			goto __exit;
-		}
+	err = ab_chan_media_wlec_tune(chan, &g_conf.wlec_prms[chan->abs_idx]);
+	if (err) {
+		SU_DEBUG_1(("WLEC activate error : %s",ab_g_err_str));
+		goto __exit;
 	}
 
 	err = ab_chan_media_switch (chan, 1, 1);
@@ -554,6 +555,7 @@ int
 ab_chan_media_deactivate ( ab_chan_t * const chan )
 {/*{{{*/
 	int err; 
+	wlec_t wc;
 
 	err = ab_chan_media_switch (chan, 0, 0);
 	if(err){
@@ -562,15 +564,12 @@ ab_chan_media_deactivate ( ab_chan_t * const chan )
 	}
 
 	/* WLEC */
-	if (g_conf.wlec_prms[chan->abs_idx].mode != wlec_mode_OFF){
-		wlec_t wc;
-		memset (&wc, 0, sizeof(wc));
-		wc.mode = wlec_mode_OFF;
-		err = ab_chan_media_wlec_tune(chan, &wc);
-		if (err) {
-			SU_DEBUG_1(("WLEC deactivate error : %s",ab_g_err_str));
-			goto __exit;
-		}
+	memset (&wc, 0, sizeof(wc));
+	wc.mode = wlec_mode_OFF;
+	err = ab_chan_media_wlec_tune(chan, &wc);
+	if (err) {
+		SU_DEBUG_1(("WLEC deactivate error : %s",ab_g_err_str));
+		goto __exit;
 	}
 __exit:
 	return err;
@@ -707,9 +706,6 @@ __exit_fail:
  * \param[in] user_data 	device on witch event occures.
  * 		\retval -1	if somthing nasty happens.
  * 		\retval 0 	if etherything ok.
- * \remark
- * 		It work with DIGITS and HOOKS  events on FXS 
- * 		and  RING event on FXO.
  * \todo
  * 		In ideal world it shold be reenterable or mutexes should be used.
  * 		Also, then we calculate chan_idx, we should use more abstract way, 
@@ -773,14 +769,7 @@ do{
 		SU_DEBUG_0 (("Got fxo ringing event: 0x%X on [%d/%d]\n",
 				evt.data, dev_idx,evt.ch ));
 		);
-		if(svd->ab->chans[chan_idx].status.hook == ab_chan_hook_ONHOOK){
-			err = svd_handle_event_FXO_RINGING (svd, chan_idx);
-		} else {
-			SU_DEBUG_3(("Allready offhooked: 0x%X on [%d/%d], "
-					"drop ring processing\n",
-					evt.data, dev_idx,evt.ch));
-			err = 0;
-		}
+		err = svd_handle_event_FXO_RINGING (svd, chan_idx);
 	} else if(evt.id == ab_dev_event_FM_CED){
 		DEBUG_CODE(
 		SU_DEBUG_0 (("Got CED event: 0x%X on [%d/%d]\n",
@@ -996,6 +985,45 @@ DFE
 }/*}}}*/
 
 /**
+ * It is callback on the rings to FXO channels. 
+ * \param[in] arg	ab channel pointer.
+ * \remark
+ *	Used to measure time delays between two ring detection. Thread with this
+ *	function should be cancelled on the every incoming ring. If it is not 
+ *	cancelled it will send SIP CANCEL to cancel the invite request, because
+ *	nobody rings on FXO anymore.
+ */ 
+void *
+ring_timer_th(void * arg)
+{/*{{{*/
+	ab_chan_t * chan = arg;
+	svd_chan_t * ctx = chan->ctx;
+	int invite_sent;
+
+	sleep (RING_WAIT_DROP);
+
+	if( !ctx->is_ring_in_process){
+		/* connection already is active - just out */
+		return;
+	}
+
+	/* nobody answers, and no ring coming in RING_WAIT_DROP seconds */
+	SU_DEBUG_3 (("Don`t got ring on [_%d_], in %d seconds\n"
+			,chan->abs_idx, RING_WAIT_DROP));
+	SU_DEBUG_3 (("	-> send SIP Cancel\n"));
+
+	/* wait for invite sent to send cancel on it */
+	invite_sent = nua_handle_has_invite(ctx->op_handle);
+	while( !invite_sent){
+		sleep(1);
+		invite_sent = nua_handle_has_invite(ctx->op_handle);
+	}
+	/* invite already sent - should cancel it */
+	nua_cancel (ctx->op_handle, TAG_NULL());
+	ctx->is_ring_in_process = 0;
+}/*}}}*/
+
+/**
  * \param[in] svd 		svd context structure.
  * \param[in] chan_idx 	channel on which event occures.
  * 		\retval -1	if somthing nasty happens.
@@ -1008,24 +1036,44 @@ svd_handle_event_FXO_RINGING ( svd_t * const svd, int const chan_idx )
 	svd_chan_t * chan_ctx = ab_chan->ctx;
 	int err;
 DFS
+	/* tag__ pthread must test */
 	if( chan_ctx->is_hotlined ){
-		/* offhook */
-		err = ab_FXO_line_hook( ab_chan, ab_chan_hook_OFFHOOK );
-		if ( !err){
-			SU_DEBUG_1(("do offhook on [_%d_]\n", ab_chan->abs_idx));
+		if(!chan_ctx->is_ring_in_process){
+			/* first ring on hotlined FXO */
+			chan_ctx->is_ring_in_process = 1;
+			err = pthread_create(&chan_ctx->ringth, NULL, ring_timer_th, ab_chan);
+			if (err){
+				SU_DEBUG_3 (("!ERROR pthread_create on [_%d_] : %d\n", 
+							ab_chan->abs_idx, err));
+				chan_ctx->is_ring_in_process = 0;
+				goto __exit_fail;
+			}
+			/* process the hotline sequence */
+			err = svd_process_addr (svd, chan_idx, chan_ctx->hotline_addr);
+			if(err){
+				goto __exit_fail;
+			}
 		} else {
-			SU_DEBUG_1(("can`t offhook on [_%d_]\n", ab_chan->abs_idx));
-			goto __exit_fail;
-		}
-		/* process the hotline sequence */
-		err = svd_process_addr (svd, chan_idx, chan_ctx->hotline_addr);
-		if(err){
-			goto __exit_fail;
+			/* ring already in process - should restart timer */
+			SU_DEBUG_3 (("Got ringing event on channel [_%d_], it is already "
+					"in process\n", ab_chan->abs_idx));
+			err = pthread_cancel(chan_ctx->ringth);
+			if (err){
+				SU_DEBUG_3 (("pthread_cancel error on [_%d_] : %d\n", 
+							ab_chan->abs_idx, err));
+				goto __exit_fail;
+			}
+			err = pthread_create(&chan_ctx->ringth, NULL, ring_timer_th, ab_chan);
+			if (err){
+				SU_DEBUG_3 (("pthread_create error on [_%d_] : %d\n", 
+							ab_chan->abs_idx, err));
+				chan_ctx->is_ring_in_process = 0;
+				goto __exit_fail;
+			}
 		}
 	} else {
-		SU_DEBUG_2 (("Got ringing event on channel [_%d_], it is not "
-				"hotlined, but should be\n",
-				ab_chan->abs_idx));
+		SU_DEBUG_3 (("Got ringing event on channel [_%d_], it is not "
+				"hotlined, but should be\n", ab_chan->abs_idx));
 		goto __exit_fail;
 	}
 DFE

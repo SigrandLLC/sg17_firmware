@@ -39,6 +39,8 @@ typedef struct svd_chan_s svd_chan_t;
 #include <sys/un.h>
 #include <sys/unistd.h>
 #include <errno.h>
+#include <pthread.h>
+
 
 #include "tapi/include/drv_tapi_io.h"
 /*}}}*/
@@ -93,9 +95,12 @@ struct svd_chan_s
 	
 	nua_handle_t * op_handle;/**< NUA handle for channel.*/
 
+	/* RING */
+	pthread_t ringth; /**< ring processing thread. */
+	unsigned char is_ring_in_process; /**< We got ring an work with it. */
+
 	/* HOTLINE */
 	unsigned char is_hotlined; /**< Is this channel hotline initiator.*/
-	
 	char * hotline_addr; /**< Hotline destintation address, points to 
 						   \ref g_conf value.*/
 	/* HARDLINK */

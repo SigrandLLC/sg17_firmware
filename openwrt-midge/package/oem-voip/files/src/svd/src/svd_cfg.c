@@ -77,7 +77,6 @@ static unsigned char g_err_no;
 #define CONF_WLEC_TYPE_OFF "off"
 #define CONF_WLEC_TYPE_NE  "NE"
 #define CONF_WLEC_TYPE_NFE "NFE"
-#define CONF_WLEC_NLP_DF   "defualt"
 #define CONF_WLEC_NLP_ON   "on"
 #define CONF_WLEC_NLP_OFF  "off"
 #define CONF_FXO_PULSE   "pulse"
@@ -1610,9 +1609,7 @@ wlec_init( void )
 		}
 
 		elem = config_setting_get_string_elem (rec_set, 2);
-		if       ( !strcmp(elem, CONF_WLEC_NLP_DF)){
-			curr_rec->nlp = wlec_nlp_DEFAULT;
-		} else if( !strcmp(elem, CONF_WLEC_NLP_ON)){
+		if( !strcmp(elem, CONF_WLEC_NLP_ON)){
 			curr_rec->nlp = wlec_nlp_ON;
 		} else if( !strcmp(elem, CONF_WLEC_NLP_OFF)){
 			curr_rec->nlp = wlec_nlp_OFF;

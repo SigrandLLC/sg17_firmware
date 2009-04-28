@@ -42,7 +42,7 @@ svd_i_invite( int status, char const * phrase, svd_t * const svd,
 		sip_t const *sip, tagi_t tags[]);
 /** Incoming INVITE has been cancelled.*/
 static void 
-svd_i_cancel (nua_handle_t const * const nh, ab_chan_t const * const chan);
+svd_i_cancel (nua_handle_t const * const nh, ab_chan_t * const chan);
 /** Call state has changed.*/
 static void 
 svd_i_state (int status, char const *phrase, nua_t * nua, 
@@ -925,13 +925,21 @@ DFE
  * \param[in] 	chan	channel context structure.
  */
 static void
-svd_i_cancel (nua_handle_t const * const nh, ab_chan_t const * const chan)
+svd_i_cancel (nua_handle_t const * const nh, ab_chan_t * const chan)
 {/*{{{*/
 DFS
-	/* tag_? should destroy operation handle ?? */
 	assert (chan);
 	assert (((svd_chan_t *)(chan->ctx))->op_handle == nh);
 	SU_DEBUG_3 (("CANCEL received\n"));
+	/* if FXS - stop ringing and destroy handle */
+	if(chan->parent->type == ab_dev_type_FXS){
+		int err;
+		err = ab_FXS_line_ring (chan, ab_chan_ring_MUTE);
+		if(err){
+			SU_DEBUG_3 (("Can`t mutes ring on [_%d_]: %s\n",
+					chan->abs_idx, ab_g_err_str));
+		}
+	}
 DFE
 }/*}}}*/
 
@@ -1039,15 +1047,25 @@ DFS
 			if( (!ctx->is_hardlinked) && chan->parent->type == ab_dev_type_FXS){
 				/* stop playing any tone on the chan */
 				if(ab_FXS_line_tone (chan, ab_chan_tone_MUTE)){
-					SU_DEBUG_2(("can`t stop playing tone on [_%d_]\n",
+					SU_DEBUG_3(("can`t stop playing tone on [_%d_]\n",
 							chan->abs_idx));
 				}
 				/* stop playing tone */
 				DEBUG_CODE(
-				SU_DEBUG_2(("stop playing tone on [_%d_]\n", chan->abs_idx));
+				SU_DEBUG_3(("stop playing tone on [_%d_]\n", chan->abs_idx));
 				);
 			}
-
+			if(chan->parent->type == ab_dev_type_FXO){
+				/* offhook */
+				ctx->is_ring_in_process = 0;
+				err = ab_FXO_line_hook( chan, ab_chan_hook_OFFHOOK );
+				if ( !err){
+					SU_DEBUG_3(("do offhook on [_%d_]\n", chan->abs_idx));
+				} else {
+					SU_DEBUG_3(("can`t offhook on [_%d_]: %s\n", 
+							chan->abs_idx, ab_g_err_str));
+				}
+			}
 			if(ab_chan_media_activate (chan)){
 				SU_DEBUG_1(("media_activate error : %s\n", ab_g_err_str));
 			}
@@ -1058,8 +1076,9 @@ DFS
 			break;
 
 	/* BYE complete */
-		case nua_callstate_terminated:
+		case nua_callstate_terminated:{
 			SU_DEBUG_4 (("call on [%d] is terminated\n", chan->abs_idx));
+			svd_chan_t * ctx = chan->ctx;
 
 			/* deactivate media */
 			ab_chan_media_deactivate (chan);
@@ -1071,12 +1090,14 @@ DFS
 			svd_clear_call (svd, chan);
 
 			if (chan->parent->type == ab_dev_type_FXO){
+				ctx->is_ring_in_process = 0;
+ 				/* do it any case, even if it nohooked already */
 				err = ab_FXO_line_hook (chan, ab_chan_hook_ONHOOK);
 				if(err){
 					SU_DEBUG_2(("Can`t onhook on [_%d_]\n",chan->abs_idx));
 				}
-				SU_DEBUG_2(("onhook on [_%d_]\n",chan->abs_idx));
-			} else {
+				SU_DEBUG_3(("onhook on [_%d_]\n",chan->abs_idx));
+			} else if(chan->parent->type == ab_dev_type_FXS){
 				/* stop ringing */
 				int err;
 				err = ab_FXS_line_ring (chan, ab_chan_ring_MUTE);
@@ -1091,10 +1112,11 @@ DFS
 				}
 				/* playing busy tone */
 				DEBUG_CODE(
-				SU_DEBUG_2(("playing busy tone on [_%d_]\n", chan->abs_idx));
+				SU_DEBUG_3(("playing busy tone on [_%d_]\n", chan->abs_idx));
 				);
 			}
 			break;
+		}
 	}
 DFE
 }/*}}}*/
