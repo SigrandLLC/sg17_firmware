@@ -1002,8 +1002,8 @@ Controllers.voipWlec = function() {
 				field = {
 					"type": "select",
 					"name": $.sprintf("sys_voip_wlec_%s_nlp", channel[0]),
-					"options": "default off on",
-					"defaultValue": "default"
+					"options": "off on",
+					"defaultValue": "off"
 				};
 				c.addTableWidget(field, row);
 
