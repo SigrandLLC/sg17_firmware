@@ -269,7 +269,6 @@ DFS
 		goto __exit_fail;
 	}
 	chan_ctx->remote_wait_idx = ret;
-
 DFE
 	return 0;
 __exit_fail:
@@ -978,7 +977,7 @@ ring_timer_th(void * arg)
 
 	sleep (RING_WAIT_DROP);
 
-	if( !ctx->is_ring_in_process){
+	if( ctx->is_connection_is_up){
 		/* connection already is active - just out */
 		return;
 	}
@@ -1012,8 +1011,13 @@ svd_handle_event_FXO_RINGING ( svd_t * const svd, int const chan_idx )
 	svd_chan_t * chan_ctx = ab_chan->ctx;
 	int err;
 DFS
-	/* tag__ pthread must test */
 	if( chan_ctx->is_hotlined ){
+		/* if connection is up - should out */
+		if(chan_ctx->is_connection_is_up){
+			SU_DEBUG_8 (("Connection already up on [_%d_]: ignore ring\n", 
+					ab_chan->abs_idx));
+			goto __exit_success;
+		}
 		if(!chan_ctx->is_ring_in_process){
 			/* first ring on hotlined FXO */
 			chan_ctx->is_ring_in_process = 1;
@@ -1052,6 +1056,7 @@ DFS
 				"hotlined, but should be\n", ab_chan->abs_idx));
 		goto __exit_fail;
 	}
+__exit_success:
 DFE
 	return 0;
 __exit_fail:

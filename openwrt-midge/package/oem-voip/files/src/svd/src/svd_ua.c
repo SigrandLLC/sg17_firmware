@@ -1047,6 +1047,7 @@ DFS
 			if(chan->parent->type == ab_dev_type_FXO){
 				/* offhook */
 				ctx->is_ring_in_process = 0;
+				ctx->is_connection_is_up = 1;
 				err = ab_FXO_line_hook( chan, ab_chan_hook_OFFHOOK );
 				if ( !err){
 					SU_DEBUG_3(("do offhook on [_%d_]\n", chan->abs_idx));
@@ -1080,6 +1081,7 @@ DFS
 
 			if (chan->parent->type == ab_dev_type_FXO){
 				ctx->is_ring_in_process = 0;
+				ctx->is_connection_is_up = 0;
  				/* do it any case, even if it nohooked already */
 				err = ab_FXO_line_hook (chan, ab_chan_hook_ONHOOK);
 				if(err){

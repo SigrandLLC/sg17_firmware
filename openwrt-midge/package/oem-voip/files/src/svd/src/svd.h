@@ -98,6 +98,7 @@ struct svd_chan_s
 	/* RING */
 	pthread_t ringth; /**< ring processing thread. */
 	unsigned char is_ring_in_process; /**< We got ring an work with it. */
+	unsigned char is_connection_is_up; /**< We already up the connection. */
 
 	/* HOTLINE */
 	unsigned char is_hotlined; /**< Is this channel hotline initiator.*/
