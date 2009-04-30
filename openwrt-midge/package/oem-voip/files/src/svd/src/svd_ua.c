@@ -589,14 +589,7 @@ DFS
 			if(err || svd_invite(svd, 0, i)){
 				SU_DEBUG_0 (("!!!!! CAN`T PLACE HARDLINK CALL\n"));
 				goto __exit_fail;
-			} else {
-DEBUG_CODE(
-				SU_DEBUG_0 (("!!!!! PLACE HARDLINK CALL from "
-						"%s[%d] to %s[%s]\n",
-						g_conf.self_ip, curr_chan->abs_idx, 
-						ctx->dial_status.route_ip, curr_rec->pair_chan));
-);
-			}
+			} 
 		}
 	}
 DFE
@@ -1012,9 +1005,7 @@ DFS
 							chan->abs_idx));
 				}
 				/* play ringback */
-				DEBUG_CODE(
-				SU_DEBUG_2(("play ringback on [_%d_]\n",chan->abs_idx));
-				);
+				SU_DEBUG_3(("play ringback on [_%d_]\n",chan->abs_idx));
 			}
 			break;
 		}
@@ -1047,13 +1038,11 @@ DFS
 			if( (!ctx->is_hardlinked) && chan->parent->type == ab_dev_type_FXS){
 				/* stop playing any tone on the chan */
 				if(ab_FXS_line_tone (chan, ab_chan_tone_MUTE)){
-					SU_DEBUG_3(("can`t stop playing tone on [_%d_]\n",
+					SU_DEBUG_2(("can`t stop playing tone on [_%d_]\n",
 							chan->abs_idx));
 				}
 				/* stop playing tone */
-				DEBUG_CODE(
 				SU_DEBUG_3(("stop playing tone on [_%d_]\n", chan->abs_idx));
-				);
 			}
 			if(chan->parent->type == ab_dev_type_FXO){
 				/* offhook */
@@ -1111,9 +1100,7 @@ DFS
 							chan->abs_idx));
 				}
 				/* playing busy tone */
-				DEBUG_CODE(
 				SU_DEBUG_3(("playing busy tone on [_%d_]\n", chan->abs_idx));
-				);
 			}
 			break;
 		}
@@ -1391,9 +1378,7 @@ DFS
 						chan->abs_idx));
 			}
 			/* playing busy tone */
-			DEBUG_CODE(
-			SU_DEBUG_2(("playing busy tone on [_%d_]\n", chan->abs_idx));
-			);
+			SU_DEBUG_3(("playing busy tone on [_%d_]\n", chan->abs_idx));
 		}
 	}
 DFE

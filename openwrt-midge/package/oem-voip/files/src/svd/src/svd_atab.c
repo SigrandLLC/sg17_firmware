@@ -750,54 +750,38 @@ do{
 	}
 
 	if        (evt.id == ab_dev_event_FXS_OFFHOOK){
-		DEBUG_CODE(
-		SU_DEBUG_0 (("Got fxs offhook event: 0x%X on [%d/%d]\n",
+		SU_DEBUG_8 (("Got fxs offhook event: 0x%X on [%d/%d]\n",
 				evt.data, dev_idx,evt.ch ));
-		);
 		err = svd_handle_event_FXS_OFFHOOK(svd, chan_idx);
 	} else if(evt.id == ab_dev_event_FXS_ONHOOK){
-		DEBUG_CODE(
-		SU_DEBUG_0 (("Got fxs onhook event: 0x%X on [%d/%d]\n",
+		SU_DEBUG_8 (("Got fxs onhook event: 0x%X on [%d/%d]\n",
 				evt.data, dev_idx,evt.ch ));
-		);
 		err = svd_handle_event_FXS_ONHOOK(svd, chan_idx);
 	} else if(evt.id == ab_dev_event_FXS_DIGIT_TONE ||
 			  evt.id == ab_dev_event_FXS_DIGIT_PULSE){
 		err = svd_handle_event_FXS_DIGIT_X(svd, chan_idx, evt.data);
 	} else if(evt.id == ab_dev_event_FXO_RINGING){
-		DEBUG_CODE(
-		SU_DEBUG_0 (("Got fxo ringing event: 0x%X on [%d/%d]\n",
+		SU_DEBUG_8 (("Got fxo ringing event: 0x%X on [%d/%d]\n",
 				evt.data, dev_idx,evt.ch ));
-		);
 		err = svd_handle_event_FXO_RINGING (svd, chan_idx);
 	} else if(evt.id == ab_dev_event_FM_CED){
-		DEBUG_CODE(
-		SU_DEBUG_0 (("Got CED event: 0x%X on [%d/%d]\n",
+		SU_DEBUG_8 (("Got CED event: 0x%X on [%d/%d]\n",
 				evt.data, dev_idx,evt.ch ));
-		);
 		err = svd_handle_event_FM_CED (svd, chan_idx, evt.data);
 	} else if(evt.id == ab_dev_event_COD){
-		DEBUG_CODE(
-		SU_DEBUG_0 (("Got coder event: 0x%X on [%d/%d]\n",
+		SU_DEBUG_8 (("Got coder event: 0x%X on [%d/%d]\n",
 				evt.data,dev_idx,evt.ch ));
-		);
 	} else if(evt.id == ab_dev_event_TONE){
-		DEBUG_CODE(
-		SU_DEBUG_0 (("Got tone event: 0x%X on [%d/%d]\n",
+		SU_DEBUG_8 (("Got tone event: 0x%X on [%d/%d]\n",
 				evt.data,dev_idx,evt.ch ));
-		);
 	} else if(evt.id == ab_dev_event_UNCATCHED){
-		DEBUG_CODE(
-		SU_DEBUG_0 (("Got unknown event : 0x%X on [%d/%d]\n",
+		SU_DEBUG_8 (("Got unknown event : 0x%X on [%d/%d]\n",
 				evt.data, dev_idx,evt.ch ));
-		);
 	}
-	DEBUG_CODE(
-		if(evt.more){
-			SU_DEBUG_0 (("GOT MORE THEN ONE EVENT IN ONE TIME: on [%d/%d]\n",
-					evt.data, dev_idx,evt.ch ));
-		}
-	);
+	if(evt.more){
+		SU_DEBUG_8 (("Got more then one event in one time: on [%d/%d]\n",
+				evt.data, dev_idx,evt.ch ));
+	}
 	if (err){
 		goto __exit_fail;
 	}
@@ -863,9 +847,7 @@ DFS
 		if(err){
 			SU_DEBUG_2(("can`t play dialtone on [_%d_]\n",ab_chan->abs_idx));
 		}
-		DEBUG_CODE(
-		SU_DEBUG_2(("play dialtone on [_%d_]\n",ab_chan->abs_idx));
-		);
+		SU_DEBUG_8(("play dialtone on [_%d_]\n",ab_chan->abs_idx));
 	}
 
 __exit_success:
@@ -899,10 +881,8 @@ DFS
 				ab_chan->abs_idx));
 	}
 	/* stop playing tone */
-	DEBUG_CODE(
-	SU_DEBUG_2(("stop playing tone on [_%d_]\n",
+	SU_DEBUG_8(("stop playing tone on [_%d_]\n",
 				ab_chan->abs_idx));
-	);
 
 	/* change linefeed mode to STANDBY */
 	err = ab_FXS_line_feed (ab_chan, ab_chan_linefeed_STANDBY);
@@ -936,11 +916,9 @@ svd_handle_event_FXS_DIGIT_X ( svd_t * const svd, int const chan_idx,
 	int err;
 
 DFS
-	DEBUG_CODE (
-		SU_DEBUG_3 (("[_%d_] DIGIT \'%c\'(l:%d,n:%d)HN:%p\n",
-				ab_chan->abs_idx, digit, (data >> 9),(data >> 8) & 1,
-				chan_ctx->op_handle));
-	);
+	SU_DEBUG_8 (("[_%d_] DIGIT \'%c\'(l:%d,n:%d)HN:%p\n",
+			ab_chan->abs_idx, digit, (data >> 9),(data >> 8) & 1,
+			chan_ctx->op_handle));
 
 	if( chan_ctx->op_handle ){
 		/* allready connected - we can send info 
@@ -971,10 +949,8 @@ DFS
 					ab_chan->abs_idx));
 		}
 		/* stop playing tone */
-		DEBUG_CODE(
-		SU_DEBUG_2(("stop playing tone on [_%d_]\n",
+		SU_DEBUG_8(("stop playing tone on [_%d_]\n",
 					ab_chan->abs_idx));
-		);
 	}
 
 DFE
@@ -1947,9 +1923,7 @@ DFS
 			}
 			ip = inet_ntoa (sin->sin_addr);
 			if( !strcmp(ip, g_conf.self_ip)){
-				DEBUG_CODE(	
-				SU_DEBUG_1 (("THE NAME OF THE DEVICE : %s\n",ifr.ifr_name));
-				);
+				SU_DEBUG_8 (("THE NAME OF THE DEVICE : %s\n",ifr.ifr_name));
 				if(setsockopt (sock_fd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, 
 						sizeof (ifr)) < 0 ){
 					goto __sock_opened;

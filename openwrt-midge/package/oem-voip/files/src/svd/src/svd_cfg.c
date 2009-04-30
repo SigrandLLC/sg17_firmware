@@ -221,6 +221,7 @@ startup_destroy( int argc, char ** argv )
 int 
 svd_conf_init( void )
 {/*{{{*/
+	/* default presets */
 	memset (&g_conf, 0, sizeof(g_conf));
 	strcpy (g_conf.lo_ip, "127.0.0.1");
 	if(		main_init() 	||
@@ -257,7 +258,7 @@ conf_show( void )
 	struct htln_record_s * curr_hl_rec;
 	struct rttb_record_s * curr_rt_rec;
 //	struct hard_link_s   * curr_hk_rec;
-	struct rtp_prms_s    * rtp_rec;
+//	struct rtp_prms_s    * rtp_rec;
 	int i;
 	int j;
 
@@ -303,17 +304,21 @@ conf_show( void )
 	}
 
 	/* RTP parameters */
+	/*
 	for (i=0; i<CHANS_MAX; i++){
 		rtp_rec = &g_conf.rtp_prms[i];
 		SU_DEBUG_3(("%d: vol(%d/%d) vh(%d/%d)\n",
 				i, rtp_rec->COD_Tx_vol, rtp_rec->COD_Rx_vol,
 				rtp_rec->VAD_cfg, rtp_rec->HPF_is_ON));
 	} 
+	*/
 
 	/* PSTN parameters */
+	/*
 	for (i=0; i<CHANS_MAX; i++){
 		SU_DEBUG_3(("%d: %d\n", i, g_conf.fxo_PSTN_type[i]));
 	} 
+	*/
 
 	if(g_conf.address_book.records_num){
 		SU_DEBUG_3(("AddressBook :\n"));
@@ -574,7 +579,6 @@ self_values_init( void )
 		struct sockaddr_in *sin = (struct sockaddr_in *) &ifr.ifr_addr;
 		char *ip;
 
-		fprintf(stderr, "I: %d\n", i);
 		ifr.ifr_ifindex = i;
 		if (ioctl (sock, SIOCGIFNAME, &ifr) < 0){
 			break;
@@ -590,7 +594,6 @@ self_values_init( void )
 			memset(addrmas[j], 0, sizeof(char) * IP_LEN_MAX);
 			strcpy(addrmas[j], ip);
 			j++;
-			fprintf(stderr, "%s : %s\n", ifr.ifr_name, ip);
 		}
 	}
 	close (sock);
@@ -1567,7 +1570,11 @@ wlec_init( void )
 	/* Standart params for all chans */
 	curr_rec = &g_conf.wlec_prms[0];
 	memset (curr_rec, 0, sizeof(*curr_rec));
-	curr_rec->mode = wlec_mode_OFF;
+	curr_rec->mode = wlec_mode_NE;
+	curr_rec->nlp = wlec_nlp_ON;
+	curr_rec->ne_nb = 4;
+	curr_rec->fe_nb = 4;
+	curr_rec->ne_wb = 4;
 	for (i=1; i<CHANS_MAX; i++){
 		curr_rec = &g_conf.wlec_prms[i];
 		memcpy(curr_rec, &g_conf.wlec_prms[0], sizeof(*curr_rec));
