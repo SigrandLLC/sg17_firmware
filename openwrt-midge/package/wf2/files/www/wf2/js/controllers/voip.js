@@ -837,6 +837,22 @@ Controllers.voipQuality = function() {
 
                     /* remove disabled and readonly attributes */
 					pktszField.removeAttr("readonly").removeAttr("disabled");
+                } else if (codec == "aLaw" || codec.search("g726") != -1) {
+                    pktszField.setOptionsForSelect({
+                            "options": "5 5.5 10 11 20 30 40 50 60",
+                            "curValue": pktszField.val()
+                    });
+
+                    /* remove disabled and readonly attributes */
+					pktszField.removeAttr("readonly").removeAttr("disabled");
+                } else if (codec == "g729" || codec == "g729e") {
+                    pktszField.setOptionsForSelect({
+                            "options": "10 20 30 40 60",
+                            "curValue": pktszField.val()
+                    });
+
+                    /* remove disabled and readonly attributes */
+					pktszField.removeAttr("readonly").removeAttr("disabled");
                 } else {
 					/* remove disabled and readonly attributes */
 					pktszField.removeAttr("readonly").removeAttr("disabled");
@@ -994,7 +1010,7 @@ Controllers.voipWlec = function() {
 					"type": "select",
 					"name": $.sprintf("sys_voip_wlec_%s_type", channel[0]),
 					"options": "off NE NFE",
-					"defaultValue": "off"
+					"defaultValue": "NE"
 				};
 				c.addTableWidget(field, row);
 
@@ -1003,7 +1019,7 @@ Controllers.voipWlec = function() {
 					"type": "select",
 					"name": $.sprintf("sys_voip_wlec_%s_nlp", channel[0]),
 					"options": "off on",
-					"defaultValue": "off"
+					"defaultValue": channel[1] == "FXO" ? "on" : "off"
 				};
 				c.addTableWidget(field, row);
 
