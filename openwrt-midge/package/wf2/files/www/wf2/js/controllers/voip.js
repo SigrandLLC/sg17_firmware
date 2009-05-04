@@ -1019,7 +1019,7 @@ Controllers.voipWlec = function() {
 					"type": "select",
 					"name": $.sprintf("sys_voip_wlec_%s_nlp", channel[0]),
 					"options": "off on",
-					"defaultValue": channel[1] == "FXO" ? "on" : "off"
+					"defaultValue": "on"
 				};
 				c.addTableWidget(field, row);
 

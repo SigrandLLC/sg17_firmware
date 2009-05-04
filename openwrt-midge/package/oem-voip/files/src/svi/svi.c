@@ -593,6 +593,9 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 	} 
 
 	if(dtype == dev_type_FXS) {
+		char data[10] = {0xFF,0xFF,0xF0,0,0,0,0,0,0,0};
+		IFX_TAPI_RING_CADENCE_t ringCadence;
+
 		/* ENABLE detection of DTMF tones 
 		 * from local interface (ALM X) */
 		memset(&dtmfDetection, 0, sizeof (dtmfDetection));
@@ -602,6 +605,17 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 			g_err_no = ERR_IOCTL_FAILS;
 			strcpy(g_err_msg, "trying to enable DTMF ALM signal "
 					"detection (ioctl)" );
+			show_last_err(">>", rtp_fd);
+			goto ab_chan_init_tune__exit;
+		}
+		/* configure ring candence */
+		memset(&ringCadence, 0, sizeof(ringCadence));
+		memcpy(&ringCadence.data, data, sizeof(data));
+		ringCadence.nr = sizeof(data) * 8;
+		err = ioctl(rtp_fd, IFX_TAPI_RING_CADENCE_HR_SET, &ringCadence);
+		if( err ){
+			g_err_no = ERR_IOCTL_FAILS;
+			strcpy(g_err_msg, "trying to configure ring cadence (ioctl)");
 			show_last_err(">>", rtp_fd);
 			goto ab_chan_init_tune__exit;
 		}
