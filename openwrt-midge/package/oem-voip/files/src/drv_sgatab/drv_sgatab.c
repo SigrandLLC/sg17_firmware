@@ -463,9 +463,9 @@ proc_get_sgatab_channels(char *buf)
 					len += sprintf(buf+len, 
 					"%02d:FXS\n", chan_idx);
 				break;
-				case dev_type_RESERVED:
+				case dev_type_TF:
 					len += sprintf(buf+len, 
-					"%02d:RESERVED\n", chan_idx);
+					"%02d:TF\n", chan_idx);
 				break;
 				}
 			}

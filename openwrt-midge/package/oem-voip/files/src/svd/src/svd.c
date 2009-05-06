@@ -100,8 +100,8 @@ main (int argc, char ** argv)
 		goto __conf;
 	}
 
-	/* place hardlinked calls */
-	err = svd_place_hardlinks(svd);
+	/* place tf-calls */
+	err = svd_place_tf(svd);
 	if(err){
 		goto __conf;
 	}

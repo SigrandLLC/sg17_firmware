@@ -147,7 +147,7 @@ linefeed_keeper( ab_t * ab, enum action_e action )
 }/*}}}*/
 
 void
-digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS)
+digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS, int const pulseDial)
 {/*{{{*/
 	/* play all digits in tone mode (tag__ add pulse later)
 	 * and find channel that detects it... if other event on another chan
@@ -160,14 +160,17 @@ digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS)
 	int seq_length;
 	int devs_num;
 	int dial_idx;
-	char to_dial[] = {'0','1','2','3','4','5','6','7','8','9',
+	char to_dial[] = {'1','2','3','4','5','6','7','8','9','0',
 					'*','#','A','B','C','D','\0'};
 	int err;
 
-	seq_length=strlen(to_dial);
+	seq_length = strlen(to_dial);
+	if(pulseDial){
+		seq_length = 10;
+	}
 	for (dial_idx=0; dial_idx<seq_length; dial_idx++){
 		/* dial digits all by one */
-		err = ab_FXO_line_digit (cFXO, 1, &to_dial [dial_idx], 0, 0, 0);
+		err = ab_FXO_line_digit (cFXO, 1, &to_dial [dial_idx], 0, 0, pulseDial);
 		if(err){
 			/* error happen on event getting ioctl */
 			fprintf(stderr,"!ERROR: dial a '%c' on FXO[%d]\n",
@@ -176,6 +179,9 @@ digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS)
 		} 
 
 		usleep (WAIT_INTERVAL);
+		if(pulseDial){
+			usleep (WAIT_INTERVAL * (i/5 + 1));
+		}
 
 		devs_num=ab->devs_num;
 		for (i=0; i<devs_num; i++){
@@ -206,7 +212,9 @@ digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS)
 				fprintf(stderr,"!ERROR: event[%d:0x%lX] on wrong [%d]\n",
 						evt.id, evt.data, ab->chans[chan_idx].abs_idx);
 				return;
-			} else if((evt.id != ab_dev_event_FXS_DIGIT_TONE) ||
+			} else if(
+					(!pulseDial && (evt.id != ab_dev_event_FXS_DIGIT_TONE)) ||
+					(pulseDial && (evt.id != ab_dev_event_FXS_DIGIT_PULSE)) ||
 					((char)evt.data != to_dial[dial_idx])){
 				/* wrong event or data */
 				fprintf(stderr,"!ERROR: wrong event %d or data '%c' on [%d]\n",
@@ -219,15 +227,20 @@ digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS)
 				return;
 			}
 			if( g_verbose){
-				fprintf(stdout,"FXS[%d] <<==<< tone '%c' << FXO[%d]\n",
-						ab->chans[chan_idx].abs_idx, to_dial [dial_idx],
+				fprintf(stdout,"FXS[%d] <<==<< %s '%c' << FXO[%d]\n",
+						ab->chans[chan_idx].abs_idx, 
+						pulseDial ? "pulse" : "tone",
+						to_dial [dial_idx],
 						cFXO->abs_idx);
 			}
 		}
 		if( !event_acceptor_found){
 			/* additional events on correct chan */
-			fprintf(stderr,"!ERROR FXS[%d] <<=|=<< tone '%c' << FXO[%d]\n",
-					cFXS->abs_idx,to_dial[dial_idx],cFXO->abs_idx);
+			fprintf(stderr,"!ERROR FXS[%d] <<=|=<< %s '%c' << FXO[%d]\n",
+					cFXS->abs_idx,
+					pulseDial ? "pulse" : "tone",
+					to_dial [dial_idx],
+					cFXO->abs_idx);
 		}
 	} 
 }/*}}}*/
@@ -570,7 +583,8 @@ process_FXO(ab_chan_t * const chan)
 		} 
 
 		/* play digits and test events on couple chan */
-		digits_test(chan, &ab->chans[couple_idx]);
+		digits_test(chan, &ab->chans[couple_idx], 0);
+		digits_test(chan, &ab->chans[couple_idx], 1);
 
 		/* play fax event on couple chan and test events on fxo */
 		fax_test(chan, &ab->chans[couple_idx]);

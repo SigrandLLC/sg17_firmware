@@ -588,6 +588,7 @@ svd_prepare_chan_codecs( ab_chan_t * const chan )
 	codec_t * ct = NULL;
 	cod_prms_t const * cp = NULL;
 	int i;
+	int is_tf = 0;
 
 	/* prepare fcod */
 	ctx->fcod.type = g_conf.fax.codec_type;
@@ -602,8 +603,9 @@ svd_prepare_chan_codecs( ab_chan_t * const chan )
 		goto __exit_fail;
 	}
 
-	if(ctx->is_hardlinked){
-		ct = &ctx->hardlink->hl_codec;
+	if(g_conf.tonal_freq[chan->abs_idx].is_set){
+		is_tf = 1;
+		ct = &g_conf.tonal_freq[chan->abs_idx].tf_codec;
 	}
 
 	/* prepare vcod */
@@ -621,7 +623,7 @@ svd_prepare_chan_codecs( ab_chan_t * const chan )
 			ctx->vcod.pkt_size = ct[i].pkt_size;
 			break;
 		}
-		if(ctx->is_hardlinked){
+		if(is_tf){
 			break;
 		}
 	}
@@ -742,11 +744,6 @@ do{
 		chan_idx = dev_idx * svd->ab->chans_per_dev;
 	}
 	chan_ctx = svd->ab->chans[chan_idx].ctx;
-
-	/* do not process hardlinked event */
-	if( chan_ctx->is_hardlinked ){
-		continue;
-	}
 
 	if        (evt.id == ab_dev_event_FXS_OFFHOOK){
 		SU_DEBUG_8 (("Got fxs offhook event: 0x%X on [%d/%d]\n",
@@ -1185,29 +1182,23 @@ DFS
 		chan_ctx->hotline_addr = curr_rec->value;
 	}
 
-	/* HARDLINK */
+	/* tag__ TF LINEFEED to ACTIVE in libab */
 #if 0
 	for (i=0; i<CHANS_MAX; i++){
-		struct hard_link_s * curr_rec = &g_conf.hard_link[ i ];
-		int hl_id;
-
-		if(curr_rec->type == hl_type_UNDEFINED){
+		struct tonal_freq_s * curr_rec = &g_conf.tonal_freq[ i ];
+		int tf_id;
+		if( !curr_rec->is_set){
 			continue;
 		}
-
-		hl_id = strtol (curr_rec->id, NULL, 10);
-		ab_chan_t * curr_chan = svd->ab->pchans [hl_id];
-		svd_chan_t * chan_ctx = curr_chan->ctx;
-
-		chan_ctx->is_hardlinked = 1;
-		chan_ctx->hardlink = curr_rec;
-		/* set linefeed to active for all hardlinked channels */
+		tf_id = strtol (curr_rec->id, NULL, 10);
+		ab_chan_t * curr_chan = svd->ab->pchans [tf_id];
+		/* set linefeed to active for all tf-channels */
 		err = ab_FXS_line_feed(curr_chan, ab_chan_linefeed_ACTIVE);
 		if(err){
 			goto __exit_fail;
 		}
 	}
-#endif
+#endif 
 	/* RTP parameters */
 	for (i=0; i<CHANS_MAX; i++){
 		struct rtp_prms_s * curr_rec = &g_conf.rtp_prms[i];
@@ -1748,16 +1739,9 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 		SU_DEBUG_2 ((LOG_FNC_A("wrong event")));
 		goto __exit_fail;
 	} else if(rode > 0){
-		int should_block = 
-				chan_ctx->is_hardlinked &&
-				(chan_ctx->hardlink->type == hl_type_4_WIRED) &&
-				(chan->idx == 2);  
-		/* hardlinked 4w chan feedback (rx) channel */
-
-		if( !should_block){
-			/* should not block */
-			sent = sendto(chan_ctx->rtp_sfd, buf, rode, 0, 
-					&target_sock_addr, sizeof(target_sock_addr));
+		/* should not block */
+		sent = sendto(chan_ctx->rtp_sfd, buf, rode, 0, 
+				&target_sock_addr, sizeof(target_sock_addr));
 /* use for testing oob
 if (buf[1] == 0x62 || buf[1] == 0xe2){
 	int i = 12;
@@ -1768,18 +1752,15 @@ if (buf[1] == 0x62 || buf[1] == 0xe2){
 	SU_DEBUG_3(("]\n"));
 }
  */
-			if (sent == -1){
-				SU_DEBUG_2 (("HLD() ERROR : sent() : %d(%s)\n",
-						errno, strerror(errno)));
-				goto __exit_fail;
-			} else if (sent != rode){
-				SU_DEBUG_2(("HLD() ERROR :RODE FROM rtp_stream : %d, but "
-						"SENT TO socket : %d\n",
-						rode, sent));
-				goto __exit_fail;
-			}
-		} else {
-			//SU_DEBUG_2 (("HLD() BLOCKED\n"));
+		if (sent == -1){
+			SU_DEBUG_2 (("HLD() ERROR : sent() : %d(%s)\n",
+					errno, strerror(errno)));
+			goto __exit_fail;
+		} else if (sent != rode){
+			SU_DEBUG_2(("HLD() ERROR :RODE FROM rtp_stream : %d, but "
+					"SENT TO socket : %d\n",
+					rode, sent));
+			goto __exit_fail;
 		}
 	} else {
 		SU_DEBUG_2 (("HLD() ERROR : read() : %d(%s)\n",
@@ -1828,27 +1809,17 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 		SU_DEBUG_2 ((LOG_FNC_A("wrong event")));
 		goto __exit_fail;
 	} else if (received > 0){
-		int should_block = 
-				chan_ctx->is_hardlinked &&
-				(chan_ctx->hardlink->type == hl_type_4_WIRED) &&
-				(chan->idx == 1); 
-		/* hardlinked 4w chan direct (tx) channel */
-
-		if( !should_block){
-			/* should not block */
-			writed = write(chan->rtp_fd, buf, received);
-			if (writed == -1){
-				SU_DEBUG_2 (("HRD() ERROR: write() : %d(%s)\n",
-						errno, strerror(errno)));
-				goto __exit_fail;
-			} else if (writed != received){
-				SU_DEBUG_2(("HRD() ERROR: RECEIVED FROM socket : %d, but "
-						"WRITED TO rtp-stream : %d\n",
-						received, writed));
-				goto __exit_fail;
-			}
-		} else {
-			//SU_DEBUG_2 (("HRD() BLOCKED\n"));
+		/* should not block */
+		writed = write(chan->rtp_fd, buf, received);
+		if (writed == -1){
+			SU_DEBUG_2 (("HRD() ERROR: write() : %d(%s)\n",
+					errno, strerror(errno)));
+			goto __exit_fail;
+		} else if (writed != received){
+			SU_DEBUG_2(("HRD() ERROR: RECEIVED FROM socket : %d, but "
+					"WRITED TO rtp-stream : %d\n",
+					received, writed));
+			goto __exit_fail;
 		}
 	} else {
 		SU_DEBUG_2 (("HRD() ERROR : recv() : %d(%s)\n",

@@ -56,10 +56,6 @@ static unsigned char g_err_no;
 #define CONF_CODEC_G72640 "g726_40"
 #define CONF_CODEC_BITPACK_RTP "rtp"
 #define CONF_CODEC_BITPACK_AAL2 "aal2"
-#define CONF_WIRETYPE_2 "2w"
-#define CONF_WIRETYPE_4 "4w"
-#define CONF_HARDLINK_CALLER "caller"
-#define CONF_HARDLINK_RECEIVER "receiver"
 #define CONF_OOB_DEFAULT "default"
 #define CONF_OOB_NO "in-band"
 #define CONF_OOB_ONLY "out-of-band"
@@ -102,10 +98,8 @@ static int routet_init (void);
 static int rtp_init (void);
 /** Init WLEC parameters configuration.*/
 static int wlec_init (void);
-#if 0
-/** Init hard link configuration.*/
-static int hardlink_init (void);
-#endif
+/** Init tonal frequency channels configuration.*/
+static int tonalf_init (void);
 /** Init hot line configuration.*/
 static int hotline_init (void);
 /** Init addres book configuration.*/
@@ -229,7 +223,7 @@ svd_conf_init( void )
 			routet_init()	||
 			rtp_init()		||
 			wlec_init()		||
-			/*hardlink_init() ||*/
+			tonalf_init()   ||
 			hotline_init()	||
 			addressb_init()	||
 			quality_init()
@@ -257,7 +251,7 @@ conf_show( void )
 	struct adbk_record_s * curr_ab_rec;
 	struct htln_record_s * curr_hl_rec;
 	struct rttb_record_s * curr_rt_rec;
-//	struct hard_link_s   * curr_hk_rec;
+	struct tonal_freq_s  * curr_tf_rec;
 //	struct rtp_prms_s    * rtp_rec;
 	int i;
 	int j;
@@ -303,8 +297,7 @@ conf_show( void )
 				g_conf.sip_set.sip_chan));
 	}
 
-	/* RTP parameters */
-	/*
+	/* RTP parameters *//*
 	for (i=0; i<CHANS_MAX; i++){
 		rtp_rec = &g_conf.rtp_prms[i];
 		SU_DEBUG_3(("%d: vol(%d/%d) vh(%d/%d)\n",
@@ -312,9 +305,7 @@ conf_show( void )
 				rtp_rec->VAD_cfg, rtp_rec->HPF_is_ON));
 	} 
 	*/
-
-	/* PSTN parameters */
-	/*
+	/* PSTN parameters *//*
 	for (i=0; i<CHANS_MAX; i++){
 		SU_DEBUG_3(("%d: %d\n", i, g_conf.fxo_PSTN_type[i]));
 	} 
@@ -340,28 +331,22 @@ conf_show( void )
 				i+1, curr_hl_rec->id, curr_hl_rec->value ));
 	}
 
-#if 0
-	SU_DEBUG_3(("HardLinks :\n"));
+	SU_DEBUG_3(("TonalF :\n"));
 	for(i=0; i<CHANS_MAX; i++){
-		curr_hk_rec = &g_conf.hard_link[ i ];
-		if(curr_hk_rec->type == hl_type_UNDEFINED){
+		curr_tf_rec = &g_conf.tonal_freq[ i ];
+		if( !curr_tf_rec->is_set){
 			continue;
-		} else if(curr_hk_rec->type == hl_type_2_WIRED){
-			SU_DEBUG_3(("\t2w/"));
-		} else if(curr_hk_rec->type == hl_type_4_WIRED){
-			SU_DEBUG_3(("\t4w/"));
 		}
 		SU_DEBUG_3(("t%d/s%d/up%d/",
-				curr_hk_rec->hl_codec.type,
-				curr_hk_rec->hl_codec.pkt_size,
-				curr_hk_rec->hl_codec.user_payload));
+				curr_tf_rec->tf_codec.type,
+				curr_tf_rec->tf_codec.pkt_size,
+				curr_tf_rec->tf_codec.user_payload));
 
 		SU_DEBUG_3(("i%d/id\"%s\":%s:%s/aic_%d\n",
-				i, curr_hk_rec->id, 
-				curr_hk_rec->pair_route, curr_hk_rec->pair_chan,
-				curr_hk_rec->am_i_caller));
+				i, curr_tf_rec->id, 
+				curr_tf_rec->pair_route, curr_tf_rec->pair_chan,
+				curr_tf_rec->am_i_caller));
 	}
-#endif
 	if(g_conf.route_table.records_num){
 		SU_DEBUG_3(("RouteTable :\n"));
 	}
@@ -965,22 +950,21 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
-#if 0
 /*
- * Init`s hard link records in main routine configuration \ref g_conf structure.
+ * Init`s tonal freq records in main routine configuration \ref g_conf structure.
  *
  * \retval 0 success.
  * \retval -1 fail.
  */ 
 static int 
-hardlink_init( void )
+tonalf_init( void )
 {/*{{{*/
-	/* ("w_type", "chan_id", "pair_route_id", "pair_chan_id",
-	 * 		codec_name, pkt_sz, payload_type, bitpack, am_i_caller), */
+	/* ("chan_id", "pair_route_id", "pair_chan_id",
+	 * 		codec_name, pkt_sz, payload_type, bitpack), */
 	struct config_t cfg;
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
-	struct hard_link_s * curr_rec;
+	struct tonal_freq_s * curr_rec;
 	char const * elem;
 	int elem_len;
 	int rec_num;
@@ -990,16 +974,19 @@ hardlink_init( void )
 	config_init (&cfg);
 
 	/* Load the file */
-	if (!config_read_file (&cfg, HARDLINK_CONF_NAME)){
+	if (!config_read_file (&cfg, TONALF_CONF_NAME)){
 		err = config_error_line (&cfg);
 		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n",
 				__func__, err));
+		/* tag__ */SU_DEBUG_0(("%s(): SHOULD BE ADDED LATER\n", __func__));
+		goto __exit_success;
+
 		goto __exit_fail;
 	} 
 
-	set = config_lookup (&cfg, "hard_link" );
+	set = config_lookup (&cfg, "tonal_freq" );
 	if( !set){
-		/* no hardlinked channels */
+		/* no tf-channels */
 		goto __exit_success;
 	} 
 
@@ -1019,40 +1006,22 @@ hardlink_init( void )
 		rec_set = config_setting_get_elem (set, i);
 
 		/* get chan_id */
-		elem = config_setting_get_string_elem (rec_set, 1);
+		elem = config_setting_get_string_elem (rec_set, 0);
 		chan_id = strtol (elem, NULL, 10);
 
-		/* get pair_chan_id */
-		elem = config_setting_get_string_elem (rec_set, 3);
-		pair_chan = strtol (elem, NULL, 10);
-
-		/* get wire type */
-		elem = config_setting_get_string_elem (rec_set, 0);
-
-		curr_rec = &g_conf.hard_link[ chan_id ];
-		if( !strcmp(elem, CONF_WIRETYPE_2)){
-			curr_rec->type = hl_type_2_WIRED;
-		} else if( !strcmp(elem, CONF_WIRETYPE_4)){
-			/* we should choise proper channels (even_odd_pair) */
-			if( chan_id%2){
-				/* if chan is odd (0X) - make it even (X0) */
-				chan_id--;
-			}
-			if( !(pair_chan%2)){
-				/* if pair is even (X0)* - make it odd (0X) */
-				pair_chan++;
-			}
-			curr_rec->type = hl_type_4_WIRED;
+		curr_rec = &g_conf.tonal_freq[ chan_id ];
+		if( curr_rec->is_set){
+			SU_DEBUG_2(("You shouldn`t set params for both pairs!\n"));
+			continue;
 		}
+		curr_rec->is_set = 1;
+		curr_rec->am_i_caller = 1;
 
 		/* set chan_id to rec */
 		snprintf(curr_rec->id, CHAN_ID_LEN, "%02d", chan_id);
 
-		/* set pair_chan chan to rec */
-		snprintf(curr_rec->pair_chan, CHAN_ID_LEN, "%02d", pair_chan);
-
 		/* get pair_route_id */
-		elem = config_setting_get_string_elem (rec_set, 2);
+		elem = config_setting_get_string_elem (rec_set, 1);
 		elem_len = strlen(elem);
 		if (elem_len+1 < ROUTE_ID_LEN_DF){
 			curr_rec->pair_route = curr_rec->pair_route_s;
@@ -1066,71 +1035,39 @@ hardlink_init( void )
 		}
 		strcpy (curr_rec->pair_route, elem);
 
-		if(curr_rec->pair_route[0] == SELF_MARKER){
+		router_is_self = 
+			(curr_rec->pair_route[0] == SELF_MARKER) 
+			||
+			(g_conf.self_number && 
+				!strcmp(curr_rec->pair_route, g_conf.self_number));
+		if( router_is_self){
 			if(curr_rec->pair_route && 
 					curr_rec->pair_route != curr_rec->pair_route_s){
 				free (curr_rec->pair_route);
 			}
 			curr_rec->pair_route = NULL;
-			router_is_self = 1;
-		} else if(g_conf.self_number){
-			router_is_self = !strcmp(curr_rec->pair_route, g_conf.self_number);
-		} else {
-			SU_DEBUG_1((LOG_FNC_A("ERROR: empty route table and "
-					"dest router is not self")));
-			goto __exit_fail;
 		}
+
+		/* get pair_chan_id */
+		elem = config_setting_get_string_elem (rec_set, 2);
+		pair_chan = strtol (elem, NULL, 10);
+
+		/* set pair_chan to rec */
+		snprintf(curr_rec->pair_chan, CHAN_ID_LEN, "%02d", pair_chan);
 
 		/* get codec params */
-		init_codec_el(rec_set, 4, &curr_rec->hl_codec);
+		init_codec_el(rec_set, 3, &curr_rec->tf_codec);
 
-		/* set caller flag */
-		elem = config_setting_get_string_elem (rec_set, 8);
-		if( !strcmp(elem, CONF_HARDLINK_CALLER)){
-			curr_rec->am_i_caller = 1;
-		} else if( !strcmp(elem, CONF_HARDLINK_RECEIVER)){
-			curr_rec->am_i_caller = 0;
-		}
-
-		if (curr_rec->type == hl_type_4_WIRED){
-			/* add record for this channel and for the second stream */
-			/* copy hardlinked params */
-			memcpy(&g_conf.hard_link[ chan_id+1 ], 
-					&g_conf.hard_link[ chan_id ],
-					sizeof(g_conf.hard_link[chan_id]));
-
-			/* revert channels for feedback chan */
-			snprintf (g_conf.hard_link[ chan_id+1 ].id,
-					CHAN_ID_LEN, "%02d", chan_id+1);
-			snprintf (g_conf.hard_link[ chan_id+1 ].pair_chan,
-					CHAN_ID_LEN, "%02d", pair_chan-1);
-		}
 		/* Create automatic mirror record if dest router is self */
 		if(curr_rec->pair_route == NULL){
-			struct hard_link_s * mirr_rec = &g_conf.hard_link[ pair_chan ];
-
-			/* copy hardlinked params */
-			memcpy(&g_conf.hard_link[ pair_chan ], &g_conf.hard_link[ chan_id ],
-					sizeof(g_conf.hard_link[chan_id]));
-
+			struct tonal_freq_s * mirr_rec = &g_conf.tonal_freq[ pair_chan ];
+			/* copy params */
+			memcpy(&g_conf.tonal_freq[ pair_chan ], &g_conf.tonal_freq[ chan_id ],
+					sizeof(g_conf.tonal_freq[chan_id]));
 			/* revert pair, self channels, vol and caller flag on mirror record */
 			snprintf (mirr_rec->id, CHAN_ID_LEN, "%02d", pair_chan);
 			snprintf (mirr_rec->pair_chan, CHAN_ID_LEN, "%02d", chan_id);
-			mirr_rec->am_i_caller = mirr_rec->am_i_caller ? 0:1;
-
-			/* create additional record for 4-wired hardlink */
-			if (curr_rec->type == hl_type_4_WIRED){
-				/* add record for this channel and for the second stream */
-				/* copy hardlinked params */
-				memcpy(&g_conf.hard_link[pair_chan-1], &g_conf.hard_link[pair_chan],
-						sizeof(g_conf.hard_link[pair_chan]));
-
-				/* revert channels for feedback chan */
-				snprintf (g_conf.hard_link[ pair_chan-1 ].id,
-						CHAN_ID_LEN, "%02d", pair_chan-1);
-				snprintf (g_conf.hard_link[ pair_chan-1 ].pair_chan,
-						CHAN_ID_LEN, "%02d", chan_id+1);
-			}
+			mirr_rec->am_i_caller = 0;
 		}
 	}
 
@@ -1139,18 +1076,18 @@ __exit_success:
 	return 0;
 __exit_fail:
 	for(i=0; i<CHANS_MAX; i++){
-		curr_rec = &g_conf.hard_link[ i ];
-		if( curr_rec->type != hl_type_UNDEFINED && 
-				curr_rec->pair_route && 
+		curr_rec = &g_conf.tonal_freq[ i ];
+		if( curr_rec->is_set && curr_rec->pair_route && 
 				curr_rec->pair_route != curr_rec->pair_route_s ){
 			free (curr_rec->pair_route);
 			curr_rec->pair_route = NULL;
+			curr_rec->is_set = 0;
 		}
 	}
 	config_destroy (&cfg);
 	return -1;
 }/*}}}*/
-#endif
+
 /**
  * Init`s hot line records in main routine configuration \ref g_conf structure.
  *

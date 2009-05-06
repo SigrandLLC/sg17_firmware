@@ -16,7 +16,7 @@
 typedef enum dev_type_e {
 	dev_type_ABSENT = 0x0,
 	dev_type_FXO = 0x1,
-	dev_type_RESERVED = 0x2,
+	dev_type_TF  = 0x2,
 	dev_type_FXS = 0x3
 } dev_type_t;
 

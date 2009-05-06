@@ -31,6 +31,7 @@
 #define AB_FW_DRAM_NAME "/lib/firmware/dramfw.bin"
 #define AB_FW_CRAM_FXS_NAME "/lib/firmware/cramfw_fxs.bin"
 #define AB_FW_CRAM_FXO_NAME "/lib/firmware/cramfw_fxo.bin"
+#define AB_FW_CRAM_TF_NAME "/lib/firmware/cramfw_tf.bin"
 
 #define AB_SGATAB_DEV_NODE "/dev/sgatab"
 #define AB_SGATAB_MAJOR_FILE "/proc/driver/sgatab/major"
@@ -68,10 +69,12 @@ static unsigned char * fw_pram = NULL;
 static unsigned char * fw_dram = NULL;
 static unsigned char * fw_cram_fxs = NULL;
 static unsigned char * fw_cram_fxo = NULL;
+static unsigned char * fw_cram_tf = NULL;
 static unsigned long fw_pram_size = 0;
 static unsigned long fw_dram_size = 0;
 static unsigned long fw_cram_fxs_size = 0;
 static unsigned long fw_cram_fxo_size = 0;
+static unsigned long fw_cram_tf_size = 0;
 /*}}}*/
 /*{{{ Global FUNCTIONS */
 static unsigned char startup_init( int argc, char ** argv );
@@ -96,6 +99,7 @@ static int chan_init_tune (int const rtp_fd, int const chan_idx,
 static int pd_ram_load( void );
 static int cram_fxs_load( void );
 static int cram_fxo_load( void );
+static int cram_tf_load( void );
 static int fw_masses_init_from_path (unsigned char ** const fw_buff, 
 		unsigned long * const buff_size, char const * const path );
 static void fw_masses_free( void );
@@ -522,6 +526,15 @@ chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt)
 		vinit.cram_size = fw_cram_fxs_size;
 		vinit.pBBDbuf   = fw_cram_fxs;
 		vinit.bbd_size  = fw_cram_fxs_size;
+	} else if(dt==dev_type_TF){
+		err = cram_tf_load();
+		if(err){
+			goto __exit_fail_close;
+		}
+		vinit.pCram     = fw_cram_tf;
+		vinit.cram_size = fw_cram_tf_size;
+		vinit.pBBDbuf   = fw_cram_tf;
+		vinit.bbd_size  = fw_cram_tf_size;
 	}
 
 	/* Set the pointer to the VINETIC dev specific init structure */
@@ -569,11 +582,12 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 	/* Set channel type */	
 	if(dtype == dev_type_FXS) {
 		lineTypeCfg.lineType = IFX_TAPI_LINE_TYPE_FXS_NB;
+		err = ioctl (rtp_fd, IFX_TAPI_LINE_TYPE_SET, &lineTypeCfg);
 	} else if(dtype == dev_type_FXO) {
 		lineTypeCfg.lineType = IFX_TAPI_LINE_TYPE_FXO_NB;
 		lineTypeCfg.nDaaCh = dev_idx * CHANS_PER_DEV + chan_idx;
-	}
-	err = ioctl (rtp_fd, IFX_TAPI_LINE_TYPE_SET, &lineTypeCfg);
+		err = ioctl (rtp_fd, IFX_TAPI_LINE_TYPE_SET, &lineTypeCfg);
+	} /* if TF - leave it as is (FXS NB) */
 	if( err ){
 		g_err_no = ERR_IOCTL_FAILS;
 		strcpy(g_err_msg, "setting channel type (ioctl)" );
@@ -644,17 +658,22 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 			goto ab_chan_init_tune__exit;
 		}
 	}
-	/* ENABLE detection of FAX signals */
-	memset (&faxSig, 0, sizeof(faxSig));
-	faxSig.sig = IFX_TAPI_SIG_CEDRX | IFX_TAPI_SIG_CEDTX |
-		IFX_TAPI_SIG_CEDENDRX | IFX_TAPI_SIG_CEDENDTX;
-	err = ioctl (rtp_fd,IFX_TAPI_SIG_DETECT_ENABLE,&faxSig);
-	if(err){
-		g_err_no = ERR_IOCTL_FAILS;
-		strcpy(g_err_msg, "trying to enable FAX signal detection (ioctl)" );
-		show_last_err(">>", rtp_fd);
-		goto ab_chan_init_tune__exit;
+	if(dtype == dev_type_FXO || dtype == dev_type_FXS){
+		/* ENABLE detection of FAX signals */
+		memset (&faxSig, 0, sizeof(faxSig));
+		faxSig.sig = IFX_TAPI_SIG_CEDRX | IFX_TAPI_SIG_CEDTX |
+			IFX_TAPI_SIG_CEDENDRX | IFX_TAPI_SIG_CEDENDTX;
+		err = ioctl (rtp_fd,IFX_TAPI_SIG_DETECT_ENABLE,&faxSig);
+		if(err){
+			g_err_no = ERR_IOCTL_FAILS;
+			strcpy(g_err_msg, "trying to enable FAX signal detection (ioctl)" );
+			show_last_err(">>", rtp_fd);
+			goto ab_chan_init_tune__exit;
+		}
 	}
+	/* for TF do not enable any signal detections 
+	 * tag__ may be it should be desabled manually - should test.
+	 * */
 	return 0;
 ab_chan_init_tune__exit:
 	return -1;
@@ -706,6 +725,22 @@ cram_fxo_load( void )
 	if( !fw_cram_fxo){
 		err = fw_masses_init_from_path (&fw_cram_fxo, &fw_cram_fxo_size, 
 				AB_FW_CRAM_FXO_NAME);
+		if(err){
+			goto __exit_fail;
+		}
+	}
+	return 0; 
+__exit_fail:
+	return -1;
+}/*}}}*/
+
+static int
+cram_tf_load( void )
+{/*{{{*/
+	int err;
+	if( !fw_cram_tf){
+		err = fw_masses_init_from_path (&fw_cram_tf, &fw_cram_tf_size, 
+				AB_FW_CRAM_TF_NAME);
 		if(err){
 			goto __exit_fail;
 		}
@@ -801,27 +836,21 @@ create_vin_board (ab_board_params_t const * const bp)
 					(dev_idx+1)*10));
 			if(err){
 				g_err_no = ERR_OTHER;
-				sprintf(g_err_msg, "%s() ERROR : drv_vinetic "
-						"dev file create :\n\t%s\n",
-						__func__, strerror(errno));
+				sprintf(g_err_msg, "%s() ERROR : drv_vinetic dev file "
+						"create :\n\t%s\n", __func__, strerror(errno));
 				goto __exit_fail;
 			}
 			for(j=0; j<CHANS_PER_DEV; j++){
 				char ch_name[50];
 				memset(ch_name, 0, sizeof(ch_name));
 				snprintf (ch_name, sizeof(ch_name), "%s%d%d",
-						VIN_DEV_NODE_PREFIX, 
-						dev_idx+1, j+1);
+						VIN_DEV_NODE_PREFIX, dev_idx+1, j+1);
 				err = mknod(ch_name, S_IFCHR|uma, MKDEV(
-						VINETIC_MAJOR,(dev_idx+1)*10+
-						j+1));
+						VINETIC_MAJOR,(dev_idx+1)*10+j+1));
 				if(err){
 					g_err_no = ERR_OTHER;
-					sprintf(g_err_msg, "%s() ERROR : "
-							"drv_vinetic chan "
-							"file create :\n\t%s\n",
-							__func__, 
-							strerror(errno));
+					sprintf(g_err_msg, "%s() ERROR : drv_vinetic chan "
+							"file create :\n\t%s\n", __func__, strerror(errno));
 					goto __exit_fail;
 				}
 			}

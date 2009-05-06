@@ -17,7 +17,7 @@
 #define MAIN_CONF_NAME      "/etc/svd/main.conf"
 #define FXO_CONF_NAME       "/etc/svd/fxo.conf"
 #define ROUTET_CONF_NAME    "/etc/svd/routet.conf"
-#define HARDLINK_CONF_NAME  "/etc/svd/hardlink.conf"
+#define TONALF_CONF_NAME    "/etc/svd/tonalf.conf"
 #define HOTLINE_CONF_NAME   "/etc/svd/hotline.conf"
 #define ADDRESSB_CONF_NAME  "/etc/svd/addressb.conf"
 #define QUALITY_CONF_NAME   "/etc/svd/quality.conf"
@@ -142,12 +142,6 @@ struct htln_record_s {
 	char * value; /**< Hotline address pointer.*/
 	char value_s [VALUE_LEN_DF]; /**< Hotline static massive.*/
 };
-/** Hard link channels types.*/
-enum hl_type_e {
-	hl_type_UNDEFINED, 
-	hl_type_2_WIRED, 
-	hl_type_4_WIRED,
-};
 /** Route table record.*/
 struct rttb_record_s {
 	char * id; /**< Router identifier pointer.*/
@@ -166,14 +160,14 @@ struct hot_line_s {
 	struct htln_record_s * records; /**< Records massive.*/
 };
 /** Hard links.*/
-struct hard_link_s {
-	enum hl_type_e type;
+struct tonal_freq_s {
+	int is_set; /**< Set to 1 if this channel has meaningful values. */
+	int am_i_caller; /**< Set to 1 if this channel should call to it`s pair. */
 	char id [CHAN_ID_LEN]; /**< Channel absolute identifier.*/
 	char * pair_route; /**< Channel pair router identifier or NULL if self. */
 	char pair_route_s [ROUTE_ID_LEN_DF]; /**< Channel pair router massive.*/
 	char pair_chan [CHAN_ID_LEN]; /**< Channel pair channel identifier.*/
-	codec_t hl_codec; /**< codec parameters.*/
-	int am_i_caller; /**< Set to 1 if this channel should call to it`s pair.*/
+	codec_t tf_codec; /**< codec parameters.*/
 };
 /** Route table.*/
 struct route_table_s {
@@ -225,7 +219,7 @@ struct svd_conf_s {/*{{{*/
 	struct sip_settings_s sip_set; /**< SIP settings for registration.*/
 	struct address_book_s address_book; /**< Address book.*/
 	struct hot_line_s hot_line; /**< Hot line.*/
-	struct hard_link_s hard_link[CHANS_MAX]; /**< Hard linked channels.*/
+	struct tonal_freq_s tonal_freq[CHANS_MAX]; /**< TF-channels params.*/
 	struct route_table_s route_table; /**< Routes table.*/
 	struct rtp_prms_s rtp_prms[CHANS_MAX]; /**< RTP channel parameters.*/
 	enum pstn_type_e fxo_PSTN_type[CHANS_MAX]; /**< FXO pstn types.*/

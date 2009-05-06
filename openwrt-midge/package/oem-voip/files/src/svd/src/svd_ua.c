@@ -104,7 +104,7 @@ static void
 svd_parse_sdp(svd_t * const svd, ab_chan_t * const chan, char const * str);
 /** Create SDP string depends on codec choice policy.*/
 static char *
-svd_new_sdp_string (svd_chan_t const * const ctx);
+svd_new_sdp_string (ab_chan_t const * const chan);
 /** @}*/ 
 
 
@@ -371,7 +371,7 @@ DFS
 
 	chan_ctx->call_type = calltype_REMOTE;
 
-	l_sdp_str = svd_new_sdp_string (chan_ctx);
+	l_sdp_str = svd_new_sdp_string (chan);
 	if ( !l_sdp_str){
 		goto __exit_fail;
 	}
@@ -425,7 +425,7 @@ DFS
 		svd_media_register (svd, chan);
 
 		/* have remote sdp make local */
-		l_sdp_str = svd_new_sdp_string (chan_ctx);
+		l_sdp_str = svd_new_sdp_string (chan);
 		if ( !l_sdp_str){
 			goto __exit;
 		}
@@ -535,7 +535,7 @@ DFE
 }/*}}}*/
 
 /**
- * It create connections between hardlinked channels.
+ * It create connections between tonal frequency channels.
  *
  * \param[in] svd context pointer
  * \retval 0 	etherything ok.
@@ -544,7 +544,7 @@ DFE
  * 		There must be offhook on both chennels in the link.
  */ 
 int 
-svd_place_hardlinks (svd_t * const svd)
+svd_place_tf (svd_t * const svd)
 {/*{{{*/
 	int i;
 	int j;
@@ -559,8 +559,8 @@ DFS
 	for(i=0; i<j; i++){
 		ab_chan_t * curr_chan = &svd->ab->chans[i];
 		svd_chan_t * ctx = curr_chan->ctx;
-		struct hard_link_s * curr_rec = ctx->hardlink;
-		if(ctx->is_hardlinked && curr_rec->am_i_caller){
+		struct tonal_freq_s * curr_rec = &g_conf.tonal_freq[curr_chan->abs_idx];
+		if(curr_rec->is_set && curr_rec->am_i_caller){
 			/* get pair_chan */
 			strcpy (ctx->dial_status.chan_id, curr_rec->pair_chan);
 			/* get pair_route */
@@ -570,6 +570,7 @@ DFS
 				err = 0;
 			} else {
 				err = 1;
+				/* not self connect - find pair route ip from route_t */
 				for(k=0; k<routers_num; k++){
 					if( !strcmp(curr_rec->pair_route, 
 										g_conf.route_table.records[k].id)){
@@ -579,7 +580,7 @@ DFS
 						break;
 					}
 				}
-				/* set dest router */
+				/* set dest router to self if it is */
 				if(!strcmp(curr_rec->pair_route, g_conf.self_number)){
 					ctx->dial_status.dest_is_self = self_YES;
 				}
@@ -587,7 +588,7 @@ DFS
 
 			/* place a call */
 			if(err || svd_invite(svd, 0, i)){
-				SU_DEBUG_0 (("!!!!! CAN`T PLACE HARDLINK CALL\n"));
+				SU_DEBUG_0 (("!!!!! CAN`T PLACE TF-CALL\n"));
 				goto __exit_fail;
 			} 
 		}
@@ -688,7 +689,7 @@ DFS
 		goto __exit_fail;
 	}
 
-	l_sdp_str = svd_new_sdp_string (chan_ctx);
+	l_sdp_str = svd_new_sdp_string (chan);
 	if ( !l_sdp_str){
 		goto __exit_fail;
 	}
@@ -890,15 +891,10 @@ DFS
 	}
 
 	if (req_chan->parent->type == ab_dev_type_FXS){
-		svd_chan_t * ctx = req_chan->ctx;
-		if(ctx->is_hardlinked){
-			svd_answer(svd, req_chan, SIP_200_OK);
-		} else {
-			/* start ringing */
-			err = ab_FXS_line_ring( req_chan, ab_chan_ring_RINGING );
-			if (err){
-				SU_DEBUG_1(("can`t ring to on [_%d_]\n",req_chan->abs_idx));
-			}
+		/* start ringing */
+		err = ab_FXS_line_ring( req_chan, ab_chan_ring_RINGING );
+		if (err){
+			SU_DEBUG_1(("can`t ring to on [_%d_]\n",req_chan->abs_idx));
 		}
 	} else if (req_chan->parent->type == ab_dev_type_FXO){
 		/* do offhook */
@@ -906,6 +902,9 @@ DFS
 		if (err){
 			SU_DEBUG_1(("can`t offhook on [_%d_]\n",req_chan->abs_idx));
 		}
+	} else if (req_chan->parent->type == ab_dev_type_TF){
+		/* just answer */
+		svd_answer(svd, req_chan, SIP_200_OK);
 	}
 __exit:
 DFE
@@ -995,9 +994,8 @@ DFS
 		break;
 
 	/* 18X received */
-		case nua_callstate_proceeding:{
-			svd_chan_t * ctx = chan->ctx;
-			if( !ctx->is_hardlinked && chan->parent->type == ab_dev_type_FXS){
+		case nua_callstate_proceeding:
+			if( chan->parent->type == ab_dev_type_FXS){
 				/* play ringback */
 				err = ab_FXS_line_tone (chan, ab_chan_tone_RINGBACK);
 				if(err){
@@ -1008,7 +1006,6 @@ DFS
 				SU_DEBUG_3(("play ringback on [_%d_]\n",chan->abs_idx));
 			}
 			break;
-		}
 
 	/* 2XX received */
 		case nua_callstate_completing:
@@ -1035,7 +1032,7 @@ DFS
 	/* 2XX received, ACK sent, or vice versa */
 		case nua_callstate_ready:{
 			svd_chan_t * ctx = chan->ctx;
-			if( (!ctx->is_hardlinked) && chan->parent->type == ab_dev_type_FXS){
+			if( chan->parent->type == ab_dev_type_FXS){
 				/* stop playing any tone on the chan */
 				if(ab_FXS_line_tone (chan, ab_chan_tone_MUTE)){
 					SU_DEBUG_2(("can`t stop playing tone on [_%d_]\n",
@@ -1043,8 +1040,7 @@ DFS
 				}
 				/* stop playing tone */
 				SU_DEBUG_3(("stop playing tone on [_%d_]\n", chan->abs_idx));
-			}
-			if(chan->parent->type == ab_dev_type_FXO){
+			} else if(chan->parent->type == ab_dev_type_FXO){
 				/* offhook */
 				ctx->is_ring_in_process = 0;
 				ctx->is_connection_is_up = 1;
@@ -1055,7 +1051,8 @@ DFS
 					SU_DEBUG_3(("can`t offhook on [_%d_]: %s\n", 
 							chan->abs_idx, ab_g_err_str));
 				}
-			}
+			}/* tf no need in special preparations */
+
 			if(ab_chan_media_activate (chan)){
 				SU_DEBUG_1(("media_activate error : %s\n", ab_g_err_str));
 			}
@@ -1495,8 +1492,9 @@ DFE
  * 		Memory should be freed outside of the function.
  */
 static char * 
-svd_new_sdp_string (svd_chan_t const * const ctx)
+svd_new_sdp_string (ab_chan_t const * const chan)
 {/*{{{*/
+	svd_chan_t * ctx = chan->ctx;
 	char * ret_str = NULL; 
 	codec_t * cp = NULL;
 	int limit = SDP_STR_MAX_LEN;
@@ -1504,6 +1502,12 @@ svd_new_sdp_string (svd_chan_t const * const ctx)
 	int i;
 	long media_port = ctx->rtp_port;
 	enum calltype_e const ct = ctx->call_type;
+
+	int is_tf = 0;
+
+	if(chan->parent->type == ab_dev_type_TF){
+		is_tf = 1;
+	}
 
 #if 0
 	FOR EXAMPLE
@@ -1529,8 +1533,8 @@ svd_new_sdp_string (svd_chan_t const * const ctx)
 		SU_DEBUG_0((LOG_FNC_A("ERROR: calltype still UNDEFINED")));
 		goto __exit_fail_allocated;
 	}
-	if(ctx->is_hardlinked){
-		cp = &ctx->hardlink->hl_codec;
+	if(is_tf){
+		cp = &g_conf.tonal_freq[chan->abs_idx].tf_codec;
 	}
 
 	ltmp = snprintf (ret_str, limit, 
@@ -1558,7 +1562,7 @@ svd_new_sdp_string (svd_chan_t const * const ctx)
 		}
 		strncat(ret_str, pld_str, limit);
 		limit -= ltmp;
-		if(ctx->is_hardlinked){
+		if(is_tf){
 			break;
 		}
 	}
@@ -1612,7 +1616,7 @@ svd_new_sdp_string (svd_chan_t const * const ctx)
 			strncat(ret_str, rtp_str, limit);
 			limit -= ltmp;
 		}
-		if(ctx->is_hardlinked){
+		if(is_tf){
 			break;
 		}
 	}

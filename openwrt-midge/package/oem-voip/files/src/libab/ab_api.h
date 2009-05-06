@@ -96,7 +96,8 @@ struct rtp_session_prms_s {
 
 enum ab_dev_type_e {
 	ab_dev_type_FXO,   /**< Device type is FXO */
-	ab_dev_type_FXS    /**< Device type is FXS */
+	ab_dev_type_FXS,   /**< Device type is FXS */
+	ab_dev_type_TF     /**< Device type is Tonal Frequency */
 };
 
 enum ab_chan_tone_e {
