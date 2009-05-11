@@ -102,6 +102,10 @@ ifneq ($(BR2_SIGRAND_OEM_HEADERBG),"default")
 		cp logos/header.sh $(IDIR_WEBFACE)/www/common/header.sh
 endif
 
+ifeq ($(BR2_SIGRAND_OEM_MANUFACTURER),"Zelax")
+		cp templates/etc/kdb.default $(IDIR_WEBFACE)/etc/
+endif
+
 ifneq ($(BR2_SIGRAND_OEM_LOGO),"default")
 		cp logos/$(BR2_SIGRAND_OEM_LOGO) $(IDIR_WEBFACE)/www/img/logo.jpg;
 		rm -f $(IDIR_WEBFACE)/www/img/logo.gif;
