@@ -960,7 +960,7 @@ static int
 tonalf_init( void )
 {/*{{{*/
 	/* ("chan_id", "pair_route_id", "pair_chan_id",
-	 * 		codec_name, pkt_sz, payload_type, bitpack), */
+	 * 		"codec_name", "pkt_sz", payload_type, "bitpack") */
 	struct config_t cfg;
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;

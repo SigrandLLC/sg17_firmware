@@ -13,6 +13,7 @@
 #include <linux/kdev_t.h>
 #include <errno.h>
 
+#include "libconfig.h"		/* from libconfig */
 #include "drv_tapi_io.h"	/* from TAPI_HL_driver */
 #include "vinetic_io.h" 	/* from Vinetic_LL_driver */
 #include "ab_ioctl.h"		/* from ATA_Board_driver */
@@ -32,7 +33,20 @@
 #define AB_FW_CRAM_FXS_NAME "/lib/firmware/cramfw_fxs.bin"
 #define AB_FW_CRAM_FXO_NAME "/lib/firmware/cramfw_fxo.bin"
 #define AB_FW_CRAM_TF_NAME "/lib/firmware/cramfw_tf.bin"
+#define AB_FW_CRAM_TFN2_NAME "/lib/firmware/cramfw_tfn2.bin"
+#define AB_FW_CRAM_TFN4_NAME "/lib/firmware/cramfw_tfn4.bin"
+#define AB_FW_CRAM_TFT2_NAME "/lib/firmware/cramfw_tft2.bin"
+#define AB_FW_CRAM_TFT4_NAME "/lib/firmware/cramfw_tft4.bin"
 
+/* from libab - if libab in the future can handle more channels - 
+ * should be fixed */
+#define CHANS_MAX 32
+
+#define TF_TRUNC   "trunc"
+#define TF_NORMAL  "normal"
+#define TF_2_WIRED "2w"
+#define TF_4_WIRED "4w"
+#define TF_CONF_NAME "/etc/svi.conf"
 #define AB_SGATAB_DEV_NODE "/dev/sgatab"
 #define AB_SGATAB_MAJOR_FILE "/proc/driver/sgatab/major"
 #define VIN_DEV_NODE_PREFIX "/dev/vin"
@@ -69,12 +83,27 @@ static unsigned char * fw_pram = NULL;
 static unsigned char * fw_dram = NULL;
 static unsigned char * fw_cram_fxs = NULL;
 static unsigned char * fw_cram_fxo = NULL;
-static unsigned char * fw_cram_tf = NULL;
+static unsigned char * fw_cram_tfn2 = NULL;
+static unsigned char * fw_cram_tfn4 = NULL;
+static unsigned char * fw_cram_tft2 = NULL;
+static unsigned char * fw_cram_tft4 = NULL;
 static unsigned long fw_pram_size = 0;
 static unsigned long fw_dram_size = 0;
 static unsigned long fw_cram_fxs_size = 0;
 static unsigned long fw_cram_fxo_size = 0;
-static unsigned long fw_cram_tf_size = 0;
+static unsigned long fw_cram_tfn2_size = 0;
+static unsigned long fw_cram_tfn4_size = 0;
+static unsigned long fw_cram_tft2_size = 0;
+static unsigned long fw_cram_tft4_size = 0;
+
+enum tf_type_e {
+	tf_type_DEFAULT = 0,
+	tf_type_N4 = 0,
+	tf_type_N2,
+	tf_type_T4,
+	tf_type_T2,
+};
+enum tf_type_e tf_cfg [CHANS_MAX];
 /*}}}*/
 /*{{{ Global FUNCTIONS */
 static unsigned char startup_init( int argc, char ** argv );
@@ -82,24 +111,28 @@ static void run( void );
 
 static int voip_in_slots( void );
 static int load_modules( void );
+static int load_cfg( void );
 static int init_voip( void );
 
-static int board_iterator (int (*func)(ab_board_params_t const * const bp));
+static int board_iterator (int (*func)(ab_board_params_t const * const bp, 
+		int const abs_board_idx));
 static int create_vinetic_nodes (void);
-static int create_vin_board (ab_board_params_t const * const bp);
-static int board_init (ab_board_params_t const * const bp);
-static int dev_init(int const dev_idx, 
-		ab_dev_params_t const * const dp, long const nIrqNum);
+static int create_vin_board (ab_board_params_t const * const bp, 
+		int const abs_board_idx);
+static int board_init (ab_board_params_t const * const bp, 
+		int const abs_board_idx);
+static int dev_init(int const dev_idx, ab_dev_params_t const * const dp, 
+		long const nIrqNum, int const abs_dev_idx);
 static int basicdev_init( int const dev_idx, ab_dev_params_t const * const dp, 
 		long const nIrqNum);
 static int chan_init (int const dev_idx, int const chan_idx, 
-		dev_type_t const dt);
+		dev_type_t const dt, int const abs_dev_idx);
 static int chan_init_tune (int const rtp_fd, int const chan_idx, 
 		int const dev_idx, dev_type_t const dtype);
 static int pd_ram_load( void );
 static int cram_fxs_load( void );
 static int cram_fxo_load( void );
-static int cram_tf_load( void );
+static int cram_tf_load( enum tf_type_e const type );
 static int fw_masses_init_from_path (unsigned char ** const fw_buff, 
 		unsigned long * const buff_size, char const * const path );
 static void fw_masses_free( void );
@@ -151,6 +184,12 @@ run( void )
 
 	/* load drivers stack and create node files */
 	err = load_modules();
+	if(err){
+		goto __exit;
+	}
+
+	/* read tonal frequency channels configuration */
+	err = load_cfg();
 	if(err){
 		goto __exit;
 	}
@@ -268,6 +307,95 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
+static int 
+load_cfg( void )
+{/*{{{*/
+	/* tf_types:
+	 * (
+	 *	("chan_id", "wire_type", "normal/trunc")
+	 * );*/
+	struct config_t cfg;
+	struct config_setting_t * set;
+	struct config_setting_t * rec_set;
+	char const * elem = NULL;
+	int chan_id;
+	int rec_num;
+	int i;
+	int val_err = 0;
+	int err;
+
+	config_init (&cfg);
+
+	/* default presets */
+	memset(tf_cfg, 0, sizeof(tf_cfg));
+
+	/* Load the file */
+	if (!config_read_file (&cfg, TF_CONF_NAME)){
+		err = config_error_line (&cfg);
+		goto __exit_success;
+	} 
+
+	set = config_lookup (&cfg, "tf_types" );
+	if( !set){
+		/* no tf-channels */
+		goto __exit_success;
+	} 
+
+	rec_num = config_setting_length (set);
+
+	if(rec_num > CHANS_MAX){
+		sprintf(g_err_msg, "%s() Too many channels (%d) in config - max is %d\n",
+				__func__, rec_num, CHANS_MAX);
+		goto __exit_fail;
+	}
+
+	for(i=0; i<rec_num; i++){
+		rec_set = config_setting_get_elem (set, i);
+
+		/* get id */
+		elem = config_setting_get_string_elem (rec_set, 0);
+		chan_id = strtol (elem, NULL, 10);
+
+		/* get wire_type */
+		elem = config_setting_get_string_elem (rec_set, 1);
+		if       (!strcmp(elem, TF_4_WIRED)){
+			/* get normal/trunc type */
+			elem = config_setting_get_string_elem (rec_set, 2);
+			if       (!strcmp(elem, TF_NORMAL)){
+				tf_cfg[chan_id] = tf_type_N4;
+			} else if(!strcmp(elem, TF_TRUNC)){
+				tf_cfg[chan_id] = tf_type_T4;
+			} else {
+				val_err = 1;
+			}
+		} else if(!strcmp(elem, TF_2_WIRED)){
+			/* get normal/trunc type */
+			elem = config_setting_get_string_elem (rec_set, 2);
+			if       (!strcmp(elem, TF_NORMAL)){
+				tf_cfg[chan_id] = tf_type_N2;
+			} else if(!strcmp(elem, TF_TRUNC)){
+				tf_cfg[chan_id] = tf_type_T2;
+			} else {
+				val_err = 1;
+			}
+		} else {
+			val_err = 1;
+		}
+		
+		if(val_err){
+			sprintf(g_err_msg, "%s() Bad config value (%s)\n", __func__, elem);
+			goto __exit_fail;
+		}
+	}
+
+__exit_success:
+	config_destroy (&cfg);
+	return 0;
+__exit_fail:
+	config_destroy (&cfg);
+	return -1;
+}/*}}}*/
+
 static int
 create_vinetic_nodes( void )
 {/*{{{*/
@@ -297,7 +425,8 @@ __exit_fail:
 }/*}}}*/
 
 static int
-board_iterator (int (*func)(ab_board_params_t const * const bp))
+board_iterator (int (*func)(ab_board_params_t const * const bp,
+			int const abs_board_idx))
 {/*{{{*/
 	ab_board_params_t bp;
 	int bc;
@@ -345,8 +474,8 @@ board_iterator (int (*func)(ab_board_params_t const * const bp))
 		err = ioctl(fd, SGAB_GET_BOARD_PARAMS, &bp);
 		if(err){
 			g_err_no = ERR_IOCTL_FAILS;
-			sprintf(g_err_msg, "%s() ERROR : SGAB_GET_BOARD_PARAMS" 
-					" ioctl", __func__ );
+			sprintf(g_err_msg, "%s() ERROR : SGAB_GET_BOARD_PARAMS ioctl",
+					__func__ );
 			goto __exit_fail_close;
 		} else if((!bp.is_present) || bp.is_count_changed){
 			g_err_no = ERR_OTHER;
@@ -356,7 +485,7 @@ board_iterator (int (*func)(ab_board_params_t const * const bp))
 		}
 
 		/* execute func on current board */
-		err = func (&bp);
+		err = func (&bp, i);
 		if(err){
 			goto __exit_fail_close;
 		}
@@ -371,7 +500,7 @@ __exit_fail:
 }/*}}}*/
 
 static int 
-board_init (ab_board_params_t const * const bp)
+board_init (ab_board_params_t const * const bp, int const abs_board_idx)
 {/*{{{*/
 	int i;
 	int err;
@@ -380,7 +509,8 @@ board_init (ab_board_params_t const * const bp)
 	for(i=0; i<DEVS_PER_BOARD_MAX; i++){
 		if(bp->devices[i].type != dev_type_ABSENT){
 			/* init device and it`s channels */
-			err = dev_init (dev_idx, &bp->devices[i], bp->nIrqNum);
+			err = dev_init (dev_idx, &bp->devices[i], bp->nIrqNum,
+					(abs_board_idx * DEVS_PER_BOARD_MAX)+i);
 			if(err){
 				goto __exit_fail;
 			}
@@ -394,7 +524,7 @@ __exit_fail:
 
 static int 
 dev_init (int const dev_idx, ab_dev_params_t const * const dp, 
-		long const nIrqNum)
+		long const nIrqNum, int const abs_dev_idx)
 {/*{{{*/
 	int j;
 	int err;
@@ -412,7 +542,7 @@ dev_init (int const dev_idx, ab_dev_params_t const * const dp,
 	/* download fw and chans init */
 	for(j=0; j<CHANS_PER_DEV; j++){
 		/* channel init */
-		err = chan_init(dev_idx, j, dp->type);
+		err = chan_init (dev_idx, j, dp->type, abs_dev_idx);
 		if(err){
 			goto __exit_fail;
 		}
@@ -478,7 +608,8 @@ __exit_fail:
 }/*}}}*/
 
 static int
-chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt)
+chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt,
+		int const abs_dev_idx)
 {/*{{{*/
 	IFX_TAPI_CH_INIT_t init;
 	VINETIC_IO_INIT vinit;
@@ -527,14 +658,37 @@ chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt)
 		vinit.pBBDbuf   = fw_cram_fxs;
 		vinit.bbd_size  = fw_cram_fxs_size;
 	} else if(dt==dev_type_TF){
-		err = cram_tf_load();
+		/* revert channels on device and in abs_places 
+		 * if chan_idx == 0 -> chan_id = dev_offset+1
+		 * if chan_idx == 1 -> chan_id = dev_offset
+		 */
+		int chan_id = (abs_dev_idx * CHANS_PER_DEV) + 
+			((chan_idx +1) % CHANS_PER_DEV);
+		err = cram_tf_load (tf_cfg[chan_id]);
 		if(err){
 			goto __exit_fail_close;
 		}
-		vinit.pCram     = fw_cram_tf;
-		vinit.cram_size = fw_cram_tf_size;
-		vinit.pBBDbuf   = fw_cram_tf;
-		vinit.bbd_size  = fw_cram_tf_size;
+		if        (tf_cfg[chan_id] == tf_type_N2){
+			vinit.pCram     = fw_cram_tfn2;
+			vinit.cram_size = fw_cram_tfn2_size;
+			vinit.pBBDbuf   = fw_cram_tfn2;
+			vinit.bbd_size  = fw_cram_tfn2_size;
+		} else if (tf_cfg[chan_id] == tf_type_N4){
+			vinit.pCram     = fw_cram_tfn4;
+			vinit.cram_size = fw_cram_tfn4_size;
+			vinit.pBBDbuf   = fw_cram_tfn4;
+			vinit.bbd_size  = fw_cram_tfn4_size;
+		} else if (tf_cfg[chan_id] == tf_type_T2){
+			vinit.pCram     = fw_cram_tft2;
+			vinit.cram_size = fw_cram_tft2_size;
+			vinit.pBBDbuf   = fw_cram_tft2;
+			vinit.bbd_size  = fw_cram_tft2_size;
+		} else if (tf_cfg[chan_id] == tf_type_T4){
+			vinit.pCram     = fw_cram_tft4;
+			vinit.cram_size = fw_cram_tft4_size;
+			vinit.pBBDbuf   = fw_cram_tft4;
+			vinit.bbd_size  = fw_cram_tft4_size;
+		}
 	}
 
 	/* Set the pointer to the VINETIC dev specific init structure */
@@ -735,12 +889,32 @@ __exit_fail:
 }/*}}}*/
 
 static int
-cram_tf_load( void )
+cram_tf_load( enum tf_type_e const type )
 {/*{{{*/
 	int err;
-	if( !fw_cram_tf){
-		err = fw_masses_init_from_path (&fw_cram_tf, &fw_cram_tf_size, 
-				AB_FW_CRAM_TF_NAME);
+	char const * tf_name;
+	unsigned char ** tf_mas;
+	unsigned long * tf_size_ptr;
+
+	if        (type == tf_type_N2){
+		tf_name     = AB_FW_CRAM_TFN2_NAME;
+		tf_mas      = &fw_cram_tfn2;
+		tf_size_ptr = &fw_cram_tfn2_size;
+	} else if (type == tf_type_N4){
+		tf_name     = AB_FW_CRAM_TFN4_NAME;
+		tf_mas      = &fw_cram_tfn4;
+		tf_size_ptr = &fw_cram_tfn4_size;
+	} else if (type == tf_type_T2){
+		tf_name     = AB_FW_CRAM_TFT2_NAME;
+		tf_mas      = &fw_cram_tft2;
+		tf_size_ptr = &fw_cram_tft2_size;
+	} else if (type == tf_type_T4){
+		tf_name     = AB_FW_CRAM_TFT4_NAME;
+		tf_mas      = &fw_cram_tft4;
+		tf_size_ptr = &fw_cram_tft4_size;
+	}
+	if( !(*tf_mas)){
+		err = fw_masses_init_from_path (tf_mas, tf_size_ptr, tf_name);
 		if(err){
 			goto __exit_fail;
 		}
@@ -816,7 +990,7 @@ fw_masses_free( void )
 }/*}}}*/
 
 static int 
-create_vin_board (ab_board_params_t const * const bp)
+create_vin_board (ab_board_params_t const * const bp, int const abs_board_idx)
 {/*{{{*/
 	int i;
 	int err;

@@ -21,7 +21,7 @@ ln -snf ${tapi_name}	tapi
 ln -snf ${vinetic_name}	vinetic
 
 cd ${curr_path}
-mipsel-linux-gcc -Wall -I./vinetic/include/ -I./tapi/include/ -I./sgatab/ svi.c -o svi
+mipsel-linux-gcc -Wall -L../libconfig/ -I../libconfig/ -I./vinetic/include/ -I./tapi/include/ -I./sgatab/ svi.c -o svi -lconfig -static
 
 mv svi ${1}
 ./clean_there

@@ -19,6 +19,7 @@ PKG_SGATAB_DISTR:=drv_sgatab
 PKG_SVD_DISTR:=svd
 PKG_SVI_DISTR:=svi
 PKG_LIBAB_DISTR:=libab
+PKG_LIBCONFIG_DISTR:=libconfig
 PKG_TST_DISTR:=tst
 
 PKG_CONF_DIR:=$(TOPDIR)/package/$(PKG_NAME)
@@ -38,6 +39,7 @@ SGATAB_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SGATAB_DISTR) $(PKG_BUILD_DIR)
 SVD_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVD_DISTR) $(PKG_BUILD_DIR)
 SVI_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVI_DISTR) $(PKG_BUILD_DIR)
 LIBAB_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_LIBAB_DISTR) $(PKG_BUILD_DIR)
+LIBCONFIG_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_LIBCONFIG_DISTR) $(PKG_BUILD_DIR)
 TST_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_TST_DISTR) $(PKG_BUILD_DIR)
 
 
@@ -58,6 +60,7 @@ $(PKG_BUILD_DIR)/.prepared:
 	$(SVD_UNPACK);
 	$(SVI_UNPACK);
 	$(LIBAB_UNPACK);
+	$(LIBCONFIG_UNPACK);
 	$(TST_UNPACK);
 
 	#---------======================================---------
@@ -212,10 +215,13 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 	( cd $(PKG_BUILD_DIR)/svi; \
 		$(TARGET_CONFIGURE_OPTS) \
 		mipsel-linux-gcc \
+		-L$(PKG_BUILD_DIR)/libconfig/ \
+		-I$(PKG_BUILD_DIR)/libconfig/ \
 		-I$(PKG_BUILD_DIR)/vinetic/include/ \
 		-I$(PKG_BUILD_DIR)/tapi/include/ \
 		-I$(PKG_BUILD_DIR)/sgatab/ \
-		svi.c -o svi; \
+		svi.c -o svi \
+		 -lconfig -static;\
 		cp svi $(PKG_INSTALL_DIR)/bin/ \
 	);
 
@@ -227,8 +233,6 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 		automake -a --foreign; \
 		autoconf; \
 		$(TARGET_CONFIGURE_OPTS) \
-		CFLAGS="$(TARGET_CFLAGS) -I$(STAGING_DIR)/usr/include -I../libab" \
-		LDFLAGS="-L$(STAGING_DIR)/usr/lib -L$(STAGING_DIR)/lib -L../libab" \
 		./configure \
 		--host=$(GNU_TARGET_NAME) \
 		--build=$(GNU_HOST_NAME) \
