@@ -442,6 +442,7 @@ Controllers.voipTF = function() {
                     "type": "select",
                     "name": $.sprintf("sys_voip_tf_settings_%s_wire_type", channel[0]),
 					"options": {"2w": "2-wire", "4w": "4-wire"},
+                    "defaultValue": "4w",
 					"validator": {"required": true}
 				};
                 c.addTableWidget(field, row);
