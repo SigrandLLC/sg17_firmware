@@ -42,5 +42,5 @@ done
 
 
 tar -C $TMP_PATH -cf /root/vendor-sysinfo.tar $TMP_DIR
-echo "/root/vendor-sysinfo.tar created. Send it to Sigrand"
+echo "/root/vendor-sysinfo.tar created. Send it to your vendor"
 

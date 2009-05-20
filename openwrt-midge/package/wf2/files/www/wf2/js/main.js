@@ -34,6 +34,7 @@ function generateMenu() {
 		config.runCmd("/bin/cat /proc/driver/sgatab/channels", "voipChannels");
 		addItem("Hardware:VoIP", "Settings", "voipSettings");
         addItem("Hardware:VoIP", "Hotline", "voipHotline");
+        addItem("Hardware:VoIP", "TF", "voipTF");
         addItem("Hardware:VoIP", "Routes", "voipRoutes");
         addItem("Hardware:VoIP", "Addresses", "voipAddresses");
         addItem("Hardware:VoIP", "RTP", "voipRtp");

@@ -215,77 +215,19 @@ Controllers.voipHotline = function() {
 	page.generateTabs();
 };
 
-/* TODO: remove uLaw from Hardlink */
-Controllers.voipHardlink = function() {
+/* TF */
+Controllers.voipTF = function() {
 	var page = this.Page();
 
 	page.addTab({
-		"id": "hardlink",
-		"name": "Hardlink",
+		"id": "tf",
+		"name": "Tonal frequency channels",
 		"func": function() {
-			var c, field;
-			c = page.addContainer("hardlink");
-			c.setSubsystem("svd-hardlink");
+			var c = page.addContainer("tf");
+			c.setSubsystem("svd-tf");
 
-			/* define arrays of local and remote channels */
-			var localChannels = config.getCachedOutput("voipChannels").split("\n");
-			var remoteChannels = [];
-			for (var i = 0; i < 32; i++) {
-				remoteChannels.push(((i < 10) ? "0" + i : i) + ":FXS");
-			}
-
-			var getUnusedChannels = function(channels) {
-				/* list of local channels which are already in use */
-				var inUse = "";
-				$.each(config.getParsed("sys_voip_hardlink_*"), function(num, channel) {
-					inUse += channel.ch_idx + " ";
-				});
-
-				$.each(channels, function(num, channel) {
-					var channelParts = channel.split("/");
-					if (inUse.search(channelParts[0]) != -1) {
-						delete channels[channel];
-					} else if (channelParts[1] && inUse.search(channelParts[1]) != -1) {
-						delete channels[channel];
-					}
-				});
-
-				return channels;
-			};
-
-			/* returns list of correct channels in proper format depending on hardink type (2w/4w) */
-			var getChannelList = function(channels) {
-				var result = {};
-
-				$.each(channels, function(num, record) {
-					if (record.length == 0) {
-						return true;
-					}
-
-					/* channel[0] — number of channel, channel[1] — type of channel */
-					var channel = record.split(":");
-
-					/* only FXS channels */
-					if (channel[1] == "FXO") {
-						return true;
-					}
-
-					/* hardlink type */
-					if ($("#wire_type").val() == "2w") {
-						result[channel[0]] = channel[0];
-					} else {
-						var chNum = parseInt(channel[0], 10);
-						/* even number */
-						if ((chNum % 2) == 0) {
-							var chString = ((chNum < 10) ? "0" + chNum : chNum)
-									+ "/" + (((chNum + 1) < 10) ? "0" + (chNum + 1) : (chNum + 1));
-							result[chString] = chString;
-						}
-					}
-				});
-
-				return result;
-			};
+            var colNum = 8;
+			c.addTitle("Tonal frequency channels", {"colspan": colNum});
 
             /*
              * Parameters for codecs:
@@ -297,116 +239,125 @@ Controllers.voipHardlink = function() {
              * - bitpack_ro — read-only (default set to false);
              */
             var codecsParameters = {
-                "aLaw": {"pkt_sz": "20", "payload": "08", "bitpack": "rtp", "bitpack_ro": true},
-				"uLaw": {"pkt_sz": "20", "payload": "00", "bitpack": "rtp", "bitpack_ro": true},
-				"g729": {"pkt_sz": "10", "payload": "12", "bitpack": "rtp", "bitpack_ro": true},
+                "aLaw": {"pkt_sz": "20", "payload": "08", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
+				"g729": {"pkt_sz": "10", "payload": "12", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "10 20 30 40 60"},
 				"g723": {"pkt_sz": "30", "payload": "4", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "30 60"},
 				"iLBC_133": {"pkt_sz": "30", "payload": "100", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_ro": true},
-				"g729e": {"pkt_sz": "10", "payload": "101", "bitpack": "rtp", "bitpack_ro": true},
-				"g726_16": {"pkt_sz": "10", "payload": "102", "bitpack": "aal2"},
-				"g726_24": {"pkt_sz": "10", "payload": "103", "bitpack": "aal2"},
-				"g726_32": {"pkt_sz": "10", "payload": "104", "bitpack": "aal2"},
-				"g726_40": {"pkt_sz": "10", "payload": "105", "bitpack": "aal2"}
+				"g729e": {"pkt_sz": "10", "payload": "101", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "10 20 30 40 60"},
+				"g726_16": {"pkt_sz": "10", "payload": "102", "bitpack": "aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
+				"g726_24": {"pkt_sz": "10", "payload": "103", "bitpack": "aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
+				"g726_32": {"pkt_sz": "10", "payload": "104", "bitpack": "aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
+				"g726_40": {"pkt_sz": "10", "payload": "105", "bitpack": "aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"}
             };
 
             var pktszDefaultValues = "2.5 5 5.5 10 11 20 30 40 50 60";
 
             /* set codec parameters */
-            var onCodecChange = function() {
-                var codec = $("#codec").val();
+            var onCodecChange = function(channel) {
+                var codec = $($.sprintf("#sys_voip_tf_channels_%s_codec", channel)).val();
 
                 /* set values for pkt_sz */
-                $("#pkt_sz").setOptionsForSelect({
+                $($.sprintf("#sys_voip_tf_channels_%s_pkt_sz", channel)).setOptionsForSelect({
                         "options": codecsParameters[codec].pkt_sz_vals == undefined
                                 ? pktszDefaultValues
-                                : codecsParameters[codec].pkt_sz_vals,
-                        "curValue": $("#pkt_sz").val()
+                                : codecsParameters[codec].pkt_sz_vals
                 });
 
                 /* set pkt_sz default */
-                $("#pkt_sz").val(codecsParameters[codec].pkt_sz);
+                $($.sprintf("#sys_voip_tf_channels_%s_pkt_sz", channel))
+                        .val(codecsParameters[codec].pkt_sz);
 
                 /* set/unset pkt_sz read-only */
-                $("#pkt_sz").setSelectReadonly(codecsParameters[codec].pkt_sz_ro == undefined
-                        ? false
-                        : codecsParameters[codec].pkt_sz_ro);
+                $($.sprintf("#sys_voip_tf_channels_%s_pkt_sz", channel))
+                        .setSelectReadonly(codecsParameters[codec].pkt_sz_ro == undefined
+                                ? false
+                                : codecsParameters[codec].pkt_sz_ro);
 
                 /* set payload default */
-                $("#payload").val(codecsParameters[codec].payload);
+                $($.sprintf("#sys_voip_tf_channels_%s_payload", channel))
+                        .val(codecsParameters[codec].payload);
 
                 /* set bitpack default */
-                $("#bitpack").val(codecsParameters[codec].bitpack);
+                $($.sprintf("#sys_voip_tf_channels_%s_bitpack", channel))
+                        .val(codecsParameters[codec].bitpack);
 
                 /* set/unset bitpack read-only */
-                $("#bitpack").setSelectReadonly(codecsParameters[codec].bitpack_ro == undefined
-                        ? false
-                        : codecsParameters[codec].bitpack_ro);
+                $($.sprintf("#sys_voip_tf_channels_%s_bitpack", channel))
+                        .setSelectReadonly(codecsParameters[codec].bitpack_ro == undefined
+                                ? false
+                                : codecsParameters[codec].bitpack_ro);
             };
 
-			/* add widgets for adding/editing hardlink channels */
-			var addHardlinkWidgets = function(list) {
-				field = {
-					"type": "select",
-					"name": "wire_type",
-					"text": "2-wire/4-wire",
-					"descr": "Hardlink wire type: 2-wire or 4-wire.",
-					"options": {"2w": "2-wire", "4w": "4-wire"},
-					"onChange": function() {
-						$("#ch_idx").setOptionsForSelect(
-								{"options": getUnusedChannels(getChannelList(localChannels))});
-						$("#pair_chan").setOptionsForSelect(
-								{"options": getChannelList(remoteChannels)});
-					},
-					"validator": {"required": true}
-				};
-				list.addDynamicWidget(field);
+			c.addTableHeader("Chan|EN|Router ID|R. chan|Codec|Packet. time|Payload|Bitpack");
+            c.addTableTfootStr("Chan - local channel.", colNum);
+            c.addTableTfootStr("EN - enable channel.", colNum);
+            c.addTableTfootStr("Router ID - ID of a router to connect with.", colNum);
+            c.addTableTfootStr("R. chan - TF channel on the remote router.", colNum);
+            c.addTableTfootStr("Codec - codec to use.", colNum);
+            c.addTableTfootStr("Packet. time - packetization time in ms.", colNum);
+            c.addTableTfootStr("Payload - RTP codec identificator.", colNum);
+            c.addTableTfootStr("Bitpack - bits packetization type.", colNum);
 
-				field = {
-					"type": "select",
-					"name": "ch_idx",
-					"text": "Local channel",
-					"descr": "FXS channel on current router.",
-					"options": getUnusedChannels(getChannelList(localChannels)),
-					"validator": {"required": true},
-					"addCurrentValue": true
-				};
-				list.addDynamicWidget(field);
+			var channels = config.getCachedOutput("voipChannels").split("\n");
+			$.each(channels, function(num, record) {
+				var field;
+				if (record.length == 0) {
+                    return true;
+                }
+				var row = c.addTableRow();
 
+				/* channel[0] — number of channel, channel[1] — type of channel */
+				var channel = record.split(":");
+
+                /* only TF channels */
+                if (channel[1] != "TF") {
+                    return true;
+                }
+
+                /* local channel */
 				field = {
+					"type": "html",
+					"name": channel[0],
+					"str": channel[0]
+				};
+				c.addTableWidget(field, row);
+
+                /* enabled */
+                field = {
+					"type": "checkbox",
+					"name": $.sprintf("sys_voip_tf_channels_%s_enabled", channel[0])
+				};
+				c.addTableWidget(field, row);
+
+                /* pair_route */
+                field = {
 					"type": "text",
-					"name": "pair_route",
-					"text": "Router ID",
-					"descr": "ID of router to connect with.",
-					"validator": {"required": true, "voipRouterIDWithSelf": true}
+					"name": $.sprintf("sys_voip_tf_channels_%s_pair_route", channel[0]),
+					"validator": {
+                            "required": $.sprintf("#sys_voip_tf_channels_%s_enabled:checked", channel[0]),
+                            "voipRouterIDWithSelf": true
+                    }
 				};
-				list.addDynamicWidget(field);
+				c.addTableWidget(field, row);
 
+                /* pair_chan */
 				field = {
 					"type": "select",
-					"name": "pair_chan",
-					"text": "Remote channel",
-					"descr": "FXS channel on remote router.",
-					"options": getChannelList(remoteChannels),
-					"validator": {"required": true}
+					"name": $.sprintf("sys_voip_tf_channels_%s_pair_chan", channel[0]),
+					"options": function() {
+                        var remoteChannels = [];
+                        for (var i = 0; i < 32; i++) {
+                            remoteChannels.push(((i < 10) ? "0" + i : i));
+                        }
+                        return remoteChannels;
+                    }()
 				};
-				list.addDynamicWidget(field);
+				c.addTableWidget(field, row);
 
+                /* codec */
                 field = {
 					"type": "select",
-					"name": "role",
-					"text": "Role",
-					"descr": "Current side role: receiver or caller.",
-					"options": "receiver caller",
-					"defaultValue": "receiver",
-					"validator": {"required": true}
-				};
-				list.addDynamicWidget(field);
-
-				field = {
-					"type": "select",
-					"name": "codec",
-					"text": "Codec",
-					"descr": "Codec to use.",
+					"name": $.sprintf("sys_voip_tf_channels_%s_codec", channel[0]),
 					"options": function() {
                         var codecs = [];
                         $.each(codecsParameters, function(key) {
@@ -414,59 +365,101 @@ Controllers.voipHardlink = function() {
                         });
                         return codecs;
                     }(),
-					"validator": {"required": true},
-                    "onChange": onCodecChange
+                    "onChange": function() {
+                        onCodecChange(channel[0]);
+                    }
 				};
-				list.addDynamicWidget(field);
+				c.addTableWidget(field, row);
 
+                /* pkt_sz, list of options is set in onCodecChange() */
 				field = {
 					"type": "select",
-					"name": "pkt_sz",
-					"text": "Packetization time (ms)",
-					"descr": "Packetization time in ms.",
-					"validator": {"required": true}
+					"name": $.sprintf("sys_voip_tf_channels_%s_pkt_sz", channel[0])
 				};
-				list.addDynamicWidget(field);
+				c.addTableWidget(field, row);
 
 				/* payload */
                 field = {
                     "type": "text",
-                    "name": "payload",
-                    "text": "Payload",
-                    "descr": "RTP codec identificator.",
-                    "validator": {"required": true, "voipPayload": true}
+                    "name": $.sprintf("sys_voip_tf_channels_%s_payload", channel[0]),
+                    "validator": {
+                            "required": $.sprintf("#sys_voip_tf_channels_%s_enabled:checked", channel[0]),
+                            "voipPayload": true
+                    }
                 };
-                list.addDynamicWidget(field);
+                c.addTableWidget(field, row);
 
                 /* bitpack */
                 field = {
                     "type": "select",
-                    "name": "bitpack",
-                    "text": "Bitpack",
-                    "descr": "Bits packetization type.",
-                    "options": "rtp aal2",
-                    "validator": {"required": true}
+                    "name": $.sprintf("sys_voip_tf_channels_%s_bitpack", channel[0]),
+                    "options": "rtp aal2"
                 };
-                list.addDynamicWidget(field);
+                c.addTableWidget(field, row);
 
-                onCodecChange();
-			};
-
-			var list = c.createList({
-				"tabId": "hardlink",
-				"header": ["Type", "Local chan", "Router ID", "Remote chan", "Codec", "Packet. time",
-						"Payload", "Bitpack", "Role"],
-				"varList": ["wire_type", "ch_idx", "pair_route", "pair_chan", "codec", "pkt_sz",
-						"payload", "bitpack", "role"],
-				"listItem": "sys_voip_hardlink_",
-				"addMessage": "Add hardlink",
-				"editMessage": "Edit hardlink",
-				"listTitle": "Hardlink",
-				"helpPage": "voip",
-				"onAddOrEditItemRender": addHardlinkWidgets
+                onCodecChange(channel[0]);
 			});
 
-			list.generateList();
+			c.addSubmit();
+		}
+	});
+
+    page.addTab({
+		"id": "tf_settings",
+		"name": "Settings",
+		"func": function() {
+			var c = page.addContainer("tf_settings");
+			c.setSubsystem("svd-tf_settings");
+			c.addTitle("Settings", {"colspan": 3});
+
+			c.addTableHeader("Channel|Wires|Transmit type");
+            c.addTableTfootStr("Device has to be turned off and on to apply changes (reboot is not enough).", 3);
+
+			var channels = config.getCachedOutput("voipChannels").split("\n");
+			$.each(channels, function(num, record) {
+				var field;
+				if (record.length == 0) {
+                    return true;
+                }
+				var row = c.addTableRow();
+
+				/* channel[0] — number of channel, channel[1] — type of channel */
+				var channel = record.split(":");
+
+                /* only TF channels */
+                if (channel[1] != "TF") {
+                    return true;
+                }
+
+				field = {
+					"type": "html",
+					"name": channel[0],
+					"str": channel[0]
+				};
+				c.addTableWidget(field, row);
+
+				field = {
+                    "type": "select",
+                    "name": $.sprintf("sys_voip_tf_settings_%s_wire_type", channel[0]),
+					"options": {"2w": "2-wire", "4w": "4-wire"},
+					"validator": {"required": true}
+				};
+                c.addTableWidget(field, row);
+
+                field = {
+                    "type": "select",
+                    "name": $.sprintf("sys_voip_tf_settings_%s_transmit_type", channel[0]),
+					"options": "normal trunc",
+					"validator": {"required": true}
+				};
+				c.addTableWidget(field, row);
+			});
+
+			c.addSubmit({
+                "preSubmit": function() {
+                    c.setSuccessMessage(_("Device has to be turned OFF and ON to apply changes (reboot is not enough)."));
+                }
+            });
 		}
 	});
 
@@ -1085,7 +1078,7 @@ Controllers.voipFxo = function() {
 				var channel = record.split(":");
 
                 /* only FXO channels */
-                if (channel[1] == "FXS") {
+                if (channel[1] != "FXO") {
                     return true;
                 }
 
