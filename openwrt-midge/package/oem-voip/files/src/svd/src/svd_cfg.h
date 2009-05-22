@@ -107,8 +107,10 @@ void startup_destroy( int argc, char ** argv );
 #define USER_URI_LEN 70
 /*}}}*/
 
-/** Reads config file and init \ref g_conf structure.*/
+/** Reads config files and init \ref g_conf structure.*/
 int  svd_conf_init( void );
+/** Read ata board params and reinit some in \ref g_conf.*/
+int  svd_conf_reinit( ab_t const * const ab );
 /** Show the config information from \ref g_conf.*/
 void conf_show( void );
 /** Destroy \ref g_conf.*/

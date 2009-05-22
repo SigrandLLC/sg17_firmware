@@ -240,6 +240,53 @@ __exit_fail:
 }/*}}}*/
 
 /**
+ *	Parses ata board struct and reinit some in \ref g_conf.
+ *
+ * \retval 0 success.
+ * \retval -1 in error case.
+ */ 
+int 
+svd_conf_reinit( ab_t const * const ab)
+{/*{{{*/
+	int i;
+	int chans_num;
+	struct wlec_s * cr; /* current rec */
+	ab_chan_t * cc; /* current channel */
+
+	if( !ab){
+		goto __exit_fail;
+	}
+
+	/* reinit WLEC params */
+	chans_num = ab->chans_num;
+	for (i=0; i<chans_num; i++){
+		cc = &ab->chans[i];
+		cr = &g_conf.wlec_prms[cc->abs_idx];
+		if(cr->mode == wlec_mode_UNDEF){
+			if       (cc->parent->type == ab_dev_type_FXO){
+				cr->mode = wlec_mode_NE;
+				cr->nlp = wlec_nlp_ON;
+				cr->ne_nb = 4;
+				cr->fe_nb = 4;
+				cr->ne_wb = 4;
+			} else if(cc->parent->type == ab_dev_type_FXS){
+				cr->mode = wlec_mode_NE;
+				cr->nlp = wlec_nlp_OFF;
+				cr->ne_nb = 4;
+				cr->fe_nb = 4;
+				cr->ne_wb = 4;
+			} else if(cc->parent->type == ab_dev_type_TF){
+				cr->mode = wlec_mode_OFF;
+			}
+		}
+	} 
+
+	return 0;
+__exit_fail:
+	return -1;
+}/*}}}*/
+
+/**
  * Show config parameters.
  *
  * \remark
@@ -978,9 +1025,6 @@ tonalf_init( void )
 		err = config_error_line (&cfg);
 		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n",
 				__func__, err));
-		/* tag__ */SU_DEBUG_0(("%s(): SHOULD BE ADDED LATER\n", __func__));
-		goto __exit_success;
-
 		goto __exit_fail;
 	} 
 
@@ -1507,11 +1551,14 @@ wlec_init( void )
 	/* Standart params for all chans */
 	curr_rec = &g_conf.wlec_prms[0];
 	memset (curr_rec, 0, sizeof(*curr_rec));
+	curr_rec->mode = wlec_mode_UNDEF;
+	/*
 	curr_rec->mode = wlec_mode_NE;
 	curr_rec->nlp = wlec_nlp_ON;
 	curr_rec->ne_nb = 4;
 	curr_rec->fe_nb = 4;
 	curr_rec->ne_wb = 4;
+	*/
 	for (i=1; i<CHANS_MAX; i++){
 		curr_rec = &g_conf.wlec_prms[i];
 		memcpy(curr_rec, &g_conf.wlec_prms[0], sizeof(*curr_rec));

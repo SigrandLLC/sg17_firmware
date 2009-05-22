@@ -344,7 +344,8 @@ ab_chan_media_wlec_tune( ab_chan_t * const chan, wlec_t const * const wp )
 	memset(&lecConf, 0, sizeof(lecConf));
 
 	/* WLEC mode */
-	if        (wp->mode == wlec_mode_OFF){
+	if        (wp->mode == wlec_mode_OFF ||
+			   wp->mode == wlec_mode_UNDEF){
 		lecConf.nType = IFX_TAPI_WLEC_TYPE_OFF;
 	} else if (wp->mode == wlec_mode_NE){
 		lecConf.nType = IFX_TAPI_WLEC_TYPE_NE;

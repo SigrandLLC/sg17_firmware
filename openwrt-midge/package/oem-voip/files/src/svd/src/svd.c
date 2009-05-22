@@ -82,7 +82,7 @@ main (int argc, char ** argv)
 		svd_log_set (g_so.debug_level, 1);
 	}
 
-	/* read svd.conf file */
+	/* read svd *.conf files */
 	err = svd_conf_init();
 	if (err){
 		goto __conf;
@@ -100,15 +100,23 @@ main (int argc, char ** argv)
 		goto __conf;
 	}
 
+	/* config reinit */
+	err = svd_conf_reinit (svd->ab);
+	if (err){
+		goto __svd;
+	}
+
 	/* place tf-calls */
 	err = svd_place_tf(svd);
 	if(err){
-		goto __conf;
+		goto __svd;
 	}
 
 	/* run main cycle */
 	su_root_run (svd->root);
 
+__svd:
+	svd_destroy (&svd);
 __conf:
 	svd_conf_destroy ();
 	su_deinit ();

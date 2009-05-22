@@ -55,6 +55,7 @@ struct codec_s {
 };
 
 enum wlec_mode_e {
+	wlec_mode_UNDEF,
 	wlec_mode_OFF,
 	wlec_mode_NE,
 	wlec_mode_NFE,
