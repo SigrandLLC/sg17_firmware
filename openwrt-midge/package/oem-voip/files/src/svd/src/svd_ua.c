@@ -800,7 +800,7 @@ svd_i_invite( int status, char const * phrase, svd_t * const svd,
 	int err;
 DFS
 	if( !strcmp (g_conf.self_ip, to->a_url->url_host) ){
-		/* local call */
+		/* local call (local network) */
 		if( !strcmp (g_conf.self_ip, from->a_url->url_host)){
 			/* call from the same router */
 			caller_router_is_self = 1;
@@ -813,12 +813,57 @@ DFS
 		 * */
 		if (isdigit(to->a_url->url_user[0])){
 			/* 'xx@..'  - absolute channel number */
+			int it_is_tf_reconnect = 0;
+			int pair_chan;
+			int pair_route_id;
+			int i;
+			int routers_num;
 			abs_chan_idx = strtol(to->a_url->url_user, NULL, 10);
 			chan_idx = get_dest_chan_idx (svd->ab, NULL, abs_chan_idx);
 			if( chan_idx == -1 ){
 				nua_respond(nh, SIP_500_INTERNAL_SERVER_ERROR, TAG_END());
 				nua_handle_destroy(nh);
 				goto __exit;
+			}
+			/* tf-reconnect test
+			 * if 
+			 *		1. not self (if self - just one caller)
+			 *		2. it is tf-channel
+			 *		3. and caller the pair
+			 *	then
+			 *		destroy handle
+			 *			to make new connection
+			 */
+			pair_chan = strtol(from->a_url->url_user, NULL, 10);
+			routers_num = g_conf.route_table.records_num;
+			/* get pair_route_id */
+			err = 1;
+			/* not self connect - find pair route ip from route_t */
+			for(i=0; i<routers_num; i++){
+				if( !strcmp(from->a_url->url_host, 
+									g_conf.route_table.records[i].value)){
+					pair_route_id = strtol(g_conf.route_table.records[i].id,
+							NULL, 10);
+					err = 0;
+					break;
+				}
+			}
+			it_is_tf_reconnect = 
+				(!err) &&
+				(!caller_router_is_self) &&
+				g_conf.tonal_freq[abs_chan_idx].is_set &&
+				(strtol(g_conf.tonal_freq[abs_chan_idx].pair_route,NULL,10) == 
+					pair_route_id) &&
+				(strtol(g_conf.tonal_freq[abs_chan_idx].pair_chan,NULL,10) == 
+					pair_chan);
+			if(it_is_tf_reconnect){
+				chan_ctx = svd->ab->chans[chan_idx].ctx;
+				if(chan_ctx->op_handle){
+					/* if connect already is on - drop it before set 
+					 * the new one */
+					nua_handle_destroy(chan_ctx->op_handle);
+					chan_ctx->op_handle = NULL;
+				}
 			}
 		} else if ( !strcmp(to->a_url->url_user, FIRST_FREE_FXO )){
 			/* '$FIRST_FREE_FXO@..' - first free fxo */
