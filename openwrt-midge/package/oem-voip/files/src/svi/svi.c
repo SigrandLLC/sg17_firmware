@@ -114,19 +114,16 @@ static int load_modules( void );
 static int load_cfg( void );
 static int init_voip( void );
 
-static int board_iterator (int (*func)(ab_board_params_t const * const bp, 
-		int const abs_board_idx));
+static int board_iterator (int (*func)(ab_board_params_t const * const bp));
 static int create_vinetic_nodes (void);
-static int create_vin_board (ab_board_params_t const * const bp, 
-		int const abs_board_idx);
-static int board_init (ab_board_params_t const * const bp, 
-		int const abs_board_idx);
+static int create_vin_board (ab_board_params_t const * const bp);
+static int board_init (ab_board_params_t const * const bp);
 static int dev_init(int const dev_idx, ab_dev_params_t const * const dp, 
-		long const nIrqNum, int const abs_dev_idx);
+		long const nIrqNum);
 static int basicdev_init( int const dev_idx, ab_dev_params_t const * const dp, 
 		long const nIrqNum);
 static int chan_init (int const dev_idx, int const chan_idx, 
-		dev_type_t const dt, int const abs_dev_idx);
+		dev_type_t const dt, int const abs_chan_idx);
 static int chan_init_tune (int const rtp_fd, int const chan_idx, 
 		int const dev_idx, dev_type_t const dtype);
 static int pd_ram_load( void );
@@ -425,8 +422,7 @@ __exit_fail:
 }/*}}}*/
 
 static int
-board_iterator (int (*func)(ab_board_params_t const * const bp,
-			int const abs_board_idx))
+board_iterator (int (*func)(ab_board_params_t const * const bp))
 {/*{{{*/
 	ab_board_params_t bp;
 	int bc;
@@ -485,7 +481,7 @@ board_iterator (int (*func)(ab_board_params_t const * const bp,
 		}
 
 		/* execute func on current board */
-		err = func (&bp, i);
+		err = func (&bp);
 		if(err){
 			goto __exit_fail_close;
 		}
@@ -500,7 +496,7 @@ __exit_fail:
 }/*}}}*/
 
 static int 
-board_init (ab_board_params_t const * const bp, int const abs_board_idx)
+board_init (ab_board_params_t const * const bp)
 {/*{{{*/
 	int i;
 	int err;
@@ -509,8 +505,7 @@ board_init (ab_board_params_t const * const bp, int const abs_board_idx)
 	for(i=0; i<DEVS_PER_BOARD_MAX; i++){
 		if(bp->devices[i].type != dev_type_ABSENT){
 			/* init device and it`s channels */
-			err = dev_init (dev_idx, &bp->devices[i], bp->nIrqNum,
-					(abs_board_idx * DEVS_PER_BOARD_MAX)+i);
+			err = dev_init (dev_idx, &bp->devices[i], bp->nIrqNum);
 			if(err){
 				goto __exit_fail;
 			}
@@ -523,8 +518,7 @@ __exit_fail:
 }/*}}}*/
 
 static int 
-dev_init (int const dev_idx, ab_dev_params_t const * const dp, 
-		long const nIrqNum, int const abs_dev_idx)
+dev_init (int const dev_idx, ab_dev_params_t const * const dp, long const nIrqNum)
 {/*{{{*/
 	int j;
 	int err;
@@ -542,7 +536,7 @@ dev_init (int const dev_idx, ab_dev_params_t const * const dp,
 	/* download fw and chans init */
 	for(j=0; j<CHANS_PER_DEV; j++){
 		/* channel init */
-		err = chan_init (dev_idx, j, dp->type, abs_dev_idx);
+		err = chan_init (dev_idx, j, dp->type, dp->chans_idx[j]);
 		if(err){
 			goto __exit_fail;
 		}
@@ -609,7 +603,7 @@ __exit_fail:
 
 static int
 chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt,
-		int const abs_dev_idx)
+		int const abs_chan_idx)
 {/*{{{*/
 	IFX_TAPI_CH_INIT_t init;
 	VINETIC_IO_INIT vinit;
@@ -658,32 +652,31 @@ chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt,
 		vinit.pBBDbuf   = fw_cram_fxs;
 		vinit.bbd_size  = fw_cram_fxs_size;
 	} else if(dt==dev_type_TF){
-		/* revert channels on device and in abs_places 
-		 * if chan_idx == 0 -> chan_id = dev_offset+1
-		 * if chan_idx == 1 -> chan_id = dev_offset
-		 */
-		int chan_id = (abs_dev_idx * CHANS_PER_DEV) + 
-			((chan_idx +1) % CHANS_PER_DEV);
-		err = cram_tf_load (tf_cfg[chan_id]);
+		err = cram_tf_load (tf_cfg[abs_chan_idx]);
 		if(err){
 			goto __exit_fail_close;
 		}
-		if        (tf_cfg[chan_id] == tf_type_N2){
+		if        (tf_cfg[abs_chan_idx] == tf_type_N2){
+			/* tag__ tf load type messages */
+fprintf(stderr,">> Chan [%d] is TF N2\n",abs_chan_idx);
 			vinit.pCram     = fw_cram_tfn2;
 			vinit.cram_size = fw_cram_tfn2_size;
 			vinit.pBBDbuf   = fw_cram_tfn2;
 			vinit.bbd_size  = fw_cram_tfn2_size;
-		} else if (tf_cfg[chan_id] == tf_type_N4){
+		} else if (tf_cfg[abs_chan_idx] == tf_type_N4){
+fprintf(stderr,">> Chan [%d] is TF N4\n",abs_chan_idx);
 			vinit.pCram     = fw_cram_tfn4;
 			vinit.cram_size = fw_cram_tfn4_size;
 			vinit.pBBDbuf   = fw_cram_tfn4;
 			vinit.bbd_size  = fw_cram_tfn4_size;
-		} else if (tf_cfg[chan_id] == tf_type_T2){
+		} else if (tf_cfg[abs_chan_idx] == tf_type_T2){
+fprintf(stderr,">> Chan [%d] is TF T2\n",abs_chan_idx);
 			vinit.pCram     = fw_cram_tft2;
 			vinit.cram_size = fw_cram_tft2_size;
 			vinit.pBBDbuf   = fw_cram_tft2;
 			vinit.bbd_size  = fw_cram_tft2_size;
-		} else if (tf_cfg[chan_id] == tf_type_T4){
+		} else if (tf_cfg[abs_chan_idx] == tf_type_T4){
+fprintf(stderr,">> Chan [%d] is TF T4\n",abs_chan_idx);
 			vinit.pCram     = fw_cram_tft4;
 			vinit.cram_size = fw_cram_tft4_size;
 			vinit.pBBDbuf   = fw_cram_tft4;
@@ -990,7 +983,7 @@ fw_masses_free( void )
 }/*}}}*/
 
 static int 
-create_vin_board (ab_board_params_t const * const bp, int const abs_board_idx)
+create_vin_board (ab_board_params_t const * const bp)
 {/*{{{*/
 	int i;
 	int err;

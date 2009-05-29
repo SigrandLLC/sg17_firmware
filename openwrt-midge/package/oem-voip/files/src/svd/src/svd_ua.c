@@ -565,7 +565,7 @@ DFS
 			strcpy (ctx->dial_status.chan_id, curr_rec->pair_chan);
 			/* get pair_route */
 			if ( !curr_rec->pair_route){
-				ctx->dial_status.route_ip = g_conf.lo_ip;
+				ctx->dial_status.route_ip = g_conf.self_ip;
 				ctx->dial_status.dest_is_self = self_YES;
 				err = 0;
 			} else {
