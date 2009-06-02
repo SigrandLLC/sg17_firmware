@@ -413,7 +413,10 @@ Controllers.voipTF = function() {
 			c.addTitle("Settings", {"colspan": 3});
 
 			c.addTableHeader("Channel|Wires|Transmit type");
-            c.addTableTfootStr("Device has to be turned off and on to apply changes (reboot is not enough).", 3);
+            c.addTableTfootStr("4-Wire Normal: Tx (In) = -13 dBr, Rx (Out) = +4 dBr", 3);
+            c.addTableTfootStr("4-Wire Transit: Tx (In) = +4 dBr, Rx (Out) = +4 dBr", 3);
+            c.addTableTfootStr("2-Wire Normal: Tx (In) = 0 dBr, Rx (Out) = -7 dBr", 3);
+            c.addTableTfootStr("2-Wire Transit: Tx (In) = -3.5 dBr, Rx (Out) = -3.5 dBr", 3);
 
 			var channels = config.getCachedOutput("voipChannels").split("\n");
 			$.each(channels, function(num, record) {
@@ -442,25 +445,19 @@ Controllers.voipTF = function() {
                     "type": "select",
                     "name": $.sprintf("sys_voip_tf_settings_%s_wire_type", channel[0]),
 					"options": {"2w": "2-wire", "4w": "4-wire"},
-                    "defaultValue": "4w",
-					"validator": {"required": true}
+                    "defaultValue": "4w"
 				};
                 c.addTableWidget(field, row);
 
                 field = {
                     "type": "select",
                     "name": $.sprintf("sys_voip_tf_settings_%s_transmit_type", channel[0]),
-					"options": "normal trunc",
-					"validator": {"required": true}
+					"options": "normal transit"
 				};
 				c.addTableWidget(field, row);
 			});
 
-			c.addSubmit({
-                "preSubmit": function() {
-                    c.setSuccessMessage(_("Device has to be turned OFF and ON to apply changes (reboot is not enough)."));
-                }
-            });
+			c.addSubmit();
 		}
 	});
 
