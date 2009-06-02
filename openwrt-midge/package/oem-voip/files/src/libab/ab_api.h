@@ -208,6 +208,8 @@ extern int ab_g_err_extra_value;
 ab_t* ab_create (void);
 /** Destroy the ab_t object. */
 void ab_destroy (ab_t ** ab);
+/** Init channel with given CRAM file */
+int ab_chan_cram_init (ab_chan_t const * const chan, char const * const path);
 /** @} */
 
 

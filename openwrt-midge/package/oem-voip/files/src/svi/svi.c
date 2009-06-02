@@ -42,7 +42,7 @@
  * should be fixed */
 #define CHANS_MAX 32
 
-#define TF_TRUNC   "trunc"
+#define TF_TRANSIT "transit"
 #define TF_NORMAL  "normal"
 #define TF_2_WIRED "2w"
 #define TF_4_WIRED "4w"
@@ -360,7 +360,7 @@ load_cfg( void )
 			elem = config_setting_get_string_elem (rec_set, 2);
 			if       (!strcmp(elem, TF_NORMAL)){
 				tf_cfg[chan_id] = tf_type_N4;
-			} else if(!strcmp(elem, TF_TRUNC)){
+			} else if(!strcmp(elem, TF_TRANSIT)){
 				tf_cfg[chan_id] = tf_type_T4;
 			} else {
 				val_err = 1;
@@ -370,7 +370,7 @@ load_cfg( void )
 			elem = config_setting_get_string_elem (rec_set, 2);
 			if       (!strcmp(elem, TF_NORMAL)){
 				tf_cfg[chan_id] = tf_type_N2;
-			} else if(!strcmp(elem, TF_TRUNC)){
+			} else if(!strcmp(elem, TF_TRANSIT)){
 				tf_cfg[chan_id] = tf_type_T2;
 			} else {
 				val_err = 1;
@@ -607,6 +607,10 @@ chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt,
 {/*{{{*/
 	IFX_TAPI_CH_INIT_t init;
 	VINETIC_IO_INIT vinit;
+	struct bbd_format_s {
+		unsigned char * buf;
+		unsigned long size;
+	} bbd_download;
 	char cnode[ 50 ];
 	int cfd;
 	int err;
@@ -622,15 +626,16 @@ chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt,
 	}
 
 	memset(&vinit, 0, sizeof(vinit));
+	memset(&bbd_download, 0, sizeof (bbd_download));
 
 	err = pd_ram_load();
 	if(err){
 		goto __exit_fail_close;
 	}
 
-	vinit.pPRAMfw = fw_pram;
+	vinit.pPRAMfw   = fw_pram;
 	vinit.pram_size = fw_pram_size;
-	vinit.pDRAMfw = fw_dram;
+	vinit.pDRAMfw   = fw_dram;
 	vinit.dram_size = fw_dram_size;
 
 	if(dt==dev_type_FXO){
@@ -638,17 +643,13 @@ chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt,
 		if(err){
 			goto __exit_fail_close;
 		}
-		vinit.pCram     = fw_cram_fxo;
-		vinit.cram_size = fw_cram_fxo_size;
-		vinit.pBBDbuf   = fw_cram_fxo;
-		vinit.bbd_size  = fw_cram_fxo_size;
+		vinit.pBBDbuf  = fw_cram_fxo;
+		vinit.bbd_size = fw_cram_fxo_size;
 	} else if(dt==dev_type_FXS){
 		err = cram_fxs_load();
 		if(err){
 			goto __exit_fail_close;
 		}
-		vinit.pCram     = fw_cram_fxs;
-		vinit.cram_size = fw_cram_fxs_size;
 		vinit.pBBDbuf   = fw_cram_fxs;
 		vinit.bbd_size  = fw_cram_fxs_size;
 	} else if(dt==dev_type_TF){
@@ -657,32 +658,22 @@ chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt,
 			goto __exit_fail_close;
 		}
 		if        (tf_cfg[abs_chan_idx] == tf_type_N2){
-			/* tag__ tf load type messages */
-fprintf(stderr,">> Chan [%d] is TF N2\n",abs_chan_idx);
-			vinit.pCram     = fw_cram_tfn2;
-			vinit.cram_size = fw_cram_tfn2_size;
-			vinit.pBBDbuf   = fw_cram_tfn2;
-			vinit.bbd_size  = fw_cram_tfn2_size;
+			vinit.pBBDbuf  = fw_cram_tfn2;
+			vinit.bbd_size = fw_cram_tfn2_size;
 		} else if (tf_cfg[abs_chan_idx] == tf_type_N4){
-fprintf(stderr,">> Chan [%d] is TF N4\n",abs_chan_idx);
-			vinit.pCram     = fw_cram_tfn4;
-			vinit.cram_size = fw_cram_tfn4_size;
-			vinit.pBBDbuf   = fw_cram_tfn4;
-			vinit.bbd_size  = fw_cram_tfn4_size;
+			vinit.pBBDbuf  = fw_cram_tfn4;
+			vinit.bbd_size = fw_cram_tfn4_size;
 		} else if (tf_cfg[abs_chan_idx] == tf_type_T2){
-fprintf(stderr,">> Chan [%d] is TF T2\n",abs_chan_idx);
-			vinit.pCram     = fw_cram_tft2;
-			vinit.cram_size = fw_cram_tft2_size;
-			vinit.pBBDbuf   = fw_cram_tft2;
-			vinit.bbd_size  = fw_cram_tft2_size;
+			vinit.pBBDbuf  = fw_cram_tft2;
+			vinit.bbd_size = fw_cram_tft2_size;
 		} else if (tf_cfg[abs_chan_idx] == tf_type_T4){
-fprintf(stderr,">> Chan [%d] is TF T4\n",abs_chan_idx);
-			vinit.pCram     = fw_cram_tft4;
-			vinit.cram_size = fw_cram_tft4_size;
-			vinit.pBBDbuf   = fw_cram_tft4;
-			vinit.bbd_size  = fw_cram_tft4_size;
+			vinit.pBBDbuf  = fw_cram_tft4;
+			vinit.bbd_size = fw_cram_tft4_size;
 		}
 	}
+
+	bbd_download.buf  = vinit.pBBDbuf;
+	bbd_download.size = vinit.bbd_size;
 
 	/* Set the pointer to the VINETIC dev specific init structure */
 	memset(&init, 0, sizeof(init));
@@ -691,10 +682,20 @@ fprintf(stderr,">> Chan [%d] is TF T4\n",abs_chan_idx);
 	init.nMode = IFX_TAPI_INIT_MODE_VOICE_CODER;
 
 	/* Initialize channel */
+
 	err = ioctl(cfd, IFX_TAPI_CH_INIT, &init);
 	if( err ){
 		g_err_no = ERR_IOCTL_FAILS;
 		sprintf(g_err_msg,"%s() initilizing channel with firmware (ioctl)",
+				__func__);
+		show_last_err(">>", cfd);
+		goto __exit_fail_close;
+	}
+
+	err = ioctl(cfd, FIO_VINETIC_BBD_DOWNLOAD, &bbd_download);
+	if( err ){
+		g_err_no = ERR_IOCTL_FAILS;
+		sprintf(g_err_msg,"%s() initilizing channel(bbd) with firmware (ioctl)",
 				__func__);
 		show_last_err(">>", cfd);
 		goto __exit_fail_close;
@@ -729,12 +730,13 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 	/* Set channel type */	
 	if(dtype == dev_type_FXS) {
 		lineTypeCfg.lineType = IFX_TAPI_LINE_TYPE_FXS_NB;
-		err = ioctl (rtp_fd, IFX_TAPI_LINE_TYPE_SET, &lineTypeCfg);
 	} else if(dtype == dev_type_FXO) {
 		lineTypeCfg.lineType = IFX_TAPI_LINE_TYPE_FXO_NB;
 		lineTypeCfg.nDaaCh = dev_idx * CHANS_PER_DEV + chan_idx;
-		err = ioctl (rtp_fd, IFX_TAPI_LINE_TYPE_SET, &lineTypeCfg);
-	} /* if TF - leave it as is (FXS NB) */
+	} else if(dtype == dev_type_TF){
+		lineTypeCfg.lineType = IFX_TAPI_LINE_TYPE_TF;
+	}
+	err = ioctl (rtp_fd, IFX_TAPI_LINE_TYPE_SET, &lineTypeCfg);
 	if( err ){
 		g_err_no = ERR_IOCTL_FAILS;
 		strcpy(g_err_msg, "setting channel type (ioctl)" );

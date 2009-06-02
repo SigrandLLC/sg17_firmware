@@ -23,6 +23,7 @@
 #define QUALITY_CONF_NAME   "/etc/svd/quality.conf"
 #define RTP_CONF_NAME       "/etc/svd/rtp.conf"
 #define WLEC_CONF_NAME      "/etc/svd/wlec.conf"
+#define TF_CONF_NAME        "/etc/svi.conf"
 /** @}*/
 
 /** @defgroup CFG_DF Default values.
@@ -131,6 +132,14 @@ typedef struct cod_prms_s {
 int svd_init_cod_params( cod_prms_t * const cp );
 
 /* g_conf inner structures {{{*/
+/** Tonal Frequency Channel type.*/
+enum tf_type_e {
+	tf_type_DEFAULT = 0,
+	tf_type_N4 = 0,
+	tf_type_N2,
+	tf_type_T4,
+	tf_type_T2,
+};
 /** Address book record.*/
 struct adbk_record_s {
 	char * id; /**< Short number pointer.*/
@@ -161,9 +170,10 @@ struct hot_line_s {
 	unsigned int records_num; /**< Number of hotline records.*/
 	struct htln_record_s * records; /**< Records massive.*/
 };
-/** Hard links.*/
+/** Tonal Frequency channels.*/
 struct tonal_freq_s {
 	int is_set; /**< Set to 1 if this channel has meaningful values. */
+	enum tf_type_e type; /**< Channel type. */
 	int am_i_caller; /**< Set to 1 if this channel should call to it`s pair. */
 	char id [CHAN_ID_LEN]; /**< Channel absolute identifier.*/
 	char * pair_route; /**< Channel pair router identifier or NULL if self. */

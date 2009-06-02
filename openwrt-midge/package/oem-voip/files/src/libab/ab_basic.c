@@ -262,6 +262,72 @@ ab_destroy( ab_t ** ab )
 /**
  * \param[in] ab - ata board 
  * \param[in] abs_idx - absolute channel index
+ * \param[in] path - path to CRAM file
+ *
+ * \retval -1 if something nasty happens
+ * \retval 0 and greater - the channel number
+ */ 
+int 
+ab_chan_cram_init (ab_chan_t const * const chan, char const * const path)
+{/*{{{*/
+	struct bbd_format_s {
+		unsigned char * buf;
+		unsigned long size;
+	} bbd_download;
+	int fd;
+	int err;
+
+	if(! chan){
+		ab_g_err_idx = AB_ERR_BAD_PARAM;
+		strcpy(ab_g_err_str, "Channel don`t exist");
+		goto __exit_fail;
+	}
+
+	memset(&bbd_download, 0, sizeof (bbd_download));
+
+	fd = open(path, O_RDONLY);
+	if( fd <= 0 ) {
+		ab_g_err_idx = AB_ERR_NO_FILE;
+		strcpy(ab_g_err_str, "Opening firmware file");
+		goto __exit_fail;
+	}
+	bbd_download.size = lseek(fd, 0, SEEK_END);
+	lseek(fd, 0, SEEK_SET);
+
+	bbd_download.buf = malloc(bbd_download.size);
+	if( ! bbd_download.buf ){
+		ab_g_err_idx = AB_ERR_NO_MEM;
+		goto __exit_fail_close;
+	}
+
+	if(read(fd, bbd_download.buf, bbd_download.size) != bbd_download.size){
+		ab_g_err_idx = AB_ERR_NO_FILE;
+		strcpy(ab_g_err_str, "Reading firmware file");
+		goto __exit_fail_free;
+	}
+
+	err = ioctl(chan->rtp_fd, FIO_VINETIC_BBD_DOWNLOAD, &bbd_download);
+	if( err ){
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		strcpy(ab_g_err_str, "Initing chan with CRAM (ioctl)");
+		goto __exit_fail_free;
+	}
+
+	free (bbd_download.buf);
+	close (fd);
+	return 0;
+
+__exit_fail_free:
+	free (bbd_download.buf);
+__exit_fail_close:
+	close (fd);
+__exit_fail:
+	return -1;
+}/*}}}*/
+
+/**
+ * \param[in] ab - ata board 
+ * \param[in] abs_idx - absolute channel index
  *
  * \retval -1 if something nasty happens
  * \retval 0 and greater - the channel number

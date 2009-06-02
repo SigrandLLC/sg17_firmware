@@ -131,6 +131,16 @@ static int svd_self_call
 	( svd_t * const svd, int const src_chan_idx, int const use_ff_FXO );
 /** @}*/ 
 
+/** @defgroup ATA_TF_I Tonal Frequency CRAM internals.
+ *  @ingroup ATA_B
+ *  Other internal TF definitions. 
+ *  @{*/
+#define AB_FW_CRAM_TFN2_NAME "/lib/firmware/cramfw_tfn2.bin"
+#define AB_FW_CRAM_TFN4_NAME "/lib/firmware/cramfw_tfn4.bin"
+#define AB_FW_CRAM_TFT2_NAME "/lib/firmware/cramfw_tft2.bin"
+#define AB_FW_CRAM_TFT4_NAME "/lib/firmware/cramfw_tft4.bin"
+/** @}*/ 
+
 
 /**
  * \param[in,out] svd routine context structure.
@@ -146,6 +156,8 @@ int
 svd_atab_create ( svd_t * const svd )
 {/*{{{*/
 	int err;
+	int i;
+	int ch_num;
 DFS
 	assert (svd);
 	assert (!svd->ab);
@@ -168,6 +180,29 @@ DFS
 		SU_DEBUG_0 ((LOG_FNC_A("dev callback attach error")));
 		goto __exit_fail;
 	}
+
+	/* REINIT tf-channels with CRAM */
+	ch_num = svd->ab->chans_num;
+	for (i=0; i<CHANS_MAX; i++){ 
+		char * cram_file_path;
+		/* reinit cram coefficients */
+		if(g_conf.tonal_freq[i].is_set){
+			if       (g_conf.tonal_freq[i].type == tf_type_N4){
+				cram_file_path = AB_FW_CRAM_TFN4_NAME;
+			} else if(g_conf.tonal_freq[i].type == tf_type_N2){
+				cram_file_path = AB_FW_CRAM_TFN2_NAME;
+			} else if(g_conf.tonal_freq[i].type == tf_type_T4){
+				cram_file_path = AB_FW_CRAM_TFT4_NAME;
+			} else if(g_conf.tonal_freq[i].type == tf_type_T2){
+				cram_file_path = AB_FW_CRAM_TFT2_NAME;
+			}
+			if(ab_chan_cram_init(svd->ab->pchans[i], cram_file_path)){
+				SU_DEBUG_0 ((LOG_FNC_A("can`t init channel with given CRAM")));
+				goto __exit_fail;
+			}
+		}
+	} 
+
 DFE
 	return 0;
 __exit_fail:

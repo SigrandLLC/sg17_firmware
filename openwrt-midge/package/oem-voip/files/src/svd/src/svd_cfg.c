@@ -77,6 +77,10 @@ static unsigned char g_err_no;
 #define CONF_WLEC_NLP_OFF  "off"
 #define CONF_FXO_PULSE   "pulse"
 #define CONF_FXO_TONE    "tone"
+#define CONF_TF_TRANSIT "transit"
+#define CONF_TF_NORMAL  "normal"
+#define CONF_TF_2_WIRED "2w"
+#define CONF_TF_4_WIRED "4w"
 /** @}*/ 
 
 /** @defgroup CFG_IF Config internal functions.
@@ -1112,6 +1116,65 @@ tonalf_init( void )
 			snprintf (mirr_rec->id, CHAN_ID_LEN, "%02d", pair_chan);
 			snprintf (mirr_rec->pair_chan, CHAN_ID_LEN, "%02d", chan_id);
 			mirr_rec->am_i_caller = 0;
+		}
+	}
+
+	/* read svi.conf to get channel type */
+	/* tf_types:
+	 * (
+	 *	("chan_id", "wire_type", "normal/transit")
+	 * );*/
+	config_destroy (&cfg);
+	config_init (&cfg);
+
+	/* Load the file */
+	if (!config_read_file (&cfg, TF_CONF_NAME)){
+		err = config_error_line (&cfg);
+		goto __exit_success;
+	} 
+
+	set = config_lookup (&cfg, "tf_types" );
+	if( !set){
+		/* no tf-channels */
+		goto __exit_success;
+	} 
+
+	rec_num = config_setting_length (set);
+
+	if(rec_num > CHANS_MAX){
+		SU_DEBUG_1(("%s() Too many channels (%d) in config - max is %d\n",
+				__func__, rec_num, CHANS_MAX));
+		goto __exit_fail;
+	}
+
+	for(i=0; i<rec_num; i++){
+		int chan_id;
+		rec_set = config_setting_get_elem (set, i);
+
+		/* get id */
+		elem = config_setting_get_string_elem (rec_set, 0);
+		chan_id = strtol (elem, NULL, 10);
+
+		curr_rec = &g_conf.tonal_freq[ chan_id ];
+
+		/* get wire_type */
+		elem = config_setting_get_string_elem (rec_set, 1);
+		if       (!strcmp(elem, CONF_TF_4_WIRED)){
+			/* get normal/transit type */
+			elem = config_setting_get_string_elem (rec_set, 2);
+			if       (!strcmp(elem, CONF_TF_NORMAL)){
+				curr_rec->type = tf_type_N4;
+			} else if(!strcmp(elem, CONF_TF_TRANSIT)){
+				curr_rec->type = tf_type_T4;
+			}
+		} else if(!strcmp(elem, CONF_TF_2_WIRED)){
+			/* get normal/transit type */
+			elem = config_setting_get_string_elem (rec_set, 2);
+			if       (!strcmp(elem, CONF_TF_NORMAL)){
+				curr_rec->type = tf_type_N2;
+			} else if(!strcmp(elem, CONF_TF_TRANSIT)){
+				curr_rec->type = tf_type_T2;
+			}
 		}
 	}
 
