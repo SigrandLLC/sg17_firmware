@@ -967,16 +967,18 @@ Controllers.voipWlec = function() {
 		"name": "WLEC",
 		"func": function() {
 			var c = page.addContainer("wlec");
+            var colNum = 7;
 			c.setSubsystem("svd-wlec");
-			c.addTitle("Window-based Line Echo Canceller", {"colspan": 6});
+			c.addTitle("Window-based Line Echo Canceller", {"colspan": colNum});
 
-			c.addTableHeader("Channel|WLEC type|NLP|Near-end window NB|Far-end window NB|Near-end window WB");
-            c.addTableTfootStr("NLP - Non-linear processing.", 6);
-            c.addTableTfootStr("WLEC type: ", 6);
-            c.addTableTfootStr("- NE: near-end only.", 6);
-            c.addTableTfootStr("- NFE: near-end and far-end.", 6);
-            c.addTableTfootStr("NB - Narrow band.", 6);
-            c.addTableTfootStr("WB - Wide band.", 6);
+			c.addTableHeader("Channel|Type|WLEC type|NLP|Near-end w. NB|Far-end w. NB|Near-end w. WB");
+            c.addTableTfootStr("WLEC type: ", colNum);
+            c.addTableTfootStr("- NE: near-end only.", colNum);
+            c.addTableTfootStr("- NFE: near-end and far-end.", colNum);
+            c.addTableTfootStr("NLP - Non-linear processing.", colNum);
+            c.addTableTfootStr("Near-end w. NB - Near-end window Narrow band.", colNum);
+            c.addTableTfootStr("Far-end w. NB - Far-end window Narrow band.", colNum);
+            c.addTableTfootStr("Near-end w. WB - Near-end window Wide band.", colNum);
 
 			var channels = config.getCachedOutput("voipChannels").split("\n");
 			$.each(channels, function(num, record) {
@@ -996,21 +998,28 @@ Controllers.voipWlec = function() {
 				};
 				c.addTableWidget(field, row);
 
-				/* Type */
+                field = {
+					"type": "html",
+					"name": channel[0] + "_type",
+					"str": channel[1]
+				};
+				c.addTableWidget(field, row);
+
+				/* Type, by default for TF is OFF, for others is NE */
 				field = {
 					"type": "select",
 					"name": $.sprintf("sys_voip_wlec_%s_type", channel[0]),
 					"options": "off NE NFE",
-					"defaultValue": "NE"
+					"defaultValue": channel[1] == "TF" ? "off" : "NE"
 				};
 				c.addTableWidget(field, row);
 
-				/* NLP */
+				/* NLP,  by default for FXO is ON, for others is OFF */
 				field = {
 					"type": "select",
 					"name": $.sprintf("sys_voip_wlec_%s_nlp", channel[0]),
 					"options": "off on",
-					"defaultValue": "on"
+					"defaultValue": channel[1] == "FXO" ? "on" : "off"
 				};
 				c.addTableWidget(field, row);
 
