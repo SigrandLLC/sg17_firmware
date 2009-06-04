@@ -93,6 +93,7 @@ struct svd_chan_s
 	int local_wait_idx; /**< Local wait index.*/
 	int remote_wait_idx; /**< Remote wait index.*/
 	
+	int call_state; /**< Current callstate on channel.*/
 	nua_handle_t * op_handle;/**< NUA handle for channel.*/
 
 	/* RING */

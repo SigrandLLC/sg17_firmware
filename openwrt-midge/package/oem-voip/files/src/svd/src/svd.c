@@ -31,7 +31,7 @@ unsigned int g_f_offset = 0;
 /** Switch to daemon mode.*/ 
 static int 	svd_daemonize(void);
 /** Create svd structure.*/ 
-static svd_t * 	svd_create(void);
+static svd_t * svd_create(void);
 /** Destroy svd structure.*/ 
 static void svd_destroy( svd_t ** svd );
 /** Logging function.*/ 
@@ -251,8 +251,7 @@ DFS
 
 	/* launch the SIP stack */
 	/* *
-	 * NUTAG_ALLOW ("INFO"),
-	 * NUTAG_AUTOANSWER (1), FXS / FXO in differ places
+	 * NUTAG_AUTOANSWER (1)
 	 * NUTAG_PROXY (),
 	 * NUTAG_AUTH ("scheme""realm""user""password"),
 	 * NUTAG_AUTHTIME (3600),

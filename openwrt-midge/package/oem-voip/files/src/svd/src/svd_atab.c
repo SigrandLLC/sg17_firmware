@@ -341,7 +341,6 @@ DFS
 		su_root_deregister (svd->root, chan_ctx->remote_wait_idx);
 		chan_ctx->remote_wait_idx = -1;
 	}
-
 DFE
 }/*}}}*/
 

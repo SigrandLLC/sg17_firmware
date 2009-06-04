@@ -813,26 +813,32 @@ DFS
 		 * */
 		if (isdigit(to->a_url->url_user[0])){
 			/* 'xx@..'  - absolute channel number */
-			int it_is_tf_reconnect = 0;
+			int it_is_tf = 0;
+			int pair_is_elder = 0;
+			int ready_state = 0;
+			int should_reconnect = 0;
 			int pair_chan;
 			int pair_route_id;
 			int i;
 			int routers_num;
 			abs_chan_idx = strtol(to->a_url->url_user, NULL, 10);
 			chan_idx = get_dest_chan_idx (svd->ab, NULL, abs_chan_idx);
+			req_chan = &svd->ab->chans[chan_idx];
+			chan_ctx = req_chan->ctx;
 			if( chan_idx == -1 ){
 				nua_respond(nh, SIP_500_INTERNAL_SERVER_ERROR, TAG_END());
 				nua_handle_destroy(nh);
 				goto __exit;
 			}
 			/* tf-reconnect test
-			 * if 
+			 * if chan
 			 *		1. not self (if self - just one caller)
 			 *		2. it is tf-channel
-			 *		3. and caller the pair
+			 *		3. caller the pair
+			 *		4. call_state is ready or
+			 *			pair is elder
 			 *	then
-			 *		destroy handle
-			 *			to make new connection
+			 *		destroy handle to make new connection
 			 */
 			pair_chan = strtol(from->a_url->url_user, NULL, 10);
 			routers_num = g_conf.route_table.records_num;
@@ -848,22 +854,48 @@ DFS
 					break;
 				}
 			}
-			it_is_tf_reconnect = 
-				(!err) &&
-				(!caller_router_is_self) &&
-				g_conf.tonal_freq[abs_chan_idx].is_set &&
+			it_is_tf = g_conf.tonal_freq[abs_chan_idx].is_set &&
 				(strtol(g_conf.tonal_freq[abs_chan_idx].pair_route,NULL,10) == 
 					pair_route_id) &&
 				(strtol(g_conf.tonal_freq[abs_chan_idx].pair_chan,NULL,10) == 
 					pair_chan);
-			if(it_is_tf_reconnect){
-				chan_ctx = svd->ab->chans[chan_idx].ctx;
-				if(chan_ctx->op_handle){
-					/* if connect already is on - drop it before set 
-					 * the new one */
-					nua_handle_destroy(chan_ctx->op_handle);
-					chan_ctx->op_handle = NULL;
+
+			if(it_is_tf){
+				if(g_conf.self_number){
+					int self_route = strtol(g_conf.self_number,NULL,10);
+					if(self_route < pair_route_id){
+						pair_is_elder = 1;
+					} else if(self_route == pair_route_id){
+						pair_is_elder = pair_chan > abs_chan_idx;
+					}
+				} else {
+					pair_is_elder = pair_chan > abs_chan_idx;
 				}
+			}
+			ready_state = (chan_ctx->call_state == nua_callstate_ready);
+
+//fprintf(stderr,"%s()____%d___\n",__func__,__LINE__);
+			should_reconnect =
+				(!err) &&
+				(!caller_router_is_self) &&
+				(ready_state || pair_is_elder);
+			if(should_reconnect){
+				
+/* tag__ tf-reconnect */
+SU_DEBUG_0(("!!! DROP CHANNEL PARAMETERS!(%d)\n",chan_ctx->local_wait_idx));
+				/* if connect already is on - drop it before set 
+				 * the new one */
+
+				/* deactivate media */
+				ab_chan_media_deactivate (req_chan);
+
+				/* media unregister */
+				svd_media_unregister (svd, req_chan);
+
+				/* clear call params */
+				svd_clear_call (svd, req_chan);
+			} else {
+SU_DEBUG_0(("!!! IT IS NOT TF RECONNECT!(%p)\n",chan));
 			}
 		} else if ( !strcmp(to->a_url->url_user, FIRST_FREE_FXO )){
 			/* '$FIRST_FREE_FXO@..' - first free fxo */
@@ -1024,6 +1056,8 @@ DFS
 		SU_DEBUG_4(("Local sdp:\n%s\n", l_sdp));
 	}
 
+	((svd_chan_t*)(chan->ctx))->call_state = ss_state;
+
 	switch (ss_state) {
 
 	/* Initial state */
@@ -1118,10 +1152,10 @@ DFS
 			/* media unregister */
 			svd_media_unregister (svd, chan);
 
-			/* clear call params */
-			svd_clear_call (svd, chan);
-
 			if (chan->parent->type == ab_dev_type_FXO){
+				/* clear call params */
+				svd_clear_call (svd, chan);
+
 				ctx->is_ring_in_process = 0;
 				ctx->is_connection_is_up = 0;
  				/* do it any case, even if it nohooked already */
@@ -1131,6 +1165,9 @@ DFS
 				}
 				SU_DEBUG_3(("onhook on [_%d_]\n",chan->abs_idx));
 			} else if(chan->parent->type == ab_dev_type_FXS){
+				/* clear call params */
+				svd_clear_call (svd, chan);
+
 				/* stop ringing */
 				int err;
 				err = ab_FXS_line_ring (chan, ab_chan_ring_MUTE);
@@ -1145,6 +1182,15 @@ DFS
 				}
 				/* playing busy tone */
 				SU_DEBUG_3(("playing busy tone on [_%d_]\n", chan->abs_idx));
+			} else if(chan->parent->type == ab_dev_type_TF){
+				/* Re-invite the pair */
+SU_DEBUG_1 (("!!!!!!!!!!!!! SLEEPING 10 sec before REINVITE !!!\n"));
+				sleep(10);
+SU_DEBUG_1 (("!!!!!!!!!!!!! REINVITE TF_PAIR !!!!!!!!!!!!!!!!!!\n"));
+				int chan_idx = get_dest_chan_idx (svd->ab, NULL, chan->abs_idx);
+				if((chan_idx == -1) || svd_invite(svd, 0, chan_idx)){
+					SU_DEBUG_1 (("ERROR: can`t re-invite tf-pair\n"));
+				}
 			}
 			break;
 		}
@@ -1413,8 +1459,7 @@ DFS
 	if (status >= 300) {
 		if (status == 401 || status == 407) {
 			svd_authenticate (svd, nh, sip, tags);
-		}
-		if (status == 486){
+		} else if (status == 486){
 			/* busy - play busy tone */
 			/* playing busy tone on the chan */
 			if(ab_FXS_line_tone (chan, ab_chan_tone_BUSY)){
