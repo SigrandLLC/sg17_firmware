@@ -38,7 +38,7 @@ function generateMenu() {
         addItem("Hardware:VoIP", "Routes", "voipRoutes");
         addItem("Hardware:VoIP", "Addresses", "voipAddresses");
         addItem("Hardware:VoIP", "RTP", "voipRtp");
-        addItem("Hardware:VoIP", "Quality", "voipQuality");
+        addItem("Hardware:VoIP", "Codecs", "voipCodecs");
         addItem("Hardware:VoIP", "WLEC", "voipWlec");
         addItem("Hardware:VoIP", "FXO", "voipFxo");
 	}

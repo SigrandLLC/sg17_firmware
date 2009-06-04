@@ -160,11 +160,19 @@ Controllers.voipHotline = function() {
 			var channels = config.getCachedOutput("voipChannels").split("\n");
 			$.each(channels, function(num, record) {
 				var field;
-				if (record.length == 0) return true;
-				var row = c.addTableRow();
+				if (record.length == 0) {
+                    return true;
+                }
 
-				/* channel[0] — number of channel, channel[1] — type of channel */
+                /* channel[0] — number of channel, channel[1] — type of channel */
 				var channel = record.split(":");
+
+                /* TF channels are not supported */
+                if (channel[1] == "TF") {
+                    return true;
+                }
+
+				var row = c.addTableRow();
 
 				field = {
 					"type": "html",
@@ -677,14 +685,14 @@ Controllers.voipRtp = function() {
 	page.generateTabs();
 };
 
-Controllers.voipQuality = function() {
+Controllers.voipCodecs = function() {
 	var page = this.Page();
 
 	page.addTab({
-		"id": "quality",
-		"name": "Quality",
+		"id": "codecs",
+		"name": "Codecs",
 		"func": function() {
-			var c = page.addContainer("quality");
+			var c = page.addContainer("codecs");
 			c.setSubsystem("svd-quality");
 			c.addTitle("Codecs settings", {"colspan": 5});
 
@@ -934,7 +942,7 @@ Controllers.voipQuality = function() {
 			};
 
 			c.addTableHeader("Priority*|Type**|Packetization time (ms)|Payload|Bitpack");
-			c.addTableTfootStr("* 0 — max priority.", 5);
+			c.addTableTfootStr("* 0 - max priority.", 5);
             c.addTableTfootStr("** Each codec can be selected only once.", 5);
 
 			c.addTitle("Internal", {"internal": true, "colspan": 5});
