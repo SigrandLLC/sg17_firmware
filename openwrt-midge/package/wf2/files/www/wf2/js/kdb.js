@@ -692,8 +692,8 @@ function Config() {
 				}
 			},
 			"success": function(data, textStatus) {
-				wf2Logs.addLog("AJAX response", $.sprintf("status: %s, url: %s, data: %s",
-						textStatus, this.url, this.data));
+				wf2Logs.addLog("AJAX response", $.sprintf("status: %s, url: %s, cmd: %s, data: %s",
+						textStatus, this.url, this.data, data));
 				
 				if (ajaxNum > 0) {
 					ajaxNum--;
@@ -709,7 +709,7 @@ function Config() {
 				processResult(data);
 			},
 			"error": function(XMLHttpRequest, textStatus, errorThrown) {
-				wf2Logs.addLog("AJAX error", $.sprintf("status: %s, url: %s, data: %s",
+				wf2Logs.addLog("AJAX error", $.sprintf("status: %s, url: %s, cmd: %s",
 						textStatus, this.url, this.data));
 
 				if (ajaxNum > 0) {
