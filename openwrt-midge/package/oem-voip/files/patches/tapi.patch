@@ -1,6 +1,6 @@
 diff -ruiN tapi_pure/include/drv_tapi_io.h tapi/include/drv_tapi_io.h
---- tapi_pure/include/drv_tapi_io.h	2009-06-01 14:01:11.000000000 +0700
-+++ tapi/include/drv_tapi_io.h	2009-06-01 14:01:11.000000000 +0700
+--- tapi_pure/include/drv_tapi_io.h	2009-06-05 17:21:27.000000000 +0700
++++ tapi/include/drv_tapi_io.h	2009-06-05 17:21:27.000000000 +0700
 @@ -3978,7 +3978,9 @@
     /** Line mode type FXS automatic NB/WB switching for analog channel. */
     IFX_TAPI_LINE_TYPE_FXS_AUTO = 2,
@@ -22,8 +22,8 @@ diff -ruiN tapi_pure/include/drv_tapi_io.h tapi/include/drv_tapi_io.h
  
  /** Hook confinguration for FXO, used in \ref IFX_TAPI_FXO_FLASH_CFG_SET. */
 diff -ruiN tapi_pure/include/drv_tapi_ll_interface.h tapi/include/drv_tapi_ll_interface.h
---- tapi_pure/include/drv_tapi_ll_interface.h	2009-06-01 14:01:11.000000000 +0700
-+++ tapi/include/drv_tapi_ll_interface.h	2009-06-01 14:01:11.000000000 +0700
+--- tapi_pure/include/drv_tapi_ll_interface.h	2009-06-05 17:21:27.000000000 +0700
++++ tapi/include/drv_tapi_ll_interface.h	2009-06-05 17:21:27.000000000 +0700
 @@ -893,12 +893,14 @@
     /** Configure the DTMF tone generator
     \param nInterDigitTime Inter-digit-time in ms
@@ -49,8 +49,8 @@ diff -ruiN tapi_pure/include/drv_tapi_ll_interface.h tapi/include/drv_tapi_ll_in
                                               IFX_char_t  *data);
  
 diff -ruiN tapi_pure/src/drv_tapi_event.c tapi/src/drv_tapi_event.c
---- tapi_pure/src/drv_tapi_event.c	2009-06-01 14:01:11.000000000 +0700
-+++ tapi/src/drv_tapi_event.c	2009-06-01 14:01:11.000000000 +0700
+--- tapi_pure/src/drv_tapi_event.c	2009-06-05 17:21:27.000000000 +0700
++++ tapi/src/drv_tapi_event.c	2009-06-05 17:23:02.000000000 +0700
 @@ -64,7 +64,7 @@
  #ifdef TAPI_EXT_KEYPAD
  IFX_return_t TAPI_EXT_EVENT_Key_Handler (TAPI_CHANNEL * pChannel,
@@ -60,9 +60,25 @@ diff -ruiN tapi_pure/src/drv_tapi_event.c tapi/src/drv_tapi_event.c
  #endif /* TAPI_EXT_KEYPAD */
  
  /* ============================= */
+@@ -1661,6 +1661,7 @@
+    pEvt = (IFX_TAPI_EVENT_t *) bufferPoolGet (pIFX_TAPI_BP_Event);
+    if (pEvt == IFX_NULL)
+    {
++/*tag__*/ printk("MARK4 : TAPI: Event_dispatch 1\n");
+       IFXOS_UNLOCKINT(lock);
+       if (!IFXOS_IN_INTERRUPT())
+          IFXOS_MutexUnlock (semBufferPoolAcc);
+@@ -1670,6 +1671,7 @@
+                                bufferPoolGet (pIFX_TAPI_BP_Deferred_Event);
+    if (pParam == IFX_NULL)
+    {
++/*tag__*/ printk("MARK5 : TAPI: Event_dispatch 2\n");
+       /* if no deferred_event buffer is free - discard the event as well :-/ */
+       bufferPoolPut (pEvt);
+       IFXOS_UNLOCKINT(lock);
 diff -ruiN tapi_pure/src/drv_tapi_fxo.c tapi/src/drv_tapi_fxo.c
---- tapi_pure/src/drv_tapi_fxo.c	2009-06-01 14:01:11.000000000 +0700
-+++ tapi/src/drv_tapi_fxo.c	2009-06-01 14:01:11.000000000 +0700
+--- tapi_pure/src/drv_tapi_fxo.c	2009-06-05 17:21:27.000000000 +0700
++++ tapi/src/drv_tapi_fxo.c	2009-06-05 17:21:27.000000000 +0700
 @@ -37,7 +37,7 @@
  
  /** maximum number of DAA channels TAPI can handle,
@@ -91,8 +107,8 @@ diff -ruiN tapi_pure/src/drv_tapi_fxo.c tapi/src/drv_tapi_fxo.c
                                                   p_DialData->data);
                 }
 diff -ruiN tapi_pure/src/drv_tapi.h tapi/src/drv_tapi.h
---- tapi_pure/src/drv_tapi.h	2009-06-01 14:01:11.000000000 +0700
-+++ tapi/src/drv_tapi.h	2009-06-01 14:01:11.000000000 +0700
+--- tapi_pure/src/drv_tapi.h	2009-06-05 17:21:27.000000000 +0700
++++ tapi/src/drv_tapi.h	2009-06-05 17:21:27.000000000 +0700
 @@ -143,8 +143,6 @@
  /* Declarations for debug interface */
  DECLARE_TRACE_GROUP  (TAPI_DRV);
@@ -111,8 +127,8 @@ diff -ruiN tapi_pure/src/drv_tapi.h tapi/src/drv_tapi.h
 +
  #endif  /* DRV_TAPI_H */
 diff -ruiN tapi_pure/src/drv_tapi_linux.c tapi/src/drv_tapi_linux.c
---- tapi_pure/src/drv_tapi_linux.c	2009-06-01 14:01:11.000000000 +0700
-+++ tapi/src/drv_tapi_linux.c	2009-06-01 14:01:11.000000000 +0700
+--- tapi_pure/src/drv_tapi_linux.c	2009-06-05 17:21:27.000000000 +0700
++++ tapi/src/drv_tapi_linux.c	2009-06-05 17:21:27.000000000 +0700
 @@ -2997,7 +2997,7 @@
     Since when a key event is reported from hapi channel context is not known.
     This is used to get 0th channel since Audio has only one channel for INCA2
@@ -123,8 +139,8 @@ diff -ruiN tapi_pure/src/drv_tapi_linux.c tapi/src/drv_tapi_linux.c
     TAPI_CHANNEL *pChannel = IFX_NULL;
     int i;
 diff -ruiN tapi_pure/src/drv_tapi_opcontrol.c tapi/src/drv_tapi_opcontrol.c
---- tapi_pure/src/drv_tapi_opcontrol.c	2009-06-01 14:01:11.000000000 +0700
-+++ tapi/src/drv_tapi_opcontrol.c	2009-06-01 14:01:11.000000000 +0700
+--- tapi_pure/src/drv_tapi_opcontrol.c	2009-06-05 17:21:27.000000000 +0700
++++ tapi/src/drv_tapi_opcontrol.c	2009-06-05 17:21:27.000000000 +0700
 @@ -212,11 +212,11 @@
  
     if (TAPI_SUCCESS(ret))
@@ -158,8 +174,8 @@ diff -ruiN tapi_pure/src/drv_tapi_opcontrol.c tapi/src/drv_tapi_opcontrol.c
     return ret;
  }
 diff -ruiN tapi_pure/src/Makefile.am tapi/src/Makefile.am
---- tapi_pure/src/Makefile.am	2009-06-01 14:01:11.000000000 +0700
-+++ tapi/src/Makefile.am	2009-06-01 14:01:11.000000000 +0700
+--- tapi_pure/src/Makefile.am	2009-06-05 17:21:27.000000000 +0700
++++ tapi/src/Makefile.am	2009-06-05 17:21:27.000000000 +0700
 @@ -160,7 +160,7 @@
  
  # Extra rule for linux-2.6 kernel object

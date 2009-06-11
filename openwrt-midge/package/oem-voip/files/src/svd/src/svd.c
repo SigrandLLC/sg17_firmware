@@ -31,7 +31,7 @@ unsigned int g_f_offset = 0;
 /** Switch to daemon mode.*/ 
 static int 	svd_daemonize(void);
 /** Create svd structure.*/ 
-static svd_t * svd_create(void);
+static svd_t * svd_create(ab_t * const ab);
 /** Destroy svd structure.*/ 
 static void svd_destroy( svd_t ** svd );
 /** Logging function.*/ 
@@ -54,6 +54,7 @@ int
 main (int argc, char ** argv)
 {/*{{{*/
 	svd_t *svd;
+	ab_t * ab = NULL;
 	int err = 0;
 	int nothing_to_do;
 
@@ -82,8 +83,15 @@ main (int argc, char ** argv)
 		svd_log_set (g_so.debug_level, 1);
 	}
 
+	/* init hardware structures */
+	ab = ab_create();
+	if( !ab){
+		SU_DEBUG_0 ((LOG_FNC_A(ab_g_err_str)));
+		goto __su;
+	}
+
 	/* read svd *.conf files */
-	err = svd_conf_init();
+	err = svd_conf_init (ab);
 	if (err){
 		goto __conf;
 	}
@@ -94,20 +102,14 @@ main (int argc, char ** argv)
 	} 
 
 	/* create svd structure */
-	/* uses !!g_cnof */
-	svd = svd_create( );
+	/* uses !!g_conf */
+	svd = svd_create (ab);
 	if (svd == NULL) {
 		goto __conf;
 	}
 
-	/* config reinit */
-	err = svd_conf_reinit (svd->ab);
-	if (err){
-		goto __svd;
-	}
-
 	/* place tf-calls */
-	err = svd_place_tf(svd);
+	err = svd_place_tf (svd);
 	if(err){
 		goto __svd;
 	}
@@ -119,7 +121,11 @@ __svd:
 	svd_destroy (&svd);
 __conf:
 	svd_conf_destroy ();
+	ab_destroy (&ab);
+__su:
 	su_deinit ();
+	syslog( LOG_NOTICE, "terminated" );
+	closelog();
 __startup:
 	startup_destroy (argc, argv);
 	return err;
@@ -207,7 +213,7 @@ __exit_fail:
  *  	It uses \ref g_conf values
  */ 
 static svd_t * 
-svd_create (void)
+svd_create (ab_t * const ab)
 {/*{{{*/
 	svd_t * svd;
 	sip_to_t *from = NULL;
@@ -235,6 +241,9 @@ DFS
     		SU_DEBUG_0 (("svd_create() su_root_create() failed\n"));
 		goto __exit_fail;
 	}
+
+	/* init svd->ab with existing structure */
+	svd->ab = ab;
 
 	/* create ab structure of svd and handle callbacks */
 	/* uses !!g_cnof */

@@ -43,5 +43,8 @@ int ab_chan_media_deactivate ( ab_chan_t * const chan );
 cod_prms_t const * svd_cod_prms_get(enum cod_type_e ct ,char const * const cn);
 /** @}*/
 
+/** Wait for seconds after ring on fxo before sent CANCEL to hotlined FXS. */
+#define RING_WAIT_DROP 5
+
 #endif /* __SVD_ATAB_H__ */
 

@@ -52,13 +52,10 @@ start)
 
 	# Testing module presence
 	card_present=`cat /proc/pci | grep 0055:009c | wc -l`
-
-	# if not existing - unload modules
-	if test $card_present <> 0; then
-		echo -n "Starting VoIP services:" 
-
-		/bin/svi
+	if test $card_present != 0; then
+		echo "Starting VoIP services:" 
 		
+		echo "   ...generating config files" 
 		# find VoIP module
 		if [ -r $PORTSINFO ]; then
 			porttype=`head -n1 $PORTSINFO | awk -F ':' '{print $2}'`
@@ -68,10 +65,13 @@ start)
 			fi
 		fi
 
+		echo "   ...starting svi" 
+		/bin/svi
+		echo "   ...starting svc" 
+		/bin/svc
+		echo "   ...starting svd" 
 		killall svd 2>/dev/null
 		/bin/svd
-
-		echo " OK"
 	fi
 ;;
 stop)

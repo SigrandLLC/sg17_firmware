@@ -97,10 +97,15 @@ struct svd_chan_s
 	nua_handle_t * op_handle;/**< NUA handle for channel.*/
 
 	/* RING */
-	pthread_t ringth; /**< ring processing thread. */
-	unsigned char is_ring_in_process; /**< We got ring an work with it. */
-	unsigned char is_connection_is_up; /**< We already up the connection. */
-
+	enum ring_state_e {
+		ring_state_NO_RING_BEFORE,
+		ring_state_INVITE_IN_QUEUE,
+		ring_state_NO_TIMER_INVITE_SENT,
+		ring_state_TIMER_UP_INVITE_SENT,
+		ring_state_CANCEL_IN_QUEUE,
+	} ring_state; /**< State of ring processing. */
+	su_timer_t * ring_tmr; /**< Ring processing timer. */
+	
 	/* HOTLINE */
 	unsigned char is_hotlined; /**< Is this channel hotline initiator.*/
 	char * hotline_addr; /**< Hotline destintation address, points to 

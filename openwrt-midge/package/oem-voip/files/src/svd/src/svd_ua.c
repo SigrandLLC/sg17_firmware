@@ -13,6 +13,9 @@
 #include <assert.h>
 /*}}}*/
 
+extern void
+ring_timer_cb(su_root_magic_t *magic, su_timer_t *t, su_timer_arg_t *arg);
+
 /** @defgroup UAC_I User Agent Client internals.
  *  @ingroup UAC_P
  *  Internal helper functions using with UAC interface functions.
@@ -326,7 +329,7 @@ svd_invite_to (svd_t * const svd, int const chan_idx, char const * const to_str)
 {/*{{{*/
 	ab_chan_t * chan = &svd->ab->chans[chan_idx];
 	svd_chan_t * chan_ctx = chan->ctx;
-	nua_handle_t * nh;
+	nua_handle_t * nh = NULL;
 	sip_to_t *to = NULL;
 	sip_to_t *from = NULL;
 	char * l_sdp_str = NULL;
@@ -356,16 +359,16 @@ DFS
 	su_free(svd->home, to);
 	to = NULL;
 
-	chan_ctx->op_handle = nh;
-	if( !chan_ctx->op_handle ){
-		SU_DEBUG_1 ((LOG_FNC_A("can`t create handle")));
-		goto __exit_fail;
-	}
-
 	/* register vinetic media */
 	err = svd_media_register (svd, chan);
 	if (err){
 		SU_DEBUG_1 ((LOG_FNC_A("can`t register media")));
+		goto __exit_fail;
+	}
+
+	chan_ctx->op_handle = nh;
+	if( !nh){
+		SU_DEBUG_1 ((LOG_FNC_A("can`t create handle")));
 		goto __exit_fail;
 	}
 
@@ -387,6 +390,9 @@ DFE
 	return 0;
 
 __exit_fail:
+	if (nh){
+		nua_handle_destroy(nh);
+	}
 	if (to){
 		su_free(svd->home, to);
 	}
@@ -415,6 +421,7 @@ svd_answer (svd_t * const svd, ab_chan_t * const chan, int status,
 	int call_answered = 0;
 	char * l_sdp_str = NULL;
 	svd_chan_t * chan_ctx = chan->ctx;
+	int err;
 DFS
 	if ( chan_ctx->op_handle ){
 		/* we have call to answer */
@@ -422,7 +429,12 @@ DFS
 		call_answered = 1;
 
 		/* register media waits and open sockets for rtp */
-		svd_media_register (svd, chan);
+		err = svd_media_register (svd, chan);
+		if(err){
+			/* Can`t register - already answering */
+			SU_DEBUG_1 ((LOG_FNC_A("ERROR: can`t register media")));
+			goto __exit;
+		}
 
 		/* have remote sdp make local */
 		l_sdp_str = svd_new_sdp_string (chan);
@@ -548,15 +560,15 @@ svd_place_tf (svd_t * const svd)
 {/*{{{*/
 	int i;
 	int j;
-	int k;
 	int err;
+	int chans_num;
 	int routers_num;
 DFS
 	routers_num = g_conf.route_table.records_num;
-	j = svd->ab->chans_num;
+	chans_num = svd->ab->chans_num;
 
 	/* for i in records */
-	for(i=0; i<j; i++){
+	for(i=0; i<chans_num; i++){
 		ab_chan_t * curr_chan = &svd->ab->chans[i];
 		svd_chan_t * ctx = curr_chan->ctx;
 		struct tonal_freq_s * curr_rec = &g_conf.tonal_freq[curr_chan->abs_idx];
@@ -571,11 +583,11 @@ DFS
 			} else {
 				err = 1;
 				/* not self connect - find pair route ip from route_t */
-				for(k=0; k<routers_num; k++){
+				for(j=0; j<routers_num; j++){
 					if( !strcmp(curr_rec->pair_route, 
-										g_conf.route_table.records[k].id)){
+										g_conf.route_table.records[j].id)){
 						ctx->dial_status.route_ip = 
-										g_conf.route_table.records[k].value;
+										g_conf.route_table.records[j].value;
 						err = 0;
 						break;
 					}
@@ -641,7 +653,7 @@ svd_pure_invite( svd_t * const svd, ab_chan_t * const chan,
 	sip_to_t *to = NULL;
 	sip_to_t *from = NULL;  
 	char * l_sdp_str = NULL;
-	nua_handle_t * nh;
+	nua_handle_t * nh = NULL;
 	svd_chan_t * chan_ctx = chan->ctx;
 	int err;
 DFS
@@ -676,16 +688,18 @@ DFS
 	su_free(svd->home, from);
 	from = NULL;
 
-	chan_ctx->op_handle = nh;
-	if( !chan_ctx->op_handle ){
-		SU_DEBUG_1 ((LOG_FNC_A("can`t create handle")));
-		goto __exit_fail;
-	}
-
 	/* register vinetic media */
 	err = svd_media_register (svd, chan);
 	if (err){
 		SU_DEBUG_1 ((LOG_FNC_A("can`t register media")));
+		goto __exit_fail;
+	}
+
+	chan_ctx->op_handle = nh;
+	if( !nh){
+		/* to do not preserve the old handle - channel will
+		 * have new one = NULL */
+		SU_DEBUG_1 ((LOG_FNC_A("can`t create handle")));
 		goto __exit_fail;
 	}
 
@@ -709,6 +723,9 @@ DFE
 	return 0;
 
 __exit_fail:
+	if (nh){
+		nua_handle_destroy(nh);
+	}
 	if (to){
 		su_free(svd->home, to);
 	}
@@ -806,58 +823,65 @@ DFS
 			caller_router_is_self = 1;
 		}
 		/* * 
-		 * Get requested chan number 
-		 * it can be:
+		 * Get requested chan number, it can be:
 		 * '$FIRST_FREE_FXO@..' - first free fxo
-		 * 'xx@..'  - absolute channel number
+		 * 'xx@..'              - absolute channel number
 		 * */
 		if (isdigit(to->a_url->url_user[0])){
 			/* 'xx@..'  - absolute channel number */
+			int unknown_caller;
 			int it_is_tf = 0;
 			int pair_is_elder = 0;
-			int ready_state = 0;
 			int should_reconnect = 0;
 			int pair_chan;
 			int pair_route_id;
 			int i;
 			int routers_num;
-			abs_chan_idx = strtol(to->a_url->url_user, NULL, 10);
+
+			abs_chan_idx = strtol (to->a_url->url_user, NULL, 10);
 			chan_idx = get_dest_chan_idx (svd->ab, NULL, abs_chan_idx);
 			req_chan = &svd->ab->chans[chan_idx];
 			chan_ctx = req_chan->ctx;
 			if( chan_idx == -1 ){
-				nua_respond(nh, SIP_500_INTERNAL_SERVER_ERROR, TAG_END());
-				nua_handle_destroy(nh);
+				nua_respond (nh, SIP_500_INTERNAL_SERVER_ERROR, TAG_END());
+				nua_handle_destroy (nh);
 				goto __exit;
 			}
 			/* tf-reconnect test
 			 * if chan
-			 *		1. not self (if self - just one caller)
+			 *		1. router is not self (if self - just one caller)
 			 *		2. it is tf-channel
 			 *		3. caller the pair
 			 *		4. call_state is ready or
 			 *			pair is elder
 			 *	then
-			 *		destroy handle to make new connection
+			 *		destroy old connection to make new
 			 */
-			pair_chan = strtol(from->a_url->url_user, NULL, 10);
+
+			/* find pair route id by ip from route_table */
+			if (g_conf.self_ip == g_conf.lo_ip) {
+				unknown_caller = 0;
+			} else {
+				unknown_caller = 1;
+			}
 			routers_num = g_conf.route_table.records_num;
-			/* get pair_route_id */
-			err = 1;
-			/* not self connect - find pair route ip from route_t */
 			for(i=0; i<routers_num; i++){
 				if( !strcmp(from->a_url->url_host, 
 									g_conf.route_table.records[i].value)){
 					pair_route_id = strtol(g_conf.route_table.records[i].id,
 							NULL, 10);
-					err = 0;
+					unknown_caller = 0;
 					break;
 				}
 			}
+
+			pair_chan = strtol (from->a_url->url_user, NULL, 10);
+
 			it_is_tf = g_conf.tonal_freq[abs_chan_idx].is_set &&
-				(strtol(g_conf.tonal_freq[abs_chan_idx].pair_route,NULL,10) == 
-					pair_route_id) &&
-				(strtol(g_conf.tonal_freq[abs_chan_idx].pair_chan,NULL,10) == 
+				(!g_conf.tonal_freq[abs_chan_idx].pair_route ||
+				(strtol(g_conf.tonal_freq[abs_chan_idx].pair_route,NULL, 10) == 
+					pair_route_id)) &&
+				(strtol(g_conf.tonal_freq[abs_chan_idx].pair_chan, NULL, 10) == 
 					pair_chan);
 
 			if(it_is_tf){
@@ -872,30 +896,22 @@ DFS
 					pair_is_elder = pair_chan > abs_chan_idx;
 				}
 			}
-			ready_state = (chan_ctx->call_state == nua_callstate_ready);
 
-//fprintf(stderr,"%s()____%d___\n",__func__,__LINE__);
 			should_reconnect =
-				(!err) &&
+				(!unknown_caller) &&
 				(!caller_router_is_self) &&
-				(ready_state || pair_is_elder);
+				((chan_ctx->call_state == nua_callstate_ready) || pair_is_elder);
+
 			if(should_reconnect){
-				
-/* tag__ tf-reconnect */
-SU_DEBUG_0(("!!! DROP CHANNEL PARAMETERS!(%d)\n",chan_ctx->local_wait_idx));
-				/* if connect already is on - drop it before set 
-				 * the new one */
-
-				/* deactivate media */
+				/* if connect already is on - drop it before set the new one 
+				 * do the all as on callstate TERMINATED
+				 * - deactivate media 
+				 * - unregister media 
+				 * - clear call params 
+				 */
 				ab_chan_media_deactivate (req_chan);
-
-				/* media unregister */
 				svd_media_unregister (svd, req_chan);
-
-				/* clear call params */
 				svd_clear_call (svd, req_chan);
-			} else {
-SU_DEBUG_0(("!!! IT IS NOT TF RECONNECT!(%p)\n",chan));
 			}
 		} else if ( !strcmp(to->a_url->url_user, FIRST_FREE_FXO )){
 			/* '$FIRST_FREE_FXO@..' - first free fxo */
@@ -1059,19 +1075,33 @@ DFS
 	((svd_chan_t*)(chan->ctx))->call_state = ss_state;
 
 	switch (ss_state) {
-
 	/* Initial state */
 		case nua_callstate_init:
 			break;
-
 	/* 401/407 received */
 		case nua_callstate_authenticating: 
 			break;
 
+/*{{{ WE CALL */
 	/* INVITE sent */
-		case nua_callstate_calling:
+		case nua_callstate_calling:{
+			/* start thread there if fxo */
+			svd_chan_t * ctx = chan->ctx;
+			if( chan->parent->type == ab_dev_type_FXO){
+				err = su_timer_set_interval(ctx->ring_tmr, ring_timer_cb, 
+						chan, RING_WAIT_DROP*1000); 
+				if (err){
+					SU_DEBUG_2 (("su_timer_set_interval ERROR on [_%d_] : %d\n", 
+								chan->abs_idx, err));
+					ctx->ring_state = ring_state_NO_TIMER_INVITE_SENT;
+				} else {
+					ctx->ring_state = ring_state_TIMER_UP_INVITE_SENT;
+					SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
+							__func__, __LINE__, chan->abs_idx, ctx->ring_state));
+				}
+			}
 		break;
-
+		}
 	/* 18X received */
 		case nua_callstate_proceeding:
 			if( chan->parent->type == ab_dev_type_FXS){
@@ -1090,7 +1120,9 @@ DFS
 		case nua_callstate_completing:
 			nua_ack(nh, TAG_END());
 			break;
+/*}}}*/
 
+/*{{{ WE ANSWERS */
 	/* INVITE received */
 		case nua_callstate_received:
 			nua_respond(nh, SIP_180_RINGING, TAG_END());
@@ -1107,9 +1139,10 @@ DFS
 	/* 2XX sent */
 		case nua_callstate_completed:
 			break;
+/*}}}*/
 
 	/* 2XX received, ACK sent, or vice versa */
-		case nua_callstate_ready:{
+		case nua_callstate_ready:{/*{{{*/
 			svd_chan_t * ctx = chan->ctx;
 			if( chan->parent->type == ab_dev_type_FXS){
 				/* stop playing any tone on the chan */
@@ -1120,9 +1153,18 @@ DFS
 				/* stop playing tone */
 				SU_DEBUG_3(("stop playing tone on [_%d_]\n", chan->abs_idx));
 			} else if(chan->parent->type == ab_dev_type_FXO){
+				/* kill ring_thread if it is up */
+				if(ctx->ring_state == ring_state_TIMER_UP_INVITE_SENT){
+					err = su_timer_reset(ctx->ring_tmr);
+					if (err){
+						SU_DEBUG_2 (("su_timer_reset ERROR on [_%d_] : %d\n", 
+									chan->abs_idx, err));
+					}
+					ctx->ring_state = ring_state_NO_TIMER_INVITE_SENT;
+					SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
+							__func__, __LINE__, chan->abs_idx, ctx->ring_state));
+				}
 				/* offhook */
-				ctx->is_ring_in_process = 0;
-				ctx->is_connection_is_up = 1;
 				err = ab_FXO_line_hook( chan, ab_chan_hook_OFFHOOK );
 				if ( !err){
 					SU_DEBUG_3(("do offhook on [_%d_]\n", chan->abs_idx));
@@ -1136,14 +1178,15 @@ DFS
 				SU_DEBUG_1(("media_activate error : %s\n", ab_g_err_str));
 			}
 			break;
-		 }
+		 }/*}}}*/
+
 	/* BYE sent */
 		case nua_callstate_terminating:
 			break;
 
 	/* BYE complete */
-		case nua_callstate_terminated:{
-			SU_DEBUG_4 (("call on [%d] is terminated\n", chan->abs_idx));
+		case nua_callstate_terminated:{/*{{{*/
+			SU_DEBUG_4 (("call on [%d] terminated\n", chan->abs_idx));
 			svd_chan_t * ctx = chan->ctx;
 
 			/* deactivate media */
@@ -1156,9 +1199,22 @@ DFS
 				/* clear call params */
 				svd_clear_call (svd, chan);
 
-				ctx->is_ring_in_process = 0;
-				ctx->is_connection_is_up = 0;
- 				/* do it any case, even if it nohooked already */
+				if(ctx->ring_state == ring_state_TIMER_UP_INVITE_SENT){
+					SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
+							__func__, __LINE__, chan->abs_idx, ctx->ring_state));
+					/* kill ring_thread if it is up 
+					 * if we have no ready state for some reasons
+					 */
+					err = su_timer_reset(ctx->ring_tmr);
+					if (err){
+						SU_DEBUG_2 (("su_timer_reset ERROR on [_%d_] : %d\n", 
+									chan->abs_idx, err));
+					}
+				}
+				ctx->ring_state = ring_state_NO_RING_BEFORE;
+				SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
+						__func__, __LINE__, chan->abs_idx, ctx->ring_state));
+ 				/* do it any case, even if it onhooked already */
 				err = ab_FXO_line_hook (chan, ab_chan_hook_ONHOOK);
 				if(err){
 					SU_DEBUG_2(("Can`t onhook on [_%d_]\n",chan->abs_idx));
@@ -1184,16 +1240,15 @@ DFS
 				SU_DEBUG_3(("playing busy tone on [_%d_]\n", chan->abs_idx));
 			} else if(chan->parent->type == ab_dev_type_TF){
 				/* Re-invite the pair */
-SU_DEBUG_1 (("!!!!!!!!!!!!! SLEEPING 10 sec before REINVITE !!!\n"));
+				SU_DEBUG_3 (("sleeping 10 sec before reinvite on TF-pair\n"));
 				sleep(10);
-SU_DEBUG_1 (("!!!!!!!!!!!!! REINVITE TF_PAIR !!!!!!!!!!!!!!!!!!\n"));
 				int chan_idx = get_dest_chan_idx (svd->ab, NULL, chan->abs_idx);
 				if((chan_idx == -1) || svd_invite(svd, 0, chan_idx)){
-					SU_DEBUG_1 (("ERROR: can`t re-invite tf-pair\n"));
+					SU_DEBUG_1 (("ERROR: can`t re-invite TF-pair\n"));
 				}
 			}
 			break;
-		}
+		}/*}}}*/
 	}
 DFE
 }/*}}}*/

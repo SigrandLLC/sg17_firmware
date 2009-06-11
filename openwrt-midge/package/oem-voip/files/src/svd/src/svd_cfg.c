@@ -93,23 +93,23 @@ static int self_values_init (void);
 static void init_codec_el(struct config_setting_t const * const rec_set, 
 		int const prms_offset, codec_t * const cod);
 /** Init main configuration.*/
-static int main_init (void);
+static int main_init (ab_t const * const ab);
 /** Init fxo channels parameters.*/
-static int fxo_init (void);
+static int fxo_init (ab_t const * const ab);
 /** Init route table configuration.*/
 static int routet_init (void);
 /** Init RTP parameters configuration.*/
 static int rtp_init (void);
 /** Init WLEC parameters configuration.*/
-static int wlec_init (void);
+static int wlec_init (ab_t const * const ab);
 /** Init tonal frequency channels configuration.*/
-static int tonalf_init (void);
+static int tonalf_init (ab_t const * const ab);
 /** Init hot line configuration.*/
-static int hotline_init (void);
+static int hotline_init (ab_t const * const ab);
 /** Init addres book configuration.*/
 static int addressb_init (void);
 /** Init internal, external and fax codecs configuration.*/
-static int quality_init (void);
+static int codecs_init (void);
 /** Print error message if something occures.*/
 static void error_message (void);
 /** Print help message.*/
@@ -211,26 +211,28 @@ startup_destroy( int argc, char ** argv )
 /**
  *	Parses configuration file and write parsed info into \ref g_conf.
  *
+ * \param[in] ab ata-board hardware structure.
+ *
  * \retval 0 success.
  * \retval -1 in error case.
  * \remark
  *		It init`s main routine configuration \ref g_conf.
  */ 
 int 
-svd_conf_init( void )
+svd_conf_init( ab_t const * const ab )
 {/*{{{*/
 	/* default presets */
 	memset (&g_conf, 0, sizeof(g_conf));
 	strcpy (g_conf.lo_ip, "127.0.0.1");
-	if(		main_init() 	||
-			fxo_init()		||
+	if(		main_init (ab) 	||
+			fxo_init (ab)	||
 			routet_init()	||
 			rtp_init()		||
-			wlec_init()		||
-			tonalf_init()   ||
-			hotline_init()	||
+			wlec_init (ab)	||
+			tonalf_init(ab) ||
+			hotline_init(ab) ||
 			addressb_init()	||
-			quality_init()
+			codecs_init()
 			){
 		goto __exit_fail;
 	}
@@ -244,53 +246,6 @@ __exit_fail:
 }/*}}}*/
 
 /**
- *	Parses ata board struct and reinit some in \ref g_conf.
- *
- * \retval 0 success.
- * \retval -1 in error case.
- */ 
-int 
-svd_conf_reinit( ab_t const * const ab)
-{/*{{{*/
-	int i;
-	int chans_num;
-	struct wlec_s * cr; /* current rec */
-	ab_chan_t * cc; /* current channel */
-
-	if( !ab){
-		goto __exit_fail;
-	}
-
-	/* reinit WLEC params */
-	chans_num = ab->chans_num;
-	for (i=0; i<chans_num; i++){
-		cc = &ab->chans[i];
-		cr = &g_conf.wlec_prms[cc->abs_idx];
-		if(cr->mode == wlec_mode_UNDEF){
-			if       (cc->parent->type == ab_dev_type_FXO){
-				cr->mode = wlec_mode_NE;
-				cr->nlp = wlec_nlp_ON;
-				cr->ne_nb = 4;
-				cr->fe_nb = 4;
-				cr->ne_wb = 4;
-			} else if(cc->parent->type == ab_dev_type_FXS){
-				cr->mode = wlec_mode_NE;
-				cr->nlp = wlec_nlp_OFF;
-				cr->ne_nb = 4;
-				cr->fe_nb = 4;
-				cr->ne_wb = 4;
-			} else if(cc->parent->type == ab_dev_type_TF){
-				cr->mode = wlec_mode_OFF;
-			}
-		}
-	} 
-
-	return 0;
-__exit_fail:
-	return -1;
-}/*}}}*/
-
-/**
  * Show config parameters.
  *
  * \remark
@@ -300,7 +255,7 @@ void
 conf_show( void )
 {/*{{{*/
 	struct adbk_record_s * curr_ab_rec;
-	struct htln_record_s * curr_hl_rec;
+	struct hot_line_s    * curr_hl_rec;
 	struct rttb_record_s * curr_rt_rec;
 	struct tonal_freq_s  * curr_tf_rec;
 //	struct rtp_prms_s    * rtp_rec;
@@ -372,14 +327,12 @@ conf_show( void )
 				i+1, curr_ab_rec->id, curr_ab_rec->value));
 	}
 			
-	if(g_conf.hot_line.records_num){
-		SU_DEBUG_3(("HotLine :\n"));
-	}
-	j = g_conf.hot_line.records_num;
-	for(i = 0; i < j; i++){
-		curr_hl_rec = &g_conf.hot_line.records[ i ];
-		SU_DEBUG_3(("\t%d/\"%s\" : %s\n",
-				i+1, curr_hl_rec->id, curr_hl_rec->value ));
+	SU_DEBUG_3(("HotLine :\n"));
+	for(i=0; i<CHANS_MAX; i++){
+		curr_hl_rec = &g_conf.hot_line[ i ];
+		if(curr_hl_rec->is_set){
+			SU_DEBUG_3(("\t%d : %s\n", i, curr_hl_rec->value ));
+		}
 	}
 
 	SU_DEBUG_3(("TonalF :\n"));
@@ -418,6 +371,7 @@ svd_conf_destroy (void)
 {/*{{{*/
 	int i;
 	int j;
+	struct hot_line_s * curr_rec; 
 
 	j = g_conf.address_book.records_num;
 	if (j){
@@ -435,17 +389,11 @@ svd_conf_destroy (void)
 		free (g_conf.address_book.records);
 	}
 
-	j = g_conf.hot_line.records_num;
-	if (j){
-		struct htln_record_s * curr_rec; 
-		for(i = 0; i < j; i++){
-			curr_rec = &g_conf.hot_line.records[ i ];
-			if (curr_rec->value && 
-					curr_rec->value != curr_rec->value_s){
-				free (curr_rec->value);
-			}
+	for(i=0; i<CHANS_MAX; i++){
+		curr_rec = &g_conf.hot_line[ i ];
+		if (curr_rec->value && (curr_rec->value != curr_rec->value_s)){
+			free (curr_rec->value);
 		}
-		free (g_conf.hot_line.records);
 	}
 
 	j = g_conf.route_table.records_num;
@@ -741,12 +689,14 @@ init_codec_el(struct config_setting_t const *const rec_set,
 
 /**
  * Init`s main settings in main routine configuration \ref g_conf structure.
+ * 
+ * \param[in] ab ata-board hardware structure.
  *
  * \retval 0 success.
  * \retval -1 fail.
  */
 static int
-main_init( void )
+main_init( ab_t const * const ab )
 {/*{{{*/
 	struct config_t cfg;
 	char const * str_elem = NULL;
@@ -806,8 +756,11 @@ main_init( void )
 
 	/* app.sip_chan */
 	g_conf.sip_set.sip_chan = config_lookup_int (&cfg, "sip_chan");
-	if ( !g_conf.sip_set.sip_chan){
-		goto __exit_success;
+	if((!ab->pchans[g_conf.sip_set.sip_chan]) ||
+		(ab->pchans[g_conf.sip_set.sip_chan]->parent->type != ab_dev_type_FXS)){
+		SU_DEBUG_2(("ATTENTION!! [%d] is not FXS, as in %s.. "
+				"EXIT\n", g_conf.sip_set.sip_chan, MAIN_CONF_NAME));
+		goto __exit_fail;
 	}
 
 	g_conf.sip_set.all_set = 1;
@@ -827,7 +780,7 @@ __exit_fail:
  * \retval -1 fail.
  */
 static int
-fxo_init( void )
+fxo_init( ab_t const * const ab )
 {/*{{{*/
 	struct config_t cfg;
 	struct config_setting_t * set;
@@ -873,6 +826,12 @@ fxo_init( void )
 		/* get chan id */
 		elem = config_setting_get_string_elem (rec_set, 0);
 		abs_idx = strtol(elem, NULL, 10);
+
+		if((!ab->pchans[abs_idx]) ||
+			(ab->pchans[abs_idx]->parent->type != ab_dev_type_FXO)){
+			SU_DEBUG_2(("ATTENTION!! [%d] is not FXO, as in %s.. "
+					"continue\n", abs_idx, FXO_CONF_NAME));
+		}
 
 		curr_rec = &g_conf.fxo_PSTN_type[ abs_idx ];
 
@@ -1004,11 +963,13 @@ __exit_fail:
 /*
  * Init`s tonal freq records in main routine configuration \ref g_conf structure.
  *
+ * \param[in] ab ata-board hardware structure.
+ *
  * \retval 0 success.
  * \retval -1 fail.
  */ 
 static int 
-tonalf_init( void )
+tonalf_init( ab_t const * const ab )
 {/*{{{*/
 	/* ("chan_id", "pair_route_id", "pair_chan_id",
 	 * 		"codec_name", "pkt_sz", payload_type, "bitpack") */
@@ -1056,6 +1017,13 @@ tonalf_init( void )
 		/* get chan_id */
 		elem = config_setting_get_string_elem (rec_set, 0);
 		chan_id = strtol (elem, NULL, 10);
+
+		if((!ab->pchans[chan_id]) ||
+			(ab->pchans[chan_id]->parent->type != ab_dev_type_TF)){
+			SU_DEBUG_2(("ATTENTION!! [%d] is not TF, as in %s.. "
+					"ignore config value\n",chan_id, TONALF_CONF_NAME));
+			continue;
+		}
 
 		curr_rec = &g_conf.tonal_freq[ chan_id ];
 		if( curr_rec->is_set){
@@ -1108,6 +1076,15 @@ tonalf_init( void )
 
 		/* Create automatic mirror record if dest router is self */
 		if(curr_rec->pair_route == NULL){
+			if((!ab->pchans[pair_chan]) ||
+				(ab->pchans[pair_chan]->parent->type != ab_dev_type_TF)){
+				SU_DEBUG_2(("ATTENTION!! [%d] is not TF, as in %s.. "
+						"ignore config value\n",pair_chan, TONALF_CONF_NAME));
+				/* remove current channel TF-record 
+				 * because we can`t connect to not TF-channel */
+				curr_rec->is_set = 0;
+				continue;
+			}
 			struct tonal_freq_s * mirr_rec = &g_conf.tonal_freq[ pair_chan ];
 			/* copy params */
 			memcpy(&g_conf.tonal_freq[ pair_chan ], &g_conf.tonal_freq[ chan_id ],
@@ -1155,6 +1132,13 @@ tonalf_init( void )
 		elem = config_setting_get_string_elem (rec_set, 0);
 		chan_id = strtol (elem, NULL, 10);
 
+		if((!ab->pchans[chan_id]) ||
+			(ab->pchans[chan_id]->parent->type != ab_dev_type_TF)){
+			SU_DEBUG_2(("ATTENTION!! [%d] is not TF, as in %s.. "
+					"ignore config value\n", chan_id, TF_CONF_NAME));
+			continue;
+		}
+
 		curr_rec = &g_conf.tonal_freq[ chan_id ];
 
 		/* get wire_type */
@@ -1198,19 +1182,21 @@ __exit_fail:
 /**
  * Init`s hot line records in main routine configuration \ref g_conf structure.
  *
+ * \param[in] ab ata-board hardware structure.
+ *
  * \retval 0 success.
  * \retval -1 fail.
  */ 
 static int 
-hotline_init( void )
+hotline_init( ab_t const * const ab )
 {/*{{{*/
 	struct config_t cfg;
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
-	struct htln_record_s * curr_rec; 
+	struct hot_line_s * curr_rec; 
 	char const * elem;
-	int elem_len;
 	int rec_num;
+	int elem_len;
 	int i;
 	int err;
 
@@ -1226,29 +1212,36 @@ hotline_init( void )
 
 	set = config_lookup (&cfg, "hot_line" );
 	if( !set ){
-		g_conf.hot_line.records_num = 0;
+		/* no hotline records */
 		goto __exit_success;
 	} 
 
 	rec_num = config_setting_length (set);
 
-	g_conf.hot_line.records_num = rec_num;
-	g_conf.hot_line.records = malloc (rec_num * 
-			sizeof(*(g_conf.hot_line.records)));
-	if( !g_conf.hot_line.records ){
-		SU_DEBUG_0((LOG_FNC_A(LOG_NOMEM)));
+	if(rec_num > CHANS_MAX){
+		SU_DEBUG_0(("%s(): Too many channels (%d) in config - max is %d\n",
+				__func__, rec_num, CHANS_MAX));
 		goto __exit_fail;
 	}
-	memset(g_conf.hot_line.records, 0, rec_num * 
-			sizeof(*(g_conf.hot_line.records)));
 
-	for(i = 0; i < rec_num; i++){
-		curr_rec = &g_conf.hot_line.records[ i ];
+	for(i=0; i<rec_num; i++){
+		int chan_idx;
 		rec_set = config_setting_get_elem (set, i);
 		/* get id */
 		elem = config_setting_get_string_elem (rec_set, 0);
-		strncpy(curr_rec->id, elem, CHAN_ID_LEN-1);
-		
+		chan_idx = strtol(elem, NULL, 10);
+		curr_rec = &g_conf.hot_line[ chan_idx ];
+
+		if((!ab->pchans[chan_idx]) ||
+			((ab->pchans[chan_idx]->parent->type != ab_dev_type_FXS) && 
+			 (ab->pchans[chan_idx]->parent->type != ab_dev_type_FXO))
+			){
+			SU_DEBUG_2(("ATTENTION!! [%d] is not FXS or FXO, as in %s.. "
+					"ignore config value\n", chan_idx, HOTLINE_CONF_NAME));
+			continue;
+		}
+		curr_rec->is_set = 1;
+
 		/* get value */
 		elem = config_setting_get_string_elem (rec_set, 1);
 		elem_len = strlen(elem);
@@ -1268,16 +1261,12 @@ __exit_success:
 	config_destroy (&cfg);
 	return 0;
 __exit_fail:
-	if(g_conf.hot_line.records) {
-		for(i=0; i<rec_num; i++){
-			curr_rec = &g_conf.hot_line.records[ i ];
-			if( curr_rec->value && curr_rec->value != curr_rec->value_s ){
-				free (curr_rec->value);
-				curr_rec->value = NULL;
-			}
+	for(i=0; i<CHANS_MAX; i++){
+		curr_rec = &g_conf.hot_line[ i ];
+		if( curr_rec->value && (curr_rec->value != curr_rec->value_s) ){
+			free (curr_rec->value);
+			curr_rec->value = NULL;
 		}
-		free(g_conf.hot_line.records);
-		g_conf.hot_line.records = NULL;
 	}
 	config_destroy (&cfg);
 	return -1;
@@ -1410,7 +1399,7 @@ __exit_fail:
  *	g_conf.sip_set.all_set setting.
  */
 static int
-quality_init( void )
+codecs_init( void )
 {/*{{{*/
 	struct config_t cfg;
 	struct config_setting_t * set = NULL;
@@ -1586,16 +1575,19 @@ __exit_fail:
 /**
  * Init`s WLEC parameters in main routine configuration \ref g_conf structure.
  *
+ * \param[in] ab ata-board hardware structure.
+ *
  * \retval 0 success.
  * \retval -1 fail.
  */ 
 static int
-wlec_init( void )
+wlec_init( ab_t const * const ab )
 {/*{{{*/
 	struct config_t cfg;
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
 	struct wlec_s * curr_rec;
+	ab_chan_t * cc; /* current channel */
 	char const * elem;
 	int rec_num;
 	int i;
@@ -1612,19 +1604,27 @@ wlec_init( void )
 	} 
 
 	/* Standart params for all chans */
-	curr_rec = &g_conf.wlec_prms[0];
-	memset (curr_rec, 0, sizeof(*curr_rec));
-	curr_rec->mode = wlec_mode_UNDEF;
-	/*
-	curr_rec->mode = wlec_mode_NE;
-	curr_rec->nlp = wlec_nlp_ON;
-	curr_rec->ne_nb = 4;
-	curr_rec->fe_nb = 4;
-	curr_rec->ne_wb = 4;
-	*/
-	for (i=1; i<CHANS_MAX; i++){
+	for (i=0; i<CHANS_MAX; i++){
 		curr_rec = &g_conf.wlec_prms[i];
-		memcpy(curr_rec, &g_conf.wlec_prms[0], sizeof(*curr_rec));
+		cc = ab->pchans[i];
+		if( !cc) {
+			continue;
+		}
+		if       (cc->parent->type == ab_dev_type_FXO){
+			curr_rec->mode = wlec_mode_NE;
+			curr_rec->nlp = wlec_nlp_ON;
+			curr_rec->ne_nb = 4;
+			curr_rec->fe_nb = 4;
+			curr_rec->ne_wb = 4;
+		} else if(cc->parent->type == ab_dev_type_FXS){
+			curr_rec->mode = wlec_mode_NE;
+			curr_rec->nlp = wlec_nlp_OFF;
+			curr_rec->ne_nb = 4;
+			curr_rec->fe_nb = 4;
+			curr_rec->ne_wb = 4;
+		} else if(cc->parent->type == ab_dev_type_TF){
+			curr_rec->mode = wlec_mode_OFF;
+		}
 	} 
 
 	/* Get values */

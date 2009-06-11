@@ -109,9 +109,7 @@ void startup_destroy( int argc, char ** argv );
 /*}}}*/
 
 /** Reads config files and init \ref g_conf structure.*/
-int  svd_conf_init( void );
-/** Read ata board params and reinit some in \ref g_conf.*/
-int  svd_conf_reinit( ab_t const * const ab );
+int  svd_conf_init( ab_t const * const ab );
 /** Show the config information from \ref g_conf.*/
 void conf_show( void );
 /** Destroy \ref g_conf.*/
@@ -147,12 +145,6 @@ struct adbk_record_s {
 	char * value; /**< Long number pointer.*/
 	char value_s [VALUE_LEN_DF]; /**< Long number static massive.*/
 };
-/** Hot line record.*/
-struct htln_record_s {
-	char id [CHAN_ID_LEN]; /**< Channel absolute identifier.*/
-	char * value; /**< Hotline address pointer.*/
-	char value_s [VALUE_LEN_DF]; /**< Hotline static massive.*/
-};
 /** Route table record.*/
 struct rttb_record_s {
 	char * id; /**< Router identifier pointer.*/
@@ -167,8 +159,9 @@ struct address_book_s {
 };
 /** Hot line.*/
 struct hot_line_s {
-	unsigned int records_num; /**< Number of hotline records.*/
-	struct htln_record_s * records; /**< Records massive.*/
+	int is_set; /**< Set to 1 if this channel has meaningful values. */
+	char * value; /**< Hotline address pointer.*/
+	char value_s [VALUE_LEN_DF]; /**< Hotline static massive.*/
 };
 /** Tonal Frequency channels.*/
 struct tonal_freq_s {
@@ -230,14 +223,14 @@ struct svd_conf_s {/*{{{*/
 	unsigned long rtp_port_last; /**< Max ports range bound for RTP.*/
 	struct sip_settings_s sip_set; /**< SIP settings for registration.*/
 	struct address_book_s address_book; /**< Address book.*/
-	struct hot_line_s hot_line; /**< Hot line.*/
-	struct tonal_freq_s tonal_freq[CHANS_MAX]; /**< TF-channels params.*/
 	struct route_table_s route_table; /**< Routes table.*/
-	struct rtp_prms_s rtp_prms[CHANS_MAX]; /**< RTP channel parameters.*/
-	enum pstn_type_e fxo_PSTN_type[CHANS_MAX]; /**< FXO pstn types.*/
+	struct hot_line_s   hot_line     [CHANS_MAX]; /**< Hot line parameters.*/
+	struct tonal_freq_s tonal_freq   [CHANS_MAX]; /**< TF-channels parameters.*/
+	struct rtp_prms_s   rtp_prms     [CHANS_MAX]; /**< RTP channel parameters.*/
+	struct wlec_s       wlec_prms    [CHANS_MAX]; /**< WLEC channel parameters.*/
+	enum pstn_type_e    fxo_PSTN_type[CHANS_MAX]; /**< FXO pstn types.*/
 	unsigned char sip_tos; /** Type of Service byte for sip-packets.*/
 	unsigned char rtp_tos; /** Type of Service byte for rtp-packets.*/
-	struct wlec_s wlec_prms[CHANS_MAX]; /**< WLEC channel parameters.*/
 } g_conf;/*}}}*/
 
 /** @} */

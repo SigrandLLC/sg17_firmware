@@ -18,6 +18,7 @@ PKG_VINETIC_DISTR:=drv_vinetic-1.3.1_tapi-3.6.1.tar.gz
 PKG_SGATAB_DISTR:=drv_sgatab
 PKG_SVD_DISTR:=svd
 PKG_SVI_DISTR:=svi
+PKG_SVC_DISTR:=svc
 PKG_LIBAB_DISTR:=libab
 PKG_LIBCONFIG_DISTR:=libconfig
 PKG_TST_DISTR:=tst
@@ -38,6 +39,7 @@ VINETIC_UNPACK+=tar -vxpf $(PKG_SRC_DIR)/$(PKG_VINETIC_DISTR) -C $(PKG_BUILD_DIR
 SGATAB_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SGATAB_DISTR) $(PKG_BUILD_DIR)
 SVD_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVD_DISTR) $(PKG_BUILD_DIR)
 SVI_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVI_DISTR) $(PKG_BUILD_DIR)
+SVC_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVC_DISTR) $(PKG_BUILD_DIR)
 LIBAB_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_LIBAB_DISTR) $(PKG_BUILD_DIR)
 LIBCONFIG_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_LIBCONFIG_DISTR) $(PKG_BUILD_DIR)
 TST_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_TST_DISTR) $(PKG_BUILD_DIR)
@@ -59,6 +61,7 @@ $(PKG_BUILD_DIR)/.prepared:
 	$(SGATAB_UNPACK);
 	$(SVD_UNPACK);
 	$(SVI_UNPACK);
+	$(SVC_UNPACK);
 	$(LIBAB_UNPACK);
 	$(LIBCONFIG_UNPACK);
 	$(TST_UNPACK);
@@ -204,7 +207,6 @@ $(PKG_BUILD_DIR)/.configured:  $(PKG_BUILD_DIR)/.prepared
 
 
 
-
 $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 	#---------======================================---------
 	#		configure and build routines
@@ -266,7 +268,23 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 		$(TARGET_CONFIGURE_OPTS) \
 		make install \
 	);
-	touch $@
+
+	@echo "CONFIGURE AND BUILD SVC..."
+
+	( cd $(PKG_BUILD_DIR)/svc; \
+		$(TARGET_CONFIGURE_OPTS) \
+		mipsel-linux-gcc \
+		-Wall \
+		-I../vinetic/include/ \
+		-I../tapi/include/ \
+		-I../drv_sgatab/ \
+		-I../libab \
+		-L../libab \
+		svc.c \
+		-o svc \
+		-lab; \
+		cp svc $(PKG_INSTALL_DIR)/bin/ \
+	);
 
 	@echo "BUILD ?TST..."
 
@@ -307,7 +325,6 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 		${CP} *tst $(PKG_INSTALL_DIR)/bin/ \
 	);
 	touch $@
-
 
 
 $(IPKG_OEM_VOIP): 

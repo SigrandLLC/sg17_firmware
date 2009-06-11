@@ -81,9 +81,6 @@ static int svd_handle_NET_ADDR
 /** ADDR_BOOK state in dialed sequence.*/
 static int svd_handle_ADDR_BOOK
 		( svd_t * const svd, int const chan_idx, long const digit );
-
-/** Wait for second and etc. ring on fxo before sent CANCEL to hotlined FXS. */
-#define RING_WAIT_DROP 5
 /** @}*/ 
 
 
@@ -160,13 +157,7 @@ svd_atab_create ( svd_t * const svd )
 	int ch_num;
 DFS
 	assert (svd);
-	assert (!svd->ab);
-
-	svd->ab = ab_create();
-	if( !svd->ab ){
-		SU_DEBUG_0 ((LOG_FNC_A(ab_g_err_str)));
-		goto __exit_fail;
-	}
+	assert (svd->ab);
 
 	/** it uses !!g_conf to get route_id_len */
 	err = svd_chans_init (svd);
@@ -238,14 +229,13 @@ DFS
 			if (curr_chan->dial_status.addrbk_id){
 				free (curr_chan->dial_status.addrbk_id);
 			}
+			if (curr_chan->ring_tmr){
+				su_timer_destroy(curr_chan->ring_tmr);
+			}
 			free (curr_chan);
 			curr_chan = NULL;
 		}
 	}
-	
-	/* ab_destroy */
-	ab_destroy (&svd->ab);
-
 __exit:
 DFE
 	return;
@@ -261,15 +251,31 @@ int
 svd_media_register (svd_t * const svd, ab_chan_t * const chan)
 {/*{{{*/
 	su_wait_t wait[1];
+	svd_chan_t * chan_ctx;
 	int ret;
 DFS
-	assert (chan);
-	assert (chan->ctx);
+	if( (!chan) || (!chan->ctx)){
+		SU_DEBUG_1(("ERROR: [%d] CAN`T REGISTER MEDIA on unallocated channel\n",
+				(chan)? chan->abs_idx: -1));
+		SU_DEBUG_1(("ERROR: [%d] CAN`T REGISTER MEDIA on unallocated channel\n",
+				(chan)? chan->abs_idx: -1));
+		SU_DEBUG_1(("ERROR: [%d] CAN`T REGISTER MEDIA on unallocated channel\n",
+				(chan)? chan->abs_idx: -1));
+		goto __exit_fail;
+	}
 
-	svd_chan_t * chan_ctx = chan->ctx;
+	chan_ctx = chan->ctx;
 
-	assert (chan_ctx->local_wait_idx == -1);
-	assert (chan_ctx->remote_wait_idx == -1);
+	if( (chan_ctx->local_wait_idx  != -1) ||
+		(chan_ctx->remote_wait_idx != -1) ){
+		SU_DEBUG_1(("ERROR: [%d] CAN`T REGISTER MEDIA in the second time\n",
+				chan->abs_idx));
+		SU_DEBUG_1(("ERROR: [%d] CAN`T REGISTER MEDIA in the second time\n",
+				chan->abs_idx));
+		SU_DEBUG_1(("ERROR: [%d] CAN`T REGISTER MEDIA in the second time\n",
+				chan->abs_idx));
+		goto __exit_fail;
+	}
 
 	ret = su_wait_create(wait, chan->rtp_fd, SU_WAIT_IN);
 	if (ret){
@@ -836,7 +842,6 @@ svd_handle_event_FXS_OFFHOOK( svd_t * const svd, int const chan_idx )
 	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
 	int call_answered;
 	int err;
-
 DFS
 	/* stop ringing */
 	err = ab_FXS_line_ring( ab_chan, ab_chan_ring_MUTE );
@@ -879,7 +884,6 @@ DFS
 		}
 		SU_DEBUG_8(("play dialtone on [_%d_]\n",ab_chan->abs_idx));
 	}
-
 __exit_success:
 DFE
 	return 0;
@@ -994,39 +998,33 @@ DFE
  * It is callback on the rings to FXO channels. 
  * \param[in] arg	ab channel pointer.
  * \remark
- *	Used to measure time delays between two ring detection. Thread with this
- *	function should be cancelled on the every incoming ring. If it is not 
- *	cancelled it will send SIP CANCEL to cancel the invite request, because
- *	nobody rings on FXO anymore.
+ *	Used to measure time delays between two ring detection. This function 
+ *	should be cancelled on the every incoming ring. If it is not cancelled 
+ *	it will send SIP CANCEL to cancel the invite request, because nobody 
+ *	rings on FXO anymore.
  */ 
-void *
-ring_timer_th(void * arg)
+void
+ring_timer_cb(su_root_magic_t *magic, su_timer_t *t, su_timer_arg_t *arg)
 {/*{{{*/
 	ab_chan_t * chan = arg;
 	svd_chan_t * ctx = chan->ctx;
-	int invite_sent;
 
-	sleep (RING_WAIT_DROP);
-
-	if( ctx->is_connection_is_up){
-		/* connection already is active - just out */
+	/* if FXS-side answers - just out */
+	if( ctx->call_state == nua_callstate_ready ||
+		ctx->call_state == nua_callstate_completing ){
+		ctx->ring_state = ring_state_NO_TIMER_INVITE_SENT;
+		SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
+				__func__, __LINE__, chan->abs_idx, ctx->ring_state));
 		return;
 	}
 
 	/* nobody answers, and no ring coming in RING_WAIT_DROP seconds */
-	SU_DEBUG_3 (("Don`t got ring on [_%d_], in %d seconds\n"
-			,chan->abs_idx, RING_WAIT_DROP));
-	SU_DEBUG_3 (("	-> send SIP Cancel\n"));
-
-	/* wait for invite sent to send cancel on it */
-	invite_sent = nua_handle_has_invite(ctx->op_handle);
-	while( !invite_sent){
-		sleep(1);
-		invite_sent = nua_handle_has_invite(ctx->op_handle);
-	}
-	/* invite already sent - should cancel it */
+	SU_DEBUG_3 (("no RING on [_%d_], in %d sec\n -> send SIP CANCEL\n",
+			chan->abs_idx, RING_WAIT_DROP));
 	nua_cancel (ctx->op_handle, TAG_NULL());
-	ctx->is_ring_in_process = 0;
+	ctx->ring_state = ring_state_CANCEL_IN_QUEUE;
+	SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
+			__func__, __LINE__, chan->abs_idx, ctx->ring_state));
 }/*}}}*/
 
 /**
@@ -1042,50 +1040,80 @@ svd_handle_event_FXO_RINGING ( svd_t * const svd, int const chan_idx )
 	svd_chan_t * chan_ctx = ab_chan->ctx;
 	int err;
 DFS
-	if( chan_ctx->is_hotlined ){
-		/* if connection is up - should out */
-		if(chan_ctx->is_connection_is_up){
-			SU_DEBUG_8 (("Connection already up on [_%d_]: ignore ring\n", 
-					ab_chan->abs_idx));
-			goto __exit_success;
-		}
-		if(!chan_ctx->is_ring_in_process){
-			/* first ring on hotlined FXO */
-			chan_ctx->is_ring_in_process = 1;
-			err = pthread_create(&chan_ctx->ringth, NULL, ring_timer_th, ab_chan);
-			if (err){
-				SU_DEBUG_3 (("!ERROR pthread_create on [_%d_] : %d\n", 
-							ab_chan->abs_idx, err));
-				chan_ctx->is_ring_in_process = 0;
-				goto __exit_fail;
-			}
-			/* process the hotline sequence */
-			err = svd_process_addr (svd, chan_idx, chan_ctx->hotline_addr);
-			if(err){
-				goto __exit_fail;
-			}
-		} else {
-			/* ring already in process - should restart timer */
-			SU_DEBUG_3 (("Got ringing event on channel [_%d_], it is already "
-					"in process\n", ab_chan->abs_idx));
-			err = pthread_cancel(chan_ctx->ringth);
-			if (err){
-				SU_DEBUG_3 (("pthread_cancel error on [_%d_] : %d\n", 
-							ab_chan->abs_idx, err));
-				goto __exit_fail;
-			}
-			err = pthread_create(&chan_ctx->ringth, NULL, ring_timer_th, ab_chan);
-			if (err){
-				SU_DEBUG_3 (("pthread_create error on [_%d_] : %d\n", 
-							ab_chan->abs_idx, err));
-				chan_ctx->is_ring_in_process = 0;
-				goto __exit_fail;
-			}
-		}
-	} else {
+	/* not hotlined FXO - error case */
+	if( !chan_ctx->is_hotlined){
 		SU_DEBUG_3 (("Got ringing event on channel [_%d_], it is not "
 				"hotlined, but should be\n", ab_chan->abs_idx));
 		goto __exit_fail;
+	}
+
+	/* if connection is already prepared -
+	 * we will (or already) register media for this ring and answes 
+	 * to FXS on it`s INVITE --- should out to do not double register the
+	 * media - it causes crash */
+	if( chan_ctx->call_state == nua_callstate_received   ||
+		chan_ctx->call_state == nua_callstate_early      ||
+		chan_ctx->call_state == nua_callstate_completed  ||
+		chan_ctx->call_state == nua_callstate_completing ||
+		chan_ctx->call_state == nua_callstate_ready ){
+		SU_DEBUG_8 (("Connection already initiated on [_%d_]: ignoring ring\n", 
+				ab_chan->abs_idx));
+		goto __exit_success;
+	}
+
+	if       ( chan_ctx->ring_state == ring_state_NO_RING_BEFORE){
+		/* process the hotline sequence */
+		err = svd_process_addr (svd, chan_idx, chan_ctx->hotline_addr);
+		if(err){
+			goto __exit_fail;
+		}
+		chan_ctx->ring_state = ring_state_INVITE_IN_QUEUE;
+		SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
+				__func__, __LINE__, ab_chan->abs_idx, chan_ctx->ring_state));
+	} else if( chan_ctx->ring_state == ring_state_INVITE_IN_QUEUE) {
+		/* don`t do nothing before invite */
+		SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
+				__func__, __LINE__, ab_chan->abs_idx, chan_ctx->ring_state));
+	} else if( chan_ctx->ring_state == ring_state_NO_TIMER_INVITE_SENT) {
+		/* timer up error occured - try to start it again */
+		err = su_timer_set_interval(chan_ctx->ring_tmr, ring_timer_cb, ab_chan, 
+				RING_WAIT_DROP*1000); 
+		if (err){
+			SU_DEBUG_2 (("su_timer_set_interval ERROR on [_%d_] : %d\n", 
+						ab_chan->abs_idx, err));
+			chan_ctx->ring_state = ring_state_NO_TIMER_INVITE_SENT;
+			SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
+					__func__, __LINE__, ab_chan->abs_idx, chan_ctx->ring_state));
+			goto __exit_fail;
+		}
+		chan_ctx->ring_state = ring_state_TIMER_UP_INVITE_SENT;
+		SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
+				__func__, __LINE__, ab_chan->abs_idx, chan_ctx->ring_state));
+	} else if( chan_ctx->ring_state == ring_state_TIMER_UP_INVITE_SENT) {
+		/* ring already in process - should restart timer */
+		SU_DEBUG_3 (("Got ringing event on channel [_%d_], it is already "
+				"in process\n", ab_chan->abs_idx));
+		err = su_timer_reset(chan_ctx->ring_tmr);
+		if (err){
+			SU_DEBUG_2 (("su_timer_reset ERROR on [_%d_] : %d\n", 
+						ab_chan->abs_idx, err));
+			goto __exit_fail;
+		}
+		err = su_timer_set_interval(chan_ctx->ring_tmr, ring_timer_cb, ab_chan, 
+				RING_WAIT_DROP*1000); 
+		if (err){
+			SU_DEBUG_2 (("su_timer_set_interval ERROR on [_%d_] : %d\n", 
+						ab_chan->abs_idx, err));
+			chan_ctx->ring_state = ring_state_NO_TIMER_INVITE_SENT;
+			SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
+					__func__, __LINE__, ab_chan->abs_idx, chan_ctx->ring_state));
+			goto __exit_fail;
+		}
+	} else if( chan_ctx->ring_state == ring_state_CANCEL_IN_QUEUE) {
+		SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
+				__func__, __LINE__, ab_chan->abs_idx, chan_ctx->ring_state));
+		/* don`t do nothing - after cancel if we still have incoming
+		 * ring connection will up again */
 	}
 __exit_success:
 DFE
@@ -1139,7 +1167,6 @@ static int
 svd_chans_init ( svd_t * const svd )
 {/*{{{*/
 	int i;
-	int k;
 	unsigned char route_id_len;
 	unsigned char addrbk_id_len;
 	int chans_num;
@@ -1164,8 +1191,7 @@ DFS
 		/* route_id channel ctx sets */
 		int route_id_sz = sizeof(*(chan_ctx->dial_status.route_id));
 
-		chan_ctx->dial_status.route_id = 
-				malloc( (route_id_len+1) * route_id_sz);
+		chan_ctx->dial_status.route_id = malloc((route_id_len+1)*route_id_sz);
 		if( !chan_ctx->dial_status.route_id ){
 			SU_DEBUG_0 ((LOG_FNC_A (LOG_NOMEM_A 
 					("chans[i].ctx->dial_status.route_id") ) ));
@@ -1178,8 +1204,7 @@ DFS
 		/* address_book id channel data sets */
 		int adbk_sz = sizeof(*(chan_ctx->dial_status.addrbk_id));
 
-		chan_ctx->dial_status.addrbk_id = 
-				malloc( (addrbk_id_len+1) * adbk_sz);
+		chan_ctx->dial_status.addrbk_id = malloc( (addrbk_id_len+1) * adbk_sz);
 		if( !chan_ctx->dial_status.addrbk_id ){
 			SU_DEBUG_0 ((LOG_FNC_A (LOG_NOMEM_A 
 					("chans[i].ctx->dial_status.addrbk_id") ) ));
@@ -1199,40 +1224,27 @@ DFS
 	 	/* HANDLE */
 		chan_ctx->op_handle = NULL;
 
+		/* RING */
+		chan_ctx->ring_state = ring_state_NO_RING_BEFORE;
+		chan_ctx->ring_tmr = su_timer_create(su_root_task(svd->root), 0);
+		if( !chan_ctx->ring_tmr){
+			SU_DEBUG_1 (( LOG_FNC_A ("su_timer_create() fails" ) ));
+		}
+
 		/* ALL OTHER */
 		svd_clear_call (svd, curr_chan);
 	}
 	
 	/* HOTLINE */
-	k = g_conf.hot_line.records_num;
-	for (i=0; i<k; i++){
-		struct htln_record_s * curr_rec = &g_conf.hot_line.records[ i ];
-		int hl_id;
-		hl_id = strtol (curr_rec->id, NULL, 10);
-		ab_chan_t * curr_chan = svd->ab->pchans [hl_id];
-		svd_chan_t * chan_ctx = curr_chan->ctx;
-
-		chan_ctx->is_hotlined = 1;
-		chan_ctx->hotline_addr = curr_rec->value;
-	}
-
-	/* tag__ TF LINEFEED to ACTIVE in libab */
-#if 0
 	for (i=0; i<CHANS_MAX; i++){
-		struct tonal_freq_s * curr_rec = &g_conf.tonal_freq[ i ];
-		int tf_id;
-		if( !curr_rec->is_set){
-			continue;
-		}
-		tf_id = strtol (curr_rec->id, NULL, 10);
-		ab_chan_t * curr_chan = svd->ab->pchans [tf_id];
-		/* set linefeed to active for all tf-channels */
-		err = ab_FXS_line_feed(curr_chan, ab_chan_linefeed_ACTIVE);
-		if(err){
-			goto __exit_fail;
+		struct hot_line_s * curr_rec = &g_conf.hot_line[ i ];
+		if (curr_rec->is_set){
+			svd_chan_t * ctx = svd->ab->pchans[i]->ctx;
+			ctx->is_hotlined = 1;
+			ctx->hotline_addr = curr_rec->value;
 		}
 	}
-#endif 
+
 	/* RTP parameters */
 	for (i=0; i<CHANS_MAX; i++){
 		struct rtp_prms_s * curr_rec = &g_conf.rtp_prms[i];
@@ -1275,8 +1287,7 @@ DFS
 			goto __exit_fail;
 		}
 
-		err = su_root_register( svd->root, wait, 
-				svd_atab_handler, curr_dev, 0);
+		err = su_root_register( svd->root, wait, svd_atab_handler, curr_dev, 0);
 		if (err == -1){
 			SU_DEBUG_0 ((LOG_FNC_A ("su_root_register() fails" ) ));
 			goto __exit_fail;
@@ -1758,7 +1769,7 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 	if (chan_ctx->remote_port == 0 ||
 			chan_ctx->remote_host == NULL){
 		rode = read(chan->rtp_fd, buf, sizeof(buf));
-		SU_DEBUG_2(("HLD(0):%d\n",rode));
+		SU_DEBUG_2(("HLD:%d|",rode));
 		goto __exit_success;
 	}
 

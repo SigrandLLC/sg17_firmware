@@ -8,6 +8,7 @@
 #	s 	- drv_sgatab
 #	svd 	- svd
 #	svi 	- svi
+#	svc 	- svc
 #	tst 	- tst
 #
 # $2 - action 
@@ -166,7 +167,7 @@ case "$1" in
 		"
     make_itmp
     ;;
-  s|svd|svi|tst)
+  s|svd|svi|svc|tst)
 	if test $2; then
 		build_path = $2
 	fi
@@ -180,7 +181,7 @@ case "$1" in
     ;;
   *)
     echo "Usage: $0 { v | d | t   [ p1 | p2 | <path> ] } or "
-    echo "       $0 { s | svd | svi | tst  [<path>] }"
+    echo "       $0 { s | svd | svi | svc | tst  [<path>] }"
     exit 1
     ;;
 esac

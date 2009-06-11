@@ -149,9 +149,8 @@ linefeed_keeper( ab_t * ab, enum action_e action )
 void
 digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS, int const pulseDial)
 {/*{{{*/
-	/* play all digits in tone mode (tag__ add pulse later)
-	 * and find channel that detects it... if other event on another chan
-	 * 	- error */
+	/* play all digits in tone/pulse mode and find channel that detects it... 
+	 * if other event on another chan - error */
 	ab_t * ab = cFXO->parent->parent;
 	ab_dev_event_t evt;
 	unsigned char ca;
