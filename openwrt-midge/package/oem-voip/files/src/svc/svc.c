@@ -182,6 +182,16 @@ main( int argc, char *argv[] )
 	int i;
 	int err;
 
+	if(argc == 1){
+		/* normal case */
+	} else if((argc == 2) && (!strcmp(argv[1],"--clear-and-exit"))){
+		return close_and_clear (clear_rez);
+	} else {
+		fprintf(stderr,"%s: just one option available - \"--clear-and-exit\"\n",
+				argv[0]);
+		return -1;
+	}
+
 	/* Initialize the logging interface */
 	openlog( DAEMON_NAME, LOG_PID, LOG_LOCAL5 );
 	syslog( LOG_INFO, "starting" );

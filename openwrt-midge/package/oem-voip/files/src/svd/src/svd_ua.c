@@ -1515,14 +1515,16 @@ DFS
 		if (status == 401 || status == 407) {
 			svd_authenticate (svd, nh, sip, tags);
 		} else if (status == 486){
-			/* busy - play busy tone */
-			/* playing busy tone on the chan */
-			if(ab_FXS_line_tone (chan, ab_chan_tone_BUSY)){
-				SU_DEBUG_2(("can`t playing busy tone on [_%d_]\n",
-						chan->abs_idx));
+			if(chan->parent->type == ab_dev_type_FXS){
+				/* busy - play busy tone */
+				/* playing busy tone on the chan */
+				if(ab_FXS_line_tone (chan, ab_chan_tone_BUSY)){
+					SU_DEBUG_2(("can`t playing busy tone on [_%d_]\n",
+							chan->abs_idx));
+				}
+				/* playing busy tone */
+				SU_DEBUG_3(("playing busy tone on [_%d_]\n", chan->abs_idx));
 			}
-			/* playing busy tone */
-			SU_DEBUG_3(("playing busy tone on [_%d_]\n", chan->abs_idx));
 		}
 	}
 DFE
