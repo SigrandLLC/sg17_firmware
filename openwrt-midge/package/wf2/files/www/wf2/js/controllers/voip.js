@@ -248,7 +248,7 @@ Controllers.voipTF = function() {
              */
             var codecsParameters = {
                 "aLaw": {"pkt_sz": "20", "payload": "08", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
-				"g729": {"pkt_sz": "10", "payload": "12", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "10 20 30 40 60"},
+				"g729": {"pkt_sz": "10", "payload": "18", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "10 20 30 40 60"},
 				"g723": {"pkt_sz": "30", "payload": "4", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "30 60"},
 				"iLBC_133": {"pkt_sz": "30", "payload": "100", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_ro": true},
 				"g729e": {"pkt_sz": "10", "payload": "101", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "10 20 30 40 60"},
@@ -379,12 +379,23 @@ Controllers.voipTF = function() {
 				};
 				c.addTableWidget(field, row);
 
-                /* pkt_sz, list of options is set in onCodecChange() */
+                var codec = $($.sprintf("#sys_voip_tf_channels_%s_codec", channel[0])).val();
+
+                /* pkt_sz */
 				field = {
 					"type": "select",
-					"name": $.sprintf("sys_voip_tf_channels_%s_pkt_sz", channel[0])
+					"name": $.sprintf("sys_voip_tf_channels_%s_pkt_sz", channel[0]),
+                    "options": codecsParameters[codec].pkt_sz_vals == undefined
+                            ? pktszDefaultValues
+                            : codecsParameters[codec].pkt_sz_vals
 				};
 				c.addTableWidget(field, row);
+
+                /* set/unset pkt_sz read-only */
+                $($.sprintf("#sys_voip_tf_channels_%s_pkt_sz", channel[0]))
+                        .setSelectReadonly(codecsParameters[codec].pkt_sz_ro == undefined
+                                ? false
+                                : codecsParameters[codec].pkt_sz_ro);
 
 				/* payload */
                 field = {
@@ -405,7 +416,11 @@ Controllers.voipTF = function() {
                 };
                 c.addTableWidget(field, row);
 
-                onCodecChange(channel[0]);
+                /* set/unset bitpack read-only */
+                $($.sprintf("#sys_voip_tf_channels_%s_bitpack", channel[0]))
+                        .setSelectReadonly(codecsParameters[codec].bitpack_ro == undefined
+                                ? false
+                                : codecsParameters[codec].bitpack_ro);
 			});
 
 			c.addSubmit();
@@ -712,7 +727,7 @@ Controllers.voipCodecs = function() {
 
 			var payloadDefault = {
 				"aLaw": "08",
-				"g729": "12",
+				"g729": "18",
 				"g723": "4",
 				"iLBC_133": "100",
 				"g729e": "101",
