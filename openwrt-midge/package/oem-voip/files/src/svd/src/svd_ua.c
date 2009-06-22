@@ -721,7 +721,6 @@ DFS
 	}
 DFE
 	return 0;
-
 __exit_fail:
 	if (nh){
 		nua_handle_destroy(nh);
@@ -1084,10 +1083,10 @@ DFS
 
 /*{{{ WE CALL */
 	/* INVITE sent */
-		case nua_callstate_calling:{
-			/* start thread there if fxo */
-			svd_chan_t * ctx = chan->ctx;
+		case nua_callstate_calling:
 			if( chan->parent->type == ab_dev_type_FXO){
+				/* start thread there if fxo */
+				svd_chan_t * ctx = chan->ctx;
 				err = su_timer_set_interval(ctx->ring_tmr, ring_timer_cb, 
 						chan, RING_WAIT_DROP*1000); 
 				if (err){
@@ -1100,8 +1099,8 @@ DFS
 							__func__, __LINE__, chan->abs_idx, ctx->ring_state));
 				}
 			}
-		break;
-		}
+			break;
+
 	/* 18X received */
 		case nua_callstate_proceeding:
 			if( chan->parent->type == ab_dev_type_FXS){

@@ -125,23 +125,31 @@ enum ab_chan_linefeed_e {
 };
 
 enum ab_dev_event_e {
-	ab_dev_event_NONE, /**< No event. */
-	ab_dev_event_UNCATCHED, /**< Unknown event. */
-	ab_dev_event_FXO_RINGING, /**< Ring on FXO. */
-	ab_dev_event_FXS_DIGIT_TONE, /**< Dial a digit on FXS in tone mode. */
-	ab_dev_event_FXS_DIGIT_PULSE, /**< Dial a digit on FXO in pulse mode. */
-	ab_dev_event_FXS_ONHOOK, /**< Onhook on FXS. */
-	ab_dev_event_FXS_OFFHOOK, /**< Offhook on FXS. */
-	ab_dev_event_FM_CED, /**< CED and CEDEND FAX events. */
-	ab_dev_event_COD, /**< Coder event. */
-	ab_dev_event_TONE, /**< Tone generator event. */
+	ab_dev_event_NONE, /**< No event */
+	ab_dev_event_UNCATCHED, /**< Unknown event */
+	ab_dev_event_FXO_RINGING, /**< Ring on FXO */
+	ab_dev_event_FXS_DIGIT_TONE, /**< Dial a digit on FXS in tone mode */
+	ab_dev_event_FXS_DIGIT_PULSE, /**< Dial a digit on FXO in pulse mode */
+	ab_dev_event_FXS_ONHOOK, /**< Onhook on FXS */
+	ab_dev_event_FXS_OFFHOOK, /**< Offhook on FXS */
+	ab_dev_event_FM_CED, /**< CED and CEDEND FAX events */
+	ab_dev_event_COD, /**< Coder event */
+	ab_dev_event_TONE, /**< Tone generator event */
+};
+
+enum tf_type_e {
+	tf_type_DEFAULT = 0,
+	tf_type_N4 = 0, /**< normal 4-wired */
+	tf_type_N2,     /**< normal 2-wired */
+	tf_type_T4,    /**< transit 4-wired */
+	tf_type_T2,    /**< transit 2-wired */
 };
 
 struct ab_chan_status_s {
 	enum ab_chan_tone_e	tone;	/**< tone state */
 	enum ab_chan_ring_e	ring;	/**< ring state */
 	enum ab_chan_hook_e	hook;	/**< hoot state */
-	enum ab_chan_linefeed_e	linefeed; /**< linefeed state*/
+	enum ab_chan_linefeed_e	linefeed; /**< linefeed state */
 };
 
 struct ab_dev_event_s {
@@ -174,8 +182,7 @@ struct ab_s {
 	ab_dev_t * devs;	/**< Devices of the boards */
 	unsigned int chans_num;	/**< Channels number on the boards */
 	ab_chan_t * chans;	/**< Channels of the boards according to idx */
-	ab_chan_t * pchans[CHANS_MAX]; /**< Pointers to channels according 
-									to abs_idx*/
+	ab_chan_t * pchans[CHANS_MAX]; /**< Pointers to channels according to abs_idx*/
 	unsigned int chans_per_dev;/**< Channels number per device */
 };
 
@@ -190,6 +197,8 @@ struct ab_s {
 #define AB_ERR_NO_FILE		3
 /** Bad parameter set */
 #define AB_ERR_BAD_PARAM 	4
+/** Hardware problem */
+#define AB_ERR_NO_HARDWARE  5
 
 /** global error characteristic string length */
 #define ERR_STR_LENGTH		256
@@ -204,9 +213,36 @@ extern int ab_g_err_extra_value;
 /** @defgroup AB_BASIC ACTIONS Basic libab interface
 	Basic interface.
   @{ */
-/** Create the ab_t object. */
+/** Do not reload modules */
+#define AB_HWI_SKIP_MODULES 0x01
+/** Do not make basicdev_init */
+#define AB_HWI_SKIP_DEVICES 0x02
+/** Do not load firmware */
+#define AB_HWI_SKIP_CHANNELS 0x04
+
+/* Firmware files path - set your values there. */
+/** Firmware PRAM for any channel */
+#define AB_FW_PRAM_NAME "/lib/firmware/pramfw.bin"
+/** Firmware DRAM for any channel */
+#define AB_FW_DRAM_NAME "/lib/firmware/dramfw.bin"
+/** Firmware CRAM for FXS channel */
+#define AB_FW_CRAM_FXS_NAME "/lib/firmware/cramfw_fxs.bin"
+/** Firmware CRAM for FXO channel */
+#define AB_FW_CRAM_FXO_NAME "/lib/firmware/cramfw_fxo.bin"
+/** Firmware CRAM for TF normal 2-wired channel */
+#define AB_FW_CRAM_TFN2_NAME "/lib/firmware/cramfw_tfn2.bin"
+/** Firmware CRAM for TF normal 4-wired channel */
+#define AB_FW_CRAM_TFN4_NAME "/lib/firmware/cramfw_tfn4.bin"
+/** Firmware CRAM for TF transit 2-wired channel */
+#define AB_FW_CRAM_TFT2_NAME "/lib/firmware/cramfw_tft2.bin"
+/** Firmware CRAM for TF transit 4-wired channel */
+#define AB_FW_CRAM_TFT4_NAME "/lib/firmware/cramfw_tft4.bin"
+
+/** Basic drivers loading and hardware initialization */
+int ab_hardware_init (enum tf_type_e * const types, int const flags);
+/** Create the ab_t object */
 ab_t* ab_create (void);
-/** Destroy the ab_t object. */
+/** Destroy the ab_t object */
 void ab_destroy (ab_t ** ab);
 /** Init channel with given CRAM file */
 int ab_chan_cram_init (ab_chan_t const * const chan, char const * const path);

@@ -333,12 +333,6 @@ DFS
 
 	chan_ctx = chan->ctx;
 
-	if(chan_ctx->rtp_sfd != -1){
-		if( close (chan_ctx->rtp_sfd) ){
-			su_perror("svd_media_unregister() close()");
-		}
-		chan_ctx->rtp_sfd = -1;
-	}
 	if(chan_ctx->local_wait_idx != -1){
 		su_root_deregister (svd->root, chan_ctx->local_wait_idx);
 		chan_ctx->local_wait_idx = -1;
@@ -346,6 +340,12 @@ DFS
 	if(chan_ctx->remote_wait_idx != -1){
 		su_root_deregister (svd->root, chan_ctx->remote_wait_idx);
 		chan_ctx->remote_wait_idx = -1;
+	}
+	if(chan_ctx->rtp_sfd != -1){
+		if( close (chan_ctx->rtp_sfd) ){
+			su_perror("svd_media_unregister() close()");
+		}
+		chan_ctx->rtp_sfd = -1;
 	}
 DFE
 }/*}}}*/
@@ -389,7 +389,7 @@ DFS
 	len = g_conf.address_book.id_len;
 	if( len ){
 		size = sizeof(*(chan_ctx->dial_status.addrbk_id));
-		memset(chan_ctx->dial_status.addrbk_id, 0, size * (len+1));
+		memset (chan_ctx->dial_status.addrbk_id, 0, size * (len+1));
 	}
 
 	/* ADDR_PAYLOAD */
@@ -797,9 +797,20 @@ do{
 			  evt.id == ab_dev_event_FXS_DIGIT_PULSE){
 		err = svd_handle_event_FXS_DIGIT_X(svd, chan_idx, evt.data);
 	} else if(evt.id == ab_dev_event_FXO_RINGING){
+#if 0
+		/* tag__ testing */
+		int abs_idx = svd->ab->chans[chan_idx].abs_idx;
+		if((abs_idx == 0) || 
+			(abs_idx == 1) ||
+			(abs_idx == 2) ||
+			(abs_idx == 3)){
+			/* do not do anything */
+		} else {
+#endif
 		SU_DEBUG_8 (("Got fxo ringing event: 0x%X on [%d/%d]\n",
 				evt.data, dev_idx,evt.ch ));
 		err = svd_handle_event_FXO_RINGING (svd, chan_idx);
+//		}
 	} else if(evt.id == ab_dev_event_FM_CED){
 		SU_DEBUG_8 (("Got CED event: 0x%X on [%d/%d]\n",
 				evt.data, dev_idx,evt.ch ));
@@ -1004,7 +1015,7 @@ DFE
  *	rings on FXO anymore.
  */ 
 void
-ring_timer_cb(su_root_magic_t *magic, su_timer_t *t, su_timer_arg_t *arg)
+ring_timer_cb (su_root_magic_t *magic, su_timer_t *t, su_timer_arg_t *arg)
 {/*{{{*/
 	ab_chan_t * chan = arg;
 	svd_chan_t * ctx = chan->ctx;
@@ -1070,7 +1081,8 @@ DFS
 		chan_ctx->ring_state = ring_state_INVITE_IN_QUEUE;
 		SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
 				__func__, __LINE__, ab_chan->abs_idx, chan_ctx->ring_state));
-	} else if( chan_ctx->ring_state == ring_state_INVITE_IN_QUEUE) {
+	} 
+	else if( chan_ctx->ring_state == ring_state_INVITE_IN_QUEUE) {
 		/* don`t do nothing before invite */
 		SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
 				__func__, __LINE__, ab_chan->abs_idx, chan_ctx->ring_state));
@@ -1210,8 +1222,7 @@ DFS
 					("chans[i].ctx->dial_status.addrbk_id") ) ));
 			goto __exit_fail;
 		}
-		memset (chan_ctx->dial_status.addrbk_id, 0, 
-				adbk_sz * (addrbk_id_len + 1));
+		memset (chan_ctx->dial_status.addrbk_id, 0,(addrbk_id_len+1) * adbk_sz);
 
 	 	/* SDP */
 		chan_ctx->rtp_sfd = -1;
@@ -1787,16 +1798,6 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 		/* should not block */
 		sent = sendto(chan_ctx->rtp_sfd, buf, rode, 0, 
 				&target_sock_addr, sizeof(target_sock_addr));
-/* use for testing oob
-if (buf[1] == 0x62 || buf[1] == 0xe2){
-	int i = 12;
-	SU_DEBUG_3(("%d = rode(), pd:%x[:",rode, buf[1]));
-	for (; i < rode; i++){
-		SU_DEBUG_3(("%X:",buf[i] ));
-	}
-	SU_DEBUG_3(("]\n"));
-}
- */
 		if (sent == -1){
 			SU_DEBUG_2 (("HLD() ERROR : sent() : %d(%s)\n",
 					errno, strerror(errno)));
@@ -1840,16 +1841,6 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 
 	received = recv(chan_ctx->rtp_sfd, buf, sizeof(buf), 0);
 
-	/* use for testing oob
-	if (buf[1] == 0x62 || buf[1] == 0xe2){
-		int i = 12;
-		SU_DEBUG_3(("%d = recv(), pd:%x[:",received, buf[1]));
-		for (; i < received; i++){
-			SU_DEBUG_3(("%X:",buf[i] ));
-		}
-		SU_DEBUG_3(("]\n"));
-	}
- */	
 	if (received == 0){
 		SU_DEBUG_2 ((LOG_FNC_A("wrong event")));
 		goto __exit_fail;
@@ -1971,7 +1962,7 @@ DFS
 		my_addr.sin_port = htons(g_conf.rtp_port_first + i);
 		my_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 		if ((bind(sock_fd, &my_addr, sizeof(my_addr))) != -1) {
-			chan_ctx->rtp_port =g_conf.rtp_port_first + i;
+			chan_ctx->rtp_port = g_conf.rtp_port_first + i;
 			rtp_binded = 1;
 			break;
 		}

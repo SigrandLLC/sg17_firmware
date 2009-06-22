@@ -230,7 +230,7 @@ main( int argc, char *argv[] )
 										">> %d cleared in [%d]\n",clear_rez[i],i);
 								syslog( LOG_NOTICE, infob );
 							}
-						} 
+						}
 					}
 					miss_count = 0;
 				}

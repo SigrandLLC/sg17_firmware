@@ -1,6 +1,7 @@
 #!/bin/sh
 
 src_files="\
+	ab_hwinit.c \
 	ab_basic.c \
 	ab_line.c \
 	ab_events.c \

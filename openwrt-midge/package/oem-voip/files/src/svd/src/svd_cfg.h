@@ -130,14 +130,6 @@ typedef struct cod_prms_s {
 int svd_init_cod_params( cod_prms_t * const cp );
 
 /* g_conf inner structures {{{*/
-/** Tonal Frequency Channel type.*/
-enum tf_type_e {
-	tf_type_DEFAULT = 0,
-	tf_type_N4 = 0,
-	tf_type_N2,
-	tf_type_T4,
-	tf_type_T2,
-};
 /** Address book record.*/
 struct adbk_record_s {
 	char * id; /**< Short number pointer.*/

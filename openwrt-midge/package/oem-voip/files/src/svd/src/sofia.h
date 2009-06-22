@@ -16,7 +16,7 @@
 #include <sofia-sip/su_log.h>
 #include <sofia-sip/su_tag.h>
 #include <sofia-sip/su_debug.h>
-#include <sofia-sip/su_wait.h>
+//#include <sofia-sip/su_wait.h>
 #include <sofia-sip/su_alloc.h>
 #include <sofia-sip/nua_tag.h>
 #include <sofia-sip/sdp.h>
