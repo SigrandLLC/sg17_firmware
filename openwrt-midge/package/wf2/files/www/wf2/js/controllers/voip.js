@@ -401,6 +401,7 @@ Controllers.voipTF = function() {
                 field = {
                     "type": "text",
                     "name": $.sprintf("sys_voip_tf_channels_%s_payload", channel[0]),
+                    "defaultValue": codecsParameters[codec].payload,
                     "validator": {
                             "required": $.sprintf("#sys_voip_tf_channels_%s_enabled:checked", channel[0]),
                             "voipPayload": true
@@ -412,7 +413,8 @@ Controllers.voipTF = function() {
                 field = {
                     "type": "select",
                     "name": $.sprintf("sys_voip_tf_channels_%s_bitpack", channel[0]),
-                    "options": "rtp aal2"
+                    "options": "rtp aal2",
+                    "defaultValue": codecsParameters[codec].bitpack
                 };
                 c.addTableWidget(field, row);
 
