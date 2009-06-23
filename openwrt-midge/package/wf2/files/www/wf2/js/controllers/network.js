@@ -1734,10 +1734,10 @@ Controllers.iface = function(iface) {
 			/* get tab object */
 			var tab = page.getTab("qos");
 
-			/* remove all widgets except scheduler select */
-			$("tbody > tr", tab).not("tr:has(#sch)").remove();
+			/* remove all widgets except scheduler select and txqueuelen */
+			$("tbody > tr", tab).not("tr:has(#sch)").not("tr:has(#txqueuelen)").remove();
 
-			/* remove all forms except first one (with scheduler select) */
+			/* remove all forms except first one (with scheduler select and txqueuelen) */
 			$("form:not(:first)", tab).remove();
 
 			/* remove all br between forms */
@@ -1754,6 +1754,17 @@ Controllers.iface = function(iface) {
 		c.setHelpPage("qos");
 		c.addTitle("QoS settings");
 		setInfoText(c);
+
+        /* txqueuelen */
+        field = {
+            "type": "text",
+            "name": $.sprintf("sys_iface_%s_qos_txqueuelen", iface),
+            "id": "txqueuelen",
+            "text": "TX queue length",
+            "descr": "Transmit queue length in packets. If empty, default value will be used.",
+            "validator": {"min": 0, "max": 999999999}
+        };
+        c.addWidget(field);
 
 		/* Scheduler */
 		field = {

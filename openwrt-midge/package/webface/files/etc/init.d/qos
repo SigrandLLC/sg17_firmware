@@ -6,6 +6,7 @@
 NAME="qos"
 DESC="QoS"
 TC="cmd `which tc`"
+IFCONFIG="cmd `which ifconfig`"
 CLASS="$TC class"
 QDISC="$TC qdisc"
 FILTER="$TC filter"
@@ -84,6 +85,9 @@ stop(){
 
 start(){
 	$QDISC del dev $iface root 2>/dev/null
+
+    [ -n "$qos_txqueuelen" ] && $IFCONFIG $iface txqueuelen $qos_txqueuelen
+
 	[ -z "$qos_sch" -o "$qos_sch" = "pfifo_fast" ] && return 0
 	
 	echo "Starting $NAME on $iface."
