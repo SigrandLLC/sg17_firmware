@@ -387,7 +387,8 @@ Controllers.voipTF = function() {
 					"name": $.sprintf("sys_voip_tf_channels_%s_pkt_sz", channel[0]),
                     "options": codecsParameters[codec].pkt_sz_vals == undefined
                             ? pktszDefaultValues
-                            : codecsParameters[codec].pkt_sz_vals
+                            : codecsParameters[codec].pkt_sz_vals,
+                    "defaultValue": codecsParameters[codec].pkt_sz
 				};
 				c.addTableWidget(field, row);
 
