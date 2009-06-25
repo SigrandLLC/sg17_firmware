@@ -35,6 +35,8 @@ int get_FF_FXS_idx ( ab_t const * const ab, char const self_chan_idx );
 int svd_media_register (svd_t * const svd, ab_chan_t * const chan);
 /** Close RTP-socket and destroy the callback timers in root.*/
 void svd_media_unregister (svd_t * const svd, ab_chan_t * const chan);
+/** Re-SO_BINDTODEVICE on rtp-socket of the channel.*/
+int svd_media_vinetic_rtp_sock_rebinddev (svd_chan_t * const ctx);
 /** Start encoding / decoding on given channel.*/
 int ab_chan_media_activate ( ab_chan_t * const chan );
 /** Stop encoding / decoding on given channel.*/

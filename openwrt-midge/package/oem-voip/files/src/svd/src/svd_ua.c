@@ -8,6 +8,7 @@
 #include "svd.h"
 #include "svd_ua.h"
 #include "svd_atab.h"
+#include <signal.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <assert.h>
@@ -350,6 +351,8 @@ DFS
 		goto __exit_fail;
 	}
 
+	assert(chan_ctx->op_handle == NULL);
+
 	nh = nua_handle (svd->nua, chan,
 			NUTAG_URL(to->a_url),
 			SIPTAG_TO(to), 
@@ -359,10 +362,10 @@ DFS
 	su_free(svd->home, to);
 	to = NULL;
 
-	/* register vinetic media */
-	err = svd_media_register (svd, chan);
+	/* reset rtp-socket parameters */
+	err = svd_media_vinetic_rtp_sock_rebinddev(chan_ctx);
 	if (err){
-		SU_DEBUG_1 ((LOG_FNC_A("can`t register media")));
+		SU_DEBUG_1 ((LOG_FNC_A("can`t SO_BINDTODEVICE on RTP-socket")));
 		goto __exit_fail;
 	}
 
@@ -428,11 +431,10 @@ DFS
 
 		call_answered = 1;
 
-		/* register media waits and open sockets for rtp */
-		err = svd_media_register (svd, chan);
+		/* reset rtp-socket parameters */
+		err = svd_media_vinetic_rtp_sock_rebinddev(chan_ctx);
 		if(err){
-			/* Can`t register - already answering */
-			SU_DEBUG_1 ((LOG_FNC_A("ERROR: can`t register media")));
+			SU_DEBUG_1 ((LOG_FNC_A("can`t SO_BINDTODEVICE on RTP-socket")));
 			goto __exit;
 		}
 
@@ -677,6 +679,8 @@ DFS
 		goto __exit_fail;
 	}
 
+	assert(chan_ctx->op_handle == NULL);
+
 	nh = nua_handle (svd->nua, chan,
 			NUTAG_URL(to->a_url),
 			SIPTAG_TO(to), 
@@ -688,10 +692,10 @@ DFS
 	su_free(svd->home, from);
 	from = NULL;
 
-	/* register vinetic media */
-	err = svd_media_register (svd, chan);
+	/* reset rtp-socket parameters */
+	err = svd_media_vinetic_rtp_sock_rebinddev(chan_ctx);
 	if (err){
-		SU_DEBUG_1 ((LOG_FNC_A("can`t register media")));
+		SU_DEBUG_1 ((LOG_FNC_A("can`t SO_BINDTODEVICE on RTP-socket")));
 		goto __exit_fail;
 	}
 
@@ -909,7 +913,6 @@ DFS
 				 * - clear call params 
 				 */
 				ab_chan_media_deactivate (req_chan);
-				svd_media_unregister (svd, req_chan);
 				svd_clear_call (svd, req_chan);
 			}
 		} else if ( !strcmp(to->a_url->url_user, FIRST_FREE_FXO )){
@@ -1085,7 +1088,7 @@ DFS
 	/* INVITE sent */
 		case nua_callstate_calling:
 			if( chan->parent->type == ab_dev_type_FXO){
-				/* start thread there if fxo */
+				/* start timer there if fxo */
 				svd_chan_t * ctx = chan->ctx;
 				err = su_timer_set_interval(ctx->ring_tmr, ring_timer_cb, 
 						chan, RING_WAIT_DROP*1000); 
@@ -1191,9 +1194,6 @@ DFS
 			/* deactivate media */
 			ab_chan_media_deactivate (chan);
 
-			/* media unregister */
-			svd_media_unregister (svd, chan);
-
 			if (chan->parent->type == ab_dev_type_FXO){
 				/* clear call params */
 				svd_clear_call (svd, chan);
@@ -1239,9 +1239,15 @@ DFS
 				SU_DEBUG_3(("playing busy tone on [_%d_]\n", chan->abs_idx));
 			} else if(chan->parent->type == ab_dev_type_TF){
 				/* Re-invite the pair */
+				int chan_idx;
+				if(ctx->op_handle){ /* tag__ test reinvite on TF */
+					SU_DEBUG_3 (("ATTENTION reinvite to TF-pair ctx has handle\n"));
+					nua_handle_destroy (ctx->op_handle);
+					ctx->op_handle = NULL;
+				}
 				SU_DEBUG_3 (("sleeping 10 sec before reinvite on TF-pair\n"));
 				sleep(10);
-				int chan_idx = get_dest_chan_idx (svd->ab, NULL, chan->abs_idx);
+				chan_idx = get_dest_chan_idx (svd->ab, NULL, chan->abs_idx);
 				if((chan_idx == -1) || svd_invite(svd, 0, chan_idx)){
 					SU_DEBUG_1 (("ERROR: can`t re-invite TF-pair\n"));
 				}
@@ -1292,6 +1298,13 @@ DFS
 DFE
 }/*}}}*/
 
+void
+svd_child_handler(int signo)
+{/*{{{*/
+	int status;
+	wait(&status);
+}/*}}}*/
+
 /**
  * Incoming INFO request.
  *
@@ -1328,12 +1341,30 @@ DFS
 			(g_conf.fxo_PSTN_type[chan->abs_idx] == pstn_type_PULSE_ONLY)){
 			/* dialed in pulse - should redial in pulse */
 			/* or pulse PSTN only - also should redial in pulse */
-			SU_DEBUG_3 (("Dial in pulse:'%c'.. ", digit));
-			err = ab_FXO_line_digit (chan, 1, &digit, 0, 0, 1);
-			if(!err){
-				SU_DEBUG_3 (("SUCCESS\n"));
-			} else {
-				SU_DEBUG_3 (("ERROR\n"));
+			int pid;
+
+			signal(SIGCHLD,svd_child_handler);
+
+			SU_DEBUG_3 (("Dial in pulse:'%c'\n", digit));
+
+			pid = fork();
+			if(pid == 0){
+				/* child */
+				/* aware handlers in child */
+				svd_shutdown    (svd);
+				su_root_destroy (svd->root);
+				su_home_deinit  (svd->home);
+				su_deinit ();
+
+				err = ab_FXO_line_digit (chan, 1, &digit, 0, 0, 1);
+				if(!err){
+					exit(0);
+				} else {
+					exit(-1);
+				}
+			} else if(pid < 0){
+				/* error */
+				SU_DEBUG_2 (("ERROR Can`t fork for dial\n"));
 			}
 		} else {
 			/* PSTN recognizes tones and we dialed in tone 

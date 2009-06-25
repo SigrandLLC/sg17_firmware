@@ -4,7 +4,7 @@
  * It contains ATA board interfaice and internals implementation.
  */ 
 
-/*{{{*/
+/*{{{ INCLUDES */
 #include "svd.h"
 #include "svd_cfg.h"
 #include "ab_api.h"
@@ -232,6 +232,7 @@ DFS
 			if (curr_chan->ring_tmr){
 				su_timer_destroy(curr_chan->ring_tmr);
 			}
+			svd_media_unregister(svd, &svd->ab->chans[ i ]);
 			free (curr_chan);
 			curr_chan = NULL;
 		}
@@ -257,25 +258,10 @@ DFS
 	if( (!chan) || (!chan->ctx)){
 		SU_DEBUG_1(("ERROR: [%d] CAN`T REGISTER MEDIA on unallocated channel\n",
 				(chan)? chan->abs_idx: -1));
-		SU_DEBUG_1(("ERROR: [%d] CAN`T REGISTER MEDIA on unallocated channel\n",
-				(chan)? chan->abs_idx: -1));
-		SU_DEBUG_1(("ERROR: [%d] CAN`T REGISTER MEDIA on unallocated channel\n",
-				(chan)? chan->abs_idx: -1));
 		goto __exit_fail;
 	}
 
 	chan_ctx = chan->ctx;
-
-	if( (chan_ctx->local_wait_idx  != -1) ||
-		(chan_ctx->remote_wait_idx != -1) ){
-		SU_DEBUG_1(("ERROR: [%d] CAN`T REGISTER MEDIA in the second time\n",
-				chan->abs_idx));
-		SU_DEBUG_1(("ERROR: [%d] CAN`T REGISTER MEDIA in the second time\n",
-				chan->abs_idx));
-		SU_DEBUG_1(("ERROR: [%d] CAN`T REGISTER MEDIA in the second time\n",
-				chan->abs_idx));
-		goto __exit_fail;
-	}
 
 	ret = su_wait_create(wait, chan->rtp_fd, SU_WAIT_IN);
 	if (ret){
@@ -408,7 +394,6 @@ DFS
 	memset(&chan_ctx->vcod, 0, sizeof(chan_ctx->vcod));
 	memset(&chan_ctx->fcod, 0, sizeof(chan_ctx->fcod));
 
-	chan_ctx->rtp_port = 0;
 	chan_ctx->remote_port = 0;
 	if(chan_ctx->remote_host){
 		su_free (svd->home, chan_ctx->remote_host);
@@ -798,7 +783,7 @@ do{
 		err = svd_handle_event_FXS_DIGIT_X(svd, chan_idx, evt.data);
 	} else if(evt.id == ab_dev_event_FXO_RINGING){
 #if 0
-		/* tag__ testing */
+		/* tag__ stress-testing */
 		int abs_idx = svd->ab->chans[chan_idx].abs_idx;
 		if((abs_idx == 0) || 
 			(abs_idx == 1) ||
@@ -810,7 +795,7 @@ do{
 		SU_DEBUG_8 (("Got fxo ringing event: 0x%X on [%d/%d]\n",
 				evt.data, dev_idx,evt.ch ));
 		err = svd_handle_event_FXO_RINGING (svd, chan_idx);
-//		}
+		//}
 	} else if(evt.id == ab_dev_event_FM_CED){
 		SU_DEBUG_8 (("Got CED event: 0x%X on [%d/%d]\n",
 				evt.data, dev_idx,evt.ch ));
@@ -1228,9 +1213,9 @@ DFS
 		chan_ctx->rtp_sfd = -1;
 		chan_ctx->remote_host = NULL;
 
-	 	/* WAIT INDEXES */
-		chan_ctx->local_wait_idx = -1;
-		chan_ctx->remote_wait_idx = -1;
+		/* MEDIA REGISTER */
+		chan_ctx->dial_status.dest_is_self = self_YES; /* for binding socket */
+		svd_media_register (svd, curr_chan);
 
 	 	/* HANDLE */
 		chan_ctx->op_handle = NULL;
@@ -1310,7 +1295,6 @@ __exit_fail:
 DFE
 	return -1;
 }/*}}}*/
-
 
 /**
  * \param[in] svd		svd context structure.
@@ -1987,3 +1971,76 @@ DFE
 	return -1;
 }/*}}}*/
 
+/**
+ * \param[in,out] chan_ctx 	channel context on which we set socket parameters.
+ * \retval -1	if somthing nasty happens.
+ * \retval 0 	if etherything is ok.
+ */ 
+int
+svd_media_vinetic_rtp_sock_rebinddev (svd_chan_t * const ctx)
+{/*{{{*/
+	int i;
+	struct ifreq ifr;
+DFS
+	/* Set SO_BINDTODEVICE for right ip using */ 
+	if(ctx->dial_status.dest_is_self == self_YES || 
+			ctx->caller_router_is_self){
+		/* use local interface */
+		strcpy(ifr.ifr_name, "lo");
+		SU_DEBUG_0 (("THE NAME OF THE DEVICE : %s\n",ifr.ifr_name));
+		if(setsockopt (ctx->rtp_sfd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, 
+				sizeof (ifr)) < 0 ){
+			SU_DEBUG_1 ((LOG_FNC_A(strerror(errno))));
+			goto __exit_fail;
+		}
+	} else if(ctx->dial_status.dest_is_self == self_NO ||
+			(!ctx->caller_router_is_self)){
+		/* use <self> set interface */
+		/* get device name by self_ip */
+		int stmp;
+		int device_finded = 0;
+
+		stmp = socket (PF_INET, SOCK_STREAM, 0);
+		if(stmp == -1){
+			SU_DEBUG_1 ((LOG_FNC_A(strerror(errno))));
+			goto __exit_fail;
+		}
+		for(i=1;;i++){
+			struct sockaddr_in *sin = (struct sockaddr_in *) &ifr.ifr_addr;
+			char *ip;
+
+			ifr.ifr_ifindex = i;
+			if (ioctl (stmp, SIOCGIFNAME, &ifr) < 0){
+				break;
+			}
+			if (ioctl (stmp, SIOCGIFADDR, &ifr) < 0){
+				continue;
+			}
+			ip = inet_ntoa (sin->sin_addr);
+			if( !strcmp(ip, g_conf.self_ip)){
+				SU_DEBUG_0 (("THE NAME OF THE DEVICE : %s\n",ifr.ifr_name));
+				if(setsockopt (ctx->rtp_sfd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, 
+						sizeof (ifr)) < 0 ){
+					SU_DEBUG_1 ((LOG_FNC_A(strerror(errno))));
+					goto __exit_fail;
+				}
+				device_finded = 1;
+				break;
+			}
+		}
+		close (stmp);
+		if( !device_finded){
+			SU_DEBUG_1 (("ERROR: Network interface with self_ip %s not found", 
+					g_conf.self_ip));
+			goto __exit_fail;
+		}
+	} else {
+		SU_DEBUG_0((LOG_FNC_A("SHOULDN`T BE THERE!!")));
+		goto __exit_fail;
+	}
+DFE
+	return 0;
+__exit_fail:
+DFE
+	return -1;
+}/*}}}*/

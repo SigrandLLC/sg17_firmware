@@ -181,7 +181,6 @@ startup_init( int argc, char ** argv )
 			case '?' :{
 				/* unknown option found */
 				g_err_no = ERR_UNKNOWN_OPTION;
-				//g_err_tag = optind;
 				return g_err_no;
 			}
 		}

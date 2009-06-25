@@ -291,10 +291,10 @@ ab_FXO_line_digit (ab_chan_t * const chan, char const data_length,
 	if( nInterDigitTime ) {
 		dialCfg.nDigitPlayTime = nDigitPlayTime;
 	}
+
 	dialCfg.pulseMode = pulseMode;
 
-	err = err_set_ioctl( chan, 
-			IFX_TAPI_FXO_DIAL_CFG_SET, (int)&dialCfg, 
+	err = err_set_ioctl( chan, IFX_TAPI_FXO_DIAL_CFG_SET, (int)&dialCfg, 
 			"Try to configure dial params (ioctl)");
 	if( err ){
 		goto __exit;
@@ -306,12 +306,8 @@ ab_FXO_line_digit (ab_chan_t * const chan, char const data_length,
 	dialDigits.nDigits = data_length;
 	memcpy(dialDigits.data, data, dialDigits.nDigits);
 
-	err = err_set_ioctl( chan, 
-			IFX_TAPI_FXO_DIAL_START, (int)(&dialDigits), 
+	err = err_set_ioctl( chan, IFX_TAPI_FXO_DIAL_START, (int)(&dialDigits), 
 			"Try to dial sequence (ioctl)");
-	if( err ){
-		goto __exit;
-	} 
 __exit:
 	return err;
 }/*}}}*/
