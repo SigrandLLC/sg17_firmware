@@ -795,7 +795,7 @@ do{
 		SU_DEBUG_8 (("Got fxo ringing event: 0x%X on [%d/%d]\n",
 				evt.data, dev_idx,evt.ch ));
 		err = svd_handle_event_FXO_RINGING (svd, chan_idx);
-		//}
+	//	}
 	} else if(evt.id == ab_dev_event_FM_CED){
 		SU_DEBUG_8 (("Got CED event: 0x%X on [%d/%d]\n",
 				evt.data, dev_idx,evt.ch ));
