@@ -733,7 +733,7 @@ mr16g_start_xmit( struct sk_buff *skb, struct net_device *ndev )
 	
 	if( nl->tail_xq == ((nl->head_xq - 1) & (XQLEN - 1)) ) {
 		netif_stop_queue( ndev );
-		printk(KERN_NOTICE"%s: netif_stop_queue(%s)\n",__FUNCTION__,ndev->name);
+		//printk(KERN_NOTICE"%s: netif_stop_queue(%s)\n",__FUNCTION__,ndev->name);
 		goto  err_exit;
 	}
 
@@ -1192,9 +1192,7 @@ static int
 ds2155_interrupt( struct net_device *ndev, u8 *mask )
 {
 	PDEBUG(DIRQ,"start");
-	//	printk("%s: start\n",__FUNCTION__);
 	mr16g_setup_carrier( ndev,mask );
-	//	printk("%s: end\n",__FUNCTION__);	
 	return 0;
 }
 
