@@ -77,10 +77,10 @@ static unsigned char g_err_no;
 #define CONF_WLEC_NLP_OFF  "off"
 #define CONF_FXO_PULSE   "pulse"
 #define CONF_FXO_TONE    "tone"
-#define CONF_TF_TRANSIT "transit"
-#define CONF_TF_NORMAL  "normal"
-#define CONF_TF_2_WIRED "2w"
-#define CONF_TF_4_WIRED "4w"
+#define CONF_VF_TRANSIT "transit"
+#define CONF_VF_NORMAL  "normal"
+#define CONF_VF_2_WIRED "2w"
+#define CONF_VF_4_WIRED "4w"
 /** @}*/ 
 
 /** @defgroup CFG_IF Config internal functions.
@@ -102,8 +102,8 @@ static int routet_init (void);
 static int rtp_init (void);
 /** Init WLEC parameters configuration.*/
 static int wlec_init (ab_t const * const ab);
-/** Init tonal frequency channels configuration.*/
-static int tonalf_init (ab_t const * const ab);
+/** Init voice frequency channels configuration.*/
+static int voicef_init (ab_t const * const ab);
 /** Init hot line configuration.*/
 static int hotline_init (ab_t const * const ab);
 /** Init addres book configuration.*/
@@ -228,7 +228,7 @@ svd_conf_init( ab_t const * const ab )
 			routet_init()	||
 			rtp_init()		||
 			wlec_init (ab)	||
-			tonalf_init(ab) ||
+			voicef_init(ab) ||
 			hotline_init(ab) ||
 			addressb_init()	||
 			codecs_init()
@@ -256,7 +256,7 @@ conf_show( void )
 	struct adbk_record_s * curr_ab_rec;
 	struct hot_line_s    * curr_hl_rec;
 	struct rttb_record_s * curr_rt_rec;
-	struct tonal_freq_s  * curr_tf_rec;
+	struct voice_freq_s  * curr_vf_rec;
 //	struct rtp_prms_s    * rtp_rec;
 	int i;
 	int j;
@@ -336,19 +336,19 @@ conf_show( void )
 
 	SU_DEBUG_3(("TonalF :\n"));
 	for(i=0; i<CHANS_MAX; i++){
-		curr_tf_rec = &g_conf.tonal_freq[ i ];
-		if( !curr_tf_rec->is_set){
+		curr_vf_rec = &g_conf.voice_freq[ i ];
+		if( !curr_vf_rec->is_set){
 			continue;
 		}
 		SU_DEBUG_3(("t%d/s%d/up%d/",
-				curr_tf_rec->tf_codec.type,
-				curr_tf_rec->tf_codec.pkt_size,
-				curr_tf_rec->tf_codec.user_payload));
+				curr_vf_rec->vf_codec.type,
+				curr_vf_rec->vf_codec.pkt_size,
+				curr_vf_rec->vf_codec.user_payload));
 
 		SU_DEBUG_3(("i%d/id\"%s\":%s:%s/aic_%d\n",
-				i, curr_tf_rec->id, 
-				curr_tf_rec->pair_route, curr_tf_rec->pair_chan,
-				curr_tf_rec->am_i_caller));
+				i, curr_vf_rec->id, 
+				curr_vf_rec->pair_route, curr_vf_rec->pair_chan,
+				curr_vf_rec->am_i_caller));
 	}
 	if(g_conf.route_table.records_num){
 		SU_DEBUG_3(("RouteTable :\n"));
@@ -960,7 +960,7 @@ __exit_fail:
 }/*}}}*/
 
 /*
- * Init`s tonal freq records in main routine configuration \ref g_conf structure.
+ * Init`s voice freq records in main routine configuration \ref g_conf structure.
  *
  * \param[in] ab ata-board hardware structure.
  *
@@ -968,14 +968,14 @@ __exit_fail:
  * \retval -1 fail.
  */ 
 static int 
-tonalf_init( ab_t const * const ab )
+voicef_init( ab_t const * const ab )
 {/*{{{*/
 	/* ("chan_id", "pair_route_id", "pair_chan_id",
 	 * 		"codec_name", "pkt_sz", payload_type, "bitpack") */
 	struct config_t cfg;
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
-	struct tonal_freq_s * curr_rec;
+	struct voice_freq_s * curr_rec;
 	char const * elem;
 	int elem_len;
 	int rec_num;
@@ -985,7 +985,7 @@ tonalf_init( ab_t const * const ab )
 	config_init (&cfg);
 
 	/* Load the file */
-	if (!config_read_file (&cfg, TONALF_CONF_NAME)){
+	if (!config_read_file (&cfg, VOICEF_CONF_NAME)){
 		err = config_error_line (&cfg);
 		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n",
 				__func__, err));
@@ -994,7 +994,7 @@ tonalf_init( ab_t const * const ab )
 
 	set = config_lookup (&cfg, "tonal_freq" );
 	if( !set){
-		/* no tf-channels */
+		/* no vf-channels */
 		goto __exit_success;
 	} 
 
@@ -1018,13 +1018,13 @@ tonalf_init( ab_t const * const ab )
 		chan_id = strtol (elem, NULL, 10);
 
 		if((!ab->pchans[chan_id]) ||
-			(ab->pchans[chan_id]->parent->type != ab_dev_type_TF)){
-			SU_DEBUG_2(("ATTENTION!! [%d] is not TF, as in %s.. "
-					"ignore config value\n",chan_id, TONALF_CONF_NAME));
+			(ab->pchans[chan_id]->parent->type != ab_dev_type_VF)){
+			SU_DEBUG_2(("ATTENTION!! [%d] is not VF, as in %s.. "
+					"ignore config value\n",chan_id, VOICEF_CONF_NAME));
 			continue;
 		}
 
-		curr_rec = &g_conf.tonal_freq[ chan_id ];
+		curr_rec = &g_conf.voice_freq[ chan_id ];
 		if( curr_rec->is_set){
 			SU_DEBUG_2(("You shouldn`t set params for both pairs!\n"));
 			continue;
@@ -1071,23 +1071,23 @@ tonalf_init( ab_t const * const ab )
 		snprintf(curr_rec->pair_chan, CHAN_ID_LEN, "%02d", pair_chan);
 
 		/* get codec params */
-		init_codec_el(rec_set, 3, &curr_rec->tf_codec);
+		init_codec_el(rec_set, 3, &curr_rec->vf_codec);
 
 		/* Create automatic mirror record if dest router is self */
 		if(curr_rec->pair_route == NULL){
 			if((!ab->pchans[pair_chan]) ||
-				(ab->pchans[pair_chan]->parent->type != ab_dev_type_TF)){
-				SU_DEBUG_2(("ATTENTION!! [%d] is not TF, as in %s.. "
-						"ignore config value\n",pair_chan, TONALF_CONF_NAME));
-				/* remove current channel TF-record 
-				 * because we can`t connect to not TF-channel */
+				(ab->pchans[pair_chan]->parent->type != ab_dev_type_VF)){
+				SU_DEBUG_2(("ATTENTION!! [%d] is not VF, as in %s.. "
+						"ignore config value\n",pair_chan, VOICEF_CONF_NAME));
+				/* remove current channel VF-record 
+				 * because we can`t connect to not VF-channel */
 				curr_rec->is_set = 0;
 				continue;
 			}
-			struct tonal_freq_s * mirr_rec = &g_conf.tonal_freq[ pair_chan ];
+			struct voice_freq_s * mirr_rec = &g_conf.voice_freq[ pair_chan ];
 			/* copy params */
-			memcpy(&g_conf.tonal_freq[ pair_chan ], &g_conf.tonal_freq[ chan_id ],
-					sizeof(g_conf.tonal_freq[chan_id]));
+			memcpy(&g_conf.voice_freq[ pair_chan ], &g_conf.voice_freq[ chan_id ],
+					sizeof(g_conf.voice_freq[chan_id]));
 			/* revert pair, self channels, vol and caller flag on mirror record */
 			snprintf (mirr_rec->id, CHAN_ID_LEN, "%02d", pair_chan);
 			snprintf (mirr_rec->pair_chan, CHAN_ID_LEN, "%02d", chan_id);
@@ -1096,7 +1096,7 @@ tonalf_init( ab_t const * const ab )
 	}
 
 	/* read svi.conf to get channel type */
-	/* tf_types:
+	/* vf_types:
 	 * (
 	 *	("chan_id", "wire_type", "normal/transit")
 	 * );*/
@@ -1104,14 +1104,14 @@ tonalf_init( ab_t const * const ab )
 	config_init (&cfg);
 
 	/* Load the file */
-	if (!config_read_file (&cfg, TF_CONF_NAME)){
+	if (!config_read_file (&cfg, VF_CONF_NAME)){
 		err = config_error_line (&cfg);
 		goto __exit_success;
 	} 
 
 	set = config_lookup (&cfg, "tf_types" );
 	if( !set){
-		/* no tf-channels */
+		/* no vf-channels */
 		goto __exit_success;
 	} 
 
@@ -1132,31 +1132,31 @@ tonalf_init( ab_t const * const ab )
 		chan_id = strtol (elem, NULL, 10);
 
 		if((!ab->pchans[chan_id]) ||
-			(ab->pchans[chan_id]->parent->type != ab_dev_type_TF)){
-			SU_DEBUG_2(("ATTENTION!! [%d] is not TF, as in %s.. "
-					"ignore config value\n", chan_id, TF_CONF_NAME));
+			(ab->pchans[chan_id]->parent->type != ab_dev_type_VF)){
+			SU_DEBUG_2(("ATTENTION!! [%d] is not VF, as in %s.. "
+					"ignore config value\n", chan_id, VF_CONF_NAME));
 			continue;
 		}
 
-		curr_rec = &g_conf.tonal_freq[ chan_id ];
+		curr_rec = &g_conf.voice_freq[ chan_id ];
 
 		/* get wire_type */
 		elem = config_setting_get_string_elem (rec_set, 1);
-		if       (!strcmp(elem, CONF_TF_4_WIRED)){
+		if       (!strcmp(elem, CONF_VF_4_WIRED)){
 			/* get normal/transit type */
 			elem = config_setting_get_string_elem (rec_set, 2);
-			if       (!strcmp(elem, CONF_TF_NORMAL)){
-				curr_rec->type = tf_type_N4;
-			} else if(!strcmp(elem, CONF_TF_TRANSIT)){
-				curr_rec->type = tf_type_T4;
+			if       (!strcmp(elem, CONF_VF_NORMAL)){
+				curr_rec->type = vf_type_N4;
+			} else if(!strcmp(elem, CONF_VF_TRANSIT)){
+				curr_rec->type = vf_type_T4;
 			}
-		} else if(!strcmp(elem, CONF_TF_2_WIRED)){
+		} else if(!strcmp(elem, CONF_VF_2_WIRED)){
 			/* get normal/transit type */
 			elem = config_setting_get_string_elem (rec_set, 2);
-			if       (!strcmp(elem, CONF_TF_NORMAL)){
-				curr_rec->type = tf_type_N2;
-			} else if(!strcmp(elem, CONF_TF_TRANSIT)){
-				curr_rec->type = tf_type_T2;
+			if       (!strcmp(elem, CONF_VF_NORMAL)){
+				curr_rec->type = vf_type_N2;
+			} else if(!strcmp(elem, CONF_VF_TRANSIT)){
+				curr_rec->type = vf_type_T2;
 			}
 		}
 	}
@@ -1166,7 +1166,7 @@ __exit_success:
 	return 0;
 __exit_fail:
 	for(i=0; i<CHANS_MAX; i++){
-		curr_rec = &g_conf.tonal_freq[ i ];
+		curr_rec = &g_conf.voice_freq[ i ];
 		if( curr_rec->is_set && curr_rec->pair_route && 
 				curr_rec->pair_route != curr_rec->pair_route_s ){
 			free (curr_rec->pair_route);
@@ -1621,7 +1621,7 @@ wlec_init( ab_t const * const ab )
 			curr_rec->ne_nb = 4;
 			curr_rec->fe_nb = 4;
 			curr_rec->ne_wb = 4;
-		} else if(cc->parent->type == ab_dev_type_TF){
+		} else if(cc->parent->type == ab_dev_type_VF){
 			curr_rec->mode = wlec_mode_OFF;
 		}
 	} 

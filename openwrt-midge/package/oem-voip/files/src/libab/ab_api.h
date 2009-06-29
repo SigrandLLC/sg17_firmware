@@ -98,7 +98,7 @@ struct rtp_session_prms_s {
 enum ab_dev_type_e {
 	ab_dev_type_FXO,   /**< Device type is FXO */
 	ab_dev_type_FXS,   /**< Device type is FXS */
-	ab_dev_type_TF     /**< Device type is Tonal Frequency */
+	ab_dev_type_VF     /**< Device type is Tonal Frequency */
 };
 
 enum ab_chan_tone_e {
@@ -137,12 +137,12 @@ enum ab_dev_event_e {
 	ab_dev_event_TONE, /**< Tone generator event */
 };
 
-enum tf_type_e {
-	tf_type_DEFAULT = 0,
-	tf_type_N4 = 0, /**< normal 4-wired */
-	tf_type_N2,     /**< normal 2-wired */
-	tf_type_T4,    /**< transit 4-wired */
-	tf_type_T2,    /**< transit 2-wired */
+enum vf_type_e {
+	vf_type_DEFAULT = 0,
+	vf_type_N4 = 0, /**< normal 4-wired */
+	vf_type_N2,     /**< normal 2-wired */
+	vf_type_T4,    /**< transit 4-wired */
+	vf_type_T2,    /**< transit 2-wired */
 };
 
 struct ab_chan_status_s {
@@ -229,17 +229,17 @@ extern int ab_g_err_extra_value;
 #define AB_FW_CRAM_FXS_NAME "/lib/firmware/cramfw_fxs.bin"
 /** Firmware CRAM for FXO channel */
 #define AB_FW_CRAM_FXO_NAME "/lib/firmware/cramfw_fxo.bin"
-/** Firmware CRAM for TF normal 2-wired channel */
-#define AB_FW_CRAM_TFN2_NAME "/lib/firmware/cramfw_tfn2.bin"
-/** Firmware CRAM for TF normal 4-wired channel */
-#define AB_FW_CRAM_TFN4_NAME "/lib/firmware/cramfw_tfn4.bin"
-/** Firmware CRAM for TF transit 2-wired channel */
-#define AB_FW_CRAM_TFT2_NAME "/lib/firmware/cramfw_tft2.bin"
-/** Firmware CRAM for TF transit 4-wired channel */
-#define AB_FW_CRAM_TFT4_NAME "/lib/firmware/cramfw_tft4.bin"
+/** Firmware CRAM for VF normal 2-wired channel */
+#define AB_FW_CRAM_VFN2_NAME "/lib/firmware/cramfw_vfn2.bin"
+/** Firmware CRAM for VF normal 4-wired channel */
+#define AB_FW_CRAM_VFN4_NAME "/lib/firmware/cramfw_vfn4.bin"
+/** Firmware CRAM for VF transit 2-wired channel */
+#define AB_FW_CRAM_VFT2_NAME "/lib/firmware/cramfw_vft2.bin"
+/** Firmware CRAM for VF transit 4-wired channel */
+#define AB_FW_CRAM_VFT4_NAME "/lib/firmware/cramfw_vft4.bin"
 
 /** Basic drivers loading and hardware initialization */
-int ab_hardware_init (enum tf_type_e * const types, int const flags);
+int ab_hardware_init (enum vf_type_e * const types, int const flags);
 /** Create the ab_t object */
 ab_t* ab_create (void);
 /** Destroy the ab_t object */
@@ -290,10 +290,14 @@ int ab_chan_fax_pass_through_start( ab_chan_t * const chan );
 int ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 		codec_t const * const fcod);
 /** Tune wlec parameters on selected chan */
-int ab_chan_media_wlec_tune (ab_chan_t * const chan, wlec_t const * const wp);
+int ab_chan_media_wlec_tune( ab_chan_t * const chan, wlec_t const * const wp );
 /** Switch on/off media on selected chan */
 int ab_chan_media_switch( ab_chan_t * const chan,
 		unsigned char const enc_on, unsigned char const dec_on );
+/** HOLD on/off encoding on selected chan */
+int ab_chan_media_enc_hold( ab_chan_t * const chan, unsigned char const hold );
+/** MUTE on/off encoder on selected chan */
+int ab_chan_media_enc_mute( ab_chan_t * const chan, unsigned char const mute );
 /** @} */
 
 #endif /* __AB_API_H__ */

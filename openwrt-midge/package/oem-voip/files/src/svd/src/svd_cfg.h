@@ -17,13 +17,13 @@
 #define MAIN_CONF_NAME      "/etc/svd/main.conf"
 #define FXO_CONF_NAME       "/etc/svd/fxo.conf"
 #define ROUTET_CONF_NAME    "/etc/svd/routet.conf"
-#define TONALF_CONF_NAME    "/etc/svd/tonalf.conf"
+#define VOICEF_CONF_NAME    "/etc/svd/tonalf.conf"
 #define HOTLINE_CONF_NAME   "/etc/svd/hotline.conf"
 #define ADDRESSB_CONF_NAME  "/etc/svd/addressb.conf"
 #define QUALITY_CONF_NAME   "/etc/svd/quality.conf"
 #define RTP_CONF_NAME       "/etc/svd/rtp.conf"
 #define WLEC_CONF_NAME      "/etc/svd/wlec.conf"
-#define TF_CONF_NAME        "/etc/svi.conf"
+#define VF_CONF_NAME        "/etc/svi.conf"
 /** @}*/
 
 /** @defgroup CFG_DF Default values.
@@ -156,15 +156,15 @@ struct hot_line_s {
 	char value_s [VALUE_LEN_DF]; /**< Hotline static massive.*/
 };
 /** Tonal Frequency channels.*/
-struct tonal_freq_s {
+struct voice_freq_s {
 	int is_set; /**< Set to 1 if this channel has meaningful values. */
-	enum tf_type_e type; /**< Channel type. */
+	enum vf_type_e type; /**< Channel type. */
 	int am_i_caller; /**< Set to 1 if this channel should call to it`s pair. */
 	char id [CHAN_ID_LEN]; /**< Channel absolute identifier.*/
 	char * pair_route; /**< Channel pair router identifier or NULL if self. */
 	char pair_route_s [ROUTE_ID_LEN_DF]; /**< Channel pair router massive.*/
 	char pair_chan [CHAN_ID_LEN]; /**< Channel pair channel identifier.*/
-	codec_t tf_codec; /**< codec parameters.*/
+	codec_t vf_codec; /**< codec parameters.*/
 };
 /** Route table.*/
 struct route_table_s {
@@ -217,7 +217,7 @@ struct svd_conf_s {/*{{{*/
 	struct address_book_s address_book; /**< Address book.*/
 	struct route_table_s route_table; /**< Routes table.*/
 	struct hot_line_s   hot_line     [CHANS_MAX]; /**< Hot line parameters.*/
-	struct tonal_freq_s tonal_freq   [CHANS_MAX]; /**< TF-channels parameters.*/
+	struct voice_freq_s voice_freq   [CHANS_MAX]; /**< VF-channels parameters.*/
 	struct rtp_prms_s   rtp_prms     [CHANS_MAX]; /**< RTP channel parameters.*/
 	struct wlec_s       wlec_prms    [CHANS_MAX]; /**< WLEC channel parameters.*/
 	enum pstn_type_e    fxo_PSTN_type[CHANS_MAX]; /**< FXO pstn types.*/

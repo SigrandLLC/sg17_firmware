@@ -88,8 +88,8 @@ ab_create( void )
 			curr_dev->type = ab_dev_type_FXS;
 		} else if(dprms[i].type == dev_type_FXO){
 			curr_dev->type = ab_dev_type_FXO;
-		} else if(dprms[i].type == dev_type_TF){
-			curr_dev->type = ab_dev_type_TF;
+		} else if(dprms[i].type == dev_type_VF){
+			curr_dev->type = ab_dev_type_VF;
 		}
 	}
 
@@ -373,7 +373,7 @@ ab_chan_status_init( ab_chan_t * const chan )
 		/* hook to onhook */
 		ioctl (chan->rtp_fd, IFX_TAPI_FXO_HOOK_SET, IFX_TAPI_FXO_HOOK_ONHOOK);
 		chan->status.hook = ab_chan_hook_ONHOOK;
-	} else if (chan->parent->type == ab_dev_type_TF){
+	} else if (chan->parent->type == ab_dev_type_VF){
 		/* linefeed to standby */
 		ioctl(chan->rtp_fd, IFX_TAPI_LINE_FEED_SET, IFX_TAPI_LINE_FEED_STANDBY);
 		chan->status.linefeed = ab_chan_linefeed_STANDBY;

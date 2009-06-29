@@ -128,14 +128,14 @@ static int svd_self_call
 	( svd_t * const svd, int const src_chan_idx, int const use_ff_FXO );
 /** @}*/ 
 
-/** @defgroup ATA_TF_I Tonal Frequency CRAM internals.
+/** @defgroup ATA_VF_I Voice Frequency CRAM internals.
  *  @ingroup ATA_B
- *  Other internal TF definitions. 
+ *  Other internal VF definitions. 
  *  @{*/
-#define AB_FW_CRAM_TFN2_NAME "/lib/firmware/cramfw_tfn2.bin"
-#define AB_FW_CRAM_TFN4_NAME "/lib/firmware/cramfw_tfn4.bin"
-#define AB_FW_CRAM_TFT2_NAME "/lib/firmware/cramfw_tft2.bin"
-#define AB_FW_CRAM_TFT4_NAME "/lib/firmware/cramfw_tft4.bin"
+#define AB_FW_CRAM_VFN2_NAME "/lib/firmware/cramfw_vfn2.bin"
+#define AB_FW_CRAM_VFN4_NAME "/lib/firmware/cramfw_vfn4.bin"
+#define AB_FW_CRAM_VFT2_NAME "/lib/firmware/cramfw_vft2.bin"
+#define AB_FW_CRAM_VFT4_NAME "/lib/firmware/cramfw_vft4.bin"
 /** @}*/ 
 
 
@@ -177,15 +177,15 @@ DFS
 	for (i=0; i<CHANS_MAX; i++){ 
 		char * cram_file_path;
 		/* reinit cram coefficients */
-		if(g_conf.tonal_freq[i].is_set){
-			if       (g_conf.tonal_freq[i].type == tf_type_N4){
-				cram_file_path = AB_FW_CRAM_TFN4_NAME;
-			} else if(g_conf.tonal_freq[i].type == tf_type_N2){
-				cram_file_path = AB_FW_CRAM_TFN2_NAME;
-			} else if(g_conf.tonal_freq[i].type == tf_type_T4){
-				cram_file_path = AB_FW_CRAM_TFT4_NAME;
-			} else if(g_conf.tonal_freq[i].type == tf_type_T2){
-				cram_file_path = AB_FW_CRAM_TFT2_NAME;
+		if(g_conf.voice_freq[i].is_set){
+			if       (g_conf.voice_freq[i].type == vf_type_N4){
+				cram_file_path = AB_FW_CRAM_VFN4_NAME;
+			} else if(g_conf.voice_freq[i].type == vf_type_N2){
+				cram_file_path = AB_FW_CRAM_VFN2_NAME;
+			} else if(g_conf.voice_freq[i].type == vf_type_T4){
+				cram_file_path = AB_FW_CRAM_VFT4_NAME;
+			} else if(g_conf.voice_freq[i].type == vf_type_T2){
+				cram_file_path = AB_FW_CRAM_VFT2_NAME;
 			}
 			if(ab_chan_cram_init(svd->ab->pchans[i], cram_file_path)){
 				SU_DEBUG_0 ((LOG_FNC_A("can`t init channel with given CRAM")));
@@ -557,6 +557,13 @@ ab_chan_media_activate ( ab_chan_t * const chan )
 		goto __exit;
 	}
 
+	/*
+	err = ab_chan_media_enc_hold (chan, 0);
+	if(err){
+		SU_DEBUG_1(("Media Hold off error : %s",ab_g_err_str));
+		goto __exit;
+	}
+	*/
 	err = ab_chan_media_switch (chan, 1, 1);
 	if(err){
 		SU_DEBUG_1(("Media activate error : %s",ab_g_err_str));
@@ -613,7 +620,7 @@ svd_prepare_chan_codecs( ab_chan_t * const chan )
 	codec_t * ct = NULL;
 	cod_prms_t const * cp = NULL;
 	int i;
-	int is_tf = 0;
+	int is_vf = 0;
 
 	/* prepare fcod */
 	ctx->fcod.type = g_conf.fax.codec_type;
@@ -628,9 +635,9 @@ svd_prepare_chan_codecs( ab_chan_t * const chan )
 		goto __exit_fail;
 	}
 
-	if(g_conf.tonal_freq[chan->abs_idx].is_set){
-		is_tf = 1;
-		ct = &g_conf.tonal_freq[chan->abs_idx].tf_codec;
+	if(g_conf.voice_freq[chan->abs_idx].is_set){
+		is_vf = 1;
+		ct = &g_conf.voice_freq[chan->abs_idx].vf_codec;
 	}
 
 	/* prepare vcod */
@@ -648,7 +655,7 @@ svd_prepare_chan_codecs( ab_chan_t * const chan )
 			ctx->vcod.pkt_size = ct[i].pkt_size;
 			break;
 		}
-		if(is_tf){
+		if(is_vf){
 			break;
 		}
 	}
@@ -733,7 +740,7 @@ __exit_fail:
  * 		\retval -1	if somthing nasty happens.
  * 		\retval 0 	if etherything ok.
  * \todo
- * 		In ideal world it shold be reenterable or mutexes should be used.
+ * 		In ideal world it should be reenterable or mutexes should be used.
  * 		Also, then we calculate chan_idx, we should use more abstract way, 
  * 		that encapsulate internals.
  */ 

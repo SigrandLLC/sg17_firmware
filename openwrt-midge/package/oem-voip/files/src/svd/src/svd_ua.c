@@ -111,6 +111,8 @@ static char *
 svd_new_sdp_string (ab_chan_t const * const chan);
 /** @}*/ 
 
+/** context for signal handler of SIGCHLD */
+static ab_t * g_ab = NULL;
 
 /****************************************************************************/
 
@@ -250,7 +252,7 @@ DFS
 
 		default:
 			/* unknown event received */
-		/* if unknown event and nh unknown - it shold be destroyed 
+		/* if unknown event and nh unknown - it should be destroyed 
 		 *(nua_handle_destroy) otherwise(related to an existing call or 
 		 * registration for instance). - ignore it.
 		 */
@@ -549,7 +551,7 @@ DFE
 }/*}}}*/
 
 /**
- * It create connections between tonal frequency channels.
+ * It create connections between voice frequency channels.
  *
  * \param[in] svd context pointer
  * \retval 0 	etherything ok.
@@ -558,7 +560,7 @@ DFE
  * 		There must be offhook on both chennels in the link.
  */ 
 int 
-svd_place_tf (svd_t * const svd)
+svd_place_vf (svd_t * const svd)
 {/*{{{*/
 	int i;
 	int j;
@@ -573,7 +575,7 @@ DFS
 	for(i=0; i<chans_num; i++){
 		ab_chan_t * curr_chan = &svd->ab->chans[i];
 		svd_chan_t * ctx = curr_chan->ctx;
-		struct tonal_freq_s * curr_rec = &g_conf.tonal_freq[curr_chan->abs_idx];
+		struct voice_freq_s * curr_rec = &g_conf.voice_freq[curr_chan->abs_idx];
 		if(curr_rec->is_set && curr_rec->am_i_caller){
 			/* get pair_chan */
 			strcpy (ctx->dial_status.chan_id, curr_rec->pair_chan);
@@ -602,7 +604,7 @@ DFS
 
 			/* place a call */
 			if(err || svd_invite(svd, 0, i)){
-				SU_DEBUG_0 (("!!!!! CAN`T PLACE TF-CALL\n"));
+				SU_DEBUG_0 (("!!!!! CAN`T PLACE VF-CALL\n"));
 				goto __exit_fail;
 			} 
 		}
@@ -833,7 +835,7 @@ DFS
 		if (isdigit(to->a_url->url_user[0])){
 			/* 'xx@..'  - absolute channel number */
 			int unknown_caller;
-			int it_is_tf = 0;
+			int it_is_vf = 0;
 			int pair_is_elder = 0;
 			int should_reconnect = 0;
 			int pair_chan;
@@ -850,10 +852,10 @@ DFS
 				nua_handle_destroy (nh);
 				goto __exit;
 			}
-			/* tf-reconnect test
+			/* vf-reconnect test
 			 * if chan
 			 *		1. router is not self (if self - just one caller)
-			 *		2. it is tf-channel
+			 *		2. it is vf-channel
 			 *		3. caller the pair
 			 *		4. call_state is ready or
 			 *			pair is elder
@@ -880,14 +882,14 @@ DFS
 
 			pair_chan = strtol (from->a_url->url_user, NULL, 10);
 
-			it_is_tf = g_conf.tonal_freq[abs_chan_idx].is_set &&
-				(!g_conf.tonal_freq[abs_chan_idx].pair_route ||
-				(strtol(g_conf.tonal_freq[abs_chan_idx].pair_route,NULL, 10) == 
+			it_is_vf = g_conf.voice_freq[abs_chan_idx].is_set &&
+				(!g_conf.voice_freq[abs_chan_idx].pair_route ||
+				(strtol(g_conf.voice_freq[abs_chan_idx].pair_route,NULL, 10) == 
 					pair_route_id)) &&
-				(strtol(g_conf.tonal_freq[abs_chan_idx].pair_chan, NULL, 10) == 
+				(strtol(g_conf.voice_freq[abs_chan_idx].pair_chan, NULL, 10) == 
 					pair_chan);
 
-			if(it_is_tf){
+			if(it_is_vf){
 				if(g_conf.self_number){
 					int self_route = strtol(g_conf.self_number,NULL,10);
 					if(self_route < pair_route_id){
@@ -997,7 +999,7 @@ DFS
 		if (err){
 			SU_DEBUG_1(("can`t offhook on [_%d_]\n",req_chan->abs_idx));
 		}
-	} else if (req_chan->parent->type == ab_dev_type_TF){
+	} else if (req_chan->parent->type == ab_dev_type_VF){
 		/* just answer */
 		svd_answer(svd, req_chan, SIP_200_OK);
 	}
@@ -1174,7 +1176,7 @@ DFS
 					SU_DEBUG_3(("can`t offhook on [_%d_]: %s\n", 
 							chan->abs_idx, ab_g_err_str));
 				}
-			}/* tf no need in special preparations */
+			}/* vf no need in special preparations */
 
 			if(ab_chan_media_activate (chan)){
 				SU_DEBUG_1(("media_activate error : %s\n", ab_g_err_str));
@@ -1237,19 +1239,19 @@ DFS
 				}
 				/* playing busy tone */
 				SU_DEBUG_3(("playing busy tone on [_%d_]\n", chan->abs_idx));
-			} else if(chan->parent->type == ab_dev_type_TF){
+			} else if(chan->parent->type == ab_dev_type_VF){
 				/* Re-invite the pair */
 				int chan_idx;
-				if(ctx->op_handle){ /* tag__ test reinvite on TF */
-					SU_DEBUG_3 (("ATTENTION reinvite to TF-pair ctx has handle\n"));
+				if(ctx->op_handle){ /* tag__ test reinvite on VF */
+					SU_DEBUG_3 (("ATTENTION reinvite to VF-pair ctx has handle\n"));
 					nua_handle_destroy (ctx->op_handle);
 					ctx->op_handle = NULL;
 				}
-				SU_DEBUG_3 (("sleeping 10 sec before reinvite on TF-pair\n"));
+				SU_DEBUG_3 (("sleeping 10 sec before reinvite on VF-pair\n"));
 				sleep(10);
 				chan_idx = get_dest_chan_idx (svd->ab, NULL, chan->abs_idx);
 				if((chan_idx == -1) || svd_invite(svd, 0, chan_idx)){
-					SU_DEBUG_1 (("ERROR: can`t re-invite TF-pair\n"));
+					SU_DEBUG_1 (("ERROR: can`t re-invite VF-pair\n"));
 				}
 			}
 			break;
@@ -1299,9 +1301,13 @@ DFE
 }/*}}}*/
 
 void
-svd_child_handler(int signo)
+svd_child_handler(int signum, siginfo_t * sinf, void * sctx)
 {/*{{{*/
 	int status;
+	ab_chan_media_volume (g_ab->pchans[sinf->si_status],
+			g_conf.rtp_prms[sinf->si_status].COD_Tx_vol,
+			g_conf.rtp_prms[sinf->si_status].COD_Rx_vol);
+
 	wait(&status);
 }/*}}}*/
 
@@ -1323,8 +1329,7 @@ svd_i_info(int status, char const * phrase, svd_t * const svd,
 {/*{{{*/
 DFS
 	if(chan->parent->type == ab_dev_type_FXO){
-		int err;
-		int tone;
+		int tone;	
 		char digit;
 		if(sip && sip->sip_payload && sip->sip_payload->pl_data){
 			/* should be sended if can`t recognize info payload
@@ -1342,28 +1347,37 @@ DFS
 			/* dialed in pulse - should redial in pulse */
 			/* or pulse PSTN only - also should redial in pulse */
 			int pid;
+			struct sigaction act;
 
-			signal(SIGCHLD,svd_child_handler);
+			memset(&act,0,sizeof(act));
+			act.sa_flags = SA_SIGINFO | SA_NOCLDSTOP;
+			act.sa_sigaction = svd_child_handler;
+			sigaction (SIGCHLD, &act, NULL);
 
 			SU_DEBUG_3 (("Dial in pulse:'%c'\n", digit));
 
-			pid = fork();
-			if(pid == 0){
-				/* child */
-				/* aware handlers in child */
-				svd_shutdown    (svd);
-				su_root_destroy (svd->root);
-				su_home_deinit  (svd->home);
-				su_deinit ();
+			/* dirty hack, but other options even worse :( */
+			g_ab = svd->ab;
 
-				err = ab_FXO_line_digit (chan, 1, &digit, 0, 0, 1);
-				if(!err){
-					exit(0);
-				} else {
-					exit(-1);
+			/* holding media while dialing a digit */
+			ab_chan_media_volume (chan,-24,
+				g_conf.rtp_prms[chan->abs_idx].COD_Rx_vol);
+
+			pid = fork();
+			if(pid == 0){       /* child */
+				/* set highest real-time priority */
+				struct sched_param prm;
+				int err;
+				prm.sched_priority = sched_get_priority_max(SCHED_FIFO);
+				err = sched_setscheduler (0, SCHED_FIFO, &prm);
+				if(err){
+					SU_DEBUG_2 (("ERROR Can`t set highest FIFO sched priority"
+								" for p-dialing: %s\n",strerror(errno)));
 				}
-			} else if(pid < 0){
-				/* error */
+				ab_FXO_line_digit (chan, 1, &digit, 0, 0, 1);
+				/* dirty hack, again */
+				exit(chan->abs_idx);
+			} else if(pid < 0){ /* error */
 				SU_DEBUG_2 (("ERROR Can`t fork for dial\n"));
 			}
 		} else {
@@ -1680,10 +1694,10 @@ svd_new_sdp_string (ab_chan_t const * const chan)
 	long media_port = ctx->rtp_port;
 	enum calltype_e const ct = ctx->call_type;
 
-	int is_tf = 0;
+	int is_vf = 0;
 
-	if(chan->parent->type == ab_dev_type_TF){
-		is_tf = 1;
+	if(chan->parent->type == ab_dev_type_VF){
+		is_vf = 1;
 	}
 
 #if 0
@@ -1710,8 +1724,8 @@ svd_new_sdp_string (ab_chan_t const * const chan)
 		SU_DEBUG_0((LOG_FNC_A("ERROR: calltype still UNDEFINED")));
 		goto __exit_fail_allocated;
 	}
-	if(is_tf){
-		cp = &g_conf.tonal_freq[chan->abs_idx].tf_codec;
+	if(is_vf){
+		cp = &g_conf.voice_freq[chan->abs_idx].vf_codec;
 	}
 
 	ltmp = snprintf (ret_str, limit, 
@@ -1739,7 +1753,7 @@ svd_new_sdp_string (ab_chan_t const * const chan)
 		}
 		strncat(ret_str, pld_str, limit);
 		limit -= ltmp;
-		if(is_tf){
+		if(is_vf){
 			break;
 		}
 	}
@@ -1793,7 +1807,7 @@ svd_new_sdp_string (ab_chan_t const * const chan)
 			strncat(ret_str, rtp_str, limit);
 			limit -= ltmp;
 		}
-		if(is_tf){
+		if(is_vf){
 			break;
 		}
 	}

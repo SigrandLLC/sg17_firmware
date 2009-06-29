@@ -561,7 +561,7 @@ Controllers.voipAddresses = function() {
 
 	page.addTab({
 		"id": "address",
-		"name": "Addresses",
+		"name": "Phonebook",
 		"func": function() {
 			var c, field;
 			c = page.addContainer("address");
@@ -575,7 +575,7 @@ Controllers.voipAddresses = function() {
 				"listItem": "sys_voip_address_",
 				"addMessage": "Add address",
 				"editMessage": "Edit address",
-				"listTitle": "Address book",
+				"listTitle": "Phonebook",
 				"helpPage": "voip.address",
 				"helpSection": "voip.address.add"
 			});
@@ -629,11 +629,11 @@ Controllers.voipRtp = function() {
 
 	page.addTab({
 		"id": "rtp",
-		"name": "RTP",
+		"name": "Audio",
 		"func": function() {
 			var c = page.addContainer("rtp");
 			c.setSubsystem("svd-rtp");
-			c.addTitle("Sound settings", {"colspan": 5});
+			c.addTitle("Audio settings", {"colspan": 5});
 
 			c.addTableHeader("Channel|Tx_vol|Rx_vol|VAD|HPF");
 			var channels = config.getCachedOutput("voipChannels").split("\n");
@@ -990,7 +990,7 @@ Controllers.voipWlec = function() {
 
 	page.addTab({
 		"id": "wlec",
-		"name": "WLEC",
+		"name": "Echo",
 		"func": function() {
 			var c = page.addContainer("wlec");
             var colNum = 7;
@@ -1089,11 +1089,11 @@ Controllers.voipFxo = function() {
 
 	page.addTab({
 		"id": "fxo",
-		"name": "FXO",
+		"name": "Dial mode",
 		"func": function() {
 			var c = page.addContainer("fxo");
 			c.setSubsystem("svd-fxo");
-			c.addTitle("FXO settings", {"colspan": 2});
+			c.addTitle("Dial mode settings", {"colspan": 2});
 
 			c.addTableHeader("Channel|PSTN_type*");
             c.addTableTfootStr("tone/pulse - tone or pulse.", 2);

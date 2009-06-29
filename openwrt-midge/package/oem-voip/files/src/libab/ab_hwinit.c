@@ -9,43 +9,15 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <getopt.h>
 #include <linux/kdev_t.h>
 #include <errno.h>
 
-#include "libconfig.h"		/* from libconfig */
+#include "ab_api.h"
 #include "drv_tapi_io.h"	/* from TAPI_HL_driver */
 #include "vinetic_io.h" 	/* from Vinetic_LL_driver */
 #include "ab_ioctl.h"		/* from ATA_Board_driver */
 /*}}}*/
 /* DEFINE {{{*/
-#define ERR_SUCCESS 0
-#define ERR_MEMORY_FULL 1
-#define ERR_UNKNOWN_OPTION 2
-#define ERR_COULD_NOT_OPEN_FILE 3
-#define ERR_IOCTL_FAILS 4
-#define ERR_OTHER 5
-
-#define ERR_MSG_SIZE 256
-
-#define AB_FW_PRAM_NAME "/lib/firmware/pramfw.bin"
-#define AB_FW_DRAM_NAME "/lib/firmware/dramfw.bin"
-#define AB_FW_CRAM_FXS_NAME "/lib/firmware/cramfw_fxs.bin"
-#define AB_FW_CRAM_FXO_NAME "/lib/firmware/cramfw_fxo.bin"
-#define AB_FW_CRAM_TFN2_NAME "/lib/firmware/cramfw_vfn2.bin"
-#define AB_FW_CRAM_TFN4_NAME "/lib/firmware/cramfw_vfn4.bin"
-#define AB_FW_CRAM_TFT2_NAME "/lib/firmware/cramfw_vft2.bin"
-#define AB_FW_CRAM_TFT4_NAME "/lib/firmware/cramfw_vft4.bin"
-
-/* from libab - if libab in the future can handle more channels - 
- * should be fixed */
-#define CHANS_MAX 32
-
-#define TF_TRANSIT "transit"
-#define TF_NORMAL  "normal"
-#define TF_2_WIRED "2w"
-#define TF_4_WIRED "4w"
-#define TF_CONF_NAME "/etc/svi.conf"
 #define AB_SGATAB_DEV_NODE "/dev/sgatab"
 #define AB_SGATAB_MAJOR_FILE "/proc/driver/sgatab/major"
 #define VIN_DEV_NODE_PREFIX "/dev/vin"
@@ -53,64 +25,28 @@
 #define FXO_OSI_MAX 600
 /*}}}*/
 /*{{{ Global VARS */
-/*
-COMMAND LINE KEYS:
-  -h, --help		display this help and exit
-  -V, --version		show version and exit
-  -m, --skip-modules	skip modules reloading
-  -d, --skip-devices	skip devices basicdev init
-  -c, --skip-channels	skip channels firmware download
-*/
-struct _startup_options
-{
-	unsigned help : 1;
-	unsigned version : 1;
-	unsigned modules : 1;
-	unsigned devices : 1;
-	unsigned channels : 1;
-} g_so;
-static unsigned char g_err_no;
-static unsigned char g_err_tag;
-static char g_err_msg[ ERR_MSG_SIZE ];
-
-static const unsigned char g_programm[ ] = "svi";
-static const unsigned char g_version[ ] = "0.01-beta";
-static const unsigned char g_author[ ] = "Vladimir Luchko";
-static const unsigned char g_email[ ] = "vlad.luch@mail.ru";
-
 static unsigned char * fw_pram = NULL;
 static unsigned char * fw_dram = NULL;
 static unsigned char * fw_cram_fxs = NULL;
 static unsigned char * fw_cram_fxo = NULL;
-static unsigned char * fw_cram_tfn2 = NULL;
-static unsigned char * fw_cram_tfn4 = NULL;
-static unsigned char * fw_cram_tft2 = NULL;
-static unsigned char * fw_cram_tft4 = NULL;
+static unsigned char * fw_cram_vfn2 = NULL;
+static unsigned char * fw_cram_vfn4 = NULL;
+static unsigned char * fw_cram_vft2 = NULL;
+static unsigned char * fw_cram_vft4 = NULL;
 static unsigned long fw_pram_size = 0;
 static unsigned long fw_dram_size = 0;
 static unsigned long fw_cram_fxs_size = 0;
 static unsigned long fw_cram_fxo_size = 0;
-static unsigned long fw_cram_tfn2_size = 0;
-static unsigned long fw_cram_tfn4_size = 0;
-static unsigned long fw_cram_tft2_size = 0;
-static unsigned long fw_cram_tft4_size = 0;
-
-enum tf_type_e {
-	tf_type_DEFAULT = 0,
-	tf_type_N4 = 0,
-	tf_type_N2,
-	tf_type_T4,
-	tf_type_T2,
-};
-enum tf_type_e tf_cfg [CHANS_MAX];
+static unsigned long fw_cram_vfn2_size = 0;
+static unsigned long fw_cram_vfn4_size = 0;
+static unsigned long fw_cram_vft2_size = 0;
+static unsigned long fw_cram_vft4_size = 0;
+static int g_flags = 0;
+static enum vf_type_e * g_types = NULL;
 /*}}}*/
 /*{{{ Global FUNCTIONS */
-static unsigned char startup_init( int argc, char ** argv );
-static void run( void );
-
 static int voip_in_slots( void );
 static int load_modules( void );
-static int load_cfg( void );
 static int init_voip( void );
 
 static int board_iterator (int (*func)(ab_board_params_t const * const bp));
@@ -128,77 +64,46 @@ static int chan_init_tune (int const rtp_fd, int const chan_idx,
 static int pd_ram_load( void );
 static int cram_fxs_load( void );
 static int cram_fxo_load( void );
-static int cram_tf_load( enum tf_type_e const type );
+static int cram_vf_load( enum vf_type_e const type );
 static int fw_masses_init_from_path (unsigned char ** const fw_buff, 
 		unsigned long * const buff_size, char const * const path );
 static void fw_masses_free( void );
 
-static void Error_message( int argc, char ** argv );
-static void show_last_err(char * msg, int fd);
-static void show_help( void );
-static void show_version( void );
+static void get_last_err(int fd);
 /*}}}*/
 
 int 
-main( int argc, char ** argv )
-{/*{{{*/
-	g_err_no = ERR_SUCCESS;
-	g_err_tag = 0;
-	strcpy( g_err_msg, "" );
-	int err = 0;
-
-
-	err = startup_init( argc, argv );
-	if( err ){
-		goto main_exit;
-	}
-
-	if( g_so.help ){
-		show_help( );
-	} else if( g_so.version ){
-		show_version( );
-	} else {
-		run();
-	}
-
-main_exit:
-	Error_message( argc, argv );
-
-	return g_err_no;
-}/*}}}*/
-
-static void 
-run( void )
+ab_hardware_init( enum vf_type_e * const types, int const flags )
 {/*{{{*/
 	int err = 0;
+
+	g_flags = flags;
+	/* tag__ types should be a pointer to mas[CHANS_MAX] */
+	g_types = types;
 
 	/* test the voip modules presence */
 	err = voip_in_slots();
 	if(err){
-		goto __exit;
+		goto __exit_fail;
 	}
 
 	/* load drivers stack and create node files */
-	err = load_modules();
-	if(err){
-		goto __exit;
-	}
-
-	/* read tonal frequency channels configuration */
-	err = load_cfg();
-	if(err){
-		goto __exit;
+	if( !(g_flags & AB_HWI_SKIP_MODULES)){
+		err = load_modules();
+		if(err){
+			goto __exit_fail;
+		}
 	}
 
 	/* init devices and channels */
 	err = init_voip();
 	if(err){
-		goto __exit_ioctl_msg;
+		goto __exit_fail;
 	}
-__exit:
-	return;
-__exit_ioctl_msg:
-	return;
+
+	return 0;
+__exit_fail:
+	return -1;
 }/*}}}*/
 
 static int 
@@ -206,6 +111,10 @@ voip_in_slots( void )
 {/*{{{*/
 	int err;
 	err = system("cat /proc/pci | grep 0055:009c > /dev/null || exit 1");
+	if(err){
+		ab_g_err_idx = AB_ERR_NO_HARDWARE;
+		sprintf(ab_g_err_str, "%s() ERROR : can`t find modules",__func__);
+	}
 	return err;
 }/*}}}*/
 
@@ -220,10 +129,6 @@ load_modules( void )
 
 	uma = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
 
-	if(g_so.modules){
-		goto __exit_success;
-	}
-
 	/* remove all modules and they dev nodes */
 	system("modprobe -r drv_sgatab");
 	system("modprobe -r drv_daa");
@@ -235,29 +140,29 @@ load_modules( void )
 	/* load sgatab module */
 	err = system("modprobe drv_sgatab");
 	if(err){
-		g_err_no = ERR_OTHER;
-		sprintf(g_err_msg, "%s() svi ERROR : drv_sgatab load",__func__);
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		sprintf(ab_g_err_str, "%s() ERROR : drv_sgatab load",__func__);
 		goto __exit_fail;
 	}
 
 	/* create sgatab dev node */
 	fd = open(AB_SGATAB_MAJOR_FILE, O_RDONLY);
 	if(fd == -1){
-		g_err_no = ERR_COULD_NOT_OPEN_FILE;
-		sprintf(g_err_msg, "%s() ERROR : drv_sgatab major file open",
+		ab_g_err_idx = AB_ERR_NO_FILE;
+		sprintf(ab_g_err_str, "%s() ERROR : drv_sgatab major file open",
 				__func__);
 		goto __exit_fail;
 	}
 	err = read(fd, sgatab_major_str, sizeof(sgatab_major_str));
 	close(fd);
 	if(!err){
-		g_err_no = ERR_OTHER;
-		sprintf(g_err_msg, "%s() ERROR : drv_sgatab major file empty",
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		sprintf(ab_g_err_str, "%s() ERROR : drv_sgatab major file empty",
 				__func__);
 		goto __exit_fail;
 	} else if(err == -1){
-		g_err_no = ERR_OTHER;
-		sprintf(g_err_msg, "%s() ERROR : reading drv_sgatab major "
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		sprintf(ab_g_err_str, "%s() ERROR : reading drv_sgatab major "
 				"file : \n\t%s", __func__, strerror(errno));
 		goto __exit_fail;
 	}
@@ -265,29 +170,29 @@ load_modules( void )
 	sgatab_major = strtol(sgatab_major_str, NULL, 10);
 	err = mknod(AB_SGATAB_DEV_NODE, S_IFCHR | uma, MKDEV(sgatab_major,0));
 	if(err){
-		g_err_no = ERR_OTHER;
-		sprintf(g_err_msg, "%s() ERROR : drv_sgatab dev file create :\n"
-				"\t%s\n", __func__, strerror(errno));
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		sprintf(ab_g_err_str, "%s() ERROR : drv_sgatab dev file create :"
+				"%s", __func__, strerror(errno));
 		goto __exit_fail;
 	}
 
 	/* load infineon modules stack */
 	err = system("modprobe drv_tapi");
 	if(err){
-		g_err_no = ERR_OTHER;
-		sprintf(g_err_msg, "%s() ERROR : drv_tapi load",__func__ );
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		sprintf(ab_g_err_str, "%s() ERROR : drv_tapi load",__func__ );
 		goto __exit_fail;
 	}
 	err = system("modprobe drv_vinetic");
 	if(err){
-		g_err_no = ERR_OTHER;
-		sprintf(g_err_msg, "%s() ERROR : drv_vinetic load",__func__ );
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		sprintf(ab_g_err_str, "%s() ERROR : drv_vinetic load",__func__ );
 		goto __exit_fail;
 	}
 	err = system("modprobe drv_daa");
 	if(err){
-		g_err_no = ERR_OTHER;
-		sprintf(g_err_msg, "%s() ERROR : drv_daa load",__func__ );
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		sprintf(ab_g_err_str, "%s() ERROR : drv_daa load",__func__ );
 		goto __exit_fail;
 	}
 
@@ -297,98 +202,8 @@ load_modules( void )
 		goto __exit_fail;
 	}
 
-__exit_success:
 	return 0;
 __exit_fail:
-	return -1;
-}/*}}}*/
-
-static int 
-load_cfg( void )
-{/*{{{*/
-	/* tf_types:
-	 * (
-	 *	("chan_id", "wire_type", "normal/trunc")
-	 * );*/
-	struct config_t cfg;
-	struct config_setting_t * set;
-	struct config_setting_t * rec_set;
-	char const * elem = NULL;
-	int chan_id;
-	int rec_num;
-	int i;
-	int val_err = 0;
-	int err;
-
-	config_init (&cfg);
-
-	/* default presets */
-	memset(tf_cfg, 0, sizeof(tf_cfg));
-
-	/* Load the file */
-	if (!config_read_file (&cfg, TF_CONF_NAME)){
-		err = config_error_line (&cfg);
-		goto __exit_success;
-	} 
-
-	set = config_lookup (&cfg, "tf_types" );
-	if( !set){
-		/* no tf-channels */
-		goto __exit_success;
-	} 
-
-	rec_num = config_setting_length (set);
-
-	if(rec_num > CHANS_MAX){
-		sprintf(g_err_msg, "%s() Too many channels (%d) in config - max is %d\n",
-				__func__, rec_num, CHANS_MAX);
-		goto __exit_fail;
-	}
-
-	for(i=0; i<rec_num; i++){
-		rec_set = config_setting_get_elem (set, i);
-
-		/* get id */
-		elem = config_setting_get_string_elem (rec_set, 0);
-		chan_id = strtol (elem, NULL, 10);
-
-		/* get wire_type */
-		elem = config_setting_get_string_elem (rec_set, 1);
-		if       (!strcmp(elem, TF_4_WIRED)){
-			/* get normal/trunc type */
-			elem = config_setting_get_string_elem (rec_set, 2);
-			if       (!strcmp(elem, TF_NORMAL)){
-				tf_cfg[chan_id] = tf_type_N4;
-			} else if(!strcmp(elem, TF_TRANSIT)){
-				tf_cfg[chan_id] = tf_type_T4;
-			} else {
-				val_err = 1;
-			}
-		} else if(!strcmp(elem, TF_2_WIRED)){
-			/* get normal/trunc type */
-			elem = config_setting_get_string_elem (rec_set, 2);
-			if       (!strcmp(elem, TF_NORMAL)){
-				tf_cfg[chan_id] = tf_type_N2;
-			} else if(!strcmp(elem, TF_TRANSIT)){
-				tf_cfg[chan_id] = tf_type_T2;
-			} else {
-				val_err = 1;
-			}
-		} else {
-			val_err = 1;
-		}
-		
-		if(val_err){
-			sprintf(g_err_msg, "%s() Bad config value (%s)\n", __func__, elem);
-			goto __exit_fail;
-		}
-	}
-
-__exit_success:
-	config_destroy (&cfg);
-	return 0;
-__exit_fail:
-	config_destroy (&cfg);
 	return -1;
 }/*}}}*/
 
@@ -436,16 +251,16 @@ board_iterator (int (*func)(ab_board_params_t const * const bp))
 
 	fd = open(AB_SGATAB_DEV_NODE, O_RDWR);
 	if(fd==-1){
-		g_err_no = ERR_COULD_NOT_OPEN_FILE;
-		sprintf(g_err_msg, "%s() ERROR : drv_sgatab dev file open",
+		ab_g_err_idx = AB_ERR_NO_FILE;
+		sprintf(ab_g_err_str, "%s() ERROR : drv_sgatab dev file open",
 				__func__ );
 		goto __exit_fail;
 	}
 
 	err = ioctl(fd, SGAB_GET_BOARDS_COUNT, &bc);
 	if(err){
-		g_err_no = ERR_IOCTL_FAILS;
-		sprintf(g_err_msg, "%s() ERROR : SGAB_GET_BOARDS_COUNT ioctl",
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		sprintf(ab_g_err_str, "%s() ERROR : SGAB_GET_BOARDS_COUNT ioctl",
 				__func__ );
 		goto __exit_fail_close;
 	}
@@ -455,8 +270,8 @@ board_iterator (int (*func)(ab_board_params_t const * const bp))
 		boards_count_changed_tag = bc;
 	} else if(boards_count_changed_tag != bc){
 		/* not first run & count of boards changed */
-		g_err_no = ERR_OTHER;
-		sprintf(g_err_msg, "%s() ERROR : count of boards changed",
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		sprintf(ab_g_err_str, "%s() ERROR : count of boards changed",
 				__func__ );
 		goto __exit_fail_close;
 	}
@@ -468,13 +283,13 @@ board_iterator (int (*func)(ab_board_params_t const * const bp))
 		bp.board_idx = i;
 		err = ioctl(fd, SGAB_GET_BOARD_PARAMS, &bp);
 		if(err){
-			g_err_no = ERR_IOCTL_FAILS;
-			sprintf(g_err_msg, "%s() ERROR : SGAB_GET_BOARD_PARAMS ioctl",
+			ab_g_err_idx = AB_ERR_UNKNOWN;
+			sprintf(ab_g_err_str, "%s() ERROR : SGAB_GET_BOARD_PARAMS (ioctl)",
 					__func__ );
 			goto __exit_fail_close;
 		} else if((!bp.is_present) || bp.is_count_changed){
-			g_err_no = ERR_OTHER;
-			sprintf(g_err_msg, "%s() ERROR : SGAB_GET_BOARD_PARAMS"
+			ab_g_err_idx = AB_ERR_UNKNOWN;
+			sprintf(ab_g_err_str, "%s() ERROR : SGAB_GET_BOARD_PARAMS"
 					" boards count changed", __func__ );
 			goto __exit_fail_close;
 		}
@@ -528,7 +343,8 @@ dev_init (int const dev_idx, ab_dev_params_t const * const dp, long const nIrqNu
 		goto __exit_fail;
 	}
 
-	if(g_so.channels){
+
+	if(g_flags & AB_HWI_SKIP_CHANNELS){
 		goto __exit_success;
 	}
 
@@ -556,7 +372,7 @@ basicdev_init( int const dev_idx, ab_dev_params_t const * const dp,
 	int cfg_fd;
 	char dev_node[ 50 ];
 
-	if(g_so.devices){
+	if(g_flags & AB_HWI_SKIP_DEVICES){
 		goto __exit_success;
 	}
 
@@ -569,25 +385,25 @@ basicdev_init( int const dev_idx, ab_dev_params_t const * const dp,
 
 	cfg_fd = open(dev_node, O_RDWR);
 	if(cfg_fd==-1){
-		g_err_no = ERR_COULD_NOT_OPEN_FILE;
-		sprintf(g_err_msg, "%s() opening vinetic device node '%s'",
+		ab_g_err_idx = AB_ERR_NO_FILE;
+		sprintf(ab_g_err_str, "%s() opening vinetic device node '%s'",
 				__func__, dev_node);
 		goto __exit_fail;
 	}
 
 	err = ioctl(cfg_fd, FIO_VINETIC_DEV_RESET, 0);
 	if(err){
-		g_err_no = ERR_IOCTL_FAILS;
-		sprintf(g_err_msg, "%s() device reset fails (ioctl)",__func__);
-		show_last_err(">>", cfg_fd);
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		sprintf(ab_g_err_str, "%s() device reset fails (ioctl)",__func__);
+		get_last_err(cfg_fd);
 		goto __exit_fail_close;
 	}
 
 	err = ioctl (cfg_fd, FIO_VINETIC_BASICDEV_INIT, &binit);
 	if(err){
-		g_err_no = ERR_IOCTL_FAILS;
-		sprintf(g_err_msg, "%s() BasicDev init fails (ioctl)",__func__);
-		show_last_err(">>", cfg_fd);
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		sprintf(ab_g_err_str, "%s() BasicDev init fails (ioctl)",__func__);
+		get_last_err(cfg_fd);
 		goto __exit_fail_close;
 	}
 
@@ -619,8 +435,8 @@ chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt,
 
 	cfd = open(cnode, O_RDWR);
 	if (cfd==-1){
-		g_err_no = ERR_COULD_NOT_OPEN_FILE;
-		sprintf(g_err_msg,"%s() opening vinetic channel node",__func__);
+		ab_g_err_idx = AB_ERR_NO_FILE;
+		sprintf(ab_g_err_str,"%s() opening vinetic channel node",__func__);
 		goto __exit_fail;
 	}
 
@@ -652,22 +468,22 @@ chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt,
 		vinit.pBBDbuf   = fw_cram_fxs;
 		vinit.bbd_size  = fw_cram_fxs_size;
 	} else if(dt==dev_type_VF){
-		err = cram_tf_load (tf_cfg[abs_chan_idx]);
+		err = cram_vf_load (g_types[abs_chan_idx]);
 		if(err){
 			goto __exit_fail_close;
 		}
-		if        (tf_cfg[abs_chan_idx] == tf_type_N2){
-			vinit.pBBDbuf  = fw_cram_tfn2;
-			vinit.bbd_size = fw_cram_tfn2_size;
-		} else if (tf_cfg[abs_chan_idx] == tf_type_N4){
-			vinit.pBBDbuf  = fw_cram_tfn4;
-			vinit.bbd_size = fw_cram_tfn4_size;
-		} else if (tf_cfg[abs_chan_idx] == tf_type_T2){
-			vinit.pBBDbuf  = fw_cram_tft2;
-			vinit.bbd_size = fw_cram_tft2_size;
-		} else if (tf_cfg[abs_chan_idx] == tf_type_T4){
-			vinit.pBBDbuf  = fw_cram_tft4;
-			vinit.bbd_size = fw_cram_tft4_size;
+		if        (g_types[abs_chan_idx] == vf_type_N2){
+			vinit.pBBDbuf  = fw_cram_vfn2;
+			vinit.bbd_size = fw_cram_vfn2_size;
+		} else if (g_types[abs_chan_idx] == vf_type_N4){
+			vinit.pBBDbuf  = fw_cram_vfn4;
+			vinit.bbd_size = fw_cram_vfn4_size;
+		} else if (g_types[abs_chan_idx] == vf_type_T2){
+			vinit.pBBDbuf  = fw_cram_vft2;
+			vinit.bbd_size = fw_cram_vft2_size;
+		} else if (g_types[abs_chan_idx] == vf_type_T4){
+			vinit.pBBDbuf  = fw_cram_vft4;
+			vinit.bbd_size = fw_cram_vft4_size;
 		}
 	}
 
@@ -684,19 +500,19 @@ chan_init(int const dev_idx, int const chan_idx, dev_type_t const dt,
 
 	err = ioctl(cfd, IFX_TAPI_CH_INIT, &init);
 	if( err ){
-		g_err_no = ERR_IOCTL_FAILS;
-		sprintf(g_err_msg,"%s() initilizing channel with firmware (ioctl)",
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		sprintf(ab_g_err_str,"%s() initilizing channel with firmware (ioctl)",
 				__func__);
-		show_last_err(">>", cfd);
+		get_last_err(cfd);
 		goto __exit_fail_close;
 	}
 
 	err = ioctl(cfd, FIO_VINETIC_BBD_DOWNLOAD, &bbd_download);
 	if( err ){
-		g_err_no = ERR_IOCTL_FAILS;
-		sprintf(g_err_msg,"%s() initilizing channel(bbd) with firmware (ioctl)",
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		sprintf(ab_g_err_str,"%s() initilizing channel(bbd) with firmware (ioctl)",
 				__func__);
-		show_last_err(">>", cfd);
+		get_last_err(cfd);
 		goto __exit_fail_close;
 	}
 
@@ -737,9 +553,9 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 	}
 	err = ioctl (rtp_fd, IFX_TAPI_LINE_TYPE_SET, &lineTypeCfg);
 	if( err ){
-		g_err_no = ERR_IOCTL_FAILS;
-		strcpy(g_err_msg, "setting channel type (ioctl)" );
-		show_last_err(">>", rtp_fd);
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		strcpy(ab_g_err_str, "setting channel type (ioctl)" );
+		get_last_err(rtp_fd);
 		goto ab_chan_init_tune__exit;
 	} 
 
@@ -748,9 +564,9 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 	datamap.nChType = IFX_TAPI_MAP_TYPE_PHONE;
 	err = ioctl(rtp_fd, IFX_TAPI_MAP_DATA_ADD, &datamap);
 	if( err ){
-		g_err_no = ERR_IOCTL_FAILS;
-		strcpy(g_err_msg, "mapping channel to it`s own data (ioctl)");
-		show_last_err(">>", rtp_fd);
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		strcpy(ab_g_err_str, "mapping channel to it`s own data (ioctl)");
+		get_last_err(rtp_fd);
 		goto ab_chan_init_tune__exit;
 	} 
 
@@ -764,10 +580,10 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 		dtmfDetection.sig = IFX_TAPI_SIG_DTMFTX;
 		err = ioctl (rtp_fd,IFX_TAPI_SIG_DETECT_ENABLE,&dtmfDetection);
 		if( err ){
-			g_err_no = ERR_IOCTL_FAILS;
-			strcpy(g_err_msg, "trying to enable DTMF ALM signal "
+			ab_g_err_idx = AB_ERR_UNKNOWN;
+			strcpy(ab_g_err_str, "trying to enable DTMF ALM signal "
 					"detection (ioctl)" );
-			show_last_err(">>", rtp_fd);
+			get_last_err(rtp_fd);
 			goto ab_chan_init_tune__exit;
 		}
 		/* configure ring candence */
@@ -776,9 +592,9 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 		ringCadence.nr = sizeof(data) * 8;
 		err = ioctl(rtp_fd, IFX_TAPI_RING_CADENCE_HR_SET, &ringCadence);
 		if( err ){
-			g_err_no = ERR_IOCTL_FAILS;
-			strcpy(g_err_msg, "trying to configure ring cadence (ioctl)");
-			show_last_err(">>", rtp_fd);
+			ab_g_err_idx = AB_ERR_UNKNOWN;
+			strcpy(ab_g_err_str, "trying to configure ring cadence (ioctl)");
+			get_last_err(rtp_fd);
 			goto ab_chan_init_tune__exit;
 		}
 	} else if(dtype == dev_type_FXO) {
@@ -789,10 +605,10 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 		dtmfDetection.sig = IFX_TAPI_SIG_DTMFTX;
 		err = ioctl (rtp_fd,IFX_TAPI_SIG_DETECT_DISABLE,&dtmfDetection);
 		if( err ){
-			g_err_no = ERR_IOCTL_FAILS;
-			strcpy(g_err_msg, "trying to disable DTMF ALM signal "
+			ab_g_err_idx = AB_ERR_UNKNOWN;
+			strcpy(ab_g_err_str, "trying to disable DTMF ALM signal "
 					"detection (ioctl)" );
-			show_last_err(">>", rtp_fd);
+			get_last_err(rtp_fd);
 			goto ab_chan_init_tune__exit;
 		}
 		/* set OSI timing */
@@ -800,9 +616,9 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 		osi_cfg.nOSIMax = FXO_OSI_MAX;
 		err = ioctl(rtp_fd, IFX_TAPI_FXO_OSI_CFG_SET, &osi_cfg);
 		if( err ){
-			g_err_no = ERR_IOCTL_FAILS;
-			strcpy(g_err_msg, "trying to set OSI timing (ioctl)" );
-			show_last_err(">>", rtp_fd);
+			ab_g_err_idx = AB_ERR_UNKNOWN;
+			strcpy(ab_g_err_str, "trying to set OSI timing (ioctl)" );
+			get_last_err(rtp_fd);
 			goto ab_chan_init_tune__exit;
 		}
 	}
@@ -813,13 +629,13 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 			IFX_TAPI_SIG_CEDENDRX | IFX_TAPI_SIG_CEDENDTX;
 		err = ioctl (rtp_fd,IFX_TAPI_SIG_DETECT_ENABLE,&faxSig);
 		if(err){
-			g_err_no = ERR_IOCTL_FAILS;
-			strcpy(g_err_msg, "trying to enable FAX signal detection (ioctl)" );
-			show_last_err(">>", rtp_fd);
+			ab_g_err_idx = AB_ERR_UNKNOWN;
+			strcpy(ab_g_err_str, "trying to enable FAX signal detection (ioctl)" );
+			get_last_err(rtp_fd);
 			goto ab_chan_init_tune__exit;
 		}
 	}
-	/* for TF do not enable any signal detections 
+	/* for VF do not enable any signal detections 
 	 * tag__ may be it should be desabled manually - should test.
 	 * */
 	return 0;
@@ -883,32 +699,32 @@ __exit_fail:
 }/*}}}*/
 
 static int
-cram_tf_load( enum tf_type_e const type )
+cram_vf_load( enum vf_type_e const type )
 {/*{{{*/
 	int err;
-	char const * tf_name;
-	unsigned char ** tf_mas;
-	unsigned long * tf_size_ptr;
+	char const * vf_name;
+	unsigned char ** vf_mas;
+	unsigned long * vf_size_ptr;
 
-	if        (type == tf_type_N2){
-		tf_name     = AB_FW_CRAM_TFN2_NAME;
-		tf_mas      = &fw_cram_tfn2;
-		tf_size_ptr = &fw_cram_tfn2_size;
-	} else if (type == tf_type_N4){
-		tf_name     = AB_FW_CRAM_TFN4_NAME;
-		tf_mas      = &fw_cram_tfn4;
-		tf_size_ptr = &fw_cram_tfn4_size;
-	} else if (type == tf_type_T2){
-		tf_name     = AB_FW_CRAM_TFT2_NAME;
-		tf_mas      = &fw_cram_tft2;
-		tf_size_ptr = &fw_cram_tft2_size;
-	} else if (type == tf_type_T4){
-		tf_name     = AB_FW_CRAM_TFT4_NAME;
-		tf_mas      = &fw_cram_tft4;
-		tf_size_ptr = &fw_cram_tft4_size;
+	if        (type == vf_type_N2){
+		vf_name     = AB_FW_CRAM_VFN2_NAME;
+		vf_mas      = &fw_cram_vfn2;
+		vf_size_ptr = &fw_cram_vfn2_size;
+	} else if (type == vf_type_N4){
+		vf_name     = AB_FW_CRAM_VFN4_NAME;
+		vf_mas      = &fw_cram_vfn4;
+		vf_size_ptr = &fw_cram_vfn4_size;
+	} else if (type == vf_type_T2){
+		vf_name     = AB_FW_CRAM_VFT2_NAME;
+		vf_mas      = &fw_cram_vft2;
+		vf_size_ptr = &fw_cram_vft2_size;
+	} else if (type == vf_type_T4){
+		vf_name     = AB_FW_CRAM_VFT4_NAME;
+		vf_mas      = &fw_cram_vft4;
+		vf_size_ptr = &fw_cram_vft4_size;
 	}
-	if( !(*tf_mas)){
-		err = fw_masses_init_from_path (tf_mas, tf_size_ptr, tf_name);
+	if( !(*vf_mas)){
+		err = fw_masses_init_from_path (vf_mas, vf_size_ptr, vf_name);
 		if(err){
 			goto __exit_fail;
 		}
@@ -926,8 +742,8 @@ fw_masses_init_from_path (unsigned char ** const fw_buff,
 
 	fd = open(path, O_RDONLY);
 	if( fd <= 0 ) {
-		g_err_no = ERR_COULD_NOT_OPEN_FILE;
-		strcpy(g_err_msg, "Opening firmware file");
+		ab_g_err_idx = AB_ERR_NO_FILE;
+		strcpy(ab_g_err_str, "Opening firmware file");
 		goto fw_masses_init_from_path__exit;
 	}
 	*buff_size = lseek(fd, 0, SEEK_END);
@@ -935,13 +751,13 @@ fw_masses_init_from_path (unsigned char ** const fw_buff,
 
 	(*fw_buff) = malloc(*buff_size);
 	if( ! (*fw_buff) ){
-		g_err_no = ERR_MEMORY_FULL;
+		ab_g_err_idx = AB_ERR_NO_MEM;
 		goto fw_masses_init_from_path__open_file;
 	}
 
 	if(read(fd, (*fw_buff), *buff_size) != *buff_size){
-		g_err_no = ERR_COULD_NOT_OPEN_FILE;
-		strcpy(g_err_msg, "Reading firmware file");
+		ab_g_err_idx = AB_ERR_NO_FILE;
+		strcpy(ab_g_err_str, "Reading firmware file");
 		goto fw_masses_init_from_path__alloc_mem;
 	}
 
@@ -1003,9 +819,9 @@ create_vin_board (ab_board_params_t const * const bp)
 			err = mknod(dev_name, S_IFCHR|uma,MKDEV(VINETIC_MAJOR,
 					(dev_idx+1)*10));
 			if(err){
-				g_err_no = ERR_OTHER;
-				sprintf(g_err_msg, "%s() ERROR : drv_vinetic dev file "
-						"create :\n\t%s\n", __func__, strerror(errno));
+				ab_g_err_idx = AB_ERR_UNKNOWN;
+				sprintf(ab_g_err_str, "%s() ERROR : drv_vinetic dev file "
+						"create :%s", __func__, strerror(errno));
 				goto __exit_fail;
 			}
 			for(j=0; j<CHANS_PER_DEV; j++){
@@ -1016,9 +832,9 @@ create_vin_board (ab_board_params_t const * const bp)
 				err = mknod(ch_name, S_IFCHR|uma, MKDEV(
 						VINETIC_MAJOR,(dev_idx+1)*10+j+1));
 				if(err){
-					g_err_no = ERR_OTHER;
-					sprintf(g_err_msg, "%s() ERROR : drv_vinetic chan "
-							"file create :\n\t%s\n", __func__, strerror(errno));
+					ab_g_err_idx = AB_ERR_UNKNOWN;
+					sprintf(ab_g_err_str, "%s() ERROR : drv_vinetic chan "
+							"file create :%s", __func__, strerror(errno));
 					goto __exit_fail;
 				}
 			}
@@ -1030,136 +846,11 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
-static unsigned char 
-startup_init( int argc, char ** argv )
-{/*{{{*/
-	int option_IDX;
-	int option_rez;
-	char * short_options = "hVmdc";
-	struct option long_options[ ] = {
-		{ "help", no_argument, NULL, 'h' },
-		{ "version", no_argument, NULL, 'V' },
-		{ "skip-modules", no_argument, NULL, 'm' },
-		{ "skip-devices", no_argument, NULL, 'd' },
-		{ "skip-channels", no_argument, NULL, 'c' },
-		{ NULL, 0, NULL, 0 },
-	};
-
-	/* INIT WITH DEFAULT VALUES */
-	g_so.help = 0;
-	g_so.version = 0;
-
-	opterr = 0;
-	while ((option_rez = getopt_long (
-			argc, argv, short_options, 
-			long_options, &option_IDX)) != -1) {
-		switch( option_rez ){
-			case 'h': {
-				g_so.help = 1;
-				return 0;
-			}
-			case 'V': {
-				g_so.version = 1;
-				return 0;
-			}
-			case 'm': {
-				g_so.modules = 1;
-				break;
-			}
-			case 'd': {
-				g_so.devices = 1;
-				break;
-			}
-			case 'c': {
-				g_so.channels = 1;
-				break;
-			}
-			case '?' :{
-				/* unknown option found */
-				g_err_no = ERR_UNKNOWN_OPTION;
-				g_err_tag = optind;
-				return g_err_no;
-			}
-		}
-	}
-	return 0;
-}/*}}}*/
-
-static void 
-Error_message( int argc, char ** argv )
-{/*{{{*/
-	if( g_err_no == ERR_SUCCESS ){
-		return;	
-	}
-	
-	switch( g_err_no ){
-		case ERR_MEMORY_FULL :{
-			fprintf( stderr, "%s : out of memory\n", g_programm );
-			break;	
-		}	
-		case ERR_UNKNOWN_OPTION :{
-			fprintf( stderr, "%s : invalid option\n", g_programm );
-			break;	
-		}
-		case ERR_COULD_NOT_OPEN_FILE:{
-			fprintf( stderr, "%s : file open error\n", g_programm );
-			break;	
-		}
-		case ERR_IOCTL_FAILS:{
-			fprintf( stderr, "%s : some ioctl fails\n",g_programm );
-			break;	
-		}
-	}
-	if( strcmp( g_err_msg, ""  ) ){
-		fprintf( stderr,"%s > %s\n", g_programm, g_err_msg );
-	}
-
-	fprintf( stderr,"Try '%s --help' for more information.\n", 
-		g_programm );
-}/*}}}*/
-
 static void
-show_last_err(char * msg, int fd)
+get_last_err(int fd)
 {/*{{{*/
 	int error;
 	ioctl (fd, FIO_VINETIC_LASTERR, &error);
-	fprintf (stderr,"%s: 0x%X\n", msg, error);
-}/*}}}*/
-
-static void 
-show_help( )
-{/*{{{*/
-	fprintf( stdout, "\
-Usage: %s [OPTION]\n\
-SVI. SIP VoIP cards Initializer. Loads firmwire to chips and do\n\
-		other necessary actions.\n\
-\n\
-It can get some options :)\n\
-  -h, --help     	display this help and exit\n\
-  -V, --version  	displey current version and license info\n\
-  -m, --skip-modules	skip modules reloading \n\
-  -d, --skip-devices	skip devices basicdev init \n\
-  -c, --skip-channels	skip channels firmware init \n\
-\n\
-Report bugs to <%s>.\n\
-"
-			, g_programm, g_email );
-}/*}}}*/
-
-static void 
-show_version( )
-{/*{{{*/
-	fprintf( stdout, 
-"\
-%s-%s, built [%s]-[%s]\n\n\
-Copyright (C) 2007 Free Software Foundation, Inc.\n\
-This is free software.  You may redistribute copies of it under the terms of\n\
-the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n\
-There is NO WARRANTY, to the extent permitted by law.\n\
-\n\
-Written by %s. <%s>\n\
-"
-		, g_programm, g_version, 
-		__DATE__, __TIME__, g_author, g_email);
+	ab_g_err_extra_value = error;
 }/*}}}*/
 

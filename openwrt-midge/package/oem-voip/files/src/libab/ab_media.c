@@ -445,3 +445,53 @@ ab_chan_media_switch( ab_chan_t * const chan,
 	return 0;
 }/*}}}*/
 
+/**
+	Hold on / off encoding on the given channel
+\param[in] chan - channel to operate on it
+\param[in] hold - hold (1) or unhold (0) encoding
+\return 
+	0 in success case and other value otherwise
+\remark
+	returns the ioctl error value and writes error message
+*/
+int 
+ab_chan_media_enc_hold( ab_chan_t * const chan, unsigned char const hold )
+{/*{{{*/
+	int err = 0;
+	IFX_operation_t op;
+
+	op = (hold) ? IFX_ENABLE : IFX_DISABLE;
+
+	err = ioctl(chan->rtp_fd, IFX_TAPI_ENC_HOLD, op);
+	if(err){
+		ab_err_set(AB_ERR_UNKNOWN, "encoder hold/unhold ioctl error");
+	}
+	return err;
+}/*}}}*/
+
+/**
+	Set encoding and decoding coder volume on the given channel
+\param[in] chan - channel to operate on it
+\param[in] enc_gain - encoding gain = [-24;24]
+\param[in] dec_gain - decoding gain = [-24;24]
+\return 
+	0 in success case and other value otherwise
+\remark
+	returns the ioctl error value and writes error message
+*/
+int 
+ab_chan_media_volume( ab_chan_t * const chan, 
+		int const enc_gain, int const dec_gain )
+{/*{{{*/
+	int err = 0;
+	IFX_TAPI_PKT_VOLUME_t codVolume;
+
+	codVolume.nDec = dec_gain;
+	codVolume.nEnc = enc_gain;
+
+	err = ioctl(chan->rtp_fd, IFX_TAPI_COD_VOLUME_SET, &codVolume);
+	if(err){
+		ab_err_set(AB_ERR_UNKNOWN, "encoder mute/unmute ioctl error");
+	}
+	return err;
+}/*}}}*/

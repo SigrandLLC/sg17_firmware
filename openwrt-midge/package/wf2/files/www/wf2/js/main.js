@@ -36,11 +36,11 @@ function generateMenu() {
         addItem("Hardware:VoIP", "Hotline", "voipHotline");
         addItem("Hardware:VoIP", "TF", "voipTF");
         addItem("Hardware:VoIP", "Routes", "voipRoutes");
-        addItem("Hardware:VoIP", "Addresses", "voipAddresses");
-        addItem("Hardware:VoIP", "RTP", "voipRtp");
+        addItem("Hardware:VoIP", "Phonebook", "voipAddresses");
+        addItem("Hardware:VoIP", "Audio", "voipRtp");
         addItem("Hardware:VoIP", "Codecs", "voipCodecs");
-        addItem("Hardware:VoIP", "WLEC", "voipWlec");
-        addItem("Hardware:VoIP", "FXO", "voipFxo");
+        addItem("Hardware:VoIP", "Echo", "voipWlec");
+        addItem("Hardware:VoIP", "Dial mode", "voipFxo");
 	}
 
 	/* get array of PCI slots */

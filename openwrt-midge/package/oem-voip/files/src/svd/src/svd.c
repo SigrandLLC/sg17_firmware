@@ -108,8 +108,8 @@ main (int argc, char ** argv)
 		goto __conf;
 	}
 
-	/* place tf-calls */
-	err = svd_place_tf (svd);
+	/* place vf-calls */
+	err = svd_place_vf (svd);
 	if(err){
 		goto __svd;
 	}
