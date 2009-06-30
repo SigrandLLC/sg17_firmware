@@ -636,10 +636,21 @@ Controllers.voipAudio = function() {
 		"name": "Audio",
 		"func": function() {
 			var c = page.addContainer("rtp");
+            var colNum = 6;
 			c.setSubsystem("svd-rtp");
-			c.addTitle("Audio settings", {"colspan": 6});
+			c.addTitle("Audio settings", {"colspan": colNum});
 
 			c.addTableHeader("Channel|Type|Tx. vol|Rx. vol|VAD|HPF");
+            c.addTableTfootStr("Tx. vol: Transmit Volume (outcome volume level).", colNum);
+            c.addTableTfootStr("Rx. vol: Receive Volume (income volume level).", colNum);
+            c.addTableTfootStr("VAD:", colNum);
+            c.addTableTfootStr(" - On: voice activity detection on, in this case also comfort noise and spectral information (nicer noise) is switched on.", colNum);
+            c.addTableTfootStr(" - Off: no voice activity detection.", colNum);
+            c.addTableTfootStr(" - G711: voice activity detection on with comfort noise generation without spectral information.", colNum);
+            c.addTableTfootStr(" - CNG_only: voice activity detection on with comfort noise generation without silence compression.", colNum);
+            c.addTableTfootStr(" - SC_only: voice activity detection on with silence compression without comfort noise generation.", colNum);
+            c.addTableTfootStr("HPF: income high-pass filter.", colNum);
+
 			var channels = config.getCachedOutput("voipChannels").split("\n");
 			$.each(channels, function(num, record) {
 				var field;
@@ -1006,18 +1017,17 @@ Controllers.voipEcho = function() {
 		"name": "Echo",
 		"func": function() {
 			var c = page.addContainer("wlec");
-            var colNum = 7;
+            var colNum = 6;
 			c.setSubsystem("svd-wlec");
 			c.addTitle("Window-based Line Echo Canceller", {"colspan": colNum});
 
-			c.addTableHeader("Channel|Type|WLEC type|NLP|Near-end w. NB|Far-end w. NB|Near-end w. WB");
+			c.addTableHeader("Channel|Type|WLEC type|NLP|Near-end window|Far-end window");
             c.addTableTfootStr("WLEC type: ", colNum);
             c.addTableTfootStr("- NE: near-end only.", colNum);
             c.addTableTfootStr("- NFE: near-end and far-end.", colNum);
-            c.addTableTfootStr("NLP - Non-linear processing.", colNum);
-            c.addTableTfootStr("Near-end w. NB - Near-end window Narrow band.", colNum);
-            c.addTableTfootStr("Far-end w. NB - Far-end window Narrow band.", colNum);
-            c.addTableTfootStr("Near-end w. WB - Near-end window Wide band.", colNum);
+            c.addTableTfootStr("NLP: Non-linear processing.", colNum);
+            c.addTableTfootStr("Near-end window: Near-end window (narraw band).", colNum);
+            c.addTableTfootStr("Far-end window: Far-end window (narrow band).", colNum);
 
 			var channels = config.getCachedOutput("voipChannels").split("\n");
 			$.each(channels, function(num, record) {
@@ -1053,7 +1063,7 @@ Controllers.voipEcho = function() {
 				};
 				c.addTableWidget(field, row);
 
-				/* NLP,  by default for FXO is ON, for others is OFF */
+				/* NLP, by default for FXO is ON, for others is OFF */
 				field = {
 					"type": "select",
 					"name": $.sprintf("sys_voip_wlec_%s_nlp", channel[0]),
@@ -1075,15 +1085,6 @@ Controllers.voipEcho = function() {
 				field = {
 					"type": "select",
 					"name": $.sprintf("sys_voip_wlec_%s_few_nb", channel[0]),
-                    "options": "4 6 8 16",
-					"defaultValue": "4"
-				};
-				c.addTableWidget(field, row);
-
-                /* Near-end window WB */
-				field = {
-					"type": "select",
-					"name": $.sprintf("sys_voip_wlec_%s_new_wb", channel[0]),
                     "options": "4 6 8 16",
 					"defaultValue": "4"
 				};
