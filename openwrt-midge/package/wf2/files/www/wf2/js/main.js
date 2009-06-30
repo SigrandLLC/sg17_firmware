@@ -34,13 +34,13 @@ function generateMenu() {
 		config.runCmd("/bin/cat /proc/driver/sgatab/channels", "voipChannels");
 		addItem("Hardware:VoIP", "Settings", "voipSettings");
         addItem("Hardware:VoIP", "Hotline", "voipHotline");
-        addItem("Hardware:VoIP", "TF", "voipTF");
+        addItem("Hardware:VoIP", "VF", "voipVF");
         addItem("Hardware:VoIP", "Routes", "voipRoutes");
-        addItem("Hardware:VoIP", "Phonebook", "voipAddresses");
-        addItem("Hardware:VoIP", "Audio", "voipRtp");
+        addItem("Hardware:VoIP", "Phone book", "voipPhoneBook");
+        addItem("Hardware:VoIP", "Audio", "voipAudio");
         addItem("Hardware:VoIP", "Codecs", "voipCodecs");
-        addItem("Hardware:VoIP", "Echo", "voipWlec");
-        addItem("Hardware:VoIP", "Dial mode", "voipFxo");
+        addItem("Hardware:VoIP", "Echo", "voipEcho");
+        addItem("Hardware:VoIP", "Dial mode", "voipDialMode");
 	}
 
 	/* get array of PCI slots */
@@ -174,7 +174,7 @@ $(document).ready(function() {
 		}
 	});
 	
-	/* add status bar contetnts */
+	/* add status bar content */
 	$("#status").html(
 		$.sprintf("%s: <b>%s</b>, %s: <b><span id='status_state'>%s</span></b>, %s: <b><span id='status_tasks'>%s</span></b>, %s: <b><span id='status_ajax'>%s</span></b>",
 			_("Hostname"), config.get("sys_hostname"), _("status"), _("online"), _("tasks"), _("none"),

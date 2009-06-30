@@ -133,14 +133,14 @@ update_configs(){
 		# generate all configs for VoIP
 		cfg_make svd-main.conf /etc/svd/main.conf && \
 		cfg_make svd-routet.conf /etc/svd/routet.conf && \
-		cfg_make svd-tf.conf /etc/svd/tonalf.conf && \
+		cfg_make svd-vf.conf /etc/svd/voicef.conf && \
 		cfg_make svd-hotline.conf /etc/svd/hotline.conf && \
 		cfg_make svd-addressb.conf /etc/svd/addressb.conf && \
 		cfg_make svd-rtp.conf /etc/svd/rtp.conf && \
 		cfg_make svd-quality.conf /etc/svd/quality.conf && \
         cfg_make svd-wlec.conf /etc/svd/wlec.conf && \
         cfg_make svd-fxo.conf /etc/svd/fxo.conf && \
-        cfg_make svi.conf /etc/svi.conf && \
+        cfg_make svd-vf_settings.conf /etc/svd/hw.conf && \
 		cfg_commit
 		;;
 	svd-main)
@@ -151,8 +151,8 @@ update_configs(){
 		cfg_make svd-routet.conf /etc/svd/routet.conf && \
 		cfg_commit
 		;;
-	svd-tf)
-		cfg_make svd-tf.conf /etc/svd/tonalf.conf && \
+	svd-vf)
+		cfg_make svd-vf.conf /etc/svd/voicef.conf && \
 		cfg_commit
 		;;
 	svd-hotline)
@@ -179,8 +179,8 @@ update_configs(){
 		cfg_make svd-fxo.conf /etc/svd/fxo.conf && \
 		cfg_commit
 		;;
-    svd-tf_settings)
-		cfg_make svi.conf /etc/svi.conf && \
+    svd-vf_settings)
+		cfg_make svd-vf_settings.conf /etc/svd/hw.conf && \
 		cfg_commit
 		;;
 	linkdeps)

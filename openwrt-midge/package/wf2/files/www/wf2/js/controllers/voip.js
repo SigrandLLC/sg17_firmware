@@ -143,6 +143,7 @@ Controllers.voipSettings = function() {
 	page.generateTabs();
 };
 
+/* Hotline, FXO, FXS */
 Controllers.voipHotline = function() {
 	var page = this.Page();
 
@@ -167,8 +168,8 @@ Controllers.voipHotline = function() {
                 /* channel[0] — number of channel, channel[1] — type of channel */
 				var channel = record.split(":");
 
-                /* TF channels are not supported */
-                if (channel[1] == "TF") {
+                /* VF channels are not supported */
+                if (channel[1] == "VF") {
                     return true;
                 }
 
@@ -223,19 +224,19 @@ Controllers.voipHotline = function() {
 	page.generateTabs();
 };
 
-/* TF */
-Controllers.voipTF = function() {
+/* VF */
+Controllers.voipVF = function() {
 	var page = this.Page();
 
 	page.addTab({
-		"id": "tf",
-		"name": "Tonal frequency channels",
+		"id": "vf",
+		"name": "Voice frequency channels",
 		"func": function() {
-			var c = page.addContainer("tf");
-			c.setSubsystem("svd-tf");
+			var c = page.addContainer("vf");
+			c.setSubsystem("svd-vf");
 
             var colNum = 8;
-			c.addTitle("Tonal frequency channels", {"colspan": colNum});
+			c.addTitle("Voice frequency channels", {"colspan": colNum});
 
             /*
              * Parameters for codecs:
@@ -262,35 +263,35 @@ Controllers.voipTF = function() {
 
             /* set codec parameters */
             var onCodecChange = function(channel) {
-                var codec = $($.sprintf("#sys_voip_tf_channels_%s_codec", channel)).val();
+                var codec = $($.sprintf("#sys_voip_vf_channels_%s_codec", channel)).val();
 
                 /* set values for pkt_sz */
-                $($.sprintf("#sys_voip_tf_channels_%s_pkt_sz", channel)).setOptionsForSelect({
+                $($.sprintf("#sys_voip_vf_channels_%s_pkt_sz", channel)).setOptionsForSelect({
                         "options": codecsParameters[codec].pkt_sz_vals == undefined
                                 ? pktszDefaultValues
                                 : codecsParameters[codec].pkt_sz_vals
                 });
 
                 /* set pkt_sz default */
-                $($.sprintf("#sys_voip_tf_channels_%s_pkt_sz", channel))
+                $($.sprintf("#sys_voip_vf_channels_%s_pkt_sz", channel))
                         .val(codecsParameters[codec].pkt_sz);
 
                 /* set/unset pkt_sz read-only */
-                $($.sprintf("#sys_voip_tf_channels_%s_pkt_sz", channel))
+                $($.sprintf("#sys_voip_vf_channels_%s_pkt_sz", channel))
                         .setSelectReadonly(codecsParameters[codec].pkt_sz_ro == undefined
                                 ? false
                                 : codecsParameters[codec].pkt_sz_ro);
 
                 /* set payload default */
-                $($.sprintf("#sys_voip_tf_channels_%s_payload", channel))
+                $($.sprintf("#sys_voip_vf_channels_%s_payload", channel))
                         .val(codecsParameters[codec].payload);
 
                 /* set bitpack default */
-                $($.sprintf("#sys_voip_tf_channels_%s_bitpack", channel))
+                $($.sprintf("#sys_voip_vf_channels_%s_bitpack", channel))
                         .val(codecsParameters[codec].bitpack);
 
                 /* set/unset bitpack read-only */
-                $($.sprintf("#sys_voip_tf_channels_%s_bitpack", channel))
+                $($.sprintf("#sys_voip_vf_channels_%s_bitpack", channel))
                         .setSelectReadonly(codecsParameters[codec].bitpack_ro == undefined
                                 ? false
                                 : codecsParameters[codec].bitpack_ro);
@@ -300,7 +301,7 @@ Controllers.voipTF = function() {
             c.addTableTfootStr("Chan - local channel.", colNum);
             c.addTableTfootStr("EN - enable channel.", colNum);
             c.addTableTfootStr("Router ID - ID of a router to connect with.", colNum);
-            c.addTableTfootStr("R. chan - TF channel on the remote router.", colNum);
+            c.addTableTfootStr("R. chan - VF channel on the remote router.", colNum);
             c.addTableTfootStr("Codec - codec to use.", colNum);
             c.addTableTfootStr("Packet. time - packetization time in ms.", colNum);
             c.addTableTfootStr("Payload - RTP codec identificator.", colNum);
@@ -317,8 +318,8 @@ Controllers.voipTF = function() {
 				/* channel[0] — number of channel, channel[1] — type of channel */
 				var channel = record.split(":");
 
-                /* only TF channels */
-                if (channel[1] != "TF") {
+                /* only VF channels */
+                if (channel[1] != "VF") {
                     return true;
                 }
 
@@ -333,16 +334,16 @@ Controllers.voipTF = function() {
                 /* enabled */
                 field = {
 					"type": "checkbox",
-					"name": $.sprintf("sys_voip_tf_channels_%s_enabled", channel[0])
+					"name": $.sprintf("sys_voip_vf_channels_%s_enabled", channel[0])
 				};
 				c.addTableWidget(field, row);
 
                 /* pair_route */
                 field = {
 					"type": "text",
-					"name": $.sprintf("sys_voip_tf_channels_%s_pair_route", channel[0]),
+					"name": $.sprintf("sys_voip_vf_channels_%s_pair_route", channel[0]),
 					"validator": {
-                            "required": $.sprintf("#sys_voip_tf_channels_%s_enabled:checked", channel[0]),
+                            "required": $.sprintf("#sys_voip_vf_channels_%s_enabled:checked", channel[0]),
                             "voipRouterIDWithSelf": true
                     }
 				};
@@ -351,7 +352,7 @@ Controllers.voipTF = function() {
                 /* pair_chan */
 				field = {
 					"type": "select",
-					"name": $.sprintf("sys_voip_tf_channels_%s_pair_chan", channel[0]),
+					"name": $.sprintf("sys_voip_vf_channels_%s_pair_chan", channel[0]),
 					"options": function() {
                         var remoteChannels = [];
                         for (var i = 0; i < 32; i++) {
@@ -365,7 +366,7 @@ Controllers.voipTF = function() {
                 /* codec */
                 field = {
 					"type": "select",
-					"name": $.sprintf("sys_voip_tf_channels_%s_codec", channel[0]),
+					"name": $.sprintf("sys_voip_vf_channels_%s_codec", channel[0]),
 					"options": function() {
                         var codecs = [];
                         $.each(codecsParameters, function(key) {
@@ -379,12 +380,12 @@ Controllers.voipTF = function() {
 				};
 				c.addTableWidget(field, row);
 
-                var codec = $($.sprintf("#sys_voip_tf_channels_%s_codec", channel[0])).val();
+                var codec = $($.sprintf("#sys_voip_vf_channels_%s_codec", channel[0])).val();
 
                 /* pkt_sz */
 				field = {
 					"type": "select",
-					"name": $.sprintf("sys_voip_tf_channels_%s_pkt_sz", channel[0]),
+					"name": $.sprintf("sys_voip_vf_channels_%s_pkt_sz", channel[0]),
                     "options": codecsParameters[codec].pkt_sz_vals == undefined
                             ? pktszDefaultValues
                             : codecsParameters[codec].pkt_sz_vals,
@@ -393,7 +394,7 @@ Controllers.voipTF = function() {
 				c.addTableWidget(field, row);
 
                 /* set/unset pkt_sz read-only */
-                $($.sprintf("#sys_voip_tf_channels_%s_pkt_sz", channel[0]))
+                $($.sprintf("#sys_voip_vf_channels_%s_pkt_sz", channel[0]))
                         .setSelectReadonly(codecsParameters[codec].pkt_sz_ro == undefined
                                 ? false
                                 : codecsParameters[codec].pkt_sz_ro);
@@ -401,10 +402,10 @@ Controllers.voipTF = function() {
 				/* payload */
                 field = {
                     "type": "text",
-                    "name": $.sprintf("sys_voip_tf_channels_%s_payload", channel[0]),
+                    "name": $.sprintf("sys_voip_vf_channels_%s_payload", channel[0]),
                     "defaultValue": codecsParameters[codec].payload,
                     "validator": {
-                            "required": $.sprintf("#sys_voip_tf_channels_%s_enabled:checked", channel[0]),
+                            "required": $.sprintf("#sys_voip_vf_channels_%s_enabled:checked", channel[0]),
                             "voipPayload": true
                     }
                 };
@@ -413,14 +414,14 @@ Controllers.voipTF = function() {
                 /* bitpack */
                 field = {
                     "type": "select",
-                    "name": $.sprintf("sys_voip_tf_channels_%s_bitpack", channel[0]),
+                    "name": $.sprintf("sys_voip_vf_channels_%s_bitpack", channel[0]),
                     "options": "rtp aal2",
                     "defaultValue": codecsParameters[codec].bitpack
                 };
                 c.addTableWidget(field, row);
 
                 /* set/unset bitpack read-only */
-                $($.sprintf("#sys_voip_tf_channels_%s_bitpack", channel[0]))
+                $($.sprintf("#sys_voip_vf_channels_%s_bitpack", channel[0]))
                         .setSelectReadonly(codecsParameters[codec].bitpack_ro == undefined
                                 ? false
                                 : codecsParameters[codec].bitpack_ro);
@@ -431,11 +432,11 @@ Controllers.voipTF = function() {
 	});
 
     page.addTab({
-		"id": "tf_settings",
+		"id": "vf_settings",
 		"name": "Settings",
 		"func": function() {
-			var c = page.addContainer("tf_settings");
-			c.setSubsystem("svd-tf_settings");
+			var c = page.addContainer("vf_settings");
+			c.setSubsystem("svd-vf_settings");
 			c.addTitle("Settings", {"colspan": 3});
 
 			c.addTableHeader("Channel|Wires|Transmit type");
@@ -455,8 +456,8 @@ Controllers.voipTF = function() {
 				/* channel[0] — number of channel, channel[1] — type of channel */
 				var channel = record.split(":");
 
-                /* only TF channels */
-                if (channel[1] != "TF") {
+                /* only VF channels */
+                if (channel[1] != "VF") {
                     return true;
                 }
 
@@ -469,7 +470,7 @@ Controllers.voipTF = function() {
 
 				field = {
                     "type": "select",
-                    "name": $.sprintf("sys_voip_tf_settings_%s_wire_type", channel[0]),
+                    "name": $.sprintf("sys_voip_vf_settings_%s_wire_type", channel[0]),
 					"options": {"2w": "2-wire", "4w": "4-wire"},
                     "defaultValue": "4w"
 				};
@@ -477,7 +478,7 @@ Controllers.voipTF = function() {
 
                 field = {
                     "type": "select",
-                    "name": $.sprintf("sys_voip_tf_settings_%s_transmit_type", channel[0]),
+                    "name": $.sprintf("sys_voip_vf_settings_%s_transmit_type", channel[0]),
 					"options": "normal transit"
 				};
 				c.addTableWidget(field, row);
@@ -490,6 +491,7 @@ Controllers.voipTF = function() {
 	page.generateTabs();
 };
 
+/* Routes */
 Controllers.voipRoutes = function() {
 	var page = this.Page();
 
@@ -504,7 +506,7 @@ Controllers.voipRoutes = function() {
 
 			var list = c.createList({
 				"tabId": "voipRoute",
-				"header": ["Router ID", "Address", "Comment"],
+				"header": ["Router ID", "IP-address", "Comment"],
 				"varList": ["router_id", "address", "comment"],
 				"listItem": "sys_voip_route_",
 				"addMessage": "Add VoIP route",
@@ -556,12 +558,13 @@ Controllers.voipRoutes = function() {
 	page.generateTabs();
 };
 
-Controllers.voipAddresses = function() {
+/* Phone book */
+Controllers.voipPhoneBook = function() {
 	var page = this.Page();
 
 	page.addTab({
 		"id": "address",
-		"name": "Phonebook",
+		"name": "Phone book",
 		"func": function() {
 			var c, field;
 			c = page.addContainer("address");
@@ -573,9 +576,9 @@ Controllers.voipAddresses = function() {
 				"header": ["Short number", "Complete number", "Comment"],
 				"varList": ["short_number", "complete_number", "comment"],
 				"listItem": "sys_voip_address_",
-				"addMessage": "Add address",
-				"editMessage": "Edit address",
-				"listTitle": "Phonebook",
+				"addMessage": "Add record",
+				"editMessage": "Edit record",
+				"listTitle": "Phone book",
 				"helpPage": "voip.address",
 				"helpSection": "voip.address.add"
 			});
@@ -624,7 +627,8 @@ Controllers.voipAddresses = function() {
 	page.generateTabs();
 };
 
-Controllers.voipRtp = function() {
+/* Audio, FXO, FXS, VF */
+Controllers.voipAudio = function() {
 	var page = this.Page();
 
 	page.addTab({
@@ -633,9 +637,9 @@ Controllers.voipRtp = function() {
 		"func": function() {
 			var c = page.addContainer("rtp");
 			c.setSubsystem("svd-rtp");
-			c.addTitle("Audio settings", {"colspan": 5});
+			c.addTitle("Audio settings", {"colspan": 6});
 
-			c.addTableHeader("Channel|Tx_vol|Rx_vol|VAD|HPF");
+			c.addTableHeader("Channel|Type|Tx. vol|Rx. vol|VAD|HPF");
 			var channels = config.getCachedOutput("voipChannels").split("\n");
 			$.each(channels, function(num, record) {
 				var field;
@@ -649,6 +653,13 @@ Controllers.voipRtp = function() {
 					"type": "html",
 					"name": channel[0],
 					"str": channel[0]
+				};
+				c.addTableWidget(field, row);
+
+                field = {
+					"type": "html",
+					"name": channel[0] + "_type",
+					"str": channel[1]
 				};
 				c.addTableWidget(field, row);
 
@@ -703,6 +714,7 @@ Controllers.voipRtp = function() {
 	page.generateTabs();
 };
 
+/* Codecs */
 Controllers.voipCodecs = function() {
 	var page = this.Page();
 
@@ -985,7 +997,8 @@ Controllers.voipCodecs = function() {
 	page.generateTabs();
 };
 
-Controllers.voipWlec = function() {
+/* Echo, FXO, FXS, VF */
+Controllers.voipEcho = function() {
 	var page = this.Page();
 
 	page.addTab({
@@ -1031,12 +1044,12 @@ Controllers.voipWlec = function() {
 				};
 				c.addTableWidget(field, row);
 
-				/* Type, by default for TF is OFF, for others is NE */
+				/* Type, by default for VF is OFF, for others is NE */
 				field = {
 					"type": "select",
 					"name": $.sprintf("sys_voip_wlec_%s_type", channel[0]),
 					"options": "off NE NFE",
-					"defaultValue": channel[1] == "TF" ? "off" : "NE"
+					"defaultValue": channel[1] == "VF" ? "off" : "NE"
 				};
 				c.addTableWidget(field, row);
 
@@ -1084,7 +1097,8 @@ Controllers.voipWlec = function() {
 	page.generateTabs();
 };
 
-Controllers.voipFxo = function() {
+/* Dial mode, FXO */
+Controllers.voipDialMode = function() {
 	var page = this.Page();
 
 	page.addTab({
@@ -1093,11 +1107,11 @@ Controllers.voipFxo = function() {
 		"func": function() {
 			var c = page.addContainer("fxo");
 			c.setSubsystem("svd-fxo");
-			c.addTitle("Dial mode settings", {"colspan": 2});
+			c.addTitle("Dial mode settings for FXO channels", {"colspan": 3});
 
-			c.addTableHeader("Channel|PSTN_type*");
-            c.addTableTfootStr("tone/pulse - tone or pulse.", 2);
-            c.addTableTfootStr("pulse - pulse only.", 2);
+			c.addTableHeader("Channel|Type|PSTN type*");
+            c.addTableTfootStr("tone/pulse - tone or pulse.", 3);
+            c.addTableTfootStr("pulse - pulse only.", 3);
 
 			var channels = config.getCachedOutput("voipChannels").split("\n");
 			$.each(channels, function(num, record) {
@@ -1119,6 +1133,13 @@ Controllers.voipFxo = function() {
 					"type": "html",
 					"name": channel[0],
 					"str": channel[0]
+				};
+				c.addTableWidget(field, row);
+
+                field = {
+					"type": "html",
+					"name": channel[0] + "_type",
+					"str": channel[1]
 				};
 				c.addTableWidget(field, row);
 

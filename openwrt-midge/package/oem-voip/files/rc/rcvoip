@@ -6,21 +6,21 @@ gen_config()
 {
     # Check that KDB settings are correct for hardware
 
-    # Remove KDB TF channel settings for non-exist TF channels
-    kdb_channels=`kdb sskls 'sys_voip_tf_channels*' sys_voip_tf_channels_ _ |uniq`
+    # Remove KDB VF channel settings for non-exist VF channels
+    kdb_channels=`kdb sskls 'sys_voip_vf_channels*' sys_voip_vf_channels_ _ |uniq`
     for channel in $kdb_channels; do
-            if ! grep -q "$channel:TF" $PORTSINFO; then
-                    echo "Remove KDB TF channel settings for non-exist TF channel $channel"
-                    kdb del sys_voip_tf_channels_${channel}_*
+            if ! grep -q "$channel:VF" $PORTSINFO; then
+                    echo "Remove KDB VF channel settings for non-exist VF channel $channel"
+                    kdb del sys_voip_vf_channels_${channel}_*
             fi
     done
 
-    # Remove KDB TF general settings for non-exist TF channels
-    kdb_channels=`kdb sskls 'sys_voip_tf_settings*' sys_voip_tf_settings_ _ |uniq`
+    # Remove KDB VF general settings for non-exist VF channels
+    kdb_channels=`kdb sskls 'sys_voip_vf_settings*' sys_voip_vf_settings_ _ |uniq`
     for channel in $kdb_channels; do
-            if ! grep -q "$channel:TF" $PORTSINFO; then
-                    echo "Remove KDB TF general settings for non-exist TF channel $channel"
-                    kdb del sys_voip_tf_settings_${channel}_*
+            if ! grep -q "$channel:VF" $PORTSINFO; then
+                    echo "Remove KDB VF general settings for non-exist VF channel $channel"
+                    kdb del sys_voip_vf_settings_${channel}_*
             fi
     done
 
