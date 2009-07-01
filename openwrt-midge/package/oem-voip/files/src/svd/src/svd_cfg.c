@@ -992,7 +992,7 @@ voicef_init( ab_t const * const ab )
 		goto __exit_fail;
 	} 
 
-	set = config_lookup (&cfg, "tonal_freq" );
+	set = config_lookup (&cfg, "voice_freq" );
 	if( !set){
 		/* no vf-channels */
 		goto __exit_success;
@@ -1109,7 +1109,7 @@ voicef_init( ab_t const * const ab )
 		goto __exit_success;
 	} 
 
-	set = config_lookup (&cfg, "tf_types" );
+	set = config_lookup (&cfg, "vf_types" );
 	if( !set){
 		/* no vf-channels */
 		goto __exit_success;

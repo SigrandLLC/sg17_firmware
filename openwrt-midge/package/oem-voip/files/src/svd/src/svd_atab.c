@@ -982,14 +982,11 @@ DFS
 		/* stop playing any tone while dialing a number */
 		err = ab_FXS_line_tone (ab_chan, ab_chan_tone_MUTE);
 		if(err){
-			SU_DEBUG_2(("can`t stop playing tone on [_%d_]\n",
-					ab_chan->abs_idx));
+			SU_DEBUG_2(("can`t stop playing tone on [_%d_]\n",ab_chan->abs_idx));
 		}
 		/* stop playing tone */
-		SU_DEBUG_8(("stop playing tone on [_%d_]\n",
-					ab_chan->abs_idx));
+		SU_DEBUG_8(("stop playing tone on [_%d_]\n",ab_chan->abs_idx));
 	}
-
 DFE
 	return 0;
 __exit_fail:

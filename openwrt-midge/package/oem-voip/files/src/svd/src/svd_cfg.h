@@ -17,13 +17,13 @@
 #define MAIN_CONF_NAME      "/etc/svd/main.conf"
 #define FXO_CONF_NAME       "/etc/svd/fxo.conf"
 #define ROUTET_CONF_NAME    "/etc/svd/routet.conf"
-#define VOICEF_CONF_NAME    "/etc/svd/tonalf.conf"
+#define VOICEF_CONF_NAME    "/etc/svd/voicef.conf"
 #define HOTLINE_CONF_NAME   "/etc/svd/hotline.conf"
 #define ADDRESSB_CONF_NAME  "/etc/svd/addressb.conf"
 #define QUALITY_CONF_NAME   "/etc/svd/quality.conf"
 #define RTP_CONF_NAME       "/etc/svd/rtp.conf"
 #define WLEC_CONF_NAME      "/etc/svd/wlec.conf"
-#define VF_CONF_NAME        "/etc/svi.conf"
+#define VF_CONF_NAME        "/etc/svd/hw.conf"
 /** @}*/
 
 /** @defgroup CFG_DF Default values.

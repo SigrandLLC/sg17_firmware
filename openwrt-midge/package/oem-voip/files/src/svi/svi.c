@@ -331,7 +331,7 @@ load_cfg( void )
 		goto __exit_success;
 	} 
 
-	set = config_lookup (&cfg, "tf_types" );
+	set = config_lookup (&cfg, "vf_types" );
 	if( !set){
 		/* no tf-channels */
 		goto __exit_success;

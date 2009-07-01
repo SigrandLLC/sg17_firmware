@@ -456,16 +456,13 @@ proc_get_sgatab_channels(char *buf)
 				case dev_type_ABSENT:
 				break;
 				case dev_type_FXO:
-					len += sprintf(buf+len, 
-					"%02d:FXO\n", chan_idx);
+					len += sprintf(buf+len, "%02d:FXO\n", chan_idx);
 				break;
 				case dev_type_FXS:
-					len += sprintf(buf+len, 
-					"%02d:FXS\n", chan_idx);
+					len += sprintf(buf+len, "%02d:FXS\n", chan_idx);
 				break;
 				case dev_type_VF:
-					len += sprintf(buf+len, 
-					"%02d:TF\n", chan_idx);
+					len += sprintf(buf+len, "%02d:VF\n", chan_idx);
 				break;
 				}
 			}

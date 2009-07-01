@@ -78,7 +78,7 @@ ab_hardware_init( enum vf_type_e * const types, int const flags )
 	int err = 0;
 
 	g_flags = flags;
-	/* tag__ types should be a pointer to mas[CHANS_MAX] */
+	/* tag__ types should be a pointer to mas[CHANS_MAX] how make it better? */
 	g_types = types;
 
 	/* test the voip modules presence */

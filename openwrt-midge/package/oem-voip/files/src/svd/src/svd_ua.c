@@ -111,6 +111,8 @@ static char *
 svd_new_sdp_string (ab_chan_t const * const chan);
 /** @}*/ 
 
+/** signal handler of SIGCHLD */
+void svd_child_handler(int signum, siginfo_t * sinf, void * sctx);
 /** context for signal handler of SIGCHLD */
 static ab_t * g_ab = NULL;
 
@@ -792,6 +794,202 @@ DFS
 DFE
 }/*}}}*/
 
+static void
+svd_FXx_i_invite( svd_t * const svd, ab_chan_t * chan,
+		nua_handle_t * nh, sip_t const *sip)
+{/*{{{*/
+	svd_chan_t * chan_ctx = chan->ctx;
+DFS
+	if( chan_ctx->op_handle ){
+		/* user is busy */
+		nua_respond(nh, SIP_486_BUSY_HERE, TAG_END());
+		nua_handle_destroy(nh);
+		goto __exit;
+	}
+
+	chan_ctx->op_handle = nh;
+	nua_handle_bind (nh, chan);
+
+	chan_ctx->call_type = calltype_LOCAL;
+	if( !strcmp (g_conf.self_ip, sip->sip_from->a_url->url_host)){
+		/* caller - the same router */
+		chan_ctx->caller_router_is_self = 1;
+	} else {
+		chan_ctx->caller_router_is_self = 0;
+	}
+
+	if       (chan->parent->type == ab_dev_type_FXS){
+		/* start ringing */
+		if (0 != ab_FXS_line_ring (chan, ab_chan_ring_RINGING)){
+			SU_DEBUG_1(("can`t ring to on [_%d_]\n", chan->abs_idx));
+		}
+	} else if(chan->parent->type == ab_dev_type_FXO){
+		/* do offhook */
+		if ( 0!= ab_FXO_line_hook (chan, ab_chan_hook_OFFHOOK)){
+			SU_DEBUG_1(("can`t offhook on [_%d_]\n", chan->abs_idx));
+		}
+	}
+__exit:
+DFE
+}/*}}}*/
+
+static void
+svd_VF_i_invite( svd_t * const svd, ab_chan_t * chan,
+		nua_handle_t * nh, sip_t const *sip)
+{/*{{{*/
+	svd_chan_t * chan_ctx = chan->ctx;
+	sip_to_t const *from = sip->sip_from;
+	int unknown_caller;
+	int routers_num;
+	int pair_chan;
+	int pair_route_id;
+	int vf_is_valid;
+	int pair_is_elder;
+	int abs_chan_idx = chan->abs_idx;
+	int should_drop_previous_connection;
+	int i;
+DFS
+	/* vf-reconnect test
+	 * if 
+	 *		1. router is not self (if self - just one caller)
+	 *		2. it is vf-channel
+	 *		3. caller the pair
+	 *		4. call_state is ready or
+	 *			pair is elder
+	 *	then
+	 *		destroy old connection to make new
+	 */
+	/* find pair route id by ip from route_table */
+	if (g_conf.self_ip == g_conf.lo_ip) {
+		unknown_caller = 0;
+	} else {
+		unknown_caller = 1;
+	}
+	routers_num = g_conf.route_table.records_num;
+	for(i=0; i<routers_num; i++){
+		if( !strcmp(from->a_url->url_host, g_conf.route_table.records[i].value)){
+			pair_route_id = strtol(g_conf.route_table.records[i].id, NULL, 10);
+			unknown_caller = 0;
+			break;
+		}
+	}
+
+	pair_chan = strtol (from->a_url->url_user, NULL, 10);
+
+	vf_is_valid = 
+		/* this vf should be connected */
+		g_conf.voice_freq[abs_chan_idx].is_set &&
+		/* we have call from proper pair_route */
+		(!g_conf.voice_freq[abs_chan_idx].pair_route ||
+		(strtol(g_conf.voice_freq[abs_chan_idx].pair_route,NULL, 10) == 
+			 pair_route_id)) &&
+		/* we have call from proper pair_chan */
+		(strtol(g_conf.voice_freq[abs_chan_idx].pair_chan, NULL, 10) == pair_chan);
+
+	if(vf_is_valid){
+		if(g_conf.self_number){
+			int self_route = strtol(g_conf.self_number,NULL,10);
+			if(self_route < pair_route_id){
+				pair_is_elder = 1;
+			} else if(self_route == pair_route_id){
+				pair_is_elder = pair_chan > abs_chan_idx;
+			}
+		} else {
+			pair_is_elder = pair_chan > abs_chan_idx;
+		}
+	}
+
+	should_drop_previous_connection =
+		/* we have valid vf parameters */
+		vf_is_valid &&
+		/* we konw this router */
+		(!unknown_caller) &&
+		/* caller router is not self */
+		(strcmp (g_conf.self_ip, from->a_url->url_host)) &&
+		/* call is up or caller is elder */
+		((chan_ctx->call_state == nua_callstate_ready) || pair_is_elder);
+
+	if(should_drop_previous_connection){
+		/* drop it before set the new one */
+		ab_chan_media_deactivate (chan);
+		svd_clear_call (svd,chan);
+	}
+
+	if( (!vf_is_valid) || chan_ctx->op_handle ){
+		/* user is busy */
+		nua_respond(nh, SIP_486_BUSY_HERE, TAG_END());
+		nua_handle_destroy(nh);
+		goto __exit;
+	}
+
+	chan_ctx->op_handle = nh;
+	nua_handle_bind (nh, chan);
+
+	chan_ctx->call_type = calltype_LOCAL;
+	if( !strcmp (g_conf.self_ip, from->a_url->url_host)){
+		/* caller - the same router */
+		chan_ctx->caller_router_is_self = 1;
+	} else {
+		chan_ctx->caller_router_is_self = 0;
+	}
+
+	/* just answer */
+	svd_answer(svd, chan, SIP_200_OK);
+__exit:
+DFE
+}/*}}}*/
+
+static void
+svd_REM_i_invite( svd_t * const svd, nua_handle_t * nh, sip_t const *sip)
+{/*{{{*/
+	ab_chan_t * chan;
+	svd_chan_t * chan_ctx;
+	sip_to_t const *to = sip->sip_to;
+DFS
+	/* remote call */
+	if (g_conf.sip_set.all_set){
+		char user_URI [USER_URI_LEN];
+		memset(user_URI, 0, USER_URI_LEN);
+		strcpy (user_URI, to->a_url->url_scheme);
+		strcat (user_URI, ":");
+		strcat (user_URI, to->a_url->url_user);
+		strcat (user_URI, "@");
+		strcat (user_URI, to->a_url->url_host);
+		if ( !strcmp (g_conf.sip_set.user_URI, user_URI)){
+			/* external call to this router - get sip_chan */
+			chan = svd->ab->pchans[g_conf.sip_set.sip_chan];
+			if( !chan){
+				nua_respond(nh, SIP_500_INTERNAL_SERVER_ERROR, TAG_END());
+				nua_handle_destroy(nh);
+				goto __exit;
+			}
+			chan_ctx = chan->ctx;
+		} else {
+			/* external call to another router in this network */
+			nua_handle_destroy(nh);
+			goto __exit;
+		}
+	}
+
+	if( chan_ctx->op_handle ){
+		/* user is busy */
+		nua_respond(nh, SIP_486_BUSY_HERE, TAG_END());
+		nua_handle_destroy(nh);
+		goto __exit;
+	}
+	chan_ctx->op_handle = nh;
+	nua_handle_bind (nh, chan);
+
+	chan_ctx->call_type = calltype_REMOTE;
+
+	/* start ringing */
+	if (0!= ab_FXS_line_ring (chan, ab_chan_ring_RINGING)){
+		SU_DEBUG_1(("can`t ring to on [_%d_]\n", chan->abs_idx));
+	}
+__exit:
+DFE
+}/*}}}*/
+
 /**
  * Actions on incoming INVITE request.
  *
@@ -807,6 +1005,61 @@ DFE
  * 		Think about race conditions in this section. 
  * 		At first look it is not so creepy.
  */
+static void
+svd_i_invite( int status, char const * phrase, svd_t * const svd, 
+		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip, tagi_t tags[])
+{/*{{{*/
+	sip_to_t const *to = sip->sip_to;
+DFS
+	if( !strcmp (g_conf.self_ip, to->a_url->url_host) ){
+		/* local call (local network) */
+		/* * 
+		 * Get requested chan number, it can be:
+		 * '$FIRST_FREE_FXO@..' - first free fxo
+		 * 'xx@..'              - absolute channel number
+		 * */
+		if (isdigit(to->a_url->url_user[0])){
+			/* 'xx@..'  - absolute channel number */
+			unsigned char abs_chan_idx = strtol (to->a_url->url_user, NULL, 10);
+			ab_chan_t * req_chan = svd->ab->pchans[abs_chan_idx];
+			if( !req_chan){
+				nua_respond (nh, SIP_500_INTERNAL_SERVER_ERROR, TAG_END());
+				nua_handle_destroy (nh);
+				goto __exit;
+			} else if((req_chan->parent->type == ab_dev_type_FXS) || 
+					  (req_chan->parent->type == ab_dev_type_FXO) ){
+				/* FXS or FXO from local net */
+				svd_FXx_i_invite (svd, req_chan, nh, sip);
+			} else if(req_chan->parent->type == ab_dev_type_VF){
+				/* VF from local net */
+				svd_VF_i_invite (svd, req_chan, nh, sip);
+			}
+		} else if ( !strcmp(to->a_url->url_user, FIRST_FREE_FXO )){
+			/* '$FIRST_FREE_FXO@..' - first free fxo */
+			int chan_idx = get_FF_FXO_idx (svd->ab, -1);
+			if( chan_idx == -1 ){
+				/* all chans busy */
+				nua_respond(nh, SIP_486_BUSY_HERE, TAG_END());
+				nua_handle_destroy(nh);
+				goto __exit;
+			} else {
+				/* FXO from local net - nh test again in func */
+				svd_FXx_i_invite (svd, &svd->ab->chans[chan_idx], nh, sip);
+			}
+		} else {
+			/* unknown user */
+			SU_DEBUG_2(("Incoming call to unknown user \"%s\" on this host\n",
+					to->a_url->url_user));
+			goto __exit;
+		}
+	} else {
+		/* remote call */
+		svd_REM_i_invite (svd, nh, sip);
+	}
+__exit:
+DFE
+}/*}}}*/
+# if 0
 static void
 svd_i_invite( int status, char const * phrase, svd_t * const svd, 
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip, tagi_t tags[])
@@ -911,7 +1164,6 @@ DFS
 				/* if connect already is on - drop it before set the new one 
 				 * do the all as on callstate TERMINATED
 				 * - deactivate media 
-				 * - unregister media 
 				 * - clear call params 
 				 */
 				ab_chan_media_deactivate (req_chan);
@@ -1006,6 +1258,7 @@ DFS
 __exit:
 DFE
 }/*}}}*/
+#endif
 
 /**
  * Incoming CANCEL.
@@ -1242,7 +1495,7 @@ DFS
 			} else if(chan->parent->type == ab_dev_type_VF){
 				/* Re-invite the pair */
 				int chan_idx;
-				if(ctx->op_handle){ /* tag__ test reinvite on VF */
+				if(ctx->op_handle){
 					SU_DEBUG_3 (("ATTENTION reinvite to VF-pair ctx has handle\n"));
 					nua_handle_destroy (ctx->op_handle);
 					ctx->op_handle = NULL;
@@ -1301,14 +1554,77 @@ DFE
 }/*}}}*/
 
 void
+svd_get_digit(ab_chan_t * const chan, int const pulseMode)
+{/*{{{*/
+	svd_chan_t * const ctx = chan->ctx;
+	pid_t pid;
+	struct sigaction act;
+
+	memset (&act, 0, sizeof(act));
+	act.sa_flags = SA_SIGINFO | SA_NOCLDSTOP;
+	act.sa_sigaction = svd_child_handler;
+	sigaction (SIGCHLD, &act, NULL);
+
+	/* holding media while dialing a digit */
+	ab_chan_media_volume (chan,-24, g_conf.rtp_prms[chan->abs_idx].COD_Rx_vol);
+
+	pid = fork();
+	if(pid == 0){       /* child */
+		/* set highest real-time priority */
+		struct sched_param prm;
+		int err;
+		prm.sched_priority = sched_get_priority_min(SCHED_RR);
+		err = sched_setscheduler (0, SCHED_RR, &prm);
+		if(err){
+			SU_DEBUG_2 (("ERROR Can`t set highest RR sched priority"
+						" for p-dialing: %s\n",strerror(errno)));
+		}
+		ab_FXO_line_digit (chan, 1, &ctx->dial_rbuf[ctx->dial_get_idx], 
+				0, 0, pulseMode);
+		/* dirty hack, again */
+		exit(chan->abs_idx);
+	} else if(pid < 0){ /* error */
+		SU_DEBUG_2 (("ERROR Can`t fork for dial\n"));
+	}
+}/*}}}*/
+
+void
+svd_put_digit(svd_t * const svd, ab_chan_t * const chan, char digit, 
+		int const pulseMode)
+{/*{{{*/
+	svd_chan_t * const ctx = chan->ctx;
+	int eq = (ctx->dial_put_idx == ctx->dial_get_idx);
+
+	ctx->dial_rbuf [ctx->dial_put_idx] = digit;
+	ctx->dial_put_idx = (ctx->dial_put_idx+1) % DIAL_RBUF_LEN;
+
+	/* dirty hack, but other options even worse :( */
+	g_ab = svd->ab;
+	if(eq){
+		/* should start dialing */
+		svd_get_digit(chan, pulseMode);
+	}
+}/*}}}*/
+
+void
 svd_child_handler(int signum, siginfo_t * sinf, void * sctx)
 {/*{{{*/
 	int status;
-	ab_chan_media_volume (g_ab->pchans[sinf->si_status],
-			g_conf.rtp_prms[sinf->si_status].COD_Tx_vol,
+	ab_chan_t * const chan = g_ab->pchans[sinf->si_status];
+	svd_chan_t * const ctx = g_ab->pchans[sinf->si_status]->ctx;
+
+	/* Bury the child */
+	wait(&status);
+
+	ctx->dial_get_idx = (ctx->dial_get_idx+1) % DIAL_RBUF_LEN;
+
+	ab_chan_media_volume (chan, g_conf.rtp_prms[sinf->si_status].COD_Tx_vol,
 			g_conf.rtp_prms[sinf->si_status].COD_Rx_vol);
 
-	wait(&status);
+	if(ctx->dial_get_idx != ctx->dial_put_idx){
+		/* we have some to dial */
+		svd_get_digit(chan, 1);
+	}
 }/*}}}*/
 
 /**
@@ -1328,63 +1644,32 @@ svd_i_info(int status, char const * phrase, svd_t * const svd,
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const * sip)
 {/*{{{*/
 DFS
-	if(chan->parent->type == ab_dev_type_FXO){
-		int tone;	
-		char digit;
-		if(sip && sip->sip_payload && sip->sip_payload->pl_data){
-			/* should be sended if can`t recognize info payload
-			 * (but auto-acc always send 200)
-			nua_respond(nh, SIP_415_UNSUPPORTED_MEDIA, TAG_END());
-			*/
-			sscanf(sip->sip_payload->pl_data, INFO_STR, &tone, &digit);
+	int tone;	
+	char digit;
 
-			SU_DEBUG_3 (("%d:'%c'... ",tone, digit));
-		} else {
-			goto __exit;
-		} 
-		if(!tone || 
-			(g_conf.fxo_PSTN_type[chan->abs_idx] == pstn_type_PULSE_ONLY)){
-			/* dialed in pulse - should redial in pulse */
-			/* or pulse PSTN only - also should redial in pulse */
-			int pid;
-			struct sigaction act;
-
-			memset(&act,0,sizeof(act));
-			act.sa_flags = SA_SIGINFO | SA_NOCLDSTOP;
-			act.sa_sigaction = svd_child_handler;
-			sigaction (SIGCHLD, &act, NULL);
-
-			SU_DEBUG_3 (("Dial in pulse:'%c'\n", digit));
-
-			/* dirty hack, but other options even worse :( */
-			g_ab = svd->ab;
-
-			/* holding media while dialing a digit */
-			ab_chan_media_volume (chan,-24,
-				g_conf.rtp_prms[chan->abs_idx].COD_Rx_vol);
-
-			pid = fork();
-			if(pid == 0){       /* child */
-				/* set highest real-time priority */
-				struct sched_param prm;
-				int err;
-				prm.sched_priority = sched_get_priority_max(SCHED_FIFO);
-				err = sched_setscheduler (0, SCHED_FIFO, &prm);
-				if(err){
-					SU_DEBUG_2 (("ERROR Can`t set highest FIFO sched priority"
-								" for p-dialing: %s\n",strerror(errno)));
-				}
-				ab_FXO_line_digit (chan, 1, &digit, 0, 0, 1);
-				/* dirty hack, again */
-				exit(chan->abs_idx);
-			} else if(pid < 0){ /* error */
-				SU_DEBUG_2 (("ERROR Can`t fork for dial\n"));
-			}
-		} else {
-			/* PSTN recognizes tones and we dialed in tone 
-			 * - should not dial anything - pass-through */
-			SU_DEBUG_3 (("DON`T Dial anything\n"));
-		}
+	if(chan->parent->type != ab_dev_type_FXO){
+		goto __exit;
+	}
+	if(sip && sip->sip_payload && sip->sip_payload->pl_data){
+		/* should be sended if can`t recognize info payload
+		 * (but auto-acc always send 200)
+		nua_respond(nh, SIP_415_UNSUPPORTED_MEDIA, TAG_END());
+		*/
+		sscanf(sip->sip_payload->pl_data, INFO_STR, &tone, &digit);
+		SU_DEBUG_3 (("%d:'%c'... ",tone, digit));
+	} else {
+		goto __exit;
+	} 
+	if((!tone) || (g_conf.fxo_PSTN_type[chan->abs_idx] == pstn_type_PULSE_ONLY)){
+		/* dialed in pulse - should redial in pulse */
+		/* or pulse PSTN only - also should redial in pulse */
+		SU_DEBUG_3 (("Dial in pulse:'%c'\n", digit));
+		/* put digit in queue on dial */
+		svd_put_digit(svd, chan, digit, 1);
+	} else {
+		/* PSTN recognizes tones and we dialed in tone 
+		 * - should not dial anything - pass-through */
+		SU_DEBUG_3 (("DON`T Dial anything\n"));
 	}
 __exit:
 DFE

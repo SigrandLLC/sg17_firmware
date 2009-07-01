@@ -27,6 +27,9 @@ typedef struct svd_chan_s svd_chan_t;
 #define INFO_STR "tone:%d\ndigit:'%c'\n"
 #define INFO_STR_LENGTH 50
 
+/** dial round buffer size for digits in queue. */
+#define DIAL_RBUF_LEN 15
+
 /* Includes {{{*/
 #include "config.h"
 #include "ab_api.h"
@@ -95,6 +98,11 @@ struct svd_chan_s
 	
 	int call_state; /**< Current callstate on channel.*/
 	nua_handle_t * op_handle;/**< NUA handle for channel.*/
+
+	/* DIAL SEQ */
+	char dial_rbuf[DIAL_RBUF_LEN];
+	int dial_put_idx;
+	int dial_get_idx;
 
 	/* RING */
 	enum ring_state_e {
