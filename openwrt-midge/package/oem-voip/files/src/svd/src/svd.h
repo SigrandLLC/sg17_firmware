@@ -114,6 +114,9 @@ struct svd_chan_s
 	} ring_state; /**< State of ring processing. */
 	su_timer_t * ring_tmr; /**< Ring processing timer. */
 	
+	/* VOICE FREQUENCY */
+	su_timer_t * vf_tmr; /**< VF-chan reinvite timer. */
+
 	/* HOTLINE */
 	unsigned char is_hotlined; /**< Is this channel hotline initiator.*/
 	char * hotline_addr; /**< Hotline destintation address, points to 

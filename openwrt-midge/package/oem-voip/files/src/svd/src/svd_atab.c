@@ -122,10 +122,10 @@ static int svd_process_addr (svd_t * const svd, int const chan_idx,
 static int set_route_ip (svd_chan_t * const chan_ctx);
 /** Choose direction for call in local network.*/
 static int local_connection_selector
-		( svd_t * const svd, int const use_ff_FXO, int const chan_idx);
+		( svd_t * const svd, int const use_ff_FXO, ab_chan_t * const chan);
 /** Call to channel on self router.*/
 static int svd_self_call
-	( svd_t * const svd, int const src_chan_idx, int const use_ff_FXO );
+	( svd_t * const svd, ab_chan_t * const src_chan, int const use_ff_FXO );
 /** @}*/ 
 
 /** @defgroup ATA_VF_I Voice Frequency CRAM internals.
@@ -231,6 +231,9 @@ DFS
 			}
 			if (curr_chan->ring_tmr){
 				su_timer_destroy(curr_chan->ring_tmr);
+			}
+			if (curr_chan->vf_tmr){
+				su_timer_destroy(curr_chan->vf_tmr);
 			}
 			svd_media_unregister(svd, &svd->ab->chans[ i ]);
 			free (curr_chan);
@@ -407,54 +410,6 @@ DFS
 	}
 DFE
 }/*}}}*/
-
-/**
- * \param[in] ab 				ata board structure.
- * \param[in] chan_abs_idx_str	channel absolute index in string.
- * \param[in] chan_abs_idx		channel absolute index in digit.
- * \return 
- * 		channel index in ab->chans[].
- * 		\retval -1				if something nasty happens.
- * 		\retval <other_value>	if etherything ok.
- * \remark
- * 		if \c chan_abs_idx_str \c == \c NULL, using \c chan_abs_idx,
- * 		otherwise, using \c chan_abs_idx_str.
- */ 
-int 
-get_dest_chan_idx( ab_t const * const ab, 
-		char const * const chan_abs_idx_str, char const chan_abs_idx )
-{/*{{{*/
-	int ret_idx;
-	int idx_to_find;
-	int chans_num; 
-	int i;
-DFS
-	if( !chan_abs_idx_str ){
-		idx_to_find = chan_abs_idx;
-	} else {
-		idx_to_find = strtol (chan_abs_idx_str, NULL, 10);
-	} 
-
-	ret_idx = -1;
-	chans_num = ab->chans_num;
-	for( i = 0; i < chans_num; i++ ){
-		if (idx_to_find == ab->chans[ i ].abs_idx){
-			ret_idx = i;
-			break;
-		}
-	}
-	if (ret_idx == -1){
-		SU_DEBUG_2 (("Wrong chan id [_%d_]\n", idx_to_find));
-		goto __exit_fail;
-	}
-
-DFE
-	return ret_idx;
-__exit_fail:
-DFE
-	return -1;
-}/*}}}*/
-
 
 /**
  * \param[in] ab 				ata board structure.
@@ -1048,9 +1003,7 @@ DFS
 	}
 
 	/* if connection is already prepared -
-	 * we will (or already) register media for this ring and answes 
-	 * to FXS on it`s INVITE --- should out to do not double register the
-	 * media - it causes crash */
+	 * we will (or already) initiate connection to FXS on it`s INVITE  */
 	if( chan_ctx->call_state == nua_callstate_received   ||
 		chan_ctx->call_state == nua_callstate_early      ||
 		chan_ctx->call_state == nua_callstate_completed  ||
@@ -1228,7 +1181,13 @@ DFS
 		chan_ctx->ring_state = ring_state_NO_RING_BEFORE;
 		chan_ctx->ring_tmr = su_timer_create(su_root_task(svd->root), 0);
 		if( !chan_ctx->ring_tmr){
-			SU_DEBUG_1 (( LOG_FNC_A ("su_timer_create() fails" ) ));
+			SU_DEBUG_1 (( LOG_FNC_A ("su_timer_create() ring fails" ) ));
+		}
+
+		/* VF */
+		chan_ctx->vf_tmr = su_timer_create(su_root_task(svd->root), 0);
+		if( !chan_ctx->vf_tmr){
+			SU_DEBUG_1 (( LOG_FNC_A ("su_timer_create() vf fails" ) ));
 		}
 
 		/* ALL OTHER */
@@ -1442,7 +1401,7 @@ svd_handle_CHAN_ID( svd_t * const svd, int const chan_idx, long const digit )
 
 	if( *chan_mas_idx == 0 ){
 		if( digit == FXO_MARKER ){
-			err = local_connection_selector(svd, 1, chan_idx);
+			err = local_connection_selector(svd, 1, &svd->ab->chans[chan_idx]);
 			goto __exit;
 		} else if( digit == NET_MARKER ){
 			if (g_conf.sip_set.all_set){
@@ -1463,7 +1422,7 @@ svd_handle_CHAN_ID( svd_t * const svd, int const chan_idx, long const digit )
 	if (*chan_mas_idx == CHAN_ID_LEN-1){
 		/* we got all digits of chan_id */
 		SU_DEBUG_3 (("Choosed chan [%s]\n",chan_ctx->dial_status.chan_id ));
-		err = local_connection_selector (svd, 0, chan_idx);
+		err = local_connection_selector (svd, 0, &svd->ab->chans[chan_idx]);
 	}
 
 __exit:
@@ -1697,20 +1656,20 @@ __exit_fail:
  */ 
 static int 
 local_connection_selector
-		( svd_t * const svd, int const use_ff_FXO, int const chan_idx)
+		( svd_t * const svd, int const use_ff_FXO, ab_chan_t * const chan)
 {/*{{{*/
-	svd_chan_t * chan_ctx = svd->ab->chans[chan_idx].ctx;
+	svd_chan_t * chan_ctx = chan->ctx;
 	int err;
 DFS
 	chan_ctx->dial_status.state = dial_state_START;
 
 	if( chan_ctx->dial_status.dest_is_self == self_YES ){
 		/* Destination router is self */
-		err = svd_self_call (svd, chan_idx, use_ff_FXO);
+		err = svd_self_call (svd, chan, use_ff_FXO);
 	} else {
 		/* Remote router local call */
-		/* INVITE to remote router from channel (chan_idx) */
-		err = svd_invite( svd, use_ff_FXO, chan_idx );
+		/* INVITE to remote router from channel (chan) */
+		err = svd_invite( svd, use_ff_FXO, chan);
 	}
 	if (err){
 		goto __exit_fail;
@@ -1734,15 +1693,13 @@ DFE
  * 		Just poll() and read()/write() on appropriate channels.
  */ 
 static int
-svd_self_call
-	( svd_t * const svd, int const src_chan_idx, int const use_ff_FXO )
+svd_self_call (svd_t * const svd, ab_chan_t * const src_chan, int const use_ff_FXO)
 {/*{{{*/
 	int err;
-	svd_chan_t * chan_ctx = svd->ab->chans[ src_chan_idx ].ctx;
 DFS
-	chan_ctx->dial_status.route_ip = g_conf.self_ip;
+	((svd_chan_t*)(src_chan->ctx))->dial_status.route_ip = g_conf.self_ip;
 	/* INVITE to self router as to remote */
-	err = svd_invite (svd, use_ff_FXO, src_chan_idx);
+	err = svd_invite (svd, use_ff_FXO, src_chan);
 DFE
 	return err;
 }/*}}}*/

@@ -1091,7 +1091,13 @@ voicef_init( ab_t const * const ab )
 			/* revert pair, self channels, vol and caller flag on mirror record */
 			snprintf (mirr_rec->id, CHAN_ID_LEN, "%02d", pair_chan);
 			snprintf (mirr_rec->pair_chan, CHAN_ID_LEN, "%02d", chan_id);
-			mirr_rec->am_i_caller = 0;
+
+			/* set am_i_caller to the elder chan */
+			if(strtol(mirr_rec->id,NULL,10) < chan_id){
+				mirr_rec->am_i_caller = 0;
+			} else {
+				g_conf.voice_freq[ chan_id ].am_i_caller = 0;
+			}
 		}
 	}
 
@@ -1671,6 +1677,15 @@ wlec_init( ab_t const * const ab )
 		curr_rec->ne_nb = config_setting_get_int_elem(rec_set, 3);
 		curr_rec->fe_nb = config_setting_get_int_elem(rec_set, 4);
 		curr_rec->ne_wb = config_setting_get_int_elem(rec_set, 5);
+
+		if(curr_rec->mode == wlec_mode_NFE){
+			if(curr_rec->ne_nb == 16){
+				curr_rec->ne_nb = 8;
+			}
+			if(curr_rec->fe_nb == 16){
+				curr_rec->fe_nb = 8;
+			}
+		}
 	}
 __exit_success:
 	config_destroy (&cfg);

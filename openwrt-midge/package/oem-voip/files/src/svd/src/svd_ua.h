@@ -18,7 +18,7 @@
  *  User Agent Client actions.
  *  @{*/
 /** Make INVITE SIP request.*/
-int  svd_invite (svd_t * const svd, int const use_ff_FXO, int const chan_idx);
+int  svd_invite (svd_t * const svd, int const use_ff_FXO, ab_chan_t * const chan);
 /** Make INVITE SIP request with given destination address.*/
 int  svd_invite_to (svd_t * const svd, int const chan_idx, 
 		char const * const to_str);

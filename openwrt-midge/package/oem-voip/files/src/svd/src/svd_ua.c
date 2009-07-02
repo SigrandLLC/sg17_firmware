@@ -17,6 +17,9 @@
 extern void
 ring_timer_cb(su_root_magic_t *magic, su_timer_t *t, su_timer_arg_t *arg);
 
+static void
+vf_timer_cb(su_root_magic_t *magic, su_timer_t *t, su_timer_arg_t *arg);
+
 /** @defgroup UAC_I User Agent Client internals.
  *  @ingroup UAC_P
  *  Internal helper functions using with UAC interface functions.
@@ -111,10 +114,23 @@ static char *
 svd_new_sdp_string (ab_chan_t const * const chan);
 /** @}*/ 
 
+/** Time before elder VF side will try to reinvite it`s pair */
+#define VF_REINVITE_SEC 10
+
+/* Is this vf-side is elder than it`s pair */
+static int
+svd_vf_is_elder(ab_chan_t * const chan);
+
+/** Place call for VF-channel */
+static int
+svd_place_vf_for(svd_t * const svd, ab_chan_t * const chan);
+
 /** signal handler of SIGCHLD */
 void svd_child_handler(int signum, siginfo_t * sinf, void * sctx);
 /** context for signal handler of SIGCHLD */
 static ab_t * g_ab = NULL;
+/** context for vf_timer_cb */
+static svd_t * g_svd = NULL;
 
 /****************************************************************************/
 
@@ -276,16 +292,16 @@ DFE
  * 		Uses global \ref g_conf.
  */
 int
-svd_invite (svd_t * const svd, int const use_ff_FXO, int const chan_idx )
+svd_invite (svd_t * const svd, int const use_ff_FXO, ab_chan_t * const chan)
 {/*{{{*/
-	svd_chan_t * chan_ctx = svd->ab->chans[chan_idx].ctx;
+	svd_chan_t * chan_ctx = chan->ctx;
 	char to_str[100];
 	char from_str[100];
 	char from_idx[ CHAN_ID_LEN ];
 	int err;
 DFS
 	/* forming from string */
-	snprintf (from_idx, CHAN_ID_LEN, "%d", svd->ab->chans[chan_idx].abs_idx);
+	snprintf (from_idx, CHAN_ID_LEN, "%d", chan->abs_idx);
 	strcpy (from_str, "sip:");
 	strcat (from_str, from_idx);
 	strcat (from_str, "@");
@@ -305,12 +321,10 @@ DFS
 	chan_ctx->call_type = calltype_LOCAL;
 
 	/* send invite request */
-	err = svd_pure_invite (svd, &svd->ab->chans[chan_idx], 
-			from_str, to_str );
+	err = svd_pure_invite (svd, chan, from_str, to_str );
 	if (err){
 		goto __exit_fail;
 	}
-
 DFE
 	return 0;
 __exit_fail:
@@ -336,7 +350,7 @@ svd_invite_to (svd_t * const svd, int const chan_idx, char const * const to_str)
 	svd_chan_t * chan_ctx = chan->ctx;
 	nua_handle_t * nh = NULL;
 	sip_to_t *to = NULL;
-	sip_to_t *from = NULL;
+	sip_from_t *from = NULL;
 	char * l_sdp_str = NULL;
 	int err;
 DFS
@@ -552,6 +566,85 @@ DFS
 DFE
 }/*}}}*/
 
+static int
+svd_vf_is_elder(ab_chan_t * const chan)
+{/*{{{*/
+	struct voice_freq_s * curr_rec = &g_conf.voice_freq[chan->abs_idx];
+	int pair_route_id = -1; /* self */ 
+	int pair_chan = strtol (curr_rec->pair_chan, NULL, 10);
+	int vf_is_elder;
+
+	if(curr_rec->pair_route){
+		/* not self */
+		pair_route_id = strtol(curr_rec->pair_route, NULL, 10);
+	}
+
+	if(pair_route_id == -1){
+		/* self router - compare channels */
+		vf_is_elder = pair_chan < chan->abs_idx;
+	} else {
+		/* not self router - compare routers */
+		vf_is_elder = pair_route_id < strtol(g_conf.self_number, NULL, 10);
+	}
+	return vf_is_elder;
+}/*}}}*/
+
+/**
+ * It create connections between voice frequency channel.
+ *
+ * \param[in] svd context pointer
+ * \param[in,out] chan channel to operate on it
+ * \retval 0 	etherything ok.
+ * \retval -1	something nasty happens.
+ */ 
+static int
+svd_place_vf_for(svd_t * const svd, ab_chan_t * const chan)
+{/*{{{*/
+	assert(chan != NULL);
+
+	svd_chan_t * ctx = chan->ctx;
+	struct voice_freq_s * curr_rec = &g_conf.voice_freq[chan->abs_idx];
+	int i;
+	int err;
+
+	if(curr_rec->is_set && curr_rec->am_i_caller){
+		/* get pair_chan */
+		strcpy (ctx->dial_status.chan_id, curr_rec->pair_chan);
+		/* get pair_route */
+		if ( !curr_rec->pair_route){
+			ctx->dial_status.route_ip = g_conf.self_ip;
+			ctx->dial_status.dest_is_self = self_YES;
+			err = 0;
+		} else {
+			int routers_num = g_conf.route_table.records_num;
+			ctx->dial_status.dest_is_self = self_NO;
+			err = 1;
+			/* not self connect - find pair route ip from route_t */
+			for(i=0; i<routers_num; i++){
+				if( !strcmp(curr_rec->pair_route, 
+							g_conf.route_table.records[i].id)){
+					ctx->dial_status.route_ip = g_conf.route_table.records[i].value;
+					err = 0;
+					break;
+				}
+			}
+			/* set dest router to self if it is */
+			if(!strcmp(curr_rec->pair_route, g_conf.self_number)){
+				ctx->dial_status.dest_is_self = self_YES;
+			}
+		}
+
+		/* place a call */
+		if(err || svd_invite(svd, 0, chan)){
+			SU_DEBUG_0 (("ERROR: Can`t place VF-call\n"));
+			goto __exit_fail;
+		} 
+	}
+	return 0;
+__exit_fail:
+	return -1;
+}/*}}}*/
+
 /**
  * It create connections between voice frequency channels.
  *
@@ -565,50 +658,15 @@ int
 svd_place_vf (svd_t * const svd)
 {/*{{{*/
 	int i;
-	int j;
 	int err;
 	int chans_num;
-	int routers_num;
 DFS
-	routers_num = g_conf.route_table.records_num;
 	chans_num = svd->ab->chans_num;
-
-	/* for i in records */
 	for(i=0; i<chans_num; i++){
 		ab_chan_t * curr_chan = &svd->ab->chans[i];
-		svd_chan_t * ctx = curr_chan->ctx;
-		struct voice_freq_s * curr_rec = &g_conf.voice_freq[curr_chan->abs_idx];
-		if(curr_rec->is_set && curr_rec->am_i_caller){
-			/* get pair_chan */
-			strcpy (ctx->dial_status.chan_id, curr_rec->pair_chan);
-			/* get pair_route */
-			if ( !curr_rec->pair_route){
-				ctx->dial_status.route_ip = g_conf.self_ip;
-				ctx->dial_status.dest_is_self = self_YES;
-				err = 0;
-			} else {
-				err = 1;
-				/* not self connect - find pair route ip from route_t */
-				for(j=0; j<routers_num; j++){
-					if( !strcmp(curr_rec->pair_route, 
-										g_conf.route_table.records[j].id)){
-						ctx->dial_status.route_ip = 
-										g_conf.route_table.records[j].value;
-						err = 0;
-						break;
-					}
-				}
-				/* set dest router to self if it is */
-				if(!strcmp(curr_rec->pair_route, g_conf.self_number)){
-					ctx->dial_status.dest_is_self = self_YES;
-				}
-			}
-
-			/* place a call */
-			if(err || svd_invite(svd, 0, i)){
-				SU_DEBUG_0 (("!!!!! CAN`T PLACE VF-CALL\n"));
-				goto __exit_fail;
-			} 
+		err = svd_place_vf_for(svd, curr_chan);
+		if(err){
+			goto __exit_fail;
 		}
 	}
 DFE
@@ -657,7 +715,7 @@ svd_pure_invite( svd_t * const svd, ab_chan_t * const chan,
 		char const * const from_str, char const * const to_str )
 {/*{{{*/
 	sip_to_t *to = NULL;
-	sip_to_t *from = NULL;  
+	sip_from_t *from = NULL;  
 	char * l_sdp_str = NULL;
 	nua_handle_t * nh = NULL;
 	svd_chan_t * chan_ctx = chan->ctx;
@@ -683,7 +741,10 @@ DFS
 		goto __exit_fail;
 	}
 
-	assert(chan_ctx->op_handle == NULL);
+	if(chan_ctx->op_handle != NULL){
+		nua_handle_destroy(chan_ctx->op_handle);
+		chan_ctx->op_handle = NULL;
+	}
 
 	nh = nua_handle (svd->nua, chan,
 			NUTAG_URL(to->a_url),
@@ -705,8 +766,6 @@ DFS
 
 	chan_ctx->op_handle = nh;
 	if( !nh){
-		/* to do not preserve the old handle - channel will
-		 * have new one = NULL */
 		SU_DEBUG_1 ((LOG_FNC_A("can`t create handle")));
 		goto __exit_fail;
 	}
@@ -744,6 +803,17 @@ __exit_fail:
 	}
 DFE
 	return -1;
+}/*}}}*/
+
+static void
+vf_timer_cb(su_root_magic_t *magic, su_timer_t *t, su_timer_arg_t *arg)
+{/*{{{*/
+	ab_chan_t * chan = arg;
+	int err;
+	err = svd_place_vf_for(g_svd, chan);
+	if(err){
+		SU_DEBUG_3 (("Can`t RE-invite on VF-pair\n"));
+	}
 }/*}}}*/
 
 /**
@@ -838,88 +908,76 @@ svd_VF_i_invite( svd_t * const svd, ab_chan_t * chan,
 		nua_handle_t * nh, sip_t const *sip)
 {/*{{{*/
 	svd_chan_t * chan_ctx = chan->ctx;
-	sip_to_t const *from = sip->sip_from;
-	int unknown_caller;
+	sip_from_t const *from = sip->sip_from;
+	int known_caller;
 	int routers_num;
 	int pair_chan;
 	int pair_route_id;
 	int vf_is_valid;
-	int pair_is_elder;
 	int abs_chan_idx = chan->abs_idx;
-	int should_drop_previous_connection;
+	int proper_pair_router;
+	int proper_pair_chan;
+	char * rec_pair_route = g_conf.voice_freq[abs_chan_idx].pair_route;
 	int i;
 DFS
-	/* vf-reconnect test
-	 * if 
-	 *		1. router is not self (if self - just one caller)
-	 *		2. it is vf-channel
-	 *		3. caller the pair
-	 *		4. call_state is ready or
-	 *			pair is elder
-	 *	then
-	 *		destroy old connection to make new
-	 */
-	/* find pair route id by ip from route_table */
-	if (g_conf.self_ip == g_conf.lo_ip) {
-		unknown_caller = 0;
-	} else {
-		unknown_caller = 1;
-	}
-	routers_num = g_conf.route_table.records_num;
-	for(i=0; i<routers_num; i++){
-		if( !strcmp(from->a_url->url_host, g_conf.route_table.records[i].value)){
-			pair_route_id = strtol(g_conf.route_table.records[i].id, NULL, 10);
-			unknown_caller = 0;
-			break;
-		}
-	}
-
+	/* TEST IF IT IS VALID PAIR */
+	/* get pair_chan and pair route from invite */
 	pair_chan = strtol (from->a_url->url_user, NULL, 10);
 
-	vf_is_valid = 
-		/* this vf should be connected */
-		g_conf.voice_freq[abs_chan_idx].is_set &&
-		/* we have call from proper pair_route */
-		(!g_conf.voice_freq[abs_chan_idx].pair_route ||
-		(strtol(g_conf.voice_freq[abs_chan_idx].pair_route,NULL, 10) == 
-			 pair_route_id)) &&
-		/* we have call from proper pair_chan */
-		(strtol(g_conf.voice_freq[abs_chan_idx].pair_chan, NULL, 10) == pair_chan);
-
-	if(vf_is_valid){
-		if(g_conf.self_number){
-			int self_route = strtol(g_conf.self_number,NULL,10);
-			if(self_route < pair_route_id){
-				pair_is_elder = 1;
-			} else if(self_route == pair_route_id){
-				pair_is_elder = pair_chan > abs_chan_idx;
+	if (g_conf.self_ip == g_conf.lo_ip) {
+		pair_route_id = -1; /* self */
+		known_caller = 1;
+	} else {
+		known_caller = 0;
+		routers_num = g_conf.route_table.records_num;
+		for(i=0; i<routers_num; i++){
+			if( !strcmp(from->a_url->url_host, g_conf.route_table.records[i].value)){
+				pair_route_id = strtol(g_conf.route_table.records[i].id, NULL, 10);
+				if( !strcmp(g_conf.route_table.records[i].id, g_conf.self_number)){
+					pair_route_id = -1; /* it is self in net with many routers */
+				}
+				known_caller = 1;
+				break;
 			}
-		} else {
-			pair_is_elder = pair_chan > abs_chan_idx;
 		}
 	}
+	proper_pair_router = 
+		/* we know that caller */
+		known_caller &&
+		/* it is self router or */
+		(((pair_route_id == -1) && (!rec_pair_route)) ||
+		/* it is proper local net router */
+		  ((pair_route_id != -1) && rec_pair_route && 
+		   (pair_route_id == strtol(rec_pair_route, NULL, 10))));
 
-	should_drop_previous_connection =
-		/* we have valid vf parameters */
-		vf_is_valid &&
-		/* we konw this router */
-		(!unknown_caller) &&
-		/* caller router is not self */
-		(strcmp (g_conf.self_ip, from->a_url->url_host)) &&
-		/* call is up or caller is elder */
-		((chan_ctx->call_state == nua_callstate_ready) || pair_is_elder);
+	proper_pair_chan =
+		(strtol(g_conf.voice_freq[abs_chan_idx].pair_chan, NULL, 10) == pair_chan);
 
-	if(should_drop_previous_connection){
-		/* drop it before set the new one */
-		ab_chan_media_deactivate (chan);
-		svd_clear_call (svd,chan);
-	}
+	vf_is_valid = 
+		/* this vf should be set as working */
+		g_conf.voice_freq[abs_chan_idx].is_set &&
+		/* we have call from proper pair */
+		proper_pair_router && proper_pair_chan;
 
-	if( (!vf_is_valid) || chan_ctx->op_handle ){
-		/* user is busy */
+	if( !vf_is_valid){
 		nua_respond(nh, SIP_486_BUSY_HERE, TAG_END());
 		nua_handle_destroy(nh);
 		goto __exit;
+	}
+
+	/* Reconnect or just drop new handler */
+	if(chan_ctx->call_state == nua_callstate_ready){
+		/* reconnect in any case */
+		/* drop previous connection */
+		ab_chan_media_deactivate (chan);
+		svd_clear_call (svd,chan);
+	} else {
+		/* first call */
+		/* kill if first invite from junior */
+		if(svd_vf_is_elder(chan)){
+			nua_handle_destroy(nh);
+			goto __exit;
+		} 
 	}
 
 	chan_ctx->op_handle = nh;
@@ -932,8 +990,7 @@ DFS
 	} else {
 		chan_ctx->caller_router_is_self = 0;
 	}
-
-	/* just answer */
+	/* answer */
 	svd_answer(svd, chan, SIP_200_OK);
 __exit:
 DFE
@@ -945,30 +1002,34 @@ svd_REM_i_invite( svd_t * const svd, nua_handle_t * nh, sip_t const *sip)
 	ab_chan_t * chan;
 	svd_chan_t * chan_ctx;
 	sip_to_t const *to = sip->sip_to;
+	char user_URI [USER_URI_LEN];
 DFS
 	/* remote call */
-	if (g_conf.sip_set.all_set){
-		char user_URI [USER_URI_LEN];
-		memset(user_URI, 0, USER_URI_LEN);
-		strcpy (user_URI, to->a_url->url_scheme);
-		strcat (user_URI, ":");
-		strcat (user_URI, to->a_url->url_user);
-		strcat (user_URI, "@");
-		strcat (user_URI, to->a_url->url_host);
-		if ( !strcmp (g_conf.sip_set.user_URI, user_URI)){
-			/* external call to this router - get sip_chan */
-			chan = svd->ab->pchans[g_conf.sip_set.sip_chan];
-			if( !chan){
-				nua_respond(nh, SIP_500_INTERNAL_SERVER_ERROR, TAG_END());
-				nua_handle_destroy(nh);
-				goto __exit;
-			}
-			chan_ctx = chan->ctx;
-		} else {
-			/* external call to another router in this network */
+	if( !g_conf.sip_set.all_set){
+		nua_respond(nh, SIP_500_INTERNAL_SERVER_ERROR, TAG_END());
+		nua_handle_destroy(nh);
+		goto __exit;
+	}
+
+	memset(user_URI, 0, USER_URI_LEN);
+	strcpy (user_URI, to->a_url->url_scheme);
+	strcat (user_URI, ":");
+	strcat (user_URI, to->a_url->url_user);
+	strcat (user_URI, "@");
+	strcat (user_URI, to->a_url->url_host);
+	if ( !strcmp (g_conf.sip_set.user_URI, user_URI)){
+		/* external call to this router - get sip_chan */
+		chan = svd->ab->pchans[g_conf.sip_set.sip_chan];
+		if( !chan){
+			nua_respond(nh, SIP_500_INTERNAL_SERVER_ERROR, TAG_END());
 			nua_handle_destroy(nh);
 			goto __exit;
 		}
+		chan_ctx = chan->ctx;
+	} else {
+		/* external call to another router in this network */
+		nua_handle_destroy(nh);
+		goto __exit;
 	}
 
 	if( chan_ctx->op_handle ){
@@ -977,6 +1038,7 @@ DFS
 		nua_handle_destroy(nh);
 		goto __exit;
 	}
+
 	chan_ctx->op_handle = nh;
 	nua_handle_bind (nh, chan);
 
@@ -1059,206 +1121,6 @@ DFS
 __exit:
 DFE
 }/*}}}*/
-# if 0
-static void
-svd_i_invite( int status, char const * phrase, svd_t * const svd, 
-		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip, tagi_t tags[])
-{/*{{{*/
-	ab_chan_t * req_chan;
-	svd_chan_t * chan_ctx;
-	sip_to_t const *to = sip->sip_to;
-	sip_from_t const *from = sip->sip_from;
-	unsigned char abs_chan_idx;
-	unsigned char call_is_remote = 0;
-	int chan_idx;
-	int caller_router_is_self = 0;
-	int err;
-DFS
-	if( !strcmp (g_conf.self_ip, to->a_url->url_host) ){
-		/* local call (local network) */
-		if( !strcmp (g_conf.self_ip, from->a_url->url_host)){
-			/* call from the same router */
-			caller_router_is_self = 1;
-		}
-		/* * 
-		 * Get requested chan number, it can be:
-		 * '$FIRST_FREE_FXO@..' - first free fxo
-		 * 'xx@..'              - absolute channel number
-		 * */
-		if (isdigit(to->a_url->url_user[0])){
-			/* 'xx@..'  - absolute channel number */
-			int unknown_caller;
-			int it_is_vf = 0;
-			int pair_is_elder = 0;
-			int should_reconnect = 0;
-			int pair_chan;
-			int pair_route_id;
-			int i;
-			int routers_num;
-
-			abs_chan_idx = strtol (to->a_url->url_user, NULL, 10);
-			chan_idx = get_dest_chan_idx (svd->ab, NULL, abs_chan_idx);
-			req_chan = &svd->ab->chans[chan_idx];
-			chan_ctx = req_chan->ctx;
-			if( chan_idx == -1 ){
-				nua_respond (nh, SIP_500_INTERNAL_SERVER_ERROR, TAG_END());
-				nua_handle_destroy (nh);
-				goto __exit;
-			}
-			/* vf-reconnect test
-			 * if chan
-			 *		1. router is not self (if self - just one caller)
-			 *		2. it is vf-channel
-			 *		3. caller the pair
-			 *		4. call_state is ready or
-			 *			pair is elder
-			 *	then
-			 *		destroy old connection to make new
-			 */
-
-			/* find pair route id by ip from route_table */
-			if (g_conf.self_ip == g_conf.lo_ip) {
-				unknown_caller = 0;
-			} else {
-				unknown_caller = 1;
-			}
-			routers_num = g_conf.route_table.records_num;
-			for(i=0; i<routers_num; i++){
-				if( !strcmp(from->a_url->url_host, 
-									g_conf.route_table.records[i].value)){
-					pair_route_id = strtol(g_conf.route_table.records[i].id,
-							NULL, 10);
-					unknown_caller = 0;
-					break;
-				}
-			}
-
-			pair_chan = strtol (from->a_url->url_user, NULL, 10);
-
-			it_is_vf = g_conf.voice_freq[abs_chan_idx].is_set &&
-				(!g_conf.voice_freq[abs_chan_idx].pair_route ||
-				(strtol(g_conf.voice_freq[abs_chan_idx].pair_route,NULL, 10) == 
-					pair_route_id)) &&
-				(strtol(g_conf.voice_freq[abs_chan_idx].pair_chan, NULL, 10) == 
-					pair_chan);
-
-			if(it_is_vf){
-				if(g_conf.self_number){
-					int self_route = strtol(g_conf.self_number,NULL,10);
-					if(self_route < pair_route_id){
-						pair_is_elder = 1;
-					} else if(self_route == pair_route_id){
-						pair_is_elder = pair_chan > abs_chan_idx;
-					}
-				} else {
-					pair_is_elder = pair_chan > abs_chan_idx;
-				}
-			}
-
-			should_reconnect =
-				(!unknown_caller) &&
-				(!caller_router_is_self) &&
-				((chan_ctx->call_state == nua_callstate_ready) || pair_is_elder);
-
-			if(should_reconnect){
-				/* if connect already is on - drop it before set the new one 
-				 * do the all as on callstate TERMINATED
-				 * - deactivate media 
-				 * - clear call params 
-				 */
-				ab_chan_media_deactivate (req_chan);
-				svd_clear_call (svd, req_chan);
-			}
-		} else if ( !strcmp(to->a_url->url_user, FIRST_FREE_FXO )){
-			/* '$FIRST_FREE_FXO@..' - first free fxo */
-			chan_idx = get_FF_FXO_idx (svd->ab, -1);
-			if( chan_idx == -1 ){
-				/* all chans busy */
-				nua_respond(nh, SIP_486_BUSY_HERE, TAG_END());
-				nua_handle_destroy(nh);
-				goto __exit;
-			}
-		} else {
-			/* unknown user */
-			SU_DEBUG_2(("Incoming call to unknown user \"%s\" on this host\n",
-					to->a_url->url_user));
-			goto __exit;
-		}
-	} else {
-		/* remote call */
-		if (g_conf.sip_set.all_set){
-			char user_URI [USER_URI_LEN];
-			memset(user_URI, 0, USER_URI_LEN);
-			strcpy (user_URI, to->a_url->url_scheme);
-			strcat (user_URI, ":");
-			strcat (user_URI, to->a_url->url_user);
-			strcat (user_URI, "@");
-			strcat (user_URI, to->a_url->url_host);
-			if ( !strcmp (g_conf.sip_set.user_URI, user_URI)){
-				/* external call to this router */
-				/* get sip_chan */
-				abs_chan_idx = g_conf.sip_set.sip_chan;
-				chan_idx = get_dest_chan_idx (svd->ab, NULL, abs_chan_idx);
-				if( chan_idx == -1 ){
-					nua_respond(nh, SIP_500_INTERNAL_SERVER_ERROR, TAG_END());
-					nua_handle_destroy(nh);
-					goto __exit;
-				}
-				call_is_remote = 1;
-			} else {
-				/* external call to another router 
-				 * in this network */
-				nua_handle_destroy(nh);
-				goto __exit;
-			}
-		}
-	}
-
-	req_chan = &svd->ab->chans[chan_idx];
-	chan_ctx = req_chan->ctx;
-
-	if( chan_ctx->op_handle ){
-		/* user is busy */
-		nua_respond(nh, SIP_486_BUSY_HERE, TAG_END());
-		nua_handle_destroy(nh);
-		goto __exit;
-	}
-
-	chan_ctx->op_handle = nh;
-	nua_handle_bind (nh, req_chan);
-
-	if(call_is_remote){
-		chan_ctx->call_type = calltype_REMOTE;
-	} else {
-		chan_ctx->call_type = calltype_LOCAL;
-		if(caller_router_is_self){
-			/* caller - the same router */
-			chan_ctx->caller_router_is_self = 1;
-		} else {
-			chan_ctx->caller_router_is_self = 0;
-		}
-	}
-
-	if (req_chan->parent->type == ab_dev_type_FXS){
-		/* start ringing */
-		err = ab_FXS_line_ring( req_chan, ab_chan_ring_RINGING );
-		if (err){
-			SU_DEBUG_1(("can`t ring to on [_%d_]\n",req_chan->abs_idx));
-		}
-	} else if (req_chan->parent->type == ab_dev_type_FXO){
-		/* do offhook */
-		err = ab_FXO_line_hook( req_chan, ab_chan_hook_OFFHOOK );
-		if (err){
-			SU_DEBUG_1(("can`t offhook on [_%d_]\n",req_chan->abs_idx));
-		}
-	} else if (req_chan->parent->type == ab_dev_type_VF){
-		/* just answer */
-		svd_answer(svd, req_chan, SIP_200_OK);
-	}
-__exit:
-DFE
-}/*}}}*/
-#endif
 
 /**
  * Incoming CANCEL.
@@ -1456,7 +1318,7 @@ DFS
 				if(ctx->ring_state == ring_state_TIMER_UP_INVITE_SENT){
 					SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
 							__func__, __LINE__, chan->abs_idx, ctx->ring_state));
-					/* kill ring_thread if it is up 
+					/* kill ring_timer if it is up 
 					 * if we have no ready state for some reasons
 					 */
 					err = su_timer_reset(ctx->ring_tmr);
@@ -1494,17 +1356,24 @@ DFS
 				SU_DEBUG_3(("playing busy tone on [_%d_]\n", chan->abs_idx));
 			} else if(chan->parent->type == ab_dev_type_VF){
 				/* Re-invite the pair */
-				int chan_idx;
 				if(ctx->op_handle){
-					SU_DEBUG_3 (("ATTENTION reinvite to VF-pair ctx has handle\n"));
+					/* remove handle from the last try */
 					nua_handle_destroy (ctx->op_handle);
 					ctx->op_handle = NULL;
 				}
-				SU_DEBUG_3 (("sleeping 10 sec before reinvite on VF-pair\n"));
-				sleep(10);
-				chan_idx = get_dest_chan_idx (svd->ab, NULL, chan->abs_idx);
-				if((chan_idx == -1) || svd_invite(svd, 0, chan_idx)){
-					SU_DEBUG_1 (("ERROR: can`t re-invite VF-pair\n"));
+				if(svd_vf_is_elder(chan)){
+					/* reinvite just if it is the elder side */
+					int err;
+					g_svd = svd;
+					err = su_timer_set_interval(ctx->vf_tmr, vf_timer_cb, chan, 
+							VF_REINVITE_SEC*1000); 
+					if (err){
+						SU_DEBUG_2 (("su_timer_set_interval ERROR on [_%d_] : %d\n", 
+									chan->abs_idx, err));
+					} else {
+						SU_DEBUG_3 (("[%d]: set timer on %d sec before reinvite "
+								"VF-junior\n", chan->abs_idx, VF_REINVITE_SEC));
+					}
 				}
 			}
 			break;
@@ -1524,9 +1393,6 @@ static void
 svd_i_bye(nua_handle_t const * const nh, ab_chan_t const * const chan)
 {/*{{{*/
 DFS
-	assert(chan);
-	assert(chan->ctx);
-	assert(((svd_chan_t *)(chan->ctx))->op_handle == nh);
 	SU_DEBUG_3 (("BYE received\n"));
 DFE
 }/*}}}*/
@@ -1872,8 +1738,6 @@ svd_r_bye(int status, char const *phrase,
 	  nua_handle_t const * const nh, ab_chan_t const * const chan)
 {/*{{{*/
 DFS
-	assert(chan);
-	assert(((svd_chan_t *)(chan->ctx))->op_handle == nh);
 	SU_DEBUG_3(("got answer on BYE: %03d %s\n", status, phrase));
 DFE
 }/*}}}*/

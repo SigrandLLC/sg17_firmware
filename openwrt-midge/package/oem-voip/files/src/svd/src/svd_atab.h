@@ -18,9 +18,6 @@ int svd_atab_create (svd_t * const svd);
 void svd_atab_delete (svd_t * svd);
 /** Clears call params that has been set during dial process.*/
 void svd_clear_call(svd_t * const svd, ab_chan_t * const chan);
-/** Found index in ab->chans[] mass with the given abs_idx.*/
-int get_dest_chan_idx( ab_t const * const ab, 
-		char const * const chan_abs_idx_str, char const chan_abs_idx);
 /** Found first free fxo channel.*/
 int get_FF_FXO_idx ( ab_t const * const ab, char const self_chan_idx );
 /** Found first free fxs channel.*/
