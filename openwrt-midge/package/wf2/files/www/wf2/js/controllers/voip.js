@@ -1059,7 +1059,16 @@ Controllers.voipEcho = function() {
 					"type": "select",
 					"name": $.sprintf("sys_voip_wlec_%s_type", channel[0]),
 					"options": "off NE NFE",
-					"defaultValue": channel[1] == "VF" ? "off" : "NE"
+					"defaultValue": channel[1] == "VF" ? "off" : "NE",
+                    "onChange": function() {
+                        var values = $("#" + this.id).val() == "NFE" ? "4 6 8" : "4 6 8 16";
+                        $($.sprintf("#sys_voip_wlec_%s_new_nb", channel[0])).setOptionsForSelect({
+                                "options": values
+                        });
+                        $($.sprintf("#sys_voip_wlec_%s_few_nb", channel[0])).setOptionsForSelect({
+                                "options": values
+                        });
+                    }
 				};
 				c.addTableWidget(field, row);
 
@@ -1073,10 +1082,11 @@ Controllers.voipEcho = function() {
 				c.addTableWidget(field, row);
 
 				/* Near-end window NB */
+                var type = $($.sprintf("#sys_voip_wlec_%s_type", channel[0])).val();
 				field = {
 					"type": "select",
 					"name": $.sprintf("sys_voip_wlec_%s_new_nb", channel[0]),
-                    "options": "4 6 8 16",
+                    "options": type == "NFE" ? "4 6 8" : "4 6 8 16",
 					"defaultValue": "4"
 				};
 				c.addTableWidget(field, row);
@@ -1085,7 +1095,7 @@ Controllers.voipEcho = function() {
 				field = {
 					"type": "select",
 					"name": $.sprintf("sys_voip_wlec_%s_few_nb", channel[0]),
-                    "options": "4 6 8 16",
+                    "options": type == "NFE" ? "4 6 8" : "4 6 8 16",
 					"defaultValue": "4"
 				};
 				c.addTableWidget(field, row);
