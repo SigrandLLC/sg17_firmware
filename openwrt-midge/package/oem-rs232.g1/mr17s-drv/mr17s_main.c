@@ -265,7 +265,7 @@ mr17s_init_one(struct pci_dev *pdev,const struct pci_device_id *ent)
 	return 0;
 
 freeirq:
-    free_irq(pdev->irq,rsdev->name);
+    free_irq(pdev->irq,rsdev);
 porterr:
     for(j=0;j<i;j++){
         struct mr17s_uart_port *hw_port = rsdev->ports + j;
