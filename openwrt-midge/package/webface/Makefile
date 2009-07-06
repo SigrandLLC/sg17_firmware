@@ -80,7 +80,7 @@ $(IPKG_WEBFACE):
 ifeq ($(BR2_SIGRAND_OEM_MANUFACTURER),"Zelax")
 		cp templates/etc/kdb.default $(IDIR_WEBFACE)/etc/
 endif
-	cat files/etc/kdb.default | sed "s/sigrand1/$(BR2_SIGRAND_OEM_HOSTNAME)/g" >$(IDIR_WEBFACE)/etc/kdb.default;
+#	cat files/etc/kdb.default | sed "s/sigrand1/$(BR2_SIGRAND_OEM_HOSTNAME)/g" >$(IDIR_WEBFACE)/etc/kdb.default;
 	echo $(BR2_SIGRAND_OEM_HOSTNAME) > $(IDIR_WEBFACE)/etc/hostname
 	cat files/etc/lighttpd.conf |sed "s/Sigrand router/$(BR2_SIGRAND_OEM_SYSNAME)/g" >$(IDIR_WEBFACE)/etc/lighttpd.conf;
 	
