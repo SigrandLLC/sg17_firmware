@@ -78,9 +78,8 @@ $(IPKG_WEBFACE):
 	-install -m0755 $(PKG_BUILD_DIR)/hdb $(IDIR_WEBFACE)/usr/bin
 	( tar cf - -C $(PKG_BUILD_DIR)/templates --exclude .svn . | tar xvf - -C $(IDIR_WEBFACE)	 );
 ifeq ($(BR2_SIGRAND_OEM_MANUFACTURER),"Zelax")
-		cp templates/etc/kdb.default $(IDIR_WEBFACE)/etc/
+		cp kdb.default.zelax $(IDIR_WEBFACE)/etc/kdb.default
 endif
-#	cat files/etc/kdb.default | sed "s/sigrand1/$(BR2_SIGRAND_OEM_HOSTNAME)/g" >$(IDIR_WEBFACE)/etc/kdb.default;
 	echo $(BR2_SIGRAND_OEM_HOSTNAME) > $(IDIR_WEBFACE)/etc/hostname
 	cat files/etc/lighttpd.conf |sed "s/Sigrand router/$(BR2_SIGRAND_OEM_SYSNAME)/g" >$(IDIR_WEBFACE)/etc/lighttpd.conf;
 	
