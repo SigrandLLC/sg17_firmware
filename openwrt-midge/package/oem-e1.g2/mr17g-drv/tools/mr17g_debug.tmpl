@@ -27,6 +27,12 @@ print_usage()
 
 CHIP_NUM=0
 
+if [ "$#" -eq 0 ]; then
+	print_usage
+	exit
+fi
+		
+
 cdir=`pwd`
 iface=$1
 
