@@ -626,84 +626,86 @@ store_cas( struct class_device *cdev,const char *buf, size_t size )
 static CLASS_DEVICE_ATTR(cas,0644,show_cas,store_cas);
 
 //--------------- Loopback rgisters
-/*
+
 // Remote loopback
 static ssize_t
-show_rloopback( struct device *dev, ADDIT_ATTR char *buf )
+show_rloopback(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
-	struct net_local *nl=mr16g_priv(ndev);
+	struct net_device *ndev = to_net_dev(cdev);
+    hdlc_device *hdlc = dev_to_hdlc(ndev);
+	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
+    struct mr17g_chan_config *cfg = &ch->cfg;
 
-	return snprintf(buf,PAGE_SIZE,"%s",(ds2155_getreg(nl,LBCR) & RLB) ? "on" : "off");
+	return snprintf(buf,PAGE_SIZE,"%s", cfg->rlpb ? "on" : "off");
 }
 
 static ssize_t
-store_rloopback( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+store_rloopback( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
-	struct net_local *nl=mr16g_priv(ndev);
-	u8 tmp;
+	struct net_device *ndev = to_net_dev(cdev);
+    hdlc_device *hdlc = dev_to_hdlc(ndev);
+	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
+    struct mr17g_chan_config *cfg = &ch->cfg;
 
-	// check parameters
-	if( !size)
+	if( !(size > 0) )
 		return size;
-	switch( buf[0] ){
-	case '0':
-		tmp = ds2155_getreg(nl,LBCR) & (~RLB);
-    		ds2155_setreg(nl,LBCR,tmp);
-		break;
-	case '1':
-		tmp = ds2155_getreg(nl,LBCR) | RLB;
-    		ds2155_setreg(nl,LBCR,tmp);
-		break;
-	default:
-		break;
-	}
+	
+	if( buf[0]=='0' ){
+		printk(KERN_NOTICE"%s: Remote Loopback disabled\n",ndev->name);
+		cfg->rlpb=0;
+	}else if( buf[0]=='1' ){
+		printk(KERN_NOTICE"%s: Remote Loopback enabled\n",ndev->name);
+		cfg->rlpb=1;
+	}else
+		return size;
+	mr17g_transceiver_setup(ch);		
+    pef22554_channel(ch);
+	    
 	return size;
 }
+static CLASS_DEVICE_ATTR(rlpb,0644,show_rloopback,store_rloopback);
 
 // Local loopback
 static ssize_t
-show_lloopback( struct device *dev, ADDIT_ATTR char *buf )
+show_lloopback(struct class_device *cdev, char *buf) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
-	struct net_local *nl=mr16g_priv(ndev);
+	struct net_device *ndev = to_net_dev(cdev);
+    hdlc_device *hdlc = dev_to_hdlc(ndev);
+	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
+    struct mr17g_chan_config *cfg = &ch->cfg;
 
-	return snprintf(buf,PAGE_SIZE,"%s",(ds2155_getreg(nl,LBCR) & LLB) ? "on" : "off");
+	return snprintf(buf,PAGE_SIZE,"%s", cfg->llpb ? "on" : "off");
 }
 
 static ssize_t
-store_lloopback( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
+store_lloopback( struct class_device *cdev,const char *buf, size_t size ) 
 {
-	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
-	struct net_local *nl=mr16g_priv(ndev);
-	u8 tmp, mask;
+	struct net_device *ndev = to_net_dev(cdev);
+    hdlc_device *hdlc = dev_to_hdlc(ndev);
+	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
+    struct mr17g_chan_config *cfg = &ch->cfg;
 
-	// check parameters
-	if( !size)
+	if( !(size > 0) )
 		return size;
-	switch( buf[0] ){
-	case '0':
-		tmp = ds2155_getreg(nl,LBCR) & (~LLB);
-    		ds2155_setreg(nl,LBCR,tmp);
-		// Reset carrier state
-		mr16g_setup_carrier(ndev,&mask);
-    		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
-		break;
-	case '1':
-		tmp = ds2155_getreg(nl,LBCR) | LLB;
-    		ds2155_setreg(nl,LBCR,tmp);
-		// Force carrier on
-		mr16g_setup_carrier(ndev,&mask);
-    		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
-		break;
-	default:
-		break;
+	
+	if( buf[0]=='0' ){
+		cfg->llpb=0;
+		printk(KERN_NOTICE"%s: Local Loopback disabled\n",ndev->name);
 	}
+	else if( buf[0]=='1' ){
+		printk(KERN_NOTICE"%s: Local Loopback enabled\n",ndev->name);
+		cfg->llpb=1;
+	}else
+		return size;
+
+	mr17g_transceiver_setup(ch);		
+    pef22554_channel(ch);
+	    
 	return size;
 }
+static CLASS_DEVICE_ATTR(llpb,0644,show_lloopback,store_lloopback);
 
-*/
+
 
 // ------------------------- Multiplexing ------------------------------- //
 
@@ -1304,6 +1306,8 @@ static struct attribute *mr17g_attr[] = {
 &class_device_attr_hdb3.attr,
 &class_device_attr_crc4.attr,
 &class_device_attr_cas.attr,
+&class_device_attr_rlpb.attr,
+&class_device_attr_llpb.attr,
 // HDLC
 &class_device_attr_crc16.attr,
 &class_device_attr_fill_7e.attr,

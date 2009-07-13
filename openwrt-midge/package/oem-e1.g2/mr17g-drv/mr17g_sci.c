@@ -24,6 +24,7 @@ mr17g_sci_enable(struct mr17g_card *card)
 {
 	struct mr17g_sci *sci = &card->sci;
 	volatile struct mr17g_sci_regs *regs = &sci->iomem->regs;
+	
     // setup HDLC registers
 	iowrite8(0,&regs->CRA);
 	mdelay(100);
@@ -32,7 +33,8 @@ mr17g_sci_enable(struct mr17g_card *card)
     iowrite8((RXS | TXS | CRC | COL | OFL),&regs->IMR);	
 
     // Init chip locking
-	spin_lock_init(&sci->lock);
+	init_MUTEX(&sci->sem);
+
     // Init interrupt wait queue
     init_waitqueue_head( &sci->wait_q );
 	// Initialize work queue for link monitoring
@@ -89,21 +91,23 @@ mr17g_sci_request_one(struct mr17g_sci *sci,int chipnum,char buf[SCI_BUF_SIZE],i
 		ioread8(&regs->CRA),ioread8(&regs->CRB),ioread8(&regs->IMR),ioread8(&regs->SR));	
 
     // SCI is busy now, fail to transmit
+
+    //---------------- Transmit message --------------------
+
+	
     if( tmp & TXEN ){
         printk(KERN_ERR"%s: SCI transmitter already in use\n",MR17G_MODNAME);
-        return -EAGAIN;
+        size = -EAGAIN;
+		goto exit;
     }
     // Check size of buffer
     if( size > SCI_BUF_SIZE ){
         printk(KERN_ERR"%s: bad message size(%d) in SCI xmit function\n",MR17G_MODNAME,size);
-        return -EINVAL;
+        size = -EINVAL;
+		goto exit;
     }
     PDEBUG(debug_sci,"Fill SCI buffer");
-
-    //---------------- Transmit message --------------------
-
-    // Lock chipset until end of request
-    spin_lock(&sci->lock);
+	
 
     // Move outgoing data to toransmit buffer
 	for( i=0; i<size; i++)
@@ -123,13 +127,12 @@ mr17g_sci_request_one(struct mr17g_sci *sci,int chipnum,char buf[SCI_BUF_SIZE],i
 		iowrite8(cra,&regs->CRA);
 	}
     // Delay for hardware correct work
-    mdelay(1);
+    mdelay(3);
 
 //    PDEBUG(debug_sci,"Before enable transmitter. First part of message, second - registers");
 //    mr17g_sci_dump((u8*)&sci->tx_buf,7);
 //    mr17g_sci_dump((u8*)&sci->regs,7);
 
-mdelay(1);
 	PDEBUG(debug_sci,"start, CRA=%02x, CRB=%02x, IMR=%02x, SR=%02x",
 		ioread8(&regs->CRA),ioread8(&regs->CRB),ioread8(&regs->IMR),ioread8(&regs->SR));	
 
@@ -182,10 +185,6 @@ mdelay(1);
 exit:
     // Restore receiver on error exit
 	iowrite8((ioread8(&regs->CRA)|RXEN),&regs->CRA);		
-    // Unlock chip
-    spin_unlock(&sci->lock);
-//    PDEBUG(debug_sci,"CRA=%02x, CRB=%02x, IMR=%02x, SR=%02x",
-//            sci->regs.CRA,sci->regs.CRB,sci->regs.IMR,sci->regs.SR);
 	PDEBUG(debug_sci,"end");	
     return size;
 }
@@ -195,16 +194,24 @@ int
 mr17g_sci_request(struct mr17g_sci *sci,int cnum,char buf[SCI_BUF_SIZE],int size,
 		int acksize)
 {
-    int i,ret = 0;;
+    int i,ret = 0;
+	
+    // Lock chipset until end of request
+    if( down_interruptible(&sci->sem) )
+		return -EAGAIN;
+	
 	// Try to make request several times
-    for(i=0;i<3;i++){
+    for(i=0;i<10;i++){
         if( (ret = mr17g_sci_request_one(sci,cnum,buf,size)) == acksize ){
-            return ret;
+            goto exit;
         }
-        PDEBUG(debug_error,"Iter %d, error",i);
+        PDEBUG(debug_error,"Iter %d, error: ret=%d",i,ret);
     }
     if( ret > 0 )
     	ret *= -1;
+exit:
+    // Unlock chip
+    up(&sci->sem);
     return ret;
 }
 

@@ -32,6 +32,7 @@
 #include <asm/byteorder.h>
 #include <asm/irq.h>
 #include <asm/uaccess.h>
+#include <asm/semaphore.h>
 
 #include <linux/pci.h>
 #include <linux/ioport.h>
@@ -185,7 +186,7 @@ struct mr17g_sci_iomem {
 // SCI service structure
 struct mr17g_sci{
 	volatile struct mr17g_sci_iomem *iomem;
-	spinlock_t lock;
+	struct semaphore sem;
 	wait_queue_head_t  wait_q;
 	struct work_struct wqueue;
     u8 rxs:1;
@@ -211,6 +212,8 @@ struct mr17g_chan_config{
     u8 hdb3 	:1;
     u8 long_haul:1;
     u8 ext_clck :1;
+    u8 llpb :1;
+    u8 rlpb :1;
     // HDLC settings
     u8  crc16: 1;
     u8  fill_7e: 1;

@@ -598,10 +598,35 @@ pef22554_channel(struct mr17g_channel *chan)
         goto error;
     }  
 
+	// Loopback configuration
+	// Local
+	if( pef22554_readreg(chip,chan->num,LIM0,&tmp) ){
+		goto error;
+	}
+	if( cfg->llpb )
+		tmp |= 0x02;
+	else
+		tmp &= (~0x02);
+    if( pef22554_writereg(chip,chan->num,LIM0,tmp)){
+   	    goto error;
+    }  
+	// Remote
+	if( pef22554_readreg(chip,chan->num,LIM1,&tmp) ){
+    	goto error;
+	}
+	if( cfg->rlpb )
+		tmp |= 0x02;
+	else
+		tmp &= (~0x02);
+    if( pef22554_writereg(chip,chan->num,LIM1,tmp)){
+   	    goto error;
+    }  
+
     // Reset should be written last
     if( pef22554_writereg(chip,chan->num,CMDR,0x50)){
         goto error;
     }  
+	
     
     return 0;
 error:

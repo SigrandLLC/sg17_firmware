@@ -688,9 +688,10 @@ void mr17g_net_link(struct net_device *ndev)
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
     volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
     int lstat = pef22554_linkstate(ch->chip,ch->num,ch->cfg.framed);
+	struct mr17g_chan_config *cfg = &ch->cfg;
 
     PDEBUG(debug_link,"%s: lstate = %d, car_ok=%d",ndev->name,lstat,netif_carrier_ok(ndev));
-    if(  lstat > 0 ){
+    if(  lstat > 0 || cfg->llpb ){
 	    if( !netif_carrier_ok(ndev) ){
             printk(KERN_NOTICE"%s: link UP\n",ndev->name);
        		netif_carrier_on(ndev);
@@ -701,7 +702,7 @@ void mr17g_net_link(struct net_device *ndev)
         		iowrite8((UFL|CRC|OFL|RXS|TXS),&regs->IMR );
 		    }
         }
-    }else if( lstat == 0 ){
+    }else if(  lstat==0 ){ 
 	    if( netif_carrier_ok(ndev) ){
             printk(KERN_NOTICE"%s: link DOWN\n",ndev->name);
 			netif_carrier_off(ndev);

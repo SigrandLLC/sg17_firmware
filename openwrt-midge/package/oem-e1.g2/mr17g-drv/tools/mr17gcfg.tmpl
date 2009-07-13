@@ -33,8 +33,8 @@ print_stat()
 	echo "    ts16:      "`cat map_ts16`
     fi
     echo "    long haul: "`cat long_haul`    
-#    echo "E1 loopback settings:"
-#    echo "    local="`cat llpb`" remote="`cat rlpb`
+    echo "E1 loopback settings:"
+    echo "    local="`cat llpb`" remote="`cat rlpb`
     echo "HDLC controller settings:"
     echo "    "`cat crc16`" "`cat inv`" "`cat fill_7e`" "`cat rburst`" "`cat wburst`
 }					    
@@ -57,6 +57,8 @@ if [ $# = 0 ]; then
     echo "  crc4 on|off                - enable/disable E1 CRC4 multiframe"
     echo "  cas  on|off                - enable/disable E1 CAS multiframe"
     echo "  long_haul on|off               - enable/disable E1 long haul mode"
+    echo "  lloop on|off               - E1 Local Loopback on/off"
+    echo "  rloop on|off               - E1 Remote Loopback on/off"
     echo "HDLC options:"
     echo "  crc32 | crc16              - HDLC checksum type"
     echo "  fill_ff | fill_7e          - interframe fill byte"
@@ -64,8 +66,6 @@ if [ $# = 0 ]; then
     echo "PCI options:"
     echo "  rboff | rbon               - PCI read burst mode off"
     echo "  wboff | wbon               - PCI write burst mode off"
-    echo "  lloop on|off               - E1 Local Loopback on/off"
-    echo "  rloop on|off               - E1 Remote Loopback on/off"
     exit
 fi
 cdir=`pwd`
@@ -215,31 +215,30 @@ while [ ! -z "$1" ]; do
 	echo 1 > fill_7e
 	;;
  
-#   "lloop")
-#	if [ -z $2 ]; then
-#	    echo $0": syntax error, after \"lloop\" "
-#	    break
-#	fi
-#	if [ $2 = "on" ]; then
-#	    echo 1 > llpb
-#	elif [ $2 = "off" ]; then
-#	    echo 0 > llpb
-#	fi
-#	shift	
-#	;;    
-#   "rloop")
-#	if [ -z $2 ]; then
-#	    echo $0": syntax error, after \"rloop\" "
-#	    break
-#	fi
-#	if [ $2 = "on" ]; then
-#	    echo 1 > rlpb
-#	elif [ $2 = "off" ]; then
-#	    echo 0 > rlpb
-#	fi
-#	shift	
-#	;;    
-
+   "lloop")
+	if [ -z $2 ]; then
+	    echo $0": syntax error, after \"lloop\" "
+	    break
+	fi
+	if [ $2 = "on" ]; then
+	    echo 1 > llpb
+	elif [ $2 = "off" ]; then
+	    echo 0 > llpb
+	fi
+	shift	
+	;;    
+   "rloop")
+	if [ -z $2 ]; then
+	    echo $0": syntax error, after \"rloop\" "
+	    break
+	fi
+	if [ $2 = "on" ]; then
+	    echo 1 > rlpb
+	elif [ $2 = "off" ]; then
+	    echo 0 > rlpb
+	fi
+	shift	
+	;;    
     *)
 	echo $0": error parameter - "$1
 	;;
