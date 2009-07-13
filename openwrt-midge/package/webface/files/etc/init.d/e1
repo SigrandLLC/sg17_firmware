@@ -67,46 +67,56 @@ _e1_ifcfg(){
 	
 
 	# Hardware settings
-	unset proto fram ts16 smap crc4 cas clk lhaul lcode hcrc inv fill cisco_int cisco_to
+	unset proto fram ts16 smap crc4 cas clk lhaul lcode hcrc inv fill cisco_int cisco_to network_restart llpb rlpb
 	eval `$kdb -qq sls sys_pcicfg_s${slot}_${dev}_`
-	# apply configuration
-	$ifcfg $iface down
-	# bind driver with protocol
-	case "${proto}" in
-	hdlc*)
-		sethdlc $iface $proto ${hdlc_enc} ${hdlc_parity}
-		;;
-	cisco)
-		if [ "${cisco_int}" -eq "0" ]; then
-			cisco_int=""
-		elif [ -z "${cisco_int}" ]; then
-			cisco_int=""		
-		else
-			cisco_int="interval ${cisco_int}"
-		fi
-		if [ "${cisco_to}" = 0 ]; then
-			cisco_to=""
-		elif [ -z "${cisco_to}" ]; then
-			cisco_to=""		
-		else
-			cisco_to="timeout ${cisco_to}"
-		fi
-		sethdlc $iface $proto ${cisco_int} ${cisco_to}
-		;;
-	*)
-    		if [ -n "$proto" ]; then
-		    sethdlc $iface $proto
-		fi
-	esac
-	# set network interface proto (for web)
-	case "$proto" in
-	hdlc-eth)
-		kdb set sys_iface_${iface}_proto=ether
-		;;
-	*)
-		kdb set sys_iface_${iface}_proto=hdlc
-		;;
-	esac
+	
+	#check if specified protocol is already set
+	tmp=`sethdlc $iface | grep "$proto"`
+	if [ -n "$tmp" ]; then
+		# protocol already setted
+		network_restart=0
+	else
+		network_restart=1
+		# apply configuration
+		$ifcfg $iface down
+		# bind driver with protocol
+		case "${proto}" in
+		hdlc*)
+			sethdlc $iface $proto ${hdlc_enc} ${hdlc_parity}
+			;;
+		cisco)
+			if [ "${cisco_int}" -eq "0" ]; then
+				cisco_int=""
+			elif [ -z "${cisco_int}" ]; then
+				cisco_int=""		
+			else
+				cisco_int="interval ${cisco_int}"
+			fi
+			if [ "${cisco_to}" = 0 ]; then
+				cisco_to=""
+			elif [ -z "${cisco_to}" ]; then
+				cisco_to=""		
+			else
+				cisco_to="timeout ${cisco_to}"
+			fi
+			sethdlc $iface $proto ${cisco_int} ${cisco_to}
+			;;
+		*)
+    			if [ -n "$proto" ]; then
+			    sethdlc $iface $proto
+			fi
+		esac
+		# set network interface proto (for web)
+		case "$proto" in
+		hdlc-eth)
+			kdb set sys_iface_${iface}_proto=ether
+			;;
+		*)
+			kdb set sys_iface_${iface}_proto=hdlc
+			;;
+		esac
+	fi
+	
 	DIR=`pwd`
 
     cd $e1_cfgpath/$iface/"hw_private"
@@ -141,10 +151,6 @@ _e1_ifcfg(){
 	echo $fill > fill_7e
 	echo $inv > inv
     
-    if [ "$type" = "$mr17g_drvname" ]; then
-        return
-    fi
-    
 	if [ "$llpb" = "on" -o "$llpb" = "1" ]; then
 	    echo 1 > llpb
 	else
@@ -156,6 +162,12 @@ _e1_ifcfg(){
 	    echo 0 > rlpb
 	fi
 	cd $DIR	
+	
+	# TODO: Not always after protocol change network can be restarted
+	# need some compatibility 
+	if [ "$network_restart" -eq 1 ]; then
+		/etc/init.d/network restart
+	fi
 }
 
 _e1_modcfg(){
