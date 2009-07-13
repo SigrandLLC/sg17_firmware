@@ -188,7 +188,7 @@ inline void mr16g_hdlc_close( struct net_local *nl);
 inline void ds2155_setreg(struct net_local *nl,u8 regname,u8 regval);
 inline u8 ds2155_getreg(struct net_local *nl,u8 regname);
 static int mr16g_E1_int_setup(struct net_local *nl);
-static int mr16g_E1_setup(struct net_local *nl);
+static int mr16g_E1_setup(struct net_device *ndev);
 static u8 ds2155_carrier(struct net_local *nl);
 static int ds2155_interrupt( struct net_device *ndev, u8 *mask );
 

@@ -58,6 +58,8 @@ if [ $# = 0 ]; then
     echo "  crc4 on|off                - enable/disable E1 CRC4 multiframe"
     echo "  cas  on|off                - enable/disable E1 CAS multiframe"
     echo "  lhaul on|off               - enable/disable E1 long haul mode"
+    echo "  lloop on|off               - E1 Local Loopback on/off"
+    echo "  rloop on|off               - E1 Remote Loopback on/off"
     echo "HDLC options:"
     echo "  crc32 | crc16              - HDLC checksum type"
     echo "  fill_ff | fill_7e          - interframe fill byte"
@@ -65,8 +67,6 @@ if [ $# = 0 ]; then
     echo "PCI options:"
     echo "  rboff | rbon               - PCI read burst mode off"
     echo "  wboff | wbon               - PCI write burst mode off"
-    echo "  lloop on|off               - E1 Local Loopback on/off"
-    echo "  rloop on|off               - E1 Remote Loopback on/off"
     exit
 fi
 cdir=`pwd`

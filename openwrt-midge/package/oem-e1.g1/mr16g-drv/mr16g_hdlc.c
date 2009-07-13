@@ -305,7 +305,6 @@ mr16g_probe( struct net_device  *ndev )
 	int err=0;
 	hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct net_local *nl=(struct net_local*)hdlc->priv;
-	u8 mask = EXT;
 	
 	PDEBUG(DINIT,"start");
 	// Set net device fields
@@ -356,10 +355,8 @@ mr16g_probe( struct net_device  *ndev )
 	mr16g_defcfg(nl);
 	mr16g_hdlc_up(nl);
 	mr16g_hdlc_setup(nl);
-	mr16g_E1_setup(nl);
-	mdelay(1);
-	mr16g_setup_carrier(ndev,&mask);
-	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+	mr16g_E1_setup(ndev);
+
 	return  0;
  err_exit:
 	iounmap( nl->mem_base );
@@ -599,18 +596,26 @@ mr16g_setup_carrier(struct net_device *ndev,u8 *mask)
 		iowrite8( ioread8( (iotype)&(nl->hdlc_regs->CRB) ) & ~RXDE,
 				  (iotype)&(nl->hdlc_regs->CRB) );
 		*mask = EXT | UFL | OFL | RXS | TXS | CRC;
+		
+		// Log event only if this is first one!		
+		if( !netif_carrier_ok(ndev) )
+			printk(KERN_INFO"%s: link is UP\n",ndev->name);
+		
 		hdlc_set_carrier(1,ndev);
 		netif_carrier_on(ndev);
 		ds2155_setreg(nl,CCR4,0x01);
-		printk(KERN_INFO"%s: link is UP\n",ndev->name);
 	}else{
 		iowrite8( ioread8( (iotype)&(nl->hdlc_regs->CRB) ) | RXDE,
 				  (iotype)&(nl->hdlc_regs->CRB) );
 		*mask = EXT;
+
+		// Log event only if this is first one!		
+		if( netif_carrier_ok(ndev) )
+			printk(KERN_INFO"%s: link is DOWN\n",ndev->name);
+
 		hdlc_set_carrier(0,ndev);
 		netif_carrier_off(ndev);
 		ds2155_setreg(nl,CCR4,0x00);
-		printk(KERN_INFO"%s: link is DOWN\n",ndev->name);
 	}
 }
 
@@ -1003,12 +1008,18 @@ mr16g_E1_int_setup(struct net_local *nl)
 
 // Configuration of E1 channel
 static int
-mr16g_E1_setup(struct net_local *nl)
+mr16g_E1_setup(struct net_device *ndev)
 {
+	hdlc_device *hdlc = dev_to_hdlc(ndev);
+	struct net_local *nl=(struct net_local*)hdlc->priv;
+	u8 mask = EXT;
 	struct ds2155_config *cfg= (struct ds2155_config *)&(nl->e1_cfg);
 	u32 tmpmap;
-	u8 tmp,*smap;
+	u8 tmp,*smap,lb_save;
 	int i;
+
+	// save LBCR (Loopback control register) before reset
+	lb_save = ds2155_getreg(nl,LBCR);
 
 
 	// Check inter-option depends
@@ -1025,7 +1036,10 @@ mr16g_E1_setup(struct net_local *nl)
 	i=0;
 	while( ds2155_getreg(nl,MSTRREG) && i< 10000)
 		i++;
-	
+
+	// Restore LBCR state
+	ds2155_setreg(nl,LBCR,lb_save);
+
 	// general configuration
 	ds2155_setreg(nl,MSTRREG,E1T1); 
 	ds2155_setreg(nl,IOCR1,0x00);	
@@ -1073,7 +1087,6 @@ mr16g_E1_setup(struct net_local *nl)
 	// Common Control Register 3
 	ds2155_setreg(nl,CCR3,0x00);	// tmss-intdis-cttui-tdatfmt-tgpcken-rdatfmt-rgpcken
 	// INTDIS=1 to disable interrupts
-	
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          	
 	// Line Interface Unit Registers
 	// Line Interface Control 1
@@ -1125,7 +1138,7 @@ mr16g_E1_setup(struct net_local *nl)
 	// Line Interface reset
 	ds2155_setreg(nl,LIC2,0xD0);	// ETS-LIRST-ibpv-TUA1-jamux-0-scld-clds  (set LIRST)
 	ds2155_setreg(nl,LIC2,0x90);	// ETS-lirst-ibpv-TUA1-jamux-0-scld-clds  (clear LIRST)
-	
+
 	//interrupt setup
 	mr16g_E1_int_setup(nl);
 
@@ -1182,8 +1195,12 @@ mr16g_E1_setup(struct net_local *nl)
 		tmp = ioread8((iotype)&(nl->hdlc_regs->CRB))&(~EXTC);
 		iowrite8(tmp,(iotype)&(nl->hdlc_regs->CRB));
     }
-        
 	
+	mdelay(10);
+	mr16g_setup_carrier(ndev,&mask);
+	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+
+
 	return 0;
 } 
 
@@ -1495,12 +1512,10 @@ static ssize_t
 store_slotmap( struct class_device *cdev,const char *buf, size_t size ) 
 {
 	struct net_device *ndev = to_net_dev(cdev);
-	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 	u32 ts=0;
 	int err;
 	char *str;
-	u8 mask = EXT;
 	
 
 	PDEBUG(DSYSFS,"start");	
@@ -1519,9 +1534,7 @@ store_slotmap( struct class_device *cdev,const char *buf, size_t size )
 		return size;
 	}
 	cfg->slotmap=ts;
-	mr16g_E1_setup(nl);		
-	mr16g_setup_carrier(ndev,&mask);
-	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+	mr16g_E1_setup(ndev);		
 	return size;
 }
 
@@ -1541,9 +1554,7 @@ static ssize_t
 store_map_ts16( struct class_device *cdev,const char *buf, size_t size ) 
 {
 	struct net_device *ndev = to_net_dev(cdev);
-	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);	
-	u8 mask = EXT;
 
 	if( size > 0 ){
 		if( buf[0] == '0' ){
@@ -1555,10 +1566,7 @@ store_map_ts16( struct class_device *cdev,const char *buf, size_t size )
 			}
 		}else
 			return size;
-		mr16g_E1_setup(nl);
-		mr16g_setup_carrier(ndev,&mask);
-		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
-		
+		mr16g_E1_setup(ndev);
 	}    
 	return size;
 }
@@ -1581,9 +1589,7 @@ static ssize_t
 store_framed( struct class_device *cdev,const char *buf, size_t size ) 
 {
 	struct net_device *ndev = to_net_dev(cdev);
-	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
-	u8 mask = EXT;
 
 	if( size > 0 ){
 		if( buf[0]=='0' )
@@ -1592,10 +1598,7 @@ store_framed( struct class_device *cdev,const char *buf, size_t size )
 			cfg->framed=1;
 		else 
 			return size;
-		mr16g_E1_setup(nl);		
-		mr16g_setup_carrier(ndev,&mask);
-		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
-		
+		mr16g_E1_setup(ndev);
 	}    
 	return size;
 }
@@ -1617,9 +1620,7 @@ static ssize_t
 store_clck( struct class_device *cdev,const char *buf, size_t size ) 
 {
 	struct net_device *ndev = to_net_dev(cdev);
-	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
-	u8 mask = EXT;
 
 	if( size > 0 ){
 		if( buf[0]=='0' )
@@ -1628,10 +1629,7 @@ store_clck( struct class_device *cdev,const char *buf, size_t size )
 		        cfg->int_clck=0;
 		else
 			return size;
-		mr16g_E1_setup(nl);
-		mr16g_setup_carrier(ndev,&mask);
-		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
-		
+		mr16g_E1_setup(ndev);
 	}    
 	return size;
 }
@@ -1654,9 +1652,7 @@ static ssize_t
 store_lhaul( struct class_device *cdev,const char *buf, size_t size ) 
 {
 	struct net_device *ndev = to_net_dev(cdev);
-	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
-	u8 mask = EXT;
 
 	if( size > 0 ){
 		if( buf[0]=='0' )
@@ -1665,9 +1661,7 @@ store_lhaul( struct class_device *cdev,const char *buf, size_t size )
 			cfg->long_haul=1;
 		else
 			return size;
-		mr16g_E1_setup(nl);		
-		mr16g_setup_carrier(ndev,&mask);
-		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+		mr16g_E1_setup(ndev);
 	}    
 	return size;
 }
@@ -1691,9 +1685,7 @@ static ssize_t
 store_hdb3( struct class_device *cdev,const char *buf, size_t size ) 
 {
 	struct net_device *ndev = to_net_dev(cdev);
-	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
-	u8 mask = EXT;
 
 	if( size > 0 ){
 		if( buf[0]=='0' )
@@ -1702,9 +1694,7 @@ store_hdb3( struct class_device *cdev,const char *buf, size_t size )
 		        cfg->hdb3=1;
 		else
 			return size;
-		mr16g_E1_setup(nl);		
-		mr16g_setup_carrier(ndev,&mask);
-		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+		mr16g_E1_setup(ndev);
 	}    
 	return size;
 }
@@ -1727,9 +1717,7 @@ static ssize_t
 store_crc4( struct class_device *cdev,const char *buf, size_t size ) 
 {
 	struct net_device *ndev = to_net_dev(cdev);
-	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
-	u8 mask = EXT;
 
 	if( size > 0 ){
 		if( buf[0]=='0' )
@@ -1738,9 +1726,7 @@ store_crc4( struct class_device *cdev,const char *buf, size_t size )
 		        cfg->crc4=1;
 		else
 			return size;
-		mr16g_E1_setup(nl);		
-		mr16g_setup_carrier(ndev,&mask);
-		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+		mr16g_E1_setup(ndev);
 	}    
 	return size;
 }
@@ -1763,9 +1749,7 @@ static ssize_t
 store_cas( struct class_device *cdev,const char *buf, size_t size ) 
 {
 	struct net_device *ndev = to_net_dev(cdev);
-	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
-	u8 mask = EXT;
 
 	if( size > 0 ){
 		if( buf[0]=='0' )
@@ -1774,9 +1758,7 @@ store_cas( struct class_device *cdev,const char *buf, size_t size )
 			cfg->cas=1;
 		else
 			return size;
-		mr16g_E1_setup(nl);		
-		mr16g_setup_carrier(ndev,&mask);
-		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+		mr16g_E1_setup(ndev);
 	}    
 
 	return size;
@@ -1807,10 +1789,12 @@ store_rloopback( struct class_device *cdev,const char *buf, size_t size )
 		return size;
 	switch( buf[0] ){
 	case '0':
+		printk(KERN_NOTICE"%s: Remote Loopback disabled\n",ndev->name);
 		tmp = ds2155_getreg(nl,LBCR) & (~RLB);
     		ds2155_setreg(nl,LBCR,tmp);
 		break;
 	case '1':
+		printk(KERN_NOTICE"%s: Remote Loopback enabled\n",ndev->name);
 		tmp = ds2155_getreg(nl,LBCR) | RLB;
     		ds2155_setreg(nl,LBCR,tmp);
 		break;
@@ -1842,6 +1826,7 @@ store_lloopback( struct class_device *cdev,const char *buf, size_t size )
 		return size;
 	switch( buf[0] ){
 	case '0':
+		printk(KERN_NOTICE"%s: Local Loopback disabled\n",ndev->name);
 		tmp = ds2155_getreg(nl,LBCR) & (~LLB);
    		ds2155_setreg(nl,LBCR,tmp);
 		// Reset carrier state
@@ -1849,6 +1834,7 @@ store_lloopback( struct class_device *cdev,const char *buf, size_t size )
    		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
 		break;
 	case '1':
+		printk(KERN_NOTICE"%s: Local Loopback enabled\n",ndev->name);
 		tmp = ds2155_getreg(nl,LBCR) | LLB;
    		ds2155_setreg(nl,LBCR,tmp);
 		// Force carrier on
@@ -2021,12 +2007,10 @@ static ssize_t
 store_mx_slotmap(struct class_device *cdev,const char *buf,size_t size)
 {
 	struct net_device *ndev = to_net_dev(cdev);    
-	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 	u32 ts=0;
 	int err;
 	char *str;
-	u8 mask = EXT;
 
 	PDEBUG(DSYSFS,"start, buf=%s",buf);	
 
@@ -2047,9 +2031,7 @@ store_mx_slotmap(struct class_device *cdev,const char *buf,size_t size)
 	cfg->mxslotmap = ts;	
 
 	PDEBUG(DSYSFS,"reset all");
-	mr16g_E1_setup(nl);
-	mr16g_setup_carrier(ndev,&mask);
-	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+	mr16g_E1_setup(ndev);
 	
 	return size;
 }
