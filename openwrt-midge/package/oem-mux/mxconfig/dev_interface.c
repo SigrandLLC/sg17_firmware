@@ -84,6 +84,10 @@ check_for_mxsupport(char *conf_path,ifdescr_t *ifd)
     return (ocnt == optsize ) ? 0 : -1;	
 }
 
+
+
+
+/* - Old one. Simple alphabetic comparision 
 static int
 compare_func(const void *p1, const void *p2)
 {
@@ -91,6 +95,61 @@ compare_func(const void *p1, const void *p2)
     ifdescr_t *d2 = *(ifdescr_t**)p2;
     
 	return strcmp((const char*)d1->name,(const char*)d2->name);
+}
+
+*/
+
+int mux_split(char *source,char *symb,int symbsize)
+{
+    int len,ret,i;
+
+    // Split to symbol & ineger parts
+    for(len = strlen(source)-1; len>0 && (source[len] >= '0' && source[len] <= '9') ;len--);
+    
+//    printf("Word=%s, len=%d\n",source,len);
+    if( !(source[len] >= '0' && source[len] <= '9') ){
+        // we have symbol part
+        for(i=0;i<=len && i<symbsize-1;i++){
+            symb[i] = source[i];
+        }
+        symb[i] = '\0';
+//        printf("transform %s, len=%d\n",source+len+1,len);
+        ret = atoi(source+len+1);
+    }else{
+        symb[0] = '\0';
+        ret = atoi(source);
+    }
+    return ret;
+}
+
+
+static int
+compare_func(const void *p1, const void *p2)
+{
+    char *d1 = *(char **)p1;
+    char *d2 = *(char **)p2;
+    
+    char symb_d1[256],symb_d2[256];
+    int int_d1,int_d2;
+    int ret;
+
+    // Split first ifname to symbol & ineger parts
+    int_d1 = mux_split(d1,symb_d1,256);
+    int_d2 = mux_split(d2,symb_d2,256);
+/*    
+    printf("Compare: %s, %s\n",d1,d2);
+    printf("symb1=%s,int1=%d\n",symb_d1,int_d1);
+    printf("symb2=%s,int2=%d\n",symb_d2,int_d2);
+*/    
+    ret =  strcasecmp((const char*)symb_d1,(const char*)symb_d2);
+    if( !ret )
+        ret = (int_d1 > int_d2) ? 1 : 0;
+    if( !ret )
+        ret = (int_d1 < int_d2) ? -1 : 0;
+        
+//    printf("ret=%d\n\n",ret);
+        
+	return ret;
 }
 
 
@@ -181,7 +240,7 @@ fill_iflist(char *conf_path,ifdescr_t **iflist,int ifcnt)
     }    
     
     
-    // Bubble sort of channels
+    // Quick sort of channels
     qsort((void*)iflist,cnt,sizeof(ifdescr_t *),compare_func);
 
     return cnt;
