@@ -126,8 +126,11 @@ int mux_split(char *source,char *symb,int symbsize)
 static int
 compare_func(const void *p1, const void *p2)
 {
-    char *d1 = *(char **)p1;
-    char *d2 = *(char **)p2;
+    ifdescr_t *if1 = *(ifdescr_t**)p1;
+    ifdescr_t *if2 = *(ifdescr_t**)p2;
+
+    char *d1 = if1->name;
+    char *d2 = if2->name;
     
     char symb_d1[256],symb_d2[256];
     int int_d1,int_d2;
