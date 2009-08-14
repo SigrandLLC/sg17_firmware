@@ -246,7 +246,7 @@ _pci_start(){
 	$kdb set sys_ifaces="$nifaces"
 	
 	# get list of interfaces with multiplexing capability (SHDSL, E1 and RS232)
-	ifaces=`mxconfig -l |awk '{print $1}' |sed 's/://g' |sort`
+	ifaces=`mxconfig -l |awk '{print $1}' |sed 's/://g'`
 	kdb set "sys_mux_ifaces=$ifaces"
 
 	pcinet_refresh
