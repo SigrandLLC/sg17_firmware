@@ -182,6 +182,10 @@ update_configs(){
     svd-vf_settings)
 		cfg_make svd-vf_settings.conf /etc/svd/hw.conf && \
 		cfg_commit
+        ;;
+    svd-jb)
+        cfg_make svd-jb.conf /etc/svd/jb.conf && \
+		cfg_commit
 		;;
 	linkdeps)
 		cfg_make link.map /etc/linkdeps/link.map && \

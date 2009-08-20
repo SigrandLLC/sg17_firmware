@@ -636,13 +636,15 @@ Controllers.voipAudio = function() {
 		"name": "Audio",
 		"func": function() {
 			var c = page.addContainer("rtp");
-            var colNum = 6;
+            var colNum = 8;
 			c.setSubsystem("svd-rtp");
 			c.addTitle("Audio settings", {"colspan": colNum});
 
-			c.addTableHeader("Channel|Type|Tx. vol|Rx. vol|VAD|HPF");
-            c.addTableTfootStr("Tx. vol: Transmit Volume (outcome volume level).", colNum);
-            c.addTableTfootStr("Rx. vol: Receive Volume (income volume level).", colNum);
+			c.addTableHeader("Channel|Type|Tx.A|Rx.A|Tx.C|Rx.C|VAD|HPF");
+            c.addTableTfootStr("Tx.A: Transmit volume settings for Analog module (outcome volume level).", colNum);
+            c.addTableTfootStr("Rx.A: Receive volume settings for Analog module (income volume level).", colNum);
+            c.addTableTfootStr("Tx.C: Transmit volume settings for Coder module (outcome volume level).", colNum);
+            c.addTableTfootStr("Rx.C: Receive volume settings for Coder module (income volume level).", colNum);
             c.addTableTfootStr("VAD:", colNum);
             c.addTableTfootStr(" - On: voice activity detection on, in this case also comfort noise and spectral information (nicer noise) is switched on.", colNum);
             c.addTableTfootStr(" - Off: no voice activity detection.", colNum);
@@ -654,7 +656,9 @@ Controllers.voipAudio = function() {
 			var channels = config.getCachedOutput("voipChannels").split("\n");
 			$.each(channels, function(num, record) {
 				var field;
-				if (record.length == 0) return true;
+				if (record.length == 0) {
+                    return true;
+                }
 				var row = c.addTableRow();
 
 				/* channel[0] — number of channel, channel[1] — type of channel */
@@ -681,7 +685,25 @@ Controllers.voipAudio = function() {
 				}
 				vol = $.trim(vol);
 
-				/* COD_Tx_vol */
+                /* Tx.A */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_sound_%s_txa", channel[0]),
+					"options": vol,
+					"defaultValue": "0"
+				};
+				c.addTableWidget(field, row);
+
+				/* Rx.A */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_sound_%s_rxa", channel[0]),
+					"options": vol,
+					"defaultValue": "0"
+				};
+				c.addTableWidget(field, row);
+
+				/* Tx.C */
 				field = {
 					"type": "select",
 					"name": $.sprintf("sys_voip_sound_%s_cod_tx_vol", channel[0]),
@@ -690,7 +712,7 @@ Controllers.voipAudio = function() {
 				};
 				c.addTableWidget(field, row);
 
-				/* COD_Rx_vol */
+				/* Rx.C */
 				field = {
 					"type": "select",
 					"name": $.sprintf("sys_voip_sound_%s_cod_rx_vol", channel[0]),
@@ -1161,6 +1183,145 @@ Controllers.voipDialMode = function() {
 					"options": {"tone": "tone/pulse", "pulse": "pulse"}
 				};
 				c.addTableWidget(field, row);
+			});
+
+			c.addSubmit();
+		}
+	});
+
+	page.generateTabs();
+};
+
+/* Jitter buffer, FXO, FXS, VF */
+Controllers.voipJitterBuffer = function() {
+	var page = this.Page();
+
+	page.addTab({
+		"id": "jitterBuffer",
+		"name": "Jitter Buffer",
+		"func": function() {
+			var c = page.addContainer("jitterBuffer");
+            var colNum = 9;
+			c.setSubsystem("svd-jb");
+			c.addTitle("Jitter Buffer settings", {"colspan": colNum});
+
+			c.addTableHeader("Channel|JB Type|Pkt.Adpt.|AT|nScaling|nMin|<= nInit <=|nMax");
+            c.addTableTfootStr("AT: Adaptation Type:", colNum);
+            c.addTableTfootStr(" - SI: on wtih sample interpollation.", colNum);
+            c.addTableTfootStr("nScaling: scaling factor multiplied by 16.", colNum);
+            c.addTableTfootStr("nInit: initial size of the jitter buffer in timestamps of 125 us.", colNum);
+            c.addTableTfootStr("nMin: minimum size of the jitter buffer in timestamps of 125 us.", colNum);
+            c.addTableTfootStr("nMax: maximum size of the jitter buffer in timestamps of 125 us:", colNum);
+
+            var mutableAttrs = ["n_scaling", "n_init_size", "n_min_size", "n_max_size"];
+
+            var onTypeChange = function(channel) {
+                var type = $($.sprintf("#sys_voip_jb_%s_type", channel)).val();
+
+                /* set/unset local_at read-only */
+                $($.sprintf("#sys_voip_jb_%s_local_at", channel))
+                        .setSelectReadonly(type == "adaptive" ? false : true);
+
+                if (type == "fixed") {
+                    $(mutableAttrs).each(function(num, attr) {
+                        $($.sprintf("#sys_voip_jb_%s_%s", channel, attr)).attr("readonly", true);
+                    });
+                } else {
+                    $(mutableAttrs).each(function(num, attr) {
+                        $($.sprintf("#sys_voip_jb_%s_%s", channel, attr)).removeAttr("readonly");
+                    });
+                }
+            }
+
+			var channels = config.getCachedOutput("voipChannels").split("\n");
+			$.each(channels, function(num, record) {
+				var field;
+				if (record.length == 0) {
+                    return true;
+                }
+				var row = c.addTableRow();
+
+				/* channel[0] — number of channel, channel[1] — type of channel */
+				var channel = record.split(":");
+
+				field = {
+					"type": "html",
+					"name": channel[0],
+					"str": channel[0] + " " + channel[1]
+				};
+				c.addTableWidget(field, row);
+
+                /* type */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_jb_%s_type", channel[0]),
+					"options": {"fixed": "Fixed", "adaptive": "Adaptive"},
+					"defaultValue": "fixed",
+                    "onChange": function() {
+                        onTypeChange(channel[0]);
+                    }
+				};
+				c.addTableWidget(field, row);
+
+				/* pkt_adpt */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_jb_%s_pkt_adpt", channel[0]),
+					"options": {"voice": "Voice", "data": "Data"},
+					"defaultValue": "voice"
+				};
+				c.addTableWidget(field, row);
+
+				/* local_at */
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_voip_jb_%s_local_at", channel[0]),
+					"options": "off on SI",
+					"defaultValue": "off"
+				};
+				c.addTableWidget(field, row);
+
+				/* n_scaling */
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_voip_jb_%s_n_scaling", channel[0]),
+					"defaultValue": "22",
+                    "validator": {"min": 16, "max": 255}
+				};
+				c.addTableWidget(field, row);
+
+                /* n_min_size */
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_voip_jb_%s_n_min_size", channel[0]),
+					"defaultValue": "10",
+                    "validator": {"min": 0}
+				};
+				c.addTableWidget(field, row);
+
+                /* n_init_size */
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_voip_jb_%s_n_init_size", channel[0]),
+					"defaultValue": "20",
+                    "validator": {"dynamicRange": [
+                            $.sprintf("#sys_voip_jb_%s_n_min_size", channel[0]),
+                            $.sprintf("#sys_voip_jb_%s_n_max_size", channel[0])
+                        ]
+                    }
+				};
+				c.addTableWidget(field, row);
+
+                /* n_max_size */
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_voip_jb_%s_n_max_size", channel[0]),
+					"defaultValue": "100",
+                    "validator": {"min": 0}
+				};
+				c.addTableWidget(field, row);
+
+                onTypeChange(channel[0]);
 			});
 
 			c.addSubmit();

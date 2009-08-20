@@ -129,7 +129,9 @@ jQuery.validator.addMethod("tos", function(value, element) {
 
 /* Unique value among all elements specified with selector in parameter */
 jQuery.validator.addMethod("uniqueValue", function(value, element, params) {
-	if (this.optional(element)) return true;
+	if (this.optional(element)) {
+        return true;
+    }
 	var unique = true;
 	$(params).not(element).each(function(num, anotherValue) {
 		if ($(anotherValue).val() == value) {
@@ -140,6 +142,18 @@ jQuery.validator.addMethod("uniqueValue", function(value, element, params) {
 	return unique;
 }, "Please enter unique values.");
 
+/* value must be more than first parameter, and less than second parameter, parameters are selectors */
+jQuery.validator.addMethod("dynamicRange", function(value, element, params) {
+	if (this.optional(element)) {
+        return true;
+    }
+
+    var val = parseInt(value, 10);
+    var min = parseInt($(params[0]).val(), 10);
+    var max = parseInt($(params[1]).val(), 10);
+
+    return val >= min && val <= max;
+}, "Value must be more than minimum and less than maximum.");
 
 /*
  * Plugin name: len.
