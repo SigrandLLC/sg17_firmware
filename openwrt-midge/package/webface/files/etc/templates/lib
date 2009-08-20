@@ -141,6 +141,7 @@ update_configs(){
         cfg_make svd-wlec.conf /etc/svd/wlec.conf && \
         cfg_make svd-fxo.conf /etc/svd/fxo.conf && \
         cfg_make svd-vf_settings.conf /etc/svd/hw.conf && \
+        cfg_make svd-jb.conf /etc/svd/jb.conf && \
 		cfg_commit
 		;;
 	svd-main)
