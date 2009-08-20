@@ -1206,9 +1206,11 @@ Controllers.voipJitterBuffer = function() {
 			c.addTitle("Jitter Buffer settings", {"colspan": colNum});
 
 			c.addTableHeader("Channel|JB Type|Pkt.Adpt.|AT|nScaling|nMin|<= nInit <=|nMax");
+            c.addTableTfootStr("JB Type: jitter buffer type.", colNum);
+            c.addTableTfootStr("Pkt.Adpt.: packet adaptation.", colNum);
             c.addTableTfootStr("AT: Adaptation Type:", colNum);
             c.addTableTfootStr(" - SI: on wtih sample interpollation.", colNum);
-            c.addTableTfootStr("nScaling: scaling factor multiplied by 16.", colNum);
+            c.addTableTfootStr("nScaling (16-255): scaling factor multiplied by 16. An increase of the scaling factor will eventually lead to an increased play out delay.", colNum);
             c.addTableTfootStr("nInit: initial size of the jitter buffer in timestamps of 125 us.", colNum);
             c.addTableTfootStr("nMin: minimum size of the jitter buffer in timestamps of 125 us.", colNum);
             c.addTableTfootStr("nMax: maximum size of the jitter buffer in timestamps of 125 us:", colNum);
