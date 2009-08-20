@@ -1205,13 +1205,13 @@ Controllers.voipJitterBuffer = function() {
 			c.setSubsystem("svd-jb");
 			c.addTitle("Jitter Buffer settings", {"colspan": colNum});
 
-			c.addTableHeader("Channel|JB Type|Pkt.Adpt.|AT|nScaling|nMin|<= nInit <=|nMax");
+			c.addTableHeader("Channel|JB Type|Pkt.Adpt.|LAT|nScaling|nInit|nMin|nMax");
             c.addTableTfootStr("JB Type: jitter buffer type.", colNum);
             c.addTableTfootStr("Pkt.Adpt.: packet adaptation.", colNum);
-            c.addTableTfootStr("AT: Adaptation Type:", colNum);
+            c.addTableTfootStr("LAT: Local Adaptation Type:", colNum);
             c.addTableTfootStr(" - SI: on wtih sample interpollation.", colNum);
             c.addTableTfootStr("nScaling (16-255): scaling factor multiplied by 16. An increase of the scaling factor will eventually lead to an increased play out delay.", colNum);
-            c.addTableTfootStr("nInit: initial size of the jitter buffer in timestamps of 125 us.", colNum);
+            c.addTableTfootStr("nInit: initial size of the jitter buffer in timestamps of 125 us, nMin <= nInit <= nMax.", colNum);
             c.addTableTfootStr("nMin: minimum size of the jitter buffer in timestamps of 125 us.", colNum);
             c.addTableTfootStr("nMax: maximum size of the jitter buffer in timestamps of 125 us:", colNum);
 
@@ -1292,15 +1292,6 @@ Controllers.voipJitterBuffer = function() {
 				};
 				c.addTableWidget(field, row);
 
-                /* n_min_size */
-				field = {
-					"type": "text",
-					"name": $.sprintf("sys_voip_jb_%s_n_min_size", channel[0]),
-					"defaultValue": "10",
-                    "validator": {"min": 0}
-				};
-				c.addTableWidget(field, row);
-
                 /* n_init_size */
 				field = {
 					"type": "text",
@@ -1311,6 +1302,15 @@ Controllers.voipJitterBuffer = function() {
                             $.sprintf("#sys_voip_jb_%s_n_max_size", channel[0])
                         ]
                     }
+				};
+				c.addTableWidget(field, row);
+
+                /* n_min_size */
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_voip_jb_%s_n_min_size", channel[0]),
+					"defaultValue": "10",
+                    "validator": {"min": 0}
 				};
 				c.addTableWidget(field, row);
 
