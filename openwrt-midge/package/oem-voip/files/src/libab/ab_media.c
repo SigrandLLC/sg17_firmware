@@ -64,6 +64,7 @@ ab_chan_fax_pass_through_start( ab_chan_t * const chan )
  * \param[in,out] chan channel to operate on.
  * \param[in] cod codec type and parameters.
  * \param[in] fcod fax codec type and parameters.
+ * \param[in] rtpp rtp parameters to set on given channel.
  * \retval	0 in success.
  * \retval	-1 if fail.
  * \remark
@@ -71,14 +72,14 @@ ab_chan_fax_pass_through_start( ab_chan_t * const chan )
  */ 
 int 
 ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
-		codec_t const * const fcod)
+		codec_t const * const fcod, rtp_session_prms_t const * const rtpp)
 {/*{{{*/
 	IFX_TAPI_PKT_RTP_PT_CFG_t rtpPTConf;
 	IFX_TAPI_PKT_RTP_CFG_t rtpConf;
 	IFX_TAPI_PKT_VOLUME_t codVolume;
+	IFX_TAPI_LINE_VOLUME_t almVolume;
 	IFX_TAPI_ENC_CFG_t encCfg;
 	IFX_TAPI_DEC_CFG_t decCfg;
-	rtp_session_prms_t * rtpp = &chan->rtp_cfg;
 	int vad_param;
 	int hpf_param;
 	int fcodt;
@@ -89,6 +90,7 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 	memset(&rtpPTConf, 0, sizeof(rtpPTConf));
 	memset(&rtpConf, 0, sizeof(rtpConf));
 	memset(&codVolume, 0, sizeof(codVolume));
+	memset(&almVolume, 0, sizeof(almVolume));
 	memset(&encCfg, 0, sizeof(encCfg));
 	memset(&decCfg, 0, sizeof(decCfg));
 
@@ -209,8 +211,12 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 	rtpConf.nPlayEvents = IFX_TAPI_PKT_EV_OOBPLAY_MUTE;
 	/*}}}*/
 	/* Configure encoder and decoder gains {{{*/
-	codVolume.nEnc = rtpp->cod_volume.enc_dB;
-	codVolume.nDec = rtpp->cod_volume.dec_dB;
+	codVolume.nEnc = rtpp->enc_dB;
+	codVolume.nDec = rtpp->dec_dB;
+	/*}}}*/
+	/* Configure ALM gains {{{*/
+	almVolume.nGainRx = rtpp->ARX_dB;
+	almVolume.nGainTx = rtpp->ATX_dB;
 	/*}}}*/
 	/* Set the VAD configuration {{{*/
 	switch(rtpp->VAD_cfg){
@@ -238,6 +244,7 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 		hpf_param = IFX_FALSE;
 	}
 	/*}}}*/
+
 #if 0/*{{{*/
 fprintf(stderr,"[e%d/d%d] ",codVolume.nEnc,codVolume.nDec);
 switch(rtpp->VAD_cfg){
@@ -312,6 +319,14 @@ fprintf(stderr," hpf off\n");
 		err_summary++;
 	}
 
+	/* Configure Analog channel gains */
+	err = 0;
+	err = ioctl(chan->rtp_fd, IFX_TAPI_PHONE_VOLUME_SET, &almVolume);
+	if(err){
+		ab_err_set(AB_ERR_UNKNOWN, "alm gains set ioctl error");
+		err_summary++;
+	}
+
 	/* Configure high-pass filter */
 	err = 0;
 	err = ioctl(chan->rtp_fd, IFX_TAPI_COD_DEC_HP_SET, hpf_param);
@@ -324,6 +339,53 @@ __exit:
 	if(err_summary){
 		err = -1;
 	}
+	return err;
+}/*}}}*/
+
+/**
+ *	Tune JB parameters on given channel
+ *
+ * \param[in,out] chan channel to operate on.
+ * \param[in] jbp jitter buffer parameters to set on given channel.
+ * \retval	0 in success.
+ * \retval	-1 if fail.
+ */ 
+int 
+ab_chan_media_jb_tune( ab_chan_t * const chan, jb_prms_t const * const jbp)
+{/*{{{*/
+	IFX_TAPI_JB_CFG_t jbCfg;
+	int err;
+
+	memset(&jbCfg, 0, sizeof(jbCfg));
+
+	if       (jbp->jb_type == jb_type_FIXED){
+		jbCfg.nJbType = IFX_TAPI_JB_TYPE_FIXED;
+	} else if(jbp->jb_type == jb_type_ADAPTIVE){
+		jbCfg.nJbType = IFX_TAPI_JB_TYPE_ADAPTIVE;
+	}
+	if       (jbp->jb_pk_adpt == jb_pk_adpt_VOICE){
+		jbCfg.nPckAdpt = IFX_TAPI_JB_PKT_ADAPT_VOICE;
+	} else if(jbp->jb_pk_adpt == jb_pk_adpt_DATA){
+		jbCfg.nPckAdpt = IFX_TAPI_JB_PKT_ADAPT_DATA;
+	}
+	if       (jbp->jb_loc_adpt == jb_loc_adpt_OFF){
+		jbCfg.nLocalAdpt = IFX_TAPI_JB_LOCAL_ADAPT_OFF;
+	} else if(jbp->jb_loc_adpt == jb_loc_adpt_ON){
+		jbCfg.nLocalAdpt = IFX_TAPI_JB_LOCAL_ADAPT_ON;
+	} else if(jbp->jb_loc_adpt == jb_loc_adpt_SI){
+		jbCfg.nLocalAdpt = IFX_TAPI_JB_LOCAL_ADAPT_SI_ON;
+	}
+	jbCfg.nScaling = jbp->jb_scaling;
+	jbCfg.nInitialSize = jbp->jb_init_sz;
+	jbCfg.nMinSize = jbp->jb_min_sz;
+	jbCfg.nMaxSize = jbp->jb_max_sz;
+
+	/* Configure jitter buffer */
+	err = ioctl(chan->rtp_fd, IFX_TAPI_JB_CFG_SET, &jbCfg);
+	if(err){
+		ab_err_set(AB_ERR_UNKNOWN, "jb cfg set ioctl error");
+	}
+
 	return err;
 }/*}}}*/
 

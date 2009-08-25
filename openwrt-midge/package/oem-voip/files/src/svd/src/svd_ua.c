@@ -286,7 +286,7 @@ DFE
  *
  * \param[in] svd 			context pointer.
  * \param[in] use_ff_FXO 	use first free fxo port on destination router.
- * \param[in] chan_idx 		initiator channel index.
+ * \param[in] chan  		initiator channel.
  *
  * \remark
  * 		Uses global \ref g_conf.
@@ -566,6 +566,14 @@ DFS
 DFE
 }/*}}}*/
 
+/**
+ * Check if given channel is elder than it`s pair. 
+ *
+ * \param[in] chan channel to check.
+ *
+ * \retval 1 - Given channel is elder than it`s pair.
+ * \retval 0 - Given channel is junior for it`s pair.
+ */ 
 static int
 svd_vf_is_elder(ab_chan_t * const chan)
 {/*{{{*/
@@ -805,6 +813,12 @@ DFE
 	return -1;
 }/*}}}*/
 
+/**
+ * Place the call for the VF-channel to it`s pair.
+ *
+ * \remark
+ *	Call parameters should be set outside.
+ */
 static void
 vf_timer_cb(su_root_magic_t *magic, su_timer_t *t, su_timer_arg_t *arg)
 {/*{{{*/
@@ -864,6 +878,14 @@ DFS
 DFE
 }/*}}}*/
 
+/**
+ * Actions on incoming INVITE request to the FXS/FXO-channel.
+ *
+ * \param[in] 	svd		svd context structure.
+ * \param[in] 	chan	channel context structure.
+ * \param[in] 	nh		event handle.
+ * \param[in] 	sip		sip headers.
+ */
 static void
 svd_FXx_i_invite( svd_t * const svd, ab_chan_t * chan,
 		nua_handle_t * nh, sip_t const *sip)
@@ -903,6 +925,14 @@ __exit:
 DFE
 }/*}}}*/
 
+/**
+ * Actions on incoming INVITE request to the VF-channel.
+ *
+ * \param[in] 	svd		svd context structure.
+ * \param[in] 	chan	channel context structure.
+ * \param[in] 	nh		event handle.
+ * \param[in] 	sip		sip headers.
+ */
 static void
 svd_VF_i_invite( svd_t * const svd, ab_chan_t * chan,
 		nua_handle_t * nh, sip_t const *sip)
@@ -996,6 +1026,13 @@ __exit:
 DFE
 }/*}}}*/
 
+/**
+ * Actions on incoming INVITE request from the outside net.
+ *
+ * \param[in] 	svd		svd context structure.
+ * \param[in] 	nh		event handle.
+ * \param[in] 	sip		sip headers.
+ */
 static void
 svd_REM_i_invite( svd_t * const svd, nua_handle_t * nh, sip_t const *sip)
 {/*{{{*/
@@ -1400,7 +1437,7 @@ DFE
 /**
  * Incoming PRACK request.\ Note, call state related actions are
  * done in the \ref svd_i_state() callback.
- *
+ * 
  * \param[in] 	nh		event handle.
  * \param[in] 	chan	channel context structure.
  * \param[in] 	sip		sip headers.
@@ -1419,6 +1456,20 @@ DFS
 DFE
 }/*}}}*/
 
+/**
+ * Get digit from channels round buffer and dial it in given mode.
+ * 
+ * \param[in] 	chan		channel to operate on.
+ * \param[in] 	pulseMode	should we dial in pulse.
+ * \remark
+ *	It is also mutes the outcoming voice to do not affect tone 
+ *	detection on the channel.
+ *	It is forks for dial because diling get some time, and if we will
+ *	dial in the main process it would not process the in/out voice traffic.
+ *	It sets highest priority of RR scheduler because if we need dial in pulse,
+ *	time intervals of on/off-hooks should be certain as we want (with normal - 
+ *	not real time scheduller we got time lags).
+ */
 void
 svd_get_digit(ab_chan_t * const chan, int const pulseMode)
 {/*{{{*/
@@ -1432,7 +1483,7 @@ svd_get_digit(ab_chan_t * const chan, int const pulseMode)
 	sigaction (SIGCHLD, &act, NULL);
 
 	/* holding media while dialing a digit */
-	ab_chan_media_volume (chan,-24, g_conf.rtp_prms[chan->abs_idx].COD_Rx_vol);
+	ab_chan_media_volume (chan,-24, g_conf.audio_prms[chan->abs_idx].dec_dB);
 
 	pid = fork();
 	if(pid == 0){       /* child */
@@ -1454,6 +1505,14 @@ svd_get_digit(ab_chan_t * const chan, int const pulseMode)
 	}
 }/*}}}*/
 
+/**
+ * Add digit to the channels round buffer.
+ * 
+ * \param[in]		svd			context.
+ * \param[in,out] 	chan		channel to operate on.
+ * \param[in]		digit		digit to put in buffer.
+ * \param[in]		pulseMode	should we dial in pulse.
+ */
 void
 svd_put_digit(svd_t * const svd, ab_chan_t * const chan, char digit, 
 		int const pulseMode)
@@ -1472,6 +1531,17 @@ svd_put_digit(svd_t * const svd, ab_chan_t * const chan, char digit,
 	}
 }/*}}}*/
 
+/**
+ * Do some, then child finishing dial a digit.
+ * 
+ * \param[in] 	signum	signal number.
+ * \param[in] 	sinf	signal additional info.
+ * \param[in] 	sctx	signal context.
+ * \remark
+ *	It get the channel abs_idx from the child return code.
+ *	It is also restore volume level on the channel.
+ *	If dial buf is not empty, it initiate next dial.
+ */
 void
 svd_child_handler(int signum, siginfo_t * sinf, void * sctx)
 {/*{{{*/
@@ -1484,8 +1554,8 @@ svd_child_handler(int signum, siginfo_t * sinf, void * sctx)
 
 	ctx->dial_get_idx = (ctx->dial_get_idx+1) % DIAL_RBUF_LEN;
 
-	ab_chan_media_volume (chan, g_conf.rtp_prms[sinf->si_status].COD_Tx_vol,
-			g_conf.rtp_prms[sinf->si_status].COD_Rx_vol);
+	ab_chan_media_volume (chan, g_conf.audio_prms[sinf->si_status].enc_dB,
+			g_conf.audio_prms[sinf->si_status].dec_dB);
 
 	if(ctx->dial_get_idx != ctx->dial_put_idx){
 		/* we have some to dial */
@@ -1827,7 +1897,7 @@ DFE
 /**
  * Creates SDP string for given channel context.
  *
- * \param[in] 	ctx		channel context with connection parameters.
+ * \param[in] 	chan	channel with connection parameters.
  * \remark
  * 		Memory should be freed outside of the function.
  */

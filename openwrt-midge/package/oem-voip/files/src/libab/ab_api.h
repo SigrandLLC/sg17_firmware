@@ -8,6 +8,7 @@ typedef enum ab_dev_type_e ab_dev_type_t;
 typedef enum cod_type_e cod_type_t;
 typedef struct codec_s codec_t;
 typedef struct wlec_s wlec_t;
+typedef struct jb_prms_s jb_prms_t;
 typedef struct rtp_session_prms_s rtp_session_prms_t;
 typedef struct ab_chan_s ab_chan_t;
 typedef struct ab_dev_s ab_dev_t;
@@ -84,13 +85,36 @@ enum vad_cfg_e {
 	vad_cfg_CNG_only,
 	vad_cfg_SC_only
 };
+enum jb_type_e {
+	jb_type_FIXED, 
+	jb_type_ADAPTIVE
+};
+enum jb_pk_adpt_e {
+	jb_pk_adpt_VOICE, 
+	jb_pk_adpt_DATA
+};
+enum jb_loc_adpt_e {
+	jb_loc_adpt_OFF, 
+	jb_loc_adpt_ON, 
+	jb_loc_adpt_SI /**< local adaptation on with sample interpollation */
+};
+/** Jitter buffer configuration parameters */
+struct jb_prms_s {
+	enum jb_type_e     jb_type;		/**< JB type */
+	enum jb_pk_adpt_e  jb_pk_adpt;  /**< JB packet adaptation type */
+	enum jb_loc_adpt_e jb_loc_adpt; /**< JB local adaptation type */
+	char jb_scaling; /**< scaling value*16 [16;255], increase -> more delay */
+	unsigned short jb_init_sz; /**< initial buffer size */
+	unsigned short jb_min_sz; /**< minimal buffer size */
+	unsigned short jb_max_sz; /**< maximum buffer size */
+};
 	
 /** RTP session configuration parameters */
 struct rtp_session_prms_s {
-	struct cod_volume_s {
-		int enc_dB;
-		int dec_dB;
-	} cod_volume; /**< Coder volume in both directions */
+	int enc_dB; /**< Coder enc gain */
+	int dec_dB; /**< Coder dec gain */
+	int ATX_dB; /**< Analog TX gain */
+	int ARX_dB; /**< Analog RX gain */
 	enum vad_cfg_e VAD_cfg; /**< Voice Activity Detector configuration */
 	unsigned char HPF_is_ON; /**< High Pass Filter is ON? */
 };
@@ -165,7 +189,6 @@ struct ab_chan_s {
 	ab_dev_t * parent;  /**< device that channel belongs */
 	int rtp_fd;         /**< Channel file descriptor */
 	struct ab_chan_status_s status;  /**< Channel status info */
-	struct rtp_session_prms_s rtp_cfg; /**< Channel RTP configuration */
 	void * ctx; /**< Channel context pointer (for user app) */
 };
 
@@ -173,7 +196,7 @@ struct ab_dev_s {
 	unsigned int idx;	/**< Device index on boards (from 1) */
 	ab_dev_type_t type;	/**< Device type */
 	ab_t * parent;		/**< Parent board pointer */
-	int cfg_fd;             /**< Device config file descriptor */
+	int cfg_fd;         /**< Device config file descriptor */
 	void * ctx; /**< Device context (for user app) */
 };
 
@@ -288,7 +311,9 @@ int ab_dev_event_get(
 int ab_chan_fax_pass_through_start( ab_chan_t * const chan );
 /** Tune rtp parameters on selected chan */
 int ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
-		codec_t const * const fcod);
+		codec_t const * const fcod, rtp_session_prms_t const * const rtpp);
+/** Tune jitter buffer parameters on selected chan */
+int ab_chan_media_jb_tune( ab_chan_t * const chan, jb_prms_t const * const jbp);
 /** Tune wlec parameters on selected chan */
 int ab_chan_media_wlec_tune( ab_chan_t * const chan, wlec_t const * const wp );
 /** Switch on/off media on selected chan */

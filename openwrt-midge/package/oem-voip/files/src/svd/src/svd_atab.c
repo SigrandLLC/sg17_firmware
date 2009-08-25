@@ -123,9 +123,6 @@ static int set_route_ip (svd_chan_t * const chan_ctx);
 /** Choose direction for call in local network.*/
 static int local_connection_selector
 		( svd_t * const svd, int const use_ff_FXO, ab_chan_t * const chan);
-/** Call to channel on self router.*/
-static int svd_self_call
-	( svd_t * const svd, ab_chan_t * const src_chan, int const use_ff_FXO );
 /** @}*/ 
 
 /** @defgroup ATA_VF_I Voice Frequency CRAM internals.
@@ -499,9 +496,17 @@ ab_chan_media_activate ( ab_chan_t * const chan )
 	}
 
 	/* RTP */
-	err = ab_chan_media_rtp_tune (chan, &ctx->vcod, &ctx->fcod);
+	err = ab_chan_media_rtp_tune (chan, &ctx->vcod, &ctx->fcod, 
+			&g_conf.audio_prms[chan->abs_idx]);
 	if(err){
 		SU_DEBUG_1(("Media_tune error : %s",ab_g_err_str));
+		goto __exit;
+	}
+
+	/* Jitter Buffer */
+	err = ab_chan_media_jb_tune (chan, &g_conf.jb_prms[chan->abs_idx]);
+	if(err){
+		SU_DEBUG_1(("JB_tune error : %s",ab_g_err_str));
 		goto __exit;
 	}
 
@@ -512,13 +517,6 @@ ab_chan_media_activate ( ab_chan_t * const chan )
 		goto __exit;
 	}
 
-	/*
-	err = ab_chan_media_enc_hold (chan, 0);
-	if(err){
-		SU_DEBUG_1(("Media Hold off error : %s",ab_g_err_str));
-		goto __exit;
-	}
-	*/
 	err = ab_chan_media_switch (chan, 1, 1);
 	if(err){
 		SU_DEBUG_1(("Media activate error : %s",ab_g_err_str));
@@ -696,8 +694,6 @@ __exit_fail:
  * 		\retval 0 	if etherything ok.
  * \todo
  * 		In ideal world it should be reenterable or mutexes should be used.
- * 		Also, then we calculate chan_idx, we should use more abstract way, 
- * 		that encapsulate internals.
  */ 
 static int
 svd_atab_handler (svd_t * svd, su_wait_t * w, su_wakeup_arg_t * user_data)
@@ -725,8 +721,8 @@ do{
 		/* in evt.ch we have proper number of the chan */
 		chan_idx = dev_idx * svd->ab->chans_per_dev + evt.ch;
 	} else {
-		/* in evt.ch we do not have proper number of the chan 
-		 * because the event is the device event - not the chan event
+		/* in evt.ch we do not have proper number of the chan because 
+		 * the event is the device event - not the chan event
 		 */
 		chan_idx = dev_idx * svd->ab->chans_per_dev;
 	}
@@ -951,6 +947,8 @@ DFE
 
 /**
  * It is callback on the rings to FXO channels. 
+ * \param[in] magic	svd pointer.
+ * \param[in] t		initiator timer.
  * \param[in] arg	ab channel pointer.
  * \remark
  *	Used to measure time delays between two ring detection. This function 
@@ -1202,19 +1200,6 @@ DFS
 			ctx->is_hotlined = 1;
 			ctx->hotline_addr = curr_rec->value;
 		}
-	}
-
-	/* RTP parameters */
-	for (i=0; i<CHANS_MAX; i++){
-		struct rtp_prms_s * curr_rec = &g_conf.rtp_prms[i];
-		ab_chan_t * curr_chan = svd->ab->pchans[i];
-		if( !curr_chan){
-			continue;
-		}
-		curr_chan->rtp_cfg.cod_volume.enc_dB = curr_rec->COD_Tx_vol;
-		curr_chan->rtp_cfg.cod_volume.dec_dB = curr_rec->COD_Rx_vol;
-		curr_chan->rtp_cfg.VAD_cfg = curr_rec->VAD_cfg;
-		curr_chan->rtp_cfg.HPF_is_ON = curr_rec->HPF_is_ON;
 	}
 DFE
 	return 0;
@@ -1544,7 +1529,6 @@ __exit_success:
 	return 0;
 }/*}}}*/
 
-
 /**
  * \param[in] svd		svd context structure.
  * \param[in] chan_idx 	channel on which we should dial a sequence.
@@ -1631,8 +1615,7 @@ set_route_ip (svd_chan_t * const chan_ctx)
 		}
 	}
 	if (ip_find){
-		chan_ctx->dial_status.route_ip =
-				g_conf.route_table.records[rec_idx].value;
+		chan_ctx->dial_status.route_ip = g_conf.route_table.records[rec_idx].value;
 	} else {
 		SU_DEBUG_2(("Wrong router id [%s]\n", route_id ));
 		goto __exit_fail;
@@ -1647,7 +1630,7 @@ __exit_fail:
 /**
  * \param[in] svd			svd context structure.
  * \param[in] use_ff_FXO	should we dial to first free FXO channel.
- * \param[in] chan_idx 		channel that initiate connection.
+ * \param[in] chan  		channel that initiate connection.
  * \retval -1	if somthing nasty happens.
  * \retval 0 	if etherything is ok.
  * \remark
@@ -1665,41 +1648,9 @@ DFS
 
 	if( chan_ctx->dial_status.dest_is_self == self_YES ){
 		/* Destination router is self */
-		err = svd_self_call (svd, chan, use_ff_FXO);
-	} else {
-		/* Remote router local call */
-		/* INVITE to remote router from channel (chan) */
-		err = svd_invite( svd, use_ff_FXO, chan);
+		chan_ctx->dial_status.route_ip = g_conf.self_ip;
 	}
-	if (err){
-		goto __exit_fail;
-	}
-
-DFE
-	return 0;
-__exit_fail:
-DFE
-	return -1;
-}/*}}}*/
-
-/**
- * \param[in] svd			svd context structure.
- * \param[in] src_chan_idx 	channel that initiate connection.
- * \param[in] use_ff_FXO	should we dial to first free FXO channel.
- * \retval -1	if somthing nasty happens.
- * \retval 0 	if etherything is ok.
- * \todo
- * 		In the future it can be rewritten to do not use the network. 
- * 		Just poll() and read()/write() on appropriate channels.
- */ 
-static int
-svd_self_call (svd_t * const svd, ab_chan_t * const src_chan, int const use_ff_FXO)
-{/*{{{*/
-	int err;
-DFS
-	((svd_chan_t*)(src_chan->ctx))->dial_status.route_ip = g_conf.self_ip;
-	/* INVITE to self router as to remote */
-	err = svd_invite (svd, use_ff_FXO, src_chan);
+	err = svd_invite( svd, use_ff_FXO, chan);
 DFE
 	return err;
 }/*}}}*/
@@ -1707,7 +1658,7 @@ DFE
 /**
  * \param[in] 	root 		root object that contain wait object.
  * \param[in] 	w			wait object that emits.
- * \param[in] 		user_data	channel that gives RTP data.
+ * \param[in] 	user_data	channel that gives RTP data.
  * \retval -1	if somthing nasty happens.
  * \retval 0 	if etherything is ok.
  */ 
@@ -1933,7 +1884,7 @@ DFE
 }/*}}}*/
 
 /**
- * \param[in,out] chan_ctx 	channel context on which we set socket parameters.
+ * \param[in,out] ctx 	channel context on which we set socket parameters.
  * \retval -1	if somthing nasty happens.
  * \retval 0 	if etherything is ok.
  */ 

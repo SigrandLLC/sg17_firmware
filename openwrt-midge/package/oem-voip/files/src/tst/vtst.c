@@ -427,20 +427,22 @@ start_connection(ab_t * const ab)
 {/*{{{*/
 	ab_chan_t * c1 = &ab->chans[g_status.c1_id];
 	ab_chan_t * c2 = &ab->chans[g_status.c2_id];
+	rtp_session_prms_t rtpp;
+
 	int err = 0;
 
-	/* tune all */
-	c1->rtp_cfg.cod_volume.enc_dB = 
-		c2->rtp_cfg.cod_volume.enc_dB = g_so.vol;
-	c1->rtp_cfg.cod_volume.dec_dB = 
-		c2->rtp_cfg.cod_volume.dec_dB =	g_so.vol;
-	c1->rtp_cfg.VAD_cfg = 
-		c2->rtp_cfg.VAD_cfg =			g_so.vad;
-	c1->rtp_cfg.HPF_is_ON = 
-		c2->rtp_cfg.HPF_is_ON =			g_so.hpf;
+	memset(&rtpp, 0, sizeof(rtpp));
 
-	err += ab_chan_media_rtp_tune(c1, &g_so.vcod, &g_so.fcod);
-	err += ab_chan_media_rtp_tune(c2, &g_so.vcod, &g_so.fcod);
+	/* tune all */
+	rtpp.enc_dB = g_so.vol;
+	rtpp.dec_dB = g_so.vol;
+	rtpp.ATX_dB = 0;
+	rtpp.ARX_dB = 0;
+	rtpp.VAD_cfg = g_so.vad;
+	rtpp.HPF_is_ON = g_so.hpf;
+
+	err += ab_chan_media_rtp_tune(c1, &g_so.vcod, &g_so.fcod, &rtpp);
+	err += ab_chan_media_rtp_tune(c2, &g_so.vcod, &g_so.fcod, &rtpp);
 
 	/* start enc / dec */
 	err += ab_chan_media_switch (c1, 1,1);

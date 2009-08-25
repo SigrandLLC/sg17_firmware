@@ -31,8 +31,8 @@ void svd_bye (svd_t * const svd, ab_chan_t * const chan);
 void svd_refresh_registration (svd_t * const svd);
 /** Shutdown SIP stack.*/
 void svd_shutdown (svd_t * const svd);
-/** Place tf-calls.*/
-int svd_place_tf (svd_t * const svd);
+/** Place VF-calls.*/
+int svd_place_vf (svd_t * const svd);
 /** @}*/
 
 

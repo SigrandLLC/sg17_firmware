@@ -70,6 +70,13 @@ static unsigned char g_err_no;
 #define CONF_VAD_G711 "g711"
 #define CONF_VAD_CNG_ONLY "CNG_only"
 #define CONF_VAD_SC_ONLY "SC_only"
+#define CONF_JB_TYPE_FIXED "fixed"
+#define CONF_JB_TYPE_ADAPTIVE "adaptive"
+#define CONF_JB_PK_VOICE "voice"
+#define CONF_JB_PK_DATA "data"
+#define CONF_JB_LOC_OFF "off"
+#define CONF_JB_LOC_ON "on"
+#define CONF_JB_LOC_SI "SI"
 #define CONF_WLEC_TYPE_OFF "off"
 #define CONF_WLEC_TYPE_NE  "NE"
 #define CONF_WLEC_TYPE_NFE "NFE"
@@ -98,8 +105,10 @@ static int main_init (ab_t const * const ab);
 static int fxo_init (ab_t const * const ab);
 /** Init route table configuration.*/
 static int routet_init (void);
-/** Init RTP parameters configuration.*/
-static int rtp_init (void);
+/** Init AUDIO parameters configuration.*/
+static int audio_init (void);
+/** Init Jitter Buffer parameters configuration.*/
+static int jb_init (void);
 /** Init WLEC parameters configuration.*/
 static int wlec_init (ab_t const * const ab);
 /** Init voice frequency channels configuration.*/
@@ -226,7 +235,8 @@ svd_conf_init( ab_t const * const ab )
 	if(		main_init (ab) 	||
 			fxo_init (ab)	||
 			routet_init()	||
-			rtp_init()		||
+			audio_init()	||
+			jb_init()		||
 			wlec_init (ab)	||
 			voicef_init(ab) ||
 			hotline_init(ab) ||
@@ -1490,18 +1500,18 @@ __exit_fail:
 }/*}}}*/
 
 /**
- * Init`s RTP parameters in main routine configuration \ref g_conf structure.
+ * Init`s AUDIO parameters in main routine configuration \ref g_conf structure.
  *
  * \retval 0 success.
  * \retval -1 fail.
  */ 
 static int
-rtp_init( void )
+audio_init( void )
 {/*{{{*/
 	struct config_t cfg;
 	struct config_setting_t * set;
 	struct config_setting_t * rec_set;
-	struct rtp_prms_s * curr_rec;
+	struct rtp_session_prms_s * curr_rec;
 	char const * elem;
 	int rec_num;
 	int i;
@@ -1518,14 +1528,16 @@ rtp_init( void )
 	} 
 
 	/* Standart params for all chans */
-	curr_rec = &g_conf.rtp_prms[0];
-	curr_rec->COD_Tx_vol = 0;
-	curr_rec->COD_Rx_vol = 0;
+	curr_rec = &g_conf.audio_prms[0];
+	curr_rec->enc_dB = 0;
+	curr_rec->dec_dB = 0;
+	curr_rec->ATX_dB = 0;
+	curr_rec->ARX_dB = 0;
 	curr_rec->VAD_cfg = vad_cfg_OFF;
 	curr_rec->HPF_is_ON = 0;
 	for (i=1; i<CHANS_MAX; i++){
-		curr_rec = &g_conf.rtp_prms[i];
-		memcpy(curr_rec, &g_conf.rtp_prms[0], sizeof(*curr_rec));
+		curr_rec = &g_conf.audio_prms[i];
+		memcpy(curr_rec, &g_conf.audio_prms[0], sizeof(*curr_rec));
 	} 
 
 	/* Get values */
@@ -1551,11 +1563,13 @@ rtp_init( void )
 		elem = config_setting_get_string_elem (rec_set, 0);
 		abs_idx = strtol(elem, NULL, 10);
 
-		curr_rec = &g_conf.rtp_prms[ abs_idx ];
+		curr_rec = &g_conf.audio_prms[ abs_idx ];
 
-		curr_rec->COD_Tx_vol = config_setting_get_int_elem(rec_set, 1);
-		curr_rec->COD_Rx_vol = config_setting_get_int_elem(rec_set, 2);
-		elem = config_setting_get_string_elem (rec_set, 3);
+		curr_rec->ATX_dB = config_setting_get_int_elem(rec_set, 1);
+		curr_rec->ARX_dB = config_setting_get_int_elem(rec_set, 2);
+		curr_rec->enc_dB = config_setting_get_int_elem(rec_set, 3);
+		curr_rec->dec_dB = config_setting_get_int_elem(rec_set, 4);
+		elem = config_setting_get_string_elem (rec_set, 5);
 		if( !strcmp(elem, CONF_VAD_NOVAD)){
 			curr_rec->VAD_cfg = vad_cfg_OFF;
 		} else if( !strcmp(elem, CONF_VAD_ON)){
@@ -1567,7 +1581,102 @@ rtp_init( void )
 		} else if( !strcmp(elem, CONF_VAD_SC_ONLY)){
 			curr_rec->VAD_cfg = vad_cfg_SC_only;
 		}
-		curr_rec->HPF_is_ON = config_setting_get_int_elem(rec_set, 4);
+		curr_rec->HPF_is_ON = config_setting_get_int_elem(rec_set, 6);
+	}
+__exit_success:
+	config_destroy (&cfg);
+	return 0;
+__exit_fail:
+	config_destroy (&cfg);
+	return -1;
+}/*}}}*/
+
+/**
+ * Init`s Jitter Buffer parameters in main routine 
+ * configuration \ref g_conf structure.
+ *
+ * \retval 0 success.
+ * \retval -1 fail.
+ */ 
+static int
+jb_init( void )
+{/*{{{*/
+	struct config_t cfg;
+	struct config_setting_t * set;
+	struct config_setting_t * rec_set;
+	struct jb_prms_s * curr_rec;
+	char const * elem;
+	int rec_num;
+	int i;
+	int err;
+
+	config_init (&cfg);
+
+	/* Load the file */
+	if (!config_read_file (&cfg, JB_CONF_NAME)){
+		err = config_error_line (&cfg);
+		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n", __func__, err));
+		goto __exit_fail;
+	} 
+
+	/* Standart params for all chans */
+	curr_rec = &g_conf.jb_prms[0];
+	curr_rec->jb_type = jb_type_FIXED;
+	curr_rec->jb_pk_adpt = jb_pk_adpt_VOICE;
+	for (i=1; i<CHANS_MAX; i++){
+		curr_rec = &g_conf.jb_prms[i];
+		memcpy(curr_rec, &g_conf.jb_prms[0], sizeof(*curr_rec));
+	} 
+
+	/* Get values */
+	set = config_lookup (&cfg, "jb_prms" );
+	if( !set ){
+		/* We will use standart params for all channels */
+		goto __exit_success;
+	} 
+
+	rec_num = config_setting_length (set);
+
+	if(rec_num > CHANS_MAX){
+		SU_DEBUG_0(("%s(): Too many channels (%d) in config - max is %d\n",
+				__func__, rec_num, CHANS_MAX));
+		goto __exit_fail;
+	}
+
+	for(i=0; i<rec_num; i++){
+		int abs_idx;
+		rec_set = config_setting_get_elem (set, i);
+
+		/* get chan id */
+		elem = config_setting_get_string_elem (rec_set, 0);
+		abs_idx = strtol(elem, NULL, 10);
+
+		curr_rec = &g_conf.jb_prms[ abs_idx ];
+
+		elem = config_setting_get_string_elem (rec_set, 1);
+		if       ( !strcmp(elem, CONF_JB_TYPE_FIXED)){
+			curr_rec->jb_type = jb_type_FIXED;
+		} else if( !strcmp(elem, CONF_JB_TYPE_ADAPTIVE)){
+			curr_rec->jb_type = jb_type_ADAPTIVE;
+		}
+		elem = config_setting_get_string_elem (rec_set, 2);
+		if       ( !strcmp(elem, CONF_JB_PK_VOICE)){
+			curr_rec->jb_pk_adpt = jb_pk_adpt_VOICE;
+		} else if( !strcmp(elem, CONF_JB_PK_DATA)){
+			curr_rec->jb_pk_adpt = jb_pk_adpt_DATA;
+		}
+		elem = config_setting_get_string_elem (rec_set, 3);
+		if       ( !strcmp(elem, CONF_JB_LOC_OFF)){
+			curr_rec->jb_loc_adpt = jb_loc_adpt_OFF;
+		} else if( !strcmp(elem, CONF_JB_LOC_ON)){
+			curr_rec->jb_loc_adpt = jb_loc_adpt_ON;
+		} else if( !strcmp(elem, CONF_JB_LOC_SI)){
+			curr_rec->jb_loc_adpt = jb_loc_adpt_SI;
+		}
+		curr_rec->jb_scaling = config_setting_get_int_elem(rec_set, 4);
+		curr_rec->jb_init_sz = config_setting_get_int_elem(rec_set, 5);
+		curr_rec->jb_min_sz = config_setting_get_int_elem(rec_set, 6);
+		curr_rec->jb_max_sz = config_setting_get_int_elem(rec_set, 7);
 	}
 __exit_success:
 	config_destroy (&cfg);
@@ -1603,8 +1712,7 @@ wlec_init( ab_t const * const ab )
 	/* Load the file */
 	if (!config_read_file (&cfg, WLEC_CONF_NAME)){
 		err = config_error_line (&cfg);
-		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n",
-				__func__, err));
+		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n", __func__, err));
 		goto __exit_fail;
 	} 
 
@@ -1676,7 +1784,8 @@ wlec_init( ab_t const * const ab )
 
 		curr_rec->ne_nb = config_setting_get_int_elem(rec_set, 3);
 		curr_rec->fe_nb = config_setting_get_int_elem(rec_set, 4);
-		curr_rec->ne_wb = config_setting_get_int_elem(rec_set, 5);
+		/* tag__ to remove - because we not using wb */
+		//curr_rec->ne_wb = config_setting_get_int_elem(rec_set, 5);
 
 		if(curr_rec->mode == wlec_mode_NFE){
 			if(curr_rec->ne_nb == 16){

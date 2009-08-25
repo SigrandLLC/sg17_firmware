@@ -8,7 +8,7 @@
 #ifndef __SVD_CFG_H__
 #define __SVD_CFG_H__
 
-#include "svd.h"
+#include "ab_api.h"
 
 /** @defgroup CFG_M Main configuration.
  *  It contains cfg files names, and functions for manipulations with 
@@ -22,6 +22,7 @@
 #define ADDRESSB_CONF_NAME  "/etc/svd/addressb.conf"
 #define QUALITY_CONF_NAME   "/etc/svd/quality.conf"
 #define RTP_CONF_NAME       "/etc/svd/rtp.conf"
+#define JB_CONF_NAME        "/etc/svd/jb.conf"
 #define WLEC_CONF_NAME      "/etc/svd/wlec.conf"
 #define VF_CONF_NAME        "/etc/svd/hw.conf"
 /** @}*/
@@ -82,22 +83,19 @@ void startup_destroy( int argc, char ** argv );
  * It should be greater then codecs count because application can 
  * test the end of the list by \c == \c codec_type_NONE */
 #define COD_MAS_SIZE 12
-/* Address book only */
 /** Addressbook identifier standard length.*/
 #define ADBK_ID_LEN_DF	5 /* static or dynamic */
-/* Hot line only */
-/** Channel identifier length.*/
-#define CHAN_ID_LEN	3 /* static only */
 /* Address book and Hot line common */
 /** Full address value standard length.*/
 #define VALUE_LEN_DF	40 /* static or dynamic */
-/* Route table only */
-/** Router identifier standard length.*/
-#define ROUTE_ID_LEN_DF 4 /* static or dynamic */
-/** IP number length.*/
-#define IP_LEN_MAX	16 /* xxx.xxx.xxx.xxx\0 */
+/** Channel identifier length.*/
+#define CHAN_ID_LEN	3 /* static only */
 /** Address payload length.*/
 #define ADDR_PAYLOAD_LEN 40 /* sip id or address, or full PSTN phone number */
+/** IP number length.*/
+#define IP_LEN_MAX	16 /* xxx.xxx.xxx.xxx\0 */
+/** Router identifier standard length.*/
+#define ROUTE_ID_LEN_DF 4 /* static or dynamic */
 /** Registrar name in 'sip:server' form max length */
 #define REGISTRAR_LEN 50
 /** User name in 'user' form max length.*/
@@ -172,14 +170,6 @@ struct route_table_s {
 	unsigned int records_num; /**< Number of routers records.*/
 	struct rttb_record_s * records; /**< Records massive.*/
 };
-/** RTP parameters.*/
-struct rtp_prms_s {
-	int COD_Tx_vol; /**< Coder tx volume gain (from -24 to 24).*/
-	int COD_Rx_vol; /**< Coder rx volume gain (from -24 to 24).*/
-	enum vad_cfg_e VAD_cfg; /**< Voice activity detector mode.*/
-	unsigned char HPF_is_ON; /**< High-pass filter (on or off).*/
-};
-
 /** SIP registration and codec choise policy.*/
 struct sip_settings_s {
 	unsigned char all_set; /**< Shall we register on sip server?*/
@@ -218,7 +208,8 @@ struct svd_conf_s {/*{{{*/
 	struct route_table_s route_table; /**< Routes table.*/
 	struct hot_line_s   hot_line     [CHANS_MAX]; /**< Hot line parameters.*/
 	struct voice_freq_s voice_freq   [CHANS_MAX]; /**< VF-channels parameters.*/
-	struct rtp_prms_s   rtp_prms     [CHANS_MAX]; /**< RTP channel parameters.*/
+	struct rtp_session_prms_s audio_prms [CHANS_MAX]; /**< AUDIO channel params.*/
+	struct jb_prms_s jb_prms     [CHANS_MAX]; /**< Jitter buffer channel params.*/
 	struct wlec_s       wlec_prms    [CHANS_MAX]; /**< WLEC channel parameters.*/
 	enum pstn_type_e    fxo_PSTN_type[CHANS_MAX]; /**< FXO pstn types.*/
 	unsigned char sip_tos; /** Type of Service byte for sip-packets.*/
