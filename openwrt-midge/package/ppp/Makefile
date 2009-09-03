@@ -3,6 +3,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ppp
+#PKG_VERSION:=2.4.4.5
 PKG_VERSION:=2.4.4
 PKG_RELEASE:=7
 
@@ -70,7 +71,7 @@ $(PKG_BUILD_DIR)/.configured:
 	)
 	touch $@
 
-$(PKG_BUILD_DIR)/.built:
+$(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	rm -rf $(PKG_INSTALL_DIR)
 	mkdir -p $(PKG_INSTALL_DIR)/usr
 	$(MAKE) -C $(PKG_BUILD_DIR) \

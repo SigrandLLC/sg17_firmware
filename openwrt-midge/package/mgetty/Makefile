@@ -36,7 +36,7 @@ $(PKG_BUILD_DIR)/policy.h: $(PKG_BUILD_DIR)/.prepared
 $(PKG_BUILD_DIR)/.configured: $(PKG_BUILD_DIR)/policy.h
 	touch $@
 
-$(PKG_BUILD_DIR)/.built:
+$(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	mkdir -p $(PKG_INSTALL_DIR)/usr/bin
 	mkdir -p $(PKG_INSTALL_DIR)/usr/sbin
 	mkdir -p $(PKG_INSTALL_DIR)/usr/lib/mgetty+sendfax

@@ -1036,7 +1036,7 @@ sdfe4_setup_chan(u8 ch, struct sdfe4 *hwdev)
 		}else {
 			extended_pam_mode->bits_per_symbol=cfg->tc_pam;
 			if(cfg->tc_pam==TCPAM128){
-				extended_pam_mode->speed_rate=cfg->rate + 8;
+				extended_pam_mode->speed_rate=cfg->rate+8;
 			}else {
 				extended_pam_mode->speed_rate=cfg->rate;
 			}

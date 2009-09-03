@@ -398,6 +398,7 @@ source "package/oem-e1.g2/Config.in"
 source "package/oem-rs232.g1/Config.in"
 source "package/oem-adm5120sw/Config.in"
 source "package/oem-voip/Config.in"
+source "package/oem-dslam/Config.in"
 
 
 endmenu
