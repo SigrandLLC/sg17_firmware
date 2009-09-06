@@ -9,6 +9,8 @@
 #include "svd_cfg.h"
 #include "svd_ua.h"
 #include "svd_atab.h"
+#include "svd_server_if.h"
+#include "svd_if.h"
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -47,7 +49,7 @@ static void svd_log_set( int const level, int const debug);
  * \retval 0 	etherything is fine
  * \retval -1 	error occures
  * \remark
- *		In the real it shold never returns if etherything is fine
+ *		In real it shold never returns if etherything is fine
  *		because of main cycle.
  */ 
 int 
@@ -110,6 +112,12 @@ main (int argc, char ** argv)
 
 	/* place vf-calls */
 	err = svd_place_vf (svd);
+	if(err){
+		goto __svd;
+	}
+
+	/* create interface */
+	err = svd_create_interface(svd);
 	if(err){
 		goto __svd;
 	}

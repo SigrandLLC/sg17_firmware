@@ -40,6 +40,7 @@ cd ${curr_path}
 make
 
 mv src/svd ${1}
+mv src/svd_if ${1}
 ./clean_there
 
 cd ${curr_path}/..

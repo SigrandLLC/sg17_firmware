@@ -3,7 +3,7 @@
 
 /** Maximum channels on the boards */
 #define CHANS_MAX 32
-
+/*{{{ typedefs */
 typedef enum ab_dev_type_e ab_dev_type_t;
 typedef enum cod_type_e cod_type_t;
 typedef struct codec_s codec_t;
@@ -15,8 +15,9 @@ typedef struct ab_dev_s ab_dev_t;
 typedef struct ab_s ab_t;
 typedef struct ab_fw_s ab_fw_t;
 typedef struct ab_dev_event_s ab_dev_event_t;
+/*}}}*/
 
-enum cod_type_e {
+enum cod_type_e {/*{{{*/
 	cod_type_NONE,
 	cod_type_ALAW,
 	cod_type_G729,
@@ -27,9 +28,8 @@ enum cod_type_e {
 	cod_type_G726_24,
 	cod_type_G726_32,
 	cod_type_G726_40,
-};
-
-enum cod_pkt_size_e {
+};/*}}}*/
+enum cod_pkt_size_e {/*{{{*/
 	cod_pkt_size_2_5,
 	cod_pkt_size_5,
 	cod_pkt_size_5_5,
@@ -40,66 +40,62 @@ enum cod_pkt_size_e {
 	cod_pkt_size_40,
 	cod_pkt_size_50,
 	cod_pkt_size_60,
-};
-
-enum bitpack_e {
+};/*}}}*/
+enum bitpack_e {/*{{{*/
 	bitpack_RTP,
 	bitpack_AAL2,
-};
-
-struct codec_s {
+};/*}}}*/
+struct codec_s {/*{{{*/
 	enum cod_type_e 	type;
 	enum cod_pkt_size_e pkt_size;
 	enum bitpack_e bpack;
 	int user_payload;			/**< User preset to sdp payload. */
 	int sdp_selected_payload;	/**< Selected in sdp session payload. */
-};
-
-enum wlec_mode_e {
+};/*}}}*/
+enum wlec_mode_e {/*{{{*/
 	wlec_mode_UNDEF,
 	wlec_mode_OFF,
 	wlec_mode_NE,
 	wlec_mode_NFE,
-};
-enum wlec_nlp_e {
+};/*}}}*/
+enum wlec_nlp_e {/*{{{*/
 	wlec_nlp_ON,
 	wlec_nlp_OFF,
-};
-enum wlec_window_size_e {
+};/*}}}*/
+enum wlec_window_size_e {/*{{{*/
 	wlec_window_size_4 = 4,
 	wlec_window_size_6 = 6,
 	wlec_window_size_8 = 8,
 	wlec_window_size_16 = 16,
-};
-struct wlec_s {
+};/*}}}*/
+struct wlec_s {/*{{{*/
 	enum wlec_mode_e mode;
 	enum wlec_nlp_e nlp;
 	enum wlec_window_size_e ne_nb;
 	enum wlec_window_size_e fe_nb;
 	enum wlec_window_size_e ne_wb;
-};
-enum vad_cfg_e {
+};/*}}}*/
+enum vad_cfg_e {/*{{{*/
 	vad_cfg_OFF,
 	vad_cfg_ON,
 	vad_cfg_G711,
 	vad_cfg_CNG_only,
 	vad_cfg_SC_only
-};
-enum jb_type_e {
+};/*}}}*/
+enum jb_type_e {/*{{{*/
 	jb_type_FIXED, 
 	jb_type_ADAPTIVE
-};
-enum jb_pk_adpt_e {
+};/*}}}*/
+enum jb_pk_adpt_e {/*{{{*/
 	jb_pk_adpt_VOICE, 
 	jb_pk_adpt_DATA
-};
-enum jb_loc_adpt_e {
+};/*}}}*/
+enum jb_loc_adpt_e {/*{{{*/
 	jb_loc_adpt_OFF, 
 	jb_loc_adpt_ON, 
 	jb_loc_adpt_SI /**< local adaptation on with sample interpollation */
-};
-/** Jitter buffer configuration parameters */
-struct jb_prms_s {
+};/*}}}*/
+struct jb_prms_s {/*{{{*/
 	enum jb_type_e     jb_type;		/**< JB type */
 	enum jb_pk_adpt_e  jb_pk_adpt;  /**< JB packet adaptation type */
 	enum jb_loc_adpt_e jb_loc_adpt; /**< JB local adaptation type */
@@ -107,48 +103,40 @@ struct jb_prms_s {
 	unsigned short jb_init_sz; /**< initial buffer size */
 	unsigned short jb_min_sz; /**< minimal buffer size */
 	unsigned short jb_max_sz; /**< maximum buffer size */
-};
-	
-/** RTP session configuration parameters */
-struct rtp_session_prms_s {
+};/*}}}*/
+struct rtp_session_prms_s {/*{{{*/
 	int enc_dB; /**< Coder enc gain */
 	int dec_dB; /**< Coder dec gain */
 	int ATX_dB; /**< Analog TX gain */
 	int ARX_dB; /**< Analog RX gain */
 	enum vad_cfg_e VAD_cfg; /**< Voice Activity Detector configuration */
 	unsigned char HPF_is_ON; /**< High Pass Filter is ON? */
-};
-
-enum ab_dev_type_e {
+};/*}}}*/
+enum ab_dev_type_e {/*{{{*/
 	ab_dev_type_FXO,   /**< Device type is FXO */
 	ab_dev_type_FXS,   /**< Device type is FXS */
 	ab_dev_type_VF     /**< Device type is Tonal Frequency */
-};
-
-enum ab_chan_tone_e {
+};/*}}}*/
+enum ab_chan_tone_e {/*{{{*/
 	ab_chan_tone_MUTE, /**< Mute any tone */
 	ab_chan_tone_DIAL,   /**< Play dial tone */
 	ab_chan_tone_BUSY,   /**< Play busy tone */
 	ab_chan_tone_RINGBACK   /**< Play ringback tone */
-};
-
-enum ab_chan_ring_e {
+};/*}}}*/
+enum ab_chan_ring_e {/*{{{*/
 	ab_chan_ring_MUTE, /**< Mute the ring */
 	ab_chan_ring_RINGING   /**< Make ring */
-};
-
-enum ab_chan_hook_e {
+};/*}}}*/
+enum ab_chan_hook_e {/*{{{*/
 	ab_chan_hook_ONHOOK, /**< onhook state */
 	ab_chan_hook_OFFHOOK /**< offhook state */
-};
-
-enum ab_chan_linefeed_e {
+};/*}}}*/
+enum ab_chan_linefeed_e {/*{{{*/
 	ab_chan_linefeed_DISABLED, /**< Set linefeed to disabled */
 	ab_chan_linefeed_STANDBY, /**< Set linefeed to standby */
 	ab_chan_linefeed_ACTIVE /**< Set linefeed to active */
-};
-
-enum ab_dev_event_e {
+};/*}}}*/
+enum ab_dev_event_e {/*{{{*/
 	ab_dev_event_NONE, /**< No event */
 	ab_dev_event_UNCATCHED, /**< Unknown event */
 	ab_dev_event_FXO_RINGING, /**< Ring on FXO */
@@ -159,57 +147,99 @@ enum ab_dev_event_e {
 	ab_dev_event_FM_CED, /**< CED and CEDEND FAX events */
 	ab_dev_event_COD, /**< Coder event */
 	ab_dev_event_TONE, /**< Tone generator event */
-};
-
-enum vf_type_e {
+};/*}}}*/
+enum vf_type_e {/*{{{*/
 	vf_type_DEFAULT = 0,
 	vf_type_N4 = 0, /**< normal 4-wired */
 	vf_type_N2,     /**< normal 2-wired */
 	vf_type_T4,    /**< transit 4-wired */
 	vf_type_T2,    /**< transit 2-wired */
-};
-
-struct ab_chan_status_s {
+};/*}}}*/
+struct ab_chan_status_s {/*{{{*/
 	enum ab_chan_tone_e	tone;	/**< tone state */
 	enum ab_chan_ring_e	ring;	/**< ring state */
 	enum ab_chan_hook_e	hook;	/**< hoot state */
 	enum ab_chan_linefeed_e	linefeed; /**< linefeed state */
-};
-
-struct ab_dev_event_s {
+};/*}}}*/
+struct ab_dev_event_s {/*{{{*/
 	enum ab_dev_event_e id; /**< Event identificator */
 	unsigned char ch;	/**< Ret Channel of event */
 	unsigned char more;	/**< is there more events */
 	long data;		/**< Event specific data */
-};
-
-struct ab_chan_s {
+};/*}}}*/
+struct ab_chan_jb_stat_s {/*{{{*/
+enum jb_type_e nType; /** Jitter buffer type */
+unsigned short nBufSize; /** Current jitter buffer size */
+unsigned short nMaxBufSize; /** Maximum estimated jitter buffer size */
+unsigned short nMinBufSize; /** Minimum estimated jitter buffer size */
+unsigned short nPODelay; /** Playout delay */
+unsigned short nMaxPODelay; /** Maximum playout delay */
+unsigned short nMinPODelay; /** Minimum playout delay */
+unsigned long nPackets; /** Received packet number */
+unsigned short nInvalid; /** Invalid packet number */
+unsigned short nLate; /** Late packets number */
+unsigned short nEarly; /** Early packets number */
+unsigned short nResync; /** Resynchronizations number */
+unsigned long nIsUnderflow; /** Total number of injected samples since the beginning of the connection or since the last statistic reset due to jitter buffer underflows */
+unsigned long nIsNoUnderflow; /** Total number of injected samples since the beginning of the connection or since the last statistic reset in case of normal jitter buffer operation, which means when there is not a jitter buffer underflow */
+unsigned long nIsIncrement; /** Total number of injected samples since the beginning of the connection or since the last statistic reset in case of jitter buffer increments */
+unsigned long nSkDecrement; /** Total number of skipped lost samples since the beginning of the connection or since the last statistic reset in case of jitter buffer decrements */
+unsigned long nDsDecrement; /** Total number of dropped samples since the beginning of the connection or since the last statistic reset in case of jitter buffer decrements */
+unsigned long nDsOverflow; /** Total number of dropped samples since the beginning of the connection or since the last statistic reset in case of jitter buffer overflows */
+unsigned long nSid; /** Total number of comfort noise samples since the beginning of the connection or since the last statistic reset */
+unsigned long nRecBytesH; /** Number of received bytes high part including event packets */
+unsigned long nRecBytesL; /** Number of received bytes low part including event packets */
+};/*}}} */
+struct ab_chan_rtcp_stat_s {/*{{{*/
+	unsigned long ssrc; /**< Sender generating this report */
+	unsigned long rtp_ts; /**< RTP time stamp */
+	unsigned long psent; /**< Sent packet count */
+	unsigned long osent; /**< Sent octets count */
+	unsigned long rssrc; /**< Data source */
+	unsigned char fraction; /**< Receivers fraction loss */
+	unsigned long lost; /**< Receivers packet lost */
+	unsigned long last_seq; /**< Extended last seq nr. received */
+	unsigned long jitter; /**< Receives interarrival jitter */
+};/*}}}*/
+struct ab_chan_stat_s {/*{{{*/
+	int is_up; /**< Is now channel in RTP flow? */
+	int con_cnt; /**< Connections count */
+	/* Avarage Jitter buffer statistics */
+	unsigned long pcks_avg; /**< Average packets number per connection */
+	double invalid_pc;  /**< Invalid packet percent */
+	double late_pc;  /**< Late packet percent */
+	double early_pc;  /**< Early packet percent */
+	double resync_pc;  /**< Resynchronizations percent */
+	/* Current/last connection statistics */
+	struct ab_chan_jb_stat_s jb_stat; /**< Jitter Buffer statistics */
+	struct ab_chan_rtcp_stat_s rtcp_stat; /**< RTCP statistics */
+};/*}}}*/
+struct ab_chan_s {/*{{{*/
 	unsigned int idx;   /**< Channel index on device (from 1) */
 	unsigned char abs_idx; /**< Channel index on boards (from 0) */
 	ab_dev_t * parent;  /**< device that channel belongs */
 	int rtp_fd;         /**< Channel file descriptor */
 	struct ab_chan_status_s status;  /**< Channel status info */
+	struct ab_chan_stat_s statistics; /**< Jitter Buffer and RTCP statistics */
 	void * ctx; /**< Channel context pointer (for user app) */
-};
-
-struct ab_dev_s {
+};/*}}}*/
+struct ab_dev_s {/*{{{*/
 	unsigned int idx;	/**< Device index on boards (from 1) */
 	ab_dev_type_t type;	/**< Device type */
 	ab_t * parent;		/**< Parent board pointer */
 	int cfg_fd;         /**< Device config file descriptor */
 	void * ctx; /**< Device context (for user app) */
-};
-
-struct ab_s {
+};/*}}}*/
+struct ab_s {/*{{{*/
 	unsigned int devs_num;	/**< Devices number on the boards */
 	ab_dev_t * devs;	/**< Devices of the boards */
 	unsigned int chans_num;	/**< Channels number on the boards */
 	ab_chan_t * chans;	/**< Channels of the boards according to idx */
 	ab_chan_t * pchans[CHANS_MAX]; /**< Pointers to channels according to abs_idx*/
 	unsigned int chans_per_dev;/**< Channels number per device */
-};
+};/*}}}*/
 
-/* ERROR HANDLING */
+/* ERROR HANDLING *//*{{{*/
 /** No errors */
 #define AB_ERR_NO_ERR 		0
 /** In most cases ioctl error */
@@ -232,10 +262,11 @@ extern int ab_g_err_idx;
 extern char ab_g_err_str[ERR_STR_LENGTH];
 /** global error extra value (using in some cases) */
 extern int ab_g_err_extra_value;
+/*}}}*/
 
 /** @defgroup AB_BASIC ACTIONS Basic libab interface
 	Basic interface.
-  @{ */
+  @{  */ /*{{{*/
 /** Do not reload modules */
 #define AB_HWI_SKIP_MODULES 0x01
 /** Do not make basicdev_init */
@@ -270,11 +301,11 @@ void ab_destroy (ab_t ** ab);
 /** Init channel with given CRAM file */
 int ab_chan_cram_init (ab_chan_t const * const chan, char const * const path);
 /** @} */
-
+/*}}}*/
 
 /** @defgroup AB_RINGS_TONES Ringing and toneplay libab interface.
 	Rings and Tones.
-  @{ */
+  @{ */ /*{{{*/
 /** Play ring or mute it */
 int ab_FXS_line_ring( ab_chan_t * const chan, enum ab_chan_ring_e ring );
 /** Play tone or mute it */
@@ -292,21 +323,22 @@ int ab_FXO_line_digit(
 /** Play DTMF or busy/dial/ringing to the network connection (rtp-flow) */
 int ab_FXS_netlo_play( ab_chan_t * const chan, char tone, char local );
 /** @} */
+/*}}}*/
 
 /** @defgroup AB_EVENTS Events libab interface.
 	Events.
-  @{ */
+  @{ *//*{{{*/
 /** Get the events occures on given device */
 int ab_dev_event_get( 
 		ab_dev_t * const dev, 
 		ab_dev_event_t * const evt, 
 		unsigned char * const chan_available );
 /** @} */
-
+/*}}}*/
 
 /** @defgroup AB_MEDIA Media libab interface.
 	Codecs RTP-frames etc.
-  @{ */
+  @{ *//*{{{*/
 /** Tune rtp parameters for fax transmittion */
 int ab_chan_fax_pass_through_start( ab_chan_t * const chan );
 /** Tune rtp parameters on selected chan */
@@ -317,13 +349,17 @@ int ab_chan_media_jb_tune( ab_chan_t * const chan, jb_prms_t const * const jbp);
 /** Tune wlec parameters on selected chan */
 int ab_chan_media_wlec_tune( ab_chan_t * const chan, wlec_t const * const wp );
 /** Switch on/off media on selected chan */
-int ab_chan_media_switch( ab_chan_t * const chan,
-		unsigned char const enc_on, unsigned char const dec_on );
+int ab_chan_media_switch( ab_chan_t * const chan, unsigned char const switch_up);
 /** HOLD on/off encoding on selected chan */
 int ab_chan_media_enc_hold( ab_chan_t * const chan, unsigned char const hold );
 /** MUTE on/off encoder on selected chan */
 int ab_chan_media_enc_mute( ab_chan_t * const chan, unsigned char const mute );
+/** Refresh jitter buffer statistics of the channel */
+int ab_chan_media_jb_refresh( ab_chan_t * const chan );
+/** Refresh RTCP statistics of the channel */
+int ab_chan_media_rtcp_refresh( ab_chan_t * const chan );
 /** @} */
+/*}}}*/
 
 #endif /* __AB_API_H__ */
 

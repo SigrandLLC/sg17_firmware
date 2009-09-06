@@ -77,7 +77,7 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 	IFX_TAPI_PKT_RTP_PT_CFG_t rtpPTConf;
 	IFX_TAPI_PKT_RTP_CFG_t rtpConf;
 	IFX_TAPI_PKT_VOLUME_t codVolume;
-	IFX_TAPI_LINE_VOLUME_t almVolume;
+/*	IFX_TAPI_LINE_VOLUME_t almVolume; */
 	IFX_TAPI_ENC_CFG_t encCfg;
 	IFX_TAPI_DEC_CFG_t decCfg;
 	int vad_param;
@@ -90,7 +90,7 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 	memset(&rtpPTConf, 0, sizeof(rtpPTConf));
 	memset(&rtpConf, 0, sizeof(rtpConf));
 	memset(&codVolume, 0, sizeof(codVolume));
-	memset(&almVolume, 0, sizeof(almVolume));
+	/*memset(&almVolume, 0, sizeof(almVolume));*/
 	memset(&encCfg, 0, sizeof(encCfg));
 	memset(&decCfg, 0, sizeof(decCfg));
 
@@ -215,8 +215,10 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 	codVolume.nDec = rtpp->dec_dB;
 	/*}}}*/
 	/* Configure ALM gains {{{*/
+	/*
 	almVolume.nGainRx = rtpp->ARX_dB;
 	almVolume.nGainTx = rtpp->ATX_dB;
+	*/
 	/*}}}*/
 	/* Set the VAD configuration {{{*/
 	switch(rtpp->VAD_cfg){
@@ -320,12 +322,14 @@ fprintf(stderr," hpf off\n");
 	}
 
 	/* Configure Analog channel gains */
+	/*
 	err = 0;
 	err = ioctl(chan->rtp_fd, IFX_TAPI_PHONE_VOLUME_SET, &almVolume);
 	if(err){
 		ab_err_set(AB_ERR_UNKNOWN, "alm gains set ioctl error");
 		err_summary++;
 	}
+	*/
 
 	/* Configure high-pass filter */
 	err = 0;
@@ -463,47 +467,136 @@ ab_chan_media_wlec_tune( ab_chan_t * const chan, wlec_t const * const wp )
 	return err;
 }/*}}}*/
 
+void
+jb_stat_avg_count_and_wirte(ab_chan_t * const chan, 
+		IFX_TAPI_JB_STATISTICS_t * const jb_stat)
+{/*{{{*/
+	/* np1 :: n+1 */
+	double n = chan->statistics.con_cnt;
+	double pks_avg_n = chan->statistics.pcks_avg;
+	double pks_np1 = jb_stat->nPackets;
+	double denom;
+	double numer[4];
+
+	chan->statistics.pcks_avg = n/(n+1)*pks_avg_n + pks_np1/(n+1);
+
+	numer[0] = chan->statistics.jb_stat.nInvalid;
+	numer[1] = chan->statistics.jb_stat.nLate;
+	numer[2] = chan->statistics.jb_stat.nEarly;
+	numer[3] = chan->statistics.jb_stat.nResync;
+	if(n){
+		double coef = pks_avg_n/100;
+		numer[0] = coef * chan->statistics.invalid_pc + (double)jb_stat->nInvalid/n;
+		numer[1] = coef * chan->statistics.late_pc + (double)jb_stat->nLate/n;
+		numer[2] = coef * chan->statistics.early_pc + (double)jb_stat->nEarly/n;
+		numer[3] = coef * chan->statistics.resync_pc + (double)jb_stat->nResync/n;
+	} else {
+		denom = pks_np1;
+	}
+	chan->statistics.invalid_pc = numer[0]/denom * 100;
+	chan->statistics.late_pc =    numer[1]/denom * 100;
+	chan->statistics.early_pc =   numer[2]/denom * 100;
+	chan->statistics.resync_pc =  numer[3]/denom * 100;
+}/*}}}*/
+
+static int
+jb_stat_get(ab_chan_t * const chan, IFX_TAPI_JB_STATISTICS_t * const jb_stat)
+{/*{{{*/
+	int err;
+
+	err = ioctl (chan->rtp_fd, IFX_TAPI_JB_STATISTICS_GET, jb_stat);
+	if(err == IFX_ERROR){
+		ab_err_set (AB_ERR_UNKNOWN, "Jitter Buffer statistics get ioctl error");
+		goto __exit_fail;
+	}
+	return 0;
+__exit_fail:
+	return -1;
+}/*}}}*/
+
+void
+jb_stat_write(ab_chan_t * const chan, IFX_TAPI_JB_STATISTICS_t * const jb_stat)
+{/*{{{*/
+	/* rewrite previous JB statistics to the current */
+	if(jb_stat->nType == 1){
+		chan->statistics.jb_stat.nType = jb_type_FIXED;
+	} else if(jb_stat->nType == 2){
+		chan->statistics.jb_stat.nType = jb_type_ADAPTIVE;
+	}
+	chan->statistics.jb_stat.nBufSize = jb_stat->nBufSize;
+	chan->statistics.jb_stat.nMaxBufSize = jb_stat->nMaxBufSize;
+	chan->statistics.jb_stat.nMinBufSize = jb_stat->nMinBufSize;
+	chan->statistics.jb_stat.nPODelay = jb_stat->nPODelay;
+	chan->statistics.jb_stat.nMaxPODelay = jb_stat->nMaxPODelay;
+	chan->statistics.jb_stat.nMinPODelay = jb_stat->nMinPODelay;
+	chan->statistics.jb_stat.nPackets = jb_stat->nPackets;
+	chan->statistics.jb_stat.nInvalid = jb_stat->nInvalid;
+	chan->statistics.jb_stat.nLate = jb_stat->nLate;
+	chan->statistics.jb_stat.nEarly = jb_stat->nEarly;
+	chan->statistics.jb_stat.nResync = jb_stat->nResync;
+	chan->statistics.jb_stat.nIsUnderflow = jb_stat->nIsUnderflow;
+	chan->statistics.jb_stat.nIsNoUnderflow = jb_stat->nIsNoUnderflow;
+	chan->statistics.jb_stat.nIsIncrement = jb_stat->nIsIncrement;
+	chan->statistics.jb_stat.nSkDecrement = jb_stat->nSkDecrement;
+	chan->statistics.jb_stat.nDsDecrement = jb_stat->nDsDecrement;
+	chan->statistics.jb_stat.nDsOverflow = jb_stat->nDsOverflow;
+	chan->statistics.jb_stat.nSid = jb_stat->nSid;
+	chan->statistics.jb_stat.nRecBytesH = jb_stat->nRecBytesH;
+	chan->statistics.jb_stat.nRecBytesL = jb_stat->nRecBytesL;
+}/*}}}*/
+
 /**
 	Switch media on / off on the given channel
 \param chan - channel to operate on it
-\param enc_on - on (1) or off (0) encoding
-\param dec_on - on (1) or off (0) decoding
+\param switch_up - on (1) or off (0) encoding and decoding
 \return 
 	0 in success case and other value otherwise
 \remark
 	returns the ioctl error value and writes error message
 */
 int 
-ab_chan_media_switch( ab_chan_t * const chan,
-		unsigned char const enc_on, unsigned char const dec_on )
+ab_chan_media_switch( ab_chan_t * const chan, unsigned char const switch_up )
 {/*{{{*/
-	int err = 0;
-	int err_summary = 0;
+	int err1= 0;
+	int err2= 0;
 
-	if (enc_on){
-		err = ioctl(chan->rtp_fd, IFX_TAPI_ENC_START, 0);
+	if( chan->statistics.is_up == switch_up ){
+		/* nothing to do */
+		goto __exit_success;
+	}
+
+	if (switch_up){
+		err1 = ioctl(chan->rtp_fd, IFX_TAPI_ENC_START, 0);
+		err2 = ioctl(chan->rtp_fd, IFX_TAPI_DEC_START, 0);
+		if(!(err1|err2)){
+			chan->statistics.is_up = 1;
+		}
 	} else {
-		err = ioctl(chan->rtp_fd, IFX_TAPI_ENC_STOP, 0);
+		int err;
+		IFX_TAPI_JB_STATISTICS_t jb_stat;
+
+		/* before down - should read jb/rtcp statistics and
+		 * count average jb statistics */
+		memset(&jb_stat, 0, sizeof(jb_stat));
+		err = jb_stat_get(chan, &jb_stat);
+		err1 = ioctl(chan->rtp_fd, IFX_TAPI_ENC_STOP, 0);
+		err2 = ioctl(chan->rtp_fd, IFX_TAPI_DEC_STOP, 0);
+		if(!(err1|err2)){
+			if( !err){
+				jb_stat_avg_count_and_wirte(chan, &jb_stat);
+				jb_stat_write(chan, &jb_stat);
+				ab_chan_media_rtcp_refresh (chan);
+			}
+			chan->statistics.is_up = 0;
+			chan->statistics.con_cnt++;
+		}
 	}
-	if(err){
-		ab_err_set(AB_ERR_UNKNOWN, "encoder start/stop ioctl error");
-		err_summary++;
+	if(err1|err2){
+		ab_err_set(AB_ERR_UNKNOWN, "enc/dec start/stop ioctl error");
 	}
 
-	err = 0;
-	if (dec_on){
-		err = ioctl(chan->rtp_fd, IFX_TAPI_DEC_START, 0);
-	} else {
-		err = ioctl(chan->rtp_fd, IFX_TAPI_DEC_STOP, 0);
-	}
-	if(err){
-		ab_err_set(AB_ERR_UNKNOWN, "decoder start/stop ioctl error");
-		err_summary++;
-	}
-
-	if(err_summary){
-		return -1;
-	}
+	return (err1|err2);
+__exit_success:
 	return 0;
 }/*}}}*/
 
@@ -556,4 +649,75 @@ ab_chan_media_volume( ab_chan_t * const chan,
 		ab_err_set(AB_ERR_UNKNOWN, "encoder mute/unmute ioctl error");
 	}
 	return err;
+}/*}}}*/
+
+/**
+	Refresh Jitter Buffer statistics in chan->statistics if it is necessary
+\param[in,out] chan - channel to operate on it
+\return 
+	0 in success case and other value otherwise
+*/
+int 
+ab_chan_media_jb_refresh( ab_chan_t * const chan )
+{/*{{{*/
+	int err;
+	IFX_TAPI_JB_STATISTICS_t jb_stat;
+
+	if( !chan->statistics.is_up){
+		/* nothing to do */
+		goto __exit_success;
+	}
+
+	memset(&jb_stat, 0, sizeof(jb_stat));
+	err = jb_stat_get(chan, &jb_stat);
+	if(err){
+		goto __exit_fail;
+	}
+	jb_stat_write(chan, &jb_stat);
+
+__exit_success:
+	return 0;
+__exit_fail:
+	return -1;
+}/*}}}*/
+
+/**
+	Refresh RTCP statistics in chan->statistics if it is necessary
+\param[in,out] chan - channel to operate on it
+\return 
+	0 in success case and other value otherwise
+*/
+int 
+ab_chan_media_rtcp_refresh( ab_chan_t * const chan )
+{/*{{{*/
+	int err;
+	IFX_TAPI_PKT_RTCP_STATISTICS_t rtcp_stat;
+
+	if( !chan->statistics.is_up){
+		/* nothing to do */
+		goto __exit_success;
+	}
+
+	memset(&rtcp_stat, 0, sizeof(rtcp_stat));
+	err = ioctl (chan->rtp_fd, IFX_TAPI_PKT_RTCP_STATISTICS_GET, &rtcp_stat);
+	if(err == IFX_ERROR){
+		ab_err_set (AB_ERR_UNKNOWN, "RTCP statistics get ioctl error");
+		goto __exit_fail;
+	}
+
+	/* rewrite previous RTCP statistics to the current */
+	chan->statistics.rtcp_stat.ssrc = rtcp_stat.ssrc;
+	chan->statistics.rtcp_stat.rtp_ts = rtcp_stat.rtp_ts;
+	chan->statistics.rtcp_stat.psent = rtcp_stat.psent;
+	chan->statistics.rtcp_stat.osent = rtcp_stat.osent;
+	chan->statistics.rtcp_stat.rssrc = rtcp_stat.rssrc;
+	chan->statistics.rtcp_stat.fraction = rtcp_stat.fraction;
+	chan->statistics.rtcp_stat.lost = ((unsigned long)rtcp_stat.lost) & 0x00FFFFFF;
+	chan->statistics.rtcp_stat.last_seq = rtcp_stat.last_seq;
+	chan->statistics.rtcp_stat.jitter = rtcp_stat.jitter;
+	
+__exit_success:
+	return 0;
+__exit_fail:
+	return -1;
 }/*}}}*/

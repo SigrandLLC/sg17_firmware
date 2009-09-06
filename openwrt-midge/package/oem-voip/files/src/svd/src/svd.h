@@ -132,6 +132,7 @@ struct svd_s
 	ab_t * ab;		/**< Pointer to ATA Boards object.*/
 	nua_handle_t * op_reg; /**< Pointer NUA Handle registration object.*/
 	char outbound_ip [IP_LEN_MAX]; /**< Outbound ip address.*/
+	int ifd; /**< Interface socket file deskriptor. */
 };/*}}}*/
 
 #endif /* __SVD_H__ */

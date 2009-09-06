@@ -445,8 +445,8 @@ start_connection(ab_t * const ab)
 	err += ab_chan_media_rtp_tune(c2, &g_so.vcod, &g_so.fcod, &rtpp);
 
 	/* start enc / dec */
-	err += ab_chan_media_switch (c1, 1,1);
-	err += ab_chan_media_switch (c2, 1,1);
+	err += ab_chan_media_switch (c1, 1);
+	err += ab_chan_media_switch (c2, 1);
 
 	return err;
 }/*}}}*/
@@ -456,8 +456,8 @@ stop_connection(ab_t * const ab)
 {/*{{{*/
 	int err = 0;
 	/* stop enc / dec */
-	err += ab_chan_media_switch (&ab->chans[g_status.c1_id], 0,0);
-	err += ab_chan_media_switch (&ab->chans[g_status.c2_id], 0,0);
+	err += ab_chan_media_switch (&ab->chans[g_status.c1_id], 0);
+	err += ab_chan_media_switch (&ab->chans[g_status.c2_id], 0);
 	return err;
 }/*}}}*/
 

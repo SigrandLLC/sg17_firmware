@@ -126,7 +126,7 @@ close_and_clear (int * const cr)
 	chans_num = ab->chans_num;
 	for (i=0; i<chans_num; i++){
 		/* start generate rtp */
-		ab_chan_media_switch (&ab->chans[i],1,1);
+		ab_chan_media_switch (&ab->chans[i],1);
 		/* read all data from rtp_stream */
 		rode = 1000;
 		while(rode == 1000){
@@ -139,11 +139,11 @@ close_and_clear (int * const cr)
 			cr[ab->chans[i].abs_idx] += rode;
 		}
 		/* stop generate rtp */
-		ab_chan_media_switch (&ab->chans[i],0,0);
+		ab_chan_media_switch (&ab->chans[i],0);
 	} 
 	for (i=0; i<chans_num; i++){
 		/* start generate rtp */
-		ab_chan_media_switch (&ab->chans[i],1,1);
+		ab_chan_media_switch (&ab->chans[i],1);
 		/* read all data from rtp_stream */
 		rode = 1000;
 		while(rode == 1000){
@@ -156,7 +156,7 @@ close_and_clear (int * const cr)
 			cr[ab->chans[i].abs_idx] += rode;
 		}
 		/* stop generate rtp */
-		ab_chan_media_switch (&ab->chans[i],0,0);
+		ab_chan_media_switch (&ab->chans[i],0);
 	} 
 
 	/* tag__ looks ugly, but it works :)

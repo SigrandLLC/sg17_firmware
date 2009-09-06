@@ -517,7 +517,7 @@ ab_chan_media_activate ( ab_chan_t * const chan )
 		goto __exit;
 	}
 
-	err = ab_chan_media_switch (chan, 1, 1);
+	err = ab_chan_media_switch (chan, 1);
 	if(err){
 		SU_DEBUG_1(("Media activate error : %s",ab_g_err_str));
 		goto __exit;
@@ -541,7 +541,7 @@ ab_chan_media_deactivate ( ab_chan_t * const chan )
 	int err; 
 	wlec_t wc;
 
-	err = ab_chan_media_switch (chan, 0, 0);
+	err = ab_chan_media_switch (chan, 0);
 	if(err){
 		SU_DEBUG_1(("Media deactivate error : %s",ab_g_err_str));
 		goto __exit;
