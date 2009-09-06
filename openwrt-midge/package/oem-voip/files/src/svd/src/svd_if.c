@@ -27,19 +27,19 @@ Mandatory arguments to long options are mandatory for short options too.\n\
   -V, --version      displey current version and license info\n\
 \n\
 	All commands should be put in STDIN:\n\
-	get_jb_stat[chan_N/all/active;j/<none>]\n\
-	get_rtcp_stat[chan_N/all/active;j/<none>]\n\
+	get_jb_stat[chan_N/all/act/*;*]\n\
+	get_rtcp_stat[chan_N/all/act/*;*]\n\
 	Execution example :\n\
-	echo \'get_jb_stat[4]\' %s\n\
+	echo \'get_jb_stat[4;*]\' %s\n\
 	Means, that you want to get jitter buffer statistics from the\n\
 			fourth channel.\n\
-	echo \'get_rtcp_stat[;j]\' %s\n\
+	echo \'get_rtcp_stat[*;*]\' %s\n\
 	Means, that you want to get RTCP statistics from the all currently\n\
-			active channels in JSON format.\n\
+			active channels.\n\
 \n\
 Report bugs to <%s>.\n\
 "
-		, "svd-if", "svd-if", "vlad.luch@mail.ru");
+		, "svd_if", "svd_if", "vlad.luch@mail.ru");
 }/*}}}*/
 
 /**
@@ -58,7 +58,7 @@ There is NO WARRANTY, to the extent permitted by law.\n\
 \n\
 Written by Vladimir Luchko. <%s>\n\
 "
-		, "svd-if", "0.1", 
+		, "svd_if", "0.1", 
 		__DATE__, __TIME__, "vlad.luch@mail.ru");
 }/*}}}*/
 
@@ -97,7 +97,7 @@ main (int argc, char ** argv)
 	/* start engine clien part */
 	err = svd_if_cli_start (err_msg);
 	if(err){
-		fprintf( stderr, "%s : %s\n", "svd-if", err_msg);
+		fprintf( stderr, "%s : %s\n", "svd_if", err_msg);
 	}
 
 __exit:
