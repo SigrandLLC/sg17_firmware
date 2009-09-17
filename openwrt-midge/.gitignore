@@ -1,0 +1,18 @@
+# non-source directories
+dl
+bin
+build_mipsel
+staging_dir_mipsel
+toolchain_build_mipsel
+
+# build-related files
+.config*
+.tmpconfig.h
+
+# object files
+*.o
+
+# executables
+package/config/conf
+package/config/mconf
+
