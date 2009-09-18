@@ -2,7 +2,10 @@ include $(TOPDIR)/rules.mk
 
 KDIR:=$(BUILD_DIR)/linux-$(KERNEL)-$(BOARD)
 
-REV:=$(shell LANG=C svn info | awk '/^Revision:/ { print$$2 }' )
+# calculate quantity of commits
+REV:=$(shell LANG=C git rev-list HEAD |wc -l )
+# 9 commits were lost, so add them
+REV:=$(shell LANG=C echo `expr $(REV) + 9` )
 ifeq ($(REV),)
 REV:=0
 endif

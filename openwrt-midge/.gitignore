@@ -16,3 +16,9 @@ toolchain_build_mipsel
 package/config/conf
 package/config/mconf
 
+# creates/removes at building
+package/config/lex.zconf.c
+package/config/lkc_defs.h
+package/config/zconf.tab.c
+package/config/zconf.tab.h
+
