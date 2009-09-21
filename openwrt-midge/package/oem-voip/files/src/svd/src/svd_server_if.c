@@ -514,11 +514,11 @@ svd_jb_for_chan(ab_chan_t * const chan, char ** const buf, int * const palc)
 	err = svd_addtobuf(buf, palc, 
 "{\"chanid\": \"%02d\",\"isUp\":\"%s\",\"con_N\":\"%d\",\"JB statistics\":{\"tp\":\"%s\",\n\
 \"PksAvg\":\"%08lu\",\"invPC\":\"%4.2f\",\"latePC\":\"%4.2f\",\"earlyPC\":\"%4.2f\",\"resyncPC\":\"%4.2f\",\n\
-\"BS\":\"%04d\",\"maxBS\":\"%04d\",\"minBS\":\"%04d\",\"POD\":\"%04d\",\"maxPOD\":\"%04d\",\"minPOD\":\"%04d\",\n\
-\"nPks\":\"%08d\",\"nInv\":\"%04d\",\"nLate\":\"%04d\",\"nEarly\":\"%04d\",\"nResync\":\"%04d\",\n\
-\"nIsUn\":\"%08d\",\"nIsNoUn\":\"%08d\",\"nIsIncr\":\"%08d\",\n\
-\"nSkDecr\":\"%08d\",\"nDsDecr\":\"%08d\",\"nDsOwrf\":\"%08d\",\n\
-\"nSid\":\"%08ld\",\"nRecvBytesH\":\"%08d\",\"nRecvBytesL\":\"%08d\"}}\n", 
+\"BS\":\"%04u\",\"maxBS\":\"%04u\",\"minBS\":\"%04u\",\"POD\":\"%04u\",\"maxPOD\":\"%04u\",\"minPOD\":\"%04u\",\n\
+\"nPks\":\"%08lu\",\"nInv\":\"%04u\",\"nLate\":\"%04u\",\"nEarly\":\"%04u\",\"nResync\":\"%04u\",\n\
+\"nIsUn\":\"%08lu\",\"nIsNoUn\":\"%08lu\",\"nIsIncr\":\"%08lu\",\n\
+\"nSkDecr\":\"%08lu\",\"nDsDecr\":\"%08lu\",\"nDsOwrf\":\"%08lu\",\n\
+\"nSid\":\"%08lu\",\"nRecvBytesH\":\"%08lu\",\"nRecvBytesL\":\"%08lu\"}}\n", 
 	chan->abs_idx,yn,chan->statistics.con_cnt,tp,chan->statistics.pcks_avg,
 	chan->statistics.invalid_pc,chan->statistics.late_pc, chan->statistics.early_pc,
 	chan->statistics.resync_pc,s->nBufSize,s->nMaxBufSize,s->nMinBufSize,
