@@ -7,12 +7,14 @@
 /* Includes {{{ */
 #include "svd.h"
 #include "svd_if.h"
+#include "svd_cfg.h"
 
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <syslog.h>
 #include <assert.h>
 #include <errno.h>
 /*}}}*/
@@ -33,6 +35,9 @@ static int svd_exec_get_jb_stat(svd_t * const svd, struct svdif_msg_s * const ms
 		char ** const buff, int * const buff_sz);
 /** Execute 'get_rtcp_stat' command.*/ 
 static int svd_exec_get_rtcp_stat(svd_t * const svd, struct svdif_msg_s * const msg, 
+		char ** const buff, int * const buff_sz);
+/** Execute 'shutdown' command.*/ 
+static int svd_exec_shutdown(svd_t * svd, struct svdif_msg_s * const msg, 
 		char ** const buff, int * const buff_sz);
 /** Add to string another and resize it if necessary */
 static int svd_addtobuf(char ** const buf, int * const palc, char const * fmt, ...);
@@ -153,6 +158,7 @@ svd_exec_msg(svd_t * const svd, struct svdif_msg_s * const msg,
 	char * buff = NULL;
 	int buff_sz;
 	int err;
+	int ifd = svd->ifd;
 	
 	if       (msg->type == msg_type_TEST){
 		err = svd_exec_test(svd, msg, &buff, &buff_sz);
@@ -160,6 +166,8 @@ svd_exec_msg(svd_t * const svd, struct svdif_msg_s * const msg,
 		err = svd_exec_get_jb_stat(svd, msg, &buff, &buff_sz);
 	} else if(msg->type == msg_type_GET_RTCP_STAT){
 		err = svd_exec_get_rtcp_stat(svd, msg, &buff, &buff_sz);
+	} else if(msg->type == msg_type_SHUTDOWN){
+		err = svd_exec_shutdown(svd, msg, &buff, &buff_sz);
 	} else {
 		SU_DEBUG_2(("Wrong parsing result type[%d]\n", msg->type));
 		goto __exit_fail;
@@ -168,7 +176,7 @@ svd_exec_msg(svd_t * const svd, struct svdif_msg_s * const msg,
 		goto __exit_fail;
 	}
 
-	cnt = sendto(svd->ifd, buff, buff_sz, 0, 
+	cnt = sendto(ifd, buff, buff_sz, 0, 
 			(struct sockaddr * __restrict__)cl_addr, sizeof(*cl_addr));
 	if(cnt == -1){
 		SU_DEBUG_2(("sending error (%s)\n",strerror(errno)));
@@ -402,6 +410,21 @@ svd_exec_get_rtcp_stat(svd_t * const svd, struct svdif_msg_s * const msg,
 		/* tag__ not released yet */
 	} else {
 		SU_DEBUG_2(("Error in parsing output format"));
+		goto __exit_fail;
+	}
+	return 0;
+__exit_fail:
+	return -1;
+}/*}}}*/
+
+static int 
+svd_exec_shutdown(svd_t * svd, struct svdif_msg_s * const msg, 
+		char ** const buff, int * const buff_sz)
+{/*{{{*/
+	/* svd shutdown */
+	svd_shutdown(svd);
+
+	if(svd_addtobuf(buff, buff_sz,"{\"shutdown\":\"starting\"}\n")){
 		goto __exit_fail;
 	}
 	return 0;

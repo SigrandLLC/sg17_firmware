@@ -177,6 +177,7 @@ svd_if_srv_parse (char const * const str, struct svdif_msg_s * const msg,
 		{"test",          ch_t_NONE  , msg_fmt_CLI},
 		{"get_jb_stat",   ch_t_ACTIVE, msg_fmt_JSON},
 		{"get_rtcp_stat", ch_t_ACTIVE, msg_fmt_JSON},
+		{"shutdown",      ch_t_NONE  , msg_fmt_CLI},
 	}; 
 	char pstr[MAX_MSG_SIZE] = {0,};
 	char *command = NULL;
@@ -202,8 +203,10 @@ svd_if_srv_parse (char const * const str, struct svdif_msg_s * const msg,
 	}
 
 	/* get args */
-	if(msg->type == msg_type_TEST){
-		/* no args */
+	if       (msg->type == msg_type_TEST){
+		/* nothing to do */
+	} else if(msg->type == msg_type_SHUTDOWN){
+		/* nothing to do */
 	} else {
 		/* args : [chan;fmt] */
 		/* get chan */
