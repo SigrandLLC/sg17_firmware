@@ -77,7 +77,6 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 	IFX_TAPI_PKT_RTP_PT_CFG_t rtpPTConf;
 	IFX_TAPI_PKT_RTP_CFG_t rtpConf;
 	IFX_TAPI_PKT_VOLUME_t codVolume;
-/*	IFX_TAPI_LINE_VOLUME_t almVolume; */
 	IFX_TAPI_ENC_CFG_t encCfg;
 	IFX_TAPI_DEC_CFG_t decCfg;
 	int vad_param;
@@ -90,7 +89,6 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 	memset(&rtpPTConf, 0, sizeof(rtpPTConf));
 	memset(&rtpConf, 0, sizeof(rtpConf));
 	memset(&codVolume, 0, sizeof(codVolume));
-	/*memset(&almVolume, 0, sizeof(almVolume));*/
 	memset(&encCfg, 0, sizeof(encCfg));
 	memset(&decCfg, 0, sizeof(decCfg));
 
@@ -214,12 +212,6 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 	codVolume.nEnc = rtpp->enc_dB;
 	codVolume.nDec = rtpp->dec_dB;
 	/*}}}*/
-	/* Configure ALM gains {{{*/
-	/*
-	almVolume.nGainRx = rtpp->ARX_dB;
-	almVolume.nGainTx = rtpp->ATX_dB;
-	*/
-	/*}}}*/
 	/* Set the VAD configuration {{{*/
 	switch(rtpp->VAD_cfg){
 	case vad_cfg_ON:
@@ -320,16 +312,6 @@ fprintf(stderr," hpf off\n");
 		ab_err_set(AB_ERR_UNKNOWN, "volume set ioctl error");
 		err_summary++;
 	}
-
-	/* Configure Analog channel gains */
-	/*
-	err = 0;
-	err = ioctl(chan->rtp_fd, IFX_TAPI_PHONE_VOLUME_SET, &almVolume);
-	if(err){
-		ab_err_set(AB_ERR_UNKNOWN, "alm gains set ioctl error");
-		err_summary++;
-	}
-	*/
 
 	/* Configure high-pass filter */
 	err = 0;

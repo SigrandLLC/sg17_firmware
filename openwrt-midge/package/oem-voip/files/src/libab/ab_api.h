@@ -107,8 +107,6 @@ struct jb_prms_s {/*{{{*/
 struct rtp_session_prms_s {/*{{{*/
 	int enc_dB; /**< Coder enc gain */
 	int dec_dB; /**< Coder dec gain */
-	int ATX_dB; /**< Analog TX gain */
-	int ARX_dB; /**< Analog RX gain */
 	enum vad_cfg_e VAD_cfg; /**< Voice Activity Detector configuration */
 	unsigned char HPF_is_ON; /**< High Pass Filter is ON? */
 };/*}}}*/

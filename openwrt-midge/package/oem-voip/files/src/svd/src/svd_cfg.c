@@ -1543,8 +1543,6 @@ audio_init( void )
 	curr_rec = &g_conf.audio_prms[0];
 	curr_rec->enc_dB = 0;
 	curr_rec->dec_dB = 0;
-	curr_rec->ATX_dB = 0;
-	curr_rec->ARX_dB = 0;
 	curr_rec->VAD_cfg = vad_cfg_OFF;
 	curr_rec->HPF_is_ON = 0;
 	for (i=1; i<CHANS_MAX; i++){
@@ -1577,13 +1575,9 @@ audio_init( void )
 
 		curr_rec = &g_conf.audio_prms[ abs_idx ];
 
-		//curr_rec->ATX_dB = config_setting_get_int_elem(rec_set, 1);
-		//curr_rec->ARX_dB = config_setting_get_int_elem(rec_set, 2);
-		curr_rec->ATX_dB = 0;
-		curr_rec->ARX_dB = 0;
-		curr_rec->enc_dB = config_setting_get_int_elem(rec_set, 3);
-		curr_rec->dec_dB = config_setting_get_int_elem(rec_set, 4);
-		elem = config_setting_get_string_elem (rec_set, 5);
+		curr_rec->enc_dB = config_setting_get_int_elem(rec_set, 1);
+		curr_rec->dec_dB = config_setting_get_int_elem(rec_set, 2);
+		elem = config_setting_get_string_elem (rec_set, 3);
 		if( !strcmp(elem, CONF_VAD_NOVAD)){
 			curr_rec->VAD_cfg = vad_cfg_OFF;
 		} else if( !strcmp(elem, CONF_VAD_ON)){
@@ -1595,7 +1589,7 @@ audio_init( void )
 		} else if( !strcmp(elem, CONF_VAD_SC_ONLY)){
 			curr_rec->VAD_cfg = vad_cfg_SC_only;
 		}
-		curr_rec->HPF_is_ON = config_setting_get_int_elem(rec_set, 6);
+		curr_rec->HPF_is_ON = config_setting_get_int_elem(rec_set, 4);
 	}
 __exit_success:
 	config_destroy (&cfg);
