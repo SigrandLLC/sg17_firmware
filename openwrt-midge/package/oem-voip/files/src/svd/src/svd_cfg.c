@@ -1577,8 +1577,10 @@ audio_init( void )
 
 		curr_rec = &g_conf.audio_prms[ abs_idx ];
 
-		curr_rec->ATX_dB = config_setting_get_int_elem(rec_set, 1);
-		curr_rec->ARX_dB = config_setting_get_int_elem(rec_set, 2);
+		//curr_rec->ATX_dB = config_setting_get_int_elem(rec_set, 1);
+		//curr_rec->ARX_dB = config_setting_get_int_elem(rec_set, 2);
+		curr_rec->ATX_dB = 0;
+		curr_rec->ARX_dB = 0;
 		curr_rec->enc_dB = config_setting_get_int_elem(rec_set, 3);
 		curr_rec->dec_dB = config_setting_get_int_elem(rec_set, 4);
 		elem = config_setting_get_string_elem (rec_set, 5);
