@@ -636,13 +636,11 @@ Controllers.voipAudio = function() {
         "name": "Audio",
         "func": function() {
             var c = page.addContainer("rtp");
-            var colNum = 8;
+            var colNum = 6;
             c.setSubsystem("svd-rtp");
             c.addTitle("Audio settings", {"colspan": colNum});
 
-            c.addTableHeader("Channel|Type|Tx.A|Rx.A|Tx.C|Rx.C|VAD|HPF");
-            c.addTableTfootStr("Tx.A: Transmit volume settings for Analog module (outcome volume level).", colNum);
-            c.addTableTfootStr("Rx.A: Receive volume settings for Analog module (income volume level).", colNum);
+            c.addTableHeader("Channel|Type|Tx.C|Rx.C|VAD|HPF");
             c.addTableTfootStr("Tx.C: Transmit volume settings for Coder module (outcome volume level).", colNum);
             c.addTableTfootStr("Rx.C: Receive volume settings for Coder module (income volume level).", colNum);
             c.addTableTfootStr("VAD:", colNum);
@@ -684,24 +682,6 @@ Controllers.voipAudio = function() {
                     vol += i + " ";
                 }
                 vol = $.trim(vol);
-
-                /* Tx.A */
-                field = {
-                    "type": "select",
-                    "name": $.sprintf("sys_voip_sound_%s_txa", channel[0]),
-                    "options": vol,
-                    "defaultValue": "0"
-                };
-                c.addTableWidget(field, row);
-
-                /* Rx.A */
-                field = {
-                    "type": "select",
-                    "name": $.sprintf("sys_voip_sound_%s_rxa", channel[0]),
-                    "options": vol,
-                    "defaultValue": "0"
-                };
-                c.addTableWidget(field, row);
 
                 /* Tx.C */
                 field = {
@@ -1259,7 +1239,7 @@ Controllers.voipJitterBuffer = function() {
                     "type": "select",
                     "name": $.sprintf("sys_voip_jb_%s_type", channel[0]),
                     "options": {"fixed": "Fixed", "adaptive": "Adaptive"},
-                    "defaultValue": "fixed",
+                    "defaultValue": "adaptive",
                     "onChange": function() {
                         onTypeChange(channel[0]);
                     }
@@ -1333,3 +1313,4 @@ Controllers.voipJitterBuffer = function() {
 
     page.generateTabs();
 };
+
