@@ -344,6 +344,18 @@ conf_show( void )
 		}
 	}
 
+	SU_DEBUG_3(("Jitter Buffer:\n"));
+	for(i=0; i<CHANS_MAX; i++){
+		SU_DEBUG_3(("\t%d:[%d:%d:%d]::[%d:%d:%d:%d]\n", i,
+				g_conf.jb_prms[i].jb_type,
+				g_conf.jb_prms[i].jb_pk_adpt,	
+				g_conf.jb_prms[i].jb_loc_adpt,	
+				g_conf.jb_prms[i].jb_scaling,	
+				g_conf.jb_prms[i].jb_init_sz,
+				g_conf.jb_prms[i].jb_min_sz,	
+				g_conf.jb_prms[i].jb_max_sz));
+	}
+
 	SU_DEBUG_3(("TonalF :\n"));
 	for(i=0; i<CHANS_MAX; i++){
 		curr_vf_rec = &g_conf.voice_freq[ i ];
@@ -1531,8 +1543,6 @@ audio_init( void )
 	curr_rec = &g_conf.audio_prms[0];
 	curr_rec->enc_dB = 0;
 	curr_rec->dec_dB = 0;
-	curr_rec->ATX_dB = 0;
-	curr_rec->ARX_dB = 0;
 	curr_rec->VAD_cfg = vad_cfg_OFF;
 	curr_rec->HPF_is_ON = 0;
 	for (i=1; i<CHANS_MAX; i++){
@@ -1565,11 +1575,9 @@ audio_init( void )
 
 		curr_rec = &g_conf.audio_prms[ abs_idx ];
 
-		curr_rec->ATX_dB = config_setting_get_int_elem(rec_set, 1);
-		curr_rec->ARX_dB = config_setting_get_int_elem(rec_set, 2);
-		curr_rec->enc_dB = config_setting_get_int_elem(rec_set, 3);
-		curr_rec->dec_dB = config_setting_get_int_elem(rec_set, 4);
-		elem = config_setting_get_string_elem (rec_set, 5);
+		curr_rec->enc_dB = config_setting_get_int_elem(rec_set, 1);
+		curr_rec->dec_dB = config_setting_get_int_elem(rec_set, 2);
+		elem = config_setting_get_string_elem (rec_set, 3);
 		if( !strcmp(elem, CONF_VAD_NOVAD)){
 			curr_rec->VAD_cfg = vad_cfg_OFF;
 		} else if( !strcmp(elem, CONF_VAD_ON)){
@@ -1581,7 +1589,7 @@ audio_init( void )
 		} else if( !strcmp(elem, CONF_VAD_SC_ONLY)){
 			curr_rec->VAD_cfg = vad_cfg_SC_only;
 		}
-		curr_rec->HPF_is_ON = config_setting_get_int_elem(rec_set, 6);
+		curr_rec->HPF_is_ON = config_setting_get_int_elem(rec_set, 4);
 	}
 __exit_success:
 	config_destroy (&cfg);
@@ -1646,6 +1654,7 @@ jb_init( void )
 	for(i=0; i<rec_num; i++){
 		int abs_idx;
 		rec_set = config_setting_get_elem (set, i);
+		float scal;
 
 		/* get chan id */
 		elem = config_setting_get_string_elem (rec_set, 0);
@@ -1673,10 +1682,15 @@ jb_init( void )
 		} else if( !strcmp(elem, CONF_JB_LOC_SI)){
 			curr_rec->jb_loc_adpt = jb_loc_adpt_SI;
 		}
-		curr_rec->jb_scaling = config_setting_get_int_elem(rec_set, 4);
-		curr_rec->jb_init_sz = config_setting_get_int_elem(rec_set, 5);
-		curr_rec->jb_min_sz = config_setting_get_int_elem(rec_set, 6);
-		curr_rec->jb_max_sz = config_setting_get_int_elem(rec_set, 7);
+		scal = config_setting_get_float_elem(rec_set, 4);
+		if((int)scal == 0){
+			curr_rec->jb_scaling = config_setting_get_int_elem(rec_set, 4) * 16;
+		} else {
+			curr_rec->jb_scaling = scal * 16;
+		}
+		curr_rec->jb_init_sz = config_setting_get_int_elem(rec_set, 5) * 8;
+		curr_rec->jb_min_sz = config_setting_get_int_elem(rec_set, 6) * 8;
+		curr_rec->jb_max_sz = config_setting_get_int_elem(rec_set, 7) * 8;
 	}
 __exit_success:
 	config_destroy (&cfg);

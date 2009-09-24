@@ -1,6 +1,6 @@
 diff -ruiN vinetic_pure/2cpe/drv_vinetic_alm_cpe.c vinetic/2cpe/drv_vinetic_alm_cpe.c
---- vinetic_pure/2cpe/drv_vinetic_alm_cpe.c	2009-07-02 16:10:10.000000000 +0700
-+++ vinetic/2cpe/drv_vinetic_alm_cpe.c	2009-07-02 16:10:10.000000000 +0700
+--- vinetic_pure/2cpe/drv_vinetic_alm_cpe.c	2009-09-17 13:15:26.000000000 +0700
++++ vinetic/2cpe/drv_vinetic_alm_cpe.c	2009-09-17 13:15:26.000000000 +0700
 @@ -262,6 +262,19 @@
           opmod.OP_MODE = VIN_OPMOD_FXO;
           break;
@@ -22,8 +22,8 @@ diff -ruiN vinetic_pure/2cpe/drv_vinetic_alm_cpe.c vinetic/2cpe/drv_vinetic_alm_
           Vinetic_IrqUnlockDevice(pDev);
           return IFX_ERROR;
 diff -ruiN vinetic_pure/2cpe/drv_vinetic_gpio.c vinetic/2cpe/drv_vinetic_gpio.c
---- vinetic_pure/2cpe/drv_vinetic_gpio.c	2009-07-02 16:10:10.000000000 +0700
-+++ vinetic/2cpe/drv_vinetic_gpio.c	2009-07-02 16:10:10.000000000 +0700
+--- vinetic_pure/2cpe/drv_vinetic_gpio.c	2009-09-17 13:15:26.000000000 +0700
++++ vinetic/2cpe/drv_vinetic_gpio.c	2009-09-17 13:15:26.000000000 +0700
 @@ -801,4 +801,9 @@
  
     return err;
@@ -35,8 +35,8 @@ diff -ruiN vinetic_pure/2cpe/drv_vinetic_gpio.c vinetic/2cpe/drv_vinetic_gpio.c
 +EXPORT_SYMBOL( VINETIC_GpioReserve );
  /* @} */
 diff -ruiN vinetic_pure/2cpe/drv_vinetic_host.c vinetic/2cpe/drv_vinetic_host.c
---- vinetic_pure/2cpe/drv_vinetic_host.c	2009-07-02 16:10:10.000000000 +0700
-+++ vinetic/2cpe/drv_vinetic_host.c	2009-07-02 16:10:10.000000000 +0700
+--- vinetic_pure/2cpe/drv_vinetic_host.c	2009-09-17 13:15:26.000000000 +0700
++++ vinetic/2cpe/drv_vinetic_host.c	2009-09-17 13:15:26.000000000 +0700
 @@ -1784,6 +1784,39 @@
  \param
     pDev    - pointer to the device interface
@@ -86,30 +86,19 @@ diff -ruiN vinetic_pure/2cpe/drv_vinetic_host.c vinetic/2cpe/drv_vinetic_host.c
  /**
    Initialize the VINETIC 2CPE Chip
 diff -ruiN vinetic_pure/2cpe/drv_vinetic_int.c vinetic/2cpe/drv_vinetic_int.c
---- vinetic_pure/2cpe/drv_vinetic_int.c	2009-07-02 16:10:10.000000000 +0700
-+++ vinetic/2cpe/drv_vinetic_int.c	2009-07-02 16:10:10.000000000 +0700
+--- vinetic_pure/2cpe/drv_vinetic_int.c	2009-09-17 13:15:26.000000000 +0700
++++ vinetic/2cpe/drv_vinetic_int.c	2009-09-17 13:17:32.000000000 +0700
 @@ -328,6 +328,7 @@
              /* if no packet buffers available discard packet */
              if (pPkt == NULL)
              {
-+/*tag__*/ printk("MARK2 : serve_voice_outbox_data\n");
++/*tag__*/ printk("%s()\n",__func__);
                 /* optimized for stack usage - static */
                 static PACKET Pkt;
  
-diff -ruiN vinetic_pure/2cpe/drv_vinetic_polling.c vinetic/2cpe/drv_vinetic_polling.c
---- vinetic_pure/2cpe/drv_vinetic_polling.c	2009-07-02 16:10:10.000000000 +0700
-+++ vinetic/2cpe/drv_vinetic_polling.c	2009-07-02 16:10:10.000000000 +0700
-@@ -163,6 +163,7 @@
-             if (pPkt == IFX_NULL)
-             {
-                PACKET Pkt;
-+/*tag__*/ printk("MARK3 : IFX_TAPI_LL_POLL_rdPkts\n");
- 
-                /* Dummy read of the rest of the packet, just to free voice
-                   outbox. */
 diff -ruiN vinetic_pure/2cpe/Makefile.am vinetic/2cpe/Makefile.am
---- vinetic_pure/2cpe/Makefile.am	2009-07-02 16:10:10.000000000 +0700
-+++ vinetic/2cpe/Makefile.am	2009-07-02 16:10:10.000000000 +0700
+--- vinetic_pure/2cpe/Makefile.am	2009-09-17 13:15:26.000000000 +0700
++++ vinetic/2cpe/Makefile.am	2009-09-17 13:15:26.000000000 +0700
 @@ -218,7 +218,7 @@
  
  # Extra rule for linux-2.6 kernel object
@@ -120,8 +109,8 @@ diff -ruiN vinetic_pure/2cpe/Makefile.am vinetic/2cpe/Makefile.am
  drv_vinetic.ko:
  	@echo -e "Making Linux 2.6.x kernel object"
 diff -ruiN vinetic_pure/src/common/src/sys_drv_debug.c vinetic/src/common/src/sys_drv_debug.c
---- vinetic_pure/src/common/src/sys_drv_debug.c	2009-07-02 16:10:10.000000000 +0700
-+++ vinetic/src/common/src/sys_drv_debug.c	2009-07-02 16:10:10.000000000 +0700
+--- vinetic_pure/src/common/src/sys_drv_debug.c	2009-09-17 13:15:26.000000000 +0700
++++ vinetic/src/common/src/sys_drv_debug.c	2009-09-17 13:15:26.000000000 +0700
 @@ -40,7 +40,7 @@
  #include "sys_drv_ifxos.h"
  #include "sys_drv_debug.h"
@@ -132,19 +121,66 @@ diff -ruiN vinetic_pure/src/common/src/sys_drv_debug.c vinetic/src/common/src/sy
  /** control structure for debug memory allocation */
  typedef struct
 diff -ruiN vinetic_pure/src/drv_vinetic_linux.c vinetic/src/drv_vinetic_linux.c
---- vinetic_pure/src/drv_vinetic_linux.c	2009-07-02 16:10:10.000000000 +0700
-+++ vinetic/src/drv_vinetic_linux.c	2009-07-02 16:10:10.000000000 +0700
-@@ -976,6 +976,9 @@
+--- vinetic_pure/src/drv_vinetic_linux.c	2009-09-17 13:15:26.000000000 +0700
++++ vinetic/src/drv_vinetic_linux.c	2009-09-17 13:15:26.000000000 +0700
+@@ -965,20 +965,38 @@
+    VINETIC_CHANNEL   *pCh = (VINETIC_CHANNEL *)pLLCh;
+    IFX_int32_t       len;
+    IFX_uint16_t      *pData = IFX_NULL;
++   IFX_uint16_t      psData[512] = {0,};/* tag__ tapi_stream.c PACKET_SIZE = 512 */
++
++   if(bufferPoolElementSize(TAPI_VoiceBufferPoolHandle_Get()) != 512){
++      TRACE(VINETIC, DBG_LEVEL_HIGH, ("ERR: Wrong static mas size.\n\r"));
++   }
+ 
+    /* Protect channel against concurrent tasks. */
+    IFXOS_MutexLock(pCh->chAcc);
+    Vinetic_IrqLockDevice(pCh->pParent);
+ 
+-   pData = (IFX_uint16_t *)bufferPoolGet(TAPI_VoiceBufferPoolHandle_Get());
++   /* using buffer from bufferPool lead to conflict with interrupt on other
++	* than current device irq lines, because all devices use the same bufferPool
++	* from tapi/src/drv_tapi_stream.c for getting memory, but just for current
++	* device irq line locks.
++	* So better to use static memory for our goals.
++	*/
++   //pData = (IFX_uint16_t *)bufferPoolGet(TAPI_VoiceBufferPoolHandle_Get());
++   pData = psData;
++   /* then we use static memory we do not need that */
++#if 0
+    if (IFX_NULL == pData)
+    {
        /* Error getting memory for packet data. */
        TRACE(VINETIC, DBG_LEVEL_HIGH, ("ERR: Reserving memory for packet "
              "data.\n\r"));
-+/*tag__*/ printk("MARK1 : VINETIC_LL_Write\n");
++	  /* there was missed unlock */
 +	   Vinetic_IrqUnlockDevice(pCh->pParent);
 +	   IFXOS_MutexUnlock(pCh->chAcc);
        return -EFAULT;
     }
     memset(pData, 0, bufferPoolElementSize(TAPI_VoiceBufferPoolHandle_Get()));
-@@ -1551,6 +1554,7 @@
++#endif
+ 
+    Vinetic_IrqUnlockDevice(pCh->pParent);
+    IFXOS_MutexUnlock(pCh->chAcc);
+@@ -1009,13 +1027,15 @@
+    /* release lock */
+    IFXOS_MutexUnlock (pCh->chAcc);
+ 
++   /* then we use static memory we do not need that */
++#if 0
+    /* Protect channel against concurrent tasks. */
+    IFXOS_MutexLock(pCh->chAcc);
+    Vinetic_IrqLockDevice(pCh->pParent);
+    bufferPoolPut(pData);
+    Vinetic_IrqUnlockDevice(pCh->pParent);
+    IFXOS_MutexUnlock(pCh->chAcc);
+-
++#endif
+    return len;
+ #else
+    return -EINVAL;
+@@ -1551,6 +1571,7 @@
  module_init(vinetic_module_init);
  module_exit(vinetic_module_exit);
  
@@ -153,8 +189,8 @@ diff -ruiN vinetic_pure/src/drv_vinetic_linux.c vinetic/src/drv_vinetic_linux.c
  #endif /* LINUX */
  
 diff -ruiN vinetic_pure/src/drv_vinetic_sig.c vinetic/src/drv_vinetic_sig.c
---- vinetic_pure/src/drv_vinetic_sig.c	2009-07-02 16:10:10.000000000 +0700
-+++ vinetic/src/drv_vinetic_sig.c	2009-07-02 16:10:10.000000000 +0700
+--- vinetic_pure/src/drv_vinetic_sig.c	2009-09-17 13:15:26.000000000 +0700
++++ vinetic/src/drv_vinetic_sig.c	2009-09-17 13:15:26.000000000 +0700
 @@ -1445,6 +1445,7 @@
     /* DTMF generator default timing configuration (times in ms) */
     pSIG->nDtmfInterDigitTime = 100;
@@ -164,8 +200,8 @@ diff -ruiN vinetic_pure/src/drv_vinetic_sig.c vinetic/src/drv_vinetic_sig.c
  
  
 diff -ruiN vinetic_pure/src/drv_vinetic_sig_dtmfg.c vinetic/src/drv_vinetic_sig_dtmfg.c
---- vinetic_pure/src/drv_vinetic_sig_dtmfg.c	2009-07-02 16:10:10.000000000 +0700
-+++ vinetic/src/drv_vinetic_sig_dtmfg.c	2009-07-02 16:10:32.000000000 +0700
+--- vinetic_pure/src/drv_vinetic_sig_dtmfg.c	2009-09-17 13:15:26.000000000 +0700
++++ vinetic/src/drv_vinetic_sig_dtmfg.c	2009-09-17 13:15:26.000000000 +0700
 @@ -34,6 +34,7 @@
  #include "ifx_types.h"
  #include "drv_vinetic_sig_priv.h"
@@ -338,8 +374,8 @@ diff -ruiN vinetic_pure/src/drv_vinetic_sig_dtmfg.c vinetic/src/drv_vinetic_sig_
 +EXPORT_SYMBOL( VINETIC_Register_DAA_Ctx );
 +
 diff -ruiN vinetic_pure/src/drv_vinetic_sig.h vinetic/src/drv_vinetic_sig.h
---- vinetic_pure/src/drv_vinetic_sig.h	2009-07-02 16:10:10.000000000 +0700
-+++ vinetic/src/drv_vinetic_sig.h	2009-07-02 16:10:10.000000000 +0700
+--- vinetic_pure/src/drv_vinetic_sig.h	2009-09-17 13:15:26.000000000 +0700
++++ vinetic/src/drv_vinetic_sig.h	2009-09-17 13:15:26.000000000 +0700
 @@ -114,9 +114,11 @@
  
  extern IFX_int32_t  IFX_TAPI_LL_SIG_DTMFG_Cfg (IFX_TAPI_LL_CH_t *pLLChannel,
@@ -354,8 +390,8 @@ diff -ruiN vinetic_pure/src/drv_vinetic_sig.h vinetic/src/drv_vinetic_sig.h
                                                   IFX_char_t  *data);
  
 diff -ruiN vinetic_pure/src/drv_vinetic_sig_priv.h vinetic/src/drv_vinetic_sig_priv.h
---- vinetic_pure/src/drv_vinetic_sig_priv.h	2009-07-02 16:10:10.000000000 +0700
-+++ vinetic/src/drv_vinetic_sig_priv.h	2009-07-02 16:10:10.000000000 +0700
+--- vinetic_pure/src/drv_vinetic_sig_priv.h	2009-09-17 13:15:26.000000000 +0700
++++ vinetic/src/drv_vinetic_sig_priv.h	2009-09-17 13:15:26.000000000 +0700
 @@ -448,6 +448,7 @@
     /* DTMF generator configuration */
     IFX_uint16_t       nDtmfInterDigitTime;

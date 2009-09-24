@@ -12,6 +12,9 @@ toolchain_build_mipsel
 # object files
 *.o
 
+# tmp files
+*~
+
 # executables
 package/config/conf
 package/config/mconf

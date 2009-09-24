@@ -23,7 +23,7 @@
 #
 
 build_path=/home/vlad/tftpboot/
-path_to_bin=/home/vlad/OpenWRT/staging_dir_mipsel/bin/
+path_to_bin=/home/vlad/midge/openwrt-midge/staging_dir_mipsel/bin/
 
 cur_path=`pwd`
 arch_path=$cur_path

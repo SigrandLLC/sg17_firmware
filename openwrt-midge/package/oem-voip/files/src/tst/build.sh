@@ -7,7 +7,7 @@ tapi_name=drv_tapi-3.6.1
 vinetic_name=drv_vinetic-1.3.1_tapi-3.6.1
 patch_path=$cur_path/../../patches
 
-path_to_bin=/home/vlad/OpenWRT/staging_dir_mipsel/bin/
+path_to_bin=/home/vlad/midge/openwrt-midge/staging_dir_mipsel/bin/
 PATH=$PATH:${path_to_bin}
 
 echo MAKING [E,V]TST...

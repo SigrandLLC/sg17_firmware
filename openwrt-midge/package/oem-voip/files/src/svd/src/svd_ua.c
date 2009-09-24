@@ -1703,10 +1703,23 @@ DFS
 	 * 200 - shutdown successful
 	 * 500 - shutdown timeout after 30 seconds
 	 */
-	if(status == 200){
+	if       (status == 100){
+		int i;
+		int j;
+		/* send bye to all on all handlers */
+		j = svd->ab->chans_num;
+		for (i=0; i<j; i++){
+			svd_bye(svd, &svd->ab->chans[i]);
+		} 
+	} else if(status == 101){
+		return;
+	} else if(status == 200){
 		nua_destroy(svd->nua);
 		svd->nua = NULL;
+	} else if(status == 500){
+		return;
 	}
+	su_root_break(svd->root);
 DFE
 }/*}}}*/
 
