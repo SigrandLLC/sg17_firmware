@@ -4719,7 +4719,7 @@ diff -Naur linux-2.6.16/drivers/pcmcia/yenta_socket.c linux-2.6.16-new/drivers/p
 diff -Naur linux-2.6.16/drivers/serial/adm5120_uart.c linux-2.6.16-new/drivers/serial/adm5120_uart.c
 --- linux-2.6.16/drivers/serial/adm5120_uart.c	1970-01-01 07:00:00.000000000 +0700
 +++ linux-2.6.16-new/drivers/serial/adm5120_uart.c	2008-04-20 11:08:11.000000000 +0700
-@@ -0,0 +1,523 @@
+@@ -0,0 +1,524 @@
 +/*
 + *	Serial driver for ADM5120 SoC
 + *
@@ -5194,7 +5194,7 @@ diff -Naur linux-2.6.16/drivers/serial/adm5120_uart.c linux-2.6.16-new/drivers/s
 +
 +console_initcall(adm5120console_init);
 +
-+#define CONFIG_ADM5120_NR_UARTS 1
++#define CONFIG_ADM5120_NR_UARTS 2
 +static struct uart_port adm5120ser_ports[] = {
 +	{
 +		.iobase =	ADM5120_UART_BASE0,
@@ -5235,6 +5235,7 @@ diff -Naur linux-2.6.16/drivers/serial/adm5120_uart.c linux-2.6.16-new/drivers/s
 +
 +	ret = uart_register_driver(&adm5120ser_reg);
 +	if (!ret) {
++		printk(KERN_NOTICE"ADM5120 UART driver. Port nr=%d\n",CONFIG_ADM5120_NR_UARTS);
 +		for (i = 0; i < CONFIG_ADM5120_NR_UARTS; i++)
 +			uart_add_one_port(&adm5120ser_reg, &adm5120ser_ports[i]);
 +	}

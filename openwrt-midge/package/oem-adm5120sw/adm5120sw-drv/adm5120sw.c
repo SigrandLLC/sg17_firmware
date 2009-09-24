@@ -421,6 +421,8 @@ irqreturn_t swdrv_ProcessInt(int irq, void *dev_id, struct pt_regs *regs)
 #define PFS_VLAN1_LINK_DOWN 6
 #define PFS_VLAN2_LINK_DOWN 7
 #define PFS_VLAN3_LINK_DOWN 8
+#define PFS_REGRD 9
+#define PFS_REGWR 10
 
 
 char adm5120_procdir[]="sys/net/adm5120sw";
@@ -445,6 +447,13 @@ static int store_force_link(struct file *file,const char *buffer,unsigned long c
 static int read_force_link(char *buf, char **start, off_t offset, int count, int *eof, void *data); 
 #endif
 
+
+//#define ADM5120_SW_DEBUG
+#ifdef ADM5120_SW_DEBUG
+static int store_swreg(struct file *file,const char *buffer,unsigned long count,void *data);
+static int read_swreg(char *buf, char **start, off_t offset, int count, int *eof, void *data); 
+#endif
+
 static struct dev_entrie entries[]={
 	{ "eth0", PFS_VLAN0, NULL, 400, NULL, store_vlan2port },
 	{ "eth1", PFS_VLAN1, NULL, 400, NULL, store_vlan2port },
@@ -457,6 +466,12 @@ static struct dev_entrie entries[]={
 	{ "force_lnk_down_eth2", PFS_VLAN2_LINK_DOWN, NULL, 400, read_force_link, store_force_link },	
 	{ "force_lnk_down_eth3", PFS_VLAN3_LINK_DOWN, NULL, 400, read_force_link, store_force_link },	
 #endif
+
+#ifdef ADM5120_SW_DEBUG
+	{ "reg_read", PFS_REGRD, NULL, 400, read_swreg, store_swreg },
+	{ "reg_write", PFS_REGWR, NULL, 400, read_swreg, store_swreg },	
+#endif
+
 };
 
 #define PFS_ENTS  (sizeof(entries)/sizeof(struct dev_entrie))
@@ -573,7 +588,7 @@ static int store_vlan2port(struct file *file,const char *buffer,unsigned long co
 	// Setup VLAN
 	while ( (ptr-buffer)<count && ( *ptr>='0' && *ptr<='9' ) ) {
 		cport=*ptr-'0';
-		if( cport<ETH_PORT_NUM ){
+		if( cport < NUM_IF5120_PORTS ){
 			//check that this port is not in any other VLAN
 			err = 0;
 			for ( i=0;i<MAX_VLAN_GROUP;i++ ){
@@ -585,8 +600,11 @@ static int store_vlan2port(struct file *file,const char *buffer,unsigned long co
 					err = 1;
 				}
 			}
-			if( !err )		
+			if( !err ){
 				vlan_val |= 1<<cport;
+				sw_context->port[cport].vlanId = vlan_num + 1; 
+				sw_context->port[cport].ifUnit = vlan_num;
+			}				
 		}
 		ptr++;
 	}
@@ -611,7 +629,7 @@ static int read_switch_status(char *buf, char **start, off_t offset, int count, 
 	 */ 
 	int len = 0, i, j; 
 	i = ADM5120_SW_REG(PHY_st_REG); 
-	for ( j=0; j < 5; j++ ) { 
+	for ( j=0; j < NUM_IF5120_PORTS; j++ ) { 
 		len += sprintf(buf + len, "Port%d\t", j); 
 		len += sprintf(buf + len, (i & (1<<j))?"up  \t":"down\t"); 
 		if (i & (1<<j)) { 
@@ -671,6 +689,50 @@ static int read_force_link(char *buf, char **start, off_t offset, int count, int
 		return snprintf(buf,count,"enabled");
 	else
 		return snprintf(buf,count,"disabled");	
+} 
+#endif
+
+
+#ifdef ADM5120_SW_DEBUG
+static unsigned int  adm5120_regval = 0;
+static int store_swreg(struct file *file,const char *buf,unsigned long count,void *data)
+{
+	char *ptr=(char*)buf;
+	int action = *(short*)data;
+	unsigned int reg_num, write_val;
+	char *endp;
+	
+	if( !count ){
+		return 0;
+	}
+
+	reg_num = simple_strtoul(buf,&endp,16);
+	//printk(KERN_NOTICE"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);	
+  
+	switch( action ){
+	case PFS_REGRD:
+    	adm5120_regval = ADM5120_SW_REG(reg_num);
+		break;
+	case PFS_REGWR:
+		while( *endp == ' '){
+			endp++;
+		}
+		write_val = simple_strtoul(endp,&endp,16);
+		//printk(KERN_NOTICE"buf=%p, endp=%p",buf,endp);
+		ADM5120_SW_REG(reg_num) = write_val;
+		break;
+	}
+	return count;
+}
+
+static int read_swreg(char *buf, char **start, off_t offset, int count, int *eof, void *data)
+{ 
+	int action = *(short*)data;
+	
+	if( action == PFS_REGWR )
+		return 0;
+		
+	return snprintf(buf,count,"%08x",adm5120_regval);
 } 
 #endif
 
@@ -736,7 +798,7 @@ void EnableVlanGroup(int unit, unsigned long vlanGrp)
 	ADM5120_SW_REG(Port_conf0_REG) &= ~vlanGrp;
 
 	/* Mark the enabled ports */
-	for (i = 0; i < ETH_PORT_NUM; i++) {
+	for (i = 0; i < NUM_IF5120_PORTS; i++) {
 		if (vlanGrp & (0x01 << i)) {
 			sw_context->port[i].status = PORT_ENABLED;
 			sw_context->port[i].vlanId = vlanId;
@@ -757,8 +819,12 @@ void DisableVlanGroup(int unit, unsigned long vlanGrp)
 
 	/* Mark the disabled ports */
 	for (i = 0; i < NUM_IF5120_PORTS; i++)
-		if (vlanGrp & (0x01<<i))
+		if (vlanGrp & (0x01<<i)){
 			sw_context->port[i].status = PORT_DISABLED;
+			sw_context->port[i].vlanId = 0;
+			sw_context->port[i].ifUnit = 0;
+		}
+
 }
 
 
