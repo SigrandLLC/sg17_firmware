@@ -269,16 +269,18 @@ svd_exec_jbt(svd_t * const svd, char ** const buff, int * const buff_sz)
 	}
 	/* out to buffer */
 		err = svd_addtobuf(buff, buff_sz, 
-"Channel up/down: %02d / %02d\n\
-Packets Invalid   : %08lu\n\
-Packets Late      : %08lu\n\
-Packets Early     : %08lu\n\
-Resynchronizations: %08lu\n\
-Injected Samples (JB Underflows)    : %08lu\n\
-Injected Samples (JB Not Underflows): %08lu\n\
-Injected Samples (JB Increments)    : %08lu\n\
-Skipped Lost Samples (JB Decrements): %08lu\n\
-Dropped Samples (JB Overflows)      : %08lu\n", 
+"Channel up/down: %d / %d\n\
+Packets Invalid: %lu\n\
+Packets Late: %lu\n\
+Packets Early: %lu\n\
+Resynchronizations: %lu\n\
+Injected Samples (JB Underflows): %lu\n\
+Injected Samples (JB Not Underflows): %lu\n\
+Injected Samples (JB Increments): %lu\n\
+Skipped Lost Samples (JB Decrements): %lu\n\
+Dropped Samples (JB Decrements): %lu\n\
+Dropped Samples (JB Overflows): %lu\n\
+Comfort Noice samples: %lu", 
 		is_up, (cn-is_up),
 		nInvalid,nLate,nEarly,nResync,nIsUnderflow,nIsNoUnderflow,nIsIncrement,
 		nSkDecrement,nDsDecrement,nDsOverflow,nSid);
@@ -355,6 +357,8 @@ svd_exec_2af(svd_t * const svd, struct svdif_msg_s * const msg,
 	} else if(msg->ch_sel.ch_t == ch_t_ACTIVE){/*{{{*/
 		int i;
 		int cn = svd->ab->chans_num;
+		enum state_e {state_FIRST,state_SECOND,state_OTHER} st = state_FIRST;
+
 		if(msg->fmt_sel == msg_fmt_JSON){
 			if(svd_addtobuf(buff, buff_sz,"[\n")){
 				goto __exit_fail;
@@ -362,17 +366,36 @@ svd_exec_2af(svd_t * const svd, struct svdif_msg_s * const msg,
 		}
 		for (i=0; i<cn-1; i++){
 			if(svd->ab->chans[i].statistics.is_up){
+				if(st == state_OTHER){
+					if(msg->fmt_sel == msg_fmt_JSON){
+						if(svd_addtobuf(buff, buff_sz,",\n")){
+							goto __exit_fail;
+						}
+					}
+				}
 				if(func(&svd->ab->chans[i], buff, buff_sz, msg->fmt_sel)){
 					goto __exit_fail;
 				}
+				if(msg->fmt_sel == msg_fmt_JSON){
+					if(st == state_FIRST){
+						if(svd_addtobuf(buff, buff_sz,",\n")){
+							goto __exit_fail;
+						}
+						st = state_SECOND;
+					} else if(st == state_SECOND){
+						st = state_OTHER;
+					}
+				}
+			}
+		}
+		if(svd->ab->chans[i].statistics.is_up){
+			if(st == state_OTHER){
 				if(msg->fmt_sel == msg_fmt_JSON){
 					if(svd_addtobuf(buff, buff_sz,",\n")){
 						goto __exit_fail;
 					}
 				}
 			}
-		}
-		if(svd->ab->chans[i].statistics.is_up){
 			if(func(&svd->ab->chans[i], buff, buff_sz, msg->fmt_sel)){
 				goto __exit_fail;
 			}
@@ -476,8 +499,8 @@ svd_rtcp_for_chan(ab_chan_t * const chan, char ** const buf, int * const palc,
 	}
 	err = svd_addtobuf(buf, palc, 
 "{\"chanid\": \"%02d\",\"isUp\":\"%s\",\"con_N\":\"%d\",\"RTCP statistics\":{\n\
-\"ssrc\":\"0x%08lX\",\"rtp_ts\":\"0x%08lX\",\"psent\":\"%08ld\",\"osent\":\"%08ld\",\n\
-\"fraction\":\"0x%02lX\",\"lost\":\"%08ld\",\"last_seq\":\"%08ld\",\"jitter\":\"0x%08lX\"}}\n", 
+\"ssrc\":\"0x%08lX\",\"rtp_ts\":\"0x%08lX\",\"psent\":\"%ld\",\"osent\":\"%ld\",\n\
+\"fraction\":\"0x%02lX\",\"lost\":\"%ld\",\"last_seq\":\"%ld\",\"jitter\":\"0x%08lX\"}}\n", 
 	chan->abs_idx,yn,chan->statistics.con_cnt,s->ssrc,s->rtp_ts,s->psent,
 	s->osent,s->fraction,s->lost,s->last_seq,s->jitter);
 	if(err){
@@ -518,16 +541,16 @@ svd_jb_for_chan(ab_chan_t * const chan, char ** const buf, int * const palc,
 	if(fmt == msg_fmt_JSON){
 		err = svd_addtobuf(buf, palc, 
 "{\"chanid\": \"%02d\",\"state\":\"%s\",\"con_N\":\"%d\",\"JB statistics\":{\"tp\":\"%s\",\n\
-\"PksAvg\":\"%08lu\",\"invPC\":\"%4.2f\",\"latePC\":\"%4.2f\",\"earlyPC\":\"%4.2f\",\"resyncPC\":\"%4.2f\",\n\
-\"BS\":\"%04u\",\"maxBS\":\"%04u\",\"minBS\":\"%04u\",\"POD\":\"%04u\",\"maxPOD\":\"%04u\",\"minPOD\":\"%04u\",\n\
-\"nPks\":\"%08lu\",\"nInv\":\"%04u\",\"nLate\":\"%04u\",\"nEarly\":\"%04u\",\"nResync\":\"%04u\",\n\
-\"nIsUn\":\"%08lu\",\"nIsNoUn\":\"%08lu\",\"nIsIncr\":\"%08lu\",\n\
-\"nSkDecr\":\"%08lu\",\"nDsDecr\":\"%08lu\",\"nDsOwrf\":\"%08lu\",\n\
-\"nSid\":\"%08lu\",\"nRecvBytesH\":\"%08lu\",\"nRecvBytesL\":\"%08lu\"}}\n", 
+\"PksAvg\":\"%lu\",\"invPC\":\"%4.2f\",\"latePC\":\"%4.2f\",\"earlyPC\":\"%4.2f\",\"resyncPC\":\"%4.2f\",\n\
+\"BS\":\"%u\",\"maxBS\":\"%u\",\"minBS\":\"%u\",\"POD\":\"%u\",\"maxPOD\":\"%u\",\"minPOD\":\"%u\",\n\
+\"nPks\":\"%lu\",\"nInv\":\"%u\",\"nLate\":\"%u\",\"nEarly\":\"%u\",\"nResync\":\"%u\",\n\
+\"nIsUn\":\"%lu\",\"nIsNoUn\":\"%lu\",\"nIsIncr\":\"%lu\",\n\
+\"nSkDecr\":\"%lu\",\"nDsDecr\":\"%lu\",\"nDsOwrf\":\"%lu\",\n\
+\"nSid\":\"%lu\",\"nRecvBytesH\":\"%lu\",\"nRecvBytesL\":\"%lu\"}}\n", 
 		chan->abs_idx,yn,chan->statistics.con_cnt,tp,chan->statistics.pcks_avg,
 		chan->statistics.invalid_pc,chan->statistics.late_pc, 
 		chan->statistics.early_pc,
-		chan->statistics.resync_pc,s->nBufSize,s->nMaxBufSize,s->nMinBufSize,
+		chan->statistics.resync_pc,s->nBufSize/8,s->nMaxBufSize/8,s->nMinBufSize/8,
 		s->nPODelay,s->nMaxPODelay,s->nMinPODelay,s->nPackets,s->nInvalid,s->nLate,
 		s->nEarly,s->nResync,s->nIsUnderflow,s->nIsNoUnderflow,s->nIsIncrement,
 		s->nSkDecrement,s->nDsDecrement,s->nDsOverflow,s->nSid,
@@ -535,16 +558,28 @@ svd_jb_for_chan(ab_chan_t * const chan, char ** const buf, int * const palc,
 	} else if(fmt == msg_fmt_CLI){
 		err = svd_addtobuf(buf, palc, 
 "Channel:%02d (%s)\n\
+Connecions number: %d\n\
 Jitter Buffer Type: %s\n\
-Jitter Buffer Size: %04u (%04u - %04u)\n\
-Playout Delay     : %04u (%04u - %04u)\n\
-Packets Number    : %08lu\n\
-Injected Samples (Underflow)   : %08lu\n\
-Injected Samples (No Underflow): %08lu\n", 
-		chan->abs_idx,yn,tp,
-		s->nBufSize,s->nMinBufSize,s->nMaxBufSize,
-		s->nPODelay,s->nMinPODelay,s->nMaxPODelay,
-		s->nPackets,s->nIsUnderflow,s->nIsNoUnderflow);
+Jitter Buffer Size: %u (%u - %u)\n\
+Playout Delay: %u (%u - %u)\n\
+Packets Number: %lu\n\
+Packets Invalid: %u\n\
+Packets Late: %u\n\
+Packets Early: %u\n\
+Resynchronizations: %u\n\
+Injected Samples (JB Underflows): %lu\n\
+Injected Samples (JB Not Underflows): %lu\n\
+Injected Samples (JB Increments): %lu\n\
+Skipped Lost Samples (JB Decrements): %lu\n\
+Dropped Samples (JB Decrements): %lu\n\
+Dropped Samples (JB Overflows): %lu\n\
+Comfort Noice Samples: %lu\n", 
+		chan->abs_idx,yn,chan->statistics.con_cnt,tp,
+		s->nBufSize/8,s->nMinBufSize/8,s->nMaxBufSize/8,
+		s->nPODelay,s->nMinPODelay,s->nMaxPODelay,s->nPackets,
+		s->nInvalid,s->nLate,s->nEarly,s->nResync,
+		s->nIsUnderflow,s->nIsNoUnderflow,s->nIsIncrement,
+		s->nSkDecrement,s->nDsDecrement,s->nDsOverflow,s->nSid);
 	}
 	if(err){
 		goto __exit_fail;
