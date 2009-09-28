@@ -1192,11 +1192,11 @@ Controllers.voipJitterBuffer = function() {
             c.addTableTfootStr(" - LAT: Local Adaptation Type:", colNum);
             c.addTableTfootStr(" - - SI: on wtih sample interpollation.", colNum);
             c.addTableTfootStr(" - nScaling [1;16]: average play out delay is equal to the estimated jitter times the scaling factor.", colNum);
-            c.addTableTfootStr(" - nInit [5;8190]: nMin <= nInit <= nMax: initial size of the jitter buffer in ms.", colNum);
+            c.addTableTfootStr(" - nInit [5;8190] (for Adaptive mode nMin <= nInit <= nMax): initial size of the jitter buffer in ms.", colNum);
             c.addTableTfootStr(" - nMin [5;8190]: minimum size of the jitter buffer in ms.", colNum);
             c.addTableTfootStr(" - nMax [5;8190]: maximum size of the jitter buffer in ms.", colNum);
 
-            var mutableAttrs = ["n_scaling", "n_init_size", "n_min_size", "n_max_size"];
+            var mutableAttrs = ["n_min_size", "n_max_size"];
 
             var onTypeChange = function(channel) {
                 var type = $($.sprintf("#sys_voip_jb_%s_type", channel)).val();
@@ -1279,6 +1279,10 @@ Controllers.voipJitterBuffer = function() {
                     "name": $.sprintf("sys_voip_jb_%s_n_init_size", channel[0]),
                     "defaultValue": "100",
                     "validator": {"dynamicRange": [
+                            function() {
+                                var type = $($.sprintf("#sys_voip_jb_%s_type", channel[0])).val();
+                                return type == "fixed" ? false : true;
+                            },
                             $.sprintf("#sys_voip_jb_%s_n_min_size", channel[0]),
                             $.sprintf("#sys_voip_jb_%s_n_max_size", channel[0])
                         ]
