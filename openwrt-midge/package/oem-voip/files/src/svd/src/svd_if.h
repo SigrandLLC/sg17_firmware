@@ -36,7 +36,7 @@
 /** Messages types between client and server */
 enum msg_type_e {/*{{{*/
 	msg_type_NONE = 0, /**< No message incoming */
-	msg_type_TEST, /**< Test message - just get the answer "GOT TEST MSG" */
+	msg_type_GET_JB_STAT_TOTAL, /**< Get jitter buffer total statistics */
 	msg_type_GET_JB_STAT, /**< Get jitter buffer statistics */
 	msg_type_GET_RTCP_STAT, /**< Get RTCP statistics */
 	msg_type_SHUTDOWN, /**< Close all connections and prepare for exit */
@@ -49,10 +49,8 @@ struct msg_ch_s {/*{{{*/
 		ch_t_ONE, /**< Given number of one channel */
 		ch_t_ALL, /**< Message for all channels */
 		ch_t_ACTIVE, /**< Message for channels in the RTP/RTCP flow right now */
-		ch_t_SPECIFIC /**< Message for some other channels */
 	} ch_t;
 	int ch_if_one; /**< there chan number if it is ch_t_ONE */
-	unsigned char ch_specific[CHANS_MAX]; /**< 1/0 if channel selected/omitted */
 };/*}}}*/
 /** Parsed message from client */
 struct svdif_msg_s {/*{{{*/
@@ -63,8 +61,10 @@ struct svdif_msg_s {/*{{{*/
 		msg_fmt_CLI,
 	} fmt_sel; /**< Requested format */
 };/*}}}*/
-/** Unlink previous and create new socket.*/
+/** Create new interface socket.*/
 int svd_if_srv_create (int * const sfd, char * const err_msg);
+/** Close and unlink interface socket.*/
+int svd_if_srv_destroy (int * const sfd, char * const err_msg);
 /** Parse the message.*/
 int svd_if_srv_parse (char const * const str, struct svdif_msg_s * const msg,
 		char * const err_msg);

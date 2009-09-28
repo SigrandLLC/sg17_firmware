@@ -119,12 +119,14 @@ main (int argc, char ** argv)
 	/* create interface */
 	err = svd_create_interface(svd);
 	if(err){
-		goto __svd;
+		goto __if;
 	}
 
 	/* run main cycle */
 	su_root_run (svd->root);
 
+__if:
+	svd_destroy_interface(svd);
 __svd:
 	svd_destroy (&svd);
 __conf:
