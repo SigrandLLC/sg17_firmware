@@ -70,26 +70,23 @@ start)
 		echo "   ...starting svc" 
 		/bin/svc
 		echo "   ...starting svd" 
+		# what for this done? let it be for any case :)
 		killall svd 2>/dev/null
 		/bin/svd
 	fi
 ;;
 stop)
 	echo -n "Stoping VoIP daemon:"
-	echo "shutdown[]"|svd_if >/dev/null
-#killall svd 2>/dev/null
+	echo "shutdown[]"|svd_if 2>/dev/null
 	echo " OK"
 ;;
 restart)
 	# check that VoIP module is installed
 	if [ "x$(kdb get sys_voip_present)" = "x1" ]; then
-		echo "shutdown[]"|svd_if >/dev/null
+		echo "shutdown"|svd_if 2>/dev/null
 		sleep 1
 		/bin/svc --clear-and-exit
 		/bin/svd
-#		killall svd 2>/dev/null
-#		/bin/svc --clear-and-exit
-#		/bin/svd
 	fi
 ;;
 *)
