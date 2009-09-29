@@ -280,7 +280,7 @@ Injected Samples (JB Increments): %lu\n\
 Skipped Lost Samples (JB Decrements): %lu\n\
 Dropped Samples (JB Decrements): %lu\n\
 Dropped Samples (JB Overflows): %lu\n\
-Comfort Noice samples: %lu", 
+Comfort Noice Samples: %lu\n", 
 		is_up, (cn-is_up),
 		nInvalid,nLate,nEarly,nResync,nIsUnderflow,nIsNoUnderflow,nIsIncrement,
 		nSkDecrement,nDsDecrement,nDsOverflow,nSid);
