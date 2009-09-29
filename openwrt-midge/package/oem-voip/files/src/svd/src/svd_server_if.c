@@ -116,7 +116,7 @@ svd_if_handler(su_root_magic_t * root, su_wait_t * w, su_wakeup_arg_t * user_dat
 	unsigned char buf [MAX_MSG_SIZE];
 	char * abuf = NULL;
 	int abuf_sz = 0;
-	char abuf_err[] = "{\"result\":\"fail\"}";
+	char abuf_err[] = "{\"result\":\"fail\"}\n";
 	int received;
 	struct sockaddr_un cl_addr;
 	int cl_addr_len;
@@ -204,6 +204,9 @@ svd_exec_msg(svd_t * const svd, char const * const buf,
 		err = svd_exec_2af(svd, &msg, buff, buff_sz, svd_rtcp_for_chan);
 	} else if(msg.type == msg_type_SHUTDOWN){
 		err = svd_exec_shutdown(svd, buff, buff_sz);
+	}
+	if(err){
+		goto __exit_fail;
 	}
 	return 0;
 __exit_fail:
