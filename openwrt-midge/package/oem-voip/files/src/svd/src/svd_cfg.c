@@ -1691,6 +1691,10 @@ jb_init( void )
 		} else {
 			curr_rec->jb_scaling = scal * 16;
 		}
+		if(curr_rec->jb_scaling == 0){
+			curr_rec->jb_scaling = 255;
+		}
+
 		curr_rec->jb_init_sz = config_setting_get_int_elem(rec_set, 5) * 8;
 		curr_rec->jb_min_sz = config_setting_get_int_elem(rec_set, 6) * 8;
 		curr_rec->jb_max_sz = config_setting_get_int_elem(rec_set, 7) * 8;

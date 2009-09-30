@@ -504,10 +504,12 @@ ab_chan_media_activate ( ab_chan_t * const chan )
 	}
 
 	/* Jitter Buffer */
-	err = ab_chan_media_jb_tune (chan, &g_conf.jb_prms[chan->abs_idx]);
-	if(err){
-		SU_DEBUG_1(("JB_tune error : %s",ab_g_err_str));
-		goto __exit;
+	if(g_conf.jb_prms[chan->abs_idx].jb_max_sz != (999*8)){
+		err = ab_chan_media_jb_tune (chan, &g_conf.jb_prms[chan->abs_idx]);
+		if(err){
+			SU_DEBUG_1(("JB_tune error : %s",ab_g_err_str));
+			goto __exit;
+		}
 	}
 
 	/* WLEC */
