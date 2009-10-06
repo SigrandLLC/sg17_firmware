@@ -1277,7 +1277,7 @@ Controllers.voipJitterBuffer = function() {
                 field = {
                     "type": "text",
                     "name": $.sprintf("sys_voip_jb_%s_n_init_size", channel[0]),
-                    "defaultValue": "60",
+                    "defaultValue": "120",
                     "validator": {"dynamicRange": [
                             function() {
                                 var type = $($.sprintf("#sys_voip_jb_%s_type", channel[0])).val();

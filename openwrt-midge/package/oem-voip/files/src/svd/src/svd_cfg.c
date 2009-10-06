@@ -1633,7 +1633,7 @@ jb_init( void )
 	curr_rec->jb_pk_adpt = jb_pk_adpt_VOICE;
 	curr_rec->jb_loc_adpt = jb_loc_adpt_OFF;
 	curr_rec->jb_scaling = 22;
-	curr_rec->jb_init_sz = 60 * 8;
+	curr_rec->jb_init_sz = 120 * 8;
 	curr_rec->jb_min_sz = 10 * 8;
 	curr_rec->jb_max_sz = 200 * 8;
 	for (i=1; i<CHANS_MAX; i++){

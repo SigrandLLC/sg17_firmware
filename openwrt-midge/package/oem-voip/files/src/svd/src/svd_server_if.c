@@ -576,7 +576,7 @@ Injected Samples (JB Increments): %lu\n\
 Skipped Lost Samples (JB Decrements): %lu\n\
 Dropped Samples (JB Decrements): %lu\n\
 Dropped Samples (JB Overflows): %lu\n\
-Comfort Noice Samples: %lu\n", 
+Comfort Noise Samples: %lu\n", 
 		chan->abs_idx,yn,chan->statistics.con_cnt,tp,
 		s->nBufSize/8,s->nMinBufSize/8,s->nMaxBufSize/8,
 		s->nPODelay,s->nMinPODelay,s->nMaxPODelay,s->nPackets,
