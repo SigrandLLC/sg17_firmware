@@ -248,15 +248,15 @@ Controllers.voipVF = function() {
              * - bitpack_ro — read-only (default set to false);
              */
             var codecsParameters = {
-                "aLaw": {"pkt_sz": "20", "payload": "08", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
-                "g729": {"pkt_sz": "10", "payload": "18", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "10 20 30 40 60"},
-                "g723": {"pkt_sz": "30", "payload": "4", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "30 60"},
+                "aLaw": {"pkt_sz": "60", "payload": "08", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
+                "g729": {"pkt_sz": "60", "payload": "18", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "10 20 30 40 60"},
+                "g723": {"pkt_sz": "60", "payload": "4", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "30 60"},
                 "iLBC_133": {"pkt_sz": "30", "payload": "100", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_ro": true},
-                "g729e": {"pkt_sz": "10", "payload": "101", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "10 20 30 40 60"},
-                "g726_16": {"pkt_sz": "10", "payload": "102", "bitpack": "aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
-                "g726_24": {"pkt_sz": "10", "payload": "103", "bitpack": "aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
-                "g726_32": {"pkt_sz": "10", "payload": "104", "bitpack": "aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
-                "g726_40": {"pkt_sz": "10", "payload": "105", "bitpack": "aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"}
+                "g729e": {"pkt_sz": "60", "payload": "101", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "10 20 30 40 60"},
+                "g726_16": {"pkt_sz": "60", "payload": "102", "bitpack": "aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
+                "g726_24": {"pkt_sz": "60", "payload": "103", "bitpack": "aal2", "pkt_sz_vals": "5 10 20 30 40 50 60"},
+                "g726_32": {"pkt_sz": "60", "payload": "104", "bitpack": "aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
+                "g726_40": {"pkt_sz": "60", "payload": "105", "bitpack": "aal2", "pkt_sz_vals": "5 10 20 30 40 50 60"}
             };
 
             var pktszDefaultValues = "2.5 5 5.5 10 11 20 30 40 50 60";
@@ -1192,9 +1192,9 @@ Controllers.voipJitterBuffer = function() {
             c.addTableTfootStr(" - LAT: Local Adaptation Type:", colNum);
             c.addTableTfootStr(" - - SI: on wtih sample interpollation.", colNum);
             c.addTableTfootStr(" - nScaling [1;16]: average play out delay is equal to the estimated jitter times the scaling factor.", colNum);
-            c.addTableTfootStr(" - nInit [5;8190] (for Adaptive mode nMin <= nInit <= nMax): initial size of the jitter buffer in ms.", colNum);
-            c.addTableTfootStr(" - nMin [5;8190]: minimum size of the jitter buffer in ms.", colNum);
-            c.addTableTfootStr(" - nMax [5;8190]: maximum size of the jitter buffer in ms.", colNum);
+            c.addTableTfootStr(" - nInit [5;600] (for Adaptive mode nMin <= nInit <= nMax): initial size of the jitter buffer in ms.", colNum);
+            c.addTableTfootStr(" - nMin [5;600]: minimum size of the jitter buffer in ms.", colNum);
+            c.addTableTfootStr(" - nMax [5;600]: maximum size of the jitter buffer in ms.", colNum);
 
             var mutableAttrs = ["n_min_size", "n_max_size"];
 
@@ -1239,7 +1239,7 @@ Controllers.voipJitterBuffer = function() {
                     "type": "select",
                     "name": $.sprintf("sys_voip_jb_%s_type", channel[0]),
                     "options": {"fixed": "Fixed", "adaptive": "Adaptive"},
-                    "defaultValue": "adaptive",
+                    "defaultValue": "fixed",
                     "onChange": function() {
                         onTypeChange(channel[0]);
                     }
@@ -1277,7 +1277,7 @@ Controllers.voipJitterBuffer = function() {
                 field = {
                     "type": "text",
                     "name": $.sprintf("sys_voip_jb_%s_n_init_size", channel[0]),
-                    "defaultValue": "100",
+                    "defaultValue": "60",
                     "validator": {"dynamicRange": [
                             function() {
                                 var type = $($.sprintf("#sys_voip_jb_%s_type", channel[0])).val();
@@ -1294,8 +1294,8 @@ Controllers.voipJitterBuffer = function() {
                 field = {
                     "type": "text",
                     "name": $.sprintf("sys_voip_jb_%s_n_min_size", channel[0]),
-                    "defaultValue": "40",
-                    "validator": {"min": 5, "max": 8190}
+                    "defaultValue": "10",
+                    "validator": {"min": 5, "max": 600}
                 };
                 c.addTableWidget(field, row);
 
@@ -1304,7 +1304,7 @@ Controllers.voipJitterBuffer = function() {
                     "type": "text",
                     "name": $.sprintf("sys_voip_jb_%s_n_max_size", channel[0]),
                     "defaultValue": "200",
-                    "validator": {"min": 5, "max": 8190}
+                    "validator": {"min": 5, "max": 600}
                 };
                 c.addTableWidget(field, row);
 
