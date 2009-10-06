@@ -38,6 +38,7 @@ ab_chan_fax_pass_through_start( ab_chan_t * const chan )
 	/* Reconfigure JB for fax/modem communications */
 	jbCfgData.nJbType = IFX_TAPI_JB_TYPE_FIXED;
 	jbCfgData.nPckAdpt = IFX_TAPI_JB_PKT_ADAPT_DATA;
+	jbCfgData.nInitialSize = 120*8; /* 120 ms - optimum buffer size */
 	err = ioctl(cfd, IFX_TAPI_JB_CFG_SET, &jbCfgData);
 	if(err != IFX_SUCCESS){
 		ioctl (cfd, FIO_VINETIC_LASTERR, &ab_g_err_extra_value);

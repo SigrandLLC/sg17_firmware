@@ -510,6 +510,8 @@ ab_chan_media_activate ( ab_chan_t * const chan )
 			SU_DEBUG_1(("JB_tune error : %s",ab_g_err_str));
 			goto __exit;
 		}
+	} else {
+		SU_DEBUG_0(("!!!!!!!!!!!!! Not starting JB - using default\n"));
 	}
 
 	/* WLEC */
