@@ -1629,10 +1629,12 @@ jb_init( void )
 
 	/* Standart params for all chans */
 	curr_rec = &g_conf.jb_prms[0];
-	curr_rec->jb_type = jb_type_ADAPTIVE;
+	curr_rec->jb_type = jb_type_FIXED;
 	curr_rec->jb_pk_adpt = jb_pk_adpt_VOICE;
-	curr_rec->jb_init_sz = 120 * 8;
-	curr_rec->jb_min_sz = 40 * 8;
+	curr_rec->jb_loc_adpt = jb_loc_adpt_OFF;
+	curr_rec->jb_scaling = 22;
+	curr_rec->jb_init_sz = 60 * 8;
+	curr_rec->jb_min_sz = 10 * 8;
 	curr_rec->jb_max_sz = 200 * 8;
 	for (i=1; i<CHANS_MAX; i++){
 		curr_rec = &g_conf.jb_prms[i];

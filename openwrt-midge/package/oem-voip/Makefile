@@ -330,12 +330,14 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 $(IPKG_OEM_VOIP): 
 	install -d -m0755 $(IDIR_OEM_VOIP)/lib/modules/2.6.16/
 	install -d -m0755 $(IDIR_OEM_VOIP)/bin/
+	install -d -m0755 $(IDIR_OEM_VOIP)/sbin/
 	install -d -m0755 $(IDIR_OEM_VOIP)/lib/firmware/
 	install -d -m0755 $(IDIR_OEM_VOIP)/etc/init.d/
 	cp -rpf $(PKG_INSTALL_DIR)/bin/*.ko $(IDIR_OEM_VOIP)/lib/modules/2.6.16/
 	cp -rpf $(PKG_INSTALL_DIR)/bin/sv* $(IDIR_OEM_VOIP)/bin/
 	cp -rpf $(PKG_INSTALL_DIR)/bin/*tst $(IDIR_OEM_VOIP)/bin/
 	cp -rpf $(PKG_CONF_DIR)/files/fw/* $(IDIR_OEM_VOIP)/lib/firmware/
+	cp -rpf $(PKG_CONF_DIR)/files/sbin/* $(IDIR_OEM_VOIP)/sbin/
 	cp -rpf $(PKG_CONF_DIR)/files/rc/* $(IDIR_OEM_VOIP)/etc/init.d/
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_OEM_VOIP)/CONTROL/control
 	$(RSTRIP) $(IDIR_OEM_VOIP)/bin/sv*

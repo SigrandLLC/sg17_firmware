@@ -1,0 +1,2 @@
+#!/bin/sh
+echo "jbt"|svd_if
