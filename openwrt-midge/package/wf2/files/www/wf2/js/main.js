@@ -31,7 +31,8 @@ function generateMenu() {
     /* Add VoIP controller */
     if (config.get("sys_voip_present") == "1") {
         /* get VoIP channels list */
-        config.runCmd("/bin/cat /proc/driver/sgatab/channels", "voipChannels");
+        //config.runCmd("/bin/cat /proc/driver/sgatab/channels", "voipChannels");
+        config.runCmd("/bin/cat /root/voip", "voipChannels");
         addItem("Hardware:VoIP", "Settings", "voipSettings");
         addItem("Hardware:VoIP", "Hotline", "voipHotline");
         addItem("Hardware:VoIP", "VF", "voipVF");
@@ -39,6 +40,7 @@ function generateMenu() {
         addItem("Hardware:VoIP", "Phone book", "voipPhoneBook");
         addItem("Hardware:VoIP", "Audio", "voipAudio");
         addItem("Hardware:VoIP", "Codecs", "voipCodecs");
+        addItem("Hardware:VoIP", "Codecs2", "voipCodecs2");
         addItem("Hardware:VoIP", "Jitter buffer", "voipJitterBuffer");
         addItem("Hardware:VoIP", "Echo", "voipEcho");
         addItem("Hardware:VoIP", "Dial mode", "voipDialMode");
@@ -139,6 +141,9 @@ var wf2Logs = new function() {
 
 /* device config */
 var config = new Config();
+
+/* global parameters */
+var globalParameters = {};
 
 $(document).ready(function() {
     /* Set AJAX options. Without this option IE caches all AJAX requests */

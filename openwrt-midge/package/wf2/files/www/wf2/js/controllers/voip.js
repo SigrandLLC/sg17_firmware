@@ -1,3 +1,24 @@
+/*
+* Parameters for codecs:
+* - pkt_sz — default value;
+* - pkt_sz_ro — read-only (default set to false);
+* - pkt_sz_vals — available values (by default "2.5 5 5.5 10 11 20 30 40 50 60");
+* - payload — default value;
+* - bitpack — default value;
+* - bitpack_ro — read-only (default set to false);
+*/
+globalParameters.codecsParameters = {
+    "aLaw": {"pkt_sz": "60", "payload": "08", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
+    "g729": {"pkt_sz": "60", "payload": "18", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "10 20 30 40 60"},
+    "g723": {"pkt_sz": "60", "payload": "4", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "30 60"},
+    "iLBC_133": {"pkt_sz": "30", "payload": "100", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_ro": true, "pkt_sz_vals": "2.5 5 5.5 10 11 20 30 40 50 60"},
+    "g729e": {"pkt_sz": "60", "payload": "101", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "10 20 30 40 60"},
+    "g726_16": {"pkt_sz": "60", "payload": "102", "bitpack": "aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
+    "g726_24": {"pkt_sz": "60", "payload": "103", "bitpack": "aal2", "pkt_sz_vals": "5 10 20 30 40 50 60"},
+    "g726_32": {"pkt_sz": "60", "payload": "104", "bitpack": "aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
+    "g726_40": {"pkt_sz": "60", "payload": "105", "bitpack": "aal2", "pkt_sz_vals": "5 10 20 30 40 50 60"}
+};
+
 Controllers.voipSettings = function() {
     var page = this.Page();
     
@@ -1311,6 +1332,156 @@ Controllers.voipJitterBuffer = function() {
                 onTypeChange(channel[0]);
             });
 
+            c.addSubmit();
+        }
+    });
+
+    page.generateTabs();
+};
+
+Controllers.voipCodecs2 = function() {
+    var page = this.Page();
+
+    page.addTab({
+        "id": "codecs2",
+        "name": "Codecs settings",
+        "func": function() {
+            var c = page.addContainer("codecs2");
+            c.setSubsystem("svd-quality");
+
+            /*
+             * Add specified number of widgets for specified scope.
+             *
+             * num — number of widgets;
+             * scope — scope (external, internal).
+             */
+            var addCodecsWidgets = function(scope) {
+                $.each(globalParameters.codecsParameters, function(codec, value) {
+                    var field;
+                    var row = c.addTableRow();
+                    
+                    /* codec name */
+                    field = {
+                        "type": "html",
+                        "name": $.sprintf("codec_%s_%s", scope, codec),
+                        "str": codec
+                    };
+                    c.addTableWidget(field, row);
+
+                    /* pkt_sz */
+                    field = {
+                        "type": "select",
+                        "name": $.sprintf("sys_voip_codecs_%s_%s_pktsz", scope, codec),
+                        "options": ["2.5", "5", "5.5", "10", "11", "20", "30", "40", "50", "60"]
+                    };
+                    c.addTableWidget(field, row);
+
+                    /* payload */
+                    field = {
+                        "type": "text",
+                        "name": $.sprintf("sys_voip_codecs_%s_%s_payload", scope, codec)
+                    };
+                    c.addTableWidget(field, row);
+
+                    /* bitpack */
+                    field = {
+                        "type": "select",
+                        "name": $.sprintf("sys_voip_codecs_%s_%s_bitpack", scope, codec),
+                        "options": "rtp aal2"
+                    };
+                    c.addTableWidget(field, row);
+                    
+                    /* jb_type */
+                    field = {
+                        "type": "select",
+                        "name": $.sprintf("sys_voip_codecs_%s_%s_jb_type", scope, codec),
+                        "options": {"fixed": "Fixed", "adaptive": "Adaptive"},
+                        "defaultValue": "fixed"
+                    };
+                    c.addTableWidget(field, row);
+
+                    /* lat */
+                    field = {
+                        "type": "select",
+                        "name": $.sprintf("sys_voip_codecs_%s_%s_lat", scope, codec),
+                        "options": "off on SI",
+                        "defaultValue": "off"
+                    };
+                    c.addTableWidget(field, row);
+
+                    /* n_scaling */
+                    field = {
+                        "type": "text",
+                        "name": $.sprintf("sys_voip_codecs_%s_%s_n_scaling", scope, codec),
+                        "defaultValue": "1.4",
+                        "validator": {"min": 1, "max": 16}
+                    };
+                    c.addTableWidget(field, row);
+
+                    /* n_init_size */
+                    field = {
+                        "type": "text",
+                        "name": $.sprintf("sys_voip_codecs_%s_%s_n_init_size", scope, codec),
+                        "defaultValue": "120"
+                    };
+                    c.addTableWidget(field, row);
+
+                    /* n_min_size */
+                    field = {
+                        "type": "text",
+                        "name": $.sprintf("sys_voip_codecs_%s_%s_n_min_size", scope, codec),
+                        "defaultValue": "10",
+                        "validator": {"min": 5, "max": 600}
+                    };
+                    c.addTableWidget(field, row);
+
+                    /* n_max_size */
+                    field = {
+                        "type": "text",
+                        "name": $.sprintf("sys_voip_codecs_%s_%s_n_max_size", scope, codec),
+                        "defaultValue": "200",
+                        "validator": {"min": 5, "max": 600}
+                    };
+                    c.addTableWidget(field, row);
+                });
+            };
+
+            var colNum = 10;
+            //c.addTitle("Codecs settings", {"colspan": colNum});
+            c.addTableHeader("Codec|Pkt.time|Payload|Bitpack|JB|LAT|nScaling|nInit|nMin|nMax");
+
+            c.addTitle("Internal", {"internal": true, "colspan": colNum});
+            addCodecsWidgets("int");
+
+            c.addTitle("External", {"internal": true, "colspan": colNum});
+            addCodecsWidgets("ext");
+            
+            c.addSubmit();
+        }
+    });
+    
+    page.addTab({
+        "id": "codecs_prt",
+        "name": "Codecs priority",
+        "func": function() {
+            var c = page.addContainer("codecs_prt");
+            c.setSubsystem("svd-quality");
+
+            var codecs = [];
+            $.each(globalParameters.codecsParameters, function(codec, value) {
+                codecs.push(codec);
+            });
+            
+            for (var i = 0; i < codecs.length; i++) {
+                var field = {
+                    "type": "select",
+                    "name": $.sprintf("sys_voip_codecs_prt_%s", i),
+                    "text": $.sprintf("Priority %s", i),
+                    "options": codecs
+                };
+                c.addWidget(field);
+            }
+            
             c.addSubmit();
         }
     });
