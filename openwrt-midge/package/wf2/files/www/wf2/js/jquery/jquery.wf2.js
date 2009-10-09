@@ -143,27 +143,27 @@ jQuery.validator.addMethod("uniqueValue", function(value, element, params) {
 }, "Please enter unique values.");
 
 /*
- * First parameter is a callback. If it returns true, than range checking is performing.
- * Value must be more than second parameter, and less than third parameter, parameters are selectors.
+ * Value must be more than first parameter, and less than second parameter, parameters are selectors.
+ * Optional third parameter is a callback, if it returns false, range checking is not performing.
  * Usage example:
  * "validator": {"dynamicRange": [
- *                       function() {
- *                           var type = $($.sprintf("#sys_voip_jb_%s_type", channel[0])).val();
- *                           return type == "fixed" ? false : true;
- *                       },
- *                       $.sprintf("#sys_voip_jb_%s_n_min_size", channel[0]),
- *                       $.sprintf("#sys_voip_jb_%s_n_max_size", channel[0])
- *                   ]
- *               }
+ *                           $.sprintf("#sys_voip_jb_%s_n_min_size", channel[0]),
+ *                           $.sprintf("#sys_voip_jb_%s_n_max_size", channel[0]),
+ *                           function() {
+ *                               var type = $($.sprintf("#sys_voip_jb_%s_type", channel[0])).val();
+ *                               return type == "fixed" ? false : true;
+ *                           }
+ *                       ]
+ *                   }
  */
 jQuery.validator.addMethod("dynamicRange", function(value, element, params) {
-	if (this.optional(element) ||!params[0]()) {
+	if (this.optional(element) || (params[2] && !params[2]())) {
         return true;
     }
 
     var val = parseInt(value, 10);
-    var min = parseInt($(params[1]).val(), 10);
-    var max = parseInt($(params[2]).val(), 10);
+    var min = parseInt($(params[0]).val(), 10);
+    var max = parseInt($(params[1]).val(), 10);
 
     return val >= min && val <= max;
 }, "Value must be more than minimum and less than maximum.");

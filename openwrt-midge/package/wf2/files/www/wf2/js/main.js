@@ -40,8 +40,6 @@ function generateMenu() {
         addItem("Hardware:VoIP", "Phone book", "voipPhoneBook");
         addItem("Hardware:VoIP", "Audio", "voipAudio");
         addItem("Hardware:VoIP", "Codecs", "voipCodecs");
-        addItem("Hardware:VoIP", "Codecs2", "voipCodecs2");
-        addItem("Hardware:VoIP", "Jitter buffer", "voipJitterBuffer");
         addItem("Hardware:VoIP", "Echo", "voipEcho");
         addItem("Hardware:VoIP", "Dial mode", "voipDialMode");
     }

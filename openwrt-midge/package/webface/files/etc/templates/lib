@@ -137,7 +137,7 @@ update_configs(){
 		cfg_make svd-hotline.conf /etc/svd/hotline.conf && \
 		cfg_make svd-addressb.conf /etc/svd/addressb.conf && \
 		cfg_make svd-rtp.conf /etc/svd/rtp.conf && \
-		cfg_make svd-quality.conf /etc/svd/quality.conf && \
+		cfg_make svd-codecs.conf /etc/svd/codecs.conf && \
         cfg_make svd-wlec.conf /etc/svd/wlec.conf && \
         cfg_make svd-fxo.conf /etc/svd/fxo.conf && \
         cfg_make svd-vf_settings.conf /etc/svd/hw.conf && \
@@ -168,8 +168,8 @@ update_configs(){
 		cfg_make svd-rtp.conf /etc/svd/rtp.conf && \
 		cfg_commit
 		;;
-	svd-quality)
-		cfg_make svd-quality.conf /etc/svd/quality.conf && \
+	svd-codecs)
+		cfg_make svd-codecs.conf /etc/svd/codecs.conf && \
 		cfg_commit
 		;;
     svd-wlec)
