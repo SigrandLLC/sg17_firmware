@@ -20,6 +20,7 @@ globalParameters.codecsParameters = {
     "g726_40":  {"pkt_sz": "60", "payload": "105", "bitpack": "aal2", "bitpacks": "rtp aal2", "pkt_sz_vals": "5 10 20 30 40 50 60",        "nMax": {"5": 100, "10":  200, "20": 200, "30": 200, "40": 200, "50": 200, "60": 200}}
 };
 
+/* for all codecs n_min_size in 10 */
 globalParameters.codecsNMin = 10;
 
 /* on pkt_sz value changing */
@@ -759,7 +760,7 @@ Controllers.voipDialMode = function() {
 Controllers.voipCodecs = function() {
     var page = this.Page();
 
-    /* function for generating page with codecs */
+    /* function for generating page with codecs for specified scope */
     var codecsTab = function(container, scope, scopeTitle) {
         var c = page.addContainer(container);
         c.setSubsystem("svd-codecs");
@@ -897,10 +898,22 @@ Controllers.voipCodecs = function() {
         c.addTableTfootStr("JB Type: jitter buffer type.", colNum);
         c.addTableTfootStr("LAT: Local Adaptation Type:", colNum);
         c.addTableTfootStr(" - SI: on wtih sample interpollation.", colNum);
-        c.addTableTfootStr("nScaling [1;16]: average play out delay is equal to the estimated jitter times the scaling factor.", colNum);
-        c.addTableTfootStr("nInit [5;] (for Adaptive mode nMin <= nInit <= nMax): initial size of the jitter buffer in ms.", colNum);
-        c.addTableTfootStr("nMin [5;]: minimum size of the jitter buffer in ms.", colNum);
-        c.addTableTfootStr("nMax [5;]: maximum size of the jitter buffer in ms.", colNum);
+        c.addTableTfootStr("nScaling: average play out delay is equal to the estimated jitter times the scaling factor. Values: [1;16]", colNum);
+        c.addTableTfootStr("nInit: initial size of the jitter buffer in ms. Values: JB Adaptive [nMin;nMax], JB Fixed: for aLaw [10; 150], for others [10; nMax]", colNum);
+        c.addTableTfootStr("nMin: minimum size of the jitter buffer in ms. Values: [10; nMax]", colNum);
+        c.addTableTfootStr("nMax: maximum size of the jitter buffer in ms. Values are depended on Codec and Pkt.time:", colNum);
+        $.each(globalParameters.codecsParameters, function(codec, params) {
+            var values = "";
+            $.each(params.nMax, function(pkt_sz, value) {
+                if (values.length > 0) {
+                    values += ", ";
+                }
+                
+                values += pkt_sz + ": " + value;
+            });
+            c.addTableTfootStr(" - " + codec + ": " + values, colNum);
+        });
+        
         c.addTableTfootStr("FAX settings: aLaw, JB fixed, Pkt.time 120 ms, WLEC NE, NLP off.", colNum);
 
         addCodecsWidgets(scope);
@@ -908,6 +921,7 @@ Controllers.voipCodecs = function() {
         c.addSubmit();
     };
 
+    /* codecs priority */
     page.addTab({
         "id": "codecs_prt",
         "name": "Priority settings",
@@ -978,6 +992,7 @@ Controllers.voipCodecs = function() {
         }
     });
 
+    /* codecs internal settings */
     page.addTab({
         "id": "codecs_int",
         "name": "Internal",
@@ -986,6 +1001,7 @@ Controllers.voipCodecs = function() {
         }
     });
     
+    /* codecs external settings */
     page.addTab({
         "id": "codecs_ext",
         "name": "External",
@@ -1046,12 +1062,30 @@ Controllers.voipVF = function() {
             c.addTableHeader("#|EN|R.ID|Chan|Codec|P.time|Pay-d|Bitpack|JB type|LAT|nScal|nInit|nMin|nMax");
             c.addTableTfootStr("Chan - local channel.", colNum);
             c.addTableTfootStr("EN - enable channel.", colNum);
-            c.addTableTfootStr("Router ID - ID of a router to connect with.", colNum);
+            c.addTableTfootStr("R.ID - ID of a router to connect with.", colNum);
             c.addTableTfootStr("R. chan - VF channel on the remote router.", colNum);
             c.addTableTfootStr("Codec - codec to use.", colNum);
-            c.addTableTfootStr("Packet. time - packetization time in ms.", colNum);
-            c.addTableTfootStr("Payload - RTP codec identificator.", colNum);
+            c.addTableTfootStr("P.time - packetization time in ms.", colNum);
+            c.addTableTfootStr("Pay-d - Payload, RTP codec identificator.", colNum);
             c.addTableTfootStr("Bitpack - bits packetization type.", colNum);
+            c.addTableTfootStr("JB Type: jitter buffer type.", colNum);
+            c.addTableTfootStr("LAT: Local Adaptation Type:", colNum);
+            c.addTableTfootStr(" - SI: on wtih sample interpollation.", colNum);
+            c.addTableTfootStr("nScal: average play out delay is equal to the estimated jitter times the scaling factor. Values: [1;16]", colNum);
+            c.addTableTfootStr("nInit: initial size of the jitter buffer in ms. Values: JB Adaptive [nMin;nMax], JB Fixed: for aLaw [10; 150], for others [10; nMax]", colNum);
+            c.addTableTfootStr("nMin: minimum size of the jitter buffer in ms. Values: [10; nMax]", colNum);
+            c.addTableTfootStr("nMax: maximum size of the jitter buffer in ms. Values are depended on Codec and Pkt.time:", colNum);
+            $.each(globalParameters.codecsParameters, function(codec, params) {
+                var values = "";
+                $.each(params.nMax, function(pkt_sz, value) {
+                    if (values.length > 0) {
+                        values += ", ";
+                    }
+                    
+                    values += pkt_sz + ": " + value;
+                });
+                c.addTableTfootStr(" - " + codec + ": " + values, colNum);
+            });
 
             var channels = config.getCachedOutput("voipChannels").split("\n");
             $.each(channels, function(num, record) {
