@@ -611,7 +611,7 @@ Controllers.tools = function() {
 			};
 			c.addWidget(field);
 			
-			c.addRun("/sbin/ping -c %ARG %ARG", "count", "host");
+			c.addRun("/usr/bin/ping -c %ARG %ARG", "count", "host");
 		}
 	});
 	
