@@ -1,11 +1,12 @@
 /*
 * Parameters for codecs:
-* - pkt_sz — default value;
-* - pkt_sz_ro — read-only (default set to false);
-* - pkt_sz_vals — available values (by default "2.5 5 5.5 10 11 20 30 40 50 60");
-* - payload — default value;
-* - bitpack — default value;
-* - bitpack_ro — read-only (default set to false);
+* - pkt_sz — default value for packetization time;
+* - payload — default value for payload;
+* - bitpack — default value for bitpack;
+* - bitpacks — available values for bitpack;
+* - pkt_sz_vals — available values for packetization time;
+* - nMax — default value and maximum value for n_max_size depending on pkt_sz value;
+* - nInitFixed — if exists, sets default and maximum value for n_init_size when JB type is fixed;
 */
 globalParameters.codecsParameters = {
     "aLaw":     {"pkt_sz": "60", "payload": "08",  "bitpack": "rtp",  "bitpacks": "rtp",      "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60", "nMax": {"5": 100, "5.5": 110, "10": 200, "11": 110, "20": 200, "30": 200, "40": 200, "50": 200, "60": 200}, "nInitFixed": 150},
@@ -17,6 +18,116 @@ globalParameters.codecsParameters = {
     "g726_24":  {"pkt_sz": "60", "payload": "103", "bitpack": "aal2", "bitpacks": "rtp aal2", "pkt_sz_vals": "5 10 20 30 40 50 60",        "nMax": {"5": 100, "10":  200, "20": 200, "30": 200, "40": 200, "50": 200, "60": 200}},
     "g726_32":  {"pkt_sz": "60", "payload": "104", "bitpack": "aal2", "bitpacks": "rtp aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60", "nMax": {"5": 100, "5.5": 110, "10": 200, "11": 110, "20": 200, "30": 200, "40": 200, "50": 200, "60": 200}},
     "g726_40":  {"pkt_sz": "60", "payload": "105", "bitpack": "aal2", "bitpacks": "rtp aal2", "pkt_sz_vals": "5 10 20 30 40 50 60",        "nMax": {"5": 100, "10":  200, "20": 200, "30": 200, "40": 200, "50": 200, "60": 200}}
+};
+
+globalParameters.codecsNMin = 10;
+
+/* on pkt_sz value changing */
+globalParameters.codecsOnPktSzChange = function(options) {
+    var params, attrPrefix;
+    
+    if (options.type == "Codecs") {
+        params     = globalParameters.codecsParameters[options.codec];
+        attrPrefix = $.sprintf("sys_voip_codecs_%s_%s", options.scope, options.codec);
+    } else {
+        /* current selected codec */
+        var codec  = $($.sprintf("#sys_voip_vf_channels_%s_codec", options.channel)).val();
+        params     = globalParameters.codecsParameters[codec];
+        attrPrefix = $.sprintf("sys_voip_vf_channels_%s", options.channel);
+    }
+    
+    var nMinFieldName  = $.sprintf("%s_n_min_size", attrPrefix);
+    var nMaxFieldName  = $.sprintf("%s_n_max_size", attrPrefix);
+    var pkt_sz         = $($.sprintf("#%s_pkt_sz", attrPrefix)).val();
+    
+    /* change max value for nMin and nMax */
+    globalParameters.codecsValidators[nMinFieldName]['max']
+            = globalParameters.codecsValidators[nMaxFieldName]['max']
+            = params.nMax['all'] ? params.nMax['all'] : params.nMax[pkt_sz];
+    
+    /* change nMax default value */
+    $("#" + nMaxFieldName).val(globalParameters.codecsValidators[nMaxFieldName]['max']);
+};
+
+/* on nMax value changing */
+globalParameters.codecsOnNMaxChange = function(options) {
+    var attrPrefix;
+    
+    if (options.type == "Codecs") {
+        attrPrefix = $.sprintf("sys_voip_codecs_%s_%s", options.scope, options.codec);
+    } else {
+        attrPrefix = $.sprintf("sys_voip_vf_channels_%s", options.channel);
+    }
+    
+    var nMinFieldName  = $.sprintf("%s_n_min_size", attrPrefix);
+    var nMaxFieldName  = $.sprintf("%s_n_max_size", attrPrefix);
+    
+    /* set correct maximum value for nMin to current value of nMax */
+    globalParameters.codecsValidators[nMinFieldName]['max'] = $("#" + nMaxFieldName).val();
+};
+
+/* on JB type changing */
+globalParameters.codecsOnJbTypeChange = function(options) {
+    var mutableAttrs = ["n_min_size", "n_max_size"];
+    var attrPrefix, params;
+    
+    if (options.type == "Codecs") {
+        params     = globalParameters.codecsParameters[options.codec];
+        attrPrefix = $.sprintf("sys_voip_codecs_%s_%s", options.scope, options.codec);
+    } else {
+        /* current selected codec */
+        var codec  = $($.sprintf("#sys_voip_vf_channels_%s_codec", options.channel)).val();
+        params     = globalParameters.codecsParameters[codec];
+        attrPrefix = $.sprintf("sys_voip_vf_channels_%s", options.channel);
+    }
+    
+    var jbType         = $($.sprintf("#%s_jb_type", attrPrefix)).val();
+    var pkt_sz         = $($.sprintf("#%s_pkt_sz", attrPrefix)).val();
+    var nInitFieldName = $.sprintf("%s_n_init_size", attrPrefix);
+    
+    /* set/unset local_at read-only */
+    //$($.sprintf("#%s_lat", attrPrefix)).setSelectReadonly(jbType == "adaptive" ? false : true);
+    
+    if (jbType == "fixed") {
+        /* remove dynamicRange validator from nInit */
+        delete globalParameters.codecsValidators[nInitFieldName]['dynamicRange'];
+        
+        /* set min and max validators to nInit */
+        globalParameters.codecsValidators[nInitFieldName]['min'] = globalParameters.codecsNMin;
+        globalParameters.codecsValidators[nInitFieldName]['max']
+                = params.nInitFixed ? params.nInitFixed
+                                    : params.nMax['all'] ? params.nMax['all'] : params.nMax[pkt_sz];
+
+        /* set nMin and nMax read only */
+        $(mutableAttrs).each(function(num, attr) {
+            $($.sprintf("#%s_%s", attrPrefix, attr)).attr("readonly", true);
+        });
+        
+        /* set values for LAT */
+        $($.sprintf("#%s_lat", attrPrefix)).setOptionsForSelect({
+                "options": "off"
+        });
+    } else {
+        /* remove min and max validators from nInit */
+        delete globalParameters.codecsValidators[nInitFieldName]['min'];
+        delete globalParameters.codecsValidators[nInitFieldName]['max'];
+        
+        /* set dynamicRange validator to nInit */
+        globalParameters.codecsValidators[nInitFieldName]['dynamicRange'] = [
+                $.sprintf("#%s_n_min_size", attrPrefix),
+                $.sprintf("#%s_n_max_size", attrPrefix)
+        ];
+        
+        /* set nMin and nMax writable */
+        $(mutableAttrs).each(function(num, attr) {
+            $($.sprintf("#%s_%s", attrPrefix, attr)).removeAttr("readonly");
+        });
+        
+        /* set values for LAT */
+        $($.sprintf("#%s_lat", attrPrefix)).setOptionsForSelect({
+                "options": "off on SI"
+        });
+    }
 };
 
 /* General settings */
@@ -235,273 +346,6 @@ Controllers.voipHotline = function() {
                     "type": "text",
                     "name": $.sprintf("sys_voip_hotline_%s_comment", channel[0]),
                     "validator": {"alphanumU": true}
-                };
-                c.addTableWidget(field, row);
-            });
-
-            c.addSubmit();
-        }
-    });
-
-    page.generateTabs();
-};
-
-/* VF */
-Controllers.voipVF = function() {
-    var page = this.Page();
-
-    page.addTab({
-        "id": "vf",
-        "name": "Voice frequency channels",
-        "func": function() {
-            var c = page.addContainer("vf");
-            c.setSubsystem("svd-vf");
-
-            var colNum = 8;
-            c.addTitle("Voice frequency channels", {"colspan": colNum});
-
-            /*
-             * Parameters for codecs:
-             * - pkt_sz — default value;
-             * - pkt_sz_ro — read-only (default set to false);
-             * - pkt_sz_vals — available values (by default "2.5 5 5.5 10 11 20 30 40 50 60");
-             * - payload — default value;
-             * - bitpack — default value;
-             * - bitpack_ro — read-only (default set to false);
-             */
-            var codecsParameters = {
-                "aLaw": {"pkt_sz": "60", "payload": "08", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
-                "g729": {"pkt_sz": "60", "payload": "18", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "10 20 30 40 60"},
-                "g723": {"pkt_sz": "60", "payload": "4", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "30 60"},
-                "iLBC_133": {"pkt_sz": "30", "payload": "100", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_ro": true},
-                "g729e": {"pkt_sz": "60", "payload": "101", "bitpack": "rtp", "bitpack_ro": true, "pkt_sz_vals": "10 20 30 40 60"},
-                "g726_16": {"pkt_sz": "60", "payload": "102", "bitpack": "aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
-                "g726_24": {"pkt_sz": "60", "payload": "103", "bitpack": "aal2", "pkt_sz_vals": "5 10 20 30 40 50 60"},
-                "g726_32": {"pkt_sz": "60", "payload": "104", "bitpack": "aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60"},
-                "g726_40": {"pkt_sz": "60", "payload": "105", "bitpack": "aal2", "pkt_sz_vals": "5 10 20 30 40 50 60"}
-            };
-
-            var pktszDefaultValues = "2.5 5 5.5 10 11 20 30 40 50 60";
-
-            /* set codec parameters */
-            var onCodecChange = function(channel) {
-                var codec = $($.sprintf("#sys_voip_vf_channels_%s_codec", channel)).val();
-
-                /* set values for pkt_sz */
-                $($.sprintf("#sys_voip_vf_channels_%s_pkt_sz", channel)).setOptionsForSelect({
-                        "options": codecsParameters[codec].pkt_sz_vals == undefined
-                                ? pktszDefaultValues
-                                : codecsParameters[codec].pkt_sz_vals
-                });
-
-                /* set pkt_sz default */
-                $($.sprintf("#sys_voip_vf_channels_%s_pkt_sz", channel))
-                        .val(codecsParameters[codec].pkt_sz);
-
-                /* set/unset pkt_sz read-only */
-                $($.sprintf("#sys_voip_vf_channels_%s_pkt_sz", channel))
-                        .setSelectReadonly(codecsParameters[codec].pkt_sz_ro == undefined
-                                ? false
-                                : codecsParameters[codec].pkt_sz_ro);
-
-                /* set payload default */
-                $($.sprintf("#sys_voip_vf_channels_%s_payload", channel))
-                        .val(codecsParameters[codec].payload);
-
-                /* set bitpack default */
-                $($.sprintf("#sys_voip_vf_channels_%s_bitpack", channel))
-                        .val(codecsParameters[codec].bitpack);
-
-                /* set/unset bitpack read-only */
-                $($.sprintf("#sys_voip_vf_channels_%s_bitpack", channel))
-                        .setSelectReadonly(codecsParameters[codec].bitpack_ro == undefined
-                                ? false
-                                : codecsParameters[codec].bitpack_ro);
-            };
-
-            c.addTableHeader("Chan|EN|Router ID|R. chan|Codec|Packet. time|Payload|Bitpack");
-            c.addTableTfootStr("Chan - local channel.", colNum);
-            c.addTableTfootStr("EN - enable channel.", colNum);
-            c.addTableTfootStr("Router ID - ID of a router to connect with.", colNum);
-            c.addTableTfootStr("R. chan - VF channel on the remote router.", colNum);
-            c.addTableTfootStr("Codec - codec to use.", colNum);
-            c.addTableTfootStr("Packet. time - packetization time in ms.", colNum);
-            c.addTableTfootStr("Payload - RTP codec identificator.", colNum);
-            c.addTableTfootStr("Bitpack - bits packetization type.", colNum);
-
-            var channels = config.getCachedOutput("voipChannels").split("\n");
-            $.each(channels, function(num, record) {
-                var field;
-                if (record.length == 0) {
-                    return true;
-                }
-                var row = c.addTableRow();
-
-                /* channel[0] — number of channel, channel[1] — type of channel */
-                var channel = record.split(":");
-
-                /* only VF channels */
-                if (channel[1] != "VF") {
-                    return true;
-                }
-
-                /* local channel */
-                field = {
-                    "type": "html",
-                    "name": channel[0],
-                    "str": channel[0]
-                };
-                c.addTableWidget(field, row);
-
-                /* enabled */
-                field = {
-                    "type": "checkbox",
-                    "name": $.sprintf("sys_voip_vf_channels_%s_enabled", channel[0])
-                };
-                c.addTableWidget(field, row);
-
-                /* pair_route */
-                field = {
-                    "type": "text",
-                    "name": $.sprintf("sys_voip_vf_channels_%s_pair_route", channel[0]),
-                    "validator": {
-                            "required": $.sprintf("#sys_voip_vf_channels_%s_enabled:checked", channel[0]),
-                            "voipRouterIDWithSelf": true
-                    }
-                };
-                c.addTableWidget(field, row);
-
-                /* pair_chan */
-                field = {
-                    "type": "select",
-                    "name": $.sprintf("sys_voip_vf_channels_%s_pair_chan", channel[0]),
-                    "options": function() {
-                        var remoteChannels = [];
-                        for (var i = 0; i < 32; i++) {
-                            remoteChannels.push(((i < 10) ? "0" + i : i));
-                        }
-                        return remoteChannels;
-                    }()
-                };
-                c.addTableWidget(field, row);
-
-                /* codec */
-                field = {
-                    "type": "select",
-                    "name": $.sprintf("sys_voip_vf_channels_%s_codec", channel[0]),
-                    "options": function() {
-                        var codecs = [];
-                        $.each(codecsParameters, function(key) {
-                            codecs.push(key);
-                        });
-                        return codecs;
-                    }(),
-                    "onChange": function() {
-                        onCodecChange(channel[0]);
-                    }
-                };
-                c.addTableWidget(field, row);
-
-                var codec = $($.sprintf("#sys_voip_vf_channels_%s_codec", channel[0])).val();
-
-                /* pkt_sz */
-                field = {
-                    "type": "select",
-                    "name": $.sprintf("sys_voip_vf_channels_%s_pkt_sz", channel[0]),
-                    "options": codecsParameters[codec].pkt_sz_vals == undefined
-                            ? pktszDefaultValues
-                            : codecsParameters[codec].pkt_sz_vals,
-                    "defaultValue": codecsParameters[codec].pkt_sz
-                };
-                c.addTableWidget(field, row);
-
-                /* set/unset pkt_sz read-only */
-                $($.sprintf("#sys_voip_vf_channels_%s_pkt_sz", channel[0]))
-                        .setSelectReadonly(codecsParameters[codec].pkt_sz_ro == undefined
-                                ? false
-                                : codecsParameters[codec].pkt_sz_ro);
-
-                /* payload */
-                field = {
-                    "type": "text",
-                    "name": $.sprintf("sys_voip_vf_channels_%s_payload", channel[0]),
-                    "defaultValue": codecsParameters[codec].payload,
-                    "validator": {
-                            "required": $.sprintf("#sys_voip_vf_channels_%s_enabled:checked", channel[0]),
-                            "voipPayload": true
-                    }
-                };
-                c.addTableWidget(field, row);
-
-                /* bitpack */
-                field = {
-                    "type": "select",
-                    "name": $.sprintf("sys_voip_vf_channels_%s_bitpack", channel[0]),
-                    "options": "rtp aal2",
-                    "defaultValue": codecsParameters[codec].bitpack
-                };
-                c.addTableWidget(field, row);
-
-                /* set/unset bitpack read-only */
-                $($.sprintf("#sys_voip_vf_channels_%s_bitpack", channel[0]))
-                        .setSelectReadonly(codecsParameters[codec].bitpack_ro == undefined
-                                ? false
-                                : codecsParameters[codec].bitpack_ro);
-            });
-
-            c.addSubmit();
-        }
-    });
-
-    page.addTab({
-        "id": "vf_settings",
-        "name": "Settings",
-        "func": function() {
-            var c = page.addContainer("vf_settings");
-            c.setSubsystem("svd-vf_settings");
-            c.addTitle("Settings", {"colspan": 3});
-
-            c.addTableHeader("Channel|Wires|Transmit type");
-            c.addTableTfootStr("4-Wire Normal: Tx (In) = -13 dBr, Rx (Out) = +4 dBr", 3);
-            c.addTableTfootStr("4-Wire Transit: Tx (In) = +4 dBr, Rx (Out) = +4 dBr", 3);
-            c.addTableTfootStr("2-Wire Normal: Tx (In) = 0 dBr, Rx (Out) = -7 dBr", 3);
-            c.addTableTfootStr("2-Wire Transit: Tx (In) = -3.5 dBr, Rx (Out) = -3.5 dBr", 3);
-
-            var channels = config.getCachedOutput("voipChannels").split("\n");
-            $.each(channels, function(num, record) {
-                var field;
-                if (record.length == 0) {
-                    return true;
-                }
-                var row = c.addTableRow();
-
-                /* channel[0] — number of channel, channel[1] — type of channel */
-                var channel = record.split(":");
-
-                /* only VF channels */
-                if (channel[1] != "VF") {
-                    return true;
-                }
-
-                field = {
-                    "type": "html",
-                    "name": channel[0],
-                    "str": channel[0]
-                };
-                c.addTableWidget(field, row);
-
-                field = {
-                    "type": "select",
-                    "name": $.sprintf("sys_voip_vf_settings_%s_wire_type", channel[0]),
-                    "options": {"2w": "2-wire", "4w": "4-wire"},
-                    "defaultValue": "4w"
-                };
-                c.addTableWidget(field, row);
-
-                field = {
-                    "type": "select",
-                    "name": $.sprintf("sys_voip_vf_settings_%s_transmit_type", channel[0]),
-                    "options": "normal transit"
                 };
                 c.addTableWidget(field, row);
             });
@@ -921,81 +765,7 @@ Controllers.voipCodecs = function() {
         c.setSubsystem("svd-codecs");
 
         /* hash with fields validators, which can change dynamically */
-        var validators = {};
-        
-        /* for all codecs nMin is 10 */
-        var nMin = 10;
-
-        /* on pkt_sz value changing */
-        var onPktszChange = function(scope, codec) {
-            var params        = globalParameters.codecsParameters[codec];
-            var nMinFieldName = $.sprintf("sys_voip_codecs_%s_%s_n_min_size", scope, codec);
-            var nMaxFieldName = $.sprintf("sys_voip_codecs_%s_%s_n_max_size", scope, codec);
-            
-            /* current pkt_sz */
-            var pkt_sz        = $($.sprintf("#sys_voip_codecs_%s_%s_pktsz", scope, codec)).val();
-            
-            /* change max value for nMin and nMax */
-            validators[nMinFieldName]['max'] = validators[nMaxFieldName]['max']
-                                             = params.nMax['all'] ? params.nMax['all'] : params.nMax[pkt_sz];
-            
-            /* change nMax default value */
-            $("#" + nMaxFieldName).val(validators[nMaxFieldName]['max']);
-        };
-        
-        /* on nMax value changing */
-        var onNMaxChange = function(scope, codec) {
-            var nMinFieldName = $.sprintf("sys_voip_codecs_%s_%s_n_min_size", scope, codec);
-            var nMaxFieldName = $.sprintf("sys_voip_codecs_%s_%s_n_max_size", scope, codec);
-            
-            /* set correct maximum value for nMin to current value of nMax */
-            validators[nMinFieldName]['max'] = $("#" + nMaxFieldName).val();
-        };
-        
-        /* on JB type changing */
-        var onJbTypeChange = function(scope, codec) {
-            var params         = globalParameters.codecsParameters[codec];
-            var jbType         = $($.sprintf("#sys_voip_codecs_%s_%s_jb_type", scope, codec)).val();
-            var nInitFieldName = $.sprintf("sys_voip_codecs_%s_%s_n_init_size", scope, codec);
-            var mutableAttrs   = ["n_min_size", "n_max_size"];
-            
-            /* current pkt_sz */
-            var pkt_sz         = $($.sprintf("#sys_voip_codecs_%s_%s_pktsz", scope, codec)).val();
-            
-            /* set/unset local_at read-only */
-            $($.sprintf("#sys_voip_codecs_%s_%s_lat", scope, codec))
-                    .setSelectReadonly(jbType == "adaptive" ? false : true);
-            
-            if (jbType == "fixed") {
-                /* remove dynamicRange validator from nInit */
-                delete validators[nInitFieldName]['dynamicRange'];
-                
-                /* set min and max validators to nInit */
-                validators[nInitFieldName]['min'] = nMin;
-                validators[nInitFieldName]['max'] = params.nInitFixed ? params.nInitFixed :
-                                                    params.nMax['all'] ? params.nMax['all'] : params.nMax[pkt_sz];
-
-                /* set nMin and nMax read only */
-                $(mutableAttrs).each(function(num, attr) {
-                    $($.sprintf("#sys_voip_codecs_%s_%s_%s", scope, codec, attr)).attr("readonly", true);
-                });
-            } else {
-                /* remove min and max validators from nInit */
-                delete validators[nInitFieldName]['min'];
-                delete validators[nInitFieldName]['max'];
-                
-                /* set dynamicRange validator to nInit */
-                validators[nInitFieldName]['dynamicRange'] = [
-                        $.sprintf("#sys_voip_codecs_%s_%s_n_min_size", scope, codec),
-                        $.sprintf("#sys_voip_codecs_%s_%s_n_max_size", scope, codec)
-                ];
-                
-                /* set nMin and nMax writable */
-                $(mutableAttrs).each(function(num, attr) {
-                    $($.sprintf("#sys_voip_codecs_%s_%s_%s", scope, codec, attr)).removeAttr("readonly");
-                });
-            }
-        };
+        globalParameters.codecsValidators = {};
 
         /* add widgets for specified scope */
         var addCodecsWidgets = function(scope) {
@@ -1015,11 +785,11 @@ Controllers.voipCodecs = function() {
                 /* pkt_sz */
                 field = {
                     "type": "select",
-                    "name": $.sprintf("sys_voip_codecs_%s_%s_pktsz", scope, codec),
+                    "name": $.sprintf("sys_voip_codecs_%s_%s_pkt_sz", scope, codec),
                     "options": params.pkt_sz_vals,
                     "defaultValue": params.pkt_sz,
                     "onChange": function() {
-                        onPktszChange(scope, codec);
+                        globalParameters.codecsOnPktSzChange({"type": "Codecs", "scope": scope, "codec": codec});
                     }
                 };
                 c.addTableWidget(field, row);
@@ -1048,7 +818,7 @@ Controllers.voipCodecs = function() {
                     "options": {"fixed": "Fixed", "adaptive": "Adaptive"},
                     "defaultValue": "adaptive",
                     "onChange": function() {
-                        onJbTypeChange(scope, codec);
+                        globalParameters.codecsOnJbTypeChange({"type": "Codecs", "scope": scope, "codec": codec});
                     }
                 };
                 c.addTableWidget(field, row);
@@ -1072,51 +842,52 @@ Controllers.voipCodecs = function() {
                 c.addTableWidget(field, row);
                 
                 /* current pkt_sz */
-                var pkt_sz = $($.sprintf("#sys_voip_codecs_%s_%s_pktsz", scope, codec)).val();
+                var pkt_sz = $($.sprintf("#sys_voip_codecs_%s_%s_pkt_sz", scope, codec)).val();
                 
                 /* nMax for current codec and pkt_sz */
                 var nMax = params.nMax['all'] ? params.nMax['all'] : params.nMax[pkt_sz];
 
                 /* n_init_size. validator is depending on JB type and is setting later */
                 var nInitFieldName = $.sprintf("sys_voip_codecs_%s_%s_n_init_size", scope, codec);
-                validators[nInitFieldName] = {};
+                globalParameters.codecsValidators[nInitFieldName] = {};
                 field = {
                     "type": "text",
                     "name": nInitFieldName,
-                    "defaultValue": (nMin + nMax) / 2,
-                    "validator": validators[nInitFieldName]
+                    "defaultValue": (globalParameters.codecsNMin + nMax) / 2,
+                    "validator": globalParameters.codecsValidators[nInitFieldName]
                 };
                 c.addTableWidget(field, row);
 
                 /* n_min_size must be less than current nMax */
                 var nMinFieldName = $.sprintf("sys_voip_codecs_%s_%s_n_min_size", scope, codec);
-                validators[nMinFieldName] = {"min": 5, "max": nMax};
+                globalParameters.codecsValidators[nMinFieldName] = {"min": globalParameters.codecsNMin, "max": nMax};
                 field = {
                     "type": "text",
                     "name": nMinFieldName,
-                    "defaultValue": nMin,
-                    "validator": validators[nMinFieldName]
+                    "defaultValue": globalParameters.codecsNMin,
+                    "validator": globalParameters.codecsValidators[nMinFieldName]
                 };
                 c.addTableWidget(field, row);
 
                 /* n_max_size */
                 var nMaxFieldName = $.sprintf("sys_voip_codecs_%s_%s_n_max_size", scope, codec);
-                validators[nMaxFieldName] = {"min": 5, "max": nMax};
+                globalParameters.codecsValidators[nMaxFieldName] = {"min": globalParameters.codecsNMin, "max": nMax};
                 field = {
                     "type": "text",
                     "name": nMaxFieldName,
                     "defaultValue": nMax,
-                    "validator": validators[nMaxFieldName],
+                    "validator": globalParameters.codecsValidators[nMaxFieldName],
                     "onChange": function() {
-                        onNMaxChange(scope, codec);
+                        globalParameters.codecsOnNMaxChange({"type": "Codecs", "scope": scope, "codec": codec});
                     }
                 };
                 c.addTableWidget(field, row);
                 
                 /* set correct maximum value for nMin to current value of nMax */
-                validators[nMinFieldName]['max'] = $("#" + nMaxFieldName).val();
+                globalParameters.codecsValidators[nMinFieldName]['max'] = $("#" + nMaxFieldName).val();
                 
-                onJbTypeChange(scope, codec);
+                /* update widgets according to current JB type */
+                globalParameters.codecsOnJbTypeChange({"type": "Codecs", "scope": scope, "codec": codec});
             });
         };
 
@@ -1220,6 +991,318 @@ Controllers.voipCodecs = function() {
         "name": "External",
         "func": function() {
             codecsTab("codecs_ext", "ext", "External settings");
+        }
+    });
+
+    page.generateTabs();
+};
+
+/* VF */
+Controllers.voipVF = function() {
+    var page = this.Page();
+
+    page.addTab({
+        "id": "vf",
+        "name": "Voice frequency channels",
+        "func": function() {
+            var c = page.addContainer("vf");
+            c.setSubsystem("svd-vf");
+            
+            /* hash with fields validators, which can change dynamically */
+            globalParameters.codecsValidators = {};
+
+            /* on codec value changing */
+            var onCodecChange = function(channel) {
+                var codec = $($.sprintf("#sys_voip_vf_channels_%s_codec", channel)).val();
+
+                /* set pkt_sz values */
+                $($.sprintf("#sys_voip_vf_channels_%s_pkt_sz", channel)).setOptionsForSelect({
+                        "options": globalParameters.codecsParameters[codec].pkt_sz_vals
+                });
+
+                /* set pkt_sz default */
+                $($.sprintf("#sys_voip_vf_channels_%s_pkt_sz", channel))
+                        .val(globalParameters.codecsParameters[codec].pkt_sz);
+
+                /* set payload default */
+                $($.sprintf("#sys_voip_vf_channels_%s_payload", channel))
+                        .val(globalParameters.codecsParameters[codec].payload);
+
+                /* set bitpack values */
+                $($.sprintf("#sys_voip_vf_channels_%s_bitpack", channel)).setOptionsForSelect({
+                        "options": globalParameters.codecsParameters[codec].bitpacks
+                });
+
+                /* set bitpack default */
+                $($.sprintf("#sys_voip_vf_channels_%s_bitpack", channel))
+                        .val(globalParameters.codecsParameters[codec].bitpack);
+                
+                /* update widgets according to current JB type */
+                globalParameters.codecsOnJbTypeChange({"type": "VF", "channel": channel});
+            };
+
+            var colNum = 14;
+            c.addTitle("Voice frequency channels", {"colspan": colNum});
+            c.addTableHeader("#|EN|R.ID|Chan|Codec|P.time|Pay-d|Bitpack|JB type|LAT|nScal|nInit|nMin|nMax");
+            c.addTableTfootStr("Chan - local channel.", colNum);
+            c.addTableTfootStr("EN - enable channel.", colNum);
+            c.addTableTfootStr("Router ID - ID of a router to connect with.", colNum);
+            c.addTableTfootStr("R. chan - VF channel on the remote router.", colNum);
+            c.addTableTfootStr("Codec - codec to use.", colNum);
+            c.addTableTfootStr("Packet. time - packetization time in ms.", colNum);
+            c.addTableTfootStr("Payload - RTP codec identificator.", colNum);
+            c.addTableTfootStr("Bitpack - bits packetization type.", colNum);
+
+            var channels = config.getCachedOutput("voipChannels").split("\n");
+            $.each(channels, function(num, record) {
+                var field;
+                
+                if (record.length == 0) {
+                    return true;
+                }
+                
+                var row = c.addTableRow();
+
+                /* channel[0] — number of channel, channel[1] — type of channel */
+                var channel = record.split(":");
+
+                /* only VF channels */
+                if (channel[1] != "VF") {
+                    return true;
+                }
+
+                /* local channel */
+                field = {
+                    "type": "html",
+                    "name": channel[0],
+                    "str": channel[0]
+                };
+                c.addTableWidget(field, row);
+
+                /* enabled */
+                field = {
+                    "type": "checkbox",
+                    "name": $.sprintf("sys_voip_vf_channels_%s_enabled", channel[0])
+                };
+                c.addTableWidget(field, row);
+
+                /* pair_route */
+                field = {
+                    "type": "text",
+                    "name": $.sprintf("sys_voip_vf_channels_%s_pair_route", channel[0]),
+                    "validator": {
+                            "required": $.sprintf("#sys_voip_vf_channels_%s_enabled:checked", channel[0]),
+                            "voipRouterIDWithSelf": true
+                    }
+                };
+                c.addTableWidget(field, row);
+
+                /* pair_chan */
+                field = {
+                    "type": "select",
+                    "name": $.sprintf("sys_voip_vf_channels_%s_pair_chan", channel[0]),
+                    "options": function() {
+                        var remoteChannels = [];
+                        for (var i = 0; i < 32; i++) {
+                            remoteChannels.push(((i < 10) ? "0" + i : i));
+                        }
+                        return remoteChannels;
+                    }()
+                };
+                c.addTableWidget(field, row);
+
+                /* codec */
+                field = {
+                    "type": "select",
+                    "name": $.sprintf("sys_voip_vf_channels_%s_codec", channel[0]),
+                    "options": function() {
+                        var codecs = [];
+                        $.each(globalParameters.codecsParameters, function(codec, value) {
+                            codecs.push(codec);
+                        });
+                        return codecs;
+                    }(),
+                    "onChange": function() {
+                        onCodecChange(channel[0]);
+                    }
+                };
+                c.addTableWidget(field, row);
+
+                /* current selected codec */
+                var codec = $($.sprintf("#sys_voip_vf_channels_%s_codec", channel[0])).val();
+
+                /* pkt_sz */
+                field = {
+                    "type": "select",
+                    "name": $.sprintf("sys_voip_vf_channels_%s_pkt_sz", channel[0]),
+                    "options": globalParameters.codecsParameters[codec].pkt_sz_vals,
+                    "defaultValue": globalParameters.codecsParameters[codec].pkt_sz,
+                    "onChange": function() {
+                        globalParameters.codecsOnPktSzChange({"type": "VF", "channel": channel[0]});
+                    }
+                };
+                c.addTableWidget(field, row);
+
+                /* payload */
+                field = {
+                    "type": "text",
+                    "name": $.sprintf("sys_voip_vf_channels_%s_payload", channel[0]),
+                    "defaultValue": globalParameters.codecsParameters[codec].payload,
+                    "validator": {
+                            "required": $.sprintf("#sys_voip_vf_channels_%s_enabled:checked", channel[0]),
+                            "voipPayload": true
+                    }
+                };
+                c.addTableWidget(field, row);
+
+                /* bitpack */
+                field = {
+                    "type": "select",
+                    "name": $.sprintf("sys_voip_vf_channels_%s_bitpack", channel[0]),
+                    "options": globalParameters.codecsParameters[codec].bitpacks,
+                    "defaultValue": globalParameters.codecsParameters[codec].bitpack
+                };
+                c.addTableWidget(field, row);
+                
+                /* jb_type */
+                field = {
+                    "type": "select",
+                    "name": $.sprintf("sys_voip_vf_channels_%s_jb_type", channel[0]),
+                    "options": {"fixed": "Fixed", "adaptive": "Adapt."},
+                    "defaultValue": "adaptive",
+                    "onChange": function() {
+                        globalParameters.codecsOnJbTypeChange({"type": "VF", "channel": channel[0]});
+                    }
+                };
+                c.addTableWidget(field, row);
+
+                /* lat */
+                field = {
+                    "type": "select",
+                    "name": $.sprintf("sys_voip_vf_channels_%s_lat", channel[0]),
+                    "options": "off on SI",
+                    "defaultValue": "off"
+                };
+                c.addTableWidget(field, row);
+
+                /* n_scaling */
+                field = {
+                    "type": "text",
+                    "name": $.sprintf("sys_voip_vf_channels_%s_n_scaling", channel[0]),
+                    "defaultValue": "1.4",
+                    "validator": {"min": 1, "max": 16}
+                };
+                c.addTableWidget(field, row);
+                
+                /* current pkt_sz */
+                var pkt_sz = $($.sprintf("#sys_voip_vf_channels_%s_pkt_sz", channel[0])).val();
+                
+                /* nMax for current codec and pkt_sz */
+                var nMax = globalParameters.codecsParameters[codec].nMax['all']
+                         ? globalParameters.codecsParameters[codec].nMax['all']
+                         : globalParameters.codecsParameters[codec].nMax[pkt_sz];
+
+                /* n_init_size. validator is depending on JB type and is setting later */
+                var nInitFieldName = $.sprintf("sys_voip_vf_channels_%s_n_init_size", channel[0]);
+                globalParameters.codecsValidators[nInitFieldName] = {};
+                field = {
+                    "type": "text",
+                    "name": nInitFieldName,
+                    "defaultValue": (globalParameters.codecsNMin + nMax) / 2,
+                    "validator": globalParameters.codecsValidators[nInitFieldName]
+                };
+                c.addTableWidget(field, row);
+
+                /* n_min_size must be less than current nMax */
+                var nMinFieldName = $.sprintf("sys_voip_vf_channels_%s_n_min_size", channel[0]);
+                globalParameters.codecsValidators[nMinFieldName] = {"min": globalParameters.codecsNMin, "max": nMax};
+                field = {
+                    "type": "text",
+                    "name": nMinFieldName,
+                    "defaultValue": globalParameters.codecsNMin,
+                    "validator": globalParameters.codecsValidators[nMinFieldName]
+                };
+                c.addTableWidget(field, row);
+
+                /* n_max_size */
+                var nMaxFieldName = $.sprintf("sys_voip_vf_channels_%s_n_max_size", channel[0]);
+                globalParameters.codecsValidators[nMaxFieldName] = {"min": globalParameters.codecsNMin, "max": nMax};
+                field = {
+                    "type": "text",
+                    "name": nMaxFieldName,
+                    "defaultValue": nMax,
+                    "validator": globalParameters.codecsValidators[nMaxFieldName],
+                    "onChange": function() {
+                        globalParameters.codecsOnNMaxChange({"type": "VF", "channel": channel[0]});
+                    }
+                };
+                c.addTableWidget(field, row);
+                
+                /* set correct maximum value for nMin to current value of nMax */
+                globalParameters.codecsValidators[nMinFieldName]['max'] = $("#" + nMaxFieldName).val();
+                
+                /* update widgets according to current JB type */
+                globalParameters.codecsOnJbTypeChange({"type": "VF", "channel": channel[0]});
+            });
+
+            c.addSubmit();
+        }
+    });
+
+    page.addTab({
+        "id": "vf_settings",
+        "name": "Settings",
+        "func": function() {
+            var c = page.addContainer("vf_settings");
+            c.setSubsystem("svd-vf_settings");
+            c.addTitle("Settings", {"colspan": 3});
+
+            c.addTableHeader("Channel|Wires|Transmit type");
+            c.addTableTfootStr("4-Wire Normal: Tx (In) = -13 dBr, Rx (Out) = +4 dBr", 3);
+            c.addTableTfootStr("4-Wire Transit: Tx (In) = +4 dBr, Rx (Out) = +4 dBr", 3);
+            c.addTableTfootStr("2-Wire Normal: Tx (In) = 0 dBr, Rx (Out) = -7 dBr", 3);
+            c.addTableTfootStr("2-Wire Transit: Tx (In) = -3.5 dBr, Rx (Out) = -3.5 dBr", 3);
+
+            var channels = config.getCachedOutput("voipChannels").split("\n");
+            $.each(channels, function(num, record) {
+                var field;
+                if (record.length == 0) {
+                    return true;
+                }
+                var row = c.addTableRow();
+
+                /* channel[0] — number of channel, channel[1] — type of channel */
+                var channel = record.split(":");
+
+                /* only VF channels */
+                if (channel[1] != "VF") {
+                    return true;
+                }
+
+                field = {
+                    "type": "html",
+                    "name": channel[0],
+                    "str": channel[0]
+                };
+                c.addTableWidget(field, row);
+
+                field = {
+                    "type": "select",
+                    "name": $.sprintf("sys_voip_vf_settings_%s_wire_type", channel[0]),
+                    "options": {"2w": "2-wire", "4w": "4-wire"},
+                    "defaultValue": "4w"
+                };
+                c.addTableWidget(field, row);
+
+                field = {
+                    "type": "select",
+                    "name": $.sprintf("sys_voip_vf_settings_%s_transmit_type", channel[0]),
+                    "options": "normal transit"
+                };
+                c.addTableWidget(field, row);
+            });
+
+            c.addSubmit();
         }
     });
 
