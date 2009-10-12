@@ -31,8 +31,7 @@ function generateMenu() {
     /* Add VoIP controller */
     if (config.get("sys_voip_present") == "1") {
         /* get VoIP channels list */
-        //config.runCmd("/bin/cat /proc/driver/sgatab/channels", "voipChannels");
-        config.runCmd("/bin/cat /root/voip", "voipChannels");
+        config.runCmd("/bin/cat /proc/driver/sgatab/channels", "voipChannels");
         addItem("Hardware:VoIP", "Settings", "voipSettings");
         addItem("Hardware:VoIP", "Hotline", "voipHotline");
         addItem("Hardware:VoIP", "VF", "voipVF");
