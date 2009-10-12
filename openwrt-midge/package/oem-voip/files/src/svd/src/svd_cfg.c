@@ -56,27 +56,16 @@ static unsigned char g_err_no;
 #define CONF_CODEC_G72640 "g726_40"
 #define CONF_CODEC_BITPACK_RTP "rtp"
 #define CONF_CODEC_BITPACK_AAL2 "aal2"
-#define CONF_OOB_DEFAULT "default"
-#define CONF_OOB_NO "in-band"
-#define CONF_OOB_ONLY "out-of-band"
-#define CONF_OOB_ALL "both"
-#define CONF_OOB_BLOCK "block"
-#define CONF_OOBPLAY_DEFAULT "default"
-#define CONF_OOBPLAY_PLAY "play"
-#define CONF_OOBPLAY_MUTE "mute"
-#define CONF_OOBPLAY_APT_PLAY "play_diff_pt"
+#define CONF_JB_TYPE_FIXED "fixed"
+#define CONF_JB_TYPE_ADAPTIVE "adaptive"
+#define CONF_JB_LOC_OFF "off"
+#define CONF_JB_LOC_ON "on"
+#define CONF_JB_LOC_SI "SI"
 #define CONF_VAD_ON "on"
 #define CONF_VAD_NOVAD "off"
 #define CONF_VAD_G711 "g711"
 #define CONF_VAD_CNG_ONLY "CNG_only"
 #define CONF_VAD_SC_ONLY "SC_only"
-#define CONF_JB_TYPE_FIXED "fixed"
-#define CONF_JB_TYPE_ADAPTIVE "adaptive"
-#define CONF_JB_PK_VOICE "voice"
-#define CONF_JB_PK_DATA "data"
-#define CONF_JB_LOC_OFF "off"
-#define CONF_JB_LOC_ON "on"
-#define CONF_JB_LOC_SI "SI"
 #define CONF_WLEC_TYPE_OFF "off"
 #define CONF_WLEC_TYPE_NE  "NE"
 #define CONF_WLEC_TYPE_NFE "NFE"
@@ -107,8 +96,6 @@ static int fxo_init (ab_t const * const ab);
 static int routet_init (void);
 /** Init AUDIO parameters configuration.*/
 static int audio_init (void);
-/** Init Jitter Buffer parameters configuration.*/
-static int jb_init (void);
 /** Init WLEC parameters configuration.*/
 static int wlec_init (ab_t const * const ab);
 /** Init voice frequency channels configuration.*/
@@ -236,7 +223,6 @@ svd_conf_init( ab_t const * const ab )
 			fxo_init (ab)	||
 			routet_init()	||
 			audio_init()	||
-			jb_init()		||
 			wlec_init (ab)	||
 			voicef_init(ab) ||
 			hotline_init(ab) ||
@@ -267,7 +253,6 @@ conf_show( void )
 	struct hot_line_s    * curr_hl_rec;
 	struct rttb_record_s * curr_rt_rec;
 	struct voice_freq_s  * curr_vf_rec;
-//	struct rtp_prms_s    * rtp_rec;
 	int i;
 	int j;
 
@@ -280,25 +265,39 @@ conf_show( void )
 	} else {
 		SU_DEBUG_3(("%d] : ", g_conf.log_level));
 	}
-	SU_DEBUG_3(("ports[%d:%d] : ", 
+	SU_DEBUG_3(("ports[%d:%d]\n", 
 			g_conf.rtp_port_first,
 			g_conf.rtp_port_last));
 	
 	for (i=0; g_conf.int_codecs[i].type != cod_type_NONE; i++){
-		SU_DEBUG_3(("t:%d/sz%d/pt:0x%X\n",
+		SU_DEBUG_3(("t:%d/sz%d/pt:0x%X__[%d:%d]::[%d:%d:%d:%d]\n",
 				g_conf.int_codecs[i].type,
 				g_conf.int_codecs[i].pkt_size,
-				g_conf.int_codecs[i].user_payload));
+				g_conf.int_codecs[i].user_payload,
+				g_conf.int_codecs[i].jb.jb_type,
+				g_conf.int_codecs[i].jb.jb_loc_adpt,
+				g_conf.int_codecs[i].jb.jb_scaling,
+				g_conf.int_codecs[i].jb.jb_init_sz,
+				g_conf.int_codecs[i].jb.jb_min_sz,
+				g_conf.int_codecs[i].jb.jb_max_sz
+				));
 	} 
 
 	SU_DEBUG_3(("SIP net : %d\n",g_conf.sip_set.all_set));
 	if(g_conf.sip_set.all_set){
 		SU_DEBUG_3((	"\tCodecs:\n"));
 		for (i=0; g_conf.sip_set.ext_codecs[i].type != cod_type_NONE; i++){
-			SU_DEBUG_3(("t:%d/sz%d/pt:0x%X\n",
+			SU_DEBUG_3(("t:%d/sz%d/pt:0x%X__[%d:%d]::[%d:%d:%d:%d]\n",
 					g_conf.sip_set.ext_codecs[i].type,
 					g_conf.sip_set.ext_codecs[i].pkt_size,
-					g_conf.sip_set.ext_codecs[i].user_payload));
+					g_conf.sip_set.ext_codecs[i].user_payload,
+					g_conf.sip_set.ext_codecs[i].jb.jb_type,
+					g_conf.sip_set.ext_codecs[i].jb.jb_loc_adpt,
+					g_conf.sip_set.ext_codecs[i].jb.jb_scaling,
+					g_conf.sip_set.ext_codecs[i].jb.jb_init_sz,
+					g_conf.sip_set.ext_codecs[i].jb.jb_min_sz,
+					g_conf.sip_set.ext_codecs[i].jb.jb_max_sz
+					));
 		} 
 
 		SU_DEBUG_3((	"\tRegistRar   : '%s'\n"
@@ -344,28 +343,23 @@ conf_show( void )
 		}
 	}
 
-	SU_DEBUG_3(("Jitter Buffer:\n"));
-	for(i=0; i<CHANS_MAX; i++){
-		SU_DEBUG_3(("\t%d:[%d:%d:%d]::[%d:%d:%d:%d]\n", i,
-				g_conf.jb_prms[i].jb_type,
-				g_conf.jb_prms[i].jb_pk_adpt,	
-				g_conf.jb_prms[i].jb_loc_adpt,	
-				g_conf.jb_prms[i].jb_scaling,	
-				g_conf.jb_prms[i].jb_init_sz,
-				g_conf.jb_prms[i].jb_min_sz,	
-				g_conf.jb_prms[i].jb_max_sz));
-	}
-
-	SU_DEBUG_3(("TonalF :\n"));
+	SU_DEBUG_3(("VoiceF :\n"));
 	for(i=0; i<CHANS_MAX; i++){
 		curr_vf_rec = &g_conf.voice_freq[ i ];
 		if( !curr_vf_rec->is_set){
 			continue;
 		}
-		SU_DEBUG_3(("t%d/s%d/up%d/",
+		SU_DEBUG_3(("t%d/s%d/up%d__[%d:%d]::[%d:%d:%d:%d]__",
 				curr_vf_rec->vf_codec.type,
 				curr_vf_rec->vf_codec.pkt_size,
-				curr_vf_rec->vf_codec.user_payload));
+				curr_vf_rec->vf_codec.user_payload,
+				curr_vf_rec->vf_codec.jb.jb_type,
+				curr_vf_rec->vf_codec.jb.jb_loc_adpt,
+				curr_vf_rec->vf_codec.jb.jb_scaling,
+				curr_vf_rec->vf_codec.jb.jb_init_sz,
+				curr_vf_rec->vf_codec.jb.jb_min_sz,
+				curr_vf_rec->vf_codec.jb.jb_max_sz
+				));
 
 		SU_DEBUG_3(("i%d/id\"%s\":%s:%s/aic_%d\n",
 				i, curr_vf_rec->id, 
@@ -646,6 +640,8 @@ init_codec_el(struct config_setting_t const *const rec_set,
 		int const prms_offset, codec_t *const cod)
 {/*{{{*/
 	char const * codel = NULL;
+	float scal;
+
 	/* codec type */
 	codel = config_setting_get_string_elem (rec_set, prms_offset);
 	if       ( !strcmp(codel, CONF_CODEC_G729)){
@@ -706,6 +702,40 @@ init_codec_el(struct config_setting_t const *const rec_set,
 	} else if( !strcmp(codel, CONF_CODEC_BITPACK_AAL2)){
 		cod->bpack = bitpack_AAL2;
 	}
+
+	/* jb type */
+	codel = config_setting_get_string_elem (rec_set, prms_offset+4);
+	if       ( !strcmp(codel, CONF_JB_TYPE_FIXED)){
+		cod->jb.jb_type = jb_type_FIXED;
+	} else if( !strcmp(codel, CONF_JB_TYPE_ADAPTIVE)){
+		cod->jb.jb_type = jb_type_ADAPTIVE;
+	}
+
+	/* local adaptation type */
+	codel = config_setting_get_string_elem (rec_set, prms_offset+5);
+	if       ( !strcmp(codel, CONF_JB_LOC_OFF)){
+		cod->jb.jb_loc_adpt = jb_loc_adpt_OFF;
+	} else if( !strcmp(codel, CONF_JB_LOC_ON)){
+		cod->jb.jb_loc_adpt = jb_loc_adpt_ON;
+	} else if( !strcmp(codel, CONF_JB_LOC_SI)){
+		cod->jb.jb_loc_adpt = jb_loc_adpt_SI;
+	}
+
+	/* scaling factor */
+	scal = config_setting_get_float_elem(rec_set, prms_offset+6);
+	if((int)scal == 0){
+		cod->jb.jb_scaling = config_setting_get_int_elem(rec_set,prms_offset+6)*16;
+	} else {
+		cod->jb.jb_scaling = scal * 16;
+	}
+	if(cod->jb.jb_scaling == 0){
+		cod->jb.jb_scaling = 255;
+	}
+
+	/* buffer limitations */
+	cod->jb.jb_init_sz= config_setting_get_int_elem(rec_set, prms_offset+7)*8;
+	cod->jb.jb_min_sz = config_setting_get_int_elem(rec_set, prms_offset+8)*8;
+	cod->jb.jb_max_sz = config_setting_get_int_elem(rec_set, prms_offset+9)*8;
 }/*}}}*/
 
 /**
@@ -1438,7 +1468,7 @@ codecs_init( void )
 	config_init (&cfg);
 
 	/* Load the file */
-	if (!config_read_file (&cfg, QUALITY_CONF_NAME)){
+	if (!config_read_file (&cfg, CODECS_CONF_NAME)){
 		err = config_error_line (&cfg);
 		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n",
 				__func__, err));
@@ -1599,115 +1629,6 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
-/**
- * Init`s Jitter Buffer parameters in main routine 
- * configuration \ref g_conf structure.
- *
- * \retval 0 success.
- * \retval -1 fail.
- */ 
-static int
-jb_init( void )
-{/*{{{*/
-	struct config_t cfg;
-	struct config_setting_t * set;
-	struct config_setting_t * rec_set;
-	struct jb_prms_s * curr_rec;
-	char const * elem;
-	int rec_num;
-	int i;
-	int err;
-
-	config_init (&cfg);
-
-	/* Load the file */
-	if (!config_read_file (&cfg, JB_CONF_NAME)){
-		err = config_error_line (&cfg);
-		SU_DEBUG_0(("%s(): Config file syntax error in line %d\n", __func__, err));
-		goto __exit_fail;
-	} 
-
-	/* Standart params for all chans */
-	curr_rec = &g_conf.jb_prms[0];
-	curr_rec->jb_type = jb_type_FIXED;
-	curr_rec->jb_pk_adpt = jb_pk_adpt_VOICE;
-	curr_rec->jb_loc_adpt = jb_loc_adpt_OFF;
-	curr_rec->jb_scaling = 22;
-	curr_rec->jb_init_sz = 120 * 8;
-	curr_rec->jb_min_sz = 10 * 8;
-	curr_rec->jb_max_sz = 200 * 8;
-	for (i=1; i<CHANS_MAX; i++){
-		curr_rec = &g_conf.jb_prms[i];
-		memcpy(curr_rec, &g_conf.jb_prms[0], sizeof(*curr_rec));
-	} 
-
-	/* Get values */
-	set = config_lookup (&cfg, "jb_prms" );
-	if( !set ){
-		/* We will use standart params for all channels */
-		goto __exit_success;
-	} 
-
-	rec_num = config_setting_length (set);
-
-	if(rec_num > CHANS_MAX){
-		SU_DEBUG_0(("%s(): Too many channels (%d) in config - max is %d\n",
-				__func__, rec_num, CHANS_MAX));
-		goto __exit_fail;
-	}
-
-	for(i=0; i<rec_num; i++){
-		int abs_idx;
-		rec_set = config_setting_get_elem (set, i);
-		float scal;
-
-		/* get chan id */
-		elem = config_setting_get_string_elem (rec_set, 0);
-		abs_idx = strtol(elem, NULL, 10);
-
-		curr_rec = &g_conf.jb_prms[ abs_idx ];
-
-		elem = config_setting_get_string_elem (rec_set, 1);
-		if       ( !strcmp(elem, CONF_JB_TYPE_FIXED)){
-			curr_rec->jb_type = jb_type_FIXED;
-		} else if( !strcmp(elem, CONF_JB_TYPE_ADAPTIVE)){
-			curr_rec->jb_type = jb_type_ADAPTIVE;
-		}
-		elem = config_setting_get_string_elem (rec_set, 2);
-		if       ( !strcmp(elem, CONF_JB_PK_VOICE)){
-			curr_rec->jb_pk_adpt = jb_pk_adpt_VOICE;
-		} else if( !strcmp(elem, CONF_JB_PK_DATA)){
-			curr_rec->jb_pk_adpt = jb_pk_adpt_DATA;
-		}
-		elem = config_setting_get_string_elem (rec_set, 3);
-		if       ( !strcmp(elem, CONF_JB_LOC_OFF)){
-			curr_rec->jb_loc_adpt = jb_loc_adpt_OFF;
-		} else if( !strcmp(elem, CONF_JB_LOC_ON)){
-			curr_rec->jb_loc_adpt = jb_loc_adpt_ON;
-		} else if( !strcmp(elem, CONF_JB_LOC_SI)){
-			curr_rec->jb_loc_adpt = jb_loc_adpt_SI;
-		}
-		scal = config_setting_get_float_elem(rec_set, 4);
-		if((int)scal == 0){
-			curr_rec->jb_scaling = config_setting_get_int_elem(rec_set, 4) * 16;
-		} else {
-			curr_rec->jb_scaling = scal * 16;
-		}
-		if(curr_rec->jb_scaling == 0){
-			curr_rec->jb_scaling = 255;
-		}
-
-		curr_rec->jb_init_sz = config_setting_get_int_elem(rec_set, 5) * 8;
-		curr_rec->jb_min_sz = config_setting_get_int_elem(rec_set, 6) * 8;
-		curr_rec->jb_max_sz = config_setting_get_int_elem(rec_set, 7) * 8;
-	}
-__exit_success:
-	config_destroy (&cfg);
-	return 0;
-__exit_fail:
-	config_destroy (&cfg);
-	return -1;
-}/*}}}*/
 
 /**
  * Init`s WLEC parameters in main routine configuration \ref g_conf structure.

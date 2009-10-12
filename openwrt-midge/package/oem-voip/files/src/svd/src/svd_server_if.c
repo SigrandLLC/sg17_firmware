@@ -250,7 +250,7 @@ svd_exec_jbt(svd_t * const svd, char ** const buff, int * const buff_sz)
 		err = ab_chan_media_jb_refresh(chan);
 		if(err){
 			if(svd_addtobuf(buff, buff_sz,
-					"{\"error\":\"jb_refresh error: %s\"}",ab_g_err_str)){
+					"{\"error\":\"jb_refresh error: %s\"}\n",ab_g_err_str)){
 				goto __exit_fail;
 			} 
 			goto __exit_success;
@@ -316,13 +316,13 @@ svd_exec_2af(svd_t * const svd, struct svdif_msg_s * const msg,
 		int ch_n = msg->ch_sel.ch_if_one;
 		if((ch_n<0) || (ch_n>=CHANS_MAX)){
 			if(svd_addtobuf(buff, buff_sz,
-					"{\"error\":\"wrong chan num %d\"}",ch_n)){
+					"{\"error\":\"wrong chan num %d\"}\n",ch_n)){
 				goto __exit_fail;
 			}
 			goto __exit_success;
 		} else if(!svd->ab->pchans[msg->ch_sel.ch_if_one]){
 			if(svd_addtobuf(buff, buff_sz,
-					"{\"error\":\"wrong chan num %d\"}",ch_n)){
+					"{\"error\":\"wrong chan num %d\"}\n",ch_n)){
 				goto __exit_fail;
 			}
 			goto __exit_success;
@@ -490,7 +490,7 @@ svd_rtcp_for_chan(ab_chan_t * const chan, char ** const buf, int * const palc,
 	err = ab_chan_media_rtcp_refresh(chan);
 	if(err){
 		if(svd_addtobuf(buf, palc,
-				"{\"error\":\"rtcp_refresh error: %s\"}",ab_g_err_str)){
+				"{\"error\":\"rtcp_refresh error: %s\"}\n",ab_g_err_str)){
 			goto __exit_fail;
 		} 
 		goto __exit_success;
@@ -526,7 +526,7 @@ svd_jb_for_chan(ab_chan_t * const chan, char ** const buf, int * const palc,
 	err = ab_chan_media_jb_refresh(chan);
 	if(err){
 		if(svd_addtobuf(buf, palc,
-				"{\"error\":\"jb_refresh error: %s\"}",ab_g_err_str)){
+				"{\"error\":\"jb_refresh error: %s\"}\n",ab_g_err_str)){
 			goto __exit_fail;
 		} 
 		goto __exit_success;

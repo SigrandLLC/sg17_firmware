@@ -350,11 +350,9 @@ ab_chan_media_jb_tune( ab_chan_t * const chan, jb_prms_t const * const jbp)
 	} else if(jbp->jb_type == jb_type_ADAPTIVE){
 		jbCfg.nJbType = IFX_TAPI_JB_TYPE_ADAPTIVE;
 	}
-	if       (jbp->jb_pk_adpt == jb_pk_adpt_VOICE){
-		jbCfg.nPckAdpt = IFX_TAPI_JB_PKT_ADAPT_VOICE;
-	} else if(jbp->jb_pk_adpt == jb_pk_adpt_DATA){
-		jbCfg.nPckAdpt = IFX_TAPI_JB_PKT_ADAPT_DATA;
-	}
+
+	jbCfg.nPckAdpt = IFX_TAPI_JB_PKT_ADAPT_VOICE;
+
 	if       (jbp->jb_loc_adpt == jb_loc_adpt_OFF){
 		jbCfg.nLocalAdpt = IFX_TAPI_JB_LOCAL_ADAPT_OFF;
 	} else if(jbp->jb_loc_adpt == jb_loc_adpt_ON){
