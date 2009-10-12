@@ -17,6 +17,23 @@ typedef struct ab_fw_s ab_fw_t;
 typedef struct ab_dev_event_s ab_dev_event_t;
 /*}}}*/
 
+enum jb_type_e {/*{{{*/
+	jb_type_FIXED, 
+	jb_type_ADAPTIVE
+};/*}}}*/
+enum jb_loc_adpt_e {/*{{{*/
+	jb_loc_adpt_OFF, 
+	jb_loc_adpt_ON, 
+	jb_loc_adpt_SI /**< local adaptation on with sample interpollation */
+};/*}}}*/
+struct jb_prms_s {/*{{{*/
+	enum jb_type_e     jb_type;		/**< JB type */
+	enum jb_loc_adpt_e jb_loc_adpt; /**< JB local adaptation type */
+	char jb_scaling; /**< scaling value*16 [16;255], increase -> more delay */
+	unsigned short jb_init_sz; /**< initial buffer size */
+	unsigned short jb_min_sz; /**< minimal buffer size */
+	unsigned short jb_max_sz; /**< maximum buffer size */
+};/*}}}*/
 enum cod_type_e {/*{{{*/
 	cod_type_NONE,
 	cod_type_ALAW,
@@ -51,6 +68,7 @@ struct codec_s {/*{{{*/
 	enum bitpack_e bpack;
 	int user_payload;			/**< User preset to sdp payload. */
 	int sdp_selected_payload;	/**< Selected in sdp session payload. */
+	struct jb_prms_s jb;		/**< Jitter buffer parameters for this codec. */
 };/*}}}*/
 enum wlec_mode_e {/*{{{*/
 	wlec_mode_UNDEF,
@@ -81,28 +99,6 @@ enum vad_cfg_e {/*{{{*/
 	vad_cfg_G711,
 	vad_cfg_CNG_only,
 	vad_cfg_SC_only
-};/*}}}*/
-enum jb_type_e {/*{{{*/
-	jb_type_FIXED, 
-	jb_type_ADAPTIVE
-};/*}}}*/
-enum jb_pk_adpt_e {/*{{{*/
-	jb_pk_adpt_VOICE, 
-	jb_pk_adpt_DATA
-};/*}}}*/
-enum jb_loc_adpt_e {/*{{{*/
-	jb_loc_adpt_OFF, 
-	jb_loc_adpt_ON, 
-	jb_loc_adpt_SI /**< local adaptation on with sample interpollation */
-};/*}}}*/
-struct jb_prms_s {/*{{{*/
-	enum jb_type_e     jb_type;		/**< JB type */
-	enum jb_pk_adpt_e  jb_pk_adpt;  /**< JB packet adaptation type */
-	enum jb_loc_adpt_e jb_loc_adpt; /**< JB local adaptation type */
-	char jb_scaling; /**< scaling value*16 [16;255], increase -> more delay */
-	unsigned short jb_init_sz; /**< initial buffer size */
-	unsigned short jb_min_sz; /**< minimal buffer size */
-	unsigned short jb_max_sz; /**< maximum buffer size */
 };/*}}}*/
 struct rtp_session_prms_s {/*{{{*/
 	int enc_dB; /**< Coder enc gain */

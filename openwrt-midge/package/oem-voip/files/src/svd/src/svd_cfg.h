@@ -20,9 +20,8 @@
 #define VOICEF_CONF_NAME    "/etc/svd/voicef.conf"
 #define HOTLINE_CONF_NAME   "/etc/svd/hotline.conf"
 #define ADDRESSB_CONF_NAME  "/etc/svd/addressb.conf"
-#define QUALITY_CONF_NAME   "/etc/svd/quality.conf"
+#define CODECS_CONF_NAME    "/etc/svd/codecs.conf"
 #define RTP_CONF_NAME       "/etc/svd/rtp.conf"
-#define JB_CONF_NAME        "/etc/svd/jb.conf"
 #define WLEC_CONF_NAME      "/etc/svd/wlec.conf"
 #define VF_CONF_NAME        "/etc/svd/hw.conf"
 /** @}*/
@@ -209,7 +208,6 @@ struct svd_conf_s {/*{{{*/
 	struct hot_line_s   hot_line     [CHANS_MAX]; /**< Hot line parameters.*/
 	struct voice_freq_s voice_freq   [CHANS_MAX]; /**< VF-channels parameters.*/
 	struct rtp_session_prms_s audio_prms [CHANS_MAX]; /**< AUDIO channel params.*/
-	struct jb_prms_s jb_prms     [CHANS_MAX]; /**< Jitter buffer channel params.*/
 	struct wlec_s       wlec_prms    [CHANS_MAX]; /**< WLEC channel parameters.*/
 	enum pstn_type_e    fxo_PSTN_type[CHANS_MAX]; /**< FXO pstn types.*/
 	unsigned char sip_tos; /** Type of Service byte for sip-packets.*/

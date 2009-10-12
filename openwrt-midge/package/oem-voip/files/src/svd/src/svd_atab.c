@@ -30,7 +30,7 @@
  *  It contains helper functions for media turning and activation.
  *  @{*/
 /** Initiate voice and fax codec parameters on given channel.*/
-int svd_prepare_chan_codecs( ab_chan_t * const chan );
+int svd_prepare_chan_codecs( ab_chan_t * const chan, jb_prms_t ** jpb );
 /** @}*/ 
 
 /** @defgroup ATA_EVT ATA board events (internals).
@@ -486,9 +486,10 @@ int
 ab_chan_media_activate ( ab_chan_t * const chan )
 {/*{{{*/
 	int err;
+	jb_prms_t * jbp = NULL;
 	svd_chan_t * ctx = chan->ctx;
 
-	err = svd_prepare_chan_codecs(chan);
+	err = svd_prepare_chan_codecs (chan, &jbp);
 	if(err){
 		SU_DEBUG_1((LOG_FNC_A(
 				"ERROR: Could not prepare channel codecs params.")));
@@ -504,14 +505,10 @@ ab_chan_media_activate ( ab_chan_t * const chan )
 	}
 
 	/* Jitter Buffer */
-	if(g_conf.jb_prms[chan->abs_idx].jb_max_sz != (999*8)){
-		err = ab_chan_media_jb_tune (chan, &g_conf.jb_prms[chan->abs_idx]);
-		if(err){
-			SU_DEBUG_1(("JB_tune error : %s",ab_g_err_str));
-			goto __exit;
-		}
-	} else {
-		SU_DEBUG_0(("!!!!!!!!!!!!! Not starting JB - using default\n"));
+	err = ab_chan_media_jb_tune (chan, jbp);
+	if(err){
+		SU_DEBUG_1(("JB_tune error : %s",ab_g_err_str));
+		goto __exit;
 	}
 
 	/* WLEC */
@@ -567,11 +564,12 @@ __exit:
  * It prepares chan voice coder and fax coder parameters.
  *
  * \param[in,out] chan channel to operate on it.
+ * \param[out]    jbp  jitter buffer parameters.
  * \retval 0 Success.
  * \retval -1 Fail.
  */ 
 int 
-svd_prepare_chan_codecs( ab_chan_t * const chan )
+svd_prepare_chan_codecs( ab_chan_t * const chan, jb_prms_t ** jpb)
 {/*{{{*/
 	svd_chan_t * ctx = chan->ctx;
 	codec_t * ct = NULL;
@@ -610,6 +608,7 @@ svd_prepare_chan_codecs( ab_chan_t * const chan )
 	for (i=0; ct[i].type!=cod_type_NONE; i++){
 		if(ct[i].type == cp->type){
 			ctx->vcod.pkt_size = ct[i].pkt_size;
+			*jpb = &ct[i].jb;
 			break;
 		}
 		if(is_vf){
