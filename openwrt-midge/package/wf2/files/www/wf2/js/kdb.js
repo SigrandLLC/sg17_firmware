@@ -366,8 +366,11 @@ function Config() {
             if (line == "KDB" || line.length == 0) return true;
             var record = line.split("=");
             if (record.length > 1) {
+                /* replace \" with ASCII code 042 for " */
+                var value = record[1].replace(/\\"/g, "\\042");
+            
                 /* remove double qoutes " at beginning and end of the line */
-                var value = record[1].replace(/^"/g, "");
+                value = value.replace(/^"/g, "");
                 value = value.replace(/"$/g, "");
                 
                 /* decode space,=,#, encoded by KDB's export */
@@ -416,11 +419,13 @@ function Config() {
     /*
      * Replaces special KDB characters with next characters:
      * \040 — ' ';
+     * \042 — '"';
      * \075 — '=';
      * \043 — '#';
      */
     this.replaceSpecialChars = function(value) {
         value = value.replace(/\\040|\\n/g, " ");
+        value = value.replace(/\\042|\\n/g, "\"");
         value = value.replace(/\\043/g, "#");
         return value.replace(/\\075/g, "=");
     };
