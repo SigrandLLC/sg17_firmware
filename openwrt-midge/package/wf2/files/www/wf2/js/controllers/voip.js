@@ -1100,7 +1100,7 @@ Controllers.voipVF = function() {
             c.addTableTfootStr("Chan - local channel.", colNum);
             c.addTableTfootStr("EN - enable channel.", colNum);
             c.addTableTfootStr("R.ID - ID of a router to connect with.", colNum);
-            c.addTableTfootStr("R. chan - VF channel on the remote router.", colNum);
+            c.addTableTfootStr("Chan - VF channel on the remote router.", colNum);
             c.addTableTfootStr("Codec - codec to use.", colNum);
             c.addTableTfootStr("P.time - packetization time in ms.", colNum);
             c.addTableTfootStr("Pay-d - Payload, RTP codec identificator.", colNum);
