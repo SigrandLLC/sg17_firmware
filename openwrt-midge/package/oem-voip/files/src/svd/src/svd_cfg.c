@@ -1629,7 +1629,6 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
-
 /**
  * Init`s WLEC parameters in main routine configuration \ref g_conf structure.
  *

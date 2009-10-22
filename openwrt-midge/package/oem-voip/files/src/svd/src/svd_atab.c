@@ -1688,13 +1688,13 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 	target_sock_addr.sin_family = AF_INET;
 	target_sock_addr.sin_port = htons(chan_ctx->remote_port);
 	inet_aton (chan_ctx->remote_host, &target_sock_addr.sin_addr);
-
 	rode = read(chan->rtp_fd, buf, sizeof(buf));
+
 	if (rode == 0){
 		SU_DEBUG_2 ((LOG_FNC_A("wrong event")));
 		goto __exit_fail;
 	} else if(rode > 0){
-		/* should not block */
+		// should not block 
 		sent = sendto(chan_ctx->rtp_sfd, buf, rode, 0, 
 				&target_sock_addr, sizeof(target_sock_addr));
 		if (sent == -1){
@@ -1712,7 +1712,6 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 				errno, strerror(errno)));
 		goto __exit_fail;
 	} 
-
 __exit_success:
 	return 0;
 __exit_fail:
@@ -1739,7 +1738,7 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 	assert( chan_ctx->rtp_sfd != -1 );
 
 	received = recv(chan_ctx->rtp_sfd, buf, sizeof(buf), 0);
-
+	
 	if (received == 0){
 		SU_DEBUG_2 ((LOG_FNC_A("wrong event")));
 		goto __exit_fail;
