@@ -880,6 +880,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 	/* show unit statistics */
 	var showStatUnit = function(eocInfo) {
 		/* Show current state of interface */
+  
+		/* Show current state of interface */
 		var showState = function(loop, side, c) {
 			var field;
 			var row = c.addTableRow();
@@ -1350,6 +1352,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		}
 
 		/* show message if EOC is offline and this unit is not STU-C, which is always available */
+/*
 		if (eocInfo.unit != "STU-C") {
 			config.cmdExecute({
 				"cmd": $.sprintf("%s -j -i%s", eocInfoCmd, iface),
@@ -1361,7 +1364,96 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"dataType": "json"
 			});
 		}
-		
+*/
+		/* add Status table */
+//		c.addTitle(iface + " unit status", {"colspan": 2});
+
+		var showUnitStatus = function(status,c) {
+			var field;
+			var row = c.addTableRow();
+      var state_str = "";
+
+      switch( status ){
+      case 0:
+        state_str = "Offline";
+        break;
+      case 1:
+        state_str = "Online";
+        break;
+      case 2:
+        state_str = "Discovered";
+        break;
+      default:
+        state_str = "Not discovered";
+        break;
+      }
+
+
+/*
+      if( status == "0" ){
+        state_str = "Offline";
+      }else if( status == "1" ){
+        state_str = "Online";
+      }else if( status == "2" ){
+        state_str = "Discovered";
+      }else{ 
+        state_str = "Not discovered";
+      }
+*/      
+			c.addStaticMessage("Unit state: " + state_str);
+/*
+      field = {
+        "type": "html",
+        "name": "unitStatus",
+        "text": "Status",
+        "str": state_str
+      };
+      c.addWidget(field);
+*/ 
+    }    
+
+    var unit = eocInfo.unit;    
+  	config.cmdExecute({
+			"cmd": $.sprintf("%s -j -i%s", eocInfoCmd, iface),
+			"callback": function(eocInfo) {
+        // Always online
+        if( unit == "STU-C" ){
+          showUnitStatus(1,c);
+          return;
+        }
+        // Slave is online when all units are online
+        if( unit == "STU-R" ){
+          if( eocInfo.link == "0" ){
+            showUnitStatus(0,c);
+          }else{
+            showUnitStatus(1,c);
+          }
+          return;
+        }
+          
+        var regIndex = unit.replace("SRU", "");
+        regIndex = parseInt(regIndex, 10);
+//        alert( "regIndex = " + regIndex );
+        var actual = parseInt(eocInfo.status.reg_num_avail, 10);
+//        alert( "actual = " + actual );
+        if (regIndex < actual){
+          showUnitStatus(1,c);
+        }else if( regIndex == actual ){
+          // cases: 
+          // 1: link up => online
+          // 2: link_down => discovery
+          if( eocInfo.link == "1" )
+            showUnitStatus(1,c);
+          else
+            showUnitStatus(2,c);
+        }else{
+          showUnitStatus(0,c);
+        }
+			},
+			"dataType": "json"
+		});
+    
+
 		/* add State table */
 		c.addTitle(iface + " state", {"colspan": 9});
 		c.addTableHeader("Side|Pair|SNR margin|LoopAttn|ES|SES|CV|LOSWS|UAS");
