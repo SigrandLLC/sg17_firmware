@@ -425,9 +425,9 @@ Controllers.linkdeps = function() {
 					/* add E1 v16 interfaces */
 					var e1Ifaces = config.getData(config.getOEM("MR16G_DRVNAME"));
 					if (e1Ifaces) {
-						$.each(e1Ifaces, function(num, iface) {
-							if (linkSlaves.search(iface) == -1) {
-								ifaces.push(iface);
+						$.each(e1Ifaces, function(num, ifaceInfo) {
+							if (linkSlaves.search(ifaceInfo.iface) == -1) {
+								ifaces.push(ifaceInfo.iface);
 							}
 						});
 					}
