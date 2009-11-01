@@ -17,6 +17,7 @@ function generateMenu() {
     addItem("Hardware", "Switch", "adm5120sw");
     addItem("Services", "DHCP server", "dhcp");
     addItem("Services", "DNS server", "dns_server");
+    addItem("Dial-in", "Dial-in", "dialin");
 
     /* if we have support for linkdeps */
     if (config.getCachedOutput("linkdeps") == "1") {

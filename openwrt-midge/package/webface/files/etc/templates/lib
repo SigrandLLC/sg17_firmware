@@ -76,6 +76,31 @@ update_configs(){
 	local subsys="$1"
 	
 	case "$subsys" in
+	dialin)
+		cfg_make inittab /etc/inittab
+		cfg_make mgetty.config /etc/mgetty\+sendfax/mgetty.config
+		cfg_make login.config /etc/mgetty\+sendfax/login.config
+		rm /etc/ppp/pap-secrets
+		rm /etc/ppp/chap-secrets
+		secrets=`kdb get sys_dialin_secrets`
+		cfg_make options /etc/ppp/options
+		cfg_make secrets /etc/ppp/$secrets-secrets
+		cfg_commit
+			get_dialin_ifaces
+			for i in $dialin_ifaces; do
+				rm /etc/ppp/options.$i
+				echo "`kdb get sys_dialin_${i}_s_ip`:`kdb get sys_dialin_${i}_c_ip`" >> /etc/ppp/options.$i
+			done
+		chmod 0600 /etc/mgetty\+sendfax/login.config
+		kill -HUP 1
+		get_serial_ifaces
+		for i in $serial_ifaces; do
+			id=`ps -ax | grep mgetty | grep $i | awk '{print $1}'`
+			if  [ "$id" != "" ]; then
+				kill $id
+			fi
+		done
+	;;
 	hostname)
 		cfg_make hostname /etc/hostname && \
 		cfg_commit
@@ -197,4 +222,38 @@ ip2int() (
 
 int2ip () {
   echo $(($1>>24&255)).$(($1>>16&255)).$(($1>>8&255)).$(($1&255))
+}
+get_serial_ifaces() {
+	serial_ifaces=""
+	eval `kdb sls -q sys_pcitbl_`
+	for s in $slots; do
+		unset type num ifaces
+		eval "type=\$s${s}_iftype"
+		eval "num=\$s${s}_ifnum"
+		eval "ifaces=\$s${s}_ifaces"
+		if [ "$type" != "$mr17s_drvname" ]; then
+			continue
+		fi
+		serial_ifaces="$serial_ifaces $ifaces"
+	done
+}
+get_dialin_ifaces() {
+	dialin_ifaces=""
+	get_serial_ifaces
+	for i in $serial_ifaces; do
+		tmp=`kdb get sys_dialin_${i}_enable`
+		if [ "$tmp" = "1" ]; then
+			dialin_ifaces="$dialin_ifaces $i"
+		fi
+	done
+}
+get_non_dialin_ifaces() {
+	non_dialin_ifaces=""
+	get_serial_ifaces
+	for i in $serial_ifaces; do
+		tmp=`kdb get sys_dialin_${i}_enable`
+		if [ "$tmp" = "0" ]; then
+			non_dialin_ifaces="$non_dialin_ifaces $i"
+		fi
+	done
 }
