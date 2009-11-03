@@ -696,7 +696,7 @@ Controllers.fw = function() {
 				"addMessage": _("Add rule to FORWARD chain"),
 				"editMessage": _("Edit rule in FORWARD chain"),
 				"listTitle": _("Filter, FORWARD chain"),
-				"helpPage": "filter",
+				"helpPage": "fw",
 				"helpSection": "filter_add"
 			});
 
@@ -722,7 +722,7 @@ Controllers.fw = function() {
 				"addMessage": _("Add rule to INPUT chain"),
 				"editMessage": _("Edit rule in INPUT chain"),
 				"listTitle": _("Filter, INPUT chain"),
-				"helpPage": "filter",
+				"helpPage": "fw",
 				"helpSection": "filter_add"
 			});
 
@@ -748,7 +748,7 @@ Controllers.fw = function() {
 				"addMessage": _("Add rule to OUTPUT chain"),
 				"editMessage": _("Edit rule in OUTPUT chain"),
 				"listTitle": _("Filter, OUTPUT chain"),
-				"helpPage": "filter",
+				"helpPage": "fw",
 				"helpSection": "filter_add"
 			});
 

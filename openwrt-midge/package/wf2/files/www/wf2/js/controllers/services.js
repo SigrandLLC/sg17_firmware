@@ -8,6 +8,8 @@ Controllers.dhcp = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("dhcp");
+			c.setHelpPage("dhcp_server");
+	        c.setHelpSection("dhcp");
 			c.addTitle("DHCP server interface select");
 			
 			var onInterfaceChange = function() {
@@ -68,7 +70,8 @@ function serviceDHCP(page, iface) {
 	var c, field;
 	
 	c = page.addContainer("dhcp");
-	c.setHelpSection("dhcp_server");
+	c.setHelpPage("dhcp_server");
+	c.setHelpSection("dhcp");
 	c.addTitle("DHCP server on interface " + iface);
 	c.setSubsystem("dhcp." + iface);
 	

@@ -356,6 +356,7 @@ Controllers.e1 = function(iface, pcislot, pcidev) {
 Controllers.linkdeps = function() {
 	var page = this.Page();
 	page.setSubsystem("linkdeps");
+	page.setHelpPage("linkdeps");
 
 	page.addTab({
 		"id": "linkdeps",
@@ -643,6 +644,7 @@ Controllers.rs232 = function(node, pcislot, pcidev) {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("settings");
+			c.setHelpPage("rs232");
 
 			c.addTitle($.sprintf("%s (module %s, slot %s) settings", node,
 					mr17sModuleName(pcislot), pcislot - 2));
@@ -757,3 +759,4 @@ Controllers.adm5120sw = function() {
 
 	page.generateTabs();
 };
+

@@ -18,6 +18,8 @@ Controllers.info = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("info");
+			c.setHelpPage("device-manage");
+			c.setHelpSection("web");
 			c.addTitle("System information");
 			
 			field = {
@@ -225,6 +227,8 @@ Controllers.webface = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("webface");
+			c.setHelpPage("system");
+            c.setHelpSection("language");
 			c.addTitle("Webface settings");
 
 			field = {
@@ -244,7 +248,6 @@ Controllers.webface = function() {
 
 Controllers.general = function() {
 	var page = this.Page();
-	page.setHelpPage("begin");
 
 	page.addTab({
 		"id": "general",
@@ -252,7 +255,7 @@ Controllers.general = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("general");
-			c.setHelpSection("hostname");
+			c.setHelpPage("hostname");
 			c.addTitle("General settings");
 
 			field = {
@@ -274,7 +277,7 @@ Controllers.general = function() {
 
 Controllers.security = function() {
 	var page = this.Page();
-	page.setHelpPage("begin");
+	page.setHelpPage("passwd");
 	
 	page.addTab({
 		"id": "security",
@@ -283,7 +286,6 @@ Controllers.security = function() {
 			var c, field;
 			c = page.addContainer("security");
 			c.setSubsystem("security");
-			c.setHelpSection("passwd");
 			c.addTitle("Webface password");
 
 			field = { 
@@ -372,7 +374,6 @@ Controllers.security = function() {
 
 Controllers.dns = function() {
 	var page = this.Page();
-	page.setSubsystem("dns");
 	
 	page.addTab({
 		"id": "dns",
@@ -380,6 +381,7 @@ Controllers.dns = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("dns");
+			c.setHelpPage("dns");
 			c.addTitle("DNS settings");
 
 			field = {
@@ -420,7 +422,6 @@ Controllers.dns = function() {
 
 Controllers.time = function() {
 	var page = this.Page();
-	page.setSubsystem("time");
 	
 	page.addTab({
 		"id": "time",
@@ -428,6 +429,7 @@ Controllers.time = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("time");
+			c.setHelpPage("time");
 			c.addTitle("Time settings");
 
 			field = {
@@ -507,7 +509,6 @@ Controllers.time = function() {
 
 Controllers.logging = function() {
 	var page = this.Page();
-	page.setHelpPage("logging");
 	page.setSubsystem("logging");
 	
 	page.addTab({
@@ -516,6 +517,7 @@ Controllers.logging = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("logging");
+			c.setHelpPage("logging");
 			c.addTitle("Logging settings");
 
 			field = { 
@@ -562,6 +564,7 @@ Controllers.logging = function() {
 
 Controllers.tools = function() {
 	var page = this.Page();
+	page.setHelpPage("tools");
 
 	page.addTab({
 		"id": "syslog",
@@ -655,6 +658,7 @@ Controllers.reboot = function() {
 		"func": function() {
 			var c;
 			c = page.addContainer("reboot");
+			c.setHelpPage("reboot");
 			c.addTitle("Reboot");
 			
 			c.addAction("Reboot", "/sbin/reboot");
@@ -732,7 +736,7 @@ Controllers.cfg = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("default");
-			c.setHelpSection("default");
+			c.setHelpSection("cfg-default");
 			c.addTitle("Restore default configuration");
 			
 			/* tell what to do cfg.cgi */
@@ -788,6 +792,7 @@ Controllers.upload = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("upload");
+			c.setHelpPage("upload");
 			c.addTitle("Upload file to device");
 
 			field = {
@@ -932,3 +937,4 @@ Controllers.console = function() {
 
 	page.generateTabs();
 };
+

@@ -176,10 +176,11 @@ Controllers.voipSettings = function() {
             var c, field;
             c = page.addContainer("settings");
             c.setSubsystem("svd-main");
+            c.setHelpPage("voip.settings");
             c.addTitle("VoIP settings");
             
             /* General settings */
-            c.addTitle("General settings", {"internal": true, "help": {"page": "voip.settings"}});
+            c.addTitle("General settings", {"internal": true});
             
             field = { 
                 "type": "text",
@@ -239,7 +240,7 @@ Controllers.voipSettings = function() {
             c.addWidget(field);
             
             /* SIP settings */
-            c.addTitle("SIP settings", {"internal": true, "help": {"page": "voip.sip"}});
+            c.addTitle("SIP settings", {"internal": true});
             
             field = { 
                 "type": "text",
@@ -539,6 +540,7 @@ Controllers.voipAudio = function() {
             var c = page.addContainer("rtp");
             var colNum = 6;
             c.setSubsystem("svd-rtp");
+            c.setHelpPage("voip.audio");
             c.addTitle("Audio settings", {"colspan": colNum});
 
             c.addTableHeader("Channel|Type|Tx.C|Rx.C|VAD|HPF");
@@ -639,6 +641,7 @@ Controllers.voipEcho = function() {
             var c = page.addContainer("wlec");
             var colNum = 6;
             c.setSubsystem("svd-wlec");
+            c.setHelpPage("voip.echo");
             c.addTitle("Window-based Line Echo Canceller", {"colspan": colNum});
 
             c.addTableHeader("Channel|Type|WLEC type|NLP|Near-end window|Far-end window");
@@ -738,6 +741,7 @@ Controllers.voipDialMode = function() {
         "func": function() {
             var c = page.addContainer("fxo");
             c.setSubsystem("svd-fxo");
+            c.setHelpPage("voip.dialmode");
             c.addTitle("Dial mode settings for FXO channels", {"colspan": 3});
 
             c.addTableHeader("Channel|Type|PSTN type*");
@@ -930,11 +934,13 @@ Controllers.voipCodecs = function() {
         };
 
         var colNum = 10;
+        c.setHelpPage("voip.codecs");
+        c.setHelpSection("voip.codecs.settings");
         c.addTitle(scopeTitle, {"colspan": colNum});
         c.addTableHeader("Codec|Pkt.time|Payload|Bitpack|JB type|LAT|nScaling|nInit|nMin|nMax");
         c.addTableTfootStr("JB Type: jitter buffer type.", colNum);
         c.addTableTfootStr("LAT: Local Adaptation Type:", colNum);
-        c.addTableTfootStr(" - SI: on wtih sample interpollation.", colNum);
+        c.addTableTfootStr(" - SI: on with sample interpollation.", colNum);
         c.addTableTfootStr("nScaling: average play out delay is equal to the estimated jitter times the scaling factor. Values: [1;16]", colNum);
         c.addTableTfootStr("nInit: initial size of the jitter buffer in ms. Values: JB Adaptive [nMin;nMax], JB Fixed: for aLaw [10; 150], for others [10; nMax]", colNum);
         c.addTableTfootStr("nMin: minimum size of the jitter buffer in ms. Values: [10; nMax]", colNum);
@@ -965,6 +971,7 @@ Controllers.voipCodecs = function() {
         "func": function() {
             var c = page.addContainer("codecs_prt");
             c.setSubsystem("svd-codecs");
+            c.setHelpPage("voip.codecs");
             
             var colNum = 3;
             c.addTitle("Priority settings", {"colspan": colNum});
@@ -1060,6 +1067,7 @@ Controllers.voipVF = function() {
         "func": function() {
             var c = page.addContainer("vf");
             c.setSubsystem("svd-vf");
+            c.setHelpPage("voip.vf");
             
             /* hash with fields validators, which can change dynamically */
             globalParameters.codecsValidators = {};
@@ -1329,6 +1337,8 @@ Controllers.voipVF = function() {
         "func": function() {
             var c = page.addContainer("vf_settings");
             c.setSubsystem("svd-vf_settings");
+            c.setHelpPage("voip.vf");
+            c.setHelpSection("voip.vf.settings");
             c.addTitle("Settings", {"colspan": 3});
 
             c.addTableHeader("Channel|Wires|Transmit type");
