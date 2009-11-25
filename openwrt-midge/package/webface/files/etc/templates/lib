@@ -101,6 +101,27 @@ update_configs(){
 			fi
 		done
 	;;
+	terminal)
+		id=`ps -ax | grep dem | grep on | awk '{print $1}'`
+		if  [ "$id" != "" ]; then
+			kill $id
+		fi
+		get_serial_ifaces
+		run="0"
+		for i in $serial_ifaces; do
+			
+			t=`kdb get sys_demon_${i}_enable`
+			if  [ "$t" == "1" ]; then
+				run="1"
+			fi
+		done
+		if [ "$run" == "1" ]; then
+			rm -f /tmp/socket
+			/sbin/demon
+			cfg_make inittab /etc/inittab
+			cfg_commit			
+		fi
+	;;
 	hostname)
 		cfg_make hostname /etc/hostname && \
 		cfg_commit

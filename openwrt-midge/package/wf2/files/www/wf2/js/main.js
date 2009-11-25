@@ -18,6 +18,7 @@ function generateMenu() {
     addItem("Services", "DHCP server", "dhcp");
     addItem("Services", "DNS server", "dns_server");
     addItem("Dial-in", "Dial-in", "dialin");
+    addItem("Terminal", "Terminal", "terminal");
 
     /* if we have support for linkdeps */
     if (config.getCachedOutput("linkdeps") == "1") {
