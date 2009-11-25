@@ -20,10 +20,10 @@
 #include "md5.h"
 #include "kdb.h"
 
-#define SOCKET_NAME "/tmp/socket"
+#define SOCKET_NAME "/tmp/tbuff"
 #define NUM_SOCK 10
 #define MAX_DATA 4*1024*1024
-#define LOG_FILE "/var/log/demon.log"
+#define LOG_FILE "/var/log/tbuff.log"
 
 char log_str[100];
 int log;

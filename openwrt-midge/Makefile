@@ -103,6 +103,7 @@ oem_clean: root_clean
 	rm -rf $(BUILD_DIR)/sigrand-* $(BUILD_DIR)/webface
 	rm -rf $(BUILD_DIR)/oem-* 
 	rm -rf $(BUILD_DIR)/eocd
+	rm -rf $(BUILD_DIR)/tbuff
 #	rm -rf $(BUILD_DIR)/net-snmp*
 	rm -rf $(BUILD_DIR)/wf2
 

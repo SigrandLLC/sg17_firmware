@@ -9,7 +9,7 @@
 #include "kdb.h"
 
 #define MAX_DATA 100
-#define SOCKET_NAME "/tmp/socket"
+#define SOCKET_NAME "/tmp/tbuff"
 
 int sock, port, size;
 

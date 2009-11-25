@@ -1,0 +1,4 @@
+config BR2_PACKAGE_SIGRAND_TBUFF
+	prompt "tbuff ............. Sigrand RS232 buffering service for WEB"
+	tristate
+	default y if CONFIG_DEVEL

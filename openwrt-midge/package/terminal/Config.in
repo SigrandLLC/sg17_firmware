@@ -1,4 +1,0 @@
-config BR2_PACKAGE_SIGRAND_TERMINAL
-	prompt "terminal ............. Sigrand terminal"
-	tristate
-	default y if CONFIG_DEVEL
