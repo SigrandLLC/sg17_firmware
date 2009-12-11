@@ -27,8 +27,8 @@ $(PKG_BUILD_DIR)/.built:
 
 $(IPKG_SIGRAND_TBUFF):
 	install -d -m0755 $(IDIR_SIGRAND_TBUFF)/sbin
-	install -m0755 $(PKG_BUILD_DIR)/tbuffd $(IDIR_SIGRAND_TBUFF)/sbin
-	install -m0755 $(PKG_BUILD_DIR)/tbuffctl $(IDIR_SIGRAND_TBUFF)/sbin
+	install -m0755 $(PKG_BUILD_DIR)/tbuffd $(IDIR_SIGRAND_TBUFF)/sbin/
+	install -m0755 $(PKG_BUILD_DIR)/tbuffctl $(IDIR_SIGRAND_TBUFF)/sbin/
 	cp S80tbuff $(PKG_BUILD_DIR)/
 	chmod 700 $(PKG_BUILD_DIR)/S80tbuff
 	$(RSTRIP) $(IDIR_SIGRAND_TBUFF)/sbin/*

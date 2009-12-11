@@ -20,12 +20,13 @@
 #include "md5.h"
 #include "kdb.h"
 
-#define SOCKET_NAME "/tmp/tbuff"
+#define SOCKET_NAME "/tmp/socket"
 #define NUM_SOCK 10
 #define MAX_DATA 4*1024*1024
-#define LOG_FILE "/var/log/tbuff.log"
+#define LOG_FILE "/var/log/demon.log"
 
 char log_str[100];
+char iface_name[10];
 int log;
 int buf_size = 128;
 int sock; // socket for accept connections
@@ -55,6 +56,11 @@ int pb(int n)
 	sprintf(log_str, "\n-----------------------------------\n---------t = %i h = %i-----------\n", ports[n].tbuf, ports[n].hbuf);
 	write(log, log_str, strlen(log_str));
 	return 0;
+}
+
+
+int sprit_escape()
+{
 }
 
 int init_port(char * port_name)
@@ -143,14 +149,14 @@ int init_port(char * port_name)
 // load params from kdb
 int load_params ()
 {
-	char *opt, iface_name[10];
+	char *opt;
 	int i, j;
 	
 	kdbinit();
 	kdb_appget("sys_demon_buf_size", &opt);
 	buf_size = atoi(opt);
-//	sprintf(log_str, "buf_size = %i\n", buf_size);
-//	write(log, log_str, strlen(log_str));
+	sprintf(log_str, "buf_size = %i\n", buf_size);
+	write(log, log_str, strlen(log_str));
 	kdb_appget("sys_demon_iface_name", &opt);
 	
 	i = 0;
@@ -161,8 +167,8 @@ int load_params ()
 	}
 	opt[i] = 0;
 	strcpy(iface_name, opt);
-//	sprintf(log_str, "iface_name = %s\n", iface_name);
-//	write(log, log_str, strlen(log_str));
+	sprintf(log_str, "iface_name = %s\n", iface_name);
+	write(log, log_str, strlen(log_str));
 	
 	for (i = 0; i < 16; i++)
 	{
@@ -247,8 +253,11 @@ int loop()
 			{
 				char rq[MAX_DATA];
 				int r = read(sockets[i], rq, MAX_DATA);
-//				sprintf(log_str, "From socket %i read %i byte [%s]\n", i, r, rq);
-//				write(log, log_str, strlen(log_str));
+				if (rq[0] != '1')
+				{
+					sprintf(log_str, "From socket %i read %i byte [%s]\n", i, r, rq);
+					write(log, log_str, strlen(log_str));
+				}
 				if (r <= 0)
 				{
 //					printf("Error: cannot read from socket\n");
@@ -284,8 +293,8 @@ int loop()
 								
 							} else {
 
-//								sprintf(log_str, ">>>buf-----\n");
-//								write(log, log_str, strlen(log_str));
+								sprintf(log_str, ">>>buf-----\n");
+								write(log, log_str, strlen(log_str));
 
 								for (ii = 0; ii < n; ii++)
 								{
@@ -303,12 +312,12 @@ int loop()
 										break;
 									}
 								}
-//								sprintf(log_str, ">>>\nt = %i h = %i-----\n", ports[p].tbuf, ports[p].hbuf);
-//								write(log, log_str, strlen(log_str));
+								sprintf(log_str, ">>>\nt = %i h = %i-----\n", ports[p].tbuf, ports[p].hbuf);
+								write(log, log_str, strlen(log_str));
 
 								k = write(sockets[i], tstr, k);
-//								sprintf(log_str, "From buf %i to prog readed %i byte\n", p, k);
-//								write(log, log_str, strlen(log_str));
+								sprintf(log_str, "From buf %i to prog readed %i byte\n", p, k);
+								write(log, log_str, strlen(log_str));
 
 							}
 //							pb(p);
@@ -354,8 +363,8 @@ int loop()
 //							printf("---[%s]\n", &rq[w]);
 							write(ports[p].fd, &ch, 1);
 //							printf(">>Debug: In port %i write [%s] %i byte\n", p, &rq[w], n + 1);
-//							sprintf(log_str, "In port %i from prog write [%s] %i byte\n", p, &rq[w], n + 1);
-//							write(log, log_str, strlen(log_str));
+							sprintf(log_str, "In port %i from prog write [%s] %i byte\n", p, &rq[w], n + 1);
+							write(log, log_str, strlen(log_str));
 							
 							if (r != n + 1)
 							{
@@ -383,6 +392,48 @@ int loop()
 						sockets[i] = 0;
 //						pb(p);
 					break;
+					case '3':
+						char *tbuff;
+						int cnt = 0;
+						tbuff = malloc(buf_size*16);
+						tbuff[cnt] = '{';
+						cnt++;
+						tbuff[cnt] = '[';
+						cnt++;
+						for (j = 0; j < 16; j++)
+						{
+							if ((ports[j].fd > 0) && (ports[j].tbuf != ports[j].hbuf))
+							{
+								sprintf(&tbuff[cnt], "{\"dev\":\"");
+								cnt+=8;
+								sprintf(&tbuff[cnt], "%s", iface_name);
+								cnt+=strlen(iface_name);
+								sprintf(&tbuff[cnt], "{\",\"text\":\"");
+								cnt+=11;
+								while (1)
+								{
+									if (ports[j].tbuf != ports[j].hbuf)
+									{
+										tbuff[cnt] = ports[j].buf[ports[j].tbuf];
+										cnt++;
+										ports[j].tbuf++;
+										if (ports[j].tbuf == buf_size)
+										{
+											ports[j].tbuf = 0;
+										}
+									} else {
+										break;
+									}
+								}
+								sprintf(&tbuff[cnt], "},");
+								cnt+=2;
+							}
+						}
+						cnt--;
+						sprintf(&tbuff[cnt], "]}");
+						cnt+=2;
+						
+					break;
 				}
 			}
 		}
@@ -394,16 +445,31 @@ int loop()
 			if ((ports[i].fd > 0) && (FD_ISSET(ports[i].fd, &ready)))
 			{
 				char tbuf[buf_size];
-				int qw;
+				int qw, qweqwe;
 //				pb(i);
 				int rb = read(ports[i].fd, tbuf, buf_size);
-//				sprintf(log_str, "From port %i in buf readed %i byte\n", i, rb);
-//				write(log, log_str, strlen(log_str));
+				sprintf(log_str, "From port %i in buf readed %i byte\n", i, rb);
+				write(log, log_str, strlen(log_str));
 				q += rb;
 				if (rb > 0)
 				{
 					for (qw = 0; qw < rb; qw++)
 					{
+							if (tbuf[qw] == 27)
+							{
+								qweqwe = qw;
+								qw++;
+								if (tbuf[qw] == '[') {
+									qw++;
+//									while (tbuf[qw] != ';') qw++;
+									while (tbuf[qw] != 'm') qw++;
+									qw++;
+									if (qw >= rb) break;
+								}
+							}
+							sprintf(log_str, "strip escape %i\n", qw-qweqwe);
+							write(log, log_str, strlen(log_str));
+							
 							ports[i].buf[ports[i].hbuf] = tbuf[qw];
 							ports[i].hbuf++;
 							if (ports[i].hbuf == buf_size)
@@ -432,8 +498,8 @@ int loop()
 //					printf(">>Debug: From port ttyRS%i to buf readed %i byte hbuf = %i tbuf = %i\n", i, rb, ports[i].hbuf, ports[i].tbuf);
 					// Print buf at screen			
 //					printf("-------buf-------\n");
-//					sprintf(log_str, ">>>------buf------\n");
-//					write(log, log_str, strlen(log_str));
+					sprintf(log_str, ">>>------buf------\n");
+					write(log, log_str, strlen(log_str));
 					for (qw = ports[i].tbuf; qw != ports[i].hbuf; qw++)
 					{
 						if (qw == buf_size) qw = 0;
@@ -441,8 +507,8 @@ int loop()
 //						write(log, &ports[i].buf[qw], 1);
 						if (qw == ports[i].hbuf) break;
 					}
-//					sprintf(log_str, "\n>>> t = %i h = %i-----\n", ports[i].tbuf, ports[i].hbuf);
-//					write(log, log_str, strlen(log_str));
+					sprintf(log_str, "\n>>> t = %i h = %i-----\n", ports[i].tbuf, ports[i].hbuf);
+					write(log, log_str, strlen(log_str));
 
 //					printf("\n-----------\n");
 					for (qw = ports[i].tbuf; qw != ports[i].hbuf; qw++)
@@ -470,28 +536,28 @@ int init_socket()
 	sock = socket(PF_UNIX, SOCK_STREAM, 0);
 	if (sock == -1)
 	{
-//		sprintf(log_str, "Error: cannot create socket\n");
-//		write(log, log_str, strlen(log_str));
+		sprintf(log_str, "Error: cannot create socket\n");
+		write(log, log_str, strlen(log_str));
 		exit(-1);
 	}
 	if (fcntl(sock, F_SETFL, O_NONBLOCK))
 	{
-//		sprintf(log_str, "Error: cannot set socket options\n");
-//		write(log, log_str, strlen(log_str));
+		sprintf(log_str, "Error: cannot set socket options\n");
+		write(log, log_str, strlen(log_str));
 		exit(-1);
 	}
 	saddr_in.sa_family = AF_LOCAL;
 	strcpy(saddr_in.sa_data, SOCKET_NAME);
 	if (bind(sock, &saddr_in, sizeof(saddr_in)))
 	{
-//		sprintf(log_str, "Error: cannot bind socket\n");
-//		write(log, log_str, strlen(log_str));
+		sprintf(log_str, "Error: cannot bind socket\n");
+		write(log, log_str, strlen(log_str));
 		exit(-1);
 	}
 	if (listen(sock, 10))
 	{
-//		sprintf(log_str, "Error: cannot listen socket\n");
-//		write(log, log_str, strlen(log_str));
+		sprintf(log_str, "Error: cannot listen socket\n");
+		write(log, log_str, strlen(log_str));
 		exit(-1);
 	}
 }
@@ -557,8 +623,8 @@ int main (int argc, char **argv)
 		close(2);
 		sa.sa_handler = handler;
 		sigaction(SIGTERM, &sa, 0);
-//		sprintf(log_str, "------demon started------");
-//		write(log, log_str, strlen(log_str));
+		sprintf(log_str, "------------demon started------------------");
+		write(log, log_str, strlen(log_str));
 
 		for (i = 0; i < 16; i++)
 		{

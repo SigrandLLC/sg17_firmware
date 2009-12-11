@@ -9,7 +9,7 @@
 #include "kdb.h"
 
 #define MAX_DATA 100
-#define SOCKET_NAME "/tmp/tbuff"
+#define SOCKET_NAME "/tmp/socket"
 
 int sock, port, size;
 
@@ -101,6 +101,32 @@ int write_in_port (char * d)
 	return 0;
 }
 
+int read_from_all_ports()
+{
+	char r = '3';
+	int ret, buf_size;
+	char *opt, *buf;
+
+	// read buf_size from kdb
+	kdbinit();
+	ret = kdb_appget("sys_demon_buf_size", &opt);
+	if (ret != 1)
+	{
+		printf("Error: cannot read buf size from kdb\n");
+		exit(-1);
+	}
+	buf_size = atoi(opt);
+//	printf(">>Debug: buf_size = %i\n", buf_size);
+	db_close();
+	if ((size == 0)||(size > buf_size)) size = buf_size;
+
+	write(sock, &r, 1);
+	buf = malloc(buf_size*16);
+	ret = read(sock, buf, buf_size*16);
+	printf("%s", buf);
+	return 0;
+}
+
 int main (int argc, char ** argv)
 {
 	int i = 0;
@@ -152,6 +178,13 @@ int main (int argc, char ** argv)
 				exit(-1);
 			}
 			
+		break;
+		case 'a':
+			if (read_from_all_ports())
+			{
+				printf("Error: cannot write data in port\n");
+				exit(-1);
+			}
 		break;
 	}
 	

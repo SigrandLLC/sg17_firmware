@@ -10,10 +10,10 @@ Controllers.terminal = function ()
        	{
        	
        	
-
             var colSpan = 3;
             var c = page.addContainer("options");
             c.addTitle("Options", {"colspan": colSpan});
+			
             c.addTableHeader("Port|Enable|Speed");
 
 			var ifaces = config.getData(config.getOEM("MR17S_DRVNAME"));
@@ -21,8 +21,15 @@ Controllers.terminal = function ()
 				var iface = ifaceInfo.iface;
 				var field = { 
 					"type": "hidden",
-    	           	"name": "sys_demon_iface_name",
-    	           	"defaultValue": iface
+					"name": "sys_demon_iface_name",
+					"defaultValue": iface
+//					"id": iface
+				};
+				c.addWidget(field);
+				var field = { 
+					"type": "hidden",
+					"name": "sys_demon_buf_size",
+					"defaultValue": 1024
 //					"id": iface
 				};
 				c.addWidget(field);
@@ -51,9 +58,6 @@ Controllers.terminal = function ()
                     "defaultValue" : 230400
                 };
                 c.addTableWidget(field, row);
-
-
-				
 			});
 
 	        c.addSubmit({"reload": true});
@@ -67,6 +71,7 @@ Controllers.terminal = function ()
                 "type": "text",
                 "name": "sys_demon_buf_size",
                 "text": "Buffer size",
+				"defaultValue": 1024,
                 "validator": {"required": true, "min": 10},
                 "descr": "The buffer size for data from port."
             };
@@ -89,7 +94,7 @@ Controllers.terminal = function ()
 				"name": $.sprintf("Terminal %s", iface),
 				"func": function()
 				{
-					var cmd = "";
+					var cmd2 = "";
 					var p = page.getRaw($.sprintf("terminal%s", iface));
 					var consoleDiv = $.create("div", {"id": "consoleDiv", "className": "pre scrollable",
 							"tabindex": "0"}, "").appendTo(p).focus();
@@ -100,24 +105,28 @@ Controllers.terminal = function ()
 						cursor.css("display", nextDisplay);
 					};
 //					setInterval(cursorAnimate, 500);
-					var cmdSpan = $.create("span").insertBefore(cursor);
+//					var cmdSpan = $.create("span").insertBefore(cursor);
 					var keypressDisabled = false;
-//					cursor.before(buf[iface]);
+					cursor.before(buf[iface]);
+					cmdSpan = $.create("span").insertBefore(cursor);
+					consoleDiv.scrollTo($("#bottomAnchor"), 700);
 					
 					var func = function() {
 							config.cmdExecute({
-								"cmd": $.sprintf("/sbin/prog -p%s -r 0", iface),
+								"cmd": $.sprintf("/sbin/tbuffctl -p%s -r 0", iface),
 								"formatData": true,
 								"callback": function(data) {
-									buf[iface] +=  data;
-									keypressDisabled = false;
-									$("#executingCmd").remove();
-									cursor.before(data);
-									cmdSpan = $.create("span").insertBefore(cursor);
-									consoleDiv.scrollTo($("#bottomAnchor"), 700);
+									if (data)
+									{
+										buf[iface] +=  data;
+										keypressDisabled = false;
+										$("#executingCmd").remove();
+										cursor.before(data);
+										cmdSpan = $.create("span").insertBefore(cursor);
+										consoleDiv.scrollTo($("#bottomAnchor"), 700);
+									}
 								}
 							});
-
 					};
 					setInterval(func, 3000);
 					
@@ -128,12 +137,15 @@ Controllers.terminal = function ()
 							return false;
 						}
 						if (src.keyCode == 13) {
-						if (cmd != "") {
+						if (cmd2 != "") {
+							buf[iface] += cmd2;
+							buf[iface] += "<br>";
 							config.cmdExecute({
-								"cmd": $.sprintf("/sbin/prog -p%s -w \"%s\"", iface, cmd),
+								"cmd": $.sprintf("/sbin/tbuffctl -p%s -w \"%s\"", iface, cmd2),
 								"formatData": true,
 								"callback": function(data) {
-									buf[iface] +=  cmd;
+									buf[iface] +=  data;
+//									alert("buf[iface] = " + buf[iface]);
 									keypressDisabled = false;
 									$("#executingCmd").remove();
 									cursor.before(data);
@@ -142,10 +154,10 @@ Controllers.terminal = function ()
 								}
 							});
 							config.cmdExecute({
-								"cmd": $.sprintf("/sbin/prog -p%s -r 0", iface),
+								"cmd": $.sprintf("/sbin/tbuffctl -p%s -r 0", iface),
 								"formatData": true,
 								"callback": function(data) {
-									buf[iface] +=  cmd;
+									buf[iface] +=  cmd2;
 									keypressDisabled = false;
 									$("#executingCmd").remove();
 									cursor.before(data);
@@ -154,7 +166,7 @@ Controllers.terminal = function ()
 								}
 							});
 							keypressDisabled = true;
-							cmd = "";
+							cmd2 = "";
 		           			cursor.before("<br/>");
 							cursor.before($.create("span", {"id": "executingCmd"}, _("executing command...")));
 							consoleDiv.scrollTo($("#bottomAnchor"), 200);
@@ -171,12 +183,12 @@ Controllers.terminal = function ()
 							ch = String.fromCharCode(src.which);
 						}
 						cmdSpan.append(ch);
-						cmd += ch;
+						cmd2 += ch;
 						return false;
 					};
 					var onBackspace = function() {
-						cmd = cmd.substring(0, cmd.length - 1);
-						cmdSpan.text(cmd);
+						cmd2 = cmd2.substring(0, cmd2.length - 1);
+						cmdSpan.text(cmd2);
 						return false;
 					};
 	               	consoleDiv.keypress(onKeypress);

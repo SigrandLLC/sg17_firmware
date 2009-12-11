@@ -18,7 +18,7 @@ echo "
 ::sysinit:/bin/mount -a
 ::sysinit:/sbin/ifconfig lo 127.0.0.1 up
 ::sysinit:/sbin/route add -net 127.0.0.0 netmask 255.0.0.0 lo
-::sysinit:/sbin/demon
+::sysinit:/sbin/tbuffd
 # now run any rc scripts
 ::sysinit:/etc/init.d/rcS
 
