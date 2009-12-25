@@ -80,15 +80,52 @@ Controllers.terminal = function ()
         }
     });
     
-
     var ifaces = config.getData(config.getOEM("MR17S_DRVNAME"));
 	var buf = new Array(16);
-    $.each(ifaces, function(num, ifaceInfo) {
+	
+	var cursors = new Array(16);
+	var consoleDivs = new Array(16);
+	var cmdSpans = new Array(16);
+
+	var func = function() {
+		config.cmdExecute({
+			"cmd": $.sprintf("/sbin/tbuffctl -p* -a"),
+			"dataType" : "json",
+			"formatData": true,
+			"callback": function(data) {
+				if (typeof data == "object")
+				{
+					$.each(data.ttylist, function(index, value) {
+						if ((value.text != "") && (typeof value == "object"))
+						{
+							buf[value.dev] += value.text;
+							cursors[value.dev].before(value.text);
+							cmdSpans[value.dev] = $.create("span").insertBefore(cursors[value.dev]);
+							consoleDivs[value.dev].scrollTo($("#bottomAnchor"), 0);
+						}
+					});
+				}
+			}
+		});
+	};
+	setInterval(func, 1000);
+	var scroll = function() {
+		var ifaces = config.getData(config.getOEM("MR17S_DRVNAME"));
+		$.each(ifaces, function(num, ifaceInfo) {
 			var iface = ifaceInfo.iface;
-			var tmp = config.getParsed($.sprintf("sys_demon_%s_enable", iface));
-			if (tmp == 1)
-{
-			buf[iface] = "";
+			if (config.getParsed($.sprintf("sys_demon_%s_enable", iface)) == 1)
+			{
+				consoleDivs[iface].scrollTo($("#bottomAnchor"), 0);
+			}
+		});
+	};
+//	setInterval(scroll, 1);
+
+
+	$.each(ifaces, function(num, ifaceInfo) {
+		var iface = ifaceInfo.iface;
+		if (config.getParsed($.sprintf("sys_demon_%s_enable", iface)) == 1)
+		{
 			page.addTab({
 				"id": $.sprintf("terminal%s", iface),
 				"name": $.sprintf("Terminal %s", iface),
@@ -96,82 +133,44 @@ Controllers.terminal = function ()
 				{
 					var cmd2 = "";
 					var p = page.getRaw($.sprintf("terminal%s", iface));
-					var consoleDiv = $.create("div", {"id": "consoleDiv", "className": "pre scrollable",
-							"tabindex": "0"}, "").appendTo(p).focus();
-					$.create("span", {"id": "bottomAnchor"}, "&nbsp;").appendTo(p);
-					var cursor = $.create("span", {"id": "consoleCursor"}, "_").appendTo(consoleDiv);
-					var cursorAnimate = function() {
-						var nextDisplay = cursor.css("display") == "inline" ? "none" : "inline";
-						cursor.css("display", nextDisplay);
-					};
-//					setInterval(cursorAnimate, 500);
-//					var cmdSpan = $.create("span").insertBefore(cursor);
-					var keypressDisabled = false;
+					consoleDivs[iface] = $.create("div", {"id": "consoleDiv", "className": "pre scrollable","tabindex": "0"}, "").appendTo(p);
+					var cursor = $.create("span", {"id": "consoleCursor"}, "_").appendTo(consoleDivs[iface]);
+					cursors[iface] = cursor;
+					if (buf[iface] == undefined) buf[iface] = "";
 					cursor.before(buf[iface]);
-					cmdSpan = $.create("span").insertBefore(cursor);
-					consoleDiv.scrollTo($("#bottomAnchor"), 700);
-					
-					var func = function() {
-							config.cmdExecute({
-								"cmd": $.sprintf("/sbin/tbuffctl -p%s -r 0", iface),
-								"formatData": true,
-								"callback": function(data) {
-									if (data)
-									{
-										buf[iface] +=  data;
-										keypressDisabled = false;
-										$("#executingCmd").remove();
-										cursor.before(data);
-										cmdSpan = $.create("span").insertBefore(cursor);
-										consoleDiv.scrollTo($("#bottomAnchor"), 700);
-									}
-								}
-							});
-					};
-					setInterval(func, 3000);
-					
-					
+					cmdSpans[iface] = $.create("span").insertBefore(cursor);
+					$.create("span", {"id": "bottomAnchor"}, "&nbsp;").appendTo(p);
+					consoleDivs[iface].scrollTo($("#bottomAnchor"), 0);
+
 					var onKeypress = function(src) {
+						consoleDivs[iface].scrollTo($("#bottomAnchor"), 0);
 						var ch;
-						if (keypressDisabled) {
-							return false;
-						}
 						if (src.keyCode == 13) {
-						if (cmd2 != "") {
-							buf[iface] += cmd2;
-							buf[iface] += "<br>";
-							config.cmdExecute({
-								"cmd": $.sprintf("/sbin/tbuffctl -p%s -w \"%s\"", iface, cmd2),
-								"formatData": true,
-								"callback": function(data) {
-									buf[iface] +=  data;
-//									alert("buf[iface] = " + buf[iface]);
-									keypressDisabled = false;
-									$("#executingCmd").remove();
-									cursor.before(data);
-									cmdSpan = $.create("span").insertBefore(cursor);
-									consoleDiv.scrollTo($("#bottomAnchor"), 700);
-								}
-							});
-							config.cmdExecute({
-								"cmd": $.sprintf("/sbin/tbuffctl -p%s -r 0", iface),
-								"formatData": true,
-								"callback": function(data) {
-									buf[iface] +=  cmd2;
-									keypressDisabled = false;
-									$("#executingCmd").remove();
-									cursor.before(data);
-									cmdSpan = $.create("span").insertBefore(cursor);
-									consoleDiv.scrollTo($("#bottomAnchor"), 700);
-								}
-							});
-							keypressDisabled = true;
-							cmd2 = "";
-		           			cursor.before("<br/>");
-							cursor.before($.create("span", {"id": "executingCmd"}, _("executing command...")));
-							consoleDiv.scrollTo($("#bottomAnchor"), 200);
-							return false;
-						}
+							if (cmd2 != "") {
+								if (buf[iface] == undefined) buf[iface] = cmd2; else buf[iface] += cmd2;
+								buf[iface] += "<br>";
+								config.cmdExecute({
+									"cmd": $.sprintf("/sbin/tbuffctl -p%s -w \"%s\"", iface, cmd2),
+									"callback": function(data) {
+										cursor.before("<br>");
+										cmdSpans[iface] = $.create("span").insertBefore(cursor);
+										consoleDivs[iface].scrollTo($("#bottomAnchor"), 0);
+									}
+								});
+/*								config.cmdExecute({
+									"cmd": $.sprintf("/sbin/tbuffctl -p%s -r 0", iface),
+									"callback": function(data) {
+										buf[iface] +=  data;
+//										cursor.before(data);
+										cmdSpan.text(data);
+										cmdSpan = $.create("span").insertBefore(cursor);
+										consoleDiv.scrollTo($("#bottomAnchor"), 0);
+									}
+								});*/
+								cmd2 = "";
+								consoleDivs[iface].scrollTo($("#bottomAnchor"), 0);
+								return false;
+							}
 						} else if (src.keyCode == 16 || src.keyCode == 17 || src.keyCode == 18
 								|| src.keyCode == 37 || src.keyCode == 38 || src.keyCode == 39
 								|| src.keyCode == 40 || src.keyCode == 8) {
@@ -182,25 +181,35 @@ Controllers.terminal = function ()
 						} else if (src.which > 0) {
 							ch = String.fromCharCode(src.which);
 						}
-						cmdSpan.append(ch);
+						cmdSpans[iface].append(ch);
 						cmd2 += ch;
 						return false;
 					};
 					var onBackspace = function() {
 						cmd2 = cmd2.substring(0, cmd2.length - 1);
-						cmdSpan.text(cmd2);
+						cmdSpans[iface].text(cmd2);
 						return false;
 					};
-	               	consoleDiv.keypress(onKeypress);
-					consoleDiv.keydown(function(src) {
+//					var onmouseover = function() {
+//						consoleDivs[iface].scrollTo($("#bottomAnchor"), 0);
+//					};
+//					consoleDivs[iface].mouseover(onmouseover);
+					var onclick = function() {
+						consoleDivs[iface].scrollTo($("#bottomAnchor"), 0);
+					};
+					onclick();
+					consoleDivs[iface].click(onclick);
+	               	consoleDivs[iface].keypress(onKeypress);
+					consoleDivs[iface].keydown(function(src) {
 						if (src.keyCode == 8) {
 							return onBackspace();
 						}
 					});
-				}
-			});
-};
-	}); // each
-
+				} //func
+			}); //addTab
+		} // if
+	}); //each 
+	
     page.generateTabs();
+	
 };

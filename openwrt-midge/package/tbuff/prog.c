@@ -104,7 +104,7 @@ int write_in_port (char * d)
 int read_from_all_ports()
 {
 	char r = '3';
-	int ret, buf_size;
+	int ret, buf_size, i;
 	char *opt, *buf;
 
 	// read buf_size from kdb
@@ -118,31 +118,53 @@ int read_from_all_ports()
 	buf_size = atoi(opt);
 //	printf(">>Debug: buf_size = %i\n", buf_size);
 	db_close();
-	if ((size == 0)||(size > buf_size)) size = buf_size;
+//	if ((size == 0)||(size > buf_size)) size = buf_size;
 
 	write(sock, &r, 1);
 	buf = malloc(buf_size*16);
 	ret = read(sock, buf, buf_size*16);
-	printf("%s", buf);
+	for (i = 0; i < ret; i++)
+	{
+		printf("%c", buf[i]);
+	}
 	return 0;
 }
 
 int main (int argc, char ** argv)
 {
 	int i = 0;
-	if (argc < 4)
+	if (argc < 2)
 	{
 		printf("Usage:\n     for read data form port: %s -pttyUSB0 -r 'how many bytes to read (0 - all buffer)'\n", argv[0]);
 		printf("     for write data to port: %s -pttyUSB0 -w 'data to send'\n", argv[0]);
+		printf("     for read data from all ports: %s -p* -a'\n", argv[0]);
 		exit(-1);
 	}
-	while (argv[1][i] != 0) i++;
-	if ((argv[1][i-2] >= '0') && (argv[1][i-2] <= '9')) port += (argv[1][i-2]-'0')*10;
-	if ((argv[1][i-1] >= '0') && (argv[1][i-1] <= '9'))
+	if (argv[1][1] == 'p')
 	{
-		port += argv[1][i-1] - '0';
+		if (argc < 3)
+		{
+			printf("Usage:\n     for read data form port: %s -pttyUSB0 -r 'how many bytes to read (0 - all buffer)'\n", argv[0]);
+			printf("     for write data to port: %s -pttyUSB0 -w 'data to send'\n", argv[0]);
+			printf("     for read data from all ports: %s -p* -a'\n", argv[0]);
+			exit(-1);
+		}
+		if (argc == 4)
+		{
+			while (argv[1][i] != 0) i++;
+			if ((argv[1][i-2] >= '0') && (argv[1][i-2] <= '9')) port += (argv[1][i-2]-'0')*10;
+			if ((argv[1][i-1] >= '0') && (argv[1][i-1] <= '9'))
+			{
+				port += argv[1][i-1] - '0';
+			} else {
+				printf("Error: check port name\n");
+				exit(-1);
+			}
+		}
 	} else {
-		printf("Error: check port name\n");
+		printf("Usage:\n     for read data form port: %s -pttyUSB0 -r 'how many bytes to read (0 - all buffer)'\n", argv[0]);
+		printf("     for write data to port: %s -pttyUSB0 -w 'data to send'\n", argv[0]);
+		printf("     for read data from all ports: %s -p* -a'\n", argv[0]);
 		exit(-1);
 	}
 	
