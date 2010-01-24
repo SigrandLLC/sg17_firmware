@@ -4,6 +4,10 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <sys/select.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <time.h>
 
 #include "md5.h"
 #include "kdb.h"
@@ -12,6 +16,7 @@
 #define SOCKET_NAME "/tmp/socket"
 
 int sock, port, size;
+struct timeval tv1, tv2;
 
 int read_form_port (void)
 {
@@ -106,33 +111,62 @@ int read_from_all_ports()
 	char r = '3';
 	int ret, buf_size, i;
 	char *opt, *buf;
-
+	fd_set ready;
+	struct timeval tv;
+//	gettimeofday(&tv1, NULL);
 	// read buf_size from kdb
-	kdbinit();
-	ret = kdb_appget("sys_demon_buf_size", &opt);
-	if (ret != 1)
-	{
-		printf("Error: cannot read buf size from kdb\n");
-		exit(-1);
-	}
-	buf_size = atoi(opt);
-//	printf(">>Debug: buf_size = %i\n", buf_size);
-	db_close();
-//	if ((size == 0)||(size > buf_size)) size = buf_size;
+//	kdbinit();
+//	ret = kdb_appget("sys_demon_buf_size", &opt);
+//	if (ret != 1)
+//	{
+//		printf("Error: cannot read buf size from kdb\n");
+//		exit(-1);
+//	}
+//	buf_size = atoi(opt);
 
+
+	buf_size = 4096;
+
+//	printf(">>Debug: buf_size = %i\n", buf_size);
+//	db_close();
+//	if ((size == 0)||(size > buf_size)) size = buf_size;
 	write(sock, &r, 1);
 	buf = malloc(buf_size*16);
-	ret = read(sock, buf, buf_size*16);
-	for (i = 0; i < ret; i++)
+	gettimeofday(&tv2, NULL);
+//	printf("time1 = %.6f sec.\n", (tv2.tv_sec * 1E6 + tv2.tv_usec - tv1.tv_sec * 1E6 - tv1.tv_usec) / 1E6);
+
+	
+	FD_ZERO(&ready);
+	FD_SET(sock, &ready);
+	tv.tv_sec = 0;
+	tv.tv_usec = 500000;
+	select(sock + 1, &ready, NULL, NULL, &tv);
+	// касяк где то рядом...
+	if (FD_ISSET(sock, &ready))
 	{
-		printf("%c", buf[i]);
+//		printf("select %.6f\n", 0.5 - (tv.tv_sec * 1E6 + tv.tv_usec) / 1E6);
+		ret = read(sock, buf, buf_size*16);
+	} else {
+		ret = read(sock, buf, buf_size*16);
 	}
+	buf[ret] = 0;
+	gettimeofday(&tv1, NULL);
+//	printf("time2 = %.6f sec.\n", (tv1.tv_sec * 1E6 + tv1.tv_usec - tv2.tv_sec * 1E6 - tv2.tv_usec) / 1E6);
+	printf("%s", buf);
+//	gettimeofday(&tv2, NULL);
+//	printf("time3 = %.6f sec.\n", (tv2.tv_sec * 1E6 + tv2.tv_usec - tv1.tv_sec * 1E6 - tv1.tv_usec) / 1E6);
+//	for (i = 0; i < ret; i++)
+//	{
+//		printf("%c", buf[i]);
+//	}
 	return 0;
 }
 
 int main (int argc, char ** argv)
 {
 	int i = 0;
+	
+
 	if (argc < 2)
 	{
 		printf("Usage:\n     for read data form port: %s -pttyUSB0 -r 'how many bytes to read (0 - all buffer)'\n", argv[0]);
@@ -212,5 +246,7 @@ int main (int argc, char ** argv)
 	
 	close(sock);
 
+	gettimeofday(&tv2, NULL);
+//	printf("time = %.6f sec.\n", (tv2.tv_sec * 1E6 + tv2.tv_usec - tv1.tv_sec * 1E6 - tv1.tv_usec) / 1E6);
 	return 0;
 }

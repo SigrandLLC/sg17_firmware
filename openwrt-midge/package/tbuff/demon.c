@@ -16,6 +16,9 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <fcntl.h>
+#include <sys/time.h>
+#include <time.h>
+#include <sys/select.h>
 
 #include "md5.h"
 #include "kdb.h"
@@ -25,13 +28,15 @@
 #define MAX_DATA 4*1024*1024
 #define LOG_FILE "/var/log/demon.log"
 
-char log_str[100];
+//char log_str[100];
 char iface_name[10];
-int log;
+//int log;
 int buf_size = 128;
 int sock; // socket for accept connections
 int sockets[NUM_SOCK];
 int numsock;
+struct timeval tv1, tv2;
+int v = 0;
 
 struct port
 {
@@ -43,20 +48,20 @@ struct port
 } ports[16];
 
 
-int pb(int n)
-{
-	int i;
+//int pb(int n)
+//{
+//	int i;
 //	sprintf(log_str, "\n-----------------------------------\n------------------buffer:\n");
 //	write(log, log_str, strlen(log_str));
-	for (i = ports[n].tbuf; i != ports[n].hbuf; i++)
-	{
-		write(log, &ports[n].buf[i], 1);
-		if (i == buf_size) i = 0;
-	}
+//	for (i = ports[n].tbuf; i != ports[n].hbuf; i++)
+//	{
+//		write(log, &ports[n].buf[i], 1);
+//		if (i == buf_size) i = 0;
+//	}
 //	sprintf(log_str, "\n-----------------------------------\n---------t = %i h = %i-----------\n", ports[n].tbuf, ports[n].hbuf);
 //	write(log, log_str, strlen(log_str));
-	return 0;
-}
+//	return 0;
+//}
 
 
 int sprit_escape()
@@ -206,10 +211,43 @@ int loop()
 	int cnt = 0, j;
 
 	while (1) {
+
+		FD_ZERO(&ready);
+		int maxfd = 0, ii;
+//////////		
+		FD_SET(sock, &ready);
+		maxfd = sock;
+/////////		
+		for (i = 0; i < 16; i++)
+		{
+			if (ports[i].fd > maxfd) maxfd = ports[i].fd;
+			if (ports[i].fd > 0) FD_SET(ports[i].fd, &ready);
+		}
+		for (i = 0; i < NUM_SOCK; i++)
+		{
+			if (sockets[i] > maxfd) maxfd = sockets[i];
+			if (sockets[i] > 0) FD_SET(sockets[i], &ready);
+		}
+		gettimeofday(&tv1, NULL);
+		tv.tv_sec = 1;
+		tv.tv_usec = 0;
+
+		select(maxfd + 1, &ready, NULL, NULL, &tv);
+		
+		tv.tv_sec = 1;
+		tv.tv_usec = 0;
+		gettimeofday(&tv2, NULL);
+		
+		
+		
 		s = -1;
 		s = accept(sock, &saddr_out, &sl);
-		if (s > 0)
+		while ((s != EAGAIN) && (s > 0))
 		{
+			if (v)
+			{
+				printf("accept return %i errno = %s\n", s, strerror(errno));
+			}
 			if (numsock < NUM_SOCK)
 			{
 				sockets[numsock] = s;
@@ -230,25 +268,25 @@ int loop()
 					exit(-1);
 				}
 			}
+			s = accept(sock, &saddr_out, &sl);
 		}
-
-		FD_ZERO(&ready);
-		int maxfd = 0, ii;
-		for (i = 0; i < 16; i++)
+		
+		
+		
+		
+//		if (v) printf("select time = %.6f sec.\n", (tv2.tv_sec * 1E6 + tv2.tv_usec - tv1.tv_sec * 1E6 - tv1.tv_usec) / 1E6);
+/*		if (v)
 		{
-			if (ports[i].fd > maxfd) maxfd = ports[i].fd;
-			if (ports[i].fd > 0) FD_SET(ports[i].fd, &ready);
+			int c;
+			for (c = 0; c < 16; c++)
+			{
+				if ((sockets[i] > 0) && (FD_ISSET(sockets[i], &ready)))
+					printf("socket %i ready!!\n", i);
+				if ((ports[i].fd > 0) && (FD_ISSET(ports[i].fd, &ready)))
+					printf("port %i ready!!\n", i);
+			}
 		}
-		for (i = 0; i < NUM_SOCK; i++)
-		{
-			if (sockets[i] > maxfd) maxfd = sockets[i];
-			if (sockets[i] > 0) FD_SET(sockets[i], &ready);
-		}
-
-		select(maxfd + 1, &ready, NULL, NULL, &tv);
-		tv.tv_sec = 1;
-		tv.tv_usec = 0;
-
+*/
 		for (i = 0; i < NUM_SOCK; i++)
 		{
 			if ((sockets[i] > 0) && (FD_ISSET(sockets[i], &ready)))
@@ -394,7 +432,9 @@ int loop()
 						sockets[i] = 0;
 //						pb(p);
 					break;
+					// requets to read all
 					case '3':
+//						gettimeofday(&tv1, NULL);
 						cnt = 0;
 						tbuff = malloc(buf_size*16);
 						po = sprintf(&tbuff[cnt], "{\"ttylist\":[");
@@ -416,12 +456,12 @@ int loop()
 										switch (ports[j].buf[ports[j].tbuf])
 										{
 											case 13:
+											break;
+//											case 8:
+//											break;
+											case 10:
 												tbuff[cnt] = 10;
 												cnt++;
-											break;
-											case 8:
-											break;
-											case 10:
 											break;
 /*											case 9:
 												tbuff[cnt] = '\\';
@@ -430,7 +470,7 @@ int loop()
 												cnt++;
 											break;
 
-											case 32:
+											case ' ':
 												tbuff[cnt] = '&';
 												cnt++;
 												tbuff[cnt] = 'n';
@@ -440,6 +480,19 @@ int loop()
 												tbuff[cnt] = 's';
 												cnt++;
 												tbuff[cnt] = 'p';
+												cnt++;
+											break;
+
+											case '"':
+												tbuff[cnt] = '\\';
+												cnt++;
+												tbuff[cnt] = '"';
+												cnt++;
+											break;
+											case '\\':
+												tbuff[cnt] = '\\';
+												cnt++;
+												tbuff[cnt] = '\\';
 												cnt++;
 											break;
 */
@@ -457,7 +510,7 @@ int loop()
 										break;
 									}
 								} // while(1)
-								cnt--;
+//								cnt--;
 								po = sprintf(&tbuff[cnt], "\"},");
 								cnt+=po;
 							} else {
@@ -478,11 +531,26 @@ int loop()
 						tbuff[cnt] = 0;
 //						po = sprintf(log_str, "\n------\n%s\n------\n", tbuff);
 //						write(log, log_str, po + 1);
+
+						FD_ZERO(&ready);
+						FD_SET(sockets[i], &ready);
+						tv.tv_sec = 0;
+						tv.tv_usec = 0;
+						select(sockets[i] + 1, NULL, &ready, NULL, &tv);
+						r = -123;
+						if (FD_ISSET(sockets[i], &ready))
+						{
+							r = write(sockets[i], tbuff, cnt);
+						}
+//						r = send(sockets[i], tbuff, cnt, 0);
+						if (v) printf("write return %i\n", r);
 						
-						write(sockets[i], tbuff, cnt);
 						free(tbuff);
 						close(sockets[i]);
 						sockets[i] = 0;
+						gettimeofday(&tv1, NULL);
+						if (v) printf("time to send = %.6f sec.\n", (tv1.tv_sec * 1E6 + tv1.tv_usec - tv2.tv_sec * 1E6 - tv2.tv_usec) / 1E6);
+
 					break;
 				}
 			}
@@ -498,20 +566,23 @@ int loop()
 				int qw, qweqwe;
 //				pb(i);
 				int rb = read(ports[i].fd, tbuf, buf_size);
-				sprintf(log_str, "From port %i in buf readed %i byte [%s]\n================\n", i, rb, tbuf);
-				write(log, log_str, strlen(log_str));
-				for (qw = 0; qw < rb; qw++)
-				{
-					sprintf(log_str, "%i ", tbuf[qw]);
-					write(log, log_str, strlen(log_str));
-				}
-				sprintf(log_str, "\n==================\n");
-				write(log, log_str, strlen(log_str));
+//				sprintf(log_str, "From port %i in buf readed %i byte [%s]\n================\n", i, rb, tbuf);
+//				write(log, log_str, strlen(log_str));
+//				for (qw = 0; qw < rb; qw++)
+//				{
+//					sprintf(log_str, "%i ", tbuf[qw]);
+//					write(log, log_str, strlen(log_str));
+//				}
+//				sprintf(log_str, "\n==================\n");
+//				write(log, log_str, strlen(log_str));
 				q += rb;
 				if (rb > 0)
 				{
+					if (v) printf("message:\n");
 					for (qw = 0; qw < rb; qw++)
 					{
+//						if (v) if (tbuf[qw] == 10) printf("%i [??]", tbuf[qw]); else printf("%i [%c] ", tbuf[qw], tbuf[qw]);
+						if (v) printf("%i ", tbuf[qw]);
 							if (tbuf[qw] == 27)
 							{
 								qweqwe = qw;
@@ -550,6 +621,7 @@ int loop()
 */
 
 					}
+					if (v) printf("\n--------------\n");
 //					if (ports[i].full) ports[i].tbuf = ports[i].hbuf;
 					
 //					printf(">>Debug: From port ttyRS%i to buf readed %i byte hbuf = %i tbuf = %i\n", i, rb, ports[i].hbuf, ports[i].tbuf);
@@ -593,28 +665,28 @@ int init_socket()
 	sock = socket(PF_UNIX, SOCK_STREAM, 0);
 	if (sock == -1)
 	{
-		sprintf(log_str, "Error: cannot create socket\n");
-		write(log, log_str, strlen(log_str));
+//		sprintf(log_str, "Error: cannot create socket\n");
+//		write(log, log_str, strlen(log_str));
 		exit(-1);
 	}
 	if (fcntl(sock, F_SETFL, O_NONBLOCK))
 	{
-		sprintf(log_str, "Error: cannot set socket options\n");
-		write(log, log_str, strlen(log_str));
+//		sprintf(log_str, "Error: cannot set socket options\n");
+//		write(log, log_str, strlen(log_str));
 		exit(-1);
 	}
 	saddr_in.sa_family = AF_LOCAL;
 	strcpy(saddr_in.sa_data, SOCKET_NAME);
 	if (bind(sock, &saddr_in, sizeof(saddr_in)))
 	{
-		sprintf(log_str, "Error: cannot bind socket\n");
-		write(log, log_str, strlen(log_str));
+//		sprintf(log_str, "Error: cannot bind socket\n");
+//		write(log, log_str, strlen(log_str));
 		exit(-1);
 	}
 	if (listen(sock, 10))
 	{
-		sprintf(log_str, "Error: cannot listen socket\n");
-		write(log, log_str, strlen(log_str));
+//		sprintf(log_str, "Error: cannot listen socket\n");
+//		write(log, log_str, strlen(log_str));
 		exit(-1);
 	}
 }
@@ -658,7 +730,7 @@ void handler (int i)
 //	printf("Recieved signal TERM\n");
 	close_all_ports ();
 	close_all_sock ();
-	close(log);
+//	close(log);
 	exit(0);
 }
 
@@ -666,13 +738,30 @@ int main (int argc, char **argv)
 {
 	int pid, i;
 	struct sigaction sa;
+	
+	if (argc > 1)
+	{
+		v = 1;
+		sa.sa_handler = handler;
+		sigaction(SIGTERM, &sa, 0);
+		sigaction(SIGINT, &sa, 0);
+		for (i = 0; i < 16; i++)
+		{
+			ports[i].fd = -1;
+		}
+		load_params();
+		init_socket();
+		loop();
+		
+	} else
+	{
 
 	pid = fork();
 	if (pid == 0)
 	{
-		log = open(LOG_FILE, O_WRONLY | O_APPEND | O_CREAT);
-		printf("%s\n", strerror(errno));
-		if (log == -1) return 0;
+//		log = open(LOG_FILE, O_WRONLY | O_APPEND | O_CREAT);
+//		printf("%s\n", strerror(errno));
+//		if (log == -1) return 0;
 		setsid();
 		chdir("/");
 		close(0);
@@ -680,8 +769,8 @@ int main (int argc, char **argv)
 		close(2);
 		sa.sa_handler = handler;
 		sigaction(SIGTERM, &sa, 0);
-		sprintf(log_str, "------------demon started------------------");
-		write(log, log_str, strlen(log_str));
+//		sprintf(log_str, "------------demon started------------------");
+//		write(log, log_str, strlen(log_str));
 
 		for (i = 0; i < 16; i++)
 		{
@@ -690,6 +779,8 @@ int main (int argc, char **argv)
 		load_params();
 		init_socket();
 		loop();
+	}
+	
 	}
 	return 0;
 }
