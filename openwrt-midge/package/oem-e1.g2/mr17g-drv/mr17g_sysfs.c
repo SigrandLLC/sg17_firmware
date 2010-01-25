@@ -658,8 +658,9 @@ store_rloopback( struct class_device *cdev,const char *buf, size_t size )
 		cfg->rlpb=1;
 	}else
 		return size;
-	mr17g_transceiver_setup(ch);		
-    pef22554_channel(ch);
+	pef22554_loopbacks(ch);		
+//	mr17g_transceiver_setup(ch);		
+//  pef22554_channel(ch);
 	    
 	return size;
 }
@@ -698,8 +699,9 @@ store_lloopback( struct class_device *cdev,const char *buf, size_t size )
 	}else
 		return size;
 
-	mr17g_transceiver_setup(ch);		
-    pef22554_channel(ch);
+	pef22554_loopbacks(ch);		
+//	mr17g_transceiver_setup(ch);		
+//    pef22554_channel(ch);
 	    
 	return size;
 }

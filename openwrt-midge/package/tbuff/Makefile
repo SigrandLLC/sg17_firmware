@@ -32,8 +32,8 @@ $(IPKG_SIGRAND_TBUFF):
 	install -d -m0755 $(IDIR_SIGRAND_TBUFF)/usr
 	install -d -m0755 $(IDIR_SIGRAND_TBUFF)/usr/bin
 	install -m0755 console $(IDIR_SIGRAND_TBUFF)/usr/bin/
-	cp S80tbuff $(PKG_BUILD_DIR)/
-	chmod 700 $(PKG_BUILD_DIR)/S80tbuff
+	install -d -m0755 $(IDIR_SIGRAND_TBUFF)/etc/init.d/
+	install -m0700 S80tbuff $(IDIR_SIGRAND_TBUFF)/etc/init.d/
 	$(RSTRIP) $(IDIR_SIGRAND_TBUFF)/sbin/*
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_TBUFF)/CONTROL/control
 	$(IPKG_BUILD) $(IDIR_SIGRAND_TBUFF) $(PACKAGE_DIR)

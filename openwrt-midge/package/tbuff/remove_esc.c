@@ -51,21 +51,21 @@ static int state2(int c, struct port *p)
   }
   /* See if a number follows */
   if (c >= '0' && c <= '9') {
-    return;
+    return 0;
   }
   /* Separation between numbers ? */
   if (c == ';') {
-    return;
+    return 0;
   }
   /* ESC [ ? sequence */
   if (c == '?')
   {
     p->esc_s = 3;
-    return;
+    return 0;
   }
 
   p->esc_s = 0;
-  return;
+  return 0;
 }
 
 

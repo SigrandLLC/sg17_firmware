@@ -599,6 +599,27 @@ pef22554_channel(struct mr17g_channel *chan)
     }  
 
 	// Loopback configuration
+	if( pef22554_loopbacks(chan) )
+		goto error;
+
+    // Reset should be written last
+    if( pef22554_writereg(chip,chan->num,CMDR,0x50)){
+        goto error;
+    }  
+    
+    return 0;
+error:
+    return -1;
+}
+
+int
+pef22554_loopbacks(struct mr17g_channel *chan)
+{   
+    struct mr17g_chip *chip = chan->chip;
+    struct mr17g_chan_config *cfg = &chan->cfg;
+    volatile struct mr17g_hw_regs *regs = chan->iomem.regs;
+    u8 tmp;
+	
 	// Local
 	if( pef22554_readreg(chip,chan->num,LIM0,&tmp) ){
 		goto error;
@@ -621,13 +642,6 @@ pef22554_channel(struct mr17g_channel *chan)
     if( pef22554_writereg(chip,chan->num,LIM1,tmp)){
    	    goto error;
     }  
-
-    // Reset should be written last
-    if( pef22554_writereg(chip,chan->num,CMDR,0x50)){
-        goto error;
-    }  
-	
-    
     return 0;
 error:
     return -1;

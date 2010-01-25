@@ -500,6 +500,9 @@ int loop()
 								break;
 							case 2:
 								buff_add(ports + i, '\n');
+								break;
+							default:
+								break;
 							}
 					}
 					if (v) printf("\n");
