@@ -1,36 +1,6 @@
-#include <sys/stat.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <string.h>
-#include <termios.h>
-#include <unistd.h>
-#include <assert.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <fcntl.h>
-#include <sys/time.h>
-#include <time.h>
-#include <sys/select.h>
+#include "demon.h"
 
-#include "md5.h"
-#include "kdb.h"
-
-#define SOCKET_NAME "/tmp/socket"
-#define NUM_SOCK 10
-#define MAX_DATA 4*1024*1024
-#define LOG_FILE "/var/log/demon.log"
-
-//char log_str[100];
 char iface_name[10];
-//int log;
 int buf_size = 128;
 int sock; // socket for accept connections
 int sockets[NUM_SOCK];
@@ -38,35 +8,9 @@ int numsock;
 struct timeval tv1, tv2;
 int v = 0;
 
-struct port
-{
-	int fd;
-	int tbuf;
-	int hbuf;
-	char *buf;
-	struct termios pots;
-} ports[16];
+int bs = 0;
 
-
-//int pb(int n)
-//{
-//	int i;
-//	sprintf(log_str, "\n-----------------------------------\n------------------buffer:\n");
-//	write(log, log_str, strlen(log_str));
-//	for (i = ports[n].tbuf; i != ports[n].hbuf; i++)
-//	{
-//		write(log, &ports[n].buf[i], 1);
-//		if (i == buf_size) i = 0;
-//	}
-//	sprintf(log_str, "\n-----------------------------------\n---------t = %i h = %i-----------\n", ports[n].tbuf, ports[n].hbuf);
-//	write(log, log_str, strlen(log_str));
-//	return 0;
-//}
-
-
-int sprit_escape()
-{
-}
+struct port ports[16];
 
 int init_port(char * port_name)
 {
@@ -142,12 +86,10 @@ int init_port(char * port_name)
 	cfsetispeed(&pts, speed);
 	tcsetattr(ports[n].fd, TCSANOW, &pts);
 
-//	sprintf(log_str, "Port %s opened speed = %s\n", port_name, opt);
-//	write(log, log_str, strlen(log_str));
-	
 	ports[n].buf = malloc(buf_size);
 	ports[n].hbuf = 0;
 	ports[n].tbuf = 0;
+//	ports[n].esc_s = 0;
 	return 0;
 }
 
@@ -160,8 +102,6 @@ int load_params ()
 	kdbinit();
 	kdb_appget("sys_demon_buf_size", &opt);
 	buf_size = atoi(opt);
-//	sprintf(log_str, "buf_size = %i\n", buf_size);
-//	write(log, log_str, strlen(log_str));
 	kdb_appget("sys_demon_iface_name", &opt);
 	
 	i = 0;
@@ -172,8 +112,6 @@ int load_params ()
 	}
 	opt[i] = 0;
 	strcpy(iface_name, opt);
-//	sprintf(log_str, "iface_name = %s\n", iface_name);
-//	write(log, log_str, strlen(log_str));
 	
 	for (i = 0; i < 16; i++)
 	{
@@ -190,6 +128,236 @@ int load_params ()
 	}
 	db_close();
 	return 0;
+}
+
+
+int read_from_sockets(fd_set ready)
+{
+	int i, p, k, n, w, cnt, ii, po, j;
+	char * tstr, *tbuff;
+// read data from sockets		
+		for (i = 0; i < NUM_SOCK; i++)
+		{
+			if ((sockets[i] > 0) && (FD_ISSET(sockets[i], &ready)))
+			{
+				char rq[MAX_DATA];
+				int r = read(sockets[i], rq, MAX_DATA);
+				if (v) printf("from socket readed:(%i byte) %s\n", r, rq);
+				switch (rq[0])
+				{
+					// requets to read
+					case 'r':
+						if (ports[atoi(&rq[2])].fd != -1)
+						{
+							tstr = malloc(buf_size);
+							p = atoi(&rq[2]);
+							k = 0;
+							while (rq[k] != ';') k++;
+							k++;
+							while (rq[k] != ';') k++;
+							n = atoi(&rq[k + 1]);
+							k = 0; w = ports[p].tbuf;
+/////////////////							
+							if (ports[p].tbuf == ports[p].hbuf)
+							{
+								tstr[0] = -1;
+								write(sockets[i], tstr, 1);
+							} else {
+								for (ii = 0; ii < n; ii++)
+								{
+									if (ports[p].tbuf != ports[p].hbuf)
+									{
+										tstr[k] = ports[p].buf[ports[p].tbuf];
+										k++;
+										ports[p].tbuf++;
+										if (ports[p].tbuf == buf_size)
+										{
+											ports[p].tbuf = 0;
+										}
+									} else {
+										break;
+									}
+								}
+								k = write(sockets[i], tstr, k);
+							}
+							free(tstr);
+							close(sockets[i]);
+							sockets[i] = 0;
+						} else {
+							tstr = malloc(100);
+							sprintf(tstr, "We do not listen requsted port, enable it in kdb\n");
+							write(sockets[i], tstr, strlen(tstr)+1);
+							free(tstr);
+							close(sockets[i]);
+							sockets[i] = 0;
+						}
+					break;
+					// request to write
+					case 'w':
+						if (ports[atoi(&rq[2])].fd != -1)
+						{
+							p = atoi(&rq[2]);
+							k = 2;
+							while (rq[k] != ';') k++;
+							k++;
+							w = k;
+							while (rq[k] != ';') k++;
+							rq[k] = 0;
+							k++;
+							n = atoi(&rq[k]) - 1;
+							
+							strcpy(ports[p].cmd, &rq[w]);
+							r = strlen(ports[p].cmd);
+							ports[p].cmd[r] = 13;
+							ports[p].cmd[r+1] = 10;
+							ports[p].cmd[r+2] = 0;
+							char ch = 13;
+							r = write(ports[p].fd, &rq[w], n + 1);
+							write(ports[p].fd, &ch, 1);
+							
+							sprintf(rq, "OK");
+							r = write(sockets[i], rq, 3);
+						} else {
+							tstr = malloc(100);
+							sprintf(tstr, "We do not listen requsted port, enable it in kdb\n");
+							write(sockets[i], tstr, strlen(tstr)+1);
+							free(tstr);
+						}
+						close(sockets[i]);
+						sockets[i] = 0;
+					break;
+					// request to write with '\t'
+					case 't':
+						if (ports[atoi(&rq[2])].fd != -1)
+						{
+							p = atoi(&rq[2]);
+							k = 2;
+							while (rq[k] != ';') k++;
+							k++;
+							w = k;
+							while (rq[k] != ';') k++;
+							rq[k] = 0;
+							k++;
+							n = atoi(&rq[k]) - 1;
+							
+							r = write(ports[p].fd, &rq[w], n); // n + 1
+							char ch = '\t';
+///							write(ports[p].fd, &ch, 1);
+//							rq[0] = 0x1B;
+//							rq[1] = 0x5B;
+//							rq[2] = 0x35;
+//							rq[3] = 0x44;
+//							rq[4] = 0x0D;
+//							rq[5] = 0x7A;
+//							rq[6] = 0x65;
+//							rq[7] = 0x6C;
+//							rq[8] = 0x61;
+//							rq[9] = 0x78;
+//							rq[10] = 0x23;
+//							rq[11] = 0x20;
+//							write(ports[p].fd, rq, 4);
+							
+							sprintf(rq, "OK");
+							r = write(sockets[i], rq, 3);
+						} else {
+							tstr = malloc(100);
+							sprintf(tstr, "We do not listen requsted port, enable it in kdb\n");
+							write(sockets[i], tstr, strlen(tstr)+1);
+							free(tstr);
+						}
+						close(sockets[i]);
+						sockets[i] = 0;
+					break;
+					// requets to read all
+					case 'a':
+						cnt = 0;
+						tbuff = malloc(buf_size*16);
+						po = sprintf(&tbuff[cnt], "{\"ttylist\":[");
+						cnt+=po;
+						for (j = 0; j < 16; j++)
+						{
+//							if (v) printf("port %i fd = %i tbuf = %i hbuf = %i\n", j, ports[j].fd, ports[j].tbuf, ports[j].hbuf);
+							if ((ports[j].fd > 0) && (ports[j].tbuf != ports[j].hbuf))
+							{
+								po = sprintf(&tbuff[cnt], "{\"dev\":\"");
+								cnt+=po;
+								po = sprintf(&tbuff[cnt], "%s%i", iface_name, j);
+								cnt+=po;
+								po = sprintf(&tbuff[cnt], "\",\"text\":\"");
+								cnt+=po;
+								while (1)
+								{
+									if (ports[j].tbuf != ports[j].hbuf)
+									{
+										switch (ports[j].buf[ports[j].tbuf])
+										{
+											case 13:
+											break;
+											case 10:
+												tbuff[cnt] = 10;
+												cnt++;
+											break;
+											default:
+												tbuff[cnt] = ports[j].buf[ports[j].tbuf];
+												cnt++;
+											break;
+										}
+										ports[j].tbuf++;
+										if (ports[j].tbuf == buf_size)
+										{
+											ports[j].tbuf = 0;
+										}
+									} else {
+										break;
+									}
+								} // while(1)
+								po = sprintf(&tbuff[cnt], "\"},");
+								cnt+=po;
+							} else {
+								if ((ports[j].fd > 0) && (ports[j].tbuf == ports[j].hbuf))
+								{
+									po = sprintf(&tbuff[cnt], "{\"dev\":\"");
+									cnt+=po;
+									po = sprintf(&tbuff[cnt], "%s%i", iface_name, j);
+									cnt+=po;
+									po = sprintf(&tbuff[cnt], "\",\"text\":\"\"},");
+									cnt+=po;
+								}
+							}
+						}
+						if (tbuff[cnt-1] != '[') cnt--;
+						po = sprintf(&tbuff[cnt], "]}");
+						cnt+=po;
+						tbuff[cnt] = 0;
+
+						write(sockets[i], tbuff, cnt);
+						
+						free(tbuff);
+						close(sockets[i]);
+						sockets[i] = 0;
+						gettimeofday(&tv1, NULL);
+//						if (v) printf("time to send = %.6f sec.\n", (tv1.tv_sec * 1E6 + tv1.tv_usec - tv2.tv_sec * 1E6 - tv2.tv_usec) / 1E6);
+
+					break;
+				}
+			}
+		}
+	
+}
+
+void buff_add(struct port * p, char c)
+{
+	p->buf[p->hbuf] = c;
+	p->hbuf++;
+	if (p->hbuf == buf_size)
+	{
+		p->hbuf = 0;
+	}
+	if (p->tbuf == p->hbuf)
+	{
+		p->tbuf++;
+		if (p->tbuf == buf_size) p->tbuf = 0;
+	}	
 }
 
 int loop()
@@ -214,10 +382,10 @@ int loop()
 
 		FD_ZERO(&ready);
 		int maxfd = 0, ii;
-//////////		
+
 		FD_SET(sock, &ready);
 		maxfd = sock;
-/////////		
+	
 		for (i = 0; i < 16; i++)
 		{
 			if (ports[i].fd > maxfd) maxfd = ports[i].fd;
@@ -229,8 +397,8 @@ int loop()
 			if (sockets[i] > 0) FD_SET(sockets[i], &ready);
 		}
 		gettimeofday(&tv1, NULL);
-		tv.tv_sec = 1;
-		tv.tv_usec = 0;
+//		tv.tv_sec = 1;
+//		tv.tv_usec = 0;
 
 		select(maxfd + 1, &ready, NULL, NULL, &tv);
 		
@@ -244,10 +412,6 @@ int loop()
 		s = accept(sock, &saddr_out, &sl);
 		while ((s != EAGAIN) && (s > 0))
 		{
-			if (v)
-			{
-				printf("accept return %i errno = %s\n", s, strerror(errno));
-			}
 			if (numsock < NUM_SOCK)
 			{
 				sockets[numsock] = s;
@@ -262,301 +426,12 @@ int loop()
 						break;
 					}
 				}
-				if (k == NUM_SOCK)
-				{
-//					printf("Error: we have maximum connections\n");
-					exit(-1);
-				}
 			}
 			s = accept(sock, &saddr_out, &sl);
 		}
+
+		read_from_sockets(ready);
 		
-		
-		
-		
-//		if (v) printf("select time = %.6f sec.\n", (tv2.tv_sec * 1E6 + tv2.tv_usec - tv1.tv_sec * 1E6 - tv1.tv_usec) / 1E6);
-/*		if (v)
-		{
-			int c;
-			for (c = 0; c < 16; c++)
-			{
-				if ((sockets[i] > 0) && (FD_ISSET(sockets[i], &ready)))
-					printf("socket %i ready!!\n", i);
-				if ((ports[i].fd > 0) && (FD_ISSET(ports[i].fd, &ready)))
-					printf("port %i ready!!\n", i);
-			}
-		}
-*/
-		for (i = 0; i < NUM_SOCK; i++)
-		{
-			if ((sockets[i] > 0) && (FD_ISSET(sockets[i], &ready)))
-			{
-				char rq[MAX_DATA];
-				int r = read(sockets[i], rq, MAX_DATA);
-				if (rq[0] == '2')
-				{
-//					sprintf(log_str, "From socket %i read %i byte [%s]\n", i, r, rq);
-//					write(log, log_str, strlen(log_str));
-				}
-				if (r <= 0)
-				{
-//					printf("Error: cannot read from socket\n");
-					exit(-1);
-				}
-//				printf(">>Debug: from socket %i readed: [%s]\n", i, rq);
-				switch (rq[0])
-				{
-					// requets to read
-					case '1':
-						if (ports[atoi(&rq[2])].fd != -1)
-						{
-							tstr = malloc(buf_size);
-							p = atoi(&rq[2]);
-//							pb(p);
-							k = 0;
-							while (rq[k] != ';') k++;
-							k++;
-							while (rq[k] != ';') k++;
-							n = atoi(&rq[k + 1]);
-							
-//							printf(">>Debug: n = %i p = %i\n", n, p);
-							
-							k = 0; w = ports[p].tbuf;
-							
-/////////////////							
-							if (ports[p].tbuf == ports[p].hbuf)
-							{
-								tstr[0] = -1;
-								write(sockets[i], tstr, 1);
-//								sprintf(log_str, ">>>buf is empty\n");
-//								write(log, log_str, strlen(log_str));
-								
-							} else {
-
-//								sprintf(log_str, ">>>buf-----\n");
-//								write(log, log_str, strlen(log_str));
-
-								for (ii = 0; ii < n; ii++)
-								{
-									if (ports[p].tbuf != ports[p].hbuf)
-									{
-										tstr[k] = ports[p].buf[ports[p].tbuf];
-//										write(log, &tstr[k], 1);
-										k++;
-										ports[p].tbuf++;
-										if (ports[p].tbuf == buf_size)
-										{
-											ports[p].tbuf = 0;
-										}
-									} else {
-										break;
-									}
-								}
-//								sprintf(log_str, ">>>\nt = %i h = %i-----\n", ports[p].tbuf, ports[p].hbuf);
-//								write(log, log_str, strlen(log_str));
-
-								k = write(sockets[i], tstr, k);
-//								sprintf(log_str, "From buf %i to prog readed %i byte\n", p, k);
-//								write(log, log_str, strlen(log_str));
-
-							}
-//							pb(p);
-//							printf(">>Debug: write return %i\n", k);
-							free(tstr);
-							if (close(sockets[i]))
-							{
-//								printf("Error: cannot close socket\n");
-								exit(-1);
-							}
-							sockets[i] = 0;
-						} else {
-							tstr = malloc(100);
-							sprintf(tstr, "We do not listen requsted port, enable it in kdb\n");
-							write(sockets[i], tstr, strlen(tstr)+1);
-							free(tstr);
-							if (close(sockets[i]))
-							{
-//								printf("Error: cannot close socket\n");
-								exit(-1);
-							}
-							sockets[i] = 0;
-						}
-					break;
-					// request to write
-					case '2':
-						if (ports[atoi(&rq[2])].fd != -1)
-						{
-							p = atoi(&rq[2]);
-//							pb(p);
-							k = 2;
-							while (rq[k] != ';') k++;
-							k++;
-							w = k;
-							while (rq[k] != ';') k++;
-							rq[k] = 0;
-							k++;
-							n = atoi(&rq[k]) - 1;
-							
-/////////////////////////// write data from prog in port
-							char ch = 13;
-							r = write(ports[p].fd, &rq[w], n + 1);
-//							printf("---[%s]\n", &rq[w]);
-							write(ports[p].fd, &ch, 1);
-//							printf(">>Debug: In port %i write [%s] %i byte\n", p, &rq[w], n + 1);
-//							sprintf(log_str, "In port %i from prog write [%s] %i byte\n", p, &rq[w], n + 1);
-//							write(log, log_str, strlen(log_str));
-							
-							if (r != n + 1)
-							{
-//								printf("Error: cannot write in port\n");
-								exit(-1);
-							}
-							sprintf(rq, "OK");
-							r = write(sockets[i], rq, 3);
-							if (r != 3)
-							{
-//								printf("Error: cannot write in socket\n");
-								exit(-1);
-							}
-						} else {
-							tstr = malloc(100);
-							sprintf(tstr, "We do not listen requsted port, enable it in kdb\n");
-							write(sockets[i], tstr, strlen(tstr)+1);
-							free(tstr);
-						}
-						if (close(sockets[i]))
-						{
-//							printf("Error: cannot close socket\n");
-							exit(-1);
-						}
-						sockets[i] = 0;
-//						pb(p);
-					break;
-					// requets to read all
-					case '3':
-//						gettimeofday(&tv1, NULL);
-						cnt = 0;
-						tbuff = malloc(buf_size*16);
-						po = sprintf(&tbuff[cnt], "{\"ttylist\":[");
-						cnt+=po;
-						for (j = 0; j < 16; j++)
-						{
-							if ((ports[j].fd > 0) && (ports[j].tbuf != ports[j].hbuf))
-							{
-								po = sprintf(&tbuff[cnt], "{\"dev\":\"");
-								cnt+=po;
-								po = sprintf(&tbuff[cnt], "%s%i", iface_name, j);
-								cnt+=po;
-								po = sprintf(&tbuff[cnt], "\",\"text\":\"");
-								cnt+=po;
-								while (1)
-								{
-									if (ports[j].tbuf != ports[j].hbuf)
-									{
-										switch (ports[j].buf[ports[j].tbuf])
-										{
-											case 13:
-											break;
-//											case 8:
-//											break;
-											case 10:
-												tbuff[cnt] = 10;
-												cnt++;
-											break;
-/*											case 9:
-												tbuff[cnt] = '\\';
-												cnt++;
-												tbuff[cnt] = 't';
-												cnt++;
-											break;
-
-											case ' ':
-												tbuff[cnt] = '&';
-												cnt++;
-												tbuff[cnt] = 'n';
-												cnt++;
-												tbuff[cnt] = 'b';
-												cnt++;
-												tbuff[cnt] = 's';
-												cnt++;
-												tbuff[cnt] = 'p';
-												cnt++;
-											break;
-
-											case '"':
-												tbuff[cnt] = '\\';
-												cnt++;
-												tbuff[cnt] = '"';
-												cnt++;
-											break;
-											case '\\':
-												tbuff[cnt] = '\\';
-												cnt++;
-												tbuff[cnt] = '\\';
-												cnt++;
-											break;
-*/
-											default:
-												tbuff[cnt] = ports[j].buf[ports[j].tbuf];
-												cnt++;
-											break;
-										}
-										ports[j].tbuf++;
-										if (ports[j].tbuf == buf_size)
-										{
-											ports[j].tbuf = 0;
-										}
-									} else {
-										break;
-									}
-								} // while(1)
-//								cnt--;
-								po = sprintf(&tbuff[cnt], "\"},");
-								cnt+=po;
-							} else {
-								if ((ports[j].fd > 0) && (ports[j].tbuf == ports[j].hbuf))
-								{
-									po = sprintf(&tbuff[cnt], "{\"dev\":\"");
-									cnt+=po;
-									po = sprintf(&tbuff[cnt], "%s%i", iface_name, j);
-									cnt+=po;
-									po = sprintf(&tbuff[cnt], "\",\"text\":\"\"},");
-									cnt+=po;
-								}
-							}
-						}
-						if (tbuff[cnt-1] != '[') cnt--;
-						po = sprintf(&tbuff[cnt], "]}");
-						cnt+=po;
-						tbuff[cnt] = 0;
-//						po = sprintf(log_str, "\n------\n%s\n------\n", tbuff);
-//						write(log, log_str, po + 1);
-
-						FD_ZERO(&ready);
-						FD_SET(sockets[i], &ready);
-						tv.tv_sec = 0;
-						tv.tv_usec = 0;
-						select(sockets[i] + 1, NULL, &ready, NULL, &tv);
-						r = -123;
-						if (FD_ISSET(sockets[i], &ready))
-						{
-							r = write(sockets[i], tbuff, cnt);
-						}
-//						r = send(sockets[i], tbuff, cnt, 0);
-						if (v) printf("write return %i\n", r);
-						
-						free(tbuff);
-						close(sockets[i]);
-						sockets[i] = 0;
-						gettimeofday(&tv1, NULL);
-						if (v) printf("time to send = %.6f sec.\n", (tv1.tv_sec * 1E6 + tv1.tv_usec - tv2.tv_sec * 1E6 - tv2.tv_usec) / 1E6);
-
-					break;
-				}
-			}
-		}
-
-
 		//read data from device on ports
 		for (i = 0; i < 16; i++)
 		{
@@ -564,95 +439,81 @@ int loop()
 			{
 				char tbuf[buf_size];
 				int qw, qweqwe;
-//				pb(i);
 				int rb = read(ports[i].fd, tbuf, buf_size);
-//				sprintf(log_str, "From port %i in buf readed %i byte [%s]\n================\n", i, rb, tbuf);
-//				write(log, log_str, strlen(log_str));
-//				for (qw = 0; qw < rb; qw++)
-//				{
-//					sprintf(log_str, "%i ", tbuf[qw]);
-//					write(log, log_str, strlen(log_str));
-//				}
-//				sprintf(log_str, "\n==================\n");
-//				write(log, log_str, strlen(log_str));
 				q += rb;
 				if (rb > 0)
 				{
-					if (v) printf("message:\n");
-					for (qw = 0; qw < rb; qw++)
+					qweqwe = 0;
+					while (ports[i].cmd[qweqwe]) qweqwe++;
+					if (v) printf("cmd = %s\n", ports[i].cmd);
+					if (v)
 					{
-//						if (v) if (tbuf[qw] == 10) printf("%i [??]", tbuf[qw]); else printf("%i [%c] ", tbuf[qw], tbuf[qw]);
-						if (v) printf("%i ", tbuf[qw]);
-							if (tbuf[qw] == 27)
-							{
-								qweqwe = qw;
-								qw++;
-								if (tbuf[qw] == '[') {
-									qw++;
-//									while (tbuf[qw] != ';') qw++;
-									while (tbuf[qw] != 'm') qw++;
-									qw++;
-									if (qw >= rb) break;
-								}
-							}
-//							sprintf(log_str, "strip escape %i\n", qw-qweqwe);
-//							write(log, log_str, strlen(log_str));
+						int wer;
+						for (wer = 0; wer < qweqwe; wer++)
+						{
+							printf("%x ", ports[i].cmd[wer]);
+						}
+						printf("\n");
+					}
+					qw = 0;
+					if (qweqwe)
+					if (rb > qweqwe)
+					{
+						int l;
+						for (l = 0; l < qweqwe; l++)
+						{
+							if (tbuf[l] != ports[i].cmd[l]) break;
+						}
+						if (l >= qweqwe)
+						{
+							qw = qw + qweqwe;
+							if (tbuf[qw] == 13) qw += 2;
+							strcpy(ports[i].cmd, "");
+						}
+					} else {
+						int l;
+						for (l = 0; l < rb; l++)
+						{
+							if (tbuf[l] != ports[i].cmd[l]) break;
+						}
+						if (l >= rb)
+						{
+							qw = qw + rb;
+							strcpy(ports[i].cmd, &ports[i].cmd[l]);
+//							if (tbuf[qw] == 13) qw += 2;
+						}
+					}
+					if (v) printf("from port readed (%i byte): ", rb);
+					for (; qw < rb; qw++)
+					{
+							char a = tbuf[qw];
+							if (v) printf("%x", tbuf[qw]);
 							
-							ports[i].buf[ports[i].hbuf] = tbuf[qw];
-							ports[i].hbuf++;
-							if (ports[i].hbuf == buf_size)
-							{
-								ports[i].hbuf = 0;
-							}
-							if (ports[i].tbuf == ports[i].hbuf)
-							{
-								ports[i].tbuf++;
-								if (ports[i].tbuf == buf_size) ports[i].tbuf = 0;
-							}
-						
-/*
-							ports[i].buf[ports[i].hbuf] = tbuf[qw];
-							ports[i].hbuf++;
-							if (ports[i].hbuf == buf_size)
-							{
-								ports[i].hbuf = 0;
-								ports[i].full = 1;
-							}
-*/
+							if ((v) && ((a >= '0') && (a <= '9') || (a >= 'a') && (a <= 'z') || (a >= 'A') && (a <= 'Z') || (a == '_')))
+							printf("[%c]", a);
+							printf(" ");
 
+							switch (out(tbuf[qw], &ports[i]))
+							{
+							case 1:
+								buff_add(ports + i, tbuf[qw]);
+								break;
+							case 2:
+								buff_add(ports + i, '\n');
+							}
 					}
-					if (v) printf("\n--------------\n");
-//					if (ports[i].full) ports[i].tbuf = ports[i].hbuf;
-					
-//					printf(">>Debug: From port ttyRS%i to buf readed %i byte hbuf = %i tbuf = %i\n", i, rb, ports[i].hbuf, ports[i].tbuf);
-					// Print buf at screen			
-//					printf("-------buf-------\n");
-//					sprintf(log_str, ">>>------buf------\n");
-//					write(log, log_str, strlen(log_str));
+					if (v) printf("\n");
 					for (qw = ports[i].tbuf; qw != ports[i].hbuf; qw++)
 					{
 						if (qw == buf_size) qw = 0;
-//						printf("%c", ports[i].buf[qw]);
-//						write(log, &ports[i].buf[qw], 1);
 						if (qw == ports[i].hbuf) break;
 					}
-//					sprintf(log_str, "\n>>> t = %i h = %i-----\n", ports[i].tbuf, ports[i].hbuf);
-//					write(log, log_str, strlen(log_str));
-
-//					printf("\n-----------\n");
 					for (qw = ports[i].tbuf; qw != ports[i].hbuf; qw++)
 					{
 						if (qw == buf_size) qw = 0;
-//						printf("%i ", ports[i].buf[qw]);
 						if (qw == ports[i].hbuf) break;
 					}
-//					printf("\n-----------\n");
 				}
-				if (rb < 0)
-				{
-//					printf(">>Debug: read return value < 0!!!!!!! errno = %s hbuf = %i\n", strerror(errno), ports[0].hbuf);
-				}
-//				pb(i);
 			}
 		}
 	}
@@ -663,32 +524,11 @@ int init_socket()
 	struct sockaddr saddr_in;
 
 	sock = socket(PF_UNIX, SOCK_STREAM, 0);
-	if (sock == -1)
-	{
-//		sprintf(log_str, "Error: cannot create socket\n");
-//		write(log, log_str, strlen(log_str));
-		exit(-1);
-	}
-	if (fcntl(sock, F_SETFL, O_NONBLOCK))
-	{
-//		sprintf(log_str, "Error: cannot set socket options\n");
-//		write(log, log_str, strlen(log_str));
-		exit(-1);
-	}
+	fcntl(sock, F_SETFL, O_NONBLOCK);
 	saddr_in.sa_family = AF_LOCAL;
 	strcpy(saddr_in.sa_data, SOCKET_NAME);
-	if (bind(sock, &saddr_in, sizeof(saddr_in)))
-	{
-//		sprintf(log_str, "Error: cannot bind socket\n");
-//		write(log, log_str, strlen(log_str));
-		exit(-1);
-	}
-	if (listen(sock, 10))
-	{
-//		sprintf(log_str, "Error: cannot listen socket\n");
-//		write(log, log_str, strlen(log_str));
-		exit(-1);
-	}
+	bind(sock, &saddr_in, sizeof(saddr_in));
+	listen(sock, 10);
 }
 
 int close_port(int p)
@@ -727,10 +567,8 @@ int close_all_sock ()
 
 void handler (int i)
 {
-//	printf("Recieved signal TERM\n");
 	close_all_ports ();
 	close_all_sock ();
-//	close(log);
 	exit(0);
 }
 
@@ -759,9 +597,6 @@ int main (int argc, char **argv)
 	pid = fork();
 	if (pid == 0)
 	{
-//		log = open(LOG_FILE, O_WRONLY | O_APPEND | O_CREAT);
-//		printf("%s\n", strerror(errno));
-//		if (log == -1) return 0;
 		setsid();
 		chdir("/");
 		close(0);
@@ -769,8 +604,6 @@ int main (int argc, char **argv)
 		close(2);
 		sa.sa_handler = handler;
 		sigaction(SIGTERM, &sa, 0);
-//		sprintf(log_str, "------------demon started------------------");
-//		write(log, log_str, strlen(log_str));
 
 		for (i = 0; i < 16; i++)
 		{

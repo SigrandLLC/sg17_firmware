@@ -87,8 +87,11 @@ Controllers.terminal = function ()
 	var consoleDivs = new Array(16);
 	var cmdSpans = new Array(16);
 	var t0 = 0, t1, t2, t3;
+	var block = 0;
 
 	var func = function() {
+		if (!block)
+		{
 		t2 = new Date().getTime();
 		config.cmdExecute({
 			"cmd": $.sprintf("/sbin/tbuffctl -p* -a"),
@@ -113,6 +116,8 @@ Controllers.terminal = function ()
 				}
 			}
 		});
+		
+		}
 	};
 	setInterval(func, 500);
 	var scroll = function() {
@@ -151,6 +156,7 @@ Controllers.terminal = function ()
 					var onKeypress = function(src) {
 						consoleDivs[iface].scrollTo($("#bottomAnchor"), 0);
 						var ch;
+//						alert(src.keyCode);
 						if (src.keyCode == 13) {
 //							if (cmd2 != "") {
 								if (buf[iface] == undefined) buf[iface] = cmd2; else buf[iface] += cmd2;
@@ -158,12 +164,14 @@ Controllers.terminal = function ()
 
 								t0 = new Date().getTime();
 
+								block = 1;
 								config.cmdExecute({
 									"cmd": $.sprintf("/sbin/tbuffctl -p%s -w \"%s\"", iface, cmd2),
 									"callback": function(data) {
 										cursor.before("<br>");
 										cmdSpans[iface] = $.create("span").insertBefore(cursor);
 										consoleDivs[iface].scrollTo($("#bottomAnchor"), 0);
+										block = 0;
 									}
 								});
 								
@@ -189,6 +197,48 @@ Controllers.terminal = function ()
 								|| src.keyCode == 40 || src.keyCode == 8) {
 							return false;
 						}
+/*						if (src.keyCode == 9)
+						{
+//								if (buf[iface] == undefined) buf[iface] = cmd2; else buf[iface] += cmd2;
+//								buf[iface] += "<br>";
+
+								config.cmdExecute({
+									"cmd": $.sprintf("/sbin/tbuffctl -p%s -t \"%s\"", iface, cmd2),
+									"callback": function(data) {
+//										cursor.before("<br>");
+//										cmdSpans[iface] = $.create("span").insertBefore(cursor);
+//										consoleDivs[iface].scrollTo($("#bottomAnchor"), 0);
+									}
+								});
+								config.cmdExecute({
+									"cmd": $.sprintf("/sbin/tbuffctl -p%s -r 0", iface),
+									"callback": function(data) {
+										buf[iface] +=  data;
+										cursors[iface].before(data);
+//										cmdSpans[iface].text(data);
+										cmdSpans[iface] = $.create("span").insertBefore(cursors[iface]);
+										consoleDivs[iface].scrollTo($("#bottomAnchor"), 0);
+									}
+								});
+								
+								t1 = new Date().getTime();
+
+								config.cmdExecute({
+									"cmd": $.sprintf("/sbin/tbuffctl -p%s -r 0", iface),
+									"callback": function(data) {
+										buf[iface] +=  data;
+										cursors[iface].before(data);
+//										cmdSpans[iface].text(data);
+										cmdSpans[iface] = $.create("span").insertBefore(cursors[iface]);
+										consoleDivs[iface].scrollTo($("#bottomAnchor"), 0);
+									}
+								});
+
+								cmd2 = "";
+								consoleDivs[iface].scrollTo($("#bottomAnchor"), 0);
+								return false;
+
+						}*/
 						if (src.which == null) {
 							ch = String.fromCharCode(src.keyCode);
 						} else if (src.which > 0) {

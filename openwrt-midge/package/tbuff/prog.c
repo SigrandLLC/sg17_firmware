@@ -38,7 +38,7 @@ int read_form_port (void)
 
 //	printf(">>Debug: opt: [%s]\n", opt);
 	
-	sprintf(r, "1;%i;%i", port, size);
+	sprintf(r, "r;%i;%i", port, size);
 	ret = write(sock, r, strlen(r)+1);
 //	printf(">>Debug: we write to socket %i byte\n", ret);
 	if (ret < strlen(r))
@@ -83,7 +83,35 @@ int write_in_port (char * d)
 {
 	int i = 0;
 	char str[MAX_DATA];
-	sprintf(str, "2;%i;%s;%i;", port, d, strlen(d));
+	sprintf(str, "w;%i;%s;%i;", port, d, strlen(d));
+//	printf(">>Debug: str = [%s]\n", str);
+	
+	if (write(sock, str, strlen(str)) != (strlen(str)))
+	{
+		printf("Error: cannot write in socket\n");
+		exit(-1);
+	}
+	strcpy(str, "");
+	i = read(sock, &str, 10);
+	if (i <= 0)
+	{
+		printf("Error: cannot read from socket\n");
+		exit(-1);
+	}
+//	printf(">>Debug: answer %i byte = [%s]\n", i, str);
+	if (strcmp(str, "OK") == 0)
+	{
+//		printf("Data successfully sent\n");
+	}
+	return 0;
+}
+
+
+int write_in_port_t (char * d)
+{
+	int i = 0;
+	char str[MAX_DATA];
+	sprintf(str, "t;%i;%s;%i;", port, d, strlen(d) + 1);
 //	printf(">>Debug: str = [%s]\n", str);
 	
 	if (write(sock, str, strlen(str)) != (strlen(str)))
@@ -108,7 +136,7 @@ int write_in_port (char * d)
 
 int read_from_all_ports()
 {
-	char r = '3';
+	char r = 'a';
 	int ret, buf_size, i;
 	char *opt, *buf;
 	fd_set ready;
@@ -242,6 +270,14 @@ int main (int argc, char ** argv)
 				exit(-1);
 			}
 		break;
+		case 't':
+			if (write_in_port_t(argv[3]))
+			{
+				printf("Error: cannot write data in port\n");
+				exit(-1);
+			}
+		break;
+		
 	}
 	
 	close(sock);
