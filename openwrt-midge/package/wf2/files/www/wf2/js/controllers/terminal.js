@@ -106,6 +106,8 @@ Controllers.terminal = function ()
 						if ((value.text != "") && (typeof value == "object"))
 						{
 							buf[value.dev] += value.text;
+							if (buf[value.dev].length > 40*1024) buf[value.dev] = buf[value.dev].substring(buf[value.dev].length - 4*1024, buf[value.dev].length);
+//							alert(buf[value.dev].length);
 							cursors[value.dev].before(value.text);
 							cmdSpans[value.dev] = $.create("span").insertBefore(cursors[value.dev]);
 							consoleDivs[value.dev].scrollTo($("#bottomAnchor"), 0);
@@ -168,7 +170,9 @@ Controllers.terminal = function ()
 						if (src.keyCode == 13) {
 //							if (cmd2 != "") {
 								if (buf[iface] == undefined) buf[iface] = cmd2; else buf[iface] += cmd2;
+
 								buf[iface] += "<br>";
+								if (buf[iface].length > 40*1024) buf[iface] = buf[iface].substring(buf[iface].length - 4*1024, buf[iface].length);
 
 								t0 = new Date().getTime();
 
@@ -234,7 +238,8 @@ Controllers.terminal = function ()
 								config.cmdExecute({
 									"cmd": $.sprintf("/sbin/tbuffctl -p%s -r 0", iface),
 									"callback": function(data) {
-										buf[iface] +=  data;
+										
+				buf[iface] +=  data;
 										cursors[iface].before(data);
 //										cmdSpans[iface].text(data);
 										cmdSpans[iface] = $.create("span").insertBefore(cursors[iface]);
