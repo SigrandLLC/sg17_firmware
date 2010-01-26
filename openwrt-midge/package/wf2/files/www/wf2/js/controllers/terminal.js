@@ -1,3 +1,5 @@
+var timer = 0;
+var buf = new Array(16);
 Controllers.terminal = function ()
 {
     var page = this.Page();
@@ -81,13 +83,13 @@ Controllers.terminal = function ()
     });
     
     var ifaces = config.getData(config.getOEM("MR17S_DRVNAME"));
-	var buf = new Array(16);
 	
 	var cursors = new Array(16);
 	var consoleDivs = new Array(16);
 	var cmdSpans = new Array(16);
 	var t0 = 0, t1, t2, t3;
 	var block = 0;
+//	timer = 0;
 
 	var func = function() {
 		if (!block)
@@ -120,8 +122,12 @@ Controllers.terminal = function ()
 		}
 		setTimeout(func, 500);
 	};
-//	setInterval(func, 500);
-	setTimeout(func, 500);
+//	timer = setInterval(func, 500);
+	if (timer == 0)	
+	{
+		setTimeout(func, 500);
+		timer = 1;
+	}
 	var scroll = function() {
 		var ifaces = config.getData(config.getOEM("MR17S_DRVNAME"));
 		$.each(ifaces, function(num, ifaceInfo) {
