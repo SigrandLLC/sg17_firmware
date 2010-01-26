@@ -120,6 +120,8 @@ update_configs(){
 		if [ "$run" == "1" ]; then
 			rm -f /tmp/socket
 			/sbin/tbuffd
+			cfg_make inittab /etc/inittab
+			cfg_commit			
 		fi
 	;;
 	hostname)
