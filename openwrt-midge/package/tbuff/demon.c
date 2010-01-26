@@ -301,6 +301,19 @@ int read_from_sockets(fd_set ready)
 												tbuff[cnt] = ports[j].buf[ports[j].tbuf];
 												cnt++;
 											break;
+											case '\\':
+												tbuff[cnt] = '\\';
+												cnt++;
+												tbuff[cnt] = '\\';
+												cnt++;
+											break;
+											case '\"':
+												tbuff[cnt] = '\\';
+												cnt++;
+												tbuff[cnt] = '\"';
+												cnt++;
+											break;
+											
 										}
 										ports[j].tbuf++;
 										if (ports[j].tbuf == buf_size)

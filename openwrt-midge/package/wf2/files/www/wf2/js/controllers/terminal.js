@@ -118,8 +118,10 @@ Controllers.terminal = function ()
 		});
 		
 		}
+		setTimeout(func, 500);
 	};
-	setInterval(func, 500);
+//	setInterval(func, 500);
+	setTimeout(func, 500);
 	var scroll = function() {
 		var ifaces = config.getData(config.getOEM("MR17S_DRVNAME"));
 		$.each(ifaces, function(num, ifaceInfo) {
