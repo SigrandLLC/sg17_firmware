@@ -854,3 +854,95 @@ get_last_err(int fd)
 	ab_g_err_extra_value = error;
 }/*}}}*/
 
+static int
+dev_gpio_reset (ab_dev_t const * const dev)
+{/*{{{*/
+	/* Configure 3/7 pins as output and set it to out values. */
+	VINETIC_IO_GPIO_CONTROL gpio;
+	ab_t * ab;
+	int fd_dev;
+	int out;
+	int i;
+	int j;
+	int err;
+
+	memset(&gpio, 0, sizeof(gpio));
+
+	ab = dev->parent;
+	fd_dev = dev->cfg_fd;
+
+	j = ab->chans_num;
+	for (out=0,i=0; i<j; i++){
+		enum vf_type_e tp = ab->chans[i].type_if_vf;
+		if((ab->chans[i].parent == dev)/*our device*/ &&
+				(tp == vf_type_N2 || tp == vf_type_T2) /*should set 1*/){
+			out |= (ab->chans[i].idx == 1) ? VINETIC_IO_DEV_GPIO_3:VINETIC_IO_DEV_GPIO_7;
+		}
+	}
+
+	/* Reserve the pins 3/7, for exclusive access */
+	gpio.nGpio = VINETIC_IO_DEV_GPIO_3 | VINETIC_IO_DEV_GPIO_7;
+	err = ioctl(fd_dev, FIO_VINETIC_GPIO_RESERVE, (IFX_int32_t) &gpio);
+	if(err){
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		sprintf(ab_g_err_str, "%s() ERROR : FIO_VINETIC_GPIO_RESERVE",__func__);
+		goto __exit_fail_close;
+	}
+	/* now gpio contains the iohandle required for subsequent accesses */
+	/* select pins 3,7 --> set to ’1’*/
+	/* Configure them as output - doc=0.. src=1*/
+	/* nGpio and nMask revert in doc */
+	gpio.nGpio = VINETIC_IO_DEV_GPIO_3 | VINETIC_IO_DEV_GPIO_7;
+	gpio.nMask = VINETIC_IO_DEV_GPIO_3 | VINETIC_IO_DEV_GPIO_7;
+	err = ioctl(fd_dev, FIO_VINETIC_GPIO_CONFIG, &gpio);
+	if(err){
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		sprintf(ab_g_err_str, "%s() ERROR : FIO_VINETIC_GPIO_CONFIG",__func__);
+		goto __exit_fail_release;
+	}
+
+	/* nMask: select pins 3,7 --> set to ’1’ or '0' */
+	gpio.nMask = VINETIC_IO_DEV_GPIO_3 | VINETIC_IO_DEV_GPIO_7;
+	/* nGpio: pins 3 and 7 to out value */
+	gpio.nGpio = out;
+	err = ioctl(fd_dev, FIO_VINETIC_GPIO_SET, &gpio);
+	if(err){
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		sprintf(ab_g_err_str, "%s() ERROR : FIO_VINETIC_GPIO_SET",__func__);
+		goto __exit_fail_release;
+	}
+
+	/* release GPIO pins */
+	err = ioctl(fd_dev, FIO_VINETIC_GPIO_RELEASE, &gpio);
+	if(err){
+		ab_g_err_idx = AB_ERR_UNKNOWN;
+		sprintf(ab_g_err_str, "%s() ERROR : FIO_VINETIC_GPIO_RELEASE",__func__);
+		goto __exit_fail_release;
+	}
+
+	close(fd_dev);
+	return 0;
+
+__exit_fail_release:
+	ioctl(fd_dev, FIO_VINETIC_GPIO_RELEASE, &gpio);
+__exit_fail_close:
+	close(fd_dev);
+	return -1;
+}/*}}}*/
+
+int 
+ab_devs_vf_gpio_reset (ab_t const * const ab)
+{/*{{{*/
+	/* go through all devices and init gpio for VF channels */
+	int i;
+	for (i=0; i<ab->devs_num; i++){
+		if(ab->devs[i].type == ab_dev_type_VF){
+			if(dev_gpio_reset(&(ab->devs[i]))){
+				goto __exit_fail;
+			}
+		}
+	} 
+	return 0;
+__exit_fail:
+	return -1;
+}/*}}}*/
