@@ -1,26 +1,29 @@
 #include "demon.h"
 
+int lock_file;
 char iface_name[10];
-int buf_size = 128;
+int buf_size = 4096;
 int sock; // socket for accept connections
 int sockets[NUM_SOCK];
 int numsock;
 struct timeval tv1, tv2;
 int v = 0;
+FILE *log_file;
 
 int bs = 0;
 
-struct port ports[16];
+struct port ports[MAX_PORTS];
 
 int init_port(char * port_name)
 {
-	int i = 0, n;
+	int i, n;
 	speed_t speed = B115200;
 	struct termios pts, sts;
 	char file_name[50] = "/dev/";
 	char *opt;
 	int ret;
 	
+	i = 0;
 	while (port_name[i] != 0)
 	{
 		file_name[i + 5] = port_name[i];
@@ -82,8 +85,8 @@ int init_port(char * port_name)
 		case 460800:
 			speed = B460800;
 	}
-	cfsetospeed(&pts, speed);
-	cfsetispeed(&pts, speed);
+	if (cfsetospeed(&pts, speed)) if (v) printf("Error to set output speed\n");
+	if (cfsetispeed(&pts, speed)) if (v) printf("Error to set input speed\n");
 	tcsetattr(ports[n].fd, TCSANOW, &pts);
 
 	ports[n].buf = malloc(buf_size);
@@ -113,7 +116,7 @@ int load_params ()
 	opt[i] = 0;
 	strcpy(iface_name, opt);
 	
-	for (i = 0; i < 16; i++)
+	for (i = 0; i < MAX_PORTS; i++)
 	{
 		char tstr[50];
 		int ret;
@@ -130,7 +133,6 @@ int load_params ()
 	return 0;
 }
 
-
 int read_from_sockets(fd_set ready)
 {
 	int i, p, k, n, w, cnt, ii, po, j;
@@ -143,6 +145,8 @@ int read_from_sockets(fd_set ready)
 				char rq[MAX_DATA];
 				int r = read(sockets[i], rq, MAX_DATA);
 				if (v) printf("from socket readed:(%i byte) %s\n", r, rq);
+//				fprintf(log_file, "from socket readed:(%i byte) %s\n", r, rq);
+//				fflush(log_file);
 				switch (rq[0])
 				{
 					// requets to read
@@ -212,8 +216,15 @@ int read_from_sockets(fd_set ready)
 							ports[p].cmd[r+1] = 10;
 							ports[p].cmd[r+2] = 0;
 							char ch = 13;
+//							fprintf(log_file, "In port write %i byte: [", r);
+//							for (r = 0; r < n + 1; r++)
+//							{
+//								fprintf(log_file, "%x ", rq[w+r]);
+//							}
 							r = write(ports[p].fd, &rq[w], n + 1);
 							write(ports[p].fd, &ch, 1);
+//							fprintf(log_file, "]\n");
+//							fflush(log_file);
 							
 							sprintf(rq, "OK");
 							r = write(sockets[i], rq, 3);
@@ -271,10 +282,10 @@ int read_from_sockets(fd_set ready)
 					// requets to read all
 					case 'a':
 						cnt = 0;
-						tbuff = malloc(buf_size*16);
+						tbuff = malloc(buf_size*MAX_PORTS);
 						po = sprintf(&tbuff[cnt], "{\"ttylist\":[");
 						cnt+=po;
-						for (j = 0; j < 16; j++)
+						for (j = 0; j < MAX_PORTS; j++)
 						{
 //							if (v) printf("port %i fd = %i tbuf = %i hbuf = %i\n", j, ports[j].fd, ports[j].tbuf, ports[j].hbuf);
 							if ((ports[j].fd > 0) && (ports[j].tbuf != ports[j].hbuf))
@@ -399,7 +410,7 @@ int loop()
 		FD_SET(sock, &ready);
 		maxfd = sock;
 	
-		for (i = 0; i < 16; i++)
+		for (i = 0; i < MAX_PORTS; i++)
 		{
 			if (ports[i].fd > maxfd) maxfd = ports[i].fd;
 			if (ports[i].fd > 0) FD_SET(ports[i].fd, &ready);
@@ -446,7 +457,7 @@ int loop()
 		read_from_sockets(ready);
 		
 		//read data from device on ports
-		for (i = 0; i < 16; i++)
+		for (i = 0; i < MAX_PORTS; i++)
 		{
 			if ((ports[i].fd > 0) && (FD_ISSET(ports[i].fd, &ready)))
 			{
@@ -497,15 +508,20 @@ int loop()
 						}
 					}
 					if (v) printf("from port readed (%i byte): ", rb);
+//					fprintf(log_file, "from port readed (%i byte): ", rb);
+//					fflush(log_file);
 					for (; qw < rb; qw++)
 					{
 							char a = tbuf[qw];
-							if (v) printf("%x", tbuf[qw]);
 							
+							if (v) printf("%x", tbuf[qw]);
 							if ((v) && ((a >= '0') && (a <= '9') || (a >= 'a') && (a <= 'z') || (a >= 'A') && (a <= 'Z') || (a == '_')))
-							printf("[%c]", a);
-							printf(" ");
-
+							if (v) printf("[%c]", a);
+							if (v) printf(" ");
+//							fprintf(log_file, "%x", tbuf[qw]);
+//							if (((a >= '0') && (a <= '9') || (a >= 'a') && (a <= 'z') || (a >= 'A') && (a <= 'Z') || (a == '_'))) fprintf(log_file, "[%c]", a);
+//							fprintf(log_file, " ");
+//							fflush(log_file);
 							switch (out(tbuf[qw], &ports[i]))
 							{
 							case 1:
@@ -519,6 +535,8 @@ int loop()
 							}
 					}
 					if (v) printf("\n");
+//					fprintf(log_file, "\n");
+//					fflush(log_file);
 					for (qw = ports[i].tbuf; qw != ports[i].hbuf; qw++)
 					{
 						if (qw == buf_size) qw = 0;
@@ -561,7 +579,7 @@ int close_port(int p)
 int close_all_ports()
 {
 	int i;
-	for (i = 0; i< 16; i++)
+	for (i = 0; i< MAX_PORTS; i++)
 	{
 		close_port(i);
 	}
@@ -583,23 +601,46 @@ int close_all_sock ()
 
 void handler (int i)
 {
+//	fclose(log_file);
 	close_all_ports ();
 	close_all_sock ();
+	close(lock_file);
+	unlink("/var/run/tbuffd.pid");
 	exit(0);
 }
 
 int main (int argc, char **argv)
 {
-	int pid, i;
+	pid_t pid, i;
 	struct sigaction sa;
 	
+	lock_file = open("/var/run/tbuffd.pid", O_CREAT | O_EXCL | O_RDWR);
+	if (lock_file == -1)
+	{
+		FILE * lf = fopen("/var/run/tbuffd.pid", "r");
+		fscanf(lf, "%i", &pid);
+		if (v) printf("file locked by process with pid=%i\n", pid);
+		fclose(lf);
+		if (!kill(pid, 0))
+		{
+			return 0;
+		}
+		if (v) printf("this process does not exist!!\n");
+		unlink("/var/run/tbuffd.pid");
+		lock_file = open("/var/run/tbuffd.pid", O_CREAT | O_EXCL | O_RDWR);
+	}
+	
+//	log_file = fopen("/root/log", "w+");
+//	fprintf(log_file, "demon started-----------------\n");
+//	fflush(log_file);
+//	if (log_file <= 0) printf("log error\n");
 	if (argc > 1)
 	{
 		v = 1;
 		sa.sa_handler = handler;
 		sigaction(SIGTERM, &sa, 0);
 		sigaction(SIGINT, &sa, 0);
-		for (i = 0; i < 16; i++)
+		for (i = 0; i < MAX_PORTS; i++)
 		{
 			ports[i].fd = -1;
 		}
@@ -607,29 +648,30 @@ int main (int argc, char **argv)
 		init_socket();
 		loop();
 		
-	} else
-	{
-
-	pid = fork();
-	if (pid == 0)
-	{
-		setsid();
-		chdir("/");
-		close(0);
-		close(1);
-		close(2);
-		sa.sa_handler = handler;
-		sigaction(SIGTERM, &sa, 0);
-
-		for (i = 0; i < 16; i++)
+	} else {
+		pid = fork();
+		if (pid == 0)
 		{
-			ports[i].fd = -1;
+			setsid();
+			chdir("/");
+			close(0);
+			close(1);
+			close(2);
+			sa.sa_handler = handler;
+			sigaction(SIGTERM, &sa, 0);
+			sigaction(SIGINT, &sa, 0);
+			for (i = 0; i < MAX_PORTS; i++)
+			{
+				ports[i].fd = -1;
+			}
+			load_params();
+			init_socket();
+			loop();
+		} else {
+			FILE * lf = fopen("/var/run/tbuffd.pid", "w+");
+			fprintf(lf, "%i\n", pid);
+			fclose(lf);
 		}
-		load_params();
-		init_socket();
-		loop();
-	}
-	
 	}
 	return 0;
 }

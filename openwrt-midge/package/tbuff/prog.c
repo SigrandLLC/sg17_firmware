@@ -11,9 +11,8 @@
 
 #include "md5.h"
 #include "kdb.h"
+#include "demon.h"
 
-#define MAX_DATA 100
-#define SOCKET_NAME "/tmp/socket"
 
 int sock, port, size;
 struct timeval tv1, tv2;
@@ -159,7 +158,7 @@ int read_from_all_ports()
 //	db_close();
 //	if ((size == 0)||(size > buf_size)) size = buf_size;
 	write(sock, &r, 1);
-	buf = malloc(buf_size*16);
+	buf = malloc(buf_size*MAX_PORTS);
 	gettimeofday(&tv2, NULL);
 //	printf("time1 = %.6f sec.\n", (tv2.tv_sec * 1E6 + tv2.tv_usec - tv1.tv_sec * 1E6 - tv1.tv_usec) / 1E6);
 
@@ -169,13 +168,12 @@ int read_from_all_ports()
 	tv.tv_sec = 0;
 	tv.tv_usec = 500000;
 	select(sock + 1, &ready, NULL, NULL, &tv);
-	// касяк где то рядом...
 	if (FD_ISSET(sock, &ready))
 	{
 //		printf("select %.6f\n", 0.5 - (tv.tv_sec * 1E6 + tv.tv_usec) / 1E6);
-		ret = read(sock, buf, buf_size*16);
+		ret = read(sock, buf, buf_size*MAX_PORTS);
 	} else {
-		ret = read(sock, buf, buf_size*16);
+		ret = read(sock, buf, buf_size*MAX_PORTS);
 	}
 	buf[ret] = 0;
 	gettimeofday(&tv1, NULL);

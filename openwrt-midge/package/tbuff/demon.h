@@ -1,4 +1,5 @@
 #include <sys/stat.h>
+#include <sys/file.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <sys/time.h>
@@ -25,6 +26,7 @@
 
 #define SOCKET_NAME "/tmp/socket"
 #define NUM_SOCK 10
+#define MAX_PORTS 16
 #define MAX_DATA 4*1024*1024
 
 struct port
