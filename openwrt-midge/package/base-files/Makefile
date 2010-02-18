@@ -66,11 +66,10 @@ $(IPKG_BASE):
 	mkdir -p $(IDIR_BASE)/usr/bin
 	mkdir -p $(IDIR_BASE)/sys
 	mkdir -p $(IDIR_BASE)/www
+	mkdir -p $(IDIR_BASE)/var
 	mkdir -p $(IDIR_BASE)/root
 	ln -sf /tmp/resolv.conf $(IDIR_BASE)/etc/resolv.conf
 	ln -sf /proc/mounts $(IDIR_BASE)/etc/mtab
-	rm -f $(IDIR_BASE)/var
-	ln -sf /tmp $(IDIR_BASE)/var
 	-find $(IDIR_BASE) -type d -name CVS | xargs rm -rf
 	-find $(IDIR_BASE) -type d -name .svn | xargs rm -rf
 	-find $(IDIR_BASE) -name '.#*' | xargs rm -f
