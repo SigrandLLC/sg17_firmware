@@ -1,0 +1,6 @@
+#!/bin/sh
+
+cp config_sigrand .config
+yes '' | make oldconfig
+nice -19 make
+
