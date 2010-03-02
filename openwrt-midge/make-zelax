@@ -1,6 +1,0 @@
-#!/bin/sh
-
-cp config_zelax .config
-yes '' | make oldconfig
-nice -19 make
-

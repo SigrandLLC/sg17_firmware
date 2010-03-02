@@ -1,0 +1,27 @@
+#!/bin/sh
+
+pn=$0
+usage()
+{
+  echo 1>&2 "Usage $pn sigrand | zelax"
+  exit 1
+}
+
+if test "$#" -ne 1; then
+  usage
+fi
+
+brand=$1; shift
+case $brand in
+	sigrand) ;;
+	  zelax) ;;
+	      *) usage;;
+esac
+
+rm -f .config* .tmpconfig.h
+cp config_$brand .config
+yes '' | make oldconfig > oldconfig-${brand}-$$.log
+make oem_clean
+rev=`./rev.sh`
+nice -19 make && mv bin/openwrt-sigrand5120-2.6-jffs2-32MB.bin bin/sg17-r-cp1_${rev}_${brand}.bin
+
