@@ -1,5 +1,5 @@
 cat /etc/banner
-export PATH=/ram/bin:/ram/sbin:/ram/usr/sbin:/ram/usr/bin:/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/bin:/usr/sbin
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 alias ll="ls -l"
 alias arp="cat /proc/net/arp"
 export PS1="`hostname`$ "
