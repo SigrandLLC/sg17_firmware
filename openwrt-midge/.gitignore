@@ -9,6 +9,7 @@
 /.config*
 /.tmpconfig.h
 /oldconfig-*.log
+/.cfg.sg-17r
 
 # object files
 *.o
