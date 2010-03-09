@@ -68,5 +68,5 @@ nice -19 make V=9 || exit 1
 
 rev=`./rev.sh`
 mv	bin/openwrt-sigrand5120-2.6-jffs2-32MB.bin \
-	bin/sg17-r-cp1_${rev}${nofw}_${brand}.bin
+	sg17-r-cp1_${rev}${nofw}_${brand}.bin
 
