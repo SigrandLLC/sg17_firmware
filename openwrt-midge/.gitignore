@@ -1,6 +1,8 @@
 # non-source directories
 /dl
 /bin
+/*.bin
+
 /build_*
 /staging_dir_*
 /toolchain_build_*
