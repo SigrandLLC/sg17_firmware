@@ -1,0 +1,2 @@
+#!/bin/sh
+socat -d -d -d tcp4:localhost:2000 tcp4:localhost:2001

@@ -45,5 +45,13 @@ $(IPKG_SER2NET):
 	cp -fpR $(PKG_INSTALL_DIR)/usr/sbin/ser2net $(IDIR_SER2NET)/usr/sbin
 	install -d -m0755 $(IDIR_SER2NET)/etc
 	cp -fpR $(PKG_BUILD_DIR)/ser2net.conf $(IDIR_SER2NET)/etc
+	#+ for test only
+	install -m0644 ./files/etc/ser2net0.conf  $(IDIR_SER2NET)/etc
+	install -m0644 ./files/etc/ser2net1.conf  $(IDIR_SER2NET)/etc
+	install -d -m0755                         $(IDIR_SER2NET)/etc/init.d
+	install -m0755 ./files/etc/init.d/ser2net $(IDIR_SER2NET)/etc/init.d/ser2net
+	install -m0755 ./files/sercat             $(IDIR_SER2NET)/usr/sbin/sercat
+	#- for test only
 	$(RSTRIP) $(IDIR_SER2NET)
 	$(IPKG_BUILD) $(IDIR_SER2NET) $(PACKAGE_DIR)
+
