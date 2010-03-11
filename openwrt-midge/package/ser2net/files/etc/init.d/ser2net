@@ -12,11 +12,13 @@ fi
 
 case $1 in
 	start)
-		ser2net -u -c /etc/ser2net${2}.conf -P /var/run/ser2net${2}.pid
+		ser2net -c /etc/ser2net${2}.conf -P /var/run/ser2net${2}.pid
 		;;
 	 stop)
-		kill `cat /var/run/ser2net${2}.pid`
-		rm -f     /var/run/ser2net${2}.pid
+		if test -e        /var/run/ser2net${2}.pid; then
+			kill `cat /var/run/ser2net${2}.pid`
+			rm -f     /var/run/ser2net${2}.pid
+		fi
 		;;
 	    *)	usage
 		;;
