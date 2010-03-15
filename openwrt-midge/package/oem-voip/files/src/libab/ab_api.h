@@ -212,7 +212,6 @@ struct ab_chan_s {/*{{{*/
 	unsigned int idx;   /**< Channel index on device (from 1) */
 	unsigned char abs_idx; /**< Channel index on boards (from 0) */
 	ab_dev_t * parent;  /**< device that channel belongs */
-	enum vf_type_e type_if_vf; /**< VF type if it is VF channel (see parent type)*/
 	int rtp_fd;         /**< Channel file descriptor */
 	struct ab_chan_status_s status;  /**< Channel status info */
 	struct ab_chan_stat_s statistics; /**< Jitter Buffer and RTCP statistics */
@@ -295,8 +294,6 @@ ab_t* ab_create (void);
 void ab_destroy (ab_t ** ab);
 /** Init channel with given CRAM file */
 int ab_chan_cram_init (ab_chan_t const * const chan, char const * const path);
-/** Init device gpio with given channel types */
-int ab_devs_vf_gpio_reset (ab_t const * const ab);
 /** @} */
 /*}}}*/
 

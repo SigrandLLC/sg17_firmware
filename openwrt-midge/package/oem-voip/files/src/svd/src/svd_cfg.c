@@ -1153,7 +1153,7 @@ voicef_init( ab_t const * const ab )
 		}
 	}
 
-	/* read hw.conf to get channel type */
+	/* read svi.conf to get channel type */
 	/* vf_types:
 	 * (
 	 *	("chan_id", "wire_type", "normal/transit")
@@ -1204,21 +1204,17 @@ voicef_init( ab_t const * const ab )
 			/* get normal/transit type */
 			elem = config_setting_get_string_elem (rec_set, 2);
 			if       (!strcmp(elem, CONF_VF_NORMAL)){
-				ab->pchans[chan_id]->type_if_vf = 
-					curr_rec->type = vf_type_N4;
+				curr_rec->type = vf_type_N4;
 			} else if(!strcmp(elem, CONF_VF_TRANSIT)){
-				ab->pchans[chan_id]->type_if_vf = 
-					curr_rec->type = vf_type_T4;
+				curr_rec->type = vf_type_T4;
 			}
 		} else if(!strcmp(elem, CONF_VF_2_WIRED)){
 			/* get normal/transit type */
 			elem = config_setting_get_string_elem (rec_set, 2);
 			if       (!strcmp(elem, CONF_VF_NORMAL)){
-				ab->pchans[chan_id]->type_if_vf = 
-					curr_rec->type = vf_type_N2;
+				curr_rec->type = vf_type_N2;
 			} else if(!strcmp(elem, CONF_VF_TRANSIT)){
-				ab->pchans[chan_id]->type_if_vf = 
-					curr_rec->type = vf_type_T2;
+				curr_rec->type = vf_type_T2;
 			}
 		}
 	}

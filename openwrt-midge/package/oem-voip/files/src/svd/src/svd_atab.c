@@ -189,18 +189,12 @@ DFS
 				goto __exit_fail;
 			}
 		}
-	}
+	} 
 
-	/* set gpio on VF-devices to proper values */
-	if (ab_devs_vf_gpio_reset (svd->ab)){
-		SU_DEBUG_0 ((LOG_FNC_A("can`t reinitilize VF GPIO")));
-		goto __exit_fail;
-	}
 DFE
 	return 0;
 __exit_fail:
 DFE
-	SU_DEBUG_0 ((">> reason [%d]: %s\n",ab_g_err_idx,ab_g_err_str));
 	return -1;	
 }/*}}}*/
 
