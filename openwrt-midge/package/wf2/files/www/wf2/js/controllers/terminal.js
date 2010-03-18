@@ -1,10 +1,12 @@
 var timer = 0;
 var buf = new Array(16);
-	var cursors = new Array(16);
-	var consoleDivs = new Array(16);
-	var cmdSpans = new Array(16);
-	var t0 = 0, t1, t2, t3;
-	var block = 0;
+var cursors = new Array(16);
+var consoleDivs = new Array(16);
+var cmdSpans = new Array(16);
+var t0 = 0, t1, t2, t3;
+var block = new Array(16);
+var block2 = 0;
+var func_en = 0;
 
 Controllers.terminal = function ()
 {
@@ -97,13 +99,20 @@ Controllers.terminal = function ()
 	
 //	var el = document.getElementById("status_ajax");
 //	if (el) el.parentNode.removeChild(el);
-//	el.style.visibility='hidden';
-	    
-    var ifaces = config.getData(config.getOEM("MR17S_DRVNAME"));
+//	el.style.visibility='hidden'; 'inherit';
 	
 
+    var ifaces = config.getData(config.getOEM("MR17S_DRVNAME"));
+
+	func_en = 0;
+	$.each(ifaces, function(num, ifaceInfo) {
+		var iface = ifaceInfo.iface;
+		if (config.getParsed($.sprintf("sys_demon_%s_enable", iface)) == 1) func_en = 1;
+	});
+
+
 	var func = function() {
-		if (!block)
+		if (!block2)
 		{
 		t2 = new Date().getTime();
 		config.cmdExecute({
@@ -123,20 +132,20 @@ Controllers.terminal = function ()
 							
 							setTimeout(function () {consoleDivs[value.dev].scrollTo('100%', 0);}, 10);
 							
+							block[value.dev] = 0;
+							
 							t3 = new Date().getTime();
 //							if (t0 != 0) alert((t1-t0)/1000 + " " + (t2-t1)/1000 + " " + (t3-t2)/1000);
 							t0 = 0;
 						}
-						
 					});
 				}
 			}
 		});
-		
 		}
-		setTimeout(func, 500);
+		if (func_en == 1) setTimeout(func, 500); else timer = 0;
 	};
-	if (timer == 0)	
+	if ((timer == 0) && (func_en == 1))
 	{
 		setTimeout(func, 500);
 		timer = 1;
@@ -177,36 +186,75 @@ Controllers.terminal = function ()
 					var onKeypress = function(src) {
 						consoleDivs[iface].scrollTo('100%', 0);
 						var ch;
+//						alert(src.keyCode);
+
+						// Tab
+						if (src.keyCode == 9)
+						{
+							block2 = 1;
+							config.cmdExecute({
+								"cmd": $.sprintf("/sbin/tbuffctl -p%s -t \"%s\"", iface, cmd2),
+							});
+						
+							setTimeout(function () {
+								config.cmdExecute({
+									"cmd": $.sprintf("/sbin/tbuffctl -p%s -r 0", iface),
+									"callback": function(data) {
+										var str = new String(data);
+										alert(str.length);
+										cmd2 = "";//data;
+										cmdSpans[iface].text(data);
+										block2 = 0;
+									}
+								});
+								config.cmdExecute({
+									"cmd": $.sprintf("/sbin/tbuffctl -p%s -d", iface),
+								});
+
+							}, 50);
+
+							
+							return false;
+						}
+						// Enter
 						if (src.keyCode == 13) {
+							if (!block[iface])
+							{
+							block[iface] = 1;
+						
 							if (buf[iface] == undefined) buf[iface] = cmd2; else buf[iface] += cmd2;
 							buf[iface] += "<br>";
 							if (buf[iface].length > 40*1024) buf[iface] = buf[iface].substring(buf[iface].length - 40*1024, buf[iface].length);
 							t0 = new Date().getTime();
-							block = 1;
 							config.cmdExecute({
 								"cmd": $.sprintf("/sbin/tbuffctl -p%s -w \"%s\"", iface, cmd2),
 								"callback": function(data) {
 									cursors[iface].before("<br>");
 									cmdSpans[iface] = $.create("span").insertBefore(cursors[iface]);
-									block = 0;
 								}
 							});
+							
+							}
 							
 							t1 = new Date().getTime();
 							cmd2 = "";
 							return false;
+							
 						} else if (src.keyCode == 16 || src.keyCode == 17 || src.keyCode == 18
 								|| src.keyCode == 37 || src.keyCode == 38 || src.keyCode == 39
 								|| src.keyCode == 40 || src.keyCode == 8) {
 							return false;
 						}
+						
+
 						if (src.which == null) {
 							ch = String.fromCharCode(src.keyCode);
 						} else if (src.which > 0) {
 							ch = String.fromCharCode(src.which);
 						}
+
 						cmdSpans[iface].append(ch);
-						cmd2 += ch;
+						if (ch != undefined) cmd2 += ch;
 						return false;
 					};
 					var onBackspace = function() {

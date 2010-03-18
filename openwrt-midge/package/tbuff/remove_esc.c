@@ -4,7 +4,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 					
-#include "demon.h"
+#include "tbuffd.h"
 
 #define ESC 27
 
