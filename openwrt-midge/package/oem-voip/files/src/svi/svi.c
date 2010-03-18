@@ -45,7 +45,7 @@
 #define TF_NORMAL  "normal"
 #define TF_2_WIRED "2w"
 #define TF_4_WIRED "4w"
-#define TF_CONF_NAME "/etc/svi.conf"
+#define TF_CONF_NAME "/etc/svd/hw.conf"
 #define AB_SGATAB_DEV_NODE "/dev/sgatab"
 #define AB_SGATAB_MAJOR_FILE "/proc/driver/sgatab/major"
 #define VIN_DEV_NODE_PREFIX "/dev/vin"
@@ -516,11 +516,106 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
+static void
+chan_gpio_set (int const chan_idx_on_dev, ab_dev_params_t const * const dp,
+		int * const out)
+{/*{{{*/
+	enum tf_type_e tft = tf_cfg[dp->chans_idx[chan_idx_on_dev]];
+	/*
+	GPIO3 - управление 2W/4W канала 0
+	GPIO7 - управление 2W/4W канала 1
+	0 - режим 4W
+	1 - режим 2W
+	*/
+	if(dp->type == dev_type_VF && (tft == tf_type_N2 || tft == tf_type_T2)){
+		/*2-wired chan type*/
+		*out |= chan_idx_on_dev? VINETIC_IO_DEV_GPIO_7:VINETIC_IO_DEV_GPIO_3;
+	}
+}/*}}}*/
+
+static int
+dev_gpio_set (int const dev_idx, dev_type_t const dt, int const out)
+{/*{{{*/
+	/* Configure 3/7 pins as output and set it to out values. */
+	VINETIC_IO_GPIO_CONTROL gpio;
+	char dev_node[ 50 ];
+	int fd_dev;
+	int err;
+
+	if(dt != dev_type_VF){
+		goto __exit_success;
+	}
+
+	memset(&gpio, 0, sizeof(gpio));
+
+	/* open the control file descriptor */
+	sprintf(dev_node,VIN_DEV_NODE_PREFIX"%d0", dev_idx+1);
+	fd_dev = open(dev_node, O_RDWR);
+	if(fd_dev == -1){
+		g_err_no = ERR_COULD_NOT_OPEN_FILE;
+		sprintf(g_err_msg, "%s() ERROR: dev file open (%s):\n\t%s\n",
+				__func__, dev_node, strerror(errno));
+		goto __exit_fail;
+	}
+
+	/* Reserve the pins 3/7, for exclusive access */
+	gpio.nGpio = VINETIC_IO_DEV_GPIO_3 | VINETIC_IO_DEV_GPIO_7;
+	err = ioctl(fd_dev, FIO_VINETIC_GPIO_RESERVE, (IFX_int32_t) &gpio);
+	if(err){
+		g_err_no = ERR_IOCTL_FAILS;
+		sprintf(g_err_msg, "%s() ERROR: FIO_VINETIC_GPIO_RESERVE\n", __func__);
+		goto __exit_fail_close;
+	}
+	/* now gpio contains the iohandle required for subsequent accesses */
+	/* select pins 3,7 --> set to ’1’*/
+	/* Configure them as output - doc=0.. src=1*/
+	/* nGpio and nMask revert in doc */
+	gpio.nGpio = VINETIC_IO_DEV_GPIO_3 | VINETIC_IO_DEV_GPIO_7;
+	gpio.nMask = VINETIC_IO_DEV_GPIO_3 | VINETIC_IO_DEV_GPIO_7;
+	err = ioctl(fd_dev, FIO_VINETIC_GPIO_CONFIG, &gpio);
+	if(err){
+		g_err_no = ERR_IOCTL_FAILS;
+		sprintf(g_err_msg, "%s() ERROR: FIO_VINETIC_GPIO_CONFIG\n", __func__);
+		goto __exit_fail_release;
+	}
+
+	/* nMask: select pins 3,7 --> set to ’1’ or '0' */
+	gpio.nMask = VINETIC_IO_DEV_GPIO_3 | VINETIC_IO_DEV_GPIO_7;
+	/* nGpio: pins 3 and 7 to out value */
+	gpio.nGpio = out;
+	err = ioctl(fd_dev, FIO_VINETIC_GPIO_SET, &gpio);
+	if(err){
+		g_err_no = ERR_IOCTL_FAILS;
+		sprintf(g_err_msg, "%s() ERROR: FIO_VINETIC_GPIO_SET\n", __func__);
+		goto __exit_fail_release;
+	}
+
+	/* release GPIO pins */
+	err = ioctl(fd_dev, FIO_VINETIC_GPIO_RELEASE, &gpio);
+	if(err){
+		g_err_no = ERR_IOCTL_FAILS;
+		sprintf(g_err_msg, "%s() ERROR: FIO_VINETIC_GPIO_RELEASE\n", __func__);
+		goto __exit_fail_release;
+	}
+
+	close(fd_dev);
+__exit_success:
+	return 0;
+
+__exit_fail_release:
+	ioctl(fd_dev, FIO_VINETIC_GPIO_RELEASE, &gpio);
+__exit_fail_close:
+	close(fd_dev);
+__exit_fail:
+	return -1;
+}/*}}}*/
+
 static int 
 dev_init (int const dev_idx, ab_dev_params_t const * const dp, long const nIrqNum)
 {/*{{{*/
 	int j;
 	int err;
+	int out;
 
 	/* dev basic init */
 	err = basicdev_init(dev_idx, dp, nIrqNum);
@@ -533,12 +628,18 @@ dev_init (int const dev_idx, ab_dev_params_t const * const dp, long const nIrqNu
 	}
 
 	/* download fw and chans init */
-	for(j=0; j<CHANS_PER_DEV; j++){
+	for(j=0,out=0; j<CHANS_PER_DEV; j++){
 		/* channel init */
 		err = chan_init (dev_idx, j, dp->type, dp->chans_idx[j]);
 		if(err){
 			goto __exit_fail;
 		}
+		/*set channel types to gpio*/
+		chan_gpio_set (j, dp, &out);
+	}
+	/*init gpio on device if necessary*/
+	if( dev_gpio_set (dev_idx, dp->type, out)){
+		goto __exit_fail;
 	}
 
 __exit_success:

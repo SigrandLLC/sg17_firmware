@@ -22,7 +22,7 @@
 # Just run 'make menuconfig', configure stuff, then run 'make'.
 # You shouldn't need to mess with anything beyond this point...
 #--------------------------------------------------------------
-export V=99
+export V=9
 export DEVELOPER=1
 TOPDIR=${shell pwd}
 export TOPDIR

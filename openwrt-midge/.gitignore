@@ -1,13 +1,17 @@
 # non-source directories
-dl
-bin
-build_mipsel
-staging_dir_mipsel
-toolchain_build_mipsel
+/dl
+/bin
+/*.bin
+
+/build_*
+/staging_dir_*
+/toolchain_build_*
 
 # build-related files
-.config*
-.tmpconfig.h
+/.config*
+/.tmpconfig.h
+/oldconfig-*.log
+/.cfg.sg-17r
 
 # object files
 *.o
@@ -16,12 +20,12 @@ toolchain_build_mipsel
 *~
 
 # executables
-package/config/conf
-package/config/mconf
+/package/config/conf
+/package/config/mconf
 
 # creates/removes at building
-package/config/lex.zconf.c
-package/config/lkc_defs.h
-package/config/zconf.tab.c
-package/config/zconf.tab.h
+/package/config/lex.zconf.c
+/package/config/lkc_defs.h
+/package/config/zconf.tab.c
+/package/config/zconf.tab.h
 

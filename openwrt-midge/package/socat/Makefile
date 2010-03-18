@@ -3,15 +3,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=socat
-PKG_VERSION:=1.4.3.0
+PKG_VERSION:=1.6.0.0
 PKG_RELEASE:=1
-PKG_MD5SUM:=ce574e75c2fda4456e8efd4efb86ec5e
+PKG_MD5SUM:=810135eb1c3e892b1577735b7deca8ef
 
 PKG_SOURCE_URL:=http://www.dest-unreach.org/socat/download/
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_CAT:=bzcat
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-1.4
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/ipkg-install
 
 include $(TOPDIR)/package/rules.mk

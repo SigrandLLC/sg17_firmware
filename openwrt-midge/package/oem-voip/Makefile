@@ -1,4 +1,4 @@
-# 
+#
 # Copyright (C) 2006 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
@@ -87,7 +87,7 @@ $(PKG_BUILD_DIR)/.prepared:
 	);
 
 	touch $@
-	
+
 
 
 
@@ -252,11 +252,12 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 		-I./vinetic/include/ \
 		-I./tapi/include/ \
 		-I./sgatab/ \
+		ab_hwinit.c \
 		ab_basic.c \
 		ab_line.c \
 		ab_events.c \
 		ab_media.c \
-		-c; \
+		-c && \
 		ar cr libab.a *.o \
 	);
 
@@ -327,7 +328,7 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 	touch $@
 
 
-$(IPKG_OEM_VOIP): 
+$(IPKG_OEM_VOIP):
 	install -d -m0755 $(IDIR_OEM_VOIP)/lib/modules/2.6.16/
 	install -d -m0755 $(IDIR_OEM_VOIP)/bin/
 	install -d -m0755 $(IDIR_OEM_VOIP)/sbin/

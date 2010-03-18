@@ -17962,3 +17962,17 @@ diff -Nur linux-2.4.32/include/video/newport.h linux-2.4.32.patched/include/vide
  	
          while ((rex->set.dcbdata0.bybytes.b3 & 3) != XM9_FIFO_EMPTY)
  		;
+--- linux-2.4.32/scripts/Configure.orig	2005-04-04 08:42:20.000000000 +0700
++++ linux-2.4.32/scripts/Configure	2010-02-18 18:57:44.000000000 +0600
+@@ -546,9 +546,9 @@ if [ -f $DEFAULTS ]; then
+   echo "#"
+   echo "# Using defaults found in" $DEFAULTS
+   echo "#"
+-  . $DEFAULTS
++  . ./$DEFAULTS
+   sed -e 's/# \(CONFIG_[^ ]*\) is not.*/\1=n/' <$DEFAULTS >.config-is-not.$$
+-  . .config-is-not.$$
++  . ./.config-is-not.$$
+   rm .config-is-not.$$
+ else
+   echo "#"

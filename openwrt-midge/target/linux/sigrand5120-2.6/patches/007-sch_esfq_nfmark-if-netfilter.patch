@@ -1,0 +1,42 @@
+--- linux-2.6.16/net/sched/sch_esfq.c.orig	2010-03-04 20:00:27.000000000 +0600
++++ linux-2.6.16/net/sched/sch_esfq.c	2010-03-04 20:45:41.000000000 +0600
+@@ -152,7 +152,9 @@ static unsigned esfq_hash(struct esfq_sc
+ {
+ 	u32 h, h2;
+ 	u32 hs;
++#ifdef CONFIG_NETFILTER
+ 	u32 nfm;
++#endif
+ 
+ 	switch (skb->protocol) {
+ 	case __constant_htons(ETH_P_IP):
+@@ -160,7 +162,9 @@ static unsigned esfq_hash(struct esfq_sc
+ 		struct iphdr *iph = skb->nh.iph;
+ 		h = iph->daddr;
+ 		hs = iph->saddr;
++#ifdef CONFIG_NETFILTER
+ 		nfm = skb->nfmark;
++#endif
+ 		h2 = hs^iph->protocol;
+ 		if (!(iph->frag_off&htons(IP_MF|IP_OFFSET)) &&
+ 		    (iph->protocol == IPPROTO_TCP ||
+@@ -176,7 +180,9 @@ static unsigned esfq_hash(struct esfq_sc
+ 		struct ipv6hdr *iph = skb->nh.ipv6h;
+ 		h = iph->daddr.s6_addr32[3];
+ 		hs = iph->saddr.s6_addr32[3];
++#ifdef CONFIG_NETFILTER
+ 		nfm = skb->nfmark;
++#endif
+ 		h2 = hs^iph->nexthdr;
+ 		if (iph->nexthdr == IPPROTO_TCP ||
+ 		    iph->nexthdr == IPPROTO_UDP ||
+@@ -189,7 +195,9 @@ static unsigned esfq_hash(struct esfq_sc
+ 	default:
+ 		h = (u32)(unsigned long)skb->dst;
+ 		hs = (u32)(unsigned long)skb->sk;
++#ifdef CONFIG_NETFILTER
+ 		nfm = skb->nfmark;
++#endif
+ 		h2 = hs^skb->protocol;
+ 	}
+ 	switch(q->hash_kind)

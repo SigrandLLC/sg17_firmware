@@ -2,10 +2,7 @@ include $(TOPDIR)/rules.mk
 
 KDIR:=$(BUILD_DIR)/linux-$(KERNEL)-$(BOARD)
 
-# calculate quantity of commits
-REV:=$(shell LANG=C git rev-list HEAD |wc -l )
-# 9 commits were lost, so add them
-REV:=$(shell LANG=C echo `expr $(REV) + 9` )
+REV := $(shell $(TOPDIR)/rev.sh)
 ifeq ($(REV),)
 REV:=0
 endif
@@ -28,14 +25,14 @@ adm5120-fs-prepare:
 	test -f delete-files-$(KERNEL)-$(FS) && \
 			for f in `cat delete-files-$(KERNEL)-$(FS)`; do \
 				rm -rf $(KDIR)/root/$$f;	\
-			done; 
+			done;
 	( cd ../../package/base-files/files/$(BOARD)-$(KERNEL) && \
 		tar cf - --exclude .svn . | tar xvf - -C $(KDIR)/root/; \
 		[ "$(BR2_SIGRAND_OEM_LOGO)" != "default" ] && echo "Revision: \$$R " > $(KDIR)/root/etc/banner; \
-		 $(SED) 's,$$R,r$(REV),g' $(KDIR)/root/etc/banner; \
+		 $(SED) 's,$$R,$(REV),g' $(KDIR)/root/etc/banner; \
 		 echo "Built at: `date '+%Y%m%d %H:%M'`" >>$(KDIR)/root/etc/banner; \
 		 echo "" >>$(KDIR)/root/etc/banner; \
-		 echo "r$(REV)" >$(KDIR)/root/etc/version; \
+		 echo "$(REV)" >$(KDIR)/root/etc/version; \
 	)
 	if [ ! -L $(KDIR)/root/bin/sh ]; then \
 		ln -fs /bin/dash $(KDIR)/root/bin/sh; \

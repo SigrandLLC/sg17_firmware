@@ -1,16 +1,16 @@
 # $Id: Makefile 3622 2006-04-12 00:34:26Z nico $
-	
+
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ser2net
-PKG_VERSION:=2.3
+PKG_VERSION:=2.7
 PKG_RELEASE:=1
-PKG_MD5SUM:=5f83a3e8aec18331cb61069dccdfba47
- 
+PKG_MD5SUM:=22977477789868923a5de09a85e847dd
+
 PKG_SOURCE_URL:=@SF/ser2net/
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_CAT:=zcat
-	
+
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/ipkg-install
 
@@ -39,11 +39,19 @@ $(PKG_BUILD_DIR)/.built:
 	DESTDIR="$(PKG_INSTALL_DIR)" \
 	all install
 	touch $@
- 
+
 $(IPKG_SER2NET):
 	install -d -m0755 $(IDIR_SER2NET)/usr/sbin
 	cp -fpR $(PKG_INSTALL_DIR)/usr/sbin/ser2net $(IDIR_SER2NET)/usr/sbin
 	install -d -m0755 $(IDIR_SER2NET)/etc
 	cp -fpR $(PKG_BUILD_DIR)/ser2net.conf $(IDIR_SER2NET)/etc
+	#+ for test only
+	install -m0644 ./files/etc/ser2net0.conf  $(IDIR_SER2NET)/etc
+	install -m0644 ./files/etc/ser2net1.conf  $(IDIR_SER2NET)/etc
+	install -d -m0755                         $(IDIR_SER2NET)/etc/init.d
+	install -m0755 ./files/etc/init.d/ser2net $(IDIR_SER2NET)/etc/init.d/ser2net
+	install -m0755 ./files/sercat             $(IDIR_SER2NET)/usr/sbin/sercat
+	#- for test only
 	$(RSTRIP) $(IDIR_SER2NET)
 	$(IPKG_BUILD) $(IDIR_SER2NET) $(PACKAGE_DIR)
+

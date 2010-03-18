@@ -1,0 +1,155 @@
+Adds console-tools/resize from latest busybox (02.03.2010)
+
+--- busybox-1.1.2/include/usage.h.orig	2010-03-02 20:38:12.000000000 +0600
++++ busybox-1.1.2/include/usage.h	2010-03-02 20:44:25.000000000 +0600
+@@ -2596,6 +2596,11 @@
+ #define reset_full_usage \
+ 	"Resets the screen."
+ 
++#define resize_trivial_usage \
++       ""
++#define resize_full_usage "\n\n" \
++       "Resize the screen"
++
+ #define rm_trivial_usage \
+ 	"[OPTION]... FILE..."
+ #define rm_full_usage \
+--- busybox-1.1.2/include/applets.h.orig	2010-03-02 20:38:12.000000000 +0600
++++ busybox-1.1.2/include/applets.h	2010-03-02 20:46:34.000000000 +0600
+@@ -225,6 +225,7 @@ USE_REALPATH(APPLET(realpath, realpath_m
+ USE_HALT(APPLET(reboot, halt_main, _BB_DIR_SBIN, _BB_SUID_NEVER))
+ USE_RENICE(APPLET(renice, renice_main, _BB_DIR_USR_BIN, _BB_SUID_NEVER))
+ USE_RESET(APPLET(reset, reset_main, _BB_DIR_USR_BIN, _BB_SUID_NEVER))
++USE_RESIZE(APPLET(resize, resize_main, _BB_DIR_USR_BIN, _BB_SUID_NEVER))
+ USE_RM(APPLET(rm, rm_main, _BB_DIR_BIN, _BB_SUID_NEVER))
+ USE_RMDIR(APPLET(rmdir, rmdir_main, _BB_DIR_BIN, _BB_SUID_NEVER))
+ USE_RMMOD(APPLET(rmmod, rmmod_main, _BB_DIR_SBIN, _BB_SUID_NEVER))
+--- busybox-1.1.2/console-tools/Config.in.orig	2006-03-23 03:16:20.000000000 +0600
++++ busybox-1.1.2/console-tools/Config.in	2010-03-02 20:49:47.000000000 +0600
+@@ -58,6 +58,23 @@ config CONFIG_RESET
+ 	  This program is used to reset the terminal screen, if it
+ 	  gets messed up.
+ 
++config CONFIG_RESIZE
++	bool "resize"
++	default n
++	help
++	  This program is used to (re)set the width and height of your current
++	  terminal.
++
++config CONFIG_FEATURE_RESIZE_PRINT
++	bool "Print environment variables"
++	default n
++	depends on CONFIG_RESIZE
++	help
++	  Prints the newly set size (number of columns and rows) of
++	  the terminal.
++	  E.g.:
++	  COLUMNS=80;LINES=44;export COLUMNS LINES;
++
+ config CONFIG_SETCONSOLE
+ 	bool "setconsole"
+ 	default n
+--- busybox-1.1.2/console-tools/Makefile.in.orig	2010-03-02 20:48:30.000000000 +0600
++++ busybox-1.1.2/console-tools/Makefile.in	2010-03-02 20:48:44.000000000 +0600
+@@ -20,6 +20,7 @@ CONSOLETOOLS-$(CONFIG_LOADFONT)	+= loadf
+ CONSOLETOOLS-$(CONFIG_LOADKMAP)	+= loadkmap.o
+ CONSOLETOOLS-$(CONFIG_OPENVT)	+= openvt.o
+ CONSOLETOOLS-$(CONFIG_RESET)	+= reset.o
++CONSOLETOOLS-$(CONFIG_RESIZE)	+= resize.o
+ CONSOLETOOLS-$(CONFIG_SETKEYCODES)	+= setkeycodes.o
+ 
+ ifneq ($(strip $(CONSOLETOOLS-y)),)
+--- /dev/null	2010-03-02 14:31:49.155109299 +0600
++++ busybox-1.1.2/console-tools/resize.c	2010-03-02 20:50:50.000000000 +0600
+@@ -0,0 +1,90 @@
++/* vi: set sw=4 ts=4: */
++/*
++ * resize - set terminal width and height.
++ *
++ * Copyright 2006 Bernhard Reutner-Fischer
++ *
++ * Licensed under GPLv2 or later, see file LICENSE in this tarball for details.
++ */
++/* no options, no getopt */
++#include "libbb.h"
++#include <unistd.h>	// STDERR_FILENO
++#include <sys/ioctl.h>	// struct winsize;
++#include <string.h>	// memcpy
++#include <signal.h>	// signal
++
++#define ESC "\033"
++
++#define old_termios_p ((struct termios*)&bb_common_bufsiz1)
++
++static void
++onintr(int sig ATTRIBUTE_UNUSED)
++{
++	tcsetattr(STDERR_FILENO, TCSANOW, old_termios_p);
++	exit(EXIT_FAILURE);
++}
++
++static void bb_signals(int sigs, void (*f)(int))
++{
++	int sig_no = 0;
++	int bit = 1;
++
++	while (sigs) {
++		if (sigs & bit) {
++			sigs &= ~bit;
++			signal(sig_no, f);
++		}
++		sig_no++;
++		bit <<= 1;
++	}
++}
++
++int resize_main(int argc, char **argv) ATTRIBUTE_EXTERNALLY_VISIBLE;
++int resize_main(int argc ATTRIBUTE_UNUSED, char **argv ATTRIBUTE_UNUSED)
++{
++	struct termios new;
++	struct winsize w = { 0, 0, 0, 0 };
++	int ret;
++
++	/* We use _stderr_ in order to make resize usable
++	 * in shell backticks (those redirect stdout away from tty).
++	 * NB: other versions of resize open "/dev/tty"
++	 * and operate on it - should we do the same?
++	 */
++
++	tcgetattr(STDERR_FILENO, old_termios_p); /* fiddle echo */
++	memcpy(&new, old_termios_p, sizeof(new));
++	new.c_cflag |= (CLOCAL | CREAD);
++	new.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
++	bb_signals(0
++		+ (1 << SIGINT)
++		+ (1 << SIGQUIT)
++		+ (1 << SIGTERM)
++		+ (1 << SIGALRM)
++		, onintr);
++	tcsetattr(STDERR_FILENO, TCSANOW, &new);
++
++	/* save_cursor_pos 7
++	 * scroll_whole_screen [r
++	 * put_cursor_waaaay_off [$x;$yH
++	 * get_cursor_pos [6n
++	 * restore_cursor_pos 8
++	 */
++	fprintf(stderr, ESC"7" ESC"[r" ESC"[999;999H" ESC"[6n");
++	alarm(3); /* Just in case terminal won't answer */
++	scanf(ESC"[%hu;%huR", &w.ws_row, &w.ws_col);
++	fprintf(stderr, ESC"8");
++
++	/* BTW, other versions of resize recalculate w.ws_xpixel, ws.ws_ypixel
++	 * by calculating character cell HxW from old values
++	 * (gotten via TIOCGWINSZ) and recomputing *pixel values */
++	ret = ioctl(STDERR_FILENO, TIOCSWINSZ, &w);
++
++	tcsetattr(STDERR_FILENO, TCSANOW, old_termios_p);
++
++	if (ENABLE_FEATURE_RESIZE_PRINT)
++		printf("COLUMNS=%d;LINES=%d;export COLUMNS LINES;\n",
++			w.ws_col, w.ws_row);
++
++	return ret;
++}
