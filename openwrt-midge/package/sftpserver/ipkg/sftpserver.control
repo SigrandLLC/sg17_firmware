@@ -1,0 +1,4 @@
+Package: sftpserver
+Priority: optional
+Section: net
+Description: Drop-in replacement for the OpenSSH sftp server.
