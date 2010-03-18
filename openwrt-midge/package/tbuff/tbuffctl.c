@@ -11,9 +11,8 @@
 
 #include "md5.h"
 #include "kdb.h"
+#include "tbuffd.h"
 
-#define MAX_DATA 100
-#define SOCKET_NAME "/tmp/socket"
 
 int sock, port, size;
 struct timeval tv1, tv2;
@@ -134,6 +133,60 @@ int write_in_port_t (char * d)
 	return 0;
 }
 
+int write_in_port_ch (unsigned char ch)
+{
+	int i = 0;
+	char str[MAX_DATA];
+	sprintf(str, "c;%i;%c;%i;", port, ch, 1);
+	
+	if (write(sock, str, strlen(str)) != (strlen(str)))
+	{
+		printf("Error: cannot write in socket\n");
+		exit(-1);
+	}
+	strcpy(str, "");
+	i = read(sock, &str, 10);
+	if (i <= 0)
+	{
+		printf("Error: cannot read from socket\n");
+		exit(-1);
+	}
+//	printf(">>Debug: answer %i byte = [%s]\n", i, str);
+	if (strcmp(str, "OK") == 0)
+	{
+//		printf("Data successfully sent\n");
+	}
+	return 0;
+}
+
+
+int write_in_port_d ()
+{
+	int i = 0;
+	char str[MAX_DATA];
+	sprintf(str, "d;%i;\b;%i;", port, 100);
+	
+	if (write(sock, str, strlen(str)) != (strlen(str)))
+	{
+		printf("Error: cannot write in socket\n");
+		exit(-1);
+	}
+	strcpy(str, "");
+	i = read(sock, &str, 10);
+	if (i <= 0)
+	{
+		printf("Error: cannot read from socket\n");
+		exit(-1);
+	}
+//	printf(">>Debug: answer %i byte = [%s]\n", i, str);
+	if (strcmp(str, "OK") == 0)
+	{
+//		printf("Data successfully sent\n");
+	}
+	return 0;
+}
+
+
 int read_from_all_ports()
 {
 	char r = 'a';
@@ -159,7 +212,7 @@ int read_from_all_ports()
 //	db_close();
 //	if ((size == 0)||(size > buf_size)) size = buf_size;
 	write(sock, &r, 1);
-	buf = malloc(buf_size*16);
+	buf = malloc(buf_size*MAX_PORTS);
 	gettimeofday(&tv2, NULL);
 //	printf("time1 = %.6f sec.\n", (tv2.tv_sec * 1E6 + tv2.tv_usec - tv1.tv_sec * 1E6 - tv1.tv_usec) / 1E6);
 
@@ -169,13 +222,12 @@ int read_from_all_ports()
 	tv.tv_sec = 0;
 	tv.tv_usec = 500000;
 	select(sock + 1, &ready, NULL, NULL, &tv);
-	// касяк где то рядом...
 	if (FD_ISSET(sock, &ready))
 	{
 //		printf("select %.6f\n", 0.5 - (tv.tv_sec * 1E6 + tv.tv_usec) / 1E6);
-		ret = read(sock, buf, buf_size*16);
+		ret = read(sock, buf, buf_size*MAX_PORTS);
 	} else {
-		ret = read(sock, buf, buf_size*16);
+		ret = read(sock, buf, buf_size*MAX_PORTS);
 	}
 	buf[ret] = 0;
 	gettimeofday(&tv1, NULL);
@@ -277,6 +329,17 @@ int main (int argc, char ** argv)
 				exit(-1);
 			}
 		break;
+		case 'c':
+			if (write_in_port_ch((unsigned char)atoi(argv[3])))
+			{
+				printf("Error: cannot write data in port\n");
+				exit(-1);
+			}
+		break;
+		case 'd':
+			write_in_port_d();
+		break;
+
 		
 	}
 	

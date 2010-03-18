@@ -828,7 +828,6 @@ Controllers.upload = function() {
 
 Controllers.console = function() {
 	var page = this.Page();
-
 	page.addTab({
 		"id": "console",
 		"name": "Console",

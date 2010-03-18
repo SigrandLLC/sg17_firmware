@@ -65,11 +65,10 @@ function Page(p) {
                      */
                     $(".tabs-container").empty();
 
-                    scrollTo(0, 0);
 
                     /* render tab's content */
                     tab.func();
-                    
+					scrollTo(0, 0);
                     /* save selected tab ID in cookie */
                     $.cookie("wf2-tab", tab.id);
                 }, 10);
@@ -1787,7 +1786,14 @@ function addItem(path, name, func, params) {
         } else {
             defaultContext[func]();
         }
-
+//		var el = document.getElementById("status_ajax");
+//		if (func == "terminal")
+//		{
+//			el.style.visibility='hidden';
+//		} else {
+//			el.style.visibility='inherit';
+//		}
+*/
         /* highlight selected item */
         $("a", idMenu).removeClass("clicked");
         $(this).addClass("clicked");

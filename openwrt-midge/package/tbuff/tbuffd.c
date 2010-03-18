@@ -1,26 +1,27 @@
-#include "demon.h"
+#include "tbuffd.h"
 
+int lock_file;
 char iface_name[10];
-int buf_size = 128;
+int buf_size = 4096;
 int sock; // socket for accept connections
 int sockets[NUM_SOCK];
 int numsock;
 struct timeval tv1, tv2;
 int v = 0;
+FILE *log_file;
 
 int bs = 0;
 
-struct port ports[16];
+struct port ports[MAX_PORTS];
 
 int init_port(char * port_name)
 {
-	int i = 0, n;
-	speed_t speed = B115200;
-	struct termios pts, sts;
+	int i, n;
 	char file_name[50] = "/dev/";
 	char *opt;
 	int ret;
 	
+	i = 0;
 	while (port_name[i] != 0)
 	{
 		file_name[i + 5] = port_name[i];
@@ -36,60 +37,10 @@ int init_port(char * port_name)
 	// in n now we have number of port
 	
 	ports[n].fd =  open(file_name, O_RDWR);
-	tcgetattr(ports[n].fd, &pts);
-	memcpy(&ports[n].pots, &pts, sizeof(ports[n].pots));
-	
-	/* some things we want to set arbitrarily */
-	pts.c_lflag &= ~ICANON; 
-	pts.c_lflag &= ~(ECHO | ECHOCTL | ECHONL);
-	pts.c_cflag |= HUPCL;
-	pts.c_cc[VMIN] = 1;
-	pts.c_cc[VTIME] = 0;
-	
-	/* Standard CR/LF handling: this is a dumb terminal.
-	* Do no translation:
-	*  no NL -> CR/NL mapping on output, and
-	*  no CR -> NL mapping on input.
-	*/
-	pts.c_oflag |= ONLCR;
-	pts.c_iflag &= ~ICRNL;
-	/* set hardware flow control by default */
-	pts.c_cflag |= CRTSCTS;
-	pts.c_iflag &= ~(IXON | IXOFF | IXANY);
-	/* set speed */
-	sprintf(file_name, "sys_demon_%s_speed", port_name);
-	ret = kdb_appget(file_name, &opt);
-	switch (atoi(opt))
-	{
-		case 1200:
-			speed = B1200;
-		case 2400:
-			speed = B2400;
-		case 4800:
-			speed = B4800;
-		case 9600:
-			speed = B9600;
-		case 19200:
-			speed = B19200;
-		case 38400:
-			speed = B38400;
-		case 57600:
-			speed = B57600;
-		case 115200:
-			speed = B115200;
-		case 230400:
-			speed = B230400;
-		case 460800:
-			speed = B460800;
-	}
-	cfsetospeed(&pts, speed);
-	cfsetispeed(&pts, speed);
-	tcsetattr(ports[n].fd, TCSANOW, &pts);
-
 	ports[n].buf = malloc(buf_size);
 	ports[n].hbuf = 0;
 	ports[n].tbuf = 0;
-//	ports[n].esc_s = 0;
+	ports[n].esc_s = 0;
 	return 0;
 }
 
@@ -113,7 +64,7 @@ int load_params ()
 	opt[i] = 0;
 	strcpy(iface_name, opt);
 	
-	for (i = 0; i < 16; i++)
+	for (i = 0; i < MAX_PORTS; i++)
 	{
 		char tstr[50];
 		int ret;
@@ -130,7 +81,6 @@ int load_params ()
 	return 0;
 }
 
-
 int read_from_sockets(fd_set ready)
 {
 	int i, p, k, n, w, cnt, ii, po, j;
@@ -143,6 +93,8 @@ int read_from_sockets(fd_set ready)
 				char rq[MAX_DATA];
 				int r = read(sockets[i], rq, MAX_DATA);
 				if (v) printf("from socket readed:(%i byte) %s\n", r, rq);
+//				fprintf(log_file, "from socket readed:(%i byte) %s\n", r, rq);
+//				fflush(log_file);
 				switch (rq[0])
 				{
 					// requets to read
@@ -212,8 +164,26 @@ int read_from_sockets(fd_set ready)
 							ports[p].cmd[r+1] = 10;
 							ports[p].cmd[r+2] = 0;
 							char ch = 13;
+//							fprintf(log_file, "In port write %i byte: [", r);
+//							for (r = 0; r < n + 1; r++)
+//							{
+//								fprintf(log_file, "%x ", rq[w+r]);
+//							}
+							if (v)
+							{
+								printf("In port write %i byte: [", r);
+								for (r = 0; r < n + 1; r++)
+								{
+									printf("%x ", rq[w+r]);
+								}
+							}
+
 							r = write(ports[p].fd, &rq[w], n + 1);
 							write(ports[p].fd, &ch, 1);
+
+//							fprintf(log_file, "]\n");
+//							fflush(log_file);
+							if (v) printf("]\n");
 							
 							sprintf(rq, "OK");
 							r = write(sockets[i], rq, 3);
@@ -242,7 +212,10 @@ int read_from_sockets(fd_set ready)
 							
 							r = write(ports[p].fd, &rq[w], n); // n + 1
 							char ch = '\t';
-///							write(ports[p].fd, &ch, 1);
+							write(ports[p].fd, &ch, 1);
+//							ch = 13;
+//							write(ports[p].fd, &ch, 1);
+
 //							rq[0] = 0x1B;
 //							rq[1] = 0x5B;
 //							rq[2] = 0x35;
@@ -268,13 +241,83 @@ int read_from_sockets(fd_set ready)
 						close(sockets[i]);
 						sockets[i] = 0;
 					break;
+					// write char in port
+					case 'c':
+						if (ports[atoi(&rq[2])].fd != -1)
+						{
+							p = atoi(&rq[2]);
+							k = 2;
+							while (rq[k] != ';') k++;
+							k++;
+							w = k;
+							while (rq[k] != ';') k++;
+							rq[k] = 0;
+							k++;
+							n = atoi(&rq[k]) - 1;
+							
+							r = write(ports[p].fd, &rq[w], 1);
+
+							sprintf(rq, "OK");
+							r = write(sockets[i], rq, 3);
+						} else {
+							tstr = malloc(100);
+							sprintf(tstr, "We do not listen requsted port, enable it in kdb\n");
+							write(sockets[i], tstr, strlen(tstr)+1);
+							free(tstr);
+						}
+						close(sockets[i]);
+						sockets[i] = 0;
+					break;
+
+					case 'd':
+						if (ports[atoi(&rq[2])].fd != -1)
+						{
+							p = atoi(&rq[2]);
+							k = 2;
+							while (rq[k] != ';') k++;
+							k++;
+							w = k;
+							while (rq[k] != ';') k++;
+							rq[k] = 0;
+							k++;
+							n = atoi(&rq[k]) - 1;
+							
+							
+							for (k = 0; k < 100; k++)
+							{
+								rq[0] = '\b';
+								r = write(ports[p].fd, &rq[0], 1);
+/*								r = read(ports[p].fd, &rq[0], 1);
+								if (v)
+								{
+									printf("--->>>>>>");
+									for (w = 0; w < r; w++)
+									{
+										printf("%x ", rq[w]);
+									}
+									printf("\n");
+								}*/
+							}
+							sprintf(rq, "OK");
+							r = write(sockets[i], rq, 3);
+						} else {
+							tstr = malloc(100);
+							sprintf(tstr, "We do not listen requsted port, enable it in kdb\n");
+							write(sockets[i], tstr, strlen(tstr)+1);
+							free(tstr);
+						}
+						close(sockets[i]);
+						sockets[i] = 0;
+					break;
+
+
 					// requets to read all
 					case 'a':
 						cnt = 0;
-						tbuff = malloc(buf_size*16);
+						tbuff = malloc(buf_size*MAX_PORTS);
 						po = sprintf(&tbuff[cnt], "{\"ttylist\":[");
 						cnt+=po;
-						for (j = 0; j < 16; j++)
+						for (j = 0; j < MAX_PORTS; j++)
 						{
 //							if (v) printf("port %i fd = %i tbuf = %i hbuf = %i\n", j, ports[j].fd, ports[j].tbuf, ports[j].hbuf);
 							if ((ports[j].fd > 0) && (ports[j].tbuf != ports[j].hbuf))
@@ -399,7 +442,7 @@ int loop()
 		FD_SET(sock, &ready);
 		maxfd = sock;
 	
-		for (i = 0; i < 16; i++)
+		for (i = 0; i < MAX_PORTS; i++)
 		{
 			if (ports[i].fd > maxfd) maxfd = ports[i].fd;
 			if (ports[i].fd > 0) FD_SET(ports[i].fd, &ready);
@@ -446,7 +489,7 @@ int loop()
 		read_from_sockets(ready);
 		
 		//read data from device on ports
-		for (i = 0; i < 16; i++)
+		for (i = 0; i < MAX_PORTS; i++)
 		{
 			if ((ports[i].fd > 0) && (FD_ISSET(ports[i].fd, &ready)))
 			{
@@ -497,15 +540,20 @@ int loop()
 						}
 					}
 					if (v) printf("from port readed (%i byte): ", rb);
+//					fprintf(log_file, "from port readed (%i byte): ", rb);
+//					fflush(log_file);
 					for (; qw < rb; qw++)
 					{
 							char a = tbuf[qw];
-							if (v) printf("%x", tbuf[qw]);
 							
+							if (v) printf("%x", tbuf[qw]);
 							if ((v) && ((a >= '0') && (a <= '9') || (a >= 'a') && (a <= 'z') || (a >= 'A') && (a <= 'Z') || (a == '_')))
-							printf("[%c]", a);
-							printf(" ");
-
+							if (v) printf("[%c]", a);
+							if (v) printf(" ");
+//							fprintf(log_file, "%x", tbuf[qw]);
+//							if (((a >= '0') && (a <= '9') || (a >= 'a') && (a <= 'z') || (a >= 'A') && (a <= 'Z') || (a == '_'))) fprintf(log_file, "[%c]", a);
+//							fprintf(log_file, " ");
+//							fflush(log_file);
 							switch (out(tbuf[qw], &ports[i]))
 							{
 							case 1:
@@ -519,6 +567,8 @@ int loop()
 							}
 					}
 					if (v) printf("\n");
+//					fprintf(log_file, "\n");
+//					fflush(log_file);
 					for (qw = ports[i].tbuf; qw != ports[i].hbuf; qw++)
 					{
 						if (qw == buf_size) qw = 0;
@@ -561,7 +611,7 @@ int close_port(int p)
 int close_all_ports()
 {
 	int i;
-	for (i = 0; i< 16; i++)
+	for (i = 0; i< MAX_PORTS; i++)
 	{
 		close_port(i);
 	}
@@ -583,23 +633,46 @@ int close_all_sock ()
 
 void handler (int i)
 {
+//	fclose(log_file);
 	close_all_ports ();
 	close_all_sock ();
+	close(lock_file);
+	unlink("/var/run/tbuffd.pid");
 	exit(0);
 }
 
 int main (int argc, char **argv)
 {
-	int pid, i;
+	pid_t pid, i;
 	struct sigaction sa;
 	
+	lock_file = open("/var/run/tbuffd.pid", O_CREAT | O_EXCL | O_RDWR);
+	if (lock_file == -1)
+	{
+		FILE * lf = fopen("/var/run/tbuffd.pid", "r");
+		fscanf(lf, "%i", &pid);
+		if (v) printf("file locked by process with pid=%i\n", pid);
+		fclose(lf);
+		if (!kill(pid, 0))
+		{
+			return 0;
+		}
+		if (v) printf("this process does not exist!!\n");
+		unlink("/var/run/tbuffd.pid");
+		lock_file = open("/var/run/tbuffd.pid", O_CREAT | O_EXCL | O_RDWR);
+	}
+	
+//	log_file = fopen("/root/log", "w+");
+//	fprintf(log_file, "demon started-----------------\n");
+//	fflush(log_file);
+//	if (log_file <= 0) printf("log error\n");
 	if (argc > 1)
 	{
 		v = 1;
 		sa.sa_handler = handler;
 		sigaction(SIGTERM, &sa, 0);
 		sigaction(SIGINT, &sa, 0);
-		for (i = 0; i < 16; i++)
+		for (i = 0; i < MAX_PORTS; i++)
 		{
 			ports[i].fd = -1;
 		}
@@ -607,29 +680,30 @@ int main (int argc, char **argv)
 		init_socket();
 		loop();
 		
-	} else
-	{
-
-	pid = fork();
-	if (pid == 0)
-	{
-		setsid();
-		chdir("/");
-		close(0);
-		close(1);
-		close(2);
-		sa.sa_handler = handler;
-		sigaction(SIGTERM, &sa, 0);
-
-		for (i = 0; i < 16; i++)
+	} else {
+		pid = fork();
+		if (pid == 0)
 		{
-			ports[i].fd = -1;
+			setsid();
+			chdir("/");
+			close(0);
+			close(1);
+			close(2);
+			sa.sa_handler = handler;
+			sigaction(SIGTERM, &sa, 0);
+			sigaction(SIGINT, &sa, 0);
+			for (i = 0; i < MAX_PORTS; i++)
+			{
+				ports[i].fd = -1;
+			}
+			load_params();
+			init_socket();
+			loop();
+		} else {
+			FILE * lf = fopen("/var/run/tbuffd.pid", "w+");
+			fprintf(lf, "%i\n", pid);
+			fclose(lf);
 		}
-		load_params();
-		init_socket();
-		loop();
-	}
-	
 	}
 	return 0;
 }
