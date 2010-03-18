@@ -49,6 +49,7 @@ package-$(BR2_PACKAGE_DHCP_FORWARDER) += dhcp-forwarder
 package-$(BR2_PACKAGE_DNSMASQ) += dnsmasq
 package-$(BR2_PACKAGE_DOSFSTOOLS) += dosfstools
 package-$(BR2_PACKAGE_DROPBEAR) += dropbear
+package-$(BR2_PACKAGE_SFTPSERVER) += sftpserver
 package-$(BR2_PACKAGE_DSNIFF) += dsniff
 package-$(BR2_PACKAGE_E2FSPROGS) += e2fsprogs
 package-$(BR2_PACKAGE_EBTABLES) += ebtables
@@ -385,7 +386,7 @@ $(TARGET_DIR):
 	@$(CMD_TRACE) " done"
 	@$(END_TRACE)
 
-%-rebuild: 
+%-rebuild:
 	@$(START_TRACE) "package/$(patsubst %-rebuild,%,$@)-rebuild: "
 	@rm -f $(STAMP_DIR)/.$(patsubst %-rebuild,%,$@)-*
 	$(MAKE) -C $(patsubst %-rebuild,%,$@) rebuild
