@@ -92,6 +92,7 @@ rsync-compile: popt-compile
 scanlogd-compile: libpcap-compile libnids-compile libnet-compile
 scdp-compile: libnet-compile
 screen-compile: ncurses-compile
+sftpserver-compile: libiconv-install
 sipp-compile: ncurses-compile uclibc++-compile libpthread-compile
 siproxd-compile: libosip2-compile
 sipsak-compile: openssl-compile
