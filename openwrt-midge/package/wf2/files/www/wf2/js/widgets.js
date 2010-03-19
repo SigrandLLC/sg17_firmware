@@ -1786,14 +1786,7 @@ function addItem(path, name, func, params) {
         } else {
             defaultContext[func]();
         }
-//		var el = document.getElementById("status_ajax");
-//		if (func == "terminal")
-//		{
-//			el.style.visibility='hidden';
-//		} else {
-//			el.style.visibility='inherit';
-//		}
-*/
+
         /* highlight selected item */
         $("a", idMenu).removeClass("clicked");
         $(this).addClass("clicked");

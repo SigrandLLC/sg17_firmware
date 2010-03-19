@@ -191,36 +191,54 @@ Controllers.terminal = function ()
 						consoleDivs[iface].scrollTo('100%', 0);
 						var ch;
 //						alert(src.keyCode);
-/*
+
 						// Tab
 						if (src.keyCode == 9)
 						{
-							block2 = 1;
+							block3 = 1;
+							func_en = 0;
 							config.cmdExecute({
 								"cmd": $.sprintf("/sbin/tbuffctl -p%s -t \"%s\"", iface, cmd2),
 							});
-						
+							
 							setTimeout(function () {
 								config.cmdExecute({
 									"cmd": $.sprintf("/sbin/tbuffctl -p%s -r 0", iface),
 									"callback": function(data) {
 										var str = new String(data);
-										alert(str.length);
+										var str2 = new String("");
+										var last_space = 0;
+										var b, e;
+										for (i = 0; i < str.length; i++) str2 = str2 + str.charCodeAt(i) + "[" + str.charAt(i) + "] ";
+										alert("data = "+str2);
+
+										for (b = cmd2.length; b < str.length; b++)
+										{
+											if ((str.charCodeAt(b) != 8) && (str.charCodeAt(b) != 10) && (str.charCodeAt(b) != 13)) break;
+										}
+										for (e = str.length; e > b; e--)
+										{
+											if ((str.charCodeAt(e) != 8) && (str.charCodeAt(e) != 10) && (str.charCodeAt(e) != 13)) break;
+										}
+										alert("substring = "+str.substring(b, e));
+
 										cmd2 = "";//data;
-										cmdSpans[iface].text(data);
-										block2 = 0;
+										cmdSpans[iface].text("");//data);
+										block3 = 0;
+										func_en = 1;
+										func();
 									}
 								});
 								config.cmdExecute({
 									"cmd": $.sprintf("/sbin/tbuffctl -p%s -d", iface),
 								});
 
-							}, 50);
+							}, 500);
 
 							
 							return false;
 						}
-*/
+
 						// Enter
 						if (src.keyCode == 13) {
 							if (!block)
@@ -293,5 +311,5 @@ Controllers.terminal = function ()
 	}); //each 
 	
     page.generateTabs();
-	
+
 };
