@@ -878,7 +878,8 @@ Controllers.console = function() {
 							/* add new span for command text */
 							cmdSpan = $.create("span").insertBefore(cursor);
 							
-							consoleDiv.scrollTo($("#bottomAnchor"), 700);
+							consoleDiv.scrollTo('100%', 0);
+//							consoleDiv.scrollTo($("#bottomAnchor"), 700);
 						}
 					});
 
@@ -890,7 +891,8 @@ Controllers.console = function() {
 
 					cursor.before("<br/>");
 					cursor.before($.create("span", {"id": "executingCmd"}, _("executing command...")));
-					consoleDiv.scrollTo($("#bottomAnchor"), 700);
+					consoleDiv.scrollTo('100%', 0);
+//					consoleDiv.scrollTo($("#bottomAnchor"), 700);
 
 					/* disable statndart event handler */
 					return false;

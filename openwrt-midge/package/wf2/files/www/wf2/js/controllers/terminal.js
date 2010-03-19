@@ -4,8 +4,9 @@ var cursors = new Array(16);
 var consoleDivs = new Array(16);
 var cmdSpans = new Array(16);
 var t0 = 0, t1, t2, t3;
-var block = new Array(16);
+var block = 0;
 var block2 = 0;
+var block3 = 0;
 var func_en = 0;
 
 Controllers.terminal = function ()
@@ -112,7 +113,7 @@ Controllers.terminal = function ()
 
 
 	var func = function() {
-		if (!block2)
+		if (!block3)
 		{
 		t2 = new Date().getTime();
 		config.cmdExecute({
@@ -132,7 +133,9 @@ Controllers.terminal = function ()
 							
 							setTimeout(function () {consoleDivs[value.dev].scrollTo('100%', 0);}, 10);
 							
-							block[value.dev] = 0;
+//							setTimeout(function () {
+								block = 0;
+//							}, 100);
 							
 							t3 = new Date().getTime();
 //							if (t0 != 0) alert((t1-t0)/1000 + " " + (t2-t1)/1000 + " " + (t3-t2)/1000);
@@ -184,10 +187,11 @@ Controllers.terminal = function ()
 					$.create("span", {"id": $.sprintf("bottomAnchor%s", iface)}, "&nbsp;").appendTo(p);
 
 					var onKeypress = function(src) {
+						if (block) return false;
 						consoleDivs[iface].scrollTo('100%', 0);
 						var ch;
 //						alert(src.keyCode);
-
+/*
 						// Tab
 						if (src.keyCode == 9)
 						{
@@ -216,11 +220,17 @@ Controllers.terminal = function ()
 							
 							return false;
 						}
+*/
 						// Enter
 						if (src.keyCode == 13) {
-							if (!block[iface])
+							if (!block)
 							{
-							block[iface] = 1;
+								block = 1;
+								block3 = 1;
+								setTimeout(function () {
+//									block = 0;
+									block3 = 0;
+								}, 5000);
 						
 							if (buf[iface] == undefined) buf[iface] = cmd2; else buf[iface] += cmd2;
 							buf[iface] += "<br>";
@@ -231,10 +241,11 @@ Controllers.terminal = function ()
 								"callback": function(data) {
 									cursors[iface].before("<br>");
 									cmdSpans[iface] = $.create("span").insertBefore(cursors[iface]);
+									block3 = 0;
 								}
 							});
 							
-							}
+							} else return true;
 							
 							t1 = new Date().getTime();
 							cmd2 = "";
