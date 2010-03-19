@@ -20,6 +20,7 @@ int init_port(char * port_name)
 	char file_name[50] = "/dev/";
 	char *opt;
 	int ret;
+	struct termios pts;
 	
 	i = 0;
 	while (port_name[i] != 0)
@@ -37,6 +38,28 @@ int init_port(char * port_name)
 	// in n now we have number of port
 	
 	ports[n].fd =  open(file_name, O_RDWR);
+	tcgetattr(ports[n].fd, &pts);
+	memcpy(&ports[n].pots, &pts, sizeof(ports[n].pots));
+	
+	/* some things we want to set arbitrarily */
+	pts.c_lflag &= ~ICANON; 
+	pts.c_lflag &= ~(ECHO | ECHOCTL | ECHONL);
+	pts.c_cflag |= HUPCL;
+	pts.c_cc[VMIN] = 1;
+	pts.c_cc[VTIME] = 0;
+	
+	/* Standard CR/LF handling: this is a dumb terminal.
+	* Do no translation:
+	*  no NL -> CR/NL mapping on output, and
+	*  no CR -> NL mapping on input.
+	*/
+	pts.c_oflag |= ONLCR;
+	pts.c_iflag &= ~ICRNL;
+	/* set hardware flow control by default */
+	pts.c_cflag |= CRTSCTS;
+	pts.c_iflag &= ~(IXON | IXOFF | IXANY);
+	tcsetattr(ports[n].fd, TCSANOW, &pts);
+
 	ports[n].buf = malloc(buf_size);
 	ports[n].hbuf = 0;
 	ports[n].tbuf = 0;
@@ -601,6 +624,7 @@ int close_port(int p)
 {
 	if (ports[p].fd != 0)
 	{
+		tcsetattr(ports[p].fd, TCSANOW, &ports[p].pots);
 		if (close(ports[p].fd) < 0) return -1;
 		ports[p].hbuf = 0;
 		free(ports[p].buf);
