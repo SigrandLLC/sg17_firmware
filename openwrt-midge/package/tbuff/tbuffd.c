@@ -624,7 +624,7 @@ int close_port(int p)
 {
 	if (ports[p].fd != 0)
 	{
-		tcsetattr(ports[p].fd, TCSANOW, &ports[p].pots);
+//		tcsetattr(ports[p].fd, TCSANOW, &ports[p].pots);
 		if (close(ports[p].fd) < 0) return -1;
 		ports[p].hbuf = 0;
 		free(ports[p].buf);

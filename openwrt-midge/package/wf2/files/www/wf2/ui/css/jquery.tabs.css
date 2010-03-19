@@ -76,7 +76,7 @@
     height: auto;
 }
 .tabs-nav .tabs-selected a span {
-    padding-top: 7px;
+    padding-top: 6px;/* 7px */
 }
 .tabs-nav .tabs-selected a span, .tabs-nav a:hover span, .tabs-nav a:focus span, .tabs-nav a:active span {
     background-position: 0 -50px;
