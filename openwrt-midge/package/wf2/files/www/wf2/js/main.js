@@ -19,6 +19,7 @@ function generateMenu() {
     addItem("Services", "DNS server", "dns_server");
     addItem("Services", "Dial-in", "dialin");
     addItem("Services", "Terminal", "terminal");
+    addItem("Services", "RS-232 over IP", "ser2net");
 
     /* if we have support for linkdeps */
     if (config.getCachedOutput("linkdeps") == "1") {
@@ -60,7 +61,7 @@ function generateMenu() {
             ifaceInfo = [];
             config.saveData(type, ifaceInfo);
         }
-        
+
         /* go through ifaces of this slot */
         $.each(ifaces, function(num, iface) {
             /* add info about this interface */
@@ -130,7 +131,7 @@ var wf2Logs = new function() {
 
     this.addLog = function(title, text) {
         this.logs.push({"title": title, "text": text});
-        
+
         /* rotate log */
         if (this.logs.length > logsMax) {
             this.logs = this.logs.slice(this.logs.length - logsNum);
@@ -178,14 +179,14 @@ $(document).ready(function() {
             Controllers.debug();
         }
     });
-    
+
     /* add status bar content */
     $("#status").html(
         $.sprintf("%s: <b>%s</b>, %s: <b><span id='status_state'>%s</span></b>, %s: <b><span id='status_tasks'>%s</span></b>, %s: <b><span id='status_ajax'>%s</span></b>",
             _("Hostname"), config.get("sys_hostname"), _("status"), _("online"), _("tasks"), _("none"),
             _("ajax"), _("none"))
     );
-    
+
     /* add status bar tip */
     $("#status").attr("title",
         _("|<ul><li>Hostname - device's hostname;</li><li>Status - is device online or offline;</li><li>Tasks - number of performing and queuened tasks;</li><li>Ajax - number of active ajax requests.</li></ul><br>You can click here with CTRL pressed to open debug panel.")
@@ -194,7 +195,7 @@ $(document).ready(function() {
     /* call info controller when all config.runCmd will be finished */
     config.onCmdCacheFinish(function() {
         generateMenu();
-        
+
         config.onCmdCacheFinish(function() {
             Controllers.info();
 
@@ -203,3 +204,4 @@ $(document).ready(function() {
         });
     });
 });
+
