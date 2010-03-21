@@ -700,6 +700,24 @@ Controllers.rs232 = function(node, pcislot, pcidev) {
 
 			field = {
 				"type": "select",
+				"name": $.sprintf("sys_pcicfg_s%s_%s_xonxoff", pcislot, pcidev),
+				"text": "Software Flow control",
+				"options": {"-ixon": "off", "ixon": "on"},
+				"defaultValue": "ixon"
+			};
+			c.addWidget(field);
+
+			field = {
+				"type": "select",
+				"name": $.sprintf("sys_pcicfg_s%s_%s_clocal", pcislot, pcidev),
+				"text": "Enable modem control signals",
+				"options": {"-clocal": "on", "clocal": "off"},
+				"defaultValue": "clocal"
+			};
+			c.addWidget(field);
+
+			field = {
+				"type": "select",
 				"name": $.sprintf("sys_pcicfg_s%s_%s_sigfwd", pcislot, pcidev),
 				"text": "Forward Modem Signals",
 				"options": {"0": "off", "1": "on"}
