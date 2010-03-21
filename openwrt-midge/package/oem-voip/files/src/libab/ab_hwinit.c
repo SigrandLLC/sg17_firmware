@@ -886,7 +886,7 @@ dev_gpio_reset (ab_dev_t const * const dev)
 	if(err){
 		ab_g_err_idx = AB_ERR_UNKNOWN;
 		sprintf(ab_g_err_str, "%s() ERROR : FIO_VINETIC_GPIO_RESERVE",__func__);
-		goto __exit_fail_close;
+		goto __exit_fail;
 	}
 	/* now gpio contains the iohandle required for subsequent accesses */
 	/* select pins 3,7 --> set to ’1’*/
@@ -920,13 +920,11 @@ dev_gpio_reset (ab_dev_t const * const dev)
 		goto __exit_fail_release;
 	}
 
-	close(fd_dev);
 	return 0;
 
 __exit_fail_release:
 	ioctl(fd_dev, FIO_VINETIC_GPIO_RELEASE, &gpio);
-__exit_fail_close:
-	close(fd_dev);
+__exit_fail:
 	return -1;
 }/*}}}*/
 
