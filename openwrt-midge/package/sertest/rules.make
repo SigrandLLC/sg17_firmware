@@ -197,11 +197,7 @@ distclean: clean pre_subdirs post_subdirs
 
 
 
-all: pre_subdirs .cvsignore post_subdirs
-.cvsignore: $(MAKEFILE_LIST) $(SRCS)
-	@echo "> Generating .cvsignore"; \
-	 echo .cvsignore *.dep *.o *.a *.lo *.so *.so.[1-9] \
-		$(CLEAN_FILES) $(BIN_NAMES) $(BIN_NAME) TAGS > $@
+all: pre_subdirs post_subdirs
 
 
 _depclean:
@@ -218,7 +214,7 @@ ifeq "$(deps)" ""
   DONT_INCLUDE_DEPS = defined
 endif
 
-ifneq "$(filter %clean %_uninstall doc_% include_% .cvsignore dist% none,$(MAKECMDGOALS))" ""
+ifneq "$(filter %clean %_uninstall doc_% include_% dist% none,$(MAKECMDGOALS))" ""
   DONT_INCLUDE_DEPS = defined
 endif
 
