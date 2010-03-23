@@ -8,12 +8,14 @@ Controllers.ser2net = function ()
 		"name": "Options",
 		"func": function()
 		{
-			var colSpan = 6;
+			var colSpan = 5;
+			var c0 = page.addContainer("options");
 			var c = page.addContainer("options");
 
-			c.addTitle("Options", {"colspan": colSpan});
+			c0.addTitle("Options", {"colspan": colSpan});
 
-			c.addTableHeader("Device|Enable|Listening Port|Timeout|Host|Port");
+			c0.addTableHeader("Device |||Listening on|Connect to");
+			c.addTableHeader("Device|Enable|Timeout||Host|Port||Host|Port|Enable");
 
 			var ifaces = config.getData(config.getOEM("MR17S_DRVNAME"));
 
@@ -37,16 +39,38 @@ Controllers.ser2net = function ()
 				c.addTableWidget(field, row);
 
 				field = {
+					"type" : "text",
+					"name" : $.sprintf("sys_ser2net_%s_timeout", iface)
+				};
+				c.addTableWidget(field, row);
+
+				//br
+				field = {
+					"type": "html",
+					"str": ""
+				};
+				c.addTableWidget(field, row);
+
+
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_ser2net_%s_listen_host", iface)
+				};
+				c.addTableWidget(field, row);
+
+				field = {
 					"type": "text",
 					"name": $.sprintf("sys_ser2net_%s_listen_port", iface)
 				};
 				c.addTableWidget(field, row);
 
+				//br
 				field = {
-					"type" : "text",
-					"name" : $.sprintf("sys_ser2net_%s_timeout", iface)
+					"type": "html",
+					"str": ""
 				};
 				c.addTableWidget(field, row);
+
 
 				field = {
 					"type" : "text",
@@ -60,7 +84,11 @@ Controllers.ser2net = function ()
 				};
 				c.addTableWidget(field, row);
 
-
+				field = {
+					"type" : "checkbox",
+					"name" : $.sprintf("sys_ser2net_%s_socat_enable", iface),
+				};
+				c.addTableWidget(field, row);
 
 			});
 
