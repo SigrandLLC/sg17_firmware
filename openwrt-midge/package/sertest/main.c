@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <string.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <termios.h>
 
 
@@ -25,45 +26,62 @@ static void usage(void)
 }
 
 
-static int infd = -1, rsfd = -1;
-static struct termios saved_stdin_tattr;
-static struct termios saved_rs232_tattr;
+enum DeviceIndex { INPUT=0, RS232=1 };
+enum { NDEVICES = 2 };
+
+static const char     *names[NDEVICES];
+static struct termios tattrs[NDEVICES];
+static struct pollfd     fds[NDEVICES];
+
+static void devs_init(void)
+{
+    memset(tattrs, 0, sizeof(tattrs));
+    memset(fds   , 0, sizeof(fds   ));
+
+    names[INPUT] = "stdin";
+    names[RS232] = "rs232";
+      fds[INPUT].fd = -1;
+      fds[RS232].fd = -1;
+      fds[INPUT].events = POLLIN;
+      fds[RS232].events = POLLIN;
+}
+
 
 static void restore(void)
 {
-    if (infd >= 0) tcsetattr(infd, TCSANOW, &saved_stdin_tattr);
-    if (rsfd >= 0) tcsetattr(rsfd, TCSANOW, &saved_rs232_tattr);
+    if (fds[INPUT].fd >= 0) tcsetattr(fds[INPUT].fd, TCSANOW, &tattrs[INPUT]);
+    if (fds[RS232].fd >= 0) tcsetattr(fds[RS232].fd, TCSANOW, &tattrs[RS232]);
 }
 
-static void _setmode(const char *name, int fd, struct termios *save_tattr)
+static void _setmode(enum DeviceIndex i)
 {
-    int rc = tcgetattr(fd, save_tattr);
+    int rc = tcgetattr(fds[i].fd, &tattrs[i]);
     if (rc != 0)
     {
         restore();
-	error(EXIT_FAILURE, errno, "%s tcgetattr", name);
+	error(EXIT_FAILURE, errno, "%s tcgetattr", names[i]);
     }
 
     struct termios tattr;
 
-    memcpy(&tattr, save_tattr, sizeof(tattr));
+    memcpy(&tattr, &tattrs[i], sizeof(tattr));
 
     cfmakeraw(&tattr);
     tattr.c_cc[VMIN]  = 1;
     tattr.c_cc[VTIME] = 0;
 
-    rc = tcsetattr(fd, TCSANOW, &tattr);
+    rc = tcsetattr(fds[i].fd, TCSANOW, &tattr);
     if (rc != 0)
     {
         restore();
-	error(EXIT_FAILURE, errno, "%s tcsetattr", name);
+	error(EXIT_FAILURE, errno, "%s tcsetattr", names[i]);
     }
 }
 
 static void setmode(void)
 {
-    _setmode("stdin", infd, &saved_stdin_tattr);
-    _setmode("rs232", rsfd, &saved_rs232_tattr);
+    _setmode( INPUT );
+    _setmode( RS232 );
 }
 
 
@@ -74,16 +92,18 @@ int main(int ac, char *av[])
 
     int rc;
 
-    rsfd = open(av[1], O_RDWR | O_NOCTTY);
-    if (rsfd < 0)
+    devs_init();
+
+    fds[RS232].fd = open(av[1], O_RDWR | O_NOCTTY);
+    if (fds[RS232].fd < 0)
 	error(EXIT_FAILURE, 0, "can't open %s", av[1]);
 
-    rc = isatty(rsfd);
+    rc = isatty(fds[RS232].fd);
     if (rc < 1)
 	error(EXIT_FAILURE, 0, "%s is not a tty", av[1]);
 
-    infd = STDIN_FILENO;
-    rc = isatty(infd);
+    fds[INPUT].fd = STDIN_FILENO;
+    rc = isatty(fds[INPUT].fd);
     if (rc < 1)
 	error(EXIT_FAILURE, 0, "stdin is not a tty");
 
@@ -95,28 +115,45 @@ int main(int ac, char *av[])
     do
     {
 	int c;
-	fputs("press any key ... ", stdout); fflush(stdout);
 
-	ssize_t l = read(infd, &c, 1);
-	if (l < 0)
+	//fputs("press any key ... ", stdout); fflush(stdout);
+
+	rc = poll(fds, NDEVICES, -1);
+
+	if (rc < 0)
 	{
             restore();
-	    error(EXIT_FAILURE, errno, "read");
+	    error(EXIT_FAILURE, errno, "poll");
 	}
-	if (l == 0)
+        if (rc == 0)
 	{
-            c = 0;
-            fprintf(stderr, "EOF\r\n");
+            restore();
+	    error(EXIT_FAILURE, 0, "poll timeout\n");
 	}
-	else
+
+        if (fds[INPUT].revents & POLLIN)
 	{
-	    printf("thanks: '%c' : %d\r\n", c, c); fflush(stdout);
-	    if (c == 3 && old_c == 3)
+	    ssize_t l = read(fds[INPUT].fd, &c, 1);
+	    if (l < 0)
 	    {
-		fprintf(stderr, "Double ^C, exit\r\n");
-		break;
+		restore();
+		error(EXIT_FAILURE, errno, "read");
 	    }
-	    old_c = c;
+	    if (l == 0)
+	    {
+		c = 0;
+		fprintf(stderr, "Input: EOF\r\n");
+	    }
+	    else
+	    {
+		printf("Input: '%c' : %d\r\n", c, c); fflush(stdout);
+		if (c == 3 && old_c == 3)
+		{
+		    fprintf(stderr, "Input: Double ^C, exit\r\n");
+		    break;
+		}
+		old_c = c;
+	    }
 	}
 
     } while (1);
