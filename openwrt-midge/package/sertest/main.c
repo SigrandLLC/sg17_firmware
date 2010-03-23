@@ -125,7 +125,7 @@ int main(int ac, char *av[])
             restore();
 	    error(EXIT_FAILURE, errno, "poll");
 	}
-        if (rc == 0)
+        else if (rc == 0)
 	{
             restore();
 	    error(EXIT_FAILURE, 0, "poll timeout\n");
@@ -137,22 +137,48 @@ int main(int ac, char *av[])
 	    if (l < 0)
 	    {
 		restore();
-		error(EXIT_FAILURE, errno, "read");
+		error(EXIT_FAILURE, errno, "Input read");
 	    }
-	    if (l == 0)
+	    else if (l == 0)
 	    {
 		c = 0;
-		fprintf(stderr, "Input: EOF\r\n");
+		printf("Input: EOF\r\n");
 	    }
 	    else
 	    {
-		printf("Input: '%c' : %d\r\n", c, c); fflush(stdout);
+		printf("Input: '%c' : %d\r\n", c<040?' ':c, c); fflush(stdout);
+
+		rc = write(fds[RS232].fd, &c, 1);
+                if (rc < 0)
+		    error(EXIT_SUCCESS, errno, "RS232 write");
+                else if (rc == 0)
+		    error(EXIT_SUCCESS, errno, "RS232 write: 0 written\r\n");
+
 		if (c == 3 && old_c == 3)
 		{
 		    fprintf(stderr, "Input: Double ^C, exit\r\n");
 		    break;
 		}
 		old_c = c;
+	    }
+	}
+
+	if (fds[RS232].revents & POLLIN)
+	{
+	    ssize_t l = read(fds[RS232].fd, &c, 1);
+	    if (l < 0)
+	    {
+		restore();
+		error(EXIT_FAILURE, errno, "RS232 read");
+	    }
+	    else if (l == 0)
+	    {
+		c = 0;
+		fprintf(stderr, "RS232: EOF\r\n");
+	    }
+	    else
+	    {
+		printf("RS232: '%c' : %d\r\n", c<040?' ':c, c); fflush(stdout);
 	    }
 	}
 
