@@ -19,7 +19,6 @@ function generateMenu() {
     addItem("Services", "DNS server", "dns_server");
     addItem("Services", "Dial-in", "dialin");
     addItem("Services", "Terminal", "terminal");
-    addItem("Services", "RS-232 over IP", "ser2net");
 
     /* if we have support for linkdeps */
     if (config.getCachedOutput("linkdeps") == "1") {
@@ -98,6 +97,7 @@ function generateMenu() {
                                 iface), $.sprintf("rs232Type_%s", pcislot));
                     }
                     addItem("Hardware:RS232", iface, "rs232", [iface, pcislot, num]);
+                    addItem("Services:RS-232 over IP", iface, "rs232ip", [iface, pcislot, num]);
                     break;
             }
         });
