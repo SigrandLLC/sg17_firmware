@@ -4,30 +4,30 @@
 function Page(p) {
     /* prefix to tab's id */
     var tabIdPrefix = "tab_";
-    
+
     /* pointer to the first link for a tab */
     var firstTab = null;
-    
+
     /* clear container */
     $(p).empty();
-    
+
     /* array with tabs' info */
     this.tabsInfo = [];
-    
+
     /* common for all tabs subsystem and help */
     this.subsystem = null;
     this.helpPage = null;
-    
+
     /* set subsystem common for all tabs */
     this.setSubsystem = function(subsystem) {
         this.subsystem = subsystem;
     };
-    
+
     /* Set help page common for all tabs. Help section is set to the id of tab */
     this.setHelpPage = function(helpPage) {
         this.helpPage = helpPage;
     };
-    
+
     /*
      * Add tab.
      * - tab: tab.id — id of the tab;
@@ -37,12 +37,12 @@ function Page(p) {
     this.addTab = function(tab) {
         this.tabsInfo.push(tab);
     };
-    
+
     /* generate tabs' links and divs */
     this.generateTabs = function() {
         /* create ul for tabs' links */
         var tabsList = $.create("ul");
-        
+
         /* go through tabs' info */
         $.each(this.tabsInfo, function(num, tab) {
             /* create link to a tab */
@@ -54,7 +54,7 @@ function Page(p) {
                 $.create("span", {}, [
                     $.create("img", {"src": "ui/img/agt_reload_3236_12.gif", "border": "0"}), _(tab.name)])
             );
-            
+
             /* add click event */
             href.click(function(e) {
                 $(".tabs-container").html("Generating content...");
@@ -73,28 +73,28 @@ function Page(p) {
                     $.cookie("wf2-tab", tab.id);
                 }, 10);
             });
-            
+
             /* save pointer to the first link for a tab */
             if (!firstTab) {
                 firstTab = href;
             }
-            
+
             /* add link to the list */
             $.create("li", {}, href).appendTo(tabsList);
         });
-        
+
         /* add list with links to a page */
         tabsList.appendTo(p);
-        
+
         /* go through tabs' info */
         $.each(this.tabsInfo, function(num, tab) {
             /* create div for a tab */
             $.create("div", {"id": tabIdPrefix + tab.id}).appendTo(p);
         });
-        
+
         /* update tabs */
         $(p).tabs({"fxAutoHeight": true});
-        
+
         /* if tab ID is saved in cookie and this page have tab with this ID — show this tab */
         if ($.cookie("wf2-tab") && $($.sprintf("#%s%s_link", tabIdPrefix, $.cookie("wf2-tab"))).length > 0) {
             $($.sprintf("#%s%s_link", tabIdPrefix, $.cookie("wf2-tab"))).click();
@@ -103,7 +103,7 @@ function Page(p) {
             firstTab.click();
         }
     };
-    
+
     /*
      * Create Container for a tab.
      *
@@ -115,7 +115,7 @@ function Page(p) {
         if (options) {
             params = $.extend(params, options);
         }
-        
+
         return new Container($("#" + tabIdPrefix + tabId), params);
     };
 
@@ -127,7 +127,7 @@ function Page(p) {
     this.getRaw = function(tabId) {
         return $("#" + tabIdPrefix + tabId);
     };
-    
+
     /* Add line break to the tab */
     this.addBr = function(tabId) {
         /* if there is no infoMessage, append line break to the tab, otherwise insert before it */
@@ -137,11 +137,11 @@ function Page(p) {
             $.create("br").insertBefore("#info_message");
         }
     };
-    
+
     this.clearTab = function(tabId) {
         $('#' + tabIdPrefix + tabId).empty();
     };
-    
+
     this.getTab = function(tabId) {
         return $("#" + tabIdPrefix + tabId);
     };
@@ -176,19 +176,19 @@ function popup(url) {
 function Container(p, options) {
     /* link to this object */
     var thisContainer = this;
-    
+
     /* ID of div for info or error messages */
     var infoMessage = "info_message";
 
     /* message to show on success form saving */
     var successMessage;
-    
+
     /* set subsystem common for all tabs */
     this.subsystem = options.subsystem;
-    
+
     /* set help page common for all tabs */
     this.help = options.help;
-    
+
     /*
      * Create necessary data structures and page elements.
      */
@@ -196,33 +196,33 @@ function Container(p, options) {
         /* clear current form */
         if (options && options.clearForm) {
             this.form.empty();
-            
+
             this.validator_rules = {};
             this.validator_messages = {};
-            
-            this.table = $.create("table", 
+
+            this.table = $.create("table",
                     {"id": "conttable", "cellpadding": "0", "cellspacing": "0", "border": "0"})
                     .appendTo(this.form);
             this.table.append($.create("thead"));
             this.table.append($.create("tbody"));
-            
+
             return;
         }
-        
+
         /* clear complete tab */
         if (options && options.clear) {
             p.empty();
         }
-        
+
         /* create, if is not exist, div for info or error messages */
         if ($("#" + infoMessage, p).length == 0) {
             $.create("div", {"className": "message", "id": infoMessage}).appendTo(p);
         }
-        
+
         /* insert new form before div with info message */
         this.form = $.create("form", {"action": ""});
         $("#" + infoMessage, p).before(this.form);
-        
+
         /* create table and add it to form */
         this.table = $.create("table",
                 {"id": "conttable", "cellpadding": "0", "cellspacing": "0", "border": "0"})
@@ -233,7 +233,7 @@ function Container(p, options) {
         this.validator_rules = {};
         this.validator_messages = {};
     };
-    
+
     /* init container */
     this.initContainer(options);
 
@@ -241,17 +241,17 @@ function Container(p, options) {
     this.setSubsystem = function(subsystem) {
         this.subsystem = subsystem;
     };
-    
+
     /* set help page for this tab */
     this.setHelpPage = function(helpPage) {
         this.help.page = helpPage;
     };
-    
+
     /* set subsystem for this tab */
     this.setHelpSection = function(helpSection) {
         this.help.section = helpSection;
     };
-    
+
     /* redraw current tab */
     this.containerRedraw = function() {
         $($.sprintf("#%s_link", p.attr("id"))).click();
@@ -260,10 +260,10 @@ function Container(p, options) {
     this.setSuccessMessage = function(msg) {
         successMessage = msg;
     }
-    
-    /* 
+
+    /*
      * Adds title and context help link to container and adds it to container's table.
-     * 
+     *
      * title — I18N title;
      * options.colspan — number of cols to span for title cell (default is 2);
      * options.internal — place title inside table (add row to table's body);
@@ -273,13 +273,13 @@ function Container(p, options) {
     this.addTitle = function(title, options) {
         var colspan = options && options.colspan ? options.colspan : "2";
         var url = null;
-        
+
         /* if we have context-help and options.noHelp is not set — add links to context-help */
         if (config.getCachedOutput("context-help") == "1" &&
             (!options || (options && !options.noHelp))) {
             /* define which parameter to use */
             var help = options && options.help ? options.help : this.help;
-            
+
             /* add context-help link */
             if (help.page && help.section) {
                 url = $.sprintf("/help/%s.html#%s", help.page, help.section);
@@ -287,13 +287,13 @@ function Container(p, options) {
                 url = $.sprintf("/help/%s.html", help.page);
             }
         }
-        
+
         /* if url is set — create context help link object, otherwise set it to null */
         var helpLink = url ? $.create("a", {"href": "#", "className": "helpLink"}, "[?]")
                 .click(function() {
                     popup(url);
                 }) : null;
-        
+
         /* title is placed inside table */
         if (options && options.internal) {
             var tr = $.create("tr", {"align": "center"});
@@ -310,33 +310,33 @@ function Container(p, options) {
             );
         }
     };
-    
+
     /*
      * Create general data for all widgets elements.
      * I18N for text and description.
-     * 
+     *
      * w — widget's info.
      */
     this.createGeneralWidget = function(w) {
         /* if this field is required — show "*" */
         var required = (w.validator && w.validator.required) ? " *" : "";
-    
+
         /* if description is specified — show it */
         var tdElements;
         if (w.descr) {
             tdElements = [$.create("br"), $.create("p", {}, _(w.descr))];
         }
-        
+
         /* create table row for widget */
         var tr = $.create("tr", {}, [
                 $.create("td", {"className": "tdleft"}, _(w.text) + required),
                 $.create("td", {"id": "td_" + w.name}, tdElements)
             ]
         );
-        
+
         return tr;
     };
-    
+
     /*
      * Create text widget.
      * I18N for tip.
@@ -348,7 +348,7 @@ function Container(p, options) {
             "id": w.id
         };
         w.tip && (attrs.title = _(w.tip));
-        
+
         /* set KDB value */
         if (value) {
             attrs.value = value;
@@ -356,10 +356,10 @@ function Container(p, options) {
         } else if (w.defaultValue != undefined) {
             attrs.value = w.defaultValue;
         }
-        
+
         return $.create("input", attrs);
     };
-    
+
     /*
      * Create password widget.
      * I18N for tip.
@@ -371,15 +371,15 @@ function Container(p, options) {
             "id": w.id
         };
         w.tip && (attrs.title = _(w.tip));
-        
+
         /* set KDB value */
         if (value) {
             attrs.value = value;
         }
-        
+
         return $.create("input", attrs);
     };
-    
+
     /*
      * Create checkbox widget.
      * I18N for tip.
@@ -400,10 +400,10 @@ function Container(p, options) {
         } else if (w.defaultState == "checked") {
             attrs.checked = true;
         }
-        
+
         return $.create("input", attrs);
     };
-    
+
     /*
      * Create select widget.
      * I18N for tip.
@@ -416,19 +416,19 @@ function Container(p, options) {
             "id": w.id
         };
         w.tip && (attrs.title = _(w.tip));
-        
+
         return $.create("select", attrs);
     };
-    
+
     /*
      * Add HTML text.
-     * 
+     *
      * w.dataFilter — may be used with w.cmd — function to filter command's output data.
      */
     this.createHtmlWidget = function(w, value) {
         var attrs = {"className": "htmlWidget"};
         w.tip && (attrs.title = _(w.tip));
-        
+
         var span = $.create("span", attrs);
         if (w.kdb != undefined) {
             $(span).html(value);
@@ -442,7 +442,7 @@ function Container(p, options) {
         } else if (w.str != undefined) {
             $(span).html(w.str);
         }
-        
+
         return span;
     };
 
@@ -455,7 +455,7 @@ function Container(p, options) {
             "name": w.name,
             "id": w.id
         };
-        
+
         /* set KDB value */
         if (value) {
             attrs.value = value;
@@ -463,10 +463,10 @@ function Container(p, options) {
         } else if (w.defaultValue != undefined) {
             attrs.value = w.defaultValue;
         }
-        
+
         return $.create("input", attrs);
     };
-    
+
     /*
      * Create file widget.
      */
@@ -476,7 +476,7 @@ function Container(p, options) {
             "name": w.name,
             "id": w.id
         };
-        
+
         return $.create("input", attrs);
     };
 
@@ -493,9 +493,9 @@ function Container(p, options) {
             "className": "buttonWidget"
         };
         w.tip && (attrs.title = _(w.tip));
-        
+
         var button = $.create("input", attrs);
-        
+
         /* set action */
         button.click(function(src) {
             if (w.eventHandlerObject) {
@@ -504,13 +504,13 @@ function Container(p, options) {
                 w.func(thisContainer, src);
             }
         });
-        
+
         return button;
     };
 
     /*
      * Place element (widget or subwidget) depending on it's type and placement option.
-     * 
+     *
      * element — jQuery element to place;
      * type — type of element (widget/subwidget):
      *  if placement is not set:
@@ -571,7 +571,7 @@ function Container(p, options) {
     /*
      * Add complete widget (table's TR) to container.
      * If type is general, add only table's TR.
-     * 
+     *
      * w — widget to add;
      * placement — how to place widget (look at placeElement());
      */
@@ -582,21 +582,21 @@ function Container(p, options) {
                 return;
             }
         }
-        
+
         this.addSubWidget(w);
     };
-    
+
     /*
      * Add subwidget (pure HTML element: input, select, etc) to it's widget or specified position.
-     * 
+     *
      * w — widget to add;
      * placement — how to place subwidget (look at placeElement()).
-     * 
+     *
      * return added widget.
      */
     this.addSubWidget = function(w, placement) {
         var value, subwidget;
-        
+
         /* TODO: make full support for cookies (do not write it to KDB but save in cookie) */
         /* get field's value */
         if (w.cookie) {
@@ -609,7 +609,7 @@ function Container(p, options) {
         if (w.valueFilter) {
             value = w.valueFilter(value);
         }
-        
+
         /* if ID is not set, set it to the name */
         if (w.id == undefined) {
             w.id = w.name;
@@ -618,16 +618,16 @@ function Container(p, options) {
         if (w.tip) {
             w.tip = "|" + w.tip;
         }
-        
+
         /* create subwidget of specified type */
         switch (w.type) {
-            case "text": 
+            case "text":
                 subwidget = this.createTextWidget(w, value);
                 break;
             case "hidden":
                 subwidget = this.createHiddenWidget(w, value);
                 break;
-            case "password": 
+            case "password":
                 subwidget = this.createPasswordWidget(w, value);
                 break;
             case "checkbox":
@@ -660,7 +660,7 @@ function Container(p, options) {
                             "doNotClear": true
                     });
                 }
-                
+
                 break;
             case "button":
                 subwidget = this.createButtonWidget(w);
@@ -668,7 +668,7 @@ function Container(p, options) {
             default:
                 throw "unknown widget type";
         }
-        
+
         /* subwidgets of hidden type are always added to the end of a form */
         if (w.type == "hidden") {
             this.form.append(subwidget);
@@ -676,28 +676,28 @@ function Container(p, options) {
         } else {
             placeElement(subwidget, "subwidget", w.name, placement);
         }
-        
+
         /* set CSS classes if specified. they can be space-separated */
         if (w.cssClass) {
             $.each(w.cssClass.split(" "), function(num, cssClass) {
                 subwidget.addClass(cssClass);
             });
         }
-        
+
         /* set nice tooltip */
         subwidget.tooltip({"track": true, "showBody": "|"});
-        
+
         /* bind specified events */
         this.bindEvents(w);
-        
+
         w.validator && (this.validator_rules[w.name] = w.validator);
-        
+
         /* I18N for element's error messages */
         w.message && (this.validator_messages[w.name] = _(w.message));
-        
+
         return subwidget;
     };
-    
+
     /*
      * Bind events to widget.
      * If w.eventHandlerObject is set, then pass it as parameter to event handler,
@@ -710,7 +710,7 @@ function Container(p, options) {
                 return w.onChange(w.eventHandlerObject ? w.eventHandlerObject : thisContainer, src);
             });
         }
-        
+
         if (w.onClick) {
             $("#" + w.id).click(function(src) {
                 return w.onClick(w.eventHandlerObject ? w.eventHandlerObject : thisContainer, src);
@@ -730,7 +730,7 @@ function Container(p, options) {
         }
     };
 
-    /* 
+    /*
      * Sets error message.
      * I18N for text.
      */
@@ -740,8 +740,8 @@ function Container(p, options) {
         $(idInfoMessage).removeClass("success_message");
         $(idInfoMessage).addClass("error_message");
     };
-    
-    /* 
+
+    /*
      * Set info message.
      * I18N for text.
      */
@@ -751,7 +751,7 @@ function Container(p, options) {
         $(idInfoMessage).removeClass("error_message");
         $(idInfoMessage).addClass("success_message");
     };
-    
+
     /* Show message. After clicking on widgets remove info message. */
     this.showMsg = function() {
         $("#" + infoMessage).show();
@@ -770,12 +770,12 @@ function Container(p, options) {
             $("input, select").unbind("click.tmp");
         });
     };
-    
+
     /* hide message */
     this.hideMsg = function() {
         $("#" + infoMessage).hide();
     };
-    
+
     /*
      * Show to user that data is saved.
      */
@@ -787,7 +787,7 @@ function Container(p, options) {
         thisContainer.setInfo(msg);
         thisContainer.showMsg();
     };
-    
+
     /*
      * If the router is offline, show message and returns false, otherwise returns true.
      */
@@ -802,7 +802,7 @@ function Container(p, options) {
 
     /*
      * Adds submit button, form validation rules and submit's events handlers.
-     * 
+     *
      * options.reload — reload page after AJAX request (e.g., for update translation);
      * options.onSuccess — callback on request successfully completion;
      * options.noSubmit — do not submit the form, but call onSubmit and preSubmit callbacks;
@@ -833,7 +833,7 @@ function Container(p, options) {
             "className": "button",
             "value": options && options.submitName ? _(options.submitName) : _("Save")
         }).appendTo(this.form);
-        
+
         if (options && options.extraButton) {
             var button = $.create("input", {
                 "type": "button",
@@ -841,7 +841,7 @@ function Container(p, options) {
             }).appendTo(this.form);
             button.click(options.extraButton.func);
         }
-        
+
         /* options for form validation */
         var validateOptions = {
             "onfocusout": false,
@@ -849,23 +849,23 @@ function Container(p, options) {
             "onclick": false,
             "rules": this.validator_rules,
             "messages": this.validator_messages,
-            
+
             /* container where to show error */
             "errorContainer": idInfoMessage,
-            
+
             /* Set error text to container */
             "showErrors": function(errorMap, errorList) {
                 thisContainer.setError("Please, enter a valid data into the form below to be able to save it successfully.");
                 this.defaultShowErrors();
             },
-             
+
              /* on submit event */
              "submitHandler": function(form) {
                  /* if router is offline — return */
                  if (isRouterOffline()) {
                      return;
                  }
-                 
+
                  /* if noSubmit is set — do not submit the form */
                  if (options && options.noSubmit) {
                      if (options.preSubmit) {
@@ -873,31 +873,31 @@ function Container(p, options) {
                              return;
                          }
                      }
-                     
+
                      if (options.onSubmit) {
                          if (options.onSubmit() == false) {
                              return;
                          }
                      }
-                     
+
                      formSaved();
-                     
+
                      return;
                  }
-                 
+
                  /* call user function on submit event before submitting form */
                  if (options && options.preSubmit) {
                      if (options.preSubmit() == false) {
                          return;
                      }
                  }
-                 
+
                  /* remove alert text */
                 $(".alertText", form).remove();
-                
+
                 /* remove class indicating field updation */
                 $("*", form).removeClass("fieldUpdated");
-        
+
                  /*
                   * All checkboxes return values, even they are unchecked.
                   * Here we find all unchecked checkboxes, temporarily check them, set
@@ -907,20 +907,20 @@ function Container(p, options) {
                     this.checked = true;
                     this.value = 0;
                 }).addClass("doUncheck");
-                
+
                 var reload = (options && options.reload) ? true : false;
                 var onSuccess = (options && options.onSuccess) ? options.onSuccess : false;
-                
+
                 /* array with fields for saving */
                 var fields;
-                
+
                 /* array with form fields */
                 var formFields;
-                
+
                 /* if we have ignoringFields */
                 if (options && options.ignoringFields) {
                     formFields = [];
-                    
+
                     /* remove ignored variables */
                     $.each($(form).formToArray(), function(num, field) {
                         if (options.ignoringFields.search(field['value']) == -1) {
@@ -933,7 +933,7 @@ function Container(p, options) {
                 } else {
                     formFields = $(form).formToArray();
                 }
-                
+
                 /*
                  * complexValue is name of variable, which value consist of other variables
                  * (e.g., complexValue is sys_voip_route_15, and it's value will be
@@ -957,13 +957,13 @@ function Container(p, options) {
 
                     /* create array for fields */
                     fields = [];
-                    
+
                     /* add complex value */
                     fields.push({
                         "name": options.complexValue,
                         "value": bigValue
                     });
-                    
+
                     /* if subsystem is set, add it to array with fields */
                     if (subsystem) {
                         fields.push({
@@ -975,35 +975,35 @@ function Container(p, options) {
                 } else {
                     fields = formFields;
                 }
-                
+
                 /* if additionalKeys is specified — add them */
                 if (options && options.additionalKeys) {
                     fields = $.merge(fields, options.additionalKeys);
                 }
-                
+
                 /* submit task (updating settings) for execution */
                  config.kdbSubmit(fields, reload, onSuccess);
-                 
+
                  formSaved();
-                
+
                 /* set checkboxes to their original state */
                 $(".doUncheck").each(function() {
                     this.checked = false;
                     this.value = 1;
                 }).removeClass("doUncheck");
-                
+
                 /* call user function on submit event */
                  if (options && options['onSubmit']) {
                      options['onSubmit']();
                  }
              }
         };
-        
+
         /* if widgets are placed in a table */
         if (this.isTable) {
             /* show errors for fields in the error's container above table */
             validateOptions['errorLabelContainer'] = idInfoMessage;
-             
+
              /* wrap errors in "li" elements */
              validateOptions['wrapper'] = "li"
         } else {
@@ -1011,14 +1011,14 @@ function Container(p, options) {
                  error.prependTo(element.parent());
              }
         }
-        
+
         /* apply validate rules to form */
         $(this.form).validate(validateOptions);
     };
-    
+
     /*
      * Submit form in traditional way, without AJAX.
-     * 
+     *
      * options.submitName — name of button for submitting;
      * options.formAction — action for the form;
      * options.encType — enctype property for the form.
@@ -1027,18 +1027,18 @@ function Container(p, options) {
         if (options && options.formAction) {
             this.form.attr("action", options.formAction);
         }
-        
+
         if (options && options.method) {
             this.form.attr("method", options.method);
         }
-        
+
         if (options && options.encType) {
             this.form.attr("enctype", options.encType);
-            
+
             /* IE fix */
             this.form.attr("encoding", options.encType);
         }
-        
+
         /* create submit button */
         $.create("input",
             {
@@ -1048,12 +1048,12 @@ function Container(p, options) {
             }
         ).appendTo(this.form);
     };
-    
+
     /*
      * Creates and returns command header and output's body.
      */
     this.createCmdTitleAndBody = function(cmd) {
-        var result = 
+        var result =
             [
                 $.create("b", {}, cmd),
                 $.create("br"),
@@ -1061,7 +1061,7 @@ function Container(p, options) {
             ];
         return result;
     };
-    
+
     /*
      * Adds HTML code for command output to table.
      */
@@ -1070,15 +1070,15 @@ function Container(p, options) {
             $.create("td", {}, this.createCmdTitleAndBody(cmd))
         ).appendTo(p);
     };
-    
+
     /*
      * Add output of command execution to the page.
-     * 
+     *
      * cmd — string or array with cmds' to execute.
      */
     this.addConsole = function(cmd) {
         var outer = this;
-        
+
         /* adds command's HTML to the page, and makes AJAX request to the server */
         var addConsoleOut = function(num, cmd) {
             outer.addConsoleHTML(cmd, outer.table);
@@ -1088,7 +1088,7 @@ function Container(p, options) {
                 "formatData": true
             });
         };
-        
+
         /* we can have one or several commands */
         if (typeof cmd == "object") {
             $(cmd).each(function(num, cmd) {
@@ -1098,16 +1098,16 @@ function Container(p, options) {
             addConsoleOut(0, cmd);
         }
     };
-    
+
     /*
      * Create div in the form and add console output to it.
-     * 
+     *
      * cmd — command to execute.
      */
     this.addConsoleToForm = function(cmd) {
         /* create div for command output */
         var div = $.create("div", {"className": "pre, cmdOutput"}, _("Loading...")).appendTo(this.form);
-        
+
         config.cmdExecute({
             "cmd": cmd,
             "container": div,
@@ -1116,7 +1116,7 @@ function Container(p, options) {
             }
         });
     };
-    
+
     /*
      * Run command with specified parameters.
      * First argument — command template (e.g., "/bin/ping -c %ARG %ARG").
@@ -1127,15 +1127,15 @@ function Container(p, options) {
         /* create submit button */
         $.create("input", {"type": "submit", "className": "button", "value": _("Run")})
                 .appendTo(this.form);
-        
+
         /* create div for command output */
         var cmdOutput = $.create("div").appendTo(this.form);
-        
+
         var runArgs = arguments;
         var outer = this;
         $(this.form).submit(function() {
             var cmd;
-            
+
             /* make from command template real command */
             $.each(runArgs, function(num, name) {
                 if (num == 0) {
@@ -1148,12 +1148,12 @@ function Container(p, options) {
 
             /* clear div for command output */
             cmdOutput.empty();
-            
+
             /* add command header and body to div */
             $.each(outer.createCmdTitleAndBody(cmd), function(num, element) {
                 element.appendTo(cmdOutput);
             });
-            
+
             /* execute command */
             config.cmdExecute({
                 "cmd": cmd,
@@ -1162,51 +1162,51 @@ function Container(p, options) {
                     return data.replace(/\n/g, "<br>");
                 }
             });
-            
+
             /* prevent form submission */
             return false;
         });
     };
-    
+
     /*
      * Add button which executes console command.
-     * 
+     *
      * name — I18N name of button.
      * cmd — command to execute.
      */
     this.addAction = function(name, cmd) {
         /* create submit button */
         $.create('input', {'type': 'submit', 'className': 'button', 'value': _(name)}).appendTo(this.form);
-        
+
         $(this.form).submit(function() {
             /* execute command */
             config.cmdExecute({"cmd": cmd});
             return false;
         });
     };
-    
+
     /*
      * Add header for table.
-     * 
+     *
      * header — separated with "|" list of table column's header.
      */
     this.addTableHeader = function(header) {
         /* set table flag (for validation) */
         this.isTable = true;
-        
+
         var tr = $.create("tr", {"align": "center", "className": "tableHeader"});
         $.each(header.split("|"), function(num, value) {
             $.create("th", {}, _(value)).appendTo(tr);
         });
-        
+
         /* add to thead section of current table */
         $("thead", this.table).append(tr);
     };
-    
+
     /*
      * Add text to tfoot section in the table.
      * I18N for str.
-     * 
+     *
      * str — text to add;
      * colspan — number of columns to span for tfoot's row.
      */
@@ -1214,43 +1214,54 @@ function Container(p, options) {
         if ($("tfoot", this.table).length == 0) {
             $("thead", this.table).after($.create("tfoot"));
         }
-        
+
         $("tfoot", this.table).append($.create("tr", {}, $.create("td", {"colSpan": colspan}, _(str))));
     };
-    
+
+
+    this.addHrField = function(text) {
+        var tr = $.create("tr", {}, [
+                $.create("td", {"className": "", "colSpan": 2}, _(text))
+            ]
+        );
+
+        $("tbody", this.table).append(tr);
+        return tr;
+    };
+
     /*
      * Adds row to the table.
      */
     this.addTableRow = function() {
         return $.create("tr", {"align": "center"}).appendTo(this.table);
     };
-    
+
     /*
      * Adds table's cell with proper id.
-     * 
+     *
      * w — widget;
      * row — destination row.
      */
     this.addGeneralTableWidget = function(w, row, colspan) {
         var td = $.create("td", {"id": "td_" + w.name}).appendTo(row);
-        
+
         if (colspan) {
             td.attr("colSpan", colspan);
         }
     };
-    
+
     /*
      * Add widget to table.
-     * 
+     *
      * w — widget;
      * row — destination row;
      * colspan — optional colspan property for widget's TD.
      */
     this.addTableWidget = function(w, row, colspan) {
         this.addGeneralTableWidget(w, row, colspan);
-        
+
         /* add subwidget and style it */
-        this.addSubWidget(w).addClass("table");        
+        this.addSubWidget(w).addClass("table");
     };
 
     /*
@@ -1268,14 +1279,14 @@ function Container(p, options) {
     this.removeStaticMessages = function() {
         $(".staticMessage", p).remove();
     };
-    
+
     /*
      * Adds list to a container "c". It gets list values from KDB
      * by key "listItem*", renders list title, creates function to
      * add and delete new elements. After adding or deleting
      * element, it redraws the page by calling click() event on
      * tab link.
-     * 
+     *
      * c — container to add list to;
      * options — object with options:
      *  - tabId — id of tab this list is added to (is used for search tab link);
@@ -1283,7 +1294,7 @@ function Container(p, options) {
      *  - varList — array with variables' names;
      *  - listItem — template of name for list item (e.g., sys_voip_route_);
      *  - listTitle — title for the list (I18N);
-     * 
+     *
      *  optional parameters:
      *  - processValueFunc — optional callback, which can be used for editing values of item's
      *     variable. It is called for each item's variable with hash as a parameter. Keys of hash are:
@@ -1318,38 +1329,38 @@ function Container(p, options) {
      */
     var List = function(c, options) {
         var list = this;
-        
+
         /* array with widgets for add/edit page */
         var widgets = new Array();
-        
+
         /* array with widgets for adding page only */
         var widgetsForAdding = new Array();
-        
+
         /* redraw page after adding/editing list item */
         var showPage = function() {
             $($.sprintf("#tab_%s_link", options.tabId)).click();
         };
-        
-        /* 
+
+        /*
          * Add/edit item.
-         * 
+         *
          * item — if this parameter is set, then edit this item.
          */
         var addOrEditItem = function(item) {
             /* are we adding or editing item */
             var isAdding;
-            
+
             /* clear this container */
             c.initContainer({"clear": true});
 
             if (options.helpPage) {
                 c.setHelpPage(options.helpPage);
             }
-            
+
             if (options.helpSection) {
                 c.setHelpSection(options.helpSection);
             }
-            
+
             if (options.subsystem) {
                 c.setSubsystem(options.subsystem);
             }
@@ -1364,7 +1375,7 @@ function Container(p, options) {
                 isAdding = false;
                 c.addTitle(options.editMessage || "Edit");
             }
-            
+
             /* set calculated item in options object for later use in dynamic widgets */
             options.currentItem = item;
 
@@ -1372,7 +1383,7 @@ function Container(p, options) {
             $.each(widgets, function(num, widget) {
                 /* item property is used for properly get the value of a widget */
                 widget.widget.item = item;
-                
+
                 c.addWidget(widget.widget, widget.placement);
             });
 
@@ -1418,10 +1429,10 @@ function Container(p, options) {
                 $.each(widgetsForAdding, function(num, widget) {
                     /* item property is used for properly get the value of a widget */
                     widget.widget.item = item;
-                    
+
                     c.addWidget(widget.widget, widget.placement);
                 });
-                
+
                 /* run callback for adding page with this object as a parameter */
                 if (options.onAddItemRender) {
                     options.onAddItemRender(list);
@@ -1433,28 +1444,28 @@ function Container(p, options) {
                 }
             }
         };
-        
+
         /* add list header */
         var addListHeader = function() {
             var tr = $.create("tr", {"align": "center", "className": "tableHeader"});
-            
+
             /* add columns headers */
             var thNum = 0;
             $.each(options.header, function(num, value) {
                 $.create("th", {}, _(value)).appendTo(tr);
                 thNum++;
             });
-            
+
             /* add list header with colSpan parameter */
             c.addTitle(options.listTitle, {"colspan": thNum + 2});
-            
+
             /* create "button" for adding */
             var img = $.create("img", {"src": "ui/img/plus.gif", "alt": "add"});
             img.click(function(e) {
                 addOrEditItem();
                 scrollTo(0, 0);
             });
-            
+
             /* change image when mouse is over it */
             img.hover(
                 function() {
@@ -1464,17 +1475,17 @@ function Container(p, options) {
                     $(this).attr("src", "ui/img/plus.gif");
                 }
             );
-            
+
             /* we use colSpan because future rows will contain buttons for editing and deleting */
             $.create("th", {"colSpan": "2"}, img).appendTo(tr);
-            
+
             /* add to thead section of current table */
             $("thead", c.table).append(tr);
         };
-        
+
         /*
          * Confirm item deletion.
-         * 
+         *
          * item — item to delete.
          */
         var deleteConfirm = function(item) {
@@ -1518,76 +1529,76 @@ function Container(p, options) {
             } else {
                 msgDiv.html(_("Are you sure you want to delete this item?") + "<br>");
             }
-            
+
             /* create Yes button */
             var button = $.create("input", {
                 "type": "button",
                 "className": "button",
                 "value": _("Yes")
             }).appendTo(msgDiv);
-            
+
             /* delete item */
             button.click(function() {
                 msgDiv.hide();
-                
+
                 /* if router is offline — return */
                  if (isRouterOffline()) {
                      return;
                  }
-                
+
                 $(".selected", c.table).removeClass("selected");
-                
+
                 /* delete item and restart subsystem */
                 config.kdbDelListKey(item, c.subsystem);
 
                 if (actionOnDelete) {
                     actionOnDelete();
                 }
-                
+
                 /* call func after deleting (updates page) */
                 options.showPage ? options.showPage() : showPage();
             });
-            
+
             /* create No button */
             button = $.create("input", {
                 "type": "button",
                 "value": _("No")
             }).appendTo(msgDiv);
-            
+
             /* cancel delete */
             button.click(cancelDelete);
-    
+
             msgDiv.show();
             return;
         };
-        
+
         /*
          * Add widget to add/edit page.
          */
         this.addWidget = function(w, placement) {
             /* save link to this object to use later in events' handlers */
             w.eventHandlerObject = list;
-            
+
             widgets.push({"widget": w, "placement": placement});
         };
-        
+
         /*
          * Add widget to ADD page only.
          */
         this.addWidgetForAdding = function(w, placement) {
             /* save link to this object to use later in events' handlers */
             w.eventHandlerObject = list;
-            
+
             widgetsForAdding.push({"widget": w, "placement": placement});
         };
-        
+
         /*
          * Add widget to add/edit page after it generation (e.g., in event's handler).
          */
         this.addDynamicWidget = function(w, placement) {
             /* save link to this object to use later in events' handlers */
             w.eventHandlerObject = list;
-            
+
             w.item = options.currentItem;
             c.addWidget(w, placement);
         };
@@ -1602,27 +1613,27 @@ function Container(p, options) {
             w.item = options.currentItem;
             c.addSubWidget(w, placement);
         };
-        
+
         /*
          * Generate list.
          */
         this.generateList = function() {
             /* add list header */
             addListHeader();
-            
+
             /* get list of items */
             var items = config.getParsed(options.listItem + "*");
-            
+
             /* go through item's list */
             $.each(items, function(key, value) {
                 var row = c.addTableRow();
                 var cssClass = {};
-                
+
                 /* change text color for disabled items */
                 if (value.enabled != undefined && (value.enabled != "on" && value.enabled != "1")) {
                     cssClass.className = "disabled";
                 }
-                
+
                 /* for each variable in item's value create table cell with variable's value */
                 $.each(options.varList, function(num, variable) {
                     var finalVal = options.processValueFunc
@@ -1631,22 +1642,22 @@ function Container(p, options) {
                                     "varValue": value[variable],
                                     "keyValues": value})
                             : value[variable];
-                    
+
                     /* create td */
                     var td = $.create("td", cssClass, finalVal ? finalVal : "&nbsp;")
                         .appendTo(row);
-    
+
                     /* if function is set for this variable */
                     if (options.varFunctions && options.varFunctions[variable]) {
                         /* add clickable class */
                         td.addClass("clickable");
-                        
+
                         /* if set tip — add it */
                         if (options.varFunctions[variable].tip) {
                             td.attr("title", options.varFunctions[variable].tip);
                             td.tooltip({"track": true});
                         }
-                        
+
                         /* set click handler to passed function */
                         td.click(function() {
                             /* call passed function with variable's value as argument */
@@ -1708,24 +1719,24 @@ function Container(p, options) {
                     $.create("td", {}, img).appendTo(row);
                 }
             });
-            
+
             /* create scrollable div */
             var div = $.create("div", {"className": "scrollable"});
-    
+
             /* add current table to scrollable div */
             c.table.wrap(div);
-            
+
             /* rendering of table takes a long time, set timeout and call minmax() to fix IE */
             setTimeout(function() { $("div.scrollable", c.form).minmax(); }, 50);
-            
+
             /* add div for showing delete confirm message */
             c.form.prepend($.create("div", {"className": "message error_message"}));
         };
     };
-    
+
     /*
      * Returns new object for creating list.
-     * 
+     *
      * options — list options.
      */
     this.createList = function(options) {
@@ -1739,7 +1750,7 @@ function Container(p, options) {
  * name — name of the menu item.
  * func — name of the function in a Controllers object to call when user clicks on the menu item.
  * params — function parameters.
- * 
+ *
  * Example of the menu structure is given below.
  * <ul class="treeview" id="menu">
  *        <li><span>System</span>
@@ -1763,10 +1774,10 @@ function Container(p, options) {
 function addItem(path, name, func, params) {
     /* menu element */
     var idMenu = "#menu";
-    
+
     /* context which is set when menu functions are called */
     var defaultContext = Controllers;
-    
+
     var curLevel = idMenu;
     var pathElems = path.split(":");
     for (var pathElem in pathElems) {
@@ -1778,7 +1789,7 @@ function addItem(path, name, func, params) {
         /* change current level in the menu */
         curLevel = $(" > li > span:contains('" + _(pathElems[pathElem]) + "')", curLevel).next();
     }
-    
+
     /* create link object */
     var link = $.create("a", {}, _(name)).click(function() {
         if (params) {
@@ -1791,7 +1802,7 @@ function addItem(path, name, func, params) {
         $("a", idMenu).removeClass("clicked");
         $(this).addClass("clicked");
     });
-    
+
     /* create menu item and add it to the menu */
     $.create("li", {}, $.create("span", {}, link)).appendTo(curLevel);
 }
@@ -1801,37 +1812,37 @@ function addItem(path, name, func, params) {
  * update our local KDB, and if value of field was changed — update field and alert user
  * by appending text to field name.
  * ! Field must have ID identical to it's name !
- * 
+ *
  * fields — name (or array with names) of field to update.
  * showAlertText — if field was updated — add message.
  */
 function updateFields(fields, showAlertText) {
     var oldValues = new Object();
-    
+
     /* convert single field to array */
     if (typeof fields == "string") {
         var field = fields;
         fields = new Array();
         fields.push(field);
     }
-    
+
     /* save old values of fields */
     $.each(fields, function(num, field) {
         oldValues[field] = config.get(field);
     });
-    
+
     /* update local KDB */
     config.updateValues(fields);
-    
+
     /* check if fields was updated */
     $.each(fields, function(num, field) {
         if (oldValues[field] != config.get(field)) {
             /* set new value */
             $("#" + field).val(config.get(field));
-            
+
             /* set class */
             $("#" + field).addClass("fieldUpdated");
-            
+
             /* add info text to field name */
             if (showAlertText) {
                 var widgetText = $("#" + field).parents("tr").children(".tdleft");
