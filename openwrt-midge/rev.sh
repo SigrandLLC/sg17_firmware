@@ -11,5 +11,11 @@ branch=`git branch --no-color | egrep '^\*' | cut '-d ' -f2`
 #branch=1.2
 #echo "branch: $branch"
 
-echo $branch-$revision
+modified=`git status --porcelain`
+unset dirty
+if test -n "$modified"; then
+	dirty='-dirty'
+fi
+
+echo $branch-$revision$dirty
 

@@ -2,7 +2,6 @@ config BR2_PACKAGE_SFTPSERVER
 	prompt "sftpserver........................ Green End SFTP Server"
 	tristate
 	default y
-	select BR2_PACKAGE_DROPBEAR
 	select BR2_PACKAGE_LIBICONV
 	help
 	  Drop-in replacement for the OpenSSH sftp server.
