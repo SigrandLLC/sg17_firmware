@@ -1,0 +1,41 @@
+#!/bin/sh
+
+kdb="kdb"
+
+_start() {
+	local iface1
+#	echo "Configuring RS232: "
+	eval `kdb sls -qq sys_ser2net_`
+}
+
+_stop() {
+    true
+}
+
+_node_cfg() {
+    local dev=$1
+    if [ "`kdb get sys_rss232ip_$dev_enable`" = "1"]; then
+        echo -n "Starting rs232 over ip on $dev"
+        if [ "`kdb get sys_rs232ip_$dev_socat_enable`" = "1" ]; then
+            echo " and socat to ..."
+        else
+            echo ""
+        fi
+    fi
+}
+
+case "$1" in
+	start)
+		_start
+		;;
+	stop)
+		_stop
+		;;
+	restart)
+		get_serial_ifaces
+		for iface in $serial_ifaces; do
+			_node_cfg $iface
+		done
+		;;
+esac
+
