@@ -1,0 +1,7 @@
+config BR2_PACKAGE_SERCD
+        prompt "sercd............................. Serial port TCP/IP redirector"
+        tristate
+	default m if CONFIG_DEVEL
+        help
+	  sercd is serial port TCP/IP redirector based on sredird.
+

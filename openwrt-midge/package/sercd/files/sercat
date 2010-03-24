@@ -1,0 +1,2 @@
+#!/bin/sh
+while true; do socat -d -d -d tcp4:localhost:2000 tcp4:localhost:2003; done
