@@ -40,12 +40,12 @@ $(PKG_BUILD_DIR)/.built:
 $(IPKG_SERCD):
 	install -d -m0755 $(IDIR_SERCD)/usr/sbin
 	cp -fpR $(PKG_INSTALL_DIR)/usr/sbin/sercd $(IDIR_SERCD)/usr/sbin
-	install -d -m0755 $(IDIR_SERCD)/etc
 	#+ for test only
-	#cp -fpR $(PKG_BUILD_DIR)/sercd.conf     $(IDIR_SERCD)/etc
-	install -d -m0755                       $(IDIR_SERCD)/etc/init.d
-	install -m0755 ./files/etc/init.d/sercd $(IDIR_SERCD)/etc/init.d/sercd
-	install -m0755 ./files/sercat           $(IDIR_SERCD)/usr/sbin/sercat
+	#install -d -m0755 $(IDIR_SERCD)/etc
+	##cp -fpR $(PKG_BUILD_DIR)/sercd.conf     $(IDIR_SERCD)/etc
+	#install -d -m0755                       $(IDIR_SERCD)/etc/init.d
+	#install -m0755 ./files/etc/init.d/sercd $(IDIR_SERCD)/etc/init.d/sercd
+	#install -m0755 ./files/sercat           $(IDIR_SERCD)/usr/sbin/sercat
 	#- for test only
 	$(RSTRIP) $(IDIR_SERCD)
 	$(IPKG_BUILD) $(IDIR_SERCD) $(PACKAGE_DIR)
