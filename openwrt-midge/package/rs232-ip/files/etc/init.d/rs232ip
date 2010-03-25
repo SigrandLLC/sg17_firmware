@@ -2,6 +2,8 @@
 
 kdb="kdb"
 
+PATH=$PATH:/usr/sbin
+
 _start_or_stop() {
 	local start=$1
 	[ $start -eq 1 ] && echo -n "Starting " || echo -n "Stopping "
@@ -11,15 +13,15 @@ _start_or_stop() {
 	for slot in $slots; do
 		for dev in [0,1,2,3]; do
 			enable=`${kdb} get sys_rs232ip_s${slot}_${dev}_enable`
-			[ "$enable" -eq $start ] && _node_cfg "$node" "$slot" "$dev"
+			[ "$enable" -eq $start ] && _node_cfg "$slot" "$dev"
 		done
 	done
 }
 
 _node_cfg() {
-	local node=$1
-	local slot=$2
-	local dev=$3
+	local slot=$1
+	local dev=$2
+	local node="ttyRS${dev}"
 
 	local lockfile=/var/lock/ttyRS${dev}
 	local pidfile=/var/run/sercd${dev}.pid
@@ -27,9 +29,12 @@ _node_cfg() {
 	eval `${kdb} sls sys_rs232ip_s${slot}_${dev}_`
 	if [ "$enable" -eq 1 ]; then # sercd must be started
 		[ -f $lockfile ] && exit 1 # port already used
-		[ -f $pidfile ] && exit 2 # sercd already started
-		echo -n "\t${node} on ${src_host}:${src_port}"
-		sercd -p $src_port -l $src_host -P $pidfile $loglevel /dev/$node $lockfile $poll_interval
+		if [ -f $pidfile ]; then # sercd already started
+			true
+		else
+			echo -en "\t${node} on ${src_host}:${src_port}"
+			sercd -p $src_port -l $src_host -P $pidfile $loglevel /dev/$node $lockfile $poll_interval
+		fi
 		if [ "$socat_enable" -eq 1 ]; then
 			if [ -f $socat_pidfile ]; then
 				true
@@ -58,18 +63,6 @@ _node_cfg() {
 
 }
 
-_mode_cfg() {
-	local slot=$1
-	local dev=$2
-
-	nodes=`${kdb} get sys_pcitbl_s${slot}_ifaces`
-	local nodenum=0
-	for node in $nodes; do
-		_node_cfg "$node" "$slot" "$nodenum"
-		nodenum=`expr $nodenum + 1`
-	done
-}
-
 case "$1" in
 	start)
 		_start_or_stop 1
@@ -78,7 +71,7 @@ case "$1" in
 		_start_or_stop 0
 		;;
 	restart)
-		_mode_cfg $2 $3
+		_node_cfg $2 $3
 		;;
 esac
 

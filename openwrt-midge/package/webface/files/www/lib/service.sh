@@ -48,15 +48,18 @@ service_reload(){
 		/etc/init.d/mux start
 		/etc/init.d/network restart
 	;;
-	rs232*)
+	rs232.*)
 		tmp=${service#*.}
 		slot=${tmp%.*}
 		dev=${tmp#*.}
 		/etc/init.d/rs232 restart "$slot" "$dev"
 		/etc/init.d/mux start
 	;;
-	rs232ip)
-		/etc/init.d/rs232ip restart
+	rs232ip.*)
+		tmp=${service#*.}
+		slot=${tmp%.*}
+		dev=${tmp#*.}
+		/etc/init.d/rs232ip restart "$slot" "$dev"
 	;;
 	fw)
 		/etc/init.d/fw restart
