@@ -110,11 +110,11 @@ int main(int ac, char *av[])
 
     setmode();
 
-    int old_c = 0;
+    char old_c = 0;
 
     do
     {
-	int c;
+	char c;
 
 	//fputs("press any key ... ", stdout); fflush(stdout);
 
