@@ -1,0 +1,5 @@
+Package: rs232-ip
+Priority: optional
+Section: net
+Description: Serial port extender over TCP/IP
+
