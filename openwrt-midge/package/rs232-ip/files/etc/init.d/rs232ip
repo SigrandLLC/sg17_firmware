@@ -2,40 +2,79 @@
 
 kdb="kdb"
 
-_start() {
-	local iface1
-#	echo "Configuring RS232: "
-	eval `kdb sls -qq sys_ser2net_`
-}
+_start_or_stop() {
+	local start=$1
 
-_stop() {
-    true
+	eval `${kdb} sls -q sys_pcitbl_`
+	nodes=`${kdb} get sys_pcitbl_s${slot}_ifaces`
+	for s in $slots; do
+		for dev in [0,1,2,3]; do
+			local enable=`${kdb} get sys_rs232ip_s${slot}_${dev}_enable`
+			[ $enable -eq $start ] && _node_cfg $node $slot $dev
+		done
+	done
 }
 
 _node_cfg() {
-    local dev=$1
-    if [ "`kdb get sys_rss232ip_$dev_enable`" = "1"]; then
-        echo -n "Starting rs232 over ip on $dev"
-        if [ "`kdb get sys_rs232ip_$dev_socat_enable`" = "1" ]; then
-            echo " and socat to ..."
-        else
-            echo ""
-        fi
-    fi
+	local node=$1
+	local slot=$2
+	local dev=$3
+
+	local lockfile=/var/lock/ttyRS${dev}
+	local pidfile=/var/run/sercd${dev}.pid
+	local socat_pidfile=/var/run/socat${dev}.pid
+
+	eval `${kdb} sls sys_rs232ip_s${slot}_${dev}_`
+	if [ $enable -eq 1 ]; then # sercd must be started
+		[ -f $lockfile ] && exit 1 # port already used
+		[ -f $pidfile ] && exit 2 # sercd already started
+		sercd -p $listen_port -l $listen_host -P $pidfile $loglevel /dev/$node $lockfile $poll_interval
+		if [ $socat_enable -eq 1 ]; then
+			if [ -f $socat_pidfile ]; then
+			else
+				local socat_str_loglvl=""
+				local numlvl=0
+				while [ $numlvl -lt $socat_loglevel ]; do
+					socat_str_loglvl="${socat_str_loglvl} -d"
+					numlvl=`expr $numlvl + 1`
+				done
+				socat $socat_str_loglvl "tcp4:${socat_host}:${socat_port}"
+			fi
+		fi
+	else
+		if [ -f $pidfile ]; then
+			kill `cat $pidfile`
+			rm -f $pidfile
+		fi
+		if [ -f $socat_pidfile ]; then
+			kill `cat $socat_pidfile`
+			rm -f $socat_pidfile
+		fi
+	fi
+
+}
+
+_mode_cfg() {
+	local slot=$1
+	local dev=$2
+
+	nodes=`${kdb} get sys_pcitbl_s${slot}_ifaces`
+	local nodenum=0
+	for node in $nodes; do
+		_node_cfg "$node" "$slot" "$nodenum"
+		nodenum=`expr $nodenum + 1`
+	done
 }
 
 case "$1" in
 	start)
-		_start
+		_start_or_stop 1
 		;;
 	stop)
-		_stop
+		_start_or_stop 0
 		;;
 	restart)
-		get_serial_ifaces
-		for iface in $serial_ifaces; do
-			_node_cfg $iface
-		done
+		_mode_cfg $2 $3
 		;;
 esac
 
