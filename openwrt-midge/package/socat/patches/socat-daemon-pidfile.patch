@@ -1,0 +1,67 @@
+--- socat-1.6.0.0/socat.c.orig	2010-03-25 16:03:56.000000000 +0600
++++ socat-1.6.0.0/socat.c	2010-03-25 17:21:05.000000000 +0600
+@@ -40,6 +40,7 @@ struct {
+    bool lefttoright;	/* first addr ro, second addr wo */
+    bool righttoleft;	/* first addr wo, second addr ro */
+    xiolock_t lock;	/* a lock file */
++   const char *pidfile;
+ } socat_opts = {
+    8192,	/* bufsiz */
+    false,	/* verbose */
+@@ -54,6 +55,7 @@ struct {
+    false,	/* lefttoright */
+    false,	/* righttoleft */
+    { NULL, 0 },	/* lock */
++   NULL		/* pid file */
+ };
+ 
+ void socat_usage(FILE *fd);
+@@ -243,6 +245,17 @@ int main(int argc, const char *argv[]) {
+ 	 socat_opts.lock.intervall.tv_sec  = 1;
+ 	 socat_opts.lock.intervall.tv_nsec = 0;
+ 	 break;
++      case 'P':
++	 if (arg1[0][2]) {
++	    socat_opts.pidfile = *arg1+2;
++	 } else {
++	    ++arg1, --argc;
++	    if ((socat_opts.pidfile = *arg1) == NULL) {
++	       Error("option -P requires an argument; use option \"-h\" for help");
++	       Exit(1);
++	    }
++	 }
++	 break;
+ #if WITH_IP4 || WITH_IP6
+ #if WITH_IP4
+       case '4':
+@@ -363,6 +376,7 @@ void socat_usage(FILE *fd) {
+    fputs("      -g     do not check option groups\n", fd);
+    fputs("      -L <lockfile>  try to obtain lock, or fail\n", fd);
+    fputs("      -W <lockfile>  try to obtain lock, or wait\n", fd);
++   fputs("      -P <pidfile>   daemonize and write pid file\n", fd);
+ #if WITH_IP4
+    fputs("      -4     prefer IPv4 if version is not explicitly specified\n", fd);
+ #endif
+@@ -649,6 +663,22 @@ int socat(const char *address1, const ch
+    }
+ #endif
+ 
++   if (socat_opts.pidfile) {
++       if ( daemon (0, 0) < 0 ) {
++	   Error1("daemon(0,0): %s", strerror(errno));
++           return -1;
++       }
++       FILE *pidf = fopen(socat_opts.pidfile, "w");
++       if (pidf == NULL)
++       {
++	   Error2("can't create pid file %s: %s",
++		  socat_opts.pidfile, strerror(errno));
++	   return -1;
++       }
++       fprintf(pidf, "%d\n", getpid());
++       fclose(pidf);
++   }
++
+    Info("resolved and opened all sock addresses");
+    return 
+       _socat();	/* nsocks, sockets are visible outside function */
