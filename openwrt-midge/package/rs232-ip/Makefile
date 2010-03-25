@@ -16,9 +16,7 @@ $(PKG_BUILD_DIR)/.prepared:
 	touch $@
 
 $(IPKG_RS232_IP):
-	install -d -m0755 $(IDIR_RS232_IP)/etc
 	install -d -m0755 $(IDIR_RS232_IP)/etc/init.d
 	install -m0755 ./files/etc/init.d/rs232ip $(IDIR_RS232_IP)/etc/init.d/
-	$(RSTRIP) $(IDIR_RS232_IP)
 	$(IPKG_BUILD) $(IDIR_RS232_IP) $(PACKAGE_DIR)
 
