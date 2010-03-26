@@ -1,5 +1,5 @@
---- socat-1.6.0.0/socat.c.orig	2010-03-25 16:03:56.000000000 +0600
-+++ socat-1.6.0.0/socat.c	2010-03-25 17:21:05.000000000 +0600
+--- socat-1.6.0.0/socat.c.orig	2010-03-26 21:02:57.000000000 +0600
++++ socat-1.6.0.0/socat.c	2010-03-26 21:05:14.000000000 +0600
 @@ -40,6 +40,7 @@ struct {
     bool lefttoright;	/* first addr ro, second addr wo */
     bool righttoleft;	/* first addr wo, second addr ro */
@@ -34,17 +34,9 @@
  #if WITH_IP4 || WITH_IP6
  #if WITH_IP4
        case '4':
-@@ -363,6 +376,7 @@ void socat_usage(FILE *fd) {
-    fputs("      -g     do not check option groups\n", fd);
-    fputs("      -L <lockfile>  try to obtain lock, or fail\n", fd);
-    fputs("      -W <lockfile>  try to obtain lock, or wait\n", fd);
-+   fputs("      -P <pidfile>   daemonize and write pid file\n", fd);
- #if WITH_IP4
-    fputs("      -4     prefer IPv4 if version is not explicitly specified\n", fd);
- #endif
-@@ -649,6 +663,22 @@ int socat(const char *address1, const ch
-    }
- #endif
+@@ -322,6 +335,22 @@ int main(int argc, const char *argv[]) {
+ 
+    Atexit(socat_unlock);
  
 +   if (socat_opts.pidfile) {
 +       if ( daemon (0, 0) < 0 ) {
@@ -62,6 +54,14 @@
 +       fclose(pidf);
 +   }
 +
-    Info("resolved and opened all sock addresses");
-    return 
-       _socat();	/* nsocks, sockets are visible outside function */
+    result = socat(arg1[0], arg1[1]);
+    Notice1("exiting with status %d", result);
+    Exit(result);
+@@ -363,6 +392,7 @@ void socat_usage(FILE *fd) {
+    fputs("      -g     do not check option groups\n", fd);
+    fputs("      -L <lockfile>  try to obtain lock, or fail\n", fd);
+    fputs("      -W <lockfile>  try to obtain lock, or wait\n", fd);
++   fputs("      -P <pidfile>   daemonize and write pid file\n", fd);
+ #if WITH_IP4
+    fputs("      -4     prefer IPv4 if version is not explicitly specified\n", fd);
+ #endif
