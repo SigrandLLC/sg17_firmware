@@ -2191,18 +2191,18 @@
                             <emphasis>status</emphasis> — доступно (online) или недоступно (offline) устройство.
                             К примеру, если отключить маршрутизатор от сети, то через некоторое время (около 10-15 секунд)
                             его статус в веб-интерфейсе изменится на offline. В этом случае невозможно производить настройку
-                            или опрос состояния маршрутизатора; 
+                            или опрос состояния маршрутизатора;
                         </para>
                     </listitem>
                     <listitem>
                         <para>
-                            <emphasis>tasks</emphasis> — число выполняемых или стоящих в очереди на выполнение задач; 
+                            <emphasis>tasks</emphasis> — число выполняемых или стоящих в очереди на выполнение задач;
                         </para>
                     </listitem>
                     <listitem>
                         <para>
                             <emphasis>ajax</emphasis> — сколько AJAX-запросов было отправлено маршрутизатору,
-                            на которые ожидается ответ (эти запросы не связаны с изменением конфигурации устройства). 
+                            на которые ожидается ответ (эти запросы не связаны с изменением конфигурации устройства).
                         </para>
                     </listitem>
                 </itemizedlist>
@@ -2461,7 +2461,7 @@
 		        </listitem>
 		        <listitem>
                     <para>
-                        <emphasis>dmesg</emphasis> — предоставляет доступ к логам, получаемым от утилиты dmesg; 
+                        <emphasis>dmesg</emphasis> — предоставляет доступ к логам, получаемым от утилиты dmesg;
                     </para>
                 </listitem>
                 <listitem>
@@ -2536,7 +2536,7 @@
             <itemizedlist>
                 <listitem>
                     <para>
-                        <emphasis>Path</emphasis> — каталог на файловой системе устройства, в который будет загружен файл; 
+                        <emphasis>Path</emphasis> — каталог на файловой системе устройства, в который будет загружен файл;
                     </para>
                 </listitem>
                 <listitem>
@@ -2638,7 +2638,7 @@
             <para>
                 В стандартной конфигурации каждый физический порт соответствует своему сетевому интерфейсу.
                 Назначение портам Port 0 и Port 1 одного интерфейса, к примеру eth1, сделает возможным передачу
-                трафика между этими интерфейсами на втором уровне, т.е. как в стандартном коммутаторе. 
+                трафика между этими интерфейсами на втором уровне, т.е. как в стандартном коммутаторе.
             </para>
             <note>
                 <para>
@@ -2940,7 +2940,7 @@
                                 ближайшим подключённым к нему устройством, будь то регенератор или конечное устройство.
                                 Когда на линии работают регенераторы, это не всегда является верным, т.к. зачастую
                                 поднятое состояние линка на интерфейсе должно свидетельствовать об установлении связи
-                                между конечными устройствами, а не между устройством и регенератором. Для этого и 
+                                между конечными устройствами, а не между устройством и регенератором. Для этого и
                                 предназначен параметр <emphasis>AdvLink</emphasis> — когда он активен, линк на
                                 интерфейсе считается поднятым только в том случае, когда установлена связь между
                                 мастером и слейвом.
@@ -3127,7 +3127,7 @@
                         </listitem>
                         <listitem>
                             <para>
-                                <emphasis>Compatibility</emphasis> — уровень совместимости профиля: 
+                                <emphasis>Compatibility</emphasis> — уровень совместимости профиля:
                             </para>
                             <itemizedlist>
                                 <listitem>
@@ -3719,7 +3719,7 @@
                             <listitem>
                                 <para>
                                     <emphasis>Slotmap</emphasis>
-	                                — карта тайм-слотов. Тайм-слоты можно указывать через запятую или диапазоном, через дефис. 
+	                                — карта тайм-слотов. Тайм-слоты можно указывать через запятую или диапазоном, через дефис.
 	                                После сохранения карта слотов может быть обновлена
 	                                драйвером, в этом случае будет изменён фон, а рядом со словом Slotamp
 	                                будет написано <emphasis>updated</emphasis>.
@@ -3923,7 +3923,7 @@
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>Stop bits</emphasis> — 
+                        <emphasis>Stop bits</emphasis> —
                     </para>
                 </listitem>
                 <listitem>
@@ -3938,7 +3938,7 @@
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>Forward modem signals</emphasis> — 
+                        <emphasis>Forward modem signals</emphasis> —
                     </para>
                 </listitem>
             </itemizedlist>
@@ -3978,7 +3978,7 @@
                 Для мультиплексирования в маршрутизаторе выделена шина,
                 состоящая из 16 линий, каждая из которых содержит 256 тайм-слотов.
                 Каждый тайм-слот на линии соответствует тайм-слоту в Е1 или SHDSL,
-                т.е. имеет скорость 64 кбит/с. E1 содержит 32 тайм-слота, SHDSL — 
+                т.е. имеет скорость 64 кбит/с. E1 содержит 32 тайм-слота, SHDSL —
                 в зависимости от скорости интерфейса. Интерфейсы E1 (E1) и SHDSL (dsl)
                 могут выставлять на шину
                 данные, полученные из физической линии, и принимать данные,
@@ -4876,7 +4876,7 @@
 				</para>
 			</note>
 			<para>
-				Для правила определены следующие действия:	
+				Для правила определены следующие действия:
 			</para>
 			<itemizedlist>
 				<listitem>
@@ -5916,6 +5916,96 @@
                 <emphasis>Back to list of zones</emphasis>.
             </para>
         </section>
+
+        <section>
+      <title>"Удлинитель" портов RS-232 через Internet</title>
+
+      <para>Инструкция по настройке</para>
+
+      <itemizedlist>
+          <listitem>
+            <para>Откройте в браузере две вкладки на страницы управления
+            обоими рутерами</para>
+          </listitem>
+
+          <listitem>
+            <para>Во вкладках Hardware/ttyRS* настройте параметры выбранных
+            портов и нажмите save.</para>
+          </listitem>
+
+          <listitem>
+            <para>Для каждого порта решите, который из рутеров для данного
+            порта будет активной и пассивной сторонами.</para>
+          </listitem>
+
+          <listitem>
+            <para>Во вкладках Services/ttyRS* обоих рутеров настройте
+            пассивную сторону соединения: Listening host, Listening port.
+            Listening port должен быть уникальным для каждого рутера. Включите
+            Enable и нажмите save. Убедитесь, что на этом рутере запущен
+            процесс: во вкладке System/Console введите команду ps и убедитесь,
+            что процесс sercd запущен:</para>
+
+            <para><command>ps</command></para>
+
+            <para><command>...</command></para>
+
+            <para><command>5563 root 204 S sercd -p 3000 -l 0.0.0.0 -P
+            /var/run/sercd0.pid 3 /de </command></para>
+          </listitem>
+
+          <listitem>
+            <para>Вернитесь во вкладку Services/ttyRS* одного из рутеров и
+            настройте активную часть соединения, секция "Connect to": Host,
+            Port - адрес и порт на рутере с запущенной пассивной частью,
+            включите Enable и нажмите save. Убедитесь, что на этом рутере
+            запущен процесс: во вкладке System-&gt;Console введите команду ps
+            и убедитесь, что процесс socat запущен:</para>
+
+            <para><command>ps</command></para>
+
+            <para><command>...</command></para>
+
+            <para><command>5563 root 228 S sercd -p 3000 -l 0.0.0.0 -P
+            /var/run/sercd0.pid 3 /de 6208 root 492 S socat -ly -P
+            /var/run/socat0.pid -d -d -d tcp:0.0.0.0 </command></para>
+
+            <para>Во вкладке System/Tools/Syslog наблюдайте сообщения демонов
+            sercd и socat.</para>
+          </listitem>
+
+          <listitem>
+            <para>Проверка работы портов. Соедините выбранные порты RS-232
+            рутеров с портами ПК:</para>
+
+            <para><mediaobject>
+                <textobject>
+                  <literallayout class="monospaced">
+
+---------------     --------------------------
+|     :   COM | --- | ttyRS0 : рутер1 : eth0 | ... Internet ...
+| ПК1 :       |     --------------------------  .             .
+|     :  eth0 | .................................             .
+---------------                                               .
+                                                                .
+---------------                                               .
+|     :  eth0 | .................................             .
+| ПК2 :       |     --------------------------  .             .
+|     :   COM | --- | ttyRS0 : рутер2 : eth0 | ... Internet ...
+---------------     --------------------------
+                </literallayout>
+                </textobject>
+              </mediaobject></para>
+          </listitem>
+
+          <listitem>
+            <para>Настройте порты RS-232 ПК (скорость, 8n1, ...) так же, как и
+            соединённые с ними порты рутера. На обоих ПК запустите
+            терминальные программы на соотвествующие порты и
+            попечатайте.</para>
+          </listitem>
+        </itemizedlist>
+    </section>
     </chapter>
 	<chapter id="voip">
 		<title>VoIP</title>
@@ -6077,7 +6167,7 @@
 		<section id="voip.settings">
 			<title>Настройка основных параметров</title>
 			<para>
-				Настройка основных параметров VoIP выполняется на странице 
+				Настройка основных параметров VoIP выполняется на странице
 				Hardware/VoIP/Settings. На странице есть несколько групп настроек,
 				рассмотрим их по отдельности.
 			</para>
@@ -6264,12 +6354,12 @@
             <itemizedlist>
                 <listitem>
                     <para>
-                        <emphasis>#</emphasis> — номер локального канала ТЧ; 
+                        <emphasis>#</emphasis> — номер локального канала ТЧ;
                     </para>
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>EN</emphasis> — активировать соединение ТЧ; 
+                        <emphasis>EN</emphasis> — активировать соединение ТЧ;
                     </para>
                 </listitem>
                 <listitem>
@@ -6300,7 +6390,7 @@
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>Bitpack</emphasis> — 
+                        <emphasis>Bitpack</emphasis> —
                     </para>
                 </listitem>
                 <listitem>
@@ -6322,7 +6412,7 @@
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>LAT</emphasis> — Local Adaptation Type — 
+                        <emphasis>LAT</emphasis> — Local Adaptation Type —
                     </para>
                     <itemizedlist>
                         <listitem>
@@ -6337,29 +6427,29 @@
                         </listitem>
                         <listitem>
                             <para>
-                                <emphasis>SI</emphasis> — with sample interpollation — 
+                                <emphasis>SI</emphasis> — with sample interpollation —
                             </para>
                         </listitem>
                     </itemizedlist>
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>nScal</emphasis> — 
+                        <emphasis>nScal</emphasis> —
                     </para>
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>nInit</emphasis> — 
+                        <emphasis>nInit</emphasis> —
                     </para>
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>nMin</emphasis> — 
+                        <emphasis>nMin</emphasis> —
                     </para>
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>nMax</emphasis> — 
+                        <emphasis>nMax</emphasis> —
                     </para>
                 </listitem>
             </itemizedlist>
@@ -6645,7 +6735,7 @@
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>Bitpack</emphasis> — 
+                        <emphasis>Bitpack</emphasis> —
                     </para>
                 </listitem>
                 <listitem>
@@ -6667,7 +6757,7 @@
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>LAT</emphasis> — Local Adaptation Type — 
+                        <emphasis>LAT</emphasis> — Local Adaptation Type —
                     </para>
                     <itemizedlist>
                         <listitem>
@@ -6682,29 +6772,29 @@
                         </listitem>
                         <listitem>
                             <para>
-                                <emphasis>SI</emphasis> — with sample interpollation — 
+                                <emphasis>SI</emphasis> — with sample interpollation —
                             </para>
                         </listitem>
                     </itemizedlist>
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>nScaling</emphasis> — 
+                        <emphasis>nScaling</emphasis> —
                     </para>
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>nInit</emphasis> — 
+                        <emphasis>nInit</emphasis> —
                     </para>
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>nMin</emphasis> — 
+                        <emphasis>nMin</emphasis> —
                     </para>
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>nMax</emphasis> — 
+                        <emphasis>nMax</emphasis> —
                     </para>
                 </listitem>
             </itemizedlist>
@@ -6726,17 +6816,17 @@
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>NLP</emphasis> — 
+                        <emphasis>NLP</emphasis> —
                     </para>
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>Near-end window</emphasis> — 
+                        <emphasis>Near-end window</emphasis> —
                     </para>
                 </listitem>
                 <listitem>
                     <para>
-                        <emphasis>Far-end window</emphasis> — 
+                        <emphasis>Far-end window</emphasis> —
                     </para>
                 </listitem>
             </itemizedlist>
@@ -8257,3 +8347,4 @@
 		</warning>
 	</chapter>
 </book>
+
