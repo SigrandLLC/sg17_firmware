@@ -49,16 +49,14 @@ Controllers.rs232ip = function(node, pcislot, pcidev)
 				"type" : "select",
 				"text" : "Log level",
 				"name" : $.sprintf("sys_rs232ip_s%s_%s_loglevel", pcislot, pcidev),
-				"options": {0: "No log", 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:"Full debug"}
+				"options": {0: "No log", 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:"Full debug"},
+				"defaultValue": 2
 			};
 			c.addWidget(field);
 
-
-			c.addHrField("Connect to options:");
-
 			field = {
 				"type" : "checkbox",
-				"text" : "Enable",
+				"text" : "Connect to",
 				"name" : $.sprintf("sys_rs232ip_s%s_%s_socat_enable", pcislot, pcidev)
 			};
 			c.addWidget(field);
