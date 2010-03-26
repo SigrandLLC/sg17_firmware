@@ -46,7 +46,12 @@ _node_cfg() {
 					numlvl=`expr $numlvl + 1`
 				done
 				echo -n " and connect to ${dst_host}:${dst_port}"
-				socat -ly -P $socat_pidfile $socat_str_loglvl "tcp:${src_host}:${src_port}" "tcp:${dst_host}:${dst_port}"
+				socat -ly -s -P $socat_pidfile $socat_str_loglvl "tcp:${src_host}:${src_port}" "tcp:${dst_host}:${dst_port}"
+			fi
+		else
+			if [ -f $socat_pidfile ]; then
+				kill `cat $socat_pidfile`
+				rm -f $socat_pidfile
 			fi
 		fi
 		echo ""
