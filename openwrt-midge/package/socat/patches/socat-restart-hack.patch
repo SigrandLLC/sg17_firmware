@@ -1,0 +1,27 @@
+--- socat-1.6.0.0/socat.c.orig	2010-03-29 15:13:42.000000000 +0700
++++ socat-1.6.0.0/socat.c	2010-03-29 15:24:07.000000000 +0700
+@@ -87,7 +87,7 @@ const char copyright_ssleay[] = "This pr
+ bool havelock;
+ 
+ 
+-int main(int argc, const char *argv[]) {
++int main(int argc, char * const argv[], char * const envp[]) {
+    const char **arg1, *a;
+    char buff[10];
+    double rto;
+@@ -352,6 +352,15 @@ int main(int argc, const char *argv[]) {
+    }
+ 
+    result = socat(arg1[0], arg1[1]);
++   if (result == 0) {
++       Notice("restart");
++
++       int i;
++       for (i=10; i >= 0; --i)
++	   close(i);
++       execve("/usr/bin/socat", argv, envp);
++       Error1("can't execve /usr/bin/socat: %s", strerror(errno));
++   }
+    Notice1("exiting with status %d", result);
+    Exit(result);
+    return 0;	/* not reached, just for gcc -Wall */
