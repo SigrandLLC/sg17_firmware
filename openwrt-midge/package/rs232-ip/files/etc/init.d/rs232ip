@@ -24,8 +24,8 @@ _node_cfg() {
 	local node=$3
 
 	local lockfile="/var/lock/LCK..$node"
-	local pidfile=/var/run/sercd${node}.pid
-	local socat_pidfile=/var/run/socat${node}.pid
+	local pidfile=/var/run/sercd.${node}.pid
+	local socat_pidfile=/var/run/socat.${node}.pid
 	eval `${kdb} sls sys_rs232ip_s${slot}_${dev}_`
 	if [ "$enable" -eq 1 ]; then # sercd must be started
 		[ -f $lockfile ] && exit 1 # port already used
@@ -53,7 +53,7 @@ _node_cfg() {
 					numlvl=`expr $numlvl + 1`
 				done
 				echo -n " and connect to ${dst_host}:${dst_port}"
-				socat -ly -s -P $socat_pidfile $socat_str_loglvl "tcp:${src_host}:${src_port}" "tcp:${dst_host}:${dst_port},forever"
+				socat -ly -P $socat_pidfile $socat_str_loglvl "tcp:${src_host}:${src_port}" "tcp:${dst_host}:${dst_port},forever"
 			fi
 		else
 			if [ -f $socat_pidfile ]; then
