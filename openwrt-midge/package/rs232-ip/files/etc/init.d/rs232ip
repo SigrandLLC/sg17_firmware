@@ -14,13 +14,11 @@ _start_or_stop() {
 			_mod_cfg "$slot"
 		done
 	else
-		kill `cat /var/run/sercd.*.pid 2>/dev/null` 2>/dev/null
-		rm -f /var/run/sercd.*.pid
-
 		kill `cat /var/run/socat.*.pid 2>/dev/null` 2>/dev/null
 		rm -f /var/run/socat.*.pid
 
-		rm -f /var/lock/LCK..* # TODO: dangerous, sercd must delete this files
+		kill `cat /var/run/sercd.*.pid 2>/dev/null` 2>/dev/null
+		rm -f /var/run/sercd.*.pid
 	fi
 }
 
