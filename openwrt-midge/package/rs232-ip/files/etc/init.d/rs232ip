@@ -28,9 +28,9 @@ _node_cfg() {
 	local socat_pidfile=/var/run/socat.${node}.pid
 	eval `${kdb} sls sys_rs232ip_s${slot}_${dev}_`
 	if [ "$enable" -eq 1 ]; then # sercd must be started
-		[ -f $lockfile ] && exit 1 # port already used
 
 		local need_start=1
+		[ -f $lockfile ] && need_start=0 # port already used
 		if [ -f $pidfile ]; then # sercd already started ?
 			kill -0 `cat $pidfile`
 			[ $? -eq 0 ] && need_start=0 || rm -f $pidfile
@@ -39,6 +39,7 @@ _node_cfg() {
 			echo -en "\t${node} on ${src_host}:${src_port}"
 			sercd -p $src_port -l $src_host -P $pidfile $loglevel /dev/$node $lockfile $poll_interval
 		fi
+
 		if [ "$socat_enable" -eq 1 ]; then
 			local socat_need_start=1
 			if [ -f $socat_pidfile ]; then # socat already started ?
