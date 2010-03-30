@@ -47,18 +47,18 @@ _node_cfg() {
 		local need_start=1
 		[ -f $lockfile ] && need_start=0 # port already used
 		if [ -f $pidfile ]; then # sercd already started ?
-			kill -0 `cat $pidfile`
+			kill -0 `cat $pidfile` 2>/dev/null
 			[ $? -eq 0 ] && need_start=0 || rm -f $pidfile
 		fi
 		if [ $need_start -eq 1 ]; then
-			echo -en "\t${node} on ${src_host}:${src_port}"
+			echo -e "\t${node} on ${src_host}:${src_port}"
 			sercd -p $src_port -l $src_host -P $pidfile $loglevel /dev/$node $lockfile $poll_interval
 		fi
 
 		if [ "$socat_enable" -eq 1 ]; then
 			local socat_need_start=1
 			if [ -f $socat_pidfile ]; then # socat already started ?
-				kill -0 `cat $socat_pidfile`
+				kill -0 `cat $socat_pidfile` 2>/dev/null
 				[ $? -eq 0 ] && socat_need_start=0 || rm -f $socat_pidfile
 			fi
 			if [ $socat_need_start -eq 1 ]; then
@@ -68,7 +68,7 @@ _node_cfg() {
 					socat_str_loglvl="${socat_str_loglvl} -d"
 					numlvl=`expr $numlvl + 1`
 				done
-				echo -n " and connect to ${dst_host}:${dst_port}"
+				echo -e "\tand connect to ${dst_host}:${dst_port}"
 				socat -ly -P $socat_pidfile $socat_str_loglvl "tcp:${src_host}:${src_port}" "tcp:${dst_host}:${dst_port},forever"
 			fi
 		else
@@ -77,7 +77,6 @@ _node_cfg() {
 				rm -f $socat_pidfile
 			fi
 		fi
-		echo ""
 	else
 		if [ -f $pidfile ]; then
 			kill `cat $pidfile`
