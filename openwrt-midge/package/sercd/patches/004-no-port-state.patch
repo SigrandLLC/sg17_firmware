@@ -1,0 +1,18 @@
+--- sercd-3.0.0/sercd.c.orig	2010-03-29 19:01:01.000000000 +0700
++++ sercd-3.0.0/sercd.c	2010-03-30 19:11:48.000000000 +0700
+@@ -1605,6 +1605,7 @@ main(int argc, char **argv)
+ 		}
+ 	    }
+ 
++#ifndef NO_TELNET
+ 	    /* Check the port state and notify the client if it's changed */
+ 	    if (selret & SERCD_EV_MODEMSTATE) {
+ 		unsigned char newstate;
+@@ -1624,6 +1625,7 @@ main(int argc, char **argv)
+ 		    LogMsg(LOG_DEBUG, LogStr);
+ 		}
+ 	    }
++#endif
+ 	}
+     }
+ }
