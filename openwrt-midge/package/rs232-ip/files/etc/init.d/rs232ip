@@ -8,20 +8,37 @@ _start_or_stop() {
 	local start=$1
 	[ $start -eq 1 ] && echo -n "Starting " || echo -n "Stopping "
 	echo "rs232 over ip"
-	eval `${kdb} sls -q sys_pcitbl_`
-	nodes=`${kdb} get sys_pcitbl_s${slot}_ifaces`
-	for slot in $slots; do
-		for dev in [0,1,2,3]; do
-			enable=`${kdb} get sys_rs232ip_s${slot}_${dev}_enable`
-			[ "$enable" -eq $start ] && _mod_cfg "$slot" "$dev"
+	if [ $start -eq 1 ]; then
+		eval `${kdb} sls -q sys_pcitbl_`
+		for slot in $slots; do
+			_mod_cfg "$slot"
 		done
-	done
+	else
+		kill `cat /var/run/sercd.*.pid 2>/dev/null` 2>/dev/null
+		rm -f /var/run/sercd.*.pid
+
+		kill `cat /var/run/socat.*.pid 2>/dev/null` 2>/dev/null
+		rm -f /var/run/socat.*.pid
+
+		rm -f /var/lock/LCK..* # TODO: dangerous, sercd must delete this files
+	fi
 }
 
 _node_cfg() {
 	local slot=$1
 	local dev=$2
 	local node=$3
+
+	# kdb options
+	local enable=0
+	local socat_enable=0
+	local dst_host
+	local dst_port
+	local loglevel
+	local poll_interval
+	local socat_loglevel
+	local src_host
+	local dst_port
 
 	local lockfile="/var/lock/LCK..$node"
 	local pidfile=/var/run/sercd.${node}.pid
