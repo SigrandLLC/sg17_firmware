@@ -5,3 +5,4 @@ alias arp="cat /proc/net/arp"
 export PS1="`hostname`$ "
 [ "`id -u`" = 0 ] && export PS1="`hostname`# "
 eval `resize`
+echo
