@@ -93,7 +93,8 @@ scanlogd-compile: libpcap-compile libnids-compile libnet-compile
 scdp-compile: libnet-compile
 screen-compile: ncurses-compile
 sftpserver-compile: libiconv-install
-rs232-ip-install: sercd-install socat-install
+rs232-ip-install: sercd-install
+rs232-ip-install: socat-install
 sipp-compile: ncurses-compile uclibc++-compile libpthread-compile
 siproxd-compile: libosip2-compile
 sipsak-compile: openssl-compile
