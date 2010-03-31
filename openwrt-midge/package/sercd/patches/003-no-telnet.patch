@@ -1,5 +1,14 @@
---- sercd-3.0.0/sercd.c.orig	2010-03-24 21:18:21.000000000 +0600
-+++ sercd-3.0.0/sercd.c	2010-03-24 21:18:44.000000000 +0600
+--- sercd-3.0.0/sercd.c.orig	2010-03-31 16:20:48.000000000 +0700
++++ sercd-3.0.0/sercd.c	2010-03-31 16:21:27.000000000 +0700
+@@ -54,7 +54,7 @@
+ #include "win.h"
+ 
+ /* Buffer size */
+-#define BufferSize 2048
++#define BufferSize 8192
+ 
+ /* Cisco IOS bug compatibility */
+ Boolean CiscoIOSCompatible = False;
 @@ -97,6 +97,7 @@ typedef enum
  { IACNormal, IACReceived, IACComReceiving }
  IACState;
@@ -48,7 +57,23 @@
  }
  
  /* Setup sockets for low latency and automatic keepalive; doesn't
-@@ -416,6 +422,7 @@ BreakFunction(int unused)
+@@ -338,6 +344,15 @@ AddToBuffer(BufferType * B, unsigned cha
+     B->WrPos = (B->WrPos + 1) % BufferSize;
+ }
+ 
++void
++AddToBufferString(BufferType * B, const char *S, size_t len)
++{
++    assert(BufferHasRoomFor(B, len));
++
++    memcpy(&B->Buffer[B->WrPos], S, len);
++    B->WrPos = (B->WrPos + len) % BufferSize;
++}
++
+ /* Get a byte from a buffer */
+ unsigned char
+ GetFromBuffer(BufferType * B)
+@@ -416,6 +431,7 @@ BreakFunction(int unused)
  /* Send the signature Sig to the client. Sig must not be longer than
     255 characters. */
  #define SendSignature_bytes (6 + 2 * 255)
@@ -56,7 +81,7 @@
  void
  SendSignature(BufferType * B, char *Sig)
  {
-@@ -428,6 +435,7 @@ SendSignature(BufferType * B, char *Sig)
+@@ -428,12 +444,14 @@ SendSignature(BufferType * B, char *Sig)
      AddToBuffer(B, TNIAC);
      AddToBuffer(B, TNSE);
  }
@@ -64,37 +89,43 @@
  
  /* Write a char to socket performing IAC escaping */
  #define EscWriteChar_bytes 2
-@@ -437,10 +445,12 @@ EscWriteChar(BufferType * B, unsigned ch
+ void
+ EscWriteChar(BufferType * B, unsigned char C)
+ {
++#ifndef NO_TELNET
      /* Last received byte */
      static unsigned char Last = 0;
  
-+#ifndef NO_TELNET
-     if (C == TNIAC)
+@@ -441,10 +459,13 @@ EscWriteChar(BufferType * B, unsigned ch
  	AddToBuffer(B, C);
      else if (C != 0x0A && !tnstate[TN_TRANSMIT_BINARY].is_will && Last == 0x0D)
  	AddToBuffer(B, 0x00);
 +#endif
      AddToBuffer(B, C);
  
++#ifndef NO_TELNET
      /* Set last received byte */
-@@ -456,6 +466,7 @@ EscRedirectChar(BufferType * SockB, Buff
+     Last = C;
++#endif
+ }
+ 
+ /* Redirect char C to Device checking for IAC escape sequences */
+@@ -453,6 +474,7 @@ EscWriteChar(BufferType * B, unsigned ch
+ void
+ EscRedirectChar(BufferType * SockB, BufferType * DevB, PORTHANDLE PortFd, unsigned char C)
+ {
++#ifndef NO_TELNET
      /* Last received byte */
      static unsigned char Last = 0;
  
-+#ifndef NO_TELNET
-     /* Check the IAC escape status */
-     switch (IACEscape) {
- 	/* Normal status */
-@@ -586,13 +597,16 @@ EscRedirectChar(BufferType * SockB, Buff
- 	}
- 	break;
-     }
--
+@@ -589,10 +611,15 @@ EscRedirectChar(BufferType * SockB, Buff
+ 
+     /* Set last received byte */
+     Last = C;
++
 +#else
 +    AddToBuffer(DevB, C);
 +#endif
-     /* Set last received byte */
-     Last = C;
  }
  
  /* Send the specific telnet option to SockFd using Command as command */
@@ -103,7 +134,7 @@
  void
  SendTelnetOption(BufferType * B, unsigned char Command, char Option)
  {
-@@ -602,12 +616,14 @@ SendTelnetOption(BufferType * B, unsigne
+@@ -602,12 +629,14 @@ SendTelnetOption(BufferType * B, unsigne
      AddToBuffer(B, Command);
      AddToBuffer(B, Option);
  }
@@ -118,7 +149,7 @@
      SendTelnetOption(B, TNWILL, TN_TRANSMIT_BINARY);
      tnstate[TN_TRANSMIT_BINARY].sent_will = 1;
      SendTelnetOption(B, TNDO, TN_TRANSMIT_BINARY);
-@@ -620,6 +636,7 @@ SendTelnetInitialOptions(BufferType * B)
+@@ -620,6 +649,7 @@ SendTelnetInitialOptions(BufferType * B)
      tnstate[TN_SUPPRESS_GO_AHEAD].sent_do = 1;
      SendTelnetOption(B, TNDO, TNCOM_PORT_OPTION);
      tnstate[TNCOM_PORT_OPTION].sent_do = 1;
@@ -126,16 +157,7 @@
  }
  
  /* Send a string to SockFd performing IAC escaping
-@@ -633,11 +650,16 @@ SendStr(BufferType * B, char *Str)
-     L = strlen(Str);
- 
-     for (I = 0; I < L; I++)
-+#ifndef NO_TELNET
- 	EscWriteChar(B, (unsigned char) Str[I]);
-+#else
-+	AddToBuffer(B, Str[I]);
-+#endif
- }
+@@ -638,6 +668,7 @@ SendStr(BufferType * B, char *Str)
  
  /* Send the baud rate BR to Buffer */
  #define SendBaudRate_bytes (6 + 2*sizeof(unsigned long int))
@@ -143,7 +165,7 @@
  void
  SendBaudRate(BufferType * B, unsigned long int BR)
  {
-@@ -657,9 +679,11 @@ SendBaudRate(BufferType * B, unsigned lo
+@@ -657,9 +688,11 @@ SendBaudRate(BufferType * B, unsigned lo
      AddToBuffer(B, TNIAC);
      AddToBuffer(B, TNSE);
  }
@@ -155,7 +177,7 @@
  void
  SendCPCByteCommand(BufferType * B, unsigned char Command, unsigned char Parm)
  {
-@@ -671,10 +695,12 @@ SendCPCByteCommand(BufferType * B, unsig
+@@ -671,10 +704,12 @@ SendCPCByteCommand(BufferType * B, unsig
      AddToBuffer(B, TNIAC);
      AddToBuffer(B, TNSE);
  }
@@ -168,7 +190,7 @@
  void
  HandleCPCCommand(BufferType * SockB, PORTHANDLE PortFd, unsigned char *Command, size_t CSize)
  {
-@@ -914,9 +940,11 @@ HandleCPCCommand(BufferType * SockB, POR
+@@ -914,9 +949,11 @@ HandleCPCCommand(BufferType * SockB, POR
  	break;
      }
  }
@@ -180,7 +202,7 @@
  void
  HandleIACCommand(BufferType * SockB, PORTHANDLE PortFd, unsigned char *Command, size_t CSize)
  {
-@@ -1078,6 +1106,7 @@ HandleIACCommand(BufferType * SockB, POR
+@@ -1078,6 +1115,7 @@ HandleIACCommand(BufferType * SockB, POR
  	break;
      }
  }
@@ -188,17 +210,78 @@
  
  /* Check and act upon read/write result. Uses errno. Returns true on error. */
  Boolean
-@@ -1325,7 +1354,9 @@ main(int argc, char **argv)
- 	SetSocketOptions(*InSocketFd, *OutSocketFd);
- 	InitBuffer(&ToNetBuf);
- 	InitTelnetStateMachine();
+@@ -1206,25 +1244,25 @@ Usage(void)
+ 	    "0 means no polling\n", VERSION, DEFAULT_POLL_INTERVAL);
+ }
+ 
++/* Chars read */
++static char readbuf[BufferSize];
++
++/* Buffer to Device from Network */
++static BufferType ToDevBuf;
++
++/* Buffer to Network from Device */
++static BufferType ToNetBuf;
++
+ /* Main function */
+ int
+ main(int argc, char **argv)
+ {
+-    /* Chars read */
+-    char readbuf[512];
+-
+     /* Temporary string for logging */
+     char LogStr[TmpStrLen];
+ 
+     /* Poll interval and timer */
+     long PollInterval;
+ 
+-    /* Buffer to Device from Network */
+-    BufferType ToDevBuf;
+-
+-    /* Buffer to Network from Device */
+-    BufferType ToNetBuf;
+-
+     int opt = 0;
+     char *optstring = "iep:l:P:";
+     unsigned int opt_port = 7000;
+@@ -1467,9 +1505,13 @@ main(int argc, char **argv)
+ 		    continue;
+ 		}
+ 		else {
 +#ifndef NO_TELNET
- 	SendTelnetInitialOptions(&ToNetBuf);
+ 		    for (i = 0; i < iobytes; i++) {
+ 			EscWriteChar(&ToNetBuf, readbuf[i]);
+ 		    }
++#else
++		    AddToBufferString(&ToNetBuf, readbuf, iobytes);
 +#endif
-     }
-     else {
- 	/* Standalone mode */
-@@ -1583,8 +1614,10 @@ main(int argc, char **argv)
+ 		}
+ 	    }
+ 
+@@ -1518,9 +1560,13 @@ main(int argc, char **argv)
+ 		    continue;
+ 		}
+ 		else {
++#ifndef NO_TELNET
+ 		    for (i = 0; i < iobytes; i++) {
+ 			EscRedirectChar(&ToNetBuf, &ToDevBuf, *DeviceFd, readbuf[i]);
+ 		    }
++#else
++		    AddToBufferString(&ToDevBuf, readbuf, iobytes);
++#endif
+ 		}
+ 	    }
+ 
+@@ -1574,6 +1620,7 @@ main(int argc, char **argv)
+ 		}
+ 	    }
+ 
++#ifndef NO_TELNET
+ 	    /* Check the port state and notify the client if it's changed */
+ 	    if (selret & SERCD_EV_MODEMSTATE) {
+ 		unsigned char newstate;
+@@ -1583,14 +1630,17 @@ main(int argc, char **argv)
  		if ((newstate & ModemStateMask & TNCOM_MODMASK_NODELTA)
  		    != (ModemState & ModemStateMask & TNCOM_MODMASK_NODELTA)) {
  		    ModemState = newstate;
@@ -209,3 +292,10 @@
  		    snprintf(LogStr, sizeof(LogStr), "Sent modem state: %u",
  			     (unsigned int) (ModemState & ModemStateMask));
  		    LogStr[sizeof(LogStr) - 1] = '\0';
+ 		    LogMsg(LOG_DEBUG, LogStr);
+ 		}
+ 	    }
++#endif
+ 	}
+     }
+ }
