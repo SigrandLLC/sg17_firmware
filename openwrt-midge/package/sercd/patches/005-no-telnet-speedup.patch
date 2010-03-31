@@ -1,0 +1,84 @@
+--- sercd-3.0.0/sercd.c.orig	2010-03-31 15:02:08.000000000 +0700
++++ sercd-3.0.0/sercd.c	2010-03-31 15:58:44.000000000 +0700
+@@ -344,6 +344,15 @@ AddToBuffer(BufferType * B, unsigned cha
+     B->WrPos = (B->WrPos + 1) % BufferSize;
+ }
+ 
++void
++AddToBufferString(BufferType * B, const char *S, size_t len)
++{
++    assert(BufferHasRoomFor(B, len));
++
++    memcpy(&B->Buffer[B->WrPos], S, len);
++    B->WrPos = (B->WrPos + len) % BufferSize;
++}
++
+ /* Get a byte from a buffer */
+ unsigned char
+ GetFromBuffer(BufferType * B)
+@@ -463,10 +472,10 @@ EscWriteChar(BufferType * B, unsigned ch
+ void
+ EscRedirectChar(BufferType * SockB, BufferType * DevB, PORTHANDLE PortFd, unsigned char C)
+ {
++#ifndef NO_TELNET
+     /* Last received byte */
+     static unsigned char Last = 0;
+ 
+-#ifndef NO_TELNET
+     /* Check the IAC escape status */
+     switch (IACEscape) {
+ 	/* Normal status */
+@@ -597,11 +606,13 @@ EscRedirectChar(BufferType * SockB, Buff
+ 	}
+ 	break;
+     }
++
++    /* Set last received byte */
++    Last = C;
++
+ #else
+     AddToBuffer(DevB, C);
+ #endif
+-    /* Set last received byte */
+-    Last = C;
+ }
+ 
+ /* Send the specific telnet option to SockFd using Command as command */
+@@ -1354,9 +1365,7 @@ main(int argc, char **argv)
+ 	SetSocketOptions(*InSocketFd, *OutSocketFd);
+ 	InitBuffer(&ToNetBuf);
+ 	InitTelnetStateMachine();
+-#ifndef NO_TELNET
+ 	SendTelnetInitialOptions(&ToNetBuf);
+-#endif
+     }
+     else {
+ 	/* Standalone mode */
+@@ -1498,9 +1507,13 @@ main(int argc, char **argv)
+ 		    continue;
+ 		}
+ 		else {
++#ifndef NO_TELNET
+ 		    for (i = 0; i < iobytes; i++) {
+ 			EscWriteChar(&ToNetBuf, readbuf[i]);
+ 		    }
++#else
++		    AddToBufferString(&ToNetBuf, readbuf, iobytes);
++#endif
+ 		}
+ 	    }
+ 
+@@ -1549,9 +1562,13 @@ main(int argc, char **argv)
+ 		    continue;
+ 		}
+ 		else {
++#ifndef NO_TELNET
+ 		    for (i = 0; i < iobytes; i++) {
+ 			EscRedirectChar(&ToNetBuf, &ToDevBuf, *DeviceFd, readbuf[i]);
+ 		    }
++#else
++		    AddToBufferString(&ToDevBuf, readbuf, iobytes);
++#endif
+ 		}
+ 	    }
+ 
