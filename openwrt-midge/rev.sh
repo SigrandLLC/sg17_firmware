@@ -9,6 +9,9 @@ revision=$(( $(git rev-list HEAD | wc -l) + 9 ))
 
 branch=`git branch --no-color | egrep '^\*' | cut '-d ' -f2`
 #branch=1.2
+case $branch in
+	master) branch=dev;;
+esac
 #echo "branch: $branch"
 
 modified=`git status --porcelain`
