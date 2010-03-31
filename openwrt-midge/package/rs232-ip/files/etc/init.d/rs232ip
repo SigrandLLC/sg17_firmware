@@ -39,20 +39,20 @@ _node_cfg() {
 	local dst_port
 
 	local lockfile="/var/lock/LCK..$node"
-	local pidfile=/var/run/sercd.${node}.pid
+	local sercd_pidfile=/var/run/sercd.${node}.pid
 	local socat_pidfile=/var/run/socat.${node}.pid
 	eval `${kdb} sls sys_rs232ip_s${slot}_${dev}_`
 	if [ "$enable" -eq 1 ]; then # sercd must be started
 
 		local need_start=1
 		[ -f $lockfile ] && need_start=0 # port already used
-		if [ -f $pidfile ]; then # sercd already started ?
-			kill -0 `cat $pidfile` 2>/dev/null
-			[ $? -eq 0 ] && need_start=0 || rm -f $pidfile
+		if [ -f $sercd_pidfile ]; then # sercd already started ?
+			kill -0 `cat $sercd_pidfile` 2>/dev/null
+			[ $? -eq 0 ] && need_start=0 || rm -f $sercd_pidfile
 		fi
 		if [ $need_start -eq 1 ]; then
 			echo -e "\t${node} on ${src_host}:${src_port}"
-			sercd -p $src_port -l $src_host -P $pidfile $loglevel /dev/$node $lockfile $poll_interval
+			sercd -p $src_port -l $src_host -P $sercd_pidfile $loglevel /dev/$node $lockfile $poll_interval
 		fi
 
 		if [ "$socat_enable" -eq 1 ]; then
@@ -78,9 +78,9 @@ _node_cfg() {
 			fi
 		fi
 	else
-		if [ -f $pidfile ]; then
-			kill `cat $pidfile`
-			rm -f $pidfile
+		if [ -f $sercd_pidfile ]; then
+			kill `cat $sercd_pidfile`
+			rm -f $sercd_pidfile
 		fi
 		if [ -f $socat_pidfile ]; then
 			kill `cat $socat_pidfile`
