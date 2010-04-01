@@ -30,7 +30,6 @@ _node_cfg() {
 	local dst_host
 	local dst_port
 	local loglevel
-	local linger
 	local src_host
 	local dst_port
 
@@ -58,9 +57,9 @@ _node_cfg() {
 		local options="${str_loglvl} -P ${pidfile} file:/dev/${node},raw,echo=0,lockfile=${lockfile}"
 		if [ "$connect_enable" -eq 1 ]; then
 			echo -e "\tand connect to ${dst_host}:${dst_port}"
-			options="${options} TCP:${dst_host}:${dst_port},forever,linger=${linger}"
+			options="${options} TCP:${dst_host}:${dst_port},forever"
 		else
-			options="TCP-LISTEN:${src_port},keepalive,retry,reuseaddr,bind=${src_host},linger=${linger} ${options}"
+			options="TCP-LISTEN:${src_port},keepalive,retry,reuseaddr,bind=${src_host} ${options}"
 		fi
 		socat ${options}
 	fi
