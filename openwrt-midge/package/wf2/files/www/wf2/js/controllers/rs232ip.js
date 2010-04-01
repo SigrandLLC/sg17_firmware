@@ -39,11 +39,20 @@ Controllers.rs232ip = function(node, pcislot, pcidev)
 
 			field = {
 				"type": "text",
+				"text": "Linger (sec)",
+				"name": $.sprintf("sys_rs232ip_s%s_%s_linger", pcislot, pcidev),
+				"defaultValue": 1
+			};
+			c.addWidget(field);
+
+/*			field = {
+				"type": "text",
 				"text": "Polling interval (ms)",
 				"name": $.sprintf("sys_rs232ip_s%s_%s_poll_interval", pcislot, pcidev),
 				"defaultValue": "100"
 			};
 			c.addWidget(field);
+*/
 
 			field = {
 				"type" : "select",
