@@ -54,7 +54,7 @@ _node_cfg() {
 			numlvl=`expr $numlvl + 1`
 		done
 
-		local socat_options="${str_loglvl} -P ${pidfile}"
+		local socat_options="${str_loglvl} -P ${pidfile} -ly"
 		local device_param="file:/dev/${node},raw,echo=0,lockfile=${lockfile}"
 		if [ "$connect_enable" -eq 1 ]; then
 			echo -e "\tand connect to ${dst_host}:${dst_port}"
