@@ -54,12 +54,13 @@ _node_cfg() {
 			numlvl=`expr $numlvl + 1`
 		done
 
-		local options="${str_loglvl} -P ${pidfile} file:/dev/${node},raw,echo=0,lockfile=${lockfile}"
+		local socat_options="${str_loglvl} -P ${pidfile}"
+		local device_param="file:/dev/${node},raw,echo=0,lockfile=${lockfile}"
 		if [ "$connect_enable" -eq 1 ]; then
 			echo -e "\tand connect to ${dst_host}:${dst_port}"
-			options="${options} TCP:${dst_host}:${dst_port},forever"
+			options="${socat_options} ${device_param} TCP:${dst_host}:${dst_port},forever"
 		else
-			options="TCP-LISTEN:${src_port},keepalive,retry,reuseaddr,bind=${src_host} ${options}"
+			options="${socat_options} TCP-LISTEN:${src_port},keepalive,retry,reuseaddr,bind=${src_host} ${device_param}"
 		fi
 		socat ${options}
 	fi
