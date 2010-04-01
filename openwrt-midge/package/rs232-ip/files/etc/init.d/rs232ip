@@ -39,7 +39,7 @@ _node_cfg() {
 
 	# for beginning stop service, always.
 	if [ -f $pidfile ]; then
-		kill `cat $pidfile`
+		kill `cat $pidfile` 2>/dev/null
 		rm -f $pidfile
 	fi
 
