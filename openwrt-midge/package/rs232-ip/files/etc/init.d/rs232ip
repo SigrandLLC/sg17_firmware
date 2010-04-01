@@ -16,9 +16,6 @@ _start_or_stop() {
 	else
 		kill `cat /var/run/socat.*.pid 2>/dev/null` 2>/dev/null
 		rm -f /var/run/socat.*.pid
-
-		kill `cat /var/run/sercd.*.pid 2>/dev/null` 2>/dev/null
-		rm -f /var/run/sercd.*.pid
 	fi
 }
 
@@ -34,57 +31,35 @@ _node_cfg() {
 	local dst_port
 	local loglevel
 	local poll_interval
-	local socat_loglevel
 	local src_host
 	local dst_port
 
 	local lockfile="/var/lock/LCK..$node"
-	local sercd_pidfile=/var/run/sercd.${node}.pid
-	local socat_pidfile=/var/run/socat.${node}.pid
+	local pidfile=/var/run/socat.${node}.pid
 	eval `${kdb} sls sys_rs232ip_s${slot}_${dev}_`
-	if [ "$enable" -eq 1 ]; then # sercd must be started
+	if [ "$enable" -eq 1 ]; then # socat must be started
+		echo -e "\t${node} on ${src_host}:${src_port}"
 
-		local need_start=1
-		[ -f $lockfile ] && need_start=0 # port already used
-		if [ -f $sercd_pidfile ]; then # sercd already started ?
-			kill -0 `cat $sercd_pidfile` 2>/dev/null
-			[ $? -eq 0 ] && need_start=0 || rm -f $sercd_pidfile
-		fi
-		if [ $need_start -eq 1 ]; then
-			echo -e "\t${node} on ${src_host}:${src_port}"
-			sercd -p $src_port -l $src_host -P $sercd_pidfile $loglevel /dev/$node $lockfile $poll_interval
-		fi
+		# build log level options
+		local str_loglvl=""
+		local numlvl=0
+		while [ $numlvl -lt $loglevel ]; do
+			str_loglvl="${str_loglvl} -d"
+			numlvl=`expr $numlvl + 1`
+		done
 
-		if [ "$socat_enable" -eq 1 ]; then
-			local socat_need_start=1
-			if [ -f $socat_pidfile ]; then # socat already started ?
-				kill -0 `cat $socat_pidfile` 2>/dev/null
-				[ $? -eq 0 ] && socat_need_start=0 || rm -f $socat_pidfile
-			fi
-			if [ $socat_need_start -eq 1 ]; then
-				local socat_str_loglvl=""
-				local numlvl=0
-				while [ $numlvl -lt $socat_loglevel ]; do
-					socat_str_loglvl="${socat_str_loglvl} -d"
-					numlvl=`expr $numlvl + 1`
-				done
-				echo -e "\tand connect to ${dst_host}:${dst_port}"
-				socat -ly -P $socat_pidfile $socat_str_loglvl "tcp:${src_host}:${src_port}" "tcp:${dst_host}:${dst_port},forever"
-			fi
+		local options="${str_loglvl} -P ${pidfile} file:/dev/${node},raw,echo=0,linger=${linger},lockfile=${lockfile}"
+		if [ "$connect_enable" -eq 1 ]; then
+			echo -e "\tand connect to ${dst_host}:${dst_port}"
+			options="${options} TCP:${dst_host}:${dst_port},forever,linger=${linger}"
 		else
-			if [ -f $socat_pidfile ]; then
-				kill `cat $socat_pidfile`
-				rm -f $socat_pidfile
-			fi
+			options="TCP-LISTEN:${src_port},keepalive,retry,reuseaddr,bind=${src_host},linger=${linger} ${options}"
 		fi
+		socat ${options}
 	else
-		if [ -f $sercd_pidfile ]; then
-			kill `cat $sercd_pidfile`
-			rm -f $sercd_pidfile
-		fi
-		if [ -f $socat_pidfile ]; then
-			kill `cat $socat_pidfile`
-			rm -f $socat_pidfile
+		if [ -f $pidfile ]; then
+			kill `cat $pidfile`
+			rm -f $pidfile
 		fi
 	fi
 
@@ -116,6 +91,7 @@ case "$1" in
 		_start_or_stop 0
 		;;
 	restart)
+		_start_or_stop 0
 		_mod_cfg $2 $3
 		;;
 esac

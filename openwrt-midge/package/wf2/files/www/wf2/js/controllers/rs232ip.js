@@ -66,7 +66,7 @@ Controllers.rs232ip = function(node, pcislot, pcidev)
 			field = {
 				"type" : "checkbox",
 				"text" : "Connect to",
-				"name" : $.sprintf("sys_rs232ip_s%s_%s_socat_enable", pcislot, pcidev)
+				"name" : $.sprintf("sys_rs232ip_s%s_%s_connect_enable", pcislot, pcidev)
 			};
 			c.addWidget(field);
 
