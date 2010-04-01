@@ -30,7 +30,7 @@ _node_cfg() {
 	local dst_host
 	local dst_port
 	local loglevel
-	local poll_interval
+	local linger
 	local src_host
 	local dst_port
 
