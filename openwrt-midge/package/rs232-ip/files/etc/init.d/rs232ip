@@ -48,7 +48,7 @@ _node_cfg() {
 			numlvl=`expr $numlvl + 1`
 		done
 
-		local options="${str_loglvl} -P ${pidfile} file:/dev/${node},raw,echo=0,linger=${linger},lockfile=${lockfile}"
+		local options="${str_loglvl} -P ${pidfile} file:/dev/${node},raw,echo=0,lockfile=${lockfile}"
 		if [ "$connect_enable" -eq 1 ]; then
 			echo -e "\tand connect to ${dst_host}:${dst_port}"
 			options="${options} TCP:${dst_host}:${dst_port},forever,linger=${linger}"
