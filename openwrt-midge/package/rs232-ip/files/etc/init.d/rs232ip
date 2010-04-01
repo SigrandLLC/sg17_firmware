@@ -37,6 +37,13 @@ _node_cfg() {
 	local lockfile="/var/lock/LCK..$node"
 	local pidfile=/var/run/socat.${node}.pid
 	eval `${kdb} sls sys_rs232ip_s${slot}_${dev}_`
+
+	# for beginning stop service, always.
+	if [ -f $pidfile ]; then
+		kill `cat $pidfile`
+		rm -f $pidfile
+	fi
+
 	if [ "$enable" -eq 1 ]; then # socat must be started
 		echo -e "\t${node} on ${src_host}:${src_port}"
 
@@ -56,11 +63,6 @@ _node_cfg() {
 			options="TCP-LISTEN:${src_port},keepalive,retry,reuseaddr,bind=${src_host},linger=${linger} ${options}"
 		fi
 		socat ${options}
-	else
-		if [ -f $pidfile ]; then
-			kill `cat $pidfile`
-			rm -f $pidfile
-		fi
 	fi
 
 }
@@ -91,7 +93,6 @@ case "$1" in
 		_start_or_stop 0
 		;;
 	restart)
-		_start_or_stop 0
 		_mod_cfg $2 $3
 		;;
 esac
