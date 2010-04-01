@@ -58,7 +58,7 @@ Controllers.rs232ip = function(node, pcislot, pcidev)
 				"type" : "select",
 				"text" : "Log level",
 				"name" : $.sprintf("sys_rs232ip_s%s_%s_loglevel", pcislot, pcidev),
-				"options": {0: "No log", 1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:"Full debug"},
+				"options": {"0": "Error", "1": "Warning", "2": "Notice", "3": "Info", "4": "Debug"},
 				"defaultValue": 2
 			};
 			c.addWidget(field);
@@ -83,15 +83,6 @@ Controllers.rs232ip = function(node, pcislot, pcidev)
 				"name" : $.sprintf("sys_rs232ip_s%s_%s_dst_port", pcislot, pcidev)
 			};
 			c.addWidget(field);
-
-			field = {
-				"type" : "select",
-				"text": "Log level",
-				"name" : $.sprintf("sys_rs232ip_s%s_%s_socat_loglevel", pcislot, pcidev),
-				"options": {"0": "Error", "1": "Warning", "2": "Notice", "3": "Info", "4": "Debug"}
-			};
-			c.addWidget(field);
-
 
 			c.addSubmit();
 		}
