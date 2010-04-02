@@ -3,7 +3,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=pciutils
-PKG_VERSION:=3.1.7
+PKG_VER_MAJOR = 3
+PKG_VERSION:=$(PKG_VER_MAJOR).1.7
 PKG_RELEASE:=2
 PKG_MD5SUM:=35222edb86b50a6641352c66fe829b2e
 
@@ -25,14 +26,17 @@ $(PKG_BUILD_DIR)/.configured:
 $(PKG_BUILD_DIR)/.built:
 	$(MAKE) -C $(PKG_BUILD_DIR) \
 		CC=$(TARGET_CC) CFLAGS="$(TARGET_CFLAGS)" IDSDIR="/usr/share"	\
-		HOST=$(GNU_TARGET_NAME) ZLIB=no DNS=no SHARED=no		\
+		HOST=$(GNU_TARGET_NAME) ZLIB=no DNS=no SHARED=yes		\
 		lspci setpci
 	touch $@
 
 $(IPKG_PCIUTILS):
 	install -d -m0755 $(IDIR_PCIUTILS)/usr/sbin
 	install -d -m0755 $(IDIR_PCIUTILS)/usr/share
+	install -d -m0755 $(IDIR_PCIUTILS)/usr/lib
 	$(CP) $(PKG_BUILD_DIR)/{lspci,setpci} $(IDIR_PCIUTILS)/usr/sbin/
+	$(CP) $(PKG_BUILD_DIR)/lib/libpci.so.$(PKG_VERSION) $(IDIR_PCIUTILS)/usr/lib/
+	ln -sf libpci.so.$(PKG_VERSION) $(IDIR_PCIUTILS)/usr/lib/libpci.so.$(PKG_VER_MAJOR)
 	$(CP) $(PKG_BUILD_DIR)/pci.ids $(IDIR_PCIUTILS)/usr/share/
 	$(RSTRIP) $(IDIR_PCIUTILS)/
 	$(IPKG_BUILD) $(IDIR_PCIUTILS) $(PACKAGE_DIR)
