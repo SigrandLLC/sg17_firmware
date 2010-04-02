@@ -5943,7 +5943,7 @@
             <para>Во вкладках Services/ttyRS* обоих рутеров настройте
             пассивную сторону соединения: Listening host, Listening port.
             Listening port должен быть уникальным для каждого рутера. Включите
-            Enable и нажмите save. Убедитесь, что на этом рутере запущен
+            "Enable" и нажмите save. Убедитесь, что на этом рутере запущен
             процесс: во вкладке System/Console введите команду ps и убедитесь,
             что процесс sercd запущен:</para>
 
@@ -5951,28 +5951,37 @@
 
             <para><command>...</command></para>
 
-            <para><command>5563 root 204 S sercd -p 3000 -l 0.0.0.0 -P
-            /var/run/sercd0.pid 3 /de </command></para>
+            <para><command>2894 root 716 S socat -d -d -P /var/run/socat.ttyRS0.pid -ly TCP-LIST</command></para>
           </listitem>
 
           <listitem>
             <para>Вернитесь во вкладку Services/ttyRS* одного из рутеров и
             настройте активную часть соединения, секция "Connect to": Host,
             Port - адрес и порт на рутере с запущенной пассивной частью,
-            включите Enable и нажмите save. Убедитесь, что на этом рутере
-            запущен процесс: во вкладке System-&gt;Console введите команду ps
+            включите "Enable" и "Connect To" и нажмите save. Убедитесь, что на этом рутере
+            запущен процесс: во вкладке System/Console введите команду ps
             и убедитесь, что процесс socat запущен:</para>
 
             <para><command>ps</command></para>
 
             <para><command>...</command></para>
 
-            <para><command>5563 root 228 S sercd -p 3000 -l 0.0.0.0 -P
-            /var/run/sercd0.pid 3 /de 6208 root 492 S socat -ly -P
-            /var/run/socat0.pid -d -d -d tcp:0.0.0.0 </command></para>
+            <para><command>3528 root 716 S socat -d -d -P /var/run/socat.ttyRS0.pid -ly file:/de </command></para>
 
-            <para>Во вкладке System/Tools/Syslog наблюдайте сообщения демонов
-            sercd и socat.</para>
+            <para>Во вкладке System/Tools/Syslog наблюдайте сообщения socat:</para>
+
+            <para><command>Пассивная сторона:</command></para>
+            <para><command>daemon.notice socat[2894]: N listening on AF=2 0.0.0.0:3000</command></para>
+            <para><command>daemon.notice socat[2894]: N accepting connection from AF=2 192.168.2.101:4221 on AF=2 192.168.2.102:3000</command></para>
+            <para><command>daemon.notice socat[2894]: N opening character device "/dev/ttyRS0" for reading and writing</command></para>
+            <para><command>daemon.notice socat[2894]: N starting data transfer loop with FDs [6,6] and [3,3]</command></para>
+
+            <para><command>Активная сторона:</command></para>
+            <para><command>daemon.notice socat[3528]: N opening character device "/dev/ttyRS0" for reading and writing</command></para></command></para>
+            <para><command>daemon.notice socat[3528]: N opening connection to AF=2 192.168.2.102:3000</command></para>
+            <para><command>daemon.notice socat[3528]: N successfully connected from local address AF=2 192.168.2.101:4221</command></para>
+            <para><command>daemon.notice socat[3528]: N starting data transfer loop with FDs [4,4] and [6,6]</command></para>
+
           </listitem>
 
           <listitem>
