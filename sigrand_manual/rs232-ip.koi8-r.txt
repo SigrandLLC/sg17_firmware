@@ -18,11 +18,11 @@ text/plain; charset=koi8-r
 Listening port должен быть уникальным для каждого рутера.
 Включите "Enable" и нажмите save.
 Убедитесь, что на этом рутере запущен процесс: во вкладке System/Console
-введите команду ps и убедитесь, что процесс sercd запущен:
+введите команду "ps x" и убедитесь, что процесс socat запущен:
 
-ps
+ps x
 ...
-2894 root 716 S socat -d -d -P /var/run/socat.ttyRS0.pid -ly TCP-LIST
+1485 ? S 0:00 socat -d -d -P /var/run/socat.ttyRS0.pid -ly TCP-LISTEN:3000,keepalive,retry,reuseaddr,bind=0.0.0.0 file:/dev/ttyRS0,raw
 
 5. Вернитесь во вкладку Services/ttyRS* одного из рутеров и настройте
 активную часть соединения, секция "Connect to":
@@ -30,11 +30,11 @@ Host, Port - адрес и порт на рутере с запущенной пассивной частью,
 включите "Enable" и "Connect to" и нажмите save.
 
 Убедитесь, что на этом рутере запущен процесс: во вкладке System->Console
-введите команду ps и убедитесь, что процесс socat запущен:
+введите команду "ps x" и убедитесь, что процесс socat запущен:
 
-ps
+ps x
 ...
-3528 root 716 S socat -d -d -P /var/run/socat.ttyRS0.pid -ly file:/de
+2704 ? S 0:00 socat -d -d -P /var/run/socat.ttyRS0.pid -ly file:/dev/ttyRS0,raw,echo=0,lockfile=/var/lock/LCK..ttyRS0 TCP:192.168.2.102:3000
 
 Во вкладке System/Tools/Syslog наблюдайте сообщения socat:
 
