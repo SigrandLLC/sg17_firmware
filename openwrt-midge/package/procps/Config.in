@@ -1,0 +1,7 @@
+config BR2_PACKAGE_PROCPS
+	prompt "procps............................ Linux /proc file system utilities"
+	tristate
+	default m if CONFIG_DEVEL
+	help
+          Full-featured ps utility for replace of stripped down busybox one.
+

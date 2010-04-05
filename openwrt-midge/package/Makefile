@@ -219,6 +219,7 @@ package-$(BR2_PACKAGE_PPTP) += pptp
 package-$(BR2_PACKAGE_PPTPD) += pptpd
 package-$(BR2_PACKAGE_PRIVOXY) += privoxy
 package-$(BR2_PACKAGE_PROCMAIL) += procmail
+package-$(BR2_PACKAGE_PROCPS) += procps
 package-$(BR2_PACKAGE_PSYBNC) += psybnc
 package-$(BR2_PACKAGE_PTUNNEL) += ptunnel
 package-$(BR2_COMPILE_PWLIB) += pwlib
