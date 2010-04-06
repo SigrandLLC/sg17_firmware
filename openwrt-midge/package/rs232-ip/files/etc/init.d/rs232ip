@@ -20,51 +20,54 @@ _start_or_stop() {
 }
 
 _node_cfg() {
-	local slot=$1
-	local dev=$2
-	local node=$3
+   local slot=$1
+   local dev=$2
+   local node=$3
 
-	# kdb options
-	local enable=0
-	local socat_enable=0
-	local dst_host
-	local dst_port
-	local loglevel
-	local src_host
-	local dst_port
+   # kdb options
+   local enable=0
+   local socat_enable=0
+   local dst_host
+   local dst_port
+   local loglevel
+   local src_host
+   local dst_port
 
-	local lockfile="/var/lock/LCK..$node"
-	local pidfile=/var/run/socat.${node}.pid
-	eval `${kdb} sls sys_rs232ip_s${slot}_${dev}_`
+   local lockfile="/var/lock/LCK..$node"
+   local pidfile=/var/run/socat.${node}.pid
+   eval `${kdb} sls sys_rs232ip_s${slot}_${dev}_`
 
-	# for beginning stop service, always.
-	if [ -f $pidfile ]; then
-		kill `cat $pidfile` 2>/dev/null
-		rm -f $pidfile
-	fi
+   # for beginning stop service, always.
+   if [ -f $pidfile ]; then
+      kill `cat $pidfile` 2>/dev/null
+      rm -f $pidfile
+   fi
 
-	if [ "$enable" -eq 1 ]; then # socat must be started
-		echo -e "\t${node} on ${src_host}:${src_port}"
+   if [ "$enable" -eq 1 ]; then # socat must be started
+      echo -e "\t${node} on ${src_host}:${src_port}"
 
-		# build log level options
-		local str_loglvl=""
-		local numlvl=0
-		while [ $numlvl -lt $loglevel ]; do
-			str_loglvl="${str_loglvl} -d"
-			numlvl=`expr $numlvl + 1`
-		done
+      # build log level options
+      local str_loglvl=""
+      local numlvl=0
+      while [ $numlvl -lt $loglevel ]; do
+         str_loglvl="${str_loglvl} -d"
+	 numlvl=`expr $numlvl + 1`
+      done
 
-		local socat_options="${str_loglvl} -P ${pidfile} -ly"
-		local device_param="file:/dev/${node},raw,echo=0,lockfile=${lockfile}"
-		if [ "$connect_enable" -eq 1 ]; then
-			echo -e "\tand connect to ${dst_host}:${dst_port}"
-			options="${socat_options} ${device_param} TCP:${dst_host}:${dst_port},forever"
-		else
-			options="${socat_options} TCP-LISTEN:${src_port},keepalive,retry,reuseaddr,bind=${src_host} ${device_param}"
-		fi
-		socat ${options}
-	fi
+      local    socat_opts="${str_loglvl} -P ${pidfile} -ly"
+      local   common_opts="keepalive,retry"
+      local device_params="file:/dev/${node},raw,echo=0,lockfile=${lockfile}"
 
+      if [ "$connect_enable" -eq 1 ]; then
+         echo -e "\tand connect to ${dst_host}:${dst_port}"
+	 params="${socat_opts} ${device_params} TCP:${dst_host}:${dst_port}"
+	 params="${params},forever,connect-timeout=1,${common_opts}"
+      else
+         params="${socat_opts} ${device_params} TCP-LISTEN:${src_port}"
+	 params="${params},bind=${src_host},reuseaddr,${common_opts}"
+      fi
+      socat ${params}
+   fi
 }
 
 _mod_cfg() {
