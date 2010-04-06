@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 addr=`dd if=/dev/mtd/0ro bs=1 skip=81960 count=6 2>/dev/null | hexdump -v -e '/1 "%02X "'`
 
 pr()
