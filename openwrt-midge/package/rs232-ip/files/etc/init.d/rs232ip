@@ -63,8 +63,8 @@ _node_cfg() {
 	 params="${socat_opts} ${device_params} TCP:${dst_host}:${dst_port}"
 	 params="${params},forever,connect-timeout=1,${common_opts}"
       else
-         params="${socat_opts} ${device_params} TCP-LISTEN:${src_port}"
-	 params="${params},bind=${src_host},reuseaddr,${common_opts}"
+         params="${socat_opts} TCP-LISTEN:${src_port},bind=${src_host}"
+	 params="${params},reuseaddr,${common_opts} ${device_params}"
       fi
       socat ${params}
    fi
