@@ -1,0 +1,122 @@
+#!/bin/sh
+
+kdb="kdb"
+
+PATH=$PATH:/usr/sbin
+
+_start_or_stop() {
+	local start=$1
+	[ $start -eq 1 ] && echo -n "Starting " || echo -n "Stopping "
+	echo "rs232 over ip"
+	if [ $start -eq 1 ]; then
+		eval `${kdb} sls -q sys_pcitbl_`
+		for slot in $slots; do
+			_mod_cfg "$slot"
+		done
+	else
+		kill `cat /var/run/socat.*.pid 2>/dev/null` 2>/dev/null
+		rm -f /var/run/socat.*.pid
+
+		kill `cat /var/run/sercd.*.pid 2>/dev/null` 2>/dev/null
+		rm -f /var/run/sercd.*.pid
+	fi
+}
+
+_node_cfg() {
+	local slot=$1
+	local dev=$2
+	local node=$3
+
+	# kdb options
+	local enable=0
+	local socat_enable=0
+	local dst_host
+	local dst_port
+	local loglevel
+	local poll_interval
+	local socat_loglevel
+	local src_host
+	local dst_port
+
+	local lockfile="/var/lock/LCK..$node"
+	local sercd_pidfile=/var/run/sercd.${node}.pid
+	local socat_pidfile=/var/run/socat.${node}.pid
+	eval `${kdb} sls sys_rs232ip_s${slot}_${dev}_`
+	if [ "$enable" -eq 1 ]; then # sercd must be started
+
+		local need_start=1
+		[ -f $lockfile ] && need_start=0 # port already used
+		if [ -f $sercd_pidfile ]; then # sercd already started ?
+			kill -0 `cat $sercd_pidfile` 2>/dev/null
+			[ $? -eq 0 ] && need_start=0 || rm -f $sercd_pidfile
+		fi
+		if [ $need_start -eq 1 ]; then
+			echo -e "\t${node} on ${src_host}:${src_port}"
+			sercd -p $src_port -l $src_host -P $sercd_pidfile $loglevel /dev/$node $lockfile $poll_interval
+		fi
+
+		if [ "$socat_enable" -eq 1 ]; then
+			local socat_need_start=1
+			if [ -f $socat_pidfile ]; then # socat already started ?
+				kill -0 `cat $socat_pidfile` 2>/dev/null
+				[ $? -eq 0 ] && socat_need_start=0 || rm -f $socat_pidfile
+			fi
+			if [ $socat_need_start -eq 1 ]; then
+				local socat_str_loglvl=""
+				local numlvl=0
+				while [ $numlvl -lt $socat_loglevel ]; do
+					socat_str_loglvl="${socat_str_loglvl} -d"
+					numlvl=`expr $numlvl + 1`
+				done
+				echo -e "\tand connect to ${dst_host}:${dst_port}"
+				socat -ly -P $socat_pidfile $socat_str_loglvl "tcp:${src_host}:${src_port}" "tcp:${dst_host}:${dst_port},forever"
+			fi
+		else
+			if [ -f $socat_pidfile ]; then
+				kill `cat $socat_pidfile`
+				rm -f $socat_pidfile
+			fi
+		fi
+	else
+		if [ -f $sercd_pidfile ]; then
+			kill `cat $sercd_pidfile`
+			rm -f $sercd_pidfile
+		fi
+		if [ -f $socat_pidfile ]; then
+			kill `cat $socat_pidfile`
+			rm -f $socat_pidfile
+		fi
+	fi
+
+}
+
+_mod_cfg() {
+	local slot=$1
+	local dev=$2
+	nodes=`kdb get sys_pcitbl_s${slot}_ifaces`
+	nodenum=0
+	for node in $nodes; do
+		if [ -n "$dev" ]; then
+			if [ "$dev" -eq "$nodenum" ]; then
+				_node_cfg "$slot" "$nodenum" "$node"
+				break
+			fi
+		else
+			_node_cfg "$slot" "$nodenum" "$node"
+		fi
+		nodenum=`expr $nodenum + 1`
+	done
+}
+
+case "$1" in
+	start)
+		_start_or_stop 1
+		;;
+	stop)
+		_start_or_stop 0
+		;;
+	restart)
+		_mod_cfg $2 $3
+		;;
+esac
+

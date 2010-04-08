@@ -4,16 +4,16 @@
 
 service_reload(){
 	local service="$1"
-	
+
 	case "$service" in
 	network*)
 		# get interface name
 		local iface=${service#*.}
-		
+
 		# if interface name is specified, restart only that interface
 		if [ "$iface" != "network" ]; then
 			/etc/init.d/network restart $iface
-		# otherwise, restart full subsystem 
+		# otherwise, restart full subsystem
 		else
 			/etc/init.d/network restart
 		fi
@@ -48,12 +48,18 @@ service_reload(){
 		/etc/init.d/mux start
 		/etc/init.d/network restart
 	;;
-	rs232*)
+	rs232.*)
 		tmp=${service#*.}
 		slot=${tmp%.*}
 		dev=${tmp#*.}
 		/etc/init.d/rs232 restart "$slot" "$dev"
 		/etc/init.d/mux start
+	;;
+	rs232ip.*)
+		tmp=${service#*.}
+		slot=${tmp%.*}
+		dev=${tmp#*.}
+		/etc/init.d/rs232ip restart "$slot" "$dev"
 	;;
 	fw)
 		/etc/init.d/fw restart
@@ -98,3 +104,4 @@ service_reload(){
 	;;
 	esac
 }
+

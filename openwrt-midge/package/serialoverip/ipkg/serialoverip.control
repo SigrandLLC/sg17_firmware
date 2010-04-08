@@ -1,0 +1,5 @@
+Package: serialoverip
+Priority: optional
+Section: net
+Source: http://jaist.dl.sourceforge.net/sourceforge/serialoverip/
+Description: Tool for transport of serial interfaces over UDP/IP.
