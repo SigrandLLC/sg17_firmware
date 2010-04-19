@@ -1318,8 +1318,8 @@ BR2_SIGRAND_OEM_IFPFX="x"
 BR2_SIGRAND_OEM_LOGO="zelax_logo.jpg"
 BR2_SIGRAND_OEM_HEADERBG="zelax_header.jpg"
 BR2_SIGRAND_OEM_BGROUND="SG.jpg"
-BR2_SIGRAND_OEM_WF2_HEADER_LOGO="header_oem.jpg"
-BR2_SIGRAND_OEM_WF2_BOTTOM_LOGO="footer_oem.gif"
+BR2_SIGRAND_OEM_WF2_HEADER_LOGO="zelax-header_oem.jpg"
+BR2_SIGRAND_OEM_WF2_BOTTOM_LOGO="zelax-footer_oem.gif"
 
 #
 # MR17H SHDSL module
