@@ -1,5 +1,5 @@
 config BR2_PACKAGE_CONTEXT_HELP
-	prompt "Context help.............. HTML ang image files for help sysytem"
+	prompt "Context help.............. HTML and image files for help sysytem"
 	tristate
 	default n if CONFIG_DEVEL
 	help
