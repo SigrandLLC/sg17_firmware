@@ -82,11 +82,11 @@ ifeq ($(BR2_SIGRAND_OEM_MANUFACTURER),"Zelax")
 endif
 
 	echo $(BR2_SIGRAND_OEM_HOSTNAME) > $(IDIR_WEBFACE)/etc/hostname
-	sed -i -e 's/@OEM_HOSTNAME@/$(BR2_SIGRAND_OEM_HOSTNAME)/g' \
+	sed -i -e "s/@OEM_HOSTNAME@/$(BR2_SIGRAND_OEM_HOSTNAME)/g" \
 		$(IDIR_WEBFACE)/etc/kdb.default
 
-	sed "s/Sigrand router/$(BR2_SIGRAND_OEM_SYSNAME)/g" \
-		< files/etc/lighttpd.conf > $(IDIR_WEBFACE)/etc/lighttpd.conf;
+	sed -e "s/Sigrand router/$(BR2_SIGRAND_OEM_SYSNAME)/g" \
+		< files/etc/lighttpd.conf > $(IDIR_WEBFACE)/etc/lighttpd.conf
 
 	sed < $(IDIR_WEBFACE)/www/common/footer.sh.tmpl > $(IDIR_WEBFACE)/www/common/footer.sh \
 	    -e "s%@OEM_URL_INFO@%$(OEM_URL_INFO)%g"
