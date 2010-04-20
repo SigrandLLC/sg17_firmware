@@ -3,7 +3,7 @@
 pn=$0
 usage()
 {
-  echo 1>&2 "Usage $pn {sigrand | zelax | svyazinvest} [-nofw]"
+  echo 1>&2 "Usage $pn {sigrand | zelax | sviazinvest} [-nofw]"
   exit 1
 }
 
@@ -15,7 +15,7 @@ oem=$1; shift
 case $oem in
      sigrand) ;;
        zelax) ;;
- svyazinvest) ;;
+ sviazinvest) ;;
            *) usage;;
 esac
 
