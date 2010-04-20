@@ -8,7 +8,7 @@ default "Sigrand"
 config BR2_SIGRAND_OEM_URL
 prompt "Manufacturer URL"
 string
-default "http://www.sigrand.ru"
+default "http://sigrand.ru"
 
 config BR2_SIGRAND_OEM_HOSTNAME
 prompt "Default Hostname"
@@ -24,6 +24,49 @@ config BR2_SIGRAND_OEM_IFPFX
 prompt "OEM interface prefix in module names."
 string
 default ""
+
+#-------------- OEM static ethernet addresses ------------------------#
+comment "OEM static ethernet addresses"
+
+config BR2_SIGRAND_OEM_ETH0_IP_ADDR
+prompt "Default eth0 IP address"
+string
+default "192.168.2.100"
+
+config BR2_SIGRAND_OEM_ETH0_IP_NETMASK
+prompt "Default eth0 IP netmask"
+string
+default "255.255.255.0"
+
+config BR2_SIGRAND_OEM_ETH1_IP_ADDR
+prompt "Default eth1 IP address"
+string
+default "192.168.3.100"
+
+config BR2_SIGRAND_OEM_ETH1_IP_NETMASK
+prompt "Default eth1 IP netmask"
+string
+default "255.255.255.0"
+
+config BR2_SIGRAND_OEM_ETH2_IP_ADDR
+prompt "Default eth2 IP address"
+string
+default "192.168.4.100"
+
+config BR2_SIGRAND_OEM_ETH2_IP_NETMASK
+prompt "Default eth2 IP netmask"
+string
+default "255.255.255.0"
+
+config BR2_SIGRAND_OEM_ETH3_IP_ADDR
+prompt "Default eth3 IP address"
+string
+default "192.168.5.100"
+
+config BR2_SIGRAND_OEM_ETH3_IP_NETMASK
+prompt "Default eth3 IP netmask"
+string
+default "255.255.255.0"
 
 #-------------- OEM Logos ------------------------#
 comment "Logotypes"

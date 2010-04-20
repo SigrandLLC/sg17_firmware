@@ -85,6 +85,28 @@ endif
 	sed -i -e "s/@OEM_HOSTNAME@/$(BR2_SIGRAND_OEM_HOSTNAME)/g" \
 		$(IDIR_WEBFACE)/etc/kdb.default
 
+
+	sed -i -e "s/@OEM_ETH0_IP_ADDR@/$(BR2_SIGRAND_OEM_ETH0_IP_ADDR)/g" \
+			$(IDIR_WEBFACE)/etc/kdb.default
+	sed -i -e "s/@OEM_ETH0_IP_NETMASK@/$(BR2_SIGRAND_OEM_ETH0_IP_NETMASK)/g" \
+			$(IDIR_WEBFACE)/etc/kdb.default
+
+	sed -i -e "s/@OEM_ETH1_IP_ADDR@/$(BR2_SIGRAND_OEM_ETH1_IP_ADDR)/g" \
+			$(IDIR_WEBFACE)/etc/kdb.default
+	sed -i -e "s/@OEM_ETH1_IP_NETMASK@/$(BR2_SIGRAND_OEM_ETH1_IP_NETMASK)/g" \
+			$(IDIR_WEBFACE)/etc/kdb.default
+
+	sed -i -e "s/@OEM_ETH2_IP_ADDR@/$(BR2_SIGRAND_OEM_ETH2_IP_ADDR)/g" \
+			$(IDIR_WEBFACE)/etc/kdb.default
+	sed -i -e "s/@OEM_ETH2_IP_NETMASK@/$(BR2_SIGRAND_OEM_ETH2_IP_NETMASK)/g" \
+			$(IDIR_WEBFACE)/etc/kdb.default
+
+	sed -i -e "s/@OEM_ETH3_IP_ADDR@/$(BR2_SIGRAND_OEM_ETH3_IP_ADDR)/g" \
+			$(IDIR_WEBFACE)/etc/kdb.default
+	sed -i -e "s/@OEM_ETH3_IP_NETMASK@/$(BR2_SIGRAND_OEM_ETH3_IP_NETMASK)/g" \
+			$(IDIR_WEBFACE)/etc/kdb.default
+
+
 	sed -e "s/Sigrand router/$(BR2_SIGRAND_OEM_SYSNAME)/g" \
 		< files/etc/lighttpd.conf > $(IDIR_WEBFACE)/etc/lighttpd.conf
 
