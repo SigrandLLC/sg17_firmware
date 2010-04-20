@@ -36,7 +36,8 @@ body {
 }
 
 #top {
-    height: 151px;
+    /* height: 151px; */
+    height: 165px;
     background-image: url(../img/header.jpg);
 }
 
