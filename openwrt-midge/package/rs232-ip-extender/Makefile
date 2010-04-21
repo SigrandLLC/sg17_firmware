@@ -28,7 +28,7 @@ $(PKG_BUILD_DIR)/.built:
 	touch $@
 
 $(IPKG_RS232_IP_EXTENDER):
-	#mkdir -p $(IDIR_RS232_IP_EXTENDER)/usr/bin
-	#install -m0755 $(PKG_BUILD_DIR)/rs232-ip-extender $(IDIR_RS232_IP_EXTENDER)/usr/bin
-	#$(RSTRIP) $(IDIR_RS232_IP_EXTENDER)
-	#$(IPKG_BUILD) $(IDIR_RS232_IP_EXTENDER) $(PACKAGE_DIR)
+	@#mkdir -p $(IDIR_RS232_IP_EXTENDER)/usr/bin
+	@#install -m0755 $(PKG_BUILD_DIR)/rs232-ip-extender $(IDIR_RS232_IP_EXTENDER)/usr/bin
+	@#$(RSTRIP) $(IDIR_RS232_IP_EXTENDER)
+	@#$(IPKG_BUILD) $(IDIR_RS232_IP_EXTENDER) $(PACKAGE_DIR)
