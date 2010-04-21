@@ -1,0 +1,4 @@
+Package: liblockdev
+Priority: optional
+Section: sys
+Description: Device locking library

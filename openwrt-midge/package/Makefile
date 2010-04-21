@@ -126,6 +126,7 @@ package-$(BR2_PACKAGE_LIBGPG_ERROR) += libgpg-error
 package-$(BR2_PACKAGE_LIBICONV) += libiconv
 package-$(BR2_PACKAGE_LIBID3TAG) += libid3tag
 package-$(BR2_PACKAGE_FCGI) += fcgi
+package-$(BR2_PACKAGE_LIBLOCKDEV) += liblockdev
 package-$(BR2_PACKAGE_LIBLZO) += liblzo
 package-$(BR2_PACKAGE_LIBMAD) += libmad
 package-$(BR2_PACKAGE_LIBNET) += libnet
