@@ -1,0 +1,7 @@
+config BR2_PACKAGE_RS232_IP_EXTENDER
+	prompt "rs232-ip-extender................. Extends RS232 ports over Internet"
+	tristate
+	default m if CONFIG_DEVEL
+	help
+	  RS232 ports transparently extends over Internet connection.
+
