@@ -58,19 +58,7 @@ int main(int ac, char *av[], char *envp[])
     signal(SIGPIPE, SIG_IGN);
 
 
-    switch ( lock(lck_file) )
-    {
-	case LOCK_OK:
-	    break;
-	case LOCK_ERROR:
-	    fail();
-	case LOCK_BY_OTHER:
-	    syslog(LOG_ERR, "port %s is locked by other process", device);
-	    fail();
-	default:
-	    syslog(LOG_ERR, "Unreachable code reached");
-	    fail();
-    }
+    lock(lck_file);
 
     int devfd = open_tty(device);
 

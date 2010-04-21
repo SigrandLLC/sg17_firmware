@@ -33,44 +33,58 @@ void make_pidfile(const char *pidfile)
     fclose (fpidfile);
 }
 
-enum LOCK_STATE lock(const char *lck_file)
+void lock(const char *lck_file) NOT FINISHED! use liblockdev!
 {
     char buf[64];
     int fd;
     int pid = 0;
 
     fd = open(lck_file, O_RDONLY);
-    if (fd < 0 && errno != ENOENT)
+    if (fd < 0)
     {
-	syslog(LOG_ERR, "Can't open lock file %s: %m", lck_file);
-        return LOCK_ERROR;
+	if (errno != ENOENT)
+	{
+	    syslog(LOG_ERR, "Can't open lock file %s: %m", lck_file);
+	    fail();
+	}
+	else
+            pid = 0; // try lock
+    }
+    else // fd >= 0, lock file exists
+    {
+	int n = read(fd, buf, sizeof(buf));
+	if (n < 0)
+	{
+	    syslog(LOG_ERR, "Can't read lock file %s: %m", lck_file);
+	    fail();
+	}
+	close(fd);
+	if( n == 4 ) 		// Kermit-style lockfile
+	    pid = *(int *)buf;
+	else			// Ascii lockfile
+	{
+	    buf[n] = 0;
+	    sscanf(buf, "%d", &pid);
+	}
+
+    if( pid > 0)
+    {
+	if ( kill((pid_t)pid, 0) < 0 && errno == ESRCH )
+	{
+	    /* death lockfile - remove it */
+	    unlink(lck_file);
+	    sleep(1);
+	    pid = 0; // not locked - do lock
+	}
+	else
+	{
+	    pid = 1; // locked by other
+	    syslog(LOG_ERR, "port %s is locked by other process", device);
+	    fail();
+	}
     }
 
-    enum LOCK_STATE lck_state = LOCK_ERROR;
-
-    int n = read(fd, buf, sizeof(buf));
-    close(fd);
-    if( n == 4 ) 		/* Kermit-style lockfile. */
-	pid = *(int *)buf;
-    else if( n > 0 )	/* Ascii lockfile. */
-    {
-	buf[n] = 0;
-	sscanf(buf, "%d", &pid);
-    }
-
-    if( pid > 0 && kill((pid_t)pid, 0) < 0 && errno == ESRCH )
-    {
-	/* death lockfile - remove it */
-	unlink(lck_file);
-	sleep(1);
-	lck_state = LOCK_OK;
-    }
-    else
-    {
-	lck_state = LOCK_BY_OTHER;
-    }
-
-    if( lck_state == LOCK_OK )
+    if( pid == 0 )
     {
 	int mask;
 
@@ -82,15 +96,13 @@ enum LOCK_STATE lock(const char *lck_file)
 	    snprintf( buf, sizeof(buf), "%10ld\t%s\n", (long)getpid(), progname );
 	    write( fd, buf, strlen(buf) );
 	    close(fd);
-            lck_state = LOCK_OK;
 	}
 	else
 	{
-	    lck_state = LOCK_BY_OTHER;
+	    syslog(LOG_ERR, "port %s is locked by other process", device);
+	    fail();
 	}
     }
-
-    return lck_state;
 }
 
 void unlock(const char *lck_file)
