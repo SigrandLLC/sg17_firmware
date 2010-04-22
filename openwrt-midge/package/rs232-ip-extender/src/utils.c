@@ -109,50 +109,71 @@ void unlock_tty(const char *device)
 }
 
 
-static void close_tty__(int unused, void* devfd)
+static void close_tty__(int unused, void* ttyfd)
 {
     (void)unused;
-    close_tty((int)devfd);
+    close_tty((int)ttyfd);
 }
 
 int open_tty(const char *device)
 {
-    int devfd = open(device, O_RDWR | O_NOCTTY);
-    if (devfd < 0)
+    int ttyfd = open(device, O_RDWR | O_NOCTTY);
+    if (ttyfd < 0)
     {
 	syslog(LOG_ERR, "Can't open device %s: %m", device);
 	fail();
     }
 
-    onexit(close_tty__, (void*)devfd);
+    onexit(close_tty__, (void*)ttyfd);
 
-    struct termios termios;
-    int rc = tcgetattr(devfd, &termios);
-    if (rc < 0)
-    {
-	syslog(LOG_ERR, "Can't get attributes for device %s: %m", device);
-	fail();
-    }
-
-    cfmakeraw(&termios);
-    termios.c_cc[VMIN]  = 1;
-    termios.c_cc[VTIME] = 0;
-
-    rc = tcsetattr(devfd, TCSANOW, &termios);
-    if (rc < 0)
-    {
-	syslog(LOG_ERR, "Can't set attributes for device %s: %m", device);
-	fail();
-    }
-
-    return devfd;
+    return ttyfd;
 }
 
-void close_tty(int devfd)
+void close_tty(int ttyfd)
 {
     /* To avoid blocking on close if we have written bytes and are in
        flow-control, we flush the output queue. */
-    tcflush(devfd, TCOFLUSH);
-    close(devfd);
+    tcflush(ttyfd, TCOFLUSH);
+    close(ttyfd);
+}
+
+
+void set_raw_tty(int ttyfd, struct termios *save_tios)
+{
+    struct termios old_tios;
+    if (tcgetattr(ttyfd, &old_tios) < 0)
+    {
+	//syslog(LOG_ERR, "Can't get attributes for device %s: %m", device);
+	syslog(LOG_ERR, "Can't get tty attributes: %m");
+	fail();
+    }
+
+    if (save_tios != NULL)
+	memcpy(save_tios, &old_tios, sizeof(old_tios));
+
+    struct termios new_tios;
+    memcpy(&new_tios, &old_tios, sizeof(old_tios));
+
+    cfmakeraw(&new_tios);
+    new_tios.c_cc[VMIN]  = 1;
+    new_tios.c_cc[VTIME] = 0;
+
+    if (tcsetattr(ttyfd, TCSANOW, &new_tios) < 0)
+    {
+	//syslog(LOG_ERR, "Can't set attributes for device %s: %m", device);
+	syslog(LOG_ERR, "Can't set tty attributes: %m");
+	fail();
+    }
+}
+
+void restore_tty(int ttyfd, struct termios *tios)
+{
+    if (tios == NULL) return;
+
+    if (tcsetattr(ttyfd, TCSANOW, tios) < 0)
+    {
+	//syslog(LOG_WARNING, "Can't set attributes for device %s: %m", device);
+	syslog(LOG_WARNING, "Can't set tty attributes: %m");
+    }
 }
 
