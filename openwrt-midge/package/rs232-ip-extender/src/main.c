@@ -58,7 +58,6 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 
 
     lock_tty(device);
-
     /*int devfd =*/ open_tty(device);
 
     //+ network init

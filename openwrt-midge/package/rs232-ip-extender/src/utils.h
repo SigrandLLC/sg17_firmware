@@ -1,6 +1,7 @@
 #ifndef  RS232_IP_EXTENDER_UTILS_H
 # define RS232_IP_EXTENDER_UTILS_H
 
+
 extern const char *progname;
 
 void fail(void);
