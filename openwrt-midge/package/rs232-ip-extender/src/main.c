@@ -1,15 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <string.h>
-#include <syslog.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <termios.h>
+#include "sys_headers.h"
 #include "utils.h"
+#include "pidfile.h"
+#include "tty_raw.h"
 
 void usage(void)
 {

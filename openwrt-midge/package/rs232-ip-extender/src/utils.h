@@ -8,17 +8,12 @@ void fail(void);
 
 void onexit(void (*function)(int, void *), void *arg);
 
-void make_pidfile(const char *pidfile);
-void   rm_pidfile(const char *pidfile);
-
-void    lock_tty(const char *device);
-void  unlock_tty(const char *device);
-
-int     open_tty(const char *device);
-void   close_tty(int ttyfd);
-
-void set_raw_tty(int ttyfd, struct termios *tios);
-void restore_tty(int ttyfd, struct termios *tios);
+static inline void* deconst(const void* arg)
+{
+    union { const void *cvp; void *vp; } u;
+    u.cvp = arg;
+    return u.vp;
+}
 
 
 #endif //RS232_IP_EXTENDER_UTILS_H
