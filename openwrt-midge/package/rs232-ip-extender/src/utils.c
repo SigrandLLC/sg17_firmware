@@ -50,17 +50,15 @@ static inline on_exit_f fcast( void (*function)(int, const char *) )
 }
 
 
-static void rm_pidfile(int unused, const char *pidfile)
+static void rm_pidfile__(int unused, void *pidfile)
 {
     (void)unused;
-    int rc = unlink(pidfile);
-    if (rc < 0)
-	syslog(LOG_WARNING, "Error unlinking pid file %s: %m", pidfile);
+    rm_pidfile(pidfile);
 }
 
 void make_pidfile(const char *pidfile)
 {
-    onexit(fcast(rm_pidfile), deconst(pidfile));
+    onexit(rm_pidfile__, deconst(pidfile));
 
     FILE *fpidfile = fopen(pidfile, "w");
     if ( !fpidfile)
@@ -72,6 +70,20 @@ void make_pidfile(const char *pidfile)
     fclose (fpidfile);
 }
 
+void rm_pidfile(const char *pidfile)
+{
+    int rc = unlink(pidfile);
+    if (rc < 0)
+	syslog(LOG_WARNING, "Error unlinking pid file %s: %m", pidfile);
+}
+
+
+static void unlock_tty__(int unused, void *device)
+{
+    (void)unused;
+    unlock_tty(device);
+}
+
 void lock_tty(const char *device)
 {
     pid_t rc = dev_lock(device);
@@ -81,7 +93,10 @@ void lock_tty(const char *device)
     else if (rc > 0)
 	syslog(LOG_ERR, "%s is locked by %d", device, rc);
     else
-	return; // successfully locked
+    {	// successfully locked
+	onexit(unlock_tty__, deconst(device));
+	return;
+    }
 
     fail();
 }
@@ -93,6 +108,13 @@ void unlock_tty(const char *device)
 	syslog(LOG_WARNING, "Error while unlocking %s: %m", device);
 }
 
+
+static void close_tty__(int unused, void* devfd)
+{
+    (void)unused;
+    close_tty((int)devfd);
+}
+
 int open_tty(const char *device)
 {
     int devfd = open(device, O_RDWR | O_NOCTTY);
@@ -101,6 +123,8 @@ int open_tty(const char *device)
 	syslog(LOG_ERR, "Can't open device %s: %m", device);
 	fail();
     }
+
+    onexit(close_tty__, (void*)devfd);
 
     struct termios termios;
     int rc = tcgetattr(devfd, &termios);
