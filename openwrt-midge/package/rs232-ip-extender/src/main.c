@@ -1,6 +1,6 @@
 #include "sys_headers.h"
 #include "pidfile.h"
-#include "tty_raw.h"
+#include "tty.h"
 #include "misc.h"
 
 void usage(void)
@@ -49,9 +49,11 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     signal(SIGPIPE, SIG_IGN);
 
 
-    lock_tty(device);
-    int ttyfd = open_tty(device);
-    set_raw_tty(ttyfd, NULL);
+    tty_descr_t *tty = tty_create(device);
+    tty_lock    (tty);
+    tty_open    (tty);
+    tty_set_raw (tty);
+
 
     //+ network init
     //++ server part
