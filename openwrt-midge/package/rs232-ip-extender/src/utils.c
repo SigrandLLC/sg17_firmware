@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <termios.h>
+#include <lockdev.h>
 #include "utils.h"
 
 const char *progname = "rs232-ip-extender";
@@ -33,83 +34,25 @@ void make_pidfile(const char *pidfile)
     fclose (fpidfile);
 }
 
-void lock(const char *lck_file) NOT FINISHED! use liblockdev!
+void lock(const char *device)
 {
-    char buf[64];
-    int fd;
-    int pid = 0;
+    pid_t rc = dev_lock(device);
 
-    fd = open(lck_file, O_RDONLY);
-    if (fd < 0)
-    {
-	if (errno != ENOENT)
-	{
-	    syslog(LOG_ERR, "Can't open lock file %s: %m", lck_file);
-	    fail();
-	}
-	else
-            pid = 0; // try lock
-    }
-    else // fd >= 0, lock file exists
-    {
-	int n = read(fd, buf, sizeof(buf));
-	if (n < 0)
-	{
-	    syslog(LOG_ERR, "Can't read lock file %s: %m", lck_file);
-	    fail();
-	}
-	close(fd);
-	if( n == 4 ) 		// Kermit-style lockfile
-	    pid = *(int *)buf;
-	else			// Ascii lockfile
-	{
-	    buf[n] = 0;
-	    sscanf(buf, "%d", &pid);
-	}
+    if (rc < 0)
+	syslog(LOG_ERR, "Error while locking %s: %m", device);
+    else if (rc > 0)
+	syslog(LOG_ERR, "%s is locked by %d", device, rc);
+    else
+	return; // successfully locked
 
-    if( pid > 0)
-    {
-	if ( kill((pid_t)pid, 0) < 0 && errno == ESRCH )
-	{
-	    /* death lockfile - remove it */
-	    unlink(lck_file);
-	    sleep(1);
-	    pid = 0; // not locked - do lock
-	}
-	else
-	{
-	    pid = 1; // locked by other
-	    syslog(LOG_ERR, "port %s is locked by other process", device);
-	    fail();
-	}
-    }
-
-    if( pid == 0 )
-    {
-	int mask;
-
-	mask = umask(022);
-	fd = open(lck_file, O_WRONLY | O_CREAT | O_EXCL, 0666);
-	umask(mask);
-	if( fd >= 0 )
-	{
-	    snprintf( buf, sizeof(buf), "%10ld\t%s\n", (long)getpid(), progname );
-	    write( fd, buf, strlen(buf) );
-	    close(fd);
-	}
-	else
-	{
-	    syslog(LOG_ERR, "port %s is locked by other process", device);
-	    fail();
-	}
-    }
+    fail();
 }
 
-void unlock(const char *lck_file)
+void unlock(const char *device)
 {
-    int rc = unlink(lck_file);
-    if (rc < 0 && errno != ENOENT)
-	syslog(LOG_WARNING, "Can't unlink lock file %s: %m", lck_file);
+    pid_t rc = dev_unlock(device, getpid());
+    if (rc < 0)
+	syslog(LOG_WARNING, "Error while unlocking %s: %m", device);
 }
 
 int open_tty(const char *device)

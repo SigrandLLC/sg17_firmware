@@ -14,7 +14,7 @@
 void usage(void)
 {
     fprintf(stderr,
-	    "Usage: %s /dev/ttyPORT host port {listen|connect} pidfile lockfile\n"
+	    "Usage: %s /dev/ttyPORT host port {listen|connect} pidfile\n"
 	    , progname);
     exit(EXIT_FAILURE);
 }
@@ -23,7 +23,7 @@ enum CONN_TYPE { LISTEN, CONNECT };
 
 int main(int ac, char *av[], char *envp[])
 {
-    if (ac != 7)
+    if (ac != 6)
         usage();
 
     const char *device   = av[1];
@@ -31,7 +31,6 @@ int main(int ac, char *av[], char *envp[])
     const char *port     = av[3];
     const char *conntype = av[4];
     const char *pid_file = av[5];
-    const char *lck_file = av[6];
 
     enum CONN_TYPE conn_type;
 
@@ -58,13 +57,13 @@ int main(int ac, char *av[], char *envp[])
     signal(SIGPIPE, SIG_IGN);
 
 
-    lock(lck_file);
+    lock(device);
 
     int devfd = open_tty(device);
 
     // getaddrinfo(3)
 
-    unlock(lck_file);
+    unlock(device);
     close_tty(devfd);
     return EXIT_SUCCESS;
 }

@@ -7,8 +7,8 @@ void fail(void);
 
 void make_pidfile(const char *pidfile);
 
-void   lock(const char *lck_file);
-void unlock(const char *lck_file);
+void   lock(const char *device);
+void unlock(const char *device);
 
 int   open_tty(const char *device);
 void close_tty(int devfd);
