@@ -57,7 +57,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     signal(SIGPIPE, SIG_IGN);
 
 
-    lock(device);
+    lock_tty(device);
 
     int devfd = open_tty(device);
 
@@ -118,7 +118,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     //- network init
 
 
-    unlock(device);
+    unlock_tty(device);
     close_tty(devfd);
     return EXIT_SUCCESS;
 }

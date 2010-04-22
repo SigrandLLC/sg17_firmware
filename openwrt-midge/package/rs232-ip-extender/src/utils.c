@@ -72,7 +72,7 @@ void make_pidfile(const char *pidfile)
     fclose (fpidfile);
 }
 
-void lock(const char *device)
+void lock_tty(const char *device)
 {
     pid_t rc = dev_lock(device);
 
@@ -86,7 +86,7 @@ void lock(const char *device)
     fail();
 }
 
-void unlock(const char *device)
+void unlock_tty(const char *device)
 {
     pid_t rc = dev_unlock(device, getpid());
     if (rc < 0)
