@@ -21,7 +21,10 @@ void fail(void)
     exit(EXIT_FAILURE);
 }
 
-void onexit(void (*function)(int, void *), void *arg)
+
+typedef void (*on_exit_f)(int, void *);
+
+void onexit(on_exit_f function, void *arg)
 {
     int rc = on_exit(function, arg);
     if (rc < 0)
@@ -31,9 +34,34 @@ void onexit(void (*function)(int, void *), void *arg)
     }
 }
 
+
+static inline void* deconst(const void* arg)
+{
+    union { const void *cvp; void *vp; } u;
+    u.cvp = arg;
+    return u.vp;
+}
+
+static inline on_exit_f fcast( void (*function)(int, const char *) )
+{
+    union { on_exit_f f; void (*cf)(int, const char *); } u;
+    u.cf = function;
+    return u.f;
+}
+
+
+static void rm_pidfile(int unused, const char *pidfile)
+{
+    (void)unused;
+    int rc = unlink(pidfile);
+    if (rc < 0)
+	syslog(LOG_WARNING, "Error unlinking pid file %s: %m", pidfile);
+}
+
 void make_pidfile(const char *pidfile)
 {
-    if (  !pidfile) return;
+    onexit(fcast(rm_pidfile), deconst(pidfile));
+
     FILE *fpidfile = fopen(pidfile, "w");
     if ( !fpidfile)
     {
