@@ -108,6 +108,32 @@ int main(int ac, char *av[]/*, char *envp[]*/)
         fail();
     }
 
+    //+++ accept data connection
+    struct sockaddr peer_addr;
+    socklen_t       peer_addrlen;
+    int datafd = accept(sockfd, &peer_addr, &peer_addrlen);
+    if (datafd < 0)
+    {
+	syslog(LOG_ERR, "accept call error: %m");
+        fail();
+    }
+
+    char peer_host[NI_MAXHOST], peer_port[NI_MAXSERV];
+    rc = getnameinfo(&peer_addr, peer_addrlen,
+		     peer_host, sizeof(peer_host),
+		     peer_port, sizeof(peer_port),
+		     NI_NOFQDN | NI_NUMERICHOST | NI_NUMERICSERV);
+    if (rc != 0)
+    {
+	syslog(LOG_ERR, "Connection from unknown place, getnameinfo error: %s\n",
+	       gai_strerror(rc));
+        fail();
+    }
+    else
+    {
+	syslog(LOG_INFO, "Connection from %s : %s", peer_host, peer_port);
+    }
+    //--- accept data connection
     //-- server part
     //- network init
 
