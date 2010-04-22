@@ -21,7 +21,7 @@ void usage(void)
 
 enum CONN_TYPE { LISTEN, CONNECT };
 
-int main(int ac, char *av[], char *envp[])
+int main(int ac, char *av[]/*, char *envp[]*/)
 {
     if (ac != 6)
         usage();
@@ -87,7 +87,7 @@ int main(int ac, char *av[], char *envp[])
        and) try the next address. */
 
     struct addrinfo *rp;
-    int sockfd;
+    int sockfd = -1;
     for (rp = result; rp != NULL; rp = rp->ai_next)
     {
 	sockfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
