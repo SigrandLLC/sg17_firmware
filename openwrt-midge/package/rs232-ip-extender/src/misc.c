@@ -1,5 +1,5 @@
 #include "sys_headers.h"
-#include "utils.h"
+#include "misc.h"
 
 const char *progname = "rs232-ip-extender";
 

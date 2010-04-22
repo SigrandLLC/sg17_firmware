@@ -1,7 +1,7 @@
 #include "sys_headers.h"
-#include "utils.h"
 #include "pidfile.h"
 #include "tty_raw.h"
+#include "misc.h"
 
 void usage(void)
 {

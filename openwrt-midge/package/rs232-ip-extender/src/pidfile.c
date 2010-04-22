@@ -1,6 +1,6 @@
 #include "sys_headers.h"
 #include "pidfile.h"
-#include "utils.h"
+#include "misc.h"
 
 static void rm_pidfile__(int unused, void *pidfile)
 {

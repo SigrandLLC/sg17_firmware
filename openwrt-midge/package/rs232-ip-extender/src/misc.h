@@ -1,5 +1,5 @@
-#ifndef  RS232_IP_EXTENDER_UTILS_H
-# define RS232_IP_EXTENDER_UTILS_H
+#ifndef  RS232_IP_EXTENDER_MISC_H
+# define RS232_IP_EXTENDER_MISC_H
 
 
 extern const char *progname;
@@ -16,4 +16,4 @@ static inline void* deconst(const void* arg)
 }
 
 
-#endif //RS232_IP_EXTENDER_UTILS_H
+#endif //RS232_IP_EXTENDER_MISC_H

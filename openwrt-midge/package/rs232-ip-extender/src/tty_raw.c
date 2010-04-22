@@ -1,6 +1,6 @@
 #include "sys_headers.h"
-#include "utils.h"
 #include "tty_raw.h"
+#include "misc.h"
 
 static void unlock_tty__(int unused, void *device)
 {
