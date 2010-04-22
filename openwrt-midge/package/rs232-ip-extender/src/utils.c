@@ -21,6 +21,16 @@ void fail(void)
     exit(EXIT_FAILURE);
 }
 
+void onexit(void (*function)(int, void *), void *arg)
+{
+    int rc = on_exit(function, arg);
+    if (rc < 0)
+    {
+	syslog(LOG_ERR, "on_exit: %m");
+        fail();
+    }
+}
+
 void make_pidfile(const char *pidfile)
 {
     if (  !pidfile) return;

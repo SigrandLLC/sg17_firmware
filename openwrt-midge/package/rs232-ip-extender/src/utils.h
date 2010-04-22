@@ -5,6 +5,8 @@ extern const char *progname;
 
 void fail(void);
 
+void onexit(void (*function)(int, void *), void *arg);
+
 void make_pidfile(const char *pidfile);
 
 void   lock(const char *device);
