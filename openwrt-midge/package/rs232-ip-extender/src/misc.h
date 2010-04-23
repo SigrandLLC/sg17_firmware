@@ -15,5 +15,9 @@ static inline void* deconst(const void* arg)
     return u.vp;
 }
 
+void * xmalloc(size_t size);
+void *xzmalloc(size_t size);
+char *xstrdup(const char *src);
+
 
 #endif //RS232_IP_EXTENDER_MISC_H

@@ -20,3 +20,36 @@ void onexit(void (*function)(int, void *), void *arg)
     }
 }
 
+void *xmalloc(size_t size)
+{
+    void *ret = malloc(size);
+
+    if (ret == NULL)
+    {
+	syslog(LOG_ERR, "Can't allocate %zu bytes: %m", size);
+        fail();
+    }
+
+    return ret;
+}
+
+void *xzmalloc(size_t size)
+{
+    void *ret = xmalloc(size);
+    memset(ret, 0, size);
+    return ret;
+}
+
+char *xstrdup(const char *src)
+{
+    char *ret = strdup(src);
+
+    if (ret == NULL)
+    {
+	syslog(LOG_ERR, "Can't strdup: %m");
+        fail();
+    }
+
+    return ret;
+}
+

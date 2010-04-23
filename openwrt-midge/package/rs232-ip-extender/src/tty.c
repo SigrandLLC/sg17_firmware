@@ -12,24 +12,13 @@ static void tty_on_exit(int unused, void *arg)
 
 tty_descr_t *tty_create(const char *devname)
 {
-    tty_descr_t *tty = malloc(sizeof(*tty));
-    if (tty == NULL)
-    {
-	syslog(LOG_ERR, "Can't allocate tty structure: %m");
-        fail();
-    }
+    tty_descr_t *tty = xzmalloc(sizeof(*tty));
 
-    memset(tty, 0, sizeof(*tty));
     tty->fd = -1;
 
     onexit(tty_on_exit, tty);
 
-    tty->name = strdup(devname);
-    if (tty->name == NULL)
-    {
-	syslog(LOG_ERR, "Can't strdup: %m");
-        fail();
-    }
+    tty->name = xstrdup(devname);
 
     return tty;
 }
