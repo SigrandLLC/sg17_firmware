@@ -12,6 +12,26 @@ void usage(void)
     exit(EXIT_FAILURE);
 }
 
+void sighup_handler(int sig)
+{
+    (void)sig;
+    syslog(LOG_INFO, "SIGHUP catched");
+}
+
+void setup_sighandler(void (*sighandler)(int), int signal)
+{
+    struct sigaction act;
+    act.sa_handler = sighandler;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = SA_RESTART;
+    int rc = sigaction(signal, &act, NULL);
+    if (rc)
+    {
+	syslog(LOG_ERR, "sigaction error: %m");
+        fail();
+    }
+}
+
 int main(int ac, char *av[]/*, char *envp[]*/)
 {
     if (ac != 6)
@@ -33,7 +53,6 @@ int main(int ac, char *av[]/*, char *envp[]*/)
         usage();
 
     openlog(progname, LOG_PID | LOG_CONS, LOG_DAEMON);
-    syslog(LOG_NOTICE, "%s startup", progname);
 
     int rc = daemon(0, 0);
     if (rc < 0)
@@ -41,11 +60,15 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	syslog(LOG_ERR, "daemonize error: %m");
         fail();
     }
+    openlog(progname, LOG_PID | LOG_CONS, LOG_DAEMON);
+    syslog(LOG_NOTICE, "%s startup", progname);
 
     make_pidfile(pid_file);
 
     /* Ignore SIGPIPEs so they don't kill us. */
     signal(SIGPIPE, SIG_IGN);
+
+    setup_sighandler(sighup_handler, SIGHUP);
 
 
     tty_descr_t *tty = tty_create(device);
