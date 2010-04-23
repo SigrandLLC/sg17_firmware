@@ -77,7 +77,7 @@ void socket_bind(socket_t *s, const char *host, const char *port)
 
     if (rp == NULL)	// No address succeeded
     {
-	syslog(LOG_ERR, "Could not bind on %s : %s", host, port);
+	syslog(LOG_ERR, "%s(): Could not bind on %s : %s", __FUNCTION__, host, port);
         fail();
     }
 
@@ -88,7 +88,7 @@ void socket_bind(socket_t *s, const char *host, const char *port)
     rc = listen(sockfd, 2);
     if (rc < 0)
     {
-	syslog(LOG_ERR, "listen call error: %m");
+	syslog(LOG_ERR, "%s(): listen(2) failed: %m", __FUNCTION__);
         fail();
     }
 }
@@ -100,7 +100,7 @@ socket_t *socket_accept (socket_t *s)
     int newfd = accept(s->fd, &peer_addr, &peer_addrlen);
     if (newfd < 0)
     {
-	syslog(LOG_ERR, "accept call error: %m");
+	syslog(LOG_ERR, "%s(): accept(2) failed: %m", __FUNCTION__);
         fail();
     }
 
@@ -111,8 +111,8 @@ socket_t *socket_accept (socket_t *s)
 		     NI_NOFQDN | NI_NUMERICHOST | NI_NUMERICSERV);
     if (rc != 0)
     {
-	syslog(LOG_ERR, "Connection from unknown place, getnameinfo error: %s\n",
-	       gai_strerror(rc));
+	syslog(LOG_ERR, "%s(): Connection from unknown place, getnameinfo(3) failed: %s\n",
+	       __FUNCTION__, gai_strerror(rc));
         fail();
     }
 

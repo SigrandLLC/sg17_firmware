@@ -15,7 +15,7 @@ void make_pidfile(const char *pidfile)
     FILE *fpidfile = fopen(pidfile, "w");
     if ( !fpidfile)
     {
-	syslog(LOG_ERR, "Error opening pidfile '%s': %m", pidfile);
+	syslog(LOG_ERR, "Error opening pid file '%s': %m", pidfile);
         fail();
     }
     fprintf(fpidfile, "%d\n", getpid());

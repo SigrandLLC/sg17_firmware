@@ -15,7 +15,7 @@ void onexit(void (*function)(int, void *), void *arg)
     int rc = on_exit(function, arg);
     if (rc < 0)
     {
-	syslog(LOG_ERR, "on_exit: %m");
+	syslog(LOG_ERR, "on_exit(3) failed: %m");
         fail();
     }
 }
@@ -26,7 +26,7 @@ void *xmalloc(size_t size)
 
     if (ret == NULL)
     {
-	syslog(LOG_ERR, "Can't allocate %zu bytes: %m", size);
+	syslog(LOG_ERR, "%s(): Can't allocate %zu bytes: %m", __FUNCTION__, size);
         fail();
     }
 
@@ -46,7 +46,7 @@ char *xstrdup(const char *src)
 
     if (ret == NULL)
     {
-	syslog(LOG_ERR, "Can't strdup: %m");
+	syslog(LOG_ERR, "strdup(3) failed: %m");
         fail();
     }
 
