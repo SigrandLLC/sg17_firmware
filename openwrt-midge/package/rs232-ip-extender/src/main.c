@@ -12,8 +12,6 @@ void usage(void)
     exit(EXIT_FAILURE);
 }
 
-enum CONN_TYPE { LISTEN, CONNECT };
-
 int main(int ac, char *av[]/*, char *envp[]*/)
 {
     if (ac != 6)
@@ -25,12 +23,12 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     const char *conntype = av[4];
     const char *pid_file = av[5];
 
-    enum CONN_TYPE conn_type;
+    int listen = 1;
 
     if ( strcmp(conntype, "listen") == 0)
-	conn_type = LISTEN;
+	listen = 1;
     else if( strcmp(conntype, "connect") == 0)
-	conn_type = CONNECT;
+	listen = 0;
     else
         usage();
 
@@ -56,16 +54,29 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     tty_set_raw (tty);
 
 
-    socket_t *listen_s = socket_create();
-    socket_bind(listen_s, host, port);
+    socket_t *data_s = NULL, *stat_s = NULL;
 
-    socket_t *data_s = socket_accept(listen_s);
-    syslog(LOG_INFO, "Data connection from %s : %s", data_s->host, data_s->port);
+    if (listen)
+    {
+	socket_t *listen_s = socket_create();
+	socket_bind(listen_s, host, port);
 
-    socket_t *stat_s = socket_accept(listen_s);
-    syslog(LOG_INFO, "Status connection from %s : %s", stat_s->host, stat_s->port);
+	data_s = socket_accept(listen_s);
+	syslog(LOG_INFO, "Data connection from %s : %s", data_s->host, data_s->port);
 
-    socket_close(listen_s);
+	stat_s = socket_accept(listen_s);
+	syslog(LOG_INFO, "Status connection from %s : %s", stat_s->host, stat_s->port);
+
+	socket_close(listen_s);
+    }
+    else // connect
+    {
+	data_s = socket_create();
+	socket_connect(data_s, host, port);
+
+	stat_s = socket_create();
+	socket_connect(stat_s, host, port);
+    }
 
 
     return EXIT_SUCCESS;
