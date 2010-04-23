@@ -1,6 +1,7 @@
 #include "sys_headers.h"
 #include "pidfile.h"
 #include "tty.h"
+#include "socket.h"
 #include "misc.h"
 
 void usage(void)
@@ -55,87 +56,16 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     tty_set_raw (tty);
 
 
-    //+ network init
-    //++ server part
-    struct addrinfo hints;
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family    = AF_UNSPEC;	// Allow IPv4 or IPv6
-    hints.ai_socktype  = SOCK_STREAM;
-    hints.ai_flags     = AI_PASSIVE;	// For wildcard IP address, INADDR_ANY | IN6ADDR_ANY_INIT
-    hints.ai_protocol  = IPPROTO_TCP;
-    hints.ai_canonname = NULL;
-    hints.ai_addr      = NULL;
-    hints.ai_next      = NULL;
+    socket_t *listen_s = socket_create();
+    socket_bind(listen_s, host, port);
 
-    struct addrinfo *result;
-    rc = getaddrinfo(NULL/*host*/, port, &hints, &result);
-    if (rc != 0)
-    {
-	syslog(LOG_ERR, "getaddrinfo: %s", gai_strerror(rc));
-        fail();
-    }
+    socket_t *data_s = socket_accept(listen_s);
+    syslog(LOG_INFO, "Data connection from %s : %s", data_s->host, data_s->port);
 
-    /* getaddrinfo() returns a list of address structures.
-       Try each address until we successfully bind(2).
-       If socket(2) (or bind(2)) fails, we (close the socket
-       and) try the next address. */
+    socket_t *stat_s = socket_accept(listen_s);
+    syslog(LOG_INFO, "Status connection from %s : %s", stat_s->host, stat_s->port);
 
-    struct addrinfo *rp;
-    int sockfd = -1;
-    for (rp = result; rp != NULL; rp = rp->ai_next)
-    {
-	sockfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-	if (sockfd < 0) continue;
-
-	if (bind(sockfd, rp->ai_addr, rp->ai_addrlen) == 0)
-	    break;                  // Success
-
-	close(sockfd);
-    }
-
-    if (rp == NULL)	// No address succeeded
-    {
-	syslog(LOG_ERR, "Could not bind on %s : %s", host, port);
-        fail();
-    }
-
-    freeaddrinfo(result);	// No longer needed
-
-    rc = listen(sockfd, 2);
-    if (rc < 0)
-    {
-	syslog(LOG_ERR, "listen call error: %m");
-        fail();
-    }
-
-    //+++ accept data connection
-    struct sockaddr peer_addr;
-    socklen_t       peer_addrlen;
-    int datafd = accept(sockfd, &peer_addr, &peer_addrlen);
-    if (datafd < 0)
-    {
-	syslog(LOG_ERR, "accept call error: %m");
-        fail();
-    }
-
-    char peer_host[NI_MAXHOST], peer_port[NI_MAXSERV];
-    rc = getnameinfo(&peer_addr, peer_addrlen,
-		     peer_host, sizeof(peer_host),
-		     peer_port, sizeof(peer_port),
-		     NI_NOFQDN | NI_NUMERICHOST | NI_NUMERICSERV);
-    if (rc != 0)
-    {
-	syslog(LOG_ERR, "Connection from unknown place, getnameinfo error: %s\n",
-	       gai_strerror(rc));
-        fail();
-    }
-    else
-    {
-	syslog(LOG_INFO, "Connection from %s : %s", peer_host, peer_port);
-    }
-    //--- accept data connection
-    //-- server part
-    //- network init
+    socket_close(listen_s);
 
 
     return EXIT_SUCCESS;
