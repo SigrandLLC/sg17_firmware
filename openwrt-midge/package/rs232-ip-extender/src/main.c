@@ -20,6 +20,8 @@ void sig_handler(int sig)
 	syslog(LOG_NOTICE, "exiting");
         exit(EXIT_SUCCESS);
     }
+    else
+	syslog(LOG_NOTICE, "do nothing");
 }
 
 int main(int ac, char *av[]/*, char *envp[]*/)
@@ -51,7 +53,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
         fail();
     }
     openlog(progname, LOG_PID | LOG_CONS, LOG_DAEMON);
-    syslog(LOG_NOTICE, "%s startup", progname);
+    syslog(LOG_NOTICE, "started up");
 
     make_pidfile(pid_file);
 
@@ -59,6 +61,8 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     signal(SIGPIPE, SIG_IGN);
 
     setup_sighandler(sig_handler, SIGHUP);
+    setup_sighandler(sig_handler, SIGINT);
+    setup_sighandler(sig_handler, SIGQUIT);
     setup_sighandler(sig_handler, SIGTERM);
 
 
@@ -93,5 +97,6 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     }
 
 
+    syslog(LOG_NOTICE, "finished");
     return EXIT_SUCCESS;
 }
