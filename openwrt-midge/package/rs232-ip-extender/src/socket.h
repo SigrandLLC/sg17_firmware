@@ -4,9 +4,8 @@
 
 typedef struct socket_s
 {
+    char *name;
     int fd;
-    char *host;
-    char *port;
 } socket_t;
 
 socket_t *socket_create (void);

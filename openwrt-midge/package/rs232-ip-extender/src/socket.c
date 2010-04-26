@@ -28,16 +28,23 @@ void socket_delete(socket_t *s)
 
 void socket_close(socket_t *s)
 {
-    close(s->fd);  s->fd   = -1;
-    free(s->host); s->host = NULL;
-    free(s->port); s->port = NULL;
+    close(s->fd);   s->fd   = -1;
+    free (s->name); s->name = NULL;
+}
+
+static char *make_host_port( const char *host, const char *port)
+{
+    size_t name_size = strlen(host) + 3 + strlen(port) + 1;
+    char  *name      = xmalloc(name_size);
+    snprintf(name, name_size, "%s:%s", host, port);
+    return name;
 }
 
 void socket_bind(socket_t *s, const char *host, const char *port)
 {
     socket_close(s);
-    s->host = xstrdup(host);
-    s->port = xstrdup(port);
+
+    s->name = make_host_port(host, port);
 
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
@@ -50,7 +57,7 @@ void socket_bind(socket_t *s, const char *host, const char *port)
     int rc = getaddrinfo(NULL/*host*/, port, &hints, &result);
     if (rc != 0)
     {
-	syslog(LOG_ERR, "%s(): getaddrinfo: %s", __FUNCTION__, gai_strerror(rc));
+	syslog(LOG_ERR, "%s(): getaddrinfo(NULL, %s, ...): %s", __FUNCTION__, port, gai_strerror(rc));
         fail();
     }
 
@@ -74,7 +81,7 @@ void socket_bind(socket_t *s, const char *host, const char *port)
 
     if (rp == NULL)	// No address succeeded
     {
-	syslog(LOG_ERR, "%s(): Could not bind on %s : %s", __FUNCTION__, host, port);
+	syslog(LOG_ERR, "%s(): Could not bind to %s", __FUNCTION__, s->name);
         fail();
     }
 
@@ -112,19 +119,17 @@ socket_t *socket_accept(socket_t *s)
 
     socket_t *new_s = socket_create();
     new_s->fd       = newfd;
-    if (rc == 0)
-    {
-	new_s->host     = xstrdup(peer_host);
-	new_s->port     = xstrdup(peer_port);
-    }
+    new_s->name     = (rc == 0)
+	? make_host_port( peer_host, peer_port)
+	: make_host_port( "NULL"   , "NULL"   );
+
     return new_s;
 }
 
 void socket_connect(socket_t *s, const char *host, const char *port)
 {
     socket_close(s);
-    s->host = xstrdup(host);
-    s->port = xstrdup(port);
+    s->name = make_host_port(host, port);
 
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
@@ -161,7 +166,7 @@ void socket_connect(socket_t *s, const char *host, const char *port)
 
     if (rp == NULL)	// No address succeeded
     {
-	syslog(LOG_ERR, "%s(): Could not connect to %s : %s", __FUNCTION__, host, port);
+	syslog(LOG_ERR, "%s(): Could not connect to %s", __FUNCTION__, s->name);
         fail();
     }
 
@@ -174,12 +179,12 @@ size_t socket_send(socket_t *s, const char *buf, size_t len)
     ssize_t rc = send(s->fd, buf, len, MSG_NOSIGNAL);
     if (rc < 0)
     {
-	syslog(LOG_ERR, "Error on sending %zu bytes to %s:%s: %m", len, s->host, s->port);
+	syslog(LOG_ERR, "Error on sending %zu bytes to %s: %m", len, s->name);
         fail();
     }
     else if (rc == 0)
     {
-	syslog(LOG_ERR, "0 (?) bytes sent to %s:%s", s->host, s->port);
+	syslog(LOG_ERR, "0 (?) bytes sent to %s", s->name);
         fail();
     }
 
@@ -192,7 +197,7 @@ size_t socket_recv(socket_t *s, char *buf, size_t len)
     ssize_t rc = recv(s->fd, buf, len, MSG_NOSIGNAL);
     if (rc < 0)
     {
-	syslog(LOG_ERR, "Error received from %s:%s: %m", s->host, s->port);
+	syslog(LOG_ERR, "Error received from %s: %m", s->name);
         fail();
     }
 

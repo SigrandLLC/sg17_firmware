@@ -89,11 +89,11 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 
 	syslog(LOG_DEBUG, "Waiting data connection...");
 	data_s = socket_accept(listen_s);
-	syslog(LOG_INFO, "Data connection from %s:%s", data_s->host, data_s->port);
+	syslog(LOG_INFO, "Data connection from %s", data_s->name);
 
 	syslog(LOG_DEBUG, "Waiting status connection...");
 	stat_s = socket_accept(listen_s);
-	syslog(LOG_INFO, "Status connection from %s:%s", stat_s->host, stat_s->port);
+	syslog(LOG_INFO, "Status connection from %s", stat_s->name);
 
 	syslog(LOG_DEBUG, "Closing listening socket...");
 	socket_close(listen_s);
@@ -164,7 +164,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		size_t r = socket_recv(data_s, data_buf, DATA_BUF_SIZE);
 		if (r == 0)
 		{
-		    syslog(LOG_INFO, "EOF received from %s:%s", data_s->host, data_s->port);
+		    syslog(LOG_INFO, "EOF received from %s", data_s->name);
 		    syslog(LOG_INFO, "closing data connection");
 		    break; // FIXME: restart
 		}

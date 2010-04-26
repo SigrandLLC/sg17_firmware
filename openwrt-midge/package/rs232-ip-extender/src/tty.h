@@ -5,8 +5,8 @@
 typedef struct tty_descr
 {
     char *name;
-    int locked;
     int fd;
+    int locked;
     struct termios termios;
 } tty_descr_t;
 
