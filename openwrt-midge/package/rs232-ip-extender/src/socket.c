@@ -106,15 +106,17 @@ socket_t *socket_accept(socket_t *s)
 		     NI_NOFQDN | NI_NUMERICHOST | NI_NUMERICSERV);
     if (rc != 0)
     {
-	syslog(LOG_ERR, "%s(): Connection from unknown place, getnameinfo(3) failed: %s\n",
+	syslog(LOG_WARNING, "%s(): Connection from unknown place, getnameinfo(3) failed: %s\n",
 	       __FUNCTION__, gai_strerror(rc));
-        fail();
     }
 
     socket_t *new_s = socket_create();
     new_s->fd       = newfd;
-    new_s->host     = xstrdup(peer_host);
-    new_s->port     = xstrdup(peer_port);
+    if (rc == 0)
+    {
+	new_s->host     = xstrdup(peer_host);
+	new_s->port     = xstrdup(peer_port);
+    }
     return new_s;
 }
 
