@@ -24,7 +24,7 @@ void make_pidfile(const char *pidfile)
     pidfile_created = 1;
     fprintf(fpidfile, "%d\n", getpid());
     fclose (fpidfile);
-    syslog(LOG_INFO, "pid file '%s' created", pidfile);
+    syslog(LOG_DEBUG, "pid file '%s' created", pidfile);
 }
 
 void rm_pidfile(const char *pidfile)
