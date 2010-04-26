@@ -89,7 +89,6 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 
 	syslog(LOG_DEBUG, "Closing listening socket...");
 	socket_close(listen_s);
-	syslog(LOG_DEBUG, "");
     }
     else // connect
     {
