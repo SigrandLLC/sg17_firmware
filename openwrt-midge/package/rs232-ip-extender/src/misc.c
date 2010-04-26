@@ -5,7 +5,7 @@ const char *progname = "rs232-ip-extender";
 
 void fail(void)
 {
-    syslog(LOG_ERR, "%s failed, exiting", progname);
+    syslog(LOG_ERR, "failed, exiting");
     exit(EXIT_FAILURE);
 }
 
