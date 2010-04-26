@@ -12,23 +12,13 @@ void usage(void)
     exit(EXIT_FAILURE);
 }
 
-void sighup_handler(int sig)
+void sig_handler(int sig)
 {
-    (void)sig;
-    syslog(LOG_INFO, "SIGHUP catched");
-}
-
-void setup_sighandler(void (*sighandler)(int), int signal)
-{
-    struct sigaction act;
-    act.sa_handler = sighandler;
-    sigemptyset(&act.sa_mask);
-    act.sa_flags = SA_RESTART;
-    int rc = sigaction(signal, &act, NULL);
-    if (rc)
+    syslog(LOG_NOTICE, "%s signal catched", strsignal(sig));
+    if (sig == SIGTERM)
     {
-	syslog(LOG_ERR, "sigaction error: %m");
-        fail();
+	syslog(LOG_NOTICE, "exiting");
+        exit(EXIT_SUCCESS);
     }
 }
 
@@ -68,7 +58,8 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     /* Ignore SIGPIPEs so they don't kill us. */
     signal(SIGPIPE, SIG_IGN);
 
-    setup_sighandler(sighup_handler, SIGHUP);
+    setup_sighandler(sig_handler, SIGHUP);
+    setup_sighandler(sig_handler, SIGTERM);
 
 
     tty_descr_t *tty = tty_create(device);

@@ -53,3 +53,17 @@ char *xstrdup(const char *src)
     return ret;
 }
 
+void setup_sighandler(void (*sighandler)(int), int signal)
+{
+    struct sigaction act;
+    act.sa_handler = sighandler;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = SA_RESTART;
+    int rc = sigaction(signal, &act, NULL);
+    if (rc)
+    {
+	syslog(LOG_ERR, "sigaction error: %m");
+        fail();
+    }
+}
+
