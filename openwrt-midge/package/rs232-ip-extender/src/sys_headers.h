@@ -7,6 +7,7 @@
 # include <fcntl.h>
 # include <lockdev.h>
 # include <netdb.h>
+# include <poll.h>
 # include <signal.h>
 # include <stdio.h>
 # include <stdlib.h>
