@@ -168,3 +168,45 @@ void socket_connect(socket_t *s, const char *host, const char *port)
     freeaddrinfo(result);	// No longer needed
 }
 
+
+size_t socket_send(socket_t *s, const char *buf, size_t len)
+{
+    ssize_t rc = send(s->fd, buf, len, MSG_NOSIGNAL);
+    if (rc < 0)
+    {
+	syslog(LOG_ERR, "Error on sending %zu bytes to %s:%s: %m", len, s->host, s->port);
+        fail();
+    }
+    else if (rc == 0)
+    {
+	syslog(LOG_ERR, "0 (?) bytes sent to %s:%s", s->host, s->port);
+        fail();
+    }
+
+    // rc > 0
+    return rc;
+}
+
+size_t socket_recv(socket_t *s, char *buf, size_t len)
+{
+    ssize_t rc = recv(s->fd, buf, len, MSG_NOSIGNAL);
+    if (rc < 0)
+    {
+	syslog(LOG_ERR, "Error received from %s:%s: %m", s->host, s->port);
+        fail();
+    }
+
+    // rc >= 0
+    return rc;
+}
+
+void socket_send_all(socket_t *s, const char *buf, size_t len)
+{
+    do
+    {
+	size_t sent_len = socket_send(s, buf, len);
+	buf += sent_len;
+        len -= sent_len;
+    } while(len > 0);
+}
+
