@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include "sys_headers.h"
 #include "pidfile.h"
 #include "tty.h"
@@ -18,7 +19,7 @@ void sig_handler(int sig)
     if (sig == SIGTERM)
     {
 	syslog(LOG_NOTICE, "exiting");
-        exit(EXIT_SUCCESS);
+	exit(EXIT_SUCCESS);
     }
     else
 	syslog(LOG_NOTICE, "do nothing");
@@ -27,7 +28,7 @@ void sig_handler(int sig)
 int main(int ac, char *av[]/*, char *envp[]*/)
 {
     if (ac != 6)
-        usage();
+	usage();
 
     const char *device   = av[1];
     const char *host     = av[2];
@@ -50,7 +51,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     if (rc < 0)
     {
 	syslog(LOG_ERR, "daemonize error: %m");
-        fail();
+	fail();
     }
     openlog(progname, LOG_PID | LOG_CONS, LOG_DAEMON);
     syslog(LOG_NOTICE, "started up");
@@ -72,6 +73,13 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     tty_set_raw (tty);
 
 
+    static const size_t   DATA_BUF_SIZE = 4096;
+    static const size_t STATUS_BUF_SIZE =  256;
+
+    char *  data_buf = xmalloc(  DATA_BUF_SIZE);
+    char *status_buf = xmalloc(STATUS_BUF_SIZE);
+
+
     socket_t *data_s = NULL, *stat_s = NULL;
 
     if (listen)
@@ -81,11 +89,11 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 
 	syslog(LOG_DEBUG, "Waiting data connection...");
 	data_s = socket_accept(listen_s);
-	syslog(LOG_INFO, "Data connection from %s : %s", data_s->host, data_s->port);
+	syslog(LOG_INFO, "Data connection from %s:%s", data_s->host, data_s->port);
 
 	syslog(LOG_DEBUG, "Waiting status connection...");
 	stat_s = socket_accept(listen_s);
-	syslog(LOG_INFO, "Status connection from %s : %s", stat_s->host, stat_s->port);
+	syslog(LOG_INFO, "Status connection from %s:%s", stat_s->host, stat_s->port);
 
 	syslog(LOG_DEBUG, "Closing listening socket...");
 	socket_close(listen_s);
@@ -100,6 +108,74 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	stat_s = socket_create();
 	socket_connect(stat_s, host, port);
     }
+
+
+    enum { POLL_TTY, POLL_DATA, POLL_STATUS, POLL_ITEMS };
+
+    struct pollfd polls[POLL_ITEMS];
+    memset(polls, 0, sizeof(polls));
+
+
+    polls[POLL_TTY   ].fd =    tty->fd;
+    polls[POLL_DATA  ].fd = data_s->fd;
+    polls[POLL_STATUS].fd = stat_s->fd;
+
+    int i;
+    for (i = 0; i < POLL_ITEMS; ++i)
+	polls[i].events = POLLIN | POLLRDHUP;
+
+    do
+    {
+	rc = poll(polls, POLL_ITEMS, 1000);
+	if (rc < 0)
+	{
+	    syslog(LOG_ERR, "poll failed: %m");
+	    fail();
+	}
+	else if (rc == 0)	// timeout
+	{
+	    // handle modem lines status
+	    syslog(LOG_INFO, "tick"); //TODO
+	}
+	else
+	{
+	    // do i/o
+
+	    if (polls[POLL_TTY].revents & POLLIN)
+	    {
+		ssize_t r = read(polls[POLL_TTY].fd, data_buf, DATA_BUF_SIZE);
+		if (r < 0)
+		{
+		    syslog(LOG_ERR, "Error reading %s: %m", tty->name);
+		    fail();
+		}
+		else if (r == 0)
+		{
+		    syslog(LOG_WARNING, "EOF readed from %s, ignore", tty->name);
+		}
+		else	// r > 0
+		{
+		    socket_send_all(data_s, data_buf, r);
+		}
+	    }
+
+	    if (polls[POLL_DATA].revents & POLLIN)
+	    {
+		size_t r = socket_recv(data_s, data_buf, DATA_BUF_SIZE);
+		if (r == 0)
+		{
+		    syslog(LOG_INFO, "EOF received from %s:%s", data_s->host, data_s->port);
+		    syslog(LOG_INFO, "closing data connection");
+		    break; // FIXME: restart
+		}
+		else
+		{
+		    //tty_write_all(tty, data_buf, r);
+		    //FIXME: TODO
+		}
+	    }
+	}
+    } while(1);
 
 
     syslog(LOG_NOTICE, "finished");
