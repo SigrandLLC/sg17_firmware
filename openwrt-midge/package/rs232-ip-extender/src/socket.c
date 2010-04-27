@@ -99,7 +99,7 @@ socket_t *socket_accept(socket_t *s)
 {
     struct sockaddr peer_addr;
     socklen_t       peer_addrlen;
-    int newfd = accept(s->b->fd, &peer_addr, &peer_addrlen);
+    int newfd = accept(socket_fd(s), &peer_addr, &peer_addrlen);
     if (newfd < 0)
     {
 	syslog(LOG_ERR, "%s(): accept(2) failed: %m", __FUNCTION__);
