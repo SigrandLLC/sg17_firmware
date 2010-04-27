@@ -115,7 +115,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     memset(polls, 0, sizeof(polls));
 
 
-    polls[POLL_TTY   ].fd =    tty->fd;
+    polls[POLL_TTY   ].fd =    tty_fd(tty);
     polls[POLL_DATA  ].fd = socket_fd(data_s);
     polls[POLL_STATUS].fd = socket_fd(stat_s);
 
@@ -145,12 +145,12 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		ssize_t r = read(polls[POLL_TTY].fd, data_buf, DATA_BUF_SIZE);
 		if (r < 0)
 		{
-		    syslog(LOG_ERR, "Error reading %s: %m", tty->name);
+		    syslog(LOG_ERR, "Error reading %s: %m", tty_name(tty));
 		    fail();
 		}
 		else if (r == 0)
 		{
-		    syslog(LOG_WARNING, "EOF readed from %s, ignore", tty->name);
+		    syslog(LOG_WARNING, "EOF readed from %s, ignore", tty_name(tty));
 		}
 		else	// r > 0
 		{
