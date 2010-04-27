@@ -73,7 +73,6 @@ static void tty_lock(tty_t *tty)
 	syslog(LOG_ERR, "%s is locked by %d", tty->name, rc);
     else
     {
-        tty->locked = 1;
 	return;
     }
 
@@ -82,15 +81,10 @@ static void tty_lock(tty_t *tty)
 
 static void tty_unlock(tty_t *tty)
 {
-    if (tty->locked)
-    {
-	pid_t rc = dev_unlock(tty->name, getpid());
+    pid_t rc = dev_unlock(tty->name, getpid());
 
-	if (rc < 0)
-	    syslog(LOG_WARNING, "Error while unlocking %s: %m", tty->name);
-
-	tty->locked = 0;
-    }
+    if (rc < 0)
+	syslog(LOG_WARNING, "Error while unlocking %s: %m", tty->name);
 }
 
 

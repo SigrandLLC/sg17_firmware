@@ -6,7 +6,6 @@ typedef struct
 {
     char *name;
     int fd;
-    int locked;
     struct termios termios;
 } tty_t;
 
