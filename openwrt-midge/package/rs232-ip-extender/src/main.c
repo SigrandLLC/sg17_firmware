@@ -89,11 +89,11 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 
 	syslog(LOG_DEBUG, "Waiting data connection...");
 	data_s = socket_accept(listen_s);
-	syslog(LOG_INFO, "Data connection from %s", data_s->name);
+	syslog(LOG_INFO, "Data connection from %s", socket_name(data_s));
 
 	syslog(LOG_DEBUG, "Waiting status connection...");
 	stat_s = socket_accept(listen_s);
-	syslog(LOG_INFO, "Status connection from %s", stat_s->name);
+	syslog(LOG_INFO, "Status connection from %s", socket_name(stat_s));
 
 	syslog(LOG_DEBUG, "Closing listening socket...");
 	socket_close(listen_s);
@@ -117,8 +117,8 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 
 
     polls[POLL_TTY   ].fd =    tty->fd;
-    polls[POLL_DATA  ].fd = data_s->fd;
-    polls[POLL_STATUS].fd = stat_s->fd;
+    polls[POLL_DATA  ].fd = socket_fd(data_s);
+    polls[POLL_STATUS].fd = socket_fd(stat_s);
 
     int i;
     for (i = 0; i < POLL_ITEMS; ++i)
@@ -164,7 +164,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		size_t r = socket_recv(data_s, data_buf, DATA_BUF_SIZE);
 		if (r == 0)
 		{
-		    syslog(LOG_INFO, "EOF received from %s", data_s->name);
+		    syslog(LOG_INFO, "EOF received from %s", socket_name(data_s));
 		    syslog(LOG_INFO, "closing data connection");
 		    break; // FIXME: restart
 		}

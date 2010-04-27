@@ -13,7 +13,7 @@ static void socket_on_exit(int unused, void *arg)
 socket_t *socket_create(void)
 {
     socket_t *s = xzmalloc(sizeof(*s));
-    s->fd = -1;
+    s->b = iobase_create();
 
     onexit(socket_on_exit, s);
 
@@ -23,13 +23,13 @@ socket_t *socket_create(void)
 void socket_delete(socket_t *s)
 {
     socket_close(s);
+    iobase_delete(s->b); s->b = NULL;
     free(s);
 }
 
 void socket_close(socket_t *s)
 {
-    close(s->fd);   s->fd   = -1;
-    free (s->name); s->name = NULL;
+    iobase_close(s->b);
 }
 
 static char *make_host_port( const char *host, const char *port)
@@ -43,8 +43,6 @@ static char *make_host_port( const char *host, const char *port)
 void socket_bind(socket_t *s, const char *host, const char *port)
 {
     socket_close(s);
-
-    s->name = make_host_port(host, port);
 
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
@@ -67,39 +65,41 @@ void socket_bind(socket_t *s, const char *host, const char *port)
        and) try the next address. */
 
     struct addrinfo *rp;
-    s->fd = -1;
+    int fd = -1;
     for (rp = result; rp != NULL; rp = rp->ai_next)
     {
-	s->fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-	if (s->fd < 0) continue;
+	fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+	if (fd < 0) continue;
 
-	if (bind(s->fd, rp->ai_addr, rp->ai_addrlen) == 0)
+	if (bind(fd, rp->ai_addr, rp->ai_addrlen) == 0)
 	    break;                  // Success
 
-	close(s->fd); s->fd = -1;
+	close(fd); fd = -1;
     }
 
     if (rp == NULL)	// No address succeeded
     {
-	syslog(LOG_ERR, "%s(): Could not bind to %s", __FUNCTION__, s->name);
+	syslog(LOG_ERR, "%s(): Could not bind to %s:%s", __FUNCTION__, host, port);
         fail();
     }
 
     freeaddrinfo(result);	// No longer needed
 
-    rc = listen(s->fd, 2);
+    rc = listen(fd, 2);
     if (rc < 0)
     {
 	syslog(LOG_ERR, "%s(): listen(2) failed: %m", __FUNCTION__);
         fail();
     }
+
+    iobase_open(s->b, make_host_port(host, port), fd);
 }
 
 socket_t *socket_accept(socket_t *s)
 {
     struct sockaddr peer_addr;
     socklen_t       peer_addrlen;
-    int newfd = accept(s->fd, &peer_addr, &peer_addrlen);
+    int newfd = accept(s->b->fd, &peer_addr, &peer_addrlen);
     if (newfd < 0)
     {
 	syslog(LOG_ERR, "%s(): accept(2) failed: %m", __FUNCTION__);
@@ -118,10 +118,10 @@ socket_t *socket_accept(socket_t *s)
     }
 
     socket_t *new_s = socket_create();
-    new_s->fd       = newfd;
-    new_s->name     = (rc == 0)
+    char *name = (rc == 0)
 	? make_host_port( peer_host, peer_port)
 	: make_host_port( "NULL"   , "NULL"   );
+    iobase_open(new_s->b, name, newfd);
 
     return new_s;
 }
@@ -129,7 +129,6 @@ socket_t *socket_accept(socket_t *s)
 void socket_connect(socket_t *s, const char *host, const char *port)
 {
     socket_close(s);
-    s->name = make_host_port(host, port);
 
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
@@ -152,66 +151,42 @@ void socket_connect(socket_t *s, const char *host, const char *port)
        try the next address. */
 
     struct addrinfo *rp;
-    s->fd = -1;
+    int fd = -1;
     for (rp = result; rp != NULL; rp = rp->ai_next)
     {
-	s->fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-	if (s->fd < 0) continue;
+	fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+	if (fd < 0) continue;
 
-	if (connect(s->fd, rp->ai_addr, rp->ai_addrlen) != -1)
+	if (connect(fd, rp->ai_addr, rp->ai_addrlen) != -1)
 	    break;                  // Success
 
-	close(s->fd); s->fd = -1;
+	close(fd); fd = -1;
     }
 
     if (rp == NULL)	// No address succeeded
     {
-	syslog(LOG_ERR, "%s(): Could not connect to %s", __FUNCTION__, s->name);
+	syslog(LOG_ERR, "%s(): Could not connect to %s:%s", __FUNCTION__, host, port);
         fail();
     }
 
     freeaddrinfo(result);	// No longer needed
+
+    iobase_open(s->b, make_host_port(host, port), fd);
 }
 
-
-size_t socket_send(socket_t *s, const char *buf, size_t len)
-{
-    ssize_t rc = send(s->fd, buf, len, MSG_NOSIGNAL);
-    if (rc < 0)
-    {
-	syslog(LOG_ERR, "Error on sending %zu bytes to %s: %m", len, s->name);
-        fail();
-    }
-    else if (rc == 0)
-    {
-	syslog(LOG_ERR, "0 (?) bytes sent to %s", s->name);
-        fail();
-    }
-
-    // rc > 0
-    return rc;
-}
 
 size_t socket_recv(socket_t *s, char *buf, size_t len)
 {
-    ssize_t rc = recv(s->fd, buf, len, MSG_NOSIGNAL);
-    if (rc < 0)
-    {
-	syslog(LOG_ERR, "Error received from %s: %m", s->name);
-        fail();
-    }
+    return iobase_read(s->b, buf, len);
+}
 
-    // rc >= 0
-    return rc;
+size_t socket_send(socket_t *s, const char *buf, size_t len)
+{
+    return iobase_write(s->b, buf, len);
 }
 
 void socket_send_all(socket_t *s, const char *buf, size_t len)
 {
-    do
-    {
-	size_t sent_len = socket_send(s, buf, len);
-	buf += sent_len;
-        len -= sent_len;
-    } while(len > 0);
+    iobase_write(s->b, buf, len);
 }
 

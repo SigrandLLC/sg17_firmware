@@ -1,11 +1,12 @@
 #ifndef  RS232_IP_EXTENDER_SOCKET_H
 # define RS232_IP_EXTENDER_SOCKET_H
 
+# include "iobase.h"
 
-typedef struct socket_s
+
+typedef struct
 {
-    char *name;
-    int fd;
+    iobase_t *b;
 } socket_t;
 
 socket_t *socket_create (void);
@@ -18,6 +19,9 @@ void      socket_close   (socket_t *s);
 size_t    socket_send    (socket_t *s, const char *buf, size_t len);
 void      socket_send_all(socket_t *s, const char *buf, size_t len);
 size_t    socket_recv    (socket_t *s,       char *buf, size_t len);
+
+extern inline const char *socket_name(socket_t *s) { return iobase_name(s->b); }
+extern inline int         socket_fd  (socket_t *s) { return iobase_fd  (s->b); }
 
 
 #endif //RS232_IP_EXTENDER_SOCKET_H
