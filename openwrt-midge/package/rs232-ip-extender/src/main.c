@@ -134,7 +134,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	else if (rc == 0)	// timeout
 	{
 	    // handle modem lines status
-	    syslog(LOG_INFO, "tick"); //TODO
+	    syslog(LOG_INFO, "tick"); //FIXME: TODO
 	}
 	else
 	{
@@ -142,13 +142,8 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 
 	    if (polls[POLL_TTY].revents & POLLIN)
 	    {
-		ssize_t r = read(polls[POLL_TTY].fd, data_buf, DATA_BUF_SIZE);
-		if (r < 0)
-		{
-		    syslog(LOG_ERR, "Error reading %s: %m", tty_name(tty));
-		    fail();
-		}
-		else if (r == 0)
+		size_t r = tty_read(tty, data_buf, DATA_BUF_SIZE);
+		if (r == 0)
 		{
 		    syslog(LOG_WARNING, "EOF readed from %s, ignore", tty_name(tty));
 		}
@@ -169,8 +164,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		}
 		else
 		{
-		    //tty_write_all(tty, data_buf, r);
-		    //FIXME: TODO
+		    tty_write_all(tty, data_buf, r);
 		}
 	    }
 	}
