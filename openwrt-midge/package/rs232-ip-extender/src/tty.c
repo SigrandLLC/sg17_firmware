@@ -3,74 +3,78 @@
 #include "misc.h"
 
 
-static void tty_lock  (tty_t *tty);
-static void tty_unlock(tty_t *tty);
-
 static void tty_on_exit(int unused, void *arg)
 {
     (void)unused;
-    tty_t *tty = arg;
-    tty_delete(tty);
+    tty_t *t = arg;
+    tty_delete(t);
 }
 
 tty_t *tty_create(void)
 {
-    tty_t *tty = xzmalloc(sizeof(*tty));
+    tty_t *t = xzmalloc(sizeof(*t));
+    t->b = iobase_create();
 
-    tty->fd = -1;
+    onexit(tty_on_exit, t);
 
-    onexit(tty_on_exit, tty);
-
-    return tty;
+    return t;
 }
 
-void tty_delete(tty_t *tty)
+void tty_delete(tty_t *t)
 {
-    tty_restore(tty);
-    tty_close  (tty);
-    free       (tty);
+    tty_close(t);
+    iobase_delete(t->b); t->b = NULL;
+    free(t);
+
 }
 
 
-void tty_open(tty_t *tty, const char *devname)
+static void tty_lock  (const char *devname);
+static void tty_unlock(const char *devname);
+
+void tty_open(tty_t *t, const char *devname)
 {
-    tty->name = xstrdup(devname);
-    tty_lock(tty);
-    tty->fd = open(tty->name, O_RDWR | O_NOCTTY);
-    if (tty->fd < 0)
+    tty_close(t);
+
+    tty_lock(devname);
+
+    int fd = open(devname, O_RDWR | O_NOCTTY);
+    if (fd < 0)
     {
-        tty_unlock(tty);
-	syslog(LOG_ERR, "Can't open device %s: %m", tty->name);
+	syslog(LOG_ERR, "Can't open device %s: %m", devname);
+        tty_unlock(devname);
 	fail();
     }
+
+    iobase_open(t->b, devname, fd);
 }
 
-void tty_close (tty_t *tty)
+void tty_close (tty_t *t)
 {
-    if (tty->fd >= 0)
+    if (tty_fd(t) >= 0)
     {
 	/* To avoid blocking on close if we have written bytes and are in
 	   flow-control, we flush the output queue. */
-	tcflush(tty->fd, TCOFLUSH);
+	tcflush(tty_fd(t), TCOFLUSH);
 
-	close(tty->fd);
-	tty->fd = -1;
+	tty_restore(t);
 
-	tty_unlock(tty);
+	char *name = xstrdup(tty_name(t));
+	iobase_close(t->b);
+	tty_unlock(name);
+	free(name);
     }
-
-    free(tty->name); tty->name = NULL;
 }
 
 
-static void tty_lock(tty_t *tty)
+static void tty_lock(const char *devname)
 {
-    pid_t rc = dev_lock(tty->name);
+    pid_t rc = dev_lock(devname);
 
     if (rc < 0)
-	syslog(LOG_ERR, "Error while locking %s: %m", tty->name);
+	syslog(LOG_ERR, "Error while locking %s: %m", devname);
     else if (rc > 0)
-	syslog(LOG_ERR, "%s is locked by %d", tty->name, rc);
+	syslog(LOG_ERR, "%s is locked by %d", devname, rc);
     else
     {
 	return;
@@ -79,46 +83,46 @@ static void tty_lock(tty_t *tty)
     fail();
 }
 
-static void tty_unlock(tty_t *tty)
+static void tty_unlock(const char *devname)
 {
-    pid_t rc = dev_unlock(tty->name, getpid());
+    pid_t rc = dev_unlock(devname, getpid());
 
     if (rc < 0)
-	syslog(LOG_WARNING, "Error while unlocking %s: %m", tty->name);
+	syslog(LOG_WARNING, "Error while unlocking %s: %m", devname);
 }
 
 
-void tty_set_raw(tty_t *tty)
+void tty_set_raw(tty_t *t)
 {
-    if (tcgetattr(tty->fd, &tty->termios) < 0)
+    if (tcgetattr(tty_fd(t), &t->termios) < 0)
     {
-	syslog(LOG_ERR, "Can't get attributes for device %s: %m", tty->name);
+	syslog(LOG_ERR, "Can't get attributes for device %s: %m", tty_name(t));
 	fail();
     }
 
     struct termios new_tios;
-    memcpy(&new_tios, &tty->termios, sizeof(new_tios));
+    memcpy(&new_tios, &t->termios, sizeof(new_tios));
 
     cfmakeraw(&new_tios);
     new_tios.c_cc[VMIN]  = 1;
     new_tios.c_cc[VTIME] = 0;
 
-    if (tcsetattr(tty->fd, TCSANOW, &new_tios) < 0)
+    if (tcsetattr(tty_fd(t), TCSANOW, &new_tios) < 0)
     {
-	syslog(LOG_ERR, "Can't set attributes for device %s: %m", tty->name);
+	syslog(LOG_ERR, "Can't set attributes for device %s: %m", tty_name(t));
 	fail();
     }
 }
 
-void tty_restore(tty_t *tty)
+void tty_restore(tty_t *t)
 {
-    if (tty->fd >= 0 && tty->termios.c_cflag & CSIZE)
+    if (tty_fd(t) >= 0 && t->termios.c_cflag & CSIZE)
     {
-	if (tcsetattr(tty->fd, TCSANOW, &tty->termios) < 0)
+	if (tcsetattr(tty_fd(t), TCSANOW, &t->termios) < 0)
 	    syslog(LOG_WARNING, "Can't restore attributes for device %s: %m",
-		   tty->name);
+		   tty_name(t));
 	else
-	    memset(&tty->termios, 0, sizeof(tty->termios));
+	    memset(&t->termios, 0, sizeof(t->termios));
     }
 }
 
