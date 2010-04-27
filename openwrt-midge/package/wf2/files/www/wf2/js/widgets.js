@@ -1784,7 +1784,7 @@ function addItem(path, name, func, params) {
         /* check if the corresponding submenu is exist */
         if ($(" > li > span:contains('" + _(pathElems[pathElem]) + "')", curLevel).length == 0) {
             /* if not, add it */
-            $(curLevel).append("<li><span>" + _(pathElems[pathElem]) + "</span><ul></ul></li>");
+            $(curLevel).append("<li><span>+ " + _(pathElems[pathElem]) + "</span><ul></ul></li>");
         }
         /* change current level in the menu */
         curLevel = $(" > li > span:contains('" + _(pathElems[pathElem]) + "')", curLevel).next();

@@ -115,12 +115,31 @@ function generateMenu() {
         }
     });
 
+    var PlusMinusMenu = function(li) {
+        var span = li.children('span:first');
+        if(li.hasClass('expandable')) {
+            span.text(span.text().substr(2));
+            span.prepend('+ ');
+        }
+        else if(li.hasClass('collapsable')) {
+            span.text(span.text().substr(2));
+            span.prepend('- ');
+        }
+    }
+
+
+
     /* generate menu */
     $("#menu").treeview({
         "unique": true,
         "collapsed": true,
-        "persist": "cookie"
+        "persist": "cookie",
+        "toggle": function() {
+            PlusMinusMenu($(this));
+        }
+
     });
+    $("#menu").find("li").each(function(i) { PlusMinusMenu($(this)); });
 }
 
 /* WF2 logs */

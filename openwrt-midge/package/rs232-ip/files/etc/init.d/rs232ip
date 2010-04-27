@@ -55,13 +55,13 @@ _node_cfg() {
       done
 
       local    socat_opts="${str_loglvl} -P ${pidfile} -ly"
-      local   common_opts="keepalive,retry"
+      local   common_opts="keepalive,retry=2000000000,forever"
       local device_params="file:/dev/${node},raw,echo=0,lockfile=${lockfile}"
 
       if [ "$connect_enable" -eq 1 ]; then
          echo -e "\tand connect to ${dst_host}:${dst_port}"
 	 params="${socat_opts} ${device_params} TCP:${dst_host}:${dst_port}"
-	 params="${params},forever,connect-timeout=1,${common_opts}"
+	 params="${params},connect-timeout=0,${common_opts}"
       else
          params="${socat_opts} TCP-LISTEN:${src_port},bind=${src_host}"
 	 params="${params},reuseaddr,${common_opts} ${device_params}"
