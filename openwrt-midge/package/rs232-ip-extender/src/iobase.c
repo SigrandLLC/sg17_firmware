@@ -18,7 +18,7 @@ void iobase_delete(iobase_t* b)
     free(b);
 }
 
-void iobase_open(iobase_t* b, const char name, int fd)
+void iobase_open(iobase_t* b, const char *name, int fd)
 {
     iobase_close(b);
     b->name = xstrdup(name);

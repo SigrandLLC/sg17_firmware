@@ -10,7 +10,7 @@ typedef struct
 
 iobase_t* iobase_create(void);
 void      iobase_delete(iobase_t* b);
-void      iobase_open  (iobase_t* b, const char name, int fd);
+void      iobase_open  (iobase_t* b, const char *name, int fd);
 void      iobase_close (iobase_t* b);
 
 
