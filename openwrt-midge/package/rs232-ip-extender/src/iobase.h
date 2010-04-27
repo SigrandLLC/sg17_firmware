@@ -16,6 +16,9 @@ size_t    iobase_read     (iobase_t *b,       char *buf, size_t len);
 size_t    iobase_write    (iobase_t *b, const char *buf, size_t len);
 void      iobase_write_all(iobase_t *b, const char *buf, size_t len);
 
+extern inline const char *iobase_name(iobase_t *b) { return b->name; }
+extern inline int         iobase_fd  (iobase_t *b) { return b->fd  ; }
+
 
 #endif //RS232_IP_EXTENDER_IOBASE_H
 
