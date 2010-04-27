@@ -10,13 +10,10 @@ typedef struct
     struct termios termios;
 } tty_t;
 
-tty_t *tty_create(const char *devname);
+tty_t *tty_create(void);
 void   tty_delete(tty_t *tty);
 
-void   tty_lock   (tty_t *tty);
-void   tty_unlock (tty_t *tty);
-
-void   tty_open   (tty_t *tty);
+void   tty_open   (tty_t *tty, const char *devname);
 void   tty_close  (tty_t *tty);
 
 void   tty_set_raw(tty_t *tty);

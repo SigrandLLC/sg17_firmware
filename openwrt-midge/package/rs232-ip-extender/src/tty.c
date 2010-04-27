@@ -3,6 +3,9 @@
 #include "misc.h"
 
 
+static void tty_lock  (tty_t *tty);
+static void tty_unlock(tty_t *tty);
+
 static void tty_on_exit(int unused, void *arg)
 {
     (void)unused;
@@ -10,15 +13,13 @@ static void tty_on_exit(int unused, void *arg)
     tty_delete(tty);
 }
 
-tty_t *tty_create(const char *devname)
+tty_t *tty_create(void)
 {
     tty_t *tty = xzmalloc(sizeof(*tty));
 
     tty->fd = -1;
 
     onexit(tty_on_exit, tty);
-
-    tty->name = xstrdup(devname);
 
     return tty;
 }
@@ -27,17 +28,18 @@ void tty_delete(tty_t *tty)
 {
     tty_restore(tty);
     tty_close  (tty);
-    tty_unlock (tty);
-    free       (tty->name);
     free       (tty);
 }
 
 
-void tty_open(tty_t *tty)
+void tty_open(tty_t *tty, const char *devname)
 {
+    tty->name = xstrdup(devname);
+    tty_lock(tty);
     tty->fd = open(tty->name, O_RDWR | O_NOCTTY);
     if (tty->fd < 0)
     {
+        tty_unlock(tty);
 	syslog(LOG_ERR, "Can't open device %s: %m", tty->name);
 	fail();
     }
@@ -48,16 +50,20 @@ void tty_close (tty_t *tty)
     if (tty->fd >= 0)
     {
 	/* To avoid blocking on close if we have written bytes and are in
-	 flow-control, we flush the output queue. */
+	   flow-control, we flush the output queue. */
 	tcflush(tty->fd, TCOFLUSH);
 
 	close(tty->fd);
 	tty->fd = -1;
+
+	tty_unlock(tty);
     }
+
+    free(tty->name); tty->name = NULL;
 }
 
 
-void tty_lock(tty_t *tty)
+static void tty_lock(tty_t *tty)
 {
     pid_t rc = dev_lock(tty->name);
 
@@ -74,7 +80,7 @@ void tty_lock(tty_t *tty)
     fail();
 }
 
-void tty_unlock(tty_t *tty)
+static void tty_unlock(tty_t *tty)
 {
     if (tty->locked)
     {
