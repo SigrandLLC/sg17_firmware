@@ -125,7 +125,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 
     do
     {
-	rc = poll(polls, POLL_ITEMS, 1000);
+	rc = poll(polls, POLL_ITEMS, 5000);
 	if (rc < 0)
 	{
 	    syslog(LOG_ERR, "poll failed: %m");
