@@ -6,13 +6,13 @@
 static void tty_on_exit(int unused, void *arg)
 {
     (void)unused;
-    tty_descr_t *tty = arg;
+    tty_t *tty = arg;
     tty_delete(tty);
 }
 
-tty_descr_t *tty_create(const char *devname)
+tty_t *tty_create(const char *devname)
 {
-    tty_descr_t *tty = xzmalloc(sizeof(*tty));
+    tty_t *tty = xzmalloc(sizeof(*tty));
 
     tty->fd = -1;
 
@@ -23,7 +23,7 @@ tty_descr_t *tty_create(const char *devname)
     return tty;
 }
 
-void tty_delete(tty_descr_t *tty)
+void tty_delete(tty_t *tty)
 {
     tty_restore(tty);
     tty_close  (tty);
@@ -33,7 +33,7 @@ void tty_delete(tty_descr_t *tty)
 }
 
 
-void tty_open(tty_descr_t *tty)
+void tty_open(tty_t *tty)
 {
     tty->fd = open(tty->name, O_RDWR | O_NOCTTY);
     if (tty->fd < 0)
@@ -43,7 +43,7 @@ void tty_open(tty_descr_t *tty)
     }
 }
 
-void tty_close (tty_descr_t *tty)
+void tty_close (tty_t *tty)
 {
     if (tty->fd >= 0)
     {
@@ -57,7 +57,7 @@ void tty_close (tty_descr_t *tty)
 }
 
 
-void tty_lock(tty_descr_t *tty)
+void tty_lock(tty_t *tty)
 {
     pid_t rc = dev_lock(tty->name);
 
@@ -74,7 +74,7 @@ void tty_lock(tty_descr_t *tty)
     fail();
 }
 
-void tty_unlock(tty_descr_t *tty)
+void tty_unlock(tty_t *tty)
 {
     if (tty->locked)
     {
@@ -88,7 +88,7 @@ void tty_unlock(tty_descr_t *tty)
 }
 
 
-void tty_set_raw(tty_descr_t *tty)
+void tty_set_raw(tty_t *tty)
 {
     if (tcgetattr(tty->fd, &tty->termios) < 0)
     {
@@ -110,7 +110,7 @@ void tty_set_raw(tty_descr_t *tty)
     }
 }
 
-void tty_restore(tty_descr_t *tty)
+void tty_restore(tty_t *tty)
 {
     if (tty->fd >= 0 && tty->termios.c_cflag & CSIZE)
     {

@@ -67,7 +67,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     setup_sighandler(sig_handler, SIGTERM);
 
 
-    tty_descr_t *tty = tty_create(device);
+    tty_t       *tty = tty_create(device);
     tty_lock    (tty);
     tty_open    (tty);
     tty_set_raw (tty);
