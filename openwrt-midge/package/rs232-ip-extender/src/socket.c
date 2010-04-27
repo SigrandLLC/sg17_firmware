@@ -174,19 +174,3 @@ void socket_connect(socket_t *s, const char *host, const char *port)
     iobase_open(s->b, make_host_port(host, port), fd);
 }
 
-
-size_t socket_recv(socket_t *s, char *buf, size_t len)
-{
-    return iobase_read(s->b, buf, len);
-}
-
-size_t socket_send(socket_t *s, const char *buf, size_t len)
-{
-    return iobase_write(s->b, buf, len);
-}
-
-void socket_send_all(socket_t *s, const char *buf, size_t len)
-{
-    iobase_write(s->b, buf, len);
-}
-
