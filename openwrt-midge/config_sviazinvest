@@ -1327,10 +1327,10 @@ BR2_SIGRAND_OEM_ETH3_IP_NETMASK="255.255.252.0"
 #
 # Logotypes
 #
-BR2_SIGRAND_OEM_LOGO="default"
+BR2_SIGRAND_OEM_LOGO="sviazinvest_logo.gif"
 BR2_SIGRAND_OEM_HEADERBG="default"
 BR2_SIGRAND_OEM_BGROUND="default"
-BR2_SIGRAND_OEM_WF2_HEADER_LOGO="sviazinvest-header_oem.jpg"
+BR2_SIGRAND_OEM_WF2_HEADER_LOGO="sviazinvest-header_oem.gif"
 BR2_SIGRAND_OEM_WF2_BOTTOM_LOGO="sviazinvest-footer_oem.gif"
 
 #
