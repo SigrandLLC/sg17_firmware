@@ -1,33 +1,18 @@
-#ifndef  RS232_IP_EXTENDER_IOPORT_H
-# define RS232_IP_EXTENDER_IOPORT_H
+#ifndef  RS232_IP_EXTENDER_IOBASE_H
+# define RS232_IP_EXTENDER_IOBASE_H
 
 
-struct ioport;
-struct ioport_vmt;
-
-typedef struct ioport
+typedef struct
 {
-    struct ioport_vmt *vmt;
-
     char *name;
     int fd;
+} iobase_t;
 
-} ioport_t;
-
-typedef struct ioport_vmt
-{
-    ioport_t* (*create  )(void);
-    void      (*delete  )(ioport_t *port);
-
-    void      (*open    )(ioport_t *port, const char *name);
-    void      (*close   )(ioport_t *port);
-
-    size_t    (*send    )(ioport_t *port, const char *buf, size_t len);
-    void      (*send_all)(ioport_t *port, const char *buf, size_t len);
-    size_t    (*recv    )(ioport_t *port,       char *buf, size_t len);
-
-} ioport_vmt_t;
+iobase_t* iobase_create(void);
+void      iobase_delete(iobase_t* b);
+void      iobase_open  (iobase_t* b, const char name, int fd);
+void      iobase_close (iobase_t* b);
 
 
-#endif //RS232_IP_EXTENDER_IOPORT_H
+#endif //RS232_IP_EXTENDER_IOBASE_H
 

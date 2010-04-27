@@ -1,44 +1,33 @@
 #include "sys_headers.h"
-#include "ioport.h"
+#include "iobase.h"
 #include "misc.h"
 
 
-static ioport_t* ioport_create(void);
-static void      ioport_delete(ioport_t* p);
-
-static ioport_vmt_t ioport_vmt {
-    .create   = ioport_create,
-    .delete   = ioport_delete,
-    .open     = NULL,
-    .close    = NULL,
-    .send     = NULL,
-    .send_all = NULL,
-    .recv     = NULL,
-};
-
-static void ioport_on_exit(int unused, void *arg)
+iobase_t* iobase_create(void)
 {
-    (void)unused;
-    ioport_t *p = arg;
-    p->vmt->delete(p);
+    iobase_t *b = xzmalloc(sizeof(iobase_t));
+
+    b->fd = -1;
+
+    return b;
 }
 
-static ioport_t* ioport_create(void)
+void iobase_delete(iobase_t* b)
 {
-    ioport_t *p = xzmalloc(sizeof(ioport_t));
-
-    p->vmt = ioport_vmt;
-
-    p->fd = -1;
-
-    onexit(ioport_on_exit, p);
-
-    return s;
+    iobase_close(b);
+    free(b);
 }
 
-static void ioport_delete(ioport_t* p)
+void iobase_open(iobase_t* b, const char name, int fd)
 {
-    p->vmt->close(p);
-    free(p);
+    iobase_close(b);
+    b->name = xstrdup(name);
+    b->fd   = fd;
+}
+
+void iobase_close(iobase_t* b)
+{
+    close(b->fd);  b->fd   = -1;
+    free(b->name); b->name = NULL;
 }
 
