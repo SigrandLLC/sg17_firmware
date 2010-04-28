@@ -40,19 +40,48 @@ static char *make_host_port( const char *host, const char *port)
     return name;
 }
 
+//#define USE_PTON 1
+#ifdef  USE_PTON
+# include <arpa/inet.h> // inet_pton
+#endif
+
 void socket_bind(socket_t *s, const char *host, const char *port)
 {
+    int rc = 0;
     socket_close(s);
+
+#ifdef  USE_PTON
+    static const int af[] = {AF_INET, AF_INET6};
+    union { char ip6[INET6_ADDRSTRLEN]; char ip4[INET6_ADDRSTRLEN]; } addr;
+    size_t afidx;
+
+    for (afidx = 0; afidx < sizeof(af) / sizeof(af[0]); ++afidx)
+    {
+	rc = inet_pton(af[afidx], host, &addr);
+        if (rc == 1) break;
+    }
+
+    if (rc != 1)
+    {
+	syslog(LOG_ERR, "%s(): address %s is not recognized "
+	       "as belonged to one of the address families", __FUNCTION__, host);
+	fail();
+    }
+#endif
 
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
+#ifdef  USE_PTON
+    hints.ai_family    = af[afidx];
+#else
     hints.ai_family    = AF_UNSPEC;	// Allow IPv4 or IPv6
+#endif
     hints.ai_socktype  = SOCK_STREAM;
     hints.ai_flags     = AI_PASSIVE;	// For wildcard IP address, INADDR_ANY | IN6ADDR_ANY_INIT
     hints.ai_protocol  = IPPROTO_TCP;
 
     struct addrinfo *result;
-    int rc = getaddrinfo(NULL/*host*/, port, &hints, &result);
+    rc = getaddrinfo(NULL/*host*/, port, &hints, &result);
     if (rc != 0)
     {
 	syslog(LOG_ERR, "%s(): getaddrinfo(NULL, %s, ...): %s", __FUNCTION__, port, gai_strerror(rc));
