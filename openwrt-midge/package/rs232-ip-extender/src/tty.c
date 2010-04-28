@@ -38,7 +38,7 @@ void tty_open(tty_t *t, const char *devname)
 
     tty_lock(devname);
 
-    int fd = open(devname, O_RDWR | O_NOCTTY);
+    int fd = open(devname, O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (fd < 0)
     {
 	syslog(LOG_ERR, "Can't open device %s: %m", devname);
