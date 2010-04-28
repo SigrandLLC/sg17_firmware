@@ -35,11 +35,11 @@ case $action in
 	$prog $ttydev $host $port $mode $pidfile
 	;;
     stop)
-	if test -f $pidfile; then kill `cat $pidfile`; fi
+	while $0 status $mode >/dev/null; do kill `cat $pidfile`; done
 	;;
  restart)
 	$0 stop  $mode
-	sleep 0.5s
+	#sleep 0.5s
 	$0 start $mode
 	;;
   status)
@@ -47,11 +47,14 @@ case $action in
 		pid=`cat $pidfile`
 		if kill -0 $pid 2>/dev/null; then
 			echo "Running"
+			exit 0
 		else
 			echo "Not running with orphaned pid file"
+			exit 1
 		fi
 	else
 		echo "Not running"
+		exit 1
 	fi
 	;;
        *)
