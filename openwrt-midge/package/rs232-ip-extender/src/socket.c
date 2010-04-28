@@ -52,7 +52,7 @@ void socket_bind(socket_t *s, const char *host, const char *port)
     hints.ai_protocol  = IPPROTO_TCP;
 
     struct addrinfo *result;
-    int rc = getaddrinfo(NULL/*host*/, port, &hints, &result);
+    int rc = getaddrinfo(host, port, &hints, &result);
     if (rc != 0)
     {
 	syslog(LOG_ERR, "%s(): getaddrinfo(NULL, %s, ...): %s", __FUNCTION__, port, gai_strerror(rc));
@@ -98,7 +98,7 @@ void socket_bind(socket_t *s, const char *host, const char *port)
 socket_t *socket_accept(socket_t *s)
 {
     struct sockaddr peer_addr;
-    socklen_t       peer_addrlen;
+    socklen_t       peer_addrlen = sizeof(peer_addr);
     int newfd = accept(socket_fd(s), &peer_addr, &peer_addrlen);
     if (newfd < 0)
     {
