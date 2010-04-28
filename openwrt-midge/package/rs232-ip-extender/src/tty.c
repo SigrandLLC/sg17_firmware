@@ -46,6 +46,23 @@ void tty_open(tty_t *t, const char *devname)
 	fail();
     }
 
+    long rcflags = fcntl(fd, F_GETFL);
+    if (rcflags < 0)
+    {
+	syslog(LOG_ERR, "%s: Can't get file descriptor flags: %m", devname);
+	tty_close(t);
+	fail();
+    }
+
+    rcflags &= ~O_NONBLOCK;
+    rcflags = fcntl(fd, F_SETFL, rcflags);
+    if (rcflags < 0)
+    {
+	syslog(LOG_ERR, "%s: Can't set file descriptor flags: %m", devname);
+	tty_close(t);
+	fail();
+    }
+
     iobase_open(t->b, devname, fd);
 }
 
