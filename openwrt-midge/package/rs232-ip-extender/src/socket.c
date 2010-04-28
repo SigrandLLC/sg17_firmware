@@ -64,6 +64,7 @@ void socket_bind(socket_t *s, const char *host, const char *port)
        If socket(2) (or bind(2)) fails, we (close the socket
        and) try the next address. */
 
+    int errno_save = 0;
     struct addrinfo *rp;
     int fd = -1;
     for (rp = result; rp != NULL; rp = rp->ai_next)
@@ -73,13 +74,15 @@ void socket_bind(socket_t *s, const char *host, const char *port)
 
 	if (bind(fd, rp->ai_addr, rp->ai_addrlen) == 0)
 	    break;                  // Success
+        errno_save = errno;
 
 	close(fd); fd = -1;
     }
 
     if (rp == NULL)	// No address succeeded
     {
-	syslog(LOG_ERR, "%s(): Could not bind to %s:%s", __FUNCTION__, host, port);
+        errno = errno_save;
+	syslog(LOG_ERR, "%s(): Could not bind to %s:%s: %m", __FUNCTION__, host, port);
 	fail();
     }
 
