@@ -45,6 +45,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     else
         usage();
 
+    set_progname_mode(conntype);
     openlog(progname, LOG_PID | LOG_CONS, LOG_DAEMON);
 
     int rc = daemon(0, 0);
@@ -157,7 +158,8 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		    size_t r = tty_read(tty, data_buf, DATA_BUF_SIZE);
 		    if (r == 0)
 		    {
-			syslog(LOG_WARNING, "EOF readed from %s, ignore", tty_name(tty));
+			syslog(LOG_WARNING, "EOF readed from %s, ignore",
+			       tty_name(tty));
 		    }
 		    else	// r > 0
 		    {
@@ -170,7 +172,8 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		    size_t r = socket_recv(data_s, data_buf, DATA_BUF_SIZE);
 		    if (r == 0)
 		    {
-			syslog(LOG_INFO, "data connection: EOF received from %s", socket_name(data_s));
+			syslog(LOG_INFO, "data connection: EOF received from %s",
+			       socket_name(data_s));
 			break; // restart
 		    }
 		    else
@@ -184,7 +187,8 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		    size_t r = socket_recv(stat_s, status_buf, STATUS_BUF_SIZE);
 		    if (r == 0)
 		    {
-			syslog(LOG_INFO, "status connection: EOF received from %s", socket_name(stat_s));
+			syslog(LOG_INFO, "status connection: EOF received from %s",
+			       socket_name(stat_s));
 			break; // restart
 		    }
 		    else

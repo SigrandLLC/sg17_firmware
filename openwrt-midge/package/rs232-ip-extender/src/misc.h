@@ -2,7 +2,8 @@
 # define RS232_IP_EXTENDER_MISC_H
 
 
-extern const char *progname;
+extern char progname[];
+void set_progname_mode(const char *mode);
 
 void fail(void);
 

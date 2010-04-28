@@ -1,7 +1,12 @@
 #include "sys_headers.h"
 #include "misc.h"
 
-const char *progname = "rs232-ip-extender";
+char progname[256] = "rs232-ip-extender";
+
+void set_progname_mode(const char *mode)
+{
+    snprintf(progname, sizeof(progname), "rs232-ip-extender %-8s", mode);
+}
 
 void fail(void)
 {
