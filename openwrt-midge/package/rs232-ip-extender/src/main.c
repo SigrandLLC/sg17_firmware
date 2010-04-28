@@ -167,6 +167,23 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		    tty_write_all(tty, data_buf, r);
 		}
 	    }
+
+	    if (polls[POLL_STATUS].revents & POLLIN)
+	    {
+		size_t r = socket_recv(stat_s, status_buf, STATUS_BUF_SIZE);
+		if (r == 0)
+		{
+		    syslog(LOG_INFO, "EOF received from %s", socket_name(stat_s));
+		    syslog(LOG_INFO, "closing status connection");
+		    break; // FIXME: restart
+		}
+		else
+		{
+		    size_t i;
+		    for (i = 0; i < r; ++i)
+			/*tty_set_lines(tty, status_buf[i])*/;
+		}
+	    }
 	}
     } while(1);
 
