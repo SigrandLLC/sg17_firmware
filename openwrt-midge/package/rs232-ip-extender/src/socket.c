@@ -56,7 +56,7 @@ void socket_bind(socket_t *s, const char *host, const char *port)
     if (rc != 0)
     {
 	syslog(LOG_ERR, "%s(): getaddrinfo(NULL, %s, ...): %s", __FUNCTION__, port, gai_strerror(rc));
-        fail();
+	fail();
     }
 
     /* getaddrinfo() returns a list of address structures.
@@ -80,7 +80,7 @@ void socket_bind(socket_t *s, const char *host, const char *port)
     if (rp == NULL)	// No address succeeded
     {
 	syslog(LOG_ERR, "%s(): Could not bind to %s:%s", __FUNCTION__, host, port);
-        fail();
+	fail();
     }
 
     freeaddrinfo(result);	// No longer needed
@@ -89,7 +89,7 @@ void socket_bind(socket_t *s, const char *host, const char *port)
     if (rc < 0)
     {
 	syslog(LOG_ERR, "%s(): listen(2) failed: %m", __FUNCTION__);
-        fail();
+	fail();
     }
 
     iobase_open(s->b, make_host_port(host, port), fd);
@@ -103,7 +103,7 @@ socket_t *socket_accept(socket_t *s)
     if (newfd < 0)
     {
 	syslog(LOG_ERR, "%s(): accept(2) failed: %m", __FUNCTION__);
-        fail();
+	fail();
     }
 
     char peer_host[NI_MAXHOST], peer_port[NI_MAXSERV];
@@ -143,7 +143,7 @@ int socket_connect(socket_t *s, const char *host, const char *port)
     if (rc != 0)
     {
 	syslog(LOG_ERR, "%s(): getaddrinfo: %s", __FUNCTION__, gai_strerror(rc));
-        fail();
+	fail();
     }
 
     /* getaddrinfo() returns a list of address structures.
