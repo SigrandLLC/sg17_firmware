@@ -86,24 +86,24 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	socket_t *listen_s = socket_create();
 	socket_bind(listen_s, host, port);
 
-	syslog(LOG_DEBUG, "Waiting data connection...");
+	syslog(LOG_INFO, "Waiting data connection...");
 	data_s = socket_accept(listen_s);
 	syslog(LOG_INFO, "Data connection from %s", socket_name(data_s));
 
-	syslog(LOG_DEBUG, "Waiting status connection...");
+	syslog(LOG_INFO, "Waiting status connection...");
 	stat_s = socket_accept(listen_s);
 	syslog(LOG_INFO, "Status connection from %s", socket_name(stat_s));
 
-	syslog(LOG_DEBUG, "Closing listening socket...");
+	syslog(LOG_INFO, "Closing listening socket...");
 	socket_close(listen_s);
     }
     else // connect
     {
-	syslog(LOG_DEBUG, "Connecting (data) to %s:%s ...", host, port);
+	syslog(LOG_INFO, "Connecting (data) to %s:%s ...", host, port);
 	data_s = socket_create();
 	socket_connect(data_s, host, port);
 
-	syslog(LOG_DEBUG, "Connecting (status) to %s:%s ...", host, port);
+	syslog(LOG_INFO, "Connecting (status) to %s:%s ...", host, port);
 	stat_s = socket_create();
 	socket_connect(stat_s, host, port);
     }

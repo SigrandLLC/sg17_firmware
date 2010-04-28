@@ -24,14 +24,14 @@ void make_pidfile(const char *pidfile)
     pidfile_created = 1;
     fprintf(fpidfile, "%d\n", getpid());
     fclose (fpidfile);
-    syslog(LOG_DEBUG, "pid file '%s' created", pidfile);
+    syslog(LOG_INFO, "pid file '%s' created", pidfile);
 }
 
 void rm_pidfile(const char *pidfile)
 {
     if (pidfile_created)
     {
-	syslog(LOG_DEBUG, "unlinking pid file '%s'...", pidfile);
+	syslog(LOG_INFO, "unlinking pid file '%s'...", pidfile);
 	int rc = unlink(pidfile);
 	if (rc < 0)
 	    syslog(LOG_WARNING, "Error unlinking pid file %s: %m", pidfile);
