@@ -40,6 +40,28 @@ static char *make_host_port( const char *host, const char *port)
     return name;
 }
 
+static void set_sock_opt_bool(int fd, int opt, const char *optname, const char *pfx)
+{
+    int optval = 1;
+    int rc = setsockopt(fd, SOL_SOCKET, opt, &optval, sizeof(optval));
+    if (rc < 0)
+    {
+	syslog(LOG_ERR, "%sCould not set %s socket option: %m", pfx, optname);
+	fail();
+    }
+}
+
+static void set_sock_linger(int fd, int timeout, const char *pfx)
+{
+    struct linger linger = { 1, timeout };
+    int rc = setsockopt(fd, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger));
+    if (rc < 0)
+    {
+	syslog(LOG_ERR, "%sCould not set linger: %m", pfx);
+	fail();
+    }
+}
+
 void socket_bind(socket_t *s, const char *host, const char *port)
 {
     socket_close(s);
@@ -71,6 +93,8 @@ void socket_bind(socket_t *s, const char *host, const char *port)
     {
 	fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
 	if (fd < 0) continue;
+
+	set_sock_opt_bool(fd, SO_REUSEADDR, "reuse address", "socket_bind(): ");
 
 	if (bind(fd, rp->ai_addr, rp->ai_addrlen) == 0)
 	    break;                  // Success
@@ -126,6 +150,9 @@ socket_t *socket_accept(socket_t *s)
 	: make_host_port( "NULL"   , "NULL"   );
     iobase_open(new_s->b, name, newfd);
 
+    set_sock_opt_bool(newfd, SO_KEEPALIVE, "keepalive", "socket_accept(): ");
+    set_sock_linger  (newfd, 3, "socket_accept(): "); //FIXME: linger timeout
+
     return new_s;
 }
 
@@ -176,6 +203,10 @@ int socket_connect(socket_t *s, const char *host, const char *port)
     }
 
     iobase_open(s->b, make_host_port(host, port), fd);
+
+    set_sock_opt_bool(fd, SO_KEEPALIVE, "keepalive", "socket_connect(): ");
+    set_sock_linger  (fd, 3, "socket_connect(): "); //FIXME: linger timeout
+
     return 0;
 }
 
