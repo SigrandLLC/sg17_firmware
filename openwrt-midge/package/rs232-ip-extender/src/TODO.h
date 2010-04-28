@@ -3,6 +3,7 @@ does not compile, just TODO notes
 /*
 socket_accept(): Connection from unknown place, getnameinfo(3) failed: ai_family not supported
 use gethostbyaddr getservbyport ?
+use inet_pton to detect adress type
 */
 
 
