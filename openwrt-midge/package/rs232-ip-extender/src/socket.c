@@ -126,7 +126,8 @@ socket_t *socket_accept(socket_t *s)
     return new_s;
 }
 
-void socket_connect(socket_t *s, const char *host, const char *port)
+// returns true if "Could not connect to ...", false on success
+int socket_connect(socket_t *s, const char *host, const char *port)
 {
     socket_close(s);
 
@@ -163,14 +164,15 @@ void socket_connect(socket_t *s, const char *host, const char *port)
 	close(fd); fd = -1;
     }
 
+    freeaddrinfo(result);	// No longer needed
+
     if (rp == NULL)	// No address succeeded
     {
 	syslog(LOG_ERR, "%s(): Could not connect to %s:%s", __FUNCTION__, host, port);
-        fail();
+	return 1;
     }
 
-    freeaddrinfo(result);	// No longer needed
-
     iobase_open(s->b, make_host_port(host, port), fd);
+    return 0;
 }
 

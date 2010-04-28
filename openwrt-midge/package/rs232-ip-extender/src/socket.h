@@ -14,7 +14,8 @@ void      socket_delete (socket_t *s);
 
 void      socket_bind    (socket_t *s, const char *host, const char *port);
 socket_t *socket_accept  (socket_t *s);
-void      socket_connect (socket_t *s, const char *host, const char *port);
+int       socket_connect (socket_t *s, const char *host, const char *port);
+		// returns true if "Could not connect to ...", false on success
 void      socket_close   (socket_t *s);
 
 extern inline const char *socket_name(socket_t *s) { return iobase_name(s->b); }
