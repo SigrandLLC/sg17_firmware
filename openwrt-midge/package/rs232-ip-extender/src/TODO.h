@@ -1,3 +1,5 @@
+extern inline void   tty_set_lines(tty_t *t, int lines) { (void)t; (void)lines; }
+
 does not compile, just TODO notes
 
 #if 0
