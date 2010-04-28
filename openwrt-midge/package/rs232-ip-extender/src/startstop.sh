@@ -39,7 +39,6 @@ case $action in
 	;;
  restart)
 	$0 stop  $mode
-	#sleep 0.5s
 	$0 start $mode
 	;;
   status)
