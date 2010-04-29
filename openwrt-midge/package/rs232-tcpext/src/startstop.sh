@@ -7,6 +7,9 @@ port=3000
  listen_tty=ttyUSB0
 connect_tty=ttyUSB1
 
+mstat_intval=5000
+restart_time=3000
+
 usage()
 {
 	echo 1>&2 "Usage: $0 {[re]start | stop | status} {listen | connect}"
@@ -32,7 +35,7 @@ pidfile=/var/run/rs232-tcpext..${tty}-${mode}.pid
 
 case $action in
    start)
-	$prog $ttydev $host $port $mode $pidfile
+	$prog $ttydev $host $port $mode $pidfile $mstat_intval $restart_time
 	;;
     stop)
 	if $0 status $mode >/dev/null; then

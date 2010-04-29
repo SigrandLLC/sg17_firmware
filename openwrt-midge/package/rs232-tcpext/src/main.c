@@ -8,7 +8,9 @@
 void usage(const char *av0)
 {
     fprintf(stderr,
-	    "Usage: %s /dev/ttyPORT host port {listen|connect} pidfile\n"
+	    "Usage: %s /dev/ttyPORT host port {listen|connect} pidfile P R\n"
+	    "\tP - modem status poll interval, msec\n"
+	    "\tR - connection restart pause time, msec\n"
 	    , basename(av0));
     exit(EXIT_FAILURE);
 }
@@ -27,14 +29,17 @@ static void sig_handler(int sig)
 
 int main(int ac, char *av[]/*, char *envp[]*/)
 {
-    if (ac != 6)
+    if (ac != 8)
 	usage(av[0]);
 
-    const char *device   = av[1];
-    const char *host     = av[2];
-    const char *port     = av[3];
-    const char *conntype = av[4];
-    const char *pid_file = av[5];
+    size_t ai = 0;
+    const char *device       = av[++ai];
+    const char *host         = av[++ai];
+    const char *port         = av[++ai];
+    const char *conntype     = av[++ai];
+    const char *pid_file     = av[++ai];
+    size_t mstat_intval = atoi(av[++ai]);
+    size_t restart_time = atoi(av[++ai]);
 
     int listen = 1;
 
@@ -142,7 +147,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 
 	do
 	{
-	    rc = poll(polls, POLL_ITEMS, 5000);
+	    rc = poll(polls, POLL_ITEMS, mstat_intval);
 	    if (rc < 0)
 	    {
 		syslog(LOG_ERR, "poll failed: %m");
@@ -209,7 +214,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	socket_close(stat_s);
         socket_close(data_s);
 	tty_close(tty);
-	sleep(1);
+	usleep(restart_time * 1000);
 	syslog(LOG_NOTICE, "restart");
     } while(3); // restart
 
