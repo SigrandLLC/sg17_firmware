@@ -1,11 +1,11 @@
 #include "sys_headers.h"
 #include "misc.h"
 
-char progname[256] = "rs232-ip-extender";
+char progname[256] = "rs232-tcpext";
 
 void set_progname_mode(const char *mode)
 {
-    snprintf(progname, sizeof(progname), "rs232-ip-extender %-8s", mode);
+    snprintf(progname, sizeof(progname), "rs232-tcpext %-8s", mode);
 }
 
 void fail(void)

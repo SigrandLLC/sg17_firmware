@@ -1,5 +1,0 @@
-Package: rs232-ip-extender
-Priority: optional
-Section: net
-Description: Extends RS232 ports over Internet
-

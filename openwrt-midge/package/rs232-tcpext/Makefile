@@ -1,13 +1,13 @@
 include $(TOPDIR)/rules.mk
 
-PKG_NAME = rs232-ip-extender
+PKG_NAME = rs232-tcpext
 PKG_RELEASE = 1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
 include $(TOPDIR)/package/rules.mk
 
-$(eval $(call PKG_template,RS232_IP_EXTENDER,rs232-ip-extender,$(PKG_RELEASE),$(ARCH)))
+$(eval $(call PKG_template,RS232_TCPEXT,rs232-tcpext,$(PKG_RELEASE),$(ARCH)))
 
 $(PKG_BUILD_DIR)/.prepared:
 	mkdir -p $(PKG_BUILD_DIR)
@@ -29,8 +29,8 @@ $(PKG_BUILD_DIR)/.built:
 	$(MAKE) -C $(PKG_BUILD_DIR)
 	touch $@
 
-$(IPKG_RS232_IP_EXTENDER):
-	@#mkdir -p $(IDIR_RS232_IP_EXTENDER)/usr/bin
-	@#install -m0755 $(PKG_BUILD_DIR)/rs232-ip-extender $(IDIR_RS232_IP_EXTENDER)/usr/bin
-	@#$(RSTRIP) $(IDIR_RS232_IP_EXTENDER)
-	@#$(IPKG_BUILD) $(IDIR_RS232_IP_EXTENDER) $(PACKAGE_DIR)
+$(IPKG_RS232_TCPEXT):
+	@#mkdir -p $(IDIR_RS232_TCPEXT)/usr/bin
+	@#install -m0755 $(PKG_BUILD_DIR)/rs232-tcpext $(IDIR_RS232_TCPEXT)/usr/bin
+	@#$(RSTRIP) $(IDIR_RS232_TCPEXT)
+	@#$(IPKG_BUILD) $(IDIR_RS232_TCPEXT) $(PACKAGE_DIR)

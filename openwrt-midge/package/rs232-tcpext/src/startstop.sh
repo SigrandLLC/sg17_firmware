@@ -1,6 +1,6 @@
 #!/bin/sh
 
-prog=./rs232-ip-extender
+prog=./rs232-tcpext
 #host=0.0.0.0
 host=localhost
 port=3000
@@ -28,7 +28,7 @@ case $mode in
 esac
 
 ttydev=/dev/$tty
-pidfile=/var/run/rs232-ip-extender..${tty}-${mode}.pid
+pidfile=/var/run/rs232-tcpext..${tty}-${mode}.pid
 
 case $action in
    start)
