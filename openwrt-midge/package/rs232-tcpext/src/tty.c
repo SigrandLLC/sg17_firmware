@@ -82,6 +82,8 @@ void tty_close (tty_t *t)
 	tty_unlock(name);
 	free(name);
     }
+
+    t->last_mstate_valid = 0;
 }
 
 

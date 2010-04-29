@@ -5,11 +5,16 @@
 # include "misc.h" // uchar
 
 
+typedef unsigned char modem_state_t;
+
 typedef struct
 {
     iobase_t *b;
     struct termios termios;
+    modem_state_t last_mstate;
+    char          last_mstate_valid;
 } tty_t;
+
 
 tty_t *tty_create   (void);
 void   tty_delete   (tty_t *t);
@@ -44,8 +49,6 @@ enum {
     TTY_MODEM_CD  = 0x10, // < Carrier Detect; Tells DTE that DCE is connected to telephone line.
     TTY_MODEM_RI  = 0x20, // < Ring Indicator; Tells DTE that DCE has detected a ring signal on the telephone line.
 };
-
-typedef unsigned char modem_state_t;
 
 modem_state_t tty_get_modem_state(tty_t *t);
 void          tty_set_modem_state(tty_t *t, modem_state_t state);
