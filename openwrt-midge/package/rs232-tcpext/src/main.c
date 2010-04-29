@@ -214,7 +214,8 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	socket_close(stat_s);
         socket_close(data_s);
 	tty_close(tty);
-	usleep(restart_time * 1000);
+        if (restart_time != 0)
+	    usleep(restart_time * 1000);
 	syslog(LOG_NOTICE, "restart");
     } while(3); // restart
 
