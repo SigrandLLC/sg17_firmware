@@ -10,7 +10,7 @@ void usage(const char *av0)
     fprintf(stderr,
 	    "Usage: %s /dev/ttyPORT host port {listen|connect} pidfile P R\n"
 	    "\tP - modem status poll interval, msec\n"
-	    "\tR - connection restart pause time, msec\n"
+	    "\tR - connection restart delay time, msec\n"
 	    , basename(av0));
     exit(EXIT_FAILURE);
 }
@@ -39,7 +39,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     const char *conntype     = av[++ai];
     const char *pid_file     = av[++ai];
     size_t mstat_intval = atoi(av[++ai]);
-    size_t restart_time = atoi(av[++ai]);
+    size_t restart_delay= atoi(av[++ai]);
 
     int listen = 1;
 
@@ -214,8 +214,8 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	socket_close(stat_s);
         socket_close(data_s);
 	tty_close(tty);
-        if (restart_time != 0)
-	    usleep(restart_time * 1000);
+        if (restart_delay != 0)
+	    usleep(restart_delay * 1000);
 	syslog(LOG_NOTICE, "restart");
     } while(1); // restart
 

@@ -8,7 +8,7 @@ port=3000
 connect_tty=ttyUSB1
 
 mstat_intval=4000
-restart_time=0
+restart_delay=0
 
 usage()
 {
@@ -35,7 +35,7 @@ pidfile=/var/run/rs232-tcpext..${tty}-${mode}.pid
 
 case $action in
    start)
-	$prog $ttydev $host $port $mode $pidfile $mstat_intval $restart_time
+	$prog $ttydev $host $port $mode $pidfile $mstat_intval $restart_delay
 	;;
     stop)
 	if $0 status $mode >/dev/null; then
