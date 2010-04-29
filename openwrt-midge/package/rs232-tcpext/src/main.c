@@ -5,15 +5,15 @@
 #include "socket.h"
 #include "misc.h"
 
-void usage(void)
+void usage(const char *av0)
 {
     fprintf(stderr,
 	    "Usage: %s /dev/ttyPORT host port {listen|connect} pidfile\n"
-	    , progname);
+	    , basename(av0));
     exit(EXIT_FAILURE);
 }
 
-void sig_handler(int sig)
+static void sig_handler(int sig)
 {
     syslog(LOG_NOTICE, "%s signal catched", strsignal(sig));
     if (sig == SIGTERM)
@@ -28,7 +28,7 @@ void sig_handler(int sig)
 int main(int ac, char *av[]/*, char *envp[]*/)
 {
     if (ac != 6)
-	usage();
+	usage(av[0]);
 
     const char *device   = av[1];
     const char *host     = av[2];
@@ -43,10 +43,13 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     else if( strcmp(conntype, "connect") == 0)
 	listen = 0;
     else
-        usage();
+        usage(av[0]);
 
-    set_progname_mode(conntype);
-    openlog(progname, LOG_PID | LOG_CONS, LOG_DAEMON);
+    static char progname[256];
+    snprintf(progname, sizeof(progname), "rs232-tcpext %-7s %-7s",
+	     basename(device), conntype);
+
+    openlog(progname, LOG_CONS, LOG_DAEMON);
 
     int rc = daemon(0, 0);
     if (rc < 0)
@@ -54,7 +57,8 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	syslog(LOG_ERR, "daemonize error: %m");
 	fail();
     }
-    openlog(progname, LOG_PID | LOG_CONS, LOG_DAEMON);
+
+    openlog(progname, LOG_CONS, LOG_DAEMON);
     syslog(LOG_NOTICE, "started up");
 
     make_pidfile(pid_file);
