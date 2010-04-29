@@ -19,5 +19,7 @@ char *xstrdup(const char *src);
 
 void setup_sighandler(void (*sighandler)(int), int signal);
 
+typedef unsigned char uchar;
+
 
 #endif //RS232_IP_EXTENDER_MISC_H
