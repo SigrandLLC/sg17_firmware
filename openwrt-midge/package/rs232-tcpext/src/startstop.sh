@@ -7,8 +7,8 @@ port=3000
  listen_tty=ttyUSB0
 connect_tty=ttyUSB1
 
-mstat_intval=5000
-restart_time=3000
+mstat_intval=4000
+restart_time=0
 
 usage()
 {
