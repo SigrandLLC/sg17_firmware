@@ -19,7 +19,5 @@ char *xstrdup(const char *src);
 
 void setup_sighandler(void (*sighandler)(int), int signal);
 
-typedef unsigned char uchar;
-
 
 #endif //RS232_TCPEXT_MISC_H

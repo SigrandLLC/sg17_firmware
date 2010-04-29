@@ -45,8 +45,10 @@ enum {
     TTY_MODEM_RI  = 0x20, // < Ring Indicator; Tells DTE that DCE has detected a ring signal on the telephone line.
 };
 
-uchar tty_get_modem_state(tty_t *t);
-void  tty_set_modem_state(tty_t *t, uchar state);
+typedef unsigned char modem_state_t;
+
+modem_state_t tty_get_modem_state(tty_t *t);
+void          tty_set_modem_state(tty_t *t, modem_state_t state);
 
 
 #endif //RS232_TCPEXT_TTY_H

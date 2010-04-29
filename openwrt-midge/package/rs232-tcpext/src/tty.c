@@ -158,11 +158,11 @@ static int tty_get_modem_state_(tty_t *t)
     return val;
 }
 
-uchar tty_get_modem_state(tty_t *t)
+modem_state_t tty_get_modem_state(tty_t *t)
 {
     int val = tty_get_modem_state_(t);
 
-    uchar state = 0;
+    modem_state_t state = 0;
 
     if (val   & (TIOCM_LE|TIOCM_DSR))
 	state |=      TTY_MODEM_DSR;
@@ -176,7 +176,7 @@ uchar tty_get_modem_state(tty_t *t)
     return state;
 }
 
-void tty_set_modem_state(tty_t *t, uchar state)
+void tty_set_modem_state(tty_t *t, modem_state_t state)
 {
     int val = tty_get_modem_state_(t);
 
