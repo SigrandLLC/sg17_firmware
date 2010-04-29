@@ -35,7 +35,10 @@ case $action in
 	$prog $ttydev $host $port $mode $pidfile
 	;;
     stop)
-	while $0 status $mode >/dev/null; do kill `cat $pidfile`; done
+	if $0 status $mode >/dev/null; then
+		kill `cat $pidfile`
+	fi
+	while $0 status $mode >/dev/null; do sleep 0.1s; done
 	;;
  restart)
 	$0 stop  $mode
