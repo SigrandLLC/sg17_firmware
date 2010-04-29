@@ -27,6 +27,18 @@ static void sig_handler(int sig)
 	syslog(LOG_NOTICE, "do nothing");
 }
 
+//FIXME: should be tty_* method?
+static void get_send_new_modem_state(tty_t* t, socket_t *s)
+{
+    modem_state_t mstate = tty_get_modem_state(t);
+    if ( !t->last_mstate_valid || t->last_mstate != mstate)
+    {
+	socket_send_all(s, (const char *)&mstate, sizeof(mstate));
+	t->last_mstate = mstate;
+	t->last_mstate_valid = 1;
+    }
+}
+
 int main(int ac, char *av[]/*, char *envp[]*/)
 {
     if (ac != 8)
@@ -157,8 +169,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	    {
 		// handle modem lines state
 		syslog(LOG_INFO, "tick"); //FIXME: comment off
-		modem_state_t mstate = tty_get_modem_state(tty);
-		socket_send_all(state_s, (const char *)&mstate, sizeof(mstate));
+		// get_send_new_modem_state(tty, state_s); called at the loop end
 	    }
 	    else
 	    {
@@ -210,6 +221,9 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		    }
 		}
 	    }
+
+	    get_send_new_modem_state(tty, state_s);
+
 	} while(1); // poll loop
 
     cleanup :
