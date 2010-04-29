@@ -9,7 +9,7 @@ void usage(const char *av0)
 {
     fprintf(stderr,
 	    "Usage: %s /dev/ttyPORT host port {listen|connect} pidfile P R\n"
-	    "\tP - modem status poll interval, msec\n"
+	    "\tP - modem state poll interval, msec\n"
 	    "\tR - connection restart delay time, msec\n"
 	    , basename(av0));
     exit(EXIT_FAILURE);
@@ -78,12 +78,12 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 
 
     static const size_t   DATA_BUF_SIZE = 4096;
-    static const size_t STATUS_BUF_SIZE =  256;
+    static const size_t  STATE_BUF_SIZE =  256;
 
-    char *  data_buf = xmalloc(  DATA_BUF_SIZE);
-    char *status_buf = xmalloc(STATUS_BUF_SIZE);
+    char * data_buf = xmalloc( DATA_BUF_SIZE);
+    char *state_buf = xmalloc(STATE_BUF_SIZE);
 
-    socket_t *data_s = NULL, *stat_s = NULL, *listen_s = NULL;
+    socket_t *data_s = NULL, *state_s = NULL, *listen_s = NULL;
 
     tty_t *tty = tty_create();
 
@@ -93,8 +93,8 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     }
     else
     {
-	data_s = socket_create();
-	stat_s = socket_create();
+	 data_s = socket_create();
+	state_s = socket_create();
     }
 
 
@@ -112,9 +112,9 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	    data_s = socket_accept(listen_s);
 	    syslog(LOG_INFO, "Data connection from %s", socket_name(data_s));
 
-	    syslog(LOG_INFO, "Waiting status connection...");
-	    stat_s = socket_accept(listen_s);
-	    syslog(LOG_INFO, "Status connection from %s", socket_name(stat_s));
+	    syslog(LOG_INFO, "Waiting state connection...");
+	    state_s = socket_accept(listen_s);
+	    syslog(LOG_INFO, "State connection from %s", socket_name(state_s));
 
 	    //syslog(LOG_INFO, "Closing listening socket...");
 	    socket_close(listen_s);
@@ -125,21 +125,21 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	    if ( socket_connect(data_s, host, port) )
                 goto cleanup; // restart
 
-	    syslog(LOG_INFO, "Connecting (status) to %s:%s ...", host, port);
-	    if ( socket_connect(stat_s, host, port) )
+	    syslog(LOG_INFO, "Connecting (state) to %s:%s ...", host, port);
+	    if ( socket_connect(state_s, host, port) )
                 goto cleanup; // restart
 	}
 
 
-	enum { POLL_TTY, POLL_DATA, POLL_STATUS, POLL_ITEMS };
+	enum { POLL_TTY, POLL_DATA, POLL_STATE, POLL_ITEMS };
 
 	struct pollfd polls[POLL_ITEMS];
 	memset(polls, 0, sizeof(polls));
 
 
-	polls[POLL_TTY   ].fd =    tty_fd(tty);
-	polls[POLL_DATA  ].fd = socket_fd(data_s);
-	polls[POLL_STATUS].fd = socket_fd(stat_s);
+	polls[POLL_TTY  ].fd =    tty_fd(tty);
+	polls[POLL_DATA ].fd = socket_fd( data_s);
+	polls[POLL_STATE].fd = socket_fd(state_s);
 
 	int i;
 	for (i = 0; i < POLL_ITEMS; ++i)
@@ -155,7 +155,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	    }
 	    else if (rc == 0)	// timeout
 	    {
-		// handle modem lines status
+		// handle modem lines state
 		syslog(LOG_INFO, "tick"); //FIXME: TODO
 	    }
 	    else
@@ -191,13 +191,13 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		    }
 		}
 
-		if (polls[POLL_STATUS].revents & POLLIN)
+		if (polls[POLL_STATE].revents & POLLIN)
 		{
-		    size_t r = socket_recv(stat_s, status_buf, STATUS_BUF_SIZE);
+		    size_t r = socket_recv(state_s, state_buf, STATE_BUF_SIZE);
 		    if (r == 0)
 		    {
-			syslog(LOG_INFO, "status connection: EOF received from %s",
-			       socket_name(stat_s));
+			syslog(LOG_INFO, "state connection: EOF received from %s",
+			       socket_name(state_s));
 			break; // restart
 		    }
 		    else
@@ -211,8 +211,8 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	} while(1); // poll loop
 
     cleanup :
-	socket_close(stat_s);
-        socket_close(data_s);
+	socket_close(state_s);
+        socket_close( data_s);
 	tty_close(tty);
         if (restart_delay != 0)
 	    usleep(restart_delay * 1000);
