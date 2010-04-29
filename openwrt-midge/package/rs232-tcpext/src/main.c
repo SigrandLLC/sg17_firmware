@@ -204,7 +204,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		    {
 			size_t i;
 			for (i = 0; i < r; ++i)
-			    /*tty_set_lines(tty, status_buf[i])*/;
+			    tty_set_modem_state(tty, state_buf[i]);
 		    }
 		}
 	    }

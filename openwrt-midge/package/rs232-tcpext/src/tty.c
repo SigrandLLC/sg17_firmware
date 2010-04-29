@@ -1,4 +1,5 @@
 #include "sys_headers.h"
+#include <sys/ioctl.h>
 #include "tty.h"
 #include "misc.h"
 
@@ -140,6 +141,60 @@ void tty_restore(tty_t *t)
 		   tty_name(t));
 	else
 	    memset(&t->termios, 0, sizeof(t->termios));
+    }
+}
+
+
+static int tty_get_modem_state_(tty_t *t)
+{
+    int val;
+
+    if (ioctl(tty_fd(t), TIOCMGET, &val) < 0)
+    {
+	syslog(LOG_ERR, "Could not get modem state for device %s: %m", tty_name(t));
+	fail();
+    }
+
+    return val;
+}
+
+uchar tty_get_modem_state(tty_t *t)
+{
+    int val = tty_get_modem_state_(t);
+
+    uchar state = 0;
+
+    if (val   & (TIOCM_LE|TIOCM_DSR))
+	state |=      TTY_MODEM_DSR;
+    if (val   &           TIOCM_CTS)
+	state |=      TTY_MODEM_CTS;
+    if (val   & (TIOCM_CAR|TIOCM_CD))
+	state |=       TTY_MODEM_CD;
+    if (val   & (TIOCM_RNG|TIOCM_RI))
+	state |=       TTY_MODEM_RI;
+
+    return state;
+}
+
+void tty_set_modem_state(tty_t *t, uchar state)
+{
+    int val = tty_get_modem_state_(t);
+
+    val &= ~(TIOCM_DTR|TIOCM_RTS|TIOCM_CD|TIOCM_RI);
+
+    if (state & TTY_MODEM_DTR)
+	val   |=    TIOCM_DTR;
+    if (state & TTY_MODEM_RTS)
+	val   |=    TIOCM_RTS;
+    if (state & TTY_MODEM_CD)
+	val   |=    TIOCM_CD;
+    if (state & TTY_MODEM_RI)
+	val   |=    TIOCM_RI;
+
+    if (ioctl(tty_fd(t), TIOCMSET, &val) < 0)
+    {
+	syslog(LOG_ERR, "Could not set modem state for device %s: %m", tty_name(t));
+	fail();
     }
 }
 

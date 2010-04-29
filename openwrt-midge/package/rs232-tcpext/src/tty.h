@@ -2,6 +2,7 @@
 # define RS232_IP_EXTENDER_TTY_H
 
 # include "iobase.h"
+# include "misc.h" // uchar
 
 
 typedef struct
@@ -32,6 +33,20 @@ extern inline size_t tty_write    (tty_t *t, const char *buf, size_t len)
 
 extern inline void   tty_write_all(tty_t *t, const char *buf, size_t len)
 	{        iobase_write(t->b, buf, len); }
+
+
+// See tty_ioctl(4), Modem control
+enum {
+    TTY_MODEM_DTR = 0x01, // > data terminal ready; Tells DCE that DTE is ready to be connected.
+    TTY_MODEM_DSR = 0x02, // < data set ready; Tells DTE that DCE is ready to receive commands or data.
+    TTY_MODEM_RTS = 0x04, // > request to send; Tells DCE to prepare to accept data from DTE.
+    TTY_MODEM_CTS = 0x08, // < clear to send; Acknowledges RTS and allows DTE to transmit.
+    TTY_MODEM_CD  = 0x10, // < Carrier Detect; Tells DTE that DCE is connected to telephone line.
+    TTY_MODEM_RI  = 0x20, // < Ring Indicator; Tells DTE that DCE has detected a ring signal on the telephone line.
+};
+
+uchar tty_get_modem_state(tty_t *t);
+void  tty_set_modem_state(tty_t *t, uchar state);
 
 
 #endif //RS232_IP_EXTENDER_TTY_H
