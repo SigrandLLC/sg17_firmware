@@ -217,7 +217,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
         if (restart_time != 0)
 	    usleep(restart_time * 1000);
 	syslog(LOG_NOTICE, "restart");
-    } while(3); // restart
+    } while(1); // restart
 
     syslog(LOG_NOTICE, "finished");
     return EXIT_SUCCESS;
