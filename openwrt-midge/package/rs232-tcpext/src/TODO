@@ -1,6 +1,9 @@
-tty: Turn off break
+does not compile, just TODO notes;
 
-does not compile, just TODO notes
+tty: Turn off break;
+tty: конверсия стутуса модема CTS -> RTS, DSR -> DTR;
+socket: установить опцию немедленной отправки пакета
+для канала статуса модема;
 
     DTE    DCE
     ---    ---
