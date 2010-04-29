@@ -1,5 +1,5 @@
-#ifndef  RS232_IP_EXTENDER_SOCKET_H
-# define RS232_IP_EXTENDER_SOCKET_H
+#ifndef  RS232_TCPEXT_SOCKET_H
+# define RS232_TCPEXT_SOCKET_H
 
 # include "iobase.h"
 
@@ -32,4 +32,4 @@ extern inline size_t socket_recv(socket_t *s, char *buf, size_t len)
 	{ return iobase_read(s->b, buf, len); }
 
 
-#endif //RS232_IP_EXTENDER_SOCKET_H
+#endif //RS232_TCPEXT_SOCKET_H

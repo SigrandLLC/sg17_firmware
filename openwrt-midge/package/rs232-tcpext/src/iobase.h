@@ -1,5 +1,5 @@
-#ifndef  RS232_IP_EXTENDER_IOBASE_H
-# define RS232_IP_EXTENDER_IOBASE_H
+#ifndef  RS232_TCPEXT_IOBASE_H
+# define RS232_TCPEXT_IOBASE_H
 
 
 typedef struct
@@ -20,5 +20,5 @@ extern inline const char *iobase_name(iobase_t *b) { return b->name; }
 extern inline int         iobase_fd  (iobase_t *b) { return b->fd  ; }
 
 
-#endif //RS232_IP_EXTENDER_IOBASE_H
+#endif //RS232_TCPEXT_IOBASE_H
 

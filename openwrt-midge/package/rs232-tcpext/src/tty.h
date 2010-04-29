@@ -1,5 +1,5 @@
-#ifndef  RS232_IP_EXTENDER_TTY_H
-# define RS232_IP_EXTENDER_TTY_H
+#ifndef  RS232_TCPEXT_TTY_H
+# define RS232_TCPEXT_TTY_H
 
 # include "iobase.h"
 # include "misc.h" // uchar
@@ -49,4 +49,4 @@ uchar tty_get_modem_state(tty_t *t);
 void  tty_set_modem_state(tty_t *t, uchar state);
 
 
-#endif //RS232_IP_EXTENDER_TTY_H
+#endif //RS232_TCPEXT_TTY_H

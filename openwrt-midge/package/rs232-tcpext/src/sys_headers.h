@@ -1,5 +1,5 @@
-#ifndef  RS232_IP_EXTENDER_SYS_HEADERS_H
-# define RS232_IP_EXTENDER_SYS_HEADERS_H
+#ifndef  RS232_TCPEXT_SYS_HEADERS_H
+# define RS232_TCPEXT_SYS_HEADERS_H
 
 
 # include <errno.h>
@@ -20,4 +20,4 @@
 # include <unistd.h>
 
 
-#endif //RS232_IP_EXTENDER_SYS_HEADERS_H
+#endif //RS232_TCPEXT_SYS_HEADERS_H

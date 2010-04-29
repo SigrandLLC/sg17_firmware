@@ -1,5 +1,5 @@
-#ifndef  RS232_IP_EXTENDER_MISC_H
-# define RS232_IP_EXTENDER_MISC_H
+#ifndef  RS232_TCPEXT_MISC_H
+# define RS232_TCPEXT_MISC_H
 
 
 void fail(void);
@@ -22,4 +22,4 @@ void setup_sighandler(void (*sighandler)(int), int signal);
 typedef unsigned char uchar;
 
 
-#endif //RS232_IP_EXTENDER_MISC_H
+#endif //RS232_TCPEXT_MISC_H
