@@ -828,6 +828,11 @@ vf_timer_cb(su_root_magic_t *magic, su_timer_t *t, su_timer_arg_t *arg)
 	if(err){
 		SU_DEBUG_3 (("Can`t RE-invite on VF-pair\n"));
 	}
+	err = su_timer_set_interval(((svd_chan_t*)(chan->ctx))->vf_tmr,
+			vf_timer_cb, chan, VF_REINVITE_SEC*1000);
+	if(err){
+		SU_DEBUG_3 (("Can`t RE-set VF-timer\n"));
+	}
 }/*}}}*/
 
 /**
@@ -1803,6 +1808,14 @@ DFS
 				/* playing busy tone */
 				SU_DEBUG_3(("playing busy tone on [_%d_]\n", chan->abs_idx));
 			}
+		}
+	}
+	if(status == 200){
+		if(chan->parent->type == ab_dev_type_VF &&
+				chan->ctx && ((svd_chan_t*)(chan->ctx))->vf_tmr){
+			/*connection restored*/
+			su_timer_reset (((svd_chan_t*)(chan->ctx))->vf_tmr);
+			SU_DEBUG_3(("Connection on chan [_%d_] restored\n", chan->abs_idx));
 		}
 	}
 DFE
