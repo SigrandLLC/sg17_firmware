@@ -156,7 +156,9 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	    else if (rc == 0)	// timeout
 	    {
 		// handle modem lines state
-		syslog(LOG_INFO, "tick"); //FIXME: TODO
+		syslog(LOG_INFO, "tick"); //FIXME: comment off
+		modem_state_t mstate = tty_get_modem_state(tty);
+		socket_send_all(state_s, (const char *)&mstate, sizeof(mstate));
 	    }
 	    else
 	    {
