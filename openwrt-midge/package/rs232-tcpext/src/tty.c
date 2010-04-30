@@ -124,8 +124,16 @@ void tty_set_raw(tty_t *t)
     memcpy(&new_tios, &t->termios, sizeof(new_tios));
 
     cfmakeraw(&new_tios);
+
+    // done in cfmakeraw but not in an old *libc:
     new_tios.c_cc[VMIN]  = 1;
     new_tios.c_cc[VTIME] = 0;
+
+    // not done in cfmakeraw:
+    new_tios.c_iflag |=  IGNBRK;	// cleared by cfmakeraw
+    new_tios.c_cflag &= ~CLOCAL;	// CLOCAL: Ignore modem control lines
+    new_tios.c_iflag &= ~HUPCL;		// HUPCL: hang up (lower modem control lines) on close?
+
 
     if (tcsetattr(tty_fd(t), TCSANOW, &new_tios) < 0)
     {

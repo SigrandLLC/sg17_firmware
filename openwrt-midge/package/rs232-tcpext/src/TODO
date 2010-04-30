@@ -1,9 +1,4 @@
-does not compile, just TODO notes;
-
-tty: Turn off break;
 tty: конверсия стутуса модема CTS -> RTS, DSR -> DTR;
-socket: установить опцию немедленной отправки пакета
-для канала статуса модема;
 
     DTE    DCE
     ---    ---
@@ -13,4 +8,17 @@ socket: установить опцию немедленной отправки пакета
  CD,DSR <- DTR
     CD  <-
     RI  <-
+
+
+*libc:termios.c:
+void cfmakeraw (struct termios *t)
+{
+  t->c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
+  t->c_oflag &= ~OPOST;
+  t->c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
+  t->c_cflag &= ~(CSIZE|PARENB);
+  t->c_cflag |= CS8;
+  t->c_cc[VMIN] = 1;		/* read returns when one char is available.  */
+  t->c_cc[VTIME] = 0;
+}
 
