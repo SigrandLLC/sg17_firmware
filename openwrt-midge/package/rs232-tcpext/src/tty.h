@@ -11,8 +11,8 @@ typedef struct
 {
     iobase_t *b;
     struct termios termios;
-    modem_state_t last_mstate;
-    char          last_mstate_valid;
+    modem_state_t last_in_mstate;
+    char          last_in_mstate_valid;
 } tty_t;
 
 
@@ -52,6 +52,8 @@ enum {
 
 modem_state_t tty_get_modem_state(tty_t *t);
 void          tty_set_modem_state(tty_t *t, modem_state_t state);
+
+modem_state_t tty_mstate_in_to_out(modem_state_t in_state);
 
 
 #endif //RS232_TCPEXT_TTY_H

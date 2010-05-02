@@ -30,12 +30,13 @@ static void sig_handler(int sig)
 //FIXME: should be tty_* method?
 static void get_send_new_modem_state(tty_t* t, socket_t *s)
 {
-    modem_state_t mstate = tty_get_modem_state(t);
-    if ( !t->last_mstate_valid || t->last_mstate != mstate)
+    modem_state_t in_mstate = tty_get_modem_state(t);
+    if ( !t->last_in_mstate_valid || t->last_in_mstate != in_mstate)
     {
-	socket_send_all(s, (const char *)&mstate, sizeof(mstate));
-	t->last_mstate = mstate;
-	t->last_mstate_valid = 1;
+        modem_state_t out_mstate = tty_mstate_in_to_out(in_mstate);
+	socket_send_all(s, (const char *)&out_mstate, sizeof(out_mstate));
+	t->last_in_mstate = in_mstate;
+	t->last_in_mstate_valid = 1;
     }
 }
 

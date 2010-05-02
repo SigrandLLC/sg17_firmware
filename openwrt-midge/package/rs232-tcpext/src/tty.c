@@ -83,7 +83,7 @@ void tty_close (tty_t *t)
 	free(name);
     }
 
-    t->last_mstate_valid = 0;
+    t->last_in_mstate_valid = 0;
 }
 
 
@@ -206,5 +206,18 @@ void tty_set_modem_state(tty_t *t, modem_state_t state)
 	syslog(LOG_ERR, "Could not set modem state for device %s: %m", tty_name(t));
 	fail();
     }
+}
+
+modem_state_t tty_mstate_in_to_out(modem_state_t in_state)
+{
+    modem_state_t out_state = 0;
+
+    if ( in_state &  TTY_MODEM_DSR )
+	out_state |= TTY_MODEM_DTR;
+    if ( in_state &  TTY_MODEM_CTS )
+	out_state |= TTY_MODEM_RTS;
+    out_state |= in_state & (TTY_MODEM_CD | TTY_MODEM_RI);
+
+    return out_state;
 }
 
