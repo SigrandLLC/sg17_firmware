@@ -8,7 +8,7 @@ port=3000
 connect_tty=ttyUSB1
 
 mstate_intval=4000
-restart_delay=0
+restart_delay=1000
 
 usage()
 {
