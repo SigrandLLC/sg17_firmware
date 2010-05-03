@@ -175,6 +175,18 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	    else
 	    {
 		// do i/o
+		if (polls[POLL_DATA].revents & POLLRDHUP)
+		{
+		    syslog(LOG_ERR, "Data peer %s closed connection",
+			   socket_name(data_s));
+		    break; // restart
+		}
+		if (polls[POLL_STATE].revents & POLLRDHUP)
+		{
+		    syslog(LOG_ERR, "State peer %s closed connection",
+			   socket_name(state_s));
+		    break; // restart
+		}
 
 		if (polls[POLL_TTY].revents & POLLIN)
 		{
