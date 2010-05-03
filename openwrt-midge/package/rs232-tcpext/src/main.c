@@ -1,3 +1,6 @@
+//#define NO_RS232 1
+#define DO_TICK  1
+
 #define _GNU_SOURCE
 #include "sys_headers.h"
 #include "pidfile.h"
@@ -28,16 +31,26 @@ static void sig_handler(int sig)
 }
 
 //FIXME: should be tty_* method?
-static void get_send_new_modem_state(tty_t* t, socket_t *s)
+static int get_send_new_modem_state(tty_t* t, socket_t *s)
 {
-    modem_state_t in_mstate = tty_get_modem_state(t);
+#ifndef NO_RS232
+    modem_state_t in_mstate;
+    int rc = tty_get_modem_state(t, &in_mstate);
+    if (rc < 0) return rc;
     if ( !t->last_in_mstate_valid || t->last_in_mstate != in_mstate)
     {
         modem_state_t out_mstate = tty_mstate_in_to_out(in_mstate);
-	socket_send_all(s, (const char *)&out_mstate, sizeof(out_mstate));
+	if (socket_send_all(s, (const char *)&out_mstate, sizeof(out_mstate)))
+	    return -1;
 	t->last_in_mstate = in_mstate;
 	t->last_in_mstate_valid = 1;
     }
+#else
+    (void)t;
+    (void)s;
+#endif
+
+    return 0;
 }
 
 int main(int ac, char *av[]/*, char *envp[]*/)
@@ -113,9 +126,11 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 
     do // restart
     {
-	tty_open    (tty, device);
-	tty_set_raw (tty);
-
+	tty_open(tty, device);
+#ifndef NO_RS232
+	if (tty_set_raw(tty))
+	    fail();
+#endif
 
 	if (listen)
 	{
@@ -169,8 +184,10 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	    else if (rc == 0)	// timeout
 	    {
 		// handle modem lines state
+#ifdef DO_TICK
 		syslog(LOG_INFO, "tick"); //FIXME: comment off
-		// get_send_new_modem_state(tty, state_s); called at the loop end
+#endif
+		// get_send_new_modem_state(tty, state_s) called at the loop end
 	    }
 	    else
 	    {
@@ -190,22 +207,27 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 
 		if (polls[POLL_TTY].revents & POLLIN)
 		{
-		    size_t r = tty_read(tty, data_buf, DATA_BUF_SIZE);
-		    if (r == 0)
+		    ssize_t r = tty_read(tty, data_buf, DATA_BUF_SIZE);
+		    if (r < 0)
+			break; // restart
+		    else if (r == 0)
 		    {
 			syslog(LOG_WARNING, "EOF readed from %s, ignore",
 			       tty_name(tty));
 		    }
 		    else	// r > 0
 		    {
-			socket_send_all(data_s, data_buf, r);
+			if (socket_send_all(data_s, data_buf, r))
+			    break; // restart
 		    }
 		}
 
 		if (polls[POLL_DATA].revents & POLLIN)
 		{
-		    size_t r = socket_recv(data_s, data_buf, DATA_BUF_SIZE);
-		    if (r == 0)
+		    ssize_t r = socket_recv(data_s, data_buf, DATA_BUF_SIZE);
+		    if (r < 0)
+			break; // restart
+		    else if (r == 0)
 		    {
 			syslog(LOG_INFO, "data connection: EOF received from %s",
 			       socket_name(data_s));
@@ -213,14 +235,17 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		    }
 		    else
 		    {
-			tty_write_all(tty, data_buf, r);
+			if (tty_write_all(tty, data_buf, r))
+			    break; // restart
 		    }
 		}
 
 		if (polls[POLL_STATE].revents & POLLIN)
 		{
-		    size_t r = socket_recv(state_s, state_buf, STATE_BUF_SIZE);
-		    if (r == 0)
+		    ssize_t r = socket_recv(state_s, state_buf, STATE_BUF_SIZE);
+		    if (r < 0)
+			break; // restart
+		    else if (r == 0)
 		    {
 			syslog(LOG_INFO, "state connection: EOF received from %s",
 			       socket_name(state_s));
@@ -229,13 +254,17 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		    else
 		    {
 			size_t i;
-			for (i = 0; i < r; ++i)
-			    tty_set_modem_state(tty, state_buf[i]);
+			for (i = 0; i < (size_t)r; ++i)
+			{
+			    if (tty_set_modem_state(tty, state_buf[i]))
+				break; // restart
+			}
 		    }
 		}
 	    }
 
-	    get_send_new_modem_state(tty, state_s);
+	    if (get_send_new_modem_state(tty, state_s))
+		break; // restart
 
 	} while(1); // poll loop
 

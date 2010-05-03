@@ -32,44 +32,39 @@ void iobase_close(iobase_t* b)
 }
 
 
-size_t iobase_read(iobase_t *b, char *buf, size_t len)
+ssize_t iobase_read(iobase_t *b, char *buf, size_t len)
 {
     ssize_t rc = read(b->fd, buf, len);
     if (rc < 0)
-    {
 	syslog(LOG_ERR, "Error readed from %s: %m", b->name);
-        fail();
-    }
 
-    // rc >= 0
     return rc;
 }
 
-size_t iobase_write(iobase_t *b, const char *buf, size_t len)
+ssize_t iobase_write(iobase_t *b, const char *buf, size_t len)
 {
     ssize_t rc = write(b->fd, buf, len);
     if (rc < 0)
-    {
 	syslog(LOG_ERR, "Error on writing %zu bytes to %s: %m", len, b->name);
-        fail();
-    }
     else if (rc == 0)
     {
 	syslog(LOG_ERR, "0 (?) bytes written to %s", b->name);
-        fail();
+	rc = -1;
     }
 
-    // rc > 0
     return rc;
 }
 
-void iobase_write_all(iobase_t *b, const char *buf, size_t len)
+int iobase_write_all(iobase_t *b, const char *buf, size_t len)
 {
     do
     {
-	size_t wrote_len = iobase_write(b, buf, len);
-	buf += wrote_len;
-        len -= wrote_len;
+	ssize_t wrote_len = iobase_write(b, buf, len);
+	if (wrote_len < 0) return wrote_len;
+	buf  += wrote_len;
+        len  -= wrote_len;
     } while(len > 0);
+
+    return 0;
 }
 

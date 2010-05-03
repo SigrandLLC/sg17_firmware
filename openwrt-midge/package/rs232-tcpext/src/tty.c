@@ -112,12 +112,12 @@ static void tty_unlock(const char *devname)
 }
 
 
-void tty_set_raw(tty_t *t)
+int tty_set_raw(tty_t *t)
 {
     if (tcgetattr(tty_fd(t), &t->termios) < 0)
     {
 	syslog(LOG_ERR, "Can't get attributes for device %s: %m", tty_name(t));
-	fail();
+	return -1;
     }
 
     struct termios new_tios;
@@ -138,8 +138,10 @@ void tty_set_raw(tty_t *t)
     if (tcsetattr(tty_fd(t), TCSANOW, &new_tios) < 0)
     {
 	syslog(LOG_ERR, "Can't set attributes for device %s: %m", tty_name(t));
-	fail();
+	return -1;
     }
+
+    return 0;
 }
 
 void tty_restore(tty_t *t)
@@ -162,50 +164,54 @@ static int tty_get_modem_state_(tty_t *t)
     if (ioctl(tty_fd(t), TIOCMGET, &val) < 0)
     {
 	syslog(LOG_ERR, "Could not get modem state for device %s: %m", tty_name(t));
-	fail();
+	return -1;
     }
 
     return val;
 }
 
-modem_state_t tty_get_modem_state(tty_t *t)
+int tty_get_modem_state(tty_t *t, modem_state_t *mstate)
 {
     int val = tty_get_modem_state_(t);
+    if (val < 0) return val;
 
-    modem_state_t state = 0;
+    *mstate = 0;
 
     if (val   & (TIOCM_LE|TIOCM_DSR))
-	state |=      TTY_MODEM_DSR;
+	*mstate |=      TTY_MODEM_DSR;
     if (val   &           TIOCM_CTS)
-	state |=      TTY_MODEM_CTS;
+	*mstate |=      TTY_MODEM_CTS;
     if (val   & (TIOCM_CAR|TIOCM_CD))
-	state |=       TTY_MODEM_CD;
+	*mstate |=       TTY_MODEM_CD;
     if (val   & (TIOCM_RNG|TIOCM_RI))
-	state |=       TTY_MODEM_RI;
+	*mstate |=       TTY_MODEM_RI;
 
-    return state;
+    return 0;
 }
 
-void tty_set_modem_state(tty_t *t, modem_state_t state)
+int tty_set_modem_state(tty_t *t, modem_state_t  mstate)
 {
     int val = tty_get_modem_state_(t);
+    if (val < 0) return val;
 
     val &= ~(TIOCM_DTR|TIOCM_RTS|TIOCM_CD|TIOCM_RI);
 
-    if (state & TTY_MODEM_DTR)
-	val   |=    TIOCM_DTR;
-    if (state & TTY_MODEM_RTS)
-	val   |=    TIOCM_RTS;
-    if (state & TTY_MODEM_CD)
-	val   |=    TIOCM_CD;
-    if (state & TTY_MODEM_RI)
-	val   |=    TIOCM_RI;
+    if (mstate & TTY_MODEM_DTR)
+	val    |=    TIOCM_DTR;
+    if (mstate & TTY_MODEM_RTS)
+	val    |=    TIOCM_RTS;
+    if (mstate & TTY_MODEM_CD)
+	val    |=    TIOCM_CD;
+    if (mstate & TTY_MODEM_RI)
+	val    |=    TIOCM_RI;
 
     if (ioctl(tty_fd(t), TIOCMSET, &val) < 0)
     {
 	syslog(LOG_ERR, "Could not set modem state for device %s: %m", tty_name(t));
-	fail();
+	return -1;
     }
+
+    return 0;
 }
 
 modem_state_t tty_mstate_in_to_out(modem_state_t in_state)

@@ -22,7 +22,7 @@ void   tty_delete   (tty_t *t);
 void   tty_open     (tty_t *t, const char *devname);
 void   tty_close    (tty_t *t);
 
-void   tty_set_raw  (tty_t *t);
+int    tty_set_raw  (tty_t *t);
 void   tty_restore  (tty_t *t);
 
 
@@ -30,14 +30,14 @@ extern inline const char *tty_name(tty_t *t) { return iobase_name(t->b); }
 extern inline int         tty_fd  (tty_t *t) { return iobase_fd  (t->b); }
 
 
-extern inline size_t tty_read     (tty_t *t,       char *buf, size_t len)
+extern inline ssize_t tty_read     (tty_t *t,       char *buf, size_t len)
 	{ return iobase_read (t->b, buf, len); }
 
-extern inline size_t tty_write    (tty_t *t, const char *buf, size_t len)
+extern inline ssize_t tty_write    (tty_t *t, const char *buf, size_t len)
 	{ return iobase_write(t->b, buf, len); }
 
-extern inline void   tty_write_all(tty_t *t, const char *buf, size_t len)
-	{        iobase_write(t->b, buf, len); }
+extern inline int     tty_write_all(tty_t *t, const char *buf, size_t len)
+	{ return iobase_write_all(t->b, buf, len); }
 
 
 // See tty_ioctl(4), Modem control
@@ -50,8 +50,8 @@ enum {
     TTY_MODEM_RI  = 0x20, // < Ring Indicator; Tells DTE that DCE has detected a ring signal on the telephone line.
 };
 
-modem_state_t tty_get_modem_state(tty_t *t);
-void          tty_set_modem_state(tty_t *t, modem_state_t state);
+int tty_get_modem_state(tty_t *t, modem_state_t *mstate);
+int tty_set_modem_state(tty_t *t, modem_state_t  mstate);
 
 modem_state_t tty_mstate_in_to_out(modem_state_t in_state);
 

@@ -29,6 +29,7 @@ void socket_delete(socket_t *s)
 
 void socket_close(socket_t *s)
 {
+    shutdown(socket_fd(s), SHUT_RDWR);
     iobase_close(s->b);
 }
 
