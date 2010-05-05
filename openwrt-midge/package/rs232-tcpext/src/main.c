@@ -8,6 +8,11 @@
 #include "socket.h"
 #include "misc.h"
 
+// POLLRDHUP since Linux 2.6.17
+#ifndef  POLLRDHUP
+# define POLLRDHUP 0
+#endif
+
 void usage(const char *av0)
 {
     fprintf(stderr,
