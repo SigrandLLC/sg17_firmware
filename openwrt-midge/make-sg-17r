@@ -65,9 +65,4 @@ if test "$NOFW" != "$nofw"; then
 fi
 
 
-nice -19 make V=9 || exit 1
-
-rev=`./rev.sh`
-mv	bin/openwrt-sigrand5120-2.6-jffs2-32MB.bin \
-	sg17-r-cp1_${rev}${nofw}_${oem}.bin
-
+nice -19 make V=9
