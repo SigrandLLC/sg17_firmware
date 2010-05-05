@@ -14,7 +14,7 @@ case $branch in
 esac
 #echo "branch: $branch"
 
-modified=`git status --porcelain`
+modified=`git status --porcelain | fgrep ' M '`
 unset dirty
 if test -n "$modified"; then
 	dirty='-dirty'
