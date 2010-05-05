@@ -41,15 +41,19 @@ static char *make_host_port( const char *host, const char *port)
     return name;
 }
 
-static void set_sock_opt_bool(int fd, int opt, const char *optname, const char *pfx)
+static void set_sock_opt_int(int fd, int opt, int optval, const char *optname, const char *pfx)
 {
-    int optval = 1;
     int rc = setsockopt(fd, SOL_SOCKET, opt, &optval, sizeof(optval));
     if (rc < 0)
     {
 	syslog(LOG_ERR, "%sCould not set %s socket option: %m", pfx, optname);
 	fail();
     }
+}
+
+static void set_sock_opt_bool(int fd, int opt, const char *optname, const char *pfx)
+{
+    set_sock_opt_int(fd, opt, 1, optname, pfx);
 }
 
 static void set_sock_linger(int fd, int timeout, const char *pfx)
