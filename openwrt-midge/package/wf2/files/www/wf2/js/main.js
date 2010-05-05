@@ -97,7 +97,7 @@ function generateMenu() {
                                 iface), $.sprintf("rs232Type_%s", pcislot));
                     }
                     addItem("Hardware:RS232", iface, "rs232", [iface, pcislot, num]);
-                    addItem("Services:RS-232 over IP", iface, "rs232ip", [iface, pcislot, num]);
+                    addItem("Services:RS-232 over TCP/IP", iface, "rs232_tcpext", [iface, pcislot, num]);
                     break;
             }
         });

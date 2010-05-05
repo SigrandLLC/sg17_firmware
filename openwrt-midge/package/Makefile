@@ -249,7 +249,6 @@ package-$(BR2_PACKAGE_SCREEN) += screen
 package-$(BR2_PACKAGE_SDK) += sdk
 package-$(BR2_PACKAGE_SER2NET) += ser2net
 package-$(BR2_PACKAGE_SERCD) += sercd
-package-$(BR2_PACKAGE_RS232_IP) += rs232-ip
 package-$(BR2_PACKAGE_RS232_TCPEXT) += rs232-tcpext
 package-$(BR2_PACKAGE_SERDISPLIB) += serdisplib
 package-$(BR2_PACKAGE_SETPWC) += setpwc
