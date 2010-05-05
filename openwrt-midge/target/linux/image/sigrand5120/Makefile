@@ -45,14 +45,20 @@ ifeq ($(LOGO), 1)
 	echo "" >>$(KDIR)/root/etc/banner
 endif
 
-$(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin: $(SCRIPT_DIR)/padfile
-	( 	SG_KERNEL_BLOCKS=$(SG_KERNEL_BLOCKS) \
-		SG_FS_BLOCKS=$(SG_FS_BLOCKS) \
-		PADFILE=$(PADFILE) \
-		CROSS_COMPILE=$(TARGET_CROSS) \
-		IMG_NAME=$(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin \
-		/bin/sh ./mkimage-jffs2 $(KDIR)/root.jffs2-32MB $(BUILD_DIR)/linux/vmlinux )
 
+REV := $(shell $(TOPDIR)/rev.sh)
+REV ?= 0
+
+OEM := $(shell echo $(BR2_SIGRAND_OEM_MANUFACTURER) | tr A-Z a-z)
+NOFW = $(if $(SIGRAND_LINUX_NOFW),-nofw,)
+
+$(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin: $(SCRIPT_DIR)/padfile
+	SG_KERNEL_BLOCKS=$(SG_KERNEL_BLOCKS)	\
+	SG_FS_BLOCKS=$(SG_FS_BLOCKS)		\
+	PADFILE=$(PADFILE)			\
+	CROSS_COMPILE=$(TARGET_CROSS)		\
+	IMG_NAME=$(BIN_DIR)/sg17-r-cp1_$(REV)$(NOFW)_$(OEM).bin	\
+	/bin/sh ./mkimage-jffs2 $(KDIR)/root.jffs2-32MB $(BUILD_DIR)/linux/vmlinux
 endif
 
 
