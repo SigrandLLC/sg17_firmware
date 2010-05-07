@@ -65,14 +65,14 @@ $(PKG_BUILD_DIR)/.configured:
 
 $(PKG_BUILD_DIR)/.built:
 	$(MAKE) -C $(PKG_BUILD_DIR) \
-		LD=$(TARGET_CC) \
+		LD="$(TARGET_CC)" \
 		PROGRAMS="dropbear dbclient dropbearkey scp" \
 		MULTI=1 SCPPROGRESS=1
 	$(MAKE) -C $(PKG_BUILD_DIR) \
-		LD=$(TARGET_CC) \
+		LD="$(TARGET_CC)" \
 		PROGRAMS="dropbearconvert"
 	touch $@
-	
+
 $(IPKG_DBCONVERT):
 	mkdir -p $(IDIR_DBCONVERT)/usr/bin
 	install -m 755 $(PKG_BUILD_DIR)/dropbearconvert \
