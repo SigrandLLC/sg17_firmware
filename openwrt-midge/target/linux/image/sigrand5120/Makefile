@@ -3,10 +3,7 @@ include $(TOPDIR)/rules.mk
 KDIR:=$(BUILD_DIR)/linux-$(KERNEL)-$(BOARD)
 
 REV := $(shell $(TOPDIR)/rev.sh)
-ifeq ($(REV),)
-REV:=0
-endif
-
+REV ?= 0
 
 
 export PADFILE=$(STAGING_DIR)/bin/padfile
@@ -45,9 +42,6 @@ ifeq ($(LOGO), 1)
 	echo "" >>$(KDIR)/root/etc/banner
 endif
 
-
-REV := $(shell $(TOPDIR)/rev.sh)
-REV ?= 0
 
 OEM := $(shell echo $(BR2_SIGRAND_OEM_MANUFACTURER) | tr A-Z a-z)
 NOFW = $(if $(SIGRAND_LINUX_NOFW),-nofw,)
