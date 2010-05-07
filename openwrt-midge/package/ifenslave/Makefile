@@ -22,7 +22,7 @@ $(PKG_BUILD_DIR)/.built:
 	$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/ifenslave ifenslave.c
 	touch $@
 
-$(IPKG_IFENSLAVE): 
+$(IPKG_IFENSLAVE):
 	install -d -m0755 $(IDIR_IFENSLAVE)/sbin
 	install -m0755 $(PKG_BUILD_DIR)/ifenslave $(IDIR_IFENSLAVE)/sbin
 	$(RSTRIP) $(IDIR_IFENSLAVE)/sbin/*

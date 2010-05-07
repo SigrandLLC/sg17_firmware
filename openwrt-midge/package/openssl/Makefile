@@ -46,7 +46,7 @@ $(PKG_BUILD_DIR)/.built:
 	rm -rf $(PKG_INSTALL_DIR)
 	mkdir -p $(PKG_INSTALL_DIR)
 	$(MAKE) -C $(PKG_BUILD_DIR) -j1 \
-		MAKEDEPPROG="$(TARGET_CC)" \
+		MAKEDEPPROG="$(_TARGET_CC_)" \
 		depend
 	$(MAKE) -C $(PKG_BUILD_DIR) -j1 \
 		CC="$(TARGET_CC)" \
@@ -56,7 +56,7 @@ $(PKG_BUILD_DIR)/.built:
 	# Work around openssl build bug to link libssl.so with libcrypto.so.
 	-rm $(PKG_BUILD_DIR)/libssl.so.*.*.*
 	$(MAKE) -C $(PKG_BUILD_DIR) -j1 \
-		CC=$(TARGET_CC) \
+		CC="$(TARGET_CC)" \
 		CCOPTS="$(TARGET_CFLAGS) -fomit-frame-pointer" \
 		do_linux-shared
 	$(MAKE) -C $(PKG_BUILD_DIR) -j1 \
@@ -88,7 +88,7 @@ $(STAGING_DIR)/usr/lib/libssl.so: $(PKG_BUILD_DIR)/.built
 	mkdir -p $(STAGING_DIR)/usr/lib/
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/lib{crypto,ssl}.{a,so*} $(STAGING_DIR)/usr/lib/
 	touch $@
-	
+
 install-dev: $(STAGING_DIR)/usr/lib/libssl.so
 
 uninstall-dev:

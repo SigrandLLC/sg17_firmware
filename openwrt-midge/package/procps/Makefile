@@ -24,7 +24,7 @@ $(PKG_BUILD_DIR)/.configured:
 
 $(PKG_BUILD_DIR)/.built:
 	$(MAKE) -C $(PKG_BUILD_DIR)				\
-		CC=$(TARGET_CC) CFLAGS="$(TARGET_CFLAGS)"	\
+		CC="$(TARGET_CC)" CFLAGS="$(TARGET_CFLAGS)"	\
 		SHARED=0 lib64=lib CURSES=			\
 		proc/libproc.a ps/ps
 	touch $@
