@@ -90,12 +90,15 @@ PACKAGE_DIR:=$(BIN_DIR)/packages
 STAMP_DIR:=$(BUILD_DIR)/stamp
 TARGET_DIR:=$(BUILD_DIR)/root
 TOOL_BUILD_DIR=$(BASE_DIR)/toolchain_build_$(ARCH)$(ARCH_FPU_SUFFIX)
-TARGET_PATH=$(STAGING_DIR)/usr/bin:$(STAGING_DIR)/bin:/bin:/sbin:/usr/bin:/usr/sbin
+TARGET_PATH=$(if $(CCACHE),$(_CCACHE_PATH_):)$(STAGING_DIR)/usr/bin:$(STAGING_DIR)/bin:/bin:/sbin:/usr/bin:/usr/sbin
 IMAGE:=$(BUILD_DIR)/root_fs_$(ARCH)$(ARCH_FPU_SUFFIX)
 REAL_GNU_TARGET_NAME=$(OPTIMIZE_FOR_CPU)-linux-uclibc
 GNU_TARGET_NAME=$(OPTIMIZE_FOR_CPU)-linux
-KERNEL_CROSS:=$(STAGING_DIR)/bin/$(OPTIMIZE_FOR_CPU)-linux-uclibc-
-TARGET_CROSS:=$(STAGING_DIR)/bin/$(OPTIMIZE_FOR_CPU)-linux-uclibc-
+_KERNEL_CROSS_:=$(STAGING_DIR)/bin/$(OPTIMIZE_FOR_CPU)-linux-uclibc-
+KERNEL_CROSS:=$(if $(CCACHE),$(CCACHE) $(_KERNEL_CROSS_),$(_KERNEL_CROSS_))
+_TARGET_CROSS_:=$(STAGING_DIR)/bin/$(OPTIMIZE_FOR_CPU)-linux-uclibc-
+TARGET_CROSS:=$(if $(CCACHE),$(CCACHE) $(_TARGET_CROSS_),$(_TARGET_CROSS_))
+_TARGET_CC_:=$(_TARGET_CROSS_)gcc
 TARGET_CC:=$(TARGET_CROSS)gcc
 STRIP:=$(STAGING_DIR)/bin/sstrip
 PATCH=$(SCRIPT_DIR)/patch-kernel.sh
@@ -118,14 +121,14 @@ HOST_ARCH:=$(shell $(HOSTCC) -dumpmachine | sed -e s'/-.*//' \
 	)
 GNU_HOST_NAME:=$(HOST_ARCH)-pc-linux-gnu
 TARGET_CONFIGURE_OPTS=PATH=$(TARGET_PATH) \
-		AR=$(TARGET_CROSS)ar \
-		AS=$(TARGET_CROSS)as \
-		LD=$(TARGET_CROSS)ld \
-		NM=$(TARGET_CROSS)nm \
-		CC=$(TARGET_CROSS)gcc \
-		GCC=$(TARGET_CROSS)gcc \
-		CXX=$(TARGET_CROSS)g++ \
-		RANLIB=$(TARGET_CROSS)ranlib
+		AR="$(TARGET_CROSS)ar" \
+		AS="$(TARGET_CROSS)as" \
+		LD="$(TARGET_CROSS)ld" \
+		NM="$(TARGET_CROSS)nm" \
+		CC="$(TARGET_CROSS)gcc" \
+		GCC="$(TARGET_CROSS)gcc" \
+		CXX="$(TARGET_CROSS)g++" \
+		RANLIB="$(TARGET_CROSS)ranlib"
 
 ifeq ($(ENABLE_LOCALE),true)
 DISABLE_NLS:=

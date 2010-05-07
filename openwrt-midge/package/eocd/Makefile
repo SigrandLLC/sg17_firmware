@@ -37,7 +37,7 @@ $(PKG_BUILD_DIR)/.configured:
 	sed <$(PKG_BUILD_DIR)/eocd-src/Makefile.tmpl \
 	> $(PKG_BUILD_DIR)/eocd-src/Makefile \
 	-e "s%@CROSS_PREFIX@%$(KERNEL_CROSS)%g"
-	
+
 	sed <$(PKG_BUILD_DIR)/libconfig-$(LIBCONF_VER)/mips-compile.tmpl \
 	> $(PKG_BUILD_DIR)/libconfig-$(LIBCONF_VER)/mips-compile.sh \
 	-e "s%@CROSS_PREFIX@%$(KERNEL_CROSS)%g"
@@ -46,8 +46,8 @@ $(PKG_BUILD_DIR)/.configured:
 
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	top=`pwd`
-	cd $(PKG_BUILD_DIR)/libconfig-$(LIBCONF_VER)/ && ./mips-compile.sh
-	cd $(PKG_BUILD_DIR)/eocd-src && make all-mips
+	cd $(PKG_BUILD_DIR)/libconfig-$(LIBCONF_VER)/ && $(TARGET_CONFIGURE_OPTS) ./mips-compile.sh
+	cd $(PKG_BUILD_DIR)/eocd-src && make all-mips $(TARGET_CONFIGURE_OPTS)
 	touch $@
 
 $(IPKG_SIGRAND_EOCD):
@@ -61,12 +61,12 @@ $(IPKG_SIGRAND_EOCD):
 	cp $(PKG_BUILD_DIR)/eocd-src/eocd.conf.default $(IDIR_SIGRAND_EOCD)/etc/eocd/eocd.conf
 	cp $(PKG_BUILD_DIR)/S80eocd $(IDIR_SIGRAND_EOCD)/etc/init.d
 	cp $(STAGING_DIR)/lib/libstdc++.so.6 $(IDIR_SIGRAND_EOCD)/lib
-	$(STRIP) $(PKG_BUILD_DIR)/eocd-src/app-if/applications/eoc-info 
+	$(STRIP) $(PKG_BUILD_DIR)/eocd-src/app-if/applications/eoc-info
 	cp $(PKG_BUILD_DIR)/eocd-src/app-if/applications/eoc-info  $(IDIR_SIGRAND_EOCD)/sbin
-#	$(STRIP) $(PKG_BUILD_DIR)/eocd-src/app-if/applications/eoc-config 
+#	$(STRIP) $(PKG_BUILD_DIR)/eocd-src/app-if/applications/eoc-config
 #	cp $(PKG_BUILD_DIR)/eocd-src/app-if/applications/eoc-config  $(IDIR_SIGRAND_EOCD)/sbin
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_EOCD)/CONTROL/control
-	$(IPKG_BUILD) $(IDIR_SIGRAND_EOCD) $(PACKAGE_DIR)	
+	$(IPKG_BUILD) $(IDIR_SIGRAND_EOCD) $(PACKAGE_DIR)
 
 local_build: $(PKG_BUILD_DIR)/.prepared
 	cd $(PKG_BUILD_DIR)/mr17h-drv && make KERN_PATH=$(LINUX_DIR) CROSS_PREFIX=$(STAGING_DIR)/bin/mipsel-linux-

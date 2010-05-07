@@ -3,10 +3,7 @@ include $(TOPDIR)/rules.mk
 KDIR:=$(BUILD_DIR)/linux-$(KERNEL)-$(BOARD)
 
 REV := $(shell $(TOPDIR)/rev.sh)
-ifeq ($(REV),)
-REV:=0
-endif
-
+REV ?= 0
 
 
 export PADFILE=$(STAGING_DIR)/bin/padfile
@@ -46,9 +43,6 @@ ifeq ($(LOGO), 1)
 endif
 
 
-REV := $(shell $(TOPDIR)/rev.sh)
-REV ?= 0
-
 OEM := $(shell echo $(BR2_SIGRAND_OEM_MANUFACTURER) | tr A-Z a-z)
 NOFW = $(if $(SIGRAND_LINUX_NOFW),-nofw,)
 
@@ -60,8 +54,6 @@ $(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin: $(SCRIPT_DIR)/padfile
 	IMG_NAME=$(BIN_DIR)/sg17-r-cp1_$(REV)$(NOFW)_$(OEM).bin	\
 	/bin/sh ./mkimage-jffs2 $(KDIR)/root.jffs2-32MB $(BUILD_DIR)/linux/vmlinux
 endif
-
-
 
 endif
 

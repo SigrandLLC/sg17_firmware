@@ -14,6 +14,8 @@ PKG_CAT:=zcat
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/ipkg-install
 
+CCACHE:=
+_CCACHE_PATH_:=
 include $(TOPDIR)/package/rules.mk
 
 $(eval $(call PKG_template,LIBICONV,libiconv,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
@@ -49,7 +51,7 @@ $(PKG_BUILD_DIR)/.configured:
 
 $(PKG_BUILD_DIR)/.built:
 	$(MAKE) -C $(PKG_BUILD_DIR) \
-		CC=$(TARGET_CC)
+		CC="$(TARGET_CC)"
 	rm -rf $(PKG_INSTALL_DIR)
 	mkdir -p $(PKG_INSTALL_DIR)
 	$(MAKE) -C $(PKG_BUILD_DIR) \
@@ -71,7 +73,7 @@ $(STAGING_DIR)/usr/lib/iconv/libiconv.so: $(PKG_BUILD_DIR)/.built
 	mkdir -p $(STAGING_DIR)/usr/lib/iconv
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libiconv.* $(STAGING_DIR)/usr/lib/iconv
 	touch $@
-	
+
 install-dev: $(STAGING_DIR)/usr/lib/iconv/libiconv.so
 
 uninstall-dev:

@@ -23,7 +23,7 @@ $(eval $(call PKG_template,TCPDUMP,tcpdump,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)
 
 $(PKG_BUILD_DIR)/.configured:
 	(cd $(PKG_BUILD_DIR); rm -rf config.{cache,status} ; \
-		BUILD_CC=$(TARGET_CC) HOSTCC=$(HOSTCC) \
+		BUILD_CC="$(TARGET_CC)" HOSTCC=$(HOSTCC) \
 		$(TARGET_CONFIGURE_OPTS) \
 		CFLAGS="$(TARGET_CFLAGS)" \
 		CPPFLAGS="-I$(STAGING_DIR)/usr/include" \

@@ -79,12 +79,12 @@ $(PKG_BUILD_DIR)/.built:
 	mkdir -p $(PKG_INSTALL_DIR)
 	$(MAKE) -C $(PKG_BUILD_DIR) \
 		$(TARGET_CONFIGURE_OPTS) \
-		CC=$(TARGET_CC) COPT_FLAGS="$(TARGET_CFLAGS)" \
+		CC="$(TARGET_CC)" COPT_FLAGS="$(TARGET_CFLAGS)" \
 		KERNEL_DIR=$(LINUX_DIR) PREFIX=/usr \
 		DESTDIR="$(PKG_INSTALL_DIR)" $(EXTRA_PARAM) \
 		all install install-devel
 	touch $@
-		
+
 $(IPKG_IPTABLES):
 	install -d -m0755 $(IDIR_IPTABLES)/etc/config
 	install -m0644 ./files/firewall.config $(IDIR_IPTABLES)/etc/config/firewall
