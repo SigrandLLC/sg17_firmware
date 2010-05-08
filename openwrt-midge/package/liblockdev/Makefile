@@ -23,7 +23,7 @@ $(PKG_BUILD_DIR)/.configured:
 $(PKG_BUILD_DIR)/.built:
 	$(MAKE) -C $(PKG_BUILD_DIR)			\
 		basedir=$(PKG_INSTALL_DIR)/usr		\
-		CC=$(TARGET_CC) AR=$(TARGET_CROSS)ar	\
+		CC="$(TARGET_CC)" AR="$(TARGET_CROSS)ar"	\
 		CFLAGS="$(TARGET_CFLAGS)"		\
 		static install_dev
 	touch $@
