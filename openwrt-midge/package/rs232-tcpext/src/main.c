@@ -25,14 +25,14 @@ void usage(const char *av0)
 
 static void sig_handler(int sig)
 {
-    syslog(LOG_NOTICE, "%s signal catched", strsignal(sig));
+    syslog(LOG_WARNING, "%s signal catched", strsignal(sig));
     if (sig == SIGTERM)
     {
-	syslog(LOG_NOTICE, "exiting");
+	syslog(LOG_WARNING, "exiting");
 	exit(EXIT_SUCCESS);
     }
     else
-	syslog(LOG_NOTICE, "do nothing");
+	syslog(LOG_WARNING, "do nothing");
 }
 
 //FIXME: should be tty_* method?
@@ -95,7 +95,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     }
 
     openlog(progname, LOG_CONS, LOG_DAEMON);
-    syslog(LOG_NOTICE, "started up");
+    syslog(LOG_WARNING, "started up");
 
     make_pidfile(pid_file);
 
@@ -283,9 +283,9 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	tty_close(tty);
         if (restart_delay != 0)
 	    usleep(restart_delay * 1000);
-	syslog(LOG_NOTICE, "restart");
+	syslog(LOG_WARNING, "restart");
     } while(1); // restart
 
-    syslog(LOG_NOTICE, "finished");
+    syslog(LOG_WARNING, "finished");
     return EXIT_SUCCESS;
 }
