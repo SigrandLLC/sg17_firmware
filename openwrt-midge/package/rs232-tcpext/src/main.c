@@ -1,5 +1,5 @@
 //#define NO_RS232 1
-#define DO_TICK  1
+//#define DO_TICK  1
 
 #define _GNU_SOURCE
 #include "sys_headers.h"
@@ -40,11 +40,11 @@ static int get_send_new_modem_state(tty_t* t, socket_t *s)
 {
 #ifndef NO_RS232
     modem_state_t in_mstate;
-    int rc = tty_get_modem_state(t, &in_mstate);
-    if (rc < 0) return rc;
+    if (tty_get_modem_state(t, &in_mstate)) return -1;
     if ( !t->last_in_mstate_valid || t->last_in_mstate != in_mstate)
     {
-        modem_state_t out_mstate = tty_mstate_in_to_out(in_mstate);
+	modem_state_t out_mstate = tty_mstate_in_to_out(in_mstate);
+	syslog(LOG_INFO, "Send new modem state: 0x%02X", out_mstate);
 	if (socket_send_all(s, (const char *)&out_mstate, sizeof(out_mstate)))
 	    return -1;
 	t->last_in_mstate = in_mstate;
