@@ -217,8 +217,10 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 			break; // restart
 		    else if (r == 0)
 		    {
-			syslog(LOG_WARNING, "EOF readed from %s, ignore",
+			syslog(LOG_WARNING, "EOF readed from %s",
 			       tty_name(tty));
+			tty_close_no_restore_attr(tty);
+			break; // restart
 		    }
 		    else	// r > 0
 		    {
@@ -261,6 +263,8 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 			size_t i;
 			for (i = 0; i < (size_t)r; ++i)
 			{
+			    syslog(LOG_INFO, "Recv new modem state: 0x%02X",
+				   state_buf[i]);
 			    if (tty_set_modem_state(tty, state_buf[i]))
 				break; // restart
 			}
