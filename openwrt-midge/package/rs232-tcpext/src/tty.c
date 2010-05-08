@@ -67,7 +67,7 @@ void tty_open(tty_t *t, const char *devname)
     iobase_open(t->b, devname, fd);
 }
 
-void tty_close (tty_t *t)
+static void tty_close_(tty_t *t, int restore_attr)
 {
     if (tty_fd(t) >= 0)
     {
@@ -75,7 +75,8 @@ void tty_close (tty_t *t)
 	   flow-control, we flush the output queue. */
 	tcflush(tty_fd(t), TCOFLUSH);
 
-	tty_restore(t);
+	if (restore_attr)
+	    tty_restore(t);
 
 	char *name = xstrdup(tty_name(t));
 	iobase_close(t->b);
@@ -84,6 +85,16 @@ void tty_close (tty_t *t)
     }
 
     t->last_in_mstate_valid = 0;
+}
+
+void tty_close(tty_t *t)
+{
+    tty_close_(t, 1);
+}
+
+void tty_close_no_restore_attr(tty_t *t)
+{
+    tty_close_(t, 0);
 }
 
 

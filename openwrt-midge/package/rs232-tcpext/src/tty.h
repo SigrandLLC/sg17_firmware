@@ -21,6 +21,7 @@ void   tty_delete   (tty_t *t);
 
 void   tty_open     (tty_t *t, const char *devname);
 void   tty_close    (tty_t *t);
+void   tty_close_no_restore_attr(tty_t *t);
 
 int    tty_set_raw  (tty_t *t);
 void   tty_restore  (tty_t *t);
