@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <termios.h>
+#include "./prchar.h"
 
 
 #define TRACE() fprintf(stderr, "%s:%04d\n", __FILE__, __LINE__)
@@ -179,7 +180,7 @@ int main(int ac, char *av[])
 	    }
 	    else
 	    {
-		printf("Input: '%c' : %d\r\n", c<040?' ':c, c); fflush(stdout);
+		prchar2pfx_nl("Input: ", c);
 
 		rc = write(fds[RS232].fd, &c, 1);
                 if (rc < 0)
@@ -208,7 +209,7 @@ int main(int ac, char *av[])
 	    }
 	    else
 	    {
-		printf("RS232: '%c' : %d\r\n", c<040?' ':c, c); fflush(stdout);
+		prchar2pfx_nl("RS232: ", c);
 	    }
 	}
 

@@ -10,6 +10,7 @@
 #include <poll.h>
 #include <termios.h>
 #include <sys/ioctl.h>
+#include "./prchar.h"
 
 static void usage(const char *name)
 {
@@ -173,7 +174,7 @@ int main(int ac, char *av[])
 	    }
 	    else
 	    {
-		//printf("Input: '%c' : %d\r\n", c<040?' ':c, c); fflush(stdout);
+		//prchar2pfx_nl("Input: ", c);
 
 		int mstat;
 		int what;
@@ -198,7 +199,7 @@ int main(int ac, char *av[])
 			fprintf(stderr, "^C, exit\r\n");
 			exit(EXIT_SUCCESS);
 		    default:
-			printf("Wrong input: '%c' : %d\r\n", c<040?' ':c, c); fflush(stdout);
+			prchar2pfx_nl("Wrong input: ", c);
 			continue;
 		}
 
