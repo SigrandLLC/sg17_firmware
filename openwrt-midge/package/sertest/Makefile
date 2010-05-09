@@ -1,6 +1,5 @@
 TOP_DIR      = .
-BUILD_TYPE   = MULTI_SRC_BIN
-BIN_NAME     = sertest
+BUILD_TYPE   = SINGLE_SRC_BINS
 
 include $(TOP_DIR)/rules.make
 
