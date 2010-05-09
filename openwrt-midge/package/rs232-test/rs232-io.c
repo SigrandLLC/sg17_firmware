@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,9 +20,9 @@
     } while(0)
 
 
-static void usage(void)
+static void usage(const char *name)
 {
-    fprintf(stderr, "Usage: sertest rs232-device [speed]\n");
+    fprintf(stderr, "Usage: %s rs232-device [speed]\n", name);
     exit(EXIT_FAILURE);
 }
 
@@ -125,7 +126,7 @@ static void setmode(const size_t *speedptr)
 int main(int ac, char *av[])
 {
     if (ac < 2 || ac > 3)
-	usage();
+	usage(basename(av[0]));
 
     atexit(restore);
 
