@@ -33,8 +33,8 @@ $(PKG_BUILD_DIR)/.built :
 
 instx = install -m0755
 $(IPKG_RS232_TCPEXT) :
-	@mkdir -p                               $(IDIR_RS232_TCPEXT)/usr/bin
-	@$(instx) $(PKG_BUILD_DIR)/rs232-tcpext $(IDIR_RS232_TCPEXT)/usr/bin
+	@mkdir -p                               $(IDIR_RS232_TCPEXT)/usr/sbin
+	@$(instx) $(PKG_BUILD_DIR)/rs232-tcpext $(IDIR_RS232_TCPEXT)/usr/sbin
 	@mkdir -p                               $(IDIR_RS232_TCPEXT)/etc/init.d
 	@$(instx)     ./etc/init.d/rs232_tcpext $(IDIR_RS232_TCPEXT)/etc/init.d/
 	@ln -sf                    rs232_tcpext $(IDIR_RS232_TCPEXT)/etc/init.d/S70rs232_tcpext
