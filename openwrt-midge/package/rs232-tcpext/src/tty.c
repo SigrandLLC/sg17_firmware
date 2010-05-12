@@ -142,7 +142,7 @@ int tty_set_raw(tty_t *t)
 
     // not done in cfmakeraw:
     new_tios.c_iflag |=  IGNBRK;	// cleared by cfmakeraw
-    new_tios.c_cflag &= ~CLOCAL;	// CLOCAL: Ignore modem control lines
+    new_tios.c_cflag |=  CLOCAL;	// CLOCAL: Ignore modem control lines
     new_tios.c_iflag &= ~HUPCL;		// HUPCL: hang up (lower modem control lines) on close?
 
 
