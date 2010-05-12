@@ -1,0 +1,5 @@
+Package: rs232-mstate
+Priority: optional
+Section: serial
+Description: Print RS232 port modem state
+
