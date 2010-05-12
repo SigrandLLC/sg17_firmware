@@ -94,7 +94,7 @@ node_cfg()
       # "\tP - modem state poll interval, msec\n"
       # "\tR - connection restart delay time, msec\n"
 
-      rs232-tcpext "/dev/${node}" "${host}" "${port}" "${mode}" "${pidfile}" 3000 1000
+      rs232-tcpext "/dev/${node}" "${host}" "${port}" "${mode}" "${pidfile}" 100 1000
    fi
 }
 
