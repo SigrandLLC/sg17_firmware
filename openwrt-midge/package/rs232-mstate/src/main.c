@@ -35,7 +35,16 @@ static int get_print_modem_state(tty_t* t)
     (void)t;
 #else
 #endif
-    syslog(LOG_INFO, "modem state: 0x%02X", in_mstate);
+    char buf[256];
+    snprintf(buf, sizeof(buf), "DTR:%d DSR:%d RTS:%d CTS:%d CD:%d RI:%d",
+             !!(in_mstate & TTY_MODEM_DTR),
+	     !!(in_mstate & TTY_MODEM_DSR),
+	     !!(in_mstate & TTY_MODEM_RTS),
+	     !!(in_mstate & TTY_MODEM_CTS),
+	     !!(in_mstate & TTY_MODEM_CD ),
+	     !!(in_mstate & TTY_MODEM_RI )
+	    );
+    syslog(LOG_INFO, "0x%02X, %s", in_mstate, buf);
 
     return 0;
 }
