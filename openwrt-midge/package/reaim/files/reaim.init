@@ -1,6 +1,5 @@
 #! /bin/sh
 
-PATH=/sbin:/bin:/usr/sbin:/usr/bin
 NAME=reaim
 DESC="Transparent proxy for IM behind NAT"
 . /etc/functions.sh
