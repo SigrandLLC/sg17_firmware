@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# $1 - target 
+# $1 - target
 # 	d 	- drv_daa
 #	v 	- drv_vinetic
 #	t 	- drv_tapi
@@ -11,7 +11,7 @@
 #	svc 	- svc
 #	tst 	- tst
 #
-# $2 - action 
+# $2 - action
 #	p1 	- prepare for making patch
 #	p2 	- making patch
 #	<path> 	- buld target and put restult to the path
@@ -22,8 +22,7 @@
 #	You SHOULD set <build_path_DF> and MUST set <path_to_bin> manually
 #
 
-build_path=/home/vlad/tftpboot/
-path_to_bin=/home/vlad/midge/openwrt-midge/staging_dir_mipsel/bin/
+build_path=$HOME/build
 
 cur_path=`pwd`
 arch_path=$cur_path
@@ -34,6 +33,7 @@ tapi_name=drv_tapi-3.6.1
 vinetic_name=drv_vinetic-1.3.1_tapi-3.6.1
 daa_name=drv_daa-1.0.2.0
 
+path_to_bin=${curr_path}/../../../../../staging_dir_mipsel/bin/
 PATH=$PATH:${path_to_bin}
 
 patcher() {
@@ -49,7 +49,7 @@ patcher() {
 	    # copy source to src_pure dir
 		cp -r ${2}/ ${2}_pure
 	    # patch source with old patch file
-		cd $src_path 
+		cd $src_path
 		patch -p1 < $patch_path/${2}.patch
 	    echo Now you can do necessary corrections
 	    ;;
@@ -77,9 +77,9 @@ make_itmp() {
 		mkdir $cur_path/itmp
 		cd $cur_path/itmp
 
-		tar -xvpf $cur_path/$tapi_name.tar.gz 
-		tar -xvpf $cur_path/$vinetic_name.tar.gz 
-		tar -xvpf $cur_path/$daa_name.tar.gz 
+		tar -xvpf $cur_path/$tapi_name.tar.gz
+		tar -xvpf $cur_path/$vinetic_name.tar.gz
+		tar -xvpf $cur_path/$daa_name.tar.gz
 
 		ln -snf $daa_name daa
 		ln -snf $vinetic_name vinetic
@@ -171,7 +171,7 @@ case "$1" in
 	if test $2; then
 		build_path = $2
 	fi
-	if test $1 == s; then 
+	if test $1 == s; then
 		cd drv_sgatab
 	else
 		cd $1
@@ -195,7 +195,7 @@ case "$2" in
 	if test $2; then
 		echo NEW_BUILD_PATH $2
 		build_path=$2
-	fi 
+	fi
     echo "MAKING << ${cut_name} >> DEVICE DRIVER..."
 	if test ! -e $src_path/.patched ; then
 		cd $src_path
