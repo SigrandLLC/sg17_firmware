@@ -155,7 +155,8 @@ socket_t *socket_accept(socket_t *s)
 	: make_host_port( "NULL"   , "NULL"   );
     iobase_open(new_s->b, name, newfd);
 
-    set_sock_opt_bool(newfd, SO_KEEPALIVE, "keepalive", "socket_accept(): ");
+    // keepalive freeze the system
+    //set_sock_opt_bool(newfd, SO_KEEPALIVE, "keepalive", "socket_accept(): ");
     set_sock_linger  (newfd, 3, "socket_accept(): "); //FIXME: linger timeout
 
     return new_s;
@@ -209,7 +210,8 @@ int socket_connect(socket_t *s, const char *host, const char *port)
 
     iobase_open(s->b, make_host_port(host, port), fd);
 
-    set_sock_opt_bool(fd, SO_KEEPALIVE, "keepalive", "socket_connect(): ");
+    // keepalive freeze the system
+    //set_sock_opt_bool(fd, SO_KEEPALIVE, "keepalive", "socket_connect(): ");
     set_sock_linger  (fd, 3, "socket_connect(): "); //FIXME: linger timeout
 
     return 0;
