@@ -38,7 +38,7 @@ static void sig_handler(int sig)
 static int send_modem_state(socket_t *s, modem_state_t mstate)
 {
 #ifndef NO_RS232
-    syslog(LOG_INFO, "Send modem state: 0x%02X", mstate);
+    tty_log_modem_state("Send modem state: ", mstate);
     if (socket_send_all(s, (const char *)&mstate, sizeof(mstate)))
 	return -1;
 #else
@@ -283,8 +283,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 			size_t i;
 			for (i = 0; i < (size_t)r; ++i)
 			{
-			    syslog(LOG_INFO, "Recv modem state: 0x%02X",
-				   state_buf[i]);
+			    tty_log_modem_state("Recv modem state: ", state_buf[i]);
 			    if (tty_set_modem_state(tty, state_buf[i]))
 				break; // restart
 			}
