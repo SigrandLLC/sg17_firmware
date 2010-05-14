@@ -37,7 +37,7 @@ static int get_print_modem_state(tty_t* t)
     (void)t;
 #endif
 
-    tty_print_modem_state(in_mstate);
+    tty_log_modem_state(in_mstate, "");
 
     return 0;
 }

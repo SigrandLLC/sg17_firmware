@@ -253,7 +253,7 @@ modem_state_t tty_mstate_in_to_out(modem_state_t in_state)
 }
 
 
-void tty_print_modem_state(modem_state_t mstate)
+void tty_log_modem_state(modem_state_t mstate, const char *pfx)
 {
     char buf[256];
 
@@ -266,6 +266,6 @@ void tty_print_modem_state(modem_state_t mstate)
 	     !!(mstate & TTY_MODEM_RI )
 	    );
 
-    syslog(LOG_INFO, "0x%02X, %s", mstate, buf);
+    syslog(LOG_INFO, "%s0x%02X, %s", pfx, mstate, buf);
 }
 
