@@ -30,21 +30,14 @@ static void sig_handler(int sig)
 static int get_print_modem_state(tty_t* t)
 {
     modem_state_t in_mstate = 0;
+
 #ifndef NO_RS232
     if (tty_get_modem_state(t, &in_mstate)) return -1;
-    (void)t;
 #else
+    (void)t;
 #endif
-    char buf[256];
-    snprintf(buf, sizeof(buf), "DTR:%d DSR:%d RTS:%d CTS:%d CD:%d RI:%d",
-             !!(in_mstate & TTY_MODEM_DTR),
-	     !!(in_mstate & TTY_MODEM_DSR),
-	     !!(in_mstate & TTY_MODEM_RTS),
-	     !!(in_mstate & TTY_MODEM_CTS),
-	     !!(in_mstate & TTY_MODEM_CD ),
-	     !!(in_mstate & TTY_MODEM_RI )
-	    );
-    syslog(LOG_INFO, "0x%02X, %s", in_mstate, buf);
+
+    tty_print_modem_state(in_mstate);
 
     return 0;
 }
