@@ -12,7 +12,7 @@ include $(TOPDIR)/package/rules.mk
 $(eval $(call PKG_template,RS232_MSTATE,rs232-mstate,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
 $(PKG_BUILD_DIR)/.prepared :
-	mkdir -p      $(PKG_BUILD_DIR)
+	mkdir -p         $(PKG_BUILD_DIR)
 	$(CP) -L ./src/* $(PKG_BUILD_DIR)
 	touch $@
 
