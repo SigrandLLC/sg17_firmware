@@ -29,6 +29,10 @@ $(IPKG_SIGRAND_TBUFF):
 	install -d -m0755 $(IDIR_SIGRAND_TBUFF)/sbin
 	install -m0755 $(PKG_BUILD_DIR)/tbuffd $(IDIR_SIGRAND_TBUFF)/sbin/
 	install -m0755 $(PKG_BUILD_DIR)/tbuffctl $(IDIR_SIGRAND_TBUFF)/sbin/
+	install -d -m0755 $(IDIR_SIGRAND_TBUFF)/www
+	install -d -m0755 $(IDIR_SIGRAND_TBUFF)/www/wf2
+	install -d -m0755 $(IDIR_SIGRAND_TBUFF)/www/wf2/sh
+	ln -s /sbin/tbuffctl $(IDIR_SIGRAND_TBUFF)/www/wf2/sh/tbuffctl
 	install -d -m0755 $(IDIR_SIGRAND_TBUFF)/usr
 	install -d -m0755 $(IDIR_SIGRAND_TBUFF)/usr/bin
 	install -m0755 console $(IDIR_SIGRAND_TBUFF)/usr/bin/
