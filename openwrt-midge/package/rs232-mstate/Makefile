@@ -13,7 +13,7 @@ $(eval $(call PKG_template,RS232_MSTATE,rs232-mstate,$(PKG_VERSION)-$(PKG_RELEAS
 
 $(PKG_BUILD_DIR)/.prepared :
 	mkdir -p      $(PKG_BUILD_DIR)
-	$(CP) ./src/* $(PKG_BUILD_DIR)
+	$(CP) -L ./src/* $(PKG_BUILD_DIR)
 	touch $@
 
 cflags = "$(TARGET_CFLAGS) -I $(STAGING_DIR)/usr/include"
