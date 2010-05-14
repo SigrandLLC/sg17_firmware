@@ -35,7 +35,7 @@ static void tty_unlock(const char *devname);
 
 void tty_open(tty_t *t, const char *devname)
 {
-    tty_close(t);
+    tty_close_no_restore_attr(t);
 
     tty_lock(devname);
 
@@ -123,16 +123,20 @@ static void tty_unlock(const char *devname)
 }
 
 
-int tty_set_raw(tty_t *t)
+static int tty_set_raw_(tty_t *t, int save_termios)
 {
-    if (tcgetattr(tty_fd(t), &t->termios) < 0)
+    struct termios old_tios;
+    if (tcgetattr(tty_fd(t), &old_tios) < 0)
     {
 	syslog(LOG_ERR, "Can't get attributes for device %s: %m", tty_name(t));
 	return -1;
     }
 
+    if (save_termios)
+	memcpy(&t->termios, &old_tios, sizeof(old_tios));
+
     struct termios new_tios;
-    memcpy(&new_tios, &t->termios, sizeof(new_tios));
+    memcpy(&new_tios, &old_tios, sizeof(new_tios));
 
     cfmakeraw(&new_tios);
 
@@ -143,7 +147,7 @@ int tty_set_raw(tty_t *t)
     // not done in cfmakeraw:
     new_tios.c_iflag |=  IGNBRK;	// cleared by cfmakeraw
     new_tios.c_cflag &= ~CLOCAL;	// !Ignore modem control lines
-    new_tios.c_iflag &= ~HUPCL;		// !hang up (lower modem control lines) on close?
+    new_tios.c_iflag &= ~HUPCL;		// !hang up (lower modem control lines) on close
 
 
     if (tcsetattr(tty_fd(t), TCSANOW, &new_tios) < 0)
@@ -153,6 +157,16 @@ int tty_set_raw(tty_t *t)
     }
 
     return 0;
+}
+
+int tty_set_raw(tty_t *t)
+{
+    return tty_set_raw_(t, 1);
+}
+
+int tty_set_raw_no_save_attr(tty_t *t)
+{
+    return tty_set_raw_(t, 0);
 }
 
 void tty_restore(tty_t *t)
