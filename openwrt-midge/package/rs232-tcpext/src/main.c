@@ -35,25 +35,37 @@ static void sig_handler(int sig)
 	syslog(LOG_WARNING, "do nothing");
 }
 
-//FIXME: should be tty_* method?
-static int get_send_new_modem_state(tty_t* t, socket_t *s)
+static int send_modem_state(socket_t *s, modem_state_t mstate)
 {
 #ifndef NO_RS232
-    modem_state_t in_mstate;
+    syslog(LOG_INFO, "Send modem state: 0x%02X", mstate);
+    if (socket_send_all(s, (const char *)&mstate, sizeof(mstate)))
+	return -1;
+#else
+    (void)s;
+    (void)mstate;
+#endif
+
+    return 0;
+}
+
+static int get_send_new_modem_state(tty_t* t, socket_t *s)
+{
+    modem_state_t in_mstate = 0;
+#ifndef NO_RS232
     if (tty_get_modem_state(t, &in_mstate)) return -1;
-    if ( !t->last_in_mstate_valid || t->last_in_mstate != in_mstate)
-    {
-	modem_state_t out_mstate = tty_mstate_in_to_out(in_mstate);
-	syslog(LOG_INFO, "Send new modem state: 0x%02X", out_mstate);
-	if (socket_send_all(s, (const char *)&out_mstate, sizeof(out_mstate)))
-	    return -1;
-	t->last_in_mstate = in_mstate;
-	t->last_in_mstate_valid = 1;
-    }
 #else
     (void)t;
     (void)s;
 #endif
+    if ( !t->last_in_mstate_valid || t->last_in_mstate != in_mstate)
+    {
+	modem_state_t out_mstate = tty_mstate_in_to_out(in_mstate);
+        if (send_modem_state(s, out_mstate))
+	    return -1;
+	t->last_in_mstate = in_mstate;
+	t->last_in_mstate_valid = 1;
+    }
 
     return 0;
 }
@@ -217,10 +229,18 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 			break; // restart
 		    else if (r == 0)
 		    {
-			syslog(LOG_WARNING, "EOF readed from %s",
+			syslog(LOG_WARNING, "EOF readed from %s, DSR=0",
 			       tty_name(tty));
+
+                        if (send_modem_state(state_s, 0/* ~TTY_MODEM_DTR */))
+			    break; // restart
+
 			tty_close_no_restore_attr(tty);
-			break; // restart
+			tty_open(tty, device);
+#ifndef NO_RS232
+			if (tty_set_raw_no_save_attr(tty))
+			    break; // restart
+#endif
 		    }
 		    else	// r > 0
 		    {
@@ -263,7 +283,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 			size_t i;
 			for (i = 0; i < (size_t)r; ++i)
 			{
-			    syslog(LOG_INFO, "Recv new modem state: 0x%02X",
+			    syslog(LOG_INFO, "Recv modem state: 0x%02X",
 				   state_buf[i]);
 			    if (tty_set_modem_state(tty, state_buf[i]))
 				break; // restart
