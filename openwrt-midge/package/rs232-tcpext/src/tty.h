@@ -57,5 +57,7 @@ int tty_set_modem_state(tty_t *t, modem_state_t  mstate);
 
 modem_state_t tty_mstate_in_to_out(modem_state_t in_state);
 
+void tty_print_modem_state(modem_state_t mstate);
+
 
 #endif //RS232_TCPEXT_TTY_H

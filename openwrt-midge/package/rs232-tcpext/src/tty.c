@@ -252,3 +252,20 @@ modem_state_t tty_mstate_in_to_out(modem_state_t in_state)
     return out_state;
 }
 
+
+void tty_print_modem_state(modem_state_t mstate)
+{
+    char buf[256];
+
+    snprintf(buf, sizeof(buf), "DTR:%d DSR:%d RTS:%d CTS:%d CD:%d RI:%d",
+             !!(mstate & TTY_MODEM_DTR),
+	     !!(mstate & TTY_MODEM_DSR),
+	     !!(mstate & TTY_MODEM_RTS),
+	     !!(mstate & TTY_MODEM_CTS),
+	     !!(mstate & TTY_MODEM_CD ),
+	     !!(mstate & TTY_MODEM_RI )
+	    );
+
+    syslog(LOG_INFO, "0x%02X, %s", mstate, buf);
+}
+
