@@ -24,6 +24,7 @@ void   tty_close    (tty_t *t);
 void   tty_close_no_restore_attr(tty_t *t);
 
 int    tty_set_raw  (tty_t *t);
+int    tty_set_raw_no_save_attr(tty_t *t);
 void   tty_restore  (tty_t *t);
 
 
