@@ -3,18 +3,6 @@ int socket_set_opt_int(socket_t *s, int opt, int optval)
     int rc = setsockopt(socket_fd(s), SOL_SOCKET, opt, &optval, sizeof(optval));
 }
 
-       TCP_KEEPCNT
-              The  maximum  number  of keepalive probes TCP should send before
-              dropping the connection.
-
-       TCP_KEEPINTVL
-              The time (in seconds) between individual keepalive probes.
-
-       TCP_KEEPIDLE
-              The time (in seconds) the connection needs to remain idle before
-              TCP starts  sending  keepalive  probes,  if  the  socket  option
-              SO_KEEPALIVE  has  been  set on this socket.
-
        TCP_NODELAY
               If set, disable the Nagle algorithm.  This means  that  segments
               are  always  sent  as  soon as possible, even if there is only a
@@ -34,8 +22,4 @@ int socket_set_opt_int(socket_t *s, int opt, int optval)
  CD,DSR <- DTR
     CD  <-
     RI  <-
-
-
-  t->c_cc[VMIN] = 1;
-  t->c_cc[VTIME] = 1; //
 
