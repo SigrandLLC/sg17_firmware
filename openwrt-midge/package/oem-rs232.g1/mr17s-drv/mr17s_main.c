@@ -420,8 +420,34 @@ static unsigned int mr17s_get_mctrl(struct uart_port *port)
 static void
 mr17s_set_mctrl(struct uart_port *port, unsigned int mctrl)
 {
-    // Nothing to do at this moment
+    struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
+    struct mr17s_hw_regs *regs = &mem->regs;
+
+    u8 reg = ioread8(&regs->CRA);
+
+    if (mctrl & (TIOCM_DTR|TIOCM_DSR|TIOCM_LE) )
+	reg |= DTR;
+    else
+	reg &= ~DTR;
+
+    if (mctrl & (TIOCM_RTS|TIOCM_CTS) )
+	reg |= RTS;
+    else
+	reg &= ~RTS;
+
+    if (mctrl & (TIOCM_CAR|TIOCM_CD ) )
+        reg |= CD;
+    else
+        reg &= ~CD;
+
+    if (mctrl & (TIOCM_RNG|TIOCM_RI ) )
+        reg |= RI;
+    else
+        reg &= ~RI;
+
+    iowrite8(reg, &regs->CRA);
 }
+
 static void
 mr17s_break_ctl(struct uart_port *port, int break_state)
 {
