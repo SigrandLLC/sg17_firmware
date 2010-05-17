@@ -21,7 +21,7 @@
 
 
 // DEBUG
-//#define DEBUG_ON 
+//#define DEBUG_ON
 #define DEBUG_LEV 10
 #include "mr17s_debug.h"
 
@@ -30,7 +30,7 @@ MODULE_AUTHOR( "Maintainer: Polyakov Artem <artpol84@gmail.com>\n" );
 MODULE_LICENSE( "GPL" );
 MODULE_VERSION(MR17S_VER);
 
-// Register module init/deinit routines 
+// Register module init/deinit routines
 static unsigned int cur_card_number = 0;
 static unsigned int cur_port_number = 0;
 module_init(mr17s_init);
@@ -39,7 +39,7 @@ module_exit(mr17s_exit);
 
 
 /*----------------------------------------------------------
- * Driver initialisation 
+ * Driver initialisation
  *----------------------------------------------------------*/
 static struct pci_device_id  mr17s_pci_tbl[] __devinitdata = {
 { PCI_DEVICE(MR17S_PCI_VEN,MR17S_PCI_DEV) },
@@ -47,7 +47,7 @@ static struct pci_device_id  mr17s_pci_tbl[] __devinitdata = {
 };
 
 MODULE_DEVICE_TABLE( pci, mr17s_pci_tbl );
-	
+
 static struct pci_driver  mr17s_driver = {
  name:           MR17S_DRVNAME,
  probe:          mr17s_init_one,
@@ -60,7 +60,7 @@ static struct uart_driver mr17s_uartdrv = {
 	.owner = THIS_MODULE,
 	.driver_name = MR17S_MODNAME,
     .dev_name   = MR17S_SERIAL_NAME,
-	.devfs_name = MR17S_SERIAL_NAME,	
+	.devfs_name = MR17S_SERIAL_NAME,
 	.major		= MR17S_SERIAL_MAJOR,
 	.minor		= MR17S_SERIAL_MINORS,
     .nr         = MR17S_UART_NR,
@@ -99,7 +99,7 @@ mr17s_init( void )
 	if (result){
     	printk(KERN_NOTICE MR17S_MODNAME": Error registering UART driver\n");
 		return result;
-    }    
+    }
 	if( (result = pci_module_init(&mr17s_driver)) ){
     	uart_unregister_driver(&mr17s_uartdrv);
         return result;
@@ -119,7 +119,7 @@ mr17s_exit( void ){
 
 
 /*----------------------------------------------------------
- * PCI related functions 
+ * PCI related functions
  *----------------------------------------------------------*/
 
 static int __devinit
@@ -133,12 +133,12 @@ mr17s_init_one(struct pci_dev *pdev,const struct pci_device_id *ent)
 
 	PDEBUG(debug_init,"start");
 
-    // Setup PCI device 
+    // Setup PCI device
 	if( pci_enable_device( pdev ) )
 		return -EIO;
 	pci_set_master(pdev);
-	
-    // Create device structure & initialize 
+
+    // Create device structure & initialize
 	if( !(rsdev = kmalloc( sizeof(struct mr17s_device), GFP_KERNEL ) ) ){
 		printk(KERN_ERR"%s: error allocating rsdev, PCI device=%02x:%02x.%d\n",MR17S_MODNAME,
                 pdev->bus->number,PCI_SLOT(pdev->devfn),PCI_FUNC(pdev->devfn));
@@ -185,7 +185,7 @@ mr17s_init_one(struct pci_dev *pdev,const struct pci_device_id *ent)
                 pdev->bus->number,PCI_SLOT(pdev->devfn),PCI_FUNC(pdev->devfn));
         err = -EINVAL;
         goto rsfree;
-    }    
+    }
     // Request & remap memory region
    	if( !request_mem_region(rsdev->iomem_start,MR17S_IOMEM_SIZE,MR17S_MODNAME) ){
 		printk(KERN_ERR"%s: error requesting io memory region, PCI device=%02x:%02x.%d\n",
@@ -242,10 +242,10 @@ mr17s_init_one(struct pci_dev *pdev,const struct pci_device_id *ent)
     	// Symlink to device in sysfs
 		snprintf(port_name,32,MR17S_SERIAL_NAME"%d",port->line);
     	if( (err = sysfs_create_link( &(drv->kobj),&(dev->kobj),port_name )) ){
-	    	printk(KERN_NOTICE"%s: error in sysfs_create_link\n",__FUNCTION__);	
+	    	printk(KERN_NOTICE"%s: error in sysfs_create_link\n",__FUNCTION__);
 		    goto porterr;
     	}
-		
+
     }
 
     // Save MR17S internal structure in PCI device struct
@@ -281,21 +281,21 @@ memfree:
    	release_mem_region(rsdev->iomem_start,MR17S_IOMEM_SIZE);
 rsfree:
     kfree(rsdev);
-pcifree:	
+pcifree:
 	pci_disable_device(pdev);
 	PDEBUG(debug_init,"(!)fail");
 	return err;
 }
-				
-				
-static void __devexit 
+
+
+static void __devexit
 mr17s_remove_one( struct pci_dev *pdev )
 {
 	struct mr17s_device *rsdev = (struct mr17s_device*)pci_get_drvdata(pdev);
 	struct device *dev = (struct device*)&(pdev->dev);
 	struct device_driver *drv = (struct device_driver*)(dev->driver);
     int i;
-    
+
     mr17s_sysfs_free(&pdev->dev);
     free_irq(pdev->irq,rsdev);
     for(i=0;i<rsdev->port_quan;i++){
@@ -318,7 +318,7 @@ mr17s_interrupt(int irq,void *dev_id,struct pt_regs *regs )
 {
 	struct mr17s_device *rsdev = (struct mr17s_device*)dev_id;
     int i,ret = 0;
-    
+
     PDEBUG(debug_irq,"start, rsdev=%p",rsdev);
 
     // Poll all ports
@@ -347,8 +347,8 @@ mr17s_start_tx(struct uart_port *port)
 
     PDEBUG(debug_xmit,"start");
     if( ioread8(&regs->MXCR) & MXEN ){
-        // May be there is better way 
-        // But now we just drop all outgoing bytes in 
+        // May be there is better way
+        // But now we just drop all outgoing bytes in
         // Multiplexingmode
         mr17s_drop_bytes(port);
         return;
@@ -358,7 +358,7 @@ mr17s_start_tx(struct uart_port *port)
 
 
 // ?? Stop receiver when shutting down ??
-static void 
+static void
 mr17s_stop_rx(struct uart_port *port)
 {
     // Nothing to do at this moment
@@ -413,7 +413,7 @@ static unsigned int mr17s_get_mctrl(struct uart_port *port)
 
         break;
     }
-	
+
 	return ret;
 }
 
@@ -422,7 +422,7 @@ mr17s_set_mctrl(struct uart_port *port, unsigned int mctrl)
 {
     // Nothing to do at this moment
 }
-static void 
+static void
 mr17s_break_ctl(struct uart_port *port, int break_state)
 {
     // Nothing to do at this moment
@@ -464,7 +464,7 @@ static void mr17s_set_termios(struct uart_port *port,
         cur &= (~DATA7);
 		break;
 	}
-    
+
 	if (new->c_cflag & CSTOPB){
 		cur |= STOP2;
     }else{
@@ -603,7 +603,7 @@ static void mr17s_config_port(struct uart_port *port, int flags)
     iowrite8(0,&regs->TFS);
     iowrite8(0,&regs->RFS);
     iowrite8(0,&regs->MXCR);
-	
+
 	// Enable Transceiver
 	iowrite8(TXEN|RXEN|DTR,&regs->CRA);
     iowrite8(0,&regs->SR);
@@ -615,12 +615,12 @@ static int mr17s_verify_port(struct uart_port *port, struct serial_struct *ser)
 	return 0;
 }
 
-static unsigned int 
+static unsigned int
 mr17s_tx_empty(struct uart_port *port)
 {
     struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
     struct mr17s_hw_regs *regs = &mem->regs;
-    
+
     if( ioread8(&regs->MXCR) & MXEN){
         // In mux mode - allways empty
         return TIOCSER_TEMT;
@@ -641,7 +641,7 @@ mr17s_ioctl(struct uart_port *port, unsigned int cmd, unsigned long arg)
 
    	if(copy_from_user(&magic,uarg, sizeof(magic)))
     	return ret;
-    
+
     PDEBUG(debug_hw,"MAGIC=%04x",magic);
 
     if( magic != MXMAGIC )
@@ -693,7 +693,7 @@ mr17s_mux_get(struct uart_port *port,struct mxsettings *set)
     set->tline = ioread8(&regs->TLINE);
     set->rfs = ioread8(&regs->RFS);
     set->tfs = ioread8(&regs->TFS);
-    
+
     set->clkm = set->clkab = set->clkr = set->mxen = 0;
     if( mxcr & CLKM ){
         set->clkm = 1;
@@ -753,7 +753,7 @@ mr17s_mux_set(struct uart_port *port,struct mxsettings *set)
         mxcr |= MXEN;
         break;
     }
-    
+
     spin_lock_irqsave(&port->lock,flags);
 
 	// Setup MUX control register
@@ -768,8 +768,8 @@ mr17s_mux_set(struct uart_port *port,struct mxsettings *set)
     }else if( !(mxcr&MXEN) && mxen_change ) {
 		atomic_dec(&hw_port->inuse_cntr);
 		iowrite8(TXS|RXS|RXE,&regs->IMR);
-	}        
-    
+	}
+
 	if( set->rline >=0 ){
         iowrite8(set->rline,&regs->RLINE);
     }
@@ -826,7 +826,7 @@ mr17s_hw_set(struct uart_port *port,struct hwsettings *set)
 	}else{
 		cra &= (~MCFW);
 	}
-    
+
     PDEBUG(debug_hw,"CRA=%02x",cra);
 
     spin_lock_irqsave(&port->lock,flags);
@@ -851,7 +851,7 @@ mr17s_port_interrupt(struct uart_port *port, struct pt_regs *ptregs)
     // If no interrupt - return immediately
     if( !status )
         return 0;
-   
+
     if( status & TXS ){
         PDEBUG(debug_xmit,"TXS");
         mr17s_xmit_bytes(port);
@@ -865,7 +865,7 @@ mr17s_port_interrupt(struct uart_port *port, struct pt_regs *ptregs)
     if( status & RXE ){
         PDEBUG(debug_irq,"RXS");
     }
-	
+
 	if( status & MCC ){
 		PDEBUG(debug_hw,"MCC: status=%02x",status);
 		mr17s_modem_status(port);
@@ -883,13 +883,13 @@ static inline void mr17s_modem_status(struct uart_port *port)
 	unsigned long flags;
     // Read mask & status
     u8 status = ioread8(&regs->SR);
-	
-	
+
+
 	spin_lock_irqsave(&port->lock,flags);
 	old_status = hw_port->old_status;
 	PDEBUG(/*debug_hw*/0,"ttyRS%d: Check modem status: old=%02x new=%02x",port->line,old_status,status);
 
-	// Carrier Detected bit 
+	// Carrier Detected bit
 	if( (status & CD) && !(old_status & CD) ){
 		PDEBUG(/*debug_hw*/0,"ttyRS%d: Carrier detected",port->line);
 		if( port->info )
@@ -922,7 +922,7 @@ static inline void mr17s_modem_status(struct uart_port *port)
 	}else{
 		PDEBUG(debug_hw,"ttyRS%d: No Dev can recv change",port->line);
 	}
-	
+
 	if( port->info )
 		wake_up_interruptible(&port->info->delta_msr_wait);
 	hw_port->old_status = status;
@@ -941,7 +941,7 @@ mr17s_recv_bytes(struct uart_port *port,struct pt_regs *ptregs)
     int i;
     unsigned long flags;
 
-    // Block port. This function can run both 
+    // Block port. This function can run both
     // in process and interrupt context
     spin_lock_irqsave(&port->lock,flags);
 
@@ -977,7 +977,7 @@ mr17s_xmit_bytes(struct uart_port *port)
     unsigned long flags;
 
 
-    // Block port. This function can run both 
+    // Block port. This function can run both
     // in process and interrupt context
     spin_lock_irqsave(&port->lock,flags);
 
@@ -990,7 +990,7 @@ mr17s_xmit_bytes(struct uart_port *port)
         PDEBUG(debug_xmit,"No more space in ring: LTR=%d, CTR=%d",last,cur);
         goto unlock;
     }
-    
+
 	if (port->x_char){
         PDEBUG(debug_xmit,"Xmit X CHAR: LTR=%d, CTR=%d",last,cur);
         iowrite8(port->x_char,mem->tx_buf + last);
@@ -1040,7 +1040,7 @@ mr17s_drop_bytes(struct uart_port *port)
 
     PDEBUG(debug_hw,"start");
 
-    // Block port. This function can run both 
+    // Block port. This function can run both
     // in process and interrupt context
     spin_lock_irqsave(&port->lock,flags);
 
@@ -1074,7 +1074,7 @@ static int
 count_divs(int baud,int *div1,int *div2)
 {
     int d;
-    
+
     if( !baud || (MR17S_MAXBAUD % baud) ){
         PDEBUG(debug_hw,"ERROR: baud=%d,(MAX div baud)=%d",(!baud),(MR17S_MAXBAUD%baud));
         return -1;
@@ -1082,7 +1082,7 @@ count_divs(int baud,int *div1,int *div2)
     *div1 = 0;
     *div2 = 0;
     d = MR17S_MAXBAUD/baud;
- 
+
     if( !(d%6) ){
         d /= 6;
         *div2 = 1;
