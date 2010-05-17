@@ -56,7 +56,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	     basename(device));
 
     openlog(progname, LOG_CONS|LOG_PERROR, LOG_USER);
-    syslog(LOG_WARNING, "started up");
+    syslog(LOG_INFO, "started up");
 
     setup_sighandler(sig_handler, SIGPIPE);
     setup_sighandler(sig_handler, SIGHUP);
@@ -67,44 +67,50 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 
     tty_t *tty = tty_create();
 
-    tty_open(tty, device);
-#ifndef NO_RS232
-    if (tty_set_raw(tty))
-	fail();
-#endif
-
-    enum { POLL_TTY, POLL_ITEMS };
-
-    struct pollfd polls[POLL_ITEMS];
-    memset(polls, 0, sizeof(polls));
-
-
-    polls[POLL_TTY  ].fd =    tty_fd(tty);
-
-    do
+    do // restart
     {
-	int rc = poll(polls, 0, mstat_intval);
-	if (rc < 0)
-	{
-	    syslog(LOG_ERR, "poll failed: %m");
+	tty_open(tty, device);
+#ifndef NO_RS232
+	if (tty_set_raw(tty))
 	    fail();
-	}
-	else if (rc == 0)	// timeout
-	{
-	    // handle modem lines state
-#ifdef DO_TICK
-	    syslog(LOG_INFO, "tick"); //FIXME: comment off
 #endif
-	    // get_send_new_modem_state(tty, state_s) called at the loop end
-	}
-	else
+
+	enum { POLL_TTY, POLL_ITEMS };
+
+	struct pollfd polls[POLL_ITEMS];
+	memset(polls, 0, sizeof(polls));
+
+
+	polls[POLL_TTY].fd = tty_fd(tty);
+
+	do // i/o loop
 	{
-	}
+	    int rc = poll(polls, 0, mstat_intval);
+	    if (rc < 0)
+	    {
+		syslog(LOG_ERR, "poll failed: %m");
+		break; // restart
+	    }
+	    else if (rc == 0)	// timeout
+	    {
+		// handle modem lines state
+#ifdef DO_TICK
+		syslog(LOG_INFO, "tick"); //FIXME: comment off
+#endif
+		// get_print_modem_state(tty) called at the loop end
+	    }
+	    else
+	    {
+	    }
 
-	get_print_modem_state(tty);
+	    if (get_print_modem_state(tty) < 0)
+                break; // restart
 
-    } while(1); // poll loop
+	} while(1); // i/o loop
 
-    syslog(LOG_WARNING, "finished");
+	syslog(LOG_INFO, "restart");
+    } while(1); // restart
+
+    syslog(LOG_INFO, "finished");
     return EXIT_SUCCESS;
 }
