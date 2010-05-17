@@ -202,8 +202,12 @@ int tty_get_modem_state(tty_t *t, modem_state_t *mstate)
 
     *mstate = 0;
 
+    if (val   &           TIOCM_DTR)
+	*mstate |=    TTY_MODEM_DTR;
     if (val   & (TIOCM_LE|TIOCM_DSR))
 	*mstate |=    TTY_MODEM_DSR;
+    if (val   &           TIOCM_RTS)
+	*mstate |=    TTY_MODEM_RTS;
     if (val   &           TIOCM_CTS)
 	*mstate |=    TTY_MODEM_CTS;
     if (val   & (TIOCM_CAR|TIOCM_CD))
