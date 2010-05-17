@@ -140,10 +140,10 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	state_s = socket_create();
     }
 
-
     do // restart
     {
 	tty_open(tty, device);
+
 #ifndef NO_RS232
 	if (tty_set_raw(tty))
 	    fail();
@@ -226,21 +226,21 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		{
 		    ssize_t r = tty_read(tty, data_buf, DATA_BUF_SIZE);
 		    if (r < 0)
-			break; // restart
+			break; // fail, restart
 		    else if (r == 0)
 		    {
-			syslog(LOG_WARNING, "EOF readed from %s, DSR=0",
+			syslog(LOG_WARNING, "EOF readed from %s, (DTR|DSR)==0",
 			       tty_name(tty));
 
                         if (send_modem_state(state_s, 0/* ~TTY_MODEM_DTR */))
-			    break; // restart
+			    break; // fail, restart
 
-			tty_close_no_restore_attr(tty);
 			tty_open(tty, device);
 #ifndef NO_RS232
-			if (tty_set_raw_no_save_attr(tty))
-			    break; // restart
+			if (tty_set_raw(tty))
+			    break; // fail, restart
 #endif
+                        // not fail, continue with re-opened tty
 		    }
 		    else	// r > 0
 		    {
@@ -253,17 +253,17 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		{
 		    ssize_t r = socket_recv(data_s, data_buf, DATA_BUF_SIZE);
 		    if (r < 0)
-			break; // restart
+			break; // fail, restart
 		    else if (r == 0)
 		    {
 			syslog(LOG_INFO, "data connection: EOF received from %s",
 			       socket_name(data_s));
-			break; // restart
+			break; // fail, restart
 		    }
 		    else
 		    {
 			if (tty_write_all(tty, data_buf, r))
-			    break; // restart
+			    break; // fail, restart
 		    }
 		}
 
@@ -271,12 +271,12 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		{
 		    ssize_t r = socket_recv(state_s, state_buf, STATE_BUF_SIZE);
 		    if (r < 0)
-			break; // restart
+			break; // fail, restart
 		    else if (r == 0)
 		    {
 			syslog(LOG_INFO, "state connection: EOF received from %s",
 			       socket_name(state_s));
-			break; // restart
+			break; // fail, restart
 		    }
 		    else
 		    {
@@ -284,15 +284,15 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 			for (i = 0; i < (size_t)r; ++i)
 			{
 			    tty_log_modem_state("Recv modem state: ", state_buf[i]);
-			    if (tty_set_modem_state(tty, state_buf[i]))
-				break; // restart
+			    if ( tty_set_modem_state(tty, state_buf[i]) )
+				break; // fail, restart
 			}
 		    }
 		}
 	    }
 
 	    if (get_send_new_modem_state(tty, state_s))
-		break; // restart
+		break; // fail, restart
 
 	} while(1); // poll loop
 

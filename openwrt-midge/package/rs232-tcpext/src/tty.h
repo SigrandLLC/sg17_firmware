@@ -10,7 +10,7 @@ typedef unsigned char modem_state_t;
 typedef struct
 {
     iobase_t *b;
-    struct termios termios;
+    struct termios save_attr;
     modem_state_t last_in_mstate;
     char          last_in_mstate_valid;
 } tty_t;
@@ -21,11 +21,11 @@ void   tty_delete   (tty_t *t);
 
 void   tty_open     (tty_t *t, const char *devname);
 void   tty_close    (tty_t *t);
-void   tty_close_no_restore_attr(tty_t *t);
+
+int    tty_save_attr(tty_t *t);
+int    tty_restore_attr(tty_t *t);
 
 int    tty_set_raw  (tty_t *t);
-int    tty_set_raw_no_save_attr(tty_t *t);
-void   tty_restore  (tty_t *t);
 
 
 extern inline const char *tty_name(tty_t *t) { return iobase_name(t->b); }
@@ -57,7 +57,6 @@ int  tty_set_modem_state(tty_t *t, modem_state_t  mstate);
 void tty_log_modem_state(const char *pfx, modem_state_t mstate);
 
 modem_state_t tty_mstate_merge(modem_state_t in_state);
-
 
 
 #endif //RS232_TCPEXT_TTY_H

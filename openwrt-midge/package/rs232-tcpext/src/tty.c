@@ -26,7 +26,6 @@ void tty_delete(tty_t *t)
     tty_close(t);
     iobase_delete(t->b); t->b = NULL;
     free(t);
-
 }
 
 
@@ -35,7 +34,7 @@ static void tty_unlock(const char *devname);
 
 void tty_open(tty_t *t, const char *devname)
 {
-    tty_close_no_restore_attr(t);
+    tty_close(t);
 
     tty_lock(devname);
 
@@ -67,7 +66,7 @@ void tty_open(tty_t *t, const char *devname)
     iobase_open(t->b, devname, fd);
 }
 
-static void tty_close_(tty_t *t, int restore_attr)
+void tty_close(tty_t *t)
 {
     if (tty_fd(t) >= 0)
     {
@@ -75,8 +74,7 @@ static void tty_close_(tty_t *t, int restore_attr)
 	   flow-control, we flush the output queue. */
 	tcflush(tty_fd(t), TCOFLUSH);
 
-	if (restore_attr)
-	    tty_restore(t);
+	tty_restore_attr(t);
 
 	char *name = xstrdup(tty_name(t));
 	iobase_close(t->b);
@@ -86,17 +84,6 @@ static void tty_close_(tty_t *t, int restore_attr)
 
     t->last_in_mstate_valid = 0;
 }
-
-void tty_close(tty_t *t)
-{
-    tty_close_(t, 1);
-}
-
-void tty_close_no_restore_attr(tty_t *t)
-{
-    tty_close_(t, 0);
-}
-
 
 static void tty_lock(const char *devname)
 {
@@ -122,8 +109,38 @@ static void tty_unlock(const char *devname)
 	syslog(LOG_WARNING, "Error while unlocking %s: %m", devname);
 }
 
+int tty_save_attr(tty_t *t)
+{
+    struct termios old_tios;
 
-static int tty_set_raw_(tty_t *t, int save_termios)
+    if (tcgetattr(tty_fd(t), &old_tios) < 0)
+    {
+	syslog(LOG_ERR, "Can't get attributes for device %s: %m", tty_name(t));
+	return -1;
+    }
+
+    memcpy(&t->save_attr, &old_tios, sizeof(old_tios));
+    return 0;
+}
+
+int tty_restore_attr(tty_t *t)
+{
+    if (tty_fd(t) >= 0 && t->save_attr.c_cflag & CSIZE)
+    {
+	if (tcsetattr(tty_fd(t), TCSANOW, &t->save_attr) < 0)
+	{
+	    syslog(LOG_WARNING, "Can't restore attributes for device %s: %m",
+		   tty_name(t));
+	    return -1;
+	}
+	else
+	    memset(&t->save_attr, 0, sizeof(t->save_attr));
+    }
+
+    return 0;
+}
+
+int tty_set_raw(tty_t *t)
 {
     struct termios old_tios;
     if (tcgetattr(tty_fd(t), &old_tios) < 0)
@@ -131,9 +148,6 @@ static int tty_set_raw_(tty_t *t, int save_termios)
 	syslog(LOG_ERR, "Can't get attributes for device %s: %m", tty_name(t));
 	return -1;
     }
-
-    if (save_termios)
-	memcpy(&t->termios, &old_tios, sizeof(old_tios));
 
     struct termios new_tios;
     memcpy(&new_tios, &old_tios, sizeof(new_tios));
@@ -158,29 +172,6 @@ static int tty_set_raw_(tty_t *t, int save_termios)
 
     return 0;
 }
-
-int tty_set_raw(tty_t *t)
-{
-    return tty_set_raw_(t, 1);
-}
-
-int tty_set_raw_no_save_attr(tty_t *t)
-{
-    return tty_set_raw_(t, 0);
-}
-
-void tty_restore(tty_t *t)
-{
-    if (tty_fd(t) >= 0 && t->termios.c_cflag & CSIZE)
-    {
-	if (tcsetattr(tty_fd(t), TCSANOW, &t->termios) < 0)
-	    syslog(LOG_WARNING, "Can't restore attributes for device %s: %m",
-		   tty_name(t));
-	else
-	    memset(&t->termios, 0, sizeof(t->termios));
-    }
-}
-
 
 static int tty_get_modem_state_(tty_t *t)
 {
