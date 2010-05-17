@@ -3,7 +3,7 @@
 pn=$0
 usage()
 {
-  echo 1>&2 "Usage $pn {sigrand | zelax} [-nofw]"
+  echo 1>&2 "Usage $pn {sigrand | zelax | sviazinvest} [-nofw]"
   exit 1
 }
 
@@ -11,10 +11,11 @@ if test "$#" -lt 1 -o "$#" -gt 2; then
   usage
 fi
 
-brand=$1; shift
-case $brand in
+oem=$1; shift
+case $oem in
      sigrand) ;;
        zelax) ;;
+ sviazinvest) ;;
            *) usage;;
 esac
 
@@ -30,7 +31,7 @@ if test "$#" -eq 1; then
 fi
 
 rm -f .config* .tmpconfig.h
-cp -a config_$brand .config
+cp -a config_$oem .config
 
 if test -n "$nofw"; then
 echo "Unset FW in .config"
@@ -44,7 +45,7 @@ sed -i -r -e 's/^.*(BR2_PACKAGE_IPTABLES.*)=./\1=n/g'		.config
 sed -i -r -e 's/^.*(BR2_PACKAGE_IP6TABLES)=./\1=n/g'		.config
 fi
 
-yes '' | make oldconfig > oldconfig-${brand}${nofw}-$$.log
+yes '' | make oldconfig > oldconfig-${oem}${nofw}-$$.log
 make oem_clean
 
 if test -e .cfg.sg-17r; then
@@ -64,9 +65,4 @@ if test "$NOFW" != "$nofw"; then
 fi
 
 
-nice -19 make V=9 || exit 1
-
-rev=`./rev.sh`
-mv	bin/openwrt-sigrand5120-2.6-jffs2-32MB.bin \
-	sg17-r-cp1_${rev}${nofw}_${brand}.bin
-
+nice -19 make V=9

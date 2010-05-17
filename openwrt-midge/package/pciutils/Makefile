@@ -3,14 +3,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=pciutils
-PKG_VERSION:=2.2.1
-PKG_RELEASE:=1
-PKG_MD5SUM:=c18e2a5f04e9abae5a42439de294f086
+PKG_VER_MAJOR = 3
+PKG_VERSION:=$(PKG_VER_MAJOR).1.7
+PKG_RELEASE:=2
+PKG_MD5SUM:=35222edb86b50a6641352c66fe829b2e
 
-PKG_SOURCE_URL:=http://www.kernel.org/pub/software/utils/pciutils/ \
-	ftp://atrey.karlin.mff.cuni.cz/pub/linux/pci
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_CAT:=zcat
+PKG_SOURCE_URL := http://debian.nsu.ru/debian/pool/main/p/pciutils/
+PKG_SOURCE_URL += http://ftp.debian.org/debian/pool/main/p/pciutils/
+PKG_SOURCE:=$(PKG_NAME)_$(PKG_VERSION).orig.tar.bz2
+PKG_CAT:=bzcat
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/ipkg-install
@@ -24,13 +25,18 @@ $(PKG_BUILD_DIR)/.configured:
 
 $(PKG_BUILD_DIR)/.built:
 	$(MAKE) -C $(PKG_BUILD_DIR) \
-		CC=$(TARGET_CC) CFLAGS="$(TARGET_CFLAGS)" IDSDIR="/usr/share" HOST=$(GNU_TARGET_NAME)
+		CC="$(TARGET_CC)" CFLAGS="$(TARGET_CFLAGS)" IDSDIR="/usr/share"	\
+		HOST=$(GNU_TARGET_NAME) ZLIB=no DNS=no SHARED=yes		\
+		lspci setpci
 	touch $@
 
 $(IPKG_PCIUTILS):
 	install -d -m0755 $(IDIR_PCIUTILS)/usr/sbin
 	install -d -m0755 $(IDIR_PCIUTILS)/usr/share
+	install -d -m0755 $(IDIR_PCIUTILS)/usr/lib
 	$(CP) $(PKG_BUILD_DIR)/{lspci,setpci} $(IDIR_PCIUTILS)/usr/sbin/
+	$(CP) $(PKG_BUILD_DIR)/lib/libpci.so.$(PKG_VERSION) $(IDIR_PCIUTILS)/usr/lib/
+	ln -sf libpci.so.$(PKG_VERSION) $(IDIR_PCIUTILS)/usr/lib/libpci.so.$(PKG_VER_MAJOR)
 	$(CP) $(PKG_BUILD_DIR)/pci.ids $(IDIR_PCIUTILS)/usr/share/
 	$(RSTRIP) $(IDIR_PCIUTILS)/
 	$(IPKG_BUILD) $(IDIR_PCIUTILS) $(PACKAGE_DIR)

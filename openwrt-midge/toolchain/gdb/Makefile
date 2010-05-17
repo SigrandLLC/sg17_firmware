@@ -46,14 +46,14 @@ $(GDB_CLIENT_DIR)/gdb/gdb: $(GDB_CLIENT_DIR)/.configured
 	$(MAKE) -C $(GDB_CLIENT_DIR)
 	strip $(GDB_CLIENT_DIR)/gdb/gdb
 
-$(TARGET_CROSS)gdb: $(GDB_CLIENT_DIR)/gdb/gdb
-	install -c $(GDB_CLIENT_DIR)/gdb/gdb $(TARGET_CROSS)gdb
+$(_TARGET_CROSS_)gdb: $(GDB_CLIENT_DIR)/gdb/gdb
+	install -c $(GDB_CLIENT_DIR)/gdb/gdb $(_TARGET_CROSS_)gdb
 	cd $(STAGING_DIR)/bin && \
-	ln -fs $(TARGET_CROSS)gdb $(GNU_TARGET_NAME)-gdb
+	ln -fs $(_TARGET_CROSS_)gdb $(GNU_TARGET_NAME)-gdb
 
 source: $(DL_DIR)/$(GDB_SOURCE)
 prepare: $(GDB_DIR)/.patched
-compile: 
-install: $(TARGET_CROSS)gdb
+compile:
+install: $(_TARGET_CROSS_)gdb
 clean:
 	rm -rf $(GDB_CLIENT_DIR) $(GDB_DIR)

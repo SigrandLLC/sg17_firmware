@@ -1,0 +1,8 @@
+config BR2_PACKAGE_LIBLOCKDEV
+	prompt "liblockdev........................ Device locking library"
+	tristate
+	default m if CONFIG_DEVEL
+	help
+	  It provides a reliable way to put an exclusive lock to devices
+	  using _both_ FSSTND and SVr4 methods.
+

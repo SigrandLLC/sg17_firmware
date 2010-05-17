@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+
+addr=`dd if=/dev/mtd/0ro bs=1 skip=82388 count=4 2>/dev/null | hexdump -v -e '/1 "%d "'`
+
+pr()
+{
+	echo $4.$3.$2.$1
+}
+
+pr ${addr}
+

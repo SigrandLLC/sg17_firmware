@@ -11,7 +11,7 @@ BOARD:=$(shell LANG=C grep ^BR2_LINUX_2 $(TOPDIR)/.config|sed -e "s/=y//" \
 KERNEL:=$(shell LANG=C grep ^BR2_LINUX_2 $(TOPDIR)/.config|sed -e "s/=y//" \
 	-e "s/BR2_LINUX_//" -e "s/_BRCM//" -e "s/_/./"| tr "[:upper:]" "[:lower:]")
 
-REV:=$(shell LANG=C svn info | awk '/^Revision:/ { print$$2 }' )
+REV:=$(shell $(TOPDIR)/rev.sh)
 ifeq ($(REV),)
 REV:=0
 endif
@@ -29,8 +29,8 @@ LIBGCC_VERSION:=${shell cat $(STAGING_DIR)/gcc_version}
 IDIR_LIBGCC:=$(PKG_BUILD_DIR)/libgcc
 IPKG_LIBGCC:=$(PACKAGE_DIR)/libgcc_$(LIBGCC_VERSION)-$(PKG_RELEASE)_$(ARCH).ipk
 
-PACKAGES:=$(IPKG_BASE) $(IPKG_UCLIBC) 
-PACKAGES_INSTALL:=$(IPKG_BASE) $(IPKG_UCLIBC) 
+PACKAGES:=$(IPKG_BASE) $(IPKG_UCLIBC)
+PACKAGES_INSTALL:=$(IPKG_BASE) $(IPKG_UCLIBC)
 
 ifeq ($(BR2_PACKAGE_LIBGCC),y)
 PACKAGES+=$(IPKG_LIBGCC)
@@ -95,7 +95,7 @@ $(IPKG_LIBGCC):
 
 package-clean:
 	rm -f $(PACKAGES)
-	
+
 clean-targets: package-clean
 prepare:
 compile-targets: $(PACKAGES)

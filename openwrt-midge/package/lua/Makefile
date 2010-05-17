@@ -29,21 +29,21 @@ $(PKG_BUILD_DIR)/.configured:
 
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	$(MAKE) -C $(PKG_BUILD_DIR) \
-		CC="$(TARGET_CROSS)gcc" \
-		LD="$(TARGET_CROSS)ld" \
+		CC="'$(TARGET_CROSS)gcc'" \
+		LD="'$(TARGET_CROSS)ld'" \
 		AR="$(TARGET_CROSS)ar rcu" \
 		RANLIB="$(TARGET_CROSS)ranlib" \
 		INSTALL_ROOT=/usr \
 		MYCFLAGS="-I$(STAGING_DIR)/usr/include -I$(STAGING_DIR)/usr/include/readline $(TARGET_CFLAGS)" \
 		MYLDFLAGS="-L$(STAGING_DIR)/usr/lib" \
-		linux 
+		linux
 	# remove statically linked binaries, so that they will get linked against shlib this time
 	rm -f $(PKG_BUILD_DIR)/bin/lua{,c}
 	rm -rf $(PKG_INSTALL_DIR)
 	mkdir -p $(PKG_INSTALL_DIR)
 	$(MAKE) -C $(PKG_BUILD_DIR) \
 		INSTALL_TOP="$(PKG_INSTALL_DIR)/usr" \
-		install 
+		install
 	touch $@
 
 $(IPKG_LIBLUA):

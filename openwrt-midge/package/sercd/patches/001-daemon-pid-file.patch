@@ -1,0 +1,74 @@
+--- sercd-3.0.0/sercd.c.orig	2008-08-17 19:07:20.000000000 +0700
++++ sercd-3.0.0/sercd.c	2010-03-24 18:06:58.000000000 +0600
+@@ -74,6 +74,8 @@ BufferType;
+ /* Complete lock file pathname */
+ static char *LockFileName;
+ 
++static char *PidFileName = NULL;
++
+ /* Complete device file pathname */
+ static char *DeviceName;
+ 
+@@ -1199,6 +1201,7 @@ Usage(void)
+ 	    "-e       send output to standard error instead of syslog\n"
+ 	    "-p port  listen on specified port, instead of port 7000\n"
+ 	    "-l addr  standalone mode, bind to specified adress, empty string for all\n"
++	    "-P file  daemon pid file (in standalone mode)\n"
+ 	    "Poll interval is in milliseconds, default is %d,\n"
+ 	    "0 means no polling\n", VERSION, DEFAULT_POLL_INTERVAL);
+ }
+@@ -1223,7 +1226,7 @@ main(int argc, char **argv)
+     BufferType ToNetBuf;
+ 
+     int opt = 0;
+-    char *optstring = "iep:l:";
++    char *optstring = "iep:l:P:";
+     unsigned int opt_port = 7000;
+     Boolean inetd_mode = True;
+     struct in_addr opt_bind_addr;
+@@ -1260,6 +1263,15 @@ main(int argc, char **argv)
+ 	    }
+ 	    inetd_mode = False;
+ 	    break;
++	case 'P':
++	    if (*optarg) {
++		PidFileName = optarg;
++	    }
++	    else {
++		fprintf(stderr, "No pid file specified\n");
++		exit(Error);
++	    }
++	    break;
+ 	}
+     }
+ 
+@@ -1352,6 +1364,29 @@ main(int argc, char **argv)
+ 	}
+ 	LSocketFd = &lsocket;
+ 	NewListener(*LSocketFd);
++
++	if ( daemon (0, 0) < 0 ) {
++	    perror("daemon");
++	    snprintf(LogStr, sizeof(LogStr), "daemon: %s", strerror(errno));
++	    LogStr[sizeof(LogStr) - 1] = '\0';
++	    LogMsg(LOG_ERR, LogStr);
++	    exit(Error);
++	}
++
++        if (PidFileName != NULL)
++	{
++	    FILE *pidf = fopen(PidFileName, "w");
++	    if (pidf == NULL)
++	    {
++		snprintf(LogStr, sizeof(LogStr), "can't create pid file %s: %s",
++			 PidFileName, strerror(errno));
++		LogStr[sizeof(LogStr) - 1] = '\0';
++		LogMsg(LOG_ERR, LogStr);
++		exit(Error);
++	    }
++	    fprintf(pidf, "%d\n", getpid());
++            fclose(pidf);
++	}
+     }
+ 
+     /* Main loop with fd's control. General note: We basically have

@@ -19,7 +19,6 @@ function generateMenu() {
     addItem("Services", "DNS server", "dns_server");
     addItem("Services", "Dial-in", "dialin");
     addItem("Services", "Terminal", "terminal");
-    addItem("Services", "RS-232 over IP", "ser2net");
 
     /* if we have support for linkdeps */
     if (config.getCachedOutput("linkdeps") == "1") {
@@ -98,6 +97,7 @@ function generateMenu() {
                                 iface), $.sprintf("rs232Type_%s", pcislot));
                     }
                     addItem("Hardware:RS232", iface, "rs232", [iface, pcislot, num]);
+                    addItem("Services:RS-232 over TCP/IP", iface, "rs232_tcpext", [iface, pcislot, num]);
                     break;
             }
         });
@@ -115,12 +115,31 @@ function generateMenu() {
         }
     });
 
+    var PlusMinusMenu = function(li) {
+        var span = li.children('span:first');
+        if(li.hasClass('expandable')) {
+            span.text(span.text().substr(2));
+            span.prepend('+ ');
+        }
+        else if(li.hasClass('collapsable')) {
+            span.text(span.text().substr(2));
+            span.prepend('- ');
+        }
+    }
+
+
+
     /* generate menu */
     $("#menu").treeview({
         "unique": true,
         "collapsed": true,
-        "persist": "cookie"
+        "persist": "cookie",
+        "toggle": function() {
+            PlusMinusMenu($(this));
+        }
+
     });
+    $("#menu").find("li").each(function(i) { PlusMinusMenu($(this)); });
 }
 
 /* WF2 logs */

@@ -3,13 +3,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=socat
-PKG_VERSION:=1.6.0.0
-PKG_RELEASE:=1
-PKG_MD5SUM:=810135eb1c3e892b1577735b7deca8ef
 
-PKG_SOURCE_URL:=http://www.dest-unreach.org/socat/download/
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_CAT:=bzcat
+PKG_VERSION:=1.7.1.2
+PKG_RELEASE:=3
+PKG_MD5SUM:=2a5b7b0355421a039fb68b7541181b38
+
+PKG_SOURCE_URL := http://debian.nsu.ru/debian/pool/main/s/socat/
+PKG_SOURCE_URL += http://ftp.debian.org/debian/pool/main/s/socat/
+PKG_SOURCE:=$(PKG_NAME)_$(PKG_VERSION).orig.tar.gz
+PKG_CAT:=zcat
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/ipkg-install
@@ -18,13 +20,21 @@ include $(TOPDIR)/package/rules.mk
 
 $(eval $(call PKG_template,SOCAT,socat,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
+ifeq "$(GNU_TARGET_NAME)" "mipsel-linux"
+   shifts =	sc_cv_sys_crdly_shift=9 \
+		sc_cv_sys_tabdly_shift=11 \
+		sc_cv_sys_csize_shift=4
+endif
+
 $(PKG_BUILD_DIR)/.configured:
 	(cd $(PKG_BUILD_DIR); rm -rf config.{cache,status}; \
 		$(TARGET_CONFIGURE_OPTS) \
 		CFLAGS="$(TARGET_CFLAGS)" \
 		CPPFLAGS="-I$(STAGING_DIR)/usr/include -I$(STAGING_DIR)/include" \
 		LDFLAGS="-L$(STAGING_DIR)/usr/lib -L$(STAGING_DIR)/lib" \
-		sc_cv_termios_ispeed="no" \
+		ac_cv_func_memcmp_working=yes \
+		sc_cv_termios_ispeed=no \
+		$(shifts) \
 		./configure \
 			--target=$(GNU_TARGET_NAME) \
 			--host=$(GNU_TARGET_NAME) \
@@ -47,6 +57,8 @@ $(PKG_BUILD_DIR)/.configured:
 			$(DISABLE_NLS) \
 			--disable-libwrap \
 			--disable-readline \
+			--disable-ext2 \
+			--disable-filan \
 	)
 	touch $@
 

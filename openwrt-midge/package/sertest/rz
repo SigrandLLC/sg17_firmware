@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if test "$#" -lt 1 -o "$#" -gt 2; then
+	echo 1>&2 "Usage: $0 device [speed]"
+	exit 1
+fi
+
+if test "$#" -eq 2; then
+	stty -F $1 $2
+fi
+
+rz -vvv < $1 > $1

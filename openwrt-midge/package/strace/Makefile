@@ -48,10 +48,10 @@ $(PKG_BUILD_DIR)/.configured:
 
 $(PKG_BUILD_DIR)/.built:
 	$(MAKE) -C $(PKG_BUILD_DIR) \
-		CC=$(TARGET_CC)
+		CC="$(TARGET_CC)"
 	touch $@
 
-$(IPKG_STRACE): 
+$(IPKG_STRACE):
 	mkdir -p $(IDIR_STRACE)/usr/sbin
 	$(CP) $(PKG_BUILD_DIR)/$(PKG_NAME) $(IDIR_STRACE)/usr/sbin/
 	$(STRIP) $(IDIR_STRACE)/usr/sbin/*

@@ -1,0 +1,5 @@
+Package: rs232-tcpext
+Priority: optional
+Section: net
+Description: Extends RS232 ports over TCP/IP
+
