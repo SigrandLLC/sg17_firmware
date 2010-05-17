@@ -60,7 +60,7 @@ static int get_send_new_modem_state(tty_t* t, socket_t *s)
 #endif
     if ( !t->last_in_mstate_valid || t->last_in_mstate != in_mstate)
     {
-	modem_state_t out_mstate = tty_mstate_in_to_out(in_mstate);
+	modem_state_t out_mstate = tty_mstate_merge(in_mstate);
         if (send_modem_state(s, out_mstate))
 	    return -1;
 	t->last_in_mstate = in_mstate;

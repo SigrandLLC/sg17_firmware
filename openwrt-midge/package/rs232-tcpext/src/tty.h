@@ -56,7 +56,7 @@ int  tty_get_modem_state(tty_t *t, modem_state_t *mstate);
 int  tty_set_modem_state(tty_t *t, modem_state_t  mstate);
 void tty_log_modem_state(const char *pfx, modem_state_t mstate);
 
-modem_state_t tty_mstate_in_to_out(modem_state_t in_state);
+modem_state_t tty_mstate_merge(modem_state_t in_state);
 
 
 

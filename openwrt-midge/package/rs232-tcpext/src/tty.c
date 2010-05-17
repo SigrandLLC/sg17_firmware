@@ -223,12 +223,17 @@ int tty_set_modem_state(tty_t *t, modem_state_t  mstate)
     int val = tty_get_modem_state_(t);
     if (val < 0) return val;
 
-    val &= ~(TIOCM_DTR|TIOCM_RTS|TIOCM_CD|TIOCM_RI);
+    val &= ~(TIOCM_DTR | TIOCM_DSR | TIOCM_RTS | TIOCM_CTS |
+	     TIOCM_CD | TIOCM_RI);
 
     if (mstate & TTY_MODEM_DTR)
 	val    |=    TIOCM_DTR;
+    if (mstate & TTY_MODEM_DSR)
+	val    |=    TIOCM_DSR;
     if (mstate & TTY_MODEM_RTS)
 	val    |=    TIOCM_RTS;
+    if (mstate & TTY_MODEM_CTS)
+	val    |=    TIOCM_CTS;
     if (mstate & TTY_MODEM_CD)
 	val    |=    TIOCM_CD;
     if (mstate & TTY_MODEM_RI)
@@ -243,15 +248,17 @@ int tty_set_modem_state(tty_t *t, modem_state_t  mstate)
     return 0;
 }
 
-modem_state_t tty_mstate_in_to_out(modem_state_t in_state)
+modem_state_t tty_mstate_merge(modem_state_t in_state)
 {
     modem_state_t out_state = 0;
 
-    if ( in_state &  TTY_MODEM_DSR )
-	out_state |= TTY_MODEM_DTR;
-    if ( in_state &  TTY_MODEM_CTS )
-	out_state |= TTY_MODEM_RTS;
-    out_state |= in_state & (TTY_MODEM_CD | TTY_MODEM_RI);
+    if ( in_state &  (TTY_MODEM_DTR | TTY_MODEM_DSR) )
+	out_state |= (TTY_MODEM_DTR | TTY_MODEM_DSR);
+
+    if ( in_state &  (TTY_MODEM_RTS | TTY_MODEM_CTS) )
+	out_state |= (TTY_MODEM_RTS | TTY_MODEM_CTS);
+
+    out_state |= in_state & (TTY_MODEM_CD  | TTY_MODEM_RI );
 
     return out_state;
 }
