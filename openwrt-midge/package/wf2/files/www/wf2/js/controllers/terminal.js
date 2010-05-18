@@ -98,23 +98,14 @@ Controllers.terminal = function ()
 					if (config.getParsed($.sprintf("sys_demon_%s_enable", iface)) != 1)
 					{
 						$($.sprintf("#sys_demon_%s_name", iface)).val(iface);
+						config.cmdExecute({"cmd": $.sprintf("kdb set sys_demon_%s_name=%s", iface, iface), "async" : false});
 						buf[iface] = "";
-//						config.cmdExecute({"cmd": $.sprintf("kdb set sys_demon_%s_name=%s", iface, iface), "async" : false});
 					}
+					config.loadKDB();
+					config.loadOEM();
 				});
 				Controllers["terminal"]();
 			},
-//			"preSubmit" : function()
-//			{
-//				var ifaces = config.getData(config.getOEM("MR17S_DRVNAME"));
-//				$.each(ifaces, function(num, ifaceInfo) {
-//					var iface = ifaceInfo.iface;
-//					updateFields($.sprintf("sys_demon_%s_enable", iface), "");
-//					alert("config "+iface+" = " + config.get($.sprintf("sys_demon_%s_enable", iface)));
-//					alert("real "+iface+" = " + $($.sprintf("#sys_demon_%s_enable", iface)).val());
-//				});
-//				return true;
-//			},
 			 "reload" : false});
         }
     });
