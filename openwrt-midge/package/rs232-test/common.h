@@ -70,7 +70,7 @@ static void _setmode(enum DeviceIndex i, const size_t *speedptr)
 
     if (speedptr != NULL)
     {
-        speed_t speed;
+        speed_t speed = B0;
 
 	switch (*speedptr)
 	{
