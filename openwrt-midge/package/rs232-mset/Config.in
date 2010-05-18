@@ -1,0 +1,7 @@
+config BR2_PACKAGE_RS232_MSET
+	prompt "rs232-mset........................ Set RS232 port modem lines"
+	tristate
+	default m if CONFIG_DEVEL
+	help
+	  Set RS232 port modem lines.
+
