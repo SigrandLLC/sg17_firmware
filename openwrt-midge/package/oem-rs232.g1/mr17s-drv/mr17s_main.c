@@ -430,10 +430,12 @@ mr17s_set_mctrl(struct uart_port *port, unsigned int mctrl)
     else
 	reg &= ~DTR;
 
+#if 0
     if (mctrl & (TIOCM_RTS|TIOCM_CTS) )
 	reg |= RTS;
     else
 	reg &= ~RTS;
+#endif
 
     if (mctrl & (TIOCM_CAR|TIOCM_CD ) )
         reg |= CD;
