@@ -6,7 +6,7 @@ var cmdSpans = new Array(16);
 var bufSpans = new Array(16);
 var t0 = 0, t1 = 0, t2, t3;
 var func_en = 0;
-var requesttime = 300000;
+var requesttime = 300;
 var cur_iface;
 var isctrl = false;
 var tab = "";
@@ -145,11 +145,20 @@ Controllers.terminal = function ()
 				case 8:
 					if (j > 0)
 					{
-						str2 = str2.substring(0, str2.length - 1);
-						j--;
+						if (str2.substring(str2.length - 6 , str2.length) == '&nbsp;')
+						{
+							str2 = str2.substring(0, str2.length - 6);
+							j -=5 ;
+						} else {
+							str2 = str2.substring(0, str2.length - 1);
+							j--;
+						}
 					} else {
 						var str3 = new String(bufSpans[cur_iface].html());
-						bufSpans[cur_iface].html(str3.substring(0, str3.length - 1));
+						if (str3.substring(str3.length - 6 , str3.length) == '&nbsp;')
+							bufSpans[cur_iface].html(str3.substring(0, str3.length - 6));
+						else
+							bufSpans[cur_iface].html(str3.substring(0, str3.length - 1));
 						buf[cur_iface] = bufSpans[cur_iface].html();
 					}
 				break;
@@ -168,8 +177,14 @@ Controllers.terminal = function ()
 				break;
 				case 7:
 				break;
-				case 13:
+				case 32:
+					str2 += '&nbsp;';
+					j += 6;
 				break;
+//				case 45:
+//					str2 += "-";
+//					j++;
+//				break;
 				default:
 					if (str.charCodeAt(i) > 31) {
 						str2 += str.charAt(i);
@@ -179,10 +194,13 @@ Controllers.terminal = function ()
 		}
 		if (j > 0)
 		{
-			bufSpans[cur_iface].append(str2);
-			buf[cur_iface] = bufSpans[cur_iface].html();
+			if (bufSpans[cur_iface] != null)
+			{
+				bufSpans[cur_iface].append(str2);
+				buf[cur_iface] = bufSpans[cur_iface].html();
+			}
 		}
-		consoleDivs[cur_iface].scrollTo('100%', 0, {axis: 'y'});
+		if (consoleDivs[cur_iface] != null) consoleDivs[cur_iface].scrollTo('9999999999px', {axis: 'y'});
 //		$("#status").html($("#status").html()+"<br>");
 	};	
 
@@ -213,7 +231,7 @@ Controllers.terminal = function ()
 						buf[value.dev] += value.text;
 						if (buf[value.dev].length > 40*1024) buf[value.dev] = buf[value.dev].substring(buf[value.dev].length - 40*1024, buf[value.dev].length);
 						bufSpans[value.dev].append(value.text);
-						setTimeout(function () {consoleDivs[value.dev].scrollTo('100%', 0);}, 10);
+						setTimeout(function () {consoleDivs[value.dev].scrollTo('9999999999px', 0);}, 10);
 					}
 					else {
 //						alert("value text == ''");
@@ -228,7 +246,7 @@ Controllers.terminal = function ()
 
 		config.cmdExecute({
 			"cmd": "/sbin/tbuffctl -p* -a",
-//			"async": false,
+			"async": false,
 			"dataType" : "json",
 			"formatData": true,
 			"status" : false,
@@ -242,12 +260,13 @@ Controllers.terminal = function ()
 //							alert(substr);
 							cur_iface = value.dev;
 							parse_answer(value.text);
-//							value.text = value.text.substiring((value.text.length > 100)?100:value.text.length, value.text.length);
 
+//							value.text = value.text.substiring((value.text.length > 100)?100:value.text.length, value.text.length);
 //							buf[value.dev] += value.text;
 //							if (buf[value.dev].length > 40*1024) buf[value.dev] = buf[value.dev].substring(buf[value.dev].length - 40*1024, buf[value.dev].length);
 //							bufSpans[value.dev].append(value.text);
-							setTimeout(function () {consoleDivs[value.dev].scrollTo('100%', 0, {axis: 'y'});}, 10);
+
+							if (consoleDivs[value.dev] != null) setTimeout(function () {consoleDivs[value.dev].scrollTo('9999999999px', {axis: 'y'});}, 10);
 						}
 					});
 				}
@@ -261,7 +280,7 @@ Controllers.terminal = function ()
 	
 	if ((timer == 0) && (func_en == 1))
 	{
-		tout = setTimeout(func, requesttime);
+		tout = setTimeout(func, requesttime+2000);
 		timer = 1;
 	}
 	function sortfunc(i, ii) {
@@ -429,22 +448,24 @@ Controllers.terminal = function ()
 							parse_answer(xmlhttp.responseText);
 							if (xmlhttp.responseText == "")
 							{
-								if ((ch >= 32) && (ch <= 126) || (ch == 10))
-								parse_answer(String.fromCharCode(ch));
+//								if ((ch >= 32) && (ch <= 126) || (ch == 10))
+//								parse_answer(String.fromCharCode(ch));
+//								alert("empty answer");
 							}
 						} else {
-							if ((ch >= 32) && (ch <= 126) || (ch == 10))
-							parse_answer(String.fromCharCode(ch));
+//							if ((ch >= 32) && (ch <= 126) || (ch == 10))
+//							parse_answer(String.fromCharCode(ch));
+//							alert("status"+xmlhttp.status);
 						}
 //						func();
 						
 						return false;
 					};
 					var onclick = function() {
-						consoleDivs[iface].scrollTo('100%', 0, {axis: 'y'});
+						consoleDivs[iface].scrollTo('9999999999px', {axis: 'y'});
 					};
 					setTimeout(function() {
-						consoleDivs[iface].scrollTo('100%', 0, {axis: 'y'});
+						consoleDivs[iface].scrollTo('9999999999px', {axis: 'y'});
 						consoleDivs[iface].focus();
 					}, 10);
 					consoleDivs[iface].click(onclick);

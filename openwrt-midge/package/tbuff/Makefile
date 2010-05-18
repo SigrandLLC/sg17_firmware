@@ -32,6 +32,7 @@ $(IPKG_SIGRAND_TBUFF):
 	install -d -m0755 $(IDIR_SIGRAND_TBUFF)/www
 	install -d -m0755 $(IDIR_SIGRAND_TBUFF)/www/wf2
 	install -d -m0755 $(IDIR_SIGRAND_TBUFF)/www/wf2/sh
+	rm -f $(IDIR_SIGRAND_TBUFF)/www/wf2/sh/tbuffctl
 	ln -s /sbin/tbuffctl $(IDIR_SIGRAND_TBUFF)/www/wf2/sh/tbuffctl
 	install -d -m0755 $(IDIR_SIGRAND_TBUFF)/usr
 	install -d -m0755 $(IDIR_SIGRAND_TBUFF)/usr/bin
