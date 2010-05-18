@@ -246,8 +246,10 @@ modem_state_t tty_mstate_merge(modem_state_t in_state)
     if ( in_state &  (TTY_MODEM_DTR | TTY_MODEM_DSR) )
 	out_state |= (TTY_MODEM_DTR | TTY_MODEM_DSR);
 
+#if 0
     if ( in_state &  (TTY_MODEM_RTS | TTY_MODEM_CTS) )
 	out_state |= (TTY_MODEM_RTS | TTY_MODEM_CTS);
+#endif
 
     out_state |= in_state & (TTY_MODEM_CD  | TTY_MODEM_RI );
 
@@ -257,7 +259,7 @@ modem_state_t tty_mstate_merge(modem_state_t in_state)
 
 void tty_log_modem_state(const char *pfx, modem_state_t mstate)
 {
-    char buf[256];
+    char buf[64];
 
     snprintf(buf, sizeof(buf), "DTR:%d DSR:%d RTS:%d CTS:%d CD:%d RI:%d",
              !!(mstate & TTY_MODEM_DTR),
