@@ -1,0 +1,5 @@
+Package: rs232-mset
+Priority: optional
+Section: serial
+Description: Set RS232 port modem lines
+

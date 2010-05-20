@@ -7,14 +7,15 @@ tapi_name=drv_tapi-3.6.1
 vinetic_name=drv_vinetic-1.3.1_tapi-3.6.1
 patch_path=$cur_path/../../patches
 
-path_to_bin=/home/vlad/midge/openwrt-midge/staging_dir_mipsel/bin/
+path_to_bin=${curr_path}/../../../../../staging_dir_mipsel/bin/
+
 PATH=$PATH:${path_to_bin}
 
 echo MAKING [E,V]TST...
 
 cd ${cur_path}/..
-tar -xvpf ${tapi_name}.tar.gz 
-tar -xvpf ${vinetic_name}.tar.gz 
+tar -xvpf ${tapi_name}.tar.gz
+tar -xvpf ${vinetic_name}.tar.gz
 
 ln -snf drv_sgatab 		sgatab
 ln -snf ${tapi_name}	tapi

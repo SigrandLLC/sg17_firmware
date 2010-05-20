@@ -1,0 +1,118 @@
+MR17S4 Register Description V.1.0
+(4*RS-232 Async Serial Port)
+
+ PCI Vendor ID: 0x0055
+ PCI Device ID: 0x0096
+ PCI Class Code: 0x078000
+ PCI Subsystem ID:
+0x00: 2 channels DTE
+0x01: 2 channels DCE
+0x02: 4 channels DTE
+0x03: 4 channels DCE
+
+ General Memory Map (total 16 Kbytes)
+
+0000..03FF - Serial port channel 0 (1 Kbyte)
+0400..07FF - Serial port channel 1
+0800..0BFF - Serial port channel 2
+0C00..0FFF - Serial port channel 3
+Note: channels 2 and 3 is not available for 2-channel version.
+
+ Serial port channel 0..3 Memory Map
+
+0x0000 - 0x00FF - Transmit Ring Buffer (256 bytes)
+0x0100 - 0x01FF - Receive Ring Buffer (256 bytes)
+0x0200 - 0x020F - Serial Port and Multiplexer registers (16 bytes)
+
+ Serial port channel 0..3 registers
+
+0x00 CRA - Control Register A
+Bit 0 (0x01) - TXEN - Transmitter Enable
+Bit 1 (0x02) - RXEN - Receiver Enable
+Bit 2 (0x04) - FCEN - Flow Control Enable (RTS/CTS)
+Bit 3 (0x08) - MCFW - Modem Control signals Forwarding (for MXEN=1 only)
+Bit 4 (0x10) - DTR  - DTR output (DTE), DSR output (DCE)
+Bit 5 (0x20) - RTS  - RTS output (DTE), CTS output (DCE)
+Bit 6 (0x40) - CD   - CD output (DCE only)
+Bit 7 (0x80) - RI   - RI output (DCE only)
+
+0x01 CRB - Control Register B
+Bit 0 (0x01) - BAUD0 - BAUD[2..0] - Baud rate: 230400/(2^BAUD[2..0])
+Bit 1 (0x02) - BAUD1
+Bit 2 (0x04) - BAUD2
+Bit 3 (0x08) - BDIV6 - Baud rate: 0-divide by 1, 1-divide by 6 (38400/(2^BAUD[2..0]))
+Bit 4 (0x10) - PAR0  - PAR[1..0] - Parity: 00-none, 10-even, 11-odd
+Bit 5 (0x20) - PAR1
+Bit 6 (0x40) - STOP2 - Stop bits: 0 - 1 stop bit, 1 - 2 stop bits
+Bit 7 (0x80) - DATA7 - Data bits: 0 - 8 data bits, 1 - 7 data bits
+
+0x02 SR  - Status Register
+Bit 0 (0x01) - TXS - Transmit Success
+Bit 1 (0x02) - RXS - Receive Success
+Bit 2 (0x04) - RXE - Receive Error
+Bit 3 (0x08) - MCC - Modem Control Signals Change (DSR, CTS, CD, RI)
+Bit 4 (0x10) - DSR - DSR input (DTE), DTR input (DCE)
+Bit 5 (0x20) - CTS - CTS input (DTE), RTS input (DCE)
+Bit 6 (0x40) - CD  - CD input (DTE only)
+Bit 7 (0x80) - RI  - RI input (DTE only)
+
+0x03 IMR - Interrup Mask Register (0-masked, 1-unmasked)
+Bit 0 (0x01) - TXS - Transmit Success
+Bit 1 (0x02) - RXS - Receive Success
+Bit 2 (0x04) - RXE - Receive Error
+Bit 3 (0x08) - MCC - Modem Control Signals Change
+
+Transmit Ring Buffer Registers
+0x04 CTR - Current Transmit address Register
+0x05 LTR - Last Transmi address Register
+
+Receive Ring Buffer Registers
+0x06 CRR - Current Receive address Register
+0x07 LRR - Last Receive address Register
+
+To Transmit a Byte:
+1. Check space in the Ring buffer (LTR+1 = CTR if no space)
+2. Write a byte at LTR pointer
+3. Increment LTR. Transmission starts and continues when LTR != CTR
+4. Goto 1 if more bytes are available to transmit (up to 255 bytes)
+5. When all bytes transmitted, TXS is set and interrupt is generated
+
+To Receive a Byte:
+1. When a byte received, RXS is set and interrupt is generated
+2. Check for data available in the Ring buffer (LTR=CTR if no data)
+3. Read a byte at CTR pointer
+4. Increment CTR
+5. Goto 2 to read more bytes
+
+
+ Multiplexer Registers
+
+0x08 RATE - Not used, 0x00 after reset.
+
+0x09 MXRATE - Nx64 multiplexer payload rate
+Number of multiplexer payload timeslots minus 1 (N-1).
+Note: N*64 should be greater than Baud rate. For example, 2*64 (128000) for 115200 baud.
+Note2: Additional timeslot required when MCFW=1. For example, 3*64 (192000) for 115200 baud.
+
+0x0A TFS - Transmit Frame Start (0 to 255)
+Start of transmit (read from bus) timeslot range
+(End of transmit range is TFS + MXRATE)
+
+0x0B RFS - Receive Frame Start (0 to 255)
+Start of receive (output to bus) timeslot range
+(End of receive range is RFS + MXRATE)
+
+0x0C TLINE - Transmit multiplexer bus Line number (0 to 7)
+0x0D RLINE - Receive multiplexer bus Line number (0 to 7)
+(TLINE=RLINE is valid as well if transmit/receive timeslot ranges do not overlap)
+
+0x0E MXCR - multiplexer control register (4-bit)
+Bit 0 (0x01) - MXEN - Multiplexer enable: 0-disabled, 1-enabled
+Note: When MXEN=1 serial port is used only for multiplexing, no data transfer to host.
+Bit 1 (0x02) - CLKM - Multiplexer Bus Clock usage: 1-Clock master, 0-slave
+Note: One and only one clock master must be configured for each clock domain!
+Note2: This module should be clock slave in most cases.
+Bit 2 (0x04) - CLKAB - Clock domain: 0 - clock A, 1 - clock B.
+Note: All multiplexed interfaces must be in the same clock domain!
+Bit 3 (0x08) - CLKR - Not used, should be always 0.
+

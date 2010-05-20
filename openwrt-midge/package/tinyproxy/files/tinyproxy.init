@@ -1,6 +1,5 @@
 #! /bin/sh
 
-PATH=/sbin:/bin:/usr/sbin:/usr/bin
 NAME=tinyproxy
 DESC="Tiny HTTP and HTTPS proxy"
 case "$1" in

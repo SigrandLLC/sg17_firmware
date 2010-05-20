@@ -1,4 +1,4 @@
 /.cvsignore
 /*.dep
 /*.o
-/sertest
+/rs232-io

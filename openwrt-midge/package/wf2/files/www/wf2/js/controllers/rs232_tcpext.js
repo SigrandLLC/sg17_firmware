@@ -37,21 +37,19 @@ Controllers.rs232_tcpext = function(node, pcislot, pcidev)
 			};
 			c.addWidget(field);
 
-/*			field = {
+			field = {
 				"type": "text",
-				"text": "Polling interval (ms)",
+				"text": "Modem lines polling interval (msec)",
 				"name": $.sprintf("sys_rs232_tcpext_s%s_%s_poll_interval", pcislot, pcidev),
 				"defaultValue": "100"
 			};
 			c.addWidget(field);
-*/
 
 			field = {
-				"type" : "select",
-				"text" : "Log level",
-				"name" : $.sprintf("sys_rs232_tcpext_s%s_%s_loglevel", pcislot, pcidev),
-				"options": {"0": "Error", "1": "Warning", "2": "Notice", "3": "Info", "4": "Debug"},
-				"defaultValue": 2
+				"type": "text",
+				"text": "Restart delay (msec)",
+				"name": $.sprintf("sys_rs232_tcpext_s%s_%s_restart_delay", pcislot, pcidev),
+				"defaultValue": "1000"
 			};
 			c.addWidget(field);
 

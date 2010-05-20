@@ -1,0 +1,11 @@
+--- busybox-1.1.2/shell/ash.c.orig	2010-04-05 20:28:59.000000000 +0700
++++ busybox-1.1.2/shell/ash.c	2010-05-13 16:56:53.000000000 +0700
+@@ -1489,7 +1489,7 @@ static void change_lc_ctype(const char *
+ 
+ #define VTABSIZE 39
+ 
+-static const char defpathvar[] = "PATH=/usr/local/bin:/usr/bin:/sbin:/bin";
++static const char defpathvar[] = "PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin";
+ #ifdef IFS_BROKEN
+ static const char defifsvar[] = "IFS= \t\n";
+ #define defifs (defifsvar + 4)

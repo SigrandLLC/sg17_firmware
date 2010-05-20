@@ -1,5 +1,5 @@
 //#define NO_RS232 1
-#define DO_TICK  1
+//#define DO_TICK  1
 
 #define _GNU_SOURCE
 #include "sys_headers.h"
@@ -25,35 +25,47 @@ void usage(const char *av0)
 
 static void sig_handler(int sig)
 {
-    syslog(LOG_NOTICE, "%s signal catched", strsignal(sig));
+    syslog(LOG_WARNING, "%s signal catched", strsignal(sig));
     if (sig == SIGTERM)
     {
-	syslog(LOG_NOTICE, "exiting");
+	syslog(LOG_WARNING, "exiting");
 	exit(EXIT_SUCCESS);
     }
     else
-	syslog(LOG_NOTICE, "do nothing");
+	syslog(LOG_WARNING, "do nothing");
 }
 
-//FIXME: should be tty_* method?
-static int get_send_new_modem_state(tty_t* t, socket_t *s)
+static int send_modem_state(socket_t *s, modem_state_t mstate)
 {
 #ifndef NO_RS232
-    modem_state_t in_mstate;
-    int rc = tty_get_modem_state(t, &in_mstate);
-    if (rc < 0) return rc;
-    if ( !t->last_in_mstate_valid || t->last_in_mstate != in_mstate)
-    {
-        modem_state_t out_mstate = tty_mstate_in_to_out(in_mstate);
-	if (socket_send_all(s, (const char *)&out_mstate, sizeof(out_mstate)))
-	    return -1;
-	t->last_in_mstate = in_mstate;
-	t->last_in_mstate_valid = 1;
-    }
+    tty_log_modem_state("Send modem state: ", mstate);
+    if (socket_send_all(s, (const char *)&mstate, sizeof(mstate)))
+	return -1;
+#else
+    (void)s;
+    (void)mstate;
+#endif
+
+    return 0;
+}
+
+static int get_send_new_modem_state(tty_t* t, socket_t *s)
+{
+    modem_state_t in_mstate = 0;
+#ifndef NO_RS232
+    if (tty_get_modem_state(t, &in_mstate)) return -1;
 #else
     (void)t;
     (void)s;
 #endif
+    if ( !t->last_in_mstate_valid || t->last_in_mstate != in_mstate)
+    {
+	modem_state_t out_mstate = tty_mstate_merge(in_mstate);
+        if (send_modem_state(s, out_mstate))
+	    return -1;
+	t->last_in_mstate = in_mstate;
+	t->last_in_mstate_valid = 1;
+    }
 
     return 0;
 }
@@ -95,7 +107,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     }
 
     openlog(progname, LOG_CONS, LOG_DAEMON);
-    syslog(LOG_NOTICE, "started up");
+    syslog(LOG_WARNING, "started up");
 
     make_pidfile(pid_file);
 
@@ -128,10 +140,10 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	state_s = socket_create();
     }
 
-
     do // restart
     {
 	tty_open(tty, device);
+
 #ifndef NO_RS232
 	if (tty_set_raw(tty))
 	    fail();
@@ -214,11 +226,21 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		{
 		    ssize_t r = tty_read(tty, data_buf, DATA_BUF_SIZE);
 		    if (r < 0)
-			break; // restart
+			break; // fail, restart
 		    else if (r == 0)
 		    {
-			syslog(LOG_WARNING, "EOF readed from %s, ignore",
+			syslog(LOG_WARNING, "EOF readed from %s, (DTR|DSR)==0",
 			       tty_name(tty));
+
+                        if (send_modem_state(state_s, 0/* ~TTY_MODEM_DTR */))
+			    break; // fail, restart
+
+			tty_open(tty, device);
+#ifndef NO_RS232
+			if (tty_set_raw(tty))
+			    break; // fail, restart
+#endif
+                        // not fail, continue with re-opened tty
 		    }
 		    else	// r > 0
 		    {
@@ -231,17 +253,17 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		{
 		    ssize_t r = socket_recv(data_s, data_buf, DATA_BUF_SIZE);
 		    if (r < 0)
-			break; // restart
+			break; // fail, restart
 		    else if (r == 0)
 		    {
 			syslog(LOG_INFO, "data connection: EOF received from %s",
 			       socket_name(data_s));
-			break; // restart
+			break; // fail, restart
 		    }
 		    else
 		    {
 			if (tty_write_all(tty, data_buf, r))
-			    break; // restart
+			    break; // fail, restart
 		    }
 		}
 
@@ -249,27 +271,28 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		{
 		    ssize_t r = socket_recv(state_s, state_buf, STATE_BUF_SIZE);
 		    if (r < 0)
-			break; // restart
+			break; // fail, restart
 		    else if (r == 0)
 		    {
 			syslog(LOG_INFO, "state connection: EOF received from %s",
 			       socket_name(state_s));
-			break; // restart
+			break; // fail, restart
 		    }
 		    else
 		    {
 			size_t i;
 			for (i = 0; i < (size_t)r; ++i)
 			{
-			    if (tty_set_modem_state(tty, state_buf[i]))
-				break; // restart
+			    tty_log_modem_state("Recv modem state: ", state_buf[i]);
+			    if ( tty_set_modem_state(tty, state_buf[i]) )
+				break; // fail, restart
 			}
 		    }
 		}
 	    }
 
 	    if (get_send_new_modem_state(tty, state_s))
-		break; // restart
+		break; // fail, restart
 
 	} while(1); // poll loop
 
@@ -279,9 +302,9 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	tty_close(tty);
         if (restart_delay != 0)
 	    usleep(restart_delay * 1000);
-	syslog(LOG_NOTICE, "restart");
+	syslog(LOG_WARNING, "restart");
     } while(1); // restart
 
-    syslog(LOG_NOTICE, "finished");
+    syslog(LOG_WARNING, "finished");
     return EXIT_SUCCESS;
 }

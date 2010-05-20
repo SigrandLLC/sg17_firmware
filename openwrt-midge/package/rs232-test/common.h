@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +9,8 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <termios.h>
+#include <sys/ioctl.h>
+#include "./prchar.h"
 
 
 #define TRACE() fprintf(stderr, "%s:%04d\n", __FILE__, __LINE__)
@@ -19,9 +22,9 @@
     } while(0)
 
 
-static void usage(void)
+static void usage(const char *name)
 {
-    fprintf(stderr, "Usage: sertest rs232-device [speed]\n");
+    fprintf(stderr, "Usage: %s rs232-device [speed]\n", name);
     exit(EXIT_FAILURE);
 }
 
@@ -46,7 +49,6 @@ static void devs_init(void)
       fds[RS232].events = POLLIN;
 }
 
-
 static void restore(void)
 {
     if (fds[INPUT].fd >= 0) tcsetattr(fds[INPUT].fd, TCSANOW, &tattrs[INPUT]);
@@ -55,12 +57,8 @@ static void restore(void)
 
 static void _setmode(enum DeviceIndex i, const size_t *speedptr)
 {
-    int rc = tcgetattr(fds[i].fd, &tattrs[i]);
-    if (rc != 0)
-    {
-        restore();
+    if (tcgetattr(fds[i].fd, &tattrs[i]) != 0)
 	error(EXIT_FAILURE, errno, "%s tcgetattr", names[i]);
-    }
 
     struct termios tattr;
 
@@ -72,7 +70,7 @@ static void _setmode(enum DeviceIndex i, const size_t *speedptr)
 
     if (speedptr != NULL)
     {
-        speed_t speed;
+        speed_t speed = B0;
 
 	switch (*speedptr)
 	{
@@ -108,140 +106,20 @@ static void _setmode(enum DeviceIndex i, const size_t *speedptr)
 	    case 3500000 : speed=B3500000; break;
 	    case 4000000 : speed=B4000000; break;
 	    default:
-		restore();
 		error(EXIT_FAILURE, 0, "%s unknown speed %zu", names[i], *speedptr);
 	}
 
-        rc = cfsetspeed(&tattr, speed);
-	if (rc != 0)
-	{
-	    restore();
+	if (cfsetspeed(&tattr, speed) != 0)
 	    error(EXIT_FAILURE, errno, "%s cfsetspeed %zu", names[i], *speedptr);
-	}
     }
 
-    rc = tcsetattr(fds[i].fd, TCSANOW, &tattr);
-    if (rc != 0)
-    {
-        restore();
+    if (tcsetattr(fds[i].fd, TCSANOW, &tattr) != 0)
 	error(EXIT_FAILURE, errno, "%s tcsetattr", names[i]);
-    }
 }
 
 static void setmode(const size_t *speedptr)
 {
     _setmode( INPUT, NULL );
     _setmode( RS232, speedptr );
-}
-
-
-int main(int ac, char *av[])
-{
-    if (ac < 2 || ac > 3)
-	usage();
-
-    int rc;
-
-    devs_init();
-
-    fds[RS232].fd = open(av[1], O_RDWR | O_NOCTTY);
-    if (fds[RS232].fd < 0)
-	error(EXIT_FAILURE, 0, "can't open %s", av[1]);
-
-    rc = isatty(fds[RS232].fd);
-    if (rc < 1)
-	error(EXIT_FAILURE, 0, "%s is not a tty", av[1]);
-
-    fds[INPUT].fd = STDIN_FILENO;
-    rc = isatty(fds[INPUT].fd);
-    if (rc < 1)
-	error(EXIT_FAILURE, 0, "stdin is not a tty");
-
-    if (ac == 3)
-    {
-	size_t speed = atoi(av[2]);
-	setmode( &speed );
-    }
-    else
-	setmode( NULL );
-
-
-    unsigned char old_c = 0;
-
-    do
-    {
-	unsigned char c;
-
-	//fputs("press any key ... ", stdout); fflush(stdout);
-
-	rc = poll(fds, NDEVICES, -1);
-
-	if (rc < 0)
-	{
-            restore();
-	    error(EXIT_FAILURE, errno, "poll");
-	}
-        else if (rc == 0)
-	{
-            restore();
-	    error(EXIT_FAILURE, 0, "poll timeout\n");
-	}
-
-        if (fds[INPUT].revents & POLLIN)
-	{
-	    ssize_t l = read(fds[INPUT].fd, &c, 1);
-	    if (l < 0)
-	    {
-		restore();
-		error(EXIT_FAILURE, errno, "Input read");
-	    }
-	    else if (l == 0)
-	    {
-		c = 0;
-		printf("Input: EOF\r\n");
-	    }
-	    else
-	    {
-		printf("Input: '%c' : %d\r\n", c<040?' ':c, c); fflush(stdout);
-
-		rc = write(fds[RS232].fd, &c, 1);
-                if (rc < 0)
-		    error(EXIT_SUCCESS, errno, "RS232 write");
-                else if (rc == 0)
-		    error(EXIT_SUCCESS, errno, "RS232 write: 0 written\r\n");
-
-		if (c == 3 && old_c == 3)
-		{
-		    fprintf(stderr, "Input: Double ^C, exit\r\n");
-		    break;
-		}
-		old_c = c;
-	    }
-	}
-
-	if (fds[RS232].revents & POLLIN)
-	{
-	    ssize_t l = read(fds[RS232].fd, &c, 1);
-	    if (l < 0)
-	    {
-		restore();
-		error(EXIT_FAILURE, errno, "RS232 read");
-	    }
-	    else if (l == 0)
-	    {
-		c = 0;
-		fprintf(stderr, "RS232: EOF\r\n");
-	    }
-	    else
-	    {
-		printf("RS232: '%c' : %d\r\n", c<040?' ':c, c); fflush(stdout);
-	    }
-	}
-
-    } while (1);
-
-
-    restore();
-    return EXIT_SUCCESS;
 }
 

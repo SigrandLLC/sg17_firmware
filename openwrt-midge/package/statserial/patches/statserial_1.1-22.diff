@@ -1,0 +1,280 @@
+--- statserial-1.1.orig/statserial.c
++++ statserial-1.1/statserial.c
+@@ -42,7 +42,7 @@
+ 
+ /* global variables */
+ char device[255];                          /* name of device to open */
+-const char *defaultDevice = "/dev/cua1";   /* default device if none specified on command line */
++const char *defaultDevice = "/dev/ttyS1";   /* default device if none specified on command line */
+ int n_option = 0;                          /* set if -n option is used */
+ int d_option = 0;                          /* set if -d option is used */
+ int x_option = 0;                          /* set if -x option is used */
+@@ -118,7 +118,7 @@
+   parse_args(argc, argv);
+ 
+   /* open port */
+-  fd = open(device, O_RDONLY);
++  fd = open(device, O_RDONLY | O_NONBLOCK | O_NOCTTY);
+   if (fd == -1) {
+     char s[255];
+     sprintf(s, "statserial: can't open device `%s'", device);
+--- statserial-1.1.orig/Makefile
++++ statserial-1.1/Makefile
+@@ -7,7 +7,7 @@
+ 
+ # for production code
+ CFLAGS	= -Wall -O3 -fomit-frame-pointer
+-LDFLAGS = -s -N
++LDFLAGS = -s
+ 
+ statserial:	statserial.o
+ 	$(LD) $(LDFLAGS) -o statserial statserial.o -lcurses
+--- statserial-1.1.orig/statserial.1
++++ statserial-1.1/statserial.1
+@@ -5,7 +5,6 @@
+ .\" for conditions under which this file may be redistributed.
+ .TH STATSERIAL 1 "17 December 1994" "Linux" "User Commands"
+ .SH NAME
+-
+ statserial \- display serial port modem status lines
+ 
+ .SH SYNOPSIS
+--- statserial-1.1.orig/debian/copyright
++++ statserial-1.1/debian/copyright
+@@ -0,0 +1,20 @@
++This is the Debian GNU/Linux prepackaged version of statserial.
++Statserial was written by Jeff Tranter <Jeff_Tranter@Mitel.COM> 
++and later updated by Frank Baumgart <godot@uni-paderborn.de>.
++
++This package was put together by me, Christian Linhart <chris@debian.org>
++
++For changes I made for debian see /usr/share/doc/statserial/changelog.Debian
++
++  statserial - Serial Port Status Utility
++
++  Copyright (C) 1994 Jeff Tranter (Jeff_Tranter@Mitel.COM)
++
++  This program is free software; you can redistribute it and/or modify
++  it under the terms of the GNU General Public License as published by
++  the Free Software Foundation; either version 2 of the License, or
++  (at your option) any later version.
++
++On Debian GNU/Linux systems, the complete text of the GNU General
++Public License can be found in `/usr/share/common-licenses/GPL'.
++
+--- statserial-1.1.orig/debian/changelog
++++ statserial-1.1/debian/changelog
+@@ -0,0 +1,98 @@
++statserial (1.1-22) unstable; urgency=low
++
++  * Policy compliant up to 3.6.2.0 
++  * Debhelper compatibility level 4
++  * Edited copyright file to fix lintian old-fsf-address-in-copyright-file
++
++ -- Vince Mulhollon <vlm@debian.org>  Fri, 16 Sep 2005 21:24:03 -0500
++
++statserial (1.1-21) unstable; urgency=low
++
++  * Policy compliant up to 3.5.8.0
++  * Fixes manpage-has-bad-whatis-entry (Should not double space manpages)
++  * Fixes postinst-should-not-set-usr-doc-link
++
++ -- Vince Mulhollon <vlm@debian.org>  Tue, 17 Dec 2002 20:07:29 -0600
++
++statserial (1.1-20) unstable; urgency=low
++
++  * New maintainer (closes: Bug#119092)
++  * Policy compliant up to version 3.5.6.0
++  * Added build-depends for debhelper
++  * Added build-depends for libncurses5-dev
++  * Lintian was annoyed at how README.debian described Debian 
++    as "Debian/GNU Linux" instead of "Debian GNU/Linux"
++
++ -- Vince Mulhollon <vlm@debian.org>  Fri, 21 Dec 2001 19:24:01 -0600
++
++statserial (1.1-19) unstable; urgency=low
++
++  * The "LUG Showoff" Release
++  * Updated to Standards-Version 3.1.1 (no changes needed)
++  * Recompiled for ncurses5.
++
++ -- Brian Bassett <brianb@debian.org>  Thu, 24 Feb 2000 20:16:08 -0800
++
++statserial (1.1-18) unstable; urgency=low
++
++  * statserial now opens device non-blocking (#34653)
++
++ -- Brian Bassett <brianb@debian.org>  Sat, 12 Jun 1999 14:36:21 -0700
++
++statserial (1.1-17) frozen unstable; urgency=low
++
++  * Recompiled for ncurses4.
++
++ -- Brian Bassett <brianb@debian.org>  Tue,  3 Nov 1998 21:40:04 -0800
++
++statserial (1.1-16) unstable; urgency=low
++
++  * Fixed lintian error.
++  * Changed maintainer address.
++
++ -- Brian Bassett <brianb@debian.org>  Fri, 28 Aug 1998 21:50:02 -0700
++
++statserial (1.1-15) unstable; urgency=low
++
++  * Updated to Standards Version 2.4.0.0
++  * Switched to debhelper
++  * Fixed lintian "old-fsf-address" error
++
++ -- Brian Bassett <brian@butterfly.ml.org>  Mon,  9 Feb 1998 22:33:45 -0800
++
++statserial (1.1-14) unstable; urgency=low
++
++  * New maintainer
++
++ -- Brian Bassett <brian@butterfly.ml.org>  Wed, 12 Nov 1997 22:42:43 -0800
++
++statserial (1.1-13.1) unstable; urgency=low
++  
++    * Non-maintainer release.
++    * Libc6 compile.
++    * Updated from pre 2.0.0.0 standards.
++  
++ -- Martin Mitchell <martin@debian.org>  Tue,  4 Nov 1997 03:35:40 +1100
++
++Tue Apr 11 16:22:08 MET DST 1995 Christian Linhart <chris@cosy.sbg.ac.at>
++
++	statserial (1.1-0):
++
++	* Added Debian GNU/Linux package maintenance system files.
++
++Thu Jun 27 10:34:32 MET DST 1996 Christian Linhart <chris@debian.org>
++
++	statserial(1.1-12):
++	* Updated debian.rules and debian.control for new packaging
++	  standards. This fixes bug#3365.
++	* Changed maintainer's email address.
++	* Changed description-field to not contain program name.
++
++Tue Jul  9 13:06:44 MET DST 1996 Christian Linhart <chris@debian.org>
++
++        statserial(1.1-13):
++	* Added extended description. This fixes bug#3639.
++
++Local variables:
++mode: debian-changelog
++End:
+--- statserial-1.1.orig/debian/control
++++ statserial-1.1/debian/control
+@@ -0,0 +1,15 @@
++Source: statserial
++Build-Depends: debhelper, libncurses5-dev
++Section: utils
++Priority: extra
++Maintainer: Vince Mulhollon <vlm@debian.org>
++Standards-Version: 3.6.2.0
++
++Package: statserial
++Architecture: any
++Depends: ${shlibs:Depends}
++Description: Displays serial port modem status lines
++ Statserial displays a table of the signals on a standard 9-pin or
++ 25-pin serial port, and indicates the status of the handshaking lines.
++ It can be useful for debugging problems with serial ports or modems.
++
+--- statserial-1.1.orig/debian/rules
++++ statserial-1.1/debian/rules
+@@ -0,0 +1,66 @@
++#!/usr/bin/make -f
++# debian.rules file for statserial-1.1
++
++# Uncomment this to turn on verbose mode.
++#export DH_VERBOSE=1
++
++export DH_COMPAT=4
++
++build: build-stamp
++build-stamp:
++	dh_testdir
++
++	# Add here commands to compile the package.
++	$(MAKE)
++
++	touch build-stamp
++
++clean:
++	dh_testdir
++	dh_testroot
++	rm -f build-stamp
++
++	# Add here commands to clean up after the build process.
++	-$(MAKE) -i clean
++
++	dh_clean
++
++# Build architecture-independent files here.
++binary-indep: build
++# We have nothing to do by default.
++
++# Build architecture-dependent files here.
++binary-arch: build
++#	dh_testversion
++	dh_testdir
++	dh_testroot
++	dh_clean -k
++	dh_installdirs
++
++	# Add here commands to install the files into debian/tmp
++	install -m 755 statserial debian/statserial/usr/bin/statserial
++
++	dh_installdocs README
++	dh_installexamples phone_log
++#	dh_installmenu
++#	dh_installinit
++#	dh_installcron
++	dh_installman statserial.1
++#	dh_undocumented
++	dh_installchangelogs ChangeLog
++	dh_strip
++	dh_compress
++	dh_fixperms
++#	dh_suidregister
++	dh_installdeb
++	dh_shlibdeps
++	dh_gencontrol
++#	dh_makeshlibs
++	dh_md5sums
++	dh_builddeb
++
++source diff:                                                                  
++	@echo >&2 'source and diff are obsolete - use dpkg-source -b'; false
++
++binary: binary-indep binary-arch
++.PHONY: build clean binary-indep binary-arch binary
+--- statserial-1.1.orig/debian/README.debian
++++ statserial-1.1/debian/README.debian
+@@ -0,0 +1,21 @@
++
++This is Debian GNU/Linux's prepackaged version of the "statserial" program. 
++statserial was written by Jeff Tranter <Jeff_Tranter@Mitel.COM>.
++It is a program that displays serial port modem status lines.
++
++This package was put together by Christian Linhart <chris@cosy.sbg.ac.at> 
++and later updated by Brian Bassett <brian@butterfly.ml.org>
++from sources obtained from 
++sunsite.unc.edu:/pub/Linux/system/serial/statserial-1.1.tar.gz
++
++Further Information:
++
++* statserial man page
++* copying policy 
++	/usr/doc/copyright/statserial 
++	(or debian.copyright in the source package)
++* changelog for debian package
++	/usr/doc/statserial/debian.changelog	 
++ 
++Christian Linhart <chris@cosy.sbg.ac.at> 11-April-1995
++Brian Bassett <brian@butterfly.ml.org> 12 Nov 1997
+--- statserial-1.1.orig/debian/dirs
++++ statserial-1.1/debian/dirs
+@@ -0,0 +1 @@
++usr/bin

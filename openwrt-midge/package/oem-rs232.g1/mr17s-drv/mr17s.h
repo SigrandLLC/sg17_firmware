@@ -124,7 +124,7 @@ struct mr17s_hw_regs{
 #define RI      0x80 // RI output (DCE only)
 
 // CRB register bits
-#define BAUD0   0x01 //BAUD[2..0] - Baud rate: 230400/(2^BAUD[2..0]) 
+#define BAUD0   0x01 //BAUD[2..0] - Baud rate: 230400/(2^BAUD[2..0])
 #define BAUD1   0x02
 #define BAUD2   0x04
 #define BDIV6   0x08 // Baud rate: 0-divide by 1, 1-divide by 6 (38400/(2^BAUD[2..0]))
