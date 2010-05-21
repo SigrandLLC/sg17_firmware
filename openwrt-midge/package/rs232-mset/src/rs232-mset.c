@@ -13,7 +13,7 @@ int main(int ac, char *av[])
     devs_init();
 
 
-    fds[RS232].fd = open(av[1], O_RDWR | O_NOCTTY);
+    fds[RS232].fd = open(av[1], O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (fds[RS232].fd < 0)
 	error(EXIT_FAILURE, 0, "can't open %s", av[1]);
 
