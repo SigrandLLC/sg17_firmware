@@ -33,7 +33,7 @@ stop()
 		kill `cat $pidfile` 2>/dev/null
 	fi
 
-	while status $pidfile quiet; do sleep 0.1s; done
+	while status $pidfile quiet; do sleep 1s; done
 
 	rm -f $pidfile
 }
@@ -64,8 +64,7 @@ node_cfg()
    local  pidfile="/var/run/rs232-tcpext.${node}.pid"
 
    # kdb options defaults:
-   local         enable=0 src_host src_port
-   local connect_enable=0 dst_host dst_port
+   local mode=disable host="0.0.0.0" port=3000
    local poll_interval=100 restart_delay=1000
 
    # kdb options
@@ -74,21 +73,19 @@ node_cfg()
    # for beginning stop service, always.
    stop $pidfile
 
-   if [ "$enable" -eq 1 ]; then # must be started
+   case "$mode" in
+	disable) ;;
+	connect)
+		echo -e "\tconnect to ${host}:${port} for ${node}";;
+	listen)
+		echo -e "\t listen on ${host}:${port} for ${node}";;
+	*)
+		echo -e "\twrong mode: $mode"
+		logger "rs232_tcpext: wrong mode: $mode"
+		exit 1;;
+   esac
 
-      local mode host port
-
-      if [ "$connect_enable" -eq 1 ]; then
-         echo -e "\tconnect to ${dst_host}:${dst_port} for ${node}"
-	 mode=connect
-	 host="${dst_host}"
-	 port="${dst_port}"
-      else
-	 echo -e "\tlisten on ${src_host}:${src_port} for ${node}"
-	 mode=listen
-	 host="${src_host}"
-	 port="${src_port}"
-      fi
+   if test "$mode" != "disable"; then # must be started
 
       # "Usage: rs232-tcpext /dev/ttyPORT host port {listen|connect} pidfile P R\n"
       # "\tP - modem state poll interval, msec\n"
