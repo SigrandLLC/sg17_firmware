@@ -35,6 +35,7 @@ void rm_pidfile(const char *pidfile)
 	int rc = unlink(pidfile);
 	if (rc < 0)
 	    syslog(LOG_WARNING, "Error unlinking pid file %s: %m", pidfile);
+	pidfile_created = 0;
     }
     else
     {
