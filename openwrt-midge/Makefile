@@ -61,7 +61,7 @@ all: world
 # In this section, we need .config
 include .config.cmd
 
-world: $(DL_DIR) $(BUILD_DIR) configtest 
+world: $(DL_DIR) $(BUILD_DIR) configtest
 	$(MAKE) toolchain/install target/compile package/compile root_clean package/install target/install package_index
 	@$(TRACE) Build complete.
 
@@ -100,12 +100,14 @@ toolchain/%:
 
 oem_clean: root_clean
 	@$(TRACE) oem_clean
-	rm -rf $(BUILD_DIR)/sigrand-* $(BUILD_DIR)/webface
-	rm -rf $(BUILD_DIR)/oem-* 
+	rm -rf $(BUILD_DIR)/sigrand-*
+	rm -rf $(BUILD_DIR)/oem-*
 	rm -rf $(BUILD_DIR)/eocd
 	rm -rf $(BUILD_DIR)/tbuff
 #	rm -rf $(BUILD_DIR)/net-snmp*
 	rm -rf $(BUILD_DIR)/wf2
+	rm -rf $(BUILD_DIR)/webface
+	rm -rf $(BUILD_DIR)/rs232*
 
 root_clean:
 	@$(TRACE) root_clean
@@ -140,7 +142,7 @@ $(CONFIG)/conf:
 		cp $(CONFIG_DEFCONFIG) .config; \
 	fi
 $(CONFIG)/mconf:
-	$(MAKE) -C $(CONFIG) 
+	$(MAKE) -C $(CONFIG)
 	-@if [ ! -f .config ] ; then \
 		cp $(CONFIG_DEFCONFIG) .config; \
 	fi
