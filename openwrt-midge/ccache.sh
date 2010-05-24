@@ -1,3 +1,7 @@
+if test -n "${CCACHE}${_CCACHE_PATH_}"; then
+   echo 1>&2 "ccache was set before"
+fi
+
 ccache_full=`which ccache 2>/dev/null`
 if test -n "$ccache_full"; then
    export CCACHE=$ccache_full
