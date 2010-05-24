@@ -1,5 +1,17 @@
 #include "./common.h"
 
+static void print_modem_state(int mstate)
+{
+    printf("LE:%d DTR:%d DSR:%d RTS:%d CTS:%d CD:%d RI:%d",
+	   !!(mstate & TIOCM_LE ),
+	   !!(mstate & TIOCM_DTR),
+	   !!(mstate & TIOCM_DSR),
+	   !!(mstate & TIOCM_RTS),
+	   !!(mstate & TIOCM_CTS),
+	   !!(mstate & TIOCM_CD ),
+	   !!(mstate & TIOCM_RI )
+	  );
+}
 
 int main(int ac, char *av[])
 {
@@ -37,7 +49,7 @@ int main(int ac, char *av[])
 	unsigned char c;
 
 	static const char prompt[] =
-	    "a:set, A:clr; zZ:LE xX:DTR cC:DSR vV:RTS bB:CTS nN:CD mM:RI > ";
+	    "g:get state; zZ:LE xX:DTR cC:DSR vV:RTS bB:CTS nN:CD mM:RI > ";
 
 	fputs(prompt, stdout); fflush(stdout);
 
@@ -82,6 +94,8 @@ int main(int ac, char *av[])
 		    case 'N': mstat=TIOCM_CD ; wstr="clr CD "; what=TIOCMBIC; break;
 		    case 'm': mstat=TIOCM_RI ; wstr="set RI "; what=TIOCMBIS; break;
 		    case 'M': mstat=TIOCM_RI ; wstr="clr RI "; what=TIOCMBIC; break;
+		    case 'g':
+		    case 'G': mstat=0        ; wstr="state: "; what=TIOCMGET; break;
 		    case  3 :
 			fprintf(stderr, "^C, exit\r\n");
 			exit(EXIT_SUCCESS);
@@ -90,9 +104,20 @@ int main(int ac, char *av[])
 			continue;
 		}
 
-		printf("%s\r\n", wstr);
-		if (ioctl(fds[RS232].fd, what, &mstat) < 0)
-		    error(EXIT_FAILURE, errno, "TIOCMBIS | TIOCMBIC");
+		if (what == TIOCMGET)
+		{
+		    printf(wstr);
+		    if (ioctl(fds[RS232].fd, what, &mstat) < 0)
+			error(EXIT_FAILURE, errno, "TIOCMGET");
+                    print_modem_state(mstat);
+		    printf("\r\n");
+		}
+		else
+		{
+		    printf("%s\r\n", wstr);
+		    if (ioctl(fds[RS232].fd, what, &mstat) < 0)
+			error(EXIT_FAILURE, errno, "TIOCMBIS | TIOCMBIC");
+		}
 	    }
 	}
 
