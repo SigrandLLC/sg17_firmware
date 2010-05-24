@@ -420,32 +420,50 @@ static unsigned int mr17s_get_mctrl(struct uart_port *port)
 static void
 mr17s_set_mctrl(struct uart_port *port, unsigned int mctrl)
 {
+    struct mr17s_uart_port *hw_port = (struct mr17s_uart_port*)port;
     struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
     struct mr17s_hw_regs *regs = &mem->regs;
 
     u8 reg = ioread8(&regs->CRA);
 
-    if (mctrl & (TIOCM_DTR|TIOCM_DSR|TIOCM_LE) )
-	reg |= DTR;
-    else
-	reg &= ~DTR;
-
+    switch(hw_port->type)
+    {
+	case DTE:
+	    if (mctrl & TIOCM_DTR )
+		reg |= DTR;
+	    else
+		reg &= ~DTR;
 #if 0
-    if (mctrl & (TIOCM_RTS|TIOCM_CTS) )
-	reg |= RTS;
-    else
-	reg &= ~RTS;
+	    if (mctrl & TIOCM_RTS )
+		reg |= RTS;
+	    else
+		reg &= ~RTS;
 #endif
+            break;
 
-    if (mctrl & (TIOCM_CAR|TIOCM_CD ) )
-        reg |= CD;
-    else
-        reg &= ~CD;
+	case DCE:
+	    if (mctrl & (TIOCM_DSR|TIOCM_LE) )
+		reg |= DSR;
+	    else
+		reg &= ~DSR;
+#if 0
+	    if (mctrl & TIOCM_CTS )
+		reg |= CTS;
+	    else
+		reg &= ~CTS;
+#endif
+	    if (mctrl & (TIOCM_CAR|TIOCM_CD ) )
+		reg |= CD;
+	    else
+		reg &= ~CD;
 
-    if (mctrl & (TIOCM_RNG|TIOCM_RI ) )
-        reg |= RI;
-    else
-        reg &= ~RI;
+	    if (mctrl & (TIOCM_RNG|TIOCM_RI ) )
+		reg |= RI;
+	    else
+		reg &= ~RI;
+
+            break;
+    }
 
     iowrite8(reg, &regs->CRA);
 }
