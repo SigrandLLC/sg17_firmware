@@ -1,0 +1,13 @@
+--- linux-2.6.16/drivers/char/tty_io.c.orig	2006-03-20 11:53:29.000000000 +0600
++++ linux-2.6.16/drivers/char/tty_io.c	2010-05-24 21:14:52.000000000 +0700
+@@ -2488,8 +2488,10 @@ tty_tiocmset(struct tty_struct *tty, str
+ 			break;
+ 		}
+ 
++#if 0
+ 		set &= TIOCM_DTR|TIOCM_RTS|TIOCM_OUT1|TIOCM_OUT2|TIOCM_LOOP;
+ 		clear &= TIOCM_DTR|TIOCM_RTS|TIOCM_OUT1|TIOCM_OUT2|TIOCM_LOOP;
++#endif
+ 
+ 		retval = tty->driver->tiocmset(tty, file, set, clear);
+ 	}
