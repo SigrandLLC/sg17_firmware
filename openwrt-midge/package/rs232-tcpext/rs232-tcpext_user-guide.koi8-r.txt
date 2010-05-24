@@ -24,14 +24,26 @@ RS-232 DTE --|        |              |        |-- RS-232 DCE
 
 Направление передачи управляющих/модемных линий:
 
+Прямой соединительный кабель:
+
     DTE    DCE
+    ---    ---
+    RTS -> RTS
+    CTS <- CTS
+    DTR -> DTR
+    DSR <- DSR
+    CD  <- CD
+    RI  <- RI
+
+null-modem:
+
+    DTE    DTE
     ---    ---
     RTS -> CTS
     CTS <- RTS
-    DTR -> DSR
-    DSR <- DTR
-    CD  <-
-    RI  <-
+    DTR -> DSR,CD
+ CD,DSR <- DTR
+
 
 
 Устройство и принципы работы
