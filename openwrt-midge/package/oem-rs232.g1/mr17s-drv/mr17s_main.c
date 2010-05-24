@@ -423,6 +423,7 @@ mr17s_set_mctrl(struct uart_port *port, unsigned int mctrl)
     struct mr17s_uart_port *hw_port = (struct mr17s_uart_port*)port;
     struct mr17s_chan_iomem *mem = (struct mr17s_chan_iomem *)port->membase;
     struct mr17s_hw_regs *regs = &mem->regs;
+    PDEBUG(debug_tty,"start");
 
     u8 reg = ioread8(&regs->CRA);
 
