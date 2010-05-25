@@ -15,7 +15,7 @@
 
 void usage(const char *av0)
 {
-    fprintf(stderr,
+    syslog(LOG_INFO,
 	    "Usage: %s /dev/ttyPORT host port {listen|connect} pidfile P R\n"
 	    "\tP - modem state poll interval, msec\n"
 	    "\tR - connection restart delay time, msec\n"
@@ -72,6 +72,8 @@ static int get_send_new_modem_state(tty_t* t, socket_t *s)
 
 int main(int ac, char *av[]/*, char *envp[]*/)
 {
+    openlog(basename(av[0]), LOG_CONS|LOG_PERROR, LOG_DAEMON);
+
     if (ac != 8)
 	usage(av[0]);
 
@@ -94,8 +96,8 @@ int main(int ac, char *av[]/*, char *envp[]*/)
         usage(av[0]);
 
     static char progname[256];
-    snprintf(progname, sizeof(progname), "rs232-tcpext %-7s %-7s",
-	     basename(device), conntype);
+    snprintf(progname, sizeof(progname), "%s %-7s %-7s",
+	     basename(av[0]), basename(device), conntype);
 
     openlog(progname, LOG_CONS, LOG_DAEMON);
 
