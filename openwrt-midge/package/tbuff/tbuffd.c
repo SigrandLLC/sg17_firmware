@@ -313,7 +313,8 @@ int read_from_sockets(fd_set ready)
 							struct timeval tv;
 							tv.tv_sec = 0;
 							tv.tv_usec = 300000;
-
+							
+							gettimeofday(&tv2, NULL);
 							p = atoi(&rq[2]);
 							k = 2;
 							while (rq[k] != ';') k++;
@@ -325,6 +326,29 @@ int read_from_sockets(fd_set ready)
 							n = atoi(&rq[k]) - 1;
 							
 							r = write(ports[p].fd, &rq[w], 1);
+							
+							k = 0;
+							tstr = malloc(buf_size+100);
+							if (ports[p].tbuf != ports[p].hbuf)
+							{
+								for (ii = 0; ii < n; ii++)
+								{
+									if (ports[p].tbuf != ports[p].hbuf)
+									{
+										tstr[k] = ports[p].buf[ports[p].tbuf];
+										k++;
+										ports[p].tbuf++;
+										if (ports[p].tbuf == buf_size)
+										{
+											ports[p].tbuf = 0;
+										}
+									} else {
+										break;
+									}
+								}
+							}
+
+
 
 							FD_ZERO(&ready);
 							FD_SET(ports[p].fd, &ready);
@@ -348,7 +372,7 @@ int read_from_sockets(fd_set ready)
 									switch (out(rq[w], &ports[p]))
 									{
 										case 1:
-											buf_out[bc] = rq[w];
+											tstr[k+bc] = rq[w];
 											bc++;
 										break;
 //										case 2:
@@ -361,7 +385,7 @@ int read_from_sockets(fd_set ready)
 									}
 								}
 								if (v) printf("\n");
-								w = write(sockets[i], buf_out, bc);//
+								w = write(sockets[i], tstr, k+bc);//
 							} else {
 								sprintf(rq, "NONE");
 								r = write(sockets[i], rq, 5);
@@ -377,7 +401,7 @@ int read_from_sockets(fd_set ready)
 						close(sockets[i]);
 						sockets[i] = 0;
 						gettimeofday(&tv1, NULL);
-//						if (v) printf("time = %.6f sec.\n", (tv1.tv_sec * 1E6 + tv1.tv_usec - tv2.tv_sec * 1E6 - tv2.tv_usec) / 1E6);
+						if (v) printf("time = %.6f sec.\n", (tv1.tv_sec * 1E6 + tv1.tv_usec - tv2.tv_sec * 1E6 - tv2.tv_usec) / 1E6);
 
 					break;
 

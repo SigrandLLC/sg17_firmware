@@ -124,11 +124,11 @@ Controllers.terminal = function ()
 	}
 
 
-	var parse_answer = function(data) {
+	var parse_answer = function(data, who) {
 		var str = new String(data);
 		var str2 = new String("");
 		var i, j = 0;
-		
+//		$("#status").html($("#status").html()+" from: "+who+"  data: ");
 		for (i = 0; i < str.length; i++)
 		{
 //			$("#status").html($("#status").html()+" "+str.charCodeAt(i)+"["+str.charAt(i)+"]");
@@ -141,6 +141,15 @@ Controllers.terminal = function ()
 							str2 = str2.substring(0, str2.length - 6);
 							j -=5 ;
 						} else {
+							if ((1040 <= str2.charCodeAt(str2.length-1)) && (str2.charCodeAt(str2.length-1) <= 1103) 
+								|| (str2.charCodeAt(str2.length-1) == 1025) || (str2.charCodeAt(str2.length-1) == 1105))
+							{
+								var xmlhttp1 = getXmlHttp();
+								cmd = $.sprintf("sh/tbuffctl?%s;c;8", cur_iface);
+								xmlhttp1.open('GET', cmd, false);
+								xmlhttp1.setRequestHeader("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT");
+								xmlhttp1.send(null);
+							}
 							str2 = str2.substring(0, str2.length - 1);
 							j--;
 						}
@@ -149,7 +158,18 @@ Controllers.terminal = function ()
 						if (str3.substring(str3.length - 6 , str3.length) == '&nbsp;')
 							bufSpans[cur_iface].html(str3.substring(0, str3.length - 6));
 						else
-							bufSpans[cur_iface].html(str3.substring(0, str3.length - 1));
+							{
+								if ((1040 <= str3.charCodeAt(str3.length-1)) && (str3.charCodeAt(str3.length-1) <= 1103) 
+									|| (str3.charCodeAt(str3.length-1) == 1025) || (str3.charCodeAt(str3.length-1) == 1105))
+								{
+									var xmlhttp1 = getXmlHttp();
+									cmd = $.sprintf("sh/tbuffctl?%s;c;8", cur_iface);
+									xmlhttp1.open('GET', cmd, false);
+									xmlhttp1.setRequestHeader("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT");
+									xmlhttp1.send(null);
+								}
+								bufSpans[cur_iface].html(str3.substring(0, str3.length - 1));
+							}
 						buf[cur_iface] = bufSpans[cur_iface].html();
 					}
 				break;
@@ -191,7 +211,11 @@ Controllers.terminal = function ()
 				buf[cur_iface] = bufSpans[cur_iface].html();
 			}
 		}
-		if (consoleDivs[cur_iface] != null) consoleDivs[cur_iface].scrollTo('9999999999px', {axis: 'y'});
+		if (consoleDivs[cur_iface] != null)
+		{
+//			consoleDivs[cur_iface].scrollTo('100%', {axis: 'y'});
+			consoleDivs[cur_iface].scrollTo('+=9999999999px', {axis: 'y'});
+		}
 //		$("#status").html($("#status").html()+"<br>");
 	};	
 
@@ -222,7 +246,10 @@ Controllers.terminal = function ()
 						buf[value.dev] += value.text;
 						if (buf[value.dev].length > 40*1024) buf[value.dev] = buf[value.dev].substring(buf[value.dev].length - 40*1024, buf[value.dev].length);
 						bufSpans[value.dev].append(value.text);
-						setTimeout(function () {consoleDivs[value.dev].scrollTo('9999999999px', 0);}, 10);
+						setTimeout(function () {
+							consoleDivs[cur_iface].scrollTo('100%', {axis: 'y'});
+							consoleDivs[cur_iface].scrollTo('+=100px', {axis: 'y'});
+						}, 10);
 					}
 					else {
 //						alert("value text == ''");
@@ -250,23 +277,29 @@ Controllers.terminal = function ()
 //							var substr = value.text.substiring(0, (value.text.length > 100)?100:value.text.length);
 //							alert(substr);
 							cur_iface = value.dev;
-							parse_answer(value.text);
+							parse_answer(value.text, "func");
 
 //							value.text = value.text.substiring((value.text.length > 100)?100:value.text.length, value.text.length);
 //							buf[value.dev] += value.text;
 //							if (buf[value.dev].length > 40*1024) buf[value.dev] = buf[value.dev].substring(buf[value.dev].length - 40*1024, buf[value.dev].length);
 //							bufSpans[value.dev].append(value.text);
 
-							if (consoleDivs[value.dev] != null) setTimeout(function () {consoleDivs[value.dev].scrollTo('9999999999px', {axis: 'y'});}, 10);
+							if (consoleDivs[value.dev] != null) setTimeout(function () {
+//								consoleDivs[cur_iface].scrollTo('100%', {axis: 'y'});
+								consoleDivs[cur_iface].scrollTo('+=9999999999px', {axis: 'y'});
+							}, 10);
 						}
 					});
 				}
 			}
 		});
-		if (func_en == 1) {
-//			alert("setTimeout");
-			tout = setTimeout(func, requesttime);
-		} else timer = 0;
+		if (param != true)
+		{
+			if (func_en == 1) {
+//				alert("setTimeout");
+				tout = setTimeout(func, requesttime);
+			} else timer = 0;
+		}
 	};
 	
 	if ((timer == 0) && (func_en == 1))
@@ -328,7 +361,6 @@ Controllers.terminal = function ()
 							ch = src.which;
 						}
 //						alert("which = "+src.which+" keyCode = "+src.keyCode);
-
 						var str123 = "";
 
 						if (isctrl == true)
@@ -416,6 +448,12 @@ Controllers.terminal = function ()
 							break;
 						}
 						
+						if (ch > 1000)
+						{
+							src.which = undefined;
+							str123 = ""+String.fromCharCode(ch);
+						}
+						
 						if ((str123 != "") && (src.which == undefined))
 						{
 							cmd = $.sprintf("/sbin/tbuffctl -p%s -w \"%s\"", iface, str123);
@@ -436,7 +474,7 @@ Controllers.terminal = function ()
 						xmlhttp.send(null);
 						cur_iface = iface;
 						if (xmlhttp.status == 200) {
-							parse_answer(xmlhttp.responseText);
+							parse_answer(xmlhttp.responseText, "ch");
 							if (xmlhttp.responseText == "")
 							{
 //								if ((ch >= 32) && (ch <= 126) || (ch == 10))
@@ -448,17 +486,21 @@ Controllers.terminal = function ()
 //							parse_answer(String.fromCharCode(ch));
 //							alert("status"+xmlhttp.status);
 						}
-//						func();
+//						func(true);
 						
 						return false;
 					};
 					var onclick = function() {
-						consoleDivs[iface].scrollTo('9999999999px', {axis: 'y'});
+//						consoleDivs[cur_iface].scrollTo('100%', {axis: 'y'});
+						consoleDivs[cur_iface].scrollTo('+=99999999px', {axis: 'y'});
 					};
+/*
 					setTimeout(function() {
-						consoleDivs[iface].scrollTo('9999999999px', {axis: 'y'});
+						consoleDivs[cur_iface].scrollTo('100%', {axis: 'y'});
+						consoleDivs[cur_iface].scrollTo('+=100px', {axis: 'y'});
 						consoleDivs[iface].focus();
 					}, 10);
+*/
 					consoleDivs[iface].click(onclick);
 					
 					consoleDivs[iface].keypress(onKeypress);

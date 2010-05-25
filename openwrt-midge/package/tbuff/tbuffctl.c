@@ -161,19 +161,18 @@ int write_in_port_ch (unsigned char ch)
 //	}
 	if (strcmp(str, "NONE") != 0)
 	{
-		FILE *log;
-		log = fopen("/root/log", "a");
-		for (i = 0; i < strlen(str); i++)
-		{
-			fprintf(log, "%i", str[i]);
-			if (str[i] > 13) fprintf(log, "[%c] ", str[i]); else fprintf(log, " ");
-		}
-		fprintf(log, "\n");
-		fclose(log);
-		for (i = 0; i < 4*65535; i++);
-		
-		printf("%s", str);// else printf("NONEEEEEEEEEE\n");
+//		FILE *log;
+//		log = fopen("/root/log", "a");
+//		for (i = 0; i < strlen(str); i++)
+//		{
+//			fprintf(log, "%i", str[i]);
+//			if (str[i] > 13) fprintf(log, "[%c] ", str[i]); else fprintf(log, " ");
+//		}
+//		fprintf(log, "\n");
+//		fclose(log);
 		for (i = 0; i < 2*65535; i++);
+		printf("%s", str);// else printf("NONEEEEEEEEEE\n");
+		for (i = 0; i < 4*65535; i++);
 	}
 	return 0;
 }
