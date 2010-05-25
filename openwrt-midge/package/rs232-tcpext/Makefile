@@ -27,7 +27,7 @@ $(PKG_BUILD_DIR)/.configured :
 	done
 	touch $@
 
-$(PKG_BUILD_DIR)/.built :
+$(PKG_BUILD_DIR)/.built : $(PKG_BUILD_DIR)/.configured
 	$(MAKE) -C $(PKG_BUILD_DIR)
 	touch $@
 
