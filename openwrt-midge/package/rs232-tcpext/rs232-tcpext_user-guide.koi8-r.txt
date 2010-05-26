@@ -15,11 +15,11 @@ text/plain; charset=koi8-r
 
 Схема удлинителя:
 
-             ----------              ----------
-RS-232 DTE --|        |              |        |-- RS-232 DCE
-............ | SG-17R |-- Internet --| SG-17R | ............
-RS-232 DTE --|        |              |        |-- RS-232 DCE
-             ----------              ----------
+---------       ----------              ----------       --------
+|    DTE|--> >--|DCE     |              |     DTE|--> >--|DCE   |
+| ПК    | ..... | SG-17R |-- Internet --| SG-17R | ..... | УСТР.|
+|    DTE|--> >--|DCE     |              |     DTE|--> >--|DCE   |
+---------       ----------              ----------       --------
 
 
 Направление передачи управляющих/модемных линий:
@@ -28,10 +28,10 @@ RS-232 DTE --|        |              |        |-- RS-232 DCE
 
     DTE    DCE
     ---    ---
-    RTS -> RTS
-    CTS <- CTS
     DTR -> DTR
     DSR <- DSR
+    RTS -> RTS
+    CTS <- CTS
     CD  <- CD
     RI  <- RI
 
@@ -39,10 +39,10 @@ null-modem:
 
     DTE    DTE
     ---    ---
-    RTS -> CTS
-    CTS <- RTS
     DTR -> DSR,CD
  CD,DSR <- DTR
+    RTS -> CTS
+    CTS <- RTS
 
 
 
