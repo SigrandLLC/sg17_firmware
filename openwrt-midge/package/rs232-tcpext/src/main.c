@@ -16,9 +16,9 @@
 void usage(const char *av0)
 {
     syslog(LOG_INFO,
-	    "Usage: %s /dev/ttyPORT host port {listen|connect} pidfile P R\n"
-	    "\tP - modem state poll interval, msec\n"
-	    "\tR - connection restart delay time, msec\n"
+	   "Usage: %s /dev/ttyPORT {DTE|DCE} host port {listen|connect} pidfile P R\n"
+	   "\tP - modem state poll interval, msec\n"
+	   "\tR - connection restart delay time, msec\n"
 	    , basename(av0));
     exit(EXIT_FAILURE);
 }
@@ -74,17 +74,29 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 {
     openlog(basename(av[0]), LOG_CONS|LOG_PERROR, LOG_DAEMON);
 
-    if (ac != 8)
+    if (ac != 9)
 	usage(av[0]);
 
     size_t ai = 0;
     const char *device       = av[++ai];
+    const char *devtype      = av[++ai];
     const char *host         = av[++ai];
     const char *port         = av[++ai];
     const char *conntype     = av[++ai];
     const char *pid_file     = av[++ai];
     size_t mstat_intval = atoi(av[++ai]);
     size_t restart_delay= atoi(av[++ai]);
+
+
+    enum TTY_TYPE tty_type = TTY_DTE; // default for PC
+
+    if ( strcmp(devtype, "DTE") == 0)
+	tty_type = TTY_DTE;
+    else if( strcmp(devtype, "DCE") == 0)
+	tty_type = TTY_DCE;
+    else
+        usage(av[0]);
+
 
     int listen = 1;
 
@@ -94,6 +106,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	listen = 0;
     else
         usage(av[0]);
+
 
     static char progname[256];
     snprintf(progname, sizeof(progname), "%s %-7s %-7s",
@@ -122,8 +135,8 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     setup_sighandler(sig_handler, SIGTERM);
 
 
-    static const size_t   DATA_BUF_SIZE = 4096;
-    static const size_t  STATE_BUF_SIZE =  256;
+    static const size_t   DATA_BUF_SIZE = 8192;
+    static const size_t  STATE_BUF_SIZE =   64;
 
     char * data_buf = xmalloc( DATA_BUF_SIZE);
     char *state_buf = xmalloc(STATE_BUF_SIZE);
