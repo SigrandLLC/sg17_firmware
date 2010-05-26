@@ -660,6 +660,15 @@ Controllers.rs232 = function(node, pcislot, pcidev) {
 
 			field = {
 				"type": "select",
+				"name": $.sprintf("sys_pcicfg_s%s_%s_sigfwd", pcislot, pcidev),
+				"text": "Forward modem signals",
+				"descr": "Forward modem signals (multiplexing)",
+				"options": {"0": "off", "1": "on"}
+			};
+			c.addWidget(field);
+
+			field = {
+				"type": "select",
 				"name": $.sprintf("sys_pcicfg_s%s_%s_baudrate", pcislot, pcidev),
 				"text": "Baud rate",
 				"options": [230400,115200,57600,38400,28800,19200,14400,9600,7200,4800,3600,2400,1800,1200,600,300]
@@ -693,7 +702,7 @@ Controllers.rs232 = function(node, pcislot, pcidev) {
 			field = {
 				"type": "select",
 				"name": $.sprintf("sys_pcicfg_s%s_%s_fctrl", pcislot, pcidev),
-				"text": "Hardware Flow control",
+				"text": "Hardware flow control",
 				"options": {"0": "off", "1": "on"}
 			};
 			c.addWidget(field);
@@ -701,7 +710,7 @@ Controllers.rs232 = function(node, pcislot, pcidev) {
 			field = {
 				"type": "select",
 				"name": $.sprintf("sys_pcicfg_s%s_%s_xonxoff", pcislot, pcidev),
-				"text": "Software Flow control",
+				"text": "Software flow control",
 				"options": {"-ixon": "off", "ixon": "on"},
 				"defaultValue": "ixon"
 			};
@@ -713,14 +722,6 @@ Controllers.rs232 = function(node, pcislot, pcidev) {
 				"text": "Enable modem control signals",
 				"options": {"-clocal": "on", "clocal": "off"},
 				"defaultValue": "clocal"
-			};
-			c.addWidget(field);
-
-			field = {
-				"type": "select",
-				"name": $.sprintf("sys_pcicfg_s%s_%s_sigfwd", pcislot, pcidev),
-				"text": "Forward Modem Signals",
-				"options": {"0": "off", "1": "on"}
 			};
 			c.addWidget(field);
 
