@@ -19,8 +19,8 @@ Controllers.rs232_tcpext = function(node, pcislot, pcidev)
 				"text": "mode",
 				"name" : $.sprintf("sys_rs232_tcpext_s%s_%s_mode", pcislot, pcidev),
 				"options" : {	"disable" : "Disable",
-						"listen"  : "Listen On",
-						"connect" : "Connect To"
+						"listen"  : "Listen for",
+						"connect" : "Connect to"
 				}
 			};
 			c.addWidget(field);
