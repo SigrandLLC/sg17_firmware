@@ -11,7 +11,7 @@ Controllers.rs232_tcpext = function(node, pcislot, pcidev)
 			var c, field;
 			c = page.addContainer("options");
 
-			c.addTitle($.sprintf("%s (module %s, slot %s) over ip settings", node,
+			c.addTitle($.sprintf("%s (module %s, slot %s) over tcp/ip settings", node,
 				mr17sModuleName(pcislot), pcislot - 2));
 
 			field = {
