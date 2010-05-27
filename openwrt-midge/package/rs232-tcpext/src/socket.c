@@ -1,6 +1,7 @@
 #include "sys_headers.h"
 #include "socket.h"
 #include "misc.h"
+#include <netinet/ip.h> // IPTOS_TOS_MASK
 
 
 static void socket_on_exit(int unused, void *arg)
@@ -215,5 +216,16 @@ int socket_connect(socket_t *s, const char *host, const char *port)
     set_sock_linger  (fd, 3, "socket_connect(): "); //FIXME: linger timeout
 
     return 0;
+}
+
+void socket_set_ip_tos(socket_t *s, int ip_tos)
+{
+    ip_tos &= IPTOS_TOS_MASK;
+    int rc = setsockopt(socket_fd(s), IPPROTO_IP, IP_TOS, &ip_tos, sizeof(ip_tos));
+    if (rc < 0)
+    {
+	syslog(LOG_ERR, "Could not set IP ToS option: %m");
+	fail();
+    }
 }
 

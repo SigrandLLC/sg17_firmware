@@ -16,7 +16,7 @@
 void usage(const char *av0)
 {
     syslog(LOG_INFO,
-	   "Usage: %s /dev/ttyPORT {DTE|DCE} host port {listen|connect} pidfile P R\n"
+	   "Usage: %s /dev/ttyPORT {DTE|DCE} host port IPToS {listen|connect} pidfile P R\n"
 	   "\tP - modem state poll interval, msec\n"
 	   "\tR - connection restart delay time, msec\n"
 	    , basename(av0));
@@ -74,7 +74,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 {
     openlog(basename(av[0]), LOG_CONS|LOG_PERROR, LOG_DAEMON);
 
-    if (ac != 9)
+    if (ac != 10)
 	usage(av[0]);
 
     size_t ai = 0;
@@ -82,6 +82,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
     const char *devtype      = av[++ai];
     const char *host         = av[++ai];
     const char *port         = av[++ai];
+    int        ip_tos = strtol(av[++ai], NULL, 0);
     const char *conntype     = av[++ai];
     const char *pid_file     = av[++ai];
     size_t mstat_intval = atoi(av[++ai]);
@@ -189,6 +190,9 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 	    if ( socket_connect(state_s, host, port) )
                 goto cleanup; // restart
 	}
+
+        socket_set_ip_tos( data_s, ip_tos);
+        socket_set_ip_tos(state_s, ip_tos);
 
 
 	enum { POLL_TTY, POLL_DATA, POLL_STATE, POLL_ITEMS };

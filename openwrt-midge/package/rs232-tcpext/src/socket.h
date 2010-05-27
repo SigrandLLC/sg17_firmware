@@ -18,6 +18,8 @@ int       socket_connect (socket_t *s, const char *host, const char *port);
 		// returns true if "Could not connect to ...", false on success
 void      socket_close   (socket_t *s);
 
+void    socket_set_ip_tos(socket_t *s, int tos);
+
 extern inline const char *socket_name(socket_t *s) { return iobase_name(s->b); }
 extern inline int         socket_fd  (socket_t *s) { return iobase_fd  (s->b); }
 

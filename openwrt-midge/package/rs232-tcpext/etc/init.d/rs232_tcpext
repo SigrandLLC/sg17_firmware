@@ -73,7 +73,7 @@ node_cfg()
    esac
 
    # kdb options defaults:
-   local mode=disable host="0.0.0.0" port=3000
+   local mode=disable host="0.0.0.0" port=3000 iptos=0
    local poll_interval=100 restart_delay=1000
 
    # kdb options
@@ -100,7 +100,7 @@ node_cfg()
       # "\tP - modem state poll interval, msec\n"
       # "\tR - connection restart delay time, msec\n"
 
-      rs232-tcpext /dev/$node $node_type $host $port $mode $pidfile \
+      rs232-tcpext /dev/$node $node_type $host $port $iptos $mode $pidfile \
 			$poll_interval $restart_delay
    fi
 }

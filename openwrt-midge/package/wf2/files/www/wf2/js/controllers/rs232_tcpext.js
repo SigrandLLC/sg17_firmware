@@ -43,6 +43,15 @@ Controllers.rs232_tcpext = function(node, pcislot, pcidev)
 
 			field = {
 				"type": "text",
+				"name": $.sprintf("sys_rs232_tcpext_s%s_%s_iptos", pcislot, pcidev),
+				"text": "ToS",
+				"descr": "Type of Service (8 bits) for IP packets.",
+				"defaultValue": "0x00"
+			};
+			c.addWidget(field);
+
+			field = {
+				"type": "text",
 				"text": "Modem lines polling interval (msec)",
 				"name": $.sprintf("sys_rs232_tcpext_s%s_%s_poll_interval", pcislot, pcidev),
 				"defaultValue": "100"
