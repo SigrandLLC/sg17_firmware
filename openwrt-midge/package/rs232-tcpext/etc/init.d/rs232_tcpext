@@ -62,6 +62,15 @@ node_cfg()
 
    local lockfile="/var/lock/LCK..$node"
    local  pidfile="/var/run/rs232-tcpext.${node}.pid"
+   local node_type=`rs232-type ${node}`
+
+   case $node_type in
+	DTE|DCE) ;;
+	*)
+		echo -e            "\twrong type: $node_type for ${node}"
+		logger "rs232_tcpext: wrong type: $node_type for ${node}"
+		exit 1;;
+   esac
 
    # kdb options defaults:
    local mode=disable host="0.0.0.0" port=3000
@@ -80,8 +89,8 @@ node_cfg()
 	listen)
 		echo -e "\t listen on ${host}:${port} for ${node}";;
 	*)
-		echo -e "\twrong mode: $mode"
-		logger "rs232_tcpext: wrong mode: $mode"
+		echo -e            "\twrong mode: $mode for ${node}"
+		logger "rs232_tcpext: wrong mode: $mode for ${node}"
 		exit 1;;
    esac
 
@@ -91,8 +100,8 @@ node_cfg()
       # "\tP - modem state poll interval, msec\n"
       # "\tR - connection restart delay time, msec\n"
 
-      rs232-tcpext "/dev/${node}" "${host}" "${port}" "${mode}" "${pidfile}" \
-			"${poll_interval}" "${restart_delay}"
+      rs232-tcpext /dev/$node $node_type $host $port $mode $pidfile \
+			$poll_interval $restart_delay
    fi
 }
 

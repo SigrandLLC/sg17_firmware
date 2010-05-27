@@ -82,7 +82,7 @@ void socket_bind(socket_t *s, const char *host, const char *port)
     int rc = getaddrinfo(host, port, &hints, &result);
     if (rc != 0)
     {
-	syslog(LOG_ERR, "%s(): getaddrinfo(NULL, %s, ...): %s", __FUNCTION__, port, gai_strerror(rc));
+	syslog(LOG_ERR, "%s(): getaddrinfo(%s, %s, ...): %s", __FUNCTION__, host, port, gai_strerror(rc));
 	fail();
     }
 

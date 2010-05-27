@@ -58,5 +58,7 @@ void tty_log_modem_state(const char *pfx, modem_state_t mstate);
 
 modem_state_t tty_mstate_merge(modem_state_t in_state);
 
+enum TTY_TYPE { TTY_DTE, TTY_DCE };
+
 
 #endif //RS232_TCPEXT_TTY_H
