@@ -19,7 +19,7 @@ $(PKG_BUILD_DIR)/.prepared :
 cflags = "$(TARGET_CFLAGS) -I $(STAGING_DIR)/usr/include"
 ldflags = "-L $(STAGING_DIR)/usr/lib"
 
-$(PKG_BUILD_DIR)/.built : $(PKG_BUILD_DIR)/.configured
+$(PKG_BUILD_DIR)/.configured :
 	@echo " CFLAGS =  $(cflags)"	 > $(PKG_BUILD_DIR)/local.mk
 	@echo "LDFLAGS = $(ldflags)"	>> $(PKG_BUILD_DIR)/local.mk
 	@for i in $(TARGET_CONFIGURE_OPTS); do \
@@ -27,7 +27,7 @@ $(PKG_BUILD_DIR)/.built : $(PKG_BUILD_DIR)/.configured
 	done
 	touch $@
 
-$(PKG_BUILD_DIR)/.built :
+$(PKG_BUILD_DIR)/.built : $(PKG_BUILD_DIR)/.configured
 	$(MAKE) -C $(PKG_BUILD_DIR)
 	touch $@
 
