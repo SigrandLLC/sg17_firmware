@@ -65,8 +65,16 @@ static void _setmode(enum DeviceIndex i, const size_t *speedptr)
     memcpy(&tattr, &tattrs[i], sizeof(tattr));
 
     cfmakeraw(&tattr);
+
+    // done in cfmakeraw but not in an old *libc:
     tattr.c_cc[VMIN]  = 1;
     tattr.c_cc[VTIME] = 0;
+
+    // not done in cfmakeraw:
+    tattr.c_iflag |=  IGNBRK;	// cleared by cfmakeraw
+    tattr.c_cflag |=  CLOCAL;	// Ignore modem control lines (default)
+    tattr.c_iflag &= ~HUPCL;	// !hang up (lower modem control lines) on close
+
 
     if (speedptr != NULL)
     {
