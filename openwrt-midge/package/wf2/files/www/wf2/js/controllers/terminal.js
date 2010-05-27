@@ -123,6 +123,10 @@ Controllers.terminal = function ()
 		return xmlhttp;
 	}
 
+	var scrollTab = function() {
+		var obj = document.getElementById('consoleDiv');
+		if (obj) obj.scrollTop = obj.scrollHeight;
+	};
 
 	var parse_answer = function(data, who) {
 		var str = new String(data);
@@ -211,11 +215,7 @@ Controllers.terminal = function ()
 				buf[cur_iface] = bufSpans[cur_iface].html();
 			}
 		}
-		if (consoleDivs[cur_iface] != null)
-		{
-//			consoleDivs[cur_iface].scrollTo('100%', {axis: 'y'});
-			consoleDivs[cur_iface].scrollTo('+=9999999999px', {axis: 'y'});
-		}
+		scrollTab();
 //		$("#status").html($("#status").html()+"<br>");
 	};	
 
@@ -284,9 +284,8 @@ Controllers.terminal = function ()
 //							if (buf[value.dev].length > 40*1024) buf[value.dev] = buf[value.dev].substring(buf[value.dev].length - 40*1024, buf[value.dev].length);
 //							bufSpans[value.dev].append(value.text);
 
-							if (consoleDivs[value.dev] != null) setTimeout(function () {
-//								consoleDivs[cur_iface].scrollTo('100%', {axis: 'y'});
-								consoleDivs[cur_iface].scrollTo('+=9999999999px', {axis: 'y'});
+							setTimeout(function () {
+								scrollTab();
 							}, 10);
 						}
 					});
@@ -490,18 +489,6 @@ Controllers.terminal = function ()
 						
 						return false;
 					};
-					var onclick = function() {
-//						consoleDivs[cur_iface].scrollTo('100%', {axis: 'y'});
-						consoleDivs[cur_iface].scrollTo('+=99999999px', {axis: 'y'});
-					};
-/*
-					setTimeout(function() {
-						consoleDivs[cur_iface].scrollTo('100%', {axis: 'y'});
-						consoleDivs[cur_iface].scrollTo('+=100px', {axis: 'y'});
-						consoleDivs[iface].focus();
-					}, 10);
-*/
-					consoleDivs[iface].click(onclick);
 					
 					consoleDivs[iface].keypress(onKeypress);
 
