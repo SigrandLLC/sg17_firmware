@@ -49,7 +49,7 @@ static int send_modem_state(socket_t *s, modem_state_t mstate)
     return 0;
 }
 
-static int get_send_new_modem_state(tty_t* t, socket_t *s)
+static int get_send_new_modem_state(tty_t* t, socket_t *s, enum TTY_TYPE tty_type)
 {
     modem_state_t in_mstate = 0;
 #ifndef NO_RS232
@@ -60,9 +60,28 @@ static int get_send_new_modem_state(tty_t* t, socket_t *s)
 #endif
     if ( !t->last_in_mstate_valid || t->last_in_mstate != in_mstate)
     {
-	modem_state_t out_mstate = tty_mstate_merge(in_mstate);
-        if (send_modem_state(s, out_mstate))
+	modem_state_t out_mstate = 0;
+
+	if (tty_type == TTY_DTE)
+	{
+	    out_mstate |= (in_mstate & TTY_MODEM_DSR);
+#if 0
+	    out_mstate |= (in_mstate & TTY_MODEM_CTS);
+#endif
+	    out_mstate |= (in_mstate & TTY_MODEM_CD);
+	    out_mstate |= (in_mstate & TTY_MODEM_RI);
+	}
+	else	// TTY_DCE
+	{
+	    out_mstate |= (in_mstate & TTY_MODEM_DTR);
+#if 0
+	    out_mstate |= (in_mstate & TTY_MODEM_RTS);
+#endif
+	}
+
+	if (send_modem_state(s, out_mstate))
 	    return -1;
+
 	t->last_in_mstate = in_mstate;
 	t->last_in_mstate_valid = 1;
     }
@@ -251,7 +270,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 			syslog(LOG_WARNING, "EOF readed from %s, (DTR|DSR)==0",
 			       tty_name(tty));
 
-                        if (send_modem_state(state_s, 0/* ~TTY_MODEM_DTR */))
+                        if (send_modem_state(state_s, 0/* ~(DTR|DSR|CD|RI) */))
 			    break; // fail, restart
 
 			tty_open(tty, device);
@@ -310,7 +329,7 @@ int main(int ac, char *av[]/*, char *envp[]*/)
 		}
 	    }
 
-	    if (get_send_new_modem_state(tty, state_s))
+	    if (get_send_new_modem_state(tty, state_s, tty_type))
 		break; // fail, restart
 
 	} while(1); // poll loop
