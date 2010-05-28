@@ -3,11 +3,14 @@ var buf = new Array(16);
 var cursors = new Array(16);
 var consoleDivs = new Array(16);
 var cmdSpans = new Array(16);
-var t0 = 0, t1, t2, t3;
-var block = 0;
-var block2 = 0;
-var block3 = 0;
+var bufSpans = new Array(16);
+var t0 = 0, t1 = 0, t2, t3;
 var func_en = 0;
+var requesttime = 300;
+var cur_iface;
+var isctrl = false;
+var tab = "";
+var tout;
 
 Controllers.terminal = function ()
 {
@@ -91,66 +94,216 @@ Controllers.terminal = function ()
 				var ifaces = config.getData(config.getOEM("MR17S_DRVNAME"));
 				$.each(ifaces, function(num, ifaceInfo) {
 					var iface = ifaceInfo.iface;
-					buf[iface] = "";
+					
+					if (config.getParsed($.sprintf("sys_demon_%s_enable", iface)) != 1)
+					{
+						$($.sprintf("#sys_demon_%s_name", iface)).val(iface);
+						config.cmdExecute({"cmd": $.sprintf("kdb set sys_demon_%s_name=%s", iface, iface), "async" : false});
+						buf[iface] = "";
+					}
+					config.loadKDB();
+					config.loadOEM();
 				});
 				Controllers["terminal"]();
-			}, "reload" : false});
+			},
+			 "reload" : false});
         }
     });
 	
-//	var el = document.getElementById("status_ajax");
-//	if (el) el.parentNode.removeChild(el);
-//	el.style.visibility='hidden'; 'inherit';
-	
-
     var ifaces = config.getData(config.getOEM("MR17S_DRVNAME"));
-
 	func_en = 0;
 	$.each(ifaces, function(num, ifaceInfo) {
 		var iface = ifaceInfo.iface;
 		if (config.getParsed($.sprintf("sys_demon_%s_enable", iface)) == 1) func_en = 1;
 	});
 
+	function getXmlHttp()
+	{
+		var xmlhttp = window.ActiveXObject ? new ActiveXObject("Microsoft.XMLHTTP") : new XMLHttpRequest();
+		return xmlhttp;
+	}
 
-	var func = function() {
-		if (!block3)
+	var scrollTab = function() {
+		var obj = document.getElementById('consoleDiv');
+		if (obj) obj.scrollTop = obj.scrollHeight;
+	};
+
+	var parse_answer = function(data, who) {
+		var str = new String(data);
+		var str2 = new String("");
+		var i, j = 0;
+//		$("#status").html($("#status").html()+" from: "+who+"  data: ");
+		for (i = 0; i < str.length; i++)
 		{
-		t2 = new Date().getTime();
+//			$("#status").html($("#status").html()+" "+str.charCodeAt(i)+"["+str.charAt(i)+"]");
+			switch (str.charCodeAt(i)) {
+				case 8:
+					if (j > 0)
+					{
+						if (str2.substring(str2.length - 6 , str2.length) == '&nbsp;')
+						{
+							str2 = str2.substring(0, str2.length - 6);
+							j -=5 ;
+						} else {
+							if ((1040 <= str2.charCodeAt(str2.length-1)) && (str2.charCodeAt(str2.length-1) <= 1103) 
+								|| (str2.charCodeAt(str2.length-1) == 1025) || (str2.charCodeAt(str2.length-1) == 1105))
+							{
+								var xmlhttp1 = getXmlHttp();
+								cmd = $.sprintf("sh/tbuffctl?%s;c;8", cur_iface);
+								xmlhttp1.open('GET', cmd, false);
+								xmlhttp1.setRequestHeader("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT");
+								xmlhttp1.send(null);
+							}
+							str2 = str2.substring(0, str2.length - 1);
+							j--;
+						}
+					} else {
+						var str3 = new String(bufSpans[cur_iface].html());
+						if (str3.substring(str3.length - 6 , str3.length) == '&nbsp;')
+							bufSpans[cur_iface].html(str3.substring(0, str3.length - 6));
+						else
+							{
+								if ((1040 <= str3.charCodeAt(str3.length-1)) && (str3.charCodeAt(str3.length-1) <= 1103) 
+									|| (str3.charCodeAt(str3.length-1) == 1025) || (str3.charCodeAt(str3.length-1) == 1105))
+								{
+									var xmlhttp1 = getXmlHttp();
+									cmd = $.sprintf("sh/tbuffctl?%s;c;8", cur_iface);
+									xmlhttp1.open('GET', cmd, false);
+									xmlhttp1.setRequestHeader("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT");
+									xmlhttp1.send(null);
+								}
+								bufSpans[cur_iface].html(str3.substring(0, str3.length - 1));
+							}
+						buf[cur_iface] = bufSpans[cur_iface].html();
+					}
+				break;
+				case 10:
+					str2 += "<br>";
+					j++;
+				break;
+				case 13:
+//					if (str.charCodeAt(i+1) == 10) break;
+//					var str321 = new String(bufSpans[cur_iface].html());
+//					var substr = new String("<BR>");
+//					if (str321.lastIndexOf(substr) != -1) {
+//						bufSpans[cur_iface].html(str321.substring(0, str321.lastIndexOf(substr) + 4));
+//						buf[cur_iface] = bufSpans[cur_iface].html();
+//					}
+				break;
+				case 7:
+				break;
+				case 32:
+					str2 += '&nbsp;';
+					j += 6;
+				break;
+//				case 45:
+//					str2 += "-";
+//					j++;
+//				break;
+				default:
+					if (str.charCodeAt(i) > 31) {
+						str2 += str.charAt(i);
+					}
+					j++;
+			}
+		}
+		if (j > 0)
+		{
+			if (bufSpans[cur_iface] != null)
+			{
+				bufSpans[cur_iface].append(str2);
+				buf[cur_iface] = bufSpans[cur_iface].html();
+			}
+		}
+		scrollTab();
+//		$("#status").html($("#status").html()+"<br>");
+	};	
+
+
+	var func = function(param) {
+//	alert("func");
+/*
+		var xmlhttp = getXmlHttp();
+		cmd = "sh/tbuffctl?*;a;0";
+		xmlhttp.open('GET', cmd, false);
+		xmlhttp.setRequestHeader("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT");
+		xmlhttp.send(null);
+		alert(xmlhttp.responseText);
+		if (xmlhttp.status == 200) {
+			var data;
+			if (xmlhttp.responseText != "")
+			{
+				data = eval('(' + xmlhttp.responseText + ')');
+			} else {
+				data = "";
+			}
+			if ((typeof data == "object") && (data.ttylist != undefined))
+			{
+				$.each(data.ttylist, function(index, value) {
+					if ((value.text != "") && (typeof value == "object"))
+					{
+//						alert(value.text);
+						buf[value.dev] += value.text;
+						if (buf[value.dev].length > 40*1024) buf[value.dev] = buf[value.dev].substring(buf[value.dev].length - 40*1024, buf[value.dev].length);
+						bufSpans[value.dev].append(value.text);
+						setTimeout(function () {
+							consoleDivs[cur_iface].scrollTo('100%', {axis: 'y'});
+							consoleDivs[cur_iface].scrollTo('+=100px', {axis: 'y'});
+						}, 10);
+					}
+					else {
+//						alert("value text == ''");
+					}
+				});
+			}
+			else {
+//				alert("not object! data = ["+data+"]");
+			}
+		}
+*/
+
 		config.cmdExecute({
-			"cmd": $.sprintf("/sbin/tbuffctl -p* -a"),
+			"cmd": "/sbin/tbuffctl -p* -a",
+			"async": false,
 			"dataType" : "json",
 			"formatData": true,
+			"status" : false,
 			"callback": function(data) {
 				if (typeof data == "object")
 				{
 					$.each(data.ttylist, function(index, value) {
 						if ((value.text != "") && (typeof value == "object"))
 						{
-							buf[value.dev] += value.text;
-							if (buf[value.dev].length > 40*1024) buf[value.dev] = buf[value.dev].substring(buf[value.dev].length - 40*1024, buf[value.dev].length);
-							cursors[value.dev].before(value.text);
-							cmdSpans[value.dev] = $.create("span").insertBefore(cursors[value.dev]);
-							
-							setTimeout(function () {consoleDivs[value.dev].scrollTo('100%', 0);}, 10);
-							
-//							setTimeout(function () {
-								block = 0;
-//							}, 100);
-							
-							t3 = new Date().getTime();
-//							if (t0 != 0) alert((t1-t0)/1000 + " " + (t2-t1)/1000 + " " + (t3-t2)/1000);
-							t0 = 0;
+//							var substr = value.text.substiring(0, (value.text.length > 100)?100:value.text.length);
+//							alert(substr);
+							cur_iface = value.dev;
+							parse_answer(value.text, "func");
+
+//							value.text = value.text.substiring((value.text.length > 100)?100:value.text.length, value.text.length);
+//							buf[value.dev] += value.text;
+//							if (buf[value.dev].length > 40*1024) buf[value.dev] = buf[value.dev].substring(buf[value.dev].length - 40*1024, buf[value.dev].length);
+//							bufSpans[value.dev].append(value.text);
+
+							setTimeout(function () {
+								scrollTab();
+							}, 10);
 						}
 					});
 				}
 			}
 		});
+		if (param != true)
+		{
+			if (func_en == 1) {
+//				alert("setTimeout");
+				tout = setTimeout(func, requesttime);
+			} else timer = 0;
 		}
-		if (func_en == 1) setTimeout(func, 500); else timer = 0;
 	};
+	
 	if ((timer == 0) && (func_en == 1))
 	{
-		setTimeout(func, 500);
+		tout = setTimeout(func, requesttime+2000);
 		timer = 1;
 	}
 	function sortfunc(i, ii) {
@@ -163,6 +316,12 @@ Controllers.terminal = function ()
 		else
 			return 0;
 	}
+
+
+
+	
+	
+	
 	ifaces.sort(sortfunc);
 	$.each(ifaces, function(num, ifaceInfo) {
 		var iface = ifaceInfo.iface;
@@ -175,136 +334,202 @@ Controllers.terminal = function ()
 				"name": $.sprintf("%s(%s)", name, iface),
 				"func": function()
 				{
-					var cmd2 = "";
+					tab = iface;
 					var p = page.getRaw($.sprintf("terminal%s", iface));
 					consoleDivs[iface] = $.create("div", {"id": "consoleDiv", "className": "pre scrollable","tabindex": "0"}, "").appendTo(p);
 
 					cursors[iface] = $.create("span", {"id": "consoleCursor"}, "_").appendTo(consoleDivs[iface]);
-					
+					bufSpans[iface] = $.create("span", {"id": $.sprintf("bufSpan%s", iface)}, "").insertBefore(cursors[iface]);
 					if (buf[iface] == undefined) buf[iface] = "";
-					cursors[iface].before(buf[iface]);
-					cmdSpans[iface] = $.create("span").insertBefore(cursors[iface]);
-					$.create("span", {"id": $.sprintf("bottomAnchor%s", iface)}, "&nbsp;").appendTo(p);
+					bufSpans[iface].html(buf[iface]);
 
 					var onKeypress = function(src) {
-						if (block) return false;
-						consoleDivs[iface].scrollTo('100%', 0);
+/*
+						var i;
+						for (i = 0; i < 256; i++) 
+								$("#status").html($("#status").html()+i+" - "+String.fromCharCode(i)+"<br>");
+						return 0;
+*/
+//						clearTimeout(tout);
 						var ch;
-//						alert(src.keyCode);
-
-						// Tab
-						if (src.keyCode == 9)
-						{
-							block3 = 1;
-							func_en = 0;
-							config.cmdExecute({
-								"cmd": $.sprintf("/sbin/tbuffctl -p%s -t \"%s\"", iface, cmd2),
-							});
-							
-							setTimeout(function () {
-								config.cmdExecute({
-									"cmd": $.sprintf("/sbin/tbuffctl -p%s -r 0", iface),
-									"callback": function(data) {
-										var str = new String(data);
-										var str2 = new String("");
-										var last_space = 0;
-										var b, e;
-										for (i = 0; i < str.length; i++) str2 = str2 + str.charCodeAt(i) + "[" + str.charAt(i) + "] ";
-										alert("data = "+str2);
-
-										for (b = cmd2.length; b < str.length; b++)
-										{
-											if ((str.charCodeAt(b) != 8) && (str.charCodeAt(b) != 10) && (str.charCodeAt(b) != 13)) break;
-										}
-										for (e = str.length; e > b; e--)
-										{
-											if ((str.charCodeAt(e) != 8) && (str.charCodeAt(e) != 10) && (str.charCodeAt(e) != 13)) break;
-										}
-										alert("substring = "+str.substring(b, e));
-
-										cmd2 = "";//data;
-										cmdSpans[iface].text("");//data);
-										block3 = 0;
-										func_en = 1;
-										func();
-									}
-								});
-								config.cmdExecute({
-									"cmd": $.sprintf("/sbin/tbuffctl -p%s -d", iface),
-								});
-
-							}, 500);
-
-							
-							return false;
-						}
-
-						// Enter
-						if (src.keyCode == 13) {
-							if (!block)
-							{
-								block = 1;
-								block3 = 1;
-								setTimeout(function () {
-//									block = 0;
-									block3 = 0;
-								}, 5000);
-						
-							if (buf[iface] == undefined) buf[iface] = cmd2; else buf[iface] += cmd2;
-							buf[iface] += "<br>";
-							if (buf[iface].length > 40*1024) buf[iface] = buf[iface].substring(buf[iface].length - 40*1024, buf[iface].length);
-							t0 = new Date().getTime();
-							config.cmdExecute({
-								"cmd": $.sprintf("/sbin/tbuffctl -p%s -w \"%s\"", iface, cmd2),
-								"callback": function(data) {
-									cursors[iface].before("<br>");
-									cmdSpans[iface] = $.create("span").insertBefore(cursors[iface]);
-									block3 = 0;
-								}
-							});
-							
-							} else return true;
-							
-							t1 = new Date().getTime();
-							cmd2 = "";
-							return false;
-							
-						} else if (src.keyCode == 16 || src.keyCode == 17 || src.keyCode == 18
-								|| src.keyCode == 37 || src.keyCode == 38 || src.keyCode == 39
-								|| src.keyCode == 40 || src.keyCode == 8) {
-							return false;
-						}
-						
-
 						if (src.which == null) {
-							ch = String.fromCharCode(src.keyCode);
+							/* IE */
+							ch = src.keyCode;
 						} else if (src.which > 0) {
-							ch = String.fromCharCode(src.which);
+							/* others */
+							ch = src.which;
+						}
+//						alert("which = "+src.which+" keyCode = "+src.keyCode);
+						var str123 = "";
+
+						if (isctrl == true)
+						{
+//							alert("crtl");
+							src.which = undefined;
+							if (src.keyCode>=65 && src.keyCode<=90) str123 = String.fromCharCode(src.keyCode-64); // Ctrl-A..Z
+							else if (src.keyCode>=97 && src.keyCode<=122) str123 = String.fromCharCode(src.keyCode-96); // Ctrl-A..Z
+							else if (src.keyCode==54) str123 = String.fromCharCode(30);  // Ctrl-^
+							else if (src.keyCode==109) str123 = String.fromCharCode(31); // Ctrl-_
+							else if (src.keyCode==219) str123 = String.fromCharCode(27); // Ctrl-[
+							else if (src.keyCode==220) str123 = String.fromCharCode(28); // Ctrl-\
+							else if (src.keyCode==221) str123 = String.fromCharCode(29); // Ctrl-]
+							else if (src.keyCode==219) str123 = String.fromCharCode(29); // Ctrl-]
+							else if (src.keyCode==219) str123 = String.fromCharCode(0);  // Ctrl-@
+							else src.which = 1;
+						} else
+						switch (src.keyCode)
+						{
+							case 33:
+								str123 = String.fromCharCode(27)+"[5~"; //PgUp
+							break;
+							case 34:
+								str123 = String.fromCharCode(27)+"[6~"; //PgDn
+							break;
+							case 35:
+								str123 = String.fromCharCode(27)+"[4~"; // End
+							break;
+							case 36:
+								str123 = String.fromCharCode(27)+"[1~"; // Home
+							break;
+							case 37:
+								str123 = String.fromCharCode(27)+"[D"; // Left
+							break;
+							case 38:
+								str123 = String.fromCharCode(27)+"[A"; // Up
+							break;
+							case 39:
+								str123 = String.fromCharCode(27)+"[C"; // Right
+							break;
+							case 40:
+								str123 = String.fromCharCode(27)+"[B"; // Down
+							break;
+							case 45:
+								str123 = String.fromCharCode(27)+"[2~"; // Ins
+							break;
+							case 46:
+								str123 = String.fromCharCode(27)+"[3~"; // Del
+							break;
+							case 112:
+								str123 = String.fromCharCode(27)+"[[A"; //F1
+							break;
+							case 113:
+								str123 = String.fromCharCode(27)+"[[B";
+							break;
+							case 114:
+								str123 = String.fromCharCode(27)+"[[C";
+							break;
+							case 115:
+								str123 = String.fromCharCode(27)+"[[D";
+							break;
+							case 116:
+								str123 = String.fromCharCode(27)+"[[E";
+							break;
+							case 117:
+								str123 = String.fromCharCode(27)+"[17~";
+							break;
+							case 118:
+								str123 = String.fromCharCode(27)+"[18~";
+							break;
+							case 119:
+								str123 = String.fromCharCode(27)+"[19~";
+							break;
+							case 120:
+								str123 = String.fromCharCode(27)+"[20~";
+							break;
+							case 121:
+								str123 = String.fromCharCode(27)+"[21~";
+							break;
+							case 122:
+								str123 = String.fromCharCode(27)+"[22~";
+							break;
+							case 123:
+								str123 = String.fromCharCode(27)+"[23~"; // F12
+							break;
+						}
+						
+						if (ch > 1000)
+						{
+							src.which = undefined;
+							str123 = ""+String.fromCharCode(ch);
+						}
+						
+						if ((str123 != "") && (src.which == undefined))
+						{
+							cmd = $.sprintf("/sbin/tbuffctl -p%s -w \"%s\"", iface, str123);
+							cur_iface = iface;
+							config.cmdExecute({
+								"cmd": cmd,
+								"async": false,
+								"callback": parse_answer
+							});
+//							func();
+							return false;
 						}
 
-						cmdSpans[iface].append(ch);
-						if (ch != undefined) cmd2 += ch;
+						var xmlhttp = getXmlHttp();
+						cmd = $.sprintf("sh/tbuffctl?%s;c;%s", iface, ch);
+						xmlhttp.open('GET', cmd, false);
+						xmlhttp.setRequestHeader("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT");
+						xmlhttp.send(null);
+						cur_iface = iface;
+						if (xmlhttp.status == 200) {
+							parse_answer(xmlhttp.responseText, "ch");
+							if (xmlhttp.responseText == "")
+							{
+//								if ((ch >= 32) && (ch <= 126) || (ch == 10))
+//								parse_answer(String.fromCharCode(ch));
+//								alert("empty answer");
+							}
+						} else {
+//							if ((ch >= 32) && (ch <= 126) || (ch == 10))
+//							parse_answer(String.fromCharCode(ch));
+//							alert("status"+xmlhttp.status);
+						}
+//						func(true);
+						
 						return false;
 					};
-					var onBackspace = function() {
-						cmd2 = cmd2.substring(0, cmd2.length - 1);
-						cmdSpans[iface].text(cmd2);
-						return false;
-					};
-					var onclick = function() {
-						consoleDivs[iface].scrollTo('100%', 0);
-					};
-					setTimeout(function() {
-						consoleDivs[iface].scrollTo('100%', 0);
-						consoleDivs[iface].focus();
-					}, 10);
-					consoleDivs[iface].click(onclick);
+					
 					consoleDivs[iface].keypress(onKeypress);
+
 					consoleDivs[iface].keydown(function(src) {
-						if (src.keyCode == 8) {
-							return onBackspace();
+						var k = src.keyCode;
+						if (src.which == 17) {
+							isctrl = true;
+//							alert("true");
+						}
+						if (isctrl == true && src.which >= 65 && src.which <= 90) onKeypress(src);
+						if ((k == 8) || (k == 9) || (k == 27) || (k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) || (k == 38)
+						|| (k == 39) || (k == 40) || (k == 45) || (k == 46) || (k == 112) || (k == 113) || (k == 114) || (k == 115) || (k == 116)
+						|| (k == 117) || (k == 118) || (k == 119) || (k == 120) || (k == 121) || (k == 122) || (k == 123))
+						{
+							src.which = undefined;
+							onKeypress(src);
+							return false;
 						}
 					});
+					consoleDivs[iface].keyup(function(src) {
+						if (src.which == 17) {
+							isctrl = false;
+//							alert("false")
+						}
+					});
+
+/*
+					consoleDivs[iface].keydown(function(src) {
+						var ev = src;
+						if (!ev) var ev=window.event;
+						if (ie) {
+							o={9:1,8:1,27:1,33:1,34:1,35:1,36:1,37:1,38:1,39:1,40:1,45:1,46:1,112:1,
+							113:1,114:1,115:1,116:1,117:1,118:1,119:1,120:1,121:1,122:1,123:1};
+							if (o[ev.keyCode] || ev.ctrlKey || ev.altKey) {
+								ev.which=0;
+								return onKeypress(ev);
+							}
+						}
+					});
+*/
+
 				} //func
 			}); //addTab
 		} // if

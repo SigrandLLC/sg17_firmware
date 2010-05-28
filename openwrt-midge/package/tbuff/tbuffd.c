@@ -115,6 +115,7 @@ int read_from_sockets(fd_set ready)
 			{
 				char rq[MAX_DATA];
 				int r = read(sockets[i], rq, MAX_DATA);
+				rq[r] = '\0';
 				if (v) printf("from socket readed:(%i byte) %s\n", r, rq);
 //				fprintf(log_file, "from socket readed:(%i byte) %s\n", r, rq);
 //				fflush(log_file);
@@ -171,6 +172,10 @@ int read_from_sockets(fd_set ready)
 					case 'w':
 						if (ports[atoi(&rq[2])].fd != -1)
 						{
+							fd_set ready;
+							struct timeval tv;
+							tv.tv_sec = 1;
+							tv.tv_usec = 0;
 							p = atoi(&rq[2]);
 							k = 2;
 							while (rq[k] != ';') k++;
@@ -202,14 +207,50 @@ int read_from_sockets(fd_set ready)
 							}
 
 							r = write(ports[p].fd, &rq[w], n + 1);
-							write(ports[p].fd, &ch, 1);
+							FD_ZERO(&ready);
+							FD_SET(ports[p].fd, &ready);
+							select(ports[p].fd + 1, &ready, NULL, NULL, &tv);
+//							if (v) printf("p = %i\n", p);
+
+							if (FD_ISSET(ports[p].fd, &ready))
+							{
+								char buf_out[100];
+								int bc = 0;
+								r = read(ports[p].fd, rq, 100);//
+//								if (v) printf("r = %i rq = %s\n", r, rq);
+								for (w = 0; w < r; w++)
+								{
+									switch (out(rq[w], &ports[p]))
+									{
+										case 1:
+											buf_out[bc] = rq[w];
+											bc++;
+										break;
+//										case 2:
+//											buf_out[bc] = '\n';
+//											bc++;
+//										break;
+										default:
+											if (v) printf("\n===%i[%c]%x====\n", rq[w], rq[w], rq[w]);
+										break;
+									}
+								}
+								w = write(sockets[i], buf_out, bc);//
+							} else {
+								sprintf(rq, "NONE");
+								r = write(sockets[i], rq, 5);
+							}
+
+
+
+//							write(ports[p].fd, &ch, 1);
 
 //							fprintf(log_file, "]\n");
 //							fflush(log_file);
 							if (v) printf("]\n");
 							
-							sprintf(rq, "OK");
-							r = write(sockets[i], rq, 3);
+//							sprintf(rq, "OK");
+//							r = write(sockets[i], rq, 3);
 						} else {
 							tstr = malloc(100);
 							sprintf(tstr, "We do not listen requsted port, enable it in kdb\n");
@@ -268,6 +309,12 @@ int read_from_sockets(fd_set ready)
 					case 'c':
 						if (ports[atoi(&rq[2])].fd != -1)
 						{
+							fd_set ready;
+							struct timeval tv;
+							tv.tv_sec = 0;
+							tv.tv_usec = 300000;
+							
+							gettimeofday(&tv2, NULL);
 							p = atoi(&rq[2]);
 							k = 2;
 							while (rq[k] != ';') k++;
@@ -279,9 +326,72 @@ int read_from_sockets(fd_set ready)
 							n = atoi(&rq[k]) - 1;
 							
 							r = write(ports[p].fd, &rq[w], 1);
+							
+							k = 0;
+							tstr = malloc(buf_size+100);
+							if (ports[p].tbuf != ports[p].hbuf)
+							{
+								for (ii = 0; ii < n; ii++)
+								{
+									if (ports[p].tbuf != ports[p].hbuf)
+									{
+										tstr[k] = ports[p].buf[ports[p].tbuf];
+										k++;
+										ports[p].tbuf++;
+										if (ports[p].tbuf == buf_size)
+										{
+											ports[p].tbuf = 0;
+										}
+									} else {
+										break;
+									}
+								}
+							}
 
-							sprintf(rq, "OK");
-							r = write(sockets[i], rq, 3);
+
+
+							FD_ZERO(&ready);
+							FD_SET(ports[p].fd, &ready);
+							select(ports[p].fd + 1, &ready, NULL, NULL, &tv);
+//							if (v) printf("p = %i\n", p);
+
+							if (FD_ISSET(ports[p].fd, &ready))
+							{
+								char buf_out[100];
+								int bc = 0;
+								r = read(ports[p].fd, rq, 100);//
+								rq[r] = 0;
+								if (v) printf("from port readed (%i byte): ", r);
+								for (w = 0; w < r; w++)
+								{
+									char a = rq[w];
+									if (v) printf("%x", rq[w]);
+									if ((v) && ((a >= '0') && (a <= '9') || (a >= 'a') && (a <= 'z') || (a >= 'A') && (a <= 'Z') || (a == '_')))
+									if (v) printf("[%c]", a);
+									if (v) printf(" ");
+									switch (out(rq[w], &ports[p]))
+									{
+										case 1:
+											tstr[k+bc] = rq[w];
+											bc++;
+										break;
+//										case 2:
+//											buf_out[bc] = '\n';
+//											bc++;
+//										break;
+										default:
+											if (v) printf("\n===%i[%c]%x====\n", rq[w], rq[w], rq[w]);
+										break;
+									}
+								}
+								if (v) printf("\n");
+								w = write(sockets[i], tstr, k+bc);//
+							} else {
+								sprintf(rq, "NONE");
+								r = write(sockets[i], rq, 5);
+							}
+//							sprintf(rq, "OK");
+//							r = write(sockets[i], rq, 3);
 						} else {
 							tstr = malloc(100);
 							sprintf(tstr, "We do not listen requsted port, enable it in kdb\n");
@@ -290,6 +400,9 @@ int read_from_sockets(fd_set ready)
 						}
 						close(sockets[i]);
 						sockets[i] = 0;
+						gettimeofday(&tv1, NULL);
+						if (v) printf("time = %.6f sec.\n", (tv1.tv_sec * 1E6 + tv1.tv_usec - tv2.tv_sec * 1E6 - tv2.tv_usec) / 1E6);
+
 					break;
 
 					case 'd':
@@ -338,18 +451,18 @@ int read_from_sockets(fd_set ready)
 					case 'a':
 						cnt = 0;
 						tbuff = malloc(buf_size*MAX_PORTS);
-						po = sprintf(&tbuff[cnt], "{\"ttylist\":[");
+						po = sprintf(&tbuff[cnt], "{'ttylist':[");
 						cnt+=po;
 						for (j = 0; j < MAX_PORTS; j++)
 						{
 //							if (v) printf("port %i fd = %i tbuf = %i hbuf = %i\n", j, ports[j].fd, ports[j].tbuf, ports[j].hbuf);
 							if ((ports[j].fd > 0) && (ports[j].tbuf != ports[j].hbuf))
 							{
-								po = sprintf(&tbuff[cnt], "{\"dev\":\"");
+								po = sprintf(&tbuff[cnt], "{'dev':'");
 								cnt+=po;
 								po = sprintf(&tbuff[cnt], "%s%i", iface_name, j);
 								cnt+=po;
-								po = sprintf(&tbuff[cnt], "\",\"text\":\"");
+								po = sprintf(&tbuff[cnt], "','text':'");
 								cnt+=po;
 								while (1)
 								{
@@ -379,6 +492,12 @@ int read_from_sockets(fd_set ready)
 												tbuff[cnt] = '\"';
 												cnt++;
 											break;
+											case '\'':
+												tbuff[cnt] = '\\';
+												cnt++;
+												tbuff[cnt] = '\'';
+												cnt++;
+											break;
 											
 										}
 										ports[j].tbuf++;
@@ -390,16 +509,16 @@ int read_from_sockets(fd_set ready)
 										break;
 									}
 								} // while(1)
-								po = sprintf(&tbuff[cnt], "\"},");
+								po = sprintf(&tbuff[cnt], "'},");
 								cnt+=po;
 							} else {
 								if ((ports[j].fd > 0) && (ports[j].tbuf == ports[j].hbuf))
 								{
-									po = sprintf(&tbuff[cnt], "{\"dev\":\"");
+									po = sprintf(&tbuff[cnt], "{'dev':'");
 									cnt+=po;
 									po = sprintf(&tbuff[cnt], "%s%i", iface_name, j);
 									cnt+=po;
-									po = sprintf(&tbuff[cnt], "\",\"text\":\"\"},");
+									po = sprintf(&tbuff[cnt], "','text':''},");
 									cnt+=po;
 								}
 							}
@@ -524,16 +643,16 @@ int loop()
 				{
 					qweqwe = 0;
 					while (ports[i].cmd[qweqwe]) qweqwe++;
-					if (v) printf("cmd = %s\n", ports[i].cmd);
-					if (v)
-					{
-						int wer;
-						for (wer = 0; wer < qweqwe; wer++)
-						{
-							printf("%x ", ports[i].cmd[wer]);
-						}
-						printf("\n");
-					}
+//					if (v) printf("cmd = %s\n", ports[i].cmd);
+//					if (v)
+//					{
+//						int wer;
+//						for (wer = 0; wer < qweqwe; wer++)
+//						{
+//							printf("%x ", ports[i].cmd[wer]);
+//						}
+//						printf("\n");
+//					}
 					qw = 0;
 					if (qweqwe)
 					if (rb > qweqwe)
@@ -582,9 +701,9 @@ int loop()
 							case 1:
 								buff_add(ports + i, tbuf[qw]);
 								break;
-							case 2:
-								buff_add(ports + i, '\n');
-								break;
+//							case 2:
+//								buff_add(ports + i, '\n');
+//								break;
 							default:
 								break;
 							}
@@ -624,7 +743,7 @@ int close_port(int p)
 {
 	if (ports[p].fd != 0)
 	{
-		tcsetattr(ports[p].fd, TCSANOW, &ports[p].pots);
+//		tcsetattr(ports[p].fd, TCSANOW, &ports[p].pots);
 		if (close(ports[p].fd) < 0) return -1;
 		ports[p].hbuf = 0;
 		free(ports[p].buf);
@@ -670,11 +789,14 @@ int main (int argc, char **argv)
 	pid_t pid, i;
 	struct sigaction sa;
 	
-	lock_file = open("/var/run/tbuffd.pid", O_CREAT | O_EXCL | O_RDWR);
+	lock_file = open("/var/run/tbuffd.pid", O_CREAT | O_EXCL | O_RDWR, S_IRWXU | S_IRWXG | S_IRWXO);
 	if (lock_file == -1)
 	{
+		int r = -1;
 		FILE * lf = fopen("/var/run/tbuffd.pid", "r");
-		fscanf(lf, "%i", &pid);
+		if (lf == NULL) goto ulink;
+		r = fscanf(lf, "%i", &pid);
+		if (r <= 0) goto ulink;
 		if (v) printf("file locked by process with pid=%i\n", pid);
 		fclose(lf);
 		if (!kill(pid, 0))
@@ -682,7 +804,9 @@ int main (int argc, char **argv)
 			return 0;
 		}
 		if (v) printf("this process does not exist!!\n");
+ulink:
 		unlink("/var/run/tbuffd.pid");
+		unlink("/tmp/socket");
 		lock_file = open("/var/run/tbuffd.pid", O_CREAT | O_EXCL | O_RDWR);
 	}
 	

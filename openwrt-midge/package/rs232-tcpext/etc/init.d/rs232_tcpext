@@ -1,0 +1,138 @@
+#!/bin/sh
+
+status()
+{
+	local pidfile=$1 quiet
+	if test "$#" -ge 2; then quiet=1; else quiet=; fi
+
+	if test -f $pidfile; then
+		local pid=`cat $pidfile 2>/dev/null`
+		if test -n "$pid"; then
+			if kill -0 $pid 2>/dev/null; then
+				test -z "$quiet" && echo "Running"
+				return 0
+			else
+				test -z "$quiet" && echo "Not running with orphaned pid file"
+				return 1
+			fi
+		else # pidfile disappeared instantly
+			test -z "$quiet" && echo "Not running"
+			return 1
+		fi
+	else
+		test -z "$quiet" && echo "Not running"
+		return 1
+	fi
+}
+
+stop()
+{
+	local pidfile=$1
+
+	if status $pidfile quiet; then
+		kill `cat $pidfile` 2>/dev/null
+	fi
+
+	while status $pidfile quiet; do sleep 1s; done
+
+	rm -f $pidfile
+}
+
+start_or_stop()
+{
+	local start=$1
+	[ $start -eq 1 ] && echo -n "Starting " || echo -n "Stopping "
+	echo "rs232 over tcp/ip"
+
+	if [ $start -ne 0 ]; then
+		eval `kdb sls -q sys_pcitbl_`
+		for slot in $slots; do
+			mod_cfg "$slot"
+		done
+	else
+		for p in /var/run/rs232-tcpext.*.pid; do
+			stop $p
+		done
+	fi
+}
+
+node_cfg()
+{
+   local slot=$1 dev=$2 node=$3
+
+   local lockfile="/var/lock/LCK..$node"
+   local  pidfile="/var/run/rs232-tcpext.${node}.pid"
+   local node_type=`rs232-type ${node}`
+
+   case $node_type in
+	DTE|DCE) ;;
+	*)
+		echo -e            "\twrong type: $node_type for ${node}"
+		logger "rs232_tcpext: wrong type: $node_type for ${node}"
+		exit 1;;
+   esac
+
+   # kdb options defaults:
+   local mode=disable host="0.0.0.0" port=3000 iptos=0
+   local poll_interval=100 restart_delay=1000
+
+   # kdb options
+   eval `kdb sls sys_rs232_tcpext_s${slot}_${dev}_`
+
+   # for beginning stop service, always.
+   stop $pidfile
+
+   case "$mode" in
+	disable) ;;
+	connect)
+		echo -e "\tconnect to ${host}:${port} for ${node}";;
+	listen)
+		echo -e "\t listen on ${host}:${port} for ${node}";;
+	*)
+		echo -e            "\twrong mode: $mode for ${node}"
+		logger "rs232_tcpext: wrong mode: $mode for ${node}"
+		exit 1;;
+   esac
+
+   if test "$mode" != "disable"; then # must be started
+
+      # "Usage: rs232-tcpext /dev/ttyPORT host port {listen|connect} pidfile P R\n"
+      # "\tP - modem state poll interval, msec\n"
+      # "\tR - connection restart delay time, msec\n"
+
+      rs232-tcpext /dev/$node $node_type $host $port $iptos $mode $pidfile \
+			$poll_interval $restart_delay
+   fi
+}
+
+mod_cfg()
+{
+	local slot=$1
+	local dev=$2
+	nodes=`kdb get sys_pcitbl_s${slot}_ifaces`
+	nodenum=0
+	for node in $nodes; do
+		if [ -n "$dev" ]; then
+			if [ "$dev" -eq "$nodenum" ]; then
+				node_cfg "$slot" "$nodenum" "$node"
+				break
+			fi
+		else
+			node_cfg "$slot" "$nodenum" "$node"
+		fi
+		nodenum=`expr $nodenum + 1`
+	done
+}
+
+case "$1" in
+	start)
+		start_or_stop 1
+		;;
+	stop)
+		start_or_stop 0
+		;;
+	restart)
+		mod_cfg $2 $3
+		;;
+esac
+

@@ -3,7 +3,7 @@ obj-m := @DRVNAME@.o
 @DRVNAME@-objs := mr16g_hdlc.o
 
 @DRVNAME@.ko: mr16g_hdlc.c
-	make -C @KERNSRC@ SUBDIRS=$(PWD) modules CROSS_COMPILE=@CROSS_PREFIX@
+	make -C @KERNSRC@ SUBDIRS=$(PWD) modules CROSS_COMPILE="@CROSS_PREFIX@"
 
 all: @DRVNAME@.ko
 
@@ -22,7 +22,7 @@ clean:
 	rm --preserve-root -f -R .tmp*
 
 mr16g_hdlc.s: mr16g_hdlc.c
-	make -C @KERNSRC@ CROSS_COMPILE=@CROSS_PREFIX@ $(PWD)/mr16g_hdlc.s
+	make -C @KERNSRC@ CROSS_COMPILE="@CROSS_PREFIX@" $(PWD)/mr16g_hdlc.s
 
 debug: mr16g_hdlc.c mr16g_hdlc.s
 	@CROSS_PREFIX@objdump -d mr16g_hdlc.o > mr16g_hdlc.disasm

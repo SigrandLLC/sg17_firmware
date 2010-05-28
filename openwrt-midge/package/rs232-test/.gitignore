@@ -1,0 +1,4 @@
+/.cvsignore
+/*.dep
+/*.o
+/rs232-io

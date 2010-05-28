@@ -25,7 +25,7 @@ $(PKG_BUILD_DIR)/.configured:
 
 $(PKG_BUILD_DIR)/.built:
 	$(MAKE) -C $(PKG_BUILD_DIR) \
-		CC=$(TARGET_CC) CFLAGS="$(TARGET_CFLAGS)" IDSDIR="/usr/share"	\
+		CC="$(TARGET_CC)" CFLAGS="$(TARGET_CFLAGS)" IDSDIR="/usr/share"	\
 		HOST=$(GNU_TARGET_NAME) ZLIB=no DNS=no SHARED=yes		\
 		lspci setpci
 	touch $@

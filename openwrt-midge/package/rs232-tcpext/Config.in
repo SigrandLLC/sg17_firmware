@@ -1,0 +1,8 @@
+config BR2_PACKAGE_RS232_TCPEXT
+	prompt "rs232-tcpext...................... Extends RS232 ports over TCP/IP"
+	tristate
+	default m if CONFIG_DEVEL
+	select BR2_PACKAGE_LIBLOCKDEV
+	help
+	  Extends RS-232 ports transparently over TCP/IP.
+

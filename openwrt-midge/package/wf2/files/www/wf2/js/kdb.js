@@ -697,34 +697,38 @@ function Config() {
                 }
             },
             "success": function(data, textStatus) {
-                wf2Logs.addLog("AJAX response", $.sprintf("status: %s, url: %s, cmd: %s, data: %s",
-                        textStatus, this.url, this.data, data));
+                if (options.status != false)
+				{
+					wf2Logs.addLog("AJAX response", $.sprintf("status: %s, url: %s, cmd: %s, data: %s",
+    	                    textStatus, this.url, this.data, data));
+        	        
+            	    if (ajaxNum > 0) {
+	                    ajaxNum--;
+    	            }
                 
-                if (ajaxNum > 0) {
-                    ajaxNum--;
+        	        if (ajaxNum == 0) {
+            	        $("#status_ajax").text(_("none"));
+	                } else {
+    	                $("#status_ajax").text($.sprintf("%s (%s: %s)", _("loading data"), _("requests"),
+        	                ajaxNum));
+	                }
                 }
-                
-                if (ajaxNum == 0) {
-                    $("#status_ajax").text(_("none"));
-                } else {
-                    $("#status_ajax").text($.sprintf("%s (%s: %s)", _("loading data"), _("requests"),
-                        ajaxNum));
-                }
-                
                 processResult(data);
             },
             "error": function(XMLHttpRequest, textStatus, errorThrown) {
-                wf2Logs.addLog("AJAX error", $.sprintf("status: %s, url: %s, cmd: %s",
-                        textStatus, this.url, this.data));
-
-                if (ajaxNum > 0) {
-                    ajaxNum--;
+                if (options.status != false)
+				{
+	                wf2Logs.addLog("AJAX error", $.sprintf("status: %s, url: %s, cmd: %s",
+    	                    textStatus, this.url, this.data));
+	
+    	            if (ajaxNum > 0) {
+        	            ajaxNum--;
+            	    }
+	                
+    	            if (ajaxNum == 0) {
+        	            $("#status_ajax").text(_("none"));
+            	    }
                 }
-                
-                if (ajaxNum == 0) {
-                    $("#status_ajax").text(_("none"));
-                }
-                
                 processResult(_("Connection error"));
             }
         };
@@ -734,17 +738,19 @@ function Config() {
             processResult(_("Router is offline"));
             return;
         }
-        
-        /* increase number of processing Ajax requests and update status */
-        ajaxNum++;
-        $("#status_ajax").text($.sprintf("%s (%s: %s)", _("loading data"), _("requests"), ajaxNum));
-        
+        if (options.status != false)
+		{
+	        /* increase number of processing Ajax requests and update status */
+    	    ajaxNum++;
+        	$("#status_ajax").text($.sprintf("%s (%s: %s)", _("loading data"), _("requests"), ajaxNum));
+        }
         /* perform request */
         $.ajax(ajaxOptions);
-        
-        /* log request */
-        wf2Logs.addLog("AJAX request", ajaxOptions.url + ", " + options.cmd)
-        
+        if (options.status != false)
+		{
+	        /* log request */
+	   	    wf2Logs.addLog("AJAX request", ajaxOptions.url + ", " + options.cmd)
+        }
         return output;
     };
     

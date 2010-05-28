@@ -1,0 +1,11 @@
+--- linux-2.6.16/drivers/serial/serial_core.c.orig	2006-03-20 11:53:29.000000000 +0600
++++ linux-2.6.16/drivers/serial/serial_core.c	2010-05-25 14:30:20.000000000 +0700
+@@ -126,7 +126,7 @@ uart_update_mctrl(struct uart_port *port
+ 	spin_lock_irqsave(&port->lock, flags);
+ 	old = port->mctrl;
+ 	port->mctrl = (old & ~clear) | set;
+-	if (old != port->mctrl)
++	//if (old != port->mctrl)
+ 		port->ops->set_mctrl(port, port->mctrl);
+ 	spin_unlock_irqrestore(&port->lock, flags);
+ }

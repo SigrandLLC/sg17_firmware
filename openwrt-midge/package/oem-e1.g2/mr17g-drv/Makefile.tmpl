@@ -6,8 +6,8 @@ CFLAGS+=@CFLAGS@
 obj-m := @DRVNAME@.o
 @DRVNAME@-objs := mr17g_main.o mr17g_sci.o mr17g_net.o pef22554.o mr17g_sysfs.o mr17g_debug.o
 
-@DRVNAME@.ko: mr17g_main.c mr17g_sci.c mr17g_net.c pef22554.c mr17g_sysfs.c mr17g_debug.c 
-	make -C @KERNSRC@ SUBDIRS=$(PWD) modules CROSS_COMPILE=@CROSS_PREFIX@
+@DRVNAME@.ko: mr17g_main.c mr17g_sci.c mr17g_net.c pef22554.c mr17g_sysfs.c mr17g_debug.c
+	make -C @KERNSRC@ SUBDIRS=$(PWD) modules CROSS_COMPILE="@CROSS_PREFIX@"
 
 all: @DRVNAME@.ko
 
@@ -28,7 +28,7 @@ clean:
 
 # Template for assembler debug
 #mr16g_hdlc.s: mr16g_hdlc.c
-#	make -C @KERNSRC@ CROSS_COMPILE=@CROSS_PREFIX@ $(PWD)/mr16g_hdlc.s
+#	make -C @KERNSRC@ CROSS_COMPILE="@CROSS_PREFIX@" $(PWD)/mr16g_hdlc.s
 #debug: mr16g_hdlc.c mr16g_hdlc.s
 #	@CROSS_PREFIX@objdump -d mr16g_hdlc.o > mr16g_hdlc.disasm
 

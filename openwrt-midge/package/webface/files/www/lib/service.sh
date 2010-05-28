@@ -55,11 +55,11 @@ service_reload(){
 		/etc/init.d/rs232 restart "$slot" "$dev"
 		/etc/init.d/mux start
 	;;
-	rs232ip.*)
+	rs232_tcpext.*)
 		tmp=${service#*.}
 		slot=${tmp%.*}
 		dev=${tmp#*.}
-		/etc/init.d/rs232ip restart "$slot" "$dev"
+		/etc/init.d/rs232_tcpext restart "$slot" "$dev"
 	;;
 	fw)
 		/etc/init.d/fw restart

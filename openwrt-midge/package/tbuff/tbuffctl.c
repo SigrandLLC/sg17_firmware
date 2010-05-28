@@ -91,24 +91,26 @@ int write_in_port (char * d)
 		exit(-1);
 	}
 	strcpy(str, "");
-	i = read(sock, &str, 10);
-	if (i <= 0)
-	{
-		printf("Error: cannot read from socket\n");
-		exit(-1);
-	}
+	i = read(sock, &str, 100);
+	str[i] = 0;
+//	if (i <= 0)
+//	{
+//		printf("Error: cannot read from socket\n");
+//		exit(-1);
+//	}
 //	printf(">>Debug: answer %i byte = [%s]\n", i, str);
-	if (strcmp(str, "OK") == 0)
-	{
+//	if (strcmp(str, "OK") == 0)
+//	{
 //		printf("Data successfully sent\n");
-	}
+//	}
+	if (strcmp(str, "NONE") != 0) printf("%s", str);
 	return 0;
 }
 
 
 int write_in_port_t (char * d)
 {
-	int i = 0;
+	int i = 0, j;
 	char str[MAX_DATA];
 	sprintf(str, "t;%i;%s;%i;", port, d, strlen(d) + 1);
 //	printf(">>Debug: str = [%s]\n", str);
@@ -145,16 +147,32 @@ int write_in_port_ch (unsigned char ch)
 		exit(-1);
 	}
 	strcpy(str, "");
-	i = read(sock, &str, 10);
+	i = read(sock, &str, 100);
+	str[i] = 0;
 	if (i <= 0)
 	{
 		printf("Error: cannot read from socket\n");
 		exit(-1);
 	}
 //	printf(">>Debug: answer %i byte = [%s]\n", i, str);
-	if (strcmp(str, "OK") == 0)
-	{
+//	if (strcmp(str, "OK") == 0)
+//	{
 //		printf("Data successfully sent\n");
+//	}
+	if (strcmp(str, "NONE") != 0)
+	{
+//		FILE *log;
+//		log = fopen("/root/log", "a");
+//		for (i = 0; i < strlen(str); i++)
+//		{
+//			fprintf(log, "%i", str[i]);
+//			if (str[i] > 13) fprintf(log, "[%c] ", str[i]); else fprintf(log, " ");
+//		}
+//		fprintf(log, "\n");
+//		fclose(log);
+		for (i = 0; i < 2*65535; i++);
+		printf("%s", str);// else printf("NONEEEEEEEEEE\n");
+		for (i = 0; i < 4*65535; i++);
 	}
 	return 0;
 }
@@ -229,6 +247,7 @@ int read_from_all_ports()
 	} else {
 		ret = read(sock, buf, buf_size*MAX_PORTS);
 	}
+//	printf("ret = %i\n", ret);
 	buf[ret] = 0;
 	gettimeofday(&tv1, NULL);
 //	printf("time2 = %.6f sec.\n", (tv1.tv_sec * 1E6 + tv1.tv_usec - tv2.tv_sec * 1E6 - tv2.tv_usec) / 1E6);
@@ -245,14 +264,33 @@ int read_from_all_ports()
 int main (int argc, char ** argv)
 {
 	int i = 0;
+	const char *query = getenv("QUERY_STRING");
+	char * endptr;
+	char action;
+	char data[1000];
+	struct sockaddr saddr;
 	
-
 	if (argc < 2)
 	{
-		printf("Usage:\n     for read data form port: %s -pttyUSB0 -r 'how many bytes to read (0 - all buffer)'\n", argv[0]);
-		printf("     for write data to port: %s -pttyUSB0 -w 'data to send'\n", argv[0]);
-		printf("     for read data from all ports: %s -p* -a'\n", argv[0]);
-		exit(-1);
+//		printf("%s\n", getenv("REQUEST_METHOD"));
+		if (getenv("REQUEST_METHOD") != NULL)
+		{
+//			printf("query = %s\nlen = %i\n", query, strlen(query));
+			i = 0;
+			while (!isdigit(query[i])) i++;
+			port = strtol(&query[i], &endptr, 10);
+			while (query[i]!= ';') i++;
+			action = query[i+1];
+			i+=3;
+			strcpy(data, &query[i]);
+//			printf("port = %i\naction = %c\ndata = %s\n", port, action, data);
+			goto doo;
+		} else {
+			printf("Usage:\n     for read data form port: %s -pttyUSB0 -r 'how many bytes to read (0 - all buffer)'\n", argv[0]);
+			printf("     for write data to port: %s -pttyUSB0 -w 'data to send'\n", argv[0]);
+			printf("     for read data from all ports: %s -p* -a'\n", argv[0]);
+			exit(-1);
+		}
 	}
 	if (argv[1][1] == 'p')
 	{
@@ -281,8 +319,11 @@ int main (int argc, char ** argv)
 		printf("     for read data from all ports: %s -p* -a'\n", argv[0]);
 		exit(-1);
 	}
+	action = argv[2][1];
+	if (argc == 4) strcpy(data, argv[3]);
+
+doo:
 	
-	struct sockaddr saddr;
 	sock = socket(PF_UNIX, SOCK_STREAM, 0);
 	if (!sock)
 	{
@@ -296,11 +337,10 @@ int main (int argc, char ** argv)
 		printf("Error: cannot connect to socket\n");
 		exit(-1);
 	}
-
-	switch (argv[2][1])
+	switch (action)
 	{
 		case 'r':
-			size = atoi(argv[3]);
+			size = atoi(data);
 			if (read_form_port())
 			{
 				printf("Error: cannot read data from port\n");
@@ -308,7 +348,7 @@ int main (int argc, char ** argv)
 			}
 		break;
 		case 'w':
-			if (write_in_port(argv[3]))
+			if (write_in_port(data))
 			{
 				printf("Error: cannot write data in port\n");
 				exit(-1);
@@ -323,14 +363,14 @@ int main (int argc, char ** argv)
 			}
 		break;
 		case 't':
-			if (write_in_port_t(argv[3]))
+			if (write_in_port_t(data))
 			{
 				printf("Error: cannot write data in port\n");
 				exit(-1);
 			}
 		break;
 		case 'c':
-			if (write_in_port_ch((unsigned char)atoi(argv[3])))
+			if (write_in_port_ch((unsigned char)atoi(data)))
 			{
 				printf("Error: cannot write data in port\n");
 				exit(-1);

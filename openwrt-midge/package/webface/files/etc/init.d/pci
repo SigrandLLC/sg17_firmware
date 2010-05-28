@@ -60,6 +60,39 @@ pci_driver(){
 		unset cnt
 		tmp=`ls -l | grep "$ifptrn.*$i" | awk '{print $(9)}'`
 		tmp=`echo $tmp` # remove \n
+
+		abc=""
+		for j in $tmp; do
+			let "n=${#j}-1"
+			let "m=${#j}+1"
+			tmp2=`expr substr $j $n $m`
+			if [ "${tmp2%%[0-9]*}" != "" ]; then
+				let "n=${#j}-1"
+				abc=`expr substr $j 1 $n`
+			else
+				let "n=${#j}-2"
+				abc=`expr substr $j 1 $n`
+			fi;
+			break;
+		done;
+		
+		tmp2=""
+		rm -f /tmp/tmpfl
+		for j in $tmp; do
+			let "n=${#j}-${#abc}"
+			let "m=${#abc}+1"
+			qwe=`expr substr $j $m $n`
+			echo $qwe >> /tmp/tmpfl;
+		done;
+
+		tmp=""
+		for j in `sort -n /tmp/tmpfl`; do
+			tmp=$tmp" $abc${j}"
+		done;
+		tmp=`echo $tmp`
+		rm -f /tmp/tmpfl
+
+
 		cnt=`echo $tmp | wc -w | awk '{print $(1)}'`
 		if [ "$cnt" -gt 0 ]; then
 			dname=`echo $i | sed 's/\://g'`

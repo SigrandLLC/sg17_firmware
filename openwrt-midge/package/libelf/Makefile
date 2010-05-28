@@ -60,7 +60,7 @@ $(PKG_BUILD_DIR)/.built:
 	rm -rf $(PKG_INSTALL_DIR)
 	mkdir -p $(PKG_INSTALL_DIR)
 	$(MAKE) -C $(PKG_BUILD_DIR) -j1 \
-		CC=$(TARGET_CC) LD=$(TARGET_CROSS)ld ARCH=$(ARCH) \
+		CC="$(TARGET_CC)" LD="$(TARGET_CROSS)ld" ARCH=$(ARCH) \
 		instroot="$(PKG_INSTALL_DIR)" \
 		all install
 	touch $@

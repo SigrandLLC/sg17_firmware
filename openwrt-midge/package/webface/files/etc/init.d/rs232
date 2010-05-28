@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# E1 modules boot configuration script
+# RS232 modules boot configuration script
 # Written by Polyakov A.U. <artpol84@gmail.com>
 
 . /etc/templates/oem-vars
@@ -30,7 +30,7 @@ _rs232_node_defcfg(){
 
 _rs232_defcfg(){
 	local slot=$1
-    local type=$2
+	local type=$2
 	local ifnum=`kdb get sys_pcitbl_s${slot}_ifnum`
 	local i=0
 
@@ -135,8 +135,8 @@ _rs232_start(){
 		if [ -f /sys/bus/pci/drivers/${mr17s_drvname}/${iface1}/dev_type ]; then
 			type="-"`cat /sys/bus/pci/drivers/${mr17s_drvname}/${iface1}/dev_type`
 		fi
-    	echo "    ${mr17s_modname}${oem_ifpfx}${num}${type}($ifaces) "
-	    _rs232_modcfg $s
+		echo "    ${mr17s_modname}${oem_ifpfx}${num}${type}($ifaces) "
+		_rs232_modcfg $s
 	done
 	echo
 }

@@ -1,5 +1,4 @@
 #!/bin/sh
-export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 mount none /proc -t proc
 
 [ -f /etc/preinit.arch ] && . /etc/preinit.arch
