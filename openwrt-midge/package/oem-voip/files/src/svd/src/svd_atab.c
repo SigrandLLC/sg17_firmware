@@ -1799,7 +1799,8 @@ DFS
 		goto __exit_fail;
 	}
 
-	tos = g_conf.rtp_tos & IPTOS_TOS_MASK;
+	//tos = g_conf.rtp_tos & IPTOS_TOS_MASK;
+	tos = g_conf.rtp_tos & 0xFF;
 	err = setsockopt(sock_fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos));
 	if( err){
 		SU_DEBUG_2(("Can`t set TOS :%s",strerror(errno)));

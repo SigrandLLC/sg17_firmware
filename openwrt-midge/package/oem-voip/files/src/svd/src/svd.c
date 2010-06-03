@@ -275,7 +275,8 @@ DFS
 	 * NUTAG_AUTHTIME (3600),
 	 * NUTAG_M_DISPLAY (),
 	 * */
-	tos = g_conf.sip_tos & IPTOS_TOS_MASK;
+	//tos = g_conf.sip_tos & IPTOS_TOS_MASK;
+	tos = g_conf.sip_tos & 0xFF;
 	svd->nua = nua_create (svd->root, svd_nua_callback, svd,
 			SIPTAG_USER_AGENT_STR ("svd VoIP agent"),
 			SOATAG_AF (SOA_AF_IP4_IP6),
