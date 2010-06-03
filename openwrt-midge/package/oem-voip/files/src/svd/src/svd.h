@@ -1,8 +1,8 @@
 /**
  * @file svd.h
  * Main routine definitions.
- * It containes structures and definitions, uses in every part or routine. 
- */ 
+ * It containes structures and definitions, uses in every part or routine.
+ */
 #ifndef __SVD_H__
 #define __SVD_H__
 
@@ -95,7 +95,7 @@ struct svd_chan_s
 
 	int local_wait_idx; /**< Local wait index.*/
 	int remote_wait_idx; /**< Remote wait index.*/
-	
+
 	int call_state; /**< Current callstate on channel.*/
 	nua_handle_t * op_handle;/**< NUA handle for channel.*/
 
@@ -113,13 +113,13 @@ struct svd_chan_s
 		ring_state_CANCEL_IN_QUEUE,
 	} ring_state; /**< State of ring processing. */
 	su_timer_t * ring_tmr; /**< Ring processing timer. */
-	
+
 	/* VOICE FREQUENCY */
 	su_timer_t * vf_tmr; /**< VF-chan reinvite timer. */
 
 	/* HOTLINE */
 	unsigned char is_hotlined; /**< Is this channel hotline initiator.*/
-	char * hotline_addr; /**< Hotline destintation address, points to 
+	char * hotline_addr; /**< Hotline destintation address, points to
 						   \ref g_conf value.*/
 };/*}}}*/
 

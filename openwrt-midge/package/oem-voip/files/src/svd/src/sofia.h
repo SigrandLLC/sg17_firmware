@@ -2,7 +2,7 @@
  * @file sofia.h
  * Sofia headers.
  * It includes all necessary sofia-sip headers.
- */ 
+ */
 #ifndef __SOFIA_H__
 #define __SOFIA_H__
 

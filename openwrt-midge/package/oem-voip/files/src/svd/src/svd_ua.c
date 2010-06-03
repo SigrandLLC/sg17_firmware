@@ -2,7 +2,7 @@
  * @file svd_ua.c
  * User Agent implementation.
  * It contains main User Agent (Client and Server) actions and callbacks.
- */ 
+ */
 
 /*Includes {{{*/
 #include "svd.h"
@@ -25,14 +25,14 @@ vf_timer_cb(su_root_magic_t *magic, su_timer_t *t, su_timer_arg_t *arg);
  *  Internal helper functions using with UAC interface functions.
  *  @{*/
 /** Create INVITE message.*/
-static int 
-svd_pure_invite( svd_t * const svd, ab_chan_t * const chan, 
+static int
+svd_pure_invite( svd_t * const svd, ab_chan_t * const chan,
 		char const * const from_str, char const * const to_str );
 /** Make AUTHENTICATION.*/
-static void 
-svd_authenticate( svd_t * svd, nua_handle_t * nh, sip_t const *sip, 
+static void
+svd_authenticate( svd_t * svd, nua_handle_t * nh, sip_t const *sip,
 		tagi_t * tags );
-/** @}*/ 
+/** @}*/
 
 
 /** @defgroup UAS_I User Agent Server internals.
@@ -40,50 +40,50 @@ svd_authenticate( svd_t * svd, nua_handle_t * nh, sip_t const *sip,
  *  Internal helper functions using with man callback.
  *  @{*/
 /** Error indication.*/
-static void 
+static void
 svd_i_error(int const status, char const * const phrase);
 /** Incoming call INVITE.*/
-static void 
-svd_i_invite( int status, char const * phrase, svd_t * const svd, 
-		nua_handle_t * nh, ab_chan_t * chan, 
+static void
+svd_i_invite( int status, char const * phrase, svd_t * const svd,
+		nua_handle_t * nh, ab_chan_t * chan,
 		sip_t const *sip, tagi_t tags[]);
 /** Incoming INVITE has been cancelled.*/
-static void 
+static void
 svd_i_cancel (nua_handle_t const * const nh, ab_chan_t * const chan);
 /** Call state has changed.*/
-static void 
-svd_i_state (int status, char const *phrase, nua_t * nua, 
-		svd_t * svd, nua_handle_t * const nh, ab_chan_t * chan, 
+static void
+svd_i_state (int status, char const *phrase, nua_t * nua,
+		svd_t * svd, nua_handle_t * const nh, ab_chan_t * chan,
 		sip_t const *sip, tagi_t tags[]);
 /** Incoming BYE call hangup.*/
 static void
 svd_i_bye (nua_handle_t const * const nh, ab_chan_t const * const chan);
 /** PRACK.*/
-static void 
-svd_i_prack (nua_handle_t * nh, ab_chan_t const * const chan, 
+static void
+svd_i_prack (nua_handle_t * nh, ab_chan_t const * const chan,
 		sip_t const * const sip);
 /** Session INFO.*/
-static void 
-svd_i_info(int status, char const * phrase, svd_t * const svd, 
+static void
+svd_i_info(int status, char const * phrase, svd_t * const svd,
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const * sip);
 /** Make REGISTER SIP action.*/
 static void svd_register (svd_t * const svd);
 
 
 /** Answer to outgoing INVITE.*/
-static void 
+static void
 svd_r_invite( int status, char const *phrase, nua_t * nua, svd_t * svd,
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip,
 		tagi_t tags[]);
 /** Answer to nua_get_params() or nua_get_hparams().*/
-static void 
-svd_r_get_params( int status, char const *phrase, nua_t * nua, svd_t * svd, 
-		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip, 
+static void
+svd_r_get_params( int status, char const *phrase, nua_t * nua, svd_t * svd,
+		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip,
 		tagi_t tags[] );
 /** Answer to nua_shutdown().*/
-static void 
-svd_r_shutdown( int status, char const *phrase, nua_t * nua, svd_t * svd, 
-		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip, 
+static void
+svd_r_shutdown( int status, char const *phrase, nua_t * nua, svd_t * svd,
+		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip,
 		tagi_t tags[] );
 /** Answer to outgoing REGISTER.*/
 static void
@@ -96,9 +96,9 @@ svd_r_bye(int status, char const *phrase,
 	  nua_handle_t const * const nh, ab_chan_t const * const chan);
 /** Answer to outgoing INFO.*/
 static void
-svd_r_info(int status, char const * phrase, svd_t * const svd, 
+svd_r_info(int status, char const * phrase, svd_t * const svd,
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const * sip);
-/** @}*/ 
+/** @}*/
 
 
 /** @defgroup UA_MAIN User Agent
@@ -107,12 +107,12 @@ svd_r_info(int status, char const * phrase, svd_t * const svd,
 /** Maximum length of SDP string.*/
 #define SDP_STR_MAX_LEN 512
 /** Parse SDP string and set appropriate session parameters.*/
-static void 
+static void
 svd_parse_sdp(svd_t * const svd, ab_chan_t * const chan, char const * str);
 /** Create SDP string depends on codec choice policy.*/
 static char *
 svd_new_sdp_string (ab_chan_t const * const chan);
-/** @}*/ 
+/** @}*/
 
 /** Time before elder VF side will try to reinvite it`s pair */
 #define VF_REINVITE_SEC 10
@@ -135,7 +135,7 @@ static svd_t * g_svd = NULL;
 /****************************************************************************/
 
 /**
- * It reacts on SIP events and call appropriate 
+ * It reacts on SIP events and call appropriate
  * functions from \c UAS.
  *
  * \param[in] 	event	occured event.
@@ -148,10 +148,10 @@ static svd_t * g_svd = NULL;
  * \param[in] 	sip		sip headers.
  * \param[in] 	tags	event tags.
  * \remark
- *		Mainly just call in switch-case appropriate handler 
+ *		Mainly just call in switch-case appropriate handler
  *		for occured event.
- */ 
-void 
+ */
+void
 svd_nua_callback (nua_event_t event, int status, char const * phrase,
 		nua_t * nua, svd_t * svd, nua_handle_t * nh, ab_chan_t * chan,
 		sip_t const * sip, tagi_t tags[] )
@@ -219,7 +219,7 @@ DFS
 		case nua_r_set_params:
 			break;
 		/*< 24 Answer to nua_get_params() or nua_get_hparams().*/
-		case nua_r_get_params: 
+		case nua_r_get_params:
 			svd_r_get_params (status,phrase,nua,svd,nh,chan,sip,
 					tags);
 			break;
@@ -233,15 +233,15 @@ DFS
 
 /************ SIP Responses ************/
 		case nua_r_register:/*< 29 Answer to outgoing REGISTER */
-			svd_r_register(status, phrase, nua, svd, 
-					nh, chan, sip, tags, 1); 
+			svd_r_register(status, phrase, nua, svd,
+					nh, chan, sip, tags, 1);
 			break;
 		case nua_r_unregister:/*< 30 Answer to outgoing un-REGISTER */
-			svd_r_register(status, phrase, nua, svd, 
+			svd_r_register(status, phrase, nua, svd,
 					nh, chan, sip, tags, 0);
 			break;
 		case nua_r_invite:/*< 31 Answer to outgoing INVITE */
-			svd_r_invite(status, phrase, nua, svd, 
+			svd_r_invite(status, phrase, nua, svd,
 					nh, chan, sip, tags);
 			break;
 		case nua_r_cancel:	/*< 32 Answer to outgoing CANCEL */
@@ -270,8 +270,8 @@ DFS
 
 		default:
 			/* unknown event received */
-		/* if unknown event and nh unknown - it should be destroyed 
-		 *(nua_handle_destroy) otherwise(related to an existing call or 
+		/* if unknown event and nh unknown - it should be destroyed
+		 *(nua_handle_destroy) otherwise(related to an existing call or
 		 * registration for instance). - ignore it.
 		 */
 			SU_DEBUG_2(("UNKNOWN EVENT : %d %s\n", status, phrase));
@@ -316,7 +316,7 @@ DFS
 	}
 	strcat (to_str, "@");
 	strcat (to_str, chan_ctx->dial_status.route_ip);
-	
+
 	/* set call type as local */
 	chan_ctx->call_type = calltype_LOCAL;
 
@@ -333,7 +333,7 @@ DFE
 }/*}}}*/
 
 /**
- * Sends an outgoing INVITE request to internet SIP address 
+ * Sends an outgoing INVITE request to internet SIP address
  * 		(set in address book).
  *
  * \param[in] svd 		context pointer.
@@ -343,7 +343,7 @@ DFE
  * \remark
  * 		Uses global \ref g_conf strutcture.
  */
-int  
+int
 svd_invite_to (svd_t * const svd, int const chan_idx, char const * const to_str)
 {/*{{{*/
 	ab_chan_t * chan = &svd->ab->chans[chan_idx];
@@ -355,7 +355,7 @@ svd_invite_to (svd_t * const svd, int const chan_idx, char const * const to_str)
 	int err;
 DFS
 	from = sip_from_make(svd->home, g_conf.sip_set.user_URI);
-	
+
 	to = sip_to_make(svd->home, to_str);
 	if ( !to ) {
 		SU_DEBUG_0 (("%s sip_to_make(): invalid address: %s\n",
@@ -373,8 +373,8 @@ DFS
 
 	nh = nua_handle (svd->nua, chan,
 			NUTAG_URL(to->a_url),
-			SIPTAG_TO(to), 
-			SIPTAG_FROM(from), 
+			SIPTAG_TO(to),
+			SIPTAG_FROM(from),
 			TAG_NULL());
 
 	su_free(svd->home, to);
@@ -404,7 +404,7 @@ DFS
 			TAG_IF (svd->outbound_ip[0], SOATAG_ADDRESS(svd->outbound_ip)),
 			SOATAG_USER_SDP_STR(l_sdp_str),
 			SOATAG_RTP_SORT (SOA_RTP_SORT_LOCAL),
-			SOATAG_RTP_SELECT (SOA_RTP_SELECT_SINGLE), 
+			SOATAG_RTP_SELECT (SOA_RTP_SELECT_SINGLE),
 			TAG_END() );
 DFE
 	free (l_sdp_str);
@@ -424,9 +424,9 @@ DFE
 	return -1;
 }/*}}}*/
 
-/** 
- * Answers on  call (or just leave).  
- * 
+/**
+ * Answers on  call (or just leave).
+ *
  * \param[in,out] 	svd		context svd stucture.
  * \param[in,out] 	chan	chan to operate on it.
  * \param[in] 		status	status on event.
@@ -436,7 +436,7 @@ DFE
  * \sa svd_i_invite().
  */
 int
-svd_answer (svd_t * const svd, ab_chan_t * const chan, int status, 
+svd_answer (svd_t * const svd, ab_chan_t * const chan, int status,
 		char const *phrase)
 {/*{{{*/
 	int call_answered = 0;
@@ -464,17 +464,17 @@ DFS
 
 		nua_respond (chan_ctx->op_handle, status, phrase,
 				SOATAG_RTP_SORT (SOA_RTP_SORT_LOCAL),
-				SOATAG_RTP_SELECT (SOA_RTP_SELECT_SINGLE), 
-				TAG_IF((chan_ctx->call_type == calltype_REMOTE) && 
-						svd->outbound_ip[0], 
+				SOATAG_RTP_SELECT (SOA_RTP_SELECT_SINGLE),
+				TAG_IF((chan_ctx->call_type == calltype_REMOTE) &&
+						svd->outbound_ip[0],
 						SOATAG_ADDRESS(svd->outbound_ip)),
 				SOATAG_USER_SDP_STR (l_sdp_str),
 				TAG_END());
 
 		/* set proper payload type to chan */
-		nua_get_hparams( chan_ctx->op_handle, 
+		nua_get_hparams( chan_ctx->op_handle,
 				SOATAG_LOCAL_SDP_STR(NULL), TAG_NULL() );
-	} 
+	}
 __exit:
 	if (l_sdp_str){
 		free (l_sdp_str);
@@ -491,7 +491,7 @@ DFE
  * \remark
  * 		It also clears the chan call info from previous call.
  */
-void 
+void
 svd_bye (svd_t * const svd, ab_chan_t * const chan)
 {/*{{{*/
 DFS
@@ -516,9 +516,9 @@ DFE
  *		It initiates nua_r_unregister event and in its handler svd_register()
  *		make a new registration. That long way is necessary, because we do
  *		not need multiple old registrations on the server.
- * \sa svd_register(). 
- */ 
-void 
+ * \sa svd_register().
+ */
+void
 svd_refresh_registration (svd_t * const svd)
 {/*{{{*/
 DFS
@@ -534,7 +534,7 @@ DFS
 			SU_DEBUG_2((LOG_FNC_A(LOG_NOMEM)));
 			goto __exit;
 		}
-		svd->op_reg = nua_handle( svd->nua, NULL, 
+		svd->op_reg = nua_handle( svd->nua, NULL,
 				SIPTAG_TO(fr_to),
 				SIPTAG_FROM(fr_to),
 				TAG_NULL());
@@ -551,14 +551,14 @@ DFE
 }/*}}}*/
 
 /**
- * It shotdown all the SIP stack. 
+ * It shotdown all the SIP stack.
  * We cann add there necessary actions before quit.
  *
  * \param[in] svd context pointer
  * \remark
- * 		It is not using in normal behavior, but in \ref svd_destroy(). 	
- */ 
-void 
+ * 		It is not using in normal behavior, but in \ref svd_destroy().
+ */
+void
 svd_shutdown(svd_t * svd)
 {/*{{{*/
 DFS
@@ -567,18 +567,18 @@ DFE
 }/*}}}*/
 
 /**
- * Check if given channel is elder than it`s pair. 
+ * Check if given channel is elder than it`s pair.
  *
  * \param[in] chan channel to check.
  *
  * \retval 1 - Given channel is elder than it`s pair.
  * \retval 0 - Given channel is junior for it`s pair.
- */ 
+ */
 static int
 svd_vf_is_elder(ab_chan_t * const chan)
 {/*{{{*/
 	struct voice_freq_s * curr_rec = &g_conf.voice_freq[chan->abs_idx];
-	int pair_route_id = -1; /* self */ 
+	int pair_route_id = -1; /* self */
 	int pair_chan = strtol (curr_rec->pair_chan, NULL, 10);
 	int vf_is_elder;
 
@@ -604,7 +604,7 @@ svd_vf_is_elder(ab_chan_t * const chan)
  * \param[in,out] chan channel to operate on it
  * \retval 0 	etherything ok.
  * \retval -1	something nasty happens.
- */ 
+ */
 static int
 svd_place_vf_for(svd_t * const svd, ab_chan_t * const chan)
 {/*{{{*/
@@ -629,7 +629,7 @@ svd_place_vf_for(svd_t * const svd, ab_chan_t * const chan)
 			err = 1;
 			/* not self connect - find pair route ip from route_t */
 			for(i=0; i<routers_num; i++){
-				if( !strcmp(curr_rec->pair_route, 
+				if( !strcmp(curr_rec->pair_route,
 							g_conf.route_table.records[i].id)){
 					ctx->dial_status.route_ip = g_conf.route_table.records[i].value;
 					err = 0;
@@ -646,7 +646,7 @@ svd_place_vf_for(svd_t * const svd, ab_chan_t * const chan)
 		if(err || svd_invite(svd, 0, chan)){
 			SU_DEBUG_0 (("ERROR: Can`t place VF-call\n"));
 			goto __exit_fail;
-		} 
+		}
 	}
 	return 0;
 __exit_fail:
@@ -661,8 +661,8 @@ __exit_fail:
  * \retval -1	something nasty happens.
  * \remark
  * 		There must be offhook on both chennels in the link.
- */ 
-int 
+ */
+int
 svd_place_vf (svd_t * const svd)
 {/*{{{*/
 	int i;
@@ -689,22 +689,22 @@ DFE
  * 		have no such registration.
  *
  * \param[in] svd context pointer
- */ 
-static void 
+ */
+static void
 svd_register(svd_t * svd)
 {/*{{{*/
 DFS
 	if ( !nua_handle_has_registrations (svd->op_reg) ) {
 		sip_to_t * fr_to;
-		fr_to = sip_to_make(svd->home, g_conf.sip_set.user_URI);	
-		svd->op_reg = nua_handle( svd->nua, NULL, 
+		fr_to = sip_to_make(svd->home, g_conf.sip_set.user_URI);
+		svd->op_reg = nua_handle( svd->nua, NULL,
 				SIPTAG_TO(fr_to),
 				SIPTAG_FROM(fr_to),
 				TAG_NULL());
 		if (svd->op_reg) {
 			nua_register(svd->op_reg, TAG_NULL());
 		}
-	} 
+	}
 DFE
 }/*}}}*/
 
@@ -717,13 +717,13 @@ DFE
  * \param[in] to_str	make INVITE _to_ SIP URI.
  * \retval 0 	etherything ok.
  * \retval -1	something nasty happens.
- */ 
-static int 
-svd_pure_invite( svd_t * const svd, ab_chan_t * const chan, 
+ */
+static int
+svd_pure_invite( svd_t * const svd, ab_chan_t * const chan,
 		char const * const from_str, char const * const to_str )
 {/*{{{*/
 	sip_to_t *to = NULL;
-	sip_from_t *from = NULL;  
+	sip_from_t *from = NULL;
 	char * l_sdp_str = NULL;
 	nua_handle_t * nh = NULL;
 	svd_chan_t * chan_ctx = chan->ctx;
@@ -738,7 +738,7 @@ DFS
 
 	from  = sip_from_make(svd->home, from_str);
 	if ( !from ) {
-		SU_DEBUG_0 (("%s sip_form_make(): invalid address: %s\n", 
+		SU_DEBUG_0 (("%s sip_form_make(): invalid address: %s\n",
 				__func__, from_str));
 		goto __exit_fail;
 	}
@@ -756,8 +756,8 @@ DFS
 
 	nh = nua_handle (svd->nua, chan,
 			NUTAG_URL(to->a_url),
-			SIPTAG_TO(to), 
-			SIPTAG_FROM(from), 
+			SIPTAG_TO(to),
+			SIPTAG_FROM(from),
 			TAG_NULL());
 
 	su_free(svd->home, to);
@@ -788,7 +788,7 @@ DFS
 	nua_invite( nh,
 			SOATAG_USER_SDP_STR(l_sdp_str),
 			SOATAG_RTP_SORT (SOA_RTP_SORT_LOCAL),
-			SOATAG_RTP_SELECT (SOA_RTP_SELECT_SINGLE), 
+			SOATAG_RTP_SELECT (SOA_RTP_SELECT_SINGLE),
 			TAG_END() );
 
 	if (l_sdp_str){
@@ -842,9 +842,9 @@ vf_timer_cb(su_root_magic_t *magic, su_timer_t *t, su_timer_arg_t *arg)
  * \param[in] nh		nua handle to operate on it.
  * \param[in] sip 		SIP headers.
  * \param[in] tags 		event tags.
- */ 
+ */
 static void
-svd_authenticate (svd_t * svd, nua_handle_t * nh, sip_t const *sip, 
+svd_authenticate (svd_t * svd, nua_handle_t * nh, sip_t const *sip,
 		tagi_t * tags)
 {/*{{{*/
 	sip_www_authenticate_t const *wa = sip->sip_www_authenticate;
@@ -852,7 +852,7 @@ svd_authenticate (svd_t * svd, nua_handle_t * nh, sip_t const *sip,
 DFS
 	tl_gets (tags,
 			SIPTAG_WWW_AUTHENTICATE_REF(wa),
-			SIPTAG_PROXY_AUTHENTICATE_REF(pa), 
+			SIPTAG_PROXY_AUTHENTICATE_REF(pa),
 			TAG_NULL());
 	if (wa){
 		char * reply = NULL;
@@ -976,19 +976,19 @@ DFS
 			}
 		}
 	}
-	proper_pair_router = 
+	proper_pair_router =
 		/* we know that caller */
 		known_caller &&
 		/* it is self router or */
 		(((pair_route_id == -1) && (!rec_pair_route)) ||
 		/* it is proper local net router */
-		  ((pair_route_id != -1) && rec_pair_route && 
+		  ((pair_route_id != -1) && rec_pair_route &&
 		   (pair_route_id == strtol(rec_pair_route, NULL, 10))));
 
 	proper_pair_chan =
 		(strtol(g_conf.voice_freq[abs_chan_idx].pair_chan, NULL, 10) == pair_chan);
 
-	vf_is_valid = 
+	vf_is_valid =
 		/* this vf should be set as working */
 		g_conf.voice_freq[abs_chan_idx].is_set &&
 		/* we have call from proper pair */
@@ -1012,7 +1012,7 @@ DFS
 		if(svd_vf_is_elder(chan)){
 			nua_handle_destroy(nh);
 			goto __exit;
-		} 
+		}
 	}
 
 	chan_ctx->op_handle = nh;
@@ -1106,18 +1106,18 @@ DFE
  * \param[in] 	tags	event tags.
  *
  * \todo
- * 		Think about race conditions in this section. 
+ * 		Think about race conditions in this section.
  * 		At first look it is not so creepy.
  */
 static void
-svd_i_invite( int status, char const * phrase, svd_t * const svd, 
+svd_i_invite( int status, char const * phrase, svd_t * const svd,
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip, tagi_t tags[])
 {/*{{{*/
 	sip_to_t const *to = sip->sip_to;
 DFS
 	if( !strcmp (g_conf.self_ip, to->a_url->url_host) ){
 		/* local call (local network) */
-		/* * 
+		/* *
 		 * Get requested chan number, it can be:
 		 * '$FIRST_FREE_FXO@..' - first free fxo
 		 * 'xx@..'              - absolute channel number
@@ -1130,7 +1130,7 @@ DFS
 				nua_respond (nh, SIP_500_INTERNAL_SERVER_ERROR, TAG_END());
 				nua_handle_destroy (nh);
 				goto __exit;
-			} else if((req_chan->parent->type == ab_dev_type_FXS) || 
+			} else if((req_chan->parent->type == ab_dev_type_FXS) ||
 					  (req_chan->parent->type == ab_dev_type_FXO) ){
 				/* FXS or FXO from local net */
 				svd_FXx_i_invite (svd, req_chan, nh, sip);
@@ -1213,7 +1213,7 @@ svd_i_state(int status, char const *phrase, nua_t * nua, svd_t * svd,
 DFS
 	tl_gets( tags, NUTAG_CALLSTATE_REF (ss_state),
 			SOATAG_LOCAL_SDP_STR_REF (l_sdp),
-			SOATAG_REMOTE_SDP_STR_REF (r_sdp), 
+			SOATAG_REMOTE_SDP_STR_REF (r_sdp),
 			TAG_END() );
 
 	if( (!chan) && (nh)){
@@ -1240,7 +1240,7 @@ DFS
 		case nua_callstate_init:
 			break;
 	/* 401/407 received */
-		case nua_callstate_authenticating: 
+		case nua_callstate_authenticating:
 			break;
 
 /*{{{ WE CALL */
@@ -1249,10 +1249,10 @@ DFS
 			if( chan->parent->type == ab_dev_type_FXO){
 				/* start timer there if fxo */
 				svd_chan_t * ctx = chan->ctx;
-				err = su_timer_set_interval(ctx->ring_tmr, ring_timer_cb, 
-						chan, RING_WAIT_DROP*1000); 
+				err = su_timer_set_interval(ctx->ring_tmr, ring_timer_cb,
+						chan, RING_WAIT_DROP*1000);
 				if (err){
-					SU_DEBUG_2 (("su_timer_set_interval ERROR on [_%d_] : %d\n", 
+					SU_DEBUG_2 (("su_timer_set_interval ERROR on [_%d_] : %d\n",
 								chan->abs_idx, err));
 					ctx->ring_state = ring_state_NO_TIMER_INVITE_SENT;
 				} else {
@@ -1294,7 +1294,7 @@ DFS
 			if(chan->parent->type == ab_dev_type_FXO){
 				/* answer on call */
 				svd_answer (svd, chan, SIP_200_OK);
-			} 
+			}
 			break;
 
 	/* 2XX sent */
@@ -1318,7 +1318,7 @@ DFS
 				if(ctx->ring_state == ring_state_TIMER_UP_INVITE_SENT){
 					err = su_timer_reset(ctx->ring_tmr);
 					if (err){
-						SU_DEBUG_2 (("su_timer_reset ERROR on [_%d_] : %d\n", 
+						SU_DEBUG_2 (("su_timer_reset ERROR on [_%d_] : %d\n",
 									chan->abs_idx, err));
 					}
 					ctx->ring_state = ring_state_NO_TIMER_INVITE_SENT;
@@ -1330,7 +1330,7 @@ DFS
 				if ( !err){
 					SU_DEBUG_3(("do offhook on [_%d_]\n", chan->abs_idx));
 				} else {
-					SU_DEBUG_3(("can`t offhook on [_%d_]: %s\n", 
+					SU_DEBUG_3(("can`t offhook on [_%d_]: %s\n",
 							chan->abs_idx, ab_g_err_str));
 				}
 			}/* vf no need in special preparations */
@@ -1360,12 +1360,12 @@ DFS
 				if(ctx->ring_state == ring_state_TIMER_UP_INVITE_SENT){
 					SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
 							__func__, __LINE__, chan->abs_idx, ctx->ring_state));
-					/* kill ring_timer if it is up 
+					/* kill ring_timer if it is up
 					 * if we have no ready state for some reasons
 					 */
 					err = su_timer_reset(ctx->ring_tmr);
 					if (err){
-						SU_DEBUG_2 (("su_timer_reset ERROR on [_%d_] : %d\n", 
+						SU_DEBUG_2 (("su_timer_reset ERROR on [_%d_] : %d\n",
 									chan->abs_idx, err));
 					}
 				}
@@ -1407,10 +1407,10 @@ DFS
 					/* reinvite just if it is the elder side */
 					int err;
 					g_svd = svd;
-					err = su_timer_set_interval(ctx->vf_tmr, vf_timer_cb, chan, 
-							VF_REINVITE_SEC*1000); 
+					err = su_timer_set_interval(ctx->vf_tmr, vf_timer_cb, chan,
+							VF_REINVITE_SEC*1000);
 					if (err){
-						SU_DEBUG_2 (("su_timer_set_interval ERROR on [_%d_] : %d\n", 
+						SU_DEBUG_2 (("su_timer_set_interval ERROR on [_%d_] : %d\n",
 									chan->abs_idx, err));
 					} else {
 						SU_DEBUG_3 (("[%d]: set timer on %d sec before reinvite "
@@ -1442,13 +1442,13 @@ DFE
 /**
  * Incoming PRACK request.\ Note, call state related actions are
  * done in the \ref svd_i_state() callback.
- * 
+ *
  * \param[in] 	nh		event handle.
  * \param[in] 	chan	channel context structure.
  * \param[in] 	sip		sip headers.
  */
-static void 
-svd_i_prack (nua_handle_t * nh, ab_chan_t const * const chan, 
+static void
+svd_i_prack (nua_handle_t * nh, ab_chan_t const * const chan,
 		sip_t const * const sip)
 {/*{{{*/
 	sip_rack_t const * rack;
@@ -1463,16 +1463,16 @@ DFE
 
 /**
  * Get digit from channels round buffer and dial it in given mode.
- * 
+ *
  * \param[in] 	chan		channel to operate on.
  * \param[in] 	pulseMode	should we dial in pulse.
  * \remark
- *	It is also mutes the outcoming voice to do not affect tone 
+ *	It is also mutes the outcoming voice to do not affect tone
  *	detection on the channel.
  *	It is forks for dial because diling get some time, and if we will
  *	dial in the main process it would not process the in/out voice traffic.
  *	It sets highest priority of RR scheduler because if we need dial in pulse,
- *	time intervals of on/off-hooks should be certain as we want (with normal - 
+ *	time intervals of on/off-hooks should be certain as we want (with normal -
  *	not real time scheduller we got time lags).
  */
 void
@@ -1501,7 +1501,7 @@ svd_get_digit(ab_chan_t * const chan, int const pulseMode)
 			SU_DEBUG_2 (("ERROR Can`t set highest RR sched priority"
 						" for p-dialing: %s\n",strerror(errno)));
 		}
-		ab_FXO_line_digit (chan, 1, &ctx->dial_rbuf[ctx->dial_get_idx], 
+		ab_FXO_line_digit (chan, 1, &ctx->dial_rbuf[ctx->dial_get_idx],
 				0, 0, pulseMode);
 		/* dirty hack, again */
 		exit(chan->abs_idx);
@@ -1512,14 +1512,14 @@ svd_get_digit(ab_chan_t * const chan, int const pulseMode)
 
 /**
  * Add digit to the channels round buffer.
- * 
+ *
  * \param[in]		svd			context.
  * \param[in,out] 	chan		channel to operate on.
  * \param[in]		digit		digit to put in buffer.
  * \param[in]		pulseMode	should we dial in pulse.
  */
 void
-svd_put_digit(svd_t * const svd, ab_chan_t * const chan, char digit, 
+svd_put_digit(svd_t * const svd, ab_chan_t * const chan, char digit,
 		int const pulseMode)
 {/*{{{*/
 	svd_chan_t * const ctx = chan->ctx;
@@ -1538,7 +1538,7 @@ svd_put_digit(svd_t * const svd, ab_chan_t * const chan, char digit,
 
 /**
  * Do some, then child finishing dial a digit.
- * 
+ *
  * \param[in] 	signum	signal number.
  * \param[in] 	sinf	signal additional info.
  * \param[in] 	sctx	signal context.
@@ -1580,12 +1580,12 @@ svd_child_handler(int signum, siginfo_t * sinf, void * sctx)
  * \remark
  * 		This is not using now. But later it can be used for DIGIT transmition.
  */
-static void 
-svd_i_info(int status, char const * phrase, svd_t * const svd, 
+static void
+svd_i_info(int status, char const * phrase, svd_t * const svd,
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const * sip)
 {/*{{{*/
 DFS
-	int tone;	
+	int tone;
 	char digit;
 
 	if(chan->parent->type != ab_dev_type_FXO){
@@ -1600,7 +1600,7 @@ DFS
 		SU_DEBUG_3 (("%d:'%c'... ",tone, digit));
 	} else {
 		goto __exit;
-	} 
+	}
 	if((!tone) || (g_conf.fxo_PSTN_type[chan->abs_idx] == pstn_type_PULSE_ONLY)){
 		/* dialed in pulse - should redial in pulse */
 		/* or pulse PSTN only - also should redial in pulse */
@@ -1608,7 +1608,7 @@ DFS
 		/* put digit in queue on dial */
 		svd_put_digit(svd, chan, digit, 1);
 	} else {
-		/* PSTN recognizes tones and we dialed in tone 
+		/* PSTN recognizes tones and we dialed in tone
 		 * - should not dial anything - pass-through */
 		SU_DEBUG_3 (("DON`T Dial anything\n"));
 	}
@@ -1628,7 +1628,7 @@ DFE
  * \param[in] 	sip		sip headers.
  * \param[in] 	tags	event tags.
  * \remark
- * 		It sets the chan->ctx payload (RTP codec type from sdp string), 
+ * 		It sets the chan->ctx payload (RTP codec type from sdp string),
  * 		and show all tags.
  */
 void
@@ -1647,23 +1647,23 @@ DFS
 		sdp_session_t * sdp_sess = NULL;
 		const char * pa_error = NULL;
 
-		remote_sdp = sdp_parse (svd->home, l_sdp_str, strlen(l_sdp_str), 
+		remote_sdp = sdp_parse (svd->home, l_sdp_str, strlen(l_sdp_str),
 				sdp_f_insane);
 
 		pa_error = sdp_parsing_error (remote_sdp);
 		if (pa_error) {
-			SU_DEBUG_1(("%s(): Error parsing SDP: %s\n", 
+			SU_DEBUG_1(("%s(): Error parsing SDP: %s\n",
 					__func__, pa_error));
 		} else {
 			sdp_sess = sdp_session (remote_sdp);
-			if (sdp_sess && sdp_sess->sdp_media && 
+			if (sdp_sess && sdp_sess->sdp_media &&
 					sdp_sess->sdp_media->m_rtpmaps){
 				svd_chan_t * chan_ctx = (svd_chan_t *)(chan->ctx);
 				chan_ctx->sdp_payload = sdp_sess->sdp_media->m_rtpmaps->rm_pt;
 				memset(chan_ctx->sdp_cod_name,0,sizeof(chan_ctx->sdp_cod_name));
-				if(strlen(sdp_sess->sdp_media->m_rtpmaps->rm_encoding) < 
+				if(strlen(sdp_sess->sdp_media->m_rtpmaps->rm_encoding) <
 						COD_NAME_LEN){
-					strncpy(chan_ctx->sdp_cod_name, 
+					strncpy(chan_ctx->sdp_cod_name,
 							sdp_sess->sdp_media->m_rtpmaps->rm_encoding,
 							COD_NAME_LEN);
 				} else {
@@ -1696,9 +1696,9 @@ DFE
  * \param[in] 	sip		sip headers.
  * \param[in] 	tags	event tags.
  */
-static void 
-svd_r_shutdown( int status, char const *phrase, nua_t * nua, svd_t * svd, 
-		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip, 
+static void
+svd_r_shutdown( int status, char const *phrase, nua_t * nua, svd_t * svd,
+		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip,
 		tagi_t tags[] )
 {/*{{{*/
 DFS
@@ -1715,7 +1715,7 @@ DFS
 		j = svd->ab->chans_num;
 		for (i=0; i<j; i++){
 			svd_bye(svd, &svd->ab->chans[i]);
-		} 
+		}
 	} else if(status == 101){
 		return;
 	} else if(status == 200){
@@ -1756,7 +1756,7 @@ DFS
 	if (status == 200) {
 		sip_contact_t *m = sip ? sip->sip_contact : NULL;
 		for (; m; m = m->m_next){
-			sl_header_log(SU_LOG, 3, "\tContact: %s\n", 
+			sl_header_log(SU_LOG, 3, "\tContact: %s\n",
 					(sip_header_t*)m);
 			strcpy(svd->outbound_ip, m->m_url->url_host);
 		}
@@ -1768,7 +1768,7 @@ DFS
 		svd_authenticate (svd, nh, sip, tags);
 	} else if (status >= 300) {
 		nua_handle_destroy (nh);
-	} 
+	}
 DFE
 }/*}}}*/
 
@@ -1786,7 +1786,7 @@ DFE
  * \remark
  * 		Make authentications if we need it.
  */
-static void 
+static void
 svd_r_invite( int status, char const *phrase, nua_t * nua, svd_t * svd,
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const *sip,
 		tagi_t tags[])
@@ -1848,11 +1848,11 @@ DFE
  * \param[in] 	chan	channel context structure.
  * \param[in] 	sip		sip headers.
  * \remark
- * 		Not using yet. But in the future it can be using for 
+ * 		Not using yet. But in the future it can be using for
  * 		EVENTS transmission.
  */
 static void
-svd_r_info(int status, char const * phrase, svd_t * const svd, 
+svd_r_info(int status, char const * phrase, svd_t * const svd,
 		nua_handle_t * nh, ab_chan_t * chan, sip_t const * sip)
 {/*{{{*/
 DFS
@@ -1869,7 +1869,7 @@ DFE
  * \remark
  * 		It sets chan-ctx port, host and payload from SDP string.
  */
-static void 
+static void
 svd_parse_sdp(svd_t * const svd, ab_chan_t * const chan, char const *str)
 {/*{{{*/
 	sdp_parser_t * remote_sdp = NULL;
@@ -1881,7 +1881,7 @@ DFS
 
 	pa_error = sdp_parsing_error (remote_sdp);
 	if (pa_error) {
-		SU_DEBUG_1(("%s(): Error parsing SDP: %s\n", 
+		SU_DEBUG_1(("%s(): Error parsing SDP: %s\n",
 				__func__, pa_error));
 		goto __exit;
 	}
@@ -1889,7 +1889,7 @@ DFS
 	sdp_sess = sdp_session (remote_sdp);
 	sdp_connection = sdp_media_connections (sdp_sess->sdp_media);
 
-	if (sdp_sess && sdp_sess->sdp_media->m_port && 
+	if (sdp_sess && sdp_sess->sdp_media->m_port &&
 			sdp_connection && sdp_connection->c_address) {
 		svd_chan_t * chan_ctx = chan->ctx;
 		chan_ctx->remote_port = sdp_sess->sdp_media->m_port;
@@ -1897,9 +1897,9 @@ DFS
 
 		chan_ctx->sdp_payload = sdp_sess->sdp_media->m_rtpmaps->rm_pt;
 		memset(chan_ctx->sdp_cod_name, 0, sizeof(chan_ctx->sdp_cod_name));
-		if(strlen(sdp_sess->sdp_media->m_rtpmaps->rm_encoding) < 
+		if(strlen(sdp_sess->sdp_media->m_rtpmaps->rm_encoding) <
 				sizeof(chan_ctx->sdp_cod_name)){
-			strcpy(chan_ctx->sdp_cod_name, 
+			strcpy(chan_ctx->sdp_cod_name,
 					sdp_sess->sdp_media->m_rtpmaps->rm_encoding);
 		} else {
 			SU_DEBUG_0(("ERROR: SDP CODNAME string size too small\n"));
@@ -1907,9 +1907,9 @@ DFS
 		}
 
 		SU_DEBUG_5(("Got remote %s:%d with coder/payload [%s/%d], fmtp: %s\n",
-				chan_ctx->remote_host, 
-				chan_ctx->remote_port, 
-				chan_ctx->sdp_cod_name, 
+				chan_ctx->remote_host,
+				chan_ctx->remote_port,
+				chan_ctx->sdp_cod_name,
 				chan_ctx->sdp_payload,
 				sdp_sess->sdp_media->m_rtpmaps->rm_fmtp));
 	}
@@ -1927,11 +1927,11 @@ DFE
  * \remark
  * 		Memory should be freed outside of the function.
  */
-static char * 
+static char *
 svd_new_sdp_string (ab_chan_t const * const chan)
 {/*{{{*/
 	svd_chan_t * ctx = chan->ctx;
-	char * ret_str = NULL; 
+	char * ret_str = NULL;
 	codec_t * cp = NULL;
 	int limit = SDP_STR_MAX_LEN;
 	int ltmp;
@@ -1973,7 +1973,7 @@ svd_new_sdp_string (ab_chan_t const * const chan)
 		cp = &g_conf.voice_freq[chan->abs_idx].vf_codec;
 	}
 
-	ltmp = snprintf (ret_str, limit, 
+	ltmp = snprintf (ret_str, limit,
 			"v=0\r\n"
 			"m=audio %d RTP/AVP",media_port);
 	if(ltmp > -1 && ltmp < limit){
@@ -2025,7 +2025,7 @@ svd_new_sdp_string (ab_chan_t const * const chan)
 		}
 
 		memset(rtp_str, 0, sizeof(rtp_str));
-		ltmp = snprintf(rtp_str, SDP_STR_MAX_LEN, "a=rtpmap:%d %s/%d\r\n", 
+		ltmp = snprintf(rtp_str, SDP_STR_MAX_LEN, "a=rtpmap:%d %s/%d\r\n",
 				cp[i].user_payload, cod_pr->sdp_name, cod_pr->rate);
 		if((ltmp == -1) || (ltmp >= SDP_STR_MAX_LEN)){
 			SU_DEBUG_0((LOG_FNC_A("ERROR: RTPMAP string buffer too small")));
@@ -2039,7 +2039,7 @@ svd_new_sdp_string (ab_chan_t const * const chan)
 
 		if(cod_pr->fmtp_str[0]){
 			memset(rtp_str, 0, sizeof(rtp_str));
-			ltmp = snprintf(rtp_str, SDP_STR_MAX_LEN, "a=fmtp:%d %s\r\n", 
+			ltmp = snprintf(rtp_str, SDP_STR_MAX_LEN, "a=fmtp:%d %s\r\n",
 					cp[i].user_payload, cod_pr->fmtp_str);
 			if((ltmp == -1) || (ltmp >= SDP_STR_MAX_LEN)){
 				SU_DEBUG_0((LOG_FNC_A(

@@ -1,8 +1,8 @@
-/** 
+/**
  * @file svd_server_if.c
  * Interface server command functions.
  * It containes executions of interface commands.
- * */ 
+ * */
 
 /* Includes {{{ */
 #include "svd.h"
@@ -19,33 +19,33 @@
 #include <errno.h>
 /*}}}*/
 
-/** Create interface for svd_if.*/ 
+/** Create interface for svd_if.*/
 int svd_create_interface(svd_t * svd);
-/** Interface handler.*/ 
-static int svd_if_handler(su_root_magic_t * root, su_wait_t * w, 
+/** Interface handler.*/
+static int svd_if_handler(su_root_magic_t * root, su_wait_t * w,
 		su_wakeup_arg_t * user_data);
-/** Execute given interface message.*/ 
-static int svd_exec_msg(svd_t * const svd, char const * const buf, 
+/** Execute given interface message.*/
+static int svd_exec_msg(svd_t * const svd, char const * const buf,
 		char ** const buff, int * const buff_sz);
-/** Execute 'test' command.*/ 
+/** Execute 'test' command.*/
 static int svd_exec_jbt(svd_t * const svd, char ** const buff, int * const buff_sz);
-/** Execute 'func' with 2 args.*/ 
-static int svd_exec_2af(svd_t * const svd, struct svdif_msg_s * const msg, 
-		char ** const buff, int * const buff_sz, int (*func)(ab_chan_t * const chan, 
+/** Execute 'func' with 2 args.*/
+static int svd_exec_2af(svd_t * const svd, struct svdif_msg_s * const msg,
+		char ** const buff, int * const buff_sz, int (*func)(ab_chan_t * const chan,
 		char ** const buf, int * const palc, enum msg_fmt_e const fm));
-/** Execute 'shutdown' command.*/ 
+/** Execute 'shutdown' command.*/
 static int svd_exec_shutdown(svd_t * svd, char ** const buff, int * const buff_sz);
 /** Add to string another and resize it if necessary */
 static int svd_addtobuf(char ** const buf, int * const palc, char const * fmt, ...);
 /** Put chan rtcp statistics to buffer */
-static int svd_rtcp_for_chan(ab_chan_t * const chan, 
+static int svd_rtcp_for_chan(ab_chan_t * const chan,
 		char ** const buf, int * const palc, enum msg_fmt_e const fmt);
-static int svd_jb_for_chan(ab_chan_t * const chan, 
+static int svd_jb_for_chan(ab_chan_t * const chan,
 		char ** const buf, int * const palc, enum msg_fmt_e const fmt);
 /**
  * Create socket and allocate handler for interface.
  *
- * \param[in] svd 	pointer to svd structure 
+ * \param[in] svd 	pointer to svd structure
  * \retval 0 	etherything is fine
  * \retval -1 	error occures
  * \remark
@@ -53,8 +53,8 @@ static int svd_jb_for_chan(ab_chan_t * const chan,
  * 		It creates interface socket
  * 		It creates sofia-sip wait object
  * 		It allocates handler for interface socket
- */ 
-int 
+ */
+int
 svd_create_interface(svd_t * svd)
 {/*{{{*/
 	su_wait_t wait[1];
@@ -86,9 +86,9 @@ __exit_fail:
 
 /**
  * Destroy socket for interface.
- * \param[in] svd 	pointer to svd structure 
- */ 
-void 
+ * \param[in] svd 	pointer to svd structure
+ */
+void
 svd_destroy_interface(svd_t * svd)
 {/*{{{*/
 	int err;
@@ -109,8 +109,8 @@ svd_destroy_interface(svd_t * svd)
  * \param[in] 		w			wait object that emits.
  * \retval -1	if somthing nasty happens.
  * \retval 0 	if etherything is ok.
- */ 
-static int 
+ */
+static int
 svd_if_handler(su_root_magic_t * root, su_wait_t * w, su_wakeup_arg_t * user_data)
 {/*{{{*/
 	unsigned char buf [MAX_MSG_SIZE];
@@ -129,17 +129,17 @@ svd_if_handler(su_root_magic_t * root, su_wait_t * w, su_wakeup_arg_t * user_dat
 
 	memset(&cl_addr, 0, sizeof(cl_addr));
 	cl_addr_len = sizeof(cl_addr);
-	
+
 	/* read socket data */
-	received = recvfrom (svd->ifd, buf, sizeof(buf), 0, 
-			(struct sockaddr * __restrict__)&cl_addr, &cl_addr_len ); 
+	received = recvfrom (svd->ifd, buf, sizeof(buf), 0,
+			(struct sockaddr * __restrict__)&cl_addr, &cl_addr_len );
 	if (received == 0){
 		SU_DEBUG_2 ((LOG_FNC_A("wrong interface event - no data")));
 		goto __exit_fail;
 	} else if (received < 0){
 		SU_DEBUG_2 (("IF ERROR: recvfrom(): %d(%s)\n", errno, strerror(errno)));
 		goto __exit_fail;
-	} 
+	}
 
 	/* Parse and execute msg */
 	err = svd_exec_msg (svd, buf, &abuf, &abuf_sz);
@@ -149,7 +149,7 @@ svd_if_handler(su_root_magic_t * root, su_wait_t * w, su_wakeup_arg_t * user_dat
 	}
 
 	/* answer to the client */
-	cnt = sendto(svd->ifd, abuf, abuf_sz, 0, 
+	cnt = sendto(svd->ifd, abuf, abuf_sz, 0,
 			(struct sockaddr * __restrict__)&cl_addr, sizeof(cl_addr));
 	if(cnt == -1){
 		SU_DEBUG_2(("server sending error (%s) (buf size: %d)\n",
@@ -180,9 +180,9 @@ __exit_fail:
  * \param[out]	buff_sz	size of the generated answer.
  * \retval -1	if somthing nasty happens.
  * \retval 0 	if etherything is ok.
- */ 
+ */
 static int
-svd_exec_msg(svd_t * const svd, char const * const buf, 
+svd_exec_msg(svd_t * const svd, char const * const buf,
 		char ** const buff, int * const buff_sz)
 {/*{{{*/
 	struct svdif_msg_s msg;
@@ -222,9 +222,9 @@ __exit_fail:
  * \retval -1	if somthing nasty happens.
  * \retval 0 	if etherything is ok.
  * \remark
- *	It allocates memory for buffer with answer. Caller must free this 
+ *	It allocates memory for buffer with answer. Caller must free this
  *	memory than he is not need it more.
- */ 
+ */
 static int
 svd_exec_jbt(svd_t * const svd, char ** const buff, int * const buff_sz)
 {/*{{{*/
@@ -252,7 +252,7 @@ svd_exec_jbt(svd_t * const svd, char ** const buff, int * const buff_sz)
 			if(svd_addtobuf(buff, buff_sz,
 					"{\"error\":\"jb_refresh error: %s\"}\n",ab_g_err_str)){
 				goto __exit_fail;
-			} 
+			}
 			goto __exit_success;
 		}
 		if(chan->statistics.is_up){
@@ -271,7 +271,7 @@ svd_exec_jbt(svd_t * const svd, char ** const buff, int * const buff_sz)
 		}
 	}
 	/* out to buffer */
-		err = svd_addtobuf(buff, buff_sz, 
+		err = svd_addtobuf(buff, buff_sz,
 "Channel up/down: %d / %d\n\
 Packets Invalid: %lu\n\
 Packets Late: %lu\n\
@@ -283,7 +283,7 @@ Injected Samples (JB Increments): %lu\n\
 Skipped Lost Samples (JB Decrements): %lu\n\
 Dropped Samples (JB Decrements): %lu\n\
 Dropped Samples (JB Overflows): %lu\n\
-Comfort Noise Samples: %lu\n", 
+Comfort Noise Samples: %lu\n",
 		is_up, (cn-is_up),
 		nInvalid,nLate,nEarly,nResync,nIsUnderflow,nIsNoUnderflow,nIsIncrement,
 		nSkDecrement,nDsDecrement,nDsOverflow,nSid);
@@ -304,12 +304,12 @@ __exit_fail:
  * \retval -1	if somthing nasty happens.
  * \retval 0 	if etherything is ok.
  * \remark
- *	It allocates memory for buffer with answer. Caller must free this 
+ *	It allocates memory for buffer with answer. Caller must free this
  *	memory than he is not need it more.
- */ 
+ */
 static int
-svd_exec_2af(svd_t * const svd, struct svdif_msg_s * const msg, 
-		char ** const buff, int * const buff_sz, int (*func)(ab_chan_t * const chan, 
+svd_exec_2af(svd_t * const svd, struct svdif_msg_s * const msg,
+		char ** const buff, int * const buff_sz, int (*func)(ab_chan_t * const chan,
 		char ** const buf, int * const palc, enum msg_fmt_e const fm))
 {/*{{{*/
 	if       (msg->ch_sel.ch_t == ch_t_ONE){/*{{{*/
@@ -327,7 +327,7 @@ svd_exec_2af(svd_t * const svd, struct svdif_msg_s * const msg,
 			}
 			goto __exit_success;
 		}
-		if(func(svd->ab->pchans[msg->ch_sel.ch_if_one], 
+		if(func(svd->ab->pchans[msg->ch_sel.ch_if_one],
 				buff, buff_sz, msg->fmt_sel)){
 			goto __exit_fail;
 		}/*}}}*/
@@ -415,7 +415,7 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
-static int 
+static int
 svd_exec_shutdown(svd_t * svd, char ** const buff, int * const buff_sz)
 {/*{{{*/
 	/* svd shutdown */
@@ -435,7 +435,7 @@ svd_addtobuf(char ** const buf, int * const palc, char const * fmt, ...)
 	va_list ap;
 	int n;
 	int psz;
-	char * nbuf; 
+	char * nbuf;
 
 	if(!(*buf)){
 		*palc = 300;
@@ -444,9 +444,9 @@ svd_addtobuf(char ** const buf, int * const palc, char const * fmt, ...)
 			SU_DEBUG_2((LOG_NOMEM_A("malloc for resizer")));
 			printf("no mem for malloc\n");
 			goto __exit_fail;
-		}    
+		}
 		memset(*buf, 0, sizeof(**buf));
-	}     
+	}
 
 	psz = strlen(*buf);
 
@@ -480,7 +480,7 @@ __exit_fail:
 return -1;
 }/*}}}*/
 
-static int 
+static int
 svd_rtcp_for_chan(ab_chan_t * const chan, char ** const buf, int * const palc,
 		enum msg_fmt_e const fmt)
 {/*{{{*/
@@ -492,7 +492,7 @@ svd_rtcp_for_chan(ab_chan_t * const chan, char ** const buf, int * const palc,
 		if(svd_addtobuf(buf, palc,
 				"{\"error\":\"rtcp_refresh error: %s\"}\n",ab_g_err_str)){
 			goto __exit_fail;
-		} 
+		}
 		goto __exit_success;
 	}
 	if(chan->statistics.is_up){
@@ -500,10 +500,10 @@ svd_rtcp_for_chan(ab_chan_t * const chan, char ** const buf, int * const palc,
 	} else {
 		strcpy(yn,"NO");
 	}
-	err = svd_addtobuf(buf, palc, 
+	err = svd_addtobuf(buf, palc,
 "{\"chanid\": \"%02d\",\"isUp\":\"%s\",\"con_N\":\"%d\",\"RTCP statistics\":{\n\
 \"ssrc\":\"0x%08lX\",\"rtp_ts\":\"0x%08lX\",\"psent\":\"%ld\",\"osent\":\"%ld\",\n\
-\"fraction\":\"0x%02lX\",\"lost\":\"%ld\",\"last_seq\":\"%ld\",\"jitter\":\"0x%08lX\"}}\n", 
+\"fraction\":\"0x%02lX\",\"lost\":\"%ld\",\"last_seq\":\"%ld\",\"jitter\":\"0x%08lX\"}}\n",
 	chan->abs_idx,yn,chan->statistics.con_cnt,s->ssrc,s->rtp_ts,s->psent,
 	s->osent,s->fraction,s->lost,s->last_seq,s->jitter);
 	if(err){
@@ -515,20 +515,20 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
-static int 
-svd_jb_for_chan(ab_chan_t * const chan, char ** const buf, int * const palc, 
+static int
+svd_jb_for_chan(ab_chan_t * const chan, char ** const buf, int * const palc,
 		enum msg_fmt_e const fmt)
 {/*{{{*/
 	int err;
 	char yn[10] = {0,};
-	char tp[10] = {0,}; 
+	char tp[10] = {0,};
 	struct ab_chan_jb_stat_s const * const s = &chan->statistics.jb_stat;
 	err = ab_chan_media_jb_refresh(chan);
 	if(err){
 		if(svd_addtobuf(buf, palc,
 				"{\"error\":\"jb_refresh error: %s\"}\n",ab_g_err_str)){
 			goto __exit_fail;
-		} 
+		}
 		goto __exit_success;
 	}
 	if(chan->statistics.is_up){
@@ -542,16 +542,16 @@ svd_jb_for_chan(ab_chan_t * const chan, char ** const buf, int * const palc,
 		strcpy(tp,"adaptive");
 	}
 	if(fmt == msg_fmt_JSON){
-		err = svd_addtobuf(buf, palc, 
+		err = svd_addtobuf(buf, palc,
 "{\"chanid\": \"%02d\",\"state\":\"%s\",\"con_N\":\"%d\",\"JB statistics\":{\"tp\":\"%s\",\n\
 \"PksAvg\":\"%lu\",\"invPC\":\"%4.2f\",\"latePC\":\"%4.2f\",\"earlyPC\":\"%4.2f\",\"resyncPC\":\"%4.2f\",\n\
 \"BS\":\"%u\",\"maxBS\":\"%u\",\"minBS\":\"%u\",\"POD\":\"%u\",\"maxPOD\":\"%u\",\"minPOD\":\"%u\",\n\
 \"nPks\":\"%lu\",\"nInv\":\"%u\",\"nLate\":\"%u\",\"nEarly\":\"%u\",\"nResync\":\"%u\",\n\
 \"nIsUn\":\"%lu\",\"nIsNoUn\":\"%lu\",\"nIsIncr\":\"%lu\",\n\
 \"nSkDecr\":\"%lu\",\"nDsDecr\":\"%lu\",\"nDsOwrf\":\"%lu\",\n\
-\"nSid\":\"%lu\",\"nRecvBytesH\":\"%lu\",\"nRecvBytesL\":\"%lu\"}}\n", 
+\"nSid\":\"%lu\",\"nRecvBytesH\":\"%lu\",\"nRecvBytesL\":\"%lu\"}}\n",
 		chan->abs_idx,yn,chan->statistics.con_cnt,tp,chan->statistics.pcks_avg,
-		chan->statistics.invalid_pc,chan->statistics.late_pc, 
+		chan->statistics.invalid_pc,chan->statistics.late_pc,
 		chan->statistics.early_pc,
 		chan->statistics.resync_pc,s->nBufSize/8,s->nMaxBufSize/8,s->nMinBufSize/8,
 		s->nPODelay,s->nMaxPODelay,s->nMinPODelay,s->nPackets,s->nInvalid,s->nLate,
@@ -559,7 +559,7 @@ svd_jb_for_chan(ab_chan_t * const chan, char ** const buf, int * const palc,
 		s->nSkDecrement,s->nDsDecrement,s->nDsOverflow,s->nSid,
 		s->nRecBytesH,s->nRecBytesL);
 	} else if(fmt == msg_fmt_CLI){
-		err = svd_addtobuf(buf, palc, 
+		err = svd_addtobuf(buf, palc,
 "Channel:%02d (%s)\n\
 Connecions number: %d\n\
 Jitter Buffer Type: %s\n\
@@ -576,7 +576,7 @@ Injected Samples (JB Increments): %lu\n\
 Skipped Lost Samples (JB Decrements): %lu\n\
 Dropped Samples (JB Decrements): %lu\n\
 Dropped Samples (JB Overflows): %lu\n\
-Comfort Noise Samples: %lu\n", 
+Comfort Noise Samples: %lu\n",
 		chan->abs_idx,yn,chan->statistics.con_cnt,tp,
 		s->nBufSize/8,s->nMinBufSize/8,s->nMaxBufSize/8,
 		s->nPODelay,s->nMinPODelay,s->nMaxPODelay,s->nPackets,

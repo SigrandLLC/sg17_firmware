@@ -1,8 +1,8 @@
-/** 
+/**
  * @file svd_engine_if.c
  * Engine of the svd_interface programm.
  * It containes both server and clinet sides of the engine.
- * */ 
+ * */
 
 /* Includes {{{ */
 #include <stdlib.h>
@@ -20,7 +20,7 @@
 #include "svd_if.h"
 /*}}}*/
 
-int 
+int
 svd_if_srv_create (int * const sfd, char * const err_msg)
 {/*{{{*/
 	struct sockaddr_un sv_addr;
@@ -40,7 +40,7 @@ svd_if_srv_create (int * const sfd, char * const err_msg)
 			snprintf(err_msg,ERR_MSG_SIZE,"Error creating dir %s",SOCKET_PATH);
 			return -1;
 		}
-    }  
+    }
     if( !S_ISDIR(sbuf.st_mode) ){
 		snprintf (err_msg,ERR_MSG_SIZE,"Error: %s is not directory",SOCKET_PATH);
 		return -1;
@@ -65,7 +65,7 @@ svd_if_srv_create (int * const sfd, char * const err_msg)
 	return 0;
 }/*}}}*/
 
-int 
+int
 svd_if_srv_destroy (int * const sfd, char * const err_msg)
 {/*{{{*/
 	if(close (*sfd)){
@@ -81,7 +81,7 @@ svd_if_srv_destroy (int * const sfd, char * const err_msg)
 	return 0;
 }/*}}}*/
 
-int 
+int
 svd_if_cli_start (char * const err_msg)
 {/*{{{ */
 	/*	create client socket
@@ -97,7 +97,7 @@ svd_if_cli_start (char * const err_msg)
 	char out_buf [MAX_MSG_SIZE] = {0,};
 	char * in_buf = NULL;
 	int msg_sz;
-	struct pollfd fds; 
+	struct pollfd fds;
 
 	socket_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
 	if(socket_fd < 0){
@@ -124,10 +124,10 @@ svd_if_cli_start (char * const err_msg)
 	memset(out_buf, 0, sizeof(out_buf));
 	cnt = read(0, out_buf, sizeof(out_buf));
 	if(out_buf[cnt-1] == '\n'){
-		out_buf[cnt-1] = '\0'; 
+		out_buf[cnt-1] = '\0';
 	}
 
-	cnt = sendto(socket_fd, out_buf, strlen(out_buf)+1, 0, 
+	cnt = sendto(socket_fd, out_buf, strlen(out_buf)+1, 0,
 			(struct sockaddr * __restrict__)&sv_addr, SUN_LEN(&sv_addr) );
 	if(cnt == -1){
 		snprintf(err_msg,ERR_MSG_SIZE,"client sending error (%s)\n",strerror(errno));
@@ -158,7 +158,7 @@ svd_if_cli_start (char * const err_msg)
 		goto __close;
 	}
 	memset (in_buf, 0, msg_sz * sizeof(*in_buf));
-	cnt = recvfrom (socket_fd, in_buf, msg_sz, 0, 
+	cnt = recvfrom (socket_fd, in_buf, msg_sz, 0,
 			(struct sockaddr * __restrict__)&sv_addr, &sv_addr_len);
 	if(cnt == -1){
 		goto __malloc;
@@ -181,7 +181,7 @@ __exit_fail:
 }/*}}}*/
 
 /** Parse the message.*/
-int 
+int
 svd_if_srv_parse (char const * const str, struct svdif_msg_s * const msg,
 		char * const err_msg)
 {/*{{{*/
@@ -195,7 +195,7 @@ svd_if_srv_parse (char const * const str, struct svdif_msg_s * const msg,
 		{"get_jb_stat",   ch_t_ACTIVE, msg_fmt_JSON},
 		{"get_rtcp_stat", ch_t_ACTIVE, msg_fmt_JSON},
 		{"shutdown",      ch_t_NONE  , msg_fmt_CLI},
-	}; 
+	};
 	char pstr[MAX_MSG_SIZE] = {0,};
 	char *command = NULL;
 	int i;
@@ -214,7 +214,7 @@ svd_if_srv_parse (char const * const str, struct svdif_msg_s * const msg,
 			msg->type = i;
 			break;
 		}
-	} 
+	}
 	if(msg->type == msg_type_NONE){
 		snprintf(err_msg,ERR_MSG_SIZE,"unknown command '%s'\n",command);
 		goto __exit_fail;

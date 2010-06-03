@@ -2,7 +2,7 @@
  * @file svd_atab.c
  * ATA board implementation.
  * It contains ATA board interfaice and internals implementation.
- */ 
+ */
 
 /*{{{ INCLUDES */
 #include "svd.h"
@@ -26,19 +26,19 @@
 /*}}}*/
 
 /** @defgroup MEDIA_INT Media helpers (internals).
- *  @ingroup MEDIA 
+ *  @ingroup MEDIA
  *  It contains helper functions for media turning and activation.
  *  @{*/
 /** Initiate voice and fax codec parameters on given channel.*/
 int svd_prepare_chan_codecs( ab_chan_t * const chan, jb_prms_t ** jpb );
-/** @}*/ 
+/** @}*/
 
 /** @defgroup ATA_EVT ATA board events (internals).
  *  @ingroup ATA_B
  *  It contains callbacks for events on ata board processing.
  *  @{*/
 /** Handle events on ATA board.*/
-static int svd_atab_handler (su_root_magic_t * root, su_wait_t * w, 
+static int svd_atab_handler (su_root_magic_t * root, su_wait_t * w,
 		su_wakeup_arg_t * user_data);
 /** Process FXS Offhook event.*/
 static int svd_handle_event_FXS_OFFHOOK
@@ -50,12 +50,12 @@ static int svd_handle_event_FXS_ONHOOK
 static int svd_handle_event_FXS_DIGIT_X
 		( svd_t * const svd, int const chan_idx, long const data );
 /** Process FXO Ring event.*/
-static int svd_handle_event_FXO_RINGING 
+static int svd_handle_event_FXO_RINGING
 		( svd_t * const svd, int const chan_idx );
 /** Process FXS Faxmodem CED event.*/
-static int svd_handle_event_FM_CED 
+static int svd_handle_event_FM_CED
 		( svd_t * const svd, int const chan_idx, long const data );
-/** @}*/ 
+/** @}*/
 
 
 
@@ -64,7 +64,7 @@ static int svd_handle_event_FM_CED
  *  It contains state machine to process digits in dial sequence.
  *  @{*/
 /** Process digit in dialed sequence.*/
-static int svd_handle_digit 
+static int svd_handle_digit
 		( svd_t * const svd, int const chan_idx, long const digit );
 /** START state in dialed sequence.*/
 static int svd_handle_START
@@ -81,33 +81,33 @@ static int svd_handle_NET_ADDR
 /** ADDR_BOOK state in dialed sequence.*/
 static int svd_handle_ADDR_BOOK
 		( svd_t * const svd, int const chan_idx, long const digit );
-/** @}*/ 
+/** @}*/
 
 
 
 /** @defgroup RTP_H RTP flow handlers and others (internals).
  *  @ingroup ATA_B
  *  @ingroup MEDIA
- *  Handlers called then some data placed in RTP message box. 
- *  And RTP socket opened when registers the media \ref svd_media_register(). 
+ *  Handlers called then some data placed in RTP message box.
+ *  And RTP socket opened when registers the media \ref svd_media_register().
  *  @{*/
 /** Maximum size of RTP packet.*/
 #define BUFF_PER_RTP_PACK_SIZE 512
 /** Move RTP data from channel to RTP socket.*/
-static int svd_media_vinetic_handle_local_data (su_root_magic_t * root, 
+static int svd_media_vinetic_handle_local_data (su_root_magic_t * root,
 		su_wait_t * w, su_wakeup_arg_t * user_data );
 /** Move RTP data from RTP socket to channel.*/
-static int svd_media_vinetic_handle_remote_data (su_root_magic_t * root, 
+static int svd_media_vinetic_handle_remote_data (su_root_magic_t * root,
 		su_wait_t * w, su_wakeup_arg_t * user_data );
 /** Open RTP socket.*/
 static int svd_media_vinetic_open_rtp (svd_chan_t * const chan_ctx);
-/** @}*/ 
+/** @}*/
 
 
 
 /** @defgroup ATA_OTHER_I Other internals.
  *  @ingroup ATA_B
- *  Other internal helper functions. 
+ *  Other internal helper functions.
  *  @{*/
 /** Init chans context from \ref g_conf.*/
 static int svd_chans_init ( svd_t * const svd );
@@ -116,24 +116,24 @@ static int attach_dev_cb ( svd_t * const svd );
 /** Find address book value for given channel. */
 static int svd_ab_value_set_by_id (ab_chan_t * const ab_chan);
 /** Parse given dial sequence.*/
-static int svd_process_addr (svd_t * const svd, int const chan_idx, 
+static int svd_process_addr (svd_t * const svd, int const chan_idx,
 		char const * const value);
 /** Set router ip from \ref g_conf using channel dial context info.*/
 static int set_route_ip (svd_chan_t * const chan_ctx);
 /** Choose direction for call in local network.*/
 static int local_connection_selector
 		( svd_t * const svd, int const use_ff_FXO, ab_chan_t * const chan);
-/** @}*/ 
+/** @}*/
 
 /** @defgroup ATA_VF_I Voice Frequency CRAM internals.
  *  @ingroup ATA_B
- *  Other internal VF definitions. 
+ *  Other internal VF definitions.
  *  @{*/
 #define AB_FW_CRAM_VFN2_NAME "/lib/firmware/cramfw_vfn2.bin"
 #define AB_FW_CRAM_VFN4_NAME "/lib/firmware/cramfw_vfn4.bin"
 #define AB_FW_CRAM_VFT2_NAME "/lib/firmware/cramfw_vft2.bin"
 #define AB_FW_CRAM_VFT4_NAME "/lib/firmware/cramfw_vft4.bin"
-/** @}*/ 
+/** @}*/
 
 
 /**
@@ -144,8 +144,8 @@ static int local_connection_selector
  *		It uses \ref g_conf to get \c route_id_len.
  * 		It creates ab structure
  *  	It creates svd_channel_status structures
- *  	It registers waits on vinetic dev files 
- */ 
+ *  	It registers waits on vinetic dev files
+ */
 int
 svd_atab_create ( svd_t * const svd )
 {/*{{{*/
@@ -171,7 +171,7 @@ DFS
 
 	/* REINIT tf-channels with CRAM */
 	ch_num = svd->ab->chans_num;
-	for (i=0; i<CHANS_MAX; i++){ 
+	for (i=0; i<CHANS_MAX; i++){
 		char * cram_file_path;
 		/* reinit cram coefficients */
 		if(g_conf.voice_freq[i].is_set){
@@ -201,15 +201,15 @@ DFE
 __exit_fail:
 DFE
 	SU_DEBUG_0 ((">> reason [%d]: %s\n",ab_g_err_idx,ab_g_err_str));
-	return -1;	
+	return -1;
 }/*}}}*/
 
 /**
  * It destroy the ab struct and free memory from channels contexes.
- * 
+ *
  * \param[in,out] svd routine context structure.
- */ 
-void 
+ */
+void
 svd_atab_delete ( svd_t * const svd )
 {/*{{{*/
 	int i;
@@ -253,8 +253,8 @@ DFE
  * \param[in] chan	channel on which we should attach callbacks.
  * \retval 0	if etherything ok.
  * \retval -1	if something nasty happens.
- */ 
-int 
+ */
+int
 svd_media_register (svd_t * const svd, ab_chan_t * const chan)
 {/*{{{*/
 	su_wait_t wait[1];
@@ -275,7 +275,7 @@ DFS
 		goto __exit_fail;
 	}
 
-	ret = su_root_register (svd->root, wait, 
+	ret = su_root_register (svd->root, wait,
 			svd_media_vinetic_handle_local_data, chan, 0);
 	if (ret == -1){
 		SU_DEBUG_0 ((LOG_FNC_A ("su_root_register() fails" ) ));
@@ -295,7 +295,7 @@ DFS
 		goto __exit_fail;
 	}
 
-	ret = su_root_register (svd->root, wait, 
+	ret = su_root_register (svd->root, wait,
 			svd_media_vinetic_handle_remote_data, chan, 0);
 	if (ret == -1) {
 		SU_DEBUG_0 ((LOG_FNC_A ("su_root_register() fails" ) ));
@@ -314,7 +314,7 @@ DFE
  * \param[in] chan	channel on which we should attach callbacks.
  * \retval 0	if etherything ok.
  * \retval -1	if something nasty happens.
- */ 
+ */
 void
 svd_media_unregister (svd_t * const svd, ab_chan_t * const chan)
 {/*{{{*/
@@ -347,8 +347,8 @@ DFE
  * \param[in,out] chan	channel on which we should attach callbacks.
  * \remark
  *		It uses \ref g_conf to read \c route_table and \c address_book.
- */ 
-void 
+ */
+void
 svd_clear_call (svd_t * const svd, ab_chan_t * const chan)
 {/*{{{*/
 	svd_chan_t * chan_ctx = chan->ctx;
@@ -357,7 +357,7 @@ svd_clear_call (svd_t * const svd, ab_chan_t * const chan)
 DFS
 	/* STATES */
 	chan_ctx->dial_status.state = dial_state_START;
-	
+
 	/* TAG */
 	chan_ctx->dial_status.tag = 0;
 
@@ -417,13 +417,13 @@ DFE
 /**
  * \param[in] ab 				ata board structure.
  * \param[in] self_chan_idx 	self channel index in ab->chans[].
- * \return 
+ * \return
  * 		channel index in ab->chans[].
  * 		\retval -1				if no free FXO channels available.
  * 		\retval <other_value>	if we found one.
  * \sa get_FF_FXS_idx().
- */ 
-int 
+ */
+int
 get_FF_FXO_idx ( ab_t const * const ab, char const self_chan_idx )
 {/*{{{*/
 	int i;
@@ -450,13 +450,13 @@ DFE
 /**
  * \param[in] ab 				ata board structure.
  * \param[in] self_chan_idx 	self channel index in ab->chans[].
- * \return 
+ * \return
  * 		channel index in ab->chans[].
  * 		\retval -1				if no free FXS channels available.
  * 		\retval <other_value>	if we found one.
  * \sa get_FF_FXO_idx().
- */ 
-int 
+ */
+int
 get_FF_FXS_idx ( ab_t const * const ab, char const self_chan_idx )
 {/*{{{*/
 	int i;
@@ -487,8 +487,8 @@ DFE
  * \sa ab_chan_media_deactivate().
  * \remark
  * 		It also tuning RTP modes and WLEC according to channel parameters.
- */ 
-int 
+ */
+int
 ab_chan_media_activate ( ab_chan_t * const chan )
 {/*{{{*/
 	int err;
@@ -503,7 +503,7 @@ ab_chan_media_activate ( ab_chan_t * const chan )
 	}
 
 	/* RTP */
-	err = ab_chan_media_rtp_tune (chan, &ctx->vcod, &ctx->fcod, 
+	err = ab_chan_media_rtp_tune (chan, &ctx->vcod, &ctx->fcod,
 			&g_conf.audio_prms[chan->abs_idx]);
 	if(err){
 		SU_DEBUG_1(("Media_tune error : %s",ab_g_err_str));
@@ -541,11 +541,11 @@ __exit:
  * \sa ab_chan_media_activate().
  * \remark
  * 		It also tuning RTP modes and WLEC according to channel parameters.
- */ 
-int 
+ */
+int
 ab_chan_media_deactivate ( ab_chan_t * const chan )
 {/*{{{*/
-	int err; 
+	int err;
 	wlec_t wc;
 
 	err = ab_chan_media_switch (chan, 0);
@@ -573,8 +573,8 @@ __exit:
  * \param[out]    jbp  jitter buffer parameters.
  * \retval 0 Success.
  * \retval -1 Fail.
- */ 
-int 
+ */
+int
 svd_prepare_chan_codecs( ab_chan_t * const chan, jb_prms_t ** jpb)
 {/*{{{*/
 	svd_chan_t * ctx = chan->ctx;
@@ -634,13 +634,13 @@ __exit_fail:
  * \retval NULL if fail.
  * \retval valid_address if success.
  * \remark
- *	if  \code  ct == cod_type_NONE \endcode  or 
- *	\code  cp == NULL \endcode, then you get parameters by 
+ *	if  \code  ct == cod_type_NONE \endcode  or
+ *	\code  cp == NULL \endcode, then you get parameters by
  *	other valid given value. If both are unset, then you get the next
  *	codec`s parameters from the all, until you got the empty set. After
  *	that all rounds again.
- */ 
-cod_prms_t const * 
+ */
+cod_prms_t const *
 svd_cod_prms_get(enum cod_type_e ct ,char const * const cn)
 {/*{{{*/
 	static int cp_inited = 0;
@@ -682,7 +682,7 @@ svd_cod_prms_get(enum cod_type_e ct ,char const * const cn)
 			ret_idx = i;
 			break;
 		}
-	} 
+	}
 
 	if(ret_idx == -1){
 		goto __exit_fail;
@@ -703,7 +703,7 @@ __exit_fail:
  * 		\retval 0 	if etherything ok.
  * \todo
  * 		In ideal world it should be reenterable or mutexes should be used.
- */ 
+ */
 static int
 svd_atab_handler (svd_t * svd, su_wait_t * w, su_wakeup_arg_t * user_data)
 {/*{{{*/
@@ -730,7 +730,7 @@ do{
 		/* in evt.ch we have proper number of the chan */
 		chan_idx = dev_idx * svd->ab->chans_per_dev + evt.ch;
 	} else {
-		/* in evt.ch we do not have proper number of the chan because 
+		/* in evt.ch we do not have proper number of the chan because
 		 * the event is the device event - not the chan event
 		 */
 		chan_idx = dev_idx * svd->ab->chans_per_dev;
@@ -752,7 +752,7 @@ do{
 #if 0
 		/* tag__ stress-testing */
 		int abs_idx = svd->ab->chans[chan_idx].abs_idx;
-		if((abs_idx == 0) || 
+		if((abs_idx == 0) ||
 			(abs_idx == 1) ||
 			(abs_idx == 2) ||
 			(abs_idx == 3)){
@@ -798,8 +798,8 @@ DFE
  * \param[in] chan_idx 	channel on which event occures.
  * 		\retval -1	if somthing nasty happens.
  * 		\retval 0 	if etherything ok.
- */ 
-static int 
+ */
+static int
 svd_handle_event_FXS_OFFHOOK( svd_t * const svd, int const chan_idx )
 {/*{{{*/
 	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
@@ -834,7 +834,7 @@ DFS
 	/* hotline test */
 	if(((svd_chan_t *)(ab_chan->ctx))->is_hotlined){
 		/* process the hotline sequence */
-		err = svd_process_addr (svd, chan_idx, 
+		err = svd_process_addr (svd, chan_idx,
 				((svd_chan_t *)(ab_chan->ctx))->hotline_addr);
 		if(err){
 			goto __exit_fail;
@@ -860,8 +860,8 @@ DFE
  * \param[in] chan_idx 	channel on which event occures.
  * 		\retval -1	if somthing nasty happens.
  * 		\retval 0 	if etherything ok.
- */ 
-static int 
+ */
+static int
 svd_handle_event_FXS_ONHOOK( svd_t * const svd, int const chan_idx )
 {/*{{{*/
 	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
@@ -902,9 +902,9 @@ DFE
  * \param[in] data 		digit of the event.
  * 		\retval -1	if somthing nasty happens.
  * 		\retval 0 	if etherything ok.
- */ 
-static int 
-svd_handle_event_FXS_DIGIT_X ( svd_t * const svd, int const chan_idx, 
+ */
+static int
+svd_handle_event_FXS_DIGIT_X ( svd_t * const svd, int const chan_idx,
 		long const data )
 {/*{{{*/
 	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
@@ -918,7 +918,7 @@ DFS
 			chan_ctx->op_handle));
 
 	if( chan_ctx->op_handle ){
-		/* allready connected - we can send info 
+		/* allready connected - we can send info
 		 * see rfc_2976
 		 */
 		int tone = (data >> 8);
@@ -955,16 +955,16 @@ DFE
 }/*}}}*/
 
 /**
- * It is callback on the rings to FXO channels. 
+ * It is callback on the rings to FXO channels.
  * \param[in] magic	svd pointer.
  * \param[in] t		initiator timer.
  * \param[in] arg	ab channel pointer.
  * \remark
- *	Used to measure time delays between two ring detection. This function 
- *	should be cancelled on the every incoming ring. If it is not cancelled 
- *	it will send SIP CANCEL to cancel the invite request, because nobody 
+ *	Used to measure time delays between two ring detection. This function
+ *	should be cancelled on the every incoming ring. If it is not cancelled
+ *	it will send SIP CANCEL to cancel the invite request, because nobody
  *	rings on FXO anymore.
- */ 
+ */
 void
 ring_timer_cb (su_root_magic_t *magic, su_timer_t *t, su_timer_arg_t *arg)
 {/*{{{*/
@@ -994,8 +994,8 @@ ring_timer_cb (su_root_magic_t *magic, su_timer_t *t, su_timer_arg_t *arg)
  * \param[in] chan_idx 	channel on which event occures.
  * 		\retval -1	if somthing nasty happens.
  * 		\retval 0 	if etherything ok.
- */ 
-static int 
+ */
+static int
 svd_handle_event_FXO_RINGING ( svd_t * const svd, int const chan_idx )
 {/*{{{*/
 	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
@@ -1016,7 +1016,7 @@ DFS
 		chan_ctx->call_state == nua_callstate_completed  ||
 		chan_ctx->call_state == nua_callstate_completing ||
 		chan_ctx->call_state == nua_callstate_ready ){
-		SU_DEBUG_8 (("Connection already initiated on [_%d_]: ignoring ring\n", 
+		SU_DEBUG_8 (("Connection already initiated on [_%d_]: ignoring ring\n",
 				ab_chan->abs_idx));
 		goto __exit_success;
 	}
@@ -1030,17 +1030,17 @@ DFS
 		chan_ctx->ring_state = ring_state_INVITE_IN_QUEUE;
 		SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
 				__func__, __LINE__, ab_chan->abs_idx, chan_ctx->ring_state));
-	} 
+	}
 	else if( chan_ctx->ring_state == ring_state_INVITE_IN_QUEUE) {
 		/* don`t do nothing before invite */
 		SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
 				__func__, __LINE__, ab_chan->abs_idx, chan_ctx->ring_state));
 	} else if( chan_ctx->ring_state == ring_state_NO_TIMER_INVITE_SENT) {
 		/* timer up error occured - try to start it again */
-		err = su_timer_set_interval(chan_ctx->ring_tmr, ring_timer_cb, ab_chan, 
-				RING_WAIT_DROP*1000); 
+		err = su_timer_set_interval(chan_ctx->ring_tmr, ring_timer_cb, ab_chan,
+				RING_WAIT_DROP*1000);
 		if (err){
-			SU_DEBUG_2 (("su_timer_set_interval ERROR on [_%d_] : %d\n", 
+			SU_DEBUG_2 (("su_timer_set_interval ERROR on [_%d_] : %d\n",
 						ab_chan->abs_idx, err));
 			chan_ctx->ring_state = ring_state_NO_TIMER_INVITE_SENT;
 			SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
@@ -1056,14 +1056,14 @@ DFS
 				"in process\n", ab_chan->abs_idx));
 		err = su_timer_reset(chan_ctx->ring_tmr);
 		if (err){
-			SU_DEBUG_2 (("su_timer_reset ERROR on [_%d_] : %d\n", 
+			SU_DEBUG_2 (("su_timer_reset ERROR on [_%d_] : %d\n",
 						ab_chan->abs_idx, err));
 			goto __exit_fail;
 		}
-		err = su_timer_set_interval(chan_ctx->ring_tmr, ring_timer_cb, ab_chan, 
-				RING_WAIT_DROP*1000); 
+		err = su_timer_set_interval(chan_ctx->ring_tmr, ring_timer_cb, ab_chan,
+				RING_WAIT_DROP*1000);
 		if (err){
-			SU_DEBUG_2 (("su_timer_set_interval ERROR on [_%d_] : %d\n", 
+			SU_DEBUG_2 (("su_timer_set_interval ERROR on [_%d_] : %d\n",
 						ab_chan->abs_idx, err));
 			chan_ctx->ring_state = ring_state_NO_TIMER_INVITE_SENT;
 			SU_DEBUG_4(("%s():%d RING_STATE [%d] IS %d\n",
@@ -1090,9 +1090,9 @@ DFE
  * \param[in] data 		event data (0 if cedend and 1 if ced).
  * 		\retval -1	if somthing nasty happens.
  * 		\retval 0 	if etherything ok.
- */ 
-static int 
-svd_handle_event_FM_CED ( svd_t * const svd, int const chan_idx, 
+ */
+static int
+svd_handle_event_FM_CED ( svd_t * const svd, int const chan_idx,
 		long const data  )
 {/*{{{*/
 	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
@@ -1101,11 +1101,11 @@ DFS
 	if( !data){ /* CEDEND */
 		err = ab_chan_fax_pass_through_start (ab_chan);
 		if( err){
-			SU_DEBUG_3(("can`t start fax_pass_through on [_%d_]: %s\n", 
+			SU_DEBUG_3(("can`t start fax_pass_through on [_%d_]: %s\n",
 					ab_chan->abs_idx, ab_g_err_str));
 			goto __exit_fail;
 		} else {
-			SU_DEBUG_3(("fax_pass_through started on [_%d_]\n", 
+			SU_DEBUG_3(("fax_pass_through started on [_%d_]\n",
 					ab_chan->abs_idx));
 		}
 	} else { /* CED */
@@ -1123,8 +1123,8 @@ DFE
  * \param[out] svd	svd context structure to initialize channels in it`s ab.
  * 		\retval -1	if somthing nasty happens.
  * 		\retval 0 	if etherything ok.
- */ 
-static int 
+ */
+static int
 svd_chans_init ( svd_t * const svd )
 {/*{{{*/
 	int i;
@@ -1154,11 +1154,11 @@ DFS
 
 		chan_ctx->dial_status.route_id = malloc((route_id_len+1)*route_id_sz);
 		if( !chan_ctx->dial_status.route_id ){
-			SU_DEBUG_0 ((LOG_FNC_A (LOG_NOMEM_A 
+			SU_DEBUG_0 ((LOG_FNC_A (LOG_NOMEM_A
 					("chans[i].ctx->dial_status.route_id") ) ));
 			goto __exit_fail;
 		}
-		memset (chan_ctx->dial_status.route_id, 0, 
+		memset (chan_ctx->dial_status.route_id, 0,
 				route_id_sz * (route_id_len + 1));
 
 		/* ADDRBOOK */
@@ -1167,7 +1167,7 @@ DFS
 
 		chan_ctx->dial_status.addrbk_id = malloc( (addrbk_id_len+1) * adbk_sz);
 		if( !chan_ctx->dial_status.addrbk_id ){
-			SU_DEBUG_0 ((LOG_FNC_A (LOG_NOMEM_A 
+			SU_DEBUG_0 ((LOG_FNC_A (LOG_NOMEM_A
 					("chans[i].ctx->dial_status.addrbk_id") ) ));
 			goto __exit_fail;
 		}
@@ -1200,7 +1200,7 @@ DFS
 		/* ALL OTHER */
 		svd_clear_call (svd, curr_chan);
 	}
-	
+
 	/* HOTLINE */
 	for (i=0; i<CHANS_MAX; i++){
 		struct hot_line_s * curr_rec = &g_conf.hot_line[ i ];
@@ -1221,8 +1221,8 @@ DFE
  * \param[in] svd	svd context structure to attach callbacks on ab->devs.
  * 		\retval -1	if somthing nasty happens.
  * 		\retval 0 	if etherything ok.
- */ 
-static int 
+ */
+static int
 attach_dev_cb ( svd_t * const svd )
 {/*{{{*/
 	su_wait_t wait[1];
@@ -1259,8 +1259,8 @@ DFE
  * \param[in] digit 	current digit from parsing sequence.
  * 		\retval -1	if somthing nasty happens.
  * 		\retval 0 	if etherything ok.
- */ 
-static int 
+ */
+static int
 svd_handle_digit( svd_t * const svd, int const chan_idx, long const digit )
 {/*{{{*/
 	ab_t * ab = svd->ab;
@@ -1296,8 +1296,8 @@ DFE
  * 		\retval 0 	if etherything ok.
  * \remark
  * 		Using \ref g_conf to read \c route_table.
- */ 
-static int 
+ */
+static int
 svd_handle_START( ab_t * const ab, int const chan_idx, long const digit )
 {/*{{{*/
 	svd_chan_t * chan_ctx = ab->chans[chan_idx].ctx;
@@ -1345,8 +1345,8 @@ __exit_fail:
  * 		\retval 0 	if etherything ok.
  * \remark
  * 		Using \ref g_conf to read \c route_table.
- */ 
-static int 
+ */
+static int
 svd_handle_ROUTE_ID( ab_t * const ab, int const chan_idx, long const digit )
 {/*{{{*/
 	svd_chan_t * chan_ctx = ab->chans[chan_idx].ctx;
@@ -1365,7 +1365,7 @@ svd_handle_ROUTE_ID( ab_t * const ab, int const chan_idx, long const digit )
 		err = set_route_ip (chan_ctx);
 		if( err ){
 			goto __exit_fail;
-		} 
+		}
 		SU_DEBUG_3 (("Choosed router [%s]\n",chan_ctx->dial_status.route_id ));
 		chan_ctx->dial_status.state = dial_state_CHAN_ID;
 		chan_ctx->dial_status.tag = 0;
@@ -1385,8 +1385,8 @@ __exit_fail:
  * 		\retval 0 	if etherything ok.
  * \remark
  * 		Using \ref g_conf to read \c sip_set.
- */ 
-static int 
+ */
+static int
 svd_handle_CHAN_ID( svd_t * const svd, int const chan_idx, long const digit )
 {/*{{{*/
 	svd_chan_t * chan_ctx = svd->ab->chans[chan_idx].ctx;
@@ -1433,8 +1433,8 @@ __exit_fail:
  * \param[in] digit 	current digit from parsing sequence.
  * 		\retval -1	if somthing nasty happens.
  * 		\retval 0 	if etherything ok.
- */ 
-static int 
+ */
+static int
 svd_handle_NET_ADDR( svd_t * const svd, int const chan_idx, long const digit )
 {/*{{{*/
 	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
@@ -1454,7 +1454,7 @@ svd_handle_NET_ADDR( svd_t * const svd, int const chan_idx, long const digit )
 	/* when buffer is full but we did not find terminant*/
 	if(*net_idx == ADDR_PAYLOAD_LEN){
 		SU_DEBUG_2 (("Too long addr_payload [%s] it should be "
-				"not longer then %d chars\n", 
+				"not longer then %d chars\n",
 				chan_ctx->dial_status.addr_payload,
 				ADDR_PAYLOAD_LEN));
 		goto __exit_fail;
@@ -1474,8 +1474,8 @@ __exit_fail:
  * 		\retval 0 	if etherything ok.
  * \remark
  * 		Using \ref g_conf to read \c address_book.
- */ 
-static int 
+ */
+static int
 svd_handle_ADDR_BOOK( svd_t * const svd, int const chan_idx, long const digit )
 {/*{{{*/
 	ab_chan_t * ab_chan = &svd->ab->chans[chan_idx];
@@ -1514,7 +1514,7 @@ __exit_fail:
  * 		\retval 0 	if etherything ok.
  * \remark
  * 		Using \ref g_conf to read \c address_book.
- */ 
+ */
 static int
 svd_ab_value_set_by_id (ab_chan_t * const ab_chan)
 {/*{{{*/
@@ -1522,7 +1522,7 @@ svd_ab_value_set_by_id (ab_chan_t * const ab_chan)
 	int i;
 	int j;
 	struct adbk_record_s * cur_rec;
-	
+
 	j = g_conf.address_book.records_num;
 	for (i=0; i<j; i++){
 		cur_rec = &g_conf.address_book.records[ i ];
@@ -1531,7 +1531,7 @@ svd_ab_value_set_by_id (ab_chan_t * const ab_chan)
 			goto __exit_success;
 		}
 	}
-	SU_DEBUG_2(("Wrong address book id : [%s]\n", 
+	SU_DEBUG_2(("Wrong address book id : [%s]\n",
 			chan_ctx->dial_status.addrbk_id));
 	return -1;
 __exit_success:
@@ -1545,9 +1545,9 @@ __exit_success:
  * 		\retval -1	if somthing nasty happens.
  * 		\retval 0 	if etherything ok.
  * \todo
- * 		Calling number on hotline is not implemented. 
+ * 		Calling number on hotline is not implemented.
  * 		In hotline we can just choose the router and the chan.
- */ 
+ */
 static int
 svd_process_addr (svd_t * const svd, int const chan_idx,
 		char const * const value)
@@ -1567,7 +1567,7 @@ DFS
 			goto __exit_fail;
 		}
 		if(i!=0 && chan_ctx->dial_status.state==dial_state_START){
-			/* after that - just ',' and dialtones 
+			/* after that - just ',' and dialtones
 			 * not processed now if want to process -
 			 * should store to buffer and play it later */
 			i++;
@@ -1585,15 +1585,15 @@ DFE
  * Cleans old route_ip and sets new ip if router is not self
  * 		set self flag to proper value.
  *
- * \param[in] chan_ctx 	channel context from which we got route id and 
+ * \param[in] chan_ctx 	channel context from which we got route id and
  * 		set it`s ip.
  * 	\retval -1	if somthing nasty happens (Wrong router id).
  * 	\retval 0 	self flag has been set to proper value and
  * 		router ip has been set if router is not self.
  * \remark
  * 		It uses \ref g_conf to read the \c self_number and \c route_table.
- */ 
-static int 
+ */
+static int
 set_route_ip (svd_chan_t * const chan_ctx)
 {/*{{{*/
 	char * g_conf_id;
@@ -1645,8 +1645,8 @@ __exit_fail:
  * \remark
  * 		It is make a choice - is it a self_call (call on self router) or it
  * 		is call on local network.
- */ 
-static int 
+ */
+static int
 local_connection_selector
 		( svd_t * const svd, int const use_ff_FXO, ab_chan_t * const chan)
 {/*{{{*/
@@ -1670,8 +1670,8 @@ DFE
  * \param[in] 	user_data	channel that gives RTP data.
  * \retval -1	if somthing nasty happens.
  * \retval 0 	if etherything is ok.
- */ 
-static int 
+ */
+static int
 svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 		su_wakeup_arg_t * user_data)
 {/*{{{*/
@@ -1679,8 +1679,8 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 	svd_chan_t * chan_ctx = chan->ctx;
 	struct sockaddr_in target_sock_addr;
 	unsigned char buf [BUFF_PER_RTP_PACK_SIZE];
-	int rode; 
-	int sent; 
+	int rode;
+	int sent;
 
 	if (chan_ctx->remote_port == 0 ||
 			chan_ctx->remote_host == NULL){
@@ -1700,8 +1700,8 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 		SU_DEBUG_2 ((LOG_FNC_A("wrong event")));
 		goto __exit_fail;
 	} else if(rode > 0){
-		// should not block 
-		sent = sendto(chan_ctx->rtp_sfd, buf, rode, 0, 
+		// should not block
+		sent = sendto(chan_ctx->rtp_sfd, buf, rode, 0,
 				&target_sock_addr, sizeof(target_sock_addr));
 		if (sent == -1){
 			SU_DEBUG_2 (("HLD() ERROR : sent() : %d(%s)\n",
@@ -1717,7 +1717,7 @@ svd_media_vinetic_handle_local_data (su_root_magic_t * root, su_wait_t * w,
 		SU_DEBUG_2 (("HLD() ERROR : read() : %d(%s)\n",
 				errno, strerror(errno)));
 		goto __exit_fail;
-	} 
+	}
 __exit_success:
 	return 0;
 __exit_fail:
@@ -1730,8 +1730,8 @@ __exit_fail:
  * \param[in,out]	user_data	channel that receives RTP data from socket.
  * \retval -1	if somthing nasty happens.
  * \retval 0 	if etherything is ok.
- */ 
-static int 
+ */
+static int
 svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 		su_wakeup_arg_t * user_data)
 {/*{{{*/
@@ -1744,7 +1744,7 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 	assert( chan_ctx->rtp_sfd != -1 );
 
 	received = recv(chan_ctx->rtp_sfd, buf, sizeof(buf), 0);
-	
+
 	if (received == 0){
 		SU_DEBUG_2 ((LOG_FNC_A("wrong event")));
 		goto __exit_fail;
@@ -1765,7 +1765,7 @@ svd_media_vinetic_handle_remote_data (su_root_magic_t * root, su_wait_t * w,
 		SU_DEBUG_2 (("HRD() ERROR : recv() : %d(%s)\n",
 				errno, strerror(errno)));
 		goto __exit_fail;
-	} 
+	}
 	return 0;
 __exit_fail:
 	return -1;
@@ -1779,8 +1779,8 @@ __exit_fail:
  * \remark
  * 		It uses \ref g_conf to read \ref svd_conf_s::rtp_port_first and
  * 		\ref svd_conf_s::rtp_port_last.
- */ 
-static int 
+ */
+static int
 svd_media_vinetic_open_rtp (svd_chan_t * const chan_ctx)
 {/*{{{*/
 	int i;
@@ -1805,12 +1805,12 @@ DFS
 		SU_DEBUG_2(("Can`t set TOS :%s",strerror(errno)));
 	}
 
-	/* Set SO_BINDTODEVICE for right ip using */ 
-	if(chan_ctx->dial_status.dest_is_self == self_YES || 
+	/* Set SO_BINDTODEVICE for right ip using */
+	if(chan_ctx->dial_status.dest_is_self == self_YES ||
 			chan_ctx->caller_router_is_self){
 		/* use local interface */
 		strcpy(ifr.ifr_name, "lo");
-		if(setsockopt (sock_fd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, 
+		if(setsockopt (sock_fd, SOL_SOCKET, SO_BINDTODEVICE, &ifr,
 				sizeof (ifr)) < 0 ){
 			goto __sock_opened;
 		}
@@ -1840,7 +1840,7 @@ DFS
 			ip = inet_ntoa (sin->sin_addr);
 			if( !strcmp(ip, g_conf.self_ip)){
 				SU_DEBUG_8 (("THE NAME OF THE DEVICE : %s\n",ifr.ifr_name));
-				if(setsockopt (sock_fd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, 
+				if(setsockopt (sock_fd, SOL_SOCKET, SO_BINDTODEVICE, &ifr,
 						sizeof (ifr)) < 0 ){
 					goto __sock_opened;
 				}
@@ -1850,7 +1850,7 @@ DFS
 		}
 		close (stmp);
 		if( !device_finded){
-			SU_DEBUG_1 (("ERROR: Network interface with self_ip %s not found", 
+			SU_DEBUG_1 (("ERROR: Network interface with self_ip %s not found",
 					g_conf.self_ip));
 			goto __sock_opened;
 		}
@@ -1895,20 +1895,20 @@ DFE
  * \param[in,out] ctx 	channel context on which we set socket parameters.
  * \retval -1	if somthing nasty happens.
  * \retval 0 	if etherything is ok.
- */ 
+ */
 int
 svd_media_vinetic_rtp_sock_rebinddev (svd_chan_t * const ctx)
 {/*{{{*/
 	int i;
 	struct ifreq ifr;
 DFS
-	/* Set SO_BINDTODEVICE for right ip using */ 
-	if(ctx->dial_status.dest_is_self == self_YES || 
+	/* Set SO_BINDTODEVICE for right ip using */
+	if(ctx->dial_status.dest_is_self == self_YES ||
 			ctx->caller_router_is_self){
 		/* use local interface */
 		strcpy(ifr.ifr_name, "lo");
 		SU_DEBUG_0 (("THE NAME OF THE DEVICE : %s\n",ifr.ifr_name));
-		if(setsockopt (ctx->rtp_sfd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, 
+		if(setsockopt (ctx->rtp_sfd, SOL_SOCKET, SO_BINDTODEVICE, &ifr,
 				sizeof (ifr)) < 0 ){
 			SU_DEBUG_1 ((LOG_FNC_A(strerror(errno))));
 			goto __exit_fail;
@@ -1939,7 +1939,7 @@ DFS
 			ip = inet_ntoa (sin->sin_addr);
 			if( !strcmp(ip, g_conf.self_ip)){
 				SU_DEBUG_0 (("THE NAME OF THE DEVICE : %s\n",ifr.ifr_name));
-				if(setsockopt (ctx->rtp_sfd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, 
+				if(setsockopt (ctx->rtp_sfd, SOL_SOCKET, SO_BINDTODEVICE, &ifr,
 						sizeof (ifr)) < 0 ){
 					SU_DEBUG_1 ((LOG_FNC_A(strerror(errno))));
 					goto __exit_fail;
@@ -1950,7 +1950,7 @@ DFS
 		}
 		close (stmp);
 		if( !device_finded){
-			SU_DEBUG_1 (("ERROR: Network interface with self_ip %s not found", 
+			SU_DEBUG_1 (("ERROR: Network interface with self_ip %s not found",
 					g_conf.self_ip));
 			goto __exit_fail;
 		}

@@ -1,9 +1,9 @@
 /**
  * @file svd_ua.h
  * User agent interface.
- * It contains two parts: Client and Server. (UAC and UAS) 
+ * It contains two parts: Client and Server. (UAC and UAS)
  * in SIP terminology.
- */ 
+ */
 
 #ifndef __SVD_UA_H__
 #define __SVD_UA_H__
@@ -20,10 +20,10 @@
 /** Make INVITE SIP request.*/
 int  svd_invite (svd_t * const svd, int const use_ff_FXO, ab_chan_t * const chan);
 /** Make INVITE SIP request with given destination address.*/
-int  svd_invite_to (svd_t * const svd, int const chan_idx, 
+int  svd_invite_to (svd_t * const svd, int const chan_idx,
 		char const * const to_str);
 /** Make answer to SIP call.*/
-int  svd_answer (svd_t * const svd, ab_chan_t * const chan,  
+int  svd_answer (svd_t * const svd, ab_chan_t * const chan,
 		int status, char const *phrase);
 /** Make BYE SIP action.*/
 void svd_bye (svd_t * const svd, ab_chan_t * const chan);

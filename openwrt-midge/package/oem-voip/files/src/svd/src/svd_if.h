@@ -1,9 +1,9 @@
 /**
  * @file svd_if.h
  * Main svd_if routine definitions.
- * It containes structures and definitions, uses in cli/srv and both 
- * parts or routine. 
- */ 
+ * It containes structures and definitions, uses in cli/srv and both
+ * parts or routine.
+ */
 #ifndef __SVD_IF_H__
 #define __SVD_IF_H__
 
@@ -27,7 +27,7 @@
 #define FMT_CLI  "cli"
 #define FMT_JSON "json"
 
-/** @}*/ 
+/** @}*/
 
 /** @defgroup IF_SRV Interface server part.
  *  @ingroup IF_ALL
@@ -68,7 +68,7 @@ int svd_if_srv_destroy (int * const sfd, char * const err_msg);
 /** Parse the message.*/
 int svd_if_srv_parse (char const * const str, struct svdif_msg_s * const msg,
 		char * const err_msg);
-/** @}*/ 
+/** @}*/
 
 /** @defgroup IF_CLI Interface client part.
  *  @ingroup IF_ALL
@@ -76,7 +76,7 @@ int svd_if_srv_parse (char const * const str, struct svdif_msg_s * const msg,
  *  @{*/
 /** Start the engine client part.*/
 int svd_if_cli_start (char * const err_msg);
-/** @}*/ 
+/** @}*/
 
 #endif /* __SVD_IF_H__ */
 

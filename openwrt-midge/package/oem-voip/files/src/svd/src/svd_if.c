@@ -1,8 +1,8 @@
-/** 
+/**
  * @file svd_if.c
  * Main file of the svd_interface programm.
  * It containes options parsing and engine start.
- * */ 
+ * */
 
 /* Includes {{{ */
 #include "svd_if.h"
@@ -14,10 +14,10 @@
 /**
  * Show help message.
  */
-static void 
+static void
 show_help( void )
 {/*{{{*/
-	fprintf( stdout, 
+	fprintf( stdout,
 "\
 Usage: %s [OPTION]\n\
 SIP VoIP User agent interface.\n\
@@ -46,10 +46,10 @@ Report bugs to <%s>.\n\
 /**
  * Show program version, built info and license.
  */
-static void 
+static void
 show_version( void )
 {/*{{{*/
-	fprintf( stdout, 
+	fprintf( stdout,
 "\
 %s-%s, built [%s]-[%s]\n\n\
 Copyright (C) 2007 Free Software Foundation, Inc.\n\
@@ -59,7 +59,7 @@ There is NO WARRANTY, to the extent permitted by law.\n\
 \n\
 Written by Vladimir Luchko. <%s>\n\
 "
-		, "svd_if", "0.1", 
+		, "svd_if", "0.1",
 		__DATE__, __TIME__, "vlad.luch@mail.ru");
 }/*}}}*/
 
@@ -69,8 +69,8 @@ Written by Vladimir Luchko. <%s>\n\
  * \param[in] argv 	arguments values
  * \retval 0 	etherything is fine
  * \retval -1 	error occures
- */ 
-int 
+ */
+int
 main (int argc, char ** argv)
 {/*{{{*/
 	int err = 0;
@@ -84,14 +84,14 @@ main (int argc, char ** argv)
 		{ NULL, 0, NULL, 0 }
 		};
 
-	while ((option_rez = getopt_long ( argc, argv, short_options, 
+	while ((option_rez = getopt_long ( argc, argv, short_options,
 			long_options, &option_IDX)) != -1) {
-		if      ((option_rez == 'h') || 
+		if      ((option_rez == 'h') ||
 				 (option_rez == '?')){
 			show_help();
 		} else if(option_rez == 'V'){
 			show_version();
-		} 
+		}
 		goto __exit;
 	}
 

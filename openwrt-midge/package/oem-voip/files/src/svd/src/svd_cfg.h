@@ -1,9 +1,9 @@
 /**
  * @file svd_cfg.h
  * Configuration interface.
- * It contains startup \ref g_so and main \ref g_conf configuration 
+ * It contains startup \ref g_so and main \ref g_conf configuration
  * 		structures and functions to manipulate with them.
- */ 
+ */
 
 #ifndef __SVD_CFG_H__
 #define __SVD_CFG_H__
@@ -11,7 +11,7 @@
 #include "ab_api.h"
 
 /** @defgroup CFG_M Main configuration.
- *  It contains cfg files names, and functions for manipulations with 
+ *  It contains cfg files names, and functions for manipulations with
  *  main configuration.
  *  @{*/
 #define MAIN_CONF_NAME      "/etc/svd/main.conf"
@@ -31,7 +31,7 @@
  *  Some default values that will be set if they will not find in config file.
  *  @{*/
 #define ALAW_PT_DF 0
-/** @}*/ 
+/** @}*/
 
 /** @defgroup DIAL_MARK Dial string markers.
  * 	@ingroup DIAL_SEQ
@@ -77,9 +77,9 @@ void startup_destroy( int argc, char ** argv );
 /** @addtogroup CFG_M
  *  @{*/
 /* g_conf inner definitions {{{*/
-/** Codecs massives sizes. 
+/** Codecs massives sizes.
  * First unusing codec \c type will be set as \c codec_type_NONE.
- * It should be greater then codecs count because application can 
+ * It should be greater then codecs count because application can
  * test the end of the list by \c == \c codec_type_NONE */
 #define COD_MAS_SIZE 12
 /** Addressbook identifier standard length.*/
@@ -115,7 +115,7 @@ void svd_conf_destroy( void );
 
 #define FMTP_STR_LEN 20
 
-/** Codec rtp and sdp parameters.*/ 
+/** Codec rtp and sdp parameters.*/
 typedef struct cod_prms_s {
 	cod_type_t type;
 	char sdp_name[COD_NAME_LEN];

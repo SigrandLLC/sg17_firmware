@@ -2,13 +2,13 @@
  * @file svd_log.h
  * Logging macroses.
  * It containes all logging definitions, helps to preserve common behavior.
- */ 
+ */
 #ifndef __SVD_LOG_H__
 #define __SVD_LOG_H__
 
 /*
  * The logging levels and macros to use are defined as follows:
- *  - SU_DEBUG_0()  fatal errors, panic 
+ *  - SU_DEBUG_0()  fatal errors, panic
  *  - SU_DEBUG_1()  critical errors, minimal progress at subsystem level
  *  - SU_DEBUG_2()  non-critical errors
  *  - SU_DEBUG_3()  warnings, progress messages
@@ -32,7 +32,7 @@
 #if 0
 	#define DEBUG_CODE(code) 	do { code }while(0)
 #else
-	#define DEBUG_CODE(code) 	
+	#define DEBUG_CODE(code)
 #endif
 
 /** Function start marker.*/
@@ -54,10 +54,10 @@
 	}while(0);
 
 /** Function start/end offset counter.*/
-extern unsigned int g_f_cnt; 
+extern unsigned int g_f_cnt;
 /** Function start/end offset current value.*/
 extern unsigned int g_f_offset;
-/** @}*/ 
+/** @}*/
 
 #endif /* __SVD_LOG_H__ */
 

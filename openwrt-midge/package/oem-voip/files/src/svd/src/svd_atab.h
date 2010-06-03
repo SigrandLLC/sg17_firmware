@@ -2,7 +2,7 @@
  * @file svd_atab.h
  * Analog Telephone Adaptor interface.
  * It contains ATA actions in routine.
- */ 
+ */
 
 #ifndef __SVD_ATAB_H__
 #define __SVD_ATAB_H__
@@ -22,7 +22,7 @@ void svd_clear_call(svd_t * const svd, ab_chan_t * const chan);
 int get_FF_FXO_idx ( ab_t const * const ab, char const self_chan_idx );
 /** Found first free fxs channel.*/
 int get_FF_FXS_idx ( ab_t const * const ab, char const self_chan_idx );
-/** @}*/ 
+/** @}*/
 
 
 /** @defgroup MEDIA Media activities.
