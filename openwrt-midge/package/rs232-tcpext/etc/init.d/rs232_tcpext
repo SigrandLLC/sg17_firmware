@@ -65,11 +65,8 @@ node_cfg()
    local node_type=`rs232-type ${node}`
 
    case $node_type in
-	DTE|DCE) ;;
-	*)
-		echo -e            "\twrong type: $node_type for ${node}"
-		logger "rs232_tcpext: wrong type: $node_type for ${node}"
-		exit 1;;
+	DTE|DCE)   ;;
+	*) return 0;; # skip other types
    esac
 
    # kdb options defaults:
