@@ -1,0 +1,4 @@
+Package: sofia-sip
+Priority: optional
+Section: sys
+Description: sofia-sip

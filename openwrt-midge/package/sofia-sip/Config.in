@@ -1,0 +1,4 @@
+config BR2_PACKAGE_SOFIA_SIP
+	prompt "sofia-sip......................... sofia-sip"
+	tristate
+
