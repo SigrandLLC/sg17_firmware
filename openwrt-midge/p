@@ -26,5 +26,5 @@ fi
 pkg=$1; shift
 
 for t in "$@"; do
-	make ${_v_} package/${pkg}-${t} || exit 1
+	nice -19 make ${_v_} package/${pkg}-${t} || exit 1
 done
