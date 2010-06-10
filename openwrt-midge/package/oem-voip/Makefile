@@ -213,7 +213,7 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 	@echo "BUILD LIBAB..."
 	cd $(pbd)/libab && rm -f *.o *.a
 	cd $(pbd)/libab && $(TARGET_CONFIGURE_OPTS) \
-		$(TARGET_CC) \
+		$(TARGET_CC) $(TARGET_CFLAGS) \
 		-Wall \
 		-I./vinetic/include/ \
 		-I./tapi/include/ \
