@@ -14,7 +14,7 @@ PKG_CAT:=zcat
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/ipkg-install
 
-include $(TOPDIR)/package/staging-flags.mk
+include $(TOPDIR)/package/target-configure-staging-flags.mk
 
 include $(TOPDIR)/package/rules.mk
 
