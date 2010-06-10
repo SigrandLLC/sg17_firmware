@@ -58,6 +58,7 @@ $(PKG_BUILD_DIR)/.configured:
 			--with-gnu-ld		\
 			--without-doxygen	\
 			--without-glib		\
+			--without-openssl	\
 			--disable-nth		\
 			--enable-ndebug
 	touch $@
@@ -79,7 +80,7 @@ $(PKG_BUILD_DIR)/.install-dev : $(PKG_BUILD_DIR)/.built
 install-dev: $(PKG_BUILD_DIR)/.install-dev
 
 uninstall-dev:
-	rm -f	$(STAGING_DIR)/usr/lib/libsofia*.a \
+	rm -rf	$(STAGING_DIR)/usr/lib/libsofia*.a \
 		$(STAGING_DIR)/usr/include/sofia*
 
 compile-targets:   install-dev
