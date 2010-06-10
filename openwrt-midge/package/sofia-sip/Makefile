@@ -14,6 +14,8 @@ PKG_CAT:=zcat
 PKG_BUILD_DIR:=$(BUILD_DIR)/sofia-sip-$(PKG_VERSION)
 PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/ipkg-install
 
+include $(TOPDIR)/package/target-configure-staging-flags.mk
+
 include $(TOPDIR)/package/rules.mk
 
 $(eval $(call PKG_template,SOFIA_SIP,sofia-sip,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
@@ -33,19 +35,12 @@ ifeq "0" "1"
   --disable-stun          disable stun module (enabled)
   --enable-ntlm           enable NTLM support [disabled]
   --with-rt               use POSIX realtime library [used by default]
-  --with-glib=version     use GLib (default=2.0)
-  --with-glib-dir=PREFIX  explicitly define GLib path
-  --with-openssl          use OpenSSL [enabled]
-  --with-sigcomp=dir      use Sofia SigComp package [not used]
 endif
 
 $(PKG_BUILD_DIR)/.configured:
 	rm -rf $(PKG_BUILD_DIR)/config.{cache,status}
 	cd $(PKG_BUILD_DIR) &&			\
 		$(TARGET_CONFIGURE_OPTS)	\
-		CFLAGS="$(TARGET_CFLAGS)"	\
-		CPPFLAGS="-I$(STAGING_DIR)/usr/include -I$(STAGING_DIR)/include" \
-		LDFLAGS="-L$(STAGING_DIR)/usr/lib -L$(STAGING_DIR)/lib" \
 		./configure			\
 			--target=$(GNU_TARGET_NAME)	\
 			--host=$(GNU_TARGET_NAME)	\
