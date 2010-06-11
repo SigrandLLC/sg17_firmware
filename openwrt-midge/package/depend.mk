@@ -60,7 +60,7 @@ net-snmp-compile: libelf-compile
 nfs-server-compile: portmap-compile
 nmap-compile: uclibc++-compile pcre-compile libpcap-compile
 nocatsplash-compile: glib-compile
-oem-voip-compile: sofia-sip-install
+oem-voip-compile: sofia-sip-install libconfig-install
 opencdk-compile: libgcrypt-compile
 openh323-compile: pwlib-compile
 openldap-compile: cyrus-sasl-compile openssl-compile

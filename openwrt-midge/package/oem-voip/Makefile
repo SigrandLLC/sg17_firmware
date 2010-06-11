@@ -20,7 +20,6 @@ PKG_SVD_DISTR:=svd
 PKG_SVI_DISTR:=svi
 PKG_SVC_DISTR:=svc
 PKG_LIBAB_DISTR:=libab
-PKG_LIBCONFIG_DISTR:=libconfig
 PKG_TST_DISTR:=tst
 
 PKG_CONF_DIR:=$(TOPDIR)/package/$(PKG_NAME)
@@ -42,7 +41,6 @@ SVD_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVD_DISTR) $(PKG_BUILD_DIR)
 SVI_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVI_DISTR) $(PKG_BUILD_DIR)
 SVC_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVC_DISTR) $(PKG_BUILD_DIR)
 LIBAB_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_LIBAB_DISTR) $(PKG_BUILD_DIR)
-LIBCONFIG_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_LIBCONFIG_DISTR) $(PKG_BUILD_DIR)
 TST_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_TST_DISTR) $(PKG_BUILD_DIR)
 
 
@@ -66,7 +64,6 @@ $(PKG_BUILD_DIR)/.prepared:
 	$(SVI_UNPACK)
 	$(SVC_UNPACK)
 	$(LIBAB_UNPACK)
-	$(LIBCONFIG_UNPACK)
 	$(TST_UNPACK)
 
 	#---------======================================---------
@@ -187,9 +184,7 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 	@echo
 	@echo "CONFIGURE AND BUILD SVI..."
 	cd $(pbd)/svi && $(TARGET_CONFIGURE_OPTS) \
-		$(TARGET_CC) \
-		-L$(PKG_BUILD_DIR)/libconfig/ \
-		-I$(PKG_BUILD_DIR)/libconfig/ \
+		$(TARGET_CC) $(TARGET_CFLAGS) \
 		-I$(PKG_BUILD_DIR)/vinetic/include/ \
 		-I$(PKG_BUILD_DIR)/tapi/include/ \
 		-I$(PKG_BUILD_DIR)/sgatab/ \
@@ -234,7 +229,7 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 	@echo
 	@echo "CONFIGURE AND BUILD SVC..."
 	cd $(pbd)/svc && $(TARGET_CONFIGURE_OPTS) \
-		$(TARGET_CC) \
+		$(TARGET_CC) $(TARGET_CFLAGS) \
 		-Wall \
 		-I../vinetic/include/ \
 		-I../tapi/include/ \
@@ -250,7 +245,7 @@ ifeq "0" "1"
 	@echo
 	@echo "BUILD ?TST..."
 	cd $(pbd)/tst && $(TARGET_CONFIGURE_OPTS) \
-		$(TARGET_CC) \
+		$(TARGET_CC) $(TARGET_CFLAGS) \
 		-Wall \
 		-I../vinetic/include/ \
 		-I../tapi/include/ \
@@ -261,7 +256,7 @@ ifeq "0" "1"
 		-o etst \
 		-lab
 	cd $(pbd)/tst && $(TARGET_CONFIGURE_OPTS) \
-		$(TARGET_CC) \
+		$(TARGET_CC) $(TARGET_CFLAGS) \
 		-Wall \
 		-I../vinetic/include/ \
 		-I../tapi/include/ \
@@ -272,7 +267,7 @@ ifeq "0" "1"
 		-o vtst \
 		-lab
 	cd $(pbd)/tst && $(TARGET_CONFIGURE_OPTS) \
-		$(TARGET_CC) \
+		$(TARGET_CC) $(TARGET_CFLAGS) \
 		-Wall \
 		-I../vinetic/include/ \
 		-I../tapi/include/ \
