@@ -1,14 +1,30 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libconfig
- version = 1.3.2
-PKG_VERSION:=$(version)
-PKG_RELEASE:=2
-PKG_MD5SUM:=094a82afd382aa2305c6cc3c06025c2d
 
-PKG_SOURCE_URL := http://debian.nsu.ru/debian/pool/main/libc/$(PKG_NAME)
-PKG_SOURCE_URL += http://ftp.debian.org/debian/pool/main/libc/$(PKG_NAME)
-PKG_SOURCE:=$(PKG_NAME)_$(PKG_VERSION).orig.tar.gz
+ifeq "1" "1"
+  PKG_VERSION:=1.3.1
+  PKG_RELEASE:=1
+  PKG_SOURCE_URL := http://debian.nsu.ru/debian/pool/main/libc/$(PKG_NAME)
+  PKG_SOURCE_URL += http://ftp.debian.org/debian/pool/main/libc/$(PKG_NAME)
+  PKG_SOURCE:=$(PKG_NAME)_$(PKG_VERSION).orig.tar.gz
+  PKG_MD5SUM:=4ca945f27990b80343f3559c9bce3a3a
+else ifeq "0" "1"
+  PKG_VERSION:=1.3.2
+  PKG_RELEASE:=2
+  PKG_SOURCE_URL := http://debian.nsu.ru/debian/pool/main/libc/$(PKG_NAME)
+  PKG_SOURCE_URL += http://ftp.debian.org/debian/pool/main/libc/$(PKG_NAME)
+  PKG_SOURCE:=$(PKG_NAME)_$(PKG_VERSION).orig.tar.gz
+  PKG_MD5SUM:=094a82afd382aa2305c6cc3c06025c2d
+else ifeq "1" "1"
+  PKG_VERSION:=1.4.5
+  PKG_RELEASE:=
+  PKG_SOURCE_URL := http://debian.nsu.ru/debian/pool/main/libc/$(PKG_NAME)
+  PKG_SOURCE_URL += http://www.hyperrealm.com/libconfig
+  PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+  PKG_MD5SUM:=f2219e1b2501e7296a7d3e971c63666a
+endif
+
 PKG_CAT:=zcat
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
