@@ -347,7 +347,7 @@ endmenu
 
 menu "HamRadio"
 source "package/aprsdigi/Config.in"
-source "package/arlix-utils/Config.in"
+#source "package/arlix-utils/Config.in"
 source "package/ax25-apps/Config.in"
 source "package/ax25-tools/Config.in"
 source "package/axgetput/Config.in"
