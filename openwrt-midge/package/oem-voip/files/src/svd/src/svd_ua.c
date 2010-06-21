@@ -1839,7 +1839,7 @@ DFE
 }/*}}}*/
 
 /**
- * Callback for an outgoing INVITE request.
+ * Callback for an outgoing INFO request.
  *
  * \param[in] 	status	status on event.
  * \param[in] 	phrase	status string on event.
