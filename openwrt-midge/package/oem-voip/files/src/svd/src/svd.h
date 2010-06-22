@@ -115,6 +115,10 @@ struct svd_chan_s
 	su_timer_t * ring_tmr; /**< Ring processing timer. */
 
 	/* VOICE FREQUENCY */
+	enum vf_tmr_request {
+		vf_tmr_nothing=0,
+		vf_tmr_reinvite,
+	} vf_tmr_request;
 	su_timer_t * vf_tmr; /**< VF-chan reinvite timer. */
 
 	/* HOTLINE */

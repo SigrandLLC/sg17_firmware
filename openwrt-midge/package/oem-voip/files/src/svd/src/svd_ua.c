@@ -813,6 +813,42 @@ DFE
 	return -1;
 }/*}}}*/
 
+static const char *vf_tmr_req_string(enum vf_tmr_request req)
+{
+    switch (req)
+    {
+	case vf_tmr_reinvite:
+            return "reinvite";
+	case vf_tmr_nothing:
+            return "nothing";
+	default:
+            break;
+    }
+    return "unknown";
+}
+
+static int
+vf_timer_set(ab_chan_t *chan, enum vf_tmr_request req)
+{
+    int err;
+    svd_chan_t *svd_chan = (svd_chan_t*)chan->ctx;
+
+    if (svd_chan->vf_tmr_request != req)
+	SU_DEBUG_3(( "%s(): [_%02d_], req: %s", __FUNCTION__,
+		    chan->abs_idx, vf_tmr_req_string(req) ));
+
+    svd_chan->vf_tmr_request = req;
+
+    // re-set timer anyway
+    // FIXME: use different intervals for different vf_tmr_request
+    err = su_timer_set_interval(svd_chan->vf_tmr, vf_timer_cb, chan,
+				VF_REINVITE_SEC*1000);
+    if (err)
+	SU_DEBUG_2 (("%s(): [_%d_]: Can`t RE-set VF-timer: %d\n", __FUNCTION__,
+		     chan->abs_idx, err));
+    return err;
+}
+
 /**
  * Place the call for the VF-channel to it`s pair.
  *
@@ -822,17 +858,32 @@ DFE
 static void
 vf_timer_cb(su_root_magic_t *magic, su_timer_t *t, su_timer_arg_t *arg)
 {/*{{{*/
-	ab_chan_t * chan = arg;
-	int err;
-	err = svd_place_vf_for(g_svd, chan);
-	if(err){
-		SU_DEBUG_3 (("Can`t RE-invite on VF-pair\n"));
-	}
-	err = su_timer_set_interval(((svd_chan_t*)(chan->ctx))->vf_tmr,
-			vf_timer_cb, chan, VF_REINVITE_SEC*1000);
-	if(err){
-		SU_DEBUG_3 (("Can`t RE-set VF-timer\n"));
-	}
+    ab_chan_t * chan = arg;
+    svd_chan_t *svd_chan = (svd_chan_t*)chan->ctx;
+    int err;
+
+    if (svd_chan->vf_tmr_request != vf_tmr_nothing)
+	SU_DEBUG_3(( "%s() : [_%02d_], req: %s", __FUNCTION__,
+		    chan->abs_idx, vf_tmr_req_string(svd_chan->vf_tmr_request) ));
+
+    switch (svd_chan->vf_tmr_request)
+    {
+	case vf_tmr_reinvite:
+	    err = svd_place_vf_for(g_svd, chan);
+	    if(err){
+		SU_DEBUG_2 (("Can`t RE-invite on VF-pair\n"));
+		vf_timer_set(chan, vf_tmr_reinvite);
+	    }
+	    else
+		vf_timer_set(chan, vf_tmr_nothing);
+	    break;
+	case vf_tmr_nothing:
+	    vf_timer_set(chan, vf_tmr_nothing);
+	    break;
+	default:
+	    SU_DEBUG_2 (("Unknown vf_tmr_request: %d\n", svd_chan->vf_tmr_request));
+	    vf_timer_set(chan, vf_tmr_nothing);
+    }
 }/*}}}*/
 
 /**
@@ -1405,17 +1456,12 @@ DFS
 				}
 				if(svd_vf_is_elder(chan)){
 					/* reinvite just if it is the elder side */
-					int err;
 					g_svd = svd;
-					err = su_timer_set_interval(ctx->vf_tmr, vf_timer_cb, chan,
-							VF_REINVITE_SEC*1000);
-					if (err){
-						SU_DEBUG_2 (("su_timer_set_interval ERROR on [_%d_] : %d\n",
-									chan->abs_idx, err));
-					} else {
-						SU_DEBUG_3 (("[%d]: set timer on %d sec before reinvite "
-								"VF-junior\n", chan->abs_idx, VF_REINVITE_SEC));
-					}
+					int err = vf_timer_set(chan, vf_tmr_reinvite);
+                                        if (!err)
+					    SU_DEBUG_3 (("[%d]: set timer on %d sec before reinvite "
+							 "VF-junior\n", chan->abs_idx, VF_REINVITE_SEC));
+
 				}
 			}
 			break;
@@ -1814,7 +1860,7 @@ DFS
 		if(chan->parent->type == ab_dev_type_VF &&
 				chan->ctx && ((svd_chan_t*)(chan->ctx))->vf_tmr){
 			/*connection restored*/
-			su_timer_reset (((svd_chan_t*)(chan->ctx))->vf_tmr);
+                        vf_timer_set(chan, vf_tmr_nothing);
 			SU_DEBUG_3(("Connection on chan [_%d_] restored\n", chan->abs_idx));
 		}
 	}
