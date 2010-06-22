@@ -411,6 +411,7 @@ source "package/drv-tapi/Config.in"
 source "package/drv-vinetic/Config.in"
 source "package/drv-daa/Config.in"
 source "package/drv-sgatab/Config.in"
+source "package/libab/Config.in"
 
 
 endmenu

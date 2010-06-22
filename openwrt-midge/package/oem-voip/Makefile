@@ -7,7 +7,6 @@ PKG_RELEASE:=1
 PKG_SVD_DISTR:=svd
 PKG_SVI_DISTR:=svi
 PKG_SVC_DISTR:=svc
-PKG_LIBAB_DISTR:=libab
 PKG_TST_DISTR:=tst
 
 PKG_CONF_DIR:=$(TOPDIR)/package/$(PKG_NAME)
@@ -20,6 +19,8 @@ include $(TOPDIR)/package/target-configure-staging-flags.mk
 TARGET_CFLAGS += -I$(BUILD_DIR)/tapi/include
 TARGET_CFLAGS += -I$(BUILD_DIR)/vinetic/include
 TARGET_CFLAGS += -I$(BUILD_DIR)/sgatab
+TARGET_CFLAGS += -I$(BUILD_DIR)/libab
+TARGET_CFLAGS += -L$(BUILD_DIR)/libab
 
 include $(TOPDIR)/package/rules.mk
 
@@ -27,7 +28,6 @@ include $(TOPDIR)/package/rules.mk
 SVD_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVD_DISTR) $(PKG_BUILD_DIR)
 SVI_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVI_DISTR) $(PKG_BUILD_DIR)
 SVC_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVC_DISTR) $(PKG_BUILD_DIR)
-LIBAB_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_LIBAB_DISTR) $(PKG_BUILD_DIR)
 TST_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_TST_DISTR) $(PKG_BUILD_DIR)
 
 
@@ -48,7 +48,6 @@ $(PKG_BUILD_DIR)/.prepared:
 	$(SVD_UNPACK)
 	$(SVI_UNPACK)
 	$(SVC_UNPACK)
-	$(LIBAB_UNPACK)
 	$(TST_UNPACK)
 
 	#---------======================================---------
@@ -98,20 +97,6 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 		--prefix=$(PKG_INSTALL_DIR)
 
 	@echo
-	@echo "BUILD LIBAB..."
-	cd $(pbd)/libab && rm -f *.o *.a
-	cd $(pbd)/libab && $(TARGET_CONFIGURE_OPTS) \
-		$(TARGET_CC) $(TARGET_CFLAGS) \
-		-Wall \
-		ab_hwinit.c \
-		ab_basic.c \
-		ab_line.c \
-		ab_events.c \
-		ab_media.c \
-		-c
-	cd $(pbd)/libab && $(AR) cr libab.a *.o
-
-	@echo
 	@echo "BUILD SVD..."
 	cd $(pbd)/svd && $(TARGET_CONFIGURE_OPTS) make
 	cd $(pbd)/svd && $(TARGET_CONFIGURE_OPTS) make install
@@ -121,8 +106,6 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 	cd $(pbd)/svc && $(TARGET_CONFIGURE_OPTS) \
 		$(TARGET_CC) $(TARGET_CFLAGS) \
 		-Wall \
-		-I../libab \
-		-L../libab \
 		svc.c \
 		-o svc \
 		-lab
@@ -134,24 +117,18 @@ ifeq "0" "1"
 	cd $(pbd)/tst && $(TARGET_CONFIGURE_OPTS) \
 		$(TARGET_CC) $(TARGET_CFLAGS) \
 		-Wall \
-		-I../libab \
-		-L../libab \
 		etst.c \
 		-o etst \
 		-lab
 	cd $(pbd)/tst && $(TARGET_CONFIGURE_OPTS) \
 		$(TARGET_CC) $(TARGET_CFLAGS) \
 		-Wall \
-		-I../libab \
-		-L../libab \
 		vtst.c \
 		-o vtst \
 		-lab
 	cd $(pbd)/tst && $(TARGET_CONFIGURE_OPTS) \
 		$(TARGET_CC) $(TARGET_CFLAGS) \
 		-Wall \
-		-I../libab \
-		-L../libab \
 		iotst.c \
 		-o iotst \
 		-lab
