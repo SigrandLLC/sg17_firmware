@@ -45,7 +45,7 @@ typedef struct svd_chan_s svd_chan_t;
 #include <pthread.h>
 
 
-#include "tapi/include/drv_tapi_io.h"
+#include "drv_tapi_io.h"
 /*}}}*/
 
 /** Channel context structure - store channel info / status / etc.*/

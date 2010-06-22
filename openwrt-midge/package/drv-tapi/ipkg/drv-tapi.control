@@ -1,0 +1,4 @@
+Package: drv-tapi
+Priority: optional
+Section: net
+Description: TAPI driver for VoIP

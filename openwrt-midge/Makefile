@@ -102,6 +102,7 @@ oem_clean: root_clean
 	@$(TRACE) oem_clean
 	rm -rf $(BUILD_DIR)/sigrand-*
 	rm -rf $(BUILD_DIR)/oem-*
+	rm -rf $(BUILD_DIR)/drv-*
 	rm -rf $(BUILD_DIR)/eocd
 	rm -rf $(BUILD_DIR)/tbuff
 #	rm -rf $(BUILD_DIR)/net-snmp*

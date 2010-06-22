@@ -61,6 +61,10 @@ nfs-server-compile: portmap-compile
 nmap-compile: uclibc++-compile pcre-compile libpcap-compile
 nocatsplash-compile: glib-compile
 oem-voip-compile: sofia-sip-install libconfig-install
+oem-voip-compile: drv-vinetic-compile drv-tapi-compile drv-daa-compile drv-sgatab-compile
+drv-vinetic-compile: drv-tapi-compile
+drv-daa-compile: drv-tapi-compile drv-vinetic-compile
+drv-sgatab-compile: drv-tapi-compile drv-vinetic-compile
 opencdk-compile: libgcrypt-compile
 openh323-compile: pwlib-compile
 openldap-compile: cyrus-sasl-compile openssl-compile

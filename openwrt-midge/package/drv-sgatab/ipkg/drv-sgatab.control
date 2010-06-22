@@ -1,0 +1,4 @@
+Package: drv-sgatab
+Priority: optional
+Section: net
+Description: SGATAB driver for VoIP

@@ -22,7 +22,7 @@
 #include <netinet/ip.h>
 #include <net/if.h>
 
-#include "tapi/include/drv_tapi_io.h"
+#include "drv_tapi_io.h"
 /*}}}*/
 
 /** @defgroup MEDIA_INT Media helpers (internals).

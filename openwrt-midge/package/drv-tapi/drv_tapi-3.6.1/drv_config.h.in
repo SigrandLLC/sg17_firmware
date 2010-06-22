@@ -1,0 +1,115 @@
+/* drv_config.h.in.  Generated from configure.in by autoheader.  */
+
+/******************************************************************************
+
+                               Copyright (c) 2006
+                            Infineon Technologies AG
+                     Am Campeon 1-12; 81726 Munich, Germany
+
+  THE DELIVERY OF THIS SOFTWARE AS WELL AS THE HEREBY GRANTED NON-EXCLUSIVE,
+  WORLDWIDE LICENSE TO USE, COPY, MODIFY, DISTRIBUTE AND SUBLICENSE THIS
+  SOFTWARE IS FREE OF CHARGE.
+
+  THE LICENSED SOFTWARE IS PROVIDED "AS IS" AND INFINEON EXPRESSLY DISCLAIMS
+  ALL REPRESENTATIONS AND WARRANTIES, WHETHER EXPRESS OR IMPLIED, INCLUDING
+  WITHOUT LIMITATION, WARRANTIES OR REPRESENTATIONS OF WORKMANSHIP,
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, THAT THE
+  OPERATING OF THE LICENSED SOFTWARE WILL BE ERROR FREE OR FREE OF ANY THIRD
+  PARTY CLAIMS, INCLUDING WITHOUT LIMITATION CLAIMS OF THIRD PARTY INTELLECTUAL
+  PROPERTY INFRINGEMENT.
+
+  EXCEPT FOR ANY LIABILITY DUE TO WILFUL ACTS OR GROSS NEGLIGENCE AND EXCEPT
+  FOR ANY PERSONAL INJURY INFINEON SHALL IN NO EVENT BE LIABLE FOR ANY CLAIM
+  OR DAMAGES OF ANY KIND, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+ ******************************************************************************/
+#ifndef _DRV_CONFIG_H_
+#define _DRV_CONFIG_H_
+
+
+/* configure options string */
+#undef DRV_TAPI_CONFIGURE_STR
+
+/* enable log (errors) outputs in general */
+#undef ENABLE_LOG
+
+/* enable obsolete bitfield event interface */
+#undef ENABLE_OBSOLETE_BITFIELD_EVENT_INTERFACE
+
+/* enable obsolete lec activation */
+#undef ENABLE_OBSOLETE_LEC_ACTIVATION
+
+/* enable trace outputs in general */
+#undef ENABLE_TRACE
+
+/* enabled event logger debugging */
+#undef EVENT_LOGGER_DEBUG
+
+/* enable linux 2.6 code */
+#undef LINUX_2_6
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* enable runtime traces as register access */
+#undef RUNTIME_TRACE
+
+/* enable TAPI Interface */
+#undef TAPI
+
+/* enable TAPI AUDIO CHANNEL support (INCA-IP2 only) */
+#undef TAPI_AUDIO_CHANNEL
+
+/* enable TAPI CID support */
+#undef TAPI_CID
+
+/* enable TAPI DTMF support */
+#undef TAPI_DTMF
+
+/* enable TAPI EXT KEYPAD support (INCA-IP2 only) */
+#undef TAPI_EXT_KEYPAD
+
+/* enable TAPI FAX support */
+#undef TAPI_FAX_T38
+
+/* enable TAPI GR909 tests */
+#undef TAPI_GR909
+
+/* enable line testing */
+#undef TAPI_LT
+
+/* enabled read/write packet interface */
+#undef TAPI_PACKET
+
+/* enable Voice support */
+#undef TAPI_VOICE
+
+/* enable LINUX MODULE support */
+#undef USE_MODULE
+
+/* Version number of package */
+#undef VERSION
+
+/* environment and device specific CFLAGS passed to configure */
+#undef WITH_CLFAGS_CONFIGURE_OPTION
+
+
+#endif /* _DRV_CONFIG_H_ */
+

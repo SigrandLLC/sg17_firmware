@@ -1,6 +1,10 @@
 config BR2_PACKAGE_OEM_VOIP
-	tristate "oem-voip........... SIP VoIP drivers and routines"
+	tristate "oem-voip .............. SIP VoIP drivers and routines"
 	default y if CONFIG_DEVEL
 	select BR2_PACKAGE_SOFIA_SIP
 	select BR2_PACKAGE_LIBCONFIG
+	select BR2_PACKAGE_DRV_TAPI
+	select BR2_PACKAGE_DRV_VINETIC
+	select BR2_PACKAGE_DRV_DAA
+	select BR2_PACKAGE_DRV_SGATAB
 	depends on BR2_LINUX_2_6_SIGRAND5120

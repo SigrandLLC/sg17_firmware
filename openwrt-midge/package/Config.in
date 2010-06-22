@@ -407,6 +407,10 @@ source "package/oem-sethdlc/Config.in"
 source "package/oem-shdsl.g1/Config.in"
 source "package/oem-shdsl.g2/Config.in"
 source "package/oem-voip/Config.in"
+source "package/drv-tapi/Config.in"
+source "package/drv-vinetic/Config.in"
+source "package/drv-daa/Config.in"
+source "package/drv-sgatab/Config.in"
 
 
 endmenu
