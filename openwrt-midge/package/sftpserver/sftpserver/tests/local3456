@@ -1,0 +1,21 @@
+!mkdir dir
+!mkdir dir/subdir
+lcd dir/subdir
+lpwd
+#/.*/dir/subdir
+lcd ..
+lpwd
+#/.*/dir
+lls
+#subdir
+!touch \\
+lls -1 "\\"
+#\\
+anything "
+#.*unterminated string
+
+nosuchcommand
+#.*unknown command:.*
+cd stupid stupid stupid
+#.*wrong number of arguments.*
+quit

@@ -1,30 +1,44 @@
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=sftpserver
-PKG_VERSION:=0.0+
-PKG_RELEASE:=1
-PKG_MD5SUM:=257e7ed0a9d6c8ece6b3dbcfa0edcbd6
+# bzr clone http://www.greenend.org.uk/rjk/bzr/sftpserver.dev sftpserver
+PKG_NAME        = sftpserver
+PKG_VERSION     = 0.0
+PKG_RELEASE     = 1
+
+PKG_DIR         = sftpserver
 
 DROPBEAR_SFTPSERVER_PATH = /usr/libexec/sftp-server
 
-# bzr clone http://www.greenend.org.uk/rjk/bzr/sftpserver.dev sftpserver
-#PKG_SOURCE_URL := http://www.greenend.org.uk/rjk/sftpserver/
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_CAT:=bzcat
+   PKG_CONF_DIR = $(TOPDIR)/package/$(PKG_NAME)
+    PKG_SRC_DIR = $(PKG_CONF_DIR)/$(PKG_DIR)
+  PKG_BUILD_DIR =    $(BUILD_DIR)/$(PKG_DIR)
+PKG_INSTALL_DIR = $(PKG_BUILD_DIR)/install
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
+include $(TOPDIR)/package/target-configure-staging-flags.mk
+TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include/iconv
+TARGET_CFLAGS += -L$(STAGING_DIR)/usr/lib/iconv -lpthread
 
 include $(TOPDIR)/package/rules.mk
 
 $(eval $(call PKG_template,SFTPSERVER,$(PKG_NAME),$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
+$(PKG_BUILD_DIR)/.prepared:
+	rm -rf               $(PKG_BUILD_DIR)
+	cp -a $(PKG_SRC_DIR) $(PKG_BUILD_DIR)
+	mkdir -p $(PKG_INSTALL_DIR)
+	touch $@
+
 $(PKG_BUILD_DIR)/.configured:
-	(cd $(PKG_BUILD_DIR); rm -rf config.cache; \
+	cd $(PKG_BUILD_DIR) && aclocal
+	cd $(PKG_BUILD_DIR) && if grep ^AC_PROG_LIBTOOL configure.ac; then libtoolize; fi
+	cd $(PKG_BUILD_DIR) && mkdir -p config.aux
+	cd $(PKG_BUILD_DIR) && autoconf
+	cd $(PKG_BUILD_DIR) && autoheader
+	cd $(PKG_BUILD_DIR) && automake -a || true
+	cd $(PKG_BUILD_DIR) && automake --foreign -a
+	cd $(PKG_BUILD_DIR) && rm -rf config.cache
+	cd $(PKG_BUILD_DIR) && \
 		$(TARGET_CONFIGURE_OPTS) \
-		CFLAGS="$(TARGET_CFLAGS) \
-			-I$(STAGING_DIR)/usr/include \
-			-I$(STAGING_DIR)/usr/include/iconv" \
-		LDFLAGS="-L$(STAGING_DIR)/usr/lib -L$(STAGING_DIR)/usr/lib/iconv -lpthread" \
 		./configure -C	\
 		--target=$(GNU_TARGET_NAME) \
 		--host=$(GNU_TARGET_NAME) \
@@ -44,8 +58,7 @@ $(PKG_BUILD_DIR)/.configured:
 		--sbindir=/usr/sbin \
 		--sysconfdir=/etc \
 		$(DISABLE_LARGEFILE) \
-		--enable-daemon \
-	);
+		--enable-daemon
 	touch $@
 
 $(PKG_BUILD_DIR)/.built:

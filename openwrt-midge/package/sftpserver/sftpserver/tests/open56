@@ -1,0 +1,28 @@
+!echo 1 > one
+!echo 2 > two
+!ln -s two link
+!ln -s three dangling
+put -e one nonesuch
+#.*file does not exist.*
+put -f one link
+#.*too many symbolic links.*
+put -f one dangling
+#.*too many symbolic links.*
+put -ft one link
+#.*too many symbolic links.*
+put -ft one dangling
+#.*too many symbolic links.*
+put -fe one link
+#.*too many symbolic links.*
+put -fe one dangling
+#.*too many symbolic links.*
+get link two-dl
+!diff two two-dl
+get -f link two-dont
+#.*too many symbolic links.*
+put -f one one-ul
+!diff one one-ul
+put -f one one-ul
+!diff one one-ul
+put -d one one-del
+![ -f one-del ] && echo one-del unexpectedly exists

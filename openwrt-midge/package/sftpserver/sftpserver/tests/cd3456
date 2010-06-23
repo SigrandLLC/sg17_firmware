@@ -1,0 +1,30 @@
+!mkdir dir
+!ln -s dir link
+!touch dir/file
+cd dir
+pwd
+#.*/dir
+ls -1
+#file
+cd ..
+ls -1
+#dir
+#link
+cd link
+pwd
+#.*/dir
+ls -1
+#file
+cd ..
+ls -1
+#dir
+#link
+cd /
+pwd
+#/
+lcd dir
+!cd .. && rm -rf dir
+lpwd
+#.*No such file or directory.*
+_lrealpath no-check .
+#.*No such file or directory.*
