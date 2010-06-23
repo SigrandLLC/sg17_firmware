@@ -4,7 +4,6 @@ PKG_NAME:=oem-voip
 PKG_VERSION:=0.1
 PKG_RELEASE:=1
 
-PKG_SVD_DISTR:=svd
 PKG_SVI_DISTR:=svi
 PKG_SVC_DISTR:=svc
 PKG_TST_DISTR:=tst
@@ -25,7 +24,6 @@ TARGET_CFLAGS += -L$(BUILD_DIR)/libab
 include $(TOPDIR)/package/rules.mk
 
 
-SVD_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVD_DISTR) $(PKG_BUILD_DIR)
 SVI_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVI_DISTR) $(PKG_BUILD_DIR)
 SVC_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVC_DISTR) $(PKG_BUILD_DIR)
 TST_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_TST_DISTR) $(PKG_BUILD_DIR)
@@ -45,7 +43,6 @@ $(PKG_BUILD_DIR)/.prepared:
 	# 			unpack sources
 	#---------======================================---------
 
-	$(SVD_UNPACK)
 	$(SVI_UNPACK)
 	$(SVC_UNPACK)
 	$(TST_UNPACK)
@@ -83,23 +80,6 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 		svi.c -o svi \
 		-lconfig -static
 	cd $(pbd)/svi && cp svi $(PKG_INSTALL_DIR)/bin/
-
-	@echo
-	@echo "CONFIGURE SVD..."
-	cd $(pbd)/svd && aclocal
-	cd $(pbd)/svd && autoheader
-	cd $(pbd)/svd && automake -a --foreign
-	cd $(pbd)/svd && autoconf
-	cd $(pbd)/svd && $(TARGET_CONFIGURE_OPTS) \
-		./configure \
-		--host=$(GNU_TARGET_NAME) \
-		--build=$(GNU_HOST_NAME) \
-		--prefix=$(PKG_INSTALL_DIR)
-
-	@echo
-	@echo "BUILD SVD..."
-	cd $(pbd)/svd && $(TARGET_CONFIGURE_OPTS) make
-	cd $(pbd)/svd && $(TARGET_CONFIGURE_OPTS) make install
 
 	@echo
 	@echo "CONFIGURE AND BUILD SVC..."
@@ -154,6 +134,7 @@ $(IPKG_OEM_VOIP):
 
 	#cp -rpf $(PKG_INSTALL_DIR)/bin/*tst $(IDIR_OEM_VOIP)/bin/
 	cp -rpf $(PKG_CONF_DIR)/files/fw/* $(IDIR_OEM_VOIP)/lib/firmware/
+	#FIXME: these sbin/* must be installed in svd package
 	cp -rpf $(PKG_CONF_DIR)/files/sbin/* $(IDIR_OEM_VOIP)/sbin/
 	cp -rpf $(PKG_CONF_DIR)/files/rc/* $(IDIR_OEM_VOIP)/etc/init.d/
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_OEM_VOIP)/CONTROL/control
