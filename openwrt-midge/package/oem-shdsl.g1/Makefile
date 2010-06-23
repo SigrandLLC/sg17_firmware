@@ -3,6 +3,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=oem-shdsl.g1
+PKG_VERSION=1
 PKG_RELEASE:=1
 
 CFLAGS:=-DSG16_NORBURST -DSG16_NOWBURST

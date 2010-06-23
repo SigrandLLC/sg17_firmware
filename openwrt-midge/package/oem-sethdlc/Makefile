@@ -3,6 +3,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=oem-sethdlc
+PKG_VERSION=1
 PKG_RELEASE:=1
 
 
