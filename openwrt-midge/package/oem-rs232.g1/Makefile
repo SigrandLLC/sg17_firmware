@@ -57,11 +57,11 @@ $(PKG_BUILD_DIR)/.configured:
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	@echo "CFLAGS=$(CFLAGS)"
 	cd $(PKG_BUILD_DIR)/mr17s-drv && make
-	cd $(PKG_BUILD_DIR)/mr17s-drv && make install
 	$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/mr17s-drv/tools/mr17s_cfg $(PKG_BUILD_DIR)/mr17s-drv/tools/mr17s_cfg.c
 	touch $@
 
 $(IPKG_SIGRAND_MR17S):
 	install -d -m0755 $(IDIR_SIGRAND_MR17S)/sbin
 	install -d -m0755 $(IDIR_SIGRAND_MR17S)/lib/modules/2.6.16
+	cd $(PKG_BUILD_DIR)/mr17s-drv && make install
 	$(IPKG_BUILD) $(IDIR_SIGRAND_MR17S) $(PACKAGE_DIR)

@@ -63,13 +63,13 @@ $(PKG_BUILD_DIR)/.configured:
 
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	cd $(PKG_BUILD_DIR)/mr17h-drv && make
-	cd $(PKG_BUILD_DIR)/mr17h-drv && make install
 	touch $@
 
 $(IPKG_SIGRAND_MR17H):
 	install -d -m0755 $(IDIR_SIGRAND_MR17H)/sbin
 	install -d -m0755 $(IDIR_SIGRAND_MR17H)/lib/modules/2.6.16
 	install -d -m0755 $(IDIR_SIGRAND_MR17H)/lib/firmware
+	cd $(PKG_BUILD_DIR)/mr17h-drv && make install
 	$(IPKG_BUILD) $(IDIR_SIGRAND_MR17H) $(PACKAGE_DIR)
 
 local_build: $(PKG_BUILD_DIR)/.prepared

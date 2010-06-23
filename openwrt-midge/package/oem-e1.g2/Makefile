@@ -59,10 +59,10 @@ $(PKG_BUILD_DIR)/.configured:
 
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	cd $(PKG_BUILD_DIR)/mr17g-drv && make
-	cd $(PKG_BUILD_DIR)/mr17g-drv && make install
 	touch $@
 
 $(IPKG_SIGRAND_MR17G):
 	install -d -m0755 $(IDIR_SIGRAND_MR17G)/sbin
 	install -d -m0755 $(IDIR_SIGRAND_MR17G)/lib/modules/2.6.16
+	cd $(PKG_BUILD_DIR)/mr17g-drv && make install
 	$(IPKG_BUILD) $(IDIR_SIGRAND_MR17G) $(PACKAGE_DIR)
