@@ -37,9 +37,3 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 	$(CP) $(PKG_BUILD_DIR)/drv_sgatab.ko $(PKG_INSTALL_DIR)/bin/
 	touch $@
 
-$(IPKG_DRV_SGATAB):
-	install -d -m0755 $(IDIR_DRV_SGATAB)/lib/modules/2.6.16/
-	cp -rpf $(PKG_INSTALL_DIR)/bin/*.ko $(IDIR_DRV_SGATAB)/lib/modules/2.6.16/
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_DRV_SGATAB)/CONTROL/control
-	$(IPKG_BUILD) $(IDIR_DRV_SGATAB) $(PACKAGE_DIR)
-

@@ -237,7 +237,6 @@ source "package/libamsel/Config.in"
 source "package/libao/Config.in"
 source "package/libart/Config.in"
 source "package/libcli/Config.in"
-source "package/libconfig/Config.in"
 source "package/libdaemon/Config.in"
 source "package/libdb/Config.in"
 source "package/libdnet/Config.in"
@@ -281,7 +280,6 @@ source "package/postgresql/Config.in"  # libpq
 source "package/pwlib/Config.in"
 source "package/radiusclient-ng/Config.in" #libradiusclient-ng
 source "package/readline/Config.in"  # libreadline
-source "package/sofia-sip/Config.in"
 source "package/speex/Config.in" # libspeex
 source "package/sqlite/Config.in" # libsqlite
 source "package/sqlite2/Config.in" # libsqlite2
@@ -407,11 +405,6 @@ source "package/oem-sethdlc/Config.in"
 source "package/oem-shdsl.g1/Config.in"
 source "package/oem-shdsl.g2/Config.in"
 source "package/oem-voip/Config.in"
-source "package/drv-tapi/Config.in"
-source "package/drv-vinetic/Config.in"
-source "package/drv-daa/Config.in"
-source "package/drv-sgatab/Config.in"
-source "package/libab/Config.in"
 
 
 endmenu

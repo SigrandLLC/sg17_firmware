@@ -1,4 +1,0 @@
-config BR2_PACKAGE_LIBCONFIG
-	prompt "libconfig......................... libconfig"
-	tristate
-

@@ -60,9 +60,3 @@ $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 	cd $(PKG_BUILD_DIR) && $(TARGET_CONFIGURE_OPTS) make install
 	touch $@
 
-$(IPKG_DRV_VINETIC):
-	install -d -m0755 $(IDIR_DRV_VINETIC)/lib/modules/2.6.16/
-	cp -rpf $(PKG_INSTALL_DIR)/bin/*.ko $(IDIR_DRV_VINETIC)/lib/modules/2.6.16/
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_DRV_VINETIC)/CONTROL/control
-	$(IPKG_BUILD) $(IDIR_DRV_VINETIC) $(PACKAGE_DIR)
-

@@ -1,4 +1,0 @@
-config BR2_PACKAGE_DRV_TAPI
-	tristate "drv-tapi .............. TAPI driver for SIP VoIP"
-	default y if CONFIG_DEVEL
-	depends on BR2_LINUX_2_6_SIGRAND5120

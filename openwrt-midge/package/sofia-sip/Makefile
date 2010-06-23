@@ -12,7 +12,7 @@ PKG_SOURCE:=$(PKG_NAME)_$(PKG_VERSION).orig.tar.gz
 PKG_CAT:=zcat
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/sofia-sip-$(PKG_VERSION)
-PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/ipkg-install
+PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/install
 
 include $(TOPDIR)/package/target-configure-staging-flags.mk
 

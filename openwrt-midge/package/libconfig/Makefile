@@ -28,7 +28,7 @@ endif
 PKG_CAT:=zcat
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
-PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/ipkg-install
+PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/install
 
 include $(TOPDIR)/package/target-configure-staging-flags.mk
 
@@ -47,7 +47,6 @@ $(PKG_BUILD_DIR)/.configured:
 			--build=$(GNU_HOST_NAME)	\
 			--prefix=/usr		\
 			$(DISABLE_LARGEFILE)	\
-			$(DISABLE_NLS)		\
 			--disable-shared	\
 			--enable-static		\
 			--with-gnu-ld		\

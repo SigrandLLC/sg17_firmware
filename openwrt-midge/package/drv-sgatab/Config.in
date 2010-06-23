@@ -1,6 +1,0 @@
-config BR2_PACKAGE_DRV_SGATAB
-	tristate "drv-sgatab ............ SGATAB driver for SIP VoIP"
-	default y if CONFIG_DEVEL
-	select BR2_PACKAGE_DRV_TAPI
-	select BR2_PACKAGE_DRV_VINETIC
-	depends on BR2_LINUX_2_6_SIGRAND5120
