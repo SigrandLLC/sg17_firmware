@@ -130,6 +130,7 @@ $(IPKG_OEM_VOIP):
 	cp -rpf $(BUILD_DIR)/tapi/install/bin/*.ko    $(IDIR_OEM_VOIP)/lib/modules/2.6.16/
 	cp -rpf $(BUILD_DIR)/vinetic/install/bin/*.ko $(IDIR_OEM_VOIP)/lib/modules/2.6.16/
 	cp -rpf $(BUILD_DIR)/sgatab/install/bin/*.ko  $(IDIR_OEM_VOIP)/lib/modules/2.6.16/
+	cp -rpf $(BUILD_DIR)/svd/ipkg-install/bin/sv* $(IDIR_OEM_VOIP)/bin/
 	cp -rpf $(PKG_INSTALL_DIR)/bin/sv* $(IDIR_OEM_VOIP)/bin/
 
 	#cp -rpf $(PKG_INSTALL_DIR)/bin/*tst $(IDIR_OEM_VOIP)/bin/
