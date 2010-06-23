@@ -25,5 +25,4 @@ $(IPKG_CONTEXT_HELP_OEM):
 	install -d -m0755 $(IDIR_CONTEXT_HELP_OEM)/www/help/img
 	install -m0755 $(PKG_BUILD_DIR)/*.html $(IDIR_CONTEXT_HELP_OEM)/www/help
 	install -m0755 $(PKG_BUILD_DIR)/img/* $(IDIR_CONTEXT_HELP_OEM)/www/help/img
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_CONTEXT_HELP_OEM)/CONTROL/control
 	$(IPKG_BUILD) $(IDIR_CONTEXT_HELP_OEM) $(PACKAGE_DIR)

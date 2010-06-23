@@ -18,6 +18,5 @@ $(PKG_BUILD_DIR)/.configured:
 	touch $@
 
 $(IPKG_SIGRAND_PPPFT_MP):
-	( tar cf - -C files --exclude .svn . | tar xvf - -C $(IDIR_SIGRAND_PPPFT_MP)	 ); 
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_PPPFT_MP)/CONTROL/control
-	$(IPKG_BUILD) $(IDIR_SIGRAND_PPPFT_MP) $(PACKAGE_DIR)	
+	tar cf - -C files --exclude .svn . | tar xvf - -C $(IDIR_SIGRAND_PPPFT_MP)
+	$(IPKG_BUILD) $(IDIR_SIGRAND_PPPFT_MP) $(PACKAGE_DIR)

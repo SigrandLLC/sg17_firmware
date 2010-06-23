@@ -38,41 +38,39 @@ $(PKG_BUILD_DIR)/.configured:
 	-e "s%@INST_PATH@%$(IDIR_SIGRAND_MR17H)%g" \
 	-e "s%@DEBUG@%$(DEBUG)%g" \
 	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17H_DRV)%g" \
-	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR17H_TOOL)%g" 
+	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR17H_TOOL)%g"
 
 # OEM
 #-------- Driver OEM ------------#
 	sed <$(PKG_BUILD_DIR)/mr17h-drv/sg17oem.h.tmpl \
 	> $(PKG_BUILD_DIR)/mr17h-drv/sg17oem.h \
 	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR17H)%g" \
-	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17H_DRV)%g" 
+	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17H_DRV)%g"
 #-------- Driver configuration OEM ------------#
 	sed <$(PKG_BUILD_DIR)/mr17h-drv/tools/mr17h_cfg.tmpl  \
 	> $(PKG_BUILD_DIR)/mr17h-drv/tools/mr17h_cfg \
 	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR17H)%g" \
-	-e "s%@MANUFACTURER@%$(BR2_SIGRAND_OEM_MANUFACTURER)%g" 
+	-e "s%@MANUFACTURER@%$(BR2_SIGRAND_OEM_MANUFACTURER)%g"
 #------- Driver debugger OEM -----------#
 	sed <$(PKG_BUILD_DIR)/mr17h-drv/tools/mr17h_debug.tmpl  \
 	> $(PKG_BUILD_DIR)/mr17h-drv/tools/mr17h_debug \
 	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17H_DRV)%g" \
 	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR17H)%g" \
-	-e "s%@MANUFACTURER@%$(BR2_SIGRAND_OEM_MANUFACTURER)%g" 
+	-e "s%@MANUFACTURER@%$(BR2_SIGRAND_OEM_MANUFACTURER)%g"
 #--------------- end OEM ---------------#
 	@echo "KERNVER="$(LINUX_VERSION)" INST_PATH="$(IDIR_SIGRAND_MR17H)
 	touch $@
 
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	cd $(PKG_BUILD_DIR)/mr17h-drv && make
+	cd $(PKG_BUILD_DIR)/mr17h-drv && make install
 	touch $@
 
 $(IPKG_SIGRAND_MR17H):
 	install -d -m0755 $(IDIR_SIGRAND_MR17H)/sbin
 	install -d -m0755 $(IDIR_SIGRAND_MR17H)/lib/modules/2.6.16
 	install -d -m0755 $(IDIR_SIGRAND_MR17H)/lib/firmware
-	cd $(PKG_BUILD_DIR)/mr17h-drv && make install
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_MR17H)/CONTROL/control
-	$(IPKG_BUILD) $(IDIR_SIGRAND_MR17H) $(PACKAGE_DIR)	
-	@echo "INSTALLLLLLLLLLL"
+	$(IPKG_BUILD) $(IDIR_SIGRAND_MR17H) $(PACKAGE_DIR)
 
 local_build: $(PKG_BUILD_DIR)/.prepared
 	cd $(PKG_BUILD_DIR)/mr17h-drv && make KERN_PATH=$(LINUX_DIR) CROSS_PREFIX=$(STAGING_DIR)/bin/mipsel-linux-

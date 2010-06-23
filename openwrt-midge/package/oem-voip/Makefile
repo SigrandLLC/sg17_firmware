@@ -137,7 +137,6 @@ $(IPKG_OEM_VOIP):
 	#FIXME: these sbin/* must be installed in svd package
 	cp -rpf $(PKG_CONF_DIR)/files/sbin/* $(IDIR_OEM_VOIP)/sbin/
 	cp -rpf $(PKG_CONF_DIR)/files/rc/* $(IDIR_OEM_VOIP)/etc/init.d/
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_OEM_VOIP)/CONTROL/control
 	$(RSTRIP) $(IDIR_OEM_VOIP)/bin/sv*
 	#$(RSTRIP) $(IDIR_OEM_VOIP)/bin/*tst
 	$(IPKG_BUILD) $(IDIR_OEM_VOIP) $(PACKAGE_DIR)

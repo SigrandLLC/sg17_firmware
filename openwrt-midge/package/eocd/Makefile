@@ -65,7 +65,6 @@ $(IPKG_SIGRAND_EOCD):
 	cp $(PKG_BUILD_DIR)/eocd-src/app-if/applications/eoc-info  $(IDIR_SIGRAND_EOCD)/sbin
 #	$(STRIP) $(PKG_BUILD_DIR)/eocd-src/app-if/applications/eoc-config
 #	cp $(PKG_BUILD_DIR)/eocd-src/app-if/applications/eoc-config  $(IDIR_SIGRAND_EOCD)/sbin
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_EOCD)/CONTROL/control
 	$(IPKG_BUILD) $(IDIR_SIGRAND_EOCD) $(PACKAGE_DIR)
 
 local_build: $(PKG_BUILD_DIR)/.prepared

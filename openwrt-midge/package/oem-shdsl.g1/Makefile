@@ -34,31 +34,30 @@ $(PKG_BUILD_DIR)/.configured:
 	-e "s%@INST_PATH@%$(IDIR_SIGRAND_MR16H)%g" \
 	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR16H_DRV)%g" \
 	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR16H_TOOL)%g" \
-	-e "s%@DBGTOOLNAME@%$(BR2_SIGRAND_OEM_MR16H_DBGTOOL)%g" 
+	-e "s%@DBGTOOLNAME@%$(BR2_SIGRAND_OEM_MR16H_DBGTOOL)%g"
 # OEM
 #-------- Driver OEM ------------#
 	sed <$(PKG_BUILD_DIR)/mr16h-drv/sg16oem.h.tmpl \
 	> $(PKG_BUILD_DIR)/mr16h-drv/sg16oem.h \
 	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR16H)%g" \
-	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR16H_DRV)%g" 
+	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR16H_DRV)%g"
 #-------- Driver configuration OEM ------------#
 	sed <$(PKG_BUILD_DIR)/mr16h-drv/tools/sg16cfg.tmpl  \
 	> $(PKG_BUILD_DIR)/mr16h-drv/tools/sg16cfg \
 	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR16H)%g" \
 	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR16H_DRV)%g" \
 	-e "s%@MANUFACTURER@%$(BR2_SIGRAND_OEM_MANUFACTURER)%g" \
-	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR16H_TOOL)%g" 
-	
+	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR16H_TOOL)%g"
+
 	touch $@
 
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	cd $(PKG_BUILD_DIR)/mr16h-drv && make
+	cd $(PKG_BUILD_DIR)/mr16h-drv && make install
 	touch $@
 
 $(IPKG_SIGRAND_MR16H):
 	install -d -m0755 $(IDIR_SIGRAND_MR16H)/sbin
 	install -d -m0755 $(IDIR_SIGRAND_MR16H)/lib/modules/2.6.16
 	install -d -m0755 $(IDIR_SIGRAND_MR16H)/lib/firmware
-	cd $(PKG_BUILD_DIR)/mr16h-drv && make install
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_MR16H)/CONTROL/control
-	$(IPKG_BUILD) $(IDIR_SIGRAND_MR16H) $(PACKAGE_DIR)	
+	$(IPKG_BUILD) $(IDIR_SIGRAND_MR16H) $(PACKAGE_DIR)

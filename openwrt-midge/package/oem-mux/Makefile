@@ -29,6 +29,5 @@ $(IPKG_SIGRAND_MUX):
 	install -d -m0755 $(IDIR_SIGRAND_MUX)/sbin
 	cp $(PKG_BUILD_DIR)/mxconfig/mxconfig $(IDIR_SIGRAND_MUX)/sbin
 	$(RSTRIP) $(IDIR_SIGRAND_MUX)/sbin/*
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_MUX)/CONTROL/control
 	$(IPKG_BUILD) $(IDIR_SIGRAND_MUX) $(PACKAGE_DIR)
 

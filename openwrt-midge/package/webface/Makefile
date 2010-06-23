@@ -144,5 +144,4 @@ ifneq ($(BR2_SIGRAND_OEM_LOGO),"default")
 endif
 
 	$(RSTRIP) $(IDIR_WEBFACE)/usr/bin/*
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_WEBFACE)/CONTROL/control
 	$(IPKG_BUILD) $(IDIR_WEBFACE) $(PACKAGE_DIR)
