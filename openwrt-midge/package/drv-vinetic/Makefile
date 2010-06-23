@@ -10,7 +10,6 @@ PKG_DIR         = drv_vinetic-$(PKG_VERSION)_$(PKG_RELEASE)
     PKG_SRC_DIR = $(PKG_CONF_DIR)/$(PKG_DIR)
   PKG_BUILD_DIR =    $(BUILD_DIR)/$(PKG_DIR)
 PKG_INSTALL_DIR = $(PKG_BUILD_DIR)/install
-PKG_DEPEND      = drv-tapi
 
 include $(TOPDIR)/package/target-configure-staging-flags.mk
 
