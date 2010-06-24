@@ -3,6 +3,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=oem-e1.g2
+PKG_VERSION=1
+PKG_RELEASE=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
@@ -33,27 +35,27 @@ $(PKG_BUILD_DIR)/.configured:
 	-e "s%@DEBUG@%$(DEBUG)%g" \
 	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17G_DRV)%g" \
 	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR17G_TOOL)%g" \
-	-e "s%@DBGTOOLNAME@%$(BR2_SIGRAND_OEM_MR17G_DBGTOOL)%g" 
+	-e "s%@DBGTOOLNAME@%$(BR2_SIGRAND_OEM_MR17G_DBGTOOL)%g"
 
 # ------------- OEM ----------------------#
 	sed <$(PKG_BUILD_DIR)/mr17g-drv/mr17g_oem.h.tmpl \
 	> $(PKG_BUILD_DIR)/mr17g-drv/mr17g_oem.h \
 	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR17G)%g" \
-	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17G_DRV)%g" 
+	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17G_DRV)%g"
 
 #-------- Driver configuration OEM ------------#
 	sed <$(PKG_BUILD_DIR)/mr17g-drv/tools/mr17gcfg.tmpl  \
 	> $(PKG_BUILD_DIR)/mr17g-drv/tools/mr17gcfg \
 	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR17G)%g" \
 	-e "s%@MANUFACTURER@%$(BR2_SIGRAND_OEM_MANUFACTURER)%g" \
-	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17G_DRV)%g" 
+	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17G_DRV)%g"
 
 #------- Driver debugger OEM -----------#
 	sed <$(PKG_BUILD_DIR)/mr17g-drv/tools/mr17g_debug.tmpl  \
 	> $(PKG_BUILD_DIR)/mr17g-drv/tools/mr17g_debug \
 	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17G_DRV)%g" \
 	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR17G)%g" \
-	-e "s%@MANUFACTURER@%$(BR2_SIGRAND_OEM_MANUFACTURER)%g" 
+	-e "s%@MANUFACTURER@%$(BR2_SIGRAND_OEM_MANUFACTURER)%g"
 # ------------- OEM end ------------------#
 	touch $@
 
@@ -65,5 +67,4 @@ $(IPKG_SIGRAND_MR17G):
 	install -d -m0755 $(IDIR_SIGRAND_MR17G)/sbin
 	install -d -m0755 $(IDIR_SIGRAND_MR17G)/lib/modules/2.6.16
 	cd $(PKG_BUILD_DIR)/mr17g-drv && make install
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_MR17G)/CONTROL/control
-	$(IPKG_BUILD) $(IDIR_SIGRAND_MR17G) $(PACKAGE_DIR)	
+	$(IPKG_BUILD) $(IDIR_SIGRAND_MR17G) $(PACKAGE_DIR)

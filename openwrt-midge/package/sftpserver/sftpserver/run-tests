@@ -1,0 +1,140 @@
+#! /usr/bin/env python2.4
+#
+# This file is part of the Green End SFTP Server.
+# Copyright (C) 2007 Richard Kettlewell
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA
+
+import os,sys,re,string
+from subprocess import Popen,PIPE,STDOUT
+
+srcdir = os.path.abspath(os.getenv('srcdir'))
+builddir = os.path.abspath('.')
+client = os.path.abspath("sftpclient")
+server = "gesftpserver"
+
+def rmrf(path):
+    if os.path.lexists(path):
+        if (not os.path.islink(path)) and os.path.isdir(path):
+            os.chmod(path, 0700)
+            for name in os.listdir(path):
+                rmrf(os.path.join(path,name))
+            os.rmdir(path)
+        else:
+            os.remove(path)
+
+def fatal(msg):
+    sys.stderr.write("%s\n" % msg)
+    sys.exit(1)
+
+os.umask(022)                           # for consistent permissions
+failed = 0
+protocols = ['3', '4', '5', '6', '7']
+dir = 'tests'
+
+args = sys.argv[1:]
+while len(args) > 0 and args[0][0] == '-':
+    if args[0] == "--protocols":
+        protocols = args[1].split(',')
+        args = args[2:]
+    elif args[0] == "--server":
+        server = args[1]
+        args = args[2:] 
+    elif args[0] == "--directory":
+        dir = args[1]
+        args = args[2:]
+    else:
+        fatal("unknown option '%s'" % args[0])
+
+server = os.path.abspath(server)
+
+if len(args) > 0:
+    tests = args
+else:
+    tests = os.listdir(os.path.join(srcdir, dir))
+tests.sort()
+
+# Clean up
+rmrf(os.path.join(builddir, ',testroot'))
+
+for test in tests:
+    for proto in protocols:
+        if ('.' in test
+            or not proto in test
+            or '#' in test
+            or '~' in test):
+            continue
+        sys.stderr.write("Testing %s/%s protocol %s ... " % (dir, test, proto))
+        root = os.path.join(builddir, ',testroot','%s.%s' % (test, proto))
+        os.makedirs(root)
+        os.chdir(root)
+        output = Popen([client,
+                        "--force-version", proto,
+                        "-P", server,
+                        "-b", os.path.join(srcdir, dir, test),
+                        '--echo',
+                        '--fix-sigpipe',   # stupid Python
+                        '--no-stop-on-error'],
+                       stdout=PIPE,
+                       stderr=STDOUT).communicate()[0].split('\n')
+        if output[len(output)-1] == "":
+            output = output[:-1]
+        n = 0
+        errors = []
+        for expected in file(os.path.join(srcdir, dir, '%s' % test)):
+            expected = expected[:-1]    # strip newline
+            if n >= len(output):
+                errors.append("EXPECTED: %s" % expected)
+                errors.append("     GOT: EOF")
+                break
+            got = output[n]
+            n += 1
+            if len(expected) > 0 and expected[0] == '#':
+                expected = expected[1:]
+                try:
+                    if not re.match(expected, got):
+                        errors.append("EXPECTED: %s" % expected)
+                        errors.append("     GOT: %s" % got)
+                except:
+                    print "\n\nPossible invalid regexp:\n%s\n" % expected
+                    raise
+            else:
+                if expected != got:
+                    errors.append("EXPECTED: %s" % expected)
+                    errors.append("     GOT: %s" % got)
+        if n < len(output):
+            errors.append("   EXTRA: %s" % output[n])
+        if len(errors) > 0:
+            sys.stderr.write("FAILED\n")
+            sys.stderr.write(string.join(errors, '\n'))
+            sys.stderr.write("\n")
+            failed += 1
+        else:
+            sys.stderr.write("passed\n")
+
+if failed:
+    print "%d tests failed" % failed
+    sys.exit(1)
+else:
+    os.chdir("/")
+    rmrf(os.path.join(builddir, ',testroot'))
+    print "OK"
+
+# Local Variables:
+# mode:python
+# indent-tabs-mode:nil
+# py-indent-offset:4
+# End:

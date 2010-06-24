@@ -40,6 +40,5 @@ $(IPKG_SIGRAND_TBUFF):
 	install -d -m0755 $(IDIR_SIGRAND_TBUFF)/etc/init.d/
 	install -m0700 S80tbuff $(IDIR_SIGRAND_TBUFF)/etc/init.d/
 	$(RSTRIP) $(IDIR_SIGRAND_TBUFF)/sbin/*
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_TBUFF)/CONTROL/control
 	$(IPKG_BUILD) $(IDIR_SIGRAND_TBUFF) $(PACKAGE_DIR)
 

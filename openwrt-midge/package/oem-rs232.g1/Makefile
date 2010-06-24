@@ -3,6 +3,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=oem-rs232.g1
+PKG_VERSION=1
+PKG_RELEASE=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
@@ -37,20 +39,20 @@ $(PKG_BUILD_DIR)/.configured:
 	-e "s%@DEBUG@%$(DEBUG)%g" \
 	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17S_DRV)%g" \
 	-e "s%@TOOLNAME@%$(BR2_SIGRAND_OEM_MR17S_TOOL)%g" \
-	-e "s%@DBGTOOLNAME@%$(BR2_SIGRAND_OEM_MR17S_DBGTOOL)%g" 
+	-e "s%@DBGTOOLNAME@%$(BR2_SIGRAND_OEM_MR17S_DBGTOOL)%g"
 
 # ------------- OEM ----------------------#
 	sed <$(PKG_BUILD_DIR)/mr17s-drv/mr17s_oem.h.tmpl \
 	> $(PKG_BUILD_DIR)/mr17s-drv/mr17s_oem.h \
 	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR17S)%g" \
-	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17S_DRV)%g" 
+	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17S_DRV)%g"
 
 #------- Driver debugger OEM -----------#
 	sed <$(PKG_BUILD_DIR)/mr17s-drv/tools/mr17s_debug.tmpl  \
 	> $(PKG_BUILD_DIR)/mr17s-drv/tools/mr17s_debug \
 	-e "s%@DRVNAME@%$(BR2_SIGRAND_OEM_MR17S_DRV)%g" \
 	-e "s%@MODNAME@%$(BR2_SIGRAND_OEM_MR17S)%g" \
-	-e "s%@MANUFACTURER@%$(BR2_SIGRAND_OEM_MANUFACTURER)%g" 
+	-e "s%@MANUFACTURER@%$(BR2_SIGRAND_OEM_MANUFACTURER)%g"
 # ------------- OEM end ------------------#
 	touch $@
 
@@ -64,5 +66,4 @@ $(IPKG_SIGRAND_MR17S):
 	install -d -m0755 $(IDIR_SIGRAND_MR17S)/sbin
 	install -d -m0755 $(IDIR_SIGRAND_MR17S)/lib/modules/2.6.16
 	cd $(PKG_BUILD_DIR)/mr17s-drv && make install
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_MR17S)/CONTROL/control
-	$(IPKG_BUILD) $(IDIR_SIGRAND_MR17S) $(PACKAGE_DIR)	
+	$(IPKG_BUILD) $(IDIR_SIGRAND_MR17S) $(PACKAGE_DIR)

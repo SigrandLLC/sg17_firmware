@@ -1,0 +1,8 @@
+!mkdir nonempty
+!touch nonempty/foo
+rmdir nonempty/foo
+#.*file is not a directory.*
+rm nonempty
+#.*file is a directory.*
+rmdir nonempty
+#.*directory is not empty.*

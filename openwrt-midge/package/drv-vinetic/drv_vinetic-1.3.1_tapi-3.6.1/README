@@ -1,0 +1,117 @@
+/******************************************************************************
+
+                            Copyright (c) 2006, 2007
+                            Infineon Technologies AG
+                     Am Campeon 1-12; 81726 Munich, Germany
+
+  THE DELIVERY OF THIS SOFTWARE AS WELL AS THE HEREBY GRANTED NON-EXCLUSIVE,
+  WORLDWIDE LICENSE TO USE, COPY, MODIFY, DISTRIBUTE AND SUBLICENSE THIS
+  SOFTWARE IS FREE OF CHARGE.
+
+  THE LICENSED SOFTWARE IS PROVIDED "AS IS" AND INFINEON EXPRESSLY DISCLAIMS
+  ALL REPRESENTATIONS AND WARRANTIES, WHETHER EXPRESS OR IMPLIED, INCLUDING
+  WITHOUT LIMITATION, WARRANTIES OR REPRESENTATIONS OF WORKMANSHIP,
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, THAT THE
+  OPERATING OF THE LICENSED SOFTWARE WILL BE ERROR FREE OR FREE OF ANY THIRD
+  PARTY CLAIMS, INCLUDING WITHOUT LIMITATION CLAIMS OF THIRD PARTY INTELLECTUAL
+  PROPERTY INFRINGEMENT.
+
+  EXCEPT FOR ANY LIABILITY DUE TO WILFUL ACTS OR GROSS NEGLIGENCE AND EXCEPT
+  FOR ANY PERSONAL INJURY INFINEON SHALL IN NO EVENT BE LIABLE FOR ANY CLAIM
+  OR DAMAGES OF ANY KIND, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+******************************************************************************/
+
+1. HOW TO COMPILE
+TAPI drivers are build using the commonly used configure, make, make install
+process. The first step is to create a Makefile for your specific system
+using the provided configure script and adapt the parameters according to your
+paths and required features.
+
+For Linux 2.6 several differences apply as the complete build processs is
+controlled by the kbuild system. The kbuild system knows already the
+architecture specific CFLAGS. The following configure options must be
+provided for Linux 2.6.
+--enable-linux-26, --enable-kernelincl=<path>, --enable-kernelbuild=<path>
+If the kernel has been build inside the source directory (which is not nice),
+the kernelbuild path is optional.
+
+
+1.1 Linux
+Execute the following commands. If you have to regenerate the automake files pls
+use the autogen.sh instead of configure script .
+
+VINETIC-CPE, v2.2, Linux 2.4
+----------------------------
+./configure --build=i686-pc-linux --host=powerpc-linux-uclibc --enable-warnings --enable-kernelincl=/home/${USER}/linux/include --enable-trace --enable-2cpe --with-access-mode=MOTOROLA
+or
+./configure --build=i686-pc-linux --host=powerpc-linux-uclibc --enable-warnings --enable-kernelincl=/home/${USER}/linux/include --enable-trace --enable-2cpe --with-access-mode=INTEL_DEMUX
+or
+./configure --build=i686-pc-linux --host=powerpc-linux-uclibc --enable-warnings --enable-kernelincl=/home/${USER}/linux/include --enable-trace --enable-2cpe --with-access-mode=INTEL_MUX
+or
+./configure --build=i686-pc-linux --host=powerpc-linux-uclibc --enable-warnings --enable-kernelincl=/home/${USER}/linux/include --enable-trace --enable-2cpe --with-access-mode=SPI
+
+for Linux 2.4 you have to add the following CFLAGS for MPC targets:
+--with-cflags="-fno-strict-aliasing -fno-common -fomit-frame-pointer"
+for Linux 2.4 you have to add the following CFLAGS for Danube:
+--with-cflags="-fno-strict-aliasing -fno-common -fomit-frame-pointer -G 0 -mno-abicalls -fno-pic -pipe -mtune=r4600 -mips2 -Wa,--trap -mlong-calls -DMODVERSIONS -DEXPORT_SYMTAB"
+
+Note: One important parameter to adapt to a specific controller platform is
+      --with-clags="" - this parameter gives you the option to add platform
+	  specific compiler flags easily. For Linux 2.6 it's not required to pass
+	  specific compiler options as the kernel build process will take care
+	  of this.
+
+VINETIC-CPE, v2.2, Linux 2.6
+----------------------------
+../configure --build=x86_64-pc-linux-gnu --host=powerpc-linux --enable-warnings --enable-kernelincl=<yourPath>/projects/buildroot/build_powerpc_nofpu/linux-2.6.13/include --enable-tapiincl=<yourPath>/drv_tapi/include --enable-trace --enable-2cpe --enable-lt --with-access-mode=MOTOROLA --prefix=/home/comacsd.exports/${USER}/easy3332_26/opt/ifx --enable-linux-26 --enable-kernelbuild=<yourPath>/projects/buildroot/build_powerpc_nofpu/build.26/linux.tqm860.2.6.13
+
+make clean all
+or
+make clean install
+
+1.1.1 Adding compiler flags
+
+To compile a driver with debug symbols, the CFLAGS environment variable should be set to "-O1 -g3" before running the configure script. To switch back to an optimized driver, set CFLAGS to "-O2".
+As an alternative for Linux 2.4 you can add the options to the --with-cflags=""
+parameter.
+
+with debug symbols
+export CFLAGS="-O1 -g3"
+
+with compiler optimization and without debug symbols (it's not sufficient to unset CFLGAS after having switched to debug symbols).
+export CFLAGS="-O2"
+
+UDP redirection can be added by appending following flag "--enable-udp-redirect".
+NOTICE: UDP redirection or QoS is used only when driver executes on LINUX OS.
+
+
+1.2 VxWorks / GNU
+Pls. use the Tornado project drv_vinetic.wpj
+
+1.3 VxWorks / GreenHills
+currently not supported
+
+
+3. USER ADAPTATIONS
+
+For user specific adaptations (macros for instance), a file named
+drv_config_user.default.h is provided with blank macros.
+
+This file must be copied into the target build directory and renamed into
+drv_config_user.h.
+
+After doing so, compiling with extra flag "ENABLE_USER_CONFIG" (set with option
+--enable-user-config if using automake) enables the driver to use user specific
+settings.
+
+4. STRIP YOUR BINARY
+
+Stripping of the device driver binary is implicitly done on make install. If you
+want to strip the binary manually, please make sure not to use different options
+than "--strip-debug" - otherwise the binary might be unusable.
+
+enjoy
+TAPI v3 team

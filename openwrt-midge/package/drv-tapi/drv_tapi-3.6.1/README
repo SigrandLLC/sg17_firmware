@@ -1,0 +1,88 @@
+/******************************************************************************
+
+                            Copyright (c) 2006, 2007
+                            Infineon Technologies AG
+                     Am Campeon 1-12; 81726 Munich, Germany
+
+  THE DELIVERY OF THIS SOFTWARE AS WELL AS THE HEREBY GRANTED NON-EXCLUSIVE,
+  WORLDWIDE LICENSE TO USE, COPY, MODIFY, DISTRIBUTE AND SUBLICENSE THIS
+  SOFTWARE IS FREE OF CHARGE.
+
+  THE LICENSED SOFTWARE IS PROVIDED "AS IS" AND INFINEON EXPRESSLY DISCLAIMS
+  ALL REPRESENTATIONS AND WARRANTIES, WHETHER EXPRESS OR IMPLIED, INCLUDING
+  WITHOUT LIMITATION, WARRANTIES OR REPRESENTATIONS OF WORKMANSHIP,
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, DURABILITY, THAT THE
+  OPERATING OF THE LICENSED SOFTWARE WILL BE ERROR FREE OR FREE OF ANY THIRD
+  PARTY CLAIMS, INCLUDING WITHOUT LIMITATION CLAIMS OF THIRD PARTY INTELLECTUAL
+  PROPERTY INFRINGEMENT.
+
+  EXCEPT FOR ANY LIABILITY DUE TO WILFUL ACTS OR GROSS NEGLIGENCE AND EXCEPT
+  FOR ANY PERSONAL INJURY INFINEON SHALL IN NO EVENT BE LIABLE FOR ANY CLAIM
+  OR DAMAGES OF ANY KIND, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+******************************************************************************/
+
+HOW TO COMPILE
+--------------
+
+TAPI drivers are build using the commonly used configure, make, make install
+process. The first step is to create a Makefile for your specific system
+using the provided configure script and adapt the parameters according
+to your paths and required features.
+
+For Linux 2.6 several differences apply as the complete build processs is
+controlled by the kbuild system. The kbuild system knows already the
+architecture specific CFLAGS. The following configure options must be
+provided for Linux 2.6.
+--enable-linux-26, --enable-kernelincl=<path>, --enable-kernelbuild=<path>
+If the kernel has been build inside the source directory (which is not nice),
+the kernelbuild path is optional.
+
+
+--1-- Configure TAPIv3
+First create a separate build directory, e.g. below the sources. For Linux 2.6
+this step is mandantory(!).
+
+mkdir build_dir
+cd build_dir
+
+Example for MPC and Linux 2.4:
+../configure --build=i686-pc-linux --host=powerpc-linux-uclibc --enable-warnings --enable-kernelincl=/home/${USER}/linux/include --prefix=/home/comacsd.exports/${USER}/easy3332_24/opt/ifx --with-cflags="-fno-strict-aliasing -fno-common -fomit-frame-pointer"
+
+Example for MPC and Linux 2.6:
+../configure --build=x86_64-pc-linux-gnu --host=powerpc-linux --enable-warnings --enable-trace --enable-lt --enable-kernelincl=<yourPath>/buildroot/build_powerpc_nofpu/linux-2.6.13/include --prefix=/home/comacsd.exports/${USER}/easy3332_26/opt/ifx --enable-linux-26 --enable-kernelbuild=<yourPath>/buildroot/build_powerpc_nofpu/build.26/linux.tqm860.2.6.13
+
+Example for MIPS, e.g. Danube, TwinPass, INCA-IP2 and Linux 2.4
+../configure --build=i686-pc-linux --host=mips-linux --enable-warnings --enable-kernelincl=<yourPath>/linux/include --with-cflags="-fno-pic -mno-abicalls -mlong-calls -mips32 -G 0 -DMODVERSIONS"
+
+Example for MIPS, e.g. Danube, TwinPass, INCA-IP2 and Linux 2.6
+../configure --build=i686-pc-linux --host=mips-linux --enable-warnings --enable-trace --enable-log --enable-lt --enable-linux-26 --enable-kernelincl=<yourPath>/linux_danube26/include --enable-kernelbuild=<yourPath>/linux_danube26 --prefix=/home/comacsd.exports/${USER}/danube_26/opt/ifx
+
+Note: One important parameter to adapt to a specific controller platform is
+      --with-clags="" - this parameter gives you the option to add platform
+	  specific compiler flags easily. For Linux 2.6 it's not required to pass
+	  specific compiler options as the kernel build process will take care
+	  of this.
+
+--1.1--
+
+Additional compiler flags:
+
+To add UDP redirection or QoS add flag "--enable-udp-redirect". But its only
+used on LINUX OS. To test it with local loop, there is folder
+"drv_udp_redirect_test" with module which simulates local loop.
+
+--2-- Build TAPI v3
+
+make clean install
+
+--3-- Strip your binary
+
+Stripping of the device driver binary is implicitly done on make install. If you
+want to strip the binary manually, please make sure not to use different options
+than "--strip-debug" - otherwise the binary might be unusable.
+
+enjoy
+TAPI v3 team

@@ -3,6 +3,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=oem-linkdeps
+PKG_VERSION=1
+PKG_RELEASE=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
@@ -25,6 +27,5 @@ $(IPKG_SIGRAND_LINKDEPS):
 	install -d -m0755 $(IDIR_SIGRAND_LINKDEPS)/sbin
 	install -d -m0755 $(IDIR_SIGRAND_LINKDEPS)/etc/linkdeps
 	cp _linkhandler $(IDIR_SIGRAND_LINKDEPS)/sbin
-	( tar cf - -C linkdeps --exclude .svn . | tar xvf - -C $(IDIR_SIGRAND_LINKDEPS)/etc/linkdeps); 
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_LINKDEPS)/CONTROL/control
-	$(IPKG_BUILD) $(IDIR_SIGRAND_LINKDEPS) $(PACKAGE_DIR)	
+	( tar cf - -C linkdeps --exclude .svn . | tar xvf - -C $(IDIR_SIGRAND_LINKDEPS)/etc/linkdeps);
+	$(IPKG_BUILD) $(IDIR_SIGRAND_LINKDEPS) $(PACKAGE_DIR)

@@ -25,5 +25,4 @@ $(IPKG_CONTEXT_HELP):
 	install -d -m0755 $(IDIR_CONTEXT_HELP)/www/help/img
 	install -m0755 $(PKG_BUILD_DIR)/*.html $(IDIR_CONTEXT_HELP)/www/help
 	install -m0755 $(PKG_BUILD_DIR)/img/* $(IDIR_CONTEXT_HELP)/www/help/img
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_CONTEXT_HELP)/CONTROL/control
 	$(IPKG_BUILD) $(IDIR_CONTEXT_HELP) $(PACKAGE_DIR)

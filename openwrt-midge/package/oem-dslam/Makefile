@@ -43,8 +43,7 @@ $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 $(IPKG_SIGRAND_MR17H):
 	install -d -m0755 $(IDIR_SIGRAND_DSLAM)/lib/modules/2.6.16
 	cd $(PKG_BUILD_DIR)/dslam-gpio && make install
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_MR17H)/CONTROL/control
-	$(IPKG_BUILD) $(IDIR_SIGRAND_DSLAM) $(PACKAGE_DIR)	
+	$(IPKG_BUILD) $(IDIR_SIGRAND_DSLAM) $(PACKAGE_DIR)
 	@echo ">>>>>>>>>>>>>>>>DSLAM INSTALL >>>>>>>>>>>>>>>>>>>"
 
 local_build: $(PKG_BUILD_DIR)/.prepared

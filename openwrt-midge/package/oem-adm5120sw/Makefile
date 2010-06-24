@@ -3,6 +3,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=oem-adm5120sw
+PKG_VERSION=1
 PKG_RELEASE:=1
 
 CFLAGS:=
@@ -31,7 +32,7 @@ $(PKG_BUILD_DIR)/.configured:
 	-e "s%@CROSS_PREFIX@%$(KERNEL_CROSS)%g" \
 	-e "s%@CFLAGS@%$(CFLAGS)%g" \
 	-e "s%@KERNVER@%2.6.16%g" \
-	-e "s%@INST_PATH@%$(IDIR_SIGRAND_ADM5120SW)%g"	
+	-e "s%@INST_PATH@%$(IDIR_SIGRAND_ADM5120SW)%g"
 	touch $@
 
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
@@ -42,5 +43,4 @@ $(IPKG_SIGRAND_ADM5120SW):
 	install -d -m0755 $(IDIR_SIGRAND_ADM5120SW)/lib/modules/2.6.16
 	install -d -m0755 $(IDIR_SIGRAND_ADM5120SW)/etc/init.d
 	cd $(PKG_BUILD_DIR)/adm5120sw-drv && make install
-	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_SIGRAND_ADM5120SW)/CONTROL/control
-	$(IPKG_BUILD) $(IDIR_SIGRAND_ADM5120SW) $(PACKAGE_DIR)	
+	$(IPKG_BUILD) $(IDIR_SIGRAND_ADM5120SW) $(PACKAGE_DIR)

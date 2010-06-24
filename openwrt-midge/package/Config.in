@@ -5,8 +5,8 @@ menu "OpenWrt Package Selection"
 comment "Package categories"
 
 menu "Base system"
-source "package/busybox/Config.in"
 source "package/bridge/Config.in"
+source "package/busybox/Config.in"
 source "package/dnsmasq/Config.in"
 source "package/ipkg/Config.in"
 source "package/iptables/Config.in"
@@ -17,27 +17,27 @@ endmenu
 menu "Applications"
 source "package/autossh/Config.in"
 source "package/bitchx/Config.in"
-source "package/collectd/Config.in"
 source "package/cbtt/Config.in"
+source "package/collectd/Config.in"
 source "package/ctorrent/Config.in"
 source "package/dash/Config.in"
 source "package/deco/Config.in"
 source "package/elinks/Config.in"
 source "package/empty/Config.in"
 source "package/fetchmail/Config.in"
-source "package/gpsd/Config.in"
 source "package/gpg/Config.in"
+source "package/gpsd/Config.in"
 source "package/haserl/Config.in"
-source "package/kepler/Config.in"
 source "package/irssi/Config.in"
 source "package/jamvm/Config.in"
+source "package/kepler/Config.in"
 source "package/lcd4linux/Config.in"
 source "package/less/Config.in"
 source "package/lua/Config.in"
+source "package/mgetty/Config.in"
 source "package/microperl/Config.in"
 source "package/monit/Config.in"
 source "package/motion/Config.in"
-source "package/mgetty/Config.in"
 source "package/mutt/Config.in"
 source "package/nail/Config.in"
 source "package/nano/Config.in"
@@ -47,17 +47,17 @@ source "package/php5/Config.in"
 source "package/procmail/Config.in"
 source "package/psybnc/Config.in"
 menu "sablevm........................... A Java Virtual Machine (JVM) implementation"
-source "package/sablevm/Config.in"
-source "package/sablevm-classpath/Config.in"
 source "package/libffi-sable/Config.in"
+source "package/sablevm-classpath/Config.in"
+source "package/sablevm/Config.in"
 endmenu
 source "package/sane-backends/Config.in"
 source "package/screen/Config.in"
 source "package/syslog-ng/Config.in"
 menu "rrdtool........................... Round-Robin Database (RRD) libraries and tools"
+source "package/rrdcollect/Config.in"
 source "package/rrdtool/Config.in"
 source "package/rrdtool1/Config.in"
-source "package/rrdcollect/Config.in"
 endmenu
 source "package/vim/Config.in"
 endmenu
@@ -79,8 +79,8 @@ source "package/cifsmount/Config.in"
 source "package/click/Config.in"
 source "package/cups/Config.in"
 source "package/cutter/Config.in"
-source "package/dhcp/Config.in"
 source "package/dhcp-forwarder/Config.in"
+source "package/dhcp/Config.in"
 source "package/dropbear/Config.in"
 source "package/dsniff/Config.in"
 source "package/ebtables/Config.in"
@@ -90,21 +90,21 @@ source "package/ethtool/Config.in"
 source "package/ez-ipupdate/Config.in"
 source "package/fakeidentd/Config.in"
 source "package/fping/Config.in"
-source "package/fprobe/Config.in"
 source "package/fprobe-ulog/Config.in"
+source "package/fprobe/Config.in"
 source "package/freeradius/Config.in"
 source "package/frickin/Config.in"
-source "package/howl/Config.in"
 source "package/hostap-utils/Config.in"
 source "package/hostapd/Config.in"
+source "package/howl/Config.in"
 source "package/htpdate/Config.in"
 source "package/httping/Config.in"
 source "package/ifenslave/Config.in"
 source "package/iftop/Config.in"
 source "package/igmpproxy/Config.in"
 source "package/ipcad/Config.in"
-source "package/iproute2/Config.in"
 source "package/iperf/Config.in"
+source "package/iproute2/Config.in"
 source "package/ipsec-tools/Config.in"
 source "package/ipset/Config.in"
 source "package/iptables-snmp/Config.in"
@@ -164,18 +164,18 @@ source "package/sipp/Config.in"
 source "package/siproxd/Config.in"
 source "package/sipsak/Config.in"
 source "package/slurm/Config.in"
-source "package/snort/Config.in"
 source "package/snort-wireless/Config.in"
+source "package/snort/Config.in"
 source "package/socat/Config.in"
 source "package/squid/Config.in"
+source "package/srelay/Config.in"
 source "package/ssltunnel/Config.in"
 source "package/ssmtp/Config.in"
-source "package/srelay/Config.in"
-source "package/thttpd/Config.in"
-source "package/tmsnc/Config.in"
 source "package/tcpdump/Config.in"
+source "package/thttpd/Config.in"
 source "package/tinc/Config.in"
 source "package/tinyproxy/Config.in"
+source "package/tmsnc/Config.in"
 source "package/tor/Config.in"
 source "package/ttcp/Config.in"
 source "package/udp-broadcast-relay/Config.in"
@@ -183,8 +183,8 @@ source "package/ulogd/Config.in"
 source "package/updatedd/Config.in"
 source "package/utcpdump/Config.in"
 source "package/vgp/Config.in"
-source "package/vncrepeater/Config.in"
 source "package/vnc-reflector/Config.in"
+source "package/vncrepeater/Config.in"
 source "package/vnstat/Config.in"
 source "package/vpnc/Config.in"
 source "package/vrrpd/Config.in"
@@ -218,71 +218,71 @@ source "package/radvd/Config.in"
 endmenu
 
 menu "Libraries"
+source "package/base-files/Config.in" # libgcc
 source "package/cgilib/Config.in"
+source "package/clinkc/Config.in"
+source "package/curl/Config.in" # libcurl
+source "package/cyrus-sasl/Config.in"  # libsasl2
+source "package/expat/Config.in" # libexpat
+source "package/fcgi/Config.in"
+source "package/flac/Config.in"  # libflac
+source "package/freetype/Config.in"  # libfreetype
 source "package/glib/Config.in"
+source "package/gmp/Config.in"  # libgmp
+source "package/gnutls/Config.in" ## libgnutls
+source "package/gsm/Config.in" # libgsm
 source "package/id3lib/Config.in"
+source "package/jpeg/Config.in"  # libjpeg
 source "package/libamsel/Config.in"
 source "package/libao/Config.in"
 source "package/libart/Config.in"
 source "package/libcli/Config.in"
-source "package/clinkc/Config.in"
-source "package/curl/Config.in" # libcurl
 source "package/libdaemon/Config.in"
 source "package/libdb/Config.in"
 source "package/libdnet/Config.in"
 source "package/libelf/Config.in"
 source "package/libevent/Config.in"
-source "package/expat/Config.in" # libexpat
-source "package/flac/Config.in"  # libflac
-source "package/freetype/Config.in"  # libfreetype
-source "package/base-files/Config.in" # libgcc
 source "package/libgcrypt/Config.in"
 source "package/libgd/Config.in"
 source "package/libgdbm/Config.in"
-source "package/gmp/Config.in"  # libgmp
-source "package/gnutls/Config.in" ## libgnutls
 source "package/libgpg-error/Config.in"
-source "package/gsm/Config.in" # libgsm
 source "package/libiconv/Config.in"
 source "package/libid3tag/Config.in"
-source "package/jpeg/Config.in"  # libjpeg
-source "package/libtool/Config.in"  # libltdl
 source "package/liblockdev/Config.in"
 source "package/liblzo/Config.in"
-source "package/fcgi/Config.in"
 source "package/libmad/Config.in"
-source "package/matrixssl/Config.in"  # libmatrixssl
-source "package/mysql/Config.in"  # limysqlclient
-source "package/ncurses/Config.in"  # libncurses
 source "package/libnet/Config.in"
 source "package/libnids/Config.in"
 source "package/libogg/Config.in"
 source "package/libol/Config.in"
-source "package/opencdk/Config.in"  # libopencdk
-source "package/openh323/Config.in"
-source "package/openldap/Config.in"  # libopenldap
-source "package/openssl/Config.in"  # libopenssl
 source "package/libosip2/Config.in"
 source "package/libpcap/Config.in"
-source "package/pcre/Config.in"  # libpcre
-source "package/pwlib/Config.in"
 source "package/libpng/Config.in"
-source "package/popt/Config.in"  # libpopt
-source "package/postgresql/Config.in"  # libpq
 source "package/libpthread/Config.in"
-source "package/radiusclient-ng/Config.in" #libradiusclient-ng
-source "package/readline/Config.in"  # libreadline
-source "package/cyrus-sasl/Config.in"  # libsasl2
-source "package/speex/Config.in" # libspeex
-source "package/sqlite/Config.in" # libsqlite
-source "package/sqlite2/Config.in" # libsqlite2
 source "package/libtasn1/Config.in"
+source "package/libtool/Config.in"  # libltdl
 source "package/libupnp/Config.in"
 source "package/libusb/Config.in"
 source "package/libvorbis/Config.in"
 source "package/libvorbisidec/Config.in"
 source "package/libxml2/Config.in"
 source "package/libxslt/Config.in"
+source "package/matrixssl/Config.in"  # libmatrixssl
+source "package/mysql/Config.in"  # limysqlclient
+source "package/ncurses/Config.in"  # libncurses
+source "package/opencdk/Config.in"  # libopencdk
+source "package/openh323/Config.in"
+source "package/openldap/Config.in"  # libopenldap
+source "package/openssl/Config.in"  # libopenssl
+source "package/pcre/Config.in"  # libpcre
+source "package/popt/Config.in"  # libpopt
+source "package/postgresql/Config.in"  # libpq
+source "package/pwlib/Config.in"
+source "package/radiusclient-ng/Config.in" #libradiusclient-ng
+source "package/readline/Config.in"  # libreadline
+source "package/speex/Config.in" # libspeex
+source "package/sqlite/Config.in" # libsqlite
+source "package/sqlite2/Config.in" # libsqlite2
 source "package/uclibc++/Config.in"
 source "package/ustl/Config.in"
 source "package/zlib/Config.in"
@@ -320,12 +320,12 @@ source "package/bc/Config.in"
 source "package/gdbserver/Config.in"
 source "package/hdparm/Config.in"
 source "package/module-init-tools/Config.in"
-source "package/pcmcia-cs/Config.in"  # pcmcia-utils
-source "package/usbutils/Config.in"  # lsusb
 source "package/pciutils/Config.in"
+source "package/pcmcia-cs/Config.in"  # pcmcia-utils
 source "package/procps/Config.in"
 source "package/strace/Config.in"
 source "package/udev/Config.in"
+source "package/usbutils/Config.in"  # lsusb
 source "package/watchdog/Config.in"
 endmenu
 
@@ -344,16 +344,15 @@ source "package/miax/Config.in"
 endmenu
 
 menu "HamRadio"
-source "package/ax25-tools/Config.in"
-source "package/ax25-apps/Config.in"
 source "package/aprsdigi/Config.in"
-source "package/libax25/Config.in"
+#source "package/arlix-utils/Config.in"
+source "package/ax25-apps/Config.in"
+source "package/ax25-tools/Config.in"
+source "package/axgetput/Config.in"
 source "package/axip/Config.in"
+source "package/libax25/Config.in"
 source "package/linsv/Config.in"
 source "package/uronode/Config.in"
-source "package/axgetput/Config.in"
-#source "package/aprsd/Config.in"
-#source "package/arlix-utils/Config.in"
 endmenu
 
 
@@ -389,22 +388,23 @@ config BR2_PACKAGE_CONTEXT_HELP_OEM
 endchoice
 
 source "package/eocd/Config.in"
-source "package/tbuff/Config.in"
 source "package/oem-linkdeps/Config.in"
-source "package/oem-pppft-mp/Config.in"
 source "package/oem-mux/Config.in"
+source "package/oem-pppft-mp/Config.in"
+source "package/tbuff/Config.in"
 endmenu
+
 menu "Drivers"
 # OEM-ed package names
-source "package/oem-sethdlc/Config.in"
-source "package/oem-shdsl.g1/Config.in"
-source "package/oem-shdsl.g2/Config.in"
+source "package/oem-adm5120sw/Config.in"
+source "package/oem-dslam/Config.in"
 source "package/oem-e1.g1/Config.in"
 source "package/oem-e1.g2/Config.in"
 source "package/oem-rs232.g1/Config.in"
-source "package/oem-adm5120sw/Config.in"
+source "package/oem-sethdlc/Config.in"
+source "package/oem-shdsl.g1/Config.in"
+source "package/oem-shdsl.g2/Config.in"
 source "package/oem-voip/Config.in"
-source "package/oem-dslam/Config.in"
 
 
 endmenu

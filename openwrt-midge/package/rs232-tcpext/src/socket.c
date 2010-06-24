@@ -220,7 +220,8 @@ int socket_connect(socket_t *s, const char *host, const char *port)
 
 void socket_set_ip_tos(socket_t *s, int ip_tos)
 {
-    ip_tos &= IPTOS_TOS_MASK;
+    //ip_tos &= IPTOS_TOS_MASK;
+    ip_tos &= 0xFF;
     int rc = setsockopt(socket_fd(s), IPPROTO_IP, IP_TOS, &ip_tos, sizeof(ip_tos));
     if (rc < 0)
     {

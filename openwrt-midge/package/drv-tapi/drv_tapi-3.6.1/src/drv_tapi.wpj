@@ -1,0 +1,452 @@
+Document file - DO NOT EDIT
+
+<BEGIN> BUILD_PPC860gnu_BUILDRULE
+archive
+<END>
+
+<BEGIN> BUILD_PPC860gnu_MACRO_AR
+arppc
+<END>
+
+<BEGIN> BUILD_PPC860gnu_MACRO_ARCHIVE
+$(PRJ_DIR)/PPC860gnu/drv_tapi.a
+<END>
+
+<BEGIN> BUILD_PPC860gnu_MACRO_AS
+ccppc
+<END>
+
+<BEGIN> BUILD_PPC860gnu_MACRO_CC
+ccppc
+<END>
+
+<BEGIN> BUILD_PPC860gnu_MACRO_CFLAGS
+-g \
+	-O0 \
+	-mcpu=860 \
+	-ansi \
+	-nostdinc \
+	-DRW_MULTI_THREAD \
+	-D_REENTRANT \
+	-DTAPI_GR909 \
+	-DENABLE_OBSOLETE_BITFIELD_EVENT_INTERFACE \
+	-DTAPI_PACKET \
+	-fvolatile \
+	-fno-builtin \
+	-fno-for-scope \
+	-I$(WIND_BASE)/target/h \
+	-I$(PRJ_DIR) \
+	-I$(PRJ_DIR)/../include \
+	-I$(PRJ_DIR)/mpc/src \
+	-I$(PRJ_DIR)/common/src \
+	-DCPU=PPC860 \
+	-DVXWORKS \
+	-Wall \
+	-D_MPC860_ \
+	-D__PROTOTYPE_5_0 \
+	-DVXWORKS \
+	-DTAPI \
+	-DTAPI_DTMF \
+	-DTAPI_CID \
+	-DTAPI_POLL \
+	-DTAPI_VOICE \
+	-DIFXOS \
+	-I$(PRJ_DIR)/common/src \
+	-I$(PRJ_DIR)/lib/lib_bufferpool \
+	-I$(PRJ_DIR)/lib/lib_fifo \
+	-I$(PRJ_DIR) \
+	-I$(PRJ_DIR)/.. \
+	-I.
+<END>
+
+<BEGIN> BUILD_PPC860gnu_MACRO_CFLAGS_AS
+-g \
+	-mcpu=860 \
+	-ansi \
+	-nostdinc \
+	-fvolatile \
+	-fno-builtin \
+	-fno-for-scope \
+	-P \
+	-x \
+	assembler-with-cpp \
+	-I. \
+	-I$(WIND_BASE)/target/h \
+	-DCPU=PPC860
+<END>
+
+<BEGIN> BUILD_PPC860gnu_MACRO_CPP
+ccppc -E -P -xc
+<END>
+
+<BEGIN> BUILD_PPC860gnu_MACRO_LD
+ldppc
+<END>
+
+<BEGIN> BUILD_PPC860gnu_MACRO_LDDEPS
+
+<END>
+
+<BEGIN> BUILD_PPC860gnu_MACRO_LDFLAGS
+-X -N
+<END>
+
+<BEGIN> BUILD_PPC860gnu_MACRO_LD_PARTIAL_FLAGS
+-X -r
+<END>
+
+<BEGIN> BUILD_PPC860gnu_MACRO_NM
+nmppc
+<END>
+
+<BEGIN> BUILD_PPC860gnu_MACRO_OPTION_DEFINE_MACRO
+-D
+<END>
+
+<BEGIN> BUILD_PPC860gnu_MACRO_OPTION_INCLUDE_DIR
+-I
+<END>
+
+<BEGIN> BUILD_PPC860gnu_MACRO_POST_BUILD_RULE
+
+<END>
+
+<BEGIN> BUILD_PPC860gnu_MACRO_PRJ_LIBS
+
+<END>
+
+<BEGIN> BUILD_PPC860gnu_MACRO_SIZE
+sizeppc
+<END>
+
+<BEGIN> BUILD_PPC860gnu_RO_DEPEND_PATH
+{$(WIND_BASE)/target/h/} {$(WIND_BASE)/target/src/}
+<END>
+
+<BEGIN> BUILD_PPC860gnu_TC
+::tc_PPC860gnu
+<END>
+
+<BEGIN> BUILD_RULE_archive
+
+<END>
+
+<BEGIN> BUILD_RULE_drv_tapi.out
+
+<END>
+
+<BEGIN> BUILD_RULE_objects
+
+<END>
+
+<BEGIN> BUILD__CURRENT
+PPC860gnu
+<END>
+
+<BEGIN> BUILD__LIST
+PPC860gnu
+<END>
+
+<BEGIN> CORE_INFO_TYPE
+::prj_vxApp
+<END>
+
+<BEGIN> CORE_INFO_VERSION
+2.0
+<END>
+
+<BEGIN> FILE_P:/comacsd_driver/drv_tapi/src/drv_tapi_ioctl.c_objects
+drv_tapi_ioctl.o
+<END>
+
+<BEGIN> FILE_P:/comacsd_driver/drv_tapi/src/drv_tapi_ioctl.c_tool
+C/C++ compiler
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/../../../../../../../../../comacsd_driver/drv_tapi/src/drv_tapi_fxo.c_objects
+drv_tapi_fxo.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/../../../../../../../../../comacsd_driver/drv_tapi/src/drv_tapi_fxo.c_tool
+C/C++ compiler
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/../../../../../../../../../comacsd_driver/drv_tapi/src/drv_tapi_stream.c_objects
+drv_tapi_stream.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/../../../../../../../../../comacsd_driver/drv_tapi/src/drv_tapi_stream.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/common/src/sys_drv_debug.c_objects
+sys_drv_debug.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/common/src/sys_drv_debug.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/common/src/sys_drv_delaylib_vxworks.c_objects
+sys_drv_delaylib_vxworks.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/common/src/sys_drv_delaylib_vxworks.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/common/src/sys_drv_fifo.c_objects
+sys_drv_fifo.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/common/src/sys_drv_fifo.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/common/src/sys_drv_timerlib_vxworks.c_objects
+sys_drv_timerlib_vxworks.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/common/src/sys_drv_timerlib_vxworks.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_cid.c_objects
+drv_tapi_cid.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_cid.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_common.c_objects
+drv_tapi_common.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_common.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_dial.c_objects
+drv_tapi_dial.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_dial.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_event.c_objects
+drv_tapi_event.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_event.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_fxo.c_objects
+drv_tapi_fxo.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_fxo.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_init.c_objects
+drv_tapi_init.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_init.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_ioctl.c_objects
+drv_tapi_ioctl.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_ioctl.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_meter.c_objects
+drv_tapi_meter.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_meter.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_misc.c_objects
+drv_tapi_misc.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_misc.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_opcontrol.c_objects
+drv_tapi_opcontrol.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_opcontrol.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_pcm.c_objects
+drv_tapi_pcm.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_pcm.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_polling.c_objects
+drv_tapi_polling.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_polling.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_ring.c_objects
+drv_tapi_ring.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_ring.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_stream.c_objects
+drv_tapi_stream.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_stream.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_tone.c_objects
+drv_tapi_tone.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_tone.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_voice.c_objects
+drv_tapi_voice.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_voice.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_vxworks.c_objects
+drv_tapi_vxworks.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_vxworks.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_vxworks_bsp.c_objects
+drv_tapi_vxworks_bsp.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/drv_tapi_vxworks_bsp.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/lib/lib_bufferpool/lib_bufferpool.c_objects
+lib_bufferpool.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/lib/lib_bufferpool/lib_bufferpool.c_tool
+C/C++ compiler
+<END>
+
+
+
+<BEGIN> FILE_$(PRJ_DIR)/lib/lib_fifo/lib_fifo.c_objects
+lib_fifo.o
+<END>
+
+<BEGIN> FILE_$(PRJ_DIR)/lib/lib_fifo/lib_fifo.c_tool
+C/C++ compiler
+<END>
+
+<BEGIN> PROJECT_FILES
+$(PRJ_DIR)/drv_tapi_cid.c \
+	$(PRJ_DIR)/drv_tapi_common.c \
+	$(PRJ_DIR)/drv_tapi_dial.c \
+	$(PRJ_DIR)/drv_tapi_event.c \
+	$(PRJ_DIR)/drv_tapi_init.c \
+	$(PRJ_DIR)/drv_tapi_meter.c \
+	$(PRJ_DIR)/drv_tapi_misc.c \
+	$(PRJ_DIR)/drv_tapi_opcontrol.c \
+	$(PRJ_DIR)/drv_tapi_pcm.c \
+	$(PRJ_DIR)/drv_tapi_ring.c \
+	$(PRJ_DIR)/drv_tapi_tone.c \
+	$(PRJ_DIR)/drv_tapi_voice.c \
+	$(PRJ_DIR)/drv_tapi_vxworks.c \
+	$(PRJ_DIR)/drv_tapi_vxworks_bsp.c \
+	$(PRJ_DIR)/common/src/sys_drv_timerlib_vxworks.c \
+	$(PRJ_DIR)/common/src/sys_drv_delaylib_vxworks.c \
+	$(PRJ_DIR)/common/src/sys_drv_fifo.c \
+	$(PRJ_DIR)/common/src/sys_drv_debug.c \
+	$(PRJ_DIR)/lib/lib_bufferpool/lib_bufferpool.c \
+	$(PRJ_DIR)/lib/lib_fifo/lib_fifo.c \
+	$(PRJ_DIR)/drv_tapi_stream.c \
+	$(PRJ_DIR)/drv_tapi_polling.c \
+	$(PRJ_DIR)/drv_tapi_fxo.c \
+	$(PRJ_DIR)/drv_tapi_ioctl.c
+<END>
+
+<BEGIN> userComments
+High level TAPI 
+<END>
+

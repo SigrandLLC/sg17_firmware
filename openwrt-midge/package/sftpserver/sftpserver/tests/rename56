@@ -1,0 +1,30 @@
+put /dev/null file
+ls -1 file
+#file
+mv file newname
+ls -1 file
+#.*file does not exist.*
+ls -1 newname
+#newname
+put /dev/null otherfile
+mv newname otherfile
+#.*file already exists*
+mv -o newname otherfile
+ls -1 newname
+#.*file does not exist.*
+ls -1 otherfile
+#otherfile
+!mkdir dir
+mv dir anotherdir
+!mkdir dir2
+mv dir2 anotherdir
+#.*file already exists.*
+!mkdir nowritedir
+!touch nowritedir/file
+!chmod 555 nowritedir
+mv dir2 nowritedir/spong
+#.*permission denied.*
+mv -o dir2 nowritedir/spong
+#.*permission denied.*
+mv nowritedir/file cant_rm_source
+#.*permission denied.*
