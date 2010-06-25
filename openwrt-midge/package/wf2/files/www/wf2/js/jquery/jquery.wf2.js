@@ -289,13 +289,13 @@ jQuery.validator.addMethod("dynamicRange", function(value, element, params) {
 			$(selectObject).attr("selectedIndex", defaultIndex);
 		}
 	},
-	
+
 
 	/*
 	 * Plugin name: setSelectReadonly.
 	 *
 	 * Set/unset select element read-only.
-	 * 
+	 *
 	 * state:
 	 *  - true: disables select element and adds hidden field for sending value to server;
 	 *  - false: enables select element and removes hidden field.

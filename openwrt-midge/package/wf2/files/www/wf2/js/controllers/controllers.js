@@ -2,7 +2,7 @@
 var Controllers = {
 	/* container for displaying controllers content */
 	container: "#container",
-	
+
 	/* delegates to Page() defined in widgets.js */
 	Page: function() {
 		return new Page(this.container);
@@ -11,7 +11,7 @@ var Controllers = {
 
 Controllers.info = function() {
 	var page = this.Page();
-	
+
 	page.addTab({
 		"id": "info",
 		"name": "System information",
@@ -21,7 +21,7 @@ Controllers.info = function() {
 			c.setHelpPage("device-manage");
 			c.setHelpSection("web");
 			c.addTitle("System information");
-			
+
 			field = {
 				"type": "html",
 				"name": "sys_hostname",
@@ -29,7 +29,7 @@ Controllers.info = function() {
 				"kdb": "sys_hostname"
 			};
 			c.addWidget(field);
-			
+
 			field = {
 				"type": "html",
 				"name": "version",
@@ -37,7 +37,7 @@ Controllers.info = function() {
 				"str": config.getCachedOutput("/bin/cat /etc/version")
 			};
 			c.addWidget(field);
-			
+
 			field = {
 				"type": "html",
 				"name": "time",
@@ -45,7 +45,7 @@ Controllers.info = function() {
 				"cmd": "/bin/date"
 			};
 			c.addWidget(field);
-			
+
 			field = {
 				"type": "html",
 				"name": "uptime",
@@ -53,7 +53,7 @@ Controllers.info = function() {
 				"cmd": "/usr/bin/uptime |/usr/bin/cut -f1 -d ','"
 			};
 			c.addWidget(field);
-			
+
 			field = {
 				"type": "html",
 				"name": "la",
@@ -62,12 +62,12 @@ Controllers.info = function() {
 				"tip": "The first three numbers represent the number of active tasks on the system - processes that are actually running - averaged over the last 1, 5, and 15 minutes. The next entry shows the instantaneous current number of runnable tasks - processes that are currently scheduled to run rather than being blocked in a system call - and the total number of processes on the system. The final entry is the process ID of the process that most recently ran."
 			};
 			c.addWidget(field);
-			
+
 			/* Hardware section */
 			page.addBr("info");
 			c = page.addContainer("info");
 			c.addTitle("Hardware information");
-			
+
 			field = {
 				"type": "html",
 				"name": "ethernet",
@@ -83,14 +83,14 @@ Controllers.info = function() {
 				}()
 			};
 			c.addWidget(field);
-			
+
 			field = {
 				"type": "html",
 				"name": "shdsl",
 				"text": "SHDSL",
 				"str": function() {
 					var info = "";
-					
+
 					var ifaces = config.getData(config.getOEM("MR16H_DRVNAME"));
 					if (ifaces) {
 						$.each(ifaces, function(num, ifaceInfo) {
@@ -98,7 +98,7 @@ Controllers.info = function() {
 									mr16hModuleName(ifaceInfo.pcislot));
 						});
 					}
-					
+
 					ifaces = config.getData(config.getOEM("MR17H_DRVNAME"));
 					if (ifaces) {
 						$.each(ifaces, function(num, ifaceInfo) {
@@ -106,12 +106,12 @@ Controllers.info = function() {
 									mr17hModuleName(ifaceInfo.iface, ifaceInfo.pcislot));
 						});
 					}
-					
+
 					return info ? info : "none";
 				}()
 			};
 			c.addWidget(field);
-			
+
 			field = {
 				"type": "html",
 				"name": "e1",
@@ -126,7 +126,7 @@ Controllers.info = function() {
 									mr16gModuleName(ifaceInfo.pcislot));
 						});
 					}
-					
+
 					ifaces = config.getData(config.getOEM("MR17G_DRVNAME"));
 					if (ifaces) {
 						$.each(ifaces, function(num, ifaceInfo) {
@@ -134,12 +134,12 @@ Controllers.info = function() {
 									mr17gModuleName(ifaceInfo.pcislot));
 						});
 					}
-					
+
 					return info ? info : "none";
 				}()
 			};
 			c.addWidget(field);
-			
+
 			field = {
 				"type": "html",
 				"name": "rs232",
@@ -154,21 +154,21 @@ Controllers.info = function() {
 									mr17sModuleName(ifaceInfo.pcislot));
 						});
 					}
-					
+
 					return info ? info : "none";
 				}()
 			};
 			c.addWidget(field);
-			
+
 			field = {
 				"type": "html",
 				"name": "voip",
 				"text": "VoIP",
 				"str": function() {
 					var info = {};
-					
+
 					var channels = config.getCachedOutput("voipChannels");
-					
+
 					if (channels) {
 						$.each(channels.split("\n"), function(num, channel) {
 							if (channel.length == 0) {
@@ -214,7 +214,7 @@ Controllers.info = function() {
 			c.addWidget(field);
 		}
 	});
-	
+
 	page.generateTabs();
 };
 
@@ -235,14 +235,14 @@ Controllers.webface = function() {
 				"type": "select",
 				"name": "sys_interface_language",
 				"text": "Interface language",
-				"options": {"en": "English", "ru": _("Russian")} 
+				"options": {"en": "English", "ru": _("Russian")}
 			};
 			c.addWidget(field);
-		
+
 			c.addSubmit({"reload": true});
 		}
 	});
-	
+
 	page.generateTabs();
 };
 
@@ -267,18 +267,18 @@ Controllers.general = function() {
 				"message": "Enter correct hostname"
 			};
 			c.addWidget(field);
-		
+
 			c.addSubmit();
 		}
 	});
-	
+
 	page.generateTabs();
 };
 
 Controllers.security = function() {
 	var page = this.Page();
 	page.setHelpPage("passwd");
-	
+
 	page.addTab({
 		"id": "security",
 		"name": "Security",
@@ -288,7 +288,7 @@ Controllers.security = function() {
 			c.setSubsystem("security");
 			c.addTitle("Webface password");
 
-			field = { 
+			field = {
 				"type": "password",
 				"name": "htpasswd",
 				"id": "htpasswd",
@@ -297,8 +297,8 @@ Controllers.security = function() {
 				"validator": {"required": true, "alphanumU": true}
 			};
 			c.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "password",
 				"name": "htpasswd2",
 				"id": "htpasswd2",
@@ -307,7 +307,7 @@ Controllers.security = function() {
 				"validator": {"equalTo": "#htpasswd"}
 			};
 			c.addWidget(field);
-		
+
 			c.addSubmit({
 				/* set a value to a subsystem field before a form will be submitted */
 				"preSubmit": function() {
@@ -318,25 +318,25 @@ Controllers.security = function() {
 					$("#htpasswd2").val("");
 				}
 			});
-			
+
 			/* system (console) password */
 			page.addBr("security");
 			c = page.addContainer("security");
 			c.setHelpSection("passwd");
 			c.addTitle("System console password");
-		
+
 			/*
 			 * We set subsystem via API (with id 'subsystem') in previous form,
 			 * so, for excluding duplication of the id, we set it manually here.
 			 */
-			field = { 
+			field = {
 				"type": "hidden",
 				"name": "subsystem",
 				"id": "subsystem2"
 			};
 			c.addWidget(field);
 
-			field = { 
+			field = {
 				"type": "password",
 				"name": "passwd",
 				"id": "passwd",
@@ -345,8 +345,8 @@ Controllers.security = function() {
 				"validator": {"required": true, "alphanumU": true}
 			};
 			c.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "password",
 				"name": "passwd2",
 				"id": "passwd2",
@@ -355,7 +355,7 @@ Controllers.security = function() {
 				"validator": {"equalTo": "#passwd"}
 			};
 			c.addWidget(field);
-		
+
 			c.addSubmit({
 				/* set a value to a subsystem field before a form will be submitted */
 				"preSubmit": function() {
@@ -368,13 +368,13 @@ Controllers.security = function() {
 			});
 		}
 	});
-	
+
 	page.generateTabs();
 };
 
 Controllers.dns = function() {
 	var page = this.Page();
-	
+
 	page.addTab({
 		"id": "dns",
 		"name": "DNS",
@@ -393,7 +393,7 @@ Controllers.dns = function() {
 				"validator": {"ipAddr": true}
 			};
 			c.addWidget(field);
-		
+
 			field = {
 				"type": "text",
 				"name": "sys_dns_nameserver2",
@@ -404,7 +404,7 @@ Controllers.dns = function() {
 			};
 			c.addWidget(field);
 
-			field = { 
+			field = {
 				"type": "text",
 				"name": "sys_dns_domain",
 				"text": "Domain",
@@ -412,17 +412,17 @@ Controllers.dns = function() {
 				"tip": "Domain for this router. E.g., localnet."
 			};
 			c.addWidget(field);
-		
+
 			c.addSubmit();
 		}
 	});
-	
+
 	page.generateTabs();
 };
 
 Controllers.time = function() {
 	var page = this.Page();
-	
+
 	page.addTab({
 		"id": "time",
 		"name": "Time settings",
@@ -441,7 +441,7 @@ Controllers.time = function() {
 			};
 			c.addWidget(field);
 
-			field = { 
+			field = {
 				"type": "checkbox",
 				"name": "sys_ntpclient_enabled",
 				"text": "Use time synchronizing",
@@ -449,15 +449,15 @@ Controllers.time = function() {
 				"tip": "Time synchronization via NTP protocol."
 			};
 			c.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "sys_ntpclient_server",
 				"text": "Time server",
 				"descr": "Hostname or IP address of time server."
 			};
 			c.addWidget(field);
-			
+
 			field = {
 				"type": "select",
 				"name": "sys_timezone",
@@ -467,11 +467,11 @@ Controllers.time = function() {
 					var tz = {};
 					for (var i = -12; i <= 12; i++) {
 						var offset = i > 0 ? "+" + i : "" + i;
-						
+
 						/*
 						 * "Confusingly, the offset in the TZ value specifies the time value
 						 * you must add to the local time to get a UTC value, so this is positive
-						 * if the local time zone is west of the Prime Meridian and negative if 
+						 * if the local time zone is west of the Prime Meridian and negative if
 						 * it is east.", http://martybugs.net/wireless/openwrt/timesync.cgi
 						 * So, we inverse the value of GMT offset.
 						 */
@@ -482,8 +482,8 @@ Controllers.time = function() {
 				}()
 			};
 			c.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "checkbox",
 				"name": "sys_time_auto_switch",
 				"text": "Auto winter/summer time",
@@ -491,7 +491,7 @@ Controllers.time = function() {
 				"tip": "Adds one hour to local time in summer."
 			};
 			c.addWidget(field);
-			
+
 			/* update date and time after form saving */
 			c.addSubmit({
 				"onSuccess": function() {
@@ -503,14 +503,14 @@ Controllers.time = function() {
 			});
 		}
 	});
-	
+
 	page.generateTabs();
 };
 
 Controllers.logging = function() {
 	var page = this.Page();
 	page.setSubsystem("logging");
-	
+
 	page.addTab({
 		"id": "logging",
 		"name": "Logging",
@@ -520,7 +520,7 @@ Controllers.logging = function() {
 			c.setHelpPage("logging");
 			c.addTitle("Logging settings");
 
-			field = { 
+			field = {
 				"type": "select",
 				"name": "sys_log_dmesg_level",
 				"text": "Kernel console priority logging",
@@ -528,8 +528,8 @@ Controllers.logging = function() {
 				"options": {"1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7"}
 			};
 			c.addWidget(field);
-		
-			field = { 
+
+			field = {
 				"type": "select",
 				"name": "sys_log_buf_size",
 				"text": "Circular buffer",
@@ -538,27 +538,27 @@ Controllers.logging = function() {
 							"256": "256k", "512": "512k"}
 			};
 			c.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "checkbox",
 				"name": "sys_log_remote_enabled",
 				"text": "Enable remote syslog logging",
 				"descr": "Check this item if you want to enable remote logging"
 			};
 			c.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "sys_log_remote_server",
 				"text": "Remote syslog server",
 				"descr": "Domain name or ip address of remote syslog server"
 			};
 			c.addWidget(field);
-		
+
 			c.addSubmit();
 		}
 	});
-	
+
 	page.generateTabs();
 };
 
@@ -573,12 +573,12 @@ Controllers.tools = function() {
 			var c;
 			c = page.addContainer("syslog");
 			c.addTitle("syslog");
-			
+
 			/* working directory for script is ./wf2/sh, where execute.cgi is located */
 			c.addConsole("/sbin/logread");
 		}
 	});
-	
+
 	page.addTab({
 		"id": "dmesg",
 		"name": "dmesg",
@@ -589,7 +589,7 @@ Controllers.tools = function() {
 			c.addConsole("/bin/dmesg");
 		}
 	});
-	
+
 	page.addTab({
 		"id": "ping",
 		"name": "ping",
@@ -597,27 +597,27 @@ Controllers.tools = function() {
 			var c, field;
 			c = page.addContainer("ping");
 			c.addTitle("ping");
-			
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "host",
 				"text": "Host",
 				"defaultValue": "localhost"
 			};
 			c.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "count",
 				"text": "Count",
 				"defaultValue": "5"
 			};
 			c.addWidget(field);
-			
+
 			c.addRun("/usr/bin/ping -c %ARG %ARG", "count", "host");
 		}
 	});
-	
+
 	page.addTab({
 		"id": "mtr",
 		"name": "mtr",
@@ -625,33 +625,33 @@ Controllers.tools = function() {
 			var c, field;
 			c = page.addContainer("mtr");
 			c.addTitle("mtr");
-			
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "mtr_host",
 				"text": "Host",
 				"defaultValue": "localhost"
 			};
 			c.addWidget(field);
-			
-			field = { 
+
+			field = {
 				"type": "text",
 				"name": "mtr_count",
 				"text": "Count",
 				"defaultValue": "5"
 			};
 			c.addWidget(field);
-			
+
 			c.addRun("/usr/sbin/mtr -r -n -s 100 -c %ARG %ARG", "mtr_count", "mtr_host");
 		}
 	});
-	
+
 	page.generateTabs();
 };
 
 Controllers.reboot = function() {
 	var page = this.Page();
-	
+
 	page.addTab({
 		"id": "reboot",
 		"name": "Reboot",
@@ -660,18 +660,18 @@ Controllers.reboot = function() {
 			c = page.addContainer("reboot");
 			c.setHelpPage("reboot");
 			c.addTitle("Reboot");
-			
+
 			c.addAction("Reboot", "/sbin/reboot");
 		}
 	});
-	
+
 	page.generateTabs();
 };
 
 Controllers.cfg = function() {
 	var page = this.Page();
 	page.setHelpPage("cfg");
-	
+
 	page.addTab({
 		"id": "backup",
 		"name": "Backup configuration",
@@ -680,7 +680,7 @@ Controllers.cfg = function() {
 			c = page.addContainer("backup");
 			c.setHelpSection("backup");
 			c.addTitle("Backup configuration");
-			
+
 			/* tell what to do cfg.cgi */
 			field = {
 				"type": "hidden",
@@ -688,14 +688,14 @@ Controllers.cfg = function() {
 				"defaultValue": "backup"
 			};
 			c.addWidget(field);
-			
+
 			c.addSubmitNoAjax({
 				"submitName": "Backup",
 				"formAction": "/cfg.cgi"
 			});
 		}
 	});
-	
+
 	page.addTab({
 		"id": "restore",
 		"name": "Restore configuration",
@@ -704,7 +704,7 @@ Controllers.cfg = function() {
 			c = page.addContainer("restore");
 			c.setHelpSection("restore");
 			c.addTitle("Restore configuration");
-			
+
 			/* tell what to do cfg.cgi */
 			field = {
 				"type": "hidden",
@@ -712,7 +712,7 @@ Controllers.cfg = function() {
 				"defaultValue": "restore"
 			};
 			c.addWidget(field);
-			
+
 			field = {
 				"type": "file",
 				"name": "uploadfile",
@@ -720,7 +720,7 @@ Controllers.cfg = function() {
 				"descr": "Restore configuration from file."
 			};
 			c.addWidget(field);
-			
+
 			c.addSubmitNoAjax({
 				"submitName": "Restore",
 				"formAction": "/cfg.cgi",
@@ -729,7 +729,7 @@ Controllers.cfg = function() {
 			});
 		}
 	});
-	
+
 	page.addTab({
 		"id": "default",
 		"name": "Default configuration",
@@ -738,7 +738,7 @@ Controllers.cfg = function() {
 			c = page.addContainer("default");
 			c.setHelpSection("cfg-default");
 			c.addTitle("Restore default configuration");
-			
+
 			/* tell what to do cfg.cgi */
 			field = {
 				"type": "hidden",
@@ -746,14 +746,14 @@ Controllers.cfg = function() {
 				"defaultValue": "default"
 			};
 			c.addWidget(field);
-			
+
 			c.addSubmitNoAjax({
 				"submitName": "Restore",
 				"formAction": "/cfg.cgi"
 			});
 		}
 	});
-	
+
 	page.generateTabs();
 };
 
@@ -779,7 +779,7 @@ Controllers.debug = function() {
 			});
 		}
 	});
-	
+
 	page.generateTabs();
 };
 
@@ -877,7 +877,7 @@ Controllers.console = function() {
 
 							/* add new span for command text */
 							cmdSpan = $.create("span").insertBefore(cursor);
-							
+
 							consoleDiv.scrollTo('100%', 0, {axis: 'y'});
 //							consoleDiv.scrollTo($("#bottomAnchor"), 700);
 						}

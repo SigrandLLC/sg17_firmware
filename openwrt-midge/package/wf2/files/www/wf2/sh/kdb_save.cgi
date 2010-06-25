@@ -3,18 +3,18 @@
 	. /etc/templates/lib
 	. /www/lib/service.sh
 	. ./lib.sh
-	
+
 	KDB_PARAMS=""
-	
+
 	kdb_set_val() {
 		KDB_PARAMS="${KDB_PARAMS} : set '$1' "
 	}
-	
+
 	kdb_commit() {
 		eval "/usr/bin/kdb ${KDB_PARAMS}"
 		return $?
 	}
-	
+
 IFS='
 '
 	for variable in $(env |grep FORM); do
@@ -26,8 +26,8 @@ IFS='
 IFS=' '
 
 	kdb_commit
-	
+
 	[ -n "$FORM_subsystem" ] && update_configs_and_service_reload "$FORM_subsystem"
-	
+
 	echo ""
 ?>

@@ -16,7 +16,7 @@ Controllers.terminal = function ()
 {
     var page = this.Page();
     page.setSubsystem("terminal");
-	
+
     page.addTab({
         "id": "options",
         "name": "Options",
@@ -26,7 +26,7 @@ Controllers.terminal = function ()
             var c = page.addContainer("options");
 
             c.addTitle("Options", {"colspan": colSpan});
-			
+
             c.addTableHeader("Port|Enable|Name");
 
 			var ifaces = config.getData(config.getOEM("MR17S_DRVNAME"));
@@ -44,7 +44,7 @@ Controllers.terminal = function ()
 
 			$.each(ifaces, function(num, ifaceInfo) {
 				var iface = ifaceInfo.iface;
-				var field = { 
+				var field = {
 					"type": "hidden",
 					"name": "sys_demon_iface_name",
 					"defaultValue": iface
@@ -86,7 +86,7 @@ Controllers.terminal = function ()
                 "defaultValue" : 4096
             };
 		    c.addTableWidget(field, row, 2);
-			
+
 			c.addTableTfootStr("Ports settings see in Hardware/RS232", colSpan);
 
 	        c.addSubmit({"onSuccess" : function()
@@ -94,7 +94,7 @@ Controllers.terminal = function ()
 				var ifaces = config.getData(config.getOEM("MR17S_DRVNAME"));
 				$.each(ifaces, function(num, ifaceInfo) {
 					var iface = ifaceInfo.iface;
-					
+
 					if (config.getParsed($.sprintf("sys_demon_%s_enable", iface)) != 1)
 					{
 						$($.sprintf("#sys_demon_%s_name", iface)).val(iface);
@@ -109,7 +109,7 @@ Controllers.terminal = function ()
 			 "reload" : false});
         }
     });
-	
+
     var ifaces = config.getData(config.getOEM("MR17S_DRVNAME"));
 	func_en = 0;
 	$.each(ifaces, function(num, ifaceInfo) {
@@ -145,7 +145,7 @@ Controllers.terminal = function ()
 							str2 = str2.substring(0, str2.length - 6);
 							j -=5 ;
 						} else {
-							if ((1040 <= str2.charCodeAt(str2.length-1)) && (str2.charCodeAt(str2.length-1) <= 1103) 
+							if ((1040 <= str2.charCodeAt(str2.length-1)) && (str2.charCodeAt(str2.length-1) <= 1103)
 								|| (str2.charCodeAt(str2.length-1) == 1025) || (str2.charCodeAt(str2.length-1) == 1105))
 							{
 								var xmlhttp1 = getXmlHttp();
@@ -163,7 +163,7 @@ Controllers.terminal = function ()
 							bufSpans[cur_iface].html(str3.substring(0, str3.length - 6));
 						else
 							{
-								if ((1040 <= str3.charCodeAt(str3.length-1)) && (str3.charCodeAt(str3.length-1) <= 1103) 
+								if ((1040 <= str3.charCodeAt(str3.length-1)) && (str3.charCodeAt(str3.length-1) <= 1103)
 									|| (str3.charCodeAt(str3.length-1) == 1025) || (str3.charCodeAt(str3.length-1) == 1105))
 								{
 									var xmlhttp1 = getXmlHttp();
@@ -217,7 +217,7 @@ Controllers.terminal = function ()
 		}
 		scrollTab();
 //		$("#status").html($("#status").html()+"<br>");
-	};	
+	};
 
 
 	var func = function(param) {
@@ -300,7 +300,7 @@ Controllers.terminal = function ()
 			} else timer = 0;
 		}
 	};
-	
+
 	if ((timer == 0) && (func_en == 1))
 	{
 		tout = setTimeout(func, requesttime+2000);
@@ -319,16 +319,16 @@ Controllers.terminal = function ()
 
 
 
-	
-	
-	
+
+
+
 	ifaces.sort(sortfunc);
 	$.each(ifaces, function(num, ifaceInfo) {
 		var iface = ifaceInfo.iface;
 		if (config.getParsed($.sprintf("sys_demon_%s_enable", iface)) == 1)
 		{
 			var name = config.getParsed($.sprintf("sys_demon_%s_name", iface));
-			
+
 			page.addTab({
 				"id": $.sprintf("terminal%s", iface),
 				"name": $.sprintf("%s(%s)", name, iface),
@@ -346,7 +346,7 @@ Controllers.terminal = function ()
 					var onKeypress = function(src) {
 /*
 						var i;
-						for (i = 0; i < 256; i++) 
+						for (i = 0; i < 256; i++)
 								$("#status").html($("#status").html()+i+" - "+String.fromCharCode(i)+"<br>");
 						return 0;
 */
@@ -446,13 +446,13 @@ Controllers.terminal = function ()
 								str123 = String.fromCharCode(27)+"[23~"; // F12
 							break;
 						}
-						
+
 						if (ch > 1000)
 						{
 							src.which = undefined;
 							str123 = ""+String.fromCharCode(ch);
 						}
-						
+
 						if ((str123 != "") && (src.which == undefined))
 						{
 							cmd = $.sprintf("/sbin/tbuffctl -p%s -w \"%s\"", iface, str123);
@@ -486,10 +486,10 @@ Controllers.terminal = function ()
 //							alert("status"+xmlhttp.status);
 						}
 //						func(true);
-						
+
 						return false;
 					};
-					
+
 					consoleDivs[iface].keypress(onKeypress);
 
 					consoleDivs[iface].keydown(function(src) {
@@ -533,8 +533,8 @@ Controllers.terminal = function ()
 				} //func
 			}); //addTab
 		} // if
-	}); //each 
-	
+	}); //each
+
     page.generateTabs();
 
 };

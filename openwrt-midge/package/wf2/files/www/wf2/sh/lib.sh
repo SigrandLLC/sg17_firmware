@@ -2,7 +2,7 @@ update_configs_and_service_reload(){
 	local subsys="$1"
 	local s
 	local service
-	for s in $subsys; do 
+	for s in $subsys; do
 		update_configs $s
 		[ "$ERROR_MESSAGE" ] && return
 	done

@@ -12,7 +12,7 @@ RESULT=""
 # print indentation tabs, enabled only in debug mode
 print_indent() {
 	local level=$1
-	
+
 	if [ -n "$debug" ]; then
 		local i=0
 		while [ $i -lt $level ]; do
@@ -26,9 +26,9 @@ print_indent() {
 start_section() {
 	local name=$1
 	local level=$2
-	
+
 	print_indent $level
-	
+
 	RESULT="$RESULT \"$name\": {\n"
 }
 
@@ -36,9 +36,9 @@ start_section() {
 end_section() {
 	local level=$1
 	local comma=$2
-	
+
 	print_indent $level
-	
+
 	[ -n "$comma" ] && RESULT="$RESULT },\n" || RESULT="$RESULT }\n"
 }
 
@@ -48,9 +48,9 @@ add_var() {
 	local value=$2
 	local level=$3
 	local comma=$4
-	
+
 	print_indent $level
-	
+
 	RESULT="$RESULT \"$name\": \"$value\""
 	[ -n "$comma" ] && RESULT="$RESULT ,\n" || RESULT="$RESULT \n"
 }
@@ -61,7 +61,7 @@ RESULT="$RESULT {\n"
 # PWR section
 	start_section "pwr" 1
 		pwr_presence=`/bin/cat $conf/pwr_source`
-		
+
 		if [ "$pwr_presence" = "1" ]; then
 			add_var "presence" "$pwr_presence" 2 comma
 			add_var "unb" "`/bin/cat $conf/pwrunb`" 2 comma
@@ -70,11 +70,11 @@ RESULT="$RESULT {\n"
 			add_var "presence" "$pwr_presence" 2
 		fi
 	end_section 1 comma
-	
+
 # LINK section
 	start_section "link" 1
 		link_state=`/bin/cat $conf/link_state`
-		
+
 		if [ "$link_state" = "1" ]; then
 			add_var "link_state" "$link_state" 2 comma
 			add_var "rate" "`/bin/cat $conf/rate`" 2 comma
@@ -89,7 +89,7 @@ RESULT="$RESULT {\n"
 # PBO section
 	start_section "pbo" 1
 		pbo_mode=`/bin/cat $conf/pbo_mode`
-		
+
 		if [ "$pbo_mode" = "Forced" ]; then
 			add_var "mode" "$pbo_mode" 2 comma
 			add_var "val" "`/bin/cat $conf/pbo_val`" 2

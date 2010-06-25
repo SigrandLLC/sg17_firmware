@@ -210,7 +210,7 @@ Controllers.ifaceGeneral = function(c, iface) {
 		"preSubmit": function() {
 			/* remove old keys from additionalKeys */
 			additionalKeys.splice(0, additionalKeys.length);
-			
+
 			/* if this interface is used for accessing the web interface */
 			if (window.location.hostname.search(
 					config.get($.sprintf("sys_iface_%s_ipaddr", iface))) != -1) {
@@ -251,7 +251,7 @@ Controllers.ifaceGeneral = function(c, iface) {
 							return false;
 						}
 					}
-					
+
 					/* if this interface is enabled */
 					if ($("#enabled").attr("checked") == true) {
 						/* set auto=0 enabled=1 method=none for slave interfaces */

@@ -48,7 +48,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		var c, field;
 		c = page.addContainer("status");
 		c.addTitle($.sprintf("%s (module %s) status", iface, mr16hModuleName(pcislot)));
-		
+
 		field = {
 			"type": "html",
 			"name": "link_state",
@@ -64,7 +64,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		c = page.addContainer("settings");
 		c.addTitle($.sprintf("%s (module %s) settings", iface, mr16hModuleName(pcislot)));
 		c.setSubsystem($.sprintf("dsl.%s.%s", pcislot, pcidev));
-		
+
 		/* available TCPAM values */
 		var TCPAM = {
 			"tcpam32": "TCPAM32",
@@ -72,7 +72,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"tcpam8": "TCPAM8",
 			"tcpam4": "TCPAM4"
 		};
-		
+
 		/* updates parameters */
 		var onChangeSG16Code = function() {
 			var cfg = $("#cfg").val();
@@ -80,26 +80,26 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			var mode = $("#mode").val();
 			var code = $("#code").val();
 			var rate = $("#rate").val();
-			
+
 			if (cfg == "preact" && annex == "F") {
 				if (mode == "slave") {
 					$("#code").setOptionsForSelect({"options": {"tcpam32": TCPAM["tcpam32"]}});
 					$("#code").attr("readonly", true);
-					
+
 					$("#rate").setOptionsForSelect({"options": "automatic"});
 					$("#rate").attr("readonly", true);
-				} else {					
+				} else {
 					$("#code").removeAttr("readonly");
 					$("#rate").removeAttr("readonly");
-					
+
 					$("#code").setOptionsForSelect({
 							"options": {"tcpam16": TCPAM["tcpam16"], "tcpam32": TCPAM["tcpam32"]},
 							"curValue": code
 					});
-					
+
 					/* update varibale's value */
 					code = $("#code").val();
-					
+
 					if (code == "tcpam16") {
 						rateList("#rate", 192, 2304, 64, rate);
 					} else {
@@ -109,7 +109,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			} else if (cfg == "preact") {
 				$("#code").setOptionsForSelect({"options": {"tcpam16": TCPAM["tcpam16"]}});
 				$("#code").attr("readonly", true);
-				
+
 				if (mode == "slave") {
 					$("#rate").setOptionsForSelect({"options": "automatic"});
 					$("#rate").attr("readonly", true);
@@ -120,12 +120,12 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			} else {
 				$("#code").removeAttr("readonly");
 				$("#rate").removeAttr("readonly");
-				
+
 				$("#code").setOptionsForSelect({"options": TCPAM, "curValue": code});
-				
+
 				/* update varibale's value */
 				code = $("#code").val();
-				
+
 				switch (code) {
 					case "tcpam4":
 						rateList("#rate", 64, 704, 64, rate);
@@ -142,10 +142,10 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				}
 			}
 		};
-		
+
 		/* add parameters */
-		
-		field = { 
+
+		field = {
 			"type": "select",
 			"name": $.sprintf("sys_pcicfg_s%s_%s_mode", pcislot, pcidev),
 			"id": "mode",
@@ -155,10 +155,10 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"onChange": onChangeSG16Code
 		};
 		c.addWidget(field);
-		
+
 		var name = $.sprintf("sys_pcicfg_s%s_%s_rate", pcislot, pcidev);
 		var rate = config.get(name);
-		field = { 
+		field = {
 			"type": "select",
 			"name": name,
 			"id": "rate",
@@ -167,8 +167,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"options": rate
 		};
 		c.addWidget(field);
-		
-		field = { 
+
+		field = {
 			"type": "select",
 			"name": $.sprintf("sys_pcicfg_s%s_%s_code", pcislot, pcidev),
 			"id": "code",
@@ -178,8 +178,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"onChange": onChangeSG16Code
 		};
 		c.addWidget(field);
-		
-		field = { 
+
+		field = {
 			"type": "select",
 			"name": $.sprintf("sys_pcicfg_s%s_%s_cfg", pcislot, pcidev),
 			"id": "cfg",
@@ -189,8 +189,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"onChange": onChangeSG16Code
 		};
 		c.addWidget(field);
-		
-		field = { 
+
+		field = {
 			"type": "select",
 			"name": $.sprintf("sys_pcicfg_s%s_%s_annex", pcislot, pcidev),
 			"id": "annex",
@@ -200,8 +200,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"onChange": onChangeSG16Code
 		};
 		c.addWidget(field);
-		
-		field = { 
+
+		field = {
 			"type": "select",
 			"name": $.sprintf("sys_pcicfg_s%s_%s_crc", pcislot, pcidev),
 			"text": "CRC",
@@ -209,8 +209,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"options": {"crc32": "CRC32", "crc16": "CRC16"}
 		};
 		c.addWidget(field);
-		
-		field = { 
+
+		field = {
 			"type": "select",
 			"name": $.sprintf("sys_pcicfg_s%s_%s_fill", pcislot, pcidev),
 			"text": "Fill",
@@ -218,8 +218,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"options": {"fill_ff": "FF", "fill_7e": "7E"}
 		};
 		c.addWidget(field);
-		
-		field = { 
+
+		field = {
 			"type": "select",
 			"name": $.sprintf("sys_pcicfg_s%s_%s_inv", pcislot, pcidev),
 			"text": "Inversion",
@@ -227,24 +227,24 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"options": {"normal": "off", "invert": "on"}
 		};
 		c.addWidget(field);
-		
+
 		c.addSubmit();
-		
+
 		onChangeSG16Code();
 	};
-	
+
 	/* return title for MR17H */
 	var getSg17Title = function() {
-		return $.sprintf("%s (module %s, %s compatibility) ", iface, 
+		return $.sprintf("%s (module %s, %s compatibility) ", iface,
 				mr17hModuleName(iface, pcislot), (chipVer == "v1") ? "base" : "extended");
 	};
-	
+
 	/* show status for 17 series */
 	var sg17Status = function(dsl17status) {
 		var c, field;
 		c = page.addContainer("status", {"clear": true});
 		c.addTitle(getSg17Title() + "status");
-		
+
 		field = {
 			"type": "html",
 			"name": "link_state",
@@ -252,7 +252,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"str": dsl17status.link.link_state == "1" ? "online" : "offline"
 		};
 		c.addWidget(field);
-		
+
 		/* power present */
 		if (dsl17status.pwr.presence == "1") {
 			field = {
@@ -262,7 +262,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"str": dsl17status.pwr.unb == "0" ? "balanced" : "unbalanced"
 			};
 			c.addWidget(field);
-			
+
 			field = {
 				"type": "html",
 				"name": "pwrOvl",
@@ -271,7 +271,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			};
 			c.addWidget(field);
 		}
-		
+
 		/* online */
 		if (dsl17status.link.link_state == "1") {
 			field = {
@@ -281,7 +281,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"str": dsl17status.link.rate
 			};
 			c.addWidget(field);
-			
+
 			field = {
 				"type": "html",
 				"name": "actualLineCode",
@@ -289,7 +289,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"str": dsl17status.link.tcpam
 			};
 			c.addWidget(field);
-			
+
 			field = {
 				"type": "html",
 				"name": "actualClockMode",
@@ -297,7 +297,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"str": dsl17status.link.clkmode
 			};
 			c.addWidget(field);
-			
+
 			/* statistics */
 			field = {
 				"type": "html",
@@ -307,7 +307,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"str": dsl17status.link.statistics_row.split(" ")[0]
 			};
 			c.addWidget(field);
-			
+
 			field = {
 				"type": "html",
 				"name": "loopAttn",
@@ -316,7 +316,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			};
 			c.addWidget(field);
 		}
-		
+
 		/* PBO */
 		field = {
 			"type": "html",
@@ -326,7 +326,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"str": dsl17status.pbo.mode
 		};
 		c.addWidget(field);
-		
+
 		if (dsl17status.pbo.mode == "Forced") {
 			field = {
 				"type": "html",
@@ -338,14 +338,14 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			c.addWidget(field);
 		}
 	};
-	
+
 	/* show settings for MR17H */
 	var sg17Settings = function() {
 		var c, field;
 		c = page.addContainer("settings");
 		c.addTitle(getSg17Title() + "settings");
 		c.setSubsystem($.sprintf("dsl.%s.%s", pcislot, pcidev));
-		
+
 		/* control mode change (manual or by EOCd) */
 		var onCtrlChange = function() {
 			if ($("#ctrl").val() == "manual") {
@@ -572,7 +572,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			if ($(".widgetEocdMaster").length > 0) {
 				return;
 			}
-			
+
 			/* regs */
 			field = {
 				"type": "text",
@@ -618,10 +618,10 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			};
 			c.addWidget(field, {"type": "insertBefore", "anchor": $("#pbomode").parents("tr")});
 		};
-		
+
 		/* add parameters which are common for all controls and modes */
-		
-		field = { 
+
+		field = {
 			"type": "checkbox",
 			"name": $.sprintf("sys_mux_%s_mxen", iface),
 			"text": "Enable multiplexing",
@@ -629,8 +629,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"tip": "This option is equivalent to MXEN on a multiplexing page."
 		};
 		c.addWidget(field);
-		
-		field = { 
+
+		field = {
 			"type": "select",
 			"name": $.sprintf("sys_pcicfg_s%s_%s_ctrl", pcislot, pcidev),
 			"id": "ctrl",
@@ -640,8 +640,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"onChange": onCtrlChange
 		};
 		c.addWidget(field);
-		
-		field = { 
+
+		field = {
 			"type": "select",
 			"name": $.sprintf("sys_pcicfg_s%s_%s_advlink", pcislot, pcidev),
 			"id": "advlink",
@@ -650,8 +650,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"options": "off on"
 		};
 		c.addWidget(field);
-		
-		field = { 
+
+		field = {
 			"type": "select",
 			"name": $.sprintf("sys_pcicfg_s%s_%s_crc", pcislot, pcidev),
 			"text": "CRC",
@@ -659,8 +659,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"options": {"crc32": "CRC32", "crc16": "CRC16"}
 		};
 		c.addWidget(field);
-		
-		field = { 
+
+		field = {
 			"type": "select",
 			"name": $.sprintf("sys_pcicfg_s%s_%s_fill", pcislot, pcidev),
 			"text": "Fill",
@@ -704,23 +704,23 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 
 		onCtrlChange();
 	};
-	
+
 	/* show main statistics page with unit selection */
 	var showStatistics = function(eocInfo) {
 		var c, field;
 		c = page.addContainer("statistics");
 		c.setHelpPage("eoc");
-		
+
 		/* this means that we received not JSON data */
 		if (typeof eocInfo != "object") {
 			c.addTitle("Error on the device while performing AJAX request or router is offline.");
 			return;
 		}
-		
+
 		/* if error, show corresponding field */
 		if (eocInfo.eoc_error == "1") {
 			c.addTitle("EOC error");
-			
+
 			field = {
 				"type": "html",
 				"name": "eoc_error",
@@ -729,21 +729,21 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"str": eocInfo.err_string
 			};
 			c.addWidget(field);
-			
+
 			return;
 		}
-		
+
 		c.addTitle("Select channel unit");
-		
+
 		var onUnitChange = function() {
 			/* save selected unit in cookie */
 			$.cookie("unit", $("#unit").val());
-			
+
 			/* remove br and all forms, except first */
 			$("form:eq(1) ~ br, form:eq(0) ~ form").remove();
 
 			c.removeStaticMessages();
-			
+
 			if ($("#unit").val() == "general") {
 				config.cmdExecute({
 					"cmd": $.sprintf("%s -j -i%s", eocInfoCmd, iface),
@@ -758,7 +758,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				});
 			}
 		};
-		
+
 		/* create hash with channel units */
 		var units = {"general": "General"};
 		if (eocInfo.unit_num > 0) {
@@ -774,9 +774,9 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				units['sru' + i] = "SRU" + i;
 			}
 		}
-		
+
 		/* value of this widget is saved in cookie, because we need it between browser requests */
-		field = { 
+		field = {
 			"type": "select",
 			"name": "unit",
 			"cookie": true,
@@ -786,28 +786,28 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"onChange": onUnitChange
 		};
 		c.addWidget(field);
-		
+
 		page.addBr("statistics");
-		
+
 		onUnitChange();
 	};
-	
+
 	/* show general interface statistics */
 	var showGeneral = function(eocInfo) {
 		var c, field;
 		c = page.addContainer("statistics");
 		c.setHelpPage("eoc");
-		
+
 		/* this means that we received not JSON data */
 		if (typeof eocInfo != "object") {
 			c.addTitle("Error on the device while performing AJAX request or router is offline.");
 			return;
 		}
-		
+
 		/* if error, show corresponding field */
 		if (eocInfo.eoc_error == "1") {
 			c.addTitle("EOC error");
-			
+
 			field = {
 				"type": "html",
 				"name": "eoc_error",
@@ -816,12 +816,12 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"str": eocInfo.err_string
 			};
 			c.addWidget(field);
-			
+
 			return;
 		}
-	
+
 		c.addTitle(iface + " state");
-	
+
 		field = {
 			"type": "html",
 			"name": "status",
@@ -830,7 +830,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"str": eocInfo.link == "1" ? "online": "offline"
 		};
 		c.addWidget(field);
-		
+
 		field = {
 			"type": "html",
 			"name": "regs",
@@ -839,7 +839,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"str": eocInfo.status.reg_num
 		};
 		c.addWidget(field);
-		
+
 		field = {
 			"type": "html",
 			"name": "pairs",
@@ -848,7 +848,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"str": eocInfo.loop_num
 		};
 		c.addWidget(field);
-		
+
 		field = {
 			"type": "html",
 			"name": "rate",
@@ -857,7 +857,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"str": eocInfo.status.rate
 		};
 		c.addWidget(field);
-		
+
 		field = {
 			"type": "html",
 			"name": "annex",
@@ -866,7 +866,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			"str": eocInfo.status.annex
 		};
 		c.addWidget(field);
-		
+
 		field = {
 			"type": "html",
 			"name": "encoding",
@@ -876,72 +876,72 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		};
 		c.addWidget(field);
 	};
-	
+
 	/* show unit statistics */
 	var showStatUnit = function(eocInfo) {
 		/* Show current state of interface */
-  
+
 		/* Show current state of interface */
 		var showState = function(loop, side, c) {
 			var field;
 			var row = c.addTableRow();
-			
+
 			field = {
 				"type": "html",
 				"name": "state_side_" + side + loop.name,
 				"str": side
 			};
 			c.addTableWidget(field, row);
-			
+
 			field = {
 				"type": "html",
 				"name": "state_loop_" + side + loop.name,
 				"str": loop.name
 			};
 			c.addTableWidget(field, row);
-			
+
 			field = {
 				"type": "html",
 				"name": "snr_" + side + loop.name,
 				"str": loop.cur.snr
 			};
 			c.addTableWidget(field, row);
-			
+
 			field = {
 				"type": "html",
 				"name": "lattn_" + side + loop.name,
 				"str": loop.cur.lattn
 			};
 			c.addTableWidget(field, row);
-			
+
 			field = {
 				"type": "html",
 				"name": "es_" + side + loop.name,
 				"str": loop.cur.es
 			};
 			c.addTableWidget(field, row);
-			
+
 			field = {
 				"type": "html",
 				"name": "ses_" + side + loop.name,
 				"str": loop.cur.ses
 			};
 			c.addTableWidget(field, row);
-			
+
 			field = {
 				"type": "html",
 				"name": "crc_" + side + loop.name,
 				"str": loop.cur.crc
 			};
 			c.addTableWidget(field, row);
-			
+
 			field = {
 				"type": "html",
 				"name": "losws_" + side + loop.name,
 				"str": loop.cur.losws
 			};
 			c.addTableWidget(field, row);
-			
+
 			field = {
 				"type": "html",
 				"name": "uas_" + side + loop.name,
@@ -949,10 +949,10 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			};
 			c.addTableWidget(field, row);
 		};
-		
+
 		/*
 		 * Show relative counters for interface.
-		 * 
+		 *
 		 * loop — current loop;
 		 * side — current side name;
 		 * c — container;
@@ -963,77 +963,77 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 		 */
 		var showRelativeCounters = function(loop, side, c, unit, sideNum, loopNum, row) {
 			var field;
-			
+
 			/* empty row if it is specified */
 			if (row) {
 				row.empty();
 			} else {
 				row = c.addTableRow();
 			}
-			
+
 			field = {
 				"type": "html",
 				"name": "tdate_" + side + loop.name,
 				"str": loop.rel.date
 			};
 			c.addTableWidget(field, row);
-			
+
 			field = {
 				"type": "html",
 				"name": "ttime_" + side + loop.name,
 				"str": loop.rel.time
 			};
 			c.addTableWidget(field, row);
-			
+
 			field = {
 				"type": "html",
 				"name": "relative_side_" + side + loop.name,
 				"str": side
 			};
 			c.addTableWidget(field, row);
-			
+
 			field = {
 				"type": "html",
 				"name": "relative_loop_" + side + loop.name,
 				"str": loop.name
 			};
 			c.addTableWidget(field, row);
-			
+
 			field = {
 				"type": "html",
 				"name": "tes_" + side + loop.name,
 				"str": loop.rel.es
 			};
 			c.addTableWidget(field, row);
-			
+
 			field = {
 				"type": "html",
 				"name": "tses_" + side + loop.name,
 				"str": loop.rel.ses
 			};
 			c.addTableWidget(field, row);
-			
+
 			field = {
 				"type": "html",
 				"name": "tcrc_" + side + loop.name,
 				"str": loop.rel.crc
 			};
 			c.addTableWidget(field, row);
-			
+
 			field = {
 				"type": "html",
 				"name": "tlosws_" + side + loop.name,
 				"str": loop.rel.losws
 			};
 			c.addTableWidget(field, row);
-			
+
 			field = {
 				"type": "html",
 				"name": "tuas_" + side + loop.name,
 				"str": loop.rel.uas
 			};
 			c.addTableWidget(field, row);
-			
+
 			/*
 			 * when user presses reset button, first AJAX request zeroes relative counters,
 			 * second AJAX request updates table's row.
@@ -1054,7 +1054,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 									if (typeof eocInfo != "object" || eocInfo.eoc_error == "1") {
 										row.remove();
 										row = c.addTableRow();
-										
+
 										var field = {
 											"type": "html",
 											"name": "eoc_error",
@@ -1063,10 +1063,10 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 												: "EOC ERROR: " + eocInfo.err_string
 										};
 										c.addTableWidget(field, row, 10);
-										
+
 										return;
 									}
-									
+
 									showRelativeCounters(eocInfo.sides[sideNum].loops[loopNum],
 											eocInfo.sides[sideNum].name, c, unit, sideNum,
 											loopNum, row);
@@ -1079,74 +1079,74 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			};
 			c.addTableWidget(field, row);
 		};
-		
+
 		/* show current 15 minutes and 1 day intervals */
 		var showCurrentIntervals = function(loop, side, c) {
 			var field;
-			
+
 			/*
 			 * name — name of interval;
 			 * keyName — name for key in "cur" section for current loop.
 			 */
 			var showInterval = function(name, keyName) {
 				var row = c.addTableRow();
-				
+
 				field = {
 					"type": "html",
 					"name": "name_" + side + loop.name + keyName,
 					"str": name
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "side_" + side + loop.name + keyName,
 					"str": side
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "loop_" + side + loop.name + keyName,
 					"str": loop.name
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "es_" + side + loop.name + keyName,
 					"str": loop.cur[keyName].es
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "ses_" + side + loop.name + keyName,
 					"str": loop.cur[keyName].ses
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "crc_" + side + loop.name + keyName,
 					"str": loop.cur[keyName].crc
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "losws_" + side + loop.name + keyName,
 					"str": loop.cur[keyName].losws
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "uas_" + side + loop.name + keyName,
 					"str": loop.cur[keyName].uas
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "elaps_" + side + loop.name + keyName,
@@ -1154,74 +1154,74 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				};
 				c.addTableWidget(field, row);
 			};
-			
+
 			showInterval("Curr 15 minutes", "m15int");
 			showInterval("Curr 1 day", "d1int");
 		};
-		
+
 		/* show all 15 minutes intervals */
 		var show15MinIntervals = function(loop, side, c) {
 			var field;
-			
+
 			$.each(loop.m15int, function(num, interval) {
 				var row = c.addTableRow();
-			
+
 				field = {
 					"type": "html",
 					"name": "int_day_" + side + loop.name + interval.int,
 					"str": interval.int_day
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "time_start_" + side + loop.name + interval.int,
 					"str": interval.time_start
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "time_end_" + side + loop.name + interval.int,
 					"str": interval.time_end
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "es_" + side + loop.name + interval.int,
 					"str": interval.es
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "ses_" + side + loop.name + interval.int,
 					"str": interval.ses
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "crc_" + side + loop.name + interval.int,
 					"str": interval.crc
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "losws_" + side + loop.name + interval.int,
 					"str": interval.losws
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "uas_" + side + loop.name + interval.int,
 					"str": interval.uas
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "mon_pers_" + side + loop.name + interval.int,
@@ -1230,56 +1230,56 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				c.addTableWidget(field, row);
 			});
 		};
-		
+
 		/* show all 1 days intervals */
 		var show1DayIntervals = function(loop, side, c) {
 			var field;
-			
+
 			$.each(loop.d1int, function(num, interval) {
 				var row = c.addTableRow();
-				
+
 				field = {
 					"type": "html",
 					"name": "time_end_" + side + loop.name + interval.int,
 					"str": interval.int_day
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "es_" + side + loop.name + interval.int,
 					"str": interval.es
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "ses_" + side + loop.name + interval.int,
 					"str": interval.ses
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "crc_" + side + loop.name + interval.int,
 					"str": interval.crc
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "losws_" + side + loop.name + interval.int,
 					"str": interval.losws
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "uas_" + side + loop.name + interval.int,
 					"str": interval.uas
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "mon_pers_" + side + loop.name + interval.int,
@@ -1288,7 +1288,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				c.addTableWidget(field, row);
 			});
 		};
-		
+
 		/* show sensors status */
 		var showSensors = function(eocInfo, c) {
 			var field;
@@ -1298,24 +1298,24 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				c.addTitle("Error on the device while performing AJAX request or router is offline.");
 				return;
 			}
-			
+
 			$.each(eocInfo.sensors, function(num, sensor) {
 				var row = c.addTableRow();
-				
+
 				field = {
 					"type": "html",
 					"name": "sensor_num" + sensor.num,
 					"str": sensor.num
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "sensor_state" + sensor.num,
 					"str": sensor.cur
 				};
 				c.addTableWidget(field, row);
-				
+
 				field = {
 					"type": "html",
 					"name": "sensor_counter" + sensor.num,
@@ -1324,21 +1324,21 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				c.addTableWidget(field, row);
 			});
 		};
-		
+
 		/* container */
 		var c = page.addContainer("statistics");
 		c.setHelpPage("eoc");
-		
+
 		/* this means that we received not JSON data */
 		if (typeof eocInfo != "object") {
 			c.addTitle("Error on the device while performing AJAX request or router is offline.");
 			return;
 		}
-		
+
 		/* if error, show corresponding field */
 		if (eocInfo.eoc_error == "1") {
 			c.addTitle("EOC error");
-			
+
 			var field = {
 				"type": "html",
 				"name": "eoc_error",
@@ -1347,7 +1347,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"str": eocInfo.err_string
 			};
 			c.addWidget(field);
-			
+
 			return;
 		}
 
@@ -1396,10 +1396,10 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
         state_str = "Online";
       }else if( status == "2" ){
         state_str = "Discovered";
-      }else{ 
+      }else{
         state_str = "Not discovered";
       }
-*/      
+*/
 			c.addStaticMessage("Unit state: " + state_str);
 /*
       field = {
@@ -1409,10 +1409,10 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
         "str": state_str
       };
       c.addWidget(field);
-*/ 
-    }    
+*/
+    }
 
-    var unit = eocInfo.unit;    
+    var unit = eocInfo.unit;
   	config.cmdExecute({
 			"cmd": $.sprintf("%s -j -i%s", eocInfoCmd, iface),
 			"callback": function(eocInfo) {
@@ -1430,7 +1430,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
           }
           return;
         }
-          
+
         var regIndex = unit.replace("SRU", "");
         regIndex = parseInt(regIndex, 10);
 //        alert( "regIndex = " + regIndex );
@@ -1439,7 +1439,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
         if (regIndex < actual){
           showUnitStatus(1,c);
         }else if( regIndex == actual ){
-          // cases: 
+          // cases:
           // 1: link up => online
           // 2: link_down => discovery
           if( eocInfo.link == "1" )
@@ -1452,18 +1452,18 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			},
 			"dataType": "json"
 		});
-    
+
 
 		/* add State table */
 		c.addTitle(iface + " state", {"colspan": 9});
 		c.addTableHeader("Side|Pair|SNR margin|LoopAttn|ES|SES|CV|LOSWS|UAS");
-		
+
 		$.each(eocInfo.sides, function(num, side) {
 			$.each(side.loops, function(num, loop) {
 				showState(loop, side.name, c);
 			});
 		});
-		
+
 		/* for regenerators add Sensors table */
 		if (eocInfo.unit.search("SRU") != -1) {
 			page.addBr("statistics");
@@ -1471,36 +1471,36 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			c.setHelpPage("eoc");
 			c.addTitle(iface + " sensors", {"colspan": 9});
 			c.addTableHeader("Sensor #|Current state|Event Counter");
-			
+
 			showSensors(eocInfo, c);
 		}
-		
+
 		/* add Relative counters table */
 		page.addBr("statistics");
 		c = page.addContainer("statistics");
 		c.setHelpPage("eoc");
 		c.addTitle(iface + " relative counters", {"colspan": 10});
 		c.addTableHeader("Start date|Start time|Side|Pair|ES|SES|CV|LOSWS|UAS|Reset");
-		
+
 		$.each(eocInfo.sides, function(sideNum, side) {
 			$.each(side.loops, function(loopNum, loop) {
 				showRelativeCounters(loop, side.name, c, eocInfo.unit, sideNum, loopNum);
 			});
 		});
-		
+
 		/* add Current intervals */
 		page.addBr("statistics");
 		c = page.addContainer("statistics");
 		c.setHelpPage("eoc");
 		c.addTitle(iface + " current intervals", {"colspan": 9});
 		c.addTableHeader("Interval|Side|Pair|ES|SES|CV|LOSWS|UAS|Time elapsed");
-		
+
 		$.each(eocInfo.sides, function(num, side) {
 			$.each(side.loops, function(num, loop) {
 				showCurrentIntervals(loop, side.name, c);
 			});
 		});
-		
+
 		/* add 15 minutes intervals */
 		$.each(eocInfo.sides, function(num, side) {
 			$.each(side.loops, function(num, loop) {
@@ -1515,7 +1515,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				show15MinIntervals(loop, side.name, c);
 			});
 		});
-		
+
 		/* add 1 days intervals */
 		$.each(eocInfo.sides, function(num, side) {
 			$.each(side.loops, function(num, loop) {
@@ -1711,7 +1711,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				/* if this profile is in use */
 				if (value == profile.name) {
 					profileIfacesKeys.push(key);
-					
+
 					/* get pcislot and pcidev of interface, which is using this profile */
 					var pciSlotPciDev = key.replace("sys_eocd_chan_s", "").replace("_confprof", "")
 							.split("_");
@@ -1765,7 +1765,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			if (!isAdding) {
 				return {"addAllowed": true};
 			}
-			
+
 			var newProfileName = $("#name").val();
 			var profiles = config.getParsed("sys_eocd_sprof_*");
 			var uniqueProfile = true;
