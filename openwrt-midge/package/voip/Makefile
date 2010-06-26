@@ -1,6 +1,6 @@
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=oem-voip
+PKG_NAME:=voip
 PKG_VERSION:=0.1
 PKG_RELEASE:=1
 
@@ -29,7 +29,7 @@ SVC_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_SVC_DISTR) $(PKG_BUILD_DIR)
 TST_UNPACK+=cp -rfp $(PKG_SRC_DIR)/$(PKG_TST_DISTR) $(PKG_BUILD_DIR)
 
 
-$(eval $(call PKG_template,OEM_VOIP,oem-voip,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
+$(eval $(call PKG_template,VOIP,voip,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
 pbd = $(PKG_BUILD_DIR)
 
@@ -118,29 +118,29 @@ endif # TST
 	touch $@
 
 
-$(IPKG_OEM_VOIP):
-	install -d -m0755 $(IDIR_OEM_VOIP)/lib/modules/2.6.16/
-	install -d -m0755 $(IDIR_OEM_VOIP)/bin/
-	install -d -m0755 $(IDIR_OEM_VOIP)/sbin/
-	install -d -m0755 $(IDIR_OEM_VOIP)/lib/firmware/
-	install -d -m0755 $(IDIR_OEM_VOIP)/etc/init.d/
+$(IPKG_VOIP):
+	install -d -m0755 $(IDIR_VOIP)/lib/modules/2.6.16/
+	install -d -m0755 $(IDIR_VOIP)/bin/
+	install -d -m0755 $(IDIR_VOIP)/sbin/
+	install -d -m0755 $(IDIR_VOIP)/lib/firmware/
+	install -d -m0755 $(IDIR_VOIP)/etc/init.d/
 
 	#FIXME: these *.ko must be installed in appropriate drv-* packages
-	cp -rpf $(BUILD_DIR)/daa/install/bin/*.ko     $(IDIR_OEM_VOIP)/lib/modules/2.6.16/
-	cp -rpf $(BUILD_DIR)/tapi/install/bin/*.ko    $(IDIR_OEM_VOIP)/lib/modules/2.6.16/
-	cp -rpf $(BUILD_DIR)/vinetic/install/bin/*.ko $(IDIR_OEM_VOIP)/lib/modules/2.6.16/
-	cp -rpf $(BUILD_DIR)/sgatab/install/bin/*.ko  $(IDIR_OEM_VOIP)/lib/modules/2.6.16/
-	cp -rpf $(BUILD_DIR)/svd/ipkg-install/bin/sv* $(IDIR_OEM_VOIP)/bin/
-	cp -rpf $(PKG_INSTALL_DIR)/bin/sv* $(IDIR_OEM_VOIP)/bin/
+	cp -rpf $(BUILD_DIR)/daa/install/bin/*.ko     $(IDIR_VOIP)/lib/modules/2.6.16/
+	cp -rpf $(BUILD_DIR)/tapi/install/bin/*.ko    $(IDIR_VOIP)/lib/modules/2.6.16/
+	cp -rpf $(BUILD_DIR)/vinetic/install/bin/*.ko $(IDIR_VOIP)/lib/modules/2.6.16/
+	cp -rpf $(BUILD_DIR)/sgatab/install/bin/*.ko  $(IDIR_VOIP)/lib/modules/2.6.16/
+	cp -rpf $(BUILD_DIR)/svd/ipkg-install/bin/sv* $(IDIR_VOIP)/bin/
+	cp -rpf $(PKG_INSTALL_DIR)/bin/sv* $(IDIR_VOIP)/bin/
 
-	#cp -rpf $(PKG_INSTALL_DIR)/bin/*tst $(IDIR_OEM_VOIP)/bin/
-	cp -rpf $(PKG_CONF_DIR)/files/fw/* $(IDIR_OEM_VOIP)/lib/firmware/
+	#cp -rpf $(PKG_INSTALL_DIR)/bin/*tst $(IDIR_VOIP)/bin/
+	cp -rpf $(PKG_CONF_DIR)/files/fw/* $(IDIR_VOIP)/lib/firmware/
 	#FIXME: these sbin/* must be installed in svd package
-	cp -rpf $(PKG_CONF_DIR)/files/sbin/* $(IDIR_OEM_VOIP)/sbin/
-	cp -rpf $(PKG_CONF_DIR)/files/rc/* $(IDIR_OEM_VOIP)/etc/init.d/
-	$(RSTRIP) $(IDIR_OEM_VOIP)/bin/sv*
-	#$(RSTRIP) $(IDIR_OEM_VOIP)/bin/*tst
-	$(IPKG_BUILD) $(IDIR_OEM_VOIP) $(PACKAGE_DIR)
-	#---------============ IPKG_OEM_VOIP ===========---------
+	cp -rpf $(PKG_CONF_DIR)/files/sbin/* $(IDIR_VOIP)/sbin/
+	cp -rpf $(PKG_CONF_DIR)/files/rc/* $(IDIR_VOIP)/etc/init.d/
+	$(RSTRIP) $(IDIR_VOIP)/bin/sv*
+	#$(RSTRIP) $(IDIR_VOIP)/bin/*tst
+	$(IPKG_BUILD) $(IDIR_VOIP) $(PACKAGE_DIR)
+	#---------============ IPKG_VOIP ===========---------
 	#---------- make ipkg
 	#---------======================================---------

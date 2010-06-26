@@ -1,4 +1,4 @@
-Package: oem-sethdlc
+Package: dslam
 Priority: optional
 Section: net
 Description: drivers_stuff

@@ -1,4 +1,4 @@
-Package: oem-pppft-mp
+Package: pppft-mp
 Priority: optional
 Section: net
 Description: Scripts for Fault tolerance in PPP multilink

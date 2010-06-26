@@ -1,4 +1,4 @@
-Package: oem-voip
+Package: voip
 Priority: optional
 Section: net
 Description: VoIP drivers stack and routines
