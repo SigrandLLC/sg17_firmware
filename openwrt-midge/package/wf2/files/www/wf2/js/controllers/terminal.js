@@ -67,6 +67,7 @@ Controllers.terminal = function ()
                 field = {
                     "type" : "text",
                     "name" : $.sprintf("sys_demon_%s_name", iface),
+                    "validator": {"alphanumU": true},
                     "defaultValue" : iface
                 };
                 c.addTableWidget(field, row);
@@ -336,7 +337,7 @@ Controllers.terminal = function ()
 				{
 					tab = iface;
 					var p = page.getRaw($.sprintf("terminal%s", iface));
-					consoleDivs[iface] = $.create("div", {"id": "consoleDiv", "className": "pre scrollable","tabindex": "0"}, "").appendTo(p);
+					consoleDivs[iface] = $.create("div", {"id": "consoleDiv", "className": "pre scrollable","tabindex": "0"}, "").appendTo(p).focus();
 
 					cursors[iface] = $.create("span", {"id": "consoleCursor"}, "_").appendTo(consoleDivs[iface]);
 					bufSpans[iface] = $.create("span", {"id": $.sprintf("bufSpan%s", iface)}, "").insertBefore(cursors[iface]);
@@ -514,23 +515,13 @@ Controllers.terminal = function ()
 //							alert("false")
 						}
 					});
-
-/*
-					consoleDivs[iface].keydown(function(src) {
-						var ev = src;
-						if (!ev) var ev=window.event;
-						if (ie) {
-							o={9:1,8:1,27:1,33:1,34:1,35:1,36:1,37:1,38:1,39:1,40:1,45:1,46:1,112:1,
-							113:1,114:1,115:1,116:1,117:1,118:1,119:1,120:1,121:1,122:1,123:1};
-							if (o[ev.keyCode] || ev.ctrlKey || ev.altKey) {
-								ev.which=0;
-								return onKeypress(ev);
-							}
-						}
-					});
-*/
-
-				} //func
+					
+					setTimeout(function () {
+						scrollTab();
+						$("#consoleDiv").focus();
+						$("#consoleDiv").blur(function(){$("#consoleDiv").focus();});
+					}, 10);					
+  				} //func
 			}); //addTab
 		} // if
 	}); //each
