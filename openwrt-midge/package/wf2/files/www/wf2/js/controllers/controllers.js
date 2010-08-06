@@ -107,6 +107,13 @@ Controllers.info = function() {
 						});
 					}
 
+					ifaces = config.getData("mam17h");
+					if (ifaces) {
+						$.each(ifaces, function(num, ifaceInfo) {
+							info += $.sprintf("%s (mam17h)<br/>", ifaceInfo.iface);
+						});
+					}
+
 					return info ? info : "none";
 				}()
 			};

@@ -2,7 +2,18 @@
 
 
 eval `kdb -q ls sys_switch* : ls sys_ifaces`
+eval `kdb -q ls sys_dslam_card`
 
+if [ "$sys_dslam_card" = "1" ]; then
+	for port_num in $sys_switch_ports; do
+		echo 'd' > /proc/sys/net/adm5120sw/eth${port_num}
+		kdb set sys_iface_eth${port_num}_valid=0
+	done
+	adm5120_debug 0030 0000010a
+	/sbin/ifconfig eth0 down
+	echo 5 > /proc/sys/net/adm5120sw/eth0
+	kdb set sys_iface_eth0_valid=1
+else
 append() {
 	eval "$1=\"\${$1}$2\""
 }
@@ -36,3 +47,4 @@ done
 #	. /www/lib/misc.sh
 #	iface_update_sys_ifaces
 #fi
+fi

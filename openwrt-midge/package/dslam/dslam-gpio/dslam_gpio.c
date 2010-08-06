@@ -20,7 +20,7 @@
 #include <linux/proc_fs.h>
 
 
-#define DEBUG_ON
+//#define DEBUG_ON
 #define DEFAULT_LEV 10
 #include "sg_debug.h"
 
@@ -135,7 +135,7 @@ dslam_read_bits(struct dslam_env *env, unsigned long *indata,unsigned char inbit
 	unsigned long in = 0;
 //	PDEBUG(0,"start");
 	udelay(1);
-	printk(KERN_ERR"read_bits: ");
+//	printk(KERN_ERR"read_bits: ");
 	for(i=0;i<inbits;i++){
 		disable_bits(env->c_omask);
 		udelay(1);

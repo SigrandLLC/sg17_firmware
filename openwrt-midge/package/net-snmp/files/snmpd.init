@@ -13,10 +13,14 @@ case $1 in
   [ -d $LIB_D ] || mkdir -p $LIB_D
   [ -d $LOG_D ] || mkdir -p $LOG_D
   [ -d $RUN_D ] || mkdir -p $RUN_D
-  snmpd $OPTIONS
+  enabled=`kdb get sys_snmpd_enable`
+  if [ "$enabled" == "1" ]; then
+   options=`kdb get sys_snmpd_cmd`
+   snmpd $options
+  fi
   ;;
  stop)
-  [ -f $PID_F ] && kill $(cat $PID_F)
+  killall snmpd
   ;;
  *)
   echo "usage: $0 (start|stop)"

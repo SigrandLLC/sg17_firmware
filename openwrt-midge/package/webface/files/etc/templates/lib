@@ -122,6 +122,19 @@ update_configs(){
 			/sbin/tbuffd
 		fi
 	;;
+	snmpd)
+#		options=`kdb get sys_snmpd_cmd`
+		enabled=`kdb get sys_snmpd_enable`
+		cfg_make snmpd.conf /etc/snmp/snmpd.conf
+		cfg_commit
+		killall snmpd
+		if [ "$enabled" == "0" ]; then
+			echo "" > /dev/null
+		else
+#			snmpd $options
+			snmpd -Lf /dev/null -p /var/run/snmpd.pid
+		fi
+	;;
 	hostname)
 		cfg_make hostname /etc/hostname && \
 		cfg_commit

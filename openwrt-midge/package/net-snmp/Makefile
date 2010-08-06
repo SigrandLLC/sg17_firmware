@@ -15,6 +15,7 @@ PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/ipkg-install
 
 SNMP_MIB_MODULES_INCLUDED = \
+	disman/event-mib \
 	host/hr_device \
 	host/hr_disk \
 	host/hr_filesys \
@@ -51,8 +52,6 @@ SNMP_MIB_MODULES_INCLUDED = \
 	util_funcs \
 	utilities/execute \
 	host/hr_storage \
-
-SNMP_MIB_MODULES_EXCLUDED = \
 	agent_mibs \
 	agentx \
 	host \
@@ -64,9 +63,26 @@ SNMP_MIB_MODULES_EXCLUDED = \
 	ucd_snmp \
 	utilities \
 
+#SNMP_MIB_MODULES_EXCLUDED = \
+#	agent_mibs \
+#	agentx \
+#	host \
+#	ieee802dot11 \
+#	mibII \
+#	notification \
+#	snmpv3mibs \
+#	target \
+#	ucd_snmp \
+#	utilities \
+#
 SNMP_TRANSPORTS_INCLUDED = Callback UDP
 
 SNMP_TRANSPORTS_EXCLUDED = TCP TCPv6 UDPv6 Unix
+
+#	--disable-mib-loading \
+#	--disable-mibs \
+#	--without-opaque-special-types \
+
 
 PKG_CONFIGURE_OPTIONS = \
 	--enable-shared \
@@ -78,18 +94,15 @@ PKG_CONFIGURE_OPTIONS = \
 	--with-sys-contact=root@localhost \
 	--with-sys-location=Unknown \
 	--enable-applications \
-	--disable-debugging \
 	--disable-ipv6 \
 	--disable-manuals \
-	--disable-mib-loading \
-	--disable-mibs \
 	--disable-scripts \
+	--disable-debugging \
 	--with-out-mib-modules="$(SNMP_MIB_MODULES_EXCLUDED)" \
 	--with-mib-modules="$(SNMP_MIB_MODULES_INCLUDED)" \
 	--with-out-transports="$(SNMP_TRANSPORTS_EXCLUDED)" \
 	--with-transports="$(SNMP_TRANSPORTS_INCLUDED)" \
-	--without-opaque-special-types \
-	--without-openssl \
+	--with-openssl="" \
 	--without-libwrap \
 	--without-rpm \
 	--without-zlib \
@@ -182,6 +195,10 @@ $(IPKG_SNMPD_STATIC):
 	install -m0755 $(PKG_INSTALL_DIR)/usr/sbin/snmpd-static $(IDIR_SNMPD_STATIC)/usr/sbin/snmpd
 	$(RSTRIP) $(IDIR_SNMPD_STATIC)
 	$(IPKG_BUILD) $(IDIR_SNMPD_STATIC) $(PACKAGE_DIR)
+	install -d -m0755 $(IDIR_SNMPD_STATIC)/usr/share
+	install -d -m0755 $(IDIR_SNMPD_STATIC)/usr/share/snmp
+	install -d -m0755 $(IDIR_SNMPD_STATIC)/usr/share/snmp/mibs
+	$(CP) $(PKG_BUILD_DIR)/mibs/*.txt $(IDIR_SNMPD_STATIC)/usr/share/snmp/mibs
 
 $(IPKG_SNMP_UTILS):
 	install -d -m0755 $(IDIR_SNMP_UTILS)/usr/bin

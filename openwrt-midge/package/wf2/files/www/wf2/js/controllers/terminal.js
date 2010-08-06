@@ -133,6 +133,7 @@ Controllers.terminal = function ()
 		var str = new String(data);
 		var str2 = new String("");
 		var i, j = 0;
+		who = '';
 //		$("#status").html($("#status").html()+" from: "+who+"  data: ");
 		for (i = 0; i < str.length; i++)
 		{
@@ -183,13 +184,19 @@ Controllers.terminal = function ()
 					j++;
 				break;
 				case 13:
-//					if (str.charCodeAt(i+1) == 10) break;
-//					var str321 = new String(bufSpans[cur_iface].html());
-//					var substr = new String("<BR>");
-//					if (str321.lastIndexOf(substr) != -1) {
-//						bufSpans[cur_iface].html(str321.substring(0, str321.lastIndexOf(substr) + 4));
-//						buf[cur_iface] = bufSpans[cur_iface].html();
-//					}
+					if (str.charCodeAt(i+1) == 10) break;
+					if (str.length == 1) break;
+					var str321 = new String(bufSpans[cur_iface].html());
+					var substr = new String("<BR>");
+					if (str321.lastIndexOf(substr) != -1) {
+						bufSpans[cur_iface].html(str321.substring(0, str321.lastIndexOf(substr) + 4));
+						buf[cur_iface] = bufSpans[cur_iface].html();
+					}
+					var substr2 = new String("<br>");
+					if (str321.lastIndexOf(substr2) != -1) {
+						bufSpans[cur_iface].html(str321.substring(0, str321.lastIndexOf(substr2) + 4));
+						buf[cur_iface] = bufSpans[cur_iface].html();
+					}
 				break;
 				case 7:
 				break;
@@ -214,55 +221,14 @@ Controllers.terminal = function ()
 			{
 				bufSpans[cur_iface].append(str2);
 				buf[cur_iface] = bufSpans[cur_iface].html();
+				scrollTab();
 			}
 		}
-		scrollTab();
 //		$("#status").html($("#status").html()+"<br>");
 	};
 
 
 	var func = function(param) {
-//	alert("func");
-/*
-		var xmlhttp = getXmlHttp();
-		cmd = "sh/tbuffctl?*;a;0";
-		xmlhttp.open('GET', cmd, false);
-		xmlhttp.setRequestHeader("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT");
-		xmlhttp.send(null);
-		alert(xmlhttp.responseText);
-		if (xmlhttp.status == 200) {
-			var data;
-			if (xmlhttp.responseText != "")
-			{
-				data = eval('(' + xmlhttp.responseText + ')');
-			} else {
-				data = "";
-			}
-			if ((typeof data == "object") && (data.ttylist != undefined))
-			{
-				$.each(data.ttylist, function(index, value) {
-					if ((value.text != "") && (typeof value == "object"))
-					{
-//						alert(value.text);
-						buf[value.dev] += value.text;
-						if (buf[value.dev].length > 40*1024) buf[value.dev] = buf[value.dev].substring(buf[value.dev].length - 40*1024, buf[value.dev].length);
-						bufSpans[value.dev].append(value.text);
-						setTimeout(function () {
-							consoleDivs[cur_iface].scrollTo('100%', {axis: 'y'});
-							consoleDivs[cur_iface].scrollTo('+=100px', {axis: 'y'});
-						}, 10);
-					}
-					else {
-//						alert("value text == ''");
-					}
-				});
-			}
-			else {
-//				alert("not object! data = ["+data+"]");
-			}
-		}
-*/
-
 		config.cmdExecute({
 			"cmd": "/sbin/tbuffctl -p* -a",
 			"async": false,
@@ -275,19 +241,8 @@ Controllers.terminal = function ()
 					$.each(data.ttylist, function(index, value) {
 						if ((value.text != "") && (typeof value == "object"))
 						{
-//							var substr = value.text.substiring(0, (value.text.length > 100)?100:value.text.length);
-//							alert(substr);
 							cur_iface = value.dev;
 							parse_answer(value.text, "func");
-
-//							value.text = value.text.substiring((value.text.length > 100)?100:value.text.length, value.text.length);
-//							buf[value.dev] += value.text;
-//							if (buf[value.dev].length > 40*1024) buf[value.dev] = buf[value.dev].substring(buf[value.dev].length - 40*1024, buf[value.dev].length);
-//							bufSpans[value.dev].append(value.text);
-
-							setTimeout(function () {
-								scrollTab();
-							}, 10);
 						}
 					});
 				}
@@ -296,7 +251,6 @@ Controllers.terminal = function ()
 		if (param != true)
 		{
 			if (func_en == 1) {
-//				alert("setTimeout");
 				tout = setTimeout(func, requesttime);
 			} else timer = 0;
 		}
@@ -441,6 +395,7 @@ Controllers.terminal = function ()
 								str123 = String.fromCharCode(27)+"[21~";
 							break;
 							case 122:
+								return false;
 								str123 = String.fromCharCode(27)+"[22~";
 							break;
 							case 123:
@@ -487,7 +442,7 @@ Controllers.terminal = function ()
 //							alert("status"+xmlhttp.status);
 						}
 //						func(true);
-
+						scrollTab();
 						return false;
 					};
 
