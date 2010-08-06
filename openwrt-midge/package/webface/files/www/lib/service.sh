@@ -27,6 +27,12 @@ service_reload(){
 	;;
 	# we can enable/disable multiplexing on module settings page, so restart
 	# multiplexing on module settings change
+	dslam_dsl*)
+		tmp=${service#*.}
+		slot=${tmp%.*}
+		dev=${tmp#*.}
+		/etc/init.d/dslam_dsl restart $slot $dev
+	;;
 	dsl*)
 		tmp=${service#*.}
 		slot=${tmp%.*}

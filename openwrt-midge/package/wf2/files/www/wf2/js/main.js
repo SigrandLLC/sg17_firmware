@@ -19,6 +19,7 @@ function generateMenu() {
     addItem("Services", "DNS server", "dns_server");
     addItem("Services", "Dial-in", "dialin");
     addItem("Services", "Terminal", "terminal");
+    addItem("Services", "Snmpd", "snmpd");
 
     /* if we have support for linkdeps */
     if (config.getCachedOutput("linkdeps") == "1") {
@@ -67,6 +68,9 @@ function generateMenu() {
             ifaceInfo.push({"iface": iface, "pcislot": pcislot, "pcidev": num});
 
             switch (type) {
+                case "mam17h":
+                	addItem("Hardware:SHDSL", iface, "dslam_dsl", [iface, pcislot, num]);
+                	break;
                 /* SHDSL */
                 case config.getOEM("MR16H_DRVNAME"):
                 case config.getOEM("MR17H_DRVNAME"):

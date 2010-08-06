@@ -1,7 +1,7 @@
 /**
  * sprintf and vsprintf for jQuery
  * somewhat based on http://jan.moesen.nu/code/javascript/sprintf-and-printf-in-javascript/
- * 
+ *
  * Copyright (c) 2008 Sabin Iacob (m0n5t3r) <iacobs@m0n5t3r.info>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details. 
+ * GNU General Public License for more details.
  *
- * @license http://www.gnu.org/licenses/gpl.html 
+ * @license http://www.gnu.org/licenses/gpl.html
  * @project jquery.sprintf
  */
 (function($){

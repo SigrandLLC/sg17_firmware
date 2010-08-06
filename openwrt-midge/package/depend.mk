@@ -60,9 +60,9 @@ net-snmp-compile: libelf-compile
 nfs-server-compile: portmap-compile
 nmap-compile: uclibc++-compile pcre-compile libpcap-compile
 nocatsplash-compile: glib-compile
-oem-voip-compile: sofia-sip-install libconfig-install
-oem-voip-compile: drv-vinetic-compile drv-tapi-compile drv-daa-compile
-oem-voip-compile: drv-sgatab-compile libab-compile svd-compile
+voip-compile: sofia-sip-install libconfig-install
+voip-compile: drv-vinetic-compile drv-tapi-compile drv-daa-compile
+voip-compile: drv-sgatab-compile libab-compile svd-compile
 drv-vinetic-compile: drv-tapi-compile
 drv-daa-compile: drv-tapi-compile drv-vinetic-compile
 drv-sgatab-compile: drv-tapi-compile drv-vinetic-compile

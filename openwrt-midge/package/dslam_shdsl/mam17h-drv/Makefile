@@ -1,0 +1,15 @@
+obj-m := mam17h.o
+mam17h-objs := mam17h_main.o mam17h_debug.o mam17h_sysfs.o mam17h_socrate.o mam17h_pi.o mam17h_net.o mam17h_mpair.o
+
+mam17h.ko: mam17h_main.c mam17h_debug.c mam17h_sysfs.c mam17h_socrate.c mam17h_pi.c mam17h_net.c mam17h_mpair.c
+	make -C  $(KERN_PATH) SUBDIRS=$(PWD) modules CROSS_COMPILE=$(CROSS_PREFIX)
+
+all: mam17h.ko
+
+clean:
+	rm --preserve-root -f .*.o*
+	rm --preserve-root -f .*.ko*
+	rm --preserve-root -f *.o*
+	rm --preserve-root -f *.ko*
+	rm --preserve-root -f *.mod.*
+	rm --preserve-root -f -R .tmp*

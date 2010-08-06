@@ -1,0 +1,98 @@
+#!/bin/sh
+
+. /etc/templates/oem-vars
+
+speed=$2
+_speed_check(){
+	case "$speed" in
+	300)
+		error="no"
+	;;
+	600)
+		error="no"
+	;;
+	1200)
+		error="no"
+	;;
+	1800)
+		error="no"
+	;;
+	2400)
+		error="no"
+	;;
+	3600)
+		error="no"
+	;;
+	4800)
+		error="no"
+	;;
+	7200)
+		error="no"
+	;;
+	9600)
+		error="no"
+	;;
+	14400)
+		error="no"
+	;;
+	19200)
+		error="no"
+	;;
+	28800)
+		error="no"
+	;;
+	38400)
+		error="no"
+	;;
+	57600)
+		error="no"
+	;;
+	115200)
+		error="no"
+	;;
+	230400)
+		error="no"
+	;;
+	*)
+		error="yes"
+	;;
+	esac;
+}
+
+
+
+error="no"
+if [ $# = 0 ]; then
+	echo "Set RS232 port speed"
+	echo "Usage:  $0 <if> [speed]"
+else
+	eval `kdb sls -q sys_pcitbl_`
+	for s in $slots; do
+		eval "type=\$s${s}_iftype"
+		eval "num=\$s${s}_ifnum"
+		eval "ifaces=\$s${s}_ifaces"
+		if [ "$type" != "$mr17s_drvname" ]; then
+			continue;
+		fi
+		let "n=-1"
+		for i in $ifaces; do
+			let "n=n+1"
+			if [ "$i" == "$1" ]; then
+				if [ $# = 1 ]; then
+					echo "port $1 speed = `kdb get sys_pcicfg_s${s}_${n}_baudrate`";
+				else
+					_speed_check
+					if [ "$error" == "no" ]; then
+						kdb set sys_pcicfg_s${s}_${n}_baudrate=$2
+						/etc/init.d/rs232 restart ${s} ${n} >> /tmp/err
+					else
+						echo "Bad speed"
+					fi
+				fi
+				return 0
+			fi
+		done;
+	done
+	echo "Can not find /dev/$1"
+fi
+

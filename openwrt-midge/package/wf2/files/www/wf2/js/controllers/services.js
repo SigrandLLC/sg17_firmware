@@ -1,6 +1,6 @@
 Controllers.dhcp = function() {
 	var page = this.Page();
-	
+
 	/* DHCP tab */
 	page.addTab({
 		"id": "dhcp",
@@ -11,18 +11,18 @@ Controllers.dhcp = function() {
 			c.setHelpPage("dhcp_server");
 	        c.setHelpSection("dhcp");
 			c.addTitle("DHCP server interface select");
-			
+
 			var onInterfaceChange = function() {
 				/* save selected interface in cookie */
 				$.cookie("dhcpInterface", $("#dhcpInterface").val());
-				
+
 				/* remove br and all forms (except first) with DHCP settings */
 				$("form:eq(1) ~ br, form:eq(0) ~ form").remove();
-				
+
 				/* add DHCP settings for selected interface */
 				serviceDHCP(page, $("#dhcpInterface").val());
 			};
-			
+
 			/* Generate list of interfaces which can use DHCP */
 			var ifaces = "";
 			$.each(config.getParsed("sys_ifaces"), function(num, iface) {
@@ -37,9 +37,9 @@ Controllers.dhcp = function() {
 				}
 			});
 			ifaces = $.trim(ifaces);
-			
+
 			/* value of this widget is saved in cookie, because we not need it in KDB */
-			field = { 
+			field = {
 				"type": "select",
 				"name": "dhcpInterface",
 				"id": "dhcpInterface",
@@ -50,32 +50,32 @@ Controllers.dhcp = function() {
 				"onChange": onInterfaceChange
 			};
 			c.addWidget(field);
-			
+
 			page.addBr("dhcp");
-			
+
 			onInterfaceChange();
 		}
 	});
-	
+
 	page.generateTabs();
 };
 
 /*
  * Adds DHCP settings for specified interface.
- * 
+ *
  * page — destination page;
  * iface — interface.
  */
 function serviceDHCP(page, iface) {
 	var c, field;
-	
+
 	c = page.addContainer("dhcp");
 	c.setHelpPage("dhcp_server");
 	c.setHelpSection("dhcp");
 	c.addTitle("DHCP server on interface " + iface);
 	c.setSubsystem("dhcp." + iface);
-	
-	field = { 
+
+	field = {
 		"type": "checkbox",
 		"name": $.sprintf("sys_iface_%s_dhcp_enabled", iface),
 		"id": "dhcpEnabled",
@@ -83,8 +83,8 @@ function serviceDHCP(page, iface) {
 		"descr": "Run DHCP server on interface " + iface
 	};
 	c.addWidget(field);
-	
-	field = { 
+
+	field = {
 		"type": "text",
 		"name": $.sprintf("sys_iface_%s_dhcp_startip", iface),
 		"text": "Start IP",
@@ -92,8 +92,8 @@ function serviceDHCP(page, iface) {
 		"validator": {"required": true, "ipAddr": true}
 	};
 	c.addWidget(field);
-	
-	field = { 
+
+	field = {
 		"type": "text",
 		"name": $.sprintf("sys_iface_%s_dhcp_endip", iface),
 		"text": "End IP",
@@ -101,8 +101,8 @@ function serviceDHCP(page, iface) {
 		"validator": {"required": true, "ipAddr": true}
 	};
 	c.addWidget(field);
-	
-	field = { 
+
+	field = {
 		"type": "text",
 		"name": $.sprintf("sys_iface_%s_dhcp_netmask", iface),
 		"text": "Netmask",
@@ -111,8 +111,8 @@ function serviceDHCP(page, iface) {
 		"validator": {"required": true, "netmask": true}
 	};
 	c.addWidget(field);
-	
-	field = { 
+
+	field = {
 		"type": "text",
 		"name": $.sprintf("sys_iface_%s_dhcp_router", iface),
 		"text": "Default router",
@@ -120,8 +120,8 @@ function serviceDHCP(page, iface) {
 		"validator": {"ipAddr": true}
 	};
 	c.addWidget(field);
-	
-	field = { 
+
+	field = {
 		"type": "select",
 		"name": $.sprintf("sys_iface_%s_dhcp_lease_time", iface),
 		"text": "Default lease time",
@@ -129,8 +129,8 @@ function serviceDHCP(page, iface) {
 			"36000": "10 hours", "86400": "24 hours"}
 	};
 	c.addWidget(field);
-	
-	field = { 
+
+	field = {
 		"type": "text",
 		"name": $.sprintf("sys_iface_%s_dhcp_nameserver", iface),
 		"text": "DNS server",
@@ -138,8 +138,8 @@ function serviceDHCP(page, iface) {
 		"validator": {"ipAddr": true}
 	};
 	c.addWidget(field);
-	
-	field = { 
+
+	field = {
 		"type": "text",
 		"name": $.sprintf("sys_iface_%s_dhcp_domain_name", iface),
 		"text": "Domain",
@@ -148,8 +148,8 @@ function serviceDHCP(page, iface) {
 		"validator": {"domainName": true}
 	};
 	c.addWidget(field);
-	
-	field = { 
+
+	field = {
 		"type": "text",
 		"name": $.sprintf("sys_iface_%s_dhcp_ntpserver", iface),
 		"text": "NTP server",
@@ -157,8 +157,8 @@ function serviceDHCP(page, iface) {
 		"validator": {"ipAddr": true}
 	};
 	c.addWidget(field);
-	
-	field = { 
+
+	field = {
 		"type": "text",
 		"name": $.sprintf("sys_iface_%s_dhcp_winsserver", iface),
 		"text": "WINS server",
@@ -166,25 +166,25 @@ function serviceDHCP(page, iface) {
 		"validator": {"ipAddr": true}
 	};
 	c.addWidget(field);
-	
+
 	c.addSubmit();
-	
+
 	page.addBr("dhcp");
 	serviceDHCPStatic(page, iface)
 }
 
 /*
  * Adds DHCP static lease table. ID of destination tab MUST BE "dhcp".
- * 
+ *
  * page — destination page;
  * iface — interface.
  */
 function serviceDHCPStatic(page, iface) {
 	var field;
-	
+
 	var c = page.addContainer("dhcp");
 	c.setSubsystem("dhcp." + iface);
-	
+
 	/* create list of routes */
 	var list = c.createList({
 		"tabId": "dhcp",
@@ -198,16 +198,16 @@ function serviceDHCPStatic(page, iface) {
 		"helpSection": "dhcp_server.static_add",
 		"subsystem": "dhcp." + iface
 	});
-	
-	field = { 
+
+	field = {
 		"type": "text",
 		"name": "name",
 		"text": "Host name",
 		"validator": {"required": true, "alphanumU": true}
 	};
 	list.addWidget(field);
-	
-	field = { 
+
+	field = {
 		"type": "text",
 		"name": "ipaddr",
 		"text": "IP Address",
@@ -215,8 +215,8 @@ function serviceDHCPStatic(page, iface) {
 		"validator": {"required": true, "ipAddr": true}
 	};
 	list.addWidget(field);
-	
-	field = { 
+
+	field = {
 		"type": "text",
 		"name": "hwaddr",
 		"text": "MAC Address",
@@ -224,7 +224,7 @@ function serviceDHCPStatic(page, iface) {
 		"validator": {"required": true, "macAddr": true}
 	};
 	list.addWidget(field);
-	
+
 	list.generateList();
 };
 

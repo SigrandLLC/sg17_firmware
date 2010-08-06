@@ -1,0 +1,74 @@
+#!/bin/sh
+# Sigrand DSLAM debug tool 
+# for Linux kernel v 2.6 drivers
+#
+#	Written 2009 by Artem Y. Polyakov
+#
+#---------------------------------------------------------
+
+CFG_PATH="/proc/sys/net/adm5120sw"
+
+#---------------------------------------------------------
+
+print_usage()
+{
+    echo "Sigrand ADM5120 register debug tool"
+    echo "Usage:"
+    echo "  adm5120_debug status       - display switch status"
+    echo "  adm5120_debug <addr>       - read register <addr>"
+    echo "  adm5120_debug <addr> <val> - write register <addr>"
+}
+
+
+#---------------------------------------------------------
+
+# Check that interface name specifyed
+if [ $# -lt "1" ]; then
+    print_usage
+    exit
+fi
+
+addr=$1
+if [ $# -eq 2 ]; then
+	val=$2
+else 
+	val=""
+fi
+
+cdir=`pwd`
+
+if [ "$addr" = "status" ]; then
+	cfg="$CFG_PATH/status"
+	if [ ! -f "$cfg" ]; then
+		echo "$0: No such file $cfg"		
+		exit
+	fi
+	cat $cfg
+	exit 0
+fi
+
+if [ -z "$val" ]; then
+	cfg="$CFG_PATH/reg_read"
+	if [ ! -f "$cfg" ]; then
+		echo "$0: No such file $cfg"		
+		exit
+	fi
+	echo "$addr" > $cfg
+	tmp=`cat $cfg`
+	echo "Register($addr)=0x$tmp"
+else
+	cfg="$CFG_PATH/reg_write"
+	if [ ! -f "$cfg" ]; then
+		echo "$0: No such file $cfg"
+		exit
+	fi
+	echo "$addr $val" > $cfg
+	cfg="$CFG_PATH/reg_read"
+	if [ ! -f "$cfg" ]; then
+		echo "$0: No such file $cfg"
+		exit
+	fi
+	echo "$addr" > $cfg
+	tmp=`cat $cfg`
+	echo "New Register($addr)=0x$tmp"
+fi	

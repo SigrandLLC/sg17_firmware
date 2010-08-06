@@ -388,23 +388,24 @@ config BR2_PACKAGE_CONTEXT_HELP_OEM
 endchoice
 
 source "package/eocd/Config.in"
-source "package/oem-linkdeps/Config.in"
+source "package/linkdeps/Config.in"
 source "package/oem-mux/Config.in"
-source "package/oem-pppft-mp/Config.in"
+source "package/pppft-mp/Config.in"
 source "package/tbuff/Config.in"
 endmenu
 
 menu "Drivers"
 # OEM-ed package names
-source "package/oem-adm5120sw/Config.in"
-source "package/oem-dslam/Config.in"
+source "package/adm5120sw/Config.in"
+source "package/dslam/Config.in"
+source "package/dslam_shdsl/Config.in"
 source "package/oem-e1.g1/Config.in"
 source "package/oem-e1.g2/Config.in"
 source "package/oem-rs232.g1/Config.in"
-source "package/oem-sethdlc/Config.in"
+source "package/sethdlc/Config.in"
 source "package/oem-shdsl.g1/Config.in"
 source "package/oem-shdsl.g2/Config.in"
-source "package/oem-voip/Config.in"
+source "package/voip/Config.in"
 
 
 endmenu

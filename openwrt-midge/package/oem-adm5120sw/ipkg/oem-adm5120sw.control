@@ -1,4 +1,0 @@
-Package: oem-adm5120sw
-Priority: optional
-Section: net
-Description: network driver

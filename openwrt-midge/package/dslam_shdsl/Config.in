@@ -1,0 +1,18 @@
+config BR2_PACKAGE_SIGRAND_MAM17H
+	prompt "mam17h ................. Sigrand MAM17H DSLAM SHDSL module driver"
+	tristate
+	default y if CONFIG_DEVEL
+	depends on BR2_LINUX_2_6_SIGRAND5120
+	depends on BR2_PACKAGE_SIGRAND_DSLAM
+	help
+		Here must be help about driver...
+
+config BR2_PACKAGE_SIGRAND_MAM17H_DEBUG
+	prompt "mr17h_dbg ........... Sigrand MAM17H DSLAM SHDSL module Debug"
+	bool
+	default n
+	select BR2_PACKAGE_SIGRAND_MAM17H
+	depends on BR2_LINUX_2_6_SIGRAND5120
+	depends on BR2_PACKAGE_SIGRAND_MAM17H
+	help
+		Here must be help about debug...
