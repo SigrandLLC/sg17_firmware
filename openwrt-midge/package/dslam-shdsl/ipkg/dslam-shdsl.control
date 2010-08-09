@@ -1,4 +1,4 @@
-Package: dslam_shdsl
+Package: dslam-shdsl
 Priority: optional
 Section: net
 Description: drivers_stuff

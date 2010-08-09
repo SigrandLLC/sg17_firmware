@@ -448,7 +448,7 @@ static int read_force_link(char *buf, char **start, off_t offset, int count, int
 #endif
 
 
-//#define ADM5120_SW_DEBUG
+#define ADM5120_SW_DEBUG
 #ifdef ADM5120_SW_DEBUG
 static int store_swreg(struct file *file,const char *buffer,unsigned long count,void *data);
 static int read_swreg(char *buf, char **start, off_t offset, int count, int *eof, void *data); 

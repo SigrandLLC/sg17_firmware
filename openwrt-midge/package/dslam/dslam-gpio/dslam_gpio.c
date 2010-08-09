@@ -140,7 +140,7 @@ dslam_read_bits(struct dslam_env *env, unsigned long *indata,unsigned char inbit
 		disable_bits(env->c_omask);
 		udelay(1);
 		in |= read_bit(env->io_imask);
-		printk("%d",in&0x1);
+		printk("%lu",in&0x1); // d a ne lu
 		enable_bits(env-> c_omask);
 //		PDEBUG(0,"Read bit=%d from IC+",in & 0x1);
 		in <<= 1;
@@ -205,7 +205,7 @@ store_reg_read(struct file *file,const char *buffer,unsigned long count,void *da
 	
 	ptr[count-1] = '\0';
 	reg_num = simple_strtoul(ptr,&endp,16);
-	PDEBUG(0,"save # of register to read, str=%s, reg#=0x%x",buffer,reg_num);
+	PDEBUG(0,"save # of register to read, str=%s, reg#=0x%lx",buffer,reg_num);
 	env->regnum = reg_num;
 	return count;
 }
@@ -230,7 +230,7 @@ store_reg_write(struct file *file,const char *buffer,unsigned long count,void *d
 		endp++;
 	}
 	reg_val = simple_strtoul(endp,&endp,16);
-	PDEBUG(40,"reg_val=%d",reg_val);	
+	PDEBUG(40,"reg_val=%lu",reg_val);	
 
 
 	PDEBUG(0,"write mode\n");
@@ -320,7 +320,7 @@ static int dslam_procfs_init(void)
 	}
 	dslam_write_mode(&chips[0]);
 	dslam_write_mode(&chips[1]);
-	PDEBUG(0,"conf0=%x",ADM5120_SW_REG(GPIO_conf0_REG));
+	PDEBUG(0,"conf0=%lx",ADM5120_SW_REG(GPIO_conf0_REG));
 
 	return 0;
 

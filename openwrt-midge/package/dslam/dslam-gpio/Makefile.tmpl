@@ -6,8 +6,8 @@ dslam_gpio.ko: dslam_gpio.c
 
 all: dslam_gpio.ko
 
-install: dslam_gpio.ko
-	install -m 644 dslam_gpio.ko @INST_PATH@/lib/modules/@KERNVER@/
+#install: dslam_gpio.ko
+#	install -m 644 dslam_gpio.ko @INST_PATH@/lib/modules/@KERNVER@/
 #	install -m 744 ./tools/mr17h_cfg @INST_PATH@/sbin/@TOOLNAME@
 #	[ "yes" != "@DEBUG@" ] || install -m 744 ./tools/mr17h_debug @INST_PATH@/sbin/
 

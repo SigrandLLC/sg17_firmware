@@ -9,6 +9,7 @@ all: adm5120sw.ko
 install: adm5120sw.ko
 	install -m 600 adm5120sw.ko @INST_PATH@/lib/modules/@KERNVER@
 	install -m 700 tools/S06adm5120sw @INST_PATH@/etc/init.d/
+	install -m 700 tools/adm5120_debug @INST_PATH@/sbin
 
 clean:
 	rm --preserve-root -f .*.o*
