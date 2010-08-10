@@ -255,7 +255,7 @@ _pci_start(){
 				mr17g_muxonly $i && continue
 			fi
 			if [ "$type" = "mam17h" ]; then
-				if [ "$dslam_ifaces" == "" ]; then
+				if [ "$dslam_ifaces" = "" ]; then
 					dslam_ifaces=$i
 				else
 					dslam_ifaces=`echo "$dslam_ifaces $i"`

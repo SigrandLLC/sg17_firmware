@@ -24,6 +24,9 @@
 #define DEFAULT_LEV 10
 #include "sg_debug.h"
 
+MODULE_LICENSE ( "GPL" );
+MODULE_VERSION ( "1.0" );
+
 
 /* --------------------------------------------------------------------------
  *      IC+ entry point
@@ -140,13 +143,13 @@ dslam_read_bits(struct dslam_env *env, unsigned long *indata,unsigned char inbit
 		disable_bits(env->c_omask);
 		udelay(1);
 		in |= read_bit(env->io_imask);
-		printk("%lu",in&0x1); // d a ne lu
+//		printk("%lu",in&0x1); // d a ne lu
 		enable_bits(env-> c_omask);
 //		PDEBUG(0,"Read bit=%d from IC+",in & 0x1);
 		in <<= 1;
 		udelay(1);
 	}
-	printk("\n");
+//	printk("\n");
 	// remove last shift
 	in >>= 1;
 	*indata = in;

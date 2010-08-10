@@ -539,7 +539,7 @@ static int __devinit mam17_probe_one(struct pci_dev * pdev, const struct pci_dev
 		configure_channel(card, i);
 
 	PDEBUG(debug_init, "Configure - OK\n");
-	printk(KERN_NOTICE "Card %i - OK\n", card->number);
+//	printk(KERN_NOTICE "Card %i - OK\n", card->number);
 
 
 /*

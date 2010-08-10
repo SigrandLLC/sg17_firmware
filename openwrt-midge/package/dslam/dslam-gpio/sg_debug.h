@@ -10,6 +10,7 @@
 #define DSYSFS 40 // Debug sysfs interface
 #define DSYSDBG 40 // Debug sysfs memory window debugger
 
+#undef DEBUG_ON
 #define PDEBUG(lev,fmt,args...)
 #ifdef DEBUG_ON
 #       undef PDEBUG

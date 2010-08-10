@@ -70,5 +70,5 @@ else
 	fi
 	echo "$addr" > $cfg
 	tmp=`cat $cfg`
-	echo "New Register($addr)=0x$tmp"
+#	echo "New Register($addr)=0x$tmp"
 fi	
