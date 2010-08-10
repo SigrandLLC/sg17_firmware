@@ -102,5 +102,5 @@ RESULT="$RESULT {\n"
 # finish JSON
 RESULT="$RESULT }"
 
-echo -e $RESULT > /root/result
+#echo -e $RESULT > /root/result
 echo -e $RESULT

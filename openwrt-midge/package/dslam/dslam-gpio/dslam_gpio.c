@@ -305,6 +305,7 @@ static int dslam_procfs_init(void)
 	int i,j;
 	
 	ADM5120_SW_REG(GPIO_conf0_REG) = 0;
+	ADM5120_SW_REG(GPIO_conf2_REG) = 0;
 	
 	dslam_entry=proc_mkdir(dslam_procdir,NULL);
 	if ( dslam_entry==NULL )
