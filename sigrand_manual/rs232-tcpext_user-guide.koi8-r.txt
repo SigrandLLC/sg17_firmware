@@ -1,1 +1,0 @@
-../openwrt-midge/package/rs232-tcpext/rs232-tcpext_user-guide.koi8-r.txt
