@@ -231,6 +231,7 @@ pcinet_refresh(){
 _pci_start(){
 	echo "Refresh PCI device list"
 	$kdb rm sys_pcitbl*
+	$kdb rm sys_dslam_ifaces*
 
 	pci_driver "$mr16g_drvname" "E1_"
 	pci_driver "$mr17g_drvname" "E1_"
@@ -241,6 +242,7 @@ _pci_start(){
 	pcicfg_refresh
 
 	nifaces=""
+	dslam_ifaces=""
 	# Correct Network settings
 	for s in `$kdb get sys_pcitbl_slots`; do
 		# skip RS232 modules
@@ -253,11 +255,18 @@ _pci_start(){
 				mr17g_muxonly $i && continue
 			fi
 			if [ "$type" = "mam17h" ]; then
+				if [ "$dslam_ifaces" = "" ]; then
+					dslam_ifaces=$i
+				else
+					dslam_ifaces=`echo "$dslam_ifaces $i"`
+				fi
 				$kdb rm sys_iface_$i* && continue
 			fi
 			nifaces="$nifaces \n $i"
 		done
 	done
+	
+	$kdb set sys_dslam_ifaces="$dslam_ifaces"
 	
 	ifaces=`$kdb get sys_ifaces`
 	for i in $ifaces; do

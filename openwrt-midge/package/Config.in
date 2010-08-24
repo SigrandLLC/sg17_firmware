@@ -398,7 +398,7 @@ menu "Drivers"
 # OEM-ed package names
 source "package/adm5120sw/Config.in"
 source "package/dslam/Config.in"
-source "package/dslam_shdsl/Config.in"
+source "package/dslam-shdsl/Config.in"
 source "package/oem-e1.g1/Config.in"
 source "package/oem-e1.g2/Config.in"
 source "package/oem-rs232.g1/Config.in"

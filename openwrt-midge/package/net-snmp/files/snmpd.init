@@ -14,9 +14,10 @@ case $1 in
   [ -d $LOG_D ] || mkdir -p $LOG_D
   [ -d $RUN_D ] || mkdir -p $RUN_D
   enabled=`kdb get sys_snmpd_enable`
-  if [ "$enabled" == "1" ]; then
+  if [ "$enabled" != "0" ]; then
    options=`kdb get sys_snmpd_cmd`
    snmpd $options
+   echo "Starting snmpd."
   fi
   ;;
  stop)

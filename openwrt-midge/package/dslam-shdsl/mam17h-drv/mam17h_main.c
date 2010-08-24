@@ -12,7 +12,7 @@
 MODULE_DESCRIPTION ( "MAM17H driver\n" );
 MODULE_AUTHOR ( "Scherbakov Mihail\n" );
 MODULE_LICENSE ( "GPL" );
-MODULE_VERSION ( "0.1" );
+MODULE_VERSION ( "1.0" );
 
 static int __devinit mam17_probe_one(struct pci_dev *pdev, const struct pci_device_id *dev_id);
 static void __devexit mam17_remove_one(struct pci_dev *pdev);
@@ -539,7 +539,7 @@ static int __devinit mam17_probe_one(struct pci_dev * pdev, const struct pci_dev
 		configure_channel(card, i);
 
 	PDEBUG(debug_init, "Configure - OK\n");
-	printk(KERN_NOTICE "Card %i - OK\n", card->number);
+//	printk(KERN_NOTICE "Card %i - OK\n", card->number);
 
 
 /*

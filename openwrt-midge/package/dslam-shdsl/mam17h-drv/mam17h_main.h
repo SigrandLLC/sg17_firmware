@@ -324,6 +324,7 @@ struct channel {
 	u8 pbo_vnum;
 	u8 crc16;
 	u8 fill_7e;
+	char name[16];
 };
 
 struct mam17_card {

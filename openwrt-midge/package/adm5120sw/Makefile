@@ -42,5 +42,6 @@ $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 $(IPKG_SIGRAND_ADM5120SW):
 	install -d -m0755 $(IDIR_SIGRAND_ADM5120SW)/lib/modules/2.6.16
 	install -d -m0755 $(IDIR_SIGRAND_ADM5120SW)/etc/init.d
+	install -d -m0755 $(IDIR_SIGRAND_ADM5120SW)/sbin
 	cd $(PKG_BUILD_DIR)/adm5120sw-drv && make install
 	$(IPKG_BUILD) $(IDIR_SIGRAND_ADM5120SW) $(PACKAGE_DIR)

@@ -69,6 +69,7 @@ int mam17_net_init(struct mam17_card *card)
 		// Create symlink to device in /sys/bus/pci/drivers/mr17h/
 		sysfs_create_link( &(dev_drv->kobj),&(dev_dev->kobj),ndev->name);
 		PDEBUG(debug_netcard,"sg17_sysfs_register - success");
+		sprintf(card->channels[if_processed].name, "%s", ndev->name);
 		
 	}
 

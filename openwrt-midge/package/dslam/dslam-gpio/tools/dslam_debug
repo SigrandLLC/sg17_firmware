@@ -63,5 +63,5 @@ else
 	echo "$addr" > $cfg
 	tmp=`cat $cfg`
 	set $tmp
-	echo "New Register($1)=$2"
+#	echo "New Register($1)=$2"
 fi	

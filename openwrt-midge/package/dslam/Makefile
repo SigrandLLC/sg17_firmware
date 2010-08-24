@@ -4,10 +4,11 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dslam
 PKG_RELEASE:=1
+PKG_VERSION=1
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 CFLAGS:=
+DEBUG := yes
 
-DEBUG := no
 ifeq ($(BR2_PACKAGE_SIGRAND_DSLAM_DEBUG),y)
     CFLAGS +=-DDEBUG_ON
     DEBUG := yes
@@ -40,11 +41,12 @@ $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	cd $(PKG_BUILD_DIR)/dslam-gpio && make
 	touch $@
 
-$(IPKG_SIGRAND_MR17H):
+$(IPKG_SIGRAND_DSLAM):
 	install -d -m0755 $(IDIR_SIGRAND_DSLAM)/lib/modules/2.6.16
-	cd $(PKG_BUILD_DIR)/dslam-gpio && make install
+	install -m 644 $(PKG_BUILD_DIR)/dslam-gpio/dslam_gpio.ko $(IDIR_SIGRAND_DSLAM)/lib/modules/2.6.16/
+	install -d -m0755 $(IDIR_SIGRAND_DSLAM)/sbin
+	install -m0755  $(PKG_BUILD_DIR)/dslam-gpio/tools/dslam_debug $(IDIR_SIGRAND_DSLAM)/sbin/
 	$(IPKG_BUILD) $(IDIR_SIGRAND_DSLAM) $(PACKAGE_DIR)
-	@echo ">>>>>>>>>>>>>>>>DSLAM INSTALL >>>>>>>>>>>>>>>>>>>"
 
-local_build: $(PKG_BUILD_DIR)/.prepared
-	cd $(PKG_BUILD_DIR)/dslam-gpio && make KERN_PATH=$(LINUX_DIR) CROSS_PREFIX=$(STAGING_DIR)/bin/mipsel-linux-
+#local_build: $(PKG_BUILD_DIR)/.prepared
+#	cd $(PKG_BUILD_DIR)/dslam-gpio && make KERN_PATH=$(LINUX_DIR) CROSS_PREFIX=$(STAGING_DIR)/bin/mipsel-linux-

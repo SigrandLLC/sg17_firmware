@@ -260,7 +260,7 @@ int adm5120swdrv_init (void)
 	sw_context->intMask = RX_H_INT | RX_L_INT | TX_H_INT | TX_L_INT | PORT0_QUE_FULL_INT |
 		PORT1_QUE_FULL_INT | PORT2_QUE_FULL_INT | PORT3_QUE_FULL_INT |
 		PORT4_QUE_FULL_INT | PORT5_QUE_FULL_INT | CPU_QUE_FULL_INT |
-		CPU_HOLD_INT | SEND_DESC_ERR_INT | RX_DESC_ERR_INT;
+		CPU_HOLD_INT | SEND_DESC_ERR_INT | RX_DESC_ERR_INT | LINK_INT;
 
 	ADM5120_SW_REG(CPUp_conf_REG) &= ~SW_CPU_PORT_DISABLE;
 	spin_lock_init(&sw_context->lock);
@@ -368,6 +368,23 @@ void ProcessTxInt(PTX_ENG_T txEng)
 	txEng->idxTail = idx;
 }
 
+void ChangeIfacesStatus(void)
+{
+	int i, val;
+	
+	val = ADM5120_SW_REG(PHY_st_REG) & 0x1F;
+	
+	for (i = 0; i < MAX_VLAN_GROUP; i++)
+	{
+		if (val & (0x1 << i)) {
+			netif_carrier_on(&adm5120sw_devs[i]);
+		} else {
+			netif_carrier_off(&adm5120sw_devs[i]);
+		}
+	}
+}
+
+
 irqreturn_t swdrv_ProcessInt(int irq, void *dev_id, struct pt_regs *regs)
 {
 	unsigned long intReg;
@@ -400,6 +417,10 @@ irqreturn_t swdrv_ProcessInt(int irq, void *dev_id, struct pt_regs *regs)
 	if (intReg & TX_L_INT)
 		ProcessTxInt(&sw_context->txL);
 
+	/* if LINK_INT occurs, some port changes status (link-on to/from link-down)
+	   and we need say it to kernel */
+	if (intReg & LINK_INT)
+		ChangeIfacesStatus();
 
 	ADM5120_SW_REG(SW_Int_mask_REG) &= ~sw_context->intMask;
 
@@ -448,7 +469,7 @@ static int read_force_link(char *buf, char **start, off_t offset, int count, int
 #endif
 
 
-//#define ADM5120_SW_DEBUG
+#define ADM5120_SW_DEBUG
 #ifdef ADM5120_SW_DEBUG
 static int store_swreg(struct file *file,const char *buffer,unsigned long count,void *data);
 static int read_swreg(char *buf, char **start, off_t offset, int count, int *eof, void *data); 
@@ -859,7 +880,9 @@ int adm5120sw_open(struct net_device *dev)
 
 	dev->irq = SW_IRQ;
 	netif_start_queue(dev);
-
+	
+	ChangeIfacesStatus();
+	
 	return 0;
 }
 

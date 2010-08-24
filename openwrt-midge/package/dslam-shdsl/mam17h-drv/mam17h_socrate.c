@@ -35,7 +35,7 @@ void monitor_links_state(void * data)
 				}
 				card->channels[i].need_reset = 0;
 			} else {
-				PDEBUG(0,"reset channel %i", i);
+//				PDEBUG(0,"reset channel %i", i);
 				if (configure_channel(card, i))
 				{
 					printk(KERN_NOTICE "Error: configure_channel %i\n", i);
@@ -80,7 +80,7 @@ void monitor_links_state(void * data)
 				case 3:
 					iowrite8(RXDE | ioread8(&(card->regs->CRB3)), &(card->regs->CRB3));
 				break;
-			}			
+			}
 		}
 	}
 

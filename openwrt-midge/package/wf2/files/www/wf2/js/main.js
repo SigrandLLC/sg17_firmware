@@ -17,9 +17,6 @@ function generateMenu() {
     addItem("Hardware", "Switch", "adm5120sw");
     addItem("Services", "DHCP server", "dhcp");
     addItem("Services", "DNS server", "dns_server");
-    addItem("Services", "Dial-in", "dialin");
-    addItem("Services", "Terminal", "terminal");
-    addItem("Services", "Snmpd", "snmpd");
 
     /* if we have support for linkdeps */
     if (config.getCachedOutput("linkdeps") == "1") {
@@ -48,6 +45,7 @@ function generateMenu() {
 
     /* get array of PCI slots */
     var slots = config.getParsed("sys_pcitbl_slots");
+    var rs = false;
 
     /* generate list of SHDSL/E1/RS232 interfaces */
     $.each(slots, function(num, pcislot) {
@@ -94,6 +92,7 @@ function generateMenu() {
 
                 /* RS232 */
                 case config.getOEM("MR17S_DRVNAME"):
+                    rs = true;
                     if (!rs232Defined) {
                         rs232Defined = true;
                         config.runCmd($.sprintf("[ -f /sys/bus/pci/drivers/%s/%s/dev_type ] && cat /sys/bus/pci/drivers/%s/%s/dev_type || echo -n 'undefined'",
@@ -106,6 +105,12 @@ function generateMenu() {
             }
         });
     });
+    if (rs == true)
+    {
+    	addItem("Services", "Terminal", "terminal");
+        addItem("Services", "Dial-in", "dialin");
+    }
+    addItem("Services", "Snmpd", "snmpd");
 
     /* generate list of network interfaces */
     var ifaces = config.getParsed("sys_ifaces");

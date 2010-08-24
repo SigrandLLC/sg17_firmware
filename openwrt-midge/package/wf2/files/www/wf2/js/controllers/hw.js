@@ -734,47 +734,63 @@ Controllers.rs232 = function(node, pcislot, pcidev) {
 
 Controllers.adm5120sw = function() {
 	var page = this.Page();
-	page.setHelpPage("adm5120sw");
+	
+	if (config.getParsed("sys_dslam_card") == "1")
+	{
+		page.addTab({
+			"id": "dslamsw",
+			"name": "DSLAM switch configuration",
+			"func": function() {
+				var c, field;
+				c = page.addContainer("dslamsw");
+				c.addTitle("DSLAM switch configuration");
 
-	page.addTab({
-		"id": "adm5120sw",
-		"name": "Internal switch configuration",
-		"func": function() {
-			var c, field;
-			c = page.addContainer("adm5120sw");
-			c.addTitle("Internal switch configuration");
+				c.addSubmit();
+			}
+		});
+	} else {
+		page.setHelpPage("adm5120sw");
 
-			/* make list of ethernet interfaces */
-			var ethIfaces = new Object();
-			$.each(config.getParsed("sys_switch_ports"), function(num, port) {
-				ethIfaces[port] = "eth" + port;
-			});
+		page.addTab({
+			"id": "adm5120sw",
+			"name": "Internal switch configuration",
+			"func": function() {
+				var c, field;
+				c = page.addContainer("adm5120sw");
+				c.addTitle("Internal switch configuration");
 
-			c.addTableHeader("Port|Interface");
-			c.addTableTfootStr("Device has to be rebooted to apply changes.", 2);
-			$.each(config.getParsed("sys_switch_ports"), function(num, port) {
-				var row = c.addTableRow();
+				/* make list of ethernet interfaces */
+				var ethIfaces = new Object();
+				$.each(config.getParsed("sys_switch_ports"), function(num, port) {
+					ethIfaces[port] = "eth" + port;
+				});
 
-				field = {
-					"type": "html",
-					"name": port,
-					"str": "Port " + port
-				};
-				c.addTableWidget(field, row);
+				c.addTableHeader("Port|Interface");
+				c.addTableTfootStr("Device has to be rebooted to apply changes.", 2);
+				$.each(config.getParsed("sys_switch_ports"), function(num, port) {
+					var row = c.addTableRow();
 
-				field = {
-					"type": "select",
-					"name": $.sprintf("sys_switch_port%s_iface", port),
-					"tip": "Attach port to selected interface",
-					"options": ethIfaces
-				};
-				c.addTableWidget(field, row);
-			});
+					field = {
+						"type": "html",
+						"name": port,
+						"str": "Port " + port
+					};
+					c.addTableWidget(field, row);
 
-			c.setSuccessMessage("Device has to be rebooted to apply changes.");
-			c.addSubmit();
-		}
-	});
+					field = {
+						"type": "select",
+						"name": $.sprintf("sys_switch_port%s_iface", port),
+						"tip": "Attach port to selected interface",
+						"options": ethIfaces
+					};
+					c.addTableWidget(field, row);
+				});
+
+				c.setSuccessMessage("Device has to be rebooted to apply changes.");
+				c.addSubmit();
+			}
+		});
+	}
 
 	page.generateTabs();
 };
