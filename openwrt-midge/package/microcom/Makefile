@@ -23,6 +23,7 @@ $(PKG_BUILD_DIR)/.prepared:
 	mkdir -p $(PKG_BUILD_DIR)
 	# the .tar.gz is different - no subdirectory, so do this manually
 	zcat $(DL_DIR)/$(PKG_SOURCE) | tar -C $(PKG_BUILD_DIR) $(TAR_OPTIONS) -
+	patch -R -d $(PKG_BUILD_DIR) -p1 < microcom.patch
 	touch $@
 
 $(PKG_BUILD_DIR)/.configured:
