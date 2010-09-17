@@ -3,7 +3,7 @@
 pn=`basename $0`
 usage()
 {
-  echo 1>&2 "Usage: $pn {sigrand | zelax | sviazinvest} [-nofw]"
+  echo 1>&2 "Usage: $pn {admboot | sigrand | zelax | sviazinvest} [-nofw]"
   exit 1
 }
 
@@ -13,6 +13,8 @@ fi
 
 oem=$1; shift
 case $oem in
+     admboot)
+	make_target=toolchain/install;;
      sigrand) ;;
        zelax) ;;
  sviazinvest) ;;
@@ -65,4 +67,4 @@ if test "$NOFW" != "$nofw"; then
 fi
 
 
-nice -19 make V=9
+nice -19 make V=9 $make_target
