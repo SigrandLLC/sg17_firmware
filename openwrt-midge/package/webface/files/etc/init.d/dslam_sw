@@ -26,7 +26,7 @@ set_def_vlan_settings() {
 
 _dslam_sw_start() {
 
-	modprobe dslam_gpio
+	modprobe dslam_sw
 
 	tmp=`dslam_debug 0 00`
 	let "n=${#tmp}-3"
@@ -37,7 +37,7 @@ _dslam_sw_start() {
 
 	if [ "$tmp2" = "ffff" ]; then
 		$kdb set sys_dslam_card=0
-		rmmod dslam_gpio
+		rmmod dslam_sw
 	else
 		$kdb set sys_dslam_card=1
 		# port 26 is a CPU port

@@ -1,18 +1,12 @@
 #!/bin/sh
-# Sigrand DSLAM debug tool 
-# for Linux kernel v 2.6 drivers
-#
-#	Written 2009 by Artem Y. Polyakov
-#
-#---------------------------------------------------------
 
-CFG_PATH="/proc/sys/net/dslam_gpio/"
+CFG_PATH="/proc/sys/net/dslam_sw/"
 
 #---------------------------------------------------------
 
 print_usage()
 {
-    echo "Sigrand DSLAM register debug tool"
+    echo "Sigrand DSLAM switch register debug tool"
     echo "Usage:"
     echo "  dslam_gebug <swnum> <addr>       - read register <addr>"
     echo "  dslam_gebug <swnum> <addr> <val> - read register <addr>"
@@ -38,7 +32,7 @@ fi
 cdir=`pwd`
 
 if [ -z "$val" ]; then
-	cfg="$CFG_PATH/sw${1}_regread"
+	cfg="$CFG_PATH/sw${1}/regread"
 	if [ ! -f "$cfg" ]; then
 		echo "$0: No such file $cfg"		
 		exit
@@ -48,14 +42,14 @@ if [ -z "$val" ]; then
 	set $tmp
 	echo "Register($1)=$2"
 else
-	cfg="$CFG_PATH/sw${1}_regwrite"
+	cfg="$CFG_PATH/sw${1}/regwrite"
 	if [ ! -f "$cfg" ]; then
 		echo "$0: No such file $cfg"
 		exit
 	fi
 	echo "$addr $val" > $cfg
 
-	cfg="$CFG_PATH/sw${1}_regread"
+	cfg="$CFG_PATH/sw${1}/regread"
 	if [ ! -f "$cfg" ]; then
 		echo "$0: No such file $cfg"
 		exit

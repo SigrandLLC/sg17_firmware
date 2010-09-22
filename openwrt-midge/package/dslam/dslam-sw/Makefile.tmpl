@@ -1,0 +1,14 @@
+obj-m := dslam_sw.o
+
+mam17h.ko: dslam_sw.c
+	make -C @KERNSRC@ SUBDIRS=$(PWD) modules CROSS_COMPILE="@CROSS_PREFIX@"
+
+all: mam17h.ko
+
+clean:
+	rm --preserve-root -f .*.o*
+	rm --preserve-root -f .*.ko*
+	rm --preserve-root -f *.o*
+	rm --preserve-root -f *.ko*
+	rm --preserve-root -f *.mod.*
+	rm --preserve-root -f -R .tmp*

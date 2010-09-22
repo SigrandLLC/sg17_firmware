@@ -21,14 +21,14 @@ $(eval $(call PKG_template,SIGRAND_DSLAM,dslam,$(PKG_VERSION)-$(PKG_RELEASE),$(A
 $(PKG_BUILD_DIR)/.prepared:
 	@echo "PKG_DIR="$(PKG_BUILD_DIR)
 	mkdir -p $(PKG_BUILD_DIR)
-	cp -R dslam-gpio $(PKG_BUILD_DIR)
+	cp -R dslam-sw $(PKG_BUILD_DIR)
 	touch $@
 
 $(PKG_BUILD_DIR)/.configured:
-	rm --preserve-root -f $(PKG_BUILD_DIR)/dslam-gpio/Makefile
+	rm --preserve-root -f $(PKG_BUILD_DIR)/dslam-sw/Makefile
 	@echo "CFLAGS=$(CFLAGS)"
-	sed <$(PKG_BUILD_DIR)/dslam-gpio/Makefile.tmpl \
-	> $(PKG_BUILD_DIR)/dslam-gpio/Makefile \
+	sed <$(PKG_BUILD_DIR)/dslam-sw/Makefile.tmpl \
+	> $(PKG_BUILD_DIR)/dslam-sw/Makefile \
 	-e "s%@KERNSRC@%$(LINUX_DIR)%g" \
 	-e "s%@CROSS_PREFIX@%$(KERNEL_CROSS)%g" \
 	-e "s%@CFLAGS@%$(CFLAGS)%g" \
@@ -38,15 +38,15 @@ $(PKG_BUILD_DIR)/.configured:
 	touch $@
 
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
-	cd $(PKG_BUILD_DIR)/dslam-gpio && make
+	cd $(PKG_BUILD_DIR)/dslam-sw && make
 	touch $@
 
 $(IPKG_SIGRAND_DSLAM):
 	install -d -m0755 $(IDIR_SIGRAND_DSLAM)/lib/modules/2.6.16
-	install -m 644 $(PKG_BUILD_DIR)/dslam-gpio/dslam_gpio.ko $(IDIR_SIGRAND_DSLAM)/lib/modules/2.6.16/
+	install -m 644 $(PKG_BUILD_DIR)/dslam-sw/dslam_sw.ko $(IDIR_SIGRAND_DSLAM)/lib/modules/2.6.16/
 	install -d -m0755 $(IDIR_SIGRAND_DSLAM)/sbin
-	install -m0755  $(PKG_BUILD_DIR)/dslam-gpio/tools/dslam_debug $(IDIR_SIGRAND_DSLAM)/sbin/
+	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/tools/dslam_debug $(IDIR_SIGRAND_DSLAM)/sbin/
 	$(IPKG_BUILD) $(IDIR_SIGRAND_DSLAM) $(PACKAGE_DIR)
 
 #local_build: $(PKG_BUILD_DIR)/.prepared
-#	cd $(PKG_BUILD_DIR)/dslam-gpio && make KERN_PATH=$(LINUX_DIR) CROSS_PREFIX=$(STAGING_DIR)/bin/mipsel-linux-
+#	cd $(PKG_BUILD_DIR)/dslam-sw && make KERN_PATH=$(LINUX_DIR) CROSS_PREFIX=$(STAGING_DIR)/bin/mipsel-linux-
