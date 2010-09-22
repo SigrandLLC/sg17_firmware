@@ -1,39 +1,331 @@
 #!/bin/sh
 
-modprobe dslam_gpio
+kdb="/usr/bin/kdb"
 
-tmp=`dslam_debug 0 00`
-let "n=${#tmp}-3"
-let "m=${#tmp}+1"
-tmp2=`expr substr $tmp $n $m`
+set_def_vlan_settings() {
+	sw=$1
+	$kdb set sys_dslam_vlan_table_0="name=default vid=1 p00=1 p01=1 p02=1 p03=1 p10=1 p11=1 p12=1 p13=1 p20=1 p21=1 p22=1 p23=1 p30=1 p31=1 p32=1 p33=1 p40=1 p41=1 p42=1 sw0ports=7ffffff sw1ports=7ffffff"
+	for i in 0 `seq 26`; do
+#		$kdb set sys_dslam_sw${sw}_vlan_${i}_set=7ffffff;
+		$kdb set sys_dslam_sw${sw}_vlan_${i}_pvid=0;
+		$kdb set sys_dslam_sw${sw}_vlan_${i}_tag=0;
+	done;
+	$kdb set sys_dslam_cos_aging_time=0
+	$kdb set sys_dslam_cos_high_priority_queue=0
+	$kdb set sys_dslam_cos_low_priority_queue=0
+	$kdb set sys_dslam_cos_mode=0
+	$kdb set sys_dslam_cos_pause_flow_control=0
+	$kdb set sys_dslam_cos_porta=0
+	$kdb set sys_dslam_cos_portb=0
+	$kdb set sys_dslam_cos_portc=0
+	$kdb set sys_dslam_cos_portd=0
+	$kdb set sys_dslam_cos_reg33=0
+	$kdb set sys_dslam_cos_reg34=0
+	$kdb set sys_dslam_cos_reg35=0
+}
 
-kdb rm sys_dslam_card
+_dslam_sw_start() {
 
-if [ "$tmp2" = "ffff" ]; then
-	kdb set sys_dslam_card=0
-	rmmod dslam_gpio
-else
-	kdb set sys_dslam_card=1
-	# statistic config
-	dslam_debug 0 3b ffff
-	dslam_debug 0 3c 07ff
-	dslam_debug 0 01 0612
+	modprobe dslam_gpio
+
+	tmp=`dslam_debug 0 00`
+	let "n=${#tmp}-3"
+	let "m=${#tmp}+1"
+	tmp2=`expr substr $tmp $n $m`
+
+	$kdb rm sys_dslam_card
+
+	if [ "$tmp2" = "ffff" ]; then
+		$kdb set sys_dslam_card=0
+		rmmod dslam_gpio
+	else
+		$kdb set sys_dslam_card=1
+		# port 26 is a CPU port
+#		dslam_debug 0 f2 0005
+
+		# hash algorithm for LUT (40[0]: 0 - full MAC, 1 - lowest 12 bit)
+		# 40[1] = 1 aging disable, 0 - enable
+		dslam_debug 0 40 0000
+		dslam_debug 1 40 0000
+
+		# learning MAC
+#		dslam_debug 0 45 0000
+#		dslam_debug 0 46 0000
+#		dslam_debug 1 45 0000
+#		dslam_debug 1 46 0000
+		# block packages form unknown MAC (for work need also disable learning function)
+		dslam_debug 0 49 0000
+		dslam_debug 1 49 0000
+
+		# statistic config (3b = ffff 3c = 07ff 01[9] = 1 - error; 0 - receive/transmit)
+		dslam_debug 0 3b 0000
+		dslam_debug 0 3c 0000
+		dslam_debug 0 01 0432
+
+		dslam_debug 1 3b 0000
+		dslam_debug 1 3c 0000
+		dslam_debug 1 01 0432
 	
-	dslam_debug 1 3b ffff
-	dslam_debug 1 3c 07ff
-	dslam_debug 1 01 0612
+		#force TP
+		dslam_debug 0 ff 0008
+		dslam_debug 1 ff 0008
 	
-	#force TP
-	dslam_debug 0 ff 0008
-	dslam_debug 1 ff 0008
+		#set up RGMII
+		dslam_debug 0 f9 1e38
+		dslam_debug 1 f9 1e38
 	
-	#set up RGMII
-	dslam_debug 0 f9 1e38
-	dslam_debug 1 f9 1e38
+		#force link
+		dslam_debug 0 d8 ffff
+		dslam_debug 1 d8 ffff
+		dslam_debug 0 d9 37ff
+		dslam_debug 1 d9 17ff
+		
+		sw0_vlan_mode=`kdb get sys_dslam_sw0_vlan_mode`
+		if [ "$sw0_vlan_mode" = ""  ]; then
+			set_def_vlan_settings 0
+			set_def_vlan_settings 1
+		fi
+
+		$kdb set sys_dslam_sw0_vlan_mode=1
+		$kdb set sys_dslam_sw1_vlan_mode=1
+		echo "1" > /proc/sys/net/dslam_sw/sw0/vlan_mode
+		echo "1" > /proc/sys/net/dslam_sw/sw1/vlan_mode
+		
+		update_vlan_settings
+		update_cos_settings 1
+		update_cos_settings 2
+		update_cos_settings 3
+		update_bandwidth_settings
+		update_bcast_settings
+		update_mac_sec_settings
+	fi
+}
+
+update_vlan_settings() {
+	for port in 0 `seq 26`; do
+		pvid=`$kdb get sys_dslam_sw0_vlan_${port}_pvid`
+		tag=`$kdb get sys_dslam_sw0_vlan_${port}_tag`
+		echo "$port $pvid" > /proc/sys/net/dslam_sw/sw0/pvid
+		echo "$port $tag" > /proc/sys/net/dslam_sw/sw0/tag
+
+		pvid=`$kdb get sys_dslam_sw1_vlan_${port}_pvid`
+		tag=`$kdb get sys_dslam_sw1_vlan_${port}_tag`
+		echo "$port $pvid" > /proc/sys/net/dslam_sw/sw1/pvid
+		echo "$port $tag" > /proc/sys/net/dslam_sw/sw1/tag
+	done
+	for i in 0 `seq 31`; do
+		tmp=`kdb get sys_dslam_vlan_table_${i}`
+		if [ -z "$tmp" ]; then
+			echo "$i 0 0" > /proc/sys/net/dslam_sw/sw0/vid_table
+			echo "$i 0 0" > /proc/sys/net/dslam_sw/sw1/vid_table
+			continue;
+		else
+			sw0ports="null"
+			sw1ports="null"
+			for j in $tmp; do
+				eval $j
+			done
+			echo "$i $vid $sw0ports" > /proc/sys/net/dslam_sw/sw0/vid_table
+			echo "$i $vid $sw1ports" > /proc/sys/net/dslam_sw/sw1/vid_table
+		fi
+	done
+}
+
+update_cos_settings() {
+	case $1 in
+	1)
+	mode=`$kdb get sys_dslam_cos_mode`
+	low=`$kdb get sys_dslam_cos_low_priority_queue`
+	high=`$kdb get sys_dslam_cos_high_priority_queue`
+	aging_time=`$kdb get sys_dslam_cos_aging_time`
+	pause=`$kdb get sys_dslam_cos_pause_flow_control`
+	let "reg3d=$mode+($low<<2)+($high<<5)+($aging_time<<8)+($pause<<15)"
+	reg3dh=`printf "%x" $reg3d`
+	echo "3D $reg3dh" > /proc/sys/net/dslam_sw/sw0/regwrite
+	echo "3D $reg3dh" > /proc/sys/net/dslam_sw/sw1/regwrite
+
+	;;
+
+	2)
+	for sw in 0 1; do
+		reg22=`$kdb get sys_dslam_sw${sw}_cos_port_low`
+		reg22=`printf "%x" $reg22`
+		echo "22 $reg22" > /proc/sys/net/dslam_sw/sw${sw}/regwrite
+		reg23=`$kdb get sys_dslam_sw${sw}_cos_port_high`
+		reg23=`printf "%x" $reg23`
+		echo "23 $reg23" > /proc/sys/net/dslam_sw/sw${sw}/regwrite
+		reg24=`$kdb get sys_dslam_sw${sw}_cos_tag_low`
+		reg24=`printf "%x" $reg24`
+		echo "24 $reg24" > /proc/sys/net/dslam_sw/sw${sw}/regwrite
+		reg25=`$kdb get sys_dslam_sw${sw}_cos_tag_high`
+		reg25=`printf "%x" $reg25`
+		echo "25 $reg25" > /proc/sys/net/dslam_sw/sw${sw}/regwrite
+		reg26=`$kdb get sys_dslam_sw${sw}_cos_ip_low`
+		reg26=`printf "%x" $reg26`
+		echo "26 $reg26" > /proc/sys/net/dslam_sw/sw${sw}/regwrite
+		reg27=`$kdb get sys_dslam_sw${sw}_cos_ip_high`
+		reg27=`printf "%x" $reg27`
+		echo "27 $reg27" > /proc/sys/net/dslam_sw/sw${sw}/regwrite
+	done;
+	;;
+	3)
+		reg33=`$kdb get sys_dslam_cos_reg33`
+		reg33=`printf "%x" $reg33`
+		echo "33 $reg33" > /proc/sys/net/dslam_sw/sw0/regwrite
+		echo "33 $reg33" > /proc/sys/net/dslam_sw/sw1/regwrite
+		reg34=`$kdb get sys_dslam_cos_reg34`
+		reg34=`printf "%x" $reg34`
+		echo "34 $reg34" > /proc/sys/net/dslam_sw/sw0/regwrite
+		echo "34 $reg34" > /proc/sys/net/dslam_sw/sw1/regwrite
+		reg35=`$kdb get sys_dslam_cos_reg35`
+		reg35=`printf "%x" $reg35`
+		echo "35 $reg35" > /proc/sys/net/dslam_sw/sw0/regwrite
+		echo "35 $reg35" > /proc/sys/net/dslam_sw/sw1/regwrite
+		
+		for port in a b c d; do
+			port_num=`$kdb get sys_dslam_cos_port$port`
+			port_num=`printf "%x" $port_num`
+			case "$port" in
+				a)
+					echo "2F $port_num" > /proc/sys/net/dslam_sw/sw0/regwrite
+					echo "2F $port_num" > /proc/sys/net/dslam_sw/sw1/regwrite
+				;;
+				b)
+					echo "30 $port_num" > /proc/sys/net/dslam_sw/sw0/regwrite
+					echo "30 $port_num" > /proc/sys/net/dslam_sw/sw1/regwrite
+				;;
+				c)
+					echo "31 $port_num" > /proc/sys/net/dslam_sw/sw0/regwrite
+					echo "31 $port_num" > /proc/sys/net/dslam_sw/sw1/regwrite
+				;;
+				d)
+					echo "32 $port_num" > /proc/sys/net/dslam_sw/sw0/regwrite
+					echo "32 $port_num" > /proc/sys/net/dslam_sw/sw1/regwrite
+				;;
+			esac
+		done
+	;;
+	esac
 	
-	#force link
-	dslam_debug 0 d8 ffff
-	dslam_debug 1 d8 ffff
-	dslam_debug 0 d9 37ff
-	dslam_debug 1 d9 17ff
-fi
+}
+
+update_bandwidth_settings() {
+	for sw in 0 1; do
+		for port in 0 `seq 26`; do
+			transmit=`$kdb get sys_dslam_bandwidth_transmit_sw${sw}_p${port}`
+			receive=`$kdb get sys_dslam_bandwidth_receive_sw${sw}_p${port}`
+			big=0
+			if [ -z "$transmit" ]; then
+				transmit=0
+			else
+				if [ "$port" = 24 ]; then
+					let "transmit=$transmit/2048"
+				else
+					let "transmit=$transmit/256"
+				fi
+			fi
+			if [ -z "$receive" ]; then
+				receive=0
+			else
+				if [ "$port" = 24 ]; then
+					let "receive=$receive/2048"
+				else
+					let "receive=$receive/256"
+				fi
+			fi
+			let "reg=$transmit+($receive << 8)"
+			regh=`printf "%x" $reg`
+#			echo "sw$sw p$port: transmit=$transmit receive=$receive regh=$regh" >> /root/bandwidth
+			let "reg_to_write=3+$port"
+			reg_to_writeh=`printf "%x" $reg_to_write`
+			echo "$reg_to_writeh $regh" > /proc/sys/net/dslam_sw/sw${sw}/regwrite
+		done
+	done
+}
+
+update_bcast_settings() {
+        threshold=`kdb get sys_dslam_bcast_threshold`
+        if [ "$threshold" = "" ]; then
+        	threshold=63
+        fi
+	let "reg44=($threshold << 10) + 5"
+
+#	TODO: Aging time also in reg44. Here it is a constant = 5
+	echo 44 `printf "%x" $reg44` > /proc/sys/net/dslam_sw/sw0/regwrite
+	echo 44 `printf "%x" $reg44` > /proc/sys/net/dslam_sw/sw1/regwrite
+	
+	sw0_reg42=`kdb get sys_dslam_sw0_reg42`
+	sw0_reg43=`kdb get sys_dslam_sw0_reg43`
+	sw1_reg42=`kdb get sys_dslam_sw1_reg42`
+	sw1_reg43=`kdb get sys_dslam_sw1_reg43`
+
+	echo 42 `printf "%x" $sw0_reg42` > /proc/sys/net/dslam_sw/sw0/regwrite
+	echo 42 `printf "%x" $sw1_reg42` > /proc/sys/net/dslam_sw/sw1/regwrite
+	echo 43 `printf "%x" $sw0_reg43` > /proc/sys/net/dslam_sw/sw0/regwrite
+	echo 43 `printf "%x" $sw1_reg43` > /proc/sys/net/dslam_sw/sw1/regwrite	
+}
+
+update_mac_sec_settings() {
+	for sw in 0 1; do
+		for port in 0 `seq 26`; do
+			tmp=`kdb get sys_dslam_sw${sw}_mac_sec_${port}`
+			if [ "$tmp" = "1" ]; then
+				echo "$port" > /proc/sys/net/dslam_sw/sw${sw}/disable_learning
+				for mac in `kdb get sys_dslam_sw${sw}_macs_p${port}`; do
+					echo "port $port: $mac" >> /root/macs
+					echo "$port $mac" > /proc/sys/net/dslam_sw/${sw}/mac
+				done
+			fi
+		done
+	done
+}
+
+update_cfg() {
+	what=$1
+	case "$what" in
+		vlan)
+			update_vlan_settings
+		;;
+		cos)
+			update_cos_settings $2
+		;;
+		bandwidth)
+			update_bandwidth_settings
+		;;
+		bcast)
+			update_bcast_settings
+		;;
+		mac_sec)
+			update_mac_sec_settings
+		;;
+		all)
+			update_vlan_settings $2
+		;;
+	esac
+}
+update_all_cfg() {
+	update_cfg all 0 $i
+	update_cfg all 1 $i
+}
+
+get_mac_table() {
+	sw0=`cat /proc/sys/net/dslam_sw/sw0/mac`
+	sw1=`cat /proc/sys/net/dslam_sw/sw1/mac`
+	output_string="{ \"sw0\":$sw0, \"sw1\":$sw1}"
+	echo $output_string
+}
+
+case "$1" in
+	start) 
+		_dslam_sw_start 
+		;;
+	stop)
+#		_dslam_sw_stop 
+		;;
+	update_cfg)
+		update_cfg $2 $3
+		;;
+	get_mac_table)
+		get_mac_table
+		;;
+esac

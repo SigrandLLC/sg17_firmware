@@ -55,9 +55,34 @@ _dsl_mam17hifcfg(){
 
 	# Hardware settings
 	eval `$kdb -qq sls sys_pcicfg_s${slot}_${ifnum}_`
+	eval `$kdb -qq sls sys_pcicfg_s${slot}_pw`
+	pwron="pwroff"
+	case "$iface" in
+		dsl0)
+			if [ "$r_0_on" = "pwron" ]; then
+				pwron="pwron";
+			fi
+		;;
+		dsl1)
+			if [ "$r_0_on" = "pwron" ]; then
+				pwron="pwron";
+			fi
+		;;
+		dsl2)
+			if [ "$r_1_on" = "pwron" ]; then
+				pwron="pwron";
+			fi
+		;;
+		dsl3)
+			if [ "$r_1_on" = "pwron" ]; then
+				pwron="pwron";
+			fi
+		;;
+	esac
 	if [ -n "$advlink" ]; then
 		advlink="advlink $advlink"
 	fi
+	advlink=""
 
 	if [ "$pbomode" = "on" -o "$pbomode" = "1" ]; then
 		pbo="pbo-forced"
@@ -73,7 +98,7 @@ _dsl_mam17hifcfg(){
 
 	# apply configuration
 	if [ "$mode" == "slave" ]; then
-   		$mam17h_cfg $iface $mode $fill $pwron $advlink > /root/log
+   		$mam17h_cfg $iface $mode $fill $pwron $advlink
 	else
 		if [ "$rate" == "-1" -a -n "$mrate" ]; then
 			rate="rate $mrate"
@@ -126,6 +151,31 @@ _dsl_mam17hcfg(){
 		else
 			_dsl_mam17hifcfg "$iface" "$slot" "$ifnum"
 		fi
+		if [ "$slot" = "0002" ]; then 
+			$kdb set sys_iface_${iface}_sw=0
+			$kdb set sys_iface_${iface}_sw_port=$ifnum
+			$kdb set sys_iface_${iface}_slot=0
+			$kdb set sys_iface_${iface}_port=$ifnum
+		fi
+		if [ "$slot" = "0003" ]; then 
+			$kdb set sys_iface_${iface}_sw=0
+			$kdb set sys_iface_${iface}_sw_port=`expr $ifnum + 4`
+			$kdb set sys_iface_${iface}_slot=1
+			$kdb set sys_iface_${iface}_port=$ifnum
+		fi
+		if [ "$slot" = "0004" ]; then 
+			$kdb set sys_iface_${iface}_sw=1
+			$kdb set sys_iface_${iface}_sw_port=$ifnum
+			$kdb set sys_iface_${iface}_slot=2
+			$kdb set sys_iface_${iface}_port=$ifnum
+		fi
+		if [ "$slot" = "0005" ]; then 
+			$kdb set sys_iface_${iface}_sw=1
+			$kdb set sys_iface_${iface}_sw_port=`expr $ifnum + 4`
+			$kdb set sys_iface_${iface}_slot=3
+			$kdb set sys_iface_${iface}_port=$ifnum
+		fi		
+
 		ifnum=`expr $ifnum + 1`
 	done
 }

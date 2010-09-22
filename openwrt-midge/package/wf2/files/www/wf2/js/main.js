@@ -14,7 +14,11 @@ function generateMenu() {
     addItem("System", "Console", "console");
     addItem("Network", "Firewall", "fw");
     addItem("Network:Dynamic interfaces", "Manage", "dynamic_ifaces");
-    addItem("Hardware", "Switch", "adm5120sw");
+    if (config.getParsed("sys_dslam_card") == "1") {
+        addItem("Hardware", "Switch", "dslamsw");
+    } else {
+        addItem("Hardware", "Switch", "adm5120sw");
+    }
     addItem("Services", "DHCP server", "dhcp");
     addItem("Services", "DNS server", "dns_server");
 

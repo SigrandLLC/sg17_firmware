@@ -10,7 +10,7 @@ if [ "$sys_dslam_card" = "1" ]; then
 		if [ "$i" != "eth1" ]; then
 			if [ "$i" != "eth2" ]; then
 				if [ "$i" != "eth3" ]; then
-					if [ "$ifaces" = ""]; then
+					if [ "$ifaces" = "" ]; then
 						ifaces=$i
 					else
 						ifaces=$ifaces" "$i
