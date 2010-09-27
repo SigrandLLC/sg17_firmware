@@ -26,5 +26,16 @@ fi
 pkg=$1; shift
 
 for t in "$@"; do
-	nice -19 make ${_v_} package/${pkg}-${t} || exit 1
+	if   test -e   package/${pkg}/Makefile; then
+		  pdir=package/${pkg}
+	elif test -e    target/${pkg}/Makefile; then
+		   pdir=target/${pkg}
+	elif test -e toolchain/${pkg}/Makefile; then
+		pdir=toolchain/${pkg}
+	else
+		echo 1>&2 "$pn package dir ${pkg} is not found"
+		exit 1
+	fi
+
+	nice -19 make ${_v_} ${pdir}-${t} || exit 1
 done
