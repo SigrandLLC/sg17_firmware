@@ -8,11 +8,12 @@
 
 #define MAX_MSG_BUF 100
 #define NUM_IFACES 4
+#define DRIVER_VERSION "1.0"
 
-MODULE_DESCRIPTION ( "MAM17H driver\n" );
-MODULE_AUTHOR ( "Scherbakov Mihail\n" );
+MODULE_DESCRIPTION ( "Driver for shdsl modules platform SG-17S. Version "DRIVER_VERSION"\n" );
+MODULE_AUTHOR ( "Scherbakov Mihail (scherbakovmihail@sigrand.ru)\n" );
 MODULE_LICENSE ( "GPL" );
-MODULE_VERSION ( "1.0" );
+MODULE_VERSION ( DRIVER_VERSION );
 
 static int __devinit mam17_probe_one(struct pci_dev *pdev, const struct pci_device_id *dev_id);
 static void __devexit mam17_remove_one(struct pci_dev *pdev);
@@ -627,7 +628,7 @@ void mam17_card_remove(struct mam17_card *card)
 	PDEBUG(debug_remove, "release_mem_region: OK\n");
 	if (card->mem_base) iounmap(card->mem_base);
 	PDEBUG(debug_remove, "iounmap: OK\n");
-	PDEBUG(debug_remove, "module mam17h removed\n");
+	PDEBUG(debug_remove, "module removed\n");
 
 	pci_disable_device(card->pdev);
 	pci_set_drvdata(card->pdev, NULL);

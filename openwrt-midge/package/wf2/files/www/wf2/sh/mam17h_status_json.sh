@@ -7,7 +7,7 @@
 iface=$1
 debug=$2
 mam17h_cfg_path="/sys/class/net"
-conf="$mam17h_cfg_path/$iface/mam_private"
+conf="$mam17h_cfg_path/$iface/ms_private"
 RESULT=""
 
 # print indentation tabs, enabled only in debug mode

@@ -138,7 +138,7 @@ int mam17_socrate_init(struct mam17_card *card)
 	int error = 0;
 
 	// устанавливаем прерывание
-	if (request_irq(card->pdev->irq, interrupt, 0, card->name, (void*)card))
+	if (request_irq(card->pdev->irq, interrupt, SA_SHIRQ, card->name, (void*)card))
 	{
 		PDEBUG(debug_error, "%s: unable to get IRQ %i", card->name, card->pdev->irq);
 		goto err1;

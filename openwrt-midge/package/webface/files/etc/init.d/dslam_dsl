@@ -2,11 +2,13 @@
 
 kdb="kdb"
 ifcfg="/sbin/ifconfig"
-priv_dir="mam_private"
-mam17h_cfg="/sbin/mam17h_cfg"
-mam17h_drvname="mam17h"
+priv_dir="ms_private"
 
 . /etc/templates/oem-vars
+
+mam17h_cfg="/sbin/${mam17h_modname}_cfg"
+mam17h_drvname=${mam17h_modname}
+
 # checks that DSL service is enabled
 
 # Device configurations

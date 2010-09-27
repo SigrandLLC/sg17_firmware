@@ -262,10 +262,9 @@ store_default(struct file *file,const char *buffer,unsigned long count,void *dat
 
 	if (simple_strtoul(buffer,&endp,16) == 1)
 	{
-		write_reg(sw_num, 0x3b, 0xffff);
-		write_reg(sw_num, 0x3c, 0x07ff);
-		write_reg(sw_num, 0x01, 0x0412);
-		write_reg(sw_num, 0x3b, 0xffff);
+		write_reg(sw_num, 0x3b, 0x0000);
+		write_reg(sw_num, 0x3c, 0x0000);
+		write_reg(sw_num, 0x01, 0x0432);
 		write_reg(sw_num, 0xff, 0x0080);
 		write_reg(sw_num, 0xf9, 0x1e38);
 		
@@ -899,18 +898,23 @@ static int dslam_procfs_init(void) {
 			return -1;
 	}
 	
-	return 0;
-	
 	dslam_write_mode(&chips[0]);
 	dslam_write_mode(&chips[1]);
-	PDEBUG(0,"conf0=%lx",ADM5120_SW_REG(GPIO_conf0_REG));
-
+	read_reg(0, 1);
+	if ((read_reg(0, 1) & 0x1f) == 0x12) {
+		proc_mkdir("sys/net/dslam_sw/ok", NULL);
+	}
 	return 0;
+//	PDEBUG(0,"conf0=%lx",ADM5120_SW_REG(GPIO_conf0_REG));
 }        
 
 static void dslam_procfs_remove(void) {
 	int j;
 
+	read_reg(0, 1);
+	if ((read_reg(0, 1) & 0x1f) == 0x12) {
+		remove_proc_entry("sys/net/dslam_sw/ok", NULL);
+	}
 	for ( j=0; j<PFS_ENTS; j++ ) {
 		if( entries_sw0[j].pent->data )
 			kfree(entries_sw0[j].pent->data);

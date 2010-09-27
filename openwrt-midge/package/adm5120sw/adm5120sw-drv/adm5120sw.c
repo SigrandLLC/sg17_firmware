@@ -367,20 +367,82 @@ void ProcessTxInt(PTX_ENG_T txEng)
 
 	txEng->idxTail = idx;
 }
+/*
+	Checkout is DSLAM board here on not
+	if board is here return != 0, else return 0
+*/
+int dslam_board = 0;
+int IsDslamBoardHere(void) {
+	int i, reg = 0;
+	ADM5120_SW_REG(GPIO_conf0_REG) |= 0xC0C00000;
+	udelay(1);
+	for (i = 14; i >= 0; i--) {
+		if ((0x0058 >> i) & 0x1) {
+			ADM5120_SW_REG(GPIO_conf0_REG) |= 0x40000000;
+		} else {
+			ADM5120_SW_REG(GPIO_conf0_REG) &= ~0x40000000;
+		}
+		ADM5120_SW_REG(GPIO_conf0_REG) &= ~0x80000000;
+		udelay(1);
+		ADM5120_SW_REG(GPIO_conf0_REG) |= 0x80000000;
+		udelay(1);
+	}
+	ADM5120_SW_REG(GPIO_conf0_REG) &= ~0x00400000;
+	ADM5120_SW_REG(GPIO_conf0_REG) |= 0x80800000;
+	
+	ADM5120_SW_REG(GPIO_conf0_REG) &= ~0x80000000;
+	udelay(1);
+	ADM5120_SW_REG(GPIO_conf0_REG) |= 0x80000000;
+	udelay(1);
+	ADM5120_SW_REG(GPIO_conf0_REG) &= ~0x80000000;
+	udelay(1);
+	ADM5120_SW_REG(GPIO_conf0_REG) |= 0x80000000;
+	udelay(1);
+	udelay(1);
+	for (i = 0; i < 16; i++) {
+		ADM5120_SW_REG(GPIO_conf0_REG) &= ~0x80000000;
+		udelay(1);
+		reg |= (ADM5120_SW_REG(GPIO_conf0_REG) & 0x00004000)?1:0;
+		ADM5120_SW_REG(GPIO_conf0_REG) |= 0x80000000;
+		reg <<= 1;
+		udelay(1);
+	}
+	reg >>= 1;
+	ADM5120_SW_REG(GPIO_conf0_REG) |= 0xC0C00000;
+	
+	if (reg == 0xffff) {
+//		printk(KERN_ERR"\t\t\t\tNo DSLAM board\n");
+		return 0;
+	}
+//	printk(KERN_ERR"\t\t\t\tDSLAM board is here\n");
+	return 1;
+}
 
+/*
+	change status interfaces in linux kernel (RUNNING in ifconfig)
+*/
 void ChangeIfacesStatus(void)
 {
-	int i, val;
+	int i, j, val, tmp;
 	
 	val = ADM5120_SW_REG(PHY_st_REG) & 0x1F;
-	
-	for (i = 0; i < MAX_VLAN_GROUP; i++)
-	{
-		if (val & (0x1 << i)) {
-			netif_carrier_on(&adm5120sw_devs[i]);
-		} else {
-			netif_carrier_off(&adm5120sw_devs[i]);
+
+	for (i = 0; i < MAX_VLAN_GROUP; i++) {
+		tmp = 1;
+		for (j = 0; j < MAX_VLAN_GROUP; j++) {
+			if ((1 << j) & sw_context->vlanGrp[i]) {
+				if (val & (0x1 << j)) {
+					netif_carrier_on(&adm5120sw_devs[i]);
+					tmp = 0;
+				}
+			}
 		}
+		if (dslam_board && i == 0) tmp = 0;
+		if (tmp) netif_carrier_off(&adm5120sw_devs[i]);
+	}
+
+	if (dslam_board) {
+		netif_carrier_on(&adm5120sw_devs[0]);
 	}
 }
 
@@ -1114,7 +1176,8 @@ static int __init adm5120switch_init (void)
 {
 	int result, i, device_present = 0;
 	BOARD_CFG_T boardCfg = {0};
-
+	
+	dslam_board = IsDslamBoardHere();
 	printk("ADM5120 Switch Module Init V1.3\n");
 	if (adm5120swdrv_init() != 0)
 		return (-ENODEV);

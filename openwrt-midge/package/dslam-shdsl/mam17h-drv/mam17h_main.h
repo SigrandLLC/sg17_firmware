@@ -38,7 +38,7 @@
 
 #define MAM17H_PCI_VENDOR 0x55
 #define MAM17H_PCI_DEVICE 0x95
-#define MAM17H_MODNAME "mam17h"
+#define MAM17H_MODNAME "ms17h"
 #define MAM17_IOMEM_SIZE 0x1000
 
 

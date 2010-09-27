@@ -107,10 +107,10 @@ Controllers.info = function() {
 						});
 					}
 
-					ifaces = config.getData("mam17h");
+					ifaces = config.getData(config.getOEM("MAM17H_MODNAME"));
 					if (ifaces) {
 						$.each(ifaces, function(num, ifaceInfo) {
-							info += $.sprintf("%s (mam17h)<br/>", ifaceInfo.iface);
+							info += $.sprintf("%s (%s)<br/>", ifaceInfo.iface, config.getOEM("MAM17H_MODNAME"));
 						});
 					}
 

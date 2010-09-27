@@ -238,7 +238,7 @@ _pci_start(){
 	pci_driver "$mr16h_drvname" "dsl"
 	pci_driver "$mr17h_drvname" "dsl"
 	pci_driver "$mr17s_drvname" "$mr17s_ttyname"
-	pci_driver "mam17h" "dsl"
+	pci_driver "$mam17h_modname" "dsl"
 	pcicfg_refresh
 
 	nifaces=""
@@ -254,7 +254,7 @@ _pci_start(){
 			if [ "$type" = "$mr17g_drvname" ]; then
 				mr17g_muxonly $i && continue
 			fi
-			if [ "$type" = "mam17h" ]; then
+			if [ "$type" = "$mam17h_modname" ]; then
 				if [ "$dslam_ifaces" = "" ]; then
 					dslam_ifaces=$i
 				else

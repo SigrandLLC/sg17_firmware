@@ -6,11 +6,11 @@ PCI_PATH="/sys/class/net"
 
 print_usage()
 {
-    echo "Sigrand MAM17H configuration tool"
+    echo "@MAM17H_MODNAME@ configuration tool"
     echo "Usage:"
     echo "  $0 <if>               - get statistics"
     echo "  $0 <if> [args]        - set DSL parameters"
-    echo "  <if> - @MODNAME@ network interface name"
+    echo "  <if> - @MAM17H_MODNAME@ network interface name"
     echo "Possible arguments:"
     echo "  master | slave             - set modem mode: master(STU-C) or slave(STU-R)"
     echo "  tcpamXXX                   - line coding, XXX={8,16,32,64,128}"
@@ -18,8 +18,8 @@ print_usage()
     echo "  rate <value>               - line rate"
     echo "  plesio | sync - Plesiochronous/Synchronous modes"
     echo "  pbo-normal|pbo-forced <val>- Power Backoff mode, <val> - value in dB"
-    echo "  crc32 | crc16              - CRC length"
-    echo "  fill_ff | fill_7e          - fill byte value"
+#    echo "  crc32 | crc16              - CRC length"
+#    echo "  fill_ff | fill_7e          - fill byte value"
 #    echo "  advlink [on|off]           - Advanced link checking"    
     echo "Power control:"
     echo "  pwron | pwroff             - enable/disable power feeding"
@@ -88,7 +88,7 @@ print_stat()
 print_stat_all()
 {
 	cd "$PCI_PATH"
-	echo "Sigrand MAM17H SHDSL modem statistics"	
+	echo "@MAM17H_MODNAME@ SHDSL modem statistics"	
 	for iface in *; do
 		if [ -d "$iface/ms_private" ]; then
 			bkp_dir=`pwd`
@@ -125,7 +125,7 @@ else
 fi
 
 if [ "$#" = 1 ]; then
-    echo "Sigrand MAM17H SHDSL module statistics"
+    echo "@MAM17H_MODNAME@ SHDSL module statistics"
 	print_stat $iface
 	exit
 fi

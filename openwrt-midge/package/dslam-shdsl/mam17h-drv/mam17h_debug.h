@@ -14,7 +14,7 @@
 #       undef PDEBUG
 #       define PDEBUG(lev,fmt,args...)									\
 	if( lev<=DEFAULT_LEV )												\
-		printk(KERN_NOTICE "mam17h: %s " fmt " \n",__FUNCTION__, ## args  )
+		printk(KERN_NOTICE MAM17H_MODNAME": %s " fmt " \n",__FUNCTION__, ## args  )
 
 #       undef PDEBUGL
 #       define PDEBUGL(lev,fmt,args...)			\

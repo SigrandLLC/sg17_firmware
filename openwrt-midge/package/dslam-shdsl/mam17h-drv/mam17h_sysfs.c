@@ -679,7 +679,7 @@ NULL
 };
 
 static struct attribute_group mam17_group = {
-	.name  = "mam_private",
+	.name  = "ms_private",
 	.attrs  = mam17_attr,
 };
 
