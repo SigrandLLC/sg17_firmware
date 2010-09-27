@@ -110,7 +110,8 @@ Controllers.info = function() {
 					ifaces = config.getData(config.getOEM("MAM17H_MODNAME"));
 					if (ifaces) {
 						$.each(ifaces, function(num, ifaceInfo) {
-							info += $.sprintf("%s (%s)<br/>", ifaceInfo.iface, config.getOEM("MAM17H_MODNAME"));
+							num_chan = config.get($.sprintf("sys_pcitbl_s%s_ifnum", ifaceInfo.pcislot));
+							info += $.sprintf("%s (%s%s)<br/>", ifaceInfo.iface, config.getOEM("MAM17H_MODNAME"), num_chan);
 						});
 					}
 

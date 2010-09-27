@@ -70,7 +70,7 @@ function generateMenu() {
             ifaceInfo.push({"iface": iface, "pcislot": pcislot, "pcidev": num});
 
             switch (type) {
-                case "mam17h":
+                case config.getOEM("MAM17H_MODNAME"):
                 	addItem("Hardware:SHDSL", iface, "dslam_dsl", [iface, pcislot, num]);
                 	break;
                 /* SHDSL */
