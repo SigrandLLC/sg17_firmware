@@ -231,3 +231,11 @@ config BR2_SIGRAND_OEM_MR17S_TTYNAME
 prompt "MR17S RS232 tty name"
 string
 default "ttyRS"
+
+#-------------- OEM DSLAM ------------------------#
+
+comment "DSLAM"
+config BR2_SIGRAND_OEM_MS17H
+prompt "MS17H module name"
+string
+default "ms17h"

@@ -111,6 +111,7 @@ oem_clean: root_clean
 	rm -rf $(BUILD_DIR)/wf2		$(STAMP_DIR)/.wf2-*
 	rm -rf $(BUILD_DIR)/webface	$(STAMP_DIR)/.webface-*
 	rm -rf $(BUILD_DIR)/rs232*	$(STAMP_DIR)/.rs232*
+	rm -rf $(BUILD_DIR)/dslam*	$(STAMP_DIR)/.dslam*
 
 root_clean:
 	@$(TRACE) root_clean

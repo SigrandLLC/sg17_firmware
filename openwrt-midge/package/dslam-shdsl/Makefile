@@ -2,7 +2,7 @@
 
 include $(TOPDIR)/rules.mk
 
-MAM17H_MODNAME="ms17h"
+MAM17H_MODNAME=$(BR2_SIGRAND_OEM_MS17H)
 PKG_NAME:=dslam-shdl
 PKG_VERSION=1.0
 PKG_RELEASE:=1
@@ -36,6 +36,10 @@ $(PKG_BUILD_DIR)/.configured:
 	-e "s%@INST_PATH@%$(IDIR_SIGRAND_DSLAM)%g" \
 	-e "s%@MAM17H_MODNAME@%$(MAM17H_MODNAME)%g" \
 	-e "s%@DEBUG@%$(DEBUG)%g"
+
+	sed <$(PKG_BUILD_DIR)/mam17h-drv/mam17h_main.h.tmpl \
+	> $(PKG_BUILD_DIR)/mam17h-drv/mam17h_main.h \
+	-e "s%@MAM17H_MODNAME@%$(MAM17H_MODNAME)%g"
 
 	sed <$(PKG_BUILD_DIR)/mam17h-drv/tools/mam17h_cfg.tmpl \
 	> $(PKG_BUILD_DIR)/mam17h-drv/tools/mam17h_cfg \
