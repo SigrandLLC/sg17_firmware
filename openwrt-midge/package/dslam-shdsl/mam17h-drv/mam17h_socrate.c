@@ -7,7 +7,7 @@
 #include "mam17h_debug.h"
 #include "mam17h_pi.h"
 #include "mam17h_mpair.h"
-
+#include <linux/syscalls.h>
 
 // функция которая периодически вызывается и следит за состоянием линков
 
@@ -42,6 +42,7 @@ void monitor_links_state(void * data)
 				}
 				card->channels[i].need_reset = 0;
 			}
+			jiffies_to_timeval(0, &(card->channels[i].uptime));
 		}
 		if (card->channels[i].state == UP_DATA_MODE)
 		{
@@ -62,10 +63,12 @@ void monitor_links_state(void * data)
 				load_cfg(card, i);
 			}
 			load_cfg(card, i);
+			jiffies_to_timeval((unsigned long)jiffies, &(card->channels[i].uptime));
 		}
 		if (card->channels[i].state == CONNECTED)
 		{
 			led_on(card, i);
+			
 			switch (i)
 			{
 				case 0:

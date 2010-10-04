@@ -18,7 +18,7 @@ _dsl_mam17hifdefcfg(){
 	kdb rm sls sys_pcicfg_s${slot}_${dev}*
 	kdb set sys_pcicfg_s${slot}_${dev}_advlink="off"
 	kdb set sys_pcicfg_s${slot}_${dev}_mode="slave"
-	kdb set sys_pcicfg_s${slot}_${dev}_clkmode="plesio"
+	kdb set sys_pcicfg_s${slot}_${dev}_clkmode="sync"
 	kdb set sys_pcicfg_s${slot}_${dev}_rate="768"
 	kdb set sys_pcicfg_s${slot}_${dev}_code="tcpam32"
 	kdb set sys_pcicfg_s${slot}_${dev}_annex="A"
@@ -59,23 +59,23 @@ _dsl_mam17hifcfg(){
 	eval `$kdb -qq sls sys_pcicfg_s${slot}_${ifnum}_`
 	eval `$kdb -qq sls sys_pcicfg_s${slot}_pw`
 	pwron="pwroff"
-	case "$iface" in
-		dsl0)
+	case "$ifnum" in
+		0)
 			if [ "$r_0_on" = "pwron" ]; then
 				pwron="pwron";
 			fi
 		;;
-		dsl1)
+		1)
 			if [ "$r_0_on" = "pwron" ]; then
 				pwron="pwron";
 			fi
 		;;
-		dsl2)
+		2)
 			if [ "$r_1_on" = "pwron" ]; then
 				pwron="pwron";
 			fi
 		;;
-		dsl3)
+		3)
 			if [ "$r_1_on" = "pwron" ]; then
 				pwron="pwron";
 			fi
@@ -111,6 +111,8 @@ _dsl_mam17hifcfg(){
    		[ -n "$annex" ] && annex="annex $annex"
     		$mam17h_cfg $iface $mode $rate $code $annex $fill \
 			$pwron $clkmode $pbo $advlink > /dev/null
+    		echo "$mam17h_cfg $iface $mode $rate $code $annex $fill \
+			$pwron $clkmode $pbo $advlink" >> /root/log
 		# Correct rate setted by hands
     		rate=`cat  /sys/class/net/$iface/$priv_dir/rate`
 		pboval=`cat  /sys/class/net/$iface/$priv_dir/pbo_val`
@@ -203,7 +205,9 @@ _dsl_start(){
 		iface=`echo "$ifaces" |  awk '{print $(1)}' `
 		pwr=`cat  /sys/class/net/$iface/$priv_dir/pwr_source`
                 if [ "$pwr" = "1" ]; then
-                    pfx=${pfx}${mr17h_pwrsfx}
+                    $kdb set sys_pcicfg_s${s}_pwr_source=1
+                else
+			kdb rm sys_pcicfg_s${s}_pwr_source
                 fi
 		echo "    $ifaces "
 	done

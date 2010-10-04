@@ -1,4 +1,95 @@
 var vlan_number = 0;
+
+Controllers.dslam_dsl_all = function() {
+	var page = this.Page();
+	page.setHelpPage("");
+	page.addTab({
+		"id": "dsl_all",
+		"name": "SHDSL status",
+		"func": function() {
+			var c, field, row;
+			c = page.addContainer("dsl_all");
+			c.addTitle("SHDSL status", {"colspan":6});
+			c.addTableHeader("Port|Power|Status|Uptime|Tcpam|Rate");
+
+			var ifaces = config.getParsed("sys_dslam_ifaces");
+			var status;
+			config.cmdExecute({"cmd": "./mam17h_status_all_json.sh", "async" : false, "dataType": "json", "callback": 
+				function(reply) {
+					status = reply;
+				}
+			});
+			$.each(ifaces, function(n, iface) {
+				var slot = config.get($.sprintf("sys_iface_%s_slot", iface));
+				var port = config.get($.sprintf("sys_iface_%s_port", iface));
+				var sw_num = config.get($.sprintf("sys_iface_%s_sw", iface));
+				var sw_port = config.get($.sprintf("sys_iface_%s_sw_port", iface));
+
+				var state = "<font color='#FF0000'>offline</font>";
+				var rate="", tcpam="", uptime="", pwron="off", pwr="";
+				
+				pwron = (status[iface].pwr.pwron==1)?"on":"off";
+				pwr = status[iface].pwr.presence==1?"p":"";
+				if (pwr == "") pwron = "none";
+				if (status[iface].link.link_state == 1) {
+					state = "<font color='#00FF00'>online</font>";
+					rate = status[iface].link.rate;
+					tcpam = status[iface].link.tcpam;
+					uptime = status[iface].link.uptime;
+					var d = (uptime / 86400) - ((uptime / 86400)%1);
+					uptime = uptime - d * 86400;
+					var h = (uptime / 3600) - ((uptime / 3600)%1);
+					uptime = uptime - h * 3600;
+					var m = (uptime / 60) - ((uptime / 60)%1)
+					uptime = uptime - m * 60;
+					var s = uptime;
+					uptime = $.sprintf("%s:%s:%s", h, m, s);
+				}
+				
+				row = c.addTableRow();
+				field = {
+					"type" : "html",
+					"name" : $.sprintf("p%s%s", slot, port),
+					"str" : $.sprintf("%s (port %s.%s, module %s%s%s)", iface, slot, port, config.getOEM("MAM17H_MODNAME"), 4, pwr)
+				};
+				c.addTableWidget(field, row);
+				field = {
+					"type" : "html",
+					"name" : $.sprintf("p%s%s_pwr", slot, port),
+					"str" : pwron
+				};
+				c.addTableWidget(field, row);
+				field = {
+					"type" : "html",
+					"name" : $.sprintf("p%s%s_state", slot, port),
+					"str" : state
+				};
+				c.addTableWidget(field, row);
+				field = {
+					"type" : "html",
+					"name" : $.sprintf("p%s%s_uptime", slot, port),
+					"str" : uptime
+				};
+				c.addTableWidget(field, row);
+				field = {
+					"type" : "html",
+					"name" : $.sprintf("p%s%s_tcpam", slot, port),
+					"str" : tcpam
+				};
+				c.addTableWidget(field, row);
+				field = {
+					"type" : "html",
+					"name" : $.sprintf("p%s%s_rate", slot, port),
+					"str" : rate
+				};
+				c.addTableWidget(field, row);
+			});
+		}
+	});
+	page.generateTabs();
+
+}
+
 Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 	/* create page and set common settings */
 	var page = this.Page();
@@ -19,7 +110,11 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 	var mam17hStatus = function(status) {
 		var c, field;
 		c = page.addContainer("status", {"clear": true});
-		c.addTitle(iface + " status");
+		num_chan = config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot));
+		pwr = config.get($.sprintf("sys_pcicfg_s%s_pwr_source", pcislot));
+		if (pwr == "1") pwr="p"; else pwr="";
+
+		c.addTitle($.sprintf("%s (port %s.%s, module %s%s%s) status", iface, pcislot-2, pcidev, config.getOEM("MAM17H_MODNAME"), num_chan, pwr));
 
 		field = {
 			"type": "html",
@@ -65,7 +160,7 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 				"str": status.link.tcpam
 			};
 			c.addWidget(field);
-
+/*
 			field = {
 				"type": "html",
 				"name": "actualClockMode",
@@ -73,7 +168,7 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 				"str": status.link.clkmode
 			};
 			c.addWidget(field);
-
+*/
 			/* statistics */
 			field = {
 				"type": "html",
@@ -196,8 +291,14 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 	var mam17hSettings = function() {
 		var c, field;
 		c = page.addContainer("settings");
-		c.addTitle(iface + " settings");
 		c.setSubsystem($.sprintf("dslam_dsl.%s.%s", pcislot, pcidev));
+
+		num_chan = config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot));
+		pwr = config.get($.sprintf("sys_pcicfg_s%s_pwr_source", pcislot));
+		if (pwr == "1") pwr="p"; else pwr="";
+
+		c.addTitle($.sprintf("%s (port %s.%s, module %s%s%s) status", iface, pcislot-2, pcidev, config.getOEM("MAM17H_MODNAME"), num_chan, pwr));
+
 
 		// dsl mode change
 		var onModeChange = function() {
@@ -314,7 +415,7 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 			};
 			c.addWidget(field);
 			setPboval();
-
+/*
 			// clock mode
 			field = {
 				"type": "select",
@@ -326,6 +427,7 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 				"cssClass": "widgetMaster"
 			};
 			c.addWidget(field);
+*/
 		};
 
 
@@ -342,7 +444,9 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 		};
 		c.addWidget(field);
 
-		if (iface == "dsl0") {
+		var pwr_source = config.get($.sprintf("sys_pcicfg_s%s_pwr_source", pcislot));
+		if (pwr_source == "1") {
+		if (pcidev == 0) {
 			field = {
 				"type": "select",
 				"name": $.sprintf("sys_pcicfg_s%s_pwr_0_on", pcislot),
@@ -353,7 +457,7 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 			};
 			c.addWidget(field);		
 		}
-		if (iface == "dsl2") {
+		if (pcidev == 2) {
 			field = {
 				"type": "select",
 				"name": $.sprintf("sys_pcicfg_s%s_pwr_1_on", pcislot),
@@ -365,7 +469,7 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 			c.addWidget(field);
 		}
 
-		if (iface == "dsl1") {
+		if (pcidev == 1) {
 			str = config.get($.sprintf("sys_pcicfg_s%s_pwr_0_on", pcislot));
 			if (str != "pwron") str = "off"; else str = "on";
 			field = {
@@ -378,7 +482,7 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 			};
 			c.addWidget(field);		
 		}
-		if (iface == "dsl3") {
+		if (pcidev == 3) {
 			str = config.get($.sprintf("sys_pcicfg_s%s_pwr_1_on", pcislot));
 			if (str != "pwron") str = "off"; else str = "on";
 			field = {
@@ -390,6 +494,7 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 				"str": str
 			};
 			c.addWidget(field);		
+		}
 		}
 /*
 		field = {

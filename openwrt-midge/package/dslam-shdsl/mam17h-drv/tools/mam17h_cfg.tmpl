@@ -16,7 +16,7 @@ print_usage()
     echo "  tcpamXXX                   - line coding, XXX={8,16,32,64,128}"
     echo "  annex A|B|AB               - G.SHDSL.bis Annex type"    
     echo "  rate <value>               - line rate"
-    echo "  plesio | sync - Plesiochronous/Synchronous modes"
+#    echo "  plesio | sync - Plesiochronous/Synchronous modes"
     echo "  pbo-normal|pbo-forced <val>- Power Backoff mode, <val> - value in dB"
 #    echo "  crc32 | crc16              - CRC length"
 #    echo "  fill_ff | fill_7e          - fill byte value"
@@ -242,14 +242,14 @@ while [ ! -z "$1" ]; do
 				shdsl_need_reconf=1
 			fi
 			;;
-		"plesio")
-			echo 0 > clkmode
-			shdsl_need_reconf=1	
-			;;
-		"sync")
-			echo 1 > clkmode
-			shdsl_need_reconf=1	
-			;;
+#		"plesio")
+#			echo 0 > clkmode
+#			shdsl_need_reconf=1	
+#			;;
+#		"sync")
+##			echo 1 > clkmode
+#			shdsl_need_reconf=1	
+#			;;
 		"pbo-normal")
 			echo 0 > pbo_mode
 			shdsl_need_reconf=1	

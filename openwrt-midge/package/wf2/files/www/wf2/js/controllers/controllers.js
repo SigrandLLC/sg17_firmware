@@ -111,7 +111,9 @@ Controllers.info = function() {
 					if (ifaces) {
 						$.each(ifaces, function(num, ifaceInfo) {
 							num_chan = config.get($.sprintf("sys_pcitbl_s%s_ifnum", ifaceInfo.pcislot));
-							info += $.sprintf("%s (%s%s)<br/>", ifaceInfo.iface, config.getOEM("MAM17H_MODNAME"), num_chan);
+							pwr = config.get($.sprintf("sys_pcicfg_s%s_pwr_source", ifaceInfo.pcislot));
+							if (pwr == "1") pwr="p"; else pwr="";
+							info += $.sprintf("%s (%s%s%s)<br/>", ifaceInfo.iface, config.getOEM("MAM17H_MODNAME"), num_chan, pwr);
 						});
 					}
 
@@ -430,6 +432,7 @@ Controllers.dns = function() {
 
 Controllers.time = function() {
 	var page = this.Page();
+	page.setSubsystem("time");
 
 	page.addTab({
 		"id": "time",

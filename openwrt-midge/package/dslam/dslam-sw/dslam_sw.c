@@ -254,6 +254,7 @@ static int
 store_default(struct file *file,const char *buffer,unsigned long count,void *data) {
 	int sw_num = *(short*)data;
 	char *endp;
+	int val = 0;
 	
 	if( sw_num > chips_num ){
 		printk(KERN_ERR"dslam: ERROR sw_num=%d, chips_num=%d\n",sw_num,chips_num);
@@ -273,6 +274,10 @@ store_default(struct file *file,const char *buffer,unsigned long count,void *dat
 			write_reg(sw_num, 0xd9, 0x37ff);
 		else 
 			write_reg(sw_num, 0xd9, 0x17ff);
+		
+		// set addres aging time to minimal
+		val = read_reg(sw_num, 0x44);
+		write_reg(sw_num, 0x44, val & 0xFC00);
 	}
 //	printk(KERN_NOTICE"default settings is set\n");
 //	printk(KERN_NOTICE"0xd8=%lx\n", read_reg(sw_num, 0xd8));
@@ -480,7 +485,7 @@ read_status(char *buf, char **start, off_t offset, int count, int *eof, void *da
 	}
 	j += snprintf(&buf[j], count, " ");
 	for (i = 0; i < 27; i++)
-		j += snprintf(&buf[j], count, "%2i  ", i);
+		j += snprintf(&buf[j], count, "%3i  ", i);
 	j += snprintf(&buf[j], count, "\n");
 	
 	for (i = 0; i < 24/3; i++)
@@ -488,13 +493,31 @@ read_status(char *buf, char **start, off_t offset, int count, int *eof, void *da
 		val = read_reg(sw_num, (0xDE + (unsigned)i));
 		for (k = 0; k < 3; k++)
 		{
-			if (val & (0x10 << (5*k))) {
+			if (val & (0x01 << (5*k))) {
 				j += snprintf(&buf[j], count, " up ");
 			} else {
 				j += snprintf(&buf[j], count, " dwn ");
 			}
 		}
 	}
+	val = read_reg(sw_num, 0xE6);
+	if (val & 0x1)
+		j += snprintf(&buf[j], count, " up "); 
+	else
+		j += snprintf(&buf[j], count, " dwn ");
+
+	if (val & 0x40)
+		j += snprintf(&buf[j], count, " up "); 
+	else
+		j += snprintf(&buf[j], count, " dwn ");
+
+	val = read_reg(sw_num, 0xE7);
+	if (val & 0x1)
+		j += snprintf(&buf[j], count, " up "); 
+	else
+		j += snprintf(&buf[j], count, " dwn ");
+
+
 	j += snprintf(&buf[j], count, "\n");
 	
 	return j;

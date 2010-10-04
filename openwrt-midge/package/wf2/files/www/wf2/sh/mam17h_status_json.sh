@@ -62,9 +62,11 @@ RESULT="$RESULT {\n"
 # PWR section
 	start_section "pwr" 1
 		pwr_presence=`/bin/cat $conf/pwr_source`
+		pwr_on=`/bin/cat $conf/pwron`
 
 		if [ "$pwr_presence" = "1" ]; then
 			add_var "presence" "$pwr_presence" 2 comma
+			add_var "pwron" "$pwr_on" 2 comma
 			add_var "unb" "`/bin/cat $conf/pwrunb`" 2 comma
 			add_var "ovl" "`/bin/cat $conf/pwrovl`" 2
 		else
@@ -78,6 +80,8 @@ RESULT="$RESULT {\n"
 
 		if [ "$link_state" = "1" ]; then
 			add_var "link_state" "$link_state" 2 comma
+			up_time=`/bin/cat $conf/uptime`
+			add_var "uptime" "$up_time" 2 comma
 			add_var "rate" "`/bin/cat $conf/rate`" 2 comma
 			add_var "tcpam" "`/bin/cat $conf/tcpam`" 2 comma
 			add_var "clkmode" "`/bin/cat $conf/clkmode`" 2 comma

@@ -165,7 +165,7 @@ Controllers.ifaceGeneral = function(c, iface) {
 		"descr": "Method of setting IP address.",
 		"options": config.get($.sprintf("sys_iface_%s_proto", iface)) == "hdlc" ?
 			{"none": "None", "static": "Static address"} :
-			{"none": "None", "static": "Static address", "zeroconf": "Zero Configuration",
+			{"none": "None", "static": "Static address", /* "zeroconf": "Zero Configuration",*/
 					"dynamic": "Dynamic address"},
 		"onChange": showMethod
 	};

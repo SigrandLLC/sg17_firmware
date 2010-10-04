@@ -651,6 +651,33 @@ static ssize_t store_mpair( struct class_device *cdev,const char *buf, size_t si
 static CLASS_DEVICE_ATTR(mpair,0644,show_mpair,store_mpair);
 
 
+static ssize_t show_uptime(struct class_device *cdev, char *buf) 
+{
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+	struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+	struct channel *chan = (struct channel *)nl->chan_cfg;
+	struct timeval tv;
+	
+	jiffies_to_timeval(jiffies, &tv);
+//	tv_sec
+//	tv_usec
+	if (chan->state == CONNECTED)
+		return snprintf(buf,PAGE_SIZE, "%lu\n", tv.tv_sec - chan->uptime.tv_sec);
+	else
+		return snprintf(buf,PAGE_SIZE, "0\n");
+}
+static CLASS_DEVICE_ATTR(uptime,0444,show_uptime,NULL);
+
+
+
 static struct attribute *mam17_attr[] = {
 // shdsl
 &class_device_attr_link_state.attr,
@@ -674,6 +701,8 @@ static struct attribute *mam17_attr[] = {
 &class_device_attr_pwr_source.attr,
 
 &class_device_attr_mpair.attr,
+
+&class_device_attr_uptime.attr,
 
 NULL
 };

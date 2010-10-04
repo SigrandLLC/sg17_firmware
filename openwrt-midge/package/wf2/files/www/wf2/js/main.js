@@ -19,7 +19,7 @@ function generateMenu() {
     } else {
         addItem("Hardware", "Switch", "adm5120sw");
     }
-    addItem("Services", "DHCP server", "dhcp");
+//    addItem("Services", "DHCP server", "dhcp");
     addItem("Services", "DNS server", "dns_server");
 
     /* if we have support for linkdeps */
@@ -137,6 +137,9 @@ function generateMenu() {
         else if(li.hasClass('collapsable')) {
             span.text(span.text().substr(2));
             span.prepend('- ');
+        }
+        if ((span.text() == "+ SHDSL") || (span.text() == "- SHDSL"))  {
+		Controllers.dslam_dsl_all();
         }
     }
 

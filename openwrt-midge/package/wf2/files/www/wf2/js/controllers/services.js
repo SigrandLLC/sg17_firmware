@@ -125,8 +125,8 @@ function serviceDHCP(page, iface) {
 		"type": "select",
 		"name": $.sprintf("sys_iface_%s_dhcp_lease_time", iface),
 		"text": "Default lease time",
-		"options": {"600": "10 minutes", "1800": "30 minutes", "3600": "1 hour", "10800": "3 hours",
-			"36000": "10 hours", "86400": "24 hours"}
+		"options": {"3600": "1 hour", "21600": "6 hours", "86400": "24 hours",
+		"604800": "week", "2592000": "month"}
 	};
 	c.addWidget(field);
 
