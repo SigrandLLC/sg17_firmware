@@ -1,0 +1,10 @@
+#!/bin/sh
+
+usage() {
+	echo -e "Usage: $0 mode [MODE] | lp_queue [QUEUE_VAL] | hp_queue [QUEUE_VAL] | out_queue_aging [TIME] | pause_flow_ctrl [enable|disable]"
+	echo -e ""
+	exit 0
+}
+
+
+

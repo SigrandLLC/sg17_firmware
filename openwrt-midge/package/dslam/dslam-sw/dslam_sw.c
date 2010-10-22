@@ -16,6 +16,7 @@
 #include <asm/io.h>
 #include <linux/delay.h>
 #include <linux/proc_fs.h>
+#include <linux/errno.h>
 
 #include "dslam_sw.h"
 #include "dslam_sw_debug.h"
@@ -25,6 +26,7 @@ MODULE_AUTHOR ( "Scherbakov Mihail\n" );
 MODULE_LICENSE ( "GPL" );
 MODULE_VERSION ( "1.0" );
 
+struct switch_t sw[2];
 
 /* --------------------------------------------------------------------------
  *      IC+ entry point
@@ -284,8 +286,32 @@ store_default(struct file *file,const char *buffer,unsigned long count,void *dat
 	
 	return count;
 }
+static int
+store_statistics(struct file *file,const char *buffer,unsigned long count,void *data) {
+	int sw_num = *(short*)data;
+	char *endp;
+	unsigned port_num;
 
-static int 
+	port_num = simple_strtoul(buffer,&endp,10);
+	if (port_num > 27) {
+		printk(KERN_ERR"dslam: ERROR port must be from 0 to 26, port=%d\n",port_num);
+		return count;
+	}
+	if (port_num == 27) {
+		for (port_num = 0; port_num <= 26; port_num++) {
+			sw[0].stat[port_num].tx = 0;
+			sw[0].stat[port_num].rx = 0;
+			sw[1].stat[port_num].tx = 0;
+			sw[1].stat[port_num].rx = 0;
+		}
+		return count;
+	}
+	sw[sw_num].stat[port_num].tx = 0;
+	sw[sw_num].stat[port_num].rx = 0;
+	return count;
+}
+
+static int
 read_statistics(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
 	int sw_num = *(short*)data;
 	int i, j=0;
@@ -294,32 +320,81 @@ read_statistics(char *buf, char **start, off_t offset, int count, int *eof, void
 		printk(KERN_ERR"dslam: ERROR sw_num=%d, chips_num=%d\n",sw_num,chips_num);
 		return count;
 	}
-	j += snprintf(&buf[j], count, "port |   TX  |   RX\n");
+	j += snprintf(&buf[j], count, "port       TX        RX\n");
 	for (i = 0; i < 27*2; i+=2)
 	{
 		write_reg(sw_num, 0x38, 0x0100+(i&0xFF));
 		if (i == 24*2) {
-			j += snprintf(&buf[j], count, " 26  |%6lu |", (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a));
+			sw[sw_num].stat[26].tx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
+			j += snprintf(&buf[j], count, " 26  %09lu ", sw[sw_num].stat[26].tx);
 		} else {
 			if (i == 25*2) {
-				j += snprintf(&buf[j], count, " 24  |%6lu |", (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a));
+				sw[sw_num].stat[24].tx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
+				j += snprintf(&buf[j], count, " 24  %09lu ", sw[sw_num].stat[24].tx);
 			} else {
 				if (i == 26*2) {
-					j += snprintf(&buf[j], count, " 25  |%6lu |", (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a));
+					sw[sw_num].stat[25].tx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
+					j += snprintf(&buf[j], count, " 25  %09lu ", sw[sw_num].stat[25].tx);
 				} else {
-					j += snprintf(&buf[j], count, " %2i  |%6lu |", i/2, (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a));
+					sw[sw_num].stat[i/2].tx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
+					j += snprintf(&buf[j], count, " %2i  %09lu ", i/2, sw[sw_num].stat[i/2].tx);
 				}
 			} 
 		}
 
 		write_reg(sw_num, 0x38, 0x0100+(i&0xFF)+1);
-		j += snprintf(&buf[j], count, "%6lu\n", (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a));
+		sw[sw_num].stat[i/2].rx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
+		j += snprintf(&buf[j], count, "%09lu\n", sw[sw_num].stat[i/2].rx);
 	}
-	j += snprintf(&buf[j], count, "port |   TX  |   RX\n");
-	j += snprintf(&buf[j], count, "port 24 - PHY(Gbit), 25 - GRMII(another switch), 26 - MII(CPU)\n");
+//	j += snprintf(&buf[j], count, "port |   TX  |   RX\n");
+//	j += snprintf(&buf[j], count, "port 24 - PHY(Gbit), 25 - GRMII(another switch), 26 - MII(CPU)\n");
 	
 	return j;
 }
+
+static int
+read_statistics_json(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
+	int sw_num = *(short*)data;
+	int i, j=0;
+
+	if( sw_num > chips_num ){
+		printk(KERN_ERR"dslam: ERROR sw_num=%d, chips_num=%d\n",sw_num,chips_num);
+		return count;
+	}
+	j += snprintf(&buf[j], count, " {\n");
+	for (i = 0; i < 27*2; i+=2)
+	{
+		write_reg(sw_num, 0x38, 0x0100+(i&0xFF));
+		if (i == 24*2) {
+			sw[sw_num].stat[26].tx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
+			j += snprintf(&buf[j], count, "\t\"26\" : {\"tx\" : \"%lu\", ", sw[sw_num].stat[26].tx);
+		} else {
+			if (i == 25*2) {
+				sw[sw_num].stat[24].tx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
+				j += snprintf(&buf[j], count, "\t\"24\" : {\"tx\" : \"%lu\", ", sw[sw_num].stat[24].tx);
+			} else {
+				if (i == 26*2) {
+					sw[sw_num].stat[25].tx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
+					j += snprintf(&buf[j], count, "\t\"25\" : {\"tx\" : \"%lu\", ", sw[sw_num].stat[25].tx);
+				} else {
+					sw[sw_num].stat[i/2].tx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
+					j += snprintf(&buf[j], count, "\t\"%i\" : {\"tx\" : \"%lu\", ", i/2, sw[sw_num].stat[i/2].tx);
+				}
+			}
+		}
+		write_reg(sw_num, 0x38, 0x0100+(i&0xFF)+1);
+		sw[sw_num].stat[i/2].rx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
+		if (i != 27*2-2) {
+			j += snprintf(&buf[j], count, " \"rx\" : \"%lu\"},\n", sw[sw_num].stat[i/2].rx);
+		} else {
+			j += snprintf(&buf[j], count, " \"rx\" : \"%lu\"}\n", sw[sw_num].stat[i/2].rx);
+		}
+	}
+	j += snprintf(&buf[j], count, "}\n");
+	return j;
+}
+
+
 static int store_disable_learning(struct file *file,const char *buffer,unsigned long count,void *data) {
 	int sw_num = *(short*)data;
 	char *endp;
@@ -472,6 +547,16 @@ read_mac(char *buf, char **start, off_t offset, int count, int *eof, void *data)
 	write_reg(sw_num, 0x46, reg_46);
 	return j;
 }
+int status_port = 27;
+static int store_status(struct file *file,const char *buffer,unsigned long count,void *data) {
+//	int sw_num = *(short*)data;
+	char *endp;
+	char port;
+
+	port = simple_strtoul(buffer,&endp,10);
+	if (port > 26) status_port = 27; else status_port = port;
+	return count;
+}
 
 static int 
 read_status(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
@@ -483,44 +568,512 @@ read_status(char *buf, char **start, off_t offset, int count, int *eof, void *da
 		printk(KERN_ERR"dslam: ERROR sw_num=%d, chips_num=%d\n",sw_num,chips_num);
 		return count;
 	}
-	j += snprintf(&buf[j], count, " ");
-	for (i = 0; i < 27; i++)
-		j += snprintf(&buf[j], count, "%3i  ", i);
-	j += snprintf(&buf[j], count, "\n");
+//	if (status_port > 26)
+//		j += snprintf(&buf[j], count, "Port | Duplex | Speed | State\n");
 	
 	for (i = 0; i < 24/3; i++)
 	{
 		val = read_reg(sw_num, (0xDE + (unsigned)i));
 		for (k = 0; k < 3; k++)
 		{
-			if (val & (0x01 << (5*k))) {
-				j += snprintf(&buf[j], count, " up ");
-			} else {
-				j += snprintf(&buf[j], count, " dwn ");
+			if ((status_port == i*3 + k) || (status_port > 26)) {
+				j += snprintf(&buf[j], count, "  %2i   ", i*3 + k);
+				// flow_ctrl
+				if (val & (0x8 << (5*k))) {
+					j += snprintf(&buf[j], count, " on   ");
+				} else {
+					j += snprintf(&buf[j], count, " off  ");
+				}
+				// duplex
+				if (val & (0x4 << (5*k))) {
+					j += snprintf(&buf[j], count, " full  ");
+				} else {
+					j += snprintf(&buf[j], count, " half  ");
+				}
+				// speed
+				if (val & (0x2 << (5*k))) {
+					j += snprintf(&buf[j], count, "  100    ");
+				} else {
+					j += snprintf(&buf[j], count, "   10    ");
+				}
+				// status
+				if (val & (0x1 << (5*k))) {
+					j += snprintf(&buf[j], count, "  up ");
+				} else {
+					j += snprintf(&buf[j], count, " dwn ");
+				}
+				// auto negotiation
+				if (i*3+k < 16) {
+					val = read_reg(sw_num, 0xCB);
+					if (val & (1 << (i*3+k))) {
+						j += snprintf(&buf[j], count, "auto\n");
+					} else {
+						j += snprintf(&buf[j], count, "manual\n");
+					}
+				} else {
+					val = read_reg(sw_num, 0xCC);
+					if (val & (1 << (i*3+k-16))) {
+						j += snprintf(&buf[j], count, "auto\n");
+					} else {
+						j += snprintf(&buf[j], count, "manual\n");
+					}
+				}
 			}
 		}
 	}
 	val = read_reg(sw_num, 0xE6);
-	if (val & 0x1)
-		j += snprintf(&buf[j], count, " up "); 
-	else
-		j += snprintf(&buf[j], count, " dwn ");
+	if ((status_port == 24) || (status_port > 26)) {
+		j += snprintf(&buf[j], count, "  24   ");
+		// flow_ctrl
+		if (val & 0x10)
+			j += snprintf(&buf[j], count, " on   ");
+		else
+			j += snprintf(&buf[j], count, " off  ");
+		// duplex
+		if (val & 0x8)
+			j += snprintf(&buf[j], count, " full  ");
+		else
+			j += snprintf(&buf[j], count, " half  ");
+		// speed
+		if (val & 0x4) {
+			j += snprintf(&buf[j], count, " 1000    ");
+		} else {
+			if (val & 0x2) {
+				j += snprintf(&buf[j], count, "  100    ");
+			} else {
+				j += snprintf(&buf[j], count, "   10    ");
+			}
+		}
+		// status
+		if (val & 0x1)
+			j += snprintf(&buf[j], count, "  up ");
+		else
+			j += snprintf(&buf[j], count, " dwn ");
+		// auto negotiation
+		val = read_reg(sw_num, 0xCC);
+		if (val & 0x100) {
+			j += snprintf(&buf[j], count, "auto\n");
+		} else {
+			j += snprintf(&buf[j], count, "manual\n");
+		}
 
-	if (val & 0x40)
-		j += snprintf(&buf[j], count, " up "); 
-	else
-		j += snprintf(&buf[j], count, " dwn ");
+	}
+	if ((status_port == 25) || (status_port > 26)) {
+		j += snprintf(&buf[j], count, "  25   ");
+		// flow_ctrl
+		if (val & 0x10)
+			j += snprintf(&buf[j], count, " on   ");
+		else
+			j += snprintf(&buf[j], count, " off  ");
+		// duplex
+		if (val & 0x80)
+			j += snprintf(&buf[j], count, " full  ");
+		else
+			j += snprintf(&buf[j], count, " half  ");
+		// speed
+		if (val & 0x100) {
+			j += snprintf(&buf[j], count, " 1000    ");
+		} else {
+			if (val & 0x80) {
+				j += snprintf(&buf[j], count, "  100    ");
+			} else {
+				j += snprintf(&buf[j], count, "   10    ");
+			}
+		}
+		// status
+		if (val & 0x40)
+			j += snprintf(&buf[j], count, "  up ");
+		else
+			j += snprintf(&buf[j], count, " dwn ");
+		// auto negotiation
+		val = read_reg(sw_num, 0xCC);
+		if (val & 0x200) {
+			j += snprintf(&buf[j], count, "auto\n");
+		} else {
+			j += snprintf(&buf[j], count, "manual\n");
+		}
+	}
 
-	val = read_reg(sw_num, 0xE7);
-	if (val & 0x1)
-		j += snprintf(&buf[j], count, " up "); 
-	else
-		j += snprintf(&buf[j], count, " dwn ");
-
-
-	j += snprintf(&buf[j], count, "\n");
-	
+	if ((status_port == 26) || (status_port > 26)) {
+		val = read_reg(sw_num, 0xE7);
+		j += snprintf(&buf[j], count, "  26   ");
+		// flow_ctrl
+		if (val & 0x8)
+			j += snprintf(&buf[j], count, " on   ");
+		else
+			j += snprintf(&buf[j], count, " off  ");
+		// duplex
+		if (val & 0x4)
+			j += snprintf(&buf[j], count, " full  ");
+		else
+			j += snprintf(&buf[j], count, " half  ");
+		// speed
+		if (val & 0x2)
+			j += snprintf(&buf[j], count, "  100    ");
+		else
+			j += snprintf(&buf[j], count, "   10    ");
+		// status
+		if (val & 0x1)
+			j += snprintf(&buf[j], count, "  up ");
+		else
+			j += snprintf(&buf[j], count, " dwn ");
+		// auto negotiation
+		val = read_reg(sw_num, 0xCC);
+		if (val & 0x400) {
+			j += snprintf(&buf[j], count, "auto\n");
+		} else {
+			j += snprintf(&buf[j], count, "manual\n");
+		}
+	}
 	return j;
+}
+
+static int
+read_status_json(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
+	int sw_num = *(short*)data;
+	int i, j=0, k;
+	unsigned long val;
+
+	if( sw_num > chips_num ){
+		printk(KERN_ERR"dslam: ERROR sw_num=%d, chips_num=%d\n",sw_num,chips_num);
+		return count;
+	}
+	j += snprintf(&buf[j], count, "{\n");
+	
+	for (i = 0; i < 24/3; i++)
+	{
+		val = read_reg(sw_num, (0xDE + (unsigned)i));
+		for (k = 0; k < 3; k++)
+		{
+			j += snprintf(&buf[j], count, "\t\"%i\" : { ", i*3 + k);
+			// flow_ctrl
+			if (val & (0x8 << (5*k))) {
+				j += snprintf(&buf[j], count, "\"flowctrl\" : true, ");
+			} else {
+				j += snprintf(&buf[j], count, "\"flowctrl\" : false, ");
+			}
+			// duplex
+			if (val & (0x4 << (5*k))) {
+				j += snprintf(&buf[j], count, "\"duplex\" : \"full\", ");
+			} else {
+				j += snprintf(&buf[j], count, "\"duplex\" : \"half\", ");
+			}
+			// speed
+			if (val & (0x2 << (5*k))) {
+				j += snprintf(&buf[j], count, "\"speed\" : 100, ");
+			} else {
+				j += snprintf(&buf[j], count, "\"speed\" : 10, ");
+			}
+			// status
+			if (val & (0x1 << (5*k))) {
+				j += snprintf(&buf[j], count, "\"state\" : \"up\", ");
+			} else {
+				j += snprintf(&buf[j], count, "\"state\" : \"dwn\", ");
+			}
+			// auto negotiation
+			if (i*3+k < 16) {
+				val = read_reg(sw_num, 0xCB);
+				if (val & (1 << (i*3+k))) {
+					j += snprintf(&buf[j], count, "\"auto\" : true },\n");
+				} else {
+					j += snprintf(&buf[j], count, "\"auto\" : false },\n");
+				}
+			} else {
+				val = read_reg(sw_num, 0xCC);
+				if (val & (1 << (i*3+k-16))) {
+					j += snprintf(&buf[j], count, "\"auto\" : true },\n");
+				} else {
+					j += snprintf(&buf[j], count, "\"auto\" : false },\n");
+				}
+			}
+		}
+	}
+	val = read_reg(sw_num, 0xE6);
+	if ((status_port == 24) || (status_port > 26)) {
+		j += snprintf(&buf[j], count, "\t\"24\" : { ");
+		// flow_ctrl
+		if (val & 0x10)
+			j += snprintf(&buf[j], count, "\"flowctrl\" : true, ");
+		else
+			j += snprintf(&buf[j], count, "\"flowctrl\" : false, ");
+		// duplex
+		if (val & 0x8)
+			j += snprintf(&buf[j], count, "\"duplex\" : \"full\", ");
+		else
+			j += snprintf(&buf[j], count, "\"duplex\" : \"half\", ");
+		// speed
+		if (val & 0x4) {
+			j += snprintf(&buf[j], count, "\"speed\" : 1000, ");
+		} else {
+			if (val & 0x2) {
+				j += snprintf(&buf[j], count, "\"speed\" : 100, ");
+			} else {
+				j += snprintf(&buf[j], count, "\"speed\" : 10, ");
+			}
+		}
+		// status
+		if (val & 0x1)
+			j += snprintf(&buf[j], count, "\"state\" : \"up\", ");
+		else
+			j += snprintf(&buf[j], count, "\"state\" : \"dwn\", ");
+		// auto negotiation
+		val = read_reg(sw_num, 0xCC);
+		if (val & 0x100) {
+			j += snprintf(&buf[j], count, "\"auto\" : true },\n");
+		} else {
+			j += snprintf(&buf[j], count, "\"auto\" : false },\n");
+		}
+
+	}
+	if ((status_port == 25) || (status_port > 26)) {
+		j += snprintf(&buf[j], count, "\t\"25\" : { ");
+		// flowctrl
+		if (val & 0x100)
+			j += snprintf(&buf[j], count, "\"flowctrl\" : true, ");
+		else
+			j += snprintf(&buf[j], count, "\"flowctrl\" : false, ");
+		// duplex
+		if (val & 0x80)
+			j += snprintf(&buf[j], count, "\"duplex\" : \"full\", ");
+		else
+			j += snprintf(&buf[j], count, "\"duplex\" : \"half\", ");
+		// speed
+		if (val & 0x100) {
+			j += snprintf(&buf[j], count, "\"speed\" : 1000, ");
+		} else {
+			if (val & 0x80) {
+				j += snprintf(&buf[j], count, "\"speed\" : 100, ");
+			} else {
+				j += snprintf(&buf[j], count, "\"speed\" : 10, ");
+			}
+		}
+		// status
+		if (val & 0x40)
+			j += snprintf(&buf[j], count, "\"state\" : \"up\", ");
+		else
+			j += snprintf(&buf[j], count, "\"state\" : \"dwn\", ");
+		// auto negotiation
+		val = read_reg(sw_num, 0xCC);
+		if (val & 0x200) {
+			j += snprintf(&buf[j], count, "\"auto\" : true },\n");
+		} else {
+			j += snprintf(&buf[j], count, "\"auto\" : false },\n");
+		}
+	}
+
+	if ((status_port == 26) || (status_port > 26)) {
+		val = read_reg(sw_num, 0xE7);
+		j += snprintf(&buf[j], count, "\t\"26\" : { ");
+		// flowctrl
+		if (val & 0x8)
+			j += snprintf(&buf[j], count, "\"flowctrl\" : true, ");
+		else
+			j += snprintf(&buf[j], count, "\"flowctrl\" : false, ");
+		// duplex
+		if (val & 0x4)
+			j += snprintf(&buf[j], count, "\"duplex\" : \"full\", ");
+		else
+			j += snprintf(&buf[j], count, "\"duplex\" : \"half\", ");
+		// speed
+		if (val & 0x2)
+			j += snprintf(&buf[j], count, "\"speed\" : 100, ");
+		else
+			j += snprintf(&buf[j], count, "\"speed\" : 10, ");
+		// status
+		if (val & 0x1)
+			j += snprintf(&buf[j], count, "\"state\" : \"up\", ");
+		else
+			j += snprintf(&buf[j], count, "\"state\" : \"dwn\", ");
+		// auto negotiation
+		val = read_reg(sw_num, 0xCC);
+		if (val & 0x800) {
+			j += snprintf(&buf[j], count, "\"auto\" : true }\n");
+		} else {
+			j += snprintf(&buf[j], count, "\"auto\" : false }\n");
+		}
+	}
+	j += snprintf(&buf[j], count, "}\n");
+	return j;
+}
+static int
+store_port_autoneg(struct file *file,const char *buffer,unsigned long count,void *data) {
+	int sw_num = *(short*)data;
+	char *endp;
+	char port_num;
+	unsigned autoneg;
+	unsigned long tmp;
+
+	port_num = simple_strtoul(buffer,&endp,10);
+	while( *endp == ' '){
+		endp++;
+	}
+	if (port_num > 26) {
+		printk(KERN_ERR"port must be from 0 to 26 (%d)\n", port_num);
+		return count;
+	}
+	autoneg = simple_strtoul(endp,&endp,10);
+	
+	if (port_num < 16) {
+		tmp = read_reg(sw_num, 0xCB);
+		if (autoneg) {
+			write_reg(sw_num, 0xCB, (tmp | (1 << port_num)));
+		} else {
+			write_reg(sw_num, 0xCB, (tmp & (~(1 << port_num))));
+		}
+	} else {
+		tmp = read_reg(sw_num, 0xCC);
+		port_num -= 16;
+		if (autoneg) {
+			write_reg(sw_num, 0xCC, (tmp | (1 << port_num)));
+		} else {
+			write_reg(sw_num, 0xCC, (tmp & (~(1 << port_num))));
+		}
+	}
+	return count;
+}
+
+static int
+store_port_speed(struct file *file,const char *buffer,unsigned long count,void *data) {
+	int sw_num = *(short*)data;
+	char *endp;
+	char port_num;
+	unsigned speed;
+	unsigned long tmp;
+
+	port_num = simple_strtoul(buffer,&endp,10);
+	while( *endp == ' '){
+		endp++;
+	}
+	if (port_num > 26) {
+		printk(KERN_ERR"port must be from 0 to 26 (%d)\n", port_num);
+		return count;
+	}
+	speed = simple_strtoul(endp,&endp,10);
+	if ((speed != 10) && (speed != 100) && (speed != 1000)) {
+		printk(KERN_ERR"speed must be 10, 100 or 1000 (%d)\n", speed);
+		return count;
+	}
+	
+	if (port_num < 16) {
+		tmp = read_reg(sw_num, 0xCD);
+		if (speed == 100) {
+			write_reg(sw_num, 0xCD, (tmp | (1 << port_num)));
+		}
+		if (speed == 10) {
+			write_reg(sw_num, 0xCD, (tmp & (~(1 << port_num))));
+		}
+	} else {
+		tmp = read_reg(sw_num, 0xCE);
+		port_num -= 16;
+		if (speed == 100) {
+			write_reg(sw_num, 0xCE, (tmp | (1 << port_num)));
+		}
+		if (speed == 10) {
+			write_reg(sw_num, 0xCE, (tmp & (~(1 << port_num))));
+		}
+		if ((port_num == 8) || (port_num == 9)) {
+			port_num -= 8;
+			tmp = read_reg(sw_num, 0xCF);
+			if (speed == 1000) {
+				write_reg(sw_num, 0xCF, (tmp | (1 << port_num)));
+			} else {
+				write_reg(sw_num, 0xCF, (tmp & (~(1 << port_num))));
+			}
+		}
+	}
+	return count;
+}
+
+static int
+store_port_duplex(struct file *file,const char *buffer,unsigned long count,void *data) {
+	int sw_num = *(short*)data;
+	char *endp;
+	char port_num;
+	unsigned duplex;
+	unsigned long tmp;
+
+	port_num = simple_strtoul(buffer,&endp,10);
+	while( *endp == ' '){
+		endp++;
+	}
+	if (port_num > 26) {
+		printk(KERN_ERR"port must be from 0 to 26 (%d)\n", port_num);
+		return count;
+	}
+	duplex = simple_strtoul(endp,&endp,10);
+	if (port_num < 16) {
+		tmp = read_reg(sw_num, 0xD0);
+		if (duplex) {
+			write_reg(sw_num, 0xD0, (tmp | (1 << port_num)));
+		} else {
+			write_reg(sw_num, 0xD0, (tmp & (~(1 << port_num))));
+		}
+	} else {
+		tmp = read_reg(sw_num, 0xD1);
+		port_num -= 16;
+		if (duplex) {
+			write_reg(sw_num, 0xD1, (tmp | (1 << port_num)));
+		} else {
+			write_reg(sw_num, 0xD1, (tmp & (~(1 << port_num))));
+		}
+	}
+	
+	return count;
+}
+
+static int
+store_port_flowctrl(struct file *file,const char *buffer,unsigned long count,void *data) {
+	int sw_num = *(short*)data;
+	char *endp;
+	char port_num;
+	unsigned flow;
+	unsigned long tmp;
+
+	port_num = simple_strtoul(buffer,&endp,10);
+	while( *endp == ' '){
+		endp++;
+	}
+	if (port_num > 26) {
+		printk(KERN_ERR"port must be from 0 to 26 (%d)\n", port_num);
+		return count;
+	}
+	flow = simple_strtoul(endp,&endp,10);
+	if (port_num < 16) {
+		if (flow) {
+			tmp = read_reg(sw_num, 0xD2);
+			write_reg(sw_num, 0xD2, (tmp | (1 << port_num)));
+			tmp = read_reg(sw_num, 0xD4);
+			write_reg(sw_num, 0xD4, (tmp | (1 << port_num)));
+			tmp = read_reg(sw_num, 0xD6);
+			write_reg(sw_num, 0xD6, (tmp | (1 << port_num)));
+		} else {
+			tmp = read_reg(sw_num, 0xD2);
+			write_reg(sw_num, 0xD2, (tmp & (~(1 << port_num))));
+			tmp = read_reg(sw_num, 0xD4);
+			write_reg(sw_num, 0xD4, (tmp & (~(1 << port_num))));
+			tmp = read_reg(sw_num, 0xD6);
+			write_reg(sw_num, 0xD6, (tmp & (~(1 << port_num))));
+		}
+	} else {
+		port_num -= 16;
+		if (flow) {
+			tmp = read_reg(sw_num, 0xD3);
+			write_reg(sw_num, 0xD3, (tmp | (1 << port_num)));
+			tmp = read_reg(sw_num, 0xD5);
+			write_reg(sw_num, 0xD5, (tmp | (1 << port_num)));
+			tmp = read_reg(sw_num, 0xD7);
+			write_reg(sw_num, 0xD7, (tmp | (1 << port_num)));
+		} else {
+			tmp = read_reg(sw_num, 0xD3);
+			write_reg(sw_num, 0xD3, (tmp & (~(1 << port_num))));
+			tmp = read_reg(sw_num, 0xD5);
+			write_reg(sw_num, 0xD5, (tmp & (~(1 << port_num))));
+			tmp = read_reg(sw_num, 0xD7);
+			write_reg(sw_num, 0xD7, (tmp & (~(1 << port_num))));
+		}
+	}
+	
+	return count;
 }
 
 static int store_vlan_mode(struct file *file,const char *buffer,unsigned long count,void *data) {
@@ -812,6 +1365,71 @@ read_tag(char *buf, char **start, off_t offset, int count, int *eof, void *data)
 	return j;
 }
 
+static int
+store_trunk_hash_alg(struct file *file,const char *buffer,unsigned long count,void *data) {
+	int sw_num = *(short*)data;
+	int tmp;
+	long val;
+	char *endp;
+
+	val = simple_strtoul(buffer,&endp,10);
+	if ((val == LONG_MIN) || (val == LONG_MAX) || (val > 3)) return count;
+
+	tmp = read_reg(sw_num, 0x40);
+	write_reg(sw_num, 0x40, (tmp & 0xFFF3) | val << 2);
+	return count;
+}
+static int
+read_trunk_hash_alg(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
+	int sw_num = *(short*)data;
+
+	return (snprintf(buf, count, "%i\n", (int)(read_reg(sw_num, 0x40) & 0xC) >> 2));
+}
+
+static int
+store_trunk_port_id(struct file *file,const char *buffer,unsigned long count,void *data) {
+	int sw_num = *(short*)data;
+	char *endp;
+	char port_num;
+	unsigned id;
+	int tmp;
+
+	port_num = simple_strtoul(buffer,&endp,10);
+	while( *endp == ' '){
+		endp++;
+	}
+	if (port_num > 7) {
+		printk(KERN_ERR"port must be from 0 to 7 (%d)\n", port_num);
+		return count;
+	}
+	id = simple_strtoul(endp,&endp,10);
+	if (port_num < 4) {
+		tmp = read_reg(sw_num, 0x4C);
+		write_reg(sw_num, 0x4C, (tmp & (~(0xF << (port_num*4)))) | (id << (port_num*4)));
+		return count;
+	}
+	port_num -= 4;
+	tmp = read_reg(sw_num, 0x4D);
+	write_reg(sw_num, 0x4D, (tmp & (~(0xF << (port_num*4)))) | (id << (port_num*4)));
+	return count;
+}
+static int
+read_trunk_port_id(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
+	int sw_num = *(short*)data;
+	int j = 0;
+
+	j += snprintf(&buf[j], count, "Port 0: %i\n", (int)(read_reg(sw_num, 0x4C) & 0xF));
+	j += snprintf(&buf[j], count, "Port 1: %i\n", (int)(read_reg(sw_num, 0x4C) & 0xF0) >> 4);
+	j += snprintf(&buf[j], count, "Port 2: %i\n", (int)(read_reg(sw_num, 0x4C) & 0xF00) >> 8);
+	j += snprintf(&buf[j], count, "Port 3: %i\n", (int)(read_reg(sw_num, 0x4C) & 0xF000) >> 12);
+
+	j += snprintf(&buf[j], count, "Port 4: %i\n", (int)(read_reg(sw_num, 0x4D) & 0xF));
+	j += snprintf(&buf[j], count, "Port 5: %i\n", (int)(read_reg(sw_num, 0x4D) & 0xF0) >> 4);
+	j += snprintf(&buf[j], count, "Port 6: %i\n", (int)(read_reg(sw_num, 0x4D) & 0xF00) >> 8);
+	j += snprintf(&buf[j], count, "Port 7: %i\n", (int)(read_reg(sw_num, 0x4D) & 0xF000) >> 12);
+
+	return (j);
+}
 
 
 /* --------------------------------------------------------------------------
@@ -848,8 +1466,10 @@ static int store_default(struct file *file,const char *buffer,unsigned long coun
 
 static struct dev_entrie entries_sw0[]={
 	{ "default",  PFS_SW0, NULL, 0200, NULL, store_default },
-	{ "statistics",  PFS_SW0, NULL, 0400, read_statistics, NULL },
-	{ "status",  PFS_SW0, NULL, 0400, read_status, NULL },
+	{ "statistics",  PFS_SW0, NULL, 0600, read_statistics, store_statistics },
+	{ "statistics_json",  PFS_SW0, NULL, 0400, read_statistics_json, NULL },
+	{ "status",  PFS_SW0, NULL, 0600, read_status, store_status },
+	{ "status_json",  PFS_SW0, NULL, 0400, read_status_json, NULL },
 	{ "mac",  PFS_SW0, NULL, 0600, read_mac, store_mac },
 	{ "vlan_mode",  PFS_SW0, NULL, 0600, read_vlan_mode, store_vlan_mode },
 	{ "vlan",  PFS_SW0, NULL, 0600, read_vlan, store_vlan },
@@ -860,12 +1480,20 @@ static struct dev_entrie entries_sw0[]={
 	{ "regwrite", PFS_SW0, NULL, 0200, NULL , store_reg_write },
 	{ "disable_learning", PFS_SW0, NULL, 0200, NULL, store_disable_learning },
 	{ "enable_learning", PFS_SW0, NULL, 0200, NULL, store_enable_learning },
+	{ "trunk_hash_alg", PFS_SW0, NULL, 0600, read_trunk_hash_alg, store_trunk_hash_alg },
+	{ "trunk_port_id", PFS_SW0, NULL, 0600, read_trunk_port_id, store_trunk_port_id },
+	{ "port_autoneg", PFS_SW0, NULL, 0200, NULL, store_port_autoneg },
+	{ "port_speed", PFS_SW0, NULL, 0200, NULL, store_port_speed },
+	{ "port_duplex", PFS_SW0, NULL, 0200, NULL, store_port_duplex },
+	{ "port_flowctrl", PFS_SW0, NULL, 0200, NULL, store_port_flowctrl },
 };
 
 static struct dev_entrie entries_sw1[]={
 	{ "default",  PFS_SW1, NULL, 0200, NULL, store_default },
-	{ "statistics",  PFS_SW1, NULL, 0400, read_statistics, NULL },
-	{ "status",  PFS_SW1, NULL, 0400, read_status, NULL },
+	{ "statistics",  PFS_SW1, NULL, 0600, read_statistics, store_statistics },
+	{ "statistics_json",  PFS_SW1, NULL, 0400, read_statistics_json, NULL },
+	{ "status",  PFS_SW1, NULL, 0600, read_status, store_status },
+	{ "status_json",  PFS_SW1, NULL, 0400, read_status_json, NULL },
 	{ "mac",  PFS_SW1, NULL, 0600, read_mac, store_mac },
 	{ "vlan_mode",  PFS_SW1, NULL, 0600, read_vlan_mode, store_vlan_mode },
 	{ "vlan",  PFS_SW1, NULL, 0600, read_vlan, store_vlan },
@@ -876,6 +1504,12 @@ static struct dev_entrie entries_sw1[]={
 	{ "regwrite", PFS_SW1, NULL, 0200, NULL, store_reg_write },
 	{ "disable_learning", PFS_SW1, NULL, 0200, NULL, store_disable_learning },
 	{ "enable_learning", PFS_SW1, NULL, 0200, NULL, store_enable_learning },
+	{ "trunk_hash_alg", PFS_SW1, NULL, 0600, read_trunk_hash_alg, store_trunk_hash_alg },
+	{ "trunk_port_id", PFS_SW1, NULL, 0600, read_trunk_port_id, store_trunk_port_id },
+	{ "port_autoneg", PFS_SW1, NULL, 0200, NULL, store_port_autoneg },
+	{ "port_speed", PFS_SW1, NULL, 0200, NULL, store_port_speed },
+	{ "port_duplex", PFS_SW1, NULL, 0200, NULL, store_port_duplex },
+	{ "port_flowctrl", PFS_SW1, NULL, 0200, NULL, store_port_flowctrl },
 };
 
 #define PFS_ENTS  (sizeof(entries_sw0)/sizeof(struct dev_entrie))
@@ -927,6 +1561,7 @@ static int dslam_procfs_init(void) {
 	if ((read_reg(0, 1) & 0x1f) == 0x12) {
 		proc_mkdir("sys/net/dslam_sw/ok", NULL);
 	}
+	memset(&sw, 0, 2*sizeof(struct switch_t));
 	return 0;
 //	PDEBUG(0,"conf0=%lx",ADM5120_SW_REG(GPIO_conf0_REG));
 }        

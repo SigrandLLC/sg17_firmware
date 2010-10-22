@@ -72,15 +72,15 @@ print_stat()
 
 
     echo "$1:"
-    echo "      shdsl:   $master $rate $code $annex $clkmode"
-	[ -n "$pbo" ] && echo "               PBO=$pbo"
-    echo "      hdlc:    fill="$fill" "$crc
+    echo -e "\tshdsl:   $master $rate $code $annex $clkmode"
+	[ -n "$pbo" ] && echo -e "\t\tPBO=$pbo"
+#    echo "      hdlc:    fill="$fill" "$crc
 #    echo "      AdvLink: $advlink"
     if [ "$pwr_mod" = "1" ]; then
-        echo "Power:"
-        echo "      pwron=$pwron overload=$pwrovl unbalance=$pwrunb"
+        echo -e "\tPower:"
+        echo -e "\t\tpwron=$pwron overload=$pwrovl unbalance=$pwrunb"
     fi
-    echo "Statistics:"
+    echo -e "\tStatistics:"
     cat statistics
 }
 
@@ -107,7 +107,7 @@ if [ $# = 0 ]; then
     exit
 fi
 
-if [ "$1" = "--help" -o "$2" = "-h" ]; then
+if [ "$1" = "--help" -o "$1" = "-h" ]; then
 	print_usage
 	exit
 fi

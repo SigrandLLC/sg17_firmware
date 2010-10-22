@@ -254,7 +254,7 @@ static ssize_t store_pbo_val( struct class_device *cdev,const char *buf, size_t 
 	// check parameters
 	if (!size) return size;
 	do {
-		tmp = simple_strtoul(buf, &endp, 0);
+		tmp = simple_strtoul(buf, &endp, 10);
 		if (buf != endp)
 		{
 			vals[vnum] = (tmp > 31) ? 31 : tmp;
@@ -526,13 +526,33 @@ static ssize_t show_statistics(struct class_device *cdev, char *buf)
 	struct net_local *nl = netdev_priv(ndev);
 	struct mam17_card *card = nl->card;
 	struct statistics stat;
+	struct statistics_all *stat_all=&nl->stat;
 	u32 buff[10];
 	ack_t ack;
-	
+
 	get_statistic(nl->number, card, &stat);
 
 	buff[0] = nl->number;
 	mpi_cmd(card, CMD_HDLC_TC_LinkPmParamGet, buff, 1, &ack);
+
+	stat_all->es = stat.ES_count - stat_all->es_old;
+	stat_all->ses = stat.SES_count - stat_all->ses_old;
+	stat_all->crc_anom = stat.CRC_Anomaly_count - stat_all->crc_anom_old;
+	stat_all->losws = stat.LOSWS_count - stat_all->losws_old;
+	stat_all->uas = stat.UAS_Count - stat_all->uas_old;
+
+	stat_all->to_line += ack.buf32[3];
+	stat_all->from_mii += ack.buf32[4];
+	stat_all->tx_aborted += ack.buf32[5];
+	stat_all->oversized += ack.buf32[6];
+	stat_all->error_marked += ack.buf32[7];
+	stat_all->from_line += ack.buf32[8];
+	stat_all->crce += ack.buf32[9];
+	stat_all->rx_aborted += ack.buf32[10];
+	stat_all->invalid_frames += ack.buf32[11];
+	stat_all->to_mii += ack.buf32[12];
+	stat_all->to_miie += ack.buf32[13];
+	stat_all->overflow += ack.buf32[14];
 
 
 	return snprintf(buf,PAGE_SIZE,
@@ -541,17 +561,30 @@ static ssize_t show_statistics(struct class_device *cdev, char *buf)
 			"\tTX: To line=%u Recv from mii=%u Aborted=%u Oversized=%u Error marked=%u\n"//////
 			"\tRX: From line=%u CRCE=%u Aborted=%u Ivalid frames=%u to mii=%u to miiE=%u overflow=%u\n",////
 			(s8)stat.SNR_Margin_dB,(s8)stat.LoopAttenuation_dB,
-			stat.ES_count,stat.SES_count,stat.CRC_Anomaly_count,stat.LOSWS_count,stat.UAS_Count,
-			ack.buf32[3],ack.buf32[4],ack.buf32[5],ack.buf32[6],ack.buf32[7],ack.buf32[8],ack.buf32[9],ack.buf32[10],///
-			ack.buf32[11],ack.buf32[12],ack.buf32[13],ack.buf32[14]);///
+			stat_all->es,stat_all->ses,stat_all->crc_anom,stat_all->losws,stat_all->uas,stat_all->to_line,stat_all->from_mii,
+			stat_all->tx_aborted,stat_all->oversized,stat_all->error_marked,stat_all->from_line,stat_all->crce,
+			stat_all->rx_aborted,stat_all->invalid_frames,stat_all->to_mii,stat_all->to_miie,stat_all->overflow);
 }
 
 static ssize_t store_statistics( struct class_device *cdev,const char *buf, size_t size ) 
 {
+	struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+	struct mam17_card *card = nl->card;
+	struct statistics stat;
+	struct statistics_all *stat_all=&nl->stat;
+
 	if (!size) return 0;
 
-	switch(buf[0] == '1'){
-	}	
+	if(buf[0] == '1'){
+		get_statistic(nl->number, card, &stat);
+		memset(stat_all, 0, sizeof(struct statistics_all));
+		stat_all->es_old = stat.ES_count;
+		stat_all->ses_old = stat.SES_count;
+		stat_all->crc_anom_old = stat.CRC_Anomaly_count;
+		stat_all->losws_old = stat.LOSWS_count;
+		stat_all->uas_old = stat.UAS_Count;
+	}
 	return size;	
 }
 static CLASS_DEVICE_ATTR(statistics,0644,show_statistics,store_statistics);
@@ -564,7 +597,7 @@ static ssize_t show_statistics_row(struct class_device *cdev, char *buf)
 	struct statistics stat;
 	u32 buff[10];
 	ack_t ack;
-	
+
 	get_statistic(nl->number, card, &stat);
 
 	buff[0] = nl->number;
@@ -572,8 +605,6 @@ static ssize_t show_statistics_row(struct class_device *cdev, char *buf)
 	{
 		return snprintf(buf,PAGE_SIZE,"Error Getting statistic");
 	}
-
-
 	return snprintf(buf,PAGE_SIZE, "%d %d %u %u %u %u %u %u %u %u %u",
 			(s8)stat.SNR_Margin_dB,(s8)stat.LoopAttenuation_dB,
 			stat.ES_count,stat.SES_count,stat.CRC_Anomaly_count,stat.LOSWS_count,stat.UAS_Count,
@@ -653,30 +684,129 @@ static CLASS_DEVICE_ATTR(mpair,0644,show_mpair,store_mpair);
 
 static ssize_t show_uptime(struct class_device *cdev, char *buf) 
 {
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
 	struct channel *chan = (struct channel *)nl->chan_cfg;
 	struct timeval tv;
-	
-	jiffies_to_timeval(jiffies, &tv);
-//	tv_sec
-//	tv_usec
-	if (chan->state == CONNECTED)
-		return snprintf(buf,PAGE_SIZE, "%lu\n", tv.tv_sec - chan->uptime.tv_sec);
-	else
-		return snprintf(buf,PAGE_SIZE, "0\n");
+	time_t sec_all;
+	unsigned s, m, h, d;
+
+	jiffies_to_timeval((unsigned long)jiffies, &tv);
+	if (chan->state == CONNECTED) {
+		sec_all = tv.tv_sec - chan->uptime.tv_sec;
+		d = sec_all / 86400;
+		sec_all -= d * 86400;
+		h = sec_all / 3600;
+		sec_all -= h * 3600;
+		m = sec_all / 60;
+		sec_all -= m * 60;
+		s = sec_all;
+		return snprintf(buf,PAGE_SIZE, "%i d %02i:%02i:%02i\n", d, h, m, s);
+	} else {
+		return snprintf(buf,PAGE_SIZE, "0 d 00:00:00\n");
+	}
 }
 static CLASS_DEVICE_ATTR(uptime,0444,show_uptime,NULL);
 
+static ssize_t show_uptime_all(struct class_device *cdev, char *buf) 
+{
+	struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+	struct channel *chan = (struct channel *)nl->chan_cfg;
+	struct timeval tv;
+	time_t sec_all;
+	unsigned s, m, h, d;
 
+	jiffies_to_timeval((unsigned long)jiffies, &tv);
+	if (chan->state == CONNECTED) {
+		sec_all = chan->uptime_all.tv_sec + tv.tv_sec - chan->uptime.tv_sec;
+		d = sec_all / 86400;
+		sec_all -= d * 86400;
+		h = sec_all / 3600;
+		sec_all -= h * 3600;
+		m = sec_all / 60;
+		sec_all -= m * 60;
+		s = sec_all;
+		return snprintf(buf,PAGE_SIZE, "%i d %02i:%02i:%02i\n", d, h, m, s);
+	} else {
+		sec_all = chan->uptime_all.tv_sec;
+		d = sec_all / 86400;
+		sec_all -= d * 86400;
+		h = sec_all / 3600;
+		sec_all -= h * 3600;
+		m = sec_all / 60;
+		sec_all -= m * 60;
+		s = sec_all;
+		return snprintf(buf,PAGE_SIZE, "%i d %02i:%02i:%02i\n", d, h, m, s);
+	}
+}
+static CLASS_DEVICE_ATTR(uptime_all,0444,show_uptime_all,NULL);
+
+static ssize_t show_downtime_all(struct class_device *cdev, char *buf) 
+{
+	struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+	struct channel *chan = (struct channel *)nl->chan_cfg;
+	struct timeval tv;
+	time_t sec_all;
+	unsigned s, m, h, d;
+
+	jiffies_to_timeval((unsigned long)jiffies, &tv);
+	if (chan->state == CONNECTED) {
+		sec_all = chan->uptime.tv_sec - chan->downtime_all.tv_sec - chan->uptime_all.tv_sec;
+		d = sec_all / 86400;
+		sec_all -= d * 86400;
+		h = sec_all / 3600;
+		sec_all -= h * 3600;
+		m = sec_all / 60;
+		sec_all -= m * 60;
+		s = sec_all;
+		return snprintf(buf,PAGE_SIZE, "%i d %02i:%02i:%02i\n", d, h, m, s);
+	} else {
+		sec_all = tv.tv_sec - chan->downtime_all.tv_sec - chan->uptime_all.tv_sec;
+		d = sec_all / 86400;
+		sec_all -= d * 86400;
+		h = sec_all / 3600;
+		sec_all -= h * 3600;
+		m = sec_all / 60;
+		sec_all -= m * 60;
+		s = sec_all;
+		return snprintf(buf,PAGE_SIZE, "%i d %02i:%02i:%02i\n", d, h, m, s);
+	}
+}
+static CLASS_DEVICE_ATTR(downtime_all,0444,show_downtime_all,NULL);
+
+static ssize_t show_on_off(struct class_device *cdev, char *buf) 
+{
+	struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+	struct channel *chan = (struct channel *)nl->chan_cfg;
+	
+	if (chan->on == 1) {
+		return snprintf(buf,PAGE_SIZE, "on\n");
+	} else {
+		return snprintf(buf,PAGE_SIZE, "off\n");
+	}
+}
+static ssize_t store_on_off( struct class_device *cdev,const char *buf, size_t size ) 
+{
+	struct net_device *ndev = to_net_dev(cdev);
+	struct net_local *nl = netdev_priv(ndev);
+	struct channel *chan = (struct channel *)nl->chan_cfg;
+	char *endp;
+	unsigned on = 0;
+	
+	on = simple_strtoul(buf, &endp, 10);
+	
+	if (on == 1) {
+		chan->on = 1;
+	} else {
+		chan->on = 0;
+	}
+	chan->need_reset = 1;
+	return size;
+}
+static CLASS_DEVICE_ATTR(on_off,0644,show_on_off,store_on_off);
 
 static struct attribute *mam17_attr[] = {
 // shdsl
@@ -703,6 +833,9 @@ static struct attribute *mam17_attr[] = {
 &class_device_attr_mpair.attr,
 
 &class_device_attr_uptime.attr,
+&class_device_attr_uptime_all.attr,
+&class_device_attr_downtime_all.attr,
+&class_device_attr_on_off.attr,
 
 NULL
 };

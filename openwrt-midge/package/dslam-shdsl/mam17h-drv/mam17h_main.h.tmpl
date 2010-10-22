@@ -327,6 +327,11 @@ struct channel {
 	u8 fill_7e;
 	char name[16];
 	struct timeval uptime;
+	struct timeval uptime_all;
+	struct timeval downtime_all;
+	int success_connect;
+	int all_connect;
+	unsigned on;
 };
 
 struct mam17_card {

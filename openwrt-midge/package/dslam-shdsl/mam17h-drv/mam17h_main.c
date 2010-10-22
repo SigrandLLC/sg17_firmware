@@ -33,6 +33,9 @@ int configure_channel(struct mam17_card *card, int ch)
 
 	buf[0] = ch;
 	if (mpi_cmd(card, CMD_PMD_Reset, buf, 1, &ack)) return -1;
+	if (card->channels[ch].on != 1) {
+		return 0;
+	}
 	i = 0;
 	while ((card->channels[ch].state != DOWN_READY) && (i < 10000)) i++;
 	mdelay(100);
@@ -279,6 +282,8 @@ void def_conf(struct mam17_card *card, int ch)
 	card->channels[ch].crc16 = 0;
 	card->channels[ch].fill_7e = 0xFF;
 	card->channels[ch].clkmode = 1;
+
+	card->channels[ch].on = 1;
 
 	card->mpair_mode = 0;
 }

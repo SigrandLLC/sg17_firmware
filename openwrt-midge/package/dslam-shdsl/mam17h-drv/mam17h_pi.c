@@ -163,8 +163,9 @@ int mpi_recv(struct mam17_card *card)
 	}
 	if (msg->MSGID == 0x688)
 	{
+		if (card->channels[buf32[1]].state != CONNECTED)
+			printk(KERN_NOTICE "DSLAM %s: link is UP\n", card->channels[buf32[1]].name);
 		card->channels[buf32[1]].state = CONNECTED;
-		printk(KERN_NOTICE "DSLAM %s: link is UP\n", card->channels[buf32[1]].name);
 	}
 	// mpair up
 	if ((msg->MSGID == 0x692) && (buf32[2] == 1))

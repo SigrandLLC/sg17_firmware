@@ -1,0 +1,144 @@
+#!/bin/sh
+
+kdb="/usr/bin/kdb"
+
+usage() {
+	echo -e "Usage: $0 status [PORT]"
+	exit 0
+}
+
+# sw_num, sw_port, slot, port
+get_iface_location() {
+	case "$1" in
+		CPU)
+			sw_num=0
+			sw_port=26
+			slot=4
+			port=2
+		;;
+		cpu)
+			sw_num=0
+			sw_port=26
+			slot=4
+			port=2
+		;;
+		gigabit0)
+			sw_num=0
+			sw_port=24
+			slot=4
+			port=0
+		;;
+		g0)
+			sw_num=0
+			sw_port=24
+			slot=4
+			port=0
+		;;
+		gigabit1)
+			sw_num=1
+			sw_port=24
+			slot=4
+			port=1
+		;;
+		g1)
+			sw_num=1
+			sw_port=24
+			slot=4
+			port=1
+		;;
+		*)
+			if [ -d "/sys/class/net/$1/ms_private" ]; then
+				sw_num=`$kdb get sys_iface_${1}_sw`
+				sw_port=`$kdb get sys_iface_${1}_sw_port`
+				slot=`$kdb get sys_iface_${1}_slot`
+				port=`$kdb get sys_iface_${1}_port`
+			else
+				echo "Error! bad iface!"
+				exit 0
+			fi
+		;;
+	esac
+}
+
+if [ "$#" = "0" ]; then
+	usage
+else
+	case $1 in
+		status)
+		;;
+		*)
+			usage
+		;;
+	esac
+
+
+
+	ifaces=`$kdb get sys_dslam_ifaces`
+	
+	if [ "$#" = "2" ]; then
+		iface=""
+		for ifce in $ifaces gigabit0 g0 gigabit1 g1 CPU cpu; do
+			if [ "$ifce" = "$2" ]; then
+				iface=$ifce
+			fi
+		done
+		get_iface_location $iface
+		
+#		echo "$iface sw$sw_num port$sw_port  $slot.$port"
+		
+		echo "$sw_port" > /proc/sys/net/dslam_sw/sw${sw_num}/status
+		status=`cat /proc/sys/net/dslam_sw/sw${sw_num}/status`
+		
+#		echo $status
+
+		let "tmp=0"
+		out_str="$iface status: "
+		for i in $status; do
+			if [ "$tmp" = "1" ]; then
+				out_str=$out_str"flowctrl=$i "
+			fi
+			if [ "$tmp" = "2" ]; then
+				out_str=$out_str"duplex=$i "
+			fi
+			if [ "$tmp" = "3" ]; then
+				out_str=$out_str"speed=$i Mbps "
+			fi
+			if [ "$tmp" = "4" ]; then
+				out_str=$out_str"state=$i "
+			fi
+			if [ "$tmp" = "5" ]; then
+				out_str=$out_str"$i\n"
+			fi
+			let "tmp=$tmp+1"
+		done
+		echo -e $out_str
+	else
+		out_str=""
+		for iface in $ifaces gigabit0 gigabit1 CPU; do
+			get_iface_location $iface
+			echo "$sw_port" > /proc/sys/net/dslam_sw/sw${sw_num}/status
+			status=`cat /proc/sys/net/dslam_sw/sw${sw_num}/status`
+			let "tmp=0"
+			out_str=$out_str"$iface status: "
+			for i in $status; do
+				if [ "$tmp" = "1" ]; then
+					out_str=$out_str"flowctrl=$i "
+				fi
+				if [ "$tmp" = "2" ]; then
+					out_str=$out_str"duplex=$i "
+				fi
+				if [ "$tmp" = "3" ]; then
+					out_str=$out_str"speed=$i Mbps "
+				fi
+				if [ "$tmp" = "4" ]; then
+					out_str=$out_str"state=$i "
+				fi
+				if [ "$tmp" = "5" ]; then
+					out_str=$out_str"$i\n"
+				fi
+				let "tmp=$tmp+1"
+			done
+		done
+		echo -e $out_str
+	fi
+fi

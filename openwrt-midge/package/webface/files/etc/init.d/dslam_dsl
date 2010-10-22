@@ -100,7 +100,7 @@ _dsl_mam17hifcfg(){
 
 	# apply configuration
 	if [ "$mode" == "slave" ]; then
-   		$mam17h_cfg $iface $mode $fill $pwron $advlink
+   		$mam17h_cfg $iface $mode $pwron
 	else
 		if [ "$rate" == "-1" -a -n "$mrate" ]; then
 			rate="rate $mrate"
@@ -109,10 +109,8 @@ _dsl_mam17hifcfg(){
 		fi
 		
    		[ -n "$annex" ] && annex="annex $annex"
-    		$mam17h_cfg $iface $mode $rate $code $annex $fill \
-			$pwron $clkmode $pbo $advlink > /dev/null
-    		echo "$mam17h_cfg $iface $mode $rate $code $annex $fill \
-			$pwron $clkmode $pbo $advlink" >> /root/log
+    		$mam17h_cfg $iface $mode $rate $code $annex \
+			$pwron $pbo > /dev/null
 		# Correct rate setted by hands
     		rate=`cat  /sys/class/net/$iface/$priv_dir/rate`
 		pboval=`cat  /sys/class/net/$iface/$priv_dir/pbo_val`

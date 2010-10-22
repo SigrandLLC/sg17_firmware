@@ -1,0 +1,4 @@
+#!/bin/sh
+
+rm /etc/kdb
+cp /etc/kdb/default /etc/kdb

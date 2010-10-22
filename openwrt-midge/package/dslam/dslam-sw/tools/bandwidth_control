@@ -1,0 +1,31 @@
+#!/bin/sh
+
+kdb=""
+
+usage() {
+	echo -e "Usage:"
+	echo -e "\t$0 show                      - show bandwidth settings"
+	echo -e "\t$0 help                      - show this help"
+	echo -e "\t$0 port <port> rate <rate>   - set maximum input/output rate"
+	echo -e "\t$0 port <port> input <rate>  - set maximum input rate"
+	echo -e "\t$0 port <port> output <rate> - set maximum output rate"
+	exit 0
+}
+
+if [ "$#" = "0" ]; then
+	usage
+else
+	case "$1" in
+		show)
+			ifaces=`$kdb get sys_dslam_ifaces`
+		;;
+		help)
+			usage
+		;;
+		port)
+		;;
+		*)
+			usage
+		;;
+	esac
+fi

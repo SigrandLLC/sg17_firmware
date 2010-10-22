@@ -36,14 +36,14 @@ Controllers.dslam_dsl_all = function() {
 					rate = status[iface].link.rate;
 					tcpam = status[iface].link.tcpam;
 					uptime = status[iface].link.uptime;
-					var d = (uptime / 86400) - ((uptime / 86400)%1);
-					uptime = uptime - d * 86400;
-					var h = (uptime / 3600) - ((uptime / 3600)%1);
-					uptime = uptime - h * 3600;
-					var m = (uptime / 60) - ((uptime / 60)%1)
-					uptime = uptime - m * 60;
-					var s = uptime;
-					uptime = $.sprintf("%s:%s:%s", h, m, s);
+//					var d = (uptime / 86400) - ((uptime / 86400)%1);
+//					uptime = uptime - d * 86400;
+//					var h = (uptime / 3600) - ((uptime / 3600)%1);
+//					uptime = uptime - h * 3600;
+//					var m = (uptime / 60) - ((uptime / 60)%1)
+//					uptime = uptime - m * 60;
+//					var s = uptime;
+//					uptime = $.sprintf("%s:%s:%s", h, m, s);
 				}
 				
 				row = c.addTableRow();
@@ -568,6 +568,9 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 
 	page.generateTabs();
 };
+
+var timer = 0;
+
 Controllers.dslamsw = function() {
 	var sw_port2port = new Object();
 	var port_name = new Object();
@@ -593,9 +596,114 @@ Controllers.dslamsw = function() {
 	port2sw_port["4.2"] = "sw0p26";
 	port_name["4.2"] = "CPU";
 
-
 	var page = this.Page();
 	page.setHelpPage("");
+/*
+	page.addTab({
+		"id": "statistics",
+		"name": "Ports statistics",
+		"func": function() {
+			var load_stat = function() {
+				page.clearTab("statistics");
+				var c, field;
+				c = page.addContainer("statistics");
+				c.addTitle("Ports statistics", {"colspan":3});
+				c.addTableHeader("Port|TX packages|RX packages");
+				var sw0_stat, sw1_stat;
+				var ifaces = config.getParsed("sys_dslam_ifaces");
+				config.cmdExecute({"cmd": "cat /proc/sys/net/dslam_sw/sw0/statistics_json", "async" : false, "dataType": "json", "callback": 
+					function(reply) {
+						sw0_stat = reply;
+					}
+				});
+				config.cmdExecute({"cmd": "cat /proc/sys/net/dslam_sw/sw1/statistics_json", "async" : false, "dataType": "json", "callback": 
+					function(reply) {
+						sw1_stat = reply;
+					}
+				});
+				$.each(ifaces, function(n, iface) {
+					var slot = config.get($.sprintf("sys_iface_%s_slot", iface));
+					var port = config.get($.sprintf("sys_iface_%s_port", iface));
+					var sw_num = config.get($.sprintf("sys_iface_%s_sw", iface));
+					var sw_port = config.get($.sprintf("sys_iface_%s_sw_port", iface));
+					row = c.addTableRow();
+					field = {
+						"type" : "html",
+						"name" : $.sprintf("sw%sp%s", sw_num, sw_port),
+						"str" : $.sprintf("Port %s.%s (%s)", slot, port, iface)
+					};
+					c.addTableWidget(field, row);
+					field = {
+						"type" : "html",
+						"name" : $.sprintf("sw%sp%s_tx", sw_num, sw_port),
+						"id" : $.sprintf("sw%sp%s_tx", sw_num, sw_port),
+						"str" : $.sprintf("%s", (sw_num == "1")?sw1_stat[sw_port].tx:sw0_stat[sw_port].tx)
+					};
+					c.addTableWidget(field, row);
+					field = {
+						"type" : "html",
+						"name" : $.sprintf("sw%sp%s_rx", sw_num, sw_port),
+						"id" : $.sprintf("sw%sp%s_rx", sw_num, sw_port),
+						"str" : $.sprintf("%s", (sw_num == "1")?sw1_stat[sw_port].rx:sw0_stat[sw_port].rx)
+					};
+					c.addTableWidget(field, row);
+				});
+				for (i = 0; i <=2; i++) {
+					var port_name;
+					var sw_num, sw_port;
+					row = c.addTableRow();
+					switch (i) {
+						case 0:
+							port_name = "gigabit0";
+							sw_num=0;
+							sw_port=24;
+						break;
+						case 1:
+							port_name = "gigabit1";
+							sw_num=1;
+							sw_port=24;
+						break;
+						case 2:
+							port_name = "CPU";
+							sw_num=0;
+							sw_port=26;
+						break;
+					}
+					field = {
+						"type" : "html",
+						"name" : $.sprintf("sw%sp%s", sw_num, sw_port),
+						"str" : $.sprintf("Port 4.%s (%s)", i, port_name)
+					};
+					c.addTableWidget(field, row);
+					field = {
+						"type" : "html",
+						"name" : $.sprintf("sw%sp%s_tx", sw_num, sw_port),
+						"id" : $.sprintf("sw%sp%s_tx", sw_num, sw_port),
+						"str" : $.sprintf("%s", sw_num?sw1_stat[sw_port].tx:sw0_stat[sw_port].tx)
+					};
+					c.addTableWidget(field, row);
+					field = {
+						"type" : "html",
+						"name" : $.sprintf("sw%sp%s_rx", sw_num, sw_port),
+						"id" : $.sprintf("sw%sp%s_rx", sw_num, sw_port),
+						"str" : $.sprintf("%s", sw_num?sw1_stat[sw_port].rx:sw0_stat[sw_port].rx)
+					};
+					c.addTableWidget(field, row);
+				}
+				c.addSubmit({ "submitName" : "Reset statistics counters", "noSubmit" : true,
+					"onSubmit": function() {
+						config.cmdExecute({"cmd": "echo \"27\" > /proc/sys/net/dslam_sw/sw0/statistics"});
+					}
+				});
+				setTimeout(load_stat, 1000);
+			}
+			if (timer == 1) return true;
+			load_stat();
+			timer = 1;
+		}
+	});
+*/
+
 	page.addTab({
 		"id": "vlan",
 		"name": "VLAN",

@@ -1,0 +1,216 @@
+#!/bin/sh
+
+swdir="/proc/sys/net/dslam_sw"
+
+usage() {
+	echo -e "Usage:"
+	echo -e "\t`basename $0` geX | all      - get status"
+	echo -e "\t`basename $0` geX [options]  - set parameters"
+	echo -e "Possible options:"
+	echo -e "\treset             - reset statistics counters"
+	echo -e "\tauto              - enable auto negotiation configuration"
+	echo -e "\tflow on|off       - enable|disable hardware flow control"
+	echo -e "\tduplex full|half  - set duplex mode"
+	echo -e "\tspeed 10|100|1000 - set speed"
+	exit 0
+}
+
+print_status_all() {
+	echo "----------------------------------------------------------"
+	echo "port  state config flow speed duplex TX packets RX packets"
+	echo "----------------------------------------------------------"
+	for g in 0 1; do
+
+	echo "24" > /proc/sys/net/dslam_sw/sw$g/status
+	status=`cat /proc/sys/net/dslam_sw/sw$g/status`
+	let "tmp=0"
+	for i in $status; do
+		if [ "$tmp" = "1" ]; then
+			flow=$i
+			if [ "$flow" = "on" ]; then
+				flow=" on"
+			fi
+		fi
+		if [ "$tmp" = "2" ]; then
+			duplex=$i
+		fi
+		if [ "$tmp" = "3" ]; then
+			speed=$i
+			if [ "$speed" = "10" ]; then
+				speed="  10";
+			fi
+			if [ "$speed" = "100" ]; then
+				speed=" 100";
+			fi
+		fi
+		if [ "$tmp" = "4" ]; then
+			state=$i
+			if [ "$state" = "up" ]; then
+				state=" online"
+			else
+				state="offline"
+			fi
+		fi
+		if [ "$tmp" = "5" ]; then
+			auto=$i
+			if [ "$auto" = "auto" ]; then
+				auto="  auto"
+			else
+				auto="manual"
+			fi
+		fi
+		let "tmp=$tmp+1"
+	done
+	tx_rx=`cat /proc/sys/net/dslam_sw/sw$g/statistics`
+	let "tmp=0"
+	for i in $tx_rx; do
+		if [ "$tmp" = "79" ]; then
+			tx=$i
+		fi
+		if [ "$tmp" = "80" ]; then
+			rx=$i
+		fi
+		let "tmp=$tmp+1"
+	done
+	echo "ge$g $state $auto  $flow  $speed   $duplex  $tx  $rx"
+	echo "----------------------------------------------------------"
+
+	done	
+
+	exit 0
+}
+
+print_status() {
+	sw=$1
+	echo "24" > /proc/sys/net/dslam_sw/${sw}/status
+	status=`cat /proc/sys/net/dslam_sw/${sw}/status`
+	if [ "$sw" = "sw0" ]; then
+		iface="ge0"
+	else
+		iface="ge1"
+	fi
+	let "tmp=0"
+	for i in $status; do
+		if [ "$tmp" = "1" ]; then
+			out_str=$out_str"\tflowctrl=$i\n"
+		fi
+		if [ "$tmp" = "2" ]; then
+			out_str=$out_str"\tduplex=$i\n"
+		fi
+		if [ "$tmp" = "3" ]; then
+			out_str=$out_str"\tspeed=$i Mbps\n"
+		fi
+		if [ "$tmp" = "4" ]; then
+			if [ "$i" = "up" ]; then
+				state="online"
+			else
+				state="offline"
+			fi
+			out_str=$out_str"\tstate=$state"
+		fi
+		if [ "$tmp" = "5" ]; then
+			out_str="\t$i\n"$out_str
+		fi
+		let "tmp=$tmp+1"
+	done
+	out_str="$iface status:\n"$out_str
+	echo -e $out_str
+}
+
+if [ "$#" = "0" ]; then
+	usage
+else
+	if [ "$1" != "ge0" ]; then
+		if [ "$1" != "ge1" ]; then
+			if [ "$1" = "all" ]; then
+				if [ "$2" = "reset" ]; then
+					echo "24" > /proc/sys/net/dslam_sw/sw0/statistics
+					echo "24" > /proc/sys/net/dslam_sw/sw1/statistics
+				fi
+				if [ "$2" = "" ]; then
+					print_status_all
+					exit 0
+				else
+					usage
+				fi
+			else
+				usage
+			fi
+		else
+			sw="sw1"
+		fi
+	else
+		sw="sw0"
+	fi
+	if [ "$2" = "" ]; then
+		print_status $sw
+		exit 0
+	fi
+	shift
+	while [ ! -z "$1" ]; do
+		case "$1" in
+			auto)
+				shift
+				autoneg="yes"
+				echo "24 1" > $swdir/$sw/port_autoneg
+			;;
+			flow)
+				shift
+				if [ "$1" = "on" ]; then
+					echo "24 1" > $swdir/$sw/port_flowctrl
+				else
+					if [ "$1" = "off" ]; then
+						echo "24 0" > $swdir/$sw/port_flowctrl
+					else
+						echo $0": Syntax error after $1"
+						exit 0
+					fi
+				fi
+				shift
+			;;
+			duplex)
+				shift
+				if [ "$1" = "full" ]; then
+					echo "24 1" > $swdir/$sw/port_duplex
+				else
+					if [ "$1" = "half" ]; then
+						echo "24 0" > $swdir/$sw/port_duplex
+					else
+						echo $0": Syntax error after $1"
+						exit 0
+					fi
+				fi
+				shift
+			;;
+			speed)
+				shift
+				if [ "$1" = "1000" ]; then
+					echo "24 1000" > $swdir/$sw/port_speed
+				else
+					if [ "$1" = "100" ]; then
+						echo "24 100" > $swdir/$sw/port_speed
+					else
+						if [ "$1" = "10" ]; then
+							echo "24 10" > $swdir/$sw/port_speed
+						else
+							echo $0": Syntax error after $1"
+							exit 0
+						fi
+					fi
+				fi
+				shift
+			;;
+			reset)
+				echo "24" > $swdir/$sw/statistics
+			;;
+			*)
+				echo $0": Bad parameter - "$1
+				exit 0
+			;;
+		esac
+	done
+	if [ "$autoneg" != "yes" ]; then
+		echo "24 0" > $swdir/$sw/port_autoneg
+	fi
+
+fi

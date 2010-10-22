@@ -1,0 +1,13 @@
+#!/bin/sh
+
+if [ $# = 1 ]; then
+	if [ -d "/sys/class/net/$1/ms_private" ]; then
+		echo "1" >> /sys/class/net/$1/ms_private/statistics
+		echo "$1 reset statistic OK"
+	else
+		echo "$1 is not DSLAM shdsl iface! FAIL"
+	fi
+else
+	echo "Usage: $0 iface"
+fi
+

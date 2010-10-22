@@ -1,0 +1,113 @@
+#!/bin/sh
+
+kdb="/usr/bin/kdb"
+
+. /etc/init.d/dslam_sw
+
+usage() {
+	echo -e "Usage: $0"
+	exit 0
+}
+
+# sw_num, sw_port, slot, port
+get_iface_location() {
+	case "$1" in
+		CPU)
+			sw_num=0
+			sw_port=26
+			slot=4
+			port=2
+		;;
+		cpu)
+			sw_num=0
+			sw_port=26
+			slot=4
+			port=2
+		;;
+		gigabit0)
+			sw_num=0
+			sw_port=24
+			slot=4
+			port=0
+		;;
+		g0)
+			sw_num=0
+			sw_port=24
+			slot=4
+			port=0
+		;;
+		gigabit1)
+			sw_num=1
+			sw_port=24
+			slot=4
+			port=1
+		;;
+		g1)
+			sw_num=1
+			sw_port=24
+			slot=4
+			port=1
+		;;
+		*)
+			if [ -d "/sys/class/net/$1/ms_private" ]; then
+				sw_num=`$kdb get sys_iface_${1}_sw`
+				sw_port=`$kdb get sys_iface_${1}_sw_port`
+				slot=`$kdb get sys_iface_${1}_slot`
+				port=`$kdb get sys_iface_${1}_port`
+			else
+				ifaces=`$kdb get sys_dslam_ifaces`
+				echo "Error! bad iface! iface must be CPU gigabit0 gigabit1 $ifaces"
+				exit 0
+			fi
+		;;
+	esac
+}
+
+
+if [ "$#" = "0" ]; then
+	usage
+else
+	case "$1" in
+		iface)
+			get_iface_location $1
+
+
+
+update_vlan_settings() {
+	for port in 0 `seq 26`; do
+		pvid=`$kdb get sys_dslam_sw0_vlan_${port}_pvid`
+		tag=`$kdb get sys_dslam_sw0_vlan_${port}_tag`
+		echo "$port $pvid" > /proc/sys/net/dslam_sw/sw0/pvid
+		echo "$port $tag" > /proc/sys/net/dslam_sw/sw0/tag
+
+		pvid=`$kdb get sys_dslam_sw1_vlan_${port}_pvid`
+		tag=`$kdb get sys_dslam_sw1_vlan_${port}_tag`
+		echo "$port $pvid" > /proc/sys/net/dslam_sw/sw1/pvid
+		echo "$port $tag" > /proc/sys/net/dslam_sw/sw1/tag
+	done
+	for i in 0 `seq 31`; do
+		tmp=`kdb get sys_dslam_vlan_table_${i}`
+		if [ -z "$tmp" ]; then
+			echo "$i 0 0" > /proc/sys/net/dslam_sw/sw0/vid_table
+			echo "$i 0 0" > /proc/sys/net/dslam_sw/sw1/vid_table
+			continue;
+		else
+			sw0ports="null"
+			sw1ports="null"
+			for j in $tmp; do
+				eval $j
+			done
+			echo "$i $vid $sw0ports" > /proc/sys/net/dslam_sw/sw0/vid_table
+			echo "$i $vid $sw1ports" > /proc/sys/net/dslam_sw/sw1/vid_table
+		fi
+	done
+}
+
+
+
+		;;
+		*)
+			usage
+		;;
+	esac
+fi

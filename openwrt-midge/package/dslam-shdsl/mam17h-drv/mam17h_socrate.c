@@ -14,6 +14,7 @@
 void monitor_links_state(void * data)
 {
 	struct mam17_card * card = (struct mam17_card*) data;
+	struct timeval tv;
 	int i;
 	ack_t ack;
 	u32 buf32[32];
@@ -22,6 +23,12 @@ void monitor_links_state(void * data)
 	{
 		if (card->channels[i].need_reset)
 		{
+			if ((card->channels[i].state == CONNECTED) || (card->channels[i].state == DOWN_NOT_READY))
+			{
+				jiffies_to_timeval((unsigned long)jiffies, &(tv));
+				card->channels[i].uptime_all.tv_sec += (tv.tv_sec - card->channels[i].uptime.tv_sec);
+				printk(KERN_NOTICE "DSLAM %s: link is DOWN\n", card->channels[i].name);
+			}
 			if ((card->mpair_mode != 0) && (is_chan_in_mpair(card, i)))
 			{
 				switch (card->channels[i].mode)

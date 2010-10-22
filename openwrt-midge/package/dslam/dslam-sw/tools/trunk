@@ -1,0 +1,75 @@
+#!/bin/sh
+
+conf_dir="/proc/sys/net/dslam_sw/sw"
+
+usage() {
+	echo "Usage: $0 SW alg [ALG] or $0 SW port NUM [ID], where:"
+	echo -e "\t SW  - switch number (0 or 1)"
+	echo -e "\t ALG - hash algorith for trunking"
+	echo -e "\t NUM - port number (0-7)"
+	echo -e "\t ID  - port ID in trunk (0 port not in trunk)"
+	if [ "$1" != "" ]; then
+		echo -e "$1"
+	fi
+	exit
+}
+
+if [ $# -lt 2 ]; then
+	usage
+fi
+
+if [ "$1" != "0" ]; then
+	if [ "$1" != "1" ]; then
+		usage
+	fi
+fi
+sw=$1
+
+case $2 in
+	"alg")
+		if [ "$3" != "" ]; then
+		if [ $3 -ge 0 ]; then
+			if [ $3 -le 3 ]; then
+				echo "$3" > $conf_dir$sw/trunk_hash_alg
+			else
+				cat $conf_dir$sw/trunk_hash_alg
+			fi
+		else
+			cat $conf_dir$sw/trunk_hash_alg
+		fi
+		else
+			cat $conf_dir$sw/trunk_hash_alg
+		fi
+		
+	;;
+	"port")
+		if [ "$3" != "" ]; then
+		if [ $3 -ge "0" ]; then
+			if [ $3 -le "7" ]; then
+				if [ "$4" != "" ]; then
+				if [ $4 -ge "0" ]; then
+					if [ $4 -le "15" ]; then
+						echo "$3 $4" > $conf_dir$sw/trunk_port_id
+					else
+						cat $conf_dir$sw/trunk_port_id | grep $3
+					fi
+				else
+					cat $conf_dir$sw/trunk_port_id | grep $3
+				fi
+				else
+					cat $conf_dir$sw/trunk_port_id | grep $3
+				fi
+			else
+				cat $conf_dir$sw/trunk_port_id
+			fi
+		else
+			cat $conf_dir$sw/trunk_port_id
+		fi
+		else
+			cat $conf_dir$sw/trunk_port_id
+		fi
+	;;
+	*)
+		usage
+	;;
+esac

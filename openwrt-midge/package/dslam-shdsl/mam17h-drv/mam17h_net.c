@@ -49,6 +49,7 @@ int mam17_net_init(struct mam17_card *card)
 //			goto exit_unreg_ifs;			
 //		}
 		nl->chan_cfg = &(card->channels[if_processed]);
+		jiffies_to_timeval((unsigned long)jiffies, &(card->channels[if_processed].downtime_all));
 
 		// network interface registration
 		if ((ret = register_netdev(ndev)))

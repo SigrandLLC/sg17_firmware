@@ -2,58 +2,44 @@
 
 PCI_PATH="/sys/class/net"
 
-#---------------------------------------------------------
-
 print_usage()
 {
-    echo "Sigrand MAM17H configuration tool"
-    echo "Usage:"
-    echo "  $0 <if>               - get statistics"
-    echo "  $0 <if> [args]        - set DSL parameters"
-    echo "  <if> - @MODNAME@ network interface name"
-    echo "Possible arguments:"
-    echo "  master | slave             - set modem mode: master(STU-C) or slave(STU-R)"
-    echo "  tcpamXXX                   - line coding, XXX={8,16,32,64,128}"
-    echo "  annex A|B|AB               - G.SHDSL.bis Annex type"    
-    echo "  rate <value>               - line rate"
-    echo "  plesio | sync - Plesiochronous/Synchronous modes"
-    echo "  pbo-normal|pbo-forced <val>- Power Backoff mode, <val> - value in dB"
-    echo "  crc32 | crc16              - CRC length"
-    echo "  fill_ff | fill_7e          - fill byte value"
-#    echo "  advlink [on|off]           - Advanced link checking"    
-    echo "Power control:"
-    echo "  pwron | pwroff             - enable/disable power feeding"
+	echo -e "Usage:"
+	echo -e "\t`basename $0` dslXX | all         - get statistics"
+	echo -e "\t`basename $0` dslXX [options]     - set DSL parameters"
+	echo -e "Possible options:"
+	echo -e "\ton|off                     - enable/disable interface"
+	echo -e "\trestart                    - restart interface"
+	echo -e "\treset                      - reset statistics counters"
+	echo -e "\tmaster|slave               - set modem mode: master(STU-C) or slave(STU-R)"
+	echo -e "\ttcpamXXX                   - line coding, XXX={8,16,32,64,128}"
+	echo -e "\tannex A|B|AB               - G.SHDSL.bis Annex type"
+	echo -e "\trate <value>               - line rate"
+	echo -e "\tpbo-normal|pbo-forced <val>- Power Backoff mode, <val> - value in dB"
+	echo -e "Power control:"
+	echo -e "\tpwron | pwroff             - enable/disable power feeding"
 }
 
 print_stat()
 {
-    if [ $# -lt 1 ]; then
+	if [ $# -lt 1 ]; then
 		exit
-    fi
-    IFACE=$1
-
-    master=`cat mode`
-    code=`cat tcpam`
-    rate=`cat rate`
-    if [ -n "$rate" ]; then
+	fi
+	IFACE=$1
+	master=`cat mode`
+	code=`cat tcpam`
+	rate=`cat rate`
+	if [ -n "$rate" ]; then
 		rate="rate=$rate"
-    else
+	else
 		rate=""
-    fi
-    annex=`cat annex`    
-    if [ -n "$annex" ]; then
+	fi
+	annex=`cat annex`    
+	if [ -n "$annex" ]; then
 		annex="annex=$annex"
-    else
+	else
 		annex=""
-    fi
-
-    clkmode=`cat clkmode`
-    if [ -n "$clkmode" ]; then
-		clkmode="clock_mode=$clkmode"
-    else
-		clkmode=""
-    fi
-	
+	fi
 	if [ "$master" = "master" ]; then
 		pbo=`cat pbo_mode`
 		pbo_val=`cat pbo_val`
@@ -61,53 +47,178 @@ print_stat()
 	else
 		pbo=""
 	fi
-
-    fill=`cat fill_7e`
-    crc=`cat crc16`
-    pwr_mod=`cat pwr_source`
-    pwron=`cat pwron`
-    pwrovl=`cat pwrovl`
-    pwrunb=`cat pwrunb`
-#    advlink=`cat advlink`
-
-
-    echo "$1:"
-    echo "      shdsl:   $master $rate $code $annex $clkmode"
-	[ -n "$pbo" ] && echo "               PBO=$pbo"
-    echo "      hdlc:    fill="$fill" "$crc
-#    echo "      AdvLink: $advlink"
-    if [ "$pwr_mod" = "1" ]; then
-        echo "Power:"
-        echo "      pwron=$pwron overload=$pwrovl unbalance=$pwrunb"
-    fi
-    echo "Statistics:"
-    cat statistics
+	pwr_mod=`cat pwr_source`
+	pwron=`cat pwron`
+	pwrovl=`cat pwrovl`
+	pwrunb=`cat pwrunb`
+	echo "$1:"
+	up_time=`cat uptime`
+	on_off=`cat on_off`
+	up_time_all=`cat uptime_all`
+	down_time_all=`cat downtime_all`
+	if [ "$up_time" = "0 d 00:00:00" ]; then
+		echo -e "\tStatus: OFFLINE"
+	else
+		echo -e "\tStatus: ONLINE Connect duration=$up_time Total online time=$up_time_all Total offline time=$down_time_all"
+	fi
+	echo -e "\tshdsl:\n\t\t$on_off $master $rate $code $annex"
+	[ -n "$pbo" ] && echo -e "\t\tPBO=$pbo"
+	if [ "$pwr_mod" = "1" ]; then
+		echo -e "\tPower:"
+		echo -e "\t\tpwron=$pwron overload=$pwrovl unbalance=$pwrunb"
+	else
+		echo -e "\tPower:"
+		echo -e "\t\tnone"
+	fi
+	echo -e "\tStatistics:"
+	cat statistics
 }
-
 
 print_stat_all()
 {
 	cd "$PCI_PATH"
-	echo "Sigrand MAM17H SHDSL modem statistics"	
 	for iface in *; do
 		if [ -d "$iface/ms_private" ]; then
 			bkp_dir=`pwd`
 			cd "$iface/ms_private"
-			print_stat $iface
+			on_off=`cat on_off`
+			if [ "$on_off" = "on" ]; then
+				on_off=" on"
+			fi
+			up_time=`cat uptime`
+			online="offline"
+			mode=`cat mode`
+			if [ "$mode" = "slave" ]; then
+				mode=" slave"
+			fi
+			pwr_mod=`cat pwr_source`
+			
+			if [ "$pwr_mod" = "1" ]; then
+				pwron=`cat pwron`
+				if [ "$pwron" = "1" ]; then
+					power=" on"
+				else
+					power="off"
+				fi
+			else
+				power="none"
+			fi
+			if [ "$up_time" != "0 d 00:00:00" ]; then
+				online=" online"
+			fi
+			rate=`cat rate`
+			if [ "${#rate}" = "0" ]; then
+				rate="     "
+			fi
+			if [ "${#rate}" = "4" ]; then
+				rate=" "$rate
+			fi
+			if [ "${#rate}" = "3" ]; then
+				rate="  "$rate
+			fi
+			tcpam=`cat tcpam`
+			if [ "${#tcpam}" = "0" ]; then
+				tcpam="        "
+			fi
+			if [ "${#tcpam}" = "7" ]; then
+				tcpam=" "$tcpam
+			fi
+			if [ "${#tcpam}" = "6" ]; then
+				tcpam="  "$tcpam
+			fi
+			snr=`cat statistics_row`
+			for i in $snr; do
+				snr=$i
+				break;
+			done
+			if [ "${#snr}" = "1" ]; then
+				snr="  "$snr"dB"
+			else
+				if [ "${#snr}" = "2" ]; then
+					snr=" "$snr"dB"
+				else
+					snr=$snr"dB"
+				fi
+			fi
+			if [ "$online" = " online" ]; then
+				echo -e "$iface $on_off $online $mode power=$power rate=$rate $tcpam SNR=$snr uptime=$up_time"
+			else
+				if [ "$mode" = "master" ]; then
+					echo -e "$iface $on_off $online $mode power=$power rate=$rate $tcpam SNR=$snr"
+				else
+					echo -e "$iface $on_off $online $mode power=$power"
+				fi
+			fi
+			
+			echo -e "-----------------------------------------------------------------------------------"
 			cd $bkp_dir
 		fi
 	done
 }
 
-#---------------------------------------------------------
+check_tcpam_rate() {
+	tcpam=$1
+	rate=$2
+	case "$tcpam" in
+		2)
+			if [ "$rate" -lt "192" ]; then
+				echo "On tcpam8 rate must be from 192 to 3840 Kbit/s"
+				exit 0
+			fi
+			if [ "$rate" -gt "3840" ]; then
+				echo "On tcpam8 rate must be from 192 to 3840 Kbit/s"
+				exit 0
+			fi
+		;;
+		3)
+			if [ "$rate" -lt "192" ]; then
+				echo "On tcpam16 rate must be from 192 to 3840 Kbit/s"
+				exit 0
+			fi
+			if [ "$rate" -gt "3840" ]; then
+				echo "On tcpam16 rate must be from 192 to 3840 Kbit/s"
+				exit 0
+			fi
+		;;
+		4)
+			if [ "$rate" -lt "768" ]; then
+				echo "On tcpam32 rate must be from 768 to 10176 Kbit/s"
+				exit 0
+			fi
+			if [ "$rate" -gt "10176" ]; then
+				echo "On tcpam32 rate must be from 768 to 10176 Kbit/s"
+				exit 0
+			fi
+		;;
+		5)
+			if [ "$rate" -lt "768" ]; then
+				echo "On tcpam64 rate must be from 768 to 12736 Kbit/s"
+				exit 0
+			fi
+			if [ "$rate" -gt "12736" ]; then
+				echo "On tcpam64 rate must be from 768 to 12736 Kbit/s"
+				exit 0
+			fi
+		;;
+		6)
+			if [ "$rate" -lt "768" ]; then
+				echo "On tcpam128 rate must be from 768 to 15296 Kbit/s"
+				exit 0
+			fi
+			if [ "$rate" -gt "15296" ]; then
+				echo "On tcpam128 rate must be from 768 to 15296 Kbit/s"
+				exit 0
+			fi
+		;;
+	esac
+}
 
 # Check that interface name specifyed
 if [ $# = 0 ]; then
-    print_stat_all
-    exit
+	print_usage
+	exit
 fi
-
-if [ "$1" = "--help" -o "$2" = "-h" ]; then
+if [ "$1" = "--help" -o "$1" = "-h" ]; then
 	print_usage
 	exit
 fi
@@ -115,17 +226,18 @@ fi
 cdir=`pwd`
 iface=$1
 
-
-
 if [ -d "$PCI_PATH/$1/ms_private" ]; then
 	cd "$PCI_PATH/$1/ms_private"
 else
-	echo "$0: No such device $1"
+	if [ "$1" = "all" ]; then
+		print_stat_all
+	else
+		echo "$0: No such device $1"
+	fi
 	exit
 fi
 
 if [ "$#" = 1 ]; then
-    echo "Sigrand MAM17H SHDSL module statistics"
 	print_stat $iface
 	exit
 fi
@@ -135,20 +247,20 @@ shdsl_need_reconf=0
 shift
 while [ ! -z "$1" ]; do
 
-    case "$1" in
-#------------ SHDSL settings --------------------------------------    
+	case "$1" in
+#------------ SHDSL settings --------------------------------------
 		"master")
-			echo 1 > mode
+			mode=1
 			shdsl_need_reconf=1
 			;;
 		"slave")
-			echo 0 > mode
-			shdsl_need_reconf=1	
+			mode=0
+			shdsl_need_reconf=1
 			;;
 		"rate")
 			if [ -z "$2" ]; then
 				shift
-				echo $0": rate value is missing"		
+				echo $0": rate value is missing"
 				break
 			fi
 			chk=`echo "$2" | grep '[^0-9]'`
@@ -156,12 +268,8 @@ while [ ! -z "$1" ]; do
 				echo $0": rate value is missing"
 				break
 			fi
-			echo "$2" > rate
-			tmp=`cat rate`
-			if [ "$tmp" != "$2" ]; then
-				echo "WARNING: rate value setted to $tmp"
-			fi
-			shdsl_need_reconf=1	
+			rate=$2
+			shdsl_need_reconf=1
 			shift
 			;;
 		"annex")
@@ -169,96 +277,51 @@ while [ ! -z "$1" ]; do
 				echo $0": syntax error, after \"annex\" "
 				break
 			fi
-
 			if [ "$2" = "A" ]; then
-				echo 0 > annex
+				annex=0
 				shift
 			elif [ "$2" = "B" ]; then
-				echo 1 > annex
+				annex=1
 				shift
 			elif [ "$2" = "AB" ]; then
-				echo 2 > annex
+				annex=2
 				shift
 			fi
-			shdsl_need_reconf=1	
+			shdsl_need_reconf=1
 			;;
-#		"advlink")
-#			if [ -z "$2" ]; then
-#				echo $0": syntax error, after \"annex\" "
-#				break
-#			fi
-
-#			if [ "$2" = "on" ]; then
-#				echo 1 > advlink
-#				shift
-#			elif [ "$2" = "off" ]; then
-#				echo 0 > advlink
-#				shift
-#			fi
-#			;;
 		"tcpam4")
-			echo 1 > tcpam
-			tmp=`cat tcpam`
-			if [ "$tmp" != "TCPAM4" ]; then
-				echo "TCPAM64 mode not supported"
-			else
-				shdsl_need_reconf=1	
-			fi
-			shdsl_need_reconf=1	
+			tcpam=1
+			shdsl_need_reconf=1
 			;;
 		"tcpam8")
-			echo 2 > tcpam
-			tmp=`cat tcpam`
-			if [ "$tmp" != "TCPAM8" ]; then
-				echo "TCPAM64 mode not supported"
-			else
-				shdsl_need_reconf=1	
-			fi
-			shdsl_need_reconf=1	
+			tcpam=2
+			shdsl_need_reconf=1
 			;;
 		"tcpam16")
-			echo 3 > tcpam
-			shdsl_need_reconf=1	
+			tcpam=3
+			shdsl_need_reconf=1
 			;;
 		"tcpam32")
-			echo 4 > tcpam
-			shdsl_need_reconf=1	
+			tcpam=4
+			shdsl_need_reconf=1
 			;;
 		"tcpam64")
-			echo 5 > tcpam
-			tmp=`cat tcpam`
-			if [ "$tmp" != "TCPAM64" ]; then
-				echo "TCPAM64 mode not supported"
-			else
-				shdsl_need_reconf=1	
-			fi
+			tcpam=5
+			shdsl_need_reconf=1
 			;;
 		"tcpam128")
-			echo 6 > tcpam
-			tmp=`cat tcpam`
-			if [ "$tmp" != "TCPAM128" ]; then
-				echo "TCPAM128 mode not supported"
-			else
-				shdsl_need_reconf=1
-			fi
-			;;
-		"plesio")
-			echo 0 > clkmode
-			shdsl_need_reconf=1	
-			;;
-		"sync")
-			echo 1 > clkmode
-			shdsl_need_reconf=1	
+			tcpam=6
+			shdsl_need_reconf=1
 			;;
 		"pbo-normal")
-			echo 0 > pbo_mode
-			shdsl_need_reconf=1	
+			pbo_mode=0
+			shdsl_need_reconf=1
 			;;
 		"pbo-forced")
-			echo 1 > pbo_mode
+			pbo_mode=1
 			if [ -z "$2" ]; then
 				shift
-				echo $0": PBO value is missing"		
+				echo $0": PBO value is missing"
 				break
 			fi
 			chk=`echo $2 | grep '[^0-9]'`
@@ -266,70 +329,88 @@ while [ ! -z "$1" ]; do
 				echo $0": PBO value is missing"
 				break
 			fi
-			echo "$2" > pbo_val
-			tmp=`cat pbo_val`
-			if [ "$tmp" != "$2" ]; then
-				echo "WARNING: PBO value setted to $tmp"
-			fi
-			shdsl_need_reconf=1	
+			pbo_val=$2
+			shdsl_need_reconf=1
 			shift
 			;;
-#------------ HDLC settings --------------------------------------
-
-		"crc32")
-			echo 0 > crc16
-			;;
-		"crc16")
-			echo 1 > crc16
-			;;
-		"fill_ff")
-			echo 0 > fill_7e
-			shdsl_need_reconf=1	
-			;;
-		"fill_7e")
-			echo 1 > fill_7e
-			shdsl_need_reconf=1	
-			;;
-		
-#------------ Compat settings --------------------------------------	
-		
-		"NSGate_comp")
-			if [ -z "$2" ]; then
-				echo $0": syntax error, after \"NSGate_comp\" "
-				break
-			fi
-
-			if [ "$2" = "on" ]; then
-				echo 1 > nsg_comp
-				shift
-			elif [ "$2" = "off" ]; then
-				echo 0 > nsg_comp
-				shift
-			fi
-			;;
-
-#------------ DEBUG --------------------------------------	
-
-		"debug_off")
-			echo 0 > debug_on
-			;;
-		"debug_on")
-			echo 1 > debug_on
-			;;
 		"pwron")
-			echo 1 > pwron
+			pwron=1
 			;;
 		"pwroff")
-			echo 0 > pwron
+			pwron=0
+			;;
+		"on")
+			on_off=1
+			;;
+		"off")
+			on_off=0
+			;;
+		"restart")
+			shdsl_need_reconf=1
+			;;
+		"reset")
+			echo "1" > statistics
 			;;
 		*)
 			echo $0": error parameter - "$1
 			;;
-    esac
-    shift
+	esac
+	shift
 done
+
+if [ "$mode" != "" ]; then
+	echo "$mode" > mode
+fi
+if [ "$annex" != "" ]; then
+	echo "$annex" > annex
+fi
+
+if [ "$pbo_mode" != "" ]; then
+	echo "$pbo_mode" > pbo_mode
+fi
+if [ "$pbo_val" != "" ]; then
+	echo "$pbo_val" > pbo_val
+fi
+if [ "$pwron" != "" ]; then
+	echo "$pwron" > pwron
+fi
+if [ "$on_off" != "" ]; then
+	echo "$on_off" > on_off
+fi
+
+
+if [ "$rate" = "" ]; then
+	rate=`cat rate`
+fi
+if [ "$tcpam" = "" ]; then
+	tcpam=`cat tcpam`
+	case $tcpam in
+		tcpam4)
+			tcpam=1
+		;;
+		tcpam8)
+			tcpam=2
+		;;
+		tcpam16)
+			tcpam=3
+		;;
+		tcpam32)
+			tcpam=4
+		;;
+		tcpam64)
+			tcpam=5
+		;;
+		tcpam128)
+			tcpam=6
+		;;
+	esac
+fi
+check_tcpam_rate $tcpam $rate
+# we will be here if tcpam & rate correct
+echo "$tcpam" > tcpam
+echo "$rate" > rate
+
 
 if [ "$shdsl_need_reconf" = 1 ]; then
     echo 1 > apply_cfg
 fi
-
