@@ -33,7 +33,7 @@ $(PKG_BUILD_DIR)/.configured:
 	touch $@
 
 $(PKG_BUILD_DIR)/.built:
-	$(MAKE) -C $(PKG_BUILD_DIR) CC=$(TARGET_CC)
+	$(MAKE) -C $(PKG_BUILD_DIR) CC="$(TARGET_CC)"
 	touch $@
 
 $(IPKG_MICROCOM):
