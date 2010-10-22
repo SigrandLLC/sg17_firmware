@@ -98,6 +98,8 @@ toolchain/%:
 #
 #############################################################
 
+allpkg_clean:	package/clean
+
 oem_clean: root_clean
 	@$(TRACE) oem_clean
 	rm -rf $(BUILD_DIR)/sigrand-*
@@ -117,7 +119,7 @@ root_clean:
 	@$(TRACE) root_clean
 	rm -rf $(BUILD_DIR)/linux-*/root $(BUILD_DIR)/root
 
-target_clean: root_clean
+target_clean: root_clean target/clean
 	rm -f $(STAMP_DIR)/.*-compile
 	rm -f $(STAMP_DIR)/.*-install
 	rm -rf $(BIN_DIR)
