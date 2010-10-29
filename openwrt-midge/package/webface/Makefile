@@ -78,7 +78,7 @@ $(IPKG_WEBFACE):
 	install -m0755 $(PKG_BUILD_DIR)/htpasswd $(IDIR_WEBFACE)/usr/bin
 	install -m0755 $(PKG_BUILD_DIR)/kdb $(IDIR_WEBFACE)/usr/bin
 	-install -m0755 $(PKG_BUILD_DIR)/hdb $(IDIR_WEBFACE)/usr/bin
-	( tar cf - -C $(PKG_BUILD_DIR)/templates --exclude .svn . | tar xvf - -C $(IDIR_WEBFACE)	 );
+	( tar cf - -C $(PKG_BUILD_DIR)/templates --exclude .svn . | tar xvf - -C $(IDIR_WEBFACE) );
 ifeq ($(BR2_SIGRAND_OEM_MANUFACTURER),"Zelax")
 		cp kdb.default.zelax $(IDIR_WEBFACE)/etc/kdb.default
 endif
