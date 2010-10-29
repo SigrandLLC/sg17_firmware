@@ -238,7 +238,7 @@ Controllers.webface = function() {
 			var c, field;
 			c = page.addContainer("webface");
 			c.setHelpPage("system");
-            c.setHelpSection("language");
+			c.setHelpSection("language");
 			c.addTitle("Webface settings");
 
 			field = {
