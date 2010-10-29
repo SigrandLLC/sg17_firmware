@@ -1,3 +1,4 @@
+* deduplicate multiple kdb.c md5.c
 * replace ntpclient by openntpd
 * убрать всё лишнее, архитектуры, что не используется в построении образов sigrand.
 * Add '-nofw' to kernel extraversion
