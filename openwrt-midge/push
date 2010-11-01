@@ -1,0 +1,12 @@
+#!/bin/sh
+
+ origin=ssh://git@sigrand.ru/midge.git
+   live=ssh://live.1nsk.ru/home/df/w/siggit/midge/.git
+
+echo
+repos="$origin $live"
+for r in $repos; do
+	echo "======== $r"
+	git push "$@" $r
+done
+echo
