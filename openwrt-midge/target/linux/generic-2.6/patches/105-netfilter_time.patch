@@ -187,7 +187,7 @@ diff -urN linux-2.6.15-rc6.orig/net/ipv4/netfilter/Kconfig linux-2.6.15-rc6/net/
  
  	  To compile it as a module, choose M here.  If unsure, say N.
  
-+	  
++
 +config IP_NF_MATCH_TIME
 +	tristate  'TIME match support'
 +	depends on IP_NF_IPTABLES
@@ -196,10 +196,10 @@ diff -urN linux-2.6.15-rc6.orig/net/ipv4/netfilter/Kconfig linux-2.6.15-rc6/net/
 +	  to match based on the packet arrival time/date
 +	  (arrival time/date at the machine which netfilter is running on) or
 +	  departure time/date (for locally generated packets).
-+	  
++
 +	  If you say Y here, try iptables -m time --help for more information.
 +	  If you want to compile it as a module, say M here and read
-+	  
++
 +	  Documentation/modules.txt.  If unsure, say `N'.
 +
 +

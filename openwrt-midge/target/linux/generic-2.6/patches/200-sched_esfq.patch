@@ -5,7 +5,7 @@ diff -Naur linux-2.6.15.1.orig/include/linux/pkt_sched.h linux-2.6.15.1/include/
   *
   *	The only reason for this is efficiency, it is possible
   *	to change these parameters in compile time.
-+ *	
++ *
 + *	If you need to play with these values use esfq instead.
   */
  
@@ -53,16 +53,16 @@ diff -Naur linux-2.6.15.1.orig/net/sched/Kconfig linux-2.6.15.1/net/sched/Kconfi
 +	  devices or as a leaf discipline for a classful qdisc such as HTB or
 +	  CBQ (see the top of <file:net/sched/sch_esfq.c> for details and
 +	  references to the SFQ algorithm).
-+	  
++
 +	  This is an enchanced SFQ version which allows you to control some
 +	  hardcoded values in the SFQ scheduler: queue depth, hash table size,
 +	  and queues limit.
-+	  
++
 +	  ESFQ also adds control to the hash function used to identify packet
 +	  flows. The original SFQ hashes by individual flow (TCP session or UDP
 +	  stream); ESFQ can hash by src or dst IP as well, which can be more
 +	  fair to users in some networking situations.
-+	  
++
 +	  To compile this code as a module, choose M here: the
 +	  module will be called sch_esfq.
 +
@@ -105,7 +105,7 @@ diff -Naur linux-2.6.15.1.orig/net/sched/sch_esfq.c linux-2.6.15.1/net/sched/sch
 + *		Maintenance of the Linux 2.6 port.
 + *		Added fwmark hash (thanks to Robert Kurjata)
 + *		Added direct hashing for src, dst, and fwmark.
-+ *		
++ *
 + */
 +
 +#include <linux/config.h>
@@ -141,7 +141,7 @@ diff -Naur linux-2.6.15.1.orig/net/sched/sch_esfq.c linux-2.6.15.1/net/sched/sch
 +	For more comments look at sch_sfq.c.
 +	The difference is that you can change limit, depth,
 +	hash table size and choose 7 hash types.
-+	
++
 +	classic:	same as in sch_sfq.c
 +	dst:		destination IP address
 +	src:		source IP address
@@ -149,8 +149,8 @@ diff -Naur linux-2.6.15.1.orig/net/sched/sch_esfq.c linux-2.6.15.1/net/sched/sch
 +	dst_direct:
 +	src_direct:
 +	fwmark_direct:  direct hashing of the above sources
-+	
-+	TODO: 
++
++	TODO:
 +		make sfq_change work.
 +*/
 +
@@ -210,13 +210,13 @@ diff -Naur linux-2.6.15.1.orig/net/sched/sch_esfq.c linux-2.6.15.1/net/sched/sch
 +	if (h < q->dyn_min || h > q->dyn_max) {
 +		q->dyn_min = h < q->dyn_min ? h : q->dyn_min;
 +		q->dyn_max = h > q->dyn_max ? h : q->dyn_max;
-+	
++
 +		/* find new range */
 +		if ((q->dyn_range = q->dyn_max - q->dyn_min) >= q->hash_divisor)
 +			printk(KERN_WARNING "ESFQ: (direct hash) Input range %u is larger than hash "
 +					"table. See ESFQ README for details.\n", q->dyn_range);
 +	}
-+	
++
 +	/* hash input values into slot numbers */
 +	if (q->dyn_min == q->dyn_max)
 +		return 0; /* only one value seen; avoid division by 0 */
@@ -473,14 +473,14 @@ diff -Naur linux-2.6.15.1.orig/net/sched/sch_esfq.c linux-2.6.15.1/net/sched/sch
 +	/* No active slots */
 +	if (q->tail == depth)
 +		return NULL;
-+	
++
 +	a = old_a = q->next[q->tail];
-+	
++
 +	/* Grab packet */
 +	skb = __skb_dequeue(&q->qs[a]);
 +	esfq_dec(q, a);
 +	sch->q.qlen--;
-+	
++
 +	/* Is the slot empty? */
 +	if (q->qs[a].qlen == 0) {
 +		q->ht[q->hash[a]] = depth;
@@ -496,7 +496,7 @@ diff -Naur linux-2.6.15.1.orig/net/sched/sch_esfq.c linux-2.6.15.1/net/sched/sch
 +		a = q->next[a];
 +		q->allot[a] += q->quantum;
 +	}
-+	
++
 +	return skb;
 +}
 +
@@ -527,29 +527,29 @@ diff -Naur linux-2.6.15.1.orig/net/sched/sch_esfq.c linux-2.6.15.1/net/sched/sch
 +	struct esfq_sched_data *q = qdisc_priv(sch);
 +	struct tc_esfq_qopt *ctl = RTA_DATA(opt);
 +	int old_perturb = q->perturb_period;
-+	
++
 +	if (opt->rta_len < RTA_LENGTH(sizeof(*ctl)))
 +		return -EINVAL;
-+	
++
 +	sch_tree_lock(sch);
 +	q->quantum = ctl->quantum ? : psched_mtu(sch->dev);
 +	q->perturb_period = ctl->perturb_period*HZ;
 +//	q->hash_divisor = ctl->divisor;
 +//	q->tail = q->limit = q->depth = ctl->flows;
-+	
++
 +	if (ctl->limit)
 +		q->limit = min_t(u32, ctl->limit, q->depth);
-+	
++
 +	if (ctl->hash_kind) {
 +		q->hash_kind = ctl->hash_kind;
 +		if (q->hash_kind !=  TCA_SFQ_HASH_CLASSIC)
 +			q->perturb_period = 0;
 +	}
-+	
++
 +	// is sch_tree_lock enough to do this ?
 +	while (sch->q.qlen >= q->limit-1)
 +		esfq_drop(sch);
-+	
++
 +	if (old_perturb)
 +		del_timer(&q->perturb_timer);
 +	if (q->perturb_period) {
@@ -568,7 +568,7 @@ diff -Naur linux-2.6.15.1.orig/net/sched/sch_esfq.c linux-2.6.15.1/net/sched/sch
 +	struct tc_esfq_qopt *ctl;
 +	esfq_index p = ~0UL/2;
 +	int i;
-+	
++
 +	if (opt && opt->rta_len < RTA_LENGTH(sizeof(*ctl)))
 +		return -EINVAL;
 +
@@ -585,41 +585,41 @@ diff -Naur linux-2.6.15.1.orig/net/sched/sch_esfq.c linux-2.6.15.1/net/sched/sch
 +		q->perturb_period = 0;
 +		q->hash_divisor = 1024;
 +		q->tail = q->limit = q->depth = 128;
-+		
++
 +	} else {
 +		ctl = RTA_DATA(opt);
 +		q->quantum = ctl->quantum ? : psched_mtu(sch->dev);
 +		q->perturb_period = ctl->perturb_period*HZ;
 +		q->hash_divisor = ctl->divisor ? : 1024;
 +		q->tail = q->limit = q->depth = ctl->flows ? : 128;
-+		
++
 +		if ( q->depth > p - 1 )
 +			return -EINVAL;
-+		
++
 +		if (ctl->limit)
 +			q->limit = min_t(u32, ctl->limit, q->depth);
-+		
++
 +		if (ctl->hash_kind) {
 +			q->hash_kind = ctl->hash_kind;
 +		}
-+		
++
 +		if (q->perturb_period) {
 +			q->perturb_timer.expires = jiffies + q->perturb_period;
 +			add_timer(&q->perturb_timer);
 +		}
 +	}
-+	
++
 +	q->ht = kmalloc(q->hash_divisor*sizeof(esfq_index), GFP_KERNEL);
 +	if (!q->ht)
 +		goto err_case;
-+		
++
 +	q->dep = kmalloc((1+q->depth*2)*sizeof(struct esfq_head), GFP_KERNEL);
 +	if (!q->dep)
 +		goto err_case;
 +	q->next = kmalloc(q->depth*sizeof(esfq_index), GFP_KERNEL);
 +	if (!q->next)
 +		goto err_case;
-+	
++
 +	q->allot = kmalloc(q->depth*sizeof(short), GFP_KERNEL);
 +	if (!q->allot)
 +		goto err_case;
@@ -629,7 +629,7 @@ diff -Naur linux-2.6.15.1.orig/net/sched/sch_esfq.c linux-2.6.15.1/net/sched/sch
 +	q->qs = kmalloc(q->depth*sizeof(struct sk_buff_head), GFP_KERNEL);
 +	if (!q->qs)
 +		goto err_case;
-+	
++
 +	for (i=0; i< q->hash_divisor; i++)
 +		q->ht[i] = q->depth;
 +	for (i=0; i<q->depth; i++) {
@@ -637,7 +637,7 @@ diff -Naur linux-2.6.15.1.orig/net/sched/sch_esfq.c linux-2.6.15.1/net/sched/sch
 +		q->dep[i+q->depth].next = i+q->depth;
 +		q->dep[i+q->depth].prev = i+q->depth;
 +	}
-+	
++
 +	for (i=0; i<q->depth; i++)
 +		esfq_link(q, i);
 +	return 0;
@@ -721,7 +721,7 @@ diff -Naur linux-2.6.15.1.orig/net/sched/sch_esfq.c linux-2.6.15.1/net/sched/sch
 +{
 +	return register_qdisc(&esfq_qdisc_ops);
 +}
-+static void __exit esfq_module_exit(void) 
++static void __exit esfq_module_exit(void)
 +{
 +	unregister_qdisc(&esfq_qdisc_ops);
 +}

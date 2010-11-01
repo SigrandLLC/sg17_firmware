@@ -91,12 +91,12 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +    t += 8;
 +
 +	switch (t[0]) {
-+		case 0xe3: 
++		case 0xe3:
 +		{	/*edonkey*/
-+			switch (t[1]) 
++			switch (t[1])
 +			{
 +				/* client -> server status request */
-+				case 0x96: 
++				case 0x96:
 +					if (packet_len == 14) return ((IPP2P_EDK * 100) + 50);
 +					break;
 +				/* server -> client status request */
@@ -118,9 +118,9 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +			}
 +			break;
 +		}
-+		case 0xe4: 
++		case 0xe4:
 +		{
-+			switch (t[1]) 
++			switch (t[1])
 +			{
 +						/* e4 20 .. | size == 43 */
 +				case 0x20: if ((packet_len == 43) && (t[2] != 0x00) && (t[34] != 0x00)) return ((IPP2P_EDK * 100) + 60);
@@ -166,7 +166,7 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +{
 +    unsigned char *t = haystack;
 +    t += 8;
-+    
++
 +    if (memcmp(t, "GND", 3) == 0) return ((IPP2P_GNU * 100) + 51);
 +    if (memcmp(t, "GNUTELLA ", 9) == 0) return ((IPP2P_GNU * 100) + 52);
 +    return 0;
@@ -178,12 +178,12 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +udp_search_kazaa (unsigned char *haystack, int packet_len)
 +{
 +    unsigned char *t = haystack;
-+    
++
 +    if (t[packet_len-1] == 0x00){
 +	t += (packet_len - 6);
 +	if (memcmp(t, "KaZaA", 5) == 0) return (IPP2P_KAZAA * 100 +50);
 +    }
-+    
++
 +    return 0;
 +}/*udp_search_kazaa*/
 +
@@ -210,33 +210,33 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +	{
 +		case 24:
 +			/* ^ 00 00 04 17 27 10 19 80 */
-+			if ((ntohl(get_u32(haystack, 8)) == 0x00000417) && (ntohl(get_u32(haystack, 12)) == 0x27101980)) 
++			if ((ntohl(get_u32(haystack, 8)) == 0x00000417) && (ntohl(get_u32(haystack, 12)) == 0x27101980))
 +				return (IPP2P_BIT * 100 + 50);
 +			break;
 +		case 44:
-+			if (get_u32(haystack, 16) == __constant_htonl(0x00000400) && get_u32(haystack, 36) == __constant_htonl(0x00000104)) 
++			if (get_u32(haystack, 16) == __constant_htonl(0x00000400) && get_u32(haystack, 36) == __constant_htonl(0x00000104))
 +				return (IPP2P_BIT * 100 + 51);
 +			if (get_u32(haystack, 16) == __constant_htonl(0x00000400))
 +				return (IPP2P_BIT * 100 + 61);
 +			break;
 +		case 65:
-+			if (get_u32(haystack, 16) == __constant_htonl(0x00000404) && get_u32(haystack, 36) == __constant_htonl(0x00000104)) 
++			if (get_u32(haystack, 16) == __constant_htonl(0x00000404) && get_u32(haystack, 36) == __constant_htonl(0x00000104))
 +				return (IPP2P_BIT * 100 + 52);
 +			if (get_u32(haystack, 16) == __constant_htonl(0x00000404))
 +				return (IPP2P_BIT * 100 + 62);
 +			break;
 +		case 67:
-+			if (get_u32(haystack, 16) == __constant_htonl(0x00000406) && get_u32(haystack, 36) == __constant_htonl(0x00000104)) 
++			if (get_u32(haystack, 16) == __constant_htonl(0x00000406) && get_u32(haystack, 36) == __constant_htonl(0x00000104))
 +				return (IPP2P_BIT * 100 + 53);
 +			if (get_u32(haystack, 16) == __constant_htonl(0x00000406))
 +				return (IPP2P_BIT * 100 + 63);
 +			break;
 +		case 211:
-+			if (get_u32(haystack, 8) == __constant_htonl(0x00000405)) 
++			if (get_u32(haystack, 8) == __constant_htonl(0x00000405))
 +				return (IPP2P_BIT * 100 + 54);
 +			break;
 +		case 29:
-+			if ((get_u32(haystack, 8) == __constant_htonl(0x00000401))) 
++			if ((get_u32(haystack, 8) == __constant_htonl(0x00000401)))
 +				return (IPP2P_BIT * 100 + 55);
 +			break;
 +		case 52:
@@ -246,11 +246,11 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +			break;
 +		default:
 +			/* this packet does not have a constant size */
-+			if (packet_len >= 40 && get_u32(haystack, 16) == __constant_htonl(0x00000402) && get_u32(haystack, 36) == __constant_htonl(0x00000104)) 
++			if (packet_len >= 40 && get_u32(haystack, 16) == __constant_htonl(0x00000402) && get_u32(haystack, 36) == __constant_htonl(0x00000104))
 +				return (IPP2P_BIT * 100 + 56);
 +			break;
 +	}
-+    
++
 +	/* some extra-bitcomet rules:
 +	* "d1:" [a|r] "d2:id20:"
 +	*/
@@ -262,7 +262,7 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +				return (IPP2P_BIT * 100 + 57);
 +		}
 +	}
-+    
++
 +#if 0
 +	/* bitlord rules */
 +	/* packetlen must be bigger than 40 */
@@ -270,18 +270,18 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +	if (packet_len > 40 && get_u32(haystack, 8) == 0x00000000)
 +	{
 +		/* first rule: 00 00 00 00 01 00 00 xx xx xx xx 00 00 00 00*/
-+		if (get_u32(haystack, 12) == 0x00000000 && 
++		if (get_u32(haystack, 12) == 0x00000000 &&
 +		    get_u32(haystack, 16) == 0x00010000 &&
 +		    get_u32(haystack, 24) == 0x00000000 )
 +			return (IPP2P_BIT * 100 + 71);
-+			
++
 +		/* 00 01 00 00 0d 00 00 xx xx xx xx 00 00 00 00*/
-+		if (get_u32(haystack, 12) == 0x00000001 && 
++		if (get_u32(haystack, 12) == 0x00000001 &&
 +		    get_u32(haystack, 16) == 0x000d0000 &&
 +		    get_u32(haystack, 24) == 0x00000000 )
 +			return (IPP2P_BIT * 100 + 71);
-+		
-+		    
++
++
 +	}
 +#endif
 +
@@ -297,7 +297,7 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +//int search_ares (unsigned char *haystack, int packet_len, int head_len)
 +{
 +//	const unsigned char *t = haystack + head_len;
-+	
++
 +	/* all ares packets start with  */
 +	if (payload[1] == 0 && (plen - payload[0]) == 3)
 +	{
@@ -320,7 +320,7 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +		}
 +	}
 +
-+#if 0	        
++#if 0
 +	/* found connect packet: 03 00 5a 04 03 05 */
 +	/* new version ares 1.8: 03 00 5a xx xx 05 */
 +    if ((plen) == 6){	/* possible connect command*/
@@ -354,7 +354,7 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +#endif /* IPP2P_DEBUG_SOUL */
 +		return ((IPP2P_SOUL * 100) + 1);
 +	}
-+	
++
 +        /* next match: 01 yy 00 00 | yy can be everything */
 +        if ( get_u8(payload, 4) == 0x01 && get_u16(payload, 6) == 0x0000 )
 +	{
@@ -363,7 +363,7 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +#endif /* IPP2P_DEBUG_SOUL */
 +		return ((IPP2P_SOUL * 100) + 2);
 +	}
-+	
++
 +	/* other soulseek commandos are: 1-5,7,9,13-18,22,23,26,28,35-37,40-46,50,51,60,62-69,91,92,1001 */
 +	/* try to do this in an intelligent way */
 +	/* get all small commandos */
@@ -386,8 +386,8 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +#endif /* IPP2P_DEBUG_SOUL */
 +		return ((IPP2P_SOUL * 100) + 3);
 +	}
-+	
-+	if (m > 0 && m < 6 ) 
++
++	if (m > 0 && m < 6 )
 +	{
 +#ifdef IPP2P_DEBUG_SOUL
 +		printk(KERN_DEBUG "3: Soulseek command 0x%x recognized\n",get_u16(payload, 4));
@@ -418,7 +418,7 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +		return ((IPP2P_SOUL * 100) + 7);
 +	}
 +
-+	if (m > 61 && m < 70 ) 
++	if (m > 61 && m < 70 )
 +	{
 +#ifdef IPP2P_DEBUG_SOUL
 +		printk(KERN_DEBUG "7: Soulseek command 0x%x recognized\n",get_u16(payload, 4));
@@ -430,7 +430,7 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +	printk(KERN_DEBUG "unknown SOULSEEK command: 0x%x, first 16 bit: 0x%x, first 8 bit: 0x%x ,soulseek ???\n",get_u32(payload, 4),get_u16(payload, 4) >> 16,get_u8(payload, 4) >> 24);
 +#endif /* IPP2P_DEBUG_SOUL */
 +    }
-+	
++
 +	/* match 14 00 00 00 01 yy 00 00 00 STRING(YY) 01 00 00 00 00 46|50 00 00 00 00 */
 +	/* without size at the beginning !!! */
 +	if ( get_u32(payload, 0) == 0x14 && get_u8(payload, 4) == 0x01 )
@@ -460,7 +460,7 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +    if (((plen) == 3) && (memcmp(payload, "GET", 3) == 0))  return ((IPP2P_WINMX * 100) + 2);
 +    //if (packet_len < (head_len + 10)) return 0;
 +    if (plen < 10) return 0;
-+    
++
 +    if ((memcmp(payload, "SEND", 4) == 0) || (memcmp(payload, "GET", 3) == 0)){
 +        u16 c=4;
 +        const u16 end=plen-2;
@@ -476,7 +476,7 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +        	c++;
 +        }
 +    }
-+    
++
 +    if ( plen == 149 && payload[0] == '8' )
 +    {
 +#ifdef IPP2P_DEBUG_WINMX
@@ -486,7 +486,7 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +//    	    get_u32(payload,33) == __constant_htonl(0x71182b1a) && get_u32(payload,37) == __constant_htonl(0x05050000) &&
 +//    	    get_u32(payload,133) == __constant_htonl(0x31097edf) && get_u32(payload,145) == __constant_htonl(0xdcb8f792))
 +    	    get_u16(payload,39) == 0 && get_u16(payload,135) == __constant_htons(0x7edf) && get_u16(payload,147) == __constant_htons(0xf792))
-+    	    
++
 +    	{
 +#ifdef IPP2P_DEBUG_WINMX
 +    		printk(KERN_INFO "got WinMX\n");
@@ -503,7 +503,7 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +search_apple (const unsigned char *payload, const u16 plen)
 +{
 +    if ( (plen > 7) && (payload[6] == 0x0d) && (payload[7] == 0x0a) && (memcmp(payload, "ajprot", 6) == 0))  return (IPP2P_APPLE * 100);
-+    
++
 +    return 0;
 +}
 +
@@ -515,11 +515,11 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +    if (plen > 20)
 +    {
 +	/* test for match 0x13+"BitTorrent protocol" */
-+	if (payload[0] == 0x13) 
++	if (payload[0] == 0x13)
 +	{
 +		if (memcmp(payload+1, "BitTorrent protocol", 19) == 0) return (IPP2P_BIT * 100);
 +	}
-+	
++
 +	/* get tracker commandos, all starts with GET /
 +	* then it can follow: scrape| announce
 +	* and then ?hash_info=
@@ -531,17 +531,17 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +		/* message announce */
 +		if ( memcmp(payload+5,"announce?info_hash=",19)==0 ) return (IPP2P_BIT * 100 + 2);
 +	}
-+    } 
-+    else 
-+    {
-+    	/* bitcomet encryptes the first packet, so we have to detect another 
-+    	 * one later in the flow */
-+    	 /* first try failed, too many missdetections */
-+    	//if ( size == 5 && get_u32(t,0) == __constant_htonl(1) && t[4] < 3) return (IPP2P_BIT * 100 + 3);
-+    	
-+    	/* second try: block request packets */
-+    	if ( plen == 17 && get_u32(payload,0) == __constant_htonl(0x0d) && payload[4] == 0x06 && get_u32(payload,13) == __constant_htonl(0x4000) ) return (IPP2P_BIT * 100 + 3);
 +    }
++    else
++    {
++	/* bitcomet encryptes the first packet, so we have to detect another
++	 * one later in the flow */
++	 /* first try failed, too many missdetections */
++	//if ( size == 5 && get_u32(t,0) == __constant_htonl(1) && t[4] < 3) return (IPP2P_BIT * 100 + 3);
++
++	/* second try: block request packets */
++	if ( plen == 17 && get_u32(payload,0) == __constant_htonl(0x0d) && payload[4] == 0x06 && get_u32(payload,13) == __constant_htonl(0x4000) ) return (IPP2P_BIT * 100 + 3);
++}
 +
 +    return 0;
 +}
@@ -567,7 +567,7 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +    if ((payload[plen-2] == 0x0d) && (payload[plen-1] == 0x0a))
 +    {
 +	if (memcmp(payload, "GET /get/", 9) == 0)	return ((IPP2P_DATA_GNU * 100) + 1);
-+	if (memcmp(payload, "GET /uri-res/", 13) == 0) return ((IPP2P_DATA_GNU * 100) + 2); 
++	if (memcmp(payload, "GET /uri-res/", 13) == 0) return ((IPP2P_DATA_GNU * 100) + 2);
 +    }
 +    return 0;
 +}
@@ -577,20 +577,20 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +int
 +search_all_gnu (const unsigned char *payload, const u16 plen)
 +{
-+    
++
 +    if ((payload[plen-2] == 0x0d) && (payload[plen-1] == 0x0a))
 +    {
-+	
++
 +	if (memcmp(payload, "GNUTELLA CONNECT/", 17) == 0) return ((IPP2P_GNU * 100) + 1);
-+	if (memcmp(payload, "GNUTELLA/", 9) == 0) return ((IPP2P_GNU * 100) + 2);    
-+    
-+    
++	if (memcmp(payload, "GNUTELLA/", 9) == 0) return ((IPP2P_GNU * 100) + 2);
++
++
 +	if ((memcmp(payload, "GET /get/", 9) == 0) || (memcmp(payload, "GET /uri-res/", 13) == 0))
-+	{        
++	{
 +		u16 c=8;
 +		const u16 end=plen-22;
 +		while (c < end) {
-+			if ( payload[c] == 0x0a && payload[c+1] == 0x0d && ((memcmp(&payload[c+2], "X-Gnutella-", 11) == 0) || (memcmp(&payload[c+2], "X-Queue:", 8) == 0))) 
++			if ( payload[c] == 0x0a && payload[c+1] == 0x0d && ((memcmp(&payload[c+2], "X-Gnutella-", 11) == 0) || (memcmp(&payload[c+2], "X-Queue:", 8) == 0)))
 +				return ((IPP2P_GNU * 100) + 3);
 +			c++;
 +		}
@@ -608,8 +608,8 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +    {
 +
 +	if (memcmp(payload, "GIVE ", 5) == 0) return ((IPP2P_KAZAA * 100) + 1);
-+    
-+    	if (memcmp(payload, "GET /", 5) == 0) {
++
++	if (memcmp(payload, "GET /", 5) == 0) {
 +		u16 c = 8;
 +		const u16 end=plen-22;
 +		while (c < end) {
@@ -626,12 +626,12 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +int
 +search_edk (const unsigned char *payload, const u16 plen)
 +{
-+    if (payload[0] != 0xe3) 
++    if (payload[0] != 0xe3)
 +	return 0;
 +    else {
-+	if (payload[5] == 0x47) 
++	if (payload[5] == 0x47)
 +	    return (IPP2P_DATA_EDK * 100);
-+	else 	
++	else
 +	    return 0;
 +    }
 +}
@@ -642,10 +642,10 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +int
 +search_all_edk (const unsigned char *payload, const u16 plen)
 +{
-+    if (payload[0] != 0xe3) 
++    if (payload[0] != 0xe3)
 +	return 0;
 +    else {
-+	//t += head_len;	
++	//t += head_len;
 +	const u16 cmd = get_u16(payload, 1);
 +	if (cmd == (plen - 5)) {
 +	    switch (payload[5]) {
@@ -663,14 +663,14 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +search_dc (const unsigned char *payload, const u16 plen)
 +{
 +
-+    if (payload[0] != 0x24 ) 
++    if (payload[0] != 0x24 )
 +	return 0;
 +    else {
 +	if (memcmp(&payload[1], "Send|", 5) == 0)
 +	    return (IPP2P_DATA_DC * 100);
 +	else
 +	    return 0;
-+    }	
++    }
 +
 +}
 +
@@ -681,13 +681,13 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +{
 +//    unsigned char *t = haystack;
 +
-+    if (payload[0] == 0x24 && payload[plen-1] == 0x7c) 
++    if (payload[0] == 0x24 && payload[plen-1] == 0x7c)
 +    {
 +    	const unsigned char *t=&payload[1];
 +    		/* Client-Hub-Protocol */
 +	if (memcmp(t, "Lock ", 5) == 0)	 		return ((IPP2P_DC * 100) + 1);
 +	/* Client-Client-Protocol, some are already recognized by client-hub (like lock) */
-+	if (memcmp(t, "MyNick ", 7) == 0)	 	return ((IPP2P_DC * 100) + 38); 
++	if (memcmp(t, "MyNick ", 7) == 0)	 	return ((IPP2P_DC * 100) + 38);
 +    }
 +    return 0;
 +}
@@ -700,13 +700,13 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +	{
 +		//printk(KERN_DEBUG "size hit: %u",size);
 +		if (memcmp(payload,"PublicKey: ",11) == 0 )
-+		{ 
++		{
 +			return ((IPP2P_MUTE * 100) + 0);
-+			
++
 +/*			if (memcmp(t+size-14,"\x0aEndPublicKey\x0a",14) == 0)
 +			{
 +				printk(KERN_DEBUG "end pubic key hit: %u",size);
-+				
++
 +			}*/
 +		}
 +	}
@@ -721,10 +721,10 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +	/* search in small packets only */
 +	if (plen > 20 && plen < 200 && payload[plen-1] == 0x0a && payload[plen-2] == 0x0d && memcmp(payload,"PRIVMSG ",8) == 0)
 +	{
-+		
++
 +		u16 x=10;
 +		const u16 end=plen - 13;
-+		
++
 +		/* is seems to be a irc private massage, chedck for xdcc command */
 +		while (x < end)
 +		{
@@ -785,7 +785,7 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +    {IPP2P_BIT,SHORT_HAND_IPP2P,23, &udp_search_bit},
 +    {IPP2P_GNU,SHORT_HAND_IPP2P,11, &udp_search_gnu},
 +    {IPP2P_EDK,SHORT_HAND_IPP2P,9, &udp_search_edk},
-+    {IPP2P_DC,SHORT_HAND_IPP2P,12, &udp_search_directconnect},    
++    {IPP2P_DC,SHORT_HAND_IPP2P,12, &udp_search_directconnect},
 +    {0,0,0,NULL}
 +};
 +
@@ -816,7 +816,7 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +	if (info->debug) printk("IPP2P.match: offset found %i \n",offset);
 +	return 0;
 +    }
-+    
++
 +    /*make sure that skb is linear*/
 +    if(skb_is_nonlinear(skb)){
 +	if (info->debug) printk("IPP2P.match: nonlinear skb found\n");
@@ -830,11 +830,11 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +	case IPPROTO_TCP:		/*what to do with a TCP packet*/
 +	{
 +	    struct tcphdr *tcph = (void *) ip + ip->ihl * 4;
-+	    
++
 +	    if (tcph->fin) return 0;  /*if FIN bit is set bail out*/
 +	    if (tcph->syn) return 0;  /*if SYN bit is set bail out*/
 +	    if (tcph->rst) return 0;  /*if RST bit is set bail out*/
-+	    
++
 +	    haystack += tcph->doff * 4; /*get TCP-Header-Size*/
 +	    hlen -= tcph->doff * 4;
 +	    while (matchlist[i].command) {
@@ -842,9 +842,9 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +		    ((info->cmd & matchlist[i].short_hand) == matchlist[i].short_hand)) &&
 +		    (hlen > matchlist[i].packet_len)) {
 +			    p2p_result = matchlist[i].function_name(haystack, hlen);
-+			    if (p2p_result) 
++			    if (p2p_result)
 +			    {
-+				if (info->debug) printk("IPP2P.debug:TCP-match: %i from: %u.%u.%u.%u:%i to: %u.%u.%u.%u:%i Length: %i\n", 
++				if (info->debug) printk("IPP2P.debug:TCP-match: %i from: %u.%u.%u.%u:%i to: %u.%u.%u.%u:%i Length: %i\n",
 +				    p2p_result, NIPQUAD(ip->saddr),ntohs(tcph->source), NIPQUAD(ip->daddr),ntohs(tcph->dest),hlen);
 +				return p2p_result;
 +    			    }
@@ -853,27 +853,27 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +	    }
 +	    return p2p_result;
 +	}
-+	
++
 +	case IPPROTO_UDP:		/*what to do with an UDP packet*/
 +	{
 +	    struct udphdr *udph = (void *) ip + ip->ihl * 4;
-+	    
++
 +	    while (udp_list[i].command){
 +		if ((((info->cmd & udp_list[i].command) == udp_list[i].command) ||
 +		    ((info->cmd & udp_list[i].short_hand) == udp_list[i].short_hand)) &&
 +		    (hlen > udp_list[i].packet_len)) {
 +			    p2p_result = udp_list[i].function_name(haystack, hlen);
 +			    if (p2p_result){
-+				if (info->debug) printk("IPP2P.debug:UDP-match: %i from: %u.%u.%u.%u:%i to: %u.%u.%u.%u:%i Length: %i\n", 
++				if (info->debug) printk("IPP2P.debug:UDP-match: %i from: %u.%u.%u.%u:%i to: %u.%u.%u.%u:%i Length: %i\n",
 +				    p2p_result, NIPQUAD(ip->saddr),ntohs(udph->source), NIPQUAD(ip->daddr),ntohs(udph->dest),hlen);
 +				return p2p_result;
 +			    }
 +		}
 +	    i++;
-+	    }			
++	    }
 +	    return p2p_result;
 +	}
-+    
++
 +	default: return 0;
 +    }
 +}
@@ -894,17 +894,17 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 + *    }*/
 +    return 1;
 +}
-+									    
 +
 +
 +
-+static struct ipt_match ipp2p_match = { 
++
++static struct ipt_match ipp2p_match = {
 +#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
-+	{ NULL, NULL }, 
-+	"ipp2p", 
-+	&match, 
-+	&checkentry, 
-+	NULL, 
++	{ NULL, NULL },
++	"ipp2p",
++	&match,
++	&checkentry,
++	NULL,
 +	THIS_MODULE
 +#endif
 +#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
@@ -921,13 +921,13 @@ diff -urN linux.old/net/ipv4/netfilter/ipt_ipp2p.c linux.dev/net/ipv4/netfilter/
 +    printk(KERN_INFO "IPP2P v%s loading\n", IPP2P_VERSION);
 +    return ipt_register_match(&ipp2p_match);
 +}
-+	
++
 +static void __exit fini(void)
 +{
 +    ipt_unregister_match(&ipp2p_match);
-+    printk(KERN_INFO "IPP2P v%s unloaded\n", IPP2P_VERSION);    
++    printk(KERN_INFO "IPP2P v%s unloaded\n", IPP2P_VERSION);
 +}
-+	
++
 +module_init(init);
 +module_exit(fini);
 +

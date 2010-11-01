@@ -988,7 +988,7 @@ diff -ur v2.6.14/linux/net/ipv4/route.c linux/net/ipv4/route.c
  				  struct in_device *in_dev, 
  				  u32 daddr, u32 saddr, u32 tos, 
 -				  struct rtable **result) 
-+				  u32 lsrc, struct rtable **result) 
++				  u32 lsrc, struct rtable **result)
  {
  
  	struct rtable *rth;

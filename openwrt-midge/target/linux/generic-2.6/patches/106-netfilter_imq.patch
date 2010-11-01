@@ -29,25 +29,25 @@ diff -Nur linux-2.6.16/drivers/net/imq.c linux-2.6.16-owrt/drivers/net/imq.c
 + *	       the following changes:
 + *
 + *	       - Correction of ipv6 support "+"s issue (Hasso Tepper)
-+ *	       - Correction of imq_init_devs() issue that resulted in 
++ *	       - Correction of imq_init_devs() issue that resulted in
 + *	       kernel OOPS unloading IMQ as module (Norbert Buchmuller)
 + *	       - Addition of functionality to choose number of IMQ devices
 + *	       during kernel config (Andre Correa)
-+ *	       - Addition of functionality to choose how IMQ hooks on 
++ *	       - Addition of functionality to choose how IMQ hooks on
 + *	       PRE and POSTROUTING (after or before NAT) (Andre Correa)
 + *	       - Cosmetic corrections (Norbert Buchmuller) (Andre Correa)
 + *
 + *
-+ *             2005/12/16 - IMQ versions between 2.6.7 and 2.6.13 were 
-+ *             released with almost no problems. 2.6.14-x was released 
-+ *             with some important changes: nfcache was removed; After 
-+ *             some weeks of trouble we figured out that some IMQ fields 
++ *             2005/12/16 - IMQ versions between 2.6.7 and 2.6.13 were
++ *             released with almost no problems. 2.6.14-x was released
++ *             with some important changes: nfcache was removed; After
++ *             some weeks of trouble we figured out that some IMQ fields
 + *             in skb were missing in skbuff.c - skb_clone and copy_skb_header.
 + *             These functions are correctly patched by this new patch version.
 + *
-+ *             Thanks for all who helped to figure out all the problems with 
++ *             Thanks for all who helped to figure out all the problems with
 + *             2.6.14.x: Patrick McHardy, Rune Kock, VeNoMouS, Max CtRiX,
-+ *             Kevin Shanahan, Richard Lucassen, Valery Dachev (hopefully 
++ *             Kevin Shanahan, Richard Lucassen, Valery Dachev (hopefully
 + *             I didn't forget anybody). I apologize again for my lack of time.
 + *
 + *             More info at: http://www.linuximq.net/ (Andre Correa)
@@ -172,7 +172,7 @@ diff -Nur linux-2.6.16/drivers/net/imq.c linux-2.6.16-owrt/drivers/net/imq.c
 +       unsigned int index = skb->imq_flags&IMQ_F_IFMASK;
 +       int ret = -1;
 +
-+       if (index > numdevs) 
++       if (index > numdevs)
 +               return -1;
 +
 +       dev = imq_devs + index;
@@ -526,7 +526,7 @@ diff -Nur linux-2.6.16/drivers/net/Kconfig linux-2.6.16-owrt/drivers/net/Kconfig
 +        default "2"
 +        help
 +
-+                This settings defines how many IMQ devices will be 
++                This settings defines how many IMQ devices will be
 +		created.
 +
 +		The default value is 2.
