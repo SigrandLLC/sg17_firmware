@@ -1,3 +1,4 @@
+* split webface to separate packages, don't install webface (issue #53)
 * deduplicate multiple kdb.c md5.c
 * replace ntpclient by openntpd
 * убрать всё лишнее, архитектуры, что не используется в построении образов sigrand.
