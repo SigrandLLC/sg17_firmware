@@ -129,7 +129,7 @@ diff -Naur linux-2.6.16-old/drivers/net/bonding/bond_main.c linux-2.6.16-new/dri
 +
 +	bond_for_each_slave_from(bond, slave, i, start_at) {
 +		slave->rate = -1;
-+		if ( IS_UP(slave->dev) && (slave->link == BOND_LINK_UP) 
++		if ( IS_UP(slave->dev) && (slave->link == BOND_LINK_UP)
 +				&& (slave->state == BOND_STATE_ACTIVE) ) {
 +			static int (* ioctl)(struct net_device *, struct ifreq *, int);
 +			struct ifreq ifr;
@@ -165,7 +165,7 @@ diff -Naur linux-2.6.16-old/drivers/net/bonding/bond_main.c linux-2.6.16-new/dri
 +		}else
 +			return 0;
 +	}
-+}	
++}
 +
 +void
 +add_tv(struct timeval *tv,unsigned int usec){
@@ -176,7 +176,7 @@ diff -Naur linux-2.6.16-old/drivers/net/bonding/bond_main.c linux-2.6.16-new/dri
 +/*
 +unsigned int
 +div_tv(struct timeval *tv,struct timeval *tv1){
-+	
++
 +	unsigned int usec = tv1->tv_usec - tv->tv_usec;
 +	unsigned int sec = tv1->tv_sec - tv->tv_sec;
 +	if( usec < 0 ){
@@ -212,10 +212,10 @@ diff -Naur linux-2.6.16-old/drivers/net/bonding/bond_main.c linux-2.6.16-new/dri
 +	do_gettimeofday(&ctv);
 +
 +	bond_for_each_slave_from(bond, slave, i, start_at) {
-+		if ( IS_UP(slave->dev) && (slave->link == BOND_LINK_UP) 
++		if ( IS_UP(slave->dev) && (slave->link == BOND_LINK_UP)
 +				&& (slave->state == BOND_STATE_ACTIVE)) {
 +			unsigned int transm_time;
-+			if( slave->rate <= 0 ){ 
++			if( slave->rate <= 0 ){
 +				// Rate unknown - skip
 +				continue;
 +			}
@@ -269,7 +269,7 @@ diff -Naur linux-2.6.16-old/drivers/net/bonding/bond_main.c linux-2.6.16-new/dri
  		bond_dev->set_mac_address = bond_alb_set_mac_address;
  		break;
 +	case BOND_MODE_RATEB: // rate balanced mode
-+		bond_dev->hard_start_xmit = bond_xmit_ratebalanced; 
++		bond_dev->hard_start_xmit = bond_xmit_ratebalanced;
 +		break;
  	default:
  		/* Should never happen, mode already checked */

@@ -9957,7 +9957,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_gpio.c linux-2.6.16-new/drivers/
 +	{1,  1<<23}      // 14 = UART3    / GPIO23
 +};
 +
-+	
++
 +u32 get_au1000_avail_gpio_mask(void)
 +{
 +	int i;
@@ -9983,7 +9983,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_gpio.c linux-2.6.16-new/drivers/
 +	avail_mask &= ~((1<<5) | (1<<13));
 +#endif
 +#endif
-+	
++
 +	return avail_mask;
 +}
 +
@@ -10072,10 +10072,10 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_gpio.c linux-2.6.16-new/drivers/
 +{
 +	int status;
 +	u32 val;
-+	
++
 +	switch(cmd) {
 +	case AU1000GPIO_IN:
-+		
++
 +		status = au1000gpio_in(&val);
 +		if (status != 0)
 +			return status;
@@ -10084,37 +10084,37 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_gpio.c linux-2.6.16-new/drivers/
 +
 +	case AU1000GPIO_OUT:
 +
-+		if (get_user(val, (u32 *)arg)) 
++		if (get_user(val, (u32 *)arg))
 +			return -EFAULT;
 +
 +		return au1000gpio_out(val);
 +
 +	case AU1000GPIO_SET:
 +
-+		if (get_user(val, (u32 *)arg)) 
++		if (get_user(val, (u32 *)arg))
 +			return -EFAULT;
 +
 +		return au1000gpio_set(val);
-+		
++
 +	case AU1000GPIO_CLEAR:
 +
-+		if (get_user(val, (u32 *)arg)) 
++		if (get_user(val, (u32 *)arg))
 +			return -EFAULT;
 +
 +		return au1000gpio_clear(val);
 +
 +	case AU1000GPIO_TRISTATE:
 +
-+		if (get_user(val, (u32 *)arg)) 
++		if (get_user(val, (u32 *)arg))
 +			return -EFAULT;
 +
 +		return au1000gpio_tristate(val);
 +
 +	case AU1000GPIO_AVAIL_MASK:
-+		
++
 +		return put_user(get_au1000_avail_gpio_mask(),
 +				(u32 *)arg);
-+		
++
 +	default:
 +		return -ENOIOCTLCMD;
 +
@@ -10146,7 +10146,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_gpio.c linux-2.6.16-new/drivers/
 +	misc_register(&au1000gpio_miscdev);
 +	printk("Au1000 gpio driver, version %s\n", VERSION);
 +	return 0;
-+}	
++}
 +
 +
 +void __exit au1000gpio_exit(void)
@@ -10715,10 +10715,10 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_ts.c linux-2.6.16-new/drivers/ch
 +	ts->chug_tq.routine = chug_raw_data;
 +	ts->chug_tq.data = ts;
 +	ts->pendown = 0; // pen up
-+	
++
 +	// flush event queue
 +	ts->nextIn = ts->nextOut = ts->event_count = 0;
-+	
++
 +	// Start acquisition timer function
 +	init_timer(&ts->acq_timer);
 +	ts->acq_timer.function = au1000_acq_timer;
@@ -10736,7 +10736,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_ts.c linux-2.6.16-new/drivers/ch
 +{
 +	au1000_ts_t* ts = (au1000_ts_t*)filp->private_data;
 +	unsigned long flags;
-+	
++
 +	au1000_fasync(-1, filp, 0);
 +	del_timer_sync(&ts->acq_timer);
 +
@@ -10805,20 +10805,20 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_ts.c linux-2.6.16-new/drivers/ch
 +
 +	// set GPIO to SSI0 function
 +	outl(inl(PIN_FUNCTION) & ~1, PIN_FUNCTION);
-+	
++
 +	// enable SSI0 clock and bring SSI0 out of reset
 +	outl(0, SSI0_CONTROL);
 +	udelay(1000);
 +	outl(SSIEN_E, SSI0_CONTROL);
 +	udelay(100);
-+	
++
 +	// FIXME: is this a working baudrate?
 +	ts->clkdiv = 0;
 +	ts->baudrate = calc_baudrate(ts->clkdiv);
 +	outl(ts->clkdiv, SSI0_CLKDIV);
 +
 +	info("baudrate = %d Hz", ts->baudrate);
-+	
++
 +	return 0;
 +}
 +
@@ -10921,7 +10921,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbraw.c linux-2.6.16-new/driver
 +
 +	int out_ep_addr; /* endpoint address of OUT endpoint */
 +	int in_ep_addr;  /* endpoint address of IN endpoint */
-+	
++
 +	__u8 read_buf[READ_BUF_SIZE]; // FIXME: allocate with get_free_pages
 +	int read_nextin, read_nextout;
 +	int read_count;
@@ -11046,7 +11046,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbraw.c linux-2.6.16-new/driver
 +{
 +	int i, pkt_size;
 +	usbdev_pkt_t* pkt;
-+	
++
 +	if ((pkt_size = usbdev_receive_packet(port->out_ep_addr,
 +					      &pkt)) <= 0) {
 +		dbg(__FUNCTION__ ": usbdev_receive_packet returns %d",
@@ -11067,7 +11067,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbraw.c linux-2.6.16-new/driver
 +
 +	/* free the packet */
 +	kfree(pkt);
-+	
++
 +	// async notify
 +	if (port->fasync)
 +		kill_fasync(&port->fasync, SIGIO, POLL_IN);
@@ -11090,7 +11090,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbraw.c linux-2.6.16-new/driver
 +{
 +	usbdev_pkt_t* pkt;
 +	int i;
-+	
++
 +	switch (cb_type) {
 +	case CB_NEW_STATE:
 +		usbraw.dev_state = (usbdev_state_t)arg;
@@ -11120,7 +11120,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbraw.c linux-2.6.16-new/driver
 +	struct usb_raw_port *port = (struct usb_raw_port *)filp->private_data;
 +	unsigned long flags;
 +	int count;
-+	
++
 +	poll_wait(filp, &port->wait, wait);
 +
 +	spin_lock_irqsave(&port->port_lock, flags);
@@ -11131,7 +11131,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbraw.c linux-2.6.16-new/driver
 +		dbg(__FUNCTION__ ": count=%d", count);
 +		return POLLIN | POLLRDNORM;
 +	}
-+	
++
 +	return 0;
 +}
 +
@@ -11153,7 +11153,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbraw.c linux-2.6.16-new/driver
 +	 */
 +	if (usbraw.dev_state != CONFIGURED)
 +		return -ENODEV;
-+	
++
 +	/* set up our port structure making the tty driver remember
 +	   our port object, and us it */
 +	portNumber = MINOR(inode->i_rdev);
@@ -11221,7 +11221,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbraw.c linux-2.6.16-new/driver
 +	if (usbraw.dev_state != CONFIGURED)
 +		return -ENODEV;
 +
-+	do { 
++	do {
 +		spin_lock_irqsave(&port->port_lock, flags);
 +		cnt = port->read_count;
 +		spin_unlock_irqrestore(&port->port_lock, flags);
@@ -11255,7 +11255,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbraw.c linux-2.6.16-new/driver
 +	struct usb_raw_port *port = (struct usb_raw_port *)filp->private_data;
 +	usbdev_pkt_t* pkt;
 +	int ret, max_pkt_sz;
-+	
++
 +	/*
 +	 * the device-layer must be in the configured state before the
 +	 * function layer can operate.
@@ -11280,7 +11280,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbraw.c linux-2.6.16-new/driver
 +		return ret;
 +
 +	copy_from_user(pkt->payload, buf, count);
-+	
++
 +	return usbdev_send_packet(port->in_ep_addr, pkt);
 +}
 +
@@ -11386,7 +11386,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbraw.c linux-2.6.16-new/driver
 +		err(__FUNCTION__ ": device-layer init failed");
 +		goto out;
 +	}
-+	
++
 +	/* initialize the devfs nodes for this device and let the user
 +	   know what ports we are bound to */
 +	for (i = 0; i < NUM_PORTS; ++i) {
@@ -11518,7 +11518,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbtty.c linux-2.6.16-new/driver
 +
 +	int out_ep_addr; /* endpoint address of OUT endpoint */
 +	int in_ep_addr;  /* endpoint address of IN endpoint */
-+	
++
 +	/* task queue for line discipline waking up on send packet complete */
 +	struct tq_struct send_complete_tq;
 +	/* task queue for line discipline wakeup on receive packet complete */
@@ -11684,7 +11684,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbtty.c linux-2.6.16-new/driver
 +{
 +	usbdev_pkt_t* pkt;
 +	int i;
-+	
++
 +	switch (cb_type) {
 +	case CB_NEW_STATE:
 +		dbg(__FUNCTION__ ": new dev_state=%d", (int)arg);
@@ -11735,7 +11735,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbtty.c linux-2.6.16-new/driver
 +		 */
 +		return -ENODEV;
 +	}
-+	
++
 +	dbg(__FUNCTION__ ": port %d", port->number);
 +
 +	spin_lock_irqsave(&port->port_lock, flags);
@@ -11795,7 +11795,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbtty.c linux-2.6.16-new/driver
 +	usbdev_pkt_t* pkt;
 +	int max_pkt_sz, ret;
 +	unsigned long flags;
-+	
++
 +	/*
 +	 * the device-layer must be in the configured state before the
 +	 * function layer can operate.
@@ -11819,7 +11819,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbtty.c linux-2.6.16-new/driver
 +		return 0;
 +	}
 +#endif
-+	
++
 +	max_pkt_sz = port->in_desc->wMaxPacketSize;
 +	count = (count > max_pkt_sz) ? max_pkt_sz : count;
 +
@@ -11830,7 +11830,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbtty.c linux-2.6.16-new/driver
 +		copy_from_user(pkt->payload, buf, count);
 +	else
 +		memcpy(pkt->payload, buf, count);
-+	
++
 +	ret = usbdev_send_packet(port->in_ep_addr, pkt);
 +
 +	spin_lock_irqsave(&port->port_lock, flags);
@@ -11846,7 +11846,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbtty.c linux-2.6.16-new/driver
 +	struct usb_serial_port *port =
 +		(struct usb_serial_port *) tty->driver_data;
 +	int room = 0;
-+	
++
 +	/*
 +	 * the device-layer must be in the configured state before the
 +	 * function layer can operate.
@@ -11861,7 +11861,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbtty.c linux-2.6.16-new/driver
 +
 +	//room = port->writing ? 0 : port->in_desc->wMaxPacketSize;
 +	room = port->in_desc->wMaxPacketSize;
-+	
++
 +	dbg(__FUNCTION__ ": %d", room);
 +	return room;
 +}
@@ -11872,7 +11872,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbtty.c linux-2.6.16-new/driver
 +	struct usb_serial_port *port =
 +		(struct usb_serial_port *) tty->driver_data;
 +	int chars = 0;
-+	
++
 +	/*
 +	 * the device-layer must be in the configured state before the
 +	 * function layer can operate.
@@ -12008,7 +12008,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbtty.c linux-2.6.16-new/driver
 +				kfree(pkt);
 +			break; /* exit if error other than ENODATA */
 +		}
-+		
++
 +		dbg(__FUNCTION__ ": port %d, ep%d, size=%d",
 +		    port->number, port->out_ep_addr, count);
 +
@@ -12061,7 +12061,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbtty.c linux-2.6.16-new/driver
 +void usbfn_tty_exit(void)
 +{
 +	int i;
-+	
++
 +	/* kill the device layer */
 +	usbdev_exit();
 +
@@ -12086,7 +12086,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbtty.c linux-2.6.16-new/driver
 +	serial_tty_driver.init_termios = tty_std_termios;
 +	serial_tty_driver.init_termios.c_cflag =
 +		B9600 | CS8 | CREAD | HUPCL | CLOCAL;
-+	
++
 +	if (tty_register_driver(&serial_tty_driver)) {
 +		err(__FUNCTION__ ": failed to register tty driver");
 +		ret = -ENXIO;
@@ -12145,7 +12145,7 @@ diff -Naur linux-2.6.16-old/drivers/char/au1000_usbtty.c linux-2.6.16-new/driver
 +		err(__FUNCTION__ ": device-layer init failed");
 +		goto out;
 +	}
-+	
++
 +	/* initialize the devfs nodes for this device and let the user
 +	   know what ports we are bound to */
 +	for (i = 0; i < NUM_PORTS; ++i) {
@@ -12424,7 +12424,7 @@ diff -Naur linux-2.6.16-old/drivers/char/ibm_workpad_keymap.map linux-2.6.16-new
 +	shift shiftr keycode 17 = braceleft
 +	control keycode 17 = Escape
 +	alt keycode 17 = Meta_bracketleft
-+keycode 18 = minus underscore backslash       
++keycode 18 = minus underscore backslash
 +	shiftr keycode 18 = underscore
 +	shift shiftr keycode 18 = underscore
 +	control keycode 18 = Control_underscore
@@ -12473,7 +12473,7 @@ diff -Naur linux-2.6.16-old/drivers/char/ibm_workpad_keymap.map linux-2.6.16-new
 +	shiftr keycode 32 = Decr_Console
 +	shift shiftr keycode 32 = Decr_Console
 +	alt keycode 32 = Home
-+keycode 33 = bracketright braceright asciitilde      
++keycode 33 = bracketright braceright asciitilde
 +	shiftr keycode 33 = braceright
 +	shift shiftr keycode 33 = braceright
 +	control keycode 33 = Control_bracketright
@@ -12548,7 +12548,7 @@ diff -Naur linux-2.6.16-old/drivers/char/ibm_workpad_keymap.map linux-2.6.16-new
 +	alt keycode 53 = Meta_backslash
 +keycode 54 = Return
 +	alt keycode 54 = Meta_Control_m
-+keycode 55 = space space           
++keycode 55 = space space
 +	shiftr keycode 55 = space
 +	shift shiftr keycode 55 = space
 +	control keycode 55 = nul
@@ -12631,7 +12631,7 @@ diff -Naur linux-2.6.16-old/drivers/char/ibm_workpad_keymap.map linux-2.6.16-new
 +	shiftr keycode 80 = Escape
 +	shift shiftr keycode 80 = Escape
 +	alt keycode 80 = Meta_Escape
-+keycode 81 = Tab Tab             
++keycode 81 = Tab Tab
 +	shiftr keycode 81 = Tab
 +	shift shiftr keycode 81 = Tab
 +	alt keycode 81 = Meta_Tab
@@ -12960,16 +12960,16 @@ diff -Naur linux-2.6.16-old/drivers/char/sb1250_duart.c linux-2.6.16-new/drivers
 + * but WITHOUT ANY WARRANTY; without even the implied warranty of
 + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 + * GNU General Public License for more details.
-+ * 
++ *
 + * You should have received a copy of the GNU General Public License
 + * along with this program; if not, write to the Free Software
 + * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 + */
 +
-+/* 
++/*
 + * Driver support for the on-chip sb1250 dual-channel serial port,
 + * running in asynchronous mode.  Also, support for doing a serial console
-+ * on one of those ports 
++ * on one of those ports
 + */
 +#include <linux/config.h>
 +#include <linux/types.h>
@@ -13032,18 +13032,18 @@ diff -Naur linux-2.6.16-old/drivers/char/sb1250_duart.c linux-2.6.16-new/drivers
 +EXPORT_SYMBOL(sb1250_duart_present);
 +
 +/*
-+ * Still not sure what the termios structures set up here are for, 
++ * Still not sure what the termios structures set up here are for,
 + *  but we have to supply pointers to them to register the tty driver
 + */
 +static struct tty_driver *sb1250_duart_driver; //, sb1250_duart_callout_driver;
 +
 +/*
-+ * This lock protects both the open flags for all the uart states as 
++ * This lock protects both the open flags for all the uart states as
 + * well as the reference count for the module
 + */
 +static DEFINE_SPINLOCK(open_lock);
 +
-+typedef struct { 
++typedef struct {
 +	unsigned char       outp_buf[SERIAL_XMIT_SIZE];
 +	unsigned int        outp_head;
 +	unsigned int        outp_tail;
@@ -13068,7 +13068,7 @@ diff -Naur linux-2.6.16-old/drivers/char/sb1250_duart.c linux-2.6.16-new/drivers
 +static uart_state_t uart_states[DUART_MAX_LINE];
 +
 +/*
-+ * Inline functions local to this module 
++ * Inline functions local to this module
 + */
 +
 +/*
@@ -13124,7 +13124,7 @@ diff -Naur linux-2.6.16-old/drivers/char/sb1250_duart.c linux-2.6.16-new/drivers
 +	WRITE_SERCSR(tmp & ~mask, port->imr, line);
 +}
 +
-+	
++
 +/* Unmask the passed interrupt lines at the duart level */
 +static inline void duart_unmask_ints(unsigned int line, unsigned int mask)
 +{
@@ -13178,10 +13178,10 @@ diff -Naur linux-2.6.16-old/drivers/char/sb1250_duart.c linux-2.6.16-new/drivers
 +	}
 +}
 +
-+/* 
++/*
 + * Generic interrupt handler for both channels.  dev_id is a pointer
-+ * to the proper uart_states structure, so from that we can derive 
-+ * which port interrupted 
++ * to the proper uart_states structure, so from that we can derive
++ * which port interrupted
 + */
 +
 +static irqreturn_t duart_int(int irq, void *dev_id, struct pt_regs *regs)
@@ -13241,10 +13241,10 @@ diff -Naur linux-2.6.16-old/drivers/char/sb1250_duart.c linux-2.6.16-new/drivers
 +
 +/* memcpy the data from src to destination, but take extra care if the
 +   data is coming from user space */
-+static inline int copy_buf(char *dest, const char *src, int size, int from_user) 
++static inline int copy_buf(char *dest, const char *src, int size, int from_user)
 +{
 +	if (from_user) {
-+		(void) copy_from_user(dest, src, size); 
++		(void) copy_from_user(dest, src, size);
 +	} else {
 +		memcpy(dest, src, size);
 +	}
@@ -13293,7 +13293,7 @@ diff -Naur linux-2.6.16-old/drivers/char/sb1250_duart.c linux-2.6.16-new/drivers
 +
 +	spin_unlock_irqrestore(&us->outp_lock, flags);
 +
-+	if (us->outp_count && !tty->stopped && 
++	if (us->outp_count && !tty->stopped &&
 +	    !tty->hw_stopped && !(us->flags & TX_INTEN)) {
 +		us->flags |= TX_INTEN;
 +		duart_unmask_ints(us->line, M_DUART_IMR_TX);
@@ -13344,7 +13344,7 @@ diff -Naur linux-2.6.16-old/drivers/char/sb1250_duart.c linux-2.6.16-new/drivers
 +	duart_unmask_ints(port->line, M_DUART_IMR_TX);
 +}
 +
-+/* Return the number of characters in the output buffer that have yet to be 
++/* Return the number of characters in the output buffer that have yet to be
 +   written */
 +static int duart_chars_in_buffer(struct tty_struct *tty)
 +{
@@ -13387,9 +13387,9 @@ diff -Naur linux-2.6.16-old/drivers/char/sb1250_duart.c linux-2.6.16-new/drivers
 +	switch (cflag & CSIZE) {
 +	case CS7:
 +		mode_reg1 |= V_DUART_BITS_PER_CHAR_7;
-+		
++
 +	default:
-+		/* We don't handle CS5 or CS6...is there a way we're supposed to flag this? 
++		/* We don't handle CS5 or CS6...is there a way we're supposed to flag this?
 +		   right now we just force them to CS8 */
 +		mode_reg1 |= 0x0;
 +		break;
@@ -13403,13 +13403,13 @@ diff -Naur linux-2.6.16-old/drivers/char/sb1250_duart.c linux-2.6.16-new/drivers
 +	if (cflag & PARODD) {
 +		mode_reg1 |= M_DUART_PARITY_TYPE_ODD;
 +	}
-+	
++
 +	/* Formula for this is (5000000/baud)-1, but we saturate
 +	   at 12 bits, which means we can't actually do anything less
 +	   that 1200 baud */
 +	switch (cflag & CBAUD) {
-+	case B200:	
-+	case B300:	
++	case B200:
++	case B300:
 +	case B1200:	clk_divisor = 4095;		break;
 +	case B1800:	clk_divisor = 2776;		break;
 +	case B2400:	clk_divisor = 2082;		break;
@@ -13539,9 +13539,9 @@ diff -Naur linux-2.6.16-old/drivers/char/sb1250_duart.c linux-2.6.16-new/drivers
 +}
 +
 +/* Not sure on the semantics of this; are we supposed to wait until the stuff
-+   already in the hardware FIFO drains, or are we supposed to wait until 
++   already in the hardware FIFO drains, or are we supposed to wait until
 +   we've drained the output buffer, too?  I'm assuming the former, 'cause thats
-+   what the other drivers seem to assume 
++   what the other drivers seem to assume
 +*/
 +
 +static void duart_wait_until_sent(struct tty_struct *tty, int timeout)
@@ -13701,7 +13701,7 @@ diff -Naur linux-2.6.16-old/drivers/char/sb1250_duart.c linux-2.6.16-new/drivers
 +
 +/* Set up the driver and register it, register the UART interrupts.  This
 +   is called from tty_init, or as a part of the module init */
-+static int __init sb1250_duart_init(void) 
++static int __init sb1250_duart_init(void)
 +{
 +	int i;
 +
@@ -16212,7 +16212,7 @@ diff -Naur linux-2.6.16-old/drivers/net/big_sur_ge.h linux-2.6.16-new/drivers/ne
 +	big_sur_fifo_handler	big_sur_ge_fifo_send_handler;
 +
 +	void	*fifo_send_ref;
-+	void	*fifo_recv_ref;	
++	void	*fifo_recv_ref;
 +
 +	/* For SG DMA only */
 +	xdma_channel	recv_channel;
@@ -16417,7 +16417,7 @@ diff -Naur linux-2.6.16-old/drivers/net/big_sur_ge.h linux-2.6.16-new/drivers/ne
 +										\
 +	BIG_SUR_GE_WRITE(base_address + BIG_SUR_GE_SAL_OFFSET, mac_address);		\
 +										\
-+}										
++}
 +
 +/* Enable the MAC unit */
 +#define	big_sur_ge_mac_enable(base_address)					\
@@ -16746,7 +16746,7 @@ diff -Naur linux-2.6.16-old/drivers/net/gt64240eth.c linux-2.6.16-new/drivers/ne
 + *  59 Temple Place - Suite 330, Boston MA 02111-1307, USA.
 + *
 + * Ethernet driver for the MIPS GT96100 Advanced Communication Controller.
-+ * 
++ *
 + * Modified for the Gallileo/Marvell GT-64240 Communication Controller.
 + *
 + * Support for Rx NAPI, Rx checksum offload, IOCTL and ETHTOOL added
@@ -16947,14 +16947,14 @@ diff -Naur linux-2.6.16-old/drivers/net/gt64240eth.c linux-2.6.16-new/drivers/ne
 +	return (int) (smir & smirDataMask);
 +}
 +
-+static void gp_get_drvinfo (struct net_device *dev, 
++static void gp_get_drvinfo (struct net_device *dev,
 +				struct ethtool_drvinfo *info)
 +{
 +	strcpy(info->driver, "gt64260");
 +	strcpy(info->version, version);
 +}
 +
-+static int gp_get_settings(struct net_device *dev, 
++static int gp_get_settings(struct net_device *dev,
 +				struct ethtool_cmd *cmd)
 +{
 +	struct gt64240_private *gp = netdev_priv(dev);
@@ -17522,7 +17522,7 @@ diff -Naur linux-2.6.16-old/drivers/net/gt64240eth.c linux-2.6.16-new/drivers/ne
 +	intMask &= ~(1 << gp->port_num);
 +	MV_WRITE(PCI_1INTERRUPT_CAUSE_MASK_REGISTER_HIGH, intMask);
 +
-+	// mask all device interrupts: 
++	// mask all device interrupts:
 +	GT64240ETH_WRITE(gp, GT64240_ETH_INT_MASK, 0);
 +}
 +
@@ -19690,7 +19690,7 @@ diff -Naur linux-2.6.16-old/drivers/net/titan_ge.c linux-2.6.16-new/drivers/net/
 +		reg_data |= 0x200000;
 +
 +		TITAN_GE_WRITE(0x48a0, reg_data);
-+		
++
 +		reg_data = TITAN_GE_READ(0x4958);
 +		reg_data |= 0x100000;
 +
@@ -20805,7 +20805,7 @@ diff -Naur linux-2.6.16-old/drivers/net/titan_ge.c linux-2.6.16-new/drivers/net/
 +                        titan_ge_device[i] = NULL;
 +                        continue;
 +                }
-+                                                                                
++
 +                if (!pldev->dev.driver) {
 +	                /*
 +			 * The driver was not bound to this device, there was
@@ -24034,7 +24034,7 @@ diff -Naur linux-2.6.16-old/drivers/usb/host/ohci-pnx8550.c linux-2.6.16-new/dri
 + *  by Nick Bane <nick@cecomputing.co.uk> 26-8-2004
 + *
 + * Modified for PNX8550 from ohci-pxa27x.c
-+ *  by Embedded Alley Solutions, Inc. 
++ *  by Embedded Alley Solutions, Inc.
 + *
 + * This file is licenced under the GPL.
 + */
@@ -24271,8 +24271,8 @@ diff -Naur linux-2.6.16-old/drivers/usb/host/ohci-pnx8550.c linux-2.6.16-new/dri
 +	.bus		= &platform_bus_type,
 +	.probe		= ohci_hcd_pnx8550_drv_probe,
 +	.remove		= ohci_hcd_pnx8550_drv_remove,
-+	.suspend	= ohci_hcd_pnx8550_drv_suspend, 
-+	.resume		= ohci_hcd_pnx8550_drv_resume, 
++	.suspend	= ohci_hcd_pnx8550_drv_suspend,
++	.resume		= ohci_hcd_pnx8550_drv_resume,
 +};
 +
 +static int __init ohci_hcd_pnx8550_init (void)
@@ -26592,8 +26592,8 @@ diff -Naur linux-2.6.16-old/drivers/video/Kconfig linux-2.6.16-new/drivers/video
  	  Support for the PMAGB-B TURBOchannel framebuffer card used mainly
 -	  in the MIPS-based DECstation series. The card is currently only
 -	  supported in 1280x1024x8 mode.
-+	  in the MIPS-based DECstation series. The card is currently only 
-+	  supported in 1280x1024x8 mode.  
++	  in the MIPS-based DECstation series. The card is currently only
++	  supported in 1280x1024x8 mode.
  
  config FB_MAXINE
  	bool "Maxine (Personal DECstation) onboard framebuffer support"
