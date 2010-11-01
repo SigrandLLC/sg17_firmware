@@ -43,7 +43,7 @@ diff -Naur linux-2.6.16/arch/mips/adm5120/altera.c linux-2.6.16-new/arch/mips/ad
 +	i++;
 +    }
 +    if( !( ADM5120_SW_REG(GPIO_conf0_REG) & 0x00000100 ) )
-+	printk("Altera firmware load: fail\n");
++	printk("Altera firmware load: fail or device not present\n");
 +    else
 +	printk("Altera firmware load: successful\n");
 +
