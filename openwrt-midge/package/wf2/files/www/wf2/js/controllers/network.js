@@ -370,9 +370,9 @@ Controllers.dynamic_ifaces = function() {
 
 					setIfaces();
 
-                    if ($("#iface_proto").val() == "bridge" || $("#iface_proto").val() == "bonding") {
-                        Controllers.fastBridgeOrBondSetup(newIface);
-                    }
+					if ($("#iface_proto").val() == "bridge" || $("#iface_proto").val() == "bonding") {
+					    Controllers.fastBridgeOrBondSetup(newIface);
+					}
 				}
 			});
 
