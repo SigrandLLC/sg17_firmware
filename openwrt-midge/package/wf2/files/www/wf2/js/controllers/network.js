@@ -844,10 +844,13 @@ Controllers.iface = function(iface) {
 		var master = "";
 		var mIfaces = config.getByRegexp(/(sys_iface_)*((_br_ifaces)|(_bond_ifaces))/);
 		$.each(mIfaces, function(mIfaceKey, mIface) {
-			if (mIface.search(iface) != -1) {
-				master += mIfaceKey.replace("sys_iface_", "").replace("_br_ifaces", "")
-						.replace("_bond_ifaces", "") + " ";
-			}
+			var a = mIface.split(" ");
+			$.each(a, function(akey, a_iface) {
+				if (a_iface == iface) {
+					master += mIfaceKey.replace("sys_iface_", "").replace("_br_ifaces", "")
+							.replace("_bond_ifaces", "") + " ";
+				}
+			});
 		});
 		master = $.trim(master);
 
