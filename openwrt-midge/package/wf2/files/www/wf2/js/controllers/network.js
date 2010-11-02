@@ -139,24 +139,6 @@ Controllers.ifaceGeneral = function(c, iface) {
 	};
 	c.addWidget(field);
 
-	if (config.get($.sprintf("sys_iface_%s_proto", iface)) != "vlan") {
-		var dependList = new Object();
-		$.each(config.getParsed("sys_ifaces"), function(name, value) {
-			dependList[value] = value;
-		});
-		dependList.none = "None";
-		field = {
-			"type": "select",
-			"name": "sys_iface_" + iface + "_depend_on",
-			"id": "depend_on",
-			"text": "Depends on",
-			"options": dependList,
-			"defaultValue": "none",
-			"descr": $.sprintf("Start specified interface before this (%s) interface.", iface)
-		};
-		c.addWidget(field);
-	}
-
 	field = {
 		"type": "select",
 		"name": $.sprintf("sys_iface_%s_method", iface),
