@@ -43,7 +43,7 @@ $$(IPKG_$(1)):
 endef
 
 include $(TOPDIR)/package/rules.mk
-include $(LINUX_DIR)/.config
+-include $(LINUX_DIR)/.config
 include $(TOPDIR)/target/linux/netfilter.mk
 
 $(eval $(call PKG_template,IPTABLES,iptables,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
