@@ -1,7 +1,7 @@
 #!/bin/sh
 
  origin=ssh://git@sigrand.ru/midge.git
-   live=ssh://live.1nsk.ru/home/df/w/siggit/midge/.git
+   live=ssh://live.1nsk.ru/home/df/siggit/midge.git
 
 echo
 repos="$origin $live"
