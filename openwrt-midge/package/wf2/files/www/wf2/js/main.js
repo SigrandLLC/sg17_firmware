@@ -57,12 +57,9 @@ function generateMenu() {
         var ifaces = config.getParsed($.sprintf("sys_pcitbl_s%s_ifaces", pcislot));
         var rs232Defined = false;
 
-        /* get or create array with info for module of current type */
-        var ifaceInfo = config.getData(type);
-        if (!ifaceInfo) {
-            ifaceInfo = [];
-            config.saveData(type, ifaceInfo);
-        }
+        /* create array with info for module of current type */
+        var ifaceInfo = [];
+        config.saveData(type, ifaceInfo);
 
         /* go through ifaces of this slot */
         $.each(ifaces, function(num, iface) {
