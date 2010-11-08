@@ -1,4 +1,4 @@
-* split webface to separate packages, don't install webface (issue #53)
+* split webface to separate packages, don't install webface (issues 53, 94)
 
 Notes:
 
