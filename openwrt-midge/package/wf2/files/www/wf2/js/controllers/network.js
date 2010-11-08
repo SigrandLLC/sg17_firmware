@@ -187,8 +187,17 @@ Controllers.ifaceGeneral = function(c, iface) {
 
 	/* check that web interface will be available via network interfaces and set parameters for slaves */
 	var additionalKeys = [];
+	var restore_slaves = [];
 	c.addSubmit({
 		"additionalKeys": additionalKeys,
+		"onSuccess": function() {
+			var toexec = "";
+			$.each(restore_slaves, function(num, slave) {
+				toexec += "/etc/init.d/network restart " + slave + "; ";
+			});
+			if (toexec != "")
+				config.cmdExecute( { "cmd": toexec } );
+		},
 		"preSubmit": function() {
 			/* remove old keys from additionalKeys */
 			additionalKeys.splice(0, additionalKeys.length);
@@ -220,6 +229,50 @@ Controllers.ifaceGeneral = function(c, iface) {
 
 			/* if #ifaces widget is exist - bridge/bonding is setuped */
 			if ($("#ifaces").length > 0) {
+
+				//+ restoring auto,enabled,method values from previous slave ifaces
+				var old_slaves = "";
+				// this interface is bridge
+				if (iface.search("br") != -1)
+					old_slaves = config.get($.sprintf("sys_iface_%s_br_ifaces", iface));
+				// this interface is bonding
+				else if (iface.search("bond") != -1)
+					old_slaves = config.get($.sprintf("sys_iface_%s_bond_ifaces", iface));
+
+				if (old_slaves == null)
+					old_slaves = [];
+				else
+					old_slaves = old_slaves.split(" ");
+
+				restore_slaves = [];
+				$.each(old_slaves, function(num, oldSlave) {
+
+					var found = false;
+					$.each($("#ifaces").val().split(" "), function(num, slaveIface) {
+						if (oldSlave == slaveIface)
+							found = true;
+					});
+					if (!found) {
+						restore_slaves.push(oldSlave);
+
+						var saved = new String( config.get( $.sprintf("sys_iface_%s_auto_save", oldSlave)) );
+						if (saved.length != 0)
+							$.addObjectWithProperty(additionalKeys,
+													$.sprintf("sys_iface_%s_auto", oldSlave), saved);
+
+						saved = new String( config.get( $.sprintf("sys_iface_%s_enabled_save", oldSlave)) );
+						if (saved.length != 0)
+							$.addObjectWithProperty(additionalKeys,
+													$.sprintf("sys_iface_%s_enabled", oldSlave), saved);
+
+						saved = new String( config.get( $.sprintf("sys_iface_%s_method_save", oldSlave)) );
+						if (saved.length != 0)
+							$.addObjectWithProperty(additionalKeys,
+													$.sprintf("sys_iface_%s_method", oldSlave), saved);
+					};
+				});
+				//- restoring auto,enabled,method values from previous slave ifaces
+
 				var saveAllowed = true;
 				var errInterface;
 				$.each($("#ifaces").val().split(" "), function(num, slaveIface) {
@@ -234,8 +287,28 @@ Controllers.ifaceGeneral = function(c, iface) {
 						}
 					}
 
+
+					// prevent repeated save
+					var found = false;
+					$.each(old_slaves, function(num, oldSlave) {
+						if (oldSlave == slaveIface)
+							found = true;
+					});
+
 					/* if this interface is enabled */
 					if ($("#enabled").attr("checked") == true) {
+						if (!found) { // save auto,enabled,method values into *_save keys
+							$.addObjectWithProperty(additionalKeys,
+									$.sprintf("sys_iface_%s_auto_save", slaveIface),
+										config.get($.sprintf("sys_iface_%s_auto", slaveIface)) );
+							$.addObjectWithProperty(additionalKeys,
+									$.sprintf("sys_iface_%s_enabled_save", slaveIface),
+										config.get($.sprintf("sys_iface_%s_enabled", slaveIface)) );
+							$.addObjectWithProperty(additionalKeys,
+									$.sprintf("sys_iface_%s_method_save", slaveIface),
+										config.get($.sprintf("sys_iface_%s_method", slaveIface)) );
+						}
+
 						/* set auto=0 enabled=1 method=none for slave interfaces */
 						$.addObjectWithProperty(additionalKeys,
 								$.sprintf("sys_iface_%s_auto", slaveIface), "0");
@@ -399,10 +472,10 @@ Controllers.dynamic_ifaces = function() {
 					if ($("#del_iface").val() != null) {
 						config.delIface($("#del_iface").val());
 						setIfaces();
-                        return true;
+						return true;
 					} else {
-                        return false;
-                    }
+						return false;
+					}
 				}
 			});
 		}
