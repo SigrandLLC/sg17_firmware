@@ -10,6 +10,7 @@ PKG_BUILD_DIR = $(BUILD_DIR)/$(PKG_NAME)
 include $(TOPDIR)/package/rules.mk
 
 $(eval $(call PKG_template,KDB,kdb,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
+BR2_PACKAGE_KDB = y
 
 $(PKG_BUILD_DIR)/.prepared:
 	mkdir -p $(PKG_BUILD_DIR)
