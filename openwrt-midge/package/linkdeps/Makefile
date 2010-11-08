@@ -27,5 +27,5 @@ $(IPKG_SIGRAND_LINKDEPS):
 	install -d -m0755 $(IDIR_SIGRAND_LINKDEPS)/sbin
 	install -d -m0755 $(IDIR_SIGRAND_LINKDEPS)/etc/linkdeps
 	cp _linkhandler $(IDIR_SIGRAND_LINKDEPS)/sbin
-	( tar cf - -C linkdeps --exclude .svn . | tar xvf - -C $(IDIR_SIGRAND_LINKDEPS)/etc/linkdeps);
+	tar cf - -C linkdeps . | tar xvf - -C $(IDIR_SIGRAND_LINKDEPS)/etc/linkdeps
 	$(IPKG_BUILD) $(IDIR_SIGRAND_LINKDEPS) $(PACKAGE_DIR)

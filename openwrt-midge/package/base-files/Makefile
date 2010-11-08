@@ -70,8 +70,6 @@ $(IPKG_BASE):
 	mkdir -p $(IDIR_BASE)/root
 	ln -sf /tmp/resolv.conf $(IDIR_BASE)/etc/resolv.conf
 	ln -sf /proc/mounts $(IDIR_BASE)/etc/mtab
-	-find $(IDIR_BASE) -type d -name CVS | xargs rm -rf
-	-find $(IDIR_BASE) -type d -name .svn | xargs rm -rf
 	-find $(IDIR_BASE) -name '.#*' | xargs rm -f
 	mkdir -p $(IDIR_BASE)/etc
 	$(IPKG_BUILD) $(IDIR_BASE) $(PACKAGE_DIR)

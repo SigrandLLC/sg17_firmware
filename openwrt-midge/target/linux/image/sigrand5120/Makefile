@@ -24,7 +24,7 @@ adm5120-fs-prepare:
 				rm -rf $(KDIR)/root/$$f;	\
 			done;
 	( cd ../../package/base-files/files/$(BOARD)-$(KERNEL) && \
-		tar cf - --exclude .svn . | tar xvf - -C $(KDIR)/root/; \
+		tar cf - . | tar xvf - -C $(KDIR)/root/; \
 		[ "$(BR2_SIGRAND_OEM_LOGO)" != "default" ] && echo "Revision: \$$R " > $(KDIR)/root/etc/banner; \
 		 $(SED) 's,$$R,$(REV),g' $(KDIR)/root/etc/banner; \
 		 echo "Built at: `date '+%Y%m%d %H:%M'`" >>$(KDIR)/root/etc/banner; \

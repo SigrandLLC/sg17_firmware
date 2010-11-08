@@ -20,5 +20,5 @@ $(PKG_BUILD_DIR)/.configured:
 	touch $@
 
 $(IPKG_SIGRAND_PPPFT_MP):
-	tar cf - -C files --exclude .svn . | tar xvf - -C $(IDIR_SIGRAND_PPPFT_MP)
+	tar cf - -C files . | tar xvf - -C $(IDIR_SIGRAND_PPPFT_MP)
 	$(IPKG_BUILD) $(IDIR_SIGRAND_PPPFT_MP) $(PACKAGE_DIR)

@@ -21,7 +21,7 @@ $(PKG_BUILD_DIR)/.built:
 	touch $@
 
 $(IPKG_WF2):
-	( tar cf - -C files --exclude .svn . | tar xvf - -C $(IDIR_WF2) );
+	tar cf - -C files . | tar xvf - -C $(IDIR_WF2)
 
 ifneq ($(BR2_SIGRAND_OEM_WF2_HEADER_LOGO),"default")
 	cp logos/$(BR2_SIGRAND_OEM_WF2_HEADER_LOGO) $(IDIR_WF2)/www/wf2/ui/img/header.jpg;

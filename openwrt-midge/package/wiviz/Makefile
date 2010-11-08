@@ -28,13 +28,11 @@ $(PKG_BUILD_DIR)/.built:
 		LDFLAGS="-L$(STAGING_DIR)/lib -L$(STAGING_DIR)/usr/lib"
 	touch $@
 
-$(IPKG_WIVIZ): 
+$(IPKG_WIVIZ):
 	mkdir -p $(IDIR_WIVIZ)/usr/sbin
 	$(CP) $(PKG_BUILD_DIR)/$(PKG_NAME) $(IDIR_WIVIZ)/usr/sbin/
 	$(RSTRIP) $(IDIR_WIVIZ)
 	$(CP) ./files/* $(IDIR_WIVIZ)
-	find $(IDIR_WIVIZ) -name CVS | xargs rm -rf
-	find $(IDIR_WIVIZ) -name .svn | xargs rm -rf
 	$(IPKG_BUILD) $(IDIR_WIVIZ) $(PACKAGE_DIR)
 
 mostlyclean:

@@ -56,7 +56,7 @@ endef
 
 install-ib:
 
-$(BIN_DIR)/$(IB_NAME).tar.bz2:	
+$(BIN_DIR)/$(IB_NAME).tar.bz2:
 	rm -rf $(IB_DIR)
 	mkdir -p $(IB_DIR)/packages
 	mkdir -p $(IB_DIR)/scripts
@@ -67,8 +67,6 @@ $(BIN_DIR)/$(IB_NAME).tar.bz2:
 	$(CP) $(TOPDIR)/rules.mk $(IB_DIR)
 	$(CP) ./image $(IB_DIR)/
 	$(CP) $(TOPDIR)/.config $(IB_DIR)/
-	find $(IB_DIR) -name .svn | xargs rm -rf
-	find $(IB_DIR) -name CVS | xargs rm -rf
 	(cd $(BUILD_DIR); tar c $(IB_NAME) | bzip2 -c > $(BIN_DIR)/$(IB_NAME).tar.bz2)
 
 ifeq ($(BR2_PACKAGE_IMAGEBUILDER),y)

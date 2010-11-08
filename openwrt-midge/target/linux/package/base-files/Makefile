@@ -43,15 +43,13 @@ endif
 
 $(PKG_BUILD_DIR)/.built:
 	touch $@
-	
+
 $(IDIR_OPENWRT):
 	$(SCRIPT_DIR)/make-ipkg-dir.sh $(IDIR_OPENWRT) ipkg/base-files-arch.control $(PKG_RELEASE) $(ARCH)
 	$(SED) s,base-files-arch,base-files-$(BOARD)-$(KERNEL),g $(IDIR_OPENWRT)/CONTROL/control
 
 $(IPKG_OPENWRT): $(IDIR_OPENWRT)
 	[ -d files/$(BOARD)-$(KERNEL) ] && $(CP) -fpR files/$(BOARD)-$(KERNEL)/* $(IDIR_OPENWRT)/
-	find $(IDIR_OPENWRT) -name CVS | xargs rm -rf
-	find $(IDIR_OPENWRT) -name .svn | xargs rm -rf
 	$(RSTRIP) $(IDIR_OPENWRT)
 	$(IPKG_BUILD) $(IDIR_OPENWRT) $(PACKAGE_DIR)
 

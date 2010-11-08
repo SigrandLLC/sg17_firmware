@@ -94,7 +94,6 @@ $(IPKG_CUPS):
 	# install initscript with priority 60
 	install -d -m0755 $(IDIR_CUPS)/etc/init.d
 	install -m0755 ./files/cupsd.init $(IDIR_CUPS)/etc/init.d/S60cupsd
-	find $(IDIR_CUPS) -name CVS | xargs rm -rf
 	$(RSTRIP) $(IDIR_CUPS)
 	$(IPKG_BUILD) $(IDIR_CUPS) $(PACKAGE_DIR)
 

@@ -68,9 +68,9 @@ $(PKG_BUILD_DIR)/.configured:
 	touch $@
 
 $(IPKG_WEBFACE):
-	( tar cf - -C files --exclude .svn . | tar xvf - -C $(IDIR_WEBFACE)	 );
+	tar cf - -C files . | tar xvf - -C $(IDIR_WEBFACE)
 	install -d -m0755 $(IDIR_WEBFACE)/usr/bin
-	( tar cf - -C $(PKG_BUILD_DIR)/templates --exclude .svn . | tar xvf - -C $(IDIR_WEBFACE) );
+	tar cf - -C $(PKG_BUILD_DIR)/templates . | tar xvf - -C $(IDIR_WEBFACE)
 
 	echo $(BR2_SIGRAND_OEM_HOSTNAME) > $(IDIR_WEBFACE)/etc/hostname
 

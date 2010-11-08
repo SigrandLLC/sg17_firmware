@@ -30,9 +30,9 @@ $(BIN_DIR)/openwrt-adm5120-$(KERNEL)-$(FSNAME).bin: $(SCRIPT_DIR)/mksyshdr $(SCR
 	test -f delete-files-$(KERNEL)-$(FS) && \
 			for f in `cat delete-files-$(KERNEL)-$(FS)`; do \
 				rm -rf $(KDIR)/root/$$f;	\
-			done; 
+			done;
 	( cd ../../package/base-files/files/$(BOARD)-$(KERNEL) && \
-		tar cf - --exclude .svn . | tar xvf - -C $(KDIR)/root/; \
+		tar cf - . | tar xvf - -C $(KDIR)/root/; \
 		 $(SED) 's,$$R,r$(REV),g' $(KDIR)/root/etc/banner; \
 		 echo "Builded at: `date '+%Y%m%d %H:%M'`" >>$(KDIR)/root/etc/banner; \
 		 echo "" >>$(KDIR)/root/etc/banner; \
@@ -56,7 +56,7 @@ $(BIN_DIR)/openwrt-adm5120-$(KERNEL)-$(FSNAME).bin: $(SCRIPT_DIR)/mksyshdr $(SCR
 		MIDGE_DATAFS_BLOCKS=$$((($(MIDGE_FLASH_SIZE)-$(MIDGE_KERNEL_START))/0x10000-$(MIDGE_KERNEL_BLOCKS)-$(MIDGE_SQUASHFS_BLOCKS))) \
 		MIDGE_TYPE=tmpfs \
 		/bin/sh ./mkimage -k $(LINUX_DIR)/vmlinuz -s $(KDIR)/root.squashfs -o $(BIN_DIR)/openwrt-$(BOARD)-$(KERNEL)-$(FS).bin )
-	
+
 
 install: $(BIN_DIR)/openwrt-adm5120-$(KERNEL)-$(FSNAME).bin
 endif
@@ -80,9 +80,9 @@ adm5120-fs-prepare:
 	test -f delete-files-$(KERNEL)-$(FS) && \
 			for f in `cat delete-files-$(KERNEL)-$(FS)`; do \
 				rm -rf $(KDIR)/root/$$f;	\
-			done; 
+			done;
 	( cd ../../package/base-files/files/$(BOARD)-$(KERNEL) && \
-		tar cf - --exclude .svn . | tar xvf - -C $(KDIR)/root/; \
+		tar cf - . | tar xvf - -C $(KDIR)/root/; \
 		 $(SED) 's,$$R,r$(REV),g' $(KDIR)/root/etc/banner; \
 		 echo "Builded at: `date '+%Y%m%d %H:%M'`" >>$(KDIR)/root/etc/banner; \
 		 echo "" >>$(KDIR)/root/etc/banner; \
