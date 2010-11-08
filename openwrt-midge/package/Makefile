@@ -318,6 +318,8 @@ package-$(BR2_PACKAGE_ZLIB) += zlib
 #
 package-$(BR2_PACKAGE_WEBFACE) += webface
 package-y += kdb
+#package-y += hdb
+package-y += htpasswd
 package-$(BR2_PACKAGE_WF2) += wf2
 package-$(BR2_PACKAGE_SIGRAND_SETHDLC) += sethdlc
 package-$(BR2_PACKAGE_SIGRAND_MUX) += oem-mux
