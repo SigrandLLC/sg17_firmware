@@ -135,11 +135,6 @@ function generateMenu() {
             span.text(span.text().substr(2));
             span.prepend('- ');
         }
-        /*
-        if ((span.text() == "+ SHDSL") || (span.text() == "- SHDSL"))  {
-            Controllers.dslam_dsl_all();
-        }
-        */
     }
 
 
