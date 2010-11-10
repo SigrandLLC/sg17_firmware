@@ -1,3 +1,23 @@
 #!/bin/sh
 
-/sbin/tbuffd
+. /etc/templates/oem-vars
+
+case $1 in
+	start)
+		for s in `kdb get sys_pcitbl_slots`; do
+			type=`kdb get sys_pcitbl_s${s}_iftype`
+			if [ "$type" = "$mr17s_drvname" ]; then
+				/sbin/tbuffd
+				return
+			fi
+		done
+	;;
+	stop)
+		killall tbuffd
+	;;
+	restart)
+		$0 stop
+		usleep 100000
+		$0 start
+	;;
+esac
