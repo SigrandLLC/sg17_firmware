@@ -4,6 +4,8 @@
 
 case $1 in
 	start)
+		echo "Starting tbuff"
+		logger "tbuff: Starting"
 		for s in `kdb get sys_pcitbl_slots`; do
 			type=`kdb get sys_pcitbl_s${s}_iftype`
 			if [ "$type" = "$mr17s_drvname" ]; then
@@ -13,6 +15,8 @@ case $1 in
 		done
 	;;
 	stop)
+		echo "Stopping tbuff"
+		logger "tbuff: Stopping"
 		killall tbuffd
 	;;
 	restart)
