@@ -40,6 +40,7 @@ $(IPKG_SIGRAND_TBUFF):
 	install -m0755 rs232-speed $(IDIR_SIGRAND_TBUFF)/usr/bin/
 	install -d -m0755 $(IDIR_SIGRAND_TBUFF)/etc/init.d/
 	install -m0700 tbuff $(IDIR_SIGRAND_TBUFF)/etc/init.d/
+	rm -f       $(IDIR_SIGRAND_TBUFF)/etc/init.d/[SK]80tbuff
 	ln -s tbuff $(IDIR_SIGRAND_TBUFF)/etc/init.d/S80tbuff
 	ln -s tbuff $(IDIR_SIGRAND_TBUFF)/etc/init.d/K80tbuff
 	$(RSTRIP) $(IDIR_SIGRAND_TBUFF)/sbin/*
