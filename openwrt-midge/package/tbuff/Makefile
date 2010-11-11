@@ -20,9 +20,12 @@ $(PKG_BUILD_DIR)/.prepared:
 $(PKG_BUILD_DIR)/.configured:
 	touch $@
 
+KDB_DIR   = $(TOPDIR)/package/kdb
+KDB_FLAGS = -DSHELL -I$(KDB_DIR)
+
 $(PKG_BUILD_DIR)/.built:
-	$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/tbuffd   -DSHELL tbuffd.c   kdb.c md5.c remove_esc.c
-	$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/tbuffctl -DSHELL tbuffctl.c kdb.c md5.c
+	$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/tbuffd   tbuffd.c   $(KDB_FLAGS) $(KDB_DIR)/kdb.c $(KDB_DIR)/md5.c remove_esc.c
+	$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/tbuffctl tbuffctl.c $(KDB_FLAGS) $(KDB_DIR)/kdb.c $(KDB_DIR)/md5.c
 	touch $@
 
 $(IPKG_SIGRAND_TBUFF):
