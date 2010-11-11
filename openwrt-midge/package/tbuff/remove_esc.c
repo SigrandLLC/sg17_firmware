@@ -3,7 +3,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-					
+
 #include "tbuffd.h"
 
 #define ESC 27
@@ -137,7 +137,7 @@ int out(int ch, struct port *p)
   int f;
   unsigned char c;
   int go_on = 0;
-  
+
 //  printf("ch = %x p->esc_s = %i\n", ch, p->esc_s);
   if (!ch)
     return 1;

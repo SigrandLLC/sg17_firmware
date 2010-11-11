@@ -21,7 +21,7 @@ int read_form_port (void)
 {
 	int ret, buf_size, i;
 	char *opt, *buf, r[10];
-	
+
 	// read buf_size from kdb
 	kdbinit();
 	ret = kdb_appget("sys_demon_buf_size", &opt);
@@ -36,7 +36,7 @@ int read_form_port (void)
 	if ((size == 0)||(size > buf_size)) size = buf_size;
 
 //	printf(">>Debug: opt: [%s]\n", opt);
-	
+
 	sprintf(r, "r;%i;%i", port, size);
 	ret = write(sock, r, strlen(r)+1);
 //	printf(">>Debug: we write to socket %i byte\n", ret);
@@ -45,7 +45,7 @@ int read_form_port (void)
 		printf("Error: cannot write data in socket");
 		exit(-1);
 	}
-	
+
 	buf = malloc(buf_size);
 	if (!buf)
 	{
@@ -53,7 +53,7 @@ int read_form_port (void)
 		exit(-1);
 	}
 	ret = read(sock, buf, buf_size);
-	
+
 	if (ret == -1)
 	{
 		printf("Error: cannot read from socket, %s\n", strerror(errno));
@@ -73,8 +73,8 @@ int read_form_port (void)
 	} else {
 //		printf("Debug: buff is empty\n")
 	}
-	
-	
+
+
 	return 0;
 }
 
@@ -84,7 +84,7 @@ int write_in_port (char * d)
 	char str[MAX_DATA];
 	sprintf(str, "w;%i;%s;%i;", port, d, strlen(d));
 //	printf(">>Debug: str = [%s]\n", str);
-	
+
 	if (write(sock, str, strlen(str)) != (strlen(str)))
 	{
 		printf("Error: cannot write in socket\n");
@@ -114,7 +114,7 @@ int write_in_port_t (char * d)
 	char str[MAX_DATA];
 	sprintf(str, "t;%i;%s;%i;", port, d, strlen(d) + 1);
 //	printf(">>Debug: str = [%s]\n", str);
-	
+
 	if (write(sock, str, strlen(str)) != (strlen(str)))
 	{
 		printf("Error: cannot write in socket\n");
@@ -140,7 +140,7 @@ int write_in_port_ch (unsigned char ch)
 	int i = 0;
 	char str[MAX_DATA];
 	sprintf(str, "c;%i;%c;%i;", port, ch, 1);
-	
+
 	if (write(sock, str, strlen(str)) != (strlen(str)))
 	{
 		printf("Error: cannot write in socket\n");
@@ -183,7 +183,7 @@ int write_in_port_d ()
 	int i = 0;
 	char str[MAX_DATA];
 	sprintf(str, "d;%i;\b;%i;", port, 100);
-	
+
 	if (write(sock, str, strlen(str)) != (strlen(str)))
 	{
 		printf("Error: cannot write in socket\n");
@@ -234,7 +234,7 @@ int read_from_all_ports()
 	gettimeofday(&tv2, NULL);
 //	printf("time1 = %.6f sec.\n", (tv2.tv_sec * 1E6 + tv2.tv_usec - tv1.tv_sec * 1E6 - tv1.tv_usec) / 1E6);
 
-	
+
 	FD_ZERO(&ready);
 	FD_SET(sock, &ready);
 	tv.tv_sec = 0;
@@ -269,7 +269,7 @@ int main (int argc, char ** argv)
 	char action;
 	char data[1000];
 	struct sockaddr saddr;
-	
+
 	if (argc < 2)
 	{
 //		printf("%s\n", getenv("REQUEST_METHOD"));
@@ -323,7 +323,7 @@ int main (int argc, char ** argv)
 	if (argc == 4) strcpy(data, argv[3]);
 
 doo:
-	
+
 	sock = socket(PF_UNIX, SOCK_STREAM, 0);
 	if (!sock)
 	{
@@ -353,7 +353,7 @@ doo:
 				printf("Error: cannot write data in port\n");
 				exit(-1);
 			}
-			
+
 		break;
 		case 'a':
 			if (read_from_all_ports())
@@ -380,9 +380,9 @@ doo:
 			write_in_port_d();
 		break;
 
-		
+
 	}
-	
+
 	close(sock);
 
 	gettimeofday(&tv2, NULL);

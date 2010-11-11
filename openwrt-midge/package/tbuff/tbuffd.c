@@ -21,7 +21,7 @@ int init_port(char * port_name)
 	char *opt;
 	int ret;
 	struct termios pts;
-	
+
 	i = 0;
 	while (port_name[i] != 0)
 	{
@@ -36,18 +36,18 @@ int init_port(char * port_name)
 		n = port_name[i - 1] - '0';
 	}
 	// in n now we have number of port
-	
+
 	ports[n].fd =  open(file_name, O_RDWR);
 	tcgetattr(ports[n].fd, &pts);
 	memcpy(&ports[n].pots, &pts, sizeof(ports[n].pots));
-	
+
 	/* some things we want to set arbitrarily */
-	pts.c_lflag &= ~ICANON; 
+	pts.c_lflag &= ~ICANON;
 	pts.c_lflag &= ~(ECHO | ECHOCTL | ECHONL);
 	pts.c_cflag |= HUPCL;
 	pts.c_cc[VMIN] = 1;
 	pts.c_cc[VTIME] = 0;
-	
+
 	/* Standard CR/LF handling: this is a dumb terminal.
 	* Do no translation:
 	*  no NL -> CR/NL mapping on output, and
@@ -72,12 +72,12 @@ int load_params ()
 {
 	char *opt;
 	int i, j;
-	
+
 	kdbinit();
 	kdb_appget("sys_demon_buf_size", &opt);
 	buf_size = atoi(opt);
 	kdb_appget("sys_demon_iface_name", &opt);
-	
+
 	i = 0;
 	while (1)
 	{
@@ -86,7 +86,7 @@ int load_params ()
 	}
 	opt[i] = 0;
 	strcpy(iface_name, opt);
-	
+
 	for (i = 0; i < MAX_PORTS; i++)
 	{
 		char tstr[50];
@@ -108,7 +108,7 @@ int read_from_sockets(fd_set ready)
 {
 	int i, p, k, n, w, cnt, ii, po, j;
 	char * tstr, *tbuff;
-// read data from sockets		
+// read data from sockets
 		for (i = 0; i < NUM_SOCK; i++)
 		{
 			if ((sockets[i] > 0) && (FD_ISSET(sockets[i], &ready)))
@@ -133,7 +133,7 @@ int read_from_sockets(fd_set ready)
 							while (rq[k] != ';') k++;
 							n = atoi(&rq[k + 1]);
 							k = 0; w = ports[p].tbuf;
-/////////////////							
+/////////////////
 							if (ports[p].tbuf == ports[p].hbuf)
 							{
 								tstr[0] = -1;
@@ -185,7 +185,7 @@ int read_from_sockets(fd_set ready)
 							rq[k] = 0;
 							k++;
 							n = atoi(&rq[k]) - 1;
-							
+
 							strcpy(ports[p].cmd, &rq[w]);
 							r = strlen(ports[p].cmd);
 							ports[p].cmd[r] = 13;
@@ -248,7 +248,7 @@ int read_from_sockets(fd_set ready)
 //							fprintf(log_file, "]\n");
 //							fflush(log_file);
 							if (v) printf("]\n");
-							
+
 //							sprintf(rq, "OK");
 //							r = write(sockets[i], rq, 3);
 						} else {
@@ -273,7 +273,7 @@ int read_from_sockets(fd_set ready)
 							rq[k] = 0;
 							k++;
 							n = atoi(&rq[k]) - 1;
-							
+
 							r = write(ports[p].fd, &rq[w], n); // n + 1
 							char ch = '\t';
 							write(ports[p].fd, &ch, 1);
@@ -293,7 +293,7 @@ int read_from_sockets(fd_set ready)
 //							rq[10] = 0x23;
 //							rq[11] = 0x20;
 //							write(ports[p].fd, rq, 4);
-							
+
 							sprintf(rq, "OK");
 							r = write(sockets[i], rq, 3);
 						} else {
@@ -313,7 +313,7 @@ int read_from_sockets(fd_set ready)
 							struct timeval tv;
 							tv.tv_sec = 0;
 							tv.tv_usec = 300000;
-							
+
 							gettimeofday(&tv2, NULL);
 							p = atoi(&rq[2]);
 							k = 2;
@@ -324,9 +324,9 @@ int read_from_sockets(fd_set ready)
 							rq[k] = 0;
 							k++;
 							n = atoi(&rq[k]) - 1;
-							
+
 							r = write(ports[p].fd, &rq[w], 1);
-							
+
 							k = 0;
 							tstr = malloc(buf_size+100);
 							if (ports[p].tbuf != ports[p].hbuf)
@@ -417,8 +417,8 @@ int read_from_sockets(fd_set ready)
 							rq[k] = 0;
 							k++;
 							n = atoi(&rq[k]) - 1;
-							
-							
+
+
 							for (k = 0; k < 100; k++)
 							{
 								rq[0] = '\b';
@@ -498,7 +498,7 @@ int read_from_sockets(fd_set ready)
 												tbuff[cnt] = '\'';
 												cnt++;
 											break;
-											
+
 										}
 										ports[j].tbuf++;
 										if (ports[j].tbuf == buf_size)
@@ -529,7 +529,7 @@ int read_from_sockets(fd_set ready)
 						tbuff[cnt] = 0;
 
 						write(sockets[i], tbuff, cnt);
-						
+
 						free(tbuff);
 						close(sockets[i]);
 						sockets[i] = 0;
@@ -540,7 +540,7 @@ int read_from_sockets(fd_set ready)
 				}
 			}
 		}
-	
+
 }
 
 void buff_add(struct port * p, char c)
@@ -555,7 +555,7 @@ void buff_add(struct port * p, char c)
 	{
 		p->tbuf++;
 		if (p->tbuf == buf_size) p->tbuf = 0;
-	}	
+	}
 }
 
 int loop()
@@ -567,7 +567,7 @@ int loop()
 	struct timeval tv;
 	tv.tv_sec = 1;
 	tv.tv_usec = 0;
-	
+
 	socklen_t sl = sizeof(saddr_out);
 
 
@@ -583,7 +583,7 @@ int loop()
 
 		FD_SET(sock, &ready);
 		maxfd = sock;
-	
+
 		for (i = 0; i < MAX_PORTS; i++)
 		{
 			if (ports[i].fd > maxfd) maxfd = ports[i].fd;
@@ -599,13 +599,13 @@ int loop()
 //		tv.tv_usec = 0;
 
 		select(maxfd + 1, &ready, NULL, NULL, &tv);
-		
+
 		tv.tv_sec = 1;
 		tv.tv_usec = 0;
 		gettimeofday(&tv2, NULL);
-		
-		
-		
+
+
+
 		s = -1;
 		s = accept(sock, &saddr_out, &sl);
 		while ((s != EAGAIN) && (s > 0))
@@ -629,7 +629,7 @@ int loop()
 		}
 
 		read_from_sockets(ready);
-		
+
 		//read data from device on ports
 		for (i = 0; i < MAX_PORTS; i++)
 		{
@@ -687,7 +687,7 @@ int loop()
 					for (; qw < rb; qw++)
 					{
 							char a = tbuf[qw];
-							
+
 							if (v) printf("%x", tbuf[qw]);
 							if ((v) && ((a >= '0') && (a <= '9') || (a >= 'a') && (a <= 'z') || (a >= 'A') && (a <= 'Z') || (a == '_')))
 							if (v) printf("[%c]", a);
@@ -788,7 +788,7 @@ int main (int argc, char **argv)
 {
 	pid_t pid, i;
 	struct sigaction sa;
-	
+
 	lock_file = open("/var/run/tbuffd.pid", O_CREAT | O_EXCL | O_RDWR, S_IRWXU | S_IRWXG | S_IRWXO);
 	if (lock_file == -1)
 	{
@@ -809,7 +809,7 @@ ulink:
 		unlink("/tmp/socket");
 		lock_file = open("/var/run/tbuffd.pid", O_CREAT | O_EXCL | O_RDWR);
 	}
-	
+
 //	log_file = fopen("/root/log", "w+");
 //	fprintf(log_file, "demon started-----------------\n");
 //	fflush(log_file);
@@ -827,7 +827,7 @@ ulink:
 		load_params();
 		init_socket();
 		loop();
-		
+
 	} else {
 		pid = fork();
 		if (pid == 0)
