@@ -1,4 +1,4 @@
-Content-type: text/plain; charset=koi8-r
+<meta http-equiv="Content-Type" content="text/html; charset=KOI8-R">
 
 выпуск	описание основных изменений
 ------	----------------------------------------------------------------
@@ -10,37 +10,44 @@ Content-type: text/plain; charset=koi8-r
 	* DSLAM: мелкие исправления
 
 1-2000
-	* WEB:	Исправлена ошибка: при удалении slave интерфейса из bridge/bonding
-		slave интерфейс не восстанавливает своих прежних настроек -
-		метода назначения адреса, флагов auto, enabled.
+	* WEB:	Исправлена ошибка: при удалении slave интерфейса из
+		bridge/bonding slave интерфейс не восстанавливает своих
+		прежних настроек - метода назначения адреса,
+		флагов auto, enabled.
 		Задача 54.
 
 1-1990
 	* WEB:	Исправлена ошибка: удаление или добавление динамического
 		интерфейса (bridge, bonding, vlan) приводило к многократному
 		повторению физических интерфейсов e1, dsl в списке
-		System/Info/Hardware information. Задача 18.
+		System/Info/Hardware information.
+		Задача 18.
 
 1-1987
 	* WEB:	Исправлена ошибка отнесения интерфейса VLAN с более чем
 		1 цифрами в VLAN id к составным интерфейсам (bridge, bonding)
-		при совпадении подстрок имён интерфейсов. Задача 56.
+		при совпадении подстрок имён интерфейсов.
+		Задача 56.
 
 1-1985
-	* WEB:	Свойство сетевого интерфейса "depend on" удалено как ненужное. Задача 61.
+	* WEB:	Свойство сетевого интерфейса "depend on" удалено как ненужное.
+		Задача 61.
 
 1-1980
 	* Сообщение ядра "Altera firmware load fail" заменено на
-	 "Altera firmware load: fail or device not present". Задача 90.
+		"Altera firmware load: fail or device not present".
+		Задача 90.
 
 1-1968
 	* DSLAM: добавлен
 	* WEB:	удалён Zeroconf из методов конфигурации интерфейсов
-	* WEB:	удалёна вкладка Services/DHCP, дублирующая Network/Static/iface/DHCP
-	* WEB:	изменён список "DHCP/Default lease time" на 1,6,24 hours, week, month
+	* WEB:	удалёна вкладка Services/DHCP, дублирующая
+		Network/Static/iface/DHCP
+	* WEB:	изменён список "DHCP/Default lease time" на 1,6,24 hours,
+		week, month
 
 1-1957
-	* microcom: исправлена проблема с zelax GM
+	* microcom: исправлена проблема с Zelax GM
 
 1-1953
 	* adm5120sw: правильная индикация состояния eth0-eth3
