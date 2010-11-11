@@ -674,6 +674,23 @@ int get(const char *key)
 	return true;
 }
 
+int kdb_appget(const char *key,char **ptr)
+{
+	int i,cnt = 0;
+	static char buf[512];
+    db_read();
+
+//printf("KDB: buf=%p\n",buf);
+	WILDCARD_LOOP(i, key){
+		if( !cnt ){
+			snprintf(buf,512,"%s",db_lines[i].value);
+		}
+		cnt++;
+	}
+	*ptr = buf;
+	return cnt;
+}
+
 int isset(const char *key)
 {
     db_read();
