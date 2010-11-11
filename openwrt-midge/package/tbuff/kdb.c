@@ -1100,10 +1100,12 @@ int main(int argc, char **argv)
 
 	debug("result=%d, need_write=%d\n", result, need_write);
     if (result && need_write)
+       /* write KDB and generate MD5 */
 		db_write(1);
 	db_close();
 	return !result;
 }
+
 
 
 
