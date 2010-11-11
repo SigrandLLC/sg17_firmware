@@ -1,4 +1,4 @@
-/*************************************************************************** 
+/***************************************************************************
  *
  * Copyright (c) 2005,2007    Vladislav Moskovets (webface-dev(at)vlad.org.ua)
  *
@@ -18,7 +18,7 @@
  *
  *************************************************************************** */
 
-/* TODO: 
+/* TODO:
  *	* multiline import (export)
  *	* raw block partition support for storage
  *	* types
@@ -60,7 +60,7 @@
 #define FUNLOCK(f) flock(fileno(f), LOCK_UN);
 
 #define WILDCARD_LOOP(i, iname) for( i=0; i < db_lines_count; i++ ) \
-								if ( match_wildcard(iname, db_lines[i].name) )
+					if ( match_wildcard(iname, db_lines[i].name) )
 
 char *str_escape(const char *source);
 char *str_unescape(const char *source);
@@ -114,7 +114,7 @@ inline void warn(char* format, ...){}
 void show_usage(char *name)
 {
     printf("Usage: %s [OPTIONS] ARG [: ARG] \n", name);
-	printf("where  OPTIONS:= l|q|qq|e|c\n");
+    printf("where  OPTIONS:= l|q|qq|e|c\n");
     printf("       ARG := { set pattern=value |\n");
     printf("        rm pattern | del pattern |\n");
     printf("        isset key |\n");
@@ -132,15 +132,15 @@ void show_usage(char *name)
 
 char *get_dbfilename()
 {
-	if(strlen(db_filename))
-		return db_filename;
+    if(strlen(db_filename))
+	return db_filename;
 
     if (getenv("KDB"))
-        strcpy(db_filename, getenv("KDB"));
+	strcpy(db_filename, getenv("KDB"));
     else if(!getuid())
-        strcpy(db_filename, "/etc/kdb");
-    else 
-        sprintf(db_filename, "%s/.kdb", getenv("HOME"));
+	strcpy(db_filename, "/etc/kdb");
+    else
+	sprintf(db_filename, "%s/.kdb", getenv("HOME"));
 
     return  db_filename;
 }
@@ -181,17 +181,17 @@ int db_close()
 
 int kdbinit()
 {
-	db_already_readed=0;
+    db_already_readed=0;
     db_lines_count=0;
     quotation=0;
-	make_export=0;
-	make_local=0;
-	need_print_count=0;
+    make_export=0;
+    make_local=0;
+    need_print_count=0;
     need_write=false;
     int i;
-	db_filename[0]='\0';
+    db_filename[0]='\0';
     for(i=0; i<MAX_LINES; i++)
-        db_lines[i].name=NULL, db_lines[i].value=NULL;
+	db_lines[i].name=NULL, db_lines[i].value=NULL;
 
     return 0;
 }
@@ -216,17 +216,17 @@ int parse_pair(const char* str, char* name, char* value)
 {
     int len = strlen(str);
     if (!len)
-        return false;
+	return false;
     char s[len+10];
 
     strcpy(s, str);
-	if (s[len-1]=='\n')
-		s[len-1]='\0';
+    if (s[len-1]=='\n')
+	s[len-1]='\0';
 
     char *eq=strchr(s, '=');
     if (!eq || eq==s) {
-        syslog(LOG_ERR, "Error: can't parse: %s", s);
-        return false;
+	syslog(LOG_ERR, "Error: can't parse: %s", s);
+	return false;
     }
     eq[0]='\0';
     strcpy(name, s );
@@ -238,8 +238,8 @@ int parse_pair(const char* str, char* name, char* value)
 int parse_header(char *header)
 {
     if (strncmp(HEADER_LINE, header, 3)){
-        syslog(LOG_ERR, "bad file format\n");
-        return false;
+	syslog(LOG_ERR, "bad file format\n");
+	return false;
     }
 
     return true;
@@ -248,9 +248,9 @@ int parse_header(char *header)
 int db_unserialize(const char *buf)
 {
 	int len=strlen(buf);
-    char name[len+10], value[len+10];
+	char name[len+10], value[len+10];
 	debug("DEBUG: db_unserialize ('%s')\n", buf);
-	if ( parse_pair(buf, name, value) ) 
+	if ( parse_pair(buf, name, value) )
 		return db_add(str_unescape(name), str_unescape(value), false);
 	else
 		return false;
@@ -271,8 +271,8 @@ int db_serialize(int index, char *buf)
 
 int db_read()
 {
-    int result=true;
-    char *buf=NULL;
+	int result=true;
+	char *buf=NULL;
 	char *pointer=NULL;
 	char head_buf[sizeof(HEADER_LINE)+10];
 
@@ -292,13 +292,13 @@ int db_read()
 	}
 
 	// check header
-    if (! parse_header(head_buf) )
-        return false;
+	if (! parse_header(head_buf) )
+		return false;
 
-    if (! (buf=(char*) calloc(READ_BUFFER_LEN, 1)) ) {
-        perror("calloc");
-        return false;
-    }
+	if (! (buf=(char*) calloc(READ_BUFFER_LEN, 1)) ) {
+		perror("calloc");
+		return false;
+	}
 
 	while ( result=fgets(buf, READ_BUFFER_LEN, db_file) && result != EOF ) {
 		if ( ! strncmp(buf, FOOTER_LINE, sizeof(FOOTER_LINE)) )
@@ -309,16 +309,16 @@ int db_read()
 
 	db_already_readed = true;
 
-    if (buf)
-        free(buf);
-    return true;
+	if (buf)
+		free(buf);
+	return true;
 }
 
 
 int sort_func(const void *pa, const void *pb){
 	_db_record *a=(_db_record*)pa;
 	_db_record *b=(_db_record*)pb;
-	
+
 	debug("DEBUG: sort() compare '%s' and '%s'\n", a->name, b->name);
 	return strcmp(a->name, b->name);
 }
@@ -336,7 +336,7 @@ inline int print_pair(const char* name, const char* value)
 		prefix="export ";
 	//debug("DEBUG: print_pair(): %s%s=%s\n", prefix, name, value);
 	switch(quotation) {
-		case 0: 
+		case 0:
 			if (name)
 				printf("%s%s=%s\n", prefix, name, value);
 			else
@@ -356,7 +356,7 @@ inline int print_pair(const char* name, const char* value)
 			break;
 	}
 
-    return true;
+	return true;
 }
 
 int db_set_index(int index, const char *name, const char *value, int dup)
@@ -390,11 +390,11 @@ int find_key(const char *key)
     int i;
 
     if ( !key )
-        return false;
+	return false;
 
-    for(i=0; i<db_lines_count; i++) 
-        if (!strcmp(key, db_lines[i].name)) 
-            return i;
+    for(i=0; i<db_lines_count; i++)
+	if (!strcmp(key, db_lines[i].name))
+	    return i;
 
     return -1;
 }
@@ -404,16 +404,16 @@ int db_set(const char *name, const char* value)
     int result=false;
     int index;
     if ( ! db_read() )
-		return false;
+	return false;
 
     index = find_key(name);
     if (index != -1) {
-        result=db_set_index(index, name, value, true);
+	result=db_set_index(index, name, value, true);
     } else {
-		result=db_add(name, value, true);
+	result=db_add(name, value, true);
     }
     if (result)
-        need_write++;
+	need_write++;
 
     return result;
 }
@@ -421,7 +421,7 @@ int db_set(const char *name, const char* value)
 int db_del_index(int index)
 {
 	int i=index;
-    if (index < 0 || index >= db_lines_count)
+	if (index < 0 || index >= db_lines_count)
 		return false;
 
 	// release memory
@@ -447,20 +447,20 @@ int db_del_index(int index)
 */
 int db_write(int md5)
 {
-    int i, len, written;
-    int result=true;
+	int i, len, written;
+	int result=true;
 	char *buf, *p, filebuf[FILE_BUF], kdb_md5[FILE_BUF];
 	size_t count;
 	struct cvs_MD5Context context;
 	unsigned char checksum[16];
 	FILE *fd;
-	
+
 	/* backup kdb and MD5 of kdb */
 	if (md5)
 	{
 		/* generate MD5 file name */
-		snprintf(kdb_md5, FILE_BUF, "%s%s", get_dbfilename(), MD5_SUFFIX);	
-		
+		snprintf(kdb_md5, FILE_BUF, "%s%s", get_dbfilename(), MD5_SUFFIX);
+
 		/* copy db file to reserve file */
 		if (copyfile(get_dbfilename(), KDB_RES) == false)
 		{
@@ -468,11 +468,11 @@ int db_write(int md5)
 			syslog(LOG_ERR, "Can't copy %s to %s", get_dbfilename(), KDB_RES);
 			return false;
 		}
-		
+
 		/* copy db MD5 file to reserve file */
 		copyfile(kdb_md5, KDB_RES_MD5);
 	}
-	
+
 	// sorts the data
 	debug("DEBUG: sorts data\n");
 	db_sort();
@@ -480,16 +480,16 @@ int db_write(int md5)
 	ftruncate(fileno(db_file), 0);
 
 	// alloc
-    if (! (buf=(char*) calloc(READ_BUFFER_LEN, 1)) ) {
-        perror("calloc");
-        return false;
-    }
+	if (! (buf=(char*) calloc(READ_BUFFER_LEN, 1)) ) {
+		perror("calloc");
+		return false;
+	}
 	p=buf;
 
 	p+=sprintf(buf, HEADER_LINE);
 
 	// write all db_lines
-    for(i=0; i<db_lines_count; i++) 
+	for(i=0; i<db_lines_count; i++)
 		p+=db_serialize(i, p);
 	// append footer
 	strcat(p, FOOTER_LINE);
@@ -498,12 +498,12 @@ int db_write(int md5)
 	debug("DEBUG: writing data to database\n");
 	fwrite(buf, 1, p-buf, db_file);
 	free(buf);
-	
+
 	if (md5)
 	{
 		/* calculate MD5 */
 		rewind(db_file);
-	
+
 		cvs_MD5Init(&context);
 		while ((count = fread(filebuf, 1, FILE_BUF, db_file)) > 0)
 			cvs_MD5Update(&context, filebuf, count);
@@ -513,7 +513,7 @@ int db_write(int md5)
 			return false;
 		}
 		cvs_MD5Final(checksum, &context);
-		
+
 		/* write MD5 */
 		fd = fopen(kdb_md5, "w");
 		if (!fd)
@@ -522,7 +522,7 @@ int db_write(int md5)
 			syslog(LOG_ERR, "fopen '%s' %s\n", kdb_md5, strerror(errno));
 			return false;
 		}
-		
+
 		for (i = 0; i < 16; i++)
 		{
 			if (fprintf(fd, "%02x", (unsigned int) checksum[i]) < 0)
@@ -538,13 +538,13 @@ int db_write(int md5)
 		}
 		fclose(fd);
 	}
-	
-    return result;
+
+	return result;
 }
 
 void print_count(int count)
 {
-    char ls_count[sizeof(COUNTS_NAME)+20];
+	char ls_count[sizeof(COUNTS_NAME)+20];
 	if (need_print_count) {
 		sprintf(ls_count, "%d", count);
 		print_pair(COUNTS_NAME, ls_count);
@@ -559,19 +559,19 @@ void print_count(int count)
 
 int import(const char *filename)
 {
-    FILE *file;
-    int result=true;
-    char buf[MAX_LINE_SIZE];
-    char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE];
-    if (!filename || (!strlen(filename)) || (!strcmp("-", filename)) )
-        file=stdin;
-    else {
-        file = fopen(filename, "r+");
-        if (!file) {
-            perror("fopen");
-            result=false;
-        };
-    };
+	FILE *file;
+	int result=true;
+	char buf[MAX_LINE_SIZE];
+	char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE];
+	if (!filename || (!strlen(filename)) || (!strcmp("-", filename)) )
+		file=stdin;
+	else {
+		file = fopen(filename, "r+");
+		if (!file) {
+			perror("fopen");
+			result=false;
+		};
+	};
 	if (! result )
 		return false;
 
@@ -579,47 +579,47 @@ int import(const char *filename)
 	db_already_readed = false;
 	if ( ! db_read() )
 		return false;
-    fclose(file);
+	fclose(file);
 
 	db_file = NULL;
 	db_open();
-	
+
 	/* write kdb and generate md5 */
 	db_write(1);
-	
+
 	need_write++;
 
-    return result;
+	return result;
 }
 
 int export(const char *filename)
 {
-    FILE *file, *tmp;
-    int result=true;
-    char buf[MAX_LINE_SIZE];
-    char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE];
-    if (!filename || (!strlen(filename)) || (!strcmp("-", filename)) )
-        file=stdout;
-    else {
-        file = fopen(filename, "w+");
-        if (!file) {
-            perror("fopen");
-            result=false;
-        };
-    };
-    if (! result )
+	FILE *file, *tmp;
+	int result=true;
+	char buf[MAX_LINE_SIZE];
+	char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE];
+	if (!filename || (!strlen(filename)) || (!strcmp("-", filename)) )
+		file=stdout;
+	else {
+		file = fopen(filename, "w+");
+		if (!file) {
+			perror("fopen");
+			result=false;
+		};
+	};
+	if (! result )
 		return false;
 
 	db_read();
 	tmp = db_file;
 	db_file = file;
-	
+
 	/* write KDB without generating MD5 */
 	db_write(0);
-	
-    fclose(file);
+
+	fclose(file);
 	db_file = tmp;
-    return true;
+	return true;
 }
 
 int edit(const char* me)
@@ -629,20 +629,20 @@ int edit(const char* me)
     char editor[255];
     char buf[255];
     if (!tmpname)
-        return false;
+	return false;
     if (getenv("EDITOR"))
-        sprintf(editor, "%s %s", getenv("EDITOR"), tmpname) ;
+	sprintf(editor, "%s %s", getenv("EDITOR"), tmpname) ;
     else
-        sprintf(editor, "vi %s", tmpname);
+	sprintf(editor, "vi %s", tmpname);
 
-    
+
     sprintf(buf, "%s export > %s", me, tmpname);
     if (system(buf))
-        return false;
-    
+	return false;
+
     if (! system(editor))  {
-        result=import(tmpname);
-        remove(tmpname);
+	result=import(tmpname);
+	remove(tmpname);
     }
 
     return result;
@@ -652,12 +652,12 @@ int rename(const char *oldkey, const char* newkey)
 {
 	db_read();
 	// first - remove newkey
-    int index = find_key(newkey);
-	if ( index != -1 ) 
+	int index = find_key(newkey);
+	if ( index != -1 )
 		db_del_index(index);
 	// replace oldkey name to new name
-    index = find_key(oldkey);
-	if ( index == -1 ) 
+	index = find_key(oldkey);
+	if ( index == -1 )
 		return false;
 	db_set_index(index, newkey, NULL, true);
 	return ++need_write;
@@ -666,9 +666,9 @@ int rename(const char *oldkey, const char* newkey)
 int get(const char *key)
 {
 	int i;
-    db_read();
+	db_read();
 
-	WILDCARD_LOOP(i, key) 
+	WILDCARD_LOOP(i, key)
 		print_pair(NULL, db_lines[i].value);
 
 	return true;
@@ -678,7 +678,7 @@ int kdb_appget(const char *key,char **ptr)
 {
 	int i,cnt = 0;
 	static char buf[512];
-    db_read();
+	db_read();
 
 //printf("KDB: buf=%p\n",buf);
 	WILDCARD_LOOP(i, key){
@@ -705,7 +705,7 @@ int set(const char *str)
 	int i;
 
 	db_read();
-	if (!parse_pair(str, iname, ivalue)) 
+	if (!parse_pair(str, iname, ivalue))
 		return false;
 
 	if (! strcmp (ivalue, ENV_STRING) ) {
@@ -734,7 +734,7 @@ int del(const char *str)
 {
 	int i=0;
 
-    db_read();
+	db_read();
 	while ( i != db_lines_count ) {
 		WILDCARD_LOOP(i, str) {
 			db_del_index(i);
@@ -755,15 +755,15 @@ int sublist(const char *key)
 
     db_read();
     for( i=0; i<db_lines_count; i++ ) {
-        if( key && len ){
-            if ( !strncmp(key, db_lines[i].name, len) ) {
-                char *s=db_lines[i].name+len;
-                print_pair(s, db_lines[i].value);
-				count++;
-            }
-        } 
+	if( key && len ){
+	    if ( !strncmp(key, db_lines[i].name, len) ) {
+		char *s=db_lines[i].name+len;
+		print_pair(s, db_lines[i].value);
+		count++;
+	    }
+	}
     }
-	print_count(count);
+    print_count(count);
 
     return result;
 }
@@ -771,13 +771,13 @@ int sublist(const char *key)
 // keylist with wildcard matching
 int keylist(const char *key)
 {
-    int i=0, count=0;
+	int i=0, count=0;
 
-    db_read();
+	db_read();
 
 	WILDCARD_LOOP(i, key) {
 		print_pair(NULL, db_lines[i].name);
-	   	count++;
+		count++;
 	}
 
 	print_count(count);
@@ -788,7 +788,7 @@ int keylist(const char *key)
 // sub sub keylist with wildcard matching
 // finds patter in 'name=value'
 // and cutoff cut_prefix and cut_suffix
-// Example: 
+// Example:
 // # kdb ls
 // sys_iface_dsl0_valid=1
 // sys_iface_dsl1_valid=0
@@ -798,43 +798,43 @@ int keylist(const char *key)
 // dsl0
 // eth0
 // eth1
-// 
+//
 int sskeylist(const char* pattern, const char *cut_prefix, const char* cut_suffix)
 {
-    int i=0, count=0;
-    int result=true;
-    int len=strlen(cut_prefix);
+	int i=0, count=0;
+	int result=true;
+	int len=strlen(cut_prefix);
 	char *tail;
 	char strbuf[MAX_LINE_SIZE];
 
-    db_read();
+	db_read();
 
-    for( i=0; i<db_lines_count; i++ ) {
-        if( len ){
+	for( i=0; i<db_lines_count; i++ ) {
+		if( len ){
 			snprintf(strbuf, sizeof(strbuf), "%s=%s", db_lines[i].name, db_lines[i].value);
 			if ( (match_wildcard(pattern, strbuf)) &&  ( !strncmp(cut_prefix, db_lines[i].name, len) ) ) {
-                char *s=db_lines[i].name+len;
+				char *s=db_lines[i].name+len;
 				strncpy(strbuf, s, sizeof(strbuf));
 				tail = strstr(strbuf, cut_suffix);
 				if (tail)
 					tail[0]='\0';
-                print_pair(NULL, strbuf);
-            }
-        } 
-    }
+				print_pair(NULL, strbuf);
+			}
+		}
+	}
 
 	return true;
 }
 
 int listrm(const char *key)
 {
-    int result=true;
-    int i, count=0, index;
-    char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE], prefix_name[MAX_LINE_SIZE], tmps[MAX_LINE_SIZE], new_name[MAX_LINE_SIZE];
+	int result=true;
+	int i, count=0, index;
+	char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE], prefix_name[MAX_LINE_SIZE], tmps[MAX_LINE_SIZE], new_name[MAX_LINE_SIZE];
 	char *s;
 	_db_record local_lines[MAX_LINES];
 	int local_lines_count=0;
-    db_read();
+	db_read();
 
 	s=strrchr(key, '_');
 	if(!s) {
@@ -842,7 +842,7 @@ int listrm(const char *key)
 	};
 	strncpy(prefix_name, key, s-key+1);
 	debug("DEBUG: prefix_name=%s\n", prefix_name);
-	
+
 	// finds all key_[0-9]+ keys, and move it to local_lines array
 	i=0;
 	while(true) {
@@ -885,7 +885,7 @@ int listrm(const char *key)
 int list_getnextindex(const char *name)
 {
 	int i, index;
-    char s[MAX_LINE_SIZE];
+	char s[MAX_LINE_SIZE];
 	for ( i=0; i < MAX_LINES; i++) {
 		snprintf(s, sizeof(s), "%s%d", name, i);
 		index=find_key(s);
@@ -896,14 +896,14 @@ int list_getnextindex(const char *name)
 }
 
 // UNFINISHED!!!
-int list_getnext(const char *str) 
+int list_getnext(const char *str)
 {
-    int result=true;
+	int result=true;
 	int i, index;
 	const int max_index=MAX_LINES/2;
-    char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE], s[MAX_LINE_SIZE];
-    db_read();
-	
+	char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE], s[MAX_LINE_SIZE];
+	db_read();
+
 	parse_pair(str, name, value);
 
 	for ( i=0; i < strlen(name); i++ )
@@ -911,7 +911,7 @@ int list_getnext(const char *str)
 			name[i]='\0';
 			break;
 		}
-	
+
 	/*
 	for ( index=0; index < max_index; index++ ) {
 		sprintf(s, "%s%d_", name, index);
@@ -926,19 +926,19 @@ int list_getnext(const char *str)
 
 int listadd(const char* str)
 {
-    int result=true;
+	int result=true;
 	int i,index;
-    char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE], s[MAX_LINE_SIZE];
-    db_read();
-	
+	char name[MAX_LINE_SIZE], value[MAX_LINE_SIZE], s[MAX_LINE_SIZE];
+	db_read();
+
 	parse_pair(str, name, value);
-	
+
 	// check for '_' at the end of string
 	if ( name[strlen(name)-1] != '_' ) {
 		syslog(LOG_ERR, "Error: key should ends with '_'\n");
 		return false;
 	};
-		
+
 	snprintf(s, sizeof(s), "%s%d", name, list_getnextindex(name));
 
 	if (! strcmp (value, ENV_STRING) ) {
@@ -960,20 +960,20 @@ int listadd(const char* str)
 // list with wildcard matching
 int list(const char *key)
 {
-    int i=0, count=0;
+	int i=0, count=0;
 	const char *wkey;
 
-	// use '*' if key is empty 
+	// use '*' if key is empty
 	if (key && key[0])
 		wkey=key;
 	else
 		wkey="*";
 
-    db_read();
+	db_read();
 
 	WILDCARD_LOOP(i, wkey) {
 		print_pair(db_lines[i].name, db_lines[i].value);
-	   	count++;
+		count++;
 	};
 
 	print_count(count);
@@ -983,7 +983,7 @@ int list(const char *key)
 
 int createdb(const char *filename)
 {
-    if (strlen(filename))
+	if (strlen(filename))
 		set_dbfilename(filename);
 
 	// create or truncate file
@@ -996,8 +996,8 @@ int createdb(const char *filename)
 
 	db_open();
 	need_write=true;
-   
-    return true;
+
+	return true;
 };
 
 #ifdef SHELL
@@ -1006,38 +1006,38 @@ int kdbcmd(int argc, char **argv)
 int main(int argc, char **argv)
 #endif
 {
-    int ch, i;
-    int result=false;
-    char cmd[MAX_LINE_SIZE];
-    char param[MAX_LINE_SIZE];
+	int ch, i;
+	int result=false;
+	char cmd[MAX_LINE_SIZE];
+	char param[MAX_LINE_SIZE];
 
-    kdbinit();
+	kdbinit();
 	optind=1;
 
-    while ((ch = getopt(argc, argv, "qlecf:")) != -1){
-        switch(ch) {
-            case 'f': set_dbfilename(optarg);
-                     break;
-            case 'q': quotation++;
-                     break;
-            case 'l': make_local++;
-                     break;
-            case 'e': make_export++;
-                     break;
-            case 'c': need_print_count++;
-                     break;
-            default: show_usage(argv[0]);
-                     break;
-        }
-    }
+	while ((ch = getopt(argc, argv, "qlecf:")) != -1){
+		switch(ch) {
+		case 'f': set_dbfilename(optarg);
+		break;
+		case 'q': quotation++;
+		break;
+		case 'l': make_local++;
+		break;
+		case 'e': make_export++;
+		break;
+		case 'c': need_print_count++;
+		break;
+		default: show_usage(argv[0]);
+		break;
+		}
+	}
 
 	openlog("kdb", LOG_PERROR, LOG_USER);
 
-    if ( argc <= optind ) 
-        show_usage(argv[0]);
+	if ( argc <= optind )
+		show_usage(argv[0]);
 
 	while(true) {
-		if ( optind >= argc ) 
+		if ( optind >= argc )
 			break;
 
 		strcpy(cmd, argv[optind]);
@@ -1076,9 +1076,9 @@ int main(int argc, char **argv)
 				result = sskeylist(param, pref, suff);
 				optind+=1;
 			} else
-				result = false; 
+				result = false;
 		}
-		
+
 		else if ( (!strcmp(cmd, "del")) || (!strcmp(cmd, "rm")) )
 			result = del(param);
 		else if ( !strcmp(cmd, "edit") )
@@ -1091,7 +1091,7 @@ int main(int argc, char **argv)
 			result = import(param);
 		else if ( !strcmp(cmd, "export") )
 			result = export(param);
-		else 
+		else
 			show_usage(argv[0]);
 		if (!result)
 			break;
@@ -1099,16 +1099,12 @@ int main(int argc, char **argv)
 	}
 
 	debug("result=%d, need_write=%d\n", result, need_write);
-    if (result && need_write)
-    	/* write KDB and generate MD5 */
+	if (result && need_write)
+		/* write KDB and generate MD5 */
 		db_write(1);
 	db_close();
 	return !result;
 }
-
-
-
-
 
 
 // copyright (c) 2003-2005 chisel <storlek@chisel.cjb.net>
@@ -1150,7 +1146,7 @@ char *str_escape(const char *source)
 			*q++ = '\\';
 			*q++ = 'v';
 			break;
-		case '\\': case '"': case '\'': 
+		case '\\': case '"': case '\'':
 			*q++ = '\\';
 			*q++ = *p;
 			break;
@@ -1246,7 +1242,7 @@ int is_wildcarded(const char *str)
 
 /* Wildcard code from ndtpd */
 /*
- * Copyright (c) 1997, 98, 2000, 01  
+ * Copyright (c) 1997, 98, 2000, 01
  *    Motoyuki Kasahara
  *    ndtpd-3.1.5
  */
@@ -1254,7 +1250,7 @@ int is_wildcarded(const char *str)
 /*
  * Do wildcard pattern matching.
  * In the pattern, the following characters have special meaning.
- * 
+ *
  *   `*'    matches any sequence of zero or more characters.
  *   '\x'   a character following a backslash is taken literally.
  *          (e.g. '\*' means an asterisk itself.)
@@ -1303,7 +1299,7 @@ int copyfile(const char *src, const char *dst)
 	fd_src = fopen(src, "r");
 	if (!fd_src)
 		return false;
-	
+
 	/* open destination file for W */
 	fd_dst = fopen(dst, "w");
 	if (!fd_dst)
@@ -1311,7 +1307,7 @@ int copyfile(const char *src, const char *dst)
 		fclose(fd_src);
 		return false;
 	}
-	
+
 	/* copy file */
 	while (count = fread(buf, 1, FILE_BUF, fd_src))
 	{
@@ -1321,20 +1317,20 @@ int copyfile(const char *src, const char *dst)
 			fclose(fd_src);
 			return false;
 		}
-		
+
 		if (fwrite(buf, 1, count, fd_dst) != count)
 		{
 			fclose(fd_src);
 			fclose(fd_dst);
 			return false;
 		}
-		
+
 		if (feof(fd_src))
-			break;		
+			break;
 	}
-	
+
 	fclose(fd_src);
 	fclose(fd_dst);
-	
+
 	return true;
 }

@@ -142,13 +142,13 @@ _rename(){
 	[ "`$kdb ls name2`" = "name2=value1" ] || return 1
 	[ "`$kdb ls name1`" = "" ] || return 1
 }
-	
+
 
 kdbdefault(){
 	tmp1=`tempfile`
 	tmp2=`tempfile`
 	[ -r files/etc/kdb.default ] || return 0
-	cp files/etc/kdb.default $KDB 
+	cp files/etc/kdb.default $KDB
 	$kdb export >$tmp1
 	$kdb set sys_iface_eth0_mac=00:01:02:03:04:05
 	[ "`$kdb ls sys_iface_eth0_mac`" = "sys_iface_eth0_mac=00:01:02:03:04:05" ] || return 1
@@ -177,8 +177,8 @@ stress() {
 	$kdb ls >$tmp1
 	str=""
 	for i in `seq 0 50`; do
-		for i in $(seq 0 $(($RANDOM%100))); do 
-			str="$str : set sys_name5_${i}_$RANDOM=value_${RANDOM} "; 
+		for i in $(seq 0 $(($RANDOM%100))); do
+			str="$str : set sys_name5_${i}_$RANDOM=value_${RANDOM} ";
 		done
 		$kdb $str
 	done
@@ -201,13 +201,13 @@ stress() {
 [ -x $kdb ] || { echo "$kdb not found"; exit 1; }
 
 t create
-t _set 
-t list 
-t kls 
-t get 
+t _set
+t list
+t kls
+t get
 t isset
-t _rm 
-t sls 
+t _rm
+t sls
 t lrm
 t ladd
 t import
