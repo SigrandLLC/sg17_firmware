@@ -999,7 +999,7 @@ int createdb(const char *filename)
 
     return true;
 };
-/*
+
 #ifdef SHELL
 int kdbcmd(int argc, char **argv)
 #else
@@ -1104,7 +1104,6 @@ int main(int argc, char **argv)
 	db_close();
 	return !result;
 }
-*/
 
 
 

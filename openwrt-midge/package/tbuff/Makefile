@@ -21,8 +21,8 @@ $(PKG_BUILD_DIR)/.configured:
 	touch $@
 
 $(PKG_BUILD_DIR)/.built:
-	$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/tbuffd tbuffd.c kdb.c md5.c remove_esc.c
-	$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/tbuffctl tbuffctl.c kdb.c md5.c
+	$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/tbuffd   -DSHELL tbuffd.c   kdb.c md5.c remove_esc.c
+	$(TARGET_CC) $(TARGET_CFLAGS) -o $(PKG_BUILD_DIR)/tbuffctl -DSHELL tbuffctl.c kdb.c md5.c
 	touch $@
 
 $(IPKG_SIGRAND_TBUFF):
