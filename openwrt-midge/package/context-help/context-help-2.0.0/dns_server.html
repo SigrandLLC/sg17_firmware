@@ -1,0 +1,109 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Сервер DNS</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="dhcp_server.html" title="Глава 9. Настройка сетевых служб"><link rel="prev" href="dhcp_server.html" title="Глава 9. Настройка сетевых служб"><link rel="next" href="voip.html" title="Глава 10. VoIP"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Сервер DNS</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="dhcp_server.html">Пред.</a> </td><th width="60%" align="center">Глава 9. Настройка сетевых служб</th><td width="20%" align="right"> <a accesskey="n" href="voip.html">След.</a></td></tr></table><hr></div><div class="section" title="Сервер DNS"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="dns_server"></a>Сервер DNS</h2></div></div></div><p>
+                Сервер DNS отвечает за преобразование доменного имени в
+                IP-адрес. Его настройка осуществляется на странице Services/DNS
+                server.
+            </p><div class="figure"><a name="id2669516"></a><p class="title"><b>Рисунок 9.4. Настройка сервера DNS</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-dns_server.png" width="540" alt="Настройка сервера DNS"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                        <span class="emphasis"><em>Enable DNS server</em></span>
+                        — активировать сервер DNS.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Forwarder DNS 1</em></span>
+                        — сервер DNS №1, к которому следует перенаправлять запросы в
+                        случае, если локальный сервер DNS не может дать ответ.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Forwarder DNS 2</em></span>
+                        — сервер DNS №2, к которому следует перенаправлять запросы в
+                        случае, если локальный сервер DNS не может дать ответ.
+                    </p></li></ul></div><p>
+                Данный сервер DNS может выступать в роли авторитетного сервера
+                для домена, т.е. хранить информацию о записях (NS, A, CNAME, ...)
+                домена. Для этого необходимо создать файл зоны, в котором хранится
+                информация о домене и его записях. Список зон сервера DNS
+                отображается на вкладке Zones.
+            </p><div class="figure"><a name="dns_server.dns_zones"></a><p class="title"><b>Рисунок 9.5. Зоны сервера DNS</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-dns_server-zones.png" width="540" alt="Зоны сервера DNS"></td></tr></table></div></div></div><br class="figure-break"><p>
+                Создание и редактирование файла зоны выполняется на вкладке Zones
+                с помощью соответствующих кнопок.
+            </p><div class="figure"><a name="dns_server.zone_add"></a><p class="title"><b>Рисунок 9.6. Добавление зоны</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-dns_server-add-zone.png" width="540" alt="Добавление зоны"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                        <span class="emphasis"><em>Zone id</em></span>
+                        — идентификатор зоны (этим идентификатором называется файл, в
+                        котором хранится зона). Этот параметр указывается при создании зоны,
+                        затем его нельзя изменить.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Enable</em></span> — активна ли зона.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Serial</em></span> — серийный номер зоны. При каждом изменении
+                        файла зоны необходимо увеличивать серийный номер, чтобы сервера DNS
+                        могли видеть, что в зоне произошли изменения. В этом поле удобно использовать
+                        дату редактирования в формате ГодМесяцЧисло плюс 2-х значное число,
+                        указывающее на номер редакции в этот день.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Zone</em></span>
+                        — имя зоны (доменное имя, для которого создаётся зона).
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Name server</em></span> — авторитетный сервер DNS для домена.
+                        Если в этом поле указывается полное доменное имя сервера, то оно должно
+                        оканчиваться точкой: <span class="emphasis"><em>ns.testdomain.org.</em></span>, в
+                        противном случае к нему будет добавлено имя текущей зоны.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Admin</em></span>
+                        — адрес электронной почты администратора зоны.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Refresh</em></span>
+                        — время, через которые ведомые сервера DNS (slave) будут обновлять
+                        зону.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>TTL</em></span>
+                        — время, которое запись зоны может храниться в кэше.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Retry</em></span>
+                        — время, через которое ведомый сервер в случае неудачи повторит
+                        попытку обновить зону.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Expire</em></span>
+                        — время, через которое информация о зоне перестаёт считаться
+                        действительной.
+                    </p></li></ul></div><p>
+                После добавления зоны соответствующая запись появится в таблице зон.
+            </p><p>
+                Переход на страницу добавления записей в зону осуществляется
+                щелчком мыши по идентификатору зоны, который отображается подчёркнутым. В результате
+                откроется страница с таблицей, содержащей записи для данной зоны.
+                Форма добавления новой записи представлена ниже.
+            </p><div class="figure"><a name="dns_server.zone_record_add"></a><p class="title"><b>Рисунок 9.7. Добавление записи в зону</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-dns_server-record-add.png" width="540" alt="Добавление записи в зону"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                        <span class="emphasis"><em>Type of record</em></span>
+                        — тип записи. Возможны следующие значения:
+                    </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+                                <span class="emphasis"><em>A</em></span>
+                                — указывает IP-адрес, соответствующий имени.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>CNAME</em></span>
+                                — синоним другого имени. В этом случае в качестве DATA
+                                указывается соответствующее имя.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>MX</em></span>
+                                — имя почтового сервера для данного домена. При выборе этого типа
+                                записи доступен дополнительный параметр.
+                            </p><div class="itemizedlist"><ul class="itemizedlist" type="square"><li class="listitem"><p>
+				                        <span class="emphasis"><em>Priority</em></span> — приоритет для записи MX.
+				                    </p></li></ul></div></li><li class="listitem"><p>
+                                <span class="emphasis"><em>NS</em></span>
+                                — указывает авторитетный сервер DNS для домена (по сути —
+                                делегирование домена).
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>PTR</em></span>
+                                — указывает имя для данного IP-адреса. Используется в обратной зоне.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>TXT</em></span>
+                                — дополнительная текстовая информация.
+                            </p></li></ul></div></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Domain or host</em></span>
+                        — имя домена (или IP-адрес, если зона обратная).
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Data</em></span>
+                        — данные записи — доменное имя или IP-адрес, либо какая-то
+                        текстовая информация.
+                    </p></li></ul></div><p>
+                После сохранения в таблице будет показана новая запись для зоны.
+            </p><div class="figure"><a name="id2670049"></a><p class="title"><b>Рисунок 9.8. Таблица записей для зоны</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-dns_server-records.png" width="540" alt="Таблица записей для зоны"></td></tr></table></div></div></div><br class="figure-break"><p>
+                Для возврата к списку зон следует нажать на кнопку
+                <span class="emphasis"><em>Back to list of zones</em></span>.
+            </p></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="dhcp_server.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="dhcp_server.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="voip.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Глава 9. Настройка сетевых служб </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Глава 10. VoIP</td></tr></table></div></body></html>

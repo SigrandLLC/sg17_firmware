@@ -1,0 +1,106 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Интерфейс E1</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="hardware.html" title="Глава 6. Настройка оборудования"><link rel="prev" href="hw.shdsl.details.tcpam.sg-17.html" title="SG-17"><link rel="next" href="e1-loopback.html" title="Диагностирование соединения Е1"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Интерфейс E1</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="hw.shdsl.details.tcpam.sg-17.html">Пред.</a> </td><th width="60%" align="center">Глава 6. Настройка оборудования</th><td width="20%" align="right"> <a accesskey="n" href="e1-loopback.html">След.</a></td></tr></table><hr></div><div class="section" title="Интерфейс E1"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="e1"></a>Интерфейс E1</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="e1.html#id2664016">Настройка параметров интерфейса</a></span></dt><dt><span class="section"><a href="e1-loopback.html">Диагностирование соединения Е1</a></span></dt></dl></div><p>
+                Настройка интерфейса выполняется на странице Hardware/E1/E1_*.
+            </p><div class="important" title="Важно" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+                    Прочтите раздел про
+                    <a class="link" href="hardware.html#modules.settings" title="Принцип хранения настроек для модулей">Принцип хранения настроек для модулей</a>.
+                </p></div><div class="important" title="Важно" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+                    Если данный сетевой интерфейс относится к модулю, установленному
+                    в четвёртый слот (слот <span class="emphasis"><em>D</em></span>), то он может быть использован только для
+                    работы в режиме <span class="emphasis"><em>мультиплексирования</em></span>. Этот сетевой интерфейс не
+                    имеет возможности передавать сетевой
+                    трафик (трафик, идущий не по линиям мультиплексирования). Связано
+                    это с отсутствием поддержки DMA для данного четвёртого слота.
+                </p></div><div class="important" title="Важно" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+                    Четыре старших порта на некоторых версиях 8-и канальных модулей так же могут использоваться
+                    только в режиме <span class="emphasis"><em>мультиплексирования</em></span>. В этом случае в заголовке страницы,
+                    рядом с названием модуля, будет написано: <span class="emphasis"><em>MR17G8, multiplexing only, ...</em></span>.
+                    Это связано с техническими особенностями модуля. При этом для конфигурирования не доступны
+                    параметры, относящиеся к передаче IP трафика.
+                </p></div><div class="section" title="Настройка параметров интерфейса"><div class="titlepage"><div><div><h3 class="title"><a name="id2664016"></a>Настройка параметров интерфейса</h3></div></div></div><div class="figure"><a name="id2664022"></a><p class="title"><b>Рисунок 6.17. Настройка параметров интерфейса E1</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-e1-cfg.png" width="540" alt="Настройка параметров интерфейса E1"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                            <span class="emphasis"><em>Enable multiplexing</em></span>
+                            — включить режим мультиплексирования на этом интерфейсе. Данный параметр дублирует
+                            соответствующий параметр на странице настройки мультиплексирования.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Е1 framed mode</em></span>
+                                — включить структурированный режим, при котором канал разбивается на
+                                тайм-слоты. В этом режиме для соединения задается карта
+                                тайм-слотов, которая должна совпадать с картой на другом конце
+                                соединения. Указываемые здесь тайм-слоты используются для передачи
+                                IP трафика и не должны пересекаться с тайм-слотами, используемыми для
+                                мультиплексирования.
+                        </p><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+                                Пропускная способность одного тайм-слота составляет 64 Кбит/c.
+                            </p></div><p>
+                            При активации этого режима появляются дополнительные параметры:
+                        </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+                                    <span class="emphasis"><em>Use time slot 16</em></span>
+	                                — по умолчанию в интерфейсе Е1 зарезервированы 0 и 16 слоты,
+	                                которые могут быть использованы для служебной информации.
+	                                Активация этого параметра позволяет использовать тайм-слот 16 для
+	                                передачи данных (в режиме мультиплексирования или IP).
+                                </p></li><li class="listitem"><p>
+                                    <span class="emphasis"><em>E1 CRC4 multiframe</em></span> — включение режима CRC4.
+                                </p></li><li class="listitem"><p>
+                                    <span class="emphasis"><em>Slotmap</em></span>
+	                                — карта тайм-слотов. Тайм-слоты можно указывать через запятую или диапазоном, через дефис. 
+	                                После сохранения карта слотов может быть обновлена
+	                                драйвером, в этом случае будет изменён фон, а рядом со словом Slotamp
+	                                будет написано <span class="emphasis"><em>updated</em></span>.
+                                </p><div class="figure"><a name="id2664180"></a><p class="title"><b>Рисунок 6.18. Обновление карты тайм-слотов</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-e1-slotmap-updated.png" width="540" alt="Обновление карты тайм-слотов"></td></tr></table></div></div></div><br class="figure-break"></li></ul></div></li><li class="listitem"><p>
+                            <span class="emphasis"><em>E1 CAS multiframe</em></span>
+							(не доступен при включённом <span class="emphasis"><em>Use time slot 16</em></span>)
+							— включение режима CAS, используемого, как правило, при работе с
+							АТС оборудованием. В этом режиме тайм-слот 16 зарезервирован для
+							служебного использования.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>E1 long haul mode</em></span>
+                                — при включенном режиме long haul расстояние от маршрутизатора
+                                до подключённого к нему оборудования DTE может достигать 1600
+                                метров по кабелю сечением 0,4 мм, и 2400 по кабелю сечением 0,5
+                                мм. При отключении, эта дистанция ограничена 400 метрами.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>E1 HDB3/AMI line code</em></span>
+                            — способ кодирования сигнала на линии связи.
+                        </p><div class="important" title="Важно" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+                                Рекомендация ITU-T G.703 требует использования линейного
+                                кода HDB3!
+                            </p></div></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Local Loopback, Remote Loopback</em></span> — используется для диагностирования
+                            соединения, см. в следующем разделе.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>HDLC protocol</em></span> — протокол, используемый при передаче IP трафика.
+                            Для некоторых протоколов могут появляться дополнительные параметры:
+                        </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+                                    <span class="emphasis"><em>HDLC, ETHER-HDLC</em></span>:
+                                </p><div class="itemizedlist"><ul class="itemizedlist" type="square"><li class="listitem"><p>
+                                            <span class="emphasis"><em>Parity</em></span> — алгоритм контроля паритета.
+                                        </p></li><li class="listitem"><p>
+                                            <span class="emphasis"><em>Encoding</em></span> — алгоритм кодирования.
+                                        </p></li></ul></div></li><li class="listitem"><p>
+                                    <span class="emphasis"><em>CISCO-HDLC</em></span>:
+                                </p><div class="itemizedlist"><ul class="itemizedlist" type="square"><li class="listitem"><p>
+                                            <span class="emphasis"><em>Timeout</em></span>
+                                            — время в секундах после последнего полученного пакета
+                                            поддержания соединения, по истечению которого соединение
+                                            считается разорванным.
+                                        </p></li><li class="listitem"><p>
+                                            <span class="emphasis"><em>Interval</em></span>
+                                            — время в секундах между пакетами поддержания соединения
+                                            (keepalive packets).
+                                        </p></li></ul></div></li></ul></div></li><li class="listitem"><p>
+                            <span class="emphasis"><em>E1 external transmit clock</em></span>
+                                — использовать внешний источник тактирования. По-умолчанию
+                                используется внутренний.
+                        </p><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+                                Если для данного интерфейса включено мультиплексирование
+                                (MXEN=1), то используются параметры из таблицы
+                                мультиплексирования (CLKM, CLKR). Если мультиплексирование
+                                выключено, то используется данный параметр.
+                            </p></div></li><li class="listitem"><p>
+                            <span class="emphasis"><em>CRC</em></span> — значение контрольной суммы пакета.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Fill</em></span>
+                                — выбор байта для заполнения канала, когда нет пакетов на передачу.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Inversion</em></span> — логическое инвертирование всего потока.
+                        </p></li></ul></div></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="hw.shdsl.details.tcpam.sg-17.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="hardware.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="e1-loopback.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">SG-17 </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Диагностирование соединения Е1</td></tr></table></div></body></html>

@@ -1,0 +1,26 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Логирование событий</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="system.html" title="Глава 5. Системные настройки и информация"><link rel="prev" href="time.html" title="Синхронизация времени"><link rel="next" href="tools.html" title="Утилиты"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Логирование событий</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="time.html">Пред.</a> </td><th width="60%" align="center">Глава 5. Системные настройки и информация</th><td width="20%" align="right"> <a accesskey="n" href="tools.html">След.</a></td></tr></table><hr></div><div class="section" title="Логирование событий"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="logging"></a>Логирование событий</h2></div></div></div><p>
+				Из-за особенностей используемой встроенной памяти
+				(flash-память), системные события (логи) не сохраняются локально на
+				маршрутизаторе, а пишутся в специальный буфер, доступный для
+				просмотра через специальные утилиты (в консоли через команду logread, в веб-интерфейсе на странице
+				System/tools/syslog). Устройство имеет несколько параметров, управляющих логированием:
+			</p><div class="figure"><a name="id2660347"></a><p class="title"><b>Рисунок 5.6. Логирование</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-logging.png" width="540" alt="Логирование"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+						<span class="emphasis"><em>Kernel console priority logging</em></span>
+						— уровень приоритета системных сообщений, при котором они
+						выводятся на консоль.
+					</p></li><li class="listitem"><p>
+						<span class="emphasis"><em>Circular buffer</em></span> — размер буфера.
+					</p></li><li class="listitem"><p>
+						<span class="emphasis"><em>Enable remote syslog logging</em></span>
+						— включение логирования на удалённый syslog-сервер.
+					</p></li><li class="listitem"><p>
+						<span class="emphasis"><em>Remote syslog server</em></span>
+						— адрес удаленного syslog-сервера.
+					</p></li></ul></div><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+					При включении логирования на удалённый сервер, продолжается
+					запись событий в локальный буфер.
+				</p></div><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+					Для того, чтобы удалённый syslog-сервер принимал логи от
+					маршрутизатора, его необходимо запустить с опцией "-r".
+					Логирование производится по протоколу udp, 514 порт.
+				</p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="time.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="system.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="tools.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Синхронизация времени </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Утилиты</td></tr></table></div></body></html>

@@ -1,0 +1,214 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Интерфейс SHDSL</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="hardware.html" title="Глава 6. Настройка оборудования"><link rel="prev" href="linkdeps.html" title="Установление зависимостей между состояниями интерфейсов"><link rel="next" href="dsl-eoc.html" title="Управление интерфейсом через EOCd"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Интерфейс SHDSL</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="linkdeps.html">Пред.</a> </td><th width="60%" align="center">Глава 6. Настройка оборудования</th><td width="20%" align="right"> <a accesskey="n" href="dsl-eoc.html">След.</a></td></tr></table><hr></div><div class="section" title="Интерфейс SHDSL"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="dsl"></a>Интерфейс SHDSL</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="dsl.html#id2661131">Настройка параметров интерфейса</a></span></dt><dt><span class="section"><a href="dsl-eoc.html">Управление интерфейсом через EOCd</a></span></dt><dt><span class="section"><a href="eoc.html">Мониторинг SHDSL каналов</a></span></dt><dt><span class="section"><a href="hw.shdsl.details.tcpam.html">Особенности применения кодировок TCPAM</a></span></dt></dl></div><div class="section" title="Настройка параметров интерфейса"><div class="titlepage"><div><div><h3 class="title"><a name="id2661131"></a>Настройка параметров интерфейса</h3></div></div></div><div class="toc"><dl><dt><span class="section"><a href="dsl.html#dsl.mr16h">Маршрутизатор SG-16R</a></span></dt><dt><span class="section"><a href="dsl.html#dsl.mr17h">Маршрутизатор SG-17R</a></span></dt><dt><span class="section"><a href="dsl.html#dsl.status">Установка и статус соединения</a></span></dt></dl></div><p>
+                    Для соединения по SHDSL один маршрутизатор работает в режиме
+                    мастера (master), второй — в режиме слейва (slave). Настройка SHDSL
+                    соединения зависит от модели маршрутизатора и используемых модулей.
+                    Настройка интерфейса SHDSL выполняется на странице
+                    Hardware/SHDSL/dsl*/Settings.
+                </p><div class="section" title="Маршрутизатор SG-16R"><div class="titlepage"><div><div><h4 class="title"><a name="dsl.mr16h"></a>Маршрутизатор SG-16R</h4></div></div></div><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+                            Драйвер для SHDSL маршрутизатора SG-16R называется MR16H,
+                            его имя отображается в заголовке конфигурационного окна.
+                        </p></div><p>
+                        Маршрутизаторы SG-16R поддерживают два способа конфигурирования
+                        интерфейса SHDSL (MR16H) — <span class="emphasis"><em>local</em></span> и <span class="emphasis"><em>preact</em></span>.
+                    </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                                <span class="emphasis"><em>local</em></span>
+                                — конфигурация параметров линии связи задаётся на обоих
+                                маршрутизаторах;
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>preact</em></span>
+                                — конфигурация параметров линии связи задаётся на мастере, а
+                                слейв получает настройки при установлении соединения.
+                            </p></li></ul></div><div class="figure"><a name="id2661233"></a><p class="title"><b>Рисунок 6.3. Настройка SHDSL (MR16H)</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-shdsl-mr16h-cfg.png" width="540" alt="Настройка SHDSL (MR16H)"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                                <span class="emphasis"><em>Mode</em></span>
+                                — режим: мастер (master), слейв (slave).
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Rate</em></span>
+                                — скорость передачи, кбит/c.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Coding</em></span>
+                                — метод кодирования. Подробнее см. раздел
+                                <a class="link" href="hw.shdsl.details.tcpam.html" title="Особенности применения кодировок TCPAM">Особенности применения кодировок TCPAM</a>.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Config</em></span> — способ конфигурирования.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Annex</em></span> — выбор дополнений.
+                            </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+                                        <span class="emphasis"><em>Annex A</em></span>
+                                        — используется для совместимости с SG-16B предыдущих версий, а
+                                        так же для работы на скоростях ниже 192 и выше 5696 кбит/с (с
+                                        локальной настройкой). В режиме preact при использовании Annex
+                                        A максимальная скорость ограничена до 2304 кбит/с.
+                                    </p></li><li class="listitem"><p>
+                                        <span class="emphasis"><em>Annex B</em></span> — равноценен режиму Annex A.
+                                    </p></li><li class="listitem"><p>
+                                        <span class="emphasis"><em>Annex F</em></span>
+                                        — используется по-умолчанию. В режиме preact максимальная
+                                        скорость 5696 кбит/с, в режиме local — 6016.
+                                    </p></li></ul></div></li><li class="listitem"><p>
+                                <span class="emphasis"><em>CRC</em></span>
+                                — значение контрольной суммы пакета.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Fill</em></span>
+                                — выбор байта для заполнения канала, когда нет пакетов на
+                                передачу.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Inversion</em></span>
+                                — логическое инвертирование всего потока.
+                            </p></li></ul></div><div class="important" title="Важно" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+                            Конфигурационные параметры, за исключением параметра <span class="emphasis"><em>Mode</em></span>,
+                            на обоих устройствах должны совпадать.
+                        </p></div></div><div class="section" title="Маршрутизатор SG-17R"><div class="titlepage"><div><div><h4 class="title"><a name="dsl.mr17h"></a>Маршрутизатор SG-17R</h4></div></div></div><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+                            Драйвер для SHDSL маршрутизатора SG-17R (и модулей MR-17H*)
+                            называется MR17H, его имя отображается в заголовке
+                            конфигурационного окна.
+                        </p></div><div class="important" title="Важно" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+                            Прочтите раздел про
+                            <a class="link" href="hardware.html#modules.settings" title="Принцип хранения настроек для модулей">Принцип хранения настроек для модулей</a>.
+                        </p></div><div class="important" title="Важно" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+                            Если данный сетевой интерфейс относится к модулю, установленному
+                            в четвёртый слот (слот
+                            <span class="emphasis"><em>D</em></span>
+                            ), то он может быть использован только для работы в режиме
+                            <span class="emphasis"><em>мультиплексирования</em></span>
+                            . Этот сетевой интерфейс не имеет возможности передавать сетевой
+                            трафик (трафик, идущий не по линиям мультиплексирования). Связано
+                            это с отсутствием поддержки DMA для четвёртого слота.
+                        </p></div><p>
+                        Настройка скорости соединения (<span class="emphasis"><em>Rate</em></span>), режима синхронизации
+                        (<span class="emphasis"><em>Clock mode</em></span>), режима кодирования (<span class="emphasis"><em>Coding</em></span>),
+                        дополнений (<span class="emphasis"><em>Annex</em></span>) и снижения уровня сигнала
+                        (<span class="emphasis"><em>PBO Forced</em></span>) выполняется только на мастере, слейв получает эти
+                        настройки во время инициализации соединения. Окно конфигурирования
+                        показано ниже:
+                    </p><div class="figure"><a name="id2661568"></a><p class="title"><b>Рисунок 6.4. Настройка SHDSL (MR17H)</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-shdsl-mr17h-cfg.png" width="540" alt="Настройка SHDSL (MR17H)"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                                <span class="emphasis"><em>Enable multiplexing</em></span>
+                                — включить режим мультиплексирования на этом интерфейсе. Данный параметр дублирует
+                                соответствующий параметр на странице настройки мультиплексирования.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Control type</em></span>
+                                — режим управления интерфейсом:
+                            </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+                                        <span class="emphasis"><em>Manual</em></span>
+                                        — задание настроек со страницы конфигурирования интерфейса (с
+                                        текущей страницы).
+                                    </p></li><li class="listitem"><p>
+                                        <span class="emphasis"><em>EOCd</em></span>
+                                        — интерфейс управляется демоном EOCd. Это позволяет вести
+                                        мониторинг различных параметров интерфейса и линии связи в целом.
+                                        Подробная информация по настройке и использованию этого режима доступна в разделе
+                                        <a class="link" href="dsl-eoc.html" title="Управление интерфейсом через EOCd">Управление интерфейсом через EOCd</a>.
+                                    </p></li></ul></div></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Mode</em></span>
+                                — режим: мастер (master), слейв (slave).
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Coding</em></span>
+                                — метод кодирования. Подробнее см. раздел
+                                <a class="link" href="hw.shdsl.details.tcpam.html" title="Особенности применения кодировок TCPAM">Особенности применения кодировок TCPAM</a>.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Rate</em></span>
+                                — скорость передачи, кбит/c. В выпадающем списке приведены не
+                                все доступные скорости — для ввода произвольной скорости следует
+                                выбрать значение
+                                <span class="emphasis"><em>other</em></span>
+                                , что приведёт к появлению поля ввода. После сохранения,
+                                введённое значение будет округлено до ближайшего корректного
+                                значения скорости.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Annex</em></span>
+                                — выбор дополнений. Какие-либо рекомендации по использованию
+                                отсутствуют, оба дополнения равноценны.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Power</em></span>
+                                — включить подачу питания для регенераторов, находящихся на
+                                линии.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Clock mode</em></span>
+                                — режим синхронизации, по-умолчанию используется режим
+                                <span class="emphasis"><em>plesio</em></span>
+                                (плезиохронный). Перед выбором режима
+                                <span class="emphasis"><em>sync</em></span>
+                                (синхронного) следует удостовериться, что всё оборудование,
+                                находящееся на линии связи (регенераторы, маршрутизаторы)
+                                поддерживают данный режим.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>PBO Forced</em></span>
+                                — снижение уровня выходного сигнала на указанное значение дБ.
+                                Используется для уменьшения влияния на оборудование, работающее
+                                по тому же кабелю. Данный параметр оказывает влияние на
+                                скорость/дальность соединения.
+                            </p><p>
+                                Понижение уровня сигнала можно производить на всех
+                                сегментах линии связи — для этого значения снижения уровня
+                                сигнала указываются через двоеточие. Например, "3:0:12" снижает
+                                уровень сигнала на участке STU-C — SRU1 на 3 дБ, на участке SRU1
+                                — SRU2 уровень сигнала не снижается, на участке SRU2 — STU-R —
+                                на 12 дБ. Если снижение задано не для всех участков, то на
+                                оставшихся понижения уровня сигнала не будет.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>AdvLink</em></span>
+                                — расширенный режим определения состояния линка. В обычном режиме линк на интерфейсе
+                                считается поднятым, когда установлено соединение между интерфейсом данного устройства и
+                                ближайшим подключённым к нему устройством, будь то регенератор или конечное устройство.
+                                Когда на линии работают регенераторы, это не всегда является верным, т.к. зачастую
+                                поднятое состояние линка на интерфейсе должно свидетельствовать об установлении связи
+                                между конечными устройствами, а не между устройством и регенератором. Для этого и 
+                                предназначен параметр <span class="emphasis"><em>AdvLink</em></span> — когда он активен, линк на
+                                интерфейсе считается поднятым только в том случае, когда установлена связь между
+                                мастером и слейвом.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>CRC</em></span>
+                                — алгоритм расчёта контрольной суммы пакета.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Fill</em></span>
+                                — выбор байта для заполнения канала, когда нет пакетов на передачу.
+                            </p></li></ul></div></div><div class="section" title="Установка и статус соединения"><div class="titlepage"><div><div><h4 class="title"><a name="dsl.status"></a>Установка и статус соединения</h4></div></div></div><p>
+                        После сохранения настроек через некоторый промежуток времени
+                        соединение будет установлено, о чем будут сигнализировать
+                        светодиоды на лицевой панели маршрутизатора. Так же информацию о
+                        состоянии соединения можно просмотреть на вкладке статуса:
+                    </p><div class="figure"><a name="id2661982"></a><p class="title"><b>Рисунок 6.5. Информация о состоянии соединения SHDSL (MR16H)</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-shdsl-mr16h-status.png" width="540" alt="Информация о состоянии соединения SHDSL (MR16H)"></td></tr></table></div></div></div><br class="figure-break"><p>
+                        Вкладка статуса для MR17H отображает более подробную
+                        информацию. Если соединение не установлено, выводится следующая
+                        информация:
+                    </p><div class="figure"><a name="id2662013"></a><p class="title"><b>Рисунок 6.6. Информация о неустановленном соединении SHDSL (MR17H)</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-shdsl-mr17h-status-offline.png" width="540" alt="Информация о неустановленном соединении SHDSL (MR17H)"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                                <span class="emphasis"><em>Link state</em></span> — состояние соединения:
+                                <span class="emphasis"><em>offline</em></span> — соединение не установлено,
+                                <span class="emphasis"><em>online</em></span> — соединение установлено.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Power balance</em></span>
+                                — баланс питания относительно земли. В норме на одном проводе
+                                +120 В, на другом — 120 В. Если перекос больше 30 В или
+                                отсутствует земля — это означает несбалансированность питания,
+                                загорается светодиод unbalanced на модуле SHDSL. Значение
+                                <span class="emphasis"><em>balanced</em></span>
+                                этого параметра соответствует нормальной работе,
+                                <span class="emphasis"><em>unbalanced</em></span>
+                                — несбалансированности питания.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Power overload</em></span>
+                                — перегрузка питания. Слишком большое число регенераторов на
+                                линии, настроенных на питание от данного маршрутизатора,
+                                вызывает перегрузку питания. На модуле SHDSL загорается
+                                светодиод overload. Значение
+                                <span class="emphasis"><em>no overload</em></span>
+                                этого параметра соответствует нормальной работе,
+                                <span class="emphasis"><em>overload</em></span>
+                                — перегрузке питания.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>PBO</em></span> — действующие настройки для снижения уровня выходного сигнала.
+                            </p></li></ul></div><p>
+                        При установленном соединении добавляется следующая
+                        информация:
+                    </p><div class="figure"><a name="id2662155"></a><p class="title"><b>Рисунок 6.7. Информация об установленном соединении SHDSL (MR17H)
+                        </b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-shdsl-mr17h-status-online.png" width="540" alt="Информация об установленном соединении SHDSL (MR17H)"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                                <span class="emphasis"><em>Actual rate</em></span>
+                                — скорость передачи данных в установленном соединении, кбит/с.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Actual line code</em></span> — метод кодирования.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Actual clock mode</em></span> — режим синхронизации.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>SNR margin</em></span> — соотношение сигнал/шум в линии связи (чем больше, тем лучше).
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Loop attenuation</em></span> — затухание сигнала в линии связи (чем меньше, тем лучше).
+                            </p></li></ul></div></div></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="linkdeps.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="hardware.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="dsl-eoc.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Установление зависимостей между состояниями интерфейсов </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Управление интерфейсом через EOCd</td></tr></table></div></body></html>

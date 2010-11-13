@@ -1,0 +1,55 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Загрузчик</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="ch04.html" title="Глава 4. Начало работы с маршрутизатором"><link rel="prev" href="ch04.html" title="Глава 4. Начало работы с маршрутизатором"><link rel="next" href="update.html" title="Обновление прошивки маршрутизатора"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Загрузчик</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch04.html">Пред.</a> </td><th width="60%" align="center">Глава 4. Начало работы с маршрутизатором</th><td width="20%" align="right"> <a accesskey="n" href="update.html">След.</a></td></tr></table><hr></div><div class="section" title="Загрузчик"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="bootloader"></a>Загрузчик</h2></div></div></div><p>
+				Меню загрузчика доступно при подключении к маршрутизатору по
+				консольному интерфейсу. После включения питания, на экран будет
+				выведено предложение войти в меню загрузчика. Для этого вам
+				необходимо 3 раза быстро нажать на клавишу пробела.
+			</p><pre class="screen">
+				ADM5120 Boot:
+
+
+				CPU: Infineon 5120-175MHz
+				SDRAM: 64MB
+				Flash: NAND-32MB
+				Boot System:
+				Linux-5120
+				Loader Version: 1.00.03
+				Creation Date: 17.04.2007
+
+				Press &lt;space&gt; key tree times to enter boot menu..
+				3
+			</pre><p>
+				Если вы трижды нажали на пробел, то выведется меню загрузчика:
+			</p><pre class="screen">
+				==================================
+				Bootloader Menu
+				[1] Xmodem
+				Download
+				[2] TFTP Download
+				[3] Print Boot Params
+				[4] Set Boot Params
+				[5] Exit
+
+				Please enter your number:
+			</pre><p>
+				В этом меню доступны несколько действий:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+						<span class="emphasis"><em>Xmodem Download</em></span>
+						— обновление загрузчика или системы через последовательный порт по
+						протоколу Xmodem. Данный способ обновления занимает много времени.
+					</p></li><li class="listitem"><p>
+						<span class="emphasis"><em>TFTP Download</em></span>
+						— обновление системы или загрузчика с помощью TFTP-сервера.
+					</p></li><li class="listitem"><p>
+						<span class="emphasis"><em>Print Boot Params</em></span>
+						— показывает сетевые параметры загрузчика, основные — мак адрес и
+						IP-адрес.
+					</p></li><li class="listitem"><p>
+						<span class="emphasis"><em>Set Boot Params</em></span>
+						— установка сетевых параметров для загрузки. Подробнее эти
+						параметры рассмотрены в разделе "Обновление прошивки
+						маршрутизатора".
+					</p></li><li class="listitem"><p>
+						<span class="emphasis"><em>Check flash</em></span>
+						— проверка флэш-памяти маршрутизатора на наличие поврежденных
+						блоков.
+					</p></li></ul></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch04.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="ch04.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="update.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Глава 4. Начало работы с маршрутизатором </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Обновление прошивки маршрутизатора</td></tr></table></div></body></html>

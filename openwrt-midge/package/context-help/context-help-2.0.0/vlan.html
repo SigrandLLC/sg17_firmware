@@ -1,0 +1,31 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Настройка интерфейсов VLAN</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="ifaces.html" title="Динамические интерфейсы"><link rel="prev" href="bridge.html" title="Настройка бриджа"><link rel="next" href="traffic.html" title="Глава 8. Управление трафиком"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Настройка интерфейсов VLAN</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="bridge.html">Пред.</a> </td><th width="60%" align="center">Динамические интерфейсы</th><td width="20%" align="right"> <a accesskey="n" href="traffic.html">След.</a></td></tr></table><hr></div><div class="section" title="Настройка интерфейсов VLAN"><div class="titlepage"><div><div><h3 class="title"><a name="vlan"></a>Настройка интерфейсов VLAN</h3></div></div></div><p>
+					Использование технологии VLAN позволяет разделить трафик
+					пользователей в единой физической среде передачи данных. Для это в
+					каждый Ethernet-кадр добавляет заголовок, относящий данный кадр к
+					тому или иному VLAN. Каждый VLAN идентифицируется своим номером —
+					<span class="emphasis"><em>VLAN ID</em></span>, в диапазоне от 0 до 4094. Для работы с сетями VLAN на основе
+					физического интерфейса создаётся интерфейс VLAN, с определённым
+					VLAN ID.
+				</p><p>
+					Для создания интерфейса VLAN необходимо создать динамический
+					интерфейс VLAN на странице Network/Dynamic interfaces/Manage.
+					Для этого выбираем протокол VLAN, после чего будут доступны два параметра:
+				</p><div class="figure"><a name="id2666883"></a><p class="title"><b>Рисунок 7.18. Добавление интерфейса VLAN</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-iface-vlan.png" width="540" alt="Добавление интерфейса VLAN"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+				            <span class="emphasis"><em>Physical interface</em></span> — физический интерфейс,
+				            на основе которого создаётся интерфейс VLAN.
+				        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>VLAN ID</em></span> — номер VLAN.
+                        </p></li></ul></div><div class="tip" title="Подсказка" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Подсказка</h3><p>
+						Интерфейс VLAN может работать как поверх физических
+						интерфейсов (SHDSL, Ethernet), так и поверх динамических (Bonding,
+						Bridge).
+					</p></div><p>
+					После добавления, интерфейс VLAN будет показан в списке интерфейсов
+					в виде "ИНТЕРФЕЙСvНОМЕР_ВЛАН", т.е. если интерфейс VLAN создаётся
+					для интерфейса bond0 и VLAN ID 4, то имя интерфейса VLAN будет
+					<span class="emphasis"><em>bond0v4</em></span>. В системе интерфейс отображается как
+					<span class="emphasis"><em>bond0.4</em></span>.
+				</p><p>
+					Теперь над интерфейсом можно выполнять стандартные действия:
+					назначать IP-адрес, добавлять его в бондинг, бридж и т.д.
+				</p></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="bridge.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="ifaces.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="traffic.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Настройка бриджа </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Глава 8. Управление трафиком</td></tr></table></div></body></html>

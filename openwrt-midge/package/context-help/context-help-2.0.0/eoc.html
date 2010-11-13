@@ -1,0 +1,117 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Мониторинг SHDSL каналов</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="dsl.html" title="Интерфейс SHDSL"><link rel="prev" href="ch06s04s02s02.html" title="Создание и редактирование профиля"><link rel="next" href="ch06s04s03s02.html" title="Мониторинг через консоль"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Мониторинг SHDSL каналов</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch06s04s02s02.html">Пред.</a> </td><th width="60%" align="center">Интерфейс SHDSL</th><td width="20%" align="right"> <a accesskey="n" href="ch06s04s03s02.html">След.</a></td></tr></table><hr></div><div class="section" title="Мониторинг SHDSL каналов"><div class="titlepage"><div><div><h3 class="title"><a name="eoc"></a>Мониторинг SHDSL каналов</h3></div></div></div><div class="toc"><dl><dt><span class="section"><a href="eoc.html#id2662566">Мониторинг через веб-интерфейс</a></span></dt><dt><span class="section"><a href="ch06s04s03s02.html">Мониторинг через консоль</a></span></dt><dt><span class="section"><a href="shdsl.rules.html">Правила приоритетов параметров производительности SHDSL канала</a></span></dt></dl></div><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+	                    Мониторинг поддерживают только модули MR17H. Интерфейсы должны управляться через EOCd.
+	                    Просмотр статистики линии связи возможен только на мастере.
+	                </p></div><div class="section" title="Мониторинг через веб-интерфейс"><div class="titlepage"><div><div><h4 class="title"><a name="id2662566"></a>Мониторинг через веб-интерфейс</h4></div></div></div><p>
+	                    Мониторинг SHDSL каналов позволяет получить информацию о различных
+	                    параметрах и произошедших ошибках в линии связи. В случае, если в
+	                    линии связи используются регенераторы
+	                    <span class="emphasis"><em>SG-17E</em></span>, то можно получать информацию о состоянии этих регенераторов и их
+	                    количестве.
+	                </p><p>
+	                    Просмотр статистики параметров канала доступен на вкладке Statistics. На странице
+	                    доступен просмотр информации как для соединения в целом, так и для
+	                    отдельных устройств, работающих на линии. За это отвечает параметр
+	                    <span class="emphasis"><em>Channel unit</em></span>:
+	                </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                                <span class="emphasis"><em>General</em></span> — общая информация о линии связи;
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>STU-C</em></span> — статистика с мастера;
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>STU-R</em></span> — статистика со слейва;
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>SRU1 - SRU8</em></span> — статистика с регенератора.
+                            </p></li></ul></div><p>
+                        При открытии страницы показывается общая статистика соединения:
+                    </p><div class="figure"><a name="id2662675"></a><p class="title"><b>Рисунок 6.11. Общая статистика соединения</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-eocd-stat-general.png" width="540" alt="Общая статистика соединения"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+	                            <span class="emphasis"><em>Channel link</em></span>
+	                            — состояние соединения между мастером и слейвом, определяемое состоянием соединения
+	                            между процессами EOCd, работающими на этих устройствах. Если соединение
+	                            установлено, но значение этого параметра установлено в
+	                            <span class="emphasis"><em>offline</em></span>, значит процессы EOCd не смогли установить между собой соединение.
+	                            Это может быть вызвано несколькими причинами: один из процессов
+	                            EOCd может быть не запущен, либо соответствующий интерфейс не
+	                            управляется через EOCd.
+	                        </p></li><li class="listitem"><p>
+	                            <span class="emphasis"><em>Regenerators</em></span> — фактическое число регенераторов на линии.
+	                        </p></li><li class="listitem"><p>
+	                            <span class="emphasis"><em>Wire pairs</em></span> — число пар в канале.
+	                        </p></li><li class="listitem"><p>
+	                            <span class="emphasis"><em>Rate, Annex, Encoding</em></span> — скорость передачи, дополнения, режим кодирования.
+	                        </p></li></ul></div><p>
+	                    При отображении статистики для конкретного устройства доступны следующие
+	                    параметры производительности, характеризующие SHDSL канал:
+	                </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+	                            <span class="emphasis"><em>Errored Second (ES)</em></span>
+	                            — количество секундных интервалов, в которые была обнаружена одна
+	                            или более CRC аномалий или более одного LOSW дефекта. При работе
+	                            с данным параметром необходимо учитывать правила приоритетов
+	                            параметров (см. <a class="link" href="shdsl.rules.html" title="Правила приоритетов параметров производительности SHDSL канала">правила приоритетов</a>).
+	                        </p><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+	                                <span class="emphasis"><em>Loss of Sync Defect (LOSW defect)</em></span>
+	                                – потеря синхронизации. В плезиохронном режиме дефект потери
+	                                синхронизации должен обозначаться, когда не менее трех
+	                                последовательно полученных кадров содержат ошибки синхронизации.
+	                                Данные ошибки индицируются группой битов в кадре: Frame Sync
+	                                Word, Stuff Bits и Stuff Bit Ids. Индикация LOSW очищается после
+	                                получения не менее двух кадров не содержащих ошибок
+	                                синхронизации, следующих друг за другом.
+	                            </p></div></li><li class="listitem"><p>
+	                            <span class="emphasis"><em>Severely Errored Second (SES)</em></span>
+	                            — количество односекундных интервалов, в течение которых
+	                            произошло не менее 50-ти CRC аномалий или более одного LOSW
+	                            дефекта. (50 CRC аномалий в течение одной секунды соответствуют
+	                            30% некорректных кадров для стандартной длины кадра). При работе
+	                            с данным параметром необходимо учитывать правила приоритетов
+	                            параметров.
+	                        </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Code Violation (CV)</em></span>
+                                — количество CRC аномалий, обнаруженных за период, в течение
+                                которого производился мониторинг. При работе с данным параметром
+                                необходимо учитывать правила приоритетов параметров, которые
+                                будут описаны ниже.
+                            </p></li><li class="listitem"><p>
+	                            <span class="emphasis"><em>LOSW Second (LOSWS)</em></span>
+	                            — количество секундных интервалов, в течение которых обнаружено
+	                            более одного LOSW дефекта.
+	                        </p></li><li class="listitem"><p>
+	                            <span class="emphasis"><em>Unavailable Second (UAS)</em></span>
+	                            — количество секундных интервалов, в течение которых SHDSL канал
+	                            недоступен. Канал считается доступным после сбоя по прошествии 10
+	                            секунд, в течение которых не зарегистрировано ни одного SES.
+	                            Данные 10 секунд исключаются из числа секунд, в которые канал был
+	                            недоступен.
+	                        </p></li></ul></div><p>
+	                    Многие параметры указываются для различных пар и направлений:
+	                </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                                <span class="emphasis"><em>Side</em></span> — направление.
+                                Есть два направления, к которым могут относится параметры линии связи:
+                            </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+                                        <span class="emphasis"><em>NetSide</em></span>
+                                        — направление мастера (линия связи, идущая к мастеру).
+                                    </p></li><li class="listitem"><p>
+                                        <span class="emphasis"><em>CustSide</em></span>
+                                        — направление клиента (линия связи, идущая к слейву).
+                                    </p></li></ul></div></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Pair</em></span> — номер пары проводов.
+                            </p></li></ul></div><p>
+						Таблица <span class="emphasis"><em>state</em></span>
+						показывает текущие параметры линии (SNR margin и LoopAttn) и ошибки с
+						момента начала мониторинга канала.
+					</p><div class="figure"><a name="id2663040"></a><p class="title"><b>Рисунок 6.12. Таблица state</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-eocd-stat-unit-state.png" width="540" alt="Таблица state"></td></tr></table></div></div></div><br class="figure-break"><p>
+	                    Таблица <span class="emphasis"><em>relative counters</em></span>
+	                    содержит те же параметры, что и таблица <span class="emphasis"><em>state</em></span>,
+	                    предоставляя возможность их сбрасывания, чтобы проводить замеры в
+	                    определённые промежутки времени.
+	                </p><div class="figure"><a name="id2663078"></a><p class="title"><b>Рисунок 6.13. Таблица relative counters</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-eocd-stat-unit-relative.png" width="540" alt="Таблица relative counters"></td></tr></table></div></div></div><br class="figure-break"><p>
+	                    Таблица <span class="emphasis"><em>current intervals</em></span>
+	                    содержит ошибки за последние 15 минут и последний день. Значения
+	                    обновляются, соответственно, каждые 15 минут и каждый день.
+	                </p><div class="figure"><a name="id2663111"></a><p class="title"><b>Рисунок 6.14. Таблица current intervals</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-eocd-stat-unit-curr.png" width="540" alt="Таблица current intervals"></td></tr></table></div></div></div><br class="figure-break"><p>
+	                    Так же для каждой пары проводов и каждого направления (NetSide и
+	                    CustSide) ведутся таблицы, хранящие 15 минутные и дневные
+	                    интервалы, в течении которых были ошибки. В таблицах хранится
+	                    последние 96 15-ти минутных интервалов, и последние 30 — дневных.
+	                </p><div class="figure"><a name="id2663141"></a><p class="title"><b>Рисунок 6.15. Таблица 15-ти минутных интервалов для CustSide</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-eocd-stat-unit-15min.png" width="540" alt="Таблица 15-ти минутных интервалов для CustSide"></td></tr></table></div></div></div><br class="figure-break"><div class="figure"><a name="id2663158"></a><p class="title"><b>Рисунок 6.16. Таблица дневных интервалов для CustSide</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-eocd-stat-unit-1day.png" width="540" alt="Таблица дневных интервалов для CustSide"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+	                            <span class="emphasis"><em>Monitoring</em></span>
+	                            — процент времени, в течении которого мониторился канал.
+	                        </p></li></ul></div></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch06s04s02s02.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="dsl.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="ch06s04s03s02.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Создание и редактирование профиля </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Мониторинг через консоль</td></tr></table></div></body></html>

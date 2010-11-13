@@ -1,0 +1,85 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Каналы ТЧ</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="voip.html" title="Глава 10. VoIP"><link rel="prev" href="voip.hotline.html" title="Режим Hotline"><link rel="next" href="voip.route.html" title="Маршрутизация звонков"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Каналы ТЧ</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="voip.hotline.html">Пред.</a> </td><th width="60%" align="center">Глава 10. VoIP</th><td width="20%" align="right"> <a accesskey="n" href="voip.route.html">След.</a></td></tr></table><hr></div><div class="section" title="Каналы ТЧ"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="voip.vf"></a>Каналы ТЧ</h2></div></div></div><p>
+			    Каналы ТЧ позволяют подключать аналоговое оборудование для оцифровки
+			    сигнала и последующей его передачи в цифровом виде. Настройка каналов
+			    ТЧ выполняется на странице Hardware/VoIP/VF и заключается в
+			    настройки связи между двумя устройствами с модулями ТЧ, которые передают
+			    сигнал от подключённых к ним аналоговых устройств.
+			</p><p>
+			    Для установки связи указываются номер канала ТЧ на локальном и удалённом
+			    устройствах, а так же идентификатор удалённого устройства. Так же задаются
+			    параметры кодека, используемые для оцифровки сигнала. Поддерживаются как
+			    2-х проводной, так и 4-х проводной режим ТЧ.
+			</p><div class="figure"><a name="id2670874"></a><p class="title"><b>Рисунок 10.5. Настройка каналов ТЧ</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-voip-vf.png" width="540" alt="Настройка каналов ТЧ"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                        <span class="emphasis"><em>#</em></span> — номер локального канала ТЧ; 
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>EN</em></span> — активировать соединение ТЧ; 
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>R.ID</em></span> — идентификатор удалённого устройства,
+                        должен присутствовать в таблице маршрутов VoIP (см. далее);
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Chan</em></span> — номер канала ТЧ на удалённом устройстве;
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Codec</em></span> — используемые кодек VoIP;
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>P.time</em></span> — packetization time — время пакетизации;
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Pay-d</em></span> — Payload — идентификатор содержимого пакета RTP;
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Bitpack</em></span> — 
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>JB type</em></span> — jitter buffer type — тип джиттер-буфера;
+                    </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+                                <span class="emphasis"><em>Fixed</em></span> — фиксированный;
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Adapt.</em></span> — адаптивный;
+                            </p></li></ul></div></li><li class="listitem"><p>
+                        <span class="emphasis"><em>LAT</em></span> — Local Adaptation Type — 
+                    </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+                                <span class="emphasis"><em>off</em></span> — выключен;
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>on</em></span> — включён;
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>SI</em></span> — with sample interpollation — 
+                            </p></li></ul></div></li><li class="listitem"><p>
+                        <span class="emphasis"><em>nScal</em></span> — 
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>nInit</em></span> — 
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>nMin</em></span> — 
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>nMax</em></span> — 
+                    </p></li></ul></div><div class="important" title="Важно" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+                    Аналогичные настройки надо выполнить на втором устройстве.
+                </p></div><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+                    После настройки канала ТЧ соединение будет установлено и будет поддерживаться автоматически.
+                </p></div><p>
+                Настройка физических параметров портов ТЧ выполняется на вкладке Settings.
+            </p><div class="figure"><a name="voip.vf.settings"></a><p class="title"><b>Рисунок 10.6. Настройка физических параметров портов ТЧ</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-voip-vf-settings.png" width="540" alt="Настройка физических параметров портов ТЧ"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                        <span class="emphasis"><em>Wires</em></span> — тип соединения: 2-х проводной или 4-х проводной;
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Transmit type</em></span> — уровень сигнала при передаче:
+                    </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+                                <span class="emphasis"><em>4-Wire Normal</em></span>:
+                            </p><div class="itemizedlist"><ul class="itemizedlist" type="square"><li class="listitem"><p>
+                                        <span class="emphasis"><em>Tx (In)</em></span>: -13 dBr
+                                    </p></li><li class="listitem"><p>
+                                        <span class="emphasis"><em>Rx (Out)</em></span>: +4 dBr
+                                    </p></li></ul></div></li><li class="listitem"><p>
+                                <span class="emphasis"><em>4-Wire Transit</em></span>:
+                            </p><div class="itemizedlist"><ul class="itemizedlist" type="square"><li class="listitem"><p>
+                                        <span class="emphasis"><em>Tx (In)</em></span>: +4 dBr
+                                    </p></li><li class="listitem"><p>
+                                        <span class="emphasis"><em>Rx (Out)</em></span>: +4 dBr
+                                    </p></li></ul></div></li><li class="listitem"><p>
+                                <span class="emphasis"><em>2-Wire Normal</em></span>:
+                            </p><div class="itemizedlist"><ul class="itemizedlist" type="square"><li class="listitem"><p>
+                                        <span class="emphasis"><em>Tx (In)</em></span>: 0 dBr
+                                    </p></li><li class="listitem"><p>
+                                        <span class="emphasis"><em>Rx (Out)</em></span>: -7 dBr
+                                    </p></li></ul></div></li><li class="listitem"><p>
+                                <span class="emphasis"><em>2-Wire Transit</em></span>:
+                            </p><div class="itemizedlist"><ul class="itemizedlist" type="square"><li class="listitem"><p>
+                                        <span class="emphasis"><em>Tx (In)</em></span>: -3,5 dBr
+                                    </p></li><li class="listitem"><p>
+                                        <span class="emphasis"><em>Rx (Out)</em></span>: -3,5 dBr
+                                    </p></li></ul></div></li></ul></div></li></ul></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="voip.hotline.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="voip.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="voip.route.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Режим Hotline </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Маршрутизация звонков</td></tr></table></div></body></html>

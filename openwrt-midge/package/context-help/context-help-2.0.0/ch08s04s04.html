@@ -1,0 +1,38 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Бесклассовая дисциплина ESFQ</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="qos.html" title="Качество обслуживания"><link rel="prev" href="sfq.html" title="Бесклассовая дисциплина SFQ"><link rel="next" href="tbf.html" title="Бесклассовая дисциплина TBF"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Бесклассовая дисциплина ESFQ</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="sfq.html">Пред.</a> </td><th width="60%" align="center">Качество обслуживания</th><td width="20%" align="right"> <a accesskey="n" href="tbf.html">След.</a></td></tr></table><hr></div><div class="section" title="Бесклассовая дисциплина ESFQ"><div class="titlepage"><div><div><h3 class="title"><a name="id2668189"></a>Бесклассовая дисциплина ESFQ</h3></div></div></div><p>
+					ESFQ — Enhanced Stochastic Fairness Queueing — улучшенная
+					дисциплина SFQ. Она предоставляет больше возможностей по своей
+					настройке, что позволяет достичь более равномерного распределения
+					полосы пропускания. К примеру, если пользователь использует
+					программы, работающие в несколько потоков, то обычная SFQ
+					становится неэффективной, т.к. она не может разделить канал между
+					пользователями. Дисциплина ESFQ позволяет выбрать другой алгоритм
+					хэширования, например, по IP-адресу отправителя или получателя
+					пакета, что позволяет разнести разных пользователей по разным
+					псевдо-очередям независимо от числа сессий каждого пользователя.
+				</p><div class="figure"><a name="id2668230"></a><p class="title"><b>Рисунок 8.18. Конфигурирование ESFQ</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-qos-esfq.png" width="540" alt="Конфигурирование ESFQ"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+							<span class="emphasis"><em>Limit</em></span>
+							— число пакетов, которое может быть помещено в очередь. При
+							превышении этого значения пакеты будут сбрасываться.
+						</p></li><li class="listitem"><p>
+							<span class="emphasis"><em>Depth</em></span>
+							— максимально возможное количество псевдо-очередей (в SFQ жёстко
+							задано значение 1024).
+						</p></li><li class="listitem"><p>
+							<span class="emphasis"><em>Hash</em></span>
+							— тип хэша.
+						</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+									<span class="emphasis"><em>Classic</em></span>
+									— аналогичный используемому в SFQ.
+								</p></li><li class="listitem"><p>
+									<span class="emphasis"><em>Source address</em></span>
+									— по адресу источника.
+								</p></li><li class="listitem"><p>
+									<span class="emphasis"><em>Destination address</em></span>
+									— по адресу получателя.
+								</p></li></ul></div></li><li class="listitem"><p>
+							<span class="emphasis"><em>perturb</em></span>
+							— интервал времени в секундах, через который выполняется
+							реконфигурация хэша. Рекомендуемое значение — 10 (при установке
+							дисциплины через веб-интерфейс автоматически используется
+							рекомендуемое значение).
+						</p></li></ul></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="sfq.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="qos.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="tbf.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Бесклассовая дисциплина SFQ </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Бесклассовая дисциплина TBF</td></tr></table></div></body></html>

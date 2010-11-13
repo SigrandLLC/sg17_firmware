@@ -1,0 +1,117 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Классовая дисциплина HTB</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="qos.html" title="Качество обслуживания"><link rel="prev" href="tbf.html" title="Бесклассовая дисциплина TBF"><link rel="next" href="dhcp_server.html" title="Глава 9. Настройка сетевых служб"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Классовая дисциплина HTB</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="tbf.html">Пред.</a> </td><th width="60%" align="center">Качество обслуживания</th><td width="20%" align="right"> <a accesskey="n" href="dhcp_server.html">След.</a></td></tr></table><hr></div><div class="section" title="Классовая дисциплина HTB"><div class="titlepage"><div><div><h3 class="title"><a name="htb"></a>Классовая дисциплина HTB</h3></div></div></div><p>
+					Дисциплина HTB позволяет выделить разную пропускную способность
+					канала под разные виды трафика. Осуществляется это путём
+					направления трафика в разные классы, которым назначена необходимая
+					пропускная способность. Классифицировать трафик по классам можно на
+					основе IP-адреса или портов отправителя/получателя пакета. Такая
+					обработка трафика (ограничение его по скорости) называется
+					<span class="emphasis"><em>шейпингом</em></span>.
+				</p><p>
+					В первую очередь следует отметить, что управлять можно только
+					скоростью исходящего трафика (что, в общем, вполне разумно),
+					поэтому при добавлении правил шейпинга необходимо правильно определить
+					интерфейс, на котором этот трафик будет исходящим.
+				</p><p>
+					Реализация QoS на основе классовой дисциплины HTB состоит из
+					двух этапов — создания классов и распределения трафика по классам в
+					соответствии с определенными критериями с помощью фильтров. Классы,
+					определяющие скорость трафика, могут добавляться как в корень, так
+					и в другие подклассы, образуя иерархию классов. Фильтры добавляются
+					в корень иерархии.
+				</p><div class="tip" title="Подсказка" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Подсказка</h3><p>
+						Особенность подклассов в том, что скорость одного подкласса может
+						быть увеличена (в пределах скорости родительского класса) за счёт
+						<span class="emphasis"><em>неиспользуемой</em></span>
+						скорости другого подкласса.
+					</p></div><p>
+					Для дисциплины может быть назначен класс, в который будет
+					направляться весь трафик, не подходящий ни под один фильтр.
+				</p><div class="figure"><a name="id2668665"></a><p class="title"><b>Рисунок 8.20. Класс по-умолчанию</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-qos-htb-default-class.png" width="540" alt="Класс по-умолчанию"></td></tr></table></div></div></div><br class="figure-break"><p>
+					Ниже приведена таблица, содержащая информацию о классах.
+					Опционально для каждого класса может быть добавлена своя
+					бесклассовая дисциплина обслуживания, которые описаны выше.
+				</p><div class="figure"><a name="qos_class"></a><p class="title"><b>Рисунок 8.21. Классы трафика</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-qos-class.png" width="540" alt="Классы трафика"></td></tr></table></div></div></div><br class="figure-break"><p>
+				    Окно добавления класса показано ниже.
+				</p><div class="figure"><a name="htb_class_add"></a><p class="title"><b>Рисунок 8.22. Добавление класса</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-qos-class-add.png" width="540" alt="Добавление класса"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                            <span class="emphasis"><em>Enabled</em></span>
+                            — активен ли класс.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Name</em></span>
+                            — имя добавляемого класса. Используется при классификации трафика
+                            в фильтре.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Parent class</em></span>
+                            — родительский класс. root — корневой класс. При добавлении
+                            класса в некорневой класс — добавляемый класс будет
+                            <span class="emphasis"><em>подклассом</em></span>.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Rate</em></span>
+                            — пропускная способность, выделяемая классу. Не должна превышать скорость
+                            родительского класса!
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Ceil</em></span>
+                            — максимальная пропускная способность подкласса (в случае, если
+                            другой подкласс этого же класса использует не всю предоставленную
+                            ему пропускную способность). Не должна превышать скорость
+                            родительского класса!
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Qdisc</em></span>
+                            — опциональная бесклассовая дисциплина обслуживания для класса.
+                            Здесь можно указать название дисциплины обслуживания и её
+                            параметры, например:
+                            <span class="command"><strong>esfq#limit#128#depth#128#divisor#10#hash#classic#perturb#15</strong></span>
+                            или <span class="command"><strong>sfq#perturb#10</strong></span>, и т.д. Пробелы необходимо заменить
+                            символом <span class="emphasis"><em>#</em></span>.
+                            Подробнее о бесклассовых дисциплинах и их параметрах
+                            написано выше.
+                        </p></li></ul></div><p>
+                    Чтобы избежать путаницы, заранее рассмотрим принятые в QoS
+                    сокращения, описывающие скорость:
+                </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                            mbps = 1024 kbps = 1024 * 1024 bps =&gt; byte/s =&gt; 1024
+                            килобайт в секунду.
+                        </p></li><li class="listitem"><p>
+                            mbit = 1024 kbit =&gt; kilo bit/s =&gt; 1024 килобит в секунду.
+                        </p></li></ul></div><p>
+					Таблица фильтров, по тем или иным критериям направляющих
+					трафик в классы.
+				</p><div class="figure"><a name="qos_filter"></a><p class="title"><b>Рисунок 8.23. Фильтры, направляющие трафик в классы</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-qos-filter.png" width="540" alt="Фильтры, направляющие трафик в классы"></td></tr></table></div></div></div><br class="figure-break"><p>
+                    Окно создания фильтра показано ниже.
+                </p><div class="figure"><a name="htb_filter_add"></a><p class="title"><b>Рисунок 8.24. Добавление фильтра</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-qos-filter-add.png" width="540" alt="Добавление фильтра"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                            <span class="emphasis"><em>Enabled</em></span>
+                            — активен ли фильтр.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Name</em></span>
+                            — имя фильтра.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Prio</em></span>
+                            — приоритет фильтра. Чем меньше значение приоритета — тем он
+                            выше.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Protocol</em></span>
+                            — классификация трафика по используемому протоколу.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Source IP</em></span>
+                            — классификация трафика по адресу отправителя пакета.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Destination IP</em></span>
+                            — классификация трафика по адресу получателя пакета.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Source port</em></span>
+                            — классификация трафика по номеру порта отправителя пакета.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Destination port</em></span>
+                            — классификация трафика по номеру порта получателя пакета.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Class</em></span>
+                            — в какой класс направить пакет.
+                        </p></li></ul></div><p>
+					Приведённая на изображениях конфигурация имеет один класс <span class="emphasis"><em>main</em></span>
+					и два подкласса: <span class="emphasis"><em>voip</em></span> и <span class="emphasis"><em>data</em></span>.
+					Подкласс <span class="emphasis"><em>voip</em></span> используется для передачи высокоприоритетного
+					трафика, для него установлена скорость от 1500 до 1900 кбит/с. Подкласс
+					<span class="emphasis"><em>data</em></span> используется как класс по-умолчанию для всего
+					остального трафика. Его скорость от 400 до 1900 кбит/с.
+				</p><p>
+				    В подкласс <span class="emphasis"><em>voip</em></span> направляется весь трафик, идущий с узла 192.168.2.10.
+				</p></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="tbf.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="qos.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="dhcp_server.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Бесклассовая дисциплина TBF </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Глава 9. Настройка сетевых служб</td></tr></table></div></body></html>

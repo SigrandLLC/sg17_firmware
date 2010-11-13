@@ -1,0 +1,44 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Глава 6. Настройка оборудования</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="prev" href="web-console.html" title="Консоль"><link rel="next" href="adm5120sw.html" title="Настройка встроенного Ethernet коммутатора"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Глава 6. Настройка оборудования</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="web-console.html">Пред.</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="adm5120sw.html">След.</a></td></tr></table><hr></div><div class="chapter" title="Глава 6. Настройка оборудования"><div class="titlepage"><div><div><h2 class="title"><a name="hardware"></a>Глава 6. Настройка оборудования</h2></div></div></div><div class="toc"><p><b>Содержание</b></p><dl><dt><span class="section"><a href="hardware.html#modules.settings">Принцип хранения настроек для модулей</a></span></dt><dt><span class="section"><a href="adm5120sw.html">Настройка встроенного Ethernet коммутатора</a></span></dt><dt><span class="section"><a href="linkdeps.html">Установление зависимостей между состояниями интерфейсов</a></span></dt><dt><span class="section"><a href="dsl.html">Интерфейс SHDSL</a></span></dt><dd><dl><dt><span class="section"><a href="dsl.html#id2661131">Настройка параметров интерфейса</a></span></dt><dt><span class="section"><a href="dsl-eoc.html">Управление интерфейсом через EOCd</a></span></dt><dt><span class="section"><a href="eoc.html">Мониторинг SHDSL каналов</a></span></dt><dt><span class="section"><a href="hw.shdsl.details.tcpam.html">Особенности применения кодировок TCPAM</a></span></dt></dl></dd><dt><span class="section"><a href="e1.html">Интерфейс E1</a></span></dt><dd><dl><dt><span class="section"><a href="e1.html#id2664016">Настройка параметров интерфейса</a></span></dt><dt><span class="section"><a href="e1-loopback.html">Диагностирование соединения Е1</a></span></dt></dl></dd><dt><span class="section"><a href="rs232.html">Интерфейс RS232</a></span></dt><dt><span class="section"><a href="multiplexing.html">Мультиплексирование</a></span></dt></dl></div><div class="section" title="Принцип хранения настроек для модулей"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="modules.settings"></a>Принцип хранения настроек для модулей</h2></div></div></div><p>
+                До версии прошивки
+                <span class="emphasis"><em>890</em></span>
+                настройки интерфейсов привязывались к имени интерфейса, что вызывало
+                проблемы при работе с модулями, т.к. при добавлении нового модуля
+                имена интерфейсов могли изменяться, и настройки применялись не к
+                тому модулю.
+            </p><p>
+                С версии
+                <span class="emphasis"><em>890</em></span>
+                аппаратные настройки привязываются к PCI-слоту, а сетевые, в случае
+                изменения имени интерфейса, копируются. Т.е., если при добавлении
+                нового модуля, имя интерфейса старого модуля изменилось с
+                <span class="emphasis"><em>dsl0</em></span>
+                на
+                <span class="emphasis"><em>dsl1</em></span>
+                , то сетевые настройки будут скопированы с dsl0 на dsl1.
+            </p><p>
+                Основное отличие хранения между аппаратными и сетевыми настройками в
+                том, что если модуль временно извлечь и включить маршрутизатор,
+                сетевые настройки
+                <span class="emphasis"><em>удалятся</em></span>
+                , а аппаратные
+                <span class="emphasis"><em>останутся</em></span>
+                . Таким образом, при последующем возвращении модуля и включении
+                маршрутизатора, модуль будет сконфигурирован по-старому, но без
+                сетевых настроек.
+            </p><p>
+                Так же поддерживается применение настроек для совместимых
+                модулей: к примеру, если использовался одноканальный модуль, и он
+                заменён на двухканальный, то настройки будут применены к первому
+                каналу нового модуля.
+            </p><p>
+                Если же использовался двухканальный модуль, и вместо него включается
+                одноканальный, то настройки (сетевые и аппаратные) будут применены к
+                новому модулю, аппаратные настройки второго канала сохранятся, а
+                сетевые —
+                <span class="emphasis"><em>удалятся</em></span>
+                . Таким образом, при возвращении двухканального модуля он получит
+                свои аппаратные настройки (и сетевые для первого канала).
+            </p><p>
+                Различие между аппаратными и сетевыми настройками сделано из-за
+                технических ограничений.
+            </p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="web-console.html">Пред.</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="adm5120sw.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Консоль </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Настройка встроенного Ethernet коммутатора</td></tr></table></div></body></html>
