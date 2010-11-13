@@ -2,3 +2,43 @@
 * replace ntpclient by openntpd
 * убрать всё лишнее, архитектуры, что не используется в построении образов sigrand.
 * Add '-nofw' to kernel extraversion
+
+.PHONY: choice_config
+choice_config: $(CONFIG)/mconf
+	@rm -f .config
+	@touch .config
+	@$(CONFIG)/mconf ConfigChoice.in
+	@mv .config
+
+ConfigChoice.in:
+#
+
+mainmenu "Config file choice"
+
+#config_admboot
+#config_sigrand
+#config_sviazinvest
+#config_zelax
+
+config CONFIG_CHOICE
+
+choice
+	prompt "Config name"
+	default CONFIG_CHOICE_SIGRAND
+	help
+	  Select the config/OEM name you wish to use.
+
+	config CONFIG_CHOICE_ADMBOOT
+		bool "admboot"
+
+	config CONFIG_CHOICE_SIGRAND
+		bool "sigrand"
+
+	config CONFIG_CHOICE_SVIAZINVEST
+		bool "sviazinvest"
+
+	config CONFIG_CHOICE_ZELAX
+		bool "zelax"
+
+endchoice
+
