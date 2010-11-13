@@ -368,9 +368,9 @@ source "package/hotplug/Config.in"
 
 choice
 	prompt "Context help"
-	default NONE
+	default BR2_PACKAGE_CONTEXT_HELP_NONE
 
-config NONE
+config BR2_PACKAGE_CONTEXT_HELP_NONE
 	bool "None"
 	help
 		Don't include context help
