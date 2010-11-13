@@ -1,6 +1,5 @@
-* split webface to separate packages (issue #94), don't install webface (issue #53)
-* package/dash/Makefile: удалить DASH_WITH_KDB
 * what for LIBMYSQL ?
+* libsqlite for lighttpd? lighttpd-mod-webdav wants libxml2, sqlite
 * replace ntpclient by openntpd
 * rm crontab, cron, /etc/init.d/timesync
 * убрать всё лишнее, архитектуры, что не используется в построении образов sigrand.
