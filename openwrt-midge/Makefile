@@ -198,8 +198,16 @@ defconfig: $(CONFIG)/conf
 endif # ifeq ($(strip $(BR2_HAVE_DOT_CONFIG)),y)
 
 
-ChangeLog.html : ChangeLog.koi8-r ChangeLog.header ChangeLog.footer Makefile
+.PHONY: changelog changelog-clean
+
+changelog: ChangeLog.html
+
+changelog-clean:
+	@echo "Removing ChangeLog.html"
+	rm -f ChangeLog.html
+
+ChangeLog.html : changelog/ChangeLog.koi8-r changelog/ChangeLog.header changelog/ChangeLog.footer Makefile
 	@echo "Generating $@"
-	cat ChangeLog.header ChangeLog.koi8-r ChangeLog.footer | \
+	cat changelog/ChangeLog.header changelog/ChangeLog.koi8-r changelog/ChangeLog.footer | \
 		iconv -f KOI8-R -t UTF-8 > $@
 
