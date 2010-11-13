@@ -2,11 +2,11 @@
 size=$(awk '/Mem:/ {l=5242880;print((s=$2/2)<l)?$2-l:s}' /proc/meminfo)
 mount none /tmp -t tmpfs -o size=$size
 
-if [ "$1" != "failsafe" ]; then 
+if [ "$1" != "failsafe" ]; then
 	mtd unlock filesystem
 	mount | grep jffs2 >&-
 	if [ $? = 0 ] ; then
-		if [ $(cat /proc/mtd | wc -l) = 6 ]; then
+		if [ $(wc -l /proc/mtd) = 6 ]; then
 			mtd erase filesystem
 			jffs2root --move
 		else

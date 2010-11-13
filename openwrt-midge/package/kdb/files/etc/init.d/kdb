@@ -37,8 +37,8 @@ RANDOM=$(dd if=/dev/urandom bs=1 count=1 skip=10 2>/dev/null | hexdump -e "16/2 
 
 if [ -z "`kdb get sys_ifaces_mac_base`" ]; then
 	# Generate mac addresses
-	mac4="`cat /dev/urandom | hexdump  | head -1 | cut -c9,10`"
-	mac5="`cat /dev/urandom | hexdump  | head -1 | cut -c9,10`"
+	mac4="`hexdump /dev/urandom | head -1 | cut -c9,10`"
+	mac5="`hexdump /dev/urandom | head -1 | cut -c9,10`"
 	sys_ifaces_mac_base="$VENDOR_MAC_BASE:$mac4:$mac5"
 	next=$(($RANDOM%230))
 	if [ "$BAD_MAC_BASE" = $sys_ifaces_mac_base ]; then

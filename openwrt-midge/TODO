@@ -1,4 +1,5 @@
-* check all scripts for useless use of cat
+* check all scripts for use of expr
+* expand context-help
 * split webface to separate packages (issue #94), don't install webface (issue #53)
 * package/dash/Makefile: удалить DASH_WITH_KDB
 * what for LIBMYSQL ?

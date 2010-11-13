@@ -35,7 +35,7 @@ $(IPKG_HOTPLUG):
 	$(INSTALL) -d $(etcdir)/hotplug/{usb,pci}
 	$(INSTALL) -D $(PKG_BUILD_DIR)/etc/hotplug.d/default/default.hotplug $(etcdir)/hotplug.d/default/default.hotplug
 	for F in $(PKG_BUILD_DIR)/etc/hotplug/{*.{agent,rc},hotplug.functions} ; do \
-		tmp=`cat $$F | grep net.agent`;  \
+		tmp=`grep net.agent $$F`;  \
 		if [ -z "$$tmp" ]; then \
 			$(INSTALL) $$F $(etcdir)/hotplug ; \
 		fi;  \

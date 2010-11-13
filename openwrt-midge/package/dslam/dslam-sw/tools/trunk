@@ -40,7 +40,7 @@ case $2 in
 		else
 			cat $conf_dir$sw/trunk_hash_alg
 		fi
-		
+
 	;;
 	"port")
 		if [ "$3" != "" ]; then
@@ -51,13 +51,13 @@ case $2 in
 					if [ $4 -le "15" ]; then
 						echo "$3 $4" > $conf_dir$sw/trunk_port_id
 					else
-						cat $conf_dir$sw/trunk_port_id | grep $3
+						grep $3 $conf_dir$sw/trunk_port_id
 					fi
 				else
-					cat $conf_dir$sw/trunk_port_id | grep $3
+					grep $3 $conf_dir$sw/trunk_port_id
 				fi
 				else
-					cat $conf_dir$sw/trunk_port_id | grep $3
+					grep $3 $conf_dir$sw/trunk_port_id
 				fi
 			else
 				cat $conf_dir$sw/trunk_port_id

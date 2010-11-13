@@ -51,7 +51,7 @@ start)
 	kdb set sys_voip_present=0
 
 	# Testing module presence
-	card_present=`cat /proc/pci | grep 0055:009c | wc -l`
+	card_present=`grep 0055:009c /proc/pci | wc -l`
 	if test $card_present != 0; then
 		echo "Starting VoIP services:"
 
