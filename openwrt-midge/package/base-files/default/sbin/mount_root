@@ -8,11 +8,11 @@ is_dirty() {
 size=$(awk '/Mem:/ {l=5242880;print((s=$2/2)<l)?$2-l:s}' /proc/meminfo)
 mount none /tmp -t tmpfs -o size=$size
 
-if [ "$1" != "failsafe" ]; then 
+if [ "$1" != "failsafe" ]; then
 	mtd unlock linux
 	mount | grep jffs2 >&-
 	if [ $? = 0 ] ; then
-		if [ $(cat /proc/mtd | wc -l) = 6 ]; then
+		if [ $(wc -l /proc/mtd) = 6 ]; then
 			mtd erase OpenWrt
 			jffs2root --move
 		else
@@ -20,7 +20,7 @@ if [ "$1" != "failsafe" ]; then
 		fi
 	else
 		. /bin/firstboot
-		is_dirty 
+		is_dirty
 		[ $? != 0 ] && {
 			echo "switching to jffs2"
 			mount /dev/mtdblock/4 /jffs -t jffs2

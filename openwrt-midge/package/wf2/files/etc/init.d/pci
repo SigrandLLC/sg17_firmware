@@ -25,7 +25,7 @@ mr17g_muxonly(){
 
 pci_driver(){
 
-	if [ $# -lt 2 ]; then 
+	if [ $# -lt 2 ]; then
 		echo "$0: not enough parameters"
 		return
 	fi
@@ -38,7 +38,7 @@ pci_driver(){
 		return
 	fi
 	cd $dir
-	
+
 	ifptrn=$2
 	local tmp
 	unset devs
@@ -47,14 +47,14 @@ pci_driver(){
 
 	words=`echo $tmp | wc -w`
 	while [ "$words" -gt 0 ]; do
-		unset j	
+		unset j
 	 	j=`echo $tmp | awk '{print $(1)}'`
 		dev=${j#*:}
 		devs="$devs $dev"
 		tmp=`echo $tmp | sed "s/$j//g"`
 		words=`echo $tmp | wc -w`
 	done
-	
+
 	tmp=""
 	for i in $devs; do
 		unset cnt
@@ -75,7 +75,7 @@ pci_driver(){
 			fi;
 			break;
 		done;
-		
+
 		tmp2=""
 		rm -f /tmp/tmpfl
 		for j in $tmp; do
@@ -109,9 +109,9 @@ pci_driver(){
 
 pcicfg_refresh(){
 	local s
-	
+
 	eval `$kdb sls -q sys_pcitbl_`
-	
+
 	for s in $slots; do
 		unset curtype cfgtype
 		eval "curtype=\$s${s}_iftype"
@@ -121,7 +121,7 @@ pcicfg_refresh(){
 			$kdb rm sys_pcicfg_s${s}*
 		fi
 	done
-	
+
 	nslots=""
 	for s in $slots; do
 		nslots="$nslots \n $s"
@@ -135,13 +135,13 @@ pcicfg_refresh(){
 _move_net_settings(){
 	oif=$1
 	nif=$2
-	echo "Move network settings: $oif --> $nif"	
-	
+	echo "Move network settings: $oif --> $nif"
+
 	echo "$oif $nif" >> $eocd_file
-	
+
 	$kdb ls sys_iface_$oif* | sed "s/$oif/$nif/g" >> $tmp_file
 	$kdb rm sys_iface_$oif*
-	
+
 	# flush old interface cfg
 	tmp=`$ip link show | grep $oif`
 	if [ -n "$tmp" ]; then
@@ -160,7 +160,7 @@ _move_net_settings(){
 _pci_update_netcfg(){
 	old_iflist=$1
 	new_iflist=$2
-	
+
 	nif=`echo $new_iflist | awk '{print $(1)}'`
 	oif=`echo $old_iflist | awk '{print $(1)}'`
 
@@ -178,7 +178,7 @@ _pci_update_netcfg(){
 }
 
 _pci_commit_netcfg(){
-	local count=`cat $tmp_file | wc -l`
+	local count=`wc -l $tmp_file`
 	local i=1
 	local slots=`$kdb get sys_pcitbl_slots`
 
@@ -188,7 +188,7 @@ _pci_commit_netcfg(){
 		# echo "remove $s slot"
 		cfgslots=`echo $cfgslots | sed "s/$s//g"`
 	done
-	
+
 	# echo "cfgslots=$cfgslots"
 	for s in $cfgslots; do
 		tmp=`kdb get sys_pcicfg_s${s}_ifaces`
@@ -198,25 +198,25 @@ _pci_commit_netcfg(){
 			# echo "kdb rm sys_iface_$iface*"
 			kdb rm sys_iface_$iface*
 		done
-		kdb set sys_pcicfg_s${s}_ifaces=""		
+		kdb set sys_pcicfg_s${s}_ifaces=""
 	done
 	kdb set sys_pcicfg_slots="$slots"
-	
-	# Read file line by line & commit to KDB	
+
+	# Read file line by line & commit to KDB
 	while [ "$i" -le "$count" ]; do
-		tmp=`cat $tmp_file | head -n $i | tail -n 1`
+		tmp=`head -n $i $tmp_file | tail -n 1`
 		# echo "kdb set \"$tmp\""
 		kdb set "$tmp"
 		i=`expr $i + 1`
 	done
 }
-	
+
 pcinet_refresh(){
 	local s
 	local slots=`$kdb get sys_pcitbl_slots`
 	echo > $tmp_file
 	echo > $eocd_file
-	
+
 	for s in $slots; do
 		old_list=`$kdb get sys_pcicfg_s${s}_ifaces`
 		new_list=`$kdb get sys_pcitbl_s${s}_ifaces`
@@ -265,16 +265,16 @@ _pci_start(){
 			nifaces="$nifaces \n $i"
 		done
 	done
-	
+
 	$kdb set sys_dslam_ifaces="$dslam_ifaces"
-	
+
 	ifaces=`$kdb get sys_ifaces`
 	for i in $ifaces; do
 		# if this is VLAN interface
 		if echo $i |grep -Eq ".+v[0-9]+"; then
 			# get name of physical interface for VLAN interface
 			phys=${i%%v[0-9]*}
-			
+
 			# if physical interface exists in interface list, add VLAN interface
 			if echo $nifaces |grep -q $phys; then
 				nifaces="$nifaces \n $i"
@@ -286,11 +286,11 @@ _pci_start(){
 			fi
 		fi
 	done
-	
+
 	nifaces=`echo -e $nifaces | sort`
 	nifaces=`echo $nifaces`
 	$kdb set sys_ifaces="$nifaces"
-	
+
 	# get list of interfaces with multiplexing capability (SHDSL, E1 and RS232)
 	ifaces=`mxconfig -l |awk '{print $1}' |sed 's/://g'`
 	kdb set "sys_mux_ifaces=$ifaces"
@@ -307,7 +307,7 @@ _pci_restart(){
 }
 
 case "$1" in
-	start) 
+	start)
 		_pci_start ;;
 	stop)
 		_pci_stop ;;

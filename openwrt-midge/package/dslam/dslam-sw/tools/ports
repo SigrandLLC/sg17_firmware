@@ -74,7 +74,7 @@ else
 
 
 	ifaces=`$kdb get sys_dslam_ifaces`
-	
+
 	if [ "$#" = "2" ]; then
 		iface=""
 		for ifce in $ifaces gigabit0 g0 gigabit1 g1 CPU cpu; do
@@ -83,12 +83,12 @@ else
 			fi
 		done
 		get_iface_location $iface
-		
+
 #		echo "$iface sw$sw_num port$sw_port  $slot.$port"
-		
+
 		echo "$sw_port" > /proc/sys/net/dslam_sw/sw${sw_num}/status
 		status=`cat /proc/sys/net/dslam_sw/sw${sw_num}/status`
-		
+
 #		echo $status
 
 		let "tmp=0"

@@ -33,7 +33,7 @@ kill_ppp(){
 	pidfile=/var/run/ppp-$iface.pid
 	if [ -r $pidfile ]; then
 		info 3 "Killing from pidfile $pidfile"
-		cmd kill `cat $pidfile | head -1` && sleep 1
+		cmd kill `head -1 $pidfile` && sleep 1
 	fi
 	pidfile=/var/run/ppp${realiface}.pid
 	[ -r $pidfile ] && info 3 "Killing from pidfile $pidfile" && cmd kill `cat $pidfile`

@@ -10,15 +10,15 @@ fi
 
 loadmodule(){
 	local file=$1;
-	cat $file | grep -v '^#' | while read m; do 
+	grep -v '^#' $file | while read m; do
 		$MODPROBE $m
 	done
 }
 
-if [ -r /etc/modules ]; then 
+if [ -r /etc/modules ]; then
 	loadmodule /etc/modules
 fi
 
-#for f in /etc/modules.d/*; do 
+#for f in /etc/modules.d/*; do
 #	[ -r $f ] && loadmodule $f
 #done
