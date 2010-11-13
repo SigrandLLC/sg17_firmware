@@ -19,6 +19,9 @@
 # tmp files
 *~
 
+# generated from ChangeLog.koi8-r
+/ChangeLog.html
+
 # executables
 /package/config/conf
 /package/config/mconf

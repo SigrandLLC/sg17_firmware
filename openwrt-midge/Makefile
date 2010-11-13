@@ -196,3 +196,10 @@ defconfig: $(CONFIG)/conf
 	-./scripts/configtest.pl
 
 endif # ifeq ($(strip $(BR2_HAVE_DOT_CONFIG)),y)
+
+
+ChangeLog.html : ChangeLog.koi8-r ChangeLog.header ChangeLog.footer Makefile
+	@echo "Generating $@"
+	cat ChangeLog.header ChangeLog.koi8-r ChangeLog.footer | \
+		iconv -f KOI8-R -t UTF-8 > $@
+
