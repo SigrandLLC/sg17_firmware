@@ -37,11 +37,6 @@ cp -a config_$oem .config
 
 if test -n "$nofw"; then
 echo "Unset FW in .config"
-sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_ARPTABLES)=./\1=n/g'	.config
-sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_EBTABLES)=./\1=n/g'	.config
-sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_IPT.*)=./\1=n/g'		.config
-sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_IMQ.*)=./\1=n/g'		.config
-sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_IP6TABLES)=./\1=n/g'	.config
 sed -i -r -e 's/^.*(BR2_COMPILE_IPTABLES)=./\1=n/g'		.config
 sed -i -r -e 's/^.*(BR2_PACKAGE_IPTABLES.*)=./\1=n/g'		.config
 sed -i -r -e 's/^.*(BR2_PACKAGE_IP6TABLES)=./\1=n/g'		.config
