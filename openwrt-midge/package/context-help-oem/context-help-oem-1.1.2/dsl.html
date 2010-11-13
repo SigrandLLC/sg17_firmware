@@ -1,0 +1,69 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Конфигурация интерфейса SHDSL</title><meta name="generator" content="DocBook XSL Stylesheets V1.68.1"><link rel="start" href="index.html" title="Руководство по эксплуатации мультиплексора ГМ-2-MPR"><link rel="up" href="iface.html" title="Глава 3. Настройка сетевых интерфейсов"><link rel="prev" href="iface.html" title="Глава 3. Настройка сетевых интерфейсов"><link rel="next" href="ch03s02s02.html" title="
+					Настройка сетевых параметров
+				"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Конфигурация интерфейса SHDSL</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="iface.html">Пред.</a> </td><th width="60%" align="center">Глава 3. Настройка сетевых интерфейсов</th><td width="20%" align="right"> <a accesskey="n" href="ch03s02s02.html">След.</a></td></tr></table><hr></div><div class="section" lang="ru"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="dsl"></a>Конфигурация интерфейса SHDSL</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="dsl.html#id2523016">Настройка параметров интерфейса</a></span></dt><dt><span class="section"><a href="ch03s02s02.html">
+					Настройка сетевых параметров
+				</a></span></dt></dl></div><div class="section" lang="ru"><div class="titlepage"><div><div><h3 class="title"><a name="id2523016"></a>Настройка параметров интерфейса</h3></div></div></div><div class="toc"><dl><dt><span class="section"><a href="dsl.html#dsl.mr16h">мультиплексор ГМ-2-MPR</a></span></dt><dt><span class="section"><a href="dsl.html#dsl.mr17h">мультиплексор ГМ-2-MPR</a></span></dt><dt><span class="section"><a href="dsl.html#dsl.status">Установка и статус соединения</a></span></dt></dl></div><p>
+					Для соединения по SHDSL один мультиплексор работает в режиме мастера (master), второй - в режиме слейва (slave). Конфигурация SHDSL соединения зависит от модели мультиплексора и используемых модулей. Настройка интерфейса SHDSL выполняется на странице System/SHDSL/dsl*.
+				</p><div class="section" lang="ru"><div class="titlepage"><div><div><h4 class="title"><a name="dsl.mr16h"></a>мультиплексор ГМ-2-MPR</h4></div></div></div><div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+							Драйвер для SHDSL мультиплексора ГМ-2-MPR называется MPR-SHDSL-VB, его имя отображается в заголовке конфигурационного окна.
+						</p></div><p>
+						мультиплексоры ГМ-2-MPR поддерживают два способа конфигурирования интерфейса SHDSL (MPR-SHDSL-VB) - <span class="emphasis"><em>local</em></span> и <span class="emphasis"><em>preact</em></span>.
+					</p><div class="itemizedlist"><ul type="disc"><li><p>
+								<span class="emphasis"><em>local -</em></span> конфигурация параметров линии связи задаётся на обоих мультиплексорах.
+							</p></li><li><p>
+								<span class="emphasis"><em>preact -</em></span> конфигурация параметров линии связи задаётся на мастере, а слейв получает настройки при установлении соединения. На данный момент при использовании этого режима максимальная скорость ограничена до 2304 Кбит/с.
+							</p></li></ul></div><div class="important" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+							Метод конфигурирования должен совпадать на обоих мультиплексорах.
+						</p></div><div class="figure"><a name="id2523126"></a><p class="title"><b>Рисунок 3.11. Конфигурация SHDSL (MPR-SHDSL-VB)</b></p><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/shdsl-link.png" width="540" alt="Конфигурация SHDSL (MPR-SHDSL-VB)"></td></tr></table></div></div><div class="itemizedlist"><ul type="disc"><li><p>
+								<span class="emphasis"><em>Rate</em></span> - пропускная способность линии связи, Кбит/c.
+							</p></li><li><p>
+								<span class="emphasis"><em>Mode</em></span> - режим: мастер (master), слейв (slave).
+							</p></li><li><p>
+								<span class="emphasis"><em>Coding</em></span> - метод кодирования.
+							</p></li><li><p>
+								<span class="emphasis"><em>Config</em></span> - способ конфигурирования.
+							</p></li><li><p>
+								<span class="emphasis"><em>Annex, CRC, Fill, Inversion</em></span> - настройки относятся к кодированию и заполнению сигнала, используются для обеспечения совместимости оборудования.
+							</p></li></ul></div></div><div class="section" lang="ru"><div class="titlepage"><div><div><h4 class="title"><a name="dsl.mr17h"></a>мультиплексор ГМ-2-MPR</h4></div></div></div><div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+							Драйвер для SHDSL мультиплексора ГМ-2-MPR (и модулей MPR-SHDSL-VB*) называется MPR-SHDSL-VB, его имя отображается в заголовке конфигурационного окна.
+						</p></div><p>
+						Настройка скорости соединения, режима синхронизации и режима кодирования выполняется только на мастере, слейв получает эти настройки во время инициализации соединения. Окно конфигурирования показано ниже:
+					</p><div class="figure"><a name="id2523251"></a><p class="title"><b>Рисунок 3.12. Конфигурация SHDSL (MPR-SHDSL-VB)</b></p><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/shdsl-link-mr17h.png" width="540" alt="Конфигурация SHDSL (MPR-SHDSL-VB)"></td></tr></table></div></div><div class="itemizedlist"><ul type="disc"><li><p>
+								<span class="emphasis"><em>Mode</em></span> - режим: мастер (master), слейв (slave).
+							</p></li><li><p>
+								<span class="emphasis"><em>Clock mode</em></span> - режим синхронизации, по-умолчанию используется режим <span class="emphasis"><em>plesio</em></span> (плезиохронный). Перед выбором режима <span class="emphasis"><em>sync</em></span> (синхронного) следует удостовериться, что всё оборудование, находящееся на линии связи (регенераторы, мультиплексоры) поддерживают данный режим.
+							</p></li><li><p>
+								<span class="emphasis"><em>Rate</em></span> - пропускная способность линии связи, Кбит/c.
+							</p></li><li><p>
+								<span class="emphasis"><em>Coding</em></span> - метод кодирования.
+							</p></li><li><p>
+								<span class="emphasis"><em>Annex, CRC, Fill, Inversion</em></span> - настройки относятся к кодированию и заполнению сигнала, используются для обеспечения совместимости оборудования.
+							</p></li><li><p>
+								<span class="emphasis"><em>Power</em></span> - включить подачу питания для регенераторов, находящихся на линии.
+							</p></li></ul></div></div><div class="section" lang="ru"><div class="titlepage"><div><div><h4 class="title"><a name="dsl.status"></a>Установка и статус соединения</h4></div></div></div><p>
+						После сохранения настроек через некоторый промежуток времени соединение будет установлено, о чем будут сигнализировать светодиоды на лицевой панели мультиплексора. Так же информацию о состоянии соединения можно просмотреть на вкладке статуса:
+					</p><div class="figure"><a name="id2523396"></a><p class="title"><b>Рисунок 3.13. Информация о состоянии соединения SHDSL </b></p><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/shdsl-status.png" width="540" alt="Информация о состоянии соединения SHDSL"></td></tr></table></div></div><p>
+						Вкладка статуса для MPR-SHDSL-VB отображает более подробную информацию. Если соединение не установлено, выводится следующая информация:
+					</p><div class="figure"><a name="id2523424"></a><p class="title"><b>Рисунок 3.14. Информация о неустановленном соединении SHDSL </b></p><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/shdsl-status-mr17h.png" width="540" alt="Информация о неустановленном соединении SHDSL"></td></tr></table></div></div><div class="itemizedlist"><ul type="disc"><li><p>
+								<span class="emphasis"><em>Link state</em></span> - состояние соединения: <span class="emphasis"><em>offline</em></span> - соединение не установленно, <span class="emphasis"><em>online</em></span> - соединение установленно.
+							</p></li><li><p>
+								<span class="emphasis"><em>Power balance</em></span> - баланс питания относительно земли. В норме на одном проводе +120 В, на другом - 120 В. Если перекос больше 30 В или отсутствует земля - это означает несбалансированность питания, загорается светодиод unbalanced на модуле SHDSL. Значение <span class="emphasis"><em>balanced</em></span> этого параметра соответствует нормальной работе, <span class="emphasis"><em>unbalanced</em></span> - несбалансированности питания.
+							</p></li><li><p>
+								<span class="emphasis"><em>Power overload</em></span> - перегрузка питания. Слишком большое число регенераторов на линии, настроенных на питание от данного мультиплексора, вызывает перегрузку питания. На модуле SHDSL загорается светодиод overload. Значение <span class="emphasis"><em>no overload</em></span> этого параметра соответствует нормальной работе, <span class="emphasis"><em>overload</em></span> - перегрузке питания.
+							</p></li></ul></div><p>
+						При установленном соединении добавляется следующая информация:
+					</p><div class="figure"><a name="id2523539"></a><p class="title"><b>Рисунок 3.15. Информация об установленном соединении SHDSL</b></p><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/shdsl-status-mr17h-2.png" width="540" alt="Информация об установленном соединении SHDSL"></td></tr></table></div></div><div class="itemizedlist"><ul type="disc"><li><p>
+								<span class="emphasis"><em>Actual rate</em></span> - скорость установленного соединения, Кбит/с.
+							</p></li><li><p>
+								<span class="emphasis"><em>Actual line code</em></span> - метод кодирования.
+							</p></li><li><p>
+								<span class="emphasis"><em>Actual clock mode</em></span> - режим синхронизации.
+							</p></li><li><p>
+								<span class="emphasis"><em>SNR margin</em></span> - соотношение сигнал/шум в линии связи.
+							</p></li><li><p>
+								<span class="emphasis"><em>Loop attenuation</em></span> - затухание сигнала в линии связи.
+							</p></li></ul></div><div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+							Соединения SHDSL будет установлено, если интерфейс dsl* активен, т.е. для него настроены сетевые параметры (установлен флажок <span class="emphasis"><em>enabled</em></span> и интерфейс активен, подробнее - см. следующий раздел).
+						</p></div></div></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="iface.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="iface.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="ch03s02s02.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Глава 3. Настройка сетевых интерфейсов </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> 
+					Настройка сетевых параметров
+				</td></tr></table></div></body></html>

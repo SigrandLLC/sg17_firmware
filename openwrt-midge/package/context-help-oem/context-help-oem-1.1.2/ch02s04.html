@@ -1,0 +1,22 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Установление зависимостей SHDSL - Ethernet</title><meta name="generator" content="DocBook XSL Stylesheets V1.68.1"><link rel="start" href="index.html" title="Руководство по эксплуатации мультиплексора ГМ-2-MPR"><link rel="up" href="begin.html" title="Глава 2. Управление мультиплексором"><link rel="prev" href="adm5120sw.html" title="Настройка встроенного Ethernet коммутатора"><link rel="next" href="eoc.html" title="Мониторинг SHDSL каналов"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Установление зависимостей SHDSL - Ethernet</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="adm5120sw.html">Пред.</a> </td><th width="60%" align="center">Глава 2. Управление мультиплексором</th><td width="20%" align="right"> <a accesskey="n" href="eoc.html">След.</a></td></tr></table><hr></div><div class="section" lang="ru"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id2521429"></a>Установление зависимостей SHDSL - Ethernet</h2></div></div></div><p>
+			Для создания сложных взаимосвязей между интерфейсами была добавлена возможность
+			управления состоянием Ethernet порта в зависимости от состояния соответствующего ему
+			SHDSL порта
+		</p><p>
+			На данный момент управление соответствием осуществляется через консольный
+			интерфейс, и устанавливается в конфигурационном файле /etc/sand/dsl2eth.map.
+		</p><p>
+			Изначально файл /etc/sand/dsl2eth.map пустой. Пример его заполнения показан в файле 
+			/etc/sand/dsl2eth.map.example и выглядит следующим образом:
+			</p><pre class="screen">
+				dsl0 eth0
+				dsl1 eth1
+			</pre><p>
+		</p><p>
+			Это означает, что интерфейсу eth0 соответствует интерфейс dsl0, а eth1 - dsl1, и если линк на dsl0 
+			упадет, что так же будет отключен линк на eth0. Редактировать файл можно любым текстовым редактором, к примеру следующей командой:
+		</p><p>
+			<span><strong class="command">nano</strong></span> <em class="replaceable"><code>/etc/sand/dsl2eth.map</code></em>
+		</p><p>
+			После внесения изменений в конфигурационный файл рекомендуется перезагрузить мультиплексор.
+		</p></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="adm5120sw.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="begin.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="eoc.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Настройка встроенного Ethernet коммутатора </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Мониторинг SHDSL каналов</td></tr></table></div></body></html>
