@@ -1,0 +1,44 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Качество обслуживания</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="traffic.html" title="Глава 8. Управление трафиком"><link rel="prev" href="nat.html" title="NAT"><link rel="next" href="bfifo-pfifo.html" title="Бесклассовые дисциплины FIFO with bytes buffer (bfifo) и FIFO with packets buffer (pfifo)"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Качество обслуживания</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="nat.html">Пред.</a> </td><th width="60%" align="center">Глава 8. Управление трафиком</th><td width="20%" align="right"> <a accesskey="n" href="bfifo-pfifo.html">След.</a></td></tr></table><hr></div><div class="section" title="Качество обслуживания"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="qos"></a>Качество обслуживания</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="qos.html#pfifo_fast">Бесклассовая дисциплина pfifo_fast</a></span></dt><dt><span class="section"><a href="bfifo-pfifo.html">Бесклассовые дисциплины FIFO with bytes buffer (bfifo) и FIFO
+					with packets buffer (pfifo)</a></span></dt><dt><span class="section"><a href="sfq.html">Бесклассовая дисциплина SFQ</a></span></dt><dt><span class="section"><a href="ch08s04s04.html">Бесклассовая дисциплина ESFQ</a></span></dt><dt><span class="section"><a href="tbf.html">Бесклассовая дисциплина TBF</a></span></dt><dt><span class="section"><a href="htb.html">Классовая дисциплина HTB</a></span></dt></dl></div><p>
+				Качество обслуживания (QoS — quality of service) позволяет
+				изменить очередность прохождения трафика на интерфейсе. Разные
+				дисциплины обслуживания предоставляют разные возможности по
+				управлению трафиком и его классификации.
+			</p><p>
+			    Настройка QoS осуществляется на странице конфигурации интерфейса, вкладки QoS.
+			</p><div class="figure"><a name="id2667875"></a><p class="title"><b>Рисунок 8.17. Настройка QoS</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-qos.png" width="540" alt="Настройка QoS"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                        <span class="emphasis"><em>TX queue length</em></span> — исходящая очередь интерфейса, измеряется в пакетах.
+                        Если ничего не указано, для интерфейса устанавливается значение
+                        по-умолчанию.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Scheduler</em></span> — дисциплина обслуживания трафика.
+                    </p></li></ul></div><div class="section" title="Бесклассовая дисциплина pfifo_fast"><div class="titlepage"><div><div><h3 class="title"><a name="pfifo_fast"></a>Бесклассовая дисциплина pfifo_fast</h3></div></div></div><p>
+					Стандартная дисциплина обслуживания трафика, реализующая
+					простой механизм First In First Out. Состоит из трех полос — 0, 1 и
+					2. Полоса 0 обслуживается до тех пор, пока в ней есть пакеты,
+					ожидающие передачи. Затем аналогичным образом обслуживаются полосы
+					1 и 2.
+				</p><p>
+					Распределять трафик по полосам можно с помощью установки битов
+					ToS — Type of Service, которая производится ПО, генерирующем трафик,
+					или средствами межсетевого
+					экрана. Существует четыре бита ToS:
+				</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+							<span class="emphasis"><em>Minimum Delay</em></span>
+							— минимальная задержка;
+						</p></li><li class="listitem"><p>
+							<span class="emphasis"><em>Maximum Throughput</em></span>
+							— максимальная пропускная способность;
+						</p></li><li class="listitem"><p>
+							<span class="emphasis"><em>Maximum Reliability</em></span>
+							— максимальная надежность;
+						</p></li><li class="listitem"><p>
+							<span class="emphasis"><em>Minimum Cost</em></span>
+							— минимальная стоимость канала;
+						</p></li></ul></div><div class="important" title="Важно" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+						В текущей версии веб-интерфейса маршрутизатора отсутствует
+						возможность установки битов ToS средствами межсетевого экрана.
+						Для этого можно воспользоваться
+						консольным интерфейсом маршрутизатора.
+					</p></div></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="nat.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="traffic.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="bfifo-pfifo.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">NAT </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Бесклассовые дисциплины FIFO with bytes buffer (bfifo) и FIFO
+					with packets buffer (pfifo)</td></tr></table></div></body></html>

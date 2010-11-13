@@ -1,0 +1,97 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Настройка бриджа</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="ifaces.html" title="Динамические интерфейсы"><link rel="prev" href="bonding.html" title="Настройка объединения каналов (bonding)"><link rel="next" href="vlan.html" title="Настройка интерфейсов VLAN"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Настройка бриджа</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="bonding.html">Пред.</a> </td><th width="60%" align="center">Динамические интерфейсы</th><td width="20%" align="right"> <a accesskey="n" href="vlan.html">След.</a></td></tr></table><hr></div><div class="section" title="Настройка бриджа"><div class="titlepage"><div><div><h3 class="title"><a name="bridge"></a>Настройка бриджа</h3></div></div></div><p>
+					Работа устройства в режиме бриджа позволяет прозрачно
+					передавать трафик между интерфейсами, имитируя работу коммутатора.
+					Для этого создаётся специальный сетевой динамический интерфейс с
+					именем <span class="emphasis"><em>br</em></span>, с которым ассоциируются сетевые интерфейсы,
+					между которыми будет передаваться трафик.
+				</p><div class="important" title="Важно" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+                        В режиме Bridge поддерживается использование только ethernet-совместимых
+                        интерфейсов. В устройстве ethernet-совместимыми интерфейсами являются Ethernet,
+                        SHDSL, E1 в режиме ETHER-HDLC, а так же интерфейсы бондинга, бриджа, VLAN.
+                    </p></div><div class="figure"><a name="id2666437"></a><p class="title"><b>Рисунок 7.14. Пример бриджа</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/bridge.png" width="540" alt="Пример бриджа"></td></tr></table></div></div></div><br class="figure-break"><p>
+					В приведенном выше рисунке мост состоит из двух интерфейсов —
+					Ethernet-интерфейса eth0 и SHDSL-интерфейса dsl0 — и объединяет в
+					одну сеть компьютеры PC1 и PC2.
+				</p><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+						Следует заметить, что маршрутизатор, работающий в режиме
+						моста и сети, между которыми он передаёт трафик, не обязательно
+						должны находиться в одном адресном пространстве, как это требуется
+						при настройке маршрутизации трафика.
+					</p><p>
+						Более того, у такого маршрутизатора вообще может не быть
+						IP-адреса. Однако, если необходимо управление маршрутизатором, то
+						ему необходимо назначить IP-адрес, входящий в ту же сеть, что и
+						компьютер, с которого будет производиться управление. В нашем
+						примере, маршрутизаторам можно назначить IP-адреса 192.168.90.10 и
+						192.168.90.11.
+					</p></div><p>
+					На следующем рисунке изображена сеть, аналогичная предыдущей,
+					но с использованием технологии объединения каналов (bonding),
+					позволяющей увеличить производительность сети. В этом случае мост
+					состоит из Ethernet-интерфейса eth0 и объединенных
+					SHDSL-интерфейсов dsl0 и dsl1 в один интерфейс bond0:
+				</p><div class="figure"><a name="id2666508"></a><p class="title"><b>Рисунок 7.15. Пример моста с объединением интерфейсов</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/bridge+bonding.png" width="540" alt="Пример моста с объединением интерфейсов"></td></tr></table></div></div></div><br class="figure-break"><p>
+					Создание динамического интерфейса бриджа происходит на странице
+					Network/Dynamic interfaces/Manage, на которой надо
+					выбрать в качестве протокола Bridge.
+				</p><p>
+                    После добавления интерфейса его имя будет показано в меню Network/Dynamic interfaces/br*.
+                    Так же будет открыто окно быстрой настройки
+                    интерфейса, в котором можно указать все необходимые для запуска интерфейса параметры:
+                </p><div class="figure"><a name="id2666550"></a><p class="title"><b>Рисунок 7.16. Окно быстрой настройки бриджа</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-iface-bridge-wizard.png" width="540" alt="Окно быстрой настройки бриджа"></td></tr></table></div></div></div><br class="figure-break"><p>
+                    В этом окне все параметры, кроме одного, были рассмотрены в предыдущем разделе.
+                    Новый параметр <span class="emphasis"><em>Bridge interfaces</em></span> содержит перечисленные через
+                    пробел интерфейсы, которые входят в состав бриджа.
+                </p><div class="important" title="Важно" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+                        Физический интерфейс может быть добавлен только в
+                        <span class="emphasis"><em>один</em></span>
+                        интерфейс бриджа! К примеру, нельзя создать интерфейсы br0 (eth0,
+                        dsl0) и br1 (eth1, dsl0), т.к. dsl0 может быть добавлен только в
+                        один интерфейс бриджа. Для преодоления этого ограничения
+                        воспользуйтесь технологией VLAN (см. соответствующий раздел и
+                        примеры использования).
+                    </p></div><p>
+                    После сохранения настроек будут автоматически настроены интерфейсы, входящие
+                    в состав бриджа: для них устанавливается <span class="emphasis"><em>enabled=1 auto=0</em></span>.
+                    При этом IP-адреса реальных
+                    интерфейсов, если они были установлены, будут сброшены.
+                </p><p>
+                    Указанные настройки можно изменить на странице настройки интерфейса, на вкладке General.
+                </p><div class="important" title="Важно" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+						Запуск интерфейса <span class="emphasis"><em>br*</em></span>
+						приводит к сбросу IP-адресов с физических интерфейсов, которые в
+						него входят. Таким образом, если настройка осуществляется через
+						физический интерфейс, который входит в мост, управление над
+						маршрутизатором может быть потеряно. Чтобы этого избежать,
+						необходимо назначить динамическому интерфейсу
+						<span class="emphasis"><em>br*</em></span> IP-адрес.
+					</p></div><p>
+					Эту же процедуру повторяем на втором устройстве, и через
+					пару минут, в течении которых "бридж" распознает топологию
+					сети и проведёт небольшой этап самообучения, начнется передача
+					пакетов между интерфейсами.
+				</p><p>
+				    Для бриджа можно настроить дополнительные параметры, которые доступны на странице
+				    Network/Dynamic interfaces/br*, на вкладке Specific:
+				</p><div class="figure"><a name="id2666703"></a><p class="title"><b>Рисунок 7.17. Дополнительные параметры бриджа</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-iface-bridge-specific.png" width="540" alt="Дополнительные параметры бриджа"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                            <span class="emphasis"><em>STP enabled</em></span> — активировать Spanning Tree Protocol.
+                            Основной задачей STP является приведение сети Ethernet с множественными связями
+                            к древовидной топологии, исключающей циклы пакетов. Происходит это путём
+                            автоматического блокирования избыточных в данный момент для полной связности портов.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Interfaces</em></span> — интерфейсы, входящие в состав бриджа.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Priority</em></span> — приоритет бриджа, чем ниже значение, тем выше приоритет.
+                            Используется в STP.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Forward delay</em></span> — время, которое бридж проводит в режимах
+                            Listening и Learning перед переходом в режим Forwarding (собственно, рабочий режим).
+                            Указывается в секундах. Используется в STP.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Hello time</em></span> — время между отправкой пакетов о топологии сети.
+                            Указывается в секундах. Используется в STP.
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Max age</em></span> — если от какого-либо бриджа в течении <span class="emphasis"><em>max age</em></span>
+                            времени не приходит пакет hello, бридж считается потерянным. В этом случае
+                            возможна перестройка маршрутов. Указывается в секундах. Используется в STP.
+                        </p></li></ul></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="bonding.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="ifaces.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="vlan.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Настройка объединения каналов (bonding) </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Настройка интерфейсов VLAN</td></tr></table></div></body></html>

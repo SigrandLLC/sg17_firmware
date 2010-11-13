@@ -1,0 +1,56 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Управление устройством</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="ch04.html" title="Глава 4. Начало работы с маршрутизатором"><link rel="prev" href="mac-address.html" title="MAC-адреса сетевых интерфейсов"><link rel="next" href="console.html" title="Управление через консольный интерфейс"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Управление устройством</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="mac-address.html">Пред.</a> </td><th width="60%" align="center">Глава 4. Начало работы с маршрутизатором</th><td width="20%" align="right"> <a accesskey="n" href="console.html">След.</a></td></tr></table><hr></div><div class="section" title="Управление устройством"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="device-manage"></a>Управление устройством</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="device-manage.html#web">Управление с помощью Веб-интерфейса</a></span></dt><dt><span class="section"><a href="console.html">Управление через консольный интерфейс</a></span></dt><dt><span class="section"><a href="ch04s06s03.html">Сводная информация</a></span></dt></dl></div><p>
+                В заводской конфигурации и после обновления прошивки на
+                маршрутизаторе активен интерфейс eth0 с IP-адресом 192.168.2.100,
+                сетевая маска 255.255.255.0.
+            </p><p>
+                Для настройки маршрутизатора необходимо соединить сетевую карту
+                компьютера и Ethernet-порт eth0 патч-кордом. На компьютере следует
+                выставить IP-адрес из той же сети, в которой находится маршрутизатор
+                (192.168.2.0/24), к примеру, 192.168.2.1, с сетевой маской
+                255.255.255.0.
+            </p><div class="section" title="Управление с помощью Веб-интерфейса"><div class="titlepage"><div><div><h3 class="title"><a name="web"></a>Управление с помощью Веб-интерфейса</h3></div></div></div><p>
+                    Настройка маршрутизатора выполняется через веб-интерфейс любым
+                    веб-браузером, поддерживающим протокол HTTPS и JavaScript: Internet
+                    Explorer с 6 версии, Opera, Mozilla Firefox. Для перехода к
+                    странице настройки необходимо в строке адреса веб-браузера ввести
+                    http://192.168.2.100 или https://192.168.2.100/wf2, после чего будут
+                    заданы несколько вопросов
+                    касательно сертификатов шифрования, на которые следует ответить
+                    положительно. По-умолчанию, логин/пароль admin/1234.
+                </p><p>
+                    Начиная с версии прошивки 1283 используется новый веб-интерфейс управления,
+                    написанный на JavaScript.
+                    При входе в веб-интерфейс, производится
+                    загрузка всех необходимых файлов и содержимого конфигурационного файла KDB.
+                    Отрисовка всех элементов пользовательского интерфейса производится на стороне клиента
+                    (в браузере) средствами JavaScript, что позволяет ускорить работу интерфейса,
+                    т.к. переносит ресурсоёмкие операции с маршрутизатора.
+                </p><p>
+                    При сохранении изменений не происходит перезагрузки страницы — на
+                    маршрутизатор отправляются только конфигурационные данные (используя
+                    технологию AJAX). После сохранения настроек в KDB, производится
+                    перезапуск соответствующей подсистемы. Всё это происходит в фоновом
+                    режиме, и пользователь может сразу перейти к настройке других
+                    подсистем. При этом в веб- интерфейсе будет отображаться число задач,
+                    выполняющихся или ожидающих выполнения на маршрутизаторе (одновременно
+                    на маршрутизаторе выполняется только одна задача).
+                </p><p>
+                    При входе в веб-интерфейс будет открыта страница, на которой представлена общая информация
+                    об устройстве: имя устройства, версия прошивки, локальное время на устройстве, а так же
+                    информация об установленных модулях. Эта страница показана ниже.
+                </p><div class="figure"><a name="id2659663"></a><p class="title"><b>Рисунок 4.1. Страница с общей информацией</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-intro.png" width="540" alt="Страница с общей информацией"></td></tr></table></div></div></div><br class="figure-break"><p>
+                    На представленной странице выделена строка статуса, которая отражает взаимодействие
+                    веб-интерфейса с устройством. На ней представлены следующие параметры:
+                </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                            <span class="emphasis"><em>Hostname</em></span> — имя текущего устройства;
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>status</em></span> — доступно (online) или недоступно (offline) устройство.
+                            К примеру, если отключить маршрутизатор от сети, то через некоторое время (около 10-15 секунд)
+                            его статус в веб-интерфейсе изменится на offline. В этом случае невозможно производить настройку
+                            или опрос состояния маршрутизатора; 
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>tasks</em></span> — число выполняемых или стоящих в очереди на выполнение задач; 
+                        </p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>ajax</em></span> — сколько AJAX-запросов было отправлено маршрутизатору,
+                            на которые ожидается ответ (эти запросы не связаны с изменением конфигурации устройства). 
+                        </p></li></ul></div></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="mac-address.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="ch04.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="console.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">MAC-адреса сетевых интерфейсов </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Управление через консольный интерфейс</td></tr></table></div></body></html>

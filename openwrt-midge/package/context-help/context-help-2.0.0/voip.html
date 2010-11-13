@@ -1,0 +1,97 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Глава 10. VoIP</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="prev" href="dns_server.html" title="Сервер DNS"><link rel="next" href="voip.settings.html" title="Настройка основных параметров"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Глава 10. VoIP</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="dns_server.html">Пред.</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="voip.settings.html">След.</a></td></tr></table><hr></div><div class="chapter" title="Глава 10. VoIP"><div class="titlepage"><div><div><h2 class="title"><a name="voip"></a>Глава 10. VoIP</h2></div></div></div><div class="toc"><p><b>Содержание</b></p><dl><dt><span class="section"><a href="voip.html#voip.intro">Основные сведения</a></span></dt><dt><span class="section"><a href="voip.settings.html">Настройка основных параметров</a></span></dt><dt><span class="section"><a href="voip.hotline.html">Режим Hotline</a></span></dt><dt><span class="section"><a href="voip.vf.html">Каналы ТЧ</a></span></dt><dt><span class="section"><a href="voip.route.html">Маршрутизация звонков</a></span></dt><dt><span class="section"><a href="voip.address.html">Телефонная книга</a></span></dt><dt><span class="section"><a href="voip.audio.html">Настройки звука</a></span></dt><dt><span class="section"><a href="voip.codecs.html">Кодеки</a></span></dt><dt><span class="section"><a href="voip.echo.html">Настройки подавления эха</a></span></dt><dt><span class="section"><a href="voip.dialmode.html">Настройка режима набора номера</a></span></dt></dl></div><div class="section" title="Основные сведения"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="voip.intro"></a>Основные сведения</h2></div></div></div><p>
+				Устройство позволяет организовывать IP-телефонию с помощью модулей
+				MR-17V, которые могут быть укомплектованы портами FXO,
+				FXS или ТЧ.
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+			            <span class="emphasis"><em>FXO</em></span> — подключение к телефонной сети общего
+			            пользования (ТфОП, или PSTN), либо к офисным АТС (PBX).
+			        </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>FXS</em></span> — подключение телефонных аппаратов.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>ТЧ</em></span> — подключение оборудования тональной частоты.
+                    </p></li></ul></div><p>
+				При работе с VoIP каждый маршрутизатор имеет свой уникальный
+				трёхзначный номер,
+				который используется для обращения к нему со
+				стороны других маршрутизаторов. Так же,
+				каждый канал модуля VoIP
+				(FXO/FXS/ТЧ) имеет двухзначный номер, уникальный для
+				конкретного
+				маршрутизатора, для приёма или совершения звонков.
+			</p><p>
+				Таким образом, формат номера, используемый для звонков через
+				маршрутизатор,
+				выглядит следующим образом:
+			</p><p>
+				xxx yy [zzz...], где:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+						<span class="emphasis"><em>xxx</em></span>
+						— номер маршрутизатора.
+					</p></li><li class="listitem"><p>
+						<span class="emphasis"><em>yy</em></span>
+						— номер канала.
+					</p></li><li class="listitem"><p>
+						<span class="emphasis"><em>[zzz...]</em></span>
+						— дополнительный номер, например, при звонке через АТС.
+					</p></li></ul></div><p>
+				Например, если номер маршрутизатора 100, и мы хотим позвонить
+				на его второй порт,
+				то набор номера с телефона, подключённого к этому
+				маршрутизатору либо другому, выглядит
+				следующим образом: 100 02.
+			</p><p>
+				Так же, при наборе номера с телефона, подключённого к
+				маршрутизатору, доступны
+				следующие коды:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+						Вместо набора номера маршрутизатора можно набрать:
+					</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+								<span class="emphasis"><em>*</em></span>
+								— звоним на собственный маршрутизатор;
+							</p></li><li class="listitem"><p>
+								<span class="emphasis"><em>#</em></span>
+								— звоним по номеру из адресной книги.
+							</p></li></ul></div></li><li class="listitem"><p>
+						Вместо набора номера канала можно набрать:
+					</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+								<span class="emphasis"><em>*</em></span>
+								— звоним на первый свободный FXO порт;
+							</p></li><li class="listitem"><p>
+								<span class="emphasis"><em>#</em></span>
+								— звоним через SIP-сервер (только абонентам, зарегистрированным
+								на SIP-сервере, указанном в настройке. Для звонков абонентам
+								других SIP-серверов — их необходимо добавить в адресную книгу и
+								звонить через неё).
+							</p></li></ul></div></li></ul></div><p>
+				Для звонков на другие маршрутизаторы необходимо получить
+				IP-адрес
+				маршрутизатора по его номеру. Для этих целей используется
+				таблица маршрутизации,
+				которая хранит соответствие между номером
+				маршрутизатора и его IP-адресом. Как правило,
+				содержимое этой таблицы
+				одинаково на всех маршрутизаторах сети.
+			</p><p>
+				Чтобы ускорить набор часто набираемых или длинных номеров,
+				используется
+				адресная книга. В неё заносится короткий номер,
+				используемый для быстрого набора (с
+				предварительным набором «#»), и
+				соответствующий ему полный номер.
+			</p><p>
+				В демоне IP-телефонии svd реализована поддержка режима Hotline.
+				Смысл его
+				заключается в следующем: при поднятии трубки телефона,
+				подключённого к FXS порту,
+				демон может начать автоматический набор
+				записанного номера. При поступлении звонка на
+				порт FXO (подключенный
+				к PSTN или PBX), демон может сделать
+				переадресацию вызова на другой порт (отличный от набранного
+				пользователем, совершающего вызов), либо перенаправить звонок на
+				другой маршрутизатор.
+			</p><p>
+				При записи полных номеров в таблицы телефонной книги и Hotline
+				допускается использовать специальный символ — «,», означающий
+				секундную задержку при наборе номера.
+			</p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="dns_server.html">Пред.</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="voip.settings.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Сервер DNS </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Настройка основных параметров</td></tr></table></div></body></html>

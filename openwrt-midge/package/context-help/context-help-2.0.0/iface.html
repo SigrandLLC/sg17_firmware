@@ -1,0 +1,121 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Глава 7. Настройка сетевых интерфейсов</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="prev" href="multiplexing.html" title="Мультиплексирование"><link rel="next" href="ifaces.html" title="Динамические интерфейсы"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Глава 7. Настройка сетевых интерфейсов</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="multiplexing.html">Пред.</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="ifaces.html">След.</a></td></tr></table><hr></div><div class="chapter" title="Глава 7. Настройка сетевых интерфейсов"><div class="titlepage"><div><div><h2 class="title"><a name="iface"></a>Глава 7. Настройка сетевых интерфейсов</h2></div></div></div><div class="toc"><p><b>Содержание</b></p><dl><dt><span class="section"><a href="iface.html#id2665282">Общие параметры</a></span></dt><dd><dl><dt><span class="section"><a href="iface.html#status">Вкладка Status</a></span></dt><dt><span class="section"><a href="iface.html#general">Вкладка General</a></span></dt><dt><span class="section"><a href="iface.html#specific">Вкладка Specific</a></span></dt></dl></dd><dt><span class="section"><a href="ifaces.html">Динамические интерфейсы</a></span></dt><dd><dl><dt><span class="section"><a href="ifaces.html#id2666030">Работа с динамическими интерфейсами</a></span></dt><dt><span class="section"><a href="bonding.html">Настройка объединения каналов (bonding)</a></span></dt><dt><span class="section"><a href="bridge.html">Настройка бриджа</a></span></dt><dt><span class="section"><a href="vlan.html">Настройка интерфейсов VLAN</a></span></dt></dl></dd></dl></div><div class="section" title="Общие параметры"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id2665282"></a>Общие параметры</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="iface.html#status">Вкладка Status</a></span></dt><dt><span class="section"><a href="iface.html#general">Вкладка General</a></span></dt><dt><span class="section"><a href="iface.html#specific">Вкладка Specific</a></span></dt></dl></div><p>
+		        В веб-интерфейсе есть разделение сетевых интерфейсов на два типа: статические и динамические.
+		        К статическим интерфейсам относятся интерфейсы, которые нельзя создать или удалить, т.е.
+		        по сути это физические интерфейсы, относящиеся к определённому аппаратному обеспечению.
+		        К динамическим интерфейсам относятся интерфейсы бондинга, бриджа, VLAN, т.к. эти
+		        интерфейсы можно создавать и удалять, они не являются физическими, а используют для
+		        работы другие интерфейсы.
+		    </p><p>
+				В этом разделе рассматриваются общие параметры настройки для всех
+				типов сетевых интерфейсов.
+			</p><div class="tip" title="Подсказка" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Подсказка</h3><p>
+			        Для некоторых интерфейсов вверху страницы может выводится сообщение
+			        <span class="emphasis"><em>This network interface is used for accessing the web interface</em></span>.
+			        Данное сообщение говорит о том, что доступ к веб-интерфейсу осуществляется через сетевой интерфейс,
+			        страница которого сейчас открыта, и следует проявлять осторожность при
+			        конфигурации, чтобы не потерять контроль над устройством.
+			    </p><div class="figure"><a name="id2665358"></a><p class="title"><b>Рисунок 7.1. Информационное сообщение</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-iface-info-message.png" width="540" alt="Информационное сообщение"></td></tr></table></div></div></div><br class="figure-break"></div><div class="section" title="Вкладка Status"><div class="titlepage"><div><div><h3 class="title"><a name="status"></a>Вкладка Status</h3></div></div></div><p>
+					На вкладке <span class="emphasis"><em>Status</em></span>
+					отображается основная информация о выбранном интерфейсе, а так же
+					предоставляется возможность останова, запуска, и перезапуска
+					интерфейса.
+				</p><p>
+                    Управление интерфейсом:
+                </p><div class="figure"><a name="id2665405"></a><p class="title"><b>Рисунок 7.2. Управление интерфейсом</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-iface-stat-buttons.png" width="540" alt="Управление интерфейсом"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                            Кнопка <span class="emphasis"><em>Start</em></span>
+                            позволяет запустить ("поднять") интерфейс, если на вкладке
+                            General установлен флажок <span class="emphasis"><em>enabled</em></span>.
+                        </p></li><li class="listitem"><p>
+                            Кнопка <span class="emphasis"><em>Stop</em></span>
+                            останавливает ("опускает") интерфейс.
+                        </p></li><li class="listitem"><p>
+                            Кнопка <span class="emphasis"><em>Restart</em></span>
+                            останавливает, а затем запускает интерфейс.
+                        </p></li></ul></div><p>
+                    Информация о сетевых параметрах интерфейса:
+                </p><div class="figure"><a name="id2665484"></a><p class="title"><b>Рисунок 7.3. Сетевые параметры</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-iface-stat.png" width="540" alt="Сетевые параметры"></td></tr></table></div></div></div><br class="figure-break"><p>
+					Состояние интерфейса (запущен или нет) можно определить по строке
+					флагов. Если в ней содержится слово
+					<span class="emphasis"><em>UP</em></span>, то интерфейс запущен (к примеру,
+					<span class="emphasis"><em>UP BROADCAST MULTICAST</em></span>).
+				</p><p>
+					Маршруты, привязанные к интерфейсу:
+			    </p><div class="figure"><a name="id2665524"></a><p class="title"><b>Рисунок 7.4. Сетевые маршруты</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-iface-stat-routes.png" width="540" alt="Сетевые маршруты"></td></tr></table></div></div></div><br class="figure-break"><p>
+					Записи в таблице ARP:
+			    </p><div class="figure"><a name="id2665545"></a><p class="title"><b>Рисунок 7.5. Таблица ARP</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-iface-stat-arp.png" width="540" alt="Таблица ARP"></td></tr></table></div></div></div><br class="figure-break"><p>
+					Для интерфейсов Ethernet доступна информация о работе встроенного коммутатора:
+				</p><div class="figure"><a name="id2665568"></a><p class="title"><b>Рисунок 7.6. Встроенный коммутатор</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-iface-stat-switch.png" width="540" alt="Встроенный коммутатор"></td></tr></table></div></div></div><br class="figure-break"></div><div class="section" title="Вкладка General"><div class="titlepage"><div><div><h3 class="title"><a name="general"></a>Вкладка General</h3></div></div></div><p>
+					На вкладке <span class="emphasis"><em>General</em></span> можно активировать сетевой интерфейс,
+					выбрать способ установки IP-адреса, а так же, при необходимости, указать
+					IP-адрес.
+				</p><div class="figure"><a name="id2665608"></a><p class="title"><b>Рисунок 7.7. Вкладка General</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-iface-general.png" width="540" alt="Вкладка General"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+							<span class="emphasis"><em>Description</em></span>
+							— описание интерфейса, используется как комментарий к интерфейсу.
+						</p></li><li class="listitem"><p>
+							<span class="emphasis"><em>Enabled</em></span>
+							— интерфейс активен. Это делает возможным запуск интерфейса
+							другим интерфейсом (интерфейсом бондинга или бриджа), но интерфейс
+							не будет запущен при загрузке. В частности, интерфейс можно
+							запустить нажатием кнопки
+							<span class="emphasis"><em>Start interface</em></span> на вкладке <span class="emphasis"><em>Status</em></span>.
+						</p></li><li class="listitem"><p>
+							<span class="emphasis"><em>Auto</em></span>
+							— независимый запуск интерфейса. Интерфейс будет запущен при
+							загрузке устройства, либо при сохранении настроек интерфейса.
+						</p></li><li class="listitem"><p>
+                            <span class="emphasis"><em>Depends on</em></span>
+                            — интерфейс, от которого зависит данный интерфейс. При запуске
+                            данного интерфейса сперва будет запущен интерфейс, от которого он
+                            зависит.
+                        </p><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+                                Для интерфейса VLAN данный параметр недоступен — для
+                                него здесь всегда используется его физический интерфейс.
+                            </p></div></li><li class="listitem"><p>
+							<span class="emphasis"><em>Method</em></span> — метод установки IP-адреса.
+						</p><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+								Для интерфейса <span class="emphasis"><em>Е1</em></span> при использовании протоколов, отличных от
+								<span class="emphasis"><em>ETHER-HDLC</em></span>, доступно только два метода: none и Static address.
+							</p></div><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+		                            <span class="emphasis"><em>None</em></span> — IP-адрес не устанавливается.
+		                        </p></li><li class="listitem"><p>
+		                            <span class="emphasis"><em>Static address</em></span>
+		                            — статический, ручной ввод пользователем.
+		                        </p><div class="figure"><a name="id2665780"></a><p class="title"><b>Рисунок 7.8. Статический метод установки IP-адреса</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-iface-general-method-static.png" width="540" alt="Статический метод установки IP-адреса"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="square"><li class="listitem"><p>
+				                            <span class="emphasis"><em>Static address</em></span> — требуемый IP-адрес в формате xxx.xxx.xxx.xxx
+				                            (например, 192.168.2.100);
+				                        </p></li><li class="listitem"><p>
+                                            <span class="emphasis"><em>Netmask</em></span> — маска сети в формате xxx.xxx.xxx.xxx
+                                            (например, 255.255.255.0);
+                                        </p></li><li class="listitem"><p>
+                                            <span class="emphasis"><em>Broadcast</em></span> — опциональный широковещательный адрес в
+                                            формате xxx.xxx.xxx.xxx (192.168.2.255). Если не указан, рассчитывается
+                                            автоматически при запуске интерфейса (доступен для просмотра на вкладке
+                                            Status в выводе состояния интерфейса);
+                                        </p></li><li class="listitem"><p>
+                                            <span class="emphasis"><em>Gateway</em></span> — маршрут по-умолчанию;
+                                        </p></li></ul></div><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+				                        Для интерфейса <span class="emphasis"><em>Е1</em></span> при использовании протоколов, отличных от
+                                        <span class="emphasis"><em>ETHER-HDLC</em></span>, адрес устанавливается в виде Point-to-Point
+                                        (точка - точка), т.е. указываются IP-адреса локальной и удалённой стороны.
+				                    </p><div class="figure"><a name="id2665890"></a><p class="title"><b>Рисунок 7.9. Point-to-Point IP-адрес</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-iface-general-method-static-ptp.png" width="540" alt="Point-to-Point IP-адрес"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="square"><li class="listitem"><p>
+	                                            <span class="emphasis"><em>Point to Point local</em></span> — локальный IP-адрес
+	                                            (для текущего устройства);
+	                                        </p></li><li class="listitem"><p>
+	                                            <span class="emphasis"><em>Point to Point remote</em></span> — удалённый IP-адрес
+	                                            (адрес устройства на другом конце соединения E1).
+	                                        </p></li></ul></div></div></li><li class="listitem"><p>
+		                            <span class="emphasis"><em>Zero configuration</em></span>
+		                            — автоматический способ присвоения ip-адреса, позволяющий
+		                            построить работающую сеть без ручного присвоения IP-адресов и без
+		                            серверов DHCP. В этом случае интерфейсу будет назначен IP-адрес
+		                            из диапазона 169.254.*.
+		                        </p></li><li class="listitem"><p>
+		                            <span class="emphasis"><em>Dynamic address</em></span>
+		                            — динамический IP-адрес — адрес назначается сервером DHCP.
+		                        </p></li></ul></div></li></ul></div></div><div class="section" title="Вкладка Specific"><div class="titlepage"><div><div><h3 class="title"><a name="specific"></a>Вкладка Specific</h3></div></div></div><p>
+					Данная вкладка содержит параметры, которые специфичны для данного
+					интерфейса. К примеру, для Ethernet-совместимых интерфейсов
+					(Ethernet, SHDSL, E1 в режиме ETHER-HDLC и т.д.)
+					здесь можно установить MAC-адрес. Для бриджа здесь находятся
+					специфичные для него параметры.
+				</p><div class="figure"><a name="id2666005"></a><p class="title"><b>Рисунок 7.10. Вкладка Specific</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-iface-specific.png" width="540" alt="Вкладка Specific"></td></tr></table></div></div></div><br class="figure-break"></div></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="multiplexing.html">Пред.</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="ifaces.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Мультиплексирование </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Динамические интерфейсы</td></tr></table></div></body></html>

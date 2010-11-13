@@ -1,0 +1,194 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Обновление прошивки маршрутизатора</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="ch04.html" title="Глава 4. Начало работы с маршрутизатором"><link rel="prev" href="bootloader.html" title="Загрузчик"><link rel="next" href="ch04s04.html" title="Установка программ"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Обновление прошивки маршрутизатора</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="bootloader.html">Пред.</a> </td><th width="60%" align="center">Глава 4. Начало работы с маршрутизатором</th><td width="20%" align="right"> <a accesskey="n" href="ch04s04.html">След.</a></td></tr></table><hr></div><div class="section" title="Обновление прошивки маршрутизатора"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="update"></a>Обновление прошивки маршрутизатора</h2></div></div></div><div class="important" title="Важно" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+					Перед перепрошивкой следует сохранить конфигурацию (см. раздел
+					<a class="link" href="cfg.html" title="Сохранение/восстановление конфигурации">Сохранение/восстановление конфигурации</a>
+					), т.к. установка новой прошивки вернёт все параметры в исходное
+					состояние, а так же сбросит установленные производителем MAC-адреса
+					(см. раздел
+					<a class="link" href="mac-address.html" title="MAC-адреса сетевых интерфейсов">MAC-адреса сетевых интерфейсов</a>
+					).
+				</p></div><p>
+				Обновление прошивки выполняется через консольный интерфейс, для
+				этого вам потребуется:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+						Компьютер с последовательным интерфейсом.
+					</p></li><li class="listitem"><p>
+						TFTP-сервер, доступный с маршрутизатора.
+					</p></li></ul></div><p>
+				Для обновления прошивки необходимо, чтобы маршрутизатору был
+				доступен TFTP-сервер, на котором расположен файл образа прошивки. В
+				старых версиях загрузчика было необходимо, чтобы этот TFTP-сервер
+				находился в одной сети с маршрутизатором, в новой версии добавлена
+				возможность обновления, когда сервер доступен через шлюз.
+			</p><p>
+				Если используется локальный TFTP-сервер, то после его настройки
+				необходимо в каталог, являющийся для него (TFTP-сервера) корневым,
+				скопировать файл прошивки, который можно скачать с веб-сайта
+				<a class="ulink" href="http://www.sigrand.ru" target="_top">www.sigrand.ru</a>
+				. Последняя версия прошивки находится по адресу
+				<a class="ulink" href="http://sigrand.ru/temp/sigrand" target="_top">http://sigrand.ru/temp/sigrand</a>
+				.
+			</p><p>
+				Как подготовить маршрутизатор для управления по консольному
+				интерфейсу написано в разделе
+				<a class="link" href="ch04.html#firstboot" title="Подготовка к первому включению">Подготовка к первому включению</a>
+				. После запуска программы управления терминалом и установки
+				соответствующих настроек порта, надо включить маршрутизатор. В окне
+				программы выведется информация о маршрутизаторе с предложением войти
+				в меню загрузчика:
+			</p><pre class="screen">
+				ADM5120 Boot:
+
+
+				CPU: ADM5120-175MHz
+				SDRAM: 128MB
+				Flash: NAND-32MB
+				Boot System: Linux-5120
+				Loader Version: 1.00.03
+				Creation Date: 2004.06.04
+
+				Press &lt;space&gt; key tree times to enter boot menu..
+				2
+			</pre><p>
+				Для активации меню загрузчика надо быстро нажать на клавишу
+				пробела 3 раза. Меню загрузчика выглядит следующим образом:
+			</p><pre class="screen">
+				==================================
+				Bootloader Menu
+				[1] Xmodem
+				Download
+				[2] TFTP Download
+				[3] Print Boot Params
+				[4] Set Boot Params
+				[5] Exit
+
+				Please enter your number:
+			</pre><p>
+				Перед обновлением прошивки необходимо выставить сетевые параметры,
+				которые соответствуют вашей сети. Для этого нужно перейти в пункт
+				меню
+				<span class="emphasis"><em>Set Boot Params</em></span>
+				, нажав клавишу 4. Здесь будет предложено указать:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+						<span class="emphasis"><em>MAC-адрес сетевого интерфейса</em></span>
+						— (Enter new mac address) — можно оставить установленный MAC адрес
+						(его значение отображено выше, Current Mac Address), или ввести
+						новое значение.
+					</p></li><li class="listitem"><p>
+						<span class="emphasis"><em>Число MAC адресов</em></span>
+						— (Enter new number of mac address) — этот параметр следует
+						пропустить (по умолчанию число MAC адресов равно 1).
+					</p></li><li class="listitem"><p>
+						<span class="emphasis"><em>IP-адрес</em></span>
+						— (Enter new IP address for this board) — следует ввести IP-адрес,
+						находящийся в одной сети с TFTP-сервером.
+					</p></li></ul></div><p>
+				Пример конфигурации приведен ниже:
+			</p><pre class="screen">
+				Set Boot Parameters.
+				==========================
+				Current mac
+				addres: 00-05-5D-77-86-01
+				Number of mac address: 1
+				Enter new mac
+				address (AA-AA-AA-AA-AA-AA):
+				Enter new number of mac address (between
+				1-8):
+				Mac address unchanged.
+				IP address for this board: 10.10.10.1
+				Enter new IP address for this board: 10.10.10.1
+				IP updated
+				successfully.
+			</pre><p>
+				В приведённом примере был введён только IP адрес
+				маршрутизатора, остальные параметры оставлены без изменений.
+			</p><p>
+				После настройки сетевых параметров, следует выбрать пункт меню
+				2 (TFTP Download) для настройки параметров обновления с помощью
+				TFTP-сервера. Содержание этого меню приведено ниже:
+			</p><pre class="screen">
+				Server IP: 80.66.88.167
+				Gateway IP: 10.10.10.2
+				Remote File
+				system: openwrt
+
+				TFTP Client Menu
+				===============================
+				[S]: Update system
+				[P]:
+				Set parameters
+				[X]: exit
+				Enter your option:
+			</pre><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+					Приведённое выше меню соответствует новому загрузчику, в
+					который была добавлена возможность загрузки системы с TFTP-сервера,
+					находящегося за маршрутизатором. Меню в старых версиях загрузчика
+					отличается отсутствием возможности установки шлюза.
+				</p></div><p>
+				Первые три строчки над меню содержат информацию, установленную
+				во время последнего обновления прошивки. Для их изменения следует
+				выбрать пункт меню set parameters нажатием клавиши p. В ответ на это
+				будет предложено ввести:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+						<span class="emphasis"><em>IP-адрес TFTP-сервера</em></span>
+						— (Please Enter TFTP Server IP) — IP-адрес TFTP-сервера, на
+						котором находится файл прошивки. Можно использовать TFTP-сервер,
+						предоставляемый компанией Сигранд —
+						<span class="emphasis"><em>sigrand.ru</em></span>
+						. Вводить следует IP-адрес сервера.
+					</p></li><li class="listitem"><p>
+						<span class="emphasis"><em>IP-адрес шлюза</em></span>
+						— (Please enter gateway IP). Установка данного параметра позволяет
+						обновлять прошивку с TFTP-сервера, находящегося в отличной от
+						маршрутизатора сети. Шлюз должен находиться в той же сети, что и
+						интерфейс маршрутизатора.
+					</p></li><li class="listitem"><p>
+						<span class="emphasis"><em>Имя файла прошивки</em></span>
+						— (Enter remote system file name) — имя файла прошивки,
+						расположенного на TFTP-сервере.
+					</p></li></ul></div><pre class="screen">
+				Please enter TFTP server IP : 80.66.88.167
+				Please enter
+				gateway IP : 10.10.10.2
+				Enter remote system file name : openwrt
+			</pre><p>
+				Для обновления прошивки маршрутизатора переходим в пункт меню
+				[S]: Update system:
+			</p><pre class="screen">
+				Enter your option:s
+				Starting the TFTP download(ESC to
+				stop)...................................
+				PASS
+				File total Length:
+				00B62808 Starting address: A0820000
+
+				Eraseing flash.......
+				PASS
+				Programming flash....
+				PASS
+			</pre><p>
+				PASS, соответствующий строчкам Eraseing flash и Programming
+				flash означает, что обновление прошло успешно. FAIL говорит о
+				возникших проблемах, как правило это неправильный IP-адрес
+				TFTP-сервера (маршрутизатор и TFTP-сервер находятся в разных сетях)
+				или неправильное имя файла на сервере. Для загрузки новой прошивки
+				необходимо выполнить перезагрузку маршрутизатора нажатием на кнопку
+				RESET или включением/выключением питания.
+			</p><p>
+				После загрузки маршрутизатора (при обычной загрузке не требуется
+				входить в меню загрузчика, поэтому надо подождать, пока истечёт
+				таймер и начнётся загрузка операционной системы), можно перейти к
+				настройке посредством веб-интерфейса. Доступ к консоли больше не
+				требуется, поэтому провод и соответствующее
+				<acronym class="acronym">ПО</acronym>
+				можно отключить.
+			</p><p>
+				В случае, если на экран была выведена строчка:
+			</p><pre class="screen">Starting the TFTP download(ESC to stop)..FAIL</pre><p>
+				— значит, загрузчику не удалось загрузить файл прошивки с
+				указанного TFTP-сервера. В этом случае следует проверить
+				корректность указания IP адреса TFTP-сервера и имени файла прошивки
+				на нем. Если всё корректно, то следует проверить настройки,
+				введённые в пункте Set Boot Params. Так же может помочь смена
+				MAC-адреса и проверка, не блокирует ли сервер TFTP соединения с
+				маршрутизатора.
+			</p></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="bootloader.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="ch04.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="ch04s04.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Загрузчик </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Установка программ</td></tr></table></div></body></html>

@@ -1,0 +1,64 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Глава 9. Настройка сетевых служб</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="prev" href="htb.html" title="Классовая дисциплина HTB"><link rel="next" href="dns_server.html" title="Сервер DNS"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Глава 9. Настройка сетевых служб</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="htb.html">Пред.</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="dns_server.html">След.</a></td></tr></table><hr></div><div class="chapter" title="Глава 9. Настройка сетевых служб"><div class="titlepage"><div><div><h2 class="title"><a name="dhcp_server"></a>Глава 9. Настройка сетевых служб</h2></div></div></div><div class="toc"><p><b>Содержание</b></p><dl><dt><span class="section"><a href="dhcp_server.html#dhcp">Сервер DHCP</a></span></dt><dt><span class="section"><a href="dns_server.html">Сервер DNS</a></span></dt></dl></div><div class="section" title="Сервер DHCP"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="dhcp"></a>Сервер DHCP</h2></div></div></div><p>
+                Настройка сервера DHCP выполняется независимо для каждого
+                сетевого интерфейса и производится на странице настройки сетевого интерфейса,
+                вкладка DHCP, либо Services/DHCP Server.
+            </p><div class="important" title="Важно" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+                    Перед активацией сервера DHCP необходимо запустить интерфейс
+                    (активировать флажки <span class="emphasis"><em>Enabled</em></span> и <span class="emphasis"><em>Auto</em></span>),
+                    на котором он будет работать, а так же назначить интерфейсу IP-адрес.
+                </p></div><p>
+                Ниже представлена страница настройки сервера DHCP.
+            </p><div class="figure"><a name="id2669213"></a><p class="title"><b>Рисунок 9.1. Настройка DHCP-сервера</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-dhcp.png" width="540" alt="Настройка DHCP-сервера"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                        <span class="emphasis"><em>Enable DHCP Server</em></span>
+                        — активировать сервер DHCP для данного интерфейса.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Start IP</em></span>, <span class="emphasis"><em>End IP</em></span>
+                        — начало и конец диапазона IP-адресов для выдачи клиентам DHCP.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Netmask</em></span>
+                        — сетевая маска сети, для которой выдаются IP-адреса.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Default router</em></span>
+                        — маршрут по-умолчанию.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Default lease time</em></span>
+                        — время, на которое выдаётся IP-адрес. По истечении этого времени
+                        клиент должен снова обратиться к DHCP-серверу для подтверждения
+                        использования выданного ранее адреса или получения нового.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>DNS server</em></span>
+                        — IP-адрес DNS-сервера, к которому будет обращаться клиент для
+                        разрешения доменных имен.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Domain</em></span>
+                        — домен, в который будет входить клиент DHCP-сервера.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>NTP server</em></span>
+                        — IP-адрес сервера точного времени.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>WINS server</em></span>
+                        — IP-адрес WINS-сервера.
+                    </p></li></ul></div><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+                    После сохранения настроек, DHCP-сервер будет запущен либо
+                    перезапущен автоматически.
+                </p></div><p>
+                Существует возможность присваивать определённым машинам
+                статические IP-адреса. Идентификация машин производится по значению
+                MAC-адреса сетевой карты. Форма для привязки IP-адреса к MAC-адресу
+                находится внизу страницы настройки и представлена на рисунке:
+            </p><div class="figure"><a name="dhcp_server.static_add"></a><p class="title"><b>Рисунок 9.2. Форма привязки IP к MAC</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-dhcp-static-add.png" width="540" alt="Форма привязки IP к MAC"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                        <span class="emphasis"><em>Host name</em></span>
+                        — задаёт имя машины, для которой выполняется привязка адреса. Это
+                        значение носит справочный характер и используется только в
+                        правиле, может не соответствовать фактическому имени машины.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>IP Address</em></span>
+                        — IP-адрес, который будет присвоен данной машине.
+                    </p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>MAC Address</em></span>
+                        — MAC-адрес сетевой карты машины, по которому будет производиться
+                        привязка IP-адреса.
+                    </p></li></ul></div><p>
+                После сохранения изменений в таблице статических адресов
+                появится новая запись.
+            </p><div class="figure"><a name="id2669479"></a><p class="title"><b>Рисунок 9.3. Обновленный список IP-адресов</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-dhcp-static-list.png" width="540" alt="Обновленный список IP-адресов"></td></tr></table></div></div></div><br class="figure-break"></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="htb.html">Пред.</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="dns_server.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Классовая дисциплина HTB </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Сервер DNS</td></tr></table></div></body></html>

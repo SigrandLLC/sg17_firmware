@@ -1,0 +1,70 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>VoIP</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="examples.html" title="Глава 12. Примеры конфигурации"><link rel="prev" href="examples.multiplexing.html" title="Мультиплексирование"><link rel="next" href="examples.voip.ex3.html" title="Организация связи через АТС"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">VoIP</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="examples.multiplexing.html">Пред.</a> </td><th width="60%" align="center">Глава 12. Примеры конфигурации</th><td width="20%" align="right"> <a accesskey="n" href="examples.voip.ex3.html">След.</a></td></tr></table><hr></div><div class="section" title="VoIP"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="examples.voip"></a>VoIP</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="examples.voip.html#examples.voip.ex1">Обычные телефоны работают как два IP-телефона</a></span></dt><dt><span class="section"><a href="examples.voip.ex3.html">Организация связи через АТС</a></span></dt><dt><span class="section"><a href="examples.voip.ex4.html">Организация связи через АТС с использованием двух
+					маршрутизаторов</a></span></dt></dl></div><div class="section" title="Обычные телефоны работают как два IP-телефона"><div class="titlepage"><div><div><h3 class="title"><a name="examples.voip.ex1"></a>Обычные телефоны работают как два IP-телефона</h3></div></div></div><p>
+					В маршрутизатор устанавливаются модули VoIP с каналами FXS, к
+					которым
+					подключаются обычные аналоговые телефоны. Используя эти
+					телефоны, можно совершать
+					звонки на телефоны, подключенные к тому же
+					маршрутизатору, либо на другие
+					маршрутизаторы фирмы Сигранд. Пример
+					схемы подключения показан ниже.
+				</p><div class="figure"><a name="id2674263"></a><p class="title"><b>Рисунок 12.7. Обычные телефоны работают как два IP-телефона</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/voip-ex1.png" width="540" alt="Обычные телефоны работают как два IP-телефона"></td></tr></table></div></div></div><br class="figure-break"><p>
+					В данном примере в сети работает два маршрутизатора, с
+					номерами 032 и 033 и
+					адресами 10.0.0.2 и 10.0.0.1 соответственно. К
+					каждому маршрутизатору подключён
+					аналоговый телефон, маршрутизаторы
+					между собой соединены по любой технологии —
+					Ethernet, SHDSL или Е1.
+				</p><p>
+					Для настройки IP-телефонии необходимо внести данные в таблицы
+					маршрутизации,
+					адресной книги и Hotline. Для удобства, примеры
+					настроек представлены не в виде
+					скриншотов, а в виде текстовых
+					таблиц, приведённых ниже.
+				</p><p>
+					Таблица маршрутизации имеет одинаковое содержимое на всех
+					маршрутизаторах
+					одной сети и приведена ниже.
+				</p><div class="table"><a name="id2674316"></a><p class="title"><b>Таблица 12.1. Таблица маршрутизации</b></p><div class="table-contents"><table summary="Таблица маршрутизации" border="1"><colgroup><col><col><col></colgroup><thead><tr><th align="center">№ маршрутизатора</th><th align="center">Адрес маршрутизатора</th><th align="center">Комментарий</th></tr></thead><tbody><tr><td align="center">032</td><td align="center">10.0.0.2</td><td align="center">Маршрутизатор 032</td></tr><tr><td align="center">033</td><td align="center">10.0.0.1</td><td align="center">Маршрутизатор 033</td></tr></tbody></table></div></div><br class="table-break"><p>
+					Адресная книга заполняется для каждого маршрутизатора
+					отдельно, так как могут
+					использоваться различные сокращённые номера.
+					Адресная книга для маршрутизаторов
+					приведена в таблицах ниже.
+				</p><div class="table"><a name="id2674394"></a><p class="title"><b>Таблица 12.2. Адресная книга маршрутизатора 032</b></p><div class="table-contents"><table summary="Адресная книга маршрутизатора 032" border="1"><colgroup><col><col><col></colgroup><thead><tr><th align="center">Короткий номер</th><th align="center">Полный номер</th><th align="center">Комментарий</th></tr></thead><tbody><tr><td align="center">00</td><td align="center">* 01</td><td align="center">Телефон 1 (первый вариант набора номера)</td></tr><tr><td align="center">01</td><td align="center">032 02</td><td align="center">Телефон 2 (второй вариант набора номера)</td></tr><tr><td align="center">02</td><td align="center">033 01</td><td align="center">Телефон 3</td></tr><tr><td align="center">03</td><td align="center">033 02</td><td align="center">Телефон 4</td></tr></tbody></table></div></div><br class="table-break"><div class="table"><a name="id2674484"></a><p class="title"><b>Таблица 12.3. Адресная книга маршрутизатора 033</b></p><div class="table-contents"><table summary="Адресная книга маршрутизатора 033" border="1"><colgroup><col><col><col></colgroup><thead><tr><th align="center">Короткий номер</th><th align="center">Полный номер</th><th align="center">Комментарий</th></tr></thead><tbody><tr><td align="center">00</td><td align="center">032 01</td><td align="center">Телефон 1</td></tr><tr><td align="center">01</td><td align="center">032 02</td><td align="center">Телефон 2</td></tr><tr><td align="center">02</td><td align="center">* 01</td><td align="center">Телефон 3</td></tr><tr><td align="center">03</td><td align="center">* 02</td><td align="center">Телефон 4</td></tr></tbody></table></div></div><br class="table-break"><p>
+					С такой конфигурацией возможны следующие способы вызова:
+				</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+							С телефона 1 на телефон 2:
+						</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>
+									напрямую:
+								</p><div class="orderedlist"><ol class="orderedlist" type="a"><li class="listitem"><p>
+											* 02
+										</p></li><li class="listitem"><p>
+											032 02 (с явным указанием номера своего маршрутизатора)
+										</p></li></ol></div></li><li class="listitem"><p>
+									через адресную книгу: #01
+								</p></li></ol></div></li><li class="listitem"><p>
+							С телефона 1 на телефон 4:
+						</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>
+									напрямую: 033 02
+								</p></li><li class="listitem"><p>
+									через адресную книгу: #03
+								</p></li></ol></div></li></ul></div><p>
+					При использовании режима Hotline можно создать конфигурацию,
+					при которой после
+					поднятия трубки на телефоне будет автоматически
+					происходить набор номера, заданный для
+					канала FXS, к которому
+					подключён телефон. Настройка Hotline для маршрутизатора 032
+					приведена в таблице ниже.
+				</p><div class="table"><a name="id2674684"></a><p class="title"><b>Таблица 12.4. Таблица Hotline для маршрутизатора 032</b></p><div class="table-contents"><table summary="Таблица Hotline для маршрутизатора 032" border="1"><colgroup><col><col><col></colgroup><thead><tr><th align="center">Номер канала</th><th align="center">Полный номер</th><th align="center">Комментарий</th></tr></thead><tbody><tr><td align="center">01 (FXS)</td><td align="center">033 01</td><td align="center">Автодозвон на телефон 3</td></tr><tr><td align="center">02 (FXS)</td><td align="center">032 01</td><td align="center">Автодозвон на телефон 1</td></tr></tbody></table></div></div><br class="table-break"><p>
+					Эта конфигурация задаёт следующее поведение:
+				</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+							при подъёме телефонной трубки на телефоне 1 производится
+							автоматический дозвон на телефон 3.
+						</p></li><li class="listitem"><p>
+							при подъёме телефонной трубки на телефоне 2 производится
+							автоматический дозвон на телефон 1.
+						</p></li></ul></div></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="examples.multiplexing.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="examples.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="examples.voip.ex3.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Мультиплексирование </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Организация связи через АТС</td></tr></table></div></body></html>

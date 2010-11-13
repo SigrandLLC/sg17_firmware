@@ -1,0 +1,68 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Управление межсетевым экраном</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="traffic.html" title="Глава 8. Управление трафиком"><link rel="prev" href="traffic.html" title="Глава 8. Управление трафиком"><link rel="next" href="nat.html" title="NAT"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Управление межсетевым экраном</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="traffic.html">Пред.</a> </td><th width="60%" align="center">Глава 8. Управление трафиком</th><td width="20%" align="right"> <a accesskey="n" href="nat.html">След.</a></td></tr></table><hr></div><div class="section" title="Управление межсетевым экраном"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="fw"></a>Управление межсетевым экраном</h2></div></div></div><p>
+				Межсетевой экран используется, чтобы ограничить доступ к тем
+				или иным сетевым ресурсам, основываясь на IP-адресах, портах
+				отправителя и назначения, или используемого протокола.
+			</p><p>
+				Активация межсетевого экрана осуществляется на странице
+				Network/Firewall:
+			</p><div class="figure"><a name="id2667272"></a><p class="title"><b>Рисунок 8.7. Активация межсетевого экрана</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-fw-activate.png" width="540" alt="Активация межсетевого экрана"></td></tr></table></div></div></div><br class="figure-break"><p>
+				Работа межсетевого экрана основана на прохождении пакетом
+				цепочек правил, где каждое правило определяет одно из действий:
+				приём или отброс пакета, основываясь на одном или нескольких
+				критериях. Добавление правил осуществляется на вкладке
+				Filter. Для каждой цепочки устанавливается действие
+				по-умолчанию — политика, т.е. в случае, если пакет не попал ни под
+				один критерий:
+			</p><div class="figure"><a name="filter_policy"></a><p class="title"><b>Рисунок 8.8. Политики цепочек</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-fw-policy.png" width="540" alt="Политики цепочек"></td></tr></table></div></div></div><br class="figure-break"><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+					При установлении политики в значение DROP для цепочки INPUT
+					или OUTPUT, удостоверьтесь, что в этих цепочках есть разрешающие
+					правила, иначе управление маршрутизатором может быть потеряно.
+				</p></div><p>
+				Для правила определены следующие действия:	
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+						<span class="emphasis"><em>ACCEPT</em></span>
+						— приём пакета;
+					</p></li><li class="listitem"><p>
+						<span class="emphasis"><em>DROP</em></span>
+						— отброс пакета без отправки уведомления источнику пакета;
+					</p></li><li class="listitem"><p>
+						<span class="emphasis"><em>REJECT</em></span>
+						— отброс пакета с отправкой уведомления;
+					</p></li></ul></div><p>
+				Цепочку FORWARD проходят пакеты, являющиеся транзитными, т.е.
+				идущие с одного интерфейса маршрутизатора на другой:
+			</p><div class="figure"><a name="filter_forward"></a><p class="title"><b>Рисунок 8.9. Цепочка FORWARD</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-fw-forward.png" width="540" alt="Цепочка FORWARD"></td></tr></table></div></div></div><br class="figure-break"><p>
+				В цепочку INPUT попадают пакеты, предназначающиеся
+				маршрутизатору:
+			</p><div class="figure"><a name="filter_input"></a><p class="title"><b>Рисунок 8.10. Цепочка INPUT</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-fw-input.png" width="540" alt="Цепочка INPUT"></td></tr></table></div></div></div><br class="figure-break"><p>
+				В цепочку OUTPUT попадают пакеты, источником которых является
+				маршрутизатор:
+			</p><div class="figure"><a name="filter_output"></a><p class="title"><b>Рисунок 8.11. Цепочка OUTPUT</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-fw-output.png" width="540" alt="Цепочка OUTPUT"></td></tr></table></div></div></div><br class="figure-break"><p>
+				Добавление правил осуществляется нажатием кнопки "+",
+				и заполнением формы, открывшейся в новом окне:
+			</p><div class="figure"><a name="filter_add"></a><p class="title"><b>Рисунок 8.12. Добавление правила</b></p><div class="figure-contents"><div><img src="img/wf2-fw-add.png" alt="Добавление правила"></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                        <span class="emphasis"><em>Enabled</em></span>
+                        — активно ли правило.
+                    </p></li><li class="listitem"><p>
+						<span class="emphasis"><em>Short name</em></span>
+						— имя правила. Должно включать только английские буквы и цифры.
+					</p></li><li class="listitem"><p>
+                        <span class="emphasis"><em>Protocol</em></span> — протокол. Для протоколов <span class="emphasis"><em>tcp, udp</em></span>
+                        доступны дополнительные параметры:
+                    </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+                                <span class="emphasis"><em>Destination port</em></span> — порт получателя пакета.
+                            </p></li><li class="listitem"><p>
+                                <span class="emphasis"><em>Source port</em></span> — порт отправителя пакета.
+                            </p></li></ul></div></li><li class="listitem"><p>
+						<span class="emphasis"><em>Source IP</em></span>
+						— IP-адрес или сеть отправителя пакета.
+					</p></li><li class="listitem"><p>
+						<span class="emphasis"><em>Destination IP</em></span>
+						— IP-адрес или сеть получателя пакета.
+					</p></li><li class="listitem"><p>
+						<span class="emphasis"><em>Action</em></span>
+						— действие, выполняемое над пакетом.
+					</p></li></ul></div><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+					Если внесённые вами изменения не вступают в силу, проверьте,
+					что вы активировали межсетевой экран на странице Network/Firewall.
+				</p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="traffic.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="traffic.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="nat.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Глава 8. Управление трафиком </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> NAT</td></tr></table></div></body></html>

@@ -1,0 +1,52 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Настройка объединения каналов (bonding)</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="ifaces.html" title="Динамические интерфейсы"><link rel="prev" href="ifaces.html" title="Динамические интерфейсы"><link rel="next" href="bridge.html" title="Настройка бриджа"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Настройка объединения каналов (bonding)</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ifaces.html">Пред.</a> </td><th width="60%" align="center">Динамические интерфейсы</th><td width="20%" align="right"> <a accesskey="n" href="bridge.html">След.</a></td></tr></table><hr></div><div class="section" title="Настройка объединения каналов (bonding)"><div class="titlepage"><div><div><h3 class="title"><a name="bonding"></a>Настройка объединения каналов (bonding)</h3></div></div></div><p>
+					Bonding позволяет объединять несколько физических соединений
+					в одно логическое (с помощью создания динамического интерфейса
+					<span class="emphasis"><em>bond</em></span>). К примеру, два SHDSL канала можно объединить в один, увеличив
+					пропускную способность и надёжность соединения.
+				</p><div class="important" title="Важно" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+						В режиме Bonding поддерживается объединение только ethernet-совместимых
+						интерфейсов. В устройстве ethernet-совместимыми интерфейсами являются Ethernet,
+						SHDSL, E1 в режиме ETHER-HDLC, а так же интерфейсы бондинга, бриджа, VLAN.
+					</p></div><p>
+					Динамический интерфейс бондинга создаётся на странице
+					Network/Dynamic interfaces/Manage, на которой в разделе
+					<span class="emphasis"><em>Add dynamic network interface</em></span>
+					необходимо выбрать Bonding и нажать кнопку <span class="emphasis"><em>Add</em></span>.
+				</p><p>
+					После добавления интерфейса его имя будет показано в меню Network/Dynamic interfaces/bond*
+					(см. рисунок в предыдущем разделе). Так же будет открыто окно быстрой настройки
+					интерфейса, в котором можно указать все необходимые для запуска интерфейса параметры:
+				</p><div class="figure"><a name="id2666251"></a><p class="title"><b>Рисунок 7.13. Окно быстрой настройки бондинга</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-iface-bonding-wizard.png" width="540" alt="Окно быстрой настройки бондинга"></td></tr></table></div></div></div><br class="figure-break"><p>
+					В этом окне все параметры, кроме одного, были рассмотрены в предыдущем разделе.
+					Новый параметр <span class="emphasis"><em>Bonding interfaces</em></span> содержит перечисленные через
+					пробел интерфейсы, которые входят в состав бондинга.
+				</p><div class="important" title="Важно" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+                        Физический интерфейс может быть добавлен только в
+                        <span class="emphasis"><em>один</em></span>
+                        интерфейс бондинга! К примеру, нельзя создать интерфейсы bond0 (eth0,
+                        dsl0) и bond1 (eth1, dsl0), т.к. dsl0 может быть добавлен только в
+                        один интерфейс бондинга. Для преодоления этого ограничения
+                        воспользуйтесь технологией VLAN (см. соответствующий раздел и
+                        примеры использования).
+                    </p></div><p>
+				    После сохранения настроек будут автоматически настроены интерфейсы, входящие
+				    в состав бондинга: для них устанавливается <span class="emphasis"><em>enabled=1 auto=0</em></span>.
+				    При этом IP-адреса реальных
+                    интерфейсов, если они были установлены, будут сброшены. Для всех
+                    интерфейсов (динамического и входящих в него физических) будет
+                    установлен один MAC-адрес, который будет соответствовать MAC-адресу
+                    одного из физических интерфейсов.
+				</p><p>
+				    Указанные настройки можно изменить на странице настройки интерфейса, на вкладке General.
+				</p><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+						Аналогичные настройки необходимо произвести на втором
+						маршрутизаторе.
+					</p></div><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+					    При разрыве одного из физических соединений трафик будет
+						передаваться по оставшемуся соединению.
+					</p></div><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+                        Если вы настраиваете несколько бондингов, то после настройки
+                        устройство надо перезагрузить. Это связано с тем,
+                        что после запуска первого bonding-интерфейса, запуск новых
+                        bonding-интерфейсов будет возможен только после перезагрузки.
+                    </p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ifaces.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="ifaces.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="bridge.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Динамические интерфейсы </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Настройка бриджа</td></tr></table></div></body></html>

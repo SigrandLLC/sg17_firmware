@@ -1,0 +1,111 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Мультиплексирование</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="examples.html" title="Глава 12. Примеры конфигурации"><link rel="prev" href="manage.html" title="Организация управления устройством через интерфейс, входящий в состав моста или бондинга"><link rel="next" href="examples.voip.html" title="VoIP"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Мультиплексирование</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="manage.html">Пред.</a> </td><th width="60%" align="center">Глава 12. Примеры конфигурации</th><td width="20%" align="right"> <a accesskey="n" href="examples.voip.html">След.</a></td></tr></table><hr></div><div class="section" title="Мультиплексирование"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="examples.multiplexing"></a>Мультиплексирование</h2></div></div></div><p>
+                Рассмотрим работу мультиплексирования на примере следующей сети:
+            </p><div class="figure"><a name="id2673632"></a><p class="title"><b>Рисунок 12.3. Пример сети</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/multiplexing-ex1.png" width="540" alt="Пример сети"></td></tr></table></div></div></div><br class="figure-break"><p>
+                Требуется передать два канала Е1 (unframed mode) от АТС к
+                Клиенту 1 и Клиенту 2 по каналу SHDSL.
+            </p><p>
+                Т.к. источник сигнала для обоих каналов Е1 один — АТС, то не
+                имеет значения, какой из интерфейсов Е1 будет тактировать линии
+                мультиплексирования. В нашем распоряжении имеется 16 линий, имеющих
+                по 256 тайм-слотов. Для удобства, мы задействуем две из них — одну
+                для приема трафика, вторую — для передачи.
+            </p><p>
+                Схема мультиплексирования будет выглядеть следующим образом:
+            </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                        Интерфейс Е1
+                        <em class="parameter"><code>E1_0</code></em>
+                        получает из физической линии данные и выставляет их на линию 0 (с
+                        нулевого тайм-слота). Для передачи в физическую линию данные
+                        берутся с линии 1, с нулевого тайм-слота. Так же этот интерфейс
+                        является источником синхронизации для данного домена.
+                    </p></li><li class="listitem"><p>
+                        Интерфейс E1 <em class="parameter"><code>E1_1</code></em> работает так же, как
+                        <em class="parameter"><code>E1_0</code></em>, только выставляет и забирает данные начиная с 32 тайм-слота (и
+                        не подает синхросигнал, т.е. работает в режиме
+                        <span class="emphasis"><em>clock slave</em></span>).
+                    </p></li><li class="listitem"><p>
+                        Интерфейс SHDSL <em class="parameter"><code>dsl0</code></em>
+                        выставляет данные, полученные из физической линии, на линию 1
+                        (откуда их заберут интерфейсы E1), а данные для передачи в
+                        физическую линию берет с линии 0 (куда их выставляют интерфейсы
+                        Е1). Число тайм-слотов, которые использует интерфейс для
+                        мультиплексирования, равно 64 (по 32 с каждого интерфейса Е1).
+                    </p></li></ul></div><p>
+                Описанная схема проиллюстрирована ниже:
+            </p><div class="figure"><a name="id2673784"></a><p class="title"><b>Рисунок 12.4. Взаимодействие интерфейсов на линии 0</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/multiplexing-ex1-1-line0.png" width="540" alt="Взаимодействие интерфейсов на линии 0"></td></tr></table></div></div></div><br class="figure-break"><div class="figure"><a name="id2673800"></a><p class="title"><b>Рисунок 12.5. Взаимодействие интерфейсов на линии 1</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/multiplexing-ex1-1-line1.png" width="540" alt="Взаимодействие интерфейсов на линии 1"></td></tr></table></div></div></div><br class="figure-break"><p>
+                Для реализации этой схемы необходимо установить следующие
+                параметры:
+            </p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+                        Интерфейс E1 <span class="emphasis"><em>E1_0</em></span>
+                    </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+                                <em class="parameter"><code>rline = 0</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>rfs = 0</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>tline = 1</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>tfs = 0</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>mxsmap = "0-31"</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>clkm = 1</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>clkr = 1</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>clkab = 0</code></em>
+                            </p></li></ul></div></li><li class="listitem"><p>
+                        Интерфейс E1 <span class="emphasis"><em>E1_1</em></span>
+                    </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+                                <em class="parameter"><code>rline = 0</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>rfs = 32</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>tline = 1</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>tfs = 32</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>mxsmap = "0-31"</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>clkm = 0</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>clkr = 0</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>clkab = 0</code></em>
+                            </p></li></ul></div></li><li class="listitem"><p>
+                        Интерфейс SHDSL <span class="emphasis"><em>dsl0</em></span>
+                    </p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p>
+                                <em class="parameter"><code>rline = 1</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>rfs = 0</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>tline = 0</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>tfs = 0</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>mxrate = 64</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>clkm = 0</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>clkr = 0</code></em>
+                            </p></li><li class="listitem"><p>
+                                <em class="parameter"><code>clkab = 0</code></em>
+                            </p></li></ul></div></li></ul></div><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+                    Так же для этих интерфейсов необходимо активировать
+                    мультиплексирование — установить параметр
+                    <em class="parameter"><code>mxen</code></em>.
+                </p></div><p>
+                Следуя этой логике, конфигурацию на втором маршрутизаторе можно
+                выполнить аналогичным образом. Единственное отличие, в нашем случае,
+                будет заключаться в изменении интерфейса, являющегося источником
+                синхронизации. Эту функцию будет выполнять интерфейс SHDSL
+                <em class="parameter"><code>dsl0</code></em>, т.к. именно он получает мультиплексированный поток от первого
+                маршрутизатора, подключенного к АТС.
+            </p><div class="tip" title="Подсказка" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Подсказка</h3><p>
+                    Вообще, не обязательно для приема и отправки информации
+                    использовать разные линии. Для этих целей можно задействовать одну
+                    линию, правильно указав тайм-слоты, начиная с которых каждый
+                    интерфейс выставляет или забирает данные с линии. Пример такой
+                    конфигурации приведен ниже:
+                </p></div><div class="figure"><a name="id2674214"></a><p class="title"><b>Рисунок 12.6. Использование одной линии для выставления и получения данных
+                </b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/multiplexing-ex1-2-line.png" width="540" alt="Использование одной линии для выставления и получения данных"></td></tr></table></div></div></div><br class="figure-break"></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="manage.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="examples.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="examples.voip.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Организация управления устройством через интерфейс, входящий в
+				состав моста или бондинга </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> VoIP</td></tr></table></div></body></html>

@@ -1,0 +1,50 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Бесклассовая дисциплина TBF</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="qos.html" title="Качество обслуживания"><link rel="prev" href="ch08s04s04.html" title="Бесклассовая дисциплина ESFQ"><link rel="next" href="htb.html" title="Классовая дисциплина HTB"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Бесклассовая дисциплина TBF</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch08s04s04.html">Пред.</a> </td><th width="60%" align="center">Качество обслуживания</th><td width="20%" align="right"> <a accesskey="n" href="htb.html">След.</a></td></tr></table><hr></div><div class="section" title="Бесклассовая дисциплина TBF"><div class="titlepage"><div><div><h3 class="title"><a name="tbf"></a>Бесклассовая дисциплина TBF</h3></div></div></div><p>
+					Token Bucket Filter (TBF) — простая бесклассовая дисциплина,
+					пропускающая поступающие пакеты со скоростью, не превышающей
+					заданной. Эта дисциплина относится весьма бережливо к ресурсам
+					системы, поэтому в случае, если надо просто ограничить скорость
+					исходящего трафика — это лучший выбор.
+				</p><p>
+					Смысл работы данной дисциплины заключается в следующем.
+					Поступающие для передачи пакеты записываются в буфер дисциплины,
+					откуда они с заданной скоростью поступают на исходящий интерфейс.
+					Возможно три ситуации:
+				</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+							Пакеты поступают со скоростью, равной скорости передачи их
+							на исходящий интерфейс. В этом случае пакеты проходят через
+							интерфейс без задержек.
+						</p></li><li class="listitem"><p>
+							Пакеты поступают со скоростью, меньшей скорости передачи их
+							на исходящий интерфейс. В этом случае при кратковременном
+							возрастании скорости входящего трафика — он будет накоплен во
+							входящей очереди и передан с заданной скоростью.
+						</p></li><li class="listitem"><p>
+							Пакеты поступают со скоростью, превышающей скорость передачи
+							их на исходящий интерфейс. В этом случае через некоторое время
+							пакеты начнут сбрасываться.
+						</p></li></ul></div><p>
+					Дисциплина имеет несколько параметров, позволяющих управлять
+					её работой:
+				</p><div class="figure"><a name="id2668450"></a><p class="title"><b>Рисунок 8.19. Конфигурирования TBF</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/wf2-qos-tbf.png" width="540" alt="Конфигурирования TBF"></td></tr></table></div></div></div><br class="figure-break"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p>
+							<span class="emphasis"><em>Rate</em></span>
+							— скорость, с которой поступающий трафик передается на исходящий
+							интерфейс.
+						</p></li><li class="listitem"><p>
+							<span class="emphasis"><em>Token Buffer</em></span>
+							— число байт, передаваемых в момент времени на исходящий
+							интерфейс.
+						</p></li><li class="listitem"><p>
+							<span class="emphasis"><em>Limit</em></span>
+							— размер буфера в байтах, в который записываются поступающие
+							пакеты, если скорость их поступления превышает скорость их
+							передачи на исходящий интерфейс. При превышении этого параметра
+							пакеты будут сбрасываться.
+						</p></li><li class="listitem"><p>
+							<span class="emphasis"><em>Latency</em></span>
+							— время, которое пакет может находиться, ожидая передачи на
+							исходящий интерфейс. По истечении этого времени, пакет будет
+							сброшен.
+						</p></li></ul></div><div class="important" title="Важно" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Важно</h3><p>
+						Одновременно можно выставлять либо
+						<span class="emphasis"><em>Limit</em></span>, либо <span class="emphasis"><em>Latency</em></span>.
+					</p></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch08s04s04.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="qos.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="htb.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Бесклассовая дисциплина ESFQ </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Классовая дисциплина HTB</td></tr></table></div></body></html>

@@ -1,0 +1,136 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Глава 12. Примеры конфигурации</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="prev" href="ch11s06s03.html" title="OpenNMS"><link rel="next" href="manage.html" title="Организация управления устройством через интерфейс, входящий в состав моста или бондинга"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Глава 12. Примеры конфигурации</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch11s06s03.html">Пред.</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="manage.html">След.</a></td></tr></table><hr></div><div class="chapter" title="Глава 12. Примеры конфигурации"><div class="titlepage"><div><div><h2 class="title"><a name="examples"></a>Глава 12. Примеры конфигурации</h2></div></div></div><div class="toc"><p><b>Содержание</b></p><dl><dt><span class="section"><a href="examples.html#examples.vlan">VLAN</a></span></dt><dd><dl><dt><span class="section"><a href="examples.html#examples.vlan.scheme1">Организация независимых каналов между Ethernet-интерфейсами
+				</a></span></dt><dt><span class="section"><a href="examples.html#examples.vlan.scheme3">Распределение трафика по Ethernet-портам в зависимости от VLAN ID</a></span></dt><dt><span class="section"><a href="examples.html#examples.vlan.manage_vlan">Ограничение доступа к управлению устройством с помощью VLAN
+				</a></span></dt></dl></dd><dt><span class="section"><a href="manage.html">Организация управления устройством через интерфейс, входящий в
+				состав моста или бондинга</a></span></dt><dt><span class="section"><a href="examples.multiplexing.html">Мультиплексирование</a></span></dt><dt><span class="section"><a href="examples.voip.html">VoIP</a></span></dt><dd><dl><dt><span class="section"><a href="examples.voip.html#examples.voip.ex1">Обычные телефоны работают как два IP-телефона</a></span></dt><dt><span class="section"><a href="examples.voip.ex3.html">Организация связи через АТС</a></span></dt><dt><span class="section"><a href="examples.voip.ex4.html">Организация связи через АТС с использованием двух
+					маршрутизаторов</a></span></dt></dl></dd></dl></div><div class="section" title="VLAN"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="examples.vlan"></a>VLAN</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="examples.html#examples.vlan.scheme1">Организация независимых каналов между Ethernet-интерфейсами
+				</a></span></dt><dt><span class="section"><a href="examples.html#examples.vlan.scheme3">Распределение трафика по Ethernet-портам в зависимости от VLAN ID</a></span></dt><dt><span class="section"><a href="examples.html#examples.vlan.manage_vlan">Ограничение доступа к управлению устройством с помощью VLAN
+				</a></span></dt></dl></div><div class="section" title="Организация независимых каналов между Ethernet-интерфейсами"><div class="titlepage"><div><div><h3 class="title"><a name="examples.vlan.scheme1"></a>Организация независимых каналов между Ethernet-интерфейсами
+				</h3></div></div></div><p>
+					Данный пример рассматривает организацию независимых каналов
+					между Ethernet-портами устройств, соединённых через SHDSL
+					(функциональность 1 и 2).
+				</p><p>
+					Рассмотрим организацию передачи данных с порта eth3 одного
+					устройства на порт eth3 другого устройства через соединения SHDSL.
+					При необходимости, можно задействовать все порты устройств (eth0,
+					eth1, eth2). Схему взаимодействия между устройствами можно
+					изобразить следующим образом:
+				</p><div class="figure"><a name="id2673053"></a><p class="title"><b>Рисунок 12.1. Схема взаимодействия устройств</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/scheme1-struct.png" width="540" alt="Схема взаимодействия устройств"></td></tr></table></div></div></div><br class="figure-break"><p>
+					Устройства соединены двумя каналами SHDSL, которые объединены
+					в бондинг. Поверх этого бондинга создан VLAN с VLAN ID равным 4.
+					Бридж реализует передачу пакетов между интерфейсами bond0v4
+					(интерфейс VLAN) и eth3.
+				</p><p>
+					Настройка начинается с настройки физического соединения между
+					маршрутизаторами (см.
+					<a class="link" href="dsl.html" title="Интерфейс SHDSL">настройку SHDSL</a>).
+				</p><p>
+					Затем создадим бондинг из интерфейсов dsl0 и dsl1 (см.
+					<a class="link" href="bonding.html" title="Настройка объединения каналов (bonding)">настройку Bonding</a>). В результате у нас будет интерфейс
+					<span class="emphasis"><em>bond0</em></span>.
+				</p><p>
+					Далее, нам необходимо создать VLAN поверх бондинга. Число
+					интерфейсов VLAN зависит от того, между сколькими портами ethernet
+					мы будем организовывать независимую передачу данных — по одному
+					VLAN на каждый порт. Детально процедура настройки интерфейса VLAN
+					рассмотрена в соответствующем
+					<a class="link" href="vlan.html" title="Настройка интерфейсов VLAN">разделе</a>. Т.е. нам надо создать VLAN
+					интерфейс поверх интерфейса bond0 с
+					номером VLAN ID равным 4. В итоге мы получим интерфейс
+					<span class="emphasis"><em>bond0v4</em></span>.
+				</p><p>
+					Заключительным этапом является создание бриджа (см.
+					<a class="link" href="bridge.html" title="Настройка бриджа">настройка бриджа</a>). Мост состоит из интерфейсов
+					<span class="emphasis"><em>bond0v4</em></span> и
+					<span class="emphasis"><em>eth3</em></span>, между которыми осуществляется передача трафика. Число интерфейсов
+					моста так же зависит от числа портов, между которыми организуется
+					обмен трафиком — на каждый порт один мост.
+				</p><p>
+					Таким образом, если мы хотим организовать передачу между портами
+					eth2, мы должны создать ещё один VLAN поверх интерфейса
+					<span class="emphasis"><em>bond0</em></span>, к примеру с VLAN ID 3, создать ещё один интерфейс моста, и
+					добавить в него интерфейсы
+					<span class="emphasis"><em>bond0v3</em></span> и <span class="emphasis"><em>eth2</em></span>.
+				</p><div class="note" title="Замечание" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+						Если необходимо организовать управление устройством по порту,
+						который участвует в передачи данных (добавлен в мост), то его
+						IP-адрес (по которому производится настройка) необходимо назначить
+						интерфейсу моста, в который входит данный порт. Более подробно это
+						описывается в соответствующей
+						<a class="link" href="manage.html" title="Организация управления устройством через интерфейс, входящий в состав моста или бондинга">главе</a>.
+					</p></div></div><div class="section" title="Распределение трафика по Ethernet-портам в зависимости от VLAN ID"><div class="titlepage"><div><div><h3 class="title"><a name="examples.vlan.scheme3"></a>Распределение трафика по Ethernet-портам в зависимости от VLAN ID</h3></div></div></div><div class="toc"><dl><dt><span class="section"><a href="examples.html#id2673323">Настройка SG-17R-1</a></span></dt><dt><span class="section"><a href="examples.html#id2673400">Настройка SG-17R-2</a></span></dt></dl></div><p>
+					Допустим, мы хотим организовать передачу VLAN-трафика,
+					поступающего на trunk-порт одного устройства через SHDSL-канал, а
+					на втором устройстве, в зависимости от номера VLAN ID, передавать
+					трафик (со снятым тегом VLAN) на соответствующий ethernet-порт. Это
+					т.н. "функциональность 3".
+				</p><div class="figure"><a name="id2673247"></a><p class="title"><b>Рисунок 12.2. Структурная схема</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/scheme3-struct.png" width="540" alt="Структурная схема"></td></tr></table></div></div></div><br class="figure-break"><p>
+					Идея построения схемы заключается в том, что на устройстве
+					SG-17R-2, один из ethernet-портов которого выступает в роли trunk-порта,
+					создаются интерфейсы VLAN, трафик которых надо передать на
+					соответствующие порты другого устройства.
+				</p><p>
+					К примеру, к устройству SG-17R-2 (например, к четвёртому
+					ethernet-порту) подключена сеть, в которой работает несколько сетей
+					VLAN с номерами 3 и 4. Нам необходимо соединить сеть с VLAN ID 3 с
+					сетью, подключённой к третьему ethernet-порту устройства SG-17R-1. Так
+					же необходимо соединить сеть с VLAN ID 4 с сетью, подключённой к
+					четвёртому ethernet-порту устройства SG-17R-1. Следует заметить, что
+					сети, подключённые к SG-17R-2 являются обычными LAN сетями, поэтому
+					передаваемый туда трафик должен идти без заголовков VLAN.
+				</p><p>
+					Настройка данной схемы разбивается на два этапа: настройка SG-17R-1
+					и настройка SG-17R-2. Подразумевается, что физическое соединение между
+					устройствами (например, по SHDSL) уже настроено. В нашем примере мы
+					используем бондинг поверх каналов SHDSL.
+				</p><div class="section" title="Настройка SG-17R-1"><div class="titlepage"><div><div><h4 class="title"><a name="id2673323"></a>Настройка SG-17R-1</h4></div></div></div><p>
+						В общем, настройка заключается в создании интерфейсов VLAN
+						поверх интерфейса бондинга и создании моста между соответствующим
+						интерфейсом ethernet и интерфейсом VLAN. Рассмотрим это более
+						детально.
+					</p><p>
+						Создадим на основе интерфейса <span class="emphasis"><em>bond0</em></span>
+						интерфейс VLAN с VLAN ID <span class="emphasis"><em>4</em></span>
+						(см. <a class="link" href="vlan.html" title="Настройка интерфейсов VLAN">настройка VLAN</a>). Созданный интерфейс имеет имя
+						<span class="emphasis"><em>bond0v4</em></span>. Здесь же создадим интерфейс моста, к примеру, его имя будет
+						<span class="emphasis"><em>br0</em></span>. В его состав включим интерфейсы, между которыми
+						будет передаваться трафик: <span class="emphasis"><em>bond0v4</em></span> и <span class="emphasis"><em>eth3</em></span>.
+					</p><p>
+						Если необходимо организовать передачу нескольких VLAN на
+						порты SG-17R-1, то приведённая последовательность действий повторяется
+						для каждой VLAN. В данной конфигурации максимальное число VLAN
+						равно 4, оно ограничено числом ethernet-портов устройства.
+					</p></div><div class="section" title="Настройка SG-17R-2"><div class="titlepage"><div><div><h4 class="title"><a name="id2673400"></a>Настройка SG-17R-2</h4></div></div></div><p>
+						Перед настройкой нам необходимо решить, какой из
+						ethernet-портов устройства будет выполнять функции trunk-порта,
+						т.е. к которому будут подключены сети VLAN.
+					</p><p>
+						Для выбранного trunk-порта создаются интерфейс VLAN, и
+						соответствующий ему интерфейс VLAN на основе интерфейса бондинга.
+						Затем создаётся мост между соответствующим интерфейсом VLAN
+						trunk-порта и интерфейсом VLAN бондинга. Идея заключается в том,
+						что каждый интерфейс VLAN, созданный поверх trunk-порта, получает
+						свой трафик и передаёт его "своему" интерфейсу бондинга. На втором
+						устройстве (SG-17R-1) бондинг передаёт его соответствующему
+						ethernet-порту. Рассмотрим эти действия подробнее.
+					</p><p>
+						Настройка начинается с создания интерфейсов VLAN с одинаковыми
+						VLAN ID на интерфейсах бондинга (к примеру, <span class="emphasis"><em>bond0</em></span>)
+						и ethernet-порта, выбранного в роли trunk-порта (<span class="emphasis"><em>eth3</em></span>).
+						Пусть созданные интерфейсы имеют имена <span class="emphasis"><em>bond0v4</em></span>
+						и <span class="emphasis"><em>eth3v4</em></span>. Здесь же создадим интерфейсы бриджа, по одному на каждую пару
+						интерфейсов VLAN. К примеру, в первый интерфейс бриджа добавим интерфейсы
+						<span class="emphasis"><em>bond0v4</em></span> и <span class="emphasis"><em>eth3v4</em></span>.
+					</p><p>
+						Таким образом, мы получаем один или несколько интерфейсов моста,
+						передающих трафик между интерфейсами VLAN, созданными поверх
+						trunk-порта и поверх бондинга.
+					</p></div></div><div class="section" title="Ограничение доступа к управлению устройством с помощью VLAN"><div class="titlepage"><div><div><h3 class="title"><a name="examples.vlan.manage_vlan"></a>Ограничение доступа к управлению устройством с помощью VLAN
+				</h3></div></div></div><p>
+					Для ограничения доступа к управлению устройством можно
+					использовать технологию VLAN. Для этого на основе интерфейса, через
+					который осуществляется управление, создаётся интерфейс VLAN,
+					которому назначается IP-адрес, а адрес с нижележащего интерфейса
+					снимается.
+				</p></div></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch11s06s03.html">Пред.</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="manage.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">OpenNMS </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Организация управления устройством через интерфейс, входящий в
+				состав моста или бондинга</td></tr></table></div></body></html>

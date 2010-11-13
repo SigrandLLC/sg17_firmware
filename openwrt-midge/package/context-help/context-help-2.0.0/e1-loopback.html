@@ -1,0 +1,30 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Диагностирование соединения Е1</title><meta name="generator" content="DocBook XSL Stylesheets V1.75.2"><link rel="home" href="index.html" title="Руководство пользователя SG-16R/SG-17R"><link rel="up" href="e1.html" title="Интерфейс E1"><link rel="prev" href="e1.html" title="Интерфейс E1"><link rel="next" href="rs232.html" title="Интерфейс RS232"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Диагностирование соединения Е1</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="e1.html">Пред.</a> </td><th width="60%" align="center">Интерфейс E1</th><td width="20%" align="right"> <a accesskey="n" href="rs232.html">След.</a></td></tr></table><hr></div><div class="section" title="Диагностирование соединения Е1"><div class="titlepage"><div><div><h3 class="title"><a name="e1-loopback"></a>Диагностирование соединения Е1</h3></div></div></div><p>
+                    Для диагностирования соединения можно использовать "петлю":
+                    т.е. вместо того, чтобы передавать трафик дальше, возвращать его
+                    обратно, симулируя ответ получателя трафика.
+                </p><p>
+                    Возможно создание двух видов петель — локальной и удалённой.
+                    При создании локальной петли, модуль Е1 передаёт данные в
+                    физическую линию и возвращает их сразу же отправителю, как показано
+                    ниже на схеме.
+                </p><div class="figure"><a name="id2664520"></a><p class="title"><b>Рисунок 6.19. Е1: локальная петля</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/E1-local_loopback.png" width="540" alt="Е1: локальная петля"></td></tr></table></div></div></div><br class="figure-break"><p>
+                    Для активации этого вида петли необходимо на странице
+                    настройки интерфейса Е1 активировать параметр "Local Loopback" на
+                    маршрутизаторе, на котором создаётся петля (на нашей схеме — на
+                    маршрутизаторе R1).
+                </p><p>
+                    При использовании второго вида петли — удалённая петля —
+                    данные передаются в физическую линию, доходят до удалённого
+                    маршрутизатора, который передаёт их дальше, а так же возвращает
+                    обратно отправителю.
+                </p><div class="figure"><a name="id2664563"></a><p class="title"><b>Рисунок 6.20. Е1: удалённая петля</b></p><div class="figure-contents"><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/E1-remote_loopback.png" width="540" alt="Е1: удалённая петля"></td></tr></table></div></div></div><br class="figure-break"><p>
+                    Для активации этого вида петли необходимо на странице
+                    настройки интерфейса Е1 активировать параметр "Remote Loopback" на
+                    маршрутизаторе, на котором создаётся петля (на нашей схеме — на
+                    маршрутизаторе R2).
+                </p><p>
+                    Таким образом, при использовании обоих видов петель данные
+                    продолжают передаваться в физическую линию, но одновременно с этим
+                    возвращаются обратно, что позволяет проверять корректность
+                    конфигурации независимо от состояния линии связи.
+                </p></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="e1.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="e1.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="rs232.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Интерфейс E1 </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Интерфейс RS232</td></tr></table></div></body></html>
