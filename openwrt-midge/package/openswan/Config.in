@@ -4,9 +4,9 @@ config BR2_PACKAGE_OPENSWAN
 	default m if CONFIG_DEVEL
 	select BR2_PACKAGE_IP
 	select BR2_PACKAGE_LIBGMP
-	select BR2_PACKAGE_KMOD_OPENSWAN
+	#select BR2_PACKAGE_KMOD_OPENSWAN
 	help
 	  Openswan is an implementation of IPsec for Linux.
-	  
+
 	  http://www.openswan.org/
 

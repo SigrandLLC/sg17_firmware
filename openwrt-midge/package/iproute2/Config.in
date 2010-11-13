@@ -16,6 +16,6 @@ config BR2_PACKAGE_TC
 	tristate
 	default m if CONFIG_DEVEL
 	select BR2_COMPILE_IPROUTE2
-	select BR2_PACKAGE_KMOD_SCHED
+	#select BR2_PACKAGE_KMOD_SCHED
 
 endmenu

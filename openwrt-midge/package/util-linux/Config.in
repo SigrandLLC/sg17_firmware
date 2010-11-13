@@ -12,7 +12,7 @@ config BR2_PACKAGE_FDISK
 	select BR2_COMPILE_UTIL_LINUX
 	help
 	  A partition table manipulation utility
-	  
+
 	  http://www.kernel.org/pub/linux/utils/util-linux/
 
 config BR2_PACKAGE_LOSETUP
@@ -20,10 +20,10 @@ config BR2_PACKAGE_LOSETUP
 	tristate
 	default m if CONFIG_DEVEL
 	select BR2_COMPILE_UTIL_LINUX
-	select BR2_PACKAGE_KMOD_LOOP
+	#select BR2_PACKAGE_KMOD_LOOP
 	help
 	  A loop devices setup and control utility
-	  
+
 	  http://www.kernel.org/pub/linux/utils/util-linux/
 
 config BR2_PACKAGE_SWAP_UTILS
@@ -36,7 +36,7 @@ config BR2_PACKAGE_SWAP_UTILS
 	    * mkswap
 	    * swapon
 	    * swapoff
-	  
+
 	  http://www.kernel.org/pub/linux/utils/util-linux/
 
 endmenu
