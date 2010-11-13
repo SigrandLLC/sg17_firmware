@@ -3,10 +3,10 @@
 # This script needs MAP-file (/etc/link_deps/link.map)
 # which specifies what interface forces down other
 # Example:
-#	dsl0 E1_1 
+#	dsl0 E1_1
 # means that when dsl0 goes down E1_1 should go down too
 # Each interface have it's own GO DOWN mean
-#	 
+#
 # Written 2007 by Artem Y. Polyakov
 #
 #---------------------------------------------------------
@@ -29,12 +29,12 @@ while [ "$l" -le "$lines" ]; do
 	set $cur_line
 
    	# configuration file syntax error
-	[ $# -ne "2" ] && l=`expr $l + 1` && continue
-	
+	[ $# -ne "2" ] && l=$(( $l + 1 )) && continue
+
 	# Search source interface in current line
 	tmp=`echo $cur_line | grep $sif`
 	if [ -z "$tmp" ]; then
-		l=`expr $l + 1`
+		l=$(( $l + 1 ))
 		continue
 	fi
 
@@ -62,5 +62,5 @@ while [ "$l" -le "$lines" ]; do
 		fi
 		;;
 	esac
-	l=`expr $l + 1`
+	l=$(( $l + 1 ))
 done

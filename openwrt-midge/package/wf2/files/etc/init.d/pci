@@ -207,7 +207,7 @@ _pci_commit_netcfg(){
 		tmp=`head -n $i $tmp_file | tail -n 1`
 		# echo "kdb set \"$tmp\""
 		kdb set "$tmp"
-		i=`expr $i + 1`
+		i=$(( $i + 1 ))
 	done
 }
 

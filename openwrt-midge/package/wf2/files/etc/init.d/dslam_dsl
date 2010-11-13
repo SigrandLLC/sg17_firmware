@@ -22,7 +22,7 @@ _dsl_mam17hifdefcfg(){
 	kdb set sys_pcicfg_s${slot}_${dev}_rate="768"
 	kdb set sys_pcicfg_s${slot}_${dev}_code="tcpam32"
 	kdb set sys_pcicfg_s${slot}_${dev}_annex="A"
-	kdb set sys_pcicfg_s${slot}_${dev}_fill="fill_ff"	
+	kdb set sys_pcicfg_s${slot}_${dev}_fill="fill_ff"
 	kdb set sys_pcicfg_s${slot}_${dev}_pwron="pwroff"
 }
 
@@ -35,8 +35,8 @@ _dsl_mam17hdefcfg(){
 	kdb set sys_pcicfg_s${slot}_ifnum="$ifnum"
 	while [ $i -lt $ifnum ]; do
 		_dsl_mam17hifdefcfg $slot $i
-		i=`expr $i + 1`
-	done	
+		i=$(( $i + 1 ))
+	done
 }
 
 _dsl_mam17hifcfg(){
@@ -53,7 +53,7 @@ _dsl_mam17hifcfg(){
 	if [ -z "$proto" ]; then
 		$kdb set sys_iface_${iface}_proto=ether
 	fi
-	
+
 
 	# Hardware settings
 	eval `$kdb -qq sls sys_pcicfg_s${slot}_${ifnum}_`
@@ -107,7 +107,7 @@ _dsl_mam17hifcfg(){
 		else
 			[ -n "$rate" ] && rate="rate $rate"
 		fi
-		
+
    		[ -n "$annex" ] && annex="annex $annex"
     		$mam17h_cfg $iface $mode $rate $code $annex \
 			$pwron $pbo > /dev/null
@@ -138,11 +138,11 @@ _dsl_mam17hcfg(){
 		tmp="$cfg_cnt"
 		while [ "$tmp" -lt "$cur_cnt" ]; do
 			_dsl_mam17hifdefcfg "$slot" "$tmp"
-			tmp=`expr $tmp + 1`
+			tmp=$(( $tmp + 1 ))
 		done
 	fi
 	kdb set sys_pcicfg_s${slot}_ifnum=$cur_cnt
-	
+
 	ifaces=`kdb get sys_pcitbl_s${slot}_ifaces`
 	for iface in $ifaces; do
 		if [ -n "$dev" ]; then
@@ -153,37 +153,37 @@ _dsl_mam17hcfg(){
 		else
 			_dsl_mam17hifcfg "$iface" "$slot" "$ifnum"
 		fi
-		if [ "$slot" = "0002" ]; then 
+		if [ "$slot" = "0002" ]; then
 			$kdb set sys_iface_${iface}_sw=0
 			$kdb set sys_iface_${iface}_sw_port=$ifnum
 			$kdb set sys_iface_${iface}_slot=0
 			$kdb set sys_iface_${iface}_port=$ifnum
 		fi
-		if [ "$slot" = "0003" ]; then 
+		if [ "$slot" = "0003" ]; then
 			$kdb set sys_iface_${iface}_sw=0
-			$kdb set sys_iface_${iface}_sw_port=`expr $ifnum + 4`
+			$kdb set sys_iface_${iface}_sw_port=$(( $ifnum + 4 ))
 			$kdb set sys_iface_${iface}_slot=1
 			$kdb set sys_iface_${iface}_port=$ifnum
 		fi
-		if [ "$slot" = "0004" ]; then 
+		if [ "$slot" = "0004" ]; then
 			$kdb set sys_iface_${iface}_sw=1
 			$kdb set sys_iface_${iface}_sw_port=$ifnum
 			$kdb set sys_iface_${iface}_slot=2
 			$kdb set sys_iface_${iface}_port=$ifnum
 		fi
-		if [ "$slot" = "0005" ]; then 
+		if [ "$slot" = "0005" ]; then
 			$kdb set sys_iface_${iface}_sw=1
-			$kdb set sys_iface_${iface}_sw_port=`expr $ifnum + 4`
+			$kdb set sys_iface_${iface}_sw_port=$(( $ifnum + 4 ))
 			$kdb set sys_iface_${iface}_slot=3
 			$kdb set sys_iface_${iface}_port=$ifnum
-		fi		
+		fi
 
-		ifnum=`expr $ifnum + 1`
+		ifnum=$(( $ifnum + 1 ))
 	done
 }
 
 _dsl_start(){
-	
+
 	#apply defconfig if no configuration
 	echo "Configuring DSLAM SHDSL: "
 	eval `kdb sls -q sys_pcitbl_`
@@ -218,16 +218,16 @@ _dsl_stop(){
 	for iface in `$kdb get sys_dsl_ifaces`; do
 		_dsl_if_stop $iface
 	done
-	
+
 	# stop driver
 	_dsl_stop_drv
 
 	# stop service
-	_dsl_stop_svc 
+	_dsl_stop_svc
 }
 
 case "$1" in
-	start) 
+	start)
 		_dsl_start ;;
 	stop)
 		_dsl_stop ;;

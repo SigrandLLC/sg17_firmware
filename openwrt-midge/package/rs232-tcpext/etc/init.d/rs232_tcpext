@@ -117,7 +117,7 @@ mod_cfg()
 		else
 			node_cfg "$slot" "$nodenum" "$node"
 		fi
-		nodenum=`expr $nodenum + 1`
+		nodenum=$(( $nodenum + 1 ))
 	done
 }
 

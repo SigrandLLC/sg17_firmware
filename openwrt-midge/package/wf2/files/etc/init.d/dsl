@@ -21,9 +21,9 @@ _dsl_mr17ifdefcfg(){
 	kdb set sys_pcicfg_s${slot}_${dev}_rate="768"
 	kdb set sys_pcicfg_s${slot}_${dev}_code="tcpam32"
 	kdb set sys_pcicfg_s${slot}_${dev}_annex="A"
-	kdb set sys_pcicfg_s${slot}_${dev}_crc="crc32"	
-	kdb set sys_pcicfg_s${slot}_${dev}_ctrl="manual"	
-	kdb set sys_pcicfg_s${slot}_${dev}_fill="fill_ff"	
+	kdb set sys_pcicfg_s${slot}_${dev}_crc="crc32"
+	kdb set sys_pcicfg_s${slot}_${dev}_ctrl="manual"
+	kdb set sys_pcicfg_s${slot}_${dev}_fill="fill_ff"
 	kdb set sys_pcicfg_s${slot}_${dev}_inv=""
 	kdb set sys_pcicfg_s${slot}_${dev}_pwron="pwroff"
 }
@@ -37,8 +37,8 @@ _dsl_mr17defcfg(){
 	kdb set sys_pcicfg_s${slot}_ifnum="$ifnum"
 	while [ $i -lt $ifnum ]; do
 		_dsl_mr17ifdefcfg $slot $i
-		i=`expr $i + 1`
-	done	
+		i=$(( $i + 1 ))
+	done
 }
 
 _dsl_mr17ifcfg(){
@@ -55,7 +55,7 @@ _dsl_mr17ifcfg(){
 	if [ -z "$proto" ]; then
 		$kdb set sys_iface_${iface}_proto=ether
 	fi
-	
+
 
 	# Hardware settings
 	eval `$kdb -qq sls sys_pcicfg_s${slot}_${ifnum}_`
@@ -83,8 +83,8 @@ _dsl_mr17ifcfg(){
 	    annex=""
         pwron=""
 	fi
-	    
-	
+
+
 	# apply configuration
 	if [ "$mode" == "slave" ]; then
    		$mr17h_cfg $iface $mode $fill $inv $crc $pwron $advlink > /root/log
@@ -94,7 +94,7 @@ _dsl_mr17ifcfg(){
 		else
 			[ -n "$rate" ] && rate="rate $rate"
 		fi
-		
+
    		[ -n "$annex" ] && annex="annex $annex"
     		$mr17h_cfg $iface $mode $rate $code $annex $fill $inv $crc \
 			$pwron $clkmode $pbo $advlink > /dev/null
@@ -127,11 +127,11 @@ _dsl_mr17cfg(){
 		tmp="$cfg_cnt"
 		while [ "$tmp" -lt "$cur_cnt" ]; do
 			_dsl_mr17ifdefcfg "$slot" "$tmp"
-			tmp=`expr $tmp + 1`
+			tmp=$(( $tmp + 1 ))
 		done
 	fi
     kdb set sys_pcicfg_s${slot}_ifnum=$cur_cnt
-	
+
 	ifaces=`kdb get sys_pcitbl_s${slot}_ifaces`
 	for iface in $ifaces; do
 		if [ -n "$dev" ]; then
@@ -142,7 +142,7 @@ _dsl_mr17cfg(){
 		else
 			_dsl_mr17ifcfg "$iface" "$slot" "$ifnum"
 		fi
-		ifnum=`expr $ifnum + 1`
+		ifnum=$(( $ifnum + 1 ))
 	done
 }
 
@@ -155,7 +155,7 @@ _dsl_mr16ifdefcfg(){
 	kdb set sys_pcicfg_s${slot}_${dev}_code="tcpam8"
 	kdb set sys_pcicfg_s${slot}_${dev}_cfg="preact"
 	kdb set sys_pcicfg_s${slot}_${dev}_annex="F"
-	kdb set sys_pcicfg_s${slot}_${dev}_fill="fill_ff"	
+	kdb set sys_pcicfg_s${slot}_${dev}_fill="fill_ff"
 	kdb set sys_pcicfg_s${slot}_${dev}_inv="normal"
 }
 
@@ -167,7 +167,7 @@ _dsl_mr16defcfg(){
 	kdb set sys_pcicfg_s${slot}_ifnum="$ifnum"
 	while [ $i -lt $ifnum ]; do
 		_dsl_mr16ifdefcfg $slot $i
-		i=`expr $i + 1`
+		i=$(( $i + 1 ))
 	done
 }
 
@@ -175,7 +175,7 @@ _dsl_mr16ifcfg(){
 	local iface=$1
 	local slot=$2
 	local index=$3
-	
+
 	# Network settings
 	valid=`$kdb get sys_iface_${iface}_valid`
 	proto=`$kdb get sys_iface_${iface}_proto`
@@ -192,7 +192,7 @@ _dsl_mr16ifcfg(){
 	[ -n "$rate" ] && rate="rate $rate"
 	[ -n "$cfg" ] && cfg="cfg $cfg"
 	[ -n "$annex" ] && annex="annex $annex"
-	$mr16h_cfg $iface $mode $rate $code $cfg $annex $fill $inv $crc 
+	$mr16h_cfg $iface $mode $rate $code $cfg $annex $fill $inv $crc
 }
 
 _dsl_mr16cfg(){
@@ -201,7 +201,7 @@ _dsl_mr16cfg(){
 	local ifaces
 	local ifnum=0
 	local iface
-	
+
 	ifaces=`kdb get sys_pcitbl_s${slots}_ifaces`
 	type=`kdb get sys_pcicfg_s${slot}_iftype`
 	cur_cnt=`kdb get sys_pcitbl_s${slot}_ifnum`
@@ -214,7 +214,7 @@ _dsl_mr16cfg(){
 		tmp="$cfg_cnt"
 		while [ "$tmp" -lt "$cur_cnt" ]; do
 			_dsl_mr16ifdefcfg "$slot" "$tmp"
-			tmp=`expr $tmp + 1`
+			tmp=$(( $tmp + 1 ))
 		done
 	fi
 
@@ -228,8 +228,8 @@ _dsl_mr16cfg(){
 		else
 			_dsl_mr16ifcfg "$iface" "$slot" "$ifnum"
 		fi
-		ifnum=`expr $ifnum + 1`
-	done 
+		ifnum=$(( $ifnum + 1 ))
+	done
 }
 
 _dsl_modcfg(){
@@ -246,10 +246,10 @@ _dsl_modcfg(){
 		;;
 	esac
 }
-		
-	
+
+
 _dsl_start(){
-	
+
 	#apply defconfig if no configuration
 	echo "Configuring SHDSL: "
 	eval `kdb sls -q sys_pcitbl_`
@@ -264,11 +264,11 @@ _dsl_start(){
 		fi
 
 		if [ "$type" = "$mr16h_drvname" ]; then
-			for iface in $ifaces; do 
+			for iface in $ifaces; do
 				$mr16h_cfg $iface reload
 			done
 		fi
-				
+
 	        _dsl_modcfg $s
 
 		case "$type" in
@@ -304,16 +304,16 @@ _dsl_stop(){
 	for iface in `$kdb get sys_dsl_ifaces`; do
 		_dsl_if_stop $iface
 	done
-	
+
 	# stop driver
 	_dsl_stop_drv
 
 	# stop service
-	_dsl_stop_svc 
+	_dsl_stop_svc
 }
 
 case "$1" in
-	start) 
+	start)
 		_dsl_start ;;
 	stop)
 		_dsl_stop ;;
