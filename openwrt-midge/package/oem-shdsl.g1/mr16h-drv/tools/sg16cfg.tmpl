@@ -77,8 +77,8 @@ print_stat()
     shift
     echo "      CRC6 errors      : "$1
     shift
-    a=`expr $1 / 2`
-    tmp=`expr $1 % 2`
+      a=$(( $1 / 2 ))
+    tmp=$(( $1 % 2 ))
     if [ $tmp = 1 ]; then
 	b=".5"
     else
@@ -86,8 +86,8 @@ print_stat()
     fi
     echo "      Line attenuation : "$a$b" dB"
     shift
-    a=`expr $1 / 2`
-    tmp=`expr $1 % 2`
+      a=$(( $1 / 2 ))
+    tmp=$(( $1 % 2 ))
     if [ $tmp = 1 ];then
 	b=".5"
     else

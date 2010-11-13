@@ -1,5 +1,5 @@
 #!/bin/sh
-# Sigrand SG-16PCI and SG16-ISA configuration tool 
+# Sigrand SG-16PCI and SG16-ISA configuration tool
 # for Linux kernel v 2.6
 #
 #	Written 2006 by Artem U. Polyakov
@@ -10,7 +10,7 @@ dload_fw()
 {
     if [ $# = 0 ]; then
 	exit
-    fi    
+    fi
 
     echo 1 > download
     tmp=`cat download`
@@ -33,12 +33,12 @@ print_stat()
 
     master=`cat master`
     code=`cat mod`
-    rate1=`cat crate`    
+    rate1=`cat crate`
     rate2=`cat rate`
     auto=`cat autobaud`
-    state=`cat state`     
+    state=`cat state`
     mode=`cat remcfg`
-    annex=`cat annex`    
+    annex=`cat annex`
     rb=`cat rburst`
     wb=`cat wburst`
     fill=`cat fill_7e`
@@ -55,7 +55,7 @@ print_stat()
     fi
 
     set `cat statistic`
-    
+
     if [ ! $# -eq  10 ];then
 	echo $prog_name": error, getting statistic"
 	exit
@@ -77,23 +77,23 @@ print_stat()
     shift
     echo "      CRC6 errors      : "$1
     shift
-    a=`expr $1 / 2`
-    tmp=`expr $1 % 2`
+      a=$(( $1 / 2 ))
+    tmp=$(( $1 % 2 ))
     if [ $tmp = 1 ]; then
 	b=".5"
-    else 
+    else
 	b=".0"
     fi
     echo "      Line attenuation : "$a$b" dB"
     shift
-    a=`expr $1 / 2`
-    tmp=`expr $1 % 2`
+      a=$(( $1 / 2 ))
+    tmp=$(( $1 % 2 ))
     if [ $tmp = 1 ];then
 	b=".5"
-    else 
+    else
 	b=".0"
     fi
-    echo "      Noise margin     : "$a$b" dB" 
+    echo "      Noise margin     : "$a$b" dB"
     shift
 
     if [ -f /usr/bin/perl ] || [ -f /bin/perl ]; then
@@ -101,7 +101,7 @@ print_stat()
             echo "      Last connect     : "$tmp
     fi
     shift
-    
+
 }
 
 #---------------------------------------------------------
@@ -121,10 +121,10 @@ if [ $# = 0 ]; then
     echo "  tcpam32 | tcpam16 | "
     echo "  tcpam8  | tcpam4           - line coding"
     echo "  cfg [local|preact]         - local:  each modem configured locally"
-    echo "                               preact: slave(STU-R) configured by master(STU-C)"    
-    echo "  annex [A|B|F]              - G.SHDSL.bis Annex type"    
+    echo "                               preact: slave(STU-R) configured by master(STU-C)"
+    echo "  annex [A|B|F]              - G.SHDSL.bis Annex type"
     echo "  rate <value>               - line rate"
-    echo "  rate auto [<value>]        - auto line rate (up to 2304 in auto mode)"    
+    echo "  rate auto [<value>]        - auto line rate (up to 2304 in auto mode)"
     echo "                               2304 by default"
     echo "  crc32 | crc16              - CRC length"
     echo "  mac-addr <value>           - less significant part of MAC-address"
@@ -138,7 +138,7 @@ cdir=`pwd`
 
 # Firmware installation
 if [ $1 = "fwinst" -o $1 = "FWINST" ]; then
-    
+
     if [ ! $# -ge 2 ]; then
 	echo $0": error, fwinst: too fiew arguments"
 	exit
@@ -152,7 +152,7 @@ if [ $1 = "fwinst" -o $1 = "FWINST" ]; then
 	echo $0": error, firmware wasn't found"
 	exit
     fi
-    
+
     cp $cp_path /lib/firmware/sg16.bin
     echo "Firmware installed"
     exit
@@ -201,7 +201,7 @@ fi
 #    exit;
 #fi
 
-# Download firmware 
+# Download firmware
 if [ $2 = "reload" -o $2 = "RELOAD" ]; then
     dload_fw $0
     exit
@@ -214,7 +214,7 @@ shift
 while [ ! -z $1 ]; do
 
     case $1 in
-    
+
     "master")
 	echo 1 > master ;;
     "slave")
@@ -245,7 +245,7 @@ while [ ! -z $1 ]; do
 	else
 	    if [ -z $2 ]; then
 		shift
-		echo $0": rate value is missing"		
+		echo $0": rate value is missing"
 		break
 	    fi
 
@@ -280,7 +280,7 @@ while [ ! -z $1 ]; do
 	    fi
 	    shift
 	fi
-	;;    
+	;;
 
     "annex")
 	if [ -z $2 ]; then
@@ -317,19 +317,19 @@ while [ ! -z $1 ]; do
 	    echo $0": syntax error, after \"mac-addr\" "
 	    break
 	fi
-	echo "$2" > maddr 
+	echo "$2" > maddr
 	shift
 	;;
-	    
+
     "tcpam32")
-	echo 0 > mod 
+	echo 0 > mod
 	;;
     "tcpam16")
-	echo 1 > mod 
+	echo 1 > mod
 	;;
     "tcpam8")
-	echo 2 > mod 
-	;; 
+	echo 2 > mod
+	;;
     "crc32")
 	echo 0 > crc16
 	;;
