@@ -1,0 +1,146 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Обновление прошивки мультиплексора</title><meta name="generator" content="DocBook XSL Stylesheets V1.68.1"><link rel="start" href="index.html" title="Руководство по эксплуатации мультиплексора ГМ-2-MPR"><link rel="up" href="ch01.html" title="Глава 1. Программное обеспечение мультиплексора"><link rel="prev" href="ch01.html" title="Глава 1. Программное обеспечение мультиплексора"><link rel="next" href="ch01s03.html" title="Установка программ"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Обновление прошивки мультиплексора</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="ch01.html">Пред.</a> </td><th width="60%" align="center">Глава 1. Программное обеспечение мультиплексора</th><td width="20%" align="right"> <a accesskey="n" href="ch01s03.html">След.</a></td></tr></table><hr></div><div class="section" lang="ru"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="update"></a>Обновление прошивки мультиплексора</h2></div></div></div><p>
+				Если мультиплексор уже сконфигурирован, то перед прошивкой следует сохранить конфигурацию, т.к. установка новой прошивки вернет все параметры в начальное состояние. Сохранение и восстановление конфигурации выполняется в веб-интерфейсе.
+			</p><p>
+				Обновление прошивки выполняется через консольный интерфейс, для этого вам потребуется:
+				</p><div class="itemizedlist"><ul type="disc"><li><p>
+              <span class="acronym">ПК</span> с COM-портом</p></li><li><p>TFTP-сервер, доступный с мультиплексора</p></li></ul></div><p>
+      </p><p>
+				Для обновления прошивки необходимо, чтобы мультиплексору был доступен TFTP-сервер, на котором расположен файл образа прошивки. В старых версиях загрузчика было необходимо, чтобы этот TFTP-сервер находился в одной сети с мультиплексором, в новой версии добавлена возможность обновления, когда сервер доступен через шлюз.
+			</p><p>
+				Если используется локальный TFTP-сервер, то после его настройки необходимо в каталог, являющийся для него (TFTP-сервера) корневым, скопировать файл прошивки, который можно скачать с веб-сайта <a href="http://www.zelax.ru" target="_top">www.zelax.ru</a>.
+			</p><p>
+				Для доступа к консольному интерфейсу мультиплексора необходимо COM-порт компьютера (разъем DB-9F) соединить с последовательным портом (разъем RJ-45 с надписью RS232, находящийся рядом с разъемом для питания) мультиплексора.
+			</p><p>
+				Для управления мультиплексором через консольный интерфейс может использоваться любая программа управления терминалом - HyperTerminal для ОС Windows или Minicom для ОС GNU/Linux. Настройки последовательного порта следующие:
+				</p><div class="itemizedlist"><ul type="disc"><li><p>скорость передачи: 115 200</p></li><li><p>протокол: 8-N-1</p></li><li><p>управление потоком: нет</p></li></ul></div><p>
+      </p><p>
+				После запуска программы управления терминалом и установки соответствующих настроек порта, надо включить мультиплексор. В окне программы выведется информация о мультиплексоре с предложением войти в меню загрузчика:
+			</p><pre class="screen">
+				ADM5120 Boot:
+				
+				
+				CPU: ADM5120-175MHz
+				SDRAM: 128MB
+				Flash: NAND-32MB
+				Boot System: Linux-5120
+				Loader Version: 1.00.03
+				Creation Date: 2004.06.04
+				
+				Press &lt;space&gt; key tree times to enter boot menu..
+				2
+			</pre><p>
+				Для активации меню загрузчика надо быстро нажать на клавишу пробела 3 раза. Меню загрузчика выглядит следующим образом:
+			</p><pre class="screen">
+				==================================
+				Bootloader Menu
+				[1] Xmodem Download
+				[2] TFTP Download
+				[3] Print Boot Params
+				[4] Set Boot Params
+				[5] Check flash
+				[6] Exit
+				
+				Please enter your number:
+			</pre><p>
+				Перед обновлением прошивки необходимо выставить сетевые параметры, которые соответствуют вашей сети. Для этого нужно перейти в пункт меню <span class="emphasis"><em>Set Boot Params</em></span>, нажав клавишу 4. Здесь будет предложено указать:
+				</p><div class="itemizedlist"><ul type="disc"><li><p>серийный номер мультиплексора - (Enter new serial number) - можно пропустить</p></li><li><p>версию аппаратной части - (Enter new hardware version) - можно пропустить</p></li><li><p>
+							MAC адрес сетевого интерфейса - (Enter new mac address) - можно оставить установленный MAC адрес (его значение отображено выше, Current Mac Address), или ввести новое значение.
+						</p></li><li><p>число MAC адресов - (Enter new number of mac address) - этот параметр следует пропустить (по умолчанию число MAC адресов равно 1)</p></li><li><p>IP адрес - (Enter new IP address for this board) - следует ввести IP адрес, находящийся в одной сети с TFTP сервером</p></li></ul></div><p>
+      </p><p>
+				Пример конфигурации приведен ниже:
+			</p><pre class="screen">
+				Set Boot Parameters.
+				==========================
+				Enter new serial number:
+				Serial Number unchanged.
+				Enter new hardware version:
+				Hardware version unchanged.
+				Current mac addres: 00-05-5D-77-86-01
+				Number of mac address: 1
+				Enter new mac address (AA-AA-AA-AA-AA-AA):
+				Enter new number of mac address (between 1-8):
+				Mac address unchanged.
+				IP address for this board: 10.10.10.1
+				Enter new IP address for this board: 10.10.10.1
+				IP updated successfully.
+			</pre><p>
+				В приведенном примере был введен только IP адрес мультиплексора, остальные параметры оставлены без изменений.
+			</p><p>
+				После настройки сетевых параметров, следует выбрать пункт меню 2 (TFTP Client Download) для настройки параметров обновления с помощью TFTP сервера. Содержание этого меню приведено ниже:
+			</p><pre class="screen">
+				Server IP: 192.168.2.12
+				Gateway IP: 10.10.10.2
+				Remote File bootloader: bootgw
+				Remote File system: openwrt
+				
+				TFTP Client Menu
+				===============================
+				[B]: Update bootloader
+				[S]: Update system
+				[A]: Update all
+				[P]: Set parameters
+				[X]: exit
+				Enter your option:
+			</pre><div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+					Приведенное выше меню соответствует новому загрузчику, в который была добавлена возможность загрузки образов загрузчика и системы с TFTP-сервера, находящегося за мультиплексором. Меню в старых версиях загрузчика отличается отсутствием возможности установки шлюза и обновления загрузчика.
+				</p></div><p>
+				Первые четыре строчки над меню содержат информацию, установленную во время последнего обновления прошивки. Для их изменения следует выбрать пункт меню set parameters нажатием клавиши p. В ответ на это будет предложено ввести:
+				</p><div class="itemizedlist"><ul type="disc"><li>
+						IP-адрес TFTP сервера - (Please Enter TFTP Server IP) - IP адрес TFTP сервера, на котором находится файл прошивки. Можно использовать TFTP-сервер, предоставляемый компанией Зелакс -  <span class="emphasis"><em>zelax.ru</em></span>. Вводить следует IP-адрес сервера.
+					</li><li>
+						IP-адрес шлюза - (Please enter gateway IP). Установка данного параметра позволяет обновлять прошивку с TFTP-сервера, находящегося в отличной от мультиплексора сети.
+						Шлюз должен находиться в той же сети, что и интерфейс мультиплексора.
+					</li><li>
+						Имя файла образа загрузчика - (Enter remote bootloader file name).
+					</li><li>
+						Имя файла прошивки - (Enter remote system file name) - имя файла прошивки, расположенного на TFTP сервере.
+					</li></ul></div><p>
+      </p><pre class="screen">
+				Please enter TFTP server IP : 192.168.2.12
+				Please enter gateway IP : 10.10.10.2
+				Enter remote bootloader file name : bootgw
+				Enter remote system file name : openwrt
+			</pre><p>
+				После настройки необходимых параметров, можно перейти к прошивке мультиплексора или обновлению загрузчика. Для обновления загрузчика выбираем пункт меню [B]: Update bootloader:
+			</p><pre class="screen">
+				Enter your option:b
+				Starting the TFTP download(ESC to stop)...
+				PASS
+				File total Length: 00010DF0
+				
+				Eraseing flash.......
+				PASS
+				Programming flash....
+				PASS
+			</pre><p>
+				PASS, соответствующий строчкам Eraseing flash и Programming flash означает, что обновление загрузчика прошло успешно. FAIL говорит о возникших проблемах, как правило это неправильный IP-адрес TFTP-сервера (мультиплексор и TFTP-сервер находятся в разных сетях) или неправильное имя файла на сервере.
+			</p><p>
+				Для обновления прошивки мультиплексора переходим в пункт меню [S]: Update system:
+			</p><pre class="screen">
+				Enter your option:s
+				Starting the TFTP download(ESC to stop)...................................
+				PASS
+				File total Length: 00B62808  Starting address: A0820000
+				
+				Eraseing flash.......
+				PASS
+				Programming flash....
+				PASS
+			</pre><p>
+				Если на экране присутствуют строчки
+				</p><pre class="screen">
+				Eraseing flash.......
+				PASS
+				Programming flash....
+				PASS
+				</pre><p>
+				, значит обновление прошивки прошло успешно и теперь можно загрузить новую прошивку. Для этого необходимо выполнить перезагрузку мультиплексора нажатием на кнопку RESET (или включением/выключением питания).
+			</p><p>
+				Пункт меню [A]: Update all последовательно обновляет загрузчик и прошивку мультиплексора.
+			</p><p>
+				После загрузки мультиплексора (при обычной загрузке не требуется входить в меню загрузчика, поэтому надо подождать, пока истечет таймер и начнется загрузка операционной системы (<span class="acronym">ОС</span>&gt;)) можно перейти к настройке посредством веб-интерфейса. Доступ к консоли больше не требуется, поэтому провод и соответствующее <span class="acronym">ПО</span> можно отключить.
+			</p><p>
+				В случае, если на экран была выведена строчка
+				</p><pre class="screen">Starting the TFTP download(ESC to stop)..FAIL</pre><p>
+				, значит загрузчику не удалось загрузить файл прошивки с указанного TFTP сервера. В этом случае следует проверить корректность указания IP адреса TFTP сервера и имени файла прошивки на нем. Если все корректно, то следует проверить настройки, введенные в пункте Set Boot Params. Может помочь смена MAC адреса и проверка, не блокирует ли сервер TFTP соединения с мультиплексора.
+			</p></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="ch01.html">Пред.</a> </td><td width="20%" align="center"><a accesskey="u" href="ch01.html">Уровень выше</a></td><td width="40%" align="right"> <a accesskey="n" href="ch01s03.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Глава 1. Программное обеспечение мультиплексора </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Установка программ</td></tr></table></div></body></html>

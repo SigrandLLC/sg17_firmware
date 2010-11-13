@@ -1,0 +1,79 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>Глава 3. Настройка сетевых интерфейсов</title><meta name="generator" content="DocBook XSL Stylesheets V1.68.1"><link rel="start" href="index.html" title="Руководство по эксплуатации мультиплексора ГМ-2-MPR"><link rel="up" href="index.html" title="Руководство по эксплуатации мультиплексора ГМ-2-MPR"><link rel="prev" href="cfg.html" title="Сохранение/восстановление конфигурации"><link rel="next" href="dsl.html" title="Конфигурация интерфейса SHDSL"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">Глава 3. Настройка сетевых интерфейсов</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="cfg.html">Пред.</a> </td><th width="60%" align="center"> </th><td width="20%" align="right"> <a accesskey="n" href="dsl.html">След.</a></td></tr></table><hr></div><div class="chapter" lang="ru"><div class="titlepage"><div><div><h2 class="title"><a name="iface"></a>Глава 3. Настройка сетевых интерфейсов</h2></div></div></div><div class="toc"><p><b>Содержание</b></p><dl><dt><span class="section"><a href="iface.html#id2522245">Общие параметры</a></span></dt><dd><dl><dt><span class="section"><a href="iface.html#id2522266">Вкладка Status</a></span></dt><dt><span class="section"><a href="iface.html#general">Вкладка General</a></span></dt><dt><span class="section"><a href="iface.html#method">Вкладка Method</a></span></dt><dt><span class="section"><a href="iface.html#options">Вкладка Options</a></span></dt><dt><span class="section"><a href="iface.html#spec">Вкладка Specific</a></span></dt></dl></dd><dt><span class="section"><a href="dsl.html">Конфигурация интерфейса SHDSL</a></span></dt><dd><dl><dt><span class="section"><a href="dsl.html#id2523016">Настройка параметров интерфейса</a></span></dt><dt><span class="section"><a href="ch03s02s02.html">
+					Настройка сетевых параметров
+				</a></span></dt></dl></dd><dt><span class="section"><a href="ch03s03.html">Конфигурация интерфейса E1</a></span></dt><dd><dl><dt><span class="section"><a href="ch03s03.html#id2523684">Настройка параметров интерфейса</a></span></dt><dt><span class="section"><a href="ch03s03s02.html">Настройка сетевых параметров</a></span></dt></dl></dd><dt><span class="section"><a href="ifaces.html">Динамические интерфейсы</a></span></dt><dd><dl><dt><span class="section"><a href="ifaces.html#id2524204">Работа с динамическими интерфейсами</a></span></dt><dt><span class="section"><a href="bonding.html">Настройка режима Bonding</a></span></dt><dt><span class="section"><a href="bridge.html">Настройка моста</a></span></dt><dt><span class="section"><a href="pptp.html">Настройка соединения PPtP</a></span></dt><dt><span class="section"><a href="pppoe.html">Настройка соединения PPPoE</a></span></dt></dl></dd></dl></div><div class="section" lang="ru"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id2522245"></a>Общие параметры</h2></div></div></div><div class="toc"><dl><dt><span class="section"><a href="iface.html#id2522266">Вкладка Status</a></span></dt><dt><span class="section"><a href="iface.html#general">Вкладка General</a></span></dt><dt><span class="section"><a href="iface.html#method">Вкладка Method</a></span></dt><dt><span class="section"><a href="iface.html#options">Вкладка Options</a></span></dt><dt><span class="section"><a href="iface.html#spec">Вкладка Specific</a></span></dt></dl></div><a name="iface.common"></a><p>
+					В этом разделе рассматриваются общие параметры конфигурации для всех типов сетевых интерфейсов.
+				</p><div class="section" lang="ru"><div class="titlepage"><div><div><h3 class="title"><a name="id2522266"></a>Вкладка Status</h3></div></div></div><p>
+						На вкладке <span class="emphasis"><em>Status</em></span> отображается основная информация о выбранном интерфейсе, а так же предоставляется возможность останова, запуска, и перезапуска интерфейса. Информация о сетевых параметрах интерфейса:
+					</p><div class="figure"><a name="id2522293"></a><p class="title"><b>Рисунок 3.1. Сетевые параметры</b></p><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/iface-stat.png" width="540" alt="Сетевые параметры"></td></tr></table></div></div><p>
+						Состояние интерфейса (запущен или нет) можно определить по строке флагов. Если в ней содержится слово <span class="emphasis"><em>UP</em></span>, то интерфейс запущен (к примеру, <span class="emphasis"><em>UP BROADCAST MULTICAST</em></span>).
+					</p><p>
+						Маршруты, привязанные к интерфейсу:
+					</p><div class="figure"><a name="id2522334"></a><p class="title"><b>Рисунок 3.2. Сетевые маршруты</b></p><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/iface-stat-routes.png" width="540" alt="Сетевые маршруты"></td></tr></table></div></div><p>
+						Записи в таблице ARP:
+					</p><div class="figure"><a name="id2522355"></a><p class="title"><b>Рисунок 3.3. Таблица ARP</b></p><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/iface-stat-arp.png" width="540" alt="Таблица ARP"></td></tr></table></div></div><p>
+						Информация о работе встроенного коммутатора:
+					</p><div class="figure"><a name="id2522378"></a><p class="title"><b>Рисунок 3.4. Встроенный коммутатор</b></p><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/iface-stat-switch.png" width="540" alt="Встроенный коммутатор"></td></tr></table></div></div><p>
+						Информация о шейпере трафика, работающего на интерфейсе:
+					</p><div class="figure"><a name="id2522401"></a><p class="title"><b>Рисунок 3.5. Шейпер трафика</b></p><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/iface-stat-tc.png" width="540" alt="Шейпер трафика"></td></tr></table></div></div><p>
+						Управление интерфейсом:
+					</p><div class="figure"><a name="id2522422"></a><p class="title"><b>Рисунок 3.6. Управлени интерфейсом</b></p><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/iface-stat-buttons.png" width="540" alt="Управлени интерфейсом"></td></tr></table></div></div><div class="itemizedlist"><ul type="disc"><li><p>
+								Кнопка <span class="emphasis"><em>Start interface</em></span> позволяет запустить ("поднять") интерфейс, если на вкладке General установлен флажок <span class="emphasis"><em>enabled</em></span>.
+							</p></li><li><p>
+								Кнопка <span class="emphasis"><em>Shutdown interface</em></span> останавливает интерфейс ("опускает").
+							</p></li><li><p>
+								Кнопка <span class="emphasis"><em>Restart interface</em></span> останавливает/запускает интерфейс.
+							</p></li></ul></div></div><div class="section" lang="ru"><div class="titlepage"><div><div><h3 class="title"><a name="general"></a>Вкладка General</h3></div></div></div><p>
+						Опции на вкладке <span class="emphasis"><em>General</em></span> позволяют сделать интерфейс активным, а также выбрать способ установки ip-адреса.
+					</p><div class="figure"><a name="id2522513"></a><p class="title"><b>Рисунок 3.7. Вкладка General</b></p><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/iface-general.png" width="540" alt="Вкладка General"></td></tr></table></div></div><div class="itemizedlist"><ul type="disc"><li><p>
+								<span class="emphasis"><em>Description</em></span> - описание интерфейса, не используется системой.
+							</p></li><li><p>
+								<span class="emphasis"><em>Enabled</em></span> - интерфейс активен.
+							</p></li><li><p>
+								<span class="emphasis"><em>Auto</em></span> - активация интерфейса при загрузке.
+							</p></li><li><p>
+								<span class="emphasis"><em>Method</em></span> - метод установки IP-адреса.
+							</p></li><li><p>
+								<span class="emphasis"><em>Depended on</em></span> - интерфейс, от которого зависит данный интерфейс. При запуске данного интерфейса сперва будет запущен интерфейс, от которого он зависит.
+							</p></li></ul></div><div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+							После установлении флажка <span class="emphasis"><em>enabled</em></span> интерфейс не будет автоматически запущен. Запуск интерфейса производится после сохранения параметров на вкладках Options, Specific и др., либо после нажатии кнопки <span class="emphasis"><em>Start interface</em></span> на вкладке <span class="emphasis"><em>Status</em></span>.
+						</p></div><p>
+						Возможно несколько методов установки IP-адреса:
+					</p><div class="itemizedlist"><ul type="disc"><li><p>
+								<span class="emphasis"><em>None</em></span> - не конфигурируемый, ip-адрес не устанавливается.
+							</p></li><li><p>
+								<span class="emphasis"><em>Static address</em></span> - статический, ручной ввод пользователем.
+							</p></li><li><p>
+								<span class="emphasis"><em>Zero configuration</em></span> - автоматический способ присвоения ip-адреса, позволяющий построить работающую сеть без ручного присвоения ip-адресов и без серверов DNS/DHCP.
+							</p></li><li><p>
+								<span class="emphasis"><em>Dynamic address</em></span> - динамический ip-адрес () - адрес назначается сетевыми сервисами: DHCP/PPTP/...
+							</p></li></ul></div><div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+							При выборе статического адреса необходимо ввести соответствующую информацию на вкладке <span class="emphasis"><em>Method</em></span>.
+						</p><p>
+							При конфигурации сети с помощью Zeroconf интерфейсу будет назначен ip-адрес из диапазона 169.254.*.
+						</p><p>
+							При выборе динамического ip-адреса, адрес и необходимые сетевые настройки будут получены от DHCP сервера.
+						</p></div></div><div class="section" lang="ru"><div class="titlepage"><div><div><h3 class="title"><a name="method"></a>Вкладка Method</h3></div></div></div><p>
+						На вкладке <span class="emphasis"><em>Method</em></span> осуществляется установка сетевых параметров:
+					</p><div class="figure"><a name="id2522756"></a><p class="title"><b>Рисунок 3.8. Вкладка Method</b></p><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/iface-method.png" width="540" alt="Вкладка Method"></td></tr></table></div></div><div class="itemizedlist"><ul type="disc"><li><p>
+								<span class="emphasis"><em>Static address</em></span> - IP-адрес.
+							</p></li><li><p>
+								<span class="emphasis"><em>Netmask</em></span> - маска сети.
+							</p></li><li><p>
+								<span class="emphasis"><em>Broadcast</em></span> - широковещательный адрес.
+							</p></li><li><p>
+								<span class="emphasis"><em>Gateway</em></span> - маршрут по-умолчанию.
+							</p></li></ul></div><div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Замечание</h3><p>
+							Обязательными для заполнения являются только первые два поля, при не заполнении поля широковещательного адреса, он будет высчитан автоматически.
+						</p></div></div><div class="section" lang="ru"><div class="titlepage"><div><div><h3 class="title"><a name="options"></a>Вкладка Options</h3></div></div></div><p>
+						Переключатели на вкладке <span class="emphasis"><em>Options</em></span> управляют поведением интерфейса:
+					</p><div class="figure"><a name="id2522858"></a><p class="title"><b>Рисунок 3.9. Вкладка Options</b></p><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/iface-options.png" width="540" alt="Вкладка Options"></td></tr></table></div></div><div class="itemizedlist"><ul type="disc"><li><p>
+								<span class="emphasis"><em>Accept redirects</em></span> - в активном состоянии позволяет принимать ICMP перенаправления. Например, если есть лучший маршрут до какого-либо узла чем тот, по которому был послан пакет клиентом, мультиплексор клиенту может отправить (как правило всегда так и происходит) icmp-перенаправление с указанием, через какой мультиплексор лучше в следующий раз отправлять пакеты.
+							</p></li><li><p>
+								<span class="emphasis"><em>Forwarding</em></span> - при активном состоянии включает режим мультиплексора - пересылку пакеты с интерфейса на интерфейс (в соответствии с правилами межсетевой экрана).
+							</p></li><li><p>
+								<span class="emphasis"><em>Proxy ARP</em></span> - включение режима Proxy ARP, что предоставляет третий способ соединения сетей (помимо моста и стандартной IP-маршрутизации).
+							</p></li><li><p>
+								<span class="emphasis"><em>RP Filter</em></span> - управляет возможностью проверки пути к отправителю (reversed path) в соответствии с RFC 1812. Активное состояние включает такую проверку и рекомендуется для хостов с одним сетевым интерфейсом и мультиплексоров тупиковых сетей.
+							</p></li></ul></div></div><div class="section" lang="ru"><div class="titlepage"><div><div><h3 class="title"><a name="spec"></a>Вкладка Specific</h3></div></div></div><p>
+						Данная вкладка содержит параметры, которые специфичные для данного интерфейса. Для интерфейсов Ethernet и SHDSL (и других) здесь можно установить MAC-адрес.
+					</p><div class="figure"><a name="id2522989"></a><p class="title"><b>Рисунок 3.10. Вкладка Specific</b></p><div><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="540"><tr><td><img src="img/iface-specific.png" width="540" alt="Вкладка Specific"></td></tr></table></div></div></div></div></div><div class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="cfg.html">Пред.</a> </td><td width="20%" align="center"> </td><td width="40%" align="right"> <a accesskey="n" href="dsl.html">След.</a></td></tr><tr><td width="40%" align="left" valign="top">Сохранение/восстановление конфигурации </td><td width="20%" align="center"><a accesskey="h" href="index.html">Начало</a></td><td width="40%" align="right" valign="top"> Конфигурация интерфейса SHDSL</td></tr></table></div></body></html>
