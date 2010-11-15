@@ -70,7 +70,7 @@ configtest:
 	-scripts/configtest.pl
 
 package_index:
-	(cd $(PACKAGE_DIR); $(STAGING_DIR)/usr/bin/ipkg-make-index . > Packages)
+	cd $(PACKAGE_DIR) && $(STAGING_DIR)/usr/bin/ipkg-make-index . > Packages
 
 $(DL_DIR):
 	@mkdir -p $(DL_DIR)
