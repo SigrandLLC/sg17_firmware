@@ -12,12 +12,21 @@ eval `kdb -qq ls sys_log_*`
 
 start(){
 	echo "Starting $DESC."
-	buf_size=
-	[ "$sys_log_remote_enabled" = 1 -a -n "$sys_log_remote_server" ] && DAEMON_SYSLOG_ARGS="$DAEMON_SYSLOG_ARGS -L -R $sys_log_remote_server" 
-	[ -n "$sys_log_buf_size" ] && buf_size="$sys_log_buf_size" || buf_size="64"
-	DAEMON_SYSLOG_ARGS="$DAEMON_SYSLOG_ARGS -C $buf_size" || 
+
+	if [ "$sys_log_remote_enabled" = 1 -a -n "$sys_log_remote_server" ]; then
+		DAEMON_SYSLOG_ARGS="$DAEMON_SYSLOG_ARGS -L -R $sys_log_remote_server"
+	fi
+
+	local buf_size=
+	if [ -n "$sys_log_buf_size" ]; then
+		buf_size="$sys_log_buf_size"
+	else
+		buf_size="64"
+	fi
+
+	DAEMON_SYSLOG_ARGS="$DAEMON_SYSLOG_ARGS -C$buf_size"
 	[ -x $DAEMON_SYSLOG ] && start-stop-daemon --quiet --start --background --make-pidfile --pid=$PIDFILE_SYSLOG --exec $DAEMON_SYSLOG -- $DAEMON_SYSLOG_ARGS
-	[ -x $DAEMON_KLOG ]   && start-stop-daemon --quiet --start --background --make-pidfile --pid=$PIDFILE_KLOG   --exec $DAEMON_KLOG   -- $DAEMON_KLOG_ARGS
+	[ -x $DAEMON_KLOG   ] && start-stop-daemon --quiet --start --background --make-pidfile --pid=$PIDFILE_KLOG   --exec $DAEMON_KLOG   -- $DAEMON_KLOG_ARGS
 	[ -n "$sys_log_dmesg_level" ] && dmesg -n $sys_log_dmesg_level
 }
 
