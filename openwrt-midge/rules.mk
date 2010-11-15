@@ -87,7 +87,6 @@ SCRIPT_DIR:=$(BASE_DIR)/scripts
 BIN_DIR:=$(BASE_DIR)/bin
 STAMP_DIR:=$(BUILD_DIR)/stamp
 PACKAGE_DIR:=$(BIN_DIR)/packages
-STAMP_DIR:=$(BUILD_DIR)/stamp
 TARGET_DIR:=$(BUILD_DIR)/root
 TOOL_BUILD_DIR=$(BASE_DIR)/toolchain_build_$(ARCH)$(ARCH_FPU_SUFFIX)
 TARGET_PATH=$(if $(CCACHE),$(_CCACHE_PATH_):)$(STAGING_DIR)/usr/bin:$(STAGING_DIR)/bin:/bin:/sbin:/usr/bin:/usr/sbin
