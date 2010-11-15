@@ -9,7 +9,7 @@ export LINUX_VERSION
 
 include ../rules.mk
 
-ifdef SIGRAND_LINUX_NOFW
+ifeq "$(BR2_LINUX_2_6_SIGRAND5120_NOFW)" "y"
   lk_config = config-nofw
 else
   lk_config = config
