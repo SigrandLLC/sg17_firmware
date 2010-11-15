@@ -42,7 +42,7 @@ $(eval $(call PKG_template,LIGHTTPD_MOD_SIMPLE_VHOST,lighttpd-mod-simple-vhost,$
 $(eval $(call PKG_template,LIGHTTPD_MOD_SSI,lighttpd-mod-ssi,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 $(eval $(call PKG_template,LIGHTTPD_MOD_STATUS,lighttpd-mod-status,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 $(eval $(call PKG_template,LIGHTTPD_MOD_USERTRACK,lighttpd-mod-usertrack,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
-$(eval $(call PKG_template,LIGHTTPD_MOD_WEBDAV,lighttpd-mod-webdav,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
+#$(eval $(call PKG_template,LIGHTTPD_MOD_WEBDAV,lighttpd-mod-webdav,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
 $(eval $(call PKG_mod_template,LIGHTTPD_MOD_ACCESSLOG,accesslog))
 $(eval $(call PKG_mod_template,LIGHTTPD_MOD_ALIAS,alias))
@@ -59,13 +59,13 @@ $(eval $(call PKG_mod_template,LIGHTTPD_MOD_SIMPLE_VHOST,simple_vhost))
 $(eval $(call PKG_mod_template,LIGHTTPD_MOD_SSI,ssi))
 $(eval $(call PKG_mod_template,LIGHTTPD_MOD_STATUS,status))
 $(eval $(call PKG_mod_template,LIGHTTPD_MOD_USERTRACK,usertrack))
-$(eval $(call PKG_mod_template,LIGHTTPD_MOD_WEBDAV,webdav))
+#$(eval $(call PKG_mod_template,LIGHTTPD_MOD_WEBDAV,webdav))
 
 $(PKG_BUILD_DIR)/.configured:
 	(cd $(PKG_BUILD_DIR); rm -rf config.{cache,status} ; \
 		$(TARGET_CONFIGURE_OPTS) \
 		CFLAGS="$(TARGET_CFLAGS)" \
-		CPPFLAGS="-I$(STAGING_DIR)/usr/include/libxml2 -I$(STAGING_DIR)/usr/include -I$(STAGING_DIR)/include" \
+		CPPFLAGS="-I$(STAGING_DIR)/usr/include -I$(STAGING_DIR)/include" \
 		LDFLAGS="-L$(STAGING_DIR)/usr/lib -L$(STAGING_DIR)/lib" \
 		PCRE_LIB="-lpcre" \
 		PKG_CONFIG_PATH="$(STAGING_DIR)/usr/lib/pkgconfig" \
@@ -103,7 +103,6 @@ $(PKG_BUILD_DIR)/.configured:
 			--with-openssl="$(STAGING_DIR)/usr" \
 			--with-pcre \
 			--without-valgrind \
-			--with-webdav-props \
 	)
 	touch $@
 

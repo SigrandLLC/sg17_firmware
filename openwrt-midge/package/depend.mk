@@ -45,7 +45,7 @@ libpng-compile: zlib-compile
 libvorbis-compile: libogg-compile
 libxml2-compile: zlib-compile
 libxslt-compile: libxml2-compile
-lighttpd-compile: openssl-compile pcre-compile libxml2-compile sqlite-compile
+lighttpd-compile: openssl-compile pcre-compile
 logrotate-compile: popt-compile
 madplay-compile: libid3tag-compile libmad-compile
 miax-compile: bluez-libs-compile
