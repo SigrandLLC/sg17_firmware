@@ -25,7 +25,7 @@ mr17g_muxonly(){
 
 pci_driver(){
 
-	if [ $# -lt 2 ]; then
+	if [ "$#" -lt 2 ]; then
 		echo "$0: not enough parameters"
 		return
 	fi
@@ -178,7 +178,7 @@ _pci_update_netcfg(){
 }
 
 _pci_commit_netcfg(){
-	local count=`wc -l $tmp_file`
+	local count=`wc -l < $tmp_file`
 	local i=1
 	local slots=`$kdb get sys_pcitbl_slots`
 
