@@ -1,3 +1,4 @@
+* add menuconfig target to target/linux/sigrand5120-2.6/Makefile
 * make list all of base-files* installed to root fs.
 * replace ntpclient by openntpd
 * rm crontab, cron, /etc/init.d/timesync
