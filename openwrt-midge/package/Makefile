@@ -377,6 +377,12 @@ $(TARGET_DIR):
 		} \
 	}
 
+%-menuconfig: %-prepare
+	@$(START_TRACE) "package/$(patsubst %-menuconfig,%,$@)-menuconfig: "
+	@$(MAKE) -C $(patsubst %-menuconfig,%,$@) menuconfig
+	@$(CMD_TRACE) " done"
+	@$(END_TRACE)
+
 %-compile:
 	@[ -f $(STAMP_DIR)/.$@ ] || { \
 		$(START_TRACE) "package/$(patsubst %-compile,%,$@)-compile: "; \
