@@ -11,7 +11,7 @@
 /.config*
 /.tmpconfig.h
 /log
-/.cfg.sg-17r
+/.cf-sg
 
 # object files
 *.o
