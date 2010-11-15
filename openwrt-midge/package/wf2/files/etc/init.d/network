@@ -397,7 +397,7 @@ case "$0" in
 	if [ "$1" = "restart" ]; then
 		_network restart $2
 	else
-		_network $@
+		_network "$@"
 	fi
 	;;
 *ifup)
