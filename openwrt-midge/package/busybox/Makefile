@@ -1,5 +1,3 @@
-# $Id: Makefile 3625 2006-04-12 12:07:44Z kaloz $
-
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=busybox
@@ -25,8 +23,13 @@ include $(TOPDIR)/package/rules.mk
 
 $(eval $(call PKG_template,BUSYBOX,$(PKG_NAME),$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
+menuconfig: $(PKG_BUILD_DIR)/.prepared
+	cp config-$(PKG_VERSION) $(PKG_BUILD_DIR)/.config
+	$(MAKE) CC="$(TARGET_CC)" CROSS="$(TARGET_CROSS)" -C $(PKG_BUILD_DIR) menuconfig
+	cp $(PKG_BUILD_DIR)/.config config-$(PKG_VERSION)
+
 $(PKG_BUILD_DIR)/.configured:
-	$(SCRIPT_DIR)/gen_busybox_config.pl $(TOPDIR)/.config > $(PKG_BUILD_DIR)/.config
+	cp config-$(PKG_VERSION) $(PKG_BUILD_DIR)/.config
 	yes '' | $(MAKE) CC="$(TARGET_CC)" CROSS="$(TARGET_CROSS)" -C $(PKG_BUILD_DIR) oldconfig
 	touch $@
 

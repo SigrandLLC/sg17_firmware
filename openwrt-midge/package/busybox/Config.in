@@ -7,9 +7,9 @@ config BR2_PACKAGE_BUSYBOX
 	help
 	  The Swiss Army Knife of embedded Linux.  It slices, it dices, it
 	  makes Julian Fries.
-	  
+
 	  http://busybox.net/
-	  
+
 	  Most people will answer Y.
 
 config BR2_PACKAGE_BUSYBOX_SNAPSHOT
@@ -19,14 +19,7 @@ config BR2_PACKAGE_BUSYBOX_SNAPSHOT
 	default n
 	help
 	  Use the latest busybox CVS snapshot instead of release.
-	  
+
 	  For fun, you should say Y.
-
-menu "Busybox Configuration"
-	depends BR2_PACKAGE_BUSYBOX
-
-source package/busybox/config/Config.in
-
-endmenu
 
 endmenu
