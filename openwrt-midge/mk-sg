@@ -6,9 +6,6 @@ cfg=./.cf-sg
 
 . $cfg
 
-mkdir -p log
-yes '' | make oldconfig > log/oldconfig-${OEM_CUR}-NOFW-${NOFW_CUR}-$$.log
-
 if test "$OEM_OLD" != "$OEM_CUR"; then
    echo "OEM clean"
    make oem_clean
