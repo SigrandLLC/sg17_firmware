@@ -90,3 +90,6 @@ if test "$NOFW_CUR" -ge 1; then
    echo "BR2_LINUX_2_6_SIGRAND5120_NOFW=y"		>>	.config # target/linux/sigrand5120-2.6/Makefile
 fi
 
+mkdir -p log
+yes '' | make oldconfig > log/oldconfig-${OEM_CUR}-NOFW-${NOFW_CUR}-$$.log
+
