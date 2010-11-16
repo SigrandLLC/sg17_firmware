@@ -10,6 +10,7 @@ linux-install: $(BIN_DIR)
 
 prepare: linux-prepare
 compile: linux-compile
+menuconfig: linux-menuconfig
 install: image_clean linux-install
 clean: linux-clean utils-clean lzma-clean image_clean
 
@@ -25,10 +26,13 @@ linux/package/%:
 %-prepare:
 	@$(TRACE) target/$(patsubst %-prepare,%,$@)-prepare
 	$(MAKE) -C $(patsubst %-prepare,%,$@) prepare
+%-menuconfig: %-prepare
+	@$(TRACE) target/$(patsubst %-menuconfig,%,$@)-menuconfig
+	$(MAKE) -C $(patsubst %-menuconfig,%,$@) menuconfig
 %-compile: %-prepare
 	@$(TRACE) target/$(patsubst %-compile,%,$@)-compile
 	$(MAKE) -C $(patsubst %-compile,%,$@) compile
-%-rebuild: 
+%-rebuild:
 	@$(TRACE) target/$(patsubst %-rebuild,%,$@)-rebuild
 	$(MAKE) -C $(patsubst %-rebuild,%,$@) rebuild
 %-install: %-compile
@@ -37,5 +41,4 @@ linux/package/%:
 linux-imagebuilder:
 	@$(TRACE) target/linux/imagebuilder
 	$(MAKE) -C linux imagebuilder
-
 
