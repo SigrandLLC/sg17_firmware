@@ -25,6 +25,10 @@ $(LINUX_DIR)/.patched: $(LINUX_DIR)/.unpacked
 	[ -d ./patches ] && $(PATCH) $(LINUX_DIR) ./patches $(MAKE_TRACE)
 	touch $@
 
+menuconfig: $(LINUX_DIR)/.patched
+	cp $(lk_config) $(LINUX_DIR)/.config
+	$(MAKE) -C $(LINUX_DIR) CROSS_COMPILE="$(KERNEL_CROSS)" ARCH=$(LINUX_KARCH) menuconfig $(MAKE_TRACE)
+	cp $(LINUX_DIR)/.config $(lk_config)
 
 $(LINUX_DIR)/.configured: $(LINUX_DIR)/.configured-sigrand5120-2.6
 $(LINUX_DIR)/.configured-sigrand5120-2.6: $(LINUX_DIR)/.patched

@@ -73,6 +73,9 @@ ifeq ($(BR2_PACKAGE_IMAGEBUILDER),y)
 install: $(BIN_DIR)/$(IB_NAME).tar.bz2
 endif
 
+menuconfig:
+	@$(TRACE) target/linux-menuconfig
+	$(MAKE) -C sigrand5120-2.6 menuconfig
 prepare:
 	@$(TRACE) target/linux/image-prepare
 	$(MAKE) -C image prepare
