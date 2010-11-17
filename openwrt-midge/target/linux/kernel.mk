@@ -10,7 +10,7 @@ $(TARGETS): $(PACKAGE_DIR)
 
 $(PACKAGE_DIR):
 	mkdir -p $(PACKAGE_DIR)
-	
+
 $(DL_DIR)/$(LINUX_SOURCE):
 	-mkdir -p $(DL_DIR)
 	$(SCRIPT_DIR)/download.pl $(DL_DIR) $(LINUX_SOURCE) $(LINUX_KERNEL_MD5SUM) $(LINUX_SITE) $(MAKE_TRACE)
@@ -55,16 +55,15 @@ $(LINUX_KERNEL): $(LINUX_DIR)/vmlinux
 $(LINUX_DIR)/.modules_done:
 	rm -rf $(LINUX_BUILD_DIR)/modules
 	$(MAKE) -C "$(LINUX_DIR)" CROSS_COMPILE="$(KERNEL_CROSS)" ARCH=$(LINUX_KARCH) PATH="$(TARGET_PATH)" modules $(MAKE_TRACE)
-	$(MAKE) -C "$(LINUX_DIR)" CROSS_COMPILE="$(KERNEL_CROSS)" DEPMOD=true INSTALL_MOD_PATH=$(LINUX_BUILD_DIR)/modules modules_install $(MAKE_TRACE)
+	$(MAKE) -C "$(LINUX_DIR)" CROSS_COMPILE="$(KERNEL_CROSS)" DEPMOD=true \
+		INSTALL_MOD_PATH=$(BUILD_DIR)/root modules_install $(MAKE_TRACE)
 	touch $(LINUX_DIR)/.modules_done
 
 $(STAMP_DIR)/.linux-compile:
 	@$(MAKE) $(LINUX_DIR)/.modules_done $(TARGETS) $(KERNEL_IPKG) $(MAKE_TRACE)
 	ln -sf $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION) $(BUILD_DIR)/linux $(MAKE_TRACE)
 	@$(TRACE) target/linux/package-compile
-	$(MAKE) -C $(TOPDIR)/target/linux/package \
-		$(KPKG_MAKEOPTS) \
-		compile
+	$(MAKE) -C $(TOPDIR)/target/linux/package $(KPKG_MAKEOPTS) compile
 	touch $@
 
 .PHONY: pkg-install
@@ -73,10 +72,8 @@ pkg-install:
 	@rm -rf $(LINUX_BUILD_DIR)/root*
 	@cp -fpR $(BUILD_DIR)/root $(LINUX_BUILD_DIR)/
 	echo -e 'dest root /\noption offline_root $(LINUX_BUILD_DIR)/root' > $(LINUX_BUILD_DIR)/ipkg.conf
-	$(MAKE) -C $(TOPDIR)/target/linux/package \
-		$(KPKG_MAKEOPTS) \
-		install
-	@{ [ "$(INSTALL_TARGETS)" != "" ] && $(IPKG_KERNEL) install $(INSTALL_TARGETS) || true; } $(MAKE_TRACE) 
+	$(MAKE) -C $(TOPDIR)/target/linux/package $(KPKG_MAKEOPTS) install
+	@{ [ "$(INSTALL_TARGETS)" != "" ] && $(IPKG_KERNEL) install $(INSTALL_TARGETS) || true; } $(MAKE_TRACE)
 
 $(KERNEL_IPKG):
 	rm -rf $(KERNEL_IDIR)
@@ -88,7 +85,7 @@ $(KERNEL_IPKG):
 	$(IPKG_BUILD) $(KERNEL_IDIR) $(LINUX_BUILD_DIR) $(MAKE_TRACE)
 
 source: $(DL_DIR)/$(LINUX_SOURCE)
-prepare: 
+prepare:
 	@mkdir -p $(STAMP_DIR) $(PACKAGE_DIR)
 	@$(MAKE) $(LINUX_DIR)/.configured $(MAKE_TRACE)
 
