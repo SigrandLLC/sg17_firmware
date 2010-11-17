@@ -62,7 +62,7 @@ all: world
 include .config.cmd
 
 world: $(DL_DIR) $(BUILD_DIR) configtest
-	$(MAKE) root_clean
+	$(MAKE) oem_clean root_clean
 	$(MAKE) toolchain/install target/compile package/compile package/install target/install package_index
 	@$(TRACE) Build complete.
 
