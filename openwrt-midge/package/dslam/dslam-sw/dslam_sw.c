@@ -265,6 +265,11 @@ store_default(struct file *file,const char *buffer,unsigned long count,void *dat
 
 	if (simple_strtoul(buffer,&endp,16) == 1)
 	{
+		// this is need for poperly work ethernet modules
+		write_reg(sw_num, 0xfa, 0x0200);
+		// trunk hash algorithm selection is source and dest
+		write_reg(sw_num, 0x40, 0x000c);
+
 		write_reg(sw_num, 0x3b, 0x0000);
 		write_reg(sw_num, 0x3c, 0x0000);
 		write_reg(sw_num, 0x01, 0x0432);
@@ -327,24 +332,32 @@ read_statistics(char *buf, char **start, off_t offset, int count, int *eof, void
 		if (i == 24*2) {
 			sw[sw_num].stat[26].tx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
 			j += snprintf(&buf[j], count, " 26  %09lu ", sw[sw_num].stat[26].tx);
+			write_reg(sw_num, 0x38, 0x0100+(i&0xFF)+1);
+			sw[sw_num].stat[26].rx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
+			j += snprintf(&buf[j], count, "%09lu\n", sw[sw_num].stat[26].rx);
 		} else {
 			if (i == 25*2) {
 				sw[sw_num].stat[24].tx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
 				j += snprintf(&buf[j], count, " 24  %09lu ", sw[sw_num].stat[24].tx);
+				write_reg(sw_num, 0x38, 0x0100+(i&0xFF)+1);
+				sw[sw_num].stat[24].rx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
+				j += snprintf(&buf[j], count, "%09lu\n", sw[sw_num].stat[24].rx);
 			} else {
 				if (i == 26*2) {
 					sw[sw_num].stat[25].tx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
 					j += snprintf(&buf[j], count, " 25  %09lu ", sw[sw_num].stat[25].tx);
+					write_reg(sw_num, 0x38, 0x0100+(i&0xFF)+1);
+					sw[sw_num].stat[25].rx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
+					j += snprintf(&buf[j], count, "%09lu\n", sw[sw_num].stat[25].rx);
 				} else {
 					sw[sw_num].stat[i/2].tx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
 					j += snprintf(&buf[j], count, " %2i  %09lu ", i/2, sw[sw_num].stat[i/2].tx);
+					write_reg(sw_num, 0x38, 0x0100+(i&0xFF)+1);
+					sw[sw_num].stat[i/2].rx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
+					j += snprintf(&buf[j], count, "%09lu\n", sw[sw_num].stat[i/2].rx);
 				}
-			} 
-		}
-
-		write_reg(sw_num, 0x38, 0x0100+(i&0xFF)+1);
-		sw[sw_num].stat[i/2].rx += (read_reg(sw_num, 0x39) << 16) + read_reg(sw_num, 0x3a);
-		j += snprintf(&buf[j], count, "%09lu\n", sw[sw_num].stat[i/2].rx);
+			}
+		} 
 	}
 //	j += snprintf(&buf[j], count, "port |   TX  |   RX\n");
 //	j += snprintf(&buf[j], count, "port 24 - PHY(Gbit), 25 - GRMII(another switch), 26 - MII(CPU)\n");
@@ -573,9 +586,9 @@ read_status(char *buf, char **start, off_t offset, int count, int *eof, void *da
 	
 	for (i = 0; i < 24/3; i++)
 	{
-		val = read_reg(sw_num, (0xDE + (unsigned)i));
 		for (k = 0; k < 3; k++)
 		{
+			val = read_reg(sw_num, (0xDE + (unsigned)i));
 			if ((status_port == i*3 + k) || (status_port > 26)) {
 				j += snprintf(&buf[j], count, "  %2i   ", i*3 + k);
 				// flow_ctrl
@@ -602,21 +615,33 @@ read_status(char *buf, char **start, off_t offset, int count, int *eof, void *da
 				} else {
 					j += snprintf(&buf[j], count, " dwn ");
 				}
-				// auto negotiation
+				// auto negotiation && on/off
 				if (i*3+k < 16) {
 					val = read_reg(sw_num, 0xCB);
 					if (val & (1 << (i*3+k))) {
-						j += snprintf(&buf[j], count, "auto\n");
+						j += snprintf(&buf[j], count, "  auto ");
 					} else {
-						j += snprintf(&buf[j], count, "manual\n");
+						j += snprintf(&buf[j], count, "manual ");
+					}
+					val = read_reg(sw_num, 0x1E);
+					if (val & (1 << (i*3+k))) {
+						j += snprintf(&buf[j], count, "  on\n");
+					} else {
+						j += snprintf(&buf[j], count, " off\n");
 					}
 				} else {
 					val = read_reg(sw_num, 0xCC);
-					if (val & (1 << (i*3+k-16))) {
-						j += snprintf(&buf[j], count, "auto\n");
+ 					if (val & (1 << (i*3+k-16))) {
+						j += snprintf(&buf[j], count, "  auto ");
 					} else {
-						j += snprintf(&buf[j], count, "manual\n");
+						j += snprintf(&buf[j], count, "manual ");
 					}
+					val = read_reg(sw_num, 0x1F);
+					if (val & (1 << (i*3+k-16))) {
+						j += snprintf(&buf[j], count, "  on\n");
+ 					} else {
+						j += snprintf(&buf[j], count, " off\n");
+ 					}
 				}
 			}
 		}
@@ -652,9 +677,16 @@ read_status(char *buf, char **start, off_t offset, int count, int *eof, void *da
 		// auto negotiation
 		val = read_reg(sw_num, 0xCC);
 		if (val & 0x100) {
-			j += snprintf(&buf[j], count, "auto\n");
+			j += snprintf(&buf[j], count, "  auto ");
 		} else {
-			j += snprintf(&buf[j], count, "manual\n");
+			j += snprintf(&buf[j], count, "manual ");
+		}
+		// on/off
+		val = read_reg(sw_num, 0x1F);
+		if (val & 0x100) {
+			j += snprintf(&buf[j], count, "  on\n");
+		} else {
+			j += snprintf(&buf[j], count, " off\n");
 		}
 
 	}
@@ -688,10 +720,17 @@ read_status(char *buf, char **start, off_t offset, int count, int *eof, void *da
 		// auto negotiation
 		val = read_reg(sw_num, 0xCC);
 		if (val & 0x200) {
-			j += snprintf(&buf[j], count, "auto\n");
+			j += snprintf(&buf[j], count, "  auto ");
 		} else {
-			j += snprintf(&buf[j], count, "manual\n");
+			j += snprintf(&buf[j], count, "manual ");
 		}
+		// on/off
+		val = read_reg(sw_num, 0x1F);
+		if (val & 0x200) {
+			j += snprintf(&buf[j], count, "  on\n");
+ 		} else {
+			j += snprintf(&buf[j], count, " off\n");
+ 		}
 	}
 
 	if ((status_port == 26) || (status_port > 26)) {
@@ -720,10 +759,17 @@ read_status(char *buf, char **start, off_t offset, int count, int *eof, void *da
 		// auto negotiation
 		val = read_reg(sw_num, 0xCC);
 		if (val & 0x400) {
-			j += snprintf(&buf[j], count, "auto\n");
+			j += snprintf(&buf[j], count, "  auto ");
 		} else {
-			j += snprintf(&buf[j], count, "manual\n");
+			j += snprintf(&buf[j], count, "manual ");
 		}
+		// on/off
+		val = read_reg(sw_num, 0x1F);
+		if (val & 0x400) {
+			j += snprintf(&buf[j], count, "  on\n");
+ 		} else {
+			j += snprintf(&buf[j], count, " off\n");
+ 		}
 	}
 	return j;
 }
@@ -742,9 +788,9 @@ read_status_json(char *buf, char **start, off_t offset, int count, int *eof, voi
 	
 	for (i = 0; i < 24/3; i++)
 	{
-		val = read_reg(sw_num, (0xDE + (unsigned)i));
 		for (k = 0; k < 3; k++)
 		{
+			val = read_reg(sw_num, (0xDE + (unsigned)i));
 			j += snprintf(&buf[j], count, "\t\"%i\" : { ", i*3 + k);
 			// flow_ctrl
 			if (val & (0x8 << (5*k))) {
@@ -770,21 +816,33 @@ read_status_json(char *buf, char **start, off_t offset, int count, int *eof, voi
 			} else {
 				j += snprintf(&buf[j], count, "\"state\" : \"dwn\", ");
 			}
-			// auto negotiation
+			// auto negotiation && on/off
 			if (i*3+k < 16) {
 				val = read_reg(sw_num, 0xCB);
 				if (val & (1 << (i*3+k))) {
-					j += snprintf(&buf[j], count, "\"auto\" : true },\n");
+					j += snprintf(&buf[j], count, "\"auto\" : true, ");
 				} else {
-					j += snprintf(&buf[j], count, "\"auto\" : false },\n");
+					j += snprintf(&buf[j], count, "\"auto\" : false, ");
 				}
+				val = read_reg(sw_num, 0x1E);
+				if (val & (1 << (i*3+k))) {
+					j += snprintf(&buf[j], count, "\"on\" : true },\n");
+				} else {
+					j += snprintf(&buf[j], count, "\"on\" : false },\n");
+ 				}
 			} else {
 				val = read_reg(sw_num, 0xCC);
 				if (val & (1 << (i*3+k-16))) {
-					j += snprintf(&buf[j], count, "\"auto\" : true },\n");
+					j += snprintf(&buf[j], count, "\"auto\" : true, ");
 				} else {
-					j += snprintf(&buf[j], count, "\"auto\" : false },\n");
+					j += snprintf(&buf[j], count, "\"auto\" : false, ");
 				}
+				val = read_reg(sw_num, 0x1F);
+				if (val & (1 << (i*3+k-16))) {
+					j += snprintf(&buf[j], count, "\"on\" : true },\n");
+				} else {
+					j += snprintf(&buf[j], count, "\"on\" : false },\n");
+ 				}
 			}
 		}
 	}
@@ -819,11 +877,17 @@ read_status_json(char *buf, char **start, off_t offset, int count, int *eof, voi
 		// auto negotiation
 		val = read_reg(sw_num, 0xCC);
 		if (val & 0x100) {
-			j += snprintf(&buf[j], count, "\"auto\" : true },\n");
+			j += snprintf(&buf[j], count, "\"auto\" : true, ");
 		} else {
-			j += snprintf(&buf[j], count, "\"auto\" : false },\n");
+			j += snprintf(&buf[j], count, "\"auto\" : false, ");
 		}
-
+		// on/off
+		val = read_reg(sw_num, 0x1F);
+		if (val & 0x100) {
+			j += snprintf(&buf[j], count, "\"on\" : true },\n");
+ 		} else {
+			j += snprintf(&buf[j], count, "\"on\" : false },\n");
+ 		}
 	}
 	if ((status_port == 25) || (status_port > 26)) {
 		j += snprintf(&buf[j], count, "\t\"25\" : { ");
@@ -855,10 +919,17 @@ read_status_json(char *buf, char **start, off_t offset, int count, int *eof, voi
 		// auto negotiation
 		val = read_reg(sw_num, 0xCC);
 		if (val & 0x200) {
-			j += snprintf(&buf[j], count, "\"auto\" : true },\n");
+			j += snprintf(&buf[j], count, "\"auto\" : true, ");
 		} else {
-			j += snprintf(&buf[j], count, "\"auto\" : false },\n");
+			j += snprintf(&buf[j], count, "\"auto\" : false, ");
 		}
+		// on/off
+		val = read_reg(sw_num, 0x1F);
+		if (val & 0x200) {
+			j += snprintf(&buf[j], count, "\"on\" : true },\n");
+		} else {
+			j += snprintf(&buf[j], count, "\"on\" : false },\n");
+ 		}
 	}
 
 	if ((status_port == 26) || (status_port > 26)) {
@@ -886,11 +957,18 @@ read_status_json(char *buf, char **start, off_t offset, int count, int *eof, voi
 			j += snprintf(&buf[j], count, "\"state\" : \"dwn\", ");
 		// auto negotiation
 		val = read_reg(sw_num, 0xCC);
-		if (val & 0x800) {
-			j += snprintf(&buf[j], count, "\"auto\" : true }\n");
+		if (val & 0x400) {
+			j += snprintf(&buf[j], count, "\"auto\" : true, ");
 		} else {
-			j += snprintf(&buf[j], count, "\"auto\" : false }\n");
+			j += snprintf(&buf[j], count, "\"auto\" : false, ");
 		}
+		// on/off
+		val = read_reg(sw_num, 0x1F);
+		if (val & 0x400) {
+			j += snprintf(&buf[j], count, "\"on\" : true }\n");
+		} else {
+			j += snprintf(&buf[j], count, "\"on\" : false }\n");
+ 		}
 	}
 	j += snprintf(&buf[j], count, "}\n");
 	return j;
@@ -1070,6 +1148,52 @@ store_port_flowctrl(struct file *file,const char *buffer,unsigned long count,voi
 			write_reg(sw_num, 0xD5, (tmp & (~(1 << port_num))));
 			tmp = read_reg(sw_num, 0xD7);
 			write_reg(sw_num, 0xD7, (tmp & (~(1 << port_num))));
+		}
+	}
+	
+	return count;
+}
+static int
+store_port_on_off(struct file *file,const char *buffer,unsigned long count,void *data) {
+	int sw_num = *(short*)data;
+	char *endp;
+	char port_num;
+	unsigned on;
+	unsigned long tmp;
+
+	port_num = simple_strtoul(buffer,&endp,10);
+	while( *endp == ' '){
+		endp++;
+	}
+	if (port_num > 26) {
+		printk(KERN_ERR"port must be from 0 to 26 (%d)\n", port_num);
+		return count;
+	}
+	on = simple_strtoul(endp,&endp,10);
+	if (port_num < 16) {
+		if (on) {
+			tmp = read_reg(sw_num, 0x1E);
+			write_reg(sw_num, 0x1E, (tmp | (1 << port_num)));
+			tmp = read_reg(sw_num, 0xD8);
+			write_reg(sw_num, 0xD8, (tmp | (1 << port_num)));
+		} else {
+			tmp = read_reg(sw_num, 0x1E);
+			write_reg(sw_num, 0x1E, (tmp & (~(1 << port_num))));
+			tmp = read_reg(sw_num, 0xD8);
+			write_reg(sw_num, 0xD8, (tmp & (~(1 << port_num))));
+		}
+	} else {
+		port_num -= 16;
+		if (on) {
+			tmp = read_reg(sw_num, 0x1F);
+			write_reg(sw_num, 0x1F, (tmp | (1 << port_num)));
+			tmp = read_reg(sw_num, 0xD9);
+			write_reg(sw_num, 0xD9, (tmp | (1 << port_num)));
+		} else {
+			tmp = read_reg(sw_num, 0x1F);
+			write_reg(sw_num, 0x1F, (tmp & (~(1 << port_num))));
+			tmp = read_reg(sw_num, 0xD9);
+			write_reg(sw_num, 0xD9, (tmp & (~(1 << port_num))));
 		}
 	}
 	
@@ -1418,17 +1542,130 @@ read_trunk_port_id(char *buf, char **start, off_t offset, int count, int *eof, v
 	int sw_num = *(short*)data;
 	int j = 0;
 
-	j += snprintf(&buf[j], count, "Port 0: %i\n", (int)(read_reg(sw_num, 0x4C) & 0xF));
-	j += snprintf(&buf[j], count, "Port 1: %i\n", (int)(read_reg(sw_num, 0x4C) & 0xF0) >> 4);
-	j += snprintf(&buf[j], count, "Port 2: %i\n", (int)(read_reg(sw_num, 0x4C) & 0xF00) >> 8);
-	j += snprintf(&buf[j], count, "Port 3: %i\n", (int)(read_reg(sw_num, 0x4C) & 0xF000) >> 12);
+	j += snprintf(&buf[j], count, "p0=%i\n", (int)(read_reg(sw_num, 0x4C) & 0xF));
+	j += snprintf(&buf[j], count, "p1=%i\n", (int)(read_reg(sw_num, 0x4C) & 0xF0) >> 4);
+	j += snprintf(&buf[j], count, "p2=%i\n", (int)(read_reg(sw_num, 0x4C) & 0xF00) >> 8);
+	j += snprintf(&buf[j], count, "p3=%i\n", (int)(read_reg(sw_num, 0x4C) & 0xF000) >> 12);
 
-	j += snprintf(&buf[j], count, "Port 4: %i\n", (int)(read_reg(sw_num, 0x4D) & 0xF));
-	j += snprintf(&buf[j], count, "Port 5: %i\n", (int)(read_reg(sw_num, 0x4D) & 0xF0) >> 4);
-	j += snprintf(&buf[j], count, "Port 6: %i\n", (int)(read_reg(sw_num, 0x4D) & 0xF00) >> 8);
-	j += snprintf(&buf[j], count, "Port 7: %i\n", (int)(read_reg(sw_num, 0x4D) & 0xF000) >> 12);
+	j += snprintf(&buf[j], count, "p4=%i\n", (int)(read_reg(sw_num, 0x4D) & 0xF));
+	j += snprintf(&buf[j], count, "p5=%i\n", (int)(read_reg(sw_num, 0x4D) & 0xF0) >> 4);
+	j += snprintf(&buf[j], count, "p6=%i\n", (int)(read_reg(sw_num, 0x4D) & 0xF00) >> 8);
+	j += snprintf(&buf[j], count, "p7=%i\n", (int)(read_reg(sw_num, 0x4D) & 0xF000) >> 12);
 
 	return (j);
+}
+
+/* mirrored ports (source) */
+static int
+read_mirror_source(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
+	int sw_num = *(short*)data;
+	unsigned int ports = 0, j = 0, i;
+	
+	ports = read_reg(sw_num, 0x4F);
+	ports += ((unsigned int)read_reg(sw_num, 0x50)) << 16;
+//	j += snprintf(&buf[j], count, "ports = %x\n", ports);
+	for (i = 0; i < 27; i++) {
+		if (ports & (1 << i)) j += snprintf(&buf[j], count, "%i ", i);
+	}
+	j += snprintf(&buf[j], count, "\n");
+	
+	return j;
+}
+static int
+store_mirror_source(struct file *file,const char *buffer,unsigned long count,void *data) {
+	int sw_num = *(short*)data;
+	unsigned short port;
+	unsigned int ports = 0;
+	char *endp = (char *)buffer;
+	
+	if ((buffer[0] == 'n') && (buffer[1] == 'o') && (buffer[2] == 'n') && (buffer[3] == 'e')) {
+		write_reg(sw_num, 0x4F, 0);
+		write_reg(sw_num, 0x50, 0);
+		return count;
+	}
+	while (1) {
+		port = simple_strtoul(endp, &endp, 10);
+		if (port > 26) {
+			printk(KERN_ERR"Bad string was writed in the file mirror_source!\n");
+			return count;
+		}
+		ports |= 1 << port;
+		while( *endp == ' ') {
+			endp++;
+		}
+		if ((*endp < '0') || (*endp  > '9') || (endp - buffer > count)) {
+			write_reg(sw_num, 0x4F, ports & 0xFFFF);
+			write_reg(sw_num, 0x50, (ports >> 16) & 0xFFFF);
+			return count;
+		}
+	}
+}
+/* mirroring ports (destination) */
+static int
+read_mirror_dest(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
+	int sw_num = *(short*)data;
+	unsigned int ports = 0, j = 0, i;
+	
+	ports = read_reg(sw_num, 0x51);
+	ports += ((unsigned int)read_reg(sw_num, 0x52)) << 16;
+//	j += snprintf(&buf[j], count, "ports = %x\n", ports);
+	for (i = 0; i < 27; i++) {
+		if (ports & (1 << i)) j += snprintf(&buf[j], count, "%i ", i);
+	}
+	j += snprintf(&buf[j], count, "\n");
+	
+	return j;
+}
+static int
+store_mirror_dest(struct file *file,const char *buffer,unsigned long count,void *data) {
+	int sw_num = *(short*)data;
+	unsigned short port;
+	unsigned int ports = 0;
+	char *endp = (char *)buffer;
+	
+	if ((buffer[0] == 'n') && (buffer[1] == 'o') && (buffer[2] == 'n') && (buffer[3] == 'e')) {
+		write_reg(sw_num, 0x51, 0);
+		write_reg(sw_num, 0x52, 0);
+		return count;
+	}
+	while (1) {
+		port = simple_strtoul(endp, &endp, 10);
+		if (port > 26) {
+			printk(KERN_ERR"Bad string was writed in the file mirror_dest!\n");
+			return count;
+		}
+		ports |= 1 << port;
+		while( *endp == ' ') {
+			endp++;
+		}
+		if ((*endp < '0') || (*endp  > '9') || (endp - buffer > count)) {
+			write_reg(sw_num, 0x51, ports & 0xFFFF);
+			write_reg(sw_num, 0x52, (ports >> 16) & 0xFFFF);
+			return count;
+		}
+	}
+}
+static int
+read_mirror_alg(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
+	int sw_num = *(short*)data;
+	
+	return snprintf(buf, count, "%lu\n", (read_reg(sw_num, 0x40) >> 9) & 3);
+
+}
+static int
+store_mirror_alg(struct file *file,const char *buffer,unsigned long count,void *data) {
+	int sw_num = *(short*)data;
+	short alg;
+	unsigned int tmp;
+	char *endp;
+
+	alg = simple_strtoul(buffer, &endp, 10);
+	if (alg > 3) alg = 3;
+	tmp = read_reg(sw_num, 0x40);
+	
+	write_reg(sw_num, 0x40, (tmp & 0xF9FF) | (alg << 9));
+
+	return count;
 }
 
 
@@ -1486,6 +1723,10 @@ static struct dev_entrie entries_sw0[]={
 	{ "port_speed", PFS_SW0, NULL, 0200, NULL, store_port_speed },
 	{ "port_duplex", PFS_SW0, NULL, 0200, NULL, store_port_duplex },
 	{ "port_flowctrl", PFS_SW0, NULL, 0200, NULL, store_port_flowctrl },
+	{ "port_on_off", PFS_SW0, NULL, 0200, NULL, store_port_on_off },
+	{ "mirror_dest", PFS_SW0, NULL, 0600, read_mirror_dest, store_mirror_dest },
+	{ "mirror_source", PFS_SW0, NULL, 0600, read_mirror_source, store_mirror_source },
+	{ "mirror_alg", PFS_SW0, NULL, 0600, read_mirror_alg, store_mirror_alg },
 };
 
 static struct dev_entrie entries_sw1[]={
@@ -1510,6 +1751,10 @@ static struct dev_entrie entries_sw1[]={
 	{ "port_speed", PFS_SW1, NULL, 0200, NULL, store_port_speed },
 	{ "port_duplex", PFS_SW1, NULL, 0200, NULL, store_port_duplex },
 	{ "port_flowctrl", PFS_SW1, NULL, 0200, NULL, store_port_flowctrl },
+	{ "port_on_off", PFS_SW1, NULL, 0200, NULL, store_port_on_off },
+	{ "mirror_dest", PFS_SW1, NULL, 0600, read_mirror_dest, store_mirror_dest },
+	{ "mirror_source", PFS_SW1, NULL, 0600, read_mirror_source, store_mirror_source },
+	{ "mirror_alg", PFS_SW1, NULL, 0600, read_mirror_alg, store_mirror_alg },
 };
 
 #define PFS_ENTS  (sizeof(entries_sw0)/sizeof(struct dev_entrie))

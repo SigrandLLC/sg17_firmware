@@ -2,7 +2,7 @@
 
 kdb="/usr/bin/kdb"
 
-set_def_vlan_settings() {
+set_def_settings() {
 	sw=$1
 	$kdb set sys_dslam_vlan_table_0="name=default vid=1 p00=1 p01=1 p02=1 p03=1 p10=1 p11=1 p12=1 p13=1 p20=1 p21=1 p22=1 p23=1 p30=1 p31=1 p32=1 p33=1 p40=1 p41=1 p42=1 sw0ports=7ffffff sw1ports=7ffffff"
 	for i in 0 `seq 26`; do
@@ -22,6 +22,20 @@ set_def_vlan_settings() {
 	$kdb set sys_dslam_cos_reg33=0
 	$kdb set sys_dslam_cos_reg34=0
 	$kdb set sys_dslam_cos_reg35=0
+
+	$kdb set sys_dslam_${ge}_on=1
+	$kdb set sys_dslam_${ge}_auto=1
+	$kdb set sys_dslam_${ge}_rate=1000
+	$kdb set sys_dslam_${ge}_duplex=1
+	$kdb set sys_dslam_${ge}_flow=1
+
+	$kdb set sys_dslam_link_aggregation_sw0_algorithm=3
+	$kdb set sys_dslam_link_aggregation_sw1_algorithm=3
+	$kdb set sys_dslam_link_aggregation_group0_ports=""
+	$kdb set sys_dslam_link_aggregation_group1_ports=""
+	$kdb set sys_dslam_link_aggregation_group2_ports=""
+	$kdb set sys_dslam_link_aggregation_group3_ports=""
+
 }
 
 _dslam_sw_start() {
@@ -36,8 +50,8 @@ _dslam_sw_start() {
 		$kdb set sys_dslam_card=1
 		sw0_vlan_mode=`kdb get sys_dslam_sw0_vlan_mode`
 		if [ "$sw0_vlan_mode" = ""  ]; then
-			set_def_vlan_settings 0
-			set_def_vlan_settings 1
+			set_def_settings 0
+			set_def_settings 1
 		fi
 
 		$kdb set sys_dslam_sw0_vlan_mode=1
@@ -45,6 +59,7 @@ _dslam_sw_start() {
 		echo "1" > /proc/sys/net/dslam_sw/sw0/vlan_mode
 		echo "1" > /proc/sys/net/dslam_sw/sw1/vlan_mode
 		
+		update_uplinks_settings
 		update_vlan_settings
 		update_cos_settings 1
 		update_cos_settings 2
@@ -52,11 +67,29 @@ _dslam_sw_start() {
 		update_bandwidth_settings
 		update_bcast_settings
 		update_mac_sec_settings
+#		update_link_aggregation_settings
 	else
 		$kdb set sys_dslam_card=0
 		rmmod dslam_sw
 	fi
 }
+
+update_uplinks_settings() {
+	for ge in ge0 ge1; do
+		sw="sw"`expr substr ${ge} 3 3`
+		on=`$kdb get sys_dslam_${ge}_on`
+		auto=`$kdb get sys_dslam_${ge}_auto`
+		rate=`$kdb get sys_dslam_${ge}_rate`
+		duplex=`$kdb get sys_dslam_${ge}_duplex`
+		flow=`$kdb get sys_dslam_${ge}_flow`
+
+		echo "24 $on" > /proc/sys/net/dslam_sw/$sw/port_on_off
+		echo "24 $auto" > /proc/sys/net/dslam_sw/$sw/port_autoneg
+		echo "24 $rate" > /proc/sys/net/dslam_sw/$sw/port_speed
+		echo "24 $duplex" > /proc/sys/net/dslam_sw/$sw/port_duplex
+		echo "24 $flow" > /proc/sys/net/dslam_sw/$sw/port_flowctrl
+	done
++}
 
 update_vlan_settings() {
 	for port in 0 `seq 26`; do
@@ -237,9 +270,25 @@ update_mac_sec_settings() {
 	done
 }
 
+#update_link_aggregation_settings() {
+#	cli services link_aggregation group0 algorithm `$kdb get sys_dslam_link_aggregation_sw0_algorithm`
+#	cli services link_aggregation group2 algorithm `$kdb get sys_dslam_link_aggregation_sw1_algorithm`
+#	for gr in group0 group1 group2 group3; do
+#		ports=`$kdb get sys_dslam_link_aggregation_${gr}_ports`
+#		if [ "$ports" = "" ]; then
+#			ports="none"
+#		fi
+#		cli services link_aggregation $gr ports $ports
+#	done
+#}
+
+
 update_cfg() {
 	what=$1
 	case "$what" in
+		uplinks)
+			update_uplinks_settings
+		;;
 		vlan)
 			update_vlan_settings
 		;;
@@ -255,6 +304,9 @@ update_cfg() {
 		mac_sec)
 			update_mac_sec_settings
 		;;
+#		link_aggregation)
+#			update_link_aggregation_settings
+#		;;
 		all)
 			update_vlan_settings $2
 		;;

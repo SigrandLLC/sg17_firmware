@@ -147,7 +147,7 @@ int mpi_recv(struct mam17_card *card)
 				if ((buf32[3] == 0x4) && (buf32[4] = 0xc0))
 				{
 					card->channels[buf32[1]].need_reset = 1;
-					printk(KERN_NOTICE "DSLAM %s: link is DOWN\n", card->channels[buf32[1]].name);
+//					printk(KERN_NOTICE "DSLAM %s: link is DOWN\n", card->channels[buf32[1]].name);
 				}
 				led_off(card, buf32[1]);
 			break;
