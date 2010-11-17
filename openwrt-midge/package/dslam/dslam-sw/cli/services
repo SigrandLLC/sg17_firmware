@@ -1,0 +1,829 @@
+#!/bin/sh
+
+. /etc/cli/vlan
+. /etc/cli/cos
+
+save_config() {
+	if [ -f "$tmp_config_file" ]; then
+		eval `cat $tmp_config_file`
+		echo "Configuration was saved."
+		rm -f $tmp_config_file
+	else
+		echo "Nothing to save!"
+	fi
+}
+
+# $1 - string, $2 num of spaces, result in $ret
+append_spaces() {
+	let "ii=0"
+	ret="$1"
+	while [ "$ii" != "$2" ]; do
+		ret=" $ret"
+		let "ii=$ii+1"
+	done
+}
+
+# $1 - group, result in $ret
+group_ports() {
+	case "$1" in
+		"group0")
+			g_ports=""
+			eval `cat /proc/sys/net/dslam_sw/sw0/trunk_port_id`
+			if [ "$p0" != "0" ]; then
+				g_ports="0"
+			fi
+			if [ "$p1" != "0" ]; then
+				g_ports=$g_ports" 1"
+			fi
+			if [ "$p2" != "0" ]; then
+				g_ports=$g_ports" 2"
+			fi
+			if [ "$p3" != "0" ]; then
+				g_ports=$g_ports" 3"
+			fi
+		;;
+		"group1")
+			g_ports=""
+			eval `cat /proc/sys/net/dslam_sw/sw0/trunk_port_id`
+			if [ "$p4" != "0" ]; then
+				g_ports="0"
+			fi
+			if [ "$p5" != "0" ]; then
+				g_ports=$g_ports" 1"
+			fi
+			if [ "$p6" != "0" ]; then
+				g_ports=$g_ports" 2"
+			fi
+			if [ "$p7" != "0" ]; then
+				g_ports=$g_ports" 3"
+			fi
+		;;
+		"group2")
+			g_ports=""
+			eval `cat /proc/sys/net/dslam_sw/sw1/trunk_port_id`
+			if [ "$p0" != "0" ]; then
+				g_ports="0"
+			fi
+			if [ "$p1" != "0" ]; then
+				g_ports=$g_ports" 1"
+			fi
+			if [ "$p2" != "0" ]; then
+				g_ports=$g_ports" 2"
+			fi
+			if [ "$p3" != "0" ]; then
+				g_ports=$g_ports" 3"
+			fi
+		;;
+		"group3")
+			g_ports=""
+			eval `cat /proc/sys/net/dslam_sw/sw1/trunk_port_id`
+			if [ "$p4" != "0" ]; then
+				g_ports="0"
+			fi
+			if [ "$p5" != "0" ]; then
+				g_ports=$g_ports" 1"
+			fi
+			if [ "$p6" != "0" ]; then
+				g_ports=$g_ports" 2"
+			fi
+			if [ "$p7" != "0" ]; then
+				g_ports=$g_ports" 3"
+			fi
+		;;
+	esac
+	if [ "$g_ports" = "" ]; then
+		ret="none"
+	else
+		ret=$g_ports
+	fi
+}
+
+link_aggregation_group_func() {
+	group=$1
+	case "$group" in
+		"group0" | "group1")
+			sw="sw0"
+		;;
+		"group2" | "group3")
+			sw="sw1"
+		;;
+	esac
+	shift
+	case "$1" in
+		"cd")
+			shift
+			cd_func $*
+		;;
+		"quit")
+			exit 0
+		;;
+		"help" | "?")
+			tab=1
+			auto_completion
+		;;
+		"save")
+			save_config
+		;;
+		"algorithm")
+			shift
+			case "$1" in
+				"MS" | "ms" | "1")
+					echo "1" > /proc/sys/net/dslam_sw/${sw}/trunk_hash_alg
+					echo "kdb set sys_dslam_link_aggregation_${sw}_algorithm=\"1\"" >> $tmp_config_file
+#					echo -e "\n$group hash algorithm is set to MAC source\n"
+				;;
+				"MD" | "md" | "2")
+					echo "2" > /proc/sys/net/dslam_sw/${sw}/trunk_hash_alg
+					echo "kdb set sys_dslam_link_aggregation_${sw}_algorithm=\"2\"" >> $tmp_config_file
+#					echo -e "\n$group hash algorithm is set to MAC dest\n"
+				;;
+				"MSD" | "msd" | "3")
+					echo "3" > /proc/sys/net/dslam_sw/${sw}/trunk_hash_alg
+					echo "kdb set sys_dslam_link_aggregation_${sw}_algorithm=\"3\"" >> $tmp_config_file
+#					echo -e "\n$group hash algorithm is set to MAC source-dest\n"
+				;;
+				"")
+					alg=`cat /proc/sys/net/dslam_sw/${sw}/trunk_hash_alg`
+					case "$alg" in
+						0)
+							alg="PB"
+						;;
+						1)
+							alg="MS"
+						;;
+						2)
+							alg="MD"
+						;;
+						3)
+							alg="MSD"
+						;;
+						*)
+							alg="??"
+						;;
+					esac
+					echo -e "\n$group hash algorithm is $alg\n"
+				;;
+				*)
+					echo "Syntax error"
+				;;
+			esac
+		;;
+		"ports")
+			shift
+			if [ "$1" = "" ]; then
+				group_ports $group
+				g_ports="$ret"
+				echo "$group ports: $g_ports"
+			else
+				let "cnt=0"
+				lap0=0
+				lap1=0
+				lap2=0
+				lap3=0
+				while [ ! -z "$1" ]; do
+					case "$1" in
+						none)
+							break
+						;;
+						0)
+							lap0=1
+							shift
+							let "cnt=$cnt+1"
+						;;
+						1)
+							lap1=1
+							shift
+							let "cnt=$cnt+1"
+						;;
+						2)
+							lap2=1
+							shift
+							let "cnt=$cnt+1"
+						;;
+						3)
+							lap3=1
+							shift
+							let "cnt=$cnt+1"
+						;;
+						*)
+							echo "Syntax error. Usage: ports 0 1 2 3"
+							echo "For example command ports 0 2 added to group ports 0 and 2"
+							return
+						;;
+					esac
+				done
+				case "$cnt" in
+					0)
+						case "$group" in
+							"group0" | "group2")
+								echo "0 0" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+								echo "1 0" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+								echo "2 0" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+								echo "3 0" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+							;;
+							"group1" | "group3")
+								echo "4 0" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+								echo "5 0" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+								echo "6 0" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+								echo "7 0" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+							;;
+						esac
+					;;
+					2)
+						case "$group" in
+							"group0" | "group2")
+								val=3
+								for i in 0 1 2 3; do
+									eval "tmp=\${lap$i}"
+									if [ "$tmp" = "1" ]; then
+										echo "$i $val" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+										val=12
+									else
+										echo "$i 0" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+									fi
+								done
+							;;
+							"group1" | "group3")
+								val=3
+								for i in 0 1 2 3; do
+									eval "tmp=\${lap$i}"
+									if [ "$tmp" = "1" ]; then
+										echo "$(($i+4)) $val" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+										val=12
+									else
+										echo "$(($i+4)) 0" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+									fi
+								done
+							;;
+						esac
+					;;
+					3)
+						case "$group" in
+							"group0" | "group2")
+								val=1
+								for i in 0 1 2 3; do
+									eval "tmp=\${lap$i}"
+									if [ "$tmp" = "1" ]; then
+										echo "$i $val" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+										let "val=$val*2"
+										if [ "$val" = "4" ]; then
+											let "val=12"
+										fi
+									else
+										echo "$i 0" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+									fi
+								done
+							;;
+							"group1" | "group3")
+								val=1
+								for i in 0 1 2 3; do
+									eval "tmp=\${lap$i}"
+									if [ "$tmp" = "1" ]; then
+										echo "$(($i+4)) $val" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+										let "val=$val*2"
+										if [ "$val" = "4" ]; then
+											let "val=12"
+										fi
+									else
+										echo "$(($i+4)) 0" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+									fi
+								done
+							;;
+						esac
+					;;
+					4)
+						case "$group" in
+							"group0" | "group2")
+								echo "0 1" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+								echo "1 2" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+								echo "2 4" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+								echo "3 8" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+							;;
+							"group1" | "group3")
+								echo "4 1" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+								echo "5 2" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+								echo "6 4" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+								echo "7 8" > /proc/sys/net/dslam_sw/${sw}/trunk_port_id
+							;;
+						esac
+					;;
+					*)
+						echo "In link aggregation group must be from 2 to 4 ports!"
+						return
+					;;
+				esac
+				group_ports $group
+				g_ports="$ret"
+				echo "kdb set sys_dslam_link_aggregation_${group}_ports=\"$g_ports\"" >> $tmp_config_file
+			fi
+		;;
+		"show")
+			case "$group" in
+				"group0")
+					alg=`cat /proc/sys/net/dslam_sw/sw0/trunk_hash_alg`
+				;;
+				"group1")
+					alg=`cat /proc/sys/net/dslam_sw/sw0/trunk_hash_alg`
+				;;
+				"group2")
+					alg=`cat /proc/sys/net/dslam_sw/sw1/trunk_hash_alg`
+				;;
+				"group3")
+					alg=`cat /proc/sys/net/dslam_sw/sw1/trunk_hash_alg`
+				;;
+			esac
+			group_ports $group
+			g_ports=$ret
+			case "$alg" in
+				0) alg="PB";;
+				1) alg="MS";;
+				2) alg="MD";;
+				3) alg="MSD";;
+				*) alg="??";;
+			esac
+			echo -e "\nLA Group     "`expr substr $group 6 1`
+			echo -e "Type         static"
+			echo -e "Algorithm    $alg"
+			echo -e "Ports        $g_ports"
+# тут надо вычислить какие из портов активны в данный момент
+			echo -e "Active ports $g_active_ports"
+		;;
+		"")
+		;;
+		*)
+			echo "Syntax error"
+		;;
+	esac
+	
+}
+
+link_aggregation_func() {
+	prompt=":services:link_aggregation"
+	
+	if [ "$group" != "" ]; then
+		link_aggregation_group_func $group $*
+	else
+
+	case "$1" in
+		"cd")
+			shift
+			cd_func $*
+		;;
+		"quit")
+			exit 0
+		;;
+		"help" | "?")
+			tab=1
+			auto_completion
+		;;
+		"save")
+			save_config
+		;;
+		"show")
+			sw0_alg=`cat /proc/sys/net/dslam_sw/sw0/trunk_hash_alg`
+			sw1_alg=`cat /proc/sys/net/dslam_sw/sw1/trunk_hash_alg`
+			case "$sw0_alg" in
+				0)
+					sw0_alg="  PB  "
+				;;
+				1)
+					sw0_alg="  MS  "
+				;;
+				2)
+					sw0_alg="  MD  "
+				;;
+				3)
+					sw0_alg="  MSD "
+				;;
+				*)
+					sw0_alg="  ??  "
+				;;
+			esac
+			case "$sw1_alg" in
+				0)
+					sw1_alg="  PB  "
+				;;
+				1)
+					sw1_alg="  MS  "
+				;;
+				2)
+					sw1_alg="  MD  "
+				;;
+				3)
+					sw1_alg="  MSD "
+				;;
+				*)
+					sw1_alg="  ??  "
+				;;
+			esac
+
+			group_ports group0
+			g0_ports="$ret"
+			if [ "$g0_ports" = "none" ]; then
+				g0="disable"
+				g0_ports="       "
+			else
+				g0=" enable"
+				append_spaces "$g0_ports" $((7-${#g0_ports}))
+				g0_ports="$ret"
+			fi
+			group_ports group1
+			g1_ports="$ret"
+			if [ "$g1_ports" = "none" ]; then
+				g1="disable"
+				g1_ports="       "
+			else
+				g1=" enable"
+				append_spaces "$g1_ports" $((7-${#g1_ports}))
+				g1_ports="$ret"
+			fi
+			group_ports group2
+			g2_ports="$ret"
+			if [ "$g2_ports" = "none" ]; then
+				g2="disable"
+				g2_ports="       "
+			else
+				g2=" enable"
+				append_spaces "$g2_ports" $((7-${#g2_ports}))
+				g2_ports="$ret"
+			fi
+			group_ports group3
+			g3_ports="$ret"
+			if [ "$g3_ports" = "none" ]; then
+				g3="disable"
+				g3_ports="       "
+			else
+				g3=" enable"
+				append_spaces "$g3_ports" $((7-${#g3_ports}))
+				g3_ports="$ret"
+			fi
+
+			echo "-----------------------------------------------------------"
+			echo "Group number       |    0    |    1    |    2    |    3    "
+			echo "-----------------------------------------------------------"
+			echo "Group type         |  static |  static |  static |  static "
+			echo "-----------------------------------------------------------"
+			echo "Algorithm          | $sw0_alg  | $sw0_alg  | $sw1_alg  | $sw1_alg "
+			echo "-----------------------------------------------------------"
+			echo "Group state        | $g0 | $g1 | $g2 | $g3"
+			echo "-----------------------------------------------------------"
+			echo "Ports of the group | $g0_ports | $g1_ports | $g2_ports | $g3_ports"
+			echo "-----------------------------------------------------------"
+			if [ "$p0" = "0" ]; then
+				p0=""
+			fi
+			if [ "$p1" = "0" ]; then
+				p1=""
+			fi
+			if [ "$p2" = "0" ]; then
+				p2=""
+			fi
+			if [ "$p3" = "0" ]; then
+				p3=""
+			fi
+		;;
+		"group0" | "group1" | "group2" | "group3")
+			link_aggregation_group_func $*
+		;;
+		"")
+		;;
+		*)
+			echo "Syntax error"
+		;;
+	esac
+	
+	fi
+}
+
+mirroring_group_show() {
+	i=$1
+	local port
+	local slot
+	echo -n "Group$i: "
+	alg=`cat /proc/sys/net/dslam_sw/sw$i/mirror_alg`
+	case $alg in
+		"0") alg="none";;
+		"1") alg="rx";;
+		"2") alg="tx";;
+		"3") alg="rx/tx";;
+		*) alg="none";;
+	esac
+	if [ "$alg" = "none" ]; then
+		echo "disable"
+	else
+		echo "enable"
+	fi
+	s_ports=`cat /proc/sys/net/dslam_sw/sw$i/mirror_source`
+	s_ports_str=""
+	for p in $s_ports; do
+		if [ "$p" -lt "8" ]; then
+			slot="0"
+			port="$p"
+		else
+			slot="1"
+			port="$(($p-8))"
+		fi
+		if [ -d "/sys/class/net/dsl${slot}${port}/ms_private" ]; then
+			type="dsl"
+			s_ports_str="$s_ports_str dsl${slot}/${port}"
+		else
+			# тут надо проверять является ли этот порт ethernet портом на модуле ms17e
+			type=""
+		fi
+	done
+	if [ "$s_ports_str" = "" ]; then
+		s_ports_str="none"
+	fi
+	echo "Source ports - $s_ports_str"
+	d_ports=`cat /proc/sys/net/dslam_sw/sw$i/mirror_dest`
+	d_ports_str=""
+	for p in $d_ports; do
+		if [ "$p" -lt "8" ]; then
+			slot="0"
+			port="$p"
+		else
+			slot="1"
+			port="$(($p-8))"
+		fi
+		if [ -d "/sys/class/net/dsl${slot}${port}/ms_private" ]; then
+			type="dsl"
+			d_ports_str="$d_ports_str dsl${slot}/${port}"
+		else
+			# тут надо проверять является ли этот порт ethernet портом на модуле ms17e
+			type=""
+		fi
+	done
+	if [ "$d_ports_str" = "" ]; then
+		d_ports_str="none"
+	fi
+	echo "Destination ports - $d_ports_str"
+	echo "Algorithm - $alg"
+}
+mirroring_group_func() {
+	group=$1
+	case "$group" in
+		"group0")
+			sw="sw0"
+		;;
+		"group1")
+			sw="sw1"
+		;;
+	esac
+	shift
+	case "$1" in
+		"cd")
+			shift
+			cd_func $*
+		;;
+		"quit")
+			exit 0
+		;;
+		"help" | "?")
+			tab=1
+			auto_completion
+		;;
+		"save")
+			save_config
+		;;
+		"source")
+			shift
+			if [ "$1" = "" ]; then
+				mirroring_group_show `expr substr $sw 3 1` > /tmp/temp_file
+				cat /tmp/temp_file | grep "Source ports"
+				rm -f /tmp/temp_file
+			fi
+			if [ "$1" = "none" ]; then
+				echo "none" > /proc/sys/net/dslam_sw/${sw}/mirror_source
+			fi
+			str=""
+			while [ ! -z "$1" ]; do
+				case $1 in
+					"ge0")
+						if [ "$sw" = "sw0" ]; then
+							str="$str 24"
+						else
+							echo "Bad port $1!"
+							return
+						fi
+					;;
+					"ge1")
+						if [ "$sw" = "sw1" ]; then
+							str="$str 24"
+						else
+							echo "Bad port $1!"
+							return
+						fi
+					;;
+					"dsl"*)
+						tmp=`expr substr $1 1 4``expr substr $1 6 1`
+						if [ ! -d "/sys/class/net/$tmp/ms_private" ]; then
+							echo "Bad port $1!"
+							return
+						fi
+						if [ "$sw" = "sw0" ]; then
+							if [ `expr substr $1 4 1` =  "0" ]; then
+								str="$str "`expr substr $1 6 1`
+							else
+								if [ `expr substr $1 4 1` =  "1" ]; then
+									str="$str "$((`expr substr $1 6 1`+8))
+								else
+									echo "Bad port $1!"
+									return
+								fi
+							fi
+						else
+							echo "Bad port $1!"
+							return
+						fi
+					;;
+					"fe"*)
+					;;
+				esac
+				shift
+			done
+#			echo "Source ports = $str"
+			if [ "$str" = "" ]; then str="none"; fi
+			echo "$str" > /proc/sys/net/dslam_sw/${sw}/mirror_source
+		;;
+		"dest")
+			shift
+			if [ "$1" = "" ]; then
+				mirroring_group_show `expr substr $sw 3 1` > /tmp/temp_file
+				cat /tmp/temp_file | grep "Destination ports"
+				rm -f /tmp/temp_file
+			fi
+			if [ "$1" = "none" ]; then
+				echo "none" > /proc/sys/net/dslam_sw/${sw}/mirror_dest
+			fi
+			str=""
+			while [ ! -z "$1" ]; do
+				case $1 in
+					"ge0")
+						if [ "$sw" = "sw0" ]; then
+							str="$str 24"
+						else
+							echo "Bad port $1!"
+							return
+						fi
+					;;
+					"ge1")
+						if [ "$sw" = "sw1" ]; then
+							str="$str 24"
+						else
+							echo "Bad port $1!"
+							return
+						fi
+					;;
+					"dsl"*)
+						tmp=`expr substr $1 1 4``expr substr $1 6 1`
+						if [ ! -d "/sys/class/net/$tmp/ms_private" ]; then
+							echo "Bad port $1!"
+							return
+						fi
+						if [ "$sw" = "sw0" ]; then
+							if [ `expr substr $1 4 1` =  "0" ]; then
+								str="$str "`expr substr $1 6 1`
+							else
+								if [ `expr substr $1 4 1` =  "1" ]; then
+									str="$str "$((`expr substr $1 6 1`+8))
+								else
+									echo "Bad port $1!"
+									return
+								fi
+							fi
+						else
+							echo "Bad port $1!"
+							return
+						fi
+					;;
+					"fe"*)
+					;;
+				esac
+				shift
+			done
+#			echo "Dest ports = $str"
+			if [ "$str" = "" ]; then str="none"; fi
+			echo "$str" > /proc/sys/net/dslam_sw/${sw}/mirror_dest
+		;;
+		"show")
+			mirroring_group_show `expr substr $sw 3 1`
+		;;
+		"enable" | "on")
+			echo "3" > /proc/sys/net/dslam_sw/${sw}/mirror_alg
+		;;
+		"disable" | "off")
+			echo "0" > /proc/sys/net/dslam_sw/${sw}/mirror_alg
+		;;
+		"algorithm" | "alg")
+			shift
+			case $1 in
+				"rx" | "1")
+					echo "1" > /proc/sys/net/dslam_sw/${sw}/mirror_alg
+				;;
+				"tx" | "2")
+					echo "2" > /proc/sys/net/dslam_sw/${sw}/mirror_alg
+				;;
+				"both" | "rx/tx" | "rxtx" | "3")
+					echo "3" > /proc/sys/net/dslam_sw/${sw}/mirror_alg
+				;;
+				"")
+					alg=`cat /proc/sys/net/dslam_sw/${sw}/mirror_alg`
+					case $alg in
+						"1") alg="rx";;
+						"2") alg="tx";;
+						"3") alg="rx/tx";;
+					esac
+					echo "Algorithm is $alg"
+				;;
+				*)
+					echo "Syntax error"
+				;;
+			esac
+		;;
+		"")
+		;;
+		*)
+			echo "Syntax error"
+		;;
+	esac
+}
+
+mirroring_func() {
+	prompt=":services:mirroring"
+
+	if [ "$group" != "" ]; then
+		mirroring_group_func $group $*
+	else
+
+	case "$1" in
+		"cd")
+			shift
+			cd_func $*
+		;;
+		"quit")
+			exit 0
+		;;
+		"help" | "?")
+			tab=1
+			auto_completion
+		;;
+		"save")
+			save_config
+		;;
+		"show")
+			for i in 0 1; do
+				mirroring_group_show $i
+			done
+		;;
+		"group0" | "group1")
+			mirroring_group_func $*
+		;;
+		"")
+		;;
+		*)
+			echo "Syntax error"
+		;;
+	esac
+	
+	fi
+}
+
+services_func() {
+	case "$1" in
+		"cd")
+			shift
+			cd_func $*
+		;;
+		"quit")
+			exit 0
+		;;
+		"help" | "?")
+			tab=1
+			auto_completion
+		;;
+		"save")
+			save_config
+		;;
+		"link_aggregation")
+			shift
+			link_aggregation_func $*
+		;;
+		"mirroring")
+			shift
+			mirroring_func $*
+		;;
+		"vlan")
+			shift
+			vlan_func $*
+		;;
+		"cos")
+			shift
+			cos_func $*
+		;;
+		"")
+		;;
+		*)
+			echo "Syntax error"
+		;;
+	esac
+}

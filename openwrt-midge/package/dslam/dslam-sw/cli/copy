@@ -1,0 +1,7 @@
+#!/bin/bash
+
+scp cli root@192.168.2.61:/sbin/cli
+scp services root@192.168.2.61:/etc/cli/services
+scp auto_completion root@192.168.2.61:/etc/cli/auto_completion
+scp vlan root@192.168.2.61:/etc/cli/vlan
+scp cos root@192.168.2.61:/etc/cli/cos

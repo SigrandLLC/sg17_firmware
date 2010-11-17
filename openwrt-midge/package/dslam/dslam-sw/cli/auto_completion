@@ -1,0 +1,106 @@
+#!/bin/sh
+
+root_cmds="reboot default info help cd quit port services save"
+port_cmds="help cd quit dsl ge fe save"
+port_dsl_cmds="help cd quit stat rate tcpam annex on off master slave restart pbo-normal pbo-forced power save"
+port_ge_cmds="help cd quit stat rate duplex flow auto on off save"
+port_fe_cmds="help cd quit stat rate duplex flow auto on off save"
+services_cmds="help cd quit link_aggregation save mirroring vlan cos"
+link_aggregation_cmds="help cd quit show group save"
+link_aggregation_group_cmds="help cd quit algorithm ports show save"
+mirroring_cmds="help cd quit save show group0 group1"
+mirroring_group_cmds="help cd quit save show algorithm source dest enable disable"
+vlan_cmds="help cd quit save show create"
+cos_cmds="help cd quit save fifo strict wrr flow_delay show vlan port ip tcp bandwidth_control"
+bandwidth_control_cmds="help cd quit save"
+tab=0
+
+auto_completion() {
+	case "$prompt" in
+		":")
+			acmds="$root_cmds"
+		;;
+		":port")
+			if [ "$port" != "" ]; then
+				case "$port_type" in
+					"dsl")
+						acmds="$port_dsl_cmds"
+					;;
+					"ge")
+						acmds="$port_ge_cmds"
+					;;
+					"fe")
+						acmds="$port_fe_cmds"
+					;;
+				esac
+			else
+				acmds="$port_cmds"
+			fi
+		;;
+		":services")
+			acmds="$services_cmds"
+		;;
+		":services:link_aggregation")
+			if [ "$group" != "" ]; then
+				acmds="$link_aggregation_group_cmds"
+			else
+				acmds="$link_aggregation_cmds"
+			fi
+		;;
+		":services:mirroring")
+			if [ "$group" != "" ]; then
+				acmds="$mirroring_group_cmds"
+			else
+				acmds="$mirroring_cmds"
+			fi
+		;;
+		":services:vlan")
+			acmds="$vlan_cmds"
+		;;
+		":services:cos")
+			acmds="$cos_cmds"
+		;;
+		":services:cos:bandwidth_control")
+			acmds="$bandwidth_control_cmds"
+		;;
+	esac
+	if [ "$1" != "" ]; then
+		if [ "$2" = "" ]; then
+			# введена часть комадны, допишем ее если она правильная
+			tmp=""
+			for c in $acmds; do
+				tmp2=`expr substr "$c" 1 ${#cmd}`
+				if [ "$1" = "$tmp2" ]; then
+					tmp=$c
+					break
+				fi
+			done
+			if [ "$tmp" != "" ]; then
+				if [ "$1" != "$tmp" ]; then
+					# если команда введена не полностью дописываем ее
+					delete_cmd
+					cmd=$tmp
+					echo -en "$cmd"
+					cmdi=${#cmd}
+				else
+					# иначе выводим список допустимых параметров команды
+					qwe=""
+				fi
+			fi
+		else
+			echo "command with parameters"
+		fi		
+	else
+		# начало команды не введено, выводим все доступные команды
+		if [ "$tab" = "1" ]; then
+			echo -e "\nAvaiable commands:"
+			for i in $acmds; do
+				echo -e "\t$i"
+			done
+			tab=0
+		else
+			tab=1
+		fi
+	fi
+}
+

@@ -23,11 +23,17 @@ set_def_settings() {
 	$kdb set sys_dslam_cos_reg34=0
 	$kdb set sys_dslam_cos_reg35=0
 
-	$kdb set sys_dslam_${ge}_on=1
-	$kdb set sys_dslam_${ge}_auto=1
-	$kdb set sys_dslam_${ge}_rate=1000
-	$kdb set sys_dslam_${ge}_duplex=1
-	$kdb set sys_dslam_${ge}_flow=1
+	$kdb set sys_dslam_ge0_on=1
+	$kdb set sys_dslam_ge0_auto=1
+	$kdb set sys_dslam_ge0_rate=1000
+	$kdb set sys_dslam_ge0_duplex=1
+	$kdb set sys_dslam_ge0_flow=1
+
+	$kdb set sys_dslam_ge1_on=1
+	$kdb set sys_dslam_ge1_auto=1
+	$kdb set sys_dslam_ge1_rate=1000
+	$kdb set sys_dslam_ge1_duplex=1
+	$kdb set sys_dslam_ge1_flow=1
 
 	$kdb set sys_dslam_link_aggregation_sw0_algorithm=3
 	$kdb set sys_dslam_link_aggregation_sw1_algorithm=3
@@ -84,12 +90,12 @@ update_uplinks_settings() {
 		flow=`$kdb get sys_dslam_${ge}_flow`
 
 		echo "24 $on" > /proc/sys/net/dslam_sw/$sw/port_on_off
-		echo "24 $auto" > /proc/sys/net/dslam_sw/$sw/port_autoneg
 		echo "24 $rate" > /proc/sys/net/dslam_sw/$sw/port_speed
 		echo "24 $duplex" > /proc/sys/net/dslam_sw/$sw/port_duplex
 		echo "24 $flow" > /proc/sys/net/dslam_sw/$sw/port_flowctrl
+		echo "24 $auto" > /proc/sys/net/dslam_sw/$sw/port_autoneg
 	done
-+}
+}
 
 update_vlan_settings() {
 	for port in 0 `seq 26`; do

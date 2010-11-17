@@ -45,7 +45,13 @@ $(IPKG_SIGRAND_DSLAM):
 	install -d -m0755 $(IDIR_SIGRAND_DSLAM)/lib/modules/2.6.16
 	install -m 644 $(PKG_BUILD_DIR)/dslam-sw/dslam_sw.ko $(IDIR_SIGRAND_DSLAM)/lib/modules/2.6.16/
 	install -d -m0755 $(IDIR_SIGRAND_DSLAM)/sbin
-#	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/tools/dslam_debug $(IDIR_SIGRAND_DSLAM)/sbin/
+	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/tools/dslam_debug $(IDIR_SIGRAND_DSLAM)/sbin/
+	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/cli/cli $(IDIR_SIGRAND_DSLAM)/sbin/
+	install -d -m0755 $(IDIR_SIGRAND_DSLAM)/etc/cli
+	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/cli/auto_completion $(IDIR_SIGRAND_DSLAM)/etc/cli/
+	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/cli/cos $(IDIR_SIGRAND_DSLAM)/etc/cli/
+	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/cli/services $(IDIR_SIGRAND_DSLAM)/etc/cli/
+	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/cli/vlan $(IDIR_SIGRAND_DSLAM)/etc/cli/
 	$(IPKG_BUILD) $(IDIR_SIGRAND_DSLAM) $(PACKAGE_DIR)
 
 #local_build: $(PKG_BUILD_DIR)/.prepared

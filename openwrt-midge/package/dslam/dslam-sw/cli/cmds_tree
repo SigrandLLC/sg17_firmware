@@ -1,0 +1,139 @@
+:>
+:> help
+:> cd
+:> info
+:> default
+:> reboot
+:> quit
+:> save
+:> port
+:> services
+
+:port>
+:port> help
+:port> cd
+:port> quit
+:port> save
+:port> dslX/X
+:port> dsl stat [reset]
+:port> geX
+:port> ge stat [reset]
+:port> feX
+:port> fe stat [reset]
+
+:port:dslX/X>
+:port:dslX/X> help
+:port:dslX/X> cd [/ | .. | port | services]
+:port:dslX/X> quit
+:port:dslX/X> save
+:port:dslX/X> stat [reset]
+:port:dslX/X> rate [val]
+:port:dslX/X> tcpam
+:port:dslX/X> tcpamXXX
+:port:dslX/X> annex [A | B]
+:port:dslX/X> on
+:port:dslX/X> off
+:port:dslX/X> master
+:port:dslX/X> slave
+:port:dslX/X> restart
+:port:dslX/X> pbo-normal
+:port:dslX/X> pbo-forced [val]
+:port:dslX/X> power [on | off]
+
+:port:geX>
+:port:geX> help
+:port:geX> cd [/ | .. | port | services]
+:port:geX> quit
+:port:geX> save
+:port:geX> stat [reset]
+:port:geX> rate [val]
+:port:geX> duplex [full | half]
+:port:geX> flow [on | off]
+:port:geX> auto
+:port:geX> on
+:port:geX> off
+
+:services>
+:services> help
+:services> cd
+:services> quit
+:services> save
+:services> link_aggregation
+:services> mirroring
+:services> vlan
+
+:services:link_aggregation>
+:services:link_aggregation> help
+:services:link_aggregation> cd
+:services:link_aggregation> quit
+:services:link_aggregation> save
+:services:link_aggregation> show
+:services:link_aggregation> groupX
+
+:services:link_aggregation:groupX>
+:services:link_aggregation:groupX> help
+:services:link_aggregation:groupX> cd
+:services:link_aggregation:groupX> quit
+:services:link_aggregation:groupX> save
+:services:link_aggregation:groupX> show
+:services:link_aggregation:groupX> algorithm [MS | MD | MSD]
+:services:link_aggregation:groupX> ports [0] [1] [2] [3]
+
+:services:mirroring>
+:services:mirroring> help
+:services:mirroring> cd
+:services:mirroring> quit
+:services:mirroring> save
+:services:mirroring> show
+:services:mirroring> group0
+:services:mirroring> group1
+
+:services:mirroring:groupX>
+:services:mirroring:groupX> help
+:services:mirroring:groupX> cd
+:services:mirroring:groupX> quit
+:services:mirroring:groupX> save
+:services:mirroring:groupX> show
+:services:mirroring:groupX> algorithm
+:services:mirroring:groupX> source
+:services:mirroring:groupX> dest
+:services:mirroring:groupX> enable
+:services:mirroring:groupX> disable
+
+:services:vlan>
+:services:vlan> help
+:services:vlan> cd
+:services:vlan> quit
+:services:vlan> save
+:services:vlan> 
+
+
+:services:cos>
+:services:cos> help
+:services:cos> cd
+:services:cos> quit
+:services:cos> save
+:services:cos> fifo
+:services:cos> strict
+:services:cos> wrr low <N> high <N>
+:services:cos> show
+:services:cos> flow_delay [ on | off ]
+:services:cos> vlan port { ge0 | ge1 X/X } { enable | disable }
+:services:cos> port port { ge0 | ge1 X/X } { high | low }
+:services:cos> ip port { ge0 | ge1 X/X } { enable | disable }
+:services:cos> tcp 
+:services:cos> bandwidth_control
+
+:services:cos:bandwidth_control>
+:services:cos:bandwidth_control> help
+:services:cos:bandwidth_control> cd
+:services:cos:bandwidth_control> quit
+:services:cos:bandwidth_control> save
+:services:cos:bandwidth_control> band { ge0 | ge1 | X/X } inbound <N> [ outbound <N> ]
+:services:cos:bandwidth_control> show
+:services:cos:bandwidth_control>
+
+
+
+
+
