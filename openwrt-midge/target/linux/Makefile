@@ -27,6 +27,9 @@ $(1)/$(2)-rebuild:
 $(1)/$(2)-install:
 	@$(TRACE) target/linux/$(2)-$(1)-install
 	$(MAKE) -C $(2)-$(1) BOARD="$(2)" install
+	@echo "INSTALL: $(BUILD_DIR)/linux-$(1)-$(2)/root/lib/modules/$(1)*"
+	rm -f $(BUILD_DIR)/linux-$(1)-$(2)/root/lib/modules/$(1)*/build
+	rm -f $(BUILD_DIR)/linux-$(1)-$(2)/root/lib/modules/$(1)*/source
 
 $(1)/$(2)-image: $(1)/$(2)-install
 	@$(TRACE) target/linux/image-install
