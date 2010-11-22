@@ -4,6 +4,18 @@
 * убрать всё лишнее, архитектуры, что не используется в построении образов sigrand.
 * Add '-nofw' to kernel extraversion
 
+
+* Translate:
+1-2014
+	* DSLAM:
+		* added statistics reset for dsl ifaces and switches ports
+		* added uplinks configuration (duplex, speed, flow control)
+		* added trunk config
+		* added option to on/off dsl ifaces
+		* addes time counters (uptime_all, downtime_all)
+		* fixed messages about state of dsl ifaces
+
+
 .PHONY: choice_config
 choice_config: $(CONFIG)/mconf
 	@rm -f .config
