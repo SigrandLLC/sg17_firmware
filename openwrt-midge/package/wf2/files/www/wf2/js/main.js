@@ -56,14 +56,28 @@ function generateMenu() {
         var ifaces = config.getParsed($.sprintf("sys_pcitbl_s%s_ifaces", pcislot));
         var rs232Defined = false;
 
-        /* create array with info for module of current type */
-        var ifaceInfo = [];
-        config.saveData(type, ifaceInfo);
+        /* get or create array with info for module of current type */
+        var ifaceInfo = config.getData(type);
+        if (!ifaceInfo) {
+            ifaceInfo = [];
+            config.saveData(type, ifaceInfo);
+        }
 
         /* go through ifaces of this slot */
-        $.each(ifaces, function(num, iface) {
-            /* add info about this interface */
-            ifaceInfo.push({"iface": iface, "pcislot": pcislot, "pcidev": num});
+		$.each(ifaces, function(num, iface) {
+
+			var IfInfoFound = false;
+			$.each(ifaceInfo, function(num, IfInfo) {
+				if (IfInfo.iface == iface) {
+					IfInfoFound = true;
+					return false;
+				}
+			});
+
+			if (!IfInfoFound) {
+				/* add info about this interface */
+				ifaceInfo.push({"iface": iface, "pcislot": pcislot, "pcidev": num});
+			}
 
             switch (type) {
                 case config.getOEM("MAM17H_MODNAME"):
