@@ -15,32 +15,6 @@ $(PKG_BUILD_DIR)/.prepared:
 	mkdir -p $(PKG_BUILD_DIR)
 	touch $@
 
-ifeq ($(BOARD),ar7)
-$(PKG_BUILD_DIR)/adam2patcher: src/adam2patcher.c
-	$(TARGET_CC) -o $@ $<
-
-$(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/adam2patcher
-
-$(IDIR_OPENWRT)/sbin/adam2patcher: $(PKG_BUILD_DIR)/adam2patcher
-	mkdir -p $(IDIR_OPENWRT)/sbin
-	$(CP) $(PKG_BUILD_DIR)/adam2patcher $(IDIR_OPENWRT)/sbin
-
-$(IPKG_OPENWRT): $(IDIR_OPENWRT)/sbin/adam2patcher
-endif
-
-ifeq ($(BOARD),brcm)
-$(PKG_BUILD_DIR)/jffs2root: src/jffs2root.c
-	$(TARGET_CC) -o $@ $<
-
-$(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/jffs2root
-
-$(IDIR_OPENWRT)/sbin/jffs2root: $(PKG_BUILD_DIR)/jffs2root
-	mkdir -p $(IDIR_OPENWRT)/sbin
-	$(CP) $(PKG_BUILD_DIR)/jffs2root $(IDIR_OPENWRT)/sbin
-
-$(IPKG_OPENWRT): $(IDIR_OPENWRT)/sbin/jffs2root
-endif
-
 $(PKG_BUILD_DIR)/.built:
 	touch $@
 
@@ -61,4 +35,3 @@ openwrt-install:
 compile-targets: install-dev $(IPKG_OPENWRT)
 install-dev:
 	mkdir -p $(STAGING_DIR)/usr/include
-	$(CP) ./include/[a-z]* $(STAGING_DIR)/usr/include/

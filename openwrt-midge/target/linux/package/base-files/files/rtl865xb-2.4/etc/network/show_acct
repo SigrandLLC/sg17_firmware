@@ -1,3 +1,0 @@
-#!/bin/sh
-
-(iptables -nvxL ACCOUNT-SRC; iptables -nvxL ACCOUNT-DST) | grep acct-

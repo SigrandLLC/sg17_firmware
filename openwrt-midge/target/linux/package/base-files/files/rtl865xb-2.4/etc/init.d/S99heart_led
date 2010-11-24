@@ -1,3 +1,0 @@
-#!/bin/sh
-
-#test -c /dev/led0 && echo "led blink 1000">/dev/led0
