@@ -18,7 +18,7 @@ BINUTILS_STABLE_SITE:=http://ftp.gnu.org/gnu/binutils/ \
         ftp://ftp.uu.net/archive/systems/gnu/ \
         ftp://ftp.eu.uu.net/pub/gnu/ \
         ftp://ftp.funet.fi/pub/gnu/prep/ \
-        ftp://ftp.leo.org/pub/comp/os/unix/gnu/ 
+        ftp://ftp.leo.org/pub/comp/os/unix/gnu/
 
 ifeq ($(BINUTILS_VERSION),2.16.1)
 BINUTILS_SITE:=$(BINUTILS_STABLE_SITE)
@@ -41,7 +41,6 @@ $(BINUTILS_DIR)/.unpacked: $(DL_DIR)/$(BINUTILS_SOURCE)
 
 $(BINUTILS_DIR)/.patched: $(BINUTILS_DIR)/.unpacked
 	# Apply appropriate binutils patches.
-	$(SCRIPT_DIR)/patch-kernel.sh $(BINUTILS_DIR) ./all \*.patch
 	$(SCRIPT_DIR)/patch-kernel.sh $(BINUTILS_DIR) ./$(BINUTILS_VERSION) \*.patch
 	touch $(BINUTILS_DIR)/.patched
 
