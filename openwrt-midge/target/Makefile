@@ -38,7 +38,4 @@ linux/package/%:
 %-install: %-compile
 	@$(TRACE) target/$(patsubst %-install,%,$@)-install
 	$(MAKE) -C $(patsubst %-install,%,$@) install
-linux-imagebuilder:
-	@$(TRACE) target/linux/imagebuilder
-	$(MAKE) -C linux imagebuilder
 

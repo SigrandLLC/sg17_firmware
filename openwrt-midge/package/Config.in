@@ -51,56 +51,17 @@ endmenu
 
 menu "Libraries"
 source "package/base-files/Config.in" # libgcc
-source "package/expat/Config.in" # libexpat
-source "package/flac/Config.in"  # libflac
 source "package/glib/Config.in"
-source "package/gmp/Config.in"  # libgmp
-source "package/gnutls/Config.in" ## libgnutls
-source "package/gsm/Config.in" # libgsm
-source "package/jpeg/Config.in"  # libjpeg
-source "package/libamsel/Config.in"
-source "package/libao/Config.in"
-source "package/libart/Config.in"
-source "package/libcli/Config.in"
-source "package/libdaemon/Config.in"
-source "package/libdb/Config.in"
-source "package/libdnet/Config.in"
 source "package/libelf/Config.in"
-source "package/libevent/Config.in"
-source "package/libgcrypt/Config.in"
-source "package/libgd/Config.in"
-source "package/libgdbm/Config.in"
-source "package/libgpg-error/Config.in"
 source "package/libiconv/Config.in"
-source "package/libid3tag/Config.in"
 source "package/liblockdev/Config.in"
 source "package/liblzo/Config.in"
-source "package/libmad/Config.in"
-source "package/libnet/Config.in"
-source "package/libnids/Config.in"
-source "package/libogg/Config.in"
-source "package/libol/Config.in"
-source "package/libosip2/Config.in"
 source "package/libpcap/Config.in"
-source "package/libpng/Config.in"
 source "package/libpthread/Config.in"
-source "package/libtasn1/Config.in"
 source "package/libtool/Config.in"  # libltdl
-source "package/libupnp/Config.in"
-source "package/libusb/Config.in"
-source "package/libvorbis/Config.in"
-source "package/libvorbisidec/Config.in"
-source "package/libxml2/Config.in"
-source "package/libxslt/Config.in"
-source "package/matrixssl/Config.in"  # libmatrixssl
-source "package/mysql/Config.in"  # limysqlclient
 source "package/ncurses/Config.in"  # libncurses
-source "package/opencdk/Config.in"  # libopencdk
-source "package/openldap/Config.in"  # libopenldap
 source "package/openssl/Config.in"  # libopenssl
 source "package/pcre/Config.in"  # libpcre
-source "package/popt/Config.in"  # libpopt
-source "package/postgresql/Config.in"  # libpq
 source "package/readline/Config.in"  # libreadline
 source "package/speex/Config.in" # libspeex
 source "package/uclibc++/Config.in"
@@ -119,17 +80,7 @@ source "package/pciutils/Config.in"
 source "package/pcmcia-cs/Config.in"  # pcmcia-utils
 source "package/procps/Config.in"
 source "package/strace/Config.in"
-source "package/usbutils/Config.in"  # lsusb
 endmenu
-
-menu "HamRadio"
-source "package/axgetput/Config.in"
-source "package/axip/Config.in"
-source "package/libax25/Config.in"
-source "package/linsv/Config.in"
-source "package/uronode/Config.in"
-endmenu
-
 
 comment "Extra stuff"
 menu "Sigrand"
@@ -186,15 +137,6 @@ source "package/voip/Config.in"
 endmenu
 
 endmenu
-
-config BR2_PACKAGE_IMAGEBUILDER
-	bool "OpenWrt Image Builder"
-	default y if CONFIG_DEVEL
-	help
-	  Build an OpenWrt Image Builder.
-	  This package contains the necessary (precompiled) tools and all packages to generate
-	  firmware images from package lists, without having to use the full buildroot.
-	  Useful for building images with custom scripts or extra packages.
 
 endmenu
 

@@ -1,5 +1,0 @@
-Package: axgetput
-Priority: optional
-Section: hamradio
-Description: utility for up/downloading files via your ax25 unix login
-Depends: libax25 kissattach

@@ -55,26 +55,7 @@ endif
 .PHONY: $(1)/$(2)-clean $(1)/$(2)-prepare $(1)/$(2)-compile $(1)/$(2)-rebuild $(1)/$(2)-install $(1)/$(2)-image $(1)/$(2)-install-ib
 endef
 
-.PHONY: clean prepare compile rebuild install imagebuilder install-ib
-
-install-ib:
-
-$(BIN_DIR)/$(IB_NAME).tar.bz2:
-	rm -rf $(IB_DIR)
-	mkdir -p $(IB_DIR)/packages
-	mkdir -p $(IB_DIR)/scripts
-	$(CP) ./imagebuilder/* $(IB_DIR)/
-	$(CP) $(TOPDIR)/bin/packages/*.ipk $(IB_DIR)/packages/
-	$(CP) $(TOPDIR)/scripts/ipkg $(IB_DIR)/scripts/
-	$(MAKE) install-ib
-	$(CP) $(TOPDIR)/rules.mk $(IB_DIR)
-	$(CP) ./image $(IB_DIR)/
-	$(CP) $(TOPDIR)/.config $(IB_DIR)/
-	(cd $(BUILD_DIR); tar c $(IB_NAME) | bzip2 -c > $(BIN_DIR)/$(IB_NAME).tar.bz2)
-
-ifeq ($(BR2_PACKAGE_IMAGEBUILDER),y)
-install: $(BIN_DIR)/$(IB_NAME).tar.bz2
-endif
+.PHONY: clean prepare compile rebuild install install-ib
 
 menuconfig:
 	@$(TRACE) target/linux-menuconfig
