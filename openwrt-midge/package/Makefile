@@ -26,7 +26,6 @@ package-$(BR2_PACKAGE_LIBLOCKDEV) += liblockdev
 package-$(BR2_PACKAGE_LIBLZO) += liblzo
 package-$(BR2_PACKAGE_LIBPCAP) += libpcap
 package-$(BR2_PACKAGE_LIBPTHREAD) += libpthread
-package-$(BR2_COMPILE_LIBTOOL) += libtool
 package-$(BR2_PACKAGE_LIBWRAP) += tcp_wrappers
 package-$(BR2_PACKAGE_LIGHTTPD) += lighttpd
 package-$(BR2_PACKAGE_LOGROTATE) += logrotate

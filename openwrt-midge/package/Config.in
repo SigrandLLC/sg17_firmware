@@ -58,7 +58,6 @@ source "package/liblockdev/Config.in"
 source "package/liblzo/Config.in"
 source "package/libpcap/Config.in"
 source "package/libpthread/Config.in"
-source "package/libtool/Config.in"  # libltdl
 source "package/ncurses/Config.in"  # libncurses
 source "package/openssl/Config.in"  # libopenssl
 source "package/pcre/Config.in"  # libpcre
