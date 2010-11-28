@@ -10,7 +10,6 @@ cbtt-compile: mysql-compile zlib-compile
 curl-compile: openssl-compile zlib-compile
 cyrus-sasl-compile: openssl-compile
 deco-compile: ncurses-compile
-dhcp6-compile: ncurses-compile
 dsniff-compile: openssl-compile
 freetype-compile: zlib-compile
 fprobe-compile: libpcap-compile

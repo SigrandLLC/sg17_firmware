@@ -24,7 +24,6 @@ endmenu
 
 menu "Networking"
 source "package/bind/Config.in"
-source "package/dhcp/Config.in"
 source "package/dropbear/Config.in"
 source "package/ifenslave/Config.in"
 source "package/iproute2/Config.in"

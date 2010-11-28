@@ -8,7 +8,6 @@ package-$(BR2_PACKAGE_BUSYBOX) += busybox
 package-$(BR2_PACKAGE_CBTT) += cbtt
 package-$(BR2_PACKAGE_COLLECTD) += collectd
 package-$(BR2_COMPILE_CYRUS_SASL) += cyrus-sasl
-package-$(BR2_COMPILE_DHCP) += dhcp
 package-$(BR2_PACKAGE_DNSMASQ) += dnsmasq
 package-$(BR2_PACKAGE_DROPBEAR) += dropbear
 package-$(BR2_PACKAGE_SFTPSERVER) += sftpserver
