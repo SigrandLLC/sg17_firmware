@@ -45,10 +45,6 @@ source "package/tcpdump/Config.in"
 source "package/wrt-radauth/Config.in"
 endmenu
 
-menu "IPv6"
-source "package/ndisc/Config.in"
-endmenu
-
 menu "Libraries"
 source "package/base-files/Config.in" # libgcc
 source "package/glib/Config.in"

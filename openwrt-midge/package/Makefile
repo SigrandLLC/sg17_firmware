@@ -37,7 +37,6 @@ package-$(BR2_PACKAGE_MTR) += mtr
 package-$(BR2_PACKAGE_MODULEINITTOOLS) += module-init-tools
 package-$(BR2_PACKAGE_NANO) += nano
 package-$(BR2_COMPILE_NCURSES) += ncurses
-package-$(BR2_COMPILE_NDISC6) += ndisc
 package-$(BR2_COMPILE_NET_SNMP) += net-snmp
 package-$(BR2_PACKAGE_NTPCLIENT) += ntpclient
 package-$(BR2_PACKAGE_NVRAM) += nvram
