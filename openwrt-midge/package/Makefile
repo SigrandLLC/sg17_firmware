@@ -8,7 +8,6 @@ package-$(BR2_PACKAGE_BUSYBOX) += busybox
 package-$(BR2_PACKAGE_CBTT) += cbtt
 package-$(BR2_PACKAGE_COLLECTD) += collectd
 package-$(BR2_COMPILE_CYRUS_SASL) += cyrus-sasl
-package-$(BR2_PACKAGE_DNSMASQ) += dnsmasq
 package-$(BR2_PACKAGE_DROPBEAR) += dropbear
 package-$(BR2_PACKAGE_SFTPSERVER) += sftpserver
 package-$(BR2_COMPILE_GLIB) += glib
@@ -89,7 +88,7 @@ package-$(BR2_PACKAGE_VOIP) += voip
 
 DEV_LIBS:=tcp_wrappers glib ncurses openssl pcre zlib libpcap iptables liblzo fuse portmap libelf uclibc++ speex wireless-tools nvram libffi-sable libpcap radiusclient-ng net-snmp
 DEV_LIBS_COMPILE:=$(patsubst %,%-compile,$(DEV_LIBS))
-SDK_DEFAULT_PACKAGES:=busybox dnsmasq iptables wireless-tools dropbear bridge ipkg ppp
+SDK_DEFAULT_PACKAGES:=busybox iptables wireless-tools dropbear bridge ipkg ppp
 SDK_DEFAULT_COMPILE:=$(patsubst %,%-compile,$(SDK_DEFAULT_PACKAGES))
 COMPILE_PACKAGES:=$(patsubst %,%-compile,$(package-y) $(package-m))
 INSTALL_PACKAGES:=$(patsubst %,%-install,$(package-y))
