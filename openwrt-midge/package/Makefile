@@ -31,7 +31,6 @@ package-$(BR2_PACKAGE_LOGROTATE) += logrotate
 package-$(BR2_COMPILE_LUA) += lua
 package-$(BR2_PACKAGE_MGETTY) += mgetty
 package-$(BR2_PACKAGE_MICROCOM) += microcom
-#package-$(BR2_PACKAGE_MTD) += mtd
 package-$(BR2_PACKAGE_MTR) += mtr
 package-$(BR2_PACKAGE_MODULEINITTOOLS) += module-init-tools
 package-$(BR2_PACKAGE_NANO) += nano
