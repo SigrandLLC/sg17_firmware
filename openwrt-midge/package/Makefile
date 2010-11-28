@@ -40,7 +40,6 @@ package-$(BR2_COMPILE_NCURSES) += ncurses
 package-$(BR2_COMPILE_NET_SNMP) += net-snmp
 package-$(BR2_PACKAGE_NTPCLIENT) += ntpclient
 package-$(BR2_PACKAGE_NVRAM) += nvram
-package-$(BR2_PACKAGE_OPENNTPD) += openntpd
 package-$(BR2_COMPILE_OPENSSL) += openssl
 package-$(BR2_PACKAGE_OPENVPN) += openvpn
 package-$(BR2_PACKAGE_PCIUTILS) += pciutils
