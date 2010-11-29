@@ -13,7 +13,6 @@ package-$(BR2_PACKAGE_SFTPSERVER) += sftpserver
 package-$(BR2_COMPILE_GLIB) += glib
 package-$(BR2_PACKAGE_HASERL) += haserl
 package-$(BR2_PACKAGE_IFENSLAVE) += ifenslave
-package-$(BR2_PACKAGE_IPKG) += ipkg
 package-$(BR2_COMPILE_IPROUTE2) += iproute2
 package-$(BR2_PACKAGE_IPSEC_TOOLS) += ipsec-tools
 package-$(BR2_COMPILE_IPTABLES) += iptables
@@ -88,7 +87,7 @@ package-$(BR2_PACKAGE_VOIP) += voip
 
 DEV_LIBS:=tcp_wrappers glib ncurses openssl pcre zlib libpcap iptables liblzo fuse portmap libelf uclibc++ speex wireless-tools nvram libffi-sable libpcap radiusclient-ng net-snmp
 DEV_LIBS_COMPILE:=$(patsubst %,%-compile,$(DEV_LIBS))
-SDK_DEFAULT_PACKAGES:=busybox iptables wireless-tools dropbear bridge ipkg ppp
+SDK_DEFAULT_PACKAGES:=busybox iptables wireless-tools dropbear bridge ppp
 SDK_DEFAULT_COMPILE:=$(patsubst %,%-compile,$(SDK_DEFAULT_PACKAGES))
 COMPILE_PACKAGES:=$(patsubst %,%-compile,$(package-y) $(package-m))
 INSTALL_PACKAGES:=$(patsubst %,%-install,$(package-y))

@@ -68,7 +68,6 @@ BR2_PACKAGE_BRIDGE=y
 #
 BR2_PACKAGE_BUSYBOX=y
 # BR2_PACKAGE_BUSYBOX_SNAPSHOT is not set
-BR2_PACKAGE_IPKG=y
 
 #
 # iptables.......................... IPv4 / IPv6 firewall administration
