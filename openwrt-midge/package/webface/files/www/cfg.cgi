@@ -11,13 +11,13 @@ case "$act" in
 	backup)
 		echo "Content-type: application/octet-stream"
 		echo "Content-Disposition: attachment; filename=\"`hostname`-`date +%Y%m%d%H%M%S`.cfg\""
-		echo 
+		echo
 
 		tar c - /etc/kdb /etc/kdb.md5 /etc/eocd/*
 	;;
 	restore)
 		echo "Content-type: text/html"
-		echo 
+		echo
 		echo "<html><body>"
 		echo "<h2>"
 
@@ -44,12 +44,12 @@ case "$act" in
 	;;
 	default)
 		echo "Content-type: text/html"
-		echo 
-		
+		echo
+
 		# remove KDB files. they will be restored from kdb.default on boot by /etc/init.d/kdb script
 		rm /etc/kdb
 		rm /etc/kdb.md5
-		
+
 		# Restore eocd state
 		if [ -f /etc/eocd/eocd.conf ]; then
 		    cp /etc/eocd/eocd.conf.default /etc/eocd/eocd.conf
@@ -62,5 +62,5 @@ case "$act" in
 		/sbin/reboot
 	;;
 esac
-		
+
 ?>
