@@ -11,10 +11,11 @@ if test "$OEM_OLD" != "$OEM_CUR"; then
    make oem_clean
 fi
 
-if test "$NOFW_OLD" -ne "$NOFW_CUR"; then
+#FIMXE: модули ядра чистятся из rootfs, заставить их собираться силой:
+#if test "$NOFW_OLD" -ne "$NOFW_CUR"; then
    echo "LINUX clean"
    make target/linux-clean
-fi
+#fi
 
 
 nice -19 make V=9 $MAKE_TARGET
