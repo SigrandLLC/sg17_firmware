@@ -71,17 +71,4 @@ rebuild:
 clean:
 
 $(eval $(call kernel_template,2.6,sigrand5120,2_6_SIGRAND5120))
-#$(eval $(call kernel_template,2.4,brcm,2_4_BRCM))
-$(eval $(call kernel_template,2.4,ar7,2_4_AR7))
-#$(eval $(call kernel_template,2.4,x86,2_4_X86))
-#$(eval $(call kernel_template,2.6,brcm,2_6_BRCM))
-#$(eval $(call kernel_template,2.6,x86,2_6_X86))
-#$(eval $(call kernel_template,2.4,ar531x,2_4_AR531X))
-#$(eval $(call kernel_template,2.6,aruba,2_6_ARUBA))
-#$(eval $(call kernel_template,2.6,au1000,2_6_AU1000))
-#$(eval $(call kernel_template,2.6,xscale,2_6_XSCALE))
-#$(eval $(call kernel_template,2.6,sibyte,2_6_SIBYTE))
-$(eval $(call kernel_template,2.4,adm5120,2_4_ADM5120))
-$(eval $(call kernel_template,2.6,adm5120,2_6_ADM5120))
-$(eval $(call kernel_template,2.4,rtl8186,2_4_RTL8186))
-$(eval $(call kernel_template,2.4,rtl865xb,2_4_RTL865xB))
+#$(eval $(call kernel_template,2.6,adm5120,2_6_ADM5120))
