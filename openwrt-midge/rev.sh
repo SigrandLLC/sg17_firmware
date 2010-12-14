@@ -11,6 +11,7 @@ branch=`git branch --no-color | egrep '^\*' | cut '-d ' -f2`
 #branch=1.2
 case $branch in
 	master) branch=dev;;
+	\(no*)  branch=unk;;
 esac
 #echo "branch: $branch"
 
