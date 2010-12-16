@@ -1,0 +1,5 @@
+config BR2_LINUX_2_6_SIGRAND5120_NOFW
+	bool "No firewall/iptables"
+	default n
+	help
+	  Build kernel without firewall/iptables support for increase PPS

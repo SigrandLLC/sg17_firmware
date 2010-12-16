@@ -26,9 +26,7 @@ esac
 unset nofw
 if test "$#" -eq 1; then
    case $1 in
-	-nofw)	nofw=$1;
-		export SIGRAND_LINUX_NOFW=1; # target/linux/sigrand5120-2.6/Makefile
-		;;
+	-nofw)	nofw=$1 ;;
 	    *) usage;;
    esac
    shift
@@ -38,15 +36,16 @@ rm -f .config* .tmpconfig.h
 cp -a config_$oem .config
 
 if test -n "$nofw"; then
-echo "Unset FW in .config"
-sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_ARPTABLES)=./\1=n/g'	.config
-sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_EBTABLES)=./\1=n/g'	.config
-sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_IPT.*)=./\1=n/g'		.config
-sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_IMQ.*)=./\1=n/g'		.config
-sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_IP6TABLES)=./\1=n/g'	.config
-sed -i -r -e 's/^.*(BR2_COMPILE_IPTABLES)=./\1=n/g'		.config
-sed -i -r -e 's/^.*(BR2_PACKAGE_IPTABLES.*)=./\1=n/g'		.config
-sed -i -r -e 's/^.*(BR2_PACKAGE_IP6TABLES)=./\1=n/g'		.config
+   echo "Unset FW in .config"
+   sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_ARPTABLES)=./\1=n/g'	.config
+   sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_EBTABLES)=./\1=n/g'	.config
+   sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_IPT.*)=./\1=n/g'	.config
+   sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_IMQ.*)=./\1=n/g'	.config
+   sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_IP6TABLES)=./\1=n/g'	.config
+   sed -i -r -e 's/^.*(BR2_COMPILE_IPTABLES)=./\1=n/g'		.config
+   sed -i -r -e 's/^.*(BR2_PACKAGE_IPTABLES.*)=./\1=n/g'	.config
+   sed -i -r -e 's/^.*(BR2_PACKAGE_IP6TABLES)=./\1=n/g'		.config
+   echo "BR2_LINUX_2_6_SIGRAND5120_NOFW=y"		>>	.config # target/linux/sigrand5120-2.6/Makefile
 fi
 
 mkdir -p log
