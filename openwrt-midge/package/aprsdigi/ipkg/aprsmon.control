@@ -1,5 +1,0 @@
-Package: aprsmon
-Section: hamradio
-Priority: optional
-Description: aprsmon - monitor APRS AX.25 traffic
-Depends: libax25 kissattach

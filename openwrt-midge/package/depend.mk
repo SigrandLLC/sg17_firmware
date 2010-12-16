@@ -80,7 +80,7 @@ peercast-compile: uclibc++-compile
 peerguardian-compile: libpthread-compile
 portmap-compile: tcp_wrappers-compile
 postgresql-compile: zlib-compile
-ppp-compile: linux-atm-compile libpcap-compile
+ppp-compile: libpcap-compile
 privoxy-compile: pcre-compile
 ptunnel-compile: libpcap-compile
 pwlib-compile: libpthread-compile

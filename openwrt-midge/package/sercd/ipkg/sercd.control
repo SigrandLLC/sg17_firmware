@@ -1,5 +1,0 @@
-Package: sercd
-Priority: optional
-Section: net
-Source: http://jaist.dl.sourceforge.net/sourceforge/sercd/
-Description: serial port redirector based on sredird

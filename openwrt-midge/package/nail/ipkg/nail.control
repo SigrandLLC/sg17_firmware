@@ -1,5 +1,0 @@
-Package: nail
-Priority: optional
-Section: text
-Depends: 
-Description: Text-mode mail client

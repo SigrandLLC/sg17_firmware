@@ -1,7 +1,0 @@
-config BR2_PACKAGE_SERIALOVERIP
-        prompt "serialoverip........... Tool for transport of serial interfaces over UDP/IP."
-        tristate
-	default m if CONFIG_DEVEL
-        help
-	  Tool for transport of serial interfaces over UDP/IP.
-

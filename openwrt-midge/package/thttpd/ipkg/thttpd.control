@@ -1,4 +1,0 @@
-Package: thttpd
-Priority: optional
-Section: net
-Description: A small HTTP server

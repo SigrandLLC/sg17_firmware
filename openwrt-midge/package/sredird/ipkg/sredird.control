@@ -1,5 +1,0 @@
-Package: sredird
-Priority: optional
-Section: console
-Description: serial port internet server.
-Depends:

@@ -116,10 +116,6 @@ BR2_PACKAGE_IPTABLES_UTILS=y
 #
 # Applications
 #
-# BR2_PACKAGE_AUTOSSH is not set
-# BR2_PACKAGE_BITCHX is not set
-# BR2_PACKAGE_CBTT is not set
-# BR2_PACKAGE_CBTT_MYSQL is not set
 
 #
 # collectd.......................... Lightweight system statistics collection daemon
@@ -130,20 +126,7 @@ BR2_PACKAGE_COLLECTD_LOAD=y
 BR2_PACKAGE_COLLECTD_MEMORY=y
 BR2_PACKAGE_COLLECTD_PING=y
 BR2_PACKAGE_COLLECTD_TRAFFIC=y
-# BR2_PACKAGE_CTORRENT is not set
-# BR2_PACKAGE_DASH is not set
-# BR2_PACKAGE_DECO is not set
-# BR2_PACKAGE_ELINKS is not set
-# BR2_PACKAGE_EMPTY is not set
-# BR2_PACKAGE_FETCHMAIL is not set
-# BR2_PACKAGE_GPG is not set
-# BR2_PACKAGE_GPSD is not set
 BR2_PACKAGE_HASERL=y
-# BR2_PACKAGE_IRSSI is not set
-# BR2_PACKAGE_JAMVM is not set
-# BR2_PACKAGE_KEPLER is not set
-# BR2_PACKAGE_LCD4LINUX is not set
-# BR2_PACKAGE_LESS is not set
 
 #
 # lua............................... LUA programming language
@@ -154,86 +137,11 @@ BR2_PACKAGE_LUA=y
 BR2_PACKAGE_LUAC=y
 BR2_PACKAGE_LUA_EXAMPLES=y
 BR2_PACKAGE_MGETTY=y
-# BR2_PACKAGE_MICROPERL is not set
-# BR2_PACKAGE_MONIT is not set
-# BR2_PACKAGE_MONIT_NOSSL is not set
-# BR2_PACKAGE_MOTION is not set
-# BR2_PACKAGE_MUTT is not set
-# BR2_PACKAGE_NAIL is not set
 BR2_PACKAGE_NANO=y
-# BR2_PACKAGE_OSIRISD is not set
-
-#
-# php4.............................. PHP4 Hypertext preprocessor
-#
-
-#
-# Server API ---
-#
-# BR2_PACKAGE_PHP4_CLI is not set
-# BR2_PACKAGE_PHP4_CGI is not set
-# BR2_PACKAGE_PHP4_FASTCGI is not set
-
-#
-# Extensions ---
-#
-
-#
-# php5.............................. PHP5 Hypertext preprocessor
-#
-
-#
-# Server API ---
-#
-# BR2_PACKAGE_PHP5_CLI is not set
-# BR2_PACKAGE_PHP5_CGI is not set
-# BR2_PACKAGE_PHP5_FASTCGI is not set
-
-#
-# Extensions ---
-#
-# BR2_PACKAGE_PROCMAIL is not set
-# BR2_PACKAGE_PSYBNC is not set
-
-#
-# sablevm........................... A Java Virtual Machine (JVM) implementation
-#
-# BR2_PACKAGE_LIBFFI_SABLE is not set
-# BR2_PACKAGE_LIBSABLEVM_CLASSPATH is not set
-# BR2_PACKAGE_SABLEVM is not set
-# BR2_PACKAGE_SANE_BACKENDS is not set
-# BR2_PACKAGE_SCREEN is not set
-# BR2_PACKAGE_SYSLOG_NG is not set
-
-#
-# rrdtool........................... Round-Robin Database (RRD) libraries and tools
-#
-# BR2_COMPILE_RRDTOOL is not set
-# BR2_COMPILE_RRDTOOL1 is not set
-# BR2_PACKAGE_VIM is not set
 
 #
 # Networking
 #
-# BR2_PACKAGE_AIRCRACK is not set
-# BR2_PACKAGE_AMWALL is not set
-# BR2_PACKAGE_ARPD is not set
-# BR2_PACKAGE_ARPTABLES is not set
-# BR2_PACKAGE_ARPWATCH is not set
-
-#
-# asterisk.......................... Complete open source PBX
-#
-# BR2_PACKAGE_ASTERISK is not set
-# BR2_PACKAGE_ASTERISK_MINI is not set
-# BR2_PACKAGE_ATFTP is not set
-# BR2_PACKAGE_ATFTPD is not set
-
-#
-# avahi............................. An mDNS/DNS-SD (aka RendezVous/Bonjour/ZeroConf) implementation
-#
-# BR2_PACKAGE_AVAHI_DAEMON is not set
-# BR2_PACKAGE_LIBAVAHI is not set
 
 #
 # bind.............................. A DNS server implementation
@@ -247,61 +155,11 @@ BR2_COMPILE_BIND=y
 # BR2_PACKAGE_BIND_DIG is not set
 # BR2_PACKAGE_BIND_CLIENT is not set
 BR2_PACKAGE_BIND_SERVER=y
-# BR2_PACKAGE_BITLBEE is not set
-# BR2_PACKAGE_BWM is not set
-# BR2_PACKAGE_CHILLISPOT is not set
-# BR2_PACKAGE_CIFSMOUNT is not set
-# BR2_PACKAGE_CLICK is not set
-# BR2_PACKAGE_CUPS is not set
-# BR2_PACKAGE_CUTTER is not set
-# BR2_PACKAGE_DHCP_FORWARDER is not set
 # BR2_PACKAGE_DHCP_RELAY is not set
 # BR2_PACKAGE_DHCP_SERVER is not set
 BR2_PACKAGE_DROPBEAR=y
 BR2_PACKAGE_DBCONVERT=y
-# BR2_PACKAGE_DSNIFF is not set
-# BR2_PACKAGE_EBTABLES is not set
-# BR2_PACKAGE_ELHTTP is not set
-# BR2_PACKAGE_ETHER_WAKE is not set
-# BR2_PACKAGE_ETHTOOL is not set
-# BR2_PACKAGE_EZIPUPDATE is not set
-# BR2_PACKAGE_FAKEIDENTD is not set
-# BR2_PACKAGE_FPING is not set
-# BR2_PACKAGE_FPROBE_ULOG is not set
-# BR2_PACKAGE_FPROBE is not set
-
-#
-# freeradius........................ A Flexible RADIUS server implementation
-#
-# BR2_PACKAGE_FREERADIUS is not set
-# BR2_PACKAGE_FRICKIN is not set
-# BR2_PACKAGE_HOSTAP_UTILS is not set
-# BR2_PACKAGE_HOSTAPD is not set
-# BR2_PACKAGE_HOSTAPD_MINI is not set
-# BR2_PACKAGE_HOSTAPD_UTILS is not set
-
-#
-# howl.............................. A Zeroconf networking implementation
-#
-# BR2_PACKAGE_LIBHOWL is not set
-
-#
-# Daemons ---
-#
-# BR2_PACKAGE_AUTOIPD is not set
-# BR2_PACKAGE_MDNSRESPONDER is not set
-# BR2_PACKAGE_NIFD is not set
-# BR2_PACKAGE_HTPDATE is not set
-
-#
-# httping........................... Httping is like 'ping' but for http-requests.
-#
-# BR2_PACKAGE_HTTPING is not set
 BR2_PACKAGE_IFENSLAVE=y
-# BR2_PACKAGE_IFTOP is not set
-# BR2_PACKAGE_IGMPPROXY is not set
-# BR2_PACKAGE_IPCAD is not set
-# BR2_PACKAGE_IPERF is not set
 
 #
 # iproute2.......................... A collection of utilites for controlling TCP/IP networking and Traffic Control
@@ -310,9 +168,6 @@ BR2_COMPILE_IPROUTE2=y
 BR2_PACKAGE_IP=y
 BR2_PACKAGE_TC=y
 BR2_PACKAGE_IPSEC_TOOLS=y
-# BR2_PACKAGE_IPSET is not set
-# BR2_PACKAGE_IPTABLES_SNMP is not set
-# BR2_PACKAGE_IPTRAF is not set
 
 #
 # iputils........................... A collection of utilites for controlling TCP/IP networking
@@ -320,13 +175,6 @@ BR2_PACKAGE_IPSEC_TOOLS=y
 BR2_COMPILE_IPUTILS=y
 BR2_PACKAGE_PING=y
 # BR2_PACKAGE_ARPING is not set
-# BR2_PACKAGE_KISMET_CLIENT is not set
-# BR2_PACKAGE_KISMET_DRONE is not set
-# BR2_PACKAGE_KISMET_SERVER is not set
-# BR2_PACKAGE_KNOCK is not set
-# BR2_PACKAGE_KNOCKD is not set
-# BR2_PACKAGE_L2TPD is not set
-# BR2_PACKAGE_L2TPNS is not set
 
 #
 # lighttpd.......................... Flexible and lightweight web server
@@ -347,19 +195,6 @@ BR2_PACKAGE_LIGHTTPD_MOD_CGI=y
 # BR2_PACKAGE_LIGHTTPD_MOD_SSI is not set
 # BR2_PACKAGE_LIGHTTPD_MOD_STATUS is not set
 # BR2_PACKAGE_LIGHTTPD_MOD_USERTRACK is not set
-# BR2_PACKAGE_LINUX_ATM is not set
-# BR2_PACKAGE_MACCHANGER is not set
-# BR2_PACKAGE_MARADNS is not set
-# BR2_PACKAGE_MIAU is not set
-
-#
-# mini-httpd........................ A small web server
-#
-# BR2_PACKAGE_MINI_HTTPD is not set
-# BR2_PACKAGE_MINI_HTTPD_HTPASSWD is not set
-# BR2_PACKAGE_MINI_HTTPD_MATRIXSSL is not set
-# BR2_PACKAGE_MINI_HTTPD_OPENSSL is not set
-# BR2_PACKAGE_MINI_SENDMAIL is not set
 BR2_PACKAGE_MTR=y
 
 #
@@ -369,33 +204,8 @@ BR2_COMPILE_NET_SNMP=y
 # BR2_PACKAGE_LIBNETSNMP is not set
 # BR2_PACKAGE_SNMPD is not set
 BR2_PACKAGE_SNMPD_STATIC=y
-# BR2_PACKAGE_NETPERF is not set
-# BR2_PACKAGE_NETSTAT_NAT is not set
-# BR2_PACKAGE_NFS_SERVER is not set
-# BR2_PACKAGE_NMAP is not set
-# BR2_PACKAGE_NOCATSPLASH is not set
 BR2_PACKAGE_NTPCLIENT=y
-
-#
-# olsrd............................. OLSR (Optimized Link State Routing) daemon
-#
-# BR2_PACKAGE_OLSRD is not set
-# BR2_PACKAGE_OPENDCHUB is not set
 # BR2_PACKAGE_OPENNTPD is not set
-
-#
-# openser........................... Configurable, free SIP server
-#
-# BR2_PACKAGE_OPENSER is not set
-
-#
-# openssh........................... A free implementation of the Secure Shell protocol
-#
-# BR2_PACKAGE_OPENSSH_CLIENT is not set
-# BR2_PACKAGE_OPENSSH_SERVER is not set
-# BR2_PACKAGE_OPENSSH_SFTP_CLIENT is not set
-# BR2_PACKAGE_OPENSSH_SFTP_SERVER is not set
-# BR2_PACKAGE_OPENSWAN is not set
 
 #
 # openvpn........................... Open source VPN solution using SSL
@@ -407,26 +217,6 @@ BR2_COMPILE_OPENVPN_WITH_HTTP=y
 BR2_COMPILE_OPENVPN_WITH_LZO=y
 BR2_COMPILE_OPENVPN_WITH_PASSWORD_SAVE=y
 # BR2_COMPILE_OPENVPN_WITH_SMALL is not set
-# BR2_PACKAGE_P910ND is not set
-# BR2_PACKAGE_PARPROUTED is not set
-# BR2_PACKAGE_PIPACS is not set
-
-#
-# pmacct............................ IPv4/IPv6 accounting and aggregation tools
-#
-# BR2_PACKAGE_NFACCTD_BASIC is not set
-# BR2_PACKAGE_NFACCTD_MYSQL is not set
-# BR2_PACKAGE_NFACCTD_PGSQL is not set
-# BR2_PACKAGE_NFACCTD_SQLITE is not set
-# BR2_PACKAGE_NFACCTD_CUSTOM is not set
-# BR2_PACKAGE_PMACCTD_BASIC is not set
-# BR2_PACKAGE_PMACCTD_MYSQL is not set
-# BR2_PACKAGE_PMACCTD_PGSQL is not set
-# BR2_PACKAGE_PMACCTD_SQLITE is not set
-# BR2_PACKAGE_PMACCTD_CUSTOM is not set
-# BR2_PACKAGE_PMACCT_CLIENT is not set
-# BR2_PACKAGE_PORTMAP is not set
-# BR2_PACKAGE_PORTSENTRY is not set
 
 #
 # ppp............................... PPP (Point-to-Point Protocol) daemon
@@ -440,9 +230,6 @@ BR2_PACKAGE_CHAT=m
 BR2_PACKAGE_PPPDUMP=m
 BR2_PACKAGE_PPPSTATS=y
 BR2_PACKAGE_PPTP=y
-# BR2_PACKAGE_PPTPD is not set
-# BR2_PACKAGE_PRIVOXY is not set
-# BR2_PACKAGE_PTUNNEL is not set
 
 #
 # quagga............................ The Quagga Software Routing Suite
@@ -454,111 +241,17 @@ BR2_PACKAGE_QUAGGA_OSPF6D=m
 BR2_PACKAGE_QUAGGA_RIPD=m
 BR2_PACKAGE_QUAGGA_RIPNGD=m
 BR2_PACKAGE_QUAGGA_VTYSH=m
-# BR2_PACKAGE_RADDUMP is not set
-# BR2_PACKAGE_RARPD is not set
-# BR2_PACKAGE_REAIM is not set
-# BR2_PACKAGE_ROBOCFG is not set
 BR2_COMPILE_RP_PPPOE=y
 BR2_PACKAGE_PPPOE_CLIENT=y
 # BR2_PACKAGE_PPPOE_RELAY is not set
 # BR2_PACKAGE_PPPOE_SERVER is not set
 # BR2_PACKAGE_PPPOE_SNIFF is not set
-# BR2_PACKAGE_RRS is not set
-# BR2_PACKAGE_RRS_NOSSL is not set
-# BR2_PACKAGE_RSYNC is not set
-# BR2_PACKAGE_SAMBA is not set
-# BR2_PACKAGE_SAMBA_CLIENT is not set
-# BR2_PACKAGE_SCANLOGD is not set
-# BR2_PACKAGE_SCDP is not set
 BR2_PACKAGE_SFTPSERVER=y
-# BR2_PACKAGE_SHAT is not set
-# BR2_PACKAGE_SIPP is not set
-# BR2_PACKAGE_SIPROXD is not set
-# BR2_PACKAGE_SIPSAK is not set
-# BR2_PACKAGE_SLURM is not set
-
-#
-# snort-wireless.................... Ligthweight Wireless Network Intrusion Detection System (NIDS)
-#
-# BR2_PACKAGE_SNORT_WIRELESS_BASIC is not set
-# BR2_PACKAGE_SNORT_WIRELESS_MYSQL is not set
-# BR2_PACKAGE_SNORT_WIRELESS_PGSQL is not set
-# BR2_PACKAGE_SNORT_WIRELESS_CUSTOM is not set
-
-#
-# snort............................. Ligthweight Network Intrusion Detection System (NIDS)
-#
-# BR2_PACKAGE_SNORT_BASIC is not set
-# BR2_PACKAGE_SNORT_MYSQL is not set
-# BR2_PACKAGE_SNORT_PGSQL is not set
-# BR2_PACKAGE_SNORT_CUSTOM is not set
-# BR2_PACKAGE_SOCAT is not set
-
-#
-# squid............................. proxy and web cache
-#
-# BR2_PACKAGE_SQUID is not set
-# BR2_PACKAGE_SRELAY is not set
-# BR2_PACKAGE_SSLTUNNEL is not set
-# BR2_PACKAGE_SSMTP is not set
 BR2_PACKAGE_TCPDUMP=y
-# BR2_PACKAGE_THTTPD is not set
-# BR2_PACKAGE_TINC is not set
-
-#
-# tinyproxy......................... Tinyproxy is a lightweight HTTP and HTTPS proxy.
-#
-# BR2_PACKAGE_TINYPROXY is not set
-# BR2_PACKAGE_TMSNC is not set
-# BR2_PACKAGE_TOR is not set
-# BR2_PACKAGE_TTCP is not set
-# BR2_PACKAGE_UDP_BROADCAST_RELAY is not set
-
-#
-# ulogd............................. Netfilter userspace logging daemon
-#
-# BR2_PACKAGE_ULOGD is not set
-
-#
-# updatedd.......................... A tool to update dynamic dns services
-#
-# BR2_PACKAGE_UPDATEDD is not set
-# BR2_PACKAGE_UTCPDUMP is not set
-# BR2_PACKAGE_VGP is not set
-# BR2_PACKAGE_VNC_REFLECTOR is not set
-# BR2_PACKAGE_VNCREPEATER is not set
-# BR2_PACKAGE_VNSTAT is not set
-# BR2_PACKAGE_VPNC is not set
-# BR2_PACKAGE_VRRPD is not set
-# BR2_PACKAGE_VSFTPD is not set
-# BR2_PACKAGE_VTUN is not set
-# BR2_PACKAGE_WCCPD is not set
-
-#
-# weechat........................... Lightweight IRC client
-#
-# BR2_PACKAGE_WEECHAT is not set
-# BR2_PACKAGE_WIFIDOG is not set
-# BR2_PACKAGE_WIRELESS_TOOLS is not set
-# BR2_PACKAGE_WIVIZ is not set
-# BR2_PACKAGE_WKNOCK is not set
-# BR2_PACKAGE_WOL is not set
-# BR2_PACKAGE_WONDERSHAPER is not set
-# BR2_PACKAGE_WPA_SUPPLICANT is not set
-# BR2_PACKAGE_WPUT is not set
-# BR2_PACKAGE_WX200D is not set
-# BR2_PACKAGE_XINETD is not set
-# BR2_PACKAGE_XSUPPLICANT is not set
 
 #
 # IPv6
 #
-# BR2_PACKAGE_6TUNNEL is not set
-# BR2_PACKAGE_AICCU is not set
-# BR2_PACKAGE_DHCP6 is not set
-# BR2_PACKAGE_MIREDO is not set
-# BR2_PACKAGE_MIREDO_SERVER is not set
-# BR2_PACKAGE_MRD6 is not set
 
 #
 # ndisc6............................ IPv6 discovery tools
@@ -566,25 +259,17 @@ BR2_PACKAGE_TCPDUMP=y
 # BR2_PACKAGE_NDISC6 is not set
 # BR2_PACKAGE_RDISC6 is not set
 # BR2_PACKAGE_TCPTRACEROUTE6 is not set
-# BR2_PACKAGE_RADVD is not set
 
 #
 # Libraries
 #
-# BR2_PACKAGE_CGILIB is not set
-# BR2_PACKAGE_CLINKC is not set
-# BR2_PACKAGE_LIBCURL is not set
-# BR2_PACKAGE_LIBSASL2 is not set
 # BR2_PACKAGE_LIBEXPAT is not set
-# BR2_PACKAGE_FCGI is not set
 # BR2_PACKAGE_LIBFLAC is not set
-# BR2_PACKAGE_LIBFREETYPE is not set
 BR2_COMPILE_GLIB=m
 BR2_PACKAGE_GLIB1=m
 # BR2_PACKAGE_LIBGMP is not set
 # BR2_PACKAGE_LIBGNUTLS is not set
 # BR2_PACKAGE_LIBGSM is not set
-# BR2_PACKAGE_ID3LIB is not set
 # BR2_PACKAGE_LIBJPEG is not set
 # BR2_PACKAGE_LIBAMSEL is not set
 # BR2_PACKAGE_LIBAO is not set
@@ -625,7 +310,6 @@ BR2_PACKAGE_LIBPTHREAD=y
 BR2_COMPILE_NCURSES=y
 BR2_PACKAGE_LIBNCURSES=y
 # BR2_PACKAGE_LIBOPENCDK is not set
-# BR2_COMPILE_OPENH323 is not set
 # BR2_PACKAGE_LIBOPENLDAP is not set
 BR2_COMPILE_OPENSSL=y
 BR2_PACKAGE_LIBOPENSSL=y
@@ -634,113 +318,32 @@ BR2_COMPILE_PCRE=y
 BR2_PACKAGE_LIBPCRE=y
 # BR2_PACKAGE_LIBPOPT is not set
 # BR2_PACKAGE_LIBPQ is not set
-# BR2_COMPILE_PWLIB is not set
-# BR2_PACKAGE_RADIUSCLIENT_NG is not set
-# BR2_PACKAGE_LIBRADIUSCLIENT_NG is not set
 BR2_COMPILE_READLINE=y
 BR2_PACKAGE_LIBREADLINE=y
 BR2_COMPILE_SPEEX=y
 BR2_PACKAGE_LIBSPEEX=y
-# BR2_PACKAGE_LIBSQLITE is not set
-# BR2_PACKAGE_LIBSQLITE2 is not set
 BR2_PACKAGE_UCLIBCXX=y
-# BR2_PACKAGE_USTL is not set
 BR2_PACKAGE_ZLIB=y
-
-#
-# Multimedia
-#
-# BR2_PACKAGE_GMEDIASERVER is not set
-# BR2_PACKAGE_ICECAST is not set
-# BR2_PACKAGE_MADPLAY is not set
-
-#
-# mpd............................... Music Player Daemon
-#
-# BR2_PACKAGE_MPD is not set
-# BR2_PACKAGE_MT_DAAPD is not set
-# BR2_PACKAGE_PALANTIR is not set
-# BR2_PACKAGE_PEERCAST is not set
-# BR2_PACKAGE_SETPWC is not set
-# BR2_PACKAGE_SPCAVIEW is not set
 
 #
 # Serial communications & terminal emulation
 #
-# BR2_PACKAGE_HEYU is not set
-# BR2_PACKAGE_LRZSZ is not set
 BR2_PACKAGE_MICROCOM=y
-# BR2_PACKAGE_PICOCOM is not set
-# BR2_PACKAGE_REMSERIAL is not set
 BR2_PACKAGE_RS232_TCPEXT=y
-# BR2_PACKAGE_SCMXX is not set
-# BR2_PACKAGE_SER2NET is not set
-# BR2_PACKAGE_SERCD is not set
-# BR2_PACKAGE_SERDISPLIB is not set
 BR2_PACKAGE_SETSERIAL=y
-# BR2_PACKAGE_SREDIRD is not set
 
 #
 # Utilities
 #
-# BR2_PACKAGE_BC is not set
-# BR2_PACKAGE_DC is not set
-# BR2_PACKAGE_GDBSERVER is not set
-# BR2_PACKAGE_HDPARM is not set
 BR2_PACKAGE_MODULEINITTOOLS=y
 BR2_PACKAGE_PCIUTILS=y
 BR2_PACKAGE_PROCPS=y
 BR2_PACKAGE_STRACE=y
-# BR2_PACKAGE_UDEV is not set
 # BR2_PACKAGE_LSUSB is not set
-# BR2_PACKAGE_WATCHDOG is not set
-
-#
-# FileSystems related
-#
-# BR2_PACKAGE_DOSFSTOOLS is not set
-# BR2_PACKAGE_E2FSPROGS is not set
-# BR2_PACKAGE_LIBFUSE is not set
-# BR2_PACKAGE_SHFS_UTILS is not set
-
-#
-# util-linux
-#
-# BR2_PACKAGE_FDISK is not set
-# BR2_PACKAGE_LOSETUP is not set
-# BR2_PACKAGE_SWAP_UTILS is not set
-
-#
-# Bluetooth
-#
-# BR2_PACKAGE_BLUEZ_LIBS is not set
-# BR2_PACKAGE_BLUEZ_UTILS is not set
-# BR2_PACKAGE_MIAX is not set
 
 #
 # HamRadio
 #
-
-#
-# aprsdigi.......................... APRSDIGI (aprsdigi, aprsmon)
-#
-# BR2_PACKAGE_APRSDIGI is not set
-# BR2_PACKAGE_APRSMON is not set
-
-#
-# ax25-apps......................... AX25-APPS (call, listen)
-#
-# BR2_PACKAGE_CALL is not set
-# BR2_PACKAGE_LISTEN is not set
-
-#
-# ax25-tools........................ AX25-TOOLS (ax25-call, beacon, rxecho, kissattach, kissparms)
-#
-# BR2_PACKAGE_AX25-CALL is not set
-# BR2_PACKAGE_BEACON is not set
-# BR2_PACKAGE_RXECHO is not set
-# BR2_PACKAGE_KISSATTACH is not set
-# BR2_PACKAGE_KISSPARMS is not set
 # BR2_PACKAGE_AXGETPUT is not set
 # BR2_PACKAGE_AXIP is not set
 # BR2_PACKAGE_LIBAX25 is not set
@@ -874,7 +477,6 @@ BR2_PACKAGE_SIGRAND_MR17H=y
 BR2_PACKAGE_SIGRAND_MR17H_UEVENTS=y
 # BR2_PACKAGE_SIGRAND_MR17H_DEBUG is not set
 BR2_PACKAGE_VOIP=y
-# BR2_PACKAGE_SDK is not set
 # BR2_PACKAGE_IMAGEBUILDER is not set
 
 #
