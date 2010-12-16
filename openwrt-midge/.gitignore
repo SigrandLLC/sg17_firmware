@@ -10,7 +10,7 @@
 # build-related files
 /.config*
 /.tmpconfig.h
-/oldconfig-*.log
+/log
 /.cfg.sg-17r
 
 # object files

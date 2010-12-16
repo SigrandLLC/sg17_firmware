@@ -47,7 +47,8 @@ sed -i -r -e 's/^.*(BR2_PACKAGE_IPTABLES.*)=./\1=n/g'		.config
 sed -i -r -e 's/^.*(BR2_PACKAGE_IP6TABLES)=./\1=n/g'		.config
 fi
 
-yes '' | make oldconfig > oldconfig-${oem}${nofw}-$$.log
+mkdir -p log
+yes '' | make oldconfig > log/oldconfig-${oem}${nofw}-$$.log
 make oem_clean
 
 if test -e .cfg.sg-17r; then
