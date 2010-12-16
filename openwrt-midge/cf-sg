@@ -1,0 +1,92 @@
+#!/bin/sh
+
+cfg=./.cf-sg
+
+pn=`basename $0`
+usage()
+{
+  echo 1>&2 "Usage: $pn {admboot | sigrand | zelax | sviazinvest} [-nofw]"
+  exit 1
+}
+
+if test "$#" -lt 1 -o "$#" -gt 2; then
+  usage
+fi
+
+oem=$1; shift
+case $oem in
+     admboot) make_target=toolchain/install ;;
+     sigrand) make_target= ;;
+       zelax) make_target= ;;
+ sviazinvest) make_target= ;;
+           *) usage;;
+esac
+
+nofw=0
+if test "$#" -eq 1; then
+   case $1 in
+	-nofw) nofw=1;;
+	    *) usage;;
+   esac
+   shift
+fi
+
+unset NOFW_OLD NOFW_CUR OEM_OLD OEM_CUR
+
+mk_cfg()
+{
+   rm -f $cfg
+   #echo "creating $cfg, NOFW_OLD: $NOFW_OLD, NOFW_CUR: $NOFW_CUR, nofw: $nofw, make_target: $make_target"
+   echo "OEM_OLD=$OEM_OLD"         >> $cfg
+   echo "OEM_CUR=$OEM_CUR"         >> $cfg
+   echo ""                         >> $cfg
+   echo "NOFW_OLD=$NOFW_OLD"       >> $cfg
+   echo "NOFW_CUR=$NOFW_CUR"       >> $cfg
+   echo ""                         >> $cfg
+   echo "MAKE_TARGET=$make_target" >> $cfg
+}
+
+if test -e $cfg; then
+   .       $cfg
+
+   if test "$oem" != "$OEM_CUR"; then
+      OEM_OLD=$OEM_CUR
+      OEM_CUR=$oem;
+   else
+      OEM_OLD=$OEM_CUR
+   fi
+
+   if test "$nofw" -ne "$NOFW_CUR"; then
+      NOFW_OLD=$NOFW_CUR
+      NOFW_CUR=$nofw;
+   else
+      NOFW_OLD=$NOFW_CUR
+   fi
+
+   mk_cfg
+else
+    OEM_OLD=""	# force ' OEM_CUR !=  OEM_OLD' at first time
+    OEM_CUR=$oem
+   NOFW_OLD=-1	# force 'NOFW_CUR != NOFW_OLD' at first time
+   NOFW_CUR=$nofw
+   mk_cfg
+fi
+
+. $cfg
+
+rm -f .config* .tmpconfig.h
+cp -a config_$oem .config
+
+if test "$NOFW_CUR" -ge 1; then
+   echo "Unset FW in .config"
+   sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_ARPTABLES)=./\1=n/g'	.config
+   sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_EBTABLES)=./\1=n/g'	.config
+   sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_IPT.*)=./\1=n/g'	.config
+   sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_IMQ.*)=./\1=n/g'	.config
+   sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_IP6TABLES)=./\1=n/g'	.config
+   sed -i -r -e 's/^.*(BR2_COMPILE_IPTABLES)=./\1=n/g'		.config
+   sed -i -r -e 's/^.*(BR2_PACKAGE_IPTABLES.*)=./\1=n/g'	.config
+   sed -i -r -e 's/^.*(BR2_PACKAGE_IP6TABLES)=./\1=n/g'		.config
+   echo "BR2_LINUX_2_6_SIGRAND5120_NOFW=y"		>>	.config # target/linux/sigrand5120-2.6/Makefile
+fi
+

@@ -2,71 +2,22 @@
 
 cfg=./.cf-sg
 
-pn=`basename $0`
-usage()
-{
-  echo 1>&2 "Usage: $pn {admboot | sigrand | zelax | sviazinvest} [-nofw]"
-  exit 1
-}
+`dirname $0`/cf-sg "$@" || exit $?
 
-if test "$#" -lt 1 -o "$#" -gt 2; then
-  usage
-fi
-
-oem=$1; shift
-case $oem in
-     admboot)
-	make_target=toolchain/install;;
-     sigrand) ;;
-       zelax) ;;
- sviazinvest) ;;
-           *) usage;;
-esac
-
-unset nofw
-if test "$#" -eq 1; then
-   case $1 in
-	-nofw)	nofw=$1 ;;
-	    *) usage;;
-   esac
-   shift
-fi
-
-rm -f .config* .tmpconfig.h
-cp -a config_$oem .config
-
-if test -n "$nofw"; then
-   echo "Unset FW in .config"
-   sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_ARPTABLES)=./\1=n/g'	.config
-   sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_EBTABLES)=./\1=n/g'	.config
-   sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_IPT.*)=./\1=n/g'	.config
-   sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_IMQ.*)=./\1=n/g'	.config
-   sed -i -r -e 's/^.*(BR2_PACKAGE_KMOD_IP6TABLES)=./\1=n/g'	.config
-   sed -i -r -e 's/^.*(BR2_COMPILE_IPTABLES)=./\1=n/g'		.config
-   sed -i -r -e 's/^.*(BR2_PACKAGE_IPTABLES.*)=./\1=n/g'	.config
-   sed -i -r -e 's/^.*(BR2_PACKAGE_IP6TABLES)=./\1=n/g'		.config
-   echo "BR2_LINUX_2_6_SIGRAND5120_NOFW=y"		>>	.config # target/linux/sigrand5120-2.6/Makefile
-fi
+. $cfg
 
 mkdir -p log
-yes '' | make oldconfig > log/oldconfig-${oem}${nofw}-$$.log
-make oem_clean
+yes '' | make oldconfig > log/oldconfig-${OEM_CUR}-NOFW-${NOFW_CUR}-$$.log
 
-if test -e $cfg; then
-   .       $cfg
-   #echo  "$cfg exists, NOFW: $NOFW, nofw: $nofw"
-else
-   echo "NOFW=$nofw" > $cfg
-   #echo "create $cfg, NOFW: $NOFW, nofw: $nofw"
-   NOFW=_0_ # force 'NOFW != nofw' at first time
+if test "$OEM_OLD" != "$OEM_CUR"; then
+   echo "OEM clean"
+   make oem_clean
 fi
 
-if test "$NOFW" != "$nofw"; then
-    make target/linux-clean
-
-    echo "NOFW=$nofw" > $cfg
-    #echo "update $cfg, NOFW: $NOFW, nofw: $nofw"
+if test "$NOFW_OLD" -ne "$NOFW_CUR"; then
+   echo "LINUX clean"
+   make target/linux-clean
 fi
 
 
-nice -19 make V=9 $make_target
+nice -19 make V=9 $MAKE_TARGET
