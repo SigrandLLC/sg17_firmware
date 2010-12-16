@@ -129,7 +129,7 @@ dirclean:
 	rm -rf $(BUILD_DIR)
 
 distclean: dirclean
-	rm -rf $(STAMP_DIR) $(DL_DIR) $(TOOL_BUILD_DIR) $(STAGING_DIR)
+	rm -rf $(STAMP_DIR) $(TOOL_BUILD_DIR) $(STAGING_DIR)
 	rm -f .config* .tmpconfig.h
 
 else # ifeq ($(strip $(BR2_HAVE_DOT_CONFIG)),y)
