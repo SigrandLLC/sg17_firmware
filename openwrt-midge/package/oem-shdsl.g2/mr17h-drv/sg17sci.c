@@ -1,8 +1,8 @@
 /* sg17_sci.c:  Sigrand SG-17PCI SCI HDLC for linux 2.6.x
  *
- *	Written 2006-2007 by Artem U. Polyakov <art@sigrand.ru>
+ *	Written 2006-2007 by Artem U. Polyakov <artpol84@gmail.com>
  *
- *	Provide interface to SCI HDLC controller, wich control 
+ *	Provide interface to SCI HDLC controller, wich control
  *	Infineon SDFE4 chipset.
  *
  *	This software may be used and distributed according to the terms
@@ -42,8 +42,8 @@ void sg17_sci_monitor(void *data);
 
 /*
  * SCI HDLC
- */ 
- 
+ */
+
 int
 sg17_sci_init( struct sg17_sci *s,char *card_name,struct sdfe4 *hwdev)
 {
@@ -55,32 +55,32 @@ sg17_sci_init( struct sg17_sci *s,char *card_name,struct sdfe4 *hwdev)
 	s->tx_bytes = 0;
 	s->rx_packets = 0;
 	s->rx_bytes = 0;
-	
+
 	s->ch_map[0] = 0;
 	s->ch_map[3] = 1;
-	
+
 	s->tx_col = 0;
-	
+
 	spin_lock_init(&s->chip_lock);
 	init_waitqueue_head( &s->wait_q );
-	init_waitqueue_head( &s->eoc_wait_q );	
+	init_waitqueue_head( &s->eoc_wait_q );
 	s->hwdev = hwdev;
 	INIT_WORK( &s->wqueue, sg17_sci_monitor,(void*)s);
 
 	PDEBUG(debug_sci,"init: base=%08x\ntx_buf=%08x,rx_buf=%08x,regs=%08x",
 		   (u32)s->mem_base,(u32)s->tx_buf,(u32)s->rx_buf,(u32)s->regs);
-	PDEBUG(debug_sdfe4,"s(0x%08x): hwdev=%08x",(u32)s,(u32)hwdev);	
+	PDEBUG(debug_sdfe4,"s(0x%08x): hwdev=%08x",(u32)s,(u32)hwdev);
 	// register interrupt handler
 	if( request_irq( s->irq, sg17_sci_intr, SA_SHIRQ, card_name, (void*)s) ){
 		printk( KERN_ERR "%s: unable to get IRQ %d.\n", card_name, s->irq );
 		goto err_exit;
 	}
-	
+
 	PDEBUG(debug_sci,"success");
-	
+
 	return 0;
  err_exit:
-	return -1;								
+	return -1;
 }
 
 inline int
@@ -89,10 +89,10 @@ sg17_sci_enable( struct sg17_sci *s )
 	iowrite8( 0,&s->regs->CRA);
 	mdelay(100);
 	iowrite8( (XRST | RXEN),&s->regs->CRA);
-	iowrite8( 0xff,&s->regs->SR);		
-	iowrite8( (RXS | TXS | CRC | COL),&s->regs->IMR);	
+	iowrite8( 0xff,&s->regs->SR);
+	iowrite8( (RXS | TXS | CRC | COL),&s->regs->IMR);
 	mdelay(10);
-	schedule_delayed_work(&s->wqueue,2*HZ);	
+	schedule_delayed_work(&s->wqueue,2*HZ);
 	PDEBUG(debug_sci,"SCI enabled");
 	return 0;
 }
@@ -107,7 +107,7 @@ sg17_sci_disable( struct sg17_sci *s )
 	sdfe4_flush_state(hwdev);
 	// shut down device
 	iowrite8( 0,&s->regs->CRA);
-	iowrite8( 0,&s->regs->IMR);	
+	iowrite8( 0,&s->regs->IMR);
 	iowrite8( 0xff ,&s->regs->SR );
 	PDEBUG(debug_sci,"disabled");
 	return 0;
@@ -137,19 +137,19 @@ sg17_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *regs )
 {
 	struct sg17_sci *s = (struct sg17_sci *)dev_id;
 	u8 mask = ioread8(&s->regs->IMR);
-	u8 status = (ioread8(&s->regs->SR) & mask);	
+	u8 status = (ioread8(&s->regs->SR) & mask);
 	struct sdfe4_msg msg;
 	int pamdsl_type;
 	u16 in_len;
 	int i = 0;
-	
-	PDEBUG(debug_sci,"status=%02x",status);	
+
+	PDEBUG(debug_sci,"status=%02x",status);
 	if( !status )
 		return IRQ_NONE;
 
 	iowrite8(status,&s->regs->SR); 	// ack all interrupts
 	iowrite8(0,&s->regs->IMR); 	// disable interrupts
-	
+
 	if( status & TXS ){
 		PDEBUG(debug_sci,"TXS");
 		s->tx_packets++;
@@ -161,10 +161,10 @@ sg17_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *regs )
 		PDEBUG(debug_sci,"RXS");
 		// Save incoming message
 		in_len = ioread16(&s->regs->RXLEN);
-		// process message		
-		
+		// process message
+
     	ret = sdfe4_msg_init( &msg, (char*)s->rx_buf, in_len );
-		iowrite8( (ioread8( &s->regs->CRA ) | RXEN), &s->regs->CRA );		
+		iowrite8( (ioread8( &s->regs->CRA ) | RXEN), &s->regs->CRA );
 		if( !ret ){
 			pamdsl_type = sdfe4_pamdsl_parse(&msg,s->hwdev);
 			switch( pamdsl_type ){
@@ -185,7 +185,7 @@ sg17_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *regs )
 		s->rx_packets++;
 		s->rx_bytes += in_len;
 		//--------------DEBUG --------------------------
-		PDEBUGL(debug_sci,"Incoming data: ");		
+		PDEBUGL(debug_sci,"Incoming data: ");
 		for(i=0; i < in_len; i++)
 			PDEBUGL(debug_sci,"%02x ",s->rx_msg[i]);
 		PDEBUGL(debug_sci,"\n");
@@ -193,15 +193,15 @@ sg17_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *regs )
 	}
 
 	if( status & CRC ){
-		iowrite8( (ioread8( &s->regs->CRA ) | RXEN), &s->regs->CRA );		
+		iowrite8( (ioread8( &s->regs->CRA ) | RXEN), &s->regs->CRA );
 		PDEBUG(debug_error,"CRC");
 	}
-	
+
 	if( status & COL ){
 		s->tx_col = 1;
 		PDEBUG(debug_error,"COL");
 	}
-	
+
 	iowrite8(mask, &s->regs->IMR); // enable interrupts
 	return IRQ_HANDLED;
 }
@@ -210,18 +210,18 @@ int
 sg17_sci_recv( struct sg17_sci *s,char *msg, int *mlen)
 {
 	u8 clen = s->rx_len;
-	int i;	
+	int i;
 
 	if( !clen ){
 		PDEBUG(debug_error,"Zero length");
 		return -1;
 	}
-	
+
 	if( *mlen < clen ){
 		PDEBUG(debug_error,"mlen<clen!!, mlen=%u, clen=%u",*mlen,clen);
 		return -EINVAL;
 	}
-	
+
 	*mlen = clen;
 	for( i=0; i<clen; i++)
 		msg[i] = s->rx_msg[i];
@@ -263,7 +263,7 @@ inline int
 sg17_sci_wait_eoc_intr( struct sg17_sci *s)
 {
 	int ret=0;
-	PDEBUG(debug_eoc,"start");	
+	PDEBUG(debug_eoc,"start");
 	ret = interruptible_sleep_on_timeout( &s->eoc_wait_q, HZ*2);
 	PDEBUG(debug_eoc,"return = %d",ret);
 	return ret;
@@ -280,7 +280,7 @@ inline void
 sg17_sci_link_up(struct sg17_sci *s,int i){
 	sg17_link_up(s,s->ch_map[i]);
 }
-		
+
 inline void
 sg17_sci_link_down(struct sg17_sci *s,int i){
 	sg17_link_down(s,s->ch_map[i]);
@@ -363,7 +363,7 @@ sdfe4_link_led_up(int i,struct sdfe4 *hwdev){
 void
 sdfe4_link_led_down(int i,struct sdfe4 *hwdev){
 	PDEBUG(debug_link,"chan#%d",i);
-	sg17_sci_link_down((struct sg17_sci *)hwdev->data,i);	
+	sg17_sci_link_down((struct sg17_sci *)hwdev->data,i);
 }
 
 void
@@ -380,7 +380,7 @@ sdfe4_link_led_fast_blink(int i,struct sdfe4 *hwdev){
 
 inline void sdfe4_clear_channel(struct sdfe4 *hwdev) {}
 inline void
-sdfe4_memcpy(void *dst,const void *src,int size){	
+sdfe4_memcpy(void *dst,const void *src,int size){
 	memcpy(dst,src,size);
 }
 void

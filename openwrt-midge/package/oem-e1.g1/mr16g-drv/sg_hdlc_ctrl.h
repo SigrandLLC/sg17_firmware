@@ -1,8 +1,8 @@
 /*
  * sg_hdlc_ctrl.h,v 1.00 2006/09/04
  *
- * Definitions for Sigrand HDLC controller 
- * Copyright (C) 2006, Artem U. Polyakov (art@sigrand.ru)
+ * Definitions for Sigrand HDLC controller
+ * Copyright (C) 2006, Artem U. Polyakov <artpol84@gmail.com>
  */
 
 #ifndef SG_HDLC_H
@@ -56,7 +56,7 @@
 #define MR16G_PCI_VENDOR 0x55
 #define MR16G_PCI_DEVICE 0x9b
 
-// Portability 
+// Portability
 #define iotype void*
 //#define IO_READ_WRITE
 #ifndef IO_READ_WRITE
@@ -76,7 +76,7 @@
 #define mr16g_priv(ndev) ((struct net_local*)(dev_to_hdlc(ndev)->priv))
 #define mr16g_e1cfg(ndev) ((struct ds2155_config*)&(mr16g_priv(ndev)->e1_cfg))
 #define mr16g_hdlcfg(ndev) ((struct hdlc_config*)&(mr16g_priv(ndev)->hdlc_cfg))
-	
+
 
 
 struct ds2155_config{
@@ -89,7 +89,7 @@ struct ds2155_config{
     u8 ts16     :1;
     u8 hdb3 	:1;
     u8 long_haul:1;
-    
+
 };
 
 struct hdlc_config
@@ -100,7 +100,7 @@ struct hdlc_config
 	u8  rburst: 1;
 	u8  wburst: 1;
 };
-		    
+
 
 struct mr16g_hw_regs {
     u8  CRA,CRB,SR,IMR,CTDR,LTDR,CRDR,LRDR;
@@ -113,36 +113,36 @@ struct mr16g_hw_descr{
     u32  address;
 	u32  length;
 };
-																	 
+
 
 struct net_local{
 
 	// standard net device statictics
 	struct net_device_stats     stats;
-	
+
 	// device entity
 	struct device *dev;
-	// configuration	
+	// configuration
 	struct ds2155_config e1_cfg;
 	struct hdlc_config hdlc_cfg;
-	   
+
 	// IO memory map
 	void *mem_base;
 	volatile struct mr16g_hw_regs *hdlc_regs;
 	volatile struct mr16g_hw_descr    *tbd;
 	volatile struct mr16g_hw_descr    *rbd;
 	volatile u8 *ds2155_regs;
-	
-	//concurent racing 
+
+	//concurent racing
 	spinlock_t rlock,xlock;
-	
-        // transmit and reception queues 
+
+        // transmit and reception queues
         struct sk_buff *xq[ XQLEN ], *rq[ RQLEN ];
 	unsigned head_xq, tail_xq, head_rq, tail_rq;
-	    
-	// the descriptors mapped onto the first buffers in xq and rq 
+
+	// the descriptors mapped onto the first buffers in xq and rq
 	unsigned head_tdesc, head_rdesc;
-		    	
+
 };
 
 // Driver initialisation
@@ -153,7 +153,7 @@ static void mr16g_exit( void );
 static int __devinit  mr16g_init_one( struct pci_dev *,
                                 const struct pci_device_id * );
 static void __devexit mr16g_remove_one( struct pci_dev * );
-					
+
 // Net device specific functions
 static int __init  mr16g_probe( struct net_device * );
 static int  mr16g_open( struct net_device * );
@@ -184,7 +184,7 @@ inline void mr16g_hdlc_setup( struct net_local *nl);
 inline void mr16g_hdlc_open( struct net_local *nl);
 inline void mr16g_hdlc_close( struct net_local *nl);
 
-// DS2155 control/setup 
+// DS2155 control/setup
 inline void ds2155_setreg(struct net_local *nl,u8 regname,u8 regval);
 inline u8 ds2155_getreg(struct net_local *nl,u8 regname);
 static int mr16g_E1_int_setup(struct net_local *nl);

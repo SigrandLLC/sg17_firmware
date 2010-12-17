@@ -1,8 +1,8 @@
 /* sg17lan.h: Sigrand SG-17PCI SHDSL modem driver for linux (kernel 2.6.x)
  *
- *	Written 2006-2007 by Artem U. Polyakov <art@sigrand.ru>
+ *	Written 2006-2007 by Artem U. Polyakov <artpol84@gmail.com>
  *
- *	This driver presents SG-17PCI modem 
+ *	This driver presents SG-17PCI modem
  *	to system as common ethernet-like netcard.
  *
  */
@@ -22,13 +22,13 @@ static void sg17_remove_card( struct sg17_card *card );
 
 //---- PCI adapter related ----//
 // First version of module
-#define SG17_PCI_VENDOR 	0x55 
+#define SG17_PCI_VENDOR 	0x55
 #define SG17_PCI_DEVICE 	0x9a
 // Second version of module
-#define SG17v2_PCI_VENDOR 	0x55 
+#define SG17v2_PCI_VENDOR 	0x55
 #define SG17v2_PCI_DEVICE 	0x99
 #define SIOCGLRATE	(SIOCDEVPRIVATE+14)
-// Equipment of modules 
+// Equipment of modules
 #define SUBSYS_ID_1CH       0x00
 #define SUBSYS_ID_1CH_PWR   0x01
 #define SUBSYS_ID_2CH       0x02

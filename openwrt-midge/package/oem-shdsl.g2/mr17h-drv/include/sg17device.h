@@ -5,10 +5,10 @@
  *	Target device configuration
  *
  * Authors:
- *      Artem Polyakov <art@sigrand.ru>
- *      Ivan Neskorodev <ivan@sigrand.ru>
+ *      Artem Polyakov <artpol84@gmail.com>
+ *      Ivan Neskorodev <ivan.neskorodev@gmail.com>
  */
-       
+
 #ifndef SG17_DEVICE_H
 #define SG17_DEVICE_H
 

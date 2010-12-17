@@ -11,7 +11,7 @@
 #define DRIVER_VERSION "1.0"
 
 MODULE_DESCRIPTION ( "Driver for shdsl modules platform SG-17S. Version "DRIVER_VERSION"\n" );
-MODULE_AUTHOR ( "Scherbakov Mihail (scherbakovmihail@sigrand.ru)\n" );
+MODULE_AUTHOR ( "Scherbakov Mihail <scherbakov.mihail@gmail.com>\n" );
 MODULE_LICENSE ( "GPL" );
 MODULE_VERSION ( DRIVER_VERSION );
 
@@ -72,12 +72,12 @@ int configure_channel(struct mam17_card *card, int ch)
 		spanprofile->pbo_mode = PBO_FORCED;
 		if (card->channels[ch].pbo_mode == PWRBO_NORMAL)
 			spanprofile->epl_mode=EPL_ENABLED;
-		else 
+		else
 			spanprofile->epl_mode=EPL_DISABLED;
 		spanprofile->pbo_valu = card->channels[ch].pbo_vals[0];
 
 		if (mpi_cmd(card, CMD_PMD_SpanProfileGroupConfig, buf, sizeof(*spanprofile)/4, &ack)) return -1;
-	}	
+	}
 
 	mdelay(200);
 
@@ -120,7 +120,7 @@ int configure_channel(struct mam17_card *card, int ch)
 		ghs_mode->pbo_mode = PBO_NORMAL;
 		ghs_mode->epl_mode = EPL_ENABLED;
 	}
-	
+
 	ghs_mode->pmms_margin_mode = PMMS_NORMAL;
 	tunnel_cmd(card, CMD_CFG_GHS_MODE, buf, sizeof(*ghs_mode)/4, ch, &ack);
 
@@ -154,14 +154,14 @@ int configure_channel(struct mam17_card *card, int ch)
 		caplist->pow_backoff = 0;
 	}
 	caplist->psd_mask = 0x00;
-	
+
 	caplist->base_rate_min = 192;
 	caplist->base_rate_max = 2304;
 	caplist->base_rate_min16 = 2368;
 	caplist->base_rate_max16 = 3840;
 	caplist->base_rate_min32 = 768;
 	caplist->base_rate_max32 = 5696;
-	
+
 	caplist->sub_rate_min = 0x00;
 	caplist->sub_rate_max = 0x00;
 	caplist->enable_pmms = PMMS_OFF;
@@ -300,9 +300,9 @@ int load_cfg(struct mam17_card *card, int ch)
 
 	tunnel_cmd(card, CMD_DSL_PARAM_GET, buf, 0, ch, &ack);
 	msg = (message_t *)ack.buf32;
-	
+
 	dsl_param = (struct ack_dsl_param_get *)&(ack.buf32[2]);
-	
+
 	if (dsl_param->stu_mode == 1) chan->mode = MASTER;
 	else if (dsl_param->stu_mode == 2) chan->mode = SLAVE;
 	else chan->mode = -1;
@@ -320,7 +320,7 @@ int load_cfg(struct mam17_card *card, int ch)
 	} else {
 		cmd_cap_get->ClParam = TPS_TC_B;
 	}
-	
+
 	tunnel_cmd(card, CMD_GHS_CAP_GET, buf, 2, ch, &ack);
 
 	ack_cap_get = (struct ack_ghs_cap_get *)&(ack.buf32[2]);
@@ -338,11 +338,11 @@ int load_cfg(struct mam17_card *card, int ch)
 		break;
 	}
 
-	
+
 //	PDEBUG(debug_load_cfg, "len = %i MSGID = %x", ack.len, msg->MSGID);
-//	PDEBUG(debug_load_cfg, "mode = %x annex = %x tcpam = %x rate = %x", dsl_param->stu_mode, dsl_param->annex, 
+//	PDEBUG(debug_load_cfg, "mode = %x annex = %x tcpam = %x rate = %x", dsl_param->stu_mode, dsl_param->annex,
 //										dsl_param->bits_p_symbol, dsl_param->base_rate);
-	
+
 	return 0;
 }
 
@@ -380,7 +380,7 @@ static int __devinit mam17_init_card(struct mam17_card *card)
 
 	// set card name
 	sprintf(card->name, "mam17card%i", card->number);
-	
+
 	if ((iomem_end - iomem_start) != MAM17_IOMEM_SIZE - 1) return -ENODEV;
 	if (!request_mem_region(iomem_start, MAM17_IOMEM_SIZE, card->name))
 	{
@@ -433,7 +433,7 @@ err2:
 	iounmap(card->mem_base);
 err1:
 	release_mem_region(iomem_start, MAM17_IOMEM_SIZE);
-	return error;	
+	return error;
 
 }
 
@@ -484,7 +484,7 @@ static int __devinit mam17_probe_one(struct pci_dev * pdev, const struct pci_dev
 		goto err1;
 	}
 	PDEBUG(debug_init, "net_init OK");
-	
+
 	if (card->state == 0)
 	{
 		ack_wait = 0x680;
@@ -506,7 +506,7 @@ static int __devinit mam17_probe_one(struct pci_dev * pdev, const struct pci_dev
 	flowmodify->dsl3_ts=HDLC_TC_LAYER;
 
 	mpi_cmd(card, CMD_TC_FlowModify, buf, sizeof(*flowmodify)/4, &ack);
-	
+
 	mdelay(10);
 
 	linkmodify=(struct cmd_hdlc_tc_link_linkmodify *)buf;
@@ -534,11 +534,11 @@ static int __devinit mam17_probe_one(struct pci_dev * pdev, const struct pci_dev
 	xmii_modify->altcollision=IFX_DISABLE;
 	xmii_modify->rxduringtx=IFX_DISABLE;
 	xmii_modify->collisiontype=IFX_DISABLE;
-	
+
 	mpi_cmd(card, CMD_xMII_Modify, buf, sizeof(*xmii_modify)/4, &ack);
 
 	mdelay(10);
-	
+
 	}
 
 	for (i = 0; i < card->if_num; i++)
@@ -570,7 +570,7 @@ static int __devinit mam17_probe_one(struct pci_dev * pdev, const struct pci_dev
 			return -1;
 		}
 		PDEBUG(debug_init, "mpair_master - OK");
-		
+
 //		int buf32[32];
 //		ack_t ack;
 //		buf32[0] = 0;
@@ -588,9 +588,9 @@ static int __devinit mam17_probe_one(struct pci_dev * pdev, const struct pci_dev
 
 //		buf32[0] = i;
 //		buf32[1] = IFX_ENABLE;
-	
+
 //		if (mpi_cmd(card, CMD_HDLC_TC_LinkCorruptPacketControl, buf32, 2, &ack)) return -1;
-		
+
 //	}
 */
 	schedule_delayed_work(&(card->work), 2*HZ);
@@ -609,7 +609,7 @@ void mam17_card_remove(struct mam17_card *card)
 	struct device_driver *dev_drv = (struct device_driver*)(dev_dev->driver);
 	unsigned long iomem_start = pci_resource_start(card->pdev, 0);
 	int i;
-	
+
 	for (i = 0; i < card->if_num; i++)
 	{
 		mam17_sysfs_remove(card->ndevs[i]);
@@ -653,7 +653,7 @@ int __devinit mam17_init (void)
 {
 	printk(KERN_NOTICE "Load "MAM17H_MODNAME" driver\n");
 	pci_register_driver(&mam17_driver);
-	return 0;	
+	return 0;
 }
 void __devexit mam17_exit (void)
 {

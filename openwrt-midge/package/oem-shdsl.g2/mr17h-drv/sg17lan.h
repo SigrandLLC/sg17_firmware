@@ -1,8 +1,8 @@
 /* sg17lan.h: Sigrand SG-17PCI SHDSL modem driver for linux (kernel 2.6.x)
  *
- *	Written 2006-2007 by Artem U. Polyakov <art@sigrand.ru>
+ *	Written 2006-2007 by Artem U. Polyakov <artpol84@gmail.com>
  *
- *	This driver presents SG-17PCI modem 
+ *	This driver presents SG-17PCI modem
  *	to system as common ethernet-like netcard.
  *
  */
@@ -17,7 +17,7 @@
 #include <linux/netdevice.h>
 #include "advlink.h"
 
-// Portability 
+// Portability
 #define iotype void*
 //#define IO_READ_WRITE
 #ifndef IO_READ_WRITE
@@ -37,10 +37,10 @@ struct sg17_card{
     u8 pwr_source;
 	char name[40];
 	atomic_t locked; // if some of cards interfaces are up
-	
+
 	// PCI card fields
 	struct pci_dev *pdev;
-	void *mem_base;	
+	void *mem_base;
 
 	struct sg17_sci sci;
 	struct sdfe4 hwdev;
@@ -51,7 +51,7 @@ struct sg17_card{
 
 #define TX_TIMEOUT      400
 struct sg17_hw_regs {
-	u8  CRA, CRB, SR, IMR, CTDR, LTDR, CRDR, LRDR, RATE, MXRATE, 
+	u8  CRA, CRB, SR, IMR, CTDR, LTDR, CRDR, LRDR, RATE, MXRATE,
 	    TFS, RFS, TLINE, RLINE, MXCR, PWRR;
 };
 
@@ -62,8 +62,8 @@ struct hdlc_config{
 	u8  rburst: 1;
 	u8  wburst: 1;
 };
-		    
-			
+
+
 struct net_local{
 	int number;
 	struct net_device_stats	stats;
@@ -72,7 +72,7 @@ struct net_local{
 	volatile struct sg17_hw_regs *regs;
 	// advanced link detection
 	struct advlink_t alink;
-	// transmit and reception queues 
+	// transmit and reception queues
 	struct sg_ring rx,tx;
 	struct sdfe4_if_cfg *shdsl_cfg;
 	struct hdlc_config hdlc_cfg;

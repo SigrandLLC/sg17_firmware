@@ -1,9 +1,9 @@
-/* 
+/*
  * ds2155_regs.h,v 1.00 2006/09/04
  *
  * Definitions of DS2155 chip registers for Sigrand E1 PCI
  * adapter driver.
- * Copyright (C) 2006, Artem U. Polyakov (art@sigrand.ru)
+ * Copyright (C) 2006, Artem U. Polyakov <artpol84@gmail.com>
  */
 
 #ifndef DS5125_REGS_H

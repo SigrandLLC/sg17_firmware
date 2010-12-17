@@ -5,8 +5,8 @@
  *      Definitions for SG-17PCI target device
  *
  * Authors:
- *      Artem Polyakov <art@sigrand.ru>
- *      Ivan Neskorodev <ivan@sigrand.ru>
+ *      Artem Polyakov <artpol84@gmail.com>
+ *      Ivan Neskorodev <ivan.neskorodev@gmail.com>
  */
 
 #ifndef SG17PCI_HW_H
@@ -86,7 +86,7 @@ struct sdfe4{
     struct sdfe4_if_cfg cfg[SG17_IF_MAX];
     void *data;
 };
-				
+
 
 #endif
 

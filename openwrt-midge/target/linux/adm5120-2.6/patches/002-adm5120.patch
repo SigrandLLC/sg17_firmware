@@ -7183,7 +7183,7 @@ Index: linux/drivers/mtd/nand/adm5120.c
 +#endif
 +*/
 +MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Artyom U. Plyakov <art@sigrand.ru");
++MODULE_AUTHOR("Artyom U. Plyakov <artpol84@gmail.com>");
 +MODULE_DESCRIPTION("Board-specific glue layer for NAND flash on ADM5120 board");
 Index: linux/drivers/mtd/nand/nand_base.c
 ===================================================================
@@ -11295,7 +11295,7 @@ Index: linux/drivers/net/sg16lan/sg16lan.c
 @@ -0,0 +1,2425 @@
 +/* sg16lan.c:  Sigrand SG-16PCI SHDSL modem driver for linux (kernel 2.6.x)
 + *
-+ *	Written 2005-2006 by Artem U. Polyakov (artpol@sigrand.ru)
++ *	Written 2005-2006 by Artem U. Polyakov <artpol84@gmail.com>
 + *
 + *	This driver presents SG-16PCI modem 
 + *	to system as common ethernet-like netcard.
@@ -11343,7 +11343,7 @@ Index: linux/drivers/net/sg16lan/sg16lan.c
 +#include <asm/tlbdebug.h>
 +
 +MODULE_DESCRIPTION( "Sigrand SG-16PCI driver Version 2.0\n" );
-+MODULE_AUTHOR( "Maintainer: Polyakov Artem artpol@sigrand.ru\n" );
++MODULE_AUTHOR( "Maintainer: Polyakov Artem <artpol84@gmail.com>\n" );
 +MODULE_LICENSE( "GPL" );
 +MODULE_VERSION("2.0");
 +

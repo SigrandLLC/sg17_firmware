@@ -5,8 +5,8 @@
  *      SDFE4 chipset description
  *
  * Authors:
- *      Artem Polyakov <art@sigrand.ru>
- *      Ivan Neskorodev <ivan@sigrand.ru>
+ *      Artem Polyakov <artpol84@gmail.com>
+ *      Ivan Neskorodev <ivan.neskorodev@gmail.com>
  */
 #ifndef SDFE4_LIB_H
 #define SDFE4_LIB_H
@@ -195,7 +195,7 @@
 #define  NFC_MULTIWIRE_PAIR_NR		0xB96F
 
 #define  SLIP_FAST                   0x00
-#define  SLIP_NORMAL4		     0x01	
+#define  SLIP_NORMAL4		     0x01
 #define	 SLIP_NORMAL8		     0x03
 #define  SDI_FALLING                 0x00
 #define  SDI_RISING                  0x01
@@ -234,7 +234,7 @@
 #define  SDI_INCLK_INSP_TDMMSP       0x05
 #define  SDI_TDMSP_TDMMSP            0x08
 #define  SDI_TDMCLK                  0x00
-#define  SDI_TDMCLK_TDMSP	     0x01	
+#define  SDI_TDMCLK_TDMSP	     0x01
 #define  SDI_TDMCLK_TDMMSP           0x02
 #define  SDI_TDMCLK_TDMSP_TDMMSP     0x03
 #define  SDI_DSL3                    0x09
@@ -272,7 +272,7 @@
 #define  FRAME_PLESIO                0x0
 #define  FRAME_SYNC                  0x1
 #define  OWN			     0x0
-#define  REMOTE			     0x1	
+#define  REMOTE			     0x1
 #define  TPS_TC_A		     0x66
 #define  TPS_TC_B		     0x68
 
@@ -482,7 +482,7 @@ struct cmd_ghs_cap_get {
 	u8 rsvd3;
 	u8 rsvd4;
 	u8 rsvd5;
-};	
+};
 
 struct ack_ghs_cap_get {
 	u8 ClType;
@@ -494,7 +494,7 @@ struct ack_ghs_cap_get {
 	u8 rsvd2;
 	u8 rsvd3;
 	u8 ClData[4];
-};	
+};
 
 u32 u8_to_u32(u8 *src);
 int sdfe4_msg_init(struct sdfe4_msg *msg, char *cmsg, int len);

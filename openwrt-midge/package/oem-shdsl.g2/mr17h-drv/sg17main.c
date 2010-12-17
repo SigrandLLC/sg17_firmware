@@ -2,18 +2,18 @@
  *
  *	Written 2006-2007 by Artem Y. Polyakov <artpol84@gmail.com>
  *
- *	This driver presents SG-17PCI modem 
+ *	This driver presents SG-17PCI modem
  *	to system as common ethernet-like netcard.
  *
  *	This software may be used and distributed according to the terms
  *	of the GNU General Public License.
  *
  *
- *	25.01.2007	Version 1.0 - Artem Y. Polyakov <art@sigrand.ru>
- *	23.01.2009	Version 1.1 - Artem Y. Polyakov <art@sigrand.ru>
+ *	25.01.2007	Version 1.0 - Artem Y. Polyakov <artpol84@gmail.com>
+ *	23.01.2009	Version 1.1 - Artem Y. Polyakov <artpol84@gmail.com>
  *		Fix AdvLink memory leack
  */
- 
+
 #define DRIVER_VERSION "1.1"
 
 #include <linux/init.h>
@@ -99,9 +99,9 @@ sg17_dsl_init( struct net_device *ndev)
 	PDEBUG(debug_netcard,"");
 	ether_setup(ndev);
 	ndev->init = sg17_probe;
-	ndev->uninit = sg17_uninit;    
+	ndev->uninit = sg17_uninit;
 }
-	
+
 static int __init
 sg17_probe( struct net_device  *ndev )
 {
@@ -117,21 +117,21 @@ sg17_probe( struct net_device  *ndev )
 	*(u16 *)ndev->dev_addr = htons( 0x00ff );
 	*(u32 *)(ndev->dev_addr + 2) = htonl( 0x01a39000 | ((u32)ndev->priv & 0x00000fff) );
 	PDEBUG(debug_netcard,"m2");
-	// Init net device handler functions 
+	// Init net device handler functions
 	ndev->open = sg17_open;
 	ndev->stop = sg17_close;
 	ndev->hard_start_xmit = sg17_start_xmit;
 	ndev->get_stats = sg17_get_stats;
-	ndev->change_mtu = sg17_change_mtu;	
+	ndev->change_mtu = sg17_change_mtu;
 	ndev->set_multicast_list = sg17_set_mcast_list;
 	ndev->tx_timeout = sg17_tx_timeout;
 	ndev->do_ioctl = sg17_ioctl;
 	ndev->watchdog_timeo = TX_TIMEOUT;
 	PDEBUG(debug_netcard,"m3");
-	// set network device private data 
+	// set network device private data
 	nl->regs = (struct sg17_hw_regs *) ((u8 *)ndev->mem_start + HDLC_REGS);
 	sg17_tranceiver_down(nl);
-	PDEBUG(debug_netcard,"m4");	
+	PDEBUG(debug_netcard,"m4");
 	// setup transmit and receive rings
 	nl->tx.hw_ring = (struct sg_hw_descr *) ((u8 *)ndev->mem_start + HDLC_TXBUFF);
 	nl->rx.hw_ring = (struct sg_hw_descr *) ((u8 *)ndev->mem_start + HDLC_RXBUFF);
@@ -151,13 +151,13 @@ sg17_probe( struct net_device  *ndev )
 	spin_lock_init( &nl->rx.lock );
 	spin_lock_init( &nl->lock );
 	PDEBUG(debug_netcard,"m5");
-	
+
 	// enable iface
 	iowrite8(XRST, &nl->regs->CRA);
 	//default HDLC X config
 	nl->hdlc_cfg.rburst = 0;
-	nl->hdlc_cfg.wburst = 0;	
-	
+	nl->hdlc_cfg.wburst = 0;
+
 	// net device interrupt register
 	PDEBUG(debug_netcard,"start registering irq");
 	if( (err = request_irq(ndev->irq, sg17_interrupt, SA_SHIRQ, ndev->name, ndev)) ){
@@ -166,7 +166,7 @@ sg17_probe( struct net_device  *ndev )
 		return err;
 	}
 	PDEBUG(debug_netcard,"request_irq - ok");
-	
+
 	printk( KERN_NOTICE "%s: "MR17H_MODNAME" SHDSL module (irq %d, mem %#lx)\n",
 			ndev->name, ndev->irq, ndev->mem_start );
 	SET_MODULE_OWNER( ndev );
@@ -189,19 +189,19 @@ sg17_interrupt( int  irq,  void  *dev_id,  struct pt_regs  *regs )
 	struct net_device *ndev = (struct net_device *) dev_id;
 	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);
 	u8 status;
-	u8 mask = ioread8(&(nl->regs->IMR));	
+	u8 mask = ioread8(&(nl->regs->IMR));
 
 	PDEBUG(debug_irq,"%s: mask=%02x",ndev->name,mask);
 	if( (ioread8(&(nl->regs->SR)) & mask ) == 0 )
 		return IRQ_NONE;
 
 	status = ioread8(&(nl->regs->SR));
-	iowrite8(status,&(nl->regs->SR));	
+	iowrite8(status,&(nl->regs->SR));
 	iowrite8( 0, &(nl->regs->IMR));
 	PDEBUG(debug_irq,"%s: status = %02x",ndev->name,status);
 
 	if( status & RXS ){
-		PDEBUG(debug_irq,"%s: RXS, CRA=%02x\n",ndev->name,nl->regs->CRA);	
+		PDEBUG(debug_irq,"%s: RXS, CRA=%02x\n",ndev->name,nl->regs->CRA);
 		recv_init_frames( ndev );
 		recv_alloc_buffs( ndev );
 	}
@@ -210,7 +210,7 @@ sg17_interrupt( int  irq,  void  *dev_id,  struct pt_regs  *regs )
 		xmit_free_buffs( ndev );
 	}
 	if( status & CRC ){
-	    PDEBUG(debug_irq,"%s: CRC, CRA=%02x\n",ndev->name,nl->regs->CRA);	
+	    PDEBUG(debug_irq,"%s: CRC, CRA=%02x\n",ndev->name,nl->regs->CRA);
 	    ++nl->stats.rx_errors;
 		++nl->stats.rx_crc_errors;
 	}
@@ -230,8 +230,8 @@ sg17_interrupt( int  irq,  void  *dev_id,  struct pt_regs  *regs )
 	    ++nl->stats.tx_fifo_errors;
 	}
 
-	iowrite8( mask,&(nl->regs->IMR));	
-	
+	iowrite8( mask,&(nl->regs->IMR));
+
 	return IRQ_HANDLED;
 }
 
@@ -239,17 +239,17 @@ sg17_interrupt( int  irq,  void  *dev_id,  struct pt_regs  *regs )
 static int
 sg17_open( struct net_device  *ndev )
 {
-	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);		
-    
-	// init descripts, allocate receiving buffers 
+	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);
+
+	// init descripts, allocate receiving buffers
 	nl->tx.head = nl->tx.tail = nl->rx.head = nl->rx.tail = 0;
 	nl->tx.FxDR = nl->rx.FxDR = 0;
 	iowrite8( 0, (nl->tx.CxDR));
-	iowrite8( 0, (nl->tx.LxDR));	
-	iowrite8( 0, (nl->rx.CxDR));	
-	iowrite8( 0, (nl->rx.LxDR));	
+	iowrite8( 0, (nl->tx.LxDR));
+	iowrite8( 0, (nl->rx.CxDR));
+	iowrite8( 0, (nl->rx.LxDR));
 	recv_alloc_buffs( ndev );
-	// enable receive/transmit functions 
+	// enable receive/transmit functions
 	sg17_tranceiver_up(nl);
 	netif_wake_queue( ndev );
 	return 0;
@@ -263,8 +263,8 @@ sg17_close(struct net_device  *ndev)
 	// disable receive/transmit functions
 	iowrite8( XRST ,&(nl->regs->CRA));
 	netif_tx_disable(ndev);
-	
-	// drop receive/transmit queries 
+
+	// drop receive/transmit queries
 	PDEBUG(debug_xmit,"RX: head=%d,tail=%d\nTX: head=%d, tail=%d",
 		   nl->rx.head,nl->rx.tail, nl->tx.head,nl->tx.tail );
 	recv_free_buffs( ndev );
@@ -300,7 +300,7 @@ sg17_change_mtu(struct net_device *ndev, int new_mtu)
 static void
 sg17_set_mcast_list( struct net_device  *ndev )
 {
-	return;		// SG-17PCI always operate in promiscuos mode 
+	return;		// SG-17PCI always operate in promiscuos mode
 }
 
 static int
@@ -341,13 +341,13 @@ sg17_link_up(struct sg17_sci *s, int if_num)
 	usermode_link_event(ndev,1);
 	// Cnfigure hardware
 	nl->regs->RATE = (nl->shdsl_cfg->rate/64)-1;
-	PDEBUG(debug_link,"rate = %d, RATE=%d",nl->shdsl_cfg->rate,nl->regs->RATE);	
+	PDEBUG(debug_link,"rate = %d, RATE=%d",nl->shdsl_cfg->rate,nl->regs->RATE);
 	iowrite8( 0xff, &nl->regs->SR );
 	iowrite8( (ioread8( &nl->regs->CRB )&(~(RXDE|LED1|LED2)) ), &nl->regs->CRB );
 	iowrite8( (UFL|CRC|OFL|RXS|TXS), &nl->regs->IMR );
 }
 
-void 
+void
 sg17_link_down(struct sg17_sci *s, int if_num)
 {
 	struct sg17_card *card = container_of(s,struct sg17_card,sci);
@@ -357,13 +357,13 @@ sg17_link_down(struct sg17_sci *s, int if_num)
 
 	PDEBUG(debug_link,"");
 	// Configure hardware
-	tmp &= ~(LED1 | LED2); 
+	tmp &= ~(LED1 | LED2);
 	iowrite8(tmp,&(nl->regs->CRB) );
 	iowrite8( 0, &nl->regs->IMR );
 	// Link DOWN handlers
 	advlink_hwstatus(&nl->alink,ADVLINK_DOWN);
 	usermode_link_event(ndev,0);
-	PDEBUG(debug_link,"end");	
+	PDEBUG(debug_link,"end");
 }
 
 void
@@ -402,14 +402,14 @@ sg17_clock_setup(struct sg17_sci *s, int if_num)
 // EXTC=1 for Slave in ALL clock modes independent of link state
 // REFE=1 for Master in "Plesiochronous with Timing Reference" clock mode
 	if( cfg->mode == STU_R ){ // Slave
-		iowrite8( ((ioread8( &nl->regs->CRB ) & ~REFE) | EXTC ), &nl->regs->CRB );			
+		iowrite8( ((ioread8( &nl->regs->CRB ) & ~REFE) | EXTC ), &nl->regs->CRB );
 	}else{ // Master
 		iowrite8( (ioread8( &nl->regs->CRB ) & ~EXTC ), &nl->regs->CRB );
 		if( cfg->clkmode == 2){
 			iowrite8( (ioread8( &nl->regs->CRB ) | REFE ), &nl->regs->CRB );
-		}else{	
+		}else{
 			iowrite8( (ioread8( &nl->regs->CRB ) & ~REFE ), &nl->regs->CRB );
- 		}	
+ 		}
 	}
 }
 
@@ -418,11 +418,11 @@ sg17_link_support(struct sg17_sci *s)
 {
 	struct sg17_card *card = container_of(s,struct sg17_card,sci);
 	struct net_device *ndev;
-	struct net_local *nl;	
+	struct net_local *nl;
 	struct sk_buff *skb;
 	u32 alink_msg[ADVLINK_MSIZE32];
 	int lstate,i,k;
-	
+
 	PDEBUG(debug_link,"start");
 	for( i=0;i<card->if_num;i++){
 		ndev = card->ndevs[i];
@@ -479,7 +479,7 @@ usermode_link_event(struct net_device *ndev,int link_up)
 	argv[2] = lstate;
 	envp[0] = "HOME=/";
 	envp[1] = "PATH=/sbin:/bin:/usr/sbin:/usr/bin";
-	//	printk("Start usermode helper\n");		
+	//	printk("Start usermode helper\n");
 	return call_usermodehelper(argv[0],argv,envp,1);
 }
 
@@ -487,7 +487,7 @@ usermode_link_event(struct net_device *ndev,int link_up)
 
 
 /* --------------------------------------------------------------------------
- *   Functions, serving transmit-receive process   
+ *   Functions, serving transmit-receive process
  * -------------------------------------------------------------------------- */
 
 // --------------------- DEBUG ---------------------------- //
@@ -521,9 +521,9 @@ time_stamp2(struct timeval *tv, struct sg17_statistic *s){
 int
 check_skb_free( struct sk_buff *skb, struct net_device *ndev )
 {
-	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);		
+	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);
 	int i;
-	
+
 	for( i=0; i< SW_RING_LEN;i++){
 		if( skb == nl->tx.sw_ring[i] )
 			return 1;
@@ -536,7 +536,7 @@ check_skb_free( struct sk_buff *skb, struct net_device *ndev )
 static int
 sg17_start_xmit( struct sk_buff *skb, struct net_device *ndev )
 {
-	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);	
+	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);
 	unsigned pad;
 	unsigned long flags;
 
@@ -546,18 +546,18 @@ sg17_start_xmit( struct sk_buff *skb, struct net_device *ndev )
 		dev_kfree_skb_any( skb );
 		return 0;
 	}
-	
+
 	if( skb->len < ETH_ZLEN ){
 		pad = ETH_ZLEN - skb->len;
-		skb = skb_pad(skb,pad);		
+		skb = skb_pad(skb,pad);
 		if( !skb ){
 			printk(KERN_NOTICE"%s: no mem for skb",__FUNCTION__);
 			return 0;
 		}
 		skb->len = ETH_ZLEN;
 	}else if( skb->len > ETHER_MAX_LEN ){
-		PDEBUG(0,"too big packet!!!");	
-		dev_kfree_skb_any( skb );		
+		PDEBUG(0,"too big packet!!!");
+		dev_kfree_skb_any( skb );
 		return 0;
 	}
 
@@ -578,7 +578,7 @@ sg17_start_xmit( struct sk_buff *skb, struct net_device *ndev )
 static int
 sg17_start_xmit_link( struct sk_buff *skb, struct net_device *ndev )
 {
-	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);	
+	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);
 	unsigned long flags;
 
 	PDEBUG(debug_link,"start, skb->len=%d, sci:CRA=%02x, ndev:CRA=%02x",
@@ -605,16 +605,16 @@ xmit_free_buffs( struct net_device *ndev )
 	struct sk_buff *skb;
 	int len;
 
-	//	PDEBUG(debug_xmit,"start");	
+	//	PDEBUG(debug_xmit,"start");
 	while( (skb=sg_ring_del_skb(&nl->tx,&len)) != NULL ){
 		dev_kfree_skb_any( skb );
 	}
 	if( netif_queue_stopped( ndev )  &&  sg_ring_have_space(&nl->tx) ){
-		//		PDEBUG(debug_xmit,"enable xmit queue");		
+		//		PDEBUG(debug_xmit,"enable xmit queue");
 		netif_wake_queue( ndev );
 	}
-	//	PDEBUG(debug_xmit,"end");			
-	
+	//	PDEBUG(debug_xmit,"end");
+
 }
 
 //---------------receive-----------------------------------------
@@ -622,11 +622,11 @@ xmit_free_buffs( struct net_device *ndev )
 static void
 recv_init_frames( struct net_device *ndev )
 {
-	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);		
+	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);
 	struct sk_buff  *skb;
 	unsigned  len=0;
 
-	PDEBUG(debug_recv,"start");		
+	PDEBUG(debug_recv,"start");
 	while( (skb = sg_ring_del_skb(&nl->rx,&len)) != NULL ) {
 		if( advlink_enabled(&nl->alink) &&
 		    (len == ADVLINK_MSIZE8) ){
@@ -651,12 +651,12 @@ recv_init_frames( struct net_device *ndev )
 static int
 recv_alloc_buffs( struct net_device *ndev )
 {
-	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);		
+	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);
 	struct sk_buff  *skb;
 
-	//	PDEBUG(debug_recv,"start");		    
+	//	PDEBUG(debug_recv,"start");
 	while( sg_ring_have_space(&nl->rx) ){
-		//		PDEBUG(debug_recv,"alloc new skb");		
+		//		PDEBUG(debug_recv,"alloc new skb");
 		skb = dev_alloc_skb(ETHER_MAX_LEN + IP_ALIGN);
 		if( !skb )
 			return -ENOMEM;
@@ -664,41 +664,41 @@ recv_alloc_buffs( struct net_device *ndev )
 		skb_reserve( skb, 2 );	// align ip on longword boundaries
 		// get dma able address & save skb
 		if( sg_ring_add_skb(&nl->rx,skb) ){
-			//			PDEBUG(0,"dev_kfree_skb_any(%p)",skb);			
+			//			PDEBUG(0,"dev_kfree_skb_any(%p)",skb);
 			dev_kfree_skb_any( skb );
 			return -1;
 		}
 	}
-	//	PDEBUG(debug_recv,"end");			
+	//	PDEBUG(debug_recv,"end");
 	return 0;
 }
 
 static void
 recv_free_buffs( struct net_device *ndev)
 {
-	struct net_local *nl=(struct net_local *)netdev_priv(ndev);		
+	struct net_local *nl=(struct net_local *)netdev_priv(ndev);
 	struct sk_buff  *skb;
 	int len;
-	PDEBUG(debug_recv,"start");		    
-	while( (skb = sg_ring_del_skb(&nl->rx,&len)) != NULL ) {	
+	PDEBUG(debug_recv,"start");
+	while( (skb = sg_ring_del_skb(&nl->rx,&len)) != NULL ) {
 		dev_kfree_skb_any( skb );
 	}
-	PDEBUG(debug_recv,"end");			
+	PDEBUG(debug_recv,"end");
 	return;
 }
 
 static void
 sg17_tx_timeout( struct net_device  *ndev )
 {
-	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);		
+	struct net_local  *nl  = (struct net_local *)netdev_priv(ndev);
 	u8 tmp;
 
 	tmp=ioread8(&(nl->regs->IMR));
-	iowrite8( 0,&(nl->regs->IMR));	    
+	iowrite8( 0,&(nl->regs->IMR));
 	udelay(1);
 	if( netif_carrier_ok(ndev) )
 		iowrite8((ioread8(&nl->regs->CRA)|TXEN),&nl->regs->CRA);
-	iowrite8( tmp,&(nl->regs->IMR));		
+	iowrite8( tmp,&(nl->regs->IMR));
 	PDEBUG(0,"%s: transmit timeout\n", ndev->name );
 	if( ioread8( &(nl->regs->SR)) & TXS ){
 		PDEBUG(0,"%s: interrupt posted but not delivered\n",
@@ -710,7 +710,7 @@ sg17_tx_timeout( struct net_device  *ndev )
 static void
 sg17_tranceiver_down(struct net_local *nl)
 {
-	iowrite8( 0, &( nl->regs->CRA));    
+	iowrite8( 0, &( nl->regs->CRA));
 	iowrite8( RXDE , &( nl->regs->CRB));
 	iowrite8( 0, &( nl->regs->IMR));
 	iowrite8( 0xff, &( nl->regs->SR));
@@ -738,11 +738,11 @@ sg17_tranceiver_up( struct net_local *nl)
 	iowrite8(cfg_byte,&(nl->regs->CRB));
 }
 
- 
+
 /* --------------------------------------------------------------------------
  *      Card related functions
  * -------------------------------------------------------------------------- */
- 
+
 //#define DEBUG_SYSFS
 #ifdef DEBUG_SYSFS
 
@@ -757,7 +757,7 @@ sg17_tranceiver_up( struct net_local *nl)
 
 static ssize_t
 show_sci_regs( struct device *dev, ADDIT_ATTR char *buf )
-{                                                                       
+{
 	struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( dev );
 	struct sg17_sci *s = (struct sg17_sci *)&card->sci;
 
@@ -786,13 +786,13 @@ static DEVICE_ATTR(regs,0644,show_sci_regs,store_sci_regs);
 
 static ssize_t
 show_trvr_stat( struct device *dev, ADDIT_ATTR char *buf )
-{                                                                       
+{
 	return snprintf(buf,PAGE_SIZE,"xmit_start(sec.%u usec.%u avg.%u)\n"
 					"xmit_free(sec.%u usec.%u avg.%u)\n"
 					"recv_init(sec.%u usec.%u avg.%u)\n"
 					"recv_alloc(sec.%u usec.%u avg.%u)\n",
 					xmit_start.sec,xmit_start.usec,xmit_start.avg,
-					xmit_free.sec,xmit_free.usec,xmit_free.avg,					
+					xmit_free.sec,xmit_free.usec,xmit_free.avg,
 					recv_init.sec,recv_init.usec,recv_init.avg,
 					recv_alloc.sec,recv_alloc.usec,recv_alloc.avg);
 }
@@ -804,7 +804,7 @@ store_trvr_stat( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 		memset(&xmit_free,0,sizeof(struct sg17_statistic));
 		memset(&recv_init,0,sizeof(struct sg17_statistic));
 		memset(&recv_alloc,0,sizeof(struct sg17_statistic));
-	}	
+	}
 	return size;
 }
 static DEVICE_ATTR(trvr_stat,0644,show_trvr_stat,store_trvr_stat);
@@ -813,7 +813,7 @@ static DEVICE_ATTR(trvr_stat,0644,show_trvr_stat,store_trvr_stat);
 static u32 win_start=0,win_count=0;
 static ssize_t
 show_winread( struct device *dev, ADDIT_ATTR char *buf )
-{                               
+{
 	struct sg17_card  *card = (struct sg17_card  *)dev_get_drvdata( dev );
 	char *win = (char*)card->mem_base + win_start;
 	int len = 0,i;
@@ -831,12 +831,12 @@ store_winread( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 	char *endp;
 	if( !size ) return 0;
 	win_start = simple_strtoul(buf,&endp,16);
-	PDEBUG(40,"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);	
+	PDEBUG(40,"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);
 	while( *endp == ' '){
 		endp++;
 	}
 	win_count = simple_strtoul(endp,&endp,16);
-	PDEBUG(40,"buf=%p, endp=%p",buf,endp);		
+	PDEBUG(40,"buf=%p, endp=%p",buf,endp);
 	PDEBUG(40,"Set start=%d,count=%d",win_start,win_count);
 	if( !win_count )
 		win_count = 1;
@@ -848,7 +848,7 @@ store_winread( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 			win_count = 1;
 		}
 	}
-	PDEBUG(40,"Set start=%d,count=%d",win_start,win_count);	
+	PDEBUG(40,"Set start=%d,count=%d",win_start,win_count);
 	return size;
 }
 static DEVICE_ATTR(winread,0644,show_winread,store_winread);
@@ -856,7 +856,7 @@ static DEVICE_ATTR(winread,0644,show_winread,store_winread);
 static u32 win_written = 0;
 static ssize_t
 show_winwrite( struct device *dev, ADDIT_ATTR char *buf )
-{                               
+{
 	return sprintf(buf,"Byte %x is written",win_written);
 }
 
@@ -869,12 +869,12 @@ store_winwrite( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 	char *endp;
 	if( !size ) return 0;
 	start = simple_strtoul(buf,&endp,16);
-	PDEBUG(40,"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);	
+	PDEBUG(40,"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);
 	while( *endp == ' '){
 		endp++;
 	}
 	val = simple_strtoul(endp,&endp,16);
-	PDEBUG(40,"buf=%p, endp=%p",buf,endp);		
+	PDEBUG(40,"buf=%p, endp=%p",buf,endp);
 	PDEBUG(40,"Set start=%d,val=%d",start,val);
 	if( start > SG17_OIMEM_SIZE ){
 		start = 0;
@@ -897,7 +897,7 @@ store_eocdbg( struct device *dev, ADDIT_ATTR const char *buf, size_t size )
 	} else {
 		debug_sci = 40;
 		debug_eoc = 40;
-	}	
+	}
 	return size;
 }
 static DEVICE_ATTR(eocdbg,0600,NULL,store_eocdbg);
@@ -919,7 +919,7 @@ sg17_sci_sysfs_remove(struct device *dev){
 	device_remove_file(dev,&dev_attr_trvr_stat);
 	device_remove_file(dev,&dev_attr_winread);
 	device_remove_file(dev,&dev_attr_winwrite);
-	device_remove_file(dev,&dev_attr_eocdbg);	
+	device_remove_file(dev,&dev_attr_eocdbg);
 }
 
 #else
@@ -930,15 +930,15 @@ inline void
 sg17_sci_sysfs_remove(struct device *dev){ }
 
 #endif // DEBUG_SYSFS
- 
- 
- 
+
+
+
 static int
 sg17_def_config(struct sg17_card *card)
 {
 	struct sdfe4 *hwdev = &(card->hwdev);
 	struct sdfe4_if_cfg *cfg_ch0=&(hwdev->cfg[0]);
-	struct sdfe4_if_cfg *cfg_ch3=&(hwdev->cfg[3]); 	
+	struct sdfe4_if_cfg *cfg_ch3=&(hwdev->cfg[3]);
 
 	// save module type
 	sdfe4_chipset_type type= hwdev->type;
@@ -946,11 +946,11 @@ sg17_def_config(struct sg17_card *card)
 	hwdev->type = type;
 	hwdev->data = (void*)&card->sci;
 
-	hwdev->msg_cntr = 0;		
+	hwdev->msg_cntr = 0;
 	PDEBUG(debug_init,"hwdev->data = %08x",(u32)hwdev->data);
 
 	//---- config SDFE channel 0 ------------------
-    
+
     // If this is 2 channel device
    	hwdev->ch[0].enabled = 1;
     // ( STU_C | STU_R )
@@ -976,13 +976,13 @@ sg17_def_config(struct sg17_card *card)
     // ( SDI_NO_LOOP | SDI_REMOTE_LOOP )
 	cfg_ch0->loop = SDI_NO_LOOP;
     // Multiplexing related
- 
+
     if( card->if_num == 1 ){
         // We have only one channel, cancel def config
         return 0;
     }
 
-				
+
 	//---- config SDFE channel 3 -----------------
 	hwdev->ch[3].enabled = 1;
 	// (STU_C | STU_R)
@@ -1008,7 +1008,7 @@ sg17_def_config(struct sg17_card *card)
 	// ( SDI_NO_LOOP | SDI_REMOTE_LOOP )
 	cfg_ch3->loop = SDI_NO_LOOP;
 	// Multiplexing related
-		
+
 	return 0;
 }
 
@@ -1019,11 +1019,11 @@ sg17_init_card( struct sg17_card *card )
 	unsigned long iomem_end = pci_resource_end( card->pdev, 1 );
 	struct sdfe4 *hwdev = &(card->hwdev);
 	struct sg17_sci *sci = &card->sci;
-	int error = 0;	
-	
+	int error = 0;
+
 	// DEBUG //
 	SCI =  &card->sci;
-	// DEBUG //	
+	// DEBUG //
 
 	PDEBUG(debug_init,"");
 	// Determine version of device
@@ -1036,14 +1036,14 @@ sg17_init_card( struct sg17_card *card )
 	// set card name
 	sprintf(card->name,"sg17card%d",card->number);
 	// IOmem
-	PDEBUG(debug_init,"IOmem, size=%x, ideal=%x",(u32)(iomem_end-iomem_start),(u32)SG17_OIMEM_SIZE);	
+	PDEBUG(debug_init,"IOmem, size=%x, ideal=%x",(u32)(iomem_end-iomem_start),(u32)SG17_OIMEM_SIZE);
 	if( (iomem_end - iomem_start) != (SG17_OIMEM_SIZE - 1) )
 		return -ENODEV;
 	PDEBUG(debug_init,"strt request_mem_region ");
 	if( !request_mem_region( iomem_start,SG17_OIMEM_SIZE, card->name ) )
 		return  -ENODEV;
 	PDEBUG(debug_init,"request_mem_region - ok");
-	card->mem_base = (void *) ioremap( iomem_start, SG17_OIMEM_SIZE );	
+	card->mem_base = (void *) ioremap( iomem_start, SG17_OIMEM_SIZE );
 	// determine if number & power feeding presence
 //    prinkt(KERN_INFO,"SUBSYS_ID=%04x\n",card->pdev->subsystem_device);
     switch(card->pdev->subsystem_device){
@@ -1072,7 +1072,7 @@ sg17_init_card( struct sg17_card *card )
 	// setup SCI
 	sci->mem_base = card->mem_base + SG17_SCI_MEMOFFS;
 	sci->irq = card->pdev->irq;
-	PDEBUG(debug_init,"sg17_sci_init");	
+	PDEBUG(debug_init,"sg17_sci_init");
 	if ( sg17_sci_init( sci,card->name,hwdev) ){
 		error = -ENODEV;
 		goto err_release_mem;
@@ -1080,7 +1080,7 @@ sg17_init_card( struct sg17_card *card )
 	sg17_sci_sysfs_register(&(card->pdev->dev));
 	return 0;
  err_release_mem:
-	release_mem_region( iomem_start, SG17_OIMEM_SIZE );	
+	release_mem_region( iomem_start, SG17_OIMEM_SIZE );
 	PDEBUG(debug_init,"err_release_mem");
 	return error;
 }
@@ -1105,7 +1105,7 @@ sg17_enable_card( struct sg17_card *card )
 		strncpy(fwname,MR17H_DRVNAME"_v2.bin",256);
 		break;
 	}
-		
+
 	PDEBUG(debug_error,"Request %s file,type=%d",fwname,hwdev->type);
 	if( (ret = request_firmware((const struct firmware **)&fw,fwname,&(card->pdev->dev))) ){
 		printk(KERN_NOTICE"firmware file not found\n");
@@ -1132,14 +1132,14 @@ sg17_enable_card( struct sg17_card *card )
 	}
 	release_firmware(fw);
 
-	// Check for successfull firmware load	
+	// Check for successfull firmware load
 	if( i ==3 ){
 		printk(KERN_NOTICE MR17H_MODNAME ": Cannot download firmware for PCI device=%02x:%02x.%d\n",
 				card->pdev->bus->number,PCI_SLOT(card->pdev->devfn),PCI_FUNC(card->pdev->devfn));
 		sg17_sci_disable(sci);
-		return -ENODEV;	
+		return -ENODEV;
 	}
-	PDEBUG(debug_init,"success");		
+	PDEBUG(debug_init,"success");
 	return 0;
 }
 
@@ -1151,10 +1151,10 @@ sg17_disable_card( struct sg17_card *card )
 	PDEBUG(debug_init,"");
 	sg17_sci_disable(&card->sci);
 	// Free EOC data structures
-	PDEBUG(debug_eoc,"EIC: remove sctructures\n");	
+	PDEBUG(debug_eoc,"EIC: remove sctructures\n");
 	eoc_free(hwdev->ch[3].eoc);
 	eoc_free(hwdev->ch[0].eoc);
-	PDEBUG(debug_init,"success");		
+	PDEBUG(debug_init,"success");
 }
 
 
@@ -1165,16 +1165,16 @@ sg17_remove_card( struct sg17_card *card )
 	PDEBUG(debug_init,"");
 	sg17_sci_sysfs_remove(&(card->pdev->dev));
 	sg17_sci_remove( &card->sci );
-	release_mem_region( iomem_start, SG17_OIMEM_SIZE );	
-	PDEBUG(debug_init,"success");			
+	release_mem_region( iomem_start, SG17_OIMEM_SIZE );
+	PDEBUG(debug_init,"success");
 }
 
 
 /*
  * SG-17PCI PCI device structure & functions
  */
-int card_number = 0; 
- 
+int card_number = 0;
+
 static struct pci_device_id  sg17_pci_tbl[] __devinitdata = {
 { PCI_DEVICE(SG17_PCI_VENDOR,SG17_PCI_DEVICE) },
 { PCI_DEVICE(SG17v2_PCI_VENDOR,SG17v2_PCI_DEVICE) },
@@ -1188,7 +1188,7 @@ static struct pci_driver  sg17_driver = {
  remove:         sg17_remove_one,
  id_table:       sg17_pci_tbl
 };
-				
+
 static int __devinit
 sg17_probe_one(struct pci_dev *pdev, const struct pci_device_id *dev_id)
 {
@@ -1199,8 +1199,8 @@ sg17_probe_one(struct pci_dev *pdev, const struct pci_device_id *dev_id)
 	struct net_local *nl;
 	int if_processed,i,ch_num;
 	int ret;
-	
-	
+
+
 	PDEBUG(debug_init,"New device");
 	// Setup PCI card configuration
 	if( pci_enable_device( pdev ) )
@@ -1212,7 +1212,7 @@ sg17_probe_one(struct pci_dev *pdev, const struct pci_device_id *dev_id)
 	pci_set_drvdata(pdev, card);
 	card->number = card_number++;
 	card->pdev = pdev;
-	
+
 	// setup SCI HDLC controller
 	PDEBUG(debug_init,"sg17_init_card");
 	if( (ret = sg17_init_card(card)) ){
@@ -1223,7 +1223,7 @@ sg17_probe_one(struct pci_dev *pdev, const struct pci_device_id *dev_id)
 	// setup network interfaces
 	PDEBUG(debug_netcard,"network ifs init");
 	for(if_processed=0; if_processed < card->if_num; if_processed++){
-		// allocate network device 
+		// allocate network device
 		if( !( ndev = alloc_netdev( sizeof(struct net_local),"dsl%d",sg17_dsl_init)) ){
 			printk(KERN_NOTICE"error while alloc_netdev #%d\n",if_processed);
 			goto exit_unreg_ifs;
@@ -1241,8 +1241,8 @@ sg17_probe_one(struct pci_dev *pdev, const struct pci_device_id *dev_id)
 		nl->number = if_processed;
 		if( (ch_num = sg17_sci_if2ch(&card->sci,if_processed)) < 0 ){
 			PDEBUG(debug_error,"error(%d) in sg17_sci_if2ch",ch_num);
-			free_netdev( ndev );			
-			goto exit_unreg_ifs;			
+			free_netdev( ndev );
+			goto exit_unreg_ifs;
 		}
 		nl->shdsl_cfg = &(card->hwdev.cfg[ch_num]);
 		// network interface registration
@@ -1275,11 +1275,11 @@ sg17_probe_one(struct pci_dev *pdev, const struct pci_device_id *dev_id)
  exit_unreg_ifs:
 	PDEBUG(debug_error,"Error, if_pocessed = %d",if_processed);
 	for(i=0;i<if_processed;i++){
-		sysfs_remove_link(&(dev_drv->kobj),ndev->name);	
+		sysfs_remove_link(&(dev_drv->kobj),ndev->name);
 		unregister_netdev(card->ndevs[i]);
 		free_netdev(card->ndevs[i]);
 	}
-	sg17_remove_card(card);	
+	sg17_remove_card(card);
 	PDEBUG(debug_error,"kfree CARD");
 	kfree( card );
 	pci_disable_device( pdev );
@@ -1301,15 +1301,15 @@ sg17_remove_one(struct pci_dev *pdev)
 		for(i=0;i<card->if_num;i++){
 			PDEBUG(debug_init,"unreg %s",card->ndevs[i]->name);
 
-			// Remove symlink on device from driver /sys/bus/pci/drivers/mr17h dir in sysfs 
+			// Remove symlink on device from driver /sys/bus/pci/drivers/mr17h dir in sysfs
 			sysfs_remove_link(&(dev_drv->kobj),card->ndevs[i]->name);
-			// Remove device options driver /sys/class/net dir in sysfs 
+			// Remove device options driver /sys/class/net dir in sysfs
 			sg17_sysfs_remove(card->ndevs[i]);
 			unregister_netdev(card->ndevs[i]);
 			free_netdev(card->ndevs[i]);
-			PDEBUG(debug_init,"unreg %s: OK",card->ndevs[i]->name);			
+			PDEBUG(debug_init,"unreg %s: OK",card->ndevs[i]->name);
 		}
-		sg17_disable_card( card );		
+		sg17_disable_card( card );
 		sg17_remove_card( card );
 		kfree( card );
 	}
@@ -1329,7 +1329,7 @@ sg17_init( void ){
 //	debug_error = error_output;
 #endif
 	int i = pci_register_driver( &sg17_driver );
-	printk(KERN_NOTICE"Load "MR17H_MODNAME" driver\n");	
+	printk(KERN_NOTICE"Load "MR17H_MODNAME" driver\n");
 	PDEBUG(10,"return = %d",i);
 	return 0;
 }

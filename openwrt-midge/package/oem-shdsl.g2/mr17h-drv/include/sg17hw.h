@@ -5,10 +5,10 @@
  *	Target device lowlevel interface
  *
  * Authors:
- *      Artem Polyakov <art@sigrand.ru>
- *      Ivan Neskorodev <ivan@sigrand.ru>
+ *      Artem Polyakov <artpol84@gmail.com>
+ *      Ivan Neskorodev <ivan.neskorodev@gmail.com>
  */
-       
+
 #ifndef SG17HW_H
 #define SG17HW_H
 
@@ -18,6 +18,6 @@
 #include "sg17hw_pci.h"
 #endif
 /* REPEATER !!!!!!!!!!!!!!*/
-																							
+
 #endif
 

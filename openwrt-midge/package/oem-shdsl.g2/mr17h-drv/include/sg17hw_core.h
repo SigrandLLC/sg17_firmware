@@ -5,8 +5,8 @@
  *      Universal target device definitions
  *
  * Authors:
- *      Artem Polyakov <art@sigrand.ru>
- *      Ivan Neskorodev <ivan@sigrand.ru>
+ *      Artem Polyakov <artpol84@gmail.com>
+ *      Ivan Neskorodev <ivan.neskorodev@gmail.com>
  */
 
 #ifndef SG17HW_CORE_H
@@ -27,10 +27,10 @@ struct sdfe4_channel{
 	u8 perf_prims;
 	u8 eoc_rx_msg[EOC_MSG_MAX_LEN];
 };
-		
+
 #define PWRBO_NORMAL 0
 #define PWRBO_FORCED 1
-									
+
 #define TCPAM4		1
 #define TCPAM8		2
 #define TCPAM16		3
@@ -71,11 +71,11 @@ struct sdfe4_stat {
 	u8 CounterOverflowInd;
 	u8 CounterResetInd;
 };
-						
+
 typedef enum {SDFE4v1,SDFE4v2} sdfe4_chipset_type;
 #define SDFE4v1_MAX_RATE 5696
 #define SDFE4v2_MAX_RATE 14144
-																	
+
 #define SG17_IF_MAX     4
 
 #endif

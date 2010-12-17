@@ -2515,7 +2515,7 @@ diff -Naur linux-2.6.16/drivers/mtd/nand/adm5120.c linux-2.6.16-new/drivers/mtd/
 +#endif
 +*/
 +MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Artyom U. Polyakov <art@sigrand.ru");
++MODULE_AUTHOR("Artyom U. Polyakov <artpol84@gmail.com>");
 diff -Naur linux-2.6.16/drivers/mtd/nand/adm5120.h linux-2.6.16-new/drivers/mtd/nand/adm5120.h
 --- linux-2.6.16/drivers/mtd/nand/adm5120.h	1970-01-01 07:00:00.000000000 +0700
 +++ linux-2.6.16-new/drivers/mtd/nand/adm5120.h	2008-04-20 11:08:11.000000000 +0700
