@@ -573,6 +573,7 @@ static ssize_t store_statistics( struct class_device *cdev,const char *buf, size
 	struct mam17_card *card = nl->card;
 	struct statistics stat;
 	struct statistics_all *stat_all=&nl->stat;
+	struct channel *chan = (struct channel *)nl->chan_cfg;
 
 	if (!size) return 0;
 
@@ -584,6 +585,10 @@ static ssize_t store_statistics( struct class_device *cdev,const char *buf, size
 		stat_all->crc_anom_old = stat.CRC_Anomaly_count;
 		stat_all->losws_old = stat.LOSWS_count;
 		stat_all->uas_old = stat.UAS_Count;
+		// reset time counters
+		chan->uptime_all.tv_sec = 0;
+		jiffies_to_timeval((unsigned long)jiffies, &(chan->uptime));
+		jiffies_to_timeval((unsigned long)jiffies, &(chan->downtime_all));
 	}
 	return size;	
 }

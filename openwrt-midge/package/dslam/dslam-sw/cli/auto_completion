@@ -1,0 +1,118 @@
+#!/bin/sh
+
+general_cmds="reboot default info help cd quit save"
+root_cmds="port system services network"
+system_cmds="show date time ntp timezone name location uptime"
+network_cmds="show dhcp address netmask gateway mac"
+port_cmds="dsl ge fe"
+port_dsl_cmds="stat rate tcpam annex on off master slave restart pbo-normal pbo-forced power"
+port_ge_cmds="stat rate duplex flow auto on off"
+port_fe_cmds="stat rate duplex flow auto on off"
+services_cmds="link_aggregation save mirroring vlan cos"
+link_aggregation_cmds="show group"
+link_aggregation_group_cmds="algorithm joined show"
+mirroring_cmds="show group0 group1"
+mirroring_group_cmds="show algorithm source dest enable disable"
+vlan_cmds="show create delete vid"
+cos_cmds="fifo strict wrr flow_delay show vlan_cos port_cos ip_cos tcp_cos bandwidth_control"
+bandwidth_control_cmds=""
+tab=0
+
+auto_completion() {
+	case "$prompt" in
+		":")
+			acmds="$root_cmds"
+		;;
+		":system")
+			acmds="$system_cmds"
+		;;
+		":network")
+			acmds="$network_cmds"
+		;;
+		":port")
+			if [ "$port" != "" ]; then
+				case "$port_type" in
+					"dsl")
+						acmds="$port_dsl_cmds"
+					;;
+					"ge")
+						acmds="$port_ge_cmds"
+					;;
+					"fe")
+						acmds="$port_fe_cmds"
+					;;
+				esac
+			else
+				acmds="$port_cmds"
+			fi
+		;;
+		":services")
+			acmds="$services_cmds"
+		;;
+		":services:link_aggregation")
+			if [ "$group" != "" ]; then
+				acmds="$link_aggregation_group_cmds"
+			else
+				acmds="$link_aggregation_cmds"
+			fi
+		;;
+		":services:mirroring")
+			if [ "$group" != "" ]; then
+				acmds="$mirroring_group_cmds"
+			else
+				acmds="$mirroring_cmds"
+			fi
+		;;
+		":services:vlan")
+			acmds="$vlan_cmds"
+		;;
+		":services:cos")
+			acmds="$cos_cmds"
+		;;
+		":services:cos:bandwidth_control")
+			acmds="$bandwidth_control_cmds"
+		;;
+	esac
+	acmds="$general_cmds $acmds"
+	if [ "$1" != "" ]; then
+		cmd=$1
+		cmd=`echo -e "$cmd" | tr 'A-Z' 'a-z'`
+		if [ "$2" = "" ]; then
+			# введена часть комадны, допишем ее если она правильная
+			tmp=""
+			for c in $acmds; do
+				tmp2=`expr substr "$c" 1 ${#cmd}`
+				if [ "$cmd" = "$tmp2" ]; then
+					tmp=$c
+					break
+				fi
+			done
+			if [ "$tmp" != "" ]; then
+				if [ "$cmd" != "$tmp" ]; then
+					# если команда введена не полностью дописываем ее
+					delete_cmd
+					cmd=$tmp
+					echo -en "$cmd"
+					cmdi=${#cmd}
+				else
+					# иначе выводим список допустимых параметров команды
+					qwe=""
+				fi
+			fi
+		else
+			echo "command with parameters"
+		fi		
+	else
+		# начало команды не введено, выводим все доступные команды
+		if [ "$tab" = "1" ]; then
+			echo -e "\nAvaiable commands:"
+			for i in $acmds; do
+				echo -e "\t$i"
+			done
+			tab=0
+		else
+			tab=1
+		fi
+	fi
+}
+

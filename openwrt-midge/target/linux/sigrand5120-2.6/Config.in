@@ -3,3 +3,4 @@ config BR2_LINUX_2_6_SIGRAND5120_NOFW
 	default n
 	help
 	  Build kernel without firewall/iptables support for increase PPS
+

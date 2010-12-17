@@ -7,9 +7,9 @@ config BR2_PACKAGE_OPENVPN
 	select BR2_PACKAGE_KMOD_TUN
 	help
 	  Open Source VPN solution using SSL
-	  
+
 	  http://openvpn.net/
-	  
+
 	  Depends: kmod-tun, libpthread
 
 config BR2_COMPILE_OPENVPN_WITH_SERVER

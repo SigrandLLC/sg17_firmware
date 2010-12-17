@@ -19,12 +19,28 @@ int mam17_net_init(struct mam17_card *card)
 	struct net_local *nl;
 	int if_processed, i;
 	int ret;
-
+	char name[10];
 
 	for (if_processed = 0; if_processed < card->if_num; if_processed++)
 	{
 		// allocate network device 
-		if (!(ndev = alloc_netdev( sizeof(struct net_local), "dsl%d", mam17_dsl_init)))
+//		printk(KERN_ERR"func=%i slot=%i devfn=%x\n", PCI_FUNC(card->pdev->devfn), PCI_SLOT(card->pdev->devfn), card->pdev->devfn);
+		switch (PCI_SLOT(card->pdev->devfn)) {
+			case 2:
+				sprintf(name, "dsl0%i", if_processed);
+			break;
+			case 3:
+				sprintf(name, "dsl1%i", if_processed);
+			break;
+			case 4:
+				sprintf(name, "dsl2%i", if_processed);
+			break;
+			case 5:
+				sprintf(name, "dsl3%i", if_processed);
+			break;
+		}
+//		if (!(ndev = alloc_netdev( sizeof(struct net_local), "dsl%d", mam17_dsl_init)))
+		if (!(ndev = alloc_netdev( sizeof(struct net_local), name, mam17_dsl_init)))
 		{
 			printk(KERN_NOTICE"error while alloc_netdev #%i\n", if_processed);
 			goto exit_unreg_ifs;
@@ -50,6 +66,7 @@ int mam17_net_init(struct mam17_card *card)
 //		}
 		nl->chan_cfg = &(card->channels[if_processed]);
 		jiffies_to_timeval((unsigned long)jiffies, &(card->channels[if_processed].downtime_all));
+//		printk(KERN_ERR"downtime_all=%i\n", card->channels[if_processed].downtime_all.tv_sec);
 
 		// network interface registration
 		if ((ret = register_netdev(ndev)))

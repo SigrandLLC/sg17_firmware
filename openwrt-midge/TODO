@@ -1,17 +1,4 @@
 * move target/linux/adm5120-2.6 stuff to target/linux/sigrand5120-2.6 :
-
-commit 8b41a5613365adc0915501240c3045a7e5066b8e
-Author: Dmitry Fedorov <dm.fedorov@gmail.com>
-Date:   Mon Jun 7 16:46:47 2010 +0700
-
-    target/linux/adm5120-2.6/Config.in: missed MIDGE_FLASH_SIZE entry added
-
-commit be5d07cf4ca438b9de2bf505376e49a268b03dd9
-Author: Dmitry Fedorov <dm.fedorov@gmail.com>
-Date:   Mon Jun 7 16:42:20 2010 +0700
-
-    target/linux: remove sigrand5120-2.6/Config.in that is dup of adm5120-2.6/Config.in
-
 * make list all of base-files* installed to root fs.
 * replace ntpclient by openntpd
 * rm crontab, cron, /etc/init.d/timesync

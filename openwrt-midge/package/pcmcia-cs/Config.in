@@ -12,6 +12,6 @@ config BR2_PACKAGE_PCMCIA_UTILS
 	default m if CONFIG_DEVEL
 	help
 	  PCMCIA/Cardbus management utilities
-	  
+
 	  http://pcmcia-cs.sourceforge.net/
 

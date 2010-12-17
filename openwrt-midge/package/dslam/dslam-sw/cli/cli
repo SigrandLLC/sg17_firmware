@@ -1,0 +1,570 @@
+#!/bin/sh
+
+. /etc/cli/port
+. /etc/cli/services
+. /etc/cli/auto_completion
+. /etc/cli/help
+. /etc/cli/system
+. /etc/cli/network
+
+tmp_config_file="/tmp/tmp_config"
+
+prompt=":services:vlan"
+cmd=""
+port=""
+port_type=""
+vid=""
+
+cursor_ind="0" # для обработки раширенных ascii кодов
+cmds=0 # счетчик введенных команд
+cmdp=0 # указатель на команду (надо для стреток вверх/низ)
+cmdi=0 # указатель на символ в команде, куда вставлять следующий символ (влево/вправо home/end)
+rm -f /tmp/cmd_history
+
+# функция для отрисовки символа в соответсвующем месте (вызывается после нажатия клавиши)
+# cmdi - позиция курсора
+insert_char() {
+	if [ "$cmdi" = "0" ]; then
+		cmd="$ch$cmd"
+		echo -en "$cmd"
+	else
+		if [ "$cmdi" != "${#cmd}" ]; then
+			cmd=`expr substr "$cmd" 1 $cmdi`"$ch"`expr substr "$cmd" $(($cmdi+1)) ${#cmd}`
+			tmp=`expr substr "$cmd" $(($cmdi+1)) ${#cmd}`
+			echo -en "$tmp"
+		else
+			cmd="$cmd$ch"
+			echo -en "$ch"
+		fi
+	fi
+	let "cmdi=$cmdi+1"
+	let "i=${#cmd}"
+	while [ "$i" != "$cmdi" ]; do
+		echo -en "[D"
+		let "i=$i-1"
+	done
+}
+# удаляет введенную команду (вызывается при нажатии вверх/вниз)
+delete_cmd() {
+	let "i=0"
+	while [ "$i" != "${#cmd}" ]; do
+		echo -en "\b \b"
+		let "i=$i+1"
+	done
+}
+
+cd_func() {
+	# TODO: добавить возможность произвольного перехода по дереву
+	if [ "$*" = "" ]; then
+		prompt=":"
+		port=""
+		port_type=""
+		group=""
+	else
+		case $* in
+			"/")
+				prompt=":"
+				port=""
+				port_type=""
+				group=""
+				vid=""
+			;;
+			"port")
+				prompt=":port"
+				port=""
+				port_type=""
+				group=""
+				vid=""
+			;;
+			"services")
+				prompt=":services"
+				port=""
+				port_type=""
+				group=""
+				vid=""
+			;;
+			"..")
+				if [ "$port" = "" ]; then
+					if [ "$group" = "" ]; then
+						if [ "$vid" = "" ]; then
+							prompt="${prompt%:*}"
+							if [ "$prompt" = "" ]; then
+								prompt=":"
+							fi
+						fi
+					fi
+				fi
+				if [ "$port" != "" ]; then
+					port=""
+				fi
+				if [ "$group" != "" ]; then
+					group=""
+				fi
+				if [ "$vid" != "" ]; then
+					vid=""
+				fi
+			;;
+			*)
+				echo "Usage: cd [/ | port | services]"
+			;;
+		esac
+	fi
+}
+
+save_config() {
+	if [ -f "$tmp_config_file" ]; then
+		if [ "$*" != "" ]; then
+			echo -e "data to save:\n"
+			echo "---------------------"
+			cat $tmp_config_file
+			echo "---------------------"
+			return
+		fi
+		eval `cat $tmp_config_file`
+		echo "Configuration was saved."
+		rm -f $tmp_config_file
+	else
+		echo "Nothing to save!"
+	fi
+}
+
+root_func() {
+#	echo "$*"
+	cmd="$1"
+	if [ "$1" != "" ]; then
+		shift
+	fi
+	param=""
+	while [ "$1" != "" ]; do
+		param="$param $1"
+		if [ "$1" != "" ]; then
+			shift
+		else
+			break
+		fi
+	done
+	case "$cmd" in
+		"reboot")
+			reboot
+		;;
+		"default")
+			echo -n "All settings will be returned on the factory parameters! Continue? (Y/N) "
+			ch=""
+			while [ "$ch" != "y" -a "$ch" != "Y" -a "$ch" != "n" -a "$ch" != "N" ]; do
+				ch=`dd if=/dev/tty bs=1 count=1 2>/dev/null`
+			done
+			echo "$ch"
+			if [ "$ch" = "y" -o "$ch" = "Y" ]; then
+				rm -f /etc/kdb
+				rm -f /etc/kdb.md5
+				cp /etc/kdb.default /etc/kdb
+				reboot
+			fi
+		;;
+		"info")
+			# TODO: сделать нормальный вывод информации об устройстве
+
+			fw_ver=`cat /etc/version`
+			echo -e "\nFirmware version: $fw_ver\n"
+
+			system_show_func
+			network_show_func
+
+			# выводит информацию по слотам
+#			for slot in 0 1 2 3; do
+#				tmp=`kdb get sys_pcitbl_s000$(($slot+2))_iftype`
+#				if [ "$tmp" != "" ]; then
+#					iftype=`kdb get sys_pcitbl_s000$(($slot+2))_iftype`
+#					ifnum=`kdb get sys_pcitbl_s000$(($slot+2))_ifnum`
+#					echo -en "slot $slot: $iftype${ifnum}"
+#					if [ "$iftype" = "ms17h" ]; then
+#						pwrsrc=`kdb get sys_pcicfg_s000$(($slot+2))_pwr_source`
+#						if [ "$pwrsrc" = "1" ]; then
+#							pwrsrc="p"
+#						else
+#							pwrsrc=""
+#						fi
+#						echo -en "$pwrsrc"
+#						tmp2=""
+#						for tmp in `kdb get sys_pcitbl_s000$(($slot+2))_ifaces`; do
+#							tmp2=$tmp2" "`expr substr $tmp 1 4`"/"`expr substr $tmp 5 1`
+#						done
+#						echo -e  " ($tmp2 )"
+#					else
+#						echo -e " ( "`kdb get sys_pcitbl_s000$(($slot+2))_ifaces`" )"
+#					fi
+#				else
+#					echo -e "slot $slot: empty"
+#				fi
+#			done
+#			echo ""
+
+
+
+		;;
+		"save")
+			save_config $param
+		;;
+		"help")
+			help_func
+		;;
+		"cd")
+			cd_func $param
+		;;
+		"quit")
+			stty icanon echo
+			exit 0
+		;;
+		"");;
+		*)
+			case "$prompt" in
+				":")
+					case "$cmd" in
+						"port")
+							if [ "$param" = "" ]; then
+								prompt=":port"
+							else
+								port_func $param
+							fi
+						;;
+						"services")
+							if [ "$param" = "" ]; then
+								prompt=":services"
+							else
+								services_func $param
+							fi
+						;;
+						"system")
+							if [ "$param" = "" ]; then
+								prompt=":system"
+							else
+								system_func $param
+							fi							
+						;;
+						"network")
+							if [ "$param" = "" ]; then
+								prompt=":network"
+							else
+								network_func $param
+							fi							
+						;;
+						"");;
+						*)
+							echo "Syntax error"
+						;;
+					esac
+				;;
+				":system")
+					system_func $cmd $param
+				;;
+				":network")
+					network_func $cmd $param
+				;;
+				":port")
+					if [ "$port" != "" ]; then
+						port_func $port $cmd $param
+					else
+						case "$cmd" in
+							"ge")
+								ge_func $param
+							;;
+							"dsl")
+								dsl_func $param
+							;;
+							"");;
+							*)
+								port_func $cmd $param
+							;;
+						esac
+					fi
+				;;
+				":services")
+					services_func $cmd $param
+				;;
+				":services:link_aggregation")
+					link_aggregation_func $cmd $param
+				;;
+				":services:mirroring")
+					mirroring_func $cmd $param
+				;;
+				":services:vlan")
+					vlan_func $cmd $param
+				;;
+				":services:cos")
+					cos_func $cmd $param
+				;;
+				":services:cos:bandwidth_control")
+					bandwidth_control_func $cmd $param
+				;;
+				"");;
+				*)
+					echo "Syntax error"
+				;;
+			esac
+		;;
+	esac
+}
+
+if [ "$*" != "" ]; then
+	root_func $*
+else
+
+stty -icanon -echo
+echo -en $prompt"> "
+while true
+do
+	ch=`dd if=/dev/tty bs=1 count=1 2>/dev/null`
+#	echo "$ch" >> /root/log_ch
+	case $ch in
+		) #---------escape--------------
+			cursor_ind="1"
+		;;
+		"O")
+			if [ "$cursor_ind" = "1" ]; then
+				cursor_ind="way_to_f"
+			else
+				cursor_ind="0"
+				insert_char
+				cmdp=$cmds
+			fi
+		;;
+		"P" | "Q" | "R" | "S") #-------------F1-F4
+			if [ "$cursor_ind" = "way_to_f" ]; then
+				cursor_ind="0"
+			else
+				cursor_ind="0"
+				insert_char
+				cmdp=$cmds
+			fi
+		;;
+		"[")
+			if [ "$cursor_ind" = "1" ]; then
+				cursor_ind="2"
+			else
+				cursor_ind="0"
+				insert_char
+				cmdp=$cmds
+			fi
+		;;
+		"3")
+			if [ "$cursor_ind" = "2" ]; then
+				cursor_ind="3"
+			else
+				cursor_ind="0"
+				insert_char
+				cmdp=$cmds
+			fi
+		;;
+		"A") #-------------UP ARROW----------------[A
+			if [ "$cursor_ind" = "2" ]; then
+				cursor_ind="0"
+				delete_cmd
+				if [ "$cmd" != "" ]; then
+					let "cmdp=$cmdp-1"
+				else
+					tmp_cmd="$cmd"
+				fi
+				if [ "$cmdp" -gt "0" ]; then
+					cmd=`sed "$cmdp! d" /tmp/cmd_history`
+				else
+					if [ -f "/tmp/cmd_history" ]; then
+						cmd=`sed '1! d' /tmp/cmd_history`
+					fi
+				fi
+				echo -en "$cmd"
+				cmdi=${#cmd}
+			else
+				insert_char
+				cmdp=$cmds
+			fi
+		;;
+		"B") #-----------------DOWN ARROW--------------------[B
+			if [ "$cursor_ind" = "2" ]; then
+				cursor_ind="0"
+				delete_cmd
+				let "cmdp=$cmdp+1"
+				if [ "$cmdp" -lt "$cmds" ]; then
+					cmd=`sed "$cmdp! d" /tmp/cmd_history`
+				else
+					let "cmdp=$cmdp-1"
+					if [ -f "/tmp/cmd_history" ]; then
+						cmd=`sed "$cmds! d" /tmp/cmd_history`
+					fi
+				fi
+				echo -en "$cmd"
+				cmdi=${#cmd}
+			else
+				insert_char
+				cmdp=$cmds
+			fi
+		;;
+		"C") #----------RIGHT ARROW----------------[C
+			if [ "$cursor_ind" = "2" ]; then
+				cursor_ind="0"
+				let "cmdi=$cmdi+1"
+				if [ "$cmdi" -gt "${#cmd}" ]; then
+					cmdi=${#cmd}
+				else
+					echo -en "[C"
+				fi
+
+			else
+				insert_char
+				cmdp=$cmds
+			fi
+		;;
+		"D") #-------------LEFT ARROW------------------[D
+			if [ "$cursor_ind" = "2" ]; then
+				cursor_ind="0"
+				let "cmdi=$cmdi-1"
+				if [ "$cmdi" -lt "0" ]; then
+					cmdi=0
+				else
+					echo -en "[D"
+				fi
+			else
+				insert_char
+				cmdp=$cmds
+			fi
+		;;
+		"	") #----------------tab----------------------
+			auto_completion $cmd
+			if [ "$cmd" = "" ]; then
+				if [ "$tab" != "1" ]; then
+					if [ "$port" != "" ]; then
+						echo -en $prompt":"$port"> "
+					else
+						if [ "$group" != "" ]; then
+							echo -en $prompt":"$group"> "
+						else
+							echo -en $prompt"> "
+						fi
+					fi
+				fi
+			fi
+		;;
+		H) # ---------------home-----------[H
+			if [ "$cursor_ind" = "2" ]; then
+				cursor_ind="0"
+				let "i=$cmdi"
+				while [ "$i" != "0" ]; do
+					echo -en "[D"
+					let "i=$i-1"
+				done
+				cmdi="0"
+			else
+				insert_char
+				cmdp=$cmds
+			fi
+		;;
+		F) # ---------------end-----------[F
+			if [ "$cursor_ind" = "2" ]; then
+				cursor_ind="0"
+				let "i=$cmdi"
+				while [ "$i" != "${#cmd}" ]; do
+					echo -en "[C"
+					let "i=$i+1"
+				done
+				cmdi=${#cmd}
+			else
+				insert_char
+				cmdp=$cmds
+			fi
+		;;
+		"~") #-----------delete-----------------[3~
+			if [ "$cursor_ind" = "3" ]; then
+				if [ "$cmd" != "" ]; then
+					if [ "$cmdi" != "0" ]; then
+						if [ "$cmdi" != "${#cmd}" ]; then
+							let "i=0"
+							cmd=`expr substr "$cmd" 1 $(($cmdi))``expr substr "$cmd" $(($cmdi+2)) ${#cmd}`
+							echo -en `expr substr "$cmd" $(($cmdi+1)) ${#cmd}`" \b"
+							let "i=0"
+							while [ "$i" != "$((${#cmd}-$cmdi))" ]; do
+								echo -en "[D"
+								let "i=$i+1"
+							done
+						fi
+					else
+						cmd=`expr substr "$cmd" 2 ${#cmd}`
+						echo -en "$cmd \b"
+						let "i=0"
+						while [ "$i" != "$((${#cmd}-$cmdi))" ]; do
+							echo -en "[D"
+							let "i=$i+1"
+						done
+					fi
+				fi
+			else
+				insert_char
+				cmdp=$cmds
+			fi
+			cursor_ind="0"
+		;;
+		) #-----------backspace--------------
+			if [ "${cmd}" != "" ]; then
+				if [ "$cmdi" != "0" ]; then
+					if [ "$cmdi" != "${#cmd}" ]; then
+						echo -en "\b"
+						cmd=`expr substr "$cmd" 1 $(($cmdi-1))``expr substr "$cmd" $(($cmdi+1)) ${#cmd}`
+						echo -en `expr substr "$cmd" $(($cmdi)) ${#cmd}`" \b"
+						let "i=0"
+						while [ "$i" != "$((${#cmd}-$cmdi+1))" ]; do
+							echo -en "[D"
+							let "i=$i+1"
+						done
+
+					else
+						cmd=`expr substr "$cmd" 1 $((${#cmd}-1))`
+						echo -en "\b \b"
+					fi
+					cmdi=$(($cmdi-1))
+				fi
+			fi
+		;;
+		"") #----------enter--------------
+			cmd=`echo -e "$cmd" | tr 'A-Z' 'a-z'`
+			tmp_cmd=""
+			if [ "$cmd" != "" ]; then
+				echo "$cmd" >> /tmp/cmd_history
+				let "cmds=$cmds+1"
+			fi			
+			cmdp=$cmds
+			let "i=0"
+			param=""
+			for j in $cmd; do
+				if [ "$i" -gt "0" ]; then
+					param=$param" $j"
+				else
+					cmd=$j
+				fi
+				let "i=$i+1"
+			done
+			
+			echo ""
+			root_func $cmd $param
+			
+			cmd=""
+			cmdi=0
+			if [ "$port" != "" ]; then
+				echo -en $prompt":"$port"> "
+			else
+				if [ "$group" != "" ]; then
+					echo -en $prompt":"$group"> "
+				else
+					if [ "$vid" != "" ]; then
+						echo -en $prompt":vid"$vid"> "
+					else
+						echo -en $prompt"> "
+					fi
+				fi
+			fi
+		;;
+		*) #-------------other keys--------------
+			insert_char
+			cmdp=$cmds
+		;;
+	esac
+done
+
+fi

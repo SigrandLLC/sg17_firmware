@@ -23,7 +23,6 @@ _dsl_mam17hifdefcfg(){
 	kdb set sys_pcicfg_s${slot}_${dev}_code="tcpam32"
 	kdb set sys_pcicfg_s${slot}_${dev}_annex="A"
 	kdb set sys_pcicfg_s${slot}_${dev}_fill="fill_ff"
-	kdb set sys_pcicfg_s${slot}_${dev}_pwron="pwroff"
 }
 
 _dsl_mam17hdefcfg(){
@@ -43,17 +42,6 @@ _dsl_mam17hifcfg(){
 	local iface=$1
 	local slot=$2
 	local index=$3
-
-	# Network settings
-	valid=`$kdb get sys_iface_${iface}_valid`
-	proto=`$kdb get sys_iface_${iface}_proto`
-	if [ -z "$valid" ]; then
-		$kdb set sys_iface_${iface}_valid=1
-	fi
-	if [ -z "$proto" ]; then
-		$kdb set sys_iface_${iface}_proto=ether
-	fi
-
 
 	# Hardware settings
 	eval `$kdb -qq sls sys_pcicfg_s${slot}_${ifnum}_`
@@ -99,22 +87,27 @@ _dsl_mam17hifcfg(){
 	fi
 
 	# apply configuration
-	if [ "$mode" == "slave" ]; then
-   		$mam17h_cfg $iface $mode $pwron
-	else
-		if [ "$rate" == "-1" -a -n "$mrate" ]; then
-			rate="rate $mrate"
+	on_off=`kdb get sys_pcicfg_s${slot}_${ifnum}_on`
+	if [ "$on_off" != "0" ]; then
+		if [ "$mode" == "slave" ]; then
+   			$mam17h_cfg $iface $mode $pwron
 		else
-			[ -n "$rate" ] && rate="rate $rate"
-		fi
+			if [ "$rate" == "-1" -a -n "$mrate" ]; then
+				rate="rate $mrate"
+			else
+				[ -n "$rate" ] && rate="rate $rate"
+			fi
 
-   		[ -n "$annex" ] && annex="annex $annex"
-    		$mam17h_cfg $iface $mode $rate $code $annex \
-			$pwron $pbo > /dev/null
-		# Correct rate setted by hands
-    		rate=`cat  /sys/class/net/$iface/$priv_dir/rate`
-		pboval=`cat  /sys/class/net/$iface/$priv_dir/pbo_val`
-		[ -n "$mrate" ] && kdb set sys_pcicfg_s${slot}_${ifnum}_mrate=$rate
+	   		[ -n "$annex" ] && annex="annex $annex"
+	    		$mam17h_cfg $iface $mode $rate $code $annex \
+				$pwron $pbo > /dev/null
+			# Correct rate setted by hands
+	    		rate=`cat  /sys/class/net/$iface/$priv_dir/rate`
+			pboval=`cat  /sys/class/net/$iface/$priv_dir/pbo_val`
+			[ -n "$mrate" ] && kdb set sys_pcicfg_s${slot}_${ifnum}_mrate=$rate
+		fi
+	else
+		echo "0" > /sys/class/net/$iface/$priv_dir/on_off
 	fi
 }
 

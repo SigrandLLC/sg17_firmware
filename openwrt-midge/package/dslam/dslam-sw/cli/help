@@ -1,0 +1,122 @@
+#!/bin/sh
+
+help_func() {
+	echo "Help     - Current command"
+	echo "Info     - General information"
+	echo "Reboot   - Rebooting device"
+	echo "Save     - Save changes"
+	echo "Default  - Restore default device settings"
+	echo "Cd       - Change location in command tree"
+	echo "Quit     - Exit from CLI"
+	case "$prompt" in
+		":")
+			echo "Port     - Ports settings sub-menu"
+			echo "Services - Services submenu"
+			echo "System   - General setting sub-menu"
+			echo "Network  - Network setting sub-menu"
+#			echo "Rename   - Change username/password"
+		;;
+		":system")
+			echo "Show     - Current sub-menu information"
+			echo "Date     - Setting the date"
+			echo "Time     - Set the time"
+			echo "NTP      - Set of the destination NTP server"
+			echo "Timezone - Timezone setting"
+			echo "Name     - Device system name"
+			echo "Location - Location of the device (optional)"
+			echo "Uptime   - Uptime information"
+		;;
+		":network")
+			echo "Show     - Current sub-menu information"
+			echo "DHCP     - Activate and settings DHCP"
+			echo "Address  - IP Address system settings"
+			echo "Netmask  - Netmask for this network"
+			echo "Gateway  - Default gateway settings"
+			echo "MAC      - MAC Address for system interface"
+		;;
+		":port")
+			if [ "$port" != "" ]; then
+				case "$port_type" in
+					"dsl")
+						echo "ON/OFF               - Enable/disable port"
+						echo "Master|Slave         - Master/Slave mode port setting"
+						echo "Rate [192-14080]     - Set line rate with 64 kbps step"
+						echo "TCPAM [16|32|64|128] - Select TC-PAM mode coding"
+						echo "Annex [A|B]          - Select Annex A/B mode"
+						echo "Restart              - Restart interface"
+						echo "PBO-forced [0-31]    - Enable power back-off function. Values from 0 to 31 determines the magnitude of"
+						echo "                       attenuation of transmit in decibels"
+						echo "Stat [reset]         - Statistics for this interface"
+						echo "Power [on|off]       - enable/disable Power-over-DSL function and display state of PoDSL on this"
+						echo "                       interface (only for MS-17H4P modules)"
+					;;
+					"ge" | "fe")
+						echo "ON/OFF             - Enable/disable port"
+						echo "Auto               - Rate and duplex mode assign auto-mode"
+						echo "Rate [10|100|1000] - Set rate assign manually"
+						echo "Duplex [full|half] - Set duplex mode assign manually"
+						echo "Flow [on|off]      - Flow control enable/disable"
+						echo "Stat [reset]       - Ports statistics"
+					;;
+				esac
+			else
+				echo "Show             - Current sub-menu information"
+				echo "GE{N}            - Gigabit ports setting"
+				echo "FE{M/N}          - Fast ethernet ports setting"
+				echo "DSL{M/N}         - DSL ports settings"
+				echo "{GE|FE|DSL} stat - Ports statistics"
+			fi
+		;;
+		":services")
+			echo "Link_aggregation - Sub-menu settings of Link Aggregation (LA) function"
+			echo "Mirroring        - Sub-menu settings of port mirroring function"
+			echo "Cos              - Sub-menu settings of Cos function"
+			echo "VLAN             - Sub-menu for VLAN configuration"
+			echo "Storm_control    - Sub-menu for broadcast strom control configuration"
+			echo "Port_security    - Sub-menu for security configuration"
+		;;
+		":services:link_aggregation")
+			if [ "$group" = "" ]; then
+				echo "GroupN  - Sub-menu for configuration groupN"
+				echo "Show    - Show current configuration"
+			else
+# TODO				echo "Static | LACP         - Trunking method choice"
+				echo "Algorithm [MS|MD|MSD] - MAC-source, MAC-destination or MAC source-destination algorithm select"
+				echo "Joined feM/N | dslM/N - LA group select and add member ports"
+				echo "Show                  - Show current configuration $group"
+# TODO				echo "Master feM/N | dslM/N - LA group master port setting"
+			fi
+		;;
+		":services:mirroring")
+			if [ "$group" = "" ]; then
+				echo "Show            - Show current setting of port mirroring"
+				echo "Group0 | Group1 - Sub-menu for configuration group"
+			else
+				echo "Show                   - Show current setting for $group"
+				echo "Algorithm [RX|TX|Both] - Set mirroring algorithm"
+				echo "Source [ports]         - Set mirroring source ports"
+				echo "Dest [ports]           - Set mirroring destination ports"
+				echo "Enable | Disable       - Enable/Disable mirroring group"
+			fi
+		;;
+		":services:vlan")
+			echo "Show             - Show current VLAN configuration"
+			echo "Create vlan_id N - Create VLAN with VID N"
+			echo "Delete vlan_id N - Delete VLAN with VID N"
+		;;
+		":services:cos")
+			echo "Show                - Show current cos settings"
+			echo "FIFO|Strict|WRR     - Set cos algorithm"
+			echo "Flow_delay [on|off] - Enable/Disable flow control delay when high priority packet recieved"
+			echo "VLAN_cos "
+			echo "Port_cos"
+			echo "IP_cos"
+			echo "TCP_cos"
+			echo "Bandwidth_control   - Sub-menu for configuration bandwidth control"
+			echo ""
+		;;
+		":services:cos:bandwidth_control")
+			acmds="$bandwidth_control_cmds"
+		;;
+	esac
+}

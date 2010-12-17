@@ -12,7 +12,7 @@ config BR2_PACKAGE_IPTABLES
 	select BR2_COMPILE_IPTABLES
 	help
 	  IPv4 firewall, NAT, and packet mangling tools.
-	  
+
 	  http://www.iptables.org/
 
 config BR2_PACKAGE_IPTABLES_EXTRA
@@ -150,7 +150,7 @@ config BR2_PACKAGE_IPTABLES_UTILS
 	depends BR2_PACKAGE_IPTABLES
 	help
 	  iptables-save and iptables-restore for Iptables (IPv4)
-	  
+
 	  http://www.iptables.org/
 
 config BR2_PACKAGE_IP6TABLES
@@ -161,7 +161,7 @@ config BR2_PACKAGE_IP6TABLES
 	select BR2_PACKAGE_KMOD_IPV6
 	help
 	  IPv6 firewall, NAT, and packet mangling tools.
-	  
+
 	  http://www.iptables.org/
 
 endmenu
