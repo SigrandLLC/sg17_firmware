@@ -1,0 +1,242 @@
+#!/bin/sh
+
+# создаем/обновляем папку в которой будет вся инфа о vlan
+update_vlan_storage() {
+#	echo "update_vlan_storage"
+	cat /proc/sys/net/dslam_sw/sw0/vid_table | while read line; do
+		let "cnt=0"
+		for word in $line; do
+			case $cnt in
+				0) num=$word;;
+				1) eval "$word";;
+				2) eval "$word";;
+				*);;
+			esac
+			let "cnt=$cnt+1"
+		done
+		if [ "$VID" != "0" ]; then
+			mkdir -p /etc/cli/vlans/$VID
+			rm -f /etc/cli/vlans/$VID/ports
+			echo "$num" > /etc/cli/vlans/$VID/num
+			# ++++++++++++++++++++++++++
+			tmp=`kdb get sys_dslam_vlan_table_${num}`
+			eval "$tmp"
+			echo "$name" > /etc/cli/vlans/$VID/name
+			# --------------------------
+			for p in 0 `seq 15`; do
+				let "tmp=(0x0$VLAN & (1 << $p))"
+				if [ "$tmp" != "0" ]; then
+					if [ "$p" -lt "8" ]; then
+						if [ -d "/sys/class/net/dsl0${p}/ms_private" ]; then
+							echo "dsl0/$p " >> /etc/cli/vlans/$VID/ports
+						elif [ -d "/sys/class/net/fe0$((7-${p}))/ms_private" ]; then
+							echo "fe0/$((7-$p)) " >> /etc/cli/vlans/$VID/ports
+						fi
+					else
+						if [ -d "/sys/class/net/dsl1$((${p}-8))/ms_private" ]; then
+							echo "dsl1/$(($p-8)) " >> /etc/cli/vlans/$VID/ports
+						elif [ -d "/sys/class/net/fe1$((15-${p}+8))/ms_private" ]; then
+							echo "fe1/$((15-$p+8)) " >> /etc/cli/vlans/$VID/ports
+						fi
+					fi
+				fi
+			done
+			let "tmp=(0x0$VLAN & (1 << 24))"
+			if [ "$tmp" != "0" ]; then
+				echo "ge0 " >> /etc/cli/vlans/$VID/ports
+			fi
+		fi
+		
+	done
+	cat /proc/sys/net/dslam_sw/sw1/vid_table | while read line; do
+		let "cnt=0"
+		for word in $line; do
+			case $cnt in
+				0) num=$word;;
+				1) eval "$word";;
+				2) eval "$word";;
+				*);;
+			esac
+			let "cnt=$cnt+1"
+		done
+		if [ "$VID" != "0" ]; then
+			mkdir -p /etc/cli/vlans/$VID
+			for p in 0 `seq 15`; do
+				let "tmp=(0x0$VLAN & (1 << $p))"
+				if [ "$tmp" != "0" ]; then
+					if [ "$p" -lt "8" ]; then
+						if [ -d "/sys/class/net/dsl2${p}/ms_private" ]; then
+							echo "dsl2/$p " >> /etc/cli/vlans/$VID/ports
+						elif [ -d "/sys/class/net/fe2$((7-${p}))/ms_private" ]; then
+							echo "fe2/$((7-$p)) " >> /etc/cli/vlans/$VID/ports
+						fi
+
+					else
+						if [ -d "/sys/class/net/dsl3$((${p}-8))/ms_private" ]; then
+							echo "dsl3/$(($p-8)) " >> /etc/cli/vlans/$VID/ports
+						elif [ -d "/sys/class/net/fe3$((15-${p}+8))/ms_private" ]; then
+							echo "fe3/$((15-$p+8)) " >> /etc/cli/vlans/$VID/ports
+						fi
+					fi
+				fi
+			done
+			let "tmp=(0x0$VLAN & (1 << 24))"
+			if [ "$tmp" != "0" ]; then
+				echo "ge1 " >> /etc/cli/vlans/$VID/ports
+			fi
+		fi
+	done
+}
+
+vlan_vid_func() {
+	echo "vid_func $*"
+	case "$1" in
+		"show")
+			echo "show VLAN with VID $vid configuration"
+		;;
+		"add")
+			# add geX feM/N dslM/N
+			shift
+			for p in $*; do
+				case "$p" in
+					ge0)
+						sw_num=0
+						sw_port=24
+					;;
+					ge1)
+						sw_num=1
+						sw_port=24
+					;;
+					dsl0/[0-3])
+					;;
+				esac
+			done
+		;;
+		"tagging")
+		;;
+		"untagging")
+		;;
+		"name" | "rename")
+#			num=`cat /etc/cli/vlans/$vid/num`
+#			tmp=`kdb get sys_dslam_vlan_table_$num`
+#			eval "$tmp"
+		;;
+		"");;
+		*)
+		;;
+	esac
+}
+
+vlan_func() {
+	prompt=":services:vlan"
+
+	update_vlan_storage
+	if [ "$vid" != "" ]; then
+		vlan_vid_func $*
+	else
+
+	case "$1" in
+		"create")
+			# создание vlan: create vlan_id N
+			shift
+			if [ "$1" != "vlan_id" ]; then
+				echo "Syntax error, after create must be vlan_id <1-4095>"
+				return
+			fi
+			shift
+			if [ "$1" -lt "1" -o "$1" -gt "4095" ]; then
+				echo "Syntax error! Usage create vlan_id <1-4095>"
+				return
+			fi
+			if [ -d "/etc/cli/vlans/$1" ]; then
+				echo "Vlan with VID=$1 already existed!"
+				return
+			fi
+			where=""
+			for tmp in `seq 0 31`; do
+				empty="yes"
+				for tmp2 in `ls /etc/cli/vlans/`; do
+					tmp3=`cat /etc/cli/vlans/$tmp2/num`
+					if [ "$tmp3" = "$tmp" ]; then
+						empty="no"
+						break
+					fi
+				done
+				if [ "$empty" = "yes" ]; then
+					where=$tmp
+					break
+				fi
+			done
+			if [ "$where" = "" ]; then
+				echo "Error! Where are to many VLANs, delete someone"
+				return
+			fi
+			echo "empty slot - $where"
+			mkdir -p /etc/cli/vlans/$1
+			echo "$where" > /etc/cli/vlans/$1/num
+			echo "$where $1 0" > /proc/sys/net/dslam_sw/sw0/vid_table
+			echo "$where $1 0" > /proc/sys/net/dslam_sw/sw1/vid_table
+			echo "kdb set sys_dslam_vlan_table_${where}=\"name= vid=$1 sw0ports=0 sw1ports=0\"" >> $tmp_config_file
+			echo "VLAN ID $1 is created!"
+		;;
+		"show")
+			if [ -d "/etc/cli/vlans" ]; then
+				vlans=`ls /etc/cli/vlans/`
+			else
+				vlans=""
+			fi
+			for v in $vlans; do
+				echo "Vlan id - $v"
+				if [ -f "/etc/cli/vlans/${v}/ports" ]; then
+					local ports=`cat /etc/cli/vlans/${v}/ports`
+				else
+					local ports="none"
+				fi
+				echo "Vlan name - "`cat /etc/cli/vlans/${v}/name`
+				echo -n "Ports - "
+				for p in $ports; do
+					echo -n "$p "
+				done
+				echo ""
+			done
+			# выводим список всех созданных vlan
+		;;
+		"delete")
+			# удаляем vlan: delete vlan_id N
+			shift
+			if [ "$1" != "vlan_id" ]; then
+				echo "Syntax error, after delete must be vlan_id <1-4095>"
+				return
+			fi
+			shift
+			if [ -d "/etc/cli/vlans/$1" ]; then
+				num=`cat /etc/cli/vlans/$1/num`
+				rm -f /etc/cli/vlans/$1/*
+				rmdir /etc/cli/vlans/$1
+				echo "$num 0 0" > /proc/sys/net/dslam_sw/sw0/vid_table
+				echo "$num 0 0" > /proc/sys/net/dslam_sw/sw1/vid_table
+				
+				echo "kdb rm sys_dslam_vlan_table_${num}" >> $tmp_config_file
+				echo "VLAN ID $1 is deleted!"
+			else
+				echo "Where are no VLan with VID=$1!"
+				return
+			fi
+		;;
+		"");;
+		*)
+			tmp=`expr substr $1 4 20`
+			if [ -d "/etc/cli/vlans/$tmp" ]; then
+				vid=$tmp
+				shift
+				vlan_vid_func $*
+			else
+				echo "Where are no VLAN with VID $tmp!"
+				return
+			fi
+		;;
+	esac
+	
+	fi
+
+}

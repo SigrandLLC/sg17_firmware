@@ -1,0 +1,180 @@
+#!/bin/sh
+
+network_show_func() {
+	echo "----------------------------------------"
+	echo "Network settings"
+	echo "----------------------------------------"
+	echo "DHCP            | "
+	echo "DHCP server     | "
+	tmp=`ifconfig eth0 | grep "inet addr:"`
+	ipaddr=${tmp#*inet addr:}; ipaddr=${ipaddr%%  Bcast*};
+	netmask=${tmp#*Mask:}
+	echo "IP Address      | "$ipaddr
+	echo "Netmask         | "$netmask
+	rm -f /tmp/temp_file
+	route -n | grep '^0.0.0.0' > /tmp/temp_file
+	gateway=`cat /tmp/temp_file | grep eth0`
+	gateway=${gateway#*0.0.0.0 }; gateway=${gateway%% 0.0.0.0*};
+	rm -f /tmp/temp_file
+	echo "Default gateway |"$gateway
+	tmp=`ifconfig eth0 | grep "HWaddr"`
+	mac=${tmp#*HWaddr }
+	echo "MAC Address     | "$mac
+}
+
+network_func() {
+	prompt=":network"
+	cmd=$1
+	shift
+	param="$*"
+	case "$cmd" in
+		"dhcp")
+			# TODO: сделать вкл/выкл DHCP
+			case "$param" in
+				"on" | "enable")
+					tmp=`ifconfig eth0 | grep "inet addr:"`
+					old_ipaddr=${tmp#*inet addr:}; old_ipaddr=${old_ipaddr%%  Bcast*};
+					old_netmask=${tmp#*Mask:}
+					rm -f /tmp/temp_file
+					route -n | grep '^0.0.0.0' > /tmp/temp_file
+					gateway=`cat /tmp/temp_file | grep eth0`
+					gateway=${gateway#*0.0.0.0 }; gateway=${gateway%% 0.0.0.0*};
+					rm -f /tmp/temp_file
+					echo "DHCP Client is active. Please, wait for assigned settings from server..."
+					if udhcpc -i eth0 -t 1 -T 1 -n > /dev/null 2>/dev/null; then
+						tmp=`ifconfig eth0 | grep "inet addr:"`
+						ipaddr=${tmp#*inet addr:}; ipaddr=${ipaddr%%  Bcast*};
+						netmask=${tmp#*Mask:}
+						rm -f /tmp/temp_file
+						route -n | grep '^0.0.0.0' > /tmp/temp_file
+						gateway=`cat /tmp/temp_file | grep eth0`
+						gateway=${gateway#*0.0.0.0 }; gateway=${gateway%% 0.0.0.0*};
+						rm -f /tmp/temp_file
+						# TODO: отпределение сервера и времени лиза (/usr/share/udhcpc/default.script это вроде позволяет,
+						# переменные lease и serverid)
+						echo ""
+						echo "DHCP server     - "
+						echo "IP Address      - "$ipaddr
+						echo "Netmask         - "$netmask
+						echo "Default gateway -"$gateway
+						echo "Leased time     - "
+						tmp=`ifconfig eth0 | grep "HWaddr"`
+						mac=${tmp#*HWaddr }
+						echo "Current MAC Address - "$mac
+						ifconfig eth0 $old_ipaddr netmask $old_netmask
+					else
+						echo "DHCP Server is unavailable. Please, enter IP settings manually."
+					fi
+					ifconfig eth0 $old_ipaddr netmask $old_netmask
+				;;
+				"off" | "disable")
+				;;
+				*)
+					echo "Syntax error, usage dhcp on | off"
+				;;
+			esac
+		;;
+		"address")
+			tmp=`echo "$param" | grep '^[0-9]\+.[0-9]\+.[0-9]\+.[0-9]\+$'`
+			if [ "$tmp" = "" ]; then
+				echo "Invalid IP address!"
+				return
+			fi
+			tmp=`ifconfig eth0 | grep "inet addr:"`
+			ipaddr=${tmp#*inet addr:}; ipaddr=${ipaddr%%  Bcast*};
+			netmask=${tmp#*Mask:}
+			bcast=${tmp#*Bcast:}; bcast=${bcast%%  Mask*};
+			rm -f /tmp/ifconfig_error
+			tmp=`ifconfig eth0 $param 2>/tmp/ifconfig_error`
+			tmp2=`cat /tmp/ifconfig_error`
+			if [ "$tmp" != "" -o "$tmp2" != "" ]; then
+				echo "Invalid IP address!"
+			else
+				ifconfig eth0 $ipaddr netmask $netmask
+				echo "Current IP Address device is "$param
+				echo "kdb set sys_iface_eth0_ipaddr=\"$param\"" >> $tmp_config_file
+				echo "kdb set sys_iface_eth0_broadcast=\"$bcast\"" >> $tmp_config_file
+				sleep 3
+				ifconfig eth0 $param
+				exit
+			fi
+			rm -f /tmp/ifconfig_error
+		;;
+		"netmask")
+			tmp=`echo "$param" | grep '^[0-9]\+.[0-9]\+.[0-9]\+.[0-9]\+$'`
+			if [ "$tmp" = "" ]; then
+				echo "Invalid value of netmask!"
+				return
+			fi
+			tmp=`ifconfig eth0 | grep "inet addr:"`
+			ipaddr=${tmp#*inet addr:}; ipaddr=${ipaddr%%  Bcast*};
+			netmask=${tmp#*Mask:}
+			bcast=${tmp#*Bcast:}; bcast=${bcast%%  Mask*};
+			rm -f /tmp/ifconfig_error
+			tmp=`ifconfig eth0 netmask $param 2>/tmp/ifconfig_error`
+			tmp2=`cat /tmp/ifconfig_error`
+			if [ "$tmp" != "" -o "$tmp2" != "" ]; then
+				echo "Invalid value of netmask!"
+			else
+				ifconfig eth0 $ipaddr netmask $netmask
+				echo "Current netmask is "$param
+				echo "kdb set sys_iface_eth0_netmask=\"$param\"" >> $tmp_config_file
+				echo "kdb set sys_iface_eth0_broadcast=\"$bcast\"" >> $tmp_config_file
+				sleep 3
+				ifconfig eth0 netmask $param
+				exit
+			fi
+			rm -f /tmp/ifconfig_error
+		;;
+		"gateway")
+			tmp=`echo "$param" | grep '^[0-9]\+.[0-9]\+.[0-9]\+.[0-9]\+$'`
+			if [ "$tmp" = "" ]; then
+				echo "Invalid IP address!"
+				return
+			fi
+			rm -f /tmp/temp_file
+			route -n | grep '^0.0.0.0' > /tmp/temp_file
+			gateway=`cat /tmp/temp_file | grep eth0`
+			gateway=${gateway#*0.0.0.0 }; gateway=${gateway%% 0.0.0.0*};
+
+
+			while route -n del default gw 0.0.0.0 dev eth0 2> /dev/null; do
+				true
+			done
+#            		route del default dev eth0 2>/dev/null 1>/dev/null
+			rm -f /tmp/route_error
+			route add default gw $param dev eth0 2>/tmp/route_error 1>/tmp/route_error
+			tmp=`cat /tmp/route_error`
+			if [ "$tmp" != "" ]; then
+				route add default gw $gateway dev eth0 2>/dev/null 1>/dev/null
+				echo "Invalid IP address!"
+			else
+				echo "Current default gateway is "$param
+				echo "kdb set sys_iface_eth0_gateway=\"$param\"" >> $tmp_config_file
+			fi
+			rm -f /tmp/route_error
+			rm -f /tmp/temp_file
+		;;
+		"mac")
+			ifconfig eth0 down
+			rm -f /tmp/ifconfig_error
+			ifconfig eth0 hw ether $param 2>/tmp/ifconfig_error
+			tmp=`cat /tmp/ifconfig_error`
+			if [ "$tmp" != "" ]; then
+				echo "Invalid MAC address!"
+			else
+				echo "Current MAC Address is "$param
+				echo "kdb set sys_iface_eth0_mac=\"$param\"" >> $tmp_config_file
+			fi
+			ifconfig eth0 up
+			rm -f /tmp/ifconfig_error
+		;;
+		"show")
+			network_show_func
+		;;
+		"");;
+		*)
+			echo "Syntax error"
+		;;
+	esac
+}

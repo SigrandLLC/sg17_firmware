@@ -1,17 +1,7 @@
 #!/bin/sh
 
-. /etc/cli/vlan
-. /etc/cli/cos
-
-save_config() {
-	if [ -f "$tmp_config_file" ]; then
-		eval `cat $tmp_config_file`
-		echo "Configuration was saved."
-		rm -f $tmp_config_file
-	else
-		echo "Nothing to save!"
-	fi
-}
+. /etc/cli/services_vlan
+. /etc/cli/services_cos
 
 # $1 - string, $2 num of spaces, result in $ret
 append_spaces() {
@@ -30,71 +20,103 @@ group_ports() {
 			g_ports=""
 			eval `cat /proc/sys/net/dslam_sw/sw0/trunk_port_id`
 			if [ "$p0" != "0" ]; then
-				g_ports="0"
+				if [ -d "/sys/class/net/fe07/ms_private" ]; then
+					g_ports="fe0/7"
+				else
+					g_ports="dsl0/0"
+				fi
 			fi
 			if [ "$p1" != "0" ]; then
-				g_ports=$g_ports" 1"
+				if [ -d "/sys/class/net/fe06/ms_private" ]; then
+					g_ports=$g_ports" fe0/6"
+				else
+					g_ports=$g_ports" dsl0/1"
+				fi
 			fi
 			if [ "$p2" != "0" ]; then
-				g_ports=$g_ports" 2"
+				if [ -d "/sys/class/net/fe05/ms_private" ]; then
+					g_ports=$g_ports" fe0/5"
+				else
+					g_ports=$g_ports" dsl0/2"
+				fi
 			fi
 			if [ "$p3" != "0" ]; then
-				g_ports=$g_ports" 3"
+				if [ -d "/sys/class/net/fe04/ms_private" ]; then
+					g_ports=$g_ports" fe0/4"
+				else
+					g_ports=$g_ports" dsl0/3"
+				fi
 			fi
 		;;
 		"group1")
 			g_ports=""
 			eval `cat /proc/sys/net/dslam_sw/sw0/trunk_port_id`
 			if [ "$p4" != "0" ]; then
-				g_ports="0"
+				g_ports="fe0/3"
 			fi
 			if [ "$p5" != "0" ]; then
-				g_ports=$g_ports" 1"
+				g_ports=$g_ports" fe0/2"
 			fi
 			if [ "$p6" != "0" ]; then
-				g_ports=$g_ports" 2"
+				g_ports=$g_ports" fe0/1"
 			fi
 			if [ "$p7" != "0" ]; then
-				g_ports=$g_ports" 3"
+				g_ports=$g_ports" fe0/0"
 			fi
 		;;
 		"group2")
 			g_ports=""
 			eval `cat /proc/sys/net/dslam_sw/sw1/trunk_port_id`
 			if [ "$p0" != "0" ]; then
-				g_ports="0"
+				if [ -d "/sys/class/net/fe27/ms_private" ]; then
+					g_ports="fe2/7"
+				else
+					g_ports="dsl2/0"
+				fi
 			fi
 			if [ "$p1" != "0" ]; then
-				g_ports=$g_ports" 1"
+				if [ -d "/sys/class/net/fe26/ms_private" ]; then
+					g_ports=$g_ports" fe2/6"
+				else
+					g_ports=$g_ports" dsl2/1"
+				fi
 			fi
 			if [ "$p2" != "0" ]; then
-				g_ports=$g_ports" 2"
+				if [ -d "/sys/class/net/fe25/ms_private" ]; then
+					g_ports=$g_ports" fe2/5"
+				else
+					g_ports=$g_ports" dsl2/2"
+				fi
 			fi
 			if [ "$p3" != "0" ]; then
-				g_ports=$g_ports" 3"
+				if [ -d "/sys/class/net/fe24/ms_private" ]; then
+					g_ports=$g_ports" fe2/4"
+				else
+					g_ports=$g_ports" dsl2/3"
+				fi
 			fi
 		;;
 		"group3")
 			g_ports=""
 			eval `cat /proc/sys/net/dslam_sw/sw1/trunk_port_id`
 			if [ "$p4" != "0" ]; then
-				g_ports="0"
+				g_ports="fe2/3"
 			fi
 			if [ "$p5" != "0" ]; then
-				g_ports=$g_ports" 1"
+				g_ports=$g_ports" fe2/2"
 			fi
 			if [ "$p6" != "0" ]; then
-				g_ports=$g_ports" 2"
+				g_ports=$g_ports" fe2/1"
 			fi
 			if [ "$p7" != "0" ]; then
-				g_ports=$g_ports" 3"
+				g_ports=$g_ports" fe2/0"
 			fi
 		;;
 	esac
 	if [ "$g_ports" = "" ]; then
 		ret="none"
 	else
-		ret=$g_ports
+		ret=`echo $g_ports`
 	fi
 }
 
@@ -110,20 +132,6 @@ link_aggregation_group_func() {
 	esac
 	shift
 	case "$1" in
-		"cd")
-			shift
-			cd_func $*
-		;;
-		"quit")
-			exit 0
-		;;
-		"help" | "?")
-			tab=1
-			auto_completion
-		;;
-		"save")
-			save_config
-		;;
 		"algorithm")
 			shift
 			case "$1" in
@@ -168,7 +176,7 @@ link_aggregation_group_func() {
 				;;
 			esac
 		;;
-		"ports")
+		"joined")
 			shift
 			if [ "$1" = "" ]; then
 				group_ports $group
@@ -180,38 +188,97 @@ link_aggregation_group_func() {
 				lap1=0
 				lap2=0
 				lap3=0
-				while [ ! -z "$1" ]; do
-					case "$1" in
-						none)
-							break
-						;;
-						0)
-							lap0=1
-							shift
-							let "cnt=$cnt+1"
-						;;
-						1)
-							lap1=1
-							shift
-							let "cnt=$cnt+1"
-						;;
-						2)
-							lap2=1
-							shift
-							let "cnt=$cnt+1"
-						;;
-						3)
-							lap3=1
-							shift
-							let "cnt=$cnt+1"
-						;;
-						*)
-							echo "Syntax error. Usage: ports 0 1 2 3"
-							echo "For example command ports 0 2 added to group ports 0 and 2"
-							return
-						;;
+
+				print_error_msg() {
+					echo -n "In LA $group can be this ports: "
+					case "$group" in
+						group0) echo "dsl0/0 dsl0/1 dsl0/2 dsl0/3 or fe0/4 fe0/5 fe0/6 fe0/7";;
+						group1) echo "fe0/0 fe0/1 fe0/2 fe0/3";;
+						group2) echo "dsl2/0 dsl2/1 dsl2/2 dsl2/3 or fe2/4 fe2/5 fe2/6 fe2/7";;
+						group3) echo "fe2/0 fe2/1 fe2/2 fe2/3";;
 					esac
+				}
+				tmp="$*"
+				case "$group" in
+					group0)
+						for i in $*; do
+							if [ "$i" != "dsl0/0" -a "$i" != "dsl0/1" -a "$i" != "dsl0/2" -a "$i" != "dsl0/3" ]; then
+								tmp=""
+								break
+							fi
+						done
+						if [ "$tmp" = "" ]; then
+							tmp="$*"
+							for i in $*; do
+								if [ "$i" != "fe0/4" -a "$i" != "fe0/5" -a "$i" != "fe0/6" -a "$i" != "fe0/7" ]; then
+									tmp=""
+									break
+								fi
+							done
+						fi
+					;;
+					group1)
+						for i in $*; do
+							if [ "$i" != "fe0/0" -a "$i" != "fe0/1" -a "$i" != "fe0/2" -a "$i" != "fe0/3" ]; then
+								tmp=""
+								break
+							fi
+						done
+					;;
+					group2)
+						for i in $*; do
+							if [ "$i" != "dsl2/0" -a "$i" != "dsl2/1" -a "$i" != "dsl2/2" -a "$i" != "dsl2/3" ]; then
+								tmp=""
+								break
+							fi
+						done
+						if [ "$tmp" = "" ]; then
+							tmp="$*"
+							for i in $*; do
+								if [ "$i" != "fe2/4" -a "$i" != "fe2/5" -a "$i" != "fe2/6" -a "$i" != "fe2/7" ]; then
+									tmp=""
+									break
+								fi
+							done
+						fi
+					;;
+					group3)
+						for i in $*; do
+							if [ "$i" != "fe2/0" -a "$i" != "fe2/1" -a "$i" != "fe2/2" -a "$i" != "fe2/3" ]; then
+								tmp=""
+								break
+							fi
+						done
+					;;
+				esac
+				if [ "$tmp" = "" -a "$1" != "none" ]; then
+					print_error_msg
+					return
+				fi
+				for i in $*; do
+					case "$i" in
+						dsl0/0 | fe0/7) lap0=1;;
+						dsl0/1 | fe0/6) lap1=1;;
+						dsl0/2 | fe0/5) lap2=1;;
+						dsl0/3 | fe0/4) lap3=1;;
+						fe0/0) lap3=1;;
+						fe0/1) lap2=1;;
+						fe0/2) lap1=1;;
+						fe0/3) lap0=1;;
+						dsl2/0 | fe2/7) lap0=1;;
+						dsl2/1 | fe2/6) lap1=1;;
+						dsl2/2 | fe2/5) lap2=1;;
+						dsl2/3 | fe2/4) lap3=1;;
+						fe2/0) lap3=1;;
+						fe2/1) lap4=1;;
+						fe2/2) lap1=1;;
+						fe2/3) lap0=1;;
+						none) let "cnt=0"; break;;
+					esac
+					let "cnt=$cnt+1"
 				done
+				echo "cnt=$cnt $lap0$lap1$lap2$lap3"
+
 				case "$cnt" in
 					0)
 						case "$group" in
@@ -345,8 +412,8 @@ link_aggregation_group_func() {
 			echo -e "Type         static"
 			echo -e "Algorithm    $alg"
 			echo -e "Ports        $g_ports"
-# тут надо вычислить какие из портов активны в данный момент
-			echo -e "Active ports $g_active_ports"
+# TODO: тут надо вычислить какие из портов активны в данный момент
+#			echo -e "Active ports $g_active_ports"
 		;;
 		"")
 		;;
@@ -365,20 +432,6 @@ link_aggregation_func() {
 	else
 
 	case "$1" in
-		"cd")
-			shift
-			cd_func $*
-		;;
-		"quit")
-			exit 0
-		;;
-		"help" | "?")
-			tab=1
-			auto_completion
-		;;
-		"save")
-			save_config
-		;;
 		"show")
 			sw0_alg=`cat /proc/sys/net/dslam_sw/sw0/trunk_hash_alg`
 			sw1_alg=`cat /proc/sys/net/dslam_sw/sw1/trunk_hash_alg`
@@ -424,7 +477,6 @@ link_aggregation_func() {
 				g0_ports="       "
 			else
 				g0=" enable"
-				append_spaces "$g0_ports" $((7-${#g0_ports}))
 				g0_ports="$ret"
 			fi
 			group_ports group1
@@ -434,7 +486,6 @@ link_aggregation_func() {
 				g1_ports="       "
 			else
 				g1=" enable"
-				append_spaces "$g1_ports" $((7-${#g1_ports}))
 				g1_ports="$ret"
 			fi
 			group_ports group2
@@ -444,7 +495,6 @@ link_aggregation_func() {
 				g2_ports="       "
 			else
 				g2=" enable"
-				append_spaces "$g2_ports" $((7-${#g2_ports}))
 				g2_ports="$ret"
 			fi
 			group_ports group3
@@ -454,21 +504,20 @@ link_aggregation_func() {
 				g3_ports="       "
 			else
 				g3=" enable"
-				append_spaces "$g3_ports" $((7-${#g3_ports}))
 				g3_ports="$ret"
 			fi
-
-			echo "-----------------------------------------------------------"
-			echo "Group number       |    0    |    1    |    2    |    3    "
-			echo "-----------------------------------------------------------"
-			echo "Group type         |  static |  static |  static |  static "
-			echo "-----------------------------------------------------------"
-			echo "Algorithm          | $sw0_alg  | $sw0_alg  | $sw1_alg  | $sw1_alg "
-			echo "-----------------------------------------------------------"
-			echo "Group state        | $g0 | $g1 | $g2 | $g3"
-			echo "-----------------------------------------------------------"
-			echo "Ports of the group | $g0_ports | $g1_ports | $g2_ports | $g3_ports"
-			echo "-----------------------------------------------------------"
+			
+			echo "--------------------------------------------------------------------"
+			echo "Group num | Group type | Algorithm | Group state | Port of the group"
+			echo "--------------------------------------------------------------------"
+			echo "    0     |   static   |  $sw0_alg   |   $g0   | $g0_ports"
+			echo "--------------------------------------------------------------------"
+			echo "    1     |   static   |  $sw0_alg   |   $g1   | $g1_ports"
+			echo "--------------------------------------------------------------------"
+			echo "    2     |   static   |  $sw1_alg   |   $g2   | $g2_ports"
+			echo "--------------------------------------------------------------------"
+			echo "    3     |   static   |  $sw1_alg   |   $g3   | $g3_ports"
+			echo "--------------------------------------------------------------------"
 			if [ "$p0" = "0" ]; then
 				p0=""
 			fi
@@ -499,7 +548,10 @@ mirroring_group_show() {
 	i=$1
 	local port
 	local slot
-	echo -n "Group$i: "
+	echo "----------------------------"
+	echo "Group$i"
+	echo "----------------------------"
+	echo -n "State             - "
 	alg=`cat /proc/sys/net/dslam_sw/sw$i/mirror_alg`
 	case $alg in
 		"0") alg="none";;
@@ -516,48 +568,77 @@ mirroring_group_show() {
 	s_ports=`cat /proc/sys/net/dslam_sw/sw$i/mirror_source`
 	s_ports_str=""
 	for p in $s_ports; do
+		if [ "$p" = "24" ]; then
+			s_ports_str="$s_ports_str ge$i"
+		fi
 		if [ "$p" -lt "8" ]; then
-			slot="0"
+			if [ "$i" = "0" ]; then
+				slot="0"
+			else
+				slot="2"
+			fi
 			port="$p"
 		else
-			slot="1"
+			if [ "$i" = "0" ]; then
+				slot="1"
+			else
+				slot="3"
+			fi
 			port="$(($p-8))"
 		fi
 		if [ -d "/sys/class/net/dsl${slot}${port}/ms_private" ]; then
-			type="dsl"
 			s_ports_str="$s_ports_str dsl${slot}/${port}"
 		else
-			# тут надо проверять является ли этот порт ethernet портом на модуле ms17e
-			type=""
+			if [ -d "/sys/class/net/fe${slot}$((7-${port}))/ms_private" ]; then
+				s_ports_str="$s_ports_str fe${slot}/$((7-${port}))"
+			fi
 		fi
 	done
 	if [ "$s_ports_str" = "" ]; then
 		s_ports_str="none"
 	fi
-	echo "Source ports - $s_ports_str"
+	s_ports_str=`echo $s_ports_str`
+	echo "Source ports      - "$s_ports_str
 	d_ports=`cat /proc/sys/net/dslam_sw/sw$i/mirror_dest`
 	d_ports_str=""
 	for p in $d_ports; do
+		if [ "$p" = "24" ]; then
+			d_ports_str="$d_ports_str ge$i"
+		fi
 		if [ "$p" -lt "8" ]; then
-			slot="0"
+			if [ "$i" = "0" ]; then
+				slot="0"
+			else
+				slot="2"
+			fi
 			port="$p"
 		else
-			slot="1"
+			if [ "$i" = "0" ]; then
+				slot="1"
+			else
+				slot="3"
+			fi
 			port="$(($p-8))"
 		fi
 		if [ -d "/sys/class/net/dsl${slot}${port}/ms_private" ]; then
 			type="dsl"
 			d_ports_str="$d_ports_str dsl${slot}/${port}"
 		else
-			# тут надо проверять является ли этот порт ethernet портом на модуле ms17e
-			type=""
+			if [ -d "/sys/class/net/fe${slot}$((7-${port}))/ms_private" ]; then
+				type="fe"
+				d_ports_str="$d_ports_str fe${slot}/$((7-${port}))"
+			else
+				echo "unknown port fe${slot}/$((7-${port}))"
+			fi
 		fi
 	done
 	if [ "$d_ports_str" = "" ]; then
 		d_ports_str="none"
 	fi
-	echo "Destination ports - $d_ports_str"
-	echo "Algorithm - $alg"
+	d_ports_str=`echo $d_ports_str`
+	echo "Destination ports - "$d_ports_str
+	echo "Algorithm         - $alg"
+	echo "----------------------------"
 }
 mirroring_group_func() {
 	group=$1
@@ -571,29 +652,18 @@ mirroring_group_func() {
 	esac
 	shift
 	case "$1" in
-		"cd")
-			shift
-			cd_func $*
-		;;
-		"quit")
-			exit 0
-		;;
-		"help" | "?")
-			tab=1
-			auto_completion
-		;;
-		"save")
-			save_config
-		;;
 		"source")
 			shift
 			if [ "$1" = "" ]; then
 				mirroring_group_show `expr substr $sw 3 1` > /tmp/temp_file
 				cat /tmp/temp_file | grep "Source ports"
 				rm -f /tmp/temp_file
+				return
 			fi
 			if [ "$1" = "none" ]; then
 				echo "none" > /proc/sys/net/dslam_sw/${sw}/mirror_source
+				echo "Source ports = none"
+				return
 			fi
 			str=""
 			while [ ! -z "$1" ]; do
@@ -602,7 +672,7 @@ mirroring_group_func() {
 						if [ "$sw" = "sw0" ]; then
 							str="$str 24"
 						else
-							echo "Bad port $1!"
+							echo "Port ge0 can be only in group0!"
 							return
 						fi
 					;;
@@ -610,38 +680,81 @@ mirroring_group_func() {
 						if [ "$sw" = "sw1" ]; then
 							str="$str 24"
 						else
-							echo "Bad port $1!"
+							echo "Port ge1 can be only in group1!"
 							return
 						fi
 					;;
 					"dsl"*)
-						tmp=`expr substr $1 1 4``expr substr $1 6 1`
-						if [ ! -d "/sys/class/net/$tmp/ms_private" ]; then
-							echo "Bad port $1!"
+						slot_=`expr substr $1 4 1`
+						port_=`expr substr $1 6 1`
+						if [ ! -d "/sys/class/net/dsl${slot_}${port_}/ms_private" ]; then
+							echo "Where are no port $1!"
 							return
 						fi
 						if [ "$sw" = "sw0" ]; then
-							if [ `expr substr $1 4 1` =  "0" ]; then
-								str="$str "`expr substr $1 6 1`
+							if [ "$slot_" =  "0" ]; then
+								str="$str $port_"
 							else
-								if [ `expr substr $1 4 1` =  "1" ]; then
-									str="$str "$((`expr substr $1 6 1`+8))
+								if [ "$slot_" =  "1" ]; then
+									str="$str "$(($port_+8))
 								else
-									echo "Bad port $1!"
+									echo "In group0 can be only ports from slot 0 and slot 1!"
 									return
 								fi
 							fi
-						else
-							echo "Bad port $1!"
-							return
+						elif [ "$sw" = "sw1" ]; then
+							if [ "$slot_" =  "2" ]; then
+								str="$str $port_"
+							else
+								if [ "$slot_" =  "3" ]; then
+									str="$str "$(($port_+8))
+								else
+									echo "In group1 can be only ports from slot 2 and slot 3!"
+									return
+								fi
+							fi
 						fi
 					;;
 					"fe"*)
+						slot_=`expr substr $1 3 1`
+						port_=`expr substr $1 5 1`
+						if [ ! -d "/sys/class/net/fe${slot_}${port_}/ms_private" ]; then
+							echo "Where are no port $1!"
+							return
+						fi
+						if [ "$sw" = "sw0" ]; then
+							if [ "$slot_" =  "0" ]; then
+								str="$str $((7-$port_))"
+							else
+								if [ "$slot_" =  "1" ]; then
+									str="$str "$((15-$port_))
+								else
+									echo "In group0 can be only ports from slot 0 and slot 1!"
+									return
+								fi
+							fi
+						elif [ "$sw" = "sw1" ]; then
+							if [ "$slot_" =  "2" ]; then
+								str="$str $((7-$port_))"
+							else
+								if [ "$slot_" =  "3" ]; then
+									str="$str "$((15-$port_))
+								else
+									echo "In group1 can be only ports from slot 2 and slot 3!"
+									return
+								fi
+							fi
+						fi
+					;;
+					*)
+						echo "Bad port $1!"
+						return
 					;;
 				esac
 				shift
 			done
-#			echo "Source ports = $str"
+			str=`echo $str`
+			echo "Source ports = $str"
 			if [ "$str" = "" ]; then str="none"; fi
 			echo "$str" > /proc/sys/net/dslam_sw/${sw}/mirror_source
 		;;
@@ -651,9 +764,11 @@ mirroring_group_func() {
 				mirroring_group_show `expr substr $sw 3 1` > /tmp/temp_file
 				cat /tmp/temp_file | grep "Destination ports"
 				rm -f /tmp/temp_file
+				return
 			fi
 			if [ "$1" = "none" ]; then
 				echo "none" > /proc/sys/net/dslam_sw/${sw}/mirror_dest
+				return
 			fi
 			str=""
 			while [ ! -z "$1" ]; do
@@ -662,7 +777,7 @@ mirroring_group_func() {
 						if [ "$sw" = "sw0" ]; then
 							str="$str 24"
 						else
-							echo "Bad port $1!"
+							echo "Port ge0 can be only in group0!"
 							return
 						fi
 					;;
@@ -670,22 +785,65 @@ mirroring_group_func() {
 						if [ "$sw" = "sw1" ]; then
 							str="$str 24"
 						else
-							echo "Bad port $1!"
+							echo "Port ge1 can be only in group1!"
 							return
 						fi
 					;;
 					"dsl"*)
-						tmp=`expr substr $1 1 4``expr substr $1 6 1`
-						if [ ! -d "/sys/class/net/$tmp/ms_private" ]; then
+						slot_=`expr substr $1 4 1`
+						port_=`expr substr $1 6 1`
+						if [ ! -d "/sys/class/net/dsl${slot_}${port_}/ms_private" ]; then
+							echo "Where are no port $1!"
+							return
+						fi
+						if [ "$sw" = "sw0" ]; then
+							if [ "$slot_" =  "0" ]; then
+								str="$str $port_"
+							else
+								if [ "$slot_" =  "1" ]; then
+									str="$str "$(($port_+8))
+								else
+									echo "In group0 can be only ports from slot 0 and slot 1!"
+									return
+								fi
+							fi
+						elif [ "$sw" = "sw1" ]; then
+							if [ "$slot_" =  "2" ]; then
+								str="$str $port_"
+							else
+								if [ "$slot_" =  "3" ]; then
+									str="$str "$(($port_+8))
+								else
+									echo "In group1 can be only ports from slot 2 and slot 3!"
+									return
+								fi
+							fi
+						fi
+					;;
+					"fe"*)
+						slot_=`expr substr $1 3 1`
+						port_=`expr substr $1 5 1`
+						if [ ! -d "/sys/class/net/fe${slot_}${port_}/ms_private" ]; then
 							echo "Bad port $1!"
 							return
 						fi
 						if [ "$sw" = "sw0" ]; then
-							if [ `expr substr $1 4 1` =  "0" ]; then
-								str="$str "`expr substr $1 6 1`
+							if [ "$slot_" =  "0" ]; then
+								str="$str $((7-$port_))"
 							else
-								if [ `expr substr $1 4 1` =  "1" ]; then
-									str="$str "$((`expr substr $1 6 1`+8))
+								if [ "$slot_" =  "1" ]; then
+									str="$str "$((15-$port_))
+								else
+									echo "Bad port $1!"
+									return
+								fi
+							fi
+						elif [ "$sw" = "sw1" ]; then
+							if [ "$slot_" =  "2" ]; then
+								str="$str $((7-$port_))"
+							else
+								if [ "$slot_" =  "3" ]; then
+									str="$str "$((15-$port_))
 								else
 									echo "Bad port $1!"
 									return
@@ -696,12 +854,15 @@ mirroring_group_func() {
 							return
 						fi
 					;;
-					"fe"*)
+					*)
+						echo "Bad port $1!"
+						return
 					;;
 				esac
 				shift
 			done
-#			echo "Dest ports = $str"
+			str=`echo $str`
+			echo "Dest ports = $str"
 			if [ "$str" = "" ]; then str="none"; fi
 			echo "$str" > /proc/sys/net/dslam_sw/${sw}/mirror_dest
 		;;
@@ -729,6 +890,7 @@ mirroring_group_func() {
 				"")
 					alg=`cat /proc/sys/net/dslam_sw/${sw}/mirror_alg`
 					case $alg in
+						"0") alg="none";;
 						"1") alg="rx";;
 						"2") alg="tx";;
 						"3") alg="rx/tx";;
@@ -756,20 +918,6 @@ mirroring_func() {
 	else
 
 	case "$1" in
-		"cd")
-			shift
-			cd_func $*
-		;;
-		"quit")
-			exit 0
-		;;
-		"help" | "?")
-			tab=1
-			auto_completion
-		;;
-		"save")
-			save_config
-		;;
 		"show")
 			for i in 0 1; do
 				mirroring_group_show $i
@@ -790,20 +938,6 @@ mirroring_func() {
 
 services_func() {
 	case "$1" in
-		"cd")
-			shift
-			cd_func $*
-		;;
-		"quit")
-			exit 0
-		;;
-		"help" | "?")
-			tab=1
-			auto_completion
-		;;
-		"save")
-			save_config
-		;;
 		"link_aggregation")
 			shift
 			link_aggregation_func $*

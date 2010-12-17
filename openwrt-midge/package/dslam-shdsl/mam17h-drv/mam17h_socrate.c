@@ -27,11 +27,11 @@ void monitor_links_state(void * data)
 			{
 				jiffies_to_timeval((unsigned long)jiffies, &(tv));
 				card->channels[i].uptime_all.tv_sec += (tv.tv_sec - card->channels[i].uptime.tv_sec);
-				printk(KERN_ERR"uptime_all=%i\n", card->channels[i].uptime_all.tv_sec);
+//				printk(KERN_ERR"uptime_all=%i\n", card->channels[i].uptime_all.tv_sec);
 				printk(KERN_NOTICE "DSLAM %s: link is DOWN\n", card->channels[i].name);
 			}
 			jiffies_to_timeval(0, &(card->channels[i].uptime));
-			printk(KERN_ERR"uptime=0\n");
+//			printk(KERN_ERR"uptime=0\n");
 			if ((card->mpair_mode != 0) && (is_chan_in_mpair(card, i)))
 			{
 				switch (card->channels[i].mode)
@@ -73,7 +73,7 @@ void monitor_links_state(void * data)
 			}
 			load_cfg(card, i);
 			jiffies_to_timeval((unsigned long)jiffies, &(card->channels[i].uptime));
-			printk(KERN_ERR"uptime=%i\n", card->channels[i].uptime.tv_sec);
+//			printk(KERN_ERR"uptime=%i\n", card->channels[i].uptime.tv_sec);
 		}
 		if (card->channels[i].state == CONNECTED)
 		{

@@ -1,0 +1,148 @@
+#!/bin/sh
+
+system_date_func() {
+	if [ "$1" = "" ]; then
+		echo `date -R`
+		return		
+	fi
+	tmp=`echo "$1" | grep "[0-3][0-9]-[0-1][0-9]-20[0-9][0-9]"`
+	if [ "$tmp" = "" ]; then
+		echo "Usage date DD-MM-YYYY"
+		return
+	fi
+	day=`expr substr "$1" 1 2`
+	month=`expr substr "$1" 4 2`
+	year=`expr substr "$1" 7 4`
+	
+	tmp=`date +%H:%M:%S`
+	tmp=`date -s "$year-$month-$day $tmp`
+	echo "Today is "`date -I`
+}
+
+system_time_func() {
+	if [ "$1" = "" ]; then
+		time=`date`; time=`expr substr "$time" 12 8`
+		echo $time
+		return		
+	fi
+	tmp=`echo "$1" | grep "[0-2][0-9]:[0-5][0-9]:[0-5][0-9]"`
+	if [ "$tmp" = "" ]; then
+		echo "Usage time hh:mm:ss"
+		return
+	fi
+
+	tmp=`date -I`
+	tmp=`date -s "$tmp $1"`
+	echo "System time is "`date +%H:%M:%S`
+}
+
+system_ntp_func() {
+	if [ "$1" = "disable" ]; then
+		echo "kdb set sys_ntpclient_enabled=0" >> $tmp_config_file
+		echo "NTP service is DISABLED! Please, enter current date&time manually"
+		return
+	fi
+	if ntpclient -c 1 -s -l -h $1 -i 5 2>/dev/null > /dev/null; then
+		echo "kdb set sys_ntpclient_server=\"$1\"" >> $tmp_config_file
+		echo "Settings from $1 has been successfully submitted"
+		echo "Today Date is "`date -I`
+		echo "Today Time is "`date +%H:%M:%S`
+	else
+		echo "NTP server is unavailable."
+		echo "Please, assign the correct address or enter date&time settings manually."
+	fi
+}
+
+system_show_func() {
+	host_name=`hostname`
+	echo "----------------------------------------"
+	echo "General setting"
+	echo "----------------------------------------"
+	echo "Name            | "`hostname`
+	location=`kdb get sys_location`
+	echo "Location        | "$location
+	uptm=`uptime`; uptm=${uptm#*up}; uptm=${uptm%%, load*}
+	echo "Uptime          |"$uptm
+	echo "Date            | "`date -I`
+	echo "Time            | "`date +%H:%M:%S`
+	if [ `kdb get sys_ntpclient_enabled` = "1" ]; then
+		ntp_server=`kdb get sys_ntpclient_server`
+	else
+		ntp_server="NONE"
+	fi
+	echo "NTP server      | "$ntp_server
+	tz=`kdb get sys_timezone`
+	if [ `expr substr "$tz" 1 1` = "-" ]; then
+		tz=+`expr substr "$tz" 2 2`
+	else
+		tz=-`expr substr "$tz" 2 2`
+	fi
+	echo "Time zone       | GMT"$tz
+}
+
+system_func() {
+	prompt=":system"
+	cmd=$1
+	shift
+	param="$*"
+	case "$cmd" in
+		"date")
+			system_date_func $param
+		;;
+		"time")
+			system_time_func $param
+		;;
+		"ntp")
+			system_ntp_func $param
+		;;
+		"timezone")
+			tmp=`echo $param | grep "^gmt [+-]\?[1-9][0-9]\?$"`
+			if [ "$tmp" = "" ]; then
+				echo "Syntax error, usage timezone GMT +N"
+				return
+			fi
+			tmp=`expr substr "$tmp" 5 3`
+			case `expr substr "$tmp" 1 1` in
+				"+")
+					tmp="-"`expr substr "$tmp" 2 2`
+				;;
+				"-")
+					tmp="+"`expr substr "$tmp" 2 2`
+				;;
+				*)
+					tmp="-$tmp"
+				;;
+			esac
+			echo "UTC${tmp}UTC,M3.5.0/2,M10.5.0/3" > /etc/TZ
+			echo "kdb set sys_timezone=\"$tmp\"" >> $tmp_config_file
+		;;
+		"name")
+			if [ "$param" = "" ]; then
+				echo "Current name device is "`hostname`
+				return
+			fi
+			hostname "$param"
+			echo "kdb set sys_hostname=\"$param\"" >> $tmp_config_file
+			echo "Device name setted to "`hostname`
+		;;
+		"location")
+			if [ "$param" = "" ]; then
+				echo "Current device location is "`kdb get sys_location`""
+				return
+			fi
+			echo "kdb set sys_location=\"$param\"" >> $tmp_config_file
+			echo "Device location setted to $param"
+		;;
+		"uptime")
+			uptm=`uptime`; uptm=${uptm#*up}; uptm=${uptm%%, load*}
+			echo "Current uptime $uptm"
+		;;
+		"show")
+			system_show_func
+		;;
+		"");;
+		*)
+			echo "Syntax error"
+		;;
+	esac
+}

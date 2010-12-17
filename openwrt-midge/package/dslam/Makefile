@@ -49,9 +49,13 @@ $(IPKG_SIGRAND_DSLAM):
 	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/cli/cli $(IDIR_SIGRAND_DSLAM)/sbin/
 	install -d -m0755 $(IDIR_SIGRAND_DSLAM)/etc/cli
 	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/cli/auto_completion $(IDIR_SIGRAND_DSLAM)/etc/cli/
-	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/cli/cos $(IDIR_SIGRAND_DSLAM)/etc/cli/
+	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/cli/help $(IDIR_SIGRAND_DSLAM)/etc/cli/
+	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/cli/network $(IDIR_SIGRAND_DSLAM)/etc/cli/
+	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/cli/port $(IDIR_SIGRAND_DSLAM)/etc/cli/
 	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/cli/services $(IDIR_SIGRAND_DSLAM)/etc/cli/
-	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/cli/vlan $(IDIR_SIGRAND_DSLAM)/etc/cli/
+	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/cli/services_cos $(IDIR_SIGRAND_DSLAM)/etc/cli/
+	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/cli/services_vlan $(IDIR_SIGRAND_DSLAM)/etc/cli/
+	install -m0755  $(PKG_BUILD_DIR)/dslam-sw/cli/system $(IDIR_SIGRAND_DSLAM)/etc/cli/
 	$(IPKG_BUILD) $(IDIR_SIGRAND_DSLAM) $(PACKAGE_DIR)
 
 #local_build: $(PKG_BUILD_DIR)/.prepared

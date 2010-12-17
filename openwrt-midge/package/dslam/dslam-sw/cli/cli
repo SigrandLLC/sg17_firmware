@@ -1,16 +1,19 @@
 #!/bin/sh
 
+. /etc/cli/port
 . /etc/cli/services
 . /etc/cli/auto_completion
+. /etc/cli/help
+. /etc/cli/system
+. /etc/cli/network
 
 tmp_config_file="/tmp/tmp_config"
 
-#prompt=":services:link_aggregation"
-#group="group0"
-prompt=":"
+prompt=":services:vlan"
 cmd=""
 port=""
 port_type=""
+vid=""
 
 cursor_ind="0" # для обработки раширенных ascii кодов
 cmds=0 # счетчик введенных команд
@@ -18,9 +21,8 @@ cmdp=0 # указатель на команду (надо для стреток 
 cmdi=0 # указатель на символ в команде, куда вставлять следующий символ (влево/вправо home/end)
 rm -f /tmp/cmd_history
 
-clean_temp() {
-	rm -f /tmp/cmd_history
-}
+# функция для отрисовки символа в соответсвующем месте (вызывается после нажатия клавиши)
+# cmdi - позиция курсора
 insert_char() {
 	if [ "$cmdi" = "0" ]; then
 		cmd="$ch$cmd"
@@ -42,16 +44,7 @@ insert_char() {
 		let "i=$i-1"
 	done
 }
-remove_char() {
-	if [ "$cmdi" != "0" ]; then
-		if [ "$cmdi" != "${#cmd}" ]; then
-			cmd=`expr substr "$cmd" 1 $(($cmdi-1))``expr substr "$cmd" $(($cmdi+1)) ${#cmd}`
-		else
-			cmd=`expr substr "$cmd" 1 $((${#cmd}-1))`
-		fi
-		cmdi=$(($cmdi-1))
-	fi
-}
+# удаляет введенную команду (вызывается при нажатии вверх/вниз)
 delete_cmd() {
 	let "i=0"
 	while [ "$i" != "${#cmd}" ]; do
@@ -59,65 +52,9 @@ delete_cmd() {
 		let "i=$i+1"
 	done
 }
-check_tcpam_rate() {
-	tcpam=$1
-	rate=$2
-	case "$tcpam" in
-		2)
-			if [ "$rate" -lt "192" ]; then
-				echo "On tcpam8 rate must be from 192 to 3840 Kbit/s"
-				return 1
-			fi
-			if [ "$rate" -gt "3840" ]; then
-				echo "On tcpam8 rate must be from 192 to 3840 Kbit/s"
-				return 1
-			fi
-		;;
-		3)
-			if [ "$rate" -lt "192" ]; then
-				echo "On tcpam16 rate must be from 192 to 3840 Kbit/s"
-				return 1
-			fi
-			if [ "$rate" -gt "3840" ]; then
-				echo "On tcpam16 rate must be from 192 to 3840 Kbit/s"
-				return 1
-			fi
-		;;
-		4)
-			if [ "$rate" -lt "768" ]; then
-				echo "On tcpam32 rate must be from 768 to 10176 Kbit/s"
-				return 1
-			fi
-			if [ "$rate" -gt "10176" ]; then
-				echo "On tcpam32 rate must be from 768 to 10176 Kbit/s"
-				return 1
-			fi
-		;;
-		5)
-			if [ "$rate" -lt "768" ]; then
-				echo "On tcpam64 rate must be from 768 to 12736 Kbit/s"
-				return 1
-			fi
-			if [ "$rate" -gt "12736" ]; then
-				echo "On tcpam64 rate must be from 768 to 12736 Kbit/s"
-				return 1
-			fi
-		;;
-		6)
-			if [ "$rate" -lt "768" ]; then
-				echo "On tcpam128 rate must be from 768 to 15296 Kbit/s"
-				return 1
-			fi
-			if [ "$rate" -gt "15296" ]; then
-				echo "On tcpam128 rate must be from 768 to 15296 Kbit/s"
-				return 1
-			fi
-		;;
-	esac
-	return 0
-}
 
 cd_func() {
+	# TODO: добавить возможность произвольного перехода по дереву
 	if [ "$*" = "" ]; then
 		prompt=":"
 		port=""
@@ -130,25 +67,30 @@ cd_func() {
 				port=""
 				port_type=""
 				group=""
+				vid=""
 			;;
 			"port")
 				prompt=":port"
 				port=""
 				port_type=""
 				group=""
+				vid=""
 			;;
 			"services")
 				prompt=":services"
 				port=""
 				port_type=""
 				group=""
+				vid=""
 			;;
 			"..")
 				if [ "$port" = "" ]; then
 					if [ "$group" = "" ]; then
-						prompt="${prompt%:*}"
-						if [ "$prompt" = "" ]; then
-							prompt=":"
+						if [ "$vid" = "" ]; then
+							prompt="${prompt%:*}"
+							if [ "$prompt" = "" ]; then
+								prompt=":"
+							fi
 						fi
 					fi
 				fi
@@ -158,6 +100,9 @@ cd_func() {
 				if [ "$group" != "" ]; then
 					group=""
 				fi
+				if [ "$vid" != "" ]; then
+					vid=""
+				fi
 			;;
 			*)
 				echo "Usage: cd [/ | port | services]"
@@ -166,777 +111,25 @@ cd_func() {
 	fi
 }
 
-print_dsl_status() {
-	cd /sys/class/net/$iface/ms_private
-	master=`cat mode`
-	code=`cat tcpam`
-	rate=`cat rate`
-	if [ -n "$rate" ]; then
-		rate="rate=$rate"
-	else
-		rate=""
-	fi
-	annex=`cat annex`    
-	if [ -n "$annex" ]; then
-		annex="annex=$annex"
-	else
-		annex=""
-	fi
-	if [ "$master" = "master" ]; then
-		pbo=`cat pbo_mode`
-		pbo_val=`cat pbo_val`
-		[ "$pbo" = "Forced" ] && pbo="${pbo} ${pbo_val} dB"
-	else
-		pbo=""
-	fi
-	pwr_mod=`cat pwr_source`
-	pwron=`cat pwron`
-	pwrovl=`cat pwrovl`
-	pwrunb=`cat pwrunb`
-#	echo "$iface:"
-	up_time=`cat uptime`
-	on_off=`cat on_off`
-	up_time_all=`cat uptime_all`
-	down_time_all=`cat downtime_all`
-	if [ "$up_time" = "0 d 00:00:00" ]; then
-		echo -e "Status:\n\tOFFLINE"
-	else
-		echo -e "Status:\n\tONLINE Connect duration=$up_time Total online time=$up_time_all Total offline time=$down_time_all"
-	fi
-	echo -en "shdsl:\n\t$on_off $master $rate $code $annex"
-	[ -n "$pbo" ] && echo -en " PBO=$pbo"
-	echo -e "\nStatistics:"
-	cat statistics
-	if [ "$pwr_mod" = "1" ]; then
-		echo -e "Power:"
-		echo -e "\tpwron=$pwron overload=$pwrovl unbalance=$pwrunb"
-	else
-		echo -e "Power:"
-		echo -e "\tnone"
-	fi
-	echo ""
-}
-
-
-print_dsl_status_all()
-{
-	echo -e "----------------------------------------------------------------------"
-	echo "port  on/off state   mode power  rate    tcpam   SNR            uptime"
-	echo -e "----------------------------------------------------------------------"
-	cd /sys/class/net
-	for iface in *; do
-		if [ -d "$iface/ms_private" ]; then
-			bkp_dir=`pwd`
-			cd "$iface/ms_private"
-			on_off=`cat on_off`
-			if [ "$on_off" = "on" ]; then
-				on_off=" on"
-			fi
-			up_time=`cat uptime`
-			online="offline"
-			mode=`cat mode`
-			if [ "$mode" = "slave" ]; then
-				mode=" slave"
-			fi
-			pwr_mod=`cat pwr_source`
-			
-			if [ "$pwr_mod" = "1" ]; then
-				pwron=`cat pwron`
-				if [ "$pwron" = "1" ]; then
-					power=" on"
-				else
-					power="off"
-				fi
-			else
-				power="none"
-			fi
-			if [ "$up_time" != "0 d 00:00:00" ]; then
-				online=" online"
-			fi
-			rate=`cat rate`
-			if [ "${#rate}" = "0" ]; then
-				rate="     "
-			fi
-			if [ "${#rate}" = "4" ]; then
-				rate=" "$rate
-			fi
-			if [ "${#rate}" = "3" ]; then
-				rate="  "$rate
-			fi
-			tcpam=`cat tcpam`
-			if [ "${#tcpam}" = "0" ]; then
-				tcpam="        "
-			fi
-			if [ "${#tcpam}" = "7" ]; then
-				tcpam=" "$tcpam
-			fi
-			if [ "${#tcpam}" = "6" ]; then
-				tcpam="  "$tcpam
-			fi
-			snr=`cat statistics_row`
-			for i in $snr; do
-				snr=$i
-				break;
-			done
-			if [ "${#snr}" = "1" ]; then
-				snr="  "$snr"dB"
-			else
-				if [ "${#snr}" = "2" ]; then
-					snr=" "$snr"dB"
-				else
-					snr=$snr"dB"
-				fi
-			fi
-			iface=`expr substr $iface 1 4`"/"`expr substr $iface 5 1`
-			if [ "$online" = " online" ]; then
-				echo -e "$iface $on_off $online $mode   $power $rate $tcpam $snr $up_time"
-			else
-				if [ "$mode" = "master" ]; then
-					echo -e "$iface $on_off $online $mode   $power $rate $tcpam $snr"
-				else
-					echo -e "$iface $on_off $online $mode   $power"
-				fi
-			fi
-			
-			echo -e "----------------------------------------------------------------------"
-			cd $bkp_dir
-		fi
-	done
-}
-
-print_ge_status() {
-	sw="sw"`expr substr $1 3 1`
-
-	echo "24" > /proc/sys/net/dslam_sw/$sw/status
-	status=`cat /proc/sys/net/dslam_sw/$sw/status`
-	let "tmp=0"
-	for i in $status; do
-		if [ "$tmp" = "1" ]; then
-			flow=$i
-		fi
-		if [ "$tmp" = "2" ]; then
-			duplex=$i
-		fi
-		if [ "$tmp" = "3" ]; then
-			speed=$i
-		fi
-		if [ "$tmp" = "4" ]; then
-			state=$i
-			if [ "$state" = "up" ]; then
-				state="online"
-			else
-				state="offline"
-			fi
-		fi
-		if [ "$tmp" = "5" ]; then
-			auto=$i
-			if [ "$auto" = "auto" ]; then
-				auto="auto"
-			else
-				auto="manual"
-			fi
-		fi
-		if [ "$tmp" = "6" ]; then
-			on_off=$i
-		fi
-		let "tmp=$tmp+1"
-	done
-	tx_rx=`cat /proc/sys/net/dslam_sw/$sw/statistics`
-	let "tmp=0"
-	for i in $tx_rx; do
-		if [ "$tmp" = "79" ]; then
-			tx=$i
-		fi
-		if [ "$tmp" = "80" ]; then
-			rx=$i
-		fi
-		let "tmp=$tmp+1"
-	done
-	echo -e "\non\off=$on_off\nstate=$state\nconfiguration=$auto\nflow control=$flow\nrate=$speed Mbps\nduplex=$duplex"
-	echo -e "transmited packages=$tx\nreceived packages=$rx\n"
-}
-
-
-print_ge_status_all() {
-	echo "------------------------------------------------------------------"
-	echo "port  on/off  state config flow speed duplex TX packets RX packets"
-	echo "------------------------------------------------------------------"
-	for g in 0 1; do
-
-	echo "24" > /proc/sys/net/dslam_sw/sw$g/status
-	status=`cat /proc/sys/net/dslam_sw/sw$g/status`
-	let "tmp=0"
-	for i in $status; do
-		if [ "$tmp" = "1" ]; then
-			flow=$i
-			if [ "$flow" = "on" ]; then
-				flow=" on"
-			fi
-		fi
-		if [ "$tmp" = "2" ]; then
-			duplex=$i
-		fi
-		if [ "$tmp" = "3" ]; then
-			speed=$i
-			if [ "$speed" = "10" ]; then
-				speed="  10";
-			fi
-			if [ "$speed" = "100" ]; then
-				speed=" 100";
-			fi
-		fi
-		if [ "$tmp" = "4" ]; then
-			state=$i
-			if [ "$state" = "up" ]; then
-				state=" online"
-			else
-				state="offline"
-			fi
-		fi
-		if [ "$tmp" = "5" ]; then
-			auto=$i
-			if [ "$auto" = "auto" ]; then
-				auto="  auto"
-			else
-				auto="manual"
-			fi
-		fi
-		if [ "$tmp" = "6" ]; then
-			on_off=$i
-			if [ "$on_off" = "on" ]; then
-				on_off="   on  "
-			else
-				on_off="  off  "
-			fi
-		fi
-		let "tmp=$tmp+1"
-	done
-	tx_rx=`cat /proc/sys/net/dslam_sw/sw$g/statistics`
-	let "tmp=0"
-	for i in $tx_rx; do
-		if [ "$tmp" = "79" ]; then
-			tx=$i
-		fi
-		if [ "$tmp" = "80" ]; then
-			rx=$i
-		fi
-		let "tmp=$tmp+1"
-	done
-	echo "ge$g $on_off $state $auto  $flow  $speed   $duplex  $tx  $rx"
-	echo "------------------------------------------------------------------"
-
-	done	
-}
-
-ge_func() {
-	if [ "$1" = "stat" ]; then
-		if [ "$2" = "reset" ]; then
-			echo "24" > /proc/sys/net/dslam_sw/sw0/statistics
-			echo "24" > /proc/sys/net/dslam_sw/sw1/statistics
-			echo "Statistics counters for ports ge0 and ge1 is reset"
-		else
-			echo ""
-			print_ge_status_all
-			echo ""
-		fi
-	else
-		echo "Syntax error, after ge must be stat"
-	fi
-}
-dsl_func() {
-	if [ "$1" = "stat" ]; then
-		if [ "$2" = "reset" ]; then
-			for tmp in `ls /sys/class/net/`; do
-				if [ -d "/sys/class/net/$tmp/ms_private" ]; then
-					echo "1" > /sys/class/net/$tmp/ms_private/statistics
-				fi
-			done
-		else
-			echo ""
-			print_dsl_status_all
-			echo ""
-		fi
-	else
-		echo "Syntax error, after ge must be stat"
-	fi
-}
-
-port_func() {
-	prompt=":port"
-	port_type=""
-	tmp=`echo $1 | grep "dsl"`
-	if [ "$tmp" != "" ]; then
-		tmp=`expr substr $1 1 4``expr substr $1 6 6`
-		if [ -d "/sys/class/net/$tmp/ms_private" ]; then
-			port_type="dsl"
-			port=$1
-		else
-			echo "Where are no such port!"
+save_config() {
+	if [ -f "$tmp_config_file" ]; then
+		if [ "$*" != "" ]; then
+			echo -e "data to save:\n"
+			echo "---------------------"
+			cat $tmp_config_file
+			echo "---------------------"
 			return
 		fi
+		eval `cat $tmp_config_file`
+		echo "Configuration was saved."
+		rm -f $tmp_config_file
 	else
-		tmp=`echo $1 | grep "fe"`
-		if [ "$tmp" != "" ]; then
-			port_type="fe"
-			port="fe"
-		else
-			if [ "$1" = "ge0" ]; then
-				port_type="ge"
-				port=$1
-			else
-				if [ "$1" = "ge1" ]; then
-					port_type="ge"
-					port=$1
-				else
-					case "$1" in
-						"cd")
-							shift
-							cd_func $*
-						;;
-						"help" | "?")
-							tab=1
-							auto_completion
-						;;
-						"save")
-							save_config
-						;;
-						"quit")
-							exit 0
-						;;
-						"ge")
-							shift
-							ge_func $*
-						;;
-						"dsl")
-							shift
-							dsl_func $*
-						;;
-						*)
-							echo "Where are no such port!"
-						;;
-					esac
-
-
-					return
-				fi
-			fi
-		fi
+		echo "Nothing to save!"
 	fi
-	
-	need_reconf=0
-	case "$port_type" in
-		"dsl")
-			iface=`expr substr $1 1 4``expr substr $1 6 6`
-			slot=`expr substr $iface 4 1`
-			slot=$(($slot+2))
-			pnum=`expr substr $iface 5 1`
-			
-			if [ "$2" != "" ]; then
-				tcpam=""
-				case "$2" in
-					"stat")
-						if [ "$3" = "reset" ]; then
-							echo "1" > /sys/class/net/$iface/ms_private/statistics
-							echo "Port $port statistics counters is reset"
-						else
-							print_dsl_status
-							tcpam=""
-						fi
-					;;
-					"rate")
-						if [ "$3" != "" ]; then
-							chk=`echo "$3" | grep '[^0-9]'`
-							if [ ! -z "$chk" ]; then
-								echo "Bad rate value"
-							else
-								tcpam=`cat /sys/class/net/$iface/ms_private/tcpam`
-								case $tcpam in
-									TCPAM4)
-										tcpam=1
-									;;
-									TCPAM8)
-										tcpam=2
-									;;
-									TCPAM16)
-										tcpam=3
-									;;
-									TCPAM32)
-										tcpam=4
-									;;
-									TCPAM64)
-										tcpam=5
-									;;
-									TCPAM128)
-										tcpam=6
-									;;
-								esac
-								rate=$3
-								check_tcpam_rate $tcpam $rate
-								if [ "$?" = "0" ]; then
-									echo "$rate" > /sys/class/net/$iface/ms_private/rate
-									echo "kdb set sys_pcicfg_s000${slot}_${pnum}_rate=\"$rate\"" >> $tmp_config_file
-									need_reconf=1
-								fi
-								tcpam=""
-							fi
-						else
-							echo -en "\nPort $port rate: "
-							cat /sys/class/net/$iface/ms_private/rate
-							echo -e "\n"
-						fi
-					;;
-					"tcpam")
-						echo -en "\nPort $port tcpam: "
-						cat /sys/class/net/$iface/ms_private/tcpam
-						echo -e "\n"
-        				;;
-					"tcpam8")
-						tcpam=2
-					;;
-					"tcpam16")
-						tcpam=3
-					;;
-					"tcpam32")
-						tcpam=4
-						
-					;;
-					"tcpam64")
-						tcpam=5
-					;;
-					"tcpam128")
-						tcpam=6
-					;;
-					"annex")
-						if [ "$3" = "" ]; then
-							echo -en "\nPort $port annex: "
-							cat /sys/class/net/$iface/ms_private/annex
-							echo -e "\n"
-						else
-							if [ "$3" = "A" ]; then
-								annex=0
-								ann="A"
-							elif [ "$3" = "B" ]; then
-								annex=1
-								ann="B"
-							elif true; then
-								annex="none"
-							fi
-							if [ "$annex" != "none" ]; then
-								echo "$annex" > /sys/class/net/$iface/ms_private/annex
-								echo "kdb set sys_pcicfg_s000${slot}_${pnum}_annex=\"$ann\"" >> $tmp_config_file
-								need_reconf=1
-							else
-								echo -e "Annex must be A|B"
-							fi
-						fi
-					;;
-					"on")
-						echo "1" > /sys/class/net/$iface/ms_private/on_off
-						echo "kdb set sys_pcicfg_s000${slot}_${pnum}_on=\"1\"" >> $tmp_config_file
-					;;
-					"off")
-						echo "0" > /sys/class/net/$iface/ms_private/on_off
-						echo "kdb set sys_pcicfg_s000${slot}_${pnum}_on=\"0\"" >> $tmp_config_file
-					;;
-					"master")
-						echo "1" > /sys/class/net/$iface/ms_private/mode
-						echo "kdb set sys_pcicfg_s000${slot}_${pnum}_mode=\"master\"" >> $tmp_config_file
-						need_reconf=1
-					;;
-					"slave")
-						echo "0" > /sys/class/net/$iface/ms_private/mode
-						echo "kdb set sys_pcicfg_s000${slot}_${pnum}_mode=\"slave\"" >> $tmp_config_file
-						need_reconf=1
-					;;
-					"restart")
-						need_reconf=1
-					;;
-					"pbo-normal")
-						echo "0" > /sys/class/net/$iface/ms_private/pbo_mode
-						echo "kdb set sys_pcicfg_s000${slot}_${pnum}_pbomode=\"0\"" >> $tmp_config_file
-						need_reconf=1
-					;;
-					"pbo-forced")
-						pbo_val=""
-						if [ -z "$3" ]; then
-							echo "PBO value is missing"
-						fi
-						chk=`echo $3 | grep '[^0-9]:'`
-						if [ ! -z "$chk" ]; then
-							echo "PBO value is missing"
-						fi
-						if [ "$3" != "" ]; then
-							echo "$3" > /sys/class/net/$iface/ms_private/pbo_val
-							echo "1" > /sys/class/net/$iface/ms_private/pbo_mode
-							echo "kdb set sys_pcicfg_s000${slot}_${pnum}_pbomode=\"1\"" >> $tmp_config_file
-							echo "kdb set sys_pcicfg_s000${slot}_${pnum}_pboval=\"$pbo_val\"" >> $tmp_config_file
-							need_reconf=1
-						fi
-					;;
-					"power")
-						pwrsrc=`kdb get sys_pcicfg_s000${slot}_pwr_source`
-						if [ "$pwrsrc" = "1" ]; then
-							if [ "$pnum" = "0" ]; then
-								pnum=0
-							else
-								if [ "$pnum" = "1" ]; then
-									pnum=0
-								else
-									pnum=1
-								fi
-							fi
-							case "$3" in
-								"on")
-									echo "1" > /sys/class/net/$iface/ms_private/pwron
-									echo "kdb set sys_pcicfg_s000${slot}_pwr${pnum}_on=\"pwron\"" >> $tmp_config_file
-								;;
-								"off")
-									echo "0" > /sys/class/net/$iface/ms_private/pwron
-									echo "kdb set sys_pcicfg_s000${slot}_pwr${pnum}_on=\"pwroff\"" >> $tmp_config_file
-								;;
-								*)
-									pwr=`cat /sys/class/net/$iface/ms_private/pwron`
-									pwrunb=`cat /sys/class/net/$iface/ms_private/pwrunb`
-									pwrovl=`cat /sys/class/net/$iface/ms_private/pwrovl`
-									if [ "$pwrunb" = "1" ]; then
-										pwrunb="unbalance"
-									else
-										pwrunb=""
-									fi
-									if [ "$pwrovl" = "1" ]; then
-										pwrovl="overload"
-									else
-										pwrovl=""
-									fi
-									if [ "$pwr" = "1" ]; then
-										pwr="on"
-									else
-										pwr="off"
-									fi
-									echo -e "\nPort $port power is $pwr $pwrunb $pwrovl\n"
-								;;
-							esac
-						else
-							echo -e "\nOn port $port no power source\n"
-						fi
-					;;
-					"cd")
-						shift
-						shift
-						cd_func $*
-					;;
-					"save")
-						save_config
-					;;
-					"help" | "?")
-						tab=1
-						auto_completion
-					;;
-					"quit")
-						exit 0
-					;;
-					*)
-						echo "Syntax error after $port"
-					;;
-				esac
-				if [ "$tcpam" != "" ]; then
-					rate=`cat /sys/class/net/$iface/ms_private/rate`
-					check_tcpam_rate $tcpam $rate
-					if [ "$?" = "0" ]; then
-						echo "$tcpam" > /sys/class/net/$iface/ms_private/tcpam
-						case $tcpam in
-							1)
-								tcpam="tcpam4"
-							;;
-							2)
-								tcpam="tcpam8"
-							;;
-							3)
-								tcpam="tcpam16"
-							;;
-							4)
-								tcpam="tcpam32"
-							;;
-							5)
-								tcpam="tcpam64"
-							;;
-							6)
-								tcpam="tcpam128"
-							;;
-						esac
-						echo "kdb set sys_pcicfg_s000${slot}_${pnum}_code=\"$tcpam\"" >> $tmp_config_file
-						need_reconf=1
-					fi
-				fi
-				if [ "$need_reconf" = "1" ]; then
-					echo "1" > /sys/class/net/$iface/ms_private/apply_cfg
-				fi
-			fi
-		;;
-		"ge")
-			sw="sw"`expr substr $port 3 3`
-			if [ "$2" != "" ]; then
-				case "$2" in
-					"auto")
-						echo "24 1" > /proc/sys/net/dslam_sw/$sw/port_autoneg
-						echo "$port autonegotigation is on"
-						echo "kdb set sys_dslam_${port}_auto=1" >> $tmp_config_file
-					;;
-					"rate")
-						if [ "$3" = "1000" ]; then
-							echo "24 1000" > /proc/sys/net/dslam_sw/$sw/port_speed
-							echo "24 0" > /proc/sys/net/dslam_sw/$sw/port_autoneg
-							echo "$port rate is set to 1000 Mbps"
-							echo "kdb set sys_dslam_${port}_auto=0" >> $tmp_config_file
-							echo "kdb set sys_dslam_${port}_rate=1000" >> $tmp_config_file
-						else
-							if [ "$3" = "100" ]; then
-								echo "24 100" > /proc/sys/net/dslam_sw/$sw/port_speed
-								echo "24 0" > /proc/sys/net/dslam_sw/$sw/port_autoneg
-								echo "$port rate is set to 100 Mbps"
-								echo "kdb set sys_dslam_${port}_auto=0" >> $tmp_config_file
-								echo "kdb set sys_dslam_${port}_rate=100" >> $tmp_config_file
-							else
-								if [ "$3" = "10" ]; then
-									echo "24 10" > /proc/sys/net/dslam_sw/$sw/port_speed
-									echo "24 0" > /proc/sys/net/dslam_sw/$sw/port_autoneg
-									echo "$port rate is set to 10 Mbps"
-									echo "kdb set sys_dslam_${port}_auto=0" >> $tmp_config_file
-									echo "kdb set sys_dslam_${port}_rate=10" >> $tmp_config_file
-								else
-									echo "24" > /proc/sys/net/dslam_sw/$sw/status
-									status=`cat /proc/sys/net/dslam_sw/$sw/status`
-									let "tmp=0"
-									for i in $status; do
-										if [ "$tmp" = "3" ]; then
-											rate="$i"
-										fi
-										if [ "$tmp" = "5" ]; then
-											config="$i"
-											break
-										fi
-										let "tmp=$tmp+1"
-									done
-									echo "Port $port rate: $config $rate Mbps"
-								fi
-							fi
-						fi
-					;;
-					"duplex")
-						if [ "$3" = "full" ]; then
-							echo "24 1" > /proc/sys/net/dslam_sw/$sw/port_duplex
-							echo "24 0" > /proc/sys/net/dslam_sw/$sw/port_autoneg
-							echo "$port fullduplex is set"
-							echo "kdb set sys_dslam_${port}_auto=0" >> $tmp_config_file
-							echo "kdb set sys_dslam_${port}_duplex=1" >> $tmp_config_file
-						else
-							if [ "$3" = "half" ]; then
-
-								echo "24" > /proc/sys/net/dslam_sw/$sw/status
-								status=`cat /proc/sys/net/dslam_sw/$sw/status`
-								let "tmp=0"
-								for i in $status; do
-									if [ "$tmp" = "3" ]; then
-										rate="$i"
-										break
-									fi
-									let "tmp=$tmp+1"
-								done
-								if [ "$rate" = "1000" ]; then
-									echo -e "On rate 1000 Mbps dupex must be only full!"
-								else
-									echo "24 0" > /proc/sys/net/dslam_sw/$sw/port_duplex
-									echo "24 0" > /proc/sys/net/dslam_sw/$sw/port_autoneg
-									echo "$port halfduplex is set"
-									echo "kdb set sys_dslam_${port}_auto=0" >> $tmp_config_file
-									echo "kdb set sys_dslam_${port}_duplex=0" >> $tmp_config_file
-								fi
-							else
-								echo "24" > /proc/sys/net/dslam_sw/$sw/status
-								status=`cat /proc/sys/net/dslam_sw/$sw/status`
-								let "tmp=0"
-								for i in $status; do
-									if [ "$tmp" = "2" ]; then
-										echo "Port $port duplex: $i"
-										break
-									fi
-									let "tmp=$tmp+1"
-								done
-							fi
-						fi
-					;;
-					"flow")
-						if [ "$3" = "on" ]; then
-							echo "24 1" > /proc/sys/net/dslam_sw/$sw/port_flowctrl
-							echo "24 0" > /proc/sys/net/dslam_sw/$sw/port_autoneg
-							echo "$port flow control is on"
-							echo "kdb set sys_dslam_${port}_auto=0" >> $tmp_config_file
-							echo "kdb set sys_dslam_${port}_flow=1" >> $tmp_config_file
-						else
-							if [ "$3" = "off" ]; then
-								echo "24 0" > /proc/sys/net/dslam_sw/$sw/port_flowctrl
-								echo "24 0" > /proc/sys/net/dslam_sw/$sw/port_autoneg
-								echo "$port flow control is off"
-								echo "kdb set sys_dslam_${port}_auto=0" >> $tmp_config_file
-								echo "kdb set sys_dslam_${port}_flow=0" >> $tmp_config_file
-							else
-								echo "24" > /proc/sys/net/dslam_sw/$sw/status
-								status=`cat /proc/sys/net/dslam_sw/$sw/status`
-								let "tmp=0"
-								for i in $status; do
-									if [ "$tmp" = "1" ]; then
-										echo "Port $port flow control: $i"
-										break
-									fi
-									let "tmp=$tmp+1"
-								done
-							fi
-						fi
-					;;
-					"on")
-						echo "24 1" > /proc/sys/net/dslam_sw/$sw/port_on_off
-						echo "Port $port is on"
-						echo "kdb set sys_dslam_${port}_on=1" >> $tmp_config_file
-					;;
-					"off")
-						echo "24 0" > /proc/sys/net/dslam_sw/$sw/port_on_off
-						echo "Port $port is off"
-						echo "kdb set sys_dslam_${port}_on=0" >> $tmp_config_file
-					;;
-					"stat")
-						if [ "$3" = "reset" ]; then
-							echo "24" > /proc/sys/net/dslam_sw/$sw/statistics
-							echo "Port $port statistics counters is reset"
-						else
-							print_ge_status $port
-						fi
-					;;
-					"cd")
-						shift
-						shift
-						cd_func $*
-					;;
-					"save")
-						save_config
-					;;
-					"help" | "?")
-						tab=1
-						auto_completion
-					;;
-					"quit")
-						exit 0
-					;;
-					*)
-					;;
-				esac
-			fi
-		;;
-		"fe")
-		;;
-	esac
 }
 
 root_func() {
+#	echo "$*"
 	cmd="$1"
 	if [ "$1" != "" ]; then
 		shift
@@ -944,148 +137,170 @@ root_func() {
 	param=""
 	while [ "$1" != "" ]; do
 		param="$param $1"
-		if [ "$2" != "" ]; then
+		if [ "$1" != "" ]; then
 			shift
 		else
 			break
 		fi
 	done
-	case "$prompt" in
-		":")
-			case "$cmd" in
-				"reboot")
-					echo "reboot"
-					exit 0
-				;;
-				"default")
-					echo "Reset configuration to default"
-					rm /etc/kdb
-					rm /etc/kdb.md5
-					cp /etc/kdb.default /etc/kdb
-				;;
-				"info")
-					host_name=`hostname`
-					fw_ver=`cat /etc/version`
-					echo -e "\nhostname: $host_name\nfirmware version: $fw_ver"
-					for slot in 0 1 2 3; do
-						tmp=`kdb get sys_pcitbl_s000$(($slot+2))_iftype`
-						if [ "$tmp" != "" ]; then
-							iftype=`kdb get sys_pcitbl_s000$(($slot+2))_iftype`
-							ifnum=`kdb get sys_pcitbl_s000$(($slot+2))_ifnum`
-							echo -en "slot $slot: $iftype${ifnum}"
-							if [ "$iftype" = "ms17h" ]; then
-								pwrsrc=`kdb get sys_pcicfg_s000$(($slot+2))_pwr_source`
-								if [ "$pwrsrc" = "1" ]; then
-									pwrsrc="p"
-								else
-									pwrsrc=""
-								fi
-								echo -en "$pwrsrc"
-								tmp2=""
-								for tmp in `kdb get sys_pcitbl_s000$(($slot+2))_ifaces`; do
-									tmp2=$tmp2" "`expr substr $tmp 1 4`"/"`expr substr $tmp 5 1`
-								done
-								echo -e  " ($tmp2 )"
+	case "$cmd" in
+		"reboot")
+			reboot
+		;;
+		"default")
+			echo -n "All settings will be returned on the factory parameters! Continue? (Y/N) "
+			ch=""
+			while [ "$ch" != "y" -a "$ch" != "Y" -a "$ch" != "n" -a "$ch" != "N" ]; do
+				ch=`dd if=/dev/tty bs=1 count=1 2>/dev/null`
+			done
+			echo "$ch"
+			if [ "$ch" = "y" -o "$ch" = "Y" ]; then
+				rm -f /etc/kdb
+				rm -f /etc/kdb.md5
+				cp /etc/kdb.default /etc/kdb
+				reboot
+			fi
+		;;
+		"info")
+			# TODO: сделать нормальный вывод информации об устройстве
+
+			fw_ver=`cat /etc/version`
+			echo -e "\nFirmware version: $fw_ver\n"
+
+			system_show_func
+			network_show_func
+
+			# выводит информацию по слотам
+#			for slot in 0 1 2 3; do
+#				tmp=`kdb get sys_pcitbl_s000$(($slot+2))_iftype`
+#				if [ "$tmp" != "" ]; then
+#					iftype=`kdb get sys_pcitbl_s000$(($slot+2))_iftype`
+#					ifnum=`kdb get sys_pcitbl_s000$(($slot+2))_ifnum`
+#					echo -en "slot $slot: $iftype${ifnum}"
+#					if [ "$iftype" = "ms17h" ]; then
+#						pwrsrc=`kdb get sys_pcicfg_s000$(($slot+2))_pwr_source`
+#						if [ "$pwrsrc" = "1" ]; then
+#							pwrsrc="p"
+#						else
+#							pwrsrc=""
+#						fi
+#						echo -en "$pwrsrc"
+#						tmp2=""
+#						for tmp in `kdb get sys_pcitbl_s000$(($slot+2))_ifaces`; do
+#							tmp2=$tmp2" "`expr substr $tmp 1 4`"/"`expr substr $tmp 5 1`
+#						done
+#						echo -e  " ($tmp2 )"
+#					else
+#						echo -e " ( "`kdb get sys_pcitbl_s000$(($slot+2))_ifaces`" )"
+#					fi
+#				else
+#					echo -e "slot $slot: empty"
+#				fi
+#			done
+#			echo ""
+
+
+
+		;;
+		"save")
+			save_config $param
+		;;
+		"help")
+			help_func
+		;;
+		"cd")
+			cd_func $param
+		;;
+		"quit")
+			stty icanon echo
+			exit 0
+		;;
+		"");;
+		*)
+			case "$prompt" in
+				":")
+					case "$cmd" in
+						"port")
+							if [ "$param" = "" ]; then
+								prompt=":port"
 							else
-								echo -e " ( "`kdb get sys_pcitbl_s000$(($slot+2))_ifaces`" )"
+								port_func $param
 							fi
-						else
-							echo -e "slot $slot: empty"
-						fi
-					done
-					echo ""
+						;;
+						"services")
+							if [ "$param" = "" ]; then
+								prompt=":services"
+							else
+								services_func $param
+							fi
+						;;
+						"system")
+							if [ "$param" = "" ]; then
+								prompt=":system"
+							else
+								system_func $param
+							fi							
+						;;
+						"network")
+							if [ "$param" = "" ]; then
+								prompt=":network"
+							else
+								network_func $param
+							fi							
+						;;
+						"");;
+						*)
+							echo "Syntax error"
+						;;
+					esac
 				;;
-				"save")
-					save_config
+				":system")
+					system_func $cmd $param
 				;;
-				"cd")
-					cd_func $param
+				":network")
+					network_func $cmd $param
 				;;
-				"quit")
-					exit 0
-				;;
-				"port")
-					if [ "$param" = "" ]; then
-						prompt=":port"
+				":port")
+					if [ "$port" != "" ]; then
+						port_func $port $cmd $param
 					else
-						port_func $param
+						case "$cmd" in
+							"ge")
+								ge_func $param
+							;;
+							"dsl")
+								dsl_func $param
+							;;
+							"");;
+							*)
+								port_func $cmd $param
+							;;
+						esac
 					fi
 				;;
-				"save")
-					save_config
+				":services")
+					services_func $cmd $param
 				;;
-				"services")
-					if [ "$param" = "" ]; then
-						prompt=":services"
-					else
-						services_func $param
-					fi
+				":services:link_aggregation")
+					link_aggregation_func $cmd $param
 				;;
-				"help" | "?")
-					tab=1
-					auto_completion
+				":services:mirroring")
+					mirroring_func $cmd $param
 				;;
-				"")
+				":services:vlan")
+					vlan_func $cmd $param
 				;;
+				":services:cos")
+					cos_func $cmd $param
+				;;
+				":services:cos:bandwidth_control")
+					bandwidth_control_func $cmd $param
+				;;
+				"");;
 				*)
 					echo "Syntax error"
 				;;
-				esac
-		;;
-		":port")
-			if [ "$port" != "" ]; then
-				port_func $port $cmd $param
-			else
-				case "$cmd" in
-					"cd")
-						cd_func $param
-					;;
-					"save")
-						save_config
-					;;
-					"help" | "?")
-						tab=1
-						auto_completion
-					;;
-					"quit")
-						exit 0
-					;;
-					"ge")
-						ge_func $param
-					;;
-					"dsl")
-						dsl_func $param
-					;;
-					"")
-					;;
-					*)
-						port_func $cmd $param
-					;;
-				esac
-			fi
-		;;
-		":services")
-			services_func $cmd $param
-		;;
-		":services:link_aggregation")
-			link_aggregation_func $cmd $param
-		;;
-		":services:mirroring")
-			mirroring_func $cmd $param
-		;;
-		":services:vlan")
-			vlan_func $cmd $param
-		;;
-		":services:cos")
-			cos_func $cmd $param
-		;;
-		":services:cos:bandwidth_control")
-			bandwidth_control_func $cmd $param
-		;;
-		"")
-		;;
-		*)
-			echo "Syntax error"
+			esac
 		;;
 	esac
 }
@@ -1099,26 +314,48 @@ echo -en $prompt"> "
 while true
 do
 	ch=`dd if=/dev/tty bs=1 count=1 2>/dev/null`
-#	echo "$ch" >> /root/log
+#	echo "$ch" >> /root/log_ch
 	case $ch in
 		) #---------escape--------------
-			cursor_ind=1
+			cursor_ind="1"
+		;;
+		"O")
+			if [ "$cursor_ind" = "1" ]; then
+				cursor_ind="way_to_f"
+			else
+				cursor_ind="0"
+				insert_char
+				cmdp=$cmds
+			fi
+		;;
+		"P" | "Q" | "R" | "S") #-------------F1-F4
+			if [ "$cursor_ind" = "way_to_f" ]; then
+				cursor_ind="0"
+			else
+				cursor_ind="0"
+				insert_char
+				cmdp=$cmds
+			fi
 		;;
 		"[")
 			if [ "$cursor_ind" = "1" ]; then
 				cursor_ind="2"
 			else
-				cmd="$cmd$ch"
+				cursor_ind="0"
+				insert_char
+				cmdp=$cmds
 			fi
 		;;
-		"O")
-			if [ "$cursor_ind" = "1" ]; then
-				cursor_ind="2"
+		"3")
+			if [ "$cursor_ind" = "2" ]; then
+				cursor_ind="3"
 			else
-				cmd="$cmd$ch"
+				cursor_ind="0"
+				insert_char
+				cmdp=$cmds
 			fi
 		;;
-		A) #-------------UP ARROW----------------
+		"A") #-------------UP ARROW----------------[A
 			if [ "$cursor_ind" = "2" ]; then
 				cursor_ind="0"
 				delete_cmd
@@ -1141,7 +378,7 @@ do
 				cmdp=$cmds
 			fi
 		;;
-		B) #-----------------DOWN ARROW--------------------
+		"B") #-----------------DOWN ARROW--------------------[B
 			if [ "$cursor_ind" = "2" ]; then
 				cursor_ind="0"
 				delete_cmd
@@ -1161,7 +398,7 @@ do
 				cmdp=$cmds
 			fi
 		;;
-		C) #----------RIGHT ARROW----------------
+		"C") #----------RIGHT ARROW----------------[C
 			if [ "$cursor_ind" = "2" ]; then
 				cursor_ind="0"
 				let "cmdi=$cmdi+1"
@@ -1176,7 +413,7 @@ do
 				cmdp=$cmds
 			fi
 		;;
-		D) #-------------LEFT ARROW------------------
+		"D") #-------------LEFT ARROW------------------[D
 			if [ "$cursor_ind" = "2" ]; then
 				cursor_ind="0"
 				let "cmdi=$cmdi-1"
@@ -1190,7 +427,7 @@ do
 				cmdp=$cmds
 			fi
 		;;
-		"	")
+		"	") #----------------tab----------------------
 			auto_completion $cmd
 			if [ "$cmd" = "" ]; then
 				if [ "$tab" != "1" ]; then
@@ -1206,8 +443,9 @@ do
 				fi
 			fi
 		;;
-		H) # ---------------home-----------
+		H) # ---------------home-----------[H
 			if [ "$cursor_ind" = "2" ]; then
+				cursor_ind="0"
 				let "i=$cmdi"
 				while [ "$i" != "0" ]; do
 					echo -en "[D"
@@ -1219,8 +457,9 @@ do
 				cmdp=$cmds
 			fi
 		;;
-		F) # ---------------end-----------
+		F) # ---------------end-----------[F
 			if [ "$cursor_ind" = "2" ]; then
+				cursor_ind="0"
 				let "i=$cmdi"
 				while [ "$i" != "${#cmd}" ]; do
 					echo -en "[C"
@@ -1232,8 +471,8 @@ do
 				cmdp=$cmds
 			fi
 		;;
-		) #-----------delete-----------------
-			if [ "$cursor_ind" = "1" ]; then
+		"~") #-----------delete-----------------[3~
+			if [ "$cursor_ind" = "3" ]; then
 				if [ "$cmd" != "" ]; then
 					if [ "$cmdi" != "0" ]; then
 						if [ "$cmdi" != "${#cmd}" ]; then
@@ -1256,9 +495,13 @@ do
 						done
 					fi
 				fi
+			else
+				insert_char
+				cmdp=$cmds
 			fi
+			cursor_ind="0"
 		;;
-		) #-----------backspace--------------
+		) #-----------backspace--------------
 			if [ "${cmd}" != "" ]; then
 				if [ "$cmdi" != "0" ]; then
 					if [ "$cmdi" != "${#cmd}" ]; then
@@ -1280,6 +523,7 @@ do
 			fi
 		;;
 		"") #----------enter--------------
+			cmd=`echo -e "$cmd" | tr 'A-Z' 'a-z'`
 			tmp_cmd=""
 			if [ "$cmd" != "" ]; then
 				echo "$cmd" >> /tmp/cmd_history
@@ -1308,7 +552,11 @@ do
 				if [ "$group" != "" ]; then
 					echo -en $prompt":"$group"> "
 				else
-					echo -en $prompt"> "
+					if [ "$vid" != "" ]; then
+						echo -en $prompt":vid"$vid"> "
+					else
+						echo -en $prompt"> "
+					fi
 				fi
 			fi
 		;;
@@ -1318,5 +566,5 @@ do
 		;;
 	esac
 done
-stty icanon echo
+
 fi
