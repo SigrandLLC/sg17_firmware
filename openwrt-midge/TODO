@@ -2,6 +2,5 @@
 * make list all of base-files* installed to root fs.
 * replace ntpclient by openntpd
 * rm crontab, cron, /etc/init.d/timesync
-* убрать всё лишнее, архитектуры, что не используется в построении образов sigrand.
 * Add '-nofw' to kernel extraversion
 
