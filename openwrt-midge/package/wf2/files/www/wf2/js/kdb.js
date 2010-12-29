@@ -551,6 +551,8 @@ function Config() {
 		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_proto", iface), options['proto']);
 		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_real", iface),
 								options['real'] ? options['real'] : iface);
+		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_depend_on", iface),
+								options['dependOn'] ? options['dependOn'] : "none");
 		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_valid", iface), "1");
 		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_auto", iface), "0");
 		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_method", iface), "none");
