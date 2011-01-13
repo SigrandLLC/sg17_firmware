@@ -1,0 +1,390 @@
+#!/bin/sh
+
+parse_ports_list() {
+	port_list=""
+	for word in $*; do
+		case "$word" in
+			ge0 | ge1)
+				port_list="$port_list $word"
+			;;
+			dsl[0-3]/[0-3])
+				tmp=`expr substr "$word" 4 1``expr substr "$word" 6 1`
+				if [ ! -d "/sys/class/net/dsl$tmp" ]; then
+					echo "Syntax error in port list, port $word not exist!"
+					return 1
+				fi
+				port_list="$port_list $word"
+			;;
+			fe[0-3]/[0-7])
+				tmp=`expr substr "$word" 3 1``expr substr "$word" 5 1`
+				if [ ! -d "/sys/class/net/fe$tmp" ]; then
+					echo "Syntax error in port list, port $word not exist!"
+					return 1
+				fi
+				port_list="$port_list $word"
+			;;
+			*-*)
+				begin=${word%%-*}
+				end=${word##*-}
+#				echo "begin = $begin end = $end"
+				case "$begin" in
+					dsl[0-3]/[0-3])
+						tmp=`expr substr "$begin" 4 1``expr substr "$begin" 6 1`
+						if [ ! -d "/sys/class/net/dsl$tmp" ]; then
+							echo "Syntax error in port list, port $begin not exist!"
+							return 1
+						fi
+						bn=$((`expr substr "$begin" 4 1`*10+`expr substr "$begin" 6 1`))
+					;;
+					fe[0-3]/[0-7])
+						tmp=`expr substr "$begin" 3 1``expr substr "$begin" 5 1`
+						if [ ! -d "/sys/class/net/fe$tmp" ]; then
+							echo "Syntax error in port list, port $begin not exist!"
+							return 1
+						fi
+						bn=$((`expr substr "$begin" 3 1`*10+`expr substr "$begin" 5 1`))
+					;;
+					*)
+						echo "Syntax error in port list, port $begin not exist!"
+						return 1
+					;;
+				esac
+				case "$end" in
+					dsl[0-3]/[0-3])
+						tmp=`expr substr "$end" 4 1``expr substr "$end" 6 1`
+						if [ ! -d "/sys/class/net/dsl$tmp" ]; then
+							echo "Syntax error in port list, port $end not exist!"
+							return 1
+						fi
+						en=$((`expr substr "$end" 4 1`*10+`expr substr "$end" 6 1`))
+					;;
+					fe[0-3]/[0-7])
+						tmp=`expr substr "$end" 3 1``expr substr "$end" 5 1`
+						if [ ! -d "/sys/class/net/fe$tmp" ]; then
+							echo "Syntax error in port list, port $end not exist!"
+							return 1
+						fi
+						en=$((`expr substr "$end" 3 1`*10+`expr substr "$end" 5 1`))
+					;;
+					*)
+						echo "Syntax error in port list, port $end not exist!"
+						return 1
+					;;
+				esac
+#				echo "bn=$bn en=$en"
+				if [ "$bn" -gt "$en" ]; then
+					echo "Syntax error in port list!"
+					return 1
+				fi
+				key=0
+				for i in $g_ifaces; do
+					if [ "$i" = "$begin" ]; then
+						key=1
+					fi
+					if [ "$key" = "1" ]; then
+						port_list="$port_list $i"
+					fi
+					if [ "$i" = "$end" ]; then
+						key=0
+					fi
+				done
+			;;
+			*)
+				echo "Syntax error in port list, port $word not exist!"
+				return 1
+			;;
+		esac
+	done
+#	echo $port_list
+	return 0
+}
+
+get_port_name() {
+	sw=$1
+	sw_port=$2
+#	echo -n "sw=$1 sw_port=$2   "
+	
+	if [ "$sw_port" = "24" ]; then
+		port_name="ge$sw"
+#		echo "$port_name"
+		return 0
+	fi
+	if [ "$sw_port" = "26" -a "$sw" = "0" ]; then
+		port_name="cpu"
+#		echo "$port_name"
+		return 0
+	fi
+	local slot=""
+	local port=""
+	if [ "$sw_port" -lt "8" ]; then
+		if [ "$sw" = "0" ]; then
+			slot=0
+		else
+			slot=2
+		fi
+	else
+		if [ "$sw" = "0" ]; then
+			slot=1
+		else
+			slot=3
+		fi
+	fi
+	if [ "$slot" = "0" -o "$slot" = "1" ]; then
+		if [ -d "/sys/class/net/dsl${slot}${sw_port}" ]; then
+			port_name="dsl${slot}/${sw_port}"
+#			echo "$port_name"
+			return 0
+		elif [ -d "/sys/class/net/fe${slot}$((7-${sw_port}))" -a "$slot" = "0" ]; then
+			port_name="fe${slot}/$((7-${sw_port}))"
+#			echo "$port_name"
+			return 0
+		elif [ -d "/sys/class/net/fe${slot}$((15-${sw_port}))" -a "$slot" = "1" ]; then
+			port_name="fe${slot}/$((15-${sw_port}))"
+#			echo "$port_name"
+			return 0
+		fi
+	elif [ "$slot" = "2" -o "$slot" = "3" ]; then
+		if [ -d "/sys/class/net/dsl${slot}$((${sw_port}-8))" ]; then
+			port_name="dsl${slot}/$((${sw_port}-8))"
+#			echo "$port_name"
+			return 0
+		elif [ -d "/sys/class/net/fe${slot}$((7-${sw_port}))" -a "$slot" = "0" ]; then
+			port_name="fe${slot}/$((7-${sw_port}))"
+#			echo "$port_name"
+			return 0
+		elif [ -d "/sys/class/net/fe${slot}$((15-${sw_port}))" -a "$slot" = "1" ]; then
+			port_name="fe${slot}/$((15-${sw_port}))"
+#			echo "$port_name"
+			return 0
+		fi
+	fi
+#	echo "unknown port!!!!"
+	return 1
+}
+
+storm_control_func() {
+	prompt=":services:storm_control"
+	
+	if [ "$1" = "show" ]; then
+		echo "44" > /proc/sys/net/dslam_sw/sw0/regread
+		threshold=`cat /proc/sys/net/dslam_sw/sw0/regread`
+		threshold=`expr substr "$threshold" 6 6`
+		let "threshold=($threshold >> 10)"
+		echo "Threshold     - $threshold"
+
+		echo "42" > /proc/sys/net/dslam_sw/sw0/regread
+		sw0_reg42=`cat /proc/sys/net/dslam_sw/sw0/regread`
+		sw0_reg42=`expr substr "$sw0_reg42" 6 6`
+		echo "43" > /proc/sys/net/dslam_sw/sw0/regread
+		sw0_reg43=`cat /proc/sys/net/dslam_sw/sw0/regread`
+		sw0_reg43=`expr substr "$sw0_reg43" 6 6`
+		
+		let "sw0_reg=$sw0_reg42 + ($sw0_reg43 << 16)"
+
+		echo "42" > /proc/sys/net/dslam_sw/sw1/regread
+		sw1_reg42=`cat /proc/sys/net/dslam_sw/sw1/regread`
+		sw1_reg42=`expr substr "$sw1_reg42" 6 6`
+		echo "43" > /proc/sys/net/dslam_sw/sw1/regread
+		sw1_reg43=`cat /proc/sys/net/dslam_sw/sw1/regread`
+		sw1_reg43=`expr substr "$sw1_reg43" 6 6`
+
+		let "sw1_reg=$sw1_reg42 + ($sw1_reg43 << 16)"
+		
+#		echo "sw0_reg="`printf "0x%x" $sw0_reg`
+#		echo "sw1_reg="`printf "0x%x" $sw1_reg`
+
+		cnt=0
+		sw0_ports=""
+		sw1_ports=""
+		let "tmp=$sw0_reg & (1 << 24)"
+		if [ "$tmp" != "0" ]; then
+			sw0_ports="ge0"
+		fi
+		let "tmp=$sw1_reg & (1 << 24)"
+		if [ "$tmp" != "0" ]; then
+			sw1_ports="ge1"
+		fi
+		for p in `seq 0 15`; do
+			let "tmp=$sw0_reg & (1 << $cnt)"
+			if [ "$tmp" != "0" ]; then
+				port_name=""
+				get_port_name 0 $p
+				if [ "$port_name" != "" ]; then
+					if [ "$sw0_ports" != "" ]; then
+						sw0_ports="$sw0_ports $port_name"
+					else
+						sw0_ports="$port_name"
+					fi
+				fi
+				
+			fi
+			let "tmp=$sw1_reg & (1 << $cnt)"
+			if [ "$tmp" != "0" ]; then
+				port_name=""
+				get_port_name 1 $p
+				if [ "$port_name" != "" ]; then
+					if [ "$sw1_ports" != "" ]; then
+						sw1_ports="$sw1_ports $port_name"
+					else
+						sw1_ports="$port_name"
+					fi
+				fi
+			fi
+			cnt=$(($cnt+1))
+		done
+		if [ "$sw0_ports" = "" -a "$sw1_ports" = "" ]; then
+			sw0_ports="none"
+		fi
+		echo "Enabled ports - $sw0_ports $sw1_ports"
+		return
+	fi
+	if [ "$1" = "threshold" ]; then
+		shift
+		if [ "$1" = "" ]; then
+			echo "44" > /proc/sys/net/dslam_sw/sw0/regread
+			threshold=`cat /proc/sys/net/dslam_sw/sw0/regread`
+			threshold=`expr substr "$threshold" 6 6`
+			let "threshold=($threshold >> 10)"
+			echo "Broadcast storm threshold is $threshold"
+			return
+		fi
+		# проверяем что порог число, проверка на коррекность далее
+		chk=`echo "$1" | grep '[^0-9]'`
+		if [ ! -z "$chk" -o "$1" -gt "63" -o "$1" -lt "0" ]; then
+			echo "Bad threshold, it must be from 0 to 63"
+			return
+		fi
+		threshold=$1
+		let "reg44=($threshold << 10) + 5"
+		echo 44 `printf "%x" $reg44` > /proc/sys/net/dslam_sw/sw0/regwrite
+		echo 44 `printf "%x" $reg44` > /proc/sys/net/dslam_sw/sw1/regwrite
+		
+		echo "$kdb set sys_dslam_bcast_threshold=$threshold" >> $tmp_config_file
+		echo "Broadcast storm threshold is set to $threshold!"
+		return
+	fi
+	p_list=""
+	while [ "$1" != "" -a "$1" != "on" -a "$1" != "off" ]; do
+		p_list="$p_list $1"
+		shift
+	done
+	if [ "$1" = "off" -o "$1" = "on" ]; then
+		on_off=$1
+	else
+		echo "Syntax error, usage <ports list> on | off"
+		return
+	fi
+	port_list=""
+	parse_ports_list $p_list
+	if [ "$?" != "0" ]; then
+		return
+	fi
+#	echo "$port_list"
+
+	echo "42" > /proc/sys/net/dslam_sw/sw0/regread
+	sw0_reg42=`cat /proc/sys/net/dslam_sw/sw0/regread`
+	sw0_reg42=`expr substr "$sw0_reg42" 6 6`
+	echo "43" > /proc/sys/net/dslam_sw/sw0/regread
+	sw0_reg43=`cat /proc/sys/net/dslam_sw/sw0/regread`
+	sw0_reg43=`expr substr "$sw0_reg43" 6 6`
+
+	let "sw0_reg=$sw0_reg42 + ($sw0_reg43 << 16)"
+
+	echo "42" > /proc/sys/net/dslam_sw/sw1/regread
+	sw1_reg42=`cat /proc/sys/net/dslam_sw/sw1/regread`
+	sw1_reg42=`expr substr "$sw1_reg42" 6 6`
+	echo "43" > /proc/sys/net/dslam_sw/sw1/regread
+	sw1_reg43=`cat /proc/sys/net/dslam_sw/sw1/regread`
+	sw1_reg43=`expr substr "$sw1_reg43" 6 6`
+
+	let "sw1_reg=$sw1_reg42 + ($sw1_reg43 << 16)"
+
+	for p in $port_list; do
+		case $p in
+			"ge0")
+				sw=0
+				sw_port=24
+			;;
+			"ge1")
+				sw=1
+				sw_port=24
+			;;
+			dsl0/[0-3])
+				sw=0
+				sw_port=`expr substr $p 6 1`
+			;;
+			dsl1/[0-3])
+				sw=0
+				sw_port=$((`expr substr $p 6 1`+8))
+			;;
+			dsl2/[0-3])
+				sw=1
+				sw_port=`expr substr $p 6 1`
+			;;
+			dsl3/[0-3])
+				sw=1
+				sw_port=$((`expr substr $p 6 1`+8))
+			;;
+			fe0/[0-7])
+				sw=0
+				sw_port=$((7-`expr substr $p 5 1`))
+			;;
+			fe1/[0-7])
+				sw=0
+				sw_port=$((15-`expr substr $p 5 1`))
+			;;
+			fe2/[0-7])
+				sw=1
+				sw_port=$((7-`expr substr $p 5 1`))
+			;;
+			fe3/[0-7])
+				sw=1
+				sw_port=$((15-`expr substr $p 5 1`))
+			;;
+			*)
+				echo "Here we cant be... Syntax error, port $p not found! (in case)"
+				return
+			;;
+		esac
+		val=0
+		if [ "$on_off" = "on" ]; then
+			val=1
+		fi
+		
+		if [ "$sw" = "0" ]; then
+			let "sw0_reg=($sw0_reg & (~(1 << $sw_port))) | ($val << $sw_port)"
+		elif [ "$sw" = "1" ]; then
+			let "sw1_reg=($sw1_reg & (~(1 << $sw_port))) | ($val << $sw_port)"
+		fi
+	done
+	sw0_reg=`printf "%08x" $sw0_reg`
+	sw1_reg=`printf "%08x" $sw1_reg`
+	echo "sw0_reg=$sw0_reg"
+	echo "sw1_reg=$sw1_reg"
+	
+	let "sw0_reg42=0x$sw0_reg & 0xFFFF"
+	let "sw0_reg43=(0x$sw0_reg >> 16) & 0xFFFF"
+
+	let "sw1_reg42=0x$sw1_reg & 0xFFFF"
+	let "sw1_reg43=(0x$sw1_reg >> 16) & 0xFFFF"
+	
+	sw0_reg42=`printf "0x%x" $sw0_reg42`
+	sw0_reg43=`printf "0x%x" $sw0_reg43`
+	sw1_reg42=`printf "0x%x" $sw1_reg42`
+	sw1_reg43=`printf "0x%x" $sw1_reg43`
+
+	echo "sw0_reg42=$sw0_reg42 sw0_reg43=$sw0_reg43"
+	echo "sw1_reg42=$sw1_reg42 sw1_reg43=$sw1_reg43"
+	
+	echo "42 $sw0_reg42" > /proc/sys/net/dslam_sw/sw0/regwrite
+	echo "43 $sw0_reg43" > /proc/sys/net/dslam_sw/sw0/regwrite
+	echo "42 $sw1_reg42" > /proc/sys/net/dslam_sw/sw1/regwrite
+	echo "43 $sw1_reg43" > /proc/sys/net/dslam_sw/sw1/regwrite
+
+	
+	echo "kdb set sys_dslam_sw0_reg42=$sw0_reg42" >> $tmp_config_file
+	echo "kdb set sys_dslam_sw0_reg43=$sw0_reg43" >> $tmp_config_file
+	echo "kdb set sys_dslam_sw1_reg42=$sw1_reg42" >> $tmp_config_file
+	echo "kdb set sys_dslam_sw1_reg43=$sw1_reg43" >> $tmp_config_file
+	
+}

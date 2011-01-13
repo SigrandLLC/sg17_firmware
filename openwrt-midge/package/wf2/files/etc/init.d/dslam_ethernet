@@ -1,0 +1,78 @@
+#!/bin/sh
+
+kdb="kdb"
+priv_dir="ms_private"
+
+. /etc/templates/oem-vars
+
+_start() {
+	echo "Configuring DSLAM Ethernet: "
+	eval `kdb sls -q sys_pcitbl_`
+	for s in $slots; do
+		unset type num ifaces
+		eval "type=\$s${s}_iftype"
+		eval "num=\$s${s}_ifnum"
+		eval "ifaces=\$s${s}_ifaces"
+
+		if [ "$type" != "$ms17e_modname" ]; then
+			continue
+		fi
+		local ifnum=0
+		for iface in $ifaces; do
+			if [ "$s" = "0002" ]; then
+				$kdb set sys_iface_${iface}_sw=0
+				$kdb set sys_iface_${iface}_sw_port=$((7 - $ifnum))
+				$kdb set sys_iface_${iface}_slot=0
+				$kdb set sys_iface_${iface}_port=$ifnum
+			fi
+			if [ "$s" = "0003" ]; then
+				$kdb set sys_iface_${iface}_sw=0
+				$kdb set sys_iface_${iface}_sw_port=$((15 - $ifnum))
+				$kdb set sys_iface_${iface}_slot=1
+				$kdb set sys_iface_${iface}_port=$ifnum
+			fi
+			if [ "$s" = "0004" ]; then
+				$kdb set sys_iface_${iface}_sw=1
+				$kdb set sys_iface_${iface}_sw_port=$((7 - $ifnum))
+				$kdb set sys_iface_${iface}_slot=2
+				$kdb set sys_iface_${iface}_port=$ifnum
+			fi
+			if [ "$s" = "0005" ]; then
+				$kdb set sys_iface_${iface}_sw=1
+				$kdb set sys_iface_${iface}_sw_port=$((15 - $ifnum))
+				$kdb set sys_iface_${iface}_slot=3
+				$kdb set sys_iface_${iface}_port=$ifnum
+			fi
+			ifnum=$(( $ifnum + 1 ))
+		done
+
+		unset ver pfx iface
+		iface=`echo "$ifaces" |  awk '{print $(1)}' `
+		pwr=`cat  /sys/class/net/$iface/$priv_dir/pwr_source`
+                if [ "$pwr" = "1" ]; then
+                    $kdb set sys_pcicfg_s${s}_pwr_source=1
+                else
+			kdb rm sys_pcicfg_s${s}_pwr_source
+                fi
+		echo "    $ifaces "
+	done
+	echo
+}
+
+_stop(){
+	#TODO
+	qwe=qwe
+}
+
+case "$1" in
+	start)
+		_start
+	;;
+	stop)
+		_stop
+	;;
+	restart)
+		_stot
+		_start
+	;;
+esac

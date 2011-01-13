@@ -1,12 +1,11 @@
-#include "mam17h_sysfs.h"
-#include "mam17h_net.h"
-#include "mam17h_main.h"
-#include "mam17h_debug.h"
-#include "mam17h_socrate.h"
-#include "mam17h_pi.h"
+#include "ms17e_sysfs.h"
+#include "ms17e_net.h"
+#include "ms17e_main.h"
+#include "ms17e_debug.h"
 
-#define to_net_dev(class) container_of(class, struct net_device, class_dev)
+//#define to_net_dev(class) container_of(class, struct net_device, class_dev)
 
+/*
 static ssize_t show_link_state(struct class_device *cdev, char *buf) 
 {                                                                       
 	struct net_device *ndev = to_net_dev(cdev);
@@ -415,17 +414,19 @@ static ssize_t store_fill_7e( struct class_device *cdev,const char *buf, size_t 
 static CLASS_DEVICE_ATTR(fill_7e, 0644 ,show_fill_7e,store_fill_7e);
 
 //---------------------------- Power ------------------------------------- //
-
+*/
 static ssize_t show_pwr_source(struct class_device *cdev, char *buf) 
 {                                                                       
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
-	struct mam17_card *card = (struct mam17_card *)nl->card;
+//	struct channel *chan_cfg=nl->chan_cfg;
+//	chan_cfg->pwr_src; только его недо еще заполнять...
+	struct ms17e_card *card=nl->card;
 	
 	return snprintf(buf, PAGE_SIZE, "%d", card->pwr_source);
 }
 static CLASS_DEVICE_ATTR(pwr_source,0444,show_pwr_source,NULL);
-
+/*
 // PWRR rgister
 // PWRON 
 static ssize_t show_pwron(struct class_device *cdev, char *buf) 
@@ -533,7 +534,6 @@ static ssize_t show_statistics(struct class_device *cdev, char *buf)
 	get_statistic(nl->number, card, &stat);
 
 	buff[0] = nl->number;
-	memset(&ack, 0, sizeof(ack));
 	mpi_cmd(card, CMD_HDLC_TC_LinkPmParamGet, buff, 1, &ack);
 
 	stat_all->es = stat.ES_count - stat_all->es_old;
@@ -813,8 +813,11 @@ static ssize_t store_on_off( struct class_device *cdev,const char *buf, size_t s
 	return size;
 }
 static CLASS_DEVICE_ATTR(on_off,0644,show_on_off,store_on_off);
-
-static struct attribute *mam17_attr[] = {
+*/
+static struct attribute *ms17e_attr[] = {
+// TODO: понять какие файлы  понадобятся для настройки
+&class_device_attr_pwr_source.attr,
+/*
 // shdsl
 &class_device_attr_link_state.attr,
 &class_device_attr_mode.attr,
@@ -834,7 +837,7 @@ static struct attribute *mam17_attr[] = {
 &class_device_attr_pwron.attr,
 &class_device_attr_pwrovl.attr,
 &class_device_attr_pwrunb.attr,
-&class_device_attr_pwr_source.attr,
+class_device_attr_pwr_source.attr,
 
 &class_device_attr_mpair.attr,
 
@@ -842,29 +845,35 @@ static struct attribute *mam17_attr[] = {
 &class_device_attr_uptime_all.attr,
 &class_device_attr_downtime_all.attr,
 &class_device_attr_on_off.attr,
-
+*/
 NULL
 };
 
-static struct attribute_group mam17_group = {
+static struct attribute_group ms17e_group = {
 	.name  = "ms_private",
-	.attrs  = mam17_attr,
+	.attrs  = ms17e_attr,
 };
 
-int mam17_sysfs_register(struct net_device *ndev)
+struct dev_entrie {
+	char *name;
+	int mark;
+	struct proc_dir_entry *pent;
+	mode_t mode;
+	read_proc_t *fread;
+	write_proc_t *fwrite;
+};
+
+
+int ms17e_sysfs_register(struct net_device *ndev)
 {
 	struct class_device *class_dev = &(ndev->class_dev);
-	struct net_local *nl=(struct net_local *)netdev_priv(ndev);
-	static char fname[10] = "device";
-
-	int ret = sysfs_create_group(&class_dev->kobj, &mam17_group);
-	ret = sysfs_create_link( &(class_dev->kobj),&(nl->dev->kobj),fname);
-	return ret;
+	sysfs_create_group(&class_dev->kobj, &ms17e_group);
+	return 0;
 }
 
-void mam17_sysfs_remove(struct net_device *ndev)
+void ms17e_sysfs_remove(struct net_device *ndev)
 {
 	struct class_device *class_dev = &(ndev->class_dev);
-	sysfs_remove_group(&class_dev->kobj, &mam17_group);
-	sysfs_remove_link(&(class_dev->kobj),"device");
+	sysfs_remove_group(&class_dev->kobj, &ms17e_group);
+//	sysfs_remove_link(&(class_dev->kobj),"device");
 }

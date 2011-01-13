@@ -100,23 +100,49 @@ help_func() {
 			fi
 		;;
 		":services:vlan")
-			echo "Show             - Show current VLAN configuration"
-			echo "Create vlan_id N - Create VLAN with VID N"
-			echo "Delete vlan_id N - Delete VLAN with VID N"
+			if [ "$vid" = "" ]; then
+				echo "Show             - Show current VLAN configuration"
+				echo "Create vlan_id N - Create VLAN with VID N"
+				echo "Delete vlan_id N - Delete VLAN with VID N"
+				echo "Uplink <port>    - Set VLAN uplink port"
+			else
+				echo "Show                       - Show current configuration"
+				echo "Add geX dslM/N feM/N       - Add ports to VLAN"
+				echo "Name <name>                - Set VLAN name"
+				echo "Tagging geX dslM/N feM/N   - Enable tagging function on port"
+				echo "Untagging geX dslM/N feM/N - Disable tagging function on port"
+			fi
 		;;
 		":services:cos")
-			echo "Show                - Show current cos settings"
-			echo "FIFO|Strict|WRR     - Set cos algorithm"
-			echo "Flow_delay [on|off] - Enable/Disable flow control delay when high priority packet recieved"
-			echo "VLAN_cos "
-			echo "Port_cos"
-			echo "IP_cos"
-			echo "TCP_cos"
-			echo "Bandwidth_control   - Sub-menu for configuration bandwidth control"
-			echo ""
+			echo "Show                            - Show current cos settings"
+			echo "FIFO|Strict|WRR low N high M    - Set cos algorithm"
+			echo "Flow_delay [on|off]             - Enable/Disable flow control delay when high priority packet recieved"
+			echo "VLAN_cos <ports list> on|off    - Enable/Disable VLAN_Cos"
+			echo "Port_cos <ports list> high|low  - Enable/Disable Port_Cos"
+			echo "IP_cos   <ports list> on|off    - Enable/Disable IP_Cos"
+			echo "TCP_cos show                    - Show current TCP_cos settings"
+			echo "TCP_cos add <port_num>          - Add user port for TCP_cos"
+			echo "TCP_cos del <port_num>          - Delete user port"
+			echo "TCP_cos <protocol> low|high|off - Set port high/low or disable checking"
+			echo "TCP_cos <port_num> low|high|off - Set port high/low or disable checking, for user defined ports"
+			echo "Bandwidth_control               - Sub-menu for configuration bandwidth control"
 		;;
 		":services:cos:bandwidth_control")
-			acmds="$bandwidth_control_cmds"
+			echo "Show [port]                   - Show bandwidth control settings"
+			echo "<ports list> bound <in>/<out> - Set bandwidth with inbound/outbound parameters in Kilobits"
+		;;
+		":services:storm_control")
+			echo "Show                  - Show broadcast storm control settings"
+			echo "Threshold <0-63>      - Set threshold for broadcast storm control"
+			echo "<ports list> on | off - Enable/Disable broadcast storm control for <ports list>"
+		;;
+		":services:port_security")
+			echo "Show                      - Show current security settings"
+			echo "TCP_Sec add <port_num>    - Add user defined port"
+			echo "TCP_Sec del <port_num>    - Delete user defined port"
+			echo "TCP_Sec <protocol> on|off - Fixed TCP-port based security algorithm enabled/disabled"
+			echo "TCP_Sec <port_num> on|off - Fixed TCP-port based security algorithm for user defined ports enabled/disabled"
+			echo "TODO"
 		;;
 	esac
 }

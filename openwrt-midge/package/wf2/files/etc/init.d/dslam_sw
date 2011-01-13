@@ -10,6 +10,9 @@ set_def_settings() {
 		$kdb set sys_dslam_sw${sw}_vlan_${i}_pvid=0;
 		$kdb set sys_dslam_sw${sw}_vlan_${i}_tag=0;
 	done;
+	$kdb get sys_dslam_sw0_vlan_25_tag=1
+	$kdb get sys_dslam_sw1_vlan_25_tag=1
+
 	$kdb set sys_dslam_cos_aging_time=0
 	$kdb set sys_dslam_cos_high_priority_queue=0
 	$kdb set sys_dslam_cos_low_priority_queue=0
@@ -102,11 +105,17 @@ update_vlan_settings() {
 		pvid=`$kdb get sys_dslam_sw0_vlan_${port}_pvid`
 		tag=`$kdb get sys_dslam_sw0_vlan_${port}_tag`
 		echo "$port $pvid" > /proc/sys/net/dslam_sw/sw0/pvid
+		if [ "$tag" != "1" ]; then
+			tag=2
+		fi
 		echo "$port $tag" > /proc/sys/net/dslam_sw/sw0/tag
 
 		pvid=`$kdb get sys_dslam_sw1_vlan_${port}_pvid`
 		tag=`$kdb get sys_dslam_sw1_vlan_${port}_tag`
 		echo "$port $pvid" > /proc/sys/net/dslam_sw/sw1/pvid
+		if [ "$tag" != "1" ]; then
+			tag=2
+		fi
 		echo "$port $tag" > /proc/sys/net/dslam_sw/sw1/tag
 	done
 	for i in 0 `seq 31`; do

@@ -11,15 +11,15 @@ if [ "$sys_dslam_card" = "1" ]; then
 			if [ "$i" != "eth2" ]; then
 				if [ "$i" != "eth3" ]; then
 					if [ "$ifaces" = "" ]; then
-						ifaces=$i
+						ifaces="$i"
 					else
-						ifaces=$ifaces" "$i
+						ifaces="$ifaces $i"
 					fi
 				fi
 			fi
 		fi
 	done
-	kdb set sys_ifaces=$ifaces
+	kdb set sys_ifaces="$ifaces"
 	for port_num in $sys_switch_ports; do
 		echo 'd' > /proc/sys/net/adm5120sw/eth${port_num}
 		kdb set sys_iface_eth${port_num}_valid=0

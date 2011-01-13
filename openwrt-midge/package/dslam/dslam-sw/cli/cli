@@ -6,10 +6,11 @@
 . /etc/cli/help
 . /etc/cli/system
 . /etc/cli/network
+. /etc/templates/oem-vars
 
 tmp_config_file="/tmp/tmp_config"
 
-prompt=":services:vlan"
+prompt=":"
 cmd=""
 port=""
 port_type=""
@@ -20,6 +21,29 @@ cmds=0 # счетчик введенных команд
 cmdp=0 # указатель на команду (надо для стреток вверх/низ)
 cmdi=0 # указатель на символ в команде, куда вставлять следующий символ (влево/вправо home/end)
 rm -f /tmp/cmd_history
+
+g_ifaces=""
+for slot in 0 1 2 3; do
+	tmp=`kdb get sys_pcitbl_s000$(($slot+2))_iftype`
+	if [ "$tmp" != "" ]; then
+		iftype=`kdb get sys_pcitbl_s000$(($slot+2))_iftype`
+		ifnum=`kdb get sys_pcitbl_s000$(($slot+2))_ifnum`
+		case "$iftype" in
+			"$mam17h_modname")
+				type="dsl"
+			;;
+			"$ms17e_modname")
+				type="fe"
+			;;
+			*)
+				continue
+			;;
+		esac
+		for i in `seq 0 $(($ifnum-1))`; do
+			g_ifaces="$g_ifaces $type$slot/$i"
+		done
+	fi
+done
 
 # функция для отрисовки символа в соответсвующем месте (вызывается после нажатия клавиши)
 # cmdi - позиция курсора
@@ -170,34 +194,34 @@ root_func() {
 			system_show_func
 			network_show_func
 
-			# выводит информацию по слотам
-#			for slot in 0 1 2 3; do
-#				tmp=`kdb get sys_pcitbl_s000$(($slot+2))_iftype`
-#				if [ "$tmp" != "" ]; then
-#					iftype=`kdb get sys_pcitbl_s000$(($slot+2))_iftype`
-#					ifnum=`kdb get sys_pcitbl_s000$(($slot+2))_ifnum`
-#					echo -en "slot $slot: $iftype${ifnum}"
-#					if [ "$iftype" = "ms17h" ]; then
-#						pwrsrc=`kdb get sys_pcicfg_s000$(($slot+2))_pwr_source`
-#						if [ "$pwrsrc" = "1" ]; then
-#							pwrsrc="p"
-#						else
-#							pwrsrc=""
-#						fi
-#						echo -en "$pwrsrc"
-#						tmp2=""
-#						for tmp in `kdb get sys_pcitbl_s000$(($slot+2))_ifaces`; do
-#							tmp2=$tmp2" "`expr substr $tmp 1 4`"/"`expr substr $tmp 5 1`
-#						done
-#						echo -e  " ($tmp2 )"
-#					else
-#						echo -e " ( "`kdb get sys_pcitbl_s000$(($slot+2))_ifaces`" )"
-#					fi
-#				else
-#					echo -e "slot $slot: empty"
-#				fi
-#			done
-#			echo ""
+		# выводит информацию по слотам
+			for slot in 0 1 2 3; do
+				tmp=`kdb get sys_pcitbl_s000$(($slot+2))_iftype`
+				if [ "$tmp" != "" ]; then
+					iftype=`kdb get sys_pcitbl_s000$(($slot+2))_iftype`
+					ifnum=`kdb get sys_pcitbl_s000$(($slot+2))_ifnum`
+					echo -en "slot $slot: $iftype${ifnum}"
+					if [ "$iftype" = "ms17h" ]; then
+						pwrsrc=`kdb get sys_pcicfg_s000$(($slot+2))_pwr_source`
+						if [ "$pwrsrc" = "1" ]; then
+							pwrsrc="p"
+						else
+							pwrsrc=""
+						fi
+						echo -en "$pwrsrc"
+						tmp2=""
+						for tmp in `kdb get sys_pcitbl_s000$(($slot+2))_ifaces`; do
+							tmp2=$tmp2" "`expr substr $tmp 1 4`"/"`expr substr $tmp 5 1`
+						done
+						echo -e  " ($tmp2 )"
+					else
+						echo -e " ( "`kdb get sys_pcitbl_s000$(($slot+2))_ifaces`" )"
+					fi
+				else
+					echo -e "slot $slot: empty"
+				fi
+			done
+			echo ""
 
 
 
@@ -205,13 +229,33 @@ root_func() {
 		"save")
 			save_config $param
 		;;
-		"help")
+		"help" | "?")
 			help_func
 		;;
 		"cd")
 			cd_func $param
 		;;
 		"quit")
+			tmp=""
+			if [ -f "$tmp_config_file" ]; then
+				tmp=`cat $tmp_config_file`
+			fi
+			if [ "$tmp" != "" ]; then
+				echo "========================================"
+				cat $tmp_config_file
+				echo "========================================"
+				echo "Where are some configuration is not saved! Do you want save it? (Y/N): "
+				ch=""
+				while [ "$ch" != "y" -a "$ch" != "Y" -a "$ch" != "n" -a "$ch" != "N" ]; do
+					ch=`dd if=/dev/tty bs=1 count=1 2>/dev/null`
+				done
+				echo "$ch"
+				if [ "$ch" = "y" -o "$ch" = "Y" ]; then
+					save_config
+				else
+					rm -f $tmp_config_file
+				fi
+			fi
 			stty icanon echo
 			exit 0
 		;;
@@ -296,6 +340,12 @@ root_func() {
 				":services:cos:bandwidth_control")
 					bandwidth_control_func $cmd $param
 				;;
+				":services:storm_control")
+					storm_control_func $cmd $param
+				;;
+				":services:port_security")
+					security_func $cmd $param
+				;;
 				"");;
 				*)
 					echo "Syntax error"
@@ -307,6 +357,7 @@ root_func() {
 
 if [ "$*" != "" ]; then
 	root_func $*
+	rm -f $tmp_config_file
 else
 
 stty -icanon -echo

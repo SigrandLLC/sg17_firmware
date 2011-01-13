@@ -8,14 +8,16 @@ port_cmds="dsl ge fe"
 port_dsl_cmds="stat rate tcpam annex on off master slave restart pbo-normal pbo-forced power"
 port_ge_cmds="stat rate duplex flow auto on off"
 port_fe_cmds="stat rate duplex flow auto on off"
-services_cmds="link_aggregation save mirroring vlan cos"
+services_cmds="link_aggregation save mirroring vlan cos port_security"
 link_aggregation_cmds="show group"
 link_aggregation_group_cmds="algorithm joined show"
 mirroring_cmds="show group0 group1"
 mirroring_group_cmds="show algorithm source dest enable disable"
 vlan_cmds="show create delete vid"
 cos_cmds="fifo strict wrr flow_delay show vlan_cos port_cos ip_cos tcp_cos bandwidth_control"
-bandwidth_control_cmds=""
+bandwidth_control_cmds="show"
+storm_control_cmds="show threshold"
+security_cmds="show mac_sec tcp_sec"
 tab=0
 
 auto_completion() {
@@ -71,6 +73,12 @@ auto_completion() {
 		;;
 		":services:cos:bandwidth_control")
 			acmds="$bandwidth_control_cmds"
+		;;
+		":services:storm_control")
+			acmds="$storm_control_cmds"
+		;;
+		":services:port_security")
+			acmds="$security_cmds"
 		;;
 	esac
 	acmds="$general_cmds $acmds"

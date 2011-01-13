@@ -2,6 +2,8 @@
 
 . /etc/cli/services_vlan
 . /etc/cli/services_cos
+. /etc/cli/services_storm_control
+. /etc/cli/services_security
 
 # $1 - string, $2 num of spaces, result in $ret
 append_spaces() {
@@ -953,6 +955,14 @@ services_func() {
 		"cos")
 			shift
 			cos_func $*
+		;;
+		"storm_control")
+			shift
+			storm_control_func $*
+		;;
+		"port_security")
+			shift
+			security_func $*
 		;;
 		"")
 		;;

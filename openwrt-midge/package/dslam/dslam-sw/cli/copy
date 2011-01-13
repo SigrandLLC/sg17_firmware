@@ -5,7 +5,9 @@
 scp cli root@192.168.2.124:/sbin/cli
 scp help root@192.168.2.124:/etc/cli/help
 #scp port root@192.168.2.124:/etc/cli/port
-#scp services root@192.168.2.124:/etc/cli/services
+scp services root@192.168.2.124:/etc/cli/services
 scp auto_completion root@192.168.2.124:/etc/cli/auto_completion
-scp services_vlan root@192.168.2.124:/etc/cli/services_vlan
-#scp services_cos root@192.168.2.124:/etc/cli/services_cos
+#scp services_vlan root@192.168.2.124:/etc/cli/services_vlan
+scp services_cos root@192.168.2.124:/etc/cli/services_cos
+#scp services_storm_control root@192.168.2.124:/etc/cli/services_storm_control
+scp services_security root@192.168.2.124:/etc/cli/services_security

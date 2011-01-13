@@ -1,7 +1,108 @@
 #!/bin/sh
 
+parse_ports_list() {
+	port_list=""
+	for word in $*; do
+		case "$word" in
+			ge0 | ge1)
+				port_list="$port_list $word"
+			;;
+			dsl[0-3]/[0-3])
+				tmp=`expr substr "$word" 4 1``expr substr "$word" 6 1`
+				if [ ! -d "/sys/class/net/dsl$tmp" ]; then
+					echo "Syntax error in port list, port $word not exist!"
+					return 1
+				fi
+				port_list="$port_list $word"
+			;;
+			fe[0-3]/[0-7])
+				tmp=`expr substr "$word" 3 1``expr substr "$word" 5 1`
+				if [ ! -d "/sys/class/net/fe$tmp" ]; then
+					echo "Syntax error in port list, port $word not exist!"
+					return 1
+				fi
+				port_list="$port_list $word"
+			;;
+			*-*)
+				begin=${word%%-*}
+				end=${word##*-}
+#				echo "begin = $begin end = $end"
+				case "$begin" in
+					dsl[0-3]/[0-3])
+						tmp=`expr substr "$begin" 4 1``expr substr "$begin" 6 1`
+						if [ ! -d "/sys/class/net/dsl$tmp" ]; then
+							echo "Syntax error in port list, port $begin not exist!"
+							return 1
+						fi
+						bn=$((`expr substr "$begin" 4 1`*10+`expr substr "$begin" 6 1`))
+					;;
+					fe[0-3]/[0-7])
+						tmp=`expr substr "$begin" 3 1``expr substr "$begin" 5 1`
+						if [ ! -d "/sys/class/net/fe$tmp" ]; then
+							echo "Syntax error in port list, port $begin not exist!"
+							return 1
+						fi
+						bn=$((`expr substr "$begin" 3 1`*10+`expr substr "$begin" 5 1`))
+					;;
+					*)
+						echo "Syntax error in port list, port $begin not exist!"
+						return 1
+					;;
+				esac
+				case "$end" in
+					dsl[0-3]/[0-3])
+						tmp=`expr substr "$end" 4 1``expr substr "$end" 6 1`
+						if [ ! -d "/sys/class/net/dsl$tmp" ]; then
+							echo "Syntax error in port list, port $end not exist!"
+							return 1
+						fi
+						en=$((`expr substr "$end" 4 1`*10+`expr substr "$end" 6 1`))
+					;;
+					fe[0-3]/[0-7])
+						tmp=`expr substr "$end" 3 1``expr substr "$end" 5 1`
+						if [ ! -d "/sys/class/net/fe$tmp" ]; then
+							echo "Syntax error in port list, port $end not exist!"
+							return 1
+						fi
+						en=$((`expr substr "$end" 3 1`*10+`expr substr "$end" 5 1`))
+					;;
+					*)
+						echo "Syntax error in port list, port $end not exist!"
+						return 1
+					;;
+				esac
+#				echo "bn=$bn en=$en"
+				if [ "$bn" -gt "$en" ]; then
+					echo "Syntax error in port list!"
+					return 1
+				fi
+				key=0
+				for i in $g_ifaces; do
+					if [ "$i" = "$begin" ]; then
+						key=1
+					fi
+					if [ "$key" = "1" ]; then
+						port_list="$port_list $i"
+					fi
+					if [ "$i" = "$end" ]; then
+						key=0
+					fi
+				done
+			;;
+			*)
+				echo "Syntax error in port list, port $word not exist!"
+				return 1
+			;;
+		esac
+	done
+#	echo $port_list
+	return 0
+}
+
+
 # $1 - what (port/vlan/ip) $2 - port (ge0 or ge1 or x/x); $3 - on or off
 cos_port_on_off() {
+	p1_=$1
 	case $1 in
 		port)
 			low_reg="22"
@@ -20,7 +121,31 @@ cos_port_on_off() {
 		;;
 	esac
 	shift
-	case "$1" in
+	tmp=""
+	last_param=""
+	p_list=""
+	while [ "$1" != "" ]; do
+		p_list="$tmp"
+		tmp="$tmp $1"
+		last_param="$1"
+		shift
+	done
+#	echo "p_list = $p_list last_param = $last_param"
+	case "$last_param" in
+		on | off | enable | disable | high | low)
+		;;
+		*)
+			echo "syntax error, usage ${p1_}_cos port <ports list> { enable | disable }"
+			return
+		;;
+	esac
+	port_list=""
+	parse_ports_list $p_list
+	if [ "$?" != "0" ]; then
+		return
+	fi
+	for p in $port_list; do
+	case "$p" in
 		"ge0")
 			sw=0
 			sw_port=24
@@ -31,48 +156,50 @@ cos_port_on_off() {
 		;;
 		dsl0/[0-3])
 			sw=0
-			sw_port=`expr substr $1 6 1`
+			sw_port=`expr substr $p 6 1`
 		;;
 		dsl1/[0-3])
 			sw=0
-			sw_port=$((`expr substr $1 6 1`+8))
+			sw_port=$((`expr substr $p 6 1`+8))
 		;;
 		dsl2/[0-3])
 			sw=1
-			sw_port=`expr substr $1 6 1`
+			sw_port=`expr substr $p 6 1`
 		;;
 		dsl3/[0-3])
 			sw=1
-			sw_port=$((`expr substr $1 6 1`+8))
+			sw_port=$((`expr substr $p 6 1`+8))
 		;;
 		fe0/[0-7])
 			sw=0
-			sw_port=$((7-`expr substr $1 5 1`))
+			sw_port=$((7-`expr substr $p 5 1`))
 		;;
 		fe1/[0-7])
 			sw=0
-			sw_port=$((15-`expr substr $1 6 1`))
+			sw_port=$((15-`expr substr $p 5 1`))
 		;;
 		fe2/[0-7])
 			sw=1
-			sw_port=$((7-`expr substr $1 3 1`))
+			sw_port=$((7-`expr substr $p 5 1`))
 		;;
 		fe3/[0-7])
 			sw=1
-			sw_port=$((15-`expr substr $1 3 1`))
+			sw_port=$((15-`expr substr $p 5 1`))
 		;;
 		*)
-			echo "Syntax error, port $1 not found! (in case)"
+			echo "Syntax error, port $p not found! (in case)"
 			return
 		;;
 	esac
 #	echo "sw = $sw sw_port = $sw_port"
-	tmp=`expr substr $1 4 1``expr substr $1 6 1`
+	tmp=`expr substr $p 4 1``expr substr $p 6 1`
 	if [ ! -d "/sys/class/net/dsl${tmp}/ms_private" ]; then
-		tmp=`expr substr $1 3 1``expr substr $1 5 1`
+		tmp=`expr substr $p 3 1``expr substr $p 5 1`
 		if [ ! -d "/sys/class/net/fe${tmp}/ms_private" ]; then
-			echo "Syntax error, port $1 not found!"
-			return
+			if [ "$p" != "ge0" -a "$p" != "ge1" ]; then
+				echo "Syntax error, port $p not found!"
+				return
+			fi
 		fi
 	fi
 
@@ -88,8 +215,7 @@ cos_port_on_off() {
 	regh=`cat /proc/sys/net/dslam_sw/sw${sw}/regread`
 	regh=`expr substr "$regh" 6 6`
 #	echo "readed reg value: $regh"
-	shift
-	case "$1" in
+	case "$last_param" in
 		"on" | "enable" | "high")
 			let "regh=$regh | (1 << $sw_port)"
 			regh=`printf "%x" $regh`
@@ -101,177 +227,22 @@ cos_port_on_off() {
 			echo "$reg $regh" > /proc/sys/net/dslam_sw/sw${sw}/regwrite
 		;;
 		*)
-			echo "syntax error, usage clan_cos port { ge0 | ge1 | x/x } { enable | disable }"
+			echo "syntax error, usage ${p1_}_cos port { ge0 | ge1 | x/x } { enable | disable }"
 			return
 		;;
 	esac
-	echo "kdb set sys_dslam_sw${sw}_cos_${t}_${r}="`printf "%i" $regh`  >> $tmp_config_file
+#	echo "writed reg value: $regh"
+	echo "kdb set sys_dslam_sw${sw}_cos_${t}_${r}="`printf "%i" 0x$regh`  >> $tmp_config_file
+	echo "Port $p ${p1_}_cos is $last_param!"
+	done
 }
-
 bandwidth_control_func() {
 	prompt=":services:cos:bandwidth_control"
-	case "$1" in
-		"band")
-			shift
-			if [ ! -d "/sys/class/net/dsl"`expr substr $1 4 1``expr substr $1 6 1`/ms_private ]; then
-				if [ ! -d "/sys/class/net/fe"`expr substr $1 3 1``expr substr $1 5 1`/ms_private ]; then
-					echo "Port $1 not found!"
-				fi
-			fi
-			modulo=256
-			case $1 in
-				"ge0")
-					sw=0
-					sw_port=24
-					modulo=2048
-				;;
-				"ge1")
-					sw=1
-					sw_port=24
-					modulo=2048
-				;;
-				dsl0/[0-3])
-					sw=0
-					sw_port=`expr substr $1 6 1`
-				;;
-				dsl1/[0-3])
-					sw=0
-					sw_port=$((`expr substr $1 6 1`+8))
-				;;
-				dsl2/[0-3])
-					sw=1
-					sw_port=`expr substr $1 6 1`
-				;;
-				dsl3/[0-3])
-					sw=1
-					sw_port=$((`expr substr $1 6 1`+8))
-				;;
-				fe0/[0-7])
-					sw=0
-					sw_port=$((7-`expr substr $1 5 1`))
-				;;
-				fe1/[0-7])
-					sw=0
-					sw_port=$((15-`expr substr $1 6 1`))
-				;;
-				fe2/[0-7])
-					sw=1
-					sw_port=$((7-`expr substr $1 3 1`))
-				;;
-				fe3/[0-7])
-					sw=1
-					sw_port=$((15-`expr substr $1 3 1`))
-				;;
-				*)
-					echo "Syntax error, port $1 not found! (in case)"
-					return
-				;;
-			esac
-			shift
-			case $1 in
-				inbound | "in")
-					shift
-					chk=`echo "$1" | grep '[^0-9]'`
-					if [ ! -z "$chk" ]; then
-						echo "Syntax error after inbound"
-						return
-					fi
-					let "remainder=$1 % $modulo"
-					if [ "$remainder" != "0" ]; then
-						inbound=$(($1-$remainder))
-					else
-						inbound=$1
-					fi
-					if [ "$2" != "" ]; then
-						if [ "$2" = "outbound" ]; then
-							chk=`echo "$3" | grep '[^0-9]'`
-							if [ ! -z "$chk" ]; then
-								echo "Syntax error after outbound"
-								return
-							fi
-							let "remainder=$3 % $modulo"
-							if [ "$remainder" != "0" ]; then
-								outbound=$(($3-$remainder))
-							else
-								outbound=$3
-							fi
-						else
-							echo "Syntax error after $1"
-						fi
-					else
-						outbound=0
-					fi
-				;;
-				outbound | "out")
-					shift
-					chk=`echo "$1" | grep '[^0-9]'`
-					if [ ! -z "$chk" ]; then
-						echo "Syntax error after outbound"
-						return
-					fi
-					let "remainder=$1 % $modulo"
-					if [ "$remainder" != "0" ]; then
-						outbound=$(($1-$remainder))
-					else
-						outbound=$1
-					fi
-					if [ "$2" != "" ]; then
-						if [ "$2" = "inbound" ]; then
-							chk=`echo "$3" | grep '[^0-9]'`
-							if [ ! -z "$chk" ]; then
-								echo "Syntax error after inbound"
-								return
-							fi
-							let "remainder=$3 % $modulo"
-							if [ "$remainder" != "0" ]; then
-								inbound=$(($3-$remainder))
-							else
-								inbound=$3
-							fi
-						else
-							echo "Syntax error after $1"
-						fi
-					else
-						inbound=0
-					fi
-				;;
-				*)
-					chk=`echo "$1" | grep '[^0-9]'`
-					if [ ! -z "$chk" ]; then
-						echo "Syntax error after outbound"
-						return
-					fi
-					let "remainder=$1 % $modulo"
-					if [ "$remainder" != "0" ]; then
-						inbound=$(($1-$remainder))
-						outbound=$(($1-$remainder))
-					else
-						inbound=$1
-						outbound=$1
-					fi
-				;;
-			esac
-			if [ "$inbound" -gt $((255 * $modulo)) -o "$outbound" -gt $((255 * $modulo)) ]; then
-				echo "For dsl and fast ethernet ifaces speed must be from 256 to 65280 kbps"
-				echo "For gigabit ifaces speed must be from 2048 to 522240 kbps"
-				return
-			fi
-			echo "in = $inbound out = $outbound"
-			let "inbound=$inbound / $modulo"
-			let "outbound=$outbound / $modulo"
-			echo "in = $inbound out = $outbound"
-
-			let "val=$outbound+($inbound << 8)"
-			val=`printf "%x" $val`
-			let "reg=3+$sw_port"
-			reg=`printf "%x" $reg`
-			echo "$reg $val" > /proc/sys/net/dslam_sw/sw${sw}/regwrite
-		;;
-		show)
-			echo "----------------------------------------"
-			echo "Port  | inbound (kbps) | outbound (kbps)"
-			echo "----------------------------------------"
-			
+	if [ "$1" = "show" ]; then
+		if [ "$2" = "" ]; then
+			echo "-------------------------------------------"
+			echo "   Port  | inbound (kbps) | outbound (kbps)"
+			echo "-------------------------------------------"
 			echo "1b" > /proc/sys/net/dslam_sw/sw0/regread
 			val=`cat /proc/sys/net/dslam_sw/sw0/regread`
 			val=`expr substr "$val" 6 6`
@@ -285,7 +256,7 @@ bandwidth_control_func() {
 			if [ "$outbound" = "             0" ]; then
 				outbound="    full speed"
 			fi
-			echo "ge0   | $inbound | $outbound"
+			echo "   ge0   | $inbound | $outbound"
 
 			echo "1b" > /proc/sys/net/dslam_sw/sw1/regread
 			val=`cat /proc/sys/net/dslam_sw/sw1/regread`
@@ -300,28 +271,41 @@ bandwidth_control_func() {
 			if [ "$outbound" = "             0" ]; then
 				outbound="    full speed"
 			fi
-			echo "ge1   | $inbound | $outbound"
-			echo "----------------------------------------"
+			echo "   ge1   | $inbound | $outbound"
+			echo "-------------------------------------------"
 
 			for slot_ in 0 1 2 3; do
 				se=1
 				for port_ in 0 `seq 7`; do
-					if [ ! -d "/sys/class/net/dsl${slot_}${port_}/ms_private" ]; then
+					if [ -d "/sys/class/net/dsl${slot_}${port_}/ms_private" ]; then
+						type="dsl"
+					elif [ -d "/sys/class/net/fe${slot_}${port_}/ms_private" ]; then
+						type=" fe"
+					elif true; then
 						break
-						# TODO сделать проверку на ethernet
 					fi
 					se=0
-					case $slot_ in
-						0) sw=0; p=$port_;;
-						1) sw=0; p=$(($port_ + 8));;
-						2) sw=1; p=$port_;;
-						3) sw=1; p=$(($port_ + 8));;
-					esac
-					echo "$(($p + 3))" > /proc/sys/net/dslam_sw/sw${sw}/regread
+					if [ "$type" = "dsl" ]; then
+						case $slot_ in
+							0) sw=0; p=$port_;;
+							1) sw=0; p=$(($port_ + 8));;
+							2) sw=1; p=$port_;;
+							3) sw=1; p=$(($port_ + 8));;
+						esac
+					else
+						case $slot_ in
+							0) sw=0; p=$((7 -$port_));;
+							1) sw=0; p=$((15-$port_));;
+							2) sw=1; p=$((7 -$port_));;
+							3) sw=1; p=$((15-$port_));;
+						esac
+					fi
+					reg=`printf "%x" $(($p + 3))`
+					echo "$reg" > /proc/sys/net/dslam_sw/sw${sw}/regread
 					val=`cat /proc/sys/net/dslam_sw/sw${sw}/regread`
 					val=`expr substr "$val" 6 6`
-					let "inbound=(val & 0xff) * 2048"
-					let "outbound=((val >> 8) & 0xff) * 2048"
+					let "outbound=(val & 0xff) * 256"
+					let "inbound=((val >> 8) & 0xff) * 256"
 					inbound=`printf "%14i" $inbound`
 					outbound=`printf "%14i" $outbound`
 					if [ "$inbound" = "             0" ]; then
@@ -330,18 +314,170 @@ bandwidth_control_func() {
 					if [ "$outbound" = "             0" ]; then
 						outbound="    full speed"
 					fi
-					echo "${slot_}/${port_}   | $inbound | $outbound"
+					echo "${type}${slot_}/${port_}   | $inbound | $outbound"
 				done
 				if [ "$se" = "0" ]; then
-					echo "----------------------------------------"
+					echo "-------------------------------------------"
 				fi
-			done			
-		;;
-		"");;
-		*)
-			echo "Syntax error after bandwidth_control"
-		;;
-	esac
+			done
+			
+		else
+			tmp=`expr substr "$2" 1 4``expr substr "$2" 6 1`
+			if [ ! -d "/sys/class/net/$tmp/ms_private" ]; then
+				tmp=`expr substr "$2" 1 3``expr substr "$2" 5 1`
+				if [ ! -d "/sys/class/net/$tmp/ms_private" ]; then
+					if [ "$2" != "ge0" -a "$2" != "ge1" ]; then
+						echo "Error where are no port $2!"
+						return
+					fi
+				fi
+			fi
+			modulo=256
+			case "$2" in
+				ge0) sw=0; p=24; modulo=2048;;
+				ge1) sw=1; p=24; modulo=2048;;
+				dsl0/[0-3]) sw=0; p=`expr substr "$2" 6 1`;;
+				dsl1/[0-3]) sw=0; p=$((8+`expr substr "$2" 6 1`));;
+				dsl2/[0-3]) sw=1; p=`expr substr "$2" 6 1`;;
+				dsl3/[0-3]) sw=1; p=$((8+`expr substr "$2" 6 1`));;
+				fe0/[0-7]) sw=0; p=$((7-`expr substr "$2" 6 1`));;
+				fe1/[0-7]) sw=0; p=$((15-`expr substr "$2" 6 1`));;
+				fe2/[0-7]) sw=1; p=$((7-`expr substr "$2" 6 1`));;
+				fe3/[0-7]) sw=1; p=$((15-`expr substr "$2" 6 1`));;
+			esac
+			echo "$(($p + 3))" > /proc/sys/net/dslam_sw/sw${sw}/regread
+			val=`cat /proc/sys/net/dslam_sw/sw${sw}/regread`
+			val=`expr substr "$val" 6 6`
+			let "inbound=(val & 0xff) * $modulo"
+			let "outbound=((val >> 8) & 0xff) * $modulo"
+			inbound=`printf "%14i" $inbound`
+			outbound=`printf "%14i" $outbound`
+			if [ "$inbound" = "             0" ]; then
+				inbound="full speed"
+			fi
+			if [ "$outbound" = "             0" ]; then
+				outbound="full speed"
+			fi
+			echo -e "\nPort $2 bandwidth: in - $inbound, out - $outbound\n"
+		fi
+		return
+	fi
+	p_list=""
+	while [ "$1" != "" -a "$1" != "bound" ]; do
+		p_list="$p_list $1"
+		shift
+	done
+	if [ "$1" = "bound" ]; then
+		shift
+		inbound_=${1%%/*}
+		outbound_=${1##*/}
+		# проверяем что скорости являются числами, проверка на коррекность скорости далее
+		chk=`echo "$inbound_" | grep '[^0-9]'`
+		if [ ! -z "$chk" ]; then
+			echo "Syntax error (bad inbound speed), usage <ports list> bound <in>/<out>"
+			return
+		fi
+		chk=`echo "$outbound_" | grep '[^0-9]'`
+		if [ ! -z "$chk" ]; then
+			echo "Syntax error (bad outbound speed), usage <ports list> bound <in>/<out>"
+			return
+		fi
+#		echo "$inbound/$outbound"
+	else
+		echo "Syntax error, usage <ports list> bound <in>/<out>"
+		return
+	fi
+	port_list=""
+	parse_ports_list $p_list
+	if [ "$?" != "0" ]; then
+		return
+	fi
+#	echo "$port_list"
+#	return
+	for p in $port_list; do
+		modulo=256
+		case $p in
+			"ge0")
+				sw=0
+				sw_port=24
+				modulo=2048
+			;;
+			"ge1")
+				sw=1
+				sw_port=24
+				modulo=2048
+			;;
+			dsl0/[0-3])
+				sw=0
+				sw_port=`expr substr $p 6 1`
+			;;
+			dsl1/[0-3])
+				sw=0
+				sw_port=$((`expr substr $p 6 1`+8))
+			;;
+			dsl2/[0-3])
+				sw=1
+				sw_port=`expr substr $p 6 1`
+			;;
+			dsl3/[0-3])
+				sw=1
+				sw_port=$((`expr substr $p 6 1`+8))
+			;;
+			fe0/[0-7])
+				sw=0
+				sw_port=$((7-`expr substr $p 5 1`))
+			;;
+			fe1/[0-7])
+				sw=0
+				sw_port=$((15-`expr substr $p 5 1`))
+			;;
+			fe2/[0-7])
+				sw=1
+				sw_port=$((7-`expr substr $p 5 1`))
+			;;
+			fe3/[0-7])
+				sw=1
+				sw_port=$((15-`expr substr $p 5 1`))
+			;;
+			*)
+				echo "Here we cant be... Syntax error, port $p not found! (in case)"
+				return
+			;;
+		esac
+		let "remainder=$inbound_ % $modulo"
+		if [ "$remainder" != "0" ]; then
+			inbound=$(($inbound_-$remainder))
+		else
+			inbound=$inbound_
+		fi
+		let "remainder=$outbound_ % $modulo"
+		if [ "$remainder" != "0" ]; then
+			outbound=$(($outbound_-$remainder))
+		else
+			outbound=$outbound_
+		fi
+
+		if [ "$inbound" -gt $((255 * $modulo)) -o "$outbound" -gt $((255 * $modulo)) ]; then
+			echo "For dsl and fast ethernet ifaces speed must be from 256 to 65280 kbps"
+			echo "For gigabit ifaces speed must be from 2048 to 522240 kbps"
+			return
+		fi
+#		echo "in = $inbound out = $outbound"
+		let "inbound=$inbound / $modulo"
+		let "outbound=$outbound / $modulo"
+#		echo "in = $inbound out = $outbound"
+
+		let "val=$outbound+($inbound << 8)"
+		val=`printf "%x" $val`
+		let "reg=3+$sw_port"
+		reg=`printf "%x" $reg`
+		echo "$reg $val" > /proc/sys/net/dslam_sw/sw${sw}/regwrite
+
+		echo "kdb set sys_dslam_bandwidth_transmit_sw${sw}_p${sw_port}=$(($outbound*$modulo))" >> $tmp_config_file
+		echo "kdb set sys_dslam_bandwidth_receive_sw${sw}_p${sw_port}=$(($inbound*$modulo))" >> $tmp_config_file
+
+		echo "Port $p bound: $(($inbound*$modulo))/$(($outbound*$modulo))"
+	done
 }
 
 cos_tcp_show() {
@@ -383,6 +519,7 @@ cos_tcp_show() {
 		let "tmp=$tmp >> $(($i*2))"
 		case "$tmp" in
 			0) tmp="  off  |";;
+			1) tmp="  drop |";;
 			2) tmp="  low  |";;
 			3) tmp="  high |";;
 			*) tmp=" error |";;
@@ -426,15 +563,17 @@ cos_func() {
 	prompt=":services:cos"
 
 	case "$1" in
-		"fifo")
+		"fifo" | "disable")
 			echo "3D 0000" > /proc/sys/net/dslam_sw/sw0/regwrite
 			echo "3D 0000" > /proc/sys/net/dslam_sw/sw1/regwrite
 			echo "kdb set sys_dslam_cos_mode=0"  >> $tmp_config_file
+			echo "CoS algorithm is fifo"
 		;;
 		"strict")
 			echo "3D 0001" > /proc/sys/net/dslam_sw/sw0/regwrite
 			echo "3D 0001" > /proc/sys/net/dslam_sw/sw1/regwrite
 			echo "kdb set sys_dslam_cos_mode=1"  >> $tmp_config_file
+			echo "CoS algorithm is strict"
 		;;
 		"wrr")
 			shift
@@ -467,6 +606,7 @@ cos_func() {
 			echo "kdb set sys_dslam_cos_mode=2"  >> $tmp_config_file
 			echo "kdb set sys_dslam_cos_low_priority_queue=$low"  >> $tmp_config_file
 			echo "kdb set sys_dslam_cos_high_priority_queue=$high"  >> $tmp_config_file
+			echo "CoS algorithm is WRR (low - $low, high - $high)"
 		;;
 		"show")
 			echo "3D" > /proc/sys/net/dslam_sw/sw0/regread
@@ -497,9 +637,9 @@ cos_func() {
 			echo "CoS sheduling algorithm is $alg"
 			echo "Flow delay is $flow_delay"
 			echo "CoS ports settings:" # рисуем табличку
-			echo "-----------------------------------"
-			echo "Port | port_cos | vlan_cos | ip_cos"
-			echo "-----------------------------------"
+			echo "--------------------------------------"
+			echo "   Port | port_cos | vlan_cos | ip_cos"
+			echo "--------------------------------------"
 			
 			echo "22" > /proc/sys/net/dslam_sw/sw0/regread
 			sw0_port_cos=`cat /proc/sys/net/dslam_sw/sw0/regread`
@@ -564,7 +704,7 @@ cos_func() {
 			else
 				ip_cos="off"
 			fi
-			echo " ge0 |    $port_cos   |    $vlan_cos   |   $ip_cos "
+			echo "    ge0 |    $port_cos   |    $vlan_cos   |   $ip_cos "
 
 			let "tmp=sw1_port_cos & (1 << 24)"
 			if [ "$tmp" != "0" ]; then
@@ -584,8 +724,8 @@ cos_func() {
 			else
 				ip_cos="off"
 			fi
-			echo " ge1 |    $port_cos   |    $vlan_cos   |   $ip_cos "
-			echo "-----------------------------------"
+			echo "    ge1 |    $port_cos   |    $vlan_cos   |   $ip_cos "
+			echo "--------------------------------------"
 			for slot_ in 0 1 2 3; do
 				se=1
 				for port_ in 0 `seq 7`; do
@@ -593,7 +733,7 @@ cos_func() {
 						if [ ! -d "/sys/class/net/fe${slot_}${port_}/ms_private" ]; then
 							break
 						else
-							type_="fe"
+							type_=" fe"
 						fi
 					else
 						type_="dsl"
@@ -608,7 +748,7 @@ cos_func() {
 								3) sw=1; p=$(($port_ + 8));;
 							esac
 						;;
-						fe)
+						" fe")
 							case $slot_ in
 								0) sw=0; p=$((7 - $port_));;
 								1) sw=0; p=$((15 - $port_));;
@@ -639,17 +779,16 @@ cos_func() {
 					else
 						ip_cos="off"
 					fi
-					echo " ${slot_}/${port_} |    $port_cos   |    $vlan_cos   |   $ip_cos "
+					echo " ${type_}${slot_}/${port_} |    $port_cos   |    $vlan_cos   |   $ip_cos "
 					
 				done
 				if [ "$se" = "0" ]; then
-					echo "-----------------------------------"
+					echo "--------------------------------------"
 				fi
 			done
 			
 			echo "CoS TCP settings"
 			cos_tcp_show
-			# TODO: отображение текущих настроек COS
 		;;
 		"flow_delay")
 			shift
@@ -669,6 +808,7 @@ cos_func() {
 					reg01h=`printf "%x" $reg01h`
 					echo "01 $reg01h" > /proc/sys/net/dslam_sw/sw1/regwrite
 					echo "kdb set sys_dslam_cos_pause_flow_control=1"  >> $tmp_config_file
+					echo "Flow control delay function is ENABLE!"
 				;;
 				"off" | "disable")
 					echo "01" > /proc/sys/net/dslam_sw/sw0/regread
@@ -685,6 +825,7 @@ cos_func() {
 					reg01h=`printf "%x" $reg01h`
 					echo "01 $reg01h" > /proc/sys/net/dslam_sw/sw1/regwrite
 					echo "kdb set sys_dslam_cos_pause_flow_control=0"  >> $tmp_config_file
+					echo "Flow control delay function is DISABLE!"
 				;;
 				"")
 					echo "01" > /proc/sys/net/dslam_sw/sw0/regread
@@ -736,7 +877,7 @@ cos_func() {
 			reg32h=`expr substr "$reg32h" 6 6`
 			reg32h=`printf " %5i " $reg32h`
 
-			echo "$$1 = [$1] reg2fh = [$reg2fh]"
+#			echo "$$1 = [$1] reg2fh = [$reg2fh]"
 			
 			case "$1" in
 				add)
@@ -750,15 +891,19 @@ cos_func() {
 					if [ $reg2fh = 0 ]; then
 						echo "2F $p" > /proc/sys/net/dslam_sw/sw0/regwrite
 						echo "2F $p" > /proc/sys/net/dslam_sw/sw1/regwrite
+						echo "kdb set sys_dslam_cos_porta=$1" >> $tmp_config_file
 					elif [ $reg30h = 0 ]; then
 						echo "30 $p" > /proc/sys/net/dslam_sw/sw0/regwrite
 						echo "30 $p" > /proc/sys/net/dslam_sw/sw1/regwrite
+						echo "kdb set sys_dslam_cos_portb=$1" >> $tmp_config_file
 					elif [ $reg31h = 0 ]; then
 						echo "31 $p" > /proc/sys/net/dslam_sw/sw0/regwrite
 						echo "31 $p" > /proc/sys/net/dslam_sw/sw1/regwrite
+						echo "kdb set sys_dslam_cos_portc=$1" >> $tmp_config_file
 					elif [ $reg32h = 0 ]; then
 						echo "32 $p" > /proc/sys/net/dslam_sw/sw0/regwrite
 						echo "32 $p" > /proc/sys/net/dslam_sw/sw1/regwrite
+						echo "kdb set sys_dslam_cos_portd=$1" >> $tmp_config_file
 					elif true; then
 						echo "Already exist 4 user defined port, delete someone (del <port num>)"
 					fi
@@ -766,21 +911,36 @@ cos_func() {
 				;;
 				del)
 					shift
-					if [ $reg2fh = $1 ]; then
-						echo "2F 0" > /proc/sys/net/dslam_sw/sw0/regwrite
-						echo "2F 0" > /proc/sys/net/dslam_sw/sw1/regwrite
-					elif [ $reg30h = $1 ]; then
-						echo "30 0" > /proc/sys/net/dslam_sw/sw0/regwrite
-						echo "30 0" > /proc/sys/net/dslam_sw/sw1/regwrite
-					elif [ $reg31h = $1 ]; then
-						echo "31 0" > /proc/sys/net/dslam_sw/sw0/regwrite
-						echo "31 0" > /proc/sys/net/dslam_sw/sw1/regwrite
-					elif [ $reg32h = $1 ]; then
-						echo "32 0" > /proc/sys/net/dslam_sw/sw0/regwrite
-						echo "32 0" > /proc/sys/net/dslam_sw/sw1/regwrite
-					elif true; then
-						echo "Where are no user defined port $1"
-					fi
+					for sw in 0 1; do
+						if [ $reg2fh = $1 ]; then
+							echo "2F 0" > /proc/sys/net/dslam_sw/sw${sw}/regwrite
+							offset=8
+							echo "kdb set sys_dslam_cos_porta=0" >> $tmp_config_file
+						elif [ $reg30h = $1 ]; then
+							echo "30 0" > /proc/sys/net/dslam_sw/sw${sw}/regwrite
+							offset=10
+							echo "kdb set sys_dslam_cos_portb=0" >> $tmp_config_file
+						elif [ $reg31h = $1 ]; then
+							echo "31 0" > /proc/sys/net/dslam_sw/sw${sw}/regwrite
+							offset=12
+							echo "kdb set sys_dslam_cos_portc=0" >> $tmp_config_file
+						elif [ $reg32h = $1 ]; then
+							echo "32 0" > /proc/sys/net/dslam_sw/sw${sw}/regwrite
+							offset=14
+							echo "kdb set sys_dslam_cos_portd=0" >> $tmp_config_file
+						elif true; then
+							echo "Where are no user defined port $1"
+							return
+						fi
+						echo "35" > /proc/sys/net/dslam_sw/sw${sw}/regread
+						tmp=`cat /proc/sys/net/dslam_sw/sw${sw}/regread`
+						tmp=`expr substr "$tmp" 6 6`
+						let "tmp=$tmp & (~(3 << $offset))"
+						tmp=`printf "%x" $tmp`
+						echo "$reg $tmp" > /proc/sys/net/dslam_sw/sw${sw}/regwrite
+						tmp=`printf "%i" 0x$tmp`
+						echo "kdb set sys_dslam_cos_reg35=$tmp" >> $tmp_config_file
+					done
 					return
 				;;
 				show) cos_tcp_show; return;;
@@ -812,17 +972,18 @@ cos_func() {
 				`echo $reg31h`) reg=35; offset=12;;
 				`echo $reg32h`) reg=35; offset=14;;
 				*)
-					echo "Syntax error after tcp"
+					echo "Syntax error after tcp_cos"
 					return
 				;;
 			esac
 			shift
 			case "$1" in
-				low) val=2;;
+				drop | on) val=1;;
+				low)  val=2;;
 				high) val=3;;
 				off | disable) val=0;;
 				*)
-					echo "Syntax error"
+					echo "Syntax error, usage <protocol> drop|low|high|off"
 					return
 				;;
 			esac
@@ -833,9 +994,10 @@ cos_func() {
 				let "tmp=$tmp & (~(3 << $offset))"
 				let "tmp=$tmp | ($val << $offset)"
 				tmp=`printf "%x" $tmp`
-				echo "$reg $tmp" > /proc/sys/net/dslam_sw/sw${sw}/regwrite			
+				echo "$reg $tmp" > /proc/sys/net/dslam_sw/sw${sw}/regwrite
+				tmp=`printf "%i" 0x$tmp`
 			done
-			
+			echo "kdb set sys_dslam_cos_reg${reg}=$tmp" >> $tmp_config_file
 		;;
 		"bandwidth_control")
 			shift
