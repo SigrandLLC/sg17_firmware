@@ -199,6 +199,7 @@ print_dsl_status_all()
 print_ge_fe_status() {
 	sw=$1
 	sw_port=$2
+	iface=$3
 
 	echo "$sw_port" > /proc/sys/net/dslam_sw/$sw/status
 	status=`cat /proc/sys/net/dslam_sw/$sw/status`
@@ -250,7 +251,16 @@ print_ge_fe_status() {
 		fi
 		let "tmp=$tmp+1"
 	done
-	echo -e "\non\off=$on_off\nstate=$state\nconfiguration=$auto\nflow control=$flow\nrate=$speed Mbps\nduplex=$duplex"
+	pwr_src=`cat /sys/class/net/${iface}/ms_private/pwr_source`
+	if [ "$pwr_src" = "1" ]; then
+		pwr_en=`cat /sys/class/net/${iface}/ms_private/pwr_enable`
+		if [ "$pwr_en" = "1" ]; then
+			echo -e "\nPoE=on"
+		else
+			echo -e "\nPoE=off"
+		fi
+	fi
+	echo -e "on\off=$on_off\nstate=$state\nconfiguration=$auto\nflow control=$flow\nrate=$speed Mbps\nduplex=$duplex"
 	echo -e "transmited packages=$tx\nreceived packages=$rx\n"
 }
 
@@ -905,13 +915,12 @@ port_func() {
 		"fe")
 			iface=`expr substr $1 1 3``expr substr $1 5 5`
 			slot=`expr substr $iface 3 1`
-			slot=$(($slot+2))
 			pnum=`expr substr $iface 4 1`
 			case $slot in
-				2) sw=sw0; sw_port=$((7-$pnum));;
-				3) sw=sw0; sw_port=$(($((7-$pnum))+8));;
-				4) sw=sw1; sw_port=$((7-$pnum));;
-				5) sw=sw1; sw_port=$(($((7-$pnum))+8));;
+				0) sw=sw0; sw_port=$((7-$pnum));;
+				1) sw=sw0; sw_port=$(($((7-$pnum))+8));;
+				2) sw=sw1; sw_port=$((7-$pnum));;
+				3) sw=sw1; sw_port=$(($((7-$pnum))+8));;
 			esac
 #			echo "sw=$sw sw_port=$sw_port"
 			if [ "$2" != "" ]; then
@@ -919,22 +928,22 @@ port_func() {
 					"auto")
 						echo "$sw_port 1" > /proc/sys/net/dslam_sw/$sw/port_autoneg
 						echo "$port autonegotigation is on"
-						echo "kdb set sys_dslam_${port}_auto=1" >> $tmp_config_file
+						echo "kdb set sys_dslam_${iface}_auto=1" >> $tmp_config_file
 					;;
 					"rate")
 						if [ "$3" = "100" ]; then
 							echo "$sw_port 0" > /proc/sys/net/dslam_sw/$sw/port_autoneg
 							echo "$sw_port 100" > /proc/sys/net/dslam_sw/$sw/port_speed
 							echo "$port rate is set to 100 Mbps"
-							echo "kdb set sys_dslam_${port}_auto=0" >> $tmp_config_file
-							echo "kdb set sys_dslam_${port}_rate=100" >> $tmp_config_file
+							echo "kdb set sys_dslam_${iface}_auto=0" >> $tmp_config_file
+							echo "kdb set sys_dslam_${iface}_rate=100" >> $tmp_config_file
 						else
 							if [ "$3" = "10" ]; then
 								echo "$sw_port 0" > /proc/sys/net/dslam_sw/$sw/port_autoneg
 								echo "$sw_port 10" > /proc/sys/net/dslam_sw/$sw/port_speed
 								echo "$port rate is set to 10 Mbps"
-								echo "kdb set sys_dslam_${port}_auto=0" >> $tmp_config_file
-								echo "kdb set sys_dslam_${port}_rate=10" >> $tmp_config_file
+								echo "kdb set sys_dslam_${iface}_auto=0" >> $tmp_config_file
+								echo "kdb set sys_dslam_${iface}_rate=10" >> $tmp_config_file
 							else
 								echo "$sw_port" > /proc/sys/net/dslam_sw/$sw/status
 								status=`cat /proc/sys/net/dslam_sw/$sw/status`
@@ -958,15 +967,15 @@ port_func() {
 							echo "$sw_port 0" > /proc/sys/net/dslam_sw/$sw/port_autoneg
 							echo "$sw_port 1" > /proc/sys/net/dslam_sw/$sw/port_duplex
 							echo "$port fullduplex is set"
-							echo "kdb set sys_dslam_${port}_auto=0" >> $tmp_config_file
-							echo "kdb set sys_dslam_${port}_duplex=1" >> $tmp_config_file
+							echo "kdb set sys_dslam_${iface}_auto=0" >> $tmp_config_file
+							echo "kdb set sys_dslam_${iface}_duplex=1" >> $tmp_config_file
 						else
 							if [ "$3" = "half" ]; then
 								echo "$sw_port 0" > /proc/sys/net/dslam_sw/$sw/port_autoneg
 								echo "$sw_port 0" > /proc/sys/net/dslam_sw/$sw/port_duplex
 								echo "$port halfduplex is set"
-								echo "kdb set sys_dslam_${port}_auto=0" >> $tmp_config_file
-								echo "kdb set sys_dslam_${port}_duplex=0" >> $tmp_config_file
+								echo "kdb set sys_dslam_${iface}_auto=0" >> $tmp_config_file
+								echo "kdb set sys_dslam_${iface}_duplex=0" >> $tmp_config_file
 							else
 								echo "$sw_port" > /proc/sys/net/dslam_sw/$sw/status
 								status=`cat /proc/sys/net/dslam_sw/$sw/status`
@@ -986,15 +995,15 @@ port_func() {
 							echo "$sw_port 0" > /proc/sys/net/dslam_sw/$sw/port_autoneg
 							echo "$sw_port 1" > /proc/sys/net/dslam_sw/$sw/port_flowctrl
 							echo "$port flow control is on"
-							echo "kdb set sys_dslam_${port}_auto=0" >> $tmp_config_file
-							echo "kdb set sys_dslam_${port}_flow=1" >> $tmp_config_file
+							echo "kdb set sys_dslam_${iface}_auto=0" >> $tmp_config_file
+							echo "kdb set sys_dslam_${iface}_flow=1" >> $tmp_config_file
 						else
 							if [ "$3" = "off" ]; then
 								echo "$sw_port 0" > /proc/sys/net/dslam_sw/$sw/port_autoneg
 								echo "$sw_port 0" > /proc/sys/net/dslam_sw/$sw/port_flowctrl
 								echo "$port flow control is off"
-								echo "kdb set sys_dslam_${port}_auto=0" >> $tmp_config_file
-								echo "kdb set sys_dslam_${port}_flow=0" >> $tmp_config_file
+								echo "kdb set sys_dslam_${iface}_auto=0" >> $tmp_config_file
+								echo "kdb set sys_dslam_${iface}_flow=0" >> $tmp_config_file
 							else
 								echo "$sw_port" > /proc/sys/net/dslam_sw/$sw/status
 								status=`cat /proc/sys/net/dslam_sw/$sw/status`
@@ -1012,20 +1021,110 @@ port_func() {
 					"on")
 						echo "$sw_port 1" > /proc/sys/net/dslam_sw/$sw/port_on_off
 						echo "Port $port is on"
-						echo "kdb set sys_dslam_${port}_on=1" >> $tmp_config_file
+						echo "kdb set sys_dslam_${iface}_on=1" >> $tmp_config_file
 					;;
 					"off")
 						echo "$sw_port 0" > /proc/sys/net/dslam_sw/$sw/port_on_off
 						echo "Port $port is off"
-						echo "kdb set sys_dslam_${port}_on=0" >> $tmp_config_file
+						echo "kdb set sys_dslam_${iface}_on=0" >> $tmp_config_file
 					;;
 					"stat")
 						if [ "$3" = "reset" ]; then
 							echo "$sw_port" > /proc/sys/net/dslam_sw/$sw/statistics
 							echo "Port $port statistics counters is reset"
 						else
-							print_ge_fe_status $sw $sw_port
+							print_ge_fe_status $sw $sw_port $iface
 						fi
+					;;
+					"power")
+						pwr_source=`cat /sys/class/net/${iface}/ms_private/pwr_source`
+						if [ "$pwr_source" != "1" ]; then
+							echo "This interface don't have power module!"
+							return
+						fi
+						case "$3" in
+							"on")
+								echo "1" > /sys/class/net/${iface}/ms_private/pwr_enable
+								echo "PoE on port $port is on!"
+								echo "kdb set sys_dslam_${iface}_pwr_on=1" >> $tmp_config_file
+							;;
+							"off")
+								echo "0" > /sys/class/net/${iface}/ms_private/pwr_enable
+								echo "PoE on port $port is off!"
+								echo "kdb set sys_dslam_${iface}_pwr_on=0" >> $tmp_config_file
+							;;
+							"")
+								pwr=`cat /sys/class/net/${iface}/ms_private/pwr_enable`
+								if [ "$pwr" = "1" ]; then
+									echo "PoE on port $port is on!"
+								else
+									echo "PoE on port $port is off!"
+								fi
+							;;
+							*)
+								echo "Syntax error, usage: power on|off"
+							;;
+						esac
+					;;
+					"poe_config")
+						pwr_source=`cat /sys/class/net/${iface}/ms_private/pwr_source`
+						if [ "$pwr_source" != "1" ]; then
+							echo "This interface don't have power module!"
+							return
+						fi
+						case "$3" in
+							"auto")
+								echo "1" > /sys/class/net/${iface}/ms_private/config
+								echo "PoE on port $port is set to auto!"
+								echo "kdb set sys_dslam_${iface}_pwr_auto=1" >> $tmp_config_file
+							;;
+							"class")
+								poe_class=""
+								case "$4" in
+									0 | 1 | 2 | 3 | 4) poe_class=$4;;
+									5 | "poe+") poe_class=5;;
+									*)
+										echo "Syntax error, usage: poe_config class 0|1|2|3|4|poe+"
+										return
+									;;
+								esac
+								echo "0 $poe_class" > /sys/class/net/${iface}/ms_private/config
+								echo "PoE on port $port is set to class $4"
+								echo "kdb set sys_dslam_${iface}_pwr_class=${poe_class}" >> $tmp_config_file
+								echo "kdb set sys_dslam_${iface}_pwr_auto=0" >> $tmp_config_file
+							;;
+							"current")
+								auto_off=0
+								poe_plus=0
+								if [ "$4" -ge "4" -a "$4" -le "816" ]; then
+									if [ "$5" = "auto_off" -o "$6" = "auto_off" ]; then
+										auto_off=1
+									fi
+									if [ "$5" = "poe+" -o "$6" = "poe+" ]; then
+										poe_plus=1
+									fi
+									echo "0 10 $4 ${auto_off} ${poe_plus}" > /sys/class/net/${iface}/ms_private/config
+									echo "PoE on port $port is set to current $4 mA ${auto_off} $poe_plus"
+									echo "kdb set sys_dslam_${iface}_pwr_auto_off=$auto_off" >> $tmp_config_file
+									echo "kdb set sys_dslam_${iface}_pwr_poe_plus=$poe_plus" >> $tmp_config_file
+									echo "kdb set sys_dslam_${iface}_pwr_current=$4" >> $tmp_config_file
+									echo "kdb set sys_dslam_${iface}_pwr_auto=0" >> $tmp_config_file
+									echo "kdb rm sys_dslam_${iface}_pwr_class" >> $tmp_config_file
+								else
+									echo -e "Syntax error, usage:\n\tpoe_config auto\n\tpoe_config class 0|1|2|3|4|poe+"
+									echo -e "\tpoe_config current <4-816 mA> [auto_off] [poe+]"
+								fi
+							;;
+							"")
+								# TODO вывести текущие настройки
+								eval `cat /sys/class/net/${iface}/ms_private/config`
+								echo -e "Auto=${auto}\nCurrent=${current}\nAuto_off=${auto_off}\nPoE+=${poe_plus}\n"
+							;;
+							*)
+								echo -e "Syntax error, usage:\n\tpoe_config auto\n\tpoe_config class 0|1|2|3|4|poe+"
+								echo -e "\tpoe_config current <4-816 mA> [auto_off] [poe+]"
+							;;								
+						esac
 					;;
 					*);;
 				esac

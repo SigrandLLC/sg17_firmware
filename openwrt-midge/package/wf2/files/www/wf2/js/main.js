@@ -45,6 +45,10 @@ function generateMenu() {
         addItem("Hardware:VoIP", "Echo", "voipEcho");
         addItem("Hardware:VoIP", "Dial mode", "voipDialMode");
     }
+    if (config.getParsed("sys_dslam_card") == "1") {
+    	addItem("Hardware:Ethernet", "ge0", "dslam_ethernet", ["ge0", "4", "0"]);
+    	addItem("Hardware:Ethernet", "ge1", "dslam_ethernet", ["ge1", "4", "1"]);
+    }
 
     /* get array of PCI slots */
     var slots = config.getParsed("sys_pcitbl_slots");
@@ -80,6 +84,9 @@ function generateMenu() {
 			}
 
             switch (type) {
+                case config.getOEM("MS17E_MODNAME"):
+                	addItem("Hardware:Ethernet", iface, "dslam_ethernet", [iface, pcislot, num]);
+                	break;
                 case config.getOEM("MAM17H_MODNAME"):
                 	addItem("Hardware:SHDSL", iface, "dslam_dsl", [iface, pcislot, num]);
                 	break;

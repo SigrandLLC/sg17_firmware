@@ -76,7 +76,8 @@ _dslam_sw_start() {
 		update_bandwidth_settings
 		update_bcast_settings
 		update_mac_sec_settings
-#		update_link_aggregation_settings
+		update_mirroring_settings
+		update_link_aggregation_settings
 	else
 		$kdb set sys_dslam_card=0
 		rmmod dslam_sw
@@ -284,18 +285,56 @@ update_mac_sec_settings() {
 		done
 	done
 }
+update_mirroring_settings() {
+	cmd=""
+	alg=0; source=""; dest=""
+	eval `kdb -lqq sls sys_dslam_mirroring_group0_`
+	if [ "$source" = "" ]; then
+		source=none
+	fi
+	if [ "$dest" = "" ]; then
+		dest=none
+	fi
+#	echo "Group 0: alg=$alg source=\"$source\" dest=\"$dest\""
+	cmd="services mirroring group0 algorithm $alg \\n"
+	cmd="$cmd source $source \\n"
+	cmd="$cmd dest $dest \\n"
 
-#update_link_aggregation_settings() {
-#	cli services link_aggregation group0 algorithm `$kdb get sys_dslam_link_aggregation_sw0_algorithm`
-#	cli services link_aggregation group2 algorithm `$kdb get sys_dslam_link_aggregation_sw1_algorithm`
-#	for gr in group0 group1 group2 group3; do
-#		ports=`$kdb get sys_dslam_link_aggregation_${gr}_ports`
-#		if [ "$ports" = "" ]; then
-#			ports="none"
-#		fi
-#		cli services link_aggregation $gr ports $ports
-#	done
-#}
+	alg=0; source=""; dest=""
+	eval `kdb -lqq sls sys_dslam_mirroring_group1_`
+	if [ "$source" = "" ]; then
+		source=none
+	fi
+	if [ "$dest" = "" ]; then
+		dest=none
+	fi
+#	echo "Group 1: alg=$alg source=\"$source\" dest=\"$dest\""
+	cmd="$cmd cd \\n"
+	cmd="$cmd services mirroring group1 algorithm $alg \\n"
+	cmd="$cmd source $source \\n"
+	cmd="$cmd dest $dest \\n"
+
+	cli $cmd
+}
+
+update_link_aggregation_settings() {
+	cmd=""
+	alg0=`$kdb get sys_dslam_link_aggregation_sw0_algorithm`
+	cmd="$cmd services link_aggregation group0 algorithm $alg0 \\n"
+	alg2=`$kdb get sys_dslam_link_aggregation_sw1_algorithm`
+	cmd="$cmd cd \\n"
+	cmd="$cmd services link_aggregation group2 algorithm $alg2 \\n"
+	for gr in group0 group1 group2 group3; do
+		ports=`$kdb get sys_dslam_link_aggregation_${gr}_ports`
+		if [ "$ports" = "" ]; then
+			ports="none"
+		fi
+#		echo "$gr: ports=$ports alg0=$alg0 alg2=$alg2"
+		cmd="$cmd cd \\n"
+		cmd="$cmd services link_aggregation $gr ports $ports \\n"
+	done
+	cli $cmd
+}
 
 
 update_cfg() {
@@ -303,6 +342,9 @@ update_cfg() {
 	case "$what" in
 		uplinks)
 			update_uplinks_settings
+		;;
+		mirroring)
+			update_mirroring_settings
 		;;
 		vlan)
 			update_vlan_settings
@@ -319,9 +361,9 @@ update_cfg() {
 		mac_sec)
 			update_mac_sec_settings
 		;;
-#		link_aggregation)
-#			update_link_aggregation_settings
-#		;;
+		link_aggregation)
+			update_link_aggregation_settings
+		;;
 		all)
 			update_vlan_settings $2
 		;;

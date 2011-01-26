@@ -64,10 +64,12 @@ port_name2port_num() {
 update_vlan_storage() {
 #	echo "update_vlan_storage"
 	# удаляем папку /etc/cli/vlans/
-	for v in `ls /etc/cli/vlans/`; do
-		rm -f /etc/cli/vlans/$v/*
-		rmdir /etc/cli/vlans/$v
-	done
+	if [ -d "/etc/cli/vlans" ]; then
+		for v in `ls /etc/cli/vlans/`; do
+			rm -f /etc/cli/vlans/$v/*
+			rmdir /etc/cli/vlans/$v
+		done
+	fi
 	# и снова ее заполняем актуальный инфой
 	cat /proc/sys/net/dslam_sw/sw0/vid_table | while read line; do
 		let "cnt=0"

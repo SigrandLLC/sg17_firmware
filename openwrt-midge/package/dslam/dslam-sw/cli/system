@@ -56,7 +56,7 @@ system_ntp_func() {
 system_show_func() {
 	host_name=`hostname`
 	echo "----------------------------------------"
-	echo "General setting"
+	echo "           General setting"
 	echo "----------------------------------------"
 	echo "Name            | "`hostname`
 	location=`kdb get sys_location`

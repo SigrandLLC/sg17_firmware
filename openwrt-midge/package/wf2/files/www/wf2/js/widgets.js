@@ -808,6 +808,7 @@ function Container(p, options) {
      * options.noSubmit — do not submit the form, but call onSubmit and preSubmit callbacks;
      * options.onSubmit — callback on submit event to call after submitting the form;
      * options.preSubmit — callback on submit event to call before submitting the form;
+     * options.preSubmitOptions — parameters for preSubmit function;
      * options.additionalKeys — additional keys to save in KDB in the correct format
      *  ([ { name: 'username', value: 'jresig' }, { name: 'password', value: 'secret' } ]).
      * NOTE:
@@ -869,7 +870,7 @@ function Container(p, options) {
                  /* if noSubmit is set — do not submit the form */
                  if (options && options.noSubmit) {
                      if (options.preSubmit) {
-                         if (options.preSubmit() == false) {
+                         if (options.preSubmit(options.preSubmitOptions) == false) {
                              return;
                          }
                      }

@@ -572,6 +572,7 @@ mirroring_group_show() {
 	for p in $s_ports; do
 		if [ "$p" = "24" ]; then
 			s_ports_str="$s_ports_str ge$i"
+			continue
 		fi
 		if [ "$p" -lt "8" ]; then
 			if [ "$i" = "0" ]; then
@@ -606,6 +607,7 @@ mirroring_group_show() {
 	for p in $d_ports; do
 		if [ "$p" = "24" ]; then
 			d_ports_str="$d_ports_str ge$i"
+			continue
 		fi
 		if [ "$p" -lt "8" ]; then
 			if [ "$i" = "0" ]; then
@@ -664,11 +666,14 @@ mirroring_group_func() {
 			fi
 			if [ "$1" = "none" ]; then
 				echo "none" > /proc/sys/net/dslam_sw/${sw}/mirror_source
+				echo "kdb set sys_dslam_mirroring_${group}_source=\"\"" >> $tmp_config_file
 				echo "Source ports = none"
 				return
 			fi
 			str=""
+			str_ifaces=""
 			while [ ! -z "$1" ]; do
+				str_ifaces="$str_ifaces $1"
 				case $1 in
 					"ge0")
 						if [ "$sw" = "sw0" ]; then
@@ -687,11 +692,16 @@ mirroring_group_func() {
 						fi
 					;;
 					"dsl"*)
-						slot_=`expr substr $1 4 1`
-						port_=`expr substr $1 6 1`
-						if [ ! -d "/sys/class/net/dsl${slot_}${port_}/ms_private" ]; then
-							echo "Where are no port $1!"
-							return
+						if [ -d "/sys/class/net/$1/ms_private" ]; then
+							slot_=`expr substr $1 4 1`
+							port_=`expr substr $1 5 1`
+						else
+							slot_=`expr substr $1 4 1`
+							port_=`expr substr $1 6 1`
+							if [ ! -d "/sys/class/net/dsl${slot_}${port_}/ms_private" ]; then
+								echo "Where are no port $1!"
+								return
+							fi
 						fi
 						if [ "$sw" = "sw0" ]; then
 							if [ "$slot_" =  "0" ]; then
@@ -718,11 +728,16 @@ mirroring_group_func() {
 						fi
 					;;
 					"fe"*)
-						slot_=`expr substr $1 3 1`
-						port_=`expr substr $1 5 1`
-						if [ ! -d "/sys/class/net/fe${slot_}${port_}/ms_private" ]; then
-							echo "Where are no port $1!"
-							return
+						if [ -d "/sys/class/net/$1/ms_private" ]; then
+							slot_=`expr substr $1 3 1`
+							port_=`expr substr $1 4 1`
+						else
+							slot_=`expr substr $1 3 1`
+							port_=`expr substr $1 5 1`
+							if [ ! -d "/sys/class/net/fe${slot_}${port_}/ms_private" ]; then
+								echo "Where are no port $1!"
+								return
+							fi
 						fi
 						if [ "$sw" = "sw0" ]; then
 							if [ "$slot_" =  "0" ]; then
@@ -756,9 +771,10 @@ mirroring_group_func() {
 				shift
 			done
 			str=`echo $str`
-			echo "Source ports = $str"
 			if [ "$str" = "" ]; then str="none"; fi
 			echo "$str" > /proc/sys/net/dslam_sw/${sw}/mirror_source
+			echo "kdb set sys_dslam_mirroring_${group}_source=\"$str_ifaces\"" >> $tmp_config_file
+			echo "Source ports = $str"
 		;;
 		"dest")
 			shift
@@ -770,10 +786,14 @@ mirroring_group_func() {
 			fi
 			if [ "$1" = "none" ]; then
 				echo "none" > /proc/sys/net/dslam_sw/${sw}/mirror_dest
+				echo "kdb set sys_dslam_mirroring_${group}_dest=\"\"" >> $tmp_config_file
+				echo "Dest ports = none"
 				return
 			fi
 			str=""
+			str_ifaces=""
 			while [ ! -z "$1" ]; do
+				str_ifaces="$str_ifaces $1"
 				case $1 in
 					"ge0")
 						if [ "$sw" = "sw0" ]; then
@@ -864,30 +884,40 @@ mirroring_group_func() {
 				shift
 			done
 			str=`echo $str`
-			echo "Dest ports = $str"
 			if [ "$str" = "" ]; then str="none"; fi
 			echo "$str" > /proc/sys/net/dslam_sw/${sw}/mirror_dest
+			echo "kdb set sys_dslam_mirroring_${group}_dest=\"$str_ifaces\"" >> $tmp_config_file
+			echo "Dest ports = $str"
 		;;
 		"show")
 			mirroring_group_show `expr substr $sw 3 1`
 		;;
 		"enable" | "on")
 			echo "3" > /proc/sys/net/dslam_sw/${sw}/mirror_alg
+			echo "kdb set sys_dslam_mirroring_${group}_alg=3" >> $tmp_config_file
 		;;
 		"disable" | "off")
 			echo "0" > /proc/sys/net/dslam_sw/${sw}/mirror_alg
+			echo "kdb set sys_dslam_mirroring_${group}_alg=0" >> $tmp_config_file
 		;;
 		"algorithm" | "alg")
 			shift
 			case $1 in
+				"0")
+					echo "0" > /proc/sys/net/dslam_sw/${sw}/mirror_alg
+					echo "kdb set sys_dslam_mirroring_${group}_alg=0" >> $tmp_config_file
+				;;
 				"rx" | "1")
 					echo "1" > /proc/sys/net/dslam_sw/${sw}/mirror_alg
+					echo "kdb set sys_dslam_mirroring_${group}_alg=1" >> $tmp_config_file
 				;;
 				"tx" | "2")
 					echo "2" > /proc/sys/net/dslam_sw/${sw}/mirror_alg
+					echo "kdb set sys_dslam_mirroring_${group}_alg=2" >> $tmp_config_file
 				;;
 				"both" | "rx/tx" | "rxtx" | "3")
 					echo "3" > /proc/sys/net/dslam_sw/${sw}/mirror_alg
+					echo "kdb set sys_dslam_mirroring_${group}_alg=3" >> $tmp_config_file
 				;;
 				"")
 					alg=`cat /proc/sys/net/dslam_sw/${sw}/mirror_alg`

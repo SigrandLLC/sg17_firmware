@@ -569,6 +569,185 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 	page.generateTabs();
 };
 
+Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
+	/* create page and set common settings */
+	var page = this.Page();
+	page.setHelpPage("");
+//	page.addTab({
+//		"id": "status",
+//		"name": "Status",
+//		"func": function () {
+//		}
+//	});
+	page.addTab({
+		"id": "settings",
+		"name": "Settings",
+		"func": function () {
+			var c, c2, field;
+			c = page.addContainer("settings");
+			c.setSubsystem($.sprintf("dslam_ethernet.%s.%s", pcislot, pcidev));
+
+//			num_chan = config.get($.sprintf("sys_pcitbl_s%s_ifnum", pcislot));
+//			pwr = config.get($.sprintf("sys_pcicfg_s%s_pwr_source", pcislot));
+//			if (pwr == "1") pwr="p"; else pwr="";
+//			c.addTitle($.sprintf("%s (port %s.%s, module %s%s%s) status", iface, pcislot-2, pcidev, config.getOEM("MS17E_MODNAME"), num_chan, pwr));
+			c.addTitle("Settings");
+
+			var onConfigTypeChange = function() {
+				if ($("#auto").val() == 1) {
+					$(".widgetManual").parents("tr").remove();
+				} else {
+					addManualWidgets();
+				}
+			};
+			var addManualWidgets = function() {
+				// flow control
+				field = {
+					"type": "checkbox",
+					"name": $.sprintf("sys_dslam_%s_flow", iface),
+					"id": "flow",
+					"text": "Hardware flow control",
+					"descr": "Enable/Disable",
+					"cssClass": "widgetManual",
+					"defaultState": "checked"
+				};
+				c.addWidget(field);
+				var options = {10:"10 Mbps", 100:"100 Mbps"};
+				var def_rate = 100;
+				if ((iface == "ge0") || (iface == "ge1")) {
+					options = {10:"10 Mbps", 100:"100 Mbps", 1000:"1000 Mbps"};
+					def_rate = 1000;
+				}
+				// rate
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_dslam_%s_rate", iface),
+					"id": "rate",
+					"text": "Rate",
+					"descr": "Rate in Mbps",
+					"cssClass": "widgetManual",
+					"options": options,
+					"defaultValue": def_rate,
+				};
+				c.addWidget(field);
+				// duplex
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_dslam_%s_duplex", iface),
+					"id": "duplex",
+					"text": "Duplex",
+					"descr": "Duplex",
+					"cssClass": "widgetManual",
+					"options": {1:"full", 0:"half"},
+					"defaultValue": 1
+				};
+				c.addWidget(field);
+			}
+			// enable/disable
+			field = {
+				"type": "checkbox",
+				"name": $.sprintf("sys_dslam_%s_on", iface),
+				"id": "on",
+				"defaultState": "checked",
+				"text": "Enable/Disable port",
+				"descr": "Enable/Disable port"
+			};
+			c.addWidget(field);
+			// config type
+			field = {
+				"type": "select",
+				"name": $.sprintf("sys_dslam_%s_auto", iface),
+				"id": "auto",
+				"text": "Configuration type",
+				"descr": "Auto or manual",
+				"options": {1 : "Auto", 0 : "Manual"},
+				"defaultValue": 1,
+				"onChange" : onConfigTypeChange
+			};
+			c.addWidget(field);
+			onConfigTypeChange();
+			c.addSubmit();
+
+			page.addBr("settings");
+			c2 = page.addContainer("settings");
+			c2.setSubsystem($.sprintf("dslam_ethernet.%s.%s", pcislot, pcidev));
+			c2.addTitle("PoE settings");
+			
+			var onPoEConfigTypeChange = function() {
+				if ($("#poe_auto").val() == 1) {
+					$(".widgetPoEManual").parents("tr").remove();
+				} else {
+					addPoEManualWidgets();
+				}
+			};
+			var addPoEManualWidgets = function() {
+				field = {
+					"type": "select",
+					"name": $.sprintf("sys_dslam_%s_pwr_class", iface),
+					"text": "PoE class",
+					"cssClass": "widgetPoEManual",
+					"options": {0 : "0", 1 : "1", 2 : "2", 3 : "3", 4 : "4", 5 : "poe+", "" : "none"}
+				};
+				c2.addWidget(field);
+
+				field = {
+					"type": "checkbox",
+					"name": $.sprintf("sys_dslam_%s_pwr_auto_off", iface),
+					"cssClass": "widgetPoEManual",
+					"text": "Auto power off then no PoE device",
+					"defaultState": "checked"
+				};
+				c2.addWidget(field);
+
+				field = {
+					"type": "checkbox",
+					"name": $.sprintf("sys_dslam_%s_pwr_poe_plus", iface),
+					"cssClass": "widgetPoEManual",
+					"text": "Enable PoE+"
+				};
+				c2.addWidget(field);
+				
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_dslam_%s_pwr_current", iface),
+					"text": "Current",
+					"cssClass": "widgetPoEManual",
+					"descr" : "From 4 to 816 mA",
+					"validator": {"min": 4, "max" : 816}
+				};
+				c2.addWidget(field);
+			}
+
+
+			field = {
+				"type": "select",
+				"name": $.sprintf("sys_dslam_%s_pwr_on", iface),
+				"text": "Power",
+				"descr": "PoE feeding mode.",
+				"options": {1 : "on", 0 : "off"}
+			};
+			c2.addWidget(field);
+
+			field = {
+				"type": "select",
+				"name": $.sprintf("sys_dslam_%s_pwr_auto", iface),
+				"text": "Configuration type",
+				"options": {1 : "auto", 0 : "manual"},
+				"defaultValue": 1,
+				"id" : "poe_auto",
+				"onChange" : onPoEConfigTypeChange
+			};
+			c2.addWidget(field);
+
+			onPoEConfigTypeChange();
+
+			c2.addSubmit();
+		}
+	});
+
+	page.generateTabs();
+};
+
 var timer = 0;
 
 Controllers.dslamsw = function() {
@@ -1899,6 +2078,366 @@ Controllers.dslamsw = function() {
 			});
 		}
 	});
+
+	page.addTab({
+		"id": "mirroring",
+		"name": "Port mirroring",
+		"func": function() {
+			var c0, c1, c, field;
+			c0 = page.addContainer("mirroring");
+			
+			c0.addTitle("Group0");
+			field = {
+				"type"    : "select",
+				"name"    : "sys_dslam_mirroring_group0_alg",
+				"id"      : "alg0",
+				"text"    : "Algorithm",
+				"options" : {0 : "Disable", 1 : "RX", 2 : "TX", 3 : "RX/TX"},
+				"defaultValue" : 0
+			};
+			c0.addWidget(field);
+
+			page.addBr("mirroring");
+			c0 = page.addContainer("mirroring");
+			c0.addTableHeader("Port|Source|Destination");
+
+			page.addBr("mirroring");
+			c1 = page.addContainer("mirroring");
+			c1.addTitle("Group1");
+			field = {
+				"type"    : "select",
+				"name"    : "sys_dslam_mirroring_group1_alg",
+				"id"      : "alg1",
+				"text"    : "Algorithm",
+				"options" : {0 : "Disable", 1 : "RX", 2 : "TX", 3 : "RX/TX"},
+				"defaultValue" : 0
+			};
+			c1.addWidget(field);
+
+			page.addBr("mirroring");
+			c1 = page.addContainer("mirroring");
+			c1.addTableHeader("Port|Source|Destination");
+
+			var ifaces = config.getParsed("sys_dslam_ifaces");
+			$.each(ifaces, function(n, iface) {
+				var slot = config.get($.sprintf("sys_iface_%s_slot", iface));
+				var port = config.get($.sprintf("sys_iface_%s_port", iface));
+				var sw_num = config.get($.sprintf("sys_iface_%s_sw", iface));
+				var sw_port = config.get($.sprintf("sys_iface_%s_sw_port", iface));
+				
+				if (sw_num == 0) {
+					c = c0;
+				} else {
+					c = c1;
+				}
+				row = c.addTableRow();
+				field = {
+					"type" : "html",
+					"name" : $.sprintf("p%s%s", slot, port),
+					"str" : $.sprintf("Port %s.%s (%s)", slot, port, iface)
+				};
+				c.addTableWidget(field, row);
+				field = {
+					"type" : "checkbox",
+					"name" : $.sprintf("sys_dslam_mirroring_port_p%s%s", slot, port),
+					"id"   : $.sprintf("source_%s", iface)
+				};
+				c.addTableWidget(field, row);
+				field = {
+					"type" : "checkbox",
+					"name" : $.sprintf("sys_dslam_mirroring_tag_p%s%s", slot, port),
+					"id"   : $.sprintf("dest_%s", iface)
+				};
+				c.addTableWidget(field, row);
+			});
+
+			for (i = 0; i <2; i++) {
+				var port_name;
+				var sw_num, sw_port;
+				switch (i) {
+					case 0:
+						port_name = "ge0";
+						sw_num=0;
+						sw_port=24;
+					break;
+					case 1:
+						port_name = "ge1";
+						sw_num=1;
+						sw_port=24;
+					break;
+					case 2:
+						port_name = "CPU";
+						sw_num=0;
+						sw_port=26;
+					break;
+				}
+				if (sw_num == 0) {
+					c = c0;
+				} else {
+					c = c1;
+				}
+				row = c.addTableRow();
+				field = {
+					"type" : "html",
+					"name" : $.sprintf("somename5%s", i),
+					"str" : $.sprintf("Port 4.%s (%s)", i, port_name)
+				};
+				c.addTableWidget(field, row);
+				field = {
+					"type" : "checkbox",
+					"name" : $.sprintf("sys_dslam_cos_port_p4%s", i),
+					"id"   : $.sprintf("source_%s", port_name)
+				};
+				c.addTableWidget(field, row);
+				field = {
+					"type" : "checkbox",
+					"name" : $.sprintf("sys_dslam_cos_tag_p4%s", i),
+					"id"   : $.sprintf("dest_%s", port_name)
+				};
+				c.addTableWidget(field, row);
+			}
+
+			var source = new String(config.get("sys_dslam_mirroring_group0_source"));
+			var dest = new String(config.get("sys_dslam_mirroring_group0_dest"));
+			source += config.get("sys_dslam_mirroring_group1_source");
+			dest += config.get("sys_dslam_mirroring_group1_dest");
+			source = source.replace(new RegExp("/",'g'), "");
+			dest = dest.replace(new RegExp("/",'g'), "");
+			var ifaces = config.getParsed("sys_dslam_ifaces");
+			$.each(ifaces, function(n, iface) {
+				if (source.indexOf(iface) >= 0) {
+					document.getElementById("source_"+iface).checked = true;
+				} else {
+					document.getElementById("source_"+iface).checked = false;
+				}
+				if (dest.indexOf(iface) >= 0) {
+					document.getElementById("dest_"+iface).checked = true;
+				} else {
+					document.getElementById("dest_"+iface).checked = false;
+				}
+			});
+			for (ge=0; ge<=1; ge++) {
+				if (source.indexOf("ge"+ge) >= 0) {
+					document.getElementById("source_"+"ge"+ge).checked = true;
+				} else {
+					document.getElementById("source_"+"ge"+ge).checked = false;
+				}
+				if (dest.indexOf("ge"+ge) >= 0) {
+					document.getElementById("dest_"+"ge"+ge).checked = true;
+				} else {
+					document.getElementById("dest_"+"ge"+ge).checked = false;
+				}
+			}
+
+			c0.addSubmit({"noSubmit" : true, "preSubmit" : function() {
+				var cmd = "";
+				var ifaces = config.getParsed("sys_dslam_ifaces");
+				var iface2 = "";
+				var source_ifaces="";
+				var dest_ifaces="";
+				var error = false;
+				$.each(ifaces, function(n, iface) {
+					var sw_num = config.get($.sprintf("sys_iface_%s_sw", iface));
+					if (sw_num == 0) {
+						var tmp_str = new String(iface);
+						iface2 = tmp_str.substring(0, tmp_str.length - 1)+"/"+tmp_str.substring(tmp_str.length - 1);
+						if ((document.getElementById($.sprintf("source_%s", iface)).checked) && 
+						     (document.getElementById($.sprintf("dest_%s", iface)).checked)) {
+						     	c0.setError("Port can be source or dest, but not both same time");
+						     	c0.showMsg();
+					     		error = true;
+						     	return;
+						}
+						if (document.getElementById($.sprintf("source_%s", iface)).checked) {
+							source_ifaces += " "+iface2;
+						}
+						if (document.getElementById($.sprintf("dest_%s", iface)).checked) {
+							dest_ifaces += " "+iface2;
+						}
+					}
+				});
+				if ((document.getElementById("source_ge0").checked) && 
+				     (document.getElementById("dest_ge0").checked)) {
+				     	c0.setError("Port can be source or dest, but not both same time");
+				     	c0.showMsg();
+			     		error = true;
+				     	return;
+				}
+				if (document.getElementById("source_ge0").checked) source_ifaces += " ge0"
+				if (document.getElementById("dest_ge0").checked) dest_ifaces += " ge0"
+				if (error) return false;
+				cmd = "kdb set sys_dslam_mirroring_group0_alg=" + document.getElementById("alg0").value +
+				      " : set sys_dslam_mirroring_group0_source=\"" + source_ifaces + "\" " +
+				      " : set sys_dslam_mirroring_group0_dest=\"" + dest_ifaces  + "\";" +
+				      " /etc/init.d/dslam_sw update_cfg mirroring"; 
+				config.cmdExecute({"cmd" : cmd});
+			}
+			});
+			c1.addSubmit({"noSubmit" : true, "preSubmit" : function() {
+				var cmd = "";
+				var ifaces = config.getParsed("sys_dslam_ifaces");
+				var iface2 = "";
+				var source_ifaces="";
+				var dest_ifaces="";
+				var error = false;
+				$.each(ifaces, function(n, iface) {
+					var sw_num = config.get($.sprintf("sys_iface_%s_sw", iface));
+					if (sw_num == 1) {
+						var tmp_str = new String(iface);
+						iface2 = tmp_str.substring(0, tmp_str.length - 1)+"/"+tmp_str.substring(tmp_str.length - 1);
+						if ((document.getElementById($.sprintf("source_%s", iface)).checked) && 
+						     (document.getElementById($.sprintf("dest_%s", iface)).checked)) {
+						     	c1.setError("Port can be source or dest, but not both same time");
+						     	c1.showMsg();
+					     		error = true;
+						     	return;
+						}
+						if (document.getElementById($.sprintf("source_%s", iface)).checked) {
+							source_ifaces += " "+iface2;
+						}
+						if (document.getElementById($.sprintf("dest_%s", iface)).checked) {
+							dest_ifaces += " "+iface2;
+						}
+					}
+				});
+				if ((document.getElementById("source_ge1").checked) && 
+				     (document.getElementById("dest_ge1").checked)) {
+				     	c1.setError("Port can be source or dest, but not both same time");
+				     	c1.showMsg();
+			     		error = true;
+				     	return;
+				}
+				if (document.getElementById("source_ge1").checked) source_ifaces += " ge1"
+				if (document.getElementById("dest_ge1").checked) dest_ifaces += " ge1"
+				if (error) return false;
+				cmd = "kdb set sys_dslam_mirroring_group1_alg=" + document.getElementById("alg1").value +
+				      " : set sys_dslam_mirroring_group1_source=\"" + source_ifaces + "\" " +
+				      " : set sys_dslam_mirroring_group1_dest=\"" + dest_ifaces  + "\";" +
+				      " /etc/init.d/dslam_sw update_cfg mirroring"; 
+				config.cmdExecute({"cmd" : cmd});
+			}
+			});
+		}
+	});
+	page.addTab({
+		"id": "link_aggregation",
+		"name": "Link aggregation",
+		"func": function() {
+			var field;
+			var c = new Array(4);
+			var ports = new Array(4);
+			var group;
+
+			var ifaces = config.getParsed("sys_dslam_ifaces");
+			
+
+			for (group = 0; group <= 3; group++) {
+				ports[group] = new String(config.get("sys_dslam_link_aggregation_group"+group+"_ports"));
+				ports[group] = ports[group].replace(new RegExp("/",'g'), "");
+				c[group] = page.addContainer("link_aggregation");
+				c[group].addTitle("Group"+group);
+				var sw;
+				if ((group == 0) || (group == 1))
+					sw = 0;
+				else
+					sw = 1;
+				field = {
+					"type"    : "select",
+					"name"    : "sys_dslam_link_aggregation_sw"+sw+"_algorithm",
+					"id"      : "alg"+group,
+					"text"    : "Algorithm",
+					"options" : {1 : "MS", 2 : "MD", 3 : "MSD"},
+					"defaultValue" : 3,
+					"onChange" : function() {
+						switch (this.id) {
+							case "alg0":
+								document.getElementById("alg1").value = document.getElementById("alg0").value;
+							break;
+							case "alg1":
+								document.getElementById("alg0").value = document.getElementById("alg1").value;
+							break;
+							case "alg2":
+								document.getElementById("alg3").value = document.getElementById("alg2").value;
+							break;
+							case "alg3":
+								document.getElementById("alg2").value = document.getElementById("alg3").value;
+							break;
+						}
+					}
+				};
+				c[group].addWidget(field);
+//				page.addBr("mirroring");
+				$.each(ifaces, function(n, iface) {
+					var sw_num = config.get("sys_iface_"+iface+"_sw");
+					var sw_port = config.get("sys_iface_"+iface+"_sw_port");
+					var valid = false;
+					switch (group) {
+						case 0:
+							if ((sw_num == 0) && (sw_port >= 0) && (sw_port <= 3)) valid = true;
+						break;
+						case 1:
+							if ((sw_num == 0) && (sw_port >= 4) && (sw_port <= 7)) valid = true;
+						break;
+						case 2:
+							if ((sw_num == 1) && (sw_port >= 0) && (sw_port <= 3)) valid = true;
+						break;
+						case 3:
+							if ((sw_num == 1) && (sw_port >= 4) && (sw_port <= 7)) valid = true;
+						break;
+					}
+					if (valid) {
+						field = {
+							"type"    : "checkbox",
+							"name"    : "sys_dslam_link_aggregation_group"+group+"_ports_"+iface,
+							"id"      : "group"+group+"_"+iface,
+							"text"    : iface
+						};
+						c[group].addWidget(field);
+						if (ports[group].indexOf(iface) >= 0)
+							document.getElementById("group"+group+"_"+iface).checked = true;
+						else
+							document.getElementById("group"+group+"_"+iface).checked = false;
+					}
+				});
+				c[group].addSubmit({"noSubmit" : true, "preSubmitOptions" : group, "preSubmit" : function(group) {
+					var group_ifaces="";
+					var ifaces = config.getParsed("sys_dslam_ifaces");
+					$.each(ifaces, function(n, iface) {
+						var sw_num = config.get("sys_iface_"+iface+"_sw");
+						var sw_port = config.get("sys_iface_"+iface+"_sw_port");
+						var valid = false;
+						switch (group) {
+							case 0:
+								if ((sw_num == 0) && (sw_port >= 0) && (sw_port <= 3)) valid = true;
+							break;
+							case 1:
+								if ((sw_num == 0) && (sw_port >= 4) && (sw_port <= 7)) valid = true;
+							break;
+							case 2:
+								if ((sw_num == 1) && (sw_port >= 0) && (sw_port <= 3)) valid = true;
+							break;
+							case 3:
+								if ((sw_num == 1) && (sw_port >= 4) && (sw_port <= 7)) valid = true;
+							break;
+						}
+						if ((valid) && (document.getElementById("group"+group+"_"+iface).checked)) {
+							var tmp_str = new String(iface);
+							iface = tmp_str.substring(0, tmp_str.length - 1)+"/"+tmp_str.substring(tmp_str.length - 1);
+							group_ifaces = $.sprintf("%s %s", group_ifaces, iface);
+						}
+					});
+//					alert("group"+group+" ifaces: "+ifaces+" checked_ifaces: "+group_ifaces);
+					cmd = "kdb set sys_dslam_link_aggregation_sw0_algorithm=" + document.getElementById("alg0").value +
+					      " : set sys_dslam_link_aggregation_group"+group+"_ports=\"" + group_ifaces + "\"; " +
+					      " /etc/init.d/dslam_sw update_cfg link_aggregation"; 
+					config.cmdExecute({"cmd" : cmd});
+				}});
+			}
+			
+		}
+	});
+
+
 /*
 	page.addTab({
 		"id": "mac_security",
@@ -2109,5 +2648,6 @@ Controllers.dslamsw = function() {
 	});
 */
 	page.generateTabs();
+	
 }
 		

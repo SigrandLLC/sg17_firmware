@@ -8,6 +8,7 @@ priv_dir="ms_private"
 _start() {
 	echo "Configuring DSLAM Ethernet: "
 	eval `kdb sls -q sys_pcitbl_`
+	cmd=""
 	for s in $slots; do
 		unset type num ifaces
 		eval "type=\$s${s}_iftype"
@@ -20,29 +21,68 @@ _start() {
 		local ifnum=0
 		for iface in $ifaces; do
 			if [ "$s" = "0002" ]; then
-				$kdb set sys_iface_${iface}_sw=0
-				$kdb set sys_iface_${iface}_sw_port=$((7 - $ifnum))
-				$kdb set sys_iface_${iface}_slot=0
-				$kdb set sys_iface_${iface}_port=$ifnum
+				$kdb set sys_iface_${iface}_sw=0 : set sys_iface_${iface}_sw_port=$((7 - $ifnum)) : set sys_iface_${iface}_slot=0 : set sys_iface_${iface}_port=$ifnum
+				slot=0
 			fi
 			if [ "$s" = "0003" ]; then
-				$kdb set sys_iface_${iface}_sw=0
-				$kdb set sys_iface_${iface}_sw_port=$((15 - $ifnum))
-				$kdb set sys_iface_${iface}_slot=1
-				$kdb set sys_iface_${iface}_port=$ifnum
+				$kdb set sys_iface_${iface}_sw=0 : set sys_iface_${iface}_sw_port=$((15 - $ifnum)) : set sys_iface_${iface}_slot=1 : set sys_iface_${iface}_port=$ifnum
+				slot=1
 			fi
 			if [ "$s" = "0004" ]; then
-				$kdb set sys_iface_${iface}_sw=1
-				$kdb set sys_iface_${iface}_sw_port=$((7 - $ifnum))
-				$kdb set sys_iface_${iface}_slot=2
-				$kdb set sys_iface_${iface}_port=$ifnum
+				$kdb set sys_iface_${iface}_sw=1 : set sys_iface_${iface}_sw_port=$((7 - $ifnum)) : set sys_iface_${iface}_slot=2 : set sys_iface_${iface}_port=$ifnum
+				slot=2
 			fi
 			if [ "$s" = "0005" ]; then
-				$kdb set sys_iface_${iface}_sw=1
-				$kdb set sys_iface_${iface}_sw_port=$((15 - $ifnum))
-				$kdb set sys_iface_${iface}_slot=3
-				$kdb set sys_iface_${iface}_port=$ifnum
+				$kdb set sys_iface_${iface}_sw=1 : set sys_iface_${iface}_sw_port=$((15 - $ifnum)) : set sys_iface_${iface}_slot=3 : set sys_iface_${iface}_port=$ifnum
+				slot=3
 			fi
+
+
+			unset on flow duplex rate auto pwr_auto pwr_auto_off pwr_current pwr_on pwr_poe_plus pwr_class
+			cmd="$cmd port fe${slot}/${ifnum} "
+			eval `kdb -lqq sls sys_dslam_${iface}_`
+			if [ "$on" = "0" ]; then
+				cmd="$cmd off \\n"
+			else
+				cmd="$cmd on \\n"
+				if [ "$pwr_auto" != "0" ]; then
+					cmd="$cmd poe_config auto \\n"
+#					echo "port fe${slot}/${ifnum} poe_config auto"
+				else
+					if [ "$pwr_class" != "" ]; then
+						cmd="$cmd poe_config class $pwr_class \\n"
+#						echo "port fe${slot}/${ifnum} poe_config class $pwr_class"
+					else
+						if [ "$pwr_auto_off" != "0" ]; then pwr_auto_off="auto_off"; else pwr_auto_off=""; fi
+						if [ "$pwr_poe_plus" != "0" ]; then pwr_poe_plus="poe+"; else pwr_poe_plus=""; fi
+						cmd="$cmd poe_config current $pwr_current $pwr_auto_off $pwr_poe_plus \\n"
+					fi
+				fi
+				if [ "$pwr_on" = "1" ]; then
+					cmd="$cmd power on \\n"
+				else
+					cmd="$cmd power off \\n"
+				fi
+			fi
+			if [ "$flow" = "0" ]; then
+				cmd="$cmd flow off \\n"
+			else
+				cmd="$cmd flow on \\n"
+			fi
+			if [ "$duplex" = "0" ]; then
+				cmd="$cmd duplex half \\n"
+			else
+				cmd="$cmd duplex full \\n"
+			fi
+			if [ "$rate" = "10" ]; then
+				cmd="$cmd rate 10 \\n"
+			else
+				cmd="$cmd rate 100 \\n"
+			fi
+			if [ "$auto" != "0" ]; then
+				cmd="$cmd auto \\n"
+			fi
+			cmd="$cmd cd \\n"
 			ifnum=$(( $ifnum + 1 ))
 		done
 
@@ -56,14 +96,70 @@ _start() {
                 fi
 		echo "    $ifaces "
 	done
-	echo
+#	echo "$cmd"
+	cli $cmd
+#	echo ""
 }
 
-_stop(){
+_stop() {
 	#TODO
 	qwe=qwe
 }
 
+_restart() {
+	if [ "$1" = "4" ]; then
+		/etc/init.d/dslam_sw update_cfg uplinks
+		return 0
+	fi
+	slot=$(($1-2))
+	port=$2
+
+	unset on flow duplex rate auto pwr_auto pwr_auto_off pwr_current pwr_on pwr_poe_plus pwr_class
+	cmd="$cmd port fe${slot}/${port} "
+	eval `kdb -lqq sls sys_dslam_fe${slot}${port}_`
+	if [ "$on" = "0" ]; then
+		cmd="$cmd off \\n"
+	else
+		cmd="$cmd on \\n"
+		if [ "$pwr_auto" != "0" ]; then
+			cmd="$cmd poe_config auto \\n"
+		else
+			if [ "$pwr_class" != "" ]; then
+				cmd="$cmd poe_config class $pwr_class \\n"
+			else
+				if [ "$pwr_auto_off" != "0" ]; then pwr_auto_off="auto_off"; else pwr_auto_off=""; fi
+				if [ "$pwr_poe_plus" != "0" ]; then pwr_poe_plus="poe+"; else pwr_poe_plus=""; fi
+				cmd="$cmd poe_config current $pwr_current $pwr_auto_off $pwr_poe_plus \\n"
+			fi
+		fi
+		if [ "$pwr_on" = "1" ]; then
+			cmd="$cmd power on \\n"
+		else
+			cmd="$cmd power off \\n"
+		fi
+			
+	fi
+	if [ "$flow" = "0" ]; then
+		cmd="$cmd flow off \\n"
+	else
+		cmd="$cmd flow on \\n"
+	fi
+	if [ "$duplex" = "0" ]; then
+		cmd="$cmd duplex half \\n"
+	else
+		cmd="$cmd duplex full \\n"
+	fi
+	if [ "$rate" = "10" ]; then
+		cmd="$cmd rate 10 \\n"
+	else
+		cmd="$cmd rate 100 \\n"
+	fi
+	if [ "$auto" != "0" ]; then
+		cmd="$cmd auto \\n"
+	fi
+
+	cli $cmd
+}
 case "$1" in
 	start)
 		_start
@@ -72,7 +168,11 @@ case "$1" in
 		_stop
 	;;
 	restart)
-		_stot
-		_start
+		if [ "$2" != "" -a "$3" != "" ]; then
+			_restart $2 $3
+		else
+			_stop
+			_start
+		fi
 	;;
 esac

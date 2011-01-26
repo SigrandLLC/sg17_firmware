@@ -33,6 +33,16 @@ service_reload(){
 		dev=${tmp#*.}
 		/etc/init.d/dslam_dsl restart $slot $dev
 	;;
+	dslam_ethernet*)
+		tmp=${service#*.}
+		slot=${tmp%.*}
+		dev=${tmp#*.}
+		if [ "$slot" = "4" ]; then
+			/etc/init.d/dslam_sw update_cfg uplinks
+		else
+			/etc/init.d/dslam_ethernet restart $slot $dev
+		fi
+	;;
 	dsl*)
 		tmp=${service#*.}
 		slot=${tmp%.*}

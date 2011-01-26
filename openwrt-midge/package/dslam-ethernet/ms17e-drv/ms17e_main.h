@@ -3,10 +3,11 @@
 
 #include <linux/pci.h>
 #include <linux/proc_fs.h>
+#include <linux/delay.h>
 
 #define DRIVER_VERSION "0.1"
-#define MS17E_MODNAME "ms17e"
-#define CARD_NAME "ms17e_card" // + card number (card->number)
+#define MS17E_MODNAME "@MS17E_MODNAME@"
+#define CARD_NAME "@MS17E_MODNAME@_card" // + card number (card->number)
 
 // TODO: поставить реальные цифры
 #define MS17E_PCI_VENDOR  0x55
@@ -59,9 +60,9 @@ struct regs_struct {
 };
 
 struct channel {
-	unsigned on;
 	char name[5]; // имя интерфейса (feXX)
-	u8 pwr_src:1; // есть источник питания или нет
+	u8 config_reg, icut_reg;
+	u8 pwr_enable:1;
 };
 
 struct ms17e_card {
@@ -79,5 +80,8 @@ struct ms17e_card {
 };
 
 void ms17e_card_remove(struct ms17e_card *card);
+
+int read_poe_reg(u8 chip_num, u8 addr, struct ms17e_card * card);
+int write_poe_reg(u8 chip_num, u8 addr, u8 data, struct ms17e_card * card);
 
 #endif

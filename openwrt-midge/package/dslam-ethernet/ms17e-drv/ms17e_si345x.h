@@ -21,8 +21,8 @@
 #define PORT3_I_CUT   0x10
 #define PORT4_I_CUT   0x11
 #define COMMAND_REG   0x12
-#define V_EE_MSB      0x13
-#define V_EE_LSB      0x14
+#define VEE_MSB       0x13
+#define VEE_LSB       0x14
 #define CUR_P1_MSB    0x15
 #define CUR_P1_LSB    0x16
 #define CUR_P2_MSB    0x17
@@ -36,5 +36,15 @@
 #define FIRMWARE_REV1 0x61
 #define FIRMWARE_REV2 0x62
 #define FIRMWARE_REV3 0x63
+
+// defines for chip commands
+#define CMD_PORT_POWER_ON  0x04 // CMD_PORT_POWER_ON | port_num
+#define CMD_PORT_POWER_OFF 0x08 // CMD_PORT_POWER_OFF | port_num
+#define CMD_PORT_RESET     0x0C // CMD_PORT_RESET | port_num
+#define CMD_TOGGLE_DETECTION_BACKOFF_TIMING  0x10
+#define CMD_RESET_CHIP     0x14
+#define CMD_GET_VEE        0x18
+#define CMD_GET_CURRENT    0x1C // CMD_GET_CURRENT | port_num
+#define CMD_OFF_LOW_PORTS  0x20
 
 #endif

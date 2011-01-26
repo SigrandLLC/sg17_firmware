@@ -88,59 +88,49 @@ int write_poe_reg(u8 chip_num, u8 addr, u8 data, struct ms17e_card * card) {
 	}
 	return 0;
 }
-// функция которая вызывается периодически
+// функция которая вызывается периодически и обрабатывает прерывания от PoE чипов
 void monitor_poe_interrupt(void * data)
 {
 	struct ms17e_card *card = (struct ms17e_card *)data;
 	u8 chip_num = 0, port_num = 0;
 	int int_reg = 0, port_events_reg = 0, device_status_reg = 0;
 	
-	
-	PDEBUG(debug_monitor, "IMR = %02x SR = %02x", ioread8(&(card->regs->IMR)), ioread8(&(card->regs->SR)));
 	if ((!(ioread8(&(card->regs->IMR)) & PINT)) && ((ioread8(&(card->regs->SR)) & PINT)))
-	{ // значит было прерывание от PoE чипа и мы сбросили бит PINT в регистре IMR
-//		PDEBUG(debug_monitor, "OK");
+	{
+
 		for (chip_num = 0; chip_num <= 2; chip_num += 2)
 		{
-			PDEBUG(debug_monitor, "read_poe_reg(%02x, %02x) ", chip_num, INT);
 			int_reg = read_poe_reg(chip_num, INT, card);
-			PDEBUG(debug_monitor, "OK\n");
 			if (!int_reg) continue;
-			PDEBUG(debug_monitor, "chip = %02x, int_reg = %02x", chip_num, int_reg);
 			for (port_num = 0; port_num < 4; port_num++)
 			{
 				if (int_reg & (0x01 << port_num)) // port event
 				{
-					PDEBUG(debug_monitor, "read_poe_reg(%02x, %02x) ", chip_num, PORT1_EVENTS + port_num);
 					port_events_reg = read_poe_reg(chip_num, PORT1_EVENTS + port_num, card);
-					PDEBUG(debug_monitor, "OK\n");
-					PDEBUG(debug_monitor, "chip = %02x, port%i event, port_events_reg = %02x", chip_num, port_num, port_events_reg);
+					PDEBUG(debug_monitor, "++++++++++ Port %i event!!!", port_num);
+					PDEBUG(debug_monitor, "port_events_reg = %02x", port_events_reg);
 				}
 			}
 			if (int_reg & 0x20) // Vee change
 			{
-				PDEBUG(debug_monitor, "read_poe_reg(%02x, %02x) ", chip_num, DEVICE_STATUS);
 				device_status_reg = read_poe_reg(chip_num, DEVICE_STATUS, card);
-				PDEBUG(debug_monitor, "OK\n");
-				PDEBUG(debug_monitor, "chip = %02x, Vee change, device_status_reg = %02x", chip_num, device_status_reg);
+				PDEBUG(debug_monitor, "++++++++++ Vee change!!!");
 			}
 			if (int_reg & 0x40) // Overtemp change
 			{
-				PDEBUG(debug_monitor, "read_poe_reg(%02x, %02x) ", chip_num, DEVICE_STATUS);
 				device_status_reg = read_poe_reg(chip_num, DEVICE_STATUS, card);
-				PDEBUG(debug_monitor, "OK\n");
-				PDEBUG(debug_monitor, "chip = %02x, Overtemp change, device_status_reg = %02x", chip_num, device_status_reg);
+				PDEBUG(debug_monitor, "++++++++++ Overtemp change!!!");
 			}
 		}
-//		iowrite8(ioread8(&(card->regs->IMR)) | PINT, &(card->regs->IMR));
 	}
 	schedule_delayed_work(&(card->work), HZ);
 }
+
 irqreturn_t interrupt_handler (int irq, void *dev_id, struct pt_regs * regs_)
 {
 	struct ms17e_card * card = (struct ms17e_card*) dev_id;
 	u8 status = ioread8(&(card->regs->SR));
-	
+
 	PDEBUG(debug_interrupt, "status=%02x", status);
 	if (status & RDS)
 	{
@@ -253,7 +243,7 @@ static int __devinit ms17e_probe(struct pci_dev * pdev, const struct pci_device_
 {
 	struct ms17e_card *card = NULL;
 	unsigned long iomem_start, iomem_end;
-	int error = 0;
+	int error = 0, i;
 #ifdef DEBUG_ON
 	char entry_dir[40];
 	struct proc_dir_entry *debug_entry;
@@ -350,17 +340,35 @@ static int __devinit ms17e_probe(struct pci_dev * pdev, const struct pci_device_
 	init_waitqueue_head(&card->wait_read);
 	init_waitqueue_head(&card->wait_write);
 	
+	// выключаем все
+	iowrite8(0x00, &(card->regs->CRA));
 	// включаем PHY и питание, также устанавливаем режим оранж диода на ручной
 	iowrite8(ERST | PRST | LEDM, &(card->regs->CRA));
 	// гасим все диоды
 	iowrite8(0, &(card->regs->LCR0));
 	iowrite8(0, &(card->regs->LCR1));
 	// включаем все прерывания
-	iowrite8(WRS | RDS | WRE | RDE /*| PINT*/, &(card->regs->IMR));
+	iowrite8(WRS | RDS | WRE | RDE | PINT, &(card->regs->IMR));
 	
 	INIT_WORK(&(card->work), monitor_poe_interrupt, (void*)card);
-//	schedule_delayed_work(&(card->work), 2*HZ);
+	schedule_delayed_work(&(card->work), HZ);
 	
+//	PDEBUG(debug_probe, "Reset chips - ");
+//	mdelay(10000);
+//	PDEBUG(debug_probe, "Reset chips - ");
+//	write_poe_reg(POE_CHIP0, COMMAND_REG, CMD_RESET_CHIP, card);
+//	write_poe_reg(POE_CHIP1, COMMAND_REG, CMD_RESET_CHIP, card);
+//	PDEBUG(debug_probe, "Reset chips - ");
+
+	if (card->pwr_source)
+	{
+		for (i = 0; i < card->if_num; i++)
+		{
+			card->channels[i].pwr_enable = 1;
+			card->channels[i].config_reg = 0x07;
+			card->channels[i].icut_reg = 0x75;
+		}
+	}
 	
 	
 //	printk(KERN_ERR"IMR=%02x\n", ioread8(&(card->regs->IMR)));
@@ -374,16 +382,6 @@ static int __devinit ms17e_probe(struct pci_dev * pdev, const struct pci_device_
 	led_control(6, ON, card);
 	led_control(7, ON, card);
 */
-
-//	for (i = 0; i < 0xff; i++)
-//	{
-//		printk(KERN_ERR"chip0 reg=%02x val=%02x\n", i, read_poe_reg(POE_CHIP0, i, card));
-//	}
-//	for (i = 0; i < 0x5; i++)
-//	{
-//		printk(KERN_ERR"chip1 reg=%02x val=%02x\n", i, read_poe_reg(POE_CHIP1, i, card));
-//	}
-
 
 #ifdef DEBUG_ON
 	sprintf(entry_dir, "sys/debug/%i", PCI_SLOT(card->pdev->devfn));

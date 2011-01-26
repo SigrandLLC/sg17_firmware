@@ -2,7 +2,7 @@
 
 network_show_func() {
 	echo "----------------------------------------"
-	echo "Network settings"
+	echo "           Network settings"
 	echo "----------------------------------------"
 	echo "DHCP            | "
 	echo "DHCP server     | "
@@ -77,7 +77,7 @@ network_func() {
 		"address")
 			tmp=`echo "$param" | grep '^[0-9]\+.[0-9]\+.[0-9]\+.[0-9]\+$'`
 			if [ "$tmp" = "" ]; then
-				echo "Invalid IP address!"
+				echo "Usage address x.x.x.x"
 				return
 			fi
 			tmp=`ifconfig eth0 | grep "inet addr:"`
@@ -88,7 +88,7 @@ network_func() {
 			tmp=`ifconfig eth0 $param 2>/tmp/ifconfig_error`
 			tmp2=`cat /tmp/ifconfig_error`
 			if [ "$tmp" != "" -o "$tmp2" != "" ]; then
-				echo "Invalid IP address!"
+				echo "Invalid IP address, usage address x.x.x.x"
 			else
 				ifconfig eth0 $ipaddr netmask $netmask
 				echo "Current IP Address device is "$param
@@ -103,7 +103,7 @@ network_func() {
 		"netmask")
 			tmp=`echo "$param" | grep '^[0-9]\+.[0-9]\+.[0-9]\+.[0-9]\+$'`
 			if [ "$tmp" = "" ]; then
-				echo "Invalid value of netmask!"
+				echo "Usage netmask x.x.x.x"
 				return
 			fi
 			tmp=`ifconfig eth0 | grep "inet addr:"`
@@ -114,7 +114,7 @@ network_func() {
 			tmp=`ifconfig eth0 netmask $param 2>/tmp/ifconfig_error`
 			tmp2=`cat /tmp/ifconfig_error`
 			if [ "$tmp" != "" -o "$tmp2" != "" ]; then
-				echo "Invalid value of netmask!"
+				echo "Invalid value of netmask, usage netmask x.x.x.x"
 			else
 				ifconfig eth0 $ipaddr netmask $netmask
 				echo "Current netmask is "$param
@@ -129,7 +129,7 @@ network_func() {
 		"gateway")
 			tmp=`echo "$param" | grep '^[0-9]\+.[0-9]\+.[0-9]\+.[0-9]\+$'`
 			if [ "$tmp" = "" ]; then
-				echo "Invalid IP address!"
+				echo "Usage gateway x.x.x.x"
 				return
 			fi
 			rm -f /tmp/temp_file
@@ -147,7 +147,7 @@ network_func() {
 			tmp=`cat /tmp/route_error`
 			if [ "$tmp" != "" ]; then
 				route add default gw $gateway dev eth0 2>/dev/null 1>/dev/null
-				echo "Invalid IP address!"
+				echo "Invalid gateway address, usage gateway x.x.x.x"
 			else
 				echo "Current default gateway is "$param
 				echo "kdb set sys_iface_eth0_gateway=\"$param\"" >> $tmp_config_file
@@ -161,7 +161,7 @@ network_func() {
 			ifconfig eth0 hw ether $param 2>/tmp/ifconfig_error
 			tmp=`cat /tmp/ifconfig_error`
 			if [ "$tmp" != "" ]; then
-				echo "Invalid MAC address!"
+				echo "Invalid MAC address, usage mac XX:XX:XX:XX:XX:XX"
 			else
 				echo "Current MAC Address is "$param
 				echo "kdb set sys_iface_eth0_mac=\"$param\"" >> $tmp_config_file
