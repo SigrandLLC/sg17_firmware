@@ -290,6 +290,7 @@ void def_conf(struct mam17_card *card, int ch)
 
 int load_cfg(struct mam17_card *card, int ch)
 {
+	// TODO сделать проверку что все нормально, вернуть !0 если ошибка
 	u32 buf[32];
 	message_t *msg;
 	ack_t ack;
@@ -353,7 +354,8 @@ int get_statistic(u8 ch, struct mam17_card * card, struct statistics *stat)
 //	debug_recv = 0;
 	tunnel_cmd(card, CMD_PERF_STATUS_GET, NULL, 0, ch, &ack);
 //	debug_recv = 40;
-	memcpy(stat,&(ack.buf32[2]), sizeof(*stat));
+	memset(stat, 0, sizeof(*stat));
+	memcpy(stat, &(ack.buf32[2]), sizeof(*stat));
 	return 0;
 }
 

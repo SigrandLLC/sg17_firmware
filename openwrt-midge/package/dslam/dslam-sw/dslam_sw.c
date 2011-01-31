@@ -1233,10 +1233,10 @@ static int read_vlan_mode(char *buf, char **start, off_t offset, int count, int 
 	
 	tmp = read_reg(sw_num, 0x40);
 	if (!(tmp & 0x40)) {
-		return(snprintf(buf, count, "port based\n"));
+		return(snprintf(buf, count, "0\n")); // port based
 	}
 	if (tmp & 0x40) {
-		return(snprintf(buf, count, "tag based\n"));
+		return(snprintf(buf, count, "1\n")); // tag based
 	}
 	return(snprintf(buf, count, "undefined\n"));	
 }
@@ -1473,15 +1473,15 @@ read_tag(char *buf, char **start, off_t offset, int count, int *eof, void *data)
 			untag = read_reg(sw_num, 0x5F) & (0x1 << (i - 16));
 		}
 		if (tag) {
-			j += snprintf(&buf[j], count, "port %i: tagging\n", i);
+			j += snprintf(&buf[j], count, "p%i=tagging\n", i);
 		} else {
 			if (untag) {
-				j += snprintf(&buf[j], count, "port %i: untagging\n", i);
+				j += snprintf(&buf[j], count, "p%i=untagging\n", i);
 			} else {
 				if (!tag & !untag) {
-					j += snprintf(&buf[j], count, "port %i: none\n", i);
+					j += snprintf(&buf[j], count, "p%i=none\n", i);
 				} else {
-					j += snprintf(&buf[j], count, "port %i: error\n", i);
+					j += snprintf(&buf[j], count, "p%i=error\n", i);
 				}
 			}
 		}

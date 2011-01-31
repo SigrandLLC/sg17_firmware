@@ -154,7 +154,7 @@ _dsl_mam17hcfg(){
 		fi
 		if [ "$slot" = "0003" ]; then
 			$kdb set sys_iface_${iface}_sw=0
-			$kdb set sys_iface_${iface}_sw_port=$(( $ifnum + 4 ))
+			$kdb set sys_iface_${iface}_sw_port=$(( $ifnum + 8 ))
 			$kdb set sys_iface_${iface}_slot=1
 			$kdb set sys_iface_${iface}_port=$ifnum
 		fi
@@ -166,7 +166,7 @@ _dsl_mam17hcfg(){
 		fi
 		if [ "$slot" = "0005" ]; then
 			$kdb set sys_iface_${iface}_sw=1
-			$kdb set sys_iface_${iface}_sw_port=$(( $ifnum + 4 ))
+			$kdb set sys_iface_${iface}_sw_port=$(( $ifnum + 8 ))
 			$kdb set sys_iface_${iface}_slot=3
 			$kdb set sys_iface_${iface}_port=$ifnum
 		fi

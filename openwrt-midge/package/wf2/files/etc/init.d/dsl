@@ -87,7 +87,7 @@ _dsl_mr17ifcfg(){
 
 	# apply configuration
 	if [ "$mode" == "slave" ]; then
-   		$mr17h_cfg $iface $mode $fill $inv $crc $pwron $advlink > /root/log
+   		$mr17h_cfg $iface $mode $fill $inv $crc $pwron $advlink
 	else
 		if [ "$rate" == "-1" -a -n "$mrate" ]; then
 			rate="rate $mrate"

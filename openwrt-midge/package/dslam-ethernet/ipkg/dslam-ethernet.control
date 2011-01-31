@@ -1,0 +1,4 @@
+Package: dslam-ethernet
+Priority: optional
+Section: net
+Description: drivers_stuff

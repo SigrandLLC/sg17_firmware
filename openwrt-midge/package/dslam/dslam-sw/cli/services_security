@@ -1,0 +1,23 @@
+#!/bin/sh
+
+security_func() {
+	prompt=":services:port_security"
+
+	case "$1" in
+		tcp_sec)
+			shift
+			cos_func tcp_cos $*
+			prompt=":services:port_security"
+		;;
+		show)
+			echo "---------------------------------------------------------------"
+			echo "                   TCP/UDP security settings                   |"
+			cos_func tcp_cos show
+			prompt=":services:port_security"
+		;;
+		"");;
+		*)
+			echo "Syntax error!"
+		;;
+	esac
+}

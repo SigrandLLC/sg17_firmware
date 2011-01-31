@@ -1,122 +1,155 @@
 #!/bin/sh
 
 help_func() {
-	echo "Help     - Current command"
-	echo "Info     - General information"
-	echo "Reboot   - Rebooting device"
-	echo "Save     - Save changes"
-	echo "Default  - Restore default device settings"
-	echo "Cd       - Change location in command tree"
-	echo "Quit     - Exit from CLI"
+	echo "Help ---------------------------- Current command"
+	echo "Info ---------------------------- General information"
+	echo "Reboot -------------------------- Rebooting device"
+	echo "Save ---------------------------- Save changes"
+	echo "Default ------------------------- Restore default device settings"
+	echo "Cd ------------------------------ Change location in command tree"
+	echo "Quit ---------------------------- Exit from CLI"
+	echo ""
 	case "$prompt" in
 		":")
-			echo "Port     - Ports settings sub-menu"
-			echo "Services - Services submenu"
-			echo "System   - General setting sub-menu"
-			echo "Network  - Network setting sub-menu"
-#			echo "Rename   - Change username/password"
+			echo "Port ---------------------------- Sub-menu for ports settings"
+			echo "Services ------------------------ Sub-menu for services settings"
+			echo "System -------------------------- Sub-menu for general settings"
+			echo "Network ------------------------- Sub-menu for network settings"
+# TODO			echo "Rename   - Change username/password"
 		;;
 		":system")
-			echo "Show     - Current sub-menu information"
-			echo "Date     - Setting the date"
-			echo "Time     - Set the time"
-			echo "NTP      - Set of the destination NTP server"
-			echo "Timezone - Timezone setting"
-			echo "Name     - Device system name"
-			echo "Location - Location of the device (optional)"
-			echo "Uptime   - Uptime information"
+			echo "Show ---------------------------- Current sub-menu information"
+			echo "Date DD-MM-YYYY ----------------- Setting the date"
+			echo "Time hh:mm:ss ------------------- Set the time"
+			echo "NTP <server> -------------------- Set of the destination NTP server"
+			echo "Timezone GMT <+N|-N> ------------ Timezone setting"
+			echo "Name <name> --------------------- Device system name"
+			echo "Location <location> ------------- Location of the device (optional)"
+			echo "Uptime -------------------------- Show system uptime"
 		;;
 		":network")
-			echo "Show     - Current sub-menu information"
-			echo "DHCP     - Activate and settings DHCP"
-			echo "Address  - IP Address system settings"
-			echo "Netmask  - Netmask for this network"
-			echo "Gateway  - Default gateway settings"
-			echo "MAC      - MAC Address for system interface"
+			echo "Show ---------------------------- Current sub-menu information"
+			echo "DHCP on | off ------------------- Activate and settings DHCP"
+			echo "Address x.x.x.x ----------------- IP Address system settings"
+			echo "Netmask x.x.x.x ----------------- Netmask for this network"
+			echo "Gateway x.x.x.x ----------------- Default gateway settings"
+			echo "MAC xx:xx:xx:xx:xx:xx ----------- MAC Address for system interface"
 		;;
 		":port")
 			if [ "$port" != "" ]; then
 				case "$port_type" in
 					"dsl")
-						echo "ON/OFF               - Enable/disable port"
-						echo "Master|Slave         - Master/Slave mode port setting"
-						echo "Rate [192-14080]     - Set line rate with 64 kbps step"
-						echo "TCPAM [16|32|64|128] - Select TC-PAM mode coding"
-						echo "Annex [A|B]          - Select Annex A/B mode"
-						echo "Restart              - Restart interface"
-						echo "PBO-forced [0-31]    - Enable power back-off function. Values from 0 to 31 determines the magnitude of"
-						echo "                       attenuation of transmit in decibels"
-						echo "Stat [reset]         - Statistics for this interface"
-						echo "Power [on|off]       - enable/disable Power-over-DSL function and display state of PoDSL on this"
-						echo "                       interface (only for MS-17H4P modules)"
+						echo "ON/OFF -------------------------- Enable/disable port"
+						echo "Master|Slave -------------------- Master/Slave mode port setting"
+						echo "Rate [192-14080] ---------------- Set line rate with 64 kbps step"
+						echo "TCPAM [16|32|64|128] ------------ Select TC-PAM mode coding"
+						echo "Annex [A|B] --------------------- Select Annex A/B mode"
+						echo "Restart ------------------------- Restart interface"
+						echo "PBO-forced [0-31] --------------- Enable power back-off function. Values from 0 to 31 determines the magnitude of"
+						echo "                                  attenuation of transmit in decibels"
+						echo "Stat [reset] -------------------- Statistics for this interface"
+						echo "Power [on|off] ------------------ enable/disable Power-over-DSL function and display state of PoDSL on this"
+						echo "                                  interface (only for MS-17H4P modules)"
 					;;
 					"ge" | "fe")
-						echo "ON/OFF             - Enable/disable port"
-						echo "Auto               - Rate and duplex mode assign auto-mode"
-						echo "Rate [10|100|1000] - Set rate assign manually"
-						echo "Duplex [full|half] - Set duplex mode assign manually"
-						echo "Flow [on|off]      - Flow control enable/disable"
-						echo "Stat [reset]       - Ports statistics"
+						echo "ON/OFF -------------------------- Enable/disable port"
+						echo "Auto ---------------------------- Rate and duplex mode assign auto-mode"
+						echo "Rate [10|100|1000] -------------- Set rate assign manually"
+						echo "Duplex [full|half] -------------- Set duplex mode assign manually"
+						echo "Flow [on|off] ------------------- Flow control enable/disable"
+						echo "Stat [reset] -------------------- Ports statistics"
+						if [ "$port_type" = "fe" ]; then
+							echo "Power [on|off] ------------------ Enable/Disable Power-over-Ethernet function and display state of PoE on this"
+							echo "PoE_config auto ----------------- Enable auto selection PoE class"
+							echo "PoE_config class 0|1|2|3|4|poe+ - Set PoE class"
+							echo "PoE_config current <4-816 mA> [auto_off] [poe+] - Set PoE congiguration manual"
+						fi
 					;;
 				esac
 			else
-				echo "Show             - Current sub-menu information"
-				echo "GE{N}            - Gigabit ports setting"
-				echo "FE{M/N}          - Fast ethernet ports setting"
-				echo "DSL{M/N}         - DSL ports settings"
-				echo "{GE|FE|DSL} stat - Ports statistics"
+				echo "Show ---------------------------- Current sub-menu information"
+				echo "GE{N} --------------------------- Sub-menu for gigabit ports setting"
+				echo "FE{M/N} ------------------------- Sub-menu for ethernet ports setting"
+				echo "DSL{M/N} ------------------------ Sub-menu for DSL ports settings"
+				echo "{GE|FE|DSL} stat ---------------- Ports statistics"
 			fi
 		;;
 		":services")
-			echo "Link_aggregation - Sub-menu settings of Link Aggregation (LA) function"
-			echo "Mirroring        - Sub-menu settings of port mirroring function"
-			echo "Cos              - Sub-menu settings of Cos function"
-			echo "VLAN             - Sub-menu for VLAN configuration"
-			echo "Storm_control    - Sub-menu for broadcast strom control configuration"
-			echo "Port_security    - Sub-menu for security configuration"
+			echo "Link_aggregation ---------------- Sub-menu settings of Link Aggregation (LA) function"
+			echo "Mirroring ----------------------- Sub-menu settings of port mirroring function"
+			echo "Cos ----------------------------- Sub-menu settings of Cos function"
+			echo "VLAN ---------------------------- Sub-menu for VLAN configuration"
+			echo "Storm_control ------------------- Sub-menu for broadcast strom control configuration"
+			echo "Port_security ------------------- Sub-menu for security configuration"
 		;;
 		":services:link_aggregation")
 			if [ "$group" = "" ]; then
-				echo "GroupN  - Sub-menu for configuration groupN"
-				echo "Show    - Show current configuration"
+				echo "GroupN --------------- Sub-menu for configuration groupN"
+				echo "Show ----------------- Show current configuration"
 			else
 # TODO				echo "Static | LACP         - Trunking method choice"
-				echo "Algorithm [MS|MD|MSD] - MAC-source, MAC-destination or MAC source-destination algorithm select"
-				echo "Joined feM/N | dslM/N - LA group select and add member ports"
-				echo "Show                  - Show current configuration $group"
+				echo "Algorithm [MS|MD|MSD] ----------- MAC-source, MAC-destination or MAC source-destination algorithm select"
+				echo "Joined feM/N | dslM/N ----------- LA group select and add member ports"
+				echo "Show ---------------------------- Show current configuration $group"
 # TODO				echo "Master feM/N | dslM/N - LA group master port setting"
 			fi
 		;;
 		":services:mirroring")
 			if [ "$group" = "" ]; then
-				echo "Show            - Show current setting of port mirroring"
-				echo "Group0 | Group1 - Sub-menu for configuration group"
+				echo "Show ---------------------------- Show current setting of port mirroring"
+				echo "Group0 | Group1 ----------------- Sub-menu for configuration group"
 			else
-				echo "Show                   - Show current setting for $group"
-				echo "Algorithm [RX|TX|Both] - Set mirroring algorithm"
-				echo "Source [ports]         - Set mirroring source ports"
-				echo "Dest [ports]           - Set mirroring destination ports"
-				echo "Enable | Disable       - Enable/Disable mirroring group"
+				echo "Show ---------------------------- Show current setting for $group"
+				echo "Algorithm [RX|TX|Both] ---------- Set mirroring algorithm"
+				echo "Source [ports] ------------------ Set mirroring source ports"
+				echo "Dest [ports] -------------------- Set mirroring destination ports"
+				echo "Enable | Disable ---------------- Enable/Disable mirroring group"
 			fi
 		;;
 		":services:vlan")
-			echo "Show             - Show current VLAN configuration"
-			echo "Create vlan_id N - Create VLAN with VID N"
-			echo "Delete vlan_id N - Delete VLAN with VID N"
+			if [ "$vid" = "" ]; then
+				echo "Show ---------------------------- Show current VLAN configuration"
+				echo "Create vlan_id N ---------------- Create VLAN with VID N"
+				echo "Delete vlan_id N ---------------- Delete VLAN with VID N"
+				echo "Uplink <port> ------------------- Set VLAN uplink port"
+			else
+				echo "Show ---------------------------- Show current configuration"
+				echo "Add geX dslM/N feM/N ------------ Add ports to VLAN"
+				echo "Name <name> --------------------- Set VLAN name"
+				echo "Tagging geX dslM/N feM/N -------- Enable tagging function on port"
+				echo "Untagging geX dslM/N feM/N ------ Disable tagging function on port"
+			fi
 		;;
 		":services:cos")
-			echo "Show                - Show current cos settings"
-			echo "FIFO|Strict|WRR     - Set cos algorithm"
-			echo "Flow_delay [on|off] - Enable/Disable flow control delay when high priority packet recieved"
-			echo "VLAN_cos "
-			echo "Port_cos"
-			echo "IP_cos"
-			echo "TCP_cos"
-			echo "Bandwidth_control   - Sub-menu for configuration bandwidth control"
-			echo ""
+			echo "Show ---------------------------- Show current cos settings"
+			echo "FIFO|Strict|WRR low N high M ---- Set cos algorithm"
+			echo "Flow_delay [on|off] ------------- Enable/Disable flow control delay when high priority packet recieved"
+			echo "VLAN_cos <ports list> on|off ---- Enable/Disable VLAN_Cos"
+			echo "Port_cos <ports list> high|low -- Enable/Disable Port_Cos"
+			echo "IP_cos   <ports list> on|off ---- Enable/Disable IP_Cos"
+			echo "TCP_cos show -------------------- Show current TCP_cos settings"
+			echo "TCP_cos add <port_num> ---------- Add user port for TCP_cos"
+			echo "TCP_cos del <port_num> ---------- Delete user port"
+			echo "TCP_cos <protocol> low|high|off - Set port high/low or disable checking"
+			echo "TCP_cos <port_num> low|high|off - Set port high/low or disable checking, for user defined ports"
+			echo "Bandwidth_control --------------- Sub-menu for configuration bandwidth control"
 		;;
 		":services:cos:bandwidth_control")
-			acmds="$bandwidth_control_cmds"
+			echo "Show [port] --------------------- Show bandwidth control settings"
+			echo "<ports list> bound <in>/<out> --- Set bandwidth with inbound/outbound parameters in Kilobits"
+		;;
+		":services:storm_control")
+			echo "Show ---------------------------- Show broadcast storm control settings"
+			echo "Threshold <0-63> ---------------- Set threshold for broadcast storm control"
+			echo "<ports list> on | off ----------- Enable/Disable broadcast storm control for <ports list>"
+		;;
+		":services:port_security")
+			echo "Show ---------------------------- Show current security settings"
+			echo "TCP_Sec add <port_num> ---------- Add user defined port"
+			echo "TCP_Sec del <port_num> ---------- Delete user defined port"
+			echo "TCP_Sec <protocol> on|off ------- Fixed TCP-port based security algorithm enabled/disabled"
+			echo "TCP_Sec <port_num> on|off ------- Fixed TCP-port based security algorithm for user defined ports enabled/disabled"
+#			echo "TODO"
 		;;
 	esac
 }

@@ -77,6 +77,7 @@ package-$(BR2_PACKAGE_SIGRAND_MR17S) += oem-rs232.g1
 package-$(BR2_PACKAGE_SIGRAND_ADM5120SW) += adm5120sw
 package-$(BR2_PACKAGE_SIGRAND_DSLAM) += dslam
 package-$(BR2_PACKAGE_SIGRAND_MAM17H) += dslam-shdsl
+package-$(BR2_PACKAGE_SIGRAND_MS17E) += dslam-ethernet
 package-$(BR2_PACKAGE_HOTPLUG) += hotplug
 package-$(BR2_PACKAGE_CONTEXT_HELP) += context-help
 package-$(BR2_PACKAGE_CONTEXT_HELP_OEM) += context-help-oem

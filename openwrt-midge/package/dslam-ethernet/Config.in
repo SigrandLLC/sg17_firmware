@@ -1,0 +1,8 @@
+config BR2_PACKAGE_SIGRAND_MS17E
+	prompt "ms17e ................. Sigrand MS17E DSLAM Ethernet module driver"
+	tristate
+	default y
+	depends on BR2_LINUX_2_6_SIGRAND5120
+	depends on BR2_PACKAGE_SIGRAND_DSLAM
+	help
+		Here must be help about driver...

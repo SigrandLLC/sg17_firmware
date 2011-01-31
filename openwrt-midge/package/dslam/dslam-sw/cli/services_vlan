@@ -1,8 +1,76 @@
 #!/bin/sh
 
+port_name2port_num() {
+	p="$1"
+	case "$p" in
+		cpu)
+			sw_num=0
+			sw_port=26
+		;;
+		ge0)
+			sw_num=0
+			sw_port=24
+		;;
+		ge1)
+			sw_num=1
+			sw_port=24
+		;;
+		dsl0/[0-3])
+			sw_num=0
+			sw_port=`expr substr "$p" 6 1`
+		;;
+		dsl1/[0-3])
+			sw_num=0
+			tmp=`expr substr "$p" 6 1`
+			sw_port=$((8+$tmp))
+		;;
+		dsl2/[0-3])
+			sw_num=1
+			sw_port=`expr substr "$p" 6 1`
+		;;
+		dsl3/[0-3])
+			sw_num=1
+			tmp=`expr substr "$p" 6 1`
+			sw_port=$((8+$tmp))
+		;;
+		fe0/[0-7])
+			sw_num=0
+			tmp=`expr substr "$p" 5 1`
+			sw_port=$((7-$tmp))
+		;;
+		fe1/[0-7])
+			sw_num=0
+			tmp=`expr substr "$p" 5 1`
+			sw_port=$((15-$tmp))
+		;;
+		fe2/[0-7])
+			sw_num=1
+			tmp=`expr substr "$p" 5 1`
+			sw_port=$((7-$tmp))
+		;;
+		fe3/[0-7])
+			sw_num=1
+			tmp=`expr substr "$p" 5 1`
+			sw_port=$((15-$tmp))
+		;;
+		*)
+			sw_num=""
+			sw_port=""
+		;;
+	esac
+}
+
 # создаем/обновляем папку в которой будет вся инфа о vlan
 update_vlan_storage() {
 #	echo "update_vlan_storage"
+	# удаляем папку /etc/cli/vlans/
+	if [ -d "/etc/cli/vlans" ]; then
+		for v in `ls /etc/cli/vlans/`; do
+			rm -f /etc/cli/vlans/$v/*
+			rmdir /etc/cli/vlans/$v
+		done
+	fi
+	# и снова ее заполняем актуальный инфой
 	cat /proc/sys/net/dslam_sw/sw0/vid_table | while read line; do
 		let "cnt=0"
 		for word in $line; do
@@ -18,8 +86,10 @@ update_vlan_storage() {
 			mkdir -p /etc/cli/vlans/$VID
 			rm -f /etc/cli/vlans/$VID/ports
 			echo "$num" > /etc/cli/vlans/$VID/num
+			echo "$VLAN" > /etc/cli/vlans/$VID/sw0ports
 			# ++++++++++++++++++++++++++
 			tmp=`kdb get sys_dslam_vlan_table_${num}`
+			name=""
 			eval "$tmp"
 			echo "$name" > /etc/cli/vlans/$VID/name
 			# --------------------------
@@ -35,8 +105,8 @@ update_vlan_storage() {
 					else
 						if [ -d "/sys/class/net/dsl1$((${p}-8))/ms_private" ]; then
 							echo "dsl1/$(($p-8)) " >> /etc/cli/vlans/$VID/ports
-						elif [ -d "/sys/class/net/fe1$((15-${p}+8))/ms_private" ]; then
-							echo "fe1/$((15-$p+8)) " >> /etc/cli/vlans/$VID/ports
+						elif [ -d "/sys/class/net/fe1$((15-${p}))/ms_private" ]; then
+							echo "fe1/$((15-$p)) " >> /etc/cli/vlans/$VID/ports
 						fi
 					fi
 				fi
@@ -44,6 +114,10 @@ update_vlan_storage() {
 			let "tmp=(0x0$VLAN & (1 << 24))"
 			if [ "$tmp" != "0" ]; then
 				echo "ge0 " >> /etc/cli/vlans/$VID/ports
+			fi
+			let "tmp=(0x0$VLAN & (1 << 26))"
+			if [ "$tmp" != "0" ]; then
+				echo "cpu " >> /etc/cli/vlans/$VID/ports
 			fi
 		fi
 		
@@ -61,6 +135,14 @@ update_vlan_storage() {
 		done
 		if [ "$VID" != "0" ]; then
 			mkdir -p /etc/cli/vlans/$VID
+			echo "$num" > /etc/cli/vlans/$VID/num
+			echo "$VLAN" > /etc/cli/vlans/$VID/sw1ports
+			# ++++++++++++++++++++++++++
+			tmp=`kdb get sys_dslam_vlan_table_${num}`
+			name=""
+			eval "$tmp"
+			echo "$name" > /etc/cli/vlans/$VID/name
+			# --------------------------
 			for p in 0 `seq 15`; do
 				let "tmp=(0x0$VLAN & (1 << $p))"
 				if [ "$tmp" != "0" ]; then
@@ -74,8 +156,8 @@ update_vlan_storage() {
 					else
 						if [ -d "/sys/class/net/dsl3$((${p}-8))/ms_private" ]; then
 							echo "dsl3/$(($p-8)) " >> /etc/cli/vlans/$VID/ports
-						elif [ -d "/sys/class/net/fe3$((15-${p}+8))/ms_private" ]; then
-							echo "fe3/$((15-$p+8)) " >> /etc/cli/vlans/$VID/ports
+						elif [ -d "/sys/class/net/fe3$((15-${p}))/ms_private" ]; then
+							echo "fe3/$((15-$p)) " >> /etc/cli/vlans/$VID/ports
 						fi
 					fi
 				fi
@@ -88,38 +170,204 @@ update_vlan_storage() {
 	done
 }
 
+check_what_port_is_not_in_vlan() {
+	local port=$1
+	for v in `ls /etc/cli/vlans`; do
+		local tmp=""
+		if [ -f "/etc/cli/vlans/${v}/ports" ]; then
+			tmp=`cat /etc/cli/vlans/${v}/ports | grep $port`
+		fi
+		if [ "$tmp" != "" ]; then
+			return 1
+		fi
+	done
+	return 0
+}
+
 vlan_vid_func() {
-	echo "vid_func $*"
+#	echo "vid_func $*"
 	case "$1" in
 		"show")
-			echo "show VLAN with VID $vid configuration"
+			echo "---------------------------------------------"
+			echo "Vlan id - $vid"
+			local ports=""
+			if [ -f "/etc/cli/vlans/${vid}/ports" ]; then
+				ports=`cat /etc/cli/vlans/${vid}/ports`
+			fi
+			echo "Vlan name - "`cat /etc/cli/vlans/${vid}/name`
+			echo -n "Ports - "
+			tag_ports=""
+			untag_ports=""
+			for p in $ports; do
+				echo -n "$p "
+				sw_num=""
+				sw_port=""
+				port_name2port_num $p
+				tmp=`cat /proc/sys/net/dslam_sw/sw${sw_num}/tag`
+				eval "$tmp"
+				eval "tmp=\$p${sw_port}"
+				if [ "$tmp" = "tagging" ]; then
+					tag_ports="$tag_ports $p"
+				fi
+				if [ "$tmp" = "untagging" ]; then
+					untag_ports="$untag_ports $p"
+				fi
+			done
+			echo ""
+			echo "Tagging ports -$tag_ports"
+			echo "Untagging ports -$untag_ports"
+			echo "---------------------------------------------"
 		;;
 		"add")
 			# add geX feM/N dslM/N
 			shift
+			if [ "$1" = "all" ]; then
+				sw0ports=07ffffff
+				sw1ports=07ffffff
+				shift
+			else
+				sw0ports=`cat /etc/cli/vlans/$vid/sw0ports`
+				sw1ports=`cat /etc/cli/vlans/$vid/sw1ports`
+			fi
+#			echo "sw0ports=$sw0ports sw1ports=$sw1ports"
+			num=`cat /etc/cli/vlans/$vid/num`
 			for p in $*; do
-				case "$p" in
-					ge0)
-						sw_num=0
-						sw_port=24
+				tmp1=`expr substr "$p" 1 4``expr substr "$p" 6 1`
+				tmp2=`expr substr "$p" 1 3``expr substr "$p" 5 1`
+				if [ ! -d "/sys/class/net/$tmp1/ms_private" ]; then
+					if [ ! -d "/sys/class/net/$tmp2/ms_private" ]; then
+						if [ "$p" != "ge0" -a "$p" != "ge1" -a "$p" != "cpu" ]; then
+							echo "Where are no port $p!"
+							return
+						fi
+					fi
+				fi
+				v=""
+				check_what_port_is_not_in_vlan $p
+				if [ "$?" != "0" ]; then
+					echo "Port $p is already in VLAN ID $v!"
+					return 0
+				fi
+				port_name2port_num $p
+#				echo "$p (sw_num=$sw_num sw_port=$sw_port)"
+				case "$sw_num" in
+					0)
+						let "sw0ports=0x$sw0ports | (1 << $sw_port)"
+						sw0ports=`printf "%08x" $sw0ports`
 					;;
-					ge1)
-						sw_num=1
-						sw_port=24
+					1)
+						let "sw1ports=0x$sw1ports | (1 << $sw_port)"
+						sw1ports=`printf "%08x" $sw1ports`
 					;;
-					dsl0/[0-3])
+				esac
+				# устанавливаем PVID для порта
+				echo "$sw_port $num" > /proc/sys/net/dslam_sw/sw${sw_num}/pvid
+				echo "kdb set sys_dslam_sw${sw_num}_vlan_${sw_port}_pvid=$num" >> $tmp_config_file
+			done
+			if [ "$sw0ports" != "00000000" -a "$sw1ports" != "00000000" ]; then
+				let "sw0ports=0x$sw0ports | (1 << 25)"
+				sw0ports=`printf "%08x" $sw0ports`
+				let "sw1ports=0x$sw1ports | (1 << 25)"
+				sw1ports=`printf "%08x" $sw1ports`
+			fi
+#			echo "sw0ports=$sw0ports sw1ports=$sw1ports"
+			num=`cat /etc/cli/vlans/$vid/num`
+			name=`cat /etc/cli/vlans/$vid/name`
+			echo "$num $vid $sw0ports" > /proc/sys/net/dslam_sw/sw0/vid_table
+			echo "$num $vid $sw1ports" > /proc/sys/net/dslam_sw/sw1/vid_table
+			echo "kdb set sys_dslam_vlan_table_${num}=\"name='$name' vid=$vid sw0ports=$sw0ports sw1ports=$sw1ports\"" >> $tmp_config_file
+			
+			echo "All port added to VLAN ID $vid!"
+		;;
+		"delete" | "del")
+			shift
+			if [ "$1" = "all" ]; then
+				sw0ports=00000000
+				sw1ports=00000000
+				shift
+			else
+				sw0ports=`cat /etc/cli/vlans/$vid/sw0ports`
+				sw1ports=`cat /etc/cli/vlans/$vid/sw1ports`
+			fi
+#			echo "sw0ports=$sw0ports sw1ports=$sw1ports"
+			for p in $*; do
+				tmp1=`expr substr "$p" 1 4``expr substr "$p" 6 1`
+				tmp2=`expr substr "$p" 1 3``expr substr "$p" 5 1`
+				if [ ! -d "/sys/class/net/$tmp1/ms_private" ]; then
+					if [ ! -d "/sys/class/net/$tmp2/ms_private" ]; then
+						if [ "$p" != "ge0" -a "$p" != "ge1" -a "$p" != "cpu" ]; then
+							echo "Where are no port $p!"
+							return
+						fi
+					fi
+				fi
+				port_name2port_num $p
+#				echo "$p (sw_num=$sw_num sw_port=$sw_port)"
+				case "$sw_num" in
+					0)
+						let "sw0ports=0x$sw0ports & (~(1 << $sw_port))"
+						sw0ports=`printf "%08x" $sw0ports`
+					;;
+					1)
+						let "sw1ports=0x$sw1ports & (~(1 << $sw_port))"
+						sw1ports=`printf "%08x" $sw1ports`
 					;;
 				esac
 			done
+			if [ "$sw0ports" != "00000000" -a "$sw1ports" != "00000000" ]; then
+				let "sw0ports=0x$sw0ports | (1 << 25)"
+				sw0ports=`printf "%08x" $sw0ports`
+				let "sw1ports=0x$sw1ports | (1 << 25)"
+				sw1ports=`printf "%08x" $sw1ports`
+			fi
+#			echo "sw0ports=$sw0ports sw1ports=$sw1ports"
+			num=`cat /etc/cli/vlans/$vid/num`
+			name=`cat /etc/cli/vlans/$vid/name`
+			echo "$num $vid $sw0ports" > /proc/sys/net/dslam_sw/sw0/vid_table
+			echo "$num $vid $sw1ports" > /proc/sys/net/dslam_sw/sw1/vid_table
+			echo "kdb set sys_dslam_vlan_table_${num}=\"name='$name' vid=$vid sw0ports=$sw0ports sw1ports=$sw1ports\"" >> $tmp_config_file
+			echo "Ports deleted form VLAN ID $vid!"
 		;;
 		"tagging")
+			shift
+			tmp1=`expr substr "$1" 1 4``expr substr "$1" 6 1`
+			tmp2=`expr substr "$1" 1 3``expr substr "$1" 5 1`
+			if [ ! -d "/sys/class/net/$tmp1/ms_private" ]; then
+				if [ ! -d "/sys/class/net/$tmp2/ms_private" ]; then
+					if [ "$1" != "ge0" -a "$1" != "ge1" -a "$1" != "cpu" ]; then
+						echo "Where are no port $1!"
+						return
+					fi
+				fi
+			fi
+			port_name2port_num $1
+			echo "$sw_port 1" > /proc/sys/net/dslam_sw/sw$sw_num/tag
+			echo "kdb set sys_dslam_sw${sw_num}_vlan_${sw_port}_tag=1" >> $tmp_config_file
+			echo "Port $1 is tagged!"
 		;;
 		"untagging")
+			shift
+			tmp1=`expr substr "$1" 1 4``expr substr "$1" 6 1`
+			tmp2=`expr substr "$1" 1 3``expr substr "$1" 5 1`
+			if [ ! -d "/sys/class/net/$tmp1/ms_private" ]; then
+				if [ ! -d "/sys/class/net/$tmp2/ms_private" ]; then
+					if [ "$1" != "ge0" -a "$1" != "ge1" -a "$1" != "cpu" ]; then
+						echo "Where are no port $1!"
+						return
+					fi
+				fi
+			fi
+			port_name2port_num $1
+			echo "$sw_port 2" > /proc/sys/net/dslam_sw/sw$sw_num/tag
+			echo "kdb set sys_dslam_sw${sw_num}_vlan_${sw_port}_tag=2" >> $tmp_config_file
+			echo "Port $1 is untagged!"
 		;;
 		"name" | "rename")
-#			num=`cat /etc/cli/vlans/$vid/num`
-#			tmp=`kdb get sys_dslam_vlan_table_$num`
-#			eval "$tmp"
+			shift
+			num=`cat /etc/cli/vlans/$vid/num`
+			tmp=`kdb get sys_dslam_vlan_table_$num`
+			eval "$tmp"
+			echo "kdb set sys_dslam_vlan_table_${num}=\"name='$1' vid=$vid sw0ports=$sw0ports sw1ports=$sw1ports\"" >> $tmp_config_file
 		;;
 		"");;
 		*)
@@ -178,6 +426,7 @@ vlan_func() {
 			echo "$where $1 0" > /proc/sys/net/dslam_sw/sw1/vid_table
 			echo "kdb set sys_dslam_vlan_table_${where}=\"name= vid=$1 sw0ports=0 sw1ports=0\"" >> $tmp_config_file
 			echo "VLAN ID $1 is created!"
+			vid=$1
 		;;
 		"show")
 			if [ -d "/etc/cli/vlans" ]; then
@@ -185,6 +434,7 @@ vlan_func() {
 			else
 				vlans=""
 			fi
+			echo -e "\n---------------------------------------------------------"
 			for v in $vlans; do
 				echo "Vlan id - $v"
 				if [ -f "/etc/cli/vlans/${v}/ports" ]; then
@@ -197,11 +447,12 @@ vlan_func() {
 				for p in $ports; do
 					echo -n "$p "
 				done
-				echo ""
+				echo -e "\n---------------------------------------------------------"
 			done
+			echo -e "\n"
 			# выводим список всех созданных vlan
 		;;
-		"delete")
+		"delete" | "del")
 			# удаляем vlan: delete vlan_id N
 			shift
 			if [ "$1" != "vlan_id" ]; then
@@ -222,6 +473,14 @@ vlan_func() {
 				echo "Where are no VLan with VID=$1!"
 				return
 			fi
+		;;
+		"uplink")
+			shift
+			case "$1" in
+				ge0);;
+				ge1);;
+			esac
+			#TODO
 		;;
 		"");;
 		*)

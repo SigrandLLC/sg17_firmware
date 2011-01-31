@@ -533,6 +533,7 @@ static ssize_t show_statistics(struct class_device *cdev, char *buf)
 	get_statistic(nl->number, card, &stat);
 
 	buff[0] = nl->number;
+	memset(&ack, 0, sizeof(ack));
 	mpi_cmd(card, CMD_HDLC_TC_LinkPmParamGet, buff, 1, &ack);
 
 	stat_all->es = stat.ES_count - stat_all->es_old;
