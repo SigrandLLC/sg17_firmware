@@ -101,7 +101,9 @@ _start() {
 		echo "    $ifaces "
 	done
 #	echo "$cmd"
-	cli $cmd
+	if [ "$cmd" != "" ]; then
+		cli $cmd
+	fi
 #	echo ""
 }
 
@@ -162,7 +164,9 @@ _restart() {
 		cmd="$cmd auto \\n"
 	fi
 
-	cli $cmd
+	if [ "$cmd" != "" ]; then
+		cli $cmd
+	fi
 }
 case "$1" in
 	start)
