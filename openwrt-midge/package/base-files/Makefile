@@ -53,7 +53,7 @@ $(PKG_BUILD_DIR)/.built:
 $(IPKG_BASE):
 	$(SCRIPT_DIR)/make-ipkg-dir.sh $(IDIR_BASE) ipkg/$(PKG_NAME).control $(PKG_RELEASE) $(ARCH)
 	$(CP) ./default/* $(IDIR_BASE)
-	$(SED) 's,$$R,r$(REV),g' $(IDIR_BASE)/etc/banner
+	#$(SED) 's,$$R,r$(REV),g' $(IDIR_BASE)/etc/banner
 	$(SED) 's,$$S,$(BOARD)-$(KERNEL),g' $(IDIR_BASE)/etc/ipkg.conf
 	mkdir -p $(IDIR_BASE)/dev
 	mkdir -p $(IDIR_BASE)/etc/crontabs
