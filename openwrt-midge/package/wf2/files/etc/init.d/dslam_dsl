@@ -177,6 +177,7 @@ _dsl_mam17hcfg(){
 
 _dsl_start(){
 
+	dslam_card=`kdb get sys_dslam_card`
 	if [ "$dslam_card" != "1" ]; then
 		exit 0
 	fi

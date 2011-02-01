@@ -6,11 +6,12 @@ priv_dir="ms_private"
 . /etc/templates/oem-vars
 
 _start() {
-	echo "Configuring DSLAM Ethernet: "
 	eval `kdb sls -q sys_pcitbl_`
+	dslam_card=`kdb get sys_dslam_card`
 	if [ "$dslam_card" != "1" ]; then
 		exit 0
 	fi
+	echo "Configuring DSLAM Ethernet: "
 	cmd=""
 	for s in $slots; do
 		unset type num ifaces
