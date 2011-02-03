@@ -1104,6 +1104,55 @@ Controllers.voipVF = function() {
 
             var colNum = 14;
             c.addTitle("Voice frequency channels", {"colspan": colNum});
+
+            var EN_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'EN', 'id' : 'EN_button'});
+            setTimeout(function() {
+                document.getElementById('EN_button').onclick = function() {
+                    for (i = 0; i <= 31; i++) {
+                        if (document.getElementById($.sprintf("channels_%s_enabled", i))) {
+                            if (document.getElementById($.sprintf("channels_%s_enabled", i)).checked)
+                                document.getElementById($.sprintf("channels_%s_enabled", i)).checked = false;
+                            else
+                                document.getElementById($.sprintf("channels_%s_enabled", i)).checked = true;
+                        }
+                    }
+                }
+            }, 1000);
+            var ID_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'R.ID', 'id' : 'ID_button'});
+            setTimeout(function() {
+                document.getElementById('ID_button').onclick = function() {
+                    var value = "";
+                    for (i = 0; i <= 31; i++) {
+                        if (document.getElementById($.sprintf("channels_%s_pair_route", i)) && value == "") {
+                            value = document.getElementById($.sprintf("channels_%s_pair_route", i)).value;
+                            continue;
+                        }
+                        if (document.getElementById($.sprintf("channels_%s_pair_route", i)) && value != "")
+                            document.getElementById($.sprintf("channels_%s_pair_route", i)).value = value;
+                    }
+                }
+            }, 1000);
+            var chan_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'Chan', 'id' : 'chan_button'});
+            setTimeout(function() {
+                document.getElementById('chan_button').onclick = function() {
+                    var value = "";
+                    for (i = 0; i <= 31; i++) {
+                        if (document.getElementById($.sprintf("channels_%s_pair_chan", i)) && value == "")
+                            document.getElementById($.sprintf("channels_%s_pair_chan", i)).value = i;
+                    }
+                }
+            }, 1000);
+
+            $("thead", c.table).append(
+                $.create("tr", {},
+                   [$.create("th", {"colSpan": 1, 'align' : 'center'}, " "),
+                   $.create("th", {"colSpan": 1, 'align' : 'center'}, EN_button),
+                   $.create("th", {"colSpan": 1, 'align' : 'center'}, ID_button),
+                   $.create("th", {"colSpan": 1, 'align' : 'center'}, chan_button),
+                   $.create("th", {"colSpan": 10, 'align' : 'center'}, " ")]
+               )
+            );
+
             c.addTableHeader("#|EN|R.ID|Chan|Codec|P.time|Pay-d|Bitpack|JB type|LAT|nScal|nInit|nMin|nMax");
             c.addTableTfootStr("Chan - local channel.", colNum);
             c.addTableTfootStr("EN - enable channel.", colNum);
@@ -1161,7 +1210,8 @@ Controllers.voipVF = function() {
                 /* enabled */
                 field = {
                     "type": "checkbox",
-                    "name": $.sprintf("sys_voip_vf_channels_%s_enabled", channel[0])
+                    "name": $.sprintf("sys_voip_vf_channels_%s_enabled", channel[0]),
+                    "id"  : $.sprintf("channels_%s_enabled", channel[0])
                 };
                 c.addTableWidget(field, row);
 
@@ -1169,6 +1219,7 @@ Controllers.voipVF = function() {
                 field = {
                     "type": "text",
                     "name": $.sprintf("sys_voip_vf_channels_%s_pair_route", channel[0]),
+                    "id"  : $.sprintf("channels_%s_pair_route", channel[0]),
                     "validator": {
                             "required": $.sprintf("#sys_voip_vf_channels_%s_enabled:checked", channel[0]),
                             "voipRouterIDWithSelf": true
@@ -1180,6 +1231,7 @@ Controllers.voipVF = function() {
                 field = {
                     "type": "select",
                     "name": $.sprintf("sys_voip_vf_channels_%s_pair_chan", channel[0]),
+                    "id"  : $.sprintf("channels_%s_pair_chan", channel[0]),
                     "options": function() {
                         var remoteChannels = [];
                         for (var i = 0; i < 32; i++) {
