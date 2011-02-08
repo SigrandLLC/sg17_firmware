@@ -7,6 +7,8 @@ MACPORT="1030"
 FIRST_BOOT_FILE="/etc/kdb_notupdated"
 KDB_MAC_FILE_SERVER="kdbmac"
 KDB_MAC_FILE_LOCAL="/tmp/kdbmac"
+TMP_LOCAL_IP_ADDR="192.168.2.100"
+TMP_LOCAL_IP_MASK="255.255.255.0"
 
 . /bin/midge_functions
 
@@ -29,6 +31,23 @@ showerr()
 
 # set up network interface
 $ifup eth0
+
+# save current eth0 address
+curr_addr=`ifconfig eth0 | fgrep 'inet addr:' | cut -d: -f2 | cut '-d ' -f1`
+curr_mask=`ifconfig eth0 | fgrep 'inet addr:' | cut -d: -f4 | cut '-d ' -f1`
+
+# restore eth0 address
+restore_eth0()
+{
+  if test -n "$curr_addr"; then
+     ifconfig eth0 $curr_addr netmask $curr_mask
+  fi
+}
+
+trap restore_eth0 EXIT HUP INT QUIT TERM
+
+# set address for MAC server network
+ifconfig eth0 $TMP_LOCAL_IP_ADDR netmask $TMP_LOCAL_IP_MASK
 
 # require to generate kdb mac file. if server is unreachable — don't try to do this in next time
 echo GENERATE_MAC |nc $MACSERVER $MACPORT 2>/dev/null |grep SUCCESS >/dev/null
