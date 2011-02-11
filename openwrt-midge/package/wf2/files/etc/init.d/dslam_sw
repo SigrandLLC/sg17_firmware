@@ -47,7 +47,12 @@ set_def_settings() {
 
 }
 
-_dslam_sw_start() {
+_dslam_sw_start()
+{
+	# dslam incompatible with Altera HDLC controller of SG-16R,
+	# skip it if Altera found
+	fgrep "Class 0280: PCI device 0055:009d" < /proc/pci > /dev/null \
+		&& return 0
 
 	modprobe dslam_sw
 
@@ -67,7 +72,7 @@ _dslam_sw_start() {
 		$kdb set sys_dslam_sw1_vlan_mode=1
 		echo "1" > /proc/sys/net/dslam_sw/sw0/vlan_mode
 		echo "1" > /proc/sys/net/dslam_sw/sw1/vlan_mode
-		
+
 		update_uplinks_settings
 		update_vlan_settings
 		update_cos_settings 1
@@ -187,7 +192,7 @@ update_cos_settings() {
 		reg35=`printf "%x" $reg35`
 		echo "35 $reg35" > /proc/sys/net/dslam_sw/sw0/regwrite
 		echo "35 $reg35" > /proc/sys/net/dslam_sw/sw1/regwrite
-		
+
 		for port in a b c d; do
 			port_num=`$kdb get sys_dslam_cos_port$port`
 			port_num=`printf "%x" $port_num`
@@ -212,7 +217,7 @@ update_cos_settings() {
 		done
 	;;
 	esac
-	
+
 }
 
 update_bandwidth_settings() {
@@ -259,7 +264,7 @@ update_bcast_settings() {
 #	TODO: Aging time also in reg44. Here it is a constant = 5
 	echo 44 `printf "%x" $reg44` > /proc/sys/net/dslam_sw/sw0/regwrite
 	echo 44 `printf "%x" $reg44` > /proc/sys/net/dslam_sw/sw1/regwrite
-	
+
 	sw0_reg42=`kdb get sys_dslam_sw0_reg42`
 	sw0_reg43=`kdb get sys_dslam_sw0_reg43`
 	sw1_reg42=`kdb get sys_dslam_sw1_reg42`
@@ -268,7 +273,7 @@ update_bcast_settings() {
 	echo 42 `printf "%x" $sw0_reg42` > /proc/sys/net/dslam_sw/sw0/regwrite
 	echo 42 `printf "%x" $sw1_reg42` > /proc/sys/net/dslam_sw/sw1/regwrite
 	echo 43 `printf "%x" $sw0_reg43` > /proc/sys/net/dslam_sw/sw0/regwrite
-	echo 43 `printf "%x" $sw1_reg43` > /proc/sys/net/dslam_sw/sw1/regwrite	
+	echo 43 `printf "%x" $sw1_reg43` > /proc/sys/net/dslam_sw/sw1/regwrite
 }
 
 update_mac_sec_settings() {
@@ -382,11 +387,11 @@ get_mac_table() {
 }
 
 case "$1" in
-	start) 
-		_dslam_sw_start 
+	start)
+		_dslam_sw_start
 		;;
 	stop)
-#		_dslam_sw_stop 
+#		_dslam_sw_stop
 		;;
 	update_cfg)
 		update_cfg $2 $3
