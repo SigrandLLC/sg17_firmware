@@ -1109,11 +1109,11 @@ Controllers.voipVF = function() {
             setTimeout(function() {
                 document.getElementById('EN_button').onclick = function() {
                     for (i = 0; i <= 31; i++) {
-                        if (document.getElementById($.sprintf("channels_%s_enabled", i))) {
-                            if (document.getElementById($.sprintf("channels_%s_enabled", i)).checked)
-                                document.getElementById($.sprintf("channels_%s_enabled", i)).checked = false;
+                        if (document.getElementById($.sprintf("channels_%s_enabled", i > 9 ? i : "0"+i))) {
+                            if (document.getElementById($.sprintf("channels_%s_enabled", i > 9 ? i : "0"+i)).checked)
+                                document.getElementById($.sprintf("channels_%s_enabled", i > 9 ? i : "0"+i)).checked = false;
                             else
-                                document.getElementById($.sprintf("channels_%s_enabled", i)).checked = true;
+                                document.getElementById($.sprintf("channels_%s_enabled", i > 9 ? i : "0"+i)).checked = true;
                         }
                     }
                 }
@@ -1123,12 +1123,12 @@ Controllers.voipVF = function() {
                 document.getElementById('ID_button').onclick = function() {
                     var value = "";
                     for (i = 0; i <= 31; i++) {
-                        if (document.getElementById($.sprintf("channels_%s_pair_route", i)) && value == "") {
-                            value = document.getElementById($.sprintf("channels_%s_pair_route", i)).value;
+                        if (document.getElementById($.sprintf("channels_%s_pair_route", i > 9 ? i : "0"+i)) && value == "") {
+                            value = document.getElementById($.sprintf("channels_%s_pair_route", i > 9 ? i : "0"+i)).value;
                             continue;
                         }
-                        if (document.getElementById($.sprintf("channels_%s_pair_route", i)) && value != "")
-                            document.getElementById($.sprintf("channels_%s_pair_route", i)).value = value;
+                        if (document.getElementById($.sprintf("channels_%s_pair_route", i > 9 ? i : "0"+i)) && value != "")
+                            document.getElementById($.sprintf("channels_%s_pair_route", i > 9 ? i : "0"+i)).value = value;
                     }
                 }
             }, 1000);
@@ -1137,8 +1137,8 @@ Controllers.voipVF = function() {
                 document.getElementById('chan_button').onclick = function() {
                     var value = "";
                     for (i = 0; i <= 31; i++) {
-                        if (document.getElementById($.sprintf("channels_%s_pair_chan", i)) && value == "")
-                            document.getElementById($.sprintf("channels_%s_pair_chan", i)).value = i;
+                        if (document.getElementById($.sprintf("channels_%s_pair_chan", i > 9 ? i : "0"+i)) && value == "")
+                            document.getElementById($.sprintf("channels_%s_pair_chan", i > 9 ? i : "0"+i)).value = i > 9 ? i : "0"+i;
                     }
                 }
             }, 1000);
