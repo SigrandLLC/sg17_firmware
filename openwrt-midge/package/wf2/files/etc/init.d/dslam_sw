@@ -119,9 +119,6 @@ update_vlan_settings() {
 		pvid=`$kdb get sys_dslam_sw1_vlan_${port}_pvid`
 		tag=`$kdb get sys_dslam_sw1_vlan_${port}_tag`
 		echo "$port $pvid" > /proc/sys/net/dslam_sw/sw1/pvid
-		if [ "$tag" != "1" ]; then
-			tag=2
-		fi
 		echo "$port $tag" > /proc/sys/net/dslam_sw/sw1/tag
 	done
 	for i in 0 `seq 31`; do
