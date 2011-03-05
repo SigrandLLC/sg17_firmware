@@ -668,6 +668,8 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 			onConfigTypeChange();
 			c.addSubmit();
 
+			if ((iface == "ge0") || (iface == "ge1")) return true;
+
 			page.addBr("settings");
 			c2 = page.addContainer("settings");
 			c2.setSubsystem($.sprintf("dslam_ethernet.%s.%s", pcislot, pcidev));
@@ -724,7 +726,7 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 				"name": $.sprintf("sys_dslam_%s_pwr_on", iface),
 				"text": "Power",
 				"descr": "PoE feeding mode.",
-				"options": {1 : "on", 0 : "off"}
+				"options": {0 : "off", 1 : "on"}
 			};
 			c2.addWidget(field);
 
