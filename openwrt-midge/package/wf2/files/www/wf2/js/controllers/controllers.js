@@ -277,6 +277,7 @@ Controllers.general = function() {
 			var c, field;
 			c = page.addContainer("general");
 			c.setHelpPage("hostname");
+			c.setSubsystem("hostname");
 			c.addTitle("General settings");
 
 			field = {
@@ -403,6 +404,7 @@ Controllers.dns = function() {
 			var c, field;
 			c = page.addContainer("dns");
 			c.setHelpPage("dns");
+			c.setSubsystem("dns");
 			c.addTitle("DNS settings");
 
 			field = {
