@@ -37,6 +37,7 @@ ul.treeview li {
 	list-style: none;
 	line-height: 25px;
 	background-color: #a0d0ff;
+	height: 100%;
 }
 
 ul.treeview li span {
@@ -44,6 +45,7 @@ ul.treeview li span {
 	padding-left: 7px;
 	border-top: 1px solid #0af;
 	border-bottom: 1px solid #0af;
+	height: 100%;
 }
 
 ul.treeview li li,

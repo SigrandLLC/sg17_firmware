@@ -453,7 +453,7 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 				"id": "power",
 				"text": "Power",
 				"descr": "DSL power feeding mode.",
-				"options": {"pwroff": "off", "pwron": "on"},
+				"options": {"pwroff": "off", "pwron": "on"}
 			};
 			c.addWidget(field);		
 		}
@@ -464,7 +464,7 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 				"id": "power",
 				"text": "Power",
 				"descr": "DSL power feeding mode.",
-				"options": {"pwroff": "off", "pwron": "on"},
+				"options": {"pwroff": "off", "pwron": "on"}
 			};
 			c.addWidget(field);
 		}
@@ -627,7 +627,7 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 					"descr": "Rate in Mbps",
 					"cssClass": "widgetManual",
 					"options": options,
-					"defaultValue": def_rate,
+					"defaultValue": def_rate
 				};
 				c.addWidget(field);
 				// duplex
@@ -1132,7 +1132,7 @@ Controllers.dslamsw = function() {
 					"type": "checkbox",
 					"name": $.sprintf("p%s%s", slot, port),
 					"text": $.sprintf("Port %s.%s (%s)", slot, port, iface),
-					"id"  : $.sprintf("p%s%s", slot, port),
+					"id"  : $.sprintf("p%s%s", slot, port)
 				};
 				list.addWidget(field);
 			});
@@ -1140,21 +1140,21 @@ Controllers.dslamsw = function() {
 				"type": "checkbox",
 				"name": "p40",
 				"text": "Port 4.0 (gigabit0)",
-				"id"  : "p40",
+				"id"  : "p40"
 			};
 			list.addWidget(field);
 			field = {
 				"type": "checkbox",
 				"name": "p41",
 				"text": "Port 4.1 (gigabit1)",
-				"id"  : "p41",
+				"id"  : "p41"
 			};
 			list.addWidget(field);
 			field = {
 				"type": "checkbox",
 				"name": "p42",
 				"text": "Port 4.2 (CPU)",
-				"id"  : "p42",
+				"id"  : "p42"
 			};
 			list.addWidget(field);
 
