@@ -306,10 +306,10 @@ _dsl_stop(){
 	done
 
 	# stop driver
-	_dsl_stop_drv
+	#_dsl_stop_drv
 
 	# stop service
-	_dsl_stop_svc
+	#_dsl_stop_svc
 }
 
 case "$1" in
