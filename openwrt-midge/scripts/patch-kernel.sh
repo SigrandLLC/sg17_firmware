@@ -18,36 +18,36 @@ if [ ! -d "${patchdir}" ] ; then
     echo "Aborting.  '${patchdir}' is not a directory."
     exit 1
 fi
-    
-for i in ${patchdir}/${patchpattern} ; do 
+
+for i in ${patchdir}/${patchpattern} ; do
     case "$i" in
 	*.gz)
-	type="gzip"; uncomp="gunzip -dc"; ;; 
+	type="gzip"; uncomp="gunzip -dc"; ;;
 	*.bz)
-	type="bzip"; uncomp="bunzip -dc"; ;; 
+	type="bzip"; uncomp="bunzip -dc"; ;;
 	*.bz2)
-	type="bzip2"; uncomp="bunzip2 -dc"; ;; 
+	type="bzip2"; uncomp="bunzip2 -dc"; ;;
 	*.zip)
-	type="zip"; uncomp="unzip -d"; ;; 
+	type="zip"; uncomp="unzip -d"; ;;
 	*.Z)
-	type="compress"; uncomp="uncompress -c"; ;; 
+	type="compress"; uncomp="uncompress -c"; ;;
 	*)
-	type="plaintext"; uncomp="cat"; ;; 
+	type="plaintext"; uncomp="cat"; ;;
     esac
-    [ -d "${i}" ] && echo "Ignoring subdirectory ${i}" && continue	
+    [ -d "${i}" ] && echo "Ignoring subdirectory ${i}" && continue
     echo ""
-    echo "Applying ${i} using ${type}: " 
+    echo "Applying ${i} using ${type}: "
     if [ -z $4 ]; then
-	    ${uncomp} ${i} | patch -p1 -E -d ${targetdir} 
+	    ${uncomp} ${i} | patch -l -p1 -E -d ${targetdir}
     else
 echo
 echo "Patchimng with ADM5120 patch:"
 echo "file="${i}
 echo "target-dir="${targetdir}
 echo
-	    ${uncomp} ${i} | patch -p0 -E -d ${targetdir} 
-    fi 
-    
+	    ${uncomp} ${i} | patch -p0 -E -d ${targetdir}
+    fi
+
     if [ $? != 0 ] ; then
         echo "Patch failed!  Please fix $i!"
 	exit 1
