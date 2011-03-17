@@ -1106,51 +1106,107 @@ Controllers.voipVF = function() {
             c.addTitle("Voice frequency channels", {"colspan": colNum});
 
             var EN_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'EN', 'id' : 'EN_button'});
+            var ID_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'R.ID', 'id' : 'ID_button'});
+            var chan_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'Chan', 'id' : 'chan_button'});
+            var ping_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'Ping', 'id' : 'ping_all'});
+            var codec_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'Codec', 'id' : 'codec_button'});
+            var ptime_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'P.time', 'id' : 'ptime_button'});
+            var payd_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'Pay-d', 'id' : 'payd_button'});
+            var bitpack_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'Bitpack', 'id' : 'bitpack_button'});
+            var jbtype_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'JB type', 'id' : 'jbtype_button'});
+            var LAT_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'LAT', 'id' : 'LAT_button'});
+            var nscale_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'nScal', 'id' : 'nscale_button'});
+            var ninit_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'nInit', 'id' : 'ninit_button'});
+            var nmin_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'nMin', 'id' : 'nmin_button'});
+            var nmax_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'nMax', 'id' : 'nmax_button'});
+
+            var set_Onclick = function(id) {
+                var value = "";
+                for (i = 0; i <= 31; i++) {
+                    if (document.getElementById($.sprintf("sys_voip_vf_channels_%s_%s", i > 9 ? i : "0"+i, id)) && value == "") {
+                        value = document.getElementById($.sprintf("sys_voip_vf_channels_%s_%s", i > 9 ? i : "0"+i, id)).value;
+                        continue;
+                    }
+                    if (document.getElementById($.sprintf("sys_voip_vf_channels_%s_%s", i > 9 ? i : "0"+i, id)) && value != "") {
+                        document.getElementById($.sprintf("sys_voip_vf_channels_%s_%s", i > 9 ? i : "0"+i, id)).value = value;
+                        switch (id) {
+                            case "codec":
+                                onCodecChange(i > 9 ? i : "0"+i);
+                            break;
+                            case "pkt_sz":
+                                globalParameters.codecsOnPktSzChange({"type": "VF", "channel": i > 9 ? i : "0"+i});
+                            break;
+                            case "jb_type":
+                                globalParameters.codecsOnJbTypeChange({"type": "VF", "channel": i > 9 ? i : "0"+i});
+                            break;
+                        }
+                    }
+                }
+            }
             setTimeout(function() {
                 document.getElementById('EN_button').onclick = function() {
+                    var value = "", tmp = "";
                     for (i = 0; i <= 31; i++) {
-                        if (document.getElementById($.sprintf("channels_%s_enabled", i > 9 ? i : "0"+i))) {
-                            if (document.getElementById($.sprintf("channels_%s_enabled", i > 9 ? i : "0"+i)).checked)
-                                document.getElementById($.sprintf("channels_%s_enabled", i > 9 ? i : "0"+i)).checked = false;
-                            else
-                                document.getElementById($.sprintf("channels_%s_enabled", i > 9 ? i : "0"+i)).checked = true;
+                        if (document.getElementById($.sprintf("sys_voip_vf_channels_%s_enabled", i > 9 ? i : "0"+i))) {
+                            if (tmp == "") {
+                                value = document.getElementById($.sprintf("sys_voip_vf_channels_%s_enabled", i > 9 ? i : "0"+i)).checked;
+                                tmp = "not_empty";
+                            } else {
+                                document.getElementById($.sprintf("sys_voip_vf_channels_%s_enabled", i > 9 ? i : "0"+i)).checked = value;
+                            }
                         }
                     }
                 }
-            }, 1000);
-            var ID_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'R.ID', 'id' : 'ID_button'});
-            setTimeout(function() {
                 document.getElementById('ID_button').onclick = function() {
-                    var value = "";
-                    for (i = 0; i <= 31; i++) {
-                        if (document.getElementById($.sprintf("channels_%s_pair_route", i > 9 ? i : "0"+i)) && value == "") {
-                            value = document.getElementById($.sprintf("channels_%s_pair_route", i > 9 ? i : "0"+i)).value;
-                            continue;
-                        }
-                        if (document.getElementById($.sprintf("channels_%s_pair_route", i > 9 ? i : "0"+i)) && value != "")
-                            document.getElementById($.sprintf("channels_%s_pair_route", i > 9 ? i : "0"+i)).value = value;
-                    }
+                    set_Onclick("pair_route");
                 }
-            }, 1000);
-            var chan_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'Chan', 'id' : 'chan_button'});
-            setTimeout(function() {
                 document.getElementById('chan_button').onclick = function() {
-                    var value = "";
                     for (i = 0; i <= 31; i++) {
-                        if (document.getElementById($.sprintf("channels_%s_pair_chan", i > 9 ? i : "0"+i)) && value == "")
-                            document.getElementById($.sprintf("channels_%s_pair_chan", i > 9 ? i : "0"+i)).value = i > 9 ? i : "0"+i;
+                        if (document.getElementById($.sprintf("sys_voip_vf_channels_%s_pair_chan", i > 9 ? i : "0"+i)))
+                            document.getElementById($.sprintf("sys_voip_vf_channels_%s_pair_chan", i > 9 ? i : "0"+i)).value = i > 9 ? i : "0"+i;
                     }
                 }
-            }, 1000);
-            var all_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'Ping', 'id' : 'ping_all'});
-            setTimeout(function() {
+                document.getElementById('codec_button').onclick = function() {
+                    set_Onclick("codec");
+                }
+                document.getElementById('ptime_button').onclick = function() {
+                    set_Onclick("pkt_sz");
+                }
+                document.getElementById('payd_button').onclick = function() {
+                    set_Onclick("payload");
+                }
+                document.getElementById('bitpack_button').onclick = function() {
+                    set_Onclick("bitpack");
+                }
+                document.getElementById('jbtype_button').onclick = function() {
+                    set_Onclick("jb_type");
+                }
+                document.getElementById('LAT_button').onclick = function() {
+                    set_Onclick("lat");
+                }
+                document.getElementById('nscale_button').onclick = function() {
+                    set_Onclick("n_scaling");
+                }
+                document.getElementById('ninit_button').onclick = function() {
+                    set_Onclick("n_init_size");
+                }
+                document.getElementById('nmin_button').onclick = function() {
+                    set_Onclick("n_min_size");
+                }
+                document.getElementById('nmax_button').onclick = function() {
+                    set_Onclick("n_max_size");
+                }
+
                 document.getElementById('ping_all').onclick = function() {
+                    var value = "", tmp = "";
                     for (i = 0; i <= 31; i++) {
                         if (document.getElementById($.sprintf("channels_%s_ping", i > 9 ? i : "0"+i))) {
-                            if (document.getElementById($.sprintf("channels_%s_ping", i > 9 ? i : "0"+i)).checked)
-                                document.getElementById($.sprintf("channels_%s_ping", i > 9 ? i : "0"+i)).checked = false;
-                            else
-                                document.getElementById($.sprintf("channels_%s_ping", i > 9 ? i : "0"+i)).checked = true;
+                            if (tmp == "") {
+                                value = document.getElementById($.sprintf("channels_%s_ping", i > 9 ? i : "0"+i)).checked;
+                                tmp = "not_empty";
+                            } else {
+                                document.getElementById($.sprintf("channels_%s_ping", i > 9 ? i : "0"+i)).checked = value;
+                            }
                         }
                     }
                 }
@@ -1162,8 +1218,17 @@ Controllers.voipVF = function() {
                    $.create("th", {"colSpan": 1, 'align' : 'center'}, EN_button),
                    $.create("th", {"colSpan": 1, 'align' : 'center'}, ID_button),
                    $.create("th", {"colSpan": 1, 'align' : 'center'}, chan_button),
-                   $.create("th", {"colSpan": 10, 'align' : 'center'}, " "),
-                   $.create("th", {"colSpan": 1, 'align' : 'center'}, all_button)]
+                   $.create("th", {"colSpan": 1, 'align' : 'center'}, codec_button),
+                   $.create("th", {"colSpan": 1, 'align' : 'center'}, ptime_button),
+                   $.create("th", {"colSpan": 1, 'align' : 'center'}, payd_button),
+                   $.create("th", {"colSpan": 1, 'align' : 'center'}, bitpack_button),
+                   $.create("th", {"colSpan": 1, 'align' : 'center'}, jbtype_button),
+                   $.create("th", {"colSpan": 1, 'align' : 'center'}, LAT_button),
+                   $.create("th", {"colSpan": 1, 'align' : 'center'}, nscale_button),
+                   $.create("th", {"colSpan": 1, 'align' : 'center'}, ninit_button),
+                   $.create("th", {"colSpan": 1, 'align' : 'center'}, nmin_button),
+                   $.create("th", {"colSpan": 1, 'align' : 'center'}, nmax_button),
+                   $.create("th", {"colSpan": 1, 'align' : 'center'}, ping_button)]
                )
             );
 
@@ -1225,7 +1290,6 @@ Controllers.voipVF = function() {
                 field = {
                     "type": "checkbox",
                     "name": $.sprintf("sys_voip_vf_channels_%s_enabled", channel[0]),
-                    "id"  : $.sprintf("channels_%s_enabled", channel[0])
                 };
                 c.addTableWidget(field, row);
 
@@ -1233,7 +1297,6 @@ Controllers.voipVF = function() {
                 field = {
                     "type": "text",
                     "name": $.sprintf("sys_voip_vf_channels_%s_pair_route", channel[0]),
-                    "id"  : $.sprintf("channels_%s_pair_route", channel[0]),
                     "validator": {
                             "required": $.sprintf("#sys_voip_vf_channels_%s_enabled:checked", channel[0]),
                             "voipRouterIDWithSelf": true
@@ -1245,7 +1308,6 @@ Controllers.voipVF = function() {
                 field = {
                     "type": "select",
                     "name": $.sprintf("sys_voip_vf_channels_%s_pair_chan", channel[0]),
-                    "id"  : $.sprintf("channels_%s_pair_chan", channel[0]),
                     "options": function() {
                         var remoteChannels = [];
                         for (var i = 0; i < 32; i++) {
