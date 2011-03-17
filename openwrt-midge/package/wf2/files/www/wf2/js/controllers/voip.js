@@ -1102,7 +1102,7 @@ Controllers.voipVF = function() {
                 globalParameters.codecsOnJbTypeChange({"type": "VF", "channel": channel});
             };
 
-            var colNum = 14;
+            var colNum = 15;
             c.addTitle("Voice frequency channels", {"colspan": colNum});
 
             var EN_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'EN', 'id' : 'EN_button'});
@@ -1142,6 +1142,19 @@ Controllers.voipVF = function() {
                     }
                 }
             }, 1000);
+            var all_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'Ping', 'id' : 'ping_all'});
+            setTimeout(function() {
+                document.getElementById('ping_all').onclick = function() {
+                    for (i = 0; i <= 31; i++) {
+                        if (document.getElementById($.sprintf("channels_%s_ping", i > 9 ? i : "0"+i))) {
+                            if (document.getElementById($.sprintf("channels_%s_ping", i > 9 ? i : "0"+i)).checked)
+                                document.getElementById($.sprintf("channels_%s_ping", i > 9 ? i : "0"+i)).checked = false;
+                            else
+                                document.getElementById($.sprintf("channels_%s_ping", i > 9 ? i : "0"+i)).checked = true;
+                        }
+                    }
+                }
+            }, 1000);
 
             $("thead", c.table).append(
                 $.create("tr", {},
@@ -1149,11 +1162,12 @@ Controllers.voipVF = function() {
                    $.create("th", {"colSpan": 1, 'align' : 'center'}, EN_button),
                    $.create("th", {"colSpan": 1, 'align' : 'center'}, ID_button),
                    $.create("th", {"colSpan": 1, 'align' : 'center'}, chan_button),
-                   $.create("th", {"colSpan": 10, 'align' : 'center'}, " ")]
+                   $.create("th", {"colSpan": 10, 'align' : 'center'}, " "),
+                   $.create("th", {"colSpan": 1, 'align' : 'center'}, all_button)]
                )
             );
 
-            c.addTableHeader("#|EN|R.ID|Chan|Codec|P.time|Pay-d|Bitpack|JB type|LAT|nScal|nInit|nMin|nMax");
+            c.addTableHeader("#|EN|R.ID|Chan|Codec|P.time|Pay-d|Bitpack|JB type|LAT|nScal|nInit|nMin|nMax|Ping");
             c.addTableTfootStr("Chan - local channel.", colNum);
             c.addTableTfootStr("EN - enable channel.", colNum);
             c.addTableTfootStr("R.ID - ID of a router to connect with.", colNum);
@@ -1377,6 +1391,14 @@ Controllers.voipVF = function() {
 
                 /* update widgets according to current JB type */
                 globalParameters.codecsUpdateWidgets({"type": "VF", "channel": channel[0]});
+
+                field = {
+                    "type": "checkbox",
+                    "name": $.sprintf("sys_voip_vf_channels_%s_ping", channel[0]),
+                    "id"  : $.sprintf("channels_%s_ping", channel[0])
+                };
+                c.addTableWidget(field, row);
+
             });
 
             c.addSubmit();
