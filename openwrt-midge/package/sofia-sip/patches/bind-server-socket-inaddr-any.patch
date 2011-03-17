@@ -1,0 +1,15 @@
+--- sofia-sip-1.12.10/libsofia-sip-ua/tport/tport.c.orig	2008-12-08 20:52:45.000000000 +0600
++++ sofia-sip-1.12.10/libsofia-sip-ua/tport/tport.c	2011-02-25 16:59:07.290659368 +0600
+@@ -1607,10 +1607,10 @@ int tport_bind_server(tport_master_t *mr
+     service = "";
+ 
+   if (host && (strcmp(host, "0.0.0.0") == 0 || strcmp(host, "0") == 0))
+-    host = NULL, family = AF_INET;
++    /*host = NULL,*/ family = AF_INET;
+ #if SU_HAVE_IN6
+   else if (host && strcmp(host, "::") == 0)
+-    host = NULL, family = AF_INET6;
++    /*host = NULL,*/ family = AF_INET6;
+ #endif
+ 
+   if (tpn->tpn_canon && strcmp(tpn->tpn_canon, tpn_any) &&
