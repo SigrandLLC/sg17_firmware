@@ -1,3 +1,51 @@
 #!/bin/sh
 
-/sbin/eocd -d
+dsl_presence()
+{
+  local         sys_ifaces=`kdb get sys_ifaces`			# dsl0 dsl1 eth0 eth1 eth2 eth3
+  echo        "$sys_ifaces" | fgrep "dsl" -q && return
+
+  local   sys_dslam_ifaces=`kdb get sys_dslam_ifaces`		# dsl?
+  echo  "$sys_dslam_ifaces" | fgrep "dsl" -q && return
+
+  local     sys_mux_ifaces=`kdb get sys_mux_ifaces`		# dsl0 dsl1
+  echo    "$sys_mux_ifaces" | fgrep "dsl" -q && return
+
+  local  sys_pcicfg_ifaces=`kdb get sys_pcicfg_s\*_ifaces`	# dsl0 dsl1
+  echo "$sys_pcicfg_ifaces" | fgrep "dsl" -q && return
+
+  local  sys_pcitbl_ifaces=`kdb get sys_pcitbl_s\*_ifaces`	# dsl0 dsl1
+  echo "$sys_pcitbl_ifaces" | fgrep "dsl" -q && return
+
+  return 1
+}
+
+
+_start()
+{
+  if killall -q -0 eocd; then
+	echo "already running"
+	return 1
+  else
+	eocd -d >/dev/null
+	echo "done"
+  fi
+}
+
+case $1 in
+	start)
+		if dsl_presence; then
+			echo -n "Starting EOCD ... "
+			_start
+		else
+			echo "EOCD already running"
+		fi
+	;;
+	stop)
+		echo -n "Stopping EOCD ... "; killall eocd; echo
+	;;
+	restart)
+		$0 stop; usleep 100000; $0 start
+	;;
+}
+
