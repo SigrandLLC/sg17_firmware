@@ -9,15 +9,15 @@
 * - nInitFixed — if exists, sets default and maximum value for n_init_size when JB type is fixed;
 */
 globalParameters.codecsParameters = {
-    "aLaw":     {"pkt_sz": "60", "payload": "08",  "bitpack": "rtp",  "bitpacks": "rtp",      "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60", "nMax": {"5": 100, "5.5": 110, "10": 200, "11": 110, "20": 200, "30": 200, "40": 200, "50": 200, "60": 200}, "nInitFixed": 150},
-    "g729":     {"pkt_sz": "60", "payload": "18",  "bitpack": "rtp",  "bitpacks": "rtp",      "pkt_sz_vals": "10 20 30 40 60",             "nMax": {"all": 200}},
-    "g723":     {"pkt_sz": "60", "payload": "4",   "bitpack": "rtp",  "bitpacks": "rtp",      "pkt_sz_vals": "30 60",                      "nMax": {"all": 600}},
-    "iLBC_133": {"pkt_sz": "30", "payload": "100", "bitpack": "rtp",  "bitpacks": "rtp",      "pkt_sz_vals": "30",                         "nMax": {"all": 600}},
-    "g729e":    {"pkt_sz": "60", "payload": "101", "bitpack": "rtp",  "bitpacks": "rtp",      "pkt_sz_vals": "10 20 30 40 60",             "nMax": {"all": 200}},
-    "g726_16":  {"pkt_sz": "60", "payload": "102", "bitpack": "aal2", "bitpacks": "rtp aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60", "nMax": {"5": 100, "5.5": 110, "10": 200, "11": 110, "20": 200, "30": 200, "40": 200, "50": 200, "60": 200}},
-    "g726_24":  {"pkt_sz": "60", "payload": "103", "bitpack": "aal2", "bitpacks": "rtp aal2", "pkt_sz_vals": "5 10 20 30 40 50 60",        "nMax": {"5": 100, "10":  200, "20": 200, "30": 200, "40": 200, "50": 200, "60": 200}},
-    "g726_32":  {"pkt_sz": "60", "payload": "104", "bitpack": "aal2", "bitpacks": "rtp aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 50 60", "nMax": {"5": 100, "5.5": 110, "10": 200, "11": 110, "20": 200, "30": 200, "40": 200, "50": 200, "60": 200}},
-    "g726_40":  {"pkt_sz": "60", "payload": "105", "bitpack": "aal2", "bitpacks": "rtp aal2", "pkt_sz_vals": "5 10 20 30 40 50 60",        "nMax": {"5": 100, "10":  200, "20": 200, "30": 200, "40": 200, "50": 200, "60": 200}}
+    "aLaw":     {"pkt_sz": "60", "payload": "08",  "bitpack": "rtp",  "bitpacks": "rtp",      "pkt_sz_vals": "5 5.5 10 11 20 30 40 60", "nMax": {"5": 100, "5.5": 110, "10": 200, "11": 110, "20": 200, "30": 200, "40": 200, "50": 200, "60": 200}, "nInitFixed": 150},
+    "g729":     {"pkt_sz": "60", "payload": "18",  "bitpack": "rtp",  "bitpacks": "rtp",      "pkt_sz_vals": "10          20 30 40 60", "nMax": {"all": 200}},
+    "g723":     {"pkt_sz": "60", "payload": "4",   "bitpack": "rtp",  "bitpacks": "rtp",      "pkt_sz_vals": "30                   60", "nMax": {"all": 600}},
+    "iLBC_133": {"pkt_sz": "30", "payload": "100", "bitpack": "rtp",  "bitpacks": "rtp",      "pkt_sz_vals": "30",                      "nMax": {"all": 600}},
+    "g729e":    {"pkt_sz": "60", "payload": "101", "bitpack": "rtp",  "bitpacks": "rtp",      "pkt_sz_vals": "10          20 30 40 60", "nMax": {"all": 200}},
+    "g726_16":  {"pkt_sz": "60", "payload": "102", "bitpack": "aal2", "bitpacks": "rtp aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 60", "nMax": {"5": 100, "5.5": 110, "10": 200, "11": 110, "20": 200, "30": 200, "40": 200, "50": 200, "60": 200}},
+    "g726_24":  {"pkt_sz": "60", "payload": "103", "bitpack": "aal2", "bitpacks": "rtp aal2", "pkt_sz_vals": "5     10    20 30 40 60", "nMax": {"5": 100, "10":  200, "20": 200, "30": 200, "40": 200, "50": 200, "60": 200}},
+    "g726_32":  {"pkt_sz": "60", "payload": "104", "bitpack": "aal2", "bitpacks": "rtp aal2", "pkt_sz_vals": "5 5.5 10 11 20 30 40 60", "nMax": {"5": 100, "5.5": 110, "10": 200, "11": 110, "20": 200, "30": 200, "40": 200, "50": 200, "60": 200}},
+    "g726_40":  {"pkt_sz": "60", "payload": "105", "bitpack": "aal2", "bitpacks": "rtp aal2", "pkt_sz_vals": "5     10    20 30 40 60", "nMax": {"5": 100, "10":  200, "20": 200, "30": 200, "40": 200, "50": 200, "60": 200}}
 };
 
 /* for all codecs n_min_size in 10 */
