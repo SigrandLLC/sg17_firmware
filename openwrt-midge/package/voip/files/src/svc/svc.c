@@ -18,7 +18,7 @@
 #define CHECK_FRQ_SEC   3
 /** After this count of missing svd will clean the channels. */
 #define CHECK_MISS_CNT  3
-/** This value and less means that no svd is up. */
+/** Less then this value means that no svd is up. */
 #define CHECK_MISS_VAL  3
 /** Wait at start to give chance to svd to start up. */
 #define WAIT_AT_START  10
@@ -117,7 +117,7 @@ close_and_clear (int * const cr)
 
 	ab = ab_create();
 	if(!ab){
-		syslog( LOG_INFO, ab_g_err_str );
+		syslog( LOG_ERR, ab_g_err_str );
 		goto __exit_fail;
 	}
 
@@ -175,7 +175,7 @@ int
 main( int argc, char *argv[] ) 
 {/*{{{*/
 	FILE * fd;
-	char buf[20] = {0};
+	char buf[128] = {0};
 	int clear_rez[CHANS_MAX];
 	int miss_count = 0;
 	int clearing_done = 0;
@@ -193,7 +193,7 @@ main( int argc, char *argv[] )
 	}
 
 	/* Initialize the logging interface */
-	openlog( DAEMON_NAME, LOG_PID, LOG_LOCAL5 );
+	openlog( DAEMON_NAME, LOG_PID, LOG_DAEMON );
 	syslog( LOG_INFO, "starting" );
 
 	/* One may wish to process command line arguments here */
@@ -206,11 +206,27 @@ main( int argc, char *argv[] )
 	syslog( LOG_INFO, "START polling SVD process");
 
 	while(1){/*{{{*/
-		fd = popen("ps ax | grep svd | wc -l","r");
-		fread (buf,sizeof(buf),1,fd);
+		static const char ps_svd_pipeline[] = "ps --no-heading -C svd";
+		fd = popen(ps_svd_pipeline,"r");
+		if (fd == NULL)
+		{
+			syslog( LOG_ERR, "Error popen'ing '%s' pipeline: %m", ps_svd_pipeline );
+			break;
+		}
+
+		size_t svd_lines;
+		for (svd_lines = 0; fgets(buf, sizeof(buf), fd) != NULL; ++svd_lines)
+			;
+		if (ferror(fd))
+		{
+			syslog( LOG_ERR, "Error reading '%s' pipeline: %m", ps_svd_pipeline );
+			pclose(fd);
+			goto _sleep_;
+		}
+
 		pclose(fd);
 
-		if(strtol(buf,NULL,10) <= CHECK_MISS_VAL){
+		if(svd_lines < CHECK_MISS_VAL) {
 			/* no svd running */
 			if(!clearing_done){
 				/* it is first check after svd drop */
@@ -239,6 +255,7 @@ main( int argc, char *argv[] )
 			clearing_done = 0;
 			miss_count = 0;
 		}
+	_sleep_:
 		sleep(CHECK_FRQ_SEC);
 	}/*}}}*/
 
