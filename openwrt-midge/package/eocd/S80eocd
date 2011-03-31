@@ -47,5 +47,5 @@ case $1 in
 	restart)
 		$0 stop; usleep 100000; $0 start
 	;;
-}
+esac
 
