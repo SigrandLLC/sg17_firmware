@@ -38,7 +38,7 @@ case $1 in
 			echo -n "Starting EOCD ... "
 			_start
 		else
-			echo "EOCD already running"
+			echo "Do not starting EOCD"
 		fi
 	;;
 	stop)
