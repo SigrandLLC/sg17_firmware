@@ -1102,13 +1102,12 @@ Controllers.voipVF = function() {
                 globalParameters.codecsOnJbTypeChange({"type": "VF", "channel": channel});
             };
 
-            var colNum = 15;
+            var colNum = 14;
             c.addTitle("Voice frequency channels", {"colspan": colNum});
 
             var EN_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'EN', 'id' : 'EN_button'});
             var ID_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'R.ID', 'id' : 'ID_button'});
             var chan_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'Chan', 'id' : 'chan_button'});
-            var ping_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'Ping', 'id' : 'ping_all'});
             var codec_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'Codec', 'id' : 'codec_button'});
             var ptime_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'P.time', 'id' : 'ptime_button'});
             var payd_button = $.create('input', {'type': 'button', 'className': 'buttonWidget', 'value': 'Pay-d', 'id' : 'payd_button'});
@@ -1197,19 +1196,6 @@ Controllers.voipVF = function() {
                     set_Onclick("n_max_size");
                 }
 
-                document.getElementById('ping_all').onclick = function() {
-                    var value = "", tmp = "";
-                    for (i = 0; i <= 31; i++) {
-                        if (document.getElementById($.sprintf("channels_%s_ping", i > 9 ? i : "0"+i))) {
-                            if (tmp == "") {
-                                value = document.getElementById($.sprintf("channels_%s_ping", i > 9 ? i : "0"+i)).checked;
-                                tmp = "not_empty";
-                            } else {
-                                document.getElementById($.sprintf("channels_%s_ping", i > 9 ? i : "0"+i)).checked = value;
-                            }
-                        }
-                    }
-                }
             }, 1000);
 
             $("thead", c.table).append(
@@ -1228,11 +1214,11 @@ Controllers.voipVF = function() {
                    $.create("th", {"colSpan": 1, 'align' : 'center'}, ninit_button),
                    $.create("th", {"colSpan": 1, 'align' : 'center'}, nmin_button),
                    $.create("th", {"colSpan": 1, 'align' : 'center'}, nmax_button),
-                   $.create("th", {"colSpan": 1, 'align' : 'center'}, ping_button)]
+                   $.create("th", {"colSpan": 1, 'align' : 'center'}, "")]
                )
             );
 
-            c.addTableHeader("#|EN|R.ID|Chan|Codec|P.time|Pay-d|Bitpack|JB type|LAT|nScal|nInit|nMin|nMax|Ping");
+            c.addTableHeader("#|EN|R.ID|Chan|Codec|P.time|Pay-d|Bitpack|JB type|LAT|nScal|nInit|nMin|nMax");
             c.addTableTfootStr("Chan - local channel.", colNum);
             c.addTableTfootStr("EN - enable channel.", colNum);
             c.addTableTfootStr("R.ID - ID of a router to connect with.", colNum);
@@ -1453,13 +1439,6 @@ Controllers.voipVF = function() {
 
                 /* update widgets according to current JB type */
                 globalParameters.codecsUpdateWidgets({"type": "VF", "channel": channel[0]});
-
-                field = {
-                    "type": "checkbox",
-                    "name": $.sprintf("sys_voip_vf_channels_%s_ping", channel[0]),
-                    "id"  : $.sprintf("channels_%s_ping", channel[0])
-                };
-                c.addTableWidget(field, row);
 
             });
 
