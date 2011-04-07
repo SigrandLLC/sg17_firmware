@@ -109,6 +109,7 @@ pre_ifup(){
 			if ! $ip link ls dev $realiface >/dev/null 2>&1; then
 				cmd /sbin/vconfig add $depend_on $vlan_id
 			fi
+			[ -n "$mac" ] && cmd $ifconfig $realiface hw ether $mac
 			;;
 	esac
 }

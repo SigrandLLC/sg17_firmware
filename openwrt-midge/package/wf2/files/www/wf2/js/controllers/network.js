@@ -1119,6 +1119,23 @@ Controllers.iface = function(iface) {
 
 					break;
 
+				case "vlan":
+					c.addTitle("VLAN Specific parameters");
+
+					field = {
+						"type": "text",
+						"name": "sys_iface_" + iface + "_mac",
+						"text": "MAC address",
+						"descr": "MAC address for the interface",
+						"tip": "e.g., 00:ff:1f:00:75:99",
+						"validator": {"macAddr": true}
+					};
+					c.addWidget(field);
+
+					c.addSubmit();
+
+					break;
+
 				case "pppoe":
 					c.addTitle("PPPoE Specific parameters");
 
