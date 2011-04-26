@@ -556,12 +556,10 @@ function Config() {
 		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_valid", iface), "1");
 		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_auto", iface), "0");
 		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_method", iface), "none");
-		var default_mac;
+		var default_mac = "";
 		if ((options['proto'] == 'vlan') && options['dependOn'])
 			default_mac = config.getParsed($.sprintf("sys_iface_%s_mac", options['dependOn']));
-		else
-			default_mac = "00:00:00:00:00:00";
-		$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_mac", iface), default_mac);
+		if (default_mac != "") $.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_mac", iface), default_mac);
 		if (options['vlanId']) {
 			$.addObjectWithProperty(ifaceProp, $.sprintf("sys_iface_%s_vlan_id", iface),
 									options['vlanId']);

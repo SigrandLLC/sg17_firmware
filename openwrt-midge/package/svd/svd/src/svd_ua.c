@@ -14,6 +14,8 @@
 #include <assert.h>
 /*}}}*/
 
+#define VF_REINVITE_INTERVAL 5000 // 5 sec
+
 extern void
 ring_timer_cb(su_root_magic_t *magic, su_timer_t *t, su_timer_arg_t *arg);
 
@@ -1413,7 +1415,7 @@ DFS
 					nua_handle_destroy (ctx->op_handle);
 					ctx->op_handle = NULL;
 				}
-				if (ctx->send_invite) su_timer_set_interval(ctx->vf_tmr, vf_timer_cb, chan, 2000/* 2 sec */); // FIXME: set time to define
+				if (ctx->send_invite) su_timer_set_interval(ctx->vf_tmr, vf_timer_cb, chan, VF_REINVITE_INTERVAL);
 			}
 			break;
 		}/*}}}*/
