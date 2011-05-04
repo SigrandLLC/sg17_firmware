@@ -19,8 +19,8 @@ IFS='
 '
 	for variable in $(env); do
 		case $variable in
-			FORM_SESSIONID) continue;;
-			FORM_subsystem) continue;;
+			FORM_SESSIONID*) continue;;
+			FORM_subsystem*) continue;;
 			FORM_*)
 				variable=$(echo $variable | sed s/FORM_//)
 				kdb_set_val "$variable"
