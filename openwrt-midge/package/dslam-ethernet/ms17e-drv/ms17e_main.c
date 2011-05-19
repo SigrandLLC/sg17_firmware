@@ -9,6 +9,8 @@ MODULE_AUTHOR ( "Scherbakov Mihail (scherbakovmihail@sigrand.ru)\n" );
 MODULE_LICENSE ( "GPL" );
 MODULE_VERSION ( DRIVER_VERSION );
 
+#define POE_CHIP_TIMEOUT HZ/2
+
 static int __devinit ms17e_probe(struct pci_dev *pdev, const struct pci_device_id *dev_id);
 static void __devexit ms17e_remove(struct pci_dev *pdev);
 
@@ -63,7 +65,7 @@ int read_poe_reg(u8 chip_num, u8 addr, struct ms17e_card * card) {
 	tmp = ioread8(&(card->regs->CRA));
 	iowrite8((tmp & (~3)) | RD, &(card->regs->CRA));
 //	PDEBUG(debug_read_poe_reg, "chip = %02x reg = %02x", num, addr);
-	if (!interruptible_sleep_on_timeout(&card->wait_read, 100000))
+	if (!interruptible_sleep_on_timeout(&card->wait_read, POE_CHIP_TIMEOUT))
 	{
 		PDEBUG(debug_read_poe_reg, "Error! sleep timeout");
 		return -1;
@@ -81,7 +83,7 @@ int write_poe_reg(u8 chip_num, u8 addr, u8 data, struct ms17e_card * card) {
 	tmp = ioread8(&(card->regs->CRA));
 	iowrite8((tmp & (~3)) | WR, &(card->regs->CRA));
 
-	if (!interruptible_sleep_on_timeout(&card->wait_write, 100000))
+	if (!interruptible_sleep_on_timeout(&card->wait_write, POE_CHIP_TIMEOUT))
 	{
 		PDEBUG(0, "Error! sleep timeout");
 		return -1;

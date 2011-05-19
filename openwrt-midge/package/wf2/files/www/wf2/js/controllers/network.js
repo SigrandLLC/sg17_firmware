@@ -239,6 +239,11 @@ Controllers.ifaceGeneral = function(c, iface) {
 				else if (iface.search("bond") != -1)
 					old_slaves = config.get($.sprintf("sys_iface_%s_bond_ifaces", iface));
 
+				var tmp = $("#ifaces").val().split(" ");
+				tmp = tmp[0];
+				var macaddr = config.get($.sprintf("sys_iface_%s_mac", tmp));
+				$.addObjectWithProperty(additionalKeys, $.sprintf("sys_iface_%s_mac", iface), macaddr);
+
 				if (old_slaves == null)
 					old_slaves = [];
 				else
@@ -1269,6 +1274,16 @@ Controllers.iface = function(iface) {
 					};
 					c.addWidget(field);
 
+					field = {
+						"type": "text",
+						"name": "sys_iface_" + iface + "_mac",
+						"text": "MAC address",
+						"descr": "MAC address for the interface",
+						"tip": "e.g., 00:ff:1f:00:75:99",
+						"validator": {"macAddr": true}
+					};
+					c.addWidget(field);
+
 					/* set auto=0 enabled=1 for depending interfaces */
 					var additionalKeys = [];
 					c.addSubmit({
@@ -1348,6 +1363,26 @@ Controllers.iface = function(iface) {
 						"text": "Max age",
 						"descr": "Max age in seconds",
 						"validator": {"min": 0, "max": 600}
+					};
+					c.addWidget(field);
+
+					var options = "";
+					$.each($($.sprintf("#sys_iface_%s_br_ifaces", iface)).val().split(" "),
+						function(num, value) {
+							if (options == "")
+								options = config.getParsed("sys_iface_" + value + "_mac");
+							else
+								options += " " + config.getParsed("sys_iface_" + value + "_mac");
+						}
+					);
+
+					field = {
+						"type": "select",
+						"name": "sys_iface_" + iface + "_mac",
+						"options" : options,
+						"text": "MAC address",
+						"descr": "MAC address for the interface can be any of the enslaved device address",
+						"validator": {"macAddr": true}
 					};
 					c.addWidget(field);
 
