@@ -3,7 +3,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=lighttpd
-PKG_VERSION:=1.4.11
+PKG_VERSION:=1.4.28
 PKG_RELEASE:=1
 PKG_MD5SUM:=f55eebb9815c94a7de35906bb557ecd3
 
