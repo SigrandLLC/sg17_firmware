@@ -43,6 +43,9 @@ service_reload(){
 			/etc/init.d/dslam_ethernet restart $slot $dev
 		fi
 	;;
+	dslam_vlan_conf)
+	    /etc/init.d/dslam_sw update_cfg vlan
+	;;
 	dsl*)
 		tmp=${service#*.}
 		slot=${tmp%.*}

@@ -769,16 +769,17 @@ Controllers.dslamsw = function() {
 	});
 	sw_port2port["sw0p24"] = "4.0";
 	port2sw_port["4.0"] = "sw0p24";
-	port_name["4.0"] = "gigabit0";
+	port_name["4.0"] = "ge0";
 	sw_port2port["sw1p24"] = "4.1";
 	port2sw_port["4.1"] = "sw1p24";
-	port_name["4.1"] = "gigabit1";
+	port_name["4.1"] = "ge1";
 	sw_port2port["sw0p26"] = "4.2";
 	port2sw_port["4.2"] = "sw0p26";
 	port_name["4.2"] = "CPU";
 
 	var page = this.Page();
 	page.setHelpPage("");
+
 /*
 	page.addTab({
 		"id": "statistics",
@@ -835,12 +836,12 @@ Controllers.dslamsw = function() {
 					row = c.addTableRow();
 					switch (i) {
 						case 0:
-							port_name = "gigabit0";
+							port_name = "ge0";
 							sw_num=0;
 							sw_port=24;
 						break;
 						case 1:
-							port_name = "gigabit1";
+							port_name = "ge1";
 							sw_num=1;
 							sw_port=24;
 						break;
@@ -891,86 +892,158 @@ Controllers.dslamsw = function() {
 		"func": function() {
 			var c, field;
 			c = page.addContainer("vlan");
-			c.addTitle("Ports settings");
-			
+			c.addTitle("VLAN");
+
+			field = {
+				"type" : "checkbox",
+				"name" : "sys_dslam_sw0_vlan_mode",
+				"text"  : "Enable 802.1Q VLAN"
+			}
+			c.addWidget(field);
+			c.addSubmit({"onSubmit" : function() {
+				var val = document.getElementById("sys_dslam_sw0_vlan_mode").checked;
+				if (val) val = "1"; else val = "0";
+				config.cmdExecute({"cmd": $.sprintf("kdb set sys_dslam_sw0_vlan_mode=%s : set sys_dslam_sw1_vlan_mode=%s; /etc/init.d/dslam_sw update_cfg vlan", val, val)});
+			}});
+
+			page.addBr("vlan");
+			c = page.addContainer("vlan");
+			c.setSubsystem("dslam_vlan_conf");
 			var ifaces = config.getParsed("sys_dslam_ifaces");
 
-			var addWidgets = function() {
-				var str = new String($("#port").val());
-				var sw_num, sw_port;
-				if ((str.charCodeAt(0) - 48) == 4) {
-					if ((str.charCodeAt(2) - 48) == 0) {
-						sw_num = 0;
-						sw_port = 24;
+			c.addTitle("Ports settings", {"colspan":4});
+			c.addTableHeader("Port|PVID|Output tagging|VLANs");
+			var port_vlans = new Object();
+			var vlans = config.getParsed("sys_dslam_vlan_table_*");
+			$.each(vlans, function(key, value) {
+				for (port_num = 0; port_num < 27; port_num++) {
+					if (parseInt(value.sw0ports, 16) & (1 << port_num)) {
+						if (port_vlans[$.sprintf("sw0_p%s", port_num)] == undefined)
+							port_vlans[$.sprintf("sw0_p%s", port_num)] = "" + value.name + "(" + value.vid + ")";
+						else
+							port_vlans[$.sprintf("sw0_p%s", port_num)] += " " + value.name + "(" + value.vid + ")";
 					}
-					if ((str.charCodeAt(2) - 48) == 1) {
-						sw_num = 1;
-						sw_port = 24;
-					}
-					if ((str.charCodeAt(2) - 48) == 2) {
-						sw_num = 0;
-						sw_port = 26;
-					}
-				} else {
-					if ((str.charCodeAt(0) - 48) == 0) {
-						sw_num = 0;
-						sw_port = str.charCodeAt(2) - 48;
-					} else {
-						if ((str.charCodeAt(0) - 48) == 1) {
-							sw_num = 0;
-							sw_port = str.charCodeAt(2) - 48 + 8;
-						} else {
-							if ((str.charCodeAt(0) - 48) == 2) {
-								sw_num = 1;
-								sw_port = str.charCodeAt(2) - 48;
-							} else {
-								if ((str.charCodeAt(0) - 48) == 3) {
-									sw_num = 1;
-									sw_port = str.charCodeAt(2) - 48 + 8;
-								}
-							}
-						}
+					if (parseInt(value.sw1ports, 16) & (1 << port_num)) {
+						if (port_vlans[$.sprintf("sw1_p%s", port_num)] == undefined)
+							port_vlans[$.sprintf("sw1_p%s", port_num)] = "" + value.name + "(" + value.vid + ")";
+						else
+							port_vlans[$.sprintf("sw1_p%s", port_num)] += " " + value.name + "(" + value.vid + ")";
 					}
 				}
-//				alert("sw_num = "+sw_num+" sw_port = "+sw_port);
-				var field = {
+			});
+
+			var ifaces = config.getParsed("sys_dslam_ifaces");
+			$.each(ifaces, function(n, iface) {
+				var slot = config.get($.sprintf("sys_iface_%s_slot", iface));
+				var port = config.get($.sprintf("sys_iface_%s_port", iface));
+				var sw_num = config.get($.sprintf("sys_iface_%s_sw", iface));
+				var sw_port = config.get($.sprintf("sys_iface_%s_sw_port", iface));
+
+				row = c.addTableRow();
+				field = {
+					"type" : "html",
+					"name" : $.sprintf("p%s%s", slot, port),
+					"str" : $.sprintf("%s.%s (%s)", slot, port, iface)
+				};
+				c.addTableWidget(field, row);
+				field = {
 					"type" : "text",
 					"name" : $.sprintf("sys_dslam_sw%s_vlan_%s_pvid", sw_num, sw_port),
-					"text": "PVID",
-//					"options": {"0":"none", "1":"tagging", "2":"untagging"},
-					"cssClass": "widgetsport",
 					"id": $.sprintf("sys_dslam_sw%s_vlan_%s_pvid", sw_num, sw_port)
-				}
-				c.addWidget(field);
+				};
+				c.addTableWidget(field, row);
+				var text_input = document.getElementById($.sprintf("sys_dslam_sw%s_vlan_%s_pvid", sw_num, sw_port));
+				text_input.style.setProperty("width", "50px"); 
 				field = {
 					"type" : "select",
 					"name" : $.sprintf("sys_dslam_sw%s_vlan_%s_tag", sw_num, sw_port),
-					"text": "Tagging/Untagging",
-					"options": {"0":"none", "1":"tagging", "2":"untagging"},
-					"cssClass": "widgetsport",
+					"options": {"0":"unchanged", "1":"tagged", "2":"untagged"},
 					"id": $.sprintf("sys_dslam_sw%s_vlan_%s_tag", sw_num, sw_port)
+
+				};
+				c.addTableWidget(field, row);
+				field = {
+					"type" : "html",
+					"name" : $.sprintf("p%s%s_10", slot, port),
+					"str" : port_vlans[$.sprintf("sw%s_p%s", sw_num, sw_port)]
+				};
+				c.addTableWidget(field, row);
+			});
+
+			for (i = 0; i <=2; i++) {
+				var port_name;
+				var sw_num, sw_port;
+				row = c.addTableRow();
+				switch (i) {
+					case 0:
+						port_name = "ge0";
+						sw_num=0;
+						sw_port=24;
+					break;
+					case 1:
+						port_name = "ge1";
+						sw_num=1;
+						sw_port=24;
+					break;
+					case 2:
+						port_name = "CPU";
+						sw_num=0;
+						sw_port=26;
+					break;
 				}
-				c.addWidget(field);
-			
-				updateFields($.sprintf("sys_dslam_sw%s_vlan_%s_pvid", sw_num, sw_port), false);
-				updateFields($.sprintf("sys_dslam_sw%s_vlan_%s_tag", sw_num, sw_port), false);
-				var pvid = config.get($.sprintf("sys_dslam_sw%s_vlan_%s_pvid", sw_num, sw_port));
-				var tag = config.get($.sprintf("sys_dslam_sw%s_vlan_%s_tag", sw_num, sw_port));
-				if (pvid == null) pvid = "";
-				if (tag == null) tag = 0;
-				$($.sprintf("#sys_dslam_sw%s_vlan_%s_pvid", sw_num, sw_port)).val(pvid);
-				$($.sprintf("#sys_dslam_sw%s_vlan_%s_tag", sw_num, sw_port)).val(tag);
-			}
+				field = {
+					"type" : "html",
+					"name" : $.sprintf("somename5%s", i),
+					"str" : $.sprintf("4.%s (%s)", i, port_name)
+				};
+				c.addTableWidget(field, row);
+				field = {
+					"type" : "text",
+					"name" : $.sprintf("sys_dslam_sw%s_vlan_%s_pvid", sw_num, sw_port),
+					"id": $.sprintf("sys_dslam_sw%s_vlan_%s_pvid", sw_num, sw_port)
+				};
+				c.addTableWidget(field, row);
+				var text_input = document.getElementById($.sprintf("sys_dslam_sw%s_vlan_%s_pvid", sw_num, sw_port));
+				text_input.style.setProperty("width", "50px"); 
+				field = {
+					"type" : "select",
+					"name" : $.sprintf("sys_dslam_sw%s_vlan_%s_tag", sw_num, sw_port),
+					"options": {"0":"unchanged", "1":"tagged", "2":"untagged"},
+					"id": $.sprintf("sys_dslam_sw%s_vlan_%s_tag", sw_num, sw_port)
 
-			var onChange = function() {
-				$(".widgetsport").parents("tr").remove();
-				addWidgets();
+				};
+				c.addTableWidget(field, row);
+				field = {
+					"type" : "html",
+					"name" : $.sprintf("somename10%s", i),
+					"str" : port_vlans[$.sprintf("sw%s_p%s", sw_num, sw_port)]
+				};
+				c.addTableWidget(field, row);
 			}
-
+			c.addSubmit();
+/*
+			c.addSubmit({"noSubmit" : true,"preSubmit" : function()
+				{
+					var cmd = "", kdb_cmd = "kdb ";
+					for (sw_num = 0; sw_num < 2; sw_num++) {
+						for (sw_port = 0; sw_port < 27; sw_port++) {
+							var tmp = $($.sprintf("#sys_dslam_sw%s_vlan_%s_pvid", sw_num, sw_port));
+							if ((tmp) && (tmp.val() != undefined)) {
+								kdb_cmd += "set sys_dslam_sw" + sw_num + "_vlan_" + sw_port + "_pvid=" + tmp.val() + " : ";
+								tmp = $($.sprintf("#sys_dslam_sw%s_vlan_%s_tag", sw_num, sw_port)).val();
+								kdb_cmd += "set sys_dslam_sw" + sw_num + "_vlan_" + sw_port + "_tag=" + tmp  + " : ";
+							}
+						}
+					}
+					cmd = kdb_cmd + "; /etc/init.d/dslam_sw update_cfg vlan";
+					config.cmdExecute({"cmd": cmd});
+				}});
+*/
 			page.addBr("vlan");
-			var c2 = page.addContainer("vlan");
+			c = page.addContainer("vlan");
+			c.setSubsystem("dslam_vlan_conf");
 
-			list = c2.createList({
+			list = c.createList({
 				"tabId": "vlan",
 				"header": ["Number", "Name", "VID", "Ports"],
 				"varList": ["number", "name", "vid", "ports"],
@@ -1013,9 +1086,9 @@ Controllers.dslamsw = function() {
 							}
 						}
 						if (options.keyValues["p40"] == "1")
-							ret += "gigabit0, ";
+							ret += "ge0, ";
 						if (options.keyValues["p41"] == "1")
-							ret += "gigabit1, ";
+							ret += "ge1, ";
 						if (options.keyValues["p42"] == "1")
 							ret += "CPU, ";
 
@@ -1031,16 +1104,7 @@ Controllers.dslamsw = function() {
 						}
 					}
 				},
-				"checkOnDelete": function(list) {
-					return {
-						"deleteAllowed": true,
-						"actionOnDelete": function() {
-							config.cmdExecute({"cmd": "/etc/init.d/dslam_sw update_cfg vlan"});
-						}
-					};
-				},
 				"checkOnSubmit": function(list) {
-//					alert("checkOnSubmit");
 					sw0ports = 0;
 					sw1ports = 0;
 					if (document.getElementById("p40").checked) sw0ports += Math.pow(2, 24);
@@ -1050,7 +1114,6 @@ Controllers.dslamsw = function() {
 					{
 						for (j = 0; j <= 7; j++)
 						{
-//							alert (document.getElementById($.sprintf("p%s%s", i, j)));
 							if (document.getElementById($.sprintf("p%s%s", i, j)) != null)
 							if (document.getElementById($.sprintf("p%s%s", i, j)).checked)
 							{
@@ -1086,8 +1149,6 @@ Controllers.dslamsw = function() {
 					{
 						return {"addAllowed": false, "message": "Too much VLANs, remove one"};
 					} else {
-						config.cmdExecute({"cmd": "/etc/init.d/dslam_sw update_cfg vlan"});
-//						alert("sw0ports = "+sw0ports+" sw1ports = "+sw1ports);
 						return {"addAllowed": true};
 					}
 				}
@@ -1100,8 +1161,8 @@ Controllers.dslamsw = function() {
 				"validator": {"required": true, "alphanumU": true}
 			};
 			list.addWidget(field);
-                        
-       	                field = {
+
+			field = {
 				"type": "text",
 				"name": "vid",
 				"text": "VLAN ID (VID)",
@@ -1109,7 +1170,7 @@ Controllers.dslamsw = function() {
 			};
 			list.addWidget(field);
 
-       	                field = {
+			field = {
 				"type": "hidden",
 				"name": "sw0ports",
 				"text": "sw1Ports",
@@ -1117,7 +1178,7 @@ Controllers.dslamsw = function() {
 			};
 			list.addWidget(field);
 
-       	                field = {
+			field = {
 				"type": "hidden",
 				"name": "sw1ports",
 				"text": "sw1Ports",
@@ -1139,15 +1200,15 @@ Controllers.dslamsw = function() {
 			field = {
 				"type": "checkbox",
 				"name": "p40",
-				"text": "Port 4.0 (gigabit0)",
-				"id"  : "p40"
+				"text": "Port 4.0 (ge0)",
+				"id"  : "p40",
 			};
 			list.addWidget(field);
 			field = {
 				"type": "checkbox",
 				"name": "p41",
-				"text": "Port 4.1 (gigabit1)",
-				"id"  : "p41"
+				"text": "Port 4.1 (ge1)",
+				"id"  : "p41",
 			};
 			list.addWidget(field);
 			field = {
@@ -1158,82 +1219,9 @@ Controllers.dslamsw = function() {
 			};
 			list.addWidget(field);
 
-
 			vlan_number = 0;
 			list.generateList();
-
-			var options = new Object();
-
-			$.each(ifaces, function(n, iface) {
-				var slot = config.get($.sprintf("sys_iface_%s_slot", iface));
-				var port = config.get($.sprintf("sys_iface_%s_port", iface));
-				options[$.sprintf("%s.%s", slot, port)] = $.sprintf("%s.%s (%s)", slot, port, iface);
-			});
-			options["4.0"] = "4.0 (gigabit0)";
-			options["4.1"] = "4.1 (gigabit1)";
-			options["4.2"] = "4.2 (CPU)";
-
-			field = {
-				"type": "select",
-				"text": "Port",
-				"id": "port",
-				"name": "sys_dslam_tmp",
-				"options": options,
-				"onChange": onChange
-			};
-			c.addWidget(field);
-
-			c.addSubmit({"noSubmit" : true,"preSubmit" : function()
-				{
-					var str = new String($("#port").val());
-					var sw_num, sw_port;
-					if ((str.charCodeAt(0) - 48) == 4) {
-						if ((str.charCodeAt(2) - 48) == 0) {
-							sw_num = 0;
-							sw_port = 24;
-						}
-						if ((str.charCodeAt(2) - 48) == 1) {
-							sw_num = 1;
-							sw_port = 24;
-						}
-						if ((str.charCodeAt(2) - 48) == 2) {
-							sw_num = 0;
-							sw_port = 26;
-						}
-					} else {
-						if ((str.charCodeAt(0) - 48) == 0) {
-							sw_num = 0;
-							sw_port = str.charCodeAt(2) - 48;
-						} else {
-							if ((str.charCodeAt(0) - 48) == 1) {
-								sw_num = 0;
-								sw_port = str.charCodeAt(2) - 48 + 8;
-							} else {
-								if ((str.charCodeAt(0) - 48) == 2) {
-									sw_num = 1;
-									sw_port = str.charCodeAt(2) - 48;
-								} else {
-									if ((str.charCodeAt(0) - 48) == 3) {
-										sw_num = 1;
-										sw_port = str.charCodeAt(2) - 48 + 8;
-									}
-								}
-							}
-						}
-					}
-//					alert("sw_num = "+sw_num+" sw_port = "+sw_port);
-					config.cmdExecute({"cmd": $.sprintf("kdb set sys_dslam_sw%s_vlan_%s_pvid=%s", sw_num, sw_port, 
-					$($.sprintf("#sys_dslam_sw%s_vlan_%s_pvid", sw_num, sw_port)).val())});
-					config.cmdExecute({"cmd": $.sprintf("kdb set sys_dslam_sw%s_vlan_%s_tag=%s", sw_num, sw_port, 
-					$($.sprintf("#sys_dslam_sw%s_vlan_%s_tag", sw_num, sw_port)).val())});
-							
-					config.cmdExecute({"cmd": $.sprintf("/etc/init.d/dslam_sw update_cfg vlan")});
-				},
-				 "reload" : false});
-
-			addWidgets();
 		}
-
 	});
 	
 	page.addTab({
@@ -1331,12 +1319,12 @@ Controllers.dslamsw = function() {
 				row = c.addTableRow();
 				switch (i) {
 					case 0:
-						port_name = "gigabit0";
+						port_name = "ge0";
 						sw_num=0;
 						sw_port=24;
 					break;
 					case 1:
-						port_name = "gigabit1";
+						port_name = "ge1";
 						sw_num=1;
 						sw_port=24;
 					break;
@@ -1896,12 +1884,12 @@ Controllers.dslamsw = function() {
 				row = c.addTableRow();
 				switch (i) {
 					case 0:
-						port_name = "gigabit0";
+						port_name = "ge0";
 						sw_num=0;
 						sw_port=24;
 					break;
 					case 1:
-						port_name = "gigabit1";
+						port_name = "ge1";
 						sw_num=1;
 						sw_port=24;
 					break;
@@ -1998,14 +1986,14 @@ Controllers.dslamsw = function() {
 				"type" : "checkbox",
 				"name" : "sys_dslam_bcast_sw0_p24",
 				"id"   : "sys_dslam_bcast_sw0_p24",
-				"text" : "Port 4.0 (gigabit0)"
+				"text" : "Port 4.0 (ge0)"
 			};
 			c.addWidget(field);
 			field = {
 				"type" : "checkbox",
 				"name" : "sys_dslam_bcast_sw1_p24",
 				"id"   : "sys_dslam_bcast_sw1_p24",
-				"text" : "Port 4.1 (gigabit1)"
+				"text" : "Port 4.1 (ge1)"
 			};
 			c.addWidget(field);
 			field = {
@@ -2462,8 +2450,8 @@ Controllers.dslamsw = function() {
 				var port = config.get($.sprintf("sys_iface_%s_port", iface));
 				options[$.sprintf("%s.%s", slot, port)] = $.sprintf("%s.%s (%s)", slot, port, iface);
 			});
-			options["4.0"] = "4.0 (gigabit0)";
-			options["4.1"] = "4.1 (gigabit1)";
+			options["4.0"] = "4.0 (ge0)";
+			options["4.1"] = "4.1 (ge1)";
 			options["4.2"] = "4.2 (CPU)";
 
 			field = {
@@ -2652,4 +2640,4 @@ Controllers.dslamsw = function() {
 	page.generateTabs();
 	
 }
-		
+

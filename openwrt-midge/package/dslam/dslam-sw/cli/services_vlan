@@ -261,8 +261,8 @@ vlan_vid_func() {
 					;;
 				esac
 				# устанавливаем PVID для порта
-				echo "$sw_port $num" > /proc/sys/net/dslam_sw/sw${sw_num}/pvid
-				echo "kdb set sys_dslam_sw${sw_num}_vlan_${sw_port}_pvid=$num" >> $tmp_config_file
+				echo "$sw_port $vid" > /proc/sys/net/dslam_sw/sw${sw_num}/pvid
+				echo "kdb set sys_dslam_sw${sw_num}_vlan_${sw_port}_pvid=$vid" >> $tmp_config_file
 			done
 			if [ "$sw0ports" != "00000000" -a "$sw1ports" != "00000000" ]; then
 				let "sw0ports=0x$sw0ports | (1 << 25)"
@@ -275,7 +275,7 @@ vlan_vid_func() {
 			name=`cat /etc/cli/vlans/$vid/name`
 			echo "$num $vid $sw0ports" > /proc/sys/net/dslam_sw/sw0/vid_table
 			echo "$num $vid $sw1ports" > /proc/sys/net/dslam_sw/sw1/vid_table
-			echo "kdb set sys_dslam_vlan_table_${num}=\"name='$name' vid=$vid sw0ports=$sw0ports sw1ports=$sw1ports\"" >> $tmp_config_file
+			echo "kdb set sys_dslam_vlan_table_${num}=\"name=$name vid=$vid sw0ports=$sw0ports sw1ports=$sw1ports\"" >> $tmp_config_file
 			
 			echo "All port added to VLAN ID $vid!"
 		;;
@@ -367,7 +367,7 @@ vlan_vid_func() {
 			num=`cat /etc/cli/vlans/$vid/num`
 			tmp=`kdb get sys_dslam_vlan_table_$num`
 			eval "$tmp"
-			echo "kdb set sys_dslam_vlan_table_${num}=\"name='$1' vid=$vid sw0ports=$sw0ports sw1ports=$sw1ports\"" >> $tmp_config_file
+			echo "kdb set sys_dslam_vlan_table_${num}=\"name=$1 vid=$vid sw0ports=$sw0ports sw1ports=$sw1ports\"" >> $tmp_config_file
 		;;
 		"");;
 		*)
