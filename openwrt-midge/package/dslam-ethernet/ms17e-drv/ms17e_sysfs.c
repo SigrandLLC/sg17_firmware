@@ -21,42 +21,57 @@ static ssize_t show_status(struct class_device *cdev, char *buf)
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
 	struct ms17e_card *card = nl->card;
-	int j = 0, port_status_reg, vee, cur;
+	int j = 0, port_status_reg, vee, cur, chip_n, port_n;
 	int chip_num = nl->number > 3 ? 2 : 0;
 	int port_num = nl->number > 3 ? nl->number - 4 : nl->number;
+	int allcurrents = 0;
 
 	port_status_reg = read_poe_reg(chip_num, PORT1_STATUS + port_num, card);
-	j += snprintf(&buf[j], PAGE_SIZE, "Last DETECT status: ");
+	j += snprintf(&buf[j], PAGE_SIZE, "DET=");
 	switch (port_status_reg & 0x7) {
-		case 0: j += snprintf(&buf[j], PAGE_SIZE, "Unknown\n"); break;
-		case 1: j += snprintf(&buf[j], PAGE_SIZE, "Short\n"); break;
-		case 3: j += snprintf(&buf[j], PAGE_SIZE, "Low\n"); break;
-		case 4: j += snprintf(&buf[j], PAGE_SIZE, "Good\n"); break;
-		case 5: j += snprintf(&buf[j], PAGE_SIZE, "High\n"); break;
-		case 6: j += snprintf(&buf[j], PAGE_SIZE, "Open\n"); break;
+		case 0: j += snprintf(&buf[j], PAGE_SIZE, "'Unknown';\n"); break;
+		case 1: j += snprintf(&buf[j], PAGE_SIZE, "'Short';\n"); break;
+		case 3: j += snprintf(&buf[j], PAGE_SIZE, "'Low';\n"); break;
+		case 4: j += snprintf(&buf[j], PAGE_SIZE, "'Good';\n"); break;
+		case 5: j += snprintf(&buf[j], PAGE_SIZE, "'High';\n"); break;
+		case 6: j += snprintf(&buf[j], PAGE_SIZE, "'Open';\n"); break;
 	}
-	j += snprintf(&buf[j], PAGE_SIZE, "Last CLASSIFICATION status: ");
+	j += snprintf(&buf[j], PAGE_SIZE, "CLS=");
 	switch ((port_status_reg & 0x38) >> 3) {
-		case 0: j += snprintf(&buf[j], PAGE_SIZE, "Unknown\n"); break;
-		case 1: j += snprintf(&buf[j], PAGE_SIZE, "class 1\n"); break;
-		case 2: j += snprintf(&buf[j], PAGE_SIZE, "class 2\n"); break;
-		case 3: j += snprintf(&buf[j], PAGE_SIZE, "class 3\n"); break;
-		case 4: j += snprintf(&buf[j], PAGE_SIZE, "class 4\n"); break;
-		case 5: j += snprintf(&buf[j], PAGE_SIZE, "probes no equal\n"); break;
-		case 6: j += snprintf(&buf[j], PAGE_SIZE, "class 0\n"); break;
-		case 7: j += snprintf(&buf[j], PAGE_SIZE, "class overload\n"); break;
+		case 0: j += snprintf(&buf[j], PAGE_SIZE, "'Unknown';\n"); break;
+		case 1: j += snprintf(&buf[j], PAGE_SIZE, "'class 1';\n"); break;
+		case 2: j += snprintf(&buf[j], PAGE_SIZE, "'class 2';\n"); break;
+		case 3: j += snprintf(&buf[j], PAGE_SIZE, "'class 3';\n"); break;
+		case 4: j += snprintf(&buf[j], PAGE_SIZE, "'class 4';\n"); break;
+		case 5: j += snprintf(&buf[j], PAGE_SIZE, "'probes no equal';\n"); break;
+		case 6: j += snprintf(&buf[j], PAGE_SIZE, "'class 0';\n"); break;
+		case 7: j += snprintf(&buf[j], PAGE_SIZE, "'class overload';\n"); break;
 	}
-	if (port_status_reg & 0x40) j += snprintf(&buf[j], PAGE_SIZE, "Power enable\n");
-	if (port_status_reg & 0x80) j += snprintf(&buf[j], PAGE_SIZE, "Power good\n");
+	if (port_status_reg & 0x40) j += snprintf(&buf[j], PAGE_SIZE, "PowerEnable=1;\n");
+	if (port_status_reg & 0x80) j += snprintf(&buf[j], PAGE_SIZE, "PowerGood=1;\n");
 
 	write_poe_reg(chip_num, COMMAND_REG, CMD_GET_VEE, card);
 	vee = read_poe_reg(chip_num, VEE_LSB, card);
 	vee += read_poe_reg(chip_num, VEE_MSB, card) << 8;
-	j += snprintf(&buf[j], PAGE_SIZE, "VEE = %i.%03i\n", vee / 1000, vee % 1000);
-	write_poe_reg(chip_num, COMMAND_REG, CMD_GET_CURRENT | port_num, card);
-	cur = read_poe_reg(chip_num, CUR_P1_LSB + 2 * port_num, card);
-	cur += read_poe_reg(chip_num, CUR_P1_MSB + 2 * port_num, card) << 8;
-	j += snprintf(&buf[j], PAGE_SIZE, "Current = %i.%04i\n", cur / 10000, cur % 10000);
+	j += snprintf(&buf[j], PAGE_SIZE, "VEE=%i.%03i;\n", vee / 1000, vee % 1000);
+
+//	write_poe_reg(chip_num, COMMAND_REG, CMD_GET_CURRENT | port_num, card);
+//	cur = read_poe_reg(chip_num, CUR_P1_LSB + 2 * port_num, card);
+//	cur += read_poe_reg(chip_num, CUR_P1_MSB + 2 * port_num, card) << 8;
+//	j += snprintf(&buf[j], PAGE_SIZE, "Current=%i.%04i;\n", cur / 10000, cur % 10000);
+
+	for (chip_n = 0; chip_n <= 2; chip_n += 2) {
+		for (port_n = 0; port_n < 4; port_n++) {
+			write_poe_reg(chip_n, COMMAND_REG, CMD_GET_CURRENT | port_n, card);
+			cur = read_poe_reg(chip_n, CUR_P1_LSB + 2 * port_n, card);
+			cur += read_poe_reg(chip_n, CUR_P1_MSB + 2 * port_n, card) << 8;
+			if ((chip_num == chip_n) && (port_num == port_n)) {
+				j += snprintf(&buf[j], PAGE_SIZE, "Current=%i.%04i;\n", cur / 10000, cur % 10000);
+			}
+			allcurrents += cur;
+		}
+	}
+	j += snprintf(&buf[j], PAGE_SIZE, "AllCurrents=%i.%04i;\n", allcurrents / 10000, allcurrents % 10000);
 //	port_i_cut_reg = read_poe_reg(chip_num, PORT1_I_CUT + port_num, card);
 //	port_config_reg = read_poe_reg(chip_num, PORT1_CONFIG + port_num, card);
 
@@ -70,10 +85,10 @@ static ssize_t show_config(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local    *nl = netdev_priv(ndev);
-	struct ms17e_card *card = nl->card;
+//	struct ms17e_card *card = nl->card;
 	int j = 0, port_config, port_icut;
-	int chip_num = nl->number > 3 ? POE_CHIP1 : POE_CHIP0;
-	int port_num = nl->number > 3 ? nl->number - 4 : nl->number;
+//	int chip_num = nl->number > 3 ? POE_CHIP1 : POE_CHIP0;
+//	int port_num = nl->number > 3 ? nl->number - 4 : nl->number;
 
 	port_icut = nl->chan_cfg->icut_reg;
 	port_config = nl->chan_cfg->config_reg;

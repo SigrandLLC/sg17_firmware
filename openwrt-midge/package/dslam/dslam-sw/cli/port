@@ -1075,13 +1075,8 @@ port_func() {
 						case "$3" in
 							"auto")
 								poe_plus=0
-								if [ "$4" == "poe+" -o "$4" == "1" ]; then
+								if [ "$4" == "poe+" ]; then
 								    poe_plus=1
-								else
-									if [ "$4" != "" ]; then
-										echo "Sytax error, usage: poe_config auto [poe+]"
-										return
-									fi
 								fi
 								echo "1 ${poe_plus}" > /sys/class/net/${iface}/ms_private/config
 								echo "PoE on port $port is set to auto!"

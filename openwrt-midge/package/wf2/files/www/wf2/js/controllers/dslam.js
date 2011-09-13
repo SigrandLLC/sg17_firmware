@@ -690,7 +690,7 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 					"name": $.sprintf("sys_dslam_%s_pwr_class", iface),
 					"text": "PoE class",
 					"cssClass": "widgetPoEManual",
-					"options": {0 : "0", 1 : "1", 2 : "2", 3 : "3", 4 : "4", 5 : "poe+"}
+					"options": {1 : "1", 2 : "2", 3 : "3(0)", 5 : "4(poe+)"}
 				};
 				c2.addWidget(field);
 				field = {
@@ -732,6 +732,79 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 			onPoEConfigTypeChange();
 
 			c2.addSubmit();
+		}
+	});
+	page.addTab({
+		"id": "status",
+		"name": "Status",
+		"func": function () {
+			var c, field;
+			c = page.addContainer("status");
+//			c.setSubsystem($.sprintf("dslam_ethernet.%s.%s", pcislot, pcidev));
+			c.addTitle("PoE status");
+
+			field = {
+				"type": "html",
+				"name": "voltage",
+				"id": "voltage",
+				"text": "Voltage",
+				"cmd" : "loading..."
+			};
+			c.addWidget(field);
+			field = {
+				"type": "html",
+				"name": "current",
+				"id": "current",
+				"text": "Current",
+				"cmd" : "loading..."
+			};
+			c.addWidget(field);
+			field = {
+				"type": "html",
+				"name": "power",
+				"id": "power",
+				"text": "Power consumption",
+				"cmd" : "loading..."
+			};
+			c.addWidget(field);
+			field = {
+				"type": "html",
+				"name": "totalpower",
+				"id": "totalpower",
+				"descr": "Total power consumption for this module",
+				"text": "Total power consumption",
+				"cmd" : "loading..."
+			};
+			c.addWidget(field);
+
+			field = {
+				"type": "html",
+				"name": "detect",
+				"id": "detect",
+				"text": "Detect status",
+				"cmd" : "loading..."
+			};
+			c.addWidget(field);
+			field = {
+				"type": "html",
+				"name": "class",
+				"id": "class",
+				"text": "Detected class",
+				"cmd" : "loading..."
+			};
+			c.addWidget(field);
+
+			config.cmdExecute({"cmd": $.sprintf("cat /sys/class/net/fe%s%s/ms_private/status", pcislot-2, pcidev), 
+				"callback": function(data) {
+					eval(data);
+					$("#td_voltage").html($.sprintf("%s V", VEE));
+					$("#td_current").html($.sprintf("%.2f mA", Current*1000));
+					$("#td_power").html($.sprintf("%.4f W", VEE*Current));
+					$("#td_totalpower").html($.sprintf("%.4f W", VEE*AllCurrents));
+					$("#td_detect").html($.sprintf("%s", DET));
+					$("#td_class").html($.sprintf("%s", CLS));
+				}
+			});
 		}
 	});
 

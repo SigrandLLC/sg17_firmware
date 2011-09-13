@@ -51,7 +51,11 @@ _start() {
 			else
 				cmd="$cmd on \\n"
 				if [ "$pwr_auto" != "0" ]; then
-					cmd="$cmd poe_config auto  ${pwr_poe_plus} \\n"
+					if [ "${pwr_poe_plus}" == "1" ]; then
+						cmd="$cmd poe_config auto poe+ \\n"
+					else
+						cmd="$cmd poe_config auto \\n"
+					fi
 #					echo "port fe${slot}/${ifnum} poe_config auto"
 				else
 					cmd="$cmd poe_config class $pwr_class \\n"
@@ -124,7 +128,11 @@ _restart() {
 	else
 		cmd="$cmd on \\n"
 		if [ "$pwr_auto" != "0" ]; then
-			cmd="$cmd poe_config auto ${pwr_poe_plus} \\n"
+			if [ "${pwr_poe_plus}" == "1" ]; then
+				cmd="$cmd poe_config auto poe+ \\n"
+			else
+				cmd="$cmd poe_config auto \\n"
+			fi
 		else
 			cmd="$cmd poe_config class $pwr_class \\n"
 		fi
