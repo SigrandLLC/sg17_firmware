@@ -87,5 +87,7 @@ void ms17e_card_remove(struct ms17e_card *card);
 
 int read_poe_reg(u8 chip_num, u8 addr, struct ms17e_card * card);
 int write_poe_reg(u8 chip_num, u8 addr, u8 data, struct ms17e_card * card);
+void led_control(u8 port_number, u8 state, struct ms17e_card * card);
+
 
 #endif

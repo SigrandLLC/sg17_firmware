@@ -455,7 +455,7 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 				"descr": "DSL power feeding mode.",
 				"options": {"pwroff": "off", "pwron": "on"}
 			};
-			c.addWidget(field);		
+			c.addWidget(field);
 		}
 		if (pcidev == 2) {
 			field = {
@@ -678,7 +678,9 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 			var onPoEConfigTypeChange = function() {
 				if ($("#poe_auto").val() == 1) {
 					$(".widgetPoEManual").parents("tr").remove();
+					addPoEAutoWidgets();
 				} else {
+					$(".widgetPoEAuto").parents("tr").remove();
 					addPoEManualWidgets();
 				}
 			};
@@ -688,53 +690,39 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 					"name": $.sprintf("sys_dslam_%s_pwr_class", iface),
 					"text": "PoE class",
 					"cssClass": "widgetPoEManual",
-					"options": {0 : "0", 1 : "1", 2 : "2", 3 : "3", 4 : "4", 5 : "poe+", "" : "none"}
+					"options": {0 : "0", 1 : "1", 2 : "2", 3 : "3", 4 : "4", 5 : "poe+"}
 				};
 				c2.addWidget(field);
-
 				field = {
 					"type": "checkbox",
-					"name": $.sprintf("sys_dslam_%s_pwr_auto_off", iface),
+					"name": $.sprintf("sys_dslam_%s_pwr_on", iface),
 					"cssClass": "widgetPoEManual",
-					"text": "Auto power off then no PoE device",
-					"defaultState": "checked"
+					"text": "Power on"
 				};
 				c2.addWidget(field);
-
+			}
+			var addPoEAutoWidgets = function() {
 				field = {
 					"type": "checkbox",
 					"name": $.sprintf("sys_dslam_%s_pwr_poe_plus", iface),
-					"cssClass": "widgetPoEManual",
-					"text": "Enable PoE+"
+					"cssClass": "widgetPoEAuto",
+					"text": "Allow PoE+"
 				};
 				c2.addWidget(field);
-				
 				field = {
-					"type": "text",
-					"name": $.sprintf("sys_dslam_%s_pwr_current", iface),
-					"text": "Current",
-					"cssClass": "widgetPoEManual",
-					"descr" : "From 4 to 816 mA",
-					"validator": {"min": 4, "max" : 816}
+					"type": "checkbox",
+					"name": $.sprintf("sys_dslam_%s_pwr_on", iface),
+					"cssClass": "widgetPoEAuto",
+					"text": "Power enable"
 				};
 				c2.addWidget(field);
 			}
 
-
-			field = {
-				"type": "select",
-				"name": $.sprintf("sys_dslam_%s_pwr_on", iface),
-				"text": "Power",
-				"descr": "PoE feeding mode.",
-				"options": {0 : "off", 1 : "on"}
-			};
-			c2.addWidget(field);
-
 			field = {
 				"type": "select",
 				"name": $.sprintf("sys_dslam_%s_pwr_auto", iface),
-				"text": "Configuration type",
-				"options": {1 : "auto", 0 : "manual"},
+				"text": "Mode",
+				"options": {1 : "Auto", 0 : "Manual"},
 				"defaultValue": 1,
 				"id" : "poe_auto",
 				"onChange" : onPoEConfigTypeChange

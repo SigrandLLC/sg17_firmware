@@ -60,9 +60,8 @@ help_func() {
 						echo "Stat [reset] -------------------- Ports statistics"
 						if [ "$port_type" = "fe" ]; then
 							echo "Power [on|off] ------------------ Enable/Disable Power-over-Ethernet function and display state of PoE on this"
-							echo "PoE_config auto ----------------- Enable auto selection PoE class"
+							echo "PoE_config auto [poe+] ---------- Enable auto selection PoE class"
 							echo "PoE_config class 0|1|2|3|4|poe+ - Set PoE class"
-							echo "PoE_config current <4-816 mA> [auto_off] [poe+] - Set PoE congiguration manual"
 						fi
 					;;
 				esac
