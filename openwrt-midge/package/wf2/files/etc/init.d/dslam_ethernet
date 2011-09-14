@@ -51,12 +51,20 @@ _start() {
 			else
 				cmd="$cmd on \\n"
 				if [ "$pwr_auto" != "0" ]; then
-					if [ "${pwr_poe_plus}" == "1" ]; then
-						cmd="$cmd poe_config auto poe+ \\n"
-					else
+					if [ "$pwr_auto" == "1" ]; then
+						if [ "${pwr_poe_plus}" == "1" ]; then
+							cmd="$cmd poe_config auto poe+ \\n"
+						else
+							cmd="$cmd poe_config auto \\n"
+						fi
+#						echo "port fe${slot}/${ifnum} poe_config auto"
+					else # where is no config yet, set it to default
+						kdb set sys_dslam_fe${slot}${ifnum}_pwr_auto=1
+						kdb set sys_dslam_fe${slot}${ifnum}_pwr_poe_plus=0
+						kdb set sys_dslam_fe${slot}${ifnum}_pwr_on=1
+						pwr_on="1"
 						cmd="$cmd poe_config auto \\n"
 					fi
-#					echo "port fe${slot}/${ifnum} poe_config auto"
 				else
 					cmd="$cmd poe_config class $pwr_class \\n"
 #					echo "port fe${slot}/${ifnum} poe_config class $pwr_class"
