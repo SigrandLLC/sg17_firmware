@@ -1,7 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 
-make
-scp ms17e.ko root@192.168.2.124:/root/ms17e.ko
-scp ms17e_debug root@192.168.2.124:/sbin/ms17e_debug
-scp poe_debug root@192.168.2.124:/sbin/poe_debug
-make clean
+cd ~/midge/openwrt-midge/
+make package/dslam-ethernet-clean
+make package/dslam-ethernet-compile V=99
+scp ./build_mipsel/dslam-ethernet/ms17e-drv/ms17e.ko root@192.168.2.130:/root/ms17e.ko

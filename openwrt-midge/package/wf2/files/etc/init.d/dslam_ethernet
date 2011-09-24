@@ -47,20 +47,27 @@ _start() {
 			eval `kdb -lqq sls sys_dslam_${iface}_`
 			if [ "$on" = "0" ]; then
 				cmd="$cmd off \\n"
+				cmd="$cmd power off \\n"
 			else
 				cmd="$cmd on \\n"
 				if [ "$pwr_auto" != "0" ]; then
-					cmd="$cmd poe_config auto \\n"
-#					echo "port fe${slot}/${ifnum} poe_config auto"
-				else
-					if [ "$pwr_class" != "" ]; then
-						cmd="$cmd poe_config class $pwr_class \\n"
-#						echo "port fe${slot}/${ifnum} poe_config class $pwr_class"
-					else
-						if [ "$pwr_auto_off" != "0" ]; then pwr_auto_off="auto_off"; else pwr_auto_off=""; fi
-						if [ "$pwr_poe_plus" != "0" ]; then pwr_poe_plus="poe+"; else pwr_poe_plus=""; fi
-						cmd="$cmd poe_config current $pwr_current $pwr_auto_off $pwr_poe_plus \\n"
+					if [ "$pwr_auto" == "1" ]; then
+						if [ "${pwr_poe_plus}" == "1" ]; then
+							cmd="$cmd poe_config auto poe+ \\n"
+						else
+							cmd="$cmd poe_config auto \\n"
+						fi
+#						echo "port fe${slot}/${ifnum} poe_config auto"
+					else # where is no config yet, set it to default
+						kdb set sys_dslam_fe${slot}${ifnum}_pwr_auto=1
+						kdb set sys_dslam_fe${slot}${ifnum}_pwr_poe_plus=0
+						kdb set sys_dslam_fe${slot}${ifnum}_pwr_on=1
+						pwr_on="1"
+						cmd="$cmd poe_config auto \\n"
 					fi
+				else
+					cmd="$cmd poe_config class $pwr_class \\n"
+#					echo "port fe${slot}/${ifnum} poe_config class $pwr_class"
 				fi
 				if [ "$pwr_on" = "1" ]; then
 					cmd="$cmd power on \\n"
@@ -125,25 +132,24 @@ _restart() {
 	eval `kdb -lqq sls sys_dslam_fe${slot}${port}_`
 	if [ "$on" = "0" ]; then
 		cmd="$cmd off \\n"
+		cmd="$cmd power off \\n"
 	else
 		cmd="$cmd on \\n"
 		if [ "$pwr_auto" != "0" ]; then
-			cmd="$cmd poe_config auto \\n"
-		else
-			if [ "$pwr_class" != "" ]; then
-				cmd="$cmd poe_config class $pwr_class \\n"
+			if [ "${pwr_poe_plus}" == "1" ]; then
+				cmd="$cmd poe_config auto poe+ \\n"
 			else
-				if [ "$pwr_auto_off" != "0" ]; then pwr_auto_off="auto_off"; else pwr_auto_off=""; fi
-				if [ "$pwr_poe_plus" != "0" ]; then pwr_poe_plus="poe+"; else pwr_poe_plus=""; fi
-				cmd="$cmd poe_config current $pwr_current $pwr_auto_off $pwr_poe_plus \\n"
+				cmd="$cmd poe_config auto \\n"
 			fi
+		else
+			cmd="$cmd poe_config class $pwr_class \\n"
 		fi
 		if [ "$pwr_on" = "1" ]; then
 			cmd="$cmd power on \\n"
 		else
 			cmd="$cmd power off \\n"
 		fi
-			
+
 	fi
 	if [ "$flow" = "0" ]; then
 		cmd="$cmd flow off \\n"

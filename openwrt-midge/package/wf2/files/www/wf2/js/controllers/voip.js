@@ -1275,7 +1275,7 @@ Controllers.voipVF = function() {
                 /* enabled */
                 field = {
                     "type": "checkbox",
-                    "name": $.sprintf("sys_voip_vf_channels_%s_enabled", channel[0]),
+                    "name": $.sprintf("sys_voip_vf_channels_%s_enabled", channel[0])
                 };
                 c.addTableWidget(field, row);
 

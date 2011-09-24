@@ -1074,15 +1074,26 @@ port_func() {
 						fi
 						case "$3" in
 							"auto")
-								echo "1" > /sys/class/net/${iface}/ms_private/config
+								poe_plus=0
+								if [ "$4" == "poe+" ]; then
+								    poe_plus=1
+								fi
+								echo "1 ${poe_plus}" > /sys/class/net/${iface}/ms_private/config
 								echo "PoE on port $port is set to auto!"
 								echo "kdb set sys_dslam_${iface}_pwr_auto=1" >> $tmp_config_file
+								echo "kdb set sys_dslam_${iface}_pwr_poe_plus=${poe_plus}" >> $tmp_config_file
+								echo "kdb set sys_dslam_${iface}_pwr_class=''" >> $tmp_config_file
 							;;
 							"class")
 								poe_class=""
+								poe_plus=0
 								case "$4" in
+								# 0,3,4 is equal...
 									0 | 1 | 2 | 3 | 4) poe_class=$4;;
-									5 | "poe+") poe_class=5;;
+									5 | "poe+")
+									    poe_class=5
+									    poe_plus=1
+									;;
 									*)
 										echo "Syntax error, usage: poe_config class 0|1|2|3|4|poe+"
 										return
@@ -1092,33 +1103,26 @@ port_func() {
 								echo "PoE on port $port is set to class $4"
 								echo "kdb set sys_dslam_${iface}_pwr_class=${poe_class}" >> $tmp_config_file
 								echo "kdb set sys_dslam_${iface}_pwr_auto=0" >> $tmp_config_file
-							;;
-							"current")
-								auto_off=0
-								poe_plus=0
-								if [ "$4" -ge "4" -a "$4" -le "816" ]; then
-									if [ "$5" = "auto_off" -o "$6" = "auto_off" ]; then
-										auto_off=1
-									fi
-									if [ "$5" = "poe+" -o "$6" = "poe+" ]; then
-										poe_plus=1
-									fi
-									echo "0 10 $4 ${auto_off} ${poe_plus}" > /sys/class/net/${iface}/ms_private/config
-									echo "PoE on port $port is set to current $4 mA ${auto_off} $poe_plus"
-									echo "kdb set sys_dslam_${iface}_pwr_auto_off=$auto_off" >> $tmp_config_file
-									echo "kdb set sys_dslam_${iface}_pwr_poe_plus=$poe_plus" >> $tmp_config_file
-									echo "kdb set sys_dslam_${iface}_pwr_current=$4" >> $tmp_config_file
-									echo "kdb set sys_dslam_${iface}_pwr_auto=0" >> $tmp_config_file
-									echo "kdb rm sys_dslam_${iface}_pwr_class" >> $tmp_config_file
-								else
-									echo -e "Syntax error, usage:\n\tpoe_config auto\n\tpoe_config class 0|1|2|3|4|poe+"
-									echo -e "\tpoe_config current <4-816 mA> [auto_off] [poe+]"
-								fi
+								echo "kdb set sys_dslam_${iface}_pwr_poe_plus=${poe_plus}" >> $tmp_config_file
 							;;
 							"")
-								# TODO вывести текущие настройки
 								eval `cat /sys/class/net/${iface}/ms_private/config`
-								echo -e "Auto=${auto}\nCurrent=${current}\nAuto_off=${auto_off}\nPoE+=${poe_plus}\n"
+								if [ "$auto" == "1" ]; then
+									if [ "$poe_plus" == "1" ]; then
+										echo "Auto with PoE+"
+									else
+										echo "Auto without PoE+"
+									fi
+								else
+									case "$current" in
+										96) class=1;;
+										169) class=2;;
+										374) class=0;;
+										643) class="poe+";;
+										*) class="unknown";;
+									esac
+									echo "Class - $class (${current})"
+								fi
 							;;
 							*)
 								echo -e "Syntax error, usage:\n\tpoe_config auto\n\tpoe_config class 0|1|2|3|4|poe+"

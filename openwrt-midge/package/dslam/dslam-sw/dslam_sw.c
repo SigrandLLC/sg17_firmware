@@ -1346,7 +1346,7 @@ store_pvid(struct file *file,const char *buffer,unsigned long count,void *data) 
 	char *endp;
 	char port_num;
 	unsigned pvid;
-	int reg_num;
+	int reg_num, i;
 	
 	port_num = simple_strtoul(buffer,&endp,10);
 	while( *endp == ' '){
@@ -1360,26 +1360,32 @@ store_pvid(struct file *file,const char *buffer,unsigned long count,void *data) 
 	while( *endp == ' '){
 		endp++;
 	}
-	if (pvid > 31) {
-		printk(KERN_ERR"pvid must be from 0 to 31 (%d)\n", pvid);
+	if (pvid > 4095) {
+		printk(KERN_ERR"pvid must be from 1 to 4095 (%d)\n", pvid);
 		return count;
 	}
+// read vid table
+	for (i = 0; i < 32; i++) {
+		if (read_reg(sw_num, 0x60+i) == pvid) break;
+	}
+	if (i >= 32) i = 0;
 	
 	reg_num = (int)(port_num / 3);
+	printk(KERN_NOTICE"founded vid = %i\n", i);
 //	printk(KERN_NOTICE"port_num = %i reg_num = %i port_num mod 3 = %i\n", port_num, reg_num, port_num % 3);
 	
 	switch (port_num % 3) {
 		case 0:
-			write_reg(sw_num, 0x53+reg_num, (read_reg(sw_num, 0x53+reg_num) & 0x7FE0) | pvid);
+			write_reg(sw_num, 0x53+reg_num, (read_reg(sw_num, 0x53+reg_num) & 0x7FE0) | i);
 		break;
 		case 1:
-			write_reg(sw_num, 0x53+reg_num, (read_reg(sw_num, 0x53+reg_num) & 0x7C1F) | ((pvid << 5) & 0x3E0));
+			write_reg(sw_num, 0x53+reg_num, (read_reg(sw_num, 0x53+reg_num) & 0x7C1F) | ((i << 5) & 0x3E0));
 		break;
 		case 2:
-			write_reg(sw_num, 0x53+reg_num, (read_reg(sw_num, 0x53+reg_num) & 0x03FF) | ((pvid << 10) & 0x7C00));
+			write_reg(sw_num, 0x53+reg_num, (read_reg(sw_num, 0x53+reg_num) & 0x03FF) | ((i << 10) & 0x7C00));
 		break;
 	}
-	return count;	
+	return count;
 }
 static int 
 read_pvid(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
@@ -1403,6 +1409,7 @@ read_pvid(char *buf, char **start, off_t offset, int count, int *eof, void *data
 				pvid = (read_reg(sw_num, 0x53+reg_num)  >> 10) & 0x1F;
 			break;
 		}
+		pvid = read_reg(sw_num, 0x60+pvid);
 		j += snprintf(&buf[j], count, "port %i PVID=%u\n", i, pvid);
 	}
 	return j;

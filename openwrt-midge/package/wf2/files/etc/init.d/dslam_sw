@@ -3,15 +3,16 @@
 kdb="/usr/bin/kdb"
 
 set_def_settings() {
-	sw=$1
-	$kdb set sys_dslam_vlan_table_0="name=default vid=1 p00=1 p01=1 p02=1 p03=1 p10=1 p11=1 p12=1 p13=1 p20=1 p21=1 p22=1 p23=1 p30=1 p31=1 p32=1 p33=1 p40=1 p41=1 p42=1 sw0ports=7ffffff sw1ports=7ffffff"
+	$kdb set sys_dslam_sw0_vlan_mode=0
+	$kdb set sys_dslam_sw1_vlan_mode=0
+
+	$kdb set sys_dslam_vlan_table_0="name=default vid=1 p00=1 p01=1 p02=1 p03=1 p04=1 p05=1 p06=1 p07=1 p10=1 p11=1 p12=1 p13=1 p14=1 p15=1 p16=1 p17=1 p20=1 p21=1 p22=1 p23=1 p24=1 p25=1 p26=1 p27=1 p30=1 p31=1 p32=1 p33=1 p34=1 p35=1 p36=1 p37=1 p40=1 p41=1 p42=1 sw0ports=7ffffff sw1ports=7ffffff"
 	for i in 0 `seq 26`; do
-#		$kdb set sys_dslam_sw${sw}_vlan_${i}_set=7ffffff;
-		$kdb set sys_dslam_sw${sw}_vlan_${i}_pvid=0;
-		$kdb set sys_dslam_sw${sw}_vlan_${i}_tag=0;
-	done;
-	$kdb get sys_dslam_sw0_vlan_25_tag=1
-	$kdb get sys_dslam_sw1_vlan_25_tag=1
+		$kdb set sys_dslam_sw0_vlan_${i}_set=7ffffff : set sys_dslam_sw1_vlan_${i}_set=7ffffff;
+		$kdb set sys_dslam_sw0_vlan_${i}_pvid=1 : set sys_dslam_sw0_vlan_${i}_tag=0 : set sys_dslam_sw1_vlan_${i}_pvid=1 : set sys_dslam_sw1_vlan_${i}_tag=0
+	done
+	# set ports conneting switche tagging
+	$kdb set sys_dslam_sw0_vlan_25_tag=1 : set sys_dslam_sw1_vlan_25_tag=1
 
 	$kdb set sys_dslam_cos_aging_time=0
 	$kdb set sys_dslam_cos_high_priority_queue=0
@@ -63,15 +64,12 @@ _dslam_sw_start()
 		echo "1" > /proc/sys/net/dslam_sw/sw1/default
 		$kdb set sys_dslam_card=1
 		sw0_vlan_mode=`kdb get sys_dslam_sw0_vlan_mode`
-		if [ "$sw0_vlan_mode" = ""  ]; then
-			set_def_settings 0
-			set_def_settings 1
+		sw1_vlan_mode=`kdb get sys_dslam_sw1_vlan_mode`
+		if [ "$sw0_vlan_mode" = "" ]; then
+			set_def_settings
 		fi
-
-		$kdb set sys_dslam_sw0_vlan_mode=1
-		$kdb set sys_dslam_sw1_vlan_mode=1
-		echo "1" > /proc/sys/net/dslam_sw/sw0/vlan_mode
-		echo "1" > /proc/sys/net/dslam_sw/sw1/vlan_mode
+		echo "$sw0_vlan_mode" > /proc/sys/net/dslam_sw/sw0/vlan_mode
+		echo "$sw1_vlan_mode" > /proc/sys/net/dslam_sw/sw1/vlan_mode
 
 		update_uplinks_settings
 		update_vlan_settings
@@ -107,6 +105,20 @@ update_uplinks_settings() {
 }
 
 update_vlan_settings() {
+	sw0_vlan_mode=`kdb get sys_dslam_sw0_vlan_mode`
+
+	if [ "$sw0_vlan_mode" = "0" ]; then
+		for port in `seq 0 26`; do
+			echo "$port 07ffffff" > /proc/sys/net/dslam_sw/sw0/vlan
+			echo "$port 07ffffff" > /proc/sys/net/dslam_sw/sw1/vlan
+		done
+		echo "0" > /proc/sys/net/dslam_sw/sw0/vlan_mode
+		echo "0" > /proc/sys/net/dslam_sw/sw1/vlan_mode
+		return
+	fi
+
+	echo "1" > /proc/sys/net/dslam_sw/sw0/vlan_mode
+	echo "1" > /proc/sys/net/dslam_sw/sw1/vlan_mode
 	for port in 0 `seq 26`; do
 		pvid=`$kdb get sys_dslam_sw0_vlan_${port}_pvid`
 		tag=`$kdb get sys_dslam_sw0_vlan_${port}_tag`

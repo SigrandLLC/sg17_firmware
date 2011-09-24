@@ -17,7 +17,7 @@ _dsl_mr17ifdefcfg(){
 	kdb rm sls sys_pcicfg_s${slot}_${dev}*
 	kdb set sys_pcicfg_s${slot}_${dev}_advlink="off"
 	kdb set sys_pcicfg_s${slot}_${dev}_mode="slave"
-	kdb set sys_pcicfg_s${slot}_${dev}_clkmode="plesio"
+	kdb set sys_pcicfg_s${slot}_${dev}_clkmode="sync"
 	kdb set sys_pcicfg_s${slot}_${dev}_rate="768"
 	kdb set sys_pcicfg_s${slot}_${dev}_code="tcpam32"
 	kdb set sys_pcicfg_s${slot}_${dev}_annex="A"

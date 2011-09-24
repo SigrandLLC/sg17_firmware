@@ -33,7 +33,6 @@ int card_number = 0;
 
 struct ms17e_card *gcard = NULL;
 
-// TODO: переделать функцию под новый интерфейс регистров
 // port_number from 0 to 7
 // state can be: OFF BLINK FAST_BLINK ON
 void led_control(u8 port_number, u8 state, struct ms17e_card * card) {
@@ -67,7 +66,7 @@ int read_poe_reg(u8 chip_num, u8 addr, struct ms17e_card * card) {
 //	PDEBUG(debug_read_poe_reg, "chip = %02x reg = %02x", num, addr);
 	if (!interruptible_sleep_on_timeout(&card->wait_read, POE_CHIP_TIMEOUT))
 	{
-		PDEBUG(debug_read_poe_reg, "Error! sleep timeout");
+		PDEBUG(debug_read_poe_reg, "Error! read sleep timeout");
 		return -1;
 	}
 	return ioread8(&(card->regs->RDR));
@@ -85,7 +84,7 @@ int write_poe_reg(u8 chip_num, u8 addr, u8 data, struct ms17e_card * card) {
 
 	if (!interruptible_sleep_on_timeout(&card->wait_write, POE_CHIP_TIMEOUT))
 	{
-		PDEBUG(0, "Error! sleep timeout");
+		PDEBUG(0, "Error! write sleep timeout");
 		return -1;
 	}
 	return 0;
@@ -95,8 +94,8 @@ void monitor_poe_interrupt(void * data)
 {
 	struct ms17e_card *card = (struct ms17e_card *)data;
 	u8 chip_num = 0, port_num = 0;
-	int int_reg = 0, port_events_reg = 0, device_status_reg = 0;
-	
+	int int_reg = 0, port_events_reg = 0, device_status_reg = 0, port_status_reg = 0;
+
 	if ((!(ioread8(&(card->regs->IMR)) & PINT)) && ((ioread8(&(card->regs->SR)) & PINT)))
 	{
 
@@ -109,8 +108,15 @@ void monitor_poe_interrupt(void * data)
 				if (int_reg & (0x01 << port_num)) // port event
 				{
 					port_events_reg = read_poe_reg(chip_num, PORT1_EVENTS + port_num, card);
+					port_status_reg = read_poe_reg(chip_num, PORT1_STATUS + port_num, card);
 					PDEBUG(debug_monitor, "++++++++++ Port %i event!!!", port_num);
 					PDEBUG(debug_monitor, "port_events_reg = %02x", port_events_reg);
+					// if PwrGood and PwrEnable enable orange led, else disable led
+					if ((port_status_reg & 0x80) && (port_status_reg & 0x40)) {
+							led_control(chip_num ? 3 - port_num : 7 - port_num, ON, card);
+					} else {
+							led_control(chip_num ? 3 - port_num : 7 - port_num, OFF, card);
+					}
 				}
 			}
 			if (int_reg & 0x20) // Vee change
@@ -246,6 +252,7 @@ static int __devinit ms17e_probe(struct pci_dev * pdev, const struct pci_device_
 	struct ms17e_card *card = NULL;
 	unsigned long iomem_start, iomem_end;
 	int error = 0, i;
+	u8 chip_num = 0, port_num = 0;
 #ifdef DEBUG_ON
 	char entry_dir[40];
 	struct proc_dir_entry *debug_entry;
@@ -285,7 +292,7 @@ static int __devinit ms17e_probe(struct pci_dev * pdev, const struct pci_device_
 
 	// set card name
 	sprintf(card->card_name, CARD_NAME"%i", card->number);
-	
+
 	if ((iomem_end - iomem_start) != MS17E_IOMEM_SIZE - 1) return -ENODEV;
 	if (!request_mem_region(iomem_start, MS17E_IOMEM_SIZE, (const char *)card->card_name))
 	{
@@ -341,7 +348,7 @@ static int __devinit ms17e_probe(struct pci_dev * pdev, const struct pci_device_
 	}
 	init_waitqueue_head(&card->wait_read);
 	init_waitqueue_head(&card->wait_write);
-	
+
 	// выключаем все
 	iowrite8(0x00, &(card->regs->CRA));
 	// включаем PHY и питание, также устанавливаем режим оранж диода на ручной
@@ -351,40 +358,37 @@ static int __devinit ms17e_probe(struct pci_dev * pdev, const struct pci_device_
 	iowrite8(0, &(card->regs->LCR1));
 	// включаем все прерывания
 	iowrite8(WRS | RDS | WRE | RDE | PINT, &(card->regs->IMR));
-	
+
 	INIT_WORK(&(card->work), monitor_poe_interrupt, (void*)card);
 	schedule_delayed_work(&(card->work), HZ);
-	
+
 //	PDEBUG(debug_probe, "Reset chips - ");
-//	mdelay(10000);
 //	PDEBUG(debug_probe, "Reset chips - ");
+//	mdelay(500);
 //	write_poe_reg(POE_CHIP0, COMMAND_REG, CMD_RESET_CHIP, card);
 //	write_poe_reg(POE_CHIP1, COMMAND_REG, CMD_RESET_CHIP, card);
-//	PDEBUG(debug_probe, "Reset chips - ");
+//	PDEBUG(debug_probe, "Reset chips - OK");
 
 	if (card->pwr_source)
 	{
 		for (i = 0; i < card->if_num; i++)
 		{
-			card->channels[i].pwr_enable = 1;
+			card->channels[i].pwr_enable = 0;
 			card->channels[i].config_reg = 0x07;
 			card->channels[i].icut_reg = 0x75;
 		}
 	}
-	
-	
-//	printk(KERN_ERR"IMR=%02x\n", ioread8(&(card->regs->IMR)));
-/*
-	led_control(0, ON, card);
-	led_control(1, ON, card);
-	led_control(2, ON, card);
-	led_control(3, ON, card);
-	led_control(4, ON, card);
-	led_control(5, ON, card);
-	led_control(6, ON, card);
-	led_control(7, ON, card);
-*/
-
+// выключаем питание на всех портах
+// включать будем в соответсвии с полученными настройками
+	for (chip_num = 0; chip_num <= 2; chip_num += 2)
+	{
+		for (port_num = 0; port_num < 4; port_num++)
+		{
+			write_poe_reg(chip_num, PORT1_CONFIG + port_num, 0x00, card);
+			write_poe_reg(chip_num, COMMAND_REG, CMD_PORT_RESET | port_num, card);
+			led_control(chip_num ? 3 - port_num : 7 - port_num, OFF, card);
+		}
+	}
 #ifdef DEBUG_ON
 	sprintf(entry_dir, "sys/debug/%i", PCI_SLOT(card->pdev->devfn));
 	PDEBUG(debug_read_write, "entry_dir=[%s]", entry_dir);
