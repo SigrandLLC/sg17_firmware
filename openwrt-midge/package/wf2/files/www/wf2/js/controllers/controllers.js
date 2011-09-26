@@ -510,8 +510,8 @@ Controllers.time = function() {
 			field = {
 				"type": "checkbox",
 				"name": "sys_time_auto_switch",
-				"text": "Auto winter/summer time",
-				"descr": "Auto switch to winter/summer time.",
+				"text": "Auto daylight-saving time",
+				"descr": "Auto switch to daylight-saving time",
 				"tip": "Adds one hour to local time in summer."
 			};
 			c.addWidget(field);
