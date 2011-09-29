@@ -212,7 +212,7 @@ Controllers.info = function() {
 							}
 
 							if (!info[channelIdx]) {
-								info[channelIdx] = $.sprintf("Module %s: ", channelIdx);
+								info[channelIdx] = $.sprintf("Module %s: ", channelIdx-1);
 							}
 
 							info[channelIdx] += $.sprintf("<br/>&nbsp;&nbsp;&nbsp;&nbsp;%s (%s)",
