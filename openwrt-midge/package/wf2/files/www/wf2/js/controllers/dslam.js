@@ -529,7 +529,7 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 		c.addSubmit({
 			"onSuccess": function() {
 				updateFields($.sprintf("sys_pcicfg_s%s_%s_mrate", pcislot, pcidev), true);
-				
+
 			}
 		});
 
@@ -573,12 +573,6 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 	/* create page and set common settings */
 	var page = this.Page();
 	page.setHelpPage("");
-//	page.addTab({
-//		"id": "status",
-//		"name": "Status",
-//		"func": function () {
-//		}
-//	});
 	page.addTab({
 		"id": "settings",
 		"name": "Settings",
@@ -674,7 +668,7 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 			c2 = page.addContainer("settings");
 			c2.setSubsystem($.sprintf("dslam_ethernet.%s.%s", pcislot, pcidev));
 			c2.addTitle("PoE settings");
-			
+
 			var onPoEConfigTypeChange = function() {
 				if ($("#poe_auto").val() == 1) {
 					$(".widgetPoEManual").parents("tr").remove();
@@ -734,12 +728,13 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 			c2.addSubmit();
 		}
 	});
+	if ((iface != "ge0") && (iface != "ge1"))
 	page.addTab({
-		"id": "status",
-		"name": "Status",
+		"id": "poe_status",
+		"name": "PoE status",
 		"func": function () {
 			var c, field;
-			c = page.addContainer("status");
+			c = page.addContainer("poe_status");
 //			c.setSubsystem($.sprintf("dslam_ethernet.%s.%s", pcislot, pcidev));
 			c.addTitle("PoE status");
 
@@ -841,13 +836,11 @@ Controllers.dslamsw = function() {
 	var page = this.Page();
 	page.setHelpPage("");
 
-/*
+
 	page.addTab({
 		"id": "statistics",
 		"name": "Ports statistics",
 		"func": function() {
-			var load_stat = function() {
-				page.clearTab("statistics");
 				var c, field;
 				c = page.addContainer("statistics");
 				c.addTitle("Ports statistics", {"colspan":3});
@@ -938,6 +931,50 @@ Controllers.dslamsw = function() {
 						config.cmdExecute({"cmd": "echo \"27\" > /proc/sys/net/dslam_sw/sw0/statistics"});
 					}
 				});
+
+			var load_stat = function() {
+				config.cmdExecute({"cmd": "cat /proc/sys/net/dslam_sw/sw0/statistics_json", "async" : false, "dataType": "json", "callback": 
+					function(reply) {
+						sw0_stat = reply;
+					}
+				});
+				config.cmdExecute({"cmd": "cat /proc/sys/net/dslam_sw/sw1/statistics_json", "async" : false, "dataType": "json", "callback": 
+					function(reply) {
+						sw1_stat = reply;
+					}
+				});
+				$.each(ifaces, function(n, iface) {
+					var slot = config.get($.sprintf("sys_iface_%s_slot", iface));
+					var port = config.get($.sprintf("sys_iface_%s_port", iface));
+					var sw_num = config.get($.sprintf("sys_iface_%s_sw", iface));
+					var sw_port = config.get($.sprintf("sys_iface_%s_sw_port", iface));
+					$($.sprintf("#td_sw%sp%s_tx", sw_num, sw_port)).html($.sprintf("%s", (sw_num == "1")?sw1_stat[sw_port].tx:sw0_stat[sw_port].tx));
+					$($.sprintf("#td_sw%sp%s_rx", sw_num, sw_port)).html($.sprintf("%s", (sw_num == "1")?sw1_stat[sw_port].rx:sw0_stat[sw_port].rx));
+				});
+				for (i = 0; i <=2; i++) {
+					var port_name;
+					var sw_num, sw_port;
+					switch (i) {
+						case 0:
+							port_name = "ge0";
+							sw_num=0;
+							sw_port=24;
+						break;
+						case 1:
+							port_name = "ge1";
+							sw_num=1;
+							sw_port=24;
+						break;
+						case 2:
+							port_name = "CPU";
+							sw_num=0;
+							sw_port=26;
+						break;
+					}
+					$($.sprintf("#td_sw%sp%s_tx", sw_num, sw_port)).html($.sprintf("%s", (sw_num == "1")?sw1_stat[sw_port].tx:sw0_stat[sw_port].tx));
+					$($.sprintf("#td_sw%sp%s_rx", sw_num, sw_port)).html($.sprintf("%s", (sw_num == "1")?sw1_stat[sw_port].rx:sw0_stat[sw_port].rx));
+				}
+
 				setTimeout(load_stat, 1000);
 			}
 			if (timer == 1) return true;
@@ -945,7 +982,7 @@ Controllers.dslamsw = function() {
 			timer = 1;
 		}
 	});
-*/
+
 
 	page.addTab({
 		"id": "vlan",
