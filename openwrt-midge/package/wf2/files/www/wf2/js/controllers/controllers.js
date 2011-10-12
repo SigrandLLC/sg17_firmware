@@ -511,7 +511,7 @@ Controllers.time = function() {
 				"type": "checkbox",
 				"name": "sys_time_auto_switch",
 				"text": "Auto daylight-saving time",
-				"descr": "Auto switch to daylight-saving time",
+				"descr": "Auto switch to normal/daylight-saving time.",
 				"tip": "Adds one hour to local time in summer."
 			};
 			c.addWidget(field);
