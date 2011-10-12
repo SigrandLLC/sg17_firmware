@@ -212,7 +212,7 @@ Controllers.info = function() {
 							}
 
 							if (!info[channelIdx]) {
-								info[channelIdx] = $.sprintf("Module %s: ", channelIdx);
+								info[channelIdx] = $.sprintf("Module %s: ", channelIdx-1);
 							}
 
 							info[channelIdx] += $.sprintf("<br/>&nbsp;&nbsp;&nbsp;&nbsp;%s (%s)",
@@ -510,8 +510,8 @@ Controllers.time = function() {
 			field = {
 				"type": "checkbox",
 				"name": "sys_time_auto_switch",
-				"text": "Auto winter/summer time",
-				"descr": "Auto switch to winter/summer time.",
+				"text": "Auto daylight-saving time",
+				"descr": "Auto switch to normal/daylight-saving time.",
 				"tip": "Adds one hour to local time in summer."
 			};
 			c.addWidget(field);
