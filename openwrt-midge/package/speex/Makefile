@@ -7,7 +7,7 @@ PKG_VERSION:=1.1.8
 PKG_RELEASE:=1
 PKG_MD5SUM:=734892c8ca5e7e835828048a1289a0cc
 
-PKG_SOURCE_URL:=http://us.speex.org/download 
+PKG_SOURCE_URL:=http://us.speex.org/download
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_CAT:=zcat
 
@@ -28,20 +28,7 @@ $(PKG_BUILD_DIR)/.configured:
 		--target=$(GNU_TARGET_NAME) \
 		--host=$(GNU_TARGET_NAME) \
 		--build=$(GNU_HOST_NAME) \
-		  --program-prefix="" \
-		  --program-suffix="" \
-		  --prefix=/usr \
-		  --exec-prefix=/usr \
-		  --bindir=/usr/bin \
-		  --datadir=/usr/share \
-		  --includedir=/usr/include \
-		  --infodir=/usr/share/info \
-		  --libdir=/usr/lib \
-		  --libexecdir=/usr/lib \
-		  --localstatedir=/var \
-		  --mandir=/usr/share/man \
-		  --sbindir=/usr/sbin \
-		  --sysconfdir=/etc \
+		  --prefix=$(PKG_INSTALL_DIR)/usr \
 		  $(DISABLE_LARGEFILE) \
 		  $(DISABLE_NLS) \
 		  --enable-shared \
@@ -50,14 +37,15 @@ $(PKG_BUILD_DIR)/.configured:
 	);
 	touch $@
 
+
 $(PKG_BUILD_DIR)/.built:
 	rm -rf $(PKG_INSTALL_DIR)
 	mkdir -p $(PKG_INSTALL_DIR)
 	$(MAKE) -C $(PKG_BUILD_DIR) \
-		DESTDIR="$(PKG_INSTALL_DIR)" \
 	  	bin_PROGRAMS="" \
 		all install
 	touch $@
+
 
 $(IPKG_LIBSPEEX):
 	install -d -m0755 $(IDIR_LIBSPEEX)/usr/lib
