@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.16
-# Fri Apr  2 19:30:07 2010
+# Thu Nov  3 20:34:12 2011
 #
 CONFIG_MIPS=y
 
@@ -1037,7 +1037,8 @@ CONFIG_WATCHDOG=y
 #
 # Watchdog Device Drivers
 #
-CONFIG_SOFT_WATCHDOG=y
+# CONFIG_SOFT_WATCHDOG is not set
+CONFIG_ADM5120_WDT=y
 
 #
 # PCI-based Watchdog Cards
