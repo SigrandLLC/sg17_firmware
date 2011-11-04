@@ -1,0 +1,1706 @@
+diff -rupN linux/include/asm-mips/mach-adm5120/adm5120_defs.h linux/include/asm-mips/mach-adm5120/adm5120_defs.h
+--- linux/include/asm-mips/mach-adm5120/adm5120_defs.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/adm5120_defs.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,53 @@
++/*
++ *  ADM5120 SoC definitions
++ *
++ *  This file defines some constants specific to the ADM5120 SoC
++ *
++ *  Copyright (C) 2007-2008 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ *
++ */
++#ifndef _ASM_MIPS_MACH_ADM5120_DEFS_H
++#define _ASM_MIPS_MACH_ADM5120_DEFS_H
++
++#define ADM5120_SDRAM0_BASE	0x00000000
++#define ADM5120_SDRAM1_BASE	0x01000000
++#define ADM5120_SRAM1_BASE	0x10000000
++#define ADM5120_EXTIO0_BASE	0x10C00000
++#define ADM5120_EXTIO0_SIZE	0x00200000
++#define ADM5120_EXTIO1_BASE	0x10E00000
++#define ADM5120_EXTIO1_SIZE	0x00200000
++#define ADM5120_MPMC_BASE	0x11000000
++#define ADM5120_MPMC_SIZE	0x00200000
++#define ADM5120_USBC_BASE	0x11200000
++#define ADM5120_USBC_SIZE	0x00200000
++#define ADM5120_PCIMEM_BASE	0x11400000
++#define ADM5120_PCIMEM_SIZE	0x00100000
++#define ADM5120_PCIIO_BASE	0x11500000
++#define ADM5120_PCIIO_SIZE	0x000FFFF0
++#define ADM5120_PCICFG_ADDR	0x115FFFF0
++#define ADM5120_PCICFG_DATA	0x115FFFF8
++#define ADM5120_PCICFG_SIZE	0x00000010
++#define ADM5120_SWITCH_BASE	0x12000000
++#define ADM5120_SWITCH_SIZE	0x00200000
++#define ADM5120_INTC_BASE	0x12200000
++#define ADM5120_INTC_SIZE	0x00200000
++#define ADM5120_UART0_BASE	0x12600000
++#define ADM5120_UART1_BASE	0x12800000
++#define ADM5120_UART_SIZE	0x00200000
++#define ADM5120_SRAM0_BASE	0x1FC00000
++
++#define ADM5120_NAND_BASE	ADM5120_SRAM1_BASE
++#define ADM5120_NAND_SIZE	0xB
++
++#define ADM5120_CLK_175		175000000
++#define ADM5120_CLK_200		200000000
++#define ADM5120_CLK_225		225000000
++#define ADM5120_CLK_250		250000000
++
++#define ADM5120_UART_CLOCK	62500000
++
++#endif /* _ASM_MIPS_MACH_ADM5120_DEFS_H */
+diff -rupN linux/include/asm-mips/mach-adm5120/adm5120_info.h linux/include/asm-mips/mach-adm5120/adm5120_info.h
+--- linux/include/asm-mips/mach-adm5120/adm5120_info.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/adm5120_info.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,129 @@
++/*
++ *  Copyright (C) 2007-2009 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ *
++ */
++
++#ifndef _MACH_ADM5120_INFO_H
++#define _MACH_ADM5120_INFO_H
++
++#include <linux/types.h>
++
++extern unsigned int adm5120_prom_type;
++#define ADM5120_PROM_GENERIC	0
++#define ADM5120_PROM_CFE	1
++#define ADM5120_PROM_MYLOADER	2
++#define ADM5120_PROM_ROUTERBOOT	3
++#define ADM5120_PROM_BOOTBASE	4
++#define ADM5120_PROM_UBOOT	5
++#define ADM5120_PROM_LAST	5
++
++extern unsigned int adm5120_product_code;
++extern unsigned int adm5120_revision;
++extern unsigned int adm5120_nand_boot;
++
++extern unsigned long adm5120_speed;
++#define ADM5120_SPEED_175	175000000
++#define ADM5120_SPEED_200	200000000
++#define ADM5120_SPEED_225	225000000
++#define ADM5120_SPEED_250	250000000
++
++extern unsigned int adm5120_package;
++#define ADM5120_PACKAGE_PQFP	0
++#define ADM5120_PACKAGE_BGA	1
++
++extern unsigned long adm5120_memsize;
++
++enum {
++	MACH_ADM5120_GENERIC = 0,	/* Generic board */
++	MACH_ADM5120_5GXI,		/* OSBRiDGE 5GXi/5XLi */
++	MACH_ADM5120_BR6104K,		/* Edimax BR-6104K */
++	MACH_ADM5120_BR6104KP,		/* Edimax BR-6104KP */
++	MACH_ADM5120_BR61X4WG,		/* Edimax BR-6104Wg/BR-6114WG */
++	MACH_ADM5120_CAS630,		/* Cellvision CAS-630/630W */
++	MACH_ADM5120_CAS670,		/* Cellvision CAS-670/670W */
++	MACH_ADM5120_CAS700,		/* Cellvision CAS-700/700W */
++	MACH_ADM5120_CAS771,		/* Cellvision CAS-771/771W */
++	MACH_ADM5120_CAS790,		/* Cellvision CAS-790 */
++	MACH_ADM5120_CAS861,		/* Cellvision CAS-861/861W */
++	MACH_ADM5120_EASY5120PATA,	/* Infineon EASY 5120P-ATA */
++	MACH_ADM5120_EASY5120RT,	/* Infineon EASY 5120-RT */
++	MACH_ADM5120_EASY5120WVOIP,	/* Infineon EASY 5120-WVoIP */
++	MACH_ADM5120_EASY83000,		/* Infineon EASY-83000 */
++	MACH_ADM5120_ES2108,		/* ZyXEL Ethernet Switch 2108 */
++	MACH_ADM5120_ES2108F,		/* ZyXEL Ethernet Switch 2108-F */
++	MACH_ADM5120_ES2108G,		/* ZyXEL Ethernet Switch 2108-G */
++	MACH_ADM5120_ES2108LC,		/* ZyXEL Ethernet Switch 2108-LC */
++	MACH_ADM5120_ES2108PWR,		/* ZyXEL Ethernet Switch 2108-PWR */
++	MACH_ADM5120_ES2024A,		/* ZyXEL Ethernet Switch 2024A */
++	MACH_ADM5120_ES2024PWR,		/* ZyXEL Ethernet Switch 2024PWR */
++	MACH_ADM5120_HS100,		/* ZyXEL HomeSafe 100/100W */
++	MACH_ADM5120_NFS101U,		/* Cellvision NFS-101U/101WU */
++	MACH_ADM5120_NFS202U,		/* Cellvision NFS-202U/202WU */
++	MACH_ADM5120_NP28G,		/* Compex NP28G */
++	MACH_ADM5120_NP28GHS,		/* Compex NP28G HotSpot */
++	MACH_ADM5120_NP27G,		/* Compex NP27G */
++	MACH_ADM5120_RB_11X,		/* Mikrotik RouterBOARD 111/112 */
++	MACH_ADM5120_RB_133,		/* Mikrotik RouterBOARD 133 */
++	MACH_ADM5120_RB_133C,		/* Mikrotik RouterBOARD 133c */
++	MACH_ADM5120_RB_150,		/* Mikrotik RouterBOARD 150 */
++	MACH_ADM5120_RB_153,		/* Mikrotik RouterBOARD 153 */
++	MACH_ADM5120_RB_192,		/* Mikrotik RouterBOARD 192 */
++	MACH_ADM5120_P334U,		/* ZyXEL Prestige 334U */
++	MACH_ADM5120_P334W,		/* ZyXEL Prestige 334W */
++	MACH_ADM5120_P334WH,		/* ZyXEL Prestige 334WH */
++	MACH_ADM5120_P334WHD,		/* ZyXEL Prestige 334WHD */
++	MACH_ADM5120_P334WT,		/* ZyXEL Prestige 334WT */
++	MACH_ADM5120_P335,		/* ZyXEL Prestige 335/335WT */
++	MACH_ADM5120_P335PLUS,		/* ZyXEL Prestige 335Plus */
++	MACH_ADM5120_P335U,		/* ZyXEL Prestige 335U */
++	MACH_ADM5120_PMUGW,		/* Motorola Powerline MU Gateway */
++	MACH_ADM5120_WP54,		/* Compex WP54G/WP54AG/WPP54G/WPP54AG */
++	MACH_ADM5120_WP54G_WRT,		/* Compex WP54G-WRT */
++	MACH_ADM5120_WP54Gv1C,		/* Compex WP54G version 1C */
++	MACH_ADM5120_EB_214A,		/* Generic EB-214A */
++};
++
++/*
++ * TODO:remove adm5120_eth* variables when the switch driver will be
++ *	converted into a real platform driver
++ */
++extern unsigned int adm5120_eth_num_ports;
++extern unsigned char adm5120_eth_macs[6][6];
++extern unsigned char adm5120_eth_vlans[6];
++
++extern void adm5120_soc_init(void) __init;
++extern void adm5120_mem_init(void) __init;
++extern void adm5120_ndelay(u32 ns);
++
++extern void (*adm5120_board_reset)(void);
++
++extern void adm5120_gpio_init(void) __init;
++extern void adm5120_gpio_csx0_enable(void) __init;
++extern void adm5120_gpio_csx1_enable(void) __init;
++extern void adm5120_gpio_ew_enable(void) __init;
++
++static inline int adm5120_package_pqfp(void)
++{
++	return (adm5120_package == ADM5120_PACKAGE_PQFP);
++}
++
++static inline int adm5120_package_bga(void)
++{
++	return (adm5120_package == ADM5120_PACKAGE_BGA);
++}
++
++static inline int adm5120_has_pci(void)
++{
++	return (adm5120_package == ADM5120_PACKAGE_BGA);
++}
++
++static inline int adm5120_has_gmii(void)
++{
++	return (adm5120_package == ADM5120_PACKAGE_BGA);
++}
++
++#endif /* _MACH_ADM5120_INFO_H */
+diff -rupN linux/include/asm-mips/mach-adm5120/adm5120_intc.h linux/include/asm-mips/mach-adm5120/adm5120_intc.h
+--- linux/include/asm-mips/mach-adm5120/adm5120_intc.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/adm5120_intc.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,63 @@
++/*
++ *  ADM5120 interrupt controller definitions
++ *
++ *  This header file defines the hardware registers of the ADM5120 SoC
++ *  built-in interrupt controller.
++ *
++ *  Copyright (C) 2007-2008 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ *
++ */
++
++#ifndef _MACH_ADM5120_INTC_H
++#define _MACH_ADM5120_INTC_H
++
++/*
++ * INTC register offsets
++ */
++#define INTC_REG_IRQ_STATUS		0x00 /* Interrupt status after masking */
++#define INTC_REG_IRQ_RAW_STATUS		0x04 /* Interrupt status before masking */
++#define INTC_REG_IRQ_ENABLE		0x08 /* Used to enable the interrupt sources */
++#define INTC_REG_IRQ_ENABLE_CLEAR	0x0C /* Used to disable the interrupt sources */
++#define INTC_REG_IRQ_DISABLE		INTC_REG_IRQ_ENABLE_CLEAR
++#define INTC_REG_INT_MODE		0x14 /* The interrupt mode of the sources */
++#define INTC_REG_FIQ_STATUS		0x18 /* FIQ status */
++#define INTC_REG_IRQ_TEST_SOURCE	0x1C
++#define INTC_REG_IRQ_SOURCE_SELECT	0x20
++#define INTC_REG_INT_LEVEL		0x24
++
++/*
++ * INTC IRQ numbers
++ */
++#define INTC_IRQ_TIMER	0	/* built in timer */
++#define INTC_IRQ_UART0	1	/* built-in UART0 */
++#define INTC_IRQ_UART1	2	/* built-in UART1 */
++#define INTC_IRQ_USBC	3	/* USB Host Controller */
++#define INTC_IRQ_GPIO2	4	/* GPIO line 2 */
++#define INTC_IRQ_GPIO4	5	/* GPIO line 4 */
++#define INTC_IRQ_PCI0	6	/* PCI slot 2 */
++#define INTC_IRQ_PCI1	7	/* PCI slot 3 */
++#define INTC_IRQ_PCI2	8	/* PCI slot 4 */
++#define INTC_IRQ_SWITCH	9	/* built-in ethernet switch */
++#define INTC_IRQ_LAST	INTC_IRQ_SWITCH
++#define INTC_IRQ_COUNT	10
++
++/*
++ * INTC register bits
++ */
++#define INTC_INT_TIMER	(1 << INTC_IRQ_TIMER)
++#define INTC_INT_UART0	(1 << INTC_IRQ_UART0)
++#define INTC_INT_UART1	(1 << INTC_IRQ_UART1)
++#define INTC_INT_USBC	(1 << INTC_IRQ_USBC)
++#define INTC_INT_INTX0	(1 << INTC_IRQ_INTX0)
++#define INTC_INT_INTX1	(1 << INTC_IRQ_INTX1)
++#define INTC_INT_PCI0	(1 << INTC_IRQ_PCI0)
++#define INTC_INT_PCI1	(1 << INTC_IRQ_PCI1)
++#define INTC_INT_PCI2	(1 << INTC_IRQ_PCI2)
++#define INTC_INT_SWITCH	(1 << INTC_IRQ_SWITCH)
++#define INTC_INT_ALL	((1 << INTC_IRQ_COUNT) - 1)
++
++#endif /* _MACH_ADM5120_INTC_H */
+diff -rupN linux/include/asm-mips/mach-adm5120/adm5120_mpmc.h linux/include/asm-mips/mach-adm5120/adm5120_mpmc.h
+--- linux/include/asm-mips/mach-adm5120/adm5120_mpmc.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/adm5120_mpmc.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,92 @@
++/*
++ *  ADM5120 MPMC (Multiport Memory Controller) register definitions
++ *
++ *  Copyright (C) 2007-2008 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ *
++ */
++
++#ifndef _MACH_ADM5120_MPMC_H
++#define _MACH_ADM5120_MPMC_H
++
++#define MPMC_READ_REG(r)	__raw_readl( \
++	(void __iomem *)KSEG1ADDR(ADM5120_MPMC_BASE) + MPMC_REG_ ## r)
++#define MPMC_WRITE_REG(r, v)	__raw_writel((v), \
++	(void __iomem *)KSEG1ADDR(ADM5120_MPMC_BASE) + MPMC_REG_ ## r)
++
++#define MPMC_REG_CTRL	0x0000
++#define MPMC_REG_STATUS	0x0004
++#define MPMC_REG_CONF	0x0008
++#define MPMC_REG_DC	0x0020
++#define MPMC_REG_DR	0x0024
++#define MPMC_REG_DRP	0x0030
++
++#define MPMC_REG_DC0	0x0100
++#define MPMC_REG_DRC0	0x0104
++#define MPMC_REG_DC1	0x0120
++#define MPMC_REG_DRC1	0x0124
++#define MPMC_REG_DC2	0x0140
++#define MPMC_REG_DRC2	0x0144
++#define MPMC_REG_DC3	0x0160
++#define MPMC_REG_DRC3	0x0164
++#define MPMC_REG_SC0	0x0200  /* for F_CS1_N */
++#define MPMC_REG_SC1	0x0220  /* for F_CS0_N */
++#define MPMC_REG_SC2    0x0240
++#define MPMC_REG_WEN2	0x0244
++#define MPMC_REG_OEN2	0x0248
++#define MPMC_REG_RD2	0x024C
++#define MPMC_REG_PG2	0x0250
++#define MPMC_REG_WR2	0x0254
++#define MPMC_REG_TN2	0x0258
++#define MPMC_REG_SC3    0x0260
++
++/* Control register bits */
++#define MPMC_CTRL_AM		(1 << 1)	/* Address Mirror */
++#define MPMC_CTRL_LPM		(1 << 2)	/* Low Power Mode */
++#define MPMC_CTRL_DWB		(1 << 3)	/* Drain Write Buffers */
++
++/* Status register bits */
++#define MPMC_STATUS_BUSY	(1 << 0)	/* Busy */
++#define MPMC_STATUS_WBS		(1 << 1)	/* Write Buffer Status */
++#define MPMC_STATUS_SRA		(1 << 2)	/* Self-Refresh Acknowledge*/
++
++/* Dynamic Control register bits */
++#define MPMC_DC_CE		(1 << 0)
++#define MPMC_DC_DMC		(1 << 1)
++#define MPMC_DC_SRR		(1 << 2)
++#define MPMC_DC_SI_SHIFT	7
++#define MPMC_DC_SI_MASK		(3 << 7)
++#define MPMC_DC_SI_NORMAL	(0 << 7)
++#define MPMC_DC_SI_MODE		(1 << 7)
++#define MPMC_DC_SI_PALL		(2 << 7)
++#define MPMC_DC_SI_NOP		(3 << 7)
++
++#define SRAM_REG_CONF	0x00
++#define SRAM_REG_WWE	0x04
++#define SRAM_REG_WOE	0x08
++#define SRAM_REG_WRD    0x0C
++#define SRAM_REG_WPG    0x10
++#define SRAM_REG_WWR    0x14
++#define SRAM_REG_WTR    0x18
++
++/* Dynamic Configuration register bits */
++#define DC_BE		(1 << 19) /* buffer enable */
++#define DC_RW_SHIFT	28	/* shift for number of rows */
++#define DC_RW_MASK	0x03
++#define DC_NB_SHIFT	26	/* shift for number of banks */
++#define DC_NB_MASK	0x01
++#define DC_CW_SHIFT	22	/* shift for number of columns */
++#define DC_CW_MASK	0x07
++#define DC_DW_SHIFT	7	/* shift for device width */
++#define DC_DW_MASK	0x03
++
++/* Static Configuration register bits */
++#define SC_MW_MASK	0x03	/* memory width mask */
++#define SC_MW_8		0x00	/* 8 bit memory width */
++#define SC_MW_16	0x01	/* 16 bit memory width */
++#define SC_MW_32	0x02	/* 32 bit memory width */
++
++#endif /* _MACH_ADM5120_MPMC_H */
+diff -rupN linux/include/asm-mips/mach-adm5120/adm5120_nand.h linux/include/asm-mips/mach-adm5120/adm5120_nand.h
+--- linux/include/asm-mips/mach-adm5120/adm5120_nand.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/adm5120_nand.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,89 @@
++/*
++ *  ADM5120 NAND interface definitions
++ *
++ *  This header file defines the hardware registers of the ADM5120 SoC
++ *  built-in NAND interface.
++ *
++ *  Copyright (C) 2007-2008 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  NAND interface routines was based on a driver for Linux 2.6.19+ which
++ *  was derived from the driver for Linux 2.4.xx published by Mikrotik for
++ *  their RouterBoard 1xx and 5xx series boards.
++ *    Copyright (C) 2007 David Goodenough <david.goodenough@linkchoose.co.uk>
++ *    Copyright (C) 2007 Florian Fainelli <florian@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ *
++ */
++
++#ifndef _MACH_ADM5120_NAND_H
++#define _MACH_ADM5120_NAND_H
++
++#include <linux/types.h>
++#include <linux/io.h>
++
++#include <asm/mach-adm5120/adm5120_defs.h>
++#include <asm/mach-adm5120/adm5120_switch.h>
++
++/* NAND control registers */
++#define NAND_REG_DATA		0x0 /* data register */
++#define NAND_REG_SET_CEn	0x1 /* CE# low */
++#define NAND_REG_CLR_CEn	0x2 /* CE# high */
++#define NAND_REG_CLR_CLE	0x3 /* CLE low */
++#define NAND_REG_SET_CLE	0x4 /* CLE high */
++#define NAND_REG_CLR_ALE	0x5 /* ALE low */
++#define NAND_REG_SET_ALE	0x6 /* ALE high */
++#define NAND_REG_SET_SPn	0x7 /* SP# low (use spare area) */
++#define NAND_REG_CLR_SPn	0x8 /* SP# high (do not use spare area) */
++#define NAND_REG_SET_WPn	0x9 /* WP# low */
++#define NAND_REG_CLR_WPn	0xA /* WP# high */
++#define NAND_REG_STATUS		0xB /* Status register */
++
++#define ADM5120_NAND_STATUS_READY	0x80
++
++#define NAND_READ_REG(r) \
++	readb((void __iomem *)KSEG1ADDR(ADM5120_NAND_BASE) + (r))
++#define NAND_WRITE_REG(r, v) \
++	writeb((v), (void __iomem *)KSEG1ADDR(ADM5120_NAND_BASE) + (r))
++
++/*-------------------------------------------------------------------------*/
++
++static inline void adm5120_nand_enable(void)
++{
++	SW_WRITE_REG(SWITCH_REG_BW_CNTL1, BW_CNTL1_NAND_ENABLE);
++	SW_WRITE_REG(SWITCH_REG_BOOT_DONE, 1);
++}
++
++static inline void adm5120_nand_set_wpn(unsigned int set)
++{
++	NAND_WRITE_REG((set) ? NAND_REG_SET_WPn : NAND_REG_CLR_WPn, 1);
++}
++
++static inline void adm5120_nand_set_spn(unsigned int set)
++{
++	NAND_WRITE_REG((set) ? NAND_REG_SET_SPn : NAND_REG_CLR_SPn, 1);
++}
++
++static inline void adm5120_nand_set_cle(unsigned int set)
++{
++	NAND_WRITE_REG((set) ? NAND_REG_SET_CLE : NAND_REG_CLR_CLE, 1);
++}
++
++static inline void adm5120_nand_set_ale(unsigned int set)
++{
++	NAND_WRITE_REG((set) ? NAND_REG_SET_ALE : NAND_REG_CLR_ALE, 1);
++}
++
++static inline void adm5120_nand_set_cen(unsigned int set)
++{
++	NAND_WRITE_REG((set) ? NAND_REG_SET_CEn : NAND_REG_CLR_CEn, 1);
++}
++
++static inline u8 adm5120_nand_get_status(void)
++{
++	return NAND_READ_REG(NAND_REG_STATUS);
++}
++
++#endif /* _MACH_ADM5120_NAND_H */
+diff -rupN linux/include/asm-mips/mach-adm5120/adm5120_platform.h linux/include/asm-mips/mach-adm5120/adm5120_platform.h
+--- linux/include/asm-mips/mach-adm5120/adm5120_platform.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/adm5120_platform.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,87 @@
++/*
++ *  ADM5120 specific platform definitions
++ *
++ *  Copyright (C) 2007-2008 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ *
++ */
++
++#ifndef _ASM_MIPS_MACH_ADM5120_PLATFORM_H
++#define _ASM_MIPS_MACH_ADM5120_PLATFORM_H
++
++#include <linux/device.h>
++#include <linux/platform_device.h>
++#include <linux/input.h>
++#include <linux/leds.h>
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/map.h>
++#include <linux/mtd/partitions.h>
++#include <linux/mtd/nand.h>
++#include <linux/gpio_buttons.h>
++#include <linux/amba/bus.h>
++#include <linux/amba/serial.h>
++
++struct adm5120_flash_platform_data {
++	void			(*set_vpp)(struct map_info *, int);
++	void			(*switch_bank)(unsigned);
++	u32			window_size;
++#ifdef CONFIG_MTD_PARTITIONS
++	unsigned int		nr_parts;
++	struct mtd_partition	*parts;
++#endif
++};
++
++struct adm5120_switch_platform_data {
++	/* TODO: not yet implemented */
++};
++
++struct adm5120_pci_irq {
++	u8	slot;
++	u8	func;
++	u8	pin;
++	unsigned irq;
++};
++
++#define PCIIRQ(s, f, p, i) {.slot = (s), .func = (f), .pin  = (p), .irq  = (i)}
++
++#ifdef CONFIG_PCI
++extern void adm5120_pci_set_irq_map(unsigned int nr_irqs,
++		struct adm5120_pci_irq *map) __init;
++#else
++static inline void adm5120_pci_set_irq_map(unsigned int nr_irqs,
++		struct adm5120_pci_irq *map)
++{
++}
++#endif
++
++extern void adm5120_setup_eth_macs(u8 *mac_base) __init;
++
++extern struct adm5120_flash_platform_data adm5120_flash0_data;
++extern struct adm5120_flash_platform_data adm5120_flash1_data;
++
++extern void adm5120_add_device_flash(unsigned id) __init;
++extern void adm5120_add_device_usb(void) __init;
++extern void adm5120_add_device_uart(unsigned id) __init;
++extern void adm5120_add_device_nand(struct platform_nand_data *pdata) __init;
++extern void adm5120_add_device_switch(unsigned num_ports, u8 *vlan_map) __init;
++extern void adm5120_add_device_gpio(u32 disable_mask) __init;
++extern void adm5120_add_device_gpio_buttons(unsigned nbuttons,
++					struct gpio_button *buttons) __init;
++
++#define GPIO_LED_DEF(g, n, t, a) {	\
++	.name = (n),			\
++	.default_trigger = (t),		\
++	.gpio = (g),			\
++	.active_low = (a)		\
++}
++
++#define GPIO_LED_STD(g, n, t)	GPIO_LED_DEF((g), (n), (t), 0)
++#define GPIO_LED_INV(g, n, t)	GPIO_LED_DEF((g), (n), (t), 1)
++
++extern void adm5120_add_device_gpio_leds(unsigned num_leds,
++					struct gpio_led *leds) __init;
++
++#endif /* _ASM_MIPS_MACH_ADM5120_PLATFORM_H */
+diff -rupN linux/include/asm-mips/mach-adm5120/adm5120_switch.h linux/include/asm-mips/mach-adm5120/adm5120_switch.h
+--- linux/include/asm-mips/mach-adm5120/adm5120_switch.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/adm5120_switch.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,300 @@
++/*
++ *  ADM5120 ethernet switch definitions
++ *
++ *  This header file defines the hardware registers of the ADM5120 SoC
++ *  built-in Ethernet switch.
++ *
++ *  Copyright (C) 2007-2008 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ *
++ */
++
++#ifndef _MACH_ADM5120_SWITCH_H
++#define _MACH_ADM5120_SWITCH_H
++
++#ifndef BIT
++#  define BIT(at)	(1 << (at))
++#endif
++#define BITMASK(len)	(BIT(len)-1)
++
++#define SW_READ_REG(r)		__raw_readl( \
++	(void __iomem *)KSEG1ADDR(ADM5120_SWITCH_BASE) + r)
++#define SW_WRITE_REG(r, v)	__raw_writel((v), \
++	(void __iomem *)KSEG1ADDR(ADM5120_SWITCH_BASE) + r)
++
++/* Switch register offsets */
++#define SWITCH_REG_CODE		0x0000
++#define SWITCH_REG_SOFT_RESET	0x0004	/* Soft Reset */
++#define SWITCH_REG_BOOT_DONE	0x0008	/* Boot Done */
++#define SWITCH_REG_SW_RESET	0x000C	/* Switch Reset */
++#define SWITCH_REG_PHY_STATUS	0x0014	/* PHY Status */
++#define SWITCH_REG_MEMCTRL	0x001C	/* Memory Control */
++#define SWITCH_REG_CPUP_CONF	0x0024	/* CPU Port Configuration */
++#define SWITCH_REG_PORT_CONF0	0x0028	/* Port Configuration 0 */
++#define SWITCH_REG_PORT_CONF1	0x002C	/* Port Configuration 1 */
++#define SWITCH_REG_PORT_CONF2	0x0030	/* Port Configuration 2 */
++#define SWITCH_REG_VLAN_G1	0x0040	/* VLAN group 1 */
++#define SWITCH_REG_VLAN_G2	0x0044	/* VLAN group 2 */
++#define SWITCH_REG_SEND_TRIG	0x0048	/* Send Trigger */
++#define SWITCH_REG_MAC_WT0	0x0058	/* MAC Write Address 0 */
++#define SWITCH_REG_MAC_WT1	0x005C	/* MAC Write Address 1 */
++#define SWITCH_REG_BW_CNTL0	0x0060	/* Bandwidth Control 0 */
++#define SWITCH_REG_BW_CNTL1	0x0064	/* Bandwidth Control 1 */
++#define SWITCH_REG_PHY_CNTL0	0x0068	/* PHY Control 0 */
++#define SWITCH_REG_PHY_CNTL1	0x006C	/* PHY Control 1 */
++#define SWITCH_REG_PORT_TH	0x0078	/* Port Threshold */
++#define SWITCH_REG_PHY_CNTL2	0x007C	/* PHY Control 2 */
++#define SWITCH_REG_PHY_CNTL3	0x0080	/* PHY Control 3 */
++#define SWITCH_REG_PRI_CNTL	0x0084	/* Priority Control */
++#define SWITCH_REG_PHY_CNTL4	0x00A0	/* PHY Control 4 */
++#define SWITCH_REG_EMPTY_CNT	0x00A4	/* Empty Count */
++#define SWITCH_REG_PORT_CNTLS	0x00A8	/* Port Control Select */
++#define SWITCH_REG_PORT_CNTL	0x00AC	/* Port Control */
++#define SWITCH_REG_INT_STATUS	0x00B0	/* Interrupt Status */
++#define SWITCH_REG_INT_MASK	0x00B4	/* Interrupt Mask */
++#define SWITCH_REG_GPIO_CONF0	0x00B8	/* GPIO Configuration 0 */
++#define SWITCH_REG_GPIO_CONF2	0x00BC	/* GPIO Configuration 1 */
++#define SWITCH_REG_WDOG0	0x00C0	/* Watchdog 0 */
++#define SWITCH_REG_WDOG1	0x00C4	/* Watchdog 1 */
++
++#define SWITCH_REG_SHDA		0x00D0	/* Send High Descriptors Address */
++#define SWITCH_REG_SLDA		0x00D4	/* Send Low Descriptors Address */
++#define SWITCH_REG_RHDA		0x00D8	/* Receive High Descriptor Address */
++#define SWITCH_REG_RLDA		0x00DC	/* Receive Low Descriptor Address */
++#define SWITCH_REG_SHWA		0x00E0	/* Send High Working Address */
++#define SWITCH_REG_SLWA		0x00E4	/* Send Low Working Address */
++#define SWITCH_REG_RHWA		0x00E8	/* Receive High Working Address */
++#define SWITCH_REG_RLWA		0x00EC	/* Receive Low Working Address */
++
++#define SWITCH_REG_TIMER_INT	0x00F0	/* Timer */
++#define SWITCH_REG_TIMER	0x00F4	/* Timer Interrupt */
++
++#define SWITCH_REG_PORT0_LED	0x0100
++#define SWITCH_REG_PORT1_LED	0x0104
++#define SWITCH_REG_PORT2_LED	0x0108
++#define SWITCH_REG_PORT3_LED	0x010C
++#define SWITCH_REG_PORT4_LED	0x0110
++
++/* CODE register bits */
++#define CODE_PC_MASK		BITMASK(16)	/* Product Code */
++#define CODE_REV_SHIFT		16
++#define CODE_REV_MASK		BITMASK(4)	/* Product Revision */
++#define CODE_CLKS_SHIFT		20
++#define CODE_CLKS_MASK		BITMASK(2)	/* Clock Speed */
++#define CODE_CLKS_175		0		/* 175 MHz */
++#define CODE_CLKS_200		1		/* 200 MHz */
++#define CODE_CLKS_225		2		/* 225 MHz */
++#define CODE_CLKS_250		3		/* 250 MHz */
++#define CODE_NAB		BIT(24)		/* NAND boot */
++#define CODE_PK_MASK		BITMASK(1)	/* Package type */
++#define CODE_PK_SHIFT		29
++#define CODE_PK_BGA		0		/* BGA package */
++#define CODE_PK_PQFP		1		/* PQFP package */
++
++/* MEMCTRL register bits */
++#define MEMCTRL_SDRS_MASK	BITMASK(3)	/* SDRAM bank size */
++#define MEMCTRL_SDRS_4M		0x01
++#define MEMCTRL_SDRS_8M		0x02
++#define MEMCTRL_SDRS_16M	0x03
++#define MEMCTRL_SDRS_64M	0x04
++#define MEMCTRL_SDRS_128M	0x05
++#define MEMCTRL_SDR1_ENABLE	BIT(5)		/* enable SDRAM bank 1 */
++
++#define MEMCTRL_SRS0_SHIFT	8		/* shift for SRAM0 size */
++#define MEMCTRL_SRS1_SHIFT	16		/* shift for SRAM1 size */
++#define MEMCTRL_SRS_MASK	BITMASK(3)	/* SRAM size mask */
++#define MEMCTRL_SRS_DISABLED	0x00		/* Disabled */
++#define MEMCTRL_SRS_512K	0x01		/* 512KB*/
++#define MEMCTRL_SRS_1M		0x02		/* 1MB */
++#define MEMCTRL_SRS_2M		0x03		/* 2MB */
++#define MEMCTRL_SRS_4M		0x04		/* 4MB */
++
++/* Port bits used in various registers */
++#define SWITCH_PORT_PHY0	BIT(0)
++#define SWITCH_PORT_PHY1	BIT(1)
++#define SWITCH_PORT_PHY2	BIT(2)
++#define SWITCH_PORT_PHY3	BIT(3)
++#define SWITCH_PORT_PHY4	BIT(4)
++#define SWITCH_PORT_MII		BIT(5)
++#define SWITCH_PORT_CPU		BIT(6)
++
++/* Port bit shorthands */
++#define SWITCH_PORTS_PHY	0x1F	/* phy ports */
++#define SWITCH_PORTS_NOCPU	0x3F	/* physical ports */
++#define SWITCH_PORTS_ALL	0x7F	/* all ports */
++
++/* CPUP_CONF register bits */
++#define CPUP_CONF_DCPUP		BIT(0)	/* Disable CPU port */
++#define CPUP_CONF_CRCP		BIT(1)	/* CRC padding from CPU */
++#define CPUP_CONF_BTM		BIT(2)	/* Bridge Testing Mode */
++#define CPUP_CONF_DUNP_SHIFT	9	/* Disable Unknown Packets for portX */
++#define CPUP_CONF_DMCP_SHIFT	16	/* Disable Mcast Packets form portX */
++#define CPUP_CONF_DBCP_SHIFT	24	/* Disable Bcast Packets form portX */
++
++/* PORT_CONF0 register bits */
++#define PORT_CONF0_DP_SHIFT	0	/* Disable Port */
++#define PORT_CONF0_EMCP_SHIFT	8	/* Enable All MC Packets */
++#define PORT_CONF0_BP_SHIFT	16	/* Enable Back Pressure */
++
++/* PORT_CONF1 register bits */
++#define PORT_CONF1_DISL_SHIFT	0	/* Disable Learning */
++#define PORT_CONF1_BS_SHIFT	6	/* Blocking State */
++#define PORT_CONF1_BM_SHIFT	12	/* Blocking Mode */
++
++/* SEND_TRIG register bits */
++#define SEND_TRIG_STL		BIT(0)	/* Send Trigger Low */
++#define SEND_TRIG_STH		BIT(1)	/* Send Trigger High */
++
++/* MAC_WT0 register bits */
++#define MAC_WT0_MAWC		BIT(0)	/* MAC address write command */
++#define MAC_WT0_MWD_SHIFT	1
++#define MAC_WT0_MWD		BIT(1)	/* MAC write done */
++#define MAC_WT0_WFB		BIT(2)	/* Write Filter Bit */
++#define MAC_WT0_WVN_SHIFT	3	/* Write Vlan Number shift */
++#define MAC_WT0_WVE		BIT(6)	/* Write VLAN enable */
++#define MAC_WT0_WPMN_SHIFT	7
++#define MAC_WT0_WAF_SHIFT	13	/* Write Age Field shift */
++#define MAC_WT0_WAF_EMPTY	0
++#define MAC_WT0_WAF_STATIC	7	/* age: static */
++#define MAC_WT0_MAC0_SHIFT	16
++#define MAC_WT0_MAC1_SHIFT	24
++
++/* MAC_WT1 register bits */
++#define MAC_WT1_MAC2_SHIFT	0
++#define MAC_WT1_MAC3_SHIFT	8
++#define MAC_WT1_MAC4_SHIFT	16
++#define MAC_WT1_MAC5_SHIFT	24
++
++/* BW_CNTL0/BW_CNTL1 register bits */
++#define BW_CNTL_DISABLE		0x00
++#define BW_CNTL_64K		0x01
++#define BW_CNTL_128K		0x02
++#define BW_CNTL_256K		0x03
++#define BW_CNTL_512K		0x04
++#define BW_CNTL_1M		0x05
++#define BW_CNTL_4M		0x06
++#define BW_CNTL_10M		0x07
++
++#define P4TBC_SHIFT		0
++#define P4RBC_SHIFT		4
++#define P5TBC_SHIFT		8
++#define P5RBC_SHIFT		12
++
++#define BW_CNTL1_NAND_ENABLE	0x100
++
++/* PHY_CNTL0 register bits */
++#define PHY_CNTL0_PHYA_MASK	BITMASK(5)
++#define PHY_CNTL0_PHYR_MASK	BITMASK(5)
++#define PHY_CNTL0_PHYR_SHIFT	8
++#define PHY_CNTL0_WC		BIT(13)		/* Write Command */
++#define PHY_CNTL0_RC		BIT(14)		/* Read Command */
++#define PHY_CNTL0_WTD_MASK	BIT(16)		/* Read Command */
++#define PHY_CNTL0_WTD_SHIFT	16
++
++/* PHY_CNTL1 register bits */
++#define PHY_CNTL1_WOD		BIT(0)		/* Write Operation Done */
++#define PHY_CNTL1_ROD		BIT(1)		/* Read Operation Done */
++#define PHY_CNTL1_RD_MASK	BITMASK(16)
++#define PHY_CNTL1_RD_SHIFT	16
++
++/* PHY_CNTL2 register bits */
++#define PHY_CNTL2_ANE_SHIFT	0	/* Auto Negotiation Enable */
++#define PHY_CNTL2_SC_SHIFT	5	/* Speed Control */
++#define PHY_CNTL2_DC_SHIFT	10	/* Duplex Control */
++#define PHY_CNTL2_FNCV_SHIFT	15	/* Recommended FC Value */
++#define PHY_CNTL2_PHYR_SHIFT	20	/* PHY reset */
++#define PHY_CNTL2_AMDIX_SHIFT	25	/* Auto MDIX enable */
++/* PHY_CNTL2_RMAE is bad in datasheet */
++#define PHY_CNTL2_RMAE		BIT(31)	/* Recommended MCC Average enable */
++
++/* PHY_CNTL3 register bits */
++#define PHY_CNTL3_RNT		BIT(10) /* Recommend Normal Threshold */
++
++/* PORT_TH register bits */
++#define PORT_TH_PPT_MASK	BITMASK(8)	/* Per Port Threshold */
++#define PORT_TH_CPUT_SHIFT	8		/* CPU Port Buffer Threshold */
++#define PORT_TH_CPUT_MASK	BITMASK(8)
++#define PORT_TH_CPUHT_SHIFT	16		/* CPU Hold Threshold */
++#define PORT_TH_CPUHT_MASK	BITMASK(8)
++#define PORT_TH_CPURT_SHIFT	24		/* CPU Release Threshold */
++#define PORT_TH_CPURT_MASK	BITMASK(8)
++
++/* EMPTY_CNT register bits */
++#define EMPTY_CNT_EBGB_MASK	BITMASK(9) /* Empty Blocks in the Global Buffer */
++
++/* GPIO_CONF0 register bits */
++#define GPIO_CONF0_MASK		BITMASK(8)
++#define GPIO_CONF0_IM_SHIFT	0
++#define GPIO_CONF0_IV_SHIFT	8
++#define GPIO_CONF0_OE_SHIFT	16
++#define GPIO_CONF0_OV_SHIFT	24
++#define GPIO_CONF0_IM_MASK	(0xFF << GPIO_CONF0_IM_SHIFT)
++#define GPIO_CONF0_IV_MASK	(0xFF << GPIO_CONF0_IV_SHIFT)
++#define GPIO_CONF0_OE_MASK	(0xFF << GPIO_CONF0_OE_SHIFT)
++#define GPIO_CONF0_OV_MASK	(0xFF << GPIO_CONF0_OV_SHIFT)
++
++/* GPIO_CONF2 register bits */
++#define GPIO_CONF2_CSX0		BIT(4)	/* enable CSX0:INTX0 on GPIO 1:2 */
++#define GPIO_CONF2_CSX1		BIT(5)	/* enable CSX1:INTX1 on GPIO 3:4 */
++#define GPIO_CONF2_EW		BIT(6)	/* enable wait state pin for CSX0/1 */
++
++/* INT_STATUS/INT_MASK register bits */
++#define SWITCH_INT_SHD		BIT(0)	/* Send High Done */
++#define SWITCH_INT_SLD		BIT(1)	/* Send Low Done */
++#define SWITCH_INT_RHD		BIT(2)	/* Receive High Done */
++#define SWITCH_INT_RLD		BIT(3)	/* Receive Low Done */
++#define SWITCH_INT_HDF		BIT(4)	/* High Descriptor Full */
++#define SWITCH_INT_LDF		BIT(5)	/* Low Descriptor Full */
++#define SWITCH_INT_P0QF		BIT(6)	/* Port0 Queue Full */
++#define SWITCH_INT_P1QF		BIT(7)	/* Port1 Queue Full */
++#define SWITCH_INT_P2QF		BIT(8)	/* Port2 Queue Full */
++#define SWITCH_INT_P3QF		BIT(9)	/* Port3 Queue Full */
++#define SWITCH_INT_P4QF		BIT(10)	/* Port4 Queue Full */
++#define SWITCH_INT_P5QF		BIT(11)	/* Port5 Queue Full */
++#define SWITCH_INT_CPQF		BIT(13)	/* CPU Queue Full */
++#define SWITCH_INT_GQF		BIT(14)	/* Global Queue Full */
++#define SWITCH_INT_MD		BIT(15)	/* Must Drop */
++#define SWITCH_INT_BCS		BIT(16)	/* BC Storm */
++#define SWITCH_INT_PSC		BIT(18)	/* Port Status Change */
++#define SWITCH_INT_ID		BIT(19)	/* Intruder Detected */
++#define SWITCH_INT_W0TE		BIT(20)	/* Watchdog 0 Timer Expired */
++#define SWITCH_INT_W1TE		BIT(21)	/* Watchdog 1 Timer Expired */
++#define SWITCH_INT_RDE		BIT(22)	/* Receive Descriptor Error */
++#define SWITCH_INT_SDE		BIT(23)	/* Send Descriptor Error */
++#define SWITCH_INT_CPUH		BIT(24)	/* CPU Hold */
++
++/* TIMER_INT register bits */
++#define TIMER_INT_TOS		BIT(0)	/* time-out status */
++#define TIMER_INT_TOM		BIT(16)	/* mask time-out interrupt */
++
++/* TIMER register bits */
++#define TIMER_PERIOD_MASK	BITMASK(16)	/* mask for timer period */
++#define TIMER_PERIOD_DEFAULT	0xFFFF		/* default timer period */
++#define TIMER_TE		BIT(16)	/* timer enable bit */
++
++/* PORTx_LED register bits */
++#define LED_MODE_MASK		BITMASK(4)
++#define LED_MODE_INPUT		0
++#define LED_MODE_FLASH		1
++#define LED_MODE_OUT_HIGH	2
++#define LED_MODE_OUT_LOW	3
++#define LED_MODE_LINK		4
++#define LED_MODE_SPEED		5
++#define LED_MODE_DUPLEX		6
++#define LED_MODE_ACT		7
++#define LED_MODE_COLL		8
++#define LED_MODE_LINK_ACT	9
++#define LED_MODE_DUPLEX_COLL	10
++#define LED_MODE_10M_ACT	11
++#define LED_MODE_100M_ACT	12
++#define LED0_MODE_SHIFT		0	/* LED0 mode shift */
++#define LED1_MODE_SHIFT		4	/* LED1 mode shift */
++#define LED2_MODE_SHIFT		8	/* LED2 mode shift */
++#define LED0_IV_SHIFT		12	/* LED0 input value shift */
++#define LED1_IV_SHIFT		13	/* LED1 input value shift */
++#define LED2_IV_SHIFT		14	/* LED2 input value shift */
++
++#endif /* _MACH_ADM5120_SWITCH_H */
+diff -rupN linux/include/asm-mips/mach-adm5120/adm5120_uart.h linux/include/asm-mips/mach-adm5120/adm5120_uart.h
+--- linux/include/asm-mips/mach-adm5120/adm5120_uart.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/adm5120_uart.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,64 @@
++/*
++ *  ADM5120 UART definitions
++ *
++ *  This header file defines the hardware registers of the ADM5120 SoC
++ *  built-in UARTs.
++ *
++ *  Copyright (C) 2007 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ *
++ */
++
++#ifndef _MACH_ADM5120_UART_H
++#define _MACH_ADM5120_UART_H
++
++#define UART_BAUDDIV(clk, baud) ((clk/(16 * (baud)))-1)
++
++#define UART_REG_DATA	0x00
++#define UART_REG_RSR	0x04
++#define UART_REG_ECR	UART_REG_RSR
++#define UART_REG_LCRH	0x08
++#define UART_REG_LCRM	0x0C
++#define UART_REG_LCRL	0x10
++#define UART_REG_CTRL	0x14
++#define UART_REG_FLAG	0x18
++
++/* Receive Status Register bits */
++#define UART_RSR_FE	(1 << 0)
++#define UART_RSR_PE	(1 << 1)
++#define UART_RSR_BE	(1 << 2)
++#define UART_RSR_OE	(1 << 3)
++#define UART_RSR_ERR	(UART_RSR_FE | UART_RSR_PE | UART_RSR_BE)
++
++#define UART_ECR_ALL	0xFF
++
++/* Line Control High register bits */
++#define UART_LCRH_BRK	(1 << 0) /* send break */
++#define UART_LCRH_PEN	(1 << 1) /* parity enable */
++#define UART_LCRH_EPS	(1 << 2) /* even parity select */
++#define UART_LCRH_STP1	(0 << 3) /* one stop bits select */
++#define UART_LCRH_STP2	(1 << 3) /* two stop bits select */
++#define UART_LCRH_FEN	(1 << 4) /* FIFO enable */
++
++#define UART_LCRH_WLEN5	(0 << 5)
++#define UART_LCRH_WLEN6	(1 << 5)
++#define UART_LCRH_WLEN7	(2 << 5)
++#define UART_LCRH_WLEN8	(3 << 5)
++
++/* Control register bits */
++#define UART_CTRL_EN	(1 << 0)
++
++/* Flag register bits */
++#define UART_FLAG_CTS	(1 << 0)
++#define UART_FLAG_DSR	(1 << 1)
++#define UART_FLAG_DCD	(1 << 2)
++#define UART_FLAG_BUSY	(1 << 3)
++#define UART_FLAG_RXFE	(1 << 4)
++#define UART_FLAG_TXFF	(1 << 5)
++#define UART_FLAG_RXFF	(1 << 6)
++#define UART_FLAG_TXFE	(1 << 7)
++
++#endif /* _MACH_ADM5120_UART_H */
+diff -rupN linux/include/asm-mips/mach-adm5120/asm/sizes.h linux/include/asm-mips/mach-adm5120/asm/sizes.h
+--- linux/include/asm-mips/mach-adm5120/asm/sizes.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/asm/sizes.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,56 @@
++/*
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++/* DO NOT EDIT!! - this file automatically generated
++ *                 from .s file by awk -f s2h.awk
++ */
++/*  Size definitions
++ *  Copyright (C) ARM Limited 1998. All rights reserved.
++ */
++
++#ifndef __sizes_h
++#define __sizes_h                       1
++
++/* handy sizes */
++#define SZ_16				0x00000010
++#define SZ_256				0x00000100
++#define SZ_512				0x00000200
++
++#define SZ_1K                           0x00000400
++#define SZ_4K                           0x00001000
++#define SZ_8K                           0x00002000
++#define SZ_16K                          0x00004000
++#define SZ_64K                          0x00010000
++#define SZ_128K                         0x00020000
++#define SZ_256K                         0x00040000
++#define SZ_512K                         0x00080000
++
++#define SZ_1M                           0x00100000
++#define SZ_2M                           0x00200000
++#define SZ_4M                           0x00400000
++#define SZ_8M                           0x00800000
++#define SZ_16M                          0x01000000
++#define SZ_32M                          0x02000000
++#define SZ_64M                          0x04000000
++#define SZ_128M                         0x08000000
++#define SZ_256M                         0x10000000
++#define SZ_512M                         0x20000000
++
++#define SZ_1G                           0x40000000
++#define SZ_2G                           0x80000000
++
++#endif
++
++/*         END */
+diff -rupN linux/include/asm-mips/mach-adm5120/cpu-feature-overrides.h linux/include/asm-mips/mach-adm5120/cpu-feature-overrides.h
+--- linux/include/asm-mips/mach-adm5120/cpu-feature-overrides.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/cpu-feature-overrides.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,71 @@
++/*
++ *  ADM5120 specific CPU feature overrides
++ *
++ *  Copyright (C) 2007-2008 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This file was derived from: include/asm-mips/cpu-features.h
++ *	Copyright (C) 2003, 2004 Ralf Baechle
++ *	Copyright (C) 2004 Maciej W. Rozycki
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ *
++ */
++#ifndef __ASM_MACH_ADM5120_CPU_FEATURE_OVERRIDES_H
++#define __ASM_MACH_ADM5120_CPU_FEATURE_OVERRIDES_H
++
++/*
++ * The ADM5120 SOC has a built-in MIPS 4Kc core.
++ */
++#define cpu_has_tlb			1
++#define cpu_has_4kex			1
++#define cpu_has_3k_cache		0
++#define cpu_has_4k_cache		1
++#define cpu_has_tx39_cache		0
++#define cpu_has_sb1_cache		0
++#define cpu_has_fpu			0
++#define cpu_has_32fpr			0
++#define cpu_has_counter			1
++#define cpu_has_watch			1
++#define cpu_has_divec			1
++/* #define cpu_has_vce			? */
++/* #define cpu_has_cache_cdex_p		? */
++/* #define cpu_has_cache_cdex_s		? */
++#define cpu_has_prefetch		1
++/* #define cpu_has_mcheck		? */
++#define cpu_has_ejtag			1
++#define cpu_has_llsc			1
++
++#define cpu_has_mips16			0
++#define cpu_has_mdmx			0
++#define cpu_has_mips3d			0
++#define cpu_has_smartmips		0
++
++/* #define cpu_has_vtag_icache		? */
++/* #define cpu_has_dc_aliases		? */
++/* #define cpu_has_ic_fills_f_dc	? */
++/* #define cpu_has_pindexed_dcache	? */
++
++/* #define cpu_icache_snoops_remote_store	? */
++
++#define cpu_has_mips32r1		1
++#define cpu_has_mips32r2		0
++#define cpu_has_mips64r1		0
++#define cpu_has_mips64r2		0
++
++#define cpu_has_dsp			0
++#define cpu_has_mipsmt			0
++
++/* #define cpu_has_nofpuex		? */
++#define cpu_has_64bits			0
++#define cpu_has_64bit_zero_reg		0
++#define cpu_has_64bit_gp_regs		0
++#define cpu_has_64bit_addresses		0
++
++/* #define cpu_has_inclusive_pcaches	? */
++
++#define cpu_dcache_line_size()		16
++#define cpu_icache_line_size()		16
++
++#endif /* __ASM_MACH_ADM5120_CPU_FEATURE_OVERRIDES_H */
+diff -rupN linux/include/asm-mips/mach-adm5120/gpio.h linux/include/asm-mips/mach-adm5120/gpio.h
+--- linux/include/asm-mips/mach-adm5120/gpio.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/gpio.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,115 @@
++/*
++ *  ADM5120 GPIO wrappers for arch-neutral GPIO calls
++ *
++ *  Copyright (C) 2007-2008 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ *
++ */
++
++#ifndef _ASM_MIPS_MACH_ADM5120_GPIO_H
++#define _ASM_MIPS_MACH_ADM5120_GPIO_H
++
++#define ARCH_NR_GPIOS	64
++
++#include <asm-generic/gpio.h>
++
++#include <asm/mach-adm5120/adm5120_switch.h>
++
++#define ADM5120_GPIO_PIN0	0
++#define ADM5120_GPIO_PIN1	1
++#define ADM5120_GPIO_PIN2	2
++#define ADM5120_GPIO_PIN3	3
++#define ADM5120_GPIO_PIN4	4
++#define ADM5120_GPIO_PIN5	5
++#define ADM5120_GPIO_PIN6	6
++#define ADM5120_GPIO_PIN7	7
++#define ADM5120_GPIO_P0L0	8
++#define ADM5120_GPIO_P0L1	9
++#define ADM5120_GPIO_P0L2	10
++#define ADM5120_GPIO_P1L0	11
++#define ADM5120_GPIO_P1L1	12
++#define ADM5120_GPIO_P1L2	13
++#define ADM5120_GPIO_P2L0	14
++#define ADM5120_GPIO_P2L1	15
++#define ADM5120_GPIO_P2L2	16
++#define ADM5120_GPIO_P3L0	17
++#define ADM5120_GPIO_P3L1	18
++#define ADM5120_GPIO_P3L2	19
++#define ADM5120_GPIO_P4L0	20
++#define ADM5120_GPIO_P4L1	21
++#define ADM5120_GPIO_P4L2	22
++#define ADM5120_GPIO_MAX	22
++#define ADM5120_GPIO_COUNT	ADM5120_GPIO_MAX+1
++
++#define ADM5120_GPIO_LOW	0
++#define ADM5120_GPIO_HIGH	1
++
++#define ADM5120_GPIO_SWITCH	0x10
++#define ADM5120_GPIO_FLASH	(ADM5120_GPIO_SWITCH | LED_MODE_FLASH)
++#define ADM5120_GPIO_LINK	(ADM5120_GPIO_SWITCH | LED_MODE_LINK)
++#define ADM5120_GPIO_SPEED	(ADM5120_GPIO_SWITCH | LED_MODE_SPEED)
++#define ADM5120_GPIO_DUPLEX	(ADM5120_GPIO_SWITCH | LED_MODE_DUPLEX)
++#define ADM5120_GPIO_ACT	(ADM5120_GPIO_SWITCH | LED_MODE_ACT)
++#define ADM5120_GPIO_COLL	(ADM5120_GPIO_SWITCH | LED_MODE_COLL)
++#define ADM5120_GPIO_LINK_ACT	(ADM5120_GPIO_SWITCH | LED_MODE_LINK_ACT)
++#define ADM5120_GPIO_DUPLEX_COLL (ADM5120_GPIO_SWITCH | LED_MODE_DUPLEX_COLL)
++#define ADM5120_GPIO_10M_ACT	(ADM5120_GPIO_SWITCH | LED_MODE_10M_ACT)
++#define ADM5120_GPIO_100M_ACT	(ADM5120_GPIO_SWITCH | LED_MODE_100M_ACT)
++
++extern int  __adm5120_gpio0_get_value(unsigned gpio);
++extern void __adm5120_gpio0_set_value(unsigned gpio, int value);
++extern int  __adm5120_gpio1_get_value(unsigned gpio);
++extern void __adm5120_gpio1_set_value(unsigned gpio, int value);
++extern int  adm5120_gpio_to_irq(unsigned gpio);
++extern int  adm5120_irq_to_gpio(unsigned irq);
++
++static inline int gpio_get_value(unsigned gpio)
++{
++	int ret;
++
++	switch (gpio) {
++	case ADM5120_GPIO_PIN0 ... ADM5120_GPIO_PIN7:
++		ret = __adm5120_gpio0_get_value(gpio);
++		break;
++	case ADM5120_GPIO_P0L0 ... ADM5120_GPIO_P4L2:
++		ret = __adm5120_gpio1_get_value(gpio - ADM5120_GPIO_P0L0);
++		break;
++	default:
++		ret = __gpio_get_value(gpio);
++		break;
++	}
++
++	return ret;
++}
++
++static inline void gpio_set_value(unsigned gpio, int value)
++{
++	switch (gpio) {
++	case ADM5120_GPIO_PIN0 ... ADM5120_GPIO_PIN7:
++		__adm5120_gpio0_set_value(gpio, value);
++		break;
++	case ADM5120_GPIO_P0L0 ... ADM5120_GPIO_P4L2:
++		__adm5120_gpio1_set_value(gpio - ADM5120_GPIO_P0L0, value);
++		break;
++	default:
++		__gpio_set_value(gpio, value);
++		break;
++	}
++}
++
++static inline int gpio_to_irq(unsigned gpio)
++{
++	return adm5120_gpio_to_irq(gpio);
++}
++
++static inline int irq_to_gpio(unsigned irq)
++{
++	return adm5120_irq_to_gpio(irq);
++}
++
++#define gpio_cansleep	__gpio_cansleep
++
++#endif /* _ASM_MIPS_MACH_ADM5120_GPIO_H */
+diff -rupN linux/include/asm-mips/mach-adm5120/irq.h linux/include/asm-mips/mach-adm5120/irq.h
+--- linux/include/asm-mips/mach-adm5120/irq.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/irq.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,43 @@
++/*
++ *  ADM5120 specific IRQ numbers
++ *
++ *  Copyright (C) 2007-2008 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ *
++ */
++#ifndef _ASM_MIPS_MACH_ADM5120_IRQ_H
++#define _ASM_MIPS_MACH_ADM5120_IRQ_H
++
++#define MIPS_CPU_IRQ_BASE	0
++#define NR_IRQS			24
++
++#include_next <irq.h>
++
++#include <asm/mach-adm5120/adm5120_intc.h>
++
++#define NO_IRQ			(-1)
++
++#define MIPS_CPU_IRQ_COUNT	8
++#define MIPS_CPU_IRQ(x)		(MIPS_CPU_IRQ_BASE + (x))
++
++#define ADM5120_INTC_IRQ_BASE	(MIPS_CPU_IRQ_BASE + MIPS_CPU_IRQ_COUNT)
++#define ADM5120_INTC_IRQ(x)	(ADM5120_INTC_IRQ_BASE + (x))
++
++#define ADM5120_IRQ_INTC	MIPS_CPU_IRQ(2)
++#define ADM5120_IRQ_COUNTER	MIPS_CPU_IRQ(7)
++
++#define ADM5120_IRQ_TIMER	ADM5120_INTC_IRQ(INTC_IRQ_TIMER)
++#define ADM5120_IRQ_UART0	ADM5120_INTC_IRQ(INTC_IRQ_UART0)
++#define ADM5120_IRQ_UART1	ADM5120_INTC_IRQ(INTC_IRQ_UART1)
++#define ADM5120_IRQ_USBC	ADM5120_INTC_IRQ(INTC_IRQ_USBC)
++#define ADM5120_IRQ_GPIO2	ADM5120_INTC_IRQ(INTC_IRQ_GPIO2)
++#define ADM5120_IRQ_GPIO4	ADM5120_INTC_IRQ(INTC_IRQ_GPIO4)
++#define ADM5120_IRQ_PCI0	ADM5120_INTC_IRQ(INTC_IRQ_PCI0)
++#define ADM5120_IRQ_PCI1	ADM5120_INTC_IRQ(INTC_IRQ_PCI1)
++#define ADM5120_IRQ_PCI2	ADM5120_INTC_IRQ(INTC_IRQ_PCI2)
++#define ADM5120_IRQ_SWITCH	ADM5120_INTC_IRQ(INTC_IRQ_SWITCH)
++
++#endif /* _ASM_MIPS_MACH_ADM5120_IRQ_H */
+diff -rupN linux/include/asm-mips/mach-adm5120/prom/admboot.h linux/include/asm-mips/mach-adm5120/prom/admboot.h
+--- linux/include/asm-mips/mach-adm5120/prom/admboot.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/prom/admboot.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,17 @@
++/*
++ *  ADMBoot specific definitions
++ *
++ *  Copyright (C) 2008 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ *
++ */
++
++#ifndef _ADMBOOT_H
++#define _ADMBOOT_H
++
++extern int admboot_get_mac_base(u32 offset, u32 len, u8 *mac) __init;
++
++#endif /* _ADMBOOT_H */
+diff -rupN linux/include/asm-mips/mach-adm5120/prom/cfe.h linux/include/asm-mips/mach-adm5120/prom/cfe.h
+--- linux/include/asm-mips/mach-adm5120/prom/cfe.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/prom/cfe.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,18 @@
++/*
++ *  Broadcom's CFE definitions
++ *
++ *  Copyright (C) 2006-2008 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ *
++ */
++
++#ifndef _PROM_CFE_H_
++#define _PROM_CFE_H_
++
++extern int cfe_present(void) __init;
++extern char *cfe_getenv(char *);
++
++#endif /*_PROM_CFE_H_*/
+diff -rupN linux/include/asm-mips/mach-adm5120/prom/generic.h linux/include/asm-mips/mach-adm5120/prom/generic.h
+--- linux/include/asm-mips/mach-adm5120/prom/generic.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/prom/generic.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,18 @@
++/*
++ *  Generic prom definitions
++ *
++ *  Copyright (C) 2006-2008 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ *
++ */
++
++#ifndef _PROM_GENERIC_H_
++#define _PROM_GENERIC_H_
++
++extern int generic_prom_present(void) __init;
++extern char *generic_prom_getenv(char *);
++
++#endif /*_PROM_GENERIC_H_*/
+diff -rupN linux/include/asm-mips/mach-adm5120/prom/myloader.h linux/include/asm-mips/mach-adm5120/prom/myloader.h
+--- linux/include/asm-mips/mach-adm5120/prom/myloader.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/prom/myloader.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,179 @@
++/*
++ *  Compex's MyLoader specific definitions
++ *
++ *  Copyright (C) 2006-2008 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ *
++ */
++
++#ifndef _MYLOADER_H_
++#define _MYLOADER_H_
++
++/*
++ * Firmware file format:
++ *
++ *	<header>
++ *	[<block descriptor 0>]
++ *	...
++ *	[<block descriptor n>]
++ *	<null block descriptor>
++ *	[<block data 0>]
++ *	...
++ *	[<block data n>]
++ *
++ *
++ */
++
++/* Myloader specific magic numbers */
++#define MYLO_MAGIC_FIRMWARE	0x4C594D00
++#define MYLO_MAGIC_20021103	0x20021103
++#define MYLO_MAGIC_20021107	0x20021107
++
++#define MYLO_MAGIC_SYS_PARAMS	MYLO_MAGIC_20021107
++#define MYLO_MAGIC_PARTITIONS	MYLO_MAGIC_20021103
++#define MYLO_MAGIC_BOARD_PARAMS	MYLO_MAGIC_20021103
++
++/*
++ * Addresses of the data structures provided by MyLoader
++ */
++#define MYLO_MIPS_SYS_PARAMS	0x80000800	/* System Parameters */
++#define MYLO_MIPS_BOARD_PARAMS	0x80000A00	/* Board Parameters */
++#define MYLO_MIPS_PARTITIONS	0x80000C00	/* Partition Table */
++#define MYLO_MIPS_BOOT_PARAMS	0x80000E00	/* Boot Parameters */
++
++/* Vendor ID's (seems to be same as the PCI vendor ID's) */
++#define VENID_COMPEX		0x11F6
++
++/* Devices based on the ADM5120 */
++#define DEVID_COMPEX_NP27G	0x0078
++#define DEVID_COMPEX_NP28G	0x044C
++#define DEVID_COMPEX_NP28GHS	0x044E
++#define DEVID_COMPEX_WP54Gv1C	0x0514
++#define DEVID_COMPEX_WP54G	0x0515
++#define DEVID_COMPEX_WP54AG	0x0546
++#define DEVID_COMPEX_WPP54AG	0x0550
++#define DEVID_COMPEX_WPP54G	0x0555
++
++/* Devices based on the IXP422 */
++#define DEVID_COMPEX_WP18	0x047E
++#define DEVID_COMPEX_NP18A	0x0489
++
++/* Other devices */
++#define DEVID_COMPEX_NP26G8M	0x03E8
++#define DEVID_COMPEX_NP26G16M	0x03E9
++
++struct mylo_fw_header {
++	uint32_t	magic;	/* must be MYLO_MAGIC_FIRMWARE */
++	uint32_t	crc;	/* CRC of the whole firmware */
++	uint32_t	res0;	/* unknown/unused */
++	uint32_t	res1;	/* unknown/unused */
++	uint16_t	vid;	/* vendor ID */
++	uint16_t	did;	/* device ID */
++	uint16_t	svid;	/* sub vendor ID */
++	uint16_t	sdid;	/* sub device ID */
++	uint32_t	rev;	/* device revision */
++	uint32_t	fwhi;	/* FIXME: firmware version high? */
++	uint32_t	fwlo;	/* FIXME: firmware version low? */
++	uint32_t	flags;	/* firmware flags */
++};
++
++#define FW_FLAG_BOARD_PARAMS_WP	0x01 /* board parameters are write protected */
++#define FW_FLAG_BOOT_SECTOR_WE	0x02 /* enable of write boot sectors (below 64K) */
++
++struct mylo_fw_blockdesc {
++	uint32_t	type;	/* block type */
++	uint32_t	addr;	/* relative address to flash start */
++	uint32_t	dlen;	/* size of block data in bytes */
++	uint32_t	blen;	/* total size of block in bytes */
++};
++
++#define FW_DESC_TYPE_UNUSED	0
++#define FW_DESC_TYPE_USED	1
++
++struct mylo_partition {
++	uint16_t	flags;	/* partition flags */
++	uint16_t	type;	/* type of the partition */
++	uint32_t	addr;	/* relative address of the partition from the
++				   flash start */
++	uint32_t	size;	/* size of the partition in bytes */
++	uint32_t	param;	/* if this is the active partition, the
++				   MyLoader load code to this address */
++};
++
++#define PARTITION_FLAG_ACTIVE	0x8000 /* this is the active partition,
++					* MyLoader loads firmware from here */
++#define PARTITION_FLAG_ISRAM	0x2000 /* FIXME: this is a RAM partition? */
++#define PARTIIION_FLAG_RAMLOAD	0x1000 /* FIXME: load this partition into the RAM? */
++#define PARTITION_FLAG_PRELOAD	0x0800 /* the partition data preloaded to RAM
++					* before decompression */
++#define PARTITION_FLAG_HAVEHDR  0x0002 /* the partition data have a header */
++
++#define PARTITION_TYPE_FREE	0
++#define PARTITION_TYPE_USED	1
++
++#define MYLO_MAX_PARTITIONS	8	/* maximum number of partitions in the
++					   partition table */
++
++struct mylo_partition_table {
++	uint32_t	magic;	/* must be MYLO_MAGIC_PARTITIONS */
++	uint32_t	res0;	/* unknown/unused */
++	uint32_t	res1;	/* unknown/unused */
++	uint32_t 	res2;	/* unknown/unused */
++	struct mylo_partition partitions[MYLO_MAX_PARTITIONS];
++};
++
++struct mylo_partition_header {
++	uint32_t	len;	/* length of the partition data */
++	uint32_t	crc;	/* CRC value of the partition data */
++};
++
++struct mylo_system_params {
++	uint32_t	magic;	/* must be MYLO_MAGIC_SYS_PARAMS */
++	uint32_t	res0;
++	uint32_t	res1;
++	uint32_t	mylo_ver;
++	uint16_t	vid;	/* Vendor ID */
++	uint16_t	did;	/* Device ID */
++	uint16_t	svid;	/* Sub Vendor ID */
++	uint16_t	sdid;	/* Sub Device ID */
++	uint32_t	rev;	/* device revision */
++	uint32_t	fwhi;
++	uint32_t	fwlo;
++	uint32_t	tftp_addr;
++	uint32_t	prog_start;
++	uint32_t	flash_size;	/* Size of boot FLASH in bytes */
++	uint32_t	dram_size;	/* Size of onboard RAM in bytes */
++};
++
++
++struct mylo_eth_addr {
++	uint8_t	mac[6];
++	uint8_t	csum[2];
++};
++
++#define MYLO_ETHADDR_COUNT	8	/* maximum number of ethernet address
++					   in the board parameters */
++
++struct mylo_board_params {
++	uint32_t	magic;	/* must be MYLO_MAGIC_BOARD_PARAMS */
++	uint32_t	res0;
++	uint32_t	res1;
++	uint32_t	res2;
++	struct mylo_eth_addr addr[MYLO_ETHADDR_COUNT];
++};
++
++struct myloader_info {
++	u32	vid;
++	u32	did;
++	u32	svid;
++	u32	sdid;
++	uint8_t macs[MYLO_ETHADDR_COUNT][6];
++};
++
++extern struct myloader_info myloader_info;
++extern int myloader_present(void) __init;
++
++#endif /* _MYLOADER_H_*/
+diff -rupN linux/include/asm-mips/mach-adm5120/prom/routerboot.h linux/include/asm-mips/mach-adm5120/prom/routerboot.h
+--- linux/include/asm-mips/mach-adm5120/prom/routerboot.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/prom/routerboot.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,125 @@
++/*
++ *  Mikrotik's RouterBOOT definitions
++ *
++ *  Copyright (C) 2007-2008 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ *
++ */
++
++#ifndef _ROUTERBOOT_H
++#define _ROUTERBOOT_H
++
++#define RB_MAC_SIZE		6
++
++struct rb_bios_settings {
++	u32	hs_offs; /* hard settings offset */
++	u32	hs_size; /* hard settings size */
++	u32	fw_offs; /* firmware offset */
++	u32	ss_offs; /* soft settings offset */
++	u32	ss_size; /* soft settings size */
++};
++
++struct rb_hard_settings {
++	char	*name;		/* board name */
++	char	*bios_ver;	/* BIOS version */
++	u32	mem_size;	/* memory size in bytes */
++	u32	mac_count;	/* number of mac addresses */
++	u8	*mac_base;	/* mac address base */
++};
++
++/*
++ * Magic numbers
++ */
++#define RB_MAGIC_HARD	0x64726148 /* "Hard" */
++#define RB_MAGIC_SOFT	0x74666F53 /* "Soft" */
++#define RB_MAGIC_DAWN	0x6E776144 /* "Dawn" */
++
++#define RB_ID_TERMINATOR	0
++
++/*
++ * ID values for Hardware settings
++ */
++#define RB_ID_HARD_01		1
++#define RB_ID_HARD_02		2
++#define RB_ID_FLASH_INFO	3
++#define RB_ID_MAC_ADDRESS_PACK	4
++#define RB_ID_BOARD_NAME	5
++#define RB_ID_BIOS_VERSION	6
++#define RB_ID_HARD_07		7
++#define RB_ID_SDRAM_TIMINGS	8
++#define RB_ID_DEVICE_TIMINGS	9
++#define RB_ID_SOFTWARE_ID	10
++#define RB_ID_SERIAL_NUMBER	11
++#define RB_ID_HARD_12		12
++#define RB_ID_MEMORY_SIZE	13
++#define RB_ID_MAC_ADDRESS_COUNT	14
++
++/*
++ * ID values for Software settings
++ */
++#define RB_ID_UART_SPEED	1
++#define RB_ID_BOOT_DELAY	2
++#define RB_ID_BOOT_DEVICE	3
++#define RB_ID_BOOT_KEY		4
++#define RB_ID_CPU_MODE		5
++#define RB_ID_FW_VERSION	6
++#define RB_ID_SOFT_07		7
++#define RB_ID_SOFT_08		8
++#define RB_ID_BOOT_PROTOCOL	9
++#define RB_ID_SOFT_10		10
++#define RB_ID_SOFT_11		11
++
++/*
++ * UART_SPEED values
++ */
++#define RB_UART_SPEED_115200	0
++#define RB_UART_SPEED_57600	1
++#define RB_UART_SPEED_38400	2
++#define RB_UART_SPEED_19200	3
++#define RB_UART_SPEED_9600	4
++#define RB_UART_SPEED_4800	5
++#define RB_UART_SPEED_2400	6
++#define RB_UART_SPEED_1200	7
++
++/*
++ * BOOT_DELAY values
++ */
++#define RB_BOOT_DELAY_0SEC	0
++#define RB_BOOT_DELAY_1SEC	1
++#define RB_BOOT_DELAY_2SEC	2
++
++/*
++ * BOOT_DEVICE values
++ */
++#define RB_BOOT_DEVICE_ETHER	0
++#define RB_BOOT_DEVICE_NANDETH	1
++#define RB_BOOT_DEVICE_ETHONCE	2
++#define RB_BOOT_DEVICE_NANDONLY	3
++
++/*
++ * BOOT_KEY values
++ */
++#define RB_BOOT_KEY_ANY		0
++#define RB_BOOT_KEY_DEL		1
++
++/*
++ * CPU_MODE values
++ */
++#define RB_CPU_MODE_POWERSAVE	0
++#define RB_CPU_MODE_REGULAR	1
++
++/*
++ * BOOT_PROTOCOL values
++ */
++#define RB_BOOT_PROTOCOL_BOOTP	0
++#define RB_BOOT_PROTOCOL_DHCP	1
++
++extern int routerboot_present(void) __init;
++extern char *routerboot_get_boardname(void);
++
++extern struct rb_hard_settings rb_hs;
++
++#endif /* _ROUTERBOOT_H */
+diff -rupN linux/include/asm-mips/mach-adm5120/prom/zynos.h linux/include/asm-mips/mach-adm5120/prom/zynos.h
+--- linux/include/asm-mips/mach-adm5120/prom/zynos.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/prom/zynos.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,86 @@
++/*
++ *  ZyNOS (ZyXEL's Networking OS) definitions
++ *
++ *  Copyright (C) 2007-2008 Gabor Juhos <juhosg@openwrt.org>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under the terms of the GNU General Public License version 2 as published
++ *  by the Free Software Foundation.
++ *
++ */
++
++#ifndef _ZYNOS_H
++#define _ZYNOS_H
++
++#define ZYNOS_NAME_LEN		32
++#define ZYNOS_FEAT_BYTES	22
++#define ZYNOS_MAC_LEN		6
++
++struct zynos_board_info {
++	unsigned char	vendor[ZYNOS_NAME_LEN];
++	unsigned char	product[ZYNOS_NAME_LEN];
++	u32		bootext_addr;
++	u32		res0;
++	u16		board_id;
++	u8		res1[6];
++	u8		feat_other[ZYNOS_FEAT_BYTES];
++	u8		feat_main;
++	u8		res2;
++	u8		mac[ZYNOS_MAC_LEN];
++	u8		country;
++	u8		dbgflag;
++} __attribute__ ((packed));
++
++/*
++ * Vendor IDs
++ */
++#define ZYNOS_VENDOR_ID_ZYXEL	0
++#define ZYNOS_VENDOR_ID_NETGEAR	1
++#define ZYNOS_VENDOR_ID_DLINK	2
++#define ZYNOS_VENDOR_ID_OTHER	3
++#define ZYNOS_VENDOR_ID_LUCENT	4
++
++/*
++ * Vendor names
++ */
++#define ZYNOS_VENDOR_DLINK	"D-Link"
++#define ZYNOS_VENDOR_LUCENT	"LUCENT"
++#define ZYNOS_VENDOR_NETGEAR	"NetGear"
++#define ZYNOS_VENDOR_ZYXEL	"ZyXEL"
++
++/*
++ * Board IDs (big-endian)
++ */
++#define ZYNOS_BOARD_ES2108	0x00F2	/* Ethernet Switch 2108 */
++#define ZYNOS_BOARD_ES2108F	0x01AF	/* Ethernet Switch 2108-F */
++#define ZYNOS_BOARD_ES2108G	0x00F3	/* Ethernet Switch 2108-G */
++#define ZYNOS_BOARD_ES2108LC	0x00FC	/* Ethernet Switch 2108-LC */
++#define ZYNOS_BOARD_ES2108PWR	0x00F4	/* Ethernet Switch 2108PWR */
++#define ZYNOS_BOARD_HS100	0x9FF1	/* HomeSafe 100/100W */
++#define ZYNOS_BOARD_P334	0x9FF5	/* Prestige 334 */
++#define ZYNOS_BOARD_P334U	0x9FDD	/* Prestige 334U */
++#define ZYNOS_BOARD_P334W	0x9FF3	/* Prestige 334W */
++#define ZYNOS_BOARD_P334WH	0x00E0	/* Prestige 334WH */
++#define ZYNOS_BOARD_P334WHD	0x00E1	/* Prestige 334WHD */
++#define ZYNOS_BOARD_P334WT	0x9FEF	/* Prestige 334WT */
++#define ZYNOS_BOARD_P334WT_ALT	0x9F02	/* Prestige 334WT alternative*/
++#define ZYNOS_BOARD_P335	0x9FED	/* Prestige 335/335WT */
++#define ZYNOS_BOARD_P335PLUS	0x0025	/* Prestige 335Plus */
++#define ZYNOS_BOARD_P335U	0x9FDC	/* Prestige 335U */
++
++/*
++ * Some magic numbers (big-endian)
++ */
++#define ZYNOS_MAGIC_DBGAREA1	0x48646267	/* "Hdbg" */
++#define ZYNOS_MAGIC_DBGAREA2	0x61726561	/* "area" */
++
++struct bootbase_info {
++	u16		vendor_id;
++	u16		board_id;
++	u8		mac[6];
++};
++
++extern struct bootbase_info bootbase_info;
++extern int bootbase_present(void) __init;
++
++#endif /* _ZYNOS_H */
+diff -rupN linux/include/asm-mips/mach-adm5120/war.h linux/include/asm-mips/mach-adm5120/war.h
+--- linux/include/asm-mips/mach-adm5120/war.h	1970-01-01 07:00:00.000000000 +0700
++++ linux/include/asm-mips/mach-adm5120/war.h	2011-11-04 17:45:10.626053462 +0700
+@@ -0,0 +1,25 @@
++/*
++ * This file is subject to the terms and conditions of the GNU General Public
++ * License.  See the file "COPYING" in the main directory of this archive
++ * for more details.
++ *
++ * Copyright (C) 2002, 2004, 2007 by Ralf Baechle <ralf@linux-mips.org>
++ */
++#ifndef __ASM_MIPS_MACH_ADM5120_WAR_H
++#define __ASM_MIPS_MACH_ADM5120_WAR_H
++
++#define R4600_V1_INDEX_ICACHEOP_WAR	0
++#define R4600_V1_HIT_CACHEOP_WAR	0
++#define R4600_V2_HIT_CACHEOP_WAR	0
++#define R5432_CP0_INTERRUPT_WAR		0
++#define BCM1250_M3_WAR			0
++#define SIBYTE_1956_WAR			0
++#define MIPS4K_ICACHE_REFILL_WAR	0
++#define MIPS_CACHE_SYNC_WAR		0
++#define TX49XX_ICACHE_INDEX_INV_WAR	0
++#define RM9000_CDEX_SMP_WAR		0
++#define ICACHE_REFILLS_WORKAROUND_WAR	0
++#define R10000_LLSC_WAR			0
++#define MIPS34K_MISSED_ITLB_WAR		0
++
++#endif /* __ASM_MIPS_MACH_ADM5120_WAR_H */

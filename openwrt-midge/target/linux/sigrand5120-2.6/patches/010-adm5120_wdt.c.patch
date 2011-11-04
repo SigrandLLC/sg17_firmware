@@ -1,6 +1,6 @@
 --- /dev/null	2011-11-03 15:53:23.881604746 +0700
 +++ a/drivers/char/watchdog/adm5120_wdt.c	2011-11-03 18:25:36.480449579 +0700
-@@ -0,0 +1,203 @@
+@@ -0,0 +1,205 @@
 +/*
 + *	ADM5120_WDT 0.01: Infineon ADM5120 SoC watchdog driver
 + *	Copyright (c) Ondrej Zajicek <santiago@crfreenet.org>, 2007
@@ -27,6 +27,8 @@
 +#include <asm/mach-adm5120/adm5120_info.h>
 +#include <asm/mach-adm5120/adm5120_defs.h>
 +#include <asm/mach-adm5120/adm5120_switch.h>
++
++#include <asm/io.h> // readl, writel
 +
 +#define DEFAULT_TIMEOUT	15		/* (secs) Default is 15 seconds */
 +#define MAX_TIMEOUT	327
