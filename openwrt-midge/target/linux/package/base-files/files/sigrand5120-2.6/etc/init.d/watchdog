@@ -12,7 +12,7 @@ DEV="/dev/misc/watchdog"
 
 start() {
  	echo -n "Starting $NAME: "
-	start-stop-daemon --start --quiet --pidfile /var/run/$NAME.pid --exec $DAEMON -- $DEV
+	start-stop-daemon --start --quiet --pidfile /var/run/$NAME.pid --exec $DAEMON -- -t5 $DEV
 	echo "OK"
 }
 stop() {
