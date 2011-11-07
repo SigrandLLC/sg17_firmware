@@ -30,7 +30,7 @@
 +
 +#include <asm/io.h> // readl, writel
 +
-+#define DEFAULT_TIMEOUT	15		/* (secs) Default is 15 seconds */
++#define DEFAULT_TIMEOUT	60		/* (secs) Default is 15 seconds */
 +#define MAX_TIMEOUT	327
 +/* Max is 327 seconds, counter is 15-bit integer, step is 10 ms */
 +
