@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.16
-# Thu Nov  3 20:34:12 2011
+# Mon Nov  7 18:53:46 2011
 #
 CONFIG_MIPS=y
 
@@ -1032,7 +1032,7 @@ CONFIG_UNIX98_PTYS=y
 # Watchdog Cards
 #
 CONFIG_WATCHDOG=y
-# CONFIG_WATCHDOG_NOWAYOUT is not set
+CONFIG_WATCHDOG_NOWAYOUT=y
 
 #
 # Watchdog Device Drivers
