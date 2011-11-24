@@ -844,7 +844,7 @@ Controllers.dslamsw = function() {
 				var c, field;
 				c = page.addContainer("statistics");
 				c.addTitle("Ports statistics", {"colspan":3});
-				c.addTableHeader("Port|TX packages|RX packages");
+				c.addTableHeader("Port|TX packets|RX packets");
 				var sw0_stat, sw1_stat;
 				var ifaces = config.getParsed("sys_dslam_ifaces");
 				config.cmdExecute({"cmd": "cat /proc/sys/net/dslam_sw/sw0/statistics_json", "async" : false, "dataType": "json", "callback": 
@@ -975,7 +975,7 @@ Controllers.dslamsw = function() {
 					$($.sprintf("#td_sw%sp%s_rx", sw_num, sw_port)).html($.sprintf("%s", (sw_num == "1")?sw1_stat[sw_port].rx:sw0_stat[sw_port].rx));
 				}
 
-				setTimeout(load_stat, 1000);
+//				setTimeout(load_stat, 1000);
 			}
 			if (timer == 1) return true;
 			load_stat();
