@@ -1051,7 +1051,7 @@ Controllers.dslamsw = function() {
 				};
 				c.addTableWidget(field, row);
 				var text_input = document.getElementById($.sprintf("sys_dslam_sw%s_vlan_%s_pvid", sw_num, sw_port));
-				text_input.style.setProperty("width", "50px"); 
+//				text_input.style.setProperty("width", "50px");
 				field = {
 					"type" : "select",
 					"name" : $.sprintf("sys_dslam_sw%s_vlan_%s_tag", sw_num, sw_port),
@@ -1102,7 +1102,7 @@ Controllers.dslamsw = function() {
 				};
 				c.addTableWidget(field, row);
 				var text_input = document.getElementById($.sprintf("sys_dslam_sw%s_vlan_%s_pvid", sw_num, sw_port));
-				text_input.style.setProperty("width", "50px"); 
+//				text_input.style.setProperty("width", "50px");
 				field = {
 					"type" : "select",
 					"name" : $.sprintf("sys_dslam_sw%s_vlan_%s_tag", sw_num, sw_port),
