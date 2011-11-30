@@ -62,7 +62,6 @@ pre_ifup(){
 				/sbin/ifup $i
 				get_real_iface $i
 				cmd $ip addr flush dev $i_real 2>/dev/null
-				cmd ifconfig $i_real mtu 1518 2>/dev/null
 				cmd brctl addif $realiface $i_real 2>/dev/null
 			done
 			[ "$br_stp" = 1 ] && cmd brctl stp $realiface on || cmd brctl stp $realiface off

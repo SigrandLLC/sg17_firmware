@@ -288,11 +288,11 @@ sg17_change_mtu(struct net_device *ndev, int new_mtu)
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
 
 	/* check ranges */
-	if ((new_mtu < 68) || (new_mtu > 1536))
+	if ((new_mtu < 68) || (new_mtu > 1516))
 		return -EINVAL;
 
 	spin_lock_irqsave(&nl->lock, flags);
-	ndev->mtu = new_mtu;
+	ndev->mtu = new_mtu & (~3);
 	spin_unlock_irqrestore(&nl->lock, flags);
 	return 0;
 }
