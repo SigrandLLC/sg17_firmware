@@ -292,7 +292,7 @@ sg17_change_mtu(struct net_device *ndev, int new_mtu)
 		return -EINVAL;
 
 	spin_lock_irqsave(&nl->lock, flags);
-	ndev->mtu = new_mtu & (~3);
+	ndev->mtu = new_mtu;
 	spin_unlock_irqrestore(&nl->lock, flags);
 	return 0;
 }
