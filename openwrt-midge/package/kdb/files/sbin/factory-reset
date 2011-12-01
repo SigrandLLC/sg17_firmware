@@ -1,0 +1,7 @@
+#!/bin/sh
+
+rm -f /etc/kdb
+rm -f /etc/kdb.md5
+rm -f /etc/kdb.res
+rm -f /etc/kdb.res.md5
+reboot

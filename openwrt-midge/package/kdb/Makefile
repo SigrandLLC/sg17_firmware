@@ -22,6 +22,8 @@ $(PKG_BUILD_DIR)/.built:
 
 
 $(IPKG_KDB):
+	install -m0755 -d    $(IDIR_KDB)/sbin
+	install -m0755 files/sbin/factory-reset $(IDIR_KDB)/sbin/
 	cd files && cp -a .  $(IDIR_KDB)
 	install -m0755 -d    $(IDIR_KDB)/usr/bin
 	install -m0755 $(PKG_BUILD_DIR)/kdb $(IDIR_KDB)/usr/bin
