@@ -466,6 +466,10 @@ mr17s_set_mctrl(struct uart_port *port, unsigned int mctrl)
             break;
     }
 
+    // if multiplexing is enabled we must keep all signals up
+    if( (ioread8(&regs->MXCR) & MXEN) ){
+        reg |= DTR|RTS|CD;
+    }
     iowrite8(reg, &regs->CRA);
 }
 
