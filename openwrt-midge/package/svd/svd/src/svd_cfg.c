@@ -573,21 +573,34 @@ self_values_init( void )
 		goto __exit_fail;
 	}
 
-	for (i=1;;i++){
-		struct ifreq ifr;
-		struct sockaddr_in *sin = (struct sockaddr_in *) &ifr.ifr_addr;
-		char *ip;
+	struct ifconf ifc;
+	struct ifreq *ifr;
+	struct sockaddr_in *sin;
+	char *ip;
 
-		ifr.ifr_ifindex = i;
-		if (ioctl (sock, SIOCGIFNAME, &ifr) < 0){
-			break;
-		}
-		if (ioctl (sock, SIOCGIFADDR, &ifr) < 0){
-			continue;
-		}
+	int MAX_NUM_IFACES=100;
+	int err = 0;
 
+	ifc.ifc_len = MAX_NUM_IFACES * sizeof(struct ifreq);
+	ifc.ifc_req = calloc(MAX_NUM_IFACES, sizeof(struct ifreq));
+
+	err = ioctl (sock, SIOCGIFCONF, &ifc);
+	if (err < 0) {
+		SU_DEBUG_0 (("Error recieve list active ifaces!!! %s", strerror(errno)));
+		return -1;
+	}
+	if (ifc.ifc_len == MAX_NUM_IFACES) {
+		SU_DEBUG_0 (("In system too many active ifaces!!!"));
+		return -1;
+	}
+//	SU_DEBUG_0 (("Here is %i active ifaces with IP address.", ifc.ifc_len/sizeof(struct ifreq)));
+	for (i = 0; i < ifc.ifc_len/sizeof(struct ifreq); i++) {
+		ifr = &(ifc.ifc_req[i]);
+		sin = (struct sockaddr_in *) &(ifr->ifr_addr);
 		ip = inet_ntoa (sin->sin_addr);
-		if( strcmp(ifr.ifr_name, "lo") ){
+		err = ioctl (sock, SIOCGIFNAME, &ifr);
+//		SU_DEBUG_0 (("%s",ifr->ifr_name));
+		if( strcmp(ifr->ifr_name, "lo") ){
 			addrmas = realloc (addrmas, sizeof(*addrmas)*(j+1));
 			addrmas[j] = malloc(sizeof(char) * IP_LEN_MAX);
 			memset(addrmas[j], 0, sizeof(char) * IP_LEN_MAX);
@@ -595,6 +608,7 @@ self_values_init( void )
 			j++;
 		}
 	}
+	free(ifc.ifc_req);
 	close (sock);
 	addrs_count = j;
 
