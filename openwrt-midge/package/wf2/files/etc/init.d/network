@@ -80,8 +80,11 @@ pre_ifup(){
                 		bond*)	num=$(($num+1)) ;;
         			esac
 				done
-
-				cmd /sbin/modprobe bonding mode=7 miimon=200 max_bonds=$num
+				bond_mode=`kdb get sys_bond_mode`
+				if [ "$bond_mode" == "" ]; then
+					bond_mode=7
+				fi
+				cmd /sbin/modprobe bonding mode=$bond_mode miimon=200 max_bonds=$num
 			fi
 			[ -n "$mac" ] && cmd $ifconfig $realiface hw ether $mac
 			required /sbin/ifenslave

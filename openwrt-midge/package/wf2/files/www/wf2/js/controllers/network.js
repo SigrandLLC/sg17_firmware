@@ -483,6 +483,23 @@ Controllers.dynamic_ifaces = function() {
 					}
 				}
 			});
+
+			page.addBr("dynamic_ifaces");
+			var c3 = page.addContainer("dynamic_ifaces");
+			c3.addTitle("Bonding parameters");
+			field = {
+				"type": "select",
+				"name": "sys_bond_mode",
+				"text": "Bonding mode",
+				"defaultValue": 7,
+				"descr": "Device reboot is requried after changing this settings",
+				"options": {"0":"0 - balance-rr", "1":"1 - active-backup", "2":"2 - balance-xor", "3":"3 - broadcast",
+							"4":"4 - 802.3ad", "5":"5 - balance-tlb", "6":"6 - balance-alb", "7":"7 - rate-balance"}
+			};
+			c3.addWidget(field);
+
+			c3.addSubmit();
+
 		}
 	});
 
