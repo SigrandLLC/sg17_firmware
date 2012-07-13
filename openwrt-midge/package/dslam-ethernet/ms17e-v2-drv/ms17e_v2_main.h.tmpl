@@ -1,0 +1,92 @@
+#ifndef MS17E_V2_H
+#define MS17E_V2_H
+
+#include <linux/pci.h>
+#include <linux/proc_fs.h>
+#include <linux/delay.h>
+#include <asm/irq.h>
+#include <linux/signal.h>
+#include <linux/sched.h>
+#include <linux/interrupt.h>
+
+#define DRIVER_VERSION "0.1"
+#define MS17E_V2_MODNAME "@MS17E_V2_MODNAME@"
+#define CARD_NAME "@MS17E_V2_MODNAME@_card" // + card number (card->number)
+
+#define SERIAL_RECEIVE_TIMEOUT HZ/2
+#define SERIAL_TRANSMIT_TIMEOUT HZ/2
+
+// TODO: поставить реальные цифры
+#define MS17E_V2_PCI_VENDOR  0x55
+#define MS17E_V2_PCI_DEVICE  0x93
+#define MS17E1_SUBSYSTEM_DEVICE  0
+#define MS17E1P_SUBSYSTEM_DEVICE 1
+#define MS17E2_SUBSYSTEM_DEVICE  2
+#define MS17E2P_SUBSYSTEM_DEVICE 3
+#define MS17E4_SUBSYSTEM_DEVICE  4
+#define MS17E4P_SUBSYSTEM_DEVICE 5
+#define MS17E8_SUBSYSTEM_DEVICE  6
+#define MS17E8P_SUBSYSTEM_DEVICE 7
+
+#define MS17E_V2_IOMEM_SIZE 0x1000
+
+/* bits descriptions of ms17e resiters */
+// CRA
+#define TXEN 0x01 // Transmitter Enable
+#define RXEN 0x02 // Receiver Enable
+#define LEDM 0x10 // Mode for Orange LEDs (0 - Eth Speed, 1 - PoE Status)
+#define PRST 0x40 // Reset to PoE (0 - Reset, 1 - Normal operation)
+#define ERST 0x80 // Reset to Ethernet PHY (0 - Reset, 1 - Normal operation)
+
+// SR && IMR
+#define TXS  0x01 // Transmit Success
+#define RXS  0x02 // Rreceive Success
+#define RXE  0x04 // Receive Error
+
+// defines for led_control function
+#define LINK          0
+#define POWER         1
+#define OFF           0
+#define BLINK         1
+#define FAST_BLINK    2
+#define ON            3
+
+#ifndef IO_READ_WRITE
+#       define iowrite8(val,addr)  writeb(val,addr)
+#       define iowrite16(val,addr)  writeb(val,addr)
+#       define iowrite32(val,addr)  writel(val,addr)
+#       define ioread8(addr) readb(addr)
+#       define ioread16(addr) readb(addr)
+#       define ioread32(addr) readl(addr)
+#endif
+
+struct regs_struct {
+	u8 CRA, SR, IMR, reserved0, reserved1, reserved2, TDR, RDR, LCR0, LCR1;
+};
+
+#define SERIAL_BUFFER_SIZE 10*1024 // 10 KB
+
+struct ms17e_v2_card {
+	u8 number:3; // номер pci карты
+	struct pci_dev *pdev;
+	char card_name[12];  // имя карты (ms17e_v2_cardX)
+	u8 if_num:4;
+	u8 pwr_source:1;
+	struct net_device *ndevs[8];
+	struct regs_struct *regs;
+	wait_queue_head_t wait_receive;
+	wait_queue_head_t wait_transmit;
+	struct proc_dir_entry *dev_dir_entry, *debug_entry;
+	char * serial_buff;
+	unsigned long serial_buff_write_pos;
+	unsigned long serial_buff_read_pos;
+	unsigned long serial_buff_size;
+	unsigned long serial_tx, serial_tx_error, serial_rx, serial_rx_error;
+};
+
+void ms17e_v2_card_remove(struct ms17e_v2_card *card);
+
+void led_control(u8 port_number, u8 state, struct ms17e_v2_card * card);
+int serial_tx(u8 data, struct ms17e_v2_card * card);
+
+#endif
