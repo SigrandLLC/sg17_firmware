@@ -102,8 +102,14 @@ _start() {
 		pwr=`cat  /sys/class/net/$iface/$priv_dir/pwr_source`
                 if [ "$pwr" = "1" ]; then
                     $kdb set sys_pcicfg_s${s}_pwr_source=1
+                    for tmp in $ifaces; do
+	                    $kdb set sys_dslam_${tmp}_pwr_source=1
+                    done
                 else
 			kdb rm sys_pcicfg_s${s}_pwr_source
+			for tmp in $ifaces; do
+				kdb rm sys_dslam_${tmp}_pwr_source
+			done
                 fi
 		echo "    $ifaces "
 	done
