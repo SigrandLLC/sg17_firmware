@@ -19,6 +19,7 @@ function generateMenu() {
     } else {
         addItem("Hardware", "Switch", "adm5120sw");
     }
+    addItem("Services", "DHCP server", "dhcp");
     addItem("Services", "DNS server", "dns_server");
 
     /* if we have support for linkdeps */
