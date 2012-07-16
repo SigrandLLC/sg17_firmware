@@ -1371,7 +1371,7 @@ store_pvid(struct file *file,const char *buffer,unsigned long count,void *data) 
 	if (i >= 32) i = 0;
 	
 	reg_num = (int)(port_num / 3);
-	printk(KERN_NOTICE"founded vid = %i\n", i);
+//	printk(KERN_NOTICE"founded vid = %i\n", i);
 //	printk(KERN_NOTICE"port_num = %i reg_num = %i port_num mod 3 = %i\n", port_num, reg_num, port_num % 3);
 	
 	switch (port_num % 3) {
