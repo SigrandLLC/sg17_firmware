@@ -62,11 +62,22 @@ irqreturn_t interrupt_handler (int irq, void *dev_id, struct pt_regs * regs_)
 	if (status & RXS)
 	{
 		PDEBUG(debug_interrupt, "RXS");
-		if (card->serial_buff_write_pos == SERIAL_BUFFER_SIZE) card->serial_buff_write_pos = 0;
+		PDEBUG(debug_interrupt, "read_pos=%lu write_pos=%lu buff_size=%lu\n",
+				card->serial_buff_read_pos, card->serial_buff_write_pos, card->serial_buff_size);
 		card->serial_buff[card->serial_buff_write_pos] = ioread8(&(card->regs->RDR));
 		card->serial_buff_write_pos++;
 		card->serial_buff_size++;
 		card->serial_rx++;
+		if (card->serial_buff_write_pos == SERIAL_BUFFER_SIZE) {
+			card->serial_buff_write_pos = 0;
+		}
+		if (card->serial_buff_write_pos == card->serial_buff_read_pos) {
+			card->serial_buff_read_pos++;
+			card->serial_buff_size--;
+			card->serial_rx--;
+			card->serial_rx_error++;
+			if (card->serial_buff_read_pos == SERIAL_BUFFER_SIZE) card->serial_buff_read_pos = 0;
+		}
 	}
 	if (status & TXS)
 	{

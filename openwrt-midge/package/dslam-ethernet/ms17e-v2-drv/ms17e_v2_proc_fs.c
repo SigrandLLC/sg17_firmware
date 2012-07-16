@@ -81,6 +81,8 @@ static int led_show(char *buf, char **start, off_t offset_, int count, int *eof,
 		j += snprintf(&buf[j], count, "led%i=%i; ", i, ((leds >> ((card->if_num - 1 - i)*2)) & 0x03) ? 1 : 0);
 	}
 	j += snprintf(&buf[j], count, "\n");
+	j += snprintf(&buf[j], count, "rx=%lu, rx_error=%lu, tx=%lu, tx_error=%lu\n", card->serial_rx,
+				card->serial_rx_error, card->serial_tx, card->serial_tx_error);
 	return j;
 }
 static int led_store(struct file *file,const char *buf,unsigned long count,void *data) {
@@ -108,19 +110,25 @@ static int serial_show(char *buf, char **start, off_t offset_, int count, int *e
 	
 	if (card->serial_buff_size > 0) {
 		if (card->serial_buff_read_pos < card->serial_buff_write_pos) {
-			for (; card->serial_buff_read_pos < card->serial_buff_write_pos; card->serial_buff_read_pos++) {
+			PDEBUG(debug_serial_show, "read_pos=%lu write_pos=%lu buff_size=%lu\n",
+				card->serial_buff_read_pos, card->serial_buff_write_pos, card->serial_buff_size);
+			for (i = card->serial_buff_read_pos; i < card->serial_buff_write_pos; i++) {
 				j += snprintf(&buf[j], count, "%c", card->serial_buff[card->serial_buff_read_pos]);
+				card->serial_buff_read_pos++;
+				if (card->serial_buff_read_pos == SERIAL_BUFFER_SIZE) card->serial_buff_read_pos = 0;
 				card->serial_buff_size--;
 			}
 		} else {
-			for (i = card->serial_buff_read_pos; i < card->serial_buff_size; i++) {
+			for (i = card->serial_buff_read_pos; i < SERIAL_BUFFER_SIZE; i++) {
 				j += snprintf(&buf[j], count, "%c", card->serial_buff[i]);
 				card->serial_buff_read_pos++;
+				if (card->serial_buff_read_pos == SERIAL_BUFFER_SIZE) card->serial_buff_read_pos = 0;
 				card->serial_buff_size--;
 			}
 			for (i = 0; i < card->serial_buff_write_pos; i++) {
 				j += snprintf(&buf[j], count, "%c", card->serial_buff[i]);
 				card->serial_buff_read_pos++;
+				if (card->serial_buff_read_pos == SERIAL_BUFFER_SIZE) card->serial_buff_read_pos = 0;
 				card->serial_buff_size--;
 			}
 		}
