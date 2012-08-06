@@ -1,32 +1,55 @@
-#ifndef MS17E_V2_H
-#define MS17E_V2_H
+#ifndef MR17S_MAIN_H
+#define MR17S_MAIN_H
+
+#include <linux/init.h>
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/sched.h>
+#include <linux/ptrace.h>
+#include <linux/fcntl.h>
+#include <linux/slab.h>
+#include <linux/delay.h>
+#include <linux/timer.h>
+#include <linux/random.h>
+#include<linux/firmware.h>
+#include <linux/vermagic.h>
+#include <linux/config.h>
+
+#include <asm/io.h>
+#include <asm/types.h>
+#include <asm/byteorder.h>
+#include <asm/irq.h>
+#include <asm/uaccess.h>
 
 #include <linux/pci.h>
-#include <linux/proc_fs.h>
-#include <linux/delay.h>
-#include <asm/irq.h>
-#include <linux/signal.h>
-#include <linux/sched.h>
+#include <linux/ioport.h>
 #include <linux/interrupt.h>
+#include <linux/dma-mapping.h>
 
-#define DRIVER_VERSION "0.1"
+#include <linux/tty.h>
+#include <linux/tty_flip.h>
+#include <linux/serial.h>
+#include <linux/console.h>
+#include <linux/serial.h>
+#include <linux/serial_core.h>
+
+
+// DEBUG
+#define DEBUG_ON 1
+#define DEBUG_LEV 10
+
+#define MS17E_V2_VER "0.1"
+
+#define MS17E_V2_PCI_VEN 0x55
+#define MS17E_V2_PCI_DEV 0x93
 #define MS17E_V2_MODNAME "@MS17E_V2_MODNAME@"
-#define CARD_NAME "@MS17E_V2_MODNAME@_card" // + card number (card->number)
+#define MS17E_V2_SERIAL_NAME "ttyFE"
+#define MS17E_V2_SERIAL_MAJOR TTY_MAJOR
+#define MS17E_V2_SERIAL_MINORS 128
+#define MS17E_V2_UART_NR 32
 
-#define SERIAL_RECEIVE_TIMEOUT HZ/2
-#define SERIAL_TRANSMIT_TIMEOUT HZ/2
+#define MS17E_V2_UARTCLK 230400
 
-// TODO: поставить реальные цифры
-#define MS17E_V2_PCI_VENDOR  0x55
-#define MS17E_V2_PCI_DEVICE  0x93
-#define MS17E1_SUBSYSTEM_DEVICE  0
-#define MS17E1P_SUBSYSTEM_DEVICE 1
-#define MS17E2_SUBSYSTEM_DEVICE  2
-#define MS17E2P_SUBSYSTEM_DEVICE 3
-#define MS17E4_SUBSYSTEM_DEVICE  4
-#define MS17E4P_SUBSYSTEM_DEVICE 5
-#define MS17E8_SUBSYSTEM_DEVICE  6
-#define MS17E8P_SUBSYSTEM_DEVICE 7
 
 #define MS17E_V2_IOMEM_SIZE 0x1000
 
@@ -60,11 +83,9 @@
 #       define ioread32(addr) readl(addr)
 #endif
 
-struct regs_struct {
+struct ms17e_v2_regs_struct {
 	u8 CRA, SR, IMR, reserved0, reserved1, reserved2, TDR, RDR, LCR0, LCR1;
 };
-
-#define SERIAL_BUFFER_SIZE 10*1024 // 10 KB
 
 struct ms17e_v2_card {
 	u8 number:3; // номер pci карты
@@ -73,7 +94,7 @@ struct ms17e_v2_card {
 	u8 if_num:4;
 	u8 pwr_source:1;
 	struct net_device *ndevs[8];
-	struct regs_struct *regs;
+	struct ms17e_v2_regs_struct *regs;
 	wait_queue_head_t wait_receive;
 	wait_queue_head_t wait_transmit;
 	struct proc_dir_entry *dev_dir_entry, *debug_entry;
@@ -82,11 +103,38 @@ struct ms17e_v2_card {
 	unsigned long serial_buff_read_pos;
 	unsigned long serial_buff_size;
 	unsigned long serial_tx, serial_tx_error, serial_rx, serial_rx_error;
+	struct uart_port *port;
+	u8 block_start_tx;
 };
 
-void ms17e_v2_card_remove(struct ms17e_v2_card *card);
+// Module initialization
+static int  __devinit ms17e_v2_init(void);
+static void  __devexit ms17e_v2_exit(void);
+// PCI initialization
+static int __devinit ms17e_v2_init_one(struct pci_dev *pdev,const struct pci_device_id *ent);
+static void __devexit ms17e_v2_remove_one(struct pci_dev *pdev);
 
-void led_control(u8 port_number, u8 state, struct ms17e_v2_card * card);
-int serial_tx(u8 data, struct ms17e_v2_card * card);
+// UART functions
+static void 		ms17e_v2_stop_tx(struct uart_port *port);
+static void 		ms17e_v2_start_tx(struct uart_port *port);
+static void 		ms17e_v2_stop_rx(struct uart_port *port);
+static void 		ms17e_v2_enable_ms(struct uart_port *port);
+static unsigned int ms17e_v2_get_mctrl(struct uart_port *port);
+static void 		ms17e_v2_set_mctrl(struct uart_port *port, unsigned int mctrl);
+static void 		ms17e_v2_break_ctl(struct uart_port *port, int break_state);
+static void 		ms17e_v2_set_termios(struct uart_port *port,struct termios *new,struct termios *old);
+static int 			ms17e_v2_startup(struct uart_port *port);
+static void 		ms17e_v2_shutdown(struct uart_port *port);
+static const char *	ms17e_v2_type(struct uart_port *port);
+static void 		ms17e_v2_release_port(struct uart_port *port);
+static int 			ms17e_v2_request_port(struct uart_port *port);
+static void 		ms17e_v2_config_port(struct uart_port *port, int flags);
+static int 			ms17e_v2_verify_port(struct uart_port *port, struct serial_struct *ser);
+static unsigned int ms17e_v2_tx_empty(struct uart_port *port);
+static int 			ms17e_v2_ioctl(struct uart_port *port, unsigned int cmd, unsigned long arg);
+
+static irqreturn_t 	ms17e_v2_interrupt(int irq,void *dev_id,struct pt_regs *regs);
+static void 		ms17e_v2_recv_byte(struct uart_port *port,struct pt_regs *regs);
+static void 		ms17e_v2_xmit_byte(struct uart_port *port);
 
 #endif

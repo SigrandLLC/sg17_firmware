@@ -1,40 +1,34 @@
-#ifndef MS17E_V2_DEBUG_H
-#define MS17E_V2_DEBUG_H
+#ifndef SG_DEBUG_H
+#define SG_DEBUG_H
 
-#define DEBUG_ON
-//#undef DEBUG_ON
-
-#ifndef DEFAULT_LEV 
-#	define DEFAULT_LEV 0
+#ifndef DEBUG_LEV 
+#	define DEBUG_LEV 0
 #endif
+
+#define MS17E_V2_DRVNAME "ms17e_v2"
 
 #define PDEBUG(lev,fmt,args...)
 #define PDEBUGL(lev,fmt,args...)
 #ifdef DEBUG_ON
 #       undef PDEBUG
 #       define PDEBUG(lev,fmt,args...)									\
-	if( lev<=DEFAULT_LEV )												\
-		printk(KERN_NOTICE MS17E_V2_MODNAME": %s " fmt " \n",__FUNCTION__, ## args  )
+	if( lev<=DEBUG_LEV )												\
+		printk(KERN_NOTICE "MS17E_V2(%s): " fmt " \n",__FUNCTION__, ## args  )
 
 #       undef PDEBUGL
 #       define PDEBUGL(lev,fmt,args...)			\
-	if( lev<=DEFAULT_LEV )						\
+	if( lev<=DEBUG_LEV )						\
 		printk(fmt, ## args  )
 
 #endif
 
-
-
+extern int debug_xmit;
+extern int debug_recv;
+extern int debug_irq;
+extern int debug_init;
+extern int debug_tty;
+extern int debug_hw;
 extern int debug_error;
-extern int debug_probe;
-extern int debug_remove;
-extern int debug_net;
-extern int debug_read_write;
-extern int debug_interrupt;
-extern int debug_serial_show;
-extern int debug_serial_store;
-extern int debug_monitor;
-extern int debug_serial_tx;
-extern int debug_serial_rx;
+extern int debug_sysfs;
 
 #endif
