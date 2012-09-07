@@ -1,5 +1,5 @@
-
-MS-17E8P Register Description V.1.0
+MS-17E8P Register Description V.1.1
+8-channel PoE Module
 Simple Serial Port Controller for for MS-17E8P microcontroller ATmega88A
 
 !No FIFO (no RAM in FPGA)
@@ -8,14 +8,12 @@ Simple Serial Port Controller for for MS-17E8P microcontroller ATmega88A
 Vendor ID: 0055
 Device ID: 0093
 
- 
 0x00..0x07 - PoE I2C Controller Registers (8 bytes):
 
 0x00 CRA - Control Register A
 Bit 0 (0x01) - TXEN - Transmitter Enable
 Bit 1 (0x02) - RXEN - Receiver Enable
 Bit 4 (0x10) - LEDM - Mode for Orange LEDs (0 - Eth Speed, 1 - PoE Status)
-Bit 6 (0x40) - PRST - Reset to PoE (0 - Reset, 1 - Normal operation) 
 Bit 7 (0x80) - ERST - Reset to Ethernet PHY (0 - Reset, 1 - Normal operation)
 
 0x01 SR - Status Register (Set by hardware, Write 1 to clear bit)
@@ -23,35 +21,28 @@ Bit 7 (0x80) - ERST - Reset to Ethernet PHY (0 - Reset, 1 - Normal operation)
 Bit 0 (0x01) - TXS - Transmit Success
 Bit 1 (0x02) - RXS - Receive Success
 Bit 2 (0x04) - RXE - Receive Error
+Bit 3 (0x08) - PSU - PoE Status Updated
 
-0x03..0x05 - Reserved, Read as 0x00
+0x03 - Reserved, reads as 0x00
+
+0x04 - PSR - PoE Status Register (Read-Only, updated by hardware when PoE status changed)
+When PSR is updated, status bit SR.PSU is set.
+PSR drives Orange LEDs if LEDM=1
+
+Bit 0 (0x01) - PoE Channel 7 Status
+...
+Bit 7 (0x80) - PoE Channel 0 Status
+0 - Power is Off
+1 - Power is On
+
+
+0x05 - Reserved, reads as 0x00
 
 0x06 - TDR - Transmitted Data (Write before starting thansmission)
 Bits 7..0 - Byte to transmit
 
-0x07 - RDR - Received Data (Updated by hardware when a byte received)
+0x07 - RDR - Received Data (Read-Only, Updated by hardware when a byte received)
 Bits 7..0 - Received byte
-
-0x08..0x09 - LED Control Registers (2 bytes):
-
-0x08 - LCR0 - PoE LED Control for Channels 0..3
-Bits 1..0 - PoE LED Control for Channel 0
-Bits 3..2 - PoE LED Control for Channel 1
-Bits 5..4 - PoE LED Control for Channel 2
-Bits 7..6 - PoE LED Control for Channel 3
-
-0x08 - LCR1 - PoE LED Control for Channels 4..7
-Bits 1..0 - PoE LED Control for Channel 4
-Bits 3..2 - PoE LED Control for Channel 5
-Bits 5..4 - PoE LED Control for Channel 6
-Bits 7..6 - PoE LED Control for Channel 7
-
-LED Control bits:
-00 - LED is always off
-01 - LED is blinking 2 Hz (Slow)
-10 - LED is blinking 4 Hz (Fast)
-11 - LED is always ON
-
 
 Serial Port Controller Usage
 
