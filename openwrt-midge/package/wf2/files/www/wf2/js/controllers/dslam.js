@@ -663,6 +663,7 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 			c.addSubmit();
 
 			if ((iface == "ge0") || (iface == "ge1")) return true;
+			if (config.getParsed("sys_dslam_"+iface+"_pwr_source") != "1") return true;
 
 			page.addBr("settings");
 			c2 = page.addContainer("settings");
@@ -728,7 +729,8 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 			c2.addSubmit();
 		}
 	});
-	if ((iface != "ge0") && (iface != "ge1"))
+
+	if ((iface != "ge0") && (iface != "ge1") && (config.getParsed("sys_dslam_"+iface+"_pwr_source") == "1"))
 	page.addTab({
 		"id": "poe_status",
 		"name": "PoE status",

@@ -1,0 +1,17 @@
+MS17E_V2_MODNAME=@MS17E_V2_MODNAME@
+CFLAGS+=@CFLAGS@
+obj-m := $(MS17E_V2_MODNAME).o
+$(MS17E_V2_MODNAME)-objs := ms17e_v2_main.o ms17e_v2_debug.o
+
+$(MS17E_V2_MODNAME).ko: ms17e_v2_main.c ms17e_v2_debug.c
+	make -C @KERNSRC@ SUBDIRS=$(PWD) modules CROSS_COMPILE="@CROSS_PREFIX@"
+
+all: $(MS17E_V2_MODNAME).ko
+
+clean:
+	rm --preserve-root -f .*.o*
+	rm --preserve-root -f .*.ko*
+	rm --preserve-root -f *.o*
+	rm --preserve-root -f *.ko*
+	rm --preserve-root -f *.mod.*
+	rm --preserve-root -f -R .tmp*

@@ -3,6 +3,7 @@
 include $(TOPDIR)/rules.mk
 
 MS17E_MODNAME=$(BR2_SIGRAND_OEM_MS17E)
+MS17E_V2_MODNAME=$(BR2_SIGRAND_OEM_MS17E_V2)
 PKG_NAME:=dslam-ethernet
 PKG_VERSION=1.0
 PKG_RELEASE:=1
@@ -18,10 +19,12 @@ $(PKG_BUILD_DIR)/.prepared:
 	@echo "PKG_DIR="$(PKG_BUILD_DIR)
 	mkdir -p $(PKG_BUILD_DIR)
 	cp -R ms17e-drv $(PKG_BUILD_DIR)
+	cp -R ms17e-v2-drv $(PKG_BUILD_DIR)
 	touch $@
 
 $(PKG_BUILD_DIR)/.configured:
 	rm --preserve-root -f $(PKG_BUILD_DIR)/ms17e-drv/Makefile
+	rm --preserve-root -f $(PKG_BUILD_DIR)/ms17e-v2-drv/Makefile
 	@echo "CFLAGS=$(CFLAGS)"
 	sed <$(PKG_BUILD_DIR)/ms17e-drv/Makefile.tmpl \
 	> $(PKG_BUILD_DIR)/ms17e-drv/Makefile \
@@ -33,17 +36,35 @@ $(PKG_BUILD_DIR)/.configured:
 	-e "s%@MS17E_MODNAME@%$(MS17E_MODNAME)%g" \
 	-e "s%@DEBUG@%$(DEBUG)%g"
 
+	@echo "CFLAGS=$(CFLAGS)"
+	sed <$(PKG_BUILD_DIR)/ms17e-v2-drv/Makefile.tmpl \
+	> $(PKG_BUILD_DIR)/ms17e-v2-drv/Makefile \
+	-e "s%@KERNSRC@%$(LINUX_DIR)%g" \
+	-e "s%@CROSS_PREFIX@%$(KERNEL_CROSS)%g" \
+	-e "s%@CFLAGS@%$(CFLAGS)%g" \
+	-e "s%@KERNVER@%2.6.16%g" \
+	-e "s%@INST_PATH@%$(IDIR_SIGRAND_DSLAM)%g" \
+	-e "s%@MS17E_V2_MODNAME@%$(MS17E_V2_MODNAME)%g" \
+	-e "s%@DEBUG@%$(DEBUG)%g"
+
+
 	sed <$(PKG_BUILD_DIR)/ms17e-drv/ms17e_main.h.tmpl \
 	> $(PKG_BUILD_DIR)/ms17e-drv/ms17e_main.h \
 	-e "s%@MS17E_MODNAME@%$(MS17E_MODNAME)%g"
 
+	sed <$(PKG_BUILD_DIR)/ms17e-v2-drv/ms17e_v2_main.h.tmpl \
+	> $(PKG_BUILD_DIR)/ms17e-v2-drv/ms17e_v2_main.h \
+	-e "s%@MS17E_V2_MODNAME@%$(MS17E_V2_MODNAME)%g"
+
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	cd $(PKG_BUILD_DIR)/ms17e-drv && make
+	cd $(PKG_BUILD_DIR)/ms17e-v2-drv && make
 	touch $@
 
 $(IPKG_SIGRAND_MS17E):
 	install -d -m0755 $(IDIR_SIGRAND_MS17E)/lib/modules/2.6.16
 	install -m0755 $(PKG_BUILD_DIR)/ms17e-drv/$(MS17E_MODNAME).ko $(IDIR_SIGRAND_MS17E)/lib/modules/2.6.16/
+	install -m0755 $(PKG_BUILD_DIR)/ms17e-v2-drv/$(MS17E_V2_MODNAME).ko $(IDIR_SIGRAND_MS17E)/lib/modules/2.6.16/
 
 	install -d -m0755 $(IDIR_SIGRAND_MS17E)/usr/sbin
 	install -m0755 $(PKG_BUILD_DIR)/ms17e-drv/$(MS17E_MODNAME)_debug $(IDIR_SIGRAND_MS17E)/usr/sbin

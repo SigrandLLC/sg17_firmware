@@ -1,0 +1,21 @@
+#!/bin/sh
+
+cd ~/midge/openwrt-midge/
+make package/dslam-ethernet-clean
+make package/dslam-ethernet-compile V=99
+if [ -f "./build_mipsel/dslam-ethernet/ms17e-v2-drv/ms17e_v2.ko" ]; then
+	scp ./build_mipsel/dslam-ethernet/ms17e-v2-drv/ms17e_v2.ko root@192.168.2.101:/root/ms17e_v2.ko
+else
+	echo "------------------------------------"
+	echo "------------------------------------"
+	echo "------------------------------------"
+	echo "------------------------------------"
+	echo "ERROR!!!!!!!!!!!!!!!!!!!!"
+	echo "------------------------------------"
+	echo "------------------------------------"
+	echo "------------------------------------"
+	echo "------------------------------------"
+fi
+
+echo "PRESS ENTER"
+read qwe
