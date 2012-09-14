@@ -586,57 +586,6 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 //			if (pwr == "1") pwr="p"; else pwr="";
 //			c.addTitle($.sprintf("%s (port %s.%s, module %s%s%s) status", iface, pcislot-2, pcidev, config.getOEM("MS17E_MODNAME"), num_chan, pwr));
 			c.addTitle("Settings");
-
-			var onConfigTypeChange = function() {
-				if ($("#auto").val() == 1) {
-					$(".widgetManual").parents("tr").remove();
-				} else {
-					addManualWidgets();
-				}
-			};
-			var addManualWidgets = function() {
-				// flow control
-				field = {
-					"type": "checkbox",
-					"name": $.sprintf("sys_dslam_%s_flow", iface),
-					"id": "flow",
-					"text": "Hardware flow control",
-					"descr": "Enable/Disable",
-					"cssClass": "widgetManual",
-					"defaultState": "checked"
-				};
-				c.addWidget(field);
-				var options = {10:"10 Mbps", 100:"100 Mbps"};
-				var def_rate = 100;
-				if ((iface == "ge0") || (iface == "ge1")) {
-					options = {10:"10 Mbps", 100:"100 Mbps", 1000:"1000 Mbps"};
-					def_rate = 1000;
-				}
-				// rate
-				field = {
-					"type": "select",
-					"name": $.sprintf("sys_dslam_%s_rate", iface),
-					"id": "rate",
-					"text": "Rate",
-					"descr": "Rate in Mbps",
-					"cssClass": "widgetManual",
-					"options": options,
-					"defaultValue": def_rate
-				};
-				c.addWidget(field);
-				// duplex
-				field = {
-					"type": "select",
-					"name": $.sprintf("sys_dslam_%s_duplex", iface),
-					"id": "duplex",
-					"text": "Duplex",
-					"descr": "Duplex",
-					"cssClass": "widgetManual",
-					"options": {1:"full", 0:"half"},
-					"defaultValue": 1
-				};
-				c.addWidget(field);
-			}
 			// enable/disable
 			field = {
 				"type": "checkbox",
@@ -647,19 +596,55 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 				"descr": "Enable/Disable port"
 			};
 			c.addWidget(field);
-			// config type
 			field = {
-				"type": "select",
+				"type": "checkbox",
 				"name": $.sprintf("sys_dslam_%s_auto", iface),
 				"id": "auto",
-				"text": "Configuration type",
-				"descr": "Auto or manual",
-				"options": {1 : "Auto", 0 : "Manual"},
-				"defaultValue": 1,
-				"onChange" : onConfigTypeChange
+				"defaultState": "checked",
+				"text": "Autonegotiation",
+				"descr": "Enable/Disable"
 			};
 			c.addWidget(field);
-			onConfigTypeChange();
+			field = {
+				"type": "checkbox",
+				"name": $.sprintf("sys_dslam_%s_flow", iface),
+				"id": "flow",
+				"text": "Hardware flow control",
+				"descr": "Enable/Disable",
+				"cssClass": "widgetManual",
+				"defaultState": "checked"
+			};
+			c.addWidget(field);
+			var options = {10:"10 Mbps", 100:"100 Mbps"};
+			var def_rate = 100;
+			if ((iface == "ge0") || (iface == "ge1")) {
+				options = {10:"10 Mbps", 100:"100 Mbps", 1000:"1000 Mbps"};
+				def_rate = 1000;
+			}
+			// rate
+			field = {
+				"type": "select",
+				"name": $.sprintf("sys_dslam_%s_rate", iface),
+				"id": "rate",
+				"text": "Rate",
+				"descr": "Rate in Mbps",
+				"cssClass": "widgetManual",
+				"options": options,
+				"defaultValue": def_rate
+			};
+			c.addWidget(field);
+			// duplex
+			field = {
+				"type": "select",
+				"name": $.sprintf("sys_dslam_%s_duplex", iface),
+				"id": "duplex",
+				"text": "Duplex",
+				"descr": "Duplex",
+				"cssClass": "widgetManual",
+				"options": {1:"full", 0:"half"},
+				"defaultValue": 1
+			};
+			c.addWidget(field);
 			c.addSubmit();
 
 			if ((iface == "ge0") || (iface == "ge1")) return true;
