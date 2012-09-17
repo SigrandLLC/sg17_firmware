@@ -715,38 +715,116 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 		}
 	});
 
-	if ((iface != "ge0") && (iface != "ge1") && (config.getParsed("sys_dslam_"+iface+"_pwr_source") == "1"))
 	page.addTab({
-		"id": "poe_status",
-		"name": "PoE status",
+		"id": "eth_status",
+		"name": "Port status",
 		"func": function () {
 			var c, field;
-			c = page.addContainer("poe_status");
-//			c.setSubsystem($.sprintf("dslam_ethernet.%s.%s", pcislot, pcidev));
+
+			c = page.addContainer("eth_status");
+			c.addTitle("Port status");
+
+			field = {
+				"type": "html",
+				"name": "state",
+				"id": "state",
+				"text": "State"
+			};
+			c.addWidget(field);
+
+			field = {
+				"type": "html",
+				"name": "autoneg",
+				"id": "autoneg",
+				"text": "Autonegotiation"
+			};
+			c.addWidget(field);
+
+			field = {
+				"type": "html",
+				"name": "flow",
+				"id": "flow",
+				"text": "Flow control"
+			};
+			c.addWidget(field);
+
+			field = {
+				"type": "html",
+				"name": "rate",
+				"id": "rate",
+				"text": "Rate"
+			};
+			c.addWidget(field);
+
+			field = {
+				"type": "html",
+				"name": "duplex",
+				"id": "duplex",
+				"text": "Duplex"
+			};
+			c.addWidget(field);
+
+			field = {
+				"type": "html",
+				"name": "rx",
+				"id": "rx",
+				"text": "RX pakages"
+			};
+			c.addWidget(field);
+
+			field = {
+				"type": "html",
+				"name": "tx",
+				"id": "tx",
+				"text": "TX packages"
+			};
+			c.addWidget(field);
+
+			$("#td_state").html("loading...");
+			$("#td_autoneg").html("loading...");
+			$("#td_flow").html("loading...");
+			$("#td_rate").html("loading...");
+			$("#td_duplex").html("loading...");
+			$("#td_rx").html("loading...");
+			$("#td_tx").html("loading...");
+
+			config.cmdExecute({"cmd": $.sprintf("/www/wf2/sh/dslam_ethernet_status_json.sh %s", iface), "dataType":"json",
+				"callback": function(data) {
+					$("#td_state").html(data.state);
+					$("#td_autoneg").html(data.autoneg);
+					$("#td_flow").html(data.flow);
+					$("#td_rate").html(data.rate);
+					$("#td_duplex").html(data.duplex);
+					$("#td_rx").html($.sprintf("%s", parseInt(data.rx, 10)));
+					$("#td_tx").html($.sprintf("%s", parseInt(data.tx, 10)));
+				}
+			});
+
+			if ((iface != "ge0") && (iface != "ge1") && (config.getParsed("sys_dslam_"+iface+"_pwr_source") == "1")) {
+
+			page.addBr("eth_status");
+			c = page.addContainer("eth_status");
 			c.addTitle("PoE status");
 
 			field = {
 				"type": "html",
 				"name": "voltage",
 				"id": "voltage",
-				"text": "Voltage",
-				"cmd" : "loading..."
+				"text": "Voltage"
 			};
 			c.addWidget(field);
 			field = {
 				"type": "html",
 				"name": "current",
 				"id": "current",
-				"text": "Current",
-				"cmd" : "loading..."
+				"text": "Current"
 			};
 			c.addWidget(field);
 			field = {
 				"type": "html",
 				"name": "power",
 				"id": "power",
-				"text": "Power consumption",
-				"cmd" : "loading..."
+				"text": "Power consumption"
 			};
 			c.addWidget(field);
 			field = {
@@ -754,8 +832,7 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 				"name": "totalpower",
 				"id": "totalpower",
 				"descr": "Total power consumption for this module",
-				"text": "Total power consumption",
-				"cmd" : "loading..."
+				"text": "Total power consumption"
 			};
 			c.addWidget(field);
 
@@ -763,18 +840,23 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 				"type": "html",
 				"name": "detect",
 				"id": "detect",
-				"text": "Detect status",
-				"cmd" : "loading..."
+				"text": "Detect status"
 			};
 			c.addWidget(field);
 			field = {
 				"type": "html",
 				"name": "class",
 				"id": "class",
-				"text": "Detected class",
-				"cmd" : "loading..."
+				"text": "Detected class"
 			};
 			c.addWidget(field);
+
+			$("#td_voltage").html("loading...");
+			$("#td_current").html("loading...");
+			$("#td_power").html("loading...");
+			$("#td_totalpower").html("loading...");
+			$("#td_detect").html("loading...");
+			$("#td_class").html("loading...");
 
 			config.cmdExecute({"cmd": $.sprintf("cat /sys/class/net/fe%s%s/ms_private/status", pcislot-2, pcidev), 
 				"callback": function(data) {
@@ -787,6 +869,9 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 					$("#td_class").html($.sprintf("%s", CLS));
 				}
 			});
+
+			}
+
 		}
 	});
 
