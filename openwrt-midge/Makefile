@@ -197,13 +197,13 @@ endif # ifeq ($(strip $(BR2_HAVE_DOT_CONFIG)),y)
 
 .PHONY: changelog changelog-clean
 
-changelog: ChangeLog-ru.html
+changelog: ChangeLog.ru.html
 
 changelog-clean:
-	@echo "Removing ChangeLog-ru.html"
-	rm -f ChangeLog-ru.html
+	@echo "Removing ChangeLog.ru.html"
+	rm -f ChangeLog.ru.html
 
-ChangeLog-ru.html : changelog/ChangeLog-ru.in changelog/ChangeLog.header changelog/ChangeLog.footer Makefile
+ChangeLog.ru.html : changelog/ChangeLog.ru.in changelog/ChangeLog.header changelog/ChangeLog.footer Makefile
 	@echo "Generating $@"
-	cat changelog/ChangeLog.header changelog/ChangeLog-ru.in changelog/ChangeLog.footer | \
+	cat changelog/ChangeLog.header changelog/ChangeLog.ru.in changelog/ChangeLog.footer | \
 		iconv -f KOI8-R -t UTF-8 > $@
