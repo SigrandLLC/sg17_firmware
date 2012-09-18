@@ -764,39 +764,19 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 			};
 			c.addWidget(field);
 
-			field = {
-				"type": "html",
-				"name": "rx",
-				"id": "rx",
-				"text": "RX pakages"
-			};
-			c.addWidget(field);
-
-			field = {
-				"type": "html",
-				"name": "tx",
-				"id": "tx",
-				"text": "TX packages"
-			};
-			c.addWidget(field);
-
 			$("#td_state").html("loading...");
 			$("#td_autoneg").html("loading...");
 			$("#td_flow").html("loading...");
 			$("#td_rate").html("loading...");
 			$("#td_duplex").html("loading...");
-			$("#td_rx").html("loading...");
-			$("#td_tx").html("loading...");
 
 			config.cmdExecute({"cmd": $.sprintf("/www/wf2/sh/dslam_ethernet_status_json.sh %s", iface), "dataType":"json",
 				"callback": function(data) {
 					$("#td_state").html(data.state);
 					$("#td_autoneg").html(data.autoneg);
 					$("#td_flow").html(data.flow);
-					$("#td_rate").html(data.rate);
+					$("#td_rate").html(data.rate+" Mbit");
 					$("#td_duplex").html(data.duplex);
-					$("#td_rx").html($.sprintf("%s", parseInt(data.rx, 10)));
-					$("#td_tx").html($.sprintf("%s", parseInt(data.tx, 10)));
 				}
 			});
 

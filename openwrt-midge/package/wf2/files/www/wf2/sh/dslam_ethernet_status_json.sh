@@ -54,22 +54,6 @@ for i in $status; do
 	fi
 	let "tmp=$tmp+1"
 done
-tx_rx=`cat /proc/sys/net/dslam_sw/$sw/statistics`
-let "tmp=0"
-if [ "$sw_port" = "24" ]; then
-	pos=78
-else
-	pos=$(($(($sw_port+1))*3))
-fi
-for i in $tx_rx; do
-	if [ "$tmp" = $(($pos+1)) ]; then
-		tx=$i
-	fi
-	if [ "$tmp" = $(($pos+2)) ]; then
-		rx=$i
-	fi
-	let "tmp=$tmp+1"
-done
 if [ "$iface" != "ge0" -a "$iface" != "ge1" ]; then
 	pwr_src=`cat /sys/class/net/${iface}/ms_private/pwr_source`
 	if [ "$pwr_src" = "1" ]; then
@@ -83,6 +67,5 @@ if [ "$iface" != "ge0" -a "$iface" != "ge1" ]; then
 fi
 RESULT="$RESULT\t\"on_off\":\"$on_off\",\n\t\"state\":\"$state\","
 RESULT="$RESULT\n\t\"autoneg\":\"$auto\",\n\t\"flow\":\"$flow\",\n"
-RESULT="$RESULT\t\"rate\":\"$speed\",\n\t\"duplex\":\"$duplex\",\n"
-RESULT="$RESULT\t\"tx\":\"$tx\",\n\t\"rx\":\"$rx\"\n}\n"
+RESULT="$RESULT\t\"rate\":\"$speed\",\n\t\"duplex\":\"$duplex\"\n}\n"
 echo -en $RESULT
