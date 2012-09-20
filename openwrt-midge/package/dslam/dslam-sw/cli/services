@@ -178,7 +178,7 @@ link_aggregation_group_func() {
 				;;
 			esac
 		;;
-		"joined")
+		"ports")
 			shift
 			if [ "$1" = "" ]; then
 				group_ports $group
