@@ -3,7 +3,7 @@
 
 1-2285
 	DSLAM:	немного изменена страница настройки Ethernet портов -
-		Autonegotiation теперь отображается ввиде галочки.
+		Autonegotiation теперь отображается в виде галочки.
 
 	WEB:	добавлена вкладка, отображающая состояния ethernet портов
 		DSLAM (hardware/ethernet/port/port status)
