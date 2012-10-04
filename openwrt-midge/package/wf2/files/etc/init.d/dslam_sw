@@ -119,17 +119,7 @@ update_vlan_settings() {
 
 	echo "1" > /proc/sys/net/dslam_sw/sw0/vlan_mode
 	echo "1" > /proc/sys/net/dslam_sw/sw1/vlan_mode
-	for port in 0 `seq 26`; do
-		pvid=`$kdb get sys_dslam_sw0_vlan_${port}_pvid`
-		tag=`$kdb get sys_dslam_sw0_vlan_${port}_tag`
-		echo "$port $pvid" > /proc/sys/net/dslam_sw/sw0/pvid
-		echo "$port $tag" > /proc/sys/net/dslam_sw/sw0/tag
-
-		pvid=`$kdb get sys_dslam_sw1_vlan_${port}_pvid`
-		tag=`$kdb get sys_dslam_sw1_vlan_${port}_tag`
-		echo "$port $pvid" > /proc/sys/net/dslam_sw/sw1/pvid
-		echo "$port $tag" > /proc/sys/net/dslam_sw/sw1/tag
-	done
+	# we need make vlan table firts
 	for i in 0 `seq 31`; do
 		tmp=`kdb get sys_dslam_vlan_table_${i}`
 		if [ -z "$tmp" ]; then
@@ -145,6 +135,18 @@ update_vlan_settings() {
 			echo "$i $vid $sw0ports" > /proc/sys/net/dslam_sw/sw0/vid_table
 			echo "$i $vid $sw1ports" > /proc/sys/net/dslam_sw/sw1/vid_table
 		fi
+	done
+	# and then change pvid's for ports
+	for port in 0 `seq 26`; do
+		pvid=`$kdb get sys_dslam_sw0_vlan_${port}_pvid`
+		tag=`$kdb get sys_dslam_sw0_vlan_${port}_tag`
+		echo "$port $pvid" > /proc/sys/net/dslam_sw/sw0/pvid
+		echo "$port $tag" > /proc/sys/net/dslam_sw/sw0/tag
+
+		pvid=`$kdb get sys_dslam_sw1_vlan_${port}_pvid`
+		tag=`$kdb get sys_dslam_sw1_vlan_${port}_tag`
+		echo "$port $pvid" > /proc/sys/net/dslam_sw/sw1/pvid
+		echo "$port $tag" > /proc/sys/net/dslam_sw/sw1/tag
 	done
 }
 
