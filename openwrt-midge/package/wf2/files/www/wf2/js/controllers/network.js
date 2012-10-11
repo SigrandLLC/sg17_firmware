@@ -1133,7 +1133,7 @@ Controllers.iface = function(iface) {
 						"text": "MAC address",
 						"descr": "MAC address for the interface",
 						"tip": "e.g., 00:ff:1f:00:75:99",
-						"validator": {"macAddr": true}
+						"validator": {"macAddr": true, "required": true}
 					};
 					c.addWidget(field);
 
