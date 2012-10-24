@@ -89,6 +89,26 @@ _dsl_mr17ifcfg(){
 	if [ "$mode" == "slave" ]; then
    		$mr17h_cfg $iface $mode $fill $inv $crc $pwron $advlink
 	else
+
+		# add or remove task for crond
+		SHDSL_ADJUST_CMD="/sbin/shdsl adjust"
+		if [ "`kdb get sys_iface_${iface}_autoadjust`" == "1" ]; then
+			if crontab -u root -l | grep "$iface usefull_parameter" > /dev/null; then
+				echo "" > /dev/null
+			else
+				cp -f /etc/crontabs/root /tmp/crontabs
+				echo -e "\n*/10\t* * * * ${SHDSL_ADJUST_CMD} ${iface} usefull_parameter" >> /tmp/crontabs
+				crontab /tmp/crontabs -u root
+				rm -f /tmp/crontabs
+			fi
+		else
+			if crontab -l | grep "$iface usefull_parameter" > /dev/null; then
+				crontab -u root -l | grep -v "$iface usefull_parameter" > /tmp/crontabs
+				crontab /tmp/crontabs -u root
+				rm -f /tmp/crontabs
+			fi
+		fi
+
 		if [ "$rate" == "-1" -a -n "$mrate" ]; then
 			rate="rate $mrate"
 		else
