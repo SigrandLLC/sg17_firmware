@@ -10,10 +10,6 @@ print_usage() {
 	echo -e "\tIFACE must be dsl iface"
 }
 
-if [ "$#" != "2" ]; then
-	print_usage
-	exit 1
-fi
 iface="$2"
 
 if [ -d "${IFACES_PATH}/${iface}/sg_private" ]; then
