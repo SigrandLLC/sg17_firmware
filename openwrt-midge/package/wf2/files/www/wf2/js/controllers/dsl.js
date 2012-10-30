@@ -474,14 +474,25 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 			c.addWidget(field, {"type": "insertAfter", "anchor": $("#mode").parents("tr")});
 			field = {
 				"type": "text",
+				"name": $.sprintf("sys_iface_%s_autoadjust_rate_step", iface),
+				"id": "autoadjust_rate_step",
+				"text": "Autoadjust rate step",
+				"defaultValue": 1,
+				"validator": {"required": true, "min": 1},
+				"cssClass": "widgetManualMaster",
+				"descr": "*64 kbit"
+			};
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#autoadjust").parents("tr")});
+			field = {
+				"type": "text",
 				"name": $.sprintf("sys_iface_%s_autoadjust_min_snr", iface),
 				"id": "autoadjust_min_snr",
 				"text": "Autoadjust min SNR",
 				"defaultValue": 2,
-				"validator": {"required": true, "min": 2, "max": 8},
+				"validator": {"required": true, "min": 1, "max": 10},
 				"cssClass": "widgetManualMaster"
 			};
-			c.addWidget(field, {"type": "insertAfter", "anchor": $("#autoadjust").parents("tr")});
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#autoadjust_rate_step").parents("tr")});
 			$("#autoadjust_min_snr")[0].style.width="20px"
 			field = {
 				"type": "text",
@@ -489,7 +500,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"id": "autoadjust_max_snr",
 				"text": "Autoadjust max SNR",
 				"defaultValue": 4,
-				"validator": {"required": true, "min": 4, "max": 10},
+				"validator": {"required": true, "min": 1, "max": 10},
 				"cssClass": "widgetManualMaster"
 			};
 			c.addWidget(field, {"type": "insertAfter", "anchor": $("#autoadjust_min_snr").parents("tr")});

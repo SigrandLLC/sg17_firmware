@@ -1,6 +1,8 @@
 #!/bin/sh
 
 IFACES_PATH="/sys/class/net/"
+MAX_RATE=14080
+MIN_RATE=192
 rates_max_min="14080 12800 11520 10240 9216 8192 7168 6144 5696 5120 4608 4096 3840 3584 3072 2560 2304 2048 1792 1536 1280 1024 768 640 512 384 320 256 192"
 rates_min_max="192 256 320 384 512 640 768 1024 1280 1536 1792 2048 2304 2560 3072 3584 3840 4096 4608 5120 5696 6144 7168 8192 9216 10240 11520 12800 14080"
 
@@ -26,8 +28,10 @@ else
 fi
 MIN_SNR="`kdb get sys_iface_${iface}_autoadjust_min_snr`"
 MAX_SNR="`kdb get sys_iface_${iface}_autoadjust_max_snr`"
+RATE_STEP="`kdb get sys_iface_${iface}_autoadjust_rate_step`"
 if [ -n "MIN_SNR" ]; then MIN_SNR=2; fi
 if [ -n "MAX_SNR" ]; then MAX_SNR=4; fi
+if [ -n "RATE_STEP" ]; then RATE_STEP=64; fi
 
 
 # получение соотношения сигнал/шум и ослабления
@@ -149,13 +153,13 @@ link_connect() {
 # которые выводим на stdout в json формате
 test_line() {
 	# соединяемся на минимальной скорости и определяем на сколько затухает сигнал
-	logger "SHDSL autoadjust: On minimum speed:"
+	logger "SHDSL autoadjust: TEST LINE On minimum speed:"
 	link_connect 192
 	if [ "$?" != "0" ]; then
 		echo "{\"status\":\"error\", \"text\":\"Can not connect on minimal speed!\"}"
 		return 1
 	fi
-	logger "SHDSL autoadjust: SNR=${snr} attenuation=${attenuation}"
+	logger "SHDSL autoadjust: TEST LINE SNR=${snr} attenuation=${attenuation}"
 	# эти скорости выбраны из учета того что на 1 километре теряется 4 db сигнала
 	# и при использовании таблицы зависмости скорости от длинны линии найденной здесь
 	# http://sigrand.ru/ru_RU/web/guest/production?p_p_id=Catalog_WAR_ProductionPortlets&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_count=1&p_r_p_-1463032376_pid=71
@@ -184,13 +188,13 @@ test_line() {
 		default) rate=192;;
 	esac
 	get_tcpam ${rate}
-	logger "SHDSL autoadjust: Optimal rate=${rate} TCPAM${tcpam}"
+	logger "SHDSL autoadjust: TEST LINE Optimal rate=${rate} TCPAM${tcpam}"
 	link_connect ${rate}
 	if [ "$?" != "0" ]; then
 		echo "{\"status\":\"error\", \"text\":\"Can not connect on optimal speed! (${rate})\"}"
 		return 1
 	fi
-	logger "SHDSL autoadjust: SNR=${snr} attenuation=${attenuation}"
+	logger "SHDSL autoadjust: TEST LINE SNR=${snr} attenuation=${attenuation}"
 	echo "{\"status\":\"success\", \"rate\":\"${rate}\", \"tcpam\":\"${tcpam}\", \"snr\":\"${snr}\", \"attenuation\":\"${attenuation}\", \"min_rate_attenuation\":\"${min_rate_attenuation}\"}"
 }
 
@@ -198,30 +202,16 @@ test_line() {
 adjust_speed() {
 	get_average_snr_and_attenuation
 	state=`cat link_state`
-	if [ "${state}" != "1" ]; then
-		logger "SHDSL autoadjust: ERROR! Link is down. It must be up to auto adjust!"
-		return 1
-	fi
+	logger "SHDSL autoadjust: MIN_SNR=${MIN_SNR} MAX_SNR=${MAX_SNR}"
 	if [ "${snr}" -lt "${MIN_SNR}" -o "${snr}" -gt "128" ]; then
 		logger "SHDSL autoadjust: NEED SPEED DOWN!!! SNR=${snr}"
 		cur_rate=`cat rate`
-		if [ "${cur_rate}" == "192" ]; then
+		if [ "${cur_rate}" == "${MIN_RATE}" ]; then
 			logger "SHDSL autoadjust: It is minimum speed now!"
 			return 1
 		fi
-		rate=192
 		while true; do
-			get_it=0
-			for r in ${rates_max_min}; do
-				if [ "$get_it" != "1" ]; then
-					if [ "$r" == "$cur_rate" ]; then
-						get_it=1
-					fi
-				else
-					rate=$r
-					break
-				fi
-			done
+			let "rate=${cur_rate}-${RATE_STEP}"
 			link_connect ${rate}
 			if [ "$?" == "0" ]; then
 				break
@@ -233,23 +223,12 @@ adjust_speed() {
 		if [ "${snr}" -gt "${MAX_SNR}" ]; then
 			logger "SHDSL autoadjust: NEED SPEED UP!!! SNR=${snr}"
 			cur_rate=`cat rate`
-			if [ "${cur_rate}" == "14080" ]; then
+			if [ "${cur_rate}" == "${MAX_RATE}" ]; then
 				logger "SHDSL autoadjust: It is maximum speed now!"
 				return 1
 			fi
-			rate=14080
 			while true; do
-				get_it=0
-				for r in ${rates_min_max}; do
-					if [ "$get_it" != "1" ]; then
-						if [ "$r" == "$cur_rate" ]; then
-							get_it=1
-						fi
-					else
-						rate=$r
-						break
-					fi
-				done
+				let "rate=${cur_rate}+${RATE_STEP}"
 				link_connect ${rate}
 				if [ "$?" != "0" ]; then
 					break
@@ -258,6 +237,8 @@ adjust_speed() {
 				fi
 			done
 			link_connect ${cur_rate}
+		else
+			logger "SHDSL autoadjust: NOT NEED CHANGE SPEED!!! SNR=${snr}"
 		fi
 	fi
 	return 0
