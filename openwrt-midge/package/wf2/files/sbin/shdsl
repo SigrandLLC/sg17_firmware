@@ -29,9 +29,9 @@ fi
 MIN_SNR="`kdb get sys_iface_${iface}_autoadjust_min_snr`"
 MAX_SNR="`kdb get sys_iface_${iface}_autoadjust_max_snr`"
 RATE_STEP="`kdb get sys_iface_${iface}_autoadjust_rate_step`"
-if [ -n "MIN_SNR" ]; then MIN_SNR=2; fi
-if [ -n "MAX_SNR" ]; then MAX_SNR=4; fi
-if [ -n "RATE_STEP" ]; then RATE_STEP=64; fi
+if [ -z "${MIN_SNR}" ]; then MIN_SNR=2; fi
+if [ -z "${MAX_SNR}" ]; then MAX_SNR=4; fi
+if [ -z "${RATE_STEP}" ]; then RATE_STEP=64; fi
 
 
 # получение соотношения сигнал/шум и ослабления
@@ -202,10 +202,10 @@ test_line() {
 adjust_speed() {
 	get_average_snr_and_attenuation
 	state=`cat link_state`
-	logger "SHDSL autoadjust: MIN_SNR=${MIN_SNR} MAX_SNR=${MAX_SNR}"
+	cur_rate=`cat rate`
+	logger "SHDSL autoadjust: MIN_SNR=${MIN_SNR} MAX_SNR=${MAX_SNR} current rate ${cur_rate}"
 	if [ "${snr}" -lt "${MIN_SNR}" -o "${snr}" -gt "128" ]; then
 		logger "SHDSL autoadjust: NEED SPEED DOWN!!! SNR=${snr}"
-		cur_rate=`cat rate`
 		if [ "${cur_rate}" == "${MIN_RATE}" ]; then
 			logger "SHDSL autoadjust: It is minimum speed now!"
 			return 1
@@ -222,7 +222,6 @@ adjust_speed() {
 	else
 		if [ "${snr}" -gt "${MAX_SNR}" ]; then
 			logger "SHDSL autoadjust: NEED SPEED UP!!! SNR=${snr}"
-			cur_rate=`cat rate`
 			if [ "${cur_rate}" == "${MAX_RATE}" ]; then
 				logger "SHDSL autoadjust: It is maximum speed now!"
 				return 1
