@@ -31,8 +31,8 @@ MAX_SNR="`kdb get sys_iface_${iface}_autoadjust_max_snr`"
 RATE_STEP="`kdb get sys_iface_${iface}_autoadjust_rate_step`"
 if [ -z "${MIN_SNR}" ]; then MIN_SNR=2; fi
 if [ -z "${MAX_SNR}" ]; then MAX_SNR=4; fi
-if [ -z "${RATE_STEP}" ]; then RATE_STEP=64; fi
-
+if [ -z "${RATE_STEP}" ]; then RATE_STEP=1; fi
+let "RATE_STEP=RATE_STEP*64"
 
 # получение соотношения сигнал/шум и ослабления
 # текущия директория должна быть sg_private или ms_private
