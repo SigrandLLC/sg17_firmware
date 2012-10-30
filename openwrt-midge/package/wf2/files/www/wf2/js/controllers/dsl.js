@@ -482,6 +482,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"cssClass": "widgetManualMaster",
 				"descr": "*64 kbit"
 			};
+			$("#autoadjust_rate_step")[0].style.width="20px"
 			c.addWidget(field, {"type": "insertAfter", "anchor": $("#autoadjust").parents("tr")});
 			field = {
 				"type": "text",
