@@ -97,11 +97,12 @@ _dsl_mr17ifcfg(){
 				echo "" > /dev/null
 			else
 				cp -f /etc/crontabs/root /tmp/crontabs
-				echo -e "\n*/5\t* * * * ${SHDSL_ADJUST_CMD} ${iface} usefull_parameter" >> /tmp/crontabs
+				echo -e "\n*/10\t* * * * killall -q `basename ${SHDSL_ADJUST_CMD}`; ${SHDSL_ADJUST_CMD} ${iface} usefull_parameter" >> /tmp/crontabs
 				crontab /tmp/crontabs -u root
 				rm -f /tmp/crontabs
 			fi
 		else
+			killall -q shdsl
 			if crontab -l | grep "$iface usefull_parameter" > /dev/null; then
 				crontab -u root -l | grep -v "$iface usefull_parameter" > /tmp/crontabs
 				crontab /tmp/crontabs -u root

@@ -482,8 +482,8 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				"cssClass": "widgetManualMaster",
 				"descr": "*64 kbit"
 			};
-			$("#autoadjust_rate_step")[0].style.width="20px"
 			c.addWidget(field, {"type": "insertAfter", "anchor": $("#autoadjust").parents("tr")});
+			$("#autoadjust_rate_step")[0].style.width="20px"
 			field = {
 				"type": "text",
 				"name": $.sprintf("sys_iface_%s_autoadjust_min_snr", iface),

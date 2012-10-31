@@ -107,20 +107,19 @@ wait_link_state() {
 # на входе ${rate}
 # на выходе ${tcpam}
 get_tcpam() {
-	case ${1} in
-		14080|12800|11520|10240|9216|8192)
-			tcpam=128
-		;;
-		7168|6144)
+	if [ "${1}" -ge "8192" ]; then
+		tcpam=128
+	else
+		if [ "${1}" -ge "6144" ]; then
 			tcpam=64
-		;;
-		5696|5120|4608|4096|3840|3584|3072|2560)
-			tcpam=32
-		;;
-		2304|2048|1792|1536|1280|1024|768|640|512|384|320|256|192)
-			tcpam=16
-		;;
-	esac
+		else
+			if [ "${1}" -ge "2560" ]; then
+				tcpam=32
+			else
+				tcpam=16
+			fi
+		fi
+	fi
 }
 # устанавливаем соединение на определенной скорости
 # на входе ${type} ${iface} ${rate}
@@ -132,14 +131,16 @@ link_connect() {
 	${type}_cfg ${iface} tcpam${tcpam}
 	wait_link_state down
 	if [ "$?" != "0" ]; then
+		logger "SHDSL autoadjust: rate=${rate} TCPAM${tcpam} state=${state} snr=${snr} ----- FAIL"
 		return 1
 	fi
 	wait_link_state up
 	if [ "$?" != "0" ]; then
+		logger "SHDSL autoadjust: rate=${rate} TCPAM${tcpam} state=${state} snr=${snr} ----- FAIL"
 		return 1
 	fi
 	get_average_snr_and_attenuation
-	if [ "${state}" == "1" -a "${snr}" -gt "${MIN_SNR}" ]; then
+	if [ "${state}" == "1" -a "${snr}" -ge "${MIN_SNR}" ]; then
 		logger "SHDSL autoadjust: rate=${rate} TCPAM${tcpam} state=${state} snr=${snr} ----- OK"
 		return 0
 	else
@@ -206,14 +207,14 @@ adjust_speed() {
 	logger "SHDSL autoadjust: MIN_SNR=${MIN_SNR} MAX_SNR=${MAX_SNR} current rate ${cur_rate}"
 	if [ "${snr}" -lt "${MIN_SNR}" -o "${snr}" -gt "128" ]; then
 		logger "SHDSL autoadjust: NEED SPEED DOWN!!! SNR=${snr}"
-		if [ "${cur_rate}" == "${MIN_RATE}" ]; then
+		if [ "${cur_rate}" -le "${MIN_RATE}" ]; then
 			logger "SHDSL autoadjust: It is minimum speed now!"
 			return 1
 		fi
 		while true; do
 			let "rate=${cur_rate}-${RATE_STEP}"
 			link_connect ${rate}
-			if [ "$?" == "0" ]; then
+			if [ "$?" == "0" -a "${snr}" -ge "${MIN_SNR}" -a "${snr}" -lt "128" ]; then
 				break
 			else
 				cur_rate=${rate}
@@ -222,7 +223,7 @@ adjust_speed() {
 	else
 		if [ "${snr}" -gt "${MAX_SNR}" ]; then
 			logger "SHDSL autoadjust: NEED SPEED UP!!! SNR=${snr}"
-			if [ "${cur_rate}" == "${MAX_RATE}" ]; then
+			if [ "${cur_rate}" -ge "${MAX_RATE}" ]; then
 				logger "SHDSL autoadjust: It is maximum speed now!"
 				return 1
 			fi
