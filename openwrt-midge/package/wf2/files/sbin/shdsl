@@ -251,7 +251,9 @@ case "$1" in
 	test_line)
 		test_line
 	;;
-	default)
+	--help|-h|help|?)
 		print_usage
+	;;
+	default)
 	;;
 esac

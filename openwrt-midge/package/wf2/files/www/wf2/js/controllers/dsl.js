@@ -465,13 +465,22 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 
 			field = {
 				"type": "checkbox",
+				"name": $.sprintf("sys_iface_%s_auto_test_line", iface),
+				"id": "auto_test_line",
+				"text": "Auto test line",
+				"cssClass": "widgetManualMaster",
+				"descr": "Enable auto line testing and setting rate."
+			};
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#mode").parents("tr")});
+			field = {
+				"type": "checkbox",
 				"name": $.sprintf("sys_iface_%s_autoadjust", iface),
 				"id": "autoadjust",
 				"text": "Autoadjust",
 				"cssClass": "widgetManualMaster",
 				"descr": "Enable autoadjust line rate and TCPAM."
 			};
-			c.addWidget(field, {"type": "insertAfter", "anchor": $("#mode").parents("tr")});
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#auto_test_line").parents("tr")});
 			field = {
 				"type": "text",
 				"name": $.sprintf("sys_iface_%s_autoadjust_rate_step", iface),
