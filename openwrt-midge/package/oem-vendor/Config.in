@@ -244,3 +244,8 @@ config BR2_SIGRAND_OEM_MS17E
 prompt "MS17E module name"
 string
 default "ms17e"
+
+config BR2_SIGRAND_OEM_MS17E_V2
+prompt "MS17E_V2 module name"
+string
+default "ms17e_v2"
