@@ -55,7 +55,11 @@
 #define MII_PHY_FORCE_LINK		0x03
 
 /*************** VLAN *****************/
+#ifdef DSLAM_HOSE
 #define MAX_VLAN_GROUP			6
+#else
+#define MAX_VLAN_GROUP			4
+#endif
 #define VLAN_PORT_MASK			0x7f
 
 // Vlan status

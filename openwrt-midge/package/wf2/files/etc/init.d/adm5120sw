@@ -1,12 +1,9 @@
 #!/bin/sh
 
-
 eval `kdb -q ls sys_switch* : ls sys_ifaces`
-eval `kdb -q ls sys_dslam_card`
-kdb set sys_dslam_hose=1
-dslam_with_hose=`kdb get sys_dslam_hose`
+eval `kdb -q ls sys_dslam_card : ls  sys_dslam_hose`
 
-if [ "$sys_dslam_card" = "1" -a ${dslam_with_hose} != "1" ]; then
+if [ "$sys_dslam_card" = "1" -a "$sys_dslam_hose" != "1" ]; then
 	ifaces=""
 	for i in $sys_ifaces; do
 		if [ "$i" != "eth1" ]; then
@@ -36,7 +33,7 @@ if [ "$sys_dslam_card" = "1" -a ${dslam_with_hose} != "1" ]; then
 	kdb set sys_iface_eth0_valid=1
 else
 
-if [ "$sys_dslam_card" = "1" -a ${dslam_with_hose} = "1" ]; then
+if [ "$sys_dslam_card" = "1" -a "$sys_dslam_hose" = "1" ]; then
 	eth1=""
 	eth2=""
 	eth3=""
