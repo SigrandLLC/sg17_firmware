@@ -64,7 +64,7 @@ $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 $(IPKG_SIGRAND_MS17E):
 	install -d -m0755 $(IDIR_SIGRAND_MS17E)/lib/modules/2.6.16
 	install -m0755 $(PKG_BUILD_DIR)/ms17e-drv/$(MS17E_MODNAME).ko $(IDIR_SIGRAND_MS17E)/lib/modules/2.6.16/
-	#install -m0755 $(PKG_BUILD_DIR)/ms17e-v2-drv/$(MS17E_V2_MODNAME).ko $(IDIR_SIGRAND_MS17E)/lib/modules/2.6.16/
+	install -m0755 $(PKG_BUILD_DIR)/ms17e-v2-drv/$(MS17E_V2_MODNAME).ko $(IDIR_SIGRAND_MS17E)/lib/modules/2.6.16/
 
 	install -d -m0755 $(IDIR_SIGRAND_MS17E)/usr/sbin
 	#install -m0755 $(PKG_BUILD_DIR)/ms17e-drv/$(MS17E_MODNAME)_debug $(IDIR_SIGRAND_MS17E)/usr/sbin

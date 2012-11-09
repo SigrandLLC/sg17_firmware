@@ -1,10 +1,9 @@
 #!/bin/sh
 
-
 eval `kdb -q ls sys_switch* : ls sys_ifaces`
-eval `kdb -q ls sys_dslam_card`
+eval `kdb -q ls sys_dslam_card : ls  sys_dslam_hose`
 
-if [ "$sys_dslam_card" = "1" ]; then
+if [ "$sys_dslam_card" = "1" -a "$sys_dslam_hose" != "1" ]; then
 	ifaces=""
 	for i in $sys_ifaces; do
 		if [ "$i" != "eth1" ]; then
@@ -24,11 +23,75 @@ if [ "$sys_dslam_card" = "1" ]; then
 		echo 'd' > /proc/sys/net/adm5120sw/eth${port_num}
 		kdb set sys_iface_eth${port_num}_valid=0
 	done
+
+	# set ADM5120 register "Port Conf2"
+	# this set MII port speed to 100M
 	adm5120_debug 0030 0000010a
+
 	/sbin/ifconfig eth0 down
 	echo 5 > /proc/sys/net/adm5120sw/eth0
 	kdb set sys_iface_eth0_valid=1
 else
+
+if [ "$sys_dslam_card" = "1" -a "$sys_dslam_hose" = "1" ]; then
+	eth1=""
+	eth2=""
+	eth3=""
+	eth5=""
+	for i in $sys_ifaces; do
+		if [ "$i" = "eth1" ]; then
+			eth1="1"
+		fi
+		if [ "$i" = "eth2" ]; then
+			eth2="1"
+		fi
+		if [ "$i" = "eth3" ]; then
+			eth3="1"
+		fi
+		if [ "$i" = "eth5" ]; then
+			eth5="1"
+		fi
+	done
+	if [ "${eth1}" != "1" ]; then
+		kdb set sys_ifaces="$sys_ifaces eth1"
+	fi
+	if [ "${eth2}" != "1" ]; then
+		kdb set sys_ifaces="$sys_ifaces eth2"
+	fi
+	if [ "${eth3}" != "1" ]; then
+		kdb set sys_ifaces="$sys_ifaces eth3"
+	fi
+	if [ "${eth5}" != "1" ]; then
+		kdb set sys_ifaces="$sys_ifaces eth5"
+	fi
+
+	# set ADM5120 register "Port Conf2"
+	# this set MII port speed to 100M
+	adm5120_debug 0030 0000010a
+
+	kdb set sys_switch_ports="0 1 2 3 5"
+	if [ "`kdb get sys_switch_port5_iface`" = "" ]; then
+		kdb set sys_switch_port5_iface=5
+		kdb set sys_iface_eth5_auto=1
+		kdb set sys_iface_eth5_broadcast=""
+		kdb set sys_iface_eth5_desc=""
+		kdb set sys_iface_eth5_dhcp_enabled=0
+		kdb set sys_iface_eth5_enabled=1
+		kdb set sys_iface_eth5_gateway=""
+		kdb set sys_iface_eth5_ipaddr=192.168.6.100
+		kdb set sys_iface_eth5_method=static
+		kdb set sys_iface_eth5_netmask=255.255.255.0
+		kdb set sys_iface_eth5_opt_accept_redirects=1
+		kdb set sys_iface_eth5_opt_forwarding=1
+		kdb set sys_iface_eth5_opt_proxy_arp=0
+		kdb set sys_iface_eth5_opt_rp_filter=1
+		kdb set sys_iface_eth5_proto=ether
+		kdb set sys_iface_eth5_qos_sch=pfifo_fast
+		kdb set sys_iface_eth5_valid=1
+		kdb set sys_iface_eth5_winsserver=""
+	fi
+fi
+
 append() {
 	eval "$1=\"\${$1}$2\""
 }

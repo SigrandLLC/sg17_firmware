@@ -234,7 +234,7 @@ BR2_PACKAGE_ZLIB=y
 #
 # Serial communications & terminal emulation
 #
-# BR2_PACKAGE_MICROCOM is not set
+BR2_PACKAGE_MICROCOM=y
 BR2_PACKAGE_RS232_TCPEXT=y
 BR2_PACKAGE_SETSERIAL=y
 

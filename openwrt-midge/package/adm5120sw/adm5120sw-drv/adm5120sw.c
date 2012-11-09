@@ -74,6 +74,8 @@ int ProgramVlanMac(int vlan, char *Mac, int clear);
 void EnableVlanGroup(int unit, unsigned long vlanGrp);
 void DisableVlanGroup(int unit, unsigned long vlanGrp);
 
+int dslam_hose = 0;
+module_param(dslam_hose, int, 0);
 
 static int unit = 0;
 static int timeout = 5;
@@ -92,14 +94,14 @@ struct net_device adm5120sw_devs[MAX_VLAN_GROUP] = {
     { name: "eth1", init:adm5120sw_init },
     { name: "eth2", init:adm5120sw_init },
     { name: "eth3", init:adm5120sw_init },
-//    { name: "eth4", init:adm5120sw_init },
-//    { name: "eth5", init:adm5120sw_init }
+    { name: "eth4", init:adm5120sw_init },
+    { name: "eth5", init:adm5120sw_init }
 };
 
 int adm5120_get_nrif (char * vlan_matrix)
 {
 	int i,nr = 0;
-	for ( i = 0; i < MAX_VLAN_GROUP; i++)
+	for ( i = 0; i < MAX_VLAN_GROUP - (dslam_hose?0:2); i++)
 		if (vlan_matrix[i] & 0x40) nr++;
 	return nr;
 }
@@ -221,7 +223,7 @@ int adm5120swdrv_init (void)
 			(sizeof(RX_DRV_DESC_T) * NUM_RX_H_DESC));
 	InitRxDesc(&sw_context->rxL);
 
-	for (i = 0; i < MAX_VLAN_GROUP; i++)
+	for (i = 0; i < MAX_VLAN_GROUP - (dslam_hose?0:2); i++)
 		sw_context->vlanGrp[i] = vlan_mx[i] & 0x7F;
 
 	/* disable cpu port, CRC padding from cpu and no send unknown packet
@@ -427,9 +429,9 @@ void ChangeIfacesStatus(void)
 	
 	val = ADM5120_SW_REG(PHY_st_REG) & 0x1F;
 
-	for (i = 0; i < MAX_VLAN_GROUP; i++) {
+	for (i = 0; i < MAX_VLAN_GROUP - (dslam_hose?0:2); i++) {
 		tmp = 1;
-		for (j = 0; j < MAX_VLAN_GROUP; j++) {
+		for (j = 0; j < MAX_VLAN_GROUP - (dslam_hose?0:2); j++) {
 			if ((1 << j) & sw_context->vlanGrp[i]) {
 				if (val & (0x1 << j)) {
 					netif_carrier_on(&adm5120sw_devs[i]);
@@ -440,9 +442,13 @@ void ChangeIfacesStatus(void)
 		if (dslam_board && i == 0) tmp = 0;
 		if (tmp) netif_carrier_off(&adm5120sw_devs[i]);
 	}
-
+/* dslam switch don't update link status automatically
+   so we need do this for iface will be RUNNING */
 	if (dslam_board) {
-		netif_carrier_on(&adm5120sw_devs[0]);
+		if (dslam_hose)
+			netif_carrier_on(&adm5120sw_devs[5]);
+		else
+			netif_carrier_on(&adm5120sw_devs[0]);
 	}
 }
 
@@ -499,13 +505,17 @@ irqreturn_t swdrv_ProcessInt(int irq, void *dev_id, struct pt_regs *regs)
 #define PFS_VLAN1 1
 #define PFS_VLAN2 2
 #define PFS_VLAN3 3
-#define PFS_STATUS 4
-#define PFS_VLAN0_LINK_DOWN 5
-#define PFS_VLAN1_LINK_DOWN 6
-#define PFS_VLAN2_LINK_DOWN 7
-#define PFS_VLAN3_LINK_DOWN 8
-#define PFS_REGRD 9
-#define PFS_REGWR 10
+#define PFS_VLAN4 4
+#define PFS_VLAN5 5
+#define PFS_STATUS 6
+#define PFS_VLAN0_LINK_DOWN 7
+#define PFS_VLAN1_LINK_DOWN 8
+#define PFS_VLAN2_LINK_DOWN 9
+#define PFS_VLAN3_LINK_DOWN 10
+#define PFS_VLAN4_LINK_DOWN 11
+#define PFS_VLAN5_LINK_DOWN 12
+#define PFS_REGRD 13
+#define PFS_REGWR 14
 
 
 char adm5120_procdir[]="sys/net/adm5120sw";
@@ -542,12 +552,20 @@ static struct dev_entrie entries[]={
 	{ "eth1", PFS_VLAN1, NULL, 400, NULL, store_vlan2port },
 	{ "eth2", PFS_VLAN2, NULL, 400, NULL, store_vlan2port },
 	{ "eth3", PFS_VLAN3, NULL, 400, NULL, store_vlan2port },
+#ifdef DSLAM_HOSE
+	{ "eth4", PFS_VLAN4, NULL, 400, NULL, store_vlan2port },
+	{ "eth5", PFS_VLAN5, NULL, 400, NULL, store_vlan2port },
+#endif
 	{ "status", PFS_STATUS, NULL, 400, read_switch_status, NULL },
 #ifdef ADM5120_FORCE_LINK_CONTROL
 	{ "force_lnk_down_eth0", PFS_VLAN0_LINK_DOWN, NULL, 400, read_force_link, store_force_link },
 	{ "force_lnk_down_eth1", PFS_VLAN1_LINK_DOWN, NULL, 400, read_force_link, store_force_link },	
 	{ "force_lnk_down_eth2", PFS_VLAN2_LINK_DOWN, NULL, 400, read_force_link, store_force_link },	
 	{ "force_lnk_down_eth3", PFS_VLAN3_LINK_DOWN, NULL, 400, read_force_link, store_force_link },	
+#ifdef DSLAM_HOSE
+	{ "force_lnk_down_eth4", PFS_VLAN4_LINK_DOWN, NULL, 400, read_force_link, store_force_link },	
+	{ "force_lnk_down_eth5", PFS_VLAN5_LINK_DOWN, NULL, 400, read_force_link, store_force_link },	
+#endif
 #endif
 
 #ifdef ADM5120_SW_DEBUG
@@ -674,7 +692,7 @@ static int store_vlan2port(struct file *file,const char *buffer,unsigned long co
 		if( cport < NUM_IF5120_PORTS ){
 			//check that this port is not in any other VLAN
 			err = 0;
-			for ( i=0;i<MAX_VLAN_GROUP;i++ ){
+			for ( i=0;i<MAX_VLAN_GROUP - (dslam_hose?0:2); i++ ){
 				if( i == vlan_num )
 					continue;
 				if( (1<<cport) & sw_context->vlanGrp[i] ) {
@@ -852,7 +870,7 @@ int ProgramVlanMac(int vlan, char *Mac, int clear)
 {
 	unsigned long Reg0, Reg1;
 
-	if (vlan < 0 || vlan >= MAX_VLAN_GROUP)
+	if (vlan < 0 || vlan >= MAX_VLAN_GROUP - (dslam_hose?0:2))
 		return -1;
 
 	Reg0 = (((unsigned char)Mac[1] << 24) | ((unsigned char)Mac[0] << 16)) | (vlan << SW_MAC_VLANID_SHIFT)
@@ -1176,7 +1194,7 @@ static int __init adm5120switch_init (void)
 {
 	int result, i, device_present = 0;
 	BOARD_CFG_T boardCfg = {0};
-	
+
 	dslam_board = IsDslamBoardHere();
 	printk("ADM5120 Switch Module Init V1.3\n");
 	if (adm5120swdrv_init() != 0)
