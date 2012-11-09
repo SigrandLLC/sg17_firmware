@@ -15,7 +15,9 @@ function generateMenu() {
     addItem("Network", "Firewall", "fw");
     addItem("Network:Dynamic interfaces", "Manage", "dynamic_ifaces");
     if (config.getParsed("sys_dslam_card") == "1") {
-        addItem("Hardware", "Switch", "dslamsw");
+        addItem("Hardware", "DSLAM Switch", "dslamsw");
+        if (config.getParsed("sys_dslam_hose") == "1")
+            addItem("Hardware", "CPU Switch", "adm5120sw");
     } else {
         addItem("Hardware", "Switch", "adm5120sw");
     }

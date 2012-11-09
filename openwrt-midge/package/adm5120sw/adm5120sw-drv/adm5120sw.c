@@ -92,8 +92,8 @@ struct net_device adm5120sw_devs[MAX_VLAN_GROUP] = {
     { name: "eth1", init:adm5120sw_init },
     { name: "eth2", init:adm5120sw_init },
     { name: "eth3", init:adm5120sw_init },
-//    { name: "eth4", init:adm5120sw_init },
-//    { name: "eth5", init:adm5120sw_init }
+    { name: "eth4", init:adm5120sw_init },
+    { name: "eth5", init:adm5120sw_init }
 };
 
 int adm5120_get_nrif (char * vlan_matrix)
@@ -440,9 +440,14 @@ void ChangeIfacesStatus(void)
 		if (dslam_board && i == 0) tmp = 0;
 		if (tmp) netif_carrier_off(&adm5120sw_devs[i]);
 	}
-
+/* dslam switch don't update link status automatically
+   so we need do this for iface will be RUNNING */
 	if (dslam_board) {
+#ifdef DSLAM_HOSE
+		netif_carrier_on(&adm5120sw_devs[5]);
+#else
 		netif_carrier_on(&adm5120sw_devs[0]);
+#endif
 	}
 }
 
@@ -499,13 +504,17 @@ irqreturn_t swdrv_ProcessInt(int irq, void *dev_id, struct pt_regs *regs)
 #define PFS_VLAN1 1
 #define PFS_VLAN2 2
 #define PFS_VLAN3 3
-#define PFS_STATUS 4
-#define PFS_VLAN0_LINK_DOWN 5
-#define PFS_VLAN1_LINK_DOWN 6
-#define PFS_VLAN2_LINK_DOWN 7
-#define PFS_VLAN3_LINK_DOWN 8
-#define PFS_REGRD 9
-#define PFS_REGWR 10
+#define PFS_VLAN4 4
+#define PFS_VLAN5 5
+#define PFS_STATUS 6
+#define PFS_VLAN0_LINK_DOWN 7
+#define PFS_VLAN1_LINK_DOWN 8
+#define PFS_VLAN2_LINK_DOWN 9
+#define PFS_VLAN3_LINK_DOWN 10
+#define PFS_VLAN4_LINK_DOWN 11
+#define PFS_VLAN5_LINK_DOWN 12
+#define PFS_REGRD 13
+#define PFS_REGWR 14
 
 
 char adm5120_procdir[]="sys/net/adm5120sw";
@@ -542,12 +551,16 @@ static struct dev_entrie entries[]={
 	{ "eth1", PFS_VLAN1, NULL, 400, NULL, store_vlan2port },
 	{ "eth2", PFS_VLAN2, NULL, 400, NULL, store_vlan2port },
 	{ "eth3", PFS_VLAN3, NULL, 400, NULL, store_vlan2port },
+	{ "eth4", PFS_VLAN4, NULL, 400, NULL, store_vlan2port },
+	{ "eth5", PFS_VLAN5, NULL, 400, NULL, store_vlan2port },
 	{ "status", PFS_STATUS, NULL, 400, read_switch_status, NULL },
 #ifdef ADM5120_FORCE_LINK_CONTROL
 	{ "force_lnk_down_eth0", PFS_VLAN0_LINK_DOWN, NULL, 400, read_force_link, store_force_link },
 	{ "force_lnk_down_eth1", PFS_VLAN1_LINK_DOWN, NULL, 400, read_force_link, store_force_link },	
 	{ "force_lnk_down_eth2", PFS_VLAN2_LINK_DOWN, NULL, 400, read_force_link, store_force_link },	
 	{ "force_lnk_down_eth3", PFS_VLAN3_LINK_DOWN, NULL, 400, read_force_link, store_force_link },	
+	{ "force_lnk_down_eth4", PFS_VLAN4_LINK_DOWN, NULL, 400, read_force_link, store_force_link },	
+	{ "force_lnk_down_eth5", PFS_VLAN5_LINK_DOWN, NULL, 400, read_force_link, store_force_link },	
 #endif
 
 #ifdef ADM5120_SW_DEBUG
