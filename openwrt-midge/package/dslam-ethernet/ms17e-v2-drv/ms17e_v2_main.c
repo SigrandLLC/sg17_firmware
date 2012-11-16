@@ -190,7 +190,7 @@ static int __devinit ms17e_v2_init_one(struct pci_dev *pdev,const struct pci_dev
 	// UART operations
 	port->ops = &ms17e_v2_uart_ops;
 	// port index
-	port->line = 0;
+	port->line = PCI_SLOT(pdev->devfn);;
 	// port parent device
 	port->dev = &pdev->dev;
 	// PORT flags
