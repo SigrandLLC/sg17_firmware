@@ -54,10 +54,15 @@ static struct uart_ops ms17e_v2_uart_ops = {
 	.release_port	= ms17e_v2_release_port,
 	.request_port	= ms17e_v2_request_port,
 	.config_port	= ms17e_v2_config_port,
-	.verify_port	= ms17e_v2_verify_port,
-	.ioctl			= ms17e_v2_ioctl,
+	.verify_port	= ms17e_v2_verify_port
 };
 
+static int poe_show(char *buf, char **start, off_t offset_, int count, int *eof, void *data) {
+	int j = 0;
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	j += snprintf(&buf[j], count, "%02x\n",  card->poe_status);
+	return j;
+}
 
 static int  __devinit ms17e_v2_init(void) {
 	int result;
@@ -96,6 +101,8 @@ static int __devinit ms17e_v2_init_one(struct pci_dev *pdev,const struct pci_dev
 	u32 len;
 	char card_name[32], port_name[32];
 	struct uart_port *port;
+	char entry_name[64];
+	struct proc_dir_entry *poe_entry;
 
 	PDEBUG(debug_init,"start");
 
@@ -190,7 +197,7 @@ static int __devinit ms17e_v2_init_one(struct pci_dev *pdev,const struct pci_dev
 	// UART operations
 	port->ops = &ms17e_v2_uart_ops;
 	// port index
-	port->line = PCI_SLOT(pdev->devfn);;
+	port->line = PCI_SLOT(pdev->devfn)-2;
 	// port parent device
 	port->dev = &pdev->dev;
 	// PORT flags
@@ -218,6 +225,20 @@ static int __devinit ms17e_v2_init_one(struct pci_dev *pdev,const struct pci_dev
 		printk(KERN_ERR "Error request IRQ %i\n", pdev->irq);
 		goto porterr;
 	}
+
+	sprintf(entry_name, "sys/net/ethernet/ms17e_v2_slot_%i_poe", PCI_SLOT(pdev->devfn)-2);
+//	PDEBUG(0, "entry_name=[%s]", entry_name);
+	if (!(poe_entry = create_proc_entry((const char *)entry_name, 0400, NULL)))
+	{
+		printk(KERN_ERR"Can not create %s\n", entry_name);
+		goto porterr;
+	}
+	poe_entry->owner = THIS_MODULE;
+	poe_entry->read_proc = poe_show;
+	poe_entry->write_proc = NULL;
+	poe_entry->data = card;
+
+	card->poe_status = ioread8(&(card->regs->PSR));
 
 	PDEBUG(debug_init,"end, rsdev = %p", card);
 
@@ -247,6 +268,11 @@ static void __devexit ms17e_v2_remove_one(struct pci_dev *pdev) {
 	struct uart_port *port = (struct uart_port*)(card->port);
 	char port_name[32];
 	unsigned long iomem_start = pci_resource_start(card->pdev, 0);
+	char entry_name[64];
+
+	sprintf(entry_name, "sys/net/ethernet/ms17e_v2_slot_%i_poe", PCI_SLOT(pdev->devfn)-2);
+	remove_proc_entry(entry_name, NULL);
+
 
 	free_irq(pdev->irq, card);
 
@@ -290,6 +316,11 @@ static irqreturn_t ms17e_v2_interrupt(int irq,void *dev_id,struct pt_regs *ptreg
 		PDEBUG(debug_irq,"RXE");
 	}
 
+	if (status & PSU) {
+		PDEBUG(debug_irq,"PSU");
+		card->poe_status = ioread8(&(card->regs->PSR));
+	}
+
 	return IRQ_HANDLED;
 
 }
@@ -297,15 +328,15 @@ static irqreturn_t ms17e_v2_interrupt(int irq,void *dev_id,struct pt_regs *ptreg
 //----------------- UART operations -----------------------------------//
 
 static void ms17e_v2_stop_tx(struct uart_port *port) {
-	struct ms17e_v2_card *card = (struct ms17e_v2_card *)port->membase;
+//	struct ms17e_v2_card *card = (struct ms17e_v2_card *)port->membase;
 	// Nothing to do. Transmitter stops automaticaly
 	PDEBUG(debug_xmit,"stop_tx");
 //	card->block_start_tx = 0;
 }
 
 static void ms17e_v2_start_tx(struct uart_port *port) {
-	struct ms17e_v2_card *card = (struct ms17e_v2_card *)port->membase;
-	PDEBUG(debug_xmit,"start_tx");
+//	struct ms17e_v2_card *card = (struct ms17e_v2_card *)port->membase;
+	PDEBUG(0/*debug_xmit*/,"start_tx");
 //	if (!(card->block_start_tx)) {
 //		card->block_start_tx = 1;
 		ms17e_v2_xmit_byte(port);
@@ -339,8 +370,13 @@ static void ms17e_v2_break_ctl(struct uart_port *port, int break_state) {
 static void ms17e_v2_set_termios(struct uart_port *port, struct termios *new, struct termios *old) {
 	u32 baud, quot;
 	unsigned long flags;
+	int err = 0;
 
 	PDEBUG(debug_hw,"");
+
+//	err = uart_set_options(port, NULL, 9600, 'n', 8, 'n');
+//	PDEBUG(debug_hw, "err = %i", err);
+//	new->c_cflag |= CREAD;
 
 	new->c_lflag &= ~ICANON;
 	new->c_lflag &= ~(ECHO | ECHOCTL | ECHONL);
@@ -352,7 +388,7 @@ static void ms17e_v2_set_termios(struct uart_port *port, struct termios *new, st
 	baud = uart_get_baud_rate(port, new, old, 0, port->uartclk);
 	quot = uart_get_divisor(port, baud);
 //	printk(KERN_ERR "termios new = %p termios old = %p\n", new, old);
-	PDEBUG(debug_hw, "BAUD=%u, QUOTE=%u", baud, quot);
+//	PDEBUG(debug_hw, "BAUD=%u, QUOTE=%u", baud, quot);
 
 	// Locked area - configure hardware
 	spin_lock_irqsave(&port->lock, flags);
@@ -368,8 +404,8 @@ inline static void ms17e_v2_transceiver_up(struct uart_port *port) {
 	struct ms17e_v2_card *card = (struct ms17e_v2_card *)port->membase;
 
 	// enable all interrupts
-//	printk(KERN_ERR MS17E_V2_DRVNAME": Enable all interrupts\n");
-	iowrite8(TXS | RXS | RXE, &(card->regs->IMR));
+//	printk(KERN_ERR MS17E_V2_DRVNAME": transeiver_up\n");
+	iowrite8(TXS | RXS | RXE | PSU, &(card->regs->IMR));
 //	card->block_start_tx = 0;
 }
 
@@ -377,6 +413,7 @@ inline static void ms17e_v2_transceiver_down(struct uart_port *port) {
 //	struct ms17e_v2_card *card = (struct ms17e_v2_card *)port->membase;
 	// disable all interrupts
 //	iowrite8(TXS | RXS | RXE, &(card->regs->IMR));
+//	printk(KERN_ERR MS17E_V2_DRVNAME": transeiver_down\n");
 }
 
 static int ms17e_v2_startup(struct uart_port *port) {
@@ -404,15 +441,18 @@ static void ms17e_v2_shutdown(struct uart_port *port) {
 }
 
 static const char *ms17e_v2_type(struct uart_port *port) {
+//	printk(KERN_ERR MS17E_V2_DRVNAME": type\n");
 	return MS17E_V2_MODNAME;
 }
 
 static void ms17e_v2_release_port(struct uart_port *port) {
     // Nothing to do at this moment
+//	printk(KERN_ERR MS17E_V2_DRVNAME": release_port\n");
 }
 
 static int ms17e_v2_request_port(struct uart_port *port) {
     // Nothing to do at this moment
+//	printk(KERN_ERR MS17E_V2_DRVNAME": request_port\n");
     return 0;
 }
 
@@ -430,15 +470,20 @@ static void ms17e_v2_config_port(struct uart_port *port, int flags) {
 
 	// turn all off
 	iowrite8(0x00, &(card->regs->CRA));
-	// enable all PHY and power/ also set orange LED mode to manual
+	// enable all PHY and power/ also set orange LED to indicate PoE status
 	iowrite8(ERST | PRST | LEDM | RXEN, &(card->regs->CRA));
 	// turn on all LEDs
 	iowrite8(0xFF, &(card->regs->LCR0));
 	iowrite8(0xFF, &(card->regs->LCR1));
+
+	// enable some interrupts
+	iowrite8(/*TXS | RXS | RXE |*/ PSU, &(card->regs->IMR));
+
 }
 
 static int ms17e_v2_verify_port(struct uart_port *port, struct serial_struct *ser) {
 	// Nothing to do at this moment
+//	printk(KERN_ERR MS17E_V2_DRVNAME": verify_port\n");
 	return 0;
 }
 
@@ -450,7 +495,7 @@ static unsigned int ms17e_v2_tx_empty(struct uart_port *port) {
 
 static int ms17e_v2_ioctl(struct uart_port *port, unsigned int cmd, unsigned long arg) {
 //	printk(KERN_ERR MS17E_V2_DRVNAME": ioctl\n");
-	return 0;
+	return 1;
 }
 
 // Hardware related functions
@@ -483,7 +528,7 @@ static void ms17e_v2_xmit_byte(struct uart_port *port) {
 	unsigned long flags;
 	u8 tmp = 0;
 
-//	printk(KERN_ERR MS17E_V2_DRVNAME": xmit_byte\n");
+	printk(KERN_ERR MS17E_V2_DRVNAME": xmit_byte\n");
 
 	// Block port. This function can run both
 	// in process and interrupt context
@@ -510,7 +555,6 @@ static void ms17e_v2_xmit_byte(struct uart_port *port) {
 		PDEBUG(debug_xmit,"CIRC_EMPTY=%d, TX_STOPPED=%d",uart_circ_empty(xmit),uart_tx_stopped(port));
 		goto exit;
 	}
-
 
 	iowrite8(xmit->buf[xmit->tail], &(card->regs->TDR));
 //	printk(KERN_ERR MS17E_V2_DRVNAME": xmit_byte [%x]\n", xmit->buf[xmit->tail]);
