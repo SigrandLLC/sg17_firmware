@@ -40,6 +40,7 @@
 #define MS17E_V2_VER "0.1"
 
 #define MS17E_V2_PCI_VEN 0x55
+#define MS17E_V2_PORTS 8
 #define MS17E_V2_PCI_DEV 0x93
 #define MS17E_V2_MODNAME "@MS17E_V2_MODNAME@"
 #define MS17E_V2_SERIAL_NAME "ttyFE"
@@ -106,6 +107,11 @@ struct ms17e_v2_card {
 	struct uart_port *port;
 	u8 block_start_tx;
 	u8 poe_status;
+	struct proc_dir_entry *proc_entry;
+	u8 tty_file_lock;
+	char buf[1024];
+	int buf_size;
+	u8 tmp;
 };
 
 // Module initialization
@@ -132,7 +138,7 @@ static int 			ms17e_v2_request_port(struct uart_port *port);
 static void 		ms17e_v2_config_port(struct uart_port *port, int flags);
 static int 			ms17e_v2_verify_port(struct uart_port *port, struct serial_struct *ser);
 static unsigned int ms17e_v2_tx_empty(struct uart_port *port);
-static int 			ms17e_v2_ioctl(struct uart_port *port, unsigned int cmd, unsigned long arg);
+//static int 			ms17e_v2_ioctl(struct uart_port *port, unsigned int cmd, unsigned long arg);
 
 static irqreturn_t 	ms17e_v2_interrupt(int irq,void *dev_id,struct pt_regs *regs);
 static void 		ms17e_v2_recv_byte(struct uart_port *port,struct pt_regs *regs);

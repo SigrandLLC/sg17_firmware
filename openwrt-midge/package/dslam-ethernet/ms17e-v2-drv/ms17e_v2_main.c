@@ -57,12 +57,170 @@ static struct uart_ops ms17e_v2_uart_ops = {
 	.verify_port	= ms17e_v2_verify_port
 };
 
-static int poe_show(char *buf, char **start, off_t offset_, int count, int *eof, void *data) {
-	int j = 0;
-	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
-	j += snprintf(&buf[j], count, "%02x\n",  card->poe_status);
-	return j;
+static int cmd_to_serial(char * cmd, char * answer, struct ms17e_v2_card *card) {
+	int i;
+	u8 tmp = 0, IMR_save;
+//	unsigned long flags = 0;
+//	char buf[1024];
+
+	atomic_set((atomic_t *)&card->tty_file_lock, 1);
+	card->buf_size = 0;
+
+	IMR_save = ioread8(&(card->regs->IMR));
+	iowrite8(TXS | RXS | RXE | PSU, &(card->regs->IMR));
+
+	for (i = 0; i < strlen(cmd); i++) {
+		iowrite8(cmd[i], &(card->regs->TDR));
+		tmp = ioread8(&(card->regs->CRA));
+		iowrite8(tmp | TXEN, &(card->regs->CRA));
+		if (!interruptible_sleep_on_timeout(&card->wait_transmit, 1000)) {
+			PDEBUG(0, "Error! write sleep timeout");
+			atomic_set((atomic_t *)&(card->tty_file_lock), 0);
+			return -1;
+		}
+	}
+	iowrite8('\r', &(card->regs->TDR));
+	tmp = ioread8(&(card->regs->CRA));
+	iowrite8(tmp | TXEN, &(card->regs->CRA));
+	if (!interruptible_sleep_on_timeout(&card->wait_transmit, 1000)) {
+		PDEBUG(0, "Error! write sleep timeout");
+		atomic_set((atomic_t *)&(card->tty_file_lock), 0);
+		return -1;
+	}
+
+	mdelay(200);
+	card->buf[card->buf_size]='\n';
+	card->buf_size++;
+	strncpy(answer, card->buf, card->buf_size);
+//	PDEBUG(0, "receive %i byte: [%s]", card->buf_size, card->buf_size?card->buf:"");
+	iowrite8(IMR_save, &(card->regs->IMR));
+	atomic_set((atomic_t *)&(card->tty_file_lock), 0);
+	return card->buf_size;
 }
+
+static int status_show(char *buf, char **start, off_t offset_, int count, int *eof, void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	if (offset_) {
+		*eof = 1;
+		return 0;
+	}
+	return cmd_to_serial("stat", buf, card);
+}
+
+static int poe_show(char *buf, char **start, off_t offset_, int count, int *eof, void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	if (offset_) {
+		*eof = 1;
+		return 0;
+	}
+	if (card->tmp == 8) {
+		return cmd_to_serial("poe", buf, card);
+	} else {
+		char tmp_str[10];
+		sprintf(tmp_str, "poe %i", card->tmp);
+		return cmd_to_serial(tmp_str, buf, card);
+	}
+}
+
+static int poe_store(struct file *file,const char *buffer,unsigned long count,void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	char *endp, tmp_str[10], buf[1024];
+	u8 port_num = 8, poe_enable = 3;
+	int ret = 0;
+
+	port_num = simple_strtoul(buffer, &endp, 10);
+	while( *endp == ' '){
+		endp++;
+	}
+	if (port_num > 7) {
+		if (port_num == 8) {
+			card->tmp = port_num;
+			return count;
+		}
+		return 0;
+	}
+	poe_enable = simple_strtoul(endp, &endp, 10);
+
+	PDEBUG(0, "port_num = %i poe_enable = %i", port_num, poe_enable);
+	if (poe_enable == 1) {
+		sprintf(tmp_str, "poe %i enable", port_num);
+		ret = cmd_to_serial(tmp_str, buf, card);
+		PDEBUG(0, "ret = %i buf=[%s]", ret, buf);
+	} else {
+		if (poe_enable == 0) {
+			sprintf(tmp_str, "poe %i disable", port_num);
+			ret = cmd_to_serial(tmp_str, buf, card);
+			PDEBUG(0, "ret = %i buf=[%s]", ret, buf);
+		} else {
+			card->tmp = port_num;
+		}
+	}
+	return count;
+}
+
+static int pmax_show(char *buf, char **start, off_t offset_, int count, int *eof, void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	if (offset_) {
+		*eof = 1;
+		return 0;
+	}
+	return cmd_to_serial("pmax", buf, card);
+}
+
+static int pmax_store(struct file *file,const char *buffer,unsigned long count,void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	char *endp, tmp_str[10], buf[1024];
+	u8 port_num = 8;
+	int pmax = 0, ret = 0;
+
+	port_num = simple_strtoul(buffer, &endp, 10);
+	while( *endp == ' '){
+		endp++;
+	}
+	if (port_num > 8) {
+		return 0;
+	}
+	pmax = simple_strtoul(endp, &endp, 10);
+
+	PDEBUG(0, "port_num = %i pmax = %i", port_num, pmax);
+	if (port_num == 8) {
+		sprintf(tmp_str, "pmax all %i", pmax);
+		ret = cmd_to_serial(tmp_str, buf, card);
+		PDEBUG(0, "ret = %i buf=[%s]", ret, buf);
+	} else {
+		sprintf(tmp_str, "pmax %i %i", port_num, pmax);
+		ret = cmd_to_serial(tmp_str, buf, card);
+		PDEBUG(0, "ret = %i buf=[%s]", ret, buf);
+	}
+	return count;
+}
+
+static int pmax_total_show(char *buf, char **start, off_t offset_, int count, int *eof, void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	if (offset_) {
+		*eof = 1;
+		return 0;
+	}
+	return cmd_to_serial("pmax total", buf, card);
+}
+
+static int pmax_total_store(struct file *file,const char *buffer,unsigned long count,void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	char *endp, tmp_str[10], buf[1024];
+	int pmax = 0, ret = 0;
+
+	pmax = simple_strtoul(buffer, &endp, 10);
+	while( *endp == ' '){
+		endp++;
+	}
+	PDEBUG(0, "pmax = %i", pmax);
+	sprintf(tmp_str, "pmax total %i", pmax);
+	ret = cmd_to_serial(tmp_str, buf, card);
+	PDEBUG(0, "ret = %i buf=[%s]", ret, buf);
+	return count;
+}
+
+
 
 static int  __devinit ms17e_v2_init(void) {
 	int result;
@@ -102,7 +260,7 @@ static int __devinit ms17e_v2_init_one(struct pci_dev *pdev,const struct pci_dev
 	char card_name[32], port_name[32];
 	struct uart_port *port;
 	char entry_name[64];
-	struct proc_dir_entry *poe_entry;
+	struct proc_dir_entry *proc_entry;
 
 	PDEBUG(debug_init,"start");
 
@@ -226,24 +384,59 @@ static int __devinit ms17e_v2_init_one(struct pci_dev *pdev,const struct pci_dev
 		goto porterr;
 	}
 
-	sprintf(entry_name, "sys/net/ethernet/ms17e_v2_slot_%i_poe", PCI_SLOT(pdev->devfn)-2);
-//	PDEBUG(0, "entry_name=[%s]", entry_name);
-	if (!(poe_entry = create_proc_entry((const char *)entry_name, 0400, NULL)))
-	{
-		printk(KERN_ERR"Can not create %s\n", entry_name);
+	sprintf(entry_name, "sys/net/ethernet/fe%i", PCI_SLOT(pdev->devfn)-2);
+	card->proc_entry = proc_mkdir((const char *)entry_name, NULL);
+	if (card->proc_entry == NULL) {
+		printk(KERN_ERR"Can not create proc entry\n");
+		return -ENOMEM;
+	}
+	if (!(proc_entry = create_proc_entry("status", 0400, card->proc_entry))) {
+		printk(KERN_ERR"Can not create status entry\n");
 		goto porterr;
 	}
-	poe_entry->owner = THIS_MODULE;
-	poe_entry->read_proc = poe_show;
-	poe_entry->write_proc = NULL;
-	poe_entry->data = card;
+	proc_entry->owner = THIS_MODULE;
+	proc_entry->read_proc = status_show;
+	proc_entry->write_proc = NULL;
+	proc_entry->data = card;
+
+	if (!(proc_entry = create_proc_entry("poe", 0600, card->proc_entry))) {
+		printk(KERN_ERR"Can not create poe entry\n");
+		goto porterr;
+	}
+	proc_entry->owner = THIS_MODULE;
+	proc_entry->read_proc = poe_show;
+	proc_entry->write_proc = poe_store;
+	proc_entry->data = card;
+
+	if (!(proc_entry = create_proc_entry("pmax", 0600, card->proc_entry))) {
+		printk(KERN_ERR"Can not create pmax entry\n");
+		goto porterr;
+	}
+	proc_entry->owner = THIS_MODULE;
+	proc_entry->read_proc = pmax_show;
+	proc_entry->write_proc = pmax_store;
+	proc_entry->data = card;
+
+	if (!(proc_entry = create_proc_entry("pmax_total", 0600, card->proc_entry))) {
+		printk(KERN_ERR"Can not create pmax_total entry\n");
+		goto porterr;
+	}
+	proc_entry->owner = THIS_MODULE;
+	proc_entry->read_proc = pmax_total_show;
+	proc_entry->write_proc = pmax_total_store;
+	proc_entry->data = card;
 
 	card->poe_status = ioread8(&(card->regs->PSR));
+	card->tmp = 8;
 
 	PDEBUG(debug_init,"end, rsdev = %p", card);
 
-	return 0;
 
+	init_waitqueue_head(&card->wait_transmit);
+	init_waitqueue_head(&card->wait_receive);
+	atomic_set((atomic_t *)&(card->tty_file_lock), 0);
+
+	return 0;
 porterr:
 	port = card->port;
 	snprintf(port_name, 32, MS17E_V2_SERIAL_NAME"%d",port->line);
@@ -270,7 +463,11 @@ static void __devexit ms17e_v2_remove_one(struct pci_dev *pdev) {
 	unsigned long iomem_start = pci_resource_start(card->pdev, 0);
 	char entry_name[64];
 
-	sprintf(entry_name, "sys/net/ethernet/ms17e_v2_slot_%i_poe", PCI_SLOT(pdev->devfn)-2);
+	remove_proc_entry("status", card->proc_entry);
+	remove_proc_entry("poe", card->proc_entry);
+	remove_proc_entry("pmax", card->proc_entry);
+	remove_proc_entry("pmax_total", card->proc_entry);
+	sprintf(entry_name, "sys/net/ethernet/FE%i", PCI_SLOT(pdev->devfn)-2);
 	remove_proc_entry(entry_name, NULL);
 
 
@@ -290,9 +487,11 @@ static void __devexit ms17e_v2_remove_one(struct pci_dev *pdev) {
 static irqreturn_t ms17e_v2_interrupt(int irq,void *dev_id,struct pt_regs *ptregs) {
 	struct ms17e_v2_card *card = (struct ms17e_v2_card*)dev_id;
 	struct ms17e_v2_regs_struct *regs = card->regs;
+	struct circ_buf *xmit = &card->port->info->xmit;
 	u8 mask, status;
+	unsigned long flags;
 
-	PDEBUG(debug_irq,"start, card=%p", card);
+	PDEBUG(debug_irq,"interrupt handler start, card=%p", card);
 
 	// Read mask & status
 	mask = ioread8(&regs->IMR);
@@ -303,13 +502,27 @@ static irqreturn_t ms17e_v2_interrupt(int irq,void *dev_id,struct pt_regs *ptreg
 	if (!status) return IRQ_NONE;
 
 	if (status & TXS) {
+		if (!card->tty_file_lock) {
+			if (!uart_circ_empty(xmit)) ms17e_v2_xmit_byte(card->port);
+		} else {
+			wake_up(&(card->wait_transmit));
+		}
 		PDEBUG(debug_irq,"TXS");
-		ms17e_v2_xmit_byte(card->port);
 	}
 
 	if (status & RXS) {
+		if (!card->tty_file_lock) {
+			ms17e_v2_recv_byte(card->port,ptregs);
+		} else {
+			spin_lock_irqsave(&card->port->lock, flags);
+			card->buf[card->buf_size] = ioread8(&(card->regs->RDR));
+			if ((card->buf[card->buf_size] == '\r') || (card->buf[card->buf_size] == '\n')) card->buf[card->buf_size] = ' ';
+			card->buf_size++;
+			spin_unlock_irqrestore(&card->port->lock,flags);
+//			PDEBUG(0,"buf_size=%i", card->buf_size);
+//			wake_up(&(card->wait_receive));
+		}
 		PDEBUG(debug_irq,"RXS");
-		ms17e_v2_recv_byte(card->port,ptregs);
 	}
 
 	if (status & RXE) {
@@ -336,7 +549,7 @@ static void ms17e_v2_stop_tx(struct uart_port *port) {
 
 static void ms17e_v2_start_tx(struct uart_port *port) {
 //	struct ms17e_v2_card *card = (struct ms17e_v2_card *)port->membase;
-	PDEBUG(0/*debug_xmit*/,"start_tx");
+	PDEBUG(debug_xmit,"start_tx");
 //	if (!(card->block_start_tx)) {
 //		card->block_start_tx = 1;
 		ms17e_v2_xmit_byte(port);
@@ -370,7 +583,7 @@ static void ms17e_v2_break_ctl(struct uart_port *port, int break_state) {
 static void ms17e_v2_set_termios(struct uart_port *port, struct termios *new, struct termios *old) {
 	u32 baud, quot;
 	unsigned long flags;
-	int err = 0;
+//	int err = 0;
 
 	PDEBUG(debug_hw,"");
 
@@ -492,31 +705,35 @@ static unsigned int ms17e_v2_tx_empty(struct uart_port *port) {
 //	printk(KERN_ERR MS17E_V2_DRVNAME": tx_empty\n");
 	return TIOCSER_TEMT;
 }
-
+/*
 static int ms17e_v2_ioctl(struct uart_port *port, unsigned int cmd, unsigned long arg) {
 //	printk(KERN_ERR MS17E_V2_DRVNAME": ioctl\n");
 	return 1;
 }
-
+*/
 // Hardware related functions
 
 void ms17e_v2_recv_byte(struct uart_port *port, struct pt_regs *ptregs) {
-	struct ms17e_v2_card *card = (struct ms17e_v2_card *)port->membase;
-	struct tty_struct *tty = port->info->tty;
+	struct ms17e_v2_card *card;
+	struct tty_struct *tty;
 	unsigned int ch;
 	unsigned long flags;
 
+	card = (struct ms17e_v2_card *)port->membase;
+	tty = port->info->tty;
+
 //	printk(KERN_ERR MS17E_V2_DRVNAME": recv_byte\n");
+	spin_lock_irqsave(&port->lock, flags);
 
 	// Block port. This function can run both
 	// in process and interrupt context
-	spin_lock_irqsave(&port->lock, flags);
 	ch = ioread8(&(card->regs->RDR));
 	port->icount.rx++;
 	if (uart_handle_sysrq_char(port,ch,ptregs)) return;
 //	printk(KERN_ERR MS17E_V2_DRVNAME": recv_byte [%x]\n", ch);
 	tty_insert_flip_char(tty, ch, TTY_NORMAL);
 	tty_flip_buffer_push(tty);
+
 	spin_unlock_irqrestore(&port->lock,flags);
 	return;
 }
@@ -528,7 +745,7 @@ static void ms17e_v2_xmit_byte(struct uart_port *port) {
 	unsigned long flags;
 	u8 tmp = 0;
 
-	printk(KERN_ERR MS17E_V2_DRVNAME": xmit_byte\n");
+//	printk(KERN_ERR MS17E_V2_DRVNAME": xmit_byte\n");
 
 	// Block port. This function can run both
 	// in process and interrupt context
@@ -536,7 +753,7 @@ static void ms17e_v2_xmit_byte(struct uart_port *port) {
 
 	// check that TX buffer is empty
 	if (ioread8(&(card->regs->CRA)) & TXEN) {
-		PDEBUG(0, "TX buffer not empty!");
+		PDEBUG(debug_xmit, "TX buffer not empty!");
 		goto exit;
 	}
 
