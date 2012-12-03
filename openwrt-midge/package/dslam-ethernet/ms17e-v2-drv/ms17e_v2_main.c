@@ -98,6 +98,26 @@ static int cmd_to_serial(char * cmd, char * answer, struct ms17e_v2_card *card) 
 	return card->buf_size;
 }
 
+
+static int ifaces_num_show(char *buf, char **start, off_t offset_, int count, int *eof, void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	if (offset_) {
+		*eof = 1;
+		return 0;
+	}
+	return sprintf(buf, "%i\n", card->if_num);
+}
+
+static int pwr_source_show(char *buf, char **start, off_t offset_, int count, int *eof, void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	if (offset_) {
+		*eof = 1;
+		return 0;
+	}
+	return sprintf(buf, "%i\n", card->pwr_source);
+}
+
+
 static int status_show(char *buf, char **start, off_t offset_, int count, int *eof, void *data) {
 	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
 	if (offset_) {
@@ -284,34 +304,41 @@ static int __devinit ms17e_v2_init_one(struct pci_dev *pdev,const struct pci_dev
 	iomem_end = pci_resource_end(card->pdev, 0);
 	len = iomem_end - iomem_start + 1;
 
-/*
+
 	// Detect type of the card
 	switch(pdev->subsystem_device){
-    case MR17S_DTE2CH:
-        rsdev->type = DTE;
-        rsdev->port_quan = 2;
-        break;
-    case MR17S_DCE2CH:
-        rsdev->type = DCE;
-        rsdev->port_quan = 2;
-        break;
-    case MR17S_DTE4CH:
-        rsdev->type = DTE;
-        rsdev->port_quan = 4;
-        break;
-    case MR17S_DCE4CH:
-        rsdev->type = DCE;
-        rsdev->port_quan = 4;
-        break;
-    default:
-		printk(KERN_ERR"%s: error MR17S subtype=%d, PCI device=%02x:%02x.%d\n",MR17S_MODNAME,
-                pdev->subsystem_device,
-                pdev->bus->number,PCI_SLOT(pdev->devfn),PCI_FUNC(pdev->devfn));
-        err = -ENODEV;
-        goto rsfree;
-    }
-    PDEBUG(debug_hw,"Found %s(%d channels)",(rsdev->type == DTE) ? "DTE" : "DCE",rsdev->port_quan);
-*/
+		case MS17E_V2_8CH_P:
+			card->if_num = 8;
+			card->pwr_source = 1;
+		break;
+		case MS17E_V2_8CH:
+			card->if_num = 8;
+			card->pwr_source = 0;
+		break;
+		case MS17E_V2_4CH_P:
+			card->if_num = 4;
+			card->pwr_source = 1;
+		break;
+		case MS17E_V2_4CH:
+			card->if_num = 4;
+			card->pwr_source = 0;
+		break;
+		case MS17E_V2_2CH_P:
+			card->if_num = 2;
+			card->pwr_source = 1;
+		break;
+		case MS17E_V2_2CH:
+			card->if_num = 2;
+			card->pwr_source = 0;
+		break;
+		default:
+			printk(KERN_ERR"%s: error MS17E_V2 subtype=%d, PCI device=%02x:%02x.%d\n",MS17E_V2_MODNAME,
+				pdev->subsystem_device,
+				pdev->bus->number,PCI_SLOT(pdev->devfn),PCI_FUNC(pdev->devfn));
+				err = -ENODEV;
+	}
+	PDEBUG(debug_hw,"Found %i channels", card->if_num);
+
 	// Check I/O Memory window
 	if (len != MS17E_V2_IOMEM_SIZE) {
 		printk(KERN_ERR"%s: wrong size of I/O memory window: %d != %d, PCI device=%02x:%02x.%d\n",
@@ -390,6 +417,25 @@ static int __devinit ms17e_v2_init_one(struct pci_dev *pdev,const struct pci_dev
 		printk(KERN_ERR"Can not create proc entry\n");
 		return -ENOMEM;
 	}
+
+	if (!(proc_entry = create_proc_entry("ifaces_num", 0400, card->proc_entry))) {
+		printk(KERN_ERR"Can not create iface_num entry\n");
+		goto porterr;
+	}
+	proc_entry->owner = THIS_MODULE;
+	proc_entry->read_proc = ifaces_num_show;
+	proc_entry->write_proc = NULL;
+	proc_entry->data = card;
+
+	if (!(proc_entry = create_proc_entry("pwr_source", 0400, card->proc_entry))) {
+		printk(KERN_ERR"Can not create pwr_source entry\n");
+		goto porterr;
+	}
+	proc_entry->owner = THIS_MODULE;
+	proc_entry->read_proc = pwr_source_show;
+	proc_entry->write_proc = NULL;
+	proc_entry->data = card;
+
 	if (!(proc_entry = create_proc_entry("status", 0400, card->proc_entry))) {
 		printk(KERN_ERR"Can not create status entry\n");
 		goto porterr;
@@ -463,6 +509,7 @@ static void __devexit ms17e_v2_remove_one(struct pci_dev *pdev) {
 	unsigned long iomem_start = pci_resource_start(card->pdev, 0);
 	char entry_name[64];
 
+	remove_proc_entry("ifaces_num", card->proc_entry);
 	remove_proc_entry("status", card->proc_entry);
 	remove_proc_entry("poe", card->proc_entry);
 	remove_proc_entry("pmax", card->proc_entry);

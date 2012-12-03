@@ -19,7 +19,7 @@ _start() {
 		eval "num=\$s${s}_ifnum"
 		eval "ifaces=\$s${s}_ifaces"
 
-		if [ "$type" != "$ms17e_modname" ]; then
+		if [ "$type" != "$ms17e_modname" -a "$type" != "$ms17e_v2_modname" ]; then
 			continue
 		fi
 		local ifnum=0
@@ -41,6 +41,7 @@ _start() {
 				slot=3
 			fi
 
+			if [ "$type" = "$ms17e_modname" ]; then
 
 			unset on flow duplex rate auto pwr_auto pwr_auto_off pwr_current pwr_on pwr_poe_plus pwr_class
 			cmd="$cmd port fe${slot}/${ifnum} "
@@ -75,6 +76,36 @@ _start() {
 					cmd="$cmd power off \\n"
 				fi
 			fi
+
+			else # type = ms17e_v2
+				# ms17e_v2 store configs in module so we need set it in kdb
+				echo "${ifnum} 3" > /proc/sys/net/ethernet/fe${slot}/poe
+				poe="`cat /proc/sys/net/ethernet/fe${slot}/poe`"
+				status="${poe##*: }"
+				status=${status%% *}
+				if [ "${status}" = "Enabled" ]; then
+					kdb set sys_dslam_fe${slot}${ifnum}_pwr_on=1
+				else
+					kdb set sys_dslam_fe${slot}${ifnum}_pwr_on=0
+				fi
+				pmax="`cat /proc/sys/net/ethernet/fe${slot}/pmax`"
+				pmax="${pmax##*: }"
+				pmax="${pmax%% W*}"
+				let "i=0"
+				for pmaxi in ${pmax}; do
+					if [ "$i" = "${ifnum}" ]; then
+						pmax="$pmaxi"
+						break;
+					fi
+					let "i=i+1"
+				done
+				kdb set sys_dslam_fe${slot}${ifnum}_pmax=${pmax}
+				pmax_total="`cat /proc/sys/net/ethernet/fe${slot}/pmax`"
+				pmax_total="${pmax_total##*Pmax_total=}"
+				pmax_total="${pmax_total%%W*}"
+				kdb set sys_dslam_${s}_pmax_total=${pmax_total}
+			fi
+
 			if [ "$flow" = "0" ]; then
 				cmd="$cmd flow off \\n"
 			else
@@ -97,20 +128,35 @@ _start() {
 			ifnum=$(( $ifnum + 1 ))
 		done
 
+		if [ "$type" = "$ms17e_modname" ]; then
+
 		unset ver pfx iface
 		iface=`echo "$ifaces" |  awk '{print $(1)}' `
 		pwr=`cat  /sys/class/net/$iface/$priv_dir/pwr_source`
-                if [ "$pwr" = "1" ]; then
-                    $kdb set sys_pcicfg_s${s}_pwr_source=1
-                    for tmp in $ifaces; do
-	                    $kdb set sys_dslam_${tmp}_pwr_source=1
-                    done
-                else
+		for tmp in $ifaces; do
+			$kdb set sys_dslam_${tmp}_type=1
+		done
+
+		else # type = ms17e_v2
+			let "slot=${s}-2"
+			pwr=`cat /proc/sys/net/ethernet/fe${slot}/pwr_source`
+			for tmp in $ifaces; do
+				$kdb set sys_dslam_${tmp}_type=2
+			done
+		fi
+
+		if [ "$pwr" = "1" ]; then
+			$kdb set sys_pcicfg_s${s}_pwr_source=1
+			for tmp in $ifaces; do
+				$kdb set sys_dslam_${tmp}_pwr_source=1
+			done
+		else
 			kdb rm sys_pcicfg_s${s}_pwr_source
 			for tmp in $ifaces; do
 				kdb rm sys_dslam_${tmp}_pwr_source
 			done
-                fi
+		fi
+
 		echo "    $ifaces "
 	done
 #	echo "$cmd"
@@ -136,6 +182,9 @@ _restart() {
 	unset on flow duplex rate auto pwr_auto pwr_auto_off pwr_current pwr_on pwr_poe_plus pwr_class
 	cmd="$cmd port fe${slot}/${port} "
 	eval `kdb -lqq sls sys_dslam_fe${slot}${port}_`
+
+	if [ "$type" = "$ms17e_modname" ]; then
+
 	if [ "$on" = "0" ]; then
 		cmd="$cmd off \\n"
 		cmd="$cmd power off \\n"
@@ -155,8 +204,30 @@ _restart() {
 		else
 			cmd="$cmd power off \\n"
 		fi
+	fi
+
+	else # type = ms17e_v2
+
+	if [ "$on" = "0" ]; then
+		cmd="$cmd off \\n"
+#		cmd="$cmd power off \\n"
+	else
+		cmd="$cmd on \\n"
+	fi
+	if [ "$pwr_on" = "1" ]; then
+		echo "${port} 1" > /proc/sys/net/ethernet/fe${slot}/poe
+#		cmd="$cmd power on \\n"
+	else
+		echo "${port} 0" > /proc/sys/net/ethernet/fe${slot}/poe
+#		cmd="$cmd power off \\n"
+	fi
+	pmax=`kdb get sys_dslam_fe${slot}${port}_pmax`
+	pmax_total=`kdb get sys_dslam_${1}_pmax_total`
+	echo "${port} ${pmax}" > /proc/sys/net/ethernet/fe${slot}/pmax
+	echo "${pmax_total}" > /proc/sys/net/ethernet/fe${slot}/pmax_total
 
 	fi
+
 	if [ "$flow" = "0" ]; then
 		cmd="$cmd flow off \\n"
 	else

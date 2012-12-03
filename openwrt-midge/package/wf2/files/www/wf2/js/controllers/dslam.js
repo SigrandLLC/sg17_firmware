@@ -655,6 +655,8 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 			c2.setSubsystem($.sprintf("dslam_ethernet.%s.%s", pcislot, pcidev));
 			c2.addTitle("PoE settings");
 
+			if (config.getParsed("sys_dslam_"+iface+"_type") == "1") {
+
 			var onPoEConfigTypeChange = function() {
 				if ($("#poe_auto").val() == 1) {
 					$(".widgetPoEManual").parents("tr").remove();
@@ -710,6 +712,30 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 			c2.addWidget(field);
 
 			onPoEConfigTypeChange();
+
+
+			} else {
+				field = {
+					"type": "checkbox",
+					"name": $.sprintf("sys_dslam_%s_pwr_on", iface),
+					"text": "Power on"
+				};
+				c2.addWidget(field);
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_dslam_%s_pmax", iface),
+					"text": "Maximum power, W"
+				};
+				c2.addWidget(field);
+				$($.sprintf("#sys_dslam_%s_pmax", iface)).width("40px");
+				field = {
+					"type": "text",
+					"name": $.sprintf("sys_dslam_%s_pmax_total", pcislot),
+					"text": "Maximum power for module, W"
+				};
+				c2.addWidget(field);
+				$($.sprintf("#sys_dslam_%s_pmax_total", pcislot)).width("40px");
+			}
 
 			c2.addSubmit();
 		}
@@ -786,6 +812,17 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 			c = page.addContainer("eth_status");
 			c.addTitle("PoE status");
 
+			if (config.getParsed("sys_dslam_"+iface+"_type") == "2") {
+				field = {
+					"type": "html",
+					"name": "status",
+					"id": "status",
+					"text": "Status"
+				};
+				c.addWidget(field);
+			}
+
+
 			field = {
 				"type": "html",
 				"name": "voltage",
@@ -807,6 +844,9 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 				"text": "Power consumption"
 			};
 			c.addWidget(field);
+
+			if (config.getParsed("sys_dslam_"+iface+"_type") == "1") {
+
 			field = {
 				"type": "html",
 				"name": "totalpower",
@@ -830,23 +870,34 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 				"text": "Detected class"
 			};
 			c.addWidget(field);
-
-			$("#td_voltage").html("loading...");
-			$("#td_current").html("loading...");
-			$("#td_power").html("loading...");
 			$("#td_totalpower").html("loading...");
 			$("#td_detect").html("loading...");
 			$("#td_class").html("loading...");
 
-			config.cmdExecute({"cmd": $.sprintf("cat /sys/class/net/fe%s%s/ms_private/status", pcislot-2, pcidev), 
+			} else {
+				$("#td_status").html("loading...");
+			}
+
+			$("#td_voltage").html("loading...");
+			$("#td_current").html("loading...");
+			$("#td_power").html("loading...");
+
+			config.cmdExecute({"cmd": $.sprintf("/www/wf2/sh/dslam_poe_status.sh %s %s %s", iface, pcislot-2, pcidev),
 				"callback": function(data) {
 					eval(data);
-					$("#td_voltage").html($.sprintf("%s V", VEE));
-					$("#td_current").html($.sprintf("%.2f mA", Current*1000));
-					$("#td_power").html($.sprintf("%.4f W", VEE*Current));
-					$("#td_totalpower").html($.sprintf("%.4f W", VEE*AllCurrents));
-					$("#td_detect").html($.sprintf("%s", DET));
-					$("#td_class").html($.sprintf("%s", CLS));
+					if (config.getParsed("sys_dslam_"+iface+"_type") == "1") {
+						$("#td_voltage").html($.sprintf("%s V", VEE));
+						$("#td_current").html($.sprintf("%.2f mA", Current*1000));
+						$("#td_power").html($.sprintf("%.4f W", VEE*Current));
+						$("#td_totalpower").html($.sprintf("%.4f W", VEE*AllCurrents));
+						$("#td_detect").html($.sprintf("%s", DET));
+						$("#td_class").html($.sprintf("%s", CLS));
+					} else {
+						$("#td_status").html(poe_status.status);
+						$("#td_voltage").html(poe_status.voltage);
+						$("#td_current").html(poe_status.current);
+						$("#td_power").html(poe_status.power);
+					}
 				}
 			});
 

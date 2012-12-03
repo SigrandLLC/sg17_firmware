@@ -88,11 +88,12 @@ function generateMenu() {
 
             switch (type) {
                 case config.getOEM("MS17E_MODNAME"):
-                	addItem("Hardware:Ethernet", iface, "dslam_ethernet", [iface, pcislot, num]);
-                	break;
+                case config.getOEM("MS17E_V2_MODNAME"):
+                       addItem("Hardware:Ethernet", iface, "dslam_ethernet", [iface, pcislot, num]);
+                       break;
                 case config.getOEM("MAM17H_MODNAME"):
-                	addItem("Hardware:SHDSL", iface, "dslam_dsl", [iface, pcislot, num]);
-                	break;
+                    addItem("Hardware:SHDSL", iface, "dslam_dsl", [iface, pcislot, num]);
+                    break;
                 /* SHDSL */
                 case config.getOEM("MR16H_DRVNAME"):
                 case config.getOEM("MR17H_DRVNAME"):
