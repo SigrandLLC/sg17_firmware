@@ -724,14 +724,16 @@ Controllers.dslam_ethernet = function(iface, pcislot, pcidev) {
 				field = {
 					"type": "text",
 					"name": $.sprintf("sys_dslam_%s_pmax", iface),
-					"text": "Maximum power, W"
+					"text": "Maximum power for port, W",
+					"validator": {"required": true, "min": 0, "max": 80}
 				};
 				c2.addWidget(field);
 				$($.sprintf("#sys_dslam_%s_pmax", iface)).width("40px");
 				field = {
 					"type": "text",
 					"name": $.sprintf("sys_dslam_%s_pmax_total", pcislot),
-					"text": "Maximum power for module, W"
+					"text": "Maximum power for module, W",
+					"validator": {"required": true, "min": 0, "max": 640}
 				};
 				c2.addWidget(field);
 				$($.sprintf("#sys_dslam_%s_pmax_total", pcislot)).width("40px");
