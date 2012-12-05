@@ -79,7 +79,7 @@ Controllers.info = function() {
 							ethIfaces += iface + "<br/>";
 						}
 					});
-					ifaces = config.getData(config.getOEM("MS17E_MODNAME"));
+					var ifaces = config.getData(config.getOEM("MS17E_MODNAME"));
 					if (ifaces) {
 						$.each(ifaces, function(num, ifaceInfo) {
 							num_chan = config.get($.sprintf("sys_pcitbl_s%s_ifnum", ifaceInfo.pcislot));
@@ -87,6 +87,13 @@ Controllers.info = function() {
 //							if (pwr == "1") pwr="p"; else pwr="";
 							pwr=""
 							ethIfaces += $.sprintf("%s (%s%s%s)<br/>", ifaceInfo.iface, config.getOEM("MS17E_MODNAME"), num_chan, pwr);
+						});
+					}
+					var ifaces = config.getData(config.getOEM("MS17E_V2_MODNAME"));
+					if (ifaces) {
+						$.each(ifaces, function(num, ifaceInfo) {
+							num_chan = config.get($.sprintf("sys_pcitbl_s%s_ifnum", ifaceInfo.pcislot));
+							ethIfaces += $.sprintf("%s (ms17e8pp)<br/>", ifaceInfo.iface);
 						});
 					}
 

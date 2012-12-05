@@ -158,6 +158,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 
 		var name = $.sprintf("sys_pcicfg_s%s_%s_rate", pcislot, pcidev);
 		var rate = config.get(name);
+
 		field = {
 			"type": "select",
 			"name": name,
@@ -462,6 +463,58 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				return;
 			}
 
+			field = {
+				"type": "checkbox",
+				"name": $.sprintf("sys_iface_%s_auto_test_line", iface),
+				"id": "auto_test_line",
+				"text": "Auto test line",
+				"cssClass": "widgetManualMaster",
+				"descr": "Enable auto line testing and setting rate."
+			};
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#mode").parents("tr")});
+			field = {
+				"type": "checkbox",
+				"name": $.sprintf("sys_iface_%s_autoadjust", iface),
+				"id": "autoadjust",
+				"text": "Autoadjust",
+				"cssClass": "widgetManualMaster",
+				"descr": "Enable autoadjust line rate and TCPAM."
+			};
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#auto_test_line").parents("tr")});
+			field = {
+				"type": "text",
+				"name": $.sprintf("sys_iface_%s_autoadjust_rate_step", iface),
+				"id": "autoadjust_rate_step",
+				"text": "Autoadjust rate step",
+				"defaultValue": 1,
+				"validator": {"required": true, "min": 1},
+				"cssClass": "widgetManualMaster",
+				"descr": "*64 kbit"
+			};
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#autoadjust").parents("tr")});
+			$("#autoadjust_rate_step")[0].style.width="20px"
+			field = {
+				"type": "text",
+				"name": $.sprintf("sys_iface_%s_autoadjust_min_snr", iface),
+				"id": "autoadjust_min_snr",
+				"text": "Autoadjust min SNR",
+				"defaultValue": 2,
+				"validator": {"required": true, "min": 1, "max": 10},
+				"cssClass": "widgetManualMaster"
+			};
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#autoadjust_rate_step").parents("tr")});
+			$("#autoadjust_min_snr")[0].style.width="20px"
+			field = {
+				"type": "text",
+				"name": $.sprintf("sys_iface_%s_autoadjust_max_snr", iface),
+				"id": "autoadjust_max_snr",
+				"text": "Autoadjust max SNR",
+				"defaultValue": 4,
+				"validator": {"required": true, "min": 1, "max": 10},
+				"cssClass": "widgetManualMaster"
+			};
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#autoadjust_min_snr").parents("tr")});
+			$("#autoadjust_max_snr")[0].style.width="20px"
 			/* tcpam */
 			field = {
 				"type": "select",
@@ -485,7 +538,7 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 					$("#rate").nextAll("p").html(getDslRateDescr(chipVer, $("#tcpam").val()));
 				}
 			};
-			c.addWidget(field, {"type": "insertAfter", "anchor": $("#mode").parents("tr")});
+			c.addWidget(field, {"type": "insertAfter", "anchor": $("#autoadjust_max_snr").parents("tr")});
 
 			/* rate */
 			field = {
@@ -1987,6 +2040,57 @@ Controllers.dsl = function(iface, pcislot, pcidev) {
 				});
 			}
 		});
+
+		page.addTab({
+			"id": "test_line",
+			"name": "Test line",
+			"func": function() {
+				var c = page.addContainer("test_line");
+				c.addTitle("Press button to start line testing. This can take a while. Be patient.");
+				$(".helpLink").remove();
+				var button = $.create("input", {"type":"button", "id":"test_line_button", "name":"test_line_button", "value":"Start line testing"});
+				button.click(function() {
+					button.attr("disabled", "disabled");
+					$("#rate").parent().remove();
+					$("#tcpam").parent().remove();
+					$("#attenuation").parent().remove();
+					$("#min_rate_attenuation").parent().remove();
+					$("#conttable tbody").append("<tr><td class='tdleft'>Rate</td><td id='rate'>testing...</td></tr>");
+					$("#conttable tbody").append("<tr><td class='tdleft'>TCPAM</td><td id='tcpam'>testing...</td></tr>");
+					$("#conttable tbody").append("<tr><td class='tdleft'>Attenuation</td><td id='attenuation'>testing...</td></tr>");
+					$("#conttable tbody").append("<tr><td class='tdleft'>Attenuation on min rate</td><td id='min_rate_attenuation'>testing...</td></tr>");
+					config.cmdExecute({
+						"cmd": $.sprintf("/sbin/shdsl test_line %s", iface),
+						"callback": function(data) {
+							button.removeAttr("disabled");
+							window.console.debug(data);
+							if (data.status == "success") {
+								$("#rate").html(data.rate+" kbps");
+								$("#tcpam").html("tcpam"+data.tcpam);
+								$("#attenuation").html(data.attenuation+" db");
+								$("#min_rate_attenuation").html(data.min_rate_attenuation+" db");
+							} else {
+								$("#tcpam").parent().remove();
+								$("#attenuation").parent().remove();
+								$("#min_rate_attenuation").parent().remove();
+								var tmp = "";
+								if (data.text) {
+									tmp = data.text;
+								} else {
+									tmp = data;
+								}
+								$("#rate").parent().html("<td>"+tmp+"</td><td></td>");
+							}
+						},
+						"dataType": "json"
+					});
+				});
+				$("#conttable tbody").append("<tr><td id='for_button'></td><td></td></tr>");
+				$("#for_button").append(button);
+			}
+		});
+
+
 	}
 
 	page.generateTabs();

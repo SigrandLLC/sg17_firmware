@@ -240,6 +240,7 @@ _pci_start(){
 	pci_driver "$mr17s_drvname" "$mr17s_ttyname"
 	pci_driver "$mam17h_modname" "dsl"
 	pci_driver "$ms17e_modname" "fe"
+	pci_driver "$ms17e_v2_modname" "ttyFE"
 	pcicfg_refresh
 
 	nifaces=""
@@ -248,7 +249,30 @@ _pci_start(){
 	for s in `$kdb get sys_pcitbl_slots`; do
 		# skip RS232 modules
 		type=`$kdb get sys_pcitbl_s${s}_iftype`
-		if [ "$type" = "$mr17s_drvname" ] ;then
+		if [ "$type" = "$mr17s_drvname" ]; then
+			continue
+		fi
+		if [ "$type" = "$ms17e_v2_modname" ]; then
+			let "slot=$s-2"
+			ifn=`cat /proc/sys/net/ethernet/fe${slot}/ifaces_num`
+			let "ifnum=$ifn-1"
+			$kdb set sys_pcitbl_s${s}_ifnum=${ifn}
+			ifaces=""
+			for p in `seq 0 ${ifnum}`; do
+				if [ "$ifaces" = "" ]; then
+					ifaces="fe${slot}${p}"
+				else
+					ifaces="${ifaces} fe${slot}${p}"
+				fi
+				$kdb rm sys_iface_fe${slot}${p}*
+			done
+			$kdb set sys_pcitbl_s${s}_ifaces="$ifaces"
+			if [ "$dslam_ifaces" = "" ]; then
+				dslam_ifaces=${ifaces}
+			else
+				dslam_ifaces=`echo "$dslam_ifaces $ifaces"`
+			fi
+			echo -e "\nslot ${slot} - [${ifaces}]\n"
 			continue
 		fi
 		for i in `$kdb get sys_pcitbl_s${s}_ifaces`; do

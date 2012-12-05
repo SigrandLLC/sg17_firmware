@@ -54,9 +54,192 @@ static struct uart_ops ms17e_v2_uart_ops = {
 	.release_port	= ms17e_v2_release_port,
 	.request_port	= ms17e_v2_request_port,
 	.config_port	= ms17e_v2_config_port,
-	.verify_port	= ms17e_v2_verify_port,
-	.ioctl			= ms17e_v2_ioctl,
+	.verify_port	= ms17e_v2_verify_port
 };
+
+static int cmd_to_serial(char * cmd, char * answer, struct ms17e_v2_card *card) {
+	int i;
+	u8 tmp = 0, IMR_save;
+//	unsigned long flags = 0;
+//	char buf[1024];
+
+	atomic_set((atomic_t *)&card->tty_file_lock, 1);
+	card->buf_size = 0;
+
+	IMR_save = ioread8(&(card->regs->IMR));
+	iowrite8(TXS | RXS | RXE | PSU, &(card->regs->IMR));
+
+	for (i = 0; i < strlen(cmd); i++) {
+		iowrite8(cmd[i], &(card->regs->TDR));
+		tmp = ioread8(&(card->regs->CRA));
+		iowrite8(tmp | TXEN, &(card->regs->CRA));
+		if (!interruptible_sleep_on_timeout(&card->wait_transmit, 1000)) {
+			PDEBUG(0, "Error! write sleep timeout");
+			atomic_set((atomic_t *)&(card->tty_file_lock), 0);
+			return -1;
+		}
+	}
+	iowrite8('\r', &(card->regs->TDR));
+	tmp = ioread8(&(card->regs->CRA));
+	iowrite8(tmp | TXEN, &(card->regs->CRA));
+	if (!interruptible_sleep_on_timeout(&card->wait_transmit, 1000)) {
+		PDEBUG(0, "Error! write sleep timeout");
+		atomic_set((atomic_t *)&(card->tty_file_lock), 0);
+		return -1;
+	}
+
+	mdelay(200);
+	card->buf[card->buf_size]='\n';
+	card->buf_size++;
+	strncpy(answer, card->buf, card->buf_size);
+//	PDEBUG(0, "receive %i byte: [%s]", card->buf_size, card->buf_size?card->buf:"");
+	iowrite8(IMR_save, &(card->regs->IMR));
+	atomic_set((atomic_t *)&(card->tty_file_lock), 0);
+	return card->buf_size;
+}
+
+
+static int ifaces_num_show(char *buf, char **start, off_t offset_, int count, int *eof, void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	if (offset_) {
+		*eof = 1;
+		return 0;
+	}
+	return sprintf(buf, "%i\n", card->if_num);
+}
+
+static int pwr_source_show(char *buf, char **start, off_t offset_, int count, int *eof, void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	if (offset_) {
+		*eof = 1;
+		return 0;
+	}
+	return sprintf(buf, "%i\n", card->pwr_source);
+}
+
+
+static int status_show(char *buf, char **start, off_t offset_, int count, int *eof, void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	if (offset_) {
+		*eof = 1;
+		return 0;
+	}
+	return cmd_to_serial("stat", buf, card);
+}
+
+static int poe_show(char *buf, char **start, off_t offset_, int count, int *eof, void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	if (offset_) {
+		*eof = 1;
+		return 0;
+	}
+	if (card->tmp == 8) {
+		return cmd_to_serial("poe", buf, card);
+	} else {
+		char tmp_str[10];
+		sprintf(tmp_str, "poe %i", card->tmp);
+		return cmd_to_serial(tmp_str, buf, card);
+	}
+}
+
+static int poe_store(struct file *file,const char *buffer,unsigned long count,void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	char *endp, tmp_str[10], buf[1024];
+	u8 port_num = 8, poe_enable = 3;
+	int ret = 0;
+
+	port_num = simple_strtoul(buffer, &endp, 10);
+	while( *endp == ' '){
+		endp++;
+	}
+	if (port_num > 7) {
+		if (port_num == 8) {
+			card->tmp = port_num;
+			return count;
+		}
+		return 0;
+	}
+	poe_enable = simple_strtoul(endp, &endp, 10);
+
+	PDEBUG(0, "port_num = %i poe_enable = %i", port_num, poe_enable);
+	if (poe_enable == 1) {
+		sprintf(tmp_str, "poe %i enable", port_num);
+		ret = cmd_to_serial(tmp_str, buf, card);
+		PDEBUG(0, "ret = %i buf=[%s]", ret, buf);
+	} else {
+		if (poe_enable == 0) {
+			sprintf(tmp_str, "poe %i disable", port_num);
+			ret = cmd_to_serial(tmp_str, buf, card);
+			PDEBUG(0, "ret = %i buf=[%s]", ret, buf);
+		} else {
+			card->tmp = port_num;
+		}
+	}
+	return count;
+}
+
+static int pmax_show(char *buf, char **start, off_t offset_, int count, int *eof, void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	if (offset_) {
+		*eof = 1;
+		return 0;
+	}
+	return cmd_to_serial("pmax", buf, card);
+}
+
+static int pmax_store(struct file *file,const char *buffer,unsigned long count,void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	char *endp, tmp_str[10], buf[1024];
+	u8 port_num = 8;
+	int pmax = 0, ret = 0;
+
+	port_num = simple_strtoul(buffer, &endp, 10);
+	while( *endp == ' '){
+		endp++;
+	}
+	if (port_num > 8) {
+		return 0;
+	}
+	pmax = simple_strtoul(endp, &endp, 10);
+
+	PDEBUG(0, "port_num = %i pmax = %i", port_num, pmax);
+	if (port_num == 8) {
+		sprintf(tmp_str, "pmax all %i", pmax);
+		ret = cmd_to_serial(tmp_str, buf, card);
+		PDEBUG(0, "ret = %i buf=[%s]", ret, buf);
+	} else {
+		sprintf(tmp_str, "pmax %i %i", port_num, pmax);
+		ret = cmd_to_serial(tmp_str, buf, card);
+		PDEBUG(0, "ret = %i buf=[%s]", ret, buf);
+	}
+	return count;
+}
+
+static int pmax_total_show(char *buf, char **start, off_t offset_, int count, int *eof, void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	if (offset_) {
+		*eof = 1;
+		return 0;
+	}
+	return cmd_to_serial("pmax total", buf, card);
+}
+
+static int pmax_total_store(struct file *file,const char *buffer,unsigned long count,void *data) {
+	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
+	char *endp, tmp_str[10], buf[1024];
+	int pmax = 0, ret = 0;
+
+	pmax = simple_strtoul(buffer, &endp, 10);
+	while( *endp == ' '){
+		endp++;
+	}
+	PDEBUG(0, "pmax = %i", pmax);
+	sprintf(tmp_str, "pmax total %i", pmax);
+	ret = cmd_to_serial(tmp_str, buf, card);
+	PDEBUG(0, "ret = %i buf=[%s]", ret, buf);
+	return count;
+}
+
 
 
 static int  __devinit ms17e_v2_init(void) {
@@ -96,6 +279,8 @@ static int __devinit ms17e_v2_init_one(struct pci_dev *pdev,const struct pci_dev
 	u32 len;
 	char card_name[32], port_name[32];
 	struct uart_port *port;
+	char entry_name[64];
+	struct proc_dir_entry *proc_entry;
 
 	PDEBUG(debug_init,"start");
 
@@ -119,34 +304,41 @@ static int __devinit ms17e_v2_init_one(struct pci_dev *pdev,const struct pci_dev
 	iomem_end = pci_resource_end(card->pdev, 0);
 	len = iomem_end - iomem_start + 1;
 
-/*
+
 	// Detect type of the card
 	switch(pdev->subsystem_device){
-    case MR17S_DTE2CH:
-        rsdev->type = DTE;
-        rsdev->port_quan = 2;
-        break;
-    case MR17S_DCE2CH:
-        rsdev->type = DCE;
-        rsdev->port_quan = 2;
-        break;
-    case MR17S_DTE4CH:
-        rsdev->type = DTE;
-        rsdev->port_quan = 4;
-        break;
-    case MR17S_DCE4CH:
-        rsdev->type = DCE;
-        rsdev->port_quan = 4;
-        break;
-    default:
-		printk(KERN_ERR"%s: error MR17S subtype=%d, PCI device=%02x:%02x.%d\n",MR17S_MODNAME,
-                pdev->subsystem_device,
-                pdev->bus->number,PCI_SLOT(pdev->devfn),PCI_FUNC(pdev->devfn));
-        err = -ENODEV;
-        goto rsfree;
-    }
-    PDEBUG(debug_hw,"Found %s(%d channels)",(rsdev->type == DTE) ? "DTE" : "DCE",rsdev->port_quan);
-*/
+		case MS17E_V2_8CH_P:
+			card->if_num = 8;
+			card->pwr_source = 1;
+		break;
+		case MS17E_V2_8CH:
+			card->if_num = 8;
+			card->pwr_source = 0;
+		break;
+		case MS17E_V2_4CH_P:
+			card->if_num = 4;
+			card->pwr_source = 1;
+		break;
+		case MS17E_V2_4CH:
+			card->if_num = 4;
+			card->pwr_source = 0;
+		break;
+		case MS17E_V2_2CH_P:
+			card->if_num = 2;
+			card->pwr_source = 1;
+		break;
+		case MS17E_V2_2CH:
+			card->if_num = 2;
+			card->pwr_source = 0;
+		break;
+		default:
+			printk(KERN_ERR"%s: error MS17E_V2 subtype=%d, PCI device=%02x:%02x.%d\n",MS17E_V2_MODNAME,
+				pdev->subsystem_device,
+				pdev->bus->number,PCI_SLOT(pdev->devfn),PCI_FUNC(pdev->devfn));
+				err = -ENODEV;
+	}
+	PDEBUG(debug_hw,"Found %i channels", card->if_num);
+
 	// Check I/O Memory window
 	if (len != MS17E_V2_IOMEM_SIZE) {
 		printk(KERN_ERR"%s: wrong size of I/O memory window: %d != %d, PCI device=%02x:%02x.%d\n",
@@ -190,7 +382,7 @@ static int __devinit ms17e_v2_init_one(struct pci_dev *pdev,const struct pci_dev
 	// UART operations
 	port->ops = &ms17e_v2_uart_ops;
 	// port index
-	port->line = PCI_SLOT(pdev->devfn);;
+	port->line = PCI_SLOT(pdev->devfn)-2;
 	// port parent device
 	port->dev = &pdev->dev;
 	// PORT flags
@@ -219,10 +411,78 @@ static int __devinit ms17e_v2_init_one(struct pci_dev *pdev,const struct pci_dev
 		goto porterr;
 	}
 
+	sprintf(entry_name, "sys/net/ethernet/fe%i", PCI_SLOT(pdev->devfn)-2);
+	card->proc_entry = proc_mkdir((const char *)entry_name, NULL);
+	if (card->proc_entry == NULL) {
+		printk(KERN_ERR"Can not create proc entry\n");
+		return -ENOMEM;
+	}
+
+	if (!(proc_entry = create_proc_entry("ifaces_num", 0400, card->proc_entry))) {
+		printk(KERN_ERR"Can not create iface_num entry\n");
+		goto porterr;
+	}
+	proc_entry->owner = THIS_MODULE;
+	proc_entry->read_proc = ifaces_num_show;
+	proc_entry->write_proc = NULL;
+	proc_entry->data = card;
+
+	if (!(proc_entry = create_proc_entry("pwr_source", 0400, card->proc_entry))) {
+		printk(KERN_ERR"Can not create pwr_source entry\n");
+		goto porterr;
+	}
+	proc_entry->owner = THIS_MODULE;
+	proc_entry->read_proc = pwr_source_show;
+	proc_entry->write_proc = NULL;
+	proc_entry->data = card;
+
+	if (!(proc_entry = create_proc_entry("status", 0400, card->proc_entry))) {
+		printk(KERN_ERR"Can not create status entry\n");
+		goto porterr;
+	}
+	proc_entry->owner = THIS_MODULE;
+	proc_entry->read_proc = status_show;
+	proc_entry->write_proc = NULL;
+	proc_entry->data = card;
+
+	if (!(proc_entry = create_proc_entry("poe", 0600, card->proc_entry))) {
+		printk(KERN_ERR"Can not create poe entry\n");
+		goto porterr;
+	}
+	proc_entry->owner = THIS_MODULE;
+	proc_entry->read_proc = poe_show;
+	proc_entry->write_proc = poe_store;
+	proc_entry->data = card;
+
+	if (!(proc_entry = create_proc_entry("pmax", 0600, card->proc_entry))) {
+		printk(KERN_ERR"Can not create pmax entry\n");
+		goto porterr;
+	}
+	proc_entry->owner = THIS_MODULE;
+	proc_entry->read_proc = pmax_show;
+	proc_entry->write_proc = pmax_store;
+	proc_entry->data = card;
+
+	if (!(proc_entry = create_proc_entry("pmax_total", 0600, card->proc_entry))) {
+		printk(KERN_ERR"Can not create pmax_total entry\n");
+		goto porterr;
+	}
+	proc_entry->owner = THIS_MODULE;
+	proc_entry->read_proc = pmax_total_show;
+	proc_entry->write_proc = pmax_total_store;
+	proc_entry->data = card;
+
+	card->poe_status = ioread8(&(card->regs->PSR));
+	card->tmp = 8;
+
 	PDEBUG(debug_init,"end, rsdev = %p", card);
 
-	return 0;
 
+	init_waitqueue_head(&card->wait_transmit);
+	init_waitqueue_head(&card->wait_receive);
+	atomic_set((atomic_t *)&(card->tty_file_lock), 0);
+
+	return 0;
 porterr:
 	port = card->port;
 	snprintf(port_name, 32, MS17E_V2_SERIAL_NAME"%d",port->line);
@@ -247,6 +507,16 @@ static void __devexit ms17e_v2_remove_one(struct pci_dev *pdev) {
 	struct uart_port *port = (struct uart_port*)(card->port);
 	char port_name[32];
 	unsigned long iomem_start = pci_resource_start(card->pdev, 0);
+	char entry_name[64];
+
+	remove_proc_entry("ifaces_num", card->proc_entry);
+	remove_proc_entry("status", card->proc_entry);
+	remove_proc_entry("poe", card->proc_entry);
+	remove_proc_entry("pmax", card->proc_entry);
+	remove_proc_entry("pmax_total", card->proc_entry);
+	sprintf(entry_name, "sys/net/ethernet/FE%i", PCI_SLOT(pdev->devfn)-2);
+	remove_proc_entry(entry_name, NULL);
+
 
 	free_irq(pdev->irq, card);
 
@@ -264,9 +534,11 @@ static void __devexit ms17e_v2_remove_one(struct pci_dev *pdev) {
 static irqreturn_t ms17e_v2_interrupt(int irq,void *dev_id,struct pt_regs *ptregs) {
 	struct ms17e_v2_card *card = (struct ms17e_v2_card*)dev_id;
 	struct ms17e_v2_regs_struct *regs = card->regs;
+	struct circ_buf *xmit = &card->port->info->xmit;
 	u8 mask, status;
+	unsigned long flags;
 
-	PDEBUG(debug_irq,"start, card=%p", card);
+	PDEBUG(debug_irq,"interrupt handler start, card=%p", card);
 
 	// Read mask & status
 	mask = ioread8(&regs->IMR);
@@ -277,17 +549,36 @@ static irqreturn_t ms17e_v2_interrupt(int irq,void *dev_id,struct pt_regs *ptreg
 	if (!status) return IRQ_NONE;
 
 	if (status & TXS) {
+		if (!card->tty_file_lock) {
+			if (!uart_circ_empty(xmit)) ms17e_v2_xmit_byte(card->port);
+		} else {
+			wake_up(&(card->wait_transmit));
+		}
 		PDEBUG(debug_irq,"TXS");
-		ms17e_v2_xmit_byte(card->port);
 	}
 
 	if (status & RXS) {
+		if (!card->tty_file_lock) {
+			ms17e_v2_recv_byte(card->port,ptregs);
+		} else {
+			spin_lock_irqsave(&card->port->lock, flags);
+			card->buf[card->buf_size] = ioread8(&(card->regs->RDR));
+			if ((card->buf[card->buf_size] == '\r') || (card->buf[card->buf_size] == '\n')) card->buf[card->buf_size] = ' ';
+			card->buf_size++;
+			spin_unlock_irqrestore(&card->port->lock,flags);
+//			PDEBUG(0,"buf_size=%i", card->buf_size);
+//			wake_up(&(card->wait_receive));
+		}
 		PDEBUG(debug_irq,"RXS");
-		ms17e_v2_recv_byte(card->port,ptregs);
 	}
 
 	if (status & RXE) {
 		PDEBUG(debug_irq,"RXE");
+	}
+
+	if (status & PSU) {
+		PDEBUG(debug_irq,"PSU");
+		card->poe_status = ioread8(&(card->regs->PSR));
 	}
 
 	return IRQ_HANDLED;
@@ -297,14 +588,14 @@ static irqreturn_t ms17e_v2_interrupt(int irq,void *dev_id,struct pt_regs *ptreg
 //----------------- UART operations -----------------------------------//
 
 static void ms17e_v2_stop_tx(struct uart_port *port) {
-	struct ms17e_v2_card *card = (struct ms17e_v2_card *)port->membase;
+//	struct ms17e_v2_card *card = (struct ms17e_v2_card *)port->membase;
 	// Nothing to do. Transmitter stops automaticaly
 	PDEBUG(debug_xmit,"stop_tx");
 //	card->block_start_tx = 0;
 }
 
 static void ms17e_v2_start_tx(struct uart_port *port) {
-	struct ms17e_v2_card *card = (struct ms17e_v2_card *)port->membase;
+//	struct ms17e_v2_card *card = (struct ms17e_v2_card *)port->membase;
 	PDEBUG(debug_xmit,"start_tx");
 //	if (!(card->block_start_tx)) {
 //		card->block_start_tx = 1;
@@ -339,8 +630,13 @@ static void ms17e_v2_break_ctl(struct uart_port *port, int break_state) {
 static void ms17e_v2_set_termios(struct uart_port *port, struct termios *new, struct termios *old) {
 	u32 baud, quot;
 	unsigned long flags;
+//	int err = 0;
 
 	PDEBUG(debug_hw,"");
+
+//	err = uart_set_options(port, NULL, 9600, 'n', 8, 'n');
+//	PDEBUG(debug_hw, "err = %i", err);
+//	new->c_cflag |= CREAD;
 
 	new->c_lflag &= ~ICANON;
 	new->c_lflag &= ~(ECHO | ECHOCTL | ECHONL);
@@ -352,7 +648,7 @@ static void ms17e_v2_set_termios(struct uart_port *port, struct termios *new, st
 	baud = uart_get_baud_rate(port, new, old, 0, port->uartclk);
 	quot = uart_get_divisor(port, baud);
 //	printk(KERN_ERR "termios new = %p termios old = %p\n", new, old);
-	PDEBUG(debug_hw, "BAUD=%u, QUOTE=%u", baud, quot);
+//	PDEBUG(debug_hw, "BAUD=%u, QUOTE=%u", baud, quot);
 
 	// Locked area - configure hardware
 	spin_lock_irqsave(&port->lock, flags);
@@ -368,8 +664,8 @@ inline static void ms17e_v2_transceiver_up(struct uart_port *port) {
 	struct ms17e_v2_card *card = (struct ms17e_v2_card *)port->membase;
 
 	// enable all interrupts
-//	printk(KERN_ERR MS17E_V2_DRVNAME": Enable all interrupts\n");
-	iowrite8(TXS | RXS | RXE, &(card->regs->IMR));
+//	printk(KERN_ERR MS17E_V2_DRVNAME": transeiver_up\n");
+	iowrite8(TXS | RXS | RXE | PSU, &(card->regs->IMR));
 //	card->block_start_tx = 0;
 }
 
@@ -377,6 +673,7 @@ inline static void ms17e_v2_transceiver_down(struct uart_port *port) {
 //	struct ms17e_v2_card *card = (struct ms17e_v2_card *)port->membase;
 	// disable all interrupts
 //	iowrite8(TXS | RXS | RXE, &(card->regs->IMR));
+//	printk(KERN_ERR MS17E_V2_DRVNAME": transeiver_down\n");
 }
 
 static int ms17e_v2_startup(struct uart_port *port) {
@@ -404,15 +701,18 @@ static void ms17e_v2_shutdown(struct uart_port *port) {
 }
 
 static const char *ms17e_v2_type(struct uart_port *port) {
+//	printk(KERN_ERR MS17E_V2_DRVNAME": type\n");
 	return MS17E_V2_MODNAME;
 }
 
 static void ms17e_v2_release_port(struct uart_port *port) {
     // Nothing to do at this moment
+//	printk(KERN_ERR MS17E_V2_DRVNAME": release_port\n");
 }
 
 static int ms17e_v2_request_port(struct uart_port *port) {
     // Nothing to do at this moment
+//	printk(KERN_ERR MS17E_V2_DRVNAME": request_port\n");
     return 0;
 }
 
@@ -430,15 +730,20 @@ static void ms17e_v2_config_port(struct uart_port *port, int flags) {
 
 	// turn all off
 	iowrite8(0x00, &(card->regs->CRA));
-	// enable all PHY and power/ also set orange LED mode to manual
+	// enable all PHY and power/ also set orange LED to indicate PoE status
 	iowrite8(ERST | PRST | LEDM | RXEN, &(card->regs->CRA));
 	// turn on all LEDs
 	iowrite8(0xFF, &(card->regs->LCR0));
 	iowrite8(0xFF, &(card->regs->LCR1));
+
+	// enable some interrupts
+	iowrite8(/*TXS | RXS | RXE |*/ PSU, &(card->regs->IMR));
+
 }
 
 static int ms17e_v2_verify_port(struct uart_port *port, struct serial_struct *ser) {
 	// Nothing to do at this moment
+//	printk(KERN_ERR MS17E_V2_DRVNAME": verify_port\n");
 	return 0;
 }
 
@@ -447,31 +752,35 @@ static unsigned int ms17e_v2_tx_empty(struct uart_port *port) {
 //	printk(KERN_ERR MS17E_V2_DRVNAME": tx_empty\n");
 	return TIOCSER_TEMT;
 }
-
+/*
 static int ms17e_v2_ioctl(struct uart_port *port, unsigned int cmd, unsigned long arg) {
 //	printk(KERN_ERR MS17E_V2_DRVNAME": ioctl\n");
-	return 0;
+	return 1;
 }
-
+*/
 // Hardware related functions
 
 void ms17e_v2_recv_byte(struct uart_port *port, struct pt_regs *ptregs) {
-	struct ms17e_v2_card *card = (struct ms17e_v2_card *)port->membase;
-	struct tty_struct *tty = port->info->tty;
+	struct ms17e_v2_card *card;
+	struct tty_struct *tty;
 	unsigned int ch;
 	unsigned long flags;
 
+	card = (struct ms17e_v2_card *)port->membase;
+	tty = port->info->tty;
+
 //	printk(KERN_ERR MS17E_V2_DRVNAME": recv_byte\n");
+	spin_lock_irqsave(&port->lock, flags);
 
 	// Block port. This function can run both
 	// in process and interrupt context
-	spin_lock_irqsave(&port->lock, flags);
 	ch = ioread8(&(card->regs->RDR));
 	port->icount.rx++;
 	if (uart_handle_sysrq_char(port,ch,ptregs)) return;
 //	printk(KERN_ERR MS17E_V2_DRVNAME": recv_byte [%x]\n", ch);
 	tty_insert_flip_char(tty, ch, TTY_NORMAL);
 	tty_flip_buffer_push(tty);
+
 	spin_unlock_irqrestore(&port->lock,flags);
 	return;
 }
@@ -491,7 +800,7 @@ static void ms17e_v2_xmit_byte(struct uart_port *port) {
 
 	// check that TX buffer is empty
 	if (ioread8(&(card->regs->CRA)) & TXEN) {
-		PDEBUG(0, "TX buffer not empty!");
+		PDEBUG(debug_xmit, "TX buffer not empty!");
 		goto exit;
 	}
 
@@ -510,7 +819,6 @@ static void ms17e_v2_xmit_byte(struct uart_port *port) {
 		PDEBUG(debug_xmit,"CIRC_EMPTY=%d, TX_STOPPED=%d",uart_circ_empty(xmit),uart_tx_stopped(port));
 		goto exit;
 	}
-
 
 	iowrite8(xmit->buf[xmit->tail], &(card->regs->TDR));
 //	printk(KERN_ERR MS17E_V2_DRVNAME": xmit_byte [%x]\n", xmit->buf[xmit->tail]);

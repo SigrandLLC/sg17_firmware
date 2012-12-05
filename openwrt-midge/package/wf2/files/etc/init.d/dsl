@@ -89,6 +89,27 @@ _dsl_mr17ifcfg(){
 	if [ "$mode" == "slave" ]; then
    		$mr17h_cfg $iface $mode $fill $inv $crc $pwron $advlink
 	else
+
+	# remove task for crond
+		SHDSL_ADJUST_CMD="/sbin/shdsl adjust"
+		killall -q shdsl
+		if crontab -l | grep "$iface usefull_parameter" > /dev/null; then
+			crontab -u root -l | grep -v "$iface usefull_parameter" > /tmp/crontabs
+			crontab /tmp/crontabs -u root
+			rm -f /tmp/crontabs
+		fi
+
+		if [ "`kdb get sys_iface_${iface}_auto_test_line`" == "1" ]; then
+			. /sbin/shdsl param $iface > /dev/null
+			test_line > /dev/null
+			logger "SHDSL test line: rate = $rate tcpam = $tcpam"
+			code="tcpam${tcpam}"
+			$kdb set sys_pcicfg_s${slot}_${ifnum}_rate=$rate
+			$kdb set sys_pcicfg_s${slot}_${ifnum}_mrate=$rate
+			$kdb set sys_pcicfg_s${slot}_${ifnum}_code=$code
+			link_connect ${rate}
+		else
+
 		if [ "$rate" == "-1" -a -n "$mrate" ]; then
 			rate="rate $mrate"
 		else
@@ -104,6 +125,23 @@ _dsl_mr17ifcfg(){
 		    pboval=`cat  /sys/class/net/$iface/$priv_dir/pbo_val`
 		    [ -n "$mrate" ] && $kdb set sys_pcicfg_s${slot}_${ifnum}_mrate=$rate
 		fi
+
+		fi
+
+		# add or remove task for crond
+		if [ "`kdb get sys_iface_${iface}_autoadjust`" == "1" ]; then
+			if crontab -u root -l | grep "$iface usefull_parameter" > /dev/null; then
+				echo "" > /dev/null
+			else
+				cp -f /etc/crontabs/root /tmp/crontabs
+				echo -e "\n*/10\t* * * * killall -q `basename ${SHDSL_ADJUST_CMD}`; ${SHDSL_ADJUST_CMD} ${iface} usefull_parameter" >> /tmp/crontabs
+				crontab /tmp/crontabs -u root
+				rm -f /tmp/crontabs
+			fi
+		fi
+
+
+
 	fi
 }
 

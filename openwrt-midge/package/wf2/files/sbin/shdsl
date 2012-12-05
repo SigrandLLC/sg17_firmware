@@ -1,0 +1,259 @@
+#!/bin/sh
+
+IFACES_PATH="/sys/class/net/"
+MAX_RATE=14080
+MIN_RATE=192
+rates_max_min="14080 12800 11520 10240 9216 8192 7168 6144 5696 5120 4608 4096 3840 3584 3072 2560 2304 2048 1792 1536 1280 1024 768 640 512 384 320 256 192"
+rates_min_max="192 256 320 384 512 640 768 1024 1280 1536 1792 2048 2304 2560 3072 3584 3840 4096 4608 5120 5696 6144 7168 8192 9216 10240 11520 12800 14080"
+
+print_usage() {
+	echo -e "Usage:  `basename $0` adjust IFACE"
+	echo -e "\t`basename $0` test_line IFACE"
+	echo -e "\tIFACE must be dsl iface"
+}
+
+iface="$2"
+
+if [ -d "${IFACES_PATH}/${iface}/sg_private" ]; then
+	type="mr17h"
+	cd ${IFACES_PATH}/${iface}/sg_private
+else
+	if [ -d "${IFACES_PATH}/${iface}/ms_private" ]; then
+		type="ms17h"
+	cd ${IFACES_PATH}/${iface}/ms_private
+	else
+		echo "ERROR! iface type is unknown!"
+		exit 1
+	fi
+fi
+MIN_SNR="`kdb get sys_iface_${iface}_autoadjust_min_snr`"
+MAX_SNR="`kdb get sys_iface_${iface}_autoadjust_max_snr`"
+RATE_STEP="`kdb get sys_iface_${iface}_autoadjust_rate_step`"
+if [ -z "${MIN_SNR}" ]; then MIN_SNR=2; fi
+if [ -z "${MAX_SNR}" ]; then MAX_SNR=4; fi
+if [ -z "${RATE_STEP}" ]; then RATE_STEP=1; fi
+let "RATE_STEP=RATE_STEP*64"
+
+# получение соотношения сигнал/шум и ослабления
+# текущия директория должна быть sg_private или ms_private
+# на выходе ${snr} и ${attenuation}
+get_snr_and_attenuation() {
+	tmp=`cat statistics_row`
+	snr=""
+	attenuation=""
+	let "i=0"
+	for col in ${tmp}; do
+		if [ "${i}" == "0" ]; then
+			snr="${col}"
+		else
+			attenuation="${col}"
+			break
+		fi
+		let "i=i+1"
+	done
+}
+
+
+# получение среднего соотношения сигнал/шум и среднего ослабления
+# текущия директория должна быть sg_private или ms_private
+# на входе необязательные количество_повторений и задержка_в_мсек
+# на выходе ${snr} и ${attenuation}
+get_average_snr_and_attenuation() {
+	let "snr_sum=0"
+	let "attenuation_sum=0"
+	if [ "$1" == "" ]; then
+		n=10
+	fi
+	if [ "$2" == "" ]; then
+		t=10
+	fi
+	for i in `seq ${n}`; do
+		get_snr_and_attenuation
+		let "snr_sum=snr_sum+snr"
+		let "attenuation_sum=attenuation_sum+attenuation"
+		usleep ${t}000
+	done
+	let "snr=snr_sum/10"
+	let "attenuation=attenuation_sum/10"
+}
+
+# ожидание состояния линии
+# текущия директория должна быть sg_private или ms_private
+# на входе up или down
+# на выходе ничего
+wait_link_state() {
+	if [ "$1" == "down" ]; then
+		st=0
+	else
+		st=1
+	fi
+	let "t1=0"
+	while true; do
+		state=`cat link_state`
+		if [ "${state}" == "${st}" ]; then
+			break
+		else
+			usleep 1000000
+			let "t1=t1+1"
+			if [ "${t1}" -gt "60" ]; then
+				logger "SHDSL autoadjust: ERROR! Timeout wait link $1!"
+				return 1
+			fi
+		fi
+	done
+	return 0
+}
+# определяет TCPAM
+# на входе ${rate}
+# на выходе ${tcpam}
+get_tcpam() {
+	if [ "${1}" -ge "8192" ]; then
+		tcpam=128
+	else
+		if [ "${1}" -ge "6144" ]; then
+			tcpam=64
+		else
+			if [ "${1}" -ge "2560" ]; then
+				tcpam=32
+			else
+				tcpam=16
+			fi
+		fi
+	fi
+}
+# устанавливаем соединение на определенной скорости
+# на входе ${type} ${iface} ${rate}
+# на выходе возвращает 0 если соединение нормально установлено
+link_connect() {
+	rate=$1
+	${type}_cfg ${iface} rate ${rate}
+	get_tcpam ${rate}
+	${type}_cfg ${iface} tcpam${tcpam}
+	wait_link_state down
+	if [ "$?" != "0" ]; then
+		logger "SHDSL autoadjust: rate=${rate} TCPAM${tcpam} state=${state} snr=${snr} ----- FAIL"
+		return 1
+	fi
+	wait_link_state up
+	if [ "$?" != "0" ]; then
+		logger "SHDSL autoadjust: rate=${rate} TCPAM${tcpam} state=${state} snr=${snr} ----- FAIL"
+		return 1
+	fi
+	get_average_snr_and_attenuation
+	if [ "${state}" == "1" -a "${snr}" -ge "${MIN_SNR}" ]; then
+		logger "SHDSL autoadjust: rate=${rate} TCPAM${tcpam} state=${state} snr=${snr} ----- OK"
+		return 0
+	else
+		logger "SHDSL autoadjust: rate=${rate} TCPAM${tcpam} state=${state} snr=${snr} ----- FAIL"
+		return 1
+	fi
+}
+# определение оптимальных настроек для линии
+# на входе ${iface}
+# на выходе имеем ${rate} и ${tcpam}
+# которые выводим на stdout в json формате
+test_line() {
+	# соединяемся на минимальной скорости и определяем на сколько затухает сигнал
+	logger "SHDSL autoadjust: TEST LINE On minimum speed:"
+	link_connect 192
+	if [ "$?" != "0" ]; then
+		echo "{\"status\":\"error\", \"text\":\"Can not connect on minimal speed!\"}"
+		return 1
+	fi
+	logger "SHDSL autoadjust: TEST LINE SNR=${snr} attenuation=${attenuation}"
+	# эти скорости выбраны из учета того что на 1 километре теряется 4 db сигнала
+	# и при использовании таблицы зависмости скорости от длинны линии найденной здесь
+	# http://sigrand.ru/ru_RU/web/guest/production?p_p_id=Catalog_WAR_ProductionPortlets&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_count=1&p_r_p_-1463032376_pid=71
+	min_rate_attenuation=${attenuation}
+	case "${attenuation}" in
+		0|1|2|3) rate=14080;;
+		4) rate=12800;;
+		5) rate=11520;;
+		6|7) rate=10240;;
+		8) rate=9216;;
+		9) rate=8192;;
+		10|11|12) rate=7168;;
+		13) rate=6144;;
+		14) rate=5696;;
+		15) rate=5120;;
+		16) rate=4608;;
+		17) rate=4096;;
+		18|19|20) rate=3072;;
+		21|22|23|24) rate=2048;;
+		25|26|27|28) rate=1536;;
+		29|30|31) rate=1024;;
+		32|33) rate=768;;
+		34|35|36) rate=512;;
+		37|38) rate=384;;
+		38|39|40|41) rate=192;;
+		default) rate=192;;
+	esac
+	get_tcpam ${rate}
+	logger "SHDSL autoadjust: TEST LINE Optimal rate=${rate} TCPAM${tcpam}"
+	link_connect ${rate}
+	if [ "$?" != "0" ]; then
+		echo "{\"status\":\"error\", \"text\":\"Can not connect on optimal speed! (${rate})\"}"
+		return 1
+	fi
+	logger "SHDSL autoadjust: TEST LINE SNR=${snr} attenuation=${attenuation}"
+	echo "{\"status\":\"success\", \"rate\":\"${rate}\", \"tcpam\":\"${tcpam}\", \"snr\":\"${snr}\", \"attenuation\":\"${attenuation}\", \"min_rate_attenuation\":\"${min_rate_attenuation}\"}"
+}
+
+
+adjust_speed() {
+	get_average_snr_and_attenuation
+	state=`cat link_state`
+	cur_rate=`cat rate`
+	logger "SHDSL autoadjust: MIN_SNR=${MIN_SNR} MAX_SNR=${MAX_SNR} current rate ${cur_rate}"
+	if [ "${snr}" -lt "${MIN_SNR}" -o "${snr}" -gt "128" ]; then
+		logger "SHDSL autoadjust: NEED SPEED DOWN!!! SNR=${snr}"
+		if [ "${cur_rate}" -le "${MIN_RATE}" ]; then
+			logger "SHDSL autoadjust: It is minimum speed now!"
+			return 1
+		fi
+		while true; do
+			let "rate=${cur_rate}-${RATE_STEP}"
+			link_connect ${rate}
+			if [ "$?" == "0" -a "${snr}" -ge "${MIN_SNR}" -a "${snr}" -lt "128" ]; then
+				break
+			else
+				cur_rate=${rate}
+			fi
+		done
+	else
+		if [ "${snr}" -gt "${MAX_SNR}" ]; then
+			logger "SHDSL autoadjust: NEED SPEED UP!!! SNR=${snr}"
+			if [ "${cur_rate}" -ge "${MAX_RATE}" ]; then
+				logger "SHDSL autoadjust: It is maximum speed now!"
+				return 1
+			fi
+			while true; do
+				let "rate=${cur_rate}+${RATE_STEP}"
+				link_connect ${rate}
+				if [ "$?" != "0" ]; then
+					break
+				else
+					cur_rate=${rate}
+				fi
+			done
+			link_connect ${cur_rate}
+		else
+			logger "SHDSL autoadjust: NOT NEED CHANGE SPEED!!! SNR=${snr}"
+		fi
+	fi
+	return 0
+}
+
+case "$1" in
+	adjust)
+		adjust_speed
+	;;
+	test_line)
+		test_line
+	;;
+	--help|-h|help|?)
+		print_usage
+	;;
+	default)
+	;;
+esac
