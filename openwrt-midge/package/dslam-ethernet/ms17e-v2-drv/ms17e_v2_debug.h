@@ -5,8 +5,6 @@
 #	define DEBUG_LEV 0
 #endif
 
-#define MS17E_V2_DRVNAME "ms17e_v2"
-
 #define PDEBUG(lev,fmt,args...)
 #define PDEBUGL(lev,fmt,args...)
 #ifdef DEBUG_ON
