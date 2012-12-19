@@ -11,6 +11,13 @@ $(eval $(call PKG_template,WF2,wf2,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 $(PKG_BUILD_DIR)/.prepared:
 	mkdir -p $(PKG_BUILD_DIR)
 	cp -a templates $(PKG_BUILD_DIR)
+	cp -a files $(PKG_BUILD_DIR)
+	sed <$(PKG_BUILD_DIR)/files/sbin/shdsl.tmpl			\
+	> $(PKG_BUILD_DIR)/files/sbin/shdsl				\
+	-e "s%@MR17H_CFG_TOOLNAME@%$(BR2_SIGRAND_OEM_MR17H_TOOL)%g" \
+	-e "s%@MR16H_CFG_TOOLNAME@%$(BR2_SIGRAND_OEM_MR16H_TOOL)%g"
+	rm --force $(PKG_BUILD_DIR)/files/sbin/shdsl.tmpl
+	chmod +x $(PKG_BUILD_DIR)/files/sbin/shdsl
 	touch $@
 
 $(PKG_BUILD_DIR)/.configured:
@@ -68,7 +75,7 @@ $(PKG_BUILD_DIR)/.built:
 	touch $@
 
 $(IPKG_WF2):
-	tar cf - -C files . | tar xvf - -C $(IDIR_WF2)
+	tar cf - -C $(PKG_BUILD_DIR)/files . | tar xvf - -C $(IDIR_WF2)
 	install -d -m0755 $(IDIR_WF2)/usr/bin
 	tar cf - -C $(PKG_BUILD_DIR)/templates . | tar xvf - -C $(IDIR_WF2)
 

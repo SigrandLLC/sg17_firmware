@@ -6,6 +6,7 @@
 kdb=`which kdb`
 ifcfg="/sbin/ifconfig"
 priv_dir="sg_private"
+SHDSL_ADJUST_TIME=5
 
 . /etc/templates/oem-vars
 # checks that DSL service is enabled
@@ -102,12 +103,14 @@ _dsl_mr17ifcfg(){
 		if [ "`kdb get sys_iface_${iface}_auto_test_line`" == "1" ]; then
 			. /sbin/shdsl param $iface > /dev/null
 			test_line > /dev/null
-			logger "SHDSL test line: rate = $rate tcpam = $tcpam"
-			code="tcpam${tcpam}"
-			$kdb set sys_pcicfg_s${slot}_${ifnum}_rate=$rate
-			$kdb set sys_pcicfg_s${slot}_${ifnum}_mrate=$rate
-			$kdb set sys_pcicfg_s${slot}_${ifnum}_code=$code
-			link_connect ${rate}
+			if [ "$?" == "0" ]; then
+				code="tcpam${tcpam}"
+				$kdb set sys_pcicfg_s${slot}_${ifnum}_rate=$rate
+				$kdb set sys_pcicfg_s${slot}_${ifnum}_mrate=$rate
+				$kdb set sys_pcicfg_s${slot}_${ifnum}_code=$code
+			else
+				logger "SHDSL test line ERROR!"
+			fi
 		else
 
 		if [ "$rate" == "-1" -a -n "$mrate" ]; then
@@ -134,7 +137,7 @@ _dsl_mr17ifcfg(){
 				echo "" > /dev/null
 			else
 				cp -f /etc/crontabs/root /tmp/crontabs
-				echo -e "\n*/10\t* * * * killall -q `basename ${SHDSL_ADJUST_CMD}`; ${SHDSL_ADJUST_CMD} ${iface} usefull_parameter" >> /tmp/crontabs
+				echo -e "\n*/${SHDSL_ADJUST_TIME}\t* * * * killall -q `basename ${SHDSL_ADJUST_CMD}`; ${SHDSL_ADJUST_CMD} ${iface} usefull_parameter" >> /tmp/crontabs
 				crontab /tmp/crontabs -u root
 				rm -f /tmp/crontabs
 			fi

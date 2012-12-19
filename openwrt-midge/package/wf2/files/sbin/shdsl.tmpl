@@ -126,9 +126,16 @@ get_tcpam() {
 # на выходе возвращает 0 если соединение нормально установлено
 link_connect() {
 	rate=$1
-	${type}_cfg ${iface} rate ${rate}
+	case $type in
+		mr17h)
+			CFG_TOOLNAME="@MR17H_CFG_TOOLNAME@"
+		;;
+		mr16h)
+			CFG_TOOLNAME="@MR16H_CFG_TOOLNAME@"
+		;;
+	esac
 	get_tcpam ${rate}
-	${type}_cfg ${iface} tcpam${tcpam}
+	$CFG_TOOLNAME ${iface} master rate ${rate} tcpam${tcpam}
 	wait_link_state down
 	if [ "$?" != "0" ]; then
 		logger "SHDSL autoadjust: rate=${rate} TCPAM${tcpam} state=${state} snr=${snr} ----- FAIL"
@@ -154,6 +161,7 @@ link_connect() {
 # которые выводим на stdout в json формате
 test_line() {
 	# соединяемся на минимальной скорости и определяем на сколько затухает сигнал
+	logger "=================================================================================="
 	logger "SHDSL autoadjust: TEST LINE On minimum speed:"
 	link_connect 192
 	if [ "$?" != "0" ]; then
@@ -197,6 +205,7 @@ test_line() {
 	fi
 	logger "SHDSL autoadjust: TEST LINE SNR=${snr} attenuation=${attenuation}"
 	echo "{\"status\":\"success\", \"rate\":\"${rate}\", \"tcpam\":\"${tcpam}\", \"snr\":\"${snr}\", \"attenuation\":\"${attenuation}\", \"min_rate_attenuation\":\"${min_rate_attenuation}\"}"
+	logger "=================================================================================="
 }
 
 
@@ -204,6 +213,7 @@ adjust_speed() {
 	get_average_snr_and_attenuation
 	state=`cat link_state`
 	cur_rate=`cat rate`
+	logger ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 	logger "SHDSL autoadjust: MIN_SNR=${MIN_SNR} MAX_SNR=${MAX_SNR} current rate ${cur_rate}"
 	if [ "${snr}" -lt "${MIN_SNR}" -o "${snr}" -gt "128" ]; then
 		logger "SHDSL autoadjust: NEED SPEED DOWN!!! SNR=${snr}"
@@ -241,6 +251,7 @@ adjust_speed() {
 			logger "SHDSL autoadjust: NOT NEED CHANGE SPEED!!! SNR=${snr}"
 		fi
 	fi
+	logger "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 	return 0
 }
 
