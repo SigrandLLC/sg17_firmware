@@ -38,6 +38,12 @@ let "RATE_STEP=RATE_STEP*64"
 # текущия директория должна быть sg_private или ms_private
 # на выходе ${snr} и ${attenuation}
 get_snr_and_attenuation() {
+	link_state=`cat link_state`
+	if [ "${link_state}" != "1" ]; then
+		snr=0
+		attenuation=0
+		return
+	fi
 	tmp=`cat statistics_row`
 	snr=""
 	attenuation=""
@@ -187,6 +193,12 @@ test_line() {
 	fi
 	let "rate=${rate}-(${rate}%64)"
 	logger ">>>>>>>>>>>>>>>>>>>>>>>calculated rate = ${rate}"
+	if [ "${rate}" -lt "${MIN_RATE}" ]; then
+		rate=${MIN_RATE}
+	fi
+	if [ "${rate}" -gt "${MAX_RATE}" ]; then
+		rate=${MAX_RATE}
+	fi
 
 	# эти скорости выбраны из учета того что на 1 километре теряется 4 db сигнала
 	# и при использовании таблицы зависмости скорости от длинны линии найденной здесь
@@ -235,12 +247,12 @@ adjust_speed() {
 	logger "SHDSL autoadjust: MIN_SNR=${MIN_SNR} MAX_SNR=${MAX_SNR} current rate ${cur_rate}"
 	if [ "${snr}" -lt "${MIN_SNR}" -o "${snr}" -gt "128" ]; then
 		logger "SHDSL autoadjust: NEED SPEED DOWN!!! SNR=${snr}"
-		if [ "${cur_rate}" -le "${MIN_RATE}" ]; then
-			logger "SHDSL autoadjust: It is minimum speed now!"
-			return 1
-		fi
 		while true; do
 			let "rate=${cur_rate}-${RATE_STEP}"
+			if [ "${rate}" -lt "${MIN_RATE}" ]; then
+				logger "SHDSL autoadjust: It is minimum speed now!"
+				return 1
+			fi
 			link_connect ${rate}
 			if [ "$?" == "0" -a "${snr}" -ge "${MIN_SNR}" -a "${snr}" -lt "128" ]; then
 				break
@@ -251,12 +263,12 @@ adjust_speed() {
 	else
 		if [ "${snr}" -gt "${MAX_SNR}" ]; then
 			logger "SHDSL autoadjust: NEED SPEED UP!!! SNR=${snr}"
-			if [ "${cur_rate}" -ge "${MAX_RATE}" ]; then
-				logger "SHDSL autoadjust: It is maximum speed now!"
-				return 1
-			fi
 			while true; do
 				let "rate=${cur_rate}+${RATE_STEP}"
+				if [ "${rate}" -gt "${MAX_RATE}" ]; then
+					logger "SHDSL autoadjust: It is maximum speed now!"
+					return 1
+				fi
 				link_connect ${rate}
 				if [ "$?" != "0" ]; then
 					break
