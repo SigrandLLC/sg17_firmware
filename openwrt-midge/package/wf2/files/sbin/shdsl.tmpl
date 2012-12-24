@@ -134,7 +134,11 @@ link_connect() {
 			CFG_TOOLNAME="@MR16H_CFG_TOOLNAME@"
 		;;
 	esac
-	get_tcpam ${rate}
+	if [ "$2" = "" ]; then
+		get_tcpam ${rate}
+	else
+		tcpam="$2"
+	fi
 	$CFG_TOOLNAME ${iface} master rate ${rate} tcpam${tcpam}
 	wait_link_state down
 	if [ "$?" != "0" ]; then
@@ -163,39 +167,53 @@ test_line() {
 	# соединяемся на минимальной скорости и определяем на сколько затухает сигнал
 	logger "=================================================================================="
 	logger "SHDSL autoadjust: TEST LINE On minimum speed:"
-	link_connect 192
+	link_connect 192 8
 	if [ "$?" != "0" ]; then
 		echo "{\"status\":\"error\", \"text\":\"Can not connect on minimal speed!\"}"
 		return 1
 	fi
 	logger "SHDSL autoadjust: TEST LINE SNR=${snr} attenuation=${attenuation}"
+	min_rate_attenuation=${attenuation}
+
+	# вычисляем скорость по формуле
+	if [ "${attenuation}" -lt "5" ]; then
+		let "rate=(53-${attenuation})*276"
+	else
+		if [ "${attenuation}" -ge "5" -a "${attenuation}" -le "27" ]; then
+			let "rate=(53-${attenuation})*(321-9*${attenuation})"
+		else
+			let "rate=(53-${attenuation})*50"
+		fi
+	fi
+	let "rate=${rate}-(${rate}%64)"
+	logger ">>>>>>>>>>>>>>>>>>>>>>>calculated rate = ${rate}"
+
 	# эти скорости выбраны из учета того что на 1 километре теряется 4 db сигнала
 	# и при использовании таблицы зависмости скорости от длинны линии найденной здесь
 	# http://sigrand.ru/ru_RU/web/guest/production?p_p_id=Catalog_WAR_ProductionPortlets&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_count=1&p_r_p_-1463032376_pid=71
-	min_rate_attenuation=${attenuation}
-	case "${attenuation}" in
-		0|1|2|3) rate=14080;;
-		4) rate=12800;;
-		5) rate=11520;;
-		6|7) rate=10240;;
-		8) rate=9216;;
-		9) rate=8192;;
-		10|11|12) rate=7168;;
-		13) rate=6144;;
-		14) rate=5696;;
-		15) rate=5120;;
-		16) rate=4608;;
-		17) rate=4096;;
-		18|19|20) rate=3072;;
-		21|22|23|24) rate=2048;;
-		25|26|27|28) rate=1536;;
-		29|30|31) rate=1024;;
-		32|33) rate=768;;
-		34|35|36) rate=512;;
-		37|38) rate=384;;
-		38|39|40|41) rate=192;;
-		default) rate=192;;
-	esac
+#	case "${attenuation}" in
+#		0|1|2|3) rate=14080;;
+#		4) rate=12800;;
+#		5) rate=11520;;
+#		6|7) rate=10240;;
+#		8) rate=9216;;
+#		9) rate=8192;;
+#		10|11|12) rate=7168;;
+#		13) rate=6144;;
+#		14) rate=5696;;
+#		15) rate=5120;;
+#		16) rate=4608;;
+#		17) rate=4096;;
+#		18|19|20) rate=3072;;
+#		21|22|23|24) rate=2048;;
+#		25|26|27|28) rate=1536;;
+#		29|30|31) rate=1024;;
+#		32|33) rate=768;;
+#		34|35|36) rate=512;;
+#		37|38) rate=384;;
+#		38|39|40|41) rate=192;;
+#		default) rate=192;;
+#	esac
 	get_tcpam ${rate}
 	logger "SHDSL autoadjust: TEST LINE Optimal rate=${rate} TCPAM${tcpam}"
 	link_connect ${rate}
