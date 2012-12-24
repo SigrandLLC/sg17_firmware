@@ -11,7 +11,7 @@
  *  Works just on the both side of svd -- svd_if.
  *  @{*/
 /** Socket path to communicate client with server */
-#define SOCKET_PATH "/var/svd/"
+#define SOCKET_PATH "/var/run/svd/"
 /** Socket name to communicate client with server */
 #define SOCKET_NAME "svd-socket"
 /** Maximum message length passed to socket from client to server */
