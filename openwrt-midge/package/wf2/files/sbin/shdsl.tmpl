@@ -34,6 +34,48 @@ if [ -z "${MAX_SNR}" ]; then MAX_SNR=4; fi
 if [ -z "${RATE_STEP}" ]; then RATE_STEP=1; fi
 let "RATE_STEP=RATE_STEP*64"
 
+slots="`kdb get sys_pcitbl_slots`"
+found="false"
+for slot in ${slots}; do
+	ifaces="`kdb get sys_pcitbl_s${slot}_ifaces`"
+	ifnum=0
+	for iface_ in ${ifaces}; do
+		if [ "${iface}" = "${iface_}" ]; then
+			found="true"
+			break
+		fi
+		let "ifnum=ifnum+1"
+	done
+	if [ "${found}" = "true" ]; then
+		break
+	fi
+done
+
+if [ "${found}" != "true" ]; then
+	logger "Can not find iface=[${iface}]!!!"
+	exit 1
+fi
+
+
+# Hardware settings
+eval `kdb -qq sls sys_pcicfg_s${slot}_${ifnum}_`
+if [ -n "$advlink" ]; then
+	advlink="advlink $advlink"
+fi
+
+if [ "$pbomode" = "on" -o "$pbomode" = "1" ]; then
+	pbo="pbo-forced"
+	[ -z "$pboval" ] && pboval=0 && \
+			kdb set sys_pcicfg_s${slot}_${ifnum}_pboval=0
+	echo "$pboval" > /sys/class/net/$iface/$priv_dir/pbo_val
+	pboval=`cat  /sys/class/net/$iface/$priv_dir/pbo_val`
+	kdb set sys_pcicfg_s${slot}_${ifnum}_pboval=$pboval
+	pbo="$pbo $pboval"
+else
+	pbo="pbo-normal"
+fi
+[ -n "$annex" ] && annex="annex $annex"
+
 # получение соотношения сигнал/шум и ослабления
 # текущия директория должна быть sg_private или ms_private
 # на выходе ${snr} и ${attenuation}
@@ -145,7 +187,9 @@ link_connect() {
 	else
 		tcpam="$2"
 	fi
-	$CFG_TOOLNAME ${iface} master rate ${rate} tcpam${tcpam}
+	$CFG_TOOLNAME ${iface} master rate ${rate} tcpam${tcpam} $annex $fill $inv $crc \
+		$pwron $clkmode $pbo $advlink > /dev/null
+
 	wait_link_state down
 	if [ "$?" != "0" ]; then
 		logger "SHDSL autoadjust: rate=${rate} TCPAM${tcpam} state=${state} snr=${snr} ----- FAIL"
@@ -182,13 +226,19 @@ test_line() {
 	min_rate_attenuation=${attenuation}
 
 	# вычисляем скорость по формуле
-	if [ "${attenuation}" -lt "5" ]; then
-		let "rate=(53-${attenuation})*276"
+	if [ "${MIN_SNR}" -gt "1" ]; then
+		let "att_plus_min_snr=${attenuation}+${MIN_SNR}"
 	else
-		if [ "${attenuation}" -ge "5" -a "${attenuation}" -le "27" ]; then
-			let "rate=(53-${attenuation})*(321-9*${attenuation})"
+		att_plus_min_snr=${attenuation}
+	fi
+	if [ "${attenuation}" -lt "5" ]; then
+		let "rate=(53-${att_plus_min_snr})*276"
+	else
+		let "tmp=321-9*${attenuation}"
+		if [ "${tmp}" -lt "60" ]; then
+			let "rate=(53-${att_plus_min_snr})*60)"
 		else
-			let "rate=(53-${attenuation})*50"
+			let "rate=(53-${att_plus_min_snr})*(321-9*${attenuation})"
 		fi
 	fi
 	let "rate=${rate}-(${rate}%64)"
@@ -238,7 +288,9 @@ test_line() {
 	logger "=================================================================================="
 }
 
-
+# подстраивает скорость под состояние линии
+# на входе ${iface}
+# на выходе возвращаем 0 или 1
 adjust_speed() {
 	get_average_snr_and_attenuation
 	state=`cat link_state`
