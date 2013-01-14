@@ -17,40 +17,40 @@ function generateMenu() {
     if (config.getParsed("sys_dslam_card") == "1") {
         addItem("Hardware", "DSLAM Switch", "dslamsw");
         if (config.getParsed("sys_dslam_hose") == "1")
-            addItem("Hardware", "CPU Switch", "adm5120sw");
+	    addItem("Hardware", "CPU Switch", "adm5120sw");
     } else {
-        addItem("Hardware", "Switch", "adm5120sw");
+	addItem("Hardware", "Switch", "adm5120sw");
     }
     addItem("Services", "DHCP server", "dhcp");
     addItem("Services", "DNS server", "dns_server");
 
     /* if we have support for linkdeps */
     if (config.getCachedOutput("linkdeps") == "1") {
-        addItem("Hardware", "Linkdeps", "linkdeps");
+	addItem("Hardware", "Linkdeps", "linkdeps");
     }
 
     /* if we have interfaces with multiplexing support, add item to the menu */
     if (config.getParsed("sys_mux_ifaces").length > 0) {
-        addItem("Hardware", "Multiplexing", "multiplexing");
+	addItem("Hardware", "Multiplexing", "multiplexing");
     }
 
     /* Add VoIP controller */
     if (config.get("sys_voip_present") == "1") {
-        /* get VoIP channels list */
-        config.runCmd("/bin/cat /proc/driver/sgatab/channels", "voipChannels");
-        addItem("Hardware:VoIP", "Settings", "voipSettings");
-        addItem("Hardware:VoIP", "Hotline", "voipHotline");
-        addItem("Hardware:VoIP", "VF", "voipVF");
-        addItem("Hardware:VoIP", "Routes", "voipRoutes");
-        addItem("Hardware:VoIP", "Phone book", "voipPhoneBook");
-        addItem("Hardware:VoIP", "Audio", "voipAudio");
-        addItem("Hardware:VoIP", "Codecs", "voipCodecs");
-        addItem("Hardware:VoIP", "Echo", "voipEcho");
-        addItem("Hardware:VoIP", "Dial mode", "voipDialMode");
+	/* get VoIP channels list */
+	config.runCmd("/bin/cat /proc/driver/sgatab/channels", "voipChannels");
+	addItem("Hardware:VoIP", "Settings", "voipSettings");
+	addItem("Hardware:VoIP", "Hotline", "voipHotline");
+	addItem("Hardware:VoIP", "VF", "voipVF");
+	addItem("Hardware:VoIP", "Routes", "voipRoutes");
+	addItem("Hardware:VoIP", "Phone book", "voipPhoneBook");
+	addItem("Hardware:VoIP", "Audio", "voipAudio");
+	addItem("Hardware:VoIP", "Codecs", "voipCodecs");
+	addItem("Hardware:VoIP", "Echo", "voipEcho");
+	addItem("Hardware:VoIP", "Dial mode", "voipDialMode");
     }
     if (config.getParsed("sys_dslam_card") == "1") {
-    	addItem("Hardware:Ethernet", "ge0", "dslam_ethernet", ["ge0", "4", "0"]);
-    	addItem("Hardware:Ethernet", "ge1", "dslam_ethernet", ["ge1", "4", "1"]);
+	addItem("Hardware:Ethernet", "ge0", "dslam_ethernet", ["ge0", "4", "0"]);
+	addItem("Hardware:Ethernet", "ge1", "dslam_ethernet", ["ge1", "4", "1"]);
     }
 
     /* get array of PCI slots */
@@ -59,118 +59,118 @@ function generateMenu() {
 
     /* generate list of SHDSL/E1/RS232 interfaces */
     $.each(slots, function(num, pcislot) {
-        var type = config.get($.sprintf("sys_pcitbl_s%s_iftype", pcislot));
-        var ifaces = config.getParsed($.sprintf("sys_pcitbl_s%s_ifaces", pcislot));
-        var rs232Defined = false;
+	var type = config.get($.sprintf("sys_pcitbl_s%s_iftype", pcislot));
+	var ifaces = config.getParsed($.sprintf("sys_pcitbl_s%s_ifaces", pcislot));
+	var rs232Defined = false;
 
-        /* get or create array with info for module of current type */
-        var ifaceInfo = config.getData(type);
-        if (!ifaceInfo) {
-            ifaceInfo = [];
-            config.saveData(type, ifaceInfo);
-        }
+	/* get or create array with info for module of current type */
+	var ifaceInfo = config.getData(type);
+	if (!ifaceInfo) {
+	    ifaceInfo = [];
+	    config.saveData(type, ifaceInfo);
+	}
 
         /* go through ifaces of this slot */
-		$.each(ifaces, function(num, iface) {
+	$.each(ifaces, function(num, iface) {
 
-			var IfInfoFound = false;
-			$.each(ifaceInfo, function(num, IfInfo) {
-				if (IfInfo.iface == iface) {
-					IfInfoFound = true;
-					return false;
-				}
-			});
+	    var IfInfoFound = false;
+	    $.each(ifaceInfo, function(num, IfInfo) {
+		if (IfInfo.iface == iface) {
+		    IfInfoFound = true;
+		    return false;
+		}
+	    });
 
-			if (!IfInfoFound) {
-				/* add info about this interface */
-				ifaceInfo.push({"iface": iface, "pcislot": pcislot, "pcidev": num});
-			}
+	    if (!IfInfoFound) {
+		/* add info about this interface */
+		ifaceInfo.push({"iface": iface, "pcislot": pcislot, "pcidev": num});
+	    }
 
-            switch (type) {
-                case config.getOEM("MS17E_MODNAME"):
-                case config.getOEM("MS17E_V2_MODNAME"):
-                       addItem("Hardware:Ethernet", iface, "dslam_ethernet", [iface, pcislot, num]);
-                       break;
-                case config.getOEM("MAM17H_MODNAME"):
-                    addItem("Hardware:SHDSL", iface, "dslam_dsl", [iface, pcislot, num]);
-                    break;
-                /* SHDSL */
-                case config.getOEM("MR16H_DRVNAME"):
-                case config.getOEM("MR17H_DRVNAME"):
-                    if (type == config.getOEM("MR17H_DRVNAME")) {
-                        var confPath = $.sprintf("%s/%s/sg_private", config.getOEM("sg17_cfg_path"), iface);
+	    switch (type) {
+	    case config.getOEM("MS17E_MODNAME"):
+	    case config.getOEM("MS17E_V2_MODNAME"):
+		addItem("Hardware:Ethernet", iface, "dslam_ethernet", [iface, pcislot, num]);
+		break;
+	    case config.getOEM("MAM17H_MODNAME"):
+		addItem("Hardware:SHDSL", iface, "dslam_dsl", [iface, pcislot, num]);
+		break;
+		/* SHDSL */
+	    case config.getOEM("MR16H_DRVNAME"):
+	    case config.getOEM("MR17H_DRVNAME"):
+		if (type == config.getOEM("MR17H_DRVNAME")) {
+		    var confPath = $.sprintf("%s/%s/sg_private", config.getOEM("sg17_cfg_path"), iface);
 
-                        config.runCmd($.sprintf("/bin/cat %s/chipver", confPath));
-                        config.runCmd($.sprintf("/bin/cat %s/pwr_source", confPath));
-                    }
+		    config.runCmd($.sprintf("/bin/cat %s/chipver", confPath));
+		    config.runCmd($.sprintf("/bin/cat %s/pwr_source", confPath));
+		}
 
-                    addItem("Hardware:SHDSL", iface, "dsl", [iface, pcislot, num]);
-                    break;
+		addItem("Hardware:SHDSL", iface, "dsl", [iface, pcislot, num]);
+		break;
 
-                /* E1 */
-                case config.getOEM("MR16G_DRVNAME"):
-                case config.getOEM("MR17G_DRVNAME"):
-                    config.runCmd($.sprintf("[ -f /sys/class/net/%s/hw_private/muxonly ] && cat /sys/class/net/%s/hw_private/muxonly || echo -n 0",
-                            iface, iface), $.sprintf("muxonly_%s", iface));
-                    addItem("Hardware:E1", iface, "e1", [iface, pcislot, num]);
-                    break;
+		/* E1 */
+	    case config.getOEM("MR16G_DRVNAME"):
+	    case config.getOEM("MR17G_DRVNAME"):
+		config.runCmd($.sprintf("[ -f /sys/class/net/%s/hw_private/muxonly ] && cat /sys/class/net/%s/hw_private/muxonly || echo -n 0",
+					iface, iface), $.sprintf("muxonly_%s", iface));
+		addItem("Hardware:E1", iface, "e1", [iface, pcislot, num]);
+		break;
 
-                /* RS232 */
-                case config.getOEM("MR17S_DRVNAME"):
-                    rs = true;
-                    if (!rs232Defined) {
-                        rs232Defined = true;
-                        config.runCmd($.sprintf("[ -f /sys/bus/pci/drivers/%s/%s/dev_type ] && cat /sys/bus/pci/drivers/%s/%s/dev_type || echo -n 'undefined'",
-                                config.getOEM("MR17S_DRVNAME"), iface, config.getOEM("MR17S_DRVNAME"),
-                                iface), $.sprintf("rs232Type_%s", pcislot));
-                    }
-                    addItem("Hardware:RS232", iface, "rs232", [iface, pcislot, num]);
-                    addItem("Services:RS-232 over TCP/IP", iface, "rs232_tcpext", [iface, pcislot, num]);
-                    break;
-            }
-        });
+		/* RS232 */
+	    case config.getOEM("MR17S_DRVNAME"):
+		rs = true;
+		if (!rs232Defined) {
+		    rs232Defined = true;
+		    config.runCmd($.sprintf("[ -f /sys/bus/pci/drivers/%s/%s/dev_type ] && cat /sys/bus/pci/drivers/%s/%s/dev_type || echo -n 'undefined'",
+					    config.getOEM("MR17S_DRVNAME"), iface, config.getOEM("MR17S_DRVNAME"),
+					    iface), $.sprintf("rs232Type_%s", pcislot));
+		}
+		addItem("Hardware:RS232", iface, "rs232", [iface, pcislot, num]);
+		addItem("Services:RS-232 over TCP/IP", iface, "rs232_tcpext", [iface, pcislot, num]);
+		break;
+	    }
+	});
     });
     if (rs == true)
     {
-    	addItem("Services", "Terminal", "terminal");
-        addItem("Services", "Dial-in", "dialin");
+	addItem("Services", "Terminal", "terminal");
+	addItem("Services", "Dial-in", "dialin");
     }
     addItem("Services", "Snmpd", "snmpd");
 
     /* generate list of network interfaces */
     var ifaces = config.getParsed("sys_ifaces");
     $(ifaces).each(function(name, iface) {
-        /* add dynamic interfaces */
-        if (iface.search(/\w+\d+v\d+/) != -1 || iface.search(/eth|dsl|E1/) == -1) {
-            addItem("Network:Dynamic interfaces", iface, "iface", [iface]);
-        /* add physical interfaces */
-        } else {
-            addItem("Network:Static interfaces", iface, "iface", [iface]);
-        }
+	/* add dynamic interfaces */
+	if (iface.search(/\w+\d+v\d+/) != -1 || iface.search(/eth|dsl|E1/) == -1) {
+	    addItem("Network:Dynamic interfaces", iface, "iface", [iface]);
+	    /* add physical interfaces */
+	} else {
+	    addItem("Network:Static interfaces", iface, "iface", [iface]);
+	}
     });
 
     var PlusMinusMenu = function(li) {
-        var span = li.children('span:first');
-        if(li.hasClass('expandable')) {
-            span.text(span.text().substr(2));
-            span.prepend('+ ');
-        }
-        else if(li.hasClass('collapsable')) {
-            span.text(span.text().substr(2));
-            span.prepend('- ');
-        }
+	var span = li.children('span:first');
+	if(li.hasClass('expandable')) {
+	    span.text(span.text().substr(2));
+	    span.prepend('+ ');
+	}
+	else if(li.hasClass('collapsable')) {
+	    span.text(span.text().substr(2));
+	    span.prepend('- ');
+	}
     }
 
 
 
     /* generate menu */
     $("#menu").treeview({
-        "unique": true,
-        "collapsed": true,
-        "persist": "cookie",
-        "toggle": function() {
-            PlusMinusMenu($(this));
-        }
+	"unique": true,
+	"collapsed": true,
+	"persist": "cookie",
+	"toggle": function() {
+	    PlusMinusMenu($(this));
+	}
 
     });
     $("#menu").find("li").each(function(i) { PlusMinusMenu($(this)); });
@@ -183,12 +183,12 @@ var wf2Logs = new function() {
     this.logs = [];
 
     this.addLog = function(title, text) {
-        this.logs.push({"title": title, "text": text});
+	this.logs.push({"title": title, "text": text});
 
-        /* rotate log */
-        if (this.logs.length > logsMax) {
-            this.logs = this.logs.slice(this.logs.length - logsNum);
-        }
+	/* rotate log */
+	if (this.logs.length > logsMax) {
+	    this.logs = this.logs.slice(this.logs.length - logsNum);
+	}
     };
 };
 
@@ -201,7 +201,7 @@ var globalParameters = {};
 $(document).ready(function() {
     /* Set AJAX options. Without this option IE caches all AJAX requests */
     $.ajaxSetup({
-        cache: false
+	cache: false
     });
 
     /* load KDB settings */
@@ -223,14 +223,14 @@ $(document).ready(function() {
     /* set interface lguage */
     var lang = config.get("sys_interface_language");
     if (lang) {
-        $.gt.load(lang, $.sprintf("translation/%s.json", lang));
+	$.gt.load(lang, $.sprintf("translation/%s.json", lang));
     }
 
     /* on click on status bar with CTRL key, show debug */
     $("#status").click(function(e) {
-        if (e.ctrlKey == true) {
-            Controllers.debug();
-        }
+	if (e.ctrlKey == true) {
+	    Controllers.debug();
+	}
     });
 
     /* add status bar content */
@@ -247,14 +247,13 @@ $(document).ready(function() {
 
     /* call info controller when all config.runCmd will be finished */
     config.onCmdCacheFinish(function() {
-        generateMenu();
+	    generateMenu();
 
-        config.onCmdCacheFinish(function() {
-            Controllers.info();
+	    config.onCmdCacheFinish(function() {
+		Controllers.info();
 
-            /* check router every 10 seconds */
-            config.startCheckStatus(10);
-        });
+		/* check router every 10 seconds */
+		config.startCheckStatus(10);
+	    });
     });
 });
-
