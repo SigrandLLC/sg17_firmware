@@ -15,6 +15,13 @@ Controllers.rs232_tcpext = function(node, pcislot, pcidev)
 				mr17sModuleName(pcislot), pcislot - 2));
 
 			field = {
+				"type"  : "hidden",
+				"name"  : $.sprintf("sys_rs232_tcpext_%s", node),
+				"defaultValue" : $.sprintf("%s_%s", pcislot, pcidev)
+			};
+			c.addWidget(field);
+
+			field = {
 				"type" : "select",
 				"text": "mode",
 				"name" : $.sprintf("sys_rs232_tcpext_s%s_%s_mode", pcislot, pcidev),
@@ -73,3 +80,83 @@ Controllers.rs232_tcpext = function(node, pcislot, pcidev)
 	page.generateTabs();
 };
 
+Controllers.rs232_tcpdmx = function(rs232_list) {
+	var page = this.Page();
+	page.setSubsystem("rs232_tcpdmx");
+
+	page.addTab({
+		"id": "options",
+		"name": "Options",
+		"func": function() {
+			var c, field;
+			c = page.addContainer("options");
+			c.addTitle("RS232 over tcp/ip demultiplexer settings");
+
+			var rs_arr = rs232_list.split(" ");
+			var rs232_list_str = "";
+			for (rs in rs_arr) {
+				var tmp = config.get($.sprintf("sys_rs232_tcpext_%s", rs_arr[rs]));
+				if (tmp != null) {
+					var mode = config.get($.sprintf("sys_rs232_tcpext_s%s_mode", tmp));
+					if ((mode == "listen") || (mode == "connect")) {
+					} else {
+						if (rs232_list_str == "")
+							rs232_list_str += rs_arr[rs];
+						else
+							rs232_list_str += " "+rs_arr[rs];
+					}
+				} else {
+					if (rs232_list_str == "")
+						rs232_list_str += rs_arr[rs];
+					else
+						rs232_list_str += " "+rs_arr[rs];
+				}
+			}
+			field = {
+				"type" : "select",
+				"text": "Port",
+				"name" : "sys_rs232_tcpdmx_port",
+				"options" : "none "+rs232_list_str,
+				"dafaultValue": "none"
+			};
+			c.addWidget(field);
+			c.addSubmit();
+
+			page.addBr("options");
+			c = page.addContainer("options");
+
+		var list = c.createList({
+			"tabId": "zones",
+			"header": ["Host", "Port"],
+			"varList": ["host", "port"],
+			"listItem": "sys_rs232_tcpdmx_list",
+			"showPage": function() {
+				Controllers.rs232_tcpdmx(rs232_list);
+			},
+			"addMessage": "Host successully added!",
+			"editMessage": "Host successully changed!",
+			"listTitle": "RS232 over tcp/ip demultiplexer clients"
+		});
+
+
+		field = {
+			"type": "text",
+			"name": "host",
+			"text": "Host",
+			"validator": {"required": true, "ipAddr": true}
+		};
+		list.addWidget(field);
+
+		field = {
+			"type": "text",
+			"name": "port",
+			"text": "Port",
+			"validator": {"required": true, "min":0,"max":65535}
+		};
+		list.addWidget(field);
+		list.generateList();
+		}
+	});
+
+	page.generateTabs();
+};

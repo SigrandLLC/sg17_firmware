@@ -80,6 +80,9 @@ service_reload(){
 		dev=${tmp#*.}
 		/etc/init.d/rs232_tcpext restart "$slot" "$dev"
 	;;
+	rs232_tcpdmx)
+		/init/rs232_tcpdmx restart
+	;;
 	fw)
 		/etc/init.d/fw restart
 	;;

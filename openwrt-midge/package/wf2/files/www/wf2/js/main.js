@@ -15,8 +15,8 @@ function generateMenu() {
     addItem("Network", "Firewall", "fw");
     addItem("Network:Dynamic interfaces", "Manage", "dynamic_ifaces");
     if (config.getParsed("sys_dslam_card") == "1") {
-        addItem("Hardware", "DSLAM Switch", "dslamsw");
-        if (config.getParsed("sys_dslam_hose") == "1")
+	addItem("Hardware", "DSLAM Switch", "dslamsw");
+	if (config.getParsed("sys_dslam_hose") == "1")
 	    addItem("Hardware", "CPU Switch", "adm5120sw");
     } else {
 	addItem("Hardware", "Switch", "adm5120sw");
@@ -56,6 +56,7 @@ function generateMenu() {
     /* get array of PCI slots */
     var slots = config.getParsed("sys_pcitbl_slots");
     var rs = false;
+    var rs232_list = "";
 
     /* generate list of SHDSL/E1/RS232 interfaces */
     $.each(slots, function(num, pcislot) {
@@ -126,12 +127,17 @@ function generateMenu() {
 		}
 		addItem("Hardware:RS232", iface, "rs232", [iface, pcislot, num]);
 		addItem("Services:RS-232 over TCP/IP", iface, "rs232_tcpext", [iface, pcislot, num]);
+		if (rs232_list == "")
+		    rs232_list += iface;
+		else
+		    rs232_list += " "+iface;
 		break;
 	    }
 	});
     });
     if (rs == true)
     {
+	addItem("Services:RS-232 over TCP/IP", "Demultiplexer", "rs232_tcpdmx", [rs232_list]);
 	addItem("Services", "Terminal", "terminal");
 	addItem("Services", "Dial-in", "dialin");
     }
