@@ -49,6 +49,7 @@ package-$(BR2_PACKAGE_QUAGGA) += quagga
 package-$(BR2_COMPILE_READLINE) += readline
 package-$(BR2_COMPILE_RP_PPPOE) += rp-pppoe
 package-$(BR2_PACKAGE_RS232_TCPEXT) += rs232-tcpext
+package-$(BR2_PACKAGE_RS232_TCPDMX) += rs232-tcpdmx
 package-$(BR2_PACKAGE_SETSERIAL) += setserial
 package-$(BR2_COMPILE_SPEEX) += speex
 package-$(BR2_PACKAGE_STRACE) += strace
@@ -155,4 +156,3 @@ $(TARGET_DIR):
 	@rm -f $(STAMP_DIR)/.$(patsubst %-clean,%,$@)-*
 	@$(CMD_TRACE) " done"
 	@$(END_TRACE)
-
