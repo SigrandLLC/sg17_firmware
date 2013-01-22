@@ -65,6 +65,7 @@ rsync-compile: popt-compile
 screen-compile: ncurses-compile
 sftpserver-compile: libiconv-install
 rs232-tcpext-compile: liblockdev-install
+rs232-tcpdmx-compile: liblockdev-install
 sipp-compile: ncurses-compile uclibc++-compile libpthread-compile
 siproxd-compile:
 sipsak-compile: openssl-compile

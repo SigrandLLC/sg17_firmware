@@ -3,4 +3,3 @@
 * replace ntpclient by openntpd
 * rm crontab, cron, /etc/init.d/timesync
 * Add '-nofw' to kernel extraversion
-

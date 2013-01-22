@@ -1,0 +1,63 @@
+#!/bin/sh
+
+start()
+{
+  echo -n "Starting RS-232 demutiplexor over TCP/IP"
+
+  local PORT="`kdb get sys_rs232_tcpdmx_port`"
+
+  if test -z "${PORT}" -o "${PORT}" = "none"; then
+     logger -t rs232_tcpdmx "No RS-232 port configured"
+     return 0
+  fi
+
+  local port_type=`rs232-type ${PORT}`
+  case $port_type in
+       DTE|DCE)   ;;
+       *)	logger -t rs232_tcpdmx "Wrong port $PORT type $port_type"
+		return 1
+       ;;
+  esac
+
+
+  local HOSTPORTS=""
+
+  # sys_rs232_tcpdmx_list0 sys_rs232_tcpdmx_list1 ...
+  local listlist=`kdb klist 'sys_rs232_tcpdmx_list*'`
+  for l in $listlist; do
+      # host=192.168.2.103 port=3000
+      local hostport="`kdb get $l`"
+      eval "$hostport"
+      HOSTPORTS="$HOSTPORTS ${host}:${port}"
+  done
+
+  local poll_interval="`kdb get sys_rs232_tcpdmx_poll_interval`"
+  local restart_delay="`kdb get sys_rs232_tcpdmx_restart_delay`"
+  local iptos="`kdb get sys_rs232_tcpdmx_iptos`"
+  tmp=${poll_interval:=100}
+  tmp=${restart_delay:=3000}
+  tmp=${iptos:=0x00}
+
+  # "Usage: rs232-tcpdmx /dev/ttyPORT {DTE|DCE} P R host:port ...\n"
+  # "\tP - modem state poll interval, msec\n"
+  # "\tR - connection restart delay time, msec\n"
+
+  rs232-tcpdmx /dev/$PORT $port_type $poll_interval $restart_delay $iptos $HOSTPORTS 2>/dev/null
+  echo done
+}
+
+stop()
+{
+  echo -n "Stopping rs232-tcpdmx"
+  killall -q -TERM  rs232-tcpdmx 2>/dev/null
+  echo done
+}
+
+case "$1" in
+	start)
+		start;;
+	stop)
+		stop;;
+	restart)
+		stop; start;;
+esac

@@ -13,4 +13,3 @@ if test -n "$ccache_full"; then
 fi
 
 unset ccache_full ccache_bin ccache_lib
-

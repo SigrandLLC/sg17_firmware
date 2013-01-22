@@ -55,6 +55,7 @@ $(PKG_BUILD_DIR)/.configured:
 			--without-glib		\
 			--without-openssl	\
 			--disable-nth		\
+			--disable-ip6		\
 			--enable-ndebug
 	touch $@
 

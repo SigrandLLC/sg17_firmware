@@ -1,0 +1,4 @@
+Package: rs232-tcpdmx
+Priority: optional
+Section: net
+Description: Demultiplex RS232 port over TCP/IP

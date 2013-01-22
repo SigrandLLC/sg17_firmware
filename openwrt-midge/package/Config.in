@@ -61,6 +61,7 @@ endmenu
 menu "Serial communications & terminal emulation"
 source "package/microcom/Config.in"
 source "package/rs232-tcpext/Config.in"
+source "package/rs232-tcpdmx/Config.in"
 source "package/setserial/Config.in"
 endmenu
 
@@ -130,4 +131,3 @@ endmenu
 endmenu
 
 endmenu
-

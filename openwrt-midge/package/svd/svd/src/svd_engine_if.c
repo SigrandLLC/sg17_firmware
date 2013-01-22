@@ -107,7 +107,7 @@ svd_if_cli_start (char * const err_msg)
 
 	memset(&cl_addr, 0, sizeof(cl_addr));
 	cl_addr.sun_family = AF_UNIX;
-	strcpy(cl_addr.sun_path, "/var/svd/svd_if.XXXXXX");
+	strcpy(cl_addr.sun_path, SOCKET_PATH "svd_if.XXXXXX");
 	mktemp(cl_addr.sun_path);
 
 	if(-1== bind(socket_fd, (struct sockaddr*)&cl_addr, SUN_LEN(&cl_addr))){

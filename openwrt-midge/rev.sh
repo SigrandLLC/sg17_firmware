@@ -22,4 +22,3 @@ if test -n "$modified"; then
 fi
 
 echo $branch-$revision$dirty
-
