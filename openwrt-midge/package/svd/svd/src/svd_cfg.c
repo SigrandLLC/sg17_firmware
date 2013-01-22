@@ -633,9 +633,11 @@ self_values_init( void )
 	free (addrmas);
 
 	if( !self_found){
-		SU_DEBUG_0 ((LOG_FNC_A("ERROR: "
-				"No interfaces found with ip from route table")));
-		goto __exit_fail;
+		g_conf.self_ip = &g_conf.route_table.records[0]->value;
+		g_conf.self_number = &g_conf.route_table.records[0]->id;;
+//		SU_DEBUG_0 ((LOG_FNC_A("ERROR: "
+//				"No interfaces found with ip from route table")));
+//		goto __exit_fail;
 	}
 	return 0;
 __exit_fail:
