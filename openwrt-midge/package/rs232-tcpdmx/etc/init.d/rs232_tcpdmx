@@ -2,7 +2,7 @@
 
 start()
 {
-  echo -n "Starting RS-232 demutiplexor over TCP/IP"
+  echo "Starting RS-232 demutiplexor over TCP/IP"
 
   local PORT="`kdb get sys_rs232_tcpdmx_port`"
 
