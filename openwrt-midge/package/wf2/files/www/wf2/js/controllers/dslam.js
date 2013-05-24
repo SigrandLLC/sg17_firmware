@@ -2624,6 +2624,7 @@ Controllers.dslamsw = function() {
 					      " : set sys_dslam_link_aggregation_group"+group+"_ports=\"" + group_ifaces + "\"; " +
 					      " /etc/init.d/dslam_sw update_cfg link_aggregation"; 
 					config.cmdExecute({"cmd" : cmd});
+					config.saveVals({field:{name:"sys_dslam_link_aggregation_group"+group+"_ports", value:group_ifaces}});
 				}});
 			}
 			
