@@ -2,6 +2,7 @@
 #include "socket.h"
 #include "misc.h"
 #include <netinet/ip.h> // IPTOS_TOS_MASK
+#include <netinet/tcp.h> // TCP_CORK
 
 
 static void socket_on_exit(int unused, void *arg)
@@ -230,3 +231,13 @@ void socket_set_ip_tos(socket_t *s, int ip_tos)
     }
 }
 
+void socket_cork(socket_t *s, int onoff)
+{
+    int rc = setsockopt(socket_fd(s), IPPROTO_TCP, TCP_CORK, &onoff, sizeof(onoff));
+    if (rc < 0)
+    {
+	syslog(LOG_ERR, "Could not set TCP_CORK option %s: %m",
+	       onoff?"on":"off");
+	fail();
+    }
+}

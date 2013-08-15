@@ -20,6 +20,8 @@ void      socket_close   (socket_t *s);
 
 void    socket_set_ip_tos(socket_t *s, int tos);
 
+void    socket_cork(socket_t *s, int onoff);
+
 extern inline const char *socket_name(socket_t *s) { return iobase_name(s->b); }
 extern inline int         socket_fd  (socket_t *s) { return iobase_fd  (s->b); }
 
