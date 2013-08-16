@@ -491,9 +491,12 @@ function Config() {
 		/* create sorted array with interfaces */
 		var ifaces = new Array();
 		$.each(validIfaces, function(key, value) {
-			/* push to array only interface name */
-			key = key.replace(/sys_iface_/, "");
-			ifaces.push(key.replace(/_valid\w*/, ""));
+			/* for what value if we dont check it? */
+			if (value == 1) {
+				/* push to array only interface name */
+				key = key.replace(/sys_iface_/, "");
+				ifaces.push(key.replace(/_valid\w*/, ""));
+			}
 		});
 		ifaces = $.unique(ifaces);
 		ifaces.sort();
