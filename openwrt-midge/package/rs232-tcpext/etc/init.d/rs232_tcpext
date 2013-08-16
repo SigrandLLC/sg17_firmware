@@ -71,10 +71,16 @@ node_cfg()
 
    # kdb options defaults:
    local mode=disable host="0.0.0.0" port=3000 iptos=0
-   local poll_interval=100 restart_delay=1000
+   local poll_interval=100 restart_delay=1000 tcp_cork=0
 
    # kdb options
    eval `kdb sls sys_rs232_tcpext_s${slot}_${dev}_`
+
+   if test "$tcp_cork" -ne 0; then
+      tcp_cork=TCP_CORK
+   else
+      tcp_cork=
+   fi
 
    # for beginning stop service, always.
    stop $pidfile
@@ -98,7 +104,7 @@ node_cfg()
       # "\tR - connection restart delay time, msec\n"
 
       rs232-tcpext /dev/$node $node_type $host $port $iptos $mode $pidfile \
-			$poll_interval $restart_delay
+			$poll_interval $restart_delay $tcp_cork
    fi
 }
 

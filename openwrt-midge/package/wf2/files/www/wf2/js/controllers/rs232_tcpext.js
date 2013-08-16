@@ -58,6 +58,13 @@ Controllers.rs232_tcpext = function(node, pcislot, pcidev)
 			c.addWidget(field);
 
 			field = {
+				"type": "checkbox",
+				"name": $.sprintf("sys_rs232_tcpext_s%s_%s_tcp_cork", pcislot, pcidev),
+				"text": "TCP_CORK (200 ms)",
+			};
+			c.addWidget(field);
+
+			field = {
 				"type": "text",
 				"text": "Modem lines polling interval (msec)",
 				"name": $.sprintf("sys_rs232_tcpext_s%s_%s_poll_interval", pcislot, pcidev),
