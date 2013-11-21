@@ -154,6 +154,12 @@ int tty_set_raw(tty_t *t)
 
     cfmakeraw(&new_tios);
 
+    //cfmakeraw clears PARENB -
+    //	Enable parity generation on output and parity checking for input.
+    //Copy PARENB from old_tios to new_tios:
+    new_tios.c_cflag &= ~PARENB;
+    new_tios.c_cflag |= (old_tios.c_cflag & PARENB);
+
     // done in cfmakeraw but not in an old *libc:
     new_tios.c_cc[VMIN]  = 1;
     new_tios.c_cc[VTIME] = 0;
