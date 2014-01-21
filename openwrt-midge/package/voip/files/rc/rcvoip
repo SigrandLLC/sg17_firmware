@@ -72,6 +72,7 @@ start)
 		echo "   ...starting svd"
 		# what for this done? let it be for any case :)
 		killall svd >/dev/null 2>&1
+		/bin/svc --clear-and-exit
 		/bin/svd
 	fi
 ;;
