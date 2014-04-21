@@ -46,6 +46,7 @@ _start() {
 			unset on flow duplex rate auto pwr_auto pwr_auto_off pwr_current pwr_on pwr_poe_plus pwr_class
 			cmd="$cmd port fe${slot}/${ifnum} "
 			eval `kdb -lqq sls sys_dslam_${iface}_`
+			eval "type=\$s${s}_iftype"
 			if [ "$on" = "0" ]; then
 				cmd="$cmd off \\n"
 				cmd="$cmd power off \\n"
@@ -128,6 +129,8 @@ _start() {
 			ifnum=$(( $ifnum + 1 ))
 		done
 
+		eval "type=\$s${s}_iftype"
+
 		if [ "$type" = "$ms17e_modname" ]; then
 
 		unset ver pfx iface
@@ -183,6 +186,7 @@ _restart() {
 	cmd="$cmd port fe${slot}/${port} "
 	eval `kdb -lqq sls sys_dslam_fe${slot}${port}_`
 
+	eval "type=\$s${s}_iftype"
 	if [ "$type" = "$ms17e_modname" ]; then
 
 	if [ "$on" = "0" ]; then
