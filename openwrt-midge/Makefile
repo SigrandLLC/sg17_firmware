@@ -205,5 +205,4 @@ changelog-clean:
 
 ChangeLog.ru.html : changelog/ChangeLog.ru.in changelog/ChangeLog.header changelog/ChangeLog.footer Makefile
 	@echo "Generating $@"
-	cat changelog/ChangeLog.header changelog/ChangeLog.ru.in changelog/ChangeLog.footer | \
-		iconv -f KOI8-R -t UTF-8 > $@
+	cat changelog/ChangeLog.header changelog/ChangeLog.ru.in changelog/ChangeLog.footer > $@
