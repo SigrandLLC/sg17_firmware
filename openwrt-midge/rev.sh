@@ -7,12 +7,12 @@ LANG=C
 revision=$(( $(git rev-list HEAD | wc -l) + 9 ))
 #echo "revision: $revision"
 
-branch=`git branch --no-color | egrep '^\*' | cut '-d ' -f2`
-#branch=1.2
-case $branch in
-	master) branch=dev;;
-	\(no*)  branch=unk;;
-esac
+#branch=`git branch --no-color | egrep '^\*' | cut '-d ' -f2`
+branch=1
+#case $branch in
+#	master) branch=dev;;
+#	\(no*)  branch=unk;;
+#esac
 #echo "branch: $branch"
 
 modified=`git status --porcelain | egrep '^(R)|( M) '`
