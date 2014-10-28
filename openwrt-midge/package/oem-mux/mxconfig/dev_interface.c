@@ -289,28 +289,27 @@ str2slotmap(char *str,size_t size,int *err)
 int
 slotmap2str(unsigned int smap, char *buf,int offset)
 {
-    int start = -1,end, i;
+    int start, end, i = 0;
     char *p=buf;
 
     if( !smap ){
 		buf[0] = 0;
 		return 0;
     }
-    
-    for(i=0;i<32;i++){
-		if( start<0 ){
-			start = ((smap >> i) & 0x1) ? i : -1;
-			if( start>0 && i==31 )
-				p += sprintf(p,"%d",start+offset);
-		}else if( !((smap >> i) & 0x1) || i == 31){
-			end = ((smap >> i) & 0x1) ? i : i-1;
-			if( p>buf )
-				p += sprintf(p,",");
-			p += sprintf(p,"%d",start+offset);
-			if( start<end )
-				p += sprintf(p,"-%d",end+offset);
-			start=-1;
-		}
+    while (i < 32) {
+        while (!(((smap >> i) & 0x1)) && (i < 32)) i++;
+        start = (i < 32) ? i : 31;
+        if ((start == 31) && !(smap >> 31)) break;
+        while (((smap >> i) & 0x1) && (i < 32)) i++;
+        end = (i < 32) ? i-1 : 31;
+        if (p>buf) {
+            p += sprintf(p,",");
+        }
+        if (start == end) {
+                p += sprintf(p,"%d",start+offset);
+        } else {
+                p += sprintf(p,"%d-%d",start+offset, end+offset);
+        }
     }
     return strlen(buf);
 }

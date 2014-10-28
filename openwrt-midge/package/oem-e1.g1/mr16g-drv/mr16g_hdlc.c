@@ -1453,30 +1453,29 @@ str2slotmap(char *str,size_t size,int *err)
 static int
 slotmap2str(u32 smap,struct ds2155_config *cfg,char *buf)
 {
-	int start = -1,end, i;
+	int start = -1,end, i = 0;
 	char *p=buf;
-	
+
 	if( cfg->framed ){
 	    smap &= ~1;
 		if( !cfg->ts16 )
 			smap &= ~(1<<16);
 	}
-	
-	for(i=0;i<32;i++){
-		if( start<0 ){
-			start = ((smap >> i) & 0x1) ? i : -1;
-			if( start>0 && i==31 )
-			    p += sprintf(p,"%d",start);
-		}else if( !((smap >> i) & 0x1) || i == 31){
-			end = ((smap >> i) & 0x1) ? i : i-1;
-			if( p>buf )
-				p += sprintf(p,",");
-			p += sprintf(p,"%d",start);
-			if( start<end )
-				p += sprintf(p,"-%d",end);
-			start=-1;
-		}
-	}
+    while (i < 32) {
+        while (!(((smap >> i) & 0x1)) && (i < 32)) i++;
+        start = (i < 32) ? i : 31;
+        if ((start == 31) && !(smap >> 31)) break;
+        while (((smap >> i) & 0x1) && (i < 32)) i++;
+        end = (i < 32) ? i-1 : 31;
+        if (p>buf) {
+            p += sprintf(p,",");
+        }
+        if (start == end) {
+                p += sprintf(p,"%d",start);
+        } else {
+                p += sprintf(p,"%d-%d",start, end);
+        }
+    }
 	return strlen(buf);
 }
 
