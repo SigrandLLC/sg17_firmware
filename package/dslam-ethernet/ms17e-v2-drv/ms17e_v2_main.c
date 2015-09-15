@@ -6,6 +6,8 @@ MODULE_AUTHOR( "Maintainer: Scherbakov Mihail <scherbakov.mihail@gmail.com>\n" )
 MODULE_LICENSE( "GPL" );
 MODULE_VERSION(MS17E_V2_VER);
 
+static struct ms17e_v2_card *cards[4];
+
 // Register module init/deinit routines
 static unsigned int cur_card_number = 0;
 module_init(ms17e_v2_init);
@@ -297,6 +299,7 @@ static int __devinit ms17e_v2_init_one(struct pci_dev *pdev,const struct pci_dev
 		goto pcifree;
 	}
 	memset((void*)card, 0, sizeof(struct ms17e_v2_card));
+	cards[PCI_SLOT(pdev->devfn)-2] = card;
 	card->pdev = pdev;
 	card->number = cur_card_number++;
 	snprintf(card_name, 31, "%s%d", MS17E_V2_MODNAME, card->number);
@@ -537,16 +540,43 @@ static irqreturn_t ms17e_v2_interrupt(int irq,void *dev_id,struct pt_regs *ptreg
 	struct circ_buf *xmit = &card->port->info->xmit;
 	u8 mask, status;
 	unsigned long flags;
+	struct ms17e_v2_regs_struct *regs_second_card = NULL;
+	struct ms17e_v2_card *second_card = NULL;
 
-	PDEBUG(debug_irq,"interrupt handler start, card=%p", card);
+	PDEBUG(debug_irq,"interrupt handler start, SLOT=%i", PCI_SLOT(card->pdev->devfn)-2);
+	if (( (PCI_SLOT(card->pdev->devfn)-2) == 0 ) && (cards[3] != NULL) ) {
+		regs_second_card = cards[3]->regs;
+		second_card = cards[3];
+	}
+	if (( (PCI_SLOT(card->pdev->devfn)-2) == 3 ) && (cards[0] != NULL) ) {
+		regs_second_card = cards[0]->regs;
+		second_card = cards[0];
+	}
+
+	if (cards[0] != NULL) PDEBUG(debug_irq, "slot 0: IMR = %02x SR = %02x", ioread8(&(cards[0]->regs->IMR)), ioread8(&(cards[0]->regs->SR)));
+	if (cards[2] != NULL) PDEBUG(debug_irq, "slot 2: IMR = %02x SR = %02x", ioread8(&(cards[2]->regs->IMR)), ioread8(&(cards[2]->regs->SR)));
+	if (cards[3] != NULL) PDEBUG(debug_irq, "slot 3: IMR = %02x SR = %02x", ioread8(&(cards[3]->regs->IMR)), ioread8(&(cards[3]->regs->SR)));
 
 	// Read mask & status
 	mask = ioread8(&regs->IMR);
 	status = ioread8(&regs->SR) & mask;
 	// Ack all interrupts
 	iowrite8(status,&regs->SR);
-	// If no interrupt - return immediately
-	if (!status) return IRQ_NONE;
+
+	// If no interrupt - it can be second card in slot 0 or 3. so check it too
+	if (!status) {
+		if (regs_second_card != NULL) {
+			card = second_card;
+			regs = regs_second_card;
+			xmit = &card->port->info->xmit;
+			// Read mask & status
+			mask = ioread8(&regs->IMR);
+			status = ioread8(&regs->SR) & mask;
+			// Ack all interrupts
+			iowrite8(status,&regs->SR);
+		}
+		if (!status) return IRQ_NONE;
+	}
 
 	if (status & TXS) {
 		if (!card->tty_file_lock) {
