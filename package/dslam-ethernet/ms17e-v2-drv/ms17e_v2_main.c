@@ -391,6 +391,15 @@ static int __devinit ms17e_v2_init_one(struct pci_dev *pdev,const struct pci_dev
 	// PORT flags
 	port->flags = ASYNC_BOOT_AUTOCONF; //UPF_SKIP_TEST | UPF_BOOT_AUTOCONF | UPF_SHARE_IRQ;
 
+	// Save MS17E_V2 internal structure in PCI device struct
+	pci_set_drvdata(pdev, card);
+
+	// Request IRQ line
+	if ((err = request_irq(pdev->irq, ms17e_v2_interrupt, SA_SHIRQ, card_name, card))) {
+		printk(KERN_ERR "Error request IRQ %i\n", pdev->irq);
+		goto porterr;
+	}
+	// uart_add_one_port will enable interrupts!!!
 	if ((err = uart_add_one_port(&ms17e_v2_uartdrv, port))) {
 		printk(KERN_ERR"%s: error, registering %s%d node, PCI device=%02x:%02x.%d\n",
 				MS17E_V2_MODNAME, MS17E_V2_SERIAL_NAME, port->line,
@@ -403,15 +412,6 @@ static int __devinit ms17e_v2_init_one(struct pci_dev *pdev,const struct pci_dev
 	if ((err = sysfs_create_link( &(drv->kobj),&(dev->kobj),port_name))) {
 		printk(KERN_NOTICE"%s: error in sysfs_create_link\n",__FUNCTION__);
 			goto porterr;
-	}
-
-	// Save MS17E_V2 internal structure in PCI device struct
-	pci_set_drvdata(pdev, card);
-
-	// Request IRQ line
-	if ((err = request_irq(pdev->irq, ms17e_v2_interrupt, SA_SHIRQ, card_name, card))) {
-		printk(KERN_ERR "Error request IRQ %i\n", pdev->irq);
-		goto porterr;
 	}
 
 	sprintf(entry_name, "sys/net/ethernet/fe%i", PCI_SLOT(pdev->devfn)-2);
