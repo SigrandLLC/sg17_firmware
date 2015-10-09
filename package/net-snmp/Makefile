@@ -171,6 +171,8 @@ $(IPKG_LIBNETSNMP):
 $(IPKG_SNMPD):
 	install -d -m0755 $(IDIR_SNMPD)/etc/snmp
 	install -m0644 ./files/snmpd.conf $(IDIR_SNMPD)/etc/snmp/snmpd.conf
+	install -m0644 ./files/dslam_ethernet_status.sh $(IDIR_SNMPD)/etc/snmp/dslam_ethernet_status.sh
+	install -m0644 ./files/dslam_dsl_status.sh $(IDIR_SNMPD)/etc/snmp/dslam_dsl_status.sh
 	install -d -m0755 $(IDIR_SNMPD)/etc/default
 	install -m0644 ./files/snmpd.default $(IDIR_SNMPD)/etc/default/snmpd
 	install -d -m0755 $(IDIR_SNMPD)/etc/init.d
@@ -185,6 +187,8 @@ $(IPKG_SNMPD):
 $(IPKG_SNMPD_STATIC):
 	install -d -m0755 $(IDIR_SNMPD_STATIC)/etc/snmp
 	install -m0644 ./files/snmpd.conf $(IDIR_SNMPD_STATIC)/etc/snmp/snmpd.conf
+	install -m0644 ./files/dslam_ethernet_status.sh $(IDIR_SNMPD_STATIC)/etc/snmp/dslam_ethernet_status.sh
+	install -m0644 ./files/dslam_dsl_status.sh $(IDIR_SNMPD_STATIC)/etc/snmp/dslam_dsl_status.sh
 	install -d -m0755 $(IDIR_SNMPD_STATIC)/etc/default
 	install -m0644 ./files/snmpd.default $(IDIR_SNMPD_STATIC)/etc/default/snmpd
 	install -d -m0755 $(IDIR_SNMPD_STATIC)/etc/init.d
