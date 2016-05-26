@@ -1,0 +1,77 @@
+Summary: Fix command-line overflow in example.
+Contributor: Decklin Foster <decklin@red-bean.com>
+
+Index: netcat-1.10/data/rservice.c
+===================================================================
+--- netcat-1.10.orig/data/rservice.c
++++ netcat-1.10/data/rservice.c
+@@ -14,7 +14,7 @@
+ /* change if you like; "id" is a good one for figuring out if you won too */
+ static char cmd[] = "pwd";
+ 
+-static char buf [256];
++static char buf [4096];
+ 
+ main(argc, argv)
+   int argc;
+@@ -26,37 +26,40 @@ main(argc, argv)
+   char * q;
+ 
+   p = buf;
+-  memset (buf, 0, 256);
++  memset (buf, 0, sizeof (buf));
+ 
+   p++;				/* first null */
+   y = 1;
+ 
+   if (! argv[1])
+     goto wrong;
+-  x = strlen (argv[1]);
+-  memcpy (p, argv[1], x);	/* first arg plus another null */
+-  x++;
++  strncpy (p, argv[1], sizeof (buf) - y); /* first arg plus another null */
++  x = strlen (argv[1]) + 1;
+   p += x;
+   y += x;
++  if (y >= sizeof (buf))
++    goto over;
+ 
+   if (! argv[2])
+     goto wrong;
+-  x = strlen (argv[2]);
+-  memcpy (p, argv[2], x);	/* second arg plus null */
+-  x++;
++  strncpy (p, argv[2], sizeof (buf) - y);	/* second arg plus null */
++  x = strlen (argv[2]) + 1;
+   p += x;
+   y += x;
++  if (y >= sizeof (buf))
++    goto over;
+ 
+   q = cmd;
+   if (argv[3])
+     q = argv[3];
+-  x = strlen (q);		/* not checked -- bfd */
+-  memcpy (p, q, x);		/* the command, plus final null */
+-  x++;
++  strncpy (p, q, sizeof (buf) - y); /* the command, plus final null */
++  x = strlen (q) + 1;
+   p += x;
+   y += x;
++  if (y >= sizeof (buf))
++    goto over;
+ 
+-  memcpy (p, "\n", 1);		/* and a newline, so it goes */
++  strncpy (p, "\n", sizeof (buf) - y); /* and a newline, so it goes */
+   y++;
+ 
+   write (1, buf, y);		/* zot! */
+@@ -65,4 +68,8 @@ main(argc, argv)
+ wrong:
+   fprintf (stderr, "wrong!  needs 2 or more args.\n");
+   exit (1);
++
++over:
++  fprintf (stderr, "out of memory!\n");
++  exit (1);
+ }

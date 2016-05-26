@@ -1,0 +1,17 @@
+Summary: glibc requires an explicit <resolv.h> include.
+Contributor: Decklin Foster <decklin@red-bean.com>
+
+Index: netcat-1.10/netcat.c
+===================================================================
+--- netcat-1.10.orig/netcat.c
++++ netcat-1.10/netcat.c
+@@ -73,6 +73,9 @@
+ #include <errno.h>
+ #include <signal.h>
+ #include <fcntl.h>		/* O_WRONLY et al */
++#ifdef LINUX			/* Linux needs the HERE, oh well. */
++#include <resolv.h>
++#endif
+ 
+ /* handy stuff: */
+ #define SA struct sockaddr	/* socket overgeneralization braindeath */

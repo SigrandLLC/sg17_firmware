@@ -1,0 +1,21 @@
+Summary: Don't pass what is supposed to be FD_SETSIZE to select; only check
+         the first however many. Instinct and a quick glance at the glibc
+         manual tell me this doesn't matter much these days, but in the
+         context of the original implementation it's still a bug. This also
+         keeps this line from being affected by whatever games we play with
+         FD_SETSIZE elsewhere.
+Contributor: Loic Fosse <fosse@gostai.com>
+
+Index: netcat-1.10/netcat.c
+===================================================================
+--- netcat-1.10.orig/netcat.c
++++ netcat-1.10/netcat.c
+@@ -1251,7 +1251,7 @@ int readwrite (fd)
+    we create a expendable copy and give *that* to select.  *Fuck* me ... */
+     if (timer1)
+       memcpy (timer2, timer1, sizeof (struct timeval));
+-    rr = select (16, ding2, 0, 0, timer2);	/* here it is, kiddies */
++    rr = select (fd+1, ding2, 0, 0, timer2);	/* here it is, kiddies */
+     if (rr < 0) {
+ 	if (errno != EINTR) {		/* might have gotten ^Zed, etc ?*/
+ 	  holler ("select fuxored");

@@ -1,0 +1,8 @@
+config BR2_PACKAGE_NETCAT
+	prompt "netcat............................ netcat"
+	tristate
+	help
+	  netcat.
+
+	  http://www.stearns.org/nc/
+

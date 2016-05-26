@@ -1,0 +1,72 @@
+Summary: Add type-of-service option.
+Contributor: Samuel Thibault <samuel.thibault@ens-lyon.org>
+
+Index: netcat-1.10/netcat.c
+===================================================================
+--- netcat-1.10.orig/netcat.c
++++ netcat-1.10/netcat.c
+@@ -178,6 +178,9 @@ USHORT o_verbose = 0;
+ unsigned int o_wait = 0;
+ USHORT o_zero = 0;
+ int o_quit = -1; /* 0 == quit-now; >0 == quit after o_quit seconds */
++#ifdef IP_TOS
++unsigned char o_tos = 0;
++#endif
+ /* o_tn in optional section */
+ 
+ /* Debug macro: squirt whatever message and sleep a bit so we can see it go
+@@ -672,6 +675,13 @@ newskt:
+   if (rr == -1)
+     holler ("nnetfd reuseport failed");		/* ??? */
+ #endif
++#ifdef IP_TOS
++  if (o_tos) {
++    rr = setsockopt (nnetfd, SOL_IP, IP_TOS, &o_tos, sizeof(o_tos));
++    if (rr == -1)
++    holler ("nnetfd tos failed");		/* ??? */
++  }
++#endif
+ #if 0
+ /* If you want to screw with RCVBUF/SNDBUF, do it here.  Liudvikas Bukys at
+    Rochester sent this example, which would involve YET MORE options and is
+@@ -1491,7 +1501,7 @@ main (argc, argv)
+ 
+ /* If your shitbox doesn't have getopt, step into the nineties already. */
+ /* optarg, optind = next-argv-component [i.e. flag arg]; optopt = last-char */
+-  while ((x = getopt (argc, argv, "abc:e:g:G:hi:lno:p:q:rs:tuvw:z")) != EOF) {
++  while ((x = getopt (argc, argv, "abc:e:g:G:hi:lno:p:q:rs:T:tuvw:z")) != EOF) {
+ /* Debug (("in go: x now %c, optarg %x optind %d", x, optarg, optind)) */
+     switch (x) {
+       case 'a':
+@@ -1577,6 +1587,20 @@ main (argc, argv)
+ 	timer2 = (struct timeval *) Hmalloc (sizeof (struct timeval));
+ 	timer1->tv_sec = o_wait;	/* we need two.  see readwrite()... */
+ 	break;
++#ifdef IP_TOS
++      case 'T':
++	if (!strcmp(optarg, "Minimize-Delay"))
++	  o_tos = IPTOS_LOWDELAY;
++	else if (!strcmp(optarg, "Maximize-Throughput"))
++	  o_tos = IPTOS_THROUGHPUT;
++	else if (!strcmp(optarg, "Maximize-Reliability"))
++	  o_tos = IPTOS_RELIABILITY;
++	else if (!strcmp(optarg, "Minimize-Cost"))
++	  o_tos = IPTOS_MINCOST;
++	else
++	  o_tos = atoi(optarg);;
++	break;
++#endif
+       case 'z':				/* little or no data xfer */
+ 	o_zero++;
+ 	break;
+@@ -1783,6 +1807,10 @@ options:");
+ 	-r			randomize local and remote ports\n\
+ 	-q secs			quit after EOF on stdin and delay of secs\n\
+ 	-s addr			local source address");
++#ifdef IP_TOS
++  holler("\
++	-T tos			set Type Of Service");
++#endif
+ #ifdef TELNET
+   holler ("\
+ 	-t			answer TELNET negotiation");

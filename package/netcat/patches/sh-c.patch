@@ -1,0 +1,81 @@
+Summary: Add -c option.
+Contributor: Jan Minar <jjminar@fastmail.fm>
+
+Index: netcat-1.10/netcat.c
+===================================================================
+--- netcat-1.10.orig/netcat.c
++++ netcat-1.10/netcat.c
+@@ -83,6 +83,7 @@
+ #include <fcntl.h>		/* O_WRONLY et al */
+ #ifdef LINUX			/* Linux needs the HERE, oh well. */
+ #include <resolv.h>
++#include <unistd.h>
+ #endif
+ 
+ /* handy stuff: */
+@@ -592,6 +593,7 @@ void loadports (block, lo, hi)
+ 
+ #ifdef GAPING_SECURITY_HOLE
+ char * pr00gie = NULL;			/* global ptr to -e arg */
++int doexec_use_sh = 0;			/* `-c' or `-e' option? */
+ 
+ /* doexec :
+    fiddle all the file descriptors around, and hand off to another prog.  Sort
+@@ -608,6 +610,13 @@ doexec (fd)
+   close (fd);				/* is apparently crucial; this is */
+   dup2 (0, 1);				/* swiped directly out of "inetd". */
+   dup2 (0, 2);
++
++  if (doexec_use_sh) {
++Debug (("gonna exec \"%s\" using /bin/sh...", pr00gie))
++    execl ("/bin/sh", "sh", "-c", pr00gie, NULL);
++    bail ("exec %s failed", pr00gie);	/* this gets sent out.  Hmm... */
++  }
++
+   p = strrchr (pr00gie, '/');		/* shorter argv[0] */
+   if (p)
+     p++;
+@@ -1482,7 +1491,7 @@ main (argc, argv)
+ 
+ /* If your shitbox doesn't have getopt, step into the nineties already. */
+ /* optarg, optind = next-argv-component [i.e. flag arg]; optopt = last-char */
+-  while ((x = getopt (argc, argv, "abe:g:G:hi:lno:p:q:rs:tuvw:z")) != EOF) {
++  while ((x = getopt (argc, argv, "abc:e:g:G:hi:lno:p:q:rs:tuvw:z")) != EOF) {
+ /* Debug (("in go: x now %c, optarg %x optind %d", x, optarg, optind)) */
+     switch (x) {
+       case 'a':
+@@ -1491,8 +1500,13 @@ main (argc, argv)
+       case 'b':
+ 	o_allowbroad++; break;
+ #ifdef GAPING_SECURITY_HOLE
+-      case 'e':				/* prog to exec */
++      case 'c':				/* shell commands to exec */
+ 	pr00gie = optarg;
++	doexec_use_sh = 1;
++	break;
++      case 'e':				/* filename to exec */
++	pr00gie = optarg;
++	doexec_use_sh = 0;
+ 	break;
+ #endif
+       case 'G':				/* srcrt gateways pointer val */
+@@ -1623,7 +1637,7 @@ Debug (("after go: x now %c, optarg %x o
+ /* dolisten does its own connect reporting, so we don't holler anything here */
+     if (netfd > 0) {
+ #ifdef GAPING_SECURITY_HOLE
+-      if (pr00gie)			/* -e given? */
++      if (pr00gie)			/* -c or -e given? */
+ 	doexec (netfd);
+ #endif /* GAPING_SECURITY_HOLE */
+       x = readwrite (netfd);		/* it even works with UDP! */
+@@ -1752,7 +1766,9 @@ options:");
+    newlines as they bloody please.  u-fix... */
+ #ifdef GAPING_SECURITY_HOLE	/* needs to be separate holler() */
+   holler ("\
+-	-e prog			program to exec after connect [dangerous!!]");
++	-c shell commands	as `-e'; use /bin/sh to exec [dangerous!!]");
++  holler ("\
++	-e filename		program to exec after connect [dangerous!!]");
+ #endif
+   holler ("\
+ 	-b			allow broadcasts\n\

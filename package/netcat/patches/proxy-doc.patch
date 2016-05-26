@@ -1,0 +1,17 @@
+Summary: Unsurprisingly enough, this was requested by jidanni.
+Contributor: Decklin Foster <decklin@red-bean.com>
+
+Index: netcat-1.10/scripts/webproxy
+===================================================================
+--- netcat-1.10.orig/scripts/webproxy
++++ netcat-1.10/scripts/webproxy
+@@ -26,6 +26,9 @@
+ ## Dumbness here has a highly desirable side effect: it only sends the first
+ ## GET line, since that's all you really ever need to send, and suppresses
+ ## the other somewhat revealing trash that most browsers insist on sending.
++##
++## To use the proxy, export `http_proxy' in your environment, e.g.
++## `http_proxy=http://localhost:8000'.
+ 
+ # set these as you wish: proxy port...
+ PORT=8000

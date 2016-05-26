@@ -1,0 +1,29 @@
+Summary: Put our version number in the help text. Also, requesting -h
+         should not exit with a failure status.
+Contributor: Decklin Foster <decklin@red-bean.com>
+Suggested by: Loic Fosse <fosse@gostai.com>
+
+Index: netcat-1.10/netcat.c
+===================================================================
+--- netcat-1.10.orig/netcat.c
++++ netcat-1.10/netcat.c
+@@ -1790,7 +1790,7 @@ Debug (("netfd %d from port %d to port %
+ helpme()
+ {
+   o_verbose = 1;
+-  holler ("[v1.10]\n\
++  holler ("[v" DEBIAN_VERSION "]\n\
+ connect to somewhere:	nc [-options] hostname port[s] [ports] ... \n\
+ listen for inbound:	nc -l -p port [-options] [hostname] [port]\n\
+ options:");
+@@ -1830,8 +1830,9 @@ options:");
+ 	-v			verbose [use twice to be more verbose]\n\
+ 	-w secs			timeout for connects and final net reads\n\
+ 	-z			zero-I/O mode [used for scanning]");
+-  bail ("port numbers can be individual or ranges: lo-hi [inclusive];\n\
++  holler ("port numbers can be individual or ranges: lo-hi [inclusive];\n\
+ hyphens in port names must be backslash escaped (e.g. 'ftp\\-data').");
++  quit();
+ } /* helpme */
+ #endif /* HAVE_HELP */
+ 

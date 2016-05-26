@@ -1,0 +1,55 @@
+Summary: Option to set SO_KEEPALIVE.
+Contributor: Wes Chow <wes@senortoad.com>
+
+Index: netcat-1.10/netcat.c
+===================================================================
+--- netcat-1.10.orig/netcat.c
++++ netcat-1.10/netcat.c
+@@ -178,6 +178,7 @@ USHORT o_verbose = 0;
+ unsigned int o_wait = 0;
+ USHORT o_zero = 0;
+ int o_quit = -1; /* 0 == quit-now; >0 == quit after o_quit seconds */
++int o_keepalive = 0;
+ #ifdef IP_TOS
+ unsigned char o_tos = 0;
+ #endif
+@@ -682,6 +683,13 @@ newskt:
+     holler ("nnetfd tos failed");		/* ??? */
+   }
+ #endif
++  if (o_keepalive) {
++    x = 1;
++    rr = setsockopt(nnetfd, SOL_SOCKET, SO_KEEPALIVE, &x, sizeof(x));
++    if (rr == -1) {
++      holler("nnetfd set keepalive failed");
++    }
++  }
+ #if 0
+ /* If you want to screw with RCVBUF/SNDBUF, do it here.  Liudvikas Bukys at
+    Rochester sent this example, which would involve YET MORE options and is
+@@ -1501,7 +1509,7 @@ main (argc, argv)
+ 
+ /* If your shitbox doesn't have getopt, step into the nineties already. */
+ /* optarg, optind = next-argv-component [i.e. flag arg]; optopt = last-char */
+-  while ((x = getopt (argc, argv, "abc:e:g:G:hi:lno:p:q:rs:T:tuvw:z")) != EOF) {
++  while ((x = getopt (argc, argv, "abc:e:g:G:hi:klno:p:q:rs:T:tuvw:z")) != EOF) {
+ /* Debug (("in go: x now %c, optarg %x optind %d", x, optarg, optind)) */
+     switch (x) {
+       case 'a':
+@@ -1548,6 +1556,8 @@ main (argc, argv)
+ 	if (! o_interval)
+ 	  bail ("invalid interval time %s", optarg);
+ 	break;
++    case 'k':
++        o_keepalive = 1; break;
+       case 'l':				/* listen mode */
+ 	o_listen++; break;
+       case 'n':				/* numeric-only, no DNS lookups */
+@@ -1800,6 +1810,7 @@ options:");
+ 	-G num			source-routing pointer: 4, 8, 12, ...\n\
+ 	-h			this cruft\n\
+ 	-i secs			delay interval for lines sent, ports scanned\n\
++        -k                      set keepalive option on socket\n\
+ 	-l			listen mode, for inbound connects\n\
+ 	-n			numeric-only IP addresses, no DNS\n\
+ 	-o file			hex dump of traffic\n\

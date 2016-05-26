@@ -1,0 +1,4 @@
+Package: netcat
+Priority: optional
+Section: network
+Description: netcat

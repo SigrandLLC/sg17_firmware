@@ -1,0 +1,19 @@
+Summary: We can't port "Debian netcat" to OS X without definining this.
+         Who knows, perhaps someday there will be a Debian GNU/Darwin.
+Contributor: Loic Fosse <fosse@gostai.com>
+
+Index: netcat-1.10/netcat.c
+===================================================================
+--- netcat-1.10.orig/netcat.c
++++ netcat-1.10/netcat.c
+@@ -86,6 +86,10 @@
+ #include <unistd.h>
+ #endif
+ 
++#ifndef SOL_IP
++# define SOL_IP IPPROTO_IP
++#endif
++
+ /* handy stuff: */
+ #define SA struct sockaddr	/* socket overgeneralization braindeath */
+ #define SAI struct sockaddr_in	/* ... whoever came up with this model */

@@ -1,0 +1,53 @@
+Fix the lintian error below.
+
+E: netcat-traditional: statically-linked-binary bin/nc.traditional
+
+Patch by Anibal Monsalve Salazar <anibal@debian.org>
+
+Index: netcat-1.10/Makefile
+===================================================================
+--- netcat-1.10.orig/Makefile
++++ netcat-1.10/Makefile
+@@ -56,7 +56,7 @@ sunos:
+ # Kludged for gcc, which many regard as the only thing available.
+ solaris-static:
+ 	make -e $(ALL) $(MFLAGS) XFLAGS='-DSYSV=4 -D__svr4__ -DSOLARIS' \
+-	CC=gcc STATIC=-static XLIBS='-lnsl -lsocket -lresolv'
++	CC=gcc STATIC= XLIBS='-lnsl -lsocket -lresolv'
+ 
+ # the more usual shared-lib version...
+ solaris:
+@@ -67,7 +67,7 @@ aix:
+ 	make -e $(ALL) $(MFLAGS) XFLAGS='-DAIX'
+ 
+ linux:
+-	make -e $(ALL) $(MFLAGS) XFLAGS='-DLINUX' STATIC=-static
++	make -e $(ALL) $(MFLAGS) XFLAGS='-DLINUX' STATIC=
+ 
+ # irix 5.2, dunno 'bout earlier versions.  If STATIC='-non_shared' doesn't
+ # work for you, null it out and yell at SGI for their STUPID default
+@@ -81,13 +81,13 @@ osf:
+ 
+ # virtually the same as netbsd/bsd44lite/whatever
+ freebsd:
+-	make -e $(ALL) $(MFLAGS) XFLAGS='-DFREEBSD' STATIC=-static
++	make -e $(ALL) $(MFLAGS) XFLAGS='-DFREEBSD' STATIC=
+ 
+ bsdi:
+ 	make -e $(ALL) $(MFLAGS) XFLAGS='-DBSDI' STATIC=-Bstatic
+ 
+ netbsd:
+-	make -e $(ALL) $(MFLAGS) XFLAGS='-DNETBSD' STATIC=-static
++	make -e $(ALL) $(MFLAGS) XFLAGS='-DNETBSD' STATIC=
+ 
+ # finally got to an hpux box, which turns out to be *really* warped. 
+ # STATIC here means "linker subprocess gets args '-a archive'" which causes
+@@ -103,7 +103,7 @@ unixware:
+ 
+ # from Declan Rieb at sandia, for a/ux 3.1.1 [also suggests using gcc]:
+ aux:
+-	make -e $(ALL) $(MFLAGS) XFLAGS='-DAUX' STATIC=-static CC=gcc
++	make -e $(ALL) $(MFLAGS) XFLAGS='-DAUX' STATIC= CC=gcc
+ 
+ # Nexstep from mudge: NeXT cc is really old gcc
+ next:

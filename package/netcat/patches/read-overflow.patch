@@ -1,0 +1,18 @@
+Summary: Prevent buffer overflow.
+Contributor: NetBSD
+Merged by: Decklin Foster <decklin@red-bean.com>
+
+Index: netcat-1.10/netcat.c
+===================================================================
+--- netcat-1.10.orig/netcat.c
++++ netcat-1.10/netcat.c
+@@ -1394,7 +1394,8 @@ main (argc, argv)
+     argv[1] = cp;			/* head of new arg block */
+     fprintf (stderr, "Cmd line: ");
+     fflush (stderr);		/* I dont care if it's unbuffered or not! */
+-    insaved = read (0, cp, BIGSIZ);	/* we're gonna fake fgets() here */
++    insaved = read (0, cp, BIGSIZ-1);	/* we're gonna fake fgets() here */
++    cp[BIGSIZ-1] = '\0';
+     if (insaved <= 0)
+       bail ("wrong");
+     x = findline (cp, insaved);

@@ -1,0 +1,24 @@
+Summary: Print connection-refused message.
+Contributor: Decklin Foster <decklin@red-bean.com>
+
+Index: netcat-1.10/netcat.c
+===================================================================
+--- netcat-1.10.orig/netcat.c
++++ netcat-1.10/netcat.c
+@@ -1640,8 +1640,16 @@ Debug (("netfd %d from port %d to port %
+ /* if we're scanning at a "one -v" verbosity level, don't print refusals.
+    Give it another -v if you want to see everything. */
+ 	if ((Single || (o_verbose > 1)) || (errno != ECONNREFUSED))
++	{
++	  /* bug 65413 - if we're not scanning, (and if we're not doing
++	   * zero-io! see bug 247895) we always want an error to be printed
++	   * for refused connects. This is a disgustingly ugly way to do it;
++	   * I really should just rewrite the holler() interface... */
++	  if (Single && !o_zero) o_verbose++;
+ 	  holler ("%s [%s] %d (%s)",
+ 	    whereto->name, whereto->addrs[0], curport, portpoop->name);
++	  if (Single && !o_zero) o_verbose--;
++	}
+       } /* if netfd */
+       close (netfd);			/* just in case we didn't already */
+       if (o_interval)

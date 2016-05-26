@@ -1,0 +1,14 @@
+XXX FIXME
+
+Index: netcat-1.10/netcat.c
+===================================================================
+--- netcat-1.10.orig/netcat.c
++++ netcat-1.10/netcat.c
+@@ -613,7 +613,6 @@ doexec (fd)
+   dup2 (fd, 0);				/* the precise order of fiddlage */
+   close (fd);				/* is apparently crucial; this is */
+   dup2 (0, 1);				/* swiped directly out of "inetd". */
+-  dup2 (0, 2);
+ 
+   if (doexec_use_sh) {
+ Debug (("gonna exec \"%s\" using /bin/sh...", pr00gie))
