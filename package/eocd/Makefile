@@ -1,11 +1,9 @@
-# $Id:  $
-
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=eocd
 PKG_VERSION:=2.37
 PKG_RELEASE:=0
-PKG_SOURCE_URL:=http://sigrand.ru/temp
+PKG_SOURCE_URL:=http://sigrand.ru/dl/misc/midge-depot
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 PKG_CAT:=bzcat
