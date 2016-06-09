@@ -14,6 +14,7 @@ binutils-prepare: uClibc-prepare
 gcc-prepare: binutils-install
 uClibc-compile: gcc-prepare
 gcc-compile: uClibc-install
+libnotimpl-compile: gcc-install
 
 TOOLCHAIN_STAMP_DIR:=$(STAGING_DIR)/stampfiles
 
