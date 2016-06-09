@@ -42,8 +42,8 @@ $(IPKG_NETCAT):
 	install -m0755 -d             $(IDIR_NETCAT)/usr/bin
 	mkdir -p                  $(PKG_INSTALL_DIR)/usr/bin
 	$(CP) $(PKG_BUILD_DIR)/nc $(PKG_INSTALL_DIR)/usr/bin/
+	$(CP) $(PKG_BUILD_DIR)/nc     $(IDIR_NETCAT)/usr/bin/
 	ln -sf                 nc $(PKG_INSTALL_DIR)/usr/bin/netcat
-	$(CP)                     $(PKG_INSTALL_DIR)/usr/bin/nc $(IDIR_NETCAT)/usr/bin/
 	ln -sf                 nc     $(IDIR_NETCAT)/usr/bin/netcat
 	$(RSTRIP) $(IDIR_NETCAT)
 	$(IPKG_BUILD) $(IDIR_NETCAT) $(PACKAGE_DIR)
