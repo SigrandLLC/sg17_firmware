@@ -45,6 +45,11 @@ $(UCLIBC_DIR)/.unpacked: $(DL_DIR)/$(UCLIBC_SOURCE)
 	$(PATCH) $(UCLIBC_DIR) ./patches
 	touch $(UCLIBC_DIR)/.unpacked
 
+menuconfig: $(UCLIBC_DIR)/.unpacked
+	cp ./files/config.$(ARCH) $(UCLIBC_DIR)/.config
+	$(MAKE) CC="$(TARGET_CC)" CROSS="$(TARGET_CROSS)" -C $(UCLIBC_DIR) menuconfig
+	cp $(UCLIBC_DIR)/.config ./files/config.$(ARCH)
+
 $(UCLIBC_DIR)/.configured: $(UCLIBC_DIR)/.unpacked
 	$(SED) 's,^CROSS=.*,CROSS=$(TARGET_CROSS),g' $(UCLIBC_DIR)/Rules.mak
 	$(CP) ./files/config.$(ARCH) $(UCLIBC_DIR)/.config
