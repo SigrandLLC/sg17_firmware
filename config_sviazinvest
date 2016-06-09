@@ -166,6 +166,7 @@ BR2_PACKAGE_LIGHTTPD_MOD_CGI=y
 # BR2_PACKAGE_LIGHTTPD_MOD_STATUS is not set
 # BR2_PACKAGE_LIGHTTPD_MOD_USERTRACK is not set
 BR2_PACKAGE_MTR=y
+BR2_PACKAGE_NETCAT=y
 
 #
 # net-snmp.......................... Open source SNMP (Simple Network Management Protocol) implementation
