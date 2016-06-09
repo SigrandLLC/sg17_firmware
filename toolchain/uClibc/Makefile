@@ -99,5 +99,5 @@ source: $(DL_DIR)/$(UCLIBC_SOURCE)
 prepare: $(UCLIBC_DIR)/.configured
 compile: $(UCLIBC_DIR)/lib/libc.a
 install: $(STAGING_DIR)/lib/libc.a $(UCLIBC_TARGETS)
-clean: 
+clean:
 	rm -rf $(UCLIBC_DIR) $(TOOL_BUILD_DIR)/uClibc_dev
