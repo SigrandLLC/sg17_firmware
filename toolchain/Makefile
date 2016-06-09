@@ -37,7 +37,10 @@ $(TOOL_BUILD_DIR):
 	}
 	@touch $(TOOLCHAIN_STAMP_DIR)/.toolchain_$@
 
-%-compile: %-prepare 
+%-menuconfig: %-prepare
+	@$(MAKE) -C $(patsubst %-menuconfig,%,$@) menuconfig
+
+%-compile: %-prepare
 	@[ -f $(TOOLCHAIN_STAMP_DIR)/.toolchain_$@ ] || { \
 		$(TRACE) toolchain/$(patsubst %-compile,%,$@)/compile; \
 		$(MAKE) -C $(patsubst %-compile,%,$@) compile $(MAKE_TRACE); \
