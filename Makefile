@@ -99,27 +99,27 @@ allpkg_clean:	package/clean
 
 oem_clean: root_clean
 	@$(TRACE) oem_clean
-	rm -rf $(BUILD_DIR)/sigrand-*
-	rm -rf $(BUILD_DIR)/oem-*	$(STAMP_DIR)/.oem-*
-	rm -rf $(BUILD_DIR)/drv-*	$(STAMP_DIR)/.drv-*
-	rm -rf $(BUILD_DIR)/libab	$(STAMP_DIR)/.libab-*
-	rm -rf $(BUILD_DIR)/svd		$(STAMP_DIR)/.svd-*
-	rm -rf $(BUILD_DIR)/eocd	$(STAMP_DIR)/.eocd-*
-	rm -rf $(BUILD_DIR)/tbuff	$(STAMP_DIR)/.tbuff-*
-#	rm -rf $(BUILD_DIR)/net-snmp*	$(STAMP_DIR)/.net-snmp*
-	rm -rf $(BUILD_DIR)/wf2		$(STAMP_DIR)/.wf2-*
-	rm -rf $(BUILD_DIR)/webface	$(STAMP_DIR)/.webface-*
-	rm -rf $(BUILD_DIR)/rs232*	$(STAMP_DIR)/.rs232*
-	rm -rf $(BUILD_DIR)/dslam*	$(STAMP_DIR)/.dslam*
+	@rm -rf $(BUILD_DIR)/sigrand-*
+	@rm -rf $(BUILD_DIR)/oem-*	$(STAMP_DIR)/.oem-*
+	@rm -rf $(BUILD_DIR)/drv-*	$(STAMP_DIR)/.drv-*
+	@rm -rf $(BUILD_DIR)/libab	$(STAMP_DIR)/.libab-*
+	@rm -rf $(BUILD_DIR)/svd		$(STAMP_DIR)/.svd-*
+	@rm -rf $(BUILD_DIR)/eocd	$(STAMP_DIR)/.eocd-*
+	@rm -rf $(BUILD_DIR)/tbuff	$(STAMP_DIR)/.tbuff-*
+	@#rm -rf $(BUILD_DIR)/net-snmp*	$(STAMP_DIR)/.net-snmp*
+	@rm -rf $(BUILD_DIR)/wf2		$(STAMP_DIR)/.wf2-*
+	@rm -rf $(BUILD_DIR)/webface	$(STAMP_DIR)/.webface-*
+	@rm -rf $(BUILD_DIR)/rs232*	$(STAMP_DIR)/.rs232*
+	@rm -rf $(BUILD_DIR)/dslam*	$(STAMP_DIR)/.dslam*
 
 root_clean:
 	@$(TRACE) root_clean
-	rm -rf $(BUILD_DIR)/linux-*/root $(BUILD_DIR)/root
+	@rm -rf $(BUILD_DIR)/linux-*/root $(BUILD_DIR)/root
 
 target_clean: root_clean target/clean
 	#rm -f $(STAMP_DIR)/.*-compile
 	#rm -f $(STAMP_DIR)/.*-install
-	rm -rf $(BIN_DIR)
+	@rm -rf $(BIN_DIR)
 
 clean: dirclean
 
