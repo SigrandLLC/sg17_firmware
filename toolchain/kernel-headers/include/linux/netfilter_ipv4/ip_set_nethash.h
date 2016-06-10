@@ -29,7 +29,7 @@ struct ip_set_req_nethash {
 
 static unsigned char shifts[] = {255, 253, 249, 241, 225, 193, 129, 1};
 
-static inline ip_set_ip_t 
+static inline ip_set_ip_t
 pack(ip_set_ip_t ip, unsigned char cidr)
 {
 	ip_set_ip_t addr, *paddr = &addr;
@@ -40,7 +40,7 @@ pack(ip_set_ip_t ip, unsigned char cidr)
 	DP("ip:%u.%u.%u.%u/%u", NIPQUAD(addr), cidr);
 #endif
 	n = cidr / 8;
-	t = cidr % 8;	
+	t = cidr % 8;
 	a = &((unsigned char *)paddr)[n];
 	*a = *a /(1 << (8 - t)) + shifts[t];
 #ifdef __KERNEL__

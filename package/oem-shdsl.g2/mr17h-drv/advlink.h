@@ -25,5 +25,5 @@ int advlink_send(struct advlink_t *alink,u32 *buf);
 void advlink_send_error(struct advlink_t *alink);
 int advlink_recv(struct advlink_t *alink,u32 *buf);
 int advlink_status(struct advlink_t *alink);
-	    
+
 #endif

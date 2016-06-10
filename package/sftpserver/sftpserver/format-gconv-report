@@ -43,7 +43,7 @@ for line in sys.stdin:
     name = None
 
 def cmp(a,b):
-  if percent[a] < percent[b]: return -1 
+  if percent[a] < percent[b]: return -1
   elif percent[a] > percent[b]: return 1
   else: return 0
 

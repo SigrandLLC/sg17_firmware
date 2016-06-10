@@ -111,7 +111,7 @@ void queue_add(struct queue *q, void *job) {
 
 void queue_destroy(struct queue *q) {
   int n;
-  
+
   if(q) {
     ferrcheck(pthread_mutex_lock(&q->m));
     q->join = 1;

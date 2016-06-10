@@ -1,6 +1,6 @@
 /*
 	mam17h_pi.c
-	
+
 	тут функции для общения с сократом через параллельный интерфейс
 */
 
@@ -100,7 +100,7 @@ int mpi_recv(struct mam17_card *card)
 //				if (msg->MSGID > 0x400)
 				PDEBUGL(debug_recv, KERN_NOTICE /*%08x len = %i*/ "%i RC = %x MSGID = %x %s ", /*buf32[i], len,*/ card->number, msg->RC, msg->MSGID, opcode2string(msg->MSGID));
 			}
-			
+
 		} else {
 			if ((i == 1) && (tunnel_msg))
 			{
@@ -195,7 +195,7 @@ int mpi_cmd(struct mam17_card *card, u16 opcode, u32 * payload, int plen, ack_t 
 	message_t msg;
 	int i;
 
-/*	
+/*
 	PDEBUG(0, "opcode = %08x", opcode);
 	PDEBUG(0, "plen = %i", plen);
 	PDEBUGL(0, KERN_NOTICE);
@@ -205,7 +205,7 @@ int mpi_cmd(struct mam17_card *card, u16 opcode, u32 * payload, int plen, ack_t 
 */
 
 	PDEBUG(debug_mpi_cmd, "we send %x %s", opcode, opcode2string(opcode));
-	
+
 	msg.LENGTH = plen;
 	msg.MSGID = opcode;
 	msg.TCID = 0;
@@ -247,9 +247,9 @@ int mpi_cmd(struct mam17_card *card, u16 opcode, u32 * payload, int plen, ack_t 
 			ack->buf32[i] = gack.buf32[i];
 		}
 	}
-	
+
 	if (((message_t *)gack.buf32)->RC != 0) PDEBUG(0, "Bad RC (%i) in %s", ((message_t *)gack.buf32)->RC, opcode2string(((message_t *)gack.buf32)->MSGID));
-	
+
 	PDEBUG(debug_mpi_cmd, "-----------we recv %x %s len %i", ((message_t *)gack.buf32)->MSGID, opcode2string(((message_t *)gack.buf32)->MSGID), gack.len);
 	ack_wait = -1;
 
@@ -267,14 +267,14 @@ int tunnel_cmd(struct mam17_card *card, u16 opcode, u32 * payload, int plen, int
 	msg[0].TCID = 0;
 	msg[0].RC = 0;
 	msg[0].M = 0;
-	
+
 	buf[0] = opcode;
-		
+
 	for (i = 0; i < plen; i++)
 	{
 		buf[i + 1] = payload[i];
 	}
-	
+
 	if (mpi_cmd(card, CMD_TNL_PMD_0_Message + dfe_num, buf, plen + 1, ack)) return -1;
 	return 0;
 }

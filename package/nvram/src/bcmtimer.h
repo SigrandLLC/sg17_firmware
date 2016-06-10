@@ -1,14 +1,14 @@
 /*
  * Copyright 2004, Broadcom Corporation
  * All Rights Reserved.
- * 
+ *
  * THIS SOFTWARE IS OFFERED "AS IS", AND BROADCOM GRANTS NO WARRANTIES OF ANY
  * KIND, EXPRESS OR IMPLIED, BY STATUTE, COMMUNICATION OR OTHERWISE. BROADCOM
  * SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS
  * FOR A SPECIFIC PURPOSE OR NONINFRINGEMENT CONCERNING THIS SOFTWARE.
  *
- * Low resolution timer interface. Timer handlers may be called 
- * in a deferred manner in a different task context after the 
+ * Low resolution timer interface. Timer handlers may be called
+ * in a deferred manner in a different task context after the
  * timer expires or in the task context from which the timer
  * was created, depending on the implementation.
  *

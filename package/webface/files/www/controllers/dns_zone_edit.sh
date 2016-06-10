@@ -6,23 +6,23 @@
 		[ "$FORM_datatype" = "MX" -a -z "$FORM_prio" ]  && FORM_prio="10"
 		[ "$FORM_datatype" != "MX" ]  && FORM_prio=""
 	fi
-	
+
 	item=$FORM_item
 	eval_string="export FORM_$item=\"domain=$FORM_domain datatype=$FORM_datatype prio=$FORM_prio data=$FORM_data\""
 	render_popup_save_stuff
-	
+
 	render_form_header dns_zonelist_edit
 	help_1="dns_server"
 	help_2="dns_server.zone_record_add"
 	render_table_title "DNS Zone record" 2
 	render_popup_form_stuff
-	
+
 	# domain
 	tip="<b>Tip:</b> Use @ for current zone"
 	desc="Domain"
 	validator="$tmtreq $validator_dnsdomain"
 	render_input_field text "Domain or host" domain
-	
+
 	# datatype
 	desc="Select type of record: A, NS,CNAME, MX, PTR, TXT" # spaces in TXT records currently is not supported
 	validator='tmt:message="Please select type of record"'

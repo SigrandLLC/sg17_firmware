@@ -29,11 +29,11 @@
  */
 
 /* January 12, 2005
- * 
+ *
  * Modified by rodent at rodent dot za dot net
  * Support added for the new WRT54G v2.2 and WRT54GS v1.1 "flags"
  * Without the flags set to 0x7, the above units will refuse to flash.
- * 
+ *
  * Extensions:
  *  -{0|1|2} sets {0|1} sets hw_ver flag to 0/1. {2} sets hw_ver to 1
  *     and adds the new hardware "flags" for the v2.2/v1.1 units
@@ -219,7 +219,7 @@ int main(int argc, char **argv)
 			return EXIT_FAILURE;
 		}
 	}
-	
+
 	if (ferror(in)) {
 		goto FREAD_ERROR;
 	}

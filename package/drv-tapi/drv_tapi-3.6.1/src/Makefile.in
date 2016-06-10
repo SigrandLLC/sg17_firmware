@@ -358,10 +358,10 @@ uninstall-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
-drv_tapi$(EXEEXT): $(drv_tapi_OBJECTS) $(drv_tapi_DEPENDENCIES) 
+drv_tapi$(EXEEXT): $(drv_tapi_OBJECTS) $(drv_tapi_DEPENDENCIES)
 	@rm -f drv_tapi$(EXEEXT)
 	$(LINK) $(drv_tapi_LDFLAGS) $(drv_tapi_OBJECTS) $(drv_tapi_LDADD) $(LIBS)
-@KERNEL_2_6_FALSE@drv_tapi.ko$(EXEEXT): $(drv_tapi_ko_OBJECTS) $(drv_tapi_ko_DEPENDENCIES) 
+@KERNEL_2_6_FALSE@drv_tapi.ko$(EXEEXT): $(drv_tapi_ko_OBJECTS) $(drv_tapi_ko_DEPENDENCIES)
 @KERNEL_2_6_FALSE@	@rm -f drv_tapi.ko$(EXEEXT)
 @KERNEL_2_6_FALSE@	$(LINK) $(drv_tapi_ko_LDFLAGS) $(drv_tapi_ko_OBJECTS) $(drv_tapi_ko_LDADD) $(LIBS)
 

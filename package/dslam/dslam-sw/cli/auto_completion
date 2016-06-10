@@ -109,7 +109,7 @@ auto_completion() {
 			fi
 		else
 			echo "command with parameters"
-		fi		
+		fi
 	else
 		# начало команды не введено, выводим все доступные команды
 		if [ "$tab" = "1" ]; then

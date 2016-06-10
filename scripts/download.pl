@@ -14,7 +14,7 @@ my $ok;
 sub download
 {
 	my $mirror = shift;
-	
+
 	open WGET, "wget -t1 --timeout=20 -O- \"$mirror/$filename\" |" or die "Cannot launch wget.\n";
 	open MD5SUM, "| md5sum > \"$target/$filename.md5sum\"" or die "Cannot launch md5sum.\n";
 	open OUTPUT, "> $target/$filename.dl" or die "Cannot create file $target/$filename.dl: $!\n";
@@ -26,23 +26,23 @@ sub download
 	close MD5SUM;
 	close WGET;
 	close OUTPUT;
-	
+
 	if (($? >> 8) != 0 ) {
 		print STDERR "Download failed.\n";
 		cleanup();
 		return;
 	}
-	
+
 	my $sum = `cat "$target/$filename.md5sum"`;
 	$sum =~ /^(\w+)\s+/ or die "Could not generate md5sum\n";
 	$sum = $1;
-	
+
 	if (($md5sum =~ /\w{32}/) and ($sum ne $md5sum)) {
 		print STDERR "MD5 sum of the downloaded file does not match - deleting download.\n";
 		cleanup();
 		return;
 	}
-	
+
 	unlink "$target/$filename";
 	system("mv \"$target/$filename.dl\" \"$target/$filename\"");
 	cleanup();
@@ -90,7 +90,7 @@ push @mirrors, 'http://downloads.openwrt.org/sources/';
 while (!$ok) {
 	my $mirror = shift @mirrors;
 	$mirror or die "No more mirrors to try - giving up.\n";
-	
+
 	download($mirror);
 	-f "$target/$filename" and $ok = 1;
 }

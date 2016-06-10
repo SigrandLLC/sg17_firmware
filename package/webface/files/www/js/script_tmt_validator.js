@@ -1,4 +1,4 @@
-/** 
+/**
 * Copyright 2005-2006 massimocorner.com
 * @author      Massimo Foti (massimo@massimocorner.com)
 * @version     1.3.1, 2006-07-22
@@ -12,7 +12,7 @@ function tmt_validatorInit(){
 		if(formNodes[i].getAttribute("tmt:validate") == "true"){
 			// Attach a validator object to each form that requires it
 			formNodes[i].tmt_validator = new tmt_formValidator(formNodes[i]);
-			// Set the form node's onsubmit event 
+			// Set the form node's onsubmit event
 			// We use a gigantic hack to preserve exiting calls attached to the onsubmit event (most likely validation routines)
 			if(typeof formNodes[i].onsubmit != "function"){
 				formNodes[i].onsubmit = function(){
@@ -73,7 +73,7 @@ function tmt_validateForm(formNode){
 			formValidator.blockSubmit();
 		}
 	}
-	return errorMsg.length == 0; 
+	return errorMsg.length == 0;
 }
 
 /* Object constructors */
@@ -90,7 +90,7 @@ function tmt_formValidator(formNode){
 	for(var i=0; i<fieldsArray.length; i++){
 		// Create a validator for each text field
 		this.validators[this.validators.length] = tmt_textValidatorFactory(fieldsArray[i]);
-		
+
 		if(fieldsArray[i].getAttribute("type")){
 			// Set the onchange event for each image upload validation
 			if((fieldsArray[i].getAttribute("type").toLowerCase() == "file") &&	(fieldsArray[i].getAttribute("tmt:image") == "true")){
@@ -216,8 +216,8 @@ function tmt_textValidatorFactory(fieldNode){
 	// Check if the field satisfy the rules associated with it
 	// Be careful, this method contains multiple exit points!!!
 	obj.isValid = function(){
-		// The tmt:required="conditional" attribute has a special meaning. 
-		// The field isn't strictly required, so it may sometimes be empty, 
+		// The tmt:required="conditional" attribute has a special meaning.
+		// The field isn't strictly required, so it may sometimes be empty,
 		// but before we let it go, we need to check any rule that may apply to it
 		if(obj.isEmpty() && (required != "conditional")){
 			if(obj.isRequired()){
@@ -401,7 +401,7 @@ function tmt_radioValidatorFactory(radioGroup){
 		}
 		return requiredFlag;
 	}
-	
+
 	// Check if the radio validate
 	obj.isValid = function(){
 		if(obj.isRequired()){
@@ -416,7 +416,7 @@ function tmt_radioValidatorFactory(radioGroup){
 		// It's not required, so it's fine
 		else{
 			return true;
-		}	
+		}
 	}
 	return obj;
 }
@@ -474,7 +474,7 @@ tmt_globalRules.pattern = function(fieldNode){
 	}
 	else{
 		// If the pattern is missing, skip it
-		return true;	
+		return true;
 	}
 }
 

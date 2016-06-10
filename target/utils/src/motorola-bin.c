@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 		perror("open/malloc");
 		exit(1);
 	}
-	
+
 	// create a firmware image in memory
 	// and copy the trx to it
 	firmware = malloc(len+8);

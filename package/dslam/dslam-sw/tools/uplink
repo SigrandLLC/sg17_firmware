@@ -75,7 +75,7 @@ print_status_all() {
 	echo "ge$g $state $auto  $flow  $speed   $duplex  $tx  $rx"
 	echo "----------------------------------------------------------"
 
-	done	
+	done
 
 	exit 0
 }

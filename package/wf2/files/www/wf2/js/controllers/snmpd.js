@@ -13,7 +13,7 @@ Controllers.snmpd = function ()
 			c = page.addContainer("snmpd");
 			c.setHelpPage("snmpd");
 			c.addTitle("Snmpd settings");
-		
+
 			field = {
 				"type" : "checkbox",
 				"text": "Enable snmpd",
@@ -84,7 +84,7 @@ Controllers.snmpd = function ()
 				"tip" : "snmpd command line options"
 			};
 			c.addWidget(field);
-*/			
+*/
 /*			config.cmdExecute({
 				"cmd" : "cat /etc/snmp/snmpd.conf",
 				"async" : false,
@@ -92,12 +92,12 @@ Controllers.snmpd = function ()
 					conf = data;
 				}
 			});
-			
+
 			var p = page.getRaw("snmpd");
 			$.create('div')
 			var ta = $.create('textarea', {'name':'conf', 'value': conf, 'cols' : 90, 'rows' : 30, 'wrap':'off', 'id' : 'conf'}).appendTo(p);
-			
-			
+
+
 			c.addSubmit({'preSubmit' : function()
 			{
 				var str = new String($("#conf").val());
@@ -120,7 +120,7 @@ Controllers.snmpd = function ()
 			}
 			, 'reload' : false});
 */
-			
+
 
 		}
 	});

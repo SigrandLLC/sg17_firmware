@@ -67,7 +67,7 @@ static void find_free_handle(struct handleid *id, int type) {
   id->tag = handles[n].tag;
 }
 
-void sftp_handle_new_file(struct handleid *id, 
+void sftp_handle_new_file(struct handleid *id,
                      int fd, const char *path, unsigned flags) {
   ferrcheck(pthread_mutex_lock(&sftp_handle_lock));
   find_free_handle(id, SSH_FXP_OPEN);

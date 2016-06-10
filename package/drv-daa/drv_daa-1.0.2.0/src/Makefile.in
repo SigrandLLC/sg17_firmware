@@ -280,7 +280,7 @@ uninstall-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
-drv_daa$(EXEEXT): $(drv_daa_OBJECTS) $(drv_daa_DEPENDENCIES) 
+drv_daa$(EXEEXT): $(drv_daa_OBJECTS) $(drv_daa_DEPENDENCIES)
 	@rm -f drv_daa$(EXEEXT)
 	$(LINK) $(drv_daa_LDFLAGS) $(drv_daa_OBJECTS) $(drv_daa_LDADD) $(LIBS)
 

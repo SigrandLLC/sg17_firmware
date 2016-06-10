@@ -1,5 +1,5 @@
 #!/usr/bin/haserl
-	
+
 	subsys="pptp"
 
 	kdb_vars="str:svc_pptp_name bool:svc_pptp_enabled str:svc_pptp_localip str:svc_pptp_remoteip str:svc_pptp_pap str:svc_pptp_chap "
@@ -84,5 +84,5 @@
 	render_input_field text "PPPD Options" svc_pptp_pppdopt
 	render_submit_field
 	render_form_tail
-	
+
 # vim:foldmethod=indent:foldlevel=1

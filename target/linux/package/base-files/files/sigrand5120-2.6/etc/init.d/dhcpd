@@ -26,15 +26,15 @@ stop()
 
 
 case $1 in
-	start)	
+	start)
 		/etc/templates/Update dhcp
 		start ;;
-	stop)	
+	stop)
 		stop ;;
 	*)
 		stop
 		start
 		;;
 esac
-		    
-	
+
+

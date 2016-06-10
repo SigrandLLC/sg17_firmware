@@ -30,7 +30,7 @@
 #define SQUASHFS_FREE(a)		kfree(a)
 #endif
 #ifdef CONFIG_SQUASHFS_FRAGMENT_CACHE_SIZE
-#define SQUASHFS_CACHED_FRAGMENTS	CONFIG_SQUASHFS_FRAGMENT_CACHE_SIZE	
+#define SQUASHFS_CACHED_FRAGMENTS	CONFIG_SQUASHFS_FRAGMENT_CACHE_SIZE
 #else
 #define SQUASHFS_CACHED_FRAGMENTS	3
 #endif
@@ -192,7 +192,7 @@ typedef struct {
 	unsigned int		guid:8; /* index into guid table */
 	unsigned short		rdev;
 } __attribute__ ((packed)) squashfs_dev_inode_header;
-	
+
 typedef struct {
 	unsigned int		inode_type:4;
 	unsigned int		mode:12; /* protection */
@@ -248,7 +248,7 @@ typedef union {
 	squashfs_ldir_inode_header	ldir;
 	squashfs_ipc_inode_header	ipc;
 } squashfs_inode_header;
-	
+
 typedef struct {
 	unsigned int		offset:13;
 	unsigned int		type:3;
@@ -422,7 +422,7 @@ typedef struct {
 	unsigned int		guid:4; /* index into guid table */
 	unsigned short		rdev;
 } __attribute__ ((packed)) squashfs_dev_inode_header_1;
-	
+
 typedef struct {
 	unsigned int		inode_type:4;
 	unsigned int		mode:12; /* protection */
@@ -504,7 +504,7 @@ typedef struct {
 	/* convert from little endian to big endian */
 #define SQUASHFS_SWAP(value, p, pos, tbits) _SQUASHFS_SWAP(value, p, pos, tbits, b_pos)
 #else
-	/* convert from big endian to little endian */ 
+	/* convert from big endian to little endian */
 #define SQUASHFS_SWAP(value, p, pos, tbits) _SQUASHFS_SWAP(value, p, pos, tbits, 64 - tbits - b_pos)
 #endif
 

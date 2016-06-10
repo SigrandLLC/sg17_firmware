@@ -25,7 +25,7 @@ $(PKG_BUILD_DIR)/.configured:
 	$(SED) "s,^LIBC_INCLUDE.*,LIBC_INCLUDE=$(STAGING_DIR)/include," \
 		$(PKG_BUILD_DIR)/Makefile
 	# For now disable compiling of the misc directory because it seems to fail
-	rm -rf $(PKG_BUILD_DIR)/misc 
+	rm -rf $(PKG_BUILD_DIR)/misc
 	$(SED) "s, misc,," $(PKG_BUILD_DIR)/Makefile
 	touch $@
 

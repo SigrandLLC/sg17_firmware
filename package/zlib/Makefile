@@ -53,7 +53,7 @@ $(STAGING_DIR)/usr/lib/libz.so: $(PKG_BUILD_DIR)/.built
 	mkdir -p $(STAGING_DIR)/usr/lib
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/* $(STAGING_DIR)/usr/lib
 	touch $(STAGING_DIR)/usr/lib/libz.so
-	
+
 install-dev: $(STAGING_DIR)/usr/lib/libz.so
 
 uninstall-dev:

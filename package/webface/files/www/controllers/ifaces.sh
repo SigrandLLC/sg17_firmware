@@ -65,14 +65,14 @@
 
 	render_submit_field Add
 	render_form_tail
-	
-	
+
+
 	# Add VLAN
 	render_form_header ifaces
 	help_1="vlan"
 	help_2=""
 	render_table_title "Add VLAN interface" 2
-	
+
 	desc=""
 	validator='tmt:invalidindex=0 tmt:message="Please select interface"'
 	for i in $sys_ifaces; do
@@ -82,14 +82,14 @@
 		esac
 	done
 	render_input_field select "Physical interface" phys_iface bad "Please select interface" $params
-	
+
 	desc=""
 	validator="$tmtreq tmt:pattern='positiveinteger' tmt:minnumber=0 tmt:maxnumber=4096 tmt:message='VLAN ID is a positive integer betwen 0 and 4096'"
 	render_input_field text "VLAN ID " vlan_id
 
 	render_submit_field "Add VLAN"
 	render_form_tail
-	
+
 
 	# Delete interface
 	render_form_header ifaces
@@ -111,5 +111,5 @@
 
 	render_submit_field Delete
 	render_form_tail
-	
+
 # vim:foldmethod=indent:foldlevel=1

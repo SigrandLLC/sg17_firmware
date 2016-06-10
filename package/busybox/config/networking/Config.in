@@ -22,7 +22,7 @@ config BUSYBOX_CONFIG_DNSD
 	bool "dnsd"
 	default n
 	help
-	  Small and static DNS server deamon. 
+	  Small and static DNS server deamon.
 
 config BUSYBOX_CONFIG_ETHER_WAKE
 	bool "ether-wake"
@@ -126,9 +126,9 @@ config BUSYBOX_CONFIG_FEATURE_HTTPD_CONFIG_WITH_SCRIPT_INTERPR
 	default n
 	depends on BUSYBOX_CONFIG_FEATURE_HTTPD_CGI
 	help
-	  This option enables support for running scripts through an 
-	  interpreter. Turn this on, if you want PHP scripts to work 
-	  properly. You need to supply an addition line in your httpd 
+	  This option enables support for running scripts through an
+	  interpreter. Turn this on, if you want PHP scripts to work
+	  properly. You need to supply an addition line in your httpd
 	  config file:
 	  *.php:/path/to/your/php
 
@@ -451,7 +451,7 @@ config BUSYBOX_CONFIG_NC
 	help
 	  A simple Unix utility which reads and writes data across network
 	  connections.
-	  
+
 config BUSYBOX_CONFIG_NETMSG
 	bool "netmsg"
 	default y

@@ -16,9 +16,9 @@ function displayError(formNode, validators){
 	}
 	displayNode.appendChild(listNode);
 	var oldDisplay = document.getElementById(errorId);
-	// If an error display is already there, we replace it, if not, we create one from scratch 
+	// If an error display is already there, we replace it, if not, we create one from scratch
 	if(oldDisplay){
-		formNode.parentNode.replaceChild(displayNode, oldDisplay); 
+		formNode.parentNode.replaceChild(displayNode, oldDisplay);
 	}
 	else{
 		formNode.parentNode.insertBefore(displayNode, formNode);

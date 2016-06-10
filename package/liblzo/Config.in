@@ -4,6 +4,6 @@ config BR2_PACKAGE_LIBLZO
 	default m if CONFIG_DEVEL
 	help
 	  A real-time data compression library
-	  
+
 	  http://www.oberhumer.com/opensource/lzo/
 

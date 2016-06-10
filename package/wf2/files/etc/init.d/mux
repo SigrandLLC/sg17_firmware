@@ -10,10 +10,10 @@ start(){
 	for i in `kdb get sys_mux_ifaces`; do
 		unset clkab clkm clkr mxen mxsmap mxrate rfs rline tfs tline timeslots
 		eval `kdb sls sys_mux_${i}_`
-		
+
 		if [ "x$mxen" = "x1" ]; then
 			[ -n "$mxsmap" ] && timeslots="--mxsmap $mxsmap" || timeslots="--mxrate $mxrate"
-			
+
 			$MXCONFIG --iface $i --mxen "1" --clkab $clkab --clkm $clkm --clkr $clkr --rfs $rfs \
 --rline $rline --tfs $tfs --tline $tline $timeslots
 

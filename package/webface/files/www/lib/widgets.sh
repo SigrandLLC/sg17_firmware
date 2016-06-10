@@ -1,6 +1,6 @@
 #!/bin/sh
 # (c) Vladislav Moskovets 2005
-# 
+#
 
 tmtreq='tmt:required=true '
 validator_ipaddr='tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic" tmt:message="Please input correct ip address" tmt:pattern="ipaddr"'
@@ -97,13 +97,13 @@ render_console_command(){
 	$cmd
 }
 
-render_console(){ 
+render_console(){
 	render_console_start $*
 	render_console_command $*
 	render_console_end $*
 }
 
-render_message_box() 
+render_message_box()
 {
 	local title="$1"
 	local text="$2"
@@ -118,12 +118,12 @@ render_save_message(){
 	[ -z "$ERROR_MESSAGE" ] && title="Information" || title="Error"
 	echo "<tr><td></td></tr>"
 	echo "<tr class='table_title'> <td class='table_title'>$title</td> </tr>"
-	
-	echo "<tr><td width='100%' class='listr' align='center'>" 
-	[ -z "$ERROR_MESSAGE" ] && echo $ok_str || echo "$ERROR_MESSAGE <br> $fail_str" 
+
+	echo "<tr><td width='100%' class='listr' align='center'>"
+	[ -z "$ERROR_MESSAGE" ] && echo $ok_str || echo "$ERROR_MESSAGE <br> $fail_str"
 
 	echo "</td></tr><tr><td> <br /> <br /></td></tr></table>"
-	
+
 	render_js_hide_message
 }
 
@@ -134,9 +134,9 @@ render_save_message_nohide(){
 	[ -z "$ERROR_MESSAGE" ] && title="Information" || title="Error"
 	echo "<tr><td></td></tr>"
 	echo "<tr class='table_title'> <td class='table_title'>$title</td> </tr>"
-	
-	echo "<tr><td width='100%' class='listr' align='center'>" 
-	[ -z "$ERROR_MESSAGE" ] && echo $ok_str || echo "$ERROR_MESSAGE <br> $fail_str" 
+
+	echo "<tr><td width='100%' class='listr' align='center'>"
+	[ -z "$ERROR_MESSAGE" ] && echo $ok_str || echo "$ERROR_MESSAGE <br> $fail_str"
 
 	echo "</td></tr><tr><td> <br /> <br /></td></tr></table>"
 }
@@ -179,7 +179,7 @@ render_input_field(){
 	else
 		local disabled=''
 	fi
-	
+
 	# parameters handling
 	local type="$1"
 	local text="$2"
@@ -198,7 +198,7 @@ render_input_field(){
 	[ -n "$td_id" ] && td_id="id='$td_id'"
 	[ -n "$autosubmit" ] && ascode="onchange='this.form.submit()'"
 	[ -n "$onchange" ] && onchangecode="onchange='$onchange'"
-	
+
 	shift 3
 
 	echo "
@@ -250,7 +250,7 @@ render_input_field(){
 		echo "<input type=file name=$inputname>"
 		;;
 	esac
-	
+
 	[ ! $type = "hidden" ] && echo "<br><span class='inputDesc' $tipcode>$desc</span></td></tr>"
 	echo "<!-- ------- /render_input_field $type $text $inputname $* -->"
 	unset id autosubmit onchange onmouseover tip desc validator default td_id
@@ -264,7 +264,7 @@ render_input_td_field(){
 	else
 		local disabled=''
 	fi
-	
+
 	# parameters handling
 	local type="$1"
 	local inputname="$2"
@@ -282,7 +282,7 @@ render_input_td_field(){
 	[ -n "$td_id" ] && td_id="id='$td_id'"
 	[ -n "$autosubmit" ] && ascode="onchange='this.form.submit()'"
 	[ -n "$onchange" ] && onchangecode="onchange='$onchange'"
-	
+
 	shift 2
 
 	echo "
@@ -332,7 +332,7 @@ render_input_td_field(){
 		echo "<input type=file name=$inputname>"
 		;;
 	esac
-	
+
 	echo "</td>"
 	echo "<!-- ------- /render_input_field $type $inputname $* -->"
 	unset id autosubmit onchange onmouseover tip desc validator default td_id
@@ -377,7 +377,7 @@ render_list_header(){
 		local s2_act="<td>"
 		local s3="</td>"
 		local s4="</tr>"
-		
+
 		echo $s1
 		for n in "$@"; do
 			echo $s2 $n $s3
@@ -400,14 +400,14 @@ render_list_btns(){
 		local extparam="&$3"
 		local frameparam=""
 		[ -n "$frame" ] && frameparam="&frame=1"
-		
+
 		# edit
 		echo "<nobr>&nbsp;<a href='javascript:openPopup(window, \"${edit}${extparam}\", \"$item\");'><img src='img/e.gif' title='Edit item' width='17' height='17' border='0'></a>"
-		
+
 		# del
 		echo "<a href='javascript:openDeletePopup(window, \"$item\", \"action=question${extparam}\");'><img src='img/x.gif' title='Delete item' width='17' height='17' border='0'></a>"
 		#echo "<a href='/?controller=${FORM_controller}&do=del&item=${item}${frameparam}${extparam}' target='_self' onclick='return confirmSubmit()'><img src='img/x.gif' title='Delete item' width='17' height='17' border='0'></a></nobr>"
-	
+
 }
 
 render_button_list_add(){
@@ -422,7 +422,7 @@ render_popup_save_stuff(){
 		eval "$eval_string"
 		if [ -z "$FORM_additem" ]; then
 			eval `$kdb -qqc list "$item"`
-			save "$subsys" "str:$item" 
+			save "$subsys" "str:$item"
 		else
 			ok_str="Item added"
 			kdb_ladd_string $item
@@ -446,7 +446,7 @@ render_popup_form_stuff(){
 
 render_save_stuff(){
 	if [ $REQUEST_METHOD = POST ]; then
-		save "$subsys" "$kdb_vars" 
+		save "$subsys" "$kdb_vars"
 		render_save_message
 	fi
 }
@@ -458,7 +458,7 @@ render_js_close_popup() {
 
 render_js_refresh_parent() {
 	local location="$1"
-	[ -z "$location" ] && location="window.opener.location"	
+	[ -z "$location" ] && location="window.opener.location"
 	echo "<script language=\"JavaScript\">window.opener.location = $location</script>"
 }
 

@@ -597,7 +597,7 @@
 #define CONFIG_VLAN_8021Q 1
 
 /*
- *  
+ *
  */
 #undef  CONFIG_IPX
 #undef  CONFIG_ATALK

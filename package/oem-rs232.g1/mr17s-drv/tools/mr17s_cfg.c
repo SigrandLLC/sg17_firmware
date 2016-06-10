@@ -29,7 +29,7 @@ void show_node(char *node)
 {
     devsetup_t set;
     int fd;
-        
+
     // Open device node
     if( (fd=open(node,O_NONBLOCK)) < 0){
 		printf("ERROR: cannot open node %s\n",node);
@@ -52,7 +52,7 @@ setup_node(char *node,int fctrl,int sigfwd)
 {
     devsetup_t set;
     int fd;
-        
+
     // Open device node
     if( (fd=open(node,O_NONBLOCK)) < 0){
 		printf("ERROR: cannot open node %s\n",node);
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 {
 	char fctrl = -1, sigfwd = -1;
 	char *node = NULL;
-	
+
     while (1) {
         int option_index = -1;
     	static struct option long_options[] = {
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 			{0, 0, 0, 0}
 		};
 		char *endp;
-		int val; 
+		int val;
 
 		int c = getopt_long (argc, argv, "f:s:n:",
 							 long_options, &option_index);
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 			break;
 		}
 	}
-	
+
 	if( node == NULL ){
 		printf("ERROR: no node name\n");
 		return 0;
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 		show_node(node);
 		return 0;
 	}
-	
+
 	setup_node(node,fctrl,sigfwd);
 	return 0;
 }

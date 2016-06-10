@@ -29,7 +29,7 @@ for iface in $ifaces; do
 	fi
 
 	RESULT="$RESULT $tmp"
-	
+
 	let "num=$num+1"
 	if [ "$num" != "$num_ifaces" ]; then
 		RESULT="$RESULT,\n"

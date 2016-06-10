@@ -8,7 +8,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.  
+ * published by the Free Software Foundation.
  */
 
 /*
@@ -33,8 +33,8 @@
  * - in order to "deal with" backward compatibility, renamed to ipset
  */
 
-/* 
- * Used so that the kernel module and ipset-binary can match their versions 
+/*
+ * Used so that the kernel module and ipset-binary can match their versions
  */
 #define IP_SET_PROTOCOL_VERSION 2
 
@@ -45,7 +45,7 @@
  *
  * The representation works in HOST byte order, because most set types
  * will perform arithmetic operations and compare operations.
- * 
+ *
  * For now the type is an uint32_t.
  *
  * Make sure to ONLY use the functions when translating and parsing
@@ -94,8 +94,8 @@ typedef uint16_t ip_set_id_t;
  *	200-299: list, save, restore
  */
 
-/* Single shot operations: 
- * version, create, destroy, flush, rename and swap 
+/* Single shot operations:
+ * version, create, destroy, flush, rename and swap
  *
  * Sets are identified by name.
  */
@@ -146,7 +146,7 @@ struct ip_set_req_version {
 	unsigned version;
 };
 
-/* Double shots operations: 
+/* Double shots operations:
  * add, del, test, bind and unbind.
  *
  * First we query the kernel to get the index and type of the target set,
@@ -188,7 +188,7 @@ struct ip_set_req_bind {
 };
 
 #define IP_SET_OP_UNBIND_SET	0x00000105	/* Unbind an IP from a set */
-/* Uses ip_set_req_bind, with type speficic addage 
+/* Uses ip_set_req_bind, with type speficic addage
  * index = 0 means unbinding for all sets */
 
 #define IP_SET_OP_TEST_BIND_SET	0x00000106	/* Test binding an IP to a set */
@@ -234,7 +234,7 @@ struct ip_set_name_list {
 #define IP_SET_OP_LIST		0x00000203
 struct ip_set_req_list {
 	IP_SET_REQ_BYINDEX;
-	/* sets number of struct ip_set_list in reply */ 
+	/* sets number of struct ip_set_list in reply */
 };
 
 struct ip_set_list {
@@ -274,7 +274,7 @@ struct ip_set_hash_save {
 /* The restore operation */
 #define IP_SET_OP_RESTORE	0x00000205
 /* Uses ip_set_req_setnames followed by ip_set_restore structures
- * plus a marker ip_set_restore, followed by ip_set_hash_save 
+ * plus a marker ip_set_restore, followed by ip_set_hash_save
  * structures.
  */
 struct ip_set_restore {
@@ -335,7 +335,7 @@ struct ip_set_type {
 	 * return 0 if not in set, 1 if in set.
 	 */
 	int (*testip_kernel) (struct ip_set *set,
-			      const struct sk_buff * skb, 
+			      const struct sk_buff * skb,
 			      u_int32_t flags,
 			      ip_set_ip_t *ip);
 
@@ -357,7 +357,7 @@ struct ip_set_type {
 	 * and -ERANGE if the address lies outside the set bounds.
 	 * If the address was not already in the set, 0 is returned.
 	 */
-	int (*addip) (struct ip_set *set, 
+	int (*addip) (struct ip_set *set,
 		      const void *data, size_t size,
 		      ip_set_ip_t *ip);
 
@@ -367,7 +367,7 @@ struct ip_set_type {
 	 * If the address was not already in the set, 0 is returned.
 	 */
 	int (*addip_kernel) (struct ip_set *set,
-			     const struct sk_buff * skb, 
+			     const struct sk_buff * skb,
 			     u_int32_t flags,
 			     ip_set_ip_t *ip);
 
@@ -376,7 +376,7 @@ struct ip_set_type {
 	 * and -ERANGE if the address lies outside the set bounds.
 	 * If the address really was in the set, 0 is returned.
 	 */
-	int (*delip) (struct ip_set *set, 
+	int (*delip) (struct ip_set *set,
 		      const void *data, size_t size,
 		      ip_set_ip_t *ip);
 
@@ -386,7 +386,7 @@ struct ip_set_type {
 	 * If the address really was in the set, 0 is returned.
 	 */
 	int (*delip_kernel) (struct ip_set *set,
-			     const struct sk_buff * skb, 
+			     const struct sk_buff * skb,
 			     u_int32_t flags,
 			     ip_set_ip_t *ip);
 
@@ -417,11 +417,11 @@ struct ip_set_type {
 	/* Listing: Get the header
 	 *
 	 * Fill in the information in "data".
-	 * This function is always run after list_header_size() under a 
-	 * writelock on the set. Therefor is the length of "data" always 
-	 * correct. 
+	 * This function is always run after list_header_size() under a
+	 * writelock on the set. Therefor is the length of "data" always
+	 * correct.
 	 */
-	void (*list_header) (const struct ip_set *set, 
+	void (*list_header) (const struct ip_set *set,
 			     void *data);
 
 	/* Listing: Get the size for the set members
@@ -431,9 +431,9 @@ struct ip_set_type {
 	/* Listing: Get the set members
 	 *
 	 * Fill in the information in "data".
-	 * This function is always run after list_member_size() under a 
-	 * writelock on the set. Therefor is the length of "data" always 
-	 * correct. 
+	 * This function is always run after list_member_size() under a
+	 * writelock on the set. Therefor is the length of "data" always
+	 * correct.
 	 */
 	void (*list_members) (const struct ip_set *set,
 			      void *data);

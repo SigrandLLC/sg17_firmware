@@ -13,38 +13,38 @@
 #define CHAN_VOLUME_MAX_GAIN 24
 
 /**
-	Run the appropriate ioctl command and set the error if necessary. 
+	Run the appropriate ioctl command and set the error if necessary.
 \param [in] chan - channel to write error message and run ioctl
 \param [in] request - ioctl macro
 \param [in] data - ioctl data
 \param [in] err_msg - error message if ioctl fails
-\return 
+\return
 	ioctl result
 \remark
 	ioctl makes on chan->rtp_fd file descriptor
 */
-static int 
+static int
 err_set_ioctl (ab_chan_t * const chan, int const request, int const data,
 		char const * const err_msg )
 {/*{{{*/
 	int err = 0;
 	err = ioctl(chan->rtp_fd, request, data);
 	if (err){
-		ab_err_set(AB_ERR_UNKNOWN, (char const *)err_msg); 
+		ab_err_set(AB_ERR_UNKNOWN, (char const *)err_msg);
 	}
 	return err;
 }/*}}}*/
 
 /**
-	Plays the given tone 
+	Plays the given tone
 \param [in] chan - channel to play tone
-\param [in] tone - tone to play 
-\return 
+\param [in] tone - tone to play
+\return
 	ioctl result
 \remark
 	it just play the tone without any test of actual state.
 */
-static int 
+static int
 ab_FXS_line_just_play_it (ab_chan_t * const chan, enum ab_chan_tone_e const tone)
 {/*{{{*/
 	int err = 0;
@@ -89,12 +89,12 @@ ab_FXS_line_just_play_it (ab_chan_t * const chan, enum ab_chan_tone_e const tone
 	Ring or mute on given channel
 \param chan - channel to ring
 \param ring - can be RINGING or MUTE
-\return 
+\return
 	ioctl result
 \remark
 	If the given ring state is actual - there is nothing happens
 */
-int 
+int
 ab_FXS_line_ring (ab_chan_t * const chan, enum ab_chan_ring_e ring)
 {/*{{{*/
 	int err = 0;
@@ -121,13 +121,13 @@ ab_FXS_line_ring (ab_chan_t * const chan, enum ab_chan_ring_e ring)
 /**
 	Play the given tone
 \param chan - channel to play tone
-\param tone - tone to play 
-\return 
+\param tone - tone to play
+\return
 	ioctl result
 \remark
 	it test the state and do not do the unnecessary actions
 */
-int 
+int
 ab_FXS_line_tone (ab_chan_t * const chan, enum ab_chan_tone_e tone)
 {/*{{{*/
 	int err = 0;
@@ -138,7 +138,7 @@ ab_FXS_line_tone (ab_chan_t * const chan, enum ab_chan_tone_e tone)
 			err = ab_FXS_line_just_play_it (chan, tone);
 			if (err){
 				goto __exit;
-			} 
+			}
 		} else {
 			/* Something playing, but not that what we need */
 			err = ab_FXS_line_just_play_it (chan, ab_chan_tone_MUTE);
@@ -149,7 +149,7 @@ ab_FXS_line_tone (ab_chan_t * const chan, enum ab_chan_tone_e tone)
 				err = ab_FXS_line_just_play_it (chan, tone);
 				if (err){
 					goto __exit;
-				} 
+				}
 			}
 		}
 	}
@@ -161,15 +161,15 @@ __exit:
 	Change current linefeed to given
 \param chan - channel to operate on it
 \param feed - linefeed to set
-\return 
+\return
 	ioctl result
 \remark
 	it test the state and do not do the unnecessary actions
 	if linefeed is disabled, and we want to set it to active, it will set
 			it to standby first
 */
-int 
-ab_FXS_line_feed (ab_chan_t * const chan, enum ab_chan_linefeed_e feed) 
+int
+ab_FXS_line_feed (ab_chan_t * const chan, enum ab_chan_linefeed_e feed)
 {/*{{{*/
 	int err = 0;
 
@@ -181,21 +181,21 @@ ab_FXS_line_feed (ab_chan_t * const chan, enum ab_chan_linefeed_e feed)
 				/* From any state */
 				err_msg= "Setting linefeed to disabled (ioctl)";
 				lf_to_set = IFX_TAPI_LINE_FEED_DISABLED;
-				break;	
+				break;
 			}
 			case ab_chan_linefeed_STANDBY: {
 				/* From any state */
 				err_msg = "Setting linefeed to standby (ioctl)";
 				lf_to_set = IFX_TAPI_LINE_FEED_STANDBY;
-				break;	
+				break;
 			}
 			case ab_chan_linefeed_ACTIVE: {
 				/* linefeed_STANDBY should be set before ACTIVE */
 				if( chan->status.linefeed == ab_chan_linefeed_DISABLED){
-					err = err_set_ioctl (chan, IFX_TAPI_LINE_FEED_SET, 
-						IFX_TAPI_LINE_FEED_STANDBY, 
+					err = err_set_ioctl (chan, IFX_TAPI_LINE_FEED_SET,
+						IFX_TAPI_LINE_FEED_STANDBY,
 						"Setting linefeed to standby before set "
-						"it to active (ioctl)"); 
+						"it to active (ioctl)");
 					if( err ){
 						goto __exit;
 					} else {
@@ -204,13 +204,13 @@ ab_FXS_line_feed (ab_chan_t * const chan, enum ab_chan_linefeed_e feed)
 				}
 				err_msg = "Setting linefeed to active (ioctl)";
 				lf_to_set = IFX_TAPI_LINE_FEED_ACTIVE;
-				break;	
+				break;
 			}
 		}
 		err = err_set_ioctl (chan, IFX_TAPI_LINE_FEED_SET, lf_to_set, err_msg);
 		if ( !err){
 			chan->status.linefeed = feed;
-		} 
+		}
 	}
 __exit:
 	return err;
@@ -220,14 +220,14 @@ __exit:
 	Do onhook or offhook
 \param chan - channel to operate on it
 \param hook - desired hookstate
-\return 
+\return
 	ioctl result
 \remark
 	it test the state and do not do the unnecessary actions
 \todo
 	we can also test hook by ioctl there
 */
-int 
+int
 ab_FXO_line_hook (ab_chan_t * const chan, enum ab_chan_hook_e hook)
 {/*{{{*/
 	int err = 0;
@@ -250,7 +250,7 @@ ab_FXO_line_hook (ab_chan_t * const chan, enum ab_chan_hook_e hook)
 		err = err_set_ioctl (chan, IFX_TAPI_FXO_HOOK_SET, h_to_set, err_msg);
 		if( !err){
 			chan->status.hook = hook;
-		} 
+		}
 	}
 	return err;
 }/*}}}*/
@@ -263,15 +263,15 @@ ab_FXO_line_hook (ab_chan_t * const chan, enum ab_chan_hook_e hook)
 \param nInterDigitTime - interval between dialed digits
 \param nDigitPlayTime - interval to play digits
 \param pulseMode - if set - dial in pulse mode - not tone
-\return 
+\return
 	ioctl result
 \remark
 	the digits can be: '0' - '9', '*','#','A','B','C' and 'D'
-	if nInterDigitTime or nDigitPlayTime set to 0, it will be set to 
+	if nInterDigitTime or nDigitPlayTime set to 0, it will be set to
 			default value (100 ms). Maximum value is 127 ms.
 */
-int 
-ab_FXO_line_digit (ab_chan_t * const chan, char const data_length, 
+int
+ab_FXO_line_digit (ab_chan_t * const chan, char const data_length,
 		char const * const data, char const nInterDigitTime,
 		char const nDigitPlayTime, char const pulseMode)
 {/*{{{*/
@@ -294,19 +294,19 @@ ab_FXO_line_digit (ab_chan_t * const chan, char const data_length,
 
 	dialCfg.pulseMode = pulseMode;
 
-	err = err_set_ioctl( chan, IFX_TAPI_FXO_DIAL_CFG_SET, (int)&dialCfg, 
+	err = err_set_ioctl( chan, IFX_TAPI_FXO_DIAL_CFG_SET, (int)&dialCfg,
 			"Try to configure dial params (ioctl)");
 	if( err ){
 		goto __exit;
-	} 
+	}
 
-	/* Dial sequence 
+	/* Dial sequence
 	 * it needs for some time but returns immediately
 	 * */
 	dialDigits.nDigits = data_length;
 	memcpy(dialDigits.data, data, dialDigits.nDigits);
 
-	err = err_set_ioctl( chan, IFX_TAPI_FXO_DIAL_START, (int)(&dialDigits), 
+	err = err_set_ioctl( chan, IFX_TAPI_FXO_DIAL_START, (int)(&dialDigits),
 			"Try to dial sequence (ioctl)");
 __exit:
 	return err;
@@ -326,7 +326,7 @@ __exit:
  *	busy ringing and dialtones. Or 'f' / 'F' for CNG and CED fax signals and
  *	'm' for muting previously playing tone.
  */
-int 
+int
 ab_FXS_netlo_play (ab_chan_t * const chan, char tone, char local)
 {/*{{{*/
 	int err;
@@ -359,17 +359,17 @@ ab_FXS_netlo_play (ab_chan_t * const chan, char tone, char local)
 		idx = 22;
 	} else if(tone == 'm'){
 		idx = 0;
-	} 
+	}
 	if(local){
-		err = err_set_ioctl (chan, IFX_TAPI_TONE_LOCAL_PLAY, idx, 
+		err = err_set_ioctl (chan, IFX_TAPI_TONE_LOCAL_PLAY, idx,
 				"Try to play network tone (ioctl)");
 	} else {
-		err = err_set_ioctl (chan, IFX_TAPI_TONE_NET_PLAY, idx, 
+		err = err_set_ioctl (chan, IFX_TAPI_TONE_NET_PLAY, idx,
 				"Try to play network tone (ioctl)");
 	}
 	if( err){
 		goto __exit_fail;
-	} 
+	}
 	return 0;
 __exit_fail:
 	return -1;

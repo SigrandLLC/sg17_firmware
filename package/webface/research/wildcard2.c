@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 98, 2000, 01  
+ * Copyright (c) 1997, 98, 2000, 01
  *    Motoyuki Kasahara
  *    ndtpd-3.1.5
  */
@@ -7,7 +7,7 @@
 /*
  * Do wildcard pattern matching.
  * In the pattern, the following characters have special meaning.
- * 
+ *
  *   `*'    matches any sequence of zero or more characters.
  *   '\x'   a character following a backslash is taken literally.
  *          (e.g. '\*' means an asterisk itself.)

@@ -23,5 +23,5 @@ echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 
 <body link="#0000CC" vlink="#0000CC" alink="#0000CC">
 <div id="overDiv" style="position:absolute; visibility:hidden; z-index:1000;"></div>
-' 
+'
 		

@@ -5,6 +5,6 @@ config BR2_PACKAGE_TCPDUMP
 	select BR2_PACKAGE_LIBPCAP
 	help
 	  A tool for network monitoring and data acquisition.
-	  
+
 	  http://www.tcpdump.org/
 

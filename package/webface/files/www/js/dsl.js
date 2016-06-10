@@ -7,7 +7,7 @@ rate_list128 = new Array(768,1024,1280,1536,1792,2048,2304,2560,3072,3584,3840,4
 
 
 function freeList(l){
-    
+
     while ( l.length > 0 ){
 		//	 alert("remove " + l.options[l.length-1].value);
         try{
@@ -19,13 +19,13 @@ function freeList(l){
 		};
     };
 };
-	
+
 
 function rate_list(l,st,end,step,cur){
     freeList(l);
 	ind=0;
 	ind_res=0;
-	
+
     for(i=st;i<=end;i+=step){
     	el = new Option;
     	el.value = i;
@@ -56,7 +56,7 @@ function fixed_rate_list(l,cur,rates){
     	el.value = rates[i];
     	el.text = rates[i];
 		el.selected = 0;
-		
+
 		if( cur>0 && Math.abs(rates[i]-cur) < Math.abs(val_res-cur) ){
 			ind_res = i;
 			val_res = rates[i];
@@ -68,7 +68,7 @@ function fixed_rate_list(l,cur,rates){
 		};
     };
 
-	// Other speed selection	
+	// Other speed selection
    	el = new Option;
    	el.value = -1;
    	el.text = 'other';
@@ -90,16 +90,16 @@ function OnChangeSG16Code(){
     TCPAM = new Array();
 	TCPAM[0] = new Array();
 	TCPAM[0][0] = "tcpam4";
-	TCPAM[0][1] = "TCPAM4";		
-	TCPAM[1] = new Array();	
+	TCPAM[0][1] = "TCPAM4";
+	TCPAM[1] = new Array();
 	TCPAM[1][0] = "tcpam8";
-	TCPAM[1][1] = "TCPAM8";		
-	TCPAM[2] = new Array();	
+	TCPAM[1][1] = "TCPAM8";
+	TCPAM[2] = new Array();
 	TCPAM[2][0] = "tcpam16";
-	TCPAM[2][1] = "TCPAM16";		
-	TCPAM[3] = new Array();	
+	TCPAM[2][1] = "TCPAM16";
+	TCPAM[3] = new Array();
 	TCPAM[3][0] = "tcpam32";
-	TCPAM[3][1] = "TCPAM32";		
+	TCPAM[3][1] = "TCPAM32";
 
     preact = $('cfg').options[$('cfg').selectedIndex].value;
     annex = $('annex').options[$('annex').selectedIndex].value;
@@ -160,7 +160,7 @@ function OnChangeSG16Code(){
 			$('rate').disabled = 1;
 		} else {
 			$('rate').disabled = 0;
-			rate_list($('rate'),192,2304,64,rate);	
+			rate_list($('rate'),192,2304,64,rate);
 		};
     } else {
 		freeList($('code'));
@@ -199,19 +199,19 @@ function OnChangeSG17Code()
     TCPAM = new Array();
 	TCPAM[0] = new Array();
 	TCPAM[0][0] = "tcpam8";
-	TCPAM[0][1] = "TCPAM8";		
+	TCPAM[0][1] = "TCPAM8";
 	TCPAM[1] = new Array();
 	TCPAM[1][0] = "tcpam16";
-	TCPAM[1][1] = "TCPAM16";		
-	TCPAM[2] = new Array();	
+	TCPAM[1][1] = "TCPAM16";
+	TCPAM[2] = new Array();
 	TCPAM[2][0] = "tcpam32";
-	TCPAM[2][1] = "TCPAM32";		
-	TCPAM[3] = new Array();	
+	TCPAM[2][1] = "TCPAM32";
+	TCPAM[3] = new Array();
 	TCPAM[3][0] = "tcpam64";
-	TCPAM[3][1] = "TCPAM64";		
-	TCPAM[4] = new Array();	
+	TCPAM[3][1] = "TCPAM64";
+	TCPAM[4] = new Array();
 	TCPAM[4][0] = "tcpam128";
-	TCPAM[4][1] = "TCPAM128";		
+	TCPAM[4][1] = "TCPAM128";
 
     mode = $('mode').options[$('mode').selectedIndex].value;
     tcpam = $('code').options[$('code').selectedIndex].value;
@@ -299,7 +299,7 @@ function OnChangeSG17Code()
 				fixed_rate_list($('rate'),rate,rate_list8);
 			};
 		}
-		
+
 		if( rate < 0 && mre == null ){
 			var base = document.getElementById('rate_td');
 			var oe = document.getElementById('rate');
@@ -315,7 +315,7 @@ function OnChangeSG17Code()
 			var base = document.getElementById('rate_td');
 			base.removeChild(mre);
 		}
-		// Clock mode		
+		// Clock mode
 		freeList($('clkmode'));
 		$('clkmode').disabled = 0;
 		$('clkmode').options[0] = new Option("plesio");
@@ -342,7 +342,7 @@ function OnChangeSG17Code()
 			var base = document.getElementById('pbomode_td');
 			base.removeChild(pboval);
 		}
-		
+
 		// Annex
 		freeList($('annex'));
 		$('annex').disabled = 0;
@@ -374,7 +374,7 @@ function eocProfiles(){
 		}else{
 			rate = s.options[ind].value;
 		}
-		
+
 		tc = $('tcpam' + i);
 	    tcpam = $('tcpam' + i).options[$('tcpam' + i).selectedIndex].value;
 		if( tcpam == "tcpam128" ) {

@@ -8,7 +8,7 @@ SQUASHFSLZMA_MD5SUM=9fd05d0bfbb712f5fb95edafea5bc733
 $(DL_DIR)/$(SQUASHFSLZMA_SOURCE):
 	$(SCRIPT_DIR)/download.pl $(DL_DIR) $(SQUASHFSLZMA_SOURCE) $(SQUASHFSLZMA_MD5SUM) $(SQUASHFSLZMA_SITE)
 
-$(SQUASHFSLZMA_DIR)/.unpacked: $(DL_DIR)/$(SQUASHFSLZMA_SOURCE) 
+$(SQUASHFSLZMA_DIR)/.unpacked: $(DL_DIR)/$(SQUASHFSLZMA_SOURCE)
 	zcat $(DL_DIR)/$(SQUASHFSLZMA_SOURCE) | tar -C $(BUILD_DIR) -xvf -
 	$(PATCH) $(SQUASHFSLZMA_DIR) ./patches
 	touch $(SQUASHFSLZMA_DIR)/.unpacked
@@ -23,5 +23,5 @@ source: $(DL_DIR)/$(SQUASHFSLZMA_SOURCE)
 prepare: $(SQUASHFSLZMA_DIR)/.unpacked
 compile: $(SQUASHFSLZMA_DIR)/squashfs-tools/mksquashfs-lzma $(STAGING_DIR)/bin/mksquashfs-lzma
 install:
-clean: 
+clean:
 	rm -rf $(SQUASHFSLZMA_DIR)

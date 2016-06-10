@@ -93,7 +93,7 @@ set_df_sz( void )
 		g_so.vcod.type == cod_type_G726_32 ||
 		g_so.vcod.type == cod_type_G726_40){
 			g_so.vcod.pkt_size = cod_pkt_size_10;
-	} else if(	
+	} else if(
 		g_so.vcod.type == cod_type_ALAW){
 			g_so.vcod.pkt_size = cod_pkt_size_20;
 	} else if(
@@ -137,7 +137,7 @@ startup_init (int argc, char * const argv[])
 
 	/* Get user values */
 	opterr = 0;
-	while ((option_rez = getopt_long ( 
+	while ((option_rez = getopt_long (
 			argc, argv, short_options, long_options, &option_IDX)) != -1){
 		switch( option_rez ){
 		case 'h':
@@ -342,7 +342,7 @@ startup_print (void)
 		fprintf(stderr,"%s\n",VADCNG_CFG_NAME);
 	} else if(g_so.vad == vad_cfg_SC_only){
 		fprintf(stderr,"%s\n",VADSC_CFG_NAME);
-	} 
+	}
 	fprintf(stderr,"  High-pass filter       : ");
 	if(g_so.hpf){
 		fprintf(stderr,"on\n");
@@ -390,7 +390,7 @@ capabilities_print (ab_t * ab)
 	}
 }/*}}}*/
 
-void 
+void
 print_help(void)
 {/*{{{*/
 	printf("Use it with options:\n\
@@ -422,7 +422,7 @@ print_help(void)
 ==============================\n");
 }/*}}}*/
 
-int 
+int
 start_connection(ab_t * const ab)
 {/*{{{*/
 	ab_chan_t * c1 = &ab->chans[g_status.c1_id];
@@ -451,7 +451,7 @@ start_connection(ab_t * const ab)
 	return err;
 }/*}}}*/
 
-int 
+int
 stop_connection(ab_t * const ab)
 {/*{{{*/
 	int err = 0;
@@ -501,7 +501,7 @@ rwdata(int ffd,int tfd, unsigned char const f_aid, unsigned char const t_aid)
 				encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_30;
 				encCfg.nEncType = IFX_TAPI_COD_TYPE_G723_63;
 
-				/* Set the encoder */ 
+				/* Set the encoder */
 				err = ioctl(ffd, IFX_TAPI_ENC_CFG_SET, &encCfg);
 				if(err){
 					fprintf(stderr,"Can`t set bitrate.\n");
@@ -544,7 +544,7 @@ chaev (ab_t * ab, struct pollfd * fds)
 					fds[g_status.c1_id].revents);
 		}
 		/* data in channel 1 */
-		rwdata(fds[g_status.c1_id].fd,fds[g_status.c2_id].fd, 
+		rwdata(fds[g_status.c1_id].fd,fds[g_status.c2_id].fd,
 				ab->chans[g_status.c1_id].abs_idx,
 				ab->chans[g_status.c2_id].abs_idx);
 	}
@@ -555,7 +555,7 @@ chaev (ab_t * ab, struct pollfd * fds)
 					fds[g_status.c1_id].revents);
 		}
 		/* data in channel 2 */
-		rwdata(fds[g_status.c2_id].fd,fds[g_status.c1_id].fd, 
+		rwdata(fds[g_status.c2_id].fd,fds[g_status.c1_id].fd,
 				ab->chans[g_status.c2_id].abs_idx,
 				ab->chans[g_status.c1_id].abs_idx);
 	}
@@ -576,7 +576,7 @@ devact(ab_t * ab, int dev_id)
 		fprintf(stderr,">> DEV: (%s) [e%d/c%d/m%d/d0x%lX]\n",
 				ab_g_err_str, err, ca, evt.more, evt.data);
 		return;
-	} 
+	}
 
 	/* if evt.ch == 0 -> chans[i+1] if 1 -> chans[i] */
 	chan_id = evt.ch + dev_id*ab->chans_per_dev;
@@ -588,9 +588,9 @@ devact(ab_t * ab, int dev_id)
 			fprintf(stderr,"LFA_%d ERROR",ab->chans[chan_id].abs_idx);
 			exit(EXIT_FAILURE);
 		} else {
-			fprintf(stderr,"LFA_%d\n",ab->chans[chan_id].abs_idx);	
+			fprintf(stderr,"LFA_%d\n",ab->chans[chan_id].abs_idx);
 		}
-		
+
 		if(g_status.c1_is_offhook && g_status.c2_is_offhook){
 			/* third actor - ignore event */
 			fprintf(stderr,"(offhook) there is no conference "
@@ -617,7 +617,7 @@ devact(ab_t * ab, int dev_id)
 				exit(EXIT_FAILURE);
 			} else {
 				g_status.enc_dec_is_on = 1;
-				fprintf(stderr,"UP\n");	
+				fprintf(stderr,"UP\n");
 			}
 		}
 	} else if(evt.id == ab_dev_event_FXS_ONHOOK){
@@ -628,7 +628,7 @@ devact(ab_t * ab, int dev_id)
 			fprintf(stderr,"LFS_%d ERROR",ab->chans[chan_id].abs_idx);
 			exit(EXIT_FAILURE);
 		} else {
-			fprintf(stderr,"LFS_%d\n",ab->chans[chan_id].abs_idx);	
+			fprintf(stderr,"LFS_%d\n",ab->chans[chan_id].abs_idx);
 		}
 
 		if(chan_id == g_status.c1_id){
@@ -649,7 +649,7 @@ devact(ab_t * ab, int dev_id)
 				exit(EXIT_FAILURE);
 			} else {
 				g_status.enc_dec_is_on = 0;
-				fprintf(stderr,"DOWN\n");	
+				fprintf(stderr,"DOWN\n");
 			}
 		}
 	} else if(evt.id == ab_dev_event_FM_CED){
@@ -662,7 +662,7 @@ devact(ab_t * ab, int dev_id)
 					chan_id, ab_g_err_str);
 		}
 	} else {
-		fprintf(stderr,"UNCATCHED EVENT: [%d/%d] (%d| 0x%lX)\n", 
+		fprintf(stderr,"UNCATCHED EVENT: [%d/%d] (%d| 0x%lX)\n",
 				dev_id, evt.ch, evt.id, evt.data);
 	}
 }/*}}}*/
@@ -683,7 +683,7 @@ devev(ab_t * ab, struct pollfd * fds)
 			}
 			devact(ab, i-ab->chans_num);
 		}
-	} 
+	}
 }/*}}}*/
 
 void
@@ -700,7 +700,7 @@ start_polling(ab_t * const ab)
 	for (i=0; i<j; i++){
 		fds[i].fd = ab->chans[i].rtp_fd;
 		fds[i].events = POLLIN;
-	} 
+	}
 	for(j=0;i<g_status.poll_fd_num;i++,j++){
 		fds[i].fd = ab->devs[j].cfg_fd;
 		fds[i].events = POLLIN;
@@ -719,7 +719,7 @@ start_polling(ab_t * const ab)
 	}
 }/*}}}*/
 
-int 
+int
 main (int argc, char *argv[])
 {/*{{{*/
 	ab_t * ab;

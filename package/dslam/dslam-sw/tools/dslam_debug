@@ -25,7 +25,7 @@ swnum=$1
 addr=$2
 if [ $# -eq 3 ]; then
 	val=$3
-else 
+else
 	val=""
 fi
 
@@ -34,7 +34,7 @@ cdir=`pwd`
 if [ -z "$val" ]; then
 	cfg="$CFG_PATH/sw${1}/regread"
 	if [ ! -f "$cfg" ]; then
-		echo "$0: No such file $cfg"		
+		echo "$0: No such file $cfg"
 		exit
 	fi
 	echo "$addr" > $cfg
@@ -58,4 +58,4 @@ else
 	tmp=`cat $cfg`
 	set $tmp
 #	echo "New Register($1)=$2"
-fi	
+fi

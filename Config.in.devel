@@ -17,7 +17,7 @@ config BR2_HAVE_DOT_CONFIG
 
 config BR2_i386
 	tristate
-	
+
 config BR2_mips
 	tristate
 
@@ -90,17 +90,17 @@ config BR2_EXTERNAL_KERN_PATH
 	depends on BR2_EXTERNAL_KERN_PATH_ON
 
 
-			
+
 
 menu "Build options"
 
 config BR2_WGET
-	string 
+	string
 	prompt "Wget command"
 	default "wget --passive-ftp -nd"
 
 config BR2_TAR_VERBOSITY
-	bool 
+	bool
 	prompt "Tar verbose"
 	default n
 

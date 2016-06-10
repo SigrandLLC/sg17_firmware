@@ -71,9 +71,9 @@ $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	$(CP) $(PKG_BUILD_DIR)/fax/faxheader $(PKG_INSTALL_DIR)/etc/mgetty+sendfax
 	$(CP) $(PKG_BUILD_DIR)/faxrunq.config $(PKG_INSTALL_DIR)/etc/mgetty+sendfax
 	$(CP) $(PKG_BUILD_DIR)/fax/faxspool.rules $(PKG_INSTALL_DIR)/etc/mgetty+sendfax/faxspool.rules.sample
-	$(PKG_BUILD_DIR)/sedscript < $(PKG_BUILD_DIR)/login.cfg.in > $(PKG_INSTALL_DIR)/etc/mgetty+sendfax/login.config   
-	$(PKG_BUILD_DIR)/sedscript < $(PKG_BUILD_DIR)/mgetty.cfg.in > $(PKG_INSTALL_DIR)/etc/mgetty+sendfax/mgetty.config   
-	$(PKG_BUILD_DIR)/sedscript < $(PKG_BUILD_DIR)/sendfax.cfg.in > $(PKG_INSTALL_DIR)/etc/mgetty+sendfax/sendfax.config   
+	$(PKG_BUILD_DIR)/sedscript < $(PKG_BUILD_DIR)/login.cfg.in > $(PKG_INSTALL_DIR)/etc/mgetty+sendfax/login.config
+	$(PKG_BUILD_DIR)/sedscript < $(PKG_BUILD_DIR)/mgetty.cfg.in > $(PKG_INSTALL_DIR)/etc/mgetty+sendfax/mgetty.config
+	$(PKG_BUILD_DIR)/sedscript < $(PKG_BUILD_DIR)/sendfax.cfg.in > $(PKG_INSTALL_DIR)/etc/mgetty+sendfax/sendfax.config
 	touch $@
 
 ISBIN:=$(IDIR_MGETTY)/usr/sbin

@@ -87,7 +87,7 @@ IMPORT IFX_void_t serve_voice_outbox_data(VINETIC_DEVICE *pDev);
 
    \param pPktsNum   - On entry identifies the number of packets to be read,
                        on return it contains the number of packets read
-   \param nDevID     - device ID from which the packet has been received, 
+   \param nDevID     - device ID from which the packet has been received,
                        reported to the application
    \return
       IFX_SUCCESS on success
@@ -107,8 +107,8 @@ LOCAL IFX_return_t IFX_TAPI_LL_POLL_rdPkts(IFX_TAPI_LL_DEV_t *pLLDev,
    IFX_uint8_t nCh = 0, nLen = 0;
    VINETIC_CHANNEL *pCh = IFX_NULL;
    /* Packet command header container */
-   IFX_uint16_t pPktCmd[CMD_HEADER_CNT]; 
-   PACKET *pPkt = IFX_NULL; 
+   IFX_uint16_t pPktCmd[CMD_HEADER_CNT];
+   PACKET *pPkt = IFX_NULL;
 
 
    /* Read voice box data count register (VBOX_CNT) */

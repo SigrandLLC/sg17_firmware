@@ -1,6 +1,6 @@
 
-#define WL(a)	"wl_"a	
-#define WL0(a)	"wl0_"a	
+#define WL(a)	"wl_"a
+#define WL0(a)	"wl0_"a
 #define D11G(a)	"d11g_"a
 
 #define PPP(a)		"ppp_"a
@@ -72,6 +72,6 @@ struct nvram_convert nvram_converts[] = {
 	{ PPP("demand_1"), 	PPPOE("demand_1"),	""},
 	{ PPP("service_1"), 	PPPOE("service_1"),	""},
 	{ PPP("ac_1"), 		PPPOE("ac_1"),		""},
-	
+
 	{ 0, 0, 0},
 };

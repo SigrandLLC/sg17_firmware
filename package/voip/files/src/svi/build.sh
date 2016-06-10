@@ -14,8 +14,8 @@ patch_path=$curr_path/../../patches
 PATH=$PATH:${path_to_bin}
 
 cd ${curr_path}/..
-tar -xvpf ${tapi_name}.tar.gz 
-tar -xvpf ${vinetic_name}.tar.gz 
+tar -xvpf ${tapi_name}.tar.gz
+tar -xvpf ${vinetic_name}.tar.gz
 
 ln -snf drv_sgatab 	sgatab
 ln -snf ${tapi_name}	tapi

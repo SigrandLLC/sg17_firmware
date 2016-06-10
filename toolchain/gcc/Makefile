@@ -117,7 +117,7 @@ $(STAGING_DIR)/bin/$(REAL_GNU_TARGET_NAME)-gcc: $(GCC_BUILD_DIR1)/.compiled
 
 #############################################################
 #
-# second pass compiler build.  Build the compiler targeting 
+# second pass compiler build.  Build the compiler targeting
 # the newly built shared uClibc library.
 #
 #############################################################
@@ -192,7 +192,7 @@ endif
 endif
 # We do another ugly hack here because the standard behaviour is
 # to include a reference to libgcc.so.1 in all binaries. For flash space
-# saving, we change the specs file to link in a static libgcc here. 
+# saving, we change the specs file to link in a static libgcc here.
 	if [ -f $(STAGING_DIR)/lib/gcc/$(REAL_GNU_TARGET_NAME)/$(GCC_VERSION)/specs ] ; then \
 		patch -d $(STAGING_DIR)/lib/gcc/$(REAL_GNU_TARGET_NAME)/$(GCC_VERSION)/ -p0 < ./$(GCC_VERSION)/static-libgcc.patch.conditional ; \
 	fi;

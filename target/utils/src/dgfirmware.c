@@ -43,7 +43,7 @@ unsigned char* read_img(const char *fname)
 
   fseek(fp, 0, SEEK_END);
   size = ftell(fp);
-  
+
   if (size != IMG_SIZE) {
     fprintf(stderr, "%s: image file has wrong size\n", app_name);
     fclose(fp);
@@ -97,7 +97,7 @@ void write_rootfs(unsigned char* img, const char *fname)
     perror(app_name);
     exit(-1);
   }
-  
+
   if (fwrite(img+ROOTFS_START, 1, ROOTFS_SIZE, fp) != ROOTFS_SIZE) {
     fprintf(stderr, "%s: can't write image file\n", app_name);
     fclose(fp);
@@ -115,7 +115,7 @@ void write_kernel(unsigned char* img, const char *fname)
     perror(app_name);
     exit(-1);
   }
-  
+
   if (fwrite(img+KERNEL_START, 1, KERNEL_SIZE, fp) != KERNEL_SIZE) {
     fprintf(stderr, "%s: can't write kernel file\n", app_name);
     fclose(fp);
@@ -141,7 +141,7 @@ unsigned char* read_rootfs(unsigned char* img, const char *fname)
 
   fseek(fp, 0, SEEK_END);
   size = ftell(fp);
-  
+
   if (size > ROOTFS_SIZE) {
     fprintf(stderr, "%s: rootfs image file is too big\n", app_name);
     fclose(fp);
@@ -178,7 +178,7 @@ unsigned char* read_kernel(unsigned char* img, const char *fname)
 
   fseek(fp, 0, SEEK_END);
   size = ftell(fp);
-  
+
   if (size > KERNEL_SIZE) {
     fprintf(stderr, "%s: kernel binary file is too big\n", app_name);
     fclose(fp);
@@ -351,7 +351,7 @@ int main(int argc, char* argv[])
 
   img_checksum = get_checksum(img);
   real_checksum = compute_checksum(img);
-  
+
   printf ("image checksum = %04x\n", img_checksum);
   printf ("real checksum  = %04x\n", real_checksum);
 

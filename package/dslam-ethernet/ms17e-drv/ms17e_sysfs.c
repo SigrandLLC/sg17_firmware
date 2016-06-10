@@ -16,7 +16,7 @@ static ssize_t show_pwr_source(struct class_device *cdev, char *buf)
 }
 static CLASS_DEVICE_ATTR(pwr_source,0444,show_pwr_source,NULL);
 
-static ssize_t show_status(struct class_device *cdev, char *buf) 
+static ssize_t show_status(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
@@ -81,7 +81,7 @@ static ssize_t show_status(struct class_device *cdev, char *buf)
 }
 static CLASS_DEVICE_ATTR(status, 0444, show_status, NULL);
 
-static ssize_t show_config(struct class_device *cdev, char *buf) 
+static ssize_t show_config(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local    *nl = netdev_priv(ndev);
@@ -107,7 +107,7 @@ static ssize_t show_config(struct class_device *cdev, char *buf)
    echo "1 0" - авто без poe+
    echo "0 [0-5]" - мануал, задание класса (5 - poe+)
 */
-static ssize_t store_config( struct class_device *cdev,const char *buf, size_t size ) 
+static ssize_t store_config( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
@@ -169,7 +169,7 @@ static ssize_t store_config( struct class_device *cdev,const char *buf, size_t s
 }
 static CLASS_DEVICE_ATTR(config, 0644, show_config, store_config);
 
-static ssize_t store_pwr_enable( struct class_device *cdev,const char *buf, size_t size ) 
+static ssize_t store_pwr_enable( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
@@ -198,7 +198,7 @@ static ssize_t store_pwr_enable( struct class_device *cdev,const char *buf, size
 	}
 	return size;
 }
-static ssize_t show_pwr_enable(struct class_device *cdev, char *buf) 
+static ssize_t show_pwr_enable(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local    *nl = netdev_priv(ndev);

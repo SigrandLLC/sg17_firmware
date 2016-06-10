@@ -99,7 +99,7 @@
 
 // SCI only CRA bits
 #define CSEL    0x10            // In SCI Chip select bit
-#define XRST1    0x40            // 
+#define XRST1    0x40            //
 
 
 // CRB bits
@@ -139,8 +139,8 @@
 #define MR17G_CHAN1_SIZE 2*1024
 #	define CHAN1_BUFSIZE	512
 #	define CHAN1_HDLCTX_OFFS 0
-#	define CHAN1_HDLCRX_OFFS (CHAN1_HDLCTX_OFFS + CHAN1_BUFSIZE)  
-#	define CHAN1_REGS_OFFS (CHAN1_HDLCRX_OFFS + CHAN1_BUFSIZE)  
+#	define CHAN1_HDLCRX_OFFS (CHAN1_HDLCTX_OFFS + CHAN1_BUFSIZE)
+#	define CHAN1_REGS_OFFS (CHAN1_HDLCRX_OFFS + CHAN1_BUFSIZE)
 #define MR17G_SCI_SIZE 4*1024
 #define MR17G_CHAN2_SIZE 256
 #	define CHAN2_REGS_OFFS 0

@@ -20,17 +20,17 @@ set -e
 set -o noglob
 
 ipkg_is_upgrade () {
-  local A B a b     
+  local A B a b
   A=$(echo $1 | sed -r "s/([0-9]+)[^[:alnum:]]*/ \1 /g").
   B=$(echo $2 | sed -r "s/([0-9]+)[^[:alnum:]]*/ \1 /g").
-  while [ \! -z "$A" ] && [ \! -z "$B" ]; do {        
+  while [ \! -z "$A" ] && [ \! -z "$B" ]; do {
     set $A; a=$1; shift; A=$*
     set $B; b=$1; shift; B=$*
       [ "$a" -lt "$b" ] 2>&- && return 1
     { [ "$a" -gt "$b" ] 2>&- || [ "$a" ">" "$b" ]; } && return
-  }; done                                                     
+  }; done
   return 1
-}         
+}
 
 ipkg_srcs() {
 	local srcre="$1"
@@ -132,15 +132,15 @@ Valid destinations are directories or one of the dest names from $IPKG_CONF:" >&
 	IPKG_HTTP_PROXY="`ipkg_option http_proxy`"
 	IPKG_FTP_PROXY="`ipkg_option ftp_proxy`"
 	IPKG_NO_PROXY="`ipkg_option no_proxy`"
-	if [ -n "$IPKG_HTTP_PROXY" ]; then 
+	if [ -n "$IPKG_HTTP_PROXY" ]; then
 		export http_proxy="$IPKG_HTTP_PROXY"
 	fi
 
-	if [ -n "$IPKG_FTP_PROXY" ]; then 
+	if [ -n "$IPKG_FTP_PROXY" ]; then
 		export ftp_proxy="$IPKG_FTP_PROXY"
 	fi
 
-	if [ -n "$IPKG_NO_PROXY" ]; then 
+	if [ -n "$IPKG_NO_PROXY" ]; then
 		export no_proxy="$IPKG_NO_PROXY"
 	fi
 
@@ -176,7 +176,7 @@ Options:
 				configuration file, (but can also be a directory
 				name in a pinch).
         -o <offline_root>       Use <offline_root> as the root for offline installation.
-        -offline <offline_root> 				
+        -offline <offline_root>
 
 Force Options (use when ipkg is too smart for its own good):
 	-force-depends          Make dependency checks warnings instead of errors
@@ -222,7 +222,7 @@ ipkg_download() {
 	local proxyuser=""
 	local proxypassword=""
 	local proxyoption=""
-		
+
 	if [ -n "$IPKG_PROXY_USERNAME" ]; then
 		proxyuser="--proxy-user=\"$IPKG_PROXY_USERNAME\""
 		proxypassword="--proxy-passwd=\"$IPKG_PROXY_PASSWORD\""
@@ -277,7 +277,7 @@ ipkg_update() {
 
 ipkg_list() {
 	for src in `ipkg_src_names`; do
-		if ipkg_require_list $src; then 
+		if ipkg_require_list $src; then
 # black magic...
 sed -ne "
 /^Package:/{
@@ -343,7 +343,7 @@ ipkg_info() {
 			case $# in
 			0)
 				cat $IPKG_LISTS_DIR/$src
-				;;	
+				;;
 			1)
 				ipkg_extract_paragraph $1 < $IPKG_LISTS_DIR/$src
 				;;
@@ -546,7 +546,7 @@ ipkg_safe_pkg_name() {
 }
 
 ipkg_set_depends() {
-	local pkg=$1; shift 
+	local pkg=$1; shift
 	local new_deps="$*"
 	pkg="`ipkg_safe_pkg_name $pkg`"
 	## setvar ${pkg}_depends "$new_deps"
@@ -909,7 +909,7 @@ ipkg_install() {
 	while [ $# -gt 0 ]; do
 		local pkg="$1"
 		shift
-	
+
 		case "$pkg" in
 		http://* | ftp://*)
 			local tmp_pkg_file="$IPKG_TMP/"`ipkg_file_part $pkg`
@@ -998,7 +998,7 @@ ipkg_upgrade_pkg() {
 				return 0
 			fi
 
-			if [ "$avail_ver" = "$inst_ver" ]; then 
+			if [ "$avail_ver" = "$inst_ver" ]; then
 				echo "Package $pkg ($inst_ver) installed in $dest_name is up to date"
 			elif ipkg_is_upgrade "$avail_ver" "$inst_ver"; then
 				echo "Upgrading $pkg ($dest_name) from $inst_ver to $avail_ver"
@@ -1022,7 +1022,7 @@ ipkg_upgrade() {
 	else
 		pkgs="$*"
 	fi
-	
+
 	for pkg in $pkgs; do
 		ipkg_upgrade_pkg $pkg
 	done

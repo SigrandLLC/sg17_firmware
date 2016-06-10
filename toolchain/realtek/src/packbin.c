@@ -1,7 +1,7 @@
 /*
  * Copyright c                Realtek Semiconductor Corporation, 2002
- * All rights reserved.                                                    
- * 
+ * All rights reserved.
+ *
  * $Header: /CVS_ROOT/WL_MIMO_Router_Realtek/tools/packbin.src/packbin.c,v 1.2 2006/03/03 11:20:40 Eric1_Liu Exp $
  *
  * $Author: Eric1_Liu $
@@ -31,7 +31,7 @@
  * Create file.
  *
  *
- * 
+ *
  */
 
 #include    <stdio.h>
@@ -45,7 +45,7 @@
 #include    "rtl_image.h"
 
 const char logo_msg[] = {
-	"(c)Copyright Realtek, Inc. 2002\n" 
+	"(c)Copyright Realtek, Inc. 2002\n"
 	"Project ROME\n\n"
 };
 #define ENDIAN_SWITCH32(x) (((x) >> 24) | (((x) >> 8) & 0xFF00) | \
@@ -66,7 +66,7 @@ main(int argc, char *argv[])
     unsigned char       ch;
     unsigned char *     pch;
     unsigned char       chksum;
-    
+
     fileImageHeader_t   imghdr;
 	struct timeval timeval;
 	struct tm *ut;
@@ -98,7 +98,7 @@ main(int argc, char *argv[])
         printf("    image_type    [r|b|k] for [runtime|boot|kernel+fs].\n");
         printf("    pad_to        Size of the output binary image. (0 means no padding)\n");
         printf("    output_file   Name of the output binary image file.\n");
-        
+
         return;
     }
 	if (argc == 6) {
@@ -108,14 +108,14 @@ main(int argc, char *argv[])
 		}
 	}
 
-    
+
     /* Open file */
      if ((fp1=fopen(argv[1], "r+b")) == NULL)
     {
         printf("Cannot open %s !!\n", argv[1]);
         return;
     }
-    
+
     /* Get image type */
     imgType = (unsigned char) *argv[2];
     bzero((void *) &imghdr, sizeof(fileImageHeader_t));
@@ -130,14 +130,14 @@ main(int argc, char *argv[])
         case 'k':
             imghdr.imageType = ENDIAN_SWITCH16(RTL_IMAGE_TYPE_KFS);
             break;
-        
+
         default:
             printf("Image type error !!\n");
     }
-    
+
     /* Get padding size */
     padTo = strtol(argv[3], NULL, 0);
-    
+
     /* Get file size */
     if (stat(argv[1], &fileStat) != 0)
     {
@@ -146,7 +146,7 @@ main(int argc, char *argv[])
         exit(-1);
     }
     imgSize = fileStat.st_size;
-    
+
     /* Check padding size */
     if ( (padTo < imgSize + sizeof(fileImageHeader_t)) && (padTo != 0) )
     {
@@ -158,9 +158,9 @@ main(int argc, char *argv[])
     {
 	    if (imgSize%2)
 		    padTo=(imgSize+sizeof(fileImageHeader_t))+1;
-    }    
+    }
     printf("Image Original Size = 0x%lx\n", imgSize);
-    
+
     /* Temparay file */
     //tmpnam(tmpFilename);
     mkstemp(tmpFilename);
@@ -169,7 +169,7 @@ main(int argc, char *argv[])
         printf("Cannot open temprary file !!\n");
         return;
     }
-    
+
     /* Copy image */
     fseek(fp1, 0L, SEEK_SET);
     fseek(fp2, sizeof(fileImageHeader_t), SEEK_SET);
@@ -181,12 +181,12 @@ main(int argc, char *argv[])
         fputc(ch, fp2);
         chksum ^= ch;
     }
-    
+
     /* Padding */
     if (padTo)
         while (i++ < (padTo - sizeof(fileImageHeader_t)))
             fputc(0, fp2);
-    
+
     /* Forge image header */
     printf("      Magic Number = 0x%lx\n", magic);
     imghdr.productMagic = ENDIAN_SWITCH32(magic);
@@ -207,17 +207,17 @@ main(int argc, char *argv[])
         chksum ^= *pch++;
     imghdr.imageHdrCksm = chksum;
     printf("      Header Checksum = 0x%x\n", chksum);
-    
+
     /* Write header */
     pch = (unsigned char *) &imghdr;
     fseek(fp2, 0L, SEEK_SET);
     for (i=0; i<sizeof(fileImageHeader_t); i++)
         fputc(*pch++, fp2);
-    
+
     /* Close file and exit */
     fclose(fp1);
     fclose(fp2);
-    
+
     printf("Binary image %s generated!\n", argv[4]);
     remove(argv[4]);
     rename(tmpFilename, argv[4]);

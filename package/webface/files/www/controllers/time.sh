@@ -1,9 +1,9 @@
 #!/usr/bin/haserl
-	
+
 	if [ $REQUEST_METHOD = POST ]; then
 		kdb_vars="bool:sys_ntpclient_enabled str:sys_ntpclient_server str:sys_timezone"
 		subsys="time"
-		save "$subsys" "$kdb_vars" 
+		save "$subsys" "$kdb_vars"
 		render_save_message
 	fi
 
@@ -11,7 +11,7 @@
 	render_form_header time time_save
 	help_1="begin"
 	help_2="time"
-	render_table_title "Time settings" 2 
+	render_table_title "Time settings" 2
 
 	# sys_ntpclient_enabled
 	tip="Time synchronization on boot and each 3 hours"
@@ -23,7 +23,7 @@
 	tip="Input hostname of time server <br>Example: <b>pool.ntp.org</b>"
 	desc="Please input hostname or ip address time server"
 	validator="$tmtreq $validator_dnsdomainoripaddr"
-	render_input_field text "Time server" sys_ntpclient_server 
+	render_input_field text "Time server" sys_ntpclient_server
 
 	# sys_timezone
 	tip="Select time zone<br>Example: <b>GMT</b>, <b>GMT+1</b>, <b>GMT+2</b>"

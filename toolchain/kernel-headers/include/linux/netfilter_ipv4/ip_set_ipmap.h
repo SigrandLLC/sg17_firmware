@@ -30,14 +30,14 @@ mask_to_bits(ip_set_ip_t mask)
 {
 	unsigned int bits = 32;
 	ip_set_ip_t maskaddr;
-	
+
 	if (mask == 0xFFFFFFFF)
 		return bits;
-	
+
 	maskaddr = 0xFFFFFFFE;
 	while (--bits >= 0 && maskaddr != mask)
 		maskaddr <<= 1;
-	
+
 	return bits;
 }
 
@@ -45,12 +45,12 @@ ip_set_ip_t
 range_to_mask(ip_set_ip_t from, ip_set_ip_t to, unsigned int *bits)
 {
 	ip_set_ip_t mask = 0xFFFFFFFE;
-	
+
 	*bits = 32;
 	while (--(*bits) >= 0 && mask && (to & mask) != from)
 		mask <<= 1;
-		
+
 	return mask;
 }
-	
+
 #endif /* __IP_SET_IPMAP_H */

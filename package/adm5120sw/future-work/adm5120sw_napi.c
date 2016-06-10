@@ -3,7 +3,7 @@
  *
  *	Copyright Jeroen Vreeken (pe1rxq@amsat.org), 2005
  *
- *	Inspiration for this driver came from the original ADMtek 2.4 
+ *	Inspiration for this driver came from the original ADMtek 2.4
  *	driver, Copyright ADMtek Inc.
  *
  *      Ported back to 2.4(.18-adm) and added default MAC address
@@ -50,7 +50,7 @@ MODULE_LICENSE("GPL");
 /*
  *	The ADM5120 uses an internal matrix to determine which ports
  *	belong to which VLAN.
- *	The default generates a VLAN (and device) for each port 
+ *	The default generates a VLAN (and device) for each port
  *	(including MII port) and the CPU port is part of all of them.
  *
  *	Another example, one big switch and everything mapped to eth0:
@@ -75,7 +75,7 @@ static unsigned char vlan_matrix[SW_DEVS] = {
  *      MAC address, we have this table to associate each device
  *      with its own address.
  */
-static unsigned char default_macaddrs[SW_DEVS][6] __initdata = 
+static unsigned char default_macaddrs[SW_DEVS][6] __initdata =
 {
      { 0x00, 0x50, 0xfc, 0x11, 0x22, 0x33 },
      { 0x00, 0x50, 0xfc, 0x33, 0x22, 0x11 },
@@ -234,7 +234,7 @@ static int adm5120_rx(struct rx_ring *ring, int *budget)
 
 		if (work >= *budget)
 			break;
-		
+
 		skb = skbl[idx];
 		skbn = NULL;
 
@@ -251,14 +251,14 @@ static int adm5120_rx(struct rx_ring *ring, int *budget)
 
 		len = ((desc->status & ADM5120_DMA_LEN) >> ADM5120_DMA_LENSHIFT) - ETH_FCS;
 		if (len <= 0 || len > ADM5120_DMA_RXSIZE ||
-		    desc->status & ADM5120_DMA_FCSERR) 
+		    desc->status & ADM5120_DMA_FCSERR)
 		{
 			priv->stats.rx_errors++;
 			goto next;
 		}
 
 		skbn = dev_alloc_skb(ADM5120_DMA_RXSIZE + 16);
-		if (!skbn) 
+		if (!skbn)
 		{
 			DEBUG_PRINT("can't alloc rx buf: out of memory.\n");
 			priv->stats.rx_dropped++;
@@ -346,7 +346,7 @@ static inline void adm5120_tx(struct tx_ring *ring)
 	struct sk_buff **skbl = ring->skb;
 	int idx = ring->tail_idx;
 
-	while (ring->avail < ring->num_desc && 
+	while (ring->avail < ring->num_desc &&
 	       !(descl[idx].data & ADM5120_DMA_OWN)) {
 		dev_kfree_skb_any(skbl[idx]);
 		skbl[idx] = NULL;
@@ -382,15 +382,15 @@ static int adm5120_poll(struct net_device *dev, int *budget)
 		spin_lock_bh(&init_tx_lock);
 
 		/* tx high priority packets to cpu */
-		if (int_st & ADM5120_INT_TXH)	
+		if (int_st & ADM5120_INT_TXH)
 			adm5120_tx(&tx_h_ring);
 
 		/* tx normal priority packets to cpu */
-		if (int_st & ADM5120_INT_TXL)	
+		if (int_st & ADM5120_INT_TXL)
 			adm5120_tx(&tx_l_ring);
 
-		if( tx_queues_stopped && 
-		    tx_h_ring.avail > ADM5120_TXH_WAKEUP_THRESH && 
+		if( tx_queues_stopped &&
+		    tx_h_ring.avail > ADM5120_TXH_WAKEUP_THRESH &&
 		    tx_l_ring.avail > ADM5120_TXL_WAKEUP_THRESH )
 			adm5120_wake_tx_queues();
 
@@ -462,7 +462,7 @@ adm5120_irq(int irq, void *dev_id, struct pt_regs *regs)
 		DEBUG_PRINT("entering poll mode.\n");
 	} else {
 		printk(KERN_ERR PFX "error!: interrupt while in poll mode"
-		       ", mask: 0x%.8lx, state: 0x%.8lx\n", 
+		       ", mask: 0x%.8lx, state: 0x%.8lx\n",
 		       adm5120_get_reg(ADM5120_INT_MASK), adm5120_get_reg(ADM5120_INT_ST));
 	}
 
@@ -519,13 +519,13 @@ static int adm5120_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	--ring->avail;
 	if (ring->avail == 0 && !tx_queues_stopped)
 		adm5120_stop_tx_queues();
-	
+
 	if (++idx == ring->num_desc)
 		idx = 0;
 
 	ring->head_idx = idx;
 
-out:	
+out:
 	spin_unlock_bh(&init_tx_lock);
 
 	return ret;
@@ -561,9 +561,9 @@ static void adm5120_set_vlan_mask(int vlan, unsigned long vlan_mask)
 	int shift;
 	unsigned long mask = 0x7f;
 
-	if (vlan < 0 || vlan > 6) 
+	if (vlan < 0 || vlan > 6)
 		return;
-	
+
 	vlan_mask &= 0x7f;
 	if (vlan <= 3)
 	{
@@ -586,9 +586,9 @@ static void adm5120_clear_vlan_mask(int vlan)
 	int shift;
 	unsigned long mask = 0x7f;
 
-	if (vlan < 0 || vlan > 6) 
+	if (vlan < 0 || vlan > 6)
 		return;
-	
+
 	if (vlan <= 3)
 	{
 		shift = 8 * vlan;
@@ -642,8 +642,8 @@ static void adm5120_write_mac(struct net_device *dev)
 
 	adm5120_set_reg(ADM5120_MAC_WT1,
 	    mac[2] | (mac[3] << 8) | (mac[4] << 16) | (mac[5] << 24));
-	adm5120_set_reg(ADM5120_MAC_WT0, 
-			(mac[0] << 16) | (mac[1] << 24) | 
+	adm5120_set_reg(ADM5120_MAC_WT0,
+			(mac[0] << 16) | (mac[1] << 24) |
 			(priv->vlan << 3) | ADM5120_MAC_WRITE | ADM5120_VLAN_EN);
 
 	while (!(adm5120_get_reg(ADM5120_MAC_WT0) & ADM5120_MAC_WRITE_DONE));
@@ -664,7 +664,7 @@ static void make_port2vlan(void)
 
 	for (port = 0; port < SW_MAX_PORTS; ++port)
 		port2vlan[port] = -1;
-	
+
 	for (vlan = 0; vlan < adm5120_nrdevs; vlan++) {
 		for (port = 0; port < SW_MAX_PORTS; ++port) {
 			if (vlan_matrix[vlan] & (1 << port))
@@ -710,7 +710,7 @@ static int adm5120_do_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 	return 0;
 }
 
-static void adm5120_dma_tx_init(struct tx_ring *ring, struct adm5120_dma *dma, 
+static void adm5120_dma_tx_init(struct tx_ring *ring, struct adm5120_dma *dma,
 				struct sk_buff **skb, int num)
 {
 	memset(dma, 0, sizeof(struct adm5120_dma) * num);
@@ -755,7 +755,7 @@ static void adm5120_dma_tx_reinit(struct tx_ring *ring)
 	ring->head_idx = 0;
 }
 
-static int adm5120_dma_rx_init(struct rx_ring *ring, struct adm5120_dma *dma, 
+static int adm5120_dma_rx_init(struct rx_ring *ring, struct adm5120_dma *dma,
 				struct sk_buff **skb, int num)
 {
 	int i;
@@ -789,7 +789,7 @@ exit:
 error:
 	while (i--)
 		dev_kfree_skb(skb[i]);
-/*	
+/*
 	memset(dma, 0, sizeof(struct adm5120_dma) * num);
 	memset(skb, 0, sizeof(struct sk_buff *) * num);
 	memset(ring, 0, sizeof(struct rx_ring));
@@ -853,7 +853,7 @@ exit:
 
 static void adm5120_dma_reinit_rings(void)
 {
-	adm5120_dma_rx_reinit(&rx_h_ring); 
+	adm5120_dma_rx_reinit(&rx_h_ring);
 	adm5120_dma_rx_reinit(&rx_l_ring);
 
 	adm5120_dma_tx_reinit(&tx_h_ring);
@@ -876,7 +876,7 @@ static void _adm5120_reset(void)
 
 	/* Resetting PHY before switch reset */
 	adm5120_set_reg(ADM5120_PHY_CNTL2,
-			adm5120_get_reg(ADM5120_PHY_CNTL2) & ~ADM5120_NORMAL); 
+			adm5120_get_reg(ADM5120_PHY_CNTL2) & ~ADM5120_NORMAL);
 /*	adm5120_set_reg(ADM5120_PHY_CNTL2,
 		adm5120_get_reg(ADM5120_PHY_CNTL2) | ADM5120_NORMAL); */
 
@@ -949,7 +949,7 @@ static void _adm5120_down(void)
 
 static void adm5120_disable_all_ports(u32 vlan_mask)
 {
-	adm5120_set_reg(ADM5120_PORT_CONF0, 
+	adm5120_set_reg(ADM5120_PORT_CONF0,
 			adm5120_get_reg(ADM5120_PORT_CONF0) | ADM5120_DISALL);
 }
 
@@ -974,7 +974,7 @@ static int adm5120_open(struct net_device *dev)
 	struct adm5120_sw *priv = dev->priv;
 
 	spin_lock_bh(&init_tx_lock);
-	
+
 	if (!enable_vlan_mask) {
 		spin_lock_bh(&rx_lock);
 
@@ -1004,7 +1004,7 @@ static int adm5120_open(struct net_device *dev)
 		netif_stop_queue(dev);
 	else
 		netif_start_queue(dev);
-	
+
 exit:
 	spin_unlock_bh(&init_tx_lock);
 
@@ -1119,7 +1119,7 @@ static int adm5120_get_tx_ring(char *buf, struct tx_ring *ring)
 	p += sprintf(p, "tail_idx: %d\n\n", ring->tail_idx);
 
 	for (i = 0; i < ring->num_desc; ++i) {
-		p += sprintf(p, "%4d: skb: 0x%.8p%s%s%s%s\n", i, 
+		p += sprintf(p, "%4d: skb: 0x%.8p%s%s%s%s\n", i,
 			     skb[i],
 			     desc[i].data & ADM5120_DMA_OWN ? " OWN" : "",
 			     desc[i].data & ADM5120_DMA_RINGEND ? " RINGEND" : "",
@@ -1143,7 +1143,7 @@ static int adm5120_get_rx_ring(char *buf, struct rx_ring *ring)
 	p += sprintf(p, "     idx: %d\n", ring->idx);
 
 	for (i = 0; i < ring->num_desc; ++i) {
-		p += sprintf(p, "%4d: skb: 0x%.8p%s%s%s\n", i, 
+		p += sprintf(p, "%4d: skb: 0x%.8p%s%s%s\n", i,
 			     skb[i],
 			     desc[i].data & ADM5120_DMA_OWN ? " OWN" : "",
 			     desc[i].data & ADM5120_DMA_RINGEND ? " RINGEND" : "",
@@ -1238,7 +1238,7 @@ static int __init adm5120_init(void)
 
 	printk("adm5120 switch driver version 1.1\n");
 	printk(PFX "initialized with %d vlans.\n", adm5120_nrdevs);
-	printk(PFX "using NAPI.\n" ); 
+	printk(PFX "using NAPI.\n" );
 	printk(PFX "ring sizes:\n" );
 	printk(PFX "rxh = %d, rxl = %d\n", ADM5120_DMA_RXH, ADM5120_DMA_RXL );
 	printk(PFX "txh = %d, txl = %d\n", ADM5120_DMA_TXH, ADM5120_DMA_TXL );
@@ -1265,7 +1265,7 @@ static int __init adm5120_init(void)
 		adm5120_devs[i] = dev;
 
 		strcpy(dev->name, IFACE_NAME_PFX "%d");
-		
+
 		SET_MODULE_OWNER(dev);
 		memset(dev->priv, 0, sizeof(struct adm5120_sw));
 		((struct adm5120_sw*)dev->priv)->vlan = i;
@@ -1293,7 +1293,7 @@ static int __init adm5120_init(void)
 /*		memcpy(dev->dev_addr, "\x00\x50\xfc\x11\x22\x01", 6);
 		dev->dev_addr[5] += i;*/
 	        memcpy(dev->dev_addr, default_macaddrs[i], 6);
-		
+
 		err = register_netdev(dev);
 		if (err) {
 		        unregister_netdev(dev);
@@ -1307,7 +1307,7 @@ static int __init adm5120_init(void)
 	create_proc_read_entry("adm5120sw-txl", 0, NULL, adm5120_read_tx_lring_proc, NULL);
 	create_proc_read_entry("adm5120sw-rxh", 0, NULL, adm5120_read_rx_hring_proc, NULL);
 	create_proc_read_entry("adm5120sw-rxl", 0, NULL, adm5120_read_rx_lring_proc, NULL);
-	
+
 
 	return 0;
 

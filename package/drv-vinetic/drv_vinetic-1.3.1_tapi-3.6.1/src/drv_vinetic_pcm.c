@@ -698,7 +698,7 @@ IFX_return_t IFX_TAPI_LL_PCM_Lec_Cfg (IFX_TAPI_LL_CH_t *pLLChannel,
       case  IFX_TAPI_WLEC_TYPE_NFE:
          bEnLec  = IFX_TRUE;
          bEnWLec = IFX_TRUE;
-         pCh->pPCM->lec_window_coefs [1] = pLecConf->nNBNEwindow + 
+         pCh->pPCM->lec_window_coefs [1] = pLecConf->nNBNEwindow +
                                            pLecConf->nNBFEwindow;
          pCh->pPCM->lec_window_coefs [2] = pLecConf->nNBNEwindow;
          break;

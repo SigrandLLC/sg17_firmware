@@ -68,7 +68,7 @@
 #define SET_VCC_VPP(VCC, VPP, SLOT)\
 	((((VCC)<<2) | ((VPP)<<0)) << ((SLOT)*8))
 
-	
+
 #define FICMMP_CONFIG_BASE		0xAD000000
 #define FICMMP_CONFIG_ENABLE	13
 
@@ -136,16 +136,16 @@ static __inline void ficmmp_config_init(void)
 static __inline u32 ficmmp_set_i2s_sample_rate(u32 rate)
 {
 	u32 freq;
-	
+
 	switch(rate)
 	{
-	case 88200: 
+	case 88200:
 	case 44100:
 	case  8018: freq = I2S_FREQ_11_2896; break;
 	case 48000:
 	case 32000: //freq = I2S_FREQ_18_432; break;
 	case  8000: freq = I2S_FREQ_12_288; break;
-	default:    freq = I2S_FREQ_12_288; rate = 8000; 
+	default:    freq = I2S_FREQ_12_288; rate = 8000;
 	}
 	ficmmp_config_clear(FICMMP_CONFIG_I2SFREQ(0xF));
 	ficmmp_config_set(FICMMP_CONFIG_I2SFREQ(freq));

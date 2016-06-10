@@ -77,7 +77,7 @@ extern IFX_return_t TAPI_Phone_Tone_Predef_Config (COMPLEX_TONE* pToneTable);
    error code: IFX_SUCCESS  -> init successful
                IFX_ERROR    -> init not successful
 */
-IFX_int32_t TAPI_Phone_Init(IFX_TAPI_DRV_CTX_t* pDrvCtx, 
+IFX_int32_t TAPI_Phone_Init(IFX_TAPI_DRV_CTX_t* pDrvCtx,
                             TAPI_CHANNEL *pChannel,
                             IFX_TAPI_CH_INIT_t const *pInit)
 {
@@ -380,7 +380,7 @@ IFX_int32_t TAPI_Phone_Check_Version (IFX_TAPI_VERSION_t const *vers)
    \param  pPtrName     Identifier used to trace in case the ptr is NULL.
 
    \return
-      - IFX_SUCCESS or 
+      - IFX_SUCCESS or
       - IFX_ERROR in case the ptr is NULL
 */
 IFX_boolean_t ptr_chk(IFX_void_t *ptr, const IFX_char_t *pPtrName)

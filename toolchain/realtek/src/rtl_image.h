@@ -1,7 +1,7 @@
 /*
  * Copyright c                Realtek Semiconductor Corporation, 2002
- * All rights reserved.                                                    
- * 
+ * All rights reserved.
+ *
  * $Header: /usr/local/cvsroot/Belkin_RTL8651B/loader_srcroot/inc/rtl_image.h,v 1.1.1.1 2005/01/21 17:34:29 hyin Exp $
  *
  * $Author: hyin $
@@ -24,7 +24,7 @@
  * *** empty log message ***
  *
  * Revision 1.1.1.1  2003/09/25 08:16:56  tony
- *  initial loader tree 
+ *  initial loader tree
  *
  * Revision 1.1.1.1  2003/05/07 08:16:07  danwu
  * no message
@@ -104,7 +104,7 @@ typedef struct fileImageHeader_s {
 	uint32 imageLen;      /* image header length not counted in */
 	uint16 reserved2;
 	uint8 imageBdyCksm;  /* cheacksum cover range: image body */
-	uint8 imageHdrCksm;  /* cheacksum cover range: image header */	
+	uint8 imageHdrCksm;  /* cheacksum cover range: image header */
 } fileImageHeader_t;
 
 

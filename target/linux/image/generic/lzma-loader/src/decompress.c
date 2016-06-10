@@ -92,7 +92,7 @@ static __inline__ unsigned char get_byte(void)
 {
 	unsigned char *buffer;
 	UInt32 fake;
-	
+
 	return read_byte(0, &buffer, &fake), *buffer;
 }
 
@@ -101,7 +101,7 @@ extern char lzma_start[];
 extern char lzma_end[];
 
 /* should be the first function */
-void entry(unsigned long icache_size, unsigned long icache_lsize, 
+void entry(unsigned long icache_size, unsigned long icache_lsize,
 	unsigned long dcache_size, unsigned long dcache_lsize)
 {
 	unsigned int i;  /* temp value */
@@ -131,7 +131,7 @@ void entry(unsigned long icache_size, unsigned long icache_lsize,
 		((unsigned int)get_byte() << 24);
 
 	/* skip rest of the header (upper half of uncompressed size) */
-	for (i = 0; i < 4; i++) 
+	for (i = 0; i < 4; i++)
 		get_byte();
 
 	/* decompress kernel */

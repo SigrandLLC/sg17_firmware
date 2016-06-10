@@ -19,7 +19,7 @@
 struct sg_hw_descr {
 	u32  addr;
 	u32  len;
-}; 
+};
 
 
 struct sg_ring{
@@ -37,7 +37,7 @@ struct sg_ring{
 	// Software control ring, wich has smaller size
 	struct sk_buff *sw_ring[SW_RING_LEN];
 	u8 sw_mask;
-	u8 head, tail; 
+	u8 head, tail;
 	// OS specific
 	spinlock_t lock;
 	struct device *dev;

@@ -37,7 +37,7 @@ int ms17e_net_init(struct ms17e_card *card)
 
 	for (if_processed = 0; if_processed < card->if_num; if_processed++)
 	{
-		// allocate network device 
+		// allocate network device
 		switch (PCI_SLOT(card->pdev->devfn)) {
 			case 2:
 				sprintf(name, "fe0%i", 7 - if_processed);

@@ -1,6 +1,6 @@
 /*
  * htpasswd.c: simple program for manipulating password file for NCSA httpd
- * 
+ *
  * Rob McCool
  */
 

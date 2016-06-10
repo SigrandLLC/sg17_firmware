@@ -50,7 +50,7 @@ cfg_make(){
 	shift
 	shift
 	args="$@"
-	
+
 	[ -z "$tmpl" ] && die "Usage: $0 <template name> <file>"
 	[ -z "$file" ] && die "Usage: $0 <template name> <file>"
 	[ ! -r "/etc/templates/$tmpl" ] && die "Cannot read /etc/templates/$tmpl"
@@ -76,7 +76,7 @@ cfg_commit(){
 
 update_configs(){
 	local subsys="$1"
-	
+
 	case "$subsys" in
 	dialin)
 		cfg_make inittab /etc/inittab
@@ -111,7 +111,7 @@ update_configs(){
 		get_serial_ifaces
 		run="0"
 		for i in $serial_ifaces; do
-			
+
 			t=`kdb get sys_demon_${i}_enable`
 			if  [ "$t" == "1" ]; then
 				run="1"
@@ -147,7 +147,7 @@ update_configs(){
 	dhcp)
 		#cfg_make dhcpd.conf /etc/dhcpd/dhcpd.conf && \
 		if [ -z "$iface" ]; then
-			for iface in `kdb sskls sys_iface_*valid=1 sys_iface_ _valid `; do 
+			for iface in `kdb sskls sys_iface_*valid=1 sys_iface_ _valid `; do
 				[ "`kdb get sys_iface_${iface}_dhcp_enabled`" = 1 ] && \
 					cfg_make udhcpd.conf /etc/udhcpd.${iface}.conf && \
 					cfg_commit
@@ -163,7 +163,7 @@ update_configs(){
 		cfg_commit
 		;;
 	auth_ppp)
-		for ppp_auth_mode in pap chap; do 
+		for ppp_auth_mode in pap chap; do
 			export ppp_auth_mode;
 			cfg_make ppp-secrets /etc/ppp/$ppp_auth_mode-secrets && \
 			cfg_commit
@@ -177,10 +177,10 @@ update_configs(){
 		ok="true"
 		[ -d /etc/bind/zones ] && rm -rf /etc/bind/zones
 		mkdir -p /etc/bind/zones
-		for k in `kdb kls svc_dns_zonelist* `; do 
+		for k in `kdb kls svc_dns_zonelist* `; do
 			unset zone enabled zoneid nameserver admin serial refresh ttl retry expire zonetype
-			zonedata=`kdb get $k`; 
-			eval "$zonedata"; 
+			zonedata=`kdb get $k`;
+			eval "$zonedata";
 			if [ "x${enabled}x" != "xx" ]; then
 				cfg_make dns_zone /etc/bind/zones/$zoneid $k $zoneid || ok="false"
 			fi

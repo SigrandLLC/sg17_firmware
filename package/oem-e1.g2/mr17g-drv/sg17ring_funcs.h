@@ -35,7 +35,7 @@ sg_ring_have_space(struct sg_ring *r)
 	// check that ring is not full
 	if( sg_ring_inc(r->tail,r->sw_mask) == r->head ) {
 		ret=0;
-	}	
+	}
 	return ret;
 }
 
@@ -51,11 +51,11 @@ sg_ring_add_skb(struct sg_ring *r, struct sk_buff *skb)
 	if( sg_ring_inc(r->tail,r->sw_mask) == r->head ) {
 		//		PDEBUG(0," %s ring: ring is full", (r->type==TX_RING) ? "TX" : "RX");
 		return -ERFULL;
-	}	
+	}
 	// set some ring type specific parameters
 	if( r->type == TX_RING ){
 		desc_len = skb->len | LAST_FRAG;
-		dma_len = skb->len;		
+		dma_len = skb->len;
 		dma_type = DMA_TO_DEVICE;
 	}else if( r->type == RX_RING ){
 		desc_len = 0;
@@ -66,7 +66,7 @@ sg_ring_add_skb(struct sg_ring *r, struct sk_buff *skb)
 		//		PDEBUG(0,"bad ring type initialisation");
 		return -ERINIT;
 	}
-	// Map the buffer for DMA 
+	// Map the buffer for DMA
 	bus_addr = dma_map_single(r->dev,skb->data, dma_len, dma_type);
 	// set hardware descriptors
 	ind = ioread8( (u8*)(r->LxDR)) & (r->hw_mask);
@@ -91,15 +91,15 @@ sg_ring_del_skb(struct sg_ring *r,int *len)
 
 	ind = ioread8((u8*)(r->CxDR));
 	if( r->FxDR == ind ){
-		//		PDEBUG(0,"%s ring: nothing to del", (r->type==TX_RING) ? "TX" : "RX");	
+		//		PDEBUG(0,"%s ring: nothing to del", (r->type==TX_RING) ? "TX" : "RX");
 		return NULL;
 	}
 	// set some ring type specific parameters
 	if( r->type == TX_RING ){
-		dma_len=r->sw_ring[r->head]->len;		
+		dma_len=r->sw_ring[r->head]->len;
 		dma_type=DMA_TO_DEVICE;
 	}else if( r->type == RX_RING ){
-		dma_len=PKG_MAX_LEN;	
+		dma_len=PKG_MAX_LEN;
 		dma_type=DMA_FROM_DEVICE;
 	}else{
 		// Error case. Bad ring type initialisation
@@ -107,7 +107,7 @@ sg_ring_del_skb(struct sg_ring *r,int *len)
 		return NULL;
 	}
 
-	// unmap DMA memory 
+	// unmap DMA memory
 	bus_addr=ioread32( (u32*)&(r->hw_ring[ r->FxDR ].addr));
 	*len = ioread32( (u32*)&(r->hw_ring[ r->FxDR ].len)) & 0x7ff;
 	dma_unmap_single(r->dev,bus_addr, dma_len, dma_type );

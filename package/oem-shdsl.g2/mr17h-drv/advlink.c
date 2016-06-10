@@ -7,10 +7,10 @@
 #include "advlink.h"
 #include "sg17debug.h"
 
-void 
+void
 advlink_init(struct advlink_t *alink)
 {
-    memset(alink,0,sizeof(*alink)); 
+    memset(alink,0,sizeof(*alink));
 }
 
 void
@@ -19,7 +19,7 @@ advlink_enable(struct advlink_t *alink)
     alink->enabled = 1;
 }
 
-void 
+void
 advlink_disable(struct advlink_t *alink)
 {
     alink->enabled = 0;
@@ -32,7 +32,7 @@ advlink_enabled(struct advlink_t *alink)
 }
 
 
-void 
+void
 advlink_hwstatus(struct advlink_t *alink,int hstat)
 {
     alink->hw_link = hstat;
@@ -84,14 +84,14 @@ advlink_recv(struct advlink_t *alink,u32 *buf)
     return 0;
 }
 
-int 
+int
 advlink_status(struct advlink_t *alink)
 {
     if( !alink->enabled ){
 	return alink->hw_link;
     }
-    
-    if( alink->hw_link == ADVLINK_UP 
+
+    if( alink->hw_link == ADVLINK_UP
 	&& (alink->send_cntr - alink->recv_cntr) < 4 ){
 	return ADVLINK_UP;
     }else{

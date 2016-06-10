@@ -5,12 +5,12 @@
 Опции:
  -r n		- рекурсивно на n уровней
  -c			- в конце выдать hdb_count=n - по числу выведенных полей
- -q			- заключить в двойные (") ковычки 
- -qq		- заключить в одинарные (') ковычки 
+ -q			- заключить в двойные (") ковычки
+ -qq		- заключить в одинарные (') ковычки
  -l			- префикс local
  -e			- префикс export
  -d         - debug, увеличить уровень дебага
- -D	c		- установить разделитель c, default - '_' 
+ -D	c		- установить разделитель c, default - '_'
 				(-D/  - sys/iface/eth0/mac)
 
 Wildcards:
@@ -21,7 +21,7 @@ Wildcards:
 
 
 Типы данных:
-Если перед именем цепочки есть необязательный префикс 
+Если перед именем цепочки есть необязательный префикс
 	bool: - возможные значения true/false, on/'', 0/1, yes/no - принимает значение 0/1
 	str: - никаке специальные действия не производятся
 	int: - строка приводится к int
@@ -50,7 +50,7 @@ Wildcards:
       # hdb gc sys_iface**=**
       sys_iface_eth0_mac=xx:xx:xx:xx:xx:xx
       sys_iface_eth0_ipaddr=10.1.1.1
-	
+
   gn - get names
       # hdb gn sys_iface_eth0_**=**
       mac
@@ -66,16 +66,16 @@ Wildcards:
       sys_iface_eth0
       sys_iface_eth1
 
-  scp 
+  scp
       устанавливает (добавляет если нету) цепочку
-      # hdb scp sys_iface_eth0_mask=255.255.255.0 
+      # hdb scp sys_iface_eth0_mask=255.255.255.0
 
-  scv 
-      устанавливает (добавляет если нету) цепочку из ENVIRONMENT переменной 
+  scv
+      устанавливает (добавляет если нету) цепочку из ENVIRONMENT переменной
       # hdb scv sys_iface_eth0_mask=FORM_mask
 
   scvf var
-      устанавливает (добавляет если нету) цепочки из FORM_ENVIRONMENT переменных 
+      устанавливает (добавляет если нету) цепочки из FORM_ENVIRONMENT переменных
       # FORM_sys_iface_eth0_ipaddr=10.1.1.1; FORM_sys_iface_eth0_mask=255.0.0.0
       # hdb scvf sys_iface_eth0_mask : scvf sys_iface_eth0_mask
 
@@ -95,41 +95,41 @@ Wildcards:
   sca - set chain append
       добавляет подстроку к значению цепочки
       # hdb scp sys_ifaces="eth0 eth1 eth2"
-      # hdb sca sys_ifaces eth5 
+      # hdb sca sys_ifaces eth5
 	  # hdb gcp sys_ifaces*=*
       sys_ifaces=eth0 eth1 eth2 eth5
 
   scs - set chain replace
       заменяет подстроку в значении цепочки
-      # hdb scs sys_ifaces eth0 eth5 
+      # hdb scs sys_ifaces eth0 eth5
 	  # hdb gcp sys_ifaces*=*
       sys_ifaces=eth5 eth1 eth2 eth5
 
   sci - set chain insert
       вставляет подстроку в начало значения цепочки
-      # hdb sci sys_ifaces eth6 
+      # hdb sci sys_ifaces eth6
 	  # hdb gcp sys_ifaces*=*
       sys_ifaces=eth6 eth1 eth2 eth5
 
   scd - set chain delete
       удаляет подстроку в значении
-      # hdb scr sys_ifaces eth0 eth5 
+      # hdb scr sys_ifaces eth0 eth5
 	  # hdb gcp sys_ifaces*=*
       sys_ifaces=eth5 eth1 eth2 eth5
 
 #ifdef SHELL
 
-  icp - inject chain pairs into environment variables 
+  icp - inject chain pairs into environment variables
       hdb inject sys_iface_eth*=*
 	  echo $sys_iface_eth0_ipaddr
-  
+
   ci  - commit
 	  сбрасывает hdb структуры на диск
 
   icv - inject chain into specified variable
       внедряет в окружение переменную var из hdb
       hdb ics var=sys_hostname
- 
+
 #endif
 
 

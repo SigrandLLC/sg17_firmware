@@ -10,6 +10,6 @@ config BR2_PACKAGE_LIBWRAP
 	select BR2_COMPILE_TCP_WRAPPERS
 	help
 	  Security wrapper library for TCP services.
-	  
+
 	  ftp://ftp.porcupine.org/pub/security/index.html
 

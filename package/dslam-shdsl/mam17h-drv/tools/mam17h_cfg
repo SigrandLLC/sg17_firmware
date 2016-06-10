@@ -34,7 +34,7 @@ print_stat()
 	else
 		rate=""
 	fi
-	annex=`cat annex`    
+	annex=`cat annex`
 	if [ -n "$annex" ]; then
 		annex="annex=$annex"
 	else
@@ -92,7 +92,7 @@ print_stat_all()
 				mode=" slave"
 			fi
 			pwr_mod=`cat pwr_source`
-			
+
 			if [ "$pwr_mod" = "1" ]; then
 				pwron=`cat pwron`
 				if [ "$pwron" = "1" ]; then
@@ -149,7 +149,7 @@ print_stat_all()
 					echo -e "$iface $on_off $online $mode power=$power"
 				fi
 			fi
-			
+
 			echo -e "-----------------------------------------------------------------------------------"
 			cd $bkp_dir
 		fi

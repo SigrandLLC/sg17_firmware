@@ -35,8 +35,8 @@ option () {
 config_clear() {
 	[ -z "$CONFIG_SECTION" ] && return
 	for oldsetting in `set | grep ^CONFIG_${CONFIG_SECTION}_ | \
-		sed -e 's/\(.*\)=.*$/\1/'` ; do 
-		unset $oldsetting 
+		sed -e 's/\(.*\)=.*$/\1/'` ; do
+		unset $oldsetting
 	done
 	unset CONFIG_SECTION
 }

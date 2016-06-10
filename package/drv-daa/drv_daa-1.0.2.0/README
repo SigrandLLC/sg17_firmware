@@ -10,7 +10,7 @@ please refer to drv_daa_board_template.c for details.
 How to configure
 ================
 1) Danube example
-../configure --build=i686-pc-linux --host=mips-linux --enable-warnings --disable-apoh --enable-kernelincl=/home/${USER}/linux/include --enable-duslicincl=/var/vob/comacsd/comacsd_driver/drv_duslic --enable-vineticincl=/var/vob/comacsd/comacsd_driver/drv_peb3324 --enable-tapiincl=/var/vob/comacsd/comacsd_driver/drv_tapi --prefix=/exports/${USER}_danube/opt/ifx --enable-boardname=EASY50512 
+../configure --build=i686-pc-linux --host=mips-linux --enable-warnings --disable-apoh --enable-kernelincl=/home/${USER}/linux/include --enable-duslicincl=/var/vob/comacsd/comacsd_driver/drv_duslic --enable-vineticincl=/var/vob/comacsd/comacsd_driver/drv_peb3324 --enable-tapiincl=/var/vob/comacsd/comacsd_driver/drv_tapi --prefix=/exports/${USER}_danube/opt/ifx --enable-boardname=EASY50512
 --------------------------------------------------------------
 for Linux 2.4 you have to add the following CFLAGS for Danube:
  --with-cflags="-fno-strict-aliasing -fno-common -fomit-frame-pointer -fno-pic -mno-abicalls -mlong-calls -mips32 -pipe -mtune=r4600 -mips2 -mlong-calls -Wa,--trap -G 0 -DMODVERSIONS"

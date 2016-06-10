@@ -1074,7 +1074,7 @@ typedef unsigned long      IFXOS_mutex_t;
 #endif /* XAPI */
 
 /** lock/take the mutex but be interruptable by signals.
-    Different than IFXOS_MutexLock is that the sleep is also interrupted when 
+    Different than IFXOS_MutexLock is that the sleep is also interrupted when
     a signal is received by the sleeping thread. This may not be needed or
     implemented for all operating systems.
 \param mutex - mutex handle

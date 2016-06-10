@@ -6,17 +6,17 @@ show_header $0
 
 eval `kdb -q sls sys_ipsec`
 
-echo 
+echo
 echo "flush;"
 echo "spdflush;"
 
 
-echo 
+echo
 echo "############# Security Association Database ############# "
 echo
 SAs=`kdb kls sys_ipsec_sad*`
 
-for sa in $SAs; do 
+for sa in $SAs; do
 	eval "`kdb get $sa`"
 	[ "x${enabled}x" != "xx" ] && c="" || c="#  "
 
@@ -30,11 +30,11 @@ for sa in $SAs; do
 	fi
 done
 
-echo 
+echo
 echo "############# Security Policy Database ############# "
 echo
 SPs=`kdb kls sys_ipsec_spd*`
-for sp in $SPs; do 
+for sp in $SPs; do
 	eval "`kdb get $sp`"
 	[ "x${enabled}x" != "xx" ] && c="" || c="#  "
 

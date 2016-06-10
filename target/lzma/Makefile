@@ -1,7 +1,7 @@
 #############################################################
 #
-# lzma target 
-# 
+# lzma target
+#
 #############################################################
 
 include $(TOPDIR)/rules.mk
@@ -19,12 +19,12 @@ TARGETS=$(LZMA_LIB_DIR)/liblzma.a $(LZMA_ALONE_DIR)/lzma
 $(DL_DIR)/$(LZMA_SOURCE):
 	$(SCRIPT_DIR)/download.pl $(DL_DIR) $(LZMA_SOURCE) $(LZMA_MD5) $(LZMA_SITE) $(MAKE_TRACE)
 
-$(LZMA_DIR)/.unpacked: $(DL_DIR)/$(LZMA_SOURCE) 
+$(LZMA_DIR)/.unpacked: $(DL_DIR)/$(LZMA_SOURCE)
 	@rm -rf $(LZMA_DIR) && mkdir -p $(LZMA_DIR)
 	tar xjf $^ -C $(LZMA_DIR)
 	patch -d $(LZMA_DIR) -p1 < lzma-zlib.patch $(MAKE_TRACE)
 	touch $(LZMA_DIR)/.unpacked
-	
+
 $(LZMA_ALONE_DIR)/lzma $(LZMA_LIB_DIR)/liblzma.a: $(LZMA_DIR)/.built
 $(LZMA_DIR)/.built: $(LZMA_DIR)/.unpacked
 	$(MAKE) -C $(LZMA_LIB_DIR) $(MAKE_TRACE)

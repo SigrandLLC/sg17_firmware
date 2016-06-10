@@ -8,11 +8,11 @@ dupe() { # <new_root> <old_root>
 	cd $1
 	echo -n "creating directories... "
 	{
-		cd $2 
+		cd $2
 		find . -xdev -type d
 		echo "./dev ./jffs ./mnt ./proc ./tmp ./sys"
 		# xdev skips mounted directories
-		cd $1 
+		cd $1
 	} | xargs mkdir -p
 	echo "done"
 

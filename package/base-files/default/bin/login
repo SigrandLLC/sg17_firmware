@@ -1,6 +1,6 @@
 #!/bin/sh
 grep '^root:[^!]' /etc/passwd >&- 2>&-
-[ "$?" = "0" -a -z "$FAILSAFE" ]  &&  
+[ "$?" = "0" -a -z "$FAILSAFE" ]  &&
 {
     echo "Login failed."
     exit 0

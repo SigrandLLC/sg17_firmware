@@ -6,6 +6,6 @@ config BR2_PACKAGE_IPSEC_TOOLS
 	default m if CONFIG_DEVEL
 	help
 	  IPsec management tools
-	  
+
 	  http://ipsec-tools.sourceforge.net/
 

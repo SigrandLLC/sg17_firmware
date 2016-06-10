@@ -1,9 +1,9 @@
 #!/bin/sh
 
-if [ -x /usr/bin/sed ]; then 
+if [ -x /usr/bin/sed ]; then
     SED="/usr/bin/sed";
 else
-    if [ -x /bin/sed ]; then 
+    if [ -x /bin/sed ]; then
 	SED="/bin/sed";
     fi;
 fi;

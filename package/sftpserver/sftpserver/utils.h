@@ -39,9 +39,9 @@ char *xstrdup(const char *s);
 /* Error-checking workalikes for malloc() etc.  recalloc() does not
  * 0-fill expansion. */
 
-char *append(struct allocator *a, char *s, size_t *ns, 
+char *append(struct allocator *a, char *s, size_t *ns,
              const char *t);
-char *appendn(struct allocator *a, char *s, size_t *ns, 
+char *appendn(struct allocator *a, char *s, size_t *ns,
               const char *t, size_t lt);
 /* Append T to S, expanding if need be.  NS tracks total size of S.  LT is the
  * length of T if present. */

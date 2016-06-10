@@ -12,6 +12,6 @@ nvram () {
       get) eval "echo \${$2:-\${DEFAULT_$2}}";;
       *);;
     esac
-  fi  
+  fi
 }
 

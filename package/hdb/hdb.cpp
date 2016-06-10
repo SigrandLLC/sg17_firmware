@@ -1,4 +1,4 @@
-/************************************************************************** 
+/**************************************************************************
  *
  * Copyright (c) 2005,2007    Vladislav Moskovets (webface-dev(at)vlad.org.ua)
  *
@@ -69,7 +69,7 @@ int debug_level = 1;
 
 #ifdef DEBUG
 void debug(int level,char *format, ...){
-	if ( level > debug_level ) 
+	if ( level > debug_level )
 		return;
 	for (int i = 0; i < level; i++)
 		fprintf(stderr, " ");
@@ -125,7 +125,7 @@ void error(char *format, ...) {
 //      y1-y2-y3     q1-q2-q3-q4-q5
 //      |
 //      r1-r2-r3-r4
-//      
+//
 // 1. q4->get_parent(): returns z4
 // 2. q4->get_first(): returns q1
 // 3. q4->get_last(): returns q5
@@ -157,7 +157,7 @@ class node {
 	char *pos_str;
 
 	void init_values() {
-		parent=NULL; 
+		parent=NULL;
 		fchild=NULL;
 		next=NULL;
 		prev=NULL;
@@ -166,11 +166,11 @@ class node {
 		pos_str=strdup("");
 	}
 public:
-	node() { 
+	node() {
 		init_values();
 	}
 
-	node(const char* name, const char* data) { 
+	node(const char* name, const char* data) {
 		init_values();
 		set_namedata(name, data);
 	}
@@ -217,34 +217,34 @@ public:
 	}
 
 	const char *set_name(const char *str) { debug(6, "node['%s']::set_name('%s')\n", get_name(), str); assert(str); free(name); return name = strdup(str); }
-	const char *set_data(const char *str) { 
-			debug(6, "node['%s']::set_data('%s')\n", get_name(), str); 
-			assert(str); 
+	const char *set_data(const char *str) {
+			debug(6, "node['%s']::set_data('%s')\n", get_name(), str);
+			assert(str);
 			char buf[512];
 			int value, str_value;
 			if ( str[0] == '+' && str[1] == '=' ) {
 				value=atoi(data);
 				str_value=atoi(&str[2]);
 				snprintf(buf, sizeof(buf), "%d", value+str_value);
-				free(data); 
+				free(data);
 				return data = strdup(buf);
 			} else if ( str[0] == '-' && str[1] == '=' ) {
 				value=atoi(data);
 				str_value=atoi(&str[2]);
 				snprintf(buf, sizeof(buf), "%d", value-str_value);
-				free(data); 
+				free(data);
 				return data = strdup(buf);
 			} else
-				return data = strdup(str); 
+				return data = strdup(str);
 	}
 	void set_parent(node* newparent) { assert(newparent); parent = newparent; }
 
 	node *get_next() { return next; }
 	node *get_prev() { return prev; }
-	node *get_parent() { 
-		if ( get_prev() ) 
+	node *get_parent() {
+		if ( get_prev() )
 			return get_first()->get_parent();
-		else 
+		else
 			return parent;
 	}
 
@@ -268,16 +268,16 @@ public:
 		if ( n == NULL)
 			return -1;
 
-		debug(7, "node['u']::get_levelpos(): get_first(): '%s'\n", n->get_name()); 
+		debug(7, "node['u']::get_levelpos(): get_first(): '%s'\n", n->get_name());
 		while ( n != this ) {
 			assert( n != NULL);
 			i++;
 			n = n->get_next();
 		}
-		debug(7, "node['u']::get_levelpos('%d')\n", i); 
+		debug(7, "node['u']::get_levelpos('%d')\n", i);
 		return i;
 	}
-	
+
 	bool set_pair(const char* str) {
 		debug(5, "node['%s']::set_pair('%s')\n", get_name(), str);
 		int len = strlen(str);
@@ -294,7 +294,7 @@ public:
 		char *eq=strchr(s, '=');
 		if ( eq == s ) {
 			set_data( eq+1 );
-		} else if ( eq ) { 
+		} else if ( eq ) {
 			eq[0]='\0';
 			set_name( s );
 			set_data( eq+1 );
@@ -312,7 +312,7 @@ public:
 			debug(7, "node['%s']\n", get_name());
 			return this;
 		}
-		
+
 		// look for first: on first *prev should be NULL
 		while ( true ) {
 			if ( n->get_prev() )
@@ -322,7 +322,7 @@ public:
 				return n;
 			}
 		}
-		
+
 	}
 
 	node *get_last() {
@@ -336,7 +336,7 @@ public:
 		debug(5, "node['%s']\n", get_name());
 		return next->get_last();
 	}
-	
+
 	int get_level(int curr_level=0) {
 		if ( ! get_parent() )
 			return curr_level;
@@ -399,14 +399,14 @@ public:
 		if (t) {
 			t->next=prev;
 		}
-		if (parent) { 
+		if (parent) {
 			prev->parent=parent;
 			parent->fchild=prev;
 			parent=NULL;
 		}
 		return n;
 	}
-	
+
 	node *add_child(node* child) {
 		assert(child);
 		debug(3, "node['%s']::add_child('%s')\n", get_name(), child->get_name());
@@ -470,7 +470,7 @@ public:
 		if ( n ) {
 			remove();
 			return n->insert_after( this );
-		} else 
+		} else
 			return NULL;
 	}
 
@@ -534,7 +534,7 @@ public:
 			debug(5, "node['%s']::remove(): updating node['%s'].next = node['%s']\n", get_name(), get_prev()->get_name(), get_next()? get_next()->get_name():"NULL");
 			get_prev()->next=get_next();
 		}
-		
+
 		// handle parent updation
 		if ( parent ) {
 			debug(5, "node['%s']::remove(): updating node['%s'].fchild = node['%s']\n", get_name(), parent->get_name(), get_next()? get_next()->get_name():"NULL");
@@ -544,7 +544,7 @@ public:
 				get_next()->parent=parent;
 			}
 		}
-			
+
 		if ( get_next() ) {
 			debug(5, "node['%s']::remove(): updating node['%s'].prev = node['%s']\n", get_name(), get_next()->get_name(), get_prev()? get_prev()->get_name():"NULL");
 			get_next()->prev=get_prev();
@@ -555,26 +555,26 @@ public:
 		prev=NULL;
 		return this;
 	}
-			
-		
+
+
 	node *new_child(){
 		return add_child(new node(this));
-	}	
+	}
 
 	node *new_child(const char* str){
 		debug(3, "node['%s']::new_child('%s')\n", get_name(), str);
 		return add_child(new node(str));
-	}	
+	}
 
 
 	node *new_sibling(const char* str){
 		debug(3, "node['%s']::new_sibling('%s')\n", get_name(), str);
 		return get_last()->insert_after(new node(str));
-	}	
+	}
 
 	node *new_sibling(){
 		return get_last()->insert_after(new node(this));
-	}	
+	}
 
 	void dump(int level=0) {
 		for (int i=0; i < level; i++)
@@ -720,7 +720,7 @@ public:
 	}
 
 
-	// in: str:'sys_name_value'  replace first '_'  to '\0', 
+	// in: str:'sys_name_value'  replace first '_'  to '\0',
 	// returns pointer to 'name_value'
 	// returns NULL if delimiter not found
 	char *chain_split_chain(char *str) {
@@ -767,7 +767,7 @@ public:
 
 		return NULL;
 	}
-	
+
 	// in: str:'sys_fw_filter_policy'
 	// returns node with name policy
 	// returns NULL if chain not found
@@ -777,7 +777,7 @@ public:
 		char *next_name;
 		node *n;
 		strncpy(str_buf, str, sizeof(str_buf));
-		
+
 		if ( (next_name = chain_split_chain(str_buf)) ) {
 			n = find_name(str_buf, 1);
 			if ( n ) {
@@ -793,7 +793,7 @@ public:
 			return n;
 		}
 	}
-	
+
 	// in: str:'sys_fw_filter_policy'
 	// returns created node with name policy
 	node* chain_add_node(const char *str) {
@@ -802,7 +802,7 @@ public:
 		char *next_name;
 		node *n;
 		strncpy(str_buf, str, sizeof(str_buf));
-		
+
 		if ( (next_name = chain_split_chain(str_buf)) ) {
 			n = find_name(str_buf, 1);
 			if ( n ) {
@@ -831,14 +831,14 @@ public:
 		debug(3, "node['%s']::chain_print_node('%s')\n", get_name(), prefix);
 		char str_buf[512];
 		strncpy(str_buf, prefix, sizeof(str_buf));
-		
+
 		if ( strlen(get_data() ) ) {
 			debug(4, "node['%s']::chain_print_node('%s'): get_data()='%s'\n", get_name(), prefix, get_data());
 			printf("%s%s=%s\n", str_buf, get_name(), get_data());
 		}
 
 		snprintf(str_buf, sizeof(str_buf), "%s%s%s", prefix,  get_name(), node_delimiter);
-		
+
 		node *c=fchild;
 		while ( c ) {
 			c->chain_print_node(str_buf);
@@ -867,7 +867,7 @@ public:
 			suffix="";
 
 		quot_str="";
-		if ( print_opt & PRINT_QUOT ) 
+		if ( print_opt & PRINT_QUOT )
 			quot_str = "'";
 		else if ( print_opt & PRINT_DQUOT )
 			quot_str = "\"";
@@ -880,7 +880,7 @@ public:
 			snprintf( buf, bufsize,  "%s%s=%s%s%s%s", prefix, name?name:"", quot_str, value?value:"", quot_str, suffix);
 
 		debug(5, "node::snprint_pair(name='%s', value='%s', print_opt=%d): result: '%s'\n", name, value, print_opt, buf);
-		
+
 	}
 
 };
@@ -921,10 +921,10 @@ public:
 	void reset_lines_count() { lines_count = 0; };
 	void inc_lines_count() { lines_count++; };
 	int get_lines_count() { return lines_count; };
-	void print_lines_count() { 
-		if ( TEST_BIT(opt, PRINT_COUNT) ) { 
-			char s[16]; 
-			snprintf(s, sizeof(s), "%d", get_lines_count()); 
+	void print_lines_count() {
+		if ( TEST_BIT(opt, PRINT_COUNT) ) {
+			char s[16];
+			snprintf(s, sizeof(s), "%d", get_lines_count());
 			node::print_pair("hdb_count",  s, opt);
 		}
 	}
@@ -949,8 +949,8 @@ public:
 		printf("        edit }\n");
 		return;
 	};
-	
-	// Parse str "name=value" and return 'name' 
+
+	// Parse str "name=value" and return 'name'
 	char* get_pair_name(const char* str)
 	{
 		debug(4, "hdb::get_pair_name('%s')\n", str);
@@ -968,8 +968,8 @@ public:
 		}
 		return NULL;
 	}
-	
-	// Parse str "name=value" and return 'value' 
+
+	// Parse str "name=value" and return 'value'
 	char* get_pair_data(const char* str)
 	{
 		debug(4, "hdb::get_pair_value('%s')\n", str);
@@ -992,7 +992,7 @@ public:
 		return NULL;
 	}
 
-	const char *get_dbfilename() { 
+	const char *get_dbfilename() {
 		if ( strlen(db_filename) )
 			return db_filename;
 		if ( getenv("HDB") ) {
@@ -1008,7 +1008,7 @@ public:
 			db_filename = strdup( str_buf );
 		}
 
-		return db_filename; 
+		return db_filename;
 	};
 
 	const char *set_dbfilename(const char* filename) {
@@ -1083,7 +1083,7 @@ public:
 		} else {
 			debug(3, "hdb::hdb_list('%s'): node not found\n", str);
 		}
-		
+
 		return true;
 	}
 /*
@@ -1096,7 +1096,7 @@ public:
 		} else {
 			debug(3, "hdb::hdb_slist('%s'): node not found\n", str);
 		}
-		
+
 		return true;
 	}
 */
@@ -1139,7 +1139,7 @@ public:
 		return true;
 	}
 
-	
+
 	int hdb_getcmd(int loptions, int argc, char** argv) {
 		node *n = current_root;
 		char *pattern=NULL;
@@ -1156,7 +1156,7 @@ public:
 			error("argument mismatch\n");
 			return false;
 		};
-		
+
 		pattern=argv[1];
 		assert(n);
 		assert(pattern);
@@ -1164,7 +1164,7 @@ public:
 		reset_lines_count();
 		n->walk(walk_print, (void*) pattern, opt|loptions);
 		print_lines_count();
-		
+
 		return true;
 
 	}
@@ -1188,7 +1188,7 @@ public:
 		};
 		pattern = argv[1];
 		data = argv[2];
-		
+
 		assert( n );
 		assert( pattern );
 		assert( data );
@@ -1201,7 +1201,7 @@ public:
 		else
 			n = n->chain_find_node(pattern);
 
-		if ( n ) { 
+		if ( n ) {
 			debug(3, "hdb::hdb_setcmd('%s'): found node['%s']\n", pattern, n->get_name());
 			n->set_data(data);
 		} else if ( (! strchr( pattern, '=')) && (! is_wildcarded(pattern) ) ) {
@@ -1248,7 +1248,7 @@ public:
 			return false;
 		if ( ! (data = get_pair_data(str)) )
 			return false;
-		
+
 		// get data from environment
 		if ( ! strcmp("%ENV", data) ) {
 			data = getenv(chain);
@@ -1266,7 +1266,7 @@ public:
 			n = current_root->chain_add_node(chain);
 			n->set_data(data);
 		}
-		
+
 		need_write++;
 		return true;
 	}
@@ -1280,7 +1280,7 @@ public:
 	int hdb_create(int argc, char** argv) {
 		FILE *f;
 		const char *lfilename;
-		
+
 		if ( argc > 1 && argv[1] && strlen(argv[1])) {
 			lfilename = argv[1];
 			set_dbfilename(argv[1]);
@@ -1302,13 +1302,13 @@ public:
 	}
 
 	int hdb_export(int argc, char** argv)
-	{	
+	{
 		db_load();
 		return current_root->serialize();
 	}
 
 	int hdb_import(int argc, char** argv)
-	{	
+	{
 		const char* lfilename;
 		if ( argc > 1 && argv[1] && strlen(argv[1]))
 			lfilename=argv[1];
@@ -1336,7 +1336,7 @@ public:
 		return db_open();
 	}
 
-	int hdb_edit(int argc, char** argv) 
+	int hdb_edit(int argc, char** argv)
 	{
 		int result=true;
 		char tmpname[128];
@@ -1350,13 +1350,13 @@ public:
 		else
 			snprintf(editor, sizeof(editor), "vi %s", tmpname);
 
-		
+
 		snprintf(buf, sizeof(buf), "%s export > %s", program_name, tmpname);
 
 		debug(4, "Executing: '%s'\n", buf);
 		if (system(buf))
 			return false;
-		
+
 		char *largv[2];
 		largv[0]=strdup("import");
 		largv[1]=tmpname;
@@ -1371,7 +1371,7 @@ public:
 	}
 
 	int main(int argc, char **argv);
-	
+
 };
 
 int hdb::main (int argc, char **argv)
@@ -1397,7 +1397,7 @@ int hdb::main (int argc, char **argv)
                      break;
             case 'l': SET_BIT(opt, PRINT_LOCAL);
                      break;
-            case 'e': SET_BIT(opt, PRINT_EXPORT); 
+            case 'e': SET_BIT(opt, PRINT_EXPORT);
                      break;
             case 'c': SET_BIT(opt, PRINT_COUNT);
                      break;
@@ -1411,7 +1411,7 @@ int hdb::main (int argc, char **argv)
 		debug(6, "argv[%d]=%s\n", i, argv[i]);
 
 	switch (quotation) {
-		case 1: 
+		case 1:
 			SET_BIT(opt, PRINT_DQUOT);
 			break;
 		case 2:
@@ -1420,7 +1420,7 @@ int hdb::main (int argc, char **argv)
 		default:;
 	}
 
-    if ( argc <= optind ) 
+    if ( argc <= optind )
         show_usage(argv[0]);
 
 	while(true) {
@@ -1428,14 +1428,14 @@ int hdb::main (int argc, char **argv)
 		char **fargv = NULL;
 		char *cmd = NULL;
 
-		if ( optind >= argc ) 
+		if ( optind >= argc )
 			break;
-		
+
 		// if cmd == ':' then go to next cmd
 		if ( argv[optind][0] == ':' )
 			continue;
 
-		fargv = argv + optind; // fargv points to argc element of argv 
+		fargv = argv + optind; // fargv points to argc element of argv
 
 		// prepare fargc
 		while ( ( (optind + fargc) < argc )  &&  ( fargv[fargc][0] != ':' ) )
@@ -1503,7 +1503,7 @@ int hdb::main (int argc, char **argv)
 			result = hdb_set(param0);
 		else if (! strcmp(cmd, "rename") )
 			result = hdb_rename(param0, param1), optind++; */
-		else 
+		else
 			show_usage(argv[0]);
 		if (!result)
 			break;
@@ -1547,7 +1547,7 @@ int main (int argc, char **argv) {
 bool walk_print (node* n, void* func_data, int flags) {
 	char *chain_name;
 	bool result=true;
-	
+
 	if (strlen(n->get_data())) {
 		char *pattern = (char*) func_data;
 		chain_name = n->get_fullchain();
@@ -1580,17 +1580,17 @@ bool walk_print (node* n, void* func_data, int flags) {
 					break;
 				case PRINT_GN:
 					node::print_pair(n->get_name(), NULL, flags);
-					result=false; // not recursive 
+					result=false; // not recursive
 					break;
 				case PRINT_GPARENTN:
 					n = n->get_parent();
 					if ( n )
 						node::print_pair(n->get_name(), NULL, flags);
-					result=false; // not recursive 
+					result=false; // not recursive
 					break;
 				case PRINT_GD:
 					node::print_pair(NULL, n->get_data(), flags);
-					result=false; // not recursive 
+					result=false; // not recursive
 					break;
 			};
 		}
@@ -1605,7 +1605,7 @@ bool walk_print (node* n, void* func_data, int flags) {
 bool walk_set (node* n, void* func_data, int flags) {
 	char *chain_name;
 	bool result=true;
-	
+
 	if (strlen(n->get_data())) {
 		char *pattern = (char*) func_data;
 		chain_name = n->get_fullchain();
@@ -1691,7 +1691,7 @@ char *str_escape(const char *source)
 			*q++ = '\\';
 			*q++ = 'v';
 			break;
-		case '\\': case '"': case '\'': 
+		case '\\': case '"': case '\'':
 			*q++ = '\\';
 			*q++ = *p;
 			break;
@@ -1779,19 +1779,19 @@ int is_wildcarded(const char *str)
 	for ( i=0; i < len; i++ ) {
 		if ( str[i] == '*' ) {
 			if ( i > 0 && str[i-1] == '\\' )
-				continue; 
+				continue;
 			else
 				return true;
 		}
 		if ( str[i] == '[' ) {
 			if ( i > 0 && str[i-1] == '\\' )
-				continue; 
+				continue;
 			else
 				return true;
 		}
 		if ( str[i] == '?' ) {
 			if ( i > 0 && str[i-1] == '\\' )
-				continue; 
+				continue;
 			else
 				return true;
 		}
@@ -1804,7 +1804,7 @@ int is_wildcarded(const char *str)
 
 /* Wildcard code from ndtpd */
 /*
- * Copyright (c) 1997, 98, 2000, 01  
+ * Copyright (c) 1997, 98, 2000, 01
  *    Motoyuki Kasahara
  *    ndtpd-3.1.5
  */
@@ -1812,7 +1812,7 @@ int is_wildcarded(const char *str)
 /*
  * Do wildcard pattern matching.
  * In the pattern, the following characters have special meaning.
- * 
+ *
  *   `*'    matches any sequence of zero or more characters.
  *   '\x'   a character following a backslash is taken literally.
  *          (e.g. '\*' means an asterisk itself.)

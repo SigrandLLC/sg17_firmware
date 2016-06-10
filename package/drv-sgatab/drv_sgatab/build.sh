@@ -13,8 +13,8 @@ path_to_lin=${curr_path}/../../../../../build_mipsel/linux/
 PATH=$PATH:${path_to_bin}
 
 cd ${curr_path}/..
-tar -xvpf ${tapi_name}.tar.gz 
-tar -xvpf ${vinetic_name}.tar.gz 
+tar -xvpf ${tapi_name}.tar.gz
+tar -xvpf ${vinetic_name}.tar.gz
 ln -snf ${tapi_name}	tapi
 ln -snf ${vinetic_name}	vinetic
 

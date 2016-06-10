@@ -7,11 +7,11 @@
 	eval_string="export FORM_$item=\"username=$FORM_username password=$FORM_password server=$FORM_server ipaddr=$FORM_ipaddr\""
 
 	render_popup_save_stuff
-	
+
 	render_form_header $controller
 	render_table_title "PPP $auth_mode secrets"
 	render_popup_form_stuff
-	
+
 	# username
 	tip="Case sensitive"
 	desc="Username for secrets file <b>required</b>"
@@ -22,7 +22,7 @@
 	desc="Password for secrets file <b>required</b>"
 	validator="$tmtreq $validator_password"
 	render_input_field text "Password" password
-	
+
 	# server
 	tip=" * - matches any name. Case sensitive."
 	default='*'

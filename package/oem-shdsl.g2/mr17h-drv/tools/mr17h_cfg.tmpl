@@ -1,5 +1,5 @@
 #!/bin/sh
-# SHDSL PCI modules configuration tool 
+# SHDSL PCI modules configuration tool
 # for Linux kernel v 2.6 drivers
 #
 #	Written 2007 by Artem Y. Polyakov
@@ -20,7 +20,7 @@ print_usage()
     echo "Possible arguments:"
     echo "  master | slave             - set modem mode: master(STU-C) or slave(STU-R)"
     echo "  tcpamXXX                   - line coding, XXX={8,16,32,64,128}"
-    echo "  annex A|B|AB               - G.SHDSL.bis Annex type"    
+    echo "  annex A|B|AB               - G.SHDSL.bis Annex type"
     echo "  rate <value>               - line rate"
     echo "  plesio | plesio-ref | sync - Plesiochronous/Plesio-Ref/Synchronous modes"
     echo "  pbo-normal|pbo-forced <val>- Power Backoff mode, <val> - value in dB"
@@ -30,7 +30,7 @@ print_usage()
     echo "  wboff | wbon               - PCI write burst mode off"
     echo "  fill_ff | fill_7e          - fill byte value"
     echo "  normal | invert            - data inversion"
-    echo "  advlink [on|off]           - Advanced link checking"    
+    echo "  advlink [on|off]           - Advanced link checking"
     echo "Power control:"
     echo "  pwron | pwroff             - enable/disable power feeding"
 }
@@ -50,7 +50,7 @@ print_stat()
     else
 		rate=""
     fi
-    annex=`cat annex`    
+    annex=`cat annex`
     if [ -n "$annex" ]; then
 		annex="annex=$annex"
     else
@@ -63,7 +63,7 @@ print_stat()
     else
 		clkmode=""
     fi
-	
+
 	if [ "$master" = "master" ]; then
 		pbo=`cat pbo_mode`
 		pbo_val=`cat pbo_val`
@@ -103,7 +103,7 @@ print_stat()
 print_stat_all()
 {
 	cd "$PCI_PATH"
-    echo "@MANUFACTURER@ @MODNAME@ SHDSL modem statistics"	
+    echo "@MANUFACTURER@ @MODNAME@ SHDSL modem statistics"
 	for iface in *; do
 		if [ -d "$iface/sg_private" ]; then
 			bkp_dir=`pwd`
@@ -151,19 +151,19 @@ shift
 while [ ! -z "$1" ]; do
 
     case "$1" in
-#------------ SHDSL settings --------------------------------------    
+#------------ SHDSL settings --------------------------------------
 		"master")
 			echo 1 > mode
 			shdsl_need_reconf=1
 			;;
 		"slave")
 			echo 0 > mode
-			shdsl_need_reconf=1	
+			shdsl_need_reconf=1
 			;;
 		"rate")
 			if [ -z "$2" ]; then
 				shift
-				echo $0": rate value is missing"		
+				echo $0": rate value is missing"
 				break
 			fi
 			chk=`echo "$2" | grep '[^0-9]'`
@@ -176,7 +176,7 @@ while [ ! -z "$1" ]; do
 			if [ "$tmp" != "$2" ]; then
 				echo "WARNING: rate value setted to $tmp"
 			fi
-			shdsl_need_reconf=1	
+			shdsl_need_reconf=1
 			shift
 			;;
 		"annex")
@@ -195,7 +195,7 @@ while [ ! -z "$1" ]; do
 				echo 2 > annex
 				shift
 			fi
-			shdsl_need_reconf=1	
+			shdsl_need_reconf=1
 			;;
 		"advlink")
 			if [ -z "$2" ]; then
@@ -217,9 +217,9 @@ while [ ! -z "$1" ]; do
 			if [ "$tmp" != "TCPAM4" ]; then
 				echo "TCPAM64 mode not supported"
 			else
-				shdsl_need_reconf=1	
+				shdsl_need_reconf=1
 			fi
-			shdsl_need_reconf=1	
+			shdsl_need_reconf=1
 			;;
 		"tcpam8")
 			echo 2 > tcpam
@@ -227,17 +227,17 @@ while [ ! -z "$1" ]; do
 			if [ "$tmp" != "TCPAM8" ]; then
 				echo "TCPAM64 mode not supported"
 			else
-				shdsl_need_reconf=1	
+				shdsl_need_reconf=1
 			fi
-			shdsl_need_reconf=1	
+			shdsl_need_reconf=1
 			;;
 		"tcpam16")
 			echo 3 > tcpam
-			shdsl_need_reconf=1	
+			shdsl_need_reconf=1
 			;;
 		"tcpam32")
 			echo 4 > tcpam
-			shdsl_need_reconf=1	
+			shdsl_need_reconf=1
 			;;
 		"tcpam64")
 			echo 5 > tcpam
@@ -245,7 +245,7 @@ while [ ! -z "$1" ]; do
 			if [ "$tmp" != "TCPAM64" ]; then
 				echo "TCPAM64 mode not supported"
 			else
-				shdsl_need_reconf=1	
+				shdsl_need_reconf=1
 			fi
 			;;
 		"tcpam128")
@@ -259,25 +259,25 @@ while [ ! -z "$1" ]; do
 			;;
 		"plesio")
 			echo 0 > clkmode
-			shdsl_need_reconf=1	
+			shdsl_need_reconf=1
 			;;
 		"sync")
 			echo 1 > clkmode
-			shdsl_need_reconf=1	
+			shdsl_need_reconf=1
 			;;
 		"plesio-ref")
 			echo 2 > clkmode
-			shdsl_need_reconf=1	
+			shdsl_need_reconf=1
 			;;
 		"pbo-normal")
 			echo 0 > pbo_mode
-			shdsl_need_reconf=1	
+			shdsl_need_reconf=1
 			;;
 		"pbo-forced")
 			echo 1 > pbo_mode
 			if [ -z "$2" ]; then
 				shift
-				echo $0": PBO value is missing"		
+				echo $0": PBO value is missing"
 				break
 			fi
 			chk=`echo $2 | grep '[^0-9]'`
@@ -290,7 +290,7 @@ while [ ! -z "$1" ]; do
 			if [ "$tmp" != "$2" ]; then
 				echo "WARNING: PBO value setted to $tmp"
 			fi
-			shdsl_need_reconf=1	
+			shdsl_need_reconf=1
 			shift
 			;;
 #------------ if settings --------------------------------------
@@ -300,7 +300,7 @@ while [ ! -z "$1" ]; do
 				echo $0": syntax error, after \"mac-addr\" "
 				break
 			fi
-			echo "$2" > maddr 
+			echo "$2" > maddr
 			shift
 			;;
 
@@ -336,9 +336,9 @@ while [ ! -z "$1" ]; do
 		"fill_7e")
 			echo 1 > fill_7e
 			;;
-		
-#------------ Compat settings --------------------------------------	
-		
+
+#------------ Compat settings --------------------------------------
+
 		"NSGate_comp")
 			if [ -z "$2" ]; then
 				echo $0": syntax error, after \"NSGate_comp\" "
@@ -354,7 +354,7 @@ while [ ! -z "$1" ]; do
 			fi
 			;;
 
-#------------ DEBUG --------------------------------------	
+#------------ DEBUG --------------------------------------
 
 		"debug_off")
 			echo 0 > debug_on

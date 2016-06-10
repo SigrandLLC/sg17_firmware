@@ -29,7 +29,7 @@
     Implementation of the TAPI ring state machine which controls ringing on
     analog lines.
     \remarks
-    All operations done by functions in this module are operating on analog 
+    All operations done by functions in this module are operating on analog
     phone lines and require a file descriptor with an ALM module. */
 
 /** \defgroup RING_IMPLEMENTATION Ringing implementation
@@ -81,7 +81,7 @@ static IFX_void_t   ifx_tapi_ring_OnTimer       (Timer_ID Timer,
    \param   bLast       Pointer to return if this is the last sequence in this
                         cadence.
 
-   \return  Time of the sequence in ms. 
+   \return  Time of the sequence in ms.
             The value 0 is special and indicates an infinite sequence.
 */
 static IFX_uint32_t ifx_tapi_ring_get_next_time(TAPI_RING_DATA_t *pRingData,
@@ -304,7 +304,7 @@ static IFX_void_t ifx_tapi_ring_OnTimer(Timer_ID Timer, IFX_int32_t nArg)
 /**
    Initialise ringing on the given channel.
 
-   Initialise the data structures and resources needed for the ringing 
+   Initialise the data structures and resources needed for the ringing
    state machine.
 
    \param   pChannel    Pointer to TAPI_CHANNEL structure.
@@ -442,7 +442,7 @@ IFX_int32_t IFX_TAPI_Ring_Engine_Start(TAPI_CHANNEL *pChannel,
      - \ref IFX_ERROR: in case of an error
 
    \remarks
-     - This function codes the 32 cadence bits into the 320 bits of the 
+     - This function codes the 32 cadence bits into the 320 bits of the
        high resolution buffer.
      - Each bit in this cadence represents 50 ms time.
 */
@@ -525,9 +525,9 @@ IFX_int32_t  IFX_TAPI_Ring_SetCadence(TAPI_CHANNEL *pChannel,
      - \ref IFX_ERROR: cadence contains errors and is not set
 
    \remarks
-     - The initial cadence may have a zero length while the periodic cadence 
+     - The initial cadence may have a zero length while the periodic cadence
        must have at least a length of one bit.
-     - The initial as well as the periodic cadence may not consists of all 
+     - The initial as well as the periodic cadence may not consists of all
        0 bits but all bits set to 1 is allowed.
 */
 IFX_int32_t  IFX_TAPI_Ring_SetCadenceHighRes(TAPI_CHANNEL *pChannel,

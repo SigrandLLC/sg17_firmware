@@ -95,7 +95,7 @@ static char *process_path(struct allocator *a, char *result, size_t *nresultp,
          * link */
         if(flags & RP_READLINK) {
           const char *const target = sftp_do_readlink(a, result);
-        
+
           if(target) {
             if(target[0] == '/')
               /* Absolute symlink, go back to the root */

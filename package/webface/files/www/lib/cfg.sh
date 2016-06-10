@@ -1,6 +1,6 @@
 #!/bin/sh
 # (c) Vladislav Moskovets 2005
-# 
+#
 
 . /etc/templates/lib
 . lib/service.sh
@@ -14,7 +14,7 @@ update_configs_and_service_reload(){
 	local subsys="$1"
 	local s
 	local service
-	for s in $subsys; do 
+	for s in $subsys; do
 		update_configs $s
 		[ "$ERROR_MESSAGE" ] && return
 	done
@@ -32,7 +32,7 @@ save(){
 	local param;
 	local ptype;
 
-	while true; do 
+	while true; do
 		ok_str="Settings saved"
 
 		for v in $kdb_vars; do
@@ -48,12 +48,12 @@ save(){
 			[ -n "$ERROR_MESSAGE" ] && break;
 		done
 		[ -n "$ERROR_MESSAGE" ] && break;
-		
+
 		kdb_commit
 		fail_str="Savings failed: $ERROR_DETAIL"
 
 		[ -n "$ERROR_MESSAGE" ] && break
-		
+
 		update_configs_and_service_reload "$subsys"
 		break;
 	done;

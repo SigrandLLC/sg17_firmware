@@ -95,7 +95,7 @@ static int led_store(struct file *file,const char *buf,unsigned long count,void 
 		return count;
 	}
 	on_off = simple_strtoul(&endp[1], &endp, 10);
-	
+
 	if (on_off) {
 		led_control(port_num, ON, card);
 	} else {
@@ -107,7 +107,7 @@ static int led_store(struct file *file,const char *buf,unsigned long count,void 
 static int serial_show(char *buf, char **start, off_t offset_, int count, int *eof, void *data) {
 	unsigned long i, j = 0;
 	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
-	
+
 	if (card->serial_buff_size > 0) {
 		if (card->serial_buff_read_pos < card->serial_buff_write_pos) {
 			PDEBUG(debug_serial_show, "read_pos=%lu write_pos=%lu buff_size=%lu\n",
@@ -138,7 +138,7 @@ static int serial_show(char *buf, char **start, off_t offset_, int count, int *e
 static int serial_store(struct file *file,const char *buf,unsigned long count,void *data) {
 	struct ms17e_v2_card * card = (struct ms17e_v2_card *)data;
 	unsigned long i = 0, err = 0;
-	
+
 	for (i = 0; i < count; i++) {
 		if (serial_tx(buf[i], card)) err++;
 	}

@@ -17,7 +17,7 @@ start()
 		/usr/sbin/named -u named -c /etc/bind/named.conf
 	else
 		echo "Do not starting DNS server"
-	fi	
+	fi
 }
 
 stop()
@@ -38,19 +38,19 @@ stop()
 	fi
 	[ -n "`pidof named`" ] && kill `pidof named`
 
-}		
-	
+}
+
 
 case $1 in
 	start)
 		start
 		;;
-	stop) 
+	stop)
 		stop
 		;;
 	restart)
 		stop
-		start	
+		start
 		;;
 esac
 

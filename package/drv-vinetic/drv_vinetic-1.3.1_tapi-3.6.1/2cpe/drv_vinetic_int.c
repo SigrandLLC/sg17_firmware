@@ -357,7 +357,7 @@ IFX_void_t serve_voice_outbox_data(VINETIC_DEVICE *pDev)
          {
             VINETIC_SIG_CID_RX_Data_Collect (pCh->pTapiCh);
          }
-         else 
+         else
 #endif /* TAPI_CID */
          /* handle room-noise feature */
          if ( (pCh->pCOD->nOpMode == vinetic_cod_OPMODE_ROOMNOISE) &&

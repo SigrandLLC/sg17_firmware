@@ -7,7 +7,7 @@ diff -urN glib-1.2.10.old/glib.h glib-1.2.10/glib.h
   */
 +#include <glibconfig-sysdefs.h>
  #include <glibconfig.h>
- 
+
  /* include varargs functions for assertment macros
 diff -urN glib-1.2.10.old/configure glib-1.2.10/configure
 --- glib-1.2.10.old/configure	2005-04-03 01:43:49.000000000 +0200
@@ -15,7 +15,7 @@ diff -urN glib-1.2.10.old/configure glib-1.2.10/configure
 @@ -575,16 +575,6 @@
  # Save this value here, since automake will set cflags later
  cflags_set=${CFLAGS+set}
- 
+
 -# we rewrite this file
 -rm -f glibconfig-sysdefs.h
 -
@@ -26,6 +26,6 @@ diff -urN glib-1.2.10.old/configure glib-1.2.10/configure
 -
 -
 -
- 
+
  # libtool versioning
  LT_RELEASE=$GLIB_MAJOR_VERSION.$GLIB_MINOR_VERSION

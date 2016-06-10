@@ -16,7 +16,7 @@
 		initial revision, support of MR17G4 modules
 	Version 2.0:
 		Support for MR17G84 modules, change all structires
-		
+
  */
 
 #ifndef MR17G_VERSION_H

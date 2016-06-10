@@ -20,7 +20,7 @@ AC_DEFUN([RJK_BUILDSYS_MISC],[
     # extra includes
     if test "$host" = "$build"; then
       case $host_os in
-      freebsd* ) 
+      freebsd* )
         rjk_cv_extraincludes=/usr/local/include
         ;;
       esac
@@ -37,7 +37,7 @@ AC_DEFUN([RJK_BUILDSYS_MISC],[
     rjk_cv_extralibs=none
     if test "$host" = "$build"; then
       case $host_os in
-      freebsd* ) 
+      freebsd* )
         rjk_cv_extralibs=/usr/local/lib
         ;;
       esac

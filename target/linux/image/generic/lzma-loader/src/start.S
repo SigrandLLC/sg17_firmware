@@ -30,14 +30,14 @@
 #define Index_Writeback_Inv_D   0x01
 
 LEAF(_start)
-	
+
 	.set	mips32
 	.set noreorder
 
 	/* set up stack */
 	li	sp, 0xa0000000 + RAMSIZE - 16
-	
-	
+
+
 	/* At this point we need to invalidate dcache and */
 	/* icache before jumping to new code */
 
@@ -80,10 +80,10 @@ LEAF(_start)
 1:	cache	Index_Writeback_Inv_D,0(t0)
 	bne	t0,t1,1b
 	addu	t0,s1
-	
+
 nodc:
 	/* Now we get to do it all again for the I$ */
-	
+
 	move	s3,zero			/* just in case there is no icache */
 	move	s4,zero
 

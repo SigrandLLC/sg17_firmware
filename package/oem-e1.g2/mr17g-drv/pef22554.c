@@ -20,7 +20,7 @@
 
 
 // Chiset register access
-int 
+int
 pef22554_setup_sci(struct mr17g_card *card)
 {
 	struct mr17g_sci *sci = &card->sci;
@@ -35,18 +35,18 @@ pef22554_setup_sci(struct mr17g_card *card)
 	    memset((u8*)cmd,0,sizeof(*cmd));
     	cmd->src.addr = 0x3f;
     	cmd->src.cr = 0;
-	    cmd->dst.addr = i; 
+	    cmd->dst.addr = i;
     	cmd->dst.cr = 1;
     	cmd->reg_addr = 0; // First register
-    	cmd->ctrl_bits = WR_SCI; 
+    	cmd->ctrl_bits = WR_SCI;
     	cmd->data = (PP | ACK_EN | CRC_EN | DUP ); //0x95;
-    	   
+
     	if((size=mr17g_sci_request(sci,i,buf,PEF22554_WCMD_SIZE,PEF22554_WACK_SIZE)) < 0){
         	printk(KERN_ERR"%s: Error setting SCI controller, size=%d, need_size = %d\n",
 				MR17G_MODNAME,size,PEF22554_WACK_SIZE);
         	goto error;
     	}
-    	
+
     	ack = (struct pef22554_write_ack*)buf;
     	if( !( ack->rsta.vfr && ack->rsta.crc && !ack->rsta.rab ) ){
         	printk(KERN_ERR"%s: Error setting SCI controller, RSTA=%02x\n",
@@ -61,7 +61,7 @@ error:
 
 void
 pef22554_defcfg(struct mr17g_channel *chan)
-{   
+{
     struct mr17g_chan_config *cfg = &chan->cfg;
     memset(cfg,0,sizeof(*cfg));
     // Default config: framed, HDB3, slotmap = 1-31;
@@ -83,11 +83,11 @@ pef22554_writereg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 val)
     int size;
 
     PDEBUG(debug_pef,"Chan%d SetReg(%04x) = %02x",chan,addr,val);
-    
+
     memset(cmd,0,sizeof(*cmd));
     cmd->src.addr = 0x3f;
     cmd->src.cr = 1;
-    cmd->dst.addr = 0; 
+    cmd->dst.addr = 0;
     cmd->dst.cr = 1;
     cmd->reg_addr = addr;
     if( !PEF22554_IS_GENERAL(addr) ){
@@ -110,7 +110,7 @@ pef22554_writereg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 val)
     return 0;
 error:
     return -1;
-}    
+}
 
 int
 pef22554_readreg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 *val)
@@ -122,11 +122,11 @@ pef22554_readreg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 *val)
     int size;
 
     PDEBUG(debug_pef,"Chan%d ReadReg(%04x)",chan,addr);
-    
+
     memset(cmd,0,sizeof(*cmd));
     cmd->src.addr = 0x3f;
     cmd->src.cr = 1;
-    cmd->dst.addr = 0; 
+    cmd->dst.addr = 0;
     cmd->dst.cr = 1;
     cmd->reg_addr = addr;
     if( !PEF22554_IS_GENERAL(addr) ){
@@ -151,7 +151,7 @@ pef22554_readreg(struct mr17g_chip *chip,u8 chan,u16 addr,u8 *val)
     return 0;
 error:
     return -1;
-}    
+}
 
 
 // Basic Sigrand chipset setup
@@ -221,7 +221,7 @@ pef22554_basic_chip(struct mr17g_chip *chip)
     if( pef22554_writereg(chip,0,PRBSTS4,0x00)){
         goto error;
     }
-    return 0; 
+    return 0;
 error:
     return -1;
 }
@@ -242,7 +242,7 @@ pef22554_basic_channel(struct mr17g_channel *chan)
     if( pef22554_writereg(chip,ch,RDICR,0x00)){   // RA/RDI - 1 MF
         goto error;
     }
-    if( pef22554_writereg(chip,ch,RTR1,0x00)){  // HDLC1 - not used 
+    if( pef22554_writereg(chip,ch,RTR1,0x00)){  // HDLC1 - not used
         goto error;
     }
     if( pef22554_writereg(chip,ch,RTR2,0x00)){
@@ -302,7 +302,7 @@ pef22554_basic_channel(struct mr17g_channel *chan)
     if( pef22554_writereg(chip,ch,RC0,0x00)){
         goto error;
     }
-    if( pef22554_writereg(chip,ch,RC1,0x04)){  // rx offset = 0 
+    if( pef22554_writereg(chip,ch,RC1,0x04)){  // rx offset = 0
         goto error;
     }
     if( pef22554_writereg(chip,ch,XPM0,0x9C)){
@@ -359,7 +359,7 @@ pef22554_basic_channel(struct mr17g_channel *chan)
     if( pef22554_writereg(chip,ch,PCD,0x0F)){   // 256 '0's LOS alarm
         goto error;
     }
-    if( pef22554_writereg(chip,ch,PCR,0x1F)){   // 32 '1's LOS clear 
+    if( pef22554_writereg(chip,ch,PCR,0x1F)){   // 32 '1's LOS clear
         goto error;
     }
     if( pef22554_writereg(chip,ch,LIM2,0x00)){
@@ -494,7 +494,7 @@ error:
 
 int
 pef22554_channel(struct mr17g_channel *chan)
-{   
+{
     struct mr17g_chip *chip = chan->chip;
     struct mr17g_chan_config *cfg = &chan->cfg;
     volatile struct mr17g_hw_regs *regs = chan->iomem.regs;
@@ -532,7 +532,7 @@ pef22554_channel(struct mr17g_channel *chan)
         goto error;
     }
 
-    // FMR2: 0x30 - unframed, 0x00 - no CRC4, 0x81 - CRC4 
+    // FMR2: 0x30 - unframed, 0x00 - no CRC4, 0x81 - CRC4
     if( !cfg->framed ){
         tmp = 0x30;
     }else{
@@ -543,7 +543,7 @@ pef22554_channel(struct mr17g_channel *chan)
             printk(KERN_ERR"%s: Error: unexpecter crc4 value = %d\n",MR17G_MODNAME,cfg->crc4);
             goto error;
         }
-    }    
+    }
     if( pef22554_writereg(chip,chan->num,FMR2,tmp)){
         goto error;
     }
@@ -559,7 +559,7 @@ pef22554_channel(struct mr17g_channel *chan)
             printk(KERN_ERR"%s: Error: unexpecter cas value = %d\n",MR17G_MODNAME,cfg->crc4);
             goto error;
         }
-    }    
+    }
     if( pef22554_writereg(chip,chan->num,XSP,tmp)){
         goto error;
     }
@@ -576,7 +576,7 @@ pef22554_channel(struct mr17g_channel *chan)
         goto error;
     }
 
-    // PC5: 0x02 when (!!MXEN || (MXEN && CLKM && CLKR)) else 0x00 
+    // PC5: 0x02 when (!!MXEN || (MXEN && CLKM && CLKR)) else 0x00
 	tmp = ioread8(&regs->MXCR);
     if( !(tmp&MXEN) || ( (tmp&(MXEN|CLKM|CLKR))==(MXEN|CLKM|CLKR)) ){
         tmp = 0x02;
@@ -585,9 +585,9 @@ pef22554_channel(struct mr17g_channel *chan)
     }
     if( pef22554_writereg(chip,chan->num,PC5,tmp)){
         goto error;
-    }  
+    }
 
-    // CMR2: 0x04 when (!!MXEN || (MXEN && CLKM && CLKR)) else 0x00 
+    // CMR2: 0x04 when (!!MXEN || (MXEN && CLKM && CLKR)) else 0x00
 	tmp = ioread8(&regs->MXCR);
     if( !(tmp&MXEN) || ( (tmp&(MXEN|CLKM|CLKR))==(MXEN|CLKM|CLKR)) ){
         tmp = 0x04;
@@ -596,7 +596,7 @@ pef22554_channel(struct mr17g_channel *chan)
     }
     if( pef22554_writereg(chip,chan->num,CMR2,tmp)){
         goto error;
-    }  
+    }
 
 	// Loopback configuration
 	if( pef22554_loopbacks(chan) )
@@ -605,8 +605,8 @@ pef22554_channel(struct mr17g_channel *chan)
     // Reset should be written last
     if( pef22554_writereg(chip,chan->num,CMDR,0x50)){
         goto error;
-    }  
-    
+    }
+
     return 0;
 error:
     return -1;
@@ -614,12 +614,12 @@ error:
 
 int
 pef22554_loopbacks(struct mr17g_channel *chan)
-{   
+{
     struct mr17g_chip *chip = chan->chip;
     struct mr17g_chan_config *cfg = &chan->cfg;
     volatile struct mr17g_hw_regs *regs = chan->iomem.regs;
     u8 tmp;
-	
+
 	// Local
 	if( pef22554_readreg(chip,chan->num,LIM0,&tmp) ){
 		goto error;
@@ -630,7 +630,7 @@ pef22554_loopbacks(struct mr17g_channel *chan)
 		tmp &= (~0x02);
     if( pef22554_writereg(chip,chan->num,LIM0,tmp)){
    	    goto error;
-    }  
+    }
 	// Remote
 	if( pef22554_readreg(chip,chan->num,LIM1,&tmp) ){
     	goto error;
@@ -641,7 +641,7 @@ pef22554_loopbacks(struct mr17g_channel *chan)
 		tmp &= (~0x02);
     if( pef22554_writereg(chip,chan->num,LIM1,tmp)){
    	    goto error;
-    }  
+    }
     return 0;
 error:
     return -1;
@@ -664,7 +664,7 @@ pef22554_linkstate(struct mr17g_chip *chip, int chnum,u8 framed)
 		}else{
 			link_down = (tmp & LOS);
 		}
-		
+
         if( link_down ){
             ret = 0;
             goto exit;

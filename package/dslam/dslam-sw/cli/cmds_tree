@@ -105,7 +105,7 @@
 :services:vlan> cd
 :services:vlan> quit
 :services:vlan> save
-:services:vlan> 
+:services:vlan>
 
 
 :services:cos>
@@ -121,7 +121,7 @@
 :services:cos> vlan port { ge0 | ge1 X/X } { enable | disable }
 :services:cos> port port { ge0 | ge1 X/X } { high | low }
 :services:cos> ip port { ge0 | ge1 X/X } { enable | disable }
-:services:cos> tcp 
+:services:cos> tcp
 :services:cos> bandwidth_control
 
 :services:cos:bandwidth_control>

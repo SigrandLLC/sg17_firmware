@@ -1,26 +1,26 @@
 #!/usr/bin/haserl
 
 	subsys="dhcp"
-	
+
 	export iface=${FORM_iface}
 	item=$FORM_item
 	eval_string="export FORM_$item=\"name=$FORM_name ipaddr=$FORM_ipaddr hwaddr=$FORM_hwaddr\""
 
 	render_popup_save_stuff
-	
+
 	render_form_header dhcp_static_edit
 	help_1="dhcp_server"
 	help_2="dhcp_server.static_add"
 	render_table_title "DHCP Host settings" 2
 	render_popup_form_stuff
-	
-    render_input_field hidden iface iface "$iface"	
-	
+
+    render_input_field hidden iface iface "$iface"
+
 	# name
 	desc="Host name"
 	validator="$tmtreq $validator_name"
 	render_input_field text "Host name" name
-	
+
 	# ipaddr
 	desc="IP Address for host"
 	validator="$tmtreq $validator_ipaddr"

@@ -4,11 +4,11 @@
 	auth_mode=${page}
 
 	subsys="auth_ppp"
-	
+
 	handle_list_del_item
 	eval `kdb -qq ls "sys_auth_*" `
 
-	render_page_selection "" chap CHAP pap PAP 
+	render_page_selection "" chap CHAP pap PAP
 	render_form_header "${controller}_${auth_mode}"
 	render_list_line(){
 		local lineno=$1

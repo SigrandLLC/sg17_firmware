@@ -4,6 +4,6 @@ config BR2_PACKAGE_LIBPCAP
 	default m if CONFIG_DEVEL
 	help
 	  A system-independent library for user-level network packet capture.
-	  
+
 	  http://www.tcpdump.org/
 

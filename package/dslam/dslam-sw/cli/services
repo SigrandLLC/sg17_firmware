@@ -423,12 +423,12 @@ link_aggregation_group_func() {
 			echo "Syntax error"
 		;;
 	esac
-	
+
 }
 
 link_aggregation_func() {
 	prompt=":services:link_aggregation"
-	
+
 	if [ "$group" != "" ]; then
 		link_aggregation_group_func $group $*
 	else
@@ -508,7 +508,7 @@ link_aggregation_func() {
 				g3=" enable"
 				g3_ports="$ret"
 			fi
-			
+
 			echo "--------------------------------------------------------------------"
 			echo "Group num | Group type | Algorithm | Group state | Port of the group"
 			echo "--------------------------------------------------------------------"
@@ -542,7 +542,7 @@ link_aggregation_func() {
 			echo "Syntax error"
 		;;
 	esac
-	
+
 	fi
 }
 
@@ -964,7 +964,7 @@ mirroring_func() {
 			echo "Syntax error"
 		;;
 	esac
-	
+
 	fi
 }
 

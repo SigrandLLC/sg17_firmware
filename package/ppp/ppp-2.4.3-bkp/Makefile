@@ -112,11 +112,11 @@ $(IPKG_PPP):
 	echo "Depends: $(PKG_DEPEND)" >> $(IDIR_PPP)/CONTROL/control
 	$(RSTRIP) $(IDIR_PPP)
 	$(IPKG_BUILD) $(IDIR_PPP) $(PACKAGE_DIR)
-	
 
-$(IPKG_PPP_MOD_PPPOA): 
 
-$(IPKG_PPP_MOD_PPPOE): 
+$(IPKG_PPP_MOD_PPPOA):
+
+$(IPKG_PPP_MOD_PPPOE):
 
 $(IDIR_PPP_MOD_RADIUS)/etc/ppp/radius.conf:
 	install -d -m0755 $(IDIR_PPP_MOD_RADIUS)/etc/ppp

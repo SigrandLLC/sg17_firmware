@@ -3,7 +3,7 @@
 # Usually runs on port 443
 #
 # This is a superset validcertssl.  For it to match, it must be first.
-# 
+#
 # This pattern has been tested and is believed to work well.  If it does not
 # work for you, or you believe it could be improved, please post to
 # l7-filter-developers@lists.sf.net .  This list may be subscribed to at

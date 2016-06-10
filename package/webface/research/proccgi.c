@@ -107,7 +107,7 @@ ParseString (char *instring)
       *ptr2++ |= ((*ptr1>='0'&&*ptr1<='9')?(*ptr1-'0'):((char)toupper(*ptr1)-'A'+10));
       ptr1++;
     }
-    else 
+    else
       *ptr2++ = *ptr1++;
   }
   while (ptr2>instring && isspace(*(ptr2-1)))

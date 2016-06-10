@@ -1,12 +1,12 @@
 /*
  *	ADM5120 ethernet switch driver
- *	
+ *
  *	Based on original ADMTEK 2.4.18 driver, copyright ADMtek Inc.
  *	daniel@admtek.com.tw
- *	
+ *
  *	Port to 2.4.31 kernel and modified to able to load as module
  *	by Joco, rjoco77@kezdionline.ro
- *	
+ *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
  *	the Free Software Foundation; either version 2, or (at your option)
@@ -19,7 +19,7 @@
  *
  *	You should have received a copy of the GNU General Public License
  *	along with this program; if not, write to the Free Software
- *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.	
+ *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
 #ifndef __ADM5120SW_H__
@@ -240,29 +240,29 @@ typedef struct port_status_s
 typedef struct adm5120sw_context_s {
 	TX_ENG_T txH, txL;
 	RX_ENG_T rxH, rxL;
-	
+
 	PORT_CFG_T port[NUM_IF5120_PORTS];
-	
+
 	/* Vlan group of IF unit */
 	unsigned char vlanGrp[MAX_VLAN_GROUP];
 	unsigned char nr_if;
-	
+
 	unsigned long intMask;
 	unsigned long intStatus;
 	unsigned long linkStatus;
-	
+
 	int ifCnt;
 	int actIfCnt;
-	
+
 	/* tx drv descriptor pool */
 	unsigned char *txDrvDescPool;
-	
+
 	/* rx drv descriptor pool */
 	unsigned char *rxDrvDescPool;
-	
+
 	/* Hardware descriptor pool */
 	unsigned char *hwDescPool;
-	
+
 	spinlock_t lock;
 
 } SW_CONTEXT_T, *PSW_CONTEXT_T;
@@ -271,22 +271,22 @@ typedef struct adm5120sw_context_s {
 typedef struct adm5120sw_priv_s
 {
 	struct net_device_stats stats;
-	
+
 	spinlock_t lock;
-	
+
 	/* interface unit */
 	int unit;
-	
+
 	int status;
 	int priority;
 	int csum_flags;
-	
+
 	/* interface flags */
 	int iflags;
-	
+
 	/* for fill tx descriptor */
 	unsigned long vlanId;
-	
+
 } SW_PRIV_T, *PSW_PRIV_T;
 
 #endif

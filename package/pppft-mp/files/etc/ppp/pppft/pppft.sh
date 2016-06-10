@@ -28,14 +28,14 @@ log_notice(){
 add_ttys()
 {
 	local tty_pid
-	
+
 	iface=$1
 	shift
-	
+
 	ifindex=${iface#ppp}
 	eval "locip=\${${iface}_locip}"
 	eval "remip=\${${iface}_remip}"
-	
+
 	IP_PART=""
 	if [ -n "$locip" ]; then
 		IPPART="$locip"
@@ -58,7 +58,7 @@ add_ttys()
 			log_error "$iface: No speed for $tty found, use default = 115200"
 		fi
 		log_notice "add_ttys: pppd $PPPD_OPTIONS unit $ifindex $IPPART $tty $TTYSPEED "
-		pppd $tty $TTYSPEED $PPPD_OPTIONS $IPPART  
+		pppd $tty $TTYSPEED $PPPD_OPTIONS $IPPART
 	done
 }
 
@@ -73,14 +73,14 @@ check_setup_iface()
 	local tty_pid
 	local ppp_master
 
-	log_notice "Process IF=$iface"	
+	log_notice "Process IF=$iface"
 	#check if name
 	tmp=`echo $iface | grep "^ppp[0-9][0-9]*$"`
 	if [ -z "$tmp" ]; then
-		log_err "Wrong ppp device name \"$iface\". Need pppN" 
+		log_err "Wrong ppp device name \"$iface\". Need pppN"
 		return
 	fi
-	
+
 	# check ttys
 	eval "ttys=\${${iface}_ttys}"
 	if [ -z "$ttys" ]; then
@@ -95,7 +95,7 @@ check_setup_iface()
 		add_ttys $iface $ttys
 		return
 	fi
-	
+
 	# check if master tty is connected
 	ppp_pid=`cat /var/run/$iface.pid`
 	ppp_master=0
@@ -112,7 +112,7 @@ check_setup_iface()
 		return
 	fi
 
-	# Check nonmaster tty's		
+	# Check nonmaster tty's
 	for tty in $ttys; do
 		log_notice "Process tty=$tty"
 		# check if lock exist

@@ -1,20 +1,20 @@
 #!/usr/bin/haserl
 	. lib/misc.sh
-	
+
 	subsys="dns_server"
-	
+
 	FORM_serial=$(get_new_serial $FORM_serial)
 
 	item=$FORM_item
 	eval_string="export FORM_$item=\"zone=$FORM_zone enabled=$FORM_enabled zoneid=$FORM_zoneid nameserver=$FORM_nameserver admin=$FORM_admin serial=$FORM_serial  refresh=$FORM_refresh ttl=$FORM_ttl retry=$FORM_retry expire=$FORM_expire zonetype=$FORM_zonetype \""
 	render_popup_save_stuff
-	
+
 	render_form_header dns_zonelist_edit
 	help_1="dns_server"
 	help_2="dns_server.zone_add"
 	render_table_title "DNS Zone options" 2
 	render_popup_form_stuff
-	
+
 	if [ -n "$FORM_additem" ]; then
 		# zoneid
 		tip="<b>Example:</b> domain1"
@@ -27,12 +27,12 @@
 
 	render_input_field hidden serial serial "$serial"
 	render_input_field hidden zonetype zonetype "master"
-	
+
 	# zone
 	desc="Name of zone"
 	validator="$tmtreq $validator_dnszone"
 	render_input_field text "Zone" zone
-	
+
 	# enabled
 	tip=""
 	desc="Check this item to enable zone"
@@ -80,6 +80,6 @@
 	render_submit_field
 
 	render_form_tail
-	
-	
+
+
 # vim:foldmethod=indent:foldlevel=1

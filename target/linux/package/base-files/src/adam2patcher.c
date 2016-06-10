@@ -55,5 +55,5 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Unknown ADAM2 detected. Can't patch!\n");
 	}
 
-	close(fd);		
+	close(fd);
 }

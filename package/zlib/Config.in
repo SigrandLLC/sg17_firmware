@@ -4,6 +4,6 @@ config BR2_PACKAGE_ZLIB
 	default m if CONFIG_DEVEL
 	help
 	  A library implementing the 'deflate' compression method
-	  
+
 	  http://www.zlib.net/
 

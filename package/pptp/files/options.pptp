@@ -1,6 +1,6 @@
-lock 
-noauth 
-nobsdcomp 
+lock
+noauth
+nobsdcomp
 nodeflate
 idle 0
 defaultroute

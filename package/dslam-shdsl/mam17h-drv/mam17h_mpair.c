@@ -26,9 +26,9 @@ int mpair_master(struct mam17_card *card)
 	struct cmd_cfg_sdi_rx *sdi_rx;
 	struct cmd_cfg_ghs_extended_pam_mode *extended_pam_mode;
 	struct cmd_xmii_modify *xmii_modify;
-	
+
 	struct cmd_tc_flowmodify *flowmodify;
-	
+
 	int i = 0;
 	int mpair_ref = 0;
 	int mpair_mode = card->mpair_mode;
@@ -69,7 +69,7 @@ two_mpair:
 
 	linkmodify=(struct cmd_hdlc_tc_link_linkmodify *)buf;
 	memset(linkmodify,0,sizeof(*linkmodify));
-	
+
 	linkmodify->linkNo = mpair_ref;
 	linkmodify->bitdyte = BIT_STUFFING;
 	linkmodify->interframe_ch = card->channels[mpair_ref].fill_7e;
@@ -95,7 +95,7 @@ two_mpair:
 	mdelay(100);
 	spanprofile=(struct cmd_pmd_spanprofilegroupconfig *)buf;
 	memset(spanprofile,0,sizeof(*spanprofile));
-	
+
 	spanprofile->LinkNo = mpair_ref;
 	spanprofile->wireinterface = TWO_WIRE;
 	spanprofile->minlinerate = 256000;
@@ -120,7 +120,7 @@ two_mpair:
 		spanprofile->pbo_mode = PBO_FORCED;
 	if (card->channels[mpair_ref].pbo_mode == PWRBO_NORMAL)
 		spanprofile->epl_mode = EPL_ENABLED;
-	else 
+	else
 		spanprofile->epl_mode = EPL_DISABLED;
 	spanprofile->pbo_valu = card->channels[0].pbo_vals[mpair_ref];
 
@@ -134,12 +134,12 @@ two_mpair:
 	buf[1] = 1;
 	buf[2] = 8*1024*1000;//speed
 	buf[3] = TCPAM128;
-	
+
 	mpi_cmd(card, 0x65, buf, 4, &ack);////////////////////////////----------
 
 	pmd_control=(struct cmd_pmd_control *)buf;
 	memset(pmd_control,0,sizeof(*pmd_control));
-	
+
 	pmd_control->LinkNo = 0;
 	pmd_control->LinkControl = ENABLE_LINK;
 	pmd_control->ActivationState = START_AFTER_INIT;
@@ -156,7 +156,7 @@ two_mpair:
 
 	pmd_control=(struct cmd_pmd_control *)buf;
 	memset(pmd_control,0,sizeof(*pmd_control));
-	
+
 	pmd_control->LinkNo = mpair_ref;
 	pmd_control->LinkControl = ENABLE_LINK;
 	pmd_control->ActivationState = STOP_AFTER_INIT;
@@ -167,7 +167,7 @@ two_mpair:
 		return -1;
 	}
 	mdelay(100);
-	
+
 
 // ----------------Extended PMD configuration----------
 // ----------------------------------------------------
@@ -178,7 +178,7 @@ two_mpair:
 
 		ghs_mode = (struct cmd_cfg_ghs_mode *)buf;
 		memset(ghs_mode, 0, sizeof(*ghs_mode));
-	
+
 		ghs_mode->transaction = GHS_TRNS_10;
 		ghs_mode->startup_initialization=STARTUP_LOCAL;
 		switch (card->channels[i].pbo_mode)
@@ -194,10 +194,10 @@ two_mpair:
 		}
 		ghs_mode->pmms_margin_mode = PMMS_NORMAL;
 		tunnel_cmd(card, CMD_CFG_GHS_MODE, buf, sizeof(*ghs_mode)/4, i, &ack);
-	
+
 		caplist = (struct cmd_cfg_caplist_short_ver_2 *)buf;
 		memset(caplist, 0, sizeof(*caplist));
-	
+
 		switch (card->channels[i].clkmode)
 		{
 			case 0:
@@ -219,14 +219,14 @@ two_mpair:
 		}
 		caplist->annex = card->channels[i].annex + 1;
 		caplist->psd_mask = 0x00;
-	
+
 		caplist->base_rate_min = 192;
 		caplist->base_rate_max = 2304;
 		caplist->base_rate_min16 = 2368;
 		caplist->base_rate_max16 = 3840;
 		caplist->base_rate_min32 = 768;
 		caplist->base_rate_max32 = 5696;
-	
+
 		caplist->sub_rate_min = 0x00;
 		caplist->sub_rate_max = 0x00;
 		caplist->enable_pmms = PMMS_OFF;
@@ -245,12 +245,12 @@ two_mpair:
 		sdi_rx->lstwr_1strd_dly = 0x64;
 		sdi_rx->slip_mode = SLIP_FAST;
 		sdi_rx->align = SDI_NO;
-	
+
 		tunnel_cmd(card, CMD_CFG_SDI_RX, buf, sizeof(*sdi_rx)/4, i, &ack);
 
 		sdi_tx = (struct cmd_cfg_sdi_tx*)buf;
 		memset(sdi_tx, 0, sizeof(*sdi_tx));
-	
+
 		sdi_tx->data_shift = 0x00;
 		sdi_tx->frame_shift = 0x00;
 		sdi_tx->sp_level = SDI_HIGH;
@@ -287,7 +287,7 @@ two_mpair:
 		xmii_modify->altcollision=IFX_DISABLE;
 		xmii_modify->rxduringtx=IFX_DISABLE;
 		xmii_modify->collisiontype=IFX_DISABLE;
-	
+
 		if (mpi_cmd(card, CMD_xMII_Modify, buf, sizeof(*xmii_modify)/4, &ack)) return -1;
 
 
@@ -319,7 +319,7 @@ two_mpair:
 		xmii_modify->altcollision=IFX_DISABLE;
 		xmii_modify->rxduringtx=IFX_DISABLE;
 		xmii_modify->collisiontype=IFX_DISABLE;
-	
+
 		if (mpi_cmd(card, CMD_xMII_Modify, buf, sizeof(*xmii_modify)/4, &ack)) return -1;
 	}
 */
@@ -351,9 +351,9 @@ int mpair_slave(struct mam17_card *card)
 	struct cmd_cfg_sdi_rx *sdi_rx;
 	struct cmd_cfg_ghs_extended_pam_mode *extended_pam_mode;
 	struct cmd_xmii_modify *xmii_modify;
-	
+
 	struct cmd_tc_flowmodify *flowmodify;
-	
+
 	int i = 0;
 
 	int mpair_ref = 0;
@@ -397,7 +397,7 @@ two_mpair:
 
 	linkmodify=(struct cmd_hdlc_tc_link_linkmodify *)buf;
 	memset(linkmodify,0,sizeof(*linkmodify));
-	
+
 	linkmodify->linkNo = mpair_ref;
 	linkmodify->bitdyte = BIT_STUFFING;
 	linkmodify->interframe_ch = card->channels[mpair_ref].fill_7e;
@@ -416,7 +416,7 @@ two_mpair:
 
 	spanprofile=(struct cmd_pmd_spanprofilegroupconfig *)buf;
 	memset(spanprofile,0,sizeof(*spanprofile));
-	
+
 	spanprofile->LinkNo = mpair_ref;
 	spanprofile->wireinterface = TWO_WIRE;
 	spanprofile->minlinerate = 256000;
@@ -441,7 +441,7 @@ two_mpair:
 		spanprofile->pbo_mode = PBO_FORCED;
 	if (card->channels[mpair_ref].pbo_mode == PWRBO_NORMAL)
 		spanprofile->epl_mode = EPL_ENABLED;
-	else 
+	else
 		spanprofile->epl_mode = EPL_DISABLED;
 	spanprofile->pbo_valu = card->channels[mpair_ref].pbo_vals[mpair_ref];
 
@@ -453,7 +453,7 @@ two_mpair:
 
 	pmd_control=(struct cmd_pmd_control *)buf;
 	memset(pmd_control,0,sizeof(*pmd_control));
-	
+
 	pmd_control->LinkNo = mpair_ref;
 	pmd_control->LinkControl = FORCE_LINK_DOWN;
 	pmd_control->ActivationState = STOP_AFTER_INIT;
@@ -475,7 +475,7 @@ two_mpair:
 
 		ghs_mode = (struct cmd_cfg_ghs_mode *)buf;
 		memset(ghs_mode, 0, sizeof(*ghs_mode));
-	
+
 		ghs_mode->transaction = GHS_TRNS_00;
 		ghs_mode->startup_initialization=STARTUP_FAREND;
 		ghs_mode->pbo_mode = PBO_NORMAL;
@@ -486,29 +486,29 @@ two_mpair:
 
 		caplist = (struct cmd_cfg_caplist_short_ver_2 *)buf;
 		memset(caplist, 0, sizeof(*caplist));
-	
+
 		caplist->clock_mode = SHDSL_CLK_MODE_1|SHDSL_CLK_MODE_2|SHDSL_CLK_MODE_3a;
 		caplist->annex = 3;//ANNEX_A_B;
 		caplist->pow_backoff = 0;
 		caplist->psd_mask = 0x00;
-		
+
 		caplist->base_rate_min = 192;
 		caplist->base_rate_max = 2304;
 		caplist->base_rate_min16 = 2368;
 		caplist->base_rate_max16 = 3840;
 		caplist->base_rate_min32 = 768;
 		caplist->base_rate_max32 = 5696;
-		
+
 		caplist->sub_rate_min = 0x00;
 		caplist->sub_rate_max = 0x00;
 		caplist->enable_pmms = PMMS_OFF;
 		caplist->pmms_margin = 0x00;
-	
+
 		tunnel_cmd(card, CMD_CFG_CAPLIST_SHORT_VER_2, buf, sizeof(*caplist)/4, i, &ack);
-	
+
 		sdi_rx = (struct cmd_cfg_sdi_rx*)buf;
 		memset(sdi_rx, 0, sizeof(*sdi_rx));
-	
+
 		sdi_rx->data_shift = 0x00;
 		sdi_rx->frame_shift = 0x00;
 		sdi_rx->sp_level = SDI_HIGH;
@@ -517,7 +517,7 @@ two_mpair:
 		sdi_rx->lstwr_1strd_dly = 0x64;
 		sdi_rx->slip_mode = SLIP_FAST;
 		sdi_rx->align = SDI_NO;
-	
+
 		tunnel_cmd(card, CMD_CFG_SDI_RX, buf, sizeof(*sdi_rx)/4, i, &ack);
 
 		sdi_tx = (struct cmd_cfg_sdi_tx*)buf;
@@ -564,12 +564,12 @@ two_mpair:
 	buf[1] = 1;
 	buf[2] = 10*1024*1024;//speed
 	buf[3] = 6;//tcpam
-	
+
 	mpi_cmd(card, 0x65, buf, 4, &ack);
 
 	pmd_control=(struct cmd_pmd_control *)buf;
 	memset(pmd_control,0,sizeof(*pmd_control));//////////////////////------
-	
+
 	pmd_control->LinkNo = 0;
 	pmd_control->LinkControl = FORCE_LINK_DOWN;
 	pmd_control->ActivationState = START_AFTER_INIT;
@@ -594,7 +594,7 @@ two_mpair:
 		xmii_modify->altcollision=IFX_DISABLE;
 		xmii_modify->rxduringtx=IFX_DISABLE;
 		xmii_modify->collisiontype=IFX_DISABLE;
-	
+
 		if (mpi_cmd(card, CMD_xMII_Modify, buf, sizeof(*xmii_modify)/4, &ack)) return -1;
 	}
 

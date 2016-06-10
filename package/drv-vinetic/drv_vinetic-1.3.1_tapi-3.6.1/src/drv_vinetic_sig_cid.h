@@ -57,9 +57,9 @@ extern IFX_return_t VINETIC_SIG_CID_Sender_MSG_Reset (VINETIC_CHANNEL *pCh);
 
 extern IFX_return_t VINETIC_SIG_CID_RX_Data_Collect (TAPI_CHANNEL *pChannel);
 
-/* Prototypes for functions which are exported via the function 
-   VINETIC_SIG_Func_Register(). The prototype for the function pointers are 
-   defined in drv_tapi_ll_interface.h and must be identical to the prototypes 
+/* Prototypes for functions which are exported via the function
+   VINETIC_SIG_Func_Register(). The prototype for the function pointers are
+   defined in drv_tapi_ll_interface.h and must be identical to the prototypes
    below. */
 
 extern IFX_int32_t IFX_TAPI_LL_SIG_CID_TX_Start (IFX_TAPI_LL_CH_t *pLLChannel,

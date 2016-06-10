@@ -25,7 +25,7 @@ extern int debug_lev;
 #	define PERROR(fmt,args...) printf("eocd(%s) " fmt " : %s\n", __FUNCTION__, ##args,strerror(errno))
 
 #else
-#	define ASSERT(x) 
+#	define ASSERT(x)
 #	define PDEBUG(lev,fmt,args...)
 #	define EDEBUG(lev,function)
 #	define PERROR(fmt,args...)

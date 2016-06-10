@@ -1,4 +1,4 @@
-	
+
 
 /* wildcard.c - test if filenames match a UNIX shell pattern
  * Copyright (C) 1995-99 Andrew Pipkin (minitrue@pagesz.net)

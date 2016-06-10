@@ -22,7 +22,7 @@ eoc_init(void){
 	return e;
 }
 
-static inline void 
+static inline void
 eoc_free(struct sg17_eoc *e){
 	rbuf_free(e->buf);
 }

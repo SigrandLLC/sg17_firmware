@@ -9,7 +9,7 @@
 	render_form_header dns
         help_1="begin"
 	help_2="dns"
-	render_table_title "DNS Settings" 2 
+	render_table_title "DNS Settings" 2
 
 	# sys_dns_nameserver
 	#tip="Dns server for your router"

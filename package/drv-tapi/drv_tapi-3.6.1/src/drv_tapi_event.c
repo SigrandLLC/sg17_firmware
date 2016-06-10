@@ -2422,7 +2422,7 @@ IFX_int32_t IFX_TAPI_Event_Dispatch_ProcessCtx(IFX_TAPI_EXT_EVENT_PARAM_t*
 /**
    Resource allocation and initialisation upon loading the driver.
 
-   This function allocates memory for the buffer pool of events that the 
+   This function allocates memory for the buffer pool of events that the
    event dispatcher transports. There are two pools: One for the events
    and one for the wrapper structures that transport the events.
    These pools are shared between all devices of this driver.
@@ -2458,14 +2458,14 @@ IFX_int32_t IFX_TAPI_Event_On_Driver_Load(IFX_void_t)
       IFXOS_MutexInit (semBufferPoolAcc);
    }
 
-   return (pIFX_TAPI_BP_Event != IFX_NULL) && 
+   return (pIFX_TAPI_BP_Event != IFX_NULL) &&
           (pIFX_TAPI_BP_Deferred_Event != IFX_NULL) ? IFX_SUCCESS : IFX_ERROR;
 }
 
 /**
    Free resources upon unloading the driver.
 
-   This function frees the memory for the buffer pool of events that the 
+   This function frees the memory for the buffer pool of events that the
    event dispatcher transports. There are two pools: One for the events
    and one for the wrapper structures that transport the events.
 */

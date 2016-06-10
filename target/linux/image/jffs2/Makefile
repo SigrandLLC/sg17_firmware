@@ -23,7 +23,7 @@ $(STAGING_DIR)/bin/mkfs.jffs2: $(MTD_DIR)/util/mkfs.jffs2
 source: $(DL_DIR)/$(MTD_SOURCE)
 prepare: $(MTD_DIR)/.unpacked
 compile: $(MTD_DIR)/util/mkfs.jffs2 $(STAGING_DIR)/bin/mkfs.jffs2
-install: 
+install:
 clean:
 	rm -rf $(MTD_DIR)
 

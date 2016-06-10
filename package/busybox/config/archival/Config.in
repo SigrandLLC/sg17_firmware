@@ -128,7 +128,7 @@ config BUSYBOX_CONFIG_IPKG
 	select BUSYBOX_CONFIG_WGET
 	help
 	  ipkg is the itsy package management system.
-	
+
 config BUSYBOX_CONFIG_RPM2CPIO
 	bool "rpm2cpio"
 	default n

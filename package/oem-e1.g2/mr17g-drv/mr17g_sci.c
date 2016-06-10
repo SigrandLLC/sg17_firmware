@@ -24,13 +24,13 @@ mr17g_sci_enable(struct mr17g_card *card)
 {
 	struct mr17g_sci *sci = &card->sci;
 	volatile struct mr17g_sci_regs *regs = &sci->iomem->regs;
-	
+
     // setup HDLC registers
 	iowrite8(0,&regs->CRA);
 	mdelay(100);
 	iowrite8((XRST0|XRST1|RXEN),&regs->CRA);
 	iowrite8(1,&regs->SR);
-    iowrite8((RXS | TXS | CRC | COL | OFL),&regs->IMR);	
+    iowrite8((RXS | TXS | CRC | COL | OFL),&regs->IMR);
 
     // Init chip locking
 	init_MUTEX(&sci->sem);
@@ -51,7 +51,7 @@ mr17g_sci_enable(struct mr17g_card *card)
 	return 0;
 error:
 	iowrite8( 0,&regs->CRA);
-    iowrite8(0,&regs->IMR);	
+    iowrite8(0,&regs->IMR);
     return -1;
 }
 
@@ -64,7 +64,7 @@ mr17g_sci_disable(struct mr17g_card *card)
 	PDEBUG(debug_sci,"start");
 	// shut down device
 	iowrite8(0,&regs->CRA);
-	iowrite8(0,&regs->IMR);	
+	iowrite8(0,&regs->IMR);
 	iowrite8(0xff,&regs->SR);
 	PDEBUG(debug_sci,"SCI disabled");
 	return 0;
@@ -79,7 +79,7 @@ mr17g_sci_endmon(struct mr17g_card *card)
 	cancel_delayed_work(&sci->wqueue);
 }
 
-int 
+int
 mr17g_sci_request_one(struct mr17g_sci *sci,int chipnum,char buf[SCI_BUF_SIZE],int size)
 {
     volatile struct mr17g_sci_iomem *mem = sci->iomem;
@@ -88,13 +88,13 @@ mr17g_sci_request_one(struct mr17g_sci *sci,int chipnum,char buf[SCI_BUF_SIZE],i
     int i,ret;
 
 	PDEBUG(debug_sci,"start, CRA=%02x, CRB=%02x, IMR=%02x, SR=%02x",
-		ioread8(&regs->CRA),ioread8(&regs->CRB),ioread8(&regs->IMR),ioread8(&regs->SR));	
+		ioread8(&regs->CRA),ioread8(&regs->CRB),ioread8(&regs->IMR),ioread8(&regs->SR));
 
     // SCI is busy now, fail to transmit
 
     //---------------- Transmit message --------------------
 
-	
+
     if( tmp & TXEN ){
         printk(KERN_ERR"%s: SCI transmitter already in use\n",MR17G_MODNAME);
         size = -EAGAIN;
@@ -107,7 +107,7 @@ mr17g_sci_request_one(struct mr17g_sci *sci,int chipnum,char buf[SCI_BUF_SIZE],i
 		goto exit;
     }
     PDEBUG(debug_sci,"Fill SCI buffer");
-	
+
 
     // Move outgoing data to toransmit buffer
 	for( i=0; i<size; i++)
@@ -134,7 +134,7 @@ mr17g_sci_request_one(struct mr17g_sci *sci,int chipnum,char buf[SCI_BUF_SIZE],i
 //    mr17g_sci_dump((u8*)&sci->regs,7);
 
 	PDEBUG(debug_sci,"start, CRA=%02x, CRB=%02x, IMR=%02x, SR=%02x",
-		ioread8(&regs->CRA),ioread8(&regs->CRB),ioread8(&regs->IMR),ioread8(&regs->SR));	
+		ioread8(&regs->CRA),ioread8(&regs->CRB),ioread8(&regs->IMR),ioread8(&regs->SR));
 
 
     // Enable SCI transmitter
@@ -147,7 +147,7 @@ mr17g_sci_request_one(struct mr17g_sci *sci,int chipnum,char buf[SCI_BUF_SIZE],i
     }else{
         ret = 1;
     }
-    PDEBUG(debug_sci,"After interrupt wait");	
+    PDEBUG(debug_sci,"After interrupt wait");
     // Check correctness of transmission and receiving
 	if( sci->crc_err || !sci->rxs ){
 		PDEBUG(debug_error,"Collision detected, sci.rxs = %d, sci.crc_err=%d",sci->rxs,sci->crc_err);
@@ -155,17 +155,17 @@ mr17g_sci_request_one(struct mr17g_sci *sci,int chipnum,char buf[SCI_BUF_SIZE],i
         size = -1;
         goto exit;
 	}
-	
+
     // Read & check incoming message length
 	size = ioread16(&regs->RXLEN);
     PDEBUG(debug_sci,"size = %d", size);
 	if( !size ){
 		PDEBUG(debug_error,"Zero length");
-		size = -EAGAIN; 
+		size = -EAGAIN;
         goto exit;
 	}else if(size > SCI_BUF_SIZE) {
         printk(KERN_ERR"%s: in SCI recv incoming size(%d) > MAX\n",MR17G_MODNAME,size);
-		size = -EINVAL; 
+		size = -EINVAL;
         goto exit;
 	}
 
@@ -184,22 +184,22 @@ mr17g_sci_request_one(struct mr17g_sci *sci,int chipnum,char buf[SCI_BUF_SIZE],i
 
 exit:
     // Restore receiver on error exit
-	iowrite8((ioread8(&regs->CRA)|RXEN),&regs->CRA);		
-	PDEBUG(debug_sci,"end");	
+	iowrite8((ioread8(&regs->CRA)|RXEN),&regs->CRA);
+	PDEBUG(debug_sci,"end");
     return size;
 }
 
 
-int 
+int
 mr17g_sci_request(struct mr17g_sci *sci,int cnum,char buf[SCI_BUF_SIZE],int size,
 		int acksize)
 {
     int i,ret = 0;
-	
+
     // Lock chipset until end of request
     if( down_interruptible(&sci->sem) )
 		return -EAGAIN;
-	
+
 	// Try to make request several times
     for(i=0;i<10;i++){
         if( (ret = mr17g_sci_request_one(sci,cnum,buf,size)) == acksize ){
@@ -222,7 +222,7 @@ mr17g_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *ptregs )
 	struct mr17g_sci *sci = (struct mr17g_sci *)dev_id;
 	volatile struct mr17g_sci_regs *regs = &sci->iomem->regs;
 	u8 mask = ioread8(&regs->IMR);
-	u8 status = (ioread8(&regs->SR) & mask);	
+	u8 status = (ioread8(&regs->SR) & mask);
 
 	PDEBUG(debug_sci,"start");
 
@@ -255,13 +255,13 @@ mr17g_sci_intr(int  irq,  void  *dev_id,  struct pt_regs  *ptregs )
 		PDEBUG(debug_error,"CRC");
 		wake_up(&sci->wait_q );
 	}
-	
+
 	if( status & COL ){
         sci->tx_collisions++;
 		PDEBUG(debug_error,"COL");
 		wake_up( &sci->wait_q );
 	}
-	
+
 	iowrite8(mask, &regs->IMR); // enable interrupts
 	return IRQ_HANDLED;
 }
@@ -309,7 +309,7 @@ mr17g_sci_dump(u8 *addr, int size)
 
 // ------------------------ OLD debugging stuff -----------------------//
 /*
-void 
+void
 mr17g_sci_memcheck(u8 *addr){
     int i,j;
     int flag = 0;
@@ -321,7 +321,7 @@ return;
         if( *(addr + i) ){
             PDEBUG(debug_sci,"byte %d, zero check error",i);
             flag = 1;
-        }   
+        }
         for(j=0;j<8;j++,tmp*=2){
             *(addr + i) = tmp;
 //            PDEBUG(debug_sci,"byte %d, val = %d, actual = %d",i,tmp,*(addr+i));
@@ -337,7 +337,7 @@ return;
 }
 
 
-void 
+void
 mr17g_sci_memcheck1(u8 *addr){
     int i,j;
     int flag = 0;
@@ -349,7 +349,7 @@ return;
         if( ioread8(addr + i) ){
             PDEBUG(debug_sci,"byte %d, zero check error",i);
             flag = 1;
-        }   
+        }
         for(j=0;j<8;j++,tmp*=2){
             iowrite8(tmp,addr + i);
 //            PDEBUG(debug_sci,"byte %d, val = %d, actual = %d",i,tmp,ioread8(addr+i));

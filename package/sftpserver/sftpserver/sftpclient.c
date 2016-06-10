@@ -192,7 +192,7 @@ static int attribute((format(printf,1,2))) error(const char *fmt, ...) {
 static int status(void) {
   uint32_t status;
   char *msg;
-  
+
   /* Cope with half-parsed responses */
   fakejob.ptr = fakejob.data + 5;
   fakejob.left = fakejob.len - 5;
@@ -315,7 +315,7 @@ static void progress(const char *path, uint64_t sofar, uint64_t total) {
     else
       xprintf("\r%.60s: %12"PRIu64"b %3d%%",
               path, sofar, (int)(100 * sofar / total));
-    if(fflush(stdout) < 0) 
+    if(fflush(stdout) < 0)
       fatal("error writing to stdout: %s", strerror(errno));
   }
 }
@@ -325,13 +325,13 @@ static void progress(const char *path, uint64_t sofar, uint64_t total) {
 static int sftp_init(void) {
   uint32_t version, u32;
   uint16_t u16;
-  
+
   /* Send SSH_FXP_INIT */
   sftp_send_begin(&fakeworker);
   sftp_send_uint8(&fakeworker, SSH_FXP_INIT);
   sftp_send_uint32(&fakeworker, sftpversion);
   sftp_send_end(&fakeworker);
-  
+
   /* Parse the version reponse */
   if(getresponse(SSH_FXP_VERSION, 0, "SSH_FXP_INIT") != SSH_FXP_VERSION)
     return -1;
@@ -369,7 +369,7 @@ static int sftp_init(void) {
       /* TODO check newline sequence doesn't contain repeats */
     } else if(!strcmp(xname, "vendor-id")) {
       struct sftpjob xjob;
-      
+
       xjob.a = &allocator;
       xjob.ptr = (void *)xdata;
       xjob.left = xdatalen;
@@ -392,7 +392,7 @@ static int sftp_init(void) {
         error("unknown %s value '%s'", xname, xdata);
     } else if(!strcmp(xname, "supported")) {
       struct sftpjob xjob;
-      
+
       xjob.a = &allocator;
       xjob.ptr = (void *)xdata;
       xjob.left = xdatalen;
@@ -405,7 +405,7 @@ static int sftp_init(void) {
         cpcheck(sftp_parse_string(&xjob, 0, 0)); /* extension-names */
     } else if(!strcmp(xname, "supported2")) {
       struct sftpjob xjob;
-      
+
       xjob.a = &allocator;
       xjob.ptr = (void *)xdata;
       xjob.left = xdatalen;
@@ -640,10 +640,10 @@ static int sftp_remove(const char *path) {
   return status();
 }
 
-static int sftp_rename(const char *oldpath, const char *newpath, 
+static int sftp_rename(const char *oldpath, const char *newpath,
                        unsigned flags) {
   uint32_t id;
-  
+
   remote_cwd();
   /* In v3/4 atomic is assumed, overwrite and native are not available */
   if(protocol->version <= 4 && (flags & ~SSH_FXF_RENAME_ATOMIC) != 0)
@@ -663,7 +663,7 @@ static int sftp_rename(const char *oldpath, const char *newpath,
 
 static int sftp_prename(const char *oldpath, const char *newpath) {
   uint32_t id;
-  
+
   remote_cwd();
   sftp_send_begin(&fakeworker);
   sftp_send_uint8(&fakeworker, SSH_FXP_EXTENDED);
@@ -679,7 +679,7 @@ static int sftp_prename(const char *oldpath, const char *newpath) {
 static int sftp_link(const char *targetpath, const char *linkpath,
                      int sftp_send_symlink) {
   uint32_t id;
-  
+
   if(protocol->version < 6 && !sftp_send_symlink)
     return error("hard links not supported in protocol %"PRIu32,
                  protocol->version);
@@ -696,7 +696,7 @@ static int sftp_link(const char *targetpath, const char *linkpath,
     sftp_send_path(&fakejob, &fakeworker, makeabspath(linkpath));
   } else {
     sftp_send_path(&fakejob, &fakeworker, makeabspath(linkpath));
-    sftp_send_path(&fakejob, &fakeworker, 
+    sftp_send_path(&fakejob, &fakeworker,
               sftp_send_symlink ? targetpath : makeabspath(targetpath));
   }
   if(protocol->version >= 6)
@@ -706,7 +706,7 @@ static int sftp_link(const char *targetpath, const char *linkpath,
   return status();
 }
 
-static int sftp_open(const char *path, 
+static int sftp_open(const char *path,
                      uint32_t desired_access, uint32_t flags,
                      const struct sftpattr *attrs,
                      struct handle *hp) {
@@ -750,7 +750,7 @@ static int sftp_open(const char *path,
     if(flags & ~(SSH_FXF_ACCESS_DISPOSITION
                  |SSH_FXF_APPEND_DATA
                  |SSH_FXF_APPEND_DATA_ATOMIC
-                 |SSH_FXF_TEXT_MODE)) 
+                 |SSH_FXF_TEXT_MODE))
       return error("future SSH_FXP_OPEN flags (%#"PRIx32") cannot be emulated in protocol %d",
                    flags, protocol->version);
     sftp_send_begin(&fakeworker);
@@ -966,7 +966,7 @@ static void reverse(void *array, size_t count, size_t size) {
   void *tmp = xmalloc(size);
   char *const base = array;
   size_t n;
-  
+
   /* If size is even then size/2 is the first half of the array and that's fine.
    * If size is odd then size/2 goes up to but excludes the middle member
    * which is also fine. */
@@ -1051,7 +1051,7 @@ static int cmd_ls(int ac,
     const unsigned long flags = (strchr(options, 'n')
                                  ? FORMAT_PREFER_NUMERIC_UID
                                  : 0)|FORMAT_PREFER_LOCALTIME|FORMAT_ATTRS;
-    
+
     /* We'd like to know what year we're in for dates in longname */
     time(&now);
     gmtime_r(&now, &nowtime);
@@ -1083,7 +1083,7 @@ static int cmd_ls(int ac,
     /* We have C columns of width M, with C-1 single-character blank columns
      * between them.  So the total width is C * M + (C - 1).  The lot had
      * better fit into W columns in total.
-     * 
+     *
      * We want to find the maximum C such that:
      *     C * M + C - 1 <= W
      * <=> C * (M + 1) <= W + 1
@@ -1192,7 +1192,7 @@ static int cmd_lmkdir(int attribute((unused)) ac,
 static int cmd_chown(int attribute((unused)) ac,
                      char **av) {
   struct sftpattr attrs;
-  
+
   if(sftp_stat(av[1], &attrs, SSH_FXP_STAT))
     return -1;
   if(protocol->version >= 4) {
@@ -1210,7 +1210,7 @@ static int cmd_chown(int attribute((unused)) ac,
 static int cmd_chgrp(int attribute((unused)) ac,
                      char **av) {
   struct sftpattr attrs;
-  
+
   if(sftp_stat(av[1], &attrs, SSH_FXP_STAT))
     return -1;
   if(protocol->version >= 4) {
@@ -1228,7 +1228,7 @@ static int cmd_chgrp(int attribute((unused)) ac,
 static int cmd_chmod(int attribute((unused)) ac,
                      char **av) {
   struct sftpattr attrs;
-  
+
   attrs.valid = SSH_FILEXFER_ATTR_PERMISSIONS;
   errno = 0;
   attrs.permissions = strtol(av[0], 0, 8);
@@ -1311,7 +1311,7 @@ static void *reader_thread(void *arg) {
   struct reader_data *const r = arg;
   int n;
   uint32_t id, len;
-  
+
   ferrcheck(pthread_mutex_lock(&r->m));
   while(!r->eof && !r->failed) {
     /* Wait for a job to be reaped */
@@ -1458,7 +1458,7 @@ static void reap_write_response(struct reader_data *r) {
      * the right place in the file according to what we asked for.  There's
      * not much point releasing the lock while doing the write - the
      * background thread will have done all it wants while we were awaiting
-     * the response. 
+     * the response.
      *
      * In text mode we can rely on the responses arriving in the correct
      * order.
@@ -1507,7 +1507,7 @@ static int cmd_get(int ac,
         preserve = 1;
         break;
       case 'f':
-        flags |= SSH_FXF_NOFOLLOW; 
+        flags |= SSH_FXF_NOFOLLOW;
         break;
       case 'L':
         seek = 1;
@@ -1582,7 +1582,7 @@ static int cmd_get(int ac,
     while(!r.outstanding)
       ferrcheck(pthread_cond_wait(&r.c2, &r.m));
     reap_write_response(&r);
-    /* Notify the background thread that something changed. */ 
+    /* Notify the background thread that something changed. */
     ferrcheck(pthread_cond_signal(&r.c1));
   }
   ferrcheck(pthread_mutex_unlock(&r.m));
@@ -1598,7 +1598,7 @@ static int cmd_get(int ac,
   ferrcheck(pthread_cond_destroy(&r.c1));
   ferrcheck(pthread_cond_destroy(&r.c2));
   progress(0, 0, 0);
-  if(r.failed) 
+  if(r.failed)
     goto error;
   gettimeofday(&finished, 0);
   if(progress_indicators) {
@@ -1734,16 +1734,16 @@ static int cmd_put(int ac,
       case 'P':
         preserve = 1;
         break;
-      case 'a': 
+      case 'a':
         disp = SSH_FXF_OPEN_OR_CREATE;
-        flags |= SSH_FXF_APPEND_DATA; 
+        flags |= SSH_FXF_APPEND_DATA;
         break;
-      case 'A': 
+      case 'A':
         disp = SSH_FXF_OPEN_EXISTING;
-        flags |= SSH_FXF_APPEND_DATA; 
+        flags |= SSH_FXF_APPEND_DATA;
         break;
       case 'f':
-        flags |= SSH_FXF_NOFOLLOW; 
+        flags |= SSH_FXF_NOFOLLOW;
         break;
       case 't':
         disp = SSH_FXF_CREATE_NEW;
@@ -1833,7 +1833,7 @@ static int cmd_put(int ac,
   offset = 0;
   while(!w.failed && !eof && !failed) {
     int wrote;
-    
+
     /* Wait until we're allowed to send another request */
     if(w.outstanding >= nrequests) {
       ferrcheck(pthread_cond_wait(&w.c2, &w.m));
@@ -1858,7 +1858,7 @@ static int cmd_put(int ac,
       int c;
       /* We will need to perform a translation step.  We read from stdio into
        * our buffer expanding newlines as necessary. */
-      
+
       while(left > 0 && (c = getc(fp)) != EOF) {
         if(c == '\n') {
           /* We found a newline.  Let us translated it to the desired wire
@@ -1938,7 +1938,7 @@ static int cmd_put(int ac,
     xprintf("\n");
   }
   if(fd >= 0) {
-    close(fd); 
+    close(fd);
     fd = -1;
   }
   if(fp) {
@@ -2046,7 +2046,7 @@ static void report_bytes(int width, const char *what, uint64_t howmuch) {
     xprintf("%"PRIu64" Mbytes\n", howmuch / mbyte);
   else if(howmuch >= 8 * kbyte)
     xprintf("%"PRIu64" Kbytes\n", howmuch / kbyte);
-  else 
+  else
     xprintf("%"PRIu64" bytes\n", howmuch);
 }
 
@@ -2054,12 +2054,12 @@ static int cmd_df(int ac,
                   char **av) {
   struct space_available as;
 
-  if(sftp_space_available(ac ? av[0] : remote_cwd(), &as)) 
+  if(sftp_space_available(ac ? av[0] : remote_cwd(), &as))
     return -1;
   report_bytes(32, "Bytes on device", as.bytes_on_device);
   report_bytes(32, "Unused bytes on device", as.unused_bytes_on_device);
   report_bytes(32, "Available bytes on device", as.bytes_available_to_user);
-  report_bytes(32, "Unused available bytes on device", 
+  report_bytes(32, "Unused available bytes on device",
                as.unused_bytes_available_to_user);
   report_bytes(32, "Bytes per allocation unit", as.bytes_per_allocation_unit);
   return 0;
@@ -2363,7 +2363,7 @@ static int cmd_overlap(int attribute((unused)) ac,
     sftp_send_uint64(&fakeworker, 0);
     sftp_send_bytes(&fakeworker, a, 64);
     sftp_send_end(&fakeworker);
-    
+
     sftp_send_begin(&fakeworker);
     sftp_send_uint8(&fakeworker, SSH_FXP_WRITE);
     sftp_send_uint32(&fakeworker, idb = newid());
@@ -2371,7 +2371,7 @@ static int cmd_overlap(int attribute((unused)) ac,
     sftp_send_uint64(&fakeworker, 16);
     sftp_send_bytes(&fakeworker, b, 64);
     sftp_send_end(&fakeworker);
-    
+
     sftp_send_begin(&fakeworker);
     sftp_send_uint8(&fakeworker, SSH_FXP_WRITE);
     sftp_send_uint32(&fakeworker, idc = newid());
@@ -2379,7 +2379,7 @@ static int cmd_overlap(int attribute((unused)) ac,
     sftp_send_uint64(&fakeworker, 32);
     sftp_send_bytes(&fakeworker, c, 64);
     sftp_send_end(&fakeworker);
-    
+
     sftp_send_begin(&fakeworker);
     sftp_send_uint8(&fakeworker, SSH_FXP_WRITE);
     sftp_send_uint32(&fakeworker, idd = newid());
@@ -2584,7 +2584,7 @@ static const struct command commands[] = {
   {
     "pwd", 0, 0, cmd_pwd,
     0,
-    "display current remote directory" 
+    "display current remote directory"
   },
   {
     "quit", 0, 0, cmd_quit,
@@ -2660,7 +2660,7 @@ static int cmd_help(int attribute((unused)) ac,
     len = strlen(commands[n].name);
     if(commands[n].args)
       len += strlen(commands[n].args) + 1;
-    if(len > max) 
+    if(len > max)
       max = len;
   }
   for(n = 0; commands[n].name; ++n) {
@@ -2709,7 +2709,7 @@ static void process(const char *prompt, FILE *fp) {
   char *line;
   int ac, n;
   char *avbuf[256], **av;
- 
+
   while((line = input(prompt, fp))) {
     ++inputline;
     if(line[0] == '#')
@@ -2842,7 +2842,7 @@ int main(int argc, char **argv) {
 
   if((sftpversion < 3 || sftpversion > 6) && !forceversion)
     fatal("unknown SFTP version %d", sftpversion);
-  
+
   if(host || port) {
 #if HAVE_GETADDRINFO
     struct addrinfo *res;
@@ -2923,7 +2923,7 @@ int main(int argc, char **argv) {
 
   if(sftp_init())
     return 1;
-  
+
 
   if(batchfile) {
     FILE *fp;

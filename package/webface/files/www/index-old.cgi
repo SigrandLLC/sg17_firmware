@@ -1,5 +1,5 @@
 #!/usr/bin/haserl
-<? 
+<?
 
 controller=$FORM_controller
 
@@ -8,10 +8,10 @@ if [ -n "$FORM_frame" ]; then
 elif [ -n "$FORM_popup" ]; then
 	. common/popup_header.sh
 else
-	. common/header.sh 
+	. common/header.sh
 fi
 
-. conf/conf.sh 
+. conf/conf.sh
 . lib/cfg.sh
 . lib/kdb.sh
 . lib/widgets.sh
@@ -37,5 +37,5 @@ elif [ -n "$FORM_popup" ]; then
 else
 	. common/footer.sh
 fi
-	
+
 ?>

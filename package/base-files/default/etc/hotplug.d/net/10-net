@@ -36,7 +36,7 @@ find_name()
 do_ifup() {
 	if="$3"
 	eval "if_proto=\"\${${2}_proto}\""
-	
+
 	pidfile=/var/run/${if}.pid
 	[ -f $pidfile ] && $DEBUG kill $(cat $pidfile)
 
@@ -48,7 +48,7 @@ do_ifup() {
 			eval "gateway=\"\${${2}_gateway}\""
 			eval "dns=\"\${${2}_dns}\""
 			eval "static_route=\"\${${2}_static_route}\""
-	
+
 			$DEBUG ifconfig $if $ip ${netmask:+netmask $netmask} broadcast + up
 			[ -n "$ip6" ] && $DEBUG ifconfig $if add $ip6
 
@@ -64,23 +64,23 @@ do_ifup() {
 			}
 
 			${gateway:+$DEBUG route add default gw $gateway}
-	
+
 			[ -f /tmp/resolv.conf ] || {
 				debug "# --- creating /tmp/resolv.conf ---"
 				for ns in $dns; do
 					echo "nameserver $ns" >> /tmp/resolv.conf
 				done
 			}
-			
+
 			env -i ACTION="ifup" INTERFACE="${2}" PROTO=static /sbin/hotplug "iface" &
 		;;
 		dhcp)
 			eval "ip=\"\${${2}_ipaddr}\""
 			eval "netmask=\"\${${2}_netmask}\""
 			eval "hostname=\"\${${2}_hostname}\""
-			
+
 			$DEBUG ifconfig $if $ip ${netmask:+netmask $netmask} broadcast + up
-	
+
 			args="-i $if ${ip:+-r $ip} -b -p $pidfile"
 			hostname="${hostname%%.*}"
 			args="$args${hostname:+ -H $hostname}"
@@ -101,7 +101,7 @@ do_register()
 	[ -z "$IFTYPE" -o -z "$IFPROTO" ] && {
 		find_name || {
 			case "${INTERFACE%%[0-9]*}" in
-				wds) 
+				wds)
 					for ifname in lan wifi; do
 						eval "if=\"\${${ifname}_ifname}\""
 						[ -z "$IFPROTO" ] && [ "$if" = "br0" ] && {
@@ -127,7 +127,7 @@ do_register()
 		}
 	}
 
-	case "${INTERFACE%%[0-9]*}" in 
+	case "${INTERFACE%%[0-9]*}" in
 		ppp|atm);;
 		*)
 			eval "mac=\"\${${IFTYPE}_hwaddr}\""
@@ -153,7 +153,7 @@ do_register()
 				do_ifup "$IFPROTO" "$IFTYPE" "$if"
 			fi
 		}
-	else 
+	else
 		[ "${INTERFACE%%[0-9]*}" = "ppp" ] || do_ifup "$IFPROTO" "$IFTYPE" "$if"
 	fi
 }
@@ -162,7 +162,7 @@ do_unregister() {
 	[ -z "$IFTYPE" -o -z "$IFPROTO" ] && {
 		find_name || return 0
 	}
-	
+
 	[ "${IFACE%%[0-9]*}" = "br" ] && {
 		if [ "$INTERFACE" != "$IFACE" ]; then
 			brctl delif "$IFACE" "$INTERFACE" 2>&- >&-
@@ -170,9 +170,9 @@ do_unregister() {
 			brctl delbr "$IFACE" 2>&- >&-
 		fi
 	}
-	
+
 	case "$IFPROTO" in
-		pppoe|pppoa|pptp) 
+		pppoe|pppoa|pptp)
 			killall pppd 2>&- >&-
 		;;
 		dhcp)

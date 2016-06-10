@@ -9,12 +9,12 @@
 	tcpdump_arg=${FORM_tcpdump_arg}
 	query=${FORM_query}
 	type=${FORM_type}
-	
-	render_page_selection "" syslog "syslog" dmesg "dmesg" ping "ping" mtr "mtr" dig "dig" tcpdump "tcpdump" reboot "reboot" 
 
-	render_form_header 
+	render_page_selection "" syslog "syslog" dmesg "dmesg" ping "ping" mtr "mtr" dig "dig" tcpdump "tcpdump" reboot "reboot"
+
+	render_form_header
 	if [ $REQUEST_METHOD = POST ]; then
-		#render_table_title "$page" 2 
+		#render_table_title "$page" 2
 		resolve="-n"
 		count="-c $count"
 		packetsize="-s 100"
@@ -49,13 +49,13 @@
 		;;
 		esac
 
-	else 
-		render_table_title "$page" 2 
+	else
+		render_table_title "$page" 2
 		render_input_field hidden page page "$page"
 		case $page in
 			ping|mtr)
 				validator='tmt:required="true" tmt:message="Please input destination host" tmt:filters="ltrim,rtrim,nohtml,nospaces,nocommas,nomagic"'
-				render_input_field text "Host" host 
+				render_input_field text "Host" host
 				default="5"
 				validator='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="positiveinteger" tmt:minnumber=1 tmt:maxnumber=50  tmt:message="Please input number"'
 				render_input_field text "Count" count
@@ -65,12 +65,12 @@
 				ifaces=`/usr/sbin/ip -o link | cut -f2 -d":" | while read i; do echo -n "$i $i "; done`
 				desc="Listen on interface"
 				render_input_field select "Interface" iface $ifaces
-				
+
 				tip="<b>Examples:</b><br><ol> <li>[src|dst] host 192.168.0.1<li>ether host 02:ff:1c:d9:9b:f8<li> [src|dst] net 192.168.1.0/24"
 				desc="Selects which packets will be dumped"
 				validator='tmt:filters="nohtml,nocommas,nomagic"'
 				render_input_field text "Expression" tcpdump_arg
-				
+
 				default=2
 				desc="seconds"
 				validator='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="positiveinteger" tmt:minnumber=1 tmt:maxnumber=50  tmt:message="Please input number"'
@@ -78,7 +78,7 @@
 				render_submit_field "Run"
 			;;
 			dig)
-				render_input_field select "Type" type any any soa soa mx mx a a	
+				render_input_field select "Type" type any any soa soa mx mx a a
 				render_input_field text "Query" query
 				validator='tmt:filters="ltrim,rtrim,nohtml,nocommas,nomagic" tmt:pattern="dnsdomainoripaddr"'
 				tip=" This can be an IPv4 address in dotted-decimal notation. If no server argument is provided, dig consults /etc/resolv.conf and queries the name servers listed there."

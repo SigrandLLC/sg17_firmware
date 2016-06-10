@@ -1,7 +1,7 @@
 #ifndef SG_DEBUG_H
 #define SG_DEBUG_H
 
-#ifndef DEBUG_LEV 
+#ifndef DEBUG_LEV
 #	define DEBUG_LEV 0
 #endif
 

@@ -28,7 +28,7 @@
    Remarks     : Device member initialization
                  General basic functions
                  OS independent
-                 
+
 ******************************************************************************/
 
 

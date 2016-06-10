@@ -23,7 +23,7 @@ int mam17_net_init(struct mam17_card *card)
 
 	for (if_processed = 0; if_processed < card->if_num; if_processed++)
 	{
-		// allocate network device 
+		// allocate network device
 //		printk(KERN_ERR"func=%i slot=%i devfn=%x\n", PCI_FUNC(card->pdev->devfn), PCI_SLOT(card->pdev->devfn), card->pdev->devfn);
 		switch (PCI_SLOT(card->pdev->devfn)) {
 			case 2:
@@ -61,8 +61,8 @@ int mam17_net_init(struct mam17_card *card)
 
 //		if( (ch_num = sg17_sci_if2ch(&card->sci,if_processed)) < 0 ){
 //			PDEBUG(debug_error,"error(%d) in sg17_sci_if2ch",ch_num);
-//			free_netdev( ndev );			
-//			goto exit_unreg_ifs;			
+//			free_netdev( ndev );
+//			goto exit_unreg_ifs;
 //		}
 		nl->chan_cfg = &(card->channels[if_processed]);
 		jiffies_to_timeval((unsigned long)jiffies, &(card->channels[if_processed].downtime_all));
@@ -88,7 +88,7 @@ int mam17_net_init(struct mam17_card *card)
 		sysfs_create_link( &(dev_drv->kobj),&(dev_dev->kobj),ndev->name);
 		PDEBUG(debug_netcard,"sg17_sysfs_register - success");
 		sprintf(card->channels[if_processed].name, "%s", ndev->name);
-		
+
 	}
 
 	return 0;

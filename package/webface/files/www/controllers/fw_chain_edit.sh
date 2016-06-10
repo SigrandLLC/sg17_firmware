@@ -12,7 +12,7 @@
 			REQUEST_METHOD="GET"
 		fi
 	fi
-	
+
 	eval_string="export FORM_$item=\"name=$FORM_name enabled=$FORM_enabled proto=$FORM_proto src=$FORM_src dst=$FORM_dst sport=$FORM_sport dport=$FORM_dport natto=$FORM_natto target=$FORM_target\""
 	render_popup_save_stuff
 
@@ -21,7 +21,7 @@
 	help_2="${table}_add"
 	render_table_title "Firewall $table/$chain edit rule" 2
 	render_popup_form_stuff
-	
+
 	render_input_field hidden table table "$table"
 	render_input_field hidden chain chain "$chain"
 
@@ -29,7 +29,7 @@
 	desc="Name of rule"
 	validator="$tmtreq $validator_rulename"
 	render_input_field text "Short name" name
-	
+
 	# enabled
 	desc="Check this item to enable rule"
 	validator='tmt:required="true"'
@@ -80,7 +80,7 @@
 		validator="$validator_ipaddrport tmt:natcheck='true'"
 		render_input_field text "Nat to address" natto
 	fi
-	
+
 	# target
 	tip=""
 	desc=""
@@ -98,9 +98,9 @@
 		onchange='OnChange_nat(this);'
 		render_input_field select "Action" target ACCEPT "ACCEPT" DROP "DROP" REJECT "REJECT" SNAT "SNAT" MASQUERADE "MASQUERADE"
 	fi
-	
+
 	render_submit_field
 	render_form_tail
-	
-	
+
+
 # vim:foldmethod=indent:foldlevel=1

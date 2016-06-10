@@ -4,7 +4,7 @@ function OnChange_nat(field) {
 	if (natto) {
 		if (value=="DNAT" || value=="SNAT") {
 			natto.setAttribute("tmt:required", "true");
-		} else 
+		} else
 			natto.setAttribute("tmt:required", "");
 
 		var formNodes = document.getElementsByTagName("form");

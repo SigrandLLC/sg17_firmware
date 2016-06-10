@@ -14,7 +14,7 @@ SET_POLICY="$FW -P"
 prepare_addr(){
 	local pref="$1"
 	local laddr="$2"
-	if [ "x${laddr}x" = "xx" ]; then 
+	if [ "x${laddr}x" = "xx" ]; then
 		addr=""
 	else
 		addr="$pref `echo "$laddr" | sed 's/\(!\)\(.*\)/\1 \2/'`"
@@ -26,7 +26,7 @@ chain(){
 	local chain=$2
 	local uchain=`echo $chain | tr a-z A-Z`
 	local _sport _dport _proto _nat
-	for key in `kdb kls sys_fw_${table}_${chain}_*`; do 
+	for key in `kdb kls sys_fw_${table}_${chain}_*`; do
 		val=`kdb get $key`
 		unset enabled name proto _proto src _src dst _dst sport _sport dport _dport target natto _nat addr
 		eval "$val"

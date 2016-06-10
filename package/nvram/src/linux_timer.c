@@ -1,7 +1,7 @@
 /*
  * Copyright 2004, Broadcom Corporation
  * All Rights Reserved.
- * 
+ *
  * THIS SOFTWARE IS OFFERED "AS IS", AND BROADCOM GRANTS NO WARRANTIES OF ANY
  * KIND, EXPRESS OR IMPLIED, BY STATUTE, COMMUNICATION OR OTHERWISE. BROADCOM
  * SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS
@@ -134,12 +134,12 @@ void init_event_queue(int n)
 {
     int i;
     struct itimerval tv;
-    
+
     g_maxevents = n;
     event_freelist = (struct event *) malloc(n * sizeof(struct event));
     memset(event_freelist, 0, n * sizeof(struct event));
 
-    for (i = 0; i < (n-1); i++) 
+    for (i = 0; i < (n-1); i++)
 	event_freelist[i].next = &event_freelist[i+1];
 
     event_freelist[i].next = NULL;
@@ -167,7 +167,7 @@ int clock_gettime(
 
     n = gettimeofday(&tv, NULL);
     TIMEVAL_TO_TIMESPEC(&tv, tp);
-    
+
     return n;
 }
 
@@ -199,7 +199,7 @@ int timer_create(
     assert(event != NULL);
 
     event->flags = TFLAG_NONE;
-    
+
     event_freelist = event->next;
     event->next = NULL;
 
@@ -215,14 +215,14 @@ int timer_delete(
 )
 {
     struct event *event = (struct event *) timerid;
-    
+
     if (event->flags & TFLAG_DELETED) {
 	TIMERDBG("Cannot delete a deleted event");
 	return 1;
     }
 
     timer_cancel(timerid);
-    
+
     event->flags |= TFLAG_DELETED;
 
     event->next = event_freelist;
@@ -243,13 +243,13 @@ int timer_connect
     assert(routine != NULL);
     event->func = routine;
     event->arg = arg;
-    
-    return 0;
-}    
 
-/* 
+    return 0;
+}
+
+/*
  * Please Call this function only from the call back functions of the alarm_handler.
- * This is just a hack 
+ * This is just a hack
 */
 int timer_change_settime
 (
@@ -262,7 +262,7 @@ int timer_change_settime
     TIMESPEC_TO_TIMEVAL(&event->it_interval, &value->it_interval);
     TIMESPEC_TO_TIMEVAL(&event->it_value, &value->it_value);
 
-    return 1; 	
+    return 1;
 }
 
 int timer_settime
@@ -307,11 +307,11 @@ int timer_settime
     timerclear(&itimer.it_value);
     getitimer(ITIMER_REAL, &itimer);
     if (timerisset(&itimer.it_value)) {
-	// reset the top timer to have an interval equal to the remaining interval 
+	// reset the top timer to have an interval equal to the remaining interval
 	// when the timer was cancelled.
 	if (event_queue) {
 	    if (timercmp(&(itimer.it_value), &(event_queue->it_value), >)) {
-		// it is an error if the amount of time remaining is more than the amount of time 
+		// it is an error if the amount of time remaining is more than the amount of time
 		// requested by the top event.
 		//
 		TIMERDBG("timer_settime: TIMER ERROR!");
@@ -346,8 +346,8 @@ int timer_settime
 
 	ppevent = &((*ppevent)->next);
     }
-    
-    // we have found our proper place in the queue, 
+
+    // we have found our proper place in the queue,
     // link our new event into the pending event queue.
     event->next = *ppevent;
     *ppevent = event;
@@ -359,12 +359,12 @@ int timer_settime
 	timerroundup(&event_queue->it_value, g_granularity);
 	timerclear(&itimer.it_interval);
 	itimer.it_value = event_queue->it_value;
-	
-	// we want to be sure to never turn off the timer completely, 
+
+	// we want to be sure to never turn off the timer completely,
 	// so if the next interval is zero, set it to some small value.
 	if (!timerisset(&(itimer.it_value)))
 	    itimer.it_value = (struct timeval) { 0, 1 };
-	
+
 	assert(!timerisset(&itimer.it_interval));
 	assert(itimer.it_value.tv_sec > 0 || itimer.it_value.tv_usec >= g_granularity);
 	assert(event_queue->it_value.tv_sec > 0 || event_queue->it_value.tv_usec >= g_granularity);
@@ -373,7 +373,7 @@ int timer_settime
     }
 
     event->flags &= ~TFLAG_CANCELLED;
-    
+
     unblock_timer();
 
     return 0;
@@ -382,7 +382,7 @@ int timer_settime
 static void check_timer()
 {
     struct itimerval itimer;
-    
+
     getitimer(ITIMER_REAL, &itimer);
     if (timerisset(&itimer.it_interval)) {
 	TIMERDBG("ERROR timer interval is set.");
@@ -406,7 +406,7 @@ static void check_event_queue()
 	nfree++;
     printf("%d free events\n", nfree);
 #endif
-    
+
     timerclear(&sum);
     for (event = event_queue; event; event = event->next) {
 	if (i > g_maxevents) {
@@ -425,7 +425,7 @@ static int count_queue(struct event *event_queue)
 {
     struct event *event;
     int i = 0;
-    for (event = event_queue; event; event = event->next) 
+    for (event = event_queue; event; event = event->next)
 	i++;
     return i;
 }
@@ -437,7 +437,7 @@ static void print_event_queue()
     int i = 0;
 
     for (event = event_queue; event; event = event->next) {
-	printf("#%d (0x%x)->0x%x: \t%d sec %d usec\t%p\n", 
+	printf("#%d (0x%x)->0x%x: \t%d sec %d usec\t%p\n",
 	       i++, (unsigned int) event, (unsigned int) event->next, (int) event->it_value.tv_sec, (int) event->it_value.tv_usec, event->func);
 	if (i > g_maxevents) {
 	    printf("...(giving up)\n");
@@ -462,7 +462,7 @@ static void alarm_handler(int i)
 
     block_timer();
 
-    // Loop through the event queue and remove the first event plus any 
+    // Loop through the event queue and remove the first event plus any
     // subsequent events that will expire very soon thereafter (within 'small_interval'}.
     //
     do {
@@ -478,7 +478,7 @@ static void alarm_handler(int i)
 	    junk = end;
 	TIMERDBG("expected %d ms  actual %d ms", event->expected_ms, ((end-event->start)/((uclock_t)UCLOCKS_PER_SEC/1000)));
 #endif
-	
+
 	    // call the event callback function
 	    (*(event->func))((timer_t) event, (int)event->arg);
 
@@ -514,7 +514,7 @@ static void alarm_handler(int i)
 		    ppevent = &((*ppevent)->next);
 		}
 
-		// we have found our proper place in the queue, 
+		// we have found our proper place in the queue,
 		// link our new event into the pending event queue.
 		event->next = *ppevent;
 		*ppevent = event;
@@ -525,16 +525,16 @@ static void alarm_handler(int i)
 	}
 
 	check_event_queue();
-	
+
     } while (event_queue && timercmp(&event_queue->it_value, &small_interval, <));
-    
+
     // re-issue the timer...
     if (event_queue) {
 	timerroundup(&event_queue->it_value, g_granularity);
 
 	timerclear(&itimer.it_interval);
 	itimer.it_value = event_queue->it_value;
-	// we want to be sure to never turn off the timer completely, 
+	// we want to be sure to never turn off the timer completely,
 	// so if the next interval is zero, set it to some small value.
 	if (!timerisset(&(itimer.it_value)))
 	    itimer.it_value = (struct timeval) { 0, 1 };
@@ -603,7 +603,7 @@ void timer_cancel(timer_t timerid)
     }
 
     block_timer();
-    
+
     ppevent = &event_queue;
     while (*ppevent) {
 	if ( *ppevent == event ) {
@@ -613,12 +613,12 @@ void timer_cancel(timer_t timerid)
 	       next to expire, the alarm will end up firing
 	       after this routine is complete, causing it to go off early. */
 
-	    /* If the cancelled timer is the next to expire, 
+	    /* If the cancelled timer is the next to expire,
 	       we need to do something special to clean up correctly. */
 	    if (event == event_queue && event->next != NULL) {
 		timerclear(&itimer.it_value);
 		getitimer(ITIMER_REAL, &itimer);
-		
+
 		/* subtract the time that has already passed while waiting for this timer... */
 		timersub(&(event->it_value), &(itimer.it_value), &(event->it_value));
 
@@ -633,7 +633,7 @@ void timer_cancel(timer_t timerid)
 		timerroundup(&event_queue->it_value, g_granularity);
 		timerclear(&itimer.it_interval);
 		itimer.it_value = event_queue->it_value;
-		
+
 		/* We want to be sure to never turn off the timer
 		   completely if there are more events on the queue,
 		   so if the next interval is zero, set it to some
@@ -641,7 +641,7 @@ void timer_cancel(timer_t timerid)
 
 		if (!timerisset(&(itimer.it_value)))
 		    itimer.it_value = (struct timeval) { 0, 1 };
-		
+
 		assert(itimer.it_value.tv_sec > 0 || itimer.it_value.tv_usec >= g_granularity);
 		assert(event_queue->it_value.tv_sec > 0 || event_queue->it_value.tv_usec >= g_granularity);
 		setitimer(ITIMER_REAL, &itimer, NULL);

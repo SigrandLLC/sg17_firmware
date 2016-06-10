@@ -55,7 +55,7 @@ extern IFX_void_t   VINETIC_PCM_Func_Register   (IFX_TAPI_DRV_CTX_PCM_t *pPCM);
 
 extern IFX_return_t VINETIC_PCM_Allocate_Ch_Structures (VINETIC_CHANNEL *pCh);
 extern IFX_void_t   VINETIC_PCM_Free_Ch_Structures (VINETIC_CHANNEL *pCh);
-extern IFX_void_t   VINETIC_PCM_Init_Ch         (VINETIC_CHANNEL *pCh, 
+extern IFX_void_t   VINETIC_PCM_Init_Ch         (VINETIC_CHANNEL *pCh,
                                                  IFX_uint8_t pcmCh);
 extern IFX_return_t VINETIC_PCM_Set_Inputs      (VINETIC_CHANNEL *pCh);
 extern IFX_int32_t  VINETIC_PCM_baseConf        (VINETIC_CHANNEL *pCh);
@@ -63,7 +63,7 @@ extern IFX_int32_t  VINETIC_PCM_baseConf        (VINETIC_CHANNEL *pCh);
 extern IFX_return_t IFX_TAPI_LL_PCM_Cfg         (IFX_TAPI_LL_CH_t *pLLChannel,
                                                  IFX_TAPI_PCM_CFG_t const *pPCMConfig);
 extern IFX_return_t IFX_TAPI_LL_PCM_Enable      (IFX_TAPI_LL_CH_t *pLLChannel,
-                                                 IFX_uint32_t nMode, 
+                                                 IFX_uint32_t nMode,
                                                  IFX_TAPI_PCM_CFG_t *pPcmCfg);
 extern IFX_return_t IFX_TAPI_LL_PCM_Volume_Set  (IFX_TAPI_LL_CH_t *pLLChannel,
                                                  IFX_TAPI_LINE_VOLUME_t const *pVol);

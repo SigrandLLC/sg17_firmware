@@ -2,13 +2,13 @@
  *
  *	Written 2010 by Scherbakov Mihail <m.u.x.a@mail.ru>
  *
- *	This driver provides control of DSLAM swiches for Sigrand SG-17 routers 
+ *	This driver provides control of DSLAM swiches for Sigrand SG-17 routers
  *
  *	This software may be used and distributed according to the terms
  *	of the GNU General Public License.
  *
  */
- 
+
 #include <linux/module.h>
 #include <linux/config.h>
 #include <linux/init.h>
@@ -82,7 +82,7 @@ dslam_write_mode(struct dslam_env *env) {
     enable_bits(env->io_outen | env-> io_omask | env->c_outen | env->c_omask);
 }
 
-static inline void 
+static inline void
 dslam_read_mode(struct dslam_env *env) {
     // enable read on GPIO: MDIO (read mode)
     disable_bits(env->io_outen);
@@ -146,7 +146,7 @@ int write_reg(int sw_num, unsigned long reg_num, unsigned long reg_val) {
 	env = &chips[sw_num];
 
 	dslam_write_mode(env);
-	dslam_write_bits(env,ic_writepreamble,ic_writepreamble_sz);	
+	dslam_write_bits(env,ic_writepreamble,ic_writepreamble_sz);
 	dslam_write_bits(env,reg_num,8);
 	dslam_write_bits(env,ic_pause,ic_pause_sz);
 	dslam_write_bits(env,reg_val,16);
@@ -171,24 +171,24 @@ unsigned long read_reg(int sw_num, unsigned long reg_num) {
 	dslam_empty_clock(env);
 	dslam_read_bits(env,&reg_val,16);
 	dslam_write_mode(env);
-	
+
 	return reg_val;
 }
 
 
-static int 
+static int
 read_reg_read(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
 	int sw_num = *(short*)data;
 	struct dslam_env *env;
 	unsigned long reg_val = 0;
-	
+
 	env = &chips[0];
 
 	if( sw_num > chips_num ){
 		printk(KERN_ERR"dslam: ERROR sw_num=%d, chips_num=%d\n",sw_num,chips_num);
 		return count;
 	}
-	
+
 	env = &chips[sw_num];
 
 	dslam_write_mode(env);
@@ -198,7 +198,7 @@ read_reg_read(char *buf, char **start, off_t offset, int count, int *eof, void *
 	dslam_empty_clock(env);
 	dslam_read_bits(env,&reg_val,16);
 	dslam_write_mode(env);
-	
+
 	return snprintf(buf,count,"0x%02lx 0x%04lx",env->regnum,reg_val);
 }
 
@@ -215,20 +215,20 @@ store_reg_read(struct file *file,const char *buffer,unsigned long count,void *da
 		return count;
 	}
 	env = &chips[sw_num];
-	
+
 	ptr[count-1] = '\0';
 	reg_num = simple_strtoul(ptr,&endp,16);
 	env->regnum = reg_num;
 	return count;
 }
 
-static int 
+static int
 store_reg_write(struct file *file,const char *buffer,unsigned long count,void *data) {
 	int sw_num = *(short*)data;
 	struct dslam_env *env;
 	char *endp;
 	unsigned long reg_num,reg_val;
-	
+
 	if( sw_num > chips_num ){
 		printk(KERN_ERR"dslam: ERROR sw_num=%d, chips_num=%d\n",sw_num,chips_num);
 		return count;
@@ -242,22 +242,22 @@ store_reg_write(struct file *file,const char *buffer,unsigned long count,void *d
 	reg_val = simple_strtoul(endp,&endp,16);
 
 	dslam_write_mode(env);
-	dslam_write_bits(env,ic_writepreamble,ic_writepreamble_sz);	
+	dslam_write_bits(env,ic_writepreamble,ic_writepreamble_sz);
 	dslam_write_bits(env,reg_num,8);
 	dslam_write_bits(env,ic_pause,ic_pause_sz);
 	dslam_write_bits(env,reg_val,16);
 	dslam_write_mode(env);
-	
+
 	return count;
 }
 
 
-static int 
+static int
 store_default(struct file *file,const char *buffer,unsigned long count,void *data) {
 	int sw_num = *(short*)data;
 	char *endp;
 	int val = 0;
-	
+
 	if( sw_num > chips_num ){
 		printk(KERN_ERR"dslam: ERROR sw_num=%d, chips_num=%d\n",sw_num,chips_num);
 		return count;
@@ -275,20 +275,20 @@ store_default(struct file *file,const char *buffer,unsigned long count,void *dat
 		write_reg(sw_num, 0x01, 0x0432);
 		write_reg(sw_num, 0xff, 0x0080);
 		write_reg(sw_num, 0xf9, 0x1e38);
-		
+
 		write_reg(sw_num, 0xd8, 0xffff);
 		if (sw_num == 0)
 			write_reg(sw_num, 0xd9, 0x37ff);
-		else 
+		else
 			write_reg(sw_num, 0xd9, 0x17ff);
-		
+
 		// set addres aging time to minimal
 		val = read_reg(sw_num, 0x44);
 		write_reg(sw_num, 0x44, val & 0xFC00);
 	}
 //	printk(KERN_NOTICE"default settings is set\n");
 //	printk(KERN_NOTICE"0xd8=%lx\n", read_reg(sw_num, 0xd8));
-	
+
 	return count;
 }
 static int
@@ -357,11 +357,11 @@ read_statistics(char *buf, char **start, off_t offset, int count, int *eof, void
 					j += snprintf(&buf[j], count, "%09lu\n", sw[sw_num].stat[i/2].rx);
 				}
 			}
-		} 
+		}
 	}
 //	j += snprintf(&buf[j], count, "port |   TX  |   RX\n");
 //	j += snprintf(&buf[j], count, "port 24 - PHY(Gbit), 25 - GRMII(another switch), 26 - MII(CPU)\n");
-	
+
 	return j;
 }
 
@@ -425,7 +425,7 @@ static int store_disable_learning(struct file *file,const char *buffer,unsigned 
 		reg = read_reg(sw_num, 0x46);
 		write_reg(sw_num, 0x46, reg & ~(1<<(port-16)));
 	}
-	return count;	
+	return count;
 }
 static int store_enable_learning(struct file *file,const char *buffer,unsigned long count,void *data) {
 	int sw_num = *(short*)data;
@@ -444,7 +444,7 @@ static int store_enable_learning(struct file *file,const char *buffer,unsigned l
 		reg = read_reg(sw_num, 0x46);
 		write_reg(sw_num, 0x46, reg | 1<<(port-16));
 	}
-	return count;	
+	return count;
 }
 
 static int store_mac(struct file *file,const char *buffer,unsigned long count,void *data) {
@@ -454,11 +454,11 @@ static int store_mac(struct file *file,const char *buffer,unsigned long count,vo
 	int i = 0, j = 0;
 	char mac_str[15], tmp;
 	unsigned long long mac;
-	
+
 	if( sw_num > chips_num ) {
 		printk(KERN_ERR"dslam: ERROR sw_num=%d, chips_num=%d\n",sw_num,chips_num);
 		return count;
-	}	
+	}
 	strncpy(mac_str, buffer, 5);
 	mac_str[5] = '\0';
 	if (strcmp(mac_str, "clear") == 0) {
@@ -473,7 +473,7 @@ static int store_mac(struct file *file,const char *buffer,unsigned long count,vo
 		printk(KERN_ERR"dslam_sw: LUT was creared\n");
 		return count;
 	}
-	
+
 	port = simple_strtoul(buffer,&endp,10);
 	while( *endp == ' '){
 		endp++;
@@ -491,7 +491,7 @@ static int store_mac(struct file *file,const char *buffer,unsigned long count,vo
 		i++; j++;
 	}
 	mac_str[j] = '\0';
-	
+
 	tmp = mac_str[8];
 	mac_str[8]='\n';
 	mac = (unsigned long long)simple_strtoul(mac_str,&endp,16) << 16;
@@ -512,19 +512,19 @@ static int store_mac(struct file *file,const char *buffer,unsigned long count,vo
 		printk(KERN_ERR"ERROR write in LUT!!! reg 0xC5 = %04lx\n", read_reg(sw_num, 0xC5));
 //	else
 //		printk(KERN_ERR"added MAC %s behind port %i\n", mac_str, port);
-	
+
 	return count;
 }
 
 
-static int 
+static int
 read_mac(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
 	int sw_num = *(short*)data;
 	int i;
 	unsigned long j=0;
 	unsigned long reg_c8, reg_c7, reg_c6;
 	unsigned int reg_45, reg_46;
-	
+
 	if (offset > 0) {
 		*eof = 1;
 		return 0;
@@ -547,7 +547,7 @@ read_mac(char *buf, char **start, off_t offset, int count, int *eof, void *data)
 			reg_c7 = read_reg(sw_num, 0xC7);
 			reg_c6 = read_reg(sw_num, 0xC6);
 			j += snprintf(&buf[j], count-j, "\n%03x: %04lx %04lx %04lx\n", i, read_reg(sw_num, 0xC8), read_reg(sw_num, 0xC7), read_reg(sw_num, 0xC6));
-			j += snprintf(&buf[j], count-j, "\t\"%01lx%01lx:%02lx:%01lx%01lx:%02lx:%01lx%01x:%02x\":\"%lu\",\n", 
+			j += snprintf(&buf[j], count-j, "\t\"%01lx%01lx:%02lx:%01lx%01lx:%02lx:%01lx%01x:%02x\":\"%lu\",\n",
 			reg_c8&0xF, (reg_c7>>12)&0xF, (reg_c7>>4)&0xFF, reg_c7&0xF,
 			(reg_c6>>12)&0xF, (reg_c6>>4)&0xFF, reg_c6&0xF, ((i-1)>>8)&0xF, ((i-1)&0xFF), (reg_c8>>4)&31);
 		}
@@ -571,7 +571,7 @@ static int store_status(struct file *file,const char *buffer,unsigned long count
 	return count;
 }
 
-static int 
+static int
 read_status(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
 	int sw_num = *(short*)data;
 	int i, j=0, k;
@@ -583,7 +583,7 @@ read_status(char *buf, char **start, off_t offset, int count, int *eof, void *da
 	}
 //	if (status_port > 26)
 //		j += snprintf(&buf[j], count, "Port | Duplex | Speed | State\n");
-	
+
 	for (i = 0; i < 24/3; i++)
 	{
 		for (k = 0; k < 3; k++)
@@ -785,7 +785,7 @@ read_status_json(char *buf, char **start, off_t offset, int count, int *eof, voi
 		return count;
 	}
 	j += snprintf(&buf[j], count, "{\n");
-	
+
 	for (i = 0; i < 24/3; i++)
 	{
 		for (k = 0; k < 3; k++)
@@ -990,7 +990,7 @@ store_port_autoneg(struct file *file,const char *buffer,unsigned long count,void
 		return count;
 	}
 	autoneg = simple_strtoul(endp,&endp,10);
-	
+
 	if (port_num < 16) {
 		tmp = read_reg(sw_num, 0xCB);
 		if (autoneg) {
@@ -1031,7 +1031,7 @@ store_port_speed(struct file *file,const char *buffer,unsigned long count,void *
 		printk(KERN_ERR"speed must be 10, 100 or 1000 (%d)\n", speed);
 		return count;
 	}
-	
+
 	if (port_num < 16) {
 		tmp = read_reg(sw_num, 0xCD);
 		if (speed == 100) {
@@ -1095,7 +1095,7 @@ store_port_duplex(struct file *file,const char *buffer,unsigned long count,void 
 			write_reg(sw_num, 0xD1, (tmp & (~(1 << port_num))));
 		}
 	}
-	
+
 	return count;
 }
 
@@ -1150,7 +1150,7 @@ store_port_flowctrl(struct file *file,const char *buffer,unsigned long count,voi
 			write_reg(sw_num, 0xD7, (tmp & (~(1 << port_num))));
 		}
 	}
-	
+
 	return count;
 }
 static int
@@ -1196,7 +1196,7 @@ store_port_on_off(struct file *file,const char *buffer,unsigned long count,void 
 			write_reg(sw_num, 0xD9, (tmp & (~(1 << port_num))));
 		}
 	}
-	
+
 	return count;
 }
 
@@ -1205,13 +1205,13 @@ static int store_vlan_mode(struct file *file,const char *buffer,unsigned long co
 	char *endp;
 	char mode;
 	unsigned long tmp;
-	
+
 	if( sw_num > chips_num ) {
 		printk(KERN_ERR"dslam: ERROR sw_num=%d, chips_num=%d\n",sw_num,chips_num);
 		return count;
 	}
 	mode = simple_strtoul(buffer,&endp,10);
-	
+
 	tmp = read_reg(sw_num, 0x40);
 	if (mode == PORT_BASED) {
 		write_reg(sw_num, 0x40, tmp & 0xFFBF);
@@ -1225,12 +1225,12 @@ static int store_vlan_mode(struct file *file,const char *buffer,unsigned long co
 static int read_vlan_mode(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
 	int sw_num = *(short*)data;
 	unsigned long tmp;
-	
+
 	if( sw_num > chips_num ) {
 		printk(KERN_ERR"dslam: ERROR sw_num=%d, chips_num=%d\n",sw_num,chips_num);
 		return count;
 	}
-	
+
 	tmp = read_reg(sw_num, 0x40);
 	if (!(tmp & 0x40)) {
 		return(snprintf(buf, count, "0\n")); // port based
@@ -1238,10 +1238,10 @@ static int read_vlan_mode(char *buf, char **start, off_t offset, int count, int 
 	if (tmp & 0x40) {
 		return(snprintf(buf, count, "1\n")); // tag based
 	}
-	return(snprintf(buf, count, "undefined\n"));	
+	return(snprintf(buf, count, "undefined\n"));
 }
 
-static int 
+static int
 read_vlan(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
 	int sw_num = *(short*)data;
 	int i, j=0;
@@ -1260,13 +1260,13 @@ read_vlan(char *buf, char **start, off_t offset, int count, int *eof, void *data
 	return j;
 }
 
-static int 
+static int
 store_vlan(struct file *file,const char *buffer,unsigned long count,void *data) {
 	int sw_num = *(short*)data;
 	char *endp;
 	char port;
 	unsigned long settings;
-	
+
 	if( sw_num > chips_num ) {
 		printk(KERN_ERR"dslam: ERROR sw_num=%d, chips_num=%d\n",sw_num,chips_num);
 		return count;
@@ -1285,24 +1285,24 @@ store_vlan(struct file *file,const char *buffer,unsigned long count,void *data) 
 		printk(KERN_ERR"dslam: ERROR settings must be from 0 to 0x7ffffff, setting=%lx\n",settings);
 		return count;
 	}
-	
+
 //	printk(KERN_NOTICE"port=%d settings=%lx\n", port, settings);
 
 	write_reg(sw_num, 0x80+2*port, settings & 0xffff);
 	write_reg(sw_num, 0x81+2*port, (settings >> 16) & 0x07ff);
-	
+
 	return count;
 }
 
 // echo "entry_num vid val"
-static int 
+static int
 store_vid_table_entry(struct file *file,const char *buffer,unsigned long count,void *data) {
 	int sw_num = *(short*)data;
 	char *endp;
 	char entry_num;
 	unsigned long vid;
 	unsigned long val;
-	
+
 	entry_num = simple_strtoul(buffer,&endp,10);
 	while( *endp == ' '){
 		endp++;
@@ -1320,19 +1320,19 @@ store_vid_table_entry(struct file *file,const char *buffer,unsigned long count,v
 		return count;
 	}
 	val = simple_strtoul(endp,&endp,16);
-	
+
 	write_reg(sw_num, 0x60+entry_num, vid);
 	write_reg(sw_num, 0x80+2*entry_num, val & 0xFFFF);
 	write_reg(sw_num, 0x80+1+2*entry_num, (val >> 16) & 0xFFFF);
 //	printk(KERN_NOTICE"val = %lx high = %lx low = %lx\n", val, (val >> 16) & 0xFFFF, val & 0xFFFF);
-	
-	return count;	
+
+	return count;
 }
-static int 
+static int
 read_vid_table_entry(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
 	int sw_num = *(short*)data;
 	int i, j=0;
-	
+
 	for (i = 0; i < 32; i++)
 	{
 		j += snprintf(&buf[j], count, "%i VID=%lu VLAN=%04lx%04lx\n", i, read_reg(sw_num, 0x60+i), read_reg(sw_num, 0x80+2*i+1), read_reg(sw_num, 0x80+2*i));
@@ -1340,14 +1340,14 @@ read_vid_table_entry(char *buf, char **start, off_t offset, int count, int *eof,
 	return j;
 }
 
-static int 
+static int
 store_pvid(struct file *file,const char *buffer,unsigned long count,void *data) {
 	int sw_num = *(short*)data;
 	char *endp;
 	char port_num;
 	unsigned pvid;
 	int reg_num, i;
-	
+
 	port_num = simple_strtoul(buffer,&endp,10);
 	while( *endp == ' '){
 		endp++;
@@ -1369,11 +1369,11 @@ store_pvid(struct file *file,const char *buffer,unsigned long count,void *data) 
 		if (read_reg(sw_num, 0x60+i) == pvid) break;
 	}
 	if (i >= 32) i = 0;
-	
+
 	reg_num = (int)(port_num / 3);
 //	printk(KERN_NOTICE"founded vid = %i\n", i);
 //	printk(KERN_NOTICE"port_num = %i reg_num = %i port_num mod 3 = %i\n", port_num, reg_num, port_num % 3);
-	
+
 	switch (port_num % 3) {
 		case 0:
 			write_reg(sw_num, 0x53+reg_num, (read_reg(sw_num, 0x53+reg_num) & 0x7FE0) | i);
@@ -1387,17 +1387,17 @@ store_pvid(struct file *file,const char *buffer,unsigned long count,void *data) 
 	}
 	return count;
 }
-static int 
+static int
 read_pvid(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
 	int sw_num = *(short*)data;
 	int i, j=0;
 	unsigned pvid;
 	int reg_num;
-	
+
 	for (i = 0; i <= 26; i++)
 	{
 		reg_num = (int)(i / 3);
-	
+
 		switch (i % 3) {
 			case 0:
 				pvid = read_reg(sw_num, 0x53+reg_num) & 0x1F;
@@ -1414,13 +1414,13 @@ read_pvid(char *buf, char **start, off_t offset, int count, int *eof, void *data
 	}
 	return j;
 }
-static int 
+static int
 store_tag(struct file *file,const char *buffer,unsigned long count,void *data) {
 	int sw_num = *(short*)data;
 	char *endp;
 	char port_num;
 	unsigned tag;
-	
+
 	port_num = simple_strtoul(buffer,&endp,10);
 	while( *endp == ' '){
 		endp++;
@@ -1460,16 +1460,16 @@ store_tag(struct file *file,const char *buffer,unsigned long count,void *data) {
 				write_reg(sw_num, 0x5D, read_reg(sw_num, 0x5D) & (~(0x1 << (port_num - 16))));
 				write_reg(sw_num, 0x5F, read_reg(sw_num, 0x5F) | (0x1 << (port_num - 16)));
 			}
-		break;		
+		break;
 	}
-	return count;	
+	return count;
 }
-static int 
+static int
 read_tag(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
 	int sw_num = *(short*)data;
 	int i, j=0;
 	int tag=0, untag=0;
-	
+
 	for (i = 0; i <= 26; i++)
 	{
 		if (i <= 15) {
@@ -1567,7 +1567,7 @@ static int
 read_mirror_source(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
 	int sw_num = *(short*)data;
 	unsigned int ports = 0, j = 0, i;
-	
+
 	ports = read_reg(sw_num, 0x4F);
 	ports += ((unsigned int)read_reg(sw_num, 0x50)) << 16;
 //	j += snprintf(&buf[j], count, "ports = %x\n", ports);
@@ -1575,7 +1575,7 @@ read_mirror_source(char *buf, char **start, off_t offset, int count, int *eof, v
 		if (ports & (1 << i)) j += snprintf(&buf[j], count, "%i ", i);
 	}
 	j += snprintf(&buf[j], count, "\n");
-	
+
 	return j;
 }
 static int
@@ -1584,7 +1584,7 @@ store_mirror_source(struct file *file,const char *buffer,unsigned long count,voi
 	unsigned short port;
 	unsigned int ports = 0;
 	char *endp = (char *)buffer;
-	
+
 	if ((buffer[0] == 'n') && (buffer[1] == 'o') && (buffer[2] == 'n') && (buffer[3] == 'e')) {
 		write_reg(sw_num, 0x4F, 0);
 		write_reg(sw_num, 0x50, 0);
@@ -1612,7 +1612,7 @@ static int
 read_mirror_dest(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
 	int sw_num = *(short*)data;
 	unsigned int ports = 0, j = 0, i;
-	
+
 	ports = read_reg(sw_num, 0x51);
 	ports += ((unsigned int)read_reg(sw_num, 0x52)) << 16;
 //	j += snprintf(&buf[j], count, "ports = %x\n", ports);
@@ -1620,7 +1620,7 @@ read_mirror_dest(char *buf, char **start, off_t offset, int count, int *eof, voi
 		if (ports & (1 << i)) j += snprintf(&buf[j], count, "%i ", i);
 	}
 	j += snprintf(&buf[j], count, "\n");
-	
+
 	return j;
 }
 static int
@@ -1629,7 +1629,7 @@ store_mirror_dest(struct file *file,const char *buffer,unsigned long count,void 
 	unsigned short port;
 	unsigned int ports = 0;
 	char *endp = (char *)buffer;
-	
+
 	if ((buffer[0] == 'n') && (buffer[1] == 'o') && (buffer[2] == 'n') && (buffer[3] == 'e')) {
 		write_reg(sw_num, 0x51, 0);
 		write_reg(sw_num, 0x52, 0);
@@ -1655,7 +1655,7 @@ store_mirror_dest(struct file *file,const char *buffer,unsigned long count,void 
 static int
 read_mirror_alg(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
 	int sw_num = *(short*)data;
-	
+
 	return snprintf(buf, count, "%lu\n", (read_reg(sw_num, 0x40) >> 9) & 3);
 
 }
@@ -1669,7 +1669,7 @@ store_mirror_alg(struct file *file,const char *buffer,unsigned long count,void *
 	alg = simple_strtoul(buffer, &endp, 10);
 	if (alg > 3) alg = 3;
 	tmp = read_reg(sw_num, 0x40);
-	
+
 	write_reg(sw_num, 0x40, (tmp & 0xF9FF) | (alg << 9));
 
 	return count;
@@ -1782,10 +1782,10 @@ static int set_entry(struct proc_dir_entry *ent,read_proc_t *fread, write_proc_t
 
 static int dslam_procfs_init(void) {
 	int i;
-	
+
 	ADM5120_SW_REG(GPIO_conf0_REG) = 0;
 	ADM5120_SW_REG(GPIO_conf2_REG) = 0;
-	
+
 	dslam_entry = proc_mkdir("sys/net/dslam_sw", NULL);
 	if (dslam_entry == NULL)
 		return -ENOMEM;
@@ -1795,7 +1795,7 @@ static int dslam_procfs_init(void) {
 	dslam_sw1_entry = proc_mkdir("sys/net/dslam_sw/sw1", NULL);
 	if (dslam_sw1_entry == NULL)
 		return -ENOMEM;
-	
+
 	for (i=0; i<PFS_ENTS; i++) {
 		if ( !(entries_sw0[i].pent = create_proc_entry(entries_sw0[i].name,entries_sw0[i].mode,dslam_sw0_entry) ) )
 			return -1;
@@ -1806,7 +1806,7 @@ static int dslam_procfs_init(void) {
 		if ( set_entry(	entries_sw1[i].pent,entries_sw1[i].fread, entries_sw1[i].fwrite,entries_sw1[i].mark) )
 			return -1;
 	}
-	
+
 	dslam_write_mode(&chips[0]);
 	dslam_write_mode(&chips[1]);
 	read_reg(0, 1);
@@ -1816,7 +1816,7 @@ static int dslam_procfs_init(void) {
 	memset(&sw, 0, 2*sizeof(struct switch_t));
 	return 0;
 //	PDEBUG(0,"conf0=%lx",ADM5120_SW_REG(GPIO_conf0_REG));
-}        
+}
 
 static void dslam_procfs_remove(void) {
 	int j;
@@ -1839,7 +1839,7 @@ static void dslam_procfs_remove(void) {
 	remove_proc_entry("sys/net/dslam_sw/sw0",NULL);
 	remove_proc_entry("sys/net/dslam_sw/sw1",NULL);
 	remove_proc_entry("sys/net/dslam_sw",NULL);
-}        
+}
 
 
 /* --------------------------------------------------------------------------

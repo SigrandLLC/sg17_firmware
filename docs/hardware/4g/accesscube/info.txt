@@ -5,7 +5,7 @@ http://www.accesscube.com
 
 CPU: AMD Alchemy 1500 @ 400 Mhz
 RAM: 64 MB
-Flash: 
+Flash:
 serial port possible
 JTAG port possible
 Mini-PCI slot expansions

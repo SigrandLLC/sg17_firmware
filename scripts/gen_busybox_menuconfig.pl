@@ -24,7 +24,7 @@ while (<FIND>) {
 	my $output = $_;
 	print STDERR "$input => $output\n";
 	$output =~ /^(.+)\/[^\/]+$/ and system("mkdir -p $1");
-	
+
 	open INPUT, $input;
 	open OUTPUT, ">$output";
 	my ($cur, $default_set, $line);
@@ -44,9 +44,9 @@ while (<FIND>) {
 			undef $default_set;
 		}
 		$line =~ s/^(\s*source\s+)/$1package\/busybox\/config\//;
-		
+
 		$line =~ s/(\s+)((CONFIG|FDISK|USING|CROSS|EXTRA|PREFIX|FEATURE|HAVE|BUSYBOX)[\w_]*)/$1BUSYBOX_$2/g;
-		
+
 		if ($cur) {
 			($cur !~ /^CONFIG/ or $cur eq 'CONFIG_LFS') and do {
 				$line =~ s/^(\s*(bool|tristate|string))\s*".+"$/$1/;
@@ -59,11 +59,11 @@ while (<FIND>) {
 				$line =~ s/^(\s*default\s*)(\w+|"[^"]*")(.*)/$1$c$3/;
 			}
 		}
-		
+
 		print OUTPUT $line;
 	}
 	close OUTPUT;
 	close INPUT;
-	
+
 }
 close FIND;

@@ -1,10 +1,10 @@
 #!/bin/sh
 	. common/dhcp_server.sh
-	
+
 	subsys="dhcp"
 	page=${FORM_page}
 	export iface=$page
-	
+
 	eval `kdb -qq ls sys_iface*`
 	set_dhcp_server_vars
 
@@ -13,16 +13,16 @@
 	fi
 
 	eval `kdb -qq ls sys_iface*`
-	
+
 	ifaces=`kdb sskls 'sys*valid=1' sys_iface_ _valid`
 	fifaces='';
 	for i in $ifaces; do
 		eval "proto=\$sys_iface_${i}_proto"
-		case "$proto" in 
+		case "$proto" in
 			ether|bridge|vlan|bonding) fifaces="$fifaces $i $i";;
 		esac
 	done
-	
+
 	render_page_selection "" $fifaces
 
 	## select example
@@ -30,7 +30,7 @@
 	#form_method='GET'
 	#render_form_header dhcp_server
 	#render_table_title "DHCP Server"
-	#fifaces="'' --select--" 
+	#fifaces="'' --select--"
 	#autosubmit="y"
 	#render_input_field select "Interface" iface $fifaces
 	#render_form_tail
@@ -48,5 +48,5 @@
 		render_dhcp_server_static
 		render_form_tail
 	fi
-	
+
 # vim:foldmethod=indent:foldlevel=1

@@ -18,7 +18,7 @@ void monitor_links_state(void * data)
 	int i;
 	ack_t ack;
 	u32 buf32[32];
-	
+
 	for (i = 0; i < card->if_num; i++)
 	{
 		if (card->channels[i].need_reset)
@@ -78,7 +78,7 @@ void monitor_links_state(void * data)
 		if (card->channels[i].state == CONNECTED)
 		{
 			led_on(card, i);
-			
+
 			switch (i)
 			{
 				case 0:
@@ -111,7 +111,7 @@ void monitor_links_state(void * data)
 //		mpi_cmd(card, 0x164, buf, 2, &ack);
 //		PDEBUG(0, "CMD_DSL_PARAM_GET  ");
 //		tunnel_cmd(card, 0x4802, buf, 0, i);
-		
+
 //	}
 //	load_cfg(card, 0);
 	schedule_delayed_work(&(card->work), 2*HZ);
@@ -158,7 +158,7 @@ int mam17_socrate_init(struct mam17_card *card)
 	} else {
 		PDEBUG(debug_socrate_init, "IRQ - %i OK", card->pdev->irq);
 	}
-	
+
 	// устанавливаем регистры "самой платы"
 	iowrite8(0x0, &(card->regs->CRA));
 	mdelay(100);//500
@@ -225,7 +225,7 @@ int mam17_socrate_init(struct mam17_card *card)
 
 err2:
 	release_firmware(fws);
-	cancel_delayed_work(&(card->work));	
+	cancel_delayed_work(&(card->work));
 err1:
 	free_irq(card->pdev->irq, (void*)card);
 	return error;
@@ -441,7 +441,7 @@ void print_ret(struct sdfe4_ret * ret)
 
 //=========================================================================
 //========================Download firmware to DFE=========================
-//========================================================================= 
+//=========================================================================
 int sdfe4_download_DFE_fw(u8 * fw, struct mam17_card *card)
 {
 	int i, k;
@@ -607,7 +607,7 @@ int sdfe4_download_DFE_fw(u8 * fw, struct mam17_card *card)
 
 //=========================================================================
 //========================Download firmware to IDC=========================
-//========================================================================= 
+//=========================================================================
 
 int sdfe4_download_IDC_fw(u8 * fw, struct mam17_card *card)// EFM FW
 {
@@ -636,7 +636,7 @@ int sdfe4_download_IDC_fw(u8 * fw, struct mam17_card *card)// EFM FW
   	}
 	PDEBUG(debug_fw, "CMD_WR_REG_RS_FWDTPNT - OK");
 	mdelay(2);
-	Data_U32[0] = 0;	
+	Data_U32[0] = 0;
 	if (sdfe4_rs_cmd(CMD_WR_REG_RS_FWCTRL, Data_U32, 1, &ret, card, Embedded_IDC))///////////////////
 	{
 		PDEBUG(0, "CMD_WR_REG_RS_FWCTRL - Error!");

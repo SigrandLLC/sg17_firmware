@@ -258,7 +258,7 @@ IFX_return_t TAPI_AddDev_PollPkts(IFX_TAPI_DRV_CTX_t *pDrvCtx,
                                   TAPI_DEV *pTapiDev)
 {
    TAPI_DEV_LIST_t *pList = IFX_NULL;
-   TAPI_DEV_LIST_t *pPrevList = IFX_NULL;   
+   TAPI_DEV_LIST_t *pPrevList = IFX_NULL;
    TAPI_DEV_LIST_t *pListNew = IFX_NULL;
 
 
@@ -299,7 +299,7 @@ IFX_return_t TAPI_AddDev_PollPkts(IFX_TAPI_DRV_CTX_t *pDrvCtx,
 
          return IFX_SUCCESS;
       }
-      pPrevList = pList;      
+      pPrevList = pList;
       pList = pList->pNext;
    }
 
@@ -363,7 +363,7 @@ IFX_return_t TAPI_AddDev_PollEvts(IFX_TAPI_DRV_CTX_t *pDrvCtx,
                                   TAPI_DEV *pTapiDev)
 {
    TAPI_DEV_LIST_t *pList = IFX_NULL;
-   TAPI_DEV_LIST_t *pPrevList = IFX_NULL;   
+   TAPI_DEV_LIST_t *pPrevList = IFX_NULL;
    TAPI_DEV_LIST_t* pListNew = IFX_NULL;
 
 
@@ -404,7 +404,7 @@ IFX_return_t TAPI_AddDev_PollEvts(IFX_TAPI_DRV_CTX_t *pDrvCtx,
 
          return IFX_SUCCESS;
       }
-      pPrevList = pList;      
+      pPrevList = pList;
       pList = pList->pNext;
    }
 
@@ -969,7 +969,7 @@ IFX_return_t TAPI_Poll_Up (IFX_void_t **ppPktsUp, IFX_int32_t *pPktsUpNum)
             __FILE__, __LINE__));
       return IFX_ERROR;
    }
-   
+
    if ((IFX_NULL == ppPktsUp) || (IFX_NULL == pPktsUpNum))
    {
       TRACE(TAPI_DRV, DBG_LEVEL_HIGH,
@@ -1069,7 +1069,7 @@ IFX_return_t TAPI_Poll_Up (IFX_void_t **ppPktsUp, IFX_int32_t *pPktsUpNum)
 /* -------------------------------------------------------------------
                       JUST FOR TESTING PURPOSES
 */
- 
+
 /**
    Used for testing of polling:
    - testing list of devices (add, remove, retrieve)
@@ -1089,7 +1089,7 @@ IFX_return_t TAPI_Poll_Test(IFX_void_t)
    IFX_TAPI_DRV_CTX_t test_drv_ctx;
    TAPI_DEV* temp_tapi_dev = IFX_NULL;
    TAPI_DEV_LIST_t* pList = IFX_NULL;
-   
+
 
    printf("TEST POLL: Perform list of devices testing.\n");
    printf("TEST POLL: Will test adding/removing/getting device from/to list.\n");
@@ -1098,11 +1098,11 @@ IFX_return_t TAPI_Poll_Test(IFX_void_t)
 
    memset(&test_drv_ctx, 0, sizeof(IFX_TAPI_DRV_CTX_t));
 
-   /* ---------------------------------------------------------------- 
+   /* ----------------------------------------------------------------
                             SET ID to all devices
     */
    printf("TEST POLL: Set IDs to %d devices.\n", MAX_TEST_DEV);
-   
+
    for (i = 0; i < MAX_TEST_DEV; i++)
    {
       /* Set IDs. */
@@ -1111,7 +1111,7 @@ IFX_return_t TAPI_Poll_Test(IFX_void_t)
              (int) i, (int) (TEST_OFFSET_ID + i));
    }
 
-   /* ---------------------------------------------------------------- 
+   /* ----------------------------------------------------------------
                                  TEST 0:
                             COUNT OF ALL DEVICES
     */
@@ -1136,8 +1136,8 @@ IFX_return_t TAPI_Poll_Test(IFX_void_t)
    printf("TEST POLL: List of pkts has %d device(s) and list of"
           " evts has %d device(s).\n", (int) j, (int) i);
 
-   /* ---------------------------------------------------------------- 
-                            TEST 1: 
+   /* ----------------------------------------------------------------
+                            TEST 1:
                    Add few devices, return count. Afterthat
                       remove them and again return count.
     */
@@ -1145,12 +1145,12 @@ IFX_return_t TAPI_Poll_Test(IFX_void_t)
    printf("\nTEST1: Add all devices to both lists, return count.\n");
    printf("       Then remove all and again return count.\n");
    printf("---------------------------------------------------\n");
-   
+
    for (i = 0; i < MAX_TEST_DEV; i++)
    {
       printf("TEST POLL: Adding tapi dev id %d, %0X to polling list for pkts.\n",
              (int) (TEST_OFFSET_ID + i), (int) &test_tapi_dev[i]);
-      
+
       ret = TAPI_AddDev_PollPkts(&test_drv_ctx, &test_tapi_dev[i]);
       if (ret != IFX_SUCCESS)
       {
@@ -1202,7 +1202,7 @@ IFX_return_t TAPI_Poll_Test(IFX_void_t)
    {
       printf("TEST POLL: Remove tapi dev id %d, %0X to polling list for pkts.\n",
             (int) (TEST_OFFSET_ID + i), (int) &test_tapi_dev[i]);
-      
+
       ret = TAPI_RemDev_PollPkts(&test_drv_ctx, &test_tapi_dev[i]);
       if (ret != IFX_SUCCESS)
       {
@@ -1215,7 +1215,7 @@ IFX_return_t TAPI_Poll_Test(IFX_void_t)
 
       printf("TEST POLL: Remove tapi dev id %d, %0X to polling list for evts.\n",
             (int) (TEST_OFFSET_ID + i), (int) &test_tapi_dev[i]);
-      
+
       ret = TAPI_RemDev_PollEvts(&test_drv_ctx, &test_tapi_dev[i]);
       if (ret != IFX_SUCCESS)
       {
@@ -1245,9 +1245,9 @@ IFX_return_t TAPI_Poll_Test(IFX_void_t)
    printf("TEST POLL: List of pkts has %d device(s) and list of"
           " evts has %d device(s).\n", (int) j, (int) i);
 
-   /* ---------------------------------------------------------------- 
-                                 TEST 2: 
-          List is has none of out test devices, try to get some devices and 
+   /* ----------------------------------------------------------------
+                                 TEST 2:
+          List is has none of out test devices, try to get some devices and
                we should not get them. Then add one and try to
                        get this one, should get it.
     */
@@ -1293,7 +1293,7 @@ IFX_return_t TAPI_Poll_Test(IFX_void_t)
             TEST_OFFSET_ID + 4, (int) &test_tapi_dev[4], __FILE__, __LINE__);
       return ret;
    }
-   
+
    temp_tapi_dev = TAPI_Poll_GetTapiDev(TEST_OFFSET_ID + 4);
    if (temp_tapi_dev == IFX_NULL)
    {
@@ -1308,7 +1308,7 @@ IFX_return_t TAPI_Poll_Test(IFX_void_t)
 
    printf("TEST POLL: Remove tapi dev id %d, %0X from polling list for evts.\n",
           TEST_OFFSET_ID + 4, (int) &test_tapi_dev[4]);
-      
+
    ret = TAPI_RemDev_PollEvts(&test_drv_ctx, &test_tapi_dev[4]);
    if (ret != IFX_SUCCESS)
    {
@@ -1317,18 +1317,18 @@ IFX_return_t TAPI_Poll_Test(IFX_void_t)
              TEST_OFFSET_ID + 4, (int) &test_tapi_dev[4], __FILE__, __LINE__);
       return ret;
    }
- 
-   /* ---------------------------------------------------------------- 
+
+   /* ----------------------------------------------------------------
                                  TEST 3:
                     Try to remove the one that does not exists
     */
 
    printf("\nTEST3: Remove one that does not exists, should get error.\n");
    printf("---------------------------------------------------------\n");
-   
+
    printf("TEST POLL: Remove tapi dev id %d, %0X from polling list for evts.\n",
           TEST_OFFSET_ID + 4, (int) &test_tapi_dev[4]);
-      
+
    ret = TAPI_RemDev_PollEvts(&test_drv_ctx, &test_tapi_dev[4]);
    if (ret != IFX_SUCCESS)
    {
@@ -1345,17 +1345,17 @@ IFX_return_t TAPI_Poll_Test(IFX_void_t)
       ret = IFX_ERROR;
    }
 
-   /* ---------------------------------------------------------------- 
+   /* ----------------------------------------------------------------
                                  TEST 4:
                         Try to add same device more times.
     */
-    
+
    printf("\nTEST4: Adding same device more times.\n");
    printf("---------------------------------------------------------\n");
 
    printf("TEST POLL: Adding tapi dev id %d, %0X to polling list for evts - first time.\n",
          TEST_OFFSET_ID + 4, (int) &test_tapi_dev[4]);
-    
+
    ret = TAPI_AddDev_PollEvts(&test_drv_ctx, &test_tapi_dev[4]);
    if (ret != IFX_SUCCESS)
    {
@@ -1381,13 +1381,13 @@ IFX_return_t TAPI_Poll_Test(IFX_void_t)
       printf("TEST POLL: Adding tapi dev id %d, %0X to polling list for evts. "
             "Already exists, added twice the same device -> result ERR.\n",
             TEST_OFFSET_ID + 4, (int) &test_tapi_dev[4]);
-   
+
       ret = IFX_ERROR;
    }
 
    printf("TEST POLL: Remove tapi dev id %d, %0X from polling list for evts.\n",
           TEST_OFFSET_ID + 4, (int) &test_tapi_dev[4]);
-      
+
    ret = TAPI_RemDev_PollEvts(&test_drv_ctx, &test_tapi_dev[4]);
    if (ret != IFX_SUCCESS)
    {
@@ -1399,7 +1399,7 @@ IFX_return_t TAPI_Poll_Test(IFX_void_t)
 
    /* ---------------------------------------------------------------- */
 
-   
+
    printf("\nTEST POLL: Return count of devices in list at end of test.\n");
    /* Return count of all in list */
    i = 0;

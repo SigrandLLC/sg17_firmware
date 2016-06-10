@@ -103,7 +103,7 @@ get_port_name() {
 	sw=$1
 	sw_port=$2
 #	echo -n "sw=$1 sw_port=$2   "
-	
+
 	if [ "$sw_port" = "24" ]; then
 		port_name="ge$sw"
 #		echo "$port_name"
@@ -164,7 +164,7 @@ get_port_name() {
 
 storm_control_func() {
 	prompt=":services:storm_control"
-	
+
 	if [ "$1" = "show" ]; then
 		echo "44" > /proc/sys/net/dslam_sw/sw0/regread
 		threshold=`cat /proc/sys/net/dslam_sw/sw0/regread`
@@ -178,7 +178,7 @@ storm_control_func() {
 		echo "43" > /proc/sys/net/dslam_sw/sw0/regread
 		sw0_reg43=`cat /proc/sys/net/dslam_sw/sw0/regread`
 		sw0_reg43=`expr substr "$sw0_reg43" 6 6`
-		
+
 		let "sw0_reg=$sw0_reg42 + ($sw0_reg43 << 16)"
 
 		echo "42" > /proc/sys/net/dslam_sw/sw1/regread
@@ -189,7 +189,7 @@ storm_control_func() {
 		sw1_reg43=`expr substr "$sw1_reg43" 6 6`
 
 		let "sw1_reg=$sw1_reg42 + ($sw1_reg43 << 16)"
-		
+
 #		echo "sw0_reg="`printf "0x%x" $sw0_reg`
 #		echo "sw1_reg="`printf "0x%x" $sw1_reg`
 
@@ -216,7 +216,7 @@ storm_control_func() {
 						sw0_ports="$port_name"
 					fi
 				fi
-				
+
 			fi
 			let "tmp=$sw1_reg & (1 << $cnt)"
 			if [ "$tmp" != "0" ]; then
@@ -258,7 +258,7 @@ storm_control_func() {
 		let "reg44=($threshold << 10) + 5"
 		echo 44 `printf "%x" $reg44` > /proc/sys/net/dslam_sw/sw0/regwrite
 		echo 44 `printf "%x" $reg44` > /proc/sys/net/dslam_sw/sw1/regwrite
-		
+
 		echo "$kdb set sys_dslam_bcast_threshold=$threshold" >> $tmp_config_file
 		echo "Broadcast storm threshold is set to $threshold!"
 		return
@@ -350,7 +350,7 @@ storm_control_func() {
 		if [ "$on_off" = "on" ]; then
 			val=1
 		fi
-		
+
 		if [ "$sw" = "0" ]; then
 			let "sw0_reg=($sw0_reg & (~(1 << $sw_port))) | ($val << $sw_port)"
 		elif [ "$sw" = "1" ]; then
@@ -361,13 +361,13 @@ storm_control_func() {
 	sw1_reg=`printf "%08x" $sw1_reg`
 	echo "sw0_reg=$sw0_reg"
 	echo "sw1_reg=$sw1_reg"
-	
+
 	let "sw0_reg42=0x$sw0_reg & 0xFFFF"
 	let "sw0_reg43=(0x$sw0_reg >> 16) & 0xFFFF"
 
 	let "sw1_reg42=0x$sw1_reg & 0xFFFF"
 	let "sw1_reg43=(0x$sw1_reg >> 16) & 0xFFFF"
-	
+
 	sw0_reg42=`printf "0x%x" $sw0_reg42`
 	sw0_reg43=`printf "0x%x" $sw0_reg43`
 	sw1_reg42=`printf "0x%x" $sw1_reg42`
@@ -375,16 +375,16 @@ storm_control_func() {
 
 	echo "sw0_reg42=$sw0_reg42 sw0_reg43=$sw0_reg43"
 	echo "sw1_reg42=$sw1_reg42 sw1_reg43=$sw1_reg43"
-	
+
 	echo "42 $sw0_reg42" > /proc/sys/net/dslam_sw/sw0/regwrite
 	echo "43 $sw0_reg43" > /proc/sys/net/dslam_sw/sw0/regwrite
 	echo "42 $sw1_reg42" > /proc/sys/net/dslam_sw/sw1/regwrite
 	echo "43 $sw1_reg43" > /proc/sys/net/dslam_sw/sw1/regwrite
 
-	
+
 	echo "kdb set sys_dslam_sw0_reg42=$sw0_reg42" >> $tmp_config_file
 	echo "kdb set sys_dslam_sw0_reg43=$sw0_reg43" >> $tmp_config_file
 	echo "kdb set sys_dslam_sw1_reg42=$sw1_reg42" >> $tmp_config_file
 	echo "kdb set sys_dslam_sw1_reg43=$sw1_reg43" >> $tmp_config_file
-	
+
 }

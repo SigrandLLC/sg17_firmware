@@ -320,7 +320,7 @@ static void process_sftpjob(void *jv, void *wdv, struct allocator *a) {
   struct sftpjob *const job = jv;
   int l, r, type = 0;
   uint32_t status, rc;
-  
+
   job->a = a;
   job->id = 0;
   job->worker = wdv;
@@ -346,7 +346,7 @@ static void process_sftpjob(void *jv, void *wdv, struct allocator *a) {
   while(l <= r) {
     const int m = (l + r) / 2;
     const int mtype = protocol->commands[m].type;
-    
+
     if(type < mtype)
       r = m - 1;
     else if(type > mtype)
@@ -417,7 +417,7 @@ int main(int argc, char **argv) {
     const char *home = getenv("HOME");
 
     sftp_debugpath = xmalloc(strlen(home) + 40);
-    sprintf((char *)sftp_debugpath, "%s/.gesftpserver.%ju", 
+    sprintf((char *)sftp_debugpath, "%s/.gesftpserver.%ju",
             home, (uintmax_t)getpid());
     sftp_debugging = 1;
   }
@@ -428,7 +428,7 @@ int main(int argc, char **argv) {
   /* We need I18N support for filename encoding */
   setlocale(LC_CTYPE, "");
   local_encoding = nl_langinfo(CODESET);
-  
+
   while((n = getopt_long(argc, argv, "hVdD:r:u:H:L:b46R",
 			 options, 0)) >= 0) {
     switch(n) {
@@ -519,7 +519,7 @@ int main(int argc, char **argv) {
     fatal("error calling iconv_open(UTF-8, %s): %s",
           local_encoding, strerror(errno));
   iconv_close(cd);
-  
+
   if(root) {
     /* Enter our chroot */
     if(chdir(root) < 0)
@@ -538,7 +538,7 @@ int main(int argc, char **argv) {
     if(setuid(0) >= 0)
       fatal("setuid(0) unexpectedly succeeded");
   }
-  
+
   if(daemonize) {
     openlog(bn, LOG_PID, LOG_FTP);
     log_syslog = 1;
@@ -558,7 +558,7 @@ int main(int argc, char **argv) {
       } addr;
       socklen_t addrlen = sizeof addr;
       int fd;
-    
+
       if((fd = accept(listenfd, &addr.sa, &addrlen)) >= 0) {
         switch(fork()) {
         case -1:
@@ -595,7 +595,7 @@ static void sftp_service(void) {
   uint32_t len;
   struct sftpjob *job;
   struct allocator a;
-  void *const wdv = worker_init(); 
+  void *const wdv = worker_init();
   D(("gesftpserver %s starting up", VERSION));
   /* draft -13 s7.6 "The server SHOULD NOT apply a 'umask' to the mode
    * bits". */

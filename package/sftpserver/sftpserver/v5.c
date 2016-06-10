@@ -169,9 +169,9 @@ uint32_t sftp_generic_open(struct sftpjob *job, const char *path,
       created = 1;
     } else {
       /* O_EXCL will refuse to follow links so that's no good here.  We do a
-       * racy test and open since that's the best available. */ 
+       * racy test and open since that's the best available. */
       D(("SSH_FXF_CREATE_NEW -> test for existence"));
-      if(stat(path, &sb) == 0) 
+      if(stat(path, &sb) == 0)
         return SSH_FX_FILE_ALREADY_EXISTS;
       D(("SSH_FXF_CREATE_NEW -> O_CREAT"));
       fd = open(path, open_flags|O_CREAT, initial_permissions);
@@ -289,7 +289,7 @@ uint32_t sftp_generic_open(struct sftpjob *job, const char *path,
     return HANDLER_ERRNO;
   }
   /* Set initial attributrs if we created the file */
-  if(created && attrs->valid && (rc = sftp_set_fstatus(job->a, fd, attrs, 0))) { 
+  if(created && attrs->valid && (rc = sftp_set_fstatus(job->a, fd, attrs, 0))) {
     const int save_errno = errno;
     close(fd);
     unlink(path);
@@ -343,7 +343,7 @@ uint32_t sftp_v56_rename(struct sftpjob *job) {
 #ifndef __linux__
         {
           struct stat sb;
-          
+
           if(lstat(newpath, &sb) == 0)
             return SSH_FX_FILE_ALREADY_EXISTS;
         }

@@ -50,7 +50,7 @@
 # define DEFAULT_PERMISSIONS 0755
 #endif
 
-void sftp_send_status(struct sftpjob *job, 
+void sftp_send_status(struct sftpjob *job,
                       uint32_t status,
                       const char *msg);
 /* Send an SSH_FXP_STATUS */
@@ -69,7 +69,7 @@ uint32_t sftp_vany_opendir(struct sftpjob *job);
 uint32_t sftp_vany_readdir(struct sftpjob *job);
 uint32_t sftp_vany_mkdir(struct sftpjob *job);
 uint32_t sftp_vany_extended(struct sftpjob *job);
-void sftp_v456_sendnames(struct sftpjob *job, 
+void sftp_v456_sendnames(struct sftpjob *job,
                          int nnames, const struct sftpattr *names);
 void sftp_v456_sendattrs(struct sftpjob *job,
                          const struct sftpattr *attrs);

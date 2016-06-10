@@ -87,7 +87,7 @@
 
    \see Qos_Init()
 
-   \todo CALLBACK_ERR is located in ifx_udp_redirect.h 
+   \todo CALLBACK_ERR is located in ifx_udp_redirect.h
 */
 IFX_return_t Qos_LL_PktIngress(IFX_TAPI_LL_CH_t* pLLCh,
                                IFX_void_t* pData,
@@ -113,9 +113,9 @@ IFX_return_t Qos_LL_PktIngress(IFX_TAPI_LL_CH_t* pLLCh,
 
       return IFX_ERROR;
    }
-   
+
    pDev = pCh->pParent;
-   
+
    if (pDev->IrqPollMode & VIN_EVENT_POLL)
    {
       /* POLLING */
@@ -136,7 +136,7 @@ IFX_return_t Qos_LL_PktIngress(IFX_TAPI_LL_CH_t* pLLCh,
       if (ret == IFX_ERROR)
       {
          TRACE(VINETIC, DBG_LEVEL_HIGH, ("No free packet in voice in-box.\n"));
-      
+
          /* Unprotect host mailbox access. */
          /*VIN_HOST_RELEASE(pDev);*/
          VIN_ENABLE_IRQGLOBAL(flags);
@@ -149,7 +149,7 @@ IFX_return_t Qos_LL_PktIngress(IFX_TAPI_LL_CH_t* pLLCh,
       {
          TRACE(VINETIC, DBG_LEVEL_HIGH, ("Not enough space in voice out-box.\n"));
          SET_ERROR(VIN_ERR_NO_FIBXMS);
-      
+
          /* Unprotect host mailbox access. */
          /*VIN_HOST_RELEASE(pDev);*/
          VIN_ENABLE_IRQGLOBAL(flags);
@@ -166,7 +166,7 @@ IFX_return_t Qos_LL_PktIngress(IFX_TAPI_LL_CH_t* pLLCh,
       if (V2CPE_BOX_VLEN_WLEN_GET(nRegBoxVlen) < (nVinboxCnt + CMD_HEADER_CNT))
       {
          TRACE(VINETIC, DBG_LEVEL_HIGH, ("Voice out-box is FULL.\n"));
-      
+
          /* Unprotect host mailbox access. */
          /*VIN_HOST_RELEASE(pDev);*/
          VIN_ENABLE_IRQGLOBAL(flags);
@@ -207,11 +207,11 @@ IFX_return_t Qos_LL_PktIngress(IFX_TAPI_LL_CH_t* pLLCh,
          /** \todo What happens if some data is cut out? */
          TRACE(VINETIC, DBG_LEVEL_HIGH, ("Data to long %d, will be cut to %d\n",
                (int) nLen, MAX_PACKET_WORD - 2));
-      
+
          nLen = MAX_PACKET_WORD - 2;
       }
-   
-      memcpy(&data[2], (IFX_uint16_t *) pData, nLen); 
+
+      memcpy(&data[2], (IFX_uint16_t *) pData, nLen);
 
 #ifndef VIN_2CPE
       ret = pDev->hostDev.write(pDev, data, wrcnt + 2);
@@ -229,9 +229,9 @@ IFX_return_t Qos_LL_PktIngress(IFX_TAPI_LL_CH_t* pLLCh,
       {
          /* In global lock free buffer. */
          VIN_DISABLE_IRQGLOBAL(flags);
-      
+
          ret = bufferPoolPut(pData);
-      
+
          VIN_ENABLE_IRQGLOBAL(flags);
 
          if (IFX_SUCCESS != ret)
@@ -267,7 +267,7 @@ IFX_return_t Qos_LL_PktEgress(IFX_TAPI_LL_CH_t* pLLCh)
    IFX_int32_t      data_len = 0;
    IFXOS_INTSTAT    flags;
 
-   
+
    TRACE(VINETIC, DBG_LEVEL_LOW, ("Qos_LL_PktEgress()\n"));
 
    if (IFX_NULL == pCh)
@@ -278,7 +278,7 @@ IFX_return_t Qos_LL_PktEgress(IFX_TAPI_LL_CH_t* pLLCh)
 
       return IFX_ERROR;
    }
-   
+
    pDev = pCh->pParent;
 
    if (IFX_NULL == pDev)
@@ -313,7 +313,7 @@ IFX_return_t Qos_LL_PktEgress(IFX_TAPI_LL_CH_t* pLLCh)
             data_len -= 1;
          }
       }
-     
+
       /* In global lock free buffer. */
       VIN_DISABLE_IRQGLOBAL(flags);
 
@@ -352,13 +352,13 @@ IFX_return_t Qos_LL_PktEgress(IFX_TAPI_LL_CH_t* pLLCh)
       callback function for the ingress packet redirection, initializes callback
       function for egress redirection and  stores the channel pointer in
       a global array for a later use by the callback function.
- */   
+ */
 IFX_return_t Qos_LL_Init(IFX_uint32_t devHandle)
 {
    VINETIC_DEVICE *pDev = (VINETIC_DEVICE *)devHandle;
    IFX_return_t ret = IFX_ERROR;
 
-   
+
    TRACE(VINETIC, DBG_LEVEL_LOW, ("Qos_LL_Init()\n"));
 
    if (IFX_NULL == pDev)
@@ -366,7 +366,7 @@ IFX_return_t Qos_LL_Init(IFX_uint32_t devHandle)
       TRACE(VINETIC, DBG_LEVEL_HIGH,
            ("Invalid input argument(s). (File: %s, line: %d)\n",
             __FILE__, __LINE__));
-      
+
       return IFX_ERROR;
    }
 
@@ -375,11 +375,11 @@ IFX_return_t Qos_LL_Init(IFX_uint32_t devHandle)
        == ECMD_VERS_EDSP_PRT_RTP))
    {
       pDev->nDevState |= DS_QOS_INIT;
-      
+
       /* Call also QOS init in upper layer with TAPI_DEV. */
       ret = IFX_TAPI_Qos_HL_Init(pDev->pTapiDev);
    }
-   else 
+   else
    {
       TRACE(VINETIC, DBG_LEVEL_HIGH, ("FW is not supporting RTP."
        "File: %s, line: %d", __FILE__, __LINE__));

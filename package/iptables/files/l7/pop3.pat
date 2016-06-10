@@ -2,11 +2,11 @@
 # Pattern quality: good veryfast
 #
 # This pattern has been tested somewhat.  If it does not
-# work for you, or you believe it could be improved, please post to 
+# work for you, or you believe it could be improved, please post to
 # l7-filter-developers@lists.sf.net .  This list may be subscribed to at
 # http://lists.sourceforge.net/lists/listinfo/l7-filter-developers
 
-# this is a difficult protocol to match because of the relative lack of 
+# this is a difficult protocol to match because of the relative lack of
 # distinguishing information.  Read on.
 pop3
 

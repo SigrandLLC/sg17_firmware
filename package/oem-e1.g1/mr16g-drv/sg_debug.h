@@ -18,4 +18,4 @@
 			printk(KERN_ERR "mr16g: %s " fmt " \n",__FUNCTION__, ## args  )
 #endif
 
-#endif		    
+#endif

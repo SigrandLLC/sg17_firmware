@@ -14,7 +14,7 @@ stop(){
 
 start(){
 	echo "Starting $NAME."
-	/etc/templates/ipsec-tools.sh | /usr/sbin/setkey -c 
+	/etc/templates/ipsec-tools.sh | /usr/sbin/setkey -c
 }
 
 

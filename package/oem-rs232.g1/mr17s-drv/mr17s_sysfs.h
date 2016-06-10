@@ -16,7 +16,7 @@
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,12)
 #undef ADDIT_ATTR
 #define ADDIT_ATTR struct device_attribute *attr,
-#endif    
+#endif
 
 int mr17s_sysfs_register(struct device *dev);
 void mr17s_sysfs_free(struct device *dev);

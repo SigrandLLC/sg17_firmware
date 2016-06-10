@@ -255,7 +255,7 @@ drv_config.h: stamp-h1
 stamp-h1: $(srcdir)/drv_config.h.in $(top_builddir)/config.status
 	@rm -f stamp-h1
 	cd $(top_builddir) && $(SHELL) ./config.status drv_config.h
-$(srcdir)/drv_config.h.in:  $(am__configure_deps) 
+$(srcdir)/drv_config.h.in:  $(am__configure_deps)
 	cd $(top_srcdir) && $(AUTOHEADER)
 	rm -f stamp-h1
 	touch $@

@@ -15,7 +15,7 @@ dest_tmp=$dest-tmp
 sed '/CONFIG_CMDLINE_BOOL=.*/d' $dest > $dest_tmp
 cp $dest_tmp $dest
 
-cmdl_present=`grep "CONFIG_CMDLINE=" $targ` 
+cmdl_present=`grep "CONFIG_CMDLINE=" $targ`
 
 if [ -n "$cmdl_present" ]; then
 	sed "s\CONFIG_CMDLINE=.*\CONFIG_CMDLINE=\"$kcmd\"\g"  $dest > $dest_tmp

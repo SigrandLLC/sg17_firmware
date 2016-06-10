@@ -24,22 +24,22 @@
 #define WAIT_AT_START  10
 
 
-/** 
+/**
  * Switch main process to daemon mode.
  *
  * \param[in] close_stderr for debug - should daemon close stderr or not.
- * 
+ *
  * \retval 0 	etherything is fine
  * \retval -1 	error occures
  * \remark
- * 		Error messages will pass to stderr if debug is on, 
+ * 		Error messages will pass to stderr if debug is on,
  * 		otherwise, stderr redirect to /dev/null as stdout and stdin
- */ 
+ */
 static int
 daemonize (int close_stderr)
 {/*{{{*/
-	pid_t pid; 
-	pid_t sid; 
+	pid_t pid;
+	pid_t sid;
 
 	/* Fork off the parent process */
 	pid = fork();
@@ -48,7 +48,7 @@ daemonize (int close_stderr)
 				errno, strerror(errno));
 		goto __exit_fail;
 	}
-	
+
 	/* If we got a good PID, then we can exit the parent process. */
 	if (pid > 0) {
 		exit(EXIT_SUCCESS);
@@ -97,14 +97,14 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
-/** 
+/**
  * Cleares and proper close all channels.
  *
  * \param[out] cr clear_results - pointer to massive int[CHANS_MAX].
- * 
+ *
  * \retval 0 	etherything is fine
  * \retval -1 	error occures
- */ 
+ */
 static int
 close_and_clear (int * const cr)
 {/*{{{*/
@@ -140,7 +140,7 @@ close_and_clear (int * const cr)
 		}
 		/* stop generate rtp */
 		ab_chan_media_switch (&ab->chans[i],0);
-	} 
+	}
 	for (i=0; i<chans_num; i++){
 		/* start generate rtp */
 		ab_chan_media_switch (&ab->chans[i],1);
@@ -157,7 +157,7 @@ close_and_clear (int * const cr)
 		}
 		/* stop generate rtp */
 		ab_chan_media_switch (&ab->chans[i],0);
-	} 
+	}
 
 	/* tag__ looks ugly, but it works :)
 	 * if we clean channels just ones - some data are will be in channels on
@@ -171,8 +171,8 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
-int 
-main( int argc, char *argv[] ) 
+int
+main( int argc, char *argv[] )
 {/*{{{*/
 	FILE * fd;
 	char buf[128] = {0};

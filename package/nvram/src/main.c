@@ -3,7 +3,7 @@
  *
  * Copyright 2004, Broadcom Corporation
  * All Rights Reserved.
- * 
+ *
  * THIS SOFTWARE IS OFFERED "AS IS", AND BROADCOM GRANTS NO WARRANTIES OF ANY
  * KIND, EXPRESS OR IMPLIED, BY STATUTE, COMMUNICATION OR OTHERWISE. BROADCOM
  * SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS
@@ -46,7 +46,7 @@ main(int argc, char **argv)
 	--argc;
 	++argv;
 
-	if (!*argv) 
+	if (!*argv)
 		usage();
 
 	/* Process the remaining arguments. */
@@ -85,4 +85,4 @@ main(int argc, char **argv)
 	}
 
 	return 0;
-}	
+}

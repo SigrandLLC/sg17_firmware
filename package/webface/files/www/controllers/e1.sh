@@ -43,7 +43,7 @@ if [ -n "$iface" ]; then
 			int:sys_pcicfg_s${slot}_${dev}_llpb	\
 			int:sys_pcicfg_s${slot}_${dev}_rlpb "
 
-	fram=`kdb get sys_pcicfg_s${slot}_${dev}_fram`	
+	fram=`kdb get sys_pcicfg_s${slot}_${dev}_fram`
 #	echo "FRAM=$fram<br>"
 	if [ "$fram" -eq "1" ]; then
 		kdb_vars="${kdb_vars} \
@@ -73,18 +73,18 @@ if [ -n "$iface" ]; then
         MODNAME="$MR17G_MODNAME"
         ;;
     esac
-    
-    
+
+
 	render_table_title "$iface (${MODNAME}${OEM_IFPFX}${num}, slot "`expr $slot - 2`") settings" 2
 
 	# Seems that config script ends later than this code
 	# So need delay because config script can change smap
-	sleep 1	
+	sleep 1
 	# refresh settings
 	eval `kdb -qq ls "sys_pcicfg_s${slot}_${dev}_*" `
-	
+
 	# Check for correctness of smap value
-	
+
 	# sys_pcicfg_s${slot}_${dev}_name
 	render_input_field "hidden" "hidden" iface $iface
 	render_input_field "hidden" "hidden" pcislot "$slot"
@@ -114,13 +114,13 @@ if [ -n "$iface" ]; then
 		    tip=""
 	    	desc=""
 		    render_input_field select "Parity" sys_pcicfg_s${slot}_${dev}_hdlc_parity $(for i in $parity; do echo $i $i;done)
-		    ;;	    
+		    ;;
 		cisco)
     		# sys_pcicfg_s${slot}_${dev}_int
 	    	default=10
 	        tip=""
     	    render_input_field select "Interval" sys_pcicfg_s${slot}_${dev}_cisco_int $(for i in `seq 1 10`; do n=$(($i*10)); echo $n $n; done)
-	    
+
     		# sys_pcicfg_s${slot}_${dev}_to
 		    default=25
 	    	tip=""
@@ -137,7 +137,7 @@ if [ -n "$iface" ]; then
 
 	# TODO: Java-script?
 	# Valid only in framed mode
-	fram=`kdb get sys_pcicfg_s${slot}_${dev}_fram`	
+	fram=`kdb get sys_pcicfg_s${slot}_${dev}_fram`
 	if [ "$fram" -eq "1" ]; then
 
        	# sys_pcicfg_s${slot}_${dev}_ts16
@@ -152,7 +152,7 @@ if [ -n "$iface" ]; then
 	   		desc="example: 2-3,6-9,15-20"
 		    render_input_field text "Slotmap" sys_pcicfg_s${slot}_${dev}_smap
 		fi
-	    
+
 		# sys_pcicfg_s${slot}_${dev}_crc4
     	tip=""
 	   	desc="check to enable"
@@ -170,7 +170,7 @@ if [ -n "$iface" ]; then
 		desc="check to enable"
 		render_input_field checkbox "E1 external transmit clock" sys_pcicfg_s${slot}_${dev}_clk
 	fi
-	
+
     # sys_pcicfg_s${slot}_${dev}_lhaul
     tip=""
     desc="check to enable"
@@ -186,12 +186,12 @@ if [ -n "$iface" ]; then
     	tip=""
 	    desc="Select HDLC CRC length"
     	render_input_field select "CRC" sys_pcicfg_s${slot}_${dev}_hcrc 0 CRC32 1 CRC16
-				
+
 	    # sys_pcicfg_s${slot}_${dev}_fill
     	tip=""
 	    desc="Select HDLC fill byte value"
     	render_input_field select "Fill" sys_pcicfg_s${slot}_${dev}_fill  0 FF 1 7E
-							
+
 	    # sys_pcicfg_s${slot}_${dev}_inv
     	tip=""
 	    desc="Select HDLC inversion mode"

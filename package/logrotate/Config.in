@@ -4,7 +4,7 @@ config BR2_PACKAGE_LOGROTATE
 	default m if CONFIG_DEVEL
 	select BR2_PACKAGE_LIBPOPT
 	help
-		logrotate  is  designed to ease administration of systems that generate 
-		large numbers of log files.  It allows auto-matic rotation, compression, 
-		removal, and mailing of log files. Each  log  file  may  be  handled  
+		logrotate  is  designed to ease administration of systems that generate
+		large numbers of log files.  It allows auto-matic rotation, compression,
+		removal, and mailing of log files. Each  log  file  may  be  handled
 		daily,  weekly,monthly, or when it grows too large.

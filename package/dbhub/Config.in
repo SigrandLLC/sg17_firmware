@@ -4,6 +4,6 @@ config BR2_PACKAGE_DBHUB
 	default n
 	help
 	  A Direct Connect hub for Linux/Unix
-	  
+
 	  http://dbhub.org
 

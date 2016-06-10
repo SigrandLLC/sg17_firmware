@@ -15,7 +15,7 @@ require_js_file "rs232.js"
 
 type=`kdb get "sys_pcitbl_s${slot}_iftype" `
 eval `kdb -qq ls "sys_pcicfg_s${slot}_${dev}*" `
-	
+
 
 if [ -z "$iface" ]; then
 	iface=
@@ -39,7 +39,7 @@ render_table_title "$node (${MODNAME}${OEM_IFPFX}${num}, slot "`expr $slot - 2`"
 
 # refresh settings
 eval `kdb -qq ls "sys_pcicfg_s${slot}_${dev}_*" `
-	
+
 # sys_pcicfg_s${slot}_${dev}_name
 render_input_field "hidden" "hidden" node $node
 render_input_field "hidden" "hidden" pcislot "$slot"
@@ -51,13 +51,13 @@ eval "crate=\$sys_pcicfg_s${slot}_${dev}_baudrate"
 tip=""
 desc=""
 id='baudrate'
-onchange="OnChangeSerial();"	
+onchange="OnChangeSerial();"
 render_input_field select "Baud rate" sys_pcicfg_s${slot}_${dev}_baudrate $crate $crate
 
 # sys_pcicfg_s${slot}_${dev}_cs
 tip=""
 desc=""
-render_input_field select "Character size (bits)" sys_pcicfg_s${slot}_${dev}_cs "cs7" "7" "cs8" "8" 
+render_input_field select "Character size (bits)" sys_pcicfg_s${slot}_${dev}_cs "cs7" "7" "cs8" "8"
 
 # sys_pcicfg_s${slot}_${dev}_stopb
 tip=""

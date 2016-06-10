@@ -38,7 +38,7 @@ print_it_info(int it_val)
 	}
 }/*}}}*/
 
-int 
+int
 main (int argc, char * const argv[])
 {/*{{{*/
 	char dnode[DEV_NODE_LENGTH];

@@ -231,7 +231,7 @@ static int initBuffer(BUFFERPOOL *pbp, const unsigned int count) {
 
    \param  bufferSize        Size of one buffer in bytes.
    \param  initialElements   Number of empty buffers created at initialisation.
-   \param  extensionStep     Number of empty buffers to be added when the last 
+   \param  extensionStep     Number of empty buffers to be added when the last
                              buffer is taken out of the bufferpool. Set to 0
                              to prevent dynamic growing of the bufferpool.
 

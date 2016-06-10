@@ -17,13 +17,13 @@
 ;------------------------------------------------------------------------------
 ;
 ;    Project : ADM5120
-;    Creator : 
+;    Creator :
 ;    File    : include/asm/am5120/adm5120.h
 ;	 Date    : 2003.3.10
-;    Abstract: 
+;    Abstract:
 ;
 ;Modification History:
-; 
+;
 ;
 ;*****************************************************************************/
 
@@ -374,7 +374,7 @@
 #define INT_LVL_PCI_1				7	/* PCI 1 */
 #define INT_LVL_PCI_2				8	/* PCI 2 */
 #define INT_LVL_SWITCH				9	/* Switch */
-#define INT_LVL_MAX				INT_LVL_SWITCH	
+#define INT_LVL_MAX				INT_LVL_SWITCH
 
 /* interrupts */
 #define IRQ_TIMER				(0x1 << INT_LVL_TIMER)
@@ -468,7 +468,7 @@
 #define Recv_HWaddr_REG				0x00E8
 #define Recv_LWaddr_REG				0x00EC
 
-// Timer Control 
+// Timer Control
 #define Timer_int_REG				0x00F0
 #define Timer_REG				0x00F4
 
@@ -1014,7 +1014,7 @@
 
 
 /********** GPIO macro *************/
-#define GPIO_MEASURE	0x000f00f0 //enable output status of pin 0, 1, 2, 3 
+#define GPIO_MEASURE	0x000f00f0 //enable output status of pin 0, 1, 2, 3
 
 #define GPIO_MEASURE_INIT() \
 do { \
@@ -1050,16 +1050,16 @@ do { \
 {
 	unsigned long blmagic;
 	unsigned char bootline[BOOT_LINE_SIZE+1];
-	
+
 	unsigned long macmagic;
 	unsigned char mac[4][8];
 
-	unsigned long idmagic;    
+	unsigned long idmagic;
 	unsigned char serial[BSP_STR_LEN+1];
 
 	unsigned long vermagic;
 	unsigned char ver[BSP_STR_LEN+1];
-	
+
 } BOARD_CFG_T, *PBOARD_CFG_T;
 
 
@@ -1073,7 +1073,7 @@ typedef struct BOARD_CFG_S
 	unsigned long macmagic;
 	unsigned char sr[3];
 	unsigned char mac[3][6];
-	
+
 } BOARD_CFG_T, *PBOARD_CFG_T;
 
 

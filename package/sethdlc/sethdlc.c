@@ -80,7 +80,7 @@ static int checktab(parsertab *tab, unsigned int *value)
 
 	if (argc < 1)
 		return -1;	/* no enough parameters */
-	
+
 	for (i = 0; tab[i].name; i++)
 		if (!strcmp(tab[i].name, argv[0])) {
 			argc--;
@@ -681,11 +681,11 @@ int main(int arg_c, char *arg_v[])
 
 	if (argc <= 1)
 		usage();
-  
+
 	sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 	if (sock < 0)
 		error("Unable to create socket: %s\n", strerror(errno));
-  
+
 	strcpy(req.ifr_name, argv[1]); /* Device name */
 
 	if (argc == 2)

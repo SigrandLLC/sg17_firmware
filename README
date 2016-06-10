@@ -7,7 +7,7 @@ You need to have installed gcc, binutils, patch, bzip2, flex, bison,
 make, gettext, pkg-config, unzip, libz-dev and libc headers.
 
 Simply running 'make' will build your firmware.
-It will download all sources, build the cross-compile toolchain, 
+It will download all sources, build the cross-compile toolchain,
 the kernel and all choosen applications.
 
 You can use scripts/flash.sh for remotely updating your embedded system

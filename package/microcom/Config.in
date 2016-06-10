@@ -3,8 +3,8 @@ config BR2_PACKAGE_MICROCOM
 	tristate
 	default m if CONFIG_DEVEL
 	help
-	  microcom is a minicom-like serial terminal emulator with scripting 
+	  microcom is a minicom-like serial terminal emulator with scripting
 	  support.
-	  
+
 	  http://microcomlinux.homestead.com/
 

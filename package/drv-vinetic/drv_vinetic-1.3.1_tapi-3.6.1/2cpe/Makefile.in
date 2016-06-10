@@ -469,13 +469,13 @@ uninstall-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
-drv_vinetic$(EXEEXT): $(drv_vinetic_OBJECTS) $(drv_vinetic_DEPENDENCIES) 
+drv_vinetic$(EXEEXT): $(drv_vinetic_OBJECTS) $(drv_vinetic_DEPENDENCIES)
 	@rm -f drv_vinetic$(EXEEXT)
 	$(LINK) $(drv_vinetic_LDFLAGS) $(drv_vinetic_OBJECTS) $(drv_vinetic_LDADD) $(LIBS)
-@KERNEL_2_6_FALSE@drv_vinetic.ko$(EXEEXT): $(drv_vinetic_ko_OBJECTS) $(drv_vinetic_ko_DEPENDENCIES) 
+@KERNEL_2_6_FALSE@drv_vinetic.ko$(EXEEXT): $(drv_vinetic_ko_OBJECTS) $(drv_vinetic_ko_DEPENDENCIES)
 @KERNEL_2_6_FALSE@	@rm -f drv_vinetic.ko$(EXEEXT)
 @KERNEL_2_6_FALSE@	$(LINK) $(drv_vinetic_ko_LDFLAGS) $(drv_vinetic_ko_OBJECTS) $(drv_vinetic_ko_LDADD) $(LIBS)
-@VINETIC_2CPE_FALSE@drv_vinetic.ko$(EXEEXT): $(drv_vinetic_ko_OBJECTS) $(drv_vinetic_ko_DEPENDENCIES) 
+@VINETIC_2CPE_FALSE@drv_vinetic.ko$(EXEEXT): $(drv_vinetic_ko_OBJECTS) $(drv_vinetic_ko_DEPENDENCIES)
 @VINETIC_2CPE_FALSE@	@rm -f drv_vinetic.ko$(EXEEXT)
 @VINETIC_2CPE_FALSE@	$(LINK) $(drv_vinetic_ko_LDFLAGS) $(drv_vinetic_ko_OBJECTS) $(drv_vinetic_ko_LDADD) $(LIBS)
 

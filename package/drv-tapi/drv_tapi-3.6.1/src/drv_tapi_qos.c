@@ -96,10 +96,10 @@ IFX_void_t Qos_HL_PktIngress(IFX_int32_t nCh,
 
 /*
   Lock the TAPI channel.
-  
+
   \param pCH - TAPI Channel
-  
-  \return IFX_SUCCESS if locked, otherwise IFX_FALSE 
+
+  \return IFX_SUCCESS if locked, otherwise IFX_FALSE
 */
 IFX_return_t Qos_LockChannel(TAPI_CHANNEL* const pCh)
 {
@@ -135,10 +135,10 @@ IFX_return_t Qos_LockChannel(TAPI_CHANNEL* const pCh)
 
 /*
   Unlock the TAPI channel.
-  
+
   \param pCH - TAPI Channel
-  
-  \return IFX_SUCCESS if unlocked, otherwise IFX_FALSE 
+
+  \return IFX_SUCCESS if unlocked, otherwise IFX_FALSE
 */
 IFX_return_t Qos_UnlockChannel(TAPI_CHANNEL* const pCh)
 {
@@ -465,7 +465,7 @@ IFX_LOCAL IFX_int32_t Qos_PktIngressSched(IFX_int32_t nCh,
    \return none
 
    \remark
-   Packets are read via appropriate driver call. 
+   Packets are read via appropriate driver call.
    This function also takes care of swapping the buffer accordingly before
    calling vtou_redirectrtp. During the data handling, interrupt must be
    locked to avoid data corruption (fifo pointers might get corrupted if not).
@@ -658,12 +658,12 @@ IFX_boolean_t irq_IFX_TAPI_Qos_PacketRedirection(TAPI_CHANNEL* pTapiCh)
             __FILE__, __LINE__));
       return IFX_FALSE;
    }
-   
+
    if (pTapiCh->QosCtrl.egressFlag == QOS_EGRESS_REDIR)
    {
       return IFX_TRUE;
    }
-   
+
    return IFX_FALSE;
 }
 
@@ -785,10 +785,10 @@ IFX_int32_t Qos_Cleanup(IFX_uint32_t chanDev)
 
 /**
   Callback function for bufferpool get.
-  
+
   \param pBuffPool - pointer to bufferpool
-  
-  \return buffer if successfull, otherwise IFX_NULL 
+
+  \return buffer if successfull, otherwise IFX_NULL
  */
 IFX_LOCAL IFX_void_t* Qos_BufferPoolGet(const IFX_void_t* const pBuffPool)
 {

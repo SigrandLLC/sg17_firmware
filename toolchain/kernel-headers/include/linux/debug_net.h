@@ -81,7 +81,7 @@ __ret; })
 
 
 /* counters */
-	
+
 
 extern struct timeval debug_ip_arp;
 extern struct timeval debug_ip_igmp;

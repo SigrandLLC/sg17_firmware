@@ -21,7 +21,7 @@ PCI devices found:
       Non-prefetchable 32 bit memory at 0xa0002000 [0xa0002fff].
   Bus  0, device  18, function  0:
     Class 0601: PCI device 100b:0510 (rev 0).
-      Master Capable.  Latency=63.  
+      Master Capable.  Latency=63.
       I/O at 0x6100 [0x613f].
       I/O at 0x6200 [0x623f].
   Bus  0, device  18, function  1:

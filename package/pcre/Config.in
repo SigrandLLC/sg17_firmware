@@ -10,6 +10,6 @@ config BR2_PACKAGE_LIBPCRE
 	select BR2_COMPILE_PCRE
 	help
 	  A Perl Compatible Regular Expression library
-	  
+
 	  http://www.pcre.org/
 

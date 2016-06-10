@@ -1,12 +1,12 @@
 /*
  *	ADM5120 ethernet switch driver
- *	
+ *
  *	Based on original ADMTEK 2.4.18 driver, copyright ADMtek Inc.
  *	daniel@admtek.com.tw
- *	
+ *
  *	Port to 2.4.31 kernel and modified to able to load as module
  *	by Joco, rjoco77@kezdionline.ro
- *	
+ *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
  *	the Free Software Foundation; either version 2, or (at your option)
@@ -20,8 +20,8 @@
  *	You should have received a copy of the GNU General Public License
  *	along with this program; if not, write to the Free Software
  *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- 
-	
+
+
 	V1.0 Successful compile on 2.4.31 as module
 	V1.1 Modify promisc mode to work on bridge mode
 	V1.2 Added module param (vlan_mx) for modify vlan struct and ethernet
@@ -29,7 +29,7 @@
 	     ex: vlan_mx="0x41,0x42,0x44,0x48,0x50,0x60"     -> 5 eth
 	         vlan_mx="0x5E,0x41,0,0,0,0"		     -> 2 eth Edimax layout
 	V1.3 Read MAC from Edimax type config partition
-	V1.4 procfs improvements 
+	V1.4 procfs improvements
  */
 
 #include <linux/config.h>
@@ -37,10 +37,10 @@
 #include <linux/init.h>
 
 #include <linux/sched.h>
-#include <linux/kernel.h> 	
-#include <linux/slab.h>		
-#include <linux/gfp.h>		
-#include <linux/errno.h>	
+#include <linux/kernel.h>
+#include <linux/slab.h>
+#include <linux/gfp.h>
+#include <linux/errno.h>
 #include <linux/types.h>
 #include <linux/interrupt.h>
 #include <linux/proc_fs.h>
@@ -108,19 +108,19 @@ int adm5120_get_nrif (char * vlan_matrix)
 
 
 /* ------------------------------------------------------
-		    Switch driver init    	
+		    Switch driver init
   ------------------------------------------------------*/
 
-// InitTxDesc 
+// InitTxDesc
 static void InitTxDesc(PTX_ENG_T pTxEng)
 {
 	int num = pTxEng->numDesc;
-	
+
 	pTxEng->hwDesc[--num].buf1cntl |= END_OF_RING;
 	pTxEng->idxHead = pTxEng->idxTail = 0;
 }
 
-// InitRxDesc 
+// InitRxDesc
 static void InitRxDesc(PRX_ENG_T pRxEng)
 {
 	PRX_DRV_DESC_T drvDesc = pRxEng->drvDesc;
@@ -149,7 +149,7 @@ static void InitRxDesc(PRX_ENG_T pRxEng)
 	pRxEng->idx = 0;
 }
 
-// Switch driver init    	
+// Switch driver init
 int adm5120swdrv_init (void)
 {
 	int i;
@@ -277,7 +277,7 @@ ErrRes:
 	if (sw_context->rxDrvDescPool != NULL);
 	kfree(sw_context->rxDrvDescPool);
 	kfree(sw_context);
-	return (-1);	
+	return (-1);
 }
 
 /* ------------------------------------------------------
@@ -296,7 +296,7 @@ void ProcessRxInt(PRX_ENG_T rxEng)
 	int len;
 	idx = rxEng->idx;
 	rxDesc = &rxEng->hwDesc[idx];
-	while (!(rxDesc->buf1cntl & OWN_BIT)) { 
+	while (!(rxDesc->buf1cntl & OWN_BIT)) {
 		drvDesc = &rxEng->drvDesc[idx];
 		if (drvDesc->skb == 0)
 			goto get_desc;
@@ -391,7 +391,7 @@ int IsDslamBoardHere(void) {
 	}
 	ADM5120_SW_REG(GPIO_conf0_REG) &= ~0x00400000;
 	ADM5120_SW_REG(GPIO_conf0_REG) |= 0x80800000;
-	
+
 	ADM5120_SW_REG(GPIO_conf0_REG) &= ~0x80000000;
 	udelay(1);
 	ADM5120_SW_REG(GPIO_conf0_REG) |= 0x80000000;
@@ -411,7 +411,7 @@ int IsDslamBoardHere(void) {
 	}
 	reg >>= 1;
 	ADM5120_SW_REG(GPIO_conf0_REG) |= 0xC0C00000;
-	
+
 	if (reg == 0xffff) {
 //		printk(KERN_ERR"\t\t\t\tNo DSLAM board\n");
 		return 0;
@@ -426,7 +426,7 @@ int IsDslamBoardHere(void) {
 void ChangeIfacesStatus(void)
 {
 	int i, j, val, tmp;
-	
+
 	val = ADM5120_SW_REG(PHY_st_REG) & 0x1F;
 
 	for (i = 0; i < MAX_VLAN_GROUP - (dslam_hose?0:2); i++) {
@@ -492,7 +492,7 @@ irqreturn_t swdrv_ProcessInt(int irq, void *dev_id, struct pt_regs *regs)
 
 	ADM5120_SW_REG(SW_Int_mask_REG) &= ~sw_context->intMask;
 
-	spin_unlock(&sw_context->lock);		
+	spin_unlock(&sw_context->lock);
 	return IRQ_HANDLED;
 }
 
@@ -537,14 +537,14 @@ static int read_switch_status(char *buf, char **start, off_t offset, int count, 
 //#define ADM5120_FORCE_LINK_CONTROL
 #ifdef ADM5120_FORCE_LINK_CONTROL
 static int store_force_link(struct file *file,const char *buffer,unsigned long count,void *data);
-static int read_force_link(char *buf, char **start, off_t offset, int count, int *eof, void *data); 
+static int read_force_link(char *buf, char **start, off_t offset, int count, int *eof, void *data);
 #endif
 
 
 #define ADM5120_SW_DEBUG
 #ifdef ADM5120_SW_DEBUG
 static int store_swreg(struct file *file,const char *buffer,unsigned long count,void *data);
-static int read_swreg(char *buf, char **start, off_t offset, int count, int *eof, void *data); 
+static int read_swreg(char *buf, char **start, off_t offset, int count, int *eof, void *data);
 #endif
 
 static struct dev_entrie entries[]={
@@ -559,18 +559,18 @@ static struct dev_entrie entries[]={
 	{ "status", PFS_STATUS, NULL, 400, read_switch_status, NULL },
 #ifdef ADM5120_FORCE_LINK_CONTROL
 	{ "force_lnk_down_eth0", PFS_VLAN0_LINK_DOWN, NULL, 400, read_force_link, store_force_link },
-	{ "force_lnk_down_eth1", PFS_VLAN1_LINK_DOWN, NULL, 400, read_force_link, store_force_link },	
-	{ "force_lnk_down_eth2", PFS_VLAN2_LINK_DOWN, NULL, 400, read_force_link, store_force_link },	
-	{ "force_lnk_down_eth3", PFS_VLAN3_LINK_DOWN, NULL, 400, read_force_link, store_force_link },	
+	{ "force_lnk_down_eth1", PFS_VLAN1_LINK_DOWN, NULL, 400, read_force_link, store_force_link },
+	{ "force_lnk_down_eth2", PFS_VLAN2_LINK_DOWN, NULL, 400, read_force_link, store_force_link },
+	{ "force_lnk_down_eth3", PFS_VLAN3_LINK_DOWN, NULL, 400, read_force_link, store_force_link },
 #ifdef DSLAM_HOSE
-	{ "force_lnk_down_eth4", PFS_VLAN4_LINK_DOWN, NULL, 400, read_force_link, store_force_link },	
-	{ "force_lnk_down_eth5", PFS_VLAN5_LINK_DOWN, NULL, 400, read_force_link, store_force_link },	
+	{ "force_lnk_down_eth4", PFS_VLAN4_LINK_DOWN, NULL, 400, read_force_link, store_force_link },
+	{ "force_lnk_down_eth5", PFS_VLAN5_LINK_DOWN, NULL, 400, read_force_link, store_force_link },
 #endif
 #endif
 
 #ifdef ADM5120_SW_DEBUG
 	{ "reg_read", PFS_REGRD, NULL, 400, read_swreg, store_swreg },
-	{ "reg_write", PFS_REGWR, NULL, 400, read_swreg, store_swreg },	
+	{ "reg_write", PFS_REGWR, NULL, 400, read_swreg, store_swreg },
 #endif
 
 };
@@ -605,7 +605,7 @@ static int init_adm5120_in_procfs(void)
 	for ( i=0; i<PFS_ENTS; i++ ) {
 		if ( !(entries[i].pent = create_proc_entry(entries[i].name,entries[i].mode,adm5120_entry) ) )
 			goto err1;
-		PDEBUG(0,"file \"%s\" created successfuly",entries[i].name);			
+		PDEBUG(0,"file \"%s\" created successfuly",entries[i].name);
 		if ( set_entry(	entries[i].pent,entries[i].fread, entries[i].fwrite,entries[i].mark) )
 			goto err1;
 		PDEBUG(0,"parameters of \"%s\" setted",entries[i].name);
@@ -621,7 +621,7 @@ err1:
 		remove_proc_entry(entries[j].name,adm5120_entry);
 	remove_proc_entry("",adm5120_entry);
 	return -1;
-}        
+}
 
 static void del_adm5120_from_procfs(void)
 {
@@ -631,15 +631,15 @@ static void del_adm5120_from_procfs(void)
 		if( entries[j].pent->data )
 			kfree(entries[j].pent->data);
 
-	PDEBUG(0,"1:");			
+	PDEBUG(0,"1:");
 	for ( j=0; j<PFS_ENTS; j++ ){
 		remove_proc_entry(entries[j].name,adm5120_entry);
 		PDEBUG(0,"delete %s",entries[j].name);
 	}
 	PDEBUG(0,"2:");
 	remove_proc_entry(adm5120_procdir,NULL);
-	PDEBUG(0,"end");	
-}        
+	PDEBUG(0,"end");
+}
 
 static int skip_blanks(char **ptr,int cnt)
 {
@@ -648,7 +648,7 @@ static int skip_blanks(char **ptr,int cnt)
 	for ( i=0;i<cnt;i++,(*ptr)++ )
 		if( (**ptr)!=' ')
 			break;
-	PDEBUG(5,"end ptr=%x,num of blanks=%d",*ptr,i);			
+	PDEBUG(5,"end ptr=%x,num of blanks=%d",*ptr,i);
 	return i;
 }
 
@@ -659,18 +659,18 @@ static int store_vlan2port(struct file *file,const char *buffer,unsigned long co
 	u8 cport;
 	int vlan_val=0;
 	int vlan_num = *(short*)data;
-	struct net_device *ndev = &adm5120sw_devs[vlan_num];	
+	struct net_device *ndev = &adm5120sw_devs[vlan_num];
 	PSW_PRIV_T priv = (PSW_PRIV_T)ndev->priv;
 
 	u8 err = 0;
 
-	PDEBUG(0,"start store vlan to port mapping\nstr=%s",buffer);	
+	PDEBUG(0,"start store vlan to port mapping\nstr=%s",buffer);
 	// check for correct symbols
 	for ( i=0;i<count;i++ )
-		if( ( buffer[i]<'0' || buffer[i]>'9' ) 
+		if( ( buffer[i]<'0' || buffer[i]>'9' )
 				&& buffer[i]!=' ' && buffer[i]!='\0'
 				&& buffer[i]!='\n' && buffer[i]!='d'){
-			PDEBUG(5,"error: bad symbol: i=%d, sym=(%c,%d)",i,buffer[i],buffer[i]);			
+			PDEBUG(5,"error: bad symbol: i=%d, sym=(%c,%d)",i,buffer[i],buffer[i]);
 			goto exit;
 		}
 	PDEBUG(0,"all characters are ok");
@@ -703,16 +703,16 @@ static int store_vlan2port(struct file *file,const char *buffer,unsigned long co
 			}
 			if( !err ){
 				vlan_val |= 1<<cport;
-				sw_context->port[cport].vlanId = vlan_num + 1; 
+				sw_context->port[cport].vlanId = vlan_num + 1;
 				sw_context->port[cport].ifUnit = vlan_num;
-			}				
+			}
 		}
 		ptr++;
 	}
 	PDEBUG(0,"commit changes: vlan[%d]=%x",vlan_num,vlan_val);
 	sw_context->vlanGrp[vlan_num] &= 1<<CPU_PORT;
 	sw_context->vlanGrp[vlan_num] |= vlan_val & 0x7F;
-	// Apply changes	
+	// Apply changes
 	if ( ndev->flags & IFF_UP ) {
 		SetupVLAN(priv->unit, sw_context->vlanGrp[priv->unit]);
 		ProgramVlanMac(priv->unit, ndev->dev_addr, SW_MAC_AGE_VALID);
@@ -722,42 +722,42 @@ exit:
 	return count;
 }
 
-static int read_switch_status(char *buf, char **start, off_t offset, int count, int *eof, void *data) { 
-	/* 
-	 *      Original code by SVIt v1(a)t5.ru 
-	 *      ported to kernel mode by Vlad Moskovets midge(a)vlad.org.ua 20061002 
-	 * 
-	 */ 
-	int len = 0, i, j; 
-	i = ADM5120_SW_REG(PHY_st_REG); 
-	for ( j=0; j < NUM_IF5120_PORTS; j++ ) { 
-		len += sprintf(buf + len, "Port%d\t", j); 
-		len += sprintf(buf + len, (i & (1<<j))?"up  \t":"down\t"); 
-		if (i & (1<<j)) { 
-			len += sprintf(buf + len, (i & (256<<j)?"100M\t":"10M \t")); 
-			len += sprintf(buf + len, (i & (65536<<j)?"full-duplex\t":"half-duplex\t")); 
-		} else  
-			len += sprintf(buf + len, "-\t-\t\t"); 
+static int read_switch_status(char *buf, char **start, off_t offset, int count, int *eof, void *data) {
+	/*
+	 *      Original code by SVIt v1(a)t5.ru
+	 *      ported to kernel mode by Vlad Moskovets midge(a)vlad.org.ua 20061002
+	 *
+	 */
+	int len = 0, i, j;
+	i = ADM5120_SW_REG(PHY_st_REG);
+	for ( j=0; j < NUM_IF5120_PORTS; j++ ) {
+		len += sprintf(buf + len, "Port%d\t", j);
+		len += sprintf(buf + len, (i & (1<<j))?"up  \t":"down\t");
+		if (i & (1<<j)) {
+			len += sprintf(buf + len, (i & (256<<j)?"100M\t":"10M \t"));
+			len += sprintf(buf + len, (i & (65536<<j)?"full-duplex\t":"half-duplex\t"));
+		} else
+			len += sprintf(buf + len, "-\t-\t\t");
 
-		len += sprintf(buf + len, "%s\t", (sw_context->port[j].status == PORT_ENABLED)?"enabled ":"disabled"); 
-		len += sprintf(buf + len, "vlanid=%d\t", (int) sw_context->port[j].vlanId); 
-		len += sprintf(buf + len, "unit=%d\t", (int) sw_context->port[j].ifUnit); 
-		len += sprintf(buf + len, "\n");  
-	} 
+		len += sprintf(buf + len, "%s\t", (sw_context->port[j].status == PORT_ENABLED)?"enabled ":"disabled");
+		len += sprintf(buf + len, "vlanid=%d\t", (int) sw_context->port[j].vlanId);
+		len += sprintf(buf + len, "unit=%d\t", (int) sw_context->port[j].ifUnit);
+		len += sprintf(buf + len, "\n");
+	}
 
-	return len; 
-} 
+	return len;
+}
 
 /*
  * Force link down on some of switch interfaces
  * This can be used as example as part of mapping other interfaces on eth
  * input buffer:
  *	"0" - disable forced link down
- *	"1" - enable forced link down 
+ *	"1" - enable forced link down
  */
- 
+
 #ifdef ADM5120_FORCE_LINK_CONTROL
- 
+
 static int store_force_link(struct file *file,const char *buf,unsigned long count,void *data)
 {
 	char *ptr=(char*)buf;
@@ -768,7 +768,7 @@ static int store_force_link(struct file *file,const char *buf,unsigned long coun
 	if( !count ){
 		return 0;
 	}
-/*	
+/*
 	printk("Set forced link status of %s to %c\n",ndev->name,buf[0]);
 	printk("%08x & %08x",sw_context->vlanGrp[ vlan_num ]<<SW_PHY_NORMAL_SHIFT,SW_PHY_NORMAL_MASK);
 	printk("Disabling ports: %08x\n",vlan_port_mask);
@@ -781,16 +781,16 @@ static int store_force_link(struct file *file,const char *buf,unsigned long coun
 }
 
 static int read_force_link(char *buf, char **start, off_t offset, int count, int *eof, void *data)
-{ 
+{
 	int vlan_num = *(short*)data - PFS_VLAN0_LINK_DOWN;
 	u32 vlan_port_mask = (sw_context->vlanGrp[ vlan_num ]<<SW_PHY_NORMAL_SHIFT) & SW_PHY_NORMAL_MASK;
 	u32 tmp = ADM5120_SW_REG(PHY_cntl2_REG) & vlan_port_mask;
-	*eof = 1;	
+	*eof = 1;
 	if( !(ADM5120_SW_REG(PHY_cntl2_REG) & vlan_port_mask) )
 		return snprintf(buf,count,"enabled");
 	else
-		return snprintf(buf,count,"disabled");	
-} 
+		return snprintf(buf,count,"disabled");
+}
 #endif
 
 
@@ -802,14 +802,14 @@ static int store_swreg(struct file *file,const char *buf,unsigned long count,voi
 	int action = *(short*)data;
 	unsigned int reg_num, write_val;
 	char *endp;
-	
+
 	if( !count ){
 		return 0;
 	}
 
 	reg_num = simple_strtoul(buf,&endp,16);
-	//printk(KERN_NOTICE"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);	
-  
+	//printk(KERN_NOTICE"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);
+
 	switch( action ){
 	case PFS_REGRD:
     	adm5120_regval = ADM5120_SW_REG(reg_num);
@@ -827,14 +827,14 @@ static int store_swreg(struct file *file,const char *buf,unsigned long count,voi
 }
 
 static int read_swreg(char *buf, char **start, off_t offset, int count, int *eof, void *data)
-{ 
+{
 	int action = *(short*)data;
-	
+
 	if( action == PFS_REGWR )
 		return 0;
-		
+
 	return snprintf(buf,count,"%08x",adm5120_regval);
-} 
+}
 #endif
 
 
@@ -860,7 +860,7 @@ static int SetupVLAN(int unit, unsigned long portmask)
 		shiftcnt = 8 * (unit - 4);
 		reg = ADM5120_SW_REG(VLAN_G2_REG) & ~(VLAN_PORT_MASK << shiftcnt);
 		reg |= (portmask & VLAN_PORT_MASK) << shiftcnt;
-		ADM5120_SW_REG(VLAN_G2_REG) = reg;	
+		ADM5120_SW_REG(VLAN_G2_REG) = reg;
 	}
 
 	return 0;
@@ -906,7 +906,7 @@ void EnableVlanGroup(int unit, unsigned long vlanGrp)
 			sw_context->port[i].ifUnit = unit;
 		}
 	}
-}	
+}
 
 void DisableVlanGroup(int unit, unsigned long vlanGrp)
 {
@@ -960,9 +960,9 @@ int adm5120sw_open(struct net_device *dev)
 
 	dev->irq = SW_IRQ;
 	netif_start_queue(dev);
-	
+
 	ChangeIfacesStatus();
-	
+
 	return 0;
 }
 
@@ -1006,7 +1006,7 @@ void adm5120sw_set_rx_mode(struct net_device *dev)
 	/* Note do not reorder, GCC is clever about common statements. */
 	if (dev->flags & IFF_PROMISC) {
 		//		printk (KERN_NOTICE "%s: Promiscous mode enabled.\n", dev->name);
-		/*		If set promisc(Bridge mode) we need to disable te SA so all 
+		/*		If set promisc(Bridge mode) we need to disable te SA so all
 				data on same vlan will be resend (hub mode)
 				The best way in bridge mode is to set 5 ethernet and put on
 				bridge, disavantage all data will be processed by the bridge.
@@ -1077,7 +1077,7 @@ int adm5120sw_tx(struct sk_buff *skb, struct net_device *dev)
 	drvDesc = &txEng->drvDesc[txEng->idxHead];
 	drvDesc->skb = skb;
 
-	hdesc->buf1cntl = (hdesc->buf1cntl & END_OF_RING) | 
+	hdesc->buf1cntl = (hdesc->buf1cntl & END_OF_RING) |
 		(((unsigned long)skb->data & BUF_ADDR_MASK) | OWN_BIT);
 
 	len = skb->len < ETH_ZLEN ? ETH_ZLEN : skb->len;
@@ -1238,7 +1238,7 @@ static void __exit adm5120switch_cleanup(void)
 {
 	int i;
 
-	free_irq( SW_IRQ , &sw_context );	
+	free_irq( SW_IRQ , &sw_context );
 	for ( i = 0; i < sw_context->nr_if; i++)
 	{
 

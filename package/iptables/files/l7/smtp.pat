@@ -1,20 +1,20 @@
 # SMTP - Simple Mail Transfer Protocol - RFC 2821 (See also RFC 1869)
 # Pattern quality: great fast
 # usually runs on port 25
-# 
+#
 # This pattern has been tested and is believed to work well.  If it does not
-# work for you, or you believe it could be improved, please post to 
+# work for you, or you believe it could be improved, please post to
 # l7-filter-developers@lists.sf.net .  This list may be subscribed to at
 # http://lists.sourceforge.net/lists/listinfo/l7-filter-developers
 
 smtp
 # As usual, no text is required after "220", but all known servers have some
 # there.  It (almost?) always has string "smtp" in it.  The RFC examples
-# does not, so we match those too, just in case anyone has copied them 
+# does not, so we match those too, just in case anyone has copied them
 # literally.
 ^220[\x09-\x0d -~]* (e?smtp|simple mail)
 
-# This is ~3x faster if the stream starts with "220" 
+# This is ~3x faster if the stream starts with "220"
 #^220.* (e?smtp|simple mail)
 
 # Some examples:
@@ -33,7 +33,7 @@ smtp
 # 220 kona.carleton.edu -- Server ESMTP (PMDF V6.2#30648)
 # 220 letra.reed.edu ESMTP Sendmail 8.12.9/8.12.9; Mon, 15 Sep 2003 10:35:57 -0700 (PDT)
 # 220-swan.mail.pas.earthlink.net ESMTP Exim 3.33 #1 Mon, 15 Sep 2003 10:32:15 -0700
-# 
+#
 # RFC examples:
 # 220 xyz.com Simple Mail Transfer Service Ready (RFC example)
 # 220 dbc.mtview.ca.us SMTP service ready

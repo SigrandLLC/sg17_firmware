@@ -29,7 +29,7 @@ struct handleid {
 };
 /* A handle ID */
 
-void sftp_handle_new_file(struct handleid *id, int fd, const char *path, 
+void sftp_handle_new_file(struct handleid *id, int fd, const char *path,
                           unsigned flags);
 #define HANDLE_TEXT 0x0001
 #define HANDLE_APPEND 0x0002
@@ -38,7 +38,7 @@ void sftp_handle_new_dir(struct handleid *id, DIR *dp, const char *path);
 
 unsigned sftp_handle_flags(const struct handleid *id);
 
-uint32_t sftp_handle_get_fd(const struct handleid *id, 
+uint32_t sftp_handle_get_fd(const struct handleid *id,
                             int *fd,
                             unsigned *flagsp);
 uint32_t sftp_handle_get_dir(const struct handleid *id,

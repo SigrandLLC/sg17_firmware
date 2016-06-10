@@ -13,13 +13,13 @@ char ab_g_err_str[ERR_STR_LENGTH];
 int ab_g_err_extra_value;
 
 static void ab_chan_status_init( ab_chan_t * const chan );
-static int get_devs_params (unsigned int * const devs_num, 
+static int get_devs_params (unsigned int * const devs_num,
 		ab_dev_params_t ** const dprms);
 
 extern int ab_dev_event_clean(ab_dev_t * const dev);
 
 /**
-	Create the ab_t object. 
+	Create the ab_t object.
 \return
 	Pointer to created object or NULL if something nasty happens.
 \remark
@@ -27,7 +27,7 @@ extern int ab_dev_event_clean(ab_dev_t * const dev);
 	- allocates memory
 	- make nessesary initializations
 */
-ab_t* 
+ab_t*
 ab_create( void )
 {/*{{{*/
 	ab_t *ab = NULL;
@@ -67,7 +67,7 @@ ab_create( void )
 	memset(ab->chans, 0, sizeof(*(ab->chans)) * ab->chans_num);
 	memset(ab->devs, 0, sizeof(*(ab->devs)) * ab->devs_num);
 
-	/* Devices init */ 
+	/* Devices init */
 	for (i=0; i<devs_num; i++){
 		ab_dev_t * curr_dev = &ab->devs[ i ];
 		int fd_chip;
@@ -93,7 +93,7 @@ ab_create( void )
 		}
 	}
 
-	/* Channels init */ 
+	/* Channels init */
 	for(i=0; i<chans_num; i++) {
 		ab_chan_t * curr_chan = &ab->chans[ i ];
 		int fd_chan;
@@ -106,7 +106,7 @@ ab_create( void )
 		curr_chan->parent = &ab->devs[pdev_idx];
 
 		/* Initialize channel */
-		sprintf(dev_node, "/dev/vin%d%d", 
+		sprintf(dev_node, "/dev/vin%d%d",
 				curr_chan->parent->idx, curr_chan->idx);
 
 		fd_chan = open(dev_node, O_RDWR);
@@ -145,12 +145,12 @@ __exit_fail:
 	This one returns the parameters of all devices on the all boards
 \param[out] devs_num - number of the found devices will be returned
 \param[out] dprms - devices parameters
-\return 
+\return
 	ioctl result
 \remark
 	it allocates memory for *dprms, that should be freed outside
 */
-static int 
+static int
 get_devs_params (unsigned int * const devs_num, ab_dev_params_t ** const dprms)
 {/*{{{*/
 	ab_board_params_t bp;
@@ -197,7 +197,7 @@ get_devs_params (unsigned int * const devs_num, ab_dev_params_t ** const dprms)
 			}
 		}
 	}
-	
+
 	*dprms = malloc(sizeof(**dprms)*(*devs_num));
 	if( !(*dprms)){
 		ab_err_set(AB_ERR_NO_MEM, "no memory for devparams");
@@ -217,7 +217,7 @@ __exit_fail:
 }/*}}}*/
 
 /**
-	Destroy the ab_t object. 
+	Destroy the ab_t object.
 \param [in]
 	ab - pointer to pointer to destroying object.
 		pointer to object will set to NULL
@@ -225,7 +225,7 @@ __exit_fail:
 \remark
 	After all ab = NULL.
 */
-void 
+void
 ab_destroy( ab_t ** ab )
 {/*{{{*/
 	ab_t * ab_tmp = *ab;
@@ -260,14 +260,14 @@ ab_destroy( ab_t ** ab )
 }/*}}}*/
 
 /**
- * \param[in] ab - ata board 
+ * \param[in] ab - ata board
  * \param[in] abs_idx - absolute channel index
  * \param[in] path - path to CRAM file
  *
  * \retval -1 if something nasty happens
  * \retval 0 and greater - the channel number
- */ 
-int 
+ */
+int
 ab_chan_cram_init (ab_chan_t const * const chan, char const * const path)
 {/*{{{*/
 	struct bbd_format_s {
@@ -326,17 +326,17 @@ __exit_fail:
 }/*}}}*/
 
 /**
- * \param[in] ab - ata board 
+ * \param[in] ab - ata board
  * \param[in] abs_idx - absolute channel index
  *
  * \retval -1 if something nasty happens
  * \retval 0 and greater - the channel number
- */ 
-int 
+ */
+int
 ab_get_chan_idx_by_abs(ab_t const * const ab, int const abs_idx)
 {/*{{{*/
 	int ret_idx;
-	int chans_num; 
+	int chans_num;
 	int i;
 
 	ret_idx = -1;
@@ -351,12 +351,12 @@ ab_get_chan_idx_by_abs(ab_t const * const ab, int const abs_idx)
 }/*}}}*/
 
 /**
-	Sets the proper state and status of the channel structure 
-\param chan[in,out] - channel struture 
+	Sets the proper state and status of the channel structure
+\param chan[in,out] - channel struture
 \remark
 	it mutes all rings and tones on the FXS channel and do onhook on FXO
 */
-static void 
+static void
 ab_chan_status_init( ab_chan_t * const chan )
 {/*{{{*/
 	if(chan->parent->type == ab_dev_type_FXS){

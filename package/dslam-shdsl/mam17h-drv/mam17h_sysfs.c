@@ -7,8 +7,8 @@
 
 #define to_net_dev(class) container_of(class, struct net_device, class_dev)
 
-static ssize_t show_link_state(struct class_device *cdev, char *buf) 
-{                                                                       
+static ssize_t show_link_state(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
 	struct channel *chan = (struct channel *)nl->chan_cfg;
@@ -22,8 +22,8 @@ static ssize_t show_link_state(struct class_device *cdev, char *buf)
 static CLASS_DEVICE_ATTR(link_state,0444,show_link_state,NULL);
 
 // Mode control (master/slave)
-static ssize_t show_mode(struct class_device *cdev, char *buf) 
-{                                                                       
+static ssize_t show_mode(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
 	if (nl->chan_cfg->mode == MASTER)
@@ -31,7 +31,7 @@ static ssize_t show_mode(struct class_device *cdev, char *buf)
 	else if (nl->chan_cfg->mode == SLAVE)
 		return snprintf(buf,PAGE_SIZE,"slave");
 	else
-		return snprintf(buf,PAGE_SIZE,"unknown role");	
+		return snprintf(buf,PAGE_SIZE,"unknown role");
 }
 
 static ssize_t store_mode(struct class_device *cdev,const char *buf, size_t size)
@@ -49,15 +49,15 @@ static ssize_t store_mode(struct class_device *cdev,const char *buf, size_t size
 		} else if (buf[0] == '1')
 		{
 			chan->mode = MASTER;
-		}	    
-    }    
+		}
+    }
     return size;
 }
 static CLASS_DEVICE_ATTR(mode,0644,show_mode,store_mode);
 
-// Annex control 
-static ssize_t show_annex(struct class_device *cdev, char *buf) 
-{                                                                       
+// Annex control
+static ssize_t show_annex(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
 	struct channel *chan = (struct channel *)nl->chan_cfg;
@@ -74,7 +74,7 @@ static ssize_t show_annex(struct class_device *cdev, char *buf)
 		return snprintf(buf,PAGE_SIZE,"AB");
 	default:
 		return snprintf(buf,PAGE_SIZE,"unknown annex");
-	}	
+	}
 }
 static ssize_t store_annex(struct class_device *cdev,const char *buf, size_t size)
 {
@@ -83,7 +83,7 @@ static ssize_t store_annex(struct class_device *cdev,const char *buf, size_t siz
 	struct channel *chan = (struct channel *)nl->chan_cfg;
 
 	if (!size) return size;
-	
+
 	switch (buf[0])
 	{
 	case '0':
@@ -101,14 +101,14 @@ static ssize_t store_annex(struct class_device *cdev,const char *buf, size_t siz
 static CLASS_DEVICE_ATTR(annex, 0644 ,show_annex,store_annex);
 
 // Rate control
-static ssize_t show_rate(struct class_device *cdev, char *buf) 
-{                                                                       
+static ssize_t show_rate(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
 	struct channel *chan = (struct channel *)nl->chan_cfg;
-	
+
 	if ((chan->state != CONNECTED) && (chan->mode != MASTER)) return 0;
-	
+
 	return snprintf(buf,PAGE_SIZE,"%d",chan->rate);
 }
 static ssize_t store_rate(struct class_device *cdev,const char *buf, size_t size)
@@ -118,7 +118,7 @@ static ssize_t store_rate(struct class_device *cdev,const char *buf, size_t size
 	struct channel *chan = (struct channel *)nl->chan_cfg;
 	char *endp;
 	u16 tmp;
-	
+
 	// check parameters
 	if (!size) return size;
 
@@ -135,14 +135,14 @@ static ssize_t store_rate(struct class_device *cdev,const char *buf, size_t size
 static CLASS_DEVICE_ATTR(rate, 0644 ,show_rate,store_rate);
 
 // TCPAM control
-static ssize_t show_tcpam(struct class_device *cdev, char *buf) 
-{                                                                       
+static ssize_t show_tcpam(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
 	struct channel *chan = (struct channel *)nl->chan_cfg;
 
 	if ((chan->state != CONNECTED) && (chan->mode != MASTER)) return 0;
-	
+
 	switch (chan->tcpam)
 	{
 	case TCPAM4:
@@ -168,7 +168,7 @@ static ssize_t store_tcpam(struct class_device *cdev, const char *buf, size_t si
 	struct channel *chan = (struct channel *)nl->chan_cfg;
 	u8 tmp;
 
-	// if interface is up 
+	// if interface is up
 	if (!size)	return size;
 	tmp = buf[0]-'0';
 
@@ -179,12 +179,12 @@ static ssize_t store_tcpam(struct class_device *cdev, const char *buf, size_t si
 static CLASS_DEVICE_ATTR(tcpam, 0644 ,show_tcpam,store_tcpam);
 
 // POWER Backoff control
-static ssize_t show_pbo_mode(struct class_device *cdev, char *buf) 
-{                                                                       
+static ssize_t show_pbo_mode(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
 	struct channel *chan = (struct channel *)nl->chan_cfg;
-	
+
 	if (chan->mode != MASTER)
 	{
 		return snprintf(buf,PAGE_SIZE,"Normal");
@@ -199,7 +199,7 @@ static ssize_t show_pbo_mode(struct class_device *cdev, char *buf)
 	}
 	return snprintf(buf,PAGE_SIZE,"Unknown");
 }
-static ssize_t store_pbo_mode( struct class_device *cdev,const char *buf, size_t size ) 
+static ssize_t store_pbo_mode( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
@@ -221,8 +221,8 @@ static ssize_t store_pbo_mode( struct class_device *cdev,const char *buf, size_t
 	return size;
 }
 static CLASS_DEVICE_ATTR(pbo_mode, 0644, show_pbo_mode, store_pbo_mode);
-static ssize_t show_pbo_val(struct class_device *cdev, char *buf) 
-{                                                                       
+static ssize_t show_pbo_val(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
 	struct channel *chan = (struct channel *)nl->chan_cfg;
@@ -241,7 +241,7 @@ static ssize_t show_pbo_val(struct class_device *cdev, char *buf)
 	return pos;
 }
 
-static ssize_t store_pbo_val( struct class_device *cdev,const char *buf, size_t size ) 
+static ssize_t store_pbo_val( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
@@ -250,7 +250,7 @@ static ssize_t store_pbo_val( struct class_device *cdev,const char *buf, size_t 
 	u32 tmp;
 	u8 vals[16];
 	int vnum = 0, i;
-	
+
 	// check parameters
 	if (!size) return size;
 	do {
@@ -266,7 +266,7 @@ static ssize_t store_pbo_val( struct class_device *cdev,const char *buf, size_t 
 		}
 		buf = endp + 1;
 	} while (vnum < 16);
-	
+
 	for(i = 0; i < vnum; i++)
 	{
 		chan->pbo_vals[i] = vals[i];
@@ -277,8 +277,8 @@ static ssize_t store_pbo_val( struct class_device *cdev,const char *buf, size_t 
 static CLASS_DEVICE_ATTR(pbo_val, 0644 ,show_pbo_val,store_pbo_val);
 
 // Clock mode control
-static ssize_t show_clkmode(struct class_device *cdev, char *buf) 
-{                                                                       
+static ssize_t show_clkmode(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
 	struct channel *chan = (struct channel *)nl->chan_cfg;
@@ -334,8 +334,8 @@ static ssize_t store_apply_cfg(struct class_device *cdev,const char *buf, size_t
 }
 static CLASS_DEVICE_ATTR(apply_cfg, 0200 ,NULL,store_apply_cfg);
 
-// CRC count attribute 
-static ssize_t show_crc16(struct class_device *cdev, char *buf) 
+// CRC count attribute
+static ssize_t show_crc16(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
@@ -344,10 +344,10 @@ static ssize_t show_crc16(struct class_device *cdev, char *buf)
 	if (chan->crc16)
 		return snprintf(buf,PAGE_SIZE,"crc16");
 	else
-		return snprintf(buf,PAGE_SIZE,"crc32");    
+		return snprintf(buf,PAGE_SIZE,"crc32");
 }
 
-static ssize_t store_crc16( struct class_device *cdev,const char *buf, size_t size ) 
+static ssize_t store_crc16( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
@@ -355,7 +355,7 @@ static ssize_t store_crc16( struct class_device *cdev,const char *buf, size_t si
 //	u8 cfg_bt;
 
 	if (!size) return 0;
-    
+
 	switch (buf[0])
 	{
 	case '1':
@@ -372,13 +372,13 @@ static ssize_t store_crc16( struct class_device *cdev,const char *buf, size_t si
 //		cfg_bt=ioread8( &(nl->regs->CRA)) & ~CMOD;
 //		iowrite8( cfg_bt,&(nl->regs->CRA));
 		break;
-	}	
-	return size;	
+	}
+	return size;
 }
 static CLASS_DEVICE_ATTR(crc16, 0644 ,show_crc16,store_crc16);
 
 // fill byte value
-static ssize_t show_fill_7e(struct class_device *cdev, char *buf) 
+static ssize_t show_fill_7e(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
@@ -387,16 +387,16 @@ static ssize_t show_fill_7e(struct class_device *cdev, char *buf)
 	if (chan->fill_7e == 0x7E)
 		return snprintf(buf,PAGE_SIZE,"7E");
 	else
-		return snprintf(buf,PAGE_SIZE,"FF");    
+		return snprintf(buf,PAGE_SIZE,"FF");
 }
-static ssize_t store_fill_7e( struct class_device *cdev,const char *buf, size_t size ) 
+static ssize_t store_fill_7e( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
 	struct channel *chan = (struct channel *)nl->chan_cfg;
 
 	if (!size) return 0;
-    
+
 	switch(buf[0])
 	{
 	case '1':
@@ -409,26 +409,26 @@ static ssize_t store_fill_7e( struct class_device *cdev,const char *buf, size_t 
 			break;
 		chan->fill_7e = 0xFF;
 		break;
-	}	
-	return size;	
+	}
+	return size;
 }
 static CLASS_DEVICE_ATTR(fill_7e, 0644 ,show_fill_7e,store_fill_7e);
 
 //---------------------------- Power ------------------------------------- //
 
-static ssize_t show_pwr_source(struct class_device *cdev, char *buf) 
-{                                                                       
+static ssize_t show_pwr_source(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
 	struct mam17_card *card = (struct mam17_card *)nl->card;
-	
+
 	return snprintf(buf, PAGE_SIZE, "%d", card->pwr_source);
 }
 static CLASS_DEVICE_ATTR(pwr_source,0444,show_pwr_source,NULL);
 
 // PWRR rgister
-// PWRON 
-static ssize_t show_pwron(struct class_device *cdev, char *buf) 
+// PWRON
+static ssize_t show_pwron(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
@@ -457,7 +457,7 @@ static ssize_t store_pwron(struct class_device *cdev,const char *buf, size_t siz
 	// check parameters
 	if( !size)
 		return size;
-		
+
         switch (nl->number)
         {
         	case 0:
@@ -476,7 +476,7 @@ static ssize_t store_pwron(struct class_device *cdev,const char *buf, size_t siz
 static CLASS_DEVICE_ATTR(pwron,0644,show_pwron,store_pwron);
 
 // OVL
-static ssize_t show_pwrovl(struct class_device *cdev, char *buf) 
+static ssize_t show_pwrovl(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = (struct net_local *)netdev_priv(ndev);
@@ -497,12 +497,12 @@ static ssize_t show_pwrovl(struct class_device *cdev, char *buf)
 }
 static CLASS_DEVICE_ATTR(pwrovl,0444,show_pwrovl,NULL);
 //UNB
-static ssize_t show_pwrunb(struct class_device *cdev, char *buf) 
+static ssize_t show_pwrunb(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
 	struct regs_str *regs = nl->regs;
-	
+
         switch (nl->number)
         {
         	case 0:
@@ -520,7 +520,7 @@ static CLASS_DEVICE_ATTR(pwrunb,0444,show_pwrunb,NULL);
 
 // ------------------------- Statistics ------------------------------- //
 
-static ssize_t show_statistics(struct class_device *cdev, char *buf) 
+static ssize_t show_statistics(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
@@ -567,7 +567,7 @@ static ssize_t show_statistics(struct class_device *cdev, char *buf)
 			stat_all->rx_aborted,stat_all->invalid_frames,stat_all->to_mii,stat_all->to_miie,stat_all->overflow);
 }
 
-static ssize_t store_statistics( struct class_device *cdev,const char *buf, size_t size ) 
+static ssize_t store_statistics( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
@@ -591,11 +591,11 @@ static ssize_t store_statistics( struct class_device *cdev,const char *buf, size
 		jiffies_to_timeval((unsigned long)jiffies, &(chan->uptime));
 		jiffies_to_timeval((unsigned long)jiffies, &(chan->downtime_all));
 	}
-	return size;	
+	return size;
 }
 static CLASS_DEVICE_ATTR(statistics,0644,show_statistics,store_statistics);
 
-static ssize_t show_statistics_row(struct class_device *cdev, char *buf) 
+static ssize_t show_statistics_row(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
@@ -624,7 +624,7 @@ static CLASS_DEVICE_ATTR(statistics_row,0444,show_statistics_row,NULL);
 
 
 // ------------------------- DEBUG ---------------------------------------- //
-static ssize_t store_debug( struct class_device *cdev,const char *buf, size_t size ) 
+static ssize_t store_debug( struct class_device *cdev,const char *buf, size_t size )
 {
 	if (!size) return size;
 	switch (buf[0])
@@ -644,23 +644,23 @@ static CLASS_DEVICE_ATTR(debug, 0200 ,NULL,store_debug);
 
 // ----------------------- mpair -------------------------------------------- //
 
-static ssize_t show_mpair(struct class_device *cdev, char *buf) 
+static ssize_t show_mpair(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
 	struct mam17_card *card = nl->card;
-	
+
 	return snprintf(buf,PAGE_SIZE, "%i\n", card->mpair_mode);
 }
 
-static ssize_t store_mpair( struct class_device *cdev,const char *buf, size_t size ) 
+static ssize_t store_mpair( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
 	struct mam17_card *card = nl->card;
 
 	if (!size) return 0;
-	
+
 	switch (buf[0] - '0')
 	{
 		case 0:
@@ -683,12 +683,12 @@ static ssize_t store_mpair( struct class_device *cdev,const char *buf, size_t si
 		break;
 	}
 
-	return size;	
+	return size;
 }
 static CLASS_DEVICE_ATTR(mpair,0644,show_mpair,store_mpair);
 
 
-static ssize_t show_uptime(struct class_device *cdev, char *buf) 
+static ssize_t show_uptime(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
@@ -714,7 +714,7 @@ static ssize_t show_uptime(struct class_device *cdev, char *buf)
 }
 static CLASS_DEVICE_ATTR(uptime,0444,show_uptime,NULL);
 
-static ssize_t show_uptime_all(struct class_device *cdev, char *buf) 
+static ssize_t show_uptime_all(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
@@ -748,7 +748,7 @@ static ssize_t show_uptime_all(struct class_device *cdev, char *buf)
 }
 static CLASS_DEVICE_ATTR(uptime_all,0444,show_uptime_all,NULL);
 
-static ssize_t show_downtime_all(struct class_device *cdev, char *buf) 
+static ssize_t show_downtime_all(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
@@ -782,28 +782,28 @@ static ssize_t show_downtime_all(struct class_device *cdev, char *buf)
 }
 static CLASS_DEVICE_ATTR(downtime_all,0444,show_downtime_all,NULL);
 
-static ssize_t show_on_off(struct class_device *cdev, char *buf) 
+static ssize_t show_on_off(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
 	struct channel *chan = (struct channel *)nl->chan_cfg;
-	
+
 	if (chan->on == 1) {
 		return snprintf(buf,PAGE_SIZE, "on\n");
 	} else {
 		return snprintf(buf,PAGE_SIZE, "off\n");
 	}
 }
-static ssize_t store_on_off( struct class_device *cdev,const char *buf, size_t size ) 
+static ssize_t store_on_off( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl = netdev_priv(ndev);
 	struct channel *chan = (struct channel *)nl->chan_cfg;
 	char *endp;
 	unsigned on = 0;
-	
+
 	on = simple_strtoul(buf, &endp, 10);
-	
+
 	if (on == 1) {
 		chan->on = 1;
 	} else {

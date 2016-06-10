@@ -1,9 +1,9 @@
-/* mr16g_hdlc.c,v 1.2 22.06.2008 
+/* mr16g_hdlc.c,v 1.2 22.06.2008
  *  	Sigrand MR16G E1 PCI adapter driver for linux (kernel 2.6.x)
  *
  *	Written 2006 by Artem U. Polyakov (artpol84@gmail.com)
  *
- *	This driver presents MR16G modem 
+ *	This driver presents MR16G modem
  *	to system as common hdlc interface.
  *
  *	This software may be used and distributed according to the terms
@@ -75,11 +75,11 @@ module_exit(mr16g_exit);
 
 //------- E1 settings & stat-----------------
 
-static CLASS_DEVICE_ATTR(crc16,0644,show_crc16,store_crc16);	
-static CLASS_DEVICE_ATTR(fill_7e,0644,show_fill_7e,store_fill_7e);	
-static CLASS_DEVICE_ATTR(inv,0644,show_inv,store_inv);	
+static CLASS_DEVICE_ATTR(crc16,0644,show_crc16,store_crc16);
+static CLASS_DEVICE_ATTR(fill_7e,0644,show_fill_7e,store_fill_7e);
+static CLASS_DEVICE_ATTR(inv,0644,show_inv,store_inv);
 static CLASS_DEVICE_ATTR(rburst,0644,show_rburst,store_rburst);
-static CLASS_DEVICE_ATTR(wburst,0644,show_wburst,store_wburst);	
+static CLASS_DEVICE_ATTR(wburst,0644,show_wburst,store_wburst);
 static CLASS_DEVICE_ATTR(slotmap,0644,show_slotmap,store_slotmap);
 static CLASS_DEVICE_ATTR(framed,0644,show_framed,store_framed);
 static CLASS_DEVICE_ATTR(clck,0644,show_clck,store_clck);
@@ -162,7 +162,7 @@ static struct attribute_group sg17_mx_group = {
 };
 
 /*----------------------------------------------------------
- * Driver initialisation 
+ * Driver initialisation
  *----------------------------------------------------------*/
 static struct pci_device_id  mr16g_pci_tbl[] __devinitdata = {
 { PCI_DEVICE(MR16G_PCI_VENDOR,MR16G_PCI_DEVICE) },
@@ -170,7 +170,7 @@ static struct pci_device_id  mr16g_pci_tbl[] __devinitdata = {
 };
 
 MODULE_DEVICE_TABLE( pci, mr16g_pci_tbl );
-	
+
 static struct pci_driver  mr16g_driver = {
  name:           MR16G_DRVNAME,
  probe:          mr16g_init_one,
@@ -193,9 +193,9 @@ mr16g_exit( void ){
 }
 
 /*----------------------------------------------------------
- * PCI related functions 
+ * PCI related functions
  *----------------------------------------------------------*/
- 
+
 static int __devinit
 mr16g_init_one( struct pci_dev *pdev,const struct pci_device_id *ent )
 {
@@ -205,12 +205,12 @@ mr16g_init_one( struct pci_dev *pdev,const struct pci_device_id *ent )
 	int err = 0;
 	struct net_local *nl = NULL;
 	struct net_device *ndev = NULL;
-	
+
 	PDEBUG(DINIT,"start");
 	if( pci_enable_device( pdev ) )
 		return -EIO;
 	pci_set_master(pdev);
-	
+
 	// init device private data
 	nl = (struct net_local *)kmalloc(sizeof(struct net_local),GFP_KERNEL);
 	memset(nl,0,sizeof(struct net_local));
@@ -220,75 +220,75 @@ mr16g_init_one( struct pci_dev *pdev,const struct pci_device_id *ent )
 		err = -ENOMEM;
 		goto err1;
 	}
-    	
-	// set some net device fields 
+
+	// set some net device fields
 	pci_set_drvdata(pdev,ndev);
 	ndev->init = mr16g_probe;
 	ndev->mem_start = pci_resource_start( pdev, 1 );
 	ndev->mem_end = pci_resource_end( pdev,1 );
 	ndev->irq = pdev->irq;
-		
+
 	// register net device
 	err = register_hdlc_device(ndev);
 	if( err < 0 ){
 		printk("%s: cannot register net device, err=%d",__FUNCTION__,err);
 		goto err2;
 	}
-		
+
 	// Init control through sysfs
 	nl->dev = dev_dev;
    	// Init control through sysfs
    	if( (err = sysfs_create_link( &(dev_drv->kobj),&(dev_dev->kobj),ndev->name )) ){
-    	printk(KERN_NOTICE"%s: error in sysfs_create_link\n",__FUNCTION__);	
+    	printk(KERN_NOTICE"%s: error in sysfs_create_link\n",__FUNCTION__);
 	    goto err3;
    	}
 	if( (err = mr16g_sysfs_init(nl->dev)) ){
-		printk(KERN_NOTICE"%s: error in mr16g_sysfs_init\n",__FUNCTION__);	
+		printk(KERN_NOTICE"%s: error in mr16g_sysfs_init\n",__FUNCTION__);
 		goto err4;
 	}
 
 	PDEBUG(DINIT,"end");
 	return 0;
-	
+
  err4:
-	sysfs_remove_link(&(dev_drv->kobj),ndev->name);	
+	sysfs_remove_link(&(dev_drv->kobj),ndev->name);
  err3:
 	iounmap( nl->mem_base );
 	release_mem_region( ndev->mem_start, 0x1000 );
 	free_irq( ndev->irq, ndev );
 	unregister_netdev( ndev );
  err2:
-	free_netdev(ndev);	
- err1:	
+	free_netdev(ndev);
+ err1:
 	kfree(nl);
 	pci_disable_device(pdev);
 	PDEBUG(DINIT,"fail");
 	return err;
 }
-				
-				
+
+
 static void __devexit mr16g_remove_one( struct pci_dev *pdev )
 {
 	struct net_device  *ndev = pci_get_drvdata( pdev );
 	hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct net_local *nl=(struct net_local*)hdlc->priv;
 	struct device_driver *dev_drv = (struct device_driver*)(nl->dev->driver);
-	
-	
+
+
 	PDEBUG(DINIT,"start");
 	// shutdown device
 	mr16g_hdlc_down(nl);
-	
+
 	// Remove sysfs entires
 	mr16g_sysfs_del(nl->dev);
-	sysfs_remove_link(&(dev_drv->kobj),ndev->name);	
-	
+	sysfs_remove_link(&(dev_drv->kobj),ndev->name);
+
 	// Remove network device from OS
 	iounmap( nl->mem_base );
 	release_mem_region( ndev->mem_start, 0x1000 );
 	free_irq( ndev->irq, ndev );
 	unregister_netdev( ndev );
-	free_netdev(ndev);	
+	free_netdev(ndev);
 	kfree(nl);
 	pci_disable_device(pdev);
 	PDEBUG(DINIT,"end");
@@ -305,7 +305,7 @@ mr16g_probe( struct net_device  *ndev )
 	int err=0;
 	hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct net_local *nl=(struct net_local*)hdlc->priv;
-	
+
 	PDEBUG(DINIT,"start");
 	// Set net device fields
 	netif_carrier_off( ndev );
@@ -317,9 +317,9 @@ mr16g_probe( struct net_device  *ndev )
 	ndev->tx_queue_len  = 50;
     ndev->tx_timeout = &mr16g_tx_timeout;
     ndev->watchdog_timeo = TX_TIMEOUT;
-	
-	
-	// Set hdlc device fields	
+
+
+	// Set hdlc device fields
 	hdlc->attach = &mr16g_attach;
 	hdlc->xmit   = &mr16g_start_xmit;
 
@@ -332,26 +332,26 @@ mr16g_probe( struct net_device  *ndev )
 	nl->tbd  = (struct mr16g_hw_descr *) nl->mem_base;
 	nl->rbd  = (struct mr16g_hw_descr *) ((u8 *)nl->mem_base + 0x400);
 	nl->hdlc_regs = (struct mr16g_hw_regs *) ((u8 *)nl->mem_base + 0x800);
-	nl->ds2155_regs = (u8 *) ((u8 *)nl->mem_base + 0xc00);		
-	
+	nl->ds2155_regs = (u8 *) ((u8 *)nl->mem_base + 0xc00);
+
 	//setup tx/rx related net local fields
 	spin_lock_init( &nl->xlock );
 
 	// shutdown device before startup
 	mr16g_hdlc_down(nl);
-		
+
 	// register interrupt
 	if( request_irq(ndev->irq, mr16g_int, SA_SHIRQ, ndev->name, ndev) ){
 		printk( KERN_ERR "%s: unable to get IRQ %d.\n",ndev->name, ndev->irq );
 		goto err_exit;
 	}
 	SET_MODULE_OWNER( ndev );
-	
+
 	// success
 	printk( KERN_NOTICE "%s: "MR16G_MODNAME" E1 module (irq %d, mem %#lx)\n",
 			ndev->name, ndev->irq, ndev->mem_start );
-	
-	//initial setup	
+
+	//initial setup
 	mr16g_defcfg(nl);
 	mr16g_hdlc_up(nl);
 	mr16g_hdlc_setup(nl);
@@ -365,7 +365,7 @@ mr16g_probe( struct net_device  *ndev )
 	return  -ENODEV;
 }
 
-// Open/initialize the board 
+// Open/initialize the board
 static int
 mr16g_open( struct net_device  *ndev )
 {
@@ -376,11 +376,11 @@ mr16g_open( struct net_device  *ndev )
 	if( (err=hdlc_open(ndev)) )
 		return err;
 	// Enable tx/rx buffers
-	mr16g_txrx_up(ndev);		
+	mr16g_txrx_up(ndev);
 	// Prepare HDLC regs
-	mr16g_hdlc_open(nl);	
+	mr16g_hdlc_open(nl);
 	// start network if queuing
-	netif_start_queue(ndev);	
+	netif_start_queue(ndev);
 	return 0;
 }
 
@@ -392,8 +392,8 @@ mr16g_close( struct net_device  *ndev )
 
 	PDEBUG(DINIT,"start");
 	hdlc_close(ndev);
-	netif_tx_disable(ndev);		
-	mr16g_hdlc_close(nl);	
+	netif_tx_disable(ndev);
+	mr16g_hdlc_close(nl);
 	mr16g_txrx_down(ndev);
 	PDEBUG(DINIT,"end");
 	return 0;
@@ -405,19 +405,19 @@ mr16g_int( int  irq,void  *dev_id, struct pt_regs  *regs)
 	struct net_device *ndev = (struct net_device *) dev_id;
 	hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct net_local *nl=(struct net_local*)hdlc->priv;
-	u8  mask = ioread8((iotype)&(nl->hdlc_regs->IMR));	
+	u8  mask = ioread8((iotype)&(nl->hdlc_regs->IMR));
 	u8  status = ioread8((iotype)&(nl->hdlc_regs->SR)) & mask;
 	PDEBUG(DIRQ,"(%s) start SR(%02x) IMR(%02x) mask(%02x)",ndev->name,(nl->hdlc_regs->SR),(nl->hdlc_regs->IMR),mask);
 	iowrite8(0,(iotype)&(nl->hdlc_regs->IMR));
-	iowrite8(0xff,(iotype)&(nl->hdlc_regs->SR));	
-		
+	iowrite8(0xff,(iotype)&(nl->hdlc_regs->SR));
+
 	if( status == 0 ){
 		PDEBUG(DIRQ,"status = 0");
 		iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
 		return IRQ_NONE;
 	}
 
-	PDEBUG(DIRQ,"start,status=%08x",status);				
+	PDEBUG(DIRQ,"start,status=%08x",status);
 
 	if( status & EXT ){
 		PDEBUG(DIRQ,"EXT");
@@ -428,7 +428,7 @@ mr16g_int( int  irq,void  *dev_id, struct pt_regs  *regs)
 	 * transmitter. That's enough, because linux doesn't fragment
 	 * packets.
 	 */
-																	    
+
 	if( status & UFL ){
 		PDEBUG(DIRQ,"UFL");
 		iowrite8( ioread8((iotype)&(nl->hdlc_regs->CRA)) | TXEN,
@@ -436,61 +436,61 @@ mr16g_int( int  irq,void  *dev_id, struct pt_regs  *regs)
 		++nl->stats.tx_errors;
 		++nl->stats.tx_fifo_errors;
 	}
-	
+
 	if( status & RXS ){
-		PDEBUG(DIRQ,"RXS");	
+		PDEBUG(DIRQ,"RXS");
 		recv_init_frames( ndev );
 		recv_alloc_buffs( ndev );
 	}
-	
+
 	if( status & TXS ){
 		spin_lock( &nl->xlock );
 		xmit_free_buffs( ndev );
 		spin_unlock( &nl->xlock );
 		PDEBUG(DIRQ,"TXS");
 	}
-	
+
 	if( status & CRC ){
 		++nl->stats.rx_errors;
 		++nl->stats.rx_crc_errors;
-		PDEBUG(DIRQ,"CRC");		
+		PDEBUG(DIRQ,"CRC");
 	}
 
 	if( status & OFL ){
 		++nl->stats.rx_errors;
 		++nl->stats.rx_over_errors;
-		PDEBUG(DIRQ,"OFL");		
+		PDEBUG(DIRQ,"OFL");
 	}
-	
-	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));	
-	PDEBUG(DIRQ,"end IMR(%02x) mask(%02x)",(nl->hdlc_regs->IMR),mask);	
+
+	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
+	PDEBUG(DIRQ,"end IMR(%02x) mask(%02x)",(nl->hdlc_regs->IMR),mask);
 	return IRQ_HANDLED;
-}	
+}
 
 static int
 mr16g_ioctl_get_iface(struct net_device *ndev,struct ifreq *ifr)
 {
 	te1_settings sets;
-	
+
 	// Setup interface type. For us - only E1
 	ifr->ifr_settings.type = IF_IFACE_E1;
-	
+
 	if (ifr->ifr_settings.size == 0){
 		return 0;       /* only type requested */
 	}
 	if (ifr->ifr_settings.size < sizeof (sets)){
 		return -ENOMEM;
 	}
-						
+
 
 	sets.clock_rate = mr16g_get_rate(ndev);
 	sets.clock_type = mr16g_get_clock(ndev);
 	sets.loopback = 0;
 	sets.slot_map = mr16g_get_slotmap(ndev);
-						    
+
 	if (copy_to_user(ifr->ifr_settings.ifs_ifsu.sync, &sets, sizeof (sets)))
 		return -EFAULT;
-										    
+
 	ifr->ifr_settings.size = sizeof (sets);
 	return 0;
 }
@@ -511,8 +511,8 @@ mr16g_ioctl_get_iface(struct net_device *ndev,struct ifreq *ifr)
   }
   return 0;
   }
-*/	
-					       														
+*/
+
 static int
 mr16g_ioctl(struct net_device *ndev, struct ifreq *ifr, int cmd)
 {
@@ -524,11 +524,11 @@ mr16g_ioctl(struct net_device *ndev, struct ifreq *ifr, int cmd)
 	case SIOCWANDEV:
 		switch (ifr->ifr_settings.type) {
 		case IF_GET_IFACE:
-			return mr16g_ioctl_get_iface(ndev,ifr);		
+			return mr16g_ioctl_get_iface(ndev,ifr);
 
 		case IF_IFACE_E1:
 			return 0;
-			//			return mr16g_ioctl_set_iface(ndev,ifr);					
+			//			return mr16g_ioctl_set_iface(ndev,ifr);
 
 		case IF_GET_PROTO:
 		default:
@@ -552,7 +552,7 @@ mr16g_tx_timeout( struct net_device  *ndev )
 {
     hdlc_device *hdlc = dev_to_hdlc(ndev);
     struct net_local *nl=(struct net_local *)hdlc->priv;
-    
+
     printk( KERN_ERR "%s: transmit timeout\n", ndev->name );
     if( ioread8( (iotype)&(nl->hdlc_regs->SR)) & TXS ){
 		iowrite8( TXS,(iotype)&(nl->hdlc_regs->SR));
@@ -577,11 +577,11 @@ mr16g_get_stats( struct net_device  *dev )
 {
 	hdlc_device *hdlc = dev_to_hdlc(dev);
 	struct net_local *nl=hdlc->priv;
-	PDEBUG(5,"");	
+	PDEBUG(5,"");
 	return  &(nl)->stats;
 }
 
-static void 
+static void
 mr16g_setup_carrier(struct net_device *ndev,u8 *mask)
 {
 	hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -596,11 +596,11 @@ mr16g_setup_carrier(struct net_device *ndev,u8 *mask)
 		iowrite8( ioread8( (iotype)&(nl->hdlc_regs->CRB) ) & ~RXDE,
 				  (iotype)&(nl->hdlc_regs->CRB) );
 		*mask = EXT | UFL | OFL | RXS | TXS | CRC;
-		
-		// Log event only if this is first one!		
+
+		// Log event only if this is first one!
 		if( !netif_carrier_ok(ndev) )
 			printk(KERN_INFO"%s: link is UP\n",ndev->name);
-		
+
 		hdlc_set_carrier(1,ndev);
 		netif_carrier_on(ndev);
 		ds2155_setreg(nl,CCR4,0x01);
@@ -609,7 +609,7 @@ mr16g_setup_carrier(struct net_device *ndev,u8 *mask)
 				  (iotype)&(nl->hdlc_regs->CRB) );
 		*mask = EXT;
 
-		// Log event only if this is first one!		
+		// Log event only if this is first one!
 		if( netif_carrier_ok(ndev) )
 			printk(KERN_INFO"%s: link is DOWN\n",ndev->name);
 
@@ -624,9 +624,9 @@ mr16g_get_rate(struct net_device *ndev)
 {
 	hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct net_local *nl=(struct net_local *)hdlc->priv;
-	struct ds2155_config *cfg= (struct ds2155_config *)&nl->e1_cfg;		
+	struct ds2155_config *cfg= (struct ds2155_config *)&nl->e1_cfg;
 	u32 rate=0, storage=cfg->slotmap;
-	
+
 	if( !cfg->framed ){
 		if( nl->hdlc_regs->MXCR & MXEN )
 			return 0;
@@ -638,7 +638,7 @@ mr16g_get_rate(struct net_device *ndev)
 	if( !cfg->ts16 ){
 	    storage &= ~(1<<16);
 	}
-	    
+
 	while(storage){
 		if( storage & 0x1 )
 			rate+=64000;
@@ -652,7 +652,7 @@ mr16g_get_slotmap(struct net_device *ndev)
 {
 	hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct net_local *nl=(struct net_local *)hdlc->priv;
-	struct ds2155_config *cfg= (struct ds2155_config *)&nl->e1_cfg;	
+	struct ds2155_config *cfg= (struct ds2155_config *)&nl->e1_cfg;
 	u32 storage=cfg->slotmap;
 
 	if( cfg->framed ){
@@ -663,7 +663,7 @@ mr16g_get_slotmap(struct net_device *ndev)
 		return storage;
 	}
 
-	if( nl->hdlc_regs->MXCR & MXEN ) 
+	if( nl->hdlc_regs->MXCR & MXEN )
 	// in unframed mode all slots mapped to mx
 		return 0;
 
@@ -677,7 +677,7 @@ mr16g_get_clock(struct net_device *ndev)
 	hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct net_local *nl=(struct net_local *)hdlc->priv;
 	struct ds2155_config *cfg= (struct ds2155_config *)&nl->e1_cfg;
-	
+
 	if( cfg->int_clck )
 		return CLOCK_INT;
 	else
@@ -687,7 +687,7 @@ mr16g_get_clock(struct net_device *ndev)
 /* --------------------------------------------------------------------------
  *   Functions, serving transmit-receive process   *
  * -------------------------------------------------------------------------- */
- 
+
 // Enable DS2155 link status declaration
 // Disable transceiver, reset all ring pointers
 static void
@@ -703,7 +703,7 @@ mr16g_txrx_up(struct net_device *ndev)
 	iowrite8( 0, (iotype)&(nl->hdlc_regs->LTDR));
 	iowrite8( 0, (iotype)&(nl->hdlc_regs->CRDR));
 	iowrite8( 0, (iotype)&(nl->hdlc_regs->LRDR));
-	recv_alloc_buffs(ndev);	
+	recv_alloc_buffs(ndev);
 }
 
 static void
@@ -713,9 +713,9 @@ mr16g_txrx_down(struct net_device *ndev)
 	struct net_local *nl=(struct net_local*)hdlc->priv;
 	unsigned long  flags;
 	recv_free_buffs(ndev);
-	spin_lock_irqsave( &nl->xlock, flags );	
+	spin_lock_irqsave( &nl->xlock, flags );
 	xmit_free_buffs(ndev);
-	spin_unlock_irqrestore( &nl->xlock, flags );	
+	spin_unlock_irqrestore( &nl->xlock, flags );
 }
 
 static int
@@ -727,15 +727,15 @@ mr16g_start_xmit( struct sk_buff *skb, struct net_device *ndev )
 	dma_addr_t bus_addr;
 	unsigned  cur_tbd;
 
-	PDEBUG(DXMIT,"start");			  
+	PDEBUG(DXMIT,"start");
 	if ( !netif_carrier_ok(ndev) ){
 		dev_kfree_skb_any( skb );
 		return 0;
 	}
-						  
+
 	/* fix concurent racing in transmit */
 	spin_lock_irqsave( &nl->xlock, flags );
-	
+
 	if( nl->tail_xq == ((nl->head_xq - 1) & (XQLEN - 1)) ) {
 		netif_stop_queue( ndev );
 		//printk(KERN_NOTICE"%s: netif_stop_queue(%s)\n",__FUNCTION__,ndev->name);
@@ -744,7 +744,7 @@ mr16g_start_xmit( struct sk_buff *skb, struct net_device *ndev )
 
 	/* Map the buffer for DMA */
 	bus_addr = dma_map_single(nl->dev,skb->data, skb->len , DMA_TO_DEVICE );
-	
+
 	nl->xq[ nl->tail_xq++ ] = skb;
 	nl->tail_xq &= (XQLEN - 1);
 	cur_tbd = ioread8( (iotype)&(nl->hdlc_regs->LTDR)) & 0x7f;
@@ -752,7 +752,7 @@ mr16g_start_xmit( struct sk_buff *skb, struct net_device *ndev )
 	iowrite32( cpu_to_le32( skb->len | LAST_FRAG ),(iotype)&(nl->tbd[ cur_tbd ].length ) ) ;
 	cur_tbd = (cur_tbd + 1) & 0x7f;
 	iowrite8(cur_tbd,(iotype)&(nl->hdlc_regs->LTDR));
-				
+
 	/*
 	 * Probably, it's the best place to increment statistic counters
 	 * though those frames hasn't been actually transferred yet.
@@ -782,9 +782,9 @@ xmit_free_buffs( struct net_device *ndev )
 	if( netif_queue_stopped( ndev )  &&  nl->head_tdesc != cur_tbd ){
 		netif_wake_queue( ndev );
 	}
-		    
+
 	while( nl->head_tdesc != cur_tbd ){
-		// unmap DMA memory 
+		// unmap DMA memory
 		bus_addr=le32_to_cpu( ioread32( (u32*)&(nl->tbd[ nl->head_tdesc ].address)) );
 		dma_unmap_single(nl->dev,bus_addr, nl->xq[ nl->head_xq]->len, DMA_TO_DEVICE );
 		dev_kfree_skb_any( nl->xq[ nl->head_xq++ ] );
@@ -799,10 +799,10 @@ recv_init_frames( struct net_device *ndev )
 	hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct net_local *nl=(struct net_local*)hdlc->priv;
 	unsigned  cur_rbd = ioread8( (iotype)&(nl->hdlc_regs->CRDR) ) & 0x7f;
-	dma_addr_t bus_addr;    
+	dma_addr_t bus_addr;
 	unsigned  len;
 
-	PDEBUG(DRECV,"start");			  
+	PDEBUG(DRECV,"start");
 	while( nl->head_rdesc != cur_rbd ) {
 		struct sk_buff  *skb = nl->rq[ nl->head_rq++ ];
 		nl->head_rq &= (RQLEN - 1);
@@ -813,9 +813,9 @@ recv_init_frames( struct net_device *ndev )
 		len = nl->rbd[ nl->head_rdesc ].length & 0x7ff;
 		skb_put( skb, len );
 		skb->protocol = hdlc_type_trans(skb, ndev);
-		
+
 		netif_rx( skb );
-		
+
 		++nl->stats.rx_packets;
 		nl->stats.rx_bytes += len;
 		nl->head_rdesc = (nl->head_rdesc + 1) & 0x7f;
@@ -831,7 +831,7 @@ recv_alloc_buffs( struct net_device *ndev )
 	dma_addr_t bus_addr;
 	struct sk_buff  *skb;
 
-	PDEBUG(DRECV,"start");			  
+	PDEBUG(DRECV,"start");
 	while( nl->tail_rq != ((nl->head_rq -1) & (RQLEN - 1)) ){
 		skb = dev_alloc_skb( SG16_MAX_FRAME );
 		skb->dev = ndev;
@@ -840,8 +840,8 @@ recv_alloc_buffs( struct net_device *ndev )
 		nl->rq[ nl->tail_rq++ ] = skb;
 		nl->tail_rq &= (RQLEN - 1);
 
-		// DMA memory 
-		bus_addr = dma_map_single(nl->dev,skb->data, 
+		// DMA memory
+		bus_addr = dma_map_single(nl->dev,skb->data,
 								  SG16_MAX_FRAME , DMA_FROM_DEVICE );
 		iowrite32( cpu_to_le32( bus_addr ),
 				   (u32 *)&(nl->rbd[ cur_rbd ].address) ) ;
@@ -857,10 +857,10 @@ recv_free_buffs( struct net_device *ndev)
 	hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct net_local *nl=(struct net_local*)hdlc->priv;
 	unsigned  last_rbd = ioread8( (iotype)&(nl->hdlc_regs->LRDR)) & 0x7f;
-	dma_addr_t bus_addr;    
+	dma_addr_t bus_addr;
 	struct sk_buff  *skb;
-    
-	PDEBUG(DRECV,"start");			  
+
+	PDEBUG(DRECV,"start");
 	iowrite8( ioread8( (iotype)&(nl->hdlc_regs->CRDR)), (iotype)&(nl->hdlc_regs->LRDR));
 	while( nl->head_rdesc != last_rbd ){
 		skb = nl->rq[ nl->head_rq++ ];
@@ -873,7 +873,7 @@ recv_free_buffs( struct net_device *ndev)
 }
 
 /*----------------------------------------------------------
- *  HDLC controller control/setup 
+ *  HDLC controller control/setup
  *----------------------------------------------------------*/
 
 // Disable device
@@ -887,18 +887,18 @@ mr16g_hdlc_down(struct net_local *nl)
 	ds2155_setreg(nl,CCR4,0x00);
 }
 
-inline void	
+inline void
 mr16g_hdlc_up( struct net_local *nl)
 {
 	ds2155_setreg(nl,CCR4,0x00);
-	iowrite8( EXT, (iotype)&(nl->hdlc_regs->IMR) );                              
-	iowrite8( 0xff, (iotype)&(nl->hdlc_regs->SR) );                              
-	iowrite8( XRST , (iotype)&(nl->hdlc_regs->CRA));                             
+	iowrite8( EXT, (iotype)&(nl->hdlc_regs->IMR) );
+	iowrite8( 0xff, (iotype)&(nl->hdlc_regs->SR) );
+	iowrite8( XRST , (iotype)&(nl->hdlc_regs->CRA));
 	iowrite8( 0 , (iotype)&(nl->hdlc_regs->CRB));
 	PDEBUG(DCARR,"SR(%02x) IMR(%02x)",nl->hdlc_regs->SR ,nl->hdlc_regs->IMR);
-}	
+}
 
-inline void	
+inline void
 mr16g_hdlc_setup( struct net_local *nl)
 {
 	u8 cfg_byte;
@@ -908,12 +908,12 @@ mr16g_hdlc_setup( struct net_local *nl)
 	// CRC16/CRC32
 	if( nl->hdlc_cfg.crc16 )
 		cfg_byte |= CMOD;
-	else 
+	else
 		cfg_byte &= ~CMOD;
 	// Fill mode
 	if( nl->hdlc_cfg.fill_7e )
 		cfg_byte |= FMOD;
-	else 
+	else
 		cfg_byte &= ~FMOD;
 	// Polarity mode
 	if( nl->hdlc_cfg.inv )
@@ -938,7 +938,7 @@ mr16g_hdlc_setup( struct net_local *nl)
 }
 
 
-inline void	
+inline void
 mr16g_hdlc_open( struct net_local *nl)
 {
 	u8 cfg_byte;
@@ -947,7 +947,7 @@ mr16g_hdlc_open( struct net_local *nl)
 	iowrite8(cfg_byte,(iotype)&(nl->hdlc_regs->CRA));
 }
 
-inline void	
+inline void
 mr16g_hdlc_close( struct net_local *nl)
 {
 	u8 cfg_byte;
@@ -957,7 +957,7 @@ mr16g_hdlc_close( struct net_local *nl)
 }
 
 /*----------------------------------------------------------
- *  DS2155 control/setup 
+ *  DS2155 control/setup
  *----------------------------------------------------------*/
 inline void ds2155_setreg(struct net_local *nl,u8 regoffs,u8 regval)
 {
@@ -1030,7 +1030,7 @@ mr16g_E1_setup(struct net_device *ndev)
 		if( cfg->cas )
 			cfg->ts16=0;
 	}
-	
+
 	// software reset. Note: DS2155 has no hardware reset.
 	ds2155_setreg(nl,MSTRREG,0x01);
 	i=0;
@@ -1041,26 +1041,26 @@ mr16g_E1_setup(struct net_device *ndev)
 	ds2155_setreg(nl,LBCR,lb_save);
 
 	// general configuration
-	ds2155_setreg(nl,MSTRREG,E1T1); 
-	ds2155_setreg(nl,IOCR1,0x00);	
+	ds2155_setreg(nl,MSTRREG,E1T1);
+	ds2155_setreg(nl,IOCR1,0x00);
 	ds2155_setreg(nl,IOCR2,(TSCLKM|RSCLKM));
-	
+
 	// E1 Registers
 	// E1 Receive Control Register 1
 	tmp=0;
-	if( !cfg->framed )	// SYNCE=1 (OFF) for unframed mode	
+	if( !cfg->framed )	// SYNCE=1 (OFF) for unframed mode
 		tmp |=SYNCE;
-	if( cfg->hdb3 )		// RHDB3=1 for HDB3 mode		
+	if( cfg->hdb3 )		// RHDB3=1 for HDB3 mode
 		tmp |=RHDB3;
-	if( cfg->crc4 )		// CRC4=1 for CRC4 multiframe		
+	if( cfg->crc4 )		// CRC4=1 for CRC4 multiframe
 		tmp |=RCRC4;
-	if( !cfg->cas )		// RSIGM=0 for CAS multiframe		
+	if( !cfg->cas )		// RSIGM=0 for CAS multiframe
 		tmp |=RSIGM;
-	ds2155_setreg(nl,E1RCR1,tmp);		
-	
+	ds2155_setreg(nl,E1RCR1,tmp);
+
 	// E1 Receive Control Register 2
 	ds2155_setreg(nl,E1RCR2,0x00);
-	
+
 	// E1 Transmit Control Register 1
 	// tfpt-t16s-tua1-tsis-tsa1-THDB3-tg802-tcrc4
 	tmp=0;
@@ -1072,22 +1072,22 @@ mr16g_E1_setup(struct net_device *ndev)
 		tmp |=TFPT;
 	if( cfg->framed && !cfg->ts16 )	// T16S=0 if timeslot 16 is mapped to HDLC or for unframed mode
 		tmp |= T16S;
-	ds2155_setreg(nl,E1TCR1,tmp);		
+	ds2155_setreg(nl,E1TCR1,tmp);
 
 	// E1 Transmit Control Register 2
 	ds2155_setreg(nl,E1TCR2,0x00);	// sa8s-sa7s-sa6s-sa5s-sa4s-aebe-aais-ara
-	
+
 	// Common Control Registers
 	// Common Control Register 1
 	ds2155_setreg(nl,CCR1,0x80);	// MCLKS-crc4r-sie-odm-dicai-tcss1-tcss0-rlosf
 
 	// Common Control Register 2
 	ds2155_setreg(nl,CCR2,0x01);	// MCLKS-crc4r-sie-odm-dicai-tcss1-tcss0-rlosf
-	
+
 	// Common Control Register 3
 	ds2155_setreg(nl,CCR3,0x00);	// tmss-intdis-cttui-tdatfmt-tgpcken-rdatfmt-rgpcken
 	// INTDIS=1 to disable interrupts
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         	
+
 	// Line Interface Unit Registers
 	// Line Interface Control 1
 	tmp=TPD|L0;
@@ -1098,22 +1098,22 @@ mr16g_E1_setup(struct net_device *ndev)
 	// Line Interface Control 2
 	// ETS-lirst-ibpv-TUA1-jamux-0-scld-clds
 	ds2155_setreg(nl,LIC2,0x90);
-	
+
 	// Line Interface Control 3
 	// 0-tces-rces-mm1-mm0-rsclke-tsclke-taoz
-	ds2155_setreg(nl,LIC3,0x00); 
-	
+	ds2155_setreg(nl,LIC3,0x00);
+
 	// Line Interface Control 4
 	// cmie-cmii-mps1-mps0-TT1-TT0-RT1-RT0
 	ds2155_setreg(nl,LIC4,0x0F);
-	
+
 	// Error counters config
 	// 0-mecu-ecus-EAMS-vcrfs-fsbe-moscrf-lvcrf
 	tmp=EAMS;
 	if( cfg->hdb3 )		// VCRFS=1 for HDB3 mode
 		tmp |=VCRFS;
 	ds2155_setreg(nl,ERCNT,tmp);
-	
+
 	// Idle code for all channels
 	ds2155_setreg(nl,IAAR,0x41);	// all channels
 	ds2155_setreg(nl,PCICR,0xFF);	// all 1's idle code
@@ -1121,20 +1121,20 @@ mr16g_E1_setup(struct net_device *ndev)
 	// Sa, Si bits - non-CRC4 mode
 	ds2155_setreg(nl,TAF,0x9B);	// Si-0-0-1-1-0-1-1
 	ds2155_setreg(nl,TNAF,0xDF);	// Si-1-A-Sa4-Sa5-Sa6-Sa7-Sa8
-	
+
 	// Sa, Si bits - CRC4 mode
 	ds2155_setreg(nl,TSiAF,0xFF);	// Si bits for align frames
 	ds2155_setreg(nl,TSiNAF,0xFF);	// Si bits for non-align frames
 	ds2155_setreg(nl,TRA,0x00);	// Remote Alarm bits
 	for(i=0;i<5;i++)		//Fill TSa4 to TSa8 with all 1s
-		ds2155_setreg(nl,TSa4+i,0xFF); 
-		
+		ds2155_setreg(nl,TSa4+i,0xFF);
+
 	// TS16 signalling default values (A=1, B=1, C=0, D=1; X=1, Y=0)
 	// TS16 frame 1
 	ds2155_setreg(nl,TS01,0x0B);	//0-0-0-0-X-y-X-X
 	for(i=0;i<15;i++)		// set TS02-TS16 to A-B-c-D-A-B-c-D
 		ds2155_setreg(nl,TS02+i,0xDD);
-		
+
 	// Line Interface reset
 	ds2155_setreg(nl,LIC2,0xD0);	// ETS-LIRST-ibpv-TUA1-jamux-0-scld-clds  (set LIRST)
 	ds2155_setreg(nl,LIC2,0x90);	// ETS-lirst-ibpv-TUA1-jamux-0-scld-clds  (clear LIRST)
@@ -1151,10 +1151,10 @@ mr16g_E1_setup(struct net_device *ndev)
 		// disable framed mode
 		tmp = ioread8((iotype)&(nl->hdlc_regs->CRB)) & (~FRM);
 		iowrite8(tmp,(iotype)&(nl->hdlc_regs->CRB));
-		
+
 	}
 
-	// set slotmap	
+	// set slotmap
 	tmpmap = cfg->slotmap;
 	if( !cfg->framed ){
 		tmpmap = 0;
@@ -1165,11 +1165,11 @@ mr16g_E1_setup(struct net_device *ndev)
 	}
 	smap=(u8*)&tmpmap;
 	iowrite8(smap[0],(iotype)&(nl->hdlc_regs->MAP0));
-	iowrite8(smap[1],(iotype)&(nl->hdlc_regs->MAP1));	
-	iowrite8(smap[2],(iotype)&(nl->hdlc_regs->MAP2));	
-	iowrite8(smap[3],(iotype)&(nl->hdlc_regs->MAP3));	
+	iowrite8(smap[1],(iotype)&(nl->hdlc_regs->MAP1));
+	iowrite8(smap[2],(iotype)&(nl->hdlc_regs->MAP2));
+	iowrite8(smap[3],(iotype)&(nl->hdlc_regs->MAP3));
 
-	// set mx slotmap	
+	// set mx slotmap
 	tmpmap = cfg->mxslotmap;
 	if( cfg->framed ){
 	    tmpmap &= ~(1);
@@ -1178,15 +1178,15 @@ mr16g_E1_setup(struct net_device *ndev)
 	}else{
 		tmpmap = 0xffffffff;
 	}
-	
+
 	smap=(u8*)&tmpmap;
 	iowrite8(smap[0],(iotype)&(nl->hdlc_regs->MXMAP0));
-	iowrite8(smap[1],(iotype)&(nl->hdlc_regs->MXMAP1));	
-	iowrite8(smap[2],(iotype)&(nl->hdlc_regs->MXMAP2));	
-	iowrite8(smap[3],(iotype)&(nl->hdlc_regs->MXMAP3));	
+	iowrite8(smap[1],(iotype)&(nl->hdlc_regs->MXMAP1));
+	iowrite8(smap[2],(iotype)&(nl->hdlc_regs->MXMAP2));
+	iowrite8(smap[3],(iotype)&(nl->hdlc_regs->MXMAP3));
 	tmp = slot_cnt(tmpmap);
 	tmp--;
-	iowrite8(tmp,(iotype)&(nl->hdlc_regs->MXRATE));	
+	iowrite8(tmp,(iotype)&(nl->hdlc_regs->MXRATE));
 
 	if( !cfg->int_clck ){
 		tmp = EXTC|ioread8((iotype)&(nl->hdlc_regs->CRB));
@@ -1195,16 +1195,16 @@ mr16g_E1_setup(struct net_device *ndev)
 		tmp = ioread8((iotype)&(nl->hdlc_regs->CRB))&(~EXTC);
 		iowrite8(tmp,(iotype)&(nl->hdlc_regs->CRB));
     }
-	
+
 	mdelay(10);
 	mr16g_setup_carrier(ndev,&mask);
 	iowrite8(mask,(iotype)&(nl->hdlc_regs->IMR));
 
 
 	return 0;
-} 
+}
 
-// TODO - check who is a source of Interrupt 
+// TODO - check who is a source of Interrupt
 static int
 ds2155_interrupt( struct net_device *ndev, u8 *mask )
 {
@@ -1221,22 +1221,22 @@ ds2155_interrupt( struct net_device *ndev, u8 *mask )
 static void
 mr16g_defcfg(struct net_local *nl)
 {
-	//E1 initial setup			
+	//E1 initial setup
 	nl->e1_cfg.framed=0;
 	nl->e1_cfg.hdb3=1;
 	nl->e1_cfg.int_clck=1;
-	//HDLC initial setup				
+	//HDLC initial setup
 	nl->hdlc_cfg.crc16=1;
-	nl->hdlc_cfg.fill_7e=1;	
+	nl->hdlc_cfg.fill_7e=1;
 	nl->hdlc_cfg.rburst=0;
-	nl->hdlc_cfg.wburst=0;	
+	nl->hdlc_cfg.wburst=0;
 }
 
 static int __devinit
 mr16g_sysfs_init(struct device *dev)
 {
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
-	struct class_device *class_dev = &(ndev->class_dev);	
+	struct class_device *class_dev = &(ndev->class_dev);
 
 	// Create control/status entries
 	sysfs_create_group(&class_dev->kobj, &sg17_group);
@@ -1253,79 +1253,79 @@ static void __devexit
 mr16g_sysfs_del(struct device *dev)
 {
 	struct net_device *ndev=(struct net_device*)dev_get_drvdata(dev);
-	struct class_device *class_dev = &(ndev->class_dev);	
+	struct class_device *class_dev = &(ndev->class_dev);
 
 	// Remove control/status entries
 	sysfs_remove_group(&class_dev->kobj, &sg17_group);
 	// Remove multiplexing entries
 	sysfs_remove_group(&class_dev->kobj, &sg17_mx_group);
-	// Remove device link from class object	
+	// Remove device link from class object
 	sysfs_remove_link(&(class_dev->kobj),ndev->name);
-}	    
+}
 
 //---------- hdlc -----------------//
 
-// CRC count attribute 
+// CRC count attribute
 static ssize_t
-show_crc16(struct class_device *cdev, char *buf) 
+show_crc16(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
-	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
+	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);
 
 	if( cfg->crc16 )
 		return snprintf(buf,PAGE_SIZE,"crc16");
 	else
-		return snprintf(buf,PAGE_SIZE,"crc32");    
+		return snprintf(buf,PAGE_SIZE,"crc32");
 }
 
 static ssize_t
-store_crc16( struct class_device *cdev,const char *buf, size_t size ) 
+store_crc16( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
-	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
+	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);
 
 	if( !size )	return 0;
-    
+
 	if(buf[0] == '1' )
 		cfg->crc16=1;
 	else if( buf[0] == '0' )
 		cfg->crc16=0;
 	mr16g_hdlc_setup(nl);
-	return size;	
+	return size;
 }
 
 static ssize_t
-show_fill_7e(struct class_device *cdev, char *buf) 
+show_fill_7e(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
-	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
+	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);
 
 	if( cfg->fill_7e )
 		return snprintf(buf,PAGE_SIZE,"fill_7e");
 	else
-		return snprintf(buf,PAGE_SIZE,"fill_ff");    
+		return snprintf(buf,PAGE_SIZE,"fill_ff");
 }
 
 static ssize_t
-store_fill_7e( struct class_device *cdev,const char *buf, size_t size ) 
+store_fill_7e( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
-	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
+	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);
 
 	if( !size )	return 0;
-	
+
 	if(buf[0] == '1' )
 		cfg->fill_7e=1;
 	else if( buf[0] == '0' )
 		cfg->fill_7e=0;
 	mr16g_hdlc_setup(nl);
-	return size;	
+	return size;
 }
 
-static ssize_t 
-show_inv(struct class_device *cdev, char *buf) 
+static ssize_t
+show_inv(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);
@@ -1333,45 +1333,45 @@ show_inv(struct class_device *cdev, char *buf)
 	if( cfg->inv )
 		return snprintf(buf,PAGE_SIZE,"inversion");
 	else
-		return snprintf(buf,PAGE_SIZE,"normal");    
+		return snprintf(buf,PAGE_SIZE,"normal");
 }
 
 static ssize_t
-store_inv( struct class_device *cdev,const char *buf, size_t size ) 
+store_inv( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
-	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
+	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);
 
 	if( !size )
 		return 0;
-    
+
 	if(buf[0] == '1' )
 		cfg->inv=1;
 	else if( buf[0] == '0' )
 		cfg->inv=0;
 	mr16g_hdlc_setup(nl);
-	return size;	
+	return size;
 }
 
 static ssize_t
-show_rburst(struct class_device *cdev, char *buf) 
+show_rburst(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
-	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
+	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);
 
 	if( cfg->rburst )
 		return snprintf(buf,PAGE_SIZE,"rbon");
 	else
-		return snprintf(buf,PAGE_SIZE,"rboff");    
+		return snprintf(buf,PAGE_SIZE,"rboff");
 }
 
 static ssize_t
-store_rburst( struct class_device *cdev,const char *buf, size_t size ) 
+store_rburst( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
-	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
+	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);
 
 	if( !size )	return 0;
 
@@ -1380,23 +1380,23 @@ store_rburst( struct class_device *cdev,const char *buf, size_t size )
 	else if( buf[0] == '0' )
 		cfg->rburst=0;
 	mr16g_hdlc_setup(nl);
-	return size;	
+	return size;
 }
 
 static ssize_t
-show_wburst(struct class_device *cdev, char *buf) 
+show_wburst(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
-	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);	
+	struct hdlc_config *cfg=mr16g_hdlcfg(ndev);
 
 	if( cfg->wburst )
 		return snprintf(buf,PAGE_SIZE,"wbon");
 	else
-		return snprintf(buf,PAGE_SIZE,"wboff");    
+		return snprintf(buf,PAGE_SIZE,"wboff");
 }
 
 static ssize_t
-store_wburst( struct class_device *cdev,const char *buf, size_t size ) 
+store_wburst( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
@@ -1409,7 +1409,7 @@ store_wburst( struct class_device *cdev,const char *buf, size_t size )
 	else if( buf[0] == '0' )
 		cfg->wburst=0;
 	mr16g_hdlc_setup(nl);
-	return size;	
+	return size;
 }
 
 //---------- ds2155-----------------//
@@ -1423,7 +1423,7 @@ str2slotmap(char *str,size_t size,int *err)
 	u32 fbit,lbit,ts=0;
 	int i;
 
-	PDEBUG(DSYSFS,"start");	
+	PDEBUG(DSYSFS,"start");
 	for (;;) {
 		fbit=lbit=simple_strtoul(s, &e, 10);
 		if (s == e)
@@ -1444,7 +1444,7 @@ str2slotmap(char *str,size_t size,int *err)
 		s=e;
 	}
 	PDEBUG(DSYSFS,"str=%08x, s=%08x,size=%d",(u32)str,(u32)s,size);
-	*err=0;	
+	*err=0;
 	if( s != str+(size-1) && s != str)
 		*err=1;
     return ts;
@@ -1493,52 +1493,52 @@ slot_cnt(u32 smap)
 
 
 static ssize_t
-show_slotmap(struct class_device *cdev, char *buf) 
+show_slotmap(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 	if( cfg->framed )
 		return slotmap2str(cfg->slotmap,cfg,buf);
-	// in unframed mode multiplexing is overlap hdlc	
-	if( nl->hdlc_regs->MXCR & MXEN ) 
+	// in unframed mode multiplexing is overlap hdlc
+	if( nl->hdlc_regs->MXCR & MXEN )
 		return slotmap2str(0,cfg,buf);
 	return slotmap2str(0xffffffff,cfg,buf);
 }
 
 
 static ssize_t
-store_slotmap( struct class_device *cdev,const char *buf, size_t size ) 
+store_slotmap( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 	u32 ts=0;
 	int err;
 	char *str;
-	
 
-	PDEBUG(DSYSFS,"start");	
+
+	PDEBUG(DSYSFS,"start");
 
 	if( !size )
 		return size;
 
 	str=(char *)(buf+(size-1));
 	*str=0;
-	str=(char *)buf;	
-	PDEBUG(DSYSFS,"call str2slotmap");	
+	str=(char *)buf;
+	PDEBUG(DSYSFS,"call str2slotmap");
 	ts=str2slotmap(str,size,&err);
-	PDEBUG(DSYSFS,"str2slotmap completed");		
+	PDEBUG(DSYSFS,"str2slotmap completed");
 	if( err ){
 		printk(KERN_NOTICE MR16G_DRVNAME": error in timeslot string (%s)\n",buf);
 		return size;
 	}
 	cfg->slotmap=ts;
-	mr16g_E1_setup(ndev);		
+	mr16g_E1_setup(ndev);
 	return size;
 }
 
 static ssize_t
-show_map_ts16(struct class_device *cdev, char *buf) 
+show_map_ts16(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
@@ -1546,14 +1546,14 @@ show_map_ts16(struct class_device *cdev, char *buf)
 	if( cfg->ts16 )
 		return snprintf(buf,PAGE_SIZE,"mapped");
 	else
-		return snprintf(buf,PAGE_SIZE,"not mapped"); 
+		return snprintf(buf,PAGE_SIZE,"not mapped");
 }
 
 static ssize_t
-store_map_ts16( struct class_device *cdev,const char *buf, size_t size ) 
+store_map_ts16( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
-	struct ds2155_config *cfg=mr16g_e1cfg(ndev);	
+	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 
 	if( size > 0 ){
 		if( buf[0] == '0' ){
@@ -1566,14 +1566,14 @@ store_map_ts16( struct class_device *cdev,const char *buf, size_t size )
 		}else
 			return size;
 		mr16g_E1_setup(ndev);
-	}    
+	}
 	return size;
 }
 
 
-// framed/unframed mode 
+// framed/unframed mode
 static ssize_t
-show_framed(struct class_device *cdev, char *buf) 
+show_framed(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
@@ -1581,11 +1581,11 @@ show_framed(struct class_device *cdev, char *buf)
 	if( cfg->framed )
 		return snprintf(buf,PAGE_SIZE,"framed");
 	else
-		return snprintf(buf,PAGE_SIZE,"unframed"); 
+		return snprintf(buf,PAGE_SIZE,"unframed");
 }
 
 static ssize_t
-store_framed( struct class_device *cdev,const char *buf, size_t size ) 
+store_framed( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
@@ -1595,16 +1595,16 @@ store_framed( struct class_device *cdev,const char *buf, size_t size )
 			cfg->framed=0;
 		else if( buf[0]=='1' )
 			cfg->framed=1;
-		else 
+		else
 			return size;
 		mr16g_E1_setup(ndev);
-	}    
+	}
 	return size;
 }
 
-// internal/external clock 
+// internal/external clock
 static ssize_t
-show_clck(struct class_device *cdev, char *buf) 
+show_clck(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
@@ -1612,11 +1612,11 @@ show_clck(struct class_device *cdev, char *buf)
 	if( cfg->int_clck )
 		return snprintf(buf,PAGE_SIZE,"internal");
 	else
-		return snprintf(buf,PAGE_SIZE,"external"); 
+		return snprintf(buf,PAGE_SIZE,"external");
 }
 
 static ssize_t
-store_clck( struct class_device *cdev,const char *buf, size_t size ) 
+store_clck( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
@@ -1629,13 +1629,13 @@ store_clck( struct class_device *cdev,const char *buf, size_t size )
 		else
 			return size;
 		mr16g_E1_setup(ndev);
-	}    
+	}
 	return size;
 }
 
 // Long haul mode
 static ssize_t
-show_lhaul(struct class_device *cdev, char *buf) 
+show_lhaul(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
@@ -1643,12 +1643,12 @@ show_lhaul(struct class_device *cdev, char *buf)
 	if( cfg->long_haul )
 		return snprintf(buf,PAGE_SIZE,"on");
 	else
-		return snprintf(buf,PAGE_SIZE,"off"); 
+		return snprintf(buf,PAGE_SIZE,"off");
 
 }
 
 static ssize_t
-store_lhaul( struct class_device *cdev,const char *buf, size_t size ) 
+store_lhaul( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
@@ -1661,14 +1661,14 @@ store_lhaul( struct class_device *cdev,const char *buf, size_t size )
 		else
 			return size;
 		mr16g_E1_setup(ndev);
-	}    
+	}
 	return size;
 }
 
 
 // HDB3 mode
 static ssize_t
-show_hdb3(struct class_device *cdev, char *buf) 
+show_hdb3(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
@@ -1676,12 +1676,12 @@ show_hdb3(struct class_device *cdev, char *buf)
 	if( cfg->hdb3 )
 		return snprintf(buf,PAGE_SIZE,"on");
 	else
-		return snprintf(buf,PAGE_SIZE,"off"); 
+		return snprintf(buf,PAGE_SIZE,"off");
 
 }
 
 static ssize_t
-store_hdb3( struct class_device *cdev,const char *buf, size_t size ) 
+store_hdb3( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
@@ -1694,14 +1694,14 @@ store_hdb3( struct class_device *cdev,const char *buf, size_t size )
 		else
 			return size;
 		mr16g_E1_setup(ndev);
-	}    
+	}
 	return size;
 }
 
 // CRC4 mode
 
 static ssize_t
-show_crc4(struct class_device *cdev, char *buf) 
+show_crc4(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
@@ -1709,11 +1709,11 @@ show_crc4(struct class_device *cdev, char *buf)
 	if( cfg->crc4 )
 		return snprintf(buf,PAGE_SIZE,"on");
 	else
-		return snprintf(buf,PAGE_SIZE,"off"); 
+		return snprintf(buf,PAGE_SIZE,"off");
 
 }
 static ssize_t
-store_crc4( struct class_device *cdev,const char *buf, size_t size ) 
+store_crc4( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
@@ -1726,14 +1726,14 @@ store_crc4( struct class_device *cdev,const char *buf, size_t size )
 		else
 			return size;
 		mr16g_E1_setup(ndev);
-	}    
+	}
 	return size;
 }
 
 // CAS mode
 
 static ssize_t
-show_cas(struct class_device *cdev, char *buf) 
+show_cas(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
@@ -1741,11 +1741,11 @@ show_cas(struct class_device *cdev, char *buf)
 	if( cfg->cas )
 		return snprintf(buf,PAGE_SIZE,"on");
 	else
-		return snprintf(buf,PAGE_SIZE,"off"); 
+		return snprintf(buf,PAGE_SIZE,"off");
 }
 
 static ssize_t
-store_cas( struct class_device *cdev,const char *buf, size_t size ) 
+store_cas( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
@@ -1758,7 +1758,7 @@ store_cas( struct class_device *cdev,const char *buf, size_t size )
 		else
 			return size;
 		mr16g_E1_setup(ndev);
-	}    
+	}
 
 	return size;
 }
@@ -1768,7 +1768,7 @@ store_cas( struct class_device *cdev,const char *buf, size_t size )
 
 // Remote loopback
 static ssize_t
-show_rloopback(struct class_device *cdev, char *buf) 
+show_rloopback(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
@@ -1777,7 +1777,7 @@ show_rloopback(struct class_device *cdev, char *buf)
 }
 
 static ssize_t
-store_rloopback( struct class_device *cdev,const char *buf, size_t size ) 
+store_rloopback( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
@@ -1805,7 +1805,7 @@ store_rloopback( struct class_device *cdev,const char *buf, size_t size )
 
 // Local loopback
 static ssize_t
-show_lloopback(struct class_device *cdev, char *buf) 
+show_lloopback(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
@@ -1814,7 +1814,7 @@ show_lloopback(struct class_device *cdev, char *buf)
 }
 
 static ssize_t
-store_lloopback( struct class_device *cdev,const char *buf, size_t size ) 
+store_lloopback( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
@@ -1848,7 +1848,7 @@ store_lloopback( struct class_device *cdev,const char *buf, size_t size )
 
 // Forcing link to indicate alarm when it depended on other interfaces
 static ssize_t
-show_flinkdown(struct class_device *cdev, char *buf) 
+show_flinkdown(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
@@ -1857,7 +1857,7 @@ show_flinkdown(struct class_device *cdev, char *buf)
 }
 
 static ssize_t
-store_flinkdown( struct class_device *cdev,const char *buf, size_t size ) 
+store_flinkdown( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
@@ -1882,8 +1882,8 @@ store_flinkdown( struct class_device *cdev,const char *buf, size_t size )
 }
 
 // DEBUG
-static ssize_t 
-show_hdlcregs(struct class_device *cdev, char *buf) 
+static ssize_t
+show_hdlcregs(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
@@ -1908,7 +1908,7 @@ show_hdlcregs(struct class_device *cdev, char *buf)
 
 static u32 win_start=0,win_count=0;
 static ssize_t
-show_winread(struct class_device *cdev, char *buf) 
+show_winread(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
@@ -1924,18 +1924,18 @@ show_winread(struct class_device *cdev, char *buf)
 }
 
 static ssize_t
-store_winread( struct class_device *cdev,const char *buf, size_t size ) 
+store_winread( struct class_device *cdev,const char *buf, size_t size )
 {
 	//struct net_device *ndev = to_net_dev(cdev);
 	char *endp;
 	if( !size ) return 0;
 	win_start = simple_strtoul(buf,&endp,16);
-	PDEBUG(DSYSDBG,"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);	
+	PDEBUG(DSYSDBG,"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);
 	while( *endp == ' '){
 		endp++;
 	}
 	win_count = simple_strtoul(endp,&endp,16);
-	PDEBUG(DSYSDBG,"buf=%p, endp=%p",buf,endp);		
+	PDEBUG(DSYSDBG,"buf=%p, endp=%p",buf,endp);
 	PDEBUG(DSYSDBG,"Set start=%d,count=%d",win_start,win_count);
 	if( !win_count )
 		win_count = 1;
@@ -1947,19 +1947,19 @@ store_winread( struct class_device *cdev,const char *buf, size_t size )
 			win_count = 1;
 		}
 	}
-	PDEBUG(DSYSDBG,"Set start=%d,count=%d",win_start,win_count);	
+	PDEBUG(DSYSDBG,"Set start=%d,count=%d",win_start,win_count);
 	return size;
 }
 
 static u32 win_written = 0;
 static ssize_t
-show_winwrite(struct class_device *cdev, char *buf) 
+show_winwrite(struct class_device *cdev, char *buf)
 {
 	return sprintf(buf,"Byte %x is written",win_written);
 }
 
 static ssize_t
-store_winwrite( struct class_device *cdev,const char *buf, size_t size ) 
+store_winwrite( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
@@ -1969,12 +1969,12 @@ store_winwrite( struct class_device *cdev,const char *buf, size_t size )
 	char *endp;
 	if( !size ) return 0;
 	start = simple_strtoul(buf,&endp,16);
-	PDEBUG(DSYSDBG,"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);	
+	PDEBUG(DSYSDBG,"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);
 	while( *endp == ' '){
 		endp++;
 	}
 	val = simple_strtoul(endp,&endp,16);
-	PDEBUG(DSYSDBG,"buf=%p, endp=%p",buf,endp);		
+	PDEBUG(DSYSDBG,"buf=%p, endp=%p",buf,endp);
 	PDEBUG(DSYSDBG,"Set start=%d,val=%d",start,val);
 	if( start > MR16G_OIMEM_SIZE ){
 		start = 0;
@@ -2005,13 +2005,13 @@ show_mx_slotmap(struct class_device *cdev, char *buf)
 static ssize_t
 store_mx_slotmap(struct class_device *cdev,const char *buf,size_t size)
 {
-	struct net_device *ndev = to_net_dev(cdev);    
+	struct net_device *ndev = to_net_dev(cdev);
 	struct ds2155_config *cfg=mr16g_e1cfg(ndev);
 	u32 ts=0;
 	int err;
 	char *str;
 
-	PDEBUG(DSYSFS,"start, buf=%s",buf);	
+	PDEBUG(DSYSFS,"start, buf=%s",buf);
 
 	if( !size )
 		return size;
@@ -2021,35 +2021,35 @@ store_mx_slotmap(struct class_device *cdev,const char *buf,size_t size)
 	str=(char *)buf;
 	PDEBUG(DSYSFS,"call str2slotmap for (%s)",str);
 	ts=str2slotmap(str,size,&err);
-	PDEBUG(DSYSFS,"str2slotmap completed, ts=%08x",ts);	
+	PDEBUG(DSYSFS,"str2slotmap completed, ts=%08x",ts);
 	if( err ){
 		printk(KERN_NOTICE MR16G_DRVNAME": error in timeslot string (%s)\n",buf);
 		return size;
 	}
-	
-	cfg->mxslotmap = ts;	
+
+	cfg->mxslotmap = ts;
 
 	PDEBUG(DSYSFS,"reset all");
 	mr16g_E1_setup(ndev);
-	
+
 	return size;
 }
 
 
 // TFS rgister
 static ssize_t
-show_mx_txstart(struct class_device *cdev, char *buf) 
+show_mx_txstart(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
-	
+
 	return snprintf(buf,PAGE_SIZE,"%d",nl->hdlc_regs->TFS);
 }
 
 static ssize_t
-store_mx_txstart( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_txstart( struct class_device *cdev,const char *buf, size_t size )
 {
-	struct net_device *ndev = to_net_dev(cdev);    
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	char *endp;
 	u32 tmp;
@@ -2058,27 +2058,27 @@ store_mx_txstart( struct class_device *cdev,const char *buf, size_t size )
 	if( !size)
 		return size;
 	tmp=simple_strtoul( buf,&endp,0);
-	
+
 	if( tmp>255 || (buf == endp))
-		return size;		
+		return size;
 	nl->hdlc_regs->TFS = tmp;
 	return size;
 }
 
 // RFS rgister
 static ssize_t
-show_mx_rxstart(struct class_device *cdev, char *buf) 
+show_mx_rxstart(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
-	
+
 	return snprintf(buf,PAGE_SIZE,"%d",nl->hdlc_regs->RFS);
 }
 
 static ssize_t
-store_mx_rxstart( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_rxstart( struct class_device *cdev,const char *buf, size_t size )
 {
-	struct net_device *ndev = to_net_dev(cdev);    
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	char *endp;
 	u32 tmp;
@@ -2095,18 +2095,18 @@ store_mx_rxstart( struct class_device *cdev,const char *buf, size_t size )
 
 // TLINE rgister
 static ssize_t
-show_mx_tline(struct class_device *cdev, char *buf) 
+show_mx_tline(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
-	
+
 	return snprintf(buf,PAGE_SIZE,"%d",nl->hdlc_regs->TLINE);
 }
 
 static ssize_t
-store_mx_tline( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_tline( struct class_device *cdev,const char *buf, size_t size )
 {
-	struct net_device *ndev = to_net_dev(cdev);    
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	char *endp;
 	u16 tmp;
@@ -2123,7 +2123,7 @@ store_mx_tline( struct class_device *cdev,const char *buf, size_t size )
 
 // RLINE rgister
 static ssize_t
-show_mx_rline(struct class_device *cdev, char *buf) 
+show_mx_rline(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
@@ -2132,9 +2132,9 @@ show_mx_rline(struct class_device *cdev, char *buf)
 }
 
 static ssize_t
-store_mx_rline( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_rline( struct class_device *cdev,const char *buf, size_t size )
 {
-	struct net_device *ndev = to_net_dev(cdev);    
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 	char *endp;
 	u32 tmp;
@@ -2153,7 +2153,7 @@ store_mx_rline( struct class_device *cdev,const char *buf, size_t size )
 
 // MX enable
 static ssize_t
-show_mx_enable(struct class_device *cdev, char *buf) 
+show_mx_enable(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
@@ -2162,9 +2162,9 @@ show_mx_enable(struct class_device *cdev, char *buf)
 }
 
 static ssize_t
-store_mx_enable( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_enable( struct class_device *cdev,const char *buf, size_t size )
 {
-	struct net_device *ndev = to_net_dev(cdev);    
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 
 	// check parameters
@@ -2185,18 +2185,18 @@ store_mx_enable( struct class_device *cdev,const char *buf, size_t size )
 
 // CLKM
 static ssize_t
-show_mx_clkm(struct class_device *cdev, char *buf) 
+show_mx_clkm(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
-	
+
 	return snprintf(buf,PAGE_SIZE,"%s",(nl->hdlc_regs->MXCR & CLKM) ? "1" : "0");
 }
 
 static ssize_t
-store_mx_clkm( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_clkm( struct class_device *cdev,const char *buf, size_t size )
 {
-	struct net_device *ndev = to_net_dev(cdev);    
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 
 	// check parameters
@@ -2218,7 +2218,7 @@ store_mx_clkm( struct class_device *cdev,const char *buf, size_t size )
 
 // CLKAB
 static ssize_t
-show_mx_clkab(struct class_device *cdev, char *buf) 
+show_mx_clkab(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
@@ -2227,9 +2227,9 @@ show_mx_clkab(struct class_device *cdev, char *buf)
 }
 
 static ssize_t
-store_mx_clkab( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_clkab( struct class_device *cdev,const char *buf, size_t size )
 {
-	struct net_device *ndev = to_net_dev(cdev);    
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 
 	// check parameters
@@ -2250,18 +2250,18 @@ store_mx_clkab( struct class_device *cdev,const char *buf, size_t size )
 
 // CLKR
 static ssize_t
-show_mx_clkr(struct class_device *cdev, char *buf) 
+show_mx_clkr(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
-	
+
 	return snprintf(buf,PAGE_SIZE,"%s",(nl->hdlc_regs->MXCR & CLKR) ? "1" : "0");
 }
 
 static ssize_t
-store_mx_clkr( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_clkr( struct class_device *cdev,const char *buf, size_t size )
 {
-	struct net_device *ndev = to_net_dev(cdev);    
+	struct net_device *ndev = to_net_dev(cdev);
 	struct net_local *nl=mr16g_priv(ndev);
 
 	// check parameters

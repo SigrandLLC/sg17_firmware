@@ -1,5 +1,5 @@
 #!/bin/sh
-# Sigrand DSLAM debug tool 
+# Sigrand DSLAM debug tool
 # for Linux kernel v 2.6 drivers
 #
 #	Written 2009 by Artem Y. Polyakov
@@ -31,7 +31,7 @@ fi
 addr=$1
 if [ $# -eq 2 ]; then
 	val=$2
-else 
+else
 	val=""
 fi
 
@@ -40,7 +40,7 @@ cdir=`pwd`
 if [ "$addr" = "status" ]; then
 	cfg="$CFG_PATH/status"
 	if [ ! -f "$cfg" ]; then
-		echo "$0: No such file $cfg"		
+		echo "$0: No such file $cfg"
 		exit
 	fi
 	cat $cfg
@@ -50,7 +50,7 @@ fi
 if [ -z "$val" ]; then
 	cfg="$CFG_PATH/reg_read"
 	if [ ! -f "$cfg" ]; then
-		echo "$0: No such file $cfg"		
+		echo "$0: No such file $cfg"
 		exit
 	fi
 	echo "$addr" > $cfg
@@ -71,4 +71,4 @@ else
 	echo "$addr" > $cfg
 	tmp=`cat $cfg`
 #	echo "New Register($addr)=0x$tmp"
-fi	
+fi

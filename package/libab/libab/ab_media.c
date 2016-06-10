@@ -14,9 +14,9 @@
  *	Set coder type fo ALAW
  *	Set Jitter Buffer fixed
  *	Set WLEC type NE with NLP off
- */ 
-int 
-ab_chan_fax_pass_through_start( ab_chan_t * const chan ) 
+ */
+int
+ab_chan_fax_pass_through_start( ab_chan_t * const chan )
 {/*{{{*/
 	IFX_TAPI_JB_CFG_t jbCfgData;
 	IFX_TAPI_WLEC_CFG_t lecConf;
@@ -70,8 +70,8 @@ ab_chan_fax_pass_through_start( ab_chan_t * const chan )
  * \retval	-1 if fail.
  * \remark
  * 	from \c fcod using just \c type and \c sdp_selected_payload_type.
- */ 
-int 
+ */
+int
 ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 		codec_t const * const fcod, rtp_session_prms_t const * const rtpp)
 {/*{{{*/
@@ -119,26 +119,26 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 	/* PTypes table and [enc,dec]Cfg, correct frame len and set bitpack{{{*/
 	if(cod->type == cod_type_ALAW){
 		encCfg.nEncType = IFX_TAPI_COD_TYPE_ALAW;
-		rtpPTConf.nPTup   [encCfg.nEncType] = 
-		rtpPTConf.nPTdown [encCfg.nEncType] = 
+		rtpPTConf.nPTup   [encCfg.nEncType] =
+		rtpPTConf.nPTdown [encCfg.nEncType] =
 				cod->sdp_selected_payload;
 	} else if(cod->type == cod_type_G729){
 		encCfg.nEncType = IFX_TAPI_COD_TYPE_G729;
-		rtpPTConf.nPTup   [encCfg.nEncType] = 
-		rtpPTConf.nPTdown [encCfg.nEncType] = 
+		rtpPTConf.nPTup   [encCfg.nEncType] =
+		rtpPTConf.nPTdown [encCfg.nEncType] =
 				cod->sdp_selected_payload;
 	} else if(cod->type == cod_type_G729E){
 		encCfg.nEncType = IFX_TAPI_COD_TYPE_G729_E;
-		rtpPTConf.nPTup   [encCfg.nEncType] = 
-		rtpPTConf.nPTdown [encCfg.nEncType] = 
+		rtpPTConf.nPTup   [encCfg.nEncType] =
+		rtpPTConf.nPTdown [encCfg.nEncType] =
 				cod->sdp_selected_payload;
 	} else if(cod->type == cod_type_ILBC_133){
 		encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_30;
 		encCfg.nEncType = IFX_TAPI_COD_TYPE_ILBC_133;
-		rtpPTConf.nPTup   [IFX_TAPI_COD_TYPE_ILBC_152] = 
-		rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_ILBC_152] = 
-		rtpPTConf.nPTup   [IFX_TAPI_COD_TYPE_ILBC_133] = 
-		rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_ILBC_133] = 
+		rtpPTConf.nPTup   [IFX_TAPI_COD_TYPE_ILBC_152] =
+		rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_ILBC_152] =
+		rtpPTConf.nPTup   [IFX_TAPI_COD_TYPE_ILBC_133] =
+		rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_ILBC_133] =
 				cod->sdp_selected_payload;
 	} else if(cod->type == cod_type_G723){
 		if((encCfg.nFrameLen != IFX_TAPI_COD_LENGTH_30) &&
@@ -147,33 +147,33 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 			encCfg.nFrameLen = IFX_TAPI_COD_LENGTH_30;
 		}
 		encCfg.nEncType = IFX_TAPI_COD_TYPE_G723_53;
-		rtpPTConf.nPTup   [IFX_TAPI_COD_TYPE_G723_63] = 
-		rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_G723_63] = 
-		rtpPTConf.nPTup   [IFX_TAPI_COD_TYPE_G723_53] = 
-		rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_G723_53] = 
+		rtpPTConf.nPTup   [IFX_TAPI_COD_TYPE_G723_63] =
+		rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_G723_63] =
+		rtpPTConf.nPTup   [IFX_TAPI_COD_TYPE_G723_53] =
+		rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_G723_53] =
 				cod->sdp_selected_payload;
 	} else if(cod->type == cod_type_G726_16){
 		encCfg.nEncType = IFX_TAPI_COD_TYPE_G726_16;
-		rtpPTConf.nPTup   [IFX_TAPI_COD_TYPE_G726_16] = 
-		rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_G726_16] = 
+		rtpPTConf.nPTup   [IFX_TAPI_COD_TYPE_G726_16] =
+		rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_G726_16] =
 				cod->sdp_selected_payload;
 		check_bitpack = 1;
 	} else if(cod->type == cod_type_G726_24){
 		encCfg.nEncType = IFX_TAPI_COD_TYPE_G726_24;
-		rtpPTConf.nPTup   [IFX_TAPI_COD_TYPE_G726_24] = 
-		rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_G726_24] = 
+		rtpPTConf.nPTup   [IFX_TAPI_COD_TYPE_G726_24] =
+		rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_G726_24] =
 				cod->sdp_selected_payload;
 		check_bitpack = 1;
 	} else if(cod->type == cod_type_G726_32){
 		encCfg.nEncType = IFX_TAPI_COD_TYPE_G726_32;
-		rtpPTConf.nPTup   [IFX_TAPI_COD_TYPE_G726_32] = 
-		rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_G726_32] = 
+		rtpPTConf.nPTup   [IFX_TAPI_COD_TYPE_G726_32] =
+		rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_G726_32] =
 				cod->sdp_selected_payload;
 		check_bitpack = 1;
 	} else if(cod->type == cod_type_G726_40){
 		encCfg.nEncType = IFX_TAPI_COD_TYPE_G726_40;
-		rtpPTConf.nPTup   [IFX_TAPI_COD_TYPE_G726_40] = 
-		rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_G726_40] = 
+		rtpPTConf.nPTup   [IFX_TAPI_COD_TYPE_G726_40] =
+		rtpPTConf.nPTdown [IFX_TAPI_COD_TYPE_G726_40] =
 				cod->sdp_selected_payload;
 		check_bitpack = 1;
 	} else if(cod->type == cod_type_NONE){
@@ -184,21 +184,21 @@ ab_chan_media_rtp_tune( ab_chan_t * const chan, codec_t const * const cod,
 
 	if(check_bitpack){
 		if(cod->bpack == bitpack_RTP){
-			encCfg.AAL2BitPack = 
+			encCfg.AAL2BitPack =
 			decCfg.AAL2BitPack = IFX_TAPI_COD_RTP_BITPACK;
 		} else {
-			encCfg.AAL2BitPack = 
+			encCfg.AAL2BitPack =
 			decCfg.AAL2BitPack = IFX_TAPI_COD_AAL2_BITPACK;
 		}
 	} else {
-		encCfg.AAL2BitPack = 
+		encCfg.AAL2BitPack =
 		decCfg.AAL2BitPack = IFX_TAPI_COD_RTP_BITPACK;
 	}
 	/*}}}*/
 	/* FAX {{{*/
 	fcodt = IFX_TAPI_COD_TYPE_ALAW;
 	/* tuning fax transmission codec */
-	rtpPTConf.nPTup [fcodt] = rtpPTConf.nPTdown [fcodt] = 
+	rtpPTConf.nPTup [fcodt] = rtpPTConf.nPTdown [fcodt] =
 			fcod->sdp_selected_payload;
 	/*}}}*/
 	rtpConf.nSeqNr = 0;
@@ -267,7 +267,7 @@ fprintf(stderr," hpf off\n");
 #endif/*}}}*/
 	/*********** ioctl seq {{{*/
 
-	/* Set the coder payload table */ 
+	/* Set the coder payload table */
 	err = 0;
 	err = ioctl(chan->rtp_fd, IFX_TAPI_PKT_RTP_PT_CFG_SET, &rtpPTConf);
 	if(err){
@@ -275,7 +275,7 @@ fprintf(stderr," hpf off\n");
 		ab_err_set(AB_ERR_UNKNOWN, "media rtp PT tune ioctl error");
 	}
 
-	/* Set the rtp configuration (OOB, pkt params, etc.) */ 
+	/* Set the rtp configuration (OOB, pkt params, etc.) */
 	err = 0;
 	err = ioctl(chan->rtp_fd, IFX_TAPI_PKT_RTP_CFG_SET, &rtpConf);
 	if(err){
@@ -283,21 +283,21 @@ fprintf(stderr," hpf off\n");
 		ab_err_set(AB_ERR_UNKNOWN, "media rtp tune ioctl error");
 	}
 
-	/* Set the encoder */ 
+	/* Set the encoder */
 	err = 0;
 	err = ioctl(chan->rtp_fd, IFX_TAPI_ENC_CFG_SET, &encCfg);
 	if(err){
 		ab_err_set(AB_ERR_UNKNOWN, "encoder set ioctl error");
 		err_summary++;
 	}
-	/* Set the decoder */ 
+	/* Set the decoder */
 	err = 0;
 	err = ioctl(chan->rtp_fd, IFX_TAPI_DEC_CFG_SET, &decCfg);
 	if(err){
 		ab_err_set(AB_ERR_UNKNOWN, "decoder set ioctl error");
 		err_summary++;
 	}
-	
+
 	/* Set the VAD configuration */
 	err = 0;
 	err = ioctl(chan->rtp_fd, IFX_TAPI_ENC_VAD_CFG_SET, vad_param);
@@ -336,8 +336,8 @@ __exit:
  * \param[in] jbp jitter buffer parameters to set on given channel.
  * \retval	0 in success.
  * \retval	-1 if fail.
- */ 
-int 
+ */
+int
 ab_chan_media_jb_tune( ab_chan_t * const chan, jb_prms_t const * const jbp)
 {/*{{{*/
 	IFX_TAPI_JB_CFG_t jbCfg;
@@ -381,8 +381,8 @@ ab_chan_media_jb_tune( ab_chan_t * const chan, jb_prms_t const * const jbp)
  * \param[in] wp wlec parameters.
  * \retval	0 in success.
  * \retval	-1 if fail.
- */ 
-int 
+ */
+int
 ab_chan_media_wlec_tune( ab_chan_t * const chan, wlec_t const * const wp )
 {/*{{{*/
 	IFX_TAPI_WLEC_CFG_t lecConf;
@@ -449,7 +449,7 @@ ab_chan_media_wlec_tune( ab_chan_t * const chan, wlec_t const * const wp )
 }/*}}}*/
 
 void
-jb_stat_avg_count_and_wirte(ab_chan_t * const chan, 
+jb_stat_avg_count_and_wirte(ab_chan_t * const chan,
 		IFX_TAPI_JB_STATISTICS_t * const jb_stat)
 {/*{{{*/
 	/* np1 :: n+1 */
@@ -530,12 +530,12 @@ jb_stat_write(ab_chan_t * const chan, IFX_TAPI_JB_STATISTICS_t * const jb_stat)
 	Switch media on / off on the given channel
 \param chan - channel to operate on it
 \param switch_up - on (1) or off (0) encoding and decoding
-\return 
+\return
 	0 in success case and other value otherwise
 \remark
 	returns the ioctl error value and writes error message
 */
-int 
+int
 ab_chan_media_switch( ab_chan_t * const chan, unsigned char const switch_up )
 {/*{{{*/
 	int err1= 0;
@@ -585,12 +585,12 @@ __exit_success:
 	Hold on / off encoding on the given channel
 \param[in] chan - channel to operate on it
 \param[in] hold - hold (1) or unhold (0) encoding
-\return 
+\return
 	0 in success case and other value otherwise
 \remark
 	returns the ioctl error value and writes error message
 */
-int 
+int
 ab_chan_media_enc_hold( ab_chan_t * const chan, unsigned char const hold )
 {/*{{{*/
 	int err = 0;
@@ -610,13 +610,13 @@ ab_chan_media_enc_hold( ab_chan_t * const chan, unsigned char const hold )
 \param[in] chan - channel to operate on it
 \param[in] enc_gain - encoding gain = [-24;24]
 \param[in] dec_gain - decoding gain = [-24;24]
-\return 
+\return
 	0 in success case and other value otherwise
 \remark
 	returns the ioctl error value and writes error message
 */
-int 
-ab_chan_media_volume( ab_chan_t * const chan, 
+int
+ab_chan_media_volume( ab_chan_t * const chan,
 		int const enc_gain, int const dec_gain )
 {/*{{{*/
 	int err = 0;
@@ -635,10 +635,10 @@ ab_chan_media_volume( ab_chan_t * const chan,
 /**
 	Refresh Jitter Buffer statistics in chan->statistics if it is necessary
 \param[in,out] chan - channel to operate on it
-\return 
+\return
 	0 in success case and other value otherwise
 */
-int 
+int
 ab_chan_media_jb_refresh( ab_chan_t * const chan )
 {/*{{{*/
 	int err;
@@ -665,10 +665,10 @@ __exit_fail:
 /**
 	Refresh RTCP statistics in chan->statistics if it is necessary
 \param[in,out] chan - channel to operate on it
-\return 
+\return
 	0 in success case and other value otherwise
 */
-int 
+int
 ab_chan_media_rtcp_refresh( ab_chan_t * const chan )
 {/*{{{*/
 	int err;
@@ -696,7 +696,7 @@ ab_chan_media_rtcp_refresh( ab_chan_t * const chan )
 	chan->statistics.rtcp_stat.lost = ((unsigned long)rtcp_stat.lost) & 0x00FFFFFF;
 	chan->statistics.rtcp_stat.last_seq = rtcp_stat.last_seq;
 	chan->statistics.rtcp_stat.jitter = rtcp_stat.jitter;
-	
+
 __exit_success:
 	return 0;
 __exit_fail:

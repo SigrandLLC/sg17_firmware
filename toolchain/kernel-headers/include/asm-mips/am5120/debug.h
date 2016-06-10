@@ -1,6 +1,6 @@
 #define PDEBUG(debug_lev,fmt,args...)
 
-#ifdef ADM5120_DEBUG 
+#ifdef ADM5120_DEBUG
 #	define DEBUG_1 1
 #	define DEBUG_2 2
 #	define DEBUG_3 3

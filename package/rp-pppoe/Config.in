@@ -13,7 +13,7 @@ config BR2_PACKAGE_PPPOE_CLIENT
 	select BR2_PACKAGE_PPP
 	help
 	  PPPoE (PPP over Ethernet) client
-	  
+
 	  http://roaringpenguin.com/penguin/open_source_rp-pppoe.php
 
 config BR2_PACKAGE_PPPOE_RELAY
@@ -23,7 +23,7 @@ config BR2_PACKAGE_PPPOE_RELAY
 	select BR2_COMPILE_RP_PPPOE
 	help
 	  PPPoE (PPP over Ethernet) relay
-	  
+
 	  http://roaringpenguin.com/penguin/open_source_rp-pppoe.php
 
 config BR2_PACKAGE_PPPOE_SERVER
@@ -34,7 +34,7 @@ config BR2_PACKAGE_PPPOE_SERVER
 	select BR2_PACKAGE_PPP
 	help
 	  PPPoE (PPP over Ethernet) server
-	  
+
 	  http://roaringpenguin.com/penguin/open_source_rp-pppoe.php
 
 config BR2_PACKAGE_PPPOE_SNIFF
@@ -44,7 +44,7 @@ config BR2_PACKAGE_PPPOE_SNIFF
 	select BR2_COMPILE_RP_PPPOE
 	help
 	  PPPoE (PPP over Ethernet) frame sniffer
-	  
+
 	  http://roaringpenguin.com/penguin/open_source_rp-pppoe.php
 
 #endmenu

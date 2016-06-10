@@ -1,7 +1,7 @@
 /*
  * jffs2root.c
  *
- * Copyright (C) 2005 Mike Baker 
+ * Copyright (C) 2005 Mike Baker
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 	unsigned long len;
 	struct trx_header *ptr;
 	char *buf;
-	
+
 	if (((fd = open(FILENAME, O_RDWR))	< 0)
 			|| ((len = lseek(fd, 0, SEEK_END)) < 0)
 			|| ((ptr = (struct trx_header *) mmap(0, len, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0)) == (void *) (-1))

@@ -53,26 +53,26 @@ static int board_iterator (int (*func)(ab_board_params_t const * const bp));
 static int create_vinetic_nodes (void);
 static int create_vin_board (ab_board_params_t const * const bp);
 static int board_init (ab_board_params_t const * const bp);
-static int dev_init(int const dev_idx, ab_dev_params_t const * const dp, 
+static int dev_init(int const dev_idx, ab_dev_params_t const * const dp,
 		long const nIrqNum);
-static int basicdev_init( int const dev_idx, ab_dev_params_t const * const dp, 
+static int basicdev_init( int const dev_idx, ab_dev_params_t const * const dp,
 		long const nIrqNum);
-static int chan_init (int const dev_idx, int const chan_idx, 
+static int chan_init (int const dev_idx, int const chan_idx,
 		dev_type_t const dt, int const abs_chan_idx);
-static int chan_init_tune (int const rtp_fd, int const chan_idx, 
+static int chan_init_tune (int const rtp_fd, int const chan_idx,
 		int const dev_idx, dev_type_t const dtype);
 static int pd_ram_load( void );
 static int cram_fxs_load( void );
 static int cram_fxo_load( void );
 static int cram_vf_load( enum vf_type_e const type );
-static int fw_masses_init_from_path (unsigned char ** const fw_buff, 
+static int fw_masses_init_from_path (unsigned char ** const fw_buff,
 		unsigned long * const buff_size, char const * const path );
 static void fw_masses_free( void );
 
 static void get_last_err(int fd);
 /*}}}*/
 
-int 
+int
 ab_hardware_init( enum vf_type_e * const types, int const flags )
 {/*{{{*/
 	int err = 0;
@@ -106,7 +106,7 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
-static int 
+static int
 voip_in_slots( void )
 {/*{{{*/
 	int err;
@@ -118,7 +118,7 @@ voip_in_slots( void )
 	return err;
 }/*}}}*/
 
-static int 
+static int
 load_modules( void )
 {/*{{{*/
 	char sgatab_major_str[20];
@@ -220,7 +220,7 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
-static int 
+static int
 init_voip( void )
 {/*{{{*/
 	int err;
@@ -246,7 +246,7 @@ board_iterator (int (*func)(ab_board_params_t const * const bp))
 
 	static int boards_count_changed_tag = 0;
 	/*  0 - first run
-	 *  >0 && !=bc - count of boards changes 
+	 *  >0 && !=bc - count of boards changes
 	 * */
 
 	fd = open(AB_SGATAB_DEV_NODE, O_RDWR);
@@ -309,7 +309,7 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
-static int 
+static int
 board_init (ab_board_params_t const * const bp)
 {/*{{{*/
 	int i;
@@ -331,7 +331,7 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
-static int 
+static int
 dev_init (int const dev_idx, ab_dev_params_t const * const dp, long const nIrqNum)
 {/*{{{*/
 	int j;
@@ -363,8 +363,8 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
-static int 
-basicdev_init( int const dev_idx, ab_dev_params_t const * const dp, 
+static int
+basicdev_init( int const dev_idx, ab_dev_params_t const * const dp,
 		long const nIrqNum)
 { /*{{{*/
 	IFX_int32_t err;
@@ -529,7 +529,7 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
-static int 
+static int
 chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 		dev_type_t const dtype )
 {/*{{{*/
@@ -542,7 +542,7 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 	memset(&datamap, 0, sizeof (datamap));
 	memset(&lineTypeCfg, 0, sizeof (lineTypeCfg));
 
-	/* Set channel type */	
+	/* Set channel type */
 	if(dtype == dev_type_FXS) {
 		lineTypeCfg.lineType = IFX_TAPI_LINE_TYPE_FXS_NB;
 	} else if(dtype == dev_type_FXO) {
@@ -557,10 +557,10 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 		strcpy(ab_g_err_str, "setting channel type (ioctl)" );
 		get_last_err(rtp_fd);
 		goto ab_chan_init_tune__exit;
-	} 
+	}
 
-	/* Map channels */	
-	datamap.nDstCh = chan_idx; 
+	/* Map channels */
+	datamap.nDstCh = chan_idx;
 	datamap.nChType = IFX_TAPI_MAP_TYPE_PHONE;
 	err = ioctl(rtp_fd, IFX_TAPI_MAP_DATA_ADD, &datamap);
 	if( err ){
@@ -568,13 +568,13 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 		strcpy(ab_g_err_str, "mapping channel to it`s own data (ioctl)");
 		get_last_err(rtp_fd);
 		goto ab_chan_init_tune__exit;
-	} 
+	}
 
 	if(dtype == dev_type_FXS) {
 		char data[10] = {0xFF,0xFF,0xF0,0,0,0,0,0,0,0};
 		IFX_TAPI_RING_CADENCE_t ringCadence;
 
-		/* ENABLE detection of DTMF tones 
+		/* ENABLE detection of DTMF tones
 		 * from local interface (ALM X) */
 		memset(&dtmfDetection, 0, sizeof (dtmfDetection));
 		dtmfDetection.sig = IFX_TAPI_SIG_DTMFTX;
@@ -598,7 +598,7 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 			goto ab_chan_init_tune__exit;
 		}
 	} else if(dtype == dev_type_FXO) {
-		/* DISABLE detection of DTMF tones 
+		/* DISABLE detection of DTMF tones
 		 * from local interface (ALM X) */
 		IFX_TAPI_FXO_OSI_CFG_t osi_cfg;
 		memset(&dtmfDetection, 0, sizeof (dtmfDetection));
@@ -635,7 +635,7 @@ chan_init_tune( int const rtp_fd, int const chan_idx, int const dev_idx,
 			goto ab_chan_init_tune__exit;
 		}
 	}
-	/* for VF do not enable any signal detections 
+	/* for VF do not enable any signal detections
 	 * tag__ may be it should be desabled manually - should test.
 	 * */
 	return 0;
@@ -648,20 +648,20 @@ pd_ram_load( void )
 {/*{{{*/
 	int err;
 	if( !fw_pram){
-		err = fw_masses_init_from_path (&fw_pram, &fw_pram_size, 
+		err = fw_masses_init_from_path (&fw_pram, &fw_pram_size,
 				AB_FW_PRAM_NAME );
 		if(err){
 			goto __exit_fail;
 		}
 	}
 	if( !fw_dram){
-		err = fw_masses_init_from_path (&fw_dram, &fw_dram_size, 
+		err = fw_masses_init_from_path (&fw_dram, &fw_dram_size,
 				AB_FW_DRAM_NAME );
 		if(err){
 			goto __exit_fail;
 		}
 	}
-	return 0; 
+	return 0;
 __exit_fail:
 	return -1;
 }/*}}}*/
@@ -671,13 +671,13 @@ cram_fxs_load( void )
 {/*{{{*/
 	int err;
 	if( !fw_cram_fxs){
-		err = fw_masses_init_from_path (&fw_cram_fxs, &fw_cram_fxs_size, 
+		err = fw_masses_init_from_path (&fw_cram_fxs, &fw_cram_fxs_size,
 				AB_FW_CRAM_FXS_NAME);
 		if(err){
 			goto __exit_fail;
 		}
 	}
-	return 0; 
+	return 0;
 __exit_fail:
 	return -1;
 }/*}}}*/
@@ -687,13 +687,13 @@ cram_fxo_load( void )
 {/*{{{*/
 	int err;
 	if( !fw_cram_fxo){
-		err = fw_masses_init_from_path (&fw_cram_fxo, &fw_cram_fxo_size, 
+		err = fw_masses_init_from_path (&fw_cram_fxo, &fw_cram_fxo_size,
 				AB_FW_CRAM_FXO_NAME);
 		if(err){
 			goto __exit_fail;
 		}
 	}
-	return 0; 
+	return 0;
 __exit_fail:
 	return -1;
 }/*}}}*/
@@ -729,13 +729,13 @@ cram_vf_load( enum vf_type_e const type )
 			goto __exit_fail;
 		}
 	}
-	return 0; 
+	return 0;
 __exit_fail:
 	return -1;
 }/*}}}*/
 
-static int 
-fw_masses_init_from_path (unsigned char ** const fw_buff, 
+static int
+fw_masses_init_from_path (unsigned char ** const fw_buff,
 		unsigned long * const buff_size, char const * const path )
 {/*{{{*/
 	int fd;
@@ -774,7 +774,7 @@ fw_masses_init_from_path__exit:
 	return -1;
 }/*}}}*/
 
-static void 
+static void
 fw_masses_free( void )
 {/*{{{*/
 	if(fw_pram) {
@@ -799,7 +799,7 @@ fw_masses_free( void )
 	}
 }/*}}}*/
 
-static int 
+static int
 create_vin_board (ab_board_params_t const * const bp)
 {/*{{{*/
 	int i;
@@ -928,7 +928,7 @@ __exit_fail:
 	return -1;
 }/*}}}*/
 
-int 
+int
 ab_devs_vf_gpio_reset (ab_t const * const ab)
 {/*{{{*/
 	/* go through all devices and init gpio for VF channels */
@@ -939,7 +939,7 @@ ab_devs_vf_gpio_reset (ab_t const * const ab)
 				goto __exit_fail;
 			}
 		}
-	} 
+	}
 	return 0;
 __exit_fail:
 	return -1;

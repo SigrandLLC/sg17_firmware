@@ -1,11 +1,11 @@
 #!/usr/bin/haserl
 
-	frame=1		
+	frame=1
 	iface=${FORM_iface}
 	subsys="network.$iface"
-	
+
 	handle_list_del_item $subsys
-	
+
 	eval `$kdb -qqc list sys_iface_${iface}_qos_htb_class_*`
 	render_form_header qos_class
 
@@ -26,12 +26,12 @@
 		local _qdisc
 		eval "var=\$$item"
 		eval "$var"
-		
+
 		parent_name="root"
 		[ "$parent" != "1:0" ] && get_parent $parent
-		
-		[ "x${enabled}x" = "xx" ] && style="class='lineDisabled'"	
-		
+
+		[ "x${enabled}x" = "xx" ] && style="class='lineDisabled'"
+
 		# replace '#' in qdisc with spaces
 		_qdisc=`echo $qdisc |sed s/#/" "/g`
 
@@ -39,9 +39,9 @@
 		render_list_btns qos_class_edit "$item" "iface=$iface"
 		echo '</td></tr>'
 	}
-	
+
 	render_list_header qos_class sys_iface_${iface}_qos_htb_class_ "iface=$iface" "No" "Name" "Parent" "Rate" "Ceil" "Qdisc"
-	
+
 	render_list_cycle_stuff
 
 	render_form_tail

@@ -120,7 +120,7 @@ update_vlan_storage() {
 				echo "cpu " >> /etc/cli/vlans/$VID/ports
 			fi
 		fi
-		
+
 	done
 	cat /proc/sys/net/dslam_sw/sw1/vid_table | while read line; do
 		let "cnt=0"
@@ -276,7 +276,7 @@ vlan_vid_func() {
 			echo "$num $vid $sw0ports" > /proc/sys/net/dslam_sw/sw0/vid_table
 			echo "$num $vid $sw1ports" > /proc/sys/net/dslam_sw/sw1/vid_table
 			echo "kdb set sys_dslam_vlan_table_${num}=\"name=$name vid=$vid sw0ports=$sw0ports sw1ports=$sw1ports\"" >> $tmp_config_file
-			
+
 			echo "All port added to VLAN ID $vid!"
 		;;
 		"delete" | "del")
@@ -466,7 +466,7 @@ vlan_func() {
 				rmdir /etc/cli/vlans/$1
 				echo "$num 0 0" > /proc/sys/net/dslam_sw/sw0/vid_table
 				echo "$num 0 0" > /proc/sys/net/dslam_sw/sw1/vid_table
-				
+
 				echo "kdb rm sys_dslam_vlan_table_${num}" >> $tmp_config_file
 				echo "VLAN ID $1 is deleted!"
 			else
@@ -495,7 +495,7 @@ vlan_func() {
 			fi
 		;;
 	esac
-	
+
 	fi
 
 }

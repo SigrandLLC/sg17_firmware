@@ -1,6 +1,6 @@
 #!/bin/sh
 # (c) Vladislav Moskovets 2005
-# 
+#
 
 CONF_REFRESH=3
 CONF_KDB=/etc/kdb

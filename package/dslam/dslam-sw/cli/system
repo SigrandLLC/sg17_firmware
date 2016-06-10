@@ -3,7 +3,7 @@
 system_date_func() {
 	if [ "$1" = "" ]; then
 		echo `date -R`
-		return		
+		return
 	fi
 	tmp=`echo "$1" | grep "[0-3][0-9]-[0-1][0-9]-20[0-9][0-9]"`
 	if [ "$tmp" = "" ]; then
@@ -13,7 +13,7 @@ system_date_func() {
 	day=`expr substr "$1" 1 2`
 	month=`expr substr "$1" 4 2`
 	year=`expr substr "$1" 7 4`
-	
+
 	tmp=`date +%H:%M:%S`
 	tmp=`date -s "$year-$month-$day $tmp`
 	echo "Today is "`date -I`
@@ -23,7 +23,7 @@ system_time_func() {
 	if [ "$1" = "" ]; then
 		time=`date`; time=`expr substr "$time" 12 8`
 		echo $time
-		return		
+		return
 	fi
 	tmp=`echo "$1" | grep "[0-2][0-9]:[0-5][0-9]:[0-5][0-9]"`
 	if [ "$tmp" = "" ]; then

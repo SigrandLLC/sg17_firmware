@@ -65,7 +65,7 @@ const char *status_to_string(uint32_t status) {
   }
 }
 
-void sftp_send_status(struct sftpjob *job, 
+void sftp_send_status(struct sftpjob *job,
                  uint32_t status,
                  const char *msg) {
   if(status == HANDLER_ERRNO) {
@@ -129,7 +129,7 @@ void sftp_send_errno_status(struct sftpjob *job) {
   int n;
   const int errno_value = errno;
 
-  for(n = 0; 
+  for(n = 0;
       errnotab[n].errno_value != errno_value && errnotab[n].errno_value != -1;
       ++n)
     ;

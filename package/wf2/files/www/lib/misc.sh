@@ -27,7 +27,7 @@ iface_add() {
 	local iface;
 	local _realiface;
 	local _depend_on;
-	
+
 	if [ -n "$1" ]; then
 		iface=$1
 		[ -n "$realiface" ] && _realiface=$realiface || _realiface=$iface
@@ -41,7 +41,7 @@ iface_add() {
 		    set sys_iface_${iface}_method=none
 	    	iface_update_sys_ifaces
 	fi
-	
+
 }
 
 iface_del() {
@@ -56,14 +56,14 @@ iface_del() {
 	iface_update_sys_ifaces
 }
 
-# @iface_get_ifaces returns valid interfaces 
-#   -d - double item output for select box 
+# @iface_get_ifaces returns valid interfaces
+#   -d - double item output for select box
 iface_get_ifaces() {
     local ifaces="`kdb sskls 'sys*valid=1' sys_iface_ _valid`"
     local i
     if [ "x$1x" = "x-dx" ]; then
         # doubling output
-        for i in $ifaces; do 
+        for i in $ifaces; do
             echo -n "$i $i "
         done
     else

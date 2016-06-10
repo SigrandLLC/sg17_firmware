@@ -13,9 +13,9 @@ config BR2_PACKAGE_BIND_TOOLS
 	select BR2_PACKAGE_LIBOPENSSL
 	help
 	  dig, host,  nsupdate, dnssec-keygen, dnssec-signzone, named-checkconf, named-checkzone, rndc, rndc-confgen
-	  
+
 	  http://www.isc.org/sw/bind/
-	  
+
 	  Depends: openssl
 
 config BR2_PACKAGE_BIND_RNDC
@@ -26,9 +26,9 @@ config BR2_PACKAGE_BIND_RNDC
 	select BR2_PACKAGE_LIBOPENSSL
 	help
 	  rndc, rndc-confgen
-	  
+
 	  http://www.isc.org/sw/bind/
-	  
+
 	  Depends: openssl
 
 config BR2_PACKAGE_BIND_CHECK
@@ -39,9 +39,9 @@ config BR2_PACKAGE_BIND_CHECK
 	select BR2_PACKAGE_LIBOPENSSL
 	help
 	  named-checkconf, named-checkzone
-	  
+
 	  http://www.isc.org/sw/bind/
-	  
+
 	  Depends: openssl
 
 config BR2_PACKAGE_BIND_DNSSEC
@@ -52,9 +52,9 @@ config BR2_PACKAGE_BIND_DNSSEC
 	select BR2_PACKAGE_LIBOPENSSL
 	help
 	  dnssec-keygen, dnssec-signzone
-	  
+
 	  http://www.isc.org/sw/bind/
-	  
+
 	  Depends: openssl
 
 config BR2_PACKAGE_BIND_HOST
@@ -65,9 +65,9 @@ config BR2_PACKAGE_BIND_HOST
 	select BR2_PACKAGE_LIBOPENSSL
 	help
 	  host
-	  
+
 	  http://www.isc.org/sw/bind/
-	  
+
 	  Depends: openssl
 
 config BR2_PACKAGE_BIND_DIG
@@ -78,9 +78,9 @@ config BR2_PACKAGE_BIND_DIG
 	select BR2_PACKAGE_LIBOPENSSL
 	help
 	  dig
-	  
+
 	  http://www.isc.org/sw/bind/
-	  
+
 	  Depends: openssl
 
 
@@ -92,9 +92,9 @@ config BR2_PACKAGE_BIND_CLIENT
 	select BR2_PACKAGE_LIBOPENSSL
 	help
 	  A DNS dynamic client (nsupdate)
-	  
+
 	  http://www.isc.org/sw/bind/
-	  
+
 	  Depends: openssl
 
 config BR2_PACKAGE_BIND_SERVER
@@ -105,9 +105,9 @@ config BR2_PACKAGE_BIND_SERVER
 	select BR2_PACKAGE_LIBOPENSSL
 	help
 	  A DNS server (named)
-	  
+
 	  http://www.isc.org/sw/bind/
-	  
+
 	  Depends: libopenssl
 
 endmenu

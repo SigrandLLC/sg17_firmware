@@ -17,7 +17,7 @@
         tail_opt="$FORM_syslog_size"
     fi
 	if [ -x /sbin/logread ]; then
-		/sbin/logread | tail -"$tail_opt" 
+		/sbin/logread | tail -"$tail_opt"
 	elif [ -r /var/log/syslog ]; then
 		cat /var/log/syslog  | tail -"$tail_opt"
     fi

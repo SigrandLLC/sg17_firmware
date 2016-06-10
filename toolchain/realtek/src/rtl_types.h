@@ -1,7 +1,7 @@
 /*
-* Copyright c                  Realtek Semiconductor Corporation, 2002  
-* All rights reserved.                                                    
-* 
+* Copyright c                  Realtek Semiconductor Corporation, 2002
+* All rights reserved.
+*
 * Abstract : realtek type definition
  *
  * $Author: hyin $
@@ -24,7 +24,7 @@
  * *** empty log message ***
  *
  * Revision 1.1.1.1  2003/09/25 08:16:56  tony
- *  initial loader tree 
+ *  initial loader tree
  *
  * Revision 1.1.1.1  2003/05/07 08:16:07  danwu
  * no message
@@ -59,7 +59,7 @@ typedef char			int8;
 #define INT8_MIN		SCHAR_MIN
 #define INT8_MAX	SCHAR_MAX
 
-typedef uint32		memaddr;	
+typedef uint32		memaddr;
 typedef uint32          ipaddr_t;
 
 typedef struct {

@@ -115,7 +115,7 @@ uint32_t sftp_parse_string(struct sftpjob *job, char **strp, size_t *lenp) {
 
 uint32_t sftp_parse_path(struct sftpjob *job, char **strp) {
   uint32_t rc;
-  
+
   if((rc = sftp_parse_string(job, strp, 0)) != SSH_FX_OK)
     return rc;
   return protocol->decode(job, strp);

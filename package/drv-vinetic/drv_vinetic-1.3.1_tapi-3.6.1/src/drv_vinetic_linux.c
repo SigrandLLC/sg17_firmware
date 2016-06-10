@@ -888,7 +888,7 @@ IFX_int32_t IFX_TAPI_LL_Open(IFX_int32_t inode, IFX_void_t *file_p)
      - Channel number 0-254 is for channels, 255 is reserved for the device.
        Please note this is different from the open function!
 */
-IFX_int32_t IFX_TAPI_LL_Close(IFX_int32_t inode, 
+IFX_int32_t IFX_TAPI_LL_Close(IFX_int32_t inode,
                               IFX_void_t *filp, IFX_TAPI_LL_DEV_t *pLLDev)
 {
 #ifdef MODULE

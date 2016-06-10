@@ -5,7 +5,7 @@ function addLoadEvent(func){
 	var oldonload = window.onload;
 	if(typeof window.onload != "function"){
 		window.onload = func;
-	} 
+	}
 	else{
 		window.onload = function(){
 			oldonload();
@@ -45,7 +45,7 @@ function openDeletePopup(win, itemToDelete, exturl) {
 	var wint = (screen.height-h)/2;
 	if (winl < 0) winl = 0;
 	if (wint < 0) wint = 0;
-	popup=win.open("/?controller=delete_item_popup&item=" + itemToDelete + "&popup=1&"+exturl, "popup", "width="+w+",height="+h+",top="+wint+",left="+winl+",modal=1,dialog=1,centerscreen=1,scrollbars=0,menubar=0,location=0,toolbar=0,dependent=1,status=0"); 
+	popup=win.open("/?controller=delete_item_popup&item=" + itemToDelete + "&popup=1&"+exturl, "popup", "width="+w+",height="+h+",top="+wint+",left="+winl+",modal=1,dialog=1,centerscreen=1,scrollbars=0,menubar=0,location=0,toolbar=0,dependent=1,status=0");
 	popup.focus();
 }
 
@@ -57,7 +57,7 @@ function openPopup(win, controller, item, exturl) {
 	var wint = (screen.height-h)/2;
 	if (winl < 0) winl = 0;
 	if (wint < 0) wint = 0;
-	popup=win.open("/?controller=" + controller + "&item=" + item + "&popup=1"+exturl, "popup", "width="+w+",height="+h+",top="+wint+",left="+winl+",modal=1,dialog=1,centerscreen=1,scrollbars=0,menubar=0,location=0,toolbar=0,dependent=1,status=0"); 
+	popup=win.open("/?controller=" + controller + "&item=" + item + "&popup=1"+exturl, "popup", "width="+w+",height="+h+",top="+wint+",left="+winl+",modal=1,dialog=1,centerscreen=1,scrollbars=0,menubar=0,location=0,toolbar=0,dependent=1,status=0");
 	popup.focus();
 }
 
@@ -68,13 +68,13 @@ function openHelp(file, topic) {
 	var wint = (screen.height-h)/2;
 	if (winl < 0) winl = 0;
 	if (wint < 0) wint = 0;
-	popup=window.open("/help/" + file + ".html#" + topic, "help", "width="+w+",height="+h+",top="+wint+",left="+winl+",menubar=0,location=0,toolbar=0,dependent=1,status=0,scrollbars=yes"); 
+	popup=window.open("/help/" + file + ".html#" + topic, "help", "width="+w+",height="+h+",top="+wint+",left="+winl+",menubar=0,location=0,toolbar=0,dependent=1,status=0,scrollbars=yes");
 	popup.focus();
 }
 
 function confirmSubmit() {
-	if (confirm("Are you sure?"))  { 
-		return true; 
+	if (confirm("Are you sure?"))  {
+		return true;
 	};
 		return false;
 }

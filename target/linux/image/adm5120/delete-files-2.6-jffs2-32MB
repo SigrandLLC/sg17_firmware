@@ -7,7 +7,7 @@ etc/hotplug.d/net/*
 etc/hotplug.d/usb/*
 etc/inittab
 etc/init.d/rcS
-etc/init.d/S10* 
+etc/init.d/S10*
 etc/init.d/S40network
 etc/init.d/S50dnsmasq
 etc/init.d/S45firewall

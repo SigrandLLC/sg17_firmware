@@ -70,9 +70,9 @@ const  IFX_uint8_t VINETIC_AlmPcmGain [] =
 /* ============================= */
 
 static IFX_uint8_t get_free_lec_res (VINETIC_DEVICE *pDev);
-static IFX_int32_t vinetic_alm_Lec_Cfg (VINETIC_CHANNEL *pCh, 
+static IFX_int32_t vinetic_alm_Lec_Cfg (VINETIC_CHANNEL *pCh,
                                         IFX_boolean_t bEnLec,
-                                        IFX_boolean_t bEnNlp, 
+                                        IFX_boolean_t bEnNlp,
                                         IFX_boolean_t bEnWLec);
 
 /* ============================= */
@@ -338,7 +338,7 @@ IFX_int32_t IFX_TAPI_LL_ALM_Lec_Cfg (IFX_TAPI_LL_CH_t *pLLChannel,
       case IFX_TAPI_WLEC_TYPE_NFE:
          bEnLec  = IFX_TRUE;
          bEnWLec = IFX_TRUE;
-         pCh->pALM->lec_window_coefs [1] = pLecConf->nNBNEwindow + 
+         pCh->pALM->lec_window_coefs [1] = pLecConf->nNBNEwindow +
                                            pLecConf->nNBFEwindow;
          pCh->pALM->lec_window_coefs [2] = pLecConf->nNBNEwindow;
          break;

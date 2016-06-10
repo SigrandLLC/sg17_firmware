@@ -3,7 +3,7 @@
  *
  * Copyright 2004, Broadcom Corporation
  * All Rights Reserved.
- * 
+ *
  * THIS SOFTWARE IS OFFERED "AS IS", AND BROADCOM GRANTS NO WARRANTIES OF ANY
  * KIND, EXPRESS OR IMPLIED, BY STATUTE, COMMUNICATION OR OTHERWISE. BROADCOM
  * SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS
@@ -181,11 +181,11 @@ int
 nvram_commit(void)
 {
 	int ret;
-	
-	cprintf("nvram_commit(): start\n");	
-	
-	if((check_action() == ACT_IDLE) || 
-	   (check_action() == ACT_SW_RESTORE) || 
+
+	cprintf("nvram_commit(): start\n");
+
+	if((check_action() == ACT_IDLE) ||
+	   (check_action() == ACT_SW_RESTORE) ||
 	   (check_action() == ACT_HW_RESTORE)){
 		if (nvram_fd < 0)
 			if ((ret = nvram_init(NULL)))
@@ -195,8 +195,8 @@ nvram_commit(void)
 
 		if (ret < 0)
 			perror(PATH_DEV_NVRAM);
-	
-		cprintf("nvram_commit(): end\n");	
+
+		cprintf("nvram_commit(): end\n");
 	}
 	else
 		cprintf("nvram_commit():  nothing to do...\n");
@@ -231,7 +231,7 @@ int file2nvram(char *filename, char *varname) {
    }
    if (i==0) return 0;
    buf[i]=0;
-   //fprintf(stderr,"================ > file2nvram %s = [%s] \n",varname,buf); 
+   //fprintf(stderr,"================ > file2nvram %s = [%s] \n",varname,buf);
    nvram_set(varname,buf);
    //nvram_commit(); //Barry adds for test
 }
@@ -242,10 +242,10 @@ int nvram2file(char *varname, char *filename) {
    int i=0,j=0;
    char *buf;
    char mem[10000];
-   
+
    if ( !(fp=fopen(filename,"wb") ))
         return 0;
-        
+
    buf=strdup(nvram_safe_get(varname));
    //fprintf(stderr,"=================> nvram2file %s = [%s] \n",varname,buf);
    while (  buf[i] && j < sizeof(mem)-3 ) {
@@ -263,20 +263,20 @@ int nvram2file(char *varname, char *filename) {
         } else {
                 mem[j]=buf[i];j++;
                 i++;
-        }       
+        }
    }
    if (j<=0) return j;
    j=fwrite(mem,1,j,fp);
    fclose(fp);
    free(buf);
    return j;
-}  
+}
 
 int
 check_action(void)
 {
 	char buf[80] = "";
-	
+
 	if(file_to_buf(ACTION_FILE, buf, sizeof(buf))){
 		if(!strcmp(buf, "ACT_TFTP_UPGRADE")){
 			cprintf("Upgrading from tftp now, quiet exit....\n");

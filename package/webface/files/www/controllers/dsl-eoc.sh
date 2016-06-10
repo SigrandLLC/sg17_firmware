@@ -1,6 +1,6 @@
 #!/usr/bin/haserl
 
-# SHDSL modules web-control through EOC daemon 
+# SHDSL modules web-control through EOC daemon
 # Written by Polyakov A.U. <artpol84@gmail.com>
 
 info=/sbin/eoc-info
@@ -29,7 +29,7 @@ _eoc_settings()
 			;;
 		esac
 	fi
-	
+
 	if [ -n "$FORM_adm_reg_num" ] && [ "$FORM_adm_reg_num" != "$adm_reg_num" ]; then
 		opts=$opts" --reg-num=$FORM_adm_reg_num"
 	fi
@@ -48,7 +48,7 @@ _eoc_settings()
 		fi
 		changes=1
 	fi
-	
+
 	# ----- PBO-related changes
 	opts=""
 	if [ "$type" = "master" ]; then
@@ -59,7 +59,7 @@ _eoc_settings()
 			exec_error=1
 			unset eoc_error
 		fi
-	
+
 		if [ "$FORM_hsubmit" = "1" ] && [ "$master" != "0" ]; then
 			new_pbo_mode=0
 			if [ "$FORM_pbo_mode" = "on" ]; then
@@ -83,11 +83,11 @@ _eoc_settings()
 				fi
 				changes=1
 			fi
-		fi	
+		fi
 	fi
-	
+
 	if [ -n "$changes" ]; then
-		if [ -z "$exec_error" ]; then		
+		if [ -z "$exec_error" ]; then
 			$config -us
 			render_save_message
 			render_js_refresh_window 300
@@ -95,8 +95,8 @@ _eoc_settings()
 		else
 			sleep 2
 		fi
-	fi	
-	
+	fi
+
 	unset eoc_error
 	eval `$info -tr`
 	if [ "$eoc_error" -eq "1" ]; then
@@ -129,7 +129,7 @@ _eoc_settings()
    		desc="Number of installed regenerators (theoretical)"
 	    render_input_field text "Regenerators" adm_reg_num
 	fi
-	
+
   	# Span Configuration profile
 	unset tmp
 	tmp=""
@@ -149,13 +149,13 @@ _eoc_settings()
 	if [ "$eoc_error" != "1" ]; then
 		id='hpboval'
 		render_input_field "hidden" "hidden" hpboval "$pbo_val"
-		
+
 		tip=""
 		id='pbomode'
 		td_id='pbomode_td'
 		desc='Example: 21:13:15, STU-C-SRU1=21,SRU1-SRU2=13,...'
 		onchange="eocIfSettings();"
-		render_input_field checkbox "PBO Forced" pbo_mode 
+		render_input_field checkbox "PBO Forced" pbo_mode
 	fi
 
 	run_js_code "eocIfSettings();"
@@ -179,7 +179,7 @@ _eoc_stat_general()
 		real_regs=`expr $unit_num - 2`
 	fi
 	[ "$real_regs" -lt 0 ] && real_regs=0
-	
+
 	tip=""
 	desc="STU-C connected to STU-R"
 	render_input_field static "Channel link" status "$link"
@@ -203,7 +203,7 @@ _eoc_stat_general()
 	tip=""
 	desc="Channel tcpam value"
 	render_input_field static "Encoding" regs "$tcpam"
-	
+
 }
 
 _eoc_stat_1dint()
@@ -212,7 +212,7 @@ _eoc_stat_1dint()
 	u=$2
 	s=$3
 	l=$4
-	
+
 	help_1="eoc"
         help_2=""
 	render_table_title "$iface $s Pair"`expr $l + 1`" 1 Day error intervals" 2
@@ -233,11 +233,11 @@ _eoc_stat_1dint()
 
 		echo "<tr align='center'>"
 		echo "<td>$int_day</td>"
-					
+
 		# Count of Errored Seconds (ES) on this endpoint since unit was last restarted
 		tip="Count of Errored Seconds (ES) on this endpoint since unit was last restarted"
 		render_input_td_field static es "$es"
-	
+
 		# Count of Severely Errored Seconds (SES) on this endpoint since the xU was last restarted
 		tip="Count of Severely Errored Seconds (SES) on this endpoint since the xU was last restarted"
 		render_input_td_field static ses "$ses"
@@ -270,7 +270,7 @@ _eoc_stat_15mint()
 	u=$2
 	s=$3
 	l=$4
-	
+
 	help_1="eoc"
         help_2=""
 	render_table_title "$iface $s Pair"`expr $l + 1`" 15 Minutes error intervals" 2
@@ -294,11 +294,11 @@ _eoc_stat_15mint()
 		echo "<td>$int_day</td>"
 		echo "<td>$time_start</td>"
 		echo "<td>$time_end</td>"
-					
+
 		# Count of Errored Seconds (ES) on this endpoint since unit was last restarted
 		tip="Count of Errored Seconds (ES) on this endpoint since unit was last restarted"
 		render_input_td_field static es "$es"
-	
+
 		# Count of Severely Errored Seconds (SES) on this endpoint since the xU was last restarted
 		tip="Count of Severely Errored Seconds (SES) on this endpoint since the xU was last restarted"
 		render_input_td_field static ses "$ses"
@@ -368,7 +368,7 @@ _eoc_stat_unit()
 			echo "<tr align='center'>"
 			echo "<td>$s</td>"
 			echo "<td>Pair"`expr $l + 1`"</td>"
-		
+
 			unset unit side loop snr lattn es ses crc losws uas
 			eval `$info -r -i${iface} -u${u} -e${s} -l${l}`
 			if [ "$eoc_error" = 1 ]; then
@@ -378,11 +378,11 @@ _eoc_stat_unit()
 			# SNR margin
 			tip="SNR margin value"
 			render_input_td_field static snr "$snr"
-		
+
 			# Loop Attenuation value
 			tip="Loop Attenuation value"
 			render_input_td_field static lattn "$lattn"
-		
+
 			# Count of Errored Seconds (ES) on this endpoint since unit was last restarted
 			tip="Count of Errored Seconds (ES) on this endpoint since unit was last restarted"
 			render_input_td_field static es "$es"
@@ -409,7 +409,7 @@ _eoc_stat_unit()
 
 	echo "</table></td></tr>"
 
-	
+
 	if [ "$sensors" = 1 ]; then
 
 	    echo "
@@ -447,14 +447,14 @@ _eoc_stat_unit()
 	for s in $sides; do
 		l=0
 		while [ "$l" -lt "$loop_num" ]; do
-		
+
 			unset unit side loop tes tses tcrc tlosws tuas ttstamp
 			eval `$info -r -i${iface} -u${u} -e${s} -l${l}`
 			if [ "$eoc_error" = 1 ]; then
 				echo "<tr><td colspan=\"11\">Request error</td></tr>"
 				break
 			fi
-			
+
 			render_form_header_light
 			render_input_field "hidden" "hidden" iface $iface
 			render_input_field "hidden" "hidden" relative "1"
@@ -516,7 +516,7 @@ _eoc_stat_unit()
 	for s in $sides; do
 		l=0
 		while [ "$l" -lt "$loop_num" ]; do
-		
+
 			unset unit side loop snr lattn m15es m15ses m15crc m15losws m15uas m15elaps d1es d1ses d1crc d1losws d1uas d1elaps
 			eval `$info -r -i${iface} -u${u} -e${s} -l${l}`
 			if [ "$eoc_error" = 1 ]; then
@@ -551,7 +551,7 @@ _eoc_stat_unit()
 			# Time elapsed
 			tip="15 minute interval time elapsed"
 			render_input_td_field static elaps "$m15elaps"
-			
+
 			echo "</tr>"
 
 			echo "<tr align='center'>"
@@ -584,11 +584,11 @@ _eoc_stat_unit()
 			render_input_td_field static uas "$d1elaps"
 
 			echo "</tr>"
-			
+
 			l=`expr $l + 1`
 		done
 	done
-	
+
 	echo "</table></td></tr>"
 
 
@@ -626,19 +626,19 @@ _eoc_statistic()
 			tmp=$tmp"stu-r \"STU-R\" "
 			i=1
 			while [ "$i" -le "$reg_num" ]; do
-				tmp=$tmp"sru$i \"SRU$i\" " 
+				tmp=$tmp"sru$i \"SRU$i\" "
 				i=`expr "$i" + 1`
 			done
 		else
 			i=1
 			while [ "$i" -lt "$unit_num" ]; do
-				tmp=$tmp" sru$i \"SRU$i\"" 
+				tmp=$tmp" sru$i \"SRU$i\""
 				i=`expr "$i" + 1`
 			done
 		fi
 	fi
 
-	page_l2=${FORM_page_l2:-general} 
+	page_l2=${FORM_page_l2:-general}
 	eval "render_page_selection_l2 \"iface=$iface&page=$page\" general \"General\" $tmp"
 	if [ "$page_l2" = "general" ]; then
 		_eoc_stat_general $iface
@@ -675,7 +675,7 @@ _eoc_profiles()
 		else # Change profile
 			#echo "$config -oconf-prof -c$FORM_pname $rate $annex $power $tcpam -s<br>"
 			eval `$config -oconf-prof -c$FORM_pname $rate $annex $power $tcpam -s`
-		fi		
+		fi
 		if [ "$eoc_error" -eq "1" ]; then
 			ERROR_MESSAGE="$err_string"
 			render_save_message_nohide
@@ -728,9 +728,9 @@ _eoc_profiles()
 
 		if [ "$pname" = "default" ]; then
 			echo"<td>SET prefix to RO</td>"
-			prefix="-d"	
+			prefix="-d"
 			dis_set="disabled='true'"
-		else 
+		else
 			prefix=""
 			dis_set=""
 		fi
@@ -739,7 +739,7 @@ _eoc_profiles()
 		# Profile name
 		tip="Name"
 		render_input_td_field static pname $pname
-		
+
 		# Profile rate
 		echo -n "<td>"
 		echo -n "<select $dis_set name='rate' class='edit' id='rate"$k"' onChange='eocProfiles();' tmt:errorclass='invalid'>"
@@ -747,7 +747,7 @@ _eoc_profiles()
 		echo -n "<input type='text' style='display:none' id='mrate"$k"' name='mrate' size='5' maxlength='5' value='"$mrate"'>"
 		echo -n "</td>"
 		#render_input_td_field $prefix select rate $rate $rate
-		
+
 		# Annex
 		tip="Annex"
 		render_input_td_field $prefix select annex AnnexA AnnexA AnnexB AnnexB
@@ -759,7 +759,7 @@ _eoc_profiles()
 		# Encoding
 		tip="Encoding"
 		id="tcpam$k"
-		onchange="eocProfiles();"	
+		onchange="eocProfiles();"
 		render_input_td_field $prefix select tcpam tcpam8 TCPAM8 tcpam16 TCPAM16 tcpam32 TCPAM32 tcpam64 TCPAM64 tcpam128 TCPAM128
 
 		render_submit_field_light
@@ -798,15 +798,15 @@ _eoc_profiles()
 	# Profile name
 	tip="Name"
 	render_input_td_field text pname ""
-	
-	
+
+
 	# Profile rate
 	tip="Channel rate"
 	id="rate"
 	rate=192
-	onchange="eocProfiles();"	
+	onchange="eocProfiles();"
 	render_input_td_field select rate 192 192
-		
+
 	# Annex
 	tip="Annex"
 	annex=AnnexA
@@ -821,19 +821,19 @@ _eoc_profiles()
 	tip="Encoding"
 	tcpam=tcpam16
 	id="tcpam"
-	onchange="eocProfiles();"	
+	onchange="eocProfiles();"
 	render_input_td_field select tcpam tcpam8 TCPAM8 tcpam16 TCPAM16 tcpam32 TCPAM32 tcpam64 TCPAM64 tcpam128 TCPAM128
 
 	render_submit_field_light
 	render_form_tail_light
 	echo "</tr></table>"
-	
+
 	run_js_code "eocProfiles();"
 }
 
 
 if [ -n "$FORM_profiles" ]; then
-	_eoc_profiles 
+	_eoc_profiles
 	exit 0
 fi
 
@@ -852,7 +852,7 @@ if [ "$type" = "slave" ]; then
 	exit 0
 fi
 
-page=${FORM_page:-settings} 
+page=${FORM_page:-settings}
 render_page_selection "iface=$iface" settings "Settings" statistic "Statistic"
 
 

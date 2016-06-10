@@ -42,7 +42,7 @@ $(PKG_BUILD_DIR)/.built:
 	$(MAKE) -C $(PKG_BUILD_DIR)
 	touch $@
 
-$(IPKG_BRIDGE): 
+$(IPKG_BRIDGE):
 	mkdir -p $(IDIR_BRIDGE)/usr/sbin
 	$(CP) $(PKG_BUILD_DIR)/brctl/brctl $(IDIR_BRIDGE)/usr/sbin/
 	$(STRIP) $(IDIR_BRIDGE)/usr/sbin/brctl

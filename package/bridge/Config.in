@@ -3,8 +3,8 @@ config BR2_PACKAGE_BRIDGE
 	tristate
 	default y
 	help
-	  Manage ethernet bridging; a way to connect networks together to 
+	  Manage ethernet bridging; a way to connect networks together to
 	  form a larger network.
-	  
+
 	  http://bridge.sourceforge.net/
 

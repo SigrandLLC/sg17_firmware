@@ -2,12 +2,12 @@
 
 ##############################
 #
-#       F W   L I B 
-#       
+#       F W   L I B
+#
 #   Vlad  vlad@vlad.org.ua  2002110301
-#   
+#
 
-# 2002111301: changes in DROPFAKE target 
+# 2002111301: changes in DROPFAKE target
 # 2004100101: MARKING moved to POSTROUTING
 # 2005071401: Addapting for midge
 # 2005072201: Shaper functions
@@ -136,7 +136,7 @@ fw_add_acct(){
     shift;
     $LIST $ACCT_CHAIN >/dev/null 2>&1
     if [ $? != 0 ]; then
-        $NEW_CHAIN $ACCT_CHAIN 
+        $NEW_CHAIN $ACCT_CHAIN
         $ADD $ACCT_CHAIN $RETURN
     fi
     $ADD $BASE_CHAIN -j $ACCT_CHAIN $@
@@ -228,22 +228,22 @@ fw_init(){
     $ADD POSTROUTING -t mangle -j MARKING
 
     $NEW_CHAIN DROPLOG
-    $ADD DROPLOG    $LOG    $LIMIT1s    --log-prefix "DROP: " 
+    $ADD DROPLOG    $LOG    $LIMIT1s    --log-prefix "DROP: "
     $ADD DROPLOG    $DROP
 
     $NEW_CHAIN REJECTLOG
-    $ADD REJECTLOG  $LOG    $LIMIT1s    --log-prefix "REJECT: " 
+    $ADD REJECTLOG  $LOG    $LIMIT1s    --log-prefix "REJECT: "
     $ADD REJECTLOG  $REJECT
-    
-    $ADD INPUT $ACCEPT -i lo 
+
+    $ADD INPUT $ACCEPT -i lo
 
 
     # Make DROPFAKE chain
     $NEW_CHAIN DROPFAKE
-    for addr in $FAKE_NETS; do 
-        $ADD DROPFAKE    $LOG    $LIMIT1s    -s $addr --log-prefix "DROPFAKE: " 
+    for addr in $FAKE_NETS; do
+        $ADD DROPFAKE    $LOG    $LIMIT1s    -s $addr --log-prefix "DROPFAKE: "
         $ADD DROPFAKE    $DROP   -s $addr
-        $ADD DROPFAKE    $LOG    $LIMIT1s    -d $addr --log-prefix "DROPFAKE: " 
+        $ADD DROPFAKE    $LOG    $LIMIT1s    -d $addr --log-prefix "DROPFAKE: "
         $ADD DROPFAKE    $DROP   -d $addr
     done;
     $ADD DROPFAKE $RETURN
@@ -251,8 +251,8 @@ fw_init(){
     $NEW_CHAIN CLIENT_FORWARD_INPUT
     $NEW_CHAIN CLIENT_FORWARD_OUTPUT
     # TODO  init mac
- 
-  
+
+
     for file in /proc/sys/net/ipv4/ip_always_defrag \
                 /proc/sys/net/ipv4/tcp_syncookies \
                 /proc/sys/net/ipv4/ip_forward ; do
@@ -261,7 +261,7 @@ fw_init(){
         fi
     done;
 
-    echo "done."; 
+    echo "done.";
 
 
 }
@@ -281,9 +281,9 @@ fw_acct_add_all_devices(){
 add_target(){
     target="$1"
     test "$target"  || warn "Usage: add_target target_name"
-    mark=$(eval echo $`echo ${target}_mark`) 
-    nets=$(eval echo $`echo ${target}_nets`) 
-    dev=$(eval echo $`echo ${target}_dev`) 
+    mark=$(eval echo $`echo ${target}_mark`)
+    nets=$(eval echo $`echo ${target}_nets`)
+    dev=$(eval echo $`echo ${target}_dev`)
     test "$mark"    || warn "${target}_mark for target $target is not set"
     test "$nets"    || warn "${target}_nets for target $target is not set"
     test "$dev"     || warn "${target}_dev for target $target is not set"
@@ -291,8 +291,8 @@ add_target(){
     $ADD_ACCT_LIST -mark $mark  $target    $nets
     # Add forwarding rules
     for net in $nets; do
-        $ADD CLIENT_FORWARD_INPUT  $ACCEPT -s $net -i $dev 
-        $ADD CLIENT_FORWARD_OUTPUT $ACCEPT -d $net -o $dev 
+        $ADD CLIENT_FORWARD_INPUT  $ACCEPT -s $net -i $dev
+        $ADD CLIENT_FORWARD_OUTPUT $ACCEPT -d $net -o $dev
     done
 }
 
@@ -337,24 +337,24 @@ create_htb_ceil(){
 
 shape_target(){
     target="$1"
-    mark=$(eval echo $`echo ${target}_mark`) 
+    mark=$(eval echo $`echo ${target}_mark`)
     id="$mark"
-    dev=$(eval echo $`echo ${target}_dev`) 
-    odev=$(eval echo $`echo ${target}_odev`) 
+    dev=$(eval echo $`echo ${target}_dev`)
+    odev=$(eval echo $`echo ${target}_odev`)
     idev="$dev"
     [ "$odev" ] || odev="$BACKBONE_DEV"
     [ "$2" ] && odev="$2"
     [ "$target" ] || die "Usage: shape_target target_name [out_dev]"
     [ "$odev" ] || die "Unknown output device! Please setup ${target}_odev or BACKBONE_DEV or use shape_target target_name out_dev"
 
-    prio=$(eval echo $`echo ${target}_prio`) 
+    prio=$(eval echo $`echo ${target}_prio`)
 
-    rateceil=$(eval echo $`echo ${target}_rate`) 
+    rateceil=$(eval echo $`echo ${target}_rate`)
     irateceil=$rateceil;
     orateceil=$rateceil;
 
-    tirateceil=$(eval echo $`echo ${target}_irate`) 
-    torateceil=$(eval echo $`echo ${target}_orate`) 
+    tirateceil=$(eval echo $`echo ${target}_irate`)
+    torateceil=$(eval echo $`echo ${target}_orate`)
     if [ "$tirateceil" ]; then
         irateceil=$tirateceil;
     fi

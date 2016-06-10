@@ -3,7 +3,7 @@
  *
  * Copyright 2004, Broadcom Corporation
  * All Rights Reserved.
- * 
+ *
  * THIS SOFTWARE IS OFFERED "AS IS", AND BROADCOM GRANTS NO WARRANTIES OF ANY
  * KIND, EXPRESS OR IMPLIED, BY STATUTE, COMMUNICATION OR OTHERWISE. BROADCOM
  * SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS
@@ -77,7 +77,7 @@ file2str(const char *path)
 	return fd2str(fd);
 }
 
-/* 
+/*
  * Waits for a file descriptor to change status or unblocked signal
  * @param	fd	file descriptor
  * @param	timeout	seconds to wait before timing out or 0 for no timeout
@@ -94,7 +94,7 @@ waitfor(int fd, int timeout)
 	return select(fd + 1, &rfds, NULL, NULL, (timeout > 0) ? &tv : NULL);
 }
 
-/* 
+/*
  * Concatenates NULL-terminated list of arguments into a single
  * commmand and executes it
  * @param	argv	argument list
@@ -186,7 +186,7 @@ _eval(char *const argv[], char *path, int timeout, int *ppid)
 	}
 }
 
-/* 
+/*
  * Concatenates NULL-terminated list of arguments into a single
  * commmand and executes it
  * @param	argv	argument list
@@ -222,11 +222,11 @@ _backtick(char *const argv[])
 		waitpid(pid, &status, 0);
 		break;
 	}
-	
+
 	return buf;
 }
 
-/* 
+/*
  * Kills process whose PID is stored in plaintext in pidfile
  * @param	pidfile	PID file
  * @return	0 on success and errno on failure

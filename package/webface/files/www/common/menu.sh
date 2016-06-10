@@ -29,13 +29,13 @@ L1 System
 	# SHDSL section
 	slots=`kdb get sys_pcitbl_slots`
 	have_ifs=0
-	
+
 	for s in $slots; do
 		type=`kdb get sys_pcitbl_s${s}_iftype`
 		if [ "$type" != "$MR16H_DRVNAME" ] && [ "$type" != "$MR17H_DRVNAME" ]; then
 			continue
 		fi
-		
+
 		# output title
 		if [ "$have_ifs" -eq 0 ]; then
 			L2 SHDSL
@@ -54,7 +54,7 @@ L1 System
 	# EOC section
 	if [ -f "/sbin/eoc-info" ]; then
 		eval `/sbin/eoc-info -sr`
-		
+
 		if [ -n "$eoc_channels" ]; then
 	    	L2 SHDSL-EOC
 			L3 Profiles 'dsl-eoc&profiles=1'
@@ -76,7 +76,7 @@ L1 System
 		if [ "$type" != "$MR16G_DRVNAME" ] && [ "$type" != "$MR17G_DRVNAME" ]; then
 			continue
 		fi
-		
+
 		# output title
 		if [ "$have_ifs" -eq 0 ]; then
 			L2 E1
@@ -100,7 +100,7 @@ L1 System
 		if [ "$type" != "$MR17S_DRVNAME" ]; then
 			continue
 		fi
-		
+
 		# output title
 		if [ "$have_ifs" -eq 0 ]; then
 			L2 RS232
@@ -119,12 +119,12 @@ L1 System
 
 	L2 Switch	'adm5120sw'
 	L2 Multiplexing	'multiplexing'
-	
+
 	# check that VoIP module is installed
-	[ "x$(kdb get sys_voip_present)" == "x1" ] && L2 VoIP 'voip'	
-	
+	[ "x$(kdb get sys_voip_present)" == "x1" ] && L2 VoIP 'voip'
+
 	L2 DNS		'dns'
-	
+
 L1 Network
 	L2 Interfaces ifaces
 	for i in `kdb get sys_ifaces`; do
@@ -140,12 +140,12 @@ L1 Network
 		L3 Filter	"fw&table=filter"
 		L3 NAT		"fw&table=nat"
 	L2 IPSec ipsec
-	
+
 L1 Services
 	L2 "DNS Server" dns_server
 	L2 "DHCP Server" dhcp_server
 	L2 "PPTP Server" pptp_server
-L1 Tools 
+L1 Tools
 	L2 syslog	"tools&page=syslog"
 	L2 dmesg	"tools&page=dmesg"
 	L2 ping	"tools&page=ping"

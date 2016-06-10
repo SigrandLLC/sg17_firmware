@@ -166,8 +166,8 @@ function generateBubble(content) {
 	// Set popup's new width and height values here so they are available in placeLayer()
 	o3_width=Math.round(fc*bWd[olBId]);
 	o3_aboveheight=Math.round(fc*bHt[olBId]);
-	if(fc*bArwTipY[olBId] < 0.5*fc*bHt[olBId]) 
-		sY = fc*bArwTipY[olBId]; 
+	if(fc*bArwTipY[olBId] < 0.5*fc*bHt[olBId])
+		sY = fc*bArwTipY[olBId];
 	else
 		sY = -(fc*bHt[olBId]+20)
 	o3_offsetx-=Math.round(fc*bArwTipX[olBId]);
@@ -233,4 +233,4 @@ registerImages('roundcorners'); // root names given to images (should be gif fil
 if(olInfo.meets(4.14)) registerNoParameterCommands('bubble,adjbubble');
 if(olNs4) document.write('<style type="text/css">\n<!--\n#bLayer, #bContent {position: absolute;}\n-->\n<'+'\/style>');
 }
-//end 
+//end

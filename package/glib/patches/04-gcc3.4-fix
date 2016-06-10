@@ -4,7 +4,7 @@ Initial Package Version: 1.2.10
 Origin: self-created, http://www.uwe-dueffert.de/lfs/ownpatches/glib-1.2.10-gcc34-1.patch
 Upstream Status: not reported
 Description: fix compilation of glib1 with gcc34
- 
+
 $LastChangedBy: mbm $
 $Date: 2006-02-02 01:53:19 +0200 (Чтв, 02 Фев 2006) $
 
@@ -14,7 +14,7 @@ diff -Naur glib-1.2.10.orig/gstrfuncs.c glib-1.2.10/gstrfuncs.c
 @@ -47,6 +47,8 @@
   * inteferes with g_strsignal() on some OSes
   */
- 
+
 +#define G_GNUC_PRETTY_FUNCTION
 +
  typedef union  _GDoubleIEEE754  GDoubleIEEE754;

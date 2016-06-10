@@ -21,7 +21,7 @@ struct sg17_sci{
 	volatile u8 *rx_buf,*tx_buf;
 	u8 rx_msg[SCI_BUFF_SIZE];
 	u8 rx_len;
-	u8 tx_col;	
+	u8 tx_col;
 	// OS rlated objects
 	int irq;
 	wait_queue_head_t  wait_q,eoc_wait_q;
@@ -35,7 +35,7 @@ struct sg17_sci{
 	unsigned long tx_bytes, rx_bytes;
 	unsigned long tx_packets, rx_packets;
 };
-								
+
 int sg17_sci_init( struct sg17_sci *, char *, struct sdfe4 *);
 void sg17_sci_remove( struct sg17_sci *s );
 int sg17_sci_enable( struct sg17_sci *s );

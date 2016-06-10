@@ -14,7 +14,7 @@ Controllers.dslam_dsl_all = function() {
 
 			var ifaces = config.getParsed("sys_dslam_ifaces");
 			var status;
-			config.cmdExecute({"cmd": "./mam17h_status_all_json.sh", "async" : false, "dataType": "json", "callback": 
+			config.cmdExecute({"cmd": "./mam17h_status_all_json.sh", "async" : false, "dataType": "json", "callback":
 				function(reply) {
 					status = reply;
 				}
@@ -27,7 +27,7 @@ Controllers.dslam_dsl_all = function() {
 
 				var state = "<font color='#FF0000'>offline</font>";
 				var rate="", tcpam="", uptime="", pwron="off", pwr="";
-				
+
 				pwron = (status[iface].pwr.pwron==1)?"on":"off";
 				pwr = status[iface].pwr.presence==1?"p":"";
 				if (pwr == "") pwron = "none";
@@ -45,7 +45,7 @@ Controllers.dslam_dsl_all = function() {
 //					var s = uptime;
 //					uptime = $.sprintf("%s:%s:%s", h, m, s);
 				}
-				
+
 				row = c.addTableRow();
 				field = {
 					"type" : "html",
@@ -480,7 +480,7 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 				"descr": "DSL power feeding mode. (combined with dsl0)",
 				"str": str
 			};
-			c.addWidget(field);		
+			c.addWidget(field);
 		}
 		if (pcidev == 3) {
 			str = config.get($.sprintf("sys_pcicfg_s%s_pwr_1_on", pcislot));
@@ -493,7 +493,7 @@ Controllers.dslam_dsl = function(iface, pcislot, pcidev) {
 				"descr": "DSL power feeding mode. (combined with dsl2)",
 				"str": str
 			};
-			c.addWidget(field);		
+			c.addWidget(field);
 		}
 		}
 /*
@@ -952,12 +952,12 @@ Controllers.dslamsw = function() {
 				c.addTableHeader("Port|TX packets|RX packets");
 				var sw0_stat, sw1_stat;
 				var ifaces = config.getParsed("sys_dslam_ifaces");
-				config.cmdExecute({"cmd": "cat /proc/sys/net/dslam_sw/sw0/statistics_json", "async" : false, "dataType": "json", "callback": 
+				config.cmdExecute({"cmd": "cat /proc/sys/net/dslam_sw/sw0/statistics_json", "async" : false, "dataType": "json", "callback":
 					function(reply) {
 						sw0_stat = reply;
 					}
 				});
-				config.cmdExecute({"cmd": "cat /proc/sys/net/dslam_sw/sw1/statistics_json", "async" : false, "dataType": "json", "callback": 
+				config.cmdExecute({"cmd": "cat /proc/sys/net/dslam_sw/sw1/statistics_json", "async" : false, "dataType": "json", "callback":
 					function(reply) {
 						sw1_stat = reply;
 					}
@@ -1038,12 +1038,12 @@ Controllers.dslamsw = function() {
 				});
 
 			var load_stat = function() {
-				config.cmdExecute({"cmd": "cat /proc/sys/net/dslam_sw/sw0/statistics_json", "async" : false, "dataType": "json", "callback": 
+				config.cmdExecute({"cmd": "cat /proc/sys/net/dslam_sw/sw0/statistics_json", "async" : false, "dataType": "json", "callback":
 					function(reply) {
 						sw0_stat = reply;
 					}
 				});
-				config.cmdExecute({"cmd": "cat /proc/sys/net/dslam_sw/sw1/statistics_json", "async" : false, "dataType": "json", "callback": 
+				config.cmdExecute({"cmd": "cat /proc/sys/net/dslam_sw/sw1/statistics_json", "async" : false, "dataType": "json", "callback":
 					function(reply) {
 						sw1_stat = reply;
 					}
@@ -1388,7 +1388,7 @@ Controllers.dslamsw = function() {
 				"id"  : "sw1ports"
 			};
 			list.addWidget(field);
-			
+
 			$.each(ifaces, function(n, iface) {
 				var slot = config.get($.sprintf("sys_iface_%s_slot", iface));
 				var port = config.get($.sprintf("sys_iface_%s_port", iface));
@@ -1426,7 +1426,7 @@ Controllers.dslamsw = function() {
 			list.generateList();
 		}
 	});
-	
+
 	page.addTab({
 		"id": "cos",
 		"name": "CoS",
@@ -1434,7 +1434,7 @@ Controllers.dslamsw = function() {
 			var c, field, row;
 			c = page.addContainer("cos");
 			c.addTitle("CoS settings");
-			
+
 			field = {
 				"type": "select",
 				"name": "sys_dslam_cos_mode",
@@ -1476,7 +1476,7 @@ Controllers.dslamsw = function() {
 				}
 
 			});
-			
+
 			page.addBr("cos");
 			c = page.addContainer("cos");
 			c.addTitle("Ports CoS settings", {"colspan":4});
@@ -1611,7 +1611,7 @@ Controllers.dslamsw = function() {
 							fields.push($.sprintf("sys_dslam_sw%s_cos_%s_high", sw, type, high));
 						}
 					});
-					config.cmdExecute({"cmd": request, "callback": 
+					config.cmdExecute({"cmd": request, "callback":
 						function() {
 							config.cmdExecute({"cmd": "/etc/init.d/dslam_sw update_cfg cos 2"});
 							updateFields(fields, false);
@@ -1623,7 +1623,7 @@ Controllers.dslamsw = function() {
 			page.addBr("cos");
 			c = page.addContainer("cos");
 			c.addTitle("TCP/UDP port number based CoS", {"colspan":4});
-			
+
 			row = c.addTableRow();
 			field = {
 				"type" : "html",
@@ -1636,7 +1636,7 @@ Controllers.dslamsw = function() {
 				"name" : "sys_dslam_cos_ftp",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
 				"defaultValue":0
-				
+
 			};
 			c.addTableWidget(field, row);
 			field = {
@@ -1649,7 +1649,7 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_ssh",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
 
@@ -1665,7 +1665,7 @@ Controllers.dslamsw = function() {
 				"name" : "sys_dslam_cos_telnet",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
 				"defaultValue":0
-				
+
 			};
 			c.addTableWidget(field, row);
 			field = {
@@ -1678,7 +1678,7 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_smtp",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
 
@@ -1694,7 +1694,7 @@ Controllers.dslamsw = function() {
 				"name" : "sys_dslam_cos_dns",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
 				"defaultValue":0
-				
+
 			};
 			c.addTableWidget(field, row);
 			field = {
@@ -1707,7 +1707,7 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_tftp",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
 
@@ -1723,7 +1723,7 @@ Controllers.dslamsw = function() {
 				"name" : "sys_dslam_cos_http",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
 				"defaultValue":0
-				
+
 			};
 			c.addTableWidget(field, row);
 			field = {
@@ -1736,7 +1736,7 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_pop3",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
 
@@ -1752,7 +1752,7 @@ Controllers.dslamsw = function() {
 				"name" : "sys_dslam_cos_news",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
 				"defaultValue":0
-				
+
 			};
 			c.addTableWidget(field, row);
 			field = {
@@ -1765,7 +1765,7 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_sntp",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
 
@@ -1781,7 +1781,7 @@ Controllers.dslamsw = function() {
 				"name" : "sys_dslam_cos_netbios",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
 				"defaultValue":0
-				
+
 			};
 			c.addTableWidget(field, row);
 			field = {
@@ -1794,10 +1794,10 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_imap",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
-			
+
 			row = c.addTableRow();
 			field = {
 				"type" : "html",
@@ -1809,7 +1809,7 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_snmp",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
 			field = {
@@ -1822,10 +1822,10 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_https",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
-			
+
 			row = c.addTableRow();
 			field = {
 				"type" : "html",
@@ -1837,7 +1837,7 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_1863",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
 			field = {
@@ -1850,7 +1850,7 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_xp_rdp",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
 
@@ -1865,7 +1865,7 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_4000",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
 			field = {
@@ -1878,7 +1878,7 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_5190",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
 			row = c.addTableRow();
@@ -1892,7 +1892,7 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_5050",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
 			field = {
@@ -1905,7 +1905,7 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_bootp",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
 
@@ -1921,7 +1921,7 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_port_a",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
 			field = {
@@ -1934,7 +1934,7 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_port_b",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
 
@@ -1949,7 +1949,7 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_port_c",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
 			field = {
@@ -1962,7 +1962,7 @@ Controllers.dslamsw = function() {
 				"type" : "select",
 				"name" : "sys_dslam_cos_port_d",
 				"options": {0:"Disable", 1:"Drop/Forward to CPU", 2:"Low priority", 3:"High priority"},
-				"defaultValue":0				
+				"defaultValue":0
 			};
 			c.addTableWidget(field, row);
 
@@ -2003,7 +2003,7 @@ Controllers.dslamsw = function() {
 					var request="";
 					var reg33=0, reg34=0, reg35=0;
 					$.each(ports, function(n, port) {
-						if (n <= 7) {	
+						if (n <= 7) {
 							reg33 += ($($.sprintf("#sys_dslam_cos_%s", port)).val() << (2*n));
 						} else {
 							if (n <= 15) {
@@ -2017,18 +2017,18 @@ Controllers.dslamsw = function() {
 					request += $.sprintf("kdb set sys_dslam_cos_reg33=%s; ", reg33);
 					request += $.sprintf("kdb set sys_dslam_cos_reg34=%s; ", reg34);
 					request += $.sprintf("kdb set sys_dslam_cos_reg35=%s; ", reg35);
-					
+
 					request += $.sprintf("kdb set sys_dslam_cos_porta=%s; ", $("#sys_dslam_cos_porta").val());
 					request += $.sprintf("kdb set sys_dslam_cos_portb=%s; ", $("#sys_dslam_cos_portb").val());
 					request += $.sprintf("kdb set sys_dslam_cos_portc=%s; ", $("#sys_dslam_cos_portc").val());
 					request += $.sprintf("kdb set sys_dslam_cos_portd=%s; ", $("#sys_dslam_cos_portd").val());
-					
+
 					var fields;
-					config.cmdExecute({"cmd": request, "callback": 
+					config.cmdExecute({"cmd": request, "callback":
 						function() {
 							config.cmdExecute({"cmd": "/etc/init.d/dslam_sw update_cfg cos 3"});
 							updateFields(new Array("sys_dslam_cos_reg33", "sys_dslam_cos_reg34", "sys_dslam_cos_reg35",
-							"sys_dslam_cos_porta", "sys_dslam_cos_portb", 
+							"sys_dslam_cos_porta", "sys_dslam_cos_portb",
 							"sys_dslam_cos_portc", "sys_dslam_cos_portd"), false);
 						}
 					});
@@ -2150,7 +2150,7 @@ Controllers.dslamsw = function() {
 			});
 		}
 	});
-			
+
 	page.addTab({
 		"id": "bcast",
 		"name": "Broadcast storm control",
@@ -2158,7 +2158,7 @@ Controllers.dslamsw = function() {
 			var c, field;
 			c = page.addContainer("bcast");
 			c.addTitle("Broadcast strom control");
-			
+
 			field = {
 				"type" : "text",
 				"name" : "sys_dslam_bcast_threshold",
@@ -2206,12 +2206,12 @@ Controllers.dslamsw = function() {
 				"text" : "Port 4.2 (CPU)"
 			};
 			c.addWidget(field);
-			
+
 			var sw0_reg42=config.get("sys_dslam_sw0_reg42");
 			var sw1_reg42=config.get("sys_dslam_sw1_reg42");
 			var sw0_reg43=config.get("sys_dslam_sw0_reg43");
 			var sw1_reg43=config.get("sys_dslam_sw1_reg43");
-			
+
 			for (port = 0; port <= 26; port++) {
 				if (port <= 15) {
 					if ((sw0_reg42 >> port) & 1)
@@ -2232,7 +2232,7 @@ Controllers.dslamsw = function() {
 				        var sw0_reg42=0, sw0_reg43=0;
 				        var sw1_reg42=0, sw1_reg43=0;
 				        var request = "";
-					
+
 					for (port = 0; port <= 26; port++) {
 						if (port <= 15) {
 							if (document.getElementById($.sprintf("sys_dslam_bcast_sw0_p%s", port)))
@@ -2259,8 +2259,8 @@ Controllers.dslamsw = function() {
 					request += $.sprintf("kdb set sys_dslam_sw0_reg43=%s; ", sw0_reg43);
 					request += $.sprintf("kdb set sys_dslam_sw1_reg43=%s; ", sw1_reg43);
 					request += $.sprintf("kdb set sys_dslam_bcast_threshold=%s; ", $("#sys_dslam_bcast_threshold").val());
-					
-					config.cmdExecute({"cmd": request, "callback": 
+
+					config.cmdExecute({"cmd": request, "callback":
 						function() {
 							config.cmdExecute({"cmd": "/etc/init.d/dslam_sw update_cfg bcast"});
 							updateFields(new Array("sys_dslam_sw0_reg42", "sys_dslam_sw1_reg42", "sys_dslam_sw0_reg43",
@@ -2278,7 +2278,7 @@ Controllers.dslamsw = function() {
 		"func": function() {
 			var c0, c1, c, field;
 			c0 = page.addContainer("mirroring");
-			
+
 			c0.addTitle("Group0");
 			field = {
 				"type"    : "select",
@@ -2317,7 +2317,7 @@ Controllers.dslamsw = function() {
 				var port = config.get($.sprintf("sys_iface_%s_port", iface));
 				var sw_num = config.get($.sprintf("sys_iface_%s_sw", iface));
 				var sw_port = config.get($.sprintf("sys_iface_%s_sw_port", iface));
-				
+
 				if (sw_num == 0) {
 					c = c0;
 				} else {
@@ -2434,7 +2434,7 @@ Controllers.dslamsw = function() {
 					if (sw_num == 0) {
 						var tmp_str = new String(iface);
 						iface2 = tmp_str.substring(0, tmp_str.length - 1)+"/"+tmp_str.substring(tmp_str.length - 1);
-						if ((document.getElementById($.sprintf("source_%s", iface)).checked) && 
+						if ((document.getElementById($.sprintf("source_%s", iface)).checked) &&
 						     (document.getElementById($.sprintf("dest_%s", iface)).checked)) {
 						     	c0.setError("Port can be source or dest, but not both same time");
 						     	c0.showMsg();
@@ -2449,7 +2449,7 @@ Controllers.dslamsw = function() {
 						}
 					}
 				});
-				if ((document.getElementById("source_ge0").checked) && 
+				if ((document.getElementById("source_ge0").checked) &&
 				     (document.getElementById("dest_ge0").checked)) {
 				     	c0.setError("Port can be source or dest, but not both same time");
 				     	c0.showMsg();
@@ -2462,7 +2462,7 @@ Controllers.dslamsw = function() {
 				cmd = "kdb set sys_dslam_mirroring_group0_alg=" + document.getElementById("alg0").value +
 				      " : set sys_dslam_mirroring_group0_source=\"" + source_ifaces + "\" " +
 				      " : set sys_dslam_mirroring_group0_dest=\"" + dest_ifaces  + "\";" +
-				      " /etc/init.d/dslam_sw update_cfg mirroring"; 
+				      " /etc/init.d/dslam_sw update_cfg mirroring";
 				config.cmdExecute({"cmd" : cmd});
 			}
 			});
@@ -2478,7 +2478,7 @@ Controllers.dslamsw = function() {
 					if (sw_num == 1) {
 						var tmp_str = new String(iface);
 						iface2 = tmp_str.substring(0, tmp_str.length - 1)+"/"+tmp_str.substring(tmp_str.length - 1);
-						if ((document.getElementById($.sprintf("source_%s", iface)).checked) && 
+						if ((document.getElementById($.sprintf("source_%s", iface)).checked) &&
 						     (document.getElementById($.sprintf("dest_%s", iface)).checked)) {
 						     	c1.setError("Port can be source or dest, but not both same time");
 						     	c1.showMsg();
@@ -2493,7 +2493,7 @@ Controllers.dslamsw = function() {
 						}
 					}
 				});
-				if ((document.getElementById("source_ge1").checked) && 
+				if ((document.getElementById("source_ge1").checked) &&
 				     (document.getElementById("dest_ge1").checked)) {
 				     	c1.setError("Port can be source or dest, but not both same time");
 				     	c1.showMsg();
@@ -2506,7 +2506,7 @@ Controllers.dslamsw = function() {
 				cmd = "kdb set sys_dslam_mirroring_group1_alg=" + document.getElementById("alg1").value +
 				      " : set sys_dslam_mirroring_group1_source=\"" + source_ifaces + "\" " +
 				      " : set sys_dslam_mirroring_group1_dest=\"" + dest_ifaces  + "\";" +
-				      " /etc/init.d/dslam_sw update_cfg mirroring"; 
+				      " /etc/init.d/dslam_sw update_cfg mirroring";
 				config.cmdExecute({"cmd" : cmd});
 			}
 			});
@@ -2522,7 +2522,7 @@ Controllers.dslamsw = function() {
 			var group;
 
 			var ifaces = config.getParsed("sys_dslam_ifaces");
-			
+
 
 			for (group = 0; group <= 3; group++) {
 				ports[group] = new String(config.get("sys_dslam_link_aggregation_group"+group+"_ports"));
@@ -2622,12 +2622,12 @@ Controllers.dslamsw = function() {
 //					alert("group"+group+" ifaces: "+ifaces+" checked_ifaces: "+group_ifaces);
 					cmd = "kdb set sys_dslam_link_aggregation_sw0_algorithm=" + document.getElementById("alg0").value +
 					      " : set sys_dslam_link_aggregation_group"+group+"_ports=\"" + group_ifaces + "\"; " +
-					      " /etc/init.d/dslam_sw update_cfg link_aggregation"; 
+					      " /etc/init.d/dslam_sw update_cfg link_aggregation";
 					config.cmdExecute({"cmd" : cmd});
 					config.saveVals({field:{name:"sys_dslam_link_aggregation_group"+group+"_ports", value:group_ifaces}});
 				}});
 			}
-			
+
 		}
 	});
 
@@ -2714,7 +2714,7 @@ Controllers.dslamsw = function() {
 					"id": "mac_sec"
 				}
 				c.addWidget(field);
-				
+
 				var macs = "";
 				config.cmdExecute({
 					"cmd": "/etc/init.d/dslam_sw get_mac_table",
@@ -2745,7 +2745,7 @@ Controllers.dslamsw = function() {
 					"str" : "wait a sec..."
 				}
 				c.addWidget(field);
-				
+
 
 //				updateFields($.sprintf("sys_dslam_sw%s_vlan_%s_pvid", sw_num, sw_port), false);
 //				updateFields($.sprintf("sys_dslam_sw%s_vlan_%s_tag", sw_num, sw_port), false);
@@ -2755,7 +2755,7 @@ Controllers.dslamsw = function() {
 //				if (tag == null) tag = 0;
 //				$($.sprintf("#sys_dslam_sw%s_vlan_%s_pvid", sw_num, sw_port)).val(pvid);
 //				$($.sprintf("#sys_dslam_sw%s_vlan_%s_tag", sw_num, sw_port)).val(tag);
-		
+
 			}
 
 			addWidgets();
@@ -2775,7 +2775,7 @@ Controllers.dslamsw = function() {
 
 
 
-/*			
+/*
 			config.cmdExecute({
 				"cmd": "/etc/init.d/dslam_sw get_mac_table",
 				"dataType" : "json",
@@ -2837,11 +2837,11 @@ Controllers.dslamsw = function() {
 			var c, field, row;
 			c = page.addContainer("IGMP_snooping");
 			c.addTitle("IGMP snooping");
-			
+
 		}
 	});
 */
 	page.generateTabs();
-	
+
 }
 

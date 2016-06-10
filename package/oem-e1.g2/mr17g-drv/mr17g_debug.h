@@ -18,7 +18,7 @@
 #undef DEBUG_ON
 //#define DEBUG_ON
 
-#ifndef DEFAULT_LEV 
+#ifndef DEFAULT_LEV
 #	define DEFAULT_LEV 0
 #endif
 
@@ -49,4 +49,4 @@ extern int debug_link;
 extern int debug_error;
 extern int debug_sysfs;
 
-#endif		    
+#endif

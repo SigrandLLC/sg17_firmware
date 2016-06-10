@@ -4,7 +4,7 @@ config BR2_PACKAGE_DROPBEAR
 	default y
 	help
 	  A small SSH 2 server/client designed for small memory environments.
-	  
+
 	  http://matt.ucc.asn.au/dropbear/
 
 config BR2_PACKAGE_DBCONVERT

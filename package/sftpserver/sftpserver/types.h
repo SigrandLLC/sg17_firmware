@@ -36,7 +36,7 @@ struct sftpattr {
   uint8_t type;
   uint64_t size;
   uint64_t allocation_size;             /* v6+ */
-  uint32_t uid, gid;                    /* v3 */ 
+  uint32_t uid, gid;                    /* v3 */
   char *owner, *group;                  /* v4+ */
   uint32_t permissions;
   struct sftptime atime;
@@ -97,7 +97,7 @@ struct sftpprotocol {
   int version;                          /* protocol version number */
   uint32_t attrmask;                    /* known attr valid mask */
   uint32_t maxstatus;                   /* max known status */
-  void (*sendnames)(struct sftpjob *job, 
+  void (*sendnames)(struct sftpjob *job,
                     int nnames, const struct sftpattr *names);
   void (*sendattrs)(struct sftpjob *job, const struct sftpattr *filestat);
   uint32_t (*parseattrs)(struct sftpjob *job, struct sftpattr *filestat);

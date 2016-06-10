@@ -320,7 +320,7 @@ bandwidth_control_func() {
 					echo "-------------------------------------------"
 				fi
 			done
-			
+
 		else
 			tmp=`expr substr "$2" 1 4``expr substr "$2" 6 1`
 			if [ ! -d "/sys/class/net/$tmp/ms_private" ]; then
@@ -542,7 +542,7 @@ cos_tcp_show() {
 	done
 	echo ""
 	echo "---------------------------------------------------------------"
-	
+
 	echo "  4000 |  icq  |  MMCC |67 & 68|$reg2fh|$reg30h|$reg31h|$reg32h|"
 	for i in 0 `seq 7`; do
 		let "tmp=$reg35h & (3 << $(($i*2)))"
@@ -602,7 +602,7 @@ cos_func() {
 			reg3dh=`printf "%x" $reg3d`
 			echo "3D $reg3dh" > /proc/sys/net/dslam_sw/sw0/regwrite
 			echo "3D $reg3dh" > /proc/sys/net/dslam_sw/sw1/regwrite
-			
+
 			echo "kdb set sys_dslam_cos_mode=2"  >> $tmp_config_file
 			echo "kdb set sys_dslam_cos_low_priority_queue=$low"  >> $tmp_config_file
 			echo "kdb set sys_dslam_cos_high_priority_queue=$high"  >> $tmp_config_file
@@ -632,7 +632,7 @@ cos_func() {
 			else
 				flow_delay="off"
 			fi
-			
+
 			echo ""
 			echo "CoS sheduling algorithm is $alg"
 			echo "Flow delay is $flow_delay"
@@ -640,7 +640,7 @@ cos_func() {
 			echo "--------------------------------------"
 			echo "   Port | port_cos | vlan_cos | ip_cos"
 			echo "--------------------------------------"
-			
+
 			echo "22" > /proc/sys/net/dslam_sw/sw0/regread
 			sw0_port_cos=`cat /proc/sys/net/dslam_sw/sw0/regread`
 			sw0_port_cos=`expr substr "$sw0_port_cos" 6 6`
@@ -780,13 +780,13 @@ cos_func() {
 						ip_cos="off"
 					fi
 					echo " ${type_}${slot_}/${port_} |    $port_cos   |    $vlan_cos   |   $ip_cos "
-					
+
 				done
 				if [ "$se" = "0" ]; then
 					echo "--------------------------------------"
 				fi
 			done
-			
+
 			echo "CoS TCP settings"
 			cos_tcp_show
 		;;
@@ -800,7 +800,7 @@ cos_func() {
 					let "reg01h=$reg01h | 0x40"
 					reg01h=`printf "%x" $reg01h`
 					echo "01 $reg01h" > /proc/sys/net/dslam_sw/sw0/regwrite
-					
+
 					echo "01" > /proc/sys/net/dslam_sw/sw1/regread
 					reg01h=`cat /proc/sys/net/dslam_sw/sw1/regread`
 					reg01h=`expr substr "$reg01h" 6 6`
@@ -817,7 +817,7 @@ cos_func() {
 					let "reg01h=$reg01h & 0xffbf"
 					reg01h=`printf "%x" $reg01h`
 					echo "01 $reg01h" > /proc/sys/net/dslam_sw/sw0/regwrite
-					
+
 					echo "01" > /proc/sys/net/dslam_sw/sw1/regread
 					reg01h=`cat /proc/sys/net/dslam_sw/sw1/regread`
 					reg01h=`expr substr "$reg01h" 6 6`
@@ -878,7 +878,7 @@ cos_func() {
 			reg32h=`printf " %5i " $reg32h`
 
 #			echo "$$1 = [$1] reg2fh = [$reg2fh]"
-			
+
 			case "$1" in
 				add)
 					shift

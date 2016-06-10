@@ -78,7 +78,7 @@ $(INSTALL_DIR)/usr/sbin/pppoe: .stamp-built
 	$(MAKE) -C src \
 	  DESTDIR="$(INSTALL_DIR)" \
 	 install
-	
+
 
 configure: .stamp-configured
 
@@ -96,7 +96,7 @@ package: $(INSTALL_DIR)/usr/sbin/pppoe
 	mkdir -p $(I_PPPOE_SERVER)/usr/sbin
 	cp -fpR $(INSTALL_DIR)/usr/sbin/pppoe-server $(I_PPPOE_SERVER)/usr/sbin/
 	$(STRIP) $(I_PPPOE_SERVER)/usr/sbin/*
-	
+
 	mkdir -p $(I_PPPOE_RELAY)/usr/sbin
 	cp -fpR $(INSTALL_DIR)/usr/sbin/pppoe-relay $(I_PPPOE_RELAY)/usr/sbin/
 	$(STRIP) $(I_PPPOE_RELAY)/usr/sbin/*
@@ -111,7 +111,7 @@ package: $(INSTALL_DIR)/usr/sbin/pppoe
 	cp -fpR $(INSTALL_DIR)/usr/sbin/pppoe $(I_PPPOE_CLIENT)/usr/sbin/
 	$(STRIP) $(I_PPPOE_CLIENT)/usr/sbin/*
 	cp -fpR $(INSTALL_DIR)/usr/sbin/adsl-* $(I_PPPOE_CLIENT)/usr/sbin/
-	
+
 	chmod 0755 ipkg/*/etc/
 	chmod 0755 ipkg/*/etc/default/
 	chmod 0644 ipkg/*/etc/default/*
@@ -121,7 +121,7 @@ package: $(INSTALL_DIR)/usr/sbin/pppoe
 	chmod 0755 ipkg/*/CONTROL/
 	chmod 0644 ipkg/*/CONTROL/control
 	-chmod 0644 ipkg/*/CONTROL/conffiles
-	
+
 	perl -pi -e "s/^Arch.*:.*/Architecture: $(ARCH)/g" ipkg/*/CONTROL/control
 ifneq ($(strip $(PKG_VERSION)),)
 	perl -pi -e "s/^Vers.*:.*/Version: $(PKG_VERSION)/g" ipkg/*/CONTROL/control
@@ -137,7 +137,7 @@ clean:
 
 	-$(MAKE) -C src \
 	  clean
-	
+
 	rm -rf .stamp-* \
 	  $(INSTALL_DIR)/etc/pppoe.conf \
 	  $(INSTALL_DIR)/etc/ppp/pppoe-server-options \
@@ -165,6 +165,6 @@ control:
 	@echo
 	@cat $(I_PPPOE_CLIENT)/CONTROL/control
 	@echo
-	
+
 
 .PHONY: configure build install package clean control

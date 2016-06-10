@@ -36,7 +36,7 @@ str2slotmap(char *str,size_t size,int *err)
 	u32 fbit,lbit,ts=0;
 	int i;
 
-	PDEBUG(debug_net,"start");	
+	PDEBUG(debug_net,"start");
 	for (;;) {
 		fbit=lbit=simple_strtoul(s, &e, 10);
 		if (s == e)
@@ -57,7 +57,7 @@ str2slotmap(char *str,size_t size,int *err)
 		s=e;
 	}
 	PDEBUG(debug_net,"str=%08x, s=%08x,size=%d",(u32)str,(u32)s,size);
-	*err=0;	
+	*err=0;
 	if( s != str+(size-1) && s != str)
 		*err=1;
     return ts;
@@ -74,7 +74,7 @@ slotmap2str(u32 smap,struct mr17g_chan_config *cfg,char *buf)
 		if( !cfg->ts16 )
 			smap &= ~(1<<16);
 	}
-	
+
     while (i < 32) {
         while (!(((smap >> i) & 0x1)) && (i < 32)) i++;
         start = (i < 32) ? i : 31;
@@ -96,12 +96,12 @@ slotmap2str(u32 smap,struct mr17g_chan_config *cfg,char *buf)
 // Template
 /*
 static ssize_t
-show_(struct class_device *cdev, char *buf) 
-{                                                                       
+show_(struct class_device *cdev, char *buf)
+{
 }
 
 static ssize_t
-store_X( struct class_device *cdev,const char *buf, size_t size ) 
+store_X( struct class_device *cdev,const char *buf, size_t size )
 {
 }
 static CLASS_DEVICE_ATTR(,0644,show_X,store_X);
@@ -110,17 +110,17 @@ static CLASS_DEVICE_ATTR(,0644,show_X,store_X);
 
 //----------- Interface type -----------------------//
 static ssize_t
-show_muxonly(struct class_device *cdev, char *buf) 
-{                                                                       
+show_muxonly(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
-    
+
     if( ch->chip->type == MR17G_MUXONLY ){
     	return snprintf(buf,PAGE_SIZE,"1");
     }else{
     	return snprintf(buf,PAGE_SIZE,"0");
-    }    	
+    }
 }
 static CLASS_DEVICE_ATTR(muxonly,0444,show_muxonly,NULL);
 
@@ -130,8 +130,8 @@ static CLASS_DEVICE_ATTR(muxonly,0444,show_muxonly,NULL);
 
 // CRC sum settings
 static ssize_t
-show_crc16(struct class_device *cdev, char *buf) 
-{                                                                       
+show_crc16(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
@@ -140,11 +140,11 @@ show_crc16(struct class_device *cdev, char *buf)
 	if( cfg->crc16 )
 		return snprintf(buf,PAGE_SIZE,"crc16");
 	else
-		return snprintf(buf,PAGE_SIZE,"crc32");    
+		return snprintf(buf,PAGE_SIZE,"crc32");
 }
 
 static ssize_t
-store_crc16(struct class_device *cdev,const char *buf,size_t size) 
+store_crc16(struct class_device *cdev,const char *buf,size_t size)
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -152,20 +152,20 @@ store_crc16(struct class_device *cdev,const char *buf,size_t size)
     struct mr17g_chan_config *cfg = &ch->cfg;
 
 	if( !size )	return 0;
-    
+
 	if(buf[0] == '1' )
 		cfg->crc16=1;
 	else if( buf[0] == '0' )
 		cfg->crc16=0;
 	mr17g_transceiver_setup(ch);
-	return size;	
+	return size;
 }
 static CLASS_DEVICE_ATTR(crc16,0644,show_crc16,store_crc16);
 
 // Fill byte value
 static ssize_t
-show_fill_7e(struct class_device *cdev, char *buf) 
-{                                                                       
+show_fill_7e(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
@@ -174,11 +174,11 @@ show_fill_7e(struct class_device *cdev, char *buf)
 	if( cfg->fill_7e )
 		return snprintf(buf,PAGE_SIZE,"fill_7e");
 	else
-		return snprintf(buf,PAGE_SIZE,"fill_ff");    
+		return snprintf(buf,PAGE_SIZE,"fill_ff");
 }
 
 static ssize_t
-store_fill_7e( struct class_device *cdev,const char *buf, size_t size ) 
+store_fill_7e( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -186,20 +186,20 @@ store_fill_7e( struct class_device *cdev,const char *buf, size_t size )
     struct mr17g_chan_config *cfg = &ch->cfg;
 
 	if( !size )	return 0;
-	
+
 	if(buf[0] == '1' )
 		cfg->fill_7e=1;
 	else if( buf[0] == '0' )
 		cfg->fill_7e=0;
 	mr17g_transceiver_setup(ch);
-	return size;	
+	return size;
 }
 static CLASS_DEVICE_ATTR(fill_7e,0644,show_fill_7e,store_fill_7e);
 
 // Inversion control
 static ssize_t
-show_inv(struct class_device *cdev, char *buf) 
-{                                                                       
+show_inv(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
@@ -208,11 +208,11 @@ show_inv(struct class_device *cdev, char *buf)
 	if( cfg->inv )
 		return snprintf(buf,PAGE_SIZE,"inversion");
 	else
-		return snprintf(buf,PAGE_SIZE,"normal");    
+		return snprintf(buf,PAGE_SIZE,"normal");
 }
 
 static ssize_t
-store_inv( struct class_device *cdev,const char *buf, size_t size ) 
+store_inv( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -221,20 +221,20 @@ store_inv( struct class_device *cdev,const char *buf, size_t size )
 
 	if( !size )
 		return 0;
-    
+
 	if(buf[0] == '1' )
 		cfg->inv=1;
 	else if( buf[0] == '0' )
 		cfg->inv=0;
 	mr17g_transceiver_setup(ch);
-	return size;	
+	return size;
 }
 static CLASS_DEVICE_ATTR(inv,0644,show_inv,store_inv);
 
 // Read burst mode
 static ssize_t
 show_rburst(struct class_device *cdev,char *buf)
-{                                                                       
+{
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
@@ -243,7 +243,7 @@ show_rburst(struct class_device *cdev,char *buf)
 	if( cfg->rburst )
 		return snprintf(buf,PAGE_SIZE,"rbon");
 	else
-		return snprintf(buf,PAGE_SIZE,"rboff");    
+		return snprintf(buf,PAGE_SIZE,"rboff");
 }
 
 static ssize_t
@@ -261,14 +261,14 @@ store_rburst(struct class_device *cdev,const char *buf,size_t size)
 	else if( buf[0] == '0' )
 		cfg->rburst=0;
 	mr17g_transceiver_setup(ch);
-	return size;	
+	return size;
 }
 static CLASS_DEVICE_ATTR(rburst,0644,show_rburst,store_rburst);
 
 // Write burst mode
 static ssize_t
-show_wburst(struct class_device *cdev, char *buf) 
-{                                                                       
+show_wburst(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
@@ -277,11 +277,11 @@ show_wburst(struct class_device *cdev, char *buf)
 	if( cfg->wburst )
 		return snprintf(buf,PAGE_SIZE,"wbon");
 	else
-		return snprintf(buf,PAGE_SIZE,"wboff");    
+		return snprintf(buf,PAGE_SIZE,"wboff");
 }
 
 static ssize_t
-store_wburst( struct class_device *cdev,const char *buf, size_t size ) 
+store_wburst( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -295,7 +295,7 @@ store_wburst( struct class_device *cdev,const char *buf, size_t size )
 	else if( buf[0] == '0' )
 		cfg->wburst=0;
 	mr17g_transceiver_setup(ch);
-	return size;	
+	return size;
 }
 static CLASS_DEVICE_ATTR(wburst,0644,show_wburst,store_wburst);
 
@@ -303,7 +303,7 @@ static CLASS_DEVICE_ATTR(wburst,0644,show_wburst,store_wburst);
 
 // Slotmap
 static ssize_t
-show_slotmap(struct class_device *cdev, char *buf) 
+show_slotmap(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -313,15 +313,15 @@ show_slotmap(struct class_device *cdev, char *buf)
 
 	if( cfg->framed )
 		return slotmap2str(cfg->slotmap,cfg,buf);
-	// in unframed mode multiplexing is overlap hdlc	
-	if( regs->MXCR & MXEN ) 
+	// in unframed mode multiplexing is overlap hdlc
+	if( regs->MXCR & MXEN )
 		return slotmap2str(0,cfg,buf);
 	return slotmap2str(0xffffffff,cfg,buf);
 }
 
 
 static ssize_t
-store_slotmap( struct class_device *cdev,const char *buf, size_t size ) 
+store_slotmap( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -331,33 +331,33 @@ store_slotmap( struct class_device *cdev,const char *buf, size_t size )
 	int err;
 	char *str;
 
-	PDEBUG(debug_sysfs,"start");	
+	PDEBUG(debug_sysfs,"start");
 
 	if( !size )
 		return size;
 
 	str=(char *)(buf+(size-1));
 	*str=0;
-	str=(char *)buf;	
-	PDEBUG(debug_sysfs,"call str2slotmap");	
+	str=(char *)buf;
+	PDEBUG(debug_sysfs,"call str2slotmap");
 	ts=str2slotmap(str,size,&err);
-	PDEBUG(debug_sysfs,"str2slotmap completed");		
+	PDEBUG(debug_sysfs,"str2slotmap completed");
 	if( err ){
 		printk(KERN_ERR MR17G_DRVNAME": error in timeslot string (%s)\n",buf);
 		return size;
 	}
 	cfg->slotmap=ts;
-	mr17g_transceiver_setup(ch);		
+	mr17g_transceiver_setup(ch);
     pef22554_channel(ch);
 	return size;
 }
 static CLASS_DEVICE_ATTR(slotmap,0644,show_slotmap,store_slotmap);
 
 
-// framed/unframed mode 
+// framed/unframed mode
 static ssize_t
-show_framed(struct class_device *cdev, char *buf) 
-{                                                                       
+show_framed(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
@@ -366,11 +366,11 @@ show_framed(struct class_device *cdev, char *buf)
 	if( cfg->framed )
 		return snprintf(buf,PAGE_SIZE,"framed");
 	else
-		return snprintf(buf,PAGE_SIZE,"unframed"); 
+		return snprintf(buf,PAGE_SIZE,"unframed");
 }
 
 static ssize_t
-store_framed( struct class_device *cdev,const char *buf, size_t size ) 
+store_framed( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -382,18 +382,18 @@ store_framed( struct class_device *cdev,const char *buf, size_t size )
 			cfg->framed=0;
 		else if( buf[0]=='1' )
 			cfg->framed=1;
-		else 
+		else
 			return size;
-		mr17g_transceiver_setup(ch);		
+		mr17g_transceiver_setup(ch);
         pef22554_channel(ch);
-	}    
+	}
 	return size;
 }
 static CLASS_DEVICE_ATTR(framed,0644,show_framed,store_framed);
 
 static ssize_t
-show_map_ts16(struct class_device *cdev, char *buf) 
-{                                                                       
+show_map_ts16(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
@@ -402,11 +402,11 @@ show_map_ts16(struct class_device *cdev, char *buf)
 	if( cfg->ts16 )
 		return snprintf(buf,PAGE_SIZE,"mapped");
 	else
-		return snprintf(buf,PAGE_SIZE,"not mapped"); 
+		return snprintf(buf,PAGE_SIZE,"not mapped");
 }
 
 static ssize_t
-store_map_ts16(struct class_device *cdev,const char *buf, size_t size ) 
+store_map_ts16(struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -429,10 +429,10 @@ store_map_ts16(struct class_device *cdev,const char *buf, size_t size )
 static CLASS_DEVICE_ATTR(map_ts16,0644,show_map_ts16,store_map_ts16);
 
 
-// internal/external clock 
+// internal/external clock
 static ssize_t
-show_clck(struct class_device *cdev, char *buf) 
-{                                                                       
+show_clck(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
@@ -441,11 +441,11 @@ show_clck(struct class_device *cdev, char *buf)
 	if( !cfg->ext_clck )
 		return snprintf(buf,PAGE_SIZE,"internal");
 	else
-		return snprintf(buf,PAGE_SIZE,"external"); 
+		return snprintf(buf,PAGE_SIZE,"external");
 }
 
 static ssize_t
-store_clck( struct class_device *cdev,const char *buf, size_t size ) 
+store_clck( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -463,15 +463,15 @@ store_clck( struct class_device *cdev,const char *buf, size_t size )
 		return size;
 	mr17g_transceiver_setup(ch);
     pef22554_channel(ch);
-    
+
 	return size;
 }
 static CLASS_DEVICE_ATTR(clck,0644,show_clck,store_clck);
 
 // Long haul mode
 static ssize_t
-show_lhaul(struct class_device *cdev, char *buf) 
-{                                                                       
+show_lhaul(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
@@ -480,11 +480,11 @@ show_lhaul(struct class_device *cdev, char *buf)
 	if( cfg->long_haul )
 		return snprintf(buf,PAGE_SIZE,"on");
 	else
-		return snprintf(buf,PAGE_SIZE,"off"); 
+		return snprintf(buf,PAGE_SIZE,"off");
 }
 
 static ssize_t
-store_lhaul(struct class_device *cdev,const char *buf, size_t size ) 
+store_lhaul(struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -493,14 +493,14 @@ store_lhaul(struct class_device *cdev,const char *buf, size_t size )
 
 	if( !(size > 0) )
 		return size;
-	
+
 	if( buf[0]=='0' )
 		cfg->long_haul=0;
 	else if( buf[0]=='1' )
 		cfg->long_haul=1;
 	else
 		return size;
-	mr17g_transceiver_setup(ch);		
+	mr17g_transceiver_setup(ch);
     pef22554_channel(ch);
 
 	return size;
@@ -509,8 +509,8 @@ static CLASS_DEVICE_ATTR(long_haul,0644,show_lhaul,store_lhaul);
 
 // HDB3 mode
 static ssize_t
-show_hdb3(struct class_device *cdev, char *buf) 
-{                                                                       
+show_hdb3(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
@@ -519,11 +519,11 @@ show_hdb3(struct class_device *cdev, char *buf)
 	if( cfg->hdb3 )
 		return snprintf(buf,PAGE_SIZE,"on");
 	else
-		return snprintf(buf,PAGE_SIZE,"off"); 
+		return snprintf(buf,PAGE_SIZE,"off");
 }
 
 static ssize_t
-store_hdb3( struct class_device *cdev,const char *buf, size_t size ) 
+store_hdb3( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -532,24 +532,24 @@ store_hdb3( struct class_device *cdev,const char *buf, size_t size )
 
 	if( !(size > 0) )
 		return size;
-	
+
 	if( buf[0]=='0' )
 		cfg->hdb3=0;
 	else if( buf[0]=='1' )
         cfg->hdb3=1;
 	else
 		return size;
-	mr17g_transceiver_setup(ch);		
+	mr17g_transceiver_setup(ch);
     pef22554_channel(ch);
-    
+
 	return size;
 }
 static CLASS_DEVICE_ATTR(hdb3,0644,show_hdb3,store_hdb3);
 
 // CRC4 mode
 static ssize_t
-show_crc4(struct class_device *cdev, char *buf) 
-{                                                                       
+show_crc4(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
@@ -558,11 +558,11 @@ show_crc4(struct class_device *cdev, char *buf)
 	if( cfg->crc4 )
 		return snprintf(buf,PAGE_SIZE,"on");
 	else
-		return snprintf(buf,PAGE_SIZE,"off"); 
+		return snprintf(buf,PAGE_SIZE,"off");
 }
 
 static ssize_t
-store_crc4( struct class_device *cdev,const char *buf, size_t size ) 
+store_crc4( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -578,7 +578,7 @@ store_crc4( struct class_device *cdev,const char *buf, size_t size )
         cfg->crc4=1;
 	else
 		return size;
-	mr17g_transceiver_setup(ch);		
+	mr17g_transceiver_setup(ch);
     pef22554_channel(ch);
 
 	return size;
@@ -587,8 +587,8 @@ static CLASS_DEVICE_ATTR(crc4,0644,show_crc4,store_crc4);
 
 // CAS mode
 static ssize_t
-show_cas(struct class_device *cdev, char *buf) 
-{                                                                       
+show_cas(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
@@ -597,11 +597,11 @@ show_cas(struct class_device *cdev, char *buf)
 	if( cfg->cas )
 		return snprintf(buf,PAGE_SIZE,"on");
 	else
-		return snprintf(buf,PAGE_SIZE,"off"); 
+		return snprintf(buf,PAGE_SIZE,"off");
 }
 
 static ssize_t
-store_cas( struct class_device *cdev,const char *buf, size_t size ) 
+store_cas( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -610,16 +610,16 @@ store_cas( struct class_device *cdev,const char *buf, size_t size )
 
 	if( !(size > 0) )
 		return size;
-	
+
 	if( buf[0]=='0' )
 		cfg->cas=0;
 	else if( buf[0]=='1' )
 		cfg->cas=1;
 	else
 		return size;
-	mr17g_transceiver_setup(ch);		
+	mr17g_transceiver_setup(ch);
     pef22554_channel(ch);
-	    
+
 	return size;
 }
 static CLASS_DEVICE_ATTR(cas,0644,show_cas,store_cas);
@@ -628,7 +628,7 @@ static CLASS_DEVICE_ATTR(cas,0644,show_cas,store_cas);
 
 // Remote loopback
 static ssize_t
-show_rloopback(struct class_device *cdev, char *buf) 
+show_rloopback(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -639,7 +639,7 @@ show_rloopback(struct class_device *cdev, char *buf)
 }
 
 static ssize_t
-store_rloopback( struct class_device *cdev,const char *buf, size_t size ) 
+store_rloopback( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -648,7 +648,7 @@ store_rloopback( struct class_device *cdev,const char *buf, size_t size )
 
 	if( !(size > 0) )
 		return size;
-	
+
 	if( buf[0]=='0' ){
 		printk(KERN_NOTICE"%s: Remote Loopback disabled\n",ndev->name);
 		cfg->rlpb=0;
@@ -657,17 +657,17 @@ store_rloopback( struct class_device *cdev,const char *buf, size_t size )
 		cfg->rlpb=1;
 	}else
 		return size;
-	pef22554_loopbacks(ch);		
-//	mr17g_transceiver_setup(ch);		
+	pef22554_loopbacks(ch);
+//	mr17g_transceiver_setup(ch);
 //  pef22554_channel(ch);
-	    
+
 	return size;
 }
 static CLASS_DEVICE_ATTR(rlpb,0644,show_rloopback,store_rloopback);
 
 // Local loopback
 static ssize_t
-show_lloopback(struct class_device *cdev, char *buf) 
+show_lloopback(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -678,7 +678,7 @@ show_lloopback(struct class_device *cdev, char *buf)
 }
 
 static ssize_t
-store_lloopback( struct class_device *cdev,const char *buf, size_t size ) 
+store_lloopback( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -687,7 +687,7 @@ store_lloopback( struct class_device *cdev,const char *buf, size_t size )
 
 	if( !(size > 0) )
 		return size;
-	
+
 	if( buf[0]=='0' ){
 		cfg->llpb=0;
 		printk(KERN_NOTICE"%s: Local Loopback disabled\n",ndev->name);
@@ -698,10 +698,10 @@ store_lloopback( struct class_device *cdev,const char *buf, size_t size )
 	}else
 		return size;
 
-	pef22554_loopbacks(ch);		
-//	mr17g_transceiver_setup(ch);		
+	pef22554_loopbacks(ch);
+//	mr17g_transceiver_setup(ch);
 //    pef22554_channel(ch);
-	    
+
 	return size;
 }
 static CLASS_DEVICE_ATTR(llpb,0644,show_lloopback,store_lloopback);
@@ -737,7 +737,7 @@ store_mx_slotmap(struct class_device *cdev,const char *buf,size_t size)
 	int err;
 	char *str;
 
-	PDEBUG(debug_sysfs,"start, buf=%s",buf);	
+	PDEBUG(debug_sysfs,"start, buf=%s",buf);
 
 	if( !size )
 		return size;
@@ -747,34 +747,34 @@ store_mx_slotmap(struct class_device *cdev,const char *buf,size_t size)
 	str=(char *)buf;
 	PDEBUG(debug_sysfs,"call str2slotmap for (%s)",str);
 	ts=str2slotmap(str,size,&err);
-	PDEBUG(debug_sysfs,"str2slotmap completed, ts=%08x",ts);	
+	PDEBUG(debug_sysfs,"str2slotmap completed, ts=%08x",ts);
 	if( err ){
 		printk(KERN_NOTICE MR17G_DRVNAME": error in timeslot string (%s)\n",buf);
 		return size;
 	}
-	
-	cfg->mxslotmap = ts;	
-	mr17g_transceiver_setup(ch);		
+
+	cfg->mxslotmap = ts;
+	mr17g_transceiver_setup(ch);
     pef22554_channel(ch);
-	
+
 	return size;
 }
 static CLASS_DEVICE_ATTR(mx_slotmap,0644,show_mx_slotmap,store_mx_slotmap);
 
 // TFS rgister
 static ssize_t
-show_mx_txstart(struct class_device *cdev, char *buf) 
+show_mx_txstart(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
     volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
-	
+
 	return snprintf(buf,PAGE_SIZE,"%d",ioread8(&regs->TFS));
 }
 
 static ssize_t
-store_mx_txstart( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_txstart( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -787,9 +787,9 @@ store_mx_txstart( struct class_device *cdev,const char *buf, size_t size )
 	if( !size)
 		return size;
 	tmp=simple_strtoul( buf,&endp,0);
-	
+
 	if( tmp>255 )
-		return size;		
+		return size;
 	iowrite8(tmp,&regs->TFS);
 	return size;
 }
@@ -797,7 +797,7 @@ static CLASS_DEVICE_ATTR(mx_txstart,0644,show_mx_txstart,store_mx_txstart);
 
 // RFS rgister
 static ssize_t
-show_mx_rxstart(struct class_device *cdev, char *buf) 
+show_mx_rxstart(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -808,7 +808,7 @@ show_mx_rxstart(struct class_device *cdev, char *buf)
 }
 
 static ssize_t
-store_mx_rxstart( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_rxstart( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -830,18 +830,18 @@ static CLASS_DEVICE_ATTR(mx_rxstart,0644,show_mx_rxstart,store_mx_rxstart);
 
 // TLINE rgister
 static ssize_t
-show_mx_tline(struct class_device *cdev, char *buf) 
+show_mx_tline(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
     volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
-	
+
 	return snprintf(buf,PAGE_SIZE,"%d",ioread8(&regs->TLINE));
 }
 
 static ssize_t
-store_mx_tline( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_tline( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -863,7 +863,7 @@ static CLASS_DEVICE_ATTR(mx_tline,0644,show_mx_tline,store_mx_tline);
 
 // RLINE rgister
 static ssize_t
-show_mx_rline(struct class_device *cdev, char *buf) 
+show_mx_rline(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -874,7 +874,7 @@ show_mx_rline(struct class_device *cdev, char *buf)
 }
 
 static ssize_t
-store_mx_rline( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_rline( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -885,7 +885,7 @@ store_mx_rline( struct class_device *cdev,const char *buf, size_t size )
 
 	// check parameters
 	if( !size) return size;
-	
+
 	tmp=simple_strtoul( buf,&endp,0);
 	if( tmp>15 )
 		return size;
@@ -898,18 +898,18 @@ static CLASS_DEVICE_ATTR(mx_rline,0644,show_mx_rline,store_mx_rline);
 
 // MX enable
 static ssize_t
-show_mx_enable(struct class_device *cdev, char *buf) 
+show_mx_enable(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
     volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
-	
+
 	return snprintf(buf,PAGE_SIZE,"%s",(ioread8(&regs->MXCR) & MXEN) ? "1" : "0");
 }
 
 static ssize_t
-store_mx_enable( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_enable( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -918,7 +918,7 @@ store_mx_enable( struct class_device *cdev,const char *buf, size_t size )
 
 	// check parameters
 	if( !size) return size;
-	
+
 	switch( buf[0] ){
 	case '0':
 		iowrite8(ioread8(&regs->MXCR)&(~MXEN),&regs->MXCR);
@@ -929,8 +929,8 @@ store_mx_enable( struct class_device *cdev,const char *buf, size_t size )
 	default:
 		break;
 	}
-	
-	mr17g_transceiver_setup(ch);		
+
+	mr17g_transceiver_setup(ch);
     pef22554_channel(ch);
 
 	return size;
@@ -939,18 +939,18 @@ static CLASS_DEVICE_ATTR(mx_enable,0644,show_mx_enable,store_mx_enable);
 
 // CLKM
 static ssize_t
-show_mx_clkm(struct class_device *cdev, char *buf) 
+show_mx_clkm(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
     volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
-	
+
 	return snprintf(buf,PAGE_SIZE,"%s",(ioread8(&regs->MXCR)&CLKM) ? "1" : "0");
 }
 
 static ssize_t
-store_mx_clkm( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_clkm( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -959,7 +959,7 @@ store_mx_clkm( struct class_device *cdev,const char *buf, size_t size )
 
 	// check parameters
 	if( !size) return size;
-	
+
 	switch( buf[0] ){
 	case '0':
 		iowrite8(ioread8(&regs->MXCR)&(~CLKM),&regs->MXCR);
@@ -971,7 +971,7 @@ store_mx_clkm( struct class_device *cdev,const char *buf, size_t size )
 		break;
 	}
 
-	mr17g_transceiver_setup(ch);		
+	mr17g_transceiver_setup(ch);
     pef22554_channel(ch);
 	return size;
 }
@@ -979,18 +979,18 @@ static CLASS_DEVICE_ATTR(mx_clkm,0644,show_mx_clkm,store_mx_clkm);
 
 // CLKAB
 static ssize_t
-show_mx_clkab(struct class_device *cdev, char *buf) 
+show_mx_clkab(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
     volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
-	
+
 	return snprintf(buf,PAGE_SIZE,"%s",(ioread8(&regs->MXCR)&CLKAB) ? "1" : "0");
 }
 
 static ssize_t
-store_mx_clkab( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_clkab( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -999,7 +999,7 @@ store_mx_clkab( struct class_device *cdev,const char *buf, size_t size )
 
 	// check parameters
 	if( !size) return size;
-	
+
 	switch( buf[0] ){
 	case '0':
 		iowrite8(ioread8(&regs->MXCR)&(~CLKAB),&regs->MXCR);
@@ -1010,7 +1010,7 @@ store_mx_clkab( struct class_device *cdev,const char *buf, size_t size )
 	default:
 		break;
 	}
-	mr17g_transceiver_setup(ch);		
+	mr17g_transceiver_setup(ch);
     pef22554_channel(ch);
 	return size;
 }
@@ -1018,18 +1018,18 @@ static CLASS_DEVICE_ATTR(mx_clkab,0644,show_mx_clkab,store_mx_clkab);
 
 // CLKR
 static ssize_t
-show_mx_clkr(struct class_device *cdev, char *buf) 
+show_mx_clkr(struct class_device *cdev, char *buf)
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
     volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
-	
+
 	return snprintf(buf,PAGE_SIZE,"%s",(ioread8(&regs->MXCR)&CLKR) ? "1" : "0");
 }
 
 static ssize_t
-store_mx_clkr( struct class_device *cdev,const char *buf, size_t size ) 
+store_mx_clkr( struct class_device *cdev,const char *buf, size_t size )
 {
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
@@ -1050,7 +1050,7 @@ store_mx_clkr( struct class_device *cdev,const char *buf, size_t size )
 		break;
 	}
 
-	mr17g_transceiver_setup(ch);		
+	mr17g_transceiver_setup(ch);
     pef22554_channel(ch);
 	return size;
 }
@@ -1061,9 +1061,9 @@ static CLASS_DEVICE_ATTR(mx_clkr,0644,show_mx_clkr,store_mx_clkr);
 #ifdef DEBUG_SYSFS
 
 // HDLC registers
-static ssize_t 
-show_hdlc_regs(struct class_device *cdev, char *buf) 
-{                                                                       
+static ssize_t
+show_hdlc_regs(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
@@ -1097,13 +1097,13 @@ static CLASS_DEVICE_ATTR(hdlc_regs,0444,show_hdlc_regs,NULL);
 // PEF22554 registers
 u16 REG_ADDR = 0;
 static ssize_t
-show_readreg(struct class_device *cdev, char *buf) 
-{                                                                       
+show_readreg(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
     struct mr17g_chip *chip = ch->chip;
-    
+
     u8 tmp = 0;
     if( pef22554_readreg(chip,ch->num,REG_ADDR,&tmp) ){
         PDEBUG(debug_net,"Error, reading register %04x",REG_ADDR);
@@ -1148,11 +1148,11 @@ store_writereg(struct class_device *cdev,const char *buf,size_t size)
 static CLASS_DEVICE_ATTR(chip_writereg,0200,NULL,store_writereg);
 
 
-// Memory window debug 
+// Memory window debug
 static u32 win_start=0,win_count=0;
 static ssize_t
-show_winread(struct class_device *cdev, char *buf) 
-{                               
+show_winread(struct class_device *cdev, char *buf)
+{
 	struct net_device *ndev = to_net_dev(cdev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
@@ -1178,7 +1178,7 @@ store_winread(struct class_device *cdev,const char *buf,size_t size )
     int iomem_size;
 
 	if( !size ) return 0;
-	
+
     switch( chip->type ){
     case MR17G_STANDARD:
 		iomem_size = 4*MR17G_CHAN1_SIZE;
@@ -1195,12 +1195,12 @@ store_winread(struct class_device *cdev,const char *buf,size_t size )
 	}
 
 	win_start = simple_strtoul(buf,&endp,16);
-	PDEBUG(0,"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);	
+	PDEBUG(0,"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);
 	while( *endp == ' '){
 		endp++;
 	}
 	win_count = simple_strtoul(endp,&endp,16);
-	PDEBUG(0,"buf=%p, endp=%p",buf,endp);		
+	PDEBUG(0,"buf=%p, endp=%p",buf,endp);
 	PDEBUG(0,"Set start=%d,count=%d",win_start,win_count);
 	if( !win_count )
 		win_count = 1;
@@ -1212,7 +1212,7 @@ store_winread(struct class_device *cdev,const char *buf,size_t size )
 			win_count = 1;
 		}
 	}
-	PDEBUG(0,"Set start=%d,count=%d",win_start,win_count);	
+	PDEBUG(0,"Set start=%d,count=%d",win_start,win_count);
 	return size;
 }
 static CLASS_DEVICE_ATTR(winread,0644,show_winread,store_winread);
@@ -1220,8 +1220,8 @@ static CLASS_DEVICE_ATTR(winread,0644,show_winread,store_winread);
 
 static u32 win_written = 0;
 static ssize_t
-show_winwrite(struct class_device *cdev, char *buf) 
-{                               
+show_winwrite(struct class_device *cdev, char *buf)
+{
 	return sprintf(buf,"Byte %x is written",win_written);
 }
 
@@ -1252,12 +1252,12 @@ store_winwrite(struct class_device *cdev,const char *buf,size_t size)
 	}
 
 	start = simple_strtoul(buf,&endp,16);
-	PDEBUG(0,"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);	
+	PDEBUG(0,"buf=%p, endp=%p,*endp=%c",buf,endp,*endp);
 	while( *endp == ' '){
 		endp++;
 	}
 	val = simple_strtoul(endp,&endp,16);
-	PDEBUG(0,"buf=%p, endp=%p",buf,endp);		
+	PDEBUG(0,"buf=%p, endp=%p",buf,endp);
 	PDEBUG(0,"Set start=%d,val=%d",start,val);
 	if( start > (iomem_size - 1) ){
 		start = 0;
@@ -1357,7 +1357,7 @@ static struct attribute_group sg17_mx_group = {
 int
 mr17g_netsysfs_register(struct net_device *ndev)
 {
-	struct class_device *class_dev = &(ndev->class_dev);	
+	struct class_device *class_dev = &(ndev->class_dev);
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
 	static char fname[10] = "device";
@@ -1370,7 +1370,7 @@ mr17g_netsysfs_register(struct net_device *ndev)
 
 void
 mr17g_netsysfs_remove(struct net_device *ndev){
-	struct class_device *class_dev = &(ndev->class_dev);	
+	struct class_device *class_dev = &(ndev->class_dev);
 	sysfs_remove_group(&class_dev->kobj, &mr17g_group);
 	sysfs_remove_group(&class_dev->kobj, &sg17_mx_group);
     sysfs_remove_link(&(class_dev->kobj),"device");

@@ -13,9 +13,9 @@
 enum action_e {action_PUT, action_GET};
 enum ch_e {ch_FXS, ch_FXO};
 enum ch_state_e {
-	ch_state_NOT_PROCESSED, 
-	ch_state_HAVE_NO_PAIR, 
-	ch_state_HAVE_PAIR, 
+	ch_state_NOT_PROCESSED,
+	ch_state_HAVE_NO_PAIR,
+	ch_state_HAVE_PAIR,
 };
 
 struct ch_status_s {
@@ -47,7 +47,7 @@ events_clean(ab_chan_t const * const chan)
 }/*}}}*/
 
 int
-make_a_couple(ab_chan_t const * const chan_fxs, 
+make_a_couple(ab_chan_t const * const chan_fxs,
 		ab_chan_t const * const chan_fxo)
 {/*{{{*/
 	struct ch_status_s * const fxs_sts = (struct ch_status_s *)chan_fxs->ctx;
@@ -57,7 +57,7 @@ make_a_couple(ab_chan_t const * const chan_fxs,
 
 	int cross_couples = 0;
 	/* processed chans never been processed before */
-	int new_couple = 
+	int new_couple =
 			(fxs_s == ch_state_NOT_PROCESSED) &&
 			(fxo_s == ch_state_NOT_PROCESSED);
 	/* one of processed chans already have
@@ -149,7 +149,7 @@ linefeed_keeper( ab_t * ab, enum action_e action )
 void
 digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS, int const pulseDial)
 {/*{{{*/
-	/* play all digits in tone/pulse mode and find channel that detects it... 
+	/* play all digits in tone/pulse mode and find channel that detects it...
 	 * if other event on another chan - error */
 	ab_t * ab = cFXO->parent->parent;
 	ab_dev_event_t evt;
@@ -175,7 +175,7 @@ digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS, int const pulseDial
 			fprintf(stderr,"!ERROR: dial a '%c' on FXO[%d]\n",
 					to_dial [dial_idx], cFXO->abs_idx);
 			return;
-		} 
+		}
 
 		usleep (WAIT_INTERVAL);
 		if(pulseDial){
@@ -227,7 +227,7 @@ digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS, int const pulseDial
 			}
 			if( g_verbose){
 				fprintf(stdout,"FXS[%d] <<==<< %s '%c' << FXO[%d]\n",
-						ab->chans[chan_idx].abs_idx, 
+						ab->chans[chan_idx].abs_idx,
 						pulseDial ? "pulse" : "tone",
 						to_dial [dial_idx],
 						cFXO->abs_idx);
@@ -241,7 +241,7 @@ digits_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS, int const pulseDial
 					to_dial [dial_idx],
 					cFXO->abs_idx);
 		}
-	} 
+	}
 }/*}}}*/
 
 void
@@ -270,7 +270,7 @@ fax_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS)
 			fprintf(stderr,"!ERROR: play a '%c' on FXS[%d]\n",
 					to_dial [dial_idx], cFXS->abs_idx);
 			return;
-		} 
+		}
 
 		usleep (WAIT_INTERVAL);
 		usleep (WAIT_INTERVAL);
@@ -303,8 +303,8 @@ fax_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS)
 
 			error_get =
 				/* this is TONE event on not generator chan (not FXS)*/
-				((evt.id == ab_dev_event_TONE) && 
-				 (ab->chans[chan_idx].abs_idx != cFXS->abs_idx)) 
+				((evt.id == ab_dev_event_TONE) &&
+				 (ab->chans[chan_idx].abs_idx != cFXS->abs_idx))
 				||
 				/* this is CED event on unexpected chan */
 				((evt.id == ab_dev_event_FM_CED) &&
@@ -318,7 +318,7 @@ fax_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS)
 				fprintf(stderr,"!ERROR: event[%d:0x%lX] on [%d]\n",
 						evt.id, evt.data, ab->chans[chan_idx].abs_idx);
 				return;
-			} 
+			}
 			if(evt.more){
 				/* additional events on correct chan */
 				fprintf(stderr,"!ERROR: addit. events while diled '%c' to [%d]\n",
@@ -340,7 +340,7 @@ fax_test (ab_chan_t * const cFXO, ab_chan_t * const cFXS)
 			fprintf(stderr,"!ERROR FXO[%d] <<=|=<< CED/CEDEND << FXS[%d]\n",
 					cFXO->abs_idx, cFXS->abs_idx);
 		}
-	} 
+	}
 }/*}}}*/
 
 void
@@ -375,7 +375,7 @@ process_FXS(ab_chan_t * const chan)
 
 	usleep (WAIT_INTERVAL);
 
-	/* test all devices on event get to find a couple (it can exists) {{{*/ 
+	/* test all devices on event get to find a couple (it can exists) {{{*/
 	j=ab->devs_num;
 	for (i=0; i<j; i++){
 		ab_dev_t * cur_dev = &ab->devs[i];
@@ -409,7 +409,7 @@ process_FXS(ab_chan_t * const chan)
 			if(err){
 				/* cross_couples find */
 				return;
-			} 
+			}
 			couple_has_been_found = 1;
 
 			/* parse other events on this device */
@@ -448,7 +448,7 @@ process_FXS(ab_chan_t * const chan)
 	if( !couple_has_been_found){
 		struct ch_status_s * const sts = (struct ch_status_s * )chan->ctx;
 		if(sts->chan_state == ch_state_HAVE_PAIR){
-			fprintf(stdout,"!ERROR FXO[%d] <<=|=<< RING FXS[%d]\n", 
+			fprintf(stdout,"!ERROR FXO[%d] <<=|=<< RING FXS[%d]\n",
 					sts->pair_idx, chan->abs_idx);
 		} else {
 			fprintf(stdout,"!ATT no couple found for FXS[%d]\n", chan->abs_idx);
@@ -519,7 +519,7 @@ process_FXO(ab_chan_t * const chan)
 			if(err){
 			 /* channels in differ couples */
 				return;
-			} 
+			}
 			couple_has_been_found = 1;
 
 			/* parse other events on this device */
@@ -531,7 +531,7 @@ process_FXO(ab_chan_t * const chan)
 					return;
 				}
 				chan_idx = i * ab->chans_per_dev + evt.ch;
-				
+
 				/* event on unexpected channel */
 				if(evt.ch != ch){
 					fprintf(stderr,"!ERROR Wrong event [%d/0x%lX] on "
@@ -557,9 +557,9 @@ process_FXO(ab_chan_t * const chan)
 	if( !couple_has_been_found){
 		struct ch_status_s * const sts = (struct ch_status_s * )chan->ctx;
 		if(sts->chan_state == ch_state_HAVE_PAIR){
-			fprintf(stdout,"!ERROR FXS[%d] <<=|=<< OFFHOOK FXO[%d]\n", 
+			fprintf(stdout,"!ERROR FXS[%d] <<=|=<< OFFHOOK FXO[%d]\n",
 					sts->pair_idx, chan->abs_idx);
-			fprintf(stdout,"!=>!ATT SKIP digits test on FXS[%d] and FXO[%d]\n", 
+			fprintf(stdout,"!=>!ATT SKIP digits test on FXS[%d] and FXO[%d]\n",
 					sts->pair_idx, chan->abs_idx);
 		} else {
 			fprintf(stdout,"!ATT no couple found for FXO[%d]\n", chan->abs_idx);
@@ -579,7 +579,7 @@ process_FXO(ab_chan_t * const chan)
 					return;
 				}
 			}
-		} 
+		}
 
 		/* play digits and test events on couple chan */
 		digits_test(chan, &ab->chans[couple_idx], 0);
@@ -618,7 +618,7 @@ process_FXO(ab_chan_t * const chan)
 					ab->chans[couple_idx].abs_idx,ab_g_err_str);
 			return;
 		}
-		chan_idx = (ab->chans[couple_idx].parent->idx - 1) * 
+		chan_idx = (ab->chans[couple_idx].parent->idx - 1) *
 				ab->chans_per_dev + evt.ch;
 
 		if((chan_idx != couple_idx) || (evt.id != ab_dev_event_FXS_ONHOOK)){
@@ -637,7 +637,7 @@ process_FXO(ab_chan_t * const chan)
 	}/*}}}*/
 }/*}}}*/
 
-int 
+int
 main (int argc, char *argv[])
 {/*{{{*/
 	ab_t * ab;

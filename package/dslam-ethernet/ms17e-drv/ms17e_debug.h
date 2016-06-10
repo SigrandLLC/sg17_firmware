@@ -4,7 +4,7 @@
 #define DEBUG_ON
 //#undef DEBUG_ON
 
-#ifndef DEFAULT_LEV 
+#ifndef DEFAULT_LEV
 #	define DEFAULT_LEV 0
 #endif
 

@@ -1,5 +1,5 @@
 /****************************************************************************
-                  Copyright © 2007  SIGRAND 
+                  Copyright © 2007  SIGRAND
                  // St. Martin Strasse 53; 81669 Munich, Germany
 
    THE DELIVERY OF THIS SOFTWARE AS WELL AS THE HEREBY GRANTED NON-EXCLUSIVE,
@@ -84,7 +84,7 @@ static struct ab_boards_manager_s {
 	unsigned char boards_count;
 	unsigned char is_count_changed;
 	struct ab_board_dev_s boards [BOARDS_MAX];
-	spinlock_t lock; 
+	spinlock_t lock;
 } g_boardsman;
 
 static struct cdev g_cdev;
@@ -113,12 +113,12 @@ int SGATAB_Ioctl(struct inode *inode, struct file *filp,
 		unsigned int nCmd, unsigned long nArgument );
 
 /* Driver callbacks */
-static struct file_operations sgatab_fops = 
+static struct file_operations sgatab_fops =
 {	.owner = THIS_MODULE,
-	.ioctl = SGATAB_Ioctl, 
+	.ioctl = SGATAB_Ioctl,
 };
 
-static int  __devinit sgatab_probe (struct pci_dev *pci_dev, 
+static int  __devinit sgatab_probe (struct pci_dev *pci_dev,
 		const struct pci_device_id *pci_id);
 static void __devexit sgatab_remove(struct pci_dev *pci_dev);
 
@@ -157,7 +157,7 @@ Return:
 Remarks:
    None.
 ****************************************************************************/
-int SGATAB_Ioctl(struct inode *inode, struct file *filp, unsigned int nCmd, 
+int SGATAB_Ioctl(struct inode *inode, struct file *filp, unsigned int nCmd,
 		unsigned long nArgument)
 {
 	int err;
@@ -177,7 +177,7 @@ int SGATAB_Ioctl(struct inode *inode, struct file *filp, unsigned int nCmd,
 	return err;
 }
 
-static void 
+static void
 set_free_board_idx ( void )
 {
 	if( g_boardsman.boards_count == BOARDS_MAX){
@@ -193,7 +193,7 @@ set_free_board_idx ( void )
 	}
 }
 
-static int 
+static int
 chardev_init( void )
 {
 	dev_t dev;
@@ -212,7 +212,7 @@ chardev_init( void )
 	cdev_init ( &g_cdev, &sgatab_fops );
 	err = cdev_add ( &g_cdev, dev, 1 );
 	if ( err ) {
-		printk(KERN_ERR "%s: ERROR : cdev_add() fails. EXIT\n", 
+		printk(KERN_ERR "%s: ERROR : cdev_add() fails. EXIT\n",
 				DEV_NAME);
 		goto ___region;
 	}
@@ -226,7 +226,7 @@ ___exit:
 	return err;
 }
 
-static void 
+static void
 chardev_undef( void )
 {
 	dev_t dev = g_cdev.dev;
@@ -234,13 +234,13 @@ chardev_undef( void )
 	unregister_chrdev_region ( dev, 1 );
 }
 
-static int 
+static int
 pci_init( struct ab_board_dev_s * c_brd )
 {
 	int err;
 
 	c_brd->slot = PCI_SLOT(c_brd->pci_dev->devfn);
-	printk(KERN_INFO "%s:(0x%x:0x%x) board found in slot [%d]\n", 
+	printk(KERN_INFO "%s:(0x%x:0x%x) board found in slot [%d]\n",
 			DEV_NAME, c_brd->pci_dev->vendor,
 			c_brd->pci_dev->device, c_brd->slot);
 
@@ -249,29 +249,29 @@ pci_init( struct ab_board_dev_s * c_brd )
 	if (pci_enable_device(c_brd->pci_dev)) {
 		printk(KERN_ERR "%s: ERROR: can`t enable PCI device, "
 				"0x%x:0x%x on slot %d. EXIT.\n",
-				DEV_NAME, c_brd->pci_dev->vendor, 
+				DEV_NAME, c_brd->pci_dev->vendor,
 				c_brd->pci_dev->device, c_brd->slot);
 		err = -EIO;
 		goto pci_init_exit;
 	}
 	c_brd->pci_device_enabled = 1;
 
-	pci_read_config_word (c_brd->pci_dev, PCI_SUBSYSTEM_ID, 
+	pci_read_config_word (c_brd->pci_dev, PCI_SUBSYSTEM_ID,
 			&(c_brd->sub_id));
-	/* Becouse slot always starts from [2] (MIN_BOARD_SLOT) we always 
-	 * got channels absolute numbers from 17, 
+	/* Becouse slot always starts from [2] (MIN_BOARD_SLOT) we always
+	 * got channels absolute numbers from 17,
 	 * thats not good - we wont it from zero.
 	c_brd->first_chan_idx = c_brd->slot * DEVS_PER_BOARD_MAX *
 			CHANS_PER_DEV + 1;
 	*/
-	c_brd->first_chan_idx = (c_brd->slot - MIN_BOARD_SLOT) * 
+	c_brd->first_chan_idx = (c_brd->slot - MIN_BOARD_SLOT) *
 			DEVS_PER_BOARD_MAX * CHANS_PER_DEV;
-	printk(KERN_INFO "%s: id=%x at bus - 0x%02x func - 0x%x\n", 
-			DEV_NAME, c_brd->pci_dev->device, 
+	printk(KERN_INFO "%s: id=%x at bus - 0x%02x func - 0x%x\n",
+			DEV_NAME, c_brd->pci_dev->device,
 			c_brd->pci_dev->bus->number,
 			PCI_FUNC(c_brd->pci_dev->devfn));
 	printk(KERN_INFO "%s: irq %d, subsystem id 0x%x, memory addr 0x%lx\n",
-			DEV_NAME, c_brd->pci_dev->irq, c_brd->sub_id, 
+			DEV_NAME, c_brd->pci_dev->irq, c_brd->sub_id,
 			c_brd->mem_addr);
 
 	return 0;
@@ -279,7 +279,7 @@ pci_init_exit:
 	return err;
 }
 
-static void 
+static void
 pci_undef ( struct ab_board_dev_s * c_brd )
 {
 	/* disable the PCI device if it was enabled */
@@ -291,7 +291,7 @@ pci_undef ( struct ab_board_dev_s * c_brd )
 }
 
 
-static int 
+static int
 SGATAB_boards_count( unsigned long user_data )
 {
 	int bc;
@@ -302,7 +302,7 @@ SGATAB_boards_count( unsigned long user_data )
 	spin_unlock (g_boardsman.lock);
 
 	if(copy_to_user((void *)user_data, &bc, sizeof(bc))){
-		printk(KERN_ERR "%s: ERROR : copy_to_user(...) failed\n", 
+		printk(KERN_ERR "%s: ERROR : copy_to_user(...) failed\n",
 				DEV_NAME );
 		goto ___exit_fail;
 	}
@@ -311,7 +311,7 @@ ___exit_fail:
 	return -1;
 }
 
-static int 
+static int
 SGATAB_board_params (unsigned long user_data)
 {
 	ab_board_params_t bp;
@@ -325,7 +325,7 @@ SGATAB_board_params (unsigned long user_data)
 	int err = 0;
 
 	if(copy_from_user (&bp, (void *)user_data, sizeof(bp))){
-		printk(KERN_ERR "%s: ERROR : copy_from_user(...) failed\n", 
+		printk(KERN_ERR "%s: ERROR : copy_from_user(...) failed\n",
 				DEV_NAME );
 		err = -1;
 		goto ___exit;
@@ -340,12 +340,12 @@ SGATAB_board_params (unsigned long user_data)
 				break;
 			}
 			cur_idx++;
-		} 
+		}
 	}
 
 	if (idx_in_drv==-1){
 		bp.is_present = 0;
-		err = 0; 
+		err = 0;
 		goto ___copy_and_exit;
 	}
 
@@ -371,7 +371,7 @@ SGATAB_board_params (unsigned long user_data)
 
 ___copy_and_exit:
 	if(copy_to_user((void *)user_data, &bp, sizeof(bp))){
-		printk(KERN_ERR "%s: ERROR : copy_to_user(...) failed\n", 
+		printk(KERN_ERR "%s: ERROR : copy_to_user(...) failed\n",
 				DEV_NAME );
 		goto ___exit_locked;
 	}
@@ -388,7 +388,7 @@ ___exit:
    \return
    length
 */
-static int 
+static int
 proc_read_sgatab (char *page, char **start, off_t off,
                           int count, int *eof, void *data)
 {
@@ -429,7 +429,7 @@ ___exit:
   length
 
 */
-static int 
+static int
 proc_get_sgatab_channels(char *buf)
 {
 	int i;
@@ -446,9 +446,9 @@ proc_get_sgatab_channels(char *buf)
 			continue;
 		}
 		for (j=0; j<DEVS_PER_BOARD_MAX; j++){
-			dev_type_t dev_type = (c_brd->sub_id>>(j*DEV_TYPE_LENGTH)) & 
+			dev_type_t dev_type = (c_brd->sub_id>>(j*DEV_TYPE_LENGTH)) &
 					DEV_TYPE_MASK;
-			unsigned char chan_idx = c_brd->first_chan_idx + 
+			unsigned char chan_idx = c_brd->first_chan_idx +
 					j * CHANS_PER_DEV;
 			for (k=0; k<CHANS_PER_DEV; k++){
 				chan_idx +=k;
@@ -479,7 +479,7 @@ proc_get_sgatab_channels(char *buf)
   length
 
 */
-static int 
+static int
 proc_get_sgatab_major(char *buf)
 {
 	int len = 0;
@@ -495,7 +495,7 @@ proc_get_sgatab_major(char *buf)
 \remark
    Called by the kernel.
 */
-static int 
+static int
 proc_install_sgatab_entries( void )
 {
 	struct proc_dir_entry *driver_proc_node;
@@ -510,7 +510,7 @@ proc_install_sgatab_entries( void )
 				     driver_proc_node, proc_read_sgatab,
 				     (void *)proc_get_sgatab_major );
 	} else {
-		printk(KERN_ERR "%s: ERROR : can`t register PROC entries!\n", 
+		printk(KERN_ERR "%s: ERROR : can`t register PROC entries!\n",
 				DEV_NAME);
 		return -1;
 	}
@@ -529,8 +529,8 @@ Return Value:
 Remarks:
    Called by the PCI core.
 *******************************************************************************/
-static int __devinit 
-sgatab_probe (struct pci_dev *pci_dev, const struct pci_device_id *pci_id) 
+static int __devinit
+sgatab_probe (struct pci_dev *pci_dev, const struct pci_device_id *pci_id)
 {
 	struct ab_board_dev_s * c_brd = NULL;
 	int err = 0;
@@ -584,7 +584,7 @@ Return Value:
 Remarks:
    Called by the PCI core.
 *******************************************************************************/
-static void __devexit 
+static void __devexit
 sgatab_remove(struct pci_dev *pci_dev)
 {
 	struct ab_board_dev_s * c_brd = NULL;
@@ -616,7 +616,7 @@ Remarks:
    Called by the kernel.
    Register the PCI driver.
 ****************************************************************************/
-static int __init 
+static int __init
 sgatab_module_init(void)
 {
 	int err;
@@ -658,11 +658,11 @@ Remarks:
    Called by the kernel.
    Unregister the PCI driver.
 ****************************************************************************/
-static void __exit 
+static void __exit
 sgatab_module_exit(void)
 {
 	pci_unregister_driver( &sgatab_pci_driver );
-	printk(KERN_INFO "%s: Removed.\n", 
+	printk(KERN_INFO "%s: Removed.\n",
 	DEV_NAME);
 
 	remove_proc_entry("driver/" DEV_NAME "/channels" ,0);

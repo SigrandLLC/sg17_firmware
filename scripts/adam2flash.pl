@@ -84,16 +84,16 @@ $box or die " not found!\n";
 {
 	package ADAM2FTP;
 	use base qw(Net::FTP);
-	
+
 	# ADAM2 requires upper case commands, some brain dead firewall doesn't ;-)
 	sub _USER {
 		shift->command("USER",@_)->response()
 	}
-	
+
 	sub _GETENV {
 		my $ftp = shift;
 		my ($ok, $name, $value);
-		
+
 		$ftp->command("GETENV",@_);
 			while(length($ok = $ftp->response()) < 1) {
 			my $line = $ftp->getline();
@@ -106,17 +106,17 @@ $box or die " not found!\n";
 		if $ftp->debug();
 		return $value;
 	}
-	
+
 	sub getenv {
 		my $ftp = shift;
 		my $name = shift;
 		return $ftp->_GETENV($name);
 	}
-	
+
 	sub _REBOOT {
 		shift->command("REBOOT")->response() == Net::FTP::CMD_OK
 	}
-	
+
 	sub reboot {
 		my $ftp = shift;
 		$ftp->_REBOOT;

@@ -8,7 +8,7 @@ config BR2_PACKAGE_COLLECTD
 		collectd is a small daemon which collects system information
 		every 10 seconds. The values are then sent to a multicast group
 		to be stored in RRD files by a server process.
-		
+
 		http://verplant.org/collectd/
 
 config BR2_PACKAGE_COLLECTD_CPU

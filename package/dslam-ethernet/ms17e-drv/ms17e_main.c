@@ -152,14 +152,14 @@ irqreturn_t interrupt_handler (int irq, void *dev_id, struct pt_regs * regs_)
 	}
 	if (status & RDE) PDEBUG(debug_interrupt, "Error read data");
 	if (status & WRE) PDEBUG(debug_interrupt, "Error write data");
-	
+
 	if (status & PINT)
 	{
 		PDEBUG(debug_interrupt, "PINT");
 		iowrite8(ioread8(&(card->regs->IMR)) & (~PINT), &(card->regs->IMR));
 	}
 	iowrite8(status, &(card->regs->SR));
-	
+
 	return IRQ_HANDLED;
 }
 
@@ -461,7 +461,7 @@ derr6:
 derr5:
 	remove_proc_entry(entry_dir, NULL);
 #endif
-	
+
 err4:
 	free_irq(card->pdev->irq, (void*)card);
 err3:
@@ -506,7 +506,7 @@ int __devinit ms17e_init (void)
 {
 	printk(KERN_NOTICE "Load "MS17E_MODNAME" driver\n");
 	pci_register_driver(&ms17e_driver);
-	return 0;	
+	return 0;
 }
 void __devexit ms17e_exit (void)
 {

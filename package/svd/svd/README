@@ -9,7 +9,7 @@ SVD is a simple sip client which is developed for VoIP router.
 How I can build it and install?
 -------------------------------
 
-Run 
+Run
 
 ./build.sh
 

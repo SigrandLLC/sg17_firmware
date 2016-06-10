@@ -452,9 +452,9 @@ STATUS ifx_tapi_ioctl(Y_S_dev_header* pDevHeader,
       errno = ENODEV;
       return IFX_ERROR;
    }
-   
+
    pTapiDev = (TAPI_DEV *) pDevHeader->pCtx;
-   
+
    /* initially we assume that we received a pTapiDev pointer -
       let's check if the initial assumption is not correct ... */
    if (pTapiDev->nChannel != IFX_TAPI_DEVICE_CH_NUMBER)
@@ -493,7 +493,7 @@ STATUS ifx_tapi_ioctl(Y_S_dev_header* pDevHeader,
       Content of IOC_SIZE is used here */
    /*ctx.nParamSize = _IOC_SIZE(nCmd);*/
    ctx.nParamSize = (nCmd >> 16) & ((1 << 13) - 1);
-   
+
    switch (IFXOX_IO_GETMAGIC (nCmd))
    {
       case VMMC_IOC_MAGIC:
@@ -1320,7 +1320,7 @@ IFX_LOCAL IFX_int32_t OS_OnSelect(IFX_TAPI_ioctlCtx_t* pCtx,
    else
    {
       /* handle data file descriptors */
-      
+
       ret = TAPI_SelectCh(pCtx->p.pTapiCh, nArgument, 0);
 
       if ((ret & IFXOS_SYSREAD) &&

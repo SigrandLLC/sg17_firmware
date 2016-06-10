@@ -1,7 +1,7 @@
 /*
  * Copyright c                Realtek Semiconductor Corporation, 2002
- * All rights reserved.                                                    
- * 
+ * All rights reserved.
+ *
  * $Header: /home/bcm_cvsroot/WRT54GX_ALL_Realtek/tools/packbin.src/kfspad.c,v 1.1.1.1 2005/09/30 07:32:47 shixiang Exp $
  *
  * $Author: shixiang $
@@ -33,7 +33,7 @@
  * Create file.
  *
  *
- * 
+ *
  */
 
 #include    <stdio.h>
@@ -47,7 +47,7 @@
 #include    "rtl_image.h"
 
 const char logo_msg[] = {
-	"(c)Copyright Realtek, Inc. 2002\n" 
+	"(c)Copyright Realtek, Inc. 2002\n"
 	"Project ROME\n\n"
 };
 #define ENDIAN_SWITCH32(x) (((x) >> 24) | (((x) >> 8) & 0xFF00) | \
@@ -76,17 +76,17 @@ main(int argc, char *argv[])
         printf("    size    size\n");
         printf("    rootfs        Size of the output binary image. (0 means no padding)\n");
         printf("    output_file   Name of the output binary image file.\n");
-        
+
         return;
     }
-    
+
     /* Open file */
      if ((fp1=fopen(argv[1], "r+b")) == NULL)
     {
         printf("Cannot open %s !!\n", argv[1]);
         return;
     }
-    
+
     /* Get file size */
     if (stat(argv[1], &fileStat) != 0)
     {
@@ -96,7 +96,7 @@ main(int argc, char *argv[])
     }
     imgSize = fileStat.st_size;
     printf("Kernel Image Size = 0x%lx %d\n", imgSize,imgSize);
-    
+
     /* Temparay file */
     //tmpnam(tmpFilename);
     mkstemp(tmpFilename);
@@ -105,7 +105,7 @@ main(int argc, char *argv[])
         printf("Cannot open temprary file !!\n");
         return;
     }
-    
+
     /* Copy image */
     fseek(fp1, 0L, SEEK_SET);
     chksum = 0;
@@ -115,18 +115,18 @@ main(int argc, char *argv[])
         fputc(ch, fp2);
     }
     close(fp1);
-    
+
     padTo = strtol(argv[2], NULL, 0);
      while (i++ < (padTo - sizeof(fileImageHeader_t)))
             fputc(0, fp2);
- 
+
 
      if ((fp1=fopen(argv[3], "r+b")) == NULL)
     {
         printf("Cannot open %s !!\n", argv[1]);
         return;
     }
-    
+
     /* Get file size */
     if (stat(argv[3], &fileStat) != 0)
     {
@@ -146,7 +146,7 @@ main(int argc, char *argv[])
     /* Close file and exit */
     fclose(fp1);
     fclose(fp2);
-    
+
     printf("Binary image %s generated!\n", argv[4]);
     remove(argv[4]);
     rename(tmpFilename, argv[4]);

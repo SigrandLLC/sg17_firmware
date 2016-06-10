@@ -38,5 +38,5 @@ compile-targets: install-dev
 install-dev: $(PKG_BUILD_DIR)/.built
 	mkdir -p $(STAGING_DIR)/usr/lib
 	$(CP) $(PKG_BUILD_DIR)/*.so $(STAGING_DIR)/usr/lib
-	
+
 

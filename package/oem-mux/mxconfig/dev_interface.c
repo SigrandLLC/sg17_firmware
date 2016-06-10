@@ -19,7 +19,7 @@ static int mux_dirs_cnt = sizeof(mux_dirs)/sizeof(char *);
 
 
 int
-check_for_mxsupport(char *conf_path,ifdescr_t *ifd) 
+check_for_mxsupport(char *conf_path,ifdescr_t *ifd)
 {
     DIR *dir;
     int ocnt = 0,i;
@@ -29,8 +29,8 @@ check_for_mxsupport(char *conf_path,ifdescr_t *ifd)
 					 "mx_rline","mx_rxstart","mx_tline","mx_txstart" };
     int optsize = sizeof(opts)/sizeof(char *);
     iftype_t type;
-    
-    
+
+
     for(i=0;i<mux_dirs_cnt;i++){
         snprintf(d,MAX_FNAME,"%s/%s/%s",conf_path,ifd->name,mux_dirs[i]);
         if( dir = opendir(d) ){
@@ -81,19 +81,19 @@ check_for_mxsupport(char *conf_path,ifdescr_t *ifd)
     closedir(dir);
     ifd->settings.type = type;
     PDEBUG(DFULL,"ocnt = %d",ocnt);
-    return (ocnt == optsize ) ? 0 : -1;	
+    return (ocnt == optsize ) ? 0 : -1;
 }
 
 
 
 
-/* - Old one. Simple alphabetic comparision 
+/* - Old one. Simple alphabetic comparision
 static int
 compare_func(const void *p1, const void *p2)
 {
     ifdescr_t *d1 = *(ifdescr_t**)p1;
     ifdescr_t *d2 = *(ifdescr_t**)p2;
-    
+
 	return strcmp((const char*)d1->name,(const char*)d2->name);
 }
 
@@ -105,7 +105,7 @@ int mux_split(char *source,char *symb,int symbsize)
 
     // Split to symbol & ineger parts
     for(len = strlen(source)-1; len>0 && (source[len] >= '0' && source[len] <= '9') ;len--);
-    
+
 //    printf("Word=%s, len=%d\n",source,len);
     if( !(source[len] >= '0' && source[len] <= '9') ){
         // we have symbol part
@@ -131,7 +131,7 @@ compare_func(const void *p1, const void *p2)
 
     char *d1 = if1->name;
     char *d2 = if2->name;
-    
+
     char symb_d1[256],symb_d2[256];
     int int_d1,int_d2;
     int ret;
@@ -139,19 +139,19 @@ compare_func(const void *p1, const void *p2)
     // Split first ifname to symbol & ineger parts
     int_d1 = mux_split(d1,symb_d1,256);
     int_d2 = mux_split(d2,symb_d2,256);
-/*    
+/*
     printf("Compare: %s, %s\n",d1,d2);
     printf("symb1=%s,int1=%d\n",symb_d1,int_d1);
     printf("symb2=%s,int2=%d\n",symb_d2,int_d2);
-*/    
+*/
     ret =  strcasecmp((const char*)symb_d1,(const char*)symb_d2);
     if( !ret )
         ret = (int_d1 > int_d2) ? 1 : 0;
     if( !ret )
         ret = (int_d1 < int_d2) ? -1 : 0;
-        
+
 //    printf("ret=%d\n\n",ret);
-        
+
 	return ret;
 }
 
@@ -165,7 +165,7 @@ fill_iflist(char *conf_path,ifdescr_t **iflist,int ifcnt)
     char fname[MAX_FNAME];
     struct stat statbuf;
     devsetup_t settings;
-    
+
     for(i=0;i<ifcnt;i++){
 		iflist[i] = NULL;
     }
@@ -206,7 +206,7 @@ fill_iflist(char *conf_path,ifdescr_t **iflist,int ifcnt)
         int fd, ret;
         devsetup_t *set;
         snprintf(name,64,"%s/%s%d",DEVBASEPATH,DEVBASENAME,i);
-        
+
         // Open device node
         if( (fd=open(name,O_NONBLOCK)) < 0){
             break;
@@ -218,7 +218,7 @@ fill_iflist(char *conf_path,ifdescr_t **iflist,int ifcnt)
             continue;
         }
 
-        // Add new element        
+        // Add new element
         iflist[cnt] = malloc(sizeof(ifdescr_t));
         if( !iflist[cnt] ){
             mxerror("not enough memory");
@@ -235,14 +235,14 @@ fill_iflist(char *conf_path,ifdescr_t **iflist,int ifcnt)
         set->tline = dset.tline;
         set->rfs = dset.rfs;
         set->tfs = dset.tfs;
-        set->clkm = dset.clkm;    
+        set->clkm = dset.clkm;
         set->clkab = dset.clkab;
         set->clkr = dset.clkr;
         set->mxen = dset.mxen;
         cnt++;
-    }    
-    
-    
+    }
+
+
     // Quick sort of channels
     qsort((void*)iflist,cnt,sizeof(ifdescr_t *),compare_func);
 
@@ -256,7 +256,7 @@ str2slotmap(char *str,size_t size,int *err)
     unsigned int fbit,lbit,ts=0;
     int i;
 
-    PDEBUG(4,"start");	
+    PDEBUG(4,"start");
     for (;;) {
         fbit=lbit=strtoul(s, &e, 0);
         if (s == e)
@@ -272,14 +272,14 @@ str2slotmap(char *str,size_t size,int *err)
 
         if( !(fbit < MAX_TS_BIT && lbit < MAX_TS_BIT) )
             break;
-        
+
 		for (i=fbit; i<=lbit;i++){
 			ts |= 1L << i;
 		}
         s=e;
     }
     PDEBUG(4,"str=%08x, s=%08x,size=%d",(u32)str,(u32)s,size);
-    *err=0;	
+    *err=0;
     if( s != (str+size) && s != str )
         *err=1;
     return ts;
@@ -314,7 +314,7 @@ slotmap2str(unsigned int smap, char *buf,int offset)
     return strlen(buf);
 }
 
-u8 
+u8
 slotmap2mxrate(u32 smap)
 {
     int mxrate = 0;
@@ -327,15 +327,15 @@ slotmap2mxrate(u32 smap)
 }
 
 
-int 
+int
 set_int_option(char *conf_path,char *name,int val)
 {
     int fd;
     int len,cnt;
     char fname[MAX_FNAME];
     char buf[BUF_SIZE];
-	
-    PDEBUG(DFULL,"set_dev_option(%s,%s)",name,val); 
+
+    PDEBUG(DFULL,"set_dev_option(%s,%s)",name,val);
     snprintf(fname,MAX_FNAME,"%s/%s",conf_path,name);
     if( (fd = open(fname,O_WRONLY)) < 0 ){
 		PDEBUG(DERR,"set_dev_option: Cannot open %s",fname);
@@ -351,14 +351,14 @@ set_int_option(char *conf_path,char *name,int val)
     return 0;
 }
 
-int 
+int
 set_char_option(char *conf_path,char *name,char *str)
 {
     int fd;
     int len,cnt;
     char fname[MAX_FNAME];
-	
-    PDEBUG(DFULL,"set_dev_option(%s,%s)",name,str); 
+
+    PDEBUG(DFULL,"set_dev_option(%s,%s)",name,str);
     snprintf(fname,MAX_FNAME,"%s/%s",conf_path,name);
     if( (fd = open(fname,O_WRONLY)) < 0 ){
 		PDEBUG(DERR,"set_dev_option: Cannot open %s",fname);
@@ -382,8 +382,8 @@ get_int_option(char *conf_path,char *name,int *val)
     char buf[BUF_SIZE];
     char *endp;
     int tmp=0;
-    
-    PDEBUG(DFULL,"get_dev_option(%s)",name); 
+
+    PDEBUG(DFULL,"get_dev_option(%s)",name);
     snprintf(fname,MAX_FNAME,"%s/%s",conf_path,name);
 
     if( (fd = open(fname,O_RDONLY)) < 0 ){
@@ -416,8 +416,8 @@ get_char_option(char *conf_path,char *name,char **val)
     char fname[MAX_FNAME];
     char buf[BUF_SIZE];
     char *endp;
-    
-    PDEBUG(DFULL,"get_dev_option(%s)",name); 
+
+    PDEBUG(DFULL,"get_dev_option(%s)",name);
     snprintf(fname,MAX_FNAME,"%s/%s",conf_path,name);
     if( (fd = open(fname,O_RDONLY)) < 0 ){
 		PDEBUG(DERR,"get_dev_option: Cannot open %s",fname);
@@ -440,9 +440,9 @@ apply_settings_net(char *conf_path,ifdescr_t *ifd)
     char conf[MAX_FNAME];
     char buf[BUF_SIZE];
     devsetup_t *set = &ifd->settings;
-    
+
     snprintf(conf,MAX_FNAME,"%s/%s/%s",conf_path,ifd->name,mux_dirs[ifd->conf_ind]);
-    
+
     if( set->type == continual_ts && set->mxrate>=0 ){
 		if( set_int_option(conf,"mxrate",set->mxrate) )
 			return -1;
@@ -463,7 +463,7 @@ apply_settings_net(char *conf_path,ifdescr_t *ifd)
     if( set->rfs >=0 ){
 		set_int_option(conf,"mx_rxstart",set->rfs);
     }
-    
+
     if( set->tfs >=0 ){
 		set_int_option(conf,"mx_txstart",set->tfs);
     }
@@ -494,12 +494,12 @@ accum_settings_net(char *conf_path,ifdescr_t *ifd)
     int size,err;
     devsetup_t *set = &ifd->settings;
     int tmp=0;
-    
+
     snprintf(conf,MAX_FNAME,"%s/%s/%s",conf_path,ifd->name,mux_dirs[ifd->conf_ind]);
-    
+
     // Read used timeslots information
     switch( set->type ){
-    case continual_ts: 
+    case continual_ts:
 		if( get_int_option(conf,"mxrate",&tmp) )
 			return -1;
 		set->mxrate = tmp;
@@ -512,8 +512,8 @@ accum_settings_net(char *conf_path,ifdescr_t *ifd)
 			return -1;
 		break;
     }
-    
-    // 
+
+    //
     if( get_int_option(conf,"mx_rline",&tmp) ){
 		return -1;
     }
@@ -523,12 +523,12 @@ accum_settings_net(char *conf_path,ifdescr_t *ifd)
 		return -1;
     }
     set->tline = tmp;
-    
+
     if( get_int_option(conf,"mx_rxstart",&tmp) ){
 		return -1;
     }
     set->rfs = tmp;
-    
+
     if( get_int_option(conf,"mx_txstart",&tmp) ){
 		return -1;
     }
@@ -563,7 +563,7 @@ apply_settings_ser(ifdescr_t *ifd)
     struct mxsettings dset;
     int fd, ret;
     devsetup_t *set;
-        
+
     snprintf(name,64,"%s/%s",DEVBASEPATH,ifd->name);
     // Open device node
     if( (fd=open(name,O_NONBLOCK)) < 0){
@@ -579,11 +579,11 @@ apply_settings_ser(ifdescr_t *ifd)
     dset.tline = set->tline;
     dset.rfs = set->rfs;
     dset.tfs = set->tfs;
-    dset.clkm = set->clkm;    
+    dset.clkm = set->clkm;
     dset.clkab = set->clkab;
     dset.clkr = set->clkr;
     dset.mxen = set->mxen;
-    
+
     // apply changes
     if( ioctl(fd,TIOCSMX,(char*)&dset,sizeof(dset)) ){
         mxerror("Device %s does not support multiplexing",ifd->name);

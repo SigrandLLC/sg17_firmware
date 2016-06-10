@@ -1,10 +1,10 @@
 #!/usr/bin/haserl
-	
+
 	subsys="dns_server"
 	frame=1
 
 	handle_list_del_item
-	
+
 	eval `$kdb -qqc list svc_dns_zonelist*`
 	render_form_header dns_zonelist
 
@@ -21,10 +21,10 @@
 		render_list_btns dns_zonelist_edit "$item" "subsys=$subsys"
 		echo "</td></tr>"
 	}
-	
-	
+
+
 	render_list_header dns_zonelist svc_dns_zonelist_ "" "Zone id" "Zone name" "Admin" "Serial"
-	
+
 	render_list_cycle_stuff
 
 	render_form_tail

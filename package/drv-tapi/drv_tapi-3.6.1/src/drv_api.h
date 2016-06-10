@@ -61,7 +61,7 @@
       #error "no inline, maybe use of -O0 ???"
    #endif /* __NO_INLINE__ */
    #include "drv_tapi_linux.h"
-   
+
 #ifdef CONFIG_DEVFS_FS
    #include "linux/devfs_fs_kernel.h"
 #endif /* CONFIG_DEVFS_FS */

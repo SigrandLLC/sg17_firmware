@@ -38,7 +38,7 @@ rbuf_init(void)
 {
     struct ring_buf *r = (struct ring_buf *)malloc(sizeof(struct ring_buf));
     int i;
-    
+
     if( !r )
 		return NULL;
     r->head = r->tail = 0;
@@ -52,11 +52,11 @@ rbuf_init(void)
 void rbuf_free(struct ring_buf *r)
 {
     int i = 0;
-    struct rbuf_buf *cur;    
+    struct rbuf_buf *cur;
     while( r->head != r->tail ){
 		cur = &(r->rb[r->head]);
 		rbuf_free_buf(cur);
-		r->head = inc_index(r->head);	
+		r->head = inc_index(r->head);
 		i++;
     }
     free(r);
@@ -112,7 +112,7 @@ rbuf_get_cur(struct ring_buf *r,char **out_buf)
 			memcpy(*out_buf+offset,cur->ptr[i],cur->size[i]);
 			offset += cur->size[i];
 		}
-		rbuf_free_buf(&r->rb[r->head]);	
+		rbuf_free_buf(&r->rb[r->head]);
 		r->head = inc_index(r->head);
 		return size;
     }

@@ -470,12 +470,12 @@ Controllers.terminal = function ()
 //							alert("false")
 						}
 					});
-					
+
 					setTimeout(function () {
 						scrollTab();
 						$("#consoleDiv").focus();
 						$("#consoleDiv").blur(function(){$("#consoleDiv").focus();});
-					}, 10);					
+					}, 10);
   				} //func
 			}); //addTab
 		} // if

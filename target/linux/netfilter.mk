@@ -86,7 +86,7 @@ endif
 endif
 
 
-IPT_NAT_EXTRA-m := 
+IPT_NAT_EXTRA-m :=
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_AMANDA) += $(P_V4)ip_conntrack_amanda
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_CT_PROTO_GRE) += $(P_V4)ip_conntrack_proto_gre
 IPT_NAT_EXTRA-$(CONFIG_IP_NF_NAT_PROTO_GRE) += $(P_V4)ip_nat_proto_gre

@@ -1,11 +1,11 @@
 #!/usr/bin/haserl
 
 	page=${FORM_page:-backup}
-	
+
 	render_page_selection "" backup "backup" restore "restore" default "default"
 
 	render_form_header backup 'action="/cfg.cgi"' 'enctype="multipart/form-data"'
-	render_table_title "$page" 2 
+	render_table_title "$page" 2
 	render_input_field hidden act act "$page"
 
 	case $page in

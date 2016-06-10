@@ -44,7 +44,7 @@ $(IPKG_LIBWRAP):
 	$(CP) $(PKG_BUILD_DIR)/shared/libwrap.so.* $(IDIR_LIBWRAP)/usr/lib/
 	$(RSTRIP) $(IDIR_LIBWRAP)
 	$(IPKG_BUILD) $(IDIR_LIBWRAP) $(PACKAGE_DIR)
-	
+
 $(STAGING_DIR)/usr/lib/libwrap.a: $(PKG_BUILD_DIR)/.built
 	mkdir -p $(STAGING_DIR)/usr/include
 	$(CP) $(PKG_BUILD_DIR)/tcpd.h $(STAGING_DIR)/usr/include/

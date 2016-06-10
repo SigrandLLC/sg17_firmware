@@ -17,7 +17,7 @@ iptables -t nat -F postrouting_rule
 
 ### Open port to WAN
 ## -- This allows port 22 to be answered by (dropbear on) the router
-# iptables -t nat -A prerouting_rule -i $WAN -p tcp --dport 22 -j ACCEPT 
+# iptables -t nat -A prerouting_rule -i $WAN -p tcp --dport 22 -j ACCEPT
 # iptables        -A input_rule      -i $WAN -p tcp --dport 22 -j ACCEPT
 
 ### Port forwarding

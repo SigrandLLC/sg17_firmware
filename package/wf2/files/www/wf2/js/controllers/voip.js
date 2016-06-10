@@ -239,7 +239,7 @@ Controllers.voipSettings = function() {
             };
             c.addWidget(field);
 
-            /* SIP settings 
+            /* SIP settings
             c.addTitle("SIP settings", {"internal": true});
 
             field = {
@@ -292,7 +292,7 @@ Controllers.voipSettings = function() {
                         $.each(channels.split("\n"), function(num, record) {
                             if (record.length == 0) return true;
 
-                            // channel[0] — number of channel, channel[1] — type of channel 
+                            // channel[0] — number of channel, channel[1] — type of channel
                             var channel = record.split(":");
                             if (channel[1] == "FXS") {
                                 fxsChannels.push(channel[0]);

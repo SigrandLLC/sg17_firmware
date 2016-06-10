@@ -33,7 +33,7 @@ Description : This file contains definitions of udp loopback structures
 
 /**
  * \file udp_loopback.h
- * 
+ *
  * Contains structures, function prototypes.
  */
 
@@ -68,11 +68,11 @@ Description : This file contains definitions of udp loopback structures
 
 
 /*typedef int (*v_callback)(const int chanDev,
-                          const void* const data, 
+                          const void* const data,
                           const size_t len);*/
-                          
+
 typedef int (*v_callback_ingress)(int chanDev,
-                                  void* data, 
+                                  void* data,
                                   size_t len);
 
 typedef void* (*v_callback_bufferpool_get)(const void* const buff_pool);

@@ -53,7 +53,7 @@ static int mr17g_init( void );
 static void mr17g_exit( void );
 
 /*----------------------------------------------------------
- * PCI related functions 
+ * PCI related functions
  *----------------------------------------------------------*/
 static int __devinit mr17g_init_one(struct pci_dev *pdev,const struct pci_device_id *ent);
 static void __devexit mr17g_remove_one(struct pci_dev *pdev);

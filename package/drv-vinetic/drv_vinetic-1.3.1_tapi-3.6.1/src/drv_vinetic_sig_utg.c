@@ -44,7 +44,7 @@
 
 #if (VIN_CFG_FEATURES & VIN_FEAT_VOICE)
 static IFX_int16_t vinetic_sig_UTG_CalcLevel(IFX_int32_t level);
-static IFX_int32_t vinetic_sig_UTG_SetCoeff (IFX_TAPI_TONE_SIMPLE_t const *pTone, 
+static IFX_int32_t vinetic_sig_UTG_SetCoeff (IFX_TAPI_TONE_SIMPLE_t const *pTone,
                                              IFX_uint16_t *pCmd);
 #endif /* (VIN_CFG_FEATURES & VIN_FEAT_VOICE) */
 
@@ -188,7 +188,7 @@ IFX_int32_t vinetic_sig_UTG_Start (IFX_TAPI_LL_CH_t *pLLChannel,
    VINETIC_DEVICE *pDev = (VINETIC_DEVICE*) (pCh->pParent);
    FWM_SIG_UTG     *pUtgCmd;
    IFX_uint16_t     pCmdCoef [27] = {0};
-   IFX_uint8_t      utgRes = 0, 
+   IFX_uint8_t      utgRes = 0,
                     ch = pCh->nChannel - 1;
 
    /* calling function ensures valid parameter */
@@ -332,7 +332,7 @@ IFX_int32_t vinetic_sig_UTG_Stop (VINETIC_CHANNEL *pCh, IFX_uint8_t nUtg)
    }
    else if (nUtg == 1)
    {  /* resources #4..#7 for second utg */
-      utgRes = (IFX_uint8_t)(pCh->nChannel - 1) + pDev->caps.nSIG; 
+      utgRes = (IFX_uint8_t)(pCh->nChannel - 1) + pDev->caps.nSIG;
    }
    else
    {
@@ -355,7 +355,7 @@ IFX_int32_t vinetic_sig_UTG_Stop (VINETIC_CHANNEL *pCh, IFX_uint8_t nUtg)
    /* overwrite utg resource number, because here the "overall number" is used */
    pUtgCmd->bit.utgnr = (utgRes & CMD1_CH);
 
-   /* INFO: 2CPE requires to enable the UTG before disabling it with SM bit 
+   /* INFO: 2CPE requires to enable the UTG before disabling it with SM bit
             set to zero. */
 
    /* Stop tone playing for tones which is using the UTG Force the UTG to
@@ -402,7 +402,7 @@ IFX_int32_t vinetic_sig_UTG_Stop (VINETIC_CHANNEL *pCh, IFX_uint8_t nUtg)
    A memset must be done on pCmd and the command words have to be set
    by the calling function
 */
-static IFX_int32_t vinetic_sig_UTG_SetCoeff (IFX_TAPI_TONE_SIMPLE_t const *pTone, 
+static IFX_int32_t vinetic_sig_UTG_SetCoeff (IFX_TAPI_TONE_SIMPLE_t const *pTone,
                                              IFX_uint16_t *pCmd)
 {
    IFX_uint8_t step = 12, i;
@@ -545,14 +545,14 @@ IFX_int32_t IFX_TAPI_LL_SIG_UTG_Start (IFX_TAPI_LL_CH_t *pLLChannel,
    /* check validity of the parameters */
    if (res >= pDev->caps.nUtgPerCh)
    {
-      TRACE (VINETIC, DBG_LEVEL_HIGH, 
+      TRACE (VINETIC, DBG_LEVEL_HIGH,
              ("VMMC: Invalid resource parameter to UTG_Start\n"));
       SET_ERROR (VIN_ERR_NORESOURCE);
       return IFX_ERROR;
    }
    if (pSimpleTone == IFX_NULL)
    {
-      TRACE (VINETIC, DBG_LEVEL_HIGH, 
+      TRACE (VINETIC, DBG_LEVEL_HIGH,
              ("VMMC: Tone parameter to UTG_Start is NULL\n"));
       SET_ERROR (VIN_ERR_FUNC_PARM);
       return IFX_ERROR;
@@ -606,7 +606,7 @@ IFX_int32_t  IFX_TAPI_LL_SIG_UTG_Stop (IFX_TAPI_LL_CH_t *pLLChannel,
    /* check for valid resource number */
    if (res >= pDev->caps.nUtgPerCh)
    {
-      TRACE (VINETIC, DBG_LEVEL_HIGH, 
+      TRACE (VINETIC, DBG_LEVEL_HIGH,
              ("VINETICC: UTG stop called on incorrect ressource number\n"));
       SET_ERROR (VIN_ERR_NORESOURCE);
       return IFX_ERROR;

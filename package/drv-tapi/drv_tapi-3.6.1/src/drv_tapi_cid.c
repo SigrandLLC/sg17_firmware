@@ -325,7 +325,7 @@ static IFX_void_t ciddtmf_abscli_etsi (IFX_TAPI_CID_ABS_REASON_t *pAbs)
    \param  pMessage     Pointer to message elements.
    \param  tone         Signalling tone for element.
    \param  pBuf         Start position in cid data buffer.
-   
+
    \return
    Length of encoded element or 0 on error / missing element.
 */
@@ -985,7 +985,7 @@ static IFX_uint16_t cidfskntt_calccrc (IFX_uint8_t const *pCidBuf,
    pMessage       - pointer to message elements
 \return
    IFX_SUCCESS or IFX_ERROR
-   
+
    \remarks
    \verbatim
    - This specification complies with NTT standards
@@ -2770,8 +2770,8 @@ IFX_boolean_t TAPI_Cid_UseSequence (TAPI_CHANNEL *pChannel)
    Starts caller id FSK receiver.
 
    This functionality starts only the FSK receiver. For CID with DTMF data
-   transmission please use the DTMF detector. This function does also not 
-   handle a CID sequence as the \ref TAPI_Phone_CID_Seq_Tx function does 
+   transmission please use the DTMF detector. This function does also not
+   handle a CID sequence as the \ref TAPI_Phone_CID_Seq_Tx function does
    for sending. Any sequence has to be taken care of by the application.
 
    \param pChannel     Handle to TAPI_CHANNEL structure.

@@ -3,7 +3,7 @@
  *
  * Copyright 2004, Broadcom Corporation
  * All Rights Reserved.
- * 
+ *
  * THIS SOFTWARE IS OFFERED "AS IS", AND BROADCOM GRANTS NO WARRANTIES OF ANY
  * KIND, EXPRESS OR IMPLIED, BY STATUTE, COMMUNICATION OR OTHERWISE. BROADCOM
  * SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS
@@ -45,13 +45,13 @@ struct nvram_tuple router_defaults[] = {
 	{ "fw_disable", "0", 0 },		/* Disable firewall (allow new connections from the WAN) */
 
 	{ "log_ipaddr", "", 0 },		/* syslog recipient */
-	
+
 	/* LAN H/W parameters */
 	{ "lan_ifname", "", 0 },		/* LAN interface name */
 	{ "lan_ifnames", "", 0 },		/* Enslaved LAN interfaces */
 	{ "lan_hwnames", "", 0 },		/* LAN driver names (e.g. et0) */
 	{ "lan_hwaddr", "", 0 },		/* LAN interface MAC address */
-	
+
 	/* LAN TCP/IP parameters */
 	{ "lan_proto", "dhcp", 0 },		/* [static|dhcp] */
 	{ "lan_ipaddr", "192.168.1.1", 0 },	/* LAN IP address */
@@ -66,7 +66,7 @@ struct nvram_tuple router_defaults[] = {
 	{ "wan_ifnames", "", 0 },		/* WAN interface names */
 	{ "wan_hwname", "", 0 },		/* WAN driver name (e.g. et1) */
 	{ "wan_hwaddr", "", 0 },		/* WAN interface MAC address */
-	
+
 	/* WAN TCP/IP parameters */
 	{ "wan_proto", "dhcp", 0 },		/* [static|dhcp|pppoe|disabled] */
 	{ "wan_ipaddr", "0.0.0.0", 0 },		/* WAN IP address */
@@ -77,7 +77,7 @@ struct nvram_tuple router_defaults[] = {
 	{ "wan_hostname", "", 0 },		/* WAN hostname */
 	{ "wan_domain", "", 0 },		/* WAN domain name */
 	{ "wan_lease", "86400", 0 },		/* WAN lease time in seconds */
-	
+
 	/* PPPoE parameters */
 	{ "wan_pppoe_ifname", "", 0 },		/* PPPoE enslaved interface */
 	{ "wan_pppoe_username", "", 0 },	/* PPP username */
@@ -96,7 +96,7 @@ struct nvram_tuple router_defaults[] = {
 	{ "wan_primary", "0", 0 },		/* Primary wan connection */
 
 	{ "wan_unit", "0", 0 },			/* Last configured connection */
-	
+
 	/* Filters */
 	{ "filter_maclist", "", 0 },		/* xx:xx:xx:xx:xx:xx ... */
 	{ "filter_macmode", "deny", 0 },	/* "allow" only, "deny" only, or "disabled" (allow all) */
@@ -171,7 +171,7 @@ struct nvram_tuple router_defaults[] = {
 
 
 	{ "wl_unit", "0", 0 },			/* Last configured interface */
-		
+
 	/* Restore defaults */
 	{ "restore_defaults", "0", 0 },		/* Set to 0 to not restore defaults on boot */
 

@@ -92,7 +92,7 @@
 
 #endif /* ISDN_COMPAT_GENERIC */
 
-#ifdef COMPAT_HAS_2_2_PCI 
+#ifdef COMPAT_HAS_2_2_PCI
 #include <linux/pci.h>
 #ifdef __powerpc__
 static inline int pci_enable_device(struct pci_dev *dev)
@@ -202,7 +202,7 @@ typedef struct wait_queue *wait_queue_head_t;
 #define PCI_DEVICE_ID_EICON_MAESTRAQ	0xe012
 #define PCI_DEVICE_ID_EICON_MAESTRAQ_U	0xe013
 #define PCI_DEVICE_ID_EICON_MAESTRAP	0xe014
- 
+
 #define PCI_VENDOR_ID_CCD		0x1397
 #define PCI_DEVICE_ID_CCD_2BD0	        0x2BD0
 #define PCI_DEVICE_ID_CCD_B000	        0xB000
@@ -215,7 +215,7 @@ typedef struct wait_queue *wait_queue_head_t;
 #define PCI_DEVICE_ID_CCD_B00C	        0xB00C
 #define PCI_DEVICE_ID_CCD_B100	        0xB100
 
-#define PCI_VENDOR_ID_ASUSTEK           0x1043   
+#define PCI_VENDOR_ID_ASUSTEK           0x1043
 #define PCI_DEVICE_ID_ASUSTEK_0675      0x0675
 
 #define PCI_VENDOR_ID_BERKOM		        0x0871

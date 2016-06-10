@@ -11,7 +11,7 @@ zone(0): 4096 pages.
 zone(1): 28672 pages.
 zone(2): 0 pages.
 DMI not present.
-Kernel command line: blkmtd_device=/dev/hda2 root=/dev/mtdblock0 init=/etc/preinit noinitrd console=ttyS0,19200n8 
+Kernel command line: blkmtd_device=/dev/hda2 root=/dev/mtdblock0 init=/etc/preinit noinitrd console=ttyS0,19200n8
 Initializing CPU#0
 Detected 266.650 MHz processor.
 Calibrating delay loop... 532.48 BogoMIPS
@@ -67,7 +67,7 @@ Partition check:
  /dev/ide/host0/bus0/target0/lun0: p1 p2 p3 p4
  /dev/ide/host0/bus0/target1/lun0: p1 p2 p3
  /dev/ide/host0/bus0/target0/lun0: p1 p2 p3 p4
-blkmtd: mtd0: [/dev/hda2] erase_size = 128KiB 
+blkmtd: mtd0: [/dev/hda2] erase_size = 128KiB
 blkmtd: version 1.10
 Initializing Cryptographic API
 NET4: Linux TCP/IP 1.0 for NET4.0

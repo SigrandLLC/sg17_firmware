@@ -12,14 +12,14 @@ config BR2_PACKAGE_LIBNETSNMP
 	select BR2_COMPILE_NET_SNMP
 	select BR2_PACKAGE_LIBELF
 	help
-	  Simple Network Management Protocol (SNMP) is a widely used 
-	  protocol for monitoring the health and welfare of network 
-	  equipment (eg. routers), computer equipment and even devices 
-	  like UPSs. Net-SNMP is a suite of applications used to implement 
+	  Simple Network Management Protocol (SNMP) is a widely used
+	  protocol for monitoring the health and welfare of network
+	  equipment (eg. routers), computer equipment and even devices
+	  like UPSs. Net-SNMP is a suite of applications used to implement
 	  SNMP v1, SNMP v2c and SNMP v3 using both IPv4 and IPv6.
-	  
+
 	  http://www.net-snmp.org/
-	  
+
 	  This package contains shared libraries, needed by other programs.
 
 config BR2_PACKAGE_SNMP_UTILS
@@ -28,14 +28,14 @@ config BR2_PACKAGE_SNMP_UTILS
 	default m if CONFIG_DEVEL
 	depends BR2_PACKAGE_LIBNETSNMP
 	help
-	  Simple Network Management Protocol (SNMP) is a widely used 
-	  protocol for monitoring the health and welfare of network 
-	  equipment (eg. routers), computer equipment and even devices 
-	  like UPSs. Net-SNMP is a suite of applications used to implement 
+	  Simple Network Management Protocol (SNMP) is a widely used
+	  protocol for monitoring the health and welfare of network
+	  equipment (eg. routers), computer equipment and even devices
+	  like UPSs. Net-SNMP is a suite of applications used to implement
 	  SNMP v1, SNMP v2c and SNMP v3 using both IPv4 and IPv6.
-	  
+
 	  http://www.net-snmp.org/
-	  
+
 	  This package contains the SNMP client utilities.
 
 config BR2_PACKAGE_SNMPD
@@ -45,14 +45,14 @@ config BR2_PACKAGE_SNMPD
 	select BR2_COMPILE_NET_SNMP
 	select BR2_PACKAGE_LIBNETSNMP
 	help
-	  Simple Network Management Protocol (SNMP) is a widely used 
-	  protocol for monitoring the health and welfare of network 
-	  equipment (eg. routers), computer equipment and even devices 
-	  like UPSs. Net-SNMP is a suite of applications used to implement 
+	  Simple Network Management Protocol (SNMP) is a widely used
+	  protocol for monitoring the health and welfare of network
+	  equipment (eg. routers), computer equipment and even devices
+	  like UPSs. Net-SNMP is a suite of applications used to implement
 	  SNMP v1, SNMP v2c and SNMP v3 using both IPv4 and IPv6.
-	  
+
 	  http://www.net-snmp.org/
-	  
+
 	  This package contains the SNMP agent, dynamically linked.
 
 config BR2_PACKAGE_SNMPD_STATIC
@@ -62,14 +62,14 @@ config BR2_PACKAGE_SNMPD_STATIC
 	select BR2_COMPILE_NET_SNMP
 	select BR2_PACKAGE_LIBELF
 	help
-	  Simple Network Management Protocol (SNMP) is a widely used 
-	  protocol for monitoring the health and welfare of network 
-	  equipment (eg. routers), computer equipment and even devices 
-	  like UPSs. Net-SNMP is a suite of applications used to implement 
+	  Simple Network Management Protocol (SNMP) is a widely used
+	  protocol for monitoring the health and welfare of network
+	  equipment (eg. routers), computer equipment and even devices
+	  like UPSs. Net-SNMP is a suite of applications used to implement
 	  SNMP v1, SNMP v2c and SNMP v3 using both IPv4 and IPv6.
-	  
+
 	  http://www.net-snmp.org/
-	  
+
 	  This package contains the SNMP agent, statically linked.
 
 endmenu

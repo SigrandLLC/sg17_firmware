@@ -31,13 +31,13 @@ MODULE_AUTHOR( "Maintainer: Polyakov Artem <artpol84@gmail.com>\n" );
 MODULE_LICENSE( "GPL" );
 MODULE_VERSION(MR17G_VER);
 
-// Register module init/deinit routines 
+// Register module init/deinit routines
 static unsigned int cur_card_number = 0;
 module_init(mr17g_init);
 module_exit(mr17g_exit);
 
 /*----------------------------------------------------------
- * Driver initialisation 
+ * Driver initialisation
  *----------------------------------------------------------*/
 static struct pci_device_id  mr17g_pci_tbl[] __devinitdata = {
 { PCI_DEVICE(MR17G_PCI_VEN,MR17G_PCI_DEV) },
@@ -46,7 +46,7 @@ static struct pci_device_id  mr17g_pci_tbl[] __devinitdata = {
 };
 
 MODULE_DEVICE_TABLE( pci, mr17g_pci_tbl );
-	
+
 static struct pci_driver  mr17g_driver = {
  name:           MR17G_DRVNAME,
  probe:          mr17g_init_one,
@@ -70,7 +70,7 @@ mr17g_exit( void ){
 }
 
 /*----------------------------------------------------------
- * PCI related functions 
+ * PCI related functions
  *----------------------------------------------------------*/
 
 static int __devinit
@@ -81,11 +81,11 @@ mr17g_init_one( struct pci_dev *pdev,const struct pci_device_id *ent )
 
 	PDEBUG(debug_init,"start");
 
-    // Setup PCI device 
+    // Setup PCI device
 	if( pci_enable_device( pdev ) )
 		return -EIO;
 	pci_set_master(pdev);
-	
+
     // Init MR17G card
     if( !(card = mr17g_init_card(pdev)) ){
         goto pcifree;
@@ -94,14 +94,14 @@ mr17g_init_one( struct pci_dev *pdev,const struct pci_device_id *ent )
 
 	PDEBUG(debug_init,"end, card = %p",card);
 	return 0;
-pcifree:	
+pcifree:
 	pci_disable_device(pdev);
 	PDEBUG(debug_init,"(!)fail");
 	return err;
 }
-				
-				
-static void __devexit 
+
+
+static void __devexit
 mr17g_remove_one( struct pci_dev *pdev )
 {
 	struct mr17g_card *card = (struct mr17g_card*)pci_get_drvdata( pdev );
@@ -138,18 +138,18 @@ mr17g_setup_chip(struct mr17g_card *card,int ind,enum mr17g_chiptype type)
 	default:
 		printk(KERN_ERR"%s: wrong chip number (%d), may be only 0,1\n",MR17G_MODNAME,ind);
 		return -1;
-	}	
+	}
 	// Setup PEF22554 basic general registers
 	if( pef22554_basic_chip(chip) ){
 		return -1;
     }
     // Initialise network interfaces
     if( mr17g_net_init(chip) )
-    	return -1;  
+    	return -1;
 	return 0;
-} 
+}
 
-// Initialize MR17G hardware 
+// Initialize MR17G hardware
 struct mr17g_card * __devinit
 mr17g_init_card(struct pci_dev *pdev)
 {
@@ -173,7 +173,7 @@ mr17g_init_card(struct pci_dev *pdev)
 	card->iomem_end = pci_resource_end( card->pdev, 1 );
     len = pci_resource_len(pdev,1);
 	sprintf(card->name,MR17G_DRVNAME"_%d",card->number);
-	
+
 	// Setup card subtype
     switch(card->pdev->subsystem_device){
     case MR17G4_SUBSYS_ID:
@@ -214,7 +214,7 @@ mr17g_init_card(struct pci_dev *pdev)
 	    printk(KERN_ERR"%s: error requesting irq(%d) for %s\n",MR17G_MODNAME,pdev->irq,card->name);
    		goto memfree;
     }
-	
+
 	// Initialise SCI controller
 	card->sci.iomem = card->iomem + MR17G_SCI_START;
 	PDEBUG(0,"SCI=%x",(unsigned long)(card->sci.iomem) - (unsigned long)(card->iomem));
@@ -239,16 +239,16 @@ mr17g_init_card(struct pci_dev *pdev)
 		// Card has only one chip
 		break;
 	case MR17G84:
-		// Setup second chip (Only with multiplexing)	
+		// Setup second chip (Only with multiplexing)
 		if( mr17g_setup_chip(card,1,MR17G_MUXONLY) )
 			goto chip1free;
 		break;
 	case MR17G8:
-		// Setup second chip normally	
+		// Setup second chip normally
 		if( mr17g_setup_chip(card,1,MR17G_STANDARD) )
 			goto chip1free;
 		break;
-	}	
+	}
 
 	// Start chipsets monitoring
     mr17g_sci_monitor((void*)card);
@@ -259,7 +259,7 @@ mr17g_init_card(struct pci_dev *pdev)
 
     PDEBUG(debug_init,"Return card = %p",card);
     return card;
-	
+
 chip1free:
 	mr17g_net_uninit(card->chips);
 chipsfree:
@@ -281,7 +281,7 @@ mr17g_shutdown_card(struct mr17g_card *card)
 {
     int iomem_size = card->iomem_end - card->iomem_start + 1;
     int i;
-    
+
 	PDEBUG(debug_init,"start, card = %p",card);
 	mr17g_sci_endmon(card);
 	for(i=0;i<card->chip_quan;i++){

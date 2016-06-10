@@ -1,6 +1,6 @@
 #!/bin/sh -x
 
-set -e 
+set -e
 
 while getopts k:s:o: Option; do
 	case $Option in
@@ -15,12 +15,12 @@ while getopts k:s:o: Option; do
 	esac
 done
 
-KERNEL_MAXSIZE=$((0x10000*$MIDGE_KERNEL_BLOCKS)) 
+KERNEL_MAXSIZE=$((0x10000*$MIDGE_KERNEL_BLOCKS))
 SQUASHFS_MAXSIZE=$((0x10000*$MIDGE_SQUASHFS_BLOCKS))
 DATAFS_MAXSIZE=$((0x10000*$MIDGE_DATAFS_BLOCKS))
 
 die(){
-    echo Error: $@; 
+    echo Error: $@;
     exit 1;
 }
 
@@ -32,7 +32,7 @@ check_max_size(){
     file=$1
     max_size=$2
     file_size="`get_file_size $file`"
-    if [ $file_size -gt $max_size ]; then 
+    if [ $file_size -gt $max_size ]; then
         die "$file has size $file_size what is bigger than max_size $max_size"
     fi
 }
@@ -68,7 +68,7 @@ echo "SQUASHFS_MAXSIZE=$SQUASHFS_MAXSIZE ($(($SQUASHFS_MAXSIZE/1024))k)"
 		cat $TMPROOT >>$TMPVMLINUZ
 		# adding zero datafs
 		dd if=/dev/zero bs=1024 count=1 >>$TMPVMLINUZ
-		$MKSYSHDR $TMPCSYS $TMPVMLINUZ 
+		$MKSYSHDR $TMPCSYS $TMPVMLINUZ
 		cat $TMPCSYS $TMPVMLINUZ >${MIDGE_IMAGE}
 		rm $TMPVMLINUZ $TMPROOT $TMPCSYS
 	else
@@ -83,7 +83,7 @@ echo "SQUASHFS_MAXSIZE=$SQUASHFS_MAXSIZE ($(($SQUASHFS_MAXSIZE/1024))k)"
 	fi
 
     echo " done."
-    
+
 
 #    cp $VMLINUZ $TMPVMLINUZ
 #    cp $SQUASHFS $TMPROOT
@@ -91,5 +91,5 @@ echo "SQUASHFS_MAXSIZE=$SQUASHFS_MAXSIZE ($(($SQUASHFS_MAXSIZE/1024))k)"
 #    $PADFILE $TMPROOT $SQUASHFS_MAXSIZE
 #    cat $TMPROOT >>$TMPVMLINUZ
 #    cp $TMPVMLINUZ ${FIRMWARE_BASE}.bin
-#    rm $TMPVMLINUZ $TMPROOT 
+#    rm $TMPVMLINUZ $TMPROOT
 

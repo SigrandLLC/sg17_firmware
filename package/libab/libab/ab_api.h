@@ -18,12 +18,12 @@ typedef struct ab_dev_event_s ab_dev_event_t;
 /*}}}*/
 
 enum jb_type_e {/*{{{*/
-	jb_type_FIXED, 
+	jb_type_FIXED,
 	jb_type_ADAPTIVE
 };/*}}}*/
 enum jb_loc_adpt_e {/*{{{*/
-	jb_loc_adpt_OFF, 
-	jb_loc_adpt_ON, 
+	jb_loc_adpt_OFF,
+	jb_loc_adpt_ON,
 	jb_loc_adpt_SI /**< local adaptation on with sample interpollation */
 };/*}}}*/
 struct jb_prms_s {/*{{{*/
@@ -312,10 +312,10 @@ int ab_FXS_line_feed( ab_chan_t * const chan, enum ab_chan_linefeed_e feed );
 /** Onhook or offhook on FXO line */
 int ab_FXO_line_hook( ab_chan_t * const chan, enum ab_chan_hook_e hook );
 /** Dial a digit on FXO line */
-int ab_FXO_line_digit( 
-		ab_chan_t * const chan, 
+int ab_FXO_line_digit(
+		ab_chan_t * const chan,
 		char const data_length, char const * const data,
-		char const nInterDigitTime, char const nDigitPlayTime, 
+		char const nInterDigitTime, char const nDigitPlayTime,
 		char const pulseMode);
 /** Play DTMF or busy/dial/ringing to the network connection (rtp-flow) */
 int ab_FXS_netlo_play( ab_chan_t * const chan, char tone, char local );
@@ -326,9 +326,9 @@ int ab_FXS_netlo_play( ab_chan_t * const chan, char tone, char local );
 	Events.
   @{ *//*{{{*/
 /** Get the events occures on given device */
-int ab_dev_event_get( 
-		ab_dev_t * const dev, 
-		ab_dev_event_t * const evt, 
+int ab_dev_event_get(
+		ab_dev_t * const dev,
+		ab_dev_event_t * const evt,
 		unsigned char * const chan_available );
 /** @} */
 /*}}}*/

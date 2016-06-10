@@ -1,7 +1,7 @@
 #!/usr/bin/haserl
 
 # SHDSL modules web-control script
-# Written by Polyakov A.U. <artpol84@gmail.com> 
+# Written by Polyakov A.U. <artpol84@gmail.com>
 
 eoc_config=/sbin/eoc-config
 eoc_info=/sbin/eoc-info
@@ -18,7 +18,7 @@ _sg16_status(){
 	num=`kdb get sys_pcitbl_s${slot}_ifnum`
 	render_table_title "$iface (module ${MR16H_MODNAME}${OEM_IFPFX}${num}) status" 2
 	# ONLINE status
-	
+
 	link=`cat $cpath/state`
 	tip=""
 	desc="Link state"
@@ -38,7 +38,7 @@ _sg16_settings(){
 			str:sys_pcicfg_s${slot}_${dev}_annex	\
 			str:sys_pcicfg_s${slot}_${dev}_crc	\
 			str:sys_pcicfg_s${slot}_${dev}_fill	\
-			str:sys_pcicfg_s${slot}_${dev}_inv"	
+			str:sys_pcicfg_s${slot}_${dev}_inv"
 	subsys="dsl."$slot"."$dev
 
 	render_save_stuff
@@ -46,8 +46,8 @@ _sg16_settings(){
 
 	render_form_header
 	# refresh configuration
-	eval `kdb -qq ls "sys_pcicfg_s${slot}_${dev}*" ` 
-	render_table_title "$iface (module ${MR16H_MODNAME}${OEM_IFPFX}${num}) settings" 2	
+	eval `kdb -qq ls "sys_pcicfg_s${slot}_${dev}*" `
+	render_table_title "$iface (module ${MR16H_MODNAME}${OEM_IFPFX}${num}) settings" 2
 
 	# sys_dsl_${iface}_name
 	render_input_field "hidden" "hidden" iface $iface
@@ -60,7 +60,7 @@ _sg16_settings(){
 	tip=""
 	desc="Select DSL mode"
 	id='mode'
-	onchange="OnChangeSG16Code();"	
+	onchange="OnChangeSG16Code();"
 	render_input_field select "Mode" sys_pcicfg_s${slot}_${dev}_mode  master 'Master' slave 'Slave'
 
 	unset crate
@@ -69,7 +69,7 @@ _sg16_settings(){
 	desc="Select DSL line rate"
 	validator='tmt:message="'$desc'"'
 	id='rate'
-	onchange="OnChangeSG16Code();"	
+	onchange="OnChangeSG16Code();"
 	render_input_field select "Rate" sys_pcicfg_s${slot}_${dev}_rate $crate $crate
 
 	# sys_pcicfg_s${slot}_${dev}_code
@@ -83,14 +83,14 @@ _sg16_settings(){
 	tip=""
 	desc="Select DSL configuration mode"
 	id='cfg'
-	onchange="OnChangeSG16Code();"	
+	onchange="OnChangeSG16Code();"
 	render_input_field select "Config" sys_pcicfg_s${slot}_${dev}_cfg local local preact preact
 
 	# sys_pcicfg_s${slot}_${dev}_annex
 	tip=""
 	desc="Select DSL Annex"
 	id='annex'
-	onchange="OnChangeSG16Code();"	
+	onchange="OnChangeSG16Code();"
 	render_input_field select "Annex" sys_pcicfg_s${slot}_${dev}_annex A "Annex A" B "Annex B" F "Annex F"
 
 	# sys_pcicfg_s${slot}_${dev}_crc32
@@ -119,7 +119,7 @@ _sg17_status(){
 
 	#-------------- STATUS table --------------------
 	help_2="dsl.status"
-	
+
 	#-------------- Get module type -------------------#
 	slot=$2
 	unset ver num pwr sfx
@@ -137,12 +137,12 @@ _sg17_status(){
         sfx=${sfx}${MR17H_PWRSFX}
     fi
 	num=`kdb get sys_pcitbl_s${slot}_ifnum`
-	
+
 	#----------------- Render Table ---------------------------#
-	render_table_title "$iface (module ${MR17H_MODNAME}${OEM_IFPFX}${num}${sfx}) status" 2	
+	render_table_title "$iface (module ${MR17H_MODNAME}${OEM_IFPFX}${num}${sfx}) status" 2
 	conf_path="$sg17_cfg_path/$iface/sg17_private"
 	# ONLINE status
-	link_state=`cat $conf_path/link_state`	
+	link_state=`cat $conf_path/link_state`
 	if [ "$link_state" -eq "1" ]; then
 	  link="online"
 	else
@@ -210,7 +210,7 @@ _sg17_status(){
 		tip=""
 		desc="Power Backoff values"
 		render_input_field static "PBO values" status "$pboval, dB"
-	fi		
+	fi
 
 	unset conf_path link link_state pwrovl pwrunb actrate actcpam actclkmode
 }
@@ -220,7 +220,7 @@ _sg17_settings(){
 	local slot=$2
 	local dev=$3
 
-	eval `kdb -qq sls "sys_pcicfg_s${slot}_${dev}_" ` 
+	eval `kdb -qq sls "sys_pcicfg_s${slot}_${dev}_" `
 	eval "new_ctrl=\$FORM_sys_pcicfg_s${slot}_${dev}_ctrl"
 	eval "new_mode=\$FORM_sys_pcicfg_s${slot}_${dev}_mode"
 
@@ -244,7 +244,7 @@ _sg17_settings(){
 			str:sys_pcicfg_s${slot}_${dev}_annex \
 			str:sys_pcicfg_s${slot}_${dev}_pbomode \
 			str:sys_pcicfg_s${slot}_${dev}_pboval \
-		    str:sys_pcicfg_s${slot}_${dev}_pwron"	
+		    str:sys_pcicfg_s${slot}_${dev}_pwron"
 
 	fi
 
@@ -279,9 +279,9 @@ _sg17_settings(){
 	sleep 2
 
 	# refresh configuration
-	unset 
-	eval `kdb -qq ls "sys_pcicfg_s${slot}_${dev}_*" ` 
-	eval `kdb -qq sls "sys_pcicfg_s${slot}_${dev}_" ` 
+	unset
+	eval `kdb -qq ls "sys_pcicfg_s${slot}_${dev}_*" `
+	eval `kdb -qq sls "sys_pcicfg_s${slot}_${dev}_" `
 
 
 	render_form_header
@@ -298,19 +298,19 @@ _sg17_settings(){
 	        ;;
 	esac
         if [ "$pwr_src" = "1" ]; then
-	    sfx=${sfx}${MR17H_PWRSFX}    
+	    sfx=${sfx}${MR17H_PWRSFX}
         fi
 
 	num=`kdb get sys_pcitbl_s${slot}_ifnum`
-	
+
 	#-------------- SETTINGS table ---------------
 	render_table_title "$iface (module ${MR17H_MODNAME}${OEM_IFPFX}${num}${sfx}) settings" 2
-	
+
 	# get device info
 	tmp=`cat /sys/class/net/$iface/sg17_private/chipver`
-	mrate=`kdb get sys_pcicfg_s${slot}_${dev}_mrate` 
-	pboval=`kdb get sys_pcicfg_s${slot}_${dev}_pboval` 
-	
+	mrate=`kdb get sys_pcicfg_s${slot}_${dev}_mrate`
+	pboval=`kdb get sys_pcicfg_s${slot}_${dev}_pboval`
+
 	# sys_dsl_${iface}_name
 	id='iface'
 	render_input_field "hidden" "hidden" iface $iface
@@ -337,7 +337,7 @@ _sg17_settings(){
 	    tip=""
 	    desc="Select DSL mode"
 	    id='mode'
-	    onchange="OnChangeSG17Code();"	
+	    onchange="OnChangeSG17Code();"
 	    render_input_field select "Mode" sys_pcicfg_s${slot}_${dev}_mode  master 'Master' slave 'Slave'
 	fi
 
@@ -345,7 +345,7 @@ _sg17_settings(){
 	tip=""
 	desc="Select DSL clock mode"
 	id='clkmode'
-	onchange="OnChangeSG17Code();"	
+	onchange="OnChangeSG17Code();"
 	render_input_field select "Clock mode" sys_pcicfg_s${slot}_${dev}_clkmode  'plesio' 'plesio' 'plesio-ref' 'plesio-ref' 'sync' 'sync'
 
 	if [ "$ctrl" != "eocd" ]; then
@@ -362,7 +362,7 @@ _sg17_settings(){
 	    validator='tmt:message="'$desc'"'
 	    id='rate'
 	    td_id='rate_td'
-	    onchange="OnChangeSG17Code();"	
+	    onchange="OnChangeSG17Code();"
 	    render_input_field select "Rate" sys_pcicfg_s${slot}_${dev}_rate $crate $crtext
 
 	    # sys_pcicfg_s${slot}_${dev}_code
@@ -380,7 +380,7 @@ _sg17_settings(){
 	    id='pbomode'
 	    td_id='pbomode_td'
 	    onchange="OnChangeSG17Code();"
-	    render_input_field checkbox "PBO Forced" sys_pcicfg_s${slot}_${dev}_pbomode 
+	    render_input_field checkbox "PBO Forced" sys_pcicfg_s${slot}_${dev}_pbomode
 
 	    # sys_pcicfg_s${slot}_${dev}_annex
 	    tip=""
@@ -388,7 +388,7 @@ _sg17_settings(){
 	    id='annex'
 	    render_input_field select "Annex" sys_pcicfg_s${slot}_${dev}_annex A "Annex A" B "Annex B"
 	fi
-	
+
 	# sys_pcicfg_s${slot}_${dev}_advlink
 	tip=""
 	desc="Select DSL Advanced link detection"
@@ -404,7 +404,7 @@ _sg17_settings(){
 	desc="Select DSL fill byte value"
 	render_input_field select "Fill" sys_pcicfg_s${slot}_${dev}_fill  fill_ff FF fill_7e 7E
 
-	
+
 	if [ "$ctrl" != "eocd" ] && [ "$pwr_src" = "1" ]; then
 	    # sys_pcicfg_s${slot}_${dev}_pwron
 	    tip=""
@@ -438,7 +438,7 @@ if [ -z "$iface" ]; then
 		break
 	done
 fi
-page=${FORM_page:-status} 
+page=${FORM_page:-status}
 unset mode rate code annex cfg crc fill inv pwron
 
 mtype=`kdb get sys_pcitbl_s${slot}_iftype"`
@@ -449,7 +449,7 @@ render_page_selection "iface=$iface&pcislot=$slot&pcidev=$dev" \
 
 
 case $page in
-'status')	
+'status')
 	case $mtype in
 	$MR16H_DRVNAME)
 		_sg16_status $iface

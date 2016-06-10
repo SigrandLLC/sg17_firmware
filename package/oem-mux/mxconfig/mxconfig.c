@@ -50,10 +50,10 @@ process_args(int argc,char **argv,char **ifname,devsetup_t *settings)
     settings->mx_slotmap = 0;
     settings->mxrate = -1;
     settings->rline = settings->tline = -1;
-    settings->rfs = settings->tfs = -1;    
+    settings->rfs = settings->tfs = -1;
     settings->clkm = settings->clkr = settings->clkab = -1;
     settings->mxen = -1;
-    
+
     while (1) {
         int option_index = -1;
     	static struct option long_options[] = {
@@ -237,7 +237,7 @@ void print_device(ifdescr_t *ifd)
 		printf(" mxrate=%d\n",settings->mxrate);
 		break;
     }
-} 
+}
 
 void
 mxline_print(mxline_t *l,int lind,char *sname)
@@ -249,17 +249,17 @@ mxline_print(mxline_t *l,int lind,char *sname)
     }
 }
 
-inline int 
+inline int
 is_crossing(u8 start1,u8 width1,u8 start2,u8 width2)
 {
     return !( (start1+(width1-1))<start2 || (start2+(width2-1))<start1 );
-}			    
+}
 
-inline int 
+inline int
 is_contain(u8 start1,u8 width1,u8 start2,u8 width2)
 {
     return !( (start1<start2) && (start1+(width1-1))<(start2+(width2-1)) );
-}			    
+}
 
 int
 check_xline(mxline_t *l,int bindex,char *sname,int rw)
@@ -304,7 +304,7 @@ mxline2lmap(mxline_t *l,u32 lmap[MX_LWIDTH32])
 		int end_ts = (l->devs[i].xfs+l->devs[i].mxrate)%32;
 		if( !(end32<MX_LWIDTH32) )
 			return -1;
-	
+
 		if( start32 == end32 ){
 			for(j=start_ts;j<end_ts;j++)
 				lmap[start32] |= (1<<j);
@@ -312,7 +312,7 @@ mxline2lmap(mxline_t *l,u32 lmap[MX_LWIDTH32])
 			// fill first word
 			for(j=start_ts;j<32;j++)
 				lmap[start32] |= (1<<j);
-			// fill last word	
+			// fill last word
 			for(j=0;j<end_ts;j++)
 				lmap[end32] |= (1<<j);
 			// fill middle words
@@ -339,7 +339,7 @@ check_hanging_tslots(mxline_t *rline,mxline_t *tline,int lnum)
 
     if( mxline2lmap(tline,tlmap) )
 		return -1;
-    
+
     for(i=0;i<MX_LWIDTH32;i++){
 		rdiff[i] = rlmap[i] & ~(rlmap[i]&tlmap[i]);
 		tdiff[i] = tlmap[i] & ~(tlmap[i]&rlmap[i]);
@@ -400,7 +400,7 @@ check_hdsc_mux(ifdescr_t *ifd)
 
 	if( ifd->settings.type == continual_ts )
 		return 0;
-	
+
 	snprintf(fname,256,"%s/%s/framed",cfg_path,ifd->name);
 	if( !(stream = fopen(fname,"r")) ){
 		return -1;
@@ -464,7 +464,7 @@ PDEBUG(DFULL,"Start");
 			clkB_cnt++;
 			break;
 		}
-	
+
 		if( set->clkm ){
 			switch( set->clkab ){
 			case clkA:
@@ -488,15 +488,15 @@ PDEBUG(DFULL,"Start");
 			mxrate = slotmap2mxrate(set->mx_slotmap);
 			break;
 		}
-	
+
 		el.ifd = iflist[i];
-	
+
 		el.xfs = set->rfs;
 		el.mxrate = mxrate;
 		if( !rlines[set->rline] ){
 			rlines[set->rline] = mxline_init();
 		}
-        
+
 		if( mxline_add(rlines[set->rline],set->clkab,el,set->tline) ){
 			mxerror("Cannot add device %s to line %d, too many interfaces",
 					iflist[i]->name,set->rline);
@@ -514,8 +514,8 @@ PDEBUG(DFULL,"Start");
 		}
     }
 
-PDEBUG(DFULL,"#1");    
-    // 1. In each domain one and only one master 
+PDEBUG(DFULL,"#1");
+    // 1. In each domain one and only one master
     if( !clkAm_cnt && clkA_cnt )
 		mxerror("No clock master in domain A");
     if( clkAm_cnt>1 ){
@@ -528,7 +528,7 @@ PDEBUG(DFULL,"#1");
     if( !clkBm_cnt && clkB_cnt)
 		mxerror("No clock master in domain B");
 
-PDEBUG(DFULL,"#2");    
+PDEBUG(DFULL,"#2");
 
     if( clkBm_cnt>1 ){
 		int i;
@@ -538,11 +538,11 @@ PDEBUG(DFULL,"#2");
 		}
     }
 
-PDEBUG(DFULL,"#3");    
+PDEBUG(DFULL,"#3");
 
     // 2. All devices of line in one domain
     for(i=0;i<MX_LINES;i++){
-PDEBUG(DFULL,"#3.%d",i);    
+PDEBUG(DFULL,"#3.%d",i);
 
 		int rerr=0,terr=0;
 		if( !rlines[i] && !tlines[i] )
@@ -573,7 +573,7 @@ PDEBUG(DFULL,"#3.%d",i);
 			mxline_print(rlines[i],i,"write");
     }
 
-PDEBUG(DFULL,"#4");    
+PDEBUG(DFULL,"#4");
 
     // 3. Check that timeslots inside line do not cross
     for(i=0;i<MX_LINES;i++){
@@ -582,7 +582,7 @@ PDEBUG(DFULL,"#4");
 		if( rlines[i] ){
 			check_xline(rlines[i],i,"rline",1);
 		}
-		if( tlines[i] ){    
+		if( tlines[i] ){
 			check_xline(tlines[i],i,"tline",0);
 		}
     }
@@ -592,15 +592,15 @@ PDEBUG(DFULL,"#4");
 			mxerror("Unknown error whileprocess Line%d",i);
     }
 
-PDEBUG(DFULL,"#5");    
-    
+PDEBUG(DFULL,"#5");
+
 
     // 4. Check for E1 timeslots that HDLC & MUX timeslots don't cross
 	for(i=0;i<iflsize;i++){
 		check_hdsc_mux(iflist[i]);
 	}
 
-PDEBUG(DFULL,"#6");    
+PDEBUG(DFULL,"#6");
 
 }
 
@@ -609,17 +609,17 @@ int main(int argc, char *argv[] )
     char *ifname = NULL;
     int iflen = 0;
     char *pname = strdup(argv[0]);
-    action_t type = help;    
+    action_t type = help;
     devsetup_t settings;
     iftype_t iftype = unknown_ts;
-    ifdescr_t *iflist[MAX_IFS];    
+    ifdescr_t *iflist[MAX_IFS];
     int cnt = fill_iflist(IFS_ROOT,iflist,MAX_IFS);
 
     type = process_args(argc,argv,&ifname,&settings);
 
     if( ifname )
 		iflen = strlen(ifname);
-    
+
     switch( type ){
     case help:
 		print_usage(pname);
@@ -695,7 +695,7 @@ int main(int argc, char *argv[] )
 		check(iflist,cnt);
 		break;
     }
-    
+
     return 0;
 }
 

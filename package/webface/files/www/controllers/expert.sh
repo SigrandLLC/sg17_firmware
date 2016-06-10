@@ -1,13 +1,13 @@
 #!/usr/bin/haserl
-	
+
 	page=${FORM_page:-kdb}
 	name=${FORM_name}
 	value=${FORM_value}
-	
+
 	render_page_selection "" kdb "kdb" kdb_set 'kdb set'
 
 
-	render_form_header 
+	render_form_header
 	if [ $REQUEST_METHOD = POST ]; then
 		case $page in
 		kdb_set)
@@ -17,8 +17,8 @@
 			render_console_end
 		;;
 		esac
-	else 
-		render_table_title "$page" 2 
+	else
+		render_table_title "$page" 2
 		render_input_field hidden page page "$page"
 		case $page in
 			kdb)

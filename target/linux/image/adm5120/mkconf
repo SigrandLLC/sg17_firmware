@@ -21,7 +21,7 @@ MIDGE_VERSION_MINOR=$MIDGE_VERSION_MINOR
 MIDGE_TYPE=$MIDGE_TYPE
 MIDGE_BUILD_DATE="`date +%Y%m%d`"
 MIDGE_BUILD_TIME="`date +%H:%M:%S`"
-# MTD Partitions 
+# MTD Partitions
 KERNEL_PARTITION=/dev/mtdblock/1
 KERNEL_PARTITION_SIZE=$(($MIDGE_KERNEL_BLOCKS*0x10000))
 INITFS_PARTITION=/dev/mtdblock/2
@@ -30,7 +30,7 @@ DATAFS_PARTITION=/dev/mtdblock/3 # jffs2 or raw partition depending on MIDGE_TYP
 DATAFS_PARTITION_SIZE=$(($MIDGE_DATAFS_BLOCKS*0x10000))
 # VLAN_MX is interface to port definition (port bitmask)
 # 0x41=1000001b; 0x42=1000010b; 0x44=1000100b; 0x48=1001000b; 0x50=1010000b; 0x60=1100000b;
-VLAN_MX="0x41,0x42,0x44,0x48,0x50,0x60" # 6 ethernet ifaces 
+VLAN_MX="0x41,0x42,0x44,0x48,0x50,0x60" # 6 ethernet ifaces
 #VLAN_MX="0x41,0x5E,0,0,0,0" # 2 ethernet ifaces (like edimax 1WAN, 4LAN)
 #VLAN_MX="0x5F,0,0,0,0,0" # 1 ethernet iface (5LAN)
 #USB_MOUNT=yes
@@ -55,7 +55,7 @@ EOF
 fi
 
 while [ -n "$1" ];
-do 
+do
   cat $tmp >$1
   shift
 done

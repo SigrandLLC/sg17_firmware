@@ -11,8 +11,8 @@
 		render_save_stuff
 
 		eval `kdb -qq ls sys_fw_*`
-		render_form_header fw 
-		render_table_title "Firewall settings" 
+		render_form_header fw
+		render_table_title "Firewall settings"
 
 		# sys_fw_enabled
 		tip=""
@@ -23,18 +23,18 @@
 		render_submit_field
 		render_form_tail
 	elif [ "$table" = "filter" ]; then
-	
+
 		kdb_vars="str:sys_fw_filter_policy_forward str:sys_fw_filter_policy_input str:sys_fw_filter_policy_output"
 		render_save_stuff
-		
+
 		eval `kdb -qq ls sys_fw_filter_*`
-		render_form_header fw_policy 
-		
+		render_form_header fw_policy
+
 		render_input_field hidden table table "$table"
 		render_input_field hidden chain chain "$chain"
-		
+
 		help_2="filter_policy"
-		render_table_title "Default policy" 2 
+		render_table_title "Default policy" 2
 		# forward policy
 		autosubmit="y"
 		render_input_field select "Default policy for FORWARD" sys_fw_filter_policy_forward ACCEPT "ACCEPT" DROP "DROP"
@@ -51,34 +51,34 @@
 		# fw forward list
 		render_form_header fw_filter_forward
 		help_2="filter_forward"
-		render_table_title "FORWARD" 2 
+		render_table_title "FORWARD" 2
 		render_iframe_list "fw_chain" "table=filter&chain=forward"
 		render_form_tail
 
 		# fw input list
 		render_form_header fw_filter_input
 		help_2="filter_input"
-		render_table_title "INPUT" 2 
+		render_table_title "INPUT" 2
 		render_iframe_list "fw_chain" "table=filter&chain=input"
 		render_form_tail
 
 		# fw output list
 		render_form_header fw_filter_output
 		help_2="filter_output"
-		render_table_title "OUTPUT" 2 
+		render_table_title "OUTPUT" 2
 		render_iframe_list "fw_chain" "table=filter&chain=output"
 		render_form_tail
-	
+
 	elif [ "$table" = "nat" ]; then
 		kdb_vars="str:sys_fw_nat_policy_prerouting str:sys_fw_nat_policy_postrouting"
 		render_save_stuff
-		
+
 		eval `kdb -qq ls sys_fw_nat_*`
-		render_form_header fw_policy 
-		
+		render_form_header fw_policy
+
 		render_input_field hidden table table "$table"
 		render_input_field hidden chain chain "$chain"
-		
+
 		help_1="nat"
 		render_table_title "Default policy"
 		# prerouting policy
@@ -95,18 +95,18 @@
 		render_form_header fw_nat_prerouting
 		help_1="nat"
 		help_2="nat_prerouting"
-		render_table_title "PREROUTING" 2 
+		render_table_title "PREROUTING" 2
 		render_iframe_list "fw_chain" "table=nat&chain=prerouting"
 		render_form_tail
-		
+
 		# fw postrouting list
 		render_form_header fw_nat_postrouting
 		help_1="nat"
 		help_2="nat_postrouting"
-		render_table_title "POSTROUTING" 2 
+		render_table_title "POSTROUTING" 2
 		render_iframe_list "fw_chain" "table=nat&chain=postrouting"
 		render_form_tail
-		
+
 	fi
 
 

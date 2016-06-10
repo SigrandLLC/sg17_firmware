@@ -37,7 +37,7 @@ $(PKG_BUILD_DIR)/.configured:
 		--with-gnu-ld \
 	);
 	touch $@
-	
+
 $(PKG_BUILD_DIR)/.built:
 	$(MAKE) STAGING_DIR=$(STAGING_DIR) DESTDIR=$(PKG_INSTALL_DIR) -C $(PKG_BUILD_DIR)
 	install -d -m0755 $(PKG_INSTALL_DIR)/usr/sbin $(PKG_INSTALL_DIR)/etc/init.d
@@ -46,7 +46,7 @@ $(PKG_BUILD_DIR)/.built:
 	install -m0644 $(PKG_BUILD_DIR)/PG.conf $(PKG_INSTALL_DIR)/etc/
 	install -m0644 $(PKG_BUILD_DIR)/p2p.p2b.p2p $(PKG_INSTALL_DIR)/etc/
 	install -m0644 files/$(PKG_NAME).init $(PKG_INSTALL_DIR)/etc/init.d/$(PKG_NAME)
-	
+
 $(IPKG_PEERGUARDIAN):
 	mkdir -p $(IDIR_PEERGUARDIAN)
 	$(CP) $(PKG_INSTALL_DIR)/* $(IDIR_PEERGUARDIAN)/

@@ -32,7 +32,7 @@ TD.md {
 	font-family: Courier New, Courier, Arial, sans-serif;
 	font-size: 10pt;
 }
-TD.mdname1 { 
+TD.mdname1 {
 	background-color: #f2f2ff;
 	font-weight: bold;
 	font-family: Courier New, Courier, Arial, sans-serif;
@@ -48,9 +48,9 @@ TD.mdname {
 }
 DIV.groupHeader { margin-left: 16px; margin-top: 12px; margin-bottom: 6px; font-weight: bold }
 DIV.groupText {
-	margin-left: 16px; 
+	margin-left: 16px;
 	font-style: italic;
-	font-size: smaller 
+	font-size: smaller
 }
 BODY {
 	background: white;
@@ -58,32 +58,32 @@ BODY {
 	margin-right: 20px;
 	margin-left: 20px;
 }
-TD.indexkey { 
-   background-color: #eeeeff; 
-   font-weight: bold; 
-   padding-right  : 10px; 
-   padding-top    : 2px; 
-   padding-left   : 10px; 
-   padding-bottom : 2px; 
-   margin-left    : 0px; 
-   margin-right   : 0px; 
-   margin-top     : 2px; 
-   margin-bottom  : 2px  
+TD.indexkey {
+   background-color: #eeeeff;
+   font-weight: bold;
+   padding-right  : 10px;
+   padding-top    : 2px;
+   padding-left   : 10px;
+   padding-bottom : 2px;
+   margin-left    : 0px;
+   margin-right   : 0px;
+   margin-top     : 2px;
+   margin-bottom  : 2px
 }
-TD.indexvalue { 
-   background-color: #eeeeff; 
-   font-style: italic; 
-   padding-right  : 10px; 
-   padding-top    : 2px; 
-   padding-left   : 10px; 
-   padding-bottom : 2px; 
-   margin-left    : 0px; 
-   margin-right   : 0px; 
-   margin-top     : 2px; 
-   margin-bottom  : 2px  
+TD.indexvalue {
+   background-color: #eeeeff;
+   font-style: italic;
+   padding-right  : 10px;
+   padding-top    : 2px;
+   padding-left   : 10px;
+   padding-bottom : 2px;
+   margin-left    : 0px;
+   margin-right   : 0px;
+   margin-top     : 2px;
+   margin-bottom  : 2px
 }
 TR.memlist {
-   background-color: #f0f0f0; 
+   background-color: #f0f0f0;
 }
 P.formulaDsp { text-align: center; }
 IMG.formulaDsp { }

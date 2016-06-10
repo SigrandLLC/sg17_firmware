@@ -1,5 +1,5 @@
 #!/bin/sh
-	
+
 	subsys="logging"
 
 	kdb_vars="int:sys_log_console int:sys_log_dmesg_level int:sys_log_buf_size bool:sys_log_remote_enabled str:sys_log_remote_server "
@@ -20,7 +20,7 @@
 	# sys_log_buf_size
 	default=64
 	desc="Circular buffer size"
-	render_input_field select "Circular buffer" sys_log_buf_size 0 0k 8 8k 16 16k 32 32k 64 64k 128 128k 256 256k 512 512k 
+	render_input_field select "Circular buffer" sys_log_buf_size 0 0k 8 8k 16 16k 32 32k 64 64k 128 128k 256 256k 512 512k
 
 	# sys_log_remote_enabled
 	default=0
@@ -35,5 +35,5 @@
 
 	render_submit_field
 	render_form_tail
-	
+
 # vim:foldmethod=indent:foldlevel=1

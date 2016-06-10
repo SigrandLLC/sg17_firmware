@@ -13,7 +13,7 @@ PCI devices found:
   Bus  0, device   2, function  0:
     Class 0200: PCI device 14e4:4713 (rev 0).
       IRQ 3.
-      Master Capable.  Latency=64.  
+      Master Capable.  Latency=64.
       Non-prefetchable 32 bit memory at 0x18002000 [0x18002fff].
   Bus  0, device   3, function  0:
     Class 0703: PCI device 14e4:4712 (rev 0).
@@ -41,16 +41,16 @@ PCI devices found:
   Bus  0, device   8, function  0:
     Class 0200: PCI device 14e4:4713 (rev 0).
       IRQ 4.
-      Master Capable.  Latency=64.  
+      Master Capable.  Latency=64.
       Non-prefetchable 32 bit memory at 0x18008000 [0x18008fff].
   Bus  1, device   0, function  0:
     Class 0600: PCI device 14e4:4710 (rev 1).
       IRQ 6.
-      Master Capable.  Latency=64.  
+      Master Capable.  Latency=64.
       Non-prefetchable 32 bit memory at 0x40000000 [0x40001fff].
       Prefetchable 32 bit memory at 0x0 [0x7ffffff].
   Bus  1, device   8, function  0:
     Class 0280: PCI device 14e4:4320 (rev 3).
       IRQ 6.
-      Master Capable.  Latency=64.  
+      Master Capable.  Latency=64.
       Non-prefetchable 32 bit memory at 0x40002000 [0x40003fff].

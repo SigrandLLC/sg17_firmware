@@ -3,7 +3,7 @@
  *
  * Copyright 2004, Broadcom Corporation
  * All Rights Reserved.
- * 
+ *
  * THIS SOFTWARE IS OFFERED "AS IS", AND BROADCOM GRANTS NO WARRANTIES OF ANY
  * KIND, EXPRESS OR IMPLIED, BY STATUTE, COMMUNICATION OR OTHERWISE. BROADCOM
  * SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS
@@ -43,7 +43,7 @@ wl_set_val(char *name, char *var, void *val, int len)
 	/* check for overflow */
 	if ((buf_len = strlen(var)) + 1 + len > sizeof(buf))
 		return -1;
-	
+
 	strcpy(buf, var);
 	buf_len += 1;
 
@@ -63,7 +63,7 @@ wl_get_val(char *name, char *var, void *val, int len)
 	/* check for overflow */
 	if (strlen(var) + 1 > sizeof(buf) || len > sizeof(buf))
 		return -1;
-	
+
 	strcpy(buf, var);
 	if ((ret = wl_ioctl(name, WLC_GET_VAR, buf, sizeof(buf))))
 		return ret;
@@ -88,7 +88,7 @@ wl_get_int(char *name, char *var, int *val)
  *  The following code is from Broadcom (wl.c)                            *
  **************************************************************************/
 
-int 
+int
 wl_iovar_getbuf(char *ifname, char *iovar, void *param,
 		int paramlen, void *bufptr, int buflen)
 {
@@ -100,18 +100,18 @@ wl_iovar_getbuf(char *ifname, char *iovar, void *param,
 	iolen = namelen + paramlen;
 
 	/* check for overflow */
-	if (iolen > buflen) 
+	if (iolen > buflen)
 		return (-1);
 
 	memcpy(bufptr, iovar, namelen);	/* copy iovar name including null */
 	memcpy((int8*)bufptr + namelen, param, paramlen);
 
 	err = wl_ioctl(ifname, WLC_GET_VAR, bufptr, buflen);
-	
+
 	return (err);
 }
 
-int 
+int
 wl_iovar_setbuf(char *ifname, char *iovar, void *param,
 		int paramlen, void *bufptr, int buflen)
 {
@@ -122,7 +122,7 @@ wl_iovar_setbuf(char *ifname, char *iovar, void *param,
 	iolen = namelen + paramlen;
 
 	/* check for overflow */
-	if (iolen > buflen) 
+	if (iolen > buflen)
 		return (-1);
 
 	memcpy(bufptr, iovar, namelen);	/* copy iovar name including null */
@@ -157,9 +157,9 @@ wl_iovar_get(char *ifname, char *iovar, void *bufptr, int buflen)
 	return ret;
 }
 
-/* 
+/*
  * set named driver variable to int value
- * calling example: wl_iovar_setint(ifname, "arate", rate) 
+ * calling example: wl_iovar_setint(ifname, "arate", rate)
 */
 int
 wl_iovar_setint(char *ifname, char *iovar, int val)
@@ -167,9 +167,9 @@ wl_iovar_setint(char *ifname, char *iovar, int val)
 	return wl_iovar_set(ifname, iovar, &val, sizeof(val));
 }
 
-/* 
- * get named driver variable to int value and return error indication 
- * calling example: wl_iovar_getint(ifname, "arate", &rate) 
+/*
+ * get named driver variable to int value and return error indication
+ * calling example: wl_iovar_getint(ifname, "arate", &rate)
  */
 int
 wl_iovar_getint(char *ifname, char *iovar, int *val)
@@ -177,7 +177,7 @@ wl_iovar_getint(char *ifname, char *iovar, int *val)
 	return wl_iovar_get(ifname, iovar, val, sizeof(int));
 }
 
-/* 
+/*
  * format a bsscfg indexed iovar buffer
  */
 static int
@@ -203,17 +203,17 @@ wl_bssiovar_mkbuf(char *iovar, int bssidx, void *param,
 	p = (int8*)bufptr;
 
 	/* copy prefix, no null */
-	memcpy(p, prefix, prefixlen);	
+	memcpy(p, prefix, prefixlen);
 	p += prefixlen;
 
 	/* copy iovar name including null */
-	memcpy(p, iovar, namelen);	
+	memcpy(p, iovar, namelen);
 	p += namelen;
 
 	/* bss config index as first param */
 	memcpy(p, &bssidx, sizeof(int32));
 	p += sizeof(int32);
-	
+
 	/* parameter buffer follows */
 	if (paramlen)
 		memcpy(p, param, paramlen);
@@ -222,11 +222,11 @@ wl_bssiovar_mkbuf(char *iovar, int bssidx, void *param,
 	return 0;
 }
 
-/* 
+/*
  * set named & bss indexed driver variable to buffer value
  */
 int
-wl_bssiovar_setbuf(char *ifname, char *iovar, int bssidx, void *param, 
+wl_bssiovar_setbuf(char *ifname, char *iovar, int bssidx, void *param,
 		   int paramlen, void *bufptr, int buflen)
 {
 	int err;
@@ -235,15 +235,15 @@ wl_bssiovar_setbuf(char *ifname, char *iovar, int bssidx, void *param,
 	err = wl_bssiovar_mkbuf(iovar, bssidx, param, paramlen, bufptr, buflen, &iolen);
 	if (err)
 		return err;
-	
+
 	return wl_ioctl(ifname, WLC_SET_VAR, bufptr, iolen);
 }
 
-/* 
+/*
  * get named & bss indexed driver variable buffer value
  */
 int
-wl_bssiovar_getbuf(char *ifname, char *iovar, int bssidx, void *param, 
+wl_bssiovar_getbuf(char *ifname, char *iovar, int bssidx, void *param,
 		   int paramlen, void *bufptr, int buflen)
 {
 	int err;
@@ -252,11 +252,11 @@ wl_bssiovar_getbuf(char *ifname, char *iovar, int bssidx, void *param,
 	err = wl_bssiovar_mkbuf(iovar, bssidx, param, paramlen, bufptr, buflen, &iolen);
 	if (err)
 		return err;
-	
+
 	return wl_ioctl(ifname, WLC_GET_VAR, bufptr, buflen);
 }
 
-/* 
+/*
  * set named & bss indexed driver variable to buffer value
  */
 int
@@ -267,7 +267,7 @@ wl_bssiovar_set(char *ifname, char *iovar, int bssidx, void *param, int paramlen
 	return wl_bssiovar_setbuf(ifname, iovar, bssidx, param, paramlen, smbuf, sizeof(smbuf));
 }
 
-/* 
+/*
  * get named & bss indexed driver variable buffer value
  */
 int
@@ -289,7 +289,7 @@ wl_bssiovar_get(char *ifname, char *iovar, int bssidx, void *outbuf, int len)
 	return err;
 }
 
-/* 
+/*
  * set named & bss indexed driver variable to int value
  */
 int

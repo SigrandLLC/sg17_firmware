@@ -1,4 +1,4 @@
-# invoke ipkg with configuration in $(STAGING_DIR)/etc/ipkg.conf 
+# invoke ipkg with configuration in $(STAGING_DIR)/etc/ipkg.conf
 
 define PKG_template
 IPKG_$(1):=$(PACKAGE_DIR)/$(2)_$(3)_$(4).ipk
@@ -38,7 +38,7 @@ endef
 ifneq ($(strip $(PKG_SOURCE)),)
 $(DL_DIR)/$(PKG_SOURCE):
 	@$(CMD_TRACE) "downloading... "
-	$(SCRIPT_DIR)/download.pl "$(DL_DIR)" "$(PKG_SOURCE)" "$(PKG_MD5SUM)" $(PKG_SOURCE_URL) $(MAKE_TRACE) 
+	$(SCRIPT_DIR)/download.pl "$(DL_DIR)" "$(PKG_SOURCE)" "$(PKG_MD5SUM)" $(PKG_SOURCE_URL) $(MAKE_TRACE)
 endif
 
 ifneq ($(strip $(PKG_CAT)),)
@@ -49,7 +49,7 @@ $(PKG_BUILD_DIR)/.prepared: $(DL_DIR)/$(PKG_SOURCE)
 		unzip -d $(PKG_BUILD_DIR) $(DL_DIR)/$(PKG_SOURCE) ; \
 	else \
 		$(PKG_CAT) $(DL_DIR)/$(PKG_SOURCE) | tar -C $(PKG_BUILD_DIR)/.. $(TAR_OPTIONS) - ; \
-	fi						  
+	fi
 	if [ -d ./patches ]; then \
 		$(PATCH) $(PKG_BUILD_DIR) ./patches ; \
 	fi
@@ -73,7 +73,7 @@ configure: prepare
 
 compile-targets:
 compile: configure
-	@$(CMD_TRACE) "compiling... " 
+	@$(CMD_TRACE) "compiling... "
 	@$(MAKE) compile-targets $(MAKE_TRACE)
 
 install-targets:
@@ -97,8 +97,8 @@ $(PACKAGE_DIR):
 	mkdir -p $@
 
 clean-targets:
-clean: 
-	@$(CMD_TRACE) "cleaning... " 
+clean:
+	@$(CMD_TRACE) "cleaning... "
 	@$(MAKE) clean-targets $(MAKE_TRACE)
 	rm -rf $(PKG_BUILD_DIR)
 

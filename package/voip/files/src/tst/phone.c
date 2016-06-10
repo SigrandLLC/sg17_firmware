@@ -60,10 +60,10 @@ int main (int argc, char *argv[])
 			case 1: {
 				ab_dev_event_t evt;
 
-		fprintf(stderr,"\t---=== FXS_DEVICE_EVENTS ===---\n");	
+		fprintf(stderr,"\t---=== FXS_DEVICE_EVENTS ===---\n");
 				do {
 					unsigned char chan_avail;
-					err = ab_dev_event_get( 
+					err = ab_dev_event_get(
 							ab->chans[FXS_CHAN_ID].parent, &evt, &chan_avail);
 					if( !chan_avail){
 						fprintf(stderr,"No CHAN AVAILABLE\n");
@@ -73,55 +73,55 @@ int main (int argc, char *argv[])
 			case ab_dev_event_NONE: {
 				fprintf(stderr,"NONE\n");
 				break;
-			}	
+			}
 			case ab_dev_event_UNCATCHED: {
-				fprintf(stderr,"[%d]-UNCATCHED : 0x%lX\n", 
-						evt.ch, evt.data);	
+				fprintf(stderr,"[%d]-UNCATCHED : 0x%lX\n",
+						evt.ch, evt.data);
 				break;
-			}	
+			}
 			case ab_dev_event_FXO_RINGING: {
-				fprintf(stderr,"[%d]-FXO_RINGING : 0x%lX\n", 
-						evt.ch, evt.data);	
+				fprintf(stderr,"[%d]-FXO_RINGING : 0x%lX\n",
+						evt.ch, evt.data);
 				break;
-			}	
+			}
 			case ab_dev_event_FXS_DIGIT_TONE: {
-				fprintf(stderr,"[%d]-FXS_DIGIT_TONE : '%c'\n", 
-						evt.ch, (unsigned char)evt.data);	
+				fprintf(stderr,"[%d]-FXS_DIGIT_TONE : '%c'\n",
+						evt.ch, (unsigned char)evt.data);
 				break;
-			}	
+			}
 			case ab_dev_event_FXS_DIGIT_PULSE: {
-				fprintf(stderr,"[%d]-FXS_DIGIT_PULSE : '%c'\n", 
-						evt.ch, (char)evt.data);	
+				fprintf(stderr,"[%d]-FXS_DIGIT_PULSE : '%c'\n",
+						evt.ch, (char)evt.data);
 				break;
-			}	
+			}
 			case ab_dev_event_FXS_ONHOOK: {
-				fprintf(stderr,"[%d]-FXS_ONHOOK\n", evt.ch);	
+				fprintf(stderr,"[%d]-FXS_ONHOOK\n", evt.ch);
 				break;
-			}	
+			}
 			case ab_dev_event_FXS_OFFHOOK: {
-				fprintf(stderr,"[%d]-FXS_OFFHOOK\n", evt.ch);	
+				fprintf(stderr,"[%d]-FXS_OFFHOOK\n", evt.ch);
 				break;
-			}	
+			}
 			case ab_dev_event_FM_CED: {
-				fprintf(stderr,"[%d]-FXS_FM_CED\n", evt.ch);	
+				fprintf(stderr,"[%d]-FXS_FM_CED\n", evt.ch);
 				break;
-			}	
+			}
 			case ab_dev_event_COD: {
-				fprintf(stderr,"[%d]-COD\n", evt.ch);	
+				fprintf(stderr,"[%d]-COD\n", evt.ch);
 				break;
-			}	
+			}
 			case ab_dev_event_TONE: {
-				fprintf(stderr,"[%d]-TONE\n", evt.ch);	
+				fprintf(stderr,"[%d]-TONE\n", evt.ch);
 				break;
-			}	
+			}
 		}
 				} while(evt.more);
 
-		fprintf(stderr,"\t---=========================---\n");	
-		fprintf(stderr,"\t---=== FXO_DEVICE_EVENTS ===---\n");	
+		fprintf(stderr,"\t---=========================---\n");
+		fprintf(stderr,"\t---=== FXO_DEVICE_EVENTS ===---\n");
 				do {
 					unsigned char chan_avail;
-					err = ab_dev_event_get( 
+					err = ab_dev_event_get(
 							ab->chans[FXO_CHAN_ID].parent, &evt, &chan_avail);
 					if( !chan_avail){
 						fprintf(stderr,"No CHAN AVAILABLE\n");
@@ -131,67 +131,67 @@ int main (int argc, char *argv[])
 			case ab_dev_event_NONE: {
 				fprintf(stderr,"NONE\n");
 				break;
-			}	
+			}
 			case ab_dev_event_UNCATCHED: {
-				fprintf(stderr,"[%d]-UNCATCHED : 0x%lX\n", 
-						evt.ch, evt.data);	
+				fprintf(stderr,"[%d]-UNCATCHED : 0x%lX\n",
+						evt.ch, evt.data);
 				break;
-			}	
+			}
 			case ab_dev_event_FXO_RINGING: {
-				fprintf(stderr,"[%d]-FXO_RINGING : 0x%lX\n", 
-						evt.ch, evt.data);	
+				fprintf(stderr,"[%d]-FXO_RINGING : 0x%lX\n",
+						evt.ch, evt.data);
 				break;
-			}	
+			}
 			case ab_dev_event_FXS_DIGIT_TONE: {
-				fprintf(stderr,"[%d]-FXS_DIGIT_TONE : '%c'\n", 
-						evt.ch, (char)evt.data);	
+				fprintf(stderr,"[%d]-FXS_DIGIT_TONE : '%c'\n",
+						evt.ch, (char)evt.data);
 				break;
-			}	
+			}
 			case ab_dev_event_FXS_DIGIT_PULSE: {
-				fprintf(stderr,"[%d]-FXS_DIGIT_PULSE : '%c'\n", 
-						evt.ch, (char)evt.data);	
+				fprintf(stderr,"[%d]-FXS_DIGIT_PULSE : '%c'\n",
+						evt.ch, (char)evt.data);
 				break;
-			}	
+			}
 			case ab_dev_event_FXS_ONHOOK: {
-				fprintf(stderr,"[%d]-FXS_ONHOOK\n", evt.ch);	
+				fprintf(stderr,"[%d]-FXS_ONHOOK\n", evt.ch);
 				break;
-			}	
+			}
 			case ab_dev_event_FXS_OFFHOOK: {
 				fprintf(stderr,"[%d]-FXS_OFFHOOK\n", evt.ch);
 				break;
-			}	
+			}
 			case ab_dev_event_FM_CED: {
-				fprintf(stderr,"[%d]-FXS_FM_CED\n", evt.ch);	
+				fprintf(stderr,"[%d]-FXS_FM_CED\n", evt.ch);
 				break;
-			}	
+			}
 			case ab_dev_event_COD: {
-				fprintf(stderr,"[%d]-COD\n", evt.ch);	
+				fprintf(stderr,"[%d]-COD\n", evt.ch);
 				break;
-			}	
+			}
 			case ab_dev_event_TONE: {
-				fprintf(stderr,"[%d]-TONE\n", evt.ch);	
+				fprintf(stderr,"[%d]-TONE\n", evt.ch);
 				break;
-			}	
+			}
 		}
 				} while(evt.more);
-		fprintf(stderr,"\t---=========================---\n");	
-			err = ioctl(ab->chans[FXO_CHAN_ID].rtp_fd, 
+		fprintf(stderr,"\t---=========================---\n");
+			err = ioctl(ab->chans[FXO_CHAN_ID].rtp_fd,
 						IFX_TAPI_TONE_CPTD_STOP, 0); // stop detect tones
 			fprintf(stderr,"stop detect tones on FXS err : %d\n",err);
 				break;
 			}
 
 			case 21: {
- 				err = ab_FXS_line_ring( &ab->chans[FXS_CHAN_ID], 
+ 				err = ab_FXS_line_ring( &ab->chans[FXS_CHAN_ID],
 						ab_chan_ring_RINGING );
-				fprintf(stderr,"ERR = %d\n",err);	
+				fprintf(stderr,"ERR = %d\n",err);
 
 				break;
 			}
 			case 22: {
- 				err = ab_FXS_line_ring( &ab->chans[FXS_CHAN_ID], 
+ 				err = ab_FXS_line_ring( &ab->chans[FXS_CHAN_ID],
 						ab_chan_ring_MUTE );
-				fprintf(stderr,"ERR = %d\n",err);	
+				fprintf(stderr,"ERR = %d\n",err);
 				break;
 			}
 			case 23: {
@@ -202,13 +202,13 @@ int main (int argc, char *argv[])
 				/* Tone to be detected in transmit direction (typical for FXO) */
 				cpt.signal = IFX_TAPI_TONE_CPTD_DIRECTION_TX;
 				/* Start CPT detector */
-				err = ioctl(ab->chans[FXO_CHAN_ID].rtp_fd, 
+				err = ioctl(ab->chans[FXO_CHAN_ID].rtp_fd,
 						IFX_TAPI_TONE_CPTD_START, &cpt);
 				fprintf(stderr,"start dialtone detection ERR = %d\n",err);
 
- 				err = ab_FXS_line_tone( &ab->chans[FXS_CHAN_ID], 
+ 				err = ab_FXS_line_tone( &ab->chans[FXS_CHAN_ID],
 						ab_chan_tone_DIAL);
-				fprintf(stderr,"ERR = %d\n",err);	
+				fprintf(stderr,"ERR = %d\n",err);
 				break;
 			}
 			case 24: {
@@ -219,13 +219,13 @@ int main (int argc, char *argv[])
 				/* Tone to be detected in transmit direction (typical for FXO) */
 				cpt.signal = IFX_TAPI_TONE_CPTD_DIRECTION_TX;
 				/* Start CPT detector */
-				err = ioctl(ab->chans[FXO_CHAN_ID].rtp_fd, 
+				err = ioctl(ab->chans[FXO_CHAN_ID].rtp_fd,
 						IFX_TAPI_TONE_CPTD_START, &cpt);
 				fprintf(stderr,"start busytone detection ERR = %d\n",err);
 
- 				err = ab_FXS_line_tone( &ab->chans[FXS_CHAN_ID], 
+ 				err = ab_FXS_line_tone( &ab->chans[FXS_CHAN_ID],
 						ab_chan_tone_BUSY);
-				fprintf(stderr,"ERR = %d\n",err);	
+				fprintf(stderr,"ERR = %d\n",err);
 				break;
 			}
 			case 25: {
@@ -275,77 +275,77 @@ fprintf(stderr,"set new tone to FXS table ERR = %d\n",err);
 				/* Tone to be detected in transmit direction (typical for FXO) */
 				cpt.signal = IFX_TAPI_TONE_CPTD_DIRECTION_TX;
 				/* Start CPT detector */
-				err = ioctl(ab->chans[FXO_CHAN_ID].rtp_fd, 
+				err = ioctl(ab->chans[FXO_CHAN_ID].rtp_fd,
 						IFX_TAPI_TONE_CPTD_START, &cpt);
 				fprintf(stderr,"start ringingtone detection ERR = %d\n",err);
 
-				err = ioctl(ab->chans[FXS_CHAN_ID].rtp_fd, 
+				err = ioctl(ab->chans[FXS_CHAN_ID].rtp_fd,
 					IFX_TAPI_LINE_LEVEL_SET, 0); //en(1)(dis-0)able
 				fprintf(stderr,"line high level enable ERR = %d\n",err);
 
 				vol.nGainRx = -4;
 				vol.nGainTx = -4;
-				err = ioctl(ab->chans[FXS_CHAN_ID].rtp_fd, 
-					IFX_TAPI_PHONE_VOLUME_SET, &vol); 
+				err = ioctl(ab->chans[FXS_CHAN_ID].rtp_fd,
+					IFX_TAPI_PHONE_VOLUME_SET, &vol);
 				fprintf(stderr,"line volume set ERR = %d\n",err);
 
 				/* play the tone 71 */
-				err = ioctl( ab->chans[FXS_CHAN_ID].rtp_fd, 
+				err = ioctl( ab->chans[FXS_CHAN_ID].rtp_fd,
 						IFX_TAPI_TONE_LOCAL_PLAY, 71);
 
 				sleep (4);
-				err = ioctl( ab->chans[FXS_CHAN_ID].rtp_fd, 
+				err = ioctl( ab->chans[FXS_CHAN_ID].rtp_fd,
 						IFX_TAPI_TONE_LOCAL_PLAY, 0);
 
 				vol.nGainRx = 0;
 				vol.nGainTx = 0;
-				err = ioctl(ab->chans[FXS_CHAN_ID].rtp_fd, 
-					IFX_TAPI_PHONE_VOLUME_SET, &vol); 
+				err = ioctl(ab->chans[FXS_CHAN_ID].rtp_fd,
+					IFX_TAPI_PHONE_VOLUME_SET, &vol);
 				fprintf(stderr,"line volume set ERR = %d\n",err);
 
 
- 				//err = ab_FXS_line_tone( &ab->chans[FXS_CHAN_ID], 
+ 				//err = ab_FXS_line_tone( &ab->chans[FXS_CHAN_ID],
 				//		ab_chan_tone_RINGBACK);
-				fprintf(stderr,"ERR = %d\n",err);	
+				fprintf(stderr,"ERR = %d\n",err);
 				break;
 			}
 			case 26: {
- 				err = ab_FXS_line_tone( &ab->chans[FXS_CHAN_ID], 
+ 				err = ab_FXS_line_tone( &ab->chans[FXS_CHAN_ID],
 						ab_chan_tone_MUTE);
-				fprintf(stderr,"ERR = %d\n",err);	
+				fprintf(stderr,"ERR = %d\n",err);
 				break;
 			}
 			case 27: {
-				err = ab_FXS_line_feed( &ab->chans[FXS_CHAN_ID], 
+				err = ab_FXS_line_feed( &ab->chans[FXS_CHAN_ID],
 						ab_chan_linefeed_DISABLED );
-				fprintf(stderr,"ERR = %d\n",err);	
+				fprintf(stderr,"ERR = %d\n",err);
 				break;
 			}
 			case 28: {
-				err = ab_FXS_line_feed( &ab->chans[FXS_CHAN_ID], 
+				err = ab_FXS_line_feed( &ab->chans[FXS_CHAN_ID],
 						ab_chan_linefeed_STANDBY );
-				fprintf(stderr,"ERR = %d\n",err);	
+				fprintf(stderr,"ERR = %d\n",err);
 				break;
 			}
 			case 29: {
-				err = ab_FXS_line_feed( &ab->chans[FXS_CHAN_ID], 
+				err = ab_FXS_line_feed( &ab->chans[FXS_CHAN_ID],
 						ab_chan_linefeed_ACTIVE );
-				fprintf(stderr,"ERR = %d\n",err);	
+				fprintf(stderr,"ERR = %d\n",err);
 				break;
 			}
 			case 31: {
-				err = ab_FXO_line_hook( &ab->chans[FXO_CHAN_ID], 
+				err = ab_FXO_line_hook( &ab->chans[FXO_CHAN_ID],
 						ab_chan_hook_OFFHOOK);
-				fprintf(stderr,"ERR = %d\n",err);	
+				fprintf(stderr,"ERR = %d\n",err);
 				break;
 			}
 			case 32: {
-				err = ab_FXO_line_hook( &ab->chans[FXO_CHAN_ID], 
+				err = ab_FXO_line_hook( &ab->chans[FXO_CHAN_ID],
 						ab_chan_hook_ONHOOK);
-				fprintf(stderr,"ERR = %d\n",err);	
+				fprintf(stderr,"ERR = %d\n",err);
 				break;
 			}
-			case 33: 
+			case 33:
 			case 34: {
 				char data[] = {'#','*','1','2','3','4'};
 				int pulse = 0;
@@ -354,10 +354,10 @@ fprintf(stderr,"set new tone to FXS table ERR = %d\n",err);
 				}
 				err = ab_FXO_line_digit( &ab->chans[FXO_CHAN_ID],
 						6, data, 100,100, pulse );
-				fprintf(stderr,"ERR = %d\n",err);	
+				fprintf(stderr,"ERR = %d\n",err);
 				break;
 			}
-			case 35: 
+			case 35:
 			case 36: {
 				char data[] = {'5','6','7','8','9','0'};
 				int pulse = 0;
@@ -366,10 +366,10 @@ fprintf(stderr,"set new tone to FXS table ERR = %d\n",err);
 				}
 				err = ab_FXO_line_digit( &ab->chans[FXO_CHAN_ID],
 						6, data, 100,100, pulse );
-				fprintf(stderr,"ERR = %d\n",err);	
+				fprintf(stderr,"ERR = %d\n",err);
 				break;
 			}
-			case 37: 
+			case 37:
 			case 38: {
 				char data[] = {'A','B','C','D'};
 				int pulse = 0;
@@ -378,7 +378,7 @@ fprintf(stderr,"set new tone to FXS table ERR = %d\n",err);
 				}
 				err = ab_FXO_line_digit( &ab->chans[FXO_CHAN_ID],
 						4, data, 100,100, pulse );
-				fprintf(stderr,"ERR = %d\n",err);	
+				fprintf(stderr,"ERR = %d\n",err);
 				break;
 			}
 			case 0: {

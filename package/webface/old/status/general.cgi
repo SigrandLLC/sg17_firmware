@@ -13,7 +13,7 @@
 <tr><td>Kernel version:</td><td><? uname -s -r ?></td></tr>
 <tr><td>Kernel build time:</td><td><? uname -v ?></td></tr>
 <tr><td>Uptime:</td><td>
-<?  b=`cat /proc/uptime| cut -f1 -d. `; 
+<?  b=`cat /proc/uptime| cut -f1 -d. `;
 	m=$(($b/60)); h=$(($m/60)); d=$(($h/24)); h=$(($h-$d*24)); m=$(($m-($d*60*24)-($h*60)))
 	echo $d days, $h hours $m minutes?></td></tr>
 <tr><td>Users:</td><td><?  uptime | cut -d, -f2 | cut -f2 -d' ' ?></td></tr>
@@ -23,7 +23,7 @@
 <table>
 <? render_table_title "Memory usage information" 3 ?>
 <? echo "$(cat /proc/meminfo | sed 's/ \+/ /')" | \
-		while read text amount unit; do 
+		while read text amount unit; do
 			if [ "$text" = "MemTotal:" ]; then
 				export memtotal=$amount
 				echo "<tr><td>Memory total:</td><td>$(humanUnits -k $amount bytes)</td><td>$(render_chart_h '' $amount $amount)</td></tr>";

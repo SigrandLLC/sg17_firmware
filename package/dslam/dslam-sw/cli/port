@@ -68,7 +68,7 @@ print_dsl_status() {
 	else
 		rate=""
 	fi
-	annex=`cat annex`    
+	annex=`cat annex`
 	if [ -n "$annex" ]; then
 		annex="annex=$annex"
 	else
@@ -131,7 +131,7 @@ print_dsl_status_all()
 				mode=" slave"
 			fi
 			pwr_mod=`cat pwr_source`
-			
+
 			if [ "$pwr_mod" = "1" ]; then
 				pwron=`cat pwron`
 				if [ "$pwron" = "1" ]; then
@@ -189,7 +189,7 @@ print_dsl_status_all()
 					echo -e "$iface $on_off $online $mode   $power"
 				fi
 			fi
-			
+
 			echo -e "----------------------------------------------------------------------"
 			cd $bkp_dir
 		fi
@@ -335,7 +335,7 @@ print_ge_status_all() {
 	echo "ge$g $on_off $state $auto  $flow  $speed   $duplex  $tx  $rx"
 	echo "------------------------------------------------------------------"
 
-	done	
+	done
 }
 
 ge_func() {
@@ -364,7 +364,7 @@ print_fe_status_all() {
 	if [ ! -d "/sys/class/net/fe${slot_}${port_}/ms_private" ]; then
 		break
 	fi
-	
+
 	case "$slot_" in
 		0) sw=0; sw_port=$((7-$port_));;
 		1) sw=0; sw_port=$((15-$port_));;
@@ -437,7 +437,7 @@ print_fe_status_all() {
 	echo "------------------------------------------------------------------"
 
 	done
-	done	
+	done
 }
 
 fe_func() {
@@ -533,7 +533,7 @@ port_func() {
 			fi
 		fi
 	fi
-	
+
 	need_reconf=0
 	case "$port_type" in
 		"dsl")
@@ -541,7 +541,7 @@ port_func() {
 			slot=`expr substr $iface 4 1`
 			slot=$(($slot+2))
 			pnum=`expr substr $iface 5 1`
-			
+
 			if [ "$2" != "" ]; then
 				tcpam=""
 				case "$2" in
@@ -609,7 +609,7 @@ port_func() {
 					;;
 					"tcpam32")
 						tcpam=4
-						
+
 					;;
 					"tcpam64")
 						tcpam=5
@@ -1127,12 +1127,12 @@ port_func() {
 							*)
 								echo -e "Syntax error, usage:\n\tpoe_config auto\n\tpoe_config class 0|1|2|3|4|poe+"
 								echo -e "\tpoe_config current <4-816 mA> [auto_off] [poe+]"
-							;;								
+							;;
 						esac
 					;;
 					*);;
 				esac
-			fi		
+			fi
 		;;
 	esac
 }

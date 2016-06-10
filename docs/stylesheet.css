@@ -21,8 +21,8 @@ div.titre {
 
 h1 {
 	text-align: center;
-	font: 26pt georgia; 
-	letter-spacing: 3px; 
+	font: 26pt georgia;
+	letter-spacing: 3px;
 }
 
 h2 {
@@ -31,21 +31,21 @@ h2 {
 	color: #336699;
 }
 
-a:link, a:visited { 
-	font-weight: bold; 
-	text-decoration: none; 
+a:link, a:visited {
+	font-weight: bold;
+	text-decoration: none;
 	color: #336699;
 }
 
-a:hover, a:active { 
-	text-decoration: underline; 
+a:hover, a:active {
+	text-decoration: underline;
 	color: #9685BA;
 }
 
-h3 { 
-	font: italic normal 14pt georgia; 
-	letter-spacing: 1px; 
-	margin-bottom: 0px; 
+h3 {
+	font: italic normal 14pt georgia;
+	letter-spacing: 1px;
+	margin-bottom: 0px;
 	margin-left: 10px;
 	margin-right: 10px;
 	color: #336699;

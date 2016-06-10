@@ -11,13 +11,13 @@
 \param dev - device to operate on it
 \param evt - occured event
 \param chan_available - is event occured on chan or on whole device
-\return 
+\return
 	0 in success case and other value otherwise
 \remark
 	returns the ioctl error value and writes error message
 */
-int 
-ab_dev_event_get(ab_dev_t * const dev, ab_dev_event_t * const evt, 
+int
+ab_dev_event_get(ab_dev_t * const dev, ab_dev_event_t * const evt,
 		unsigned char * const chan_available )
 {/*{{{*/
 	IFX_TAPI_EVENT_t ioctl_evt;
@@ -34,7 +34,7 @@ ab_dev_event_get(ab_dev_t * const dev, ab_dev_event_t * const evt,
 
 	err = ioctl(dev->cfg_fd, IFX_TAPI_EVENT_GET, &ioctl_evt);
 	if( err ){
-		ab_err_set(AB_ERR_UNKNOWN, "Getting event (ioctl)"); 
+		ab_err_set(AB_ERR_UNKNOWN, "Getting event (ioctl)");
 		goto ab_dev_event_get_exit;
 	}
 
@@ -58,9 +58,9 @@ ab_dev_event_get(ab_dev_t * const dev, ab_dev_event_t * const evt,
 	} else if(ioctl_evt.id == IFX_TAPI_EVENT_DTMF_DIGIT){
 		evt->id = ab_dev_event_FXS_DIGIT_TONE;
 		evt->data = ioctl_evt.data.dtmf.ascii;
-		evt->data += 
+		evt->data +=
 			(long )(ioctl_evt.data.dtmf.local) << 9;
-		evt->data += 
+		evt->data +=
 			(long )(ioctl_evt.data.dtmf.network) << 8;
 	} else if(ioctl_evt.id == IFX_TAPI_EVENT_PULSE_DIGIT){
 		evt->id = ab_dev_event_FXS_DIGIT_PULSE;
@@ -103,10 +103,10 @@ ab_dev_event_get_exit:
 }/*}}}*/
 
 /**
-	Cleaning the given device from events on it 
+	Cleaning the given device from events on it
 \param
 	dev - device to operate on it
-\return 
+\return
 	0 in success case and other value otherwise
 \remark
 	returns the ioctl error value and writes error message

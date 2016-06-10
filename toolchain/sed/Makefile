@@ -65,11 +65,11 @@ use-sed-host-binary:
 	    rm -f $(STAGING_DIR)/$(SED_TARGET_BINARY); \
 	    ln -s $$SED $(STAGING_DIR)/$(SED_TARGET_BINARY)
 
-source: 
-prepare: 
-compile: 
+source:
+prepare:
+compile:
 install: $(HOST_SED_TARGET)
-clean: 
+clean:
 	rm -rf $(SED_DIR1)
 	rm -f $(STAGING_DIR)/$(SED_TARGET_BINARY)
 

@@ -136,7 +136,7 @@ pid_t xfork(void) {
 char *appendn(struct allocator *a, char *s, size_t *ns,
               const char *t, size_t lt) {
   const size_t ls = s ? strlen(s) : 0, need = lt + ls + 1;
-  
+
   if(need > *ns) {
     size_t newsize = *ns ? *ns : 16;
 
@@ -156,7 +156,7 @@ char *appendn(struct allocator *a, char *s, size_t *ns,
   return s;
 }
 
-char *append(struct allocator *a, char *s, size_t *ns, 
+char *append(struct allocator *a, char *s, size_t *ns,
              const char *t) {
   return appendn(a, s, ns, t, strlen(t));
 }
