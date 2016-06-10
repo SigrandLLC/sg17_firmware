@@ -31,7 +31,7 @@ $(PKG_BUILD_DIR)/.prepared:
 
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.prepared
 	$(MAKE) -C $(PKG_BUILD_DIR) linux \
-	  CC=$(TARGET_CC) \
+	  CC="$(TARGET_CC)" \
 	  XFLAGS="$(TARGET_CFLAGS) -I$(STAGING_DIR)/usr/include -I$(STAGING_DIR)/include" \
 	  LDFLAGS="-L$(STAGING_DIR)/usr/lib -L$(STAGING_DIR)/lib" \
 	  STATIC='' \
