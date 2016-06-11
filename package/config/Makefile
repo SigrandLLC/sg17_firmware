@@ -108,6 +108,6 @@ ncurses:
 	fi
 
 clean:
-	rm -f *.o *~ core $(TARGETS) $(MCONF_OBJS) $(CONF_OBJS) \
+	@rm -f *.o *~ core $(TARGETS) $(MCONF_OBJS) $(CONF_OBJS) \
 		conf mconf zconf.tab.c zconf.tab.h lex.zconf.c lkc_defs.h
 
