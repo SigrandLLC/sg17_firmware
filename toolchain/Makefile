@@ -21,7 +21,7 @@ libnotimpl-compile: gcc-install
 TOOLCHAIN_STAMP_DIR:=$(STAGING_DIR)/stampfiles
 
 $(TOOLCHAIN_STAMP_DIR):
-	mkdir -p $(TOOLCHAIN_STAMP_DIR)
+	@mkdir -p $(TOOLCHAIN_STAMP_DIR)
 
 $(STAGING_DIR):
 	@mkdir -p $(STAGING_DIR)/lib
@@ -57,7 +57,7 @@ $(TOOL_BUILD_DIR):
 	@touch $(TOOLCHAIN_STAMP_DIR)/.toolchain_$@
 
 %-clean:
-	$(TRACE) toolchain/$(patsubst %-clean,%,$@)/clean
+	@$(TRACE) toolchain/$(patsubst %-clean,%,$@)/clean
 	@$(MAKE) -C $(patsubst %-clean,%,$@) clean $(MAKE_TRACE)
 	@rm -f $(TOOLCHAIN_STAMP_DIR)/.toolchain_$(patsubst %-clean,%,$@)-*
 
