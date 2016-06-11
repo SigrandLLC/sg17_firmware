@@ -106,10 +106,10 @@ $(INSTALL_PACKAGES): base-files-install
 sdk-compile: $(DEV_LIBS_COMPILE) $(SDK_DEFAULT_COMPILE)
 
 $(STAMP_DIR):
-	mkdir -p $@
+	@mkdir -p $@
 
 $(TARGET_DIR):
-	mkdir -p $(TARGET_DIR)
+	@mkdir -p $(TARGET_DIR)
 
 %-prepare: $(STAMP_DIR) $(TARGET_DIR)
 	@[ -f $(STAMP_DIR)/.$@ ] || { \
@@ -147,7 +147,7 @@ $(TARGET_DIR):
 %-rebuild:
 	@$(START_TRACE) "package/$(patsubst %-rebuild,%,$@)-rebuild: "
 	@rm -f $(STAMP_DIR)/.$(patsubst %-rebuild,%,$@)-*
-	$(MAKE) -C $(patsubst %-rebuild,%,$@) rebuild
+	@$(MAKE) -C $(patsubst %-rebuild,%,$@) rebuild
 	@$(CMD_TRACE) " done"
 	@$(END_TRACE)
 
