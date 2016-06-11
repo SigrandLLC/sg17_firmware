@@ -16,13 +16,13 @@ else
 endif
 
 MAKE_TRACE = 1>>$(LOG_FILE) 2>>$(LOG_FILE)
-#EXTRA_MAKEFLAGS:=-s
-EXTRA_MAKEFLAGS=
+EXTRA_MAKEFLAGS=--no-print-directory
 
 
 CP=cp -fpR
 MAKE1=make
 MAKEFLAGS=-j$(BR2_JLEVEL) $(EXTRA_MAKEFLAGS)
+MAKE+=$(MAKEFLAGS)
 # Strip off the annoying quoting
 ARCH:=$(strip $(subst ",, $(BR2_ARCH)))
 WGET:=$(strip $(subst ",, $(BR2_WGET)))
