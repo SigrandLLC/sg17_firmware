@@ -2,7 +2,7 @@
 
 cd /home/imbizo/midge
 make package/dslam-shdsl-clean
-make package/dslam-shdsl-install V=99 && \
+make package/dslam-shdsl-install && \
 cd /home/imbizo/midge/build_mipsel/dslam-shdsl/mam17h-drv
 scp ms17h.ko root@192.168.2.124:/root/ms17h.ko
 

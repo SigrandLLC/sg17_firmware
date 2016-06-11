@@ -2,7 +2,7 @@
 
 cd /home/imbizo/midge
 make package/dslam-clean
-make package/dslam-install V=99 && \
+make package/dslam-install && \
 cd /home/imbizo/midge/build_mipsel/dslam/dslam-sw
 scp dslam_sw.ko root@192.168.2.124:/root/dslam_sw.ko
 

@@ -3,23 +3,12 @@
 pn=`basename $0`
 usage()
 {
-   echo 1>&2 "Usage: $pn [-v] package target [target...]"
+   echo 1>&2 "Usage: $pn package target [target...]"
    exit 1
 }
 
 if test "$#" -lt 2; then
    usage
-fi
-
-
-case $1 in
-   -v) V=99; shift;;
-esac
-
-if test -n "$V"; then
-   _v_="V=${V}"
-else
-   _v_=
 fi
 
 
@@ -37,5 +26,5 @@ for t in "$@"; do
 		exit 1
 	fi
 
-	nice -19 make ${_v_} ${pdir}-${t} || exit 1
+	nice -19 make ${pdir}-${t} || exit 1
 done

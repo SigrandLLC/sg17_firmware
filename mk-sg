@@ -17,4 +17,4 @@ if test "$NOFW_OLD" -ne "$NOFW_CUR"; then
 fi
 
 
-nice -19 make V=9 $MAKE_TARGET
+nice -19 make $MAKE_TARGET
