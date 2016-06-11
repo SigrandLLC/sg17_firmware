@@ -12,7 +12,7 @@ PKG_TRACE:=echo "------> "
 ifneq ($(PKG_NAME),)
  LOG_FILE = $(TOPDIR)/log/$(PKG_NAME).$(patsubst .%,%,$(suffix $@)).log
 else
- LOG_FILE = $(TOPDIR)/log/$(if $@,$@,00empty).log
+ LOG_FILE = $(TOPDIR)/log/$(subst /,_,$(subst $(TOPDIR)/,,$(shell pwd))_$(subst build_mipsel/,,$(subst $(TOPDIR)/,,$@))).log
 endif
 
 MAKE_TRACE = 1>>$(LOG_FILE) 2>>$(LOG_FILE)
