@@ -3,7 +3,7 @@ include $(TOPDIR)/rules.mk
 all: install
 
 $(BIN_DIR):
-	mkdir -p $(BIN_DIR)
+	@mkdir -p $(BIN_DIR)
 
 linux-compile: utils-install lzma-install
 linux-install: $(BIN_DIR)
@@ -15,7 +15,7 @@ install: image_clean linux-install
 clean: linux-clean utils-clean lzma-clean image_clean
 
 image_clean:
-	rm -f $(BIN_DIR)/openwrt-*
+	@rm -f $(BIN_DIR)/openwrt-*
 
 linux/package/%:
 	$(MAKE) -C $(TOPDIR)/target/linux $(patsubst linux/%,%,$@)
@@ -38,4 +38,3 @@ linux/package/%:
 %-install: %-compile
 	@$(TRACE) target/$(patsubst %-install,%,$@)-install
 	$(MAKE) -C $(patsubst %-install,%,$@) install
-
