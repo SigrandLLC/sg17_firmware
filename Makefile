@@ -58,16 +58,16 @@ all: world
 include .config.cmd
 
 world: $(DL_DIR) $(BUILD_DIR) configtest
-	$(MAKE) oem_clean root_clean
-	$(MAKE) toolchain/install target/compile package/compile package/install target/install package_index
+	@$(MAKE) oem_clean root_clean
+	@$(MAKE) toolchain/install target/compile package/compile package/install target/install package_index
 	@$(TRACE) Build complete.
 
 configtest:
-	-cp .config .config.test
-	-scripts/configtest.pl
+	@-cp .config .config.test
+	@-scripts/configtest.pl
 
 package_index:
-	cd $(PACKAGE_DIR) && $(STAGING_DIR)/usr/bin/ipkg-make-index . > Packages
+	@cd $(PACKAGE_DIR) && $(STAGING_DIR)/usr/bin/ipkg-make-index . > Packages
 
 $(DL_DIR):
 	@mkdir -p $(DL_DIR)
@@ -126,13 +126,13 @@ clean: dirclean
 dirclean:
 	@$(TRACE) dirclean
 	@$(MAKE) -C $(CONFIG) clean
-	rm -rf $(BUILD_DIR)
-	rm -rf $(TOPDIR)/log
+	@rm -rf $(BUILD_DIR)
+	@rm -rf $(TOPDIR)/log
 
 distclean: dirclean
-	rm -rf $(STAMP_DIR) $(TOOL_BUILD_DIR) $(STAGING_DIR)
-	rm -rf $(TOPDIR)/log
-	rm -f .config* .tmpconfig.h
+	@rm -rf $(STAMP_DIR) $(TOOL_BUILD_DIR) $(STAGING_DIR)
+	@rm -rf $(TOPDIR)/log
+	@rm -f .config* .tmpconfig.h
 
 else # ifeq ($(strip $(BR2_HAVE_DOT_CONFIG)),y)
 
@@ -153,46 +153,46 @@ $(CONFIG)/mconf:
 	fi
 
 menuconfig: $(CONFIG)/mconf
-	-touch .config
-	-cp .config .config.test
+	@-touch .config
+	@-cp .config .config.test
 	@$(CONFIG)/mconf $(CONFIG_CONFIG_IN)
-	-./scripts/configtest.pl
+	@-./scripts/configtest.pl
 
 config: $(CONFIG)/conf
-	-touch .config
-	-cp .config .config.test
+	@-touch .config
+	@-cp .config .config.test
 	@$(CONFIG)/conf $(CONFIG_CONFIG_IN)
-	-./scripts/configtest.pl
+	@-./scripts/configtest.pl
 
 oldconfig: $(CONFIG)/conf
-	-touch .config
-	-cp .config .config.test
+	@-touch .config
+	@-cp .config .config.test
 	@$(CONFIG)/conf -o $(CONFIG_CONFIG_IN)
-	-./scripts/configtest.pl
+	@-./scripts/configtest.pl
 
 randconfig: $(CONFIG)/conf
-	-touch .config
-	-cp .config .config.test
+	@-touch .config
+	@-cp .config .config.test
 	@$(CONFIG)/conf -r $(CONFIG_CONFIG_IN)
-	-./scripts/configtest.pl
+	@-./scripts/configtest.pl
 
 allyesconfig: $(CONFIG)/conf
-	-touch .config
-	-cp .config .config.test
+	@-touch .config
+	@-cp .config .config.test
 	@$(CONFIG)/conf -o $(CONFIG_CONFIG_IN)
-	-./scripts/configtest.pl
+	@-./scripts/configtest.pl
 
 allnoconfig: $(CONFIG)/conf
-	-touch .config
-	-cp .config .config.test
+	@-touch .config
+	@-cp .config .config.test
 	@$(CONFIG)/conf -n $(CONFIG_CONFIG_IN)
-	-./scripts/configtest.pl
+	@-./scripts/configtest.pl
 
 defconfig: $(CONFIG)/conf
-	-touch .config
-	-cp .config .config.test
+	@-touch .config
+	@-cp .config .config.test
 	@$(CONFIG)/conf -d $(CONFIG_CONFIG_IN)
-	-./scripts/configtest.pl
+	@-./scripts/configtest.pl
 
 endif # ifeq ($(strip $(BR2_HAVE_DOT_CONFIG)),y)
 
@@ -203,8 +203,8 @@ changelog: ChangeLog.ru.html
 
 changelog-clean:
 	@echo "Removing ChangeLog.ru.html"
-	rm -f ChangeLog.ru.html
+	@rm -f ChangeLog.ru.html
 
 ChangeLog.ru.html : changelog/ChangeLog.ru.in changelog/ChangeLog.header changelog/ChangeLog.footer Makefile
 	@echo "Generating $@"
-	cat changelog/ChangeLog.header changelog/ChangeLog.ru.in changelog/ChangeLog.footer > $@
+	@cat changelog/ChangeLog.header changelog/ChangeLog.ru.in changelog/ChangeLog.footer > $@
