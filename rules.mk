@@ -9,11 +9,7 @@ END_TRACE:=echo
 CMD_TRACE:=echo -n
 PKG_TRACE:=echo "------> "
 
-ifneq ($(PKG_NAME),)
- LOG_FILE = $(TOPDIR)/log/$(PKG_NAME).$(patsubst .%,%,$(suffix $@)).log
-else
- LOG_FILE = $(TOPDIR)/log/$(subst /,_,$(subst $(TOPDIR)/,,$(shell pwd))_$(subst build_mipsel/,,$(subst $(TOPDIR)/,,$@))).log
-endif
+LOG_FILE = $(TOPDIR)/log/$(subst /,_,$(subst $(TOPDIR)/,,$(shell pwd))_$(subst build_mipsel/,,$(subst $(TOPDIR)/,,$@))).log
 
 MAKE_TRACE = 1>>$(LOG_FILE) 2>>$(LOG_FILE)
 EXTRA_MAKEFLAGS=--no-print-directory
