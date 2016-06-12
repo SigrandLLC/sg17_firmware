@@ -18,23 +18,23 @@ image_clean:
 	@rm -f $(BIN_DIR)/openwrt-*
 
 linux/package/%:
-	@$(MAKE) -C $(TOPDIR)/target/linux $(patsubst linux/%,%,$@)
+	@$(MAKE) -C $(TOPDIR)/target/linux $(patsubst linux/%,%,$@) $(MAKE_TRACE)
 
 %-clean:
 	@$(TRACE) target/$(patsubst %-clean,%,$@)-clean
-	@$(MAKE) -C $(patsubst %-clean,%,$@) clean
+	@$(MAKE) -C $(patsubst %-clean,%,$@) clean $(MAKE_TRACE)
 %-prepare:
 	@$(TRACE) target/$(patsubst %-prepare,%,$@)-prepare
-	@$(MAKE) -C $(patsubst %-prepare,%,$@) prepare
+	@$(MAKE) -C $(patsubst %-prepare,%,$@) prepare $(MAKE_TRACE)
 %-menuconfig: %-prepare
 	@$(TRACE) target/$(patsubst %-menuconfig,%,$@)-menuconfig
-	@$(MAKE) -C $(patsubst %-menuconfig,%,$@) menuconfig
+	@$(MAKE) -C $(patsubst %-menuconfig,%,$@) menuconfig $(MAKE_TRACE)
 %-compile: %-prepare
 	@$(TRACE) target/$(patsubst %-compile,%,$@)-compile
-	@$(MAKE) -C $(patsubst %-compile,%,$@) compile
+	@$(MAKE) -C $(patsubst %-compile,%,$@) compile $(MAKE_TRACE)
 %-rebuild:
 	@$(TRACE) target/$(patsubst %-rebuild,%,$@)-rebuild
-	@$(MAKE) -C $(patsubst %-rebuild,%,$@) rebuild
+	@$(MAKE) -C $(patsubst %-rebuild,%,$@) rebuild $(MAKE_TRACE)
 %-install: %-compile
 	@$(TRACE) target/$(patsubst %-install,%,$@)-install
-	@$(MAKE) -C $(patsubst %-install,%,$@) install
+	@$(MAKE) -C $(patsubst %-install,%,$@) install $(MAKE_TRACE)
