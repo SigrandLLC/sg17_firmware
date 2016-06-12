@@ -78,15 +78,15 @@ source: toolchain/source package/source target/source
 
 package/%:
 	@$(TRACE) $@
-	$(MAKE) -C package $(patsubst package/%,%,$@)
+	@$(MAKE) -C package $(patsubst package/%,%,$@)
 
 target/%:
 	@$(TRACE) $@
-	$(MAKE) -C target $(patsubst target/%,%,$@)
+	@$(MAKE) -C target $(patsubst target/%,%,$@)
 
 toolchain/%:
 	@$(TRACE) $@
-	$(MAKE) -C toolchain $(patsubst toolchain/%,%,$@)
+	@$(MAKE) -C toolchain $(patsubst toolchain/%,%,$@)
 
 #############################################################
 #
