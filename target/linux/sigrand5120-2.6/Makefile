@@ -23,7 +23,7 @@ include ../kernel.mk
 $(LINUX_DIR)/.patched: $(LINUX_DIR)/.unpacked
 	[ -d ../generic-$(KERNEL)/patches ] && $(PATCH) $(LINUX_DIR) ../generic-$(KERNEL)/patches $(MAKE_TRACE)
 	[ -d ./patches ] && $(PATCH) $(LINUX_DIR) ./patches $(MAKE_TRACE)
-	touch $@
+	@touch $@
 
 menuconfig: $(LINUX_DIR)/.patched
 	cp $(lk_config) $(LINUX_DIR)/.config
@@ -33,5 +33,5 @@ menuconfig: $(LINUX_DIR)/.patched
 $(LINUX_DIR)/.configured: $(LINUX_DIR)/.configured-sigrand5120-2.6
 $(LINUX_DIR)/.configured-sigrand5120-2.6: $(LINUX_DIR)/.patched
 	@$(CP) $(lk_config) $(LINUX_DIR)/.config
-	touch $@
+	@touch $@
 
