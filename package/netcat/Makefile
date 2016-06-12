@@ -13,6 +13,7 @@ PKG_CAT         := bzcat
 PKG_BUILD_DIR   :=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_INSTALL_DIR :=$(PKG_BUILD_DIR)/ipkg-install
 
+PKG_CAT:=
 include $(TOPDIR)/package/rules.mk
 
 $(eval $(call PKG_template,NETCAT,netcat,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))

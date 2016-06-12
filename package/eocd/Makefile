@@ -12,13 +12,12 @@ CFLAGS:=
 DEBUG := no
 LIBCONF_VER=1.1.3
 
+PKG_CAT:=
 include $(TOPDIR)/package/rules.mk
 
 $(eval $(call PKG_template,SIGRAND_EOCD,eocd,$(PKG_VERSION)-$(PKG_RELEASE),$(ARCH)))
 
 $(PKG_BUILD_DIR)/.prepared:
-#	@echo "PKG_DIR="$(PKG_BUILD_DIR)" CURRENT="`pwd`
-	mkdir -p $(PKG_BUILD_DIR)
 	mkdir -p $(PKG_BUILD_DIR)/eocd-src
 	tar -xjvf $(DL_DIR)/$(PKG_SOURCE) -C $(PKG_BUILD_DIR)/eocd-src
 	tar -xzvf libconfig-$(LIBCONF_VER).tar.gz -C $(PKG_BUILD_DIR)
