@@ -97,11 +97,11 @@ install: compile
 	$(MAKE) $(KPKG_MAKEOPTS) $(LINUX_KERNEL) $(MAKE_TRACE)
 
 mostlyclean:
-	rm -f $(STAMP_DIR)/.linux-compile
-	rm -f $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION)/.modules_done
-	rm -f $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION)/.drivers-unpacked
+	@rm -f $(STAMP_DIR)/.linux-compile
+	@rm -f $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION)/.modules_done
+	@rm -f $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION)/.drivers-unpacked
 	$(MAKE) -C $(LINUX_BUILD_DIR)/linux-$(LINUX_VERSION) clean $(MAKE_TRACE)
-	rm -f $(LINUX_KERNEL)
+	@rm -f $(LINUX_KERNEL)
 
 rebuild:
 	-$(MAKE) mostlyclean
@@ -111,9 +111,9 @@ rebuild:
 	$(MAKE) compile $(MAKE_TRACE)
 
 clean:
-	rm -f $(STAMP_DIR)/.linux-compile
-	rm -rf $(LINUX_BUILD_DIR)
-	rm -f $(TARGETS)
+	@rm -f $(STAMP_DIR)/.linux-compile
+	@rm -rf $(LINUX_BUILD_DIR)
+	@rm -f $(TARGETS)
 
 package/%:
 	$(MAKE) -C $(TOPDIR)/target/linux/package \
