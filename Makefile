@@ -23,7 +23,7 @@
 # You shouldn't need to mess with anything beyond this point...
 #--------------------------------------------------------------
 export DEVELOPER=1
-TOPDIR := ${shell pwd}
+TOPDIR := $(CURDIR)
 export TOPDIR
 
 CONFIG_CONFIG_IN = Config.in.devel

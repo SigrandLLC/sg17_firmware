@@ -7,8 +7,8 @@ endif
 ##
 
 PKG_VERSION := $(shell cat ./ipkg/version)
-CURRENT_DIR := $(shell pwd)
-INSTALL_DIR ?= $(CURRENT_DIR)/ipkg-install
+CURRENT_DIR := $(CURDIR)
+INSTALL_DIR ?= $(CURDIR)/ipkg-install
 
 unexport INSTALL_DIR
 
