@@ -27,8 +27,8 @@ squashfs-install: $(KDIR)/root.squashfs
 	$(MAKE) -C $(BOARD) install KERNEL="$(KERNEL)" FS="squashfs"
 
 squashfs-install-ib: compile-targets
-	mkdir -p $(IB_DIR)/staging_dir_$(ARCH)/bin
-	$(CP) $(STAGING_DIR)/bin/mksquashfs-lzma $(IB_DIR)/staging_dir_$(ARCH)/bin
+	@mkdir -p $(IB_DIR)/staging_dir_$(ARCH)/bin
+	@$(CP) $(STAGING_DIR)/bin/mksquashfs-lzma $(IB_DIR)/staging_dir_$(ARCH)/bin
 
 prepare-targets: squashfs-prepare
 compile-targets: squashfs-compile
