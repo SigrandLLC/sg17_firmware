@@ -42,7 +42,6 @@ $(PKG_BUILD_DIR)/.configured:
 	touch $@
 
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
-	top=`pwd`
 	cd $(PKG_BUILD_DIR)/libconfig-$(LIBCONF_VER)/ && $(TARGET_CONFIGURE_OPTS) ./mips-compile.sh
 	cd $(PKG_BUILD_DIR)/eocd-src && make all-mips $(TARGET_CONFIGURE_OPTS)
 	touch $@
