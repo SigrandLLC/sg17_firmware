@@ -90,4 +90,4 @@ if test "$NOFW_CUR" -ge 1; then
 fi
 
 mkdir -p log
-yes '' | make oldconfig > log/oldconfig-${OEM_CUR}-NOFW-${NOFW_CUR}-$$.log
+yes '' | make oldconfig 1>> log/oldconfig-${OEM_CUR}-NOFW-${NOFW_CUR}-$$.log 2>&1
