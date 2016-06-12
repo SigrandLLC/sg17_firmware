@@ -33,12 +33,12 @@ jffs2-install: compile-targets $(BOARD)-compile
 endif
 
 jffs2-install: $(KDIR)/root.jffs2-32MB
-	$(TRACE) target/linux/image/$(BOARD)/install
-	$(MAKE) -C $(BOARD) install KERNEL="$(KERNEL)" FS="jffs2-32MB" BOARD="$(BOARD)"
+	@$(TRACE) target/linux/image/$(BOARD)/install
+	@$(MAKE) -C $(BOARD) install KERNEL="$(KERNEL)" FS="jffs2-32MB" BOARD="$(BOARD)" $(MAKE_TRACE)
 
 jffs2-install-ib: compile-targets
-	mkdir -p $(IB_DIR)/staging_dir_$(ARCH)/bin
-	$(CP) $(STAGING_DIR)/bin/mkfs.jffs2 $(IB_DIR)/staging_dir_$(ARCH)/bin
+	@mkdir -p $(IB_DIR)/staging_dir_$(ARCH)/bin
+	@$(CP) $(STAGING_DIR)/bin/mkfs.jffs2 $(IB_DIR)/staging_dir_$(ARCH)/bin
 
 prepare-targets: jffs2-prepare
 compile-targets: jffs2-compile
