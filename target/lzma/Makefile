@@ -27,27 +27,27 @@ $(LZMA_DIR)/.unpacked: $(DL_DIR)/$(LZMA_SOURCE)
 
 $(LZMA_ALONE_DIR)/lzma $(LZMA_LIB_DIR)/liblzma.a: $(LZMA_DIR)/.built
 $(LZMA_DIR)/.built: $(LZMA_DIR)/.unpacked
-	$(MAKE) -C $(LZMA_LIB_DIR) $(MAKE_TRACE)
-	$(MAKE) -f makefile.gcc -C $(LZMA_ALONE_DIR) $(MAKE_TRACE)
-	touch $@
+	@$(MAKE) -C $(LZMA_LIB_DIR) $(MAKE_TRACE)
+	@$(MAKE) -f makefile.gcc -C $(LZMA_ALONE_DIR) $(MAKE_TRACE)
+	@touch $@
 
 lzma: $(TARGETS)
-	$(CP) $^ $(LZMA_DIR)
+	@$(CP) $^ $(LZMA_DIR)
 
 lzma-source: $(DL_DIR)/$(LZMA_SOURCE)
 
 lzma-clean:
-	-$(MAKE) -C $(LZMA_LIB_DIR) clean $(MAKE_TRACE)
-	-$(MAKE) -C $(LZMA_ALONE_DIR) clean $(MAKE_TRACE)
-	rm -f $(LZMA_DIR)/liblzma.a $(LZMA_DIR)/lzma
+	@-$(MAKE) -C $(LZMA_LIB_DIR) clean $(MAKE_TRACE)
+	@-$(MAKE) -C $(LZMA_ALONE_DIR) clean $(MAKE_TRACE)
+	@rm -f $(LZMA_DIR)/liblzma.a $(LZMA_DIR)/lzma
 
 lzma-dirclean:
-	rm -rf $(LZMA_DIR)
+	@rm -rf $(LZMA_DIR)
 
 #############################################################
 
 prepare: $(LZMA_DIR)/.unpacked
 compile: lzma
 install: lzma
-	$(CP) $(LZMA_DIR)/lzma $(STAGING_DIR)/bin/
+	@$(CP) $(LZMA_DIR)/lzma $(STAGING_DIR)/bin/
 clean: lzma-dirclean
