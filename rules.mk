@@ -18,7 +18,7 @@ EXTRA_MAKEFLAGS=--no-print-directory
 CP=cp -fpR
 MAKE1=make
 MAKEFLAGS=-j$(BR2_JLEVEL) $(EXTRA_MAKEFLAGS)
-MAKE := make $(MAKEFLAGS)
+
 # Strip off the annoying quoting
 ARCH:=$(strip $(subst ",, $(BR2_ARCH)))
 WGET:=$(strip $(subst ",, $(BR2_WGET)))
