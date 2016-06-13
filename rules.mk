@@ -12,12 +12,14 @@ PKG_TRACE:=echo "------> "
 LOG_FILE = $(TOPDIR)/log/$(subst /,_,$(subst $(TOPDIR)/,,$(CURDIR))_$(subst build_mipsel/,,$(subst $(TOPDIR)/,,$@))).log
 
 MAKE_TRACE = 1>>$(LOG_FILE) 2>>$(LOG_FILE)
-EXTRA_MAKEFLAGS=--no-print-directory
 
+#EXTRA_MAKEFLAGS += -j --max-load 10
+EXTRA_MAKEFLAGS += --no-print-directory
 
-CP=cp -fvpR
-MAKE1=make
-MAKEFLAGS=-j$(BR2_JLEVEL) $(EXTRA_MAKEFLAGS)
+MAKE1 := make -j1
+MAKE  := make $(EXTRA_MAKEFLAGS)
+
+CP = cp -fvpR
 
 # Strip off the annoying quoting
 ARCH:=$(strip $(subst ",, $(BR2_ARCH)))
