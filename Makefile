@@ -129,7 +129,7 @@ dirclean:
 	@rm -rf $(TOPDIR)/log
 
 distclean: dirclean
-	@rm -rf $(STAMP_DIR) $(TOOL_BUILD_DIR) $(STAGING_DIR)
+	@rm -rf $(STAMP_DIR) $(TOOL_BUILD_DIR) $(STAGING_DIR) bin
 	@rm -rf $(TOPDIR)/log
 	@rm -f .config* .tmpconfig.h
 
