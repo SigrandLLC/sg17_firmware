@@ -15,7 +15,7 @@ MAKE_TRACE = 1>>$(LOG_FILE) 2>>$(LOG_FILE)
 EXTRA_MAKEFLAGS=--no-print-directory
 
 
-CP=cp -fpR
+CP=cp -fvpR
 MAKE1=make
 MAKEFLAGS=-j$(BR2_JLEVEL) $(EXTRA_MAKEFLAGS)
 
