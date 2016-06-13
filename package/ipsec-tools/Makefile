@@ -64,7 +64,7 @@ $(PKG_BUILD_DIR)/.configured:
 $(PKG_BUILD_DIR)/.built:
 	rm -rf $(PKG_INSTALL_DIR)
 	mkdir -p $(PKG_INSTALL_DIR)
-	$(MAKE) -C $(PKG_BUILD_DIR) \
+	$(MAKE1) -C $(PKG_BUILD_DIR) \
 		CFLAGS="$(TARGET_CFLAGS) -Wall" \
 		DESTDIR="$(PKG_INSTALL_DIR)" \
 		all install

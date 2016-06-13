@@ -45,21 +45,21 @@ $(PKG_BUILD_DIR)/.configured:
 $(PKG_BUILD_DIR)/.built:
 	rm -rf $(PKG_INSTALL_DIR)
 	mkdir -p $(PKG_INSTALL_DIR)
-	$(MAKE) -C $(PKG_BUILD_DIR) \
+	$(MAKE1) -C $(PKG_BUILD_DIR) \
 		MAKEDEPPROG="$(_TARGET_CC_)" \
 		depend
-	$(MAKE) -C $(PKG_BUILD_DIR) \
+	$(MAKE1) -C $(PKG_BUILD_DIR) \
 		CC="$(TARGET_CC)" \
 		AR="$(TARGET_CROSS)ar r" \
 		RANLIB="$(TARGET_CROSS)ranlib" \
 		all build-shared
 	# Work around openssl build bug to link libssl.so with libcrypto.so.
 	-rm $(PKG_BUILD_DIR)/libssl.so.*.*.*
-	$(MAKE) -C $(PKG_BUILD_DIR) \
+	$(MAKE1) -C $(PKG_BUILD_DIR) \
 		CC="$(TARGET_CC)" \
 		CCOPTS="$(TARGET_CFLAGS) -fomit-frame-pointer" \
 		do_linux-shared
-	$(MAKE) -C $(PKG_BUILD_DIR) \
+	$(MAKE1) -C $(PKG_BUILD_DIR) \
 		INSTALL_PREFIX="$(PKG_INSTALL_DIR)" \
 		install
 	touch $@

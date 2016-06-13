@@ -36,7 +36,7 @@ $(PKG_BUILD_DIR)/.configured:
 	touch $@
 
 $(PKG_BUILD_DIR)/.built:
-	$(MAKE) -C $(PKG_BUILD_DIR) \
+	$(MAKE1) -C $(PKG_BUILD_DIR) \
 		TOPDIR="$(PKG_BUILD_DIR)/" \
 		$(TARGET_CONFIGURE_OPTS) \
 		ARCH_CFLAGS="$(TARGET_CFLAGS)" \
@@ -53,7 +53,7 @@ $(IPKG_UCLIBCXX):
 
 compile-targets: install-dev
 install-dev: $(PKG_BUILD_DIR)/.built
-	$(MAKE) -C $(PKG_BUILD_DIR) \
+	$(MAKE1) -C $(PKG_BUILD_DIR) \
 		TOPDIR="$(PKG_BUILD_DIR)/" \
 		$(TARGET_CONFIGURE_OPTS) \
 		ARCH_CFLAGS="$(TARGET_CFLAGS)" \

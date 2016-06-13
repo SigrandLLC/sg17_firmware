@@ -46,7 +46,6 @@ $(PKG_BUILD_DIR)/.configured:  $(PKG_BUILD_DIR)/.prepared
 $(PKG_BUILD_DIR)/.built:  $(PKG_BUILD_DIR)/.configured
 	@echo
 	@echo "BUILD SVD..."
-	cd $(PKG_BUILD_DIR) && $(TARGET_CONFIGURE_OPTS) make
-	cd $(PKG_BUILD_DIR) && $(TARGET_CONFIGURE_OPTS) make install
+	$(TARGET_CONFIGURE_OPTS) $(MAKE1) -C $(PKG_BUILD_DIR)
+	$(TARGET_CONFIGURE_OPTS) $(MAKE1) -C $(PKG_BUILD_DIR) install
 	touch $@
-

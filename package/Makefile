@@ -123,7 +123,7 @@ $(TARGET_DIR):
 
 %-menuconfig: %-prepare
 	@$(START_TRACE) "package/$(patsubst %-menuconfig,%,$@)-menuconfig: "
-	@$(MAKE) -C $(patsubst %-menuconfig,%,$@) menuconfig
+	@$(MAKE1) -C $(patsubst %-menuconfig,%,$@) menuconfig
 	@$(CMD_TRACE) " done"
 	@$(END_TRACE)
 
@@ -140,7 +140,7 @@ $(TARGET_DIR):
 
 %-install: %-compile
 	@$(START_TRACE) "package/$(patsubst %-install,%,$@)-install: "
-	@$(MAKE) -C $(patsubst %-install,%,$@) install
+	@$(MAKE1) -C $(patsubst %-install,%,$@) install
 	@$(CMD_TRACE) " done"
 	@$(END_TRACE)
 

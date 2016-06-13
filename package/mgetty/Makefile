@@ -41,7 +41,7 @@ $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	mkdir -p $(PKG_INSTALL_DIR)/usr/sbin
 	mkdir -p $(PKG_INSTALL_DIR)/usr/lib/mgetty+sendfax
 	mkdir -p $(PKG_INSTALL_DIR)/etc/mgetty+sendfax
-	$(MAKE) -C $(PKG_BUILD_DIR) \
+	$(MAKE1) -C $(PKG_BUILD_DIR) \
 		$(TARGET_CONFIGURE_OPTS) \
 		prefix="$(PKG_INSTALL_DIR)/usr" \
 		CONFDIR=/etc/mgetty+sendfax \

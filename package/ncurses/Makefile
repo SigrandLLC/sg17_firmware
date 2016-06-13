@@ -60,7 +60,7 @@ $(PKG_BUILD_DIR)/.built:
 		--with-terminfo-dirs=/usr/share/terminfo \
 		--with-default-terminfo-dir=/usr/share/terminfo \
 	);
-	$(MAKE) -C $(PKG_BUILD_DIR) \
+	$(MAKE1) -C $(PKG_BUILD_DIR) \
 		DESTDIR="$(PKG_INSTALL_DIR)" \
 		libs install.progs
 	(cd $(PKG_BUILD_DIR); rm -rf config.{cache,status} ; \
@@ -104,7 +104,7 @@ $(PKG_BUILD_DIR)/.built:
 		--with-terminfo-dirs=/usr/share/terminfo \
 		--with-default-terminfo-dir=/usr/share/terminfo \
 	);
-	$(MAKE) -C $(PKG_BUILD_DIR) \
+	$(MAKE1) -C $(PKG_BUILD_DIR) \
 		$(TARGET_CONFIGURE_OPTS) \
 		BUILD_CC="$(TARGET_CC)" \
 		HOSTCC="$(HOSTCC)" \

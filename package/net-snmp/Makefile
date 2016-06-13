@@ -148,13 +148,13 @@ $(PKG_BUILD_DIR)/.configured:
 $(PKG_BUILD_DIR)/.built: $(PKG_BUILD_DIR)/.configured
 	rm -rf $(PKG_INSTALL_DIR)
 	mkdir -p $(PKG_INSTALL_DIR)
-	$(MAKE) -C $(PKG_BUILD_DIR) \
+	$(MAKE1) -C $(PKG_BUILD_DIR) \
 		INSTALL_PREFIX="$(PKG_INSTALL_DIR)" \
 		all install
 	( cd $(PKG_INSTALL_DIR); mv ./usr/sbin/snmpd ./usr/sbin/snmpd-shared; )
 ifneq ($(BR2_PACKAGE_SNMPD_STATIC),)
 	( cd $(PKG_BUILD_DIR); rm -f agent/snmpd; )
-	$(MAKE) -C $(PKG_BUILD_DIR) \
+	$(MAKE1) -C $(PKG_BUILD_DIR) \
 		LDFLAGS="-L$(STAGING_DIR)/usr/lib -L$(STAGING_DIR)/lib -static" \
 		INSTALL_PREFIX="$(PKG_INSTALL_DIR)" \
 		all install

@@ -79,11 +79,11 @@ compile: configure
 install-targets:
 install:
 	@$(CMD_TRACE) "installing... "
-	@$(MAKE) install-targets $(MAKE_TRACE)
+	@$(MAKE1) install-targets $(MAKE_TRACE)
 
 mostlyclean:
 rebuild:
-	$(CMD_TRACE) "rebuilding... "
+	@$(CMD_TRACE) "rebuilding... "
 	@-$(MAKE) mostlyclean 2>&1 >/dev/null
 	if [ -f $(PKG_BUILD_DIR)/.built ]; then \
 		$(MAKE) clean $(MAKE_TRACE); \
@@ -94,12 +94,12 @@ $(PKG_BUILD_DIR)/.configured:
 $(PKG_BUILD_DIR)/.built:
 
 $(PACKAGE_DIR):
-	mkdir -p $@
+	@mkdir -p $@
 
 clean-targets:
 clean:
 	@$(CMD_TRACE) "cleaning... "
 	@$(MAKE) clean-targets $(MAKE_TRACE)
-	rm -rf $(PKG_BUILD_DIR)
+	@rm -rf $(PKG_BUILD_DIR)
 
 .PHONY: all source prepare compile install clean

@@ -77,7 +77,7 @@ $(PKG_BUILD_DIR)/.configured:
 $(PKG_BUILD_DIR)/.built:
 	chmod a+x $(PKG_BUILD_DIR)/extensions/.*-test*
 	mkdir -p $(PKG_INSTALL_DIR)
-	$(MAKE) -C $(PKG_BUILD_DIR) \
+	$(MAKE1) -C $(PKG_BUILD_DIR) \
 		$(TARGET_CONFIGURE_OPTS) \
 		CC="$(TARGET_CC)" COPT_FLAGS="$(TARGET_CFLAGS)" \
 		KERNEL_DIR=$(LINUX_DIR) PREFIX=/usr \
@@ -122,7 +122,7 @@ $(IPKG_IP6TABLES):
 	$(IPKG_BUILD) $(IDIR_IP6TABLES) $(PACKAGE_DIR)
 
 $(STAGING_DIR)/usr/lib/libipq.a: $(PKG_BUILD_DIR)/.built
-	$(MAKE) -C $(PKG_BUILD_DIR) \
+	$(MAKE1) -C $(PKG_BUILD_DIR) \
 		$(TARGET_CONFIGURE_OPTS) \
 		CC=$(TARGET_CC) COPT_FLAGS="$(TARGET_CFLAGS)" \
 		KERNEL_DIR=$(LINUX_DIR) PREFIX=/usr \
