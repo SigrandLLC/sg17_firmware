@@ -29,18 +29,18 @@ $(LINUX_DIR)/.configured: $(LINUX_DIR)/.patched
 	  $(LINUX_DIR)/Makefile  \
 	  $(LINUX_DIR)/arch/*/Makefile
 	$(SED) "s,\-mcpu=,\-mtune=,g;" $(LINUX_DIR)/arch/mips/Makefile
-	$(MAKE) -C $(LINUX_DIR) ARCH=$(LINUX_KARCH) oldconfig include/linux/compile.h include/linux/version.h $(MAKE_TRACE)
+	$(MAKE1) -C $(LINUX_DIR) ARCH=$(LINUX_KARCH) oldconfig include/linux/compile.h include/linux/version.h $(MAKE_TRACE)
 	touch $@
 
 $(LINUX_DIR)/.depend_done: $(LINUX_DIR)/.configured
-	$(MAKE) -C $(LINUX_DIR) CROSS_COMPILE="$(KERNEL_CROSS)" ARCH=$(LINUX_KARCH) dep $(MAKE_TRACE)
+	$(MAKE1) -C $(LINUX_DIR) CROSS_COMPILE="$(KERNEL_CROSS)" ARCH=$(LINUX_KARCH) dep $(MAKE_TRACE)
 	touch $@
 
 $(LINUX_DIR)/vmlinux: $(LINUX_DIR)/.depend_done
 else
 
 $(LINUX_DIR)/.configured: $(LINUX_DIR)/.patched
-	$(MAKE) -C $(LINUX_DIR) CROSS_COMPILE="$(KERNEL_CROSS)" ARCH=$(LINUX_KARCH) oldconfig prepare scripts $(MAKE_TRACE)
+	$(MAKE1) -C $(LINUX_DIR) CROSS_COMPILE="$(KERNEL_CROSS)" ARCH=$(LINUX_KARCH) oldconfig prepare scripts $(MAKE_TRACE)
 	touch $@
 
 endif
@@ -87,7 +87,7 @@ $(KERNEL_IPKG):
 source: $(DL_DIR)/$(LINUX_SOURCE)
 prepare:
 	@mkdir -p $(STAMP_DIR) $(PACKAGE_DIR)
-	@$(MAKE) $(LINUX_DIR)/.configured $(MAKE_TRACE)
+	@$(MAKE1) $(LINUX_DIR)/.configured $(MAKE_TRACE)
 
 compile: prepare $(STAMP_DIR)/.linux-compile
 

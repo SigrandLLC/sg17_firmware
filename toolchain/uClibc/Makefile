@@ -47,7 +47,7 @@ $(UCLIBC_DIR)/.unpacked: $(DL_DIR)/$(UCLIBC_SOURCE)
 
 menuconfig: $(UCLIBC_DIR)/.unpacked
 	cp ./files/config.$(ARCH) $(UCLIBC_DIR)/.config
-	$(MAKE) CC="$(TARGET_CC)" CROSS="$(TARGET_CROSS)" -C $(UCLIBC_DIR) menuconfig
+	$(MAKE1) CC="$(TARGET_CC)" CROSS="$(TARGET_CROSS)" -C $(UCLIBC_DIR) menuconfig
 	cp $(UCLIBC_DIR)/.config ./files/config.$(ARCH)
 
 $(UCLIBC_DIR)/.configured: $(UCLIBC_DIR)/.unpacked

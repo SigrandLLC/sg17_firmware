@@ -25,10 +25,10 @@ linux/package/%:
 	@$(MAKE) -C $(patsubst %-clean,%,$@) clean $(MAKE_TRACE)
 %-prepare:
 	@$(TRACE) target/$(patsubst %-prepare,%,$@)-prepare
-	@$(MAKE) -C $(patsubst %-prepare,%,$@) prepare $(MAKE_TRACE)
+	@$(MAKE1) -C $(patsubst %-prepare,%,$@) prepare $(MAKE_TRACE)
 %-menuconfig: %-prepare
 	@$(TRACE) target/$(patsubst %-menuconfig,%,$@)-menuconfig
-	@$(MAKE) -C $(patsubst %-menuconfig,%,$@) menuconfig $(MAKE_TRACE)
+	@$(MAKE1) -C $(patsubst %-menuconfig,%,$@) menuconfig $(MAKE_TRACE)
 %-compile: %-prepare
 	@$(TRACE) target/$(patsubst %-compile,%,$@)-compile
 	@$(MAKE) -C $(patsubst %-compile,%,$@) compile $(MAKE_TRACE)
