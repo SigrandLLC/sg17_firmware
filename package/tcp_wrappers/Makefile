@@ -23,7 +23,7 @@ $(PKG_BUILD_DIR)/.configured:
 	touch $@
 
 $(PKG_BUILD_DIR)/.built:
-	$(MAKE) -j1 -C $(PKG_BUILD_DIR) \
+	$(MAKE) -C $(PKG_BUILD_DIR) \
 		$(TARGET_CONFIGURE_OPTS) \
 		OPT_CFLAGS="$(TARGET_CFLAGS)" \
 		LIBS=-lnsl \
