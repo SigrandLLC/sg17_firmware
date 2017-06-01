@@ -274,7 +274,12 @@ store_default(struct file *file,const char *buffer,unsigned long count,void *dat
 		write_reg(sw_num, 0x3c, 0x0000);
 		write_reg(sw_num, 0x01, 0x0432);
 		write_reg(sw_num, 0xff, 0x0080);
-		write_reg(sw_num, 0xf9, 0x1e38);
+
+		val = read_reg (sw_num, 0x00);
+		if (val == 0x1826) // IP1826D chip id
+		    write_reg (sw_num, 0xf9, 0x1038);
+		else               // IP1826C chip id
+		    write_reg (sw_num, 0xf9, 0x1e38);
 
 		write_reg(sw_num, 0xd8, 0xffff);
 		if (sw_num == 0)
