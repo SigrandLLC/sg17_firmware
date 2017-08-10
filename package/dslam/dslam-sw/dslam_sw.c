@@ -265,8 +265,6 @@ store_default(struct file *file,const char *buffer,unsigned long count,void *dat
 
 	if (simple_strtoul(buffer,&endp,16) == 1)
 	{
-		// this is need for poperly work ethernet modules
-		write_reg(sw_num, 0xfa, 0x0200);
 		// trunk hash algorithm selection is source and dest
 		write_reg(sw_num, 0x40, 0x000c);
 
@@ -277,9 +275,15 @@ store_default(struct file *file,const char *buffer,unsigned long count,void *dat
 
 		val = read_reg (sw_num, 0x00);
 		if (val == 0x1826) // IP1826D chip id
+		{
 		    write_reg (sw_num, 0xf9, 0x1038);
+		    write_reg (sw_num, 0xfa, 0x4222);
+		}
 		else               // IP1826C chip id
+		{
 		    write_reg (sw_num, 0xf9, 0x1e38);
+		    write_reg (sw_num, 0xfa, 0x0200);
+		}
 
 		write_reg(sw_num, 0xd8, 0xffff);
 		if (sw_num == 0)
