@@ -1,0 +1,24 @@
+diff -Naur binutils-2.16.1_old/bfd/archive.c binutils-2.16.1_new/bfd/archive.c
+--- binutils-2.16.1_old/bfd/archive.c	2018-02-11 03:49:22.760159001 +0700
++++ binutils-2.16.1_new/bfd/archive.c	2018-02-11 03:50:10.488011001 +0700
+@@ -1367,7 +1367,7 @@
+   else
+ #endif
+   sprintf ((hdr->ar_gid), "%ld", (long) status.st_gid);
+-  sprintf ((hdr->ar_mode), "%-8o", (unsigned int) status.st_mode);
++  sprintf ((hdr->ar_mode), "%-7o", (unsigned int) status.st_mode);
+   sprintf ((hdr->ar_size), "%-10ld", (long) status.st_size);
+   /* Correct for a lossage in sprintf whereby it null-terminates.  I cannot
+      understand how these C losers could design such a ramshackle bunch of
+diff -Naur binutils-2.16.1_old/bfd/som.c binutils-2.16.1_new/bfd/som.c
+--- binutils-2.16.1_old/bfd/som.c	2005-03-03 17:41:01.000000000 +0600
++++ binutils-2.16.1_new/bfd/som.c	2018-02-11 03:54:19.592500995 +0700
+@@ -6373,7 +6373,7 @@
+   sprintf (hdr.ar_date, "%ld", bfd_ardata (abfd)->armap_timestamp);
+   sprintf (hdr.ar_uid, "%ld", (long) getuid ());
+   sprintf (hdr.ar_gid, "%ld", (long) getgid ());
+-  sprintf (hdr.ar_mode, "%-8o", (unsigned int) statbuf.st_mode);
++  sprintf (hdr.ar_mode, "%-7o", (unsigned int) statbuf.st_mode);
+   sprintf (hdr.ar_size, "%-10d", (int) lst_size);
+   hdr.ar_fmag[0] = '`';
+   hdr.ar_fmag[1] = '\012';
