@@ -1,0 +1,12 @@
+diff -Naur binutils-2.16.1_old/bfd/archive.c binutils-2.16.1_new/bfd/archive.c
+--- binutils-2.16.1_old/bfd/archive.c	2018-02-11 03:50:10.488011001 +0700
++++ binutils-2.16.1_new/bfd/archive.c	2018-02-11 04:06:06.889973000 +0700
+@@ -1368,7 +1368,7 @@
+ #endif
+   sprintf ((hdr->ar_gid), "%ld", (long) status.st_gid);
+   sprintf ((hdr->ar_mode), "%-7o", (unsigned int) status.st_mode);
+-  sprintf ((hdr->ar_size), "%-10ld", (long) status.st_size);
++  sprintf ((hdr->ar_size), "%-9ld", (long) status.st_size);
+   /* Correct for a lossage in sprintf whereby it null-terminates.  I cannot
+      understand how these C losers could design such a ramshackle bunch of
+      IO operations.  */
