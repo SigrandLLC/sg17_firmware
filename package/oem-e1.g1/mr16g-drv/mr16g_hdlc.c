@@ -391,10 +391,12 @@ mr16g_close( struct net_device  *ndev )
 	struct net_local *nl=(struct net_local*)hdlc->priv;
 
 	PDEBUG(DINIT,"start");
-	hdlc_close(ndev);
 	netif_tx_disable(ndev);
 	mr16g_hdlc_close(nl);
 	mr16g_txrx_down(ndev);
+
+	// Deactivate HDLC device
+	hdlc_close(ndev);
 	PDEBUG(DINIT,"end");
 	return 0;
 }
