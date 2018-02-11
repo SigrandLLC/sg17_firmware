@@ -364,9 +364,15 @@ mr17g_open( struct net_device  *ndev )
     hdlc_device *hdlc = dev_to_hdlc(ndev);
 	struct mr17g_channel *ch  = (struct mr17g_channel*)hdlc->priv;
     volatile struct mr17g_hw_regs *regs = ch->iomem.regs;
+	int err;
 
     if( ch->chip->type == MR17G_MUXONLY ){
 		return -EBUSY;
+	}
+
+	/* Activate HDLC device and setup protocol */
+	if((err = hdlc_open(ndev))) {
+		return err;
 	}
 
 	// init descripts, allocate receiving buffers
@@ -403,7 +409,8 @@ mr17g_close(struct net_device  *ndev)
 		   ch->rx.head,ch->rx.tail, ch->tx.head,ch->tx.tail );
 	recv_free_buffs( ndev );
 	xmit_drop_buffs( ndev );
-
+	/* Deactivate HDLC device */
+	hdlc_close(ndev);
 	return 0;
 }
 
