@@ -497,24 +497,6 @@ mr16g_ioctl_get_iface(struct net_device *ndev,struct ifreq *ifr)
 	return 0;
 }
 
-/*
-  static int
-  mr16g_ioctl_set_iface(struct net_device *ndev,struct ifreq *ifr)
-  {
-  te1_settings sets;
-
-  if (ifr->ifr_settings.size != sizeof (sets)) {
-  return -ENOMEM;
-  }
-
-  if (copy_from_user
-  (&sets, ifr->ifr_settings.ifs_ifsu.sync, sizeof (sets))) {
-  return -EFAULT;
-  }
-  return 0;
-  }
-*/
-
 static int
 mr16g_ioctl(struct net_device *ndev, struct ifreq *ifr, int cmd)
 {
